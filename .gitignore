@@ -1,0 +1,10 @@
+# Python binaries
+*.py[co]
+
+# Autosaves and such
+*.asv
+*.swp
+~*
+*~
+#*
+
