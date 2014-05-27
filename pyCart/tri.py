@@ -7,16 +7,22 @@ import os
 # Triangulation class
 class Tri:
     # Initialization method
-    def __init__(self, nNode=None, Nodes=None, nTri=None,
+    def __init__(self, fname=None, nNode=None, Nodes=None, nTri=None,
         Tris=None, iComp=None):
         """
         pyCart triangulation class
         
+        This class provides an interface for a basic triangulation without
+        surface data.  It can be created either by reading an ASCII file or
+        specifying the data directly.
+        
         :Call:
-            >>> tri = pyCart.Tri(nNode, Nodes, nTri, Tris, iComp)
-            >>> tri = pyCart.Tri(Nodes=Nodes, Tris=Tris)
+            >>> tri = pyCart.Tri(fname=None)
+            >>> tri = pyCart.Tri(Nodes=Nodes, Tris=Tris, iComp=iComp)
             
         :Inputs:
+            *fname*: :class:`str`
+                Name of triangulation file to read
             *nNode*: :class:`int`
                 Number of nodes in triangulation
             *Nodes*: :class:`numpy.array(dtype=float)`, (*nNode*, 3)
@@ -29,47 +35,91 @@ class Tri:
                 Component number for each triangle
                 
         :Data members:
-            Same as inputs
+            *nNode*: :class:`int`
+                Number of nodes in triangulation
+            *Nodes*: :class:`numpy.array(dtype=float)`, (*nNode*, 3)
+                Matrix of *x,y,z*-coordinates of each node
+            *nTri*: :class:`int`
+                Number of triangles in triangulation
+            *Tris*: :class:`numpy.array(dtype=int)`, (*nTri*, 3)
+                Indices of triangle vertex nodes
+            *iComp*: :class:`numpy.array(dtype=int)`, (*nTri*)
+                Component number for each triangle
         
-        This class provides an interface for a basic triangulation without
-        surface data.
+        When no component numbers are specified, the object created will label
+        all triangles ``1``.
         """
         # Versions:
         #  2014.05.23 @ddalle  : First version
         
-        # Check Nodes input
-        if Nodes is None:
-            # Initialize to an empty array.
-            Nodes = np.array([])
-        elif type(Nodes).__name__ != 'ndarray':
-            # Attempt to convert to an array
-            Nodes = np.array(Nodes)
-        # Check Tris input
-        if Tris is None:
-            # Initialize to an empty array.
-            Tris = np.array([], dtype=int)
-        elif type(Tris).__name__ != 'ndarray':
-            # Attempt to convert to an array
-            Tris = np.array(Tris)
-        # Get number of nodes from matrix
-        if nNode is None:
-            nNode = Nodes.shape[0]
-        # Get number of nodes from matrix
-        if nTri is None:
-            nTri = Tris.shape[0]
-        # Check for components ids
-        if iComp is None:
-            # Initialize to an empty array.
-            iComp = np.ones(nTri)
-        elif type(iComp).__name__ != 'ndarray':
-            # Attempt to convert to an array
-            iComp = np.array(iComp) 
-        # Save the components.
-        self.nNode = nNode
-        self.Nodes = Nodes
-        self.nTri = nTri
-        self.Tris = Tris
-        self.iComp = iComp
+        # Check if file is specified.
+        if fname is not None:
+            # Open the file
+            fid = open(fname, 'r')
+            # Read the first line.
+            line = fid.readline()
+            # Process the line into two integers.
+            nNode, nTri = (int(v) for v in line.strip().split())
+            # Save the statistics.
+            self.nNode = nNode
+            self.nTri = nTri
+            
+            # Read the nodes.
+            Nodes = np.fromfile(fid, dtype=float, count=nNode*3, sep=" ")
+            # Reshape into a matrix.
+            self.Nodes = Nodes.reshape((nNode,3))
+            
+            # Read the Tris
+            Tris = np.fromfile(fid, dtype=int, count=nTri*3, sep=" ")
+            # Reshape into a matrix.
+            self.Tris = Tris.reshape((nTri,3))
+            
+            # Check for end of file.
+            if fid.tell() == os.fstat(fid.fileno()).st_size:
+                # Use default component ids.
+                self.iComp = None
+            else:
+                # Read from file.
+                self.iComp = np.fromfile(fid, dtype=int, count=nTri, sep=" ")
+            # Close the file.
+            fid.close()
+            
+        else:
+            # Read inputs
+            # Check Nodes input
+            if Nodes is None:
+                # Initialize to an empty array.
+                Nodes = np.array([])
+            elif type(Nodes).__name__ != 'ndarray':
+                # Attempt to convert to an array
+                Nodes = np.array(Nodes)
+            # Check Tris input
+            if Tris is None:
+                # Initialize to an empty array.
+                Tris = np.array([], dtype=int)
+            elif type(Tris).__name__ != 'ndarray':
+                # Attempt to convert to an array
+                Tris = np.array(Tris)
+            # Get number of nodes from matrix
+            if nNode is None:
+                nNode = Nodes.shape[0]
+            # Get number of nodes from matrix
+            if nTri is None:
+                nTri = Tris.shape[0]
+            # Check for components ids
+            if iComp is None:
+                # Initialize to an empty array.
+                iComp = np.ones(nTri)
+            elif type(iComp).__name__ != 'ndarray':
+                # Attempt to convert to an array
+                iComp = np.array(iComp) 
+            # Save the components.
+            self.nNode = nNode
+            self.Nodes = Nodes
+            self.nTri = nTri
+            self.Tris = Tris
+            self.iComp = iComp
+            
         # End
         return None
         
@@ -89,6 +139,10 @@ class Tri:
                 
         :Outputs:
             ``None``
+            
+        :Examples:
+            >>> tri = pyCart.ReadTri('bJet.i.tri')
+            >>> tri.Write('bjet2.tri')
         """
         # Versions:
         #  2014.05.23 @ddalle  : First version
@@ -97,13 +151,19 @@ class Tri:
         fid = open(fname, 'w')
         # Write the number of nodes and triangles.
         fid.write('%i  %i\n' % (self.nNode, self.nTri))
-        # Write the nodal coordinates.
-        
+        # Write the nodal coordinates, tris, and component ids.
+        np.savetxt(fid, tri.Nodes, fmt="%+15.8e", delimeter=' ')
+        np.savetxt(fid, tri.Tris,  fmt="%i",      delimeter=' ')
+        np.savetxt(fid, tri.iComp, fmt="%i",      delimeter=' ')
+        # Close the file.
+        fid.close()
+        # End
+        return None
     
     # Function to translate the triangulation
     def Translate(self, dx=None, dy=None, dz=None):
         """
-        Translate a surface triangulation
+        Translate the nodes of a triangulation object.
         
         :Call:
             >>> tri.Translate(dR)
@@ -149,6 +209,51 @@ class Tri:
         # End
         return None
         
+    # Function to rotate a triangulation about an arbitrary vector
+    def Rotate(self, v1, v2, theta):
+        """
+        Rotate the nodes of a triangulation object.
+        
+        :Call:
+            >>> tri.Rotate(v1, v2, theta)
+        
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance to be rotated
+            *v1*: :class:`numpy.ndarray` (*shape*=(3,))
+                Start point of rotation vector
+            *v2*: :class:`numpy.ndarray` (*shape*=(3,))
+                End point of rotation vector
+            *theta*: :class:`float`
+                Rotation angle in degrees
+            
+        :Outputs:
+            ``None``
+        """
+        # Versions:
+        #  2014.05.27 @ddalle  : First version
+        
+        # Convert points to NumPy.
+        v1 = np.array(v1)
+        v2 = np.array(v2)
+        # Extract the coordinates and shift origin.
+        x = self.Nodes[:,0] - v1[0]
+        y = self.Nodes[:,1] - v1[1]
+        z = self.Nodes[:,2] - v1[2]
+        # Make the rotation vector
+        v = (v2-v1) / np.linalg.linalg.norm(v2-v1)
+        # Dot product of points with rotation vector
+        k1 = v[0]*x + v[1]*y + v[2]*z
+        # Trig functions
+        c_th = np.cos(theta*np.pi/180.)
+        s_th = np.sin(theta*np.pi/180.)
+        # Apply Rodrigues' rotation formula to get the rotated coordinates.
+        self.Nodes[:,0] = x*c_th+(v[1]*z-v[2]*y)*s_th+v[0]*k1*(1-c_th)+v1[0]
+        self.Nodes[:,1] = y*c_th+(v[2]*x-v[0]*z)*s_th+v[1]*k1*(1-c_th)+v1[1]
+        self.Nodes[:,2] = z*c_th+(v[0]*y-v[1]*x)*s_th+v[2]*k1*(1-c_th)+v1[2]
+        # Return the rotated coordinates.
+        return None
+        
         
         
         
@@ -173,37 +278,42 @@ def ReadTri(fname):
             Triangulation instance
     
     :Examples:
-        >>> tri = pyCart.ReadTri('bJet.i.tri')
+        >>> (nNode, Nodes,  = pyCart.ReadTri('bJet.i.tri')
         >>> tri.nNode
         92852
     """
-    # Open the file
-    fid = open(fname, 'r')
-    # Read the first line.
-    line = fid.readline()
-    # Process the line into two integers.
-    nNode, nTri = (int(v) for v in line.strip().split())
-    
-    # Read the nodes.
-    Nodes = np.fromfile(fid, dtype=float, count=nNode*3, sep=" ")
-    # Reshape into a matrix.
-    Nodes = Nodes.reshape((nNode,3))
-    
-    # Read the Tris
-    Tris = np.fromfile(fid, dtype=int, count=nTri*3, sep=" ")
-    # Reshape into a matrix.
-    Tris = Tris.reshape((nTri,3))
-    
-    # Check for end of file.
-    if fid.tell() == os.fstat(fid.fileno()).st_size:
-        # Use default component ids.
-        iComp = None
-    else:
-        # Read from file.
-        iComp = np.fromfile(fid, dtype=int, count=nTri, sep=" ")
-        
+    # Versions:
+    #  2014.05.27 @ddalle  : First version
+       
     # Create the tri object and return it.
-    return Tri(nNode, Nodes, nTri, Tris, iComp)
+    return Tri(fname)
     
     
+# Global function to write a triangulation (just calls tri method)
+def WriteTri(fname, tri):
+    """
+    Write a triangulation instance to file
+    
+    :Call:
+        >>> pyCart.WriteTri(fname, tri)
+    
+    :Inputs:
+        *fname*: :class:`str`
+            Name of `.tri` file to read
+        *tri*: :class:`pyCart.tri.Tri`
+            Triangulation instance
+    
+    :Ooutputs:
+        ``None``
+    
+    :Examples:
+        >>> tri = pyCart.ReadTri('bJet.i.tri')
+        >>> pyCart.WriteTri('bjet2.tri', tri)
+    """
+    # Versions:
+    #  2014.05.23 @ddalle  : First version
+    
+    # Call the triangulation's write method.
+    tri.Write(fname)
+    return None
     
