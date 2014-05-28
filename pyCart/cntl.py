@@ -463,7 +463,7 @@ class Cntl:
         
         # Check if the "Grid" folder exists.
         if not os.path.isdir("Grid"):
-            os.mkdir("Grid", 750)
+            os.mkdir("Grid", 0750)
         # Extract the grid parameters.
         Grid = self.Grid
         # Get the name of the tri file(s).
@@ -472,7 +472,7 @@ class Cntl:
         shutil.copyfile(Grid['TriFile'], os.path.join('Grid', ftri))
         # Get the component list.
         fxml = Grid['ComponentFile']
-        if os.path.isfile(dxml):
+        if os.path.isfile(fxml):
             # Copy
             shutil.copyfile(fxml, os.path.join('Grid', 'Config.xml'))
         # Change to the Grid folder.
@@ -480,9 +480,6 @@ class Cntl:
         # Start by running autoInputs
         cmd = 'autoInputs -r %i -t %s' % (Grid['MeshRadius'], ftri)
         os.system(cmd)
-        # Create a "Components.i.tri" file if necessary
-        if ftri != "Components.i.tri":
-            os.system('ln -sf %s Components.i.tri' % ftri)
         # Run cubes
         cmd = 'cubes -maxR %i -pre preSpec.c3d.cntl -reorder' % \
             Grid['nRefinements']
@@ -517,6 +514,8 @@ class Cntl:
         # Check the 'Grid' directory.
         if not os.path.isdir('Grid'):
             raise IOError('Folder "Grid" not found.')
+        # Name of tri file
+        ftri = os.path.split(self.Grid['TriFile'])[-1]
         # Get the folder names.
         dlist = self.Trajectory._GetFolderNames()
         # Change to the 'Grid' folder.
@@ -530,7 +529,7 @@ class Cntl:
         f_copy = ['input.c3d', 'Config.xml',
             'Mesh.c3d.Info', 'preSpec.c3d.cntl']
         # List of files to link
-        f_link = ['Components.i.tri', 'Mesh.R.c3d', 'Mesh.mg.c3d']
+        f_link = [ftri, 'Mesh.R.c3d', 'Mesh.mg.c3d']
         # Loop through the case folders.
         for i in range(len(dlist)):
             # Get the folder name.
