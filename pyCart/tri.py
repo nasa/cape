@@ -1,7 +1,9 @@
 
 
 # Required modules
+# Numerics
 import numpy as np
+# File system and operating system management
 import os
 
 # Triangulation class
@@ -254,11 +256,19 @@ class Tri:
         # Return the rotated coordinates.
         return None
         
+    # Method that shows the representation of a triangulation
+    def __repr__(self):
+        """
+        Return the string representation of a triangulation.
         
+        This looks like ``<pyCart.tri.Tri(nNode=M, nTri=N)>``
+        """
+        # Versions:
+        #  2014.05.27 @ddalle  : First version
+        return '<pyCart.tri.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
         
-        
-                
-
+    # String representation is the same
+    __str__ = __repr__
 
 
 # Function to read .tri files
