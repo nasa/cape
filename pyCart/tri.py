@@ -154,9 +154,9 @@ class Tri:
         # Write the number of nodes and triangles.
         fid.write('%i  %i\n' % (self.nNode, self.nTri))
         # Write the nodal coordinates, tris, and component ids.
-        np.savetxt(fid, tri.Nodes, fmt="%+15.8e", delimeter=' ')
-        np.savetxt(fid, tri.Tris,  fmt="%i",      delimeter=' ')
-        np.savetxt(fid, tri.iComp, fmt="%i",      delimeter=' ')
+        np.savetxt(fid, tri.Nodes, fmt="%+15.8e", delimiter=' ')
+        np.savetxt(fid, tri.Tris,  fmt="%i",      delimiter=' ')
+        np.savetxt(fid, tri.iComp, fmt="%i",      delimiter=' ')
         # Close the file.
         fid.close()
         # End

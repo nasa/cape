@@ -1,0 +1,22 @@
+{
+    "Grid": {
+        "TriFile": "Components.i.tri",
+        "ComponentFile": "Config.xml",
+        "MeshRadius": 16,
+        "nRefinements": 11,
+        "nMultiGrid": 3
+    },
+    
+    "RunOptions": {
+        "nIter": 500,
+        "nThreads": 8,
+        "CFL": 1.1,
+        "CntlFile": "input.cntl"
+    },
+    
+    "Trajectory": {
+        "File": "Trajectory.dat",
+        "Keys": ["Mach", "alpha", "beta"],
+        "Prefix": "F"
+    }
+}
