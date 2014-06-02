@@ -9,8 +9,8 @@ import os
 # Triangulation class
 class Tri:
     # Initialization method
-    def __init__(self, fname=None, nNode=None, Nodes=None, nTri=None,
-        Tris=None, iComp=None):
+    def __init__(self, fname=None, uh3d=None,
+        nNode=None, Nodes=None, nTri=None, Tris=None, iComp=None):
         """
         pyCart triangulation class
         
@@ -24,7 +24,9 @@ class Tri:
             
         :Inputs:
             *fname*: :class:`str`
-                Name of triangulation file to read
+                Name of triangulation file to read (Cart3D format)
+            *uh3d*: :class:`str`
+                Name of triangulation file (UH3D format)
             *nNode*: :class:`int`
                 Number of nodes in triangulation
             *Nodes*: :class:`numpy.array(dtype=float)`, (*nNode*, 3)
@@ -53,68 +55,37 @@ class Tri:
         """
         # Versions:
         #  2014.05.23 @ddalle  : First version
+        #  2014.06.02 @ddalle  : Added UH3D reading capability
         
         # Check if file is specified.
         if fname is not None:
-            # Open the file
-            fid = open(fname, 'r')
-            # Read the first line.
-            line = fid.readline()
-            # Process the line into two integers.
-            nNode, nTri = (int(v) for v in line.strip().split())
-            # Save the statistics.
-            self.nNode = nNode
-            self.nTri = nTri
-            
-            # Read the nodes.
-            Nodes = np.fromfile(fid, dtype=float, count=nNode*3, sep=" ")
-            # Reshape into a matrix.
-            self.Nodes = Nodes.reshape((nNode,3))
-            
-            # Read the Tris
-            Tris = np.fromfile(fid, dtype=int, count=nTri*3, sep=" ")
-            # Reshape into a matrix.
-            self.Tris = Tris.reshape((nTri,3))
-            
-            # Check for end of file.
-            if fid.tell() == os.fstat(fid.fileno()).st_size:
-                # Use default component ids.
-                self.iComp = None
-            else:
-                # Read from file.
-                self.iComp = np.fromfile(fid, dtype=int, count=nTri, sep=" ")
-            # Close the file.
-            fid.close()
+            # Read from file.
+            self.Read(fname)
+        
+        elif uh3d is not None:
+            # Read from the other format.
+            self.ReadUH3D(uh3d)
             
         else:
-            # Read inputs
-            # Check Nodes input
-            if Nodes is None:
-                # Initialize to an empty array.
-                Nodes = np.array([])
-            elif type(Nodes).__name__ != 'ndarray':
-                # Attempt to convert to an array
-                Nodes = np.array(Nodes)
-            # Check Tris input
-            if Tris is None:
-                # Initialize to an empty array.
-                Tris = np.array([], dtype=int)
-            elif type(Tris).__name__ != 'ndarray':
-                # Attempt to convert to an array
-                Tris = np.array(Tris)
-            # Get number of nodes from matrix
+            # Process inputs.
+            # Check counts.
             if nNode is None:
-                nNode = Nodes.shape[0]
-            # Get number of nodes from matrix
+                # Get dimensions if possible.
+                if Nodes is not None:
+                    # Use the shape.
+                    nNode = Nodes.shape[0]
+                else:
+                    # No nodes
+                    nNode = 0
+            # Check counts.
             if nTri is None:
-                nTri = Tris.shape[0]
-            # Check for components ids
-            if iComp is None:
-                # Initialize to an empty array.
-                iComp = np.ones(nTri)
-            elif type(iComp).__name__ != 'ndarray':
-                # Attempt to convert to an array
-                iComp = np.array(iComp) 
+                # Get dimensions if possible.
+                if Tris is not None:
+                    # Use the shape.
+                    nTri = Tris.shape[0]
+                else:
+                    # No nodes
+                    nTri = 0
             # Save the components.
             self.nNode = nNode
             self.Nodes = Nodes
@@ -126,6 +97,57 @@ class Tri:
         return None
         
         
+    # Function to read a .tri file
+    def Read(self, fname):
+        """
+        Read a triangulation file (from '*.tri')
+        
+        :Call:
+            >>> tri.Read(fname)
+            
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance
+            *fname*: :class:`str`
+                Name of triangulation file to read
+        
+        :Outputs:
+            ``None``
+        """
+        # Versions:
+        #  2014.06.02 @ddalle  : Split from initialization method.
+        
+        # Open the file
+        fid = open(fname, 'r')
+        # Read the first line.
+        line = fid.readline()
+        # Process the line into two integers.
+        nNode, nTri = (int(v) for v in line.strip().split())
+        # Save the statistics.
+        self.nNode = nNode
+        self.nTri = nTri
+        
+        # Read the nodes.
+        Nodes = np.fromfile(fid, dtype=float, count=nNode*3, sep=" ")
+        # Reshape into a matrix.
+        self.Nodes = Nodes.reshape((nNode,3))
+        
+        # Read the Tris
+        Tris = np.fromfile(fid, dtype=int, count=nTri*3, sep=" ")
+        # Reshape into a matrix.
+        self.Tris = Tris.reshape((nTri,3))
+        
+        # Check for end of file.
+        if fid.tell() == os.fstat(fid.fileno()).st_size:
+            # Use default component ids.
+            self.iComp = None
+        else:
+            # Read from file.
+            self.iComp = np.fromfile(fid, dtype=int, count=nTri, sep=" ")
+        # Close the file.
+        fid.close()
+        
+    
     # Function to write a triangulation to file.
     def Write(self, fname):
         """
@@ -155,13 +177,75 @@ class Tri:
         # Write the number of nodes and triangles.
         fid.write('%i  %i\n' % (self.nNode, self.nTri))
         # Write the nodal coordinates, tris, and component ids.
-        np.savetxt(fid, tri.Nodes, fmt="%+15.8e", delimiter=' ')
-        np.savetxt(fid, tri.Tris,  fmt="%i",      delimiter=' ')
-        np.savetxt(fid, tri.iComp, fmt="%i",      delimiter=' ')
+        np.savetxt(fid, self.Nodes, fmt="%+15.8e", delimiter=' ')
+        np.savetxt(fid, self.Tris,  fmt="%i",      delimiter=' ')
+        np.savetxt(fid, self.iComp, fmt="%i",      delimiter=' ')
         # Close the file.
         fid.close()
         # End
         return None
+        
+        
+    # Read from a .uh3d file.
+    def ReadUH3D(self, fname):
+        """
+        Read a triangulation file (from '*.uh3d')
+        
+        :Call:
+            >>> tri.ReadUH3D(fname)
+            
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance
+            *fname*: :class:`str`
+                Name of triangulation file to read
+        
+        :Outputs:
+            ``None``
+        """
+        # Versions:
+        #  2014.06.02 @ddalle  : First version
+        
+        # Open the file
+        fid = open(fname, 'r')
+        # Read the first line and discard.
+        line = fid.readline()
+        # Read the second line and split by commas.
+        data = fid.readline().split(',')
+        # Process the number of nodes and tris
+        nNode = int(data[0])
+        nTri = int(data[2])
+        # Save the statistics.
+        self.nNode = nNode
+        self.nTri = nTri
+        
+        # Initialize the nodes.
+        Nodes = np.zeros((nNode, 3))
+        # Loop through the nodes.
+        for i in range(nNode):
+            # Read the next line.
+            Nodes[i] = np.fromfile(fid, dtype=float, count=4, sep=",")[1:4]
+        # Save
+        self.Nodes = Nodes
+        
+        # Initialize the Tris and component numbers
+        Tris = np.zeros((nTri, 3))
+        iComp = np.ones(nTri)
+        # Loop through the lines.
+        for i in range(nTri):
+            # Read the line.
+            d = np.fromfile(fid, dtype=int, count=5, sep=",")
+            # Save the indices.
+            Tris[i] = d[1:4]
+            # Save the component number.
+            iComp[i] = d[4]
+        # Save.
+        self.Tris = Tris
+        self.iComp = iComp
+        
+        # Close the file.
+        fid.close()
+        
     
     # Function to translate the triangulation
     def Translate(self, dx=None, dy=None, dz=None):
