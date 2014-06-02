@@ -122,7 +122,7 @@ class Trajectory:
             self.keys)
         
     # Function to list directory names
-    def _GetFolderNames(self, prefix=None):
+    def GetFolderNames(self, i=None, prefix=None):
         """
         List folder names for each of the cases in a trajectory.
         
@@ -134,38 +134,52 @@ class Trajectory:
         digits used will match the number of digits in the trajectory file.
         
         :Call:
-            >>> dname = T._GetFolderNames()
-            >>> dname = T._GetFolderNames(prefix="F")
+            >>> dname = T.GetFolderNames()
+            >>> dname = T.GetFolderNames(i=None, prefix="F")
         
         :Inputs:
             *T*: :class:`pyCart.cntl.Trajectory`
                 Instance of the pyCart trajectory class
+            *i*: :class:`int` or :class:`list`
+                Index of cases to process or list of cases.  If this is
+                ``None``, all cases will be processed.
             *prefix*: :class:`str`
                 Header for name of each folder
                 
         :Outputs:
-            *dname*: :class:`list`, *dtype=str*
-                List of folder names
+            *dname*: :class:`str` or :class:`list`
+                Folder name or list of folder names
         """
         # Versions:
         #  2014.05.28 @ddalle  : First version
         
-        # Process the prefix
+        # Process the prefix.
         if prefix is None: prefix = self.prefix
+        # Process the index list.
+        if i is None: i = range(self.nCase)
         # Get the variable names.
         keys = self.keys
-        # Initialize the list.
-        dlist = []
-        # Loop through the conditions.
-        for i in range(self.nCase):
-            # Initialize folder name.
-            dname = prefix
+        # Check for a list.
+        if np.isscalar(i):
+            # Initialize the output.
+            dlist = prefix
             # Append based on the keys.
             for k in keys:
                 # Append the text in the trajectory file.
-                dname += "_" + k + "_" + self.text[k][i]
-            # Append to the list.
-            dlist.append(dname)
+                dlist += "_" + k + "_" + self.text[k][i]
+        else:
+            # Initialize the list.
+            dlist = []
+            # Loop through the conditions.
+            for j in i:
+                # Initialize folder name.
+                dname = prefix
+                # Append based on the keys.
+                for k in keys:
+                    # Append the text in the trajectory file.
+                    dname += "_" + k + "_" + self.text[k][j]
+                # Append to the list.
+                dlist.append(dname)
         return dlist
         
     # Function to make the directories
@@ -199,7 +213,7 @@ class Trajectory:
         # Process the prefix
         if prefix is None: prefix = self.prefix
         # Get the folder list.
-        dlist = self._GetFolderNames(prefix)
+        dlist = self.GetFolderNames(prefix=prefix)
         # Check if the "Grid" folder exists.
         if not os.path.isdir("Grid"):
             os.mkdir("Grid", 0750)
@@ -469,7 +483,8 @@ class Cntl:
         # Get the name of the tri file(s).
         ftri = os.path.split(Grid['TriFile'])[-1]
         # Copy the tri file there if necessary.
-        shutil.copyfile(Grid['TriFile'], os.path.join('Grid', ftri))
+        shutil.copyfile(Grid['TriFile'], 
+            os.path.join('Grid', 'Components.i.tri'))
         # Get the component list.
         fxml = Grid['ComponentFile']
         if os.path.isfile(fxml):
@@ -478,7 +493,7 @@ class Cntl:
         # Change to the Grid folder.
         os.chdir('Grid')
         # Start by running autoInputs
-        cmd = 'autoInputs -r %i -t %s' % (Grid['MeshRadius'], ftri)
+        cmd = 'autoInputs -r %i -t Components.i.tri' % Grid['MeshRadius']
         os.system(cmd)
         # Run cubes
         cmd = 'cubes -maxR %i -pre preSpec.c3d.cntl -reorder' % \
@@ -517,7 +532,7 @@ class Cntl:
         # Name of tri file
         ftri = os.path.split(self.Grid['TriFile'])[-1]
         # Get the folder names.
-        dlist = self.Trajectory._GetFolderNames()
+        dlist = self.Trajectory.GetFolderNames()
         # Change to the 'Grid' folder.
         os.chdir('Grid')
         # Check if the grid has been created.
@@ -529,7 +544,14 @@ class Cntl:
         f_copy = ['input.c3d', 'Config.xml',
             'Mesh.c3d.Info', 'preSpec.c3d.cntl']
         # List of files to link
-        f_link = [ftri, 'Mesh.R.c3d', 'Mesh.mg.c3d']
+        f_link = ['Components.i.tri', 'Mesh.R.c3d']
+        # Check if a link will break things.
+        if self.RunOptions["nAdapt"] > 0:
+            # Adapt: copy the mesh.
+            f_copy.append('Mesh.mg.c3d')
+        else:
+            # No adaptations: link the mesh.
+            f_link.append('Mesh.mg.c3d')
         # Loop through the case folders.
         for i in range(len(dlist)):
             # Get the folder name.
@@ -596,17 +618,23 @@ class Cntl:
         """
         # Versions:
         #  2014.05.28 @ddalle  : First version
+        #  2014.05.30 @ddalle  : Moved input.cntl filtering to separate func
         
         # Check the 'Grid directory.
         if not os.path.isdir('Grid'):
             raise IOError('Folder "Grid" not found.')
         # Get the name of the .cntl file.
         fname = self.RunOptions['CntlFile']
+        # Number of adaptations
+        nAdapt = self.RunOptions['nAdapt']
         # Check if it exists.
         if not os.path.isfile(fname):
             raise IOError('Input CNTL File "%s" not found.' % fname)
         # Copy the file to the grid folder.
         shutil.copyfile(fname, os.path.join('Grid', 'input.cntl'))
+        # Copy the aero.csh file
+        if nAdapt > 0:
+            shutil.copyfile('aero.csh', os.path.join('Grid', 'aero.csh'))
         # Move to the Grid folder.
         os.chdir('Grid')
         # Extract the trajectory.
@@ -614,7 +642,7 @@ class Cntl:
         # Read the input.cntl file.
         lines = open('input.cntl').readlines()
         # Get the folder names
-        dlist = T._GetFolderNames()
+        dlist = T.GetFolderNames()
         # Create a file to run all the cases.
         fname_sh = 'run_cases.sh'
         fname_i = 'run_case.sh'
@@ -628,32 +656,16 @@ class Cntl:
             # Print a status update
             print("Preparing case %i: Mach=%.2f, alpha=%-.2f, beta=%-.2f" 
                 % (i, T.Mach[i], T.alpha[i], T.beta[i]))
-            # Create the input file.
-            f = open(os.path.join(dlist[i], 'input.cntl'), 'w')
-            # Loop through the lines of the input.cntl template.
-            for line in lines:
-                # Replace placeholders
-                line = line.replace('Mach_TMP',  '%.8f'%T.Mach[i])
-                line = line.replace('alpha_TMP', '%.8f'%T.alpha[i])
-                line = line.replace('beta_TMP',  '%.8f'%T.beta[i])
-                # Write the line.
-                f.write(line)
-            # Close the input.cntl file.
-            f.close()
+            # Prepare the input file.
+            self.PrepareCntlFile('input.cntl', i)
             # Create a conditions file
             T.WriteConditionsFile(os.path.join(dlist[i], 'Conditions.json'), i)
+            # Check for adaptation.
+            if nAdapt > 0:
+                # Create the aero.csh instance.
+                self.PrepareAeroCsh('aero.csh', i)
             # Create the run script.
-            f = open(os.path.join(dlist[i], fname_i), 'w')
-            f.write('#!/bin/bash\n\n')
-            # Set the number of processors.
-            f.write('export OMP_NUM_THREADS=%i\n' % opts['nThreads'])
-            # Create the command to do the work.
-            f.write('flowCart -N %i -v -mg %i -his -clic\n' %
-                (opts['nIter'], self.Grid['nMultiGrid']))
-            # Close the file.
-            f.close()
-            # Make it executable.
-            os.chmod(os.path.join(dlist[i], fname_i), 0750)
+            self.CreateCaseRunScript(i)
             # Append to the global script.
             fsh.write('# Case %i\n' % i)
             fsh.write('cd %s\n' % dlist[i])
@@ -667,5 +679,152 @@ class Cntl:
         os.chdir('..')
         # End
         return None
+        
+    # Function to filter/replace input.cntl files
+    def PrepareCntlFile(self, fin, i):
+        """
+        Create a specific instance of an 'input.cntl' file.
+        
+        This function will create a new 'input.cntl' file and replace various
+        ``*_TMP`` placeholders with specific values.
+        
+        This function must be called from the 'Grid' folder, unlike the other
+        higher-level functions, which are called from the parent folder.
+        
+        :Call:
+            >>> cntl.PrepareCntlFile(fin, i)
+            
+        :Inputs:
+            *cntl*: :class:`pyCart.cntl.Cntl`
+                Instance of global pyCart settings object
+            *fin*: :class:`str`
+                Name of template input file
+            *i*: :class:`int`
+                Trajectory case number
+                
+        :Outputs:
+            ``None``
+        """
+        # Versions:
+        #  2014.05.30 @ddalle  : First version
+        
+        # Read the lines from the template file.
+        lines = open(fin).readlines()
+        # Get the trajectory.
+        T = self.Trajectory
+        # Get the folder name.
+        dname = T.GetFolderNames(i=i)
+        # Create the output file name.
+        fout = os.path.join(dname, 'input.cntl')
+        # Create the specific input file.
+        f = open(fout, 'w')
+        # Loop through the lines of the template.
+        for line in lines:
+            line = line.replace('Mach_TMP',  '%.8f'%T.Mach[i])
+            line = line.replace('alpha_TMP', '%.8f'%T.alpha[i])
+            line = line.replace('beta_TMP',  '%.8f'%T.beta[i])
+            # Write the line.
+            f.write(line)
+        # Close the input.cntl file.
+        f.close()
+        # End
+        return None
+        
+        
+    # Function to filer/replace aero.csh files
+    def PrepareAeroCsh(self, fin, i):
+        """
+        Create a specific instance of an 'aero.csh' file.
+        
+        This function will create a new 'input.cntl' file and replace various
+        ``set * =`` placeholders with specific values.
+        
+        This function must be called from the 'Grid' folder, unlike the other
+        higher-level functions, which are called from the parent folder.
+        
+        :Call:
+            >>> cntl.PrepareCntlFile(fin, i)
+            
+        :Inputs:
+            *cntl*: :class:`pyCart.cntl.Cntl`
+                Instance of global pyCart settings object
+            *fin*: :class:`str`
+                Name of template input file/script
+            *i*: :class:`int`
+                Trajectory case number
+                
+        :Outputs:
+            ``None``
+        """
+        # Versions:
+        #  2014.05.30 @ddalle  : First version
+        
+        # Read the lines from the template file/script.
+        lines = open(fin).readlines()
+        # Get the trajectory.
+        T = self.Trajectory
+        # Get the folder name.
+        dname = T.GetFolderNames(i=i)
+        # Create the output file name.
+        fout = os.path.join(dname, 'aero.csh')
+        # Create the specific input file/script.
+        f = open(fout, 'w')
+        # Loop through the lines of the template.
+        for line in lines:
+            # Do stuff...
+            # Write the line.
+            f.write(line)
+        # Close the aero.csh file.
+        f.close()
+        # Make it executable.
+        os.chmod(fout, 0750)
+        # End.
+        return None
+        
+    # Function to create the flowCart run script
+    def CreateCaseRunScript(self, i):
+        """
+        Write the "run_case.sh" script to run a given case.
+        
+        :Call:
+            >>> cntl.CreateCaseRunScript(i)
+        
+        :Inputs:
+            *cntl*: :class:`pyCart.cntl.Cntl`
+                Instance of global pyCart settings object
+            *i*: :class:`int`
+                Trajectory case number
+                
+        :Outputs:
+            ``None``
+        """
+        # Versions:
+        #  2014.05.30 @ddalle  : First version
+        
+        # Get the folder name.
+        dname = self.Trajectory.GetFolderNames(i=i)
+        # File name
+        fout = os.path.join(dname, 'run_case.sh')
+        # Create the file.
+        f = open(fout, 'w')
+        # Get the options.
+        opts = self.RunOptions
+        # Write the shell magic.
+        f.write('#!/bin/bash\n\n')
+        # Set the number of processors.
+        f.write('export OMP_NUM_THREADS=%i\n\n' % opts['nThreads'])
+        # Check for an adaptive case.
+        if opts['nAdapt'] > 0:
+            # Create the aero.csh command to do the work.
+            f.write('./aero.csh jumpstart | tee aero.out\n')
+        else:
+            # Create the flowCart command to do the work.
+            f.write('flowCart -N %i -v -mg %i -his -clic | tee flowCart.txt\n' %
+                (opts['nIter'], self.Grid['nMultiGrid']))
+        # Close the file.
+        f.close()
+        # Make it executable.
+        os.chmod(fout, 0750)
+        
         
     

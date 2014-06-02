@@ -31,3 +31,7 @@ TemplateFodler = os.path.join(PyCartFolder, "templates")
 # Import classes and methods from the submodules
 from tri  import Tri, ReadTri, WriteTri
 from cntl import Cntl, Trajectory, ReadTrajectoryFile, CreateFolders
+
+
+# Get the conversion tools directly.
+from convert import *

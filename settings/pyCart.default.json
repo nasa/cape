@@ -9,6 +9,7 @@
     
     "RunOptions": {
         "nIter": 500,
+		"nAdapt": 0,
         "nThreads": 8,
         "CFL": 1.1,
         "CntlFile": "input.cntl"
