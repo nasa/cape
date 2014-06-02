@@ -5,6 +5,13 @@ pc_SetupRuns
 
 Setup runs based on existing pyCart settings using defaults where necessary.
 This script assumes that 'pc_SetupGrids.py' has already been run.
+
+:Call:
+    $ pc_SetupRuns.py
+    $ pc_SetupRuns.py $json
+    
+:Inputs:
+    *json*: Name of pyCart control file (defaults to "pyCart.json")
 """
 
 # Get the pyCart module.
@@ -22,6 +29,11 @@ else:
     # All default options
     a = []
     kw = {}
+    
+# Check for a help option
+if kw.get('h',False) or kw.get('help',False):
+    print __doc__
+    sys.exit()
 
 # Get the file pyCart settings file name.
 if len(a) == 0:

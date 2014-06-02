@@ -33,6 +33,11 @@ else:
     # All default options
     a = []
     kw = {}
+    
+# Check for a help option
+if kw.get('h',False) or kw.get('help',False):
+    print __doc__
+    sys.exit()
 
 # Get the file pyCart settings file name.
 if len(a) == 0:
@@ -45,6 +50,9 @@ else:
 fuh3d = kw.get('i', fuh3d)
 # Must have a file name.
 if fuh3d is None:
+    # Required input.
+    print __doc__
+    raise IOError("At least one input required.")
     sys.exit(1)
 
 # Get the file pyCart settings file name.
