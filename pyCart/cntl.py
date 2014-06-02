@@ -393,6 +393,8 @@ class Cntl:
         f.close()
         # Process the actual input file.
         opts = json.loads(lines)
+        # Save all the options.
+        self.JSON = opts
         
         # Initialize the grid parameters.
         self.Grid = opts.get('Grid', {})
@@ -433,7 +435,41 @@ class Cntl:
             self.Trajectory.nCase, self.RunOptions['nIter'],
             self.Grid['TriFile'])
         
+    # Trajectory's folder name method
+    def GetFolderNames(self, i=None, prefix=None):
+        """
+        List folder names for each of the cases in a trajectory.
         
+        The folder names will be of the form
+        
+            "F_Mach_2.0_alpha_0.0_beta_-0.5/"
+            
+        using all of the keys specified in the trajectory file.  The amount of
+        digits used will match the number of digits in the trajectory file.
+        
+        :Call:
+            >>> dname = cntl.GetFolderNames()
+            >>> dname = cntl.GetFolderNames(i=None, prefix="F")
+        
+        :Inputs:
+            *cntl*: :class:`pyCart.cntl.Trajectory`
+                Instance of the pyCart trajectory class
+            *i*: :class:`int` or :class:`list`
+                Index of cases to process or list of cases.  If this is
+                ``None``, all cases will be processed.
+            *prefix*: :class:`str`
+                Header for name of each folder
+                
+        :Outputs:
+            *dname*: :class:`str` or :class:`list`
+                Folder name or list of folder names
+        """
+        # Versions:
+        #  2014.06.02 @ddalle  : First version
+        
+        # Run the trajectory's method
+        return self.Trajectory.GetFolderNames(i, prefix)
+    
     # Method to create the folders
     def CreateFolders(self):
         """

@@ -125,6 +125,7 @@ class Tri:
         # End
         return None
         
+        
     # Function to write a triangulation to file.
     def Write(self, fname):
         """
