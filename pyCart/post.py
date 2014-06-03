@@ -16,7 +16,7 @@ class LoadsCC:
     Store forces and moments in a class from "loadsCC.dat" files
     """
     # Initialization method
-    def __init__(self, cntl=None):
+    def __init__(self, cart3d=None):
         """
         Class to store force and moment coefficients
         
@@ -24,7 +24,7 @@ class LoadsCC:
             >>> FM = pyCart.LoadsCC(cntl=None)
         
         :Inputs:
-            *cntl*: :class:`pyCart.cntl.C_ntl`
+            *cntl*: :class:`pyCart.cart3d.Cart3d`
                 Overall :mod:`pyCart` control instance
         
         :Outputs:
@@ -52,7 +52,7 @@ class LoadsCC:
             # Quit.
             return None
         # Get the folder names.
-        dnames = cntl.GetFolderNames()
+        dnames = cart3d.GetFolderNames()
         # Initialize the component list.
         self.Components = []
         # Initialize the force coefficients
@@ -62,7 +62,7 @@ class LoadsCC:
         self.C_l = {}; self.C_m = {}; self.C_n = {}
         self.C_M_x = {}; self.C_M_y = {}; self.C_M_z = {}
         # Number of cases.
-        nCase = cntl.Trajectory.nCase
+        nCase = cart3d.Trajectory.nCase
         # Loop through the files.
         for i in range(nCase):
             # Create the file name.

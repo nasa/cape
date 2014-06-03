@@ -31,66 +31,22 @@ os.umask(0027)
 
 
 
-        
-
-
-# Function to read conditions file.
-def ReadTrajectoryFile(fname='Trajectory.dat', keys=['Mach','alpha','beta'],
-    prefix="F"):
+# Function to get the defaults
+def _getPyCartDefaults():
     """
-    Read a simple list of configuration variables
-    
-    :Call:
-        >>> T = pyCart.ReadTrajectoryFile(fname)
-        >>> T = pyCart.ReadTrajectoryFile(fname, keys)
-    
-    :Inputs:
-        *fname*: :class:`str`
-            Name of file to read, defaults to ``'Trajectory.dat'``
-        *keys*: :class:`list` of :class:`str` items
-            List of variable names, defaults to ``['Mach','alpha','beta']``
-        *prefix*: :class:`str`
-            Header for name of each folder
-    
-    :Outputs:
-        *T*: :class:`pyCart.trajectory.Trajectory`
-            Instance of the pyCart trajectory class
-    
+    Get default pyCart JSON settings.  To change default pyCart settings, edit
+    the 'pyCart.default.json' file in the settings directory.
     """
     # Versions:
-    # 2014.05.27 @ddalle  : First version
-    return Trajectory(fname, keys, prefix)
+    #  2014.06.03 @ddalle  : First version
     
-    
-# Function to make the directories
-def CreateFolders(T, prefix="F"):
-    """
-    Make directories for each of the cases in a trajectory.
-    
-    The folder names will be of the form
-    
-        "F_Mach_2.0_alpha_0.0_beta_-0.5/"
-        
-    using all of the keys specified in the trajectory file.  The amount of
-    digits used will match the number of digits in the trajectory file.
-    
-    :Call:
-        >>> pyCart.CreateFolders(T, prefix="F")
-    
-    :Inputs:
-        *T*: :class:`pyCart.trajectory.Trajectory`
-            Instance of the pyCart trajectory class
-        *prefix*: :class:`str`
-            Header for name of each folder
-            
-    :Outputs:
-        ``None``
-    """
-    # Versions:
-    #  2014.05.27 @ddalle  : First version
-    T.CreateFolders(prefix)
-    return None
-    
+    # Read the default input file.
+    lines = open(os.path.join(PyCartFolder, 
+            "..", "settings", "pyCart.default.json")).readlines()
+    # Strip comments and join list into a single string.
+    lines = stripComments(lines, '#')
+    # Process the default input file.
+    return json.loads(lines)
     
     
 # Class to read input files
@@ -137,19 +93,15 @@ class Cart3d:
         """
         # Versions:
         #  2014.05.28 @ddalle  : First version
+        #  2014.06.03 @ddalle  : Renamed class 'Cntl' --> 'Cart3d'
         
-        # Read the default input file.
-        f = open(os.path.join(PyCartFolder, 
-            "..", "settings", "pyCart.default.json"))
-        lines = f.read()
-        f.close()
         # Process the default input file.
-        defs = json.loads(lines)
+        defs = _getPyCartDefaults()
         
         # Read the specified input file.
-        f = open(fname)
-        lines = f.read()
-        f.close()
+        lines = open(fname).readlines()
+        # Strip comments.
+        lines = stripComments(lines, '#')
         # Process the actual input file.
         opts = json.loads(lines)
         # Save all the options.
@@ -622,4 +574,98 @@ class Cart3d:
         os.chmod(fout, 0750)
         
         
+# Function to delete comment lines.
+def stripComments(lines, char='#'):
+    """
+    Delete lines that begin with a certain comment character.
     
+    :Call:
+        >>> txt = stripComments(lines, char='#')
+    
+    :Inputs:
+        *lines*: :class:`list` of :class:`str`
+            List of lines
+        *char*: :class:`str`
+            String that represents start of a comment
+        
+    :Outputs:
+        *txt*: :class:`str`
+            Lines joined into a single string but with comments removed
+    """
+    # Versions:
+    #  2014.06.03 @ddalle  : First version
+    
+    # Start with the first line.
+    i = 0
+    # Loop until last line
+    while i < len(lines):
+        # Get the line and strip leading and trailing white space.
+        line = lines[i].strip()
+        # Check it.
+        if line.startswith(char):
+            # Remove it.
+            lines.__delitem__(i)
+        else:
+            # Move to the next line.
+            i += 1
+    # Return the remaining lines.
+    return "".join(lines)
+    
+
+
+# Function to read conditions file.
+def ReadTrajectoryFile(fname='Trajectory.dat', keys=['Mach','alpha','beta'],
+    prefix="F"):
+    """
+    Read a simple list of configuration variables
+    
+    :Call:
+        >>> T = pyCart.ReadTrajectoryFile(fname)
+        >>> T = pyCart.ReadTrajectoryFile(fname, keys)
+    
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to read, defaults to ``'Trajectory.dat'``
+        *keys*: :class:`list` of :class:`str` items
+            List of variable names, defaults to ``['Mach','alpha','beta']``
+        *prefix*: :class:`str`
+            Header for name of each folder
+    
+    :Outputs:
+        *T*: :class:`pyCart.trajectory.Trajectory`
+            Instance of the pyCart trajectory class
+    
+    """
+    # Versions:
+    # 2014.05.27 @ddalle  : First version
+    return Trajectory(fname, keys, prefix)
+    
+    
+# Function to make the directories
+def CreateFolders(T, prefix="F"):
+    """
+    Make directories for each of the cases in a trajectory.
+    
+    The folder names will be of the form
+    
+        "F_Mach_2.0_alpha_0.0_beta_-0.5/"
+        
+    using all of the keys specified in the trajectory file.  The amount of
+    digits used will match the number of digits in the trajectory file.
+    
+    :Call:
+        >>> pyCart.CreateFolders(T, prefix="F")
+    
+    :Inputs:
+        *T*: :class:`pyCart.trajectory.Trajectory`
+            Instance of the pyCart trajectory class
+        *prefix*: :class:`str`
+            Header for name of each folder
+            
+    :Outputs:
+        ``None``
+    """
+    # Versions:
+    #  2014.05.27 @ddalle  : First version
+    T.CreateFolders(prefix)
+    return None
