@@ -1,6 +1,6 @@
 """
-Cart3D setup module: :mod:`pyCart.cntl`
-=======================================
+Cart3D setup module: :mod:`pyCart.cart3d`
+=========================================
 
 This module provides tools to quickly setup basic Cart3D runs from a small set
 of input files.  Alternatively, the methods and classes can be used to help
@@ -53,7 +53,7 @@ def ReadTrajectoryFile(fname='Trajectory.dat', keys=['Mach','alpha','beta'],
             Header for name of each folder
     
     :Outputs:
-        *T*: :class:`pyCart.cntl.Trajectory`
+        *T*: :class:`pyCart.trajectory.Trajectory`
             Instance of the pyCart trajectory class
     
     """
@@ -78,7 +78,7 @@ def CreateFolders(T, prefix="F"):
         >>> pyCart.CreateFolders(T, prefix="F")
     
     :Inputs:
-        *T*: :class:`pyCart.cntl.Trajectory`
+        *T*: :class:`pyCart.trajectory.Trajectory`
             Instance of the pyCart trajectory class
         *prefix*: :class:`str`
             Header for name of each folder
@@ -94,7 +94,7 @@ def CreateFolders(T, prefix="F"):
     
     
 # Class to read input files
-class Cntl:
+class Cart3d:
     """
     Class for handling global options to be used for Cart3D cases
     """
@@ -117,14 +117,14 @@ class Cntl:
         Defaults are read from the file "$PYCART/settings/pyCart.default.json".
         
         :Call:
-            >>> cntl = pyCart.Cntl(fname="pyCart.json")
+            >>> cart3d = pyCart.Cart3d(fname="pyCart.json")
             
         :Inputs:
             *fname*: :class:`str`
                 Name of pyCart input file
                 
         :Outputs:
-            *cntl*: :class:`pyCart.cntl.Cntl`
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of the pyCart control class
         
         :Data members:
@@ -132,7 +132,7 @@ class Cntl:
                 Dictionary containing grid-related parameters
             *RunOptions*: :class:`dict`
                 Dictionary containing run-related parameters
-            *Trajectory*: :class:`pyCart.cntl.Trajectory`
+            *Trajectory*: :class:`pyCart.trajectory.Trajectory`
                 Trajectory description read from file
         """
         # Versions:
@@ -190,7 +190,7 @@ class Cntl:
         #  2014.05.28 @ddalle  : First version
         
         # Display basic information from all three areas.
-        return "<pyCart.Cntl(nCase=%i, nIter=%i, tri='%s'>" % (
+        return "<pyCart.Cart3d(nCase=%i, nIter=%i, tri='%s'>" % (
             self.Trajectory.nCase, self.RunOptions['nIter'],
             self.Grid['TriFile'])
         
@@ -207,11 +207,11 @@ class Cntl:
         digits used will match the number of digits in the trajectory file.
         
         :Call:
-            >>> dname = cntl.GetFolderNames()
-            >>> dname = cntl.GetFolderNames(i=None, prefix="F")
+            >>> dname = cart3d.GetFolderNames()
+            >>> dname = cart3d.GetFolderNames(i=None, prefix="F")
         
         :Inputs:
-            *cntl*: :class:`pyCart.cntl.Trajectory`
+            *cart3d*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
             *i*: :class:`int` or :class:`list`
                 Index of cases to process or list of cases.  If this is
@@ -235,10 +235,10 @@ class Cntl:
         Create the folders based on the trajectory.
         
         :Call:
-            >>> cntl.CreateFolders()
+            >>> cart3d.CreateFolders()
         
         :Inputs:
-            *cntl*: :class:`pyCart.cntl.Cntl`
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Global pyCart settings object instance
         
         :Outputs:
@@ -258,10 +258,10 @@ class Cntl:
         Create the common mesh based on self-contained parameters.
         
         :Call:
-            >>> cntl.CreateMesh()
+            >>> cart3d.CreateMesh()
         
         :Inputs:
-            *cntl*: :class:`pyCart.cntl.Cntl`
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
         
         :Outputs:
@@ -309,10 +309,10 @@ class Cntl:
         Copy or link the relevant files to the Grid folders.
         
         :Call:
-            >>> cntl.CopyFiles()
+            >>> cart3d.CopyFiles()
             
         :Inputs:
-            *cntl*: :class:`pyCart.cntl.Cntl`
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
         
         :Outputs:
@@ -402,10 +402,10 @@ class Cntl:
         Create run scripts for each case according to the pyCart settings.
         
         :Call:
-            >>> cntl.PrepareRuns()
+            >>> cart3d.PrepareRuns()
         
         :Inputs:
-            *cntl*: :class:`pyCart.cntl.Cntl`
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
         
         :Outputs:
@@ -487,10 +487,10 @@ class Cntl:
         higher-level functions, which are called from the parent folder.
         
         :Call:
-            >>> cntl.PrepareCntlFile(fin, i)
+            >>> cart3d.PrepareCntlFile(fin, i)
             
         :Inputs:
-            *cntl*: :class:`pyCart.cntl.Cntl`
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
             *fin*: :class:`str`
                 Name of template input file
@@ -538,10 +538,10 @@ class Cntl:
         higher-level functions, which are called from the parent folder.
         
         :Call:
-            >>> cntl.PrepareCntlFile(fin, i)
+            >>> cart3d.PrepareCntlFile(fin, i)
             
         :Inputs:
-            *cntl*: :class:`pyCart.cntl.Cntl`
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
             *fin*: :class:`str`
                 Name of template input file/script
@@ -582,10 +582,10 @@ class Cntl:
         Write the "run_case.sh" script to run a given case.
         
         :Call:
-            >>> cntl.CreateCaseRunScript(i)
+            >>> cart3d.CreateCaseRunScript(i)
         
         :Inputs:
-            *cntl*: :class:`pyCart.cntl.Cntl`
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
             *i*: :class:`int`
                 Trajectory case number
