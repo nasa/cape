@@ -44,14 +44,14 @@ else:
     fname = a[0]
     
 # Read in the settings file.
-cntl = pyCart.Cntl(fname)
+cart3d = pyCart.Cart3d(fname)
 
 # Create the folders.
-cntl.CreateFolders()
+cart3d.CreateFolders()
 
 # Copy/link the files.
-cntl.CopyFiles()
+cart3d.CopyFiles()
 
 # Process the inputs and create the scripts.
-cntl.PrepareRuns()
+cart3d.PrepareRuns()
 

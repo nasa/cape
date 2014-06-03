@@ -43,8 +43,8 @@ else:
     fname = a[0]
     
 # Read in the settings file.
-cntl = pyCart.Cntl(fname)
+cart3d = pyCart.Cart3d(fname)
 
 # Create the grid folder and make the mesh.
-cntl.CreateMesh()
+cart3d.CreateMesh()
 
