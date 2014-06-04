@@ -211,9 +211,16 @@ class FileCntl:
         Assert that a certain section is present
         
         :Call:
-            >>>
+            >>> FC.AssertSection(sec)
             
-            
+        :Inputs:
+            *FC*: :class:`pyCart.FileCntl.FileCntl` or derivative
+                File control instance, defaults to *FC.fname*
+            *sec*: :class:`str`
+                Name of section to check for
+        
+        :Effects:
+            Raises an exception if *FC* does not have the section
         """
         # Versions:
         #  2014.06.03 @ddalle  : First version
@@ -221,9 +228,9 @@ class FileCntl:
         # Update sections.
         self.UpdateSections()
         # Check for the section.
-        if sec not in self.Sections:
+        if sec not in self.SectionNames:
             raise KeyError(
-                "File control instance does not have section %s" % sec)
+                "File control instance does not have section '%s'" % sec)
         # Done
         return None
         
