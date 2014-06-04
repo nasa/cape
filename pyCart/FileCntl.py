@@ -21,6 +21,13 @@ class FileCntl:
     def __init__(self, fname):
         """
         Base file control class
+        
+        :Call:
+            >>> FC = pyCart.FileCntl.FileCntl(fname)
+            
+        :Inputs:
+            *fname*: :class:`str`
+                Name of file to read from and manipulate
         """
         # Read the file.
         self.Read(fname)
