@@ -32,7 +32,7 @@ TemplateFodler = os.path.join(PyCartFolder, "templates")
 from tri    import Tri, ReadTri, WriteTri
 from cart3d import Cart3d, Trajectory, ReadTrajectoryFile, CreateFolders, \
     stripComments
-from post   import LoadsCC
+from post   import LoadsDat
 
 
 # Get the conversion tools directly.

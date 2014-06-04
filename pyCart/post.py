@@ -11,24 +11,26 @@ import os
 
 
 # Class to store forces and moments
-class LoadsCC:
+class LoadsDat:
     """
     Store forces and moments in a class from "loadsCC.dat" files
     """
     # Initialization method
-    def __init__(self, cart3d=None):
+    def __init__(self, cart3d=None, fname="loadsCC.dat"):
         """
         Class to store force and moment coefficients
         
         :Call:
-            >>> FM = pyCart.LoadsCC(cart3d=None)
+            >>> FM = pyCart.LoadsDat(cart3d=None, fname="loadsCC.dat")
         
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Overall :mod:`pyCart` control instance
+            *fname*: :class:`str`
+                Name of individual files to read
         
         :Outputs:
-            *FM*: :class:`pyCart.post.LoadsCC`
+            *FM*: :class:`pyCart.post.LoadsDat`
                 Instance of this class
                 
         :Data members:
@@ -36,17 +38,27 @@ class LoadsCC:
                 Reference area
             *Lref*: :class:`float`
                 Reference length
+            *MRP*: :class:`numpy.ndarray` *shape*=(3,)
+                Moment reference point
+            *fname*: :class:`str`
+                Name of individual files to read
             *Components*: :class:`list` (:class:`str`)
                 List of component names found
+            *C_A*: :class:`dict`
+                Dictionary of axial force coefficient for each component
+                
         """
         # Versions:
         #  2014.06.02 @ddalle  : First version
+        #  2014.06.04 @ddalle  : General for "loadsTRI.dat" or "loadsCC.dat"
         
         # Initialize the common fields.
         #  (These will come from pyCart.json.)
         self.Aref = 1.0
         self.Lref = 1.0
         self.MRP = np.array([0., 0., 0.])
+        # Save the file name.
+        self.fname = fname
         # Check for an input.
         if cart3d is None:
             # Quit.
@@ -66,23 +78,23 @@ class LoadsCC:
         # Loop through the files.
         for i in range(nCase):
             # Create the file name.
-            fname = os.path.join('Grid', dnames[i], 'loadsCC.dat')
+            fi = os.path.join('Grid', dnames[i], fname)
             # Process the line.
-            self.ReadLoadsCC(fname, i, nCase)
+            self.ReadLoads(fname, i, nCase)
                 
         
     # Function to make a new component
-    def NewComponent(self, comp, nCase):
+    def NewComponent(self, compID, nCase):
         """
         Create a new component with coefficient vector of correct size.
         
         :Call:
-            >>> FM.NewComponent(cmop, nCase)
+            >>> FM.NewComponent(compID, nCase)
         
         :Inputs:
-            *FM*: :class:`pyCart.post.LoadsCC`
+            *FM*: :class:`pyCart.post.LoadsDat`
                 Instance of force-and-moment object
-            *comp*: :class:`str`
+            *compID*: :class:`str`
                 Name of component to add
             *nCase*: :class:`int`
                 Number of cases in trajectoy (needed to initialize new comps)
@@ -101,32 +113,32 @@ class LoadsCC:
         # Add the component.
         self.Components.append(comp)
         # Initialize the coefficients.
-        self.C_A[comp] = np.nan * np.ones(nCase)
-        self.C_Y[comp] = np.nan * np.ones(nCase)
-        self.C_N[comp] = np.nan * np.ones(nCase)
-        self.C_D[comp] = np.nan * np.ones(nCase)
-        self.C_S[comp] = np.nan * np.ones(nCase)
-        self.C_L[comp] = np.nan * np.ones(nCase)
-        self.C_l[comp] = np.nan * np.ones(nCase)
-        self.C_m[comp] = np.nan * np.ones(nCase)
-        self.C_n[comp] = np.nan * np.ones(nCase)
-        self.C_M_x[comp] = np.nan * np.ones(nCase)
-        self.C_M_y[comp] = np.nan * np.ones(nCase)
-        self.C_M_z[comp] = np.nan * np.ones(nCase)
+        self.C_A[compID] = np.nan * np.ones(nCase)
+        self.C_Y[compID] = np.nan * np.ones(nCase)
+        self.C_N[compID] = np.nan * np.ones(nCase)
+        self.C_D[compID] = np.nan * np.ones(nCase)
+        self.C_S[compID] = np.nan * np.ones(nCase)
+        self.C_L[compID] = np.nan * np.ones(nCase)
+        self.C_l[compID] = np.nan * np.ones(nCase)
+        self.C_m[compID] = np.nan * np.ones(nCase)
+        self.C_n[compID] = np.nan * np.ones(nCase)
+        self.C_M_x[compID] = np.nan * np.ones(nCase)
+        self.C_M_y[compID] = np.nan * np.ones(nCase)
+        self.C_M_z[compID] = np.nan * np.ones(nCase)
         # Done
         return None
             
         
-    # Function to read a 'loadsCC.dat' file
-    def ReadLoadsCC(self, fname, i, nCase):
+    # Function to read a 'loads*.dat' file
+    def Read(self, fname, i, nCase):
         """
         Read a "loadsCC.dat" file and process each line
         
         :Call:
-            >>> FM.ReadLoadsCC(fname, i, nCase)
+            >>> FM.Read(fname, i, nCase)
         
         :Inputs:
-            *FM*: :class:`pyCart.post.LoadsCC`
+            *FM*: :class:`pyCart.post.LoadsDat`
                 Instance of force-and-moment object
             *fname*: :class:`str`
                 Path to file to read
@@ -167,10 +179,50 @@ class LoadsCC:
         # Done
         return None
         
+        
     # Function to write forces and moments
-    def Write(self, compID=None):
+    def Write(self, T, compID=None):
         """
         Write loads data to files.
         """
+        
+        
+        # List of coefficient names.
+        coeffs = ['C_A', 'C_Y', 'C_N', 'C_D', 'C_S', 'C_L',
+            'C_l', 'C_m', 'C_n', 'C_M_x', 'C_M_y', 'C_M_z']
+        # Output file name (e.g., "loadsCC.csv")
+        fout = self.fname.rstrip(".dat") + ".csv"
+        # Open the (new) file.
+        f = open(fout, 'w')
+        # Write the first header.
+        f.write("Case, ")
+        # Write the headers for each variable name in trajectory.
+        f.write(", ".join(T.keys))
+        # Loop through the components.
+        for compID in self.Components:
+            # Loop through the coefficients.
+            for c in coeffs:
+                # Write the coefficient name.
+                f.write(', %s_%s' % (c, compID))
+        # End of header line.
+        f.write('\n')
+        # Loop through the conditions.
+        for i in range(T.nCase):
+            # Write the case number.
+            f.write('%i' % i)
+            # Loop through trajectory keywords.
+            for k in T.keys:
+                # Write the value.
+                f.write(', %.8f' % getattr(T,k)[i])
+            # Loop through the components.
+            for compID in self.Components:
+                # Loop through the coefficients.
+                for c in coeffs:
+                    # Write the value.
+                    f.write(', %.8e' % getattr(self,c)[compID][i]
+            # New line
+            f.write('\n')
+        # Close the file and quit.
+        f.close()
         return None
 
