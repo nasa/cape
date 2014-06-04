@@ -51,8 +51,8 @@ else:
 cart3d = pyCart.Cart3d(fname)
 
 # Read the "loadsCC.dat" files.
-loadsCC = pyCart.LoadsDat(cart3d)
+cart3d.GetLoadsCC()
 
 # Write the files.
-loadsCC.Write(cart3d.Trajectory)
+cart3d.LoadsCC.Write(cart3d.Trajectory)
 

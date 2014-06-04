@@ -17,6 +17,8 @@ import os, shutil
 
 # Import the trajectory class
 from trajectory import Trajectory
+# Read "loadsXX.dat" files
+from post import LoadsDat
 
 # Import specific file control classes
 from InputCntl import InputCntl
@@ -564,6 +566,28 @@ class Cart3d:
         f.close()
         # Make it executable.
         os.chmod(fout, 0750)
+        
+    # Function to read "loadsCC.dat" files
+    def GetLoadsCC(self):
+        """
+        Read all available 'loadsCC.dat' files.
+        
+        :Call:
+            >>> cart3d.GetLoadsCC()
+            
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
+                
+        :Effects:
+            Creates *cart3d.LoadsCC* instance
+        """
+        # Versions:
+        #  2014.06.04 @ddalle  : First version
+        
+        # Call the constructor.
+        self.LoadsCC = LoadsDat(self, fname="loadsCC.dat")
+        return None
         
         
 # Function to delete comment lines.

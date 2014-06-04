@@ -80,7 +80,7 @@ class LoadsDat:
             # Create the file name.
             fi = os.path.join('Grid', dnames[i], fname)
             # Process the line.
-            self.ReadLoads(fname, i, nCase)
+            self.ReadLoadsFile(fi, i, nCase)
                 
         
     # Function to make a new component
@@ -109,9 +109,9 @@ class LoadsDat:
         #  2014.06.02 @ddalle  : First version
         
         # Check if the component is present.
-        if comp in self.Components: return None
+        if compID in self.Components: return None
         # Add the component.
-        self.Components.append(comp)
+        self.Components.append(compID)
         # Initialize the coefficients.
         self.C_A[compID] = np.nan * np.ones(nCase)
         self.C_Y[compID] = np.nan * np.ones(nCase)
@@ -130,12 +130,12 @@ class LoadsDat:
             
         
     # Function to read a 'loads*.dat' file
-    def Read(self, fname, i, nCase):
+    def ReadLoadsFile(self, fname, i, nCase):
         """
         Read a "loads*.dat" file and process each line
         
         :Call:
-            >>> FM.Read(fname, i, nCase)
+            >>> FM.ReadLoadsFile(fname, i, nCase)
         
         :Inputs:
             *FM*: :class:`pyCart.post.LoadsDat`
@@ -236,7 +236,7 @@ class LoadsDat:
                 # Loop through the coefficients.
                 for c in coeffs:
                     # Write the value.
-                    f.write(', %.8e' % getattr(self,c)[comp][i]
+                    f.write(', %.8e' % getattr(self,c)[comp][i])
             # New line
             f.write('\n')
         # Close the file and quit.
