@@ -34,4 +34,88 @@ class InputCntl(FileCntl):
         self.SplitToSections(reg="\$__([\w_]+)")
         return None
         
-    # 
+    # Function set the Mach number.
+    def SetMach(self, Mach):
+        """
+        Set the freestream Mach number
+        
+        :Call:
+            >>> IC.SetMach(Mach)
+        
+        :Inputs:
+            *IC*: :class:`pyCart.InputCntl.InputCntl`
+                File control instance for "input.cntl"
+            *Mach*: :class:`float`
+                Mach number
+            
+        :Effects:
+            Replaces or adds a line to the "Case_Information" section.
+        """
+        # Versions:
+        #  2014.06.04 @ddalle  : First version
+        
+        # Replace the line or add it if necessary.
+        self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
+            'Mach ', 'Mach     %.8f\n' % Mach)
+        return None
+        
+    # Function to set the angle of attack
+    def SetAlpha(self, alpha):
+        """
+        Set the angle of attack
+        
+        :Call:
+            >>> IC.SetAlpha(alpha)
+            
+        :Inputs:
+            *IC*: :class:`pyCart.InputCntl.InputCntl`
+                File control instance for "input.cntl"
+            *alpha*: :class:`float`
+                Angle of attack
+                
+        :Effects:
+            Replaces or adds a line to the "Case_Information" section.
+        """
+        # Versions:
+        #  2014.06.04 @ddalle  : First version
+        
+        # Replace the line or add it if necessary.
+        self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
+            'alpha ', 'alpha    %.8f\n' % alpha)
+        return None
+        
+    # Function to set the sideslip angle
+    def SetBeta(self, beta):
+        """
+        Set the sideslip angle
+        
+        :Call:
+            >>> IC.SetAlpha(alpha)
+            
+        :Inputs:
+            *IC*: :class:`pyCart.InputCntl.InputCntl`
+                File control instance for "input.cntl"
+            *beta*: :class:`float`
+                Sideslip angle
+                
+        :Effects:
+            Replaces or adds a line to the "Case_Information" section.
+        """
+        # Versions:
+        #  2014.06.04 @ddalle  : First version
+        
+        # Replace the line or add it if necessary.
+        self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
+            'beta ', 'beta     %.8f\n' % beta)
+        return None
+        
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    

@@ -722,8 +722,6 @@ class FileCntl:
         :Inputs:
             *FC*: :class:`pyCart.FileCntl.FileCntl` or derivative
                 File control instance
-            *sec*: :class:`str`
-                Name of section to search in
             *start*: :class:`str`
                 String to test as literal match for beginning of each line
             *line*: :class:`str`
@@ -761,8 +759,8 @@ class FileCntl:
         string or add the line to the section if no matches are found.
         
         :Call:
-            >>> FC.ReplaceOrAddLineToSectionStartsWith(start, line)
-            >>> FC.ReplaceOrAddLineToSectionStartsWith(start, line, i)
+            >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, start, line)
+            >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, start, line, i)
             
         :Inputs:
             *FC*: :class:`pyCart.FileCntl.FileCntl` or derivative
@@ -800,5 +798,245 @@ class FileCntl:
                 self.Section[sec].insert(i, line)
         # Done
         return None
+        
+        
+    # Method to replace a line that starts with a regular expression
+    def ReplaceLineSearch(self, reg, line):
+        """
+        Find all lines that begin with a certain regular expression and replace
+        them with another string.  Note that the entire line is replaced, not
+        just the regular expression.
+        
+        Leading spaces are ignored during the match tests.
+        
+        :Call:
+            >>> n = FC.ReplaceLineSearch(reg, line)
+            >>> n = FC.ReplaceLineSearch(reg, lines)
+        
+        :Inputs:
+            *FC*: :class:`pyCart.FileCntl.FileCntl` or derivative
+                File control instance
+            *reg*: :class:`str`
+                A regular expression to search for at the beginning of lines
+            *line*: :class:`str`
+                String to replace every match with
+            *lines*: :class:`list`
+                List of strings to match first ``len(lines)`` matches with
+        
+        :Outputs:
+            *n*: :class:`int`
+                Number of matches found
+                
+        :Effects:
+            *FC.lines*: Some of the lines may be affected
+            *FC._updated_lines*: Set to ``True``
+        
+        :Examples:
+            Suppose that *FC* has the following two lines.
+            
+            ``Mach      8.00   # some comment\n``
+            ``Mach    4\n``
+            
+            Then this example will replace *both* lines with ``Mach 2.0``
+            
+                >>> FC.ReplaceLineSearch('Mach\s+[0-9.]+', 'Mach 2.0')
+                
+            This example replaces each line with a different value for the Mach
+            number.
+            
+                >>> FC.ReplaceLineSearch('Mach\s+[0-9.]+', ['Mach 2.0', 'Mach 2.5'])
+                
+            Finally, this example is different from the first example in that it
+            will replace the first line and then quit before it can find the
+            second match.
+            
+                >>> FC.ReplaceLineSearch('Mach\s+[0-9.]+', ['Mach 2.0'])
+        """
+        # Versions:
+        #  2014.06.04 @ddalle  : First version
+        
+        # Set the update status.
+        self.UpdateLines()
+        self._updated_lines = True
+        # Number of matches.
+        n = 0
+        # Loop through the lines.
+        for i in range(len(self.lines)):
+            # Get the line.
+            L = self.lines[i]
+            # Check for a match.
+            if re.search(reg, L):
+                # Check for the replacement type.
+                if type(line) is str:
+                    # Replace the line.
+                    self.lines[i] = line
+                    n += 1
+                else:
+                    # Replace the line based on the list.
+                    self.lines[i] = line[n]
+                    # Increase the match count.
+                    n += 1
+                    # Check for end of matches.
+                    if n >= len(line): return len(line)
+        # Done
+        return n
+        
+    # Method to replace a line only in a certain section
+    def ReplaceLineInSectionSearch(self, sec, reg, line):
+        """
+        Find all lines in a certain section that start with a specified regular
+        expression and replace the entire lines with the specified text.
+        
+        :Call:
+            >>> n = FC.ReplaceLineInSectionSearch(sec, reg, line)
+            >>> n = FC.ReplaceLineInSectionSearch(sec, reg, lines)
+            
+        :Inputs:
+            *FC*: :class:`pyCart.FileCntl.FileCntl` or derivative
+                File control instance
+            *sec*: :class:`str`
+                Name of section to search in
+            *reg*: :class:`str`
+                Regular expression to search for match at beginning of each line
+            *line*: :class:`str`
+                String to replace every match with
+            *lines*: :class:`list`
+                List of strings to match first ``len(lines)`` matches with
+        
+        :Outputs:
+            *n*: :class:`int`
+                Number of matches found
+                
+        :Effects:
+            Some lines in *FC.Section[sec]* may be replaced. 
+            
+        :See also:
+            This function is similar to
+            :func:`pyCart.FileCntl.FileCntl.ReplaceLineSearch` except that
+            the search is restricted to a specified section.
+        """
+        # Versions:
+        #  2014.06.04 @ddalle  : First version
+        
+        # Number of matches.
+        n = 0
+        # Update the sections.
+        self.UpdateSections()
+        # Check if the section exists.
+        if sec not in self.SectionNames: return n
+        # Set the update status.
+        self._updated_sections = True
+        # Loop through the lines.
+        for i in range(len(self.Section[sec])):
+            # Get the line.
+            L = self.Section[sec][i]
+            # Check for a match.
+            if re.search(reg, L):
+                # Check for the replacement type.
+                if type(line) is str:
+                    # Replace the line.
+                    self.Section[sec][i] = line
+                    n += 1
+                else:
+                    # Replace the line based on the match count.
+                    self.Section[sec][i] = line[n]
+                    # Increase the match count.
+                    n += 1
+                    # Check for end of matches.
+                    if n >= len(line): return len(line)
+        # Done.
+        return n
+        
+        
+        # Replace a line or add it if not found
+    def ReplaceOrAddLineSearch(self, reg, line, i=None):
+        """
+        Replace a line that starts with a given literal string or add the line
+        if no matches are found.
+        
+        :Call:
+            >>> FC.ReplaceOrAddLineSearch(reg, line)
+            >>> FC.ReplaceOrAddLineSearch(reg, line, i)
+            
+        :Inputs:
+            *FC*: :class:`pyCart.FileCntl.FileCntl` or derivative
+                File control instance
+            *reg*: :class:`str`
+                Regular expression to match beginning of line
+            *line*: :class:`str`
+                String to replace first match with
+            *i*: :class:`int`
+                Location to add line (by default it is appended)
+                
+        :Outputs:
+            ``None``
+            
+        :Effects:
+            Replaces line in section *FC.lines* or adds it if not found
+        """
+        # Versions:
+        #  2014.06.04 @ddalle  : First version
+        
+        # Call the replace method (only perform once).
+        n = self.ReplaceLineSearch(reg, [line])
+        # Check for a match.
+        if not n:
+            # Check where to add the line.
+            if i is None:
+                # Append.
+                self.lines.append(line)
+            else:
+                # Insert at specified location.
+                self.lines.insert(i, line)
+        # Done
+        return None
+        
+    # Replace a line or add (from one section) if not found
+    def ReplaceOrAddLineToSectionSearch(self, sec, reg, line, i=None):
+        """
+        Replace a line in a specified section that starts with a given literal 
+        string or add the line to the section if no matches are found.
+        
+        :Call:
+            >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, reg, line)
+            >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, reg, line, i)
+            
+        :Inputs:
+            *FC*: :class:`pyCart.FileCntl.FileCntl` or derivative
+                File control instance
+            *sec*: :class:`str`
+                Name of section to search in
+            *start*: :class:`str`
+                String to test as literal match for beginning of each line
+            *line*: :class:`str`
+                String to replace every match with
+            *i*: :class:`int`
+                Location to add line (by default it is appended)
+                
+        :Outputs:
+            ``None``
+            
+        :Effects:
+            Replaces line in section *FC.Section[sec]* or adds it if not found
+        """
+        # Versions:
+        #  2014.06.03 @ddalle  : First version
+        
+        # Call the replace method (only perform once).
+        n = self.ReplaceLineInSectionSearch(sec, reg, [line])
+        # Must have the section.
+        self.AssertSection(sec)
+        # Check for a match.
+        if not n:
+            # Check where to add the line.
+            if i is None:
+                # Append.
+                self.Section[sec].append(line)
+            else:
+                # Insert at specified location.
+                self.Section[sec].insert(i, line)
+        # Done
+        return None
+        
         
         
