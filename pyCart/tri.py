@@ -10,7 +10,7 @@ import os
 class Tri:
     # Initialization method
     def __init__(self, fname=None, uh3d=None,
-        nNode=None, Nodes=None, nTri=None, Tris=None, iComp=None):
+        nNode=None, Nodes=None, nTri=None, Tris=None, CompID=None):
         """
         pyCart triangulation class
         
@@ -20,7 +20,7 @@ class Tri:
         
         :Call:
             >>> tri = pyCart.Tri(fname=None)
-            >>> tri = pyCart.Tri(Nodes=Nodes, Tris=Tris, iComp=iComp)
+            >>> tri = pyCart.Tri(Nodes=Nodes, Tris=Tris, CompID=CompID)
             
         :Inputs:
             *fname*: :class:`str`
@@ -35,7 +35,7 @@ class Tri:
                 Number of triangles in triangulation
             *Tris*: :class:`numpy.array(dtype=int)`, (*nTri*, 3)
                 Indices of triangle vertex nodes
-            *iComp*: :class:`numpy.array(dtype=int)`, (*nTri*)
+            *CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
                 Component number for each triangle
                 
         :Data members:
@@ -47,7 +47,7 @@ class Tri:
                 Number of triangles in triangulation
             *Tris*: :class:`numpy.array(dtype=int)`, (*nTri*, 3)
                 Indices of triangle vertex nodes
-            *iComp*: :class:`numpy.array(dtype=int)`, (*nTri*)
+            *CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
                 Component number for each triangle
         
         When no component numbers are specified, the object created will label
@@ -91,7 +91,7 @@ class Tri:
             self.Nodes = Nodes
             self.nTri = nTri
             self.Tris = Tris
-            self.iComp = iComp
+            self.CompID = CompID
             
         # End
         return None
@@ -140,10 +140,10 @@ class Tri:
         # Check for end of file.
         if fid.tell() == os.fstat(fid.fileno()).st_size:
             # Use default component ids.
-            self.iComp = None
+            self.CompID = None
         else:
             # Read from file.
-            self.iComp = np.fromfile(fid, dtype=int, count=nTri, sep=" ")
+            self.CompID = np.fromfile(fid, dtype=int, count=nTri, sep=" ")
         # Close the file.
         fid.close()
         
@@ -179,7 +179,7 @@ class Tri:
         # Write the nodal coordinates, tris, and component ids.
         np.savetxt(fid, self.Nodes, fmt="%+15.8e", delimiter=' ')
         np.savetxt(fid, self.Tris,  fmt="%i",      delimiter=' ')
-        np.savetxt(fid, self.iComp, fmt="%i",      delimiter=' ')
+        np.savetxt(fid, self.CompID, fmt="%i",      delimiter=' ')
         # Close the file.
         fid.close()
         # End
@@ -230,7 +230,7 @@ class Tri:
         
         # Initialize the Tris and component numbers
         Tris = np.zeros((nTri, 3))
-        iComp = np.ones(nTri)
+        CompID = np.ones(nTri)
         # Loop through the lines.
         for i in range(nTri):
             # Read the line.
@@ -238,10 +238,10 @@ class Tri:
             # Save the indices.
             Tris[i] = d[1:4]
             # Save the component number.
-            iComp[i] = d[4]
+            CompID[i] = d[4]
         # Save.
         self.Tris = Tris
-        self.iComp = iComp
+        self.CompID = CompID
         
         # Close the file.
         fid.close()

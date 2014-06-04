@@ -109,6 +109,41 @@ class InputCntl(FileCntl):
             'beta ', 'beta     %+12.8f   # sideslip angle\n' % beta)
         return None
         
+    # Function to set a surface boundary condition (e.g. nozzle condition)
+    def SetSurfBC(self, compID, u):
+        """
+        Set a surface boundary condition, for example on a nozzle surface
+        
+        :Call:
+            >>> IC.SetSurfBC(compID, u)
+        
+        :Inputs:
+            *IC*: :class:`pyCart.InputCntl.InputCntl`
+                File control instance for "input.cntl"
+            *compID*: :class:`int`
+                Component number to apply boundary condition to
+            *u*: :class:`numpy.ndarray`, *shape*=(5,)
+                Vector of density, velocity, pressure on surface
+        
+        :Effects:
+            Writes a line with appropriate "SurfBC i ..." syntax to "input.cntl"
+            file.
+        """
+        # Versions:
+        #  2014.06.04 @ddalle  : First version
+        
+        # Line starts with "SurfBC", has some amount of white space, and then
+        # has the component number.
+        reg = 'SurfBC\s+' + str(compID)
+        # Create the output line.
+        line = 'SurfBC %7i      %.8f %.8f %.8f %.8f %.8f' % (
+            compID, u[0], u[1], u[2], u[3], u[4])
+        # Replace the line or add it if necessary. The amount of white space can
+        # vary, so we need to use regular expressions.
+        self.ReplaceOrAddLineToSectionSearch('Boundary_Conditions', reg, line)
+        return None
+                
+            
         
     
     

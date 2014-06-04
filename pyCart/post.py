@@ -21,10 +21,10 @@ class LoadsCC:
         Class to store force and moment coefficients
         
         :Call:
-            >>> FM = pyCart.LoadsCC(cntl=None)
+            >>> FM = pyCart.LoadsCC(cart3d=None)
         
         :Inputs:
-            *cntl*: :class:`pyCart.cart3d.Cart3d`
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Overall :mod:`pyCart` control instance
         
         :Outputs:
@@ -48,7 +48,7 @@ class LoadsCC:
         self.Lref = 1.0
         self.MRP = np.array([0., 0., 0.])
         # Check for an input.
-        if cntl is None:
+        if cart3d is None:
             # Quit.
             return None
         # Get the folder names.
@@ -165,5 +165,12 @@ class LoadsCC:
             # Save the coefficient.
             getattr(self, coeff)[comp][i] = c
         # Done
+        return None
+        
+    # Function to write forces and moments
+    def Write(self, compID=None):
+        """
+        Write loads data to files.
+        """
         return None
 
