@@ -56,7 +56,7 @@ class InputCntl(FileCntl):
         
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
-            'Mach ', 'Mach     %.8f\n' % Mach)
+            'Mach ', 'Mach     %12.8f   # Mach number\n' % Mach)
         return None
         
     # Function to set the angle of attack
@@ -81,7 +81,7 @@ class InputCntl(FileCntl):
         
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
-            'alpha ', 'alpha    %.8f\n' % alpha)
+            'alpha ', 'alpha    %+12.8f   # angle of attack\n' % alpha)
         return None
         
     # Function to set the sideslip angle
@@ -106,7 +106,7 @@ class InputCntl(FileCntl):
         
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
-            'beta ', 'beta     %.8f\n' % beta)
+            'beta ', 'beta     %+12.8f   # sideslip angle\n' % beta)
         return None
         
         

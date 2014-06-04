@@ -206,15 +206,10 @@ class Trajectory:
         for i in range(len(dlist)):
             # Join the "Grid" prefix.
             dname = os.path.join("Grid", dlist[i])
-            # Print the name of the folder.
-            print("Condition name %i: %s" % (i+1, dname))
             # Check if the folder exists.
-            if os.path.isdir(dname):
-                # Say so
-                print("  Folder exists!")
-            else:
+            if not os.path.isdir(dname):
                 # Create the folder, and say so.
-                print("  Creating folder.")
+                print("  Creating folder %i: %s." % (i+1, dname))
                 os.mkdir(dname, 0750)
         return None
         

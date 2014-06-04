@@ -18,6 +18,9 @@ import os, shutil
 # Import the trajectory class
 from trajectory import Trajectory
 
+# Import specific file control classes
+from InputCntl import InputCntl
+
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -366,19 +369,12 @@ class Cart3d:
         # Versions:
         #  2014.05.28 @ddalle  : First version
         #  2014.05.30 @ddalle  : Moved input.cntl filtering to separate func
+        #  2014.06.04 @ddalle  : Moved input.cntl handling entirely to func
         
-        # Check the 'Grid directory.
-        if not os.path.isdir('Grid'):
-            raise IOError('Folder "Grid" not found.')
-        # Get the name of the .cntl file.
-        fname = self.RunOptions['CntlFile']
+        # Prepare the "input.cntl" files.
+        self.PrepareInputCntl()
         # Number of adaptations
         nAdapt = self.RunOptions['nAdapt']
-        # Check if it exists.
-        if not os.path.isfile(fname):
-            raise IOError('Input CNTL File "%s" not found.' % fname)
-        # Copy the file to the grid folder.
-        shutil.copyfile(fname, os.path.join('Grid', 'input.cntl'))
         # Copy the aero.csh file
         if nAdapt > 0:
             shutil.copyfile('aero.csh', os.path.join('Grid', 'aero.csh'))
@@ -386,8 +382,6 @@ class Cart3d:
         os.chdir('Grid')
         # Extract the trajectory.
         T = self.Trajectory
-        # Read the input.cntl file.
-        lines = open('input.cntl').readlines()
         # Get the folder names
         dlist = T.GetFolderNames()
         # Create a file to run all the cases.
@@ -403,8 +397,6 @@ class Cart3d:
             # Print a status update
             print("Preparing case %i: Mach=%.2f, alpha=%-.2f, beta=%-.2f" 
                 % (i, T.Mach[i], T.alpha[i], T.beta[i]))
-            # Prepare the input file.
-            self.PrepareCntlFile('input.cntl', i)
             # Create a conditions file
             T.WriteConditionsFile(os.path.join(dlist[i], 'Conditions.json'), i)
             # Check for adaptation.
@@ -427,54 +419,54 @@ class Cart3d:
         # End
         return None
         
-    # Function to filter/replace input.cntl files
-    def PrepareCntlFile(self, fin, i):
+    # Function to prepare "input.cntl" files
+    def PrepareInputCntl(self):
         """
-        Create a specific instance of an 'input.cntl' file.
-        
-        This function will create a new 'input.cntl' file and replace various
-        ``*_TMP`` placeholders with specific values.
-        
-        This function must be called from the 'Grid' folder, unlike the other
-        higher-level functions, which are called from the parent folder.
+        Read template "input.cntl" file, customize it for each case, and write
+        it to trajectory folders.
         
         :Call:
-            >>> cart3d.PrepareCntlFile(fin, i)
-            
+            >>> cart3d.PrepareInputCntl()
+        
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
-            *fin*: :class:`str`
-                Name of template input file
-            *i*: :class:`int`
-                Trajectory case number
                 
-        :Outputs:
-            ``None``
+        :Effects:
+            *  Reads 'input.cntl' file from the destination specified in
+               *cart3d.RunOptions* and copies it to each case folder after
+               processing appropriate options.
+               
+            *  Creates *cart3d.InputCntl* data member
         """
         # Versions:
-        #  2014.05.30 @ddalle  : First version
+        #  2014.06.04 @ddalle  : First version
         
-        # Read the lines from the template file.
-        lines = open(fin).readlines()
-        # Get the trajectory.
+        # Get the name of the .cntl file.
+        fname = self.RunOptions['CntlFile']
+        # Read it.
+        self.InputCntl = InputCntl(fname)
+        # Process global options...
+        #
+        # Write to the "Grid" folder.
+        self.InputCntl.Write(os.path.join('Grid', 'input.cntl'))
+        # Extract the trajectory.
         T = self.Trajectory
-        # Get the folder name.
-        dname = T.GetFolderNames(i=i)
-        # Create the output file name.
-        fout = os.path.join(dname, 'input.cntl')
-        # Create the specific input file.
-        f = open(fout, 'w')
-        # Loop through the lines of the template.
-        for line in lines:
-            line = line.replace('Mach_TMP',  '%.8f'%T.Mach[i])
-            line = line.replace('alpha_TMP', '%.8f'%T.alpha[i])
-            line = line.replace('beta_TMP',  '%.8f'%T.beta[i])
-            # Write the line.
-            f.write(line)
-        # Close the input.cntl file.
-        f.close()
-        # End
+        # Get the folder anems.
+        dlist = T.GetFolderNames()
+        # Loop through the conditions.
+        for i in range(len(dlist)):
+            # Print a status update
+            print("  Preparing 'input.cntl' for case %i" % i)
+            # Set the flight conditions.
+            self.InputCntl.SetMach(T.Mach[i])
+            self.InputCntl.SetAlpha(T.alpha[i])
+            self.InputCntl.SetBeta(T.beta[i])
+            # Destination file name
+            fout = os.path.join('Grid', dlist[i], 'input.cntl')
+            # Write the input file.
+            self.InputCntl.Write(fout)
+        # Done
         return None
         
         
