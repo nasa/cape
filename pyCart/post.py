@@ -132,7 +132,7 @@ class LoadsDat:
     # Function to read a 'loads*.dat' file
     def Read(self, fname, i, nCase):
         """
-        Read a "loadsCC.dat" file and process each line
+        Read a "loads*.dat" file and process each line
         
         :Call:
             >>> FM.Read(fname, i, nCase)
@@ -184,12 +184,29 @@ class LoadsDat:
     def Write(self, T, compID=None):
         """
         Write loads data to files.
-        """
         
+        A comma-separated values file is generated.  An example name of the file
+        is "loadsCC.csv".
+        
+        :Call:
+            >>> FM.Write(T, compID=None)
+            
+        :Inputs:
+            *T*: :class:`pyCart.trajectory.Trajectory`
+                Trajectory matching the conditions saved
+            *compID*: :class:`list`
+                List of components to process, all are written by default
+        """
+        # Versions:
+        #  2014.06.04 @ddalle  : First version
         
         # List of coefficient names.
         coeffs = ['C_A', 'C_Y', 'C_N', 'C_D', 'C_S', 'C_L',
             'C_l', 'C_m', 'C_n', 'C_M_x', 'C_M_y', 'C_M_z']
+        # Component list
+        if compID is None or compID=="all":
+            # Default: use all
+            compID = self.Components
         # Output file name (e.g., "loadsCC.csv")
         fout = self.fname.rstrip(".dat") + ".csv"
         # Open the (new) file.
@@ -199,11 +216,11 @@ class LoadsDat:
         # Write the headers for each variable name in trajectory.
         f.write(", ".join(T.keys))
         # Loop through the components.
-        for compID in self.Components:
+        for comp in compID:
             # Loop through the coefficients.
             for c in coeffs:
                 # Write the coefficient name.
-                f.write(', %s_%s' % (c, compID))
+                f.write(', %s_%s' % (c, comp))
         # End of header line.
         f.write('\n')
         # Loop through the conditions.
@@ -215,11 +232,11 @@ class LoadsDat:
                 # Write the value.
                 f.write(', %.8f' % getattr(T,k)[i])
             # Loop through the components.
-            for compID in self.Components:
+            for comp in compID:
                 # Loop through the coefficients.
                 for c in coeffs:
                     # Write the value.
-                    f.write(', %.8e' % getattr(self,c)[compID][i]
+                    f.write(', %.8e' % getattr(self,c)[comp][i]
             # New line
             f.write('\n')
         # Close the file and quit.
