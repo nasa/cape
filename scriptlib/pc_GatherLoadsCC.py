@@ -54,5 +54,5 @@ cart3d = pyCart.Cart3d(fname)
 cart3d.GetLoadsCC()
 
 # Write the files.
-cart3d.LoadsCC.Write(cart3d.Trajectory)
+cart3d.WriteLoadsCC()
 

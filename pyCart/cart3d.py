@@ -109,33 +109,34 @@ class Cart3d:
         lines = stripComments(lines, '#')
         # Process the actual input file.
         opts = json.loads(lines)
-        # Save all the options.
-        self.JSON = opts
         
-        # Initialize the grid parameters.
-        self.Grid = opts.get('Grid', {})
-        # Process the defaults.
-        for k in defs['Grid'].keys():
-            # Use the setdefault() method.
-            self.Grid.setdefault(k, defs['Grid'][k])
+        # Loop through the keys in the defaults.
+        for k in defs.keys():
+            # Set the defaults.
+            opts.setdefault(k, defs[k])
+            # Check for a dict
+            if not(type(defs[k]) is dict and type(opts[k]) is dict):
+                continue
+            # Loop though the sub-keys
+            for j in defs[k].keys():
+                # Set the defaults.
+                opts[k].setdefault(j, defs[k][j])
         
-        # Initialize the run parameters. 
-        self.RunOptions = opts.get('RunOptions', {})
-        # Process the defaults.
-        for k in defs['RunOptions'].keys():
-            # Use the setdefault() method.
-            self.RunOptions.setdefault(k, defs['RunOptions'][k])
+        # Save the major keys.
+        self.RunOptions = opts["RunOptions"]
+        self.Mesh = opts["Mesh"]
         
-        # Process the trajectory dict if it exists.
-        oTraj = opts.get('Trajectory', {})
         # Get the name of the trajectory file.
-        tfile = oTraj.get('File', defs['Trajectory']['File'])
+        tfile = opts['Trajectory']['File']
         # Get the key (variable) names.
-        tkeys = oTraj.get('Keys', defs['Trajectory']['Keys'])
+        tkeys = opts['Trajectory']['Keys']
         # Get the prefix.
-        tpre = oTraj.get('Keys', defs['Trajectory']['Prefix'])
+        tpre = opts['Trajectory']['Prefix']
         # Read the trajectory file.
-        self.Trajectory = Trajectory(tfile, tkeys)
+        self.Trajectory = Trajectory(tfile, tkeys, prefix=tpre)
+        
+        # Save all the options as a reference.
+        self.Options = opts        
         
         
     # Output representation
@@ -147,9 +148,9 @@ class Cart3d:
         #  2014.05.28 @ddalle  : First version
         
         # Display basic information from all three areas.
-        return "<pyCart.Cart3d(nCase=%i, nIter=%i, tri='%s'>" % (
+        return "<pyCart.Cart3d(nCase=%i, nIter=%i, tri='%s')>" % (
             self.Trajectory.nCase, self.RunOptions['nIter'],
-            self.Grid['TriFile'])
+            self.Mesh['TriFile'])
         
     # Trajectory's folder name method
     def GetFolderNames(self, i=None, prefix=None):
@@ -231,7 +232,7 @@ class Cart3d:
         if not os.path.isdir("Grid"):
             os.mkdir("Grid", 0750)
         # Extract the grid parameters.
-        Grid = self.Grid
+        Grid = self.Mesh
         # Get the name of the tri file(s).
         ftri = os.path.split(Grid['TriFile'])[-1]
         # Copy the tri file there if necessary.
@@ -244,9 +245,10 @@ class Cart3d:
             shutil.copyfile(fxml, os.path.join('Grid', 'Config.xml'))
         # Change to the Grid folder.
         os.chdir('Grid')
-        # Start by running autoInputs
-        cmd = 'autoInputs -r %i -t Components.i.tri' % Grid['MeshRadius']
-        os.system(cmd)
+        # Start by running autoInputs.
+        if Grid['AutoInputs']:
+            cmd = 'autoInputs -r %i -t Components.i.tri' % Grid['MeshRadius']
+            os.system(cmd)
         # Run cubes
         cmd = 'cubes -maxR %i -pre preSpec.c3d.cntl -reorder' % \
             Grid['nRefinements']
@@ -375,6 +377,8 @@ class Cart3d:
         
         # Prepare the "input.cntl" files.
         self.PrepareInputCntl()
+        # Prepare the run scripts.
+        self.CreateRunScripts()
         # Number of adaptations
         nAdapt = self.RunOptions['nAdapt']
         # Copy the aero.csh file
@@ -386,12 +390,6 @@ class Cart3d:
         T = self.Trajectory
         # Get the folder names
         dlist = T.GetFolderNames()
-        # Create a file to run all the cases.
-        fname_sh = 'run_cases.sh'
-        fname_i = 'run_case.sh'
-        fsh = open(fname_sh, 'w')
-        # Print the first-line magic
-        fsh.write('#!/bin/bash\n\n')
         # Extract the options.
         opts = self.RunOptions
         # Loop through the conditions.
@@ -405,20 +403,67 @@ class Cart3d:
             if nAdapt > 0:
                 # Create the aero.csh instance.
                 self.PrepareAeroCsh('aero.csh', i)
-            # Create the run script.
-            self.CreateCaseRunScript(i)
-            # Append to the global script.
-            fsh.write('# Case %i\n' % i)
-            fsh.write('cd %s\n' % dlist[i])
-            fsh.write('./%s\n' % fname_i)
-            fsh.write('cd ..\n\n')
-        # Close the global script file.
-        fsh.close()
-        # Make it executable
-        os.chmod(fname_sh, 0750)
         # Change back to original folder.
         os.chdir('..')
         # End
+        return None
+        
+    # Function to create run scripts
+    def CreateRunScripts(self):
+        """
+        Create all run scripts
+        
+        :Call:
+            >>> cart3d.CreateRunScripts()
+            
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
+        """
+        # Versions:
+        #  2014.06.04 @ddalle  : First version
+        
+        # Global script name
+        fname_all = 'run_all.sh'
+        # Grid script name
+        fname_grid = 'run_cases.sh'
+        # Local script name.
+        fname_i = 'run_case.sh'
+        # Create the global run script.
+        fa = open(fname_all, 'w')
+        # Print the first-line magic
+        fa.write('#!/bin/bash\n\n')
+        # As of now there's only one grid; run it and return.
+        fa.write('cd Grid\n')
+        fa.write('./%s\n' % fname_grid)
+        fa.write('cd ..\n')
+        # Close the global script.
+        fa.close()
+        # Make the script executable.
+        os.chmod(fname_all, 0750)
+        # Move to the grid.
+        os.chdir('Grid')
+        # Create the grid-specific script.
+        fg = open(fname_grid, 'w')
+        # Print the first-line magic
+        fg.write('#!/bin/bash\n\n')
+        # Get the folder names.
+        dlist = self.Trajectory.GetFolderNames()
+        # Loop through the folders.
+        for i in range(len(dlist)):
+            # Append to the grid script.
+            fg.write('# Case %i\n' % i)
+            fg.write('cd %s\n' % dlist[i])
+            fg.write('./%s\n' % fname_i)
+            fg.write('cd ..\n\n')
+            # Create the local run script.
+            self.CreateCaseRunScript(i)
+        # Close the grid-level script file.
+        fg.close()
+        # Make it executable.
+        os.chmod(fname_grid, 0750)
+        # Change back to the original folder.
+        os.chdir('..')
         return None
         
     # Function to prepare "input.cntl" files
@@ -587,6 +632,72 @@ class Cart3d:
         
         # Call the constructor.
         self.LoadsCC = LoadsDat(self, fname="loadsCC.dat")
+        return None
+        
+    # Function to write "loadsCC.csv"
+    def WriteLoadsCC(self):
+        """
+        Write gathered loads to CSV file to "loadsCC.csv"
+        
+        :Call:
+            >>> cart3d.WriteLoadsCC()
+            
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
+        """
+        # Versions:
+        #  2014.06.04 @ddalle  : First version
+        
+        # Check for the attribute.
+        if not hasattr(self, 'LoadsCC'):
+            self.GetLoadsCC()
+        # Write.
+        self.LoadsCC.Write(self.Trajectory)
+        return None
+        
+    # Function to read "loadsCC.dat" files
+    def GetLoadsTRI(self):
+        """
+        Read all available 'loadsTRI.dat' files.
+        
+        :Call:
+            >>> cart3d.GetLoadsTRI()
+            
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
+                
+        :Effects:
+            Creates *cart3d.LoadsCC* instance
+        """
+        # Versions:
+        #  2014.06.04 @ddalle  : First version
+        
+        # Call the constructor.
+        self.LoadsTRI = LoadsDat(self, fname="loadsTRI.dat")
+        return None
+        
+    # Function to write "loadsCC.csv"
+    def WriteLoadsTRI(self):
+        """
+        Write gathered loads to CSV file to "loadsTRI.csv"
+        
+        :Call:
+            >>> cart3d.WriteLoadsTRI()
+            
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
+        """
+        # Versions:
+        #  2014.06.04 @ddalle  : First version
+        
+        # Check for the attribute.
+        if not hasattr(self, 'LoadsTRI'):
+            self.GetLoadsTRI()
+        # Write.
+        self.LoadsTRI.Write(self.Trajectory)
         return None
         
         

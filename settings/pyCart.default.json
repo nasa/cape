@@ -1,23 +1,52 @@
 {
-    "Grid": {
-        "TriFile": "Components.i.tri",
-        "ComponentFile": "Config.xml",
-        "MeshRadius": 16,
+	# The names of these two files have the obvious defaults.
+	"InputCntl": "input.cntl",
+	"AeroCsh": "aero.csh",
+    
+    # This section sets parameters for flowCart and adjointCart
+    "RunOptions": {
+        "nAdapt": 0,
+        "CFL": 1.15,
+        "nIter": 200,
+        "nThreads": 8
+    },
+
+	# Parameters for creating the mesh
+    "Mesh": {
+        # This can be a list of .tri files.
+        "TriFile": "bJet.i.tri",
+        # Whether or not to use autoInputs
+        "AutoInputs": true,
+        # Input parameters to autoInputs, cubes, or mgPrep
+        "MeshRadius": 8,
         "nRefinements": 11,
         "nMultiGrid": 3
     },
     
-    "RunOptions": {
-        "nIter": 500,
-		"nAdapt": 0,
-        "nThreads": 8,
-        "CFL": 1.1,
-        "CntlFile": "input.cntl"
+    # Describe the reference values and config.
+    "Config": {
+        # Defer to a file for most things.
+        "File": "Config.xml",
+        # Reference values
+        "ReferenceArea": 1.0,
+        "ReferenceLength": 1.0,
+        # The moment point can be specified as a dictionary of components.
+        "MomentPoint": [0.0, 0.0, 0.0]
     },
     
+    # Trajectory description
     "Trajectory": {
+        # If a file is specified, and it exists, trajectory values will be read
+        # from it.  Trajectory values can also be specified locally.
         "File": "Trajectory.dat",
         "Keys": ["Mach", "alpha", "beta"],
-        "Prefix": "F"
+        "Prefix": "F",
+        # Default properties for a new variable
+        # This also serves as the template for new variables
+        "Default": {
+            "Values": [0.0],
+            "Grid": false
+            "Script": "default.py"
+        }
     }
 }
