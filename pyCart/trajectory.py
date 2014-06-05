@@ -21,16 +21,19 @@ class Trajectory:
     """
     
     # Initialization method
-    def __init__(self, fname='Trajectory.dat', 
-        keys=['Mach','alpha','beta'], prefix="F"):
+    def __init__(self, **kwargs):
+        #fname='Trajectory.dat', 
+        #keys=['Mach','alpha','beta'], prefix="F"):
         """
         Read a simple list of configuration variables
         
         :Call:
-            >>> T = pyCart.Trajectory(fname)
-            >>> T = pyCart.Trajectory(fname, keys, prefix)
+            >>> T = pyCart.Trajectory(**traj)
+            >>> T = pyCart.Trajectory(File=fname, Keys=keys, Prefix=prefix)
         
         :Inputs:
+            *traj*: :class:`dict`
+                Dictionary of options from ``cart3d.Options["Trajectory"]``
             *fname*: :class:`str`
                 Name of file to read, defaults to ``'Trajectory.dat'``
             *keys*: :class:`list` of :class:`str` items
@@ -58,15 +61,84 @@ class Trajectory:
         """
         # Versions:
         #  2014.05.28 @ddalle  : First version
+        #  2014.06.05 @ddalle  : Generalized for user-defined keys
         
+        # Process the inputs.
+        fname = kwargs.get('File', None)
+        keys = kwargs.get('Keys', ['Mach', 'alpha', 'beta'])
+        prefix = kwargs.get('Prefix', "F")
+        # Define the default new key.
+        defkey = {
+            "Values": [0.0],
+            "Grid": True,
+            "Type": "Group"
+        }
+        # Actually, the default key properties can be specified, too.'
+        defkey = kwargs.get('Default', defkey)
         # Number of variables
         nVar = len(keys)
-        # Initialize the dictionary.
+        # Initialize the dictionaries.
         self.keys = keys
         self.text = {}
+        self.defs = {}
         # Initialize the fields.
         for key in keys:
+            # Initialize the text for this key.
             self.text[key] = []
+            # Check for a variable definition.
+            optkey = kwargs.get(key)
+            # Process defaults.
+            if type(optkey) is not dict:
+                if key in ['Mach', 'M', 'mach']:
+                    # Mach number; non group
+                    optkey = {
+                        "Values": optkey,
+                        "Grid": False,
+                        "Type": "Mach"
+                    }
+                elif key in ['Alpha', 'alpha', 'aoa']:
+                    # Angle of attack; non group
+                    optkey = {
+                        "Values": optkey,
+                        "Grid": False,
+                        "Type": "alpha"
+                    }
+                elif key in ['Beta', 'beta', 'aos']:
+                    # Sideslip angle; non group
+                    optkey = {
+                        "Values": optkey,
+                        "Grid": False,
+                        "Type": "beta"
+                    }
+                elif key.lower() in ['alpha_t', 'alpha_total']:
+                    # Total angle of attack; non group
+                    optkey = {
+                        "Values": optkey,
+                        "Grid": False,
+                        "Type": "alpha_t"
+                    }
+                elif key in ['phi', 'Phi']:
+                    # Total roll angle; non group
+                    optkey = {
+                        "Values": optkey,
+                        "Grid": False,
+                        "Type": "phi"
+                    }
+                elif optkey is None:
+                    # Use defaults entirely.
+                    optkey = defkey
+                else:
+                    # Unrecognized/undescribed variable
+                    # Just values were given.  Use defaults
+                    subkey = defkey
+                    # Restore the values
+                    subkey["Values"] = optkey
+                    optkey = subkey
+            # Save the definitions
+            self.defs[key] = optkey
+            
+            
+            
         # Open the file.
         f = open(fname)
         # Loop through the lines.

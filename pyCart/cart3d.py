@@ -126,14 +126,8 @@ class Cart3d:
         self.RunOptions = opts["RunOptions"]
         self.Mesh = opts["Mesh"]
         
-        # Get the name of the trajectory file.
-        tfile = opts['Trajectory']['File']
-        # Get the key (variable) names.
-        tkeys = opts['Trajectory']['Keys']
-        # Get the prefix.
-        tpre = opts['Trajectory']['Prefix']
-        # Read the trajectory file.
-        self.Trajectory = Trajectory(tfile, tkeys, prefix=tpre)
+        # Process the trajectory.
+        self.Trajectory = Trajectory(**opts['Trajectory'])
         
         # Save all the options as a reference.
         self.Options = opts        
@@ -284,7 +278,7 @@ class Cart3d:
         if not os.path.isdir('Grid'):
             raise IOError('Folder "Grid" not found.')
         # Name of tri file
-        ftri = os.path.split(self.Grid['TriFile'])[-1]
+        ftri = os.path.split(self.Mesh['TriFile'])[-1]
         # Get the folder names.
         dlist = self.Trajectory.GetFolderNames()
         # Change to the 'Grid' folder.
@@ -490,7 +484,7 @@ class Cart3d:
         #  2014.06.04 @ddalle  : First version
         
         # Get the name of the .cntl file.
-        fname = self.RunOptions['CntlFile']
+        fname = self.Options['InputCntl']
         # Read it.
         self.InputCntl = InputCntl(fname)
         # Process global options...
@@ -606,7 +600,7 @@ class Cart3d:
         else:
             # Create the flowCart command to do the work.
             f.write('flowCart -N %i -v -mg %i -his -clic | tee flowCart.txt\n' %
-                (opts['nIter'], self.Grid['nMultiGrid']))
+                (opts['nIter'], self.Mesh['nMultiGrid']))
         # Close the file.
         f.close()
         # Make it executable.

@@ -45,8 +45,9 @@
         # This also serves as the template for new variables
         "Default": {
             "Values": [0.0],
-            "Grid": false
-            "Script": "default.py"
+            "Grid": true,
+			"Type": "Group",
+            "Script": ""
         }
     }
 }
