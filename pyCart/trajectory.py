@@ -308,7 +308,7 @@ class Trajectory:
         # Check for a list.
         if np.isscalar(i):
             # Get the name.
-            dlist = self._AssembleName(keys, prefix, j)
+            dlist = self._AssembleName(keys, prefix, i)
         else:
             # Initialize the list.
             dlist = []
@@ -353,7 +353,7 @@ class Trajectory:
         # Check for a list.
         if np.isscalar(i):
             # Get the name.
-            dlist = self._AssembleName(keys, prefix, j)
+            dlist = self._AssembleName(keys, prefix, i)
         else:
             # Initialize the list.
             dlist = []
@@ -474,15 +474,18 @@ class Trajectory:
         
         # Process the prefix
         if prefix is None: prefix = self.prefix
-        # Get the folder list.
+        # Get the grid folder and case folder lists.
+        glist = self.GetGridFolderNames()
         dlist = self.GetFolderNames(prefix=prefix)
-        # Check if the "Grid" folder exists.
-        if not os.path.isdir("Grid"):
-            os.mkdir("Grid", 0750)
         # Loop through the conditions.
         for i in range(len(dlist)):
+            # Check if the "Grid" folder exists.
+            if not os.path.isdir(glist[i]):
+                # Create the folder, and say so.
+                print("Creating common-grid folder: %s" % glis[i])
+                os.mkdir(glist[i], 0750)
             # Join the "Grid" prefix.
-            dname = os.path.join("Grid", dlist[i])
+            dname = os.path.join(glist[i], dlist[i])
             # Check if the folder exists.
             if not os.path.isdir(dname):
                 # Create the folder, and say so.
