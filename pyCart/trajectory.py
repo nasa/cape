@@ -22,8 +22,6 @@ class Trajectory:
     
     # Initialization method
     def __init__(self, **kwargs):
-        #fname='Trajectory.dat', 
-        #keys=['Mach','alpha','beta'], prefix="F"):
         """
         Read a simple list of configuration variables
         
@@ -67,78 +65,14 @@ class Trajectory:
         fname = kwargs.get('File', None)
         keys = kwargs.get('Keys', ['Mach', 'alpha', 'beta'])
         prefix = kwargs.get('Prefix', "F")
-        # Define the default new key.
-        defkey = {
-            "Values": [0.0],
-            "Grid": True,
-            "Type": "Group"
-        }
-        # Actually, the default key properties can be specified, too.'
-        defkey = kwargs.get('Default', defkey)
         # Number of variables
         nVar = len(keys)
-        # Initialize the dictionaries.
+        # Save properties.
         self.keys = keys
-        self.text = {}
-        self.defs = {}
-        # Initialize the fields.
-        for key in keys:
-            # Initialize the text for this key.
-            self.text[key] = []
-            # Check for a variable definition.
-            optkey = kwargs.get(key)
-            # Process defaults.
-            if type(optkey) is not dict:
-                if key in ['Mach', 'M', 'mach']:
-                    # Mach number; non group
-                    optkey = {
-                        "Values": optkey,
-                        "Grid": False,
-                        "Type": "Mach"
-                    }
-                elif key in ['Alpha', 'alpha', 'aoa']:
-                    # Angle of attack; non group
-                    optkey = {
-                        "Values": optkey,
-                        "Grid": False,
-                        "Type": "alpha"
-                    }
-                elif key in ['Beta', 'beta', 'aos']:
-                    # Sideslip angle; non group
-                    optkey = {
-                        "Values": optkey,
-                        "Grid": False,
-                        "Type": "beta"
-                    }
-                elif key.lower() in ['alpha_t', 'alpha_total']:
-                    # Total angle of attack; non group
-                    optkey = {
-                        "Values": optkey,
-                        "Grid": False,
-                        "Type": "alpha_t"
-                    }
-                elif key in ['phi', 'Phi']:
-                    # Total roll angle; non group
-                    optkey = {
-                        "Values": optkey,
-                        "Grid": False,
-                        "Type": "phi"
-                    }
-                elif optkey is None:
-                    # Use defaults entirely.
-                    optkey = defkey
-                else:
-                    # Unrecognized/undescribed variable
-                    # Just values were given.  Use defaults
-                    subkey = defkey
-                    # Restore the values
-                    subkey["Values"] = optkey
-                    optkey = subkey
-            # Save the definitions
-            self.defs[key] = optkey
-            
-            
-            
+        self.prefix = prefix
+        # Process the key definitions
+        self.ProcessKeyDefinitions(**kwargs)
+        
         # Open the file.
         f = open(fname)
         # Loop through the lines.
@@ -162,8 +96,8 @@ class Trajectory:
             setattr(self, key, np.array([float(v) for v in self.text[key]]))
         # Save the number of cases.
         self.nCase = len(self.text[key])
-        # Save the prefix.
-        self.prefix = prefix
+        # Process the groups (conditions in a group can use same grid).
+        self.ProcessGroups()
         # Output the conditions.
         return None
         
@@ -177,6 +111,160 @@ class Trajectory:
         # Return a string.
         return '<pyCart.Trajectory(nCase=%i, keys=%s)>' % (self.nCase,
             self.keys)
+        
+    # Function to process the role that each key name plays.
+    def ProcessKeyDefinitions(self, **kwargs):
+        """
+        Process defaults for the function of each trajectory variable
+        
+        :Call:
+            >>> T.ProcessKeyDefinitions(**kwargs)
+        
+        :Inputs:
+            *T*: :class:`pyCart.trajectory.Trajectory`
+                Instance of the pyCart trajectory class
+            *kwargs*: :class:`dict`
+                Keyword arguments passed to :mod:`pyCart.trajectory` constructor
+        
+        :Effects:
+            Creates fields *T.text* and *T.defs* containing definitions for each
+            variable.
+        """
+        # Versions:
+        #  2014.06.05 @ddalle  : First version
+        
+        # Define the default new key.
+        defkey = {
+            "Values": [0.0],
+            "Group": True,
+            "Type": "Group"
+        }
+        # Actually, the default key properties can be specified, too.'
+        defkey = kwargs.get('Default', defkey)
+        # Initialize the dictionaries.
+        self.text = {}
+        self.defs = {}
+        # Initialize the fields.
+        for key in self.keys:
+            # Initialize the text for this key.
+            self.text[key] = []
+            # Check for a variable definition.
+            optkey = kwargs.get(key)
+            # Process defaults.
+            if type(optkey) is not dict:
+                if key in ['Mach', 'M', 'mach']:
+                    # Mach number; non group
+                    optkey = {
+                        "Values": optkey,
+                        "Group": False,
+                        "Type": "Mach",
+                        "Abbreviation": "M"
+                    }
+                elif key in ['Alpha', 'alpha', 'aoa']:
+                    # Angle of attack; non group
+                    optkey = {
+                        "Values": optkey,
+                        "Group": False,
+                        "Type": "alpha",
+                        "Abbreviation": "a"
+                    }
+                elif key in ['Beta', 'beta', 'aos']:
+                    # Sideslip angle; non group
+                    optkey = {
+                        "Values": optkey,
+                        "Group": False,
+                        "Type": "beta",
+                        "Abbreviation": "b"
+                    }
+                elif key.lower() in ['alpha_t', 'alpha_total']:
+                    # Total angle of attack; non group
+                    optkey = {
+                        "Values": optkey,
+                        "Group": False,
+                        "Type": "alpha_t",
+                        "Abbreviation": "at"
+                    }
+                elif key in ['phi', 'Phi']:
+                    # Total roll angle; non group
+                    optkey = {
+                        "Values": optkey,
+                        "Group": False,
+                        "Type": "phi",
+                        "Abbreviation": "ph"
+                    }
+                elif optkey is None:
+                    # Use defaults entirely.
+                    optkey = defkey
+                else:
+                    # Unrecognized/undescribed variable
+                    # Just values were given.  Use defaults
+                    subkey = defkey
+                    # Restore the values
+                    subkey["Values"] = optkey
+                    optkey = subkey
+            # Save the definitions
+            self.defs[key] = optkey
+        
+    # Process the groups that need separate grids.
+    def ProcessGroups(self):
+        """
+        Split trajectory variables into groups.  A "group" is a set of
+        trajectory conditions that can use the same mesh.
+        
+        :Call:
+            >>> T.ProcessGroups()
+            
+        :Inputs:
+            *T*: :class:`pyCart.trajectory.Trajectory`
+                Instance of the pyCart trajectory class
+                
+        :Effects:
+            Creates fields that save the properties of the groups.  These fields
+            are called *T.GroupKeys*, *T.GroupX*, *T.GroupID*.
+        """
+        # Versions:
+        #  2014.06.05 @ddalle  : First version
+        
+        # Initialize matrix of group-generating key values.
+        x = []
+        # Initialize list of group variables.
+        gk = []
+        ngk = []
+        # Loop through the keys to check for groups.
+        for key in self.keys:
+            # Check the definition for the grouping status.
+            if self.defs[key]['Group']:
+                # Append the values to the list.
+                x.append(getattr(self,key))
+                # Append to the list of group variables.
+                gk.append(key)
+            else:
+                # Append to the list of groupable variables.
+                ngk.append(key)
+        # Save.
+        self.GroupKeys = gk
+        self.NonGroupKeys = ngk
+        # Turn *x* into a proper matrix.
+        x = np.transpose(np.array(x))
+        # Unfortunately NumPy arrays do not support testing very well.
+        y = [list(xi) for xi in x]
+        # Initialize list of unique conditions.
+        Y = []
+        # Initialize the groupID numbers.
+        gID = []
+        # Loop through the full set of conditions.
+        for yi in y:
+            # Test if it's in the existing set of unique conditions.
+            if not (yi in Y):
+                # If not, append it.
+                Y.append(yi)
+            # Save the index.
+            gID.append(Y.index(yi))
+        # Convert the result and save it.
+        self.GroupX = np.array(Y)
+        # Save the group index for *all* conditions.
+        self.GroupID = np.array(gID)
+        return None
         
     # Function to list directory names
     def GetFolderNames(self, i=None, prefix=None):
@@ -209,35 +297,152 @@ class Trajectory:
         """
         # Versions:
         #  2014.05.28 @ddalle  : First version
+        #  2014.06.05 @ddalle  : Refined to variables that can use same grid
         
         # Process the prefix.
         if prefix is None: prefix = self.prefix
         # Process the index list.
         if i is None: i = range(self.nCase)
         # Get the variable names.
-        keys = self.keys
+        keys = self.NonGroupKeys
         # Check for a list.
         if np.isscalar(i):
-            # Initialize the output.
-            dlist = prefix
-            # Append based on the keys.
-            for k in keys:
-                # Append the text in the trajectory file.
-                dlist += "_" + k + "_" + self.text[k][i]
+            # Get the name.
+            dlist = self._AssembleName(keys, prefix, j)
         else:
             # Initialize the list.
             dlist = []
             # Loop through the conditions.
             for j in i:
-                # Initialize folder name.
-                dname = prefix
-                # Append based on the keys.
-                for k in keys:
-                    # Append the text in the trajectory file.
-                    dname += "_" + k + "_" + self.text[k][j]
+                # Get the folder name.
+                dname = self._AssembleName(keys, prefix, j)
                 # Append to the list.
                 dlist.append(dname)
+        # Return the list.
         return dlist
+        
+    # Function to get grid folder names
+    def GetGridFolderNames(self, i=None):
+        """
+        Get names of folders that require separate meshes
+        
+        :Call:
+            >>> T.GetGridFolderNames()
+            >>> T.GetGridFolderNames(i)
+        
+        :Inputs:
+            *T*: :class:`pyCart.cntl.Trajectory`
+                Instance of the pyCart trajectory class
+            *i*: :class:`int` or :class:`list`
+                Index of cases to process or list of cases.  If this is
+                ``None``, all cases will be processed.
+        
+        :Outputs:
+            *dname*: :class:`str` or :class:`list`
+                Folder name or list of folder names
+        """
+        # Versions:
+        #  2014.06.05 @ddalle  : First version
+        
+        # Set the prefix.
+        prefix = "Grid"
+        # Process the index list.
+        if i is None: i = range(self.nCase)
+        # Get the names of variables requiring separate grids.
+        keys = self.GroupKeys
+        # Check for a list.
+        if np.isscalar(i):
+            # Get the name.
+            dlist = self._AssembleName(keys, prefix, j)
+        else:
+            # Initialize the list.
+            dlist = []
+            # Loop through the conditions.
+            for j in i:
+                # Get the folder name.
+                dname = self._AssembleName(keys, prefix, j)
+                # Append to the list.
+                dlist.append(dname)
+        # Return the list.
+        return dlist
+    
+    # Function to return the full folder names.
+    def GetFullFolderNames(self, i=None, prefix=None):
+        """
+        List full folder names for each of the cases in a trajectory.
+        
+        The folder names will be of the form
+        
+            "Grid_delta_1.0/F_Mach_2.0_alpha_0.0_beta_-0.5/"
+            
+        using all of the keys specified in the trajectory file.  The amount of
+        digits used will match the number of digits in the trajectory file.
+        
+        :Call:
+            >>> dname = T.GetFullFolderNames()
+            >>> dname = T.GetFullFolderNames(i=None, prefix="F")
+        
+        :Inputs:
+            *T*: :class:`pyCart.cntl.Trajectory`
+                Instance of the pyCart trajectory class
+            *i*: :class:`int` or :class:`list`
+                Index of cases to process or list of cases.  If this is
+                ``None``, all cases will be processed.
+            *prefix*: :class:`str`
+                Header for name of each case folder
+                
+        :Outputs:
+            *dname*: :class:`str` or :class:`list`
+                Folder name or list of folder names
+        """
+        # Versions:
+        #  2014.06.05 @ddalle  : First version
+        
+        # Get the two components.
+        glist = self.GetGridFolderNames(i)
+        flist = self.GetFolderNames(i, prefix)
+        # Check for list or not.
+        if type(glist) is list:
+            # Return the list of combined strings.
+            return [os.path.join(glist[i],flist[i]) for i in range(len(glist))]
+        else:
+            # Just join the one.
+            return os.path.join(glist, flist)
+            
+    # Function to assemble a folder name based on a list of keys and an index
+    def _AssembleName(self, keys, prefix, i):
+        """
+        Assemble names using common code.
+        
+        :Call:
+            >>> dname = T._AssembleName(keys, prefix, i)
+            
+        :Inptus:
+            *T*: :class:`pyCart.cntl.Trajectory`
+                Instance of the pyCart trajectory class
+            *keys*: :type:`list`
+                List of keys to use for this folder name
+            *i*: :class:`int` or :class:`list`
+                Index of cases to process or list of cases.  If this is
+                ``None``, all cases will be processed.
+            *prefix*: :class:`str`
+                Header for name of each case folder
+                
+        :Outputs:
+            *dname*: :class:`str` or :class:`list`
+                Name containing value for each key in *keys*
+        """
+        # Versions:
+        #  2014.06.05 @ddalle  : First version
+        
+        # Initialize folder name.
+        dname = prefix
+        # Append based on the keys.
+        for k in keys:
+            # Append the text in the trajectory file.
+            dname += "_" + k + "_" + self.text[k][i]
+        # Return the result.
+        return dname
         
     # Function to make the directories
     def CreateFolders(self, prefix=None):

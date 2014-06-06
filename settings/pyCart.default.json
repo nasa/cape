@@ -45,7 +45,7 @@
         # This also serves as the template for new variables
         "Default": {
             "Values": [0.0],
-            "Grid": true,
+            "Group": true,
 			"Type": "Group",
             "Script": ""
         }
