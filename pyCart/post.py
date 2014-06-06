@@ -64,7 +64,7 @@ class LoadsDat:
             # Quit.
             return None
         # Get the folder names.
-        dnames = cart3d.GetFolderNames()
+        fnames = cart3d.Trajectory.GetFullFolderNames()
         # Initialize the component list.
         self.Components = []
         # Initialize the force coefficients
@@ -78,7 +78,7 @@ class LoadsDat:
         # Loop through the files.
         for i in range(nCase):
             # Create the file name.
-            fi = os.path.join('Grid', dnames[i], fname)
+            fi = os.path.join(fnames[i], fname)
             # Process the line.
             self.ReadLoadsFile(fi, i, nCase)
                 

@@ -125,6 +125,7 @@ class Cart3d:
         # Save the major keys.
         self.RunOptions = opts["RunOptions"]
         self.Mesh = opts["Mesh"]
+        self.Config = opts["Config"]
         
         # Process the trajectory.
         self.Trajectory = Trajectory(**opts['Trajectory'])
@@ -221,37 +222,39 @@ class Cart3d:
         """
         # Versions:
         #  2014.05.28 @ddalle  : First version
+        #  2014.06.06 @ddalle  : Multiple grid folders
         
-        # Check if the "Grid" folder exists.
-        if not os.path.isdir("Grid"):
-            os.mkdir("Grid", 0750)
         # Extract the grid parameters.
-        Grid = self.Mesh
+        Mesh = self.Mesh
         # Get the name of the tri file(s).
-        ftri = os.path.split(Grid['TriFile'])[-1]
-        # Copy the tri file there if necessary.
-        shutil.copyfile(Grid['TriFile'], 
-            os.path.join('Grid', 'Components.i.tri'))
-        # Get the component list.
-        fxml = Grid['ComponentFile']
-        if os.path.isfile(fxml):
-            # Copy
-            shutil.copyfile(fxml, os.path.join('Grid', 'Config.xml'))
-        # Change to the Grid folder.
-        os.chdir('Grid')
-        # Start by running autoInputs.
-        if Grid['AutoInputs']:
-            cmd = 'autoInputs -r %i -t Components.i.tri' % Grid['MeshRadius']
+        ftri = os.path.split(Mesh['TriFile'])[-1]
+        # Get the names of the grid foloders
+        glist = self.Trajectory.GetGridFolderNames()
+        # Loop through the grids.
+        for g in glist:
+            # Copy the tri file there if necessary.
+            shutil.copyfile(Mesh['TriFile'], 
+                os.path.join(g, 'Components.i.tri'))
+            # Get the component list.
+            fxml = self.Config['File']
+            if os.path.isfile(fxml):
+                # Copy
+                shutil.copyfile(fxml, os.path.join(g, 'Config.xml'))
+            # Change to the Grid folder.
+            os.chdir(g)
+            # Start by running autoInputs.
+            if Mesh['AutoInputs']:
+                cmd = 'autoInputs -r %i -t Components.i.tri' % Mesh['MeshRadius']
+                os.system(cmd)
+            # Run cubes
+            cmd = 'cubes -maxR %i -pre preSpec.c3d.cntl -reorder' % \
+                Mesh['nRefinements']
             os.system(cmd)
-        # Run cubes
-        cmd = 'cubes -maxR %i -pre preSpec.c3d.cntl -reorder' % \
-            Grid['nRefinements']
-        os.system(cmd)
-        # Multigrid setup
-        cmd = 'mgPrep -n %i' % Grid['nMultiGrid']
-        os.system(cmd)
-        # Return to previous folder.
-        os.chdir('..')
+            # Multigrid setup
+            cmd = 'mgPrep -n %i' % Mesh['nMultiGrid']
+            os.system(cmd)
+            # Return to previous folder.
+            os.chdir('..')
         # End.
         return None
         
@@ -280,14 +283,8 @@ class Cart3d:
         # Name of tri file
         ftri = os.path.split(self.Mesh['TriFile'])[-1]
         # Get the folder names.
+        glist = self.Trajectory.GetGridFolderNames()
         dlist = self.Trajectory.GetFolderNames()
-        # Change to the 'Grid' folder.
-        os.chdir('Grid')
-        # Check if the grid has been created.
-        if not os.path.isfile('Mesh.R.c3d'):
-            raise IOError('It appears the mesh has not been created.')
-        # Convenient storage of 'Grid' plus filesep
-        fg = 'Grid' + os.sep
         # List of files to copy
         f_copy = ['input.c3d', 'Config.xml',
             'Mesh.c3d.Info', 'preSpec.c3d.cntl']
@@ -300,10 +297,18 @@ class Cart3d:
         else:
             # No adaptations: link the mesh.
             f_link.append('Mesh.mg.c3d')
-        # Loop through the case folders.
+        # Loop through the cases.
         for i in range(len(dlist)):
-            # Get the folder name.
+            # Extract folders.
+            g = glist[i]
             d = dlist[i]
+            # Change to the 'Grid' folder.
+            os.chdir(g)
+            # Check if the grid has been created.
+            if not os.path.isfile('Mesh.R.c3d'):
+                raise IOError('It appears the mesh has not been created.')
+            # Convenient storage of 'Grid' plus filesep
+            fg = g + os.sep
             # Check status.
             print("Case %i: %s" % (i+1, d))
             if not os.path.isdir(d):
@@ -342,10 +347,8 @@ class Cart3d:
                 # File does not exist.
                 print("    Linking file '%s'." % f)
                 os.system('ln -sf %s %s' % (os.path.join('..',f), f))
-            # Return to previous folder.
-            os.chdir('..')
-        # Return to previous folder.
-        os.chdir('..')
+            # Return to root folder.
+            os.chdir('..' + os.sep + '..')
         # Done
         return None
         
@@ -375,24 +378,28 @@ class Cart3d:
         self.CreateRunScripts()
         # Number of adaptations
         nAdapt = self.RunOptions['nAdapt']
-        # Copy the aero.csh file
-        if nAdapt > 0:
-            shutil.copyfile('aero.csh', os.path.join('Grid', 'aero.csh'))
-        # Move to the Grid folder.
-        os.chdir('Grid')
         # Extract the trajectory.
         T = self.Trajectory
-        # Get the folder names
+        # Get the folder names.
+        glist = T.GetGridFolderNames()
         dlist = T.GetFolderNames()
         # Extract the options.
         opts = self.RunOptions
         # Loop through the conditions.
         for i in range(len(dlist)):
+            # Get the folder names for thiscase.
+            g = glist[i]
+            d = dlist[i]
+            # Copy the aero.csh file
+            if nAdapt > 0:
+                shutil.copyfile('aero.csh', os.path.join(g, 'aero.csh'))
+            # Move to the Grid folder.
+            os.chdir(g)
             # Print a status update
             print("Preparing case %i: Mach=%.2f, alpha=%-.2f, beta=%-.2f" 
                 % (i, T.Mach[i], T.alpha[i], T.beta[i]))
             # Create a conditions file
-            T.WriteConditionsFile(os.path.join(dlist[i], 'Conditions.json'), i)
+            T.WriteConditionsFile(os.path.join(d, 'Conditions.json'), i)
             # Check for adaptation.
             if nAdapt > 0:
                 # Create the aero.csh instance.
@@ -416,6 +423,7 @@ class Cart3d:
         """
         # Versions:
         #  2014.06.04 @ddalle  : First version
+        #  2014.06.06 @ddalle  : Added support for multiple grid folders
         
         # Global script name
         fname_all = 'run_all.sh'
@@ -423,41 +431,50 @@ class Cart3d:
         fname_grid = 'run_cases.sh'
         # Local script name.
         fname_i = 'run_case.sh'
+        # Get the grid folder names
+        glist = self.Trajectory.GetGridFolderNames()
         # Create the global run script.
         fa = open(fname_all, 'w')
         # Print the first-line magic
         fa.write('#!/bin/bash\n\n')
-        # As of now there's only one grid; run it and return.
-        fa.write('cd Grid\n')
-        fa.write('./%s\n' % fname_grid)
-        fa.write('cd ..\n')
+        # Loop through the grid folder names.
+        for g in glist:
+            # As of now there's only one grid; run it and return.
+            fa.write('cd %s\n' % g)
+            fa.write('./%s\n' % fname_grid)
+            fa.write('cd ..\n')
+            # Create the grid-level run script.
+            fg = open(os.path.join(g, fname_grid), 'w')
+            # Initialize it.
+            fg.write('#!/bin/bash\n\n')
+            # Close it for now.
+            fg.close()
+            # Make it executable now.
+            os.chmod(os.path.join(g, fname_grid), 0750)
         # Close the global script.
         fa.close()
         # Make the script executable.
         os.chmod(fname_all, 0750)
-        # Move to the grid.
-        os.chdir('Grid')
-        # Create the grid-specific script.
-        fg = open(fname_grid, 'w')
-        # Print the first-line magic
-        fg.write('#!/bin/bash\n\n')
         # Get the folder names.
         dlist = self.Trajectory.GetFolderNames()
         # Loop through the folders.
         for i in range(len(dlist)):
+            # Change to the appropriate grid folder.
+            os.chdir(glist[i])
+            # Open the (existing) run script for appending.
+            fg = open(fname_grid, 'a')
             # Append to the grid script.
             fg.write('# Case %i\n' % i)
             fg.write('cd %s\n' % dlist[i])
             fg.write('./%s\n' % fname_i)
             fg.write('cd ..\n\n')
+            # Close it (temporarily).
+            fg.close()
+            # Go back to the main folder.
+            os.chdir('..')
             # Create the local run script.
             self.CreateCaseRunScript(i)
-        # Close the grid-level script file.
-        fg.close()
-        # Make it executable.
-        os.chmod(fname_grid, 0750)
-        # Change back to the original folder.
-        os.chdir('..')
+        # Done
         return None
         
     # Function to prepare "input.cntl" files
@@ -482,6 +499,7 @@ class Cart3d:
         """
         # Versions:
         #  2014.06.04 @ddalle  : First version
+        #  2014.06.06 @ddalle  : Low-level functionality for grid folders
         
         # Get the name of the .cntl file.
         fname = self.Options['InputCntl']
@@ -489,11 +507,14 @@ class Cart3d:
         self.InputCntl = InputCntl(fname)
         # Process global options...
         #
-        # Write to the "Grid" folder.
-        self.InputCntl.Write(os.path.join('Grid', 'input.cntl'))
+        # Get grid folders.
+        glist = self.Trajectory.GetGridFolderNames()
+        # Write to each "Grid" folder.
+        for g in glist:
+            self.InputCntl.Write(os.path.join(g, 'input.cntl'))
         # Extract the trajectory.
         T = self.Trajectory
-        # Get the folder anems.
+        # Get the folder names.
         dlist = T.GetFolderNames()
         # Loop through the conditions.
         for i in range(len(dlist)):
@@ -504,7 +525,7 @@ class Cart3d:
             self.InputCntl.SetAlpha(T.alpha[i])
             self.InputCntl.SetBeta(T.beta[i])
             # Destination file name
-            fout = os.path.join('Grid', dlist[i], 'input.cntl')
+            fout = os.path.join(glist[i], dlist[i], 'input.cntl')
             # Write the input file.
             self.InputCntl.Write(fout)
         # Done
@@ -582,7 +603,7 @@ class Cart3d:
         #  2014.05.30 @ddalle  : First version
         
         # Get the folder name.
-        dname = self.Trajectory.GetFolderNames(i=i)
+        dname = self.Trajectory.GetFullFolderNames(i=i)
         # File name
         fout = os.path.join(dname, 'run_case.sh')
         # Create the file.
