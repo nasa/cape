@@ -375,10 +375,10 @@ class Cart3d:
         
         # Prepare the "input.cntl" files.
         self.PrepareInputCntl()
+        # Prepare the "aero.csh" files
+        self.PrepareAeroCsh()
         # Prepare the run scripts.
         self.CreateRunScripts()
-        # Number of adaptations
-        nAdapt = self.RunOptions['nAdapt']
         # Extract the trajectory.
         T = self.Trajectory
         # Get the folder names.
@@ -391,9 +391,6 @@ class Cart3d:
             # Get the folder names for thiscase.
             g = glist[i]
             d = dlist[i]
-            # Copy the aero.csh file
-            if nAdapt > 0:
-                shutil.copyfile('aero.csh', os.path.join(g, 'aero.csh'))
             # Move to the Grid folder.
             os.chdir(g)
             # Print a status update
@@ -401,10 +398,6 @@ class Cart3d:
                 % (i, T.Mach[i], T.alpha[i], T.beta[i]))
             # Create a conditions file
             T.WriteConditionsFile(os.path.join(d, 'Conditions.json'), i)
-            # Check for adaptation.
-            if nAdapt > 0:
-                # Create the aero.csh instance.
-                self.PrepareAeroCsh('aero.csh', i)
         # Change back to original folder.
         os.chdir('..')
         # End
@@ -507,14 +500,14 @@ class Cart3d:
         # Read it.
         self.InputCntl = InputCntl(fname)
         # Process global options...
-        #
+        self.InputCntl.SetCFL(self.RunOptions['CFL'])
+        # Extract the trajectory.
+        T = self.Trajectory
         # Get grid folders.
-        glist = self.Trajectory.GetGridFolderNames()
+        glist = T.GetGridFolderNames()
         # Write to each "Grid" folder.
         for g in glist:
             self.InputCntl.Write(os.path.join(g, 'input.cntl'))
-        # Extract the trajectory.
-        T = self.Trajectory
         # Get the folder names.
         dlist = T.GetFolderNames()
         # Loop through the conditions.
@@ -532,9 +525,65 @@ class Cart3d:
         # Done
         return None
         
+    # Function prepare the aero.csh files
+    def PrepareAeroCsh(self):
+        """
+        Read template "aero.csh" file, customize it according to pyCart
+        settings, and write it to trajectory folders.
+        
+        :Call:
+            >>>car3d.PrepareAeroCsh()
+        
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
+        
+        :Effects:
+            * Read 'aero.csh' file from the destination specified in
+              *cart3d.RunOptions* and copies it to each case folder after
+              processing appropriate options.
+            
+            * Creates *cart3d.AeroCsh* data member
+        """
+        # Versions:
+        #  2014.06.10 @ddalle  : First version
+        
+        # Get the name of the file.
+        fname = self.Options['AeroCsh']
+        # Check for the file.
+        if not os.path.isfile(fname): return None
+        # Read it.
+        self.AeroCsh = AeroCsh(fname)
+        # Extract run options
+        opts = self.RunOptions
+        # Process global options
+        self.AeroCsh.SetCFL(opts['CFL'])
+        self.AeroCsh.SetnIter(opts['nIter'])
+        self.AeroCsh.SetnAdapt(opts['nAdapt'])
+        self.AeroCsh.SetnRefinements(self.Mesh['nRefinements'])
+        self.AeroCsh.SetnMultiGrid(self.Mesh['nMultiGrid'])
+        # Extract the trajectory.
+        T = self.Trajectory
+        # Get grid folders.
+        glist = T.GetGridFolderNames()
+        # Write to each "Grid" folder.
+        for g in glist:
+            self.AeroCsh.Write(os.path.join(g, 'aero.csh'))
+        # Get the folder names.
+        dlist = T.GetFolderNames()
+        # Loop through the conditions.
+        for i in range(len(dlist)):
+            # Destination file name
+            fout = os.path.join(glist[i], dlist[i], 'aero.csh')
+            # Write the input file.
+            self.AeroCsh.Write(fout)
+        # Done
+        return None
+        
+        
         
     # Function to filer/replace aero.csh files
-    def PrepareAeroCsh(self, fin, i):
+    def _PrepareAeroCsh(self, fin, i):
         """
         Create a specific instance of an 'aero.csh' file.
         
@@ -621,7 +670,7 @@ class Cart3d:
             f.write('./aero.csh jumpstart | tee aero.out\n')
         else:
             # Create the flowCart command to do the work.
-            f.write('flowCart -N %i -v -mg %i -his -clic | tee flowCart.txt\n' %
+            f.write('flowCart -N %i -v -mg %i -his -clic | tee flowCart.out\n' %
                 (opts['nIter'], self.Mesh['nMultiGrid']))
         # Close the file.
         f.close()
