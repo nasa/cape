@@ -8,6 +8,125 @@ This provides common methods to control objects for various specific files.
 # Advanced text processing
 import re
 
+   
+# Minor function to convert strings to numbers
+def _float(s):
+    """
+    Convert string to float when possible.  Otherwise the string is returned
+    without raising an exception
+    
+    :Call:
+        >>> x = _float(s)
+        
+    :Inputs:
+        *s*: :class:`str`
+            String representation of the value to be interpreted
+    
+    :Outputs:
+        *x*: :class:`float` or :class:`str`
+            String converted to float if possible
+            
+    :Examples:
+        >>> _float('1')
+        1.0
+        >>> _float('a')
+        'a'
+        >>> _float('1.1')
+        1.1
+    """
+    # Versions:
+    #  2014.06.10 @ddalle  : First version
+    
+    # Attempt the conversion.
+    try:
+        # Use built-in converter
+        x = float(s)
+    except Exception:
+        # Return the original string.
+        x = s
+    # Output
+    return x
+    
+# Minor function to convert strings to numbers
+def _int(s):
+    """
+    Convert string to integer when possible.  Otherwise the string is returned
+    without raising an exception
+    
+    :Call:
+        >>> x = _int(s)
+        
+    :Inputs:
+        *s*: :class:`str`
+            String representation of the value to be interpreted
+    
+    :Outputs:
+        *x*: :class:`int` or :class:`str`
+            String converted to int if possible
+            
+    :Examples:
+        >>> _int('1')
+        1
+        >>> _int('a')
+        'a'
+        >>> _int('1.')
+        '1.'
+    """
+    # Versions:
+    #  2014.06.10 @ddalle  : First version
+    
+    # Attempt the conversion.
+    try:
+        # Use built-in converter
+        x = int(s)
+    except Exception:
+        # Return the original string.
+        x = s
+    # Output
+    return x
+        
+# Minor function to convert strings to numbers
+def _num(s):
+    """
+    Convert string to numeric value when possible.  Otherwise the string is
+    returned without raising an exception
+    
+    :Call:
+        >>> x = _num(s)
+        
+    :Inputs:
+        *s*: :class:`str`
+            String representation of the value to be interpreted
+    
+    :Outputs:
+        *x*: :class:`float`, :class:`int`, or :class:`str`
+            String converted to int or float if possible
+            
+    :Examples:
+        >>> _num('1')
+        1
+        >>> _num('a')
+        'a'
+        >>> _num('1.')
+        1.0
+    """
+    # Versions:
+    #  2014.06.10 @ddalle  : First version
+    
+    # Attempt the conversion.
+    try:
+        # Use built-in converter
+        x = int(s)
+    except Exception:
+        # Try again with the float converter.
+        try:
+            x = float(s)
+        except Exception:
+            # Return the original string.
+            x = s
+    # Output
+    return x
+        
 
 # File control class
 class FileCntl:
@@ -951,8 +1070,8 @@ class FileCntl:
         # Replace a line or add it if not found
     def ReplaceOrAddLineSearch(self, reg, line, i=None):
         """
-        Replace a line that starts with a given literal string or add the line
-        if no matches are found.
+        Replace a line that starts with a given regular expression or add the
+        line if no matches are found.
         
         :Call:
             >>> FC.ReplaceOrAddLineSearch(reg, line)
@@ -994,8 +1113,8 @@ class FileCntl:
     # Replace a line or add (from one section) if not found
     def ReplaceOrAddLineToSectionSearch(self, sec, reg, line, i=None):
         """
-        Replace a line in a specified section that starts with a given literal 
-        string or add the line to the section if no matches are found.
+        Replace a line in a specified section that starts with a given regular 
+        expression or add the line to the section if no matches are found.
         
         :Call:
             >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, reg, line)
@@ -1006,8 +1125,8 @@ class FileCntl:
                 File control instance
             *sec*: :class:`str`
                 Name of section to search in
-            *start*: :class:`str`
-                String to test as literal match for beginning of each line
+            *reg*: :class:`str`
+                Regular expression to match beginning of line
             *line*: :class:`str`
                 String to replace every match with
             *i*: :class:`int`
@@ -1036,6 +1155,208 @@ class FileCntl:
                 # Insert at specified location.
                 self.Section[sec].insert(i, line)
         # Done
+        return None
+        
+    # Get a line that starts with a literal
+    def GetLineStartsWith(self, start, n=None):
+        """
+        Find lines that start with a given literal pattern.
+        
+        :Call:
+            >>> lines = FC.GetLineStartsWith(start)
+            >>> lines = FC.GetLineStartsWith(start, n)
+        
+        :Inputs:
+            *FC*: :class:`pyCart.FileCntl.FileCntl` or derivative
+                File control instance
+            *start*: :class:`str`
+                String to test as literal match for beginning of each line
+            *n*: :class:`int`
+                Maximum number of matches to search for
+                
+        :Outputs:
+            *lines*: :class:`list` (:class:`str`)
+                List of lines that match pattern
+        """
+        # Versions:
+        #  2014.06.10 @ddalle  : First version
+        
+        # Set the update status.
+        self.UpdateLines()
+        # Initialize matches
+        lines = []
+        # Number of matches
+        m = 0
+        # Loop through the lines.
+        for L in self.lines:
+            # Check for maximum matches.
+            if n and m>n: break
+            # Check for a match.
+            if L.startswith(start):
+                # Add to match list
+                lines.append(L)
+                # Increase count
+                m += 1
+        # Done
+        return lines
+        
+    # Get a line that starts with a literal
+    def GetLineSearch(self, reg, n=None):
+        """
+        Find lines that start with a given regular expression.
+        
+        :Call:
+            >>> lines = FC.GetLineSearch(reg)
+            >>> lines = FC.GetLineSearch(reg, n)
+        
+        :Inputs:
+            *FC*: :class:`pyCart.FileCntl.FileCntl` or derivative
+                File control instance
+            *reg*: :class:`str`
+                Regular expression to match beginning of line
+            *n*: :class:`int`
+                Maximum number of matches to search for
+                
+        :Outputs:
+            *lines*: :class:`list` (:class:`str`)
+                List of lines that match pattern
+        """
+        # Versions:
+        #  2014.06.10 @ddalle  : First version
+        
+        # Set the update status.
+        self.UpdateLines()
+        # Initialize matches
+        lines = []
+        # Number of matches
+        m = 0
+        # Loop through the lines.
+        for L in self.lines:
+            # Check for maximum matches.
+            if n and m>n: break
+            # Check for a match.
+            if re.search(reg, L):
+                # Add to match list
+                lines.append(L)
+                # Increase count
+                m += 1
+        # Done
+        return lines
+        
+    # Get a line that starts with a literal
+    def GetLineInSectionStartsWith(self, sec, start, n=None):
+        """
+        Find lines in a given section that start with a given literal pattern.
+        
+        :Call:
+            >>> lines = FC.GetLineInSectionStartsWith(sec, start)
+            >>> lines = FC.GetLineInSectionStartsWith(sec, start, n)
+        
+        :Inputs:
+            *FC*: :class:`pyCart.FileCntl.FileCntl` or derivative
+                File control instance
+            *sec*: :class:`str`
+                Name of section to search in
+            *start*: :class:`str`
+                String to test as literal match for beginning of each line
+            *n*: :class:`int`
+                Maximum number of matches to search for
+                
+        :Outputs:
+            *lines*: :class:`list` (:class:`str`)
+                List of lines that match pattern
+        """
+        # Versions:
+        #  2014.06.10 @ddalle  : First version
+        
+        # Set the update status.
+        self.UpdateSections()
+        # Initialize matches
+        lines = []
+        # Number of matches
+        m = 0
+        # Check if the section exists.
+        if sec not in self.SectionNames: return lines
+        # Loop through the lines.
+        for L in self.Section[sec]:
+            # Check for maximum matches.
+            if n and m>n: break
+            # Check for a match.
+            if L.startswith(start):
+                # Add to match list
+                lines.append(L)
+                # Increase count
+                m += 1
+        # Done
+        return lines
+        
+    # Get a line that starts with a literal
+    def GetLineInSectionSearch(self, sec, reg, n=None):
+        """
+        Find lines in a given section that start with a regular expression.
+        
+        :Call:
+            >>> lines = FC.GetLineInSectionSearch(sec, reg)
+            >>> lines = FC.GetLineInSectionSearch(sec, reg, n)
+        
+        :Inputs:
+            *FC*: :class:`pyCart.FileCntl.FileCntl` or derivative
+                File control instance
+            *sec*: :class:`str`
+                Name of section to search in
+            *reg*: :class:`str`
+                Regular expression to match beginning of line
+            *n*: :class:`int`
+                Maximum number of matches to search for
+                
+        :Outputs:
+            *lines*: :class:`list` (:class:`str`)
+                List of lines that match pattern
+        """
+        # Versions:
+        #  2014.06.10 @ddalle  : First version
+        
+        # Set the update status.
+        self.UpdateSections()
+        # Initialize matches
+        lines = []
+        # Number of matches
+        m = 0
+        # Check if the section exists.
+        if sec not in self.SectionNames: return lines
+        # Loop through the lines.
+        for L in self.Section[sec]:
+            # Check for maximum matches.
+            if n and m>n: break
+            # Check for a match.
+            if re.search(reg, L):
+                # Add to match list
+                lines.append(L)
+                # Increase count
+                m += 1
+        # Done
+        return lines
+        
+    # Get a value from a line.
+    def GetValuesFromLineStartsWidth(self, start):
+        """
+        Get the values (as a list of strings) from a line that starts with a
+        given literal pattern.
+        
+        :Call:
+            >>> vals = FC.GetValuesFromLineStartsWith(start)
+        
+        :Inputs:
+            *FC*: :class:`pyCart.FileCntl.FileCntl` or derivative
+                File control instance
+            *start*: :class:`str`
+                String to test as literal match for beginning of each line
+        
+        :Outputs:
+            *vals*: :class:`list` (:class:`str`)
+                List of strings from line that begins with contents of *start*
+        """
+        
         return None
         
         

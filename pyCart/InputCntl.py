@@ -142,9 +142,70 @@ class InputCntl(FileCntl):
         # vary, so we need to use regular expressions.
         self.ReplaceOrAddLineToSectionSearch('Boundary_Conditions', reg, line)
         return None
-                
-            
         
+    # Function to get Cart3D to report the forces on a component
+    def RequestForce(self, compID):
+        """
+        Request the force coefficients on a particular component.
+        
+        :Call:
+            >>> IC.RequestForce(compID)
+            
+        :Inputs:
+            *compID*: :class:`str` or :class:`int`
+                Name of component to log or ``"all"`` or ``"entire"``
+        
+        :Effects:
+            Adds a line to 'input.cntl' that looks like "Force entire", if it
+            is not already present.
+        """
+        # Versions:
+        #  2014.06.09 @ddalle  : First version
+        
+        # Line starts looks like "Force $compID", but arbitrary white space.
+        reg = 'Force\s+' + str(compID)
+        # Replace the line or add it if necessary.
+        self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
+            reg, 'Force ' + str(compID))
+        return None
+        
+    # Function to get Cart3D to report the moments on a component
+    def RequestMoment(self, compID, MRP=None):
+        """
+        Request the moment coefficients on a particular component.
+        
+        :Call:
+            >>> IC.RequestMoment(compID, MRP)
+            
+        :Inputs:
+            *compID*: :class:`str` or :class:`int`
+                Name of component to log or ``"all"`` or ``"entire"``
+            *MRP*: *array_like*
+                Reference point (defaults to ``[0,0,0]``)
+        
+        :Effects:
+            Adds a line to 'input.cntl' that tells Cart3D to calculate the
+            moment coefficients using a specific reference point.
+        """
+        # Versions:
+        #  2014.06.09 @ddalle  : First version
+        
+        # Process reference point.
+        if MRP is None:
+            # Default reference points.
+            x = 0.0
+            y = 0.0
+            z = 0.0
+        else:
+            # Get values from input.
+            x = MRP[0]
+            y = MRP[1]
+            z = MRP[2]
+        # Regular expression for "Moment_Point[anything]$comp_ID"
+        reg = 'Moment_Point.*' + str(compID)
+        # Replace the line or add it if necessary.
+        self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing', reg,
+            'Moment_Point  %s %s %s  %s' % (x,y,z,compID))
     
     
     
