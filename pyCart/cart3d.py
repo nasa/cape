@@ -232,7 +232,7 @@ class Cart3d:
         # Get the names of the grid foloders
         glist = self.Trajectory.GetGridFolderNames()
         # Loop through the grids.
-        for g in glist:
+        for g in np.unique(glist):
             # Copy the tri file there if necessary.
             shutil.copyfile(Mesh['TriFile'], 
                 os.path.join(g, 'Components.i.tri'))
@@ -379,27 +379,16 @@ class Cart3d:
         self.PrepareAeroCsh()
         # Prepare the run scripts.
         self.CreateRunScripts()
-        # Extract the trajectory.
+        # Get the trajectory.
         T = self.Trajectory
         # Get the folder names.
-        glist = T.GetGridFolderNames()
-        dlist = T.GetFolderNames()
-        # Extract the options.
-        opts = self.RunOptions
+        dlist = T.GetFullFolderNames()
         # Loop through the conditions.
         for i in range(len(dlist)):
-            # Get the folder names for thiscase.
-            g = glist[i]
+            # Get the folder name for this case.
             d = dlist[i]
-            # Move to the Grid folder.
-            os.chdir(g)
-            # Print a status update
-            print("Preparing case %i: Mach=%.2f, alpha=%-.2f, beta=%-.2f" 
-                % (i, T.Mach[i], T.alpha[i], T.beta[i]))
             # Create a conditions file
             T.WriteConditionsFile(os.path.join(d, 'Conditions.json'), i)
-        # Change back to original folder.
-        os.chdir('..')
         # End
         return None
         
@@ -578,58 +567,6 @@ class Cart3d:
             # Write the input file.
             self.AeroCsh.Write(fout)
         # Done
-        return None
-        
-        
-        
-    # Function to filer/replace aero.csh files
-    def _PrepareAeroCsh(self, fin, i):
-        """
-        Create a specific instance of an 'aero.csh' file.
-        
-        This function will create a new 'input.cntl' file and replace various
-        ``set * =`` placeholders with specific values.
-        
-        This function must be called from the 'Grid' folder, unlike the other
-        higher-level functions, which are called from the parent folder.
-        
-        :Call:
-            >>> cart3d.PrepareCntlFile(fin, i)
-            
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of global pyCart settings object
-            *fin*: :class:`str`
-                Name of template input file/script
-            *i*: :class:`int`
-                Trajectory case number
-                
-        :Outputs:
-            ``None``
-        """
-        # Versions:
-        #  2014.05.30 @ddalle  : First version
-        
-        # Read the lines from the template file/script.
-        lines = open(fin).readlines()
-        # Get the trajectory.
-        T = self.Trajectory
-        # Get the folder name.
-        dname = T.GetFolderNames(i=i)
-        # Create the output file name.
-        fout = os.path.join(dname, 'aero.csh')
-        # Create the specific input file/script.
-        f = open(fout, 'w')
-        # Loop through the lines of the template.
-        for line in lines:
-            # Do stuff...
-            # Write the line.
-            f.write(line)
-        # Close the aero.csh file.
-        f.close()
-        # Make it executable.
-        os.chmod(fout, 0750)
-        # End.
         return None
         
     # Function to create the flowCart run script

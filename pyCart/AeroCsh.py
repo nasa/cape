@@ -54,7 +54,7 @@ class AeroCsh(FileCntl):
         # Line regular expression: "set XXXX" but with white spaces
         reg = 'set\s+' + str(name)
         # Form the output line.
-        line = 'set %s = %s' % (name, val)
+        line = 'set %s = %s\n' % (name, val)
         # Replace the line; prepend it if missing
         self.ReplaceOrAddLineSearch(reg, line)
         
@@ -77,12 +77,12 @@ class AeroCsh(FileCntl):
         self.SetVar('etol', etol)
         
     # Function to set the number of refinements
-    def SetnRefinement(self, maxR):
+    def SetnRefinements(self, maxR):
         """
         Set number of refinements for 'cubes' in 'aero.csh' file
         
         :Call:
-            >>> AC.SetnRefinement(maxR)
+            >>> AC.SetnRefinements(maxR)
         
         :Inputs:
             *AC*: :class:`pyCart.AeroCsh.AeroCsh`
