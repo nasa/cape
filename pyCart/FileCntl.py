@@ -1337,27 +1337,4 @@ class FileCntl:
         # Done
         return lines
         
-    # Get a value from a line.
-    def GetValuesFromLineStartsWidth(self, start):
-        """
-        Get the values (as a list of strings) from a line that starts with a
-        given literal pattern.
-        
-        :Call:
-            >>> vals = FC.GetValuesFromLineStartsWith(start)
-        
-        :Inputs:
-            *FC*: :class:`pyCart.FileCntl.FileCntl` or derivative
-                File control instance
-            *start*: :class:`str`
-                String to test as literal match for beginning of each line
-        
-        :Outputs:
-            *vals*: :class:`list` (:class:`str`)
-                List of strings from line that begins with contents of *start*
-        """
-        
-        return None
-        
-        
         
