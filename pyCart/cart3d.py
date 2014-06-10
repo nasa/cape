@@ -22,6 +22,7 @@ from post import LoadsDat
 
 # Import specific file control classes
 from InputCntl import InputCntl
+from AeroCsh   import AeroCsh
 
 
 # Get the root directory of the module.
