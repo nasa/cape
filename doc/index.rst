@@ -14,11 +14,11 @@ Contents
 ========
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
     :numbered:
     
-    pyCart
-    cart3d
+    pyCart/index
+    pyCart/cart3d
 
 
 

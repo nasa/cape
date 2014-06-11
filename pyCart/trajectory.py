@@ -449,9 +449,9 @@ class Trajectory:
         """
         Make directories for each of the cases in a trajectory.
         
-        The folder names will be of the form
+        The folder names will be of the form::
         
-            "F_Mach_2.0_alpha_0.0_beta_-0.5/"
+            ``F_Mach_2.0_alpha_0.0_beta_-0.5/``
             
         using all of the keys specified in the trajectory file.  The amount of
         digits used will match the number of digits in the trajectory file.

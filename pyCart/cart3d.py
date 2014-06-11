@@ -777,10 +777,16 @@ def CreateFolders(T, prefix="F"):
     
     The folder names will be of the form
     
-        "F_Mach_2.0_alpha_0.0_beta_-0.5/"
+        ``Grid/F_Mach_2.0_alpha_0.0_beta_-0.5/``
         
-    using all of the keys specified in the trajectory file.  The amount of
-    digits used will match the number of digits in the trajectory file.
+    if there are no trajectory keys that require separate grids or
+    
+        ``Grid_delta_1.0/F_Mach_2.0_alpha_0.0_beta_-0.5/``
+        
+    if there is a key called ``"delta"`` that requires a separate mesh each time
+    the value of that key changes.  All keys in the trajectory file are included
+    in the folder name at one of the two levels.  The number of digits used will
+    match the number of digits in the trajectory file.
     
     :Call:
         >>> pyCart.CreateFolders(T, prefix="F")
