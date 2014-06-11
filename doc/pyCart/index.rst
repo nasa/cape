@@ -4,6 +4,14 @@
 .. automodule:: pyCart
     :members: ReadTri, WriteTri, ReadTrajectoryFile, CreateFolders
         
+    The following lists the pyCart submodules, which contain the main
+    functionality and define the classes that are the workhorses of pyCart.
+    
+    .. toctree::
         
-    pyCart Methods Imported from Other Submodules
-    =============================================
+        cart3d
+        
+        
+    Finally, below are listed members that are imported directly to the pyCart
+    module.  All of these functions can be called using a longer signature, such
+    as :func:`pyCart.tri.ReadTri`.

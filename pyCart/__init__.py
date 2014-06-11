@@ -39,9 +39,6 @@ by 20 degrees, and write it to a new file.
 Most of the pyCart submodules essentially contain a single class definition, and
 that class is accessible directly from the :mod:`pyCart` module.
 
-Imported Classes
-================
-
 The following classes are imported in this module, so that code like
 ``pyCart.Tri`` will work (although ``pyCart.tri.Tri``) will also work.
 
@@ -49,16 +46,6 @@ The following classes are imported in this module, so that code like
     * :class:`pyCart.cart3d.Cart3d`
     * :class:`pyCart.trajectory.Trajectory`
     * :class:`pyCart.post.LoadsDat`
-
-pyCart Submodules
-=================
-
-The following lists the pyCart submodules, most of which are called in the
-initialization of the pyCart module itself.
-
-    * :mod:`pyCart.tri`
-    * :mod:`pyCart.cart3d`
-    * :mod:`pyCart.post`
 """
 
 # Set version number.  Don't forget to update it.
