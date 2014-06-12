@@ -45,6 +45,8 @@ The following classes are imported in this module, so that code like
     * :class:`pyCart.tri.Tri`
     * :class:`pyCart.cart3d.Cart3d`
     * :class:`pyCart.trajectory.Trajectory`
+    * :class:`pyCart.inputCntl.InputCntl`
+    * :class:`pyCart.aeroCsh.AeroCsh`
     * :class:`pyCart.post.LoadsDat`
 """
 
@@ -76,6 +78,9 @@ from tri    import Tri, ReadTri, WriteTri
 from cart3d import Cart3d, Trajectory, ReadTrajectoryFile, CreateFolders
 from post   import LoadsDat
 
+# Import the file control classes.
+from inputCntl import InputCntl
+from aeroCsh   import AeroCsh
 
 # Get the conversion tools directly.
 from convert import *

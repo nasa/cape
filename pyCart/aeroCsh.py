@@ -1,7 +1,11 @@
 """
-Module to Interface with 'aero.csh' Files
-===========================================
+Module to nterface with "aero.csh" files: :mod:`pyCart.aeroCsh`
+===============================================================
 
+This is a module built off of the :mod:`pyCart.fileCntl` module customized for
+manipulating :file:`aero.csh` files.  The main feature of this module is methods
+to set specific properties of the :file:`aero.csh` file, for example the
+CFL number or number of adaptation cycles.
 """
 
 # Import the base file control class.
@@ -10,22 +14,24 @@ from fileCntl import FileCntl, _num, _float
 # Base this class off of the main file control class.
 class AeroCsh(FileCntl):
     """
-    File control class for "aero.csh" files.
+    File control class for :file:`aero.csh` files.
+    
+    :Call:
+        >>> AC = pyCart.aeroCsh.AeroCsh()
+        >>> AC = pyCart.aeroCsh.AeroCsh(fname)
+        
+    :Inputs:
+        *fname*: :class:`str`
+            Name of CNTL file to read, defaults to ``'aero.csh'``
+    
+    This class is derived from the :class:`pyCart.fileCntl.FileCntl` class, so
+    all methods applicable to that class can also be used for instances of this
+    class.
     """
     
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="aero.csh"):
-        """
-        File control class for "aero.csh" files.
-        
-        :Call:
-            >>> AC = pyCart.aeroCsh.AeroCsh()
-            >>> AC = pyCart.aeroCsh.AeroCsh(fname)
-            
-        :Inputs:
-            *fname*: :class:`str`
-                Name of CNTL file to read, defaults to ``'aero.csh'``
-        """
+        """Initialization method"""
         # Read the file.
         self.Read(fname)
         # Save the file name.
@@ -42,7 +48,7 @@ class AeroCsh(FileCntl):
             
         :Inputs:
             *AC*: :class:`pyCart.aeroCsh.AeroCsh`
-                Instance of the "aero.csh" manipulation class
+                Instance of the :file:`aero.csh` manipulation class
             *name*: :class:`str`
                 Name of variable as identified in 'aero.csh'
             *val*: *any*, converted using :func:`str`
@@ -61,14 +67,14 @@ class AeroCsh(FileCntl):
     # Function to set the functional error tolerance
     def SetErrorTolerance(self, etol):
         """
-        Set error tolerance in "aero.csh" file
+        Set error tolerance in :file:`aero.csh` file
         
         :Call:
             >>> AC.SetErrorTolerance(etol)
         
         :Inputs:
             *AC*: :class:`pyCart.aeroCsh.AeroCsh`
-                Instance of the "aero.csh" manipulation class
+                Instance of the :file:`aero.csh` manipulation class
             *etol*: :class:`float`
                 Number to set the function error tolerance to
         """
@@ -86,7 +92,7 @@ class AeroCsh(FileCntl):
         
         :Inputs:
             *AC*: :class:`pyCart.aeroCsh.AeroCsh`
-                Instance of the "aero.csh" manipulation class
+                Instance of the :file:`aero.csh` manipulation class
             *maxR*: :class:`int`
                 Maximum number of refinements for 'cubes'
         """
@@ -104,7 +110,7 @@ class AeroCsh(FileCntl):
             
         :Inputs:
             *AC*: :class:`pyCart.aeroCsh.AeroCsh`
-                Instance of the "aero.csh" manipulation class
+                Instance of the :file:`aero.csh` manipulation class
             *max_nCells*: :class:`int`
                 Maximum number of cells allowed in mesh
         """
@@ -122,7 +128,7 @@ class AeroCsh(FileCntl):
             
         :Inputs:
             *AC*: :class:`pyCart.aeroCsh.AeroCsh`
-                Instance of the "aero.csh" manipulation class
+                Instance of the :file:`aero.csh` manipulation class
             *n_adapt_cycles*: :class:`int`
                 Number of adaptation cycles
         """
@@ -140,7 +146,7 @@ class AeroCsh(FileCntl):
         
         :Inputs:
             *AC*: :class:`pyCart.aeroCsh.AeroCsh`
-                Instance of the "aero.csh" manipulation class
+                Instance of the :file:`aero.csh` manipulation class
             *it_fc*: :class:`int`
                 Number of flowCart iters on initial mesh
         """
@@ -158,7 +164,7 @@ class AeroCsh(FileCntl):
         
         :Inputs:
             *AC*: :class:`pyCart.aeroCsh.AeroCsh`
-                Instance of the "aero.csh" manipulation class
+                Instance of the :file:`aero.csh` manipulation class
             *ws_it*: :class:`int`
                 Maximum number of refinements for 'cubes'
                 
@@ -189,7 +195,7 @@ class AeroCsh(FileCntl):
         
         :Inputs:
             *AC*: :class:`pyCart.aeroCsh.AeroCsh`
-                Instance of the "aero.csh" manipulation class
+                Instance of the :file:`aero.csh` manipulation class
             *it_ad*: :class:`int`
                 Number of adjointCart iters
         """
@@ -207,7 +213,7 @@ class AeroCsh(FileCntl):
             
         :Inputs:
             *AC*: :class:`pyCart.aeroCsh.AeroCsh`
-                Instance of the "aero.csh" manipulation class
+                Instance of the :file:`aero.csh` manipulation class
             *cfl*: :class:`float`
                 CFL number
         """
@@ -225,7 +231,7 @@ class AeroCsh(FileCntl):
         
         :Inputs:
             *AC*: :class:`pyCart.aeroCsh.AeroCsh`
-                Instance of the "aero.csh" manipulation class
+                Instance of the :file:`aero.csh` manipulation class
             *mg_fc*: :class:`int`
                 Number of multigrid levels, applied to flowCart and adjointCart
         """
@@ -246,7 +252,7 @@ class AeroCsh(FileCntl):
         
         :Inputs:
             *AC*: :class:`pyCart.aeroCsh.AeroCsh`
-                Instance of the "aero.csh" manipulation class
+                Instance of the :file:`aero.csh` manipulation class
             *mesh_growth*: *array_like*
                 Vector of mesh growth parameters
         """

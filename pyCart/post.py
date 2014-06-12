@@ -1,8 +1,9 @@
 """
-Read Forces and Moments, etc.
-=============================
+Post-processing module: :mod:`pyCart.post`
+==========================================
 
-This is the :mod:`pyCart` post-processing module.
+This is the :mod:`pyCart` post-processing module.  Primarily it is focused on
+reading :file:`loadsCC.dat` and :file:`loadsTRI.dat` files.
 """
 
 # Import NumPy arrays.
@@ -13,41 +14,39 @@ import os
 # Class to store forces and moments
 class LoadsDat:
     """
-    Store forces and moments in a class from "loadsCC.dat" files
+    Class to store force and moment coefficients
+    
+    :Call:
+        >>> FM = pyCart.LoadsDat(cart3d=None, fname="loadsCC.dat")
+    
+    :Inputs:
+        *cart3d*: :class:`pyCart.cart3d.Cart3d`
+            Overall :mod:`pyCart` control instance
+        *fname*: :class:`str`
+            Name of individual files to read
+    
+    :Outputs:
+        *FM*: :class:`pyCart.post.LoadsDat`
+            Instance of this class
+            
+    :Data members:
+        *Aref*: :class:`float`
+            Reference area
+        *Lref*: :class:`float`
+            Reference length
+        *MRP*: :class:`numpy.ndarray`, shape=(3,)
+            Moment reference point
+        *fname*: :class:`str`
+            Name of individual files to read
+        *Components*: :class:`list` (:class:`str`)
+            List of component names found
+        *C_A*: :class:`dict`
+            Dictionary of axial force coefficient for each component
+            
     """
     # Initialization method
     def __init__(self, cart3d=None, fname="loadsCC.dat"):
-        """
-        Class to store force and moment coefficients
-        
-        :Call:
-            >>> FM = pyCart.LoadsDat(cart3d=None, fname="loadsCC.dat")
-        
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Overall :mod:`pyCart` control instance
-            *fname*: :class:`str`
-                Name of individual files to read
-        
-        :Outputs:
-            *FM*: :class:`pyCart.post.LoadsDat`
-                Instance of this class
-                
-        :Data members:
-            *Aref*: :class:`float`
-                Reference area
-            *Lref*: :class:`float`
-                Reference length
-            *MRP*: :class:`numpy.ndarray` *shape*=(3,)
-                Moment reference point
-            *fname*: :class:`str`
-                Name of individual files to read
-            *Components*: :class:`list` (:class:`str`)
-                List of component names found
-            *C_A*: :class:`dict`
-                Dictionary of axial force coefficient for each component
-                
-        """
+        """Initialization method"""
         # Versions:
         #  2014.06.02 @ddalle  : First version
         #  2014.06.04 @ddalle  : General for "loadsTRI.dat" or "loadsCC.dat"
@@ -102,7 +101,7 @@ class LoadsDat:
         :Outputs:
             ``None``
         
-        This function creates a vector of ``NaN``s  if *comp* is not in the list
+        This function creates a vector of ``NaN``  if *comp* is not in the list
         of existing components.
         """
         # Versions:

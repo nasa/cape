@@ -15,6 +15,9 @@
         trajectory
         convert
         fileCntl
+        inputCntl
+        aeroCsh
+        post
         
         
     Finally, below are listed members that are imported directly to the pyCart

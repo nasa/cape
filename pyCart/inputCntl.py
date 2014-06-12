@@ -1,7 +1,16 @@
 """
-Module to Interface with 'input.cntl' Files
-===========================================
+Module to interface with "input.cntl" files: :mod:`pyCart.inputCntl`
+====================================================================
 
+This is a module built off of the :mod:`pyCart.fileCntl` module customized for
+manipulating :file:`input.cntl` files.  Such files are split into section by lines of
+the format
+
+    ``$__Post_Processing``
+    
+and this module is designed to recognize such sections.  The main feature of
+this module is methods to set specific properties of the :file:`input.cntl` 
+file, for example the Mach number or CFL number.
 """
 
 # Import the base file control class.
@@ -10,22 +19,27 @@ from fileCntl import FileCntl, _num, _float
 # Base this class off of the main file control class.
 class InputCntl(FileCntl):
     """
-    File control class for "input.cntl" files.
+    File control class for :file:`input.cntl` files
+    
+    :Call:
+        >>> cntl = pyCart.InputCntl()
+        >>> cntl = pyCart.InputCntl(fname)
+        
+    :Inputs:
+        *fname*: :class:`str`
+            Name of CNTL file to read, defaults to ``'input.cntl'``
+            
+    This class is derived from the :class:`pyCart.fileCntl.FileCntl` class, so
+    all methods applicable to that class can also be used for instances of this
+    class.
     """
     
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="input.cntl"):
-        """
-        File control class for "input.cntl" files.
+        """Initialization method"""
+        # Versions:
+        #  2014.06.04 @ddalle  : First version
         
-        :Call:
-            >>> cntl = pyCart.inputCntl.InputCntl()
-            >>> cntl = pyCart.inputCntl.InputCntl(fname)
-            
-        :Inputs:
-            *fname*: :class:`str`
-                Name of CNTL file to read, defaults to ``'input.cntl'``
-        """
         # Read the file.
         self.Read(fname)
         # Save the file name.
@@ -44,7 +58,7 @@ class InputCntl(FileCntl):
         
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
-                File control instance for "input.cntl"
+                File control instance for :file:`input.cntl`
             *Mach*: :class:`float`
                 Mach number
             
@@ -69,11 +83,11 @@ class InputCntl(FileCntl):
         
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
-                File control instance for "input.cntl"
+                File control instance for :file:`input.cntl`
                 
         :Outputs:
             *M*: :class:`float` (or :class:`str`)
-                Mach number specified in 'input.cntl'
+                Mach number specified in :file:`input.cntl`
         """
         # Versions:
         #  2014.06.10 @ddalle  : First version
@@ -100,7 +114,7 @@ class InputCntl(FileCntl):
             
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
-                File control instance for "input.cntl"
+                File control instance for :file:`input.cntl`
             *alpha*: :class:`float`
                 Angle of attack
                 
@@ -125,7 +139,7 @@ class InputCntl(FileCntl):
             
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
-                File control instance for "input.cntl"
+                File control instance for :file:`input.cntl`
             *beta*: :class:`float`
                 Sideslip angle
                 
@@ -150,7 +164,7 @@ class InputCntl(FileCntl):
         
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
-                File control instance for "input.cntl"
+                File control instance for :file:`input.cntl`
             *CFL*: :class:`float`
                 Value of the CFL number to use
                 
@@ -176,7 +190,7 @@ class InputCntl(FileCntl):
         
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
-                File control instance for "input.cntl"
+                File control instance for :file:`input.cntl`
             *x*: *array_like* (:class:`float`)
                 List or vector of *x*-coordinates at which to make cut planes
             
@@ -207,7 +221,7 @@ class InputCntl(FileCntl):
         
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
-                File control instance for "input.cntl"
+                File control instance for :file:`input.cntl`
             *y*: *array_like* (:class:`float`)
                 List or vector of *y*-coordinates at which to make cut planes
             
@@ -238,7 +252,7 @@ class InputCntl(FileCntl):
         
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
-                File control instance for "input.cntl"
+                File control instance for :file:`input.cntl`
             *z*: *array_like* (:class:`float`)
                 List or vector of *z*-coordinates at which to make cut planes
             
@@ -262,7 +276,7 @@ class InputCntl(FileCntl):
     # Function to set the reference area
     def SetReferenceArea(self, Aref, compID='all'):
         """
-        Set the reference area in an "input.cntl" file.
+        Set the reference area in an :file:`input.cntl` file.
         
         :Call:
             >>> IC.SetReferenceArea(Aref)
@@ -270,7 +284,7 @@ class InputCntl(FileCntl):
         
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
-                File control instance for "input.cntl"
+                File control instance for :file:`input.cntl`
             *Aref*: :class:`float`
                 Reference area value
             *compID*: :class:`str`
@@ -289,7 +303,7 @@ class InputCntl(FileCntl):
     # Function to set the reference area
     def SetReferenceLength(self, Lref, compID='all'):
         """
-        Set the reference length in an "input.cntl" file.
+        Set the reference length in an :file:`input.cntl` file.
         
         :Call:
             >>> IC.SetReferenceLength(Lref)
@@ -297,7 +311,7 @@ class InputCntl(FileCntl):
         
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
-                File control instance for "input.cntl"
+                File control instance for :file:`input.cntl`
             *Lref*: :class:`float`
                 Reference length value
             *compID*: :class:`str`
@@ -323,15 +337,15 @@ class InputCntl(FileCntl):
         
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
-                File control instance for "input.cntl"
+                File control instance for :file:`input.cntl`
             *compID*: :class:`int`
                 Component number to apply boundary condition to
-            *u*: :class:`numpy.ndarray`, *shape*=(5,)
+            *u*: :class:`numpy.ndarray`, *shape* = (5,)
                 Vector of density, velocity, pressure on surface
         
         :Effects:
-            Writes a line with appropriate "SurfBC i ..." syntax to "input.cntl"
-            file.
+            Writes a line with appropriate "SurfBC i ..." syntax to 
+            :file:`input.cntl` file.
         """
         # Versions:
         #  2014.06.04 @ddalle  : First version
@@ -360,8 +374,8 @@ class InputCntl(FileCntl):
                 Name of component to log or ``"all"`` or ``"entire"``
         
         :Effects:
-            Adds a line to 'input.cntl' that looks like "Force entire", if it
-            is not already present.
+            Adds a line to :file:`input.cntl` that looks like "Force entire",
+            if it is not already present.
         """
         # Versions:
         #  2014.06.09 @ddalle  : First version
@@ -388,7 +402,7 @@ class InputCntl(FileCntl):
                 Reference point (defaults to ``[0,0,0]``)
         
         :Effects:
-            Adds a line to 'input.cntl' that tells Cart3D to calculate the
+            Adds a line to :file:`input.cntl` that tells Cart3D to calculate the
             moment coefficients using a specific reference point.
         """
         # Versions:
