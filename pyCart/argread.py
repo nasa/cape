@@ -1,6 +1,6 @@
 """
-Command-line argument processor
-===============================
+Command-line argument processor: :mod:`pyCart.argread`
+======================================================
 
 Parse command-line inputs based on one of two methods.  The first method counts
 both "-" and "--" as prefixes for keyword names; this is common among many
@@ -34,8 +34,8 @@ def readkeys(argv):
         >>> (args, kwargs) = argread.readkeys(argv)
     
     :Inputs:
-        *argv*: :class:`list`, *dtype*=:class:`str`
-            List of string inputs; first entry is ignored
+        *argv*: :class:`list` (:class:`str`)
+            List of string inputs; first entry is ignored (from ``sys.argv``)
     
     :Outputs:
         *args*: :class:`list`
@@ -127,8 +127,8 @@ def readflags(argv):
         >>> (args, kwargs) = argread.readflags(argv)
     
     :Inputs:
-        *argv*: :class:`list`, *dtype*=:class:`str`
-            List of string inputs; first entry is ignored
+        *argv*: :class:`list` (:class:`str`)
+            List of string inputs; first entry is ignored (from ``sys.argv``)
     
     :Outputs:
         *args*: :class:`list`

@@ -18,6 +18,7 @@ Contents
     :numbered:
     
     pyCart/index
+    script/index
     
 ..    pyCart/cart3d
 

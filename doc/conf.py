@@ -17,6 +17,7 @@ import os
 
 # Add the path to the pyCart modules (duh)
 sys.path.append('..')
+sys.path.append('../scriptlib')
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

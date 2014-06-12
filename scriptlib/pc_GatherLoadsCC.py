@@ -1,21 +1,25 @@
 #!/usr/bin/python
 """
-pc_UH3D2Tri
-===========
+Post-process "loadsCC.dat": :mod:`pc_GatherLoadsCC`
+===================================================
 
-Convert a '*.uh3d' file to a Cart3D triangulation format.
+Read all "loadsCC.dat" files in a trajectory and write the combined results to
+"loadsCC.csv" in the root directory.  Any missing cases or components will
+result in ``nan`` values in the combined results file.
 
 :Call:
-    $ pc_UH3D2Tri.py $uh3d
-    $ pc_UH3D2Tri.py -i $uh3d
-    $ pc_UH3D2Tri.py -i $uh3d -o $tri
 
-:Outputs:
-    *uh3d*: Name of input '.uh3d' file
-    *tri*: Name of output '.tri' file
+    .. code-block:: console
     
-If the name of the output file is not specified, it will just add '.tri' as the
-extension to the input (deleting '.uh3d' if possible).
+        $ pc_GatherLoadsCC.py
+        $ pc_GatherLoadsCC.py $json
+        $ pc_GatherLoadsCC.py -h
+    
+:Inputs:
+    *json*: Name of pyCart control file (defaults to "pyCart.json")
+
+:Options:
+    *h*: Display this help and exit
 """
 
 # Get the pyCart module.
@@ -25,34 +29,50 @@ import sys
 # Command-line input parser
 import pyCart.argread as argr
 
+# Main function
+def GatherLoadsCC(*a, **kw):
+    """
+    Read all :file:`loadsCC.dat` files from run cases and write combined results
+    to :file:`loadsCC.csv` in the root directory.
+    
+    :Call:
+        
+        >>> GatherLoads(fname, h=False)
+        
+    :Inputs:
+        *fname*: :class:`str`
+            Name of global pyCart settings file, default is ``'pyCart.json'``
+        *h*: :class:`bool`
+            If ``True``, show help and exit
+    """
+    # Versions:
+    #  2014.06.12 @ddalle  : First documented version
+    
+    # Get the file pyCart settings file name.
+    if len(a) == 0:
+        # Default file name.
+        fname = 'pyCart.json'
+    else:
+        # Use the first general input.
+        fname = a[0]
+        
+    # Read in the settings file.
+    cart3d = pyCart.Cart3d(fname)
+    
+    # Read the "loadsCC.dat" files.
+    cart3d.GetLoadsCC()
+    
+    # Write the files.
+    cart3d.WriteLoadsCC()
+
 # Only process inputs if called as a script!
 if __name__ == "__main__":
     # Process the command-line interface inputs.
     (a, kw) = argr.readkeys(sys.argv)
-else:
-    # All default options
-    a = []
-    kw = {}
-    
-# Check for a help option
-if kw.get('h',False) or kw.get('help',False):
-    print __doc__
-    sys.exit()
-
-# Get the file pyCart settings file name.
-if len(a) == 0:
-    # Default file name.
-    fname = 'pyCart.json'
-else:
-    # Use the first general input.
-    fname = a[0]
-    
-# Read in the settings file.
-cart3d = pyCart.Cart3d(fname)
-
-# Read the "loadsCC.dat" files.
-cart3d.GetLoadsCC()
-
-# Write the files.
-cart3d.WriteLoadsCC()
+    # Check for a help option
+    if kw.get('h',False) or kw.get('help',False):
+        print __doc__
+        sys.exit()
+    # Run the main function
+    GatherLoadsCC(*a, **kw)
 
