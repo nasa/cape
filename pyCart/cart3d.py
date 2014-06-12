@@ -21,8 +21,8 @@ from trajectory import Trajectory
 from post import LoadsDat
 
 # Import specific file control classes
-from InputCntl import InputCntl
-from AeroCsh   import AeroCsh
+from inputCntl import InputCntl
+from aeroCsh   import AeroCsh
 
 
 # Get the root directory of the module.

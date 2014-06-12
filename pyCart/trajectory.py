@@ -1,9 +1,9 @@
 """
-Trajectory Module
-=================
+Cart3D run case list module: :mod:`pyCart.trajectory`
+=====================================================
 
 This module handles classes and methods that are specific to the list of run
-cases (i.e., the trajectory)
+cases (i.e., the "trajectory").
 """
 
 # Basic numerics
@@ -17,46 +17,44 @@ import os
 # Trajectory class
 class Trajectory:
     """
-    Class to handle trajectories in pyCart
+    Read a simple list of configuration variables
+    
+    :Call:
+        >>> T = pyCart.Trajectory(**traj)
+        >>> T = pyCart.Trajectory(File=fname, Keys=keys, Prefix=prefix)
+    
+    :Inputs:
+        *traj*: :class:`dict`
+            Dictionary of options from ``cart3d.Options["Trajectory"]``
+        *fname*: :class:`str`
+            Name of file to read, defaults to ``'Trajectory.dat'``
+        *keys*: :class:`list` of :class:`str` items
+            List of variable names, defaults to ``['Mach','alpha','beta']``
+        *prefix*: :class:`str`
+            Prefix to be used in folder names for each case in trajectory
+    
+    :Outputs:
+        *T*: :class:`pyCart.cntl.Trajectory`
+            Instance of the trajectory class
+            
+    :Data members:
+        *T.nCase*: :class:`int`
+            Number of cases in the trajectory
+        *T.prefix*: :class:`str`
+            Prefix to be used in folder names for each case in trajectory
+        *T.keys*: :class:`list`, *dtype=str*
+            List of variable names used
+        *T.text*: :class:`dict`, *dtype=list*
+            Lists of variable values taken from trajectory file
+        *T.Mach*: :class:`numpy.ndarray`, *dtype=float*
+            Vector of Mach numbers in trajectory
+        ``getattr(T, key)``: :class:`numpy.ndarray`, *dtype=float*
+            Vector of values of each variable specified in *keys*
     """
     
     # Initialization method
     def __init__(self, **kwargs):
-        """
-        Read a simple list of configuration variables
-        
-        :Call:
-            >>> T = pyCart.Trajectory(**traj)
-            >>> T = pyCart.Trajectory(File=fname, Keys=keys, Prefix=prefix)
-        
-        :Inputs:
-            *traj*: :class:`dict`
-                Dictionary of options from ``cart3d.Options["Trajectory"]``
-            *fname*: :class:`str`
-                Name of file to read, defaults to ``'Trajectory.dat'``
-            *keys*: :class:`list` of :class:`str` items
-                List of variable names, defaults to ``['Mach','alpha','beta']``
-            *prefix*: :class:`str`
-                Prefix to be used in folder names for each case in trajectory
-        
-        :Outputs:
-            *T*: :class:`pyCart.cntl.Trajectory`
-                Instance of the trajectory class
-                
-        :Data members:
-            *nCase*: :class:`int`
-                Number of cases in the trajectory
-            *prefix*: :class:`str`
-                Prefix to be used in folder names for each case in trajectory
-            *keys*: :class:`list`, *dtype=str*
-                List of variable names used
-            *text*: :class:`dict`, *dtype=list*
-                Lists of variable values taken from trajectory file
-            *Mach*: :class:`numpy.ndarray`, *dtype=float*
-                Vector of Mach numbers in trajectory
-            *'key'*: :class:`numpy.ndarray`, *dtype=float*
-                vector of values of each variable specified in *keys*
-        """
+        """Initialization method"""
         # Versions:
         #  2014.05.28 @ddalle  : First version
         #  2014.06.05 @ddalle  : Generalized for user-defined keys
@@ -273,15 +271,10 @@ class Trajectory:
         
         The folder names will be of the form
     
-            ``Grid/F_Mach_2.0_alpha_0.0_beta_-0.5/``
+            ``F_Mach_2.0_alpha_0.0_beta_-0.5/``
             
-        if there are no trajectory keys that require separate grids or
-        
-            ``Grid_delta_1.0/F_Mach_2.0_alpha_0.0_beta_-0.5/``
-            
-        if there is a key called ``"delta"`` that requires a separate mesh each time
-        the value of that key changes.  All keys in the trajectory file are included
-        in the folder name at one of the two levels.  The number of digits used will
+        Trajectory keys that require separate meshes for each value of the key
+        will not be part of the folder name.  The number of digits used will
         match the number of digits in the trajectory file.
         
         :Call:
@@ -378,11 +371,17 @@ class Trajectory:
         List full folder names for each of the cases in a trajectory.
         
         The folder names will be of the form
-        
-            "Grid_delta_1.0/F_Mach_2.0_alpha_0.0_beta_-0.5/"
+    
+            ``Grid/F_Mach_2.0_alpha_0.0_beta_-0.5/``
             
-        using all of the keys specified in the trajectory file.  The amount of
-        digits used will match the number of digits in the trajectory file.
+        if there are no trajectory keys that require separate grids or
+        
+            ``Grid_delta_1.0/F_Mach_2.0_alpha_0.0_beta_-0.5/``
+            
+        if there is a key called ``"delta"`` that requires a separate mesh each time
+        the value of that key changes.  All keys in the trajectory file are included
+        in the folder name at one of the two levels.  The number of digits used will
+        match the number of digits in the trajectory file.
         
         :Call:
             >>> dname = T.GetFullFolderNames()

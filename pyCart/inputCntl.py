@@ -5,7 +5,7 @@ Module to Interface with 'input.cntl' Files
 """
 
 # Import the base file control class.
-from FileCntl import FileCntl, _num, _float
+from fileCntl import FileCntl, _num, _float
 
 # Base this class off of the main file control class.
 class InputCntl(FileCntl):
@@ -19,8 +19,8 @@ class InputCntl(FileCntl):
         File control class for "input.cntl" files.
         
         :Call:
-            >>> cntl = pyCart.InputCntl.InputCntl()
-            >>> cntl = pyCart.InputCntl.InputCntl(fname)
+            >>> cntl = pyCart.inputCntl.InputCntl()
+            >>> cntl = pyCart.inputCntl.InputCntl(fname)
             
         :Inputs:
             *fname*: :class:`str`
@@ -43,7 +43,7 @@ class InputCntl(FileCntl):
             >>> IC.SetMach(Mach)
         
         :Inputs:
-            *IC*: :class:`pyCart.InputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for "input.cntl"
             *Mach*: :class:`float`
                 Mach number
@@ -68,7 +68,7 @@ class InputCntl(FileCntl):
             >>> M = IC.GetMach()
         
         :Inputs:
-            *IC*: :class:`pyCart.InputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for "input.cntl"
                 
         :Outputs:
@@ -99,7 +99,7 @@ class InputCntl(FileCntl):
             >>> IC.SetAlpha(alpha)
             
         :Inputs:
-            *IC*: :class:`pyCart.InputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for "input.cntl"
             *alpha*: :class:`float`
                 Angle of attack
@@ -124,7 +124,7 @@ class InputCntl(FileCntl):
             >>> IC.SetAlpha(alpha)
             
         :Inputs:
-            *IC*: :class:`pyCart.InputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for "input.cntl"
             *beta*: :class:`float`
                 Sideslip angle
@@ -149,7 +149,7 @@ class InputCntl(FileCntl):
             >>> IC.SetCFL(CFL)
         
         :Inputs:
-            *IC*: :class:`pyCart.InputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for "input.cntl"
             *CFL*: :class:`float`
                 Value of the CFL number to use
@@ -175,7 +175,7 @@ class InputCntl(FileCntl):
             >>> IC.SetXSlices(x)
         
         :Inputs:
-            *IC*: :class:`pyCart.InputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for "input.cntl"
             *x*: *array_like* (:class:`float`)
                 List or vector of *x*-coordinates at which to make cut planes
@@ -206,7 +206,7 @@ class InputCntl(FileCntl):
             >>> IC.SetYSlices(y)
         
         :Inputs:
-            *IC*: :class:`pyCart.InputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for "input.cntl"
             *y*: *array_like* (:class:`float`)
                 List or vector of *y*-coordinates at which to make cut planes
@@ -237,7 +237,7 @@ class InputCntl(FileCntl):
             >>> IC.SetZSlices(z)
         
         :Inputs:
-            *IC*: :class:`pyCart.InputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for "input.cntl"
             *z*: *array_like* (:class:`float`)
                 List or vector of *z*-coordinates at which to make cut planes
@@ -269,7 +269,7 @@ class InputCntl(FileCntl):
             >>> IC.SetReferenceArea(Aref, compID)
         
         :Inputs:
-            *IC*: :class:`pyCart.InputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for "input.cntl"
             *Aref*: :class:`float`
                 Reference area value
@@ -296,7 +296,7 @@ class InputCntl(FileCntl):
             >>> IC.SetReferenceLength(Lref, compID)
         
         :Inputs:
-            *IC*: :class:`pyCart.InputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for "input.cntl"
             *Lref*: :class:`float`
                 Reference length value
@@ -322,7 +322,7 @@ class InputCntl(FileCntl):
             >>> IC.SetSurfBC(compID, u)
         
         :Inputs:
-            *IC*: :class:`pyCart.InputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for "input.cntl"
             *compID*: :class:`int`
                 Component number to apply boundary condition to

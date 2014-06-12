@@ -1,5 +1,5 @@
 """
-Conversion Tools for pyCart
+Conversion tools for pyCart
 ===========================
 
 Perform conversions such as (alpha total, phi) to (alpha, beta).
