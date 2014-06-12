@@ -19,6 +19,7 @@ Contents
     
     pyCart/index
     script/index
+    template/index
     
 ..    pyCart/cart3d
 
