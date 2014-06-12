@@ -10,6 +10,7 @@
     .. toctree::
         
         cart3d
+        tri
         
         
     Finally, below are listed members that are imported directly to the pyCart

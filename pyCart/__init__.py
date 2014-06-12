@@ -1,6 +1,6 @@
 """
 *****************
-The pyCart Module
+The pyCart module
 *****************
 
 The :mod:`pyCart` module contains the top-level interface for Cart3D setup.  It

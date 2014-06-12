@@ -58,45 +58,43 @@ def _getPyCartDefaults():
 # Class to read input files
 class Cart3d:
     """
-    Class for handling global options to be used for Cart3D cases
+    Class for handling global options for Cart3D run cases.
+    
+    This class is intended to handle all settings used to describe a group
+    of Cart3D cases.  For situations where it is not sufficiently
+    customized, it can be used partially, e.g., to set up a Mach/alpha sweep
+    for each single control variable setting.
+    
+    The settings are read from a JSON file, which is robust and simple to
+    read, but has the disadvantage that there is no support for comments.
+    Hopefully the various names are descriptive enough not to require
+    explanation.
+    
+    Defaults are read from the file ``$PYCART/settings/pyCart.default.json``.
+    
+    :Call:
+        >>> cart3d = pyCart.Cart3d(fname="pyCart.json")
+        
+    :Inputs:
+        *fname*: :class:`str`
+            Name of pyCart input file
+            
+    :Outputs:
+        *cart3d*: :class:`pyCart.cart3d.Cart3d`
+            Instance of the pyCart control class
+    
+    :Data members:
+        *Grid*: :class:`dict`
+            Dictionary containing grid-related parameters
+        *RunOptions*: :class:`dict`
+            Dictionary containing run-related parameters
+        *Trajectory*: :class:`pyCart.trajectory.Trajectory`
+            Trajectory description read from file
     """
     
     # Initialization method
     def __init__(self, fname="pyCart.json"):
-        """
-        Class for handling global options for Cart3D run cases.
-        
-        This class is intended to handle all settings used to describe a group
-        of Cart3D cases.  For situations where it is not sufficiently
-        customized, it can be used partially, e.g., to set up a Mach/alpha sweep
-        for each single control variable setting.
-        
-        The settings are read from a JSON file, which is robust and simple to
-        read, but has the disadvantage that there is no support for comments.
-        Hopefully the various names are descriptive enough not to require
-        explanation.
-        
-        Defaults are read from the file "$PYCART/settings/pyCart.default.json".
-        
-        :Call:
-            >>> cart3d = pyCart.Cart3d(fname="pyCart.json")
-            
-        :Inputs:
-            *fname*: :class:`str`
-                Name of pyCart input file
-                
-        :Outputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of the pyCart control class
-        
-        :Data members:
-            *Grid*: :class:`dict`
-                Dictionary containing grid-related parameters
-            *RunOptions*: :class:`dict`
-                Dictionary containing run-related parameters
-            *Trajectory*: :class:`pyCart.trajectory.Trajectory`
-                Trajectory description read from file
-        """
+        """Initialization method for :mod:`pyCart.cart3d.Cart3d`"""
         # Versions:
         #  2014.05.28 @ddalle  : First version
         #  2014.06.03 @ddalle  : Renamed class 'Cntl' --> 'Cart3d'
@@ -137,9 +135,7 @@ class Cart3d:
         
     # Output representation
     def __repr__(self):
-        """
-        Output representation for the class.
-        """
+        """Output representation for the class."""
         # Versions:
         #  2014.05.28 @ddalle  : First version
         
@@ -154,11 +150,17 @@ class Cart3d:
         List folder names for each of the cases in a trajectory.
         
         The folder names will be of the form
-        
-            "F_Mach_2.0_alpha_0.0_beta_-0.5/"
+    
+            ``Grid/F_Mach_2.0_alpha_0.0_beta_-0.5/``
             
-        using all of the keys specified in the trajectory file.  The amount of
-        digits used will match the number of digits in the trajectory file.
+        if there are no trajectory keys that require separate grids or
+        
+            ``Grid_delta_1.0/F_Mach_2.0_alpha_0.0_beta_-0.5/``
+            
+        if there is a key called ``"delta"`` that requires a separate mesh each time
+        the value of that key changes.  All keys in the trajectory file are included
+        in the folder name at one of the two levels.  The number of digits used will
+        match the number of digits in the trajectory file.
         
         :Call:
             >>> dname = cart3d.GetFolderNames()

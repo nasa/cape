@@ -1,4 +1,11 @@
+"""
+Cart3D triangulation module: :mod:`pyCart.tri`
+==============================================
 
+This module provides the utilities for interacting with Cart3D triangulations,
+including annotated triangulations (including ``.triq`` files).  Triangulations
+can also be read from the UH3D format.
+"""
 
 # Required modules
 # Numerics
@@ -8,51 +15,53 @@ import os
 
 # Triangulation class
 class Tri:
+    """
+    pyCart triangulation class
+    
+    This class provides an interface for a basic triangulation without
+    surface data.  It can be created either by reading an ASCII file or
+    specifying the data directly.
+    
+    :Call:
+        >>> tri = pyCart.Tri(fname=fname)
+        >>> tri = pyCart.Tri(uh3d=uh3d)
+        >>> tri = pyCart.Tri(Nodes=Nodes, Tris=Tris, CompID=CompID)
+        
+    :Inputs:
+        *fname*: :class:`str`
+            Name of triangulation file to read (Cart3D format)
+        *uh3d*: :class:`str`
+            Name of triangulation file (UH3D format)
+        *nNode*: :class:`int`
+            Number of nodes in triangulation
+        *Nodes*: :class:`numpy.array(dtype=float)`, (*nNode*, 3)
+            Matrix of *x,y,z*-coordinates of each node
+        *nTri*: :class:`int`
+            Number of triangles in triangulation
+        *Tris*: :class:`numpy.array(dtype=int)`, (*nTri*, 3)
+            Indices of triangle vertex nodes
+        *CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
+            Component number for each triangle
+            
+    :Data members:
+        *tri.nNode*: :class:`int`
+            Number of nodes in triangulation
+        *tri.Nodes*: :class:`numpy.array(dtype=float)`, (*nNode*, 3)
+            Matrix of *x,y,z*-coordinates of each node
+        *tri.nTri*: :class:`int`
+            Number of triangles in triangulation
+        *tri.Tris*: :class:`numpy.array(dtype=int)`, (*nTri*, 3)
+            Indices of triangle vertex nodes
+        *tri.CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
+            Component number for each triangle
+    
+    When no component numbers are specified, the object created will label
+    all triangles ``1``.
+    """
     # Initialization method
     def __init__(self, fname=None, uh3d=None,
         nNode=None, Nodes=None, nTri=None, Tris=None, CompID=None):
-        """
-        pyCart triangulation class
-        
-        This class provides an interface for a basic triangulation without
-        surface data.  It can be created either by reading an ASCII file or
-        specifying the data directly.
-        
-        :Call:
-            >>> tri = pyCart.Tri(fname=None)
-            >>> tri = pyCart.Tri(Nodes=Nodes, Tris=Tris, CompID=CompID)
-            
-        :Inputs:
-            *fname*: :class:`str`
-                Name of triangulation file to read (Cart3D format)
-            *uh3d*: :class:`str`
-                Name of triangulation file (UH3D format)
-            *nNode*: :class:`int`
-                Number of nodes in triangulation
-            *Nodes*: :class:`numpy.array(dtype=float)`, (*nNode*, 3)
-                Matrix of *x,y,z*-coordinates of each node
-            *nTri*: :class:`int`
-                Number of triangles in triangulation
-            *Tris*: :class:`numpy.array(dtype=int)`, (*nTri*, 3)
-                Indices of triangle vertex nodes
-            *CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
-                Component number for each triangle
-                
-        :Data members:
-            *nNode*: :class:`int`
-                Number of nodes in triangulation
-            *Nodes*: :class:`numpy.array(dtype=float)`, (*nNode*, 3)
-                Matrix of *x,y,z*-coordinates of each node
-            *nTri*: :class:`int`
-                Number of triangles in triangulation
-            *Tris*: :class:`numpy.array(dtype=int)`, (*nTri*, 3)
-                Indices of triangle vertex nodes
-            *CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
-                Component number for each triangle
-        
-        When no component numbers are specified, the object created will label
-        all triangles ``1``.
-        """
+        """Initialization method"""
         # Versions:
         #  2014.05.23 @ddalle  : First version
         #  2014.06.02 @ddalle  : Added UH3D reading capability
@@ -100,7 +109,7 @@ class Tri:
     # Function to read a .tri file
     def Read(self, fname):
         """
-        Read a triangulation file (from '*.tri')
+        Read a triangulation file (from ``*.tri``)
         
         :Call:
             >>> tri.Read(fname)
@@ -189,7 +198,7 @@ class Tri:
     # Read from a .uh3d file.
     def ReadUH3D(self, fname):
         """
-        Read a triangulation file (from '*.uh3d')
+        Read a triangulation file (from ``*.uh3d``)
         
         :Call:
             >>> tri.ReadUH3D(fname)
@@ -307,9 +316,9 @@ class Tri:
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance to be rotated
-            *v1*: :class:`numpy.ndarray` (*shape*=(3,))
+            *v1*: :class:`numpy.ndarray`, *shape* = (3,)
                 Start point of rotation vector
-            *v2*: :class:`numpy.ndarray` (*shape*=(3,))
+            *v2*: :class:`numpy.ndarray`, *shape* = (3,)
                 End point of rotation vector
             *theta*: :class:`float`
                 Rotation angle in degrees
