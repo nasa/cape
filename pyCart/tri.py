@@ -105,6 +105,20 @@ class Tri:
         # End
         return None
         
+    # Method that shows the representation of a triangulation
+    def __repr__(self):
+        """
+        Return the string representation of a triangulation.
+        
+        This looks like ``<pyCart.tri.Tri(nNode=M, nTri=N)>``
+        """
+        # Versions:
+        #  2014.05.27 @ddalle  : First version
+        return '<pyCart.tri.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
+        
+    # String representation is the same
+    __str__ = __repr__
+        
         
     # Function to read a .tri file
     def Read(self, fname):
@@ -350,19 +364,80 @@ class Tri:
         # Return the rotated coordinates.
         return None
         
-    # Method that shows the representation of a triangulation
-    def __repr__(self):
+    # Add a second triangulation without destroying component numbers.
+    def Add(self, tri):
         """
-        Return the string representation of a triangulation.
+        Add a second triangulation to the current by adding the number of
+        components in the first triangulation to each of the component IDs in
+        the second triangulation.  No checks are performed, and intersections
+        are not analyzed.
         
-        This looks like ``<pyCart.tri.Tri(nNode=M, nTri=N)>``
+        :Call:
+            >>> tri.Add(tri2)
+            
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance to be altered
+            *tri2*: :class:`pyCart.tri.Tri`
+                Triangulation instance to be added to the first
+            
+        :Effects:
+            All nodes and triangles from *tri2* are added to *tri*.  As a
+            result, the number of nodes, number of tris, and number of
+            components in *tri* will all increase.
         """
         # Versions:
-        #  2014.05.27 @ddalle  : First version
-        return '<pyCart.tri.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
+        #  2014.06.12 @ddalle  : First version
         
-    # String representation is the same
-    __str__ = __repr__
+        # Concatenate the node matrix.
+        self.Nodes = np.vstack((self.Nodes, tri.Nodes))
+        # Concatenate the triangle node index matrix.
+        self.Tris = np.vstack((self.Tris, tri.Tris + self.nNode))
+        # Number of components in the original triangulation
+        nC = np.max(self.CompID)
+        # Concatenate the component vector.
+        self.CompID = np.hstack((self.CompID, tri.CompID + nC))
+        # Update the statistics.
+        self.nNode += tri.nNode
+        self.nTri  += tri.nTri
+        # Done
+        return None
+        
+    # Add a second triangulation without altering component numbers.
+    def AddRawCompID(self, tri):
+        """
+        Add a second triangulation to the current one without changing 
+        component numbers of either triangulation.  No checks are performed,
+        and intersections are not analyzed.
+        
+        :Call:
+            >>> tri.AddRawCompID(tri2)
+            
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance to be altered
+            *tri2*: :class:`pyCart.tri.Tri`
+                Triangulation instance to be added to the first
+            
+        :Effects:
+            All nodes and triangles from *tri2* are added to *tri*.  As a
+            result, the number of nodes, number of tris, and number of
+            components in *tri* will all increase.
+        """
+        # Versions:
+        #  2014.06.12 @ddalle  : First version
+        
+        # Concatenate the node matrix.
+        self.Nodes = np.vstack((self.Nodes, tri.Nodes))
+        # Concatenate the triangle node index matrix.
+        self.Tris = np.vstack((self.Tris, tri.Tris + self.nNode))
+        # Concatenate the component vector.
+        self.CompID = np.hstack((self.CompID, tri.CompID))
+        # Update the statistics.
+        self.nNode += tri.nNode
+        self.nTri  += tri.nTri
+        # Done
+        return None
 
 
 # Function to read .tri files

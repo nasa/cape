@@ -14,5 +14,6 @@ Script Library
         GatherLoadsCC
         GatherLoadsTRI
         UH3D2Tri
+        CombineTri
         
     
