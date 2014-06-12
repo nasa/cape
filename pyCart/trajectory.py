@@ -21,7 +21,7 @@ class Trajectory:
     
     :Call:
         >>> T = pyCart.Trajectory(**traj)
-        >>> T = pyCart.Trajectory(File=fname, Keys=keys, Prefix=prefix)
+        >>> T = pyCart.Trajectory(File=fname, Keys=keys, Prefix=prefix, GridPrefix=gridPrefix)
     
     :Inputs:
         *traj*: :class:`dict`
@@ -31,7 +31,9 @@ class Trajectory:
         *keys*: :class:`list` of :class:`str` items
             List of variable names, defaults to ``['Mach','alpha','beta']``
         *prefix*: :class:`str`
-            Prefix to be used in folder names for each case in trajectory
+            Prefix to be used for each case folder name
+        *gridPrefix*: :class:`str`
+            Prefix to be used for each grid folder name
     
     :Outputs:
         *T*: :class:`pyCart.cntl.Trajectory`
@@ -42,6 +44,8 @@ class Trajectory:
             Number of cases in the trajectory
         *T.prefix*: :class:`str`
             Prefix to be used in folder names for each case in trajectory
+        *T.GridPrefix*: :class:`str`
+            Prefix to be used for each grid folder name
         *T.keys*: :class:`list`, *dtype=str*
             List of variable names used
         *T.text*: :class:`dict`, *dtype=list*
@@ -63,11 +67,13 @@ class Trajectory:
         fname = kwargs.get('File', None)
         keys = kwargs.get('Keys', ['Mach', 'alpha', 'beta'])
         prefix = kwargs.get('Prefix', "F")
+        gridPrefix = kwargs.get('GridPrefix', "Grid")
         # Number of variables
         nVar = len(keys)
         # Save properties.
         self.keys = keys
         self.prefix = prefix
+        self.GridPrefix = gridPrefix
         # Process the key definitions
         self.ProcessKeyDefinitions(**kwargs)
         
@@ -344,7 +350,7 @@ class Trajectory:
         #  2014.06.05 @ddalle  : First version
         
         # Set the prefix.
-        prefix = "Grid"
+        prefix = self.GridPrefix
         # Process the index list.
         if i is None: i = range(self.nCase)
         # Get the names of variables requiring separate grids.
@@ -487,7 +493,7 @@ class Trajectory:
             # Check if the "Grid" folder exists.
             if not os.path.isdir(glist[i]):
                 # Create the folder, and say so.
-                print("Creating common-grid folder: %s" % glis[i])
+                print("Creating common-grid folder: %s" % glist[i])
                 os.mkdir(glist[i], 0750)
             # Join the "Grid" prefix.
             dname = os.path.join(glist[i], dlist[i])
