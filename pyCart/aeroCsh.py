@@ -1,6 +1,6 @@
 """
-Module to nterface with "aero.csh" files: :mod:`pyCart.aeroCsh`
-===============================================================
+Module to interface with "aero.csh" files: :mod:`pyCart.aeroCsh`
+================================================================
 
 This is a module built off of the :mod:`pyCart.fileCntl` module customized for
 manipulating :file:`aero.csh` files.  The main feature of this module is methods
