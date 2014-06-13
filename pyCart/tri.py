@@ -336,15 +336,18 @@ class Tri:
         # Calculate the dimensioned normals
         n = np.cross(np.transpose(x01), np.transpose(x02))
         # Calculate the area of each triangle.
-        self.Areas = np.sqrt(np.sum(n**2, 1))
+        A = np.sqrt(np.sum(n**2, 1))
         # Normalize each component.
-        n[:,0] /= self.Areas
-        n[:,1] /= self.Areas
-        n[:,2] /= self.Areas
-        # Save the unit normals
+        n[:,0] /= A
+        n[:,1] /= A
+        n[:,2] /= A
+        # Save the areas.
+        self.Areas = A/2
+        # Save the unit normals.
         self.Normals = n
         # Done
         return None
+        
         
     
     # Function to translate the triangulation
@@ -519,7 +522,92 @@ class Tri:
         self.nTri  += tri.nTri
         # Done
         return None
-
+        
+    # Get normals and areas
+    def GetCompArea(self, compID, n=None):
+        """
+        Get the total area of a component, or get the total area of a component
+        projected to a plane with a given normal vector.
+        
+        :Call:
+            >>> A = tri.GetCompArea(compID)
+            >>> A = tri.GetCompArea(compID, n)
+            
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance
+            *compID*: :class:`int`
+                Index of the component of which to find the area
+            *n*: :class:`numpy.ndarray`
+                Unit normal vector to use for projection
+        
+        :Outputs:
+            *A*: :class:`float`
+                Area of the component
+        """
+        # Versions:
+        #  2014.06.13 @ddalle  : First version
+        
+        # Check for areas.
+        if not hasattr(self, 'Areas'):
+            # Calculate them.
+            self.GetNormals()
+        # Find the indices of tris in the component.
+        i = self.CompID == compID
+        # Check for direction projection.
+        if n is None:
+            # No projection
+            return np.sum(self.Areas[i])
+        else:
+            # Extract the normals and copy to new matrix.
+            N = self.Normals[i].copy()
+            # Dot those normals with the requested vector.
+            N[:,0] *= n[0]
+            N[:,1] *= n[1]
+            N[:,2] *= n[2]
+            # Sum to get the dot product.
+            d = np.sum(N, 1)
+            # Multiply this dot product by the area of each tri
+            return np.sum(self.Areas[i] * d)
+            
+    # Get normals and areas
+    def GetCompNormal(self, compID):
+        """
+        Get the area-averaged unit normal of a component.
+        
+        :Call:
+            >>> n = tri.GetCompNormal(compID)
+            
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance
+            *compID*: :class:`int`
+                Index of the component of which to find the normal
+        
+        :Outputs:
+            *n*: :class:`numpy.ndarray` shape=(3,)
+                Area-averaged unit normal
+        """
+        # Versions:
+        #  2014.06.13 @ddalle  : First version
+        
+        # Check for areas.
+        if not hasattr(self, 'Areas'):
+            # Calculate them.
+            self.GetNormals()
+        # Find the indices of tris in the component.
+        i = self.CompID == compID
+        # Extract those normals and areas.
+        N = self.Normals[i].copy()
+        A = self.Areas[i].copy()
+        # Weight the normals.
+        N[:,0] *= A
+        N[:,1] *= A
+        N[:,2] *= A
+        # Compute the mean.
+        n = np.mean(N, 0)
+        # Unitize.
+        return n / np.sqrt(np.sum(n**2))
 
 # Function to read .tri files
 def ReadTri(fname):

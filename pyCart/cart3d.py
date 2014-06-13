@@ -229,15 +229,15 @@ class Cart3d:
         
         # Extract the grid parameters.
         Mesh = self.Mesh
-        # Get the name of the tri file(s).
-        ftri = os.path.split(Mesh['TriFile'])[-1]
         # Get the names of the grid foloders
         glist = self.Trajectory.GetGridFolderNames()
         # Loop through the grids.
         for g in np.unique(glist):
+            # Path to copied tri file
+            ftri_g = os.path.join(g, 'Components.i.tri')
             # Copy the tri file there if necessary.
-            shutil.copyfile(Mesh['TriFile'], 
-                os.path.join(g, 'Components.i.tri'))
+            if not os.path.isfile(ftri_g):
+                shutil.copyfile(Mesh['TriFile'], ftri_g)
             # Get the component list.
             fxml = self.Config['File']
             if os.path.isfile(fxml):
@@ -280,11 +280,6 @@ class Cart3d:
         # Versions:
         #  2014.05.28 @ddalle  : First version
         
-        # Check the 'Grid' directory.
-        if not os.path.isdir('Grid'):
-            raise IOError('Folder "Grid" not found.')
-        # Name of tri file
-        ftri = os.path.split(self.Mesh['TriFile'])[-1]
         # Get the folder names.
         glist = self.Trajectory.GetGridFolderNames()
         dlist = self.Trajectory.GetFolderNames()
@@ -305,6 +300,9 @@ class Cart3d:
             # Extract folders.
             g = glist[i]
             d = dlist[i]
+            # Check the 'Grid' directory.
+            if not os.path.isdir(g):
+                raise IOError('Folder "%s" not found.' % g)
             # Change to the 'Grid' folder.
             os.chdir(g)
             # Check if the grid has been created.
@@ -509,6 +507,9 @@ class Cart3d:
             self.InputCntl.SetMach(T.Mach[i])
             self.InputCntl.SetAlpha(T.alpha[i])
             self.InputCntl.SetBeta(T.beta[i])
+            # Set the Reference values
+            self.InputCntl.SetReferenceArea(self.Config['ReferenceArea'])
+            self.InputCntl.SetReferenceLength(self.Config['ReferenceLength'])
             # Destination file name
             fout = os.path.join(glist[i], dlist[i], 'input.cntl')
             # Write the input file.

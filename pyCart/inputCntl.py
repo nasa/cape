@@ -324,7 +324,7 @@ class InputCntl(FileCntl):
         reg = 'Reference_Length.*%s' % compID
         # Replace or add the line.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
-            reg, 'Reference_Length  %s   %s\n' % (Aref, compID))
+            reg, 'Reference_Length  %s   %s\n' % (Lref, compID))
         return None
         
     # Function to set a surface boundary condition (e.g. nozzle condition)
@@ -381,7 +381,7 @@ class InputCntl(FileCntl):
         #  2014.06.09 @ddalle  : First version
         
         # Line starts looks like "Force $compID", but arbitrary white space.
-        reg = 'Force\s+' + str(compID)
+        reg = 'Force\s+' + str(compID) + '$'
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
             reg, 'Force %s\n' % compID)
@@ -420,7 +420,7 @@ class InputCntl(FileCntl):
             y = MRP[1]
             z = MRP[2]
         # Regular expression for "Moment_Point[anything]$comp_ID"
-        reg = 'Moment_Point.*' + str(compID)
+        reg = 'Moment_Point.*' + str(compID) + '$'
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing', reg,
             'Moment_Point  %s %s %s  %s\n' % (x,y,z,compID))
