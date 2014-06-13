@@ -209,6 +209,38 @@ class Tri:
         return None
         
         
+    # Function to copy a triangulation and unlink it.
+    def Copy(self):
+        """
+        Copy a triangulation and unlink it
+        
+        :Call:
+            >>> tri2 = tri.Copy()
+            
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance
+                
+        :Outputs:
+            *tri2*: :class:`pyCart.tri.Tri`
+                Triangulation with same values as *tri* but not linked
+        """
+        # Versions:
+        #  2014.06.12 @ddalle  : First version
+        
+        # Make a new triangulation with no information.
+        tri = Tri()
+        # Copy over the scalars.
+        tri.nNode = self.nNode
+        tri.nTri  = self.nTri
+        # Make new copies of the arrays.
+        tri.Nodes  = self.Nodes.copy()
+        tri.Tris   = self.Tris.copy()
+        tri.CompID = self.CompID.copy()
+        # Output the new triangulation.
+        return tri
+        
+        
     # Read from a .uh3d file.
     def ReadUH3D(self, fname):
         """
@@ -269,6 +301,51 @@ class Tri:
         # Close the file.
         fid.close()
         
+        
+    # Get normals and areas
+    def GetNormals(self):
+        """
+        Get the normals and areas of each triangle
+        
+        :Call:
+            >>> tri.GetNormals()
+            
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance
+        
+        :Outputs:
+            ``None``
+            
+        :Effects:
+            *tri.Areas*: :class:`ndarray`, shape=(tri.nTri,)
+                Area of each triangle is created
+            *tri.Normals*: :class:`ndarray`, shape=(tri.nTri,3)
+                Unit normal for each triangle is saved
+        """
+        # Versions:
+        #  2014.06.12 @ddalle  : First version
+        
+        # Extract the vertices of each tri.
+        x = self.Nodes[self.Tris-1, 0]
+        y = self.Nodes[self.Tris-1, 1]
+        z = self.Nodes[self.Tris-1, 2]
+        # Get the deltas from node 0 to node 1 or node 2
+        x01 = np.vstack((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
+        x02 = np.vstack((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
+        # Calculate the dimensioned normals
+        n = np.cross(np.transpose(x01), np.transpose(x02))
+        # Calculate the area of each triangle.
+        self.Areas = np.sqrt(np.sum(n**2, 1))
+        # Normalize each component.
+        n[:,0] /= self.Areas
+        n[:,1] /= self.Areas
+        n[:,2] /= self.Areas
+        # Save the unit normals
+        self.Normals = n
+        # Done
+        return None
+        
     
     # Function to translate the triangulation
     def Translate(self, dx=None, dy=None, dz=None):
@@ -312,6 +389,10 @@ class Tri:
             if dx is None: dx = 0.0
             if dy is None: dy = 0.0
             if dz is None: dz = 0.0
+        # Check for an array.
+        if hasattr(dx, '__len__'):
+            # Extract components
+            dx, dy, dz = tuple(dx)
         # Offset each coordinate.
         self.Nodes[:,0] += dx
         self.Nodes[:,1] += dy
