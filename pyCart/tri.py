@@ -13,19 +13,20 @@ import numpy as np
 # File system and operating system management
 import os
 
+
 # Triangulation class
-class Tri:
+class TriBase:
     """
-    pyCart triangulation class
+    pyCart base triangulation class
     
     This class provides an interface for a basic triangulation without
     surface data.  It can be created either by reading an ASCII file or
     specifying the data directly.
     
     :Call:
-        >>> tri = pyCart.Tri(fname=fname)
-        >>> tri = pyCart.Tri(uh3d=uh3d)
-        >>> tri = pyCart.Tri(Nodes=Nodes, Tris=Tris, CompID=CompID)
+        >>> tri = pyCart.tri.TriBase(fname=fname)
+        >>> tri = pyCart.tri.TriBase(uh3d=uh3d)
+        >>> tri = pyCart.tri.TriBase(Nodes=Nodes, Tris=Tris, CompID=CompID)
         
     :Inputs:
         *fname*: :class:`str`
@@ -119,6 +120,94 @@ class Tri:
     # String representation is the same
     __str__ = __repr__
         
+    
+    # Function to read node coordinates from .triq+ file
+    def ReadNodes(self, f, nNode):
+        """
+        Read node coordinates from a .tri file.
+        
+        :Call:
+            >>> tri.ReadNodes(f, nNode)
+            
+        :Inputs:
+            *tri*: :class:`pyCart.tri.TriBase` or derivative
+                Triangulation instance
+            *f*: :class:`str`
+                Open file handle
+            *nNode*: :class:`int`
+                Number of nodes to read
+        
+        :Effects:
+            Reads and creates *tri.Nodes*; file remains open.
+        """
+        # Versions:
+        #  2014.06.16 @ddalle  : First version
+        
+        # Save the node count.
+        self.nNode = nNode
+        # Read the nodes.
+        Nodes = np.fromfile(f, dtype=float, count=nNode*3, sep=" ")
+        # Reshape into a matrix.
+        self.Nodes = Nodes.reshape((nNode,3))
+        
+    # Function to read triangle indices from .triq+ files
+    def ReadTris(self, f, nTri):
+        """
+        Read triangle node indices from a .tri file.
+        
+        :Call:
+            >>> tri.ReadTris(f, nTri)
+            
+        :Inputs:
+            *tri*: :class:`pyCart.tri.TriBase` or derivative
+                Triangulation instance
+            *f*: :class:`str`
+                Open file handle
+            *nTri*: :class:`int`
+                Number of tris to read
+        
+        :Effects:
+            Reads and creates *tri.Tris*; file remains open.
+        """
+        # Versions:
+        #  2014.06.16 @ddalle  : First version
+        
+        # Save the tri count.
+        self.nTri = nTri
+        # Read the Tris
+        Tris = np.fromfile(f, dtype=int, count=nTri*3, sep=" ")
+        # Reshape into a matrix.
+        self.Tris = Tris.reshape((nTri,3))
+        
+    # Function to read the component identifiers
+    def ReadCompID(self, f):
+        """
+        Read component IDs from a .tri file.
+        
+        :Call:
+            >>> tri.ReadCompID(f)
+            
+        :Inputs:
+            *tri*: :class:`pyCart.tri.TriBase` or derivative
+                Triangulation instance
+            *f*: :class:`str`
+                Open file handle
+        
+        :Effects:
+            Reads and creates *tri.CompID* if not at end of file.  Otherwise all
+            components are labeled ``1``.
+        """
+        # Versions:
+        #  2014.06.16 @ddalle  : First version
+        
+        # Check for end of file.
+        if f.tell() == os.fstat(f.fileno()).st_size:
+            # Use default component ids.
+            self.CompID = np.ones(self.nTri)
+        else:
+            # Read from file.
+            self.CompID = np.fromfile(f, dtype=int, count=self.nTri, sep=" ")
+        
         
     # Function to read a .tri file
     def Read(self, fname):
@@ -143,30 +232,17 @@ class Tri:
         # Open the file
         fid = open(fname, 'r')
         # Read the first line.
-        line = fid.readline()
+        line = fid.readline().strip()
         # Process the line into two integers.
-        nNode, nTri = (int(v) for v in line.strip().split())
-        # Save the statistics.
-        self.nNode = nNode
-        self.nTri = nTri
+        nNode, nTri = (int(v) for v in line.split()[0:2])
         
         # Read the nodes.
-        Nodes = np.fromfile(fid, dtype=float, count=nNode*3, sep=" ")
-        # Reshape into a matrix.
-        self.Nodes = Nodes.reshape((nNode,3))
+        self.ReadNodes(fid, nNode)
+        # Read the Tris.
+        self.ReadTris(fid, nTri)
+        # Read or assign component IDs.
+        self.ReadCompID(fid)
         
-        # Read the Tris
-        Tris = np.fromfile(fid, dtype=int, count=nTri*3, sep=" ")
-        # Reshape into a matrix.
-        self.Tris = Tris.reshape((nTri,3))
-        
-        # Check for end of file.
-        if fid.tell() == os.fstat(fid.fileno()).st_size:
-            # Use default component ids.
-            self.CompID = None
-        else:
-            # Read from file.
-            self.CompID = np.fromfile(fid, dtype=int, count=nTri, sep=" ")
         # Close the file.
         fid.close()
         
@@ -608,6 +684,151 @@ class Tri:
         n = np.mean(N, 0)
         # Unitize.
         return n / np.sqrt(np.sum(n**2))
+        
+
+
+# Regular triangulation class
+class Tri(TriBase):
+    """
+    pyCart triangulation class
+    
+    This class provides an interface for a basic triangulation without
+    surface data.  It can be created either by reading an ASCII file or
+    specifying the data directly.
+    
+    :Call:
+        >>> tri = pyCart.Tri(fname=fname)
+        >>> tri = pyCart.Tri(uh3d=uh3d)
+        >>> tri = pyCart.Tri(Nodes=Nodes, Tris=Tris, CompID=CompID)
+        
+    :Inputs:
+        *fname*: :class:`str`
+            Name of triangulation file to read (Cart3D format)
+        *uh3d*: :class:`str`
+            Name of triangulation file (UH3D format)
+        *nNode*: :class:`int`
+            Number of nodes in triangulation
+        *Nodes*: :class:`numpy.array(dtype=float)`, (*nNode*, 3)
+            Matrix of *x,y,z*-coordinates of each node
+        *nTri*: :class:`int`
+            Number of triangles in triangulation
+        *Tris*: :class:`numpy.array(dtype=int)`, (*nTri*, 3)
+            Indices of triangle vertex nodes
+        *CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
+            Component number for each triangle
+            
+    :Data members:
+        *tri.nNode*: :class:`int`
+            Number of nodes in triangulation
+        *tri.Nodes*: :class:`numpy.array(dtype=float)`, (*nNode*, 3)
+            Matrix of *x,y,z*-coordinates of each node
+        *tri.nTri*: :class:`int`
+            Number of triangles in triangulation
+        *tri.Tris*: :class:`numpy.array(dtype=int)`, (*nTri*, 3)
+            Indices of triangle vertex nodes
+        *tri.CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
+            Component number for each triangle
+    
+    When no component numbers are specified, the object created will label
+    all triangles ``1``.
+    """
+    
+    
+    def __init__(self, fname=None, uh3d=None,
+        nNode=None, Nodes=None, nTri=None, Tris=None, CompID=None):
+        """Initialization method"""
+        # Versions:
+        #  2014.05.23 @ddalle  : First version
+        #  2014.06.02 @ddalle  : Added UH3D reading capability
+        
+        # Check if file is specified.
+        if fname is not None:
+            # Read from file.
+            self.Read(fname)
+        
+        elif uh3d is not None:
+            # Read from the other format.
+            self.ReadUH3D(uh3d)
+            
+        else:
+            # Process inputs.
+            # Check counts.
+            if nNode is None:
+                # Get dimensions if possible.
+                if Nodes is not None:
+                    # Use the shape.
+                    nNode = Nodes.shape[0]
+                else:
+                    # No nodes
+                    nNode = 0
+            # Check counts.
+            if nTri is None:
+                # Get dimensions if possible.
+                if Tris is not None:
+                    # Use the shape.
+                    nTri = Tris.shape[0]
+                else:
+                    # No nodes
+                    nTri = 0
+            # Save the components.
+            self.nNode = nNode
+            self.Nodes = Nodes
+            self.nTri = nTri
+            self.Tris = Tris
+            self.CompID = CompID
+            
+        # End
+        return None
+        
+    # Method that shows the representation of a triangulation
+    def __repr__(self):
+        """
+        Return the string representation of a triangulation.
+        
+        This looks like ``<pyCart.tri.Tri(nNode=M, nTri=N)>``
+        """
+        # Versions:
+        #  2014.05.27 @ddalle  : First version
+        return '<pyCart.tri.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
+        
+        
+    # Function to read a .tri file
+    def Read(self, fname):
+        """
+        Read a triangulation file (from ``*.tri``)
+        
+        :Call:
+            >>> tri.Read(fname)
+            
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance
+            *fname*: :class:`str`
+                Name of triangulation file to read
+        
+        :Outputs:
+            ``None``
+        """
+        # Versions:
+        #  2014.06.02 @ddalle  : Split from initialization method.
+        
+        # Open the file
+        fid = open(fname, 'r')
+        # Read the first line.
+        line = fid.readline().strip()
+        # Process the line into two integers.
+        nNode, nTri = (int(v) for v in line.split()[0:2])
+        
+        # Read the nodes.
+        self.ReadNodes(fid, nNode)
+        # Read the Tris.
+        self.ReadTris(fid, nTri)
+        # Read or assign component IDs.
+        self.ReadCompID(fid)
+        
+        # Close the file.
+        fid.close()
+
 
 # Function to read .tri files
 def ReadTri(fname):
