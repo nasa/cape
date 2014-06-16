@@ -79,8 +79,9 @@ from cart3d import Cart3d, Trajectory, ReadTrajectoryFile, CreateFolders
 from post   import LoadsDat
 
 # Import the file control classes.
-from inputCntl import InputCntl
-from aeroCsh   import AeroCsh
+from inputCntl   import InputCntl
+from aeroCsh     import AeroCsh
+from preSpecCntl import PreSpecCntl
 
 # Get the conversion tools directly.
 from convert import *

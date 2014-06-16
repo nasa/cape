@@ -685,6 +685,72 @@ class TriBase:
         # Unitize.
         return n / np.sqrt(np.sum(n**2))
         
+        
+    # Function to add a bounding box based on a component and buffer
+    def GetCompBBox(self, compID, **kwargs):
+        """
+        Find a bounding box based on the coordinates of a specified component
+        or list of components, with an optional buffer or buffers in each
+        direction
+        
+        :Call:
+            >>> xlim = tri.GetCompBBox(compID, xbuff=None, ybuff=None)
+            >>> xlim = tri.GetCompBBox(compID, zbuff=None, buff=0.0)
+            
+        :Inputs:
+            *preSpec*: :class:`pyCart.preSpecCntl.PreSpecCntl`
+                Instance of the :file:`preSpec.c3d.cntl` interface
+            *n*: :class:`int`
+                Number of refinements on the specified box
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance
+            *compID*: :class:`int` or :class:`list` (:class:`int`)
+                Component or list of components to use for bounding box
+            *buff*: :class:`float`
+                Buffer to add in each dimension to min and max coordinates
+            *xbuff*: :class:`float`
+                Buffer to minimum and maximum *x*-coordinates
+            *ybuff*: :class:`float`
+                Buffer to minimum and maximum *y*-coordinates
+            *zbuff*: :class:`float`
+                Buffer to minimum and maximum *z*-coordinates
+        
+        :Outputs:
+            *xlim*: :class:`numpy.ndarray` (:class:`float`), shape=(6,)
+                List of *xmin*, *xmax*, *ymin*, *ymax*, *zmin*, *zmax*
+        """
+        # Versions:
+        #  2014.06.16 @ddalle  : First version
+        
+        # Get the overall buffer.
+        buff = kwargs.get('buff', 0.0)
+        # Get the other buffers.
+        xbuff = kwargs.get('xbuff', buff)
+        ybuff = kwargs.get('ybuff', buff)
+        zbuff = kwargs.get('zbuff', buff)
+        # Get the indices of the triangles to include.
+        if np.isscalar(compID):
+            # Single component
+            i = self.CompID == compID
+        else:
+            # List of components; initialize with first.
+            i = self.CompID == compID[0]
+            # Loop through remaining components.
+            for k in compID[1:]:
+                i = np.logical_or(i, self.CompID == k)
+        # Get the coordinates of each vertex of included tris.
+        x = self.Nodes[self.Tris[i,:]-1, 0]
+        y = self.Nodes[self.Tris[i,:]-1, 1]
+        z = self.Nodes[self.Tris[i,:]-1, 2]
+        # Get the extrema
+        xmin = np.min(x) - xbuff
+        xmax = np.max(x) + xbuff
+        ymin = np.min(y) - ybuff
+        ymax = np.max(y) + ybuff
+        zmin = np.min(z) - zbuff
+        zmax = np.max(z) + zbuff
+        # Return the list.
+        return np.array([xmin, xmax, ymin, ymax, zmin, zmax])
 
 
 # Regular triangulation class
