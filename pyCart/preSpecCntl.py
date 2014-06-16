@@ -1,16 +1,16 @@
 """
-Module to interface with "input.cntl" files: :mod:`pyCart.inputCntl`
-====================================================================
+Module to interface with "preSpec.c3d.cntl" files: :mod:`pyCart.preSpecCntl`
+============================================================================
 
 This is a module built off of the :mod:`pyCart.fileCntl` module customized for
-manipulating :file:`input.cntl` files.  Such files are split into section by lines of
-the format
+manipulating :file:`preSpec.c3d.cntl` files.  Such files are split into section
+by lines of the format
 
-    ``$__Post_Processing``
+    ``$__Prespecified_Adaptation_Regions``
     
-and this module is designed to recognize such sections.  The main feature of
-this module is methods to set specific properties of the :file:`input.cntl` 
-file, for example the Mach number or CFL number.
+and this module is designed to recognize such sections, although this is the
+only section.  The main feature of this module is to add or remove additional
+refinement boxes.
 """
 
 # Import the base file control class.

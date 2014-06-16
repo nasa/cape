@@ -2,13 +2,19 @@
 
 .. automodule:: pyCart.tri
     :members:  ReadTri, WriteTri
-    
+        
     Cart3D triangulation class: :class:`pyCart.tri.Tri`
     ---------------------------------------------------
 
     .. autoclass:: pyCart.tri.Tri
         :members:
     
-    Triangulation methods
-    ---------------------
+    Cart3D base triangulation class: :class:`pyCart.tri.TriBase`
+    ------------------------------------------------------------
+
+    .. autoclass:: pyCart.tri.TriBase
+        :members:
+    
+    Triangulation module methods
+    ----------------------------
     

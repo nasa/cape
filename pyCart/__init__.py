@@ -47,6 +47,7 @@ The following classes are imported in this module, so that code like
     * :class:`pyCart.trajectory.Trajectory`
     * :class:`pyCart.inputCntl.InputCntl`
     * :class:`pyCart.aeroCsh.AeroCsh`
+    * :class:`pyCart.preSpecCntl.PreSpecCntl`
     * :class:`pyCart.post.LoadsDat`
 """
 

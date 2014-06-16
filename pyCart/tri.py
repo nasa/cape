@@ -5,6 +5,10 @@ Cart3D triangulation module: :mod:`pyCart.tri`
 This module provides the utilities for interacting with Cart3D triangulations,
 including annotated triangulations (including ``.triq`` files).  Triangulations
 can also be read from the UH3D format.
+
+The module consists of individual classes that are built off of a base
+triangulation class :class:`pyCart.tri.TriBase`.  Methods that are written for
+the TriBase class apply to all other classes as well.
 """
 
 # Required modules
