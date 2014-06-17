@@ -24,6 +24,9 @@ from post import LoadsDat
 from inputCntl import InputCntl
 from aeroCsh   import AeroCsh
 
+# Import triangulation
+from tri import Tri
+
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -227,41 +230,291 @@ class Cart3d:
         #  2014.05.28 @ddalle  : First version
         #  2014.06.06 @ddalle  : Multiple grid folders
         
-        # Extract the grid parameters.
-        Mesh = self.Mesh
-        # Get the names of the grid foloders
-        glist = self.Trajectory.GetGridFolderNames()
-        # Loop through the grids.
-        for g in np.unique(glist):
-            # Path to copied tri file
-            ftri_g = os.path.join(g, 'Components.i.tri')
-            # Copy the tri file there if necessary.
-            if not os.path.isfile(ftri_g):
-                shutil.copyfile(Mesh['TriFile'], ftri_g)
-            # Get the component list.
-            fxml = self.Config['File']
-            if os.path.isfile(fxml):
-                # Copy
-                shutil.copyfile(fxml, os.path.join(g, 'Config.xml'))
-            # Change to the Grid folder.
-            os.chdir(g)
-            # Start by running autoInputs.
-            if Mesh['AutoInputs']:
-                cmd = 'autoInputs -r %i -t Components.i.tri' % Mesh['MeshRadius']
-                os.system(cmd)
-            # Run cubes
-            cmd = 'cubes -maxR %i -pre preSpec.c3d.cntl -reorder' % \
-                Mesh['nRefinements']
-            os.system(cmd)
-            # Multigrid setup
-            cmd = 'mgPrep -n %i' % Mesh['nMultiGrid']
-            os.system(cmd)
-            # Return to previous folder.
-            os.chdir('..')
+        # Copy Config.xml files.
+        self.Grids_CopyConfigFile()
+        # Prepare the tri files
+        self.Grids_PrepareTri()
+        # Run autoInputs (if necessary).
+        self.Grids_autoInputs()
+        # Bounding box control.....
+        # Run cubes
+        self.Grids_cubes()
+        # Prepare multigrid
+        self.Grids_mgPrep()
         # End.
         return None
         
+    # Method to copy 'Config.xml' to all grid folders.
+    def Grids_CopyConfigFile(self, fxml=None):
+        """
+        Copy configuration file (usually :file:`Config.xml`) to grid folders
         
+        :Call:
+            >>> cart3d.Grids_CopyConfigFile(fxml=None)
+        
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *fxml*: :class:`str`
+                Name of configuration file to copy
+        """
+        # Versions:
+        #  2014.06.16 @ddalle  : First version
+        
+        # Get the xml file names.
+        if fxml is None: fxml = self.Config.get('File', 'Config.xml')
+        # Check if the file exists.
+        if not os.path.isfile(fxml):
+            return None
+        # Get grid folders.
+        glist = self.Trajectory.GetGridFolderNames()
+        # Loop through the grids.
+        for g in glist:
+            # Copy the file.
+            shutil.copyfile(fxml, os.path.join(g, 'Config.xml'))
+            
+    # Function to prepare the triangulation for each grid folder
+    def Grids_PrepareTri(self, v=True):
+        """
+        Prepare and copy triangulation file to each grid folder.  If
+        ``cart3d.Mesh['TriFile']`` is a list, calling this function will include
+        appending the triangulation files in that list before writing it to each
+        grid folder.  Recognized translations and rotations are performed as
+        well.
+        
+        :Call:
+            >>> cart3d.Grids_PrepareTri(v=True)
+            
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *v*: :class:`bool`
+                If ``True``, displays output on command line.
+        """
+        # Versions:
+        #  2014.06.16 @ddalle  : First version
+        
+        # Get the list of tri files.
+        ftri = self.Mesh['TriFile']
+        # Status update.
+        print("Reading tri file(s) from root directory.")
+        # Read them.
+        if hasattr(ftri, '__len__'):
+            # Read the initial triangulation.
+            tri = Tri(ftri[0])
+            # Loop through the remaining tri files.
+            for f in ftri[1:]:
+                # Append the file.
+                tri.Add(Tri(f))
+        else:
+            # Just read the triangulation file.
+            tri = Tri(ftri)
+        # Get grid folders.
+        glist = self.Trajectory.GetGridFolderNames()
+        # Announce.
+        print("Writing 'Components.i.tri' for case:")
+        # Loop through the grids.
+        for g in glist:
+            # Perform recognized rotations and translations...
+            # Status update.
+            print("  %g" % g)
+            # Write the new .tri file.
+            tri.Write(os.path.join(g, 'Components.i.tri'))
+            
+        
+    # Method to run 'autoInputs' in the current folder.
+    def autoInputs(self, r=None, ftri=None, v=True):
+        """
+        Run :file:`autoInputs` in the current working directory.  Writes output
+        too :file:`autoInputs.out`.
+        
+        :Call:
+            >>> cart3d.autoInputs(r=None, ftri=None, v=True)
+            
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *r*: :class:`int`
+                Mesh radius, defaults to ``cart3d.Mesh['MeshRadius']``
+            *ftri*: :class:`str`
+                Name of triangulation file to use
+            *v*: :class:`bool`
+                If ``True``, displays output on command line.
+        """
+        # Versions:
+        #  2014.06.16 @ddalle  : First version
+        
+        # Get the mesh radius.
+        if r is None: r = self.Mesh['MeshRadius']
+        # Get the triangulation file.
+        if ftri is None: ftri = 'Components.i.tri'
+        # Check for source file.
+        if not os.path.isfile(ftri)
+            raise IOError("No surface file '%s' found." % ftri)
+        # Form the command.
+        cmd = 'autoInputs -r %i -t Components.i.tri' % r
+        # Check verbosity.
+        if v:
+            # Run command and display output.
+            os.system(cmd + " | tee autoInputs.out")
+        else:
+            # Hide the output.
+            os.system(cmd + " > autoInputs.out")
+        
+    # Method to run 'autoInput' in all grid folders.
+    def Grids_autoInputs(self):
+        """
+        Run :file:`autoInputs` in each grid folder.
+        
+        :Call:
+            >>> cart3d.Grids_autoInputs()
+        """
+        # Versions:
+        #  2014.06.16 @ddalle  : First version
+        
+        # Check if autoInputs should be run.
+        if not self.Mesh['AutoInputs']:
+            return None
+        # Get grid folders.
+        glist = self.Trajectory.GetGridFolderNames()
+        # Common announcement.
+        print("  Running 'autoInputs' for grid:")
+        # Loop through the grids.
+        for g in glist:
+            # Change to that directory.
+            os.chdir(g)
+            # Announce.
+            print("    %s" % g)
+            # Run.
+            self.autoInputs(v=False)
+            # Change back to home directory.
+            os.chdir('..')
+    
+    # Method to run 'bues' in the current folder.
+    def cubes(self, maxR=None, v=True):
+        """
+        Run :file:`cubes` in the current working directory.  Writes output
+        too :file:`cubes.out`.
+        
+        :Call:
+            >>> cart3d.cubes(maxR=None, v=True)
+            
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *r*: :class:`int`
+                Refinements, defaults to ``cart3d.Mesh['nRefinements']``
+            *v*: :class:`bool`
+                If ``True``, displays output on command line.
+        """
+        # Versions:
+        #  2014.06.16 @ddalle  : First version
+        
+        # Get the mesh radius.
+        if maxR is None: maxR = self.Mesh['nRefinements']
+        # Check for input files.
+        if not os.path.isfile('input.c3d')
+            raise IOError("No input file 'input.c3d' found.")
+        if not os.path.isfile('preSpec.c3d.cntl')
+            raise IOError("No input file 'preSpec.c3d.cntl' found.")
+        # Form the command.
+        cmd = 'cubes -maxR %i -pre preSpec.c3d.cntl -reorder' % maxR
+        # Check verbosity.
+        if v:
+            # Run command and display output.
+            os.system(cmd + " | tee cubes.out")
+        else:
+            # Hide the output.
+            os.system(cmd + " > cubes.out")
+        
+    # Method to run 'cubes' in all grid folders.
+    def Grids_cubes(self):
+        """
+        Run :file:`cubes` in each grid folder.
+        
+        :Call:
+            >>> cart3d.Grids_cubes()
+        """
+        # Versions:
+        #  2014.06.16 @ddalle  : First version
+        
+        # Get grid folders.
+        glist = self.Trajectory.GetGridFolderNames()
+        # Common announcement.
+        print("  Running 'cubes' for grid:")
+        # Loop through the grids.
+        for g in glist:
+            # Change to that directory.
+            os.chdir(g)
+            # Announce.
+            print("    %s" % g)
+            # Run.
+            self.cubes(v=False)
+            # Change back to home directory.
+            os.chdir('..')
+            
+    
+    # Method to run 'bues' in the current folder.
+    def mgPrep(self, mg=None, v=True):
+        """
+        Run :file:`mgPrep` in the current working directory.  Writes output
+        too :file:`mgPrep.out`.
+        
+        :Call:
+            >>> cart3d.mgPrep(mg=None, v=True)
+            
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *mg*: :class:`int`
+                Number of multigrid levels, ``cart3d.Mesh['nMultiGrid']``
+            *v*: :class:`bool`
+                If ``True``, displays output on command line.
+        """
+        # Versions:
+        #  2014.06.16 @ddalle  : First version
+        
+        # Get the mesh radius.
+        if mg is None: mg = self.Mesh['nMultiGrid']
+        # Check for input files.
+        if not os.path.isfile('Mesh.c3d')
+            raise IOError("No mesh file 'Mesh.c3d' found.")
+        # Form the command.
+        cmd = 'mgPrep -mg %i' % mg
+        # Check verbosity.
+        if v:
+            # Run command and display output.
+            os.system(cmd + " | tee mgPrep.out")
+        else:
+            # Hide the output.
+            os.system(cmd + " > mgPrep.out")
+        
+    # Method to run 'cubes' in all grid folders.
+    def Grids_mgPrep(self):
+        """
+        Run :file:`mgPrep` in each grid folder.
+        
+        :Call:
+            >>> cart3d.Grids_autoInputs()
+        """
+        # Versions:
+        #  2014.06.16 @ddalle  : First version
+        
+        # Get grid folders.
+        glist = self.Trajectory.GetGridFolderNames()
+        # Common announcement.
+        print("  Running 'mgPrep' for grid:")
+        # Loop through the grids.
+        for g in glist:
+            # Change to that directory.
+            os.chdir(g)
+            # Announce.
+            print("    %s" % g)
+            # Run.
+            self.mgPrep(v=False)
+            # Change back to home directory.
+            os.chdir('..')
+    
     # Function to copy/link files
     def CopyFiles(self):
         """
