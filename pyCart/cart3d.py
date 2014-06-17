@@ -38,6 +38,28 @@ TemplateFodler = os.path.join(PyCartFolder, "templates")
 # Change the umask to a reasonable value.
 os.umask(0027)
 
+# Get the keys of the default dict.
+def _procDefaults(opts, defs):
+    """
+    Apply defaults for any missing options.
+    """
+    # Versions:
+    #  2014.06.17 @ddalle  : First version
+    
+    # Loop through the keys in the options dict.
+    for k in opts.keys():
+        # Check if the key is non-default.
+        if k not in defs:
+            # Assign the key.
+            defs[k] = opts[k]
+        elif type(opts[k]) is dict:
+            # Recurse for dictionaries.
+            defs[k] = _procDefaults(opts[k], defs[k])
+        else:
+            # Simple assignment; get the optional value.
+            defs[k] = opts[k]
+    # Output the modified defaults.
+    return defs
 
 
 # Function to get the defaults
@@ -112,17 +134,8 @@ class Cart3d:
         # Process the actual input file.
         opts = json.loads(lines)
         
-        # Loop through the keys in the defaults.
-        for k in defs.keys():
-            # Set the defaults.
-            opts.setdefault(k, defs[k])
-            # Check for a dict
-            if not(type(defs[k]) is dict and type(opts[k]) is dict):
-                continue
-            # Loop though the sub-keys
-            for j in defs[k].keys():
-                # Set the defaults.
-                opts[k].setdefault(j, defs[k][j])
+        # Apply missing settings from defaults.
+        opts = _procDefaults(opts, defs)
         
         # Save the major keys.
         self.RunOptions = opts["RunOptions"]

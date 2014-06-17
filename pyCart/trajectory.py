@@ -21,19 +21,23 @@ class Trajectory:
     
     :Call:
         >>> T = pyCart.Trajectory(**traj)
-        >>> T = pyCart.Trajectory(File=fname, Keys=keys, Prefix=prefix, GridPrefix=gridPrefix)
+        >>> T = pyCart.Trajectory(File=fname, Keys=keys)
     
     :Inputs:
         *traj*: :class:`dict`
             Dictionary of options from ``cart3d.Options["Trajectory"]``
-        *fname*: :class:`str`
+            
+    :Keyword arguments:
+        *File*: :class:`str`
             Name of file to read, defaults to ``'Trajectory.dat'``
-        *keys*: :class:`list` of :class:`str` items
+        *Keys*: :class:`list` of :class:`str` items
             List of variable names, defaults to ``['Mach','alpha','beta']``
-        *prefix*: :class:`str`
+        *Prefix*: :class:`str`
             Prefix to be used for each case folder name
-        *gridPrefix*: :class:`str`
+        *GridPrefix*: :class:`str`
             Prefix to be used for each grid folder name
+        *Definitions*: :class:`dict`
+            Dictionary of definitions for each key
     
     :Outputs:
         *T*: :class:`pyCart.cntl.Trajectory`
@@ -68,14 +72,16 @@ class Trajectory:
         keys = kwargs.get('Keys', ['Mach', 'alpha', 'beta'])
         prefix = kwargs.get('Prefix', "F")
         gridPrefix = kwargs.get('GridPrefix', "Grid")
+        # Process the definitions.
+        defns = kwargs.get('Definitions', {})
         # Number of variables
         nVar = len(keys)
         # Save properties.
         self.keys = keys
         self.prefix = prefix
         self.GridPrefix = gridPrefix
-        # Process the key definitions
-        self.ProcessKeyDefinitions(**kwargs)
+        # Process the key definitions.
+        self.ProcessKeyDefinitions(defns)
         
         # Open the file.
         f = open(fname)
@@ -117,98 +123,95 @@ class Trajectory:
             self.keys)
         
     # Function to process the role that each key name plays.
-    def ProcessKeyDefinitions(self, **kwargs):
+    def ProcessKeyDefinitions(self, defns):
         """
-        Process defaults for the function of each trajectory variable
+        Process definitions for the function of each trajectory variable
+        
+        Many variables have default definitions, such as ``'Mach'``,
+        ``'alpha'``, etc.  For user-defined trajectory keywords, defaults will
+        be used for aspects of the definition that are missing from the inputs.
         
         :Call:
-            >>> T.ProcessKeyDefinitions(**kwargs)
+            >>> T.ProcessKeyDefinitions(defns)
         
         :Inputs:
             *T*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
-            *kwargs*: :class:`dict`
-                Keyword arguments passed to :mod:`pyCart.trajectory` constructor
+            *defns*: :class:`dict`
+                Dictionary of keyword definitions or partial definitions
         
         :Effects:
-            Creates fields *T.text* and *T.defs* containing definitions for each
-            variable.
+            *T.text*: :class:`dict`
+                Text for each variable and each break point is initialized
+            *T.defns*: :class:`dict`
+                Definition dictionary is created after processing defaults
+            *T.abbrv*: :class:`dict`
+                Dictionary of abbreviations for each trajectory key
         """
         # Versions:
         #  2014.06.05 @ddalle  : First version
         
-        # Define the default new key.
-        defkey = {
-            "Values": [0.0],
-            "Group": True,
-            "Type": "Group"
-        }
-        # Actually, the default key properties can be specified, too.'
-        defkey = kwargs.get('Default', defkey)
+        # Overall default key
+        odefkey = defns.get('Default', {})
+        # Process the mandatory fields.
+        odefkey.setdefault('Group', True)
+        odefkey.setdefault('Type', "Group")
         # Initialize the dictionaries.
         self.text = {}
-        self.defs = {}
+        self.defns = {}
         self.abbrv = {}
         # Initialize the fields.
         for key in self.keys:
             # Initialize the text for this key.
             self.text[key] = []
-            # Check for a variable definition.
-            optkey = kwargs.get(key)
             # Process defaults.
-            if type(optkey) is not dict:
-                if key in ['Mach', 'M', 'mach']:
-                    # Mach number; non group
-                    optkey = {
-                        "Values": optkey,
-                        "Group": False,
-                        "Type": "Mach",
-                        "Abbreviation": "m"
-                    }
-                elif key in ['Alpha', 'alpha', 'aoa']:
-                    # Angle of attack; non group
-                    optkey = {
-                        "Values": optkey,
-                        "Group": False,
-                        "Type": "alpha",
-                        "Abbreviation": "a"
-                    }
-                elif key in ['Beta', 'beta', 'aos']:
-                    # Sideslip angle; non group
-                    optkey = {
-                        "Values": optkey,
-                        "Group": False,
-                        "Type": "beta",
-                        "Abbreviation": "b"
-                    }
-                elif key.lower() in ['alpha_t', 'alpha_total']:
-                    # Total angle of attack; non group
-                    optkey = {
-                        "Values": optkey,
-                        "Group": False,
-                        "Type": "alpha_t",
-                        "Abbreviation": "a"
-                    }
-                elif key in ['phi', 'Phi']:
-                    # Total roll angle; non group
-                    optkey = {
-                        "Values": optkey,
-                        "Group": False,
-                        "Type": "phi",
-                        "Abbreviation": "r"
-                    }
-                elif optkey is None:
-                    # Use defaults entirely.
-                    optkey = defkey
-                else:
-                    # Unrecognized/undescribed variable
-                    # Just values were given.  Use defaults
-                    subkey = defkey
-                    # Restore the values
-                    subkey["Values"] = optkey
-                    optkey = subkey
+            if key.lower() in ['m', 'mach']:
+                # Mach number; non group
+                defkey = {
+                    "Group": False,
+                    "Type": "Mach",
+                    "Abbreviation": "m"
+                }
+            elif key in ['Alpha', 'alpha', 'aoa']:
+                # Angle of attack; non group
+                defkey = {
+                    "Group": False,
+                    "Type": "alpha",
+                    "Abbreviation": "a"
+                }
+            elif key in ['Beta', 'beta', 'aos']:
+                # Sideslip angle; non group
+                defkey = {
+                    "Group": False,
+                    "Type": "beta",
+                    "Abbreviation": "b"
+                }
+            elif key.lower() in ['alpha_t', 'alpha_total']:
+                # Total angle of attack; non group
+                defkey = {
+                    "Group": False,
+                    "Type": "alpha_t",
+                    "Abbreviation": "a"
+                }
+            elif key.lower() in ['phi', 'phiv']:
+                # Total roll angle; non group
+                defkey = {
+                    "Group": False,
+                    "Type": "phi",
+                    "Abbreviation": "r"
+                }
+            else:
+                # Start with default key
+                defkey = odefkey
+                # Set the abbreviation to the full name.
+                defkey["Abbreviation"] = key
+            # Check if the input has that key defined.
+            optkey = defns.get(key, {})
+            # Loop through properties.
+            for k in defkey.keys():
+                optkey.setdefault(k, defkey[k])
             # Save the definitions.
-            self.defs[key] = optkey
+            self.defns[key] = optkey
             # Save the abbreviations.
             self.abbrv[key] = optkey.get("Abbreviation", key)
         
@@ -240,7 +243,7 @@ class Trajectory:
         # Loop through the keys to check for groups.
         for key in self.keys:
             # Check the definition for the grouping status.
-            if self.defs[key]['Group']:
+            if self.defns[key]['Group']:
                 # Append the values to the list.
                 x.append(getattr(self,key))
                 # Append to the list of group variables.

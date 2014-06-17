@@ -44,13 +44,14 @@
         "GridPrefix": "Grid",
         # Default properties for a new variable
         # This also serves as the template for new variables
-        "Default": {
-            "Values": [0.0],
-            "Group": true,
-			"Type": "Group",
-            "Script": ""
-        }
+        "Definitions": {
+            # Default parameter
+            "Default": {
+                "Group": true,
+                "Type": "Group",
+                "Script": ""
+            }
         # Predefined parameter: Mach
-        
+        }
     }
 }
