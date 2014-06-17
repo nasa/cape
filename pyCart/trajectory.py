@@ -148,6 +148,7 @@ class Trajectory:
         # Initialize the dictionaries.
         self.text = {}
         self.defs = {}
+        self.abbrv = {}
         # Initialize the fields.
         for key in self.keys:
             # Initialize the text for this key.
@@ -162,7 +163,7 @@ class Trajectory:
                         "Values": optkey,
                         "Group": False,
                         "Type": "Mach",
-                        "Abbreviation": "M"
+                        "Abbreviation": "m"
                     }
                 elif key in ['Alpha', 'alpha', 'aoa']:
                     # Angle of attack; non group
@@ -186,7 +187,7 @@ class Trajectory:
                         "Values": optkey,
                         "Group": False,
                         "Type": "alpha_t",
-                        "Abbreviation": "at"
+                        "Abbreviation": "a"
                     }
                 elif key in ['phi', 'Phi']:
                     # Total roll angle; non group
@@ -194,7 +195,7 @@ class Trajectory:
                         "Values": optkey,
                         "Group": False,
                         "Type": "phi",
-                        "Abbreviation": "ph"
+                        "Abbreviation": "r"
                     }
                 elif optkey is None:
                     # Use defaults entirely.
@@ -206,8 +207,10 @@ class Trajectory:
                     # Restore the values
                     subkey["Values"] = optkey
                     optkey = subkey
-            # Save the definitions
+            # Save the definitions.
             self.defs[key] = optkey
+            # Save the abbreviations.
+            self.abbrv[key] = optkey.get("Abbreviation", key)
         
     # Process the groups that need separate grids.
     def ProcessGroups(self):
@@ -431,13 +434,12 @@ class Trajectory:
         :Inptus:
             *T*: :class:`pyCart.cntl.Trajectory`
                 Instance of the pyCart trajectory class
-            *keys*: :type:`list`
+            *keys*: :type:`list` (:class:`str`)
                 List of keys to use for this folder name
-            *i*: :class:`int` or :class:`list`
-                Index of cases to process or list of cases.  If this is
-                ``None``, all cases will be processed.
             *prefix*: :class:`str`
                 Header for name of each case folder
+            *i*: :class:`int` or :class:`list`
+                Index(es) of case(s) to process; if ``None``, all cases
                 
         :Outputs:
             *dname*: :class:`str` or :class:`list`
@@ -456,7 +458,7 @@ class Trajectory:
         # Append based on the keys.
         for k in keys:
             # Append the text in the trajectory file.
-            dname += k + self.text[k][i]
+            dname += self.abbrv[k] + self.text[k][i]
         # Return the result.
         return dname
         
