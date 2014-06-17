@@ -349,7 +349,7 @@ class Cart3d:
         # Get the triangulation file.
         if ftri is None: ftri = 'Components.i.tri'
         # Check for source file.
-        if not os.path.isfile(ftri)
+        if not os.path.isfile(ftri):
             raise IOError("No surface file '%s' found." % ftri)
         # Form the command.
         cmd = 'autoInputs -r %i -t Components.i.tri' % r
@@ -413,9 +413,9 @@ class Cart3d:
         # Get the mesh radius.
         if maxR is None: maxR = self.Mesh['nRefinements']
         # Check for input files.
-        if not os.path.isfile('input.c3d')
+        if not os.path.isfile('input.c3d'):
             raise IOError("No input file 'input.c3d' found.")
-        if not os.path.isfile('preSpec.c3d.cntl')
+        if not os.path.isfile('preSpec.c3d.cntl'):
             raise IOError("No input file 'preSpec.c3d.cntl' found.")
         # Form the command.
         cmd = 'cubes -maxR %i -pre preSpec.c3d.cntl -reorder' % maxR
@@ -477,7 +477,7 @@ class Cart3d:
         # Get the mesh radius.
         if mg is None: mg = self.Mesh['nMultiGrid']
         # Check for input files.
-        if not os.path.isfile('Mesh.c3d')
+        if not os.path.isfile('Mesh.c3d'):
             raise IOError("No mesh file 'Mesh.c3d' found.")
         # Form the command.
         cmd = 'mgPrep -mg %i' % mg

@@ -447,11 +447,16 @@ class Trajectory:
         #  2014.06.05 @ddalle  : First version
         
         # Initialize folder name.
-        dname = prefix
+        if prefix:
+            # Use a prefix if it's any non-empty thing.
+            dname = str(prefix) + "_"
+        else:
+            # Initialize an empty string.
+            dname = ""
         # Append based on the keys.
         for k in keys:
             # Append the text in the trajectory file.
-            dname += "_" + k + "_" + self.text[k][i]
+            dname += k + self.text[k][i]
         # Return the result.
         return dname
         
