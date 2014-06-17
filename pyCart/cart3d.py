@@ -160,46 +160,6 @@ class Cart3d:
             self.Trajectory.nCase, self.RunOptions['nIter'],
             self.Mesh['TriFile'])
         
-    # Trajectory's folder name method
-    def GetFolderNames(self, i=None, prefix=None):
-        """
-        List folder names for each of the cases in a trajectory.
-        
-        The folder names will be of the form
-    
-            ``Grid/F_Mach_2.0_alpha_0.0_beta_-0.5/``
-            
-        if there are no trajectory keys that require separate grids or
-        
-            ``Grid_delta_1.0/F_Mach_2.0_alpha_0.0_beta_-0.5/``
-            
-        if there is a key called ``"delta"`` that requires a separate mesh each time
-        the value of that key changes.  All keys in the trajectory file are included
-        in the folder name at one of the two levels.  The number of digits used will
-        match the number of digits in the trajectory file.
-        
-        :Call:
-            >>> dname = cart3d.GetFolderNames()
-            >>> dname = cart3d.GetFolderNames(i=None, prefix="F")
-        
-        :Inputs:
-            *cart3d*: :class:`pyCart.trajectory.Trajectory`
-                Instance of the pyCart trajectory class
-            *i*: :class:`int` or :class:`list`
-                Index of cases to process or list of cases.  If this is
-                ``None``, all cases will be processed.
-            *prefix*: :class:`str`
-                Header for name of each folder
-                
-        :Outputs:
-            *dname*: :class:`str` or :class:`list`
-                Folder name or list of folder names
-        """
-        # Versions:
-        #  2014.06.02 @ddalle  : First version
-        
-        # Run the trajectory's method
-        return self.Trajectory.GetFolderNames(i, prefix)
     
     # Method to create the folders
     def CreateFolders(self):
@@ -490,10 +450,10 @@ class Cart3d:
         # Get the mesh radius.
         if mg is None: mg = self.Mesh['nMultiGrid']
         # Check for input files.
-        if not os.path.isfile('Mesh.c3d'):
-            raise IOError("No mesh file 'Mesh.c3d' found.")
+        if not os.path.isfile('Mesh.R.c3d'):
+            raise IOError("No mesh file 'Mesh.R.c3d' found.")
         # Form the command.
-        cmd = 'mgPrep -mg %i' % mg
+        cmd = 'mgPrep -n %i' % mg
         # Check verbosity.
         if v:
             # Run command and display output.

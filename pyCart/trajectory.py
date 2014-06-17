@@ -150,6 +150,7 @@ class Trajectory:
         """
         # Versions:
         #  2014.06.05 @ddalle  : First version
+        #  2014.06.17 @ddalle  : Overhauled to read from ``defns`` dict
         
         # Overall default key
         odefkey = defns.get('Default', {})
@@ -283,7 +284,13 @@ class Trajectory:
         
         The folder names will be of the form
     
-            ``F_Mach_2.0_alpha_0.0_beta_-0.5/``
+            ``F_m2.0a0.0b-0.5/``
+            
+        if the prefix is ``'F```, or
+        
+            ``m2.0a0.0b-0.5/``
+            
+        if the prefix is empty.
             
         Trajectory keys that require separate meshes for each value of the key
         will not be part of the folder name.  The number of digits used will
@@ -384,16 +391,17 @@ class Trajectory:
         
         The folder names will be of the form
     
-            ``Grid/F_Mach_2.0_alpha_0.0_beta_-0.5/``
+            ``Grid/F_m2.0a0.0b-0.5/``
             
         if there are no trajectory keys that require separate grids or
         
-            ``Grid_delta_1.0/F_Mach_2.0_alpha_0.0_beta_-0.5/``
+            ``Grid_d1.0/F_m2.0a0.0b-0.5/``
             
-        if there is a key called ``"delta"`` that requires a separate mesh each time
-        the value of that key changes.  All keys in the trajectory file are included
-        in the folder name at one of the two levels.  The number of digits used will
-        match the number of digits in the trajectory file.
+        if there is a key called ``"delta"`` with abbreviation ``'d'`` that
+        requires a separate mesh each time the value of that key changes.  All
+        keys in the trajectory file are included in the folder name at one of
+        the two levels.  The number of digits used will match the number of
+        digits in the trajectory file.
         
         :Call:
             >>> dname = T.GetFullFolderNames()
@@ -472,10 +480,11 @@ class Trajectory:
         
         The folder names will be of the form::
         
-            ``F_Mach_2.0_alpha_0.0_beta_-0.5/``
+            ``F_m2.0a0.0b-0.5/``
             
-        using all of the keys specified in the trajectory file.  The amount of
-        digits used will match the number of digits in the trajectory file.
+        using the abbreviations for all of the keys specified in the trajectory
+        file.  The amount of digits used will match the number of digits in the
+        trajectory file.
         
         :Call:
             >>> T.CreateFolders()
@@ -536,9 +545,10 @@ class Trajectory:
         # Versions:
         #  2014.05.28 @ddalle  : First version
         
-        # Process input file.
-        if fname is None: fname = "Conditions.json"
-        # Create a conditions file
+        # Process default input file name.
+        if fname is None:
+            fname = os.path.join(self.GetFullFulderNames(i), "Conditions.json")
+        # Create a conditions file.
         f = open(fname, 'w')
         # Write the header lines.
         f.write('{\n')
