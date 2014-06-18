@@ -40,7 +40,7 @@ class Trajectory:
             Dictionary of definitions for each key
     
     :Outputs:
-        *T*: :class:`pyCart.cntl.Trajectory`
+        *T*: :class:`pyCart.trajectory.Trajectory`
             Instance of the trajectory class
             
     :Data members:

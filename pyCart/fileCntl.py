@@ -1207,7 +1207,7 @@ class FileCntl:
         # Loop through the lines.
         for L in self.lines:
             # Check for maximum matches.
-            if n and m>n: break
+            if n and m>=n: break
             # Check for a match.
             if L.startswith(start):
                 # Add to match list
@@ -1250,7 +1250,7 @@ class FileCntl:
         # Loop through the lines.
         for L in self.lines:
             # Check for maximum matches.
-            if n and m>n: break
+            if n and m>=n: break
             # Check for a match.
             if re.search(reg, L):
                 # Add to match list
@@ -1297,7 +1297,7 @@ class FileCntl:
         # Loop through the lines.
         for L in self.Section[sec]:
             # Check for maximum matches.
-            if n and m>n: break
+            if n and m>=n: break
             # Check for a match.
             if L.startswith(start):
                 # Add to match list
@@ -1344,7 +1344,7 @@ class FileCntl:
         # Loop through the lines.
         for L in self.Section[sec]:
             # Check for maximum matches.
-            if n and m>n: break
+            if n and m>=n: break
             # Check for a match.
             if re.search(reg, L):
                 # Add to match list

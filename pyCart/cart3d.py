@@ -824,20 +824,26 @@ class Cart3d:
         fout = os.path.join(dname, 'run_case.sh')
         # Create the file.
         f = open(fout, 'w')
-        # Get the options.
-        opts = self.RunOptions
+        # Get the global options.
+        nThreads = self.RunOptions.get('nThreads', 8)
+        nIter    = self.RunOptions.get('nIter', 200)
+        nAdapt   = self.RunOptions.get('nAdapt', 0)
+        # Run options
+        mg  = self.Mesh.get('nMultiGrid', 3)
+        tm  = self.RunOptions.get('CutCellGradient', False)
+        cfl = self.RunOptions.get('CFL', 1.0)
         # Write the shell magic.
         f.write('#!/bin/bash\n\n')
         # Set the number of processors.
-        f.write('export OMP_NUM_THREADS=%i\n\n' % opts['nThreads'])
+        f.write('export OMP_NUM_THREADS=%i\n\n' % nThreads)
         # Check for an adaptive case.
-        if opts['nAdapt'] > 0:
+        if nAdapt > 0:
             # Create the aero.csh command to do the work.
             f.write('./aero.csh jumpstart | tee aero.out\n')
         else:
             # Create the flowCart command to do the work.
-            f.write('flowCart -N %i -v -mg %i -his -clic | tee flowCart.out\n' %
-                (opts['nIter'], self.Mesh['nMultiGrid']))
+            f.write(('flowCart -N %i -v -mg %i -cfl %f -his -clic -tm %i ' +
+                '| tee flowCart.out\n') % (nIter, mg, cfl, tm))
         # Close the file.
         f.close()
         # Make it executable.

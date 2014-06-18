@@ -48,6 +48,60 @@ class InputCntl(FileCntl):
         self.SplitToSections(reg="\$__([\w_]+)")
         return None
         
+    # Function to set to first-order mode
+    def SetFirstOrder(self):
+        """
+        Set the solver to first-order mode
+        
+        :Call:
+            >>> IC.SetFirstOrder()
+        
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            
+        :Effects:
+            Sets the gradient evaluation to ``0`` for the first RK line
+        """
+        # Versions:
+        #  2014.06.17 @ddalle  : First version
+        
+        # Name of the section
+        sec = 'Solver_Control_Information'
+        # Find the line that is sought.
+        L = self.GetLineInSectionStartsWith(sec, 'RK', 1)
+        # Form the new line.
+        line = L[0].replace(' 1 ', ' 0 ')
+        # Now write the updated line back.
+        self.ReplaceLineInSectionStartsWith(sec, 'RK', [line])
+        
+    # Function to set to second-order mode
+    def SetSecondOrder(self):
+        """
+        Set the solver to second-order mode
+        
+        :Call:
+            >>> IC.SetSecondOrder()
+        
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            
+        :Effects:
+            Sets the gradient evaluation to ``1`` for the first RK line
+        """
+        # Versions:
+        #  2014.06.17 @ddalle  : First version
+        
+        # Name of the section
+        sec = 'Solver_Control_Information'
+        # Find the line that is sought.
+        L = self.GetLineInSectionStartsWith(sec, 'RK', 1)
+        # Form the new line.
+        line = L[0].replace(' 0 ', ' 1 ')
+        # Now write the updated line back.
+        self.ReplaceLineInSectionStartsWith(sec, 'RK', [line])
+        
     # Function set the Mach number.
     def SetMach(self, Mach):
         """

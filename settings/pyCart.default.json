@@ -8,7 +8,8 @@
         "nAdapt": 0,
         "CFL": 1.15,
         "nIter": 200,
-        "nThreads": 8
+        "nThreads": 8,
+        "CutCellGradient": false
     },
 
 	# Parameters for creating the mesh
