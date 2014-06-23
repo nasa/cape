@@ -203,9 +203,11 @@ class Cart3d:
         #  2014.05.28 @ddalle  : First version
         #  2014.06.06 @ddalle  : Multiple grid folders
         
+        # Write conditions files.
+        self.Grids_WriteConditionsFiles()
         # Copy Config.xml files.
         self.Grids_CopyConfigFile()
-        # Prepare the tri files
+        # Prepare the tri files.
         self.Grids_PrepareTri()
         # Run autoInputs (if necessary).
         self.Grids_autoInputs()
@@ -216,6 +218,26 @@ class Cart3d:
         self.Grids_mgPrep()
         # End.
         return None
+        
+    # Write conditions files.
+    def Grids_WriteConditionsFiles(self):
+        """
+        Write conditions files for each group
+        
+        :Call:
+            >>> cart3d.Grids_WriteConditionsFiles()
+        
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+        """
+        # Versions:
+        #  2014.06.23 @ddalle  : First version
+        
+        # Loop through groups.
+        for i in range(len(self.Trajectory.GroupX)):
+            # Write the conditions file.
+            self.Trajectory.WriteGridConditionsFile(i=i)
         
     # Method to copy 'Config.xml' to all grid folders.
     def Grids_CopyConfigFile(self, fxml=None):

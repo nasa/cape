@@ -564,5 +564,50 @@ class Trajectory:
         f.write('}\n')
         f.close()
         
+    # Method to write a file for a single group
+    def WriteGridConditionsFile(self, fname=None, i=0):
+        """
+        Write a JSON file containing the collective conditions for a group
+        
+        :Call:
+            >>> T.WriteGridConditionsFile(fname, i)
+        
+        :Inputs:
+            *T*: :class:`pyCart.cntl.Trajectory`
+                Instance of the pyCart trajectory class
+            *fname*: :class:`str`
+                Name of JSON file to write
+            *i*: :class:`int`
+                Index of group to write
+        
+        :Outputs:
+            ``None``
+        """
+        # Versions:
+        #  2014.05.28 @ddalle  : First version
+        
+        # Process default input file name.
+        if fname is None:
+            # Get the unique groups.
+            glist = np.unique(self.GetGridFolderNames())
+            # Put the file in that folder.
+            fname = os.path.join(glist[i], "Conditions.json")
+        # Get the case index for the first case in the group.
+        j = np.nonzero(self.GroupID == i)[0][0]
+        # Create a conditions file.
+        f = open(fname, 'w')
+        # Write the header lines.
+        f.write('{\n')
+        f.write('    "Conditions: {\n')
+        # Loop through the keys.
+        for k in self.GroupKeys:
+            # Write the value.
+            f.write('        "%s": %.8f,\n' % (k, getattr(self,k)[j])) 
+        # Write the case number.
+        f.write('        "GroupNumber": %i\n' % (i+1))
+        # Write the end matter.
+        f.write('    }\n')
+        f.write('}\n')
+        f.close()
         
     
