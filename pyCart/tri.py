@@ -698,18 +698,15 @@ class TriBase:
         direction
         
         :Call:
-            >>> xlim = tri.GetCompBBox(compID, xbuff=None, ybuff=None)
-            >>> xlim = tri.GetCompBBox(compID, zbuff=None, buff=0.0)
+            >>> xlim = tri.GetCompBBox(compID, **kwargs)
             
         :Inputs:
-            *preSpec*: :class:`pyCart.preSpecCntl.PreSpecCntl`
-                Instance of the :file:`preSpec.c3d.cntl` interface
-            *n*: :class:`int`
-                Number of refinements on the specified box
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance
             *compID*: :class:`int` or :class:`list` (:class:`int`)
                 Component or list of components to use for bounding box
+                
+        :Keyword arguments:
             *buff*: :class:`float`
                 Buffer to add in each dimension to min and max coordinates
             *xbuff*: :class:`float`
@@ -718,6 +715,18 @@ class TriBase:
                 Buffer to minimum and maximum *y*-coordinates
             *zbuff*: :class:`float`
                 Buffer to minimum and maximum *z*-coordinates
+            *xp*: :class:`float`
+                Buffer for the maximum *x*-coordinate
+            *xm*: :class:`float`
+                Buffer for the minimum *x*-coordinate
+            *yp*: :class:`float`
+                Buffer for the maximum *y*-coordinate
+            *ym*: :class:`float`
+                Buffer for the minimum *y*-coordinate
+            *zp*: :class:`float`
+                Buffer for the maximum *z*-coordinate
+            *zm*: :class:`float`
+                Buffer for the minimum *z*-coordinate
         
         :Outputs:
             *xlim*: :class:`numpy.ndarray` (:class:`float`), shape=(6,)
@@ -732,6 +741,13 @@ class TriBase:
         xbuff = kwargs.get('xbuff', buff)
         ybuff = kwargs.get('ybuff', buff)
         zbuff = kwargs.get('zbuff', buff)
+        # Get the directional buffers.
+        xp = kwargs.get('xp', xbuff)
+        xm = kwargs.get('xm', xbuff)
+        yp = kwargs.get('yp', ybuff)
+        ym = kwargs.get('ym', ybuff)
+        zp = kwargs.get('zp', zbuff)
+        zm = kwargs.get('zm', zbuff)
         # Get the indices of the triangles to include.
         if np.isscalar(compID):
             # Single component
@@ -747,12 +763,12 @@ class TriBase:
         y = self.Nodes[self.Tris[i,:]-1, 1]
         z = self.Nodes[self.Tris[i,:]-1, 2]
         # Get the extrema
-        xmin = np.min(x) - xbuff
-        xmax = np.max(x) + xbuff
-        ymin = np.min(y) - ybuff
-        ymax = np.max(y) + ybuff
-        zmin = np.min(z) - zbuff
-        zmax = np.max(z) + zbuff
+        xmin = np.min(x) - xm
+        xmax = np.max(x) + xp
+        ymin = np.min(y) - ym
+        ymax = np.max(y) + yp
+        zmin = np.min(z) - zm
+        zmax = np.max(z) + zp
         # Return the list.
         return np.array([xmin, xmax, ymin, ymax, zmin, zmax])
 

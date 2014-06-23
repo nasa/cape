@@ -71,10 +71,10 @@ class PreSpecCntl(FileCntl):
         #  2014.06.16 @ddalle  : First version
         
         # Compose the line.
-        line = "BBox: %-2i %10.4f %10.4f %10.4f %10.4f %10.4f %10.4f" % (
+        line = "BBox: %-2i %10.4f %10.4f %10.4f %10.4f %10.4f %10.4f\n" % (
             n, xlim[0], xlim[1], xlim[2], xlim[3], xlim[4], xlim[5])
         # Add the line.
-        self.AppendLineToSection('Prespecified_Adaptation_Regions', line)
+        self.PrependLineToSection('Prespecified_Adaptation_Regions', line)
         
     # Function to clear all existing bounding boxes.
     def ClearBBoxes(self):
