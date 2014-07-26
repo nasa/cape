@@ -83,7 +83,7 @@ def _getPyCartDefaults():
 # Class to read input files
 class Cart3d:
     """
-    Class for handling global options for Cart3D run cases.
+    Class for handling global options and setup for Cart3D.
     
     This class is intended to handle all settings used to describe a group
     of Cart3D cases.  For situations where it is not sufficiently
@@ -109,21 +109,22 @@ class Cart3d:
             Instance of the pyCart control class
     
     :Data members:
-        *Grid*: :class:`dict`
-            Dictionary containing grid-related parameters
-        *RunOptions*: :class:`dict`
-            Dictionary containing run-related parameters
-        *Trajectory*: :class:`pyCart.trajectory.Trajectory`
-            Trajectory description read from file
+        *cart3d.Options*: :class:`dict`
+            Dictionary of options for this case (directly from *fname*)
+        *cart3d.Trajectory*: :class:`pyCart.trajectory.Trajectory`
+            Values and definitions for variables in the run matrix
+        *cart3d.RootDir*: :class:`str`
+            Absolute path to the root directory
+    
+    :Versions:
+        * 2014.05.28 ``@ddalle``  : First version
+        * 2014.06.03 ``@ddalle``  : Renamed class 'Cntl' --> 'Cart3d'
+        * 2014.06.30 ``@ddalle``  : Reduced number of data members
     """
     
     # Initialization method
     def __init__(self, fname="pyCart.json"):
         """Initialization method for :mod:`pyCart.cart3d.Cart3d`"""
-        # Versions:
-        #  2014.05.28 @ddalle  : First version
-        #  2014.06.03 @ddalle  : Renamed class 'Cntl' --> 'Cart3d'
-        
         # Process the default input file.
         defs = _getPyCartDefaults()
         
@@ -131,22 +132,21 @@ class Cart3d:
         lines = open(fname).readlines()
         # Strip comments.
         lines = stripComments(lines, '#')
+        lines = stripComments(lines, '//')
         # Process the actual input file.
         opts = json.loads(lines)
         
         # Apply missing settings from defaults.
         opts = _procDefaults(opts, defs)
         
-        # Save the major keys.
-        self.RunOptions = opts["RunOptions"]
-        self.Mesh = opts["Mesh"]
-        self.Config = opts["Config"]
-        
         # Process the trajectory.
         self.Trajectory = Trajectory(**opts['Trajectory'])
         
         # Save all the options as a reference.
-        self.Options = opts        
+        self.Options = opts
+        
+        # Save the current directory as the root.
+        self.RootDir = os.path.split(os.path.abspath(fname))[0]
         
         
     # Output representation
@@ -156,11 +156,78 @@ class Cart3d:
         #  2014.05.28 @ddalle  : First version
         
         # Display basic information from all three areas.
-        return "<pyCart.Cart3d(nCase=%i, nIter=%i, tri='%s')>" % (
-            self.Trajectory.nCase, self.RunOptions['nIter'],
-            self.Mesh['TriFile'])
+        return "<pyCart.Cart3d(nCase=%i, tri='%s')>" % (
+            self.Trajectory.nCase,
+            self.Options['Mesh']['TriFile'])
         
     
+    # Check for root location
+    def CheckRootDir(self):
+        """
+        Check if the current directory is the case root directory
+        
+        :Call:
+            >>> q = cart3d.CheckRootDir()
+        
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Global pyCart settings object instance
+        
+        :Outputs:
+            *q*: :class:`bool`
+                True if current working directory is the case root directory
+        """
+        # Versions:
+        #  2014.06.30 @ddalle  : First version
+        
+        # Compare the working directory and the stored root directory.
+        return os.path.abspath('.') == self.RootDir
+    
+    # Check for group location
+    def CheckGroupDir(self):
+        """
+        Check if the current directory is a group-level directory
+        
+        :Call:
+            >>> q = cart3d.CheckGroupDir()
+        
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Global pyCart settings object instance
+        
+        :Outputs:
+            *q*: :class:`bool`
+                True if current working directory is a group-level directory
+        """
+        # Versions:
+        #  2014.06.30 @ddalle  : First version
+        
+        # Compare the working directory and the stored root directory.
+        return os.path.abspath('..') == self.RootDir
+    
+    # Check for group location
+    def CheckCaseDir(self):
+        """
+        Check if the current directory is a group-level directory
+        
+        :Call:
+            >>> q = cart3d.CheckGroupDir()
+        
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Global pyCart settings object instance
+        
+        :Outputs:
+            *q*: :class:`bool`
+                True if current working directory is a group-level directory
+        """
+        # Versions:
+        #  2014.06.30 @ddalle  : First version
+        
+        # Compare the working directory and the stored root directory.
+        return os.path.abspath(os.path.join('..','..')) == self.RootDir
+        
+        
     # Method to create the folders
     def CreateFolders(self):
         """
