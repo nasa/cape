@@ -17,6 +17,7 @@
         fileCntl
         inputCntl
         aeroCsh
+        preSpecCntl
         post
         argread
         

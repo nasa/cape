@@ -21,20 +21,26 @@ class Trajectory:
     
     :Call:
         >>> T = pyCart.Trajectory(**traj)
-        >>> T = pyCart.Trajectory(File=fname, Keys=keys, Prefix=prefix)
+        >>> T = pyCart.Trajectory(File=fname, Keys=keys)
     
     :Inputs:
         *traj*: :class:`dict`
             Dictionary of options from ``cart3d.Options["Trajectory"]``
-        *fname*: :class:`str`
+            
+    :Keyword arguments:
+        *File*: :class:`str`
             Name of file to read, defaults to ``'Trajectory.dat'``
-        *keys*: :class:`list` of :class:`str` items
+        *Keys*: :class:`list` of :class:`str` items
             List of variable names, defaults to ``['Mach','alpha','beta']``
-        *prefix*: :class:`str`
-            Prefix to be used in folder names for each case in trajectory
+        *Prefix*: :class:`str`
+            Prefix to be used for each case folder name
+        *GridPrefix*: :class:`str`
+            Prefix to be used for each grid folder name
+        *Definitions*: :class:`dict`
+            Dictionary of definitions for each key
     
     :Outputs:
-        *T*: :class:`pyCart.cntl.Trajectory`
+        *T*: :class:`pyCart.trajectory.Trajectory`
             Instance of the trajectory class
             
     :Data members:
@@ -42,6 +48,8 @@ class Trajectory:
             Number of cases in the trajectory
         *T.prefix*: :class:`str`
             Prefix to be used in folder names for each case in trajectory
+        *T.GridPrefix*: :class:`str`
+            Prefix to be used for each grid folder name
         *T.keys*: :class:`list`, *dtype=str*
             List of variable names used
         *T.text*: :class:`dict`, *dtype=list*
@@ -63,13 +71,17 @@ class Trajectory:
         fname = kwargs.get('File', None)
         keys = kwargs.get('Keys', ['Mach', 'alpha', 'beta'])
         prefix = kwargs.get('Prefix', "F")
+        gridPrefix = kwargs.get('GridPrefix', "Grid")
+        # Process the definitions.
+        defns = kwargs.get('Definitions', {})
         # Number of variables
         nVar = len(keys)
         # Save properties.
         self.keys = keys
         self.prefix = prefix
-        # Process the key definitions
-        self.ProcessKeyDefinitions(**kwargs)
+        self.GridPrefix = gridPrefix
+        # Process the key definitions.
+        self.ProcessKeyDefinitions(defns)
         
         # Open the file.
         f = open(fname)
@@ -111,97 +123,98 @@ class Trajectory:
             self.keys)
         
     # Function to process the role that each key name plays.
-    def ProcessKeyDefinitions(self, **kwargs):
+    def ProcessKeyDefinitions(self, defns):
         """
-        Process defaults for the function of each trajectory variable
+        Process definitions for the function of each trajectory variable
+        
+        Many variables have default definitions, such as ``'Mach'``,
+        ``'alpha'``, etc.  For user-defined trajectory keywords, defaults will
+        be used for aspects of the definition that are missing from the inputs.
         
         :Call:
-            >>> T.ProcessKeyDefinitions(**kwargs)
+            >>> T.ProcessKeyDefinitions(defns)
         
         :Inputs:
             *T*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
-            *kwargs*: :class:`dict`
-                Keyword arguments passed to :mod:`pyCart.trajectory` constructor
+            *defns*: :class:`dict`
+                Dictionary of keyword definitions or partial definitions
         
         :Effects:
-            Creates fields *T.text* and *T.defs* containing definitions for each
-            variable.
+            *T.text*: :class:`dict`
+                Text for each variable and each break point is initialized
+            *T.defns*: :class:`dict`
+                Definition dictionary is created after processing defaults
+            *T.abbrv*: :class:`dict`
+                Dictionary of abbreviations for each trajectory key
         """
         # Versions:
         #  2014.06.05 @ddalle  : First version
+        #  2014.06.17 @ddalle  : Overhauled to read from ``defns`` dict
         
-        # Define the default new key.
-        defkey = {
-            "Values": [0.0],
-            "Group": True,
-            "Type": "Group"
-        }
-        # Actually, the default key properties can be specified, too.'
-        defkey = kwargs.get('Default', defkey)
+        # Overall default key
+        odefkey = defns.get('Default', {})
+        # Process the mandatory fields.
+        odefkey.setdefault('Group', True)
+        odefkey.setdefault('Type', "Group")
         # Initialize the dictionaries.
         self.text = {}
-        self.defs = {}
+        self.defns = {}
+        self.abbrv = {}
         # Initialize the fields.
         for key in self.keys:
             # Initialize the text for this key.
             self.text[key] = []
-            # Check for a variable definition.
-            optkey = kwargs.get(key)
             # Process defaults.
-            if type(optkey) is not dict:
-                if key in ['Mach', 'M', 'mach']:
-                    # Mach number; non group
-                    optkey = {
-                        "Values": optkey,
-                        "Group": False,
-                        "Type": "Mach",
-                        "Abbreviation": "M"
-                    }
-                elif key in ['Alpha', 'alpha', 'aoa']:
-                    # Angle of attack; non group
-                    optkey = {
-                        "Values": optkey,
-                        "Group": False,
-                        "Type": "alpha",
-                        "Abbreviation": "a"
-                    }
-                elif key in ['Beta', 'beta', 'aos']:
-                    # Sideslip angle; non group
-                    optkey = {
-                        "Values": optkey,
-                        "Group": False,
-                        "Type": "beta",
-                        "Abbreviation": "b"
-                    }
-                elif key.lower() in ['alpha_t', 'alpha_total']:
-                    # Total angle of attack; non group
-                    optkey = {
-                        "Values": optkey,
-                        "Group": False,
-                        "Type": "alpha_t",
-                        "Abbreviation": "at"
-                    }
-                elif key in ['phi', 'Phi']:
-                    # Total roll angle; non group
-                    optkey = {
-                        "Values": optkey,
-                        "Group": False,
-                        "Type": "phi",
-                        "Abbreviation": "ph"
-                    }
-                elif optkey is None:
-                    # Use defaults entirely.
-                    optkey = defkey
-                else:
-                    # Unrecognized/undescribed variable
-                    # Just values were given.  Use defaults
-                    subkey = defkey
-                    # Restore the values
-                    subkey["Values"] = optkey
-                    optkey = subkey
-            # Save the definitions
-            self.defs[key] = optkey
+            if key.lower() in ['m', 'mach']:
+                # Mach number; non group
+                defkey = {
+                    "Group": False,
+                    "Type": "Mach",
+                    "Abbreviation": "m"
+                }
+            elif key in ['Alpha', 'alpha', 'aoa']:
+                # Angle of attack; non group
+                defkey = {
+                    "Group": False,
+                    "Type": "alpha",
+                    "Abbreviation": "a"
+                }
+            elif key in ['Beta', 'beta', 'aos']:
+                # Sideslip angle; non group
+                defkey = {
+                    "Group": False,
+                    "Type": "beta",
+                    "Abbreviation": "b"
+                }
+            elif key.lower() in ['alpha_t', 'alpha_total']:
+                # Total angle of attack; non group
+                defkey = {
+                    "Group": False,
+                    "Type": "alpha_t",
+                    "Abbreviation": "a"
+                }
+            elif key.lower() in ['phi', 'phiv']:
+                # Total roll angle; non group
+                defkey = {
+                    "Group": False,
+                    "Type": "phi",
+                    "Abbreviation": "r"
+                }
+            else:
+                # Start with default key
+                defkey = odefkey
+                # Set the abbreviation to the full name.
+                defkey["Abbreviation"] = key
+            # Check if the input has that key defined.
+            optkey = defns.get(key, {})
+            # Loop through properties.
+            for k in defkey.keys():
+                optkey.setdefault(k, defkey[k])
+            # Save the definitions.
+            self.defns[key] = optkey
+            # Save the abbreviations.
+            self.abbrv[key] = optkey.get("Abbreviation", key)
         
     # Process the groups that need separate grids.
     def ProcessGroups(self):
@@ -231,7 +244,7 @@ class Trajectory:
         # Loop through the keys to check for groups.
         for key in self.keys:
             # Check the definition for the grouping status.
-            if self.defs[key]['Group']:
+            if self.defns[key]['Group']:
                 # Append the values to the list.
                 x.append(getattr(self,key))
                 # Append to the list of group variables.
@@ -271,7 +284,13 @@ class Trajectory:
         
         The folder names will be of the form
     
-            ``F_Mach_2.0_alpha_0.0_beta_-0.5/``
+            ``F_m2.0a0.0b-0.5/``
+            
+        if the prefix is ``'F```, or
+        
+            ``m2.0a0.0b-0.5/``
+            
+        if the prefix is empty.
             
         Trajectory keys that require separate meshes for each value of the key
         will not be part of the folder name.  The number of digits used will
@@ -344,7 +363,7 @@ class Trajectory:
         #  2014.06.05 @ddalle  : First version
         
         # Set the prefix.
-        prefix = "Grid"
+        prefix = self.GridPrefix
         # Process the index list.
         if i is None: i = range(self.nCase)
         # Get the names of variables requiring separate grids.
@@ -372,16 +391,17 @@ class Trajectory:
         
         The folder names will be of the form
     
-            ``Grid/F_Mach_2.0_alpha_0.0_beta_-0.5/``
+            ``Grid/F_m2.0a0.0b-0.5/``
             
         if there are no trajectory keys that require separate grids or
         
-            ``Grid_delta_1.0/F_Mach_2.0_alpha_0.0_beta_-0.5/``
+            ``Grid_d1.0/F_m2.0a0.0b-0.5/``
             
-        if there is a key called ``"delta"`` that requires a separate mesh each time
-        the value of that key changes.  All keys in the trajectory file are included
-        in the folder name at one of the two levels.  The number of digits used will
-        match the number of digits in the trajectory file.
+        if there is a key called ``"delta"`` with abbreviation ``'d'`` that
+        requires a separate mesh each time the value of that key changes.  All
+        keys in the trajectory file are included in the folder name at one of
+        the two levels.  The number of digits used will match the number of
+        digits in the trajectory file.
         
         :Call:
             >>> dname = T.GetFullFolderNames()
@@ -425,13 +445,12 @@ class Trajectory:
         :Inptus:
             *T*: :class:`pyCart.cntl.Trajectory`
                 Instance of the pyCart trajectory class
-            *keys*: :type:`list`
+            *keys*: :type:`list` (:class:`str`)
                 List of keys to use for this folder name
-            *i*: :class:`int` or :class:`list`
-                Index of cases to process or list of cases.  If this is
-                ``None``, all cases will be processed.
             *prefix*: :class:`str`
                 Header for name of each case folder
+            *i*: :class:`int` or :class:`list`
+                Index(es) of case(s) to process; if ``None``, all cases
                 
         :Outputs:
             *dname*: :class:`str` or :class:`list`
@@ -441,11 +460,16 @@ class Trajectory:
         #  2014.06.05 @ddalle  : First version
         
         # Initialize folder name.
-        dname = prefix
+        if prefix:
+            # Use a prefix if it's any non-empty thing.
+            dname = str(prefix) + "_"
+        else:
+            # Initialize an empty string.
+            dname = ""
         # Append based on the keys.
         for k in keys:
             # Append the text in the trajectory file.
-            dname += "_" + k + "_" + self.text[k][i]
+            dname += self.abbrv[k] + self.text[k][i]
         # Return the result.
         return dname
         
@@ -456,10 +480,11 @@ class Trajectory:
         
         The folder names will be of the form::
         
-            ``F_Mach_2.0_alpha_0.0_beta_-0.5/``
+            ``F_m2.0a0.0b-0.5/``
             
-        using all of the keys specified in the trajectory file.  The amount of
-        digits used will match the number of digits in the trajectory file.
+        using the abbreviations for all of the keys specified in the trajectory
+        file.  The amount of digits used will match the number of digits in the
+        trajectory file.
         
         :Call:
             >>> T.CreateFolders()
@@ -487,7 +512,7 @@ class Trajectory:
             # Check if the "Grid" folder exists.
             if not os.path.isdir(glist[i]):
                 # Create the folder, and say so.
-                print("Creating common-grid folder: %s" % glis[i])
+                print("Creating common-grid folder: %s" % glist[i])
                 os.mkdir(glist[i], 0750)
             # Join the "Grid" prefix.
             dname = os.path.join(glist[i], dlist[i])
@@ -520,9 +545,10 @@ class Trajectory:
         # Versions:
         #  2014.05.28 @ddalle  : First version
         
-        # Process input file.
-        if fname is None: fname = "Conditions.json"
-        # Create a conditions file
+        # Process default input file name.
+        if fname is None:
+            fname = os.path.join(self.GetFullFulderNames(i), "Conditions.json")
+        # Create a conditions file.
         f = open(fname, 'w')
         # Write the header lines.
         f.write('{\n')
@@ -538,5 +564,50 @@ class Trajectory:
         f.write('}\n')
         f.close()
         
+    # Method to write a file for a single group
+    def WriteGridConditionsFile(self, fname=None, i=0):
+        """
+        Write a JSON file containing the collective conditions for a group
+        
+        :Call:
+            >>> T.WriteGridConditionsFile(fname, i)
+        
+        :Inputs:
+            *T*: :class:`pyCart.cntl.Trajectory`
+                Instance of the pyCart trajectory class
+            *fname*: :class:`str`
+                Name of JSON file to write
+            *i*: :class:`int`
+                Index of group to write
+        
+        :Outputs:
+            ``None``
+        """
+        # Versions:
+        #  2014.05.28 @ddalle  : First version
+        
+        # Process default input file name.
+        if fname is None:
+            # Get the unique groups.
+            glist = np.unique(self.GetGridFolderNames())
+            # Put the file in that folder.
+            fname = os.path.join(glist[i], "Conditions.json")
+        # Get the case index for the first case in the group.
+        j = np.nonzero(self.GroupID == i)[0][0]
+        # Create a conditions file.
+        f = open(fname, 'w')
+        # Write the header lines.
+        f.write('{\n')
+        f.write('    "Conditions: {\n')
+        # Loop through the keys.
+        for k in self.GroupKeys:
+            # Write the value.
+            f.write('        "%s": %.8f,\n' % (k, getattr(self,k)[j])) 
+        # Write the case number.
+        f.write('        "GroupNumber": %i\n' % (i+1))
+        # Write the end matter.
+        f.write('    }\n')
+        f.write('}\n')
+        f.close()
         
     

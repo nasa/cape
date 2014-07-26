@@ -13,6 +13,8 @@ this module and its main class.
 
 # Advanced text processing
 import re
+# File management
+import os
 
    
 # Minor function to convert strings to numbers
@@ -412,6 +414,45 @@ class FileCntl:
         f.close()
         return None
         
+    # Method to write the file as an executable.
+    def WriteEx(self, fname=None):
+        """
+        Write to text file as an executable script
+        
+        :Call:
+            >>> FC.Write()
+            >>> FC.Write(fname)
+        
+        :Inputs:
+            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+                File control instance, defaults to *FC.fname*
+            *fname*: :class:`str`
+                Name of file to write to
+                
+        :Outputs:
+            ``None``
+            
+        :Effects:
+            Runs :func:`UpdateLines` if appropriate and writes *FC.lines* to
+            text file
+        """
+        # Versions:
+        #  2014.06.23 @ddalle  : First version
+        
+        # Update the lines if appropriate.
+        self.UpdateLines()
+        # Default file name.
+        if fname is None: fname = self.fname
+        # Open the new file.
+        f = open(fname, 'w')
+        # Write the joined text.
+        f.write("".join(self.lines))
+        # Close the file and exit.
+        f.close()
+        # Change the mode.
+        os.chmod(fname, 0750)
+        return None
+        
         
     # Method to replace a line that starts with a given string
     def ReplaceLineStartsWith(self, start, line):
@@ -676,12 +717,12 @@ class FileCntl:
         self.Section[sec].insert(i, line)
         
     # Method to append a line somewhere
-    def AppendLineToSection(self, sec, i, line):
+    def AppendLineToSection(self, sec, line):
         """
         Append a line of text to a section
         
         :Call:
-            >>> FC.AppendLineToSection(sec, i, line)
+            >>> FC.AppendLineToSection(sec, line)
             
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
@@ -706,12 +747,12 @@ class FileCntl:
         self.Section[sec].append(line)
         
     # Method to prepend a line somewhere
-    def PrependLineToSection(self, sec, i, line):
+    def PrependLineToSection(self, sec, line):
         """
         Prepend a line of text to a section
         
         :Call:
-            >>> FC.PrependLineToSection(sec, i, line)
+            >>> FC.PrependLineToSection(sec, line)
             
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
@@ -733,7 +774,7 @@ class FileCntl:
         # Check for the section
         self.AssertSection(sec)
         # Insert the line.
-        self.Section[sec].prepend(line)
+        self.Section[sec].insert(1, line)
         
         
     # Method to delete a line that starts with a certain literal
@@ -1207,7 +1248,7 @@ class FileCntl:
         # Loop through the lines.
         for L in self.lines:
             # Check for maximum matches.
-            if n and m>n: break
+            if n and m>=n: break
             # Check for a match.
             if L.startswith(start):
                 # Add to match list
@@ -1250,7 +1291,7 @@ class FileCntl:
         # Loop through the lines.
         for L in self.lines:
             # Check for maximum matches.
-            if n and m>n: break
+            if n and m>=n: break
             # Check for a match.
             if re.search(reg, L):
                 # Add to match list
@@ -1297,7 +1338,7 @@ class FileCntl:
         # Loop through the lines.
         for L in self.Section[sec]:
             # Check for maximum matches.
-            if n and m>n: break
+            if n and m>=n: break
             # Check for a match.
             if L.startswith(start):
                 # Add to match list
@@ -1344,7 +1385,7 @@ class FileCntl:
         # Loop through the lines.
         for L in self.Section[sec]:
             # Check for maximum matches.
-            if n and m>n: break
+            if n and m>=n: break
             # Check for a match.
             if re.search(reg, L):
                 # Add to match list

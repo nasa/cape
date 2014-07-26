@@ -1,6 +1,6 @@
 """
-Module to nterface with "aero.csh" files: :mod:`pyCart.aeroCsh`
-===============================================================
+Module to interface with "aero.csh" files: :mod:`pyCart.aeroCsh`
+================================================================
 
 This is a module built off of the :mod:`pyCart.fileCntl` module customized for
 manipulating :file:`aero.csh` files.  The main feature of this module is methods
@@ -37,6 +37,34 @@ class AeroCsh(FileCntl):
         # Save the file name.
         self.fname = fname
         return None
+        
+    # Method to write the file.
+    def Write(self, fname=None):
+        """
+        Write to text file
+        
+        :Call:
+            >>> FC.Write()
+            >>> FC.Write(fname)
+        
+        :Inputs:
+            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+                File control instance, defaults to *FC.fname*
+            *fname*: :class:`str`
+                Name of file to write to
+                
+        :Outputs:
+            ``None``
+            
+        :Effects:
+            Runs :func:`UpdateLines` if appropriate and writes *FC.lines* to
+            text file
+        """
+        # Versions:
+        #  2014.06.03 @ddalle  : First version
+        
+        # Use the FileCntl.WriteEx method instead of FileCntl.Write
+        self.WriteEx(fname=fname)
         
     # Function to set generic values, since they have the same format.
     def SetVar(self, name, val):

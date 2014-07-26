@@ -48,6 +48,60 @@ class InputCntl(FileCntl):
         self.SplitToSections(reg="\$__([\w_]+)")
         return None
         
+    # Function to set to first-order mode
+    def SetFirstOrder(self):
+        """
+        Set the solver to first-order mode
+        
+        :Call:
+            >>> IC.SetFirstOrder()
+        
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            
+        :Effects:
+            Sets the gradient evaluation to ``0`` for the first RK line
+        """
+        # Versions:
+        #  2014.06.17 @ddalle  : First version
+        
+        # Name of the section
+        sec = 'Solver_Control_Information'
+        # Find the line that is sought.
+        L = self.GetLineInSectionStartsWith(sec, 'RK', 1)
+        # Form the new line.
+        line = L[0].replace(' 1 ', ' 0 ')
+        # Now write the updated line back.
+        self.ReplaceLineInSectionStartsWith(sec, 'RK', [line])
+        
+    # Function to set to second-order mode
+    def SetSecondOrder(self):
+        """
+        Set the solver to second-order mode
+        
+        :Call:
+            >>> IC.SetSecondOrder()
+        
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            
+        :Effects:
+            Sets the gradient evaluation to ``1`` for the first RK line
+        """
+        # Versions:
+        #  2014.06.17 @ddalle  : First version
+        
+        # Name of the section
+        sec = 'Solver_Control_Information'
+        # Find the line that is sought.
+        L = self.GetLineInSectionStartsWith(sec, 'RK', 1)
+        # Form the new line.
+        line = L[0].replace(' 0 ', ' 1 ')
+        # Now write the updated line back.
+        self.ReplaceLineInSectionStartsWith(sec, 'RK', [line])
+        
     # Function set the Mach number.
     def SetMach(self, Mach):
         """
@@ -324,7 +378,7 @@ class InputCntl(FileCntl):
         reg = 'Reference_Length.*%s' % compID
         # Replace or add the line.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
-            reg, 'Reference_Length  %s   %s\n' % (Aref, compID))
+            reg, 'Reference_Length  %s   %s\n' % (Lref, compID))
         return None
         
     # Function to set a surface boundary condition (e.g. nozzle condition)
@@ -381,7 +435,7 @@ class InputCntl(FileCntl):
         #  2014.06.09 @ddalle  : First version
         
         # Line starts looks like "Force $compID", but arbitrary white space.
-        reg = 'Force\s+' + str(compID)
+        reg = 'Force\s+' + str(compID) + '$'
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
             reg, 'Force %s\n' % compID)
@@ -420,7 +474,7 @@ class InputCntl(FileCntl):
             y = MRP[1]
             z = MRP[2]
         # Regular expression for "Moment_Point[anything]$comp_ID"
-        reg = 'Moment_Point.*' + str(compID)
+        reg = 'Moment_Point.*' + str(compID) + '$'
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing', reg,
             'Moment_Point  %s %s %s  %s\n' % (x,y,z,compID))
