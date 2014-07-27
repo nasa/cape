@@ -1050,6 +1050,10 @@ def stripComments(lines, char='#'):
     
     # Start with the first line.
     i = 0
+    # Check for combined lines.
+    if type(lines) == str:
+        # Split into lines.
+        lines = lines.split('\n')
     # Loop until last line
     while i < len(lines):
         # Get the line and strip leading and trailing white space.
