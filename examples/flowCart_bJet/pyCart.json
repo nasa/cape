@@ -1,0 +1,81 @@
+{
+	// The names of these two files have the obvious defaults.
+	"InputCntl": "input.cntl",
+	"AeroCsh": "aero.csh",
+    
+    // This section sets parameters for flowCart and adjointCart
+    "flowCart": {
+        "it_fc": 200,
+        "cfl": 1.15,
+        "cflmin": 0.8,
+        "mg_fc": 3,
+        "limiter": 2,
+        "y_is_spanwise": false,
+        "binaryIO": true,
+        "nThreads": 8
+    },
+    
+    "Adaptation": {
+        "etol": 0.00001,
+        "n_adapt_cycles": 2,
+        // cycle   1   2   3   4   5   6   7   8   9  10   11   12
+        "ws_it": [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 100, 100],
+        "it_ad": 120,
+        "mg_ad": 3,
+        // cycle         1   2   3   4   5   6   7   8   9   10 11   12
+        "mesh_growth": [1.5,1.5,2.0,2.0,2.0,2.0,2.5,2.5,2.5,2.5,2.5,2.5],
+        "apc": ["p","a","a","a","a","a","a","a","a","a","a","a","a"]
+    },
+    
+	// Parameters for creating the mesh
+    "Mesh": {
+        // This can be a list of .tri files.
+        "TriFile": "bJet.i.tri",
+        "max_nCells": 50000000,
+        "mesh2d": false,
+        
+    
+        "autoInputs": {
+            "r": 8
+        },
+        
+        "cubes": {
+            "maxR": 11,
+            "pre": "preSpec.c3d.cntl",
+            "cubes_a": 10,
+            "cubes_b": 2,
+            "reorder": true
+        },
+        
+        
+        
+        
+        
+        
+        // Whether or not to use autoInputs
+        "AutoInputs": true,
+        // Input parameters to autoInputs, cubes, or mgPrep
+        "MeshRadius": 8,
+        "nRefinements": 11,
+        "nMultiGrid": 3
+    },
+    
+    // Describe the reference values and config.
+    "Config": {
+        // Defer to a file for most things.
+        "File": "Config.xml",
+        // Reference values
+        "ReferenceArea": 1005.3,
+        "ReferenceLength": 66.3,
+        // The moment point can be specified as a dictionary of components.
+        "MomentPoint": [0.0, 0.0, 0.0]
+    },
+    
+    // Trajectory description
+    "Trajectory": {
+        // If a file is specified, and it exists, trajectory values will be
+        // read from it.  Trajectory values can also be specified locally.
+        "File": "Trajectory.dat",
+        "Keys": ["Mach", "alpha", "beta"]
+    }
+}
