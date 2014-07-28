@@ -35,6 +35,46 @@ _fname = os.path.abspath(__file__)
 PyCartFolder = os.path.split(_fname)[0]
 TemplateFodler = os.path.join(PyCartFolder, "templates")
 
+
+# Function to automate minor changes to docstrings to make them pyCart.Cart3d
+def _upgradeDocString(docstr, fromclass):
+    """
+    Upgrade docstrings from a certain subclass to make them look like
+    :class:`pyCart.cart3d.Cart3d` docstrings.
+    
+    :Call:
+        >>> doc3d = _upgradDocString(docstr, fromclass)
+        
+    :Inputs:
+        *docstr*: :class:`str`
+            Docstring (e.g. ``x.__doc__``) from some other method
+        *fromclass*: :class:`str`
+            Name of class of the original docstring (e.g. ``type(x).__name__``)
+            
+    :Outputs:
+        *doc3d*: :class:`str`
+            Docstring with certain substitutions, e.g. ``x.`` --> ``cart3d.``
+            
+    :Versions:
+        * 2014.07.28 ``@ddalle``: First version
+    """
+    # Check the input class.
+    if fromclass in ['Trajectory']:
+        # Replacements in the :Call: area
+        docstr = docstr.replace(">>> x.", ">>> cart3d.")
+        docstr = docstr.replace("= x.", "= cart3d.")
+        # Replacements in variable names
+        docstr = docstr.replace('*x*', '*cart3d*')
+        # Class name
+        docstr = docstr.replace('trajectory.Trajectory', 'cart3d.Cart3d')
+        docstr = docstr.replace('trajectory class', 'control class')
+    # Output
+    return docstr
+
+#<!--
+# ---------------------------------
+# I consider this portion temporary
+
 # Change the umask to a reasonable value.
 os.umask(0027)
 
@@ -79,10 +119,12 @@ def _getPyCartDefaults():
     lines = stripComments(lines, '//')
     # Process the default input file.
     return json.loads(lines)
+# ---------------------------------
+#-->
     
     
 # Class to read input files
-class Cart3d:
+class Cart3d(object):
     """
     Class for handling global options and setup for Cart3D.
     
@@ -168,6 +210,19 @@ class Cart3d:
         """
         Check if the current directory is the case root directory
         
+        Suppose the directory structure for a case is as follows.
+        
+        * Root directory: `/nobackup/uuser/plane/`
+            * `Grid_d0.0/`
+                * `m1.20/`
+                * `m1.40/`
+            * `Grid_d1.0/`
+                * `m1.20/`
+                * `m1.40/`
+                
+        Then this function will return ``True`` if and only if the current
+        working directory is ``'/nobackup/uuser/plane/'``.
+        
         :Call:
             >>> q = cart3d.CheckRootDir()
         
@@ -178,10 +233,10 @@ class Cart3d:
         :Outputs:
             *q*: :class:`bool`
                 True if current working directory is the case root directory
-        """
-        # Versions:
-        #  2014.06.30 @ddalle  : First version
         
+        :Versions:
+            * 2014.06.30 ``@ddalle``: First version
+        """
         # Compare the working directory and the stored root directory.
         return os.path.abspath('.') == self.RootDir
     
@@ -190,6 +245,20 @@ class Cart3d:
         """
         Check if the current directory is a group-level directory
         
+        Suppose the directory structure for a case is as follows.
+        
+        * Root directory: `/nobackup/uuser/plane/`
+            * `Grid_d0.0/`
+                * `m1.20/`
+                * `m1.40/`
+            * `Grid_d1.0/`
+                * `m1.20/`
+                * `m1.40/`
+                
+        Then this function will return ``True`` if and only if the current
+        working directory is ``'/nobackup/uuser/plane/Grid_d0.0'`` or 
+        ``'/nobackup/uuser/plane/Grid_d1.0'``.
+        
         :Call:
             >>> q = cart3d.CheckGroupDir()
         
@@ -200,20 +269,33 @@ class Cart3d:
         :Outputs:
             *q*: :class:`bool`
                 True if current working directory is a group-level directory
-        """
-        # Versions:
-        #  2014.06.30 @ddalle  : First version
         
+        :Versions:
+            * 2014.06.30 ``@ddalle``: First version
+        """
         # Compare the working directory and the stored root directory.
         return os.path.abspath('..') == self.RootDir
     
     # Check for group location
     def CheckCaseDir(self):
         """
-        Check if the current directory is a group-level directory
+        Check if the current directory is a case-level directory
+        
+        Suppose the directory structure for a case is as follows.
+        
+        * Root directory: `/nobackup/uuser/plane/`
+            * `Grid_d0.0/`
+                * `m1.20/`
+                * `m1.40/`
+            * `Grid_d1.0/`
+                * `m1.20/`
+                * `m1.40/`
+                
+        Then this function will return ``True`` if the current working 
+        directory is either of the ``'m1.20'`` or ``'m1.40'`` folders.
         
         :Call:
-            >>> q = cart3d.CheckGroupDir()
+            >>> q = cart3d.CheckCaseDir()
         
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
@@ -222,35 +304,21 @@ class Cart3d:
         :Outputs:
             *q*: :class:`bool`
                 True if current working directory is a group-level directory
-        """
-        # Versions:
-        #  2014.06.30 @ddalle  : First version
         
+        :Versions:
+            * 2014.06.30 ``@ddalle``: First version
+        """
         # Compare the working directory and the stored root directory.
         return os.path.abspath(os.path.join('..','..')) == self.RootDir
         
         
     # Method to create the folders
     def CreateFolders(self):
-        """
-        Create the folders based on the trajectory.
-        
-        :Call:
-            >>> cart3d.CreateFolders()
-        
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Global pyCart settings object instance
-        
-        :Outputs:
-            ``None``
-        """
-        # Versions:
-        #  2014.05.28 @ddalle  : First version
-        
-        # Use the trajectory method.
-        self.x.CreateFolders()
-        return None
+        # Use the trajectory's method.
+        return self.x.CreateFolders()
+    # Copy the docstring.
+    CreateFolders.__doc__ = _upgradeDocString(
+        Trajectory.CreateFolders.__doc__, 'Trajectory')
         
         
     # Method to set up the grid

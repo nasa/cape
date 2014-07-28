@@ -483,28 +483,29 @@ class Trajectory:
         
         The folder names will be of the form::
         
-            ``F_m2.0a0.0b-0.5/``
+            ``m2.0a0.0b-0.5/``
             
         using the abbreviations for all of the keys specified in the trajectory
         file.  The amount of digits used will match the number of digits in the
-        trajectory file.
+        trajectory file.  The folder names are prepended with the prefix, e.g.,
+        ``F_m2.0a0.0b-0.5/``, if the prefix is nonempty.
         
         :Call:
-            >>> T.CreateFolders()
-            >>> T.CreateFolders(prefix="F")
+            >>> x.CreateFolders()
+            >>> x.CreateFolders(prefix="F")
         
         :Inputs:
-            *T*: :class:`pyCart.cntl.Trajectory`
+            *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
             *prefix*: :class:`str`
                 Header for name of each folder
                 
         :Outputs:
             ``None``
+            
+        :Versions:
+            * 2014.05.27 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.05.27 @ddalle  : First version
-        
         # Process the prefix
         if prefix is None: prefix = self.prefix
         # Get the grid folder and case folder lists.
