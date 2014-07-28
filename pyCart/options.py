@@ -77,8 +77,124 @@ class Options(dict):
             
     # Method to get the input file
     
+    # ================
+    # multigrid levels
+    # ================
+    def get_mg_fc(self, mg_fc=3):
+        """Return the number of multigrid levels for `flowCart`"""
+        # Get the settings for flowCart, which should exist.
+        opts_fc = self.get('flowCart', {})
+        # Return the value, applying the default.
+        return opts_fc.get('mg_fc', mg_fc)
     
+    def set_mg_fc(self, mg_fc=3):
+        """Set number of multigrid levels for `flowCart`"""
+        # Ensure flowCart settings
+        self.setdefault('flowCart', {})
+        # Set the multigrid levels
+        self['flowCart']['mg_fc'] = mg_fc
+    
+    def get_mg_ad(self, mg_ad=3):
+        """Return the number of multigrid levels for `adjointCart`"""
+        # Get the settings for flowCart, which should exist.
+        opts_ad = self.get('adjointCart', {})
+        # Return the value, applying the default.
+        return opts_ad.get('mg_ad', mg_ad)
+        
+    def set_mg_ad(self, mg_ad=3):
+        """Set number of multigrid levels for `adjointCart`"""
+        # Ensure flowCart settings
+        self.setdefault('adjointCart', {})
+        # Set the multigrid levels
+        self['adjointCart']['mg_ad'] = mg_ad
+        
+        
+    # Method to get the number of multigrid levels
+    def get_mg(self, mg=3):
+        """
+        Return the number of multigrid levels
+        
+        :Call:
+            >>> mg = opts.get_mg(mg=3)
             
+        :Inputs:
+            *mg*: :class:`int`
+                Default value for `mg_fc`
+        
+        :Outputs:
+            *mg*: :class:`int`
+                Maximum of `mg_fc` and `mg_ad`
+        """
+        # Get the two values.
+        mg_fc = self.get_mg_fc(mg)
+        mg_ad = self.get_mg_ad(mg_fc)
+        # Check for valid settings.
+        if mg_fc and mg_ad:
+            # Both are defined, use maximum.
+            return max(mg_fc, mg_ad)
+        elif mg_fc:
+            # Only one valid nonzero setting; use it.
+            return mg_fc
+        elif mg_ad:
+            # Only one valid nonzero setting; use it.
+            return mg_ad
+        else:
+            # Both either invalid or zero.  Return 0.
+            return 0
+    
+    # Method to set both multigrid levels
+    def set_mg(self, mg=3):
+        """Set number of multigrid levels for `flowCart` and `adjointCart`"""
+        self.set_mg_fc(mg)
+        self.set_mg_ad(mg)
+            
+    
+    # ========================
+    # mesh creation parameters
+    # ========================
+    
+    # Tri file
+    def get_TriFile(self, TriFile="Components.i.tri"):
+        """Get the input :file:`*.tri` file(s)"""
+        # Get the mesh settings.
+        opts_mesh = self.get('Mesh',{})
+        # Return the tri file.
+        return opts_mesh.get('TriFile', TriFile)
+    def set_TriFile(self, TriFile="Componenst.i.tri"):
+        """Set the input :file:`*.tri` file(s)"""
+        # Ensure the  'Mesh' key exists.
+        self.setdefault('Mesh', {})
+        self['Mesh']['TriFile'] = TriFile
+    
+    # Mesh radius
+    def get_r(self, r=8):
+        """Get the value for the `autoInputs` mesh radius"""
+        # Get to the autoInputs section safely.
+        opts_ai = self.get('Mesh', {}).get('autoInputs', {})
+        # Get the mesh radius value
+        return opts_ai.get('r', r)
+    def set_r(self, r=8):
+        """Set the value for `autoInputs` mesh radius"""
+        # Make sure the 'Mesh' and 'autoInputs' keys exist.
+        self.setdefault('Mesh', {})
+        self['Mesh'].setdefault('autoInptus', {})
+        # Apply the setting.
+        self['Mesh']['autoInputs'] = r
+        
+    # Refinement levels
+    def get_maxR(self, maxR=10):
+        """Get the value for `cubes` maximum refinement levels"""
+        # Get to the `cubes` sectionsfaely.
+        opts_cubes = self.get('Mesh',{}).get('cubes',{})
+        # Get the refinement count.
+        return opts_cubes.get('maxR')
+    def set_maxR(self, maxR=10):
+        """Set the value for `cubes` maximum refinement levels"""
+        # Make sure 'Mesh' and 'cubes' keys exist.
+        self.setdefault('Mesh', {})
+        self['Mesh'].setdefault('cubes', {})
+        # Apply the setting.
+        self['Mesh']['cubes']['maxR'] = maxR
 
     
 

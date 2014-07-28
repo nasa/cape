@@ -115,7 +115,7 @@ class Cart3d(object):
             Instance of the pyCart control class
     
     :Data members:
-        *cart3d.Options*: :class:`dict`
+        *cart3d.opts*: :class:`dict`
             Dictionary of options for this case (directly from *fname*)
         *cart3d.x*: :class:`pyCart.trajectory.Trajectory`
             Values and definitions for variables in the run matrix
@@ -140,7 +140,7 @@ class Cart3d(object):
         self.x = Trajectory(**opts['Trajectory'])
         
         # Save all the options as a reference.
-        self.Options = opts
+        self.opts = opts
         
         # Save the current directory as the root.
         self.RootDir = os.path.split(os.path.abspath(fname))[0]
@@ -152,7 +152,7 @@ class Cart3d(object):
         # Display basic information from all three areas.
         return "<pyCart.Cart3d(nCase=%i, tri='%s')>" % (
             self.x.nCase,
-            self.Options['Mesh']['TriFile'])
+            self.opts['Mesh']['TriFile'])
         
     
     # Check for root location
@@ -343,7 +343,7 @@ class Cart3d(object):
         
         # Get the xml file names.
         if fxml is None:
-            conf = self.Options.get('Config', {})
+            conf = self.opts.get('Config', {})
             fxml = conf.get('File', 'Config.xml')
         # Check if the file exists.
         if not os.path.isfile(fxml):
@@ -377,7 +377,7 @@ class Cart3d(object):
         #  2014.06.16 @ddalle  : First version
         
         # Get the list of tri files.
-        ftri = self.Options['Mesh']['TriFile']
+        ftri = self.opts.get_TriFile()
         # Status update.
         print("Reading tri file(s) from root directory.")
         # Read them.
@@ -428,7 +428,7 @@ class Cart3d(object):
         
         # Get the mesh radius.
         if r is None:
-            r = self.Options['Mesh']['autoInputs']['r']
+            r = self.opts.get_r()
         # Exit if set to quit.
         if not r: return None
         # Get the triangulation file.
@@ -458,7 +458,7 @@ class Cart3d(object):
         #  2014.06.16 @ddalle  : First version
         
         # Check if autoInputs should be run.
-        if not self.Options['Mesh']['autoInputs']['r']:
+        if not self.opts['Mesh']['autoInputs']['r']:
             return None
         # Get grid folders.
         glist = np.unique(self.x.GetGroupFolderNames())
@@ -495,10 +495,8 @@ class Cart3d(object):
         # Versions:
         #  2014.06.16 @ddalle  : First version
         
-        # Get the cubes-specific options.
-        opts = self.Options['Mesh'].get('cubes', {})
         # Get the mesh radius.
-        if maxR is None: maxR = opts.get('maxR', 8)
+        if maxR is None: maxR = self.opts.get_maxR()
         # Check for input files.
         if not os.path.isfile('input.c3d'):
             raise IOError("No input file 'input.c3d' found.")
@@ -562,7 +560,7 @@ class Cart3d(object):
         #  2014.06.16 @ddalle  : First version
         
         # Get the mesh radius.
-        if mg is None: mg = self.Options['flowCart']['mg_fc']
+        if mg is None: mg = self.opts.get_mg()
         # Check for input files.
         if not os.path.isfile('Mesh.R.c3d'):
             raise IOError("No mesh file 'Mesh.R.c3d' found.")
@@ -589,19 +587,8 @@ class Cart3d(object):
         
         # Get grid folders.
         glist = np.unique(self.x.GetGroupFolderNames())
-        # Get the multigrid numbers
-        mg_fc = self.Options['flowCart'].get('mg_fc', 3)
-        mg_ad = self.Options['adjointCart'].get('mg_ad', 3)
-        # Get the maximum.
-        if mg_fc and mg_ad:
-            # Both numbers specified.
-            mg = max(mg_fc, mg_ad)
-        elif mg_fc:
-            # Just flowCart had multigrid specified.
-            mg = mg_fc
-        else:
-            # Just take whatever's left over.
-            mg = mf_ad
+        # Get n multigrid levels
+        mg = self.opts.get_mg()
         # Quit if appropriate.
         if not mg:
             return None
@@ -642,7 +629,7 @@ class Cart3d(object):
         # List of files to link
         f_link = ['Components.i.tri', 'Mesh.R.c3d']
         # Check if a link will break things.
-        if self.Options["Adaptation"]["n_adapt_cycles"] > 0:
+        if self.opts["Adaptation"]["n_adapt_cycles"] > 0:
             # Adapt: copy the mesh.
             f_copy.append('Mesh.mg.c3d')
         else:
@@ -835,11 +822,11 @@ class Cart3d(object):
             * 2014.06.06 ``@ddalle``: Low-level functionality for grid folders
         """
         # Get the name of the .cntl file.
-        fname = self.Options.get('InputCntl', 'input.cntl')
+        fname = self.opts.get('InputCntl', 'input.cntl')
         # Get the run options.
-        opts = self.Options.get('flowCart', {})
+        opts = self.opts.get('flowCart', {})
         # Get the configuration settings.
-        conf = self.Options.get('Config', {})
+        conf = self.opts.get('Config', {})
         # Read it.
         self.InputCntl = InputCntl(fname)
         # Process global options...
@@ -895,21 +882,21 @@ class Cart3d(object):
             * 2014.06.10 ``@ddalle``: First version
         """
         # Get the name of the file.
-        fname = self.Options['AeroCsh']
+        fname = self.opts['AeroCsh']
         # Check for the file.
         if not os.path.isfile(fname): return None
         # Read it.
         self.AeroCsh = AeroCsh(fname)
         # Extract run options
-        opts_fc = self.Options.get('flowCart', {})
-        opts_ad = self.Options.get('Adaptation', {})
-        opts_cu = self.Options['Mesh'].get('cubes')
+        opts_fc = self.opts.get('flowCart', {})
+        opts_ad = self.opts.get('Adaptation', {})
+        opts_cu = self.opts['Mesh'].get('cubes')
         # Process global options
         self.AeroCsh.SetCFL(opts_fc.get('cfl', 1.0))
         self.AeroCsh.SetnIter(opts_fc.get('it_fc', 200))
         self.AeroCsh.SetnAdapt(opts_ad.get('n_adapt_cycles', 0))
-        self.AeroCsh.SetnRefinements(opts_cu.get('maxR', 8))
-        self.AeroCsh.SetnMultiGrid(opts_fc.get('mg_fc', 3))
+        self.AeroCsh.SetnRefinements(self.opts.get_maxR())
+        self.AeroCsh.SetnMultiGrid(self.opts.get_mg())
         # Extract the trajectory.
         x = self.x
         # Get grid folders.
@@ -949,14 +936,14 @@ class Cart3d(object):
         # Create the file.
         f = open(fout, 'w')
         # Run options
-        opts_fc = self.Options.get('flowCart', {})
-        opts_ad = self.Options.get('Adaptation', {})
+        opts_fc = self.opts.get('flowCart', {})
+        opts_ad = self.opts.get('Adaptation', {})
         # Get the global options.
         nThreads = opts_fc.get('nThreads', 8)
         nIter    = opts_fc.get('it_fc', 200)
         nAdapt   = opts_ad.get('n_adapt_cycles', 0)
         # Run options
-        mg  = opts_fc.get('mg_fc', 3)
+        mg  = self.opts.get_mg_fc()
         tm  = opts_fc.get('tm', False)
         cfl = opts_fc.get('cfl', 1.0)
         # Write the shell magic.
