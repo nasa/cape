@@ -196,9 +196,6 @@ class Cart3d(object):
     # Output representation
     def __repr__(self):
         """Output representation for the class."""
-        # Versions:
-        #  2014.05.28 @ddalle  : First version
-        
         # Display basic information from all three areas.
         return "<pyCart.Cart3d(nCase=%i, tri='%s')>" % (
             self.x.nCase,
@@ -333,13 +330,10 @@ class Cart3d(object):
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
         
-        :Outputs:
-            ``None``
+        :Versions:
+            * 2014.05.28 ``@ddalle``: First version
+            * 2014.06.06 ``@ddalle``: Multiple group folders
         """
-        # Versions:
-        #  2014.05.28 @ddalle  : First version
-        #  2014.06.06 @ddalle  : Multiple grid folders
-        
         # Write conditions files.
         self.Grids_WriteConditionsFiles()
         # Copy Config.xml files.
@@ -367,9 +361,10 @@ class Cart3d(object):
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
+                
+        :Versions:
+            * 2014.06.23 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.23 @ddalle  : First version
         
         # Loop through groups.
         for i in range(len(self.x.GroupX)):
@@ -659,12 +654,9 @@ class Cart3d(object):
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
         
-        :Outputs:
-            ``None``
+        :Versions:
+            * 2014.05.28 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.05.28 @ddalle  : First version
-        
         # Get the folder names.
         glist = self.x.GetGridFolderNames()
         dlist = self.x.GetFolderNames()
@@ -750,14 +742,11 @@ class Cart3d(object):
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
         
-        :Outputs:
-            ``None``
+        :Versions:
+            * 2014.05.28 ``@ddalle``: First version
+            * 2014.05.30 ``@ddalle``: Moved input.cntl filter to separate func
+            * 2014.06.04 ``@ddalle``: Moved input.cntl prep entirely to func
         """
-        # Versions:
-        #  2014.05.28 @ddalle  : First version
-        #  2014.05.30 @ddalle  : Moved input.cntl filtering to separate func
-        #  2014.06.04 @ddalle  : Moved input.cntl handling entirely to func
-        
         # Prepare the "input.cntl" files.
         self.PrepareInputCntl()
         # Prepare the "aero.csh" files
@@ -864,11 +853,11 @@ class Cart3d(object):
                processing appropriate options.
                
             *  Creates *cart3d.InputCntl* data member
+            
+        :Versions:
+            * 2014.06.04 ``@ddalle``: First version
+            * 2014.06.06 ``@ddalle``: Low-level functionality for grid folders
         """
-        # Versions:
-        #  2014.06.04 @ddalle  : First version
-        #  2014.06.06 @ddalle  : Low-level functionality for grid folders
-        
         # Get the name of the .cntl file.
         fname = self.Options['InputCntl']
         # Read it.
@@ -921,10 +910,10 @@ class Cart3d(object):
               processing appropriate options.
             
             * Creates *cart3d.AeroCsh* data member
+            
+        :Versions:
+            * 2014.06.10 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.10 @ddalle  : First version
-        
         # Get the name of the file.
         fname = self.Options['AeroCsh']
         # Check for the file.
@@ -970,13 +959,10 @@ class Cart3d(object):
                 Instance of global pyCart settings object
             *i*: :class:`int`
                 Trajectory case number
-                
-        :Outputs:
-            ``None``
-        """
-        # Versions:
-        #  2014.05.30 @ddalle  : First version
         
+        :Versions:
+            * 2014.05.30 ``@ddalle``: First version
+        """
         # Get the folder name.
         dname = self.x.GetFullFolderNames(i=i)
         # File name
@@ -1022,10 +1008,10 @@ class Cart3d(object):
                 
         :Effects:
             Creates *cart3d.LoadsCC* instance
+            
+        :Versions:
+            * 2014.06.05 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.04 @ddalle  : First version
-        
         # Call the constructor.
         self.LoadsCC = LoadsDat(self, fname="loadsCC.dat")
         return None
@@ -1041,10 +1027,10 @@ class Cart3d(object):
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
+                
+        :Versions:
+            * 2014.06.04 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.04 @ddalle  : First version
-        
         # Check for the attribute.
         if not hasattr(self, 'LoadsCC'):
             self.GetLoadsCC()
@@ -1066,10 +1052,10 @@ class Cart3d(object):
                 
         :Effects:
             Creates *cart3d.LoadsCC* instance
+            
+        :Versions:
+            * 2014.06.04 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.04 @ddalle  : First version
-        
         # Call the constructor.
         self.LoadsTRI = LoadsDat(self, fname="loadsTRI.dat")
         return None
@@ -1085,10 +1071,10 @@ class Cart3d(object):
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
+                
+        :Versions:
+            * 2014.06.04 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.04 @ddalle  : First version
-        
         # Check for the attribute.
         if not hasattr(self, 'LoadsTRI'):
             self.GetLoadsTRI()
@@ -1114,10 +1100,10 @@ def stripComments(lines, char='#'):
     :Outputs:
         *txt*: :class:`str`
             Lines joined into a single string but with comments removed
+            
+    :Versions:
+        * 2014.06.03 ``@ddalle``: First version
     """
-    # Versions:
-    #  2014.06.03 @ddalle  : First version
-    
     # Start with the first line.
     i = 0
     # Check for combined lines.
@@ -1147,8 +1133,8 @@ def ReadTrajectoryFile(fname='Trajectory.dat', keys=['Mach','alpha','beta'],
     Read a simple list of configuration variables
     
     :Call:
-        >>> T = pyCart.ReadTrajectoryFile(fname)
-        >>> T = pyCart.ReadTrajectoryFile(fname, keys)
+        >>> x = pyCart.ReadTrajectoryFile(fname)
+        >>> x = pyCart.ReadTrajectoryFile(fname, keys)
     
     :Inputs:
         *fname*: :class:`str`
@@ -1159,46 +1145,12 @@ def ReadTrajectoryFile(fname='Trajectory.dat', keys=['Mach','alpha','beta'],
             Header for name of each folder
     
     :Outputs:
-        *T*: :class:`pyCart.trajectory.Trajectory`
+        *x*: :class:`pyCart.trajectory.Trajectory`
             Instance of the pyCart trajectory class
     
+    :Versions:
+        * 2014.05.27 ``@ddalle``: First version
     """
-    # Versions:
-    # 2014.05.27 @ddalle  : First version
     return Trajectory(fname, keys, prefix)
     
-    
-# Function to make the directories
-def CreateFolders(T, prefix="F"):
-    """
-    Make directories for each of the cases in a trajectory.
-    
-    The folder names will be of the form
-    
-        ``Grid/F_Mach_2.0_alpha_0.0_beta_-0.5/``
-        
-    if there are no trajectory keys that require separate grids or
-    
-        ``Grid_delta_1.0/F_Mach_2.0_alpha_0.0_beta_-0.5/``
-        
-    if there is a key called ``"delta"`` that requires a separate mesh each time
-    the value of that key changes.  All keys in the trajectory file are included
-    in the folder name at one of the two levels.  The number of digits used will
-    match the number of digits in the trajectory file.
-    
-    :Call:
-        >>> pyCart.CreateFolders(T, prefix="F")
-    
-    :Inputs:
-        *T*: :class:`pyCart.trajectory.Trajectory`
-            Instance of the pyCart trajectory class
-        *prefix*: :class:`str`
-            Header for name of each folder
-            
-    :Outputs:
-        ``None``
-    """
-    # Versions:
-    #  2014.05.27 @ddalle  : First version
-    T.CreateFolders(prefix)
-    return None
+

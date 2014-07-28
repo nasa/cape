@@ -52,7 +52,7 @@ The following classes are imported in this module, so that code like
 """
 
 # Set version number.  Don't forget to update it.
-__version__ = 0.1
+__version__ = 0.2
 
 # Configuration file processor
 import json
@@ -76,7 +76,7 @@ TemplateFodler = os.path.join(PyCartFolder, "templates")
 
 # Import classes and methods from the submodules
 from tri    import Tri, ReadTri, WriteTri
-from cart3d import Cart3d, Trajectory, ReadTrajectoryFile, CreateFolders
+from cart3d import Cart3d, Trajectory, ReadTrajectoryFile
 from post   import LoadsDat
 
 # Import the file control classes.

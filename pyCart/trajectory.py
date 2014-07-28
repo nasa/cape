@@ -20,8 +20,8 @@ class Trajectory:
     Read a simple list of configuration variables
     
     :Call:
-        >>> T = pyCart.Trajectory(**traj)
-        >>> T = pyCart.Trajectory(File=fname, Keys=keys)
+        >>> x = pyCart.Trajectory(**traj)
+        >>> x = pyCart.Trajectory(File=fname, Keys=keys)
     
     :Inputs:
         *traj*: :class:`dict`
@@ -40,33 +40,33 @@ class Trajectory:
             Dictionary of definitions for each key
     
     :Outputs:
-        *T*: :class:`pyCart.trajectory.Trajectory`
+        *x*: :class:`pyCart.trajectory.Trajectory`
             Instance of the trajectory class
             
     :Data members:
-        *T.nCase*: :class:`int`
+        *x.nCase*: :class:`int`
             Number of cases in the trajectory
-        *T.prefix*: :class:`str`
+        *x.prefix*: :class:`str`
             Prefix to be used in folder names for each case in trajectory
-        *T.GridPrefix*: :class:`str`
+        *x.GridPrefix*: :class:`str`
             Prefix to be used for each grid folder name
-        *T.keys*: :class:`list`, *dtype=str*
+        *x.keys*: :class:`list`, *dtype=str*
             List of variable names used
-        *T.text*: :class:`dict`, *dtype=list*
+        *x.text*: :class:`dict`, *dtype=list*
             Lists of variable values taken from trajectory file
-        *T.Mach*: :class:`numpy.ndarray`, *dtype=float*
+        *x.Mach*: :class:`numpy.ndarray`, *dtype=float*
             Vector of Mach numbers in trajectory
-        ``getattr(T, key)``: :class:`numpy.ndarray`, *dtype=float*
+        ``getattr(x, key)``: :class:`numpy.ndarray`, *dtype=float*
             Vector of values of each variable specified in *keys*
+    
+    :Versions:
+        2014.05.28 ``@ddalle``: First version
+        2014.06.05 ``@ddalle``: Generalized for user-defined keys
     """
     
     # Initialization method
     def __init__(self, **kwargs):
         """Initialization method"""
-        # Versions:
-        #  2014.05.28 @ddalle  : First version
-        #  2014.06.05 @ddalle  : Generalized for user-defined keys
-        
         # Process the inputs.
         fname = kwargs.get('File', None)
         keys = kwargs.get('Keys', ['Mach', 'alpha', 'beta'])
@@ -132,26 +132,26 @@ class Trajectory:
         be used for aspects of the definition that are missing from the inputs.
         
         :Call:
-            >>> T.ProcessKeyDefinitions(defns)
+            >>> x.ProcessKeyDefinitions(defns)
         
         :Inputs:
-            *T*: :class:`pyCart.trajectory.Trajectory`
+            *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
             *defns*: :class:`dict`
                 Dictionary of keyword definitions or partial definitions
         
         :Effects:
-            *T.text*: :class:`dict`
+            *x.text*: :class:`dict`
                 Text for each variable and each break point is initialized
-            *T.defns*: :class:`dict`
+            *x.defns*: :class:`dict`
                 Definition dictionary is created after processing defaults
-            *T.abbrv*: :class:`dict`
+            *x.abbrv*: :class:`dict`
                 Dictionary of abbreviations for each trajectory key
-        """
-        # Versions:
-        #  2014.06.05 @ddalle  : First version
-        #  2014.06.17 @ddalle  : Overhauled to read from ``defns`` dict
         
+        :Versions:
+            * 2014.06.05 ``@ddalle``: First version
+            * 2014.06.17 ``@ddalle``: Overhauled to read from ``defns`` dict
+        """
         # Overall default key
         odefkey = defns.get('Default', {})
         # Process the mandatory fields.
@@ -223,19 +223,19 @@ class Trajectory:
         trajectory conditions that can use the same mesh.
         
         :Call:
-            >>> T.ProcessGroups()
+            >>> x.ProcessGroups()
             
         :Inputs:
-            *T*: :class:`pyCart.trajectory.Trajectory`
+            *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
                 
         :Effects:
             Creates fields that save the properties of the groups.  These fields
             are called *T.GroupKeys*, *T.GroupX*, *T.GroupID*.
+            
+        :Versions:
+            * 2014.06.05 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.05 @ddalle  : First version
-        
         # Initialize matrix of group-generating key values.
         x = []
         # Initialize list of group variables.
@@ -286,7 +286,7 @@ class Trajectory:
     
             ``F_m2.0a0.0b-0.5/``
             
-        if the prefix is ``'F```, or
+        if the prefix is ``'F'``, or
         
             ``m2.0a0.0b-0.5/``
             
@@ -297,11 +297,11 @@ class Trajectory:
         match the number of digits in the trajectory file.
         
         :Call:
-            >>> dname = T.GetFolderNames()
-            >>> dname = T.GetFolderNames(i=None, prefix="F")
+            >>> dname = x.GetFolderNames()
+            >>> dname = x.GetFolderNames(i=None, prefix="F")
         
         :Inputs:
-            *T*: :class:`pyCart.cntl.Trajectory`
+            *T*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
             *i*: :class:`int` or :class:`list`
                 Index of cases to process or list of cases.  If this is
@@ -312,11 +312,11 @@ class Trajectory:
         :Outputs:
             *dname*: :class:`str` or :class:`list`
                 Folder name or list of folder names
+                
+        :Versions:
+            * 2014.05.28 ``@ddalle``: First version
+            * 2014.06.05 ``@ddalle``: Refined to variables that use common grid
         """
-        # Versions:
-        #  2014.05.28 @ddalle  : First version
-        #  2014.06.05 @ddalle  : Refined to variables that can use same grid
-        
         # Process the prefix.
         if prefix is None: prefix = self.prefix
         # Process the index list.
@@ -340,16 +340,16 @@ class Trajectory:
         return dlist
         
     # Function to get grid folder names
-    def GetGridFolderNames(self, i=None):
+    def GetGroupFolderNames(self, i=None):
         """
         Get names of folders that require separate meshes
         
         :Call:
-            >>> T.GetGridFolderNames()
-            >>> T.GetGridFolderNames(i)
+            >>> x.GetGroupFolderNames()
+            >>> x.GetGroupFolderNames(i)
         
         :Inputs:
-            *T*: :class:`pyCart.cntl.Trajectory`
+            *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
             *i*: :class:`int` or :class:`list`
                 Index of cases to process or list of cases.  If this is
@@ -358,10 +358,10 @@ class Trajectory:
         :Outputs:
             *dname*: :class:`str` or :class:`list`
                 Folder name or list of folder names
+                
+        :Versions:
+            * 2014.06.05 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.05 @ddalle  : First version
-        
         # Set the prefix.
         prefix = self.GridPrefix
         # Process the index list.
@@ -404,11 +404,11 @@ class Trajectory:
         digits in the trajectory file.
         
         :Call:
-            >>> dname = T.GetFullFolderNames()
-            >>> dname = T.GetFullFolderNames(i=None, prefix="F")
+            >>> dname = x.GetFullFolderNames()
+            >>> dname = x.GetFullFolderNames(i=None, prefix="F")
         
         :Inputs:
-            *T*: :class:`pyCart.cntl.Trajectory`
+            *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
             *i*: :class:`int` or :class:`list`
                 Index of cases to process or list of cases.  If this is
@@ -419,12 +419,12 @@ class Trajectory:
         :Outputs:
             *dname*: :class:`str` or :class:`list`
                 Folder name or list of folder names
+                
+        :Versions:
+            * 2014.06.05 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.05 @ddalle  : First version
-        
         # Get the two components.
-        glist = self.GetGridFolderNames(i)
+        glist = self.GetGroupFolderNames(i)
         flist = self.GetFolderNames(i, prefix)
         # Check for list or not.
         if type(glist) is list:
@@ -440,10 +440,10 @@ class Trajectory:
         Assemble names using common code.
         
         :Call:
-            >>> dname = T._AssembleName(keys, prefix, i)
+            >>> dname = x._AssembleName(keys, prefix, i)
             
         :Inptus:
-            *T*: :class:`pyCart.cntl.Trajectory`
+            *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
             *keys*: :type:`list` (:class:`str`)
                 List of keys to use for this folder name
@@ -455,10 +455,10 @@ class Trajectory:
         :Outputs:
             *dname*: :class:`str` or :class:`list`
                 Name containing value for each key in *keys*
+                
+        :Versions:
+            * 2014.06.05 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.05 @ddalle  : First version
-        
         # Initialize folder name.
         if prefix and keys:
             # Use a prefix if it's any non-empty thing.
@@ -509,7 +509,7 @@ class Trajectory:
         # Process the prefix
         if prefix is None: prefix = self.prefix
         # Get the grid folder and case folder lists.
-        glist = self.GetGridFolderNames()
+        glist = self.GetGroupFolderNames()
         dlist = self.GetFolderNames(prefix=prefix)
         # Loop through the conditions.
         for i in range(len(dlist)):
@@ -533,22 +533,19 @@ class Trajectory:
         Write a JSON file containing the conditions for a single case.
         
         :Call:
-            >>> T.WriteConditionsFile(fname, i)
+            >>> x.WriteConditionsFile(fname, i)
         
         :Inputs:
-            *T*: :class:`pyCart.cntl.Trajectory`
+            *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
             *fname*: :class:`str`
                 Name of JSON file to write
             *i*: :class:`int`
                 Index of conditions to write
-        
-        :Outputs:
-            ``None``
+            
+        :Versions:
+            * 2014.05.28 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.05.28 @ddalle  : First version
-        
         # Process default input file name.
         if fname is None:
             fname = os.path.join(self.GetFullFulderNames(i), "Conditions.json")
@@ -574,26 +571,23 @@ class Trajectory:
         Write a JSON file containing the collective conditions for a group
         
         :Call:
-            >>> T.WriteGridConditionsFile(fname, i)
+            >>> x.WriteGridConditionsFile(fname, i)
         
         :Inputs:
-            *T*: :class:`pyCart.cntl.Trajectory`
+            *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
             *fname*: :class:`str`
                 Name of JSON file to write
             *i*: :class:`int`
                 Index of group to write
-        
-        :Outputs:
-            ``None``
+            
+        :Versions:
+            * 2014.05.28 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.05.28 @ddalle  : First version
-        
         # Process default input file name.
         if fname is None:
             # Get the unique groups.
-            glist = np.unique(self.GetGridFolderNames())
+            glist = np.unique(self.GetGroupFolderNames())
             # Put the file in that folder.
             fname = os.path.join(glist[i], "Conditions.json")
         # Get the case index for the first case in the group.
