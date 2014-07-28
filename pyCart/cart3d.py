@@ -76,6 +76,7 @@ def _getPyCartDefaults():
             "..", "settings", "pyCart.default.json")).readlines()
     # Strip comments and join list into a single string.
     lines = stripComments(lines, '#')
+    lines = stripComments(lines, '//')
     # Process the default input file.
     return json.loads(lines)
     
