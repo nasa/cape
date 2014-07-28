@@ -19,8 +19,11 @@
 	    "y_is_spanwise": true,
 	    // Use binary input/output instead of ASCII
 	    "binaryIO": true,
-	    # Number of threads
-	    "nThreads": 8
+	    // Number of threads
+	    "nThreads": 8,
+	    
+	    // Cut cell gradient
+	    "tm": false
 	},
 	
 	// This section sets the parameters for adjointCart.

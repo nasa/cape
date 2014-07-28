@@ -231,7 +231,7 @@ class Trajectory:
                 
         :Effects:
             Creates fields that save the properties of the groups.  These fields
-            are called *T.GroupKeys*, *T.GroupX*, *T.GroupID*.
+            are called *x.GroupKeys*, *x.GroupX*, *x.GroupID*.
             
         :Versions:
             * 2014.06.05 ``@ddalle``: First version
@@ -245,7 +245,7 @@ class Trajectory:
         for key in self.keys:
             # Check the definition for the grouping status.
             if self.defns[key]['Group']:
-                # Append the values to the list.
+                # Append to matrix of group-only variables for ALL conditions.
                 x.append(getattr(self,key))
                 # Append to the list of group variables.
                 gk.append(key)
@@ -263,6 +263,10 @@ class Trajectory:
         Y = []
         # Initialize the groupID numbers.
         gID = []
+        # Test for case of now groups.
+        if y == []:
+            # List of group==0 nodes.
+            gID = np.zeros(self.nCase)
         # Loop through the full set of conditions.
         for yi in y:
             # Test if it's in the existing set of unique conditions.

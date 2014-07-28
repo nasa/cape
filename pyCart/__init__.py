@@ -52,7 +52,7 @@ The following classes are imported in this module, so that code like
 """
 
 # Set version number.  Don't forget to update it.
-__version__ = 0.2
+__version__ = 0.1
 
 # Configuration file processor
 import json

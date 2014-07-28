@@ -389,12 +389,14 @@ class Cart3d(object):
         #  2014.06.16 @ddalle  : First version
         
         # Get the xml file names.
-        if fxml is None: fxml = self.Config.get('File', 'Config.xml')
+        if fxml is None:
+            conf = self.Options.get('Config', {})
+            fxml = conf.get('File', 'Config.xml')
         # Check if the file exists.
         if not os.path.isfile(fxml):
             return None
         # Get grid folders.
-        glist = self.x.GetGridFolderNames()
+        glist = self.x.GetGroupFolderNames()
         # Loop through the grids.
         for g in glist:
             # Copy the file.
@@ -422,11 +424,11 @@ class Cart3d(object):
         #  2014.06.16 @ddalle  : First version
         
         # Get the list of tri files.
-        ftri = self.Mesh['TriFile']
+        ftri = self.Options['Mesh']['TriFile']
         # Status update.
         print("Reading tri file(s) from root directory.")
         # Read them.
-        if hasattr(ftri, '__len__'):
+        if type(ftri).__name__ == 'list':
             # Read the initial triangulation.
             tri = Tri(ftri[0])
             # Loop through the remaining tri files.
@@ -437,14 +439,14 @@ class Cart3d(object):
             # Just read the triangulation file.
             tri = Tri(ftri)
         # Get grid folders.
-        glist = self.x.GetGridFolderNames()
+        glist = np.unique(self.x.GetGroupFolderNames())
         # Announce.
         print("Writing 'Components.i.tri' for case:")
         # Loop through the grids.
         for g in glist:
             # Perform recognized rotations and translations...
             # Status update.
-            print("  %g" % g)
+            print("  %s" % g)
             # Write the new .tri file.
             tri.Write(os.path.join(g, 'Components.i.tri'))
             
@@ -472,7 +474,10 @@ class Cart3d(object):
         #  2014.06.16 @ddalle  : First version
         
         # Get the mesh radius.
-        if r is None: r = self.Mesh['MeshRadius']
+        if r is None:
+            r = self.Options['Mesh']['autoInputs']['r']
+        # Exit if set to quit.
+        if not r: return None
         # Get the triangulation file.
         if ftri is None: ftri = 'Components.i.tri'
         # Check for source file.
@@ -500,10 +505,10 @@ class Cart3d(object):
         #  2014.06.16 @ddalle  : First version
         
         # Check if autoInputs should be run.
-        if not self.Mesh['AutoInputs']:
+        if not self.Options['Mesh']['autoInputs']['r']:
             return None
         # Get grid folders.
-        glist = self.x.GetGridFolderNames()
+        glist = np.unique(self.x.GetGroupFolderNames())
         # Common announcement.
         print("  Running 'autoInputs' for grid:")
         # Loop through the grids.
@@ -537,8 +542,10 @@ class Cart3d(object):
         # Versions:
         #  2014.06.16 @ddalle  : First version
         
+        # Get the cubes-specific options.
+        opts = self.Options['Mesh'].get('cubes', {})
         # Get the mesh radius.
-        if maxR is None: maxR = self.Mesh['nRefinements']
+        if maxR is None: maxR = opts.get('maxR', 8)
         # Check for input files.
         if not os.path.isfile('input.c3d'):
             raise IOError("No input file 'input.c3d' found.")
@@ -566,7 +573,7 @@ class Cart3d(object):
         #  2014.06.16 @ddalle  : First version
         
         # Get grid folders.
-        glist = self.x.GetGridFolderNames()
+        glist = np.unique(self.x.GetGroupFolderNames())
         # Common announcement.
         print("  Running 'cubes' for grid:")
         # Loop through the grids.
@@ -602,7 +609,7 @@ class Cart3d(object):
         #  2014.06.16 @ddalle  : First version
         
         # Get the mesh radius.
-        if mg is None: mg = self.Mesh['nMultiGrid']
+        if mg is None: mg = self.Options['flowCart']['mg_fc']
         # Check for input files.
         if not os.path.isfile('Mesh.R.c3d'):
             raise IOError("No mesh file 'Mesh.R.c3d' found.")
@@ -628,7 +635,23 @@ class Cart3d(object):
         #  2014.06.16 @ddalle  : First version
         
         # Get grid folders.
-        glist = self.x.GetGridFolderNames()
+        glist = np.unique(self.x.GetGroupFolderNames())
+        # Get the multigrid numbers
+        mg_fc = self.Options['flowCart'].get('mg_fc', 3)
+        mg_ad = self.Options['adjointCart'].get('mg_ad', 3)
+        # Get the maximum.
+        if mg_fc and mg_ad:
+            # Both numbers specified.
+            mg = max(mg_fc, mg_ad)
+        elif mg_fc:
+            # Just flowCart had multigrid specified.
+            mg = mg_fc
+        else:
+            # Just take whatever's left over.
+            mg = mf_ad
+        # Quit if appropriate.
+        if not mg:
+            return None
         # Common announcement.
         print("  Running 'mgPrep' for grid:")
         # Loop through the grids.
@@ -638,7 +661,7 @@ class Cart3d(object):
             # Announce.
             print("    %s" % g)
             # Run.
-            self.mgPrep(v=False)
+            self.mgPrep(mg=mg, v=False)
             # Change back to home directory.
             os.chdir('..')
     
@@ -658,7 +681,7 @@ class Cart3d(object):
             * 2014.05.28 ``@ddalle``: First version
         """
         # Get the folder names.
-        glist = self.x.GetGridFolderNames()
+        glist = self.x.GetGroupFolderNames()
         dlist = self.x.GetFolderNames()
         # List of files to copy
         f_copy = ['input.c3d', 'Config.xml',
@@ -666,7 +689,7 @@ class Cart3d(object):
         # List of files to link
         f_link = ['Components.i.tri', 'Mesh.R.c3d']
         # Check if a link will break things.
-        if self.RunOptions["nAdapt"] > 0:
+        if self.Options["Adaptation"]["n_adapt_cycles"] > 0:
             # Adapt: copy the mesh.
             f_copy.append('Mesh.mg.c3d')
         else:
@@ -754,15 +777,15 @@ class Cart3d(object):
         # Prepare the run scripts.
         self.CreateRunScripts()
         # Get the trajectory.
-        T = self.x
+        x = self.x
         # Get the folder names.
-        dlist = T.GetFullFolderNames()
+        dlist = x.GetFullFolderNames()
         # Loop through the conditions.
         for i in range(len(dlist)):
             # Get the folder name for this case.
             d = dlist[i]
             # Create a conditions file
-            T.WriteConditionsFile(os.path.join(d, 'Conditions.json'), i)
+            x.WriteConditionsFile(os.path.join(d, 'Conditions.json'), i)
         # End
         return None
         
@@ -789,7 +812,7 @@ class Cart3d(object):
         # Local script name.
         fname_i = 'run_case.sh'
         # Get the grid folder names
-        glist = self.x.GetGridFolderNames()
+        glist = self.x.GetGroupFolderNames()
         # Create the global run script.
         fa = open(fname_all, 'w')
         # Print the first-line magic
@@ -859,31 +882,35 @@ class Cart3d(object):
             * 2014.06.06 ``@ddalle``: Low-level functionality for grid folders
         """
         # Get the name of the .cntl file.
-        fname = self.Options['InputCntl']
+        fname = self.Options.get('InputCntl', 'input.cntl')
+        # Get the run options.
+        opts = self.Options.get('flowCart', {})
+        # Get the configuration settings.
+        conf = self.Options.get('Config', {})
         # Read it.
         self.InputCntl = InputCntl(fname)
         # Process global options...
-        self.InputCntl.SetCFL(self.RunOptions['CFL'])
+        self.InputCntl.SetCFL(opts.get('cfl', 1.0))
         # Extract the trajectory.
-        T = self.x
+        x = self.x
         # Get grid folders.
-        glist = T.GetGridFolderNames()
+        glist = x.GetGroupFolderNames()
         # Write to each "Grid" folder.
         for g in glist:
             self.InputCntl.Write(os.path.join(g, 'input.cntl'))
         # Get the folder names.
-        dlist = T.GetFolderNames()
+        dlist = x.GetFolderNames()
         # Loop through the conditions.
         for i in range(len(dlist)):
             # Print a status update
             print("  Preparing 'input.cntl' for case %i" % i)
             # Set the flight conditions.
-            self.InputCntl.SetMach(T.Mach[i])
-            self.InputCntl.SetAlpha(T.alpha[i])
-            self.InputCntl.SetBeta(T.beta[i])
+            self.InputCntl.SetMach(x.Mach[i])
+            self.InputCntl.SetAlpha(x.alpha[i])
+            self.InputCntl.SetBeta(x.beta[i])
             # Set the Reference values
-            self.InputCntl.SetReferenceArea(self.Config['ReferenceArea'])
-            self.InputCntl.SetReferenceLength(self.Config['ReferenceLength'])
+            self.InputCntl.SetReferenceArea(conf.get('ReferenceArea'))
+            self.InputCntl.SetReferenceLength(conf.get('ReferenceLength'))
             # Destination file name
             fout = os.path.join(glist[i], dlist[i], 'input.cntl')
             # Write the input file.
@@ -921,22 +948,21 @@ class Cart3d(object):
         # Read it.
         self.AeroCsh = AeroCsh(fname)
         # Extract run options
-        opts = self.RunOptions
+        opts_fc = self.Options.get('flowCart', {})
+        opts_ad = self.Options.get('Adaptation', {})
+        opts_cu = self.Options['Mesh'].get('cubes')
         # Process global options
-        self.AeroCsh.SetCFL(opts['CFL'])
-        self.AeroCsh.SetnIter(opts['nIter'])
-        self.AeroCsh.SetnAdapt(opts['nAdapt'])
-        self.AeroCsh.SetnRefinements(self.Mesh['nRefinements'])
-        self.AeroCsh.SetnMultiGrid(self.Mesh['nMultiGrid'])
+        self.AeroCsh.SetCFL(opts_fc.get('cfl', 1.0))
+        self.AeroCsh.SetnIter(opts_fc.get('it_fc', 200))
+        self.AeroCsh.SetnAdapt(opts_ad.get('n_adapt_cycles', 0))
+        self.AeroCsh.SetnRefinements(opts_cu.get('maxR', 8))
+        self.AeroCsh.SetnMultiGrid(opts_fc.get('mg_fc', 3))
         # Extract the trajectory.
-        T = self.x
+        x = self.x
         # Get grid folders.
-        glist = T.GetGridFolderNames()
-        # Write to each "Grid" folder.
-        for g in glist:
-            self.AeroCsh.Write(os.path.join(g, 'aero.csh'))
+        glist = x.GetGroupFolderNames()
         # Get the folder names.
-        dlist = T.GetFolderNames()
+        dlist = x.GetFolderNames()
         # Loop through the conditions.
         for i in range(len(dlist)):
             # Destination file name
@@ -969,14 +995,17 @@ class Cart3d(object):
         fout = os.path.join(dname, 'run_case.sh')
         # Create the file.
         f = open(fout, 'w')
-        # Get the global options.
-        nThreads = self.RunOptions.get('nThreads', 8)
-        nIter    = self.RunOptions.get('nIter', 200)
-        nAdapt   = self.RunOptions.get('nAdapt', 0)
         # Run options
-        mg  = self.Mesh.get('nMultiGrid', 3)
-        tm  = self.RunOptions.get('CutCellGradient', False)
-        cfl = self.RunOptions.get('CFL', 1.0)
+        opts_fc = self.Options.get('flowCart', {})
+        opts_ad = self.Options.get('Adaptation', {})
+        # Get the global options.
+        nThreads = opts_fc.get('nThreads', 8)
+        nIter    = opts_fc.get('it_fc', 200)
+        nAdapt   = opts_ad.get('n_adapt_cycles', 0)
+        # Run options
+        mg  = opts_fc.get('mg_fc', 3)
+        tm  = opts_fc.get('tm', False)
+        cfl = opts_fc.get('cfl', 1.0)
         # Write the shell magic.
         f.write('#!/bin/bash\n\n')
         # Set the number of processors.
