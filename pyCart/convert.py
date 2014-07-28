@@ -79,7 +79,7 @@ def AlphaBeta2AlphaTPhi(alpha, beta):
     w = ca * sb
     # Convert to alpha, beta
     phi = _np.arctan2(v, w) * 180/_np.pi
-    alpha_t = _np.arcsin(v) * 180/_np.pi
+    alpha_t = _np.arccos(u) * 180/_np.pi
     # Output
     return alpha_t, phi
     

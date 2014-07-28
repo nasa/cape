@@ -76,6 +76,7 @@ def _getPyCartDefaults():
             "..", "settings", "pyCart.default.json")).readlines()
     # Strip comments and join list into a single string.
     lines = stripComments(lines, '#')
+    lines = stripComments(lines, '//')
     # Process the default input file.
     return json.loads(lines)
     
@@ -83,7 +84,7 @@ def _getPyCartDefaults():
 # Class to read input files
 class Cart3d:
     """
-    Class for handling global options for Cart3D run cases.
+    Class for handling global options and setup for Cart3D.
     
     This class is intended to handle all settings used to describe a group
     of Cart3D cases.  For situations where it is not sufficiently
@@ -109,21 +110,23 @@ class Cart3d:
             Instance of the pyCart control class
     
     :Data members:
-        *Grid*: :class:`dict`
-            Dictionary containing grid-related parameters
-        *RunOptions*: :class:`dict`
-            Dictionary containing run-related parameters
-        *Trajectory*: :class:`pyCart.trajectory.Trajectory`
-            Trajectory description read from file
+        *cart3d.Options*: :class:`dict`
+            Dictionary of options for this case (directly from *fname*)
+        *cart3d.x*: :class:`pyCart.trajectory.Trajectory`
+            Values and definitions for variables in the run matrix
+        *cart3d.RootDir*: :class:`str`
+            Absolute path to the root directory
+    
+    :Versions:
+        * 2014.05.28 ``@ddalle``  : First version
+        * 2014.06.03 ``@ddalle``  : Renamed class 'Cntl' --> 'Cart3d'
+        * 2014.06.30 ``@ddalle``  : Reduced number of data members
+        * 2014.07.27 ``@ddalle``  : 'cart3d.Trajectory' --> 'cart3d.x'
     """
     
     # Initialization method
     def __init__(self, fname="pyCart.json"):
         """Initialization method for :mod:`pyCart.cart3d.Cart3d`"""
-        # Versions:
-        #  2014.05.28 @ddalle  : First version
-        #  2014.06.03 @ddalle  : Renamed class 'Cntl' --> 'Cart3d'
-        
         # Process the default input file.
         defs = _getPyCartDefaults()
         
@@ -131,22 +134,21 @@ class Cart3d:
         lines = open(fname).readlines()
         # Strip comments.
         lines = stripComments(lines, '#')
+        lines = stripComments(lines, '//')
         # Process the actual input file.
         opts = json.loads(lines)
         
         # Apply missing settings from defaults.
         opts = _procDefaults(opts, defs)
         
-        # Save the major keys.
-        self.RunOptions = opts["RunOptions"]
-        self.Mesh = opts["Mesh"]
-        self.Config = opts["Config"]
-        
         # Process the trajectory.
-        self.Trajectory = Trajectory(**opts['Trajectory'])
+        self.x = Trajectory(**opts['Trajectory'])
         
         # Save all the options as a reference.
-        self.Options = opts        
+        self.Options = opts
+        
+        # Save the current directory as the root.
+        self.RootDir = os.path.split(os.path.abspath(fname))[0]
         
         
     # Output representation
@@ -156,11 +158,78 @@ class Cart3d:
         #  2014.05.28 @ddalle  : First version
         
         # Display basic information from all three areas.
-        return "<pyCart.Cart3d(nCase=%i, nIter=%i, tri='%s')>" % (
-            self.Trajectory.nCase, self.RunOptions['nIter'],
-            self.Mesh['TriFile'])
+        return "<pyCart.Cart3d(nCase=%i, tri='%s')>" % (
+            self.x.nCase,
+            self.Options['Mesh']['TriFile'])
         
     
+    # Check for root location
+    def CheckRootDir(self):
+        """
+        Check if the current directory is the case root directory
+        
+        :Call:
+            >>> q = cart3d.CheckRootDir()
+        
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Global pyCart settings object instance
+        
+        :Outputs:
+            *q*: :class:`bool`
+                True if current working directory is the case root directory
+        """
+        # Versions:
+        #  2014.06.30 @ddalle  : First version
+        
+        # Compare the working directory and the stored root directory.
+        return os.path.abspath('.') == self.RootDir
+    
+    # Check for group location
+    def CheckGroupDir(self):
+        """
+        Check if the current directory is a group-level directory
+        
+        :Call:
+            >>> q = cart3d.CheckGroupDir()
+        
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Global pyCart settings object instance
+        
+        :Outputs:
+            *q*: :class:`bool`
+                True if current working directory is a group-level directory
+        """
+        # Versions:
+        #  2014.06.30 @ddalle  : First version
+        
+        # Compare the working directory and the stored root directory.
+        return os.path.abspath('..') == self.RootDir
+    
+    # Check for group location
+    def CheckCaseDir(self):
+        """
+        Check if the current directory is a group-level directory
+        
+        :Call:
+            >>> q = cart3d.CheckGroupDir()
+        
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Global pyCart settings object instance
+        
+        :Outputs:
+            *q*: :class:`bool`
+                True if current working directory is a group-level directory
+        """
+        # Versions:
+        #  2014.06.30 @ddalle  : First version
+        
+        # Compare the working directory and the stored root directory.
+        return os.path.abspath(os.path.join('..','..')) == self.RootDir
+        
+        
     # Method to create the folders
     def CreateFolders(self):
         """
@@ -180,7 +249,7 @@ class Cart3d:
         #  2014.05.28 @ddalle  : First version
         
         # Use the trajectory method.
-        self.Trajectory.CreateFolders()
+        self.x.CreateFolders()
         return None
         
         
@@ -235,9 +304,9 @@ class Cart3d:
         #  2014.06.23 @ddalle  : First version
         
         # Loop through groups.
-        for i in range(len(self.Trajectory.GroupX)):
+        for i in range(len(self.x.GroupX)):
             # Write the conditions file.
-            self.Trajectory.WriteGridConditionsFile(i=i)
+            self.x.WriteGridConditionsFile(i=i)
         
     # Method to copy 'Config.xml' to all grid folders.
     def Grids_CopyConfigFile(self, fxml=None):
@@ -262,7 +331,7 @@ class Cart3d:
         if not os.path.isfile(fxml):
             return None
         # Get grid folders.
-        glist = self.Trajectory.GetGridFolderNames()
+        glist = self.x.GetGridFolderNames()
         # Loop through the grids.
         for g in glist:
             # Copy the file.
@@ -305,7 +374,7 @@ class Cart3d:
             # Just read the triangulation file.
             tri = Tri(ftri)
         # Get grid folders.
-        glist = self.Trajectory.GetGridFolderNames()
+        glist = self.x.GetGridFolderNames()
         # Announce.
         print("Writing 'Components.i.tri' for case:")
         # Loop through the grids.
@@ -371,7 +440,7 @@ class Cart3d:
         if not self.Mesh['AutoInputs']:
             return None
         # Get grid folders.
-        glist = self.Trajectory.GetGridFolderNames()
+        glist = self.x.GetGridFolderNames()
         # Common announcement.
         print("  Running 'autoInputs' for grid:")
         # Loop through the grids.
@@ -434,7 +503,7 @@ class Cart3d:
         #  2014.06.16 @ddalle  : First version
         
         # Get grid folders.
-        glist = self.Trajectory.GetGridFolderNames()
+        glist = self.x.GetGridFolderNames()
         # Common announcement.
         print("  Running 'cubes' for grid:")
         # Loop through the grids.
@@ -496,7 +565,7 @@ class Cart3d:
         #  2014.06.16 @ddalle  : First version
         
         # Get grid folders.
-        glist = self.Trajectory.GetGridFolderNames()
+        glist = self.x.GetGridFolderNames()
         # Common announcement.
         print("  Running 'mgPrep' for grid:")
         # Loop through the grids.
@@ -529,8 +598,8 @@ class Cart3d:
         #  2014.05.28 @ddalle  : First version
         
         # Get the folder names.
-        glist = self.Trajectory.GetGridFolderNames()
-        dlist = self.Trajectory.GetFolderNames()
+        glist = self.x.GetGridFolderNames()
+        dlist = self.x.GetFolderNames()
         # List of files to copy
         f_copy = ['input.c3d', 'Config.xml',
             'Mesh.c3d.Info', 'preSpec.c3d.cntl']
@@ -628,7 +697,7 @@ class Cart3d:
         # Prepare the run scripts.
         self.CreateRunScripts()
         # Get the trajectory.
-        T = self.Trajectory
+        T = self.x
         # Get the folder names.
         dlist = T.GetFullFolderNames()
         # Loop through the conditions.
@@ -663,7 +732,7 @@ class Cart3d:
         # Local script name.
         fname_i = 'run_case.sh'
         # Get the grid folder names
-        glist = self.Trajectory.GetGridFolderNames()
+        glist = self.x.GetGridFolderNames()
         # Create the global run script.
         fa = open(fname_all, 'w')
         # Print the first-line magic
@@ -687,7 +756,7 @@ class Cart3d:
         # Make the script executable.
         os.chmod(fname_all, 0750)
         # Get the folder names.
-        dlist = self.Trajectory.GetFolderNames()
+        dlist = self.x.GetFolderNames()
         # Loop through the folders.
         for i in range(len(dlist)):
             # Change to the appropriate grid folder.
@@ -739,7 +808,7 @@ class Cart3d:
         # Process global options...
         self.InputCntl.SetCFL(self.RunOptions['CFL'])
         # Extract the trajectory.
-        T = self.Trajectory
+        T = self.x
         # Get grid folders.
         glist = T.GetGridFolderNames()
         # Write to each "Grid" folder.
@@ -803,7 +872,7 @@ class Cart3d:
         self.AeroCsh.SetnRefinements(self.Mesh['nRefinements'])
         self.AeroCsh.SetnMultiGrid(self.Mesh['nMultiGrid'])
         # Extract the trajectory.
-        T = self.Trajectory
+        T = self.x
         # Get grid folders.
         glist = T.GetGridFolderNames()
         # Write to each "Grid" folder.
@@ -841,7 +910,7 @@ class Cart3d:
         #  2014.05.30 @ddalle  : First version
         
         # Get the folder name.
-        dname = self.Trajectory.GetFullFolderNames(i=i)
+        dname = self.x.GetFullFolderNames(i=i)
         # File name
         fout = os.path.join(dname, 'run_case.sh')
         # Create the file.
@@ -912,7 +981,7 @@ class Cart3d:
         if not hasattr(self, 'LoadsCC'):
             self.GetLoadsCC()
         # Write.
-        self.LoadsCC.Write(self.Trajectory)
+        self.LoadsCC.Write(self.x)
         return None
         
     # Function to read "loadsCC.dat" files
@@ -956,7 +1025,7 @@ class Cart3d:
         if not hasattr(self, 'LoadsTRI'):
             self.GetLoadsTRI()
         # Write.
-        self.LoadsTRI.Write(self.Trajectory)
+        self.LoadsTRI.Write(self.x)
         return None
         
         
@@ -983,6 +1052,10 @@ def stripComments(lines, char='#'):
     
     # Start with the first line.
     i = 0
+    # Check for combined lines.
+    if type(lines) == str:
+        # Split into lines.
+        lines = lines.split('\n')
     # Loop until last line
     while i < len(lines):
         # Get the line and strip leading and trailing white space.

@@ -460,9 +460,12 @@ class Trajectory:
         #  2014.06.05 @ddalle  : First version
         
         # Initialize folder name.
-        if prefix:
+        if prefix and keys:
             # Use a prefix if it's any non-empty thing.
             dname = str(prefix) + "_"
+        elif prefix:
+            # The prefix is likely to be the whole name.
+            dname = str(prefix)
         else:
             # Initialize an empty string.
             dname = ""
