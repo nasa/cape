@@ -20,6 +20,11 @@ Grid*
 # Any subfolder of an example
 examples/*/*/
 
+# Shell files placed in examples.
+examples/*/*.sh
+examples/*/*.csh
+examples/*/*.bash
+
 # Documentation outputs
 doc/_*
 

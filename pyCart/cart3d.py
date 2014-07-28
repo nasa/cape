@@ -15,6 +15,10 @@ import json
 # File system and operating system management
 import os, shutil
 
+# pyCart settings class
+import options
+
+
 # Import the trajectory class
 from trajectory import Trajectory
 # Read "loadsXX.dat" files
@@ -78,47 +82,6 @@ def _upgradeDocString(docstr, fromclass):
 # Change the umask to a reasonable value.
 os.umask(0027)
 
-# Get the keys of the default dict.
-def _procDefaults(opts, defs):
-    """
-    Apply defaults for any missing options.
-    """
-    # Versions:
-    #  2014.06.17 @ddalle  : First version
-    
-    # Loop through the keys in the options dict.
-    for k in opts.keys():
-        # Check if the key is non-default.
-        if k not in defs:
-            # Assign the key.
-            defs[k] = opts[k]
-        elif type(opts[k]) is dict:
-            # Recurse for dictionaries.
-            defs[k] = _procDefaults(opts[k], defs[k])
-        else:
-            # Simple assignment; get the optional value.
-            defs[k] = opts[k]
-    # Output the modified defaults.
-    return defs
-
-
-# Function to get the defaults
-def _getPyCartDefaults():
-    """
-    Get default pyCart JSON settings.  To change default pyCart settings, edit
-    the 'pyCart.default.json' file in the settings directory.
-    """
-    # Versions:
-    #  2014.06.03 @ddalle  : First version
-    
-    # Read the default input file.
-    lines = open(os.path.join(PyCartFolder, 
-            "..", "settings", "pyCart.default.json")).readlines()
-    # Strip comments and join list into a single string.
-    lines = stripComments(lines, '#')
-    lines = stripComments(lines, '//')
-    # Process the default input file.
-    return json.loads(lines)
 # ---------------------------------
 #-->
     
@@ -169,19 +132,9 @@ class Cart3d(object):
     # Initialization method
     def __init__(self, fname="pyCart.json"):
         """Initialization method for :mod:`pyCart.cart3d.Cart3d`"""
-        # Process the default input file.
-        defs = _getPyCartDefaults()
-        
-        # Read the specified input file.
-        lines = open(fname).readlines()
-        # Strip comments.
-        lines = stripComments(lines, '#')
-        lines = stripComments(lines, '//')
-        # Process the actual input file.
-        opts = json.loads(lines)
         
         # Apply missing settings from defaults.
-        opts = _procDefaults(opts, defs)
+        opts = options.Options(fname=fname)
         
         # Process the trajectory.
         self.x = Trajectory(**opts['Trajectory'])
@@ -1110,48 +1063,6 @@ class Cart3d(object):
         # Write.
         self.LoadsTRI.Write(self.x)
         return None
-        
-        
-# Function to delete comment lines.
-def stripComments(lines, char='#'):
-    """
-    Delete lines that begin with a certain comment character.
-    
-    :Call:
-        >>> txt = stripComments(lines, char='#')
-    
-    :Inputs:
-        *lines*: :class:`list` of :class:`str`
-            List of lines
-        *char*: :class:`str`
-            String that represents start of a comment
-        
-    :Outputs:
-        *txt*: :class:`str`
-            Lines joined into a single string but with comments removed
-            
-    :Versions:
-        * 2014.06.03 ``@ddalle``: First version
-    """
-    # Start with the first line.
-    i = 0
-    # Check for combined lines.
-    if type(lines) == str:
-        # Split into lines.
-        lines = lines.split('\n')
-    # Loop until last line
-    while i < len(lines):
-        # Get the line and strip leading and trailing white space.
-        line = lines[i].strip()
-        # Check it.
-        if line.startswith(char):
-            # Remove it.
-            lines.__delitem__(i)
-        else:
-            # Move to the next line.
-            i += 1
-    # Return the remaining lines.
-    return "".join(lines)
     
 
 
