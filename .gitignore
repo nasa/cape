@@ -14,6 +14,12 @@
 # Cart3D setup/grid folders
 Grid*
 
+# Post-processing folders
+
+
+# Any subfolder of an example
+examples/*/*/
+
 # Documentation outputs
 doc/_*
 
