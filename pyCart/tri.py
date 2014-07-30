@@ -933,7 +933,7 @@ def ReadTri(fname):
             Triangulation instance
     
     :Examples:
-        >>> (nNode, Nodes,  = pyCart.ReadTri('bJet.i.tri')
+        >>> nNode, Nodes,  = pyCart.ReadTri('bJet.i.tri')
         >>> tri.nNode
         92852
     """

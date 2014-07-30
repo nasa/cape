@@ -32,6 +32,118 @@ _fname = os.path.abspath(__file__)
 # Saved folder names
 PyCartFolder = os.path.split(_fname)[0]
 
+# Utility function to get elements sanely
+def getel(x, i=None):
+    """
+    Return the *i*th element of an array if possible
+    
+    :Call:
+        >>> xi = getel(x)
+        >>> xi = getel(x, i)
+        
+    :Inputs:
+        *x*: number-like or list-like
+            A number or list or NumPy vector
+        *i*: :class:`int`
+            Index.  If not specified, treated as though *i* is ``0``
+            
+    :Outputs:
+        *xi*: scalar
+            Equal to ``x[i]`` if possible, ``x[-1]`` if *i* is greater than the
+            length of *x*, or ``x`` if *x* is not a :class:`list` or
+            :class:`numpy.ndarray` instance
+    
+    :Examples:
+        >>> getel('abc', 2)
+        'abc'
+        >>> getel(1.4, 0)
+        1.4
+        >>> getel([200, 100, 300], 1)
+        100
+        >>> getel([200, 100, 300], 15)
+        300
+        >>> getel([200, 100, 300])
+        200
+        
+    :Versions:
+        * 2014.07.29 ``@ddalle``: First version
+    """
+    # Check the type.
+    if type(x).__name__ in ['list', 'array']:
+        # Check for empty input.
+        if len(x) == 0:
+            return None
+        # Array-like
+        if i:
+            # Check the length.
+            if i >= len(x):
+                # Take the last element.
+                return x[-1]
+            else:
+                # Take the *i*th element.
+                return x[i]
+        else:
+            # Use the first element.
+            return x[0]
+    else:
+        # Scalar
+        return x
+        
+# Utility function to set elements sanely
+def setel(x, i, xi):
+    """
+    Return the *i*th element of an array if possible
+    
+    :Call:
+        >>> y = setel(x, i, xi)
+        
+    :Inputs:
+        *x*: number-like or list-like
+            A number or list or NumPy vector
+        *i*: :class:`int`
+            Index to set.  If *i* is ``None``, the output is reset to *xi*
+        *xi*: scalar
+            Value to set at scalar
+            
+    :Outputs:
+        *y*: number-like or list-like
+            Input *x* with ``y[i]`` set to ``xi`` unless *i* is ``None``
+    
+    :Examples:
+        >>> setel(['a', 2, 'c'], 1, 'b')
+        ['a', 'b', 'c']
+        >>> setel(['a', 'b'], 2, 'c')
+        ['a', 'b', 'c']
+        >>> setel('a', 2, 'c')
+        ['a', None, 'b']
+        >>> setel([0, 1], None, 'a')
+        'a'
+        
+    :Versions:
+        * 2014.07.29 ``@ddalle``: First version
+    """
+    # Check the index input.
+    if i is None:
+        # Scalar output
+        return xi
+    # Ensure list.
+    if type(x).__name__ == 'array':
+        y = list(x)
+    elif type(x).__name__ != 'list':
+        y = [x]
+    # Make sure *y* is long enough.
+    for j in range(len(y), i):
+        y.append(None)
+    # Check if we are setting an element or appending it.
+    if i >= len(y):
+        # Append
+        y.append(xi)
+    else:
+        # Set the value.
+        y[i] = xi
+    # Output
+    return y
+    
 
 # Class definition
 class Options(dict):
@@ -77,6 +189,27 @@ class Options(dict):
             
     # Method to get the input file
     
+    # ===================
+    # flowCart parameters
+    # ===================
+    
+    # Number of iterations
+    def get_it_fc(self, it_fc=200):
+        """Return the number of iteractions for `flowCart`"""
+        # Get the flowCart settings safely.
+        opts_fc = self.get('flowCart', {})
+        # Return the iteration number
+        return opts_fc.get('it_fc', it_fc)
+    def set_it_fc(self, it_fc=200):
+        """Set the number of iterations for `flowCart`"""
+        # Ensure flowCart settings.
+        self.setdefault('flowCart', {})
+        # Set the iteration count
+        self['flowCart']['it_fc'] = it_fc
+        
+    # CFL number
+    
+    
     # ================
     # multigrid levels
     # ================
@@ -107,7 +240,6 @@ class Options(dict):
         self.setdefault('adjointCart', {})
         # Set the multigrid levels
         self['adjointCart']['mg_ad'] = mg_ad
-        
         
     # Method to get the number of multigrid levels
     def get_mg(self, mg=3):
@@ -184,7 +316,7 @@ class Options(dict):
     # Refinement levels
     def get_maxR(self, maxR=10):
         """Get the value for `cubes` maximum refinement levels"""
-        # Get to the `cubes` sectionsfaely.
+        # Get to the `cubes` section safely.
         opts_cubes = self.get('Mesh',{}).get('cubes',{})
         # Get the refinement count.
         return opts_cubes.get('maxR')
@@ -195,6 +327,33 @@ class Options(dict):
         self['Mesh'].setdefault('cubes', {})
         # Apply the setting.
         self['Mesh']['cubes']['maxR'] = maxR
+        
+        
+    # ==========
+    # Adaptation
+    # ==========
+    
+    # Number of adaptations
+    def get_n_adapt_cycles(self, n_adapt_cycles=0):
+        """Get the number of adaptation cycles"""
+        # Get the adaptation settings.
+        opts_a = self.get('Adaptation', {})
+        # Get the number of adaptations.
+        return opts_a.get('n_adapt_cycles', n_adapt_cycles)
+    def set_n_adapt_cycles(self, n_adapt_cycles=0):
+        """Set the number of adaptation cycles"""
+        # Make sure the adaptation settings exist.
+        self.setdefault('Adaptation', {})
+        # Apply the setting.
+        self['Adaptation']['n_adapt_cycles'] = n_adapt_cycles
+    def get_nAdapt(self, n_adapt_cycles=0):
+        """Alias for get_n_adapt_cycles"""
+        return self.get_n_adapt_cycles(n_adapt_cycles)
+    def set_nAdapt(self, n_adapt_cycles=0):
+        """Alias for set_n_adapt_cycles"""
+        self.set_n_adapt_cycles(n_adapt_cycles)
+        
+    
 
     
 
