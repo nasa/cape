@@ -24,60 +24,8 @@ value of a given parameter should be is below.
 # Import options-specific utilities
 from util import *
 
-
-# Backup default settings (in case deleted from :file:`pyCart.defaults.json`)
-rc = {
-    "InputCntl": "input.cntl",
-    "AeroCsh": "aero.csh",
-    "it_fc": 200,
-    "cfl": 1.1,
-    "cflmin": 0.8,
-    "mg_fc": 3,
-    "limiter": 2,
-    "y_is_spanwise": True,
-    "binaryIO": True,
-    "OMP_NUM_THREADS": 8,
-    "tm": False,
-    "it_ad": 120,
-    "mg_ad": 3,
-    "n_adapt_cycles": 0,
-    "etol": 1.0e-6,
-    "max_nCells": 5e6,
-    "ws_it": [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 100],
-    "mesh_growth": [1.5, 1.5, 2.0, 2.0, 2.0, 2.0, 2.5],
-    "apc": ["p", "a"],
-    "TriFile": "Components.i.tri",
-    "mesh2d": False,
-    "r": 8,
-    "maxR": 11,
-    "pre": "preSpec.c3d.cntl",
-    "cubes_a": 10,
-    "cubes_b": 2,
-    "reorder": True
-}
-    
-
-# Function to ensure scalar from above
-def rc0(p):
-    """
-    Return default setting from ``pyCart.options.rc``, but ensure a scalar
-    
-    :Call:
-        >>> v = rc0(s)
-        
-    :Inputs:
-        *s*: :class:`str`
-            Name of parameter to extract
-        
-    :Outputs:
-        *v*: any
-            Either ``rc[s]`` or ``rc[s][0]``, whichever is appropriate
-    
-    :Versions:
-        * 2014.08.01 ``@ddalle``: First version
-    """
-    # Use the `getel` function to do this.
-    return getel(rc[p], 0)
+# Import modules for controlling specific parts of Cart3D
+from .flowCart import flowCart
 
 
     
@@ -122,9 +70,26 @@ class Options(dict):
         # Store the data in *this* instance
         for k in kw:
             self[k] = kw[k]
+        # Upgrade important groups to their own classes.
+        self._flowCart()
             
+    
+    
+    # Protective method to make sure that flowCart options are present.
+    def _flowCart(self):
+        """Ensure that `flowCart` options are present"""
+        # Check for missing entirely.
+        if 'flowCart' not in self:
+            # Empty/default
+            self['flowCart'] = flowCart()
+        elif type(self['flowCart']).__name__ == 'dict':
+            # Convert to special class.
+            self['flowCart'] = flowCart(**self['flowCart'])
+    
             
     # Method to get the input file
+    
+    
     
     # ===================
     # flowCart parameters
@@ -132,22 +97,18 @@ class Options(dict):
     
     # Number of iterations
     def get_it_fc(self, i=None):
-        """Return the number of iterations for `flowCart`"""
-        # Get the flowCart settings safely.
-        opts_fc = self.get('flowCart', {})
-        # Return the iteration number
-        it_fc = opts_fc.get('it_fc', rc["it_fc"])
-        # Safe indexing
-        return getel(it_fc, i)
+        self._flowCart()
+        return self['flowCart'].get_it_fc(i)
+        
     # Set flowCart iteration count
     def set_it_fc(self, it_fc=rc0('it_fc'), i=None):
-        """Set the number of iterations for `flowCart`"""
-        # Ensure flowCart settings
-        self.setdefault('flowCart', {})
-        # Get current setting safely
-        IT_FC = self['flowCart'].get('it_fc', rc['it_fc']) 
-        # Set the iteration count
-        self['flowCart']['it_fc'] = setel(IT_FC, i, it_fc)
+        self._flowCart()
+        self['flowCart'].set_it_fc(it_fc, i)
+        
+        
+    # Copy over the documentation.
+    get_it_fc.__doc__ = flowCart.get_it_fc.__doc__
+    set_it_fc.__doc__ = flowCart.set_it_fc.__doc__
         
     # CFL number
     def get_cfl(self, i=None):
