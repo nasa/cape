@@ -105,15 +105,12 @@ class Cart3d(object):
     
     :Call:
         >>> cart3d = pyCart.Cart3d(fname="pyCart.json")
-        
     :Inputs:
         *fname*: :class:`str`
             Name of pyCart input file
-            
     :Outputs:
         *cart3d*: :class:`pyCart.cart3d.Cart3d`
             Instance of the pyCart control class
-    
     :Data members:
         *cart3d.opts*: :class:`dict`
             Dictionary of options for this case (directly from *fname*)
@@ -121,12 +118,11 @@ class Cart3d(object):
             Values and definitions for variables in the run matrix
         *cart3d.RootDir*: :class:`str`
             Absolute path to the root directory
-    
     :Versions:
         * 2014.05.28 ``@ddalle``  : First version
-        * 2014.06.03 ``@ddalle``  : Renamed class 'Cntl' --> 'Cart3d'
+        * 2014.06.03 ``@ddalle``  : Renamed class `Cntl` --> `Cart3d`
         * 2014.06.30 ``@ddalle``  : Reduced number of data members
-        * 2014.07.27 ``@ddalle``  : 'cart3d.Trajectory' --> 'cart3d.x'
+        * 2014.07.27 ``@ddalle``  : `cart3d.Trajectory` --> `cart3d.x`
     """
     
     # Initialization method
