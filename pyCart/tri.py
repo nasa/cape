@@ -19,19 +19,20 @@ import os
 
 
 # Triangulation class
-class TriBase:
-    """
-    pyCart base triangulation class
+class TriBase(object):
+    """pyCart base triangulation class
     
     This class provides an interface for a basic triangulation without
     surface data.  It can be created either by reading an ASCII file or
     specifying the data directly.
     
+    When no component numbers are specified, the object created will label
+    all triangles ``1``.
+    
     :Call:
         >>> tri = pyCart.tri.TriBase(fname=fname)
         >>> tri = pyCart.tri.TriBase(uh3d=uh3d)
         >>> tri = pyCart.tri.TriBase(Nodes=Nodes, Tris=Tris, CompID=CompID)
-        
     :Inputs:
         *fname*: :class:`str`
             Name of triangulation file to read (Cart3D format)
@@ -47,7 +48,6 @@ class TriBase:
             Indices of triangle vertex nodes
         *CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
             Component number for each triangle
-            
     :Data members:
         *tri.nNode*: :class:`int`
             Number of nodes in triangulation
@@ -59,9 +59,9 @@ class TriBase:
             Indices of triangle vertex nodes
         *tri.CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
             Component number for each triangle
-    
-    When no component numbers are specified, the object created will label
-    all triangles ``1``.
+    :Versions:
+        * 2014.05.23 ``@ddalle``: First version
+        * 2014.06.02 ``@ddalle``: Added UH3D reading capability
     """
     # Initialization method
     def __init__(self, fname=None, uh3d=None,
@@ -112,13 +112,13 @@ class TriBase:
         
     # Method that shows the representation of a triangulation
     def __repr__(self):
-        """
-        Return the string representation of a triangulation.
+        """Return the string representation of a triangulation.
         
         This looks like ``<pyCart.tri.Tri(nNode=M, nTri=N)>``
+        
+        :Versions:
+            * 2014.05.27 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.05.27 @ddalle  : First version
         return '<pyCart.tri.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
         
     # String representation is the same
@@ -127,12 +127,10 @@ class TriBase:
     
     # Function to read node coordinates from .triq+ file
     def ReadNodes(self, f, nNode):
-        """
-        Read node coordinates from a .tri file.
+        """Read node coordinates from a .tri file.
         
         :Call:
             >>> tri.ReadNodes(f, nNode)
-            
         :Inputs:
             *tri*: :class:`pyCart.tri.TriBase` or derivative
                 Triangulation instance
@@ -140,13 +138,11 @@ class TriBase:
                 Open file handle
             *nNode*: :class:`int`
                 Number of nodes to read
-        
         :Effects:
             Reads and creates *tri.Nodes*; file remains open.
+        :Versions:
+            * 2014.06.16 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.16 @ddalle  : First version
-        
         # Save the node count.
         self.nNode = nNode
         # Read the nodes.
@@ -156,12 +152,10 @@ class TriBase:
         
     # Function to read triangle indices from .triq+ files
     def ReadTris(self, f, nTri):
-        """
-        Read triangle node indices from a .tri file.
+        """Read triangle node indices from a .tri file.
         
         :Call:
             >>> tri.ReadTris(f, nTri)
-            
         :Inputs:
             *tri*: :class:`pyCart.tri.TriBase` or derivative
                 Triangulation instance
@@ -169,13 +163,11 @@ class TriBase:
                 Open file handle
             *nTri*: :class:`int`
                 Number of tris to read
-        
         :Effects:
             Reads and creates *tri.Tris*; file remains open.
+        :Versions:
+            * 2014.06.16 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.16 @ddalle  : First version
-        
         # Save the tri count.
         self.nTri = nTri
         # Read the Tris
@@ -185,25 +177,21 @@ class TriBase:
         
     # Function to read the component identifiers
     def ReadCompID(self, f):
-        """
-        Read component IDs from a .tri file.
+        """Read component IDs from a .tri file.
         
         :Call:
             >>> tri.ReadCompID(f)
-            
         :Inputs:
             *tri*: :class:`pyCart.tri.TriBase` or derivative
                 Triangulation instance
             *f*: :class:`str`
                 Open file handle
-        
         :Effects:
             Reads and creates *tri.CompID* if not at end of file.  Otherwise all
             components are labeled ``1``.
+        :Versions:
+            * 2014.06.16 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.16 @ddalle  : First version
-        
         # Check for end of file.
         if f.tell() == os.fstat(f.fileno()).st_size:
             # Use default component ids.
@@ -215,24 +203,20 @@ class TriBase:
         
     # Function to read a .tri file
     def Read(self, fname):
-        """
-        Read a triangulation file (from ``*.tri``)
+        """Read a triangulation file (from ``*.tri``)
         
         :Call:
             >>> tri.Read(fname)
-            
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance
             *fname*: :class:`str`
                 Name of triangulation file to read
-        
         :Outputs:
             ``None``
+        :Versions:
+            * 2014.06.02 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.02 @ddalle  : Split from initialization method.
-        
         # Open the file
         fid = open(fname, 'r')
         # Read the first line.
@@ -253,28 +237,21 @@ class TriBase:
     
     # Function to write a triangulation to file.
     def Write(self, fname):
-        """
-        Write a triangulation to file
+        """Write a triangulation to file
         
         :Call:
             >>> tri.Write(fname)
-        
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance to be translated
             *fname*: :class:`str`
                 Name of triangulation file to create
-                
-        :Outputs:
-            ``None``
-            
         :Examples:
             >>> tri = pyCart.ReadTri('bJet.i.tri')
             >>> tri.Write('bjet2.tri')
+        :Versions:
+            * 2014.05.23 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.05.23 @ddalle  : First version
-        
         # Open the file for creation.
         fid = open(fname, 'w')
         # Write the number of nodes and triangles.
@@ -291,23 +268,19 @@ class TriBase:
         
     # Function to copy a triangulation and unlink it.
     def Copy(self):
-        """
-        Copy a triangulation and unlink it
+        """Copy a triangulation and unlink it
         
         :Call:
             >>> tri2 = tri.Copy()
-            
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance
-                
         :Outputs:
             *tri2*: :class:`pyCart.tri.Tri`
                 Triangulation with same values as *tri* but not linked
+        :Versions:
+            * 2014.06.12 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.12 @ddalle  : First version
-        
         # Make a new triangulation with no information.
         tri = Tri()
         # Copy over the scalars.
@@ -323,24 +296,18 @@ class TriBase:
         
     # Read from a .uh3d file.
     def ReadUH3D(self, fname):
-        """
-        Read a triangulation file (from ``*.uh3d``)
+        """Read a triangulation file (from ``*.uh3d``)
         
         :Call:
             >>> tri.ReadUH3D(fname)
-            
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance
             *fname*: :class:`str`
                 Name of triangulation file to read
-        
-        :Outputs:
-            ``None``
+        :Versions:
+            * 2014.06.02 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.02 @ddalle  : First version
-        
         # Open the file
         fid = open(fname, 'r')
         # Read the first line and discard.
@@ -384,28 +351,21 @@ class TriBase:
         
     # Get normals and areas
     def GetNormals(self):
-        """
-        Get the normals and areas of each triangle
+        """Get the normals and areas of each triangle
         
         :Call:
             >>> tri.GetNormals()
-            
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance
-        
-        :Outputs:
-            ``None``
-            
         :Effects:
             *tri.Areas*: :class:`ndarray`, shape=(tri.nTri,)
                 Area of each triangle is created
             *tri.Normals*: :class:`ndarray`, shape=(tri.nTri,3)
                 Unit normal for each triangle is saved
+        :Versions:
+            * 201.06.12 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.12 @ddalle  : First version
-        
         # Extract the vertices of each tri.
         x = self.Nodes[self.Tris-1, 0]
         y = self.Nodes[self.Tris-1, 1]
@@ -432,18 +392,19 @@ class TriBase:
     
     # Function to translate the triangulation
     def Translate(self, dx=None, dy=None, dz=None):
-        """
-        Translate the nodes of a triangulation object.
+        """Translate the nodes of a triangulation object.
+            
+        The offset coordinates may be specified as individual inputs or a
+        single vector of three coordinates.
         
         :Call:
             >>> tri.Translate(dR)
             >>> tri.Translate(dx, dy, dz)
             >>> tri.Translate(dy=dy)
-        
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance to be translated
-            *dR*: :class:`numpy.array` or `list`
+            *dR*: :class:`numpy.ndarray` or :class:`list`
                 List of three coordinates to use for translation
             *dx*: :class:`float`
                 *x*-coordinate offset
@@ -451,18 +412,11 @@ class TriBase:
                 *y*-coordinate offset
             *dz*: :class:`float`
                 *z*-coordinate offset
-        
-        :Outputs:
-            ``None``
-            
-        This function translates a triangulation.  The offset coordinates may be
-        specified as individual inputs or a single vector of three coordinates.
+        :Versions:
+            * 2014.05.23 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.05.23 @ddalle  : First version
-        
         # Check the first input type.
-        if type(dx).__name__ == 'ndarray':
+        if type(dx).__name__ in ['list', 'ndarray']:
             # Vector
             dy = dx[1]
             dz = dx[2]
@@ -485,12 +439,10 @@ class TriBase:
         
     # Function to rotate a triangulation about an arbitrary vector
     def Rotate(self, v1, v2, theta):
-        """
-        Rotate the nodes of a triangulation object.
+        """Rotate the nodes of a triangulation object.
         
         :Call:
             >>> tri.Rotate(v1, v2, theta)
-        
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance to be rotated
@@ -500,13 +452,9 @@ class TriBase:
                 End point of rotation vector
             *theta*: :class:`float`
                 Rotation angle in degrees
-            
-        :Outputs:
-            ``None``
+        :Versions:
+            * 2014.05.27 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.05.27 @ddalle  : First version
-        
         # Convert points to NumPy.
         v1 = np.array(v1)
         v2 = np.array(v2)
@@ -530,29 +478,25 @@ class TriBase:
         
     # Add a second triangulation without destroying component numbers.
     def Add(self, tri):
-        """
-        Add a second triangulation to the current by adding the number of
+        """Add a second triangulation to the current by adding the number of
         components in the first triangulation to each of the component IDs in
         the second triangulation.  No checks are performed, and intersections
         are not analyzed.
         
         :Call:
             >>> tri.Add(tri2)
-            
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance to be altered
             *tri2*: :class:`pyCart.tri.Tri`
                 Triangulation instance to be added to the first
-            
         :Effects:
             All nodes and triangles from *tri2* are added to *tri*.  As a
             result, the number of nodes, number of tris, and number of
             components in *tri* will all increase.
+        :Versions:
+            * 2014.06.12 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.12 @ddalle  : First version
-        
         # Concatenate the node matrix.
         self.Nodes = np.vstack((self.Nodes, tri.Nodes))
         # Concatenate the triangle node index matrix.
@@ -569,28 +513,24 @@ class TriBase:
         
     # Add a second triangulation without altering component numbers.
     def AddRawCompID(self, tri):
-        """
-        Add a second triangulation to the current one without changing 
+        """Add a second triangulation to the current one without changing 
         component numbers of either triangulation.  No checks are performed,
         and intersections are not analyzed.
         
         :Call:
             >>> tri.AddRawCompID(tri2)
-            
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance to be altered
             *tri2*: :class:`pyCart.tri.Tri`
                 Triangulation instance to be added to the first
-            
         :Effects:
             All nodes and triangles from *tri2* are added to *tri*.  As a
             result, the number of nodes, number of tris, and number of
             components in *tri* will all increase.
+        :Versions:
+            * 2014.06.12 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.12 @ddalle  : First version
-        
         # Concatenate the node matrix.
         self.Nodes = np.vstack((self.Nodes, tri.Nodes))
         # Concatenate the triangle node index matrix.
@@ -605,14 +545,12 @@ class TriBase:
         
     # Get normals and areas
     def GetCompArea(self, compID, n=None):
-        """
-        Get the total area of a component, or get the total area of a component
+        """Get the total area of a component, or get the total area of a component
         projected to a plane with a given normal vector.
         
         :Call:
             >>> A = tri.GetCompArea(compID)
             >>> A = tri.GetCompArea(compID, n)
-            
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance
@@ -620,14 +558,12 @@ class TriBase:
                 Index of the component of which to find the area
             *n*: :class:`numpy.ndarray`
                 Unit normal vector to use for projection
-        
         :Outputs:
             *A*: :class:`float`
                 Area of the component
+        :Versions:
+            * 2014.06.13 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.13 @ddalle  : First version
-        
         # Check for areas.
         if not hasattr(self, 'Areas'):
             # Calculate them.
@@ -652,25 +588,21 @@ class TriBase:
             
     # Get normals and areas
     def GetCompNormal(self, compID):
-        """
-        Get the area-averaged unit normal of a component.
+        """Get the area-averaged unit normal of a component
         
         :Call:
             >>> n = tri.GetCompNormal(compID)
-            
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance
             *compID*: :class:`int`
                 Index of the component of which to find the normal
-        
         :Outputs:
             *n*: :class:`numpy.ndarray` shape=(3,)
                 Area-averaged unit normal
+        :Versions:
+            * 2014.06.13 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.13 @ddalle  : First version
-        
         # Check for areas.
         if not hasattr(self, 'Areas'):
             # Calculate them.
@@ -692,28 +624,25 @@ class TriBase:
         
     # Function to add a bounding box based on a component and buffer
     def GetCompBBox(self, compID, **kwargs):
-        """
-        Find a bounding box based on the coordinates of a specified component
+        """Find a bounding box based on the coordinates of a specified component
         or list of components, with an optional buffer or buffers in each
         direction
         
         :Call:
             >>> xlim = tri.GetCompBBox(compID, **kwargs)
-            
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance
             *compID*: :class:`int` or :class:`list` (:class:`int`)
                 Component or list of components to use for bounding box
-                
         :Keyword arguments:
-            *buff*: :class:`float`
+            *pad*: :class:`float`
                 Buffer to add in each dimension to min and max coordinates
-            *xbuff*: :class:`float`
+            *xpad*: :class:`float`
                 Buffer to minimum and maximum *x*-coordinates
-            *ybuff*: :class:`float`
+            *ypad*: :class:`float`
                 Buffer to minimum and maximum *y*-coordinates
-            *zbuff*: :class:`float`
+            *zpad*: :class:`float`
                 Buffer to minimum and maximum *z*-coordinates
             *xp*: :class:`float`
                 Buffer for the maximum *x*-coordinate
@@ -727,27 +656,26 @@ class TriBase:
                 Buffer for the maximum *z*-coordinate
             *zm*: :class:`float`
                 Buffer for the minimum *z*-coordinate
-        
         :Outputs:
             *xlim*: :class:`numpy.ndarray` (:class:`float`), shape=(6,)
                 List of *xmin*, *xmax*, *ymin*, *ymax*, *zmin*, *zmax*
+        :Versions:
+            * 2014.06.16 ``@ddalle``: First version
+            * 2014.08.03 ``@ddalle``: Changed "buff" --> "pad"
         """
-        # Versions:
-        #  2014.06.16 @ddalle  : First version
-        
         # Get the overall buffer.
-        buff = kwargs.get('buff', 0.0)
+        pad = kwargs.get('pad', 0.0)
         # Get the other buffers.
-        xbuff = kwargs.get('xbuff', buff)
-        ybuff = kwargs.get('ybuff', buff)
-        zbuff = kwargs.get('zbuff', buff)
+        xpad = kwargs.get('xpad', pad)
+        ypad = kwargs.get('ypad', pad)
+        zpad = kwargs.get('zpad', pad)
         # Get the directional buffers.
-        xp = kwargs.get('xp', xbuff)
-        xm = kwargs.get('xm', xbuff)
-        yp = kwargs.get('yp', ybuff)
-        ym = kwargs.get('ym', ybuff)
-        zp = kwargs.get('zp', zbuff)
-        zm = kwargs.get('zm', zbuff)
+        xp = kwargs.get('xp', xpad)
+        xm = kwargs.get('xm', xpad)
+        yp = kwargs.get('yp', ypad)
+        ym = kwargs.get('ym', ypad)
+        zp = kwargs.get('zp', zpad)
+        zm = kwargs.get('zm', zpad)
         # Get the indices of the triangles to include.
         if np.isscalar(compID):
             # Single component
@@ -775,18 +703,19 @@ class TriBase:
 
 # Regular triangulation class
 class Tri(TriBase):
-    """
-    pyCart triangulation class
+    """pyCart triangulation class
     
     This class provides an interface for a basic triangulation without
     surface data.  It can be created either by reading an ASCII file or
     specifying the data directly.
     
+    When no component numbers are specified, the object created will label
+    all triangles ``1``.
+    
     :Call:
         >>> tri = pyCart.Tri(fname=fname)
         >>> tri = pyCart.Tri(uh3d=uh3d)
         >>> tri = pyCart.Tri(Nodes=Nodes, Tris=Tris, CompID=CompID)
-        
     :Inputs:
         *fname*: :class:`str`
             Name of triangulation file to read (Cart3D format)
@@ -802,7 +731,6 @@ class Tri(TriBase):
             Indices of triangle vertex nodes
         *CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
             Component number for each triangle
-            
     :Data members:
         *tri.nNode*: :class:`int`
             Number of nodes in triangulation
@@ -814,19 +742,16 @@ class Tri(TriBase):
             Indices of triangle vertex nodes
         *tri.CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
             Component number for each triangle
-    
-    When no component numbers are specified, the object created will label
-    all triangles ``1``.
     """
-    
     
     def __init__(self, fname=None, uh3d=None,
         nNode=None, Nodes=None, nTri=None, Tris=None, CompID=None):
-        """Initialization method"""
-        # Versions:
-        #  2014.05.23 @ddalle  : First version
-        #  2014.06.02 @ddalle  : Added UH3D reading capability
+        """Initialization method
         
+        :Versions:
+            * 2014.05.23 ``@ddalle``: First version
+            * 2014.06.02 ``@ddalle``: Added UH3D reading capability
+        """
         # Check if file is specified.
         if fname is not None:
             # Read from file.
@@ -868,36 +793,30 @@ class Tri(TriBase):
         
     # Method that shows the representation of a triangulation
     def __repr__(self):
-        """
-        Return the string representation of a triangulation.
+        """Return the string representation of a triangulation.
         
         This looks like ``<pyCart.tri.Tri(nNode=M, nTri=N)>``
+        
+        :Versions:
+            8 2014.05.27 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.05.27 @ddalle  : First version
         return '<pyCart.tri.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
         
         
     # Function to read a .tri file
     def Read(self, fname):
-        """
-        Read a triangulation file (from ``*.tri``)
+        """Read a triangulation file (from ``*.tri``)
         
         :Call:
             >>> tri.Read(fname)
-            
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance
             *fname*: :class:`str`
                 Name of triangulation file to read
-        
-        :Outputs:
-            ``None``
+        :Versions:
+            * 2014.06.02 ``@ddalle``: split from initialization method
         """
-        # Versions:
-        #  2014.06.02 @ddalle  : Split from initialization method.
-        
         # Open the file
         fid = open(fname, 'r')
         # Read the first line.
@@ -918,56 +837,46 @@ class Tri(TriBase):
 
 # Function to read .tri files
 def ReadTri(fname):
-    """
-    Read a basic triangulation file
+    """Read a basic triangulation file
     
     :Call:
         >>> tri = pyCart.ReadTri(fname)
-        
     :Inputs:
         *fname*: :class:`str`
             Name of `.tri` file to read
-    
     :Outputs:
         *tri*: :class:`pyCart.tri.Tri`
             Triangulation instance
-    
     :Examples:
         >>> nNode, Nodes,  = pyCart.ReadTri('bJet.i.tri')
         >>> tri.nNode
         92852
+    :Versions:
+        * 2014.05.27 ``@ddalle``: First version
     """
-    # Versions:
-    #  2014.05.27 @ddalle  : First version
-       
     # Create the tri object and return it.
     return Tri(fname)
     
     
 # Global function to write a triangulation (just calls tri method)
 def WriteTri(fname, tri):
-    """
-    Write a triangulation instance to file
+    """Write a triangulation instance to file
     
     :Call:
         >>> pyCart.WriteTri(fname, tri)
-    
     :Inputs:
         *fname*: :class:`str`
             Name of `.tri` file to read
         *tri*: :class:`pyCart.tri.Tri`
             Triangulation instance
-    
     :Ooutputs:
         ``None``
-    
     :Examples:
         >>> tri = pyCart.ReadTri('bJet.i.tri')
         >>> pyCart.WriteTri('bjet2.tri', tri)
+    :Versions:
+        * 2014.05.23 ``ddalle``: First version
     """
-    # Versions:
-    #  2014.05.23 @ddalle  : First version
-    
     # Call the triangulation's write method.
     tri.Write(fname)
     return None
