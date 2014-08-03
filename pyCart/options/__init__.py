@@ -28,6 +28,7 @@ from util import *
 from .flowCart    import flowCart
 from .adjointCart import adjointCart
 from .Adaptation  import Adaptation
+from .Mesh        import Mesh
 
     
 
@@ -38,13 +39,11 @@ class Options(odict):
     
     :Call:
         >>> opts = Options(fname=None, **kw)
-        
     :Inputs:
         *fname*: :class:`str`
             File to be read as a JSON file with comments
         *kw*: :class:`dict`
             Dictionary to be transformed into :class:`pyCart.options.Options`
-    
     :Versions:
         * 2014.07.28 ``@ddalle``: First version
     """
@@ -75,6 +74,7 @@ class Options(odict):
         self._flowCart()
         self._adjointCart()
         self._Adaptation()
+        self._Mesh()
         
     
     
@@ -111,6 +111,17 @@ class Options(odict):
             # Convert to special class.
             self['Adaptation'] = Adaptation(**self['Adaptation'])
     
+    # Initialization and confirmation for Adaptation options
+    def _Mesh(self):
+        """Initialize mesh options if necessary"""
+        # Check status
+        if 'Mesh' not in self:
+            # Missing entirely
+            self['Mesh'] = Mesh()
+        elif type(self['Mesh']).__name__ == 'dict':
+            # Convert to special class.
+            self['Mesh'] = Mesh(**self['Mesh'])
+            
             
     # Method to get the input file
     
@@ -381,50 +392,93 @@ class Options(odict):
     # mesh creation parameters
     # ========================
     
-    # Tri file
-    def get_TriFile(self):
-        """Get the input :file:`*.tri` file(s)"""
-        # Get the mesh settings safely.
-        opts_mesh = self.get('Mesh',{})
-        # Get the .tri file safely
-        TriFile = opts_mesh.get('TriFile', rc['TriFile'])
-        return TriFile
-    def set_TriFile(self, TriFile=rc['TriFile']):
-        """Set the input :file:`*.tri` file(s)"""
-        # Ensure the  'Mesh' key exists.
-        self.setdefault('Mesh', {})
-        # Apply the setting
-        self['Mesh']['TriFile'] = TriFile
-    
-    # Mesh radius
-    def get_r(self, r=8):
-        """Get the value for the `autoInputs` mesh radius"""
-        # Get to the autoInputs section safely.
-        opts_ai = self.get('Mesh', {}).get('autoInputs', {})
-        # Get the mesh radius value
-        return opts_ai.get('r', r)
-    def set_r(self, r=8):
-        """Set the value for `autoInputs` mesh radius"""
-        # Make sure the 'Mesh' and 'autoInputs' keys exist.
-        self.setdefault('Mesh', {})
-        self['Mesh'].setdefault('autoInptus', {})
-        # Apply the setting.
-        self['Mesh']['autoInputs'] = r
+    # Get triangulation file(s)
+    def get_TriFile(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_TriFile(i)
         
-    # Refinement levels
-    def get_maxR(self, maxR=10):
-        """Get the value for `cubes` maximum refinement levels"""
-        # Get to the `cubes` section safely.
-        opts_cubes = self.get('Mesh',{}).get('cubes',{})
-        # Get the refinement count.
-        return opts_cubes.get('maxR')
-    def set_maxR(self, maxR=10):
-        """Set the value for `cubes` maximum refinement levels"""
-        # Make sure 'Mesh' and 'cubes' keys exist.
-        self.setdefault('Mesh', {})
-        self['Mesh'].setdefault('cubes', {})
-        # Apply the setting.
-        self['Mesh']['cubes']['maxR'] = maxR
+    # Set triangulation file(s)
+    def set_TriFile(self, TriFile=rc0('TriFile'), i=None):
+        self._Mesh()
+        self['Mesh'].set_TriFile(TriFile, i)
+    
+    # Get mesh2d status
+    def get_mesh2d(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_mesh2d(i)
+        
+    # Set error tolerance
+    def set_mesh2d(self, mesh2d=rc0('mesh2d'), i=None):
+        self._Mesh()
+        self['Mesh'].set_mesh2d(mesh2d, i)
+        
+    # Get the nominal mesh radius
+    def get_r(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_r(i)
+        
+    # Set the nominal mesh radius
+    def set_r(self, r=rc0('r'), i=None):
+        self._Mesh()
+        self['Mesh'].set_r(r, i)
+    
+    # Get the number of refinements
+    def get_maxR(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_maxR(i)
+        
+    # Set the number of refinements
+    def set_maxR(self, maxR=rc0('maxR'), i=None):
+        self._Mesh()
+        self['Mesh'].set_maxR(maxR, i)
+        
+    # Get the prespecification file
+    def get_pre(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_pre(i)
+        
+    # Set the prespecification file
+    def set_pre(self, pre=rc0('pre'), i=None):
+        self._Mesh()
+        self['Mesh'].set_pre(pre, i)
+        
+    # Get the 'cubes_a' parameter
+    def get_cubes_a(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_cubes_a(i)
+        
+    # Set the 'cubes_a' parameter
+    def set_cubes_a(self, cubes_a=rc0('cubes_a'), i=None):
+        self._Mesh()
+        self['Mesh'].set_cubes_a(cubes_a, i)
+        
+    # Get the 'cubes_b' parameter
+    def get_cubes_b(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_cubes_b(i)
+        
+    # Set the 'cubes_b' parameter
+    def set_cubes_b(self, cubes_b=rc0('cubes_b'), i=None):
+        self._Mesh()
+        self['Mesh'].set_cubes_b(cubes_b, i)
+        
+    # Get the mesh reordering status
+    def get_reorder(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_reorder(i)
+        
+    # Set the mesh reordering status
+    def set_reorder(self, reorder=rc0('reorder'), i=None):
+        self._Mesh()
+        self['Mesh'].set_reorder(reorder, i)
+        
+        
+    # Copy over the documentation.
+    for k in ['TriFile', 'mesh2d', 'r']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(Mesh,'set_'+k).__doc__
+        
         
         
     
