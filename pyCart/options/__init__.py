@@ -25,13 +25,14 @@ value of a given parameter should be is below.
 from util import *
 
 # Import modules for controlling specific parts of Cart3D
-from .flowCart import flowCart
-
+from .flowCart    import flowCart
+from .adjointCart import adjointCart
+from .Adaptation  import Adaptation
 
     
 
 # Class definition
-class Options(dict):
+class Options(odict):
     """
     Options structure, subclass of :class:`dict`
     
@@ -72,12 +73,14 @@ class Options(dict):
             self[k] = kw[k]
         # Upgrade important groups to their own classes.
         self._flowCart()
-            
+        self._adjointCart()
+        self._Adaptation()
+        
     
     
-    # Protective method to make sure that flowCart options are present.
+    # Initialization and confirmation for flowCart options
     def _flowCart(self):
-        """Ensure that `flowCart` options are present"""
+        """Initialize `flowCart` options if necessary"""
         # Check for missing entirely.
         if 'flowCart' not in self:
             # Empty/default
@@ -85,6 +88,28 @@ class Options(dict):
         elif type(self['flowCart']).__name__ == 'dict':
             # Convert to special class.
             self['flowCart'] = flowCart(**self['flowCart'])
+            
+    # Initialization and confirmation for adjointCart options
+    def _adjointCart(self):
+        """Initialize `adjointCart` options if necessary"""
+        # Check for missing entirely.
+        if 'adjointCart' not in self:
+            # Empty/default
+            self['adjointCart'] = adjointCart()
+        elif type(self['adjointCart']).__name__ == 'dict':
+            # Convert to special class.
+            self['adjointCart'] = adjointCart(**self['adjointCart'])
+    
+    # Initialization and confirmation for Adaptation options
+    def _Adaptation(self):
+        """Initialize adaptation options if necessary"""
+        # Check status
+        if 'Adaptation' not in self:
+            # Missing entirely
+            self['Adaptation'] = Adaptation()
+        elif type(self['Adaptation']).__name__ == 'dict':
+            # Convert to special class.
+            self['Adaptation'] = Adaptation(**self['Adaptation'])
     
             
     # Method to get the input file
@@ -108,126 +133,146 @@ class Options(dict):
     # Get flowCart iteration count
     def get_mg_fc(self, i=None):
         self._flowCart()
-        return self['flowCart'].get_it_fc(i)
+        return self['flowCart'].get_mg_fc(i)
         
     # Set flowCart iteration count
     def set_mg_fc(self, mg_fc=rc0('mg_fc'), i=None):
         self._flowCart()
-        return self['flowCart'].set_mg_fc(mg_fc, i)
+        self['flowCart'].set_mg_fc(mg_fc, i)
         
+    # Get the nominal CFL number
+    def get_cfl(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_cfl(i)
+        
+    # Set the nominal CFL number
+    def set_cfl(self, cfl=rc0('cfl'), i=None):
+        self._flowCart()
+        self['flowCart'].set_cfl(cfl, i)
+        
+    # Get the minimum CFL number
+    def get_cflmin(self, i=None):
+        self._flowCart()
+        return self.get_cflmin(i)
+    
+    # Set the minimum CFL number
+    def set_cflmin(self, cflmin=rc0('cflmin'), i=None):
+        self._flowCart()
+        self['flowCart'].set_cflmin(cflmin, i)
+        
+    # Get the limiter
+    def get_limiter(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_limiter(i)
+    
+    # Set the limiter
+    def set_limiter(self, limiter=rc0('limiter'), i=None):
+        self._flowCart()
+        self['flowCart'].set_limiter(limiter, i)
+        
+    # Get the y_is_spanwise status
+    def get_y_is_spanwise(i=None):
+        self._flowCart()
+        return self['flowCart'].get_y_is_spanwise(i)
+        
+    # Set the y_is_spanwise status
+    def set_y_is_spanwise(y_is_spanwise=rc0('y_is_spanwise'), i=None):
+        self._flowCart()
+        self['flowCart'].set_y_is_spanwise(y_is_spanwise, i)
+        
+    # Get the binary I/O status
+    def get_binaryIO(i=None):
+        self._flowCart()
+        return self['flowCart'].get_binaryIO(i)
+        
+    # Set the binary I/O status
+    def set_binaryIO(binaryIO=rc0('binaryIO'), i=None):
+        self._flowCart()
+        self['flowCart'].set_binaryIO(binaryIO, i)
+        
+    # Get the number of threads for flowCart
+    def get_OMP_NUM_THREADS(i=None):
+        self._flowCart()
+        return self['flowCart'].get_OMP_NUM_THREADS(i)
+        
+    # Set the number of threads for flowCart
+    def set_OMP_NUM_THREADS(nThreads=rc0('OMP_NUM_THREADS'), i=None):
+        self._flowCart()
+        self['flowCart'].set_OMP_NUM_THREADS(nThreads, i)
         
     # Copy over the documentation.
-    get_it_fc.__doc__ = flowCart.get_it_fc.__doc__
-    set_it_fc.__doc__ = flowCart.set_it_fc.__doc__
-    get_mg_fc.__doc__ = flowCart.get_mg_fc.__doc__
-    set_mg_fc.__doc__ = flowCart.set_mg_fc.__doc__
+    for k in ['it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter',
+            'y_is_spanwise', 'binaryIO', 'OMP_NUM_THREADS']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(flowCart,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(flowCart,'set_'+k).__doc__
         
-    # CFL number
-    def get_cfl(self, i=None):
-        """Return the CFL number for `flowCart`"""
-        # Safe flowCart options.
-        opts_fc = self.get('flowCart', {})
-        # Get the CFL number and index if appropriate.
-        cfl = opts_fc.get('cfl', rc['cfl'])
-        # Safe indexing
-        return getel(cfl, i)
-    # Set nominal CFL number
-    def set_cfl(self, cfl=rc0('cfl'), i=None):
-        """Set the CFL number for `flowCart`"""
-        # Ensure flowCart settings
-        self.setdefault('flowCart', {})
-        # Get current setting safely
-        CFL = self['flowCart'].get('cfl', rc['cfl'])
-        # Safe indexing
-        self['flowCart']['cfl'] = setel(CFL, i, cfl)
-        
-    # Minimum CFL number
-    def get_cflmin(self, i=None):
-        """Return the minimum CFL number for `flowCart`"""
-        # Safe flowCart options.
-        opts_fc = self.get('flowCart', {})
-        # Get the CFL number and index if appropriate.
-        cfl = opts_fc.get('cflmin', rc['cflmin'])
-        # Safe indexing
-        return getel(cfl, i)
-    # Set minimum CFL number
-    def set_cflmin(self, cflmin=rc0('cflmin'), i=None):
-        """Set the CFL number for `flowCart`"""
-        # Ensure flowCart settings
-        self.setdefault('flowCart', {})
-        # Get current setting safely
-        CFL = self['flowCart'].get('cflmin', rc['cflmin'])
-        # Safe indexing
-        self['flowCart']['cflmin'] = setel(CFL, i, cflmin)
-        
-    # Number of threads
-    def get_OMP_NUM_THREADS(self, i=None):
-        """Return number of threads to use"""
-        # Safe flowCart settings
-        opts_fc = self.get('flowCart', {})
-        # Safe setting
-        nThreads = opts_fc.get('OMP_NUM_THREADS', rc['OMP_NUM_THREADS'])
-        # Safe indexing
-        return getel(nThreads, i)
-    # Number of threads
-    def set_OMP_NUM_THREADS(self, nThreads=rc0('OMP_NUM_THREADS'), i=None):
-        """Set the number of threads to use for each solution"""
-        # Ensure flowCart settings.
-        self.setdefault('flowCart', {})
-        # Safe current settings.
-        NTH = self['flowCart'].get('OMP_NUM_THREADS', rc['OMP_NUM_THREADS'])
-        # Safe indexing
-        self['flowCart']['OMP_NUM_THREADS'] = setel(NTH, i, nThreads)
     # Aliases for the above
     get_nThreads = get_OMP_NUM_THREADS
     set_nThreads = set_OMP_NUM_THREADS
     
     
+    # ====================
+    # adjointCart settings
+    # ====================
+    
+    # Number of iterations
+    def get_it_ad(self, i=None):
+        self._adjointCart()
+        return self['adjointCart'].get_it_ad(i)
+        
+    # Set flowCart iteration count
+    def set_it_ad(self, it_ad=rc0('it_ad'), i=None):
+        self._adjointCart()
+        self['adjointCart'].set_it_ad(it_ad, i)
+    
+    # Get flowCart iteration count
+    def get_mg_ad(self, i=None):
+        self._adjointCart()
+        return self['adjointCart'].get_mg_ad(i)
+        
+    # Set flowCart iteration count
+    def set_mg_ad(self, mg_ad=rc0('mg_ad'), i=None):
+        self._adjointCart()
+        self['adjointCart'].set_mg_ad(mg_ad, i)
+        
+    # Copy over the documentation.
+    for k in ['it_ad', 'mg_ad']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(adjointCart,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(adjointCart,'set_'+k).__doc__
+    
     # ================
     # multigrid levels
     # ================
-    
-    # Get adjointCart iteration levels
-    def get_mg_ad(self, i=None):
-        """Return the number of multigrid levels for `adjointCart`"""
-        # Get the settings for flowCart, which should exist.
-        opts_ad = self.get('adjointCart', {})
-        # Return the value, applying the default.
-        mg_ad = opts_ad.get('mg_ad', rc['mg_ad'])
-        # Safe indexing
-        return getel(mg_ad, i)
-        
-    # Set the adjointCart iteration levels
-    def set_mg_ad(self, mg_ad=3):
-        """Set number of multigrid levels for `adjointCart`"""
-        # Ensure flowCart settings
-        self.setdefault('adjointCart', {})
-        # Get current setting safely.
-        MG_AD = self['adjointCart']
-        # Set the multigrid levels
-        self['adjointCart']['mg_ad'] = mg_ad
         
     # Method to get the number of multigrid levels
-    def get_mg(self, mg=3):
-        """
-        Return the number of multigrid levels
+    def get_mg(self, i=None):
+        """Return the number of multigrid levels
         
         :Call:
-            >>> mg = opts.get_mg(mg=3)
-            
+            >>> mg = opts.get_mg(i=None) 
         :Inputs:
-            *mg*: :class:`int`
-                Default value for `mg_fc`
-        
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int`
+                Run index
         :Outputs:
             *mg*: :class:`int`
-                Maximum of `mg_fc` and `mg_ad`
+                Maximum of *mg_fc* and *mg_ad*
+        :Versions:
+            * 2014.08.01 ``@ddalle``: First version
         """
         # Get the two values.
-        mg_fc = self.get_mg_fc(mg)
-        mg_ad = self.get_mg_ad(mg_fc)
+        mg_fc = self.get_mg_fc(mg, i)
+        mg_ad = self.get_mg_ad(mg_fc, i)
         # Check for valid settings.
         if mg_fc and mg_ad:
+            # Handle lists...
+            if type(mg_fc).__name__ == "list":
+                mg_fc = mg_fc[0]
+            if type(mg_ad).__name__ == "list":
+                mg_ad = mg_ad[0]
             # Both are defined, use maximum.
             return max(mg_fc, mg_ad)
         elif mg_fc:
@@ -241,10 +286,95 @@ class Options(dict):
             return 0
     
     # Method to set both multigrid levels
-    def set_mg(self, mg=3):
-        """Set number of multigrid levels for `flowCart` and `adjointCart`"""
-        self.set_mg_fc(mg)
-        self.set_mg_ad(mg)
+    def set_mg(self, mg=rc0('mg_fc'), i=None):
+        """Set number of multigrid levels for `flowCart` and `adjointCart`
+        
+        :Call:
+            >>> opts.set_mg(mg, i=None) 
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *mg*: :class:`int`
+                Multigrid levels for both adjointCart and flowCart
+            *i*: :class:`int`
+                Run index
+        :Versions:
+            * 2014.08.01 ``@ddalle``: First version
+        """
+        self.set_mg_fc(mg, i)
+        self.set_mg_ad(mg, i)
+        
+        
+    # ===================
+    # Adaptation settings
+    # ===================
+    
+    # Get number of adapt cycles
+    def get_n_adapt_cycles(self, i=None):
+        self._Adaptation()
+        return self['Adaptation'].get_n_adapt_cycles(i)
+        
+    # Set number of adapt cycles
+    def set_n_adapt_cycles(self, nAdapt=rc0('n_adapt_cycles'), i=None):
+        self._Adaptation()
+        self['Adaptation'].set_n_adapt_cycles(nAdapt, i)
+    
+    # Get error tolerance
+    def get_etol(self, i=None):
+        self._Adaptation()
+        return self['Adaptation'].get_etol(i)
+        
+    # Set error tolerance
+    def set_etol(self, etol=rc0('etol'), i=None):
+        self._Adaptation()
+        self['Adaptation'].set_etol(etol, i)
+    
+    # Get maximum cell count
+    def get_max_nCells(self, i=None):
+        self._Adaptation()
+        return self['Adaptation'].get_max_nCells(i)
+        
+    # Set maximum cell count
+    def set_max_nCells(self, etol=rc0('max_nCells'), i=None):
+        self._Adaptation()
+        self['Adaptation'].set_max_nCells(etol, i)
+    
+    # Get flowCart iterations on refined meshes
+    def get_ws_it(self, i=None):
+        self._Adaptation()
+        return self['Adaptation'].get_ws_it(i)
+        
+    # Set flowCart iterations on refined meshes
+    def set_ws_it(self, ws_it=rc0('ws_it'), i=None):
+        self._Adaptation()
+        self['Adaptation'].set_ws_it(ws_it, i)
+        
+    # Get mesh growth ratio
+    def get_mesh_growth(self, i=None):
+        self._Adaptation()
+        return self['Adaptation'].get_mesh_growth(i)
+        
+    # Set mesh growth ratio
+    def set_mesh_growth(self, mesh_growth=rc0('mesh_growth'), i=None):
+        self._Adaptation()
+        self['Adaptation'].set_mesh_growth(mesh_growth, i)
+        
+    # Get mesh refinement cycle type
+    def get_apc(self, i=None):
+        self._Adaptation()
+        return self['Adaptation'].get_apc(i)
+        
+    # Set mesh refinement cycle type
+    def set_apc(self, apc=rc0('apc'), i=None):
+        self._Adaptation()
+        self['Adaptation'].set_apc(apc, i)
+        
+    # Copy over the documentation.
+    for k in ['n_adapt_cycles', 'etol', 'max_nCells', 'ws_it',
+            'mesh_growth', 'apc']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(Adaptation,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(Adaptation,'set_'+k).__doc__
             
     
     # ========================
@@ -296,30 +426,6 @@ class Options(dict):
         # Apply the setting.
         self['Mesh']['cubes']['maxR'] = maxR
         
-        
-    # ==========
-    # Adaptation
-    # ==========
-    
-    # Number of adaptations
-    def get_n_adapt_cycles(self, n_adapt_cycles=0):
-        """Get the number of adaptation cycles"""
-        # Get the adaptation settings.
-        opts_a = self.get('Adaptation', {})
-        # Get the number of adaptations.
-        return opts_a.get('n_adapt_cycles', n_adapt_cycles)
-    def set_n_adapt_cycles(self, n_adapt_cycles=0):
-        """Set the number of adaptation cycles"""
-        # Make sure the adaptation settings exist.
-        self.setdefault('Adaptation', {})
-        # Apply the setting.
-        self['Adaptation']['n_adapt_cycles'] = n_adapt_cycles
-    def get_nAdapt(self, n_adapt_cycles=0):
-        """Alias for get_n_adapt_cycles"""
-        return self.get_n_adapt_cycles(n_adapt_cycles)
-    def set_nAdapt(self, n_adapt_cycles=0):
-        """Alias for set_n_adapt_cycles"""
-        self.set_n_adapt_cycles(n_adapt_cycles)
         
     
 

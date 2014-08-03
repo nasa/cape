@@ -343,7 +343,7 @@ class odict(dict):
             * 2014.08.02 ``@ddalle``: First version
         """
         # Get the value after applying defaults.
-        v = self.get(k, rc[k])
+        v = self.get(k, rc.get(k))
         # Apply intelligent indexing.
         return getel(v, i)
         
