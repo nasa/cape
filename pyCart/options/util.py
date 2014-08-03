@@ -307,3 +307,75 @@ def applyDefaults(opts, defs):
             opts[k] = applyDefaults(opts[k], defs[k])
     # Output the modified defaults.
     return opts
+    
+    
+# Dictionary derivative specific to options
+class odict(dict):
+    """Dictionary-based interfaced for options specific to ``flowCart``"""
+    
+    # General "get" function
+    def get_key(self, k, i=None):
+        """Intelligently get option for index *i* of key *k*
+        
+        This is a two-step process.  The first is to get the dictionary value
+        or the default if *k* is not in *opts*.  The default is ``rc[k]``.  Let
+        *V* be the result of the process.
+        
+        The second step is to apply indexing.  If *V* is a scalar or *i* is
+        ``None``, then *V* is the output.  Otherwise, the function will attempt
+        to return ``V[i]``, but if *i* is too large, ``V[-1]`` is the output.
+        
+        :Call:
+            >>> v = opts.get_key(k, i)
+        :Inputs:
+            *k*: :class:`str`
+                Name of key to get
+            *i*: :class:`int` or ``None``
+                Index to apply
+        :Outputs:
+            *v*: any
+                Let ``V=opts.get(k,rc[k])``.  Then *v* is either ``V[i]`` if
+                possible, ``V[-1]`` if *V* is a list and *i* is not ``None``,
+                or ``V`` otherwise
+        :See also:
+            * :func:`pyCart.options.util.getel`
+        :Versions:
+            * 2014.08.02 ``@ddalle``: First version
+        """
+        # Get the value after applying defaults.
+        v = self.get(k, rc[k])
+        # Apply intelligent indexing.
+        return getel(v, i)
+        
+    # General "set" function
+    def set_key(self, k, v=None, i=None):
+        """Set option for key *k*
+        
+        This sets the value for ``opts[k]`` or ``opts[k][i]`` if appropriate.
+        If *i* is greater than the length of ``opts[k]``, then ``opts[k]`` is
+        appended with its current last value enough times to make
+        ``opts[k][i]`` exist.
+        
+        :Call:
+            >>> opts.set_key(k, v=None, i=None)
+        :Inputs:
+            *k*: :class:`str`
+                Name of key to set
+            *i*: :class:`int` or ``None``
+                Index to apply
+            *v*: any
+                Value to set
+        :See also:
+            * :func:`pyCart.options.util.setel`
+        :Versions:
+            * 2014.08.02 ``@ddalle``: First version
+        """
+        # Check for default value.
+        if v is None:
+            # Get the default, but ensure a scalar.
+            v = rc0(k)
+        # Get the current full setting.
+        V = self.get(k, rc[k])
+        # Assign the input value .
+        self[k] = setel(V, i, v)
+        

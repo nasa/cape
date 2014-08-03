@@ -2,32 +2,16 @@
 
 
 # Import options-specific utilities
-from util import getel, setel
-
-rc = {
-    "it_fc": 200,
-    "cfl": 1.1,
-    "cflmin": 0.8,
-    "mg_fc": 3,
-    "limiter": 2,
-    "y_is_spanwise": True,
-    "binaryIO": True,
-    "OMP_NUM_THREADS": 8,
-    "tm": False,
-}
-
-# Function to ensure scalar from above
-def rc0(p):
-    """Return default setting, but ensure a scalar"""
-    # Use the `getel` function to do this.
-    return getel(rc[p], 0)
+from util import getel, setel, rc, rc0, odict
 
 # Class for flowCart settings
-class flowCart(dict):
+class flowCart(odict):
+    """Dictionary-based interfaced for options specific to ``flowCart``"""
     
     # Number of iterations
     def get_it_fc(self, i=None):
         """Return the number of iterations for `flowCart`
+        
         :Call:
             >>> it_fc = opts.get_it_fc(i=None)
         :Inputs:
@@ -41,10 +25,7 @@ class flowCart(dict):
         :Versions:
             * 2014.08.01 ``@ddalle``: First version
         """
-        # Return the iteration number
-        it_fc = self.get('it_fc', rc["it_fc"])
-        # Safe indexing
-        return getel(it_fc, i)
+        return self.get_key('it_fc', i)
         
     # Set flowCart iteration count
     def set_it_fc(self, it_fc=rc0('it_fc'), i=None):
@@ -53,7 +34,6 @@ class flowCart(dict):
         :Call:
             >>> opts.set_it_fc(it_fc)
             >>> opts.set_it_fc(it_fc, i)
-            
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
@@ -61,14 +41,10 @@ class flowCart(dict):
                 Number of iterations for run *i* or all runs if ``i==None``
             *i*: :class:`int` or ``None``
                 Run index
-                
         :Versions:
             * 2014.08.01 ``@ddalle``: First version
         """
-        # Get current setting safely
-        IT_FC = self.get('it_fc', rc['it_fc']) 
-        # Set the iteration count
-        self['it_fc'] = setel(IT_FC, i, it_fc)
+        self.set_key('it_fc', it_fc, i)
         
         
     # Get flowCart multigrd levels
@@ -77,48 +53,73 @@ class flowCart(dict):
         
         :Call:
             >>> mg_fc = opts.get_mg_fc(i=None)
-            
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Run index
-        
         :Outputs:
             *mg_fc*: :class:`int` or :class:`list`(:class:`int`)
                 Multigrid levels for run *i* or all runs if ``i==None``
-                
         :Versions:
             * 2014.08.02 ``@ddalle``: First version
         """
-        # Safe retrieval
-        mg_fc = self.get('mg_fc', rc["mg_fc"])
-        # Safe indexing
-        return getel(mg_fc, i)
+        return self_get_key('mg_fc', i)
     
     # Set flowCart iteration levels
     def set_mg_fc(self, mg_fc=rc0('mg_fc'), i=None):
         """Set number of multigrid levels for `flowCart`
         
         :Call:
-            >>> mg_fc = opts.get_mg_fc(i=None)
-            
+            >>> opts.set_mg_fc(mg_fc, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *mg_fc*: :class:`int` or :class:`list`(:class:`int`)
+                Multigrid levels for run *i* or all runs if ``i==None``
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014.08.02 ``@ddalle``: First version
+        """
+        self.set_key('mg_fc', mg_fc, i)
+        
+    
+    # Get the CFL number
+    def get_cfl(self, i=None):
+        """Return the CFL number for `flowCart`
+        
+        :Call:
+            >>> cfl = opts.get_cfl(i=None)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Run index
-            *mg_fc*: :class:`int` or :class:`list`(:class:`int`)
+        :Outputs:
+            *cfl*: :class:`float` or :class:`list`(:class:`float`)
                 Multigrid levels for run *i* or all runs if ``i==None``
-                
         :Versions:
             * 2014.08.02 ``@ddalle``: First version
         """
-        # Ensure flowCart settings
-        self.setdefault('flowCart', {})
-        # Safe setting
-        MG_FC = self['flowCart'].get('mg_fc', rc['mg_fc'])
-        # Set the multigrid levels
-        self['flowCart']['mg_fc'] = mg_fc
+        return self.get_key('cfl', i)
+    
+    # Set CFL number
+    def set_cfl(self, cfl=rc0('cfl'), i=None):
+        """Set number of multigrid levels for `flowCart`
+        
+        :Call:
+            >>> opts.set_mg_fc(mg_fc, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *mg_fc*: :class:`int` or :class:`list`(:class:`int`)
+                Multigrid levels for run *i* or all runs if ``i==None``
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014.08.02 ``@ddalle``: First version
+        """
+        self.set_key('cfl', cfl, i)
         
         

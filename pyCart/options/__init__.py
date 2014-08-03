@@ -105,10 +105,22 @@ class Options(dict):
         self._flowCart()
         self['flowCart'].set_it_fc(it_fc, i)
         
+    # Get flowCart iteration count
+    def get_mg_fc(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_it_fc(i)
+        
+    # Set flowCart iteration count
+    def set_mg_fc(self, mg_fc=rc0('mg_fc'), i=None):
+        self._flowCart()
+        return self['flowCart'].set_mg_fc(mg_fc, i)
+        
         
     # Copy over the documentation.
     get_it_fc.__doc__ = flowCart.get_it_fc.__doc__
     set_it_fc.__doc__ = flowCart.set_it_fc.__doc__
+    get_mg_fc.__doc__ = flowCart.get_mg_fc.__doc__
+    set_mg_fc.__doc__ = flowCart.set_mg_fc.__doc__
         
     # CFL number
     def get_cfl(self, i=None):
@@ -174,25 +186,6 @@ class Options(dict):
     # ================
     # multigrid levels
     # ================
-    
-    # Get flowCart iteration levels
-    def get_mg_fc(self, i=None):
-        """Return the number of multigrid levels for `flowCart`"""
-        # Get the settings for flowCart, which should exist.
-        opts_fc = self.get('flowCart', {})
-        # Return the value, applying the default.
-        mg_fc = opts_fc.get('mg_fc', rc['mg_fc'])
-        return getel(mg_fc, i)
-    
-    # Set flowCart iteration levels
-    def set_mg_fc(self, mg_fc=rc0('mg_fc'), i=None):
-        """Set number of multigrid levels for `flowCart`"""
-        # Ensure flowCart settings
-        self.setdefault('flowCart', {})
-        # Safe setting
-        MG_FC = self['flowCart'].get('mg_fc', rc['mg_fc'])
-        # Set the multigrid levels
-        self['flowCart']['mg_fc'] = mg_fc
     
     # Get adjointCart iteration levels
     def get_mg_ad(self, i=None):
