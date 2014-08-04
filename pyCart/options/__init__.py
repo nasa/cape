@@ -474,7 +474,8 @@ class Options(odict):
         
         
     # Copy over the documentation.
-    for k in ['TriFile', 'mesh2d', 'r']:
+    for k in ['TriFile', 'mesh2d', 'r', 'maxR', 'pre',
+            'cubes_a', 'cubes_b', 'reorder']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Mesh,'set_'+k).__doc__

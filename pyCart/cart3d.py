@@ -148,17 +148,16 @@ class Cart3d(object):
         # Display basic information from all three areas.
         return "<pyCart.Cart3d(nCase=%i, tri='%s')>" % (
             self.x.nCase,
-            self.opts['Mesh']['TriFile'])
+            self.opts.get_TriFile()
         
     
     # Check for root location
     def CheckRootDir(self):
-        """
-        Check if the current directory is the case root directory
+        """Check if the current directory is the case root directory
         
         Suppose the directory structure for a case is as follows.
         
-        * Root directory: `/nobackup/uuser/plane/`
+        * `/nobackup/uuser/plane/`
             * `Grid_d0.0/`
                 * `m1.20/`
                 * `m1.40/`
@@ -171,15 +170,12 @@ class Cart3d(object):
         
         :Call:
             >>> q = cart3d.CheckRootDir()
-        
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Global pyCart settings object instance
-        
         :Outputs:
             *q*: :class:`bool`
                 True if current working directory is the case root directory
-        
         :Versions:
             * 2014.06.30 ``@ddalle``: First version
         """
@@ -193,7 +189,7 @@ class Cart3d(object):
         
         Suppose the directory structure for a case is as follows.
         
-        * Root directory: `/nobackup/uuser/plane/`
+        * `/nobackup/uuser/plane/`
             * `Grid_d0.0/`
                 * `m1.20/`
                 * `m1.40/`
@@ -207,15 +203,12 @@ class Cart3d(object):
         
         :Call:
             >>> q = cart3d.CheckGroupDir()
-        
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Global pyCart settings object instance
-        
         :Outputs:
             *q*: :class:`bool`
                 True if current working directory is a group-level directory
-        
         :Versions:
             * 2014.06.30 ``@ddalle``: First version
         """
@@ -229,7 +222,7 @@ class Cart3d(object):
         
         Suppose the directory structure for a case is as follows.
         
-        * Root directory: `/nobackup/uuser/plane/`
+        * `/nobackup/uuser/plane/`
             * `Grid_d0.0/`
                 * `m1.20/`
                 * `m1.40/`
@@ -242,15 +235,12 @@ class Cart3d(object):
         
         :Call:
             >>> q = cart3d.CheckCaseDir()
-        
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Global pyCart settings object instance
-        
         :Outputs:
             *q*: :class:`bool`
                 True if current working directory is a group-level directory
-        
         :Versions:
             * 2014.06.30 ``@ddalle``: First version
         """
@@ -269,16 +259,13 @@ class Cart3d(object):
         
     # Method to set up the grid
     def CreateMesh(self):
-        """ 
-        Create the common mesh based on self-contained parameters.
+        """Create the common mesh based on self-contained parameters.
         
         :Call:
             >>> cart3d.CreateMesh()
-        
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
-        
         :Versions:
             * 2014.05.28 ``@ddalle``: First version
             * 2014.06.06 ``@ddalle``: Multiple group folders
@@ -301,20 +288,16 @@ class Cart3d(object):
         
     # Write conditions files.
     def Grids_WriteConditionsFiles(self):
-        """
-        Write conditions files for each group
+        """Write conditions files for each group
         
         :Call:
             >>> cart3d.Grids_WriteConditionsFiles()
-        
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
-                
         :Versions:
             * 2014.06.23 ``@ddalle``: First version
         """
-        
         # Loop through groups.
         for i in range(len(self.x.GroupX)):
             # Write the conditions file.
@@ -322,21 +305,18 @@ class Cart3d(object):
         
     # Method to copy 'Config.xml' to all grid folders.
     def Grids_CopyConfigFile(self, fxml=None):
-        """
-        Copy configuration file (usually :file:`Config.xml`) to grid folders
+        """Copy configuration file (usually :file:`Config.xml`) to grid folders
         
         :Call:
             >>> cart3d.Grids_CopyConfigFile(fxml=None)
-        
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
             *fxml*: :class:`str`
                 Name of configuration file to copy
+        :Versions:
+            * 2014.06.16 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.16 @ddalle  : First version
-        
         # Get the xml file names.
         if fxml is None:
             conf = self.opts.get('Config', {})
@@ -353,25 +333,22 @@ class Cart3d(object):
             
     # Function to prepare the triangulation for each grid folder
     def Grids_PrepareTri(self, v=True):
-        """
-        Prepare and copy triangulation file to each grid folder.  If
-        ``cart3d.Mesh['TriFile']`` is a list, calling this function will include
-        appending the triangulation files in that list before writing it to each
-        grid folder.  Recognized translations and rotations are performed as
-        well.
+        """Prepare and copy triangulation file to each grid folder.  If
+        ``cart3d.Mesh['TriFile']`` is a list, calling this function will
+        include appending the triangulation files in that list before writing
+        it to each grid folder.  Recognized translations and rotations are
+        performed as well.
         
         :Call:
             >>> cart3d.Grids_PrepareTri(v=True)
-            
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
             *v*: :class:`bool`
                 If ``True``, displays output on command line.
+        :Versions:
+            * 2014.06.16 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.16 @ddalle  : First version
-        
         # Get the list of tri files.
         ftri = self.opts.get_TriFile()
         # Status update.
@@ -402,13 +379,11 @@ class Cart3d(object):
         
     # Method to run 'autoInputs' in the current folder.
     def autoInputs(self, r=None, ftri=None, v=True):
-        """
-        Run :file:`autoInputs` in the current working directory.  Writes output
-        too :file:`autoInputs.out`.
+        """Run :file:`autoInputs` in the current working directory.  Writes
+        output too :file:`autoInputs.out`.
         
         :Call:
             >>> cart3d.autoInputs(r=None, ftri=None, v=True)
-            
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
@@ -418,10 +393,9 @@ class Cart3d(object):
                 Name of triangulation file to use
             *v*: :class:`bool`
                 If ``True``, displays output on command line.
+        :Versions:
+            * 2014.06.16 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.16 @ddalle  : First version
-        
         # Get the mesh radius.
         if r is None:
             r = self.opts.get_r()
@@ -444,15 +418,13 @@ class Cart3d(object):
         
     # Method to run 'autoInput' in all grid folders.
     def Grids_autoInputs(self):
-        """
-        Run :file:`autoInputs` in each grid folder.
+        """Run :file:`autoInputs` in each grid folder.
         
         :Call:
             >>> cart3d.Grids_autoInputs()
+        :Versions:
+            * 2014.06.16 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.16 @ddalle  : First version
-        
         # Check if autoInputs should be run.
         if not self.opts['Mesh']['autoInputs']['r']:
             return None
@@ -473,13 +445,11 @@ class Cart3d(object):
     
     # Method to run 'bues' in the current folder.
     def cubes(self, maxR=None, v=True):
-        """
-        Run :file:`cubes` in the current working directory.  Writes output
+        """Run :file:`cubes` in the current working directory.  Writes output
         too :file:`cubes.out`.
         
         :Call:
             >>> cart3d.cubes(maxR=None, v=True)
-            
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
@@ -487,10 +457,9 @@ class Cart3d(object):
                 Refinements, defaults to ``cart3d.Mesh['nRefinements']``
             *v*: :class:`bool`
                 If ``True``, displays output on command line.
+        :Versions:
+            * 2014.06.16 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.16 @ddalle  : First version
-        
         # Get the mesh radius.
         if maxR is None: maxR = self.opts.get_maxR()
         # Check for input files.
@@ -510,15 +479,13 @@ class Cart3d(object):
         
     # Method to run 'cubes' in all grid folders.
     def Grids_cubes(self):
-        """
-        Run :file:`cubes` in each grid folder.
+        """Run :file:`cubes` in each grid folder.
         
         :Call:
             >>> cart3d.Grids_cubes()
+        :Versions:
+            * 2014.06.16 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.16 @ddalle  : First version
-        
         # Get grid folders.
         glist = np.unique(self.x.GetGroupFolderNames())
         # Common announcement.
@@ -537,13 +504,11 @@ class Cart3d(object):
     
     # Method to run 'bues' in the current folder.
     def mgPrep(self, mg=None, v=True):
-        """
-        Run :file:`mgPrep` in the current working directory.  Writes output
+        """Run :file:`mgPrep` in the current working directory.  Writes output
         too :file:`mgPrep.out`.
         
         :Call:
             >>> cart3d.mgPrep(mg=None, v=True)
-            
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
@@ -551,10 +516,9 @@ class Cart3d(object):
                 Number of multigrid levels, ``cart3d.Mesh['nMultiGrid']``
             *v*: :class:`bool`
                 If ``True``, displays output on command line.
+        :Versions:
+            * 2014.06.16 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.16 @ddalle  : First version
-        
         # Get the mesh radius.
         if mg is None: mg = self.opts.get_mg()
         # Check for input files.
@@ -572,15 +536,13 @@ class Cart3d(object):
         
     # Method to run 'cubes' in all grid folders.
     def Grids_mgPrep(self):
-        """
-        Run :file:`mgPrep` in each grid folder.
+        """Run :file:`mgPrep` in each grid folder.
         
         :Call:
             >>> cart3d.Grids_autoInputs()
+        :Versions:
+            * 2014.06.16 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.16 @ddalle  : First version
-        
         # Get grid folders.
         glist = np.unique(self.x.GetGroupFolderNames())
         # Get n multigrid levels
@@ -603,16 +565,13 @@ class Cart3d(object):
     
     # Function to copy/link files
     def CopyFiles(self):
-        """
-        Copy or link the relevant files to the Grid folders.
+        """Copy or link the relevant files to the Grid folders.
         
         :Call:
             >>> cart3d.CopyFiles()
-            
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
-        
         :Versions:
             * 2014.05.28 ``@ddalle``: First version
         """
@@ -691,16 +650,13 @@ class Cart3d(object):
         
     # Function to setup the run cases.
     def PrepareRuns(self):
-        """
-        Create run scripts for each case according to the pyCart settings.
+        """Create run scripts for each case according to the pyCart settings.
         
         :Call:
             >>> cart3d.PrepareRuns()
-        
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
-        
         :Versions:
             * 2014.05.28 ``@ddalle``: First version
             * 2014.05.30 ``@ddalle``: Moved input.cntl filter to separate func
@@ -727,8 +683,7 @@ class Cart3d(object):
         
     # Function to create run scripts
     def CreateRunScripts(self):
-        """
-        Create all run scripts
+        """Create all run scripts
         
         :Call:
             >>> cart3d.CreateRunScripts()
@@ -736,11 +691,10 @@ class Cart3d(object):
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
+        :Versions:
+            * 2014.06.04 ``@ddalle``: First version
+            * 2014.06.06 ``@ddalle``: Added support for multiple grid folders
         """
-        # Versions:
-        #  2014.06.04 @ddalle  : First version
-        #  2014.06.06 @ddalle  : Added support for multiple grid folders
-        
         # Global script name
         fname_all = 'run_all.sh'
         # Grid script name
@@ -801,11 +755,9 @@ class Cart3d(object):
         
         :Call:
             >>> cart3d.PrepareInputCntl()
-        
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
-                
         :Effects:
             *  Reads 'input.cntl' file from the destination specified in
                *cart3d.RunOptions* and copies it to each case folder after
@@ -819,14 +771,12 @@ class Cart3d(object):
         """
         # Get the name of the .cntl file.
         fname = self.opts.get('InputCntl', 'input.cntl')
-        # Get the run options.
-        opts = self.opts.get('flowCart', {})
         # Get the configuration settings.
         conf = self.opts.get('Config', {})
         # Read it.
         self.InputCntl = InputCntl(fname)
         # Process global options...
-        self.InputCntl.SetCFL(opts.get('cfl', 1.0))
+        self.InputCntl.SetCFL(self.opts.get_cfl())
         # Extract the trajectory.
         x = self.x
         # Get grid folders.
@@ -883,14 +833,10 @@ class Cart3d(object):
         if not os.path.isfile(fname): return None
         # Read it.
         self.AeroCsh = AeroCsh(fname)
-        # Extract run options
-        opts_fc = self.opts.get('flowCart', {})
-        opts_ad = self.opts.get('Adaptation', {})
-        opts_cu = self.opts['Mesh'].get('cubes')
         # Process global options
-        self.AeroCsh.SetCFL(opts_fc.get('cfl', 1.0))
-        self.AeroCsh.SetnIter(opts_fc.get('it_fc', 200))
-        self.AeroCsh.SetnAdapt(opts_ad.get('n_adapt_cycles', 0))
+        self.AeroCsh.SetCFL(self.opts.get_cfl())
+        self.AeroCsh.SetnIter(self.opts.get_it_fc())
+        self.AeroCsh.SetnAdapt(self.opts.get_n_adapt_cycles())
         self.AeroCsh.SetnRefinements(self.opts.get_maxR())
         self.AeroCsh.SetnMultiGrid(self.opts.get_mg())
         # Extract the trajectory.
@@ -910,18 +856,15 @@ class Cart3d(object):
         
     # Function to create the flowCart run script
     def CreateCaseRunScript(self, i):
-        """
-        Write the "run_case.sh" script to run a given case.
+        """Write the "run_case.sh" script to run a given case.
         
         :Call:
             >>> cart3d.CreateCaseRunScript(i)
-        
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
             *i*: :class:`int`
                 Trajectory case number
-        
         :Versions:
             * 2014.05.30 ``@ddalle``: First version
         """
@@ -935,13 +878,13 @@ class Cart3d(object):
         opts_fc = self.opts.get('flowCart', {})
         opts_ad = self.opts.get('Adaptation', {})
         # Get the global options.
-        nThreads = opts_fc.get('nThreads', 8)
-        nIter    = opts_fc.get('it_fc', 200)
-        nAdapt   = opts_ad.get('n_adapt_cycles', 0)
+        nThreads = self.opts.get_OMP_NUM_THREADS()
+        nIter    = self.opts.get_it_fc()
+        nAdapt   = self.opts.get_n_adapt_cycles()
         # Run options
         mg  = self.opts.get_mg_fc()
-        tm  = opts_fc.get('tm', False)
-        cfl = opts_fc.get('cfl', 1.0)
+        tm  = self.opts.get_tm()
+        cfl = self.opts.get_cfl()
         # Write the shell magic.
         f.write('#!/bin/bash\n\n')
         # Set the number of processors.
@@ -961,19 +904,15 @@ class Cart3d(object):
         
     # Function to read "loadsCC.dat" files
     def GetLoadsCC(self):
-        """
-        Read all available 'loadsCC.dat' files.
+        """Read all available 'loadsCC.dat' files.
         
         :Call:
             >>> cart3d.GetLoadsCC()
-            
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
-                
         :Effects:
             Creates *cart3d.LoadsCC* instance
-            
         :Versions:
             * 2014.06.05 ``@ddalle``: First version
         """
@@ -983,16 +922,13 @@ class Cart3d(object):
         
     # Function to write "loadsCC.csv"
     def WriteLoadsCC(self):
-        """
-        Write gathered loads to CSV file to "loadsCC.csv"
+        """Write gathered loads to CSV file to "loadsCC.csv"
         
         :Call:
             >>> cart3d.WriteLoadsCC()
-            
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
-                
         :Versions:
             * 2014.06.04 ``@ddalle``: First version
         """
@@ -1005,19 +941,15 @@ class Cart3d(object):
         
     # Function to read "loadsCC.dat" files
     def GetLoadsTRI(self):
-        """
-        Read all available 'loadsTRI.dat' files.
+        """Read all available 'loadsTRI.dat' files.
         
         :Call:
             >>> cart3d.GetLoadsTRI()
-            
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
-                
         :Effects:
             Creates *cart3d.LoadsCC* instance
-            
         :Versions:
             * 2014.06.04 ``@ddalle``: First version
         """
@@ -1027,16 +959,13 @@ class Cart3d(object):
         
     # Function to write "loadsCC.csv"
     def WriteLoadsTRI(self):
-        """
-        Write gathered loads to CSV file to "loadsTRI.csv"
+        """Write gathered loads to CSV file to "loadsTRI.csv"
         
         :Call:
             >>> cart3d.WriteLoadsTRI()
-            
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
-                
         :Versions:
             * 2014.06.04 ``@ddalle``: First version
         """
@@ -1052,13 +981,11 @@ class Cart3d(object):
 # Function to read conditions file.
 def ReadTrajectoryFile(fname='Trajectory.dat', keys=['Mach','alpha','beta'],
     prefix="F"):
-    """
-    Read a simple list of configuration variables
+    """Read a simple list of configuration variables
     
     :Call:
         >>> x = pyCart.ReadTrajectoryFile(fname)
         >>> x = pyCart.ReadTrajectoryFile(fname, keys)
-    
     :Inputs:
         *fname*: :class:`str`
             Name of file to read, defaults to ``'Trajectory.dat'``
@@ -1066,11 +993,9 @@ def ReadTrajectoryFile(fname='Trajectory.dat', keys=['Mach','alpha','beta'],
             List of variable names, defaults to ``['Mach','alpha','beta']``
         *prefix*: :class:`str`
             Header for name of each folder
-    
     :Outputs:
         *x*: :class:`pyCart.trajectory.Trajectory`
             Instance of the pyCart trajectory class
-    
     :Versions:
         * 2014.05.27 ``@ddalle``: First version
     """
