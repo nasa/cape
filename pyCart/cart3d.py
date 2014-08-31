@@ -31,6 +31,8 @@ from aeroCsh   import AeroCsh
 # Import triangulation
 from tri import Tri
 
+# Cart3D binary interfaces
+from . import bin
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -478,39 +480,39 @@ class Cart3d(object):
             # Change back to home directory.
             os.chdir('..')
     
-    # Method to run 'bues' in the current folder.
-    def cubes(self, maxR=None, v=True):
-        """Run :file:`cubes` in the current working directory.  Writes output
-        too :file:`cubes.out`.
-        
-        :Call:
-            >>> cart3d.cubes(maxR=None, v=True)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *r*: :class:`int`
-                Refinements, defaults to ``cart3d.Mesh['nRefinements']``
-            *v*: :class:`bool`
-                If ``True``, displays output on command line.
-        :Versions:
-            * 2014.06.16 ``@ddalle``: First version
-        """
-        # Get the mesh radius.
-        if maxR is None: maxR = self.opts.get_maxR()
-        # Check for input files.
-        if not os.path.isfile('input.c3d'):
-            raise IOError("No input file 'input.c3d' found.")
-        if not os.path.isfile('preSpec.c3d.cntl'):
-            raise IOError("No input file 'preSpec.c3d.cntl' found.")
-        # Form the command.
-        cmd = 'cubes -maxR %i -pre preSpec.c3d.cntl -reorder' % maxR
-        # Check verbosity.
-        if v:
-            # Run command and display output.
-            os.system(cmd + " | tee cubes.out")
-        else:
-            # Hide the output.
-            os.system(cmd + " > cubes.out")
+    ## Method to run 'bues' in the current folder.
+    #def cubes(self, maxR=None, v=True):
+    #    """Run :file:`cubes` in the current working directory.  Writes output
+    #    too :file:`cubes.out`.
+    #    
+    #    :Call:
+    #        >>> cart3d.cubes(maxR=None, v=True)
+    #    :Inputs:
+    #        *cart3d*: :class:`pyCart.cart3d.Cart3d`
+    #            Instance of control class containing relevant parameters
+    #        *r*: :class:`int`
+    #            Refinements, defaults to ``cart3d.Mesh['nRefinements']``
+    #        *v*: :class:`bool`
+    #            If ``True``, displays output on command line.
+    #    :Versions:
+    #        * 2014.06.16 ``@ddalle``: First version
+    #    """
+    #    # Get the mesh radius.
+    #    if maxR is None: maxR = self.opts.get_maxR()
+    #    # Check for input files.
+    #    if not os.path.isfile('input.c3d'):
+    #        raise IOError("No input file 'input.c3d' found.")
+    #    if not os.path.isfile('preSpec.c3d.cntl'):
+    #        raise IOError("No input file 'preSpec.c3d.cntl' found.")
+    #    # Form the command.
+    #    cmd = 'cubes -maxR %i -pre preSpec.c3d.cntl -reorder' % maxR
+    #    # Check verbosity.
+    #    if v:
+    #        # Run command and display output.
+    #        os.system(cmd + " | tee cubes.out")
+    #    else:
+    #        # Hide the output.
+    #        os.system(cmd + " > cubes.out")
         
     # Method to run 'cubes' in all grid folders.
     def Grids_cubes(self):

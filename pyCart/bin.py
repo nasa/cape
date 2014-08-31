@@ -88,7 +88,7 @@ def cubes(cart3d=None, maxR=10, reorder=True, pre='preSpec.c3d.cntl'):
     # Initialize command
     cmd = ['cubes']
     # Add options.
-    if maxR:    cmd += ['-maxR', maxR]
+    if maxR:    cmd += ['-maxR', str(maxR)]
     if reorder: cmd += ['-reorder']
     if pre:     cmd += ['-pre', pre]
     # Run the command.
