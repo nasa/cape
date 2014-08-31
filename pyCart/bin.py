@@ -92,6 +92,6 @@ def cubes(cart3d=None, maxR=10, reorder=True, pre='preSpec.c3d.cntl'):
     if reorder: cmd += ['-reorder']
     if pre:     cmd += ['-pre', pre]
     # Run the command.
-    callf(cmd)
+    callf(cmd, f='cubes.out')
     
 

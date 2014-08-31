@@ -290,7 +290,6 @@ class Cart3d(object):
     CreateFolders.__doc__ = _upgradeDocString(
         Trajectory.CreateFolders.__doc__, 'Trajectory')
         
-        
     # Method to set up the grid
     def CreateMesh(self):
         """Create the common mesh based on self-contained parameters.
@@ -319,6 +318,23 @@ class Cart3d(object):
         self.Grids_mgPrep()
         # End.
         return None
+        
+    # Interface for ``cubes``
+    def cubes(self):
+        """Run cubes if in a Grid folder
+        
+        :Call:
+            >>> cart3d.cubes()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+        :Versions:
+            * 2014.08.31 ``@ddalle``: First version
+        """
+        # Check the location
+        if not self.CheckGroupDir(): return None
+        # Run cubes.
+        bin.cubes(self)
         
     # Write conditions files.
     def Grids_WriteConditionsFiles(self):
