@@ -151,7 +151,7 @@ class Cart3d(object):
         # Display basic information from all three areas.
         return "<pyCart.Cart3d(nCase=%i, tri='%s')>" % (
             self.x.nCase,
-            self.opts.get_TriFile()
+            self.opts.get_TriFile())
         
     # Function to prepare the triangulation for each grid folder
     def ReadTri(self):
