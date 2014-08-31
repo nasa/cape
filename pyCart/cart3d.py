@@ -138,6 +138,9 @@ class Cart3d(object):
         # Save all the options as a reference.
         self.opts = opts
         
+        # Read the triangulation file(s)
+        self.ReadTri()
+        
         # Save the current directory as the root.
         self.RootDir = os.path.split(os.path.abspath(fname))[0]
         
@@ -150,6 +153,37 @@ class Cart3d(object):
             self.x.nCase,
             self.opts.get_TriFile()
         
+    # Function to prepare the triangulation for each grid folder
+    def ReadTri(self):
+        """Read initial triangulation file(s)
+        
+        :Call:
+            >>> cart3d.ReadTri(v=True)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *v*: :class:`bool`
+                If ``True``, displays output on command line.
+        :Versions:
+            * 2014.08.30 ``@ddalle``: First version
+        """
+        # Get the list of tri files.
+        ftri = self.opts.get_TriFile()
+        # Status update.
+        print("Reading tri file(s) from root directory.")
+        # Read them.
+        if type(ftri).__name__ == 'list':
+            # Read the initial triangulation.
+            tri = Tri(ftri[0])
+            # Loop through the remaining tri files.
+            for f in ftri[1:]:
+                # Append the file.
+                tri.Add(Tri(f))
+        else:
+            # Just read the triangulation file.
+            tri = Tri(ftri)
+        # Save it.
+        self.tri = tri
     
     # Check for root location
     def CheckRootDir(self):
@@ -349,21 +383,6 @@ class Cart3d(object):
         :Versions:
             * 2014.06.16 ``@ddalle``: First version
         """
-        # Get the list of tri files.
-        ftri = self.opts.get_TriFile()
-        # Status update.
-        print("Reading tri file(s) from root directory.")
-        # Read them.
-        if type(ftri).__name__ == 'list':
-            # Read the initial triangulation.
-            tri = Tri(ftri[0])
-            # Loop through the remaining tri files.
-            for f in ftri[1:]:
-                # Append the file.
-                tri.Add(Tri(f))
-        else:
-            # Just read the triangulation file.
-            tri = Tri(ftri)
         # Get grid folders.
         glist = np.unique(self.x.GetGroupFolderNames())
         # Announce.
@@ -374,7 +393,7 @@ class Cart3d(object):
             # Status update.
             print("  %s" % g)
             # Write the new .tri file.
-            tri.Write(os.path.join(g, 'Components.i.tri'))
+            self.tri.Write(os.path.join(g, 'Components.i.tri'))
             
         
     # Method to run 'autoInputs' in the current folder.
