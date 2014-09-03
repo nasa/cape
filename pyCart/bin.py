@@ -102,8 +102,8 @@ def cubes(cart3d=None, maxR=10, reorder=True, pre='preSpec.c3d.cntl',
     if maxR:    cmd += ['-maxR', str(maxR)]
     if reorder: cmd += ['-reorder']
     if pre:     cmd += ['-pre', pre]
-    if cubes_a: cmd += ['-cubes_a', str(cubes_a)]
-    if cubes_b: cmd += ['-cubes_b', str(cubes_b)]
+    if cubes_a: cmd += ['-a', str(cubes_a)]
+    if cubes_b: cmd += ['-b', str(cubes_b)]
     # Run the command.
     callf(cmd, f='cubes.out')
     
@@ -161,8 +161,8 @@ def autoInputs(cart3d=None, r=8, ftri='Components.i.tri'):
     # Initialize command.
     cmd = ['autoInputs']
     # Add options.
-    if r:   cmd += ['-n', str(mg_fc)]
-    if tri: cmd += ['-t', ftri)
+    if r:    cmd += ['-r', str(mg_fc)]
+    if ftri: cmd += ['-t', ftri]
     # Run the command.
     callf(cmd, f='autoInputs.out')
     
