@@ -323,7 +323,7 @@ class Cart3d(object):
         
     # Interface for ``cubes``
     def cubes(self, i=None):
-        """Run cubes for all groups or a specific group
+        """Run ``cubes`` for all groups or a specific group
         
         :Call:
             >>> cart3d.cubes()
@@ -335,11 +335,24 @@ class Cart3d(object):
                 Group index to prepare
         :Versions:
             * 2014.08.31 ``@ddalle``: First version
+            * 2014.09.02 ``@ddalle``: Uses absolute paths
         """
-        # Check the location.
-        if not self.CheckGroupDir(): return None
-        # Run cubes.
-        bin.cubes(self)
+        # Store the current location.
+        fpwd = os.getcwd()
+        # Check for index filter
+        if i and np.isscalar(i): i = [i]
+        # Get group names
+        glist = self.x.GetUniqueGroupFolderNames(i=i)
+        # Loop through them.
+        for fdir in glist:
+            # Go to the root folder.
+            os.chdir(self.RootDir)
+            # Go to the grid folder.
+            os.chdir(fdir)
+            # Run cubes.
+            bin.cubes(self)
+        # Return to original directory.
+        os.chdir(fpwd)
         
     # Write conditions files.
     def Grids_WriteConditionsFiles(self):

@@ -26,12 +26,16 @@ def callf(cmd, f=None, shell=None):
     """
     # Process the shell option
     shell = bool(shell)
-    # Print what's up
+    # Print the command.
     print(" > " + " ".join(cmd))
+    # Print the current location.
+    print("     (PWD = '%s')" % os.getcwd())
     # Check for an output
     if f:
+        # Print the location of STDOUT
+        print("     (STDOUT = '%s')" % str(f))
         # Open the file.
-        fid = open(f, 'a')
+        fid = open(f, 'w')
         # Call the command.
         ierr = sp.call(cmd, stdout=fid, shell=shell)
         # Close the file.

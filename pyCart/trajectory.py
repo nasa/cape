@@ -370,6 +370,37 @@ class Trajectory:
                 dlist.append(dname)
         # Return the list.
         return dlist
+        
+    # Function to get grid folder names
+    def GetUniqueGroupFolderNames(self, i=None):
+        """
+        Get unique names of folders that require separate meshes
+        
+        :Call:
+            >>> x.GetUniqueGroupFolderNames()
+            >>> x.GetUniqueGroupFolderNames(i)
+        :Inputs:
+            *x*: :class:`pyCart.trajectory.Trajectory`
+                Instance of the pyCart trajectory class
+            *i*: :class:`int` or :class:`list`
+                Index of group(s) to process
+        :Outputs:
+            *dname*: :class:`str` or :class:`list`
+                Folder name or list of folder names
+        :Versions:
+            * 2014.09.03 ``@ddalle``: First version
+        """
+        # Get all group folder names
+        dlist = self.GetGroupFolderNames()
+        # Transform to unique list.
+        dlist = np.unique(dlist)
+        # Check for an index filter.
+        if i:
+            # Return either a single value or sublist
+            return dlist[i]
+        else:
+            # Return the whole list
+            return dlist
     
     # Function to return the full folder names.
     def GetFullFolderNames(self, i=None, prefix=None):
