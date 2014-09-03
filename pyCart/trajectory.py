@@ -22,11 +22,9 @@ class Trajectory:
     :Call:
         >>> x = pyCart.Trajectory(**traj)
         >>> x = pyCart.Trajectory(File=fname, Keys=keys)
-    
     :Inputs:
         *traj*: :class:`dict`
             Dictionary of options from ``cart3d.Options["Trajectory"]``
-            
     :Keyword arguments:
         *File*: :class:`str`
             Name of file to read, defaults to ``'Trajectory.dat'``
@@ -38,11 +36,9 @@ class Trajectory:
             Prefix to be used for each grid folder name
         *Definitions*: :class:`dict`
             Dictionary of definitions for each key
-    
     :Outputs:
         *x*: :class:`pyCart.trajectory.Trajectory`
             Instance of the trajectory class
-            
     :Data members:
         *x.nCase*: :class:`int`
             Number of cases in the trajectory
@@ -58,7 +54,6 @@ class Trajectory:
             Vector of Mach numbers in trajectory
         ``getattr(x, key)``: :class:`numpy.ndarray`, *dtype=float*
             Vector of values of each variable specified in *keys*
-    
     :Versions:
         2014.05.28 ``@ddalle``: First version
         2014.06.05 ``@ddalle``: Generalized for user-defined keys
@@ -133,13 +128,11 @@ class Trajectory:
         
         :Call:
             >>> x.ProcessKeyDefinitions(defns)
-        
         :Inputs:
             *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
             *defns*: :class:`dict`
                 Dictionary of keyword definitions or partial definitions
-        
         :Effects:
             *x.text*: :class:`dict`
                 Text for each variable and each break point is initialized
@@ -147,7 +140,6 @@ class Trajectory:
                 Definition dictionary is created after processing defaults
             *x.abbrv*: :class:`dict`
                 Dictionary of abbreviations for each trajectory key
-        
         :Versions:
             * 2014.06.05 ``@ddalle``: First version
             * 2014.06.17 ``@ddalle``: Overhauled to read from ``defns`` dict
@@ -224,15 +216,12 @@ class Trajectory:
         
         :Call:
             >>> x.ProcessGroups()
-            
         :Inputs:
             *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
-                
         :Effects:
             Creates fields that save the properties of the groups.  These fields
             are called *x.GroupKeys*, *x.GroupX*, *x.GroupID*.
-            
         :Versions:
             * 2014.06.05 ``@ddalle``: First version
         """
@@ -303,7 +292,6 @@ class Trajectory:
         :Call:
             >>> dname = x.GetFolderNames()
             >>> dname = x.GetFolderNames(i=None, prefix="F")
-        
         :Inputs:
             *T*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
@@ -312,11 +300,9 @@ class Trajectory:
                 ``None``, all cases will be processed.
             *prefix*: :class:`str`
                 Header for name of each folder
-                
         :Outputs:
             *dname*: :class:`str` or :class:`list`
                 Folder name or list of folder names
-                
         :Versions:
             * 2014.05.28 ``@ddalle``: First version
             * 2014.06.05 ``@ddalle``: Refined to variables that use common grid
@@ -351,18 +337,15 @@ class Trajectory:
         :Call:
             >>> x.GetGroupFolderNames()
             >>> x.GetGroupFolderNames(i)
-        
         :Inputs:
             *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
             *i*: :class:`int` or :class:`list`
                 Index of cases to process or list of cases.  If this is
                 ``None``, all cases will be processed.
-        
         :Outputs:
             *dname*: :class:`str` or :class:`list`
                 Folder name or list of folder names
-                
         :Versions:
             * 2014.06.05 ``@ddalle``: First version
         """
@@ -410,7 +393,6 @@ class Trajectory:
         :Call:
             >>> dname = x.GetFullFolderNames()
             >>> dname = x.GetFullFolderNames(i=None, prefix="F")
-        
         :Inputs:
             *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
@@ -419,11 +401,9 @@ class Trajectory:
                 ``None``, all cases will be processed.
             *prefix*: :class:`str`
                 Header for name of each case folder
-                
         :Outputs:
             *dname*: :class:`str` or :class:`list`
                 Folder name or list of folder names
-                
         :Versions:
             * 2014.06.05 ``@ddalle``: First version
         """
@@ -445,7 +425,6 @@ class Trajectory:
         
         :Call:
             >>> dname = x._AssembleName(keys, prefix, i)
-            
         :Inptus:
             *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
@@ -455,11 +434,9 @@ class Trajectory:
                 Header for name of each case folder
             *i*: :class:`int` or :class:`list`
                 Index(es) of case(s) to process; if ``None``, all cases
-                
         :Outputs:
             *dname*: :class:`str` or :class:`list`
                 Name containing value for each key in *keys*
-                
         :Versions:
             * 2014.06.05 ``@ddalle``: First version
         """
@@ -493,20 +470,14 @@ class Trajectory:
         file.  The amount of digits used will match the number of digits in the
         trajectory file.  The folder names are prepended with the prefix, e.g.,
         ``F_m2.0a0.0b-0.5/``, if the prefix is nonempty.
-        
         :Call:
             >>> x.CreateFolders()
             >>> x.CreateFolders(prefix="F")
-        
         :Inputs:
             *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
             *prefix*: :class:`str`
                 Header for name of each folder
-                
-        :Outputs:
-            ``None``
-            
         :Versions:
             * 2014.05.27 ``@ddalle``: First version
         """
@@ -538,7 +509,6 @@ class Trajectory:
         
         :Call:
             >>> x.WriteConditionsFile(fname, i)
-        
         :Inputs:
             *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
@@ -546,7 +516,6 @@ class Trajectory:
                 Name of JSON file to write
             *i*: :class:`int`
                 Index of conditions to write
-            
         :Versions:
             * 2014.05.28 ``@ddalle``: First version
         """
@@ -576,7 +545,6 @@ class Trajectory:
         
         :Call:
             >>> x.WriteGridConditionsFile(fname, i)
-        
         :Inputs:
             *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
@@ -584,7 +552,6 @@ class Trajectory:
                 Name of JSON file to write
             *i*: :class:`int`
                 Index of group to write
-            
         :Versions:
             * 2014.05.28 ``@ddalle``: First version
         """

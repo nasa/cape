@@ -322,18 +322,21 @@ class Cart3d(object):
         return None
         
     # Interface for ``cubes``
-    def cubes(self):
-        """Run cubes if in a Grid folder
+    def cubes(self, i=None):
+        """Run cubes for all groups or a specific group
         
         :Call:
             >>> cart3d.cubes()
+            >>> cart3d.cubes(i)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Group index to prepare
         :Versions:
             * 2014.08.31 ``@ddalle``: First version
         """
-        # Check the location
+        # Check the location.
         if not self.CheckGroupDir(): return None
         # Run cubes.
         bin.cubes(self)
