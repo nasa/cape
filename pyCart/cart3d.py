@@ -312,10 +312,10 @@ class Cart3d(object):
         # Prepare the tri files.
         self.Grids_PrepareTri()
         # Run autoInputs (if necessary).
-        self.Grids_autoInputs()
+        if self.opts.get_r(): self.autoInputs()
         # Bounding box control.....
         # Run cubes
-        self.Grids_cubes()
+        self.cubes()
         # Prepare multigrid
         self.Grids_mgPrep()
         # End.
@@ -323,7 +323,7 @@ class Cart3d(object):
         
     # Interface for ``cubes``
     def cubes(self, i=None):
-        """Run ``cubes`` for all groups or a specific group
+        """Run ``cubes`` for all groups or a specific group *i*
         
         :Call:
             >>> cart3d.cubes()
@@ -331,7 +331,7 @@ class Cart3d(object):
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
-            *i*: :class:`int`
+            *i*: :class:`int` or :class:`list`(:class:`int`)
                 Group index to prepare
         :Versions:
             * 2014.08.31 ``@ddalle``: First version
@@ -351,6 +351,38 @@ class Cart3d(object):
             os.chdir(fdir)
             # Run cubes.
             bin.cubes(self)
+        # Return to original directory.
+        os.chdir(fpwd)
+        
+    # Interface for ``autoInputs``
+    def autoInputs(self, i=None):
+        """Run ``autoInputs`` for all groups or a specific group *i*
+        
+        :Call:
+            >>> cart3d.autoInputs()
+            >>> cart3d.autoInputs(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int` or :class:`list`(:class:`int`)
+                Group index to prepare
+        :Versions:
+            * 2014.09.02 ``@ddalle``: First version
+        """
+        # Store the current location.
+        fpwd = os.getcwd()
+        # Check for index filter
+        if i and np.isscalar(i): i = [i]
+        # Get group names
+        glist = self.x.GetUniqueGroupFolderNames(i=i)
+        # Loop through them.
+        for fdir in glist:
+            # Go to the root folder.
+            os.chdir(self.RootDir)
+            # Go to the grid folder.
+            os.chdir(fdir)
+            # Run cubes.
+            bin.autoInputs(self)
         # Return to original directory.
         os.chdir(fpwd)
         
@@ -428,131 +460,7 @@ class Cart3d(object):
             print("  %s" % g)
             # Write the new .tri file.
             self.tri.Write(os.path.join(g, 'Components.i.tri'))
-            
         
-    # Method to run 'autoInputs' in the current folder.
-    def autoInputs(self, r=None, ftri=None, v=True):
-        """Run :file:`autoInputs` in the current working directory.  Writes
-        output too :file:`autoInputs.out`.
-        
-        :Call:
-            >>> cart3d.autoInputs(r=None, ftri=None, v=True)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *r*: :class:`int`
-                Mesh radius, defaults to ``cart3d.Mesh['MeshRadius']``
-            *ftri*: :class:`str`
-                Name of triangulation file to use
-            *v*: :class:`bool`
-                If ``True``, displays output on command line.
-        :Versions:
-            * 2014.06.16 ``@ddalle``: First version
-        """
-        # Get the mesh radius.
-        if r is None:
-            r = self.opts.get_r()
-        # Exit if set to quit.
-        if not r: return None
-        # Get the triangulation file.
-        if ftri is None: ftri = 'Components.i.tri'
-        # Check for source file.
-        if not os.path.isfile(ftri):
-            raise IOError("No surface file '%s' found." % ftri)
-        # Form the command.
-        cmd = 'autoInputs -r %i -t Components.i.tri' % r
-        # Check verbosity.
-        if v:
-            # Run command and display output.
-            os.system(cmd + " | tee autoInputs.out")
-        else:
-            # Hide the output.
-            os.system(cmd + " > autoInputs.out")
-        
-    # Method to run 'autoInput' in all grid folders.
-    def Grids_autoInputs(self):
-        """Run :file:`autoInputs` in each grid folder.
-        
-        :Call:
-            >>> cart3d.Grids_autoInputs()
-        :Versions:
-            * 2014.06.16 ``@ddalle``: First version
-        """
-        # Check if autoInputs should be run.
-        if not self.opts['Mesh']['autoInputs']['r']:
-            return None
-        # Get grid folders.
-        glist = np.unique(self.x.GetGroupFolderNames())
-        # Common announcement.
-        print("  Running 'autoInputs' for grid:")
-        # Loop through the grids.
-        for g in glist:
-            # Change to that directory.
-            os.chdir(g)
-            # Announce.
-            print("    %s" % g)
-            # Run.
-            self.autoInputs(v=False)
-            # Change back to home directory.
-            os.chdir('..')
-    
-    ## Method to run 'bues' in the current folder.
-    #def cubes(self, maxR=None, v=True):
-    #    """Run :file:`cubes` in the current working directory.  Writes output
-    #    too :file:`cubes.out`.
-    #    
-    #    :Call:
-    #        >>> cart3d.cubes(maxR=None, v=True)
-    #    :Inputs:
-    #        *cart3d*: :class:`pyCart.cart3d.Cart3d`
-    #            Instance of control class containing relevant parameters
-    #        *r*: :class:`int`
-    #            Refinements, defaults to ``cart3d.Mesh['nRefinements']``
-    #        *v*: :class:`bool`
-    #            If ``True``, displays output on command line.
-    #    :Versions:
-    #        * 2014.06.16 ``@ddalle``: First version
-    #    """
-    #    # Get the mesh radius.
-    #    if maxR is None: maxR = self.opts.get_maxR()
-    #    # Check for input files.
-    #    if not os.path.isfile('input.c3d'):
-    #        raise IOError("No input file 'input.c3d' found.")
-    #    if not os.path.isfile('preSpec.c3d.cntl'):
-    #        raise IOError("No input file 'preSpec.c3d.cntl' found.")
-    #    # Form the command.
-    #    cmd = 'cubes -maxR %i -pre preSpec.c3d.cntl -reorder' % maxR
-    #    # Check verbosity.
-    #    if v:
-    #        # Run command and display output.
-    #        os.system(cmd + " | tee cubes.out")
-    #    else:
-    #        # Hide the output.
-    #        os.system(cmd + " > cubes.out")
-        
-    # Method to run 'cubes' in all grid folders.
-    def Grids_cubes(self):
-        """Run :file:`cubes` in each grid folder.
-        
-        :Call:
-            >>> cart3d.Grids_cubes()
-        :Versions:
-            * 2014.06.16 ``@ddalle``: First version
-        """
-        # Get grid folders.
-        glist = np.unique(self.x.GetGroupFolderNames())
-        # Common announcement.
-        print("  Running 'cubes' for grid:")
-        # Loop through the grids.
-        for g in glist:
-            # Change to that directory.
-            os.chdir(g)
-            # Announce.
-            print("    %s" % g)
-            # Run.
-            self.cubes(v=False)
-            # Change back to home directory.
-            os.chdir('..')
             
     
     # Method to run 'bues' in the current folder.

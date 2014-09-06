@@ -275,8 +275,8 @@ class Options(odict):
             * 2014.08.01 ``@ddalle``: First version
         """
         # Get the two values.
-        mg_fc = self.get_mg_fc(mg, i)
-        mg_ad = self.get_mg_ad(mg_fc, i)
+        mg_fc = self.get_mg_fc(i)
+        mg_ad = self.get_mg_ad(i)
         # Check for valid settings.
         if mg_fc and mg_ad:
             # Handle lists...
