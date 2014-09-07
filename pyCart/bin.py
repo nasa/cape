@@ -173,5 +173,37 @@ def autoInputs(cart3d=None, r=8, ftri='Components.i.tri'):
     
     
 # Function to call flowCart
+def flowCart(cart3d=None, **kwargs):
+    """Interface to Cart3D binary ``flowCart``
     
+    :Call:
+        >>> pyCart.bin.flowCart(cart3d)
+        >>> pyCart.bin.flowCart(it_fc=200, limiter=2, **kwargs)
+    :Inputs:
+        *cart3d*: :class:`pyCart.cart3d.Cart3d`
+            Global pyCart settings instance
+        *it_fc*: :class:`int`
+            Number of iterations to run ``flowCart``
+        *limiter*: :class:`int`
+            Limiter index
+        *y_is_spanwise*: :class:`bool`
+            Whether or not to consider angle of attack in *z* direction
+        *nThreads*: :class:`int`
+            Number of threads to use for ``flowCart`` operation
+    :Versions:
+        * 2014.09.07 ``@ddalle``: First version
+    """
+    # Check for cart3d input
+    if cart3d is not None:
+        # Get values from internal settings.
+        it_fc = cart3d.get_it_fc()
+        limiter = cart3d.get_imiter()
+        y_is_spanwise = cart3d.get_y_is_spanwise()
+        nThreads = cart3d.get_OMP_NUM_THREADS()
+    else:
+        # Get values from keyword arguments
+        it_fc = kwargs.get('it_fc', 200)
+        limiter = kwargs.get('limiter', 2)
+        y_is_spanwise = kwargs.get('y_is_spanwise', True)
+        nThreads = kwargs.get('nThreads', 4)
 
