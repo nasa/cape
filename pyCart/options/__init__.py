@@ -187,27 +187,27 @@ class Options(odict):
         return self['flowCart'].get_y_is_spanwise(i)
         
     # Set the y_is_spanwise status
-    def set_y_is_spanwise(y_is_spanwise=rc0('y_is_spanwise'), i=None):
+    def set_y_is_spanwise(self, y_is_spanwise=rc0('y_is_spanwise'), i=None):
         self._flowCart()
         self['flowCart'].set_y_is_spanwise(y_is_spanwise, i)
         
     # Get the binary I/O status
-    def get_binaryIO(i=None):
+    def get_binaryIO(self, i=None):
         self._flowCart()
         return self['flowCart'].get_binaryIO(i)
         
     # Set the binary I/O status
-    def set_binaryIO(binaryIO=rc0('binaryIO'), i=None):
+    def set_binaryIO(self, binaryIO=rc0('binaryIO'), i=None):
         self._flowCart()
         self['flowCart'].set_binaryIO(binaryIO, i)
         
     # Get the number of threads for flowCart
-    def get_OMP_NUM_THREADS(i=None):
+    def get_OMP_NUM_THREADS(self, i=None):
         self._flowCart()
         return self['flowCart'].get_OMP_NUM_THREADS(i)
         
     # Set the number of threads for flowCart
-    def set_OMP_NUM_THREADS(nThreads=rc0('OMP_NUM_THREADS'), i=None):
+    def set_OMP_NUM_THREADS(self, nThreads=rc0('OMP_NUM_THREADS'), i=None):
         self._flowCart()
         self['flowCart'].set_OMP_NUM_THREADS(nThreads, i)
         

@@ -196,14 +196,43 @@ def flowCart(cart3d=None, **kwargs):
     # Check for cart3d input
     if cart3d is not None:
         # Get values from internal settings.
-        it_fc = cart3d.get_it_fc()
-        limiter = cart3d.get_imiter()
-        y_is_spanwise = cart3d.get_y_is_spanwise()
-        nThreads = cart3d.get_OMP_NUM_THREADS()
+        it_fc   = cart3d.opts.get_it_fc()
+        limiter = cart3d.opts.get_imiter()
+        y_span  = cart3d.opts.get_y_is_spanwise()
+        bin_IO  = cart3d.opts.get_binaryIO()
+        cfl     = cart3d.opts.get_cfl()
+        cflmin  = cart3d.opts.get_cflmin()
+        tm      = cart3d.opts.get_tm()
+        nThread = cart3d.opts.get_OMP_NUM_THREADS()
     else:
         # Get values from keyword arguments
-        it_fc = kwargs.get('it_fc', 200)
+        it_fc   = kwargs.get('it_fc', 200)
         limiter = kwargs.get('limiter', 2)
-        y_is_spanwise = kwargs.get('y_is_spanwise', True)
-        nThreads = kwargs.get('nThreads', 4)
+        y_span  = kwargs.get('y_is_spanwise', True)
+        binIO   = kwargs.get('binaryIO', False)
+        cfl     = kwargs.get('cfl', 1.1)
+        cflmin  = kwargs.get('cflmin', 0.8)
+        tm      = kwargs.get('tm', None)
+        nThread = kwargs.get('nThreads', 4)
+    # Set environment variable.
+    if nThreads:
+        os.environ['OMP_NUM_THREADS'] = str(nThreads)
+    # Initialize command.
+    cmd = ['flowCart', '-his', '-v']
+    # Add options
+    if it_fc:   cmd += ['-N', str(it_fc)]
+    if y_span:  cmd += ['-y_is_spanwise']
+    if limiter: cmd += ['-limiter', str(limiter)]
+    if binIO:   cmd += ['-binaryIO']
+    if cfl:     cmd += ['-cfl', str(cfl)]
+    if cflmin:  cmd += ['-cflmin', str(cflmin)]
+    # Process and translate the cut-cell gradient variable.
+    if (tm is not None) and tm:
+        # Second-order cut cells
+        cmd += ['-tm', '1']
+    elif (tm is not None) and (not tm):
+        # First-order cut cells
+        cmd += ['-tm', '0']
+    # Run the command
+    callf(cmd, f='flowCart.out')
 
