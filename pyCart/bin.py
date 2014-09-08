@@ -173,17 +173,29 @@ def autoInputs(cart3d=None, r=8, ftri='Components.i.tri'):
     
     
 # Function to call flowCart
-def flowCart(cart3d=None, **kwargs):
+def flowCart(cart3d=None, i=0, **kwargs):
     """Interface to Cart3D binary ``flowCart``
     
     :Call:
-        >>> pyCart.bin.flowCart(cart3d)
-        >>> pyCart.bin.flowCart(it_fc=200, limiter=2, **kwargs)
+        >>> pyCart.bin.flowCart(cart3d, i=0)
+        >>> pyCart.bin.flowCart(i=0, **kwargs)
     :Inputs:
         *cart3d*: :class:`pyCart.cart3d.Cart3d`
             Global pyCart settings instance
+        *i*: :class:`int`
+            Run index (restart if *i* is greater than *0*)
         *it_fc*: :class:`int`
             Number of iterations to run ``flowCart``
+        *mg_fc*: :class:`int`
+            Number of multigrid levels to use
+        *cfl*: :class:`float`
+            Nominal CFL number
+        *cflmin*: :class:`float`
+            Minimum CFL number allowed for problem cells or iterations
+        *tm*: :class:`bool`
+            Whether or not to use second-order cut cells
+        *binaryIO*: :class:`bool`
+            Whether or not to use binary format for input/output files
         *limiter*: :class:`int`
             Limiter index
         *y_is_spanwise*: :class:`bool`
@@ -196,22 +208,26 @@ def flowCart(cart3d=None, **kwargs):
     # Check for cart3d input
     if cart3d is not None:
         # Get values from internal settings.
-        it_fc   = cart3d.opts.get_it_fc()
-        limiter = cart3d.opts.get_imiter()
-        y_span  = cart3d.opts.get_y_is_spanwise()
-        bin_IO  = cart3d.opts.get_binaryIO()
-        cfl     = cart3d.opts.get_cfl()
-        cflmin  = cart3d.opts.get_cflmin()
-        tm      = cart3d.opts.get_tm()
-        nThread = cart3d.opts.get_OMP_NUM_THREADS()
+        it_fc   = cart3d.opts.get_it_fc(i)
+        limiter = cart3d.opts.get_imiter(i)
+        y_span  = cart3d.opts.get_y_is_spanwise(i)
+        bin_IO  = cart3d.opts.get_binaryIO(i)
+        tecO    = cart3d.opts.get_tecO(i)
+        cfl     = cart3d.opts.get_cfl(i)
+        cflmin  = cart3d.opts.get_cflmin(i)
+        mg_fc   = cart3d.opts.get_mg_fc(i)
+        tm      = cart3d.opts.get_tm(i)
+        nThread = cart3d.opts.get_OMP_NUM_THREADS(i)
     else:
         # Get values from keyword arguments
         it_fc   = kwargs.get('it_fc', 200)
         limiter = kwargs.get('limiter', 2)
         y_span  = kwargs.get('y_is_spanwise', True)
         binIO   = kwargs.get('binaryIO', False)
+        tecO    = kwargs.get('tecO', False)
         cfl     = kwargs.get('cfl', 1.1)
         cflmin  = kwargs.get('cflmin', 0.8)
+        mg_fc   = kwargs.get('mg_fc', 3)
         tm      = kwargs.get('tm', None)
         nThread = kwargs.get('nThreads', 4)
     # Set environment variable.
@@ -219,13 +235,17 @@ def flowCart(cart3d=None, **kwargs):
         os.environ['OMP_NUM_THREADS'] = str(nThreads)
     # Initialize command.
     cmd = ['flowCart', '-his', '-v']
+    # Check for restart
+    if restart: cmd += ['-restart']
     # Add options
     if it_fc:   cmd += ['-N', str(it_fc)]
     if y_span:  cmd += ['-y_is_spanwise']
     if limiter: cmd += ['-limiter', str(limiter)]
     if binIO:   cmd += ['-binaryIO']
+    if tecO:    cmd += ['-T']
     if cfl:     cmd += ['-cfl', str(cfl)]
     if cflmin:  cmd += ['-cflmin', str(cflmin)]
+    if mg_fc:   cmd += ['-mg', str(mg_fc)]
     # Process and translate the cut-cell gradient variable.
     if (tm is not None) and tm:
         # Second-order cut cells

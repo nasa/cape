@@ -43,6 +43,7 @@ rc = {
     "limiter": 2,
     "y_is_spanwise": True,
     "binaryIO": True,
+    "tecO": True,
     "OMP_NUM_THREADS": 8,
     "tm": False,
     "it_ad": 120,

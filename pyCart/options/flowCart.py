@@ -275,6 +275,44 @@ class flowCart(odict):
         self.set_key('binaryIO', binaryIO, i)
         
         
+    # Get the y-spanwise status
+    def get_tecO(self, i=None):
+        """Return whether or not `flowCart` dumps Tecplot triangulations
+        
+        :Call:
+            >>> tecO = opts.get_tecO(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *tecO*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not `flowCart` dumps Tecplot triangulations
+        :Versions:
+            * 2014.09.07 ``@ddalle``: First version
+        """
+        return self.get_key('tecO', i)
+    
+    # Set the y-spanwise status
+    def set_tecO(self, tecO=rc0('tecO'), i=None):
+        """Set whether `flowCart` dumps Tecplot triangulations
+        
+        :Call:
+            >>> opts.set_tecO(tecO, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *tecO*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not `flowCart` dumps Tecplot triangulations
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014.09.07 ``@ddalle``: First version
+        """
+        self.set_key('tecO', tecO, i)
+        
+        
     # Get the cut cell gradient status
     def get_tm(self, i=None):
         """Return whether or not `flowCart` is set for cut cell gradient

@@ -19,6 +19,8 @@
 	    "y_is_spanwise": true,
 	    // Use binary input/output instead of ASCII
 	    "binaryIO": true,
+        // Write a Tecplot triangulation soltuion file
+        "tecO": true,
 	    // Number of threads
 	    "OMP_NUM_THREADS": 8,
 	    
