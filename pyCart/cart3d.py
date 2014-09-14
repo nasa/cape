@@ -386,6 +386,83 @@ class Cart3d(object):
         # Return to original directory.
         os.chdir(fpwd)
         
+    # Interface for ``autoInputs``
+    def mgPrep(self, i=None):
+        """Run ``mgPrep`` for all groups or a specific group *i*
+        
+        :Call:
+            >>> cart3d.mgPrep()
+            >>> cart3d.mgPrep(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int` or :class:`list`(:class:`int`)
+                Group index to prepare
+        :Versions:
+            * 2014.09.14 ``@ddalle``: First version
+        """
+        # Store the current location.
+        fpwd = os.getcwd()
+        # Check for index filter
+        if i and np.isscalar(i): i = [i]
+        # Get group names
+        glist = self.x.GetUniqueGroupFolderNames(i=i)
+        # Loop through them.
+        for fdir in glist:
+            # Go to the root folder.
+            os.chdir(self.RootDir)
+            # Go to the grid folder.
+            os.chdir(fdir)
+            # Run cubes.
+            bin.mgPrep(self)
+        # Return to original directory.
+        os.chdir(fpwd)
+        
+        
+    # Interface for running ``flowCart``
+    def flowCart(self, k=0, i=None):
+        """Run ``flowCart`` for one case, either all runs or run *i*
+        
+        :Call:
+            >>> cart3d.flowCart(k, i=None)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *k*: :class:`int`
+                Index of case to analyze
+            *i*: :class:`int` or :class:`list` (:class:`int`)
+                Run index or indices to apply
+        :Versions:
+            * 2014.09.14 ``@ddalle``: First version
+        """
+        # Save current directory.
+        fpwd = os.getcwd()
+        # Get the case.
+        fdir = self.x.GetFullFolderNames(k)
+        # Go there.
+        os.chdir(self.RootDir)
+        os.chdir(fdir)
+        # Process the run index.
+        if i is None:
+            # Get the iteration break points or total num of iterations.
+            it_fc = self.opts.get_it_fc()
+            # Check for a list or scalar.
+            if np.isscalar(it_fc):
+                # Single run
+                i = [0]
+            else:
+                # Multple runs.
+                i = range(len(it_fc))
+        elif np.isscalar(i):
+            # Make it a list.
+            i = [i]
+        # Loop through the runs.
+        for j in i:
+            # Run the case.
+            print(" ".join(bin.cmd.flowCart(self, i=j)))
+        # Return to original directory.
+        os.chdir(fpwd)
+        
     # Write conditions files.
     def Grids_WriteConditionsFiles(self):
         """Write conditions files for each group
