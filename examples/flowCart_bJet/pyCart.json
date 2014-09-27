@@ -1,4 +1,13 @@
 {
+    // Settings for the PBS script
+    "PBS": {
+        "j": "oe",
+        "S": "bash",
+        "select": 1,
+        "ncpu": 20
+        
+    },
+    
 	// The names of these two files have the obvious defaults.
 	"InputCntl": "input.cntl",
 	"AeroCsh": "aero.csh",

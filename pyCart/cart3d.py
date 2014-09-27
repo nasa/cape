@@ -317,7 +317,7 @@ class Cart3d(object):
         # Run cubes
         self.cubes()
         # Prepare multigrid
-        self.Grids_mgPrep()
+        self.mgPrep()
         # End.
         return None
         
@@ -539,68 +539,7 @@ class Cart3d(object):
             self.tri.Write(os.path.join(g, 'Components.i.tri'))
         
             
-    
-    # Method to run 'bues' in the current folder.
-    def mgPrep(self, mg=None, v=True):
-        """Run :file:`mgPrep` in the current working directory.  Writes output
-        too :file:`mgPrep.out`.
         
-        :Call:
-            >>> cart3d.mgPrep(mg=None, v=True)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *mg*: :class:`int`
-                Number of multigrid levels, ``cart3d.Mesh['nMultiGrid']``
-            *v*: :class:`bool`
-                If ``True``, displays output on command line.
-        :Versions:
-            * 2014.06.16 ``@ddalle``: First version
-        """
-        # Get the mesh radius.
-        if mg is None: mg = self.opts.get_mg()
-        # Check for input files.
-        if not os.path.isfile('Mesh.R.c3d'):
-            raise IOError("No mesh file 'Mesh.R.c3d' found.")
-        # Form the command.
-        cmd = 'mgPrep -n %i' % mg
-        # Check verbosity.
-        if v:
-            # Run command and display output.
-            os.system(cmd + " | tee mgPrep.out")
-        else:
-            # Hide the output.
-            os.system(cmd + " > mgPrep.out")
-        
-    # Method to run 'cubes' in all grid folders.
-    def Grids_mgPrep(self):
-        """Run :file:`mgPrep` in each grid folder.
-        
-        :Call:
-            >>> cart3d.Grids_autoInputs()
-        :Versions:
-            * 2014.06.16 ``@ddalle``: First version
-        """
-        # Get grid folders.
-        glist = np.unique(self.x.GetGroupFolderNames())
-        # Get n multigrid levels
-        mg = self.opts.get_mg()
-        # Quit if appropriate.
-        if not mg:
-            return None
-        # Common announcement.
-        print("  Running 'mgPrep' for grid:")
-        # Loop through the grids.
-        for g in glist:
-            # Change to that directory.
-            os.chdir(g)
-            # Announce.
-            print("    %s" % g)
-            # Run.
-            self.mgPrep(mg=mg, v=False)
-            # Change back to home directory.
-            os.chdir('..')
-    
     # Function to copy/link files
     def CopyFiles(self):
         """Copy or link the relevant files to the Grid folders.
@@ -725,7 +664,6 @@ class Cart3d(object):
         
         :Call:
             >>> cart3d.CreateRunScripts()
-            
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
