@@ -387,20 +387,35 @@ class TriBase(object):
         self.Normals = n
         # Done
         return None
+       
+       
+    # Function to get node indices from component ID(s)
+    def GetNodesFromCompID(self, i):
+        """Find node indices based face component ID(s)
         
+        :Call:
+            >>> j = tri.GetNodesFromCompid(i)
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance to be translated
+            *i*: :class:`int` or :class:`list` (:class:`int`0
+                Component ID(s) to which to apply translation
+        :Versions:
+            * 2014.09.27 ``@ddalle``: First version
+        """
         
     
     # Function to translate the triangulation
-    def Translate(self, dx=None, dy=None, dz=None):
+    def Translate(self, dx=None, dy=None, dz=None, i=None):
         """Translate the nodes of a triangulation object.
             
         The offset coordinates may be specified as individual inputs or a
         single vector of three coordinates.
         
         :Call:
-            >>> tri.Translate(dR)
-            >>> tri.Translate(dx, dy, dz)
-            >>> tri.Translate(dy=dy)
+            >>> tri.Translate(dR, i=None)
+            >>> tri.Translate(dx, dy, dz, i=None)
+            >>> tri.Translate(dy=dy, i=None)
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance to be translated
@@ -412,6 +427,8 @@ class TriBase(object):
                 *y*-coordinate offset
             *dz*: :class:`float`
                 *z*-coordinate offset
+            *i*: :class:`int` or :class:`list` (:class:`int`0
+                Component ID(s) to which to apply translation
         :Versions:
             * 2014.05.23 ``@ddalle``: First version
         """
@@ -430,6 +447,7 @@ class TriBase(object):
         if hasattr(dx, '__len__'):
             # Extract components
             dx, dy, dz = tuple(dx)
+        # Process the node indices to be rotated.
         # Offset each coordinate.
         self.Nodes[:,0] += dx
         self.Nodes[:,1] += dy
