@@ -113,7 +113,7 @@ def autoInputs(cart3d=None, r=8, ftri='Components.i.tri'):
     if cart3d is not None:
         # Apply values
         mg_fc = cart3d.opts.get_r()
-        ftri  = cart3d.opts.get_TriFile()
+        ftri  = 'Components.i.tri'
     # Initialize command.
     cmd = ['autoInputs']
     # Add options.

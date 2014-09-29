@@ -425,7 +425,7 @@ class Cart3d(object):
         
         
     # Function to check if the mesh for case i exists
-    def check_mesh(self, i):
+    def CheckMesh(self, i):
         """Check if the mesh for case *i* is prepared.
         
         :Call:
@@ -474,11 +474,11 @@ class Cart3d(object):
         return q
         
     # Prepare the mesh for case i (if necessary)
-    def prepare_mesh(self, i):
+    def PrepareMesh(self, i):
         """Prepare the mesh for case *i* if necessary.
         
         :Call:
-            >>> q = cart3d.check_mesh(i)
+            >>> q = cart3d.PrepareMesh(i)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
@@ -487,12 +487,22 @@ class Cart3d(object):
         :Versions:
             * 2014.09.29 ``@ddalle``: First version
         """
+        # Get the case name.
+        frun = self.x.GetFullFolderNames(i)
+        # Display it.
+        print(frun)
+        print("  Checking status...")
         # Check the mesh.
-        if self.check_mesh(i): return None
+        if self.CheckMesh(i):
+            # Display.
+            print("  Mesh already prepared")
+            return None
         # Get name of group.
         fgrp = self.x.GetGroupFolderNames(i)
         # Get the group index.
         j = self.x.GetGroupIndex(i)
+        # Status update
+        print("  Group name: '%s' (index %i)" % (fgrp,j))
         # Remember current location.
         fpwd = os.getcwd()
         # Go to root folder.
@@ -500,8 +510,20 @@ class Cart3d(object):
         # Check for the group folder and make it if necessary.
         if not os.path.isdir(fgrp):
             os.mkdir(fgrp, fmask)
-        # Copy files...
+        # Go there.
+        os.chdir(fgrp)
+        # Get the name of the configuration file.
+        fxml = os.path.join(self.RootDir, self.opts.get_ConfigFile())
+        # Test if the file exists.
+        if os.path.isfile(fxml):
+            # Copy it, to a fixed file name in this folder.
+            shutil.copyfile(fxml, 'Config.xml')
+        # Status update
+        print("  Preparing surface triangulation...")
+        # Apply rotations, etc.
         
+        # Write the tri file.
+        self.tri.Write('Components.i.tri')
         # Run autoInputs if necessary.
         if self.opts.get_r(): self.autoInputs(j)
         # Bounding box control...

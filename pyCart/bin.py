@@ -12,13 +12,13 @@ import subprocess as sp
 import cmd
 
 # Function to call commands with a different STDOUT
-def callf(cmd, f=None, shell=None):
+def callf(cmdi, f=None, shell=None):
     """Call a command with alternate STDOUT by filename
     
     :Call:
-        >>> callf(cmd, f=None, shell=None)
+        >>> callf(cmdi, f=None, shell=None)
     :Inputs:
-        *cmd*: :class:`list` (:class:`str`)
+        *cmdi*: :class:`list` (:class:`str`)
             List of strings as for :func:`subprocess.call`
         *f*: :class:`str`
             File name to which to store STDOUT
@@ -30,7 +30,7 @@ def callf(cmd, f=None, shell=None):
     # Process the shell option
     shell = bool(shell)
     # Print the command.
-    print(" > " + " ".join(cmd))
+    print(" > " + " ".join(cmdi))
     # Print the current location.
     print("     (PWD = '%s')" % os.getcwd())
     # Check for an output
@@ -40,12 +40,12 @@ def callf(cmd, f=None, shell=None):
         # Open the file.
         fid = open(f, 'w')
         # Call the command.
-        ierr = sp.call(cmd, stdout=fid, shell=shell)
+        ierr = sp.call(cmdi, stdout=fid, shell=shell)
         # Close the file.
         fid.close()
     else:
         # Call the command.
-        ierr = sp.call(cmd, shell=shell)
+        ierr = sp.call(cmdi, shell=shell)
     # Check the status.
     if ierr:
         raise SystemError("Command failed with status %i." % ierr)
@@ -106,9 +106,9 @@ def cubes(cart3d=None, **kwargs):
     # Required file
     _assertfile('input.c3d')
     # Get command
-    cmd = cmd.cubes(cart3d=cart3d, **kwargs)
+    cmdi = cmd.cubes(cart3d=cart3d, **kwargs)
     # Run the command.
-    callf(cmd, f='cubes.out')
+    callf(cmdi, f='cubes.out')
 # Docstring
 cubes.__doc__ = _upgradeDocString(cmd.cubes.__doc__)
     
@@ -117,18 +117,18 @@ def mgPrep(cart3d=None, **kwargs):
     # Required file
     _assertfile('Mesh.R.c3d')
     # Get the command.
-    cmd = cmd.mgPrep(cart3d=cart3d, **kwargs)
+    cmdi = cmd.mgPrep(cart3d=cart3d, **kwargs)
     # Run the command.
-    callf(cmd, f='mgPrep.out')
+    callf(cmdi, f='mgPrep.out')
 # Docstring
 mgPrep.__doc__ = _upgradeDocString(cmd.mgPrep.__doc__)
     
 # Function to call mgPrep
 def autoInputs(cart3d=None, **kwargs):
     # Get command.
-    cmd = cmd.autoInputs(cart3d, **kwargs)
+    cmdi = cmd.autoInputs(cart3d, **kwargs)
     # Run the command.
-    callf(cmd, f='autoInputs.out')
+    callf(cmdi, f='autoInputs.out')
 # Docstring
 autoInputs.__doc__ = _upgradeDocString(cmd.autoInputs.__doc__)
     
@@ -147,9 +147,9 @@ def flowCart(cart3d=None, i=0, **kwargs):
     if nProc:
         os.environ['OMP_NUM_THREADS'] = str(nProc)
     # Get command.
-    cmd = cmd.flowCart(cart3d=cart3d, i=i, **kwargs)
+    cmdi = cmd.flowCart(cart3d=cart3d, i=i, **kwargs)
     # Run the command
-    callf(cmd, f='flowCart.out')
+    callf(cmdi, f='flowCart.out')
 # Docstring
 flowCart.__doc__ = _upgradeDocString(cmd.flowCart.__doc__)
 
