@@ -36,6 +36,10 @@ PyCartFolder = os.path.split(os.path.split(_fname)[0])[0]
 rc = {
     "InputCntl": "input.cntl",
     "AeroCsh": "aero.csh",
+    "ConfigFile": "Config.xml",
+    "RefArea": 1.0,
+    "RefLength": 1.0,
+    "RefPoint": [0.0, 0.0, 0.0],
     "it_fc": 200,
     "cfl": 1.1,
     "cflmin": 0.8,
@@ -61,7 +65,17 @@ rc = {
     "pre": "preSpec.c3d.cntl",
     "cubes_a": 10,
     "cubes_b": 2,
-    "reorder": True
+    "reorder": True,
+    "PBS_j": "oe",
+    "PBS_r": "n",
+    "PBS_S": "/bin/bash",
+    "PBS_select": 1,
+    "PBS_ncpus": 20,
+    "PBS_mpiprocs": 20,
+    "PBS_model": "ivy",
+    "PBS_W": "",
+    "PBS_q": "normal",
+    "PBS_walltime": "8:00:00"
 }
 
 # Utility function to get elements sanely

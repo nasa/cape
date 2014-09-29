@@ -449,6 +449,36 @@ class Trajectory:
             # Just join the one.
             return os.path.join(glist, flist)
             
+    # Function to get the group index from the case index
+    def GetGroupIndex(self, i):
+        """Get group index from case index
+        
+        :Call:
+            k = x.GetGroupIndex(i)
+        :Inputs:
+            *x*: :class:`pyCart.trajectory.Trajectory`
+                Instance of the pyCart trajectory class
+            *i*: :class:`int`
+                Index of case
+        :Outputs:
+            *j*: :class:`int`
+                Index of group that contains case *i*
+        :Versions:
+            * 2014.09.27 ``@ddalle``: First versoin
+        """
+        # Check inputs.
+        if type(i).__name__ != 'int':
+            raise TypeError("Input to :func:`Trajectory.GetGroupIndex` must"
+                + " be :class:`int`.")
+        # Get name of group for case *i*.
+        grp = self.GetGroupFolderNames(i)
+        # Get the list of all unique groups.
+        grps = self.GetUniqueGroupFolderNames()
+        # Find the index.
+        j = np.where(grps == grp)[0][0]
+        # Output
+        return j
+            
     # Function to assemble a folder name based on a list of keys and an index
     def _AssembleName(self, keys, prefix, i):
         """
@@ -456,7 +486,7 @@ class Trajectory:
         
         :Call:
             >>> dname = x._AssembleName(keys, prefix, i)
-        :Inptus:
+        :Inputs:
             *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
             *keys*: :type:`list` (:class:`str`)

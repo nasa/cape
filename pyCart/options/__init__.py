@@ -29,8 +29,9 @@ from .flowCart    import flowCart
 from .adjointCart import adjointCart
 from .Adaptation  import Adaptation
 from .Mesh        import Mesh
+from .pbs         import PBS
+from .Config      import Config
 
-    
 
 # Class definition
 class Options(odict):
@@ -75,7 +76,8 @@ class Options(odict):
         self._adjointCart()
         self._Adaptation()
         self._Mesh()
-        
+        self._PBS()
+        self._Config()
     
     
     # Initialization and confirmation for flowCart options
@@ -122,10 +124,80 @@ class Options(odict):
             # Convert to special class.
             self['Mesh'] = Mesh(**self['Mesh'])
             
+    # Initialization and confirmation for PBS options
+    def _PBS(self):
+        """Initialize PBS options if necessary"""
+        # Check status.
+        if 'PBS' not in self:
+            # Missing entirely
+            self['PBS'] = PBS()
+        elif type(self['PBS']).__name__ == 'dict':
+            # Add prefix to all the keys.
+            tmp = {}
+            for k in self['PBS']:
+                tmp["PBS_"+k] = self['PBS'][k]
+            # Convert to special class.
+            self['PBS'] = PBS(**tmp)
             
+    # Initialization and confirmation for PBS options
+    def _Config(self):
+        """Initialize configuration options if necessary"""
+        # Check status.
+        if 'Config' not in self:
+            # Missing entirely
+            self['Config'] = Config()
+        elif type(self['Config']).__name__ == 'dict':
+            # Add prefix to all the keys.
+            tmp = {}
+            for k in self['Config']:
+                # Check for "File"
+                if k == 'File':
+                    # Add prefix.
+                    tmp["Config"+k] = self['Config'][k]
+                else:
+                    # Use the key as is.
+                    tmp[k] = self['Config'][k]
+            # Convert to special class.
+            self['Config'] = Config(**tmp)
+    
+    # ==============
+    # Global Options
+    # ==============
+    
     # Method to get the input file
+    def get_InputCntl(self):
+        pass
+    
+    # Method to get the aero shell file
+    def get_AeroCsh(self):
+        pass
     
     
+        
+    
+    # ==============
+    # Shell Commands
+    # ==============
+    
+    # Function to get the shell commands
+    def get_ShellCmds(self):
+        """Get shell commands, if any
+        
+        :Call:
+            >>> cmds = opts.get_ShellCmds()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *cmds*: :class:`list`
+        """
+        # Get the commands.
+        cmds = self.get('ShellCmds', [])
+        # Turn to a list if not.
+        if type(cmds).__name__ != 'list':
+            cmds = [cmds]
+        # Output
+        return cmds
     
     # ===================
     # flowCart parameters
@@ -481,9 +553,146 @@ class Options(odict):
         eval('set_'+k).__doc__ = getattr(Mesh,'set_'+k).__doc__
         
         
+    # ============
+    # PBS settings
+    # ============
+    
+    # Get PBS *join* setting
+    def get_PBS_j(self):
+        self._PBS()
+        return self['PBS'].get_PBS_j()
         
+    # Set PBS *join* setting
+    def set_PBS_j(self, j=rc0('PBS_j')):
+        self._PBS()
+        self['PBS'].set_PBS_j(j)
+    
+    # Get PBS *rerun* setting
+    def get_PBS_r(self):
+        self._PBS()
+        return self['PBS'].get_PBS_r()
+        
+    # Set PBS *rerun* setting
+    def set_PBS_r(self, r=rc0('PBS_r')):
+        self._PBS()
+        self['PBS'].set_PBS_r(r)
+    
+    # Get PBS shell setting
+    def get_PBS_S(self):
+        self._PBS()
+        return self['PBS'].get_PBS_S()
+        
+    # Set PBS shell setting
+    def set_PBS_S(self, S=rc0('PBS_S')):
+        self._PBS()
+        self['PBS'].set_PBS_S(S)
+    
+    # Get PBS nNodes setting
+    def get_PBS_select(self):
+        self._PBS()
+        return self['PBS'].get_PBS_select()
+        
+    # Set PBS nNodes setting
+    def set_PBS_select(self, n=rc0('PBS_select')):
+        self._PBS()
+        self['PBS'].set_PBS_select(n)
+    
+    # Get PBS CPUS/node setting
+    def get_PBS_ncpus(self):
+        self._PBS()
+        return self['PBS'].get_PBS_ncpus()
+        
+    # Set PBS CPUs/node setting
+    def set_PBS_ncpus(self, n=rc0('PBS_ncpus')):
+        self._PBS()
+        self['PBS'].set_PBS_ncpus(n)
+    
+    # Get PBS MPI procs/node setting
+    def get_PBS_mpiprocs(self):
+        self._PBS()
+        return self['PBS'].get_PBS_mpiprocs()
+        
+    # Set PBS *rerun* setting
+    def set_PBS_mpiprocs(self, n=rc0('PBS_mpiprocs')):
+        self._PBS()
+        self['PBS'].set_PBS_mpiprocs(n)
+    
+    # Get PBS model or arch setting
+    def get_PBS_model(self):
+        self._PBS()
+        return self['PBS'].get_PBS_model()
+        
+    # Set PBS model or arch setting
+    def set_PBS_model(self, s=rc0('PBS_model')):
+        self._PBS()
+        self['PBS'].set_PBS_model(s)
+    
+    # Get PBS group setting
+    def get_PBS_W(self):
+        self._PBS()
+        return self['PBS'].get_PBS_W()
+        
+    # Set PBS group setting
+    def set_PBS_W(self, W=rc0('PBS_W')):
+        self._PBS()
+        self['PBS'].set_PBS_W(W)
+    
+    # Get PBS queue setting
+    def get_PBS_q(self):
+        self._PBS()
+        return self['PBS'].get_PBS_q()
+        
+    # Set PBS queue setting
+    def set_PBS_q(self, q=rc0('PBS_q')):
+        self._PBS()
+        self['PBS'].set_PBS_q(q)
+    
+    # Get PBS walltime setting
+    def get_PBS_walltime(self):
+        self._PBS()
+        return self['PBS'].get_PBS_walltime()
+        
+    # Set PBS walltime setting
+    def set_PBS_walltime(self, t=rc0('PBS_walltime')):
+        self._PBS()
+        self['PBS'].set_PBS_walltime(t)
+        
+    # Copy over the documentation.
+    for k in ['PBS_j', 'PBS_r', 'PBS_S', 'PBS_select', 'PBS_mpiprocs',
+            'PBS_ncpus', 'PBS_model', 'PBS_W', 'PBS_q', 'PBS_walltime']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(PBS,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(PBS,'set_'+k).__doc__
     
 
+    # =============
+    # Configuration
+    # =============
     
+    # Get config file name
+    def get_ConfigFile(self):
+        self._Config()
+        return self['Config'].get_ConfigFile()
+        
+    # Set config file name
+    def set_ConfigFile(self, fname=rc0('ConfigFile')):
+        self._Config()
+        self['Config'].set_ConfigFile(fname)
+    
+    # Get reference area
+    def get_RefArea(self, comp=None):
+        self._Config()
+        return self['Config'].get_RefArea(comp)
+        
+    # Set config file name
+    def set_RefArea(self, A=rc0('RefArea'), comp=None):
+        self._Config()
+        self['Config'].set_RefArea(A, comp)
+        
+    # Copy over the documentation.
+    for k in ['ConfigFile', 'RefArea']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(Config,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(Config,'set_'+k).__doc__
 
 

@@ -79,10 +79,10 @@
         // Defer to a file for most things.
         "File": "Config.xml",
         // Reference values
-        "ReferenceArea": 1005.3,
-        "ReferenceLength": 66.3,
+        "RefArea": 1005.3,
+        "RefLength": 66.3,
         // The moment point can be specified as a dictionary of components.
-        "MomentPoint": [0.0, 0.0, 0.0]
+        "RefPoint": [0.0, 0.0, 0.0]
     },
     
     // Trajectory description

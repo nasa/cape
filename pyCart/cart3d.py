@@ -81,8 +81,13 @@ def _upgradeDocString(docstr, fromclass):
 # ---------------------------------
 # I consider this portion temporary
 
+# Get the umask value.
+umask = 0027
+# Get the folder permissions.
+fmask = 0777 - umask
+
 # Change the umask to a reasonable value.
-os.umask(0027)
+os.umask(umask)
 
 # ---------------------------------
 #-->
@@ -418,6 +423,95 @@ class Cart3d(object):
         # Return to original directory.
         os.chdir(fpwd)
         
+        
+    # Function to check if the mesh for case i exists
+    def check_mesh(self, i):
+        """Check if the mesh for case *i* is prepared.
+        
+        :Call:
+            >>> q = cart3d.check_mesh(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not the mesh for case *i* is prepared
+        :Versions:
+            * 2014.09.29 ``@ddalle``: First version
+        """
+        # Check input.
+        if type(i).__name__ != "int":
+            raise TypeError(
+                "Input to :func:`Cart3d.check_mesh()` must be :class:`int`.")
+        # Get the group name.
+        fgrp = self.x.GetGroupFolderNames(i)
+        # Initialize with "pass" setting.
+        q = True
+        # Remember current location.
+        fpwd = os.getcwd()
+        # Go to root folder.
+        os.chdir(self.RootDir)
+        # Check if the folder exists.
+        if (not os.path.isdir(fgrp)): q = False
+        # Check that test.
+        if q:
+            # Go to the group folder.
+            os.chdir(fgrp)
+            # Check for the surface file.
+            if not os.path.isfile('Components.i.tri'): q = False
+            # Check for which mesh file to look for.
+            if q and self.opts.get_mg() > 0:
+                # Look for the multigrid mesh
+                if not os.path.isfile('Mesh.mg.c3d'): q = False
+            else:
+                # Look for the original mesh
+                if not os.path.isfile('Mesh.c3d'): q = False
+        # Return to original folder.
+        os.chdir(fpwd)
+        # Output.
+        return q
+        
+    # Prepare the mesh for case i (if necessary)
+    def prepare_mesh(self, i):
+        """Prepare the mesh for case *i* if necessary.
+        
+        :Call:
+            >>> q = cart3d.check_mesh(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2014.09.29 ``@ddalle``: First version
+        """
+        # Check the mesh.
+        if self.check_mesh(i): return None
+        # Get name of group.
+        fgrp = self.x.GetGroupFolderNames(i)
+        # Get the group index.
+        j = self.x.GetGroupIndex(i)
+        # Remember current location.
+        fpwd = os.getcwd()
+        # Go to root folder.
+        os.chdir(self.RootDir)
+        # Check for the group folder and make it if necessary.
+        if not os.path.isdir(fgrp):
+            os.mkdir(fgrp, fmask)
+        # Copy files...
+        
+        # Run autoInputs if necessary.
+        if self.opts.get_r(): self.autoInputs(j)
+        # Bounding box control...
+        
+        # Run cubes.
+        self.cubes(j)
+        # Run mgPrep
+        self.mgPrep(j)
+        # Return to original folder.
+        os.chdir(fpwd)
         
     # Interface for running ``flowCart``
     def flowCart(self, k=0, i=None):
