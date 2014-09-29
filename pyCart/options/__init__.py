@@ -688,9 +688,29 @@ class Options(odict):
     def set_RefArea(self, A=rc0('RefArea'), comp=None):
         self._Config()
         self['Config'].set_RefArea(A, comp)
+    
+    # Get reference length
+    def get_RefLength(self, comp=None):
+        self._Config()
+        return self['Config'].get_RefLength(comp)
+        
+    # Set config file name
+    def set_RefLength(self, L=rc0('RefLength'), comp=None):
+        self._Config()
+        self['Config'].set_RefLength(L, comp)
+    
+    # Get moment reference point
+    def get_RefPoint(self, comp=None):
+        self._Config()
+        return self['Config'].get_RefPoint(comp)
+        
+    # Set moment reference point
+    def set_RefPoint(self, x=rc0('RefPoint'), comp=None):
+        self._Config()
+        self['Config'].set_RefPoint(x, comp)
         
     # Copy over the documentation.
-    for k in ['ConfigFile', 'RefArea']:
+    for k in ['ConfigFile', 'RefArea', 'RefLength', 'RefPoint']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Config,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Config,'set_'+k).__doc__
