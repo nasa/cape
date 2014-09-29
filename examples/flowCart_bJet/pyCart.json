@@ -2,10 +2,15 @@
     // Settings for the PBS script
     "PBS": {
         "j": "oe",
-        "S": "bash",
+        "r": "n",
+        "S": "/bin/bash",
         "select": 1,
-        "ncpu": 20
-        
+        "ncpus": 20,
+        "mpiprocs": 20,
+        "model": "ivy",
+        "W": "group_list=e0847",
+        "q": "sls_aero1",
+        "walltime": "8:00:00"
     },
     
 	// The names of these two files have the obvious defaults.

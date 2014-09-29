@@ -390,19 +390,39 @@ class TriBase(object):
        
        
     # Function to get node indices from component ID(s)
-    def GetNodesFromCompID(self, i):
+    def GetNodesFromCompID(self, i=None):
         """Find node indices based face component ID(s)
         
         :Call:
-            >>> j = tri.GetNodesFromCompid(i)
+            >>> j = tri.GetNodesFromCompID(i)
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance to be translated
-            *i*: :class:`int` or :class:`list` (:class:`int`0
-                Component ID(s) to which to apply translation
+            *i*: :class:`int` or :class:`list` (:class:`int`)
+                Component ID or list of component IDs
         :Versions:
             * 2014.09.27 ``@ddalle``: First version
         """
+        # Process inputs.
+        if i is None:
+            # Well, this is kind of pointless.
+            j = np.arange(self.nNode)
+        elif np.isscalar(i):
+            # Get a single component.
+            J = self.Nodes(self.CompID == i)
+            # Convert to unique list.
+            j = np.unique(J)
+        else:
+            # List of components.
+            J = self.Nodes(self.CompID == i[0])
+            # Loop through remaining components.
+            for ii in range(1,len(i)):
+                # Stack the nodes from the new component.
+                J = np.vstack((J, self.Nodes(self.CompID==i[0])))
+            # Convert to a unique list.
+            j = np.unique(J)
+        # Output
+        return j
         
     
     # Function to translate the triangulation
@@ -448,15 +468,16 @@ class TriBase(object):
             # Extract components
             dx, dy, dz = tuple(dx)
         # Process the node indices to be rotated.
+        j = self.GetNodesFromCompID(i)
         # Offset each coordinate.
-        self.Nodes[:,0] += dx
-        self.Nodes[:,1] += dy
-        self.Nodes[:,2] += dz
+        self.Nodes[j,0] += dx
+        self.Nodes[j,1] += dy
+        self.Nodes[j,2] += dz
         # End
         return None
         
     # Function to rotate a triangulation about an arbitrary vector
-    def Rotate(self, v1, v2, theta):
+    def Rotate(self, v1, v2, theta, i=None):
         """Rotate the nodes of a triangulation object.
         
         :Call:
@@ -470,6 +491,8 @@ class TriBase(object):
                 End point of rotation vector
             *theta*: :class:`float`
                 Rotation angle in degrees
+            *i*: :class:`int` or :class:`list` (:class:`int`0
+                Component ID(s) to which to apply rotation
         :Versions:
             * 2014.05.27 ``@ddalle``: First version
         """
@@ -487,10 +510,12 @@ class TriBase(object):
         # Trig functions
         c_th = np.cos(theta*np.pi/180.)
         s_th = np.sin(theta*np.pi/180.)
+        # Get the indices.
+        j = self.GetNodesFromCompID(i)
         # Apply Rodrigues' rotation formula to get the rotated coordinates.
-        self.Nodes[:,0] = x*c_th+(v[1]*z-v[2]*y)*s_th+v[0]*k1*(1-c_th)+v1[0]
-        self.Nodes[:,1] = y*c_th+(v[2]*x-v[0]*z)*s_th+v[1]*k1*(1-c_th)+v1[1]
-        self.Nodes[:,2] = z*c_th+(v[0]*y-v[1]*x)*s_th+v[2]*k1*(1-c_th)+v1[2]
+        self.Nodes[j,0] = x*c_th+(v[1]*z-v[2]*y)*s_th+v[0]*k1*(1-c_th)+v1[0]
+        self.Nodes[j,1] = y*c_th+(v[2]*x-v[0]*z)*s_th+v[1]*k1*(1-c_th)+v1[1]
+        self.Nodes[j,2] = z*c_th+(v[0]*y-v[1]*x)*s_th+v[2]*k1*(1-c_th)+v1[2]
         # Return the rotated coordinates.
         return None
         
