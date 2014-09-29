@@ -223,6 +223,16 @@ class Options(odict):
         self._flowCart()
         self['flowCart'].set_mg_fc(mg_fc, i)
         
+    # Get cut-cell gradient flag
+    def get_tm(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_tm(i)
+        
+    # Set cut-cell gradient flag
+    def set_tm(self, tm=rc0('tm'), i=None):
+        self._flowCart()
+        self['flowCart'].set_tm(tm, i)
+        
     # Get the nominal CFL number
     def get_cfl(self, i=None):
         self._flowCart()
@@ -236,7 +246,7 @@ class Options(odict):
     # Get the minimum CFL number
     def get_cflmin(self, i=None):
         self._flowCart()
-        return self.get_cflmin(i)
+        return self['flowCart'].get_cflmin(i)
     
     # Set the minimum CFL number
     def set_cflmin(self, cflmin=rc0('cflmin'), i=None):
@@ -254,7 +264,7 @@ class Options(odict):
         self['flowCart'].set_limiter(limiter, i)
         
     # Get the y_is_spanwise status
-    def get_y_is_spanwise(i=None):
+    def get_y_is_spanwise(self, i=None):
         self._flowCart()
         return self['flowCart'].get_y_is_spanwise(i)
         
@@ -273,6 +283,16 @@ class Options(odict):
         self._flowCart()
         self['flowCart'].set_binaryIO(binaryIO, i)
         
+    # Get the Tecplot output status
+    def get_tecO(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_tecO(i)
+        
+    # Set the Tecplot output status
+    def set_tecO(self, tecO=rc0('tecO'), i=None):
+        self._flowCart()
+        self['flowCart'].set_tecO(tecO, i)
+        
     # Get the number of threads for flowCart
     def get_OMP_NUM_THREADS(self, i=None):
         self._flowCart()
@@ -284,7 +304,7 @@ class Options(odict):
         self['flowCart'].set_OMP_NUM_THREADS(nThreads, i)
         
     # Copy over the documentation.
-    for k in ['it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter',
+    for k in ['it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'tecO',
             'y_is_spanwise', 'binaryIO', 'OMP_NUM_THREADS']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(flowCart,'get_'+k).__doc__

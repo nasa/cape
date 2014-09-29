@@ -162,9 +162,9 @@ def flowCart(cart3d=None, i=0, **kwargs):
     if cart3d is not None:
         # Get values from internal settings.
         it_fc   = cart3d.opts.get_it_fc(i)
-        limiter = cart3d.opts.get_imiter(i)
+        limiter = cart3d.opts.get_limiter(i)
         y_span  = cart3d.opts.get_y_is_spanwise(i)
-        bin_IO  = cart3d.opts.get_binaryIO(i)
+        binIO   = cart3d.opts.get_binaryIO(i)
         tecO    = cart3d.opts.get_tecO(i)
         cfl     = cart3d.opts.get_cfl(i)
         cflmin  = cart3d.opts.get_cflmin(i)

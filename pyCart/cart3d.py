@@ -535,12 +535,63 @@ class Cart3d(object):
         # Return to original folder.
         os.chdir(fpwd)
         
-    # Interface for running ``flowCart``
-    def flowCart(self, k=0, i=None):
-        """Run ``flowCart`` for one case, either all runs or run *i*
+    # Check a case.
+    def CheckCase(self, i):
+        """Check current status of run *i*
         
         :Call:
-            >>> cart3d.flowCart(k, i=None)
+            >>> n = cart3d.CheckCase(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Outputs:
+            *n*: :class:`int` or ``None``
+                Number of completed iterations or ``None`` if not set up
+        :Versions:
+            * 2014.09.27 ``@ddalle``: First version
+        """
+         # Check input.
+        if type(i).__name__ != "int":
+            raise TypeError(
+                "Input to :func:`Cart3d.check_mesh()` must be :class:`int`.")
+        # Get the group name.
+        frun = self.x.GetFullFolderNames(i)
+        # Remember current location.
+        fpwd = os.getcwd()
+        # Go to root folder.
+        os.chdir(self.RootDir)
+        # Initialize iteration number.
+        n = 0
+        # Check if the folder exists.
+        if (not os.path.isdir(frun)): n = None
+        # Check that test.
+        if q:
+            # Go to the group folder.
+            os.chdir(frun)
+            # Check for the surface file.
+            if not os.path.isfile('Components.i.tri'): n = None
+            # Check for which mesh file to look for.
+            if q and self.opts.get_mg() > 0:
+                # Look for the multigrid mesh
+                if not os.path.isfile('Mesh.mg.c3d'): n = None
+            else:
+                # Look for the original mesh
+                if not os.path.isfile('Mesh.c3d'): n = None
+        # Count iterations....
+        
+        # Return to original folder.
+        os.chdir(fpwd)
+        # Output.
+        return n
+        
+    # Interface for getting ``flowCart`` commands
+    def flowCartCmd(self, k, i=None):
+        """Get ``flowCart`` commands for one case, either all runs or run *i*
+        
+        :Call:
+            >>> cmdk = cart3d.flowCartCmd(k, i=None)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
@@ -548,8 +599,12 @@ class Cart3d(object):
                 Index of case to analyze
             *i*: :class:`int` or :class:`list` (:class:`int`)
                 Run index or indices to apply
+        :Outputs:
+            *cmdk*: :class:`list` (:class:`list` (:class:`str`))
+                List of commands for each run index in case *k*
         :Versions:
             * 2014.09.14 ``@ddalle``: First version
+            * 2014.09.27 ``@ddalle``: Added "Cmd" to the name
         """
         # Save current directory.
         fpwd = os.getcwd()
@@ -572,12 +627,39 @@ class Cart3d(object):
         elif np.isscalar(i):
             # Make it a list.
             i = [i]
+        # Initialize commands.
+        cmdk = []
         # Loop through the runs.
         for j in i:
             # Run the case.
-            print(" ".join(bin.cmd.flowCart(self, i=j)))
+            cmdk.append(bin.cmd.flowCart(self, i=j))
         # Return to original directory.
         os.chdir(fpwd)
+        # Output
+        return cmdk
+        
+    # Direct interface for ``flowCart``
+    def flowCart(self, k, i=None):
+        """Run ``flowCart`` for one case, either all runs or run *i*
+        
+        :Call:
+            >>> cmdk = cart3d.flowCartCmd(k, i=None)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *k*: :class:`int`
+                Index of case to analyze
+            *i*: :class:`int` or :class:`list` (:class:`int`)
+                Run index or indices to apply
+        :Versions:
+            * 2014.09.27 ``@ddalle``: First version
+        """
+        # Get the commands.
+        cmdk = self.flowCartCmd(k, i)
+        # Loop through the commands.
+        for cmdi in cmdk:
+            # Run the command.
+            bin.callf(cmdi)
         
     # Write conditions files.
     def Grids_WriteConditionsFiles(self):
