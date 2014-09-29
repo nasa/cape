@@ -16,6 +16,15 @@
 	// The names of these two files have the obvious defaults.
 	"InputCntl": "input.cntl",
 	"AeroCsh": "aero.csh",
+	
+	// Commands to load at head of PBS scripts
+	"ShellCmds": [
+	    "module purge",
+	    "module use modules",
+	    "module use -a /u/ddalle/share/modulefiles",
+	    "module load cart3d",
+	    "module load pyCart"
+	],
     
     // This section sets the parameters for flowCart.
 	// The names for these parameters are copied from `aero.csh`.
