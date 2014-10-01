@@ -331,7 +331,7 @@ class PBS(odict):
         :Versions:
             * 2014.09.29 ``@ddalle``: First version
         """
-        return self.get_key('PBS_r',0)
+        return self.get_key('PBS_S',0)
         
     # Set shell setting
     def set_PBS_S(self, S):

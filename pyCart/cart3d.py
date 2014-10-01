@@ -85,6 +85,7 @@ def _upgradeDocString(docstr, fromclass):
 umask = 0027
 # Get the folder permissions.
 fmask = 0777 - umask
+dmask = 0777 - umask
 
 # Change the umask to a reasonable value.
 os.umask(umask)
@@ -147,6 +148,10 @@ class Cart3d(object):
         
         # Read the triangulation file(s)
         self.ReadTri()
+        
+        # Read the input files.
+        self.InputCntl = InputCntl(self.opts.get_InputCntl())
+        self.AeroCsh   = AeroCsh(self.opts.get_AeroCsh())
         
         # Save the current directory as the root.
         self.RootDir = os.path.split(os.path.abspath(fname))[0]
@@ -567,13 +572,13 @@ class Cart3d(object):
         # Check if the folder exists.
         if (not os.path.isdir(frun)): n = None
         # Check that test.
-        if q:
+        if n is not None:
             # Go to the group folder.
             os.chdir(frun)
             # Check for the surface file.
             if not os.path.isfile('Components.i.tri'): n = None
             # Check for which mesh file to look for.
-            if q and self.opts.get_mg() > 0:
+            if self.opts.get_mg() > 0:
                 # Look for the multigrid mesh
                 if not os.path.isfile('Mesh.mg.c3d'): n = None
             else:
@@ -585,6 +590,182 @@ class Cart3d(object):
         os.chdir(fpwd)
         # Output.
         return n
+        
+    # Prepare a case.
+    def PrepareCase(self, i):
+        """Prepare case for running if necessary
+        
+        :Call:
+            >>> n = cart3d.PrepareCase(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of case to analyze
+        :Versions:
+            * 2014.09.30 ``@ddalle``: First version
+        """
+        # Prepare the mesh.
+        self.PrepareMesh(i)
+        # Get the existing status.
+        n = self.CheckCase(i)
+        # Quit if prepared.
+        if n is not None: return None
+        # Get the run name.
+        frun = self.x.GetFullFolderNames(i)
+        # Save current location.
+        fpwd = os.getcwd()
+        # Go to root folder.
+        os.chdir(self.RootDir)
+        # Check for the run directory.
+        if not os.path.isdir(frun): os.mkdir(frun, dmask)
+        # Go there.
+        os.chdir(frun)
+        # Copy the required files.
+        for fname in ['input.c3d', 'Mesh.c3d.Info', 'Config.xml']:
+            # Source path.
+            fsrc = os.path.join('..', fname)
+            # Check for the file.
+            if os.path.isfile(fsrc):
+                # Copy it.
+                shutil.copy(fsrc, fname)
+        # Create links that are available.
+        for fname in ['Components.i.tri', 'Mesh.c3d', 'Mesh.mg.c3d',
+                'Mesh.R.c3d']:
+            # Source path.
+            fsrc = os.path.join(os.path.abspath('..'), fname)
+            # Check for the file.
+            if os.path.isfile(fsrc):
+                # Create a symlink.
+                os.symlink(fsrc, fname)
+        # Write the input.cntl file.
+        self.PrepareInputCntl(i)
+        # Return to original location.
+        os.chdir(fpwd)
+        
+    # Get PBS name
+    def GetPBSName(self, i):
+        """Get PBS name for a given case
+        
+        :Call:
+            >>> lbl = cart3d.GetPBSName(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Run index
+        :Versions:
+            * 2014.09.30 ``@ddalle``: First version
+        """
+        # Extract the trajectory.
+        x = self.x
+        # Get the first key (special because allowed two decimals)
+        k0 = x.keys[0]
+        # Initialize label.
+        lbl = '%s%.2f' % (x.abbrv[k0], getattr(x,k0)[i])
+        # Loop through keys.
+        for k in x.keys[1:]:
+            # Append to the label
+            lbl += ('%s%.1f' % (x.abbrv[k], getattr(x,k)[i]))
+        # Check length.
+        if len(lbl) > 16:
+            # 16-char limit (or is it 15?)
+            lbl = lbl[:15]
+        # Output
+        return lbl
+        
+        
+    # Write the PBS script.
+    def WritePBS(self, i):
+        """Write the PBS script for a given case
+        
+        :Call:
+            >>> cart3d.WritePBS(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Run index
+        :Versions:
+            * 2014.09.30 ``@ddalle``: First version
+        """
+        # Get the case name.
+        frun = self.x.GetFullFolderNames(i)
+        # Remember current location.
+        fpwd = os.getcwd()
+        # Go to the root directory.
+        os.chdir(self.RootDir)
+        # Make folder if necessary.
+        if not os.path.isdir(frun): os.mkdir(frun, dmask)
+        # Go to the folder.
+        os.chdir(frun)
+        
+        # Initialize the PBS script.
+        f = open('run_cart3d.pbs', 'w')
+        # Get the shell path (must be bash)
+        sh = self.opts.get_PBS_S()
+        # Write to script both ways.
+        f.write('#!%s\n' % sh)
+        f.write('#PBS -S %s\n' % sh)
+        # Get the shell name.
+        lbl = self.GetPBSName(i)
+        # Write it to the script
+        f.write('#PBS -N %s\n' % lbl)
+        # Get the rerun status.
+        PBS_r = self.opts.get_PBS_r()
+        # Write if specified.
+        if PBS_r: f.write('#PBS -r %s\n' % PBS_r)
+        # Get the option for combining STDIO/STDOUT
+        PBS_j = self.opts.get_PBS_j()
+        # Write if specified.
+        if PBS_j: f.write('#PBS -j %s\n' % PBS_j)
+        # Get the number of nodes, etc.
+        nnode = self.opts.get_PBS_select()
+        ncpus = self.opts.get_PBS_ncpus()
+        nmpis = self.opts.get_PBS_mpiprocs()
+        smodl = self.opts.get_PBS_model()
+        # Write these -l lines.
+        if nnode: f.write('#PBS -l select=%i\n' % nnode)
+        if ncpus: f.write('#PBS -l ncpus=%i\n' % ncpus)
+        if nmpis: f.write('#PBS -l mpiprocs=%i\n' % nmpis)
+        if smodl: f.write('#PBS -l model=%s\n' % smodl)
+        # Get the walltime.
+        t = self.opts.get_PBS_walltime()
+        # Write it.
+        f.write('#PBS -l walltime=%s\n' % t)
+        # Check for a group list.
+        PBS_W = self.opts.get_PBS_W()
+        # Write if specified.
+        if PBS_W: f.write('#PBS -W %s\n' % PBS_W)
+        # Get the queue.
+        PBS_q = self.opts.get_PBS_q()
+        # Write it.
+        if PBS_q: f.write('#PBS -q %s\n\n' % PBS_q)
+        
+        # Write a header for the shell commands.
+        f.write('# Additional shell commands\n')
+        # Loop through the shell commands.
+        for line in self.opts.get_ShellCmds():
+            # Write it.
+            f.write('%s\n' % line)
+        
+        # Get the number of threads.
+        N = self.opts.get_OMP_NUM_THREADS()
+        # Set it.
+        f.write('\n# Number of processors\n')
+        f.write('export OMP_NUM_THREADS=%i\n' % N)
+        
+        # Get the commands.
+        cmdi = self.flowCartCmd(i)
+        # Loop through the commands.
+        for cmdj in cmdi:
+            f.write(" ".join(cmdj) + "\n")
+        # Close the file.
+        f.close()
+        # Return.
+        os.chdir(fpwd)
+        
+        
         
     # Interface for getting ``flowCart`` commands
     def flowCartCmd(self, k, i=None):
@@ -922,61 +1103,44 @@ class Cart3d(object):
         return None
         
     # Function to prepare "input.cntl" files
-    def PrepareInputCntl(self):
+    def PrepareInputCntl(self, i):
         """
-        Read template "input.cntl" file, customize it for each case, and write
-        it to trajectory folders.
+        Write :file:`input.cntl` in for run case *i* in the appropriate folder
+        and with the appropriate settings.
         
         :Call:
-            >>> cart3d.PrepareInputCntl()
+            >>> cart3d.PrepareInputCntl(i)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
-        :Effects:
-            *  Reads 'input.cntl' file from the destination specified in
-               *cart3d.RunOptions* and copies it to each case folder after
-               processing appropriate options.
-               
-            *  Creates *cart3d.InputCntl* data member
-            
+            *i*: 
         :Versions:
             * 2014.06.04 ``@ddalle``: First version
             * 2014.06.06 ``@ddalle``: Low-level functionality for grid folders
+            * 2014.09.30 ``@ddalle``: Changed to write only a single case
         """
-        # Get the name of the .cntl file.
-        fname = self.opts.get('InputCntl', 'input.cntl')
-        # Get the configuration settings.
-        conf = self.opts.get('Config', {})
-        # Read it.
-        self.InputCntl = InputCntl(fname)
-        # Process global options...
+        # Check the status.
+        if self.CheckCase(i) is None: return None
+        # Set the options.
         self.InputCntl.SetCFL(self.opts.get_cfl())
-        # Extract the trajectory.
-        x = self.x
-        # Get grid folders.
-        glist = x.GetGroupFolderNames()
-        # Write to each "Grid" folder.
-        for g in glist:
-            self.InputCntl.Write(os.path.join(g, 'input.cntl'))
-        # Get the folder names.
-        dlist = x.GetFolderNames()
-        # Loop through the conditions.
-        for i in range(len(dlist)):
-            # Print a status update
-            print("  Preparing 'input.cntl' for case %i" % i)
-            # Set the flight conditions.
-            self.InputCntl.SetMach(x.Mach[i])
-            self.InputCntl.SetAlpha(x.alpha[i])
-            self.InputCntl.SetBeta(x.beta[i])
-            # Set the Reference values
-            self.InputCntl.SetReferenceArea(conf.get('ReferenceArea'))
-            self.InputCntl.SetReferenceLength(conf.get('ReferenceLength'))
-            # Destination file name
-            fout = os.path.join(glist[i], dlist[i], 'input.cntl')
-            # Write the input file.
-            self.InputCntl.Write(fout)
-        # Done
-        return None
+        # Set the flight conditions.
+        self.InputCntl.SetMach(self.x.Mach[i])
+        self.InputCntl.SetAlpha(self.x.alpha[i])
+        self.InputCntl.SetBeta(self.x.beta[i])
+        # Set reference values.
+        self.InputCntl.SetReferenceArea(self.opts.get_RefArea())
+        self.InputCntl.SetReferenceLength(self.opts.get_RefLength())
+        # Go safely to root folder.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get the case
+        frun = self.x.GetFullFolderNames(i)
+        # Name of output file.
+        fout = os.path.join(frun, 'input.cntl')
+        # Write the input file.
+        self.InputCntl.Write(fout)
+        # Return to original path.
+        os.chdir(fpwd)
         
     # Function prepare the aero.csh files
     def PrepareAeroCsh(self):

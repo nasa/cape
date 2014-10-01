@@ -147,9 +147,9 @@ class InputCntl(FileCntl):
         #  2014.06.10 @ddalle  : First version
         
         # Find the line.
-        line = self.GetLineInSectionStartsWith('Case_Information', 'Mach', 1)
+        lines = self.GetLineInSectionStartsWith('Case_Information', 'Mach', 1)
         # Convert.
-        vals = [line.split() for line in lines]
+        vals = lines[0].split()
         # Check for a match.
         if len(vals)==0 or len(vals[0])<2:
             # Not enough info.

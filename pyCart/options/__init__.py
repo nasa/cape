@@ -166,11 +166,69 @@ class Options(odict):
     
     # Method to get the input file
     def get_InputCntl(self):
-        pass
+        """Return the name of the master :file:`input.cntl` file
+        
+        :Call:
+            fname = opts.get_InputCntl()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *fname*: :class:`str`
+                Name of Cart3D input control template file
+        :Versions:
+            * 2014.09.30 ``@ddalle``: First version
+        """
+        return self.get('InputCntl', rc0('InputCntl'))
+        
+    # Method to set the input file
+    def set_InputCntl(self, fname):
+        """Set the name of the master :file:`input.cntl` file
+        
+        :Call:
+            opts.set_InputCntl(fname)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *fname*: :class:`str`
+                Name of Cart3D input control template file
+        :Versions:
+            * 2014.09.30 ``@ddalle``: First version
+        """
+        self['InputCntl'] = fname
     
     # Method to get the aero shell file
     def get_AeroCsh(self):
-        pass
+        """Return the name of the master :file:`aero.csh` file
+        
+        :Call:
+            fname = opts.get_AeroCsh()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *fname*: :class:`str`
+                Name of Cart3D aero shell template file
+        :Versions:
+            * 2014.09.30 ``@ddalle``: First version
+        """
+        return self.get('AeroCsh', rc0('AeroCsh'))
+        
+    # Method to set the input file
+    def set_AeroCsh(self, fname):
+        """Set the name of the master :file:`aero.csh` file
+        
+        :Call:
+            opts.set_AeroCsh(fname)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *fname*: :class:`str`
+                Name of Cart3D asero shell template file
+        :Versions:
+            * 2014.09.30 ``@ddalle``: First version
+        """
+        self['AeroCsh'] = fname
     
     
         
