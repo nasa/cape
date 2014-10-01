@@ -1143,8 +1143,6 @@ class Cart3d(object):
             * 2014.06.06 ``@ddalle``: Low-level functionality for grid folders
             * 2014.09.30 ``@ddalle``: Changed to write only a single case
         """
-        # Check the status.
-        if self.CheckCase(i) is None: return None
         # Set the options.
         self.InputCntl.SetCFL(self.opts.get_cfl())
         # Set the flight conditions.
@@ -1157,8 +1155,10 @@ class Cart3d(object):
         # Go safely to root folder.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
-        # Get the case
+        # Get the case.
         frun = self.x.GetFullFolderNames(i)
+        # Make folder if necessary.
+        if not os.path.isdir(frun): os.mkdir(frun, dmask)
         # Name of output file.
         fout = os.path.join(frun, 'input.cntl')
         # Write the input file.
