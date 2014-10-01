@@ -19,11 +19,13 @@
 	
 	// Commands to load at head of PBS scripts
 	"ShellCmds": [
+        ". $MODULESHOME/init/bash",
 	    "module purge",
 	    "module use modules",
 	    "module use -a /u/ddalle/share/modulefiles",
 	    "module load cart3d",
-	    "module load pyCart"
+	    "module load pyCart",
+        "ulimit -S -s 4194304"
 	],
     
     // This section sets the parameters for flowCart.

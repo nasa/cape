@@ -746,11 +746,13 @@ class Cart3d(object):
         ncpus = self.opts.get_PBS_ncpus()
         nmpis = self.opts.get_PBS_mpiprocs()
         smodl = self.opts.get_PBS_model()
-        # Write these -l lines.
-        if nnode: f.write('#PBS -l select=%i\n' % nnode)
-        if ncpus: f.write('#PBS -l ncpus=%i\n' % ncpus)
-        if nmpis: f.write('#PBS -l mpiprocs=%i\n' % nmpis)
-        if smodl: f.write('#PBS -l model=%s\n' % smodl)
+        # Form the -l line.
+        line = '#PBS -l select=%i:ncpus=%i' % (nnode, ncpus)
+        # Add other settings
+        if nmpis: line += (':mpiprocs=%i' % nmpis)
+        if smodl: line += (':model=%s' % smodl)
+        # Write the line.
+        f.write(line + '\n')
         # Get the walltime.
         t = self.opts.get_PBS_walltime()
         # Write it.
@@ -763,6 +765,10 @@ class Cart3d(object):
         PBS_q = self.opts.get_PBS_q()
         # Write it.
         if PBS_q: f.write('#PBS -q %s\n\n' % PBS_q)
+        
+        # Go to the working directory.
+        f.write('# Go to the working directory.\n')
+        f.write('cd %s\n\n' % os.getcwd())
         
         # Write a header for the shell commands.
         f.write('# Additional shell commands\n')
