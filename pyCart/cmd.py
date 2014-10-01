@@ -192,7 +192,6 @@ def flowCart(cart3d=None, i=0, **kwargs):
     if binIO:   cmd += ['-binaryIO']
     if tecO:    cmd += ['-T']
     if cfl:     cmd += ['-cfl', str(cfl)]
-    if cflmin:  cmd += ['-cflmin', str(cflmin)]
     if mg_fc:   cmd += ['-mg', str(mg_fc)]
     # Process and translate the cut-cell gradient variable.
     if (tm is not None) and tm:

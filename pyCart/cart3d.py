@@ -14,6 +14,7 @@ import numpy as np
 import json
 # File system and operating system management
 import os, shutil
+import subprocess as sp
 
 # pyCart settings class
 import options
@@ -585,7 +586,20 @@ class Cart3d(object):
                 # Look for the original mesh
                 if not os.path.isfile('Mesh.c3d'): n = None
         # Count iterations....
-        
+        if os.path.isfile('history.dat'):
+            # Get the last line of the history file.
+            txt = sp.Popen(['tail', '-1', 'history.dat'],
+                stdout=sp.PIPE).communicate()[0]
+            # Check if it's a comment.
+            if txt.startswith('#') or len(txt)<2:
+                # No iterations yet.
+                n = 0
+            else:
+                # Iterations
+                n = int(txt.split()[0])
+        else:
+            # No history; zero iterations.
+            n = 0
         # Return to original folder.
         os.chdir(fpwd)
         # Output.
@@ -758,8 +772,10 @@ class Cart3d(object):
         # Get the commands.
         cmdi = self.flowCartCmd(i)
         # Loop through the commands.
-        for cmdj in cmdi:
-            f.write(" ".join(cmdj) + "\n")
+        for j in range(len(cmdi)):
+            # Write the command.
+            f.write("\n# Run %i\n" % j)
+            f.write(" ".join(cmdi[j]) + "\n")
         # Close the file.
         f.close()
         # Return.
