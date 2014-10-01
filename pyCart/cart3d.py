@@ -585,6 +585,14 @@ class Cart3d(object):
             else:
                 # Look for the original mesh
                 if not os.path.isfile('Mesh.c3d'): n = None
+        # Output if None
+        if n is None:
+            # Go back to starting point.
+            os.chdir(fpwd)
+            # Quit.
+            return None
+        # Go to the folder.
+        os.chdir(frun)
         # Count iterations....
         if os.path.isfile('history.dat'):
             # Get the last line of the history file.
