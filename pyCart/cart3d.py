@@ -591,8 +591,6 @@ class Cart3d(object):
             os.chdir(fpwd)
             # Quit.
             return None
-        # Go to the folder.
-        os.chdir(frun)
         # Count iterations....
         if os.path.isfile('history.dat'):
             # Get the last line of the history file.
@@ -662,6 +660,8 @@ class Cart3d(object):
                 os.symlink(fsrc, fname)
         # Write the input.cntl file.
         self.PrepareInputCntl(i)
+        # Write the PBS script.
+        self.WritePBS(i)
         # Return to original location.
         os.chdir(fpwd)
         
