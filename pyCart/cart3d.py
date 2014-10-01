@@ -775,7 +775,7 @@ class Cart3d(object):
         for j in range(len(cmdi)):
             # Write the command.
             f.write("\n# Run %i\n" % j)
-            f.write(" ".join(cmdi[j]) + "\n")
+            f.write(" ".join(cmdi[j]) + " > flowCart.out\n")
         # Close the file.
         f.close()
         # Return.
