@@ -193,7 +193,7 @@ class PBS(odict):
         :Versions:
             * 2014.09.29 ``@ddalle``: First version
         """
-        return self.get_key('PBS_j',0)
+        return self.get_key('PBS_W',0)
         
     # Set group setting
     def set_PBS_W(self, W):
