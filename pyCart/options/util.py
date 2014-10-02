@@ -42,6 +42,7 @@ rc = {
     "RefPoint": [0.0, 0.0, 0.0],
     "InputSeq": [0],
     "IterSeq": [200],
+    "first_order": 0,
     "it_fc": 200,
     "cfl": 1.1,
     "cflmin": 0.8,

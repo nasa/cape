@@ -113,6 +113,45 @@ class flowCart(odict):
         else:
             # Something is messed up.
             return 1
+            
+        
+    # Get first-order status
+    def get_first_order(self, i=None):
+        """Return whether or not `flowCart` should be run first-order
+        
+        :Call:
+            >>> fo = opts.get_first_order(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *fo*: :class:`int` or :class:`list`(:class:`int`)
+                Switch for running `flowCart` in first-order mode
+        :Versions:
+            * 2014.10.02 ``@ddalle``: First version
+        """
+        return self.get_key('first_order', i)
+        
+    # Set first-order status
+    def set_first_order(self, i=None):
+        """Set whether or not `flowCart` should be run first-order
+        
+        :Call:
+            >>> opts.set_first_order(fo)
+            >>> opts.set_first_order(fo, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *fo*: :class:`int` or :class:`list`(:class:`int`)
+                Switch for running `flowCart` in first-order mode
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014.10.02 ``@ddalle``: First version
+        """
+        self.set_key('first_order', fo, i)
         
         
     # Number of iterations

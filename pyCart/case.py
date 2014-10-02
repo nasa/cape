@@ -33,6 +33,10 @@ def run_flowCart():
     i = DetermineInputNumber(fc)
     # Get the restart iteration number.
     n = GetRestartIter()
+    # Delete any input file.
+    if os.path.isfile('input.cntl'): os.remove('input.cntl')
+    # Create the correct input file.
+    os.symlink('input.%02i.cntl' % i, 'input.cntl')
     # Get the number of threads, which may be irrelevant.
     nThread = fc.get_OMP_NUM_THREADS()
     # Set it.

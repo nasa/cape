@@ -288,6 +288,16 @@ class Options(odict):
         self._flowCart()
         return self['flowCart'].set_IterSeq(IterSeq, i)
     
+    # Get flowCart order
+    def get_first_order(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_first_order(i)
+        
+    # Set flowCart order
+    def set_first_order(self, fo=rc0('first_order'), i=None):
+        self._flowCart()
+        self['flowCart'].set_first_order(fo, i)
+    
     # Number of iterations
     def get_it_fc(self, i=None):
         self._flowCart()
@@ -389,7 +399,8 @@ class Options(odict):
         self['flowCart'].set_OMP_NUM_THREADS(nThreads, i)
         
     # Copy over the documentation.
-    for k in ['it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'tecO',
+    for k in ['InputSeq', 'IterSeq', 'first_order',
+            'it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'tecO',
             'y_is_spanwise', 'binaryIO', 'OMP_NUM_THREADS']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(flowCart,'get_'+k).__doc__

@@ -578,6 +578,8 @@ class Cart3d(object):
             os.chdir(frun)
             # Check for the surface file.
             if not os.path.isfile('Components.i.tri'): n = None
+            # Input file.
+            if not os.path.isfile('input.00.cntl'): n=None
             # Check for which mesh file to look for.
             if self.opts.get_mg() > 0:
                 # Look for the multigrid mesh
@@ -654,10 +656,14 @@ class Cart3d(object):
                 'Mesh.R.c3d']:
             # Source path.
             fsrc = os.path.join(os.path.abspath('..'), fname)
+            # Remove the file if it's present.
+            if os.path.isfile(fname):
+                os.remove(fname)
             # Check for the file.
             if os.path.isfile(fsrc):
                 # Create a symlink.
                 os.symlink(fsrc, fname)
+        # Write 
         # Write the input.cntl file.
         self.PrepareInputCntl(i)
         # Write a JSON file with the flowCart settings.
@@ -1140,7 +1146,8 @@ class Cart3d(object):
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
-            *i*: 
+            *i*: :class:`int`
+                Run index
         :Versions:
             * 2014.06.04 ``@ddalle``: First version
             * 2014.06.06 ``@ddalle``: Low-level functionality for grid folders
@@ -1162,10 +1169,21 @@ class Cart3d(object):
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
         if not os.path.isdir(frun): os.mkdir(frun, dmask)
-        # Name of output file.
-        fout = os.path.join(frun, 'input.cntl')
-        # Write the input file.
-        self.InputCntl.Write(fout)
+        # Loop through the runs.
+        for j in range(self.opts.get_nSeq()):
+            # Get the first-order status.
+            fo = self.opts.get_first_order(j)
+            # Set the status.
+            if fo:
+                # Run `flowCart` in first-order mode (everywhere)
+                self.InputCntl.SetFirstOrder()
+            else:
+                # Run `flowCart` in second-order mode (cut cells are separate)
+                self.InputCntl.SetSecondOrder()
+            # Name of output file.
+            fout = os.path.join(frun, 'input.%02i.cntl' % j)
+            # Write the input file.
+            self.InputCntl.Write(fout)
         # Return to original path.
         os.chdir(fpwd)
         
