@@ -660,6 +660,12 @@ class Cart3d(object):
                 os.symlink(fsrc, fname)
         # Write the input.cntl file.
         self.PrepareInputCntl(i)
+        # Write a JSON file with the flowCart settings.
+        f = open('case.json', 'w')
+        # Dump the flowCart settings.
+        json.dump(self.opts['flowCart'], f, indent=1)
+        # Close the file.
+        f.close()
         # Write the PBS script.
         self.WritePBS(i)
         # Return to original location.

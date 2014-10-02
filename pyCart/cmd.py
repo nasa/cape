@@ -122,18 +122,23 @@ def autoInputs(cart3d=None, r=8, ftri='Components.i.tri'):
     # Return the command.
     return cmd
 
-# Function to call flowCart
-def flowCart(cart3d=None, i=0, **kwargs):
+# Function to create flowCart command
+def flowCart(cart3d=None, fc=None, i=0, **kwargs):
     """Interface to Cart3D binary ``flowCart``
     
     :Call:
         >>> cmd = pyCart.cmd.flowCart(cart3d, i=0)
+        >>> cmd = pyCart.cmd.flowCart(fc=None, i=0)
         >>> cmd = pyCart.cmd.flowCart(**kwargs)
     :Inputs:
         *cart3d*: :class:`pyCart.cart3d.Cart3d`
             Global pyCart settings instance
+        *fc*: :class:`pyCart.options.flowCart.flowCart`
+            Direct reference to ``cart3d.opts['flowCart']``
         *i*: :class:`int`
             Run index (restart if *i* is greater than *0*)
+        *n*: :class:`int`
+            Iteration number from which to start (affects ``-N`` setting)
         *it_fc*: :class:`int`
             Number of iterations to run ``flowCart``
         *mg_fc*: :class:`int`
@@ -170,6 +175,17 @@ def flowCart(cart3d=None, i=0, **kwargs):
         cflmin  = cart3d.opts.get_cflmin(i)
         mg_fc   = cart3d.opts.get_mg_fc(i)
         tm      = cart3d.opts.get_tm(i)
+    elif fc is not None:
+        # Get values from direct settings.
+        it_fc   = fc.get_it_fc(i)
+        limiter = fc.get_limiter(i)
+        y_span  = fc.get_y_is_spanwise(i)
+        binIO   = fc.get_binaryIO(i)
+        tecO    = fc.get_tecO(i)
+        cfl     = fc.get_cfl(i)
+        cflmin  = fc.get_cflmin(i)
+        mg_fc   = fc.get_mg_fc(i)
+        tm      = fc.get_tm(i)
     else:
         # Get values from keyword arguments
         it_fc   = kwargs.get('it_fc', 200)
@@ -181,6 +197,8 @@ def flowCart(cart3d=None, i=0, **kwargs):
         cflmin  = kwargs.get('cflmin', 0.8)
         mg_fc   = kwargs.get('mg_fc', 3)
         tm      = kwargs.get('tm', None)
+    # Increase the iteration count.
+    it_fc += kwargs.get('n', 0)
     # Initialize command.
     cmd = ['flowCart', '-his', '-v']
     # Check for restart

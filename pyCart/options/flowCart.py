@@ -8,6 +8,113 @@ from util import rc0, odict
 class flowCart(odict):
     """Dictionary-based interfaced for options specific to ``flowCart``"""
     
+    # Run input sequence
+    def get_InputSeq(self, i=None):
+        """Return the input sequence for `flowCart`
+        
+        :Call:
+            >>> InputSeq = opts.get_InputSeq(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *InputSeq*: :class:`int` or :class:`list`(:class:`int`)
+                Sequence of input run index(es)
+        :Versions:
+            * 2014.10.02 ``@ddalle``: First version
+        """
+        return self.get_key('InputSeq', i)
+        
+    # Set run input sequence.
+    def set_InputSeq(self, InputSeq=rc0('InputSeq'), i=None):
+        """Set the input sequence for `flowCart`
+        
+        :Call:
+            >>> opts.get_InputSeq(InputSeq, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *InputSeq*: :class:`int` or :class:`list`(:class:`int`)
+                Sequence of input run index(es)
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014.10.02 ``@ddalle``: First version
+        """
+        self.set_key('InputSeq', InputSeq, i)
+        
+    
+    # Get minimum cumulative iteration count
+    def get_IterSeq(self, i=None):
+        """
+        Get the break points for run *i*.  Input *i* will be repeated until the
+        cumulative iteration count is greater than or equal to *IterSeq[i]*.
+        
+        :Call:
+            >>> IterSeq = opts.get_IterSeq(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *IterSeq*: :class:`int` or :class:`list`(:class:`int`)
+                Sequence of iteration break points
+        :Versions:
+            * 2014.10.02 ``@ddalle``: First version
+        """
+        return self.get_key('IterSeq', i)
+        
+    # Set minimum cumulative iteration count
+    def set_IterSeq(self, IterSeq, i=None):
+        """
+        Get the break points for run *i*.  Input *i* will be repeated until the
+        cumulative iteration count is greater than or equal to *IterSeq[i]*.
+        
+        :Call:
+            >>> opts.get_IterSeq(IterSeq, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *IterSeq*: :class:`int` or :class:`list`(:class:`int`)
+                Sequence of iteration break points
+        :Versions:
+            * 2014.10.02 ``@ddalle``: First version
+        """
+        self.set_key('IterSeq', IterSeq, i)
+        
+    
+    # Number of iterations
+    def get_nSeq(self):
+        """Return the number of input sets in the sequence
+        
+        :Call:
+            >>> nSeq = opts.get_nSeq()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *nSeq*: :class:`int`
+                Number of input sets in the sequence
+        :Versions:
+            * 2014.10.02 ``@ddalle``: First version
+        """
+        # Get the input sequence.
+        InputSeq = self.get_InputSeq()
+        # Check if it's a list.
+        if type(InputSeq).__name__ == "list":
+            # Use the length.
+            return len(InputSeq)
+        else:
+            # Something is messed up.
+            return 1
+        
+        
     # Number of iterations
     def get_it_fc(self, i=None):
         """Return the number of iterations for `flowCart`

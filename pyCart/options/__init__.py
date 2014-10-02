@@ -261,6 +261,33 @@ class Options(odict):
     # flowCart parameters
     # ===================
     
+    # Get number of inputs
+    def get_nSeq(self):
+        self._flowCart()
+        return self['flowCart'].get_nSeq()
+    # Copy documentation
+    get_nSeq.__doc__ = flowCart.get_nSeq.__doc__
+    
+    # Get input sequence
+    def get_InputSeq(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_InputSeq(i)
+        
+    # Set input sequence
+    def set_InputSeq(self, InputSeq=rc0('InputSeq'), i=None):
+        self._flowCart()
+        self['flowCart'].set_InputSeq(InputSeq, i)
+        
+    # Get iteration break points
+    def get_IterSeq(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_IterSeq(i)
+        
+    # Set Iteration break points
+    def set_IterSeq(self, IterSeq=rc0('IterSeq'), i=None):
+        self._flowCart()
+        return self['flowCart'].set_IterSeq(IterSeq, i)
+    
     # Number of iterations
     def get_it_fc(self, i=None):
         self._flowCart()
@@ -742,7 +769,7 @@ class Options(odict):
         eval('get_'+k).__doc__ = getattr(PBS,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(PBS,'set_'+k).__doc__
     
-
+    
     # =============
     # Configuration
     # =============

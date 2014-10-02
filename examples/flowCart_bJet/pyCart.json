@@ -31,8 +31,11 @@
     // This section sets the parameters for flowCart.
 	// The names for these parameters are copied from `aero.csh`.
 	"flowCart": {
+        // Run sequence
+        "InputSeq": [0, 1],
+        "IterSeq": [0, 300],
 	    // Basic number of iterations
-	    "it_fc": 200,
+	    "it_fc": [200, 100],
 	    // Nominal CFL number
 	    "cfl": 1.1,
 	    "cflmin": 0.8,
@@ -40,6 +43,8 @@
 	    "mg_fc": 3,
 	    // Limiter type
 	    "limiter": 2,
+        // Cut cells first-order?
+        "tm": [0, 1],
 	    // If this is set to true, angle of attack changes z-velocity
 	    "y_is_spanwise": true,
 	    // Use binary input/output instead of ASCII
