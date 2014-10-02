@@ -783,19 +783,10 @@ class Cart3d(object):
             # Write it.
             f.write('%s\n' % line)
         
-        # Get the number of threads.
-        N = self.opts.get_OMP_NUM_THREADS()
-        # Set it.
-        f.write('\n# Number of processors\n')
-        f.write('export OMP_NUM_THREADS=%i\n' % N)
+        # Simply call the advanced interface.
+        f.write('\n# Call the flow_cart/mpi_flowCart/aero.csh interface.\n')
+        f.write('run_flowCart.py')
         
-        # Get the commands.
-        cmdi = self.flowCartCmd(i)
-        # Loop through the commands.
-        for j in range(len(cmdi)):
-            # Write the command.
-            f.write("\n# Run %i\n" % j)
-            f.write(" ".join(cmdi[j]) + " > flowCart.out\n")
         # Close the file.
         f.close()
         # Return.

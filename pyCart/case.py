@@ -33,6 +33,10 @@ def run_flowCart():
     i = DetermineInputNumber(fc)
     # Get the restart iteration number.
     n = GetRestartIter()
+    # Get the number of threads, which may be irrelevant.
+    nThread = fc.get_OMP_NUM_THREADS()
+    # Set it.
+    os.environ['OMP_NUM_THREADS'] = str(nThread)
     # Make the command.
     cmdi = cmd.flowCart(fc=fc, i=i, n=n)
     # Run the command.
