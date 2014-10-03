@@ -133,6 +133,8 @@
         // If a file is specified, and it exists, trajectory values will be
         // read from it.  Trajectory values can also be specified locally.
         "File": "Trajectory.dat",
-        "Keys": ["Mach", "alpha", "beta"]
+        "Keys": ["Mach", "alpha", "beta", "Label"],
+        // Configuration name
+        "GroupPrefix": "poweroff"
     }
 }

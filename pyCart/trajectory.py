@@ -32,7 +32,7 @@ class Trajectory:
             List of variable names, defaults to ``['Mach','alpha','beta']``
         *Prefix*: :class:`str`
             Prefix to be used for each case folder name
-        *GridPrefix*: :class:`str`
+        *GroupPrefix*: :class:`str`
             Prefix to be used for each grid folder name
         *Definitions*: :class:`dict`
             Dictionary of definitions for each key
@@ -44,7 +44,7 @@ class Trajectory:
             Number of cases in the trajectory
         *x.prefix*: :class:`str`
             Prefix to be used in folder names for each case in trajectory
-        *x.GridPrefix*: :class:`str`
+        *x.GroupPrefix*: :class:`str`
             Prefix to be used for each grid folder name
         *x.keys*: :class:`list`, *dtype=str*
             List of variable names used
@@ -66,7 +66,7 @@ class Trajectory:
         fname = kwargs.get('File', None)
         keys = kwargs.get('Keys', ['Mach', 'alpha', 'beta'])
         prefix = kwargs.get('Prefix', "F")
-        gridPrefix = kwargs.get('GridPrefix', "Grid")
+        groupPrefix = kwargs.get('GroupPrefix', "Grid")
         # Process the definitions.
         defns = kwargs.get('Definitions', {})
         # Number of variables
@@ -74,7 +74,7 @@ class Trajectory:
         # Save properties.
         self.keys = keys
         self.prefix = prefix
-        self.GridPrefix = gridPrefix
+        self.GroupPrefix = groupPrefix
         # Process the key definitions.
         self.ProcessKeyDefinitions(defns)
         
@@ -89,22 +89,38 @@ class Trajectory:
                 continue
             # Separate by commas and/or white space
             v = re.split("[\s\,]+", line)
-            # Check the number of entities.
-            if len(v) != nVar: continue
             # Save the strings.
             for k in range(nVar):
-                self.text[keys[k]].append(v[k])
+                # Check for text.
+                if k < len(v):
+                    # Save the text.
+                    self.text[keys[k]].append(v[k])
+                elif self.defns[keys[k]]['Value'] == 'str':
+                    # No text (especially useful for optional labels)
+                    self.text[keys[k]].append('')
+                else:
+                    # No text (especially useful for optional labels)
+                    self.text[keys[k]].append('0')
         # Close the file.
         f.close()
         # Create the numeric versions.
         for key in keys:
-            setattr(self, key, np.array([float(v) for v in self.text[key]]))
+            # Check the key type.
+            if self.defns[key]['Value'] == 'float':
+                # Normal numeric value
+                setattr(self, key,
+                    np.array([float(v) for v in self.text[key]]))
+            elif self.defns[key]['Value'] == 'int':
+                # Normal numeric value
+                setattr(self, key,
+                    np.array([int(v) for v in self.text[key]]))
+            else:
+                # Assume string
+                setattr(self, key, np.array(self.text[key]))
         # Save the number of cases.
         self.nCase = len(self.text[key])
         # Process the groups (conditions in a group can use same grid).
         self.ProcessGroups()
-        # Output the conditions.
-        return None
         
     # Function to display things
     def __repr__(self):
@@ -163,6 +179,7 @@ class Trajectory:
                 defkey = {
                     "Group": False,
                     "Type": "Mach",
+                    "Value": "float",
                     "Abbreviation": "m"
                 }
             elif key in ['Alpha', 'alpha', 'aoa']:
@@ -170,6 +187,7 @@ class Trajectory:
                 defkey = {
                     "Group": False,
                     "Type": "alpha",
+                    "Value": "float",
                     "Abbreviation": "a"
                 }
             elif key in ['Beta', 'beta', 'aos']:
@@ -177,6 +195,7 @@ class Trajectory:
                 defkey = {
                     "Group": False,
                     "Type": "beta",
+                    "Value": "float",
                     "Abbreviation": "b"
                 }
             elif key.lower() in ['alpha_t', 'alpha_total']:
@@ -184,6 +203,7 @@ class Trajectory:
                 defkey = {
                     "Group": False,
                     "Type": "alpha_t",
+                    "Value": "float",
                     "Abbreviation": "a"
                 }
             elif key.lower() in ['phi', 'phiv']:
@@ -191,7 +211,24 @@ class Trajectory:
                 defkey = {
                     "Group": False,
                     "Type": "phi",
+                    "Value": "float",
                     "Abbreviation": "r"
+                }
+            elif key.lower() in ['label', 'suffix']:
+                # Extra label for case (non-group)
+                defkey = {
+                    "Group": False,
+                    "Type": "Label",
+                    "Value": "str",
+                    "Abbreviation": ""
+                }
+            elif key in ['GroupLabel', 'GroupSuffix']:
+                # Extra label for groups
+                defkey = {
+                    "Group": True,
+                    "Type": "GroupLabel",
+                    "Value": "str",
+                    "Abbreviation": ""
                 }
             else:
                 # Start with default key
@@ -350,7 +387,7 @@ class Trajectory:
             * 2014.06.05 ``@ddalle``: First version
         """
         # Set the prefix.
-        prefix = self.GridPrefix
+        prefix = self.GroupPrefix
         # Process the index list.
         if i is None: i = range(self.nCase)
         # Get the names of variables requiring separate grids.
@@ -493,13 +530,14 @@ class Trajectory:
                 List of keys to use for this folder name
             *prefix*: :class:`str`
                 Header for name of each case folder
-            *i*: :class:`int` or :class:`list`
-                Index(es) of case(s) to process; if ``None``, all cases
+            *i*: :class:`int`
+                Index of case to process
         :Outputs:
             *dname*: :class:`str` or :class:`list`
                 Name containing value for each key in *keys*
         :Versions:
             * 2014.06.05 ``@ddalle``: First version
+            * 2014.10.03 ``@ddalle``: Added suffixes
         """
         # Initialize folder name.
         if prefix and keys:
@@ -513,131 +551,18 @@ class Trajectory:
             dname = ""
         # Append based on the keys.
         for k in keys:
+            # Skip suffixes
+            if self.defns[k]["Value"] == "str": continue
             # Append the text in the trajectory file.
             dname += self.abbrv[k] + self.text[k][i]
+        # Check for suffix keys.
+        for k in keys:
+            # Skip all except suffixes
+            if self.defns[k]["Value"] != "str": continue
+            # Check the value.
+            if self.text[k][i]:
+                dname += ("_" + self.abbrv[k] + self.text[k][i])
         # Return the result.
         return dname
-        
-    # Function to make the directories
-    def CreateFolders(self, prefix=None):
-        """
-        Make directories for each of the cases in a trajectory.
-        
-        The folder names will be of the form::
-        
-            ``m2.0a0.0b-0.5/``
-            
-        using the abbreviations for all of the keys specified in the trajectory
-        file.  The amount of digits used will match the number of digits in the
-        trajectory file.  The folder names are prepended with the prefix, e.g.,
-        ``F_m2.0a0.0b-0.5/``, if the prefix is nonempty.
-        :Call:
-            >>> x.CreateFolders()
-            >>> x.CreateFolders(prefix="F")
-        :Inputs:
-            *x*: :class:`pyCart.trajectory.Trajectory`
-                Instance of the pyCart trajectory class
-            *prefix*: :class:`str`
-                Header for name of each folder
-        :Versions:
-            * 2014.05.27 ``@ddalle``: First version
-        """
-        # Process the prefix
-        if prefix is None: prefix = self.prefix
-        # Get the grid folder and case folder lists.
-        glist = self.GetGroupFolderNames()
-        dlist = self.GetFolderNames(prefix=prefix)
-        # Loop through the conditions.
-        for i in range(len(dlist)):
-            # Check if the "Grid" folder exists.
-            if not os.path.isdir(glist[i]):
-                # Create the folder, and say so.
-                print("Creating common-grid folder: %s" % glist[i])
-                os.mkdir(glist[i], 0750)
-            # Join the "Grid" prefix.
-            dname = os.path.join(glist[i], dlist[i])
-            # Check if the folder exists.
-            if not os.path.isdir(dname):
-                # Create the folder, and say so.
-                print("  Creating folder %i: %s." % (i+1, dname))
-                os.mkdir(dname, 0750)
-        return None
-        
-    # Method to write a file for a single condition
-    def WriteConditionsFile(self, fname=None, i=0):
-        """
-        Write a JSON file containing the conditions for a single case.
-        
-        :Call:
-            >>> x.WriteConditionsFile(fname, i)
-        :Inputs:
-            *x*: :class:`pyCart.trajectory.Trajectory`
-                Instance of the pyCart trajectory class
-            *fname*: :class:`str`
-                Name of JSON file to write
-            *i*: :class:`int`
-                Index of conditions to write
-        :Versions:
-            * 2014.05.28 ``@ddalle``: First version
-        """
-        # Process default input file name.
-        if fname is None:
-            fname = os.path.join(self.GetFullFulderNames(i), "Conditions.json")
-        # Create a conditions file.
-        f = open(fname, 'w')
-        # Write the header lines.
-        f.write('{\n')
-        f.write('    "Conditions: {\n')
-        # Loop through the keys.
-        for k in self.keys:
-            # Write the value.
-            f.write('        "%s": %.8f,\n' % (k, getattr(self,k)[i])) 
-        # Write the case number.
-        f.write('        "CaseNumber": %i\n' % (i+1))
-        # Write the end matter.
-        f.write('    }\n')
-        f.write('}\n')
-        f.close()
-        
-    # Method to write a file for a single group
-    def WriteGridConditionsFile(self, fname=None, i=0):
-        """
-        Write a JSON file containing the collective conditions for a group
-        
-        :Call:
-            >>> x.WriteGridConditionsFile(fname, i)
-        :Inputs:
-            *x*: :class:`pyCart.trajectory.Trajectory`
-                Instance of the pyCart trajectory class
-            *fname*: :class:`str`
-                Name of JSON file to write
-            *i*: :class:`int`
-                Index of group to write
-        :Versions:
-            * 2014.05.28 ``@ddalle``: First version
-        """
-        # Process default input file name.
-        if fname is None:
-            # Get the unique groups.
-            glist = np.unique(self.GetGroupFolderNames())
-            # Put the file in that folder.
-            fname = os.path.join(glist[i], "Conditions.json")
-        # Get the case index for the first case in the group.
-        j = np.nonzero(self.GroupID == i)[0][0]
-        # Create a conditions file.
-        f = open(fname, 'w')
-        # Write the header lines.
-        f.write('{\n')
-        f.write('    "Conditions: {\n')
-        # Loop through the keys.
-        for k in self.GroupKeys:
-            # Write the value.
-            f.write('        "%s": %.8f,\n' % (k, getattr(self,k)[j])) 
-        # Write the case number.
-        f.write('        "GroupNumber": %i\n' % (i+1))
-        # Write the end matter.
-        f.write('    }\n')
-        f.write('}\n')
-        f.close()
         
     
