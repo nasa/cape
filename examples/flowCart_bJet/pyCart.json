@@ -38,6 +38,8 @@
 	    "it_fc": [200, 100],
         // Use MPI?
         "mpi_fc": [0, 1],
+        // Use aero.csh?
+        "use_aero_csh": [0, 1],
 	    // Nominal CFL number
 	    "cfl": 1.1,
 	    "cflmin": 0.8,

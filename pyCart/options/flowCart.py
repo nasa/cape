@@ -246,13 +246,13 @@ class flowCart(odict):
             *mpi_fc*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not to use `mpi_flowCart`
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.10.02 ``@ddalle``: First version
         """
         return self.get_key('mpi_fc', i)
     
     # Set MPI status
     def set_mpi_fc(self, mpi_fc=rc0('mpi_fc'), i=None):
-        """Set number of multigrid levels for `flowCart`
+        """Set whether or not to use `mpi_flowCart`
         
         :Call:
             >>> opts.set_mpi_fc(mpi_fc, i)
@@ -264,9 +264,47 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Run index
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014.10.02 ``@ddalle``: First version
         """
         self.set_key('mpi_fc', mpi_fc, i)
+        
+        
+    # Get aero.csh status
+    def get_use_aero_csh(self, i=None):
+        """Return whether or not to use `aero.csh`
+        
+        :Call:
+            >>> ac = opts.get_use_aero_csh(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *ac*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to use `aero.csh`
+        :Versions:
+            * 2014.10.03 ``@ddalle``: First version
+        """
+        return self.get_key('use_aero_csh', i)
+    
+    # Set aero.csh status
+    def set_use_aero_csh(self, ac=rc0('use_aero_csh'), i=None):
+        """Set whether or not to use `aero.csh`
+        
+        :Call:
+            >>> opts.set_use_aero_csh(ac, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *ac*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to use `aero.csh`
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014.10.03 ``@ddalle``: First version
+        """
+        self.set_key('use_aero_csh', ac, i)
         
     
     # Get the CFL number

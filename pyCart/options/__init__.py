@@ -328,6 +328,16 @@ class Options(odict):
         self._flowCart()
         self['flowCart'].set_mpi_fc(mpi_fc, i)
         
+    # Get aero.csh status
+    def get_use_aero_csh(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_use_aero_csh(i)
+        
+    # Set aero.csh status
+    def set_use_aero_csh(self, ac=rc0('use_aero_csh'), i=None):
+        self._flowCart()
+        self['flowCart'].set_use_aero_csh(ac, i)
+        
     # Get cut-cell gradient flag
     def get_tm(self, i=None):
         self._flowCart()
@@ -419,7 +429,7 @@ class Options(odict):
         self['flowCart'].set_nProc(mpicmd, i)
         
     # Copy over the documentation.
-    for k in ['InputSeq', 'IterSeq', 'first_order', 'mpi_fc',
+    for k in ['InputSeq', 'IterSeq', 'first_order', 'mpi_fc', 'use_aero_csh',
             'it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'tecO',
             'y_is_spanwise', 'binaryIO', 'nProc', 'mpicmd']:
         # Get the documentation for the "get" and "set" functions

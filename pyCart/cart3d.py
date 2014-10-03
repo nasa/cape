@@ -663,8 +663,12 @@ class Cart3d(object):
             if os.path.isfile(fsrc):
                 # Create a symlink.
                 os.symlink(fsrc, fname)
-        # Write the input.cntl file(s).
+        # Write the input.cntl and aero.csh file(s).
         self.PrepareInputCntl(i)
+        print("HERE 001")
+        self.PrepareAeroCsh(i)
+        print("HERE 010")
+        print(os.getcwd())
         # Write a JSON file with the flowCart settings.
         f = open('case.json', 'w')
         # Dump the flowCart settings.
@@ -1137,7 +1141,7 @@ class Cart3d(object):
     # Function to prepare "input.cntl" files
     def PrepareInputCntl(self, i):
         """
-        Write :file:`input.cntl` in for run case *i* in the appropriate folder
+        Write :file:`input.cntl` for run case *i* in the appropriate folder
         and with the appropriate settings.
         
         :Call:
@@ -1187,52 +1191,53 @@ class Cart3d(object):
         os.chdir(fpwd)
         
     # Function prepare the aero.csh files
-    def PrepareAeroCsh(self):
+    def PrepareAeroCsh(self, i):
         """
-        Read template "aero.csh" file, customize it according to pyCart
-        settings, and write it to trajectory folders.
+        Write :file:`aero.csh` for run case *i* in the appropriate folder and
+        with the appropriate settings.
         
         :Call:
-            >>>car3d.PrepareAeroCsh()
-        
+            >>>car3d.PrepareAeroCsh(i)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
-        
-        :Effects:
-            * Read 'aero.csh' file from the destination specified in
-              *cart3d.RunOptions* and copies it to each case folder after
-              processing appropriate options.
-            
-            * Creates *cart3d.AeroCsh* data member
-            
+            *i*: :class:`int`
+                Run idnex
         :Versions:
             * 2014.06.10 ``@ddalle``: First version
+            * 2014.10.03 ``@ddalle``: Version 2.0
         """
-        # Get the name of the file.
-        fname = self.opts['AeroCsh']
-        # Check for the file.
-        if not os.path.isfile(fname): return None
-        # Read it.
-        self.AeroCsh = AeroCsh(fname)
-        # Process global options
-        self.AeroCsh.SetCFL(self.opts.get_cfl())
-        self.AeroCsh.SetnIter(self.opts.get_it_fc())
-        self.AeroCsh.SetnAdapt(self.opts.get_n_adapt_cycles())
-        self.AeroCsh.SetnRefinements(self.opts.get_maxR())
-        self.AeroCsh.SetnMultiGrid(self.opts.get_mg())
-        # Extract the trajectory.
-        x = self.x
-        # Get grid folders.
-        glist = x.GetGroupFolderNames()
-        # Get the folder names.
-        dlist = x.GetFolderNames()
-        # Loop through the conditions.
-        for i in range(len(dlist)):
+        # Test if it's present (not required)
+        try:
+            self.AeroCsh
+        except Exception:
+            return
+        # Safely go to the root folder.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get the case.
+        frun = self.x.GetFullFolderNames(i)
+        # Make folder if necessary.
+        if not os.path.isdir(frun): os.mkdir(frun, dmask)
+        # Loop through the run sequence.
+        for j in range(self.opts.get_nSeq()):
+            # Only write aero.csh for adaptive cases.
+            if not self.opts.get_use_aero_csh(j): continue
+            # Process global options
+            self.AeroCsh.SetCFL(self.opts.get_cfl(j))
+            self.AeroCsh.SetCFLMin(self.opts.get_cflmin(j))
+            self.AeroCsh.SetnIter(self.opts.get_it_fc(j))
+            self.AeroCsh.SetnAdapt(self.opts.get_n_adapt_cycles(j))
+            self.AeroCsh.SetnRefinements(self.opts.get_maxR(j))
+            self.AeroCsh.SetnMultiGrid(self.opts.get_mg(j))
             # Destination file name
-            fout = os.path.join(glist[i], dlist[i], 'aero.csh')
+            fout = os.path.join(frun, 'aero.%02i.csh' % j)
             # Write the input file.
             self.AeroCsh.Write(fout)
+            # Make it executable.
+            os.chmod(fout, dmask)
+        # Go back home.
+        os.chdir(fpwd)
         # Done
         return None
         

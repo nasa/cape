@@ -40,11 +40,20 @@ def run_flowCart():
     # Check for flowCart vs. mpi_flowCart
     if not fc.get_mpi_fc(i):
         # Get the number of threads, which may be irrelevant.
-        nThread = fc.get_OMP_NUM_THREADS()
+        nProc = fc.get_nProc()
         # Set it.
-        os.environ['OMP_NUM_THREADS'] = str(nThread)
-    # Make the command.
-    cmdi = cmd.flowCart(fc=fc, i=i, n=n)
+        os.environ['OMP_NUM_THREADS'] = str(nProc)
+    # Check for adaptive runs.
+    if fc.get_use_aero_csh(i):
+        # Delete the existing aero.csh file
+        if os.path.isfile('aero.csh'): os.remove('aero.csh')
+        # Create a link to this run.
+        os.symlink('aero.%02i.csh' % i, 'aero.csh')
+        # Call the aero.csh command
+        cmdi = ['./aero.csh', 'jumpstart']
+    else:
+        # Call flowCart directly.
+        cmdi = cmd.flowCart(fc=fc, i=i, n=n)
     # Run the command.
     callf(cmdi, f='flowCart.out')
     # Assuming that worked, move the temp output file.

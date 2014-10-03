@@ -48,6 +48,7 @@ rc = {
     "cflmin": 0.8,
     "mg_fc": 3,
     "mpi_fc": False,
+    "use_aero_csh": False,
     "limiter": 2,
     "y_is_spanwise": True,
     "binaryIO": True,
