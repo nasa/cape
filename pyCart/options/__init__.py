@@ -318,6 +318,16 @@ class Options(odict):
         self._flowCart()
         self['flowCart'].set_mg_fc(mg_fc, i)
         
+    # Get MPI status
+    def get_mpi_fc(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_mpi_fc(i)
+        
+    # Set MPI status
+    def set_mpi_fc(self, mpi_fc=rc0('mpi_fc'), i=None):
+        self._flowCart()
+        self['flowCart'].set_mpi_fc(mpi_fc, i)
+        
     # Get cut-cell gradient flag
     def get_tm(self, i=None):
         self._flowCart()
@@ -389,26 +399,33 @@ class Options(odict):
         self['flowCart'].set_tecO(tecO, i)
         
     # Get the number of threads for flowCart
-    def get_OMP_NUM_THREADS(self, i=None):
+    def get_nProc(self, i=None):
         self._flowCart()
-        return self['flowCart'].get_OMP_NUM_THREADS(i)
+        return self['flowCart'].get_nProc(i)
         
     # Set the number of threads for flowCart
-    def set_OMP_NUM_THREADS(self, nThreads=rc0('OMP_NUM_THREADS'), i=None):
+    def set_nProc(self, nProc=rc0('nProc'), i=None):
         self._flowCart()
-        self['flowCart'].set_OMP_NUM_THREADS(nThreads, i)
+        self['flowCart'].set_nProc(nProc, i)
+        
+    # Get the MPI system command
+    def get_mpicmd(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_mpicmd(i)
+        
+    # Set the MPI system command
+    def set_mpicmd(self, mpicmd=rc0('mpicmd'), i=None):
+        self._flowCart()
+        self['flowCart'].set_nProc(mpicmd, i)
         
     # Copy over the documentation.
-    for k in ['InputSeq', 'IterSeq', 'first_order',
+    for k in ['InputSeq', 'IterSeq', 'first_order', 'mpi_fc',
             'it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'tecO',
-            'y_is_spanwise', 'binaryIO', 'OMP_NUM_THREADS']:
+            'y_is_spanwise', 'binaryIO', 'nProc', 'mpicmd']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(flowCart,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(flowCart,'set_'+k).__doc__
         
-    # Aliases for the above
-    get_nThreads = get_OMP_NUM_THREADS
-    set_nThreads = set_OMP_NUM_THREADS
     
     
     # ====================

@@ -230,6 +230,44 @@ class flowCart(odict):
         """
         self.set_key('mg_fc', mg_fc, i)
         
+        
+    # Get MPI status
+    def get_mpi_fc(self, i=None):
+        """Return whether or not to use `mpi_flowCart`
+        
+        :Call:
+            >>> mpi_fc = opts.get_mpi_fc(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *mpi_fc*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to use `mpi_flowCart`
+        :Versions:
+            * 2014.08.02 ``@ddalle``: First version
+        """
+        return self.get_key('mpi_fc', i)
+    
+    # Set MPI status
+    def set_mpi_fc(self, mpi_fc=rc0('mpi_fc'), i=None):
+        """Set number of multigrid levels for `flowCart`
+        
+        :Call:
+            >>> opts.set_mpi_fc(mpi_fc, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *mpi_fc*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to use `mpi_flowCart`
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014.08.02 ``@ddalle``: First version
+        """
+        self.set_key('mpi_fc', mpi_fc, i)
+        
     
     # Get the CFL number
     def get_cfl(self, i=None):
@@ -498,43 +536,80 @@ class flowCart(odict):
         
     
     # Get the number of threads for `flowCart`
-    def get_OMP_NUM_THREADS(self, i=None):
+    def get_nProc(self, i=None):
         """Return the number of threads used for `flowCart`
         
         :Call:
-            >>> cflmin = opts.get_OMP_NUM_THREADS(i=None)
+            >>> nProc = opts.get_nProc(i=None)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Run index
         :Outputs:
-            *nThreads*: :class:`int` or :class:`list`(:class:`int`)
+            *nProc*: :class:`int` or :class:`list`(:class:`int`)
                 Number of threads for `flowCart`
         :Versions:
             * 2014.08.02 ``@ddalle``: First version
+            * 2014.10.02 ``@ddalle``: Switched to "nProc"
         """
-        return self.get_key('OMP_NUM_THREADS', i)
+        return self.get_key('nProc', i)
     
     # Set number of threads for `flowCart`
-    def set_OMP_NUM_THREADS(self, nThreads=rc0('cflmin'), i=None):
+    def set_nProc(self, nThreads=rc0('cflmin'), i=None):
         """Set minimum CFL number for `flowCart`
         
         :Call:
-            >>> opts.set_OMP_NUM_THREADS(nThreads, i)
+            >>> opts.set_nProc(nProc, i)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
-            *nThreads*: :class:`int` or :class:`list`(:class:`int`)
+            *nProc*: :class:`int` or :class:`list`(:class:`int`)
                 Number of threads for `flowCart`
             *i*: :class:`int` or ``None``
                 Run index
         :Versions:
             * 2014.08.02 ``@ddalle``: First version
+            * 2014.10.02 ``@ddalle``: Switched to "nProc"
         """
-        self.set_key('OMP_NUM_THREADS', OMP_NUM_THREADS, i)
+        self.set_key('nProc', nProc, i)
         
         
+    # Get the command name for "mpirun" or "mpiexec"
+    def get_mpicmd(self, i=None):
+        """Return either ``'mpirun'`` or ``'mpiexec``
+        
+        :Call:
+            >>> mpicmd = opts.get_mpicmd(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *mpicmd*: :class:`str`
+                System command to call MPI
+        :Versions:
+            * 2014.10.02 ``@ddalle``: First version
+        """
+        return self.get_key('mpicmd', i)
     
+    # Set the command name for "mpirun" or "mpiexec"
+    def set_mpicmd(self, mpicmd=rc0('mpicmd'), i=None):
+        """Set minimum CFL number for `flowCart`
         
+        :Call:
+            >>> opts.set_mpicmd(mpicmd, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *mpicmd*: :class:`str`
+                System command to call MPI
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014.10.02 ``@ddalle``: First version
+        """
+        self.set_key('mpicmd', mpicmd, i)
+    
         

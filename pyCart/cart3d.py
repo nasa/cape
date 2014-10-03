@@ -663,8 +663,7 @@ class Cart3d(object):
             if os.path.isfile(fsrc):
                 # Create a symlink.
                 os.symlink(fsrc, fname)
-        # Write 
-        # Write the input.cntl file.
+        # Write the input.cntl file(s).
         self.PrepareInputCntl(i)
         # Write a JSON file with the flowCart settings.
         f = open('case.json', 'w')

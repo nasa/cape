@@ -139,6 +139,8 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
             Run index (restart if *i* is greater than *0*)
         *n*: :class:`int`
             Iteration number from which to start (affects ``-N`` setting)
+        *mpi_fc*: :class:`bool`
+            Whether or not to use MPI version
         *it_fc*: :class:`int`
             Number of iterations to run ``flowCart``
         *mg_fc*: :class:`int`
@@ -166,6 +168,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
     # Check for cart3d input
     if cart3d is not None:
         # Get values from internal settings.
+        mpi_fc  = cart3d.opts.get_mpi_fc(i)
         it_fc   = cart3d.opts.get_it_fc(i)
         limiter = cart3d.opts.get_limiter(i)
         y_span  = cart3d.opts.get_y_is_spanwise(i)
@@ -175,8 +178,11 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         cflmin  = cart3d.opts.get_cflmin(i)
         mg_fc   = cart3d.opts.get_mg_fc(i)
         tm      = cart3d.opts.get_tm(i)
+        nProc   = cart3d.opts.get_nProc(i)
+        mpicmd  = cart3d.opts.get_mpicmd(i)
     elif fc is not None:
         # Get values from direct settings.
+        mpi_fc  = fc.get_mpi_fc(i)
         it_fc   = fc.get_it_fc(i)
         limiter = fc.get_limiter(i)
         y_span  = fc.get_y_is_spanwise(i)
@@ -186,8 +192,11 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         cflmin  = fc.get_cflmin(i)
         mg_fc   = fc.get_mg_fc(i)
         tm      = fc.get_tm(i)
+        nProc   = fc.get_nProc(i)
+        mpicmd  = fc.get_mpicmd(i)
     else:
         # Get values from keyword arguments
+        mpi_fc  = kwargs.get('mpi_fc', False)
         it_fc   = kwargs.get('it_fc', 200)
         limiter = kwargs.get('limiter', 2)
         y_span  = kwargs.get('y_is_spanwise', True)
@@ -197,10 +206,17 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         cflmin  = kwargs.get('cflmin', 0.8)
         mg_fc   = kwargs.get('mg_fc', 3)
         tm      = kwargs.get('tm', None)
+        nProc   = kwargs.get('nProc', 8)
+        mpicmd  = kwargs.get('mpicmd', 'mpiexec')
     # Increase the iteration count.
     it_fc += kwargs.get('n', 0)
     # Initialize command.
-    cmd = ['flowCart', '-his', '-v']
+    if mpi_fc:
+        # Use mpi_flowCart
+        cmd = [mpicmd, '-np', nProc, 'mpi_flowCart', '-his', '-v']
+    else:
+        # Use single-node flowCart.
+        cmd = ['flowCart', '-his', '-v']
     # Check for restart
     if (i>0): cmd += ['-restart']
     # Add options

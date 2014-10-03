@@ -36,6 +36,8 @@
         "first_order": [1, 0],
 	    // Basic number of iterations
 	    "it_fc": [200, 100],
+        // Use MPI?
+        "mpi_fc": [0, 1],
 	    // Nominal CFL number
 	    "cfl": 1.1,
 	    "cflmin": 0.8,
@@ -52,7 +54,39 @@
         // Write a Tecplot triangulation at the end of the run
         "tecO": true,
 	    // Number of threads
-	    "nThreads": 8
+	    "nProc": 8,
+	    // MPI command name
+	    "mpicmd": "mpiexec"
+	},
+
+    // Parameters for adjointCart
+    "adjointCart": {
+        // Number of iterations
+        "it_ad": 120,
+        // Multigrid levels
+        "mg_ad": 3
+    },
+	
+	// Parameters for adaptation
+	"Adaptation": {
+	    // Number of adaptation cycles
+	    "n_adapt_cycles": 0,
+	    // Functional error tolerance
+	    "etol": 0.000001,
+	    // Stop adapting when this number of cells is reached
+        "max_nCells": 50000000,
+	    
+	    // Number of flowCart iters on each new mesh
+	    //  cycle  1   2   3   4   5   6   7   8   9  10   11+  
+	    "ws_it": [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 100],
+	    
+	    // Growth in the number of cells
+	    //       cycle   1    2    3    4    5    6    7+  
+	    "mesh_growth": [1.5 ,1.5, 2.0, 2.0, 2.0, 2.0, 2.5],
+	    
+	    // Adaptation type, see `aero.csh` for more info
+	    // cycle 1    2+
+	    "apc": ["p", "a"]
 	},
 
 	// Parameters for creating the mesh

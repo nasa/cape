@@ -37,10 +37,12 @@ def run_flowCart():
     if os.path.isfile('input.cntl'): os.remove('input.cntl')
     # Create the correct input file.
     os.symlink('input.%02i.cntl' % i, 'input.cntl')
-    # Get the number of threads, which may be irrelevant.
-    nThread = fc.get_OMP_NUM_THREADS()
-    # Set it.
-    os.environ['OMP_NUM_THREADS'] = str(nThread)
+    # Check for flowCart vs. mpi_flowCart
+    if not fc.get_mpi_fc(i):
+        # Get the number of threads, which may be irrelevant.
+        nThread = fc.get_OMP_NUM_THREADS()
+        # Set it.
+        os.environ['OMP_NUM_THREADS'] = str(nThread)
     # Make the command.
     cmdi = cmd.flowCart(fc=fc, i=i, n=n)
     # Run the command.
