@@ -295,42 +295,112 @@ class Cart3d(object):
         return os.path.abspath(os.path.join('..','..')) == self.RootDir
         
         
-    # Method to create the folders
-    def CreateFolders(self):
-        # Use the trajectory's method.
-        return self.x.CreateFolders()
-    # Copy the docstring.
-    CreateFolders.__doc__ = _upgradeDocString(
-        Trajectory.CreateFolders.__doc__, 'Trajectory')
-        
-    # Method to set up the grid
-    def CreateMesh(self):
-        """Create the common mesh based on self-contained parameters.
+    # Function to check if the mesh for case i exists
+    def CheckMesh(self, i):
+        """Check if the mesh for case *i* is prepared.
         
         :Call:
-            >>> cart3d.CreateMesh()
+            >>> q = cart3d.check_mesh(i)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not the mesh for case *i* is prepared
         :Versions:
-            * 2014.05.28 ``@ddalle``: First version
-            * 2014.06.06 ``@ddalle``: Multiple group folders
+            * 2014.09.29 ``@ddalle``: First version
         """
-        # Write conditions files.
-        self.Grids_WriteConditionsFiles()
-        # Copy Config.xml files.
-        self.Grids_CopyConfigFile()
-        # Prepare the tri files.
-        self.Grids_PrepareTri()
-        # Run autoInputs (if necessary).
-        if self.opts.get_r(): self.autoInputs()
-        # Bounding box control.....
-        # Run cubes
-        self.cubes()
-        # Prepare multigrid
-        self.mgPrep()
-        # End.
-        return None
+        # Check input.
+        if type(i).__name__ != "int":
+            raise TypeError(
+                "Input to :func:`Cart3d.check_mesh()` must be :class:`int`.")
+        # Get the group name.
+        fgrp = self.x.GetGroupFolderNames(i)
+        # Initialize with "pass" setting.
+        q = True
+        # Remember current location.
+        fpwd = os.getcwd()
+        # Go to root folder.
+        os.chdir(self.RootDir)
+        # Check if the folder exists.
+        if (not os.path.isdir(fgrp)): q = False
+        # Check that test.
+        if q:
+            # Go to the group folder.
+            os.chdir(fgrp)
+            # Check for the surface file.
+            if not os.path.isfile('Components.i.tri'): q = False
+            # Check for which mesh file to look for.
+            if q and self.opts.get_mg() > 0:
+                # Look for the multigrid mesh
+                if not os.path.isfile('Mesh.mg.c3d'): q = False
+            else:
+                # Look for the original mesh
+                if not os.path.isfile('Mesh.c3d'): q = False
+        # Return to original folder.
+        os.chdir(fpwd)
+        # Output.
+        return q
+        
+    # Prepare the mesh for case i (if necessary)
+    def PrepareMesh(self, i):
+        """Prepare the mesh for case *i* if necessary.
+        
+        :Call:
+            >>> q = cart3d.PrepareMesh(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2014.09.29 ``@ddalle``: First version
+        """
+        # Get the case name.
+        frun = self.x.GetFullFolderNames(i)
+        # Check the mesh.
+        if self.CheckMesh(i):
+            return None
+        # Get name of group.
+        fgrp = self.x.GetGroupFolderNames(i)
+        # Get the group index.
+        j = self.x.GetGroupIndex(i)
+        # Status update
+        print("  Group name: '%s' (index %i)" % (fgrp,j))
+        # Remember current location.
+        fpwd = os.getcwd()
+        # Go to root folder.
+        os.chdir(self.RootDir)
+        # Check for the group folder and make it if necessary.
+        if not os.path.isdir(fgrp):
+            os.mkdir(fgrp, fmask)
+        # Go there.
+        os.chdir(fgrp)
+        # Get the name of the configuration file.
+        fxml = os.path.join(self.RootDir, self.opts.get_ConfigFile())
+        # Test if the file exists.
+        if os.path.isfile(fxml):
+            # Copy it, to a fixed file name in this folder.
+            shutil.copyfile(fxml, 'Config.xml')
+        # Status update
+        print("  Preparing surface triangulation...")
+        # Apply rotations, etc.
+        
+        # Write the tri file.
+        self.tri.Write('Components.i.tri')
+        # Run autoInputs if necessary.
+        if self.opts.get_r(): self.autoInputs(j)
+        # Bounding box control...
+        
+        # Run cubes.
+        self.cubes(j)
+        # Run mgPrep
+        self.mgPrep(j)
+        # Return to original folder.
+        os.chdir(fpwd)
+        
         
     # Interface for ``cubes``
     def cubes(self, i=None):
@@ -429,118 +499,6 @@ class Cart3d(object):
         # Return to original directory.
         os.chdir(fpwd)
         
-        
-    # Function to check if the mesh for case i exists
-    def CheckMesh(self, i):
-        """Check if the mesh for case *i* is prepared.
-        
-        :Call:
-            >>> q = cart3d.check_mesh(i)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Outputs:
-            *q*: :class:`bool`
-                Whether or not the mesh for case *i* is prepared
-        :Versions:
-            * 2014.09.29 ``@ddalle``: First version
-        """
-        # Check input.
-        if type(i).__name__ != "int":
-            raise TypeError(
-                "Input to :func:`Cart3d.check_mesh()` must be :class:`int`.")
-        # Get the group name.
-        fgrp = self.x.GetGroupFolderNames(i)
-        # Initialize with "pass" setting.
-        q = True
-        # Remember current location.
-        fpwd = os.getcwd()
-        # Go to root folder.
-        os.chdir(self.RootDir)
-        # Check if the folder exists.
-        if (not os.path.isdir(fgrp)): q = False
-        # Check that test.
-        if q:
-            # Go to the group folder.
-            os.chdir(fgrp)
-            # Check for the surface file.
-            if not os.path.isfile('Components.i.tri'): q = False
-            # Check for which mesh file to look for.
-            if q and self.opts.get_mg() > 0:
-                # Look for the multigrid mesh
-                if not os.path.isfile('Mesh.mg.c3d'): q = False
-            else:
-                # Look for the original mesh
-                if not os.path.isfile('Mesh.c3d'): q = False
-        # Return to original folder.
-        os.chdir(fpwd)
-        # Output.
-        return q
-        
-    # Prepare the mesh for case i (if necessary)
-    def PrepareMesh(self, i):
-        """Prepare the mesh for case *i* if necessary.
-        
-        :Call:
-            >>> q = cart3d.PrepareMesh(i)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Versions:
-            * 2014.09.29 ``@ddalle``: First version
-        """
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Display it.
-        print(frun)
-        print("  Checking status...")
-        # Check the mesh.
-        if self.CheckMesh(i):
-            # Display.
-            print("  Mesh already prepared")
-            return None
-        # Get name of group.
-        fgrp = self.x.GetGroupFolderNames(i)
-        # Get the group index.
-        j = self.x.GetGroupIndex(i)
-        # Status update
-        print("  Group name: '%s' (index %i)" % (fgrp,j))
-        # Remember current location.
-        fpwd = os.getcwd()
-        # Go to root folder.
-        os.chdir(self.RootDir)
-        # Check for the group folder and make it if necessary.
-        if not os.path.isdir(fgrp):
-            os.mkdir(fgrp, fmask)
-        # Go there.
-        os.chdir(fgrp)
-        # Get the name of the configuration file.
-        fxml = os.path.join(self.RootDir, self.opts.get_ConfigFile())
-        # Test if the file exists.
-        if os.path.isfile(fxml):
-            # Copy it, to a fixed file name in this folder.
-            shutil.copyfile(fxml, 'Config.xml')
-        # Status update
-        print("  Preparing surface triangulation...")
-        # Apply rotations, etc.
-        
-        # Write the tri file.
-        self.tri.Write('Components.i.tri')
-        # Run autoInputs if necessary.
-        if self.opts.get_r(): self.autoInputs(j)
-        # Bounding box control...
-        
-        # Run cubes.
-        self.cubes(j)
-        # Run mgPrep
-        self.mgPrep(j)
-        # Return to original folder.
-        os.chdir(fpwd)
-        
     # Check a case.
     def CheckCase(self, i):
         """Check current status of run *i*
@@ -613,6 +571,7 @@ class Cart3d(object):
         # Output.
         return n
         
+        
     # Prepare a case.
     def PrepareCase(self, i):
         """Prepare case for running if necessary
@@ -665,10 +624,7 @@ class Cart3d(object):
                 os.symlink(fsrc, fname)
         # Write the input.cntl and aero.csh file(s).
         self.PrepareInputCntl(i)
-        print("HERE 001")
         self.PrepareAeroCsh(i)
-        print("HERE 010")
-        print(os.getcwd())
         # Write a JSON file with the flowCart settings.
         f = open('case.json', 'w')
         # Dump the flowCart settings.
@@ -801,343 +757,6 @@ class Cart3d(object):
         # Return.
         os.chdir(fpwd)
         
-        
-        
-    # Interface for getting ``flowCart`` commands
-    def flowCartCmd(self, k, i=None):
-        """Get ``flowCart`` commands for one case, either all runs or run *i*
-        
-        :Call:
-            >>> cmdk = cart3d.flowCartCmd(k, i=None)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *k*: :class:`int`
-                Index of case to analyze
-            *i*: :class:`int` or :class:`list` (:class:`int`)
-                Run index or indices to apply
-        :Outputs:
-            *cmdk*: :class:`list` (:class:`list` (:class:`str`))
-                List of commands for each run index in case *k*
-        :Versions:
-            * 2014.09.14 ``@ddalle``: First version
-            * 2014.09.27 ``@ddalle``: Added "Cmd" to the name
-        """
-        # Save current directory.
-        fpwd = os.getcwd()
-        # Get the case.
-        fdir = self.x.GetFullFolderNames(k)
-        # Go there.
-        os.chdir(self.RootDir)
-        os.chdir(fdir)
-        # Process the run index.
-        if i is None:
-            # Get the iteration break points or total num of iterations.
-            it_fc = self.opts.get_it_fc()
-            # Check for a list or scalar.
-            if np.isscalar(it_fc):
-                # Single run
-                i = [0]
-            else:
-                # Multple runs.
-                i = range(len(it_fc))
-        elif np.isscalar(i):
-            # Make it a list.
-            i = [i]
-        # Initialize commands.
-        cmdk = []
-        # Loop through the runs.
-        for j in i:
-            # Run the case.
-            cmdk.append(bin.cmd.flowCart(self, i=j))
-        # Return to original directory.
-        os.chdir(fpwd)
-        # Output
-        return cmdk
-        
-    # Direct interface for ``flowCart``
-    def flowCart(self, k, i=None):
-        """Run ``flowCart`` for one case, either all runs or run *i*
-        
-        :Call:
-            >>> cmdk = cart3d.flowCartCmd(k, i=None)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *k*: :class:`int`
-                Index of case to analyze
-            *i*: :class:`int` or :class:`list` (:class:`int`)
-                Run index or indices to apply
-        :Versions:
-            * 2014.09.27 ``@ddalle``: First version
-        """
-        # Get the commands.
-        cmdk = self.flowCartCmd(k, i)
-        # Loop through the commands.
-        for cmdi in cmdk:
-            # Run the command.
-            bin.callf(cmdi)
-        
-    # Write conditions files.
-    def Grids_WriteConditionsFiles(self):
-        """Write conditions files for each group
-        
-        :Call:
-            >>> cart3d.Grids_WriteConditionsFiles()
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-        :Versions:
-            * 2014.06.23 ``@ddalle``: First version
-        """
-        # Loop through groups.
-        for i in range(len(self.x.GroupX)):
-            # Write the conditions file.
-            self.x.WriteGridConditionsFile(i=i)
-        
-    # Method to copy 'Config.xml' to all grid folders.
-    def Grids_CopyConfigFile(self, fxml=None):
-        """Copy configuration file (usually :file:`Config.xml`) to grid folders
-        
-        :Call:
-            >>> cart3d.Grids_CopyConfigFile(fxml=None)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *fxml*: :class:`str`
-                Name of configuration file to copy
-        :Versions:
-            * 2014.06.16 ``@ddalle``: First version
-        """
-        # Get the xml file names.
-        if fxml is None:
-            conf = self.opts.get('Config', {})
-            fxml = conf.get('File', 'Config.xml')
-        # Check if the file exists.
-        if not os.path.isfile(fxml):
-            return None
-        # Get grid folders.
-        glist = self.x.GetGroupFolderNames()
-        # Loop through the grids.
-        for g in glist:
-            # Copy the file.
-            shutil.copyfile(fxml, os.path.join(g, 'Config.xml'))
-            
-    # Function to prepare the triangulation for each grid folder
-    def Grids_PrepareTri(self, v=True):
-        """Prepare and copy triangulation file to each grid folder.  If
-        ``cart3d.Mesh['TriFile']`` is a list, calling this function will
-        include appending the triangulation files in that list before writing
-        it to each grid folder.  Recognized translations and rotations are
-        performed as well.
-        
-        :Call:
-            >>> cart3d.Grids_PrepareTri(v=True)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *v*: :class:`bool`
-                If ``True``, displays output on command line.
-        :Versions:
-            * 2014.06.16 ``@ddalle``: First version
-        """
-        # Get grid folders.
-        glist = np.unique(self.x.GetGroupFolderNames())
-        # Announce.
-        print("Writing 'Components.i.tri' for case:")
-        # Loop through the grids.
-        for g in glist:
-            # Perform recognized rotations and translations...
-            # Status update.
-            print("  %s" % g)
-            # Write the new .tri file.
-            self.tri.Write(os.path.join(g, 'Components.i.tri'))
-        
-            
-        
-    # Function to copy/link files
-    def CopyFiles(self):
-        """Copy or link the relevant files to the Grid folders.
-        
-        :Call:
-            >>> cart3d.CopyFiles()
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-        :Versions:
-            * 2014.05.28 ``@ddalle``: First version
-        """
-        # Get the folder names.
-        glist = self.x.GetGroupFolderNames()
-        dlist = self.x.GetFolderNames()
-        # List of files to copy
-        f_copy = ['input.c3d', 'Config.xml',
-            'Mesh.c3d.Info', 'preSpec.c3d.cntl']
-        # List of files to link
-        f_link = ['Components.i.tri', 'Mesh.R.c3d']
-        # Check if a link will break things.
-        if self.opts["Adaptation"]["n_adapt_cycles"] > 0:
-            # Adapt: copy the mesh.
-            f_copy.append('Mesh.mg.c3d')
-        else:
-            # No adaptations: link the mesh.
-            f_link.append('Mesh.mg.c3d')
-        # Loop through the cases.
-        for i in range(len(dlist)):
-            # Extract folders.
-            g = glist[i]
-            d = dlist[i]
-            # Check the 'Grid' directory.
-            if not os.path.isdir(g):
-                raise IOError('Folder "%s" not found.' % g)
-            # Change to the 'Grid' folder.
-            os.chdir(g)
-            # Check if the grid has been created.
-            if not os.path.isfile('Mesh.R.c3d'):
-                raise IOError('It appears the mesh has not been created.')
-            # Convenient storage of 'Grid' plus filesep
-            fg = g + os.sep
-            # Check status.
-            print("Case %i: %s" % (i+1, d))
-            if not os.path.isdir(d):
-                # Does not exist, skipping
-                print("  Does not exist, skipping")
-                continue
-            # Folder exists
-            print("  Copying files")
-            # Loop through files to copy.
-            for f in f_copy:
-                # Check the file
-                if os.path.isfile(d + os.sep + f):
-                    # File exists
-                    print("    File '%s' exists!" % f)
-                    continue
-                elif not os.path.isfile(f):
-                    # File missing
-                    print("    File '%s' is missing." % f)
-                    continue
-                # File does not exist.
-                print("    Copying file '%s'." % f)
-                shutil.copyfile(f, os.path.join(d,f))
-            # Change to the folder.
-            os.chdir(d)
-            # Loop through files to link.
-            for f in f_link:
-                # Check the file
-                if os.path.isfile(f):
-                    # File exists
-                    print("    File '%s' exists!" % f)
-                    continue
-                elif not os.path.isfile(os.path.join('..',f)):
-                    # File missing
-                    print("    File '%s' is missing." % f)
-                    continue
-                # File does not exist.
-                print("    Linking file '%s'." % f)
-                os.system('ln -sf %s %s' % (os.path.join('..',f), f))
-            # Return to root folder.
-            os.chdir('..' + os.sep + '..')
-        # Done
-        return None
-        
-    # Function to setup the run cases.
-    def PrepareRuns(self):
-        """Create run scripts for each case according to the pyCart settings.
-        
-        :Call:
-            >>> cart3d.PrepareRuns()
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-        :Versions:
-            * 2014.05.28 ``@ddalle``: First version
-            * 2014.05.30 ``@ddalle``: Moved input.cntl filter to separate func
-            * 2014.06.04 ``@ddalle``: Moved input.cntl prep entirely to func
-        """
-        # Prepare the "input.cntl" files.
-        self.PrepareInputCntl()
-        # Prepare the "aero.csh" files
-        self.PrepareAeroCsh()
-        # Prepare the run scripts.
-        self.CreateRunScripts()
-        # Get the trajectory.
-        x = self.x
-        # Get the folder names.
-        dlist = x.GetFullFolderNames()
-        # Loop through the conditions.
-        for i in range(len(dlist)):
-            # Get the folder name for this case.
-            d = dlist[i]
-            # Create a conditions file
-            x.WriteConditionsFile(os.path.join(d, 'Conditions.json'), i)
-        # End
-        return None
-        
-    # Function to create run scripts
-    def CreateRunScripts(self):
-        """Create all run scripts
-        
-        :Call:
-            >>> cart3d.CreateRunScripts()
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of global pyCart settings object
-        :Versions:
-            * 2014.06.04 ``@ddalle``: First version
-            * 2014.06.06 ``@ddalle``: Added support for multiple grid folders
-        """
-        # Global script name
-        fname_all = 'run_all.sh'
-        # Grid script name
-        fname_grid = 'run_cases.sh'
-        # Local script name.
-        fname_i = 'run_case.sh'
-        # Get the grid folder names
-        glist = self.x.GetGroupFolderNames()
-        # Create the global run script.
-        fa = open(fname_all, 'w')
-        # Print the first-line magic
-        fa.write('#!/bin/bash\n\n')
-        # Loop through the grid folder names.
-        for g in glist:
-            # As of now there's only one grid; run it and return.
-            fa.write('cd %s\n' % g)
-            fa.write('./%s\n' % fname_grid)
-            fa.write('cd ..\n')
-            # Create the grid-level run script.
-            fg = open(os.path.join(g, fname_grid), 'w')
-            # Initialize it.
-            fg.write('#!/bin/bash\n\n')
-            # Close it for now.
-            fg.close()
-            # Make it executable now.
-            os.chmod(os.path.join(g, fname_grid), 0750)
-        # Close the global script.
-        fa.close()
-        # Make the script executable.
-        os.chmod(fname_all, 0750)
-        # Get the folder names.
-        dlist = self.x.GetFolderNames()
-        # Loop through the folders.
-        for i in range(len(dlist)):
-            # Change to the appropriate grid folder.
-            os.chdir(glist[i])
-            # Open the (existing) run script for appending.
-            fg = open(fname_grid, 'a')
-            # Append to the grid script.
-            fg.write('# Case %i\n' % i)
-            fg.write('cd %s\n' % dlist[i])
-            fg.write('./%s\n' % fname_i)
-            fg.write('cd ..\n\n')
-            # Close it (temporarily).
-            fg.close()
-            # Go back to the main folder.
-            os.chdir('..')
-            # Create the local run script.
-            self.CreateCaseRunScript(i)
-        # Done
-        return None
-        
     # Function to prepare "input.cntl" files
     def PrepareInputCntl(self, i):
         """
@@ -1240,54 +859,6 @@ class Cart3d(object):
         os.chdir(fpwd)
         # Done
         return None
-        
-    # Function to create the flowCart run script
-    def CreateCaseRunScript(self, i):
-        """Write the "run_case.sh" script to run a given case.
-        
-        :Call:
-            >>> cart3d.CreateCaseRunScript(i)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of global pyCart settings object
-            *i*: :class:`int`
-                Trajectory case number
-        :Versions:
-            * 2014.05.30 ``@ddalle``: First version
-        """
-        # Get the folder name.
-        dname = self.x.GetFullFolderNames(i=i)
-        # File name
-        fout = os.path.join(dname, 'run_case.sh')
-        # Create the file.
-        f = open(fout, 'w')
-        # Run options
-        opts_fc = self.opts.get('flowCart', {})
-        opts_ad = self.opts.get('Adaptation', {})
-        # Get the global options.
-        nThreads = self.opts.get_OMP_NUM_THREADS()
-        nIter    = self.opts.get_it_fc()
-        nAdapt   = self.opts.get_n_adapt_cycles()
-        # Run options
-        mg  = self.opts.get_mg_fc()
-        tm  = self.opts.get_tm()
-        cfl = self.opts.get_cfl()
-        # Write the shell magic.
-        f.write('#!/bin/bash\n\n')
-        # Set the number of processors.
-        f.write('export OMP_NUM_THREADS=%i\n\n' % nThreads)
-        # Check for an adaptive case.
-        if nAdapt > 0:
-            # Create the aero.csh command to do the work.
-            f.write('./aero.csh jumpstart | tee aero.out\n')
-        else:
-            # Create the flowCart command to do the work.
-            f.write(('flowCart -N %i -v -mg %i -cfl %f -his -clic -tm %i ' +
-                '| tee flowCart.out\n') % (nIter, mg, cfl, tm))
-        # Close the file.
-        f.close()
-        # Make it executable.
-        os.chmod(fout, 0750)
         
     # Function to read "loadsCC.dat" files
     def GetLoadsCC(self):

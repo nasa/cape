@@ -213,7 +213,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
     # Initialize command.
     if mpi_fc:
         # Use mpi_flowCart
-        cmd = [mpicmd, '-np', nProc, 'mpi_flowCart', '-his', '-v']
+        cmd = [mpicmd, '-np', str(nProc), 'mpi_flowCart', '-his', '-v']
     else:
         # Use single-node flowCart.
         cmd = ['flowCart', '-his', '-v']

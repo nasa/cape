@@ -4,13 +4,13 @@
         "j": "oe",
         "r": "n",
         "S": "/bin/bash",
-        "select": 1,
+        "select": 2,
         "ncpus": 20,
         "mpiprocs": 20,
         "model": "ivy",
         "W": "group_list=e0847",
-        "q": "sls_aero1",
-        "walltime": "8:00:00"
+        "q": "devel",
+        "walltime": "2:00:00"
     },
     
 	// The names of these two files have the obvious defaults.
@@ -37,9 +37,9 @@
 	    // Basic number of iterations
 	    "it_fc": [200, 100],
         // Use MPI?
-        "mpi_fc": [0, 1],
+        "mpi_fc": [0, 0],
         // Use aero.csh?
-        "use_aero_csh": [0, 1],
+        "use_aero_csh": 0,
 	    // Nominal CFL number
 	    "cfl": 1.1,
 	    "cflmin": 0.8,
