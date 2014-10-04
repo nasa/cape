@@ -598,7 +598,8 @@ class TriBase(object):
         
     # Get normals and areas
     def GetCompArea(self, compID, n=None):
-        """Get the total area of a component, or get the total area of a component
+        """
+        Get the total area of a component, or get the total area of a component
         projected to a plane with a given normal vector.
         
         :Call:
@@ -677,7 +678,8 @@ class TriBase(object):
         
     # Function to add a bounding box based on a component and buffer
     def GetCompBBox(self, compID, **kwargs):
-        """Find a bounding box based on the coordinates of a specified component
+        """
+        Find a bounding box based on the coordinates of a specified component
         or list of components, with an optional buffer or buffers in each
         direction
         
@@ -901,7 +903,7 @@ def ReadTri(fname):
         *tri*: :class:`pyCart.tri.Tri`
             Triangulation instance
     :Examples:
-        >>> nNode, Nodes,  = pyCart.ReadTri('bJet.i.tri')
+        >>> tri = pyCart.ReadTri('bJet.i.tri')
         >>> tri.nNode
         92852
     :Versions:
@@ -922,8 +924,6 @@ def WriteTri(fname, tri):
             Name of `.tri` file to read
         *tri*: :class:`pyCart.tri.Tri`
             Triangulation instance
-    :Ooutputs:
-        ``None``
     :Examples:
         >>> tri = pyCart.ReadTri('bJet.i.tri')
         >>> pyCart.WriteTri('bjet2.tri', tri)

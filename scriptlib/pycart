@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+"""
+Python interface for Cart3D: :file:`pycart`
+===========================================
+
+This function provides a master interface for pyCart.  All of the functionality
+from this script is also accessible from the :mod:`pyCart` module using
+relatively simple commands.
+
+:Usage:
+    .. code-block:: bash
+    
+        $ pycart [options]
+    
+:Options:
+
+    -h, --help
+        Display this help message and quit
+        
+    -q QUEUE
+        Submit to a specific queue (defaults to "sls_aero1")
+
+    -n NJOB
+        Submit at most *NJOB* PBS scripts (defaults to unlimited)
+        
+    -f FNAME
+        Use pyCart input file *FNAME* (defaults to 'pyCart.json')
+
+:Versions:
+    * 2014.10.03 ``@ddalle``: Started
+"""
+
+# Import the full module
+import pyCart
+# Input parsing
+from pyCart.argread import readkeys
+    
+# Check if run as a script.
+if __name__ == "__main__":
+    # Parse inputs.
+    a, kw = readkeys(pyCart.os.sys.argv)

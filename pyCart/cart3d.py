@@ -20,10 +20,10 @@ import subprocess as sp
 import options
 
 
-# Import the trajectory class
+# Functions and classes from other modules
 from trajectory import Trajectory
-# Read "loadsXX.dat" files
-from post import LoadsDat
+from post       import LoadsDat
+from case       import ReadCaseJSON, run_flowCart
 
 # Import specific file control classes
 from inputCntl import InputCntl
@@ -204,6 +204,23 @@ class Cart3d(object):
         # Save it.
         self.tri = tri
         
+        
+    # Function to display current status
+    def DisplayStatus(self, **kw):
+        """Display current status for all cases
+        
+        This prints case names, current iteration numbers, and so on.
+        
+        :Call:
+            cart3d.DisplayStatus()
+        :Versions:
+            * 2014.10.03 ``@ddalle``: First version
+        """
+        # Get the case names.
+        fruns = self.x.GetFullFolderNames()
+        # Maximum length of one of the names
+        lrun = max([len(frun) for frun in fruns])
+        print(fruns)
         
     # Function to check if the mesh for case i exists
     def CheckMesh(self, i):
@@ -450,6 +467,8 @@ class Cart3d(object):
             if not os.path.isfile('Components.i.tri'): n = None
             # Input file.
             if not os.path.isfile('input.00.cntl'): n=None
+            # Settings file.
+            if not os.path.isfile('case.json'): n=None
             # Check for which mesh file to look for.
             if self.opts.get_mg() > 0:
                 # Look for the multigrid mesh
@@ -548,6 +567,40 @@ class Cart3d(object):
         # Return to original location.
         os.chdir(fpwd)
         
+    # Get last iter
+    def GetLastIter(self, i):
+        """Get minimum required iteration for a given run to be completed
+        
+        :Call:
+            >>> nIter = cart3d.GetLastIter(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *nIter*: :class:`int`
+                Number of iterations required for case *i*
+        :Versions:
+            * 2014.10.03 ``@ddalle``: First version
+        """
+        # Check the case
+        if self.CheckCase(i) is None:
+            return None
+        # Safely go to root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get the case name.
+        frun = self.x.GetFullFolderNames(i)
+        # Go there.
+        os.chdir(frun)
+        # Read the local case.json file.
+        fc = ReadCaseJSON()
+        # Return to original location.
+        os.chdir(fpwd)
+        # Output
+        return fc.get_LastIter()
+        
     # Get PBS name
     def GetPBSName(self, i):
         """Get PBS name for a given case
@@ -559,6 +612,9 @@ class Cart3d(object):
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Run index
+        :Outputs:
+            *lbl*: :class:`str`
+                Short name for the PBS job, visible via `qstat`
         :Versions:
             * 2014.09.30 ``@ddalle``: First version
         """
@@ -578,6 +634,37 @@ class Cart3d(object):
             lbl = lbl[:15]
         # Output
         return lbl
+        
+        
+    # Check if a case is running.
+    def CheckRunning(self, i):
+        """Check if a case is currently running
+        
+        :Call:
+            >>> q = cart3d.CheckRunning(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *q*: :class:`bool`
+                If ``True``, case has :file:`RUNNING` file in it
+        :Versions:
+            * 2014.10.03 ``@ddalle``: First version
+        """
+        # Safely go to root.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get run name
+        frun = self.x.GetFullFolderNames(i)
+        # Check for folder.
+        if not os.path.isfile(os.path.join(frun, 'RUNNING')):
+            # No file (or possibly no folder)
+            return False
+        else:
+            # File exists.
+            return True
         
         
     # Write the PBS script.

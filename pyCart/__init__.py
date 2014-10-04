@@ -78,11 +78,13 @@ TemplateFodler = os.path.join(PyCartFolder, "templates")
 from tri    import Tri, ReadTri, WriteTri
 from cart3d import Cart3d, Trajectory, ReadTrajectoryFile
 from post   import LoadsDat
+from case   import ReadCaseJSON, run_flowCart
 
 # Import the file control classes.
 from inputCntl   import InputCntl
 from aeroCsh     import AeroCsh
 from preSpecCntl import PreSpecCntl
+
 
 # Get the conversion tools directly.
 from convert import *

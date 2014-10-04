@@ -114,6 +114,23 @@ class flowCart(odict):
             # Something is messed up.
             return 1
             
+    # Minimum required number of iterations
+    def get_LastIter(self):
+        """Return the minimum number of iterations for case to be done
+        
+        :Call:
+            >>> nIter = opts.get_LastIter()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *nIter*: :class:`int`
+                Number of required iterations for case
+        :Versions:
+            * 2014.10.02 ``@ddalle``: First version
+        """
+        return self.get_IterSeq(self.get_nSeq())
+            
         
     # Get first-order status
     def get_first_order(self, i=None):

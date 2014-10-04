@@ -27,8 +27,14 @@ def run_flowCart():
     :Versions:
         * 2014.10.02 ``@ddalle``: First version
     """
+    # Check for RUNNING file.
+    if os.path.isfile('RUNNING'):
+        # Case already running
+        raise IOError('Case already running!')
+    # Touch the running file.
+    os.system('touch RUNNING')
     # Get the settings.
-    fc = ReadJSON()
+    fc = ReadCaseJSON()
     # Determine the run index.
     i = DetermineInputNumber(fc)
     # Get the restart iteration number.
@@ -58,14 +64,16 @@ def run_flowCart():
     callf(cmdi, f='flowCart.out')
     # Assuming that worked, move the temp output file.
     os.rename('flowCart.out', 'run.%02i.%i' % (i, n+fc.get_it_fc(i)))
+    # Remove the RUNNING file.
+    if os.path.isfile('RUNNING'): os.remove('RUNNING')
     
 
 # Function to read the local settings file.
-def ReadJSON():
+def ReadCaseJSON():
     """Read `flowCart` settings for local case
     
     :Call:
-        >>> fc = pyCart.case.ReadJSON()
+        >>> fc = pyCart.case.ReadCaseJSON()
     :Outputs:
         *fc*: :class:`pyCart.options.flowCart.flowCart`
             Options interface for `flowCart`

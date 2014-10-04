@@ -75,6 +75,8 @@ class Trajectory:
         self.keys = keys
         self.prefix = prefix
         self.GroupPrefix = groupPrefix
+        # List of PASS markers
+        self.PASS = []
         # Process the key definitions.
         self.ProcessKeyDefinitions(defns)
         
@@ -89,6 +91,15 @@ class Trajectory:
                 continue
             # Separate by commas and/or white space
             v = re.split("[\s\,]+", line)
+            # Check v[0]
+            if v[0].lower() in ['p', 'pass']:
+                # Case is marked as passed.
+                self.PASS.append(True)
+                # Shift the entries.
+                v.pop(0)
+            else:
+                # Case is unmarked.
+                self.PASS.append(False)
             # Save the strings.
             for k in range(nVar):
                 # Check for text.
@@ -104,6 +115,8 @@ class Trajectory:
                     # No text (especially useful for optional labels)
                     v0 = self.defns[keys[k]].get('Default', '0')
                     self.text[keys[k]].append(str(v0))
+        # Convert PASS list to numpy.
+        self.PASS = np.array(self.PASS)
         # Close the file.
         f.close()
         # Create the numeric versions.
