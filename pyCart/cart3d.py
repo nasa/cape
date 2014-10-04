@@ -148,7 +148,7 @@ class Cart3d(object):
         self.opts = opts
         
         # Read the triangulation file(s)
-        self.ReadTri()
+        #self.ReadTri()
         
         # Read the input files.
         self.InputCntl = InputCntl(self.opts.get_InputCntl())
@@ -180,6 +180,12 @@ class Cart3d(object):
         :Versions:
             * 2014.08.30 ``@ddalle``: First version
         """
+        # Only read triangulation if not already present.
+        try:
+            self.tri
+            return
+        except Exception:
+            pass
         # Get the list of tri files.
         ftri = self.opts.get_TriFile()
         # Status update.
@@ -197,102 +203,6 @@ class Cart3d(object):
             tri = Tri(ftri)
         # Save it.
         self.tri = tri
-    
-    # Check for root location
-    def CheckRootDir(self):
-        """Check if the current directory is the case root directory
-        
-        Suppose the directory structure for a case is as follows.
-        
-        * `/nobackup/uuser/plane/`
-            * `Grid_d0.0/`
-                * `m1.20/`
-                * `m1.40/`
-            * `Grid_d1.0/`
-                * `m1.20/`
-                * `m1.40/`
-                
-        Then this function will return ``True`` if and only if the current
-        working directory is ``'/nobackup/uuser/plane/'``.
-        
-        :Call:
-            >>> q = cart3d.CheckRootDir()
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Global pyCart settings object instance
-        :Outputs:
-            *q*: :class:`bool`
-                True if current working directory is the case root directory
-        :Versions:
-            * 2014.06.30 ``@ddalle``: First version
-        """
-        # Compare the working directory and the stored root directory.
-        return os.path.abspath('.') == self.RootDir
-    
-    # Check for group location
-    def CheckGroupDir(self):
-        """
-        Check if the current directory is a group-level directory
-        
-        Suppose the directory structure for a case is as follows.
-        
-        * `/nobackup/uuser/plane/`
-            * `Grid_d0.0/`
-                * `m1.20/`
-                * `m1.40/`
-            * `Grid_d1.0/`
-                * `m1.20/`
-                * `m1.40/`
-                
-        Then this function will return ``True`` if and only if the current
-        working directory is ``'/nobackup/uuser/plane/Grid_d0.0'`` or 
-        ``'/nobackup/uuser/plane/Grid_d1.0'``.
-        
-        :Call:
-            >>> q = cart3d.CheckGroupDir()
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Global pyCart settings object instance
-        :Outputs:
-            *q*: :class:`bool`
-                True if current working directory is a group-level directory
-        :Versions:
-            * 2014.06.30 ``@ddalle``: First version
-        """
-        # Compare the working directory and the stored root directory.
-        return os.path.abspath('..') == self.RootDir
-    
-    # Check for group location
-    def CheckCaseDir(self):
-        """
-        Check if the current directory is a case-level directory
-        
-        Suppose the directory structure for a case is as follows.
-        
-        * `/nobackup/uuser/plane/`
-            * `Grid_d0.0/`
-                * `m1.20/`
-                * `m1.40/`
-            * `Grid_d1.0/`
-                * `m1.20/`
-                * `m1.40/`
-                
-        Then this function will return ``True`` if the current working 
-        directory is either of the ``'m1.20'`` or ``'m1.40'`` folders.
-        
-        :Call:
-            >>> q = cart3d.CheckCaseDir()
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Global pyCart settings object instance
-        :Outputs:
-            *q*: :class:`bool`
-                True if current working directory is a group-level directory
-        :Versions:
-            * 2014.06.30 ``@ddalle``: First version
-        """
-        # Compare the working directory and the stored root directory.
-        return os.path.abspath(os.path.join('..','..')) == self.RootDir
         
         
     # Function to check if the mesh for case i exists
@@ -386,6 +296,8 @@ class Cart3d(object):
             shutil.copyfile(fxml, 'Config.xml')
         # Status update
         print("  Preparing surface triangulation...")
+        # Read the mesh.
+        self.ReadTri()
         # Apply rotations, etc.
         
         # Write the tri file.
@@ -934,6 +846,104 @@ class Cart3d(object):
         self.LoadsTRI.Write(self.x)
         return None
     
+    
+    
+    # Check for root location
+    def CheckRootDir(self):
+        """Check if the current directory is the case root directory
+        
+        Suppose the directory structure for a case is as follows.
+        
+        * `/nobackup/uuser/plane/`
+            * `Grid_d0.0/`
+                * `m1.20/`
+                * `m1.40/`
+            * `Grid_d1.0/`
+                * `m1.20/`
+                * `m1.40/`
+                
+        Then this function will return ``True`` if and only if the current
+        working directory is ``'/nobackup/uuser/plane/'``.
+        
+        :Call:
+            >>> q = cart3d.CheckRootDir()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Global pyCart settings object instance
+        :Outputs:
+            *q*: :class:`bool`
+                True if current working directory is the case root directory
+        :Versions:
+            * 2014.06.30 ``@ddalle``: First version
+        """
+        # Compare the working directory and the stored root directory.
+        return os.path.abspath('.') == self.RootDir
+    
+    # Check for group location
+    def CheckGroupDir(self):
+        """
+        Check if the current directory is a group-level directory
+        
+        Suppose the directory structure for a case is as follows.
+        
+        * `/nobackup/uuser/plane/`
+            * `Grid_d0.0/`
+                * `m1.20/`
+                * `m1.40/`
+            * `Grid_d1.0/`
+                * `m1.20/`
+                * `m1.40/`
+                
+        Then this function will return ``True`` if and only if the current
+        working directory is ``'/nobackup/uuser/plane/Grid_d0.0'`` or 
+        ``'/nobackup/uuser/plane/Grid_d1.0'``.
+        
+        :Call:
+            >>> q = cart3d.CheckGroupDir()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Global pyCart settings object instance
+        :Outputs:
+            *q*: :class:`bool`
+                True if current working directory is a group-level directory
+        :Versions:
+            * 2014.06.30 ``@ddalle``: First version
+        """
+        # Compare the working directory and the stored root directory.
+        return os.path.abspath('..') == self.RootDir
+    
+    # Check for group location
+    def CheckCaseDir(self):
+        """
+        Check if the current directory is a case-level directory
+        
+        Suppose the directory structure for a case is as follows.
+        
+        * `/nobackup/uuser/plane/`
+            * `Grid_d0.0/`
+                * `m1.20/`
+                * `m1.40/`
+            * `Grid_d1.0/`
+                * `m1.20/`
+                * `m1.40/`
+                
+        Then this function will return ``True`` if the current working 
+        directory is either of the ``'m1.20'`` or ``'m1.40'`` folders.
+        
+        :Call:
+            >>> q = cart3d.CheckCaseDir()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Global pyCart settings object instance
+        :Outputs:
+            *q*: :class:`bool`
+                True if current working directory is a group-level directory
+        :Versions:
+            * 2014.06.30 ``@ddalle``: First version
+        """
+        # Compare the working directory and the stored root directory.
+        return os.path.abspath(os.path.join('..','..')) == self.RootDir
+        
 
 
 # Function to read conditions file.

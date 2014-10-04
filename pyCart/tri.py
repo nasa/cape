@@ -521,10 +521,15 @@ class TriBase(object):
         
     # Add a second triangulation without destroying component numbers.
     def Add(self, tri):
-        """Add a second triangulation to the current by adding the number of
-        components in the first triangulation to each of the component IDs in
-        the second triangulation.  No checks are performed, and intersections
-        are not analyzed.
+        """Add a second triangulation file.
+        
+        If the new triangulation begins with a component ID less than the
+        maximum component ID of the existing triangulation, the components of
+        the second triangulation are offset.  For example, if both
+        triangulations have components 1, 2, and 3; the IDs of the second
+        triangulation, *tri2*, will be changed to 4, 5, and 6.
+        
+        No checks are performed, and intersections are not analyzed.
         
         :Call:
             >>> tri.Add(tri2)
@@ -539,6 +544,7 @@ class TriBase(object):
             components in *tri* will all increase.
         :Versions:
             * 2014.06.12 ``@ddalle``: First version
+            * 2014.10.03 ``@ddalle``: Auto detect CompID overlap
         """
         # Concatenate the node matrix.
         self.Nodes = np.vstack((self.Nodes, tri.Nodes))
@@ -547,16 +553,20 @@ class TriBase(object):
         # Number of components in the original triangulation
         nC = np.max(self.CompID)
         # Concatenate the component vector.
-        self.CompID = np.hstack((self.CompID, tri.CompID + nC))
+        if np.min(tri.CompID) >= nC:
+            # Add the components raw (don't offset CompID.
+            self.CompID = np.hstack((self.CompID, tri.CompID))
+        else:
+            # Adjust CompIDs to avoid overlap.
+            self.CompID = np.hstack((self.CompID, tri.CompID + nC))
         # Update the statistics.
         self.nNode += tri.nNode
         self.nTri  += tri.nTri
-        # Done
-        return None
         
     # Add a second triangulation without altering component numbers.
     def AddRawCompID(self, tri):
-        """Add a second triangulation to the current one without changing 
+        """
+        Add a second triangulation to the current one without changing 
         component numbers of either triangulation.  No checks are performed,
         and intersections are not analyzed.
         

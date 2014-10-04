@@ -97,10 +97,13 @@ class Trajectory:
                     self.text[keys[k]].append(v[k])
                 elif self.defns[keys[k]]['Value'] == 'str':
                     # No text (especially useful for optional labels)
-                    self.text[keys[k]].append('')
+                    # Default value.
+                    v0 = self.defns[keys[k]].get('Default', '')
+                    self.text[keys[k]].append(v0)
                 else:
                     # No text (especially useful for optional labels)
-                    self.text[keys[k]].append('0')
+                    v0 = self.defns[keys[k]].get('Default', '0')
+                    self.text[keys[k]].append(str(v0))
         # Close the file.
         f.close()
         # Create the numeric versions.
@@ -562,6 +565,8 @@ class Trajectory:
             # Check the value.
             if self.text[k][i]:
                 dname += ("_" + self.abbrv[k] + self.text[k][i])
+        # Strip leading underscore.
+        if dname.startswith("_"): dname = dname[1:]
         # Return the result.
         return dname
         
