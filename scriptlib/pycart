@@ -17,6 +17,9 @@ relatively simple commands.
     -h, --help
         Display this help message and quit
         
+    -c
+        Check status and don't submit new jobs
+        
     -q QUEUE
         Submit to a specific queue (defaults to "sls_aero1")
 
@@ -39,3 +42,20 @@ from pyCart.argread import readkeys
 if __name__ == "__main__":
     # Parse inputs.
     a, kw = readkeys(pyCart.os.sys.argv)
+    # Filter command...
+    
+    # Check for a help flag.
+    if kw.get('h') or kw.get('help'):
+        print(__doc__)
+        pyCart.os.sys.exit()
+        
+    # Get file name.
+    fname = kw.get('f', 'pyCart.json')
+    
+    # Try to read it.
+    cart3d = pyCart.Cart3d(fname)
+    
+    # Process inputs.
+    if kw.get('c'):
+        # Display status.
+        cart3d.DisplayStatus()

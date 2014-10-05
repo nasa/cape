@@ -147,9 +147,6 @@ class Cart3d(object):
         # Save all the options as a reference.
         self.opts = opts
         
-        # Read the triangulation file(s)
-        #self.ReadTri()
-        
         # Read the input files.
         self.InputCntl = InputCntl(self.opts.get_InputCntl())
         self.AeroCsh   = AeroCsh(self.opts.get_AeroCsh())
@@ -213,21 +210,117 @@ class Cart3d(object):
         
         :Call:
             cart3d.DisplayStatus()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
         :Versions:
-            * 2014.10.03 ``@ddalle``: First version
+            * 2014.10.04 ``@ddalle``: First version
         """
         # Get the case names.
         fruns = self.x.GetFullFolderNames()
         # Maximum length of one of the names
         lrun = max([len(frun) for frun in fruns])
-        print(fruns)
+        # Create the string stencil.
+        stncl = ('%%-%is ' * 5) % (4, lrun, 7, 11, 3)
+        # Print header row.
+        print(stncl % ("Case", "Config/Run Directory", "Status", 
+            "Iterations", "Que"))
+        # Print the right number of '-' chars
+        f = '-'
+        s = ' '
+        print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3)
+        # Initialize dictionary of statuses.
+        total = {'PASS':0, 'PASS*':0, '---':0, 'INCOMP':0,
+            'RUN':0, 'DONE':0, 'QUE':0}
+        # Loop through the runs.
+        for i in range(self.x.nCase):
+            # Extract case
+            frun = fruns[i]
+            # Check status.
+            sts = self.CheckCaseStatus(i)
+            # Append.
+            total[sts] += 1
+            # Get the current number of iterations
+            n = self.CheckCase(i)
+            # Switch on whether or not case is set up.
+            if n is None:
+                # Case is not prepared.
+                itr = "/"
+                que = "."
+            else:
+                # Case is prepared and might be running.
+                # Get last iteration.
+                nMax = self.GetLastIter(i)
+                # Iteration string
+                itr = "%i/%i" % (n, nMax)
+                # Not checking queue yet.
+                que = "."
+            # Print info
+            print(stncl % (i, frun, sts, itr, "."))
+        # Extra line.
+        print("")
+        # Status summary
+        fline = ""
+        for key in total:
+            # Check for any cases with the status.
+            if total[key]:
+                # At least one with this status.
+                fline += ("%s=%i, " % (key,total[key]))
+        # Print the line.
+        if fline: print(fline)
+            
+    # Function to determine if case is PASS, ---, INCOMP, etc.
+    def CheckCaseStatus(self, i):
+        """Determine the current status of a case
+        
+        :Call:
+            >>> sts = cart3d.CheckCaseStatus(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2014.10.04 ``@ddalle``: First version
+        """
+        # Current iteration count
+        n = self.CheckCase(i)
+        # Check if the case is prepared.
+        if n is None:
+            # Nothing prepared.
+            sts = "---"
+        else:
+            # Check if the case is running.
+            if self.CheckRunning(i):
+                # Case currently running
+                sts = "RUN"
+            else:
+                # Get maximum iteration count.
+                nMax = self.GetLastIter(i)
+                # Check current count.
+                if n >= nMax:
+                    sts = "DONE"
+                else:
+                    sts = "INCOMP"
+        # Check if the case is marked as PASS
+        if self.x.PASS[i]:
+            # Check for cases marked but that can't be done.
+            if sts == "DONE":
+                # Passed!
+                sts = "PASS"
+            else:
+                # Funky
+                sts = "PASS*"
+        # Output
+        return sts
+            
         
     # Function to check if the mesh for case i exists
     def CheckMesh(self, i):
         """Check if the mesh for case *i* is prepared.
         
         :Call:
-            >>> q = cart3d.check_mesh(i)
+            >>> q = cart3d.CheckMesh(i)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
