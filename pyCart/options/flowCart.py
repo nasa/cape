@@ -667,4 +667,78 @@ class flowCart(odict):
         """
         self.set_key('mpicmd', mpicmd, i)
     
+    # Get the submittable-job status
+    def get_qsub(self, i=None):
+        """Determine whether or not to submit jobs
+        
+        :Call:
+            >>> qsub = opts.get_qsub(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *qsub*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to submit case to PBS
+        :Versions:
+            * 2014.10.05 ``@ddalle``: First version
+        """
+        return self.get_key('qsub', i)
+    
+    # Set the submittable-job status
+    def set_qsub(self, qsub=rc0('qsub'), i=None):
+        """Set jobs as submittable or nonsubmittable
+        
+        :Call:
+            >>> opts.set_qsub(qsub, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *qsub*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to submit case to PBS
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014.10.05 ``@ddalle``: First version
+        """
+        self.set_key('qsub', qsub, i)
+        
+    
+    # Get the resubmittable-job status
+    def get_resub(self, i=None):
+        """Determine whether or not a job should restart or resubmit itself
+        
+        :Call:
+            >>> resub = opts.get_resub(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *resub*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to resubmit/restart a case
+        :Versions:
+            * 2014.10.05 ``@ddalle``: First version
+        """
+        return self.get_key('resub', i)
+    
+    # Set the resubmittable-job status
+    def set_resub(self, resub=rc0('resub'), i=None):
+        """Set jobs as resubmittable or nonresubmittable
+        
+        :Call:
+            >>> opts.set_resub(resub, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *resub*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to resubmit/restart a case
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014.10.05 ``@ddalle``: First version
+        """
+        self.set_key('resub', resub, i)
         

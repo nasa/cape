@@ -716,15 +716,30 @@ class Cart3d(object):
         # Get the first key (special because allowed two decimals)
         k0 = x.keys[0]
         # Initialize label.
-        lbl = '%s%.2f' % (x.abbrv[k0], getattr(x,k0)[i])
+        lbl = '%i%s%.2f' % (x.GetGroupIndex(i), x.abbrv[k0], getattr(x,k0)[i])
         # Loop through keys.
         for k in x.keys[1:]:
-            # Append to the label
-            lbl += ('%s%.1f' % (x.abbrv[k], getattr(x,k)[i]))
+            # Check for strings.
+            if x.defns[k]['Value'] == 'float':
+                # Append to the label
+                lbl += ('%s%.1f' % (x.abbrv[k], getattr(x,k)[i]))
         # Check length.
         if len(lbl) > 16:
             # 16-char limit (or is it 15?)
             lbl = lbl[:15]
+        else:
+            # Fill out to 16-char limit.
+            lbl += " "*(16-len(lbl))
+        # Loop through keys.
+        for k in x.keys:
+            # Check for strings.
+            if x.defns[k]['Value'] == 'str':
+                # Get the label and its length.
+                lblk = getattr(x,k)[i]
+                nlbl = len(lblk)
+                # Postfix it to the label.
+                if nlbl > 0:
+                    lbl = lbl[:-nlbl] + lblk
         # Output
         return lbl
         

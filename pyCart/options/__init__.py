@@ -426,12 +426,32 @@ class Options(odict):
     # Set the MPI system command
     def set_mpicmd(self, mpicmd=rc0('mpicmd'), i=None):
         self._flowCart()
-        self['flowCart'].set_nProc(mpicmd, i)
+        self['flowCart'].set_mpicmd(mpicmd, i)
+        
+    # Get the submittable/nonsubmittalbe status
+    def get_qsub(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_qsub(i)
+        
+    # Set the submittable/nonsubmittalbe status
+    def set_qsub(self, qsub=rc0('qsub'), i=None):
+        self._flowCart()
+        self['flowCart'].set_qsub(qsub, i)
+        
+    # Get the resubmittable/nonresubmittalbe status
+    def get_resub(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_resub(i)
+        
+    # Set the resubmittable/nonresubmittalbe status
+    def set_resub(self, resub=rc0('resub'), i=None):
+        self._flowCart()
+        self['flowCart'].set_resub(resub, i)
         
     # Copy over the documentation.
     for k in ['InputSeq', 'IterSeq', 'first_order', 'mpi_fc', 'use_aero_csh',
             'it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'tecO',
-            'y_is_spanwise', 'binaryIO', 'nProc', 'mpicmd']:
+            'y_is_spanwise', 'binaryIO', 'nProc', 'mpicmd', 'qsub', 'resub']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(flowCart,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(flowCart,'set_'+k).__doc__
