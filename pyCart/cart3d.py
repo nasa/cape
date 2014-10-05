@@ -209,13 +209,33 @@ class Cart3d(object):
         This prints case names, current iteration numbers, and so on.
         
         :Call:
-            cart3d.DisplayStatus()
+            >>> cart3d.DisplayStatus()
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
         :Versions:
             * 2014.10.04 ``@ddalle``: First version
         """
+        self.SubmitJobs(c=True)
+        
+    # Master interface function
+    def SubmitJobs(self, **kw):
+        """Check jobs and prepare or submit jobs if necessary
+        
+        :Call:
+            >>> cart3d.SubmitJobs(**kw)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+        :Versions:
+            * 2014.10.05 ``@ddalle``: First version
+        """
+        # Get flag that tells pycart only to check jobs.
+        qCheck = kw.get('c', False)
+        # Maximum number of jobs
+        nSubMax = kw.get('n', 10)
+        # Initialize number of submitted jobs
+        nSub = 0
         # Get the case names.
         fruns = self.x.GetFullFolderNames()
         # Maximum length of one of the names
@@ -257,6 +277,14 @@ class Cart3d(object):
                 que = "."
             # Print info
             print(stncl % (i, frun, sts, itr, "."))
+            # Check status.
+            if qCheck or nSub>=nSubMax: continue
+            # If submitting is allowed, check the job status.
+            if sts in ['---', 'INCOMP']:
+                # Prepare the job.
+                self.PrepareCase(i)
+                # Submit or start it...
+                
         # Extra line.
         print("")
         # Status summary
