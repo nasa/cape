@@ -891,7 +891,7 @@ class Cart3d(object):
             * 2014.10.06 ``@ddalle``: First version
         """
         # Check the case.
-        if not self.CheckCase(i): return None
+        if self.CheckCase(i) is None: return None
         # Go to the root folder
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
