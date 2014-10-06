@@ -188,15 +188,20 @@ class Cart3d(object):
         # Get the list of tri files.
         ftri = self.opts.get_TriFile()
         # Status update.
-        print("Reading tri file(s) from root directory.")
+        print("  Reading tri file(s) from root directory.")
         # Read them.
         if type(ftri).__name__ == 'list':
+            # Go to home folder safely.
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
             # Read the initial triangulation.
             tri = Tri(ftri[0])
             # Loop through the remaining tri files.
             for f in ftri[1:]:
                 # Append the file.
                 tri.Add(Tri(f))
+            # Return to original location.
+            os.chdir(fpwd)
         else:
             # Just read the triangulation file.
             tri = Tri(ftri)
