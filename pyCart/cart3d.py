@@ -17,13 +17,17 @@ import os, shutil
 import subprocess as sp
 
 # pyCart settings class
-import options
-
+from . import options
+# pyCart queue itnerface
+from . import queue
+# Cart3D binary interfaces
+from . import bin
+# Run directory module
+from . import case
 
 # Functions and classes from other modules
 from trajectory import Trajectory
 from post       import LoadsDat
-from case       import ReadCaseJSON, run_flowCart
 
 # Import specific file control classes
 from inputCntl import InputCntl
@@ -32,8 +36,6 @@ from aeroCsh   import AeroCsh
 # Import triangulation
 from tri import Tri
 
-# Cart3D binary interfaces
-from . import bin
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -209,14 +211,16 @@ class Cart3d(object):
         This prints case names, current iteration numbers, and so on.
         
         :Call:
-            >>> cart3d.DisplayStatus()
+            >>> cart3d.DisplayStatus(j=False)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
+            *j*: :class:`bool`
+                Whether or not to display job ID numbers
         :Versions:
             * 2014.10.04 ``@ddalle``: First version
         """
-        self.SubmitJobs(c=True)
+        self.SubmitJobs(c=True, j=kw.get('j',False))
         
     # Master interface function
     def SubmitJobs(self, **kw):
@@ -227,11 +231,17 @@ class Cart3d(object):
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
+            *c*: :class:`bool`
+                If ``True``, only display status; do not submit new jobs
+            *j*: :class:`bool`
+                Whether or not to display job ID numbers
         :Versions:
             * 2014.10.05 ``@ddalle``: First version
         """
         # Get flag that tells pycart only to check jobs.
         qCheck = kw.get('c', False)
+        # Get flag to show job IDs
+        qJobID = kw.get('j', False)
         # Maximum number of jobs
         nSubMax = kw.get('n', 10)
         # Initialize number of submitted jobs
@@ -278,13 +288,17 @@ class Cart3d(object):
             # Print info
             print(stncl % (i, frun, sts, itr, "."))
             # Check status.
-            if qCheck or nSub>=nSubMax: continue
+            if qCheck: continue
+            # Check submitted job count.
+            if nSub >= nSubMax: break
             # If submitting is allowed, check the job status.
             if sts in ['---', 'INCOMP']:
                 # Prepare the job.
                 self.PrepareCase(i)
-                # Submit or start it...
-                
+                # Start (submit or run) case
+                self.StartCase(i)
+                # Increase job number
+                nSub += 1
         # Extra line.
         print("")
         # Status summary
@@ -296,6 +310,46 @@ class Cart3d(object):
                 fline += ("%s=%i, " % (key,total[key]))
         # Print the line.
         if fline: print(fline)
+        
+    # Function to start a case: submit or run
+    def StartCase(self, i):
+        """Start a case by either submitting it 
+        
+        This function checks whether or not a case is submittable.  If so, the
+        case is submitted via :func:`pyCart.queue.pqsub`, and otherwise the
+        case is started using a system call.
+        
+        It is assumed that the case has been prepared.
+        
+        :Call:
+            >>> cart3d.StartCase(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2014.10.06 ``@ddalle``: First version
+        """
+        # Check status.
+        if self.CheckCase(i) is None:
+            # Case not ready
+            return
+        elif self.CheckRunning(i):
+            # Case already running!
+            return
+        # Safely go to root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get case name and go to the folder.
+        frun = self.x.GetFullFolderNames(i)
+        os.chdir(frun)
+        # Print status.
+        print("     Starting case '%s'." % frun)
+        # Start the case by either submitting or calling it.
+        case.StartCase()
+        # Go back.
+        os.chdir(fpwd)
             
     # Function to determine if case is PASS, ---, INCOMP, etc.
     def CheckCaseStatus(self, i):
@@ -716,7 +770,7 @@ class Cart3d(object):
         # Go there.
         os.chdir(frun)
         # Read the local case.json file.
-        fc = ReadCaseJSON()
+        fc = case.ReadCaseJSON()
         # Return to original location.
         os.chdir(fpwd)
         # Output
@@ -744,7 +798,7 @@ class Cart3d(object):
         # Get the first key (special because allowed two decimals)
         k0 = x.keys[0]
         # Initialize label.
-        lbl = '%i%s%.2f' % (x.GetGroupIndex(i), x.abbrv[k0], getattr(x,k0)[i])
+        lbl = '%s%.2f' % (x.abbrv[k0], getattr(x,k0)[i])
         # Loop through keys.
         for k in x.keys[1:]:
             # Check for strings.
@@ -752,12 +806,12 @@ class Cart3d(object):
                 # Append to the label
                 lbl += ('%s%.1f' % (x.abbrv[k], getattr(x,k)[i]))
         # Check length.
-        if len(lbl) > 16:
+        if len(lbl) > 15:
             # 16-char limit (or is it 15?)
-            lbl = lbl[:15]
+            lbl = lbl[:14]
         else:
             # Fill out to 16-char limit.
-            lbl += " "*(16-len(lbl))
+            lbl += " "*(15-len(lbl))
         # Loop through keys.
         for k in x.keys:
             # Check for strings.

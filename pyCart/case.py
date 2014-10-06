@@ -9,7 +9,7 @@ from options.flowCart import flowCart
 # Binary interface.
 from bin import callf
 # Interface for writing commands
-import cmd
+from . import cmd, queue
 
 # Read the local JSON file.
 import json
@@ -66,6 +66,31 @@ def run_flowCart():
     os.rename('flowCart.out', 'run.%02i.%i' % (i, n+fc.get_it_fc(i)))
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
+    # Resubmit if asked.
+    if fc.get_resub(i):
+        StartCase()
+    
+    
+# Function to call script or submit.
+def StartCase():
+    """Start a case by either submitting it or calling with a system command
+    
+    :Call:
+        >>> pyCart.case.StartCase()
+    :Versions:
+        * 2014.10.06 ``@ddalle``: First version
+    """
+    # Get the config.
+    fc = ReadCaseJSON()
+    # Determine the run index.
+    i = DetermineInputNumber(fc)
+    # Check qsub status.
+    if fc.get_qsub(i):
+        # Submit the case.
+        queue.pqsub('run_cart3d.pbs')
+    else:
+        # Simply run the case.
+        callf(['bash', 'run_cart3d.pbs'])
     
 
 # Function to read the local settings file.

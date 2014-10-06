@@ -101,29 +101,6 @@ def _upgradeDocString(doccmd):
     # Output
     return docbin
     
-# Function to call `qsub` and get the PBS number
-def qsub(fname):
-    """Submit a PBS script and return the job number
-    
-    :Call:
-        >>> pbs = pyCart.bin.qsub(fname)
-    :Inputs:
-        *fname*: :class:`str`
-            Name of PBS script to submit
-    :Outputs:
-        *pbs*: :class:`int` or ``None``
-            PBS job ID number if submission was successful
-    :Versions:
-        * 2014.10.05 ``@ddalle``: First version
-    """
-    # Call the command with safety
-    try:
-        # Call `qsub` with output
-        txt = sp.Popen(['qsub', fname], stdout=sp.PIPE).communicate()[0]
-        return txt
-    except Exception:
-        # Failed; return None
-        return None
 
 # Function to call cubes.
 def cubes(cart3d=None, **kwargs):

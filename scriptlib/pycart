@@ -59,3 +59,6 @@ if __name__ == "__main__":
     if kw.get('c'):
         # Display status.
         cart3d.DisplayStatus()
+    else:
+        # Do it.
+        cart3d.SubmitJobs(**kw)
