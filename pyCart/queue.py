@@ -36,6 +36,9 @@ def qsub(fname):
         # Get the integer job number.
         return int(txt.split('.')[0])
     except Exception:
+        # Print a message, but don't fail.
+        print("Submitting PBS script failed:\n  '%s/%s'"
+            % (os.getcwd(), fname)) 
         # Failed; return None
         return None
         

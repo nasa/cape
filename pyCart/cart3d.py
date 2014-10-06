@@ -243,7 +243,7 @@ class Cart3d(object):
         # Get flag to show job IDs
         qJobID = kw.get('j', False)
         # Maximum number of jobs
-        nSubMax = kw.get('n', 10)
+        nSubMax = int(kw.get('n', 10))
         # Initialize number of submitted jobs
         nSub = 0
         # Get the case names.
@@ -288,9 +288,7 @@ class Cart3d(object):
             # Print info
             print(stncl % (i, frun, sts, itr, "."))
             # Check status.
-            if qCheck: continue
-            # Check submitted job count.
-            if nSub >= nSubMax: break
+            if qCheck or nSub >= nSubMax: continue
             # If submitting is allowed, check the job status.
             if sts in ['---', 'INCOMP']:
                 # Prepare the job.
@@ -301,6 +299,9 @@ class Cart3d(object):
                 nSub += 1
         # Extra line.
         print("")
+        # State how many jobs submitted.
+        if nSub:
+            print("Submitted or ran %i job(s).\n" % nSub)
         # Status summary
         fline = ""
         for key in total:
@@ -825,6 +826,50 @@ class Cart3d(object):
         # Output
         return lbl
         
+    # Get PBS job ID if possible
+    def GetPBSJobID(self, i):
+        """Get PBS job number if one exists
+        
+        :Call:
+            >>> pbs = cart3d.GetPBSJobID(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *pbs*: :class:`int` or ``None``
+                Most recently reported job number for case *i*
+        :Versions:
+            * 2014.10.06 ``@ddalle``: First version
+        """
+        # Check the case.
+        if not self.CheckCase(i): return None
+        # Go to the root folder
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get the run name.
+        frun = self.x.GetFullFolderNames(i)
+        # Go there.
+        os.chdir(frun)
+        # Check for a "jobID.dat" file.
+        if os.path.isfile('jobID.dat'):
+            # Read the file.
+            try:
+                # Open the file and read the first line.
+                line = open('jobID.dat').readline()
+                # Get the job ID.
+                pbs = int(line.split()[0])
+            except Exception:
+                # Unsuccessful reading for some reason.
+                pbs = None
+        else:
+            # No file.
+            pbs = None
+        # Return to original directory.
+        os.chdir(fpwd)
+        # Output
+        return pbs
         
     # Check if a case is running.
     def CheckRunning(self, i):
