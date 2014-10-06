@@ -109,6 +109,8 @@ def qstat(u=None):
             jobID = int(v[0].split('.')[0])
             # Save the job info.
             jobs[jobID] = {'u':v[1], 'q':v[2], 'N':v[3], 'R':v[7]}
+        # Output.
+        return jobs
     except Exception:
         # Failed or no qstat command
         return {}
