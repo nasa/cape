@@ -244,30 +244,44 @@ class Cart3d(object):
         qJobID = kw.get('j', False)
         # Maximum number of jobs
         nSubMax = int(kw.get('n', 10))
+        # Get the qstat info (safely; do not raise an exception).
+        jobs = queue.qstat(u=kw.get('u',os.environ['USER']))
         # Initialize number of submitted jobs
         nSub = 0
         # Get the case names.
         fruns = self.x.GetFullFolderNames()
         # Maximum length of one of the names
         lrun = max([len(frun) for frun in fruns])
-        # Create the string stencil.
-        stncl = ('%%-%is ' * 5) % (4, lrun, 7, 11, 3)
-        # Print header row.
-        print(stncl % ("Case", "Config/Run Directory", "Status", 
-            "Iterations", "Que"))
         # Print the right number of '-' chars
-        f = '-'
-        s = ' '
-        print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3)
+        f = '-'; s = ' '
+        # Create the string stencil.
+        if qJobID:
+            # Print status with job numbers.
+            stncl = ('%%-%is ' * 6) % (4, lrun, 7, 11, 3, 7)
+            # Print header row.
+            print(stncl % ("Case", "Config/Run Directory", "Status", 
+                "Iterations", "Que", "Job ID"))
+            # Print "---- --------" etc.
+            print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3 + s + f*7)
+        else:
+            # Print status without job numbers.
+            stncl = ('%%-%is ' * 5) % (4, lrun, 7, 11, 3)
+            # Print header row.
+            print(stncl % ("Case", "Config/Run Directory", "Status", 
+                "Iterations", "Que"))
+            # Print "---- --------" etc.
+            print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3)
         # Initialize dictionary of statuses.
         total = {'PASS':0, 'PASS*':0, '---':0, 'INCOMP':0,
-            'RUN':0, 'DONE':0, 'QUE':0}
+            'RUN':0, 'DONE':0, 'QUEUE':0}
         # Loop through the runs.
         for i in range(self.x.nCase):
             # Extract case
             frun = fruns[i]
             # Check status.
-            sts = self.CheckCaseStatus(i)
+            sts = self.CheckCaseStatus(i, jobs)
+            # Get active job number.
+            jobID = self.GetPBSJobID(i)
             # Append.
             total[sts] += 1
             # Get the current number of iterations
@@ -283,10 +297,23 @@ class Cart3d(object):
                 nMax = self.GetLastIter(i)
                 # Iteration string
                 itr = "%i/%i" % (n, nMax)
-                # Not checking queue yet.
-                que = "."
+                # Check the queue.
+                if jobID in jobs:
+                    # Get whatever the qstat command said.
+                    que = jobs[jobID]["R"]
+                else:
+                    # Not found by qstat (or not a jobID at all)
+                    que = "."
             # Print info
-            print(stncl % (i, frun, sts, itr, "."))
+            if qJobID and jobID in jobs:
+                # Print job number.
+                print(stncl % (i, frun, sts, itr, que, jobID))
+            elif qJobID:
+                # Print blank job number.
+                print(stncl % (i, frun, sts, itr, que, ""))
+            else:
+                # No job number.
+                print(stncl % (i, frun, sts, itr, que))
             # Check status.
             if qCheck or nSub >= nSubMax: continue
             # If submitting is allowed, check the job status.
@@ -353,21 +380,26 @@ class Cart3d(object):
         os.chdir(fpwd)
             
     # Function to determine if case is PASS, ---, INCOMP, etc.
-    def CheckCaseStatus(self, i):
+    def CheckCaseStatus(self, i, jobs={}):
         """Determine the current status of a case
         
         :Call:
-            >>> sts = cart3d.CheckCaseStatus(i)
+            >>> sts = cart3d.CheckCaseStatus(i, jobs={})
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Index of the case to check (0-based)
+            *jobs*: :class:`dict`
+                Information on each job, ``jobs[jobID]`` for each submitted job
         :Versions:
             * 2014.10.04 ``@ddalle``: First version
+            * 2014.10.06 ``@ddalle``: Checking queue status
         """
         # Current iteration count
         n = self.CheckCase(i)
+        # Try to get a job ID.
+        jobID = self.GetPBSJobID(i)
         # Check if the case is prepared.
         if n is None:
             # Nothing prepared.
@@ -375,15 +407,25 @@ class Cart3d(object):
         else:
             # Check if the case is running.
             if self.CheckRunning(i):
-                # Case currently running
+                # Case currently marked as running.
                 sts = "RUN"
             else:
                 # Get maximum iteration count.
                 nMax = self.GetLastIter(i)
                 # Check current count.
-                if n >= nMax:
+                if jobID in jobs:
+                    # It's in the queue, but apparently not running.
+                    if jobs[jobID]['R'] == "R":
+                        # Job running according to the queue
+                        sts = "RUN"
+                    else:
+                        # It's in the queue.
+                        sts = "QUEUE"
+                elif n >= nMax:
+                    # Not running and sufficient iterations completed.
                     sts = "DONE"
                 else:
+                    # Not running and iterations remaining.
                     sts = "INCOMP"
         # Check if the case is marked as PASS
         if self.x.PASS[i]:

@@ -84,7 +84,7 @@ def qstat(u=None):
             User name, defaults to ``os.environ[USER]``
     :Outputs:
         *jobs*: :class:`dict`
-            Information on each job
+            Information on each job, ``jobs[jobID]`` for each submitted job
     :Versions:
         * 2014.10.06 ``@ddalle``: First versoin
     """

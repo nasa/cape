@@ -36,12 +36,13 @@ relatively simple commands.
 # Import the full module
 import pyCart
 # Input parsing
-from pyCart.argread import readkeys
+from pyCart.argread import readflagstar
     
 # Check if run as a script.
 if __name__ == "__main__":
     # Parse inputs.
-    a, kw = readkeys(pyCart.os.sys.argv)
+    a, kw = readflagstar(pyCart.os.sys.argv)
+    
     # Filter command...
     
     # Check for a help flag.
@@ -58,7 +59,7 @@ if __name__ == "__main__":
     # Process inputs.
     if kw.get('c'):
         # Display status.
-        cart3d.DisplayStatus()
+        cart3d.DisplayStatus(**kw)
     else:
         # Do it.
         cart3d.SubmitJobs(**kw)
