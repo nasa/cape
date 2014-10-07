@@ -316,7 +316,7 @@ class InputCntl(FileCntl):
             * 2014.06.10 ``@ddalle``: First version
         """
         # Regular expression for this line.
-        reg = 'Reference_Area.*%s' % compID
+        reg = 'Reference_Area.*%s\s*$' % compID
         # Replace or add the line.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
             reg, 'Reference_Area    %s   %s\n' % (Aref, compID))
@@ -340,10 +340,41 @@ class InputCntl(FileCntl):
             * 2014.06.10 ``@ddalle``: First version
         """
         # Regular expression for this line.
-        reg = 'Reference_Length.*%s' % compID
+        reg = 'Reference_Length.*%s\s*$' % compID
         # Replace or add the line.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
             reg, 'Reference_Length  %s   %s\n' % (Lref, compID))
+        
+    # Function to set the reference area
+    def SetMomentPoint(self, x, compID='all'):
+        """
+        Set the reference length in an :file:`input.cntl` file.
+        
+        :Call:
+            >>> IC.SetMomentPoint(Lref)
+            >>> IC.SetMomentPoint(Lref, compID)
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            *x*: :class:`list`(:class:`float`)
+                List of three coordinates of moment reference point
+            *compID*: :class:`str`
+                Component to which reference applies (default is ``'all'``)
+        :Versions:
+            * 2014.10.07 ``@ddalle``: First version
+        """
+        # Regular expression for this line.
+        reg = 'Moment_Point.*%s\s*$' % compID
+        # Form the output line.
+        line = 'Moment_Point    '
+        # Loop through entries of x.
+        for xi in x:
+            line += ("%s " % xi)
+        # Add the component ID.
+        line += ("  %s\n" % compID)
+        # Replace or add the line.
+        self.ReplaceOrAddLineToSectionSearch(
+            'Force_Moment_Processing', reg, line)
         
     # Function to set a surface boundary condition (e.g. nozzle condition)
     def SetSurfBC(self, compID, u):

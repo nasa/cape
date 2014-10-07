@@ -601,7 +601,7 @@ class Cart3d(object):
          # Check input.
         if type(i).__name__ != "int":
             raise TypeError(
-                "Input to :func:`Cart3d.check_mesh()` must be :class:`int`.")
+                "Input to :func:`Cart3d.CheckCase()` must be :class:`int`.")
         # Get the group name.
         frun = self.x.GetFullFolderNames(i)
         # Remember current location.
@@ -993,15 +993,47 @@ class Cart3d(object):
             * 2014.06.06 ``@ddalle``: Low-level functionality for grid folders
             * 2014.09.30 ``@ddalle``: Changed to write only a single case
         """
+        # Extract trajectory.
+        x = self.x
+        # Process the key types.
+        KeyTypes = [x.defns[k]['Type'] for k in x.keys]
         # Set the options.
         self.InputCntl.SetCFL(self.opts.get_cfl())
+        
+        
         # Set the flight conditions.
-        self.InputCntl.SetMach(self.x.Mach[i])
-        self.InputCntl.SetAlpha(self.x.alpha[i])
-        self.InputCntl.SetBeta(self.x.beta[i])
+        # Mach number
+        if 'Mach' in KeyTypes:
+            # Find out which key it is.
+            k = x.keys[KeyTypes.index('Mach')]
+            # Set the value
+            self.InputCntl.SetMach(getattr(x,k)[i])
+        # Angle of attack
+        if 'alpha' in KeyTypes:
+            # Find out which 
+            k = x.keys[KeyTypes.index('alpha')]
+            # Set the value.
+            self.InputCntl.SetAlpha(getattr(x,k)[i])
+        # Sideslip angle
+        if 'beta' in KeyTypes:
+            # Find out which key it is.
+            k = x.keys[KeyTypes.index('beta')]
+            # Set the value.
+            self.InputCntl.SetBeta(getattr(x,k)[i])
         # Set reference values.
         self.InputCntl.SetReferenceArea(self.opts.get_RefArea())
         self.InputCntl.SetReferenceLength(self.opts.get_RefLength())
+        # Moment reference points.
+        xMRP = self.opts.get_RefPoint()
+        # Filter type.
+        if type(xMRP).__name__ == "dict":
+            # Loop through the components.
+            for ki in xMRP:
+                # Set the point for that component.
+                self.InputCntl.SetMomentPoint(xMRP[ki], ki)
+        else:
+            # Just set it.
+            self.InputCntl.SetMomentPoint(xMRP)
         # Go safely to root folder.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
@@ -1009,6 +1041,7 @@ class Cart3d(object):
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
         if not os.path.isdir(frun): os.mkdir(frun, dmask)
+        
         # Loop through the runs.
         for j in range(self.opts.get_nSeq()):
             # Get the first-order status.

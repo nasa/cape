@@ -326,7 +326,7 @@ def applyDefaults(opts, defs):
         if k not in opts:
             # Assign the key.
             opts[k] = defs[k]
-        elif type(opts[k]) is dict:
+        elif (type(opts[k]) is dict) and (not k.startswith("Ref")):
             # Recurse for dictionaries.
             opts[k] = applyDefaults(opts[k], defs[k])
     # Output the modified defaults.

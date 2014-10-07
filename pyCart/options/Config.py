@@ -244,9 +244,12 @@ class Config(odict):
             if (comp in RefP):
                 # Return the specific component.
                 x = RefP[comp]
-            else:
-                # Get the default.
+            elif comp == 'default':
+                # Default value.
                 x = RefP.get('default', [0.0, 0.0, 0.0])
+            else:
+                # Return the whole dict.
+                x = RefP
         elif type(RefP[0]).__name__ == 'list':
             # Check the component input.
             if comp and (comp < len(RefP)):
@@ -254,7 +257,7 @@ class Config(odict):
                 x = RefP[comp]
             else:
                 # Return the first entry.
-                x = Refp[0]
+                x = Refp
         else:
             # It's just a number.
             x = RefP
