@@ -473,7 +473,7 @@ class Cart3d(object):
         # Check input.
         if type(i).__name__ != "int":
             raise TypeError(
-                "Input to :func:`Cart3d.check_mesh()` must be :class:`int`.")
+                "Input to :func:`Cart3d.CheckMesh()` must be :class:`int`.")
         # Get the group name.
         fgrp = self.x.GetGroupFolderNames(i)
         # Initialize with "pass" setting.
@@ -483,20 +483,30 @@ class Cart3d(object):
         # Go to root folder.
         os.chdir(self.RootDir)
         # Check if the folder exists.
-        if (not os.path.isdir(fgrp)): q = False
-        # Check that test.
-        if q:
-            # Go to the group folder.
-            os.chdir(fgrp)
-            # Check for the surface file.
-            if not os.path.isfile('Components.i.tri'): q = False
-            # Check for which mesh file to look for.
-            if q and self.opts.get_mg() > 0:
-                # Look for the multigrid mesh
-                if not os.path.isfile('Mesh.mg.c3d'): q = False
-            else:
-                # Look for the original mesh
-                if not os.path.isfile('Mesh.c3d'): q = False
+        if (not os.path.isdir(fgrp)):
+            os.chdir(fpwd)
+            return False
+        # Go to the group folder.
+        os.chdir(fgrp)
+        # Check for group mesh.
+        if not self.opts.get_GroupMesh():
+            # Get the case name.
+            frun = self.x.GetFolderNames(i)
+            # Check if it's there.
+            if (not os.path.isdir(frun)):
+                os.chdir(fpwd)
+                return False
+            # Go to the folder.
+            os.chdir(frun)
+        # Check for the surface file.
+        if not os.path.isfile('Components.i.tri'): q = False
+        # Check for which mesh file to look for.
+        if q and self.opts.get_mg() > 0:
+            # Look for the multigrid mesh
+            if not os.path.isfile('Mesh.mg.c3d'): q = False
+        else:
+            # Look for the original mesh
+            if not os.path.isfile('Mesh.c3d'): q = False
         # Return to original folder.
         os.chdir(fpwd)
         # Output.
@@ -518,24 +528,34 @@ class Cart3d(object):
         """
         # Get the case name.
         frun = self.x.GetFullFolderNames(i)
+        # Get name of group.
+        fgrp = self.x.GetGroupFolderNames(i)
         # Check the mesh.
         if self.CheckMesh(i):
             return None
-        # Get name of group.
-        fgrp = self.x.GetGroupFolderNames(i)
-        # Get the group index.
-        j = self.x.GetGroupIndex(i)
-        # Status update
-        print("  Group name: '%s' (index %i)" % (fgrp,j))
         # Remember current location.
         fpwd = os.getcwd()
         # Go to root folder.
         os.chdir(self.RootDir)
         # Check for the group folder and make it if necessary.
         if not os.path.isdir(fgrp):
-            os.mkdir(fgrp, fmask)
-        # Go there.
-        os.chdir(fgrp)
+            os.mkdir(fgrp, dmask)
+        # Check for groups with common meshes
+        if self.opts.get_GroupMesh():
+            # Get the group index.
+            j = self.x.GetGroupIndex(i)
+            # Status update
+            print("  Group name: '%s' (index %i)" % (fgrp,j))
+            # Go there.
+            os.chdir(fgrp)
+        else:
+            # Check if the run folder exists.
+            if not os.path.isdir(frun):
+                os.mkdir(frun, dmask)
+            # Status update.
+            print("  Case name: '%s' (index %i)" % (frun,i))
+            # Go there.
+            os.chdir(frun)
         # Get the name of the configuration file.
         fxml = os.path.join(self.RootDir, self.opts.get_ConfigFile())
         # Test if the file exists.

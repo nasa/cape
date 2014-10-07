@@ -169,7 +169,7 @@ class Options(odict):
         """Return the name of the master :file:`input.cntl` file
         
         :Call:
-            fname = opts.get_InputCntl()
+            >>> fname = opts.get_InputCntl()
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
@@ -186,7 +186,7 @@ class Options(odict):
         """Set the name of the master :file:`input.cntl` file
         
         :Call:
-            opts.set_InputCntl(fname)
+            >>> opts.set_InputCntl(fname)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
@@ -202,7 +202,7 @@ class Options(odict):
         """Return the name of the master :file:`aero.csh` file
         
         :Call:
-            fname = opts.get_AeroCsh()
+            >>> fname = opts.get_AeroCsh()
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
@@ -219,7 +219,7 @@ class Options(odict):
         """Set the name of the master :file:`aero.csh` file
         
         :Call:
-            opts.set_AeroCsh(fname)
+            >>> opts.set_AeroCsh(fname)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
@@ -230,7 +230,38 @@ class Options(odict):
         """
         self['AeroCsh'] = fname
     
-    
+    # Method to determine if groups have common meshes.
+    def get_GroupMesh(self):
+        """Determine whether or not groups have common meshes
+        
+        :Call:
+            >>> qGM = opts.get_GroupMesh()
+        :Inputs:
+            *opts* :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *qGM*: :class:`bool`
+                True all cases in a group use the same (starting) mesh
+        :Versions:
+            * 2014.10.06 ``@ddalle``: First version
+        """
+        return self.get('GroupMesh', rc0('GroupMesh'))
+        
+    # Method to specify that meshes do or do not use the same mesh
+    def set_GroupMesh(self, qGM=rc0('GroupMesh')):
+        """Specify that groups do or do not use common meshes
+        
+        :Call:
+            >>> opts.get_GroupMesh(qGM)
+        :Inputs:
+            *opts* :class:`pyCart.options.Options`
+                Options interface
+            *qGM*: :class:`bool`
+                True all cases in a group use the same (starting) mesh
+        :Versions:
+            * 2014.10.06 ``@ddalle``: First version
+        """
+        self['GroupMesh'] = qGM
         
     
     # ==============

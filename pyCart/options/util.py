@@ -36,6 +36,7 @@ PyCartFolder = os.path.split(os.path.split(_fname)[0])[0]
 rc = {
     "InputCntl": "input.cntl",
     "AeroCsh": "aero.csh",
+    "GroupMesh": True,
     "ConfigFile": "Config.xml",
     "RefArea": 1.0,
     "RefLength": 1.0,
