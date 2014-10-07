@@ -400,6 +400,9 @@ class TriBase(object):
                 Triangulation instance to be translated
             *i*: :class:`int` or :class:`list` (:class:`int`)
                 Component ID or list of component IDs
+        :Outputs:
+            *j*: :class:`numpy.array`(:class:`int`)
+                Node indices, 0-based
         :Versions:
             * 2014.09.27 ``@ddalle``: First version
         """
@@ -409,18 +412,18 @@ class TriBase(object):
             j = np.arange(self.nNode)
         elif np.isscalar(i):
             # Get a single component.
-            J = self.Nodes(self.CompID == i)
+            J = self.Tris[self.CompID == i]
             # Convert to unique list.
-            j = np.unique(J)
+            j = np.unique(J) - 1
         else:
             # List of components.
-            J = self.Nodes(self.CompID == i[0])
+            J = self.Tris[self.CompID == i[0]]
             # Loop through remaining components.
             for ii in range(1,len(i)):
                 # Stack the nodes from the new component.
-                J = np.vstack((J, self.Nodes(self.CompID==i[0])))
+                J = np.vstack((J, self.Tris[self.CompID==i[ii]]))
             # Convert to a unique list.
-            j = np.unique(J)
+            j = np.unique(J) - 1
         # Output
         return j
         
@@ -491,33 +494,23 @@ class TriBase(object):
                 End point of rotation vector
             *theta*: :class:`float`
                 Rotation angle in degrees
-            *i*: :class:`int` or :class:`list` (:class:`int`0
+            *i*: :class:`int` or :class:`list` (:class:`int`)
                 Component ID(s) to which to apply rotation
         :Versions:
             * 2014.05.27 ``@ddalle``: First version
+            * 2014.10.07 ``@ddalle``: Exported functionality to function
         """
         # Convert points to NumPy.
         v1 = np.array(v1)
         v2 = np.array(v2)
-        # Extract the coordinates and shift origin.
-        x = self.Nodes[:,0] - v1[0]
-        y = self.Nodes[:,1] - v1[1]
-        z = self.Nodes[:,2] - v1[2]
-        # Make the rotation vector
-        v = (v2-v1) / np.linalg.linalg.norm(v2-v1)
-        # Dot product of points with rotation vector
-        k1 = v[0]*x + v[1]*y + v[2]*z
-        # Trig functions
-        c_th = np.cos(theta*np.pi/180.)
-        s_th = np.sin(theta*np.pi/180.)
-        # Get the indices.
+        # Get the node indices.
         j = self.GetNodesFromCompID(i)
-        # Apply Rodrigues' rotation formula to get the rotated coordinates.
-        self.Nodes[j,0] = x*c_th+(v[1]*z-v[2]*y)*s_th+v[0]*k1*(1-c_th)+v1[0]
-        self.Nodes[j,1] = y*c_th+(v[2]*x-v[0]*z)*s_th+v[1]*k1*(1-c_th)+v1[1]
-        self.Nodes[j,2] = z*c_th+(v[0]*y-v[1]*x)*s_th+v[2]*k1*(1-c_th)+v1[2]
-        # Return the rotated coordinates.
-        return None
+        # Extract the points.
+        X = self.Nodes[j,:]
+        # Apply the rotation.
+        Y = RotatePoints(X, v1, v2, theta)
+        # Save the rotated points.
+        self.Nodes[j,:] = Y
         
     # Add a second triangulation without destroying component numbers.
     def Add(self, tri):
@@ -550,15 +543,18 @@ class TriBase(object):
         self.Nodes = np.vstack((self.Nodes, tri.Nodes))
         # Concatenate the triangle node index matrix.
         self.Tris = np.vstack((self.Tris, tri.Tris + self.nNode))
-        # Number of components in the original triangulation
-        nC = np.max(self.CompID)
+        # Get the current component ID lists from both tries.
+        CompID0 = np.unique(self.CompID)
+        CompID1 = np.unique(tri.CompID)
         # Concatenate the component vector.
-        if np.min(tri.CompID) >= nC:
-            # Add the components raw (don't offset CompID.
-            self.CompID = np.hstack((self.CompID, tri.CompID))
-        else:
+        if np.intersect1d(CompID0, CompID1):
+            # Number of components in the original triangulation
+            nC = np.max(self.CompID)
             # Adjust CompIDs to avoid overlap.
             self.CompID = np.hstack((self.CompID, tri.CompID + nC))
+        else:
+            # Add the components raw (don't offset CompID.
+            self.CompID = np.hstack((self.CompID, tri.CompID))
         # Update the statistics.
         self.nNode += tri.nNode
         self.nTri  += tri.nTri
@@ -933,4 +929,51 @@ def WriteTri(fname, tri):
     # Call the triangulation's write method.
     tri.Write(fname)
     return None
+    
+# Function to rotate a triangulation about an arbitrary vector
+def RotatePoints(X, v1, v2, theta):
+    """Rotate a list of points
+    
+    :Call:
+        >>> Y = RotatePoints(X, v1, v2, theta)
+    :Inputs:
+        *Nodes*: :class:`numpy.ndarray`(:class:`float`), *shape* = (N,3)
+            List of node coordinates
+        *v1*: :class:`numpy.ndarray`, *shape* = (3,)
+            Start point of rotation vector
+        *v2*: :class:`numpy.ndarray`, *shape* = (3,)
+            End point of rotation vector
+        *theta*: :class:`float`
+            Rotation angle in degrees
+    :Versions:
+        * 2014.10.07 ``@ddalle``: Copied from previous TriBase.Rotate()
+    """
+    # Convert points to NumPy.
+    v1 = np.array(v1)
+    v2 = np.array(v2)
+    # Ensure array.
+    if type(X).__name__ != 'ndarray':
+        X = np.array(X)
+    # Ensure list of points.
+    if len(X.shape) == 1:
+        X = np.array([X])
+    # Extract the coordinates and shift origin.
+    x = X[:,0] - v1[0]
+    y = X[:,1] - v1[1]
+    z = X[:,2] - v1[2]
+    # Make the rotation vector
+    v = (v2-v1) / np.linalg.linalg.norm(v2-v1)
+    # Dot product of points with rotation vector
+    k1 = v[0]*x + v[1]*y + v[2]*z
+    # Trig functions
+    c_th = np.cos(theta*np.pi/180.)
+    s_th = np.sin(theta*np.pi/180.)
+    # Initialize output.
+    Y = X.copy()
+    # Apply Rodrigues' rotation formula to get the rotated coordinates.
+    Y[:,0] = x*c_th+(v[1]*z-v[2]*y)*s_th+v[0]*k1*(1-c_th)+v1[0]
+    Y[:,1] = y*c_th+(v[2]*x-v[0]*z)*s_th+v[1]*k1*(1-c_th)+v1[1]
+    Y[:,2] = z*c_th+(v[0]*y-v[1]*x)*s_th+v[2]*k1*(1-c_th)+v1[2]
+    # Output
+    return Y
     
