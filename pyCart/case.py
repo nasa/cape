@@ -87,7 +87,8 @@ def StartCase():
     # Check qsub status.
     if fc.get_qsub(i):
         # Submit the case.
-        queue.pqsub('run_cart3d.pbs')
+        pbs = queue.pqsub('run_cart3d.pbs')
+        return pbs
     else:
         # Simply run the case.
         callf(['bash', 'run_cart3d.pbs'])

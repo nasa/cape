@@ -355,12 +355,15 @@ class Cart3d(object):
         It is assumed that the case has been prepared.
         
         :Call:
-            >>> cart3d.StartCase(i)
+            >>> pbs = cart3d.StartCase(i)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Index of the case to check (0-based)
+        :Outputs:
+            *pbs*: :class:`int` or ``None``
+                PBS job ID if submitted successfully
         :Versions:
             * 2014.10.06 ``@ddalle``: First version
         """
@@ -380,9 +383,14 @@ class Cart3d(object):
         # Print status.
         print("     Starting case '%s'." % frun)
         # Start the case by either submitting or calling it.
-        case.StartCase()
+        pbs = case.StartCase()
+        # Display the PBS job ID if that's appropriate.
+        if pbs:
+            print("     Submitted job: %i" % pbs)
         # Go back.
         os.chdir(fpwd)
+        # Output
+        return pbs
             
     # Function to determine if case is PASS, ---, INCOMP, etc.
     def CheckCaseStatus(self, i, jobs={}):
