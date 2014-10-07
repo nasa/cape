@@ -238,6 +238,14 @@ class Trajectory:
                     "Value": "str",
                     "Abbreviation": ""
                 }
+            elif key.lower() in ['config', 'groupprefix']:
+                # Group name or prefix, e.g. 'poweroff', 'poweron', etc.
+                defkey = {
+                    "Group": True,
+                    "Type": "Prefix",
+                    "Value": "str",
+                    "Abbreviation": ""
+                }
             elif key in ['GroupLabel', 'GroupSuffix']:
                 # Extra label for groups
                 defkey = {
@@ -402,6 +410,8 @@ class Trajectory:
         :Versions:
             * 2014.06.05 ``@ddalle``: First version
         """
+        # Check for prefix variables.
+        #if 
         # Set the prefix.
         prefix = self.GroupPrefix
         # Process the index list.
@@ -555,13 +565,28 @@ class Trajectory:
             * 2014.06.05 ``@ddalle``: First version
             * 2014.10.03 ``@ddalle``: Added suffixes
         """
-        # Initialize folder name.
-        if prefix and keys:
-            # Use a prefix if it's any non-empty thing.
-            dname = str(prefix) + "_"
+        # Process the key types.
+        types = [self.defns[k].get("Type","") for k in keys]
+        # Check for a prefix.
+        if "Prefix" in types:
+            # Figure out which key it is
+            j = types.index("Prefix")
+            # Get the specified prefix.
+            fpre = getattr(self,keys[j])[i]
+            # Initialize the name.
+            if fpre:
+                # Use the specified prefix/config
+                dname = str(fpre)
+            else:
+                # Use the input/default prefix/config
+                dname = str(prefix)
+            # Add underscore if more keys remaining.
+            if len(types) > 1: dname += "_"
         elif prefix:
             # The prefix is likely to be the whole name.
             dname = str(prefix)
+            # Add underscore if there are keys.
+            if keys: dname += "_"
         else:
             # Initialize an empty string.
             dname = ""
@@ -574,12 +599,13 @@ class Trajectory:
         # Check for suffix keys.
         for k in keys:
             # Skip all except suffixes
-            if self.defns[k]["Value"] != "str": continue
+            if self.defns[k]["Type"] != "Label": continue
             # Check the value.
             if self.text[k][i]:
-                dname += ("_" + self.abbrv[k] + self.text[k][i])
-        # Strip leading underscore.
-        if dname.startswith("_"): dname = dname[1:]
+                # Add underscore if necessary.
+                if dname: dname += "_"
+                # Add the label itself
+                dname += (self.abbrv[k] + self.text[k][i])
         # Return the result.
         return dname
         
