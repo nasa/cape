@@ -16,6 +16,9 @@
 	// The names of these two files have the obvious defaults.
 	"InputCntl": "input.cntl",
 	"AeroCsh": "aero.csh",
+
+    // Use the same mesh for all cases in the same group
+    "GroupMesh": false,
 	
 	// Commands to load at head of PBS scripts
 	"ShellCmds": [
@@ -135,6 +138,6 @@
         "File": "Trajectory.dat",
         "Keys": ["Mach", "alpha", "beta", "Label"],
         // Configuration name
-        "GroupPrefix": "poweroff"
+        "GroupPrefix": "poweron"
     }
 }

@@ -571,13 +571,13 @@ class Cart3d(object):
         # Write the tri file.
         self.tri.Write('Components.i.tri')
         # Run autoInputs if necessary.
-        if self.opts.get_r(): self.autoInputs(j)
+        if self.opts.get_r(): bin.autoInputs(self)
         # Bounding box control...
         
         # Run cubes.
-        self.cubes(j)
+        bin.cubes(self)
         # Run mgPrep
-        self.mgPrep(j)
+        bin.mgPrep(self)
         # Return to original folder.
         os.chdir(fpwd)
         
@@ -733,7 +733,7 @@ class Cart3d(object):
             os.chdir(fpwd)
             # Quit.
             return None
-        # Count iterations....
+        # Count iterations...
         if os.path.isfile('history.dat'):
             # Get the last line of the history file.
             txt = sp.Popen(['tail', '-1', 'history.dat'],
@@ -784,26 +784,33 @@ class Cart3d(object):
         if not os.path.isdir(frun): os.mkdir(frun, dmask)
         # Go there.
         os.chdir(frun)
-        # Copy the required files.
-        for fname in ['input.c3d', 'Mesh.c3d.Info', 'Config.xml']:
-            # Source path.
-            fsrc = os.path.join('..', fname)
-            # Check for the file.
-            if os.path.isfile(fsrc):
-                # Copy it.
-                shutil.copy(fsrc, fname)
-        # Create links that are available.
-        for fname in ['Components.i.tri', 'Mesh.c3d', 'Mesh.mg.c3d',
-                'Mesh.R.c3d']:
-            # Source path.
-            fsrc = os.path.join(os.path.abspath('..'), fname)
-            # Remove the file if it's present.
-            if os.path.isfile(fname):
-                os.remove(fname)
-            # Check for the file.
-            if os.path.isfile(fsrc):
-                # Create a symlink.
-                os.symlink(fsrc, fname)
+        # Different processes for GroupMesh and CaseMesh
+        if self.opts.get_GroupMesh():
+            # Copy the required files.
+            for fname in ['input.c3d', 'Mesh.c3d.Info', 'Config.xml']:
+                # Source path.
+                fsrc = os.path.join('..', fname)
+                # Check for the file.
+                if os.path.isfile(fsrc):
+                    # Copy it.
+                    shutil.copy(fsrc, fname)
+            # Create links that are available.
+            for fname in ['Components.i.tri', 'Mesh.c3d', 'Mesh.mg.c3d',
+                    'Mesh.R.c3d']:
+                # Source path.
+                fsrc = os.path.join(os.path.abspath('..'), fname)
+                # Remove the file if it's present.
+                if os.path.isfile(fname):
+                    os.remove(fname)
+                # Check for the file.
+                if os.path.isfile(fsrc):
+                    # Create a symlink.
+                    os.symlink(fsrc, fname)
+        else:
+            # Get the name of the configuration file.
+            fxml = os.path.join(self.RootDir, self.opts.get_ConfigFile())
+            # Copy the config file.
+            shutil.copy(fxml, 'Config.xml')
         # Write the input.cntl and aero.csh file(s).
         self.PrepareInputCntl(i)
         self.PrepareAeroCsh(i)

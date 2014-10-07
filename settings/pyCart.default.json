@@ -17,6 +17,9 @@
 	"InputCntl": "input.cntl",
 	"AeroCsh": "aero.csh",
 	
+	// Whether or not to use the same mesh for all cases in a group
+	"GroupMesh": true,
+	
 	// Commands to load at head of run scripts (run_cart3d.pbs)
 	"ShellCmds": [
 	    ". $MODULESHOME/init/bash",
