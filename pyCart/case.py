@@ -64,6 +64,11 @@ def run_flowCart():
     callf(cmdi, f='flowCart.out')
     # Assuming that worked, move the temp output file.
     os.rename('flowCart.out', 'run.%02i.%i' % (i, n+fc.get_it_fc(i)))
+    # Check for TecPlot files to save.
+    if os.path.isfile('cutPlanes.plt'):
+        os.rename('cutPlanes.plt', 'cutPlanes.%02i.plt' % i)
+    if os.path.isfile('Components.i.plt'):
+        os.rename('Components.i.plt', 'Components.%02i.plt' % i)
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
     # Resubmit if asked.
