@@ -31,6 +31,7 @@ relatively simple commands.
 
 :Versions:
     * 2014.10.03 ``@ddalle``: Started
+    * 2014.10.06 ``@ddalle``: First version
 """
 
 # Import the full module
