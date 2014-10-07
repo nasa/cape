@@ -55,17 +55,14 @@ class InputCntl(FileCntl):
         
         :Call:
             >>> IC.SetFirstOrder()
-        
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
-            
         :Effects:
             Sets the gradient evaluation to ``0`` for the first RK line
+        :Versions:
+            * 2014.06.17 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.17 @ddalle  : First version
-        
         # Name of the section
         sec = 'Solver_Control_Information'
         # Find the line that is sought.
@@ -82,17 +79,14 @@ class InputCntl(FileCntl):
         
         :Call:
             >>> IC.SetSecondOrder()
-        
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
-            
         :Effects:
             Sets the gradient evaluation to ``1`` for the first RK line
+        :Versions:
+            * 2014.06.17 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.17 @ddalle  : First version
-        
         # Name of the section
         sec = 'Solver_Control_Information'
         # Find the line that is sought.
@@ -109,19 +103,16 @@ class InputCntl(FileCntl):
         
         :Call:
             >>> IC.SetMach(Mach)
-        
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
             *Mach*: :class:`float`
                 Mach number
-            
         :Effects:
             Replaces or adds a line to the "Case_Information" section.
+        :Versions:
+            * 2014.06.04 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.04 @ddalle  : First version
-        
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
             'Mach ', 'Mach     %12.8f   # Mach number\n' % Mach)
@@ -134,18 +125,15 @@ class InputCntl(FileCntl):
         
         :Call:
             >>> M = IC.GetMach()
-        
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
-                
         :Outputs:
             *M*: :class:`float` (or :class:`str`)
                 Mach number specified in :file:`input.cntl`
+        :Versions:
+            * 2014.06.10 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.10 @ddalle  : First version
-        
         # Find the line.
         lines = self.GetLineInSectionStartsWith('Case_Information', 'Mach', 1)
         # Convert.
@@ -165,19 +153,16 @@ class InputCntl(FileCntl):
         
         :Call:
             >>> IC.SetAlpha(alpha)
-            
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
             *alpha*: :class:`float`
                 Angle of attack
-                
         :Effects:
             Replaces or adds a line to the "Case_Information" section.
+        :Versions:
+            * 2014.06.04 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.04 @ddalle  : First version
-        
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
             'alpha ', 'alpha    %+12.8f   # angle of attack\n' % alpha)
@@ -189,20 +174,17 @@ class InputCntl(FileCntl):
         Set the sideslip angle
         
         :Call:
-            >>> IC.SetAlpha(alpha)
-            
+            >>> IC.SetBeta(beta)
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
             *beta*: :class:`float`
                 Sideslip angle
-                
         :Effects:
             Replaces or adds a line to the "Case_Information" section.
+        :Versions:
+            * 2014.06.04 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.04 @ddalle  : First version
-        
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
             'beta ', 'beta     %+12.8f   # sideslip angle\n' % beta)
@@ -215,19 +197,16 @@ class InputCntl(FileCntl):
         
         :Call:
             >>> IC.SetCFL(CFL)
-        
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
             *CFL*: :class:`float`
                 Value of the CFL number to use
-                
         :Effects:
             Replaces or adds a line to the "Solver_Control_Information" section
+        :Versions:
+            * 2014.06.10 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.10 @ddalle  : First version
-        
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionStartsWith('Solver_Control_Information',
             'CFL ', 'CFL%11s%s\n' % ('', CFL))
@@ -241,19 +220,16 @@ class InputCntl(FileCntl):
         
         :Call:
             >>> IC.SetXSlices(x)
-        
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
             *x*: *array_like* (:class:`float`)
                 List or vector of *x*-coordinates at which to make cut planes
-            
         :Effects:
-            Replaces the current list of *x* cut planes with the specified list.
+            Replaces the current list of *x* cut planes with the input list.
+        :Versions:
+            * 2014.06.10 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.10 @ddalle  : First version
-        
         # Initialize the output line.
         line = 'Xslices'
         # Add the cuts.
@@ -272,19 +248,16 @@ class InputCntl(FileCntl):
         
         :Call:
             >>> IC.SetYSlices(y)
-        
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
             *y*: *array_like* (:class:`float`)
                 List or vector of *y*-coordinates at which to make cut planes
-            
         :Effects:
-            Replaces the current list of *y* cut planes with the specified list.
+            Replaces the current list of *y* cut planes with the input list.
+        :Versions:
+            * 2014.06.10 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.10 @ddalle  : First version
-        
         # Initialize the output line.
         line = 'Yslices'
         # Add the cuts.
@@ -303,19 +276,16 @@ class InputCntl(FileCntl):
         
         :Call:
             >>> IC.SetZSlices(z)
-        
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
             *z*: *array_like* (:class:`float`)
                 List or vector of *z*-coordinates at which to make cut planes
-            
         :Effects:
-            Replaces the current list of *z* cut planes with the specified list.
+            Replaces the current list of *z* cut planes with the input list.
+        :Versions:
+            * 2014.06.10 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.10 @ddalle  : First version
-        
         # Initialize the output line.
         line = 'Zslices'
         # Add the cuts.
@@ -335,24 +305,21 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetReferenceArea(Aref)
             >>> IC.SetReferenceArea(Aref, compID)
-        
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
             *Aref*: :class:`float`
                 Reference area value
             *compID*: :class:`str`
-                Component to which reference area applies (default is ``'all'``)
+                Component to which reference applies (default is ``'all'``)
+        :Versions:
+            * 2014.06.10 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.10 @ddalle  : First version
-        
         # Regular expression for this line.
         reg = 'Reference_Area.*%s' % compID
         # Replace or add the line.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
             reg, 'Reference_Area    %s   %s\n' % (Aref, compID))
-        return None
         
     # Function to set the reference area
     def SetReferenceLength(self, Lref, compID='all'):
@@ -362,24 +329,21 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetReferenceLength(Lref)
             >>> IC.SetReferenceLength(Lref, compID)
-        
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
             *Lref*: :class:`float`
                 Reference length value
             *compID*: :class:`str`
-                Component to which reference area applies (default is ``'all'``)
+                Component to which reference applies (default is ``'all'``)
+        :Versions:
+            * 2014.06.10 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.10 @ddalle  : First version
-        
         # Regular expression for this line.
         reg = 'Reference_Length.*%s' % compID
         # Replace or add the line.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
             reg, 'Reference_Length  %s   %s\n' % (Lref, compID))
-        return None
         
     # Function to set a surface boundary condition (e.g. nozzle condition)
     def SetSurfBC(self, compID, u):
@@ -388,32 +352,33 @@ class InputCntl(FileCntl):
         
         :Call:
             >>> IC.SetSurfBC(compID, u)
-        
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
             *compID*: :class:`int`
                 Component number to apply boundary condition to
-            *u*: :class:`numpy.ndarray`, *shape* = (5,)
+            *u*: :class:`numpy.ndarray`, *shape* = (5,) or ``None``
                 Vector of density, velocity, pressure on surface
-        
         :Effects:
             Writes a line with appropriate "SurfBC i ..." syntax to 
             :file:`input.cntl` file.
+        :Versions:
+            * 2014.06.04 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.04 @ddalle  : First version
-        
         # Line starts with "SurfBC", has some amount of white space, and then
         # has the component number.
         reg = 'SurfBC\s+' + str(compID)
         # Create the output line.
-        line = 'SurfBC %7i      %.8f %.8f %.8f %.8f %.8f\n' % (
-            compID, u[0], u[1], u[2], u[3], u[4])
+        if u is None:
+            # Turn off the BC; make it a commented line
+            line = '# SurfBC %7i\n' % compID
+        else:
+            # Specify the full state.
+            line = 'SurfBC %7i      %.8f %.8f %.8f %.8f %.8f\n' % (
+                compID, u[0], u[1], u[2], u[3], u[4])
         # Replace the line or add it if necessary. The amount of white space can
         # vary, so we need to use regular expressions.
         self.ReplaceOrAddLineToSectionSearch('Boundary_Conditions', reg, line)
-        return None
         
     # Function to get Cart3D to report the forces on a component
     def RequestForce(self, compID):
@@ -422,18 +387,15 @@ class InputCntl(FileCntl):
         
         :Call:
             >>> IC.RequestForce(compID)
-            
         :Inputs:
             *compID*: :class:`str` or :class:`int`
                 Name of component to log or ``"all"`` or ``"entire"``
-        
         :Effects:
             Adds a line to :file:`input.cntl` that looks like "Force entire",
             if it is not already present.
+        :Versions:
+            * 2014.06.09 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.09 @ddalle  : First version
-        
         # Line starts looks like "Force $compID", but arbitrary white space.
         reg = 'Force\s+' + str(compID) + '$'
         # Replace the line or add it if necessary.
@@ -448,20 +410,17 @@ class InputCntl(FileCntl):
         
         :Call:
             >>> IC.RequestMoment(compID, MRP)
-            
         :Inputs:
             *compID*: :class:`str` or :class:`int`
                 Name of component to log or ``"all"`` or ``"entire"``
             *MRP*: *array_like*
                 Reference point (defaults to ``[0,0,0]``)
-        
         :Effects:
             Adds a line to :file:`input.cntl` that tells Cart3D to calculate the
             moment coefficients using a specific reference point.
+        :Versions:
+            * 2014.06.09 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.09 @ddalle  : First version
-        
         # Process reference point.
         if MRP is None:
             # Default reference points.
@@ -478,9 +437,6 @@ class InputCntl(FileCntl):
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing', reg,
             'Moment_Point  %s %s %s  %s\n' % (x,y,z,compID))
-    
-    
-    
     
     
     
