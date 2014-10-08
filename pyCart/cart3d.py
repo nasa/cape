@@ -767,6 +767,14 @@ class Cart3d(object):
             fxml = os.path.join(self.RootDir, self.opts.get_ConfigFile())
             # Copy the config file.
             shutil.copy(fxml, 'Config.xml')
+        # Get function for setting boundary conditions, etc.
+        keys = self.x.GetKeysByType('CaseFunction')
+        # Get the list of functions.
+        funcs = [self.x.defns[key]['Function'] for key in keys] 
+        # Loop through the functions.
+        for (key, func) in zip(keys, funcs):
+            # Apply it.
+            exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
         # Write the input.cntl and aero.csh file(s).
         self.PrepareInputCntl(i)
         self.PrepareAeroCsh(i)
