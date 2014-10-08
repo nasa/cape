@@ -1064,10 +1064,7 @@ class Cart3d(object):
         
         # Set the flight conditions.
         # Mach number
-        if 'Mach' in KeyTypes:
-            # Find out which key it is.
-            k = x.keys[KeyTypes.index('Mach')]
-            # Set the value
+        for k in x.GetKeysByType('Mach'):
             self.InputCntl.SetMach(getattr(x,k)[i])
         # Angle of attack
         if 'alpha' in KeyTypes:
@@ -1092,6 +1089,14 @@ class Cart3d(object):
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
         if not os.path.isdir(frun): os.mkdir(frun, dmask)
+        # Get the cut planes.
+        XSlices = self.opts.get_Xslices()
+        YSlices = self.opts.get_Yslices()
+        ZSlices = self.opts.get_Zslices()
+        # Process cut planes
+        if XSlices: self.InputCntl.SetXSlices(XSlices)
+        if YSlices: self.InputCntl.SetYSlices(YSlices)
+        if ZSlices: self.InputCntl.SetZSlices(ZSlices)
         
         # Loop through the runs.
         for j in range(self.opts.get_nSeq()):

@@ -939,5 +939,58 @@ class Options(odict):
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Config,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Config,'set_'+k).__doc__
+        
+        
+    # Get list of cut planes
+    def get_Xslices(self, i=None):
+        self._Config()
+        return self['Config'].get_Xslices(i)
+        
+    # Set list of cut planes
+    def set_Xslices(self, x, i=None):
+        self._Config()
+        self['Config'].set_Xslices(x, i)
+        
+    # Add a cut plane
+    def add_Xslice(self, x):
+        self._Config()
+        self['Config'].add_Xslice(x)
+        
+    # Get list of cut planes
+    def get_Yslices(self, i=None):
+        self._Config()
+        return self['Config'].get_Yslices(i)
+        
+    # Set list of cut planes
+    def set_Yslices(self, y, i=None):
+        self._Config()
+        self['Config'].set_Yslices(y, i)
+        
+    # Add a cut plane
+    def add_Yslice(self, y):
+        self._Config()
+        self['Config'].add_Yslice(y)
+        
+    # Get list of cut planes
+    def get_Zslices(self, i=None):
+        self._Config()
+        return self['Config'].get_Zslices(i)
+        
+    # Set list of cut planes
+    def set_Zslices(self, z, i=None):
+        self._Config()
+        self['Config'].set_Zslices(z, i)
+        
+    # Add a cut plane
+    def add_Zslice(self, z):
+        self._Config()
+        self['Config'].add_Zslice(z)
+        
+    # Copy over the documentation.
+    for k in ['Xslice', 'Yslice', 'Zslice']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k+'s').__doc__ = getattr(Config,'get_'+k+'s').__doc__
+        eval('set_'+k+'s').__doc__ = getattr(Config,'set_'+k+'s').__doc__
+        eval('add_'+k).__doc__ = getattr(Config,'add_'+k).__doc__
 
 

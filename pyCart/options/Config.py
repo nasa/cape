@@ -300,6 +300,182 @@ class Config(odict):
                 self['RefPoint'] = {"default": list(RefP)}
             # Assign the specified value.
             self['RefPoint'][comp] = list(x)
-            
+    
+    
+    # Get cut plane extraction coordinate(s)
+    def get_Xslices(self, i=None):
+        """Return the list of Xslices for extracting solution cut planes
+        
+        :Call:
+            >>> x = opts.get_Xslices()
+            >>> x = opts.get_Xslices(i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int`
+                Index of cut plane coordinate to extract
+        :Outputs:
+            *x*: :class:`float` or :class:`list`(:class:`float`)
+                Cut plane coordinate(s)
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        return self.get_key('Xslices', i)
+        
+    # Set cut plane extraction coordinate(s)
+    def set_Xslices(self, i=None):
+        """Return the list of Xslices for extracting solution cut planes
+        
+        :Call:
+            >>> x = opts.set_Xslices(x)
+            >>> x = opts.set_Xslices(x, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *x*: :class:`float` or :class:`list`(:class:`float`)
+                Cut plane coordinate(s)
+            *i*: :class:`int`
+                Index of cut plane coordinate to extract
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        self.set_key('Xslices', x, i)
+        
+    # Add an additional cut plane
+    def add_Xslice(self, x):
+        """Add a cutting plane to the current list
+        
+        :Call:
+            >>> opts.add_Xslice(x)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *x*: :class:`float`
+                Cut plane coordinate
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        # Get the current list.
+        Xslices = self.get_key('Xslices')
+        # Set the input value as an addendum to the list.
+        self.set_key('Xslices', x, len(Xslices))
+        
+        
+    # Get cut plane extraction coordinate(s)
+    def get_Yslices(self, i=None):
+        """Return the list of Yslices for extracting solution cut planes
+        
+        :Call:
+            >>> y = opts.get_Yslices()
+            >>> y = opts.get_Yslices(i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int`
+                Index of cut plane coordinate to extract
+        :Outputs:
+            *y*: :class:`float` or :class:`list`(:class:`float`)
+                Cut plane coordinate(s)
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        return self.get_key('Yslices', i)
+        
+    # Set cut plane extraction coordinate(s)
+    def set_Yslices(self, i=None):
+        """Return the list of Yslices for extracting solution cut planes
+        
+        :Call:
+            >>> y = opts.set_Yslices(x)
+            >>> y = opts.set_Yslices(x, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *y*: :class:`float` or :class:`list`(:class:`float`)
+                Cut plane coordinate(s)
+            *i*: :class:`int`
+                Index of cut plane coordinate to extract
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        self.set_key('Yslices', y, i)
+        
+    # Add an additional cut plane
+    def add_Yslice(self, y):
+        """Add a cutting plane to the current list
+        
+        :Call:
+            >>> opts.add_Yslice(x)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *y*: :class:`float`
+                Cut plane coordinate
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        # Get the current list.
+        Yslices = self.get_key('Yslices')
+        # Set the input value as an addendum to the list.
+        self.set_key('Yslices', y, len(Yslices))
+        
+        
+    # Get cut plane extraction coordinate(s)
+    def get_Zslices(self, i=None):
+        """Return the list of Zslices for extracting solution cut planes
+        
+        :Call:
+            >>> z = opts.get_Zslices()
+            >>> z = opts.get_Zslices(i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int`
+                Index of cut plane coordinate to extract
+        :Outputs:
+            *z*: :class:`float` or :class:`list`(:class:`float`)
+                Cut plane coordinate(s)
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        return self.get_key('Zslices', i)
+        
+    # Set cut plane extraction coordinate(s)
+    def set_Zslices(self, i=None):
+        """Return the list of Zslices for extracting solution cut planes
+        
+        :Call:
+            >>> x = opts.set_Zslices(z)
+            >>> x = opts.set_Zslices(z, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *z*: :class:`float` or :class:`list`(:class:`float`)
+                Cut plane coordinate(s)
+            *i*: :class:`int`
+                Index of cut plane coordinate to extract
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        self.set_key('Zslices', z, i)
+        
+    # Add an additional cut plane
+    def add_Zslice(self, z):
+        """Add a cutting plane to the current list
+        
+        :Call:
+            >>> opts.add_Zslice(z)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *z*: :class:`float`
+                Cut plane coordinate
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        # Get the current list.
+        Zslices = self.get_key('Zslices')
+        # Set the input value as an addendum to the list.
+        self.set_key('Zslices', z, len(Zslices))
         
         
