@@ -541,6 +541,50 @@ class Trajectory:
         j = np.where(grps == grp)[0][0]
         # Output
         return j
+        
+    # Get all keys by type
+    def GetKeysByType(self, KeyType):
+        """Get all keys by type
+        
+        :Call:
+            >>> keys = x.GetKeysByType(KeyType)
+        :Inputs:
+            *x*: :class:`pyCart.trajectory.Trajectory`
+                Instance of pyCart trajectory class
+            *KeyType*: :class:`str`
+                Key type to search for
+        :Outputs:
+            *keys*: :class:`numpy.ndarray`(:class:`str`)
+                List of keys such that ``x[key]['Type']`` matches *KeyType*
+        :Versions:
+            * 2014.10.07 ``@ddalle``: First version
+        """
+        # List of key types
+        KT = np.array([self.defns[k]['Type'] for k in self.keys])
+        # Return matches
+        return np.array(self.keys)[KT == KeyType]
+        
+    # Get keys by type of its value
+    def GetKeysByValue(self, val):
+        """Get all keys with specified type of value
+        
+        :Call:
+            >>> keys = x.GetKeysByValue(val)
+        :Inputs:
+            *x*: :class:`pyCart.trajectory.Trajectory`
+                Instance of pyCart trajectory class
+            *val*: :class:`str`
+                Key value class to search for
+        :Outputs:
+            *keys*: :class:`numpy.ndarray`(:class:`str`)
+                List of keys such that ``x[key]['Value']`` matches *val*
+        :Versions:
+            * 2014.10.07 ``@ddalle``: First version
+        """
+        # List of key types
+        KV = np.array([self.defns[k]['Value'] for k in self.keys])
+        # Return matches
+        return np.array(self.keys)[KV == val]
             
     # Function to assemble a folder name based on a list of keys and an index
     def _AssembleName(self, keys, prefix, i):
