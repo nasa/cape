@@ -297,9 +297,9 @@ class Config(odict):
                 self['RefPoint'] = {}
             elif type(RefP).__name__ != 'dict':
                 # Use current value as default.
-                self['RefPoint'] = {"default": RefP}
+                self['RefPoint'] = {"default": list(RefP)}
             # Assign the specified value.
-            self['RefPoint'][comp] = x
+            self['RefPoint'][comp] = list(x)
             
         
         

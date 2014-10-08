@@ -297,14 +297,38 @@ class InputCntl(FileCntl):
             'Zslices', line + '\n')
         return None
         
-    # Function to set the reference area
-    def SetReferenceArea(self, Aref, compID='all'):
+    # Function to set the reference area(s)
+    def SetReferenceArea(self, A):
+        """Set all moment reference points according to an input :class:`dict`
+        
+        :Call:
+            >>> IC.SetReferenceArea(A)
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            *A*: :class:`dict`(:class:`float`) or :class:`float`
+                Dictionary of reference areas by component or universal ARef
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        # Filter type.
+        if type(A).__name__ == "dict":
+            # Loop through the components.
+            for ki in A:
+                # Set the point for that component.
+                self.SetSingleReferenceArea(A[ki], ki)
+        else:
+            # Just set it.
+            self.SetSingleReferenceArea(A)
+            
+    # Function to set a single reference area
+    def SetSingleReferenceArea(self, Aref, compID='all'):
         """
         Set the reference area in an :file:`input.cntl` file.
         
         :Call:
-            >>> IC.SetReferenceArea(Aref)
-            >>> IC.SetReferenceArea(Aref, compID)
+            >>> IC.SetSingleReferenceArea(Aref)
+            >>> IC.SetSingleReferenceArea(Aref, compID)
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
@@ -314,21 +338,45 @@ class InputCntl(FileCntl):
                 Component to which reference applies (default is ``'all'``)
         :Versions:
             * 2014.06.10 ``@ddalle``: First version
+            * 2014.10.08 ``@ddalle``: Demoted to "single"
         """
         # Regular expression for this line.
         reg = 'Reference_Area.*%s\s*$' % compID
         # Replace or add the line.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
             reg, 'Reference_Area    %s   %s\n' % (Aref, compID))
-        
-    # Function to set the reference area
-    def SetReferenceLength(self, Lref, compID='all'):
-        """
-        Set the reference length in an :file:`input.cntl` file.
+    
+    # Function to set the reference length(s)
+    def SetReferenceLength(self, L):
+        """Set all moment reference points according to an input :class:`dict`
         
         :Call:
-            >>> IC.SetReferenceLength(Lref)
-            >>> IC.SetReferenceLength(Lref, compID)
+            >>> IC.SetReferenceLength(L)
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            *L*: :class:`dict`(:class:`float`) or :class:`float`
+                Dictionary of reference length by component or universal LRef
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        # Filter type.
+        if type(L).__name__ == "dict":
+            # Loop through the components.
+            for ki in A:
+                # Set the point for that component.
+                self.SetSingleReferenceLength(L[ki], ki)
+        else:
+            # Just set it.
+            self.SetSingleReferenceLength(L)
+            
+    # Function to set a single reference length
+    def SetSingleReferenceLength(self, Lref, compID='all'):
+        """Set the reference length in an :file:`input.cntl` file
+        
+        :Call:
+            >>> IC.SetSingleReferenceLength(Lref)
+            >>> IC.SetSingleReferenceLength(Lref, compID)
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
@@ -338,6 +386,7 @@ class InputCntl(FileCntl):
                 Component to which reference applies (default is ``'all'``)
         :Versions:
             * 2014.06.10 ``@ddalle``: First version
+            * 2014.10.08 ``@ddalle``: Demoted to "single"
         """
         # Regular expression for this line.
         reg = 'Reference_Length.*%s\s*$' % compID
@@ -345,14 +394,36 @@ class InputCntl(FileCntl):
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
             reg, 'Reference_Length  %s   %s\n' % (Lref, compID))
         
-    # Function to set the reference area
-    def SetMomentPoint(self, x, compID='all'):
-        """
-        Set the reference length in an :file:`input.cntl` file.
+    # Function to set the moment reference point(s)
+    def SetMomentPoint(self, xMRP):
+        """Set all moment reference points according to an input :class:`dict`
         
         :Call:
-            >>> IC.SetMomentPoint(Lref)
-            >>> IC.SetMomentPoint(Lref, compID)
+            >>> IC.SetMomentPoint(xMRP)
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            *xMRP*: :class:`dict`(:class:`list`) or :class:`list`
+                Dictionary of reference points by component or universal MRP
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        # Filter type.
+        if type(xMRP).__name__ == "dict":
+            # Loop through the components.
+            for ki in xMRP:
+                # Set the point for that component.
+                self.SetSingleMomentPoint(xMRP[ki], ki)
+        else:
+            # Just set it.
+            self.SetSingleMomentPoint(xMRP)
+        
+    def SetSingleMomentPoint(self, x, compID='all'):
+        """Set the moment reference point in an :file:`input.cntl` file
+        
+        :Call:
+            >>> IC.SetSingleMomentPoint(x)
+            >>> IC.SetSingleMomentPoint(x, compID)
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
@@ -362,6 +433,7 @@ class InputCntl(FileCntl):
                 Component to which reference applies (default is ``'all'``)
         :Versions:
             * 2014.10.07 ``@ddalle``: First version
+            * 2014.10.08 ``@ddalle``: Downgraded to "single" function
         """
         # Regular expression for this line.
         reg = 'Moment_Point.*%s\s*$' % compID

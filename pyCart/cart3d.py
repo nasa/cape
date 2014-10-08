@@ -1084,17 +1084,7 @@ class Cart3d(object):
         # Set reference values.
         self.InputCntl.SetReferenceArea(self.opts.get_RefArea())
         self.InputCntl.SetReferenceLength(self.opts.get_RefLength())
-        # Moment reference points.
-        xMRP = self.opts.get_RefPoint()
-        # Filter type.
-        if type(xMRP).__name__ == "dict":
-            # Loop through the components.
-            for ki in xMRP:
-                # Set the point for that component.
-                self.InputCntl.SetMomentPoint(xMRP[ki], ki)
-        else:
-            # Just set it.
-            self.InputCntl.SetMomentPoint(xMRP)
+        self.InputCntl.SetMomentPoint(self.opts.get_RefPoint())
         # Go safely to root folder.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
