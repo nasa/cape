@@ -95,7 +95,7 @@ os.umask(umask)
 
 # ---------------------------------
 #-->
-    
+
     
 # Class to read input files
 class Cart3d(object):
@@ -143,11 +143,14 @@ class Cart3d(object):
         # Apply missing settings from defaults.
         opts = options.Options(fname=fname)
         
-        # Process the trajectory.
-        self.x = Trajectory(**opts['Trajectory'])
-        
         # Save all the options as a reference.
         self.opts = opts
+        
+        # Import modules
+        self.ImportModules()
+        
+        # Process the trajectory.
+        self.x = Trajectory(**opts['Trajectory'])
         
         # Read the input files.
         self.InputCntl = InputCntl(self.opts.get_InputCntl())
@@ -165,17 +168,43 @@ class Cart3d(object):
             self.x.nCase,
             self.opts.get_TriFile())
         
+    # Function to import user-specified options
+    def ImportModules(self):
+        """Import user-defined modules, if any
+        
+        :Call:
+            >>> cart3d.ImportModules()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        # Get Modules.
+        lmod = self.opts.get("Modules", [])
+        # Ensure list.
+        if not lmod:
+            # Empty --> empty list
+            lmod = []
+        elif type(lmod).__name__ != "list":
+            # Single string
+            lmod = [lmod]
+        # Loop through modules.
+        for imod in lmod:
+            # Status update
+            print("Importing module '%s'." % imod)
+            # Load the module by its name
+            exec('self.%s = __import__("%s")' % (imod, imod))
+        
     # Function to prepare the triangulation for each grid folder
     def ReadTri(self):
         """Read initial triangulation file(s)
         
         :Call:
-            >>> cart3d.ReadTri(v=True)
+            >>> cart3d.ReadTri()
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
-            *v*: :class:`bool`
-                If ``True``, displays output on command line.
         :Versions:
             * 2014.08.30 ``@ddalle``: First version
         """
@@ -526,6 +555,9 @@ class Cart3d(object):
         :Versions:
             * 2014.09.29 ``@ddalle``: First version
         """
+        # ---------
+        # Case info
+        # ---------
         # Get the case name.
         frun = self.x.GetFullFolderNames(i)
         # Get name of group.
@@ -533,6 +565,9 @@ class Cart3d(object):
         # Check the mesh.
         if self.CheckMesh(i):
             return None
+        # ------------------
+        # Folder preparation
+        # ------------------
         # Remember current location.
         fpwd = os.getcwd()
         # Go to root folder.
@@ -556,20 +591,38 @@ class Cart3d(object):
             print("  Case name: '%s' (index %i)" % (frun,i))
             # Go there.
             os.chdir(frun)
+        # ----------
+        # Copy files
+        # ----------
         # Get the name of the configuration file.
         fxml = os.path.join(self.RootDir, self.opts.get_ConfigFile())
         # Test if the file exists.
         if os.path.isfile(fxml):
             # Copy it, to a fixed file name in this folder.
             shutil.copyfile(fxml, 'Config.xml')
+        # ------------------
+        # Triangulation prep
+        # ------------------
         # Status update
         print("  Preparing surface triangulation...")
         # Read the mesh.
         self.ReadTri()
-        # Apply rotations, etc.
+        # Copy the original mesh.
+        self.tri0 = self.tri.Copy()
+        # Get function for rotations, etc.
+        keys = self.x.GetKeysByType('TriFunction')
+        # Get the list of functions.
+        funcs = [self.x.defns[key]['Function'] for key in keys] 
+        # Loop through the functions.
+        for (key, func) in zip(keys, funcs):
+            # Apply it.
+            exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
         
         # Write the tri file.
         self.tri.Write('Components.i.tri')
+        # --------------------
+        # Volume mesh creation
+        # --------------------
         # Run autoInputs if necessary.
         if self.opts.get_r(): bin.autoInputs(self)
         # Bounding box control...
@@ -578,6 +631,8 @@ class Cart3d(object):
         bin.cubes(self)
         # Run mgPrep
         bin.mgPrep(self)
+        # Reset the mesh to the original.
+        self.tri = self.tri0
         # Return to original folder.
         os.chdir(fpwd)
         
@@ -999,7 +1054,6 @@ class Cart3d(object):
         KeyTypes = [x.defns[k]['Type'] for k in x.keys]
         # Set the options.
         self.InputCntl.SetCFL(self.opts.get_cfl())
-        
         
         # Set the flight conditions.
         # Mach number

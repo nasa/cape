@@ -137,7 +137,7 @@
         // read from it.  Trajectory values can also be specified locally.
         "File": "Trajectory.dat",
         "Keys": ["Mach", "alpha", "beta", "config", "Label"],
-        // Configuration name
-        "GroupPrefix": "poweron"
+        // Configuration name [default]
+        "GroupPrefix": "poweroff"
     }
 }

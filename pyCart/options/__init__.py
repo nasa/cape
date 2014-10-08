@@ -21,7 +21,7 @@ value of a given parameter should be is below.
     *. Hard-coded defaults from this module
 """
 
-# Import options-specific utilities
+# Import options-specific utilities (loads :mod:`os`, too)
 from util import *
 
 # Import modules for controlling specific parts of Cart3D
@@ -78,7 +78,38 @@ class Options(odict):
         self._Mesh()
         self._PBS()
         self._Config()
+        # Add extra folders to path.
+        self.AddPythonPath()
+        
+        
+    # Function to add to the path.
+    def AddPythonPath(self):
+        """Add requested locations to the Python path
+        
+        :Call:
+            >>> opts.AddPythonPath()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        # Get the "PythonPath" option
+        lpath = self.get("PythonPath", [])
+        # Quit if empty.
+        if (not lpath): return
+        # Ensure list.
+        if type(lpath).__name__ != "list":
+            lpath = [lpath]
+        # Loop through elements.
+        for fdir in lpath:
+            # Add absolute path, not relative.
+            os.sys.path.append(os.path.abspath(fdir))
+            
     
+    # ============
+    # Initializers
+    # ============
     
     # Initialization and confirmation for flowCart options
     def _flowCart(self):
