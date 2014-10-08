@@ -617,7 +617,6 @@ class Cart3d(object):
         for (key, func) in zip(keys, funcs):
             # Apply it.
             exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
-        
         # Write the tri file.
         self.tri.Write('Components.i.tri')
         # --------------------

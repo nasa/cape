@@ -636,14 +636,16 @@ class Trajectory:
             dname = ""
         # Append based on the keys.
         for k in keys:
-            # Skip suffixes
+            # Skip text
             if self.defns[k]["Value"] == "str": continue
+            # Skip unentered values
+            if (not self.text[k][i]): continue
+            # Check for unlabeled values
+            if (not self.defns[k].get("Label", True)): continue
             # Append the text in the trajectory file.
             dname += self.abbrv[k] + self.text[k][i]
         # Check for suffix keys.
-        for k in keys:
-            # Skip all except suffixes
-            if self.defns[k]["Type"] != "Label": continue
+        for k in self.GetKeysByType("Label"):
             # Check the value.
             if self.text[k][i]:
                 # Add underscore if necessary.

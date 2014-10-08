@@ -454,6 +454,7 @@ class TriBase(object):
                 Component ID(s) to which to apply translation
         :Versions:
             * 2014.05.23 ``@ddalle``: First version
+            * 2014.10.08 ``@ddalle``: Exported functionality to function
         """
         # Check the first input type.
         if type(dx).__name__ in ['list', 'ndarray']:
@@ -472,12 +473,12 @@ class TriBase(object):
             dx, dy, dz = tuple(dx)
         # Process the node indices to be rotated.
         j = self.GetNodesFromCompID(i)
-        # Offset each coordinate.
-        self.Nodes[j,0] += dx
-        self.Nodes[j,1] += dy
-        self.Nodes[j,2] += dz
-        # End
-        return None
+        # Extract the points.
+        X = self.Nodes[j,:]
+        # Apply the translation.
+        Y = TranslatePoints(X, [dx, dy, dz])
+        # Save the translated points.
+        self.Nodes[j,:] = Y
         
     # Function to rotate a triangulation about an arbitrary vector
     def Rotate(self, v1, v2, theta, i=None):
@@ -500,9 +501,6 @@ class TriBase(object):
             * 2014.05.27 ``@ddalle``: First version
             * 2014.10.07 ``@ddalle``: Exported functionality to function
         """
-        # Convert points to NumPy.
-        v1 = np.array(v1)
-        v2 = np.array(v2)
         # Get the node indices.
         j = self.GetNodesFromCompID(i)
         # Extract the points.
@@ -937,7 +935,7 @@ def RotatePoints(X, v1, v2, theta):
     :Call:
         >>> Y = RotatePoints(X, v1, v2, theta)
     :Inputs:
-        *Nodes*: :class:`numpy.ndarray`(:class:`float`), *shape* = (N,3)
+        *X*: :class:`numpy.ndarray`(:class:`float`), *shape* = (N,3)
             List of node coordinates
         *v1*: :class:`numpy.ndarray`, *shape* = (3,)
             Start point of rotation vector
@@ -945,6 +943,9 @@ def RotatePoints(X, v1, v2, theta):
             End point of rotation vector
         *theta*: :class:`float`
             Rotation angle in degrees
+    :Outputs:
+        *Y*: :class:`numpy.ndarray`(:class:`float`), *shape* = (N,3)
+            List of rotated node coordinates
     :Versions:
         * 2014.10.07 ``@ddalle``: Copied from previous TriBase.Rotate()
     """
@@ -974,6 +975,43 @@ def RotatePoints(X, v1, v2, theta):
     Y[:,0] = x*c_th+(v[1]*z-v[2]*y)*s_th+v[0]*k1*(1-c_th)+v1[0]
     Y[:,1] = y*c_th+(v[2]*x-v[0]*z)*s_th+v[1]*k1*(1-c_th)+v1[1]
     Y[:,2] = z*c_th+(v[0]*y-v[1]*x)*s_th+v[2]*k1*(1-c_th)+v1[2]
+    # Output
+    return Y
+    
+# Function to rotate a triangulation about an arbitrary vector
+def TranslatePoints(X, dR):
+    """Translate the nodes of a triangulation object.
+        
+    The offset coordinates may be specified as individual inputs or a
+    single vector of three coordinates.
+    
+    :Call:
+        >>> TranslatePoints(X, dR)
+    :Inputs:
+        *X*: :class:`numpy.ndarray`(:class:`float`), *shape* = (N,3)
+            List of node coordinates
+        *dR*: :class:`numpy.ndarray` or :class:`list`
+            List of three coordinates to use for translation
+    :Outputs:
+        *Y*: :class:`numpy.ndarray`(:class:`float`), *shape* = (N,3)
+            List of translated node coordinates
+    :Versions:
+        * 2014.10.08 ``@ddalle``: Copied from previous TriBase.Translate()
+    """
+    # Convert points to NumPy.
+    dR = np.array(dR)
+    # Ensure array.
+    if type(X).__name__ != 'ndarray':
+        X = np.array(X)
+    # Ensure list of points.
+    if len(X.shape) == 1:
+        X = np.array([X])
+    # Initialize output.
+    Y = X.copy()
+    # Offset each coordinate.
+    Y[:,0] += dR[0]
+    Y[:,1] += dR[1]
+    Y[:,2] += dR[2]
     # Output
     return Y
     
