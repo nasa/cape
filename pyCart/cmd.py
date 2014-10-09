@@ -103,6 +103,10 @@ def autoInputs(cart3d=None, r=8, ftri='Components.i.tri'):
             Mesh radius
         *ftri*: :class:`str`
             Name of surface triangulation file
+        *maxR*: :class:`int`
+            Number of refinements to make
+        *pre*: :class:`str`
+            Name of prespecified bounding box file (or ``None``)
     :Outputs:
         *cmd*: :class:`list` (:class:`str`)
             Command split into a list of strings
@@ -114,11 +118,15 @@ def autoInputs(cart3d=None, r=8, ftri='Components.i.tri'):
         # Apply values
         mg_fc = cart3d.opts.get_r()
         ftri  = 'Components.i.tri'
+        maxR    = cart3d.opts.get_maxR()
+        pre     = cart3d.opts.get_pre()
     # Initialize command.
     cmd = ['autoInputs']
     # Add options.
     if r:    cmd += ['-r', str(mg_fc)]
     if ftri: cmd += ['-t', ftri]
+    if maxR:    cmd += ['-maxR', str(maxR)]
+    if pre:     cmd += ['-pre', pre]
     # Return the command.
     return cmd
 

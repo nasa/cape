@@ -30,8 +30,9 @@ from trajectory import Trajectory
 from post       import LoadsDat
 
 # Import specific file control classes
-from inputCntl import InputCntl
-from aeroCsh   import AeroCsh
+from inputCntl   import InputCntl
+from aeroCsh     import AeroCsh
+from preSpecCntl import PreSpecCntl
 
 # Import triangulation
 from tri import Tri
@@ -596,10 +597,17 @@ class Cart3d(object):
         # ----------
         # Get the name of the configuration file.
         fxml = os.path.join(self.RootDir, self.opts.get_ConfigFile())
-        # Test if the file exists.
+        fpre = os.path.join(self.RootDir, self.opts.get_preSpecCntl())
+        fc3d = os.path.join(self.RootDir, self.opts.get_inputC3d())
+        # Copy the config file.
         if os.path.isfile(fxml):
-            # Copy it, to a fixed file name in this folder.
             shutil.copyfile(fxml, 'Config.xml')
+        # Copy the preSpec file.
+        if os.path.isfile(fpre):
+            shutil.copyfile(fpre, self.opts.get_pre())
+        # Copy the cubes input file.
+        if os.path.isfile(fc3d):
+            shutil.copyfile(fc3d, 'input.c3d')
         # ------------------
         # Triangulation prep
         # ------------------
@@ -763,10 +771,21 @@ class Cart3d(object):
                     # Create a symlink.
                     os.symlink(fsrc, fname)
         else:
-            # Get the name of the configuration file.
+            # Get the name of the configuration and input files.
             fxml = os.path.join(self.RootDir, self.opts.get_ConfigFile())
+            fpre = os.path.join(self.RootDir, self.opts.get_preSpecCntl())
+            fc3d = os.path.join(self.RootDir, self.opts.get_inputC3d())
             # Copy the config file.
-            shutil.copy(fxml, 'Config.xml')
+            if os.path.isfile(fxml):
+                shutil.copy(fxml, 'Config.xml')
+            # Copy the preSpec file.
+            if os.path.isfile(fpre):
+                shutil.copy(fpre, self.opts.get_pre())
+            # Copy the input.c3d file.
+            if os.path.isfile(fc3d):
+                shutil.copy(fc3d, 'input.c3d')
+        # Read the mesh prespecification file to add BBoxes, etc.
+        self.PreSpecCntl = PreSpecCntl(self.opts.get_pre())
         # Get function for setting boundary conditions, etc.
         keys = self.x.GetKeysByType('CaseFunction')
         # Get the list of functions.

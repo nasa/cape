@@ -699,6 +699,26 @@ class Options(odict):
         self._Mesh()
         self['Mesh'].set_TriFile(TriFile, i)
     
+    # Get preSpec file
+    def get_preSpecCntl(self):
+        self._Mesh()
+        return self['Mesh'].get_preSpecCntl()
+        
+    # Set preSpec file
+    def set_preSpecCntl(self, fpre=rc0('preSpecCntl')):
+        self._Mesh()
+        self['Mesh'].set_preSpecCntl(fpre)
+    
+    # Get cubes input file
+    def get_inputC3d(self):
+        self._Mesh()
+        return self['Mesh'].get_inputC3d()
+        
+    # Set cubes input file
+    def set_inputC3d(self, fc3d=rc0('inputC3d')):
+        self._Mesh()
+        self['Mesh'].set_inputC3d(fc3d)
+    
     # Get mesh2d status
     def get_mesh2d(self, i=None):
         self._Mesh()
@@ -771,8 +791,8 @@ class Options(odict):
         
         
     # Copy over the documentation.
-    for k in ['TriFile', 'mesh2d', 'r', 'maxR', 'pre',
-            'cubes_a', 'cubes_b', 'reorder']:
+    for k in ['TriFile', 'preSpecCntl', 'inputC3d', 'mesh2d', 'r', 'maxR',
+            'pre', 'cubes_a', 'cubes_b', 'reorder']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Mesh,'set_'+k).__doc__

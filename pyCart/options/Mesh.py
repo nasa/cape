@@ -308,6 +308,74 @@ class Mesh(odict):
             * 2014.08.03 ``@ddalle``: First version
         """
         self.set_key('TriFile', TriFile, i)
+            
+    
+    # Get the mesh prespecification file
+    def get_preSpecCntl(self):
+        """Return the template :file:`preSpec.c3d.cntl` file
+        
+        :Call:
+            >>> fpre = opts.get_preSpecCntl(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *fpre*: :class:`str`
+                Mesh prespecification file
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        return self.get_key('preSpecCntl')
+        
+    # Set the mesh prespecification file
+    def set_preSpecCntl(self, fpre=rc0('preSpecCntl')):
+        """Set the template :file:`preSpec.c3d.cntl` file
+        
+        :Call:
+            >>> opts.set_preSpecCntl(fpre)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *fpre*: :class:`str`
+                Mesh prespecification file
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        self.set_key('preSpecCntl', fpre)
+        
+        
+    # Get the mesh input file
+    def get_inputC3d(self):
+        """Return the template :file:`input.c3d` file
+        
+        :Call:
+            >>> fpre = opts.get_inputC3d(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *fpre*: :class:`str`
+                Mesh prespecification file
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        return self.get_key('inputC3d')
+        
+    # Set the mesh input file
+    def set_inputC3d(self, fc3d=rc0('inputC3d')):
+        """Set the template :file:`input.c3d` file
+        
+        :Call:
+            >>> opts.set_inputC3d(fpre)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *fc3d*: :class:`str`
+                Mesh input file
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        self.set_key('inputC3d', fc3d)
         
         
     # Get the mesh 2D status
