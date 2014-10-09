@@ -18,28 +18,25 @@ from fileCntl import FileCntl, _num, _float
 
 # Base this class off of the main file control class.
 class PreSpecCntl(FileCntl):
-    """
-    File control class for :file:`preSpec.c3d.cntl` files
-    
-    :Call:
-        >>> preSpec = pyCart.PreSpecCntl()
-        >>> preSpec = pyCart.PreSpecCntl(fname)
-        
-    :Inputs:
-        *fname*: :class:`str`
-            Name of CNTL file to read, defaults to ``'preSpec.c3d.cntl'``
+    """File control class for :file:`preSpec.c3d.cntl` files
             
     This class is derived from the :class:`pyCart.fileCntl.FileCntl` class, so
     all methods applicable to that class can also be used for instances of this
     class.
+    
+    :Call:
+        >>> preSpec = pyCart.PreSpecCntl()
+        >>> preSpec = pyCart.PreSpecCntl(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of CNTL file to read, defaults to ``'preSpec.c3d.cntl'``
+    :Versions:
+        * 2014.06.16 ``@ddalle``: First version
     """
     
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="preSpec.c3d.cntl"):
         """Initialization method"""
-        # Versions:
-        #  2014.06.16 @ddalle  : First version
-        
         # Read the file.
         self.Read(fname)
         # Save the file name.
@@ -55,7 +52,6 @@ class PreSpecCntl(FileCntl):
         
         :Call:
             >>> preSpec.AddBBox(n, xlim)
-            
         :Inputs:
             *preSpec*: :class:`pyCart.preSpecCntl.PreSpecCntl`
                 Instance of the :file:`preSpec.c3d.cntl` interface
@@ -63,13 +59,11 @@ class PreSpecCntl(FileCntl):
                 Number of refinements to use in the box
             *xlim*: :class:`numpy.ndarray` or :class:`list` (:class:`float`)
                 List of *xmin*, *xmax*, *ymin*, *ymax*, *zmin*, *zmax*
-            
         :Effects:
             Adds a bounding box line to the existing boxes
+        :Versions:
+            * 2014.06.16 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.16 @ddalle  : First version
-        
         # Compose the line.
         line = "BBox: %-2i %10.4f %10.4f %10.4f %10.4f %10.4f %10.4f\n" % (
             n, xlim[0], xlim[1], xlim[2], xlim[3], xlim[4], xlim[5])
@@ -77,29 +71,67 @@ class PreSpecCntl(FileCntl):
         self.PrependLineToSection('Prespecified_Adaptation_Regions', line)
         
     # Function to clear all existing bounding boxes.
-    def ClearBBoxes(self):
-        """
-        Delete all existing bounding boxes
+    def ClearBBox(self):
+        """Delete all existing bounding boxes
         
         :Call:
-            >>> preSpec.ClearBBoxes()
-            
+            >>> preSpec.ClearBBox()
         :Inputs:
             *preSpec*: :class:`pyCart.preSpecCntl.PreSpecCntl`
                 Instance of the :file:`preSpec.c3d.cntl` interface
+        :Versions:
+            * 2014.06.16 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.16 @ddalle  : First version
-        
         # Delete the lines.
         self.DeleteLineInSectionStartsWith(
             'Prespecified_Adaptation_Regions', 'BBox')
         
+    # Function to add an additional XLev line
+    def AddXLev(self, n, compID):
+        """
+        Add a refinement level on a component or list of components
         
+        :Call:
+            >>> preSpec.AddXLev(n, compID)
+        :Inputs:
+            *preSpec*: :class:`pyCart.preSpecCntl.PreSpecCntl`
+                Instance of the :file:`preSpec.c3d.cntl` interface
+            *n*: :class:`int`
+                Number of refinements to use in the box
+            *compID*: :class:`int` or :class:`list`(:class:`int`)
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        # Check the input.
+        if type(compID).__name__ in ['int', 'float']:
+            # Ensure list.
+            compID = [compID]
+        # Initialize the line.
+        line = "XLev: %i" % n
+        # Loop through components.
+        for c in compID:
+            # Add the component to the line.
+            line += (" %i" % c)
+        # Make sure to end the line.
+        line += "\n"
+        # Add the line.
+        self.PrependLineToSection('Prespecified_Adaptation_Regions', line)
         
+    # Function to clear out all XLev specifications
+    def ClearXLev(self):
+        """Delete all existing XLev specifications
         
-        
-        
+        :Call:
+            >>> preSpec.ClearXLev()
+        :Inputs:
+            *preSpec*: :class:`pyCart.preSpecCntl.PreSpecCntl`
+                Instance of the :file:`preSpec.c3d.cntl` interface
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        # Delete the lines.
+        self.DeleteLineInSectionStartsWith(
+            'Prespecified_Adaptation_Regions', 'XLev')
         
         
         
