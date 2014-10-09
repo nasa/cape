@@ -88,43 +88,6 @@ class cubes(odict):
         """
         self.set_key('maxR', maxR, i)
         
-    # Set the mesh prespecification file
-    def get_pre(self, i=None):
-        """Get the mesh prespecification input file
-        
-        :Call:
-            >>> pre = opts.get_pre(i=None):
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Run index
-        :Outputs:
-            *pre*: :class:`str` or :class:`list`(:class:`str`)
-                Mesh prespecification file name
-        :Versions:
-            * 2014.08.03 ``@ddalle``: First version
-        """
-        return self.get_key('pre', i)
-    
-    # Set the mesh prespecification file
-    def set_pre(self, pre=rc0('pre'), i=None):
-        """Set the mesh prespecification input file
-        
-        :Call:
-            >>> opts.set_pre(pre, i=None):
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *pre*: :class:`str` or :class:`list`(:class:`str`)
-                Mesh prespecification file name
-            *i*: :class:`int` or ``None``
-                Run index
-        :Versions:
-            * 2014.08.03 ``@ddalle``: First version
-        """
-        self.set_key('pre', pre, i)
-        
     # Get the 'cubes_a' parameter
     def get_cubes_a(self, i=None):
         """Get the "cubes_a" parameter
@@ -451,16 +414,6 @@ class Mesh(odict):
         self._cubes()
         self['cubes'].set_maxR(maxR, i)
         
-    # Get the prespecification file
-    def get_pre(self, i=None):
-        self._cubes()
-        return self['cubes'].get_pre(i)
-        
-    # Set the prespecification file
-    def set_pre(self, pre=rc0('pre'), i=None):
-        self._cubes()
-        self['cubes'].set_pre(pre, i)
-        
     # Get the 'cubes_a' parameter
     def get_cubes_a(self, i=None):
         self._cubes()
@@ -493,7 +446,7 @@ class Mesh(odict):
 
 
     # Copy over the documentation.
-    for k in ['maxR', 'pre', 'cubes_a', 'cubes_b', 'reorder']:
+    for k in ['maxR', 'cubes_a', 'cubes_b', 'reorder']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(cubes,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(cubes,'set_'+k).__doc__

@@ -10,14 +10,13 @@ a :class:`pyCart.cart3d.Cart3d` instance.
 
 
 # Function to call cubes.
-def cubes(cart3d=None, maxR=10, reorder=True, pre='preSpec.c3d.cntl',
-    cubes_a=None, cubes_b=None):
+def cubes(cart3d=None, maxR=10, reorder=True, cubes_a=None, cubes_b=None):
     """
     Interface to Cart3D script `cubes`
     
     :Call:
         >>> cmd = pyCart.cmd.cubes(cart3d)
-        >>> cmd = pyCart.cmd.cubes(maxR=10, reorder=True, pre='preSpec.c3d.cntl')
+        >>> cmd = pyCart.cmd.cubes(maxR=10, reorder=True, **kwargs)
     :Inputs:
         *cart3d*: :class:`pyCart.cart3d.Cart3d`
             Global pyCart settings instance
@@ -25,8 +24,6 @@ def cubes(cart3d=None, maxR=10, reorder=True, pre='preSpec.c3d.cntl',
             Number of refinements to make
         *reorder*: :class:`bool`
             Whether or not to reorder mesh
-        *pre*: :class:`str`
-            Name of prespecified bounding box file (or ``None``)
         *cubes_a*: :class:`int`
             `cubes` "a" parameter
         *cubes_b*: :class:`int`
@@ -43,7 +40,6 @@ def cubes(cart3d=None, maxR=10, reorder=True, pre='preSpec.c3d.cntl',
     if cart3d is not None:
         # Apply values
         maxR    = cart3d.opts.get_maxR()
-        pre     = cart3d.opts.get_pre()
         reorder = cart3d.opts.get_reorder()
         cubes_a = cart3d.opts.get_cubes_a()
         cubes_b = cart3d.opts.get_cubes_b()
@@ -52,7 +48,6 @@ def cubes(cart3d=None, maxR=10, reorder=True, pre='preSpec.c3d.cntl',
     # Add options.
     if maxR:    cmd += ['-maxR', str(maxR)]
     if reorder: cmd += ['-reorder']
-    if pre:     cmd += ['-pre', pre]
     if cubes_a: cmd += ['-a', str(cubes_a)]
     if cubes_b: cmd += ['-b', str(cubes_b)]
     # Return the command.
@@ -89,13 +84,13 @@ def mgPrep(cart3d=None, mg_fc=3):
     return cmd
     
 # Function to call mgPrep
-def autoInputs(cart3d=None, r=8, ftri='Components.i.tri'):
+def autoInputs(cart3d=None, r=8, ftri='Components.i.tri', **kw):
     """
     Interface to Cart3D script `mgPrep`
     
     :Call:
         >>> cmd = pyCart.cmd.autoInputs(cart3d)
-        >>> cmd = pyCart.cmd.autoInputs(r=8, ftri='components.i.tri')
+        >>> cmd = pyCart.cmd.autoInputs(r=8, ftri='components.i.tri', **kw)
     :Inputs:
         *cart3d*: :class:`pyCart.cart3d.Cart3d`
             Global pyCart settings instance
@@ -105,8 +100,6 @@ def autoInputs(cart3d=None, r=8, ftri='Components.i.tri'):
             Name of surface triangulation file
         *maxR*: :class:`int`
             Number of refinements to make
-        *pre*: :class:`str`
-            Name of prespecified bounding box file (or ``None``)
     :Outputs:
         *cmd*: :class:`list` (:class:`str`)
             Command split into a list of strings
@@ -116,17 +109,18 @@ def autoInputs(cart3d=None, r=8, ftri='Components.i.tri'):
     # Check cart3d input.
     if cart3d is not None:
         # Apply values
-        mg_fc = cart3d.opts.get_r()
+        r     = cart3d.opts.get_r()
         ftri  = 'Components.i.tri'
-        maxR    = cart3d.opts.get_maxR()
-        pre     = cart3d.opts.get_pre()
+        maxR  = cart3d.opts.get_maxR()
+    else:
+        # Get values from keyword arguments
+        maxR  = kwargs.get('maxR', 10)
     # Initialize command.
     cmd = ['autoInputs']
     # Add options.
-    if r:    cmd += ['-r', str(mg_fc)]
+    if r:    cmd += ['-r', str(r)]
     if ftri: cmd += ['-t', ftri]
-    if maxR:    cmd += ['-maxR', str(maxR)]
-    if pre:     cmd += ['-pre', pre]
+    if maxR: cmd += ['-maxR', str(maxR)]
     # Return the command.
     return cmd
 

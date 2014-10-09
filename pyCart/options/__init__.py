@@ -749,16 +749,6 @@ class Options(odict):
         self._Mesh()
         self['Mesh'].set_maxR(maxR, i)
         
-    # Get the prespecification file
-    def get_pre(self, i=None):
-        self._Mesh()
-        return self['Mesh'].get_pre(i)
-        
-    # Set the prespecification file
-    def set_pre(self, pre=rc0('pre'), i=None):
-        self._Mesh()
-        self['Mesh'].set_pre(pre, i)
-        
     # Get the 'cubes_a' parameter
     def get_cubes_a(self, i=None):
         self._Mesh()
@@ -792,7 +782,7 @@ class Options(odict):
         
     # Copy over the documentation.
     for k in ['TriFile', 'preSpecCntl', 'inputC3d', 'mesh2d', 'r', 'maxR',
-            'pre', 'cubes_a', 'cubes_b', 'reorder']:
+            'cubes_a', 'cubes_b', 'reorder']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Mesh,'set_'+k).__doc__

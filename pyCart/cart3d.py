@@ -604,7 +604,7 @@ class Cart3d(object):
             shutil.copyfile(fxml, 'Config.xml')
         # Copy the preSpec file.
         if os.path.isfile(fpre):
-            shutil.copyfile(fpre, self.opts.get_pre())
+            shutil.copyfile(fpre, 'preSpec.c3d.cntl')
         # Copy the cubes input file.
         if os.path.isfile(fc3d):
             shutil.copyfile(fc3d, 'input.c3d')
@@ -631,7 +631,11 @@ class Cart3d(object):
         # Volume mesh creation
         # --------------------
         # Run autoInputs if necessary.
-        if self.opts.get_r(): bin.autoInputs(self)
+        if self.opts.get_r():
+            # Run autoInputs
+            bin.autoInputs(self)
+            # Read the resulting preSpec.c3d.cntl file
+            self.PreSpecCntl = PreSpecCntl('preSpec.c3d.cntl')
         # Bounding box control...
         
         # Run cubes.
@@ -780,12 +784,12 @@ class Cart3d(object):
                 shutil.copy(fxml, 'Config.xml')
             # Copy the preSpec file.
             if os.path.isfile(fpre):
-                shutil.copy(fpre, self.opts.get_pre())
+                shutil.copy(fpre, 'preSpec.c3d.cntl')
             # Copy the input.c3d file.
             if os.path.isfile(fc3d):
                 shutil.copy(fc3d, 'input.c3d')
         # Read the mesh prespecification file to add BBoxes, etc.
-        self.PreSpecCntl = PreSpecCntl(self.opts.get_pre())
+        self.PreSpecCntl = PreSpecCntl('preSpec.c3d.cntl')
         # Get function for setting boundary conditions, etc.
         keys = self.x.GetKeysByType('CaseFunction')
         # Get the list of functions.
@@ -1135,6 +1139,27 @@ class Cart3d(object):
         # Return to original path.
         os.chdir(fpwd)
         
+        
+    # Function to prepare "input.cntl" files
+    def PreparePreSpecCntl(self, i):
+        """
+        Prepare and write :file:`preSpec.c3d.cntl` according to the current
+        settings and in the current folder.
+        
+        :Call:
+            >>> cart3d.PreparePreSpecCntl()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        
+        # Write the file.
+        self.preSpecCntl.Write('preSpec.c3d.cntl')
+    
+    
+    
     # Function prepare the aero.csh files
     def PrepareAeroCsh(self, i):
         """
