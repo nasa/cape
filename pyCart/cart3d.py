@@ -634,10 +634,10 @@ class Cart3d(object):
         if self.opts.get_r():
             # Run autoInputs
             bin.autoInputs(self)
-            # Read the resulting preSpec.c3d.cntl file
-            self.PreSpecCntl = PreSpecCntl('preSpec.c3d.cntl')
+        # Read the resulting preSpec.c3d.cntl file
+        self.PreSpecCntl = PreSpecCntl('preSpec.c3d.cntl')
         # Bounding box control...
-        
+        self.PreparePreSpecCntl()
         # Run cubes.
         bin.cubes(self)
         # Run mgPrep
@@ -788,8 +788,6 @@ class Cart3d(object):
             # Copy the input.c3d file.
             if os.path.isfile(fc3d):
                 shutil.copy(fc3d, 'input.c3d')
-        # Read the mesh prespecification file to add BBoxes, etc.
-        self.PreSpecCntl = PreSpecCntl('preSpec.c3d.cntl')
         # Get function for setting boundary conditions, etc.
         keys = self.x.GetKeysByType('CaseFunction')
         # Get the list of functions.
@@ -1061,6 +1059,48 @@ class Cart3d(object):
         os.chdir(fpwd)
         
     # Function to prepare "input.cntl" files
+    def PreparePreSpecCntl(self):
+        """
+        Prepare and write :file:`preSpec.c3d.cntl` according to the current
+        settings and in the current folder.
+        
+        :Call:
+            >>> cart3d.PreparePreSpecCntl()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        # Loop through BBoxes
+        for BBox in self.opts.get_BBox():
+            # Safely get number of refinements.
+            n = BBox.get("n", 7)
+            # Filter the type.
+            if "compID" in BBox:
+                # Bounding box specified relative to a component.
+                xlim = self.tri.GetCompBBox(**BBox)
+            else:
+                # Bounding box coordinates given.
+                xlim = BBox.get("xlim")
+            # Check for degeneracy.
+            if (not n) or (xlim is None): continue
+            # Add the bounding box.
+            self.PreSpecCntl.AddBBox(n, xlim)
+        # Loop through the XLevs
+        for XLev in self.opts.get_XLev():
+            # Safely extract info from the XLev.
+            n = XLev.get("n", 0)
+            compID = XLev.get("compID", [])
+            # Check for degeneracy.
+            if (not n) or (not compID): continue
+            # Add an XLev line.
+            self.PreSpecCntl.AddXLev(n, compID)
+        # Write the file.
+        self.PreSpecCntl.Write('preSpec.c3d.cntl')
+        
+        
+    # Function to prepare "input.cntl" files
     def PrepareInputCntl(self, i):
         """
         Write :file:`input.cntl` for run case *i* in the appropriate folder
@@ -1139,27 +1179,6 @@ class Cart3d(object):
         # Return to original path.
         os.chdir(fpwd)
         
-        
-    # Function to prepare "input.cntl" files
-    def PreparePreSpecCntl(self, i):
-        """
-        Prepare and write :file:`preSpec.c3d.cntl` according to the current
-        settings and in the current folder.
-        
-        :Call:
-            >>> cart3d.PreparePreSpecCntl()
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of global pyCart settings object
-        :Versions:
-            * 2014.10.08 ``@ddalle``: First version
-        """
-        
-        # Write the file.
-        self.preSpecCntl.Write('preSpec.c3d.cntl')
-    
-    
-    
     # Function prepare the aero.csh files
     def PrepareAeroCsh(self, i):
         """

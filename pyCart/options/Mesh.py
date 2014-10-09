@@ -341,6 +341,84 @@ class Mesh(odict):
         self.set_key('inputC3d', fc3d)
         
         
+    # Return the list of bounding boxes.
+    def get_BBox(self):
+        """Return the list of bounding boxes from the master input file
+        
+        :Call:
+            >>> BBox = opts.get_BBox()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *BBox*: :class:`list`(:class:`dict`)
+                List of bounding box specifications
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        # Get the bounding boxes.
+        BBox = self.get_key('BBox')
+        # Make sure it's a list.
+        if type(BBox).__name__ == 'dict': BBox = [BBox]
+        # Output
+        return BBox
+        
+    # Set the list of bounding boxes.
+    def set_BBox(self, BBox=rc0('BBox')):
+        """Set the list of bounding boxes
+        
+        :Call:
+            >>> opts.set_BBox(BBox)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *BBox*: :class:`list`(:class:`dict`)
+                List of bounding box specifications
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        self.set_key('BBox', BBox)
+        
+        
+    # Return the list of XLev specifications.
+    def get_XLev(self):
+        """Return the list of XLev specifications
+        
+        :Call:
+            >>> XLev = opts.get_XLev()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *XLev*: :class:`list`(:class:`dict`)
+                List of surface refinement specifications
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        # Get the bounding boxes.
+        XLev = self.get_key('XLev')
+        # Make sure it's a list.
+        if type(XLev).__name__ == 'dict': XLev = [XLev]
+        # Output
+        return XLev
+        
+    # Set the list of XLev specifications.
+    def set_XLev(self, XLev=rc0('XLev')):
+        """Set the list of XLev specifications
+        
+        :Call:
+            >>> opts.set_BBox(BBox)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *XLev*: :class:`list`(:class:`dict`)
+                List of surface refinement specifications
+        :Versions:
+            * 2014.10.08 ``@ddalle``: First version
+        """
+        self.set_key('XLev', XLev)
+        
+        
     # Get the mesh 2D status
     def get_mesh2d(self, i=None):
         """Get the two-dimensional mesh status

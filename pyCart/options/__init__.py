@@ -719,6 +719,26 @@ class Options(odict):
         self._Mesh()
         self['Mesh'].set_inputC3d(fc3d)
     
+    # Get BBoxes
+    def get_BBox(self):
+        self._Mesh()
+        return self['Mesh'].get_BBox()
+        
+    # Set BBoxes
+    def set_BBox(self, BBox=rc0('BBox')):
+        self._Mesh()
+        self['Mesh'].set_BBox(BBox)
+    
+    # Get XLevs
+    def get_XLev(self):
+        self._Mesh()
+        return self['Mesh'].get_XLev()
+        
+    # Set XLevs
+    def set_XLev(self, XLev=rc0('XLev')):
+        self._Mesh()
+        self['Mesh'].set_XLev(XLev)
+    
     # Get mesh2d status
     def get_mesh2d(self, i=None):
         self._Mesh()
@@ -781,8 +801,8 @@ class Options(odict):
         
         
     # Copy over the documentation.
-    for k in ['TriFile', 'preSpecCntl', 'inputC3d', 'mesh2d', 'r', 'maxR',
-            'cubes_a', 'cubes_b', 'reorder']:
+    for k in ['TriFile', 'preSpecCntl', 'inputC3d', 'BBox', 'XLev', 'mesh2d',
+            'r', 'maxR', 'cubes_a', 'cubes_b', 'reorder']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Mesh,'set_'+k).__doc__
