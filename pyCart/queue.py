@@ -67,7 +67,7 @@ def pqsub(fname, fout="jobID.dat"):
         # Create the output file.
         f = open(fout, 'w')
         # Write the job id.
-        f.write('%i' % pbs)
+        f.write('%i\n' % pbs)
         # Close the file.
         f.close()
     # Return the number.

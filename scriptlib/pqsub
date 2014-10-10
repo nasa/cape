@@ -57,7 +57,7 @@ if __name__ == "__main__":
     fout = kw.get('f', 'jobID.dat')
     
     # Submit the job.
-    jobID = pyCart.queue.qsub(fname, fout)
+    jobID = pyCart.queue.pqsub(fname, fout)
     
     # Display status.
     if jobID:
