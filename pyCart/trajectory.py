@@ -645,7 +645,9 @@ class Trajectory:
             # Append the text in the trajectory file.
             dname += self.abbrv[k] + self.text[k][i]
         # Check for suffix keys.
-        for k in self.GetKeysByType("Label"):
+        for k in keys:
+            # Only look for labels.
+            if self.defns[k].get("Type") != "Label": continue
             # Check the value.
             if self.text[k][i]:
                 # Add underscore if necessary.

@@ -1,6 +1,7 @@
 # Mach, alpha, beta, config, label
 0.84, 0.0, 0.0, poweroff
 0.84, 0.0, 0.0, poweron
+0.84, 0.0, 0.0, poweron adapt
 0.84, 0.0, 1.0, poweron
 0.84, 0.0, 2.0, poweron
 0.84, 1.0, 0.0, poweron
