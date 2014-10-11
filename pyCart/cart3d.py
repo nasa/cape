@@ -713,6 +713,17 @@ class Cart3d(object):
             else:
                 # Iterations
                 n = int(txt.split()[0])
+        elif os.path.isfile('BEST/history.dat'):
+            # Get the last line of the history file.
+            txt = sp.Popen(['tail', '-1', 'BEST/history.dat'],
+                stdout=sp.PIPE).communicate()[0]
+            # Check if it's a comment.
+            if txt.startswith('#') or len(txt)<2:
+                # No iterations yet.
+                n = 0
+            else:
+                # Iterations
+                n = int(txt.split()[0])
         else:
             # No history; zero iterations.
             n = 0
