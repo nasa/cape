@@ -493,7 +493,7 @@ class flowCart(odict):
         :Versions:
             * 2014.08.02 ``@ddalle``: First version
         """
-        return self.get_key('y_is_spanwise', i)
+        return self.get_key('binaryIO', i)
     
     # Set the y-spanwise status
     def set_binaryIO(self, binaryIO=rc0('binaryIO'), i=None):
