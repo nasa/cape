@@ -71,9 +71,18 @@ def run_flowCart():
         os.rename('Components.i.plt', 'Components.%02i.plt' % i)
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
+    # Get current number of iterations completed.
+    n = GetRestartIter()
+    # Check current iteration count.
+    if n > fc.get_LastIter():
+        return
     # Resubmit if asked.
     if fc.get_resub(i):
+        # Run full restart command, including qsub if appropriate
         StartCase()
+    else:
+        # Just run the case directly (keep the same PBS job).
+        callf(['bash', 'run_cart3d.pbs'])
     
     
 # Function to call script or submit.
