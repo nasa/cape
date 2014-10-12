@@ -689,6 +689,9 @@ class Cart3d(object):
             # Settings file.
             if not os.path.isfile('case.json'): n=None
             # Check for which mesh file to look for.
+            if os.path.isdir('adapt00'):
+                # Mesh file is gone; but it exists somewhere else
+                pass
             if self.opts.get_mg() > 0:
                 # Look for the multigrid mesh
                 if not os.path.isfile('Mesh.mg.c3d'): n = None
