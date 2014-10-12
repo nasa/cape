@@ -44,7 +44,7 @@ def cubes(cart3d=None, maxR=10, reorder=True, cubes_a=None, cubes_b=None):
         cubes_a = cart3d.opts.get_cubes_a()
         cubes_b = cart3d.opts.get_cubes_b()
     # Initialize command
-    cmd = ['cubes']
+    cmd = ['cubes', '-pre', 'preSpec.c3d.cntl']
     # Add options.
     if maxR:    cmd += ['-maxR', str(maxR)]
     if reorder: cmd += ['-reorder']
