@@ -43,6 +43,23 @@ def run_flowCart():
     if os.path.isfile('input.cntl'): os.remove('input.cntl')
     # Create the correct input file.
     os.symlink('input.%02i.cntl' % i, 'input.cntl')
+    # Extra prep for adaptive --> non-adaptive
+    if (i>0) and (not fc.get_use_aero_csh(i)) and os.path.isdir('BEST')
+            and (not os.path.isfile('history.dat')):
+        # Go to the best adaptive result.
+        os.chdir('BEST')
+        # Find all *.dat files and Mesh files
+        fglob = glob.glob('*.dat') + glob.glob('Mesh.*.c3d')
+        # Go back up one folder.
+        os.chdir('..')
+        # Copy all the important files.
+        for fname in fglob:
+            # Check for the file.
+            if os.path.isfile(fname):
+                # Move it to some other file.
+                os.path.rename(fname, fname+".old")
+            # Copy the file.
+            shutil.copy('BEST/'+fname, fname)
     # Check for flowCart vs. mpi_flowCart
     if not fc.get_mpi_fc(i):
         # Get the number of threads, which may be irrelevant.
@@ -56,7 +73,12 @@ def run_flowCart():
         # Create a link to this run.
         os.symlink('aero.%02i.csh' % i, 'aero.csh')
         # Call the aero.csh command
-        cmdi = ['./aero.csh', 'jumpstart']
+        if n > 0:
+            # Restart case.
+            cmdi = ['./aero.csh', 'restart']
+        else:
+            # Initial case
+            cmdi = ['./aero.csh', 'jumpstart']
     else:
         # Call flowCart directly.
         cmdi = cmd.flowCart(fc=fc, i=i, n=n)
@@ -104,8 +126,8 @@ def StartCase():
         pbs = queue.pqsub('run_cart3d.pbs')
         return pbs
     else:
-        # Simply run the case.
-        callf(['bash', 'run_cart3d.pbs'])
+        # Simply run the case. Don't reset modules either.
+        run_flowCart()
     
 
 # Function to read the local settings file.
