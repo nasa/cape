@@ -96,7 +96,7 @@ def run_flowCart():
     # Get current number of iterations completed.
     n = GetRestartIter()
     # Check current iteration count.
-    if n > fc.get_LastIter():
+    if n >= fc.get_LastIter():
         return
     # Resubmit if asked.
     if fc.get_resub(i):
