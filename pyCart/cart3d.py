@@ -893,20 +893,7 @@ class Cart3d(object):
         # Check length.
         if len(lbl) > 15:
             # 16-char limit (or is it 15?)
-            lbl = lbl[:14]
-        else:
-            # Fill out to 16-char limit.
-            lbl += " "*(15-len(lbl))
-        # Loop through keys.
-        for k in x.keys:
-            # Check for strings.
-            if x.defns[k]['Value'] == 'str':
-                # Get the label and its length.
-                lblk = getattr(x,k)[i]
-                nlbl = len(lblk)
-                # Postfix it to the label.
-                if nlbl > 0:
-                    lbl = lbl[:-nlbl] + lblk
+            lbl = lbl[:15]
         # Output
         return lbl
         
