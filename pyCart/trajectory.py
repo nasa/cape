@@ -69,8 +69,6 @@ class Trajectory:
         groupPrefix = kwargs.get('GroupPrefix', "Grid")
         # Process the definitions.
         defns = kwargs.get('Definitions', {})
-        # Number of variables
-        nVar = len(keys)
         # Save properties.
         self.keys = keys
         self.prefix = prefix
@@ -79,9 +77,67 @@ class Trajectory:
         self.PASS = []
         # Process the key definitions.
         self.ProcessKeyDefinitions(defns)
+        # Read the file.
+        if fname and os.path.isfile(fname):
+            self.ReadTrajectoryFile(fname)
+        # Loop through the keys to see if any were specified in the inputs.
+        for key in keys:
+            # Check inputs for that key.
+            if key in kwargs:
+                # Set it with the new value.
+                self.text[key] = [str(v) for v in kwargs[key]]
+        # Convert PASS list to numpy.
+        self.PASS = np.array(self.PASS)
+        # Create the numeric versions.
+        for key in keys:
+            # Check the key type.
+            if self.defns[key]['Value'] == 'float':
+                # Normal numeric value
+                setattr(self, key,
+                    np.array([float(v) for v in self.text[key]]))
+            elif self.defns[key]['Value'] == 'int':
+                # Normal numeric value
+                setattr(self, key,
+                    np.array([int(v) for v in self.text[key]]))
+            else:
+                # Assume string
+                setattr(self, key, np.array(self.text[key]))
+        # Save the number of cases.
+        self.nCase = len(self.text[key])
+        # Process the groups (conditions in a group can use same grid).
+        self.ProcessGroups()
         
+    # Function to display things
+    def __repr__(self):
+        """
+        Return the string representation of a trajectory.
+        
+        This looks like ``<pyCart.Trajectory(nCase=N, keys=['Mach','alpha'])>``
+        """
+        # Return a string.
+        return '<pyCart.Trajectory(nCase=%i, keys=%s)>' % (self.nCase,
+            self.keys)
+        
+    # Function to read a file
+    def ReadTrajectoryFile(self, fname):
+        """Read trajectory variable values from file
+        
+        :Call:
+            >>> x.ReadTrajectoryFile(fname)
+        :Inputs:
+            *x*: :class:`pyCart.trajectory.Trajectory`
+                Instance of the trajectory class
+            *fname*: :class:`str`
+                Name of trajectory file
+        :Versions:
+            * 2014.10.13 ``@ddalle``: Cut code from __init__ method
+        """
         # Open the file.
         f = open(fname)
+        # Extract the keys.
+        keys = self.keys
+        # Number of variables
+        nVar = len(keys)
         # Loop through the lines.
         for line in f.readlines():
             # Strip the line.
@@ -115,39 +171,8 @@ class Trajectory:
                     # No text (especially useful for optional labels)
                     v0 = self.defns[keys[k]].get('Default', '0')
                     self.text[keys[k]].append(str(v0))
-        # Convert PASS list to numpy.
-        self.PASS = np.array(self.PASS)
         # Close the file.
         f.close()
-        # Create the numeric versions.
-        for key in keys:
-            # Check the key type.
-            if self.defns[key]['Value'] == 'float':
-                # Normal numeric value
-                setattr(self, key,
-                    np.array([float(v) for v in self.text[key]]))
-            elif self.defns[key]['Value'] == 'int':
-                # Normal numeric value
-                setattr(self, key,
-                    np.array([int(v) for v in self.text[key]]))
-            else:
-                # Assume string
-                setattr(self, key, np.array(self.text[key]))
-        # Save the number of cases.
-        self.nCase = len(self.text[key])
-        # Process the groups (conditions in a group can use same grid).
-        self.ProcessGroups()
-        
-    # Function to display things
-    def __repr__(self):
-        """
-        Return the string representation of a trajectory.
-        
-        This looks like ``<pyCart.Trajectory(nCase=N, keys=['Mach','alpha'])>``
-        """
-        # Return a string.
-        return '<pyCart.Trajectory(nCase=%i, keys=%s)>' % (self.nCase,
-            self.keys)
         
     # Function to process the role that each key name plays.
     def ProcessKeyDefinitions(self, defns):
