@@ -86,6 +86,9 @@ class Trajectory:
             if key in kwargs:
                 # Set it with the new value.
                 self.text[key] = [str(v) for v in kwargs[key]]
+        # Check if PASS markers are specified.
+        if 'PASS' in kwargs:
+            self.PASS = kwargs['PASS']
         # Convert PASS list to numpy.
         self.PASS = np.array(self.PASS)
         # Create the numeric versions.
