@@ -115,7 +115,7 @@ class PreSpecCntl(FileCntl):
         # Make sure to end the line.
         line += "\n"
         # Add the line.
-        self.PrependLineToSection('Prespecified_Adaptation_Regions', line)
+        self.AppendLineToSection('Prespecified_Adaptation_Regions', line)
         
     # Function to clear out all XLev specifications
     def ClearXLev(self):

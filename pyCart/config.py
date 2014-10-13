@@ -122,6 +122,17 @@ class Config:
             comp = AppendParent(Comps, comp, k, compID)
         # Save the individually labeled faces.
         self.faces = comp
+    
+    # Function to display things
+    def __repr__(self):
+        """
+        Return the string representation of a :file:`Config.xml` file.
+        
+        This looks like ``<pyCart.Config(nComp=N, faces=['Core', ...])>``
+        """
+        # Return a string.
+        return '<pyCart.Config(nComp=%i, faces=%s)>' % (
+            len(self.faces), self.faces.keys())
         
     # Method to get CompIDs from generic input
     def GetCompID(self, face):
