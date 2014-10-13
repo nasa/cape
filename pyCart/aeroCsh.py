@@ -242,6 +242,22 @@ class AeroCsh(FileCntl):
         """
         self.SetVar('cflmin', cflmin)
         
+    # Set limiter type number
+    def SetLimiter(self, limiter):
+        """Set the limiter for `flowCart`
+        
+        :Call:
+            >>> AC.SetLimiter(limiter)
+        :Inputs:
+            *AC*: :class:`pyCart.aeroCsh.AeroCsh`
+                Instance of the :file:`aero.csh` manipulation class
+            *limiter*: :class:`int`
+                Limiter, 2 or 5
+        :Versions:
+            * 2014.10.13 ``@ddalle``: First version
+        """
+        self.SetVar('limiter', int(limiter))
+        
     # Set the number of multigrid levels
     def SetnMultiGrid(self, mg_fc):
         """Set the number of multigrid levels for both solvers
