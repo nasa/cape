@@ -44,8 +44,8 @@ def run_flowCart():
     # Create the correct input file.
     os.symlink('input.%02i.cntl' % i, 'input.cntl')
     # Extra prep for adaptive --> non-adaptive
-    if (i>0) and (not fc.get_use_aero_csh(i)) and os.path.isdir('BEST')
-            and (not os.path.isfile('history.dat')):
+    if (i>0) and (not fc.get_use_aero_csh(i)) and (os.path.isdir('BEST')
+            and (not os.path.isfile('history.dat'))):
         # Go to the best adaptive result.
         os.chdir('BEST')
         # Find all *.dat files and Mesh files

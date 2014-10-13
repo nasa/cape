@@ -682,7 +682,7 @@ class TriBase(object):
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance
-            *compID*: :class:`int` or :class:`list` (:class:`int`)
+            *compID*: :class:`int` or :class:`str` or :class:`list`
                 Component or list of components to use for bounding box
             *pad*: :class:`float`
                 Buffer to add in each dimension to min and max coordinates
@@ -711,8 +711,10 @@ class TriBase(object):
             * 2014.06.16 ``@ddalle``: First version
             * 2014.08.03 ``@ddalle``: Changed "buff" --> "pad"
         """
-        # Get the component ID.
-        compID = kwargs.get('compID')
+        # Get the component specifier.
+        face = kwargs.get('compID')
+        # Process it into a list of component IDs.
+        compID = self.config.GetCompID(face)
         # Quit if none specified.
         if not compID: return None
         # Get the overall buffer.
@@ -728,16 +730,11 @@ class TriBase(object):
         ym = kwargs.get('ym', ypad)
         zp = kwargs.get('zp', zpad)
         zm = kwargs.get('zm', zpad)
-        # Get the indices of the triangles to include.
-        if np.isscalar(compID):
-            # Single component
-            i = self.CompID == compID
-        else:
-            # List of components; initialize with first.
-            i = self.CompID == compID[0]
-            # Loop through remaining components.
-            for k in compID[1:]:
-                i = np.logical_or(i, self.CompID == k)
+        # List of components; initialize with first.
+        i = self.CompID == compID[0]
+        # Loop through remaining components.
+        for k in compID[1:]:
+            i = np.logical_or(i, self.CompID == k)
         # Get the coordinates of each vertex of included tris.
         x = self.Nodes[self.Tris[i,:]-1, 0]
         y = self.Nodes[self.Tris[i,:]-1, 1]
