@@ -9,6 +9,49 @@ This is a module to interact with :file:`Config.xml` files.
 import os
 # Import xml parser
 import xml.etree.ElementTree as ET
+# Process unique lists.
+from numpy import unique
+
+
+# Function to recursively append components to parents and their parents
+def AppendParent(Comps, comp, k, compID):
+    """Append a component ID to a parent container and its parents
+    
+    :Call:
+        >>> comp = AppendParent(Comps, comp, k, compID)
+    :Inputs:
+        *Comps*: :class:`list` (:class:`xml.etree.Element`)
+            List of XML tags with type 'Component'
+        *comp*: :class:`dict`
+            Dictionary of component ID numbers in each labeled component
+        *k*: :class:`int`
+            Index of XML tag to process
+        *compID*: :class:`int`
+            Component ID number to add to parents' lists
+    :Outputs:
+        *comp*: :class:`dict`
+            Dictionary with *compID* appended in appropriate places
+    :Versions:
+        * 2014.10.13 ``@ddalle``: First version
+    """
+    # Get the component.
+    c = Comps[k]
+    # Check for a parent.
+    parent = c.get("Parent")
+    # Get the names.
+    Names = [c.get('Name') for c in Comps]
+    # Check if that's a recognized component.
+    if parent in comp:
+        # Add this face label to the container list.
+        comp[parent].append(compID)
+        # Eliminate doubles.
+        comp[parent] = list(unique(comp[parent]))
+        # Get the parent tag.
+        k0 = Names.index(parent)
+        # Append *compID* to parent's parent, if any
+        comp = AppendParent(Comps, comp, k0, compID)
+    # Output
+    return comp
 
 # Configuration class
 class Config:
@@ -38,6 +81,12 @@ class Config:
         e = ET.parse(fname)
         # Get the list of components.
         Comps = e.findall('Component')
+        # Get the names.
+        Names = [c.get('Name') for c in Comps]
+        # Check for unnamed component.
+        if None in Names:
+            raise IOError("At least one component in "
+                + "'%s' is lacking a name." % fname)
         # Initialize containers and individual tris
         comp = {}
         # Loop through components to get containers.
@@ -47,23 +96,17 @@ class Config:
                 continue
             # Get the name.
             compName = c.attrib.get('Name')
-            # Check for error.
-            if compName is None:
-                raise IOError("At least one component in "
-                    + "'%s' is lacking a name." % fname)
             # That's all; initialize an empty list of components.
             comp[compName] = []
         # Loop through points to get the labeled faces.
-        for c in Comps:
+        for k in range(len(Comps)):
+            # Extract key.
+            c = Comps[k]
             # Check the type.
             if c.attrib.get('Type') != 'tri':
                 continue
             # Get the name.
             compName = c.attrib.get('Name')
-            # Check for error.
-            if compName is None:
-                raise IOError("At least one component in "
-                    + "'%s' is lacking a name." % fname)
             # Try to read the CompID
             try:
                 # Get the text of the 'Data' element.
@@ -75,12 +118,8 @@ class Config:
                     + "for component '%s'." % compName)
             # Save the component.
             comp[compName] = compID
-            # Get the parent name, if any.
-            parent = c.get("Parent")
-            # Check for a parent and one that's in the current list.
-            if parent in comp:
-                # Add this face label to the container list.
-                comp[parent].append(compID)
+            # Process any parents.
+            comp = AppendParent(Comps, comp, k, compID)
         # Save the individually labeled faces.
         self.faces = comp
         
