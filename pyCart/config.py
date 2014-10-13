@@ -75,7 +75,7 @@ class Config:
         # Check for the file.
         if not os.path.isfile(fname):
             # Save an empty component dictionary.
-            self.comp = {}
+            self.faces = {}
             return
         # Read the XML file.
         e = ET.parse(fname)
@@ -157,8 +157,11 @@ class Config:
                 # Single component.
                 compID.append(cID)
         else:
-            # Just append it.
-            compID.append(face)
+            # Just append it (as an integer).
+            try:
+                compID.append(int(face))
+            except Exception:
+                pass
         # Output
         return compID
     

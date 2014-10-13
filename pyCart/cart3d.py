@@ -234,12 +234,13 @@ class Cart3d(object):
         else:
             # Just read the triangulation file.
             tri = Tri(ftri)
-        # Return to original location.
-        os.chdir(fpwd)
         # Save it.
         self.tri = tri
         # Check for a config file.
+        os.chdir(self.RootDir)
         self.tri.config = Config(self.opts.get_ConfigFile())
+        # Return to original location.
+        os.chdir(fpwd)
         
         
     # Function to display current status
