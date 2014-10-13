@@ -33,6 +33,7 @@ from post       import LoadsDat
 from inputCntl   import InputCntl
 from aeroCsh     import AeroCsh
 from preSpecCntl import PreSpecCntl
+from config      import Config
 
 # Import triangulation
 from tri import Tri
@@ -237,6 +238,8 @@ class Cart3d(object):
         os.chdir(fpwd)
         # Save it.
         self.tri = tri
+        # Check for a config file.
+        self.tri.config = Config(self.opts.get_ConfigFile())
         
         
     # Function to display current status
@@ -1106,6 +1109,8 @@ class Cart3d(object):
             # Safely extract info from the XLev.
             n = XLev.get("n", 0)
             compID = XLev.get("compID", [])
+            # Process it into a list of integers (if not already).
+            compID = self.tri.config.GetCompID(compID)
             # Check for degeneracy.
             if (not n) or (not compID): continue
             # Add an XLev line.
