@@ -146,7 +146,7 @@ class Config:
             for f in face:
                 # Call this function so it passes to the non-array portion.
                 compID += self.GetCompID(f)
-        elif type(face).__name__ == 'str':
+        elif face in self.faces:
             # Process the face
             cID = self.faces[face]
             # Check if it's a list.
