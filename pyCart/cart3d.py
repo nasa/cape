@@ -1226,6 +1226,10 @@ class Cart3d(object):
             self.AeroCsh.SetnAdapt(self.opts.get_n_adapt_cycles(j))
             self.AeroCsh.SetnRefinements(self.opts.get_maxR(j))
             self.AeroCsh.SetnMultiGrid(self.opts.get_mg(j))
+            # Process the adaptation-specific lists.
+            self.AeroCsh.SetAPC(self.opts.get_apc())
+            self.AeroCsh.SetMeshGrowth(self.opts.get_mesh_growth())
+            self.AeroCsh.SetnIterList(self.opts.get_ws_it())
             # Destination file name
             fout = os.path.join(frun, 'aero.%02i.csh' % j)
             # Write the input file.

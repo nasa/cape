@@ -75,7 +75,7 @@ class AeroCsh(FileCntl):
             * 2014.06.10 ``@ddalle``: First version
         """
         # Line regular expression: "set XXXX" but with white spaces
-        reg = 'set\s+' + str(name)
+        reg = '^\s*set\s+' + str(name)
         # Form the output line.
         line = 'set %s = %s\n' % (name, val)
         # Replace the line; prepend it if missing
@@ -171,18 +171,24 @@ class AeroCsh(FileCntl):
             *AC*: :class:`pyCart.aeroCsh.AeroCsh`
                 Instance of the :file:`aero.csh` manipulation class
             *ws_it*: :class:`int`
-                Maximum number of refinements for 'cubes'
+                Number of `flowCart` iters on subsequent meshes
         :Effects:
             Writes a line of the form ``'set ws_it = ( 50 50 50 )'``
         :Versions:
             * 2014.06.10 ``@ddalle``: First version
         """
+        # Number of values specified
+        n_ws = len(ws_it)
         # Initialize the string.
         line = '('
         # Loop through values.
         for n in ws_it:
             # Add a space and the number
             line += ' %s' % n
+        # Write at least 12 entries.
+        if n_ws < 12:
+            # Repeat the last value until there are 12 entries.
+            line += (' %s' % n)*(12-n_ws)
         # Finish the line.
         line += ' )'
         # Replace it.
@@ -271,16 +277,55 @@ class AeroCsh(FileCntl):
         :Versions:
             * 2014.06.10 ``@ddalle``: First version
         """
+        # Number of values specified
+        n_ws = len(mesh_growth)
         # Initialize the string.
         line = '('
         # Loop through values.
         for n in mesh_growth:
             # Add a space and the number
             line += ' %s' % float(n)
+        # Write at least 12 entries.
+        if n_ws < 12:
+            # Repeat the last value until there are 12 entries.
+            line += (' %s' % float(n))*(12-n_ws)
         # Finish the line.
         line += ' )'
         # Replace it.
         self.SetVar('mesh_growth', line)
+        
+    # Set the mesh growth method
+    def SetAPC(self, apc):
+        """
+        Set the list of mesh growth factors
+        
+        :Call:
+            >>> AC.SetAPC(apc)
+        
+        :Inputs:
+            *AC*: :class:`pyCart.aeroCsh.AeroCsh`
+                Instance of the :file:`aero.csh` manipulation class
+            *apc*: *array_like*
+                Vector of ``'p'`` and ``'a'``
+        :Versions:
+            * 2014.10.13 ``@ddalle``: First version
+        """
+        # Number of values specified
+        n_ws = len(apc)
+        # Initialize the string.
+        line = '('
+        # Loop through values.
+        for c in apc:
+            # Add a space and the number
+            line += (" " + c)
+        # Write at least 12 entries.
+        if n_ws < 12:
+            # Repeat the last value until there are 12 entries.
+            line += (" "+c)*(12-n_ws)
+        # Finish the line.
+        line += ' )'
+        # Replace it.
+        self.SetVar('apc', line)
         
     
     
