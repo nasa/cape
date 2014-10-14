@@ -1223,6 +1223,7 @@ class Cart3d(object):
             self.AeroCsh.SetCFL(self.opts.get_cfl(j))
             self.AeroCsh.SetCFLMin(self.opts.get_cflmin(j))
             self.AeroCsh.SetnIter(self.opts.get_it_fc(j))
+            self.AeroCsh.SetnIterAdjoint(self.opts.get_it_ad(j))
             self.AeroCsh.SetnAdapt(self.opts.get_n_adapt_cycles(j))
             self.AeroCsh.SetnRefinements(self.opts.get_maxR(j))
             self.AeroCsh.SetnMultiGrid(self.opts.get_mg(j))
