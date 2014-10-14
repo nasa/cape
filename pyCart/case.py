@@ -167,7 +167,7 @@ def GetRestartIter():
         * 2014.10.02 ``@ddalle``: First version
     """
     # List the check.* files.
-    fch = glob.glob('check.*')
+    fch = glob.glob('check.*') + glob.glob('BEST/check.*')
     # Initialize iteration number until informed otherwise.
     n = 0
     # Check its contents.
@@ -177,7 +177,7 @@ def GetRestartIter():
     # Loop through the matches.
     for fname in fch:
         # Get the integer for this file.
-        i = int(fname[6:])
+        i = int(fname.split('.')[-1])
         # Use the running maximum.
         n = max(i, n)
     # Output.
@@ -237,6 +237,9 @@ def DetermineInputNumber(fc):
         if n < fc.get_IterSeq(i):
             # This case has been run, but hasn't reached the min iter cutoff
             return i
+    # Set the restart file if appropriate.
+    if not fc.get_use_aero_csh(i):
+        SetRestartIter(n)
     # Case completed; just return the last value.
     return i
     
