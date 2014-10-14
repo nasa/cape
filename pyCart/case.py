@@ -84,8 +84,10 @@ def run_flowCart():
         cmdi = cmd.flowCart(fc=fc, i=i, n=n)
     # Run the command.
     callf(cmdi, f='flowCart.out')
+    # Get the new restart iteration.
+    n = GetRestartIter()
     # Assuming that worked, move the temp output file.
-    os.rename('flowCart.out', 'run.%02i.%i' % (i, n+fc.get_it_fc(i)))
+    os.rename('flowCart.out', 'run.%02i.%i' % (i, n))
     # Check for TecPlot files to save.
     if os.path.isfile('cutPlanes.plt'):
         os.rename('cutPlanes.plt', 'cutPlanes.%02i.plt' % i)
@@ -93,8 +95,6 @@ def run_flowCart():
         os.rename('Components.i.plt', 'Components.%02i.plt' % i)
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
-    # Get current number of iterations completed.
-    n = GetRestartIter()
     # Check current iteration count.
     if n >= fc.get_LastIter():
         return
