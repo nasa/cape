@@ -307,6 +307,7 @@ class TriBase(object):
                 Name of triangulation file to read
         :Versions:
             * 2014.06.02 ``@ddalle``: First version
+            * 2014.10.27 ``@ddalle``: Added draft of reading component namess
         """
         # Open the file
         fid = open(fname, 'r')
@@ -345,6 +346,30 @@ class TriBase(object):
         self.Tris = Tris
         self.CompID = CompID
         
+        # Set location.
+        ftell = -1
+        # Initialize components.
+        Conf = {}
+        # Check for named components.
+        while fid.tell() != ftell:
+            # Save the position.
+            ftell = fid.tell()
+            # Read next line.
+            v = fid.readline().split(',')
+            # Check if it could be a line like "'1', 'Entire'"
+            if len(v) != 2: break
+            # Try to convert it.
+            try:
+                # Get an index.
+                cid = int(v[0])
+                # Get the component name.
+                cname = v[1].strip().strip('\'')
+                # Save it.
+                Conf[cid] = cname
+            except Exception:
+                break
+        # Save the named components.
+        self.Conf = Conf
         # Close the file.
         fid.close()
         
