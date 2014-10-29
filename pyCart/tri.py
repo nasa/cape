@@ -365,7 +365,7 @@ class TriBase(object):
                 # Get the component name.
                 cname = v[1].strip().strip('\'')
                 # Save it.
-                Conf[cid] = cname
+                Conf[cname] = cid
             except Exception:
                 break
         # Save the named components.

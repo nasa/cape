@@ -114,7 +114,7 @@ class Config:
                 # Process the integer.
                 compID = int(txt.split('=')[-1])
             except Exception:
-                raise IOError("Could not process Face Label "
+                raise IOError("Could not process FaceLabel "
                     + "for component '%s'." % compName)
             # Save the component.
             comp[compName] = compID
