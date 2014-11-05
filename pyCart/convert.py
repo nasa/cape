@@ -16,22 +16,19 @@ def AlphaTPhi2AlphaBeta(alpha_t, phi):
     
     :Call:
         >>> alpha, beta = pyCart.AlphaTPhi2AlphaBeta(alpha_t, beta)
-        
     :Inputs:
         *alpha_t*: :class:`float` or :class:`numpy.array`
             Total angle of attack
         *phi*: :class:`float` or :class:`numpy.array`
             Total roll angle
-            
     :Outputs:
         *alpha*: :class:`float` or :class:`numpy.array`
             Angle of attack
         *beta*: :class:`float` or :class:`numpy.array`
             Sideslip angle
+    :Versions:
+        * 2014.06.02 ``@ddalle``: First version
     """
-    # Versions:
-    #  2014.06.02 @ddalle : First version
-    
     # Trig functions.
     ca = _np.cos(alpha_t*_np.pi/180); cp = _np.cos(phi*_np.pi/180)
     sa = _np.sin(alpha_t*_np.pi/180); sp = _np.sin(phi*_np.pi/180)
@@ -54,29 +51,27 @@ def AlphaBeta2AlphaTPhi(alpha, beta):
     
     :Call:
         >>> alpha_t, phi = pyCart.AlphaBeta2AlphaTPhi(alpha, beta)
-        
     :Inputs:
         *alpha*: :class:`float` or :class:`numpy.array`
             Angle of attack
         *beta*: :class:`float` or :class:`numpy.array`
             Sideslip angle
-            
     :Outputs:
         *alpha_t*: :class:`float` or :class:`numpy.array`
             Total angle of attack
         *phi*: :class:`float` or :class:`numpy.array`
             Total roll angle
+    :Versions:
+        * 2014.06.02 ``@ddalle``: First version
+        * 2014.11.05 ``@ddalle``: Transposed alpha and beta in *w* formula
     """
-    # Versions:
-    #  2014.06.02 @ddalle : First version
-    
     # Trig functions.
     ca = _np.cos(alpha*_np.pi/180); cb = _np.cos(beta*_np.pi/180)
     sa = _np.sin(alpha*_np.pi/180); sb = _np.sin(beta*_np.pi/180)
     # Get the components of the normalized velocity vector.
-    u = ca * cb
+    u = cb * ca
     v = sb
-    w = ca * sb
+    w = cb * sa
     # Convert to alpha, beta
     phi = _np.arctan2(v, w) * 180/_np.pi
     alpha_t = _np.arccos(u) * 180/_np.pi
