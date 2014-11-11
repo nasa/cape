@@ -412,6 +412,54 @@ class TriBase(object):
         self.Normals = n
         # Done
         return None
+        
+        
+    # Function to map component ID numbers to those in a Config.
+    def ApplyConfig(self, cfg):
+        """Change component IDs to match a configuration file
+        
+        Any component that is named in *tri.Conf* and *cfg.faces* has its
+        component ID changed to match its intended value in *cfg*, which is an
+        interface to :file:`Config.xml` files.  Note that *tri.Conf* is only
+        created if the triangulation is read from a UH3D file.
+        
+        For example, if *tri* has a component ``'Body'`` that initially has
+        component ID of 4, but the user wants that component ID to instead be
+        104, then ``tri.Conf['Body']`` will be ``4``, and ``cfg.faces['Body']``
+        will be ``104``.  The result of applying this method is that all faces
+        in *tri.compID* that are labeled with a ``4`` will get changed to
+        ``104``.
+        
+        This process uses a working copy of *tri* to avoid problems with the
+        order of changing the component numbers.
+        
+        :Call:
+            tri.ApplyConfig(cfg)
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance
+            *cfg*: :class:`pyCart.config.Config`
+                Configuration instance
+        :Versions:
+            * 2014.11.10 ``@ddalle``: First version
+        """
+        # Check for Conf in the triangulation.
+        try:
+            self.Conf
+        except Exception:
+            return
+        # Make a copy of the component IDs.
+        compID = self.CompID.copy()
+        # Check for components.
+        for k in self.Conf:
+            # Check if the component is in the cfg.
+            cID = cfg.faces.get(k)
+            # Check for empty or list.
+            if cID and (type(cID).__name__ == "int"):
+                # Assign the new value.
+                self.CompID[compID==self.Conf[k]] = cID
+                # Save it in the Conf, too.
+                self.Conf[k] = cID
        
        
     # Function to get node indices from component ID(s)
