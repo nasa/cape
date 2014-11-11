@@ -38,10 +38,13 @@ def AppendParent(Comps, comp, k, compID):
     c = Comps[k]
     # Check for a parent.
     parent = c.get("Parent")
+    # Check for recursion.
+    if c.get('Name') == parent:
+        raise IOError('Component "%s" is its own parent.' % parent)
     # Get the names.
     Names = [c.get('Name') for c in Comps]
     # Check if that's a recognized component.
-    if parent in comp:
+    if parent in Names:
         # Add this face label to the container list.
         comp[parent].append(compID)
         # Eliminate doubles.
@@ -92,10 +95,10 @@ class Config:
         # Loop through components to get containers.
         for c in Comps:
             # Check the type.
-            if c.attrib.get('Type') != 'container':
+            if c.get('Type') != 'container':
                 continue
             # Get the name.
-            compName = c.attrib.get('Name')
+            compName = c.get('Name')
             # That's all; initialize an empty list of components.
             comp[compName] = []
         # Loop through points to get the labeled faces.
@@ -103,10 +106,10 @@ class Config:
             # Extract key.
             c = Comps[k]
             # Check the type.
-            if c.attrib.get('Type') != 'tri':
+            if c.get('Type') != 'tri':
                 continue
             # Get the name.
-            compName = c.attrib.get('Name')
+            compName = c.get('Name')
             # Try to read the CompID
             try:
                 # Get the text of the 'Data' element.
