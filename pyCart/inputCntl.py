@@ -19,7 +19,12 @@ from fileCntl import FileCntl, _num, _float
 # Base this class off of the main file control class.
 class InputCntl(FileCntl):
     """
-    File control class for :file:`input.cntl` files
+    File control class for :file:`input.cntl`
+    =========================================
+            
+    This class is derived from the :class:`pyCart.fileCntl.FileCntl` class, so
+    all methods applicable to that class can also be used for instances of this
+    class.
     
     :Call:
         >>> cntl = pyCart.InputCntl()
@@ -28,10 +33,6 @@ class InputCntl(FileCntl):
     :Inputs:
         *fname*: :class:`str`
             Name of CNTL file to read, defaults to ``'input.cntl'``
-            
-    This class is derived from the :class:`pyCart.fileCntl.FileCntl` class, so
-    all methods applicable to that class can also be used for instances of this
-    class.
     """
     
     # Initialization method (not based off of FileCntl)

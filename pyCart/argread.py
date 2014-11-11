@@ -68,8 +68,10 @@ def readkeys(argv):
             ['a.1']
             >>> kw
             {'h': True, 'i': 'in.tri'}
+            
+    :Versions:
+        * 2014.06.10 ``@ddalle``: First version
     """
-    
     # Check the input.
     if type(argv) is not list:
         raise TypeError('Input must be a list of strings.')
@@ -160,8 +162,10 @@ def readflags(argv):
             ['fname.dat']
             >>> kw
             {'t': True, 'v': True, 'f': True}
+            
+    :Versions:
+        * 2014.06.10 ``@ddalle``: First version
     """
-    
     # Check the input.
     if type(argv) is not list:
         raise TypeError('Input must be a list of strings.')
@@ -174,6 +178,8 @@ def readflags(argv):
     iarg = 1
     # Loop until the last argument has been reached.
     for i in range(argc):
+        # Check for last input.
+        if iarg >= argc: break
         # Read the argument. (convert to str if needed)
         a = str(argv[iarg])
         # Check for hyphens.
@@ -230,7 +236,7 @@ def readflagstar(argv):
     following value.
     
     :Call:
-        >>> (args, kwargs) = argread.readflags(argv)
+        >>> (args, kwargs) = argread.readflagstar(argv)
     
     :Inputs:
         *argv*: :class:`list` (:class:`str`)
@@ -266,8 +272,10 @@ def readflagstar(argv):
             []
             >>> kw
             {'t': True, 'v': True, 'f': 'fname.dat'}
+            
+    :Versions:
+        * 2014.10.10 ``@ddalle``: First version
     """
-    
     # Check the input.
     if type(argv) is not list:
         raise TypeError('Input must be a list of strings.')
@@ -280,6 +288,8 @@ def readflagstar(argv):
     iarg = 1
     # Loop until the last argument has been reached.
     for i in range(argc):
+        # Check for last input.
+        if iarg >= argc: break
         # Read the argument. (convert to str if needed)
         a = str(argv[iarg])
         # Check for hyphens.

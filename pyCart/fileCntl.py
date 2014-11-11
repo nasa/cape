@@ -25,15 +25,12 @@ def _float(s):
     
     :Call:
         >>> x = _float(s)
-        
     :Inputs:
         *s*: :class:`str`
             String representation of the value to be interpreted
-    
     :Outputs:
         *x*: :class:`float` or :class:`str`
             String converted to float if possible
-            
     :Examples:
         >>> _float('1')
         1.0
@@ -41,10 +38,9 @@ def _float(s):
         'a'
         >>> _float('1.1')
         1.1
+    :Versions:
+        * 2014-06-10 ``@ddalle``: First version
     """
-    # Versions:
-    #  2014.06.10 @ddalle  : First version
-    
     # Attempt the conversion.
     try:
         # Use built-in converter
@@ -63,15 +59,12 @@ def _int(s):
     
     :Call:
         >>> x = _int(s)
-        
     :Inputs:
         *s*: :class:`str`
             String representation of the value to be interpreted
-    
     :Outputs:
         *x*: :class:`int` or :class:`str`
             String converted to int if possible
-            
     :Examples:
         >>> _int('1')
         1
@@ -79,10 +72,9 @@ def _int(s):
         'a'
         >>> _int('1.')
         '1.'
+    :Versions:
+        * 2014-06-10 ``@ddalle``: First version
     """
-    # Versions:
-    #  2014.06.10 @ddalle  : First version
-    
     # Attempt the conversion.
     try:
         # Use built-in converter
@@ -101,15 +93,12 @@ def _num(s):
     
     :Call:
         >>> x = _num(s)
-        
     :Inputs:
         *s*: :class:`str`
             String representation of the value to be interpreted
-    
     :Outputs:
         *x*: :class:`float`, :class:`int`, or :class:`str`
             String converted to int or float if possible
-            
     :Examples:
         >>> _num('1')
         1
@@ -117,10 +106,9 @@ def _num(s):
         'a'
         >>> _num('1.')
         1.0
+    :Versions:
+        * 2014-06-10 ``@ddalle``: First version
     """
-    # Versions:
-    #  2014.06.10 @ddalle  : First version
-    
     # Attempt the conversion.
     try:
         # Use built-in converter
@@ -147,11 +135,9 @@ class FileCntl:
     
     :Call:
         >>> FC = pyCart.fileCntl.FileCntl(fname)
-        
     :Inputs:
         *fname*: :class:`str`
             Name of file to read from and manipulate
-            
     :Data members:
         *FC.fname*: :class:`str`
             Name of file instance was read from
@@ -197,16 +183,11 @@ class FileCntl:
         
         :Call:
             >>> FC.Read(fname)
-        
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
             *fname*: :class:`str`
                 Name of file to read from
-                
-        :Outputs:
-            ``None``
-            
         :Effects:
             *FC.lines*: :class:`list`
                 List of lines in file is created
@@ -214,10 +195,9 @@ class FileCntl:
                 Whether or not the lines in the sections has been updated
             *FC._updated_lines*: :class:`bool`
                 Whether or not the lines in the global text has been updated
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Open the file and read the lines.
         self.lines = open(fname).readlines()
         # Initialize update statuses.
@@ -234,7 +214,6 @@ class FileCntl:
         :Call:
             >>> FC.SplitToSections()
             >>> FC.SplitToSections(reg="\$__([\w_]+)", ngr=1)
-            
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
@@ -250,19 +229,14 @@ class FileCntl:
                 Group number from which to take name of section.  This is always
                 ``1`` unless the section-starting regular expression has more
                 than one group.
-                
-        :Outputs:
-            ``None``
-            
         :Effects:
             *FC.SectionNames*: :class:`list`
                 List of section names is created (includes "_header")
             *FC.Section*: :class:`dict`
                 Dictionary of section line lists is created
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Initial section name
         sec = "_header"
         # Initialize the sections.
@@ -292,19 +266,16 @@ class FileCntl:
         
         :Call:
             >>> FC.UpdateLines()
-            
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
-        
         :Effects:
             *FC.lines*: :class:`list`
                 Lines are rewritten to match the sequence of lines from the
                 sections
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Check for lines
         if not self._updated_sections:
             # No updates.
@@ -323,21 +294,17 @@ class FileCntl:
     # Function to update the text based on the section content.
     def UpdateSections(self):
         """
-        Remake the section split if necessary.
+        Remake the section split if necessary.  This runs
+        :func:`SplitToSections()` is run if *FC._updated_lines* is ``True``. 
         
         :Call:
             >>> FC.UpdateSections()
-            
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
-        
-        :Effects:
-            :func:`SplitToSections()` is run if *FC._updated_lines* is ``True``
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Check for lines
         if not self._updated_lines:
             # No updates.
@@ -350,24 +317,18 @@ class FileCntl:
         
     # Method to ensure that an instance has a certain section
     def AssertSection(self, sec):
-        """
-        Assert that a certain section is present
+        """Assert that a certain section is present or raise an exception
         
         :Call:
             >>> FC.AssertSection(sec)
-            
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance, defaults to *FC.fname*
             *sec*: :class:`str`
                 Name of section to check for
-        
-        :Effects:
-            Raises an exception if *FC* does not have the section
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Update sections.
         self.UpdateSections()
         # Check for the section.
@@ -379,29 +340,19 @@ class FileCntl:
         
     # Method to write the file.
     def Write(self, fname=None):
-        """
-        Write to text file
+        """Write to text file
         
         :Call:
             >>> FC.Write()
             >>> FC.Write(fname)
-        
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance, defaults to *FC.fname*
             *fname*: :class:`str`
                 Name of file to write to
-                
-        :Outputs:
-            ``None``
-            
-        :Effects:
-            Runs :func:`UpdateLines` if appropriate and writes *FC.lines* to
-            text file
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Update the lines if appropriate.
         self.UpdateLines()
         # Default file name.
@@ -416,29 +367,19 @@ class FileCntl:
         
     # Method to write the file as an executable.
     def WriteEx(self, fname=None):
-        """
-        Write to text file as an executable script
+        """Write to text file as an executable script
         
         :Call:
-            >>> FC.Write()
-            >>> FC.Write(fname)
-        
+            >>> FC.WriteEx()
+            >>> FC.WriteEx(fname)
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance, defaults to *FC.fname*
             *fname*: :class:`str`
                 Name of file to write to
-                
-        :Outputs:
-            ``None``
-            
-        :Effects:
-            Runs :func:`UpdateLines` if appropriate and writes *FC.lines* to
-            text file
+        :Versions:
+            * 2014-06-23 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.23 @ddalle  : First version
-        
         # Update the lines if appropriate.
         self.UpdateLines()
         # Default file name.
@@ -499,17 +440,17 @@ class FileCntl:
             This example replaces each line with a different value for the Mach
             number.
             
-                >>> FC.ReplaceLineStartsWidth('Mach', ['Mach 2.0', 'Mach 4.0']
+                >>> FC.ReplaceLineStartsWith('Mach', ['Mach 2.0', 'Mach 4.0']
                 
             Finally, this example is different from the first example in that it
             will replace the first line and then quit before it can find the
             second match.
             
-                >>> FC.ReplaceLineStartsWidth('Mach', ['Mach 4.0'])
+                >>> FC.ReplaceLineStartsWith('Mach', ['Mach 4.0'])
+                
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Set the update status.
         self.UpdateLines()
         self._updated_lines = True
@@ -545,7 +486,6 @@ class FileCntl:
         :Call:
             >>> n = FC.ReplaceLineInSectionStartsWith(sec, start, line)
             >>> n = FC.ReplaceLineInSectionStartsWith(sec, start, lines)
-            
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
@@ -557,22 +497,18 @@ class FileCntl:
                 String to replace every match with
             *lines*: :class:`list`
                 List of strings to match first ``len(lines)`` matches with
-        
         :Outputs:
             *n*: :class:`int`
                 Number of matches found
-                
         :Effects:
-            Some lines in *FC.Section[sec]* may be replaced. 
-            
+            Some lines in *FC.Section[sec]* may be replaced.
         :See also:
             This function is similar to
             :func:`pyCart.fileCntl.FileCntl.ReplaceLineStartsWith` except that
             the search is restricted to a specified section.
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Number of matches.
         n = 0
         # Update the sections.
@@ -605,12 +541,10 @@ class FileCntl:
         
     # Method to insert a line somewhere
     def InsertLine(self, i, line):
-        """
-        Insert a line of text somewhere into the text
+        """Insert a line of text somewhere into the text
         
         :Call:
             >>> FC.InsertLine(i, line)
-            
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
@@ -618,13 +552,9 @@ class FileCntl:
                 Index to which to insert the line
             *line*: :class:`str`
                 String to add
-        
-        :Effects:
-            A line is inserted to *FC.lines*
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Set the update flags.
         self.UpdateLines()
         self._updated_lines = True
@@ -633,24 +563,18 @@ class FileCntl:
         
     # Method to append a line
     def AppendLine(self, line):
-        """
-        Append a line of text
+        """Append a line of text to *FC.lines*
         
         :Call:
             >>> FC.AppendLine(line)
-            
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
             *line*: :class:`str`
                 String to add
-        
-        :Effects:
-            A line is appended to *FC.lines*
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Set the update flag.
         self.UpdateLines()
         self._updated_lines = True
@@ -659,24 +583,18 @@ class FileCntl:
         
     # Method to append a line
     def PrependLine(self, line):
-        """
-        Prepend a line of text
+        """Prepend a line of text to *FC.lines*
         
         :Call:
             >>> FC.PrependLine(line)
-            
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
             *line*: :class:`str`
                 String to add
-        
-        :Effects:
-            A line is prepended to *FC.lines*
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Set the update flag.
         self.UpdateLines()
         self._updated_lines = True
@@ -691,7 +609,6 @@ class FileCntl:
         
         :Call:
             >>> FC.InsertLineToSection(sec, i, line)
-            
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
@@ -701,13 +618,11 @@ class FileCntl:
                 Index to which to insert the line
             *line*: :class:`str`
                 String to add
-        
         :Effects:
             A line is inserted to *FC.Section[sec]*
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Set the update flags.
         self.UpdateSections()
         self._updated_sections = True
@@ -723,7 +638,6 @@ class FileCntl:
         
         :Call:
             >>> FC.AppendLineToSection(sec, line)
-            
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
@@ -731,13 +645,9 @@ class FileCntl:
                 Name of section to update
             *line*: :class:`str`
                 String to add
-        
-        :Effects:
-            A line is appended to *FC.Section[sec]*
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Set the update flags.
         self.UpdateSections()
         self._updated_sections = True
@@ -753,7 +663,6 @@ class FileCntl:
         
         :Call:
             >>> FC.PrependLineToSection(sec, line)
-            
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
@@ -761,13 +670,9 @@ class FileCntl:
                 Name of section to update
             *line*: :class:`str`
                 String to add
-        
-        :Effects:
-            A line is prepended to *FC.Section[sec]*
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Set the update flags.
         self.UpdateSections()
         self._updated_sections = True
@@ -785,23 +690,19 @@ class FileCntl:
         :Call:
             >>> n = FC.DeleteLineStartsWith(start)
             >>> n = FC.DeleteLineStartsWith(start, count)
-        
         :Inputs:
             *start*: :class:`str`
                 Line-starting string to search for
             *count*: :class:`int`
                 Maximum number of lines to delete (default is ``1``
-        
         :Outputs:
             *n*: :class:`int`
                 Number of deletions made
-                
         :Effects:
             Lines in *FC.lines* may be removed if they start with *start*.
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Initialize the deletion count.
         n = 0
         # Update the text.
@@ -836,7 +737,6 @@ class FileCntl:
         :Call:
             >>> n = FC.DeleteLineInSectionStartsWith(sec, start)
             >>> n = FC.DeleteLineInSectionStartsWith(sec, start, count)
-        
         :Inputs:
             *sec*: :class:`str`
                 Name of section to search
@@ -844,18 +744,15 @@ class FileCntl:
                 Line-starting string to search for
             *count*: :class:`int`
                 Maximum number of lines to delete (default is ``1``
-        
         :Outputs:
             *n*: :class:`int`
                 Number of deletions made
-                
         :Effects:
             Lines in *FC.Section[sec]* may be removed if they start with
             *start*.
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Initialize the deletion count.
         n = 0
         # Update the sections.
@@ -894,7 +791,6 @@ class FileCntl:
         :Call:
             >>> FC.ReplaceOrAddLineStartsWith(start, line)
             >>> FC.ReplaceOrAddLineStartsWith(start, line, i)
-            
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
@@ -904,16 +800,11 @@ class FileCntl:
                 String to replace every match with
             *i*: :class:`int`
                 Location to add line (by default it is appended)
-                
-        :Outputs:
-            ``None``
-            
         :Effects:
             Replaces line in section *FC.lines* or adds it if not found
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Call the replace method (only perform once).
         n = self.ReplaceLineStartsWith(start, [line])
         # Check for a match.
@@ -937,7 +828,6 @@ class FileCntl:
         :Call:
             >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, start, line)
             >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, start, line, i)
-            
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
@@ -949,16 +839,11 @@ class FileCntl:
                 String to replace every match with
             *i*: :class:`int`
                 Location to add line (by default it is appended)
-                
-        :Outputs:
-            ``None``
-            
         :Effects:
             Replaces line in section *FC.Section[sec]* or adds it if not found
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Call the replace method (only perform once).
         n = self.ReplaceLineInSectionStartsWith(sec, start, [line])
         # Must have the section.
@@ -1028,10 +913,10 @@ class FileCntl:
             second match.
             
                 >>> FC.ReplaceLineSearch('Mach\s+[0-9.]+', ['Mach 2.0'])
+                
+        :Versions:
+            * 2014-06-04 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.04 @ddalle  : First version
-        
         # Set the update status.
         self.UpdateLines()
         self._updated_lines = True
@@ -1067,7 +952,6 @@ class FileCntl:
         :Call:
             >>> n = FC.ReplaceLineInSectionSearch(sec, reg, line)
             >>> n = FC.ReplaceLineInSectionSearch(sec, reg, lines)
-            
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
@@ -1079,22 +963,18 @@ class FileCntl:
                 String to replace every match with
             *lines*: :class:`list`
                 List of strings to match first ``len(lines)`` matches with
-        
         :Outputs:
             *n*: :class:`int`
                 Number of matches found
-                
         :Effects:
-            Some lines in *FC.Section[sec]* may be replaced. 
-            
+            Some lines in *FC.Section[sec]* may be replaced.
         :See also:
             This function is similar to
             :func:`pyCart.fileCntl.FileCntl.ReplaceLineSearch` except that
             the search is restricted to a specified section.
+        :Versions:
+            * 2014-06-04 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.04 @ddalle  : First version
-        
         # Number of matches.
         n = 0
         # Update the sections.
@@ -1134,7 +1014,6 @@ class FileCntl:
         :Call:
             >>> FC.ReplaceOrAddLineSearch(reg, line)
             >>> FC.ReplaceOrAddLineSearch(reg, line, i)
-            
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
@@ -1144,16 +1023,11 @@ class FileCntl:
                 String to replace first match with
             *i*: :class:`int`
                 Location to add line (by default it is appended)
-                
-        :Outputs:
-            ``None``
-            
         :Effects:
             Replaces line in section *FC.lines* or adds it if not found
+        :Versions:
+            * 2014-06-04 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.04 @ddalle  : First version
-        
         # Call the replace method (only perform once).
         n = self.ReplaceLineSearch(reg, [line])
         # Check for a match.
@@ -1177,7 +1051,6 @@ class FileCntl:
         :Call:
             >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, reg, line)
             >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, reg, line, i)
-            
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
@@ -1189,16 +1062,11 @@ class FileCntl:
                 String to replace every match with
             *i*: :class:`int`
                 Location to add line (by default it is appended)
-                
-        :Outputs:
-            ``None``
-            
         :Effects:
             Replaces line in section *FC.Section[sec]* or adds it if not found
+        :Versions:
+            * 2014-06-04 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.03 @ddalle  : First version
-        
         # Call the replace method (only perform once).
         n = self.ReplaceLineInSectionSearch(sec, reg, [line])
         # Must have the section.
@@ -1223,7 +1091,6 @@ class FileCntl:
         :Call:
             >>> lines = FC.GetLineStartsWith(start)
             >>> lines = FC.GetLineStartsWith(start, n)
-        
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
@@ -1231,14 +1098,12 @@ class FileCntl:
                 String to test as literal match for beginning of each line
             *n*: :class:`int`
                 Maximum number of matches to search for
-                
         :Outputs:
             *lines*: :class:`list` (:class:`str`)
                 List of lines that match pattern
+        :Versions:
+            * 2014-06-10 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.10 @ddalle  : First version
-        
         # Set the update status.
         self.UpdateLines()
         # Initialize matches
@@ -1266,7 +1131,6 @@ class FileCntl:
         :Call:
             >>> lines = FC.GetLineSearch(reg)
             >>> lines = FC.GetLineSearch(reg, n)
-        
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
@@ -1274,14 +1138,12 @@ class FileCntl:
                 Regular expression to match beginning of line
             *n*: :class:`int`
                 Maximum number of matches to search for
-                
         :Outputs:
             *lines*: :class:`list` (:class:`str`)
                 List of lines that match pattern
+        :Versions:
+            * 2014-06-10 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.10 @ddalle  : First version
-        
         # Set the update status.
         self.UpdateLines()
         # Initialize matches
@@ -1309,7 +1171,6 @@ class FileCntl:
         :Call:
             >>> lines = FC.GetLineInSectionStartsWith(sec, start)
             >>> lines = FC.GetLineInSectionStartsWith(sec, start, n)
-        
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
@@ -1319,14 +1180,12 @@ class FileCntl:
                 String to test as literal match for beginning of each line
             *n*: :class:`int`
                 Maximum number of matches to search for
-                
         :Outputs:
             *lines*: :class:`list` (:class:`str`)
                 List of lines that match pattern
+        :Versions:
+            * 2014-06-10 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.10 @ddalle  : First version
-        
         # Set the update status.
         self.UpdateSections()
         # Initialize matches
@@ -1356,7 +1215,6 @@ class FileCntl:
         :Call:
             >>> lines = FC.GetLineInSectionSearch(sec, reg)
             >>> lines = FC.GetLineInSectionSearch(sec, reg, n)
-        
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance
@@ -1366,14 +1224,12 @@ class FileCntl:
                 Regular expression to match beginning of line
             *n*: :class:`int`
                 Maximum number of matches to search for
-                
         :Outputs:
             *lines*: :class:`list` (:class:`str`)
                 List of lines that match pattern
+        :Versions:
+            * 2014-06-10 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.10 @ddalle  : First version
-        
         # Set the update status.
         self.UpdateSections()
         # Initialize matches
