@@ -76,8 +76,15 @@ class AeroCsh(FileCntl):
         """
         # Line regular expression: "set XXXX" but with white spaces
         reg = '^\s*set\s+' + str(name)
+        # Convert *val* to string.
+        val = str(val)
         # Form the output line.
-        line = 'set %s = %s\n' % (name, val)
+        if val == '':
+            # Empty line, used to turn a flag off.
+            line = 'set %s' % name
+        else:
+            # Set a value.
+            line = 'set %s = %s\n' % (name, val)
         # Replace the line; prepend it if missing
         self.ReplaceOrAddLineSearch(reg, line)
         
@@ -279,12 +286,10 @@ class AeroCsh(FileCntl):
         
     # Set the mesh growth factor list
     def SetMeshGrowth(self, mesh_growth):
-        """
-        Set the list of mesh growth factors
+        """Set the list of mesh growth factors
         
         :Call:
             >>> AC.SetMeshGrowth(mesh_growth)
-        
         :Inputs:
             *AC*: :class:`pyCart.aeroCsh.AeroCsh`
                 Instance of the :file:`aero.csh` manipulation class
@@ -312,12 +317,10 @@ class AeroCsh(FileCntl):
         
     # Set the mesh growth method
     def SetAPC(self, apc):
-        """
-        Set the list of mesh growth factors
+        """Set the list of mesh growth factors
         
         :Call:
             >>> AC.SetAPC(apc)
-        
         :Inputs:
             *AC*: :class:`pyCart.aeroCsh.AeroCsh`
                 Instance of the :file:`aero.csh` manipulation class
@@ -343,7 +346,29 @@ class AeroCsh(FileCntl):
         # Replace it.
         self.SetVar('apc', line)
         
-    
+    # Set y_is_spanwise on or off.
+    def SetYIsSpanwise(self, y_is_spanwise):
+        """Turn on or off *y_is_spanwise* flag
+        
+        :Call:
+            >>> AC.SetYIsSpanwise(y_is_spanwise)
+        :Inputs:
+            *AC*: :class:`pyCart.aeroCsh.AeroCsh`
+                Instance of the :file:`aero.csh` manipulation class
+            *y_is_spanwise*: :class:`bool`
+                Whether or not to use *y*-axis as spanwise axis
+        :Versions:
+            * 2014.11.11 ``@ddalle``: First version
+        """
+        # Check value.
+        if y_is_spanwise:
+            # Set the flag.
+            val = '-y_is_spanwise'
+        else:
+            # Set the flat to empty.
+            val = ''
+        # Modify the line to its appropriate value.
+        self.SetVar('y_is_spanwise', val)
     
     
     
