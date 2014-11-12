@@ -88,3 +88,6 @@ from preSpecCntl import PreSpecCntl
 
 # Get the conversion tools directly.
 from convert import *
+
+# Wholesale modules
+import manage
