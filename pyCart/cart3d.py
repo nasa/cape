@@ -39,7 +39,8 @@ from config      import Config
 from tri import Tri
 
 # Import history modules.
-import aero
+#import aero
+import history
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -280,6 +281,13 @@ class Cart3d(object):
         :Versions:
             * 2014-11-12 ``@ddalle``: First version
         """
+        # Check for the aero module.
+        try:
+            # Mindlessly check if Python recognizes the name.
+            aero
+        except NameError:
+            # Import the aero module.
+            import aero
         # Go to root folder safely.
         fpwd = os.getcwd()
         # Get the case names.
