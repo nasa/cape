@@ -38,6 +38,8 @@ from config      import Config
 # Import triangulation
 from tri import Tri
 
+# Import history modules.
+import aero
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -241,6 +243,82 @@ class Cart3d(object):
         self.tri.config = Config(self.opts.get_ConfigFile())
         # Return to original location.
         os.chdir(fpwd)
+        
+        
+    # Function to plot most recent results.
+    def Plot(self, comp, C, nRow=None, nCol=None, **kw):
+        """Plot force, moment, and/or residual history for all cases
+        
+        :Call:
+            >>> h = cart3d.Plot(comp, C, nRow=None, nCol=None, **kw)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *comp*: :class:`str`
+                Name of component to plot
+            *C*: :class:`list` (:class:`str`)
+                List of coefficients to plot
+            *nRow*: :class:`int`
+                Number of rows of subplots to make
+            *nCol*: :class:`int`
+                Number of columns of subplots to make
+            *n*: :class:`int`
+                Only show the last *n* iterations
+            *nAvg*: :class:`int`
+                Use the last *nAvg* iterations to compute an average
+            *d0*: :class:`float`
+                Default delta to use
+            *d*: :class:`dict`
+                Dictionary of deltas for each component
+            *tag*: :class:`str` 
+                Tag to put in upper corner, for instance case number and name
+            *restriction*: :class:`str`
+                Type of data, e.g. ``"SBU - ITAR"`` or ``"U/FOUO"``
+        :Outputs:
+            *h*: :class:`list` (:class:`dict`)
+                List of dictionaries of figure/plot handles
+        :Versions:
+            * 2014-11-12 ``@ddalle``: First version
+        """
+        # Go to root folder safely.
+        fpwd = os.getcwd()
+        # Get the case names.
+        fruns = self.x.GetFullFolderNames()
+        # Default number of rows and cols.
+        if (nCol is None):
+            # Make it up.
+            if len(C) == 4:
+                # 2x2 plot
+                nRow = 2
+                nCol = 2
+            else:
+                # Nx1 plot
+                nRow = len(C)
+                nCol = 1
+        elif (nRow is None):
+            # Assume the number of cols is correct.
+            nRow = len(C)/nCol
+        # Initialize output.
+        h = []
+        # Loop through runs.
+        for i in range(len(fruns)):
+            # Get the folder name.
+            frun = fruns[i]
+            # Go to the folder.
+            os.chdir(self.RootDir)
+            os.chdir(frun)
+            # Make a new figure.
+            aero.plt.figure()
+            # Read the aerodata and extract the single component.
+            FM = aero.Aero([comp])[comp]
+            # Tag the run.
+            kw['tag'] = 'Case %i: %s\nComponent=%s' % (i, frun, comp)
+            # Set up the plot.
+            h.append(FM.Plot(nRow, nCol, C, **kw))
+        # Return to original location.
+        os.chdir(fpwd)
+        # Output
+        return h
         
         
     # Function to display current status
