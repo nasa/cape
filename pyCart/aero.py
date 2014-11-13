@@ -15,6 +15,8 @@ import os
 import numpy as np
 # Advanced text (regular expressions)
 import re
+# Import history interface
+from history import History
 # Plotting
 import matplotlib.pyplot as plt
 from matplotlib.text import Text
@@ -519,7 +521,7 @@ class FM(object):
             # Check if residual was requested.
             if c == 'L1':
                 # Read the history.
-                hist = History()
+                hist = Hist()
                 # Plot it.
                 h[c] = hist.PlotL1(n=n)
             else:
@@ -630,16 +632,13 @@ class FM(object):
     
 
 # Aerodynamic history class
-class History(object):
+class Hist(History):
     """
-    Iterative history class
-    =======================
-    
     This class provides an interface to residuals, CPU time, and similar data
     for a given run directory
     
     :Call:
-        >>> hist = pyCart.history.History()
+        >>> hist = pyCart.aero.Hist()
     :Outputs:
         *hist*: :class:`pyCart.history.History`
             Instance of the run history class
@@ -647,56 +646,6 @@ class History(object):
         * 2014-11-12 ``@ddalle``: Starter version
     """
     
-    # Initialization method
-    def __init__(self):
-        """Initialization method
-        
-        :Versions:
-            * 2014-11-12 ``@ddalle``: First version
-        """
-        
-        # Process the best data folder.
-        if os.path.islink('BEST'):
-            # There's a BEST/ folder; use it as most recent adaptation cycle.
-            fdir = 'BEST'
-        elif os.path.isdir('adapt00'):
-            # It's an adaptive run, but it hasn't gotten far yet.
-            fdir = 'adapt00'
-        else:
-            # This is not an adaptive cycle; use root folder.
-            fdir = '.'
-        # History file name.
-        fhist = os.path.join(fdir, 'history.dat')
-        # Read the data.
-        A = np.loadtxt(fhist)
-        # Save the number of iterations.
-        self.nIter = A.shape[0]
-        # Save the iteration numbers.
-        self.i = A[:,0]
-        # Save the CPU time per processor.
-        self.CPUtime = A[:,1]
-        # Save the maximum residual.
-        self.maxResid = A[:,2]
-        # Save the global residual.
-        self.L1Resid = A[:,3]
-        # Check for a 'user_time.dat' file.
-        if os.path.isfile('user_time.dat'):
-            # Initialize time
-            t = 0.0
-            # Loop through lines.
-            for line in open('user_time.dat').readlines():
-                # Check comment.
-                if line.startswith('#'): continue
-                # Add to the time.
-                t += np.sum([float(v) for v in line.split()[1:]])
-        else:
-            # Find the indices of run break points.
-            i = np.where(self.CPUtime[1:] < self.CPUtime[:-1])[0]
-            # Sum the end times.
-            t = np.sum(self.CPUtime[i]) + self.CPUtime[-1]
-        # Save the time.
-        self.CPUhours = t / 3600.
-        
     # Plot function
     def PlotL1(self, n=None):
         """Plot the L1 residual
@@ -705,7 +654,7 @@ class History(object):
             >>> h = hist.PlotL1()
             >>> h = hist.PlotL1(n)
         :Inputs:
-            *hist*: :class:`pyCart.history.History`
+            *hist*: :class:`pyCart.aero.Hist`
                 Instance of the run history class
             *n*: :class:`int`
                 Only show the last *n* iterations
