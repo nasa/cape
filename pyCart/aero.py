@@ -1,6 +1,6 @@
 """
-Run Directory History Interface: :mod:`pyCart.aero`
-===================================================
+Aerodynamic Iterative History: :mod:`pyCart.aero`
+=================================================
 
 This module contains functions for reading and processing forces, moments, and
 other statistics from a run directory.
@@ -15,9 +15,11 @@ import os
 import numpy as np
 # Advanced text (regular expressions)
 import re
+# Plotting
+import matplotlib.pyplot as plt
 
 
-# History class
+# Aerodynamic history class
 class Aero(dict):
     """
     Aerodynamic history class
@@ -64,6 +66,9 @@ class Aero(dict):
         if (not comps):
             # Extract keys from dictionary.
             comps = self.Components.keys()
+        elif (type(comps).__name__ == "str"):
+            # Make a singleton list.
+            comps = [comps]
         # Loop through components.
         for comp in comps:
             # Expected name of the history file.
@@ -253,13 +258,13 @@ class FM(object):
         # Check for a moment.
         if ('CA' in self.C) and ('CLL' in self.C):
             # Force and moment.
-            txt += ' FM'
+            txt += 'FM'
         elif ('CA' in self.C):
             # Force only
-            txt += ' Force'
+            txt += 'Force'
         elif ('CLL' in self.C):
             # Moment only
-            txt += ' Moment'
+            txt += 'Moment'
         # Add number of iterations.
         txt += (', i=%i' % self.i.size)
         # Add MRP if possible.
@@ -321,6 +326,124 @@ class FM(object):
             self.CA = A[:,1]
             self.CY = A[:,2]
             self.CN = A[:,3]
+            
+    # Function to plot several coefficients.
+    def Plot(self, nRow, nCol, C, n=1000, nAvg=100, d={}, d0=0.01):
+        """Plot one or several component histories
+        
+        :Call:
+            >>> h = FM.Plot(nRow, nCol, C, n=1000, nAvg=100, d={}, d0=0.01)
+        :Inputs:
+            *FM*: :class:`pyCart.aero.FM`
+                Instance of the force and moment class
+            *nRow*: :class:`int`
+                Number of rows of subplots to make
+            *nCol*: :class:`int`
+                Number of columns of subplots to make
+            *C*: :class:`list` (:class:`str`)
+                List of coefficients to plot
+            *n*: :class:`int`
+                Only show the last *n* iterations
+            *nAvg*: :class:`int`
+                Use the last *nAvg* iterations to compute an average
+            *d*: :class:`dict`
+                Dictionary of deltas for each component
+            *d0*: :class:`float`
+                Default delta to use
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of figure/plot handles
+        :Versions:
+            * 2014-11-12 ``@ddalle``: First version
+        """
+        # Check for single input.
+        if type(C).__name__ == "str": C = [C]
+        # Number of components
+        nC = len(C)
+        # Check inputs.
+        if nC > nRow*nCol:
+            raise IOError("Too many components")
+        # Initialize handles.
+        h = {}
+        # Loop through components.
+        for i in range(nC):
+            # Get coefficient.
+            c = C[i]
+            # Pull up the subplot.
+            plt.subplot(nRow, nCol, i+1)
+            # Get the delta
+            di = d.get(c, d0)
+            # Plot
+            h[c] = self.PlotCoeff(c, n=n, nAvg=nAvg, d=di)
+            # Turn off overlapping xlabels for condensed plots.
+            if (nCol==1 or nRow>2) and (i+nCol<nC):
+                # Kill the xlabel and xticklabels.
+                h[c]['ax'].set_xticklabels(())
+                h[c]['ax'].set_xlabel('')
+        # Output
+        return h
+        
+    # Function to plot a single coefficient.
+    def PlotCoeff(self, c, n=1000, nAvg=100, d=0.01):
+        """Plot a single coefficient history
+        
+        :Call:
+            >>> h = FM.PlotCoeff(c, n=1000, nAvg=100, d=0.01)
+        :Inputs:
+            *FM*: :class:`pyCart.aero.FM`
+                Instance of the force and moment class
+            *c*: :class:`str`
+                Name of coefficient to plot, e.g. ``'CA'``
+            *n*: :class:`int`
+                Only show the last *n* iterations
+            *nAvg*: :class:`int`
+                Use the last *nAvg* iterations to compute an average
+            *d*: :class:`float`
+                Delta in the coefficient to show expected range
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of figure/plot handles
+        :Versions:
+            * 2014-11-12 ``@ddalle``: First version
+        """
+        # Extract the data.
+        C = getattr(self, c)
+        # Number of iterations present.
+        nIter = self.i.size
+        # Process min indices for plotting and averaging.
+        i0 = max(0, nIter-n)
+        i0Avg = max(0, nIter-nAvg)
+        # Calculate mean.
+        cAvg = np.mean(C[i0Avg:])
+        # Initialize dictionary of handles.
+        h = {}
+        # Calculate range of interest.
+        if d:
+            # Limits
+            cMin = cAvg-d
+            cMax = cAvg+d
+            # Plot the target window boundaries.
+            h['min'] = (
+                plt.plot([i0,i0Avg], [cMin,cMin], 'r:', lw=0.8) +
+                plt.plot([i0Avg,nIter], [cMin,cMin], 'r-', lw=0.8))
+            h['max'] = (
+                plt.plot([i0,i0Avg], [cMax,cMax], 'r:', lw=0.8) +
+                plt.plot([i0Avg,nIter], [cMax,cMax], 'r-', lw=0.8))
+        # Plot the mean.
+        h['mean'] = (
+            plt.plot([i0,i0Avg], [cAvg, cAvg], 'r--', lw=1.0) + 
+            plt.plot([i0Avg,nIter], [cAvg, cAvg], 'r-', lw=1.0))
+        # Plot the coefficient.
+        h[c] = plt.plot(self.i[i0:], C[i0:], 'k-', lw=1.5)
+        # Labels.
+        h['x'] = plt.xlabel('Iteration Number')
+        h['y'] = plt.ylabel(c)
+        # Get the axes.
+        h['ax'] = plt.gca()
+        # Set the xlimits.
+        h['ax'].set_xlim((i0, nIter+25))
+        # Output.
+        return h
             
     
         
