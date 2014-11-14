@@ -365,10 +365,58 @@ class AeroCsh(FileCntl):
             # Set the flag.
             val = '-y_is_spanwise'
         else:
-            # Set the flat to empty.
+            # Set the flag to empty.
             val = ''
         # Modify the line to its appropriate value.
         self.SetVar('y_is_spanwise', val)
+        
+    # Set y_is_spanwise on or off.
+    def SetFMG(self, fmg):
+        """Turn on or off ``-no_fmg`` flag
+        
+        :Call:
+            >>> AC.SetFMG(fmg)
+        :Inputs:
+            *AC*: :class:`pyCart.aeroCsh.AeroCsh`
+                Instance of the :file:`aero.csh` manipulation class
+            *fmg*: :class:`bool`
+                Whether or not to use full multigrid
+        :Versions:
+            * 2014-11-13 ``@ddalle``: First version
+        """
+        # Check value.
+        if fmg:
+            # Set the flag to empty.
+            val = ''
+        else:
+            # Set the -no_fmg flag.
+            val = '-no_fmg'
+        # Modify the line to its appropriate value.
+        self.SetVar('fmg', val)
+        
+    # Set y_is_spanwise on or off.
+    def SetPMG(self, pmg):
+        """Turn on or off ``-pmg`` flag
+        
+        :Call:
+            >>> AC.SetPMG(pmg)
+        :Inputs:
+            *AC*: :class:`pyCart.aeroCsh.AeroCsh`
+                Instance of the :file:`aero.csh` manipulation class
+            *pmg*: :class:`bool`
+                Whether or not to use poly multigrid
+        :Versions:
+            * 2014-11-13 ``@ddalle``: First version
+        """
+        # Check value.
+        if fmg:
+            # Turn the pmg flag on
+            val = '-pmg'
+        else:
+            # No PMG flag
+            val = ''
+        # Modify the line to its appropriate value.
+        self.SetVar('pmg', val)
     
     
     

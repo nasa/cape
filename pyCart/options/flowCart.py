@@ -476,6 +476,82 @@ class flowCart(odict):
         self.set_key('y_is_spanwise', y_is_spanwise, i)
         
         
+    # Get the full multigrid status
+    def get_fmg(self, i=None):
+        """Return whether or not `flowCart` is set to run full multigrid
+        
+        :Call:
+            >>> fmg = opts.get_fmg(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *fmg*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not `flowCart` is set to run full multigrid
+        :Versions:
+            * 2014-11-14 ``@ddalle``: First version
+        """
+        return self.get_key('fmg', i)
+    
+    # Set the full multigrid status
+    def set_fmg(self, fmg=rc0('fmg'), i=None):
+        """Set full multigrid status for `flowCart`
+        
+        :Call:
+            >>> opts.set_fmg(fmg, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *fmg*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not `flowCart` is set to run full multigrid
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014-11-14 ``@ddalle``: First version
+        """
+        self.set_key('fmg', fmg, i)
+        
+        
+    # Get the poly multigrid status
+    def get_pmg(self, i=None):
+        """Return whether or not `flowCart` is set to run poly multigrid
+        
+        :Call:
+            >>> fmg = opts.get_pmg(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *pmg*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not `flowCart` is set to run poly multigrid
+        :Versions:
+            * 2014-11-14 ``@ddalle``: First version
+        """
+        return self.get_key('pmg', i)
+    
+    # Set the full multigrid status
+    def set_pmg(self, pmg=rc0('pmg'), i=None):
+        """Set poly multigrid status for `flowCart`
+        
+        :Call:
+            >>> opts.set_pmg(pmg, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *pmg*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not `flowCart` is set to run poly multigrid
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014-11-14 ``@ddalle``: First version
+        """
+        self.set_key('pmg', pmg, i)
+        
+        
     # Get the y-spanwise status
     def get_binaryIO(self, i=None):
         """Return whether or not `flowCart` is set for binary I/O

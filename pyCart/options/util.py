@@ -59,6 +59,8 @@ rc = {
     "y_is_spanwise": True,
     "binaryIO": True,
     "tecO": True,
+    "fmg": True,
+    "pmg": False,
     "nProc": 8,
     "tm": False,
     "mpicmd": "mpiexec",

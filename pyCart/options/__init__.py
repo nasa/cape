@@ -380,6 +380,26 @@ class Options(odict):
         self._flowCart()
         self['flowCart'].set_mg_fc(mg_fc, i)
         
+    # Get flowCart full multigrid setting
+    def get_fmg(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_fmg(i)
+        
+    # Set flowCart multigrid
+    def set_fmg(self, fmg=rc0('fmg'), i=None):
+        self._flowCart()
+        self['flowCart'].set_fmg(fmg, i)
+        
+    # Get flowCart ploy multigrid setting
+    def get_pmg(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_pmg(i)
+        
+    # Set flowCart multigrid
+    def set_pmg(self, pmg=rc0('pmg'), i=None):
+        self._flowCart()
+        self['flowCart'].set_pmg(pmg, i)
+        
     # Get MPI status
     def get_mpi_fc(self, i=None):
         self._flowCart()
@@ -512,7 +532,7 @@ class Options(odict):
         
     # Copy over the documentation.
     for k in ['InputSeq', 'IterSeq', 'first_order', 'mpi_fc', 'use_aero_csh',
-            'it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'tecO',
+            'it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'tecO', 'fmg', 'pmg',
             'y_is_spanwise', 'binaryIO', 'nProc', 'mpicmd', 'qsub', 'resub']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(flowCart,'get_'+k).__doc__
