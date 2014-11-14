@@ -409,7 +409,7 @@ class AeroCsh(FileCntl):
             * 2014-11-13 ``@ddalle``: First version
         """
         # Check value.
-        if fmg:
+        if pmg:
             # Turn the pmg flag on
             val = '-pmg'
         else:
