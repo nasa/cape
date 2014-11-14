@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
 Convert UH3D triangulation to Cart3D format: :mod:`pc_UH3D2Tri`
 ===============================================================
@@ -20,10 +20,20 @@ Convert a '.uh3d' file to a Cart3D triangulation format.
     * *tri*: Name of output '.tri' file
     
 :Options:
-    *h*: Display this help and exit
+    -h, --help
+        Display this help message and exit
+        
+    -i UH3D
+        Use *UH3D* as input file
+        
+    -o TRI
+        Use *TRI* as name of created output file
     
 If the name of the output file is not specified, it will just add '.tri' as the
 extension to the input (deleting '.uh3d' if possible).
+
+:Versions:
+    * 2014-06-12 ``@ddalle``: First version
 """
 
 # Get the pyCart module.
@@ -39,10 +49,8 @@ def UH3D2Tri(*a, **kw):
     Convert a UH3D triangulation file to Cart3D tri format
     
     :Call:
-        
         >>> UH3D2Tri(uh3d, tri, h=False)
         >>> UH3D2Tri(i=uh3d, o=tri, h=False)
-        
     :Inputs:
         *uh3d*: :class:`str`
             Name of input file
@@ -51,10 +59,9 @@ def UH3D2Tri(*a, **kw):
             the extension in the place of ``.uh3d``
         *h*: :class:`bool`
             Display help and exit if ``True``
+    :Versions:
+        * 2014-06-12 ``@ddalle``: First documented version
     """
-    # Versions:
-    #  2014.06.12 @ddalle  : First documented version
-    
     # Get the file pyCart settings file name.
     if len(a) == 0:
         # Defaults

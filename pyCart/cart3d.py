@@ -305,7 +305,7 @@ class Cart3d(object):
                 nCol = 1
         elif (nRow is None):
             # Assume the number of cols is correct.
-            nRow = len(C)/nCol
+            nRow = int(np.ceil(float(len(C))/nCol))
         # Initialize output.
         h = []
         # Loop through runs.
