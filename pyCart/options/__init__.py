@@ -697,9 +697,19 @@ class Options(odict):
         self._Adaptation()
         self['Adaptation'].set_apc(apc, i)
         
+    # Get number of buffer layers
+    def get_abuff(self, i=None):
+        self._Adaptation()
+        return self['Adaptation'].get_abuff(i)
+        
+    # Set number of buffer layers
+    def set_abuff(self, buf=rc0('buf'), i=None):
+        self._Adaptation()
+        self['Adaptation'].set_abuff(abuff, i)
+        
     # Copy over the documentation.
     for k in ['n_adapt_cycles', 'etol', 'max_nCells', 'ws_it',
-            'mesh_growth', 'apc']:
+            'mesh_growth', 'apc', 'abuff']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Adaptation,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Adaptation,'set_'+k).__doc__

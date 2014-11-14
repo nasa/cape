@@ -418,6 +418,22 @@ class AeroCsh(FileCntl):
         # Modify the line to its appropriate value.
         self.SetVar('pmg', val)
     
+    # Function to set the number of buffers
+    def SetABuffer(self, buf):
+        """Set the number of buffer layers when refining a cell
+        
+        :Call:
+            >>> AC.SetABuffer(buf)
+        :Inputs:
+            *AC*: :class:`pyCart.aeroCsh.AeroCsh`
+                Instance of the :file:`aero.csh` manipulation class
+            *buf*: :class:`int`
+                Number of buffer layers
+        :Versions:
+            * 2014-11-14 ``@ddalle``: First version
+        """
+        # Set this value (integer)
+        self.SetVar('buf', buf)
     
     
     

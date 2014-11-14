@@ -224,7 +224,7 @@ class Adaptation(odict):
         """Set the adaptation type
         
         :Call:
-            >>> apc = opts.get_apc(i=None)
+            >>> opts.set_apc(apc, i=None)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
@@ -238,9 +238,42 @@ class Adaptation(odict):
         self.set_key('apc', apc, i)
 
 
-
-
-
+    # Get the number of buffer layers
+    def get_abuff(self, i=None):
+        """Get the number of buffer layers
+        
+        :Call:
+            >>> buf = opts.get_abuff(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *buf*: :class:`int` or :class:`list`(:class:`int`)
+                Number of buffer layers
+        :Versions:
+            * 2014-11-14 ``@ddalle``: First version
+        """
+        return self.get_key('buf', i)
+        
+    # Set the number of buffer layers.
+    def set_abuff(self, buf=rc0('buf'), i=None):
+        """Set the number of buffer layers
+        
+        :Call:
+            >>> opts.set_abuff(buf, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *buf*: :class:`int` or :class:`list`(:class:`int`)
+                Number of buffer layers
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014-11-14 ``@ddalle``: First version
+        """
+        self.set_key('buf', buf, i)
 
 
 

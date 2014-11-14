@@ -147,6 +147,10 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
             Number of iterations to run ``flowCart``
         *mg_fc*: :class:`int`
             Number of multigrid levels to use
+        *fmg*: :class:`bool` 
+            Whether to use full multigrid (adds ``-no_fmg`` flag if ``False``)
+        *pmg*: :class:`bool`
+            Whether or not to use poly multigrid
         *cfl*: :class:`float`
             Nominal CFL number
         *cflmin*: :class:`float`
@@ -165,7 +169,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         *cmd*: :class:`list` (:class:`str`)
             Command split into a list of strings
     :Versions:
-        * 2014.09.07 ``@ddalle``: First version
+        * 2014-09-07 ``@ddalle``: First version
     """
     # Check for cart3d input
     if cart3d is not None:
@@ -179,6 +183,8 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         cfl     = cart3d.opts.get_cfl(i)
         cflmin  = cart3d.opts.get_cflmin(i)
         mg_fc   = cart3d.opts.get_mg_fc(i)
+        fmg     = cart3d.opts.get_fmg(i)
+        pmg     = cart3d.opts.get_pmg(i)
         tm      = cart3d.opts.get_tm(i)
         nProc   = cart3d.opts.get_nProc(i)
         mpicmd  = cart3d.opts.get_mpicmd(i)
@@ -193,6 +199,8 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         cfl     = fc.get_cfl(i)
         cflmin  = fc.get_cflmin(i)
         mg_fc   = fc.get_mg_fc(i)
+        fmg     = fc.get_fmg(i)
+        pmg     = fc.get_pmg(i)
         tm      = fc.get_tm(i)
         nProc   = fc.get_nProc(i)
         mpicmd  = fc.get_mpicmd(i)
@@ -207,6 +215,8 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         cfl     = kwargs.get('cfl', 1.1)
         cflmin  = kwargs.get('cflmin', 0.8)
         mg_fc   = kwargs.get('mg_fc', 3)
+        fmg     = kwargs.get('fmg', True)
+        pmg     = kwargs.get('pmg', False)
         tm      = kwargs.get('tm', None)
         nProc   = kwargs.get('nProc', 8)
         mpicmd  = kwargs.get('mpicmd', 'mpiexec')
@@ -228,6 +238,8 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
     if tecO:    cmd += ['-T']
     if cfl:     cmd += ['-cfl', str(cfl)]
     if mg_fc:   cmd += ['-mg', str(mg_fc)]
+    if not fmg: cmd += ['-no_fmg']
+    if pmg:     cmd += ['-pmg']
     # Binary option doesn't exist for mpi_flowCart
     if (not mpi_fc) and binIO: cmd += ['-binaryIO']
     # Process and translate the cut-cell gradient variable.

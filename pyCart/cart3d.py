@@ -1338,8 +1338,11 @@ class Cart3d(object):
             self.AeroCsh.SetnAdapt(self.opts.get_n_adapt_cycles(j))
             self.AeroCsh.SetnRefinements(self.opts.get_maxR(j))
             self.AeroCsh.SetnMultiGrid(self.opts.get_mg(j))
+            self.AeroCsh.SetFMG(self.opts.get_fmg(j))
+            self.AeroCsh.SetPMG(self.opts.get_pmg(j))
             self.AeroCsh.SetLimiter(self.opts.get_limiter(j))
             self.AeroCsh.SetYIsSpanwise(self.opts.get_y_is_spanwise(j))
+            self.AeroCsh.SetABuffer(self.opts.get_abuff(j))
             # Process the adaptation-specific lists.
             self.AeroCsh.SetAPC(self.opts.get_apc())
             self.AeroCsh.SetMeshGrowth(self.opts.get_mesh_growth())

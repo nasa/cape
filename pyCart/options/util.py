@@ -72,6 +72,7 @@ rc = {
     "ws_it": [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 100],
     "mesh_growth": [1.5, 1.5, 2.0, 2.0, 2.0, 2.0, 2.5],
     "apc": ["p", "a"],
+    "buf": 1,
     "TriFile": "Components.i.tri",
     "mesh2d": False,
     "preSpecCntl": "preSpec.c3d.cntl",
