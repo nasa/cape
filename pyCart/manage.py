@@ -53,6 +53,9 @@ def TarAdapt():
         elif not os.path.isdir(fdir):
             # Not a folder; what?
             continue
+        elif (fdir == 'adapt00') and (not os.path.isdir('adapt01')):
+            # No BEST folder yet
+            continue
         # Tar the folder.
         ierr = sp.call(['tar', '-cf', fdir+'.tar', fdir])
         # Check for errors.

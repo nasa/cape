@@ -1192,7 +1192,32 @@ class Cart3d(object):
         # Write the file.
         self.PreSpecCntl.Write('preSpec.c3d.cntl')
         
+    # Function to archive 'adaptXX/' folders (except for newest)
+    def TarAdapt(self):
+        """Tar ``adaptNN/`` folders except for most recent one
         
+        :Call:
+            >>> cart3d.TarAdapt()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
+        :Versions:
+            * 2014-11-14 ``@ddalle``: First version
+        """
+        # Save current path.
+        fpwd = os.getcwd()
+        # Get folder names.
+        fruns = self.x.GetFullFolderNames()
+        # Loop through folders.
+        for frun in fruns:
+            # Go to folder.
+            os.chdir(self.RootDir)
+            os.chdir(frun)
+            # Manage the directory.
+            manage.TarAdapt()
+        # Go back to original directory.
+        os.chdir(fpwd)
+    
     # Function to prepare "input.cntl" files
     def PrepareInputCntl(self, i):
         """
