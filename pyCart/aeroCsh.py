@@ -75,13 +75,13 @@ class AeroCsh(FileCntl):
             * 2014.06.10 ``@ddalle``: First version
         """
         # Line regular expression: "set XXXX" but with white spaces
-        reg = '^\s*set\s+' + str(name)
+        reg = '^\s*set\s+' + str(name) + '\s*[=\n]'
         # Convert *val* to string.
         val = str(val)
         # Form the output line.
         if val == '':
             # Empty line, used to turn a flag off.
-            line = 'set %s' % name
+            line = 'set %s \n' % name
         else:
             # Set a value.
             line = 'set %s = %s\n' % (name, val)
