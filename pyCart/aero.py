@@ -631,7 +631,7 @@ class FM(object):
         # Make a label for the mean value.
         lbl = '%s = %.4f' % (c, cAvg)
         # Add the label above and to the right of the plot.
-        h['val'] = plt.text(1.0, 1.06, horizontalalignment='right',
+        h['val'] = plt.text(1.0, 1.06, lbl, horizontalalignment='right',
             verticalalignment='top', transform=h['ax'].transAxes)
         # Output.
         return h
