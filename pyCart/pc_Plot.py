@@ -54,6 +54,8 @@ def pc_Plot(C, **kw):
     :Versions:
         * 2014-11-13 ``@ddalle``: First version
     """
+    # New figure.
+    aero.plt.figure()
     # Number of components
     nC = len(C)
     # Get the component.

@@ -307,7 +307,7 @@ class TriBase(object):
                 Name of triangulation file to read
         :Versions:
             * 2014.06.02 ``@ddalle``: First version
-            * 2014.10.27 ``@ddalle``: Added draft of reading component namess
+            * 2014.10.27 ``@ddalle``: Added draft of reading component names
         """
         # Open the file
         fid = open(fname, 'r')

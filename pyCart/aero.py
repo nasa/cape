@@ -550,11 +550,6 @@ class FM(object):
         for h_t in plt.gcf().findobj(Text):
             # Apply the target font size.
             h_t.set_fontsize(fsize)
-        # Attempt to use the tight_layout() utility.
-        try:
-            plt.gcf().tight_layout()
-        except Exception:
-            pass
         # Add tag.
         tag = kw.get('tag', '')
         h['tag'] = plt.figtext(0.015, 0.985, tag, verticalalignment='top')
@@ -562,6 +557,11 @@ class FM(object):
         txt = kw.get('restriction', '')
         h['restriction'] = plt.figtext(0.5, 0.01, txt,
             horizontalalignment='center')
+        # Attempt to use the tight_layout() utility.
+        try:
+            plt.gcf().tight_layout()
+        except Exception:
+            pass
         # Save the figure.
         h['fig'] = plt.gcf()
         # Output
