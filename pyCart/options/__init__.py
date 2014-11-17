@@ -564,8 +564,18 @@ class Options(odict):
         self._adjointCart()
         self['adjointCart'].set_mg_ad(mg_ad, i)
         
+    # First-order adjoint
+    def get_adj_first_order(self, i=None):
+        self._adjointCart()
+        return self['adjointCart'].get_adj_first_order(i)
+        
+    # First-order adjoint
+    def set_adj_first_order(self, adj=rc0('adj_first_order'), i):
+        self._adjointCart()
+        self['adjointCart'].set_adj_first_order(adj, i)
+        
     # Copy over the documentation.
-    for k in ['it_ad', 'mg_ad']:
+    for k in ['it_ad', 'mg_ad', 'adj_first_order']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(adjointCart,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(adjointCart,'set_'+k).__doc__

@@ -66,6 +66,7 @@ rc = {
     "mpicmd": "mpiexec",
     "it_ad": 120,
     "mg_ad": 3,
+    "adj_first_order": False,
     "n_adapt_cycles": 0,
     "etol": 1.0e-6,
     "max_nCells": 5e6,

@@ -84,3 +84,41 @@ class adjointCart(odict):
             * 2014.08.02 ``@ddalle``: First version
         """
         self.set_key('mg_ad', mg_ad, i)
+        
+        
+    # Adjoint first order
+    def get_adj_first_order(self, i=None):
+        """Get whether or not to run adjoins in first-order mode
+        
+        :Call:
+            >>> adj = opts.set_adj_first_order(i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *adj*: :class:`bool` or :class:`list`(:class:`int`)
+                Whether or not to always run `adjointCart` first-order
+        :Versions:
+            * 2014-11-17 ``@ddalle``: First version
+        """
+        return self.get_key('adj_first_order', i)
+        
+    # Adjoint first order
+    def set_adj_first_order(self, adj=rc0('adj_first_order'), i=None):
+        """Set whether or not to run adjoins in first-order mode
+        
+        :Call:
+            >>> opts.set_adj_first_order(adj, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *adj*: :class:`bool` or :class:`list`(:class:`int`)
+                Whether or not to always run `adjointCart` first-order
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014-11-17 ``@ddalle``: First version
+        """
+        self.set_key('adj_first_order', adj, i)
