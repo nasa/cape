@@ -570,7 +570,7 @@ class Options(odict):
         return self['adjointCart'].get_adj_first_order(i)
         
     # First-order adjoint
-    def set_adj_first_order(self, adj=rc0('adj_first_order'), i):
+    def set_adj_first_order(self, adj=rc0('adj_first_order'), i=None):
         self._adjointCart()
         self['adjointCart'].set_adj_first_order(adj, i)
         
