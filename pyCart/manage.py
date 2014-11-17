@@ -44,8 +44,14 @@ def TarAdapt():
         return
     # Get the most recent cycle.
     fbest = os.path.split(os.path.realpath('BEST'))[-1]
+    # Initial list of adaptXX/ folders.
+    fdirs = glob.glob('adapt[0-9][0-9]')
+    # Max adaptation
+    imax = max([int(fdir[5:]) for fdir in fdirs])
     # Loop through adaptXX/ folders.
-    for fdir in glob.glob('adapt[0-9][0-9]'):
+    for fdir in fdirs:
+        # Get the adaptation number.
+        i = int(fdir[5:])
         # Check for things to skip.
         if fdir == fbest:
             # Target of BEST/; leave alone
@@ -53,9 +59,11 @@ def TarAdapt():
         elif not os.path.isdir(fdir):
             # Not a folder; what?
             continue
-        elif (fdir == 'adapt00') and (not os.path.isdir('adapt01')):
-            # No BEST folder yet
+        elif i >= imax:
+            # No higher adaptations
             continue
+        # Status update
+        print("%s --> %s" % (fdir, fdir+'.tar'))
         # Tar the folder.
         ierr = sp.call(['tar', '-cf', fdir+'.tar', fdir])
         # Check for errors.
