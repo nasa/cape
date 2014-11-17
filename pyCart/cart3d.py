@@ -162,7 +162,7 @@ class Cart3d(object):
         self.AeroCsh   = AeroCsh(self.opts.get_AeroCsh())
         
         # Save the current directory as the root.
-        self.RootDir = os.path.split(os.path.abspath(fname))[0]
+        self.RootDir = os.getcwd()
         
         
     # Output representation
