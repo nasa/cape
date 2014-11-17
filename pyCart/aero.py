@@ -559,7 +559,9 @@ class FM(object):
             horizontalalignment='center')
         # Attempt to use the tight_layout() utility.
         try:
-            plt.gcf().tight_layout()
+            # Add room for labels with *rect*, and tighten up other margins.
+            plt.gcf().tight_layout(pad=0.2, w_pad=0.5, h_pad=0.7,
+                rect=(0,0.015,1,0.91))
         except Exception:
             pass
         # Save the figure.
