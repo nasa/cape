@@ -209,6 +209,7 @@ class Trajectory:
         # Process the mandatory fields.
         odefkey.setdefault('Group', True)
         odefkey.setdefault('Type', "Group")
+        odefkey.setdefault('Format', '%s')
         # Initialize the dictionaries.
         self.text = {}
         self.defns = {}
@@ -224,6 +225,7 @@ class Trajectory:
                     "Group": False,
                     "Type": "Mach",
                     "Value": "float",
+                    "Format": "%s",
                     "Abbreviation": "m"
                 }
             elif key in ['Alpha', 'alpha', 'aoa']:
@@ -232,6 +234,7 @@ class Trajectory:
                     "Group": False,
                     "Type": "alpha",
                     "Value": "float",
+                    "Format": "%s",
                     "Abbreviation": "a"
                 }
             elif key in ['Beta', 'beta', 'aos']:
@@ -240,6 +243,7 @@ class Trajectory:
                     "Group": False,
                     "Type": "beta",
                     "Value": "float",
+                    "Format": "%s",
                     "Abbreviation": "b"
                 }
             elif key.lower() in ['alpha_t', 'alpha_total']:
@@ -248,6 +252,7 @@ class Trajectory:
                     "Group": False,
                     "Type": "alpha_t",
                     "Value": "float",
+                    "Format": "%s",
                     "Abbreviation": "a"
                 }
             elif key.lower() in ['phi', 'phiv']:
@@ -256,6 +261,7 @@ class Trajectory:
                     "Group": False,
                     "Type": "phi",
                     "Value": "float",
+                    "Format": "%s",
                     "Abbreviation": "r"
                 }
             elif key.lower() in ['label', 'suffix']:
@@ -264,6 +270,7 @@ class Trajectory:
                     "Group": False,
                     "Type": "Label",
                     "Value": "str",
+                    "Format": "%s",
                     "Abbreviation": ""
                 }
             elif key.lower() in ['config', 'groupprefix']:
@@ -272,6 +279,7 @@ class Trajectory:
                     "Group": True,
                     "Type": "Prefix",
                     "Value": "str",
+                    "Format": "%s",
                     "Abbreviation": ""
                 }
             elif key in ['GroupLabel', 'GroupSuffix']:
@@ -280,6 +288,7 @@ class Trajectory:
                     "Group": True,
                     "Type": "GroupLabel",
                     "Value": "str",
+                    "Format": "%s",
                     "Abbreviation": ""
                 }
             else:
@@ -670,8 +679,11 @@ class Trajectory:
             if (not self.text[k][i]): continue
             # Check for unlabeled values
             if (not self.defns[k].get("Label", True)): continue
+            # Make the string of what's going to be printed.
+            # This is something like ``'%.2f' % x.alpha[i]``.
+            lbl = self.defns[k]["Format"] % getattr(self,k)[i]
             # Append the text in the trajectory file.
-            dname += self.abbrv[k] + self.text[k][i]
+            dname += self.abbrv[k] + lbl 
         # Check for suffix keys.
         for k in keys:
             # Only look for labels.
@@ -685,4 +697,52 @@ class Trajectory:
         # Return the result.
         return dname
         
+    # Function to write a JSON file with the trajectory variables.
+    def WriteConditionsJSON(self, i, fname="conditions.json"):
+        """Write a simple JSON file with exact trajectory variables
+        
+        :Call:
+            >>> x.WriteConditionsJSON(i, fname="conditions.json")
+        :Inputs:
+            *i*: :class:`int`
+                Index of the run case to print
+            *fname*: :class:`str`
+                Name of file to create
+        :Versions:
+            * 2014-11-18 ``@ddalle``: First version
+        """
+        # Open the file.
+        f = open(fname, 'w')
+        # Create the header.
+        f.write('{\n')
+        # Number of keys
+        n = len(self.keys)
+        # Loop through the keys.
+        for j in range(n):
+            # Name of the key.
+            k = self.keys[j]
+            # If it's a string, add quotes.
+            if self.defns[k]["Value"] in ['str', 'char']:
+                # Use quotes.
+                q = '"'
+            else:
+                # No quotes.
+                q = ''
+            # Test if a comma is needed.
+            if j >= n-1:
+                # No comma for last line.
+                c = ''
+            else:
+                # Yes, a comma is needed.
+                c = ','
+            # Get the value.
+            v = getattr(self,k)[i]
+            # Initial portion of line.
+            line = ' "%s": %s%s%s%s\n' % (k, q, v, q, c)
+            # Write the line.
+            f.write(line)
+        # Close out the JSON object.
+        f.write('}\n')
+        # Close the file.
+        f.close()
     

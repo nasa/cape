@@ -856,6 +856,8 @@ class Cart3d(object):
         if not os.path.isdir(frun): os.mkdir(frun, dmask)
         # Go there.
         os.chdir(frun)
+        # Write the conditions to a simple JSON file.
+        self.x.WriteConditionsJSON(i)
         # Different processes for GroupMesh and CaseMesh
         if self.opts.get_GroupMesh():
             # Copy the required files.
