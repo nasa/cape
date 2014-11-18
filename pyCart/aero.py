@@ -685,6 +685,10 @@ class Hist(History):
         # Labels
         h['x'] = plt.xlabel('Iteration Number')
         h['y'] = plt.ylabel('L1 Residual')
+        # Get the axes.
+        h['ax'] = plt.gca()
+        # Set the xlimits.
+        h['ax'].set_xlim((i0, self.nIter+25))
         # Output.
         return h
         
