@@ -457,6 +457,25 @@ class AeroCsh(FileCntl):
         # Set this value (integer)
         self.SetVar('buf', buf)
     
+    # Function to set number of additional adaptations on final error map
+    def SetFinalMeshXRef(self, xref):
+        """Set the number of additional adaptations on final error map
+        
+        :Call:
+            >>> AC.SetFinalMeshXRef(xref)
+        :Inputs:
+            *AC*: :class:`pyCart.aeroCsh.AeroCsh`
+                Instance of the :file:`aero.csh` manipulation class
+            *xref*: :class:`int`
+                Number of additional adaptations
+        :Versions:
+            * 2014-11-14 ``@ddalle``: First version
+        """
+        # Make sure this is an integer.
+        if not xref: xref = 0
+        # Set this value (integer)
+        self.SetVar('final_mesh_xref', xref)
+    
     
     
     

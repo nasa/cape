@@ -276,5 +276,42 @@ class Adaptation(odict):
         self.set_key('buf', buf, i)
 
 
+    # Get the number of additional adaptations using same error map
+    def get_final_mesh_xref(self, i=None):
+        """Get the number additional adaptations to perform on final error map
+        
+        :Call:
+            >>> xref = opts.get_final_mesh_xref(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *xref*: :class:`int` or :class:`list`(:class:`int`)
+                Number of additional adaptations
+        :Versions:
+            * 2014-11-19 ``@ddalle``: First version
+        """
+        return self.get_key('final_mesh_xref', i)
+
+    # Set the number of additional adaptations using same error map
+    def set_final_mesh_xref(self, xref=rc0('final_mesh_xref'), i=None):
+        """Set the number additional adaptations to perform on final error map
+        
+        :Call:
+            >>> opts.set_final_mesh_xref(xref, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *xref*: :class:`int` or :class:`list`(:class:`int`)
+                Number of additional adaptations
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014-11-19 ``@ddalle``: First version
+        """
+        self.set_key('final_mesh_xref', xref, i)
+
 
 

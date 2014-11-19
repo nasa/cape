@@ -740,10 +740,20 @@ class Options(odict):
     def set_abuff(self, buf=rc0('buf'), i=None):
         self._Adaptation()
         self['Adaptation'].set_abuff(abuff, i)
+    
+    # Get number of additional adaptations on final error map
+    def get_final_mesh_xref(self, i=None):
+        self._Adaptation()
+        return self['Adaptation'].get_final_mesh_xref(i)
+    
+    # Set number of additional adaptations on final error map
+    def set_final_mesh_xref(self, xref=rc0('final_mesh_xref'), i=None):
+        self._Adaptation()
+        self['Adaptation'].set_final_mesh_xref(xref, i)
         
     # Copy over the documentation.
     for k in ['n_adapt_cycles', 'etol', 'max_nCells', 'ws_it',
-            'mesh_growth', 'apc', 'abuff']:
+            'mesh_growth', 'apc', 'abuff', 'final_mesh_xref']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Adaptation,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Adaptation,'set_'+k).__doc__

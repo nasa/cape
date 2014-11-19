@@ -74,6 +74,7 @@ rc = {
     "mesh_growth": [1.5, 1.5, 2.0, 2.0, 2.0, 2.0, 2.5],
     "apc": ["p", "a"],
     "buf": 1,
+    "final_mesh_xref": 0,
     "TriFile": "Components.i.tri",
     "mesh2d": False,
     "preSpecCntl": "preSpec.c3d.cntl",
