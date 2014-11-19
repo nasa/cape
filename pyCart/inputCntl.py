@@ -39,7 +39,7 @@ class InputCntl(FileCntl):
     def __init__(self, fname="input.cntl"):
         """Initialization method"""
         # Versions:
-        #  2014.06.04 @ddalle  : First version
+        #  2014-06-04 @ddalle  : First version
         
         # Read the file.
         self.Read(fname)
@@ -62,7 +62,7 @@ class InputCntl(FileCntl):
         :Effects:
             Sets the gradient evaluation to ``0`` for the first RK line
         :Versions:
-            * 2014.06.17 ``@ddalle``: First version
+            * 2014-06-17 ``@ddalle``: First version
         """
         # Name of the section
         sec = 'Solver_Control_Information'
@@ -86,7 +86,7 @@ class InputCntl(FileCntl):
         :Effects:
             Sets the gradient evaluation to ``1`` for the first RK line
         :Versions:
-            * 2014.06.17 ``@ddalle``: First version
+            * 2014-06-17 ``@ddalle``: First version
         """
         # Name of the section
         sec = 'Solver_Control_Information'
@@ -112,7 +112,7 @@ class InputCntl(FileCntl):
         :Effects:
             Replaces or adds a line to the "Case_Information" section.
         :Versions:
-            * 2014.06.04 ``@ddalle``: First version
+            * 2014-06-04 ``@ddalle``: First version
         """
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
@@ -133,7 +133,7 @@ class InputCntl(FileCntl):
             *M*: :class:`float` (or :class:`str`)
                 Mach number specified in :file:`input.cntl`
         :Versions:
-            * 2014.06.10 ``@ddalle``: First version
+            * 2014-06-10 ``@ddalle``: First version
         """
         # Find the line.
         lines = self.GetLineInSectionStartsWith('Case_Information', 'Mach', 1)
@@ -162,7 +162,7 @@ class InputCntl(FileCntl):
         :Effects:
             Replaces or adds a line to the "Case_Information" section.
         :Versions:
-            * 2014.06.04 ``@ddalle``: First version
+            * 2014-06-04 ``@ddalle``: First version
         """
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
@@ -184,7 +184,7 @@ class InputCntl(FileCntl):
         :Effects:
             Replaces or adds a line to the "Case_Information" section.
         :Versions:
-            * 2014.06.04 ``@ddalle``: First version
+            * 2014-06-04 ``@ddalle``: First version
         """
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
@@ -206,7 +206,7 @@ class InputCntl(FileCntl):
         :Effects:
             Replaces or adds a line to the "Solver_Control_Information" section
         :Versions:
-            * 2014.06.10 ``@ddalle``: First version
+            * 2014-06-10 ``@ddalle``: First version
         """
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionStartsWith('Solver_Control_Information',
@@ -229,7 +229,7 @@ class InputCntl(FileCntl):
         :Effects:
             Replaces the current list of *x* cut planes with the input list.
         :Versions:
-            * 2014.06.10 ``@ddalle``: First version
+            * 2014-06-10 ``@ddalle``: First version
         """
         # Initialize the output line.
         line = 'Xslices'
@@ -257,7 +257,7 @@ class InputCntl(FileCntl):
         :Effects:
             Replaces the current list of *y* cut planes with the input list.
         :Versions:
-            * 2014.06.10 ``@ddalle``: First version
+            * 2014-06-10 ``@ddalle``: First version
         """
         # Initialize the output line.
         line = 'Yslices'
@@ -285,7 +285,7 @@ class InputCntl(FileCntl):
         :Effects:
             Replaces the current list of *z* cut planes with the input list.
         :Versions:
-            * 2014.06.10 ``@ddalle``: First version
+            * 2014-06-10 ``@ddalle``: First version
         """
         # Initialize the output line.
         line = 'Zslices'
@@ -310,7 +310,7 @@ class InputCntl(FileCntl):
             *A*: :class:`dict`(:class:`float`) or :class:`float`
                 Dictionary of reference areas by component or universal ARef
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         # Filter type.
         if type(A).__name__ == "dict":
@@ -338,8 +338,8 @@ class InputCntl(FileCntl):
             *compID*: :class:`str`
                 Component to which reference applies (default is ``'all'``)
         :Versions:
-            * 2014.06.10 ``@ddalle``: First version
-            * 2014.10.08 ``@ddalle``: Demoted to "single"
+            * 2014-06-10 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: Demoted to "single"
         """
         # Regular expression for this line.
         reg = 'Reference_Area.*%s\s*$' % compID
@@ -359,7 +359,7 @@ class InputCntl(FileCntl):
             *L*: :class:`dict`(:class:`float`) or :class:`float`
                 Dictionary of reference length by component or universal LRef
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         # Filter type.
         if type(L).__name__ == "dict":
@@ -386,8 +386,8 @@ class InputCntl(FileCntl):
             *compID*: :class:`str`
                 Component to which reference applies (default is ``'all'``)
         :Versions:
-            * 2014.06.10 ``@ddalle``: First version
-            * 2014.10.08 ``@ddalle``: Demoted to "single"
+            * 2014-06-10 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: Demoted to "single"
         """
         # Regular expression for this line.
         reg = 'Reference_Length.*%s\s*$' % compID
@@ -407,7 +407,7 @@ class InputCntl(FileCntl):
             *xMRP*: :class:`dict`(:class:`list`) or :class:`list`
                 Dictionary of reference points by component or universal MRP
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         # Filter type.
         if type(xMRP).__name__ == "dict":
@@ -433,8 +433,8 @@ class InputCntl(FileCntl):
             *compID*: :class:`str`
                 Component to which reference applies (default is ``'all'``)
         :Versions:
-            * 2014.10.07 ``@ddalle``: First version
-            * 2014.10.08 ``@ddalle``: Downgraded to "single" function
+            * 2014-10-07 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: Downgraded to "single" function
         """
         # Regular expression for this line.
         reg = 'Moment_Point.*%s\s*$' % compID
@@ -467,7 +467,7 @@ class InputCntl(FileCntl):
             Writes a line with appropriate "SurfBC i ..." syntax to 
             :file:`input.cntl` file.
         :Versions:
-            * 2014.06.04 ``@ddalle``: First version
+            * 2014-06-04 ``@ddalle``: First version
         """
         # Line starts with "SurfBC", has some amount of white space, and then
         # has the component number.
@@ -484,10 +484,58 @@ class InputCntl(FileCntl):
         # vary, so we need to use regular expressions.
         self.ReplaceOrAddLineToSectionSearch('Boundary_Conditions', reg, line)
         
+    # Function to set an output functional force
+    def SetOutputForce(self, Name, **kwargs):
+        """Request a force be added to the output functional
+        
+        :Call:
+            >>> IC.SetOutputForce(Name, **kwargs)
+        :Inputs:
+            *Name*: :class:`str`
+                Name of the force (required)
+            *Force*: :class:`int` [ {0} | 1 | 2 | None]
+                Force axis, e.g. ``0`` for axial force. If ``Force=None``, this
+                force is not used in the output.
+            *Frame*: :class:`int` [ {0} | 1 ]
+                Body frame (``0``) or velocity frame (``1``)
+            *Weight*: :class:`float` [ {1.0} | :class:`float` ]
+                Linear weight on term in overall functional
+            *CompID*: :class:`str` [ {entire} | :class:`str` | :class:`int` ]
+                Component to use for calculating the force
+            *J*: :class:`int` [ {0} | 1 ]
+                Modifier of force, not normally used
+            *N*: :class:`int` [ {1} | :class:`int` ]
+                Exponent on force coefficient
+            *Target*: :class:`float` [ {0.0} | :class:`float` ]
+                Target value for the functional; irrelevant if *N*\ =1
+        :Versions:
+            * 2014-11-19 ``@ddalle``: First version
+        """
+        # Line looks like "optForce  CY_L 1 0 0 1 0. 1. 0  Core"
+        reg = 'optForce\s+' + str(Name)
+        # Process the other inputs (with defaults)
+        Force = kwargs.get('Force', 0)
+        Frame = kwargs.get('Frame', 0)
+        Weight = kwargs.get('Weight', 1.0)
+        CompID = kwargs.get('CompID', 'entire')
+        # Less likely inputs
+        Target = kwargs.get('Target', 0.0)
+        J = kwargs.get('J', 0)
+        N = kwargs.get('N', 1)
+        # Form the line.
+        if Force is None:
+            # Use this to delete the line.
+            line = '# optForce %12s' % Name
+        else:
+            # Full line
+            line = 'optForce %12s %7s %7i %6i %6i %9s %8s   0   %s' % (
+                Name, Force, Frame, J, N, Target, Weight, CompID)
+        # Replace the line or add it if necessary.
+        self.ReplaceOrAddLineToSectionSearch('Design_Info', reg, line)
+        
     # Function to get Cart3D to report the forces on a component
     def RequestForce(self, compID):
-        """
-        Request the force coefficients on a particular component.
+        """Request the force coefficients on a particular component
         
         :Call:
             >>> IC.RequestForce(compID)
@@ -498,9 +546,9 @@ class InputCntl(FileCntl):
             Adds a line to :file:`input.cntl` that looks like "Force entire",
             if it is not already present.
         :Versions:
-            * 2014.06.09 ``@ddalle``: First version
+            * 2014-06-09 ``@ddalle``: First version
         """
-        # Line starts looks like "Force $compID", but arbitrary white space.
+        # Line looks like "Force $compID", but arbitrary white space.
         reg = 'Force\s+' + str(compID) + '$'
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
@@ -523,7 +571,7 @@ class InputCntl(FileCntl):
             Adds a line to :file:`input.cntl` that tells Cart3D to calculate the
             moment coefficients using a specific reference point.
         :Versions:
-            * 2014.06.09 ``@ddalle``: First version
+            * 2014-06-09 ``@ddalle``: First version
         """
         # Process reference point.
         if MRP is None:

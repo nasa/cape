@@ -31,6 +31,7 @@ from .Adaptation  import Adaptation
 from .Mesh        import Mesh
 from .pbs         import PBS
 from .Config      import Config
+from .Functional  import Functional
 
 
 # Class definition
@@ -78,6 +79,7 @@ class Options(odict):
         self._Mesh()
         self._PBS()
         self._Config()
+        self._Functional()
         # Add extra folders to path.
         self.AddPythonPath()
         
@@ -190,6 +192,17 @@ class Options(odict):
                     tmp[k] = self['Config'][k]
             # Convert to special class.
             self['Config'] = Config(**tmp)
+            
+    # Initialization method for Cart3D output functional
+    def _Functional(self):
+        """Initialize Cart3D output functional if neccessary"""
+        # Check status.
+        if 'Functional' not in self:
+            # Missing entirely.
+            self['Functional'] = Functional()
+        elif type(self['Functional']).__name__ == 'dict':
+            # Convert to (barely) special class.
+            self['Functional'] = Functional(**self['Functional'])
     
     # ==============
     # Global Options
@@ -642,6 +655,17 @@ class Options(odict):
         self.set_mg_fc(mg, i)
         self.set_mg_ad(mg, i)
         
+        
+    # =================
+    # Output functional
+    # =================
+    
+    # Get the optForces
+    def get_optForces(self):
+        self._Functional()
+        return self['Functional'].get_optForces()
+    get_optForces.__doc__ = Functional.get_optForces.__doc__
+    
         
     # ===================
     # Adaptation settings

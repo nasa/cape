@@ -1280,6 +1280,10 @@ class Cart3d(object):
         if XSlices: self.InputCntl.SetXSlices(XSlices)
         if YSlices: self.InputCntl.SetYSlices(YSlices)
         if ZSlices: self.InputCntl.SetZSlices(ZSlices)
+        # Loop through the output functional 'optForce's
+        for Name, kw in self.opts.get_optForces().items():
+            # Set the force.
+            self.InputCntl.SetOutputForce(Name, **kw)
         
         # Loop through the runs.
         for j in range(self.opts.get_nSeq()):
