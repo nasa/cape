@@ -779,7 +779,7 @@ class Cart3d(object):
             # Settings file.
             if not os.path.isfile('case.json'): n=None
             # Check for which mesh file to look for.
-            if os.path.isdir('adapt00'):
+            if os.path.isdir('adapt00') or os.path.islink('BEST'):
                 # Mesh file is gone; but it exists somewhere else
                 pass
             elif self.opts.get_mg() > 0:
@@ -794,7 +794,7 @@ class Cart3d(object):
             os.chdir(fpwd)
             # Quit.
             return None
-        # Count iterations...
+        # Count main run iterations.
         if os.path.isfile('history.dat'):
             # Get the last line of the history file.
             txt = sp.Popen(['tail', '-1', 'history.dat'],
@@ -802,28 +802,32 @@ class Cart3d(object):
             # Check if it's a comment.
             if txt.startswith('#') or len(txt)<2:
                 # No iterations yet.
-                n = 0
+                n0 = 0
             else:
                 # Iterations
-                n = int(txt.split()[0])
-        elif os.path.isfile('BEST/history.dat'):
+                n0 = int(txt.split()[0])
+        else:
+            # No 'history.dat'
+            n0 = 0
+        # Count adaptive iterations.
+        if os.path.isfile('BEST/history.dat'):
             # Get the last line of the history file.
             txt = sp.Popen(['tail', '-1', 'BEST/history.dat'],
                 stdout=sp.PIPE).communicate()[0]
             # Check if it's a comment.
             if txt.startswith('#') or len(txt)<2:
                 # No iterations yet.
-                n = 0
+                n1 = 0
             else:
                 # Iterations
-                n = int(txt.split()[0])
+                n1 = int(txt.split()[0])
         else:
             # No history; zero iterations.
-            n = 0
+            n1 = 0
         # Return to original folder.
         os.chdir(fpwd)
         # Output.
-        return n
+        return max(n0, n1)
         
         
     # Prepare a case.
