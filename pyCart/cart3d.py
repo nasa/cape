@@ -973,16 +973,26 @@ class Cart3d(object):
         """
         # Extract the trajectory.
         x = self.x
-        # Get the first key (special because allowed two decimals)
-        k0 = x.keys[0]
         # Initialize label.
-        lbl = '%s%.2f' % (x.abbrv[k0], getattr(x,k0)[i])
+        lbl = ''
         # Loop through keys.
-        for k in x.keys[1:]:
+        for k in x.keys[0:]:
+            # Skip it if not part of the label.
+            
             # Check for strings.
             if x.defns[k]['Value'] == 'float':
-                # Append to the label
-                lbl += ('%s%.1f' % (x.abbrv[k], getattr(x,k)[i]))
+                # Use two decimals for first key.
+                if k == x.keys[0]:
+                    # Gets two decimals
+                    slbl = '%s%.2f'
+                else:
+                    # Single-decimal
+                    slbl = '%s%.2f'
+                # Append to the label with only one decimal
+                lbl += (slbl % (x.abbrv[k], getattr(x,k)[i]))
+            elif x.defns[k]['Value'] == 'int':
+                # Append to the label.
+                lbl += ('%s%i' % (x.abbrv[k], getattr(x,k)[i]))
         # Check length.
         if len(lbl) > 15:
             # 16-char limit (or is it 15?)
