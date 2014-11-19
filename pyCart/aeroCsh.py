@@ -284,6 +284,28 @@ class AeroCsh(FileCntl):
         self.SetVar('mg_fc', mg_fc)
         self.SetVar('mg_ad', mg_fc)
         
+    # Set the binary I/O setting
+    def SetBinaryIO(self, binaryIO):
+        """Set whether or not to write binary Tecplot files
+        
+        :Call:
+            >>> AC.SetBinaryIO(binaryIO)
+        :Inputs:
+            *AC*: :class:`pyCart.aeroCsh.AeroCsh`
+                Instance of the :file:`aero.csh` manipulation class
+            *binaryIO*: :class:`bool`
+                Whether or not to write binary Tecplot files
+        :Versions:
+            * 2014-11-19 ``@ddalle``: First version
+        """
+        # Check input.
+        if binaryIO:
+            # Turn flag on.
+            self.SetVar('binaryIO', '-binaryIO')
+        else:
+            # Turn flag off.
+            self.SetVar('binaryIO', '')
+        
     # Set the mesh growth factor list
     def SetMeshGrowth(self, mesh_growth):
         """Set the list of mesh growth factors

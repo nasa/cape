@@ -1345,6 +1345,7 @@ class Cart3d(object):
             self.AeroCsh.SetLimiter(self.opts.get_limiter(j))
             self.AeroCsh.SetYIsSpanwise(self.opts.get_y_is_spanwise(j))
             self.AeroCsh.SetABuffer(self.opts.get_abuff(j))
+            self.AeroCsh.SetBinaryIO(self.opts.get_binaryIO(j))
             # Process the adaptation-specific lists.
             self.AeroCsh.SetAPC(self.opts.get_apc())
             self.AeroCsh.SetMeshGrowth(self.opts.get_mesh_growth())
