@@ -48,6 +48,11 @@ def callf(cmdi, f=None, shell=None):
         ierr = sp.call(cmdi, shell=shell)
     # Check the status.
     if ierr:
+        # Remove RUNNING file.
+        if os.path.isfile('RUNNING'):
+            # Delete it.
+            os.remove('RUNNING')
+        # Exit with error notifier.
         raise SystemError("Command failed with status %i." % ierr)
 
 # Simple function to make sure a file is present

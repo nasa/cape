@@ -987,7 +987,7 @@ class Cart3d(object):
                     slbl = '%s%.2f'
                 else:
                     # Single-decimal
-                    slbl = '%s%.2f'
+                    slbl = '%s%.1f'
                 # Append to the label with only one decimal
                 lbl += (slbl % (x.abbrv[k], getattr(x,k)[i]))
             elif x.defns[k]['Value'] == 'int':
