@@ -205,7 +205,8 @@ def SetRestartIter(n=None):
     if n == 0:
         return None
     # Create a link to the file.
-    os.symlink('check.%05i' % n, 'Restart.file')
+    if os.path.isfile('check.%05i' % n):
+        os.symlink('check.%05i' % n, 'Restart.file')
     
     
 # Function to chose the correct input to use from the sequence.
