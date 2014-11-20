@@ -517,7 +517,7 @@ class InputCntl(FileCntl):
         Force = kwargs.get('Force', 0)
         Frame = kwargs.get('Frame', 0)
         Weight = kwargs.get('Weight', 1.0)
-        CompID = kwargs.get('CompID', 'entire')
+        CompID = kwargs.get('compID', 'entire')
         # Less likely inputs
         Target = kwargs.get('Target', 0.0)
         J = kwargs.get('J', 0)
