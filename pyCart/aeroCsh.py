@@ -423,7 +423,7 @@ class AeroCsh(FileCntl):
         # Modify the line to its appropriate value.
         self.SetVar('y_is_spanwise', val)
         
-    # Set y_is_spanwise on or off.
+    # Set full multigrid on or off
     def SetFMG(self, fmg):
         """Turn on or off ``-no_fmg`` flag
         
@@ -447,7 +447,7 @@ class AeroCsh(FileCntl):
         # Modify the line to its appropriate value.
         self.SetVar('fmg', val)
         
-    # Set y_is_spanwise on or off.
+    # Set poly multigrid on or off
     def SetPMG(self, pmg):
         """Turn on or off ``-pmg`` flag
         
@@ -470,6 +470,30 @@ class AeroCsh(FileCntl):
             val = ''
         # Modify the line to its appropriate value.
         self.SetVar('pmg', val)
+        
+    # Setting to run adjointCart first-order
+    def SetAdjFirstOrder(self, adj):
+        """Set flag to run `adjointCart` first-order
+        
+        :Call:
+            >>> AC.SetAdjFirstOrder(adj)
+        :Inputs:
+            *AC*: :class:`pyCart.aeroCsh.AeroCsh`
+                Instance of the :file:`aero.csh` manipulation class
+            *adj*: :class:`bool`
+                Whether or not to run `adjointCart` first-order
+        :Versions:
+            * 2014-11-20 ``@ddalle``: First version
+        """
+        # Check value.
+        if adj:
+            # Turn the pmg flag on
+            val = 1
+        else:
+            # No PMG flag
+            val = 0
+        # Modify the line to its appropriate value.
+        self.SetVar('adj_first_order', val)
     
     # Function to set the number of buffers
     def SetABuffer(self, buf):
