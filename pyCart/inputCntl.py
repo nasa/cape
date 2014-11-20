@@ -528,7 +528,7 @@ class InputCntl(FileCntl):
             line = '# optForce %12s' % Name
         else:
             # Full line
-            line = 'optForce %12s %7s %7i %6i %6i %9s %8s   0   %s' % (
+            line = 'optForce %12s %7s %7i %6i %6i %9s %8s   0   %s\n' % (
                 Name, Force, Frame, J, N, Target, Weight, CompID)
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Design_Info', reg, line)
