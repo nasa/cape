@@ -493,20 +493,20 @@ class InputCntl(FileCntl):
         :Inputs:
             *Name*: :class:`str`
                 Name of the force (required)
-            *Force*: :class:`int` [ {0} | 1 | 2 | None]
+            *force*: :class:`int` [ {0} | 1 | 2 | None]
                 Force axis, e.g. ``0`` for axial force. If ``Force=None``, this
                 force is not used in the output.
-            *Frame*: :class:`int` [ {0} | 1 ]
+            *frame*: :class:`int` [ {0} | 1 ]
                 Body frame (``0``) or velocity frame (``1``)
-            *Weight*: :class:`float` [ {1.0} | :class:`float` ]
+            *weight*: :class:`float` [ {1.0} | :class:`float` ]
                 Linear weight on term in overall functional
-            *CompID*: :class:`str` [ {entire} | :class:`str` | :class:`int` ]
+            *compID*: :class:`str` [ {entire} | :class:`str` | :class:`int` ]
                 Component to use for calculating the force
             *J*: :class:`int` [ {0} | 1 ]
                 Modifier of force, not normally used
             *N*: :class:`int` [ {1} | :class:`int` ]
                 Exponent on force coefficient
-            *Target*: :class:`float` [ {0.0} | :class:`float` ]
+            *target*: :class:`float` [ {0.0} | :class:`float` ]
                 Target value for the functional; irrelevant if *N*\ =1
         :Versions:
             * 2014-11-19 ``@ddalle``: First version
@@ -514,12 +514,12 @@ class InputCntl(FileCntl):
         # Line looks like "optForce  CY_L 1 0 0 1 0. 1. 0  Core"
         reg = 'optForce\s+' + str(Name)
         # Process the other inputs (with defaults)
-        Force = kwargs.get('Force', 0)
-        Frame = kwargs.get('Frame', 0)
-        Weight = kwargs.get('Weight', 1.0)
+        Force = kwargs.get('force', 0)
+        Frame = kwargs.get('frame', 0)
+        Weight = kwargs.get('weight', 1.0)
         CompID = kwargs.get('compID', 'entire')
         # Less likely inputs
-        Target = kwargs.get('Target', 0.0)
+        Target = kwargs.get('target', 0.0)
         J = kwargs.get('J', 0)
         N = kwargs.get('N', 1)
         # Form the line.
