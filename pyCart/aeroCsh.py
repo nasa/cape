@@ -52,7 +52,7 @@ class AeroCsh(FileCntl):
             *fname*: :class:`str`
                 Name of file to write to
         :Versions:
-            * 2014.06.08 ``@ddalle``: First version
+            * 2014-06-08 ``@ddalle``: First version
         """
         # Use the FileCntl.WriteEx method instead of FileCntl.Write
         self.WriteEx(fname=fname)
@@ -72,7 +72,7 @@ class AeroCsh(FileCntl):
             *val*: *any*, converted using :func:`str`
                 Value to which variable is set in final script
         :Versions:
-            * 2014.06.10 ``@ddalle``: First version
+            * 2014-06-10 ``@ddalle``: First version
         """
         # Line regular expression: "set XXXX" but with white spaces
         reg = '^\s*set\s+' + str(name) + '\s*[=\n]'
@@ -100,7 +100,7 @@ class AeroCsh(FileCntl):
             *etol*: :class:`float`
                 Number to set the function error tolerance to
         :Versions:
-            * 2014.06.10 ``@ddalle``: First version
+            * 2014-06-10 ``@ddalle``: First version
         """
         self.SetVar('etol', etol)
         
@@ -116,7 +116,7 @@ class AeroCsh(FileCntl):
             *maxR*: :class:`int`
                 Maximum number of refinements for `cubes`
         :Versions:
-            * 2014.06.10 ``@ddalle``: First version
+            * 2014-06-10 ``@ddalle``: First version
         """
         self.SetVar('maxR', maxR)
         
@@ -132,7 +132,7 @@ class AeroCsh(FileCntl):
             *max_nCells*: :class:`int`
                 Maximum number of cells allowed in mesh
         :Versions:
-            * 2014.06.10 ``@ddalle``: First version
+            * 2014-06-10 ``@ddalle``: First version
         """
         self.SetVar('max_nCells', max_nCells)
         
@@ -148,7 +148,7 @@ class AeroCsh(FileCntl):
             *n_adapt_cycles*: :class:`int`
                 Number of adaptation cycles
         :Versions:
-            * 2014.06.10 ``@ddalle``: First version
+            * 2014-06-10 ``@ddalle``: First version
         """
         self.SetVar('n_adapt_cycles', n_adapt_cycles)
         
@@ -164,7 +164,7 @@ class AeroCsh(FileCntl):
             *it_fc*: :class:`int`
                 Number of flowCart iters on initial mesh
         :Versions:
-            * 2014.06.10 ``@ddalle``: First version
+            * 2014-06-10 ``@ddalle``: First version
         """
         self.SetVar('it_fc', it_fc)
         
@@ -182,7 +182,7 @@ class AeroCsh(FileCntl):
         :Effects:
             Writes a line of the form ``'set ws_it = ( 50 50 50 )'``
         :Versions:
-            * 2014.06.10 ``@ddalle``: First version
+            * 2014-06-10 ``@ddalle``: First version
         """
         # Number of values specified
         n_ws = len(ws_it)
@@ -213,7 +213,7 @@ class AeroCsh(FileCntl):
             *it_ad*: :class:`int`
                 Number of `adjointCart` iters
         :Versions:
-            * 2014.06.10 ``@ddalle``: First version
+            * 2014-06-10 ``@ddalle``: First version
         """
         self.SetVar('it_ad', it_ad)
         
@@ -229,7 +229,7 @@ class AeroCsh(FileCntl):
             *cfl*: :class:`float`
                 CFL number
         :Versions:
-            * 2014.06.10 ``@ddalle``: First version
+            * 2014-06-10 ``@ddalle``: First version
         """
         self.SetVar('cfl', cfl)
         
@@ -245,7 +245,7 @@ class AeroCsh(FileCntl):
             *cfl*: :class:`float`
                 CFL number
         :Versions:
-            * 2014.10.03 ``@ddalle``: First version
+            * 2014-10-03 ``@ddalle``: First version
         """
         self.SetVar('cflmin', cflmin)
         
@@ -261,7 +261,7 @@ class AeroCsh(FileCntl):
             *limiter*: :class:`int`
                 Limiter, 2 or 5
         :Versions:
-            * 2014.10.13 ``@ddalle``: First version
+            * 2014-10-13 ``@ddalle``: First version
         """
         self.SetVar('limiter', int(limiter))
         
@@ -276,13 +276,44 @@ class AeroCsh(FileCntl):
                 Instance of the :file:`aero.csh` manipulation class
             *mg_fc*: :class:`int`
                 Number of multigrid levels, applied to flowCart and adjointCart
+        :Versions:
+            * 2014-06-10 ``@ddalle``: First version
         """
-        # Versions:
-        #  2014.06.10 @ddalle  : First version
-        
         # Set both variables.
         self.SetVar('mg_fc', mg_fc)
         self.SetVar('mg_ad', mg_fc)
+        
+    # Set the number of multigrid levels
+    def SetFlowCartMG(self, mg_fc):
+        """Set the number of multigrid levels for `flowCart`
+        
+        :Call:
+            >>> AC.SetFlowCartMG(mg_fc)
+        :Inputs:
+            *AC*: :class:`pyCart.aeroCsh.AeroCsh`
+                Instance of the :file:`aero.csh` manipulation class
+            *mg_fc*: :class:`int`
+                Number of `flowCart` multigrid levels
+        :Versions:
+            * 2014-11-20 ``@ddalle``: First version
+        """
+        self.SetVar('mg_fc', mg_fc)
+        
+    # Set the number of multigrid levels
+    def SetAdjointCartMG(self, mg_ad):
+        """Set the number of multigrid levels for `adjointCart`
+        
+        :Call:
+            >>> AC.SeAdjointCartMG(mg_ad)
+        :Inputs:
+            *AC*: :class:`pyCart.aeroCsh.AeroCsh`
+                Instance of the :file:`aero.csh` manipulation class
+            *mg_ad*: :class:`int`
+                Number of `adjointCart` multigrid levels
+        :Versions:
+            * 2014-11-20 ``@ddalle``: First version
+        """
+        self.SetVar('mg_ad', mg_ad)
         
     # Set the binary I/O setting
     def SetBinaryIO(self, binaryIO):
@@ -318,7 +349,7 @@ class AeroCsh(FileCntl):
             *mesh_growth*: *array_like*
                 Vector of mesh growth parameters
         :Versions:
-            * 2014.06.10 ``@ddalle``: First version
+            * 2014-06-10 ``@ddalle``: First version
         """
         # Number of values specified
         n_ws = len(mesh_growth)
@@ -349,7 +380,7 @@ class AeroCsh(FileCntl):
             *apc*: *array_like*
                 Vector of ``'p'`` and ``'a'``
         :Versions:
-            * 2014.10.13 ``@ddalle``: First version
+            * 2014-10-13 ``@ddalle``: First version
         """
         # Number of values specified
         n_ws = len(apc)
@@ -380,7 +411,7 @@ class AeroCsh(FileCntl):
             *y_is_spanwise*: :class:`bool`
                 Whether or not to use *y*-axis as spanwise axis
         :Versions:
-            * 2014.11.11 ``@ddalle``: First version
+            * 2014-11.11 ``@ddalle``: First version
         """
         # Check value.
         if y_is_spanwise:
