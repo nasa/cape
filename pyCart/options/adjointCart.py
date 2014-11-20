@@ -65,7 +65,7 @@ class adjointCart(odict):
         :Versions:
             * 2014.08.02 ``@ddalle``: First version
         """
-        return self.get_key('mg_fc', i)
+        return self.get_key('mg_ad', i)
     
     # Set adjointCart iteration levels
     def set_mg_ad(self, mg_ad=rc0('mg_ad'), i=None):
