@@ -1310,6 +1310,10 @@ class Cart3d(object):
             else:
                 # Run `flowCart` in second-order mode (cut cells are separate)
                 self.InputCntl.SetSecondOrder()
+            # Get robust mode.
+            if self.opts.get_robust_mode(j):
+                # Set robust mode.
+                self.InputCntl.SetRobustMode(j)
             # Name of output file.
             fout = os.path.join(frun, 'input.%02i.cntl' % j)
             # Write the input file.

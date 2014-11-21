@@ -169,6 +169,44 @@ class flowCart(odict):
             * 2014.10.02 ``@ddalle``: First version
         """
         self.set_key('first_order', fo, i)
+            
+        
+    # Get first-order status
+    def get_robust_mode(self, i=None):
+        """Return whether or not `flowCart` should be run in robust mode
+        
+        :Call:
+            >>> rm = opts.get_robust_mode(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *rm*: :class:`int` or :class:`list`(:class:`int`)
+                Switch for running `flowCart` in robust mode
+        :Versions:
+            * 2014-11-21 ``@ddalle``: First version
+        """
+        return self.get_key('robust_mode', i)
+    
+    # Set robust-mode status
+    def set_robust_mode(self, i=None):
+        """Return whether or not `flowCart` should be run in robust mode
+        
+        :Call:
+            >>> opts.get_robust_mode(rm, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *rm*: :class:`int` or :class:`list`(:class:`int`)
+                Switch for running `flowCart` in robust mode
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014-11-21 ``@ddalle``: First version
+        """
+        self.set_key('robust_mode', rm, i)
         
         
     # Number of iterations
@@ -626,6 +664,44 @@ class flowCart(odict):
             * 2014.09.07 ``@ddalle``: First version
         """
         self.set_key('tecO', tecO, i)
+        
+        
+    # Get the buffer limit setting
+    def get_buffLim(self, i=None):
+        """Return whether or not to use buffer limits
+        
+        :Call:
+            >>> buffLim = opts.get_buffLim(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *buffLim*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to use `flowCart` buffer limits
+        :Versions:
+            * 2014-11-21 ``@ddalle``: First version
+        """
+        return self.get_key('tm', i)
+    
+    # Set the buffer limit setting
+    def set_buffLim(self, buffLim=rc0('buffLim'), i=None):
+        """Set `flowCart` buffer limit setting
+        
+        :Call:
+            >>> opts.set_buffLim(buffLim, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *buffLim*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to use `flowCart` buffer limits
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014-11-21 ``@ddalle``: First version
+        """
+        self.set_key('buffLim', buffLim, i)
         
         
     # Get the cut cell gradient status

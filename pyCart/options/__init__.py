@@ -373,6 +373,16 @@ class Options(odict):
         self._flowCart()
         self['flowCart'].set_first_order(fo, i)
     
+    # Get flowCart robust mode
+    def get_robust_mode(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_robust_mode(i)
+        
+    # Set flowCart robust mode
+    def set_robust_mode(self, rm=rc0('robust_mode'), i=None):
+        self._flowCart()
+        self['flowCart'].set_robust_mode(rm, i)
+    
     # Number of iterations
     def get_it_fc(self, i=None):
         self._flowCart()

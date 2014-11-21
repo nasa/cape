@@ -97,6 +97,32 @@ class InputCntl(FileCntl):
         # Now write the updated line back.
         self.ReplaceLineInSectionStartsWith(sec, 'RK', [line])
         
+    # Function to set to second-order mode
+    def SetRobustMode(self):
+        """
+        Set gradient flag in all stages
+        
+        :Call:
+            >>> IC.SetRobustMode()
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+        :Effects:
+            Sets the gradient evaluation to ``1`` for each RK line
+        :Versions:
+            * 2014-11-21 ``@ddalle``: First version
+        """
+        # Name of the section
+        sec = 'Solver_Control_Information'
+        # Find the line that is sought.
+        L = self.GetLineInSectionStartsWith(sec, 'RK')
+        # Loop through lines.
+        for line in L[1:]:
+            # Form the new line.
+            li = line.replace(' 0 ', ' 1 ')
+            # Now write the updated line back.
+            self.ReplaceLineInSectionStartsWith(sec, line, [li])
+        
     # Function set the Mach number.
     def SetMach(self, Mach):
         """

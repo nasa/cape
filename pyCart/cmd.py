@@ -54,13 +54,13 @@ def cubes(cart3d=None, maxR=10, reorder=True, cubes_a=None, cubes_b=None):
     return cmd
     
 # Function to call mgPrep
-def mgPrep(cart3d=None, mg_fc=3):
+def mgPrep(cart3d=None, **kwargs):
     """
     Interface to Cart3D script `mgPrep`
     
     :Call:
         >>> cmd = pyCart.cmd.mgPrep(cart3d)
-        >>> cmd = pyCart.cmd.mgPrep(mg_fc=3)
+        >>> cmd = pyCart.cmd.mgPrep(**kwargs)
     :Inputs:
         *cart3d*: :class:`pyCart.cart3d.Cart3d`
             Global pyCart settings instance
@@ -75,11 +75,17 @@ def mgPrep(cart3d=None, mg_fc=3):
     # Check cart3d input.
     if cart3d is not None:
         # Apply values
-        mg_fc = cart3d.opts.get_mg_fc()
+        mg_fc = cart3d.opts.get_mg_fc(j)
+        pmg   = cart3d.opts.get_pmg(j)
+    else:
+        # Get values
+        mg_fc = kwargs.get('mg_fc', 3)
+        pmg   = kwargs.get('pmg', 0)
     # Initialize command.
     cmd = ['mgPrep']
     # Add options.
     if mg_fc: cmd += ['-n', str(mg_fc)]
+    if pmg:   cmd += ['-pmg']
     # Return the command
     return cmd
     
@@ -165,6 +171,8 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
             Whether or not to consider angle of attack in *z* direction
         *nProc*: :class:`int`
             Number of threads to use for ``flowCart`` operation
+        *buffLim*: :class:`bool`
+            Whether or not to use buffer limits for strong off-body shocks
     :Outputs:
         *cmd*: :class:`list` (:class:`str`)
             Command split into a list of strings
@@ -188,6 +196,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         tm      = cart3d.opts.get_tm(i)
         nProc   = cart3d.opts.get_nProc(i)
         mpicmd  = cart3d.opts.get_mpicmd(i)
+        buffLim = cart3d.opts.get_buffLim(i)
     elif fc is not None:
         # Get values from direct settings.
         mpi_fc  = fc.get_mpi_fc(i)
@@ -204,6 +213,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         tm      = fc.get_tm(i)
         nProc   = fc.get_nProc(i)
         mpicmd  = fc.get_mpicmd(i)
+        buffLim = fc.get_buffLim(i)
     else:
         # Get values from keyword arguments
         mpi_fc  = kwargs.get('mpi_fc', False)
@@ -220,6 +230,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         tm      = kwargs.get('tm', None)
         nProc   = kwargs.get('nProc', 8)
         mpicmd  = kwargs.get('mpicmd', 'mpiexec')
+        buffLim = kwargs.get('buffLim', False)
     # Increase the iteration count.
     it_fc += kwargs.get('n', 0)
     # Initialize command.
@@ -240,6 +251,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
     if mg_fc:   cmd += ['-mg', str(mg_fc)]
     if not fmg: cmd += ['-no_fmg']
     if pmg:     cmd += ['-pmg']
+    if buffLim: cmd += ['-buffLim']
     # Binary option doesn't exist for mpi_flowCart
     if (not mpi_fc) and binIO: cmd += ['-binaryIO']
     # Process and translate the cut-cell gradient variable.
