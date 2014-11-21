@@ -14,7 +14,7 @@ from . import cmd, queue
 # Read the local JSON file.
 import json
 # File control
-import os, glob
+import os, glob, shutil
 
 
 # Function to setup and call the appropriate flowCart file.
@@ -57,9 +57,21 @@ def run_flowCart():
             # Check for the file.
             if os.path.isfile(fname):
                 # Move it to some other file.
-                os.path.rename(fname, fname+".old")
+                os.rename(fname, fname+".old")
             # Copy the file.
             shutil.copy('BEST/'+fname, fname)
+    # Convince aero.csh to use the *new* input.cntl
+    if (i>0) and (fc.get_use_aero_csh(i)) and (fc.get_use_aero_csh(i-1)):
+        # Go to the best adaptive result.
+        os.chdir('BEST')
+        # Check for an input.cntl file
+        if os.path.isfile('input.cntl'):
+            # Move it to a representative name.
+            os.rename('input.cntl', 'input.%02i.cntl' % (i-1))
+        # Go back up.
+        os.chdir('..')
+        # Copy the new input file.
+        shutil.copy('input.%02i.cntl' % i, 'BEST/input.cntl')
     # Check for flowCart vs. mpi_flowCart
     if not fc.get_mpi_fc(i):
         # Get the number of threads, which may be irrelevant.
