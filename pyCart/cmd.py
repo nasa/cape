@@ -75,8 +75,8 @@ def mgPrep(cart3d=None, **kwargs):
     # Check cart3d input.
     if cart3d is not None:
         # Apply values
-        mg_fc = cart3d.opts.get_mg_fc(j)
-        pmg   = cart3d.opts.get_pmg(j)
+        mg_fc = cart3d.opts.get_mg_fc(0)
+        pmg   = cart3d.opts.get_pmg(0)
     else:
         # Get values
         mg_fc = kwargs.get('mg_fc', 3)
