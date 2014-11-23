@@ -59,6 +59,36 @@ class Plot(odict):
         # Set the value.
         self.set_key('Components', comps)
         
+    # Function to add to the list of components.
+    def add_PlotComponents(self, comps):
+        """Add to the list of components to plot
+        
+        :Call:
+            >>> opts.add_PlotComponents(comps)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *comps*: :class:`list` (:class:`str` | :class:`int`)
+                List of components (names or numbers) to plot
+        :Versions:
+            * 2014-11-23 ``@ddalle``: First version
+        """
+        # Get the current list.
+        comps_cur = self.get('Components', [])
+        # Make sure it's a list.
+        if type(comps_cur).__name__ != 'list':
+            comps_cur = [comps_cur]
+        # Check the type of the input.
+        try:
+            # Try it as a list first.
+            comps_cur += comps
+        except Exception:
+            # Append it as a string/int.
+            comps_cur.append(comps)
+        # Set the value.
+        self['Components'] = comps_cur
+        
+        
     # Function to get the coefficients to plot.
     def get_PlotCoeffs(self):
         """Return the list of plot coefficients
@@ -69,8 +99,8 @@ class Plot(odict):
             *opts*: :class:`pyCart.options.Options`
                 Options interface
         :Outputs:
-            *comps*: :class:`list` (:class:`str` | :class:`int`)
-                List of components (names or numbers) to plot
+            *coeffs*: :class:`list` (:class:`str`)
+                List of coefficients to plot
         :Versions:
             * 2014-11-22 ``@ddalle``: First version
         """
@@ -86,6 +116,29 @@ class Plot(odict):
         # Output
         return coeffs
         
+    # Function to set the coefficients to plot.
+    def set_PlotCoeffs(self, coeffs):
+        """Return the list of plot coefficients
+        
+        :Call:
+            >>> coeffs = opts.set_PlotCoeffs()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *coeffs*: :class:`list` (:class:`str`)
+                List of coefficients to plot
+        :Versions:
+            * 2014-11-23 ``@ddalle``: First version
+        """
+        # Make sure it's a list.
+        if type(coeffs).__name__ != 'list':
+            coeffs = [coeffs]
+        # Check contents.
+        for coeff in coeffs:
+            if not coeff not in ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN', 'L1']:
+                raise IOError("Coefficients '%s' not recognized." % coeff)
+        # Set the value.
+        self.set_key('Coefficients', coeffs)
         
         
         
