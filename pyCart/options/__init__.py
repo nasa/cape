@@ -554,7 +554,8 @@ class Options(odict):
         self['flowCart'].set_resub(resub, i)
         
     # Copy over the documentation.
-    for k in ['InputSeq', 'IterSeq', 'first_order', 'mpi_fc', 'use_aero_csh',
+    for k in ['InputSeq', 'IterSeq', 'first_order', 'robust_mode', 
+            'mpi_fc', 'use_aero_csh', 'tm',
             'it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'tecO', 'fmg', 'pmg',
             'y_is_spanwise', 'binaryIO', 'nProc', 'mpicmd', 'qsub', 'resub']:
         # Get the documentation for the "get" and "set" functions

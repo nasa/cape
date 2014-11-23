@@ -89,6 +89,11 @@ rc = {
     "cubes_a": 10,
     "cubes_b": 2,
     "reorder": True,
+    "dC": 0.01,
+    "nPlot": 1000,
+    "nAvg": 100,
+    "nRow": 2,
+    "nCol": 2,
     "PBS_j": "oe",
     "PBS_r": "n",
     "PBS_S": "/bin/bash",
@@ -228,17 +233,14 @@ def rc0(p):
     
     :Call:
         >>> v = rc0(s)
-        
     :Inputs:
         *s*: :class:`str`
             Name of parameter to extract
-        
     :Outputs:
         *v*: any
             Either ``rc[s]`` or ``rc[s][0]``, whichever is appropriate
-    
     :Versions:
-        * 2014.08.01 ``@ddalle``: First version
+        * 2014-08-01 ``@ddalle``: First version
     """
     # Use the `getel` function to do this.
     return getel(rc[p], 0)
@@ -251,19 +253,16 @@ def stripComments(lines, char='#'):
     
     :Call:
         >>> txt = stripComments(lines, char='#')
-    
     :Inputs:
         *lines*: :class:`list` of :class:`str`
             List of lines
         *char*: :class:`str`
             String that represents start of a comment
-        
     :Outputs:
         *txt*: :class:`str`
             Lines joined into a single string but with comments removed
-            
     :Versions:
-        * 2014.06.03 ``@ddalle``: First version
+        * 2014-06-03 ``@ddalle``: First version
     """
     # Start with the first line.
     i = 0
