@@ -151,11 +151,11 @@ class Trajectory:
             # Separate by commas and/or white space
             v = re.split("[\s\,]+", line)
             # Check v[0]
-            if v[0].lower() in ['p', 'pass']:
+            if v[-1].lower() in ['$p', 'pass']:
                 # Case is marked as passed.
                 self.PASS.append(True)
                 # Shift the entries.
-                v.pop(0)
+                v.pop()
             else:
                 # Case is unmarked.
                 self.PASS.append(False)

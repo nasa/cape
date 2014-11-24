@@ -842,7 +842,7 @@ class Cart3d(object):
             *i*: :class:`int`
                 Index of case to analyze
         :Versions:
-            * 2014.09.30 ``@ddalle``: First version
+            * 2014-09-30 ``@ddalle``: First version
         """
         # Prepare the mesh.
         self.PrepareMesh(i)
@@ -1313,7 +1313,7 @@ class Cart3d(object):
             # Get robust mode.
             if self.opts.get_robust_mode(j):
                 # Set robust mode.
-                self.InputCntl.SetRobustMode(j)
+                self.InputCntl.SetRobustMode()
             # Name of output file.
             fout = os.path.join(frun, 'input.%02i.cntl' % j)
             # Write the input file.

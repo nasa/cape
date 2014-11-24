@@ -144,13 +144,15 @@ class Config:
         :Call:
             >>> compID = cfg.GetCompID(face)
         :Inputs:
+            *cfg*: :class:`pyCart.config.Config`
+                Instance of configuration class
             *face*: :class:`str` or :class:`int` or :class:`list`
                 Component number, name, or list of component numbers and names
         :Outputs:
             *compID*: :class:`list`(:class:`int`)
                 List of component IDs
         :Versions:
-            * 2014.10.12 ``@ddalle``: First version
+            * 2014-10-12 ``@ddalle``: First version
         """
         # Initialize the list.
         compID = []
@@ -179,3 +181,26 @@ class Config:
         # Output
         return compID
     
+    # Method to copy a configuration
+    def Copy(self):
+        """Copy a configuration interface
+        
+        :Call:
+            >>> cfg2 = cfg.Copy()
+        :Inputs:
+            *cfg*: :class:`pyCart.config.Config`
+                Instance of configuration class
+        :Outputs:
+            *cfg2*: :class:`pyCart.config.Config`
+                Copy of input
+        :Versions:
+            * 2014-11-24 ``@ddalle``: First version
+        """
+        # Initialize object.
+        cfg = Config()
+        # Copy the dictionary.
+        cfg.faces = self.faces.copy()
+        # Output
+        return cfg
+        
+        

@@ -60,8 +60,8 @@ class TriBase(object):
         *tri.CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
             Component number for each triangle
     :Versions:
-        * 2014.05.23 ``@ddalle``: First version
-        * 2014.06.02 ``@ddalle``: Added UH3D reading capability
+        * 2014-05-23 ``@ddalle``: First version
+        * 2014-06-02 ``@ddalle``: Added UH3D reading capability
     """
     # Initialization method
     def __init__(self, fname=None, uh3d=None,
@@ -117,7 +117,7 @@ class TriBase(object):
         This looks like ``<pyCart.tri.Tri(nNode=M, nTri=N)>``
         
         :Versions:
-            * 2014.05.27 ``@ddalle``: First version
+            * 2014-05-27 ``@ddalle``: First version
         """
         return '<pyCart.tri.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
         
@@ -141,7 +141,7 @@ class TriBase(object):
         :Effects:
             Reads and creates *tri.Nodes*; file remains open.
         :Versions:
-            * 2014.06.16 ``@ddalle``: First version
+            * 2014-06-16 ``@ddalle``: First version
         """
         # Save the node count.
         self.nNode = nNode
@@ -166,7 +166,7 @@ class TriBase(object):
         :Effects:
             Reads and creates *tri.Tris*; file remains open.
         :Versions:
-            * 2014.06.16 ``@ddalle``: First version
+            * 2014-06-16 ``@ddalle``: First version
         """
         # Save the tri count.
         self.nTri = nTri
@@ -190,7 +190,7 @@ class TriBase(object):
             Reads and creates *tri.CompID* if not at end of file.  Otherwise all
             components are labeled ``1``.
         :Versions:
-            * 2014.06.16 ``@ddalle``: First version
+            * 2014-06-16 ``@ddalle``: First version
         """
         # Check for end of file.
         if f.tell() == os.fstat(f.fileno()).st_size:
@@ -215,7 +215,7 @@ class TriBase(object):
         :Outputs:
             ``None``
         :Versions:
-            * 2014.06.02 ``@ddalle``: First version
+            * 2014-06-02 ``@ddalle``: First version
         """
         # Open the file
         fid = open(fname, 'r')
@@ -250,7 +250,7 @@ class TriBase(object):
             >>> tri = pyCart.ReadTri('bJet.i.tri')
             >>> tri.Write('bjet2.tri')
         :Versions:
-            * 2014.05.23 ``@ddalle``: First version
+            * 2014-05-23 ``@ddalle``: First version
         """
         # Open the file for creation.
         fid = open(fname, 'w')
@@ -279,7 +279,7 @@ class TriBase(object):
             *tri2*: :class:`pyCart.tri.Tri`
                 Triangulation with same values as *tri* but not linked
         :Versions:
-            * 2014.06.12 ``@ddalle``: First version
+            * 2014-06-12 ``@ddalle``: First version
         """
         # Make a new triangulation with no information.
         tri = Tri()
@@ -290,6 +290,16 @@ class TriBase(object):
         tri.Nodes  = self.Nodes.copy()
         tri.Tris   = self.Tris.copy()
         tri.CompID = self.CompID.copy()
+        # Try to copy the configuration list.
+        try:
+            tri.Conf = self.Conf.copy()
+        except Exception:
+            pass
+        # Try to copy the configuration.
+        try:
+            tri.config = self.config.Copy()
+        except Exception:
+            pass
         # Output the new triangulation.
         return tri
         
@@ -306,8 +316,8 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of triangulation file to read
         :Versions:
-            * 2014.06.02 ``@ddalle``: First version
-            * 2014.10.27 ``@ddalle``: Added draft of reading component names
+            * 2014-06-02 ``@ddalle``: First version
+            * 2014-10-27 ``@ddalle``: Added draft of reading component names
         """
         # Open the file
         fid = open(fname, 'r')
@@ -389,7 +399,7 @@ class TriBase(object):
             *tri.Normals*: :class:`ndarray`, shape=(tri.nTri,3)
                 Unit normal for each triangle is saved
         :Versions:
-            * 201.06.12 ``@ddalle``: First version
+            * 2014-06-12 ``@ddalle``: First version
         """
         # Extract the vertices of each tri.
         x = self.Nodes[self.Tris-1, 0]
@@ -441,7 +451,7 @@ class TriBase(object):
             *cfg*: :class:`pyCart.config.Config`
                 Configuration instance
         :Versions:
-            * 2014.11.10 ``@ddalle``: First version
+            * 2014-11-10 ``@ddalle``: First version
         """
         # Check for Conf in the triangulation.
         try:
@@ -477,7 +487,7 @@ class TriBase(object):
             *j*: :class:`numpy.array`(:class:`int`)
                 Node indices, 0-based
         :Versions:
-            * 2014.09.27 ``@ddalle``: First version
+            * 2014-09-27 ``@ddalle``: First version
         """
         # Process inputs.
         if i is None:
@@ -526,8 +536,8 @@ class TriBase(object):
             *i*: :class:`int` or :class:`list` (:class:`int`0
                 Component ID(s) to which to apply translation
         :Versions:
-            * 2014.05.23 ``@ddalle``: First version
-            * 2014.10.08 ``@ddalle``: Exported functionality to function
+            * 2014-05-23 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: Exported functionality to function
         """
         # Check the first input type.
         if type(dx).__name__ in ['list', 'ndarray']:
@@ -571,8 +581,8 @@ class TriBase(object):
             *i*: :class:`int` or :class:`list` (:class:`int`)
                 Component ID(s) to which to apply rotation
         :Versions:
-            * 2014.05.27 ``@ddalle``: First version
-            * 2014.10.07 ``@ddalle``: Exported functionality to function
+            * 2014-05-27 ``@ddalle``: First version
+            * 2014-10-07 ``@ddalle``: Exported functionality to function
         """
         # Get the node indices.
         j = self.GetNodesFromCompID(i)
@@ -607,8 +617,8 @@ class TriBase(object):
             result, the number of nodes, number of tris, and number of
             components in *tri* will all increase.
         :Versions:
-            * 2014.06.12 ``@ddalle``: First version
-            * 2014.10.03 ``@ddalle``: Auto detect CompID overlap
+            * 2014-06-12 ``@ddalle``: First version
+            * 2014-10-03 ``@ddalle``: Auto detect CompID overlap
         """
         # Concatenate the node matrix.
         self.Nodes = np.vstack((self.Nodes, tri.Nodes))
@@ -649,7 +659,7 @@ class TriBase(object):
             result, the number of nodes, number of tris, and number of
             components in *tri* will all increase.
         :Versions:
-            * 2014.06.12 ``@ddalle``: First version
+            * 2014-06-12 ``@ddalle``: First version
         """
         # Concatenate the node matrix.
         self.Nodes = np.vstack((self.Nodes, tri.Nodes))
@@ -683,7 +693,7 @@ class TriBase(object):
             *A*: :class:`float`
                 Area of the component
         :Versions:
-            * 2014.06.13 ``@ddalle``: First version
+            * 2014-06-13 ``@ddalle``: First version
         """
         # Check for areas.
         if not hasattr(self, 'Areas'):
@@ -722,7 +732,7 @@ class TriBase(object):
             *n*: :class:`numpy.ndarray` shape=(3,)
                 Area-averaged unit normal
         :Versions:
-            * 2014.06.13 ``@ddalle``: First version
+            * 2014-06-13 ``@ddalle``: First version
         """
         # Check for areas.
         if not hasattr(self, 'Areas'):
@@ -781,8 +791,8 @@ class TriBase(object):
             *xlim*: :class:`numpy.ndarray` (:class:`float`), shape=(6,)
                 List of *xmin*, *xmax*, *ymin*, *ymax*, *zmin*, *zmax*
         :Versions:
-            * 2014.06.16 ``@ddalle``: First version
-            * 2014.08.03 ``@ddalle``: Changed "buff" --> "pad"
+            * 2014-06-16 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: Changed "buff" --> "pad"
         """
         # Get the component specifier.
         face = kwargs.get('compID')
@@ -871,8 +881,8 @@ class Tri(TriBase):
         """Initialization method
         
         :Versions:
-            * 2014.05.23 ``@ddalle``: First version
-            * 2014.06.02 ``@ddalle``: Added UH3D reading capability
+            * 2014-05-23 ``@ddalle``: First version
+            * 2014-06-02 ``@ddalle``: Added UH3D reading capability
         """
         # Check if file is specified.
         if fname is not None:
@@ -920,7 +930,7 @@ class Tri(TriBase):
         This looks like ``<pyCart.tri.Tri(nNode=M, nTri=N)>``
         
         :Versions:
-            8 2014.05.27 ``@ddalle``: First version
+            * 2014-05-27 ``@ddalle``: First version
         """
         return '<pyCart.tri.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
         
@@ -937,7 +947,7 @@ class Tri(TriBase):
             *fname*: :class:`str`
                 Name of triangulation file to read
         :Versions:
-            * 2014.06.02 ``@ddalle``: split from initialization method
+            * 2014-06-02 ``@ddalle``: split from initialization method
         """
         # Open the file
         fid = open(fname, 'r')
@@ -974,7 +984,7 @@ def ReadTri(fname):
         >>> tri.nNode
         92852
     :Versions:
-        * 2014.05.27 ``@ddalle``: First version
+        * 2014-05-27 ``@ddalle``: First version
     """
     # Create the tri object and return it.
     return Tri(fname)
@@ -995,7 +1005,7 @@ def WriteTri(fname, tri):
         >>> tri = pyCart.ReadTri('bJet.i.tri')
         >>> pyCart.WriteTri('bjet2.tri', tri)
     :Versions:
-        * 2014.05.23 ``ddalle``: First version
+        * 2014-05-23 ``ddalle``: First version
     """
     # Call the triangulation's write method.
     tri.Write(fname)
@@ -1020,7 +1030,7 @@ def RotatePoints(X, v1, v2, theta):
         *Y*: :class:`numpy.ndarray`(:class:`float`), *shape* = (N,3)
             List of rotated node coordinates
     :Versions:
-        * 2014.10.07 ``@ddalle``: Copied from previous TriBase.Rotate()
+        * 2014-10-07 ``@ddalle``: Copied from previous TriBase.Rotate()
     """
     # Convert points to NumPy.
     v1 = np.array(v1)
@@ -1069,7 +1079,7 @@ def TranslatePoints(X, dR):
         *Y*: :class:`numpy.ndarray`(:class:`float`), *shape* = (N,3)
             List of translated node coordinates
     :Versions:
-        * 2014.10.08 ``@ddalle``: Copied from previous TriBase.Translate()
+        * 2014-10-08 ``@ddalle``: Copied from previous TriBase.Translate()
     """
     # Convert points to NumPy.
     dR = np.array(dR)
