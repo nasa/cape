@@ -323,7 +323,7 @@ class Config(odict):
         return self.get_key('Xslices', i)
         
     # Set cut plane extraction coordinate(s)
-    def set_Xslices(self, i=None):
+    def set_Xslices(self, x, i=None):
         """Return the list of Xslices for extracting solution cut planes
         
         :Call:
@@ -382,7 +382,7 @@ class Config(odict):
         return self.get_key('Yslices', i)
         
     # Set cut plane extraction coordinate(s)
-    def set_Yslices(self, i=None):
+    def set_Yslices(self, y, i=None):
         """Return the list of Yslices for extracting solution cut planes
         
         :Call:
@@ -441,7 +441,7 @@ class Config(odict):
         return self.get_key('Zslices', i)
         
     # Set cut plane extraction coordinate(s)
-    def set_Zslices(self, i=None):
+    def set_Zslices(self, z, i=None):
         """Return the list of Zslices for extracting solution cut planes
         
         :Call:
