@@ -20,6 +20,7 @@ from history import History
 # Plotting
 import matplotlib.pyplot as plt
 from matplotlib.text import Text
+from matplotlib.backends.backend_pdf import PdfPages
 
 
 # Aerodynamic history class
