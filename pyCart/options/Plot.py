@@ -211,12 +211,12 @@ class Plot(odict):
         return nRow
         
     # Function to get the number of columns of plots
-    def get_nPlotColumns(self, comp=None):
+    def get_nPlotCols(self, comp=None):
         """Return the number of columns to use in plots
         
         :Call:
-            >>> nCol = opts.get_nPlotColumns()
-            >>> nCol = opts.get_nPlotColumns(comp)
+            >>> nCol = opts.get_nPlotCols()
+            >>> nCol = opts.get_nPlotCols(comp)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface

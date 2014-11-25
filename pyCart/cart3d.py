@@ -247,39 +247,19 @@ class Cart3d(object):
         
         
     # Function to plot most recent results.
-    def Plot(self, comp, C, nRow=None, nCol=None, **kw):
+    def Plot(self, **kw):
         """Plot force, moment, and/or residual history for all cases
         
+        Most plotting options are read from :mod:`pyCart.options.Plot`
+        
         :Call:
-            >>> h = cart3d.Plot(comp, C, nRow=None, nCol=None, **kw)
+            >>> h = cart3d.Plot(comp, **kw)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
-            *comp*: :class:`str`
-                Name of component to plot
-            *C*: :class:`list` (:class:`str`)
-                List of coefficients to plot
-            *nRow*: :class:`int`
-                Number of rows of subplots to make
-            *nCol*: :class:`int`
-                Number of columns of subplots to make
-            *n*: :class:`int`
-                Only show the last *n* iterations
-            *nAvg*: :class:`int`
-                Use the last *nAvg* iterations to compute an average
-            *d0*: :class:`float`
-                Default delta to use
-            *d*: :class:`dict`
-                Dictionary of deltas for each component
-            *tag*: :class:`str` 
-                Tag to put in upper corner, for instance case number and name
-            *restriction*: :class:`str`
-                Type of data, e.g. ``"SBU - ITAR"`` or ``"U/FOUO"``
-        :Outputs:
-            *h*: :class:`list` (:class:`dict`)
-                List of dictionaries of figure/plot handles
         :Versions:
             * 2014-11-12 ``@ddalle``: First version
+            * 2014-11-24 ``@ddalle``: Rewritten for looping through cases
         """
         # Check for the aero module.
         try:
@@ -288,26 +268,19 @@ class Cart3d(object):
         except NameError:
             # Import the aero module.
             import aero
-        # Go to root folder safely.
+        # Save current location.
         fpwd = os.getcwd()
         # Get the case names.
         fruns = self.x.GetFullFolderNames()
-        # Default number of rows and cols.
-        if (nCol is None):
-            # Make it up.
-            if len(C) == 4:
-                # 2x2 plot
-                nRow = 2
-                nCol = 2
-            else:
-                # Nx1 plot
-                nRow = len(C)
-                nCol = 1
-        elif (nRow is None):
-            # Assume the number of cols is correct.
-            nRow = int(np.ceil(float(len(C))/nCol))
+        # Get the list of components to plot.
+        comps = self.opts.get_PlotComponents()
         # Initialize output.
-        h = []
+        pdf = {}
+        # Make a new figure.
+        aero.plt.figure()
+        # Initialize the pdf documents
+        for comp in comps:
+            pdf[comp] = PdfPages('aero_%s.pdf'%comp)
         # Loop through runs.
         for i in range(len(fruns)):
             # Get the folder name.
@@ -315,18 +288,36 @@ class Cart3d(object):
             # Go to the folder.
             os.chdir(self.RootDir)
             os.chdir(frun)
-            # Make a new figure.
-            aero.plt.figure()
-            # Read the aerodata and extract the single component.
-            FM = aero.Aero([comp])[comp]
-            # Tag the run.
-            kw['tag'] = 'Case %i: %s\nComponent=%s' % (i, frun, comp)
-            # Set up the plot.
-            h.append(FM.Plot(nRow, nCol, C, **kw))
+            # Loop through components.
+            for comp in comps:
+                # Clear the figure (to avoid having hundreds of figs).
+                aero.plt.clf()
+                # List of coefficients to plot
+                coeffs = self.opts.get_PlotCoeffs(comp)
+                # Get options (which may be specific to component).
+                kw['nRow'] = self.opts.get_nPlotRows(comp)
+                kw['nCol'] = self.opts.get_nPlotCols(comp)
+                kw['n'] = self.opts.get_nPlotIter(comp)
+                kw['nAvg'] = self.opts.get_nAverage(comp)
+                kw['restriction'] = self.opts.get_PlotRestriction(comp)
+                # Initialize dictionary of deltas.
+                kw['d'] = {}
+                # Loop through coefficients.
+                for coeff in coeffs:
+                    kw['d'][coeff] = self.opts.get_PlotDelta(coeff, comp)
+                # Read the aerodata and extract the single component.
+                FM = aero.Aero([comp])[comp]
+                # Label the run.
+                kw['tag'] = 'Case %i: %s\nComponent=%s' % (i+1, frun, comp)
+                # Create the plot.
+                h = FM.Plot(nRow, nCol, coeffs, **kw)
+                # Save it to the PdfPages instance.
+                pdf[comp].savefig(h['fig'])
         # Return to original location.
         os.chdir(fpwd)
-        # Output
-        return h
+        # Close the PdfPages instances
+        for comp in comps:
+            pdf[comp].close()
         
         
     # Function to display current status
