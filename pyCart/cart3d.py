@@ -280,7 +280,7 @@ class Cart3d(object):
         aero.plt.figure()
         # Initialize the pdf documents
         for comp in comps:
-            pdf[comp] = PdfPages('aero_%s.pdf'%comp)
+            pdf[comp] = aero.PdfPages('aero_%s.pdf'%comp)
         # Loop through runs.
         for i in range(len(fruns)):
             # Get the folder name.
@@ -294,9 +294,10 @@ class Cart3d(object):
                 aero.plt.clf()
                 # List of coefficients to plot
                 coeffs = self.opts.get_PlotCoeffs(comp)
+                # Get plot dimensions
+                nRow = self.opts.get_nPlotRows(comp)
+                nCol = self.opts.get_nPlotCols(comp)
                 # Get options (which may be specific to component).
-                kw['nRow'] = self.opts.get_nPlotRows(comp)
-                kw['nCol'] = self.opts.get_nPlotCols(comp)
                 kw['n'] = self.opts.get_nPlotIter(comp)
                 kw['nAvg'] = self.opts.get_nAverage(comp)
                 kw['restriction'] = self.opts.get_PlotRestriction(comp)

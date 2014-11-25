@@ -30,7 +30,7 @@ class Plot(odict):
             comps = [comps]
         # Check contents.
         for comp in comps:
-            if (type(comp).__name__ not in ['str', 'int']):
+            if (type(comp).__name__ not in ['str', 'int', 'unicode']):
                 raise IOError("Component '%s' is not a str or int." % comp)
         # Output
         return comps
@@ -54,7 +54,7 @@ class Plot(odict):
             comps = [comps]
         # Check contents.
         for comp in comps:
-            if (type(comp).__name__ not in ['str', 'int']):
+            if (type(comp).__name__ not in ['str', 'int', 'unicode']):
                 raise IOError("Component '%s' is not a str or int." % comp)
         # Set the value.
         self.set_key('Components', comps)
@@ -120,7 +120,7 @@ class Plot(odict):
             coeffs = [coeffs]
         # Check contents.
         for coeff in coeffs:
-            if not coeff not in ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN', 'L1']:
+            if coeff not in ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN', 'L1']:
                 raise IOError("Coefficients '%s' not recognized." % coeff)
         # Output
         return coeffs
@@ -177,7 +177,7 @@ class Plot(odict):
             * 2014-11-23 ``@ddalle``: First version
         """
         # Get the default.
-        nAvg = self.get('nAverage', rc0('nAverage'))
+        nAvg = self.get('nAverage', rc0('nAvg'))
         # Check for specific component to supersede.
         if comp in self:
             nAvg = self[comp].get('nAverage', nAvg)
