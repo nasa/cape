@@ -30,7 +30,7 @@ class Plot(odict):
             comps = [comps]
         # Check contents.
         for comp in comps:
-            if not (type(comp).__name__ in ['str', 'int']):
+            if (type(comp).__name__ not in ['str', 'int']):
                 raise IOError("Component '%s' is not a str or int." % comp)
         # Output
         return comps
@@ -54,7 +54,7 @@ class Plot(odict):
             comps = [comps]
         # Check contents.
         for comp in comps:
-            if not (type(comp).__name__ in ['str', 'int']):
+            if (type(comp).__name__ not in ['str', 'int']):
                 raise IOError("Component '%s' is not a str or int." % comp)
         # Set the value.
         self.set_key('Components', comps)
