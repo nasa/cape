@@ -211,7 +211,7 @@ class Cart3d(object):
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
         :Versions:
-            * 2014.08.30 ``@ddalle``: First version
+            * 2014-08-30 ``@ddalle``: First version
         """
         # Only read triangulation if not already present.
         try:
@@ -618,6 +618,8 @@ class Cart3d(object):
                 return False
             # Go to the folder.
             os.chdir(frun)
+        # Go to working folder. ('.' or 'adapt??/')
+        os.chdir(case.GetWorkingFolder())
         # Check for the surface file.
         if not os.path.isfile('Components.i.tri'): q = False
         # Check for which mesh file to look for.
@@ -794,40 +796,14 @@ class Cart3d(object):
             os.chdir(fpwd)
             # Quit.
             return None
-        # Count main run iterations.
-        if os.path.isfile('history.dat'):
-            # Get the last line of the history file.
-            txt = sp.Popen(['tail', '-1', 'history.dat'],
-                stdout=sp.PIPE).communicate()[0]
-            # Check if it's a comment.
-            if txt.startswith('#') or len(txt)<2:
-                # No iterations yet.
-                n0 = 0
-            else:
-                # Iterations
-                n0 = int(txt.split()[0])
-        else:
-            # No 'history.dat'
-            n0 = 0
-        # Count adaptive iterations.
-        if os.path.isfile('BEST/history.dat'):
-            # Get the last line of the history file.
-            txt = sp.Popen(['tail', '-1', 'BEST/history.dat'],
-                stdout=sp.PIPE).communicate()[0]
-            # Check if it's a comment.
-            if txt.startswith('#') or len(txt)<2:
-                # No iterations yet.
-                n1 = 0
-            else:
-                # Iterations
-                n1 = int(txt.split()[0])
-        else:
-            # No history; zero iterations.
-            n1 = 0
+        # Get working directory
+        fwork = case.GetWorkingDirectory()
+        # Get the iteration number.
+        n = case.GetHistoryIter(os.path.join(fwork, 'history.dat'))
         # Return to original folder.
         os.chdir(fpwd)
         # Output.
-        return max(n0, n1)
+        return n
         
         
     # Prepare a case.

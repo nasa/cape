@@ -7,7 +7,7 @@ Case for interacting with individual run cases: :mod:`pyCart.case`
 # Import options class
 from options.flowCart import flowCart
 # Binary interface.
-from bin import callf
+from bin import callf, sp
 # Interface for writing commands
 from . import cmd, queue
 
@@ -36,7 +36,7 @@ def run_flowCart():
     # Get the settings.
     fc = ReadCaseJSON()
     # Determine the run index.
-    i = DetermineInputNumber(fc)
+    i = GetInputNumber(fc)
     # Get the restart iteration number.
     n = GetRestartIter()
     # Delete any input file.
@@ -131,7 +131,7 @@ def StartCase():
     # Get the config.
     fc = ReadCaseJSON()
     # Determine the run index.
-    i = DetermineInputNumber(fc)
+    i = GetInputNumber(fc)
     # Check qsub status.
     if fc.get_qsub(i):
         # Submit the case.
@@ -222,11 +222,11 @@ def SetRestartIter(n=None):
     
     
 # Function to chose the correct input to use from the sequence.
-def DetermineInputNumber(fc):
+def GetInputNumber(fc):
     """Determine the appropriate input number based on results available
     
     :Call:
-        >>> i = pyCart.case.DetermineInputNumber(fc)
+        >>> i = pyCart.case.GetInputNumber(fc)
     :Inputs:
         *fc*: :class:`pyCart.options.flowCart.flowCart`
             Options interface for `flowCart`
@@ -255,5 +255,67 @@ def DetermineInputNumber(fc):
         SetRestartIter(n)
     # Case completed; just return the last value.
     return i
+    
+# Function to read last line of 'history.dat' file
+def GetHistoryIter(fname='history.dat'):
+    """Get the most recent iteration number from a :file:`history.dat` file
+    
+    :Call:
+        >>> n = pyCart.case.GetHistoryIter(fname='history.dat')
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to read
+    :Outputs:
+        *n*: :class:`int`
+            Last iteration number
+    :Versions:
+        * 2014-11-24 ``@ddalle``: First version
+    """
+    # Check the file beforehand.
+    if not os.path.isfile(fname):
+        # No history
+        return 0
+    # Check the file.
+    try:
+        # Try to tail the last line.
+        txt = sp.Popen(['tail', '-1', fname], stdout=sp.PIPE).communicate()
+        # Try to get the integer.
+        return int(txt.split()[0])
+    except Exception:
+        # If any of that fails, return 0
+        return 0
+    
+# Function to get the most recent working folder
+def GetWorkingFolder():
+    """Get the most recent working folder, either '.' or 'adapt??/'
+    
+    This function must be called from the top level of a case run directory.
+    
+    :Call:
+        >>> fdir = pyCart.case.GetWorkingFolder()
+    :Outputs:
+        *fdir*: :class:`str`
+            Name of the most recently used working folder with a history file
+    :Versions:
+        * 2014-11-24 ``@ddalle``: First version
+    """
+    # Try to get iteration number from working folder.
+    n0 = GetHistoryIter()
+    # Initialize working directory.
+    fdir = '.'
+    # Check for adapt?? folders
+    for fi in glob.glob('adapt??'):
+        # Attempt to read it.
+        ni = GetHistoryIter(os.path.join(fi, 'history.dat'))
+        # Check it.
+        if ni > n0:
+            # Current best estimate of working directory.
+            fdir = fi
+            # Update best estimate.
+            n0 = ni
+    # Output
+    return fdir
+        
+    
     
     
