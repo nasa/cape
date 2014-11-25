@@ -278,7 +278,7 @@ def GetHistoryIter(fname='history.dat'):
     # Check the file.
     try:
         # Try to tail the last line.
-        txt = sp.Popen(['tail', '-1', fname], stdout=sp.PIPE).communicate()
+        txt = sp.Popen(['tail', '-1', fname], stdout=sp.PIPE).communicate()[0]
         # Try to get the integer.
         return int(txt.split()[0])
     except Exception:
