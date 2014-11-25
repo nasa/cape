@@ -1183,5 +1183,5 @@ class Options(odict):
     for k in ['PlotCoeffs', 'nPlotIter', 'nAverage', 'nPlotRows',
             'nPlotCols', 'PlotRestriction', 'PlotDelta']:
         # Get the documentation for the "get" and "set" functions
-        eval('get_'+k+'s').__doc__ = getattr(Plot,'get_'+k+'s').__doc__
+        eval('get_'+k).__doc__ = getattr(Plot,'get_'+k).__doc__
     
