@@ -323,6 +323,45 @@ class flowCart(odict):
         """
         self.set_key('mpi_fc', mpi_fc, i)
         
+    
+    # Get unsteady status
+    def get_unsteady(self, i=None):
+        """Return whether or not to use time-domain `td_flowCart`
+        
+        :Call:
+            >>> td_fc = opts.get_unsteady(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *td_fc*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to use ``td_flowCart -unsteady``
+        :Versions:
+            * 2014-11-28 ``@ddalle``: First version
+        """
+        return self.get_key('unsteady', i)
+    
+    # Set unsteady status
+    def set_unsteady(self, td_fc=rc0('unsteady'), i=None):
+        """Set whether or not to use time-domain `td_flowCart`
+        
+        :Call:
+            >>> opts.set_unsteady(td_fc, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *td_fc*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to use ``td_flowCart -unsteady``
+        :Versions:
+            * 2014-11-28 ``@ddalle``: First version
+        """
+        self.set_key('unsteady', td_fc, i)
+        
         
     # Get aero.csh status
     def get_use_aero_csh(self, i=None):
@@ -436,6 +475,159 @@ class flowCart(odict):
             * 2014.08.02 ``@ddalle``: First version
         """
         self.set_key('cflmin', cflmin, i)
+        
+    
+    # Get the time step
+    def get_dt(self, i=None):
+        """Return the time-accurate nondimensional physical time step
+        
+        :Call:
+            >>> dt = opts.get_dt(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *dt*: :class:`float` or :class:`list`(:class:`float`)
+                Nondimensional physical time step
+        :Versions:
+            * 2014-11-28 ``@ddalle``: First version
+        """
+        return self.get_key('dt', i)
+        
+    # Set the physical time step
+    def set_dt(self, dt=rc0('dt'), i=None):
+        """Set the time-accurate nondimensional physical time step
+        
+        :Call:
+            >>> opts.set_dt(dt, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *dt*: :class:`float` or :class:`list`(:class:`float`)
+                Nondimensional physical time step
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014-11-28 ``@ddalle``: First version
+        """
+        self.set_key('dt', dt, i)
+        
+    
+    # Get the number of unsteady steps
+    def get_nSteps(self, i=None):
+        """Return the number of unsteady time steps
+        
+        :Call:
+            >>> nSteps = opts.get_nSteps(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *nSteps*: :class:`int` or :class:`list`(:class:`int`)
+                Number of unsteady time steps to advance
+        :Versions:
+            * 2014-11-28 ``@ddalle``: First version
+        """
+        return self.get_key('nSteps', i)
+        
+    # Set the number of unsteady time steps
+    def set_nSteps(self, nSteps=rc0('nSteps'), i=None):
+        """Set the number of unsteady time steps
+        
+        :Call:
+            >>> opts.set_nSteps(nSteps, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *nSteps*: :class:`int` or :class:`list`(:class:`int`)
+                Number of unsteady time steps to advance
+        :Versions:
+            * 2014-11-28 ``@ddalle``: First version
+        """
+        self.set_key('nSteps', nSteps, i)
+        
+    
+    # Get the unsteady checkpoint interval
+    def get_checkptTD(self, i=None):
+        """Return the number of steps between unsteady checkpoints
+        
+        :Call:
+            >>> checkptTD = opts.get_checkptTD(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *checkptTD*: :class:`int` or :class:`list`(:class:`int`)
+                Number of unsteady time steps between checkpoints
+        :Versions:
+            * 2014-11-28 ``@ddalle``: First version
+        """
+        return self.get_key('checkptTD', i)
+        
+    # Set the unsteady checkpoint interval
+    def set_checkptTD(self, checkptTD=rc0('checkptTD'), i=None):
+        """Set the number of steps between unsteady checkpoints
+        
+        :Call:
+            >>> opts.set_checkptTD(checkptTD, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *checkptTD*: :class:`int` or :class:`list`(:class:`int`)
+                Number of unsteady time steps between checkpoints
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014-11-28 ``@ddalle``: First version
+        """
+        self.set_key('checkptTD', checkptTD, i)
+        
+    
+    # Get the unsteady checkpoint interval
+    def get_vizTD(self, i=None):
+        """Return the number of steps between visualization outputs
+        
+        :Call:
+            >>> vizTD = opts.get_vizTD(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *vizTD*: :class:`int` or :class:`list`(:class:`int`)
+                Number of unsteady time steps between visualization outputs
+        :Versions:
+            * 2014-11-28 ``@ddalle``: First version
+        """
+        return self.get_key('vizTD', i)
+        
+    # Set the unsteady checkpoint interval
+    def set_vizTD(self, vizTD=rc0('vizTD'), i=None):
+        """Set the number of steps between unsteady checkpoints
+        
+        :Call:
+            >>> opts.set_vizTD(vizTD, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *vizTD*: :class:`int` or :class:`list`(:class:`int`)
+                Number of unsteady time steps between visualization outputs
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014-11-28 ``@ddalle``: First version
+        """
+        self.set_key('vizTD', vizTD, i)
         
         
     # Get the flowCart limiter

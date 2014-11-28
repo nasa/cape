@@ -446,6 +446,16 @@ class Options(odict):
         self._flowCart()
         self['flowCart'].set_mpi_fc(mpi_fc, i)
         
+    # Get unsteady status
+    def get_unsteady(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_unsteady(i)
+        
+    # Set unsteady status
+    def set_unsteady(self, td_fc=rc0('unsteady'), i=None):
+        self._flowCart()
+        self['flowCart'].set_unsteady(td_fc, i)
+        
     # Get aero.csh status
     def get_use_aero_csh(self, i=None):
         self._flowCart()
@@ -485,6 +495,46 @@ class Options(odict):
     def set_cflmin(self, cflmin=rc0('cflmin'), i=None):
         self._flowCart()
         self['flowCart'].set_cflmin(cflmin, i)
+        
+    # Get the nondimensional physical time step
+    def get_dt(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_dt(i)
+        
+    # Set the nondimensional physical time step
+    def set_dt(self, dt=rc0('dt'), i=None):
+        self._flowCart()
+        self['flowCart'].set_dt(dt, i)
+        
+    # Get the number of physical time steps to advance
+    def get_nSteps(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_nSteps(i)
+        
+    # Set the number of physical time steps to advance
+    def set_nSteps(self, nSteps=rc0('nSteps'), i=None):
+        self._flowCart()
+        self['flowCart'].set_nSteps(nSteps, i)
+        
+    # Get the number of time steps between checkpoints
+    def get_checkptTD(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_checkptTD(i)
+        
+    # Set the number of time steps between checkpoints
+    def set_checkptTD(self, checkptTD=rc0('checkptTD'), i=None):
+        self._flowCart()
+        self['flowCart'].set_checkptTD(checkptTD, i)
+        
+    # Get the number of time steps between visualization outputs
+    def get_vizTD(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_vizTD(i)
+        
+    # Set the number of time steps visualization outputs
+    def set_vizTD(self, vizTD=rc0('vizTD'), i=None):
+        self._flowCart()
+        self['flowCart'].set_vizTD(vizTD, i)
         
     # Get the limiter
     def get_limiter(self, i=None):
@@ -567,8 +617,9 @@ class Options(odict):
         self['flowCart'].set_resub(resub, i)
         
     # Copy over the documentation.
-    for k in ['InputSeq', 'IterSeq', 'first_order', 'robust_mode', 
-            'mpi_fc', 'use_aero_csh', 'tm',
+    for k in ['InputSeq', 'IterSeq', 'first_order', 'robust_mode', 'unsteady', 
+            'mpi_fc', 'use_aero_csh', 'tm', 'nSteps', 'dt', 'checkptTD',
+            'vizTD',
             'it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'tecO', 'fmg', 'pmg',
             'y_is_spanwise', 'binaryIO', 'nProc', 'mpicmd', 'qsub', 'resub']:
         # Get the documentation for the "get" and "set" functions
