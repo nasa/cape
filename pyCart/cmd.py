@@ -197,6 +197,11 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         nProc   = cart3d.opts.get_nProc(i)
         mpicmd  = cart3d.opts.get_mpicmd(i)
         buffLim = cart3d.opts.get_buffLim(i)
+        td_fc   = cart3d.opts.get_unsteady(i)
+        dt      = cart3d.opts.get_dt(i)
+        nSteps  = cart3d.opts.get_nSteps(i)
+        chkptTD = cart3d.opts.get_checkptTD(i)
+        vizTD   = cart3d.opts.get_vizTD(i)
     elif fc is not None:
         # Get values from direct settings.
         mpi_fc  = fc.get_mpi_fc(i)
@@ -214,6 +219,11 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         nProc   = fc.get_nProc(i)
         mpicmd  = fc.get_mpicmd(i)
         buffLim = fc.get_buffLim(i)
+        td_fc   = fc.get_unsteady(i)
+        dt      = fc.get_dt(i)
+        nSteps  = fc.get_nSteps(i)
+        chkptTD = fc.get_checkptTD(i)
+        vizTD   = fc.get_vizTD(i)
     else:
         # Get values from keyword arguments
         mpi_fc  = kwargs.get('mpi_fc', False)
@@ -231,19 +241,41 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         nProc   = kwargs.get('nProc', 8)
         mpicmd  = kwargs.get('mpicmd', 'mpiexec')
         buffLim = kwargs.get('buffLim', False)
+        td_fc   = kwargs.get('unsteady', False)
+        dt      = kwargs.get('dt', 0.1)
+        nSteps  = kwargs.get('nSteps', 100)
+        chkptTD = kwargs.get('checkptTD', None)
+        vizTD   = kwargs.get('vizTD', None)
     # Increase the iteration count.
     it_fc += kwargs.get('n', 0)
     # Initialize command.
-    if mpi_fc:
-        # Use mpi_flowCart
+    if td_fc and mpi_fc:
+        # Unsteady MPI flowCart
+        cmd = [mpicmd, '-np', str(nProc), 'td_mpix_flowCart', 
+            '-his', '-v', '-unsteady']
+    elif td_fc:
+        # Unsteady but not MPI
+        cmd = ['td_flowCart', '-his', '-v', '-unsteady']
+    elif mpi_fc:
+        # Use mpi_flowCart but not unsteady
         cmd = [mpicmd, '-np', str(nProc), 'td_mpix_flowCart', '-his', '-v']
     else:
         # Use single-node flowCart.
         cmd = ['flowCart', '-his', '-v']
     # Check for restart
     if (i>0): cmd += ['-restart']
+    # Number of steps
+    if td_fc:
+        # Number of steps
+        if nSteps: cmd += ['-nSteps', str(nSteps)]
+        # Other unsteady options.
+        if dt:      cmd += ['-dt', str(dt)]
+        if chkptTD: cmd += ['-checkptTD', str(chkptTD)]
+        if vizTD:   cmd += ['-vizTD', str(vizTD)]
+    else:
+        # Multigrid cycles
+        if it_fc:   cmd += ['-N', str(it_fc)]
     # Add options
-    if it_fc:   cmd += ['-N', str(it_fc)]
     if y_span:  cmd += ['-y_is_spanwise']
     if limiter: cmd += ['-limiter', str(limiter)]
     if tecO:    cmd += ['-T']
