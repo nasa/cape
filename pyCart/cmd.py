@@ -192,7 +192,6 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         cflmin  = cart3d.opts.get_cflmin(i)
         mg_fc   = cart3d.opts.get_mg_fc(i)
         fmg     = cart3d.opts.get_fmg(i)
-        pmg     = cart3d.opts.get_pmg(i)
         tm      = cart3d.opts.get_tm(i)
         nProc   = cart3d.opts.get_nProc(i)
         mpicmd  = cart3d.opts.get_mpicmd(i)
@@ -214,7 +213,6 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         cflmin  = fc.get_cflmin(i)
         mg_fc   = fc.get_mg_fc(i)
         fmg     = fc.get_fmg(i)
-        pmg     = fc.get_pmg(i)
         tm      = fc.get_tm(i)
         nProc   = fc.get_nProc(i)
         mpicmd  = fc.get_mpicmd(i)
@@ -236,7 +234,6 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         cflmin  = kwargs.get('cflmin', 0.8)
         mg_fc   = kwargs.get('mg_fc', 3)
         fmg     = kwargs.get('fmg', True)
-        pmg     = kwargs.get('pmg', False)
         tm      = kwargs.get('tm', None)
         nProc   = kwargs.get('nProc', 8)
         mpicmd  = kwargs.get('mpicmd', 'mpiexec')
@@ -282,7 +279,6 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
     if cfl:     cmd += ['-cfl', str(cfl)]
     if mg_fc:   cmd += ['-mg', str(mg_fc)]
     if not fmg: cmd += ['-no_fmg']
-    if pmg:     cmd += ['-pmg']
     if buffLim: cmd += ['-buffLim']
     # Binary option doesn't exist for mpi_flowCart
     if (not mpi_fc) and binIO: cmd += ['-binaryIO']

@@ -49,7 +49,7 @@ def run_flowCart():
         # Go to the best adaptive result.
         os.chdir('BEST')
         # Find all *.dat files and Mesh files
-        fglob = glob.glob('*.dat') + glob.glob('Mesh.*.c3d')
+        fglob = glob.glob('*.dat') + glob.glob('Mesh.*')
         # Go back up one folder.
         os.chdir('..')
         # Copy all the important files.
@@ -218,7 +218,11 @@ def SetRestartIter(n=None):
         return None
     # Create a link to the file.
     if os.path.isfile('check.%05i' % n):
+        # Restart file in current folder
         os.symlink('check.%05i' % n, 'Restart.file')
+    elif os.path.isfile('BEST/check.%05i' % n):
+        # Restart file in adaptive folder
+        os.symlink('BEST/check.%05i' % n, 'Restart.file')
     
     
 # Function to chose the correct input to use from the sequence.
