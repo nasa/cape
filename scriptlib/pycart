@@ -61,6 +61,17 @@ if __name__ == "__main__":
     if kw.get('c'):
         # Display status.
         cart3d.DisplayStatus(**kw)
+    elif kw.get('p'):
+        # Check for component.
+        if kw['p'] == True:
+            # Plot with default options
+            cart3d.Plot()
+        else:
+            # Plot requested component.
+            cart3d.Plot(comp=kw['p'])
+    elif kw.get('a'):
+        # Archive folders
+        cart3d.TarAdapt()
     else:
         # Do it.
         cart3d.SubmitJobs(**kw)

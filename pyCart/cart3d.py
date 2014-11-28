@@ -274,6 +274,9 @@ class Cart3d(object):
         fruns = self.x.GetFullFolderNames()
         # Get the list of components to plot.
         comps = self.opts.get_PlotComponents()
+        # Check for command-line override.
+        if kw.get('comp'):
+            comps = [kw['comp']]
         # Initialize output.
         pdf = {}
         # Make a new figure.
@@ -1197,6 +1200,8 @@ class Cart3d(object):
             # Go to folder.
             os.chdir(self.RootDir)
             os.chdir(frun)
+            # Status update
+            print(fdir)
             # Manage the directory.
             manage.TarAdapt()
         # Go back to original directory.
