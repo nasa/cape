@@ -167,8 +167,61 @@ def ReadCaseJSON():
     
 
 # Function to get the most recent check file.
+def GetSteadyIter():
+    """Get iteration number of most recent steady check file
+    
+    :Call:
+        >>> n = pyCart.case.GetSteadyIter()
+    :Outputs:
+        *n*: :class:`int`
+            Index of most recent check file
+    :Versions:
+        * 2014-10-02 ``@ddalle``: First version
+        * 2014-11-28 ``@ddalle``: Renamed from :func:`GetRestartIter`
+    """
+    # List the check.* files.
+    fch = glob.glob('check.*[0-9]') + glob.glob('BEST/check.*')
+    # Initialize iteration number until informed otherwise.
+    n = 0
+    # Loop through the matches.
+    for fname in fch:
+        # Get the integer for this file.
+        i = int(fname.split('.')[-1])
+        # Use the running maximum.
+        n = max(i, n)
+    # Output
+    return n
+    
+# Function to get the most recent time-domain check file.
+def GetUnsteadyIter():
+    """Get iteration number of most recent unsteady check file
+    
+    :Call:
+        >>> n = pyCart.case.GetUnsteadyIter()
+    :Outputs:
+        *n*: :class:`int`
+            Index of most recent check file
+    :Versions:
+        * 2014-11-28 ``@ddalle``: First version
+    """
+    # Check for td checkpoints
+    fch = glob.glob('check.*.td')
+    # Initialize unsteady count
+    n = 0
+    # Loop through matches.
+    for fname in fch:
+        # Get the integer for this file.
+        i = int(fname.split('.')[1])
+        # Use the running maximum.
+        n = max(i, n)
+    # Output.
+    return n
+    
+# Function to get total iteration number
 def GetRestartIter():
-    """Get iteration number of most recent check file
+    """Get total iteration number of most recent check file
+    
+    This is the sum of the most recent steady iteration and unsteady iteration.
     
     :Call:
         >>> n = pyCart.case.GetRestartIter()
@@ -176,45 +229,37 @@ def GetRestartIter():
         *n*: :class:`int`
             Index of most recent check file
     :Versions:
-        * 2014.10.02 ``@ddalle``: First version
+        * 2014-11-28 ``@ddalle``: First version
     """
-    # List the check.* files.
-    fch = glob.glob('check.*') + glob.glob('BEST/check.*')
-    # Initialize iteration number until informed otherwise.
-    n = 0
-    # Check its contents.
-    if len(fch) == 0:
-        # Empty, no restart available.
-        return n
-    # Loop through the matches.
-    for fname in fch:
-        # Get the integer for this file.
-        i = int(fname.split('.')[-1])
-        # Use the running maximum.
-        n = max(i, n)
-    # Output.
-    return n
+    # Get the two numbers
+    nfc = GetSteadyIter()
+    ntd = GetUnsteadyIter()
+    # Output
+    return nfc + ntd
     
 # Function to set up most recent check file as restart.
-def SetRestartIter(n=None):
+def SetRestartIter(n=None, ntd=None):
     """Set a given check file as the restart point
     
     :Call:
-        >>> pyCart.case.SetRestartIter(n=None)
+        >>> pyCart.case.SetRestartIter(n=None, ntd=None)
     :Inputs:
         *n*: :class:`int`
             Restart iteration number, defaults to most recent available
+        *ntd*: :class:`int`
+            Unsteady iteration number
     :Versions:
-        * 2014.10.02 ``@ddalle``: First version
+        * 2014-10-02 ``@ddalle``: First version
+        * 2014-11-28 ``@ddalle``: Added `td_flowCart` compatibility
     """
     # Check the input.
-    if n is None:
-        n = GetRestartIter()
+    if n   is None: n = GetSteadyIter()
+    if ntd is None: ntd = GetUnsteadyIter()
     # Remove the current restart file if necessary.
     if os.path.isfile('Restart.file'):
         os.remove('Restart.file')
     # Quit if no check point.
-    if n == 0:
+    if n == 0 and ntd == 0:
         return None
     # Create a link to the file.
     if os.path.isfile('check.%05i' % n):
@@ -223,6 +268,9 @@ def SetRestartIter(n=None):
     elif os.path.isfile('BEST/check.%05i' % n):
         # Restart file in adaptive folder
         os.symlink('BEST/check.%05i' % n, 'Restart.file')
+    elif os.path.isfile('check.%06i.td' % ntd):
+        # Restart from time-accurate check point
+        os.symlink('check.%06i.td' % ntd, 'Restart.file')
     
     
 # Function to chose the correct input to use from the sequence.
@@ -270,7 +318,7 @@ def GetHistoryIter(fname='history.dat'):
         *fname*: :class:`str`
             Name of file to read
     :Outputs:
-        *n*: :class:`int`
+        *n*: :class:`float`
             Last iteration number
     :Versions:
         * 2014-11-24 ``@ddalle``: First version
@@ -284,7 +332,7 @@ def GetHistoryIter(fname='history.dat'):
         # Try to tail the last line.
         txt = sp.Popen(['tail', '-1', fname], stdout=sp.PIPE).communicate()[0]
         # Try to get the integer.
-        return int(txt.split()[0])
+        return float(txt.split()[0])
     except Exception:
         # If any of that fails, return 0
         return 0
