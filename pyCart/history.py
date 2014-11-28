@@ -21,7 +21,6 @@ import numpy as np
 class History(object):
     """
     Iterative history class
-    =======================
     
     This class provides an interface to residuals, CPU time, and similar data
     for a given run directory
@@ -57,6 +56,8 @@ class History(object):
         fhist = os.path.join(fdir, 'history.dat')
         # Read the data.
         A = np.loadtxt(fhist)
+        # Eliminate subiterations.
+        A = A[np.mod(A[:,0], 1.0) == 0.0]
         # Save the number of iterations.
         self.nIter = A.shape[0]
         # Save the iteration numbers.
