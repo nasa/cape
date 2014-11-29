@@ -791,10 +791,8 @@ class Cart3d(object):
             os.chdir(fpwd)
             # Quit.
             return None
-        # Get working directory
-        fwork = case.GetWorkingFolder()
         # Get the iteration number.
-        n = case.GetHistoryIter(os.path.join(fwork, 'history.dat'))
+        n = case.GetCurrentIter()
         # Return to original folder.
         os.chdir(fpwd)
         # Output.

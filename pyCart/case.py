@@ -367,7 +367,35 @@ def GetWorkingFolder():
             n0 = ni
     # Output
     return fdir
-        
-    
+       
+# Function to get most recent adaptive iteration
+def GetCurrentIter():
+    """Get the most recent iteration including unsaved progress
+
+    Iteration numbers from time-accurate restarts are corrected to match the
+    global iteration numbering.
+
+    :Call:
+        >>> n = pyCart.case.GetCurrentIter()
+    :Outputs:
+        *n*: :class:`int`
+            Most recent index written to :file:`history.dat`
+    :Versions:
+        * 2014-11-28 ``@ddalle``: First version
+    """
+    # Try to get iteration number from working folder.
+    ntd = GetHistoryIter()
+    # Initialize adaptive iteration number
+    n0 = 0
+    # Check for adapt?? folders
+    for fi in glob.glob('adapt??'):
+        # Attempt to read it.
+        ni = GetHistoryIter(os.path.join(fi, 'history.dat'))
+        # Check it.
+        if ni > n0:
+            # Update best estimate.
+            n0 = ni
+    # Output the total.
+    return n0 + ntd
     
     
