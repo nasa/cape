@@ -55,7 +55,10 @@ class Aero(dict):
             * 2014-11-12 ``@ddalle``: First version
         """
         # Process the best data folder.
-        if os.path.islink('BEST'):
+        if os.path.isfile('history.dat'):
+            # Use current directory.
+            fdir = '.'
+        elif os.path.islink('BEST'):
             # There's a BEST/ folder; use it as most recent adaptation cycle.
             fdir = 'BEST'
         elif os.path.isdir('adapt00'):
@@ -86,8 +89,12 @@ class Aero(dict):
             L = open(fname).readlines()
             # Filter comments
             L = [l for l in L if not l.startswith('#')]
+            # Columns to use: 0 and {-6,-3}:
+            n = len(self.Components[comp]['C'])
+            # Select the columns
+            L = [l.split()[0:1] + l.split()[-n:] for l in L]
             # Create an array.
-            A = np.array([[float(v) for v in l.split()[-6:]] for l in L])
+            A = np.array([[float(v) for v in l] for l in L])
             # Extract info from components for readability
             d = self.Components[comp]
             # Make the component.
@@ -314,7 +321,7 @@ class FM(object):
         # Get size of A.
         n, m = A.shape
         # Save the iterations.
-        self.i = A[:,0]
+        self.i = np.arange(A.size) + 1
         # Check size.
         if m == 7:
             # Save all fields.
@@ -324,7 +331,7 @@ class FM(object):
             self.CLL = A[:,4]
             self.CLM = A[:,5]
             self.CLN = A[:,6]
-        elif (self.MRP) and (m == 4):
+        elif (self.MRP.size==3) and (m == 4):
             # Save only moments.
             self.CLL = A[:,1]
             self.CLM = A[:,2]
