@@ -83,7 +83,11 @@ class Aero(dict):
                 print("Warning: Component '%s' was not found." % comp)
                 continue
             # Otherwise, read the file.
-            A = np.loadtxt(fname)
+            L = open(fname).readlines()
+            # Filter comments
+            L = [l for l in L if not l.startswith('#')]
+            # Create an array.
+            A = np.array([[float(v) for v in l.split()[-6:]] for l in L])
             # Extract info from components for readability
             d = self.Components[comp]
             # Make the component.
