@@ -37,6 +37,10 @@ def run_flowCart():
     fc = ReadCaseJSON()
     # Determine the run index.
     i = GetInputNumber(fc)
+    # Create a restart file if appropriate.
+    if not fc.get_use_aero_csh(i):
+        # Automatically determine the best check file to use.
+        SetRestartIter()
     # Get the restart iteration number.
     n = GetRestartIter()
     # Delete any input file.
@@ -97,7 +101,7 @@ def run_flowCart():
     # Run the command.
     callf(cmdi, f='flowCart.out')
     # Get the new restart iteration.
-    n = GetRestartIter()
+    n = GetCheckResubIter()
     # Assuming that worked, move the temp output file.
     os.rename('flowCart.out', 'run.%02i.%i' % (i, n))
     # Check for TecPlot files to save.
@@ -231,11 +235,37 @@ def GetRestartIter():
     :Versions:
         * 2014-11-28 ``@ddalle``: First version
     """
+    # Get the unsteady iteration number based on available check files.
+    ntd = GetUnsteadyIter()
+    # Check for an unsteady iteration number.
+    if ntd:
+        # If there's an unsteady iteration, use that step directly.
+        return ntd
+    else:
+        # Use the steady-state iteration number.
+        return GetSteadyIter()
+    
+# Function to get total iteration number
+def GetCheckResubIter():
+    """Get total iteration number of most recent check file
+    
+    This is the sum of the most recent steady iteration and unsteady iteration.
+    
+    :Call:
+        >>> n = pyCart.case.GetRestartIter()
+    :Outputs:
+        *n*: :class:`int`
+            Index of most recent check file
+    :Versions:
+        * 2014-11-28 ``@ddalle``: First version
+        * 2014-11-29 ``@ddalle``: This was renamed from :func:`GetRestartIter`
+    """
     # Get the two numbers
     nfc = GetSteadyIter()
     ntd = GetUnsteadyIter()
     # Output
     return nfc + ntd
+    
     
 # Function to set up most recent check file as restart.
 def SetRestartIter(n=None, ntd=None):
@@ -261,16 +291,16 @@ def SetRestartIter(n=None, ntd=None):
     # Quit if no check point.
     if n == 0 and ntd == 0:
         return None
-    # Create a link to the file.
-    if os.path.isfile('check.%05i' % n):
-        # Restart file in current folder
-        os.symlink('check.%05i' % n, 'Restart.file')
+    # Create a link to the most appropriate file.
+    if os.path.isfile('check.%06i.td' % ntd):
+        # Restart from time-accurate check point
+        os.symlink('check.%06i.td' % ntd, 'Restart.file')
     elif os.path.isfile('BEST/check.%05i' % n):
         # Restart file in adaptive folder
         os.symlink('BEST/check.%05i' % n, 'Restart.file')
-    elif os.path.isfile('check.%06i.td' % ntd):
-        # Restart from time-accurate check point
-        os.symlink('check.%06i.td' % ntd, 'Restart.file')
+    elif os.path.isfile('check.%05i' % n):
+        # Restart file in current folder
+        os.symlink('check.%05i' % n, 'Restart.file')
     
     
 # Function to chose the correct input to use from the sequence.
@@ -289,9 +319,7 @@ def GetInputNumber(fc):
         * 2014.10.02 ``@ddalle``: First version
     """
     # Get the run index.
-    n = GetRestartIter()
-    # Set the restart file if appropriate.
-    SetRestartIter(n)
+    n = GetCheckResubIter()
     # Loop through possible input numbers.
     for i in range(fc.get_nSeq()):
         # Check for output files.
@@ -302,9 +330,6 @@ def GetInputNumber(fc):
         if n < fc.get_IterSeq(i):
             # This case has been run, but hasn't reached the min iter cutoff
             return i
-    # Set the restart file if appropriate.
-    if not fc.get_use_aero_csh(i):
-        SetRestartIter(n)
     # Case completed; just return the last value.
     return i
     

@@ -252,25 +252,26 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         # Unsteady but not MPI
         cmd = ['td_flowCart', '-his', '-clic', '-unsteady']
     elif mpi_fc:
-        # Increase the iteration count.
-        it_fc += kwargs.get('n', 0)
         # Use mpi_flowCart but not unsteady
         cmd = [mpicmd, '-np', str(nProc), 'td_mpix_flowCart', '-his', '-clic']
     else:
-        # Increase the iteration count.
-        it_fc += kwargs.get('n', 0)
         # Use single-node flowCart.
         cmd = ['flowCart', '-his', '-clic']
     # Check for restart
     if (i>0): cmd += ['-restart']
     # Number of steps
     if td_fc:
+        # Increase iteration ocunt.
+        nSteps += kwargs.get('n', 0)
         # Number of steps
         if nSteps: cmd += ['-nSteps', str(nSteps)]
         # Other unsteady options.
         if dt:      cmd += ['-dt', str(dt)]
         if chkptTD: cmd += ['-checkptTD', str(chkptTD)]
         if vizTD:   cmd += ['-vizTD', str(vizTD)]
+    else:
+        # Increase the iteration count.
+        it_fc += kwargs.get('n', 0)
     # Multigrid cycles
     if it_fc:   cmd += ['-N', str(it_fc)]
     # Add options

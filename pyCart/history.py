@@ -57,8 +57,21 @@ class History(object):
             fdir = '.'
         # History file name.
         fhist = os.path.join(fdir, 'history.dat')
-        # Read the data.
-        A = np.loadtxt(fhist)
+        # Read the file.
+        lines = open(fhist).readlines()
+        # Filter comments.
+        lines = [l for l in lines if not l.startswith('#')]
+        # Convert all the values to floats.
+        A = np.array([[float(v) for v in l.split()] for l in lines])
+        # Get the indices of steady-state iterations.
+        # (Time-accurate iterations are marked with decimal step numbers.)
+        i = np.array(['.' not in l.split()[0] for l in lines])
+        # Check for steady-state iterations.
+        if np.any(i):
+            # Get the last steady-state iteration.
+            n0 = np.max(A[i,0])
+            # Add this to the time-accurate iteration numbers.
+            A[np.logical_not(i),0] += n0
         # Eliminate subiterations.
         A = A[np.mod(A[:,0], 1.0) == 0.0]
         # Save the number of iterations.

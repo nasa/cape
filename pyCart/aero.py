@@ -86,15 +86,26 @@ class Aero(dict):
                 print("Warning: Component '%s' was not found." % comp)
                 continue
             # Otherwise, read the file.
-            L = open(fname).readlines()
+            lines = open(fname).readlines()
             # Filter comments
-            L = [l for l in L if not l.startswith('#')]
+            lines = [l for l in lines if not l.startswith('#')]
+            # Convert all the values to floats
+            # Can't make this an array yet because it's not rectangular.
+            V = [[float(v) for v in l.split()] for l in lines]
             # Columns to use: 0 and {-6,-3}:
             n = len(self.Components[comp]['C'])
-            # Select the columns
-            L = [l.split()[0:1] + l.split()[-n:] for l in L]
-            # Create an array.
-            A = np.array([[float(v) for v in l] for l in L])
+            # Create an array with the original data.
+            A = np.array([v[0:1] + v[-n:] for v in V])
+            # Get the number of entries in each row.
+            # This will be one larger if a time-accurate iteration.
+            # It's a column of zeros, and it's the second column.
+            L = np.array([len(v) for v in V])
+            # Check for steady-state iterations.
+            if np.any(L == n+1):
+                # At least one steady-state iteration
+                n0 = np.max(A[L==n+1,0])
+                # Add that iteration number to the time-accurate steps.
+                A[L!=n+1,0] += n0
             # Extract info from components for readability
             d = self.Components[comp]
             # Make the component.
@@ -321,7 +332,7 @@ class FM(object):
         # Get size of A.
         n, m = A.shape
         # Save the iterations.
-        self.i = np.arange(n) + 1
+        self.i = A[:,0]
         # Check size.
         if m == 7:
             # Save all fields.
