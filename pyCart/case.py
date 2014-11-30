@@ -42,7 +42,8 @@ def run_flowCart():
         # Automatically determine the best check file to use.
         SetRestartIter()
     # Delete any input file.
-    if os.path.isfile('input.cntl'): os.remove('input.cntl')
+    if os.path.isfile('input.cntl') or os.path.islink('input.cntl'):
+        os.remove('input.cntl')
     # Create the correct input file.
     os.symlink('input.%02i.cntl' % i, 'input.cntl')
     # Extra prep for adaptive --> non-adaptive
@@ -289,7 +290,7 @@ def SetRestartIter(n=None, ntd=None):
     if n   is None: n = GetSteadyIter()
     if ntd is None: ntd = GetUnsteadyIter()
     # Remove the current restart file if necessary.
-    if os.path.isfile('Restart.file'):
+    if os.path.isfile('Restart.file') or os.path.islink('Restart.file'):
         os.remove('Restart.file')
     # Quit if no check point.
     if n == 0 and ntd == 0:
