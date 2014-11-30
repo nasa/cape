@@ -41,8 +41,6 @@ def run_flowCart():
     if not fc.get_use_aero_csh(i):
         # Automatically determine the best check file to use.
         SetRestartIter()
-    # Get the restart iteration number.
-    n = GetRestartIter()
     # Delete any input file.
     if os.path.isfile('input.cntl'): os.remove('input.cntl')
     # Create the correct input file.
@@ -59,9 +57,7 @@ def run_flowCart():
         # Copy all the important files.
         for fname in fglob:
             # Check for the file.
-            if os.path.isfile(fname):
-                # Move it to some other file.
-                os.rename(fname, fname+".old")
+            if os.path.isfile(fname): continue
             # Copy the file.
             shutil.copy('BEST/'+fname, fname)
     # Convince aero.csh to use the *new* input.cntl
@@ -89,13 +85,20 @@ def run_flowCart():
         # Create a link to this run.
         os.symlink('aero.%02i.csh' % i, 'aero.csh')
         # Call the aero.csh command
-        if n > 0:
+        if i > 0:
             # Restart case.
             cmdi = ['./aero.csh', 'restart']
         else:
             # Initial case
             cmdi = ['./aero.csh', 'jumpstart']
+    elif fc.get_unsteady(i):
+        # Get the number of previous unsteady steps.
+        n = GetUnsteadyIter()
+        # Call flowCart directly.
+        cmdi = cmd.flowCart(fc=fc, i=i, n=n)
     else:
+        # Get the number of previous steady steps.
+        n = GetSteadyIter()
         # Call flowCart directly.
         cmdi = cmd.flowCart(fc=fc, i=i, n=n)
     # Run the command.
