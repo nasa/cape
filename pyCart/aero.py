@@ -641,10 +641,14 @@ class FM(object):
         # Set the xlimits.
         h['ax'].set_xlim((i0, nIter+25))
         # Make a label for the mean value.
-        lbl = '%s = %.4f' % (c, cAvg)
-        # Add the label above and to the right of the plot.
-        h['val'] = plt.text(1.0, 1.06, lbl, horizontalalignment='right',
+        lbl = u'%s = %.4f' % (c, cAvg)
+        h['val'] = plt.text(0.81, 1.06, lbl, horizontalalignment='right',
             verticalalignment='top', transform=h['ax'].transAxes)
+        # Make a label for the deviation.
+        lbl = u'\u00B1 %.4f' % d
+        h['d'] = plt.text(1.0, 1.06, lbl, color='r',
+            horizontalalignment='right', verticalalignment='top',
+            transform=h['ax'].transAxes)
         # Output.
         return h
             
