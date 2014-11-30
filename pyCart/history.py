@@ -43,7 +43,10 @@ class History(object):
         """
         
         # Process the best data folder.
-        if os.path.islink('BEST'):
+        if os.path.isfile('history.dat'):
+            # Subsequent non-adaptive runs
+            fdir = '.'
+        elif os.path.islink('BEST'):
             # There's a BEST/ folder; use it as most recent adaptation cycle.
             fdir = 'BEST'
         elif os.path.isdir('adapt00'):
@@ -61,7 +64,7 @@ class History(object):
         # Save the number of iterations.
         self.nIter = A.shape[0]
         # Save the iteration numbers.
-        self.i = A[:,0]
+        self.i = np.arange(self.nIter) + 1
         # Save the CPU time per processor.
         self.CPUtime = A[:,1]
         # Save the maximum residual.

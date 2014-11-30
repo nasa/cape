@@ -321,7 +321,7 @@ class FM(object):
         # Get size of A.
         n, m = A.shape
         # Save the iterations.
-        self.i = np.arange(A.size) + 1
+        self.i = np.arange(n) + 1
         # Check size.
         if m == 7:
             # Save all fields.
