@@ -704,14 +704,8 @@ class Cart3d(object):
         self.ReadTri()
         # Copy the original mesh.
         self.tri0 = self.tri.Copy()
-        # Get function for rotations, etc.
-        keys = self.x.GetKeysByType('TriFunction')
-        # Get the list of functions.
-        funcs = [self.x.defns[key]['Function'] for key in keys] 
-        # Loop through the functions.
-        for (key, func) in zip(keys, funcs):
-            # Apply it.
-            exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+        # Apply rotations, translations, etc.
+        self.PrepareTri(i)
         # Write the tri file.
         self.tri.Write('Components.i.tri')
         # --------------------
@@ -733,6 +727,29 @@ class Cart3d(object):
         self.tri = self.tri0
         # Return to original folder.
         os.chdir(fpwd)
+        
+    # Function to apply special triangulation modification keys
+    def PrepareTri(self, i):
+        """Rotate/translate/etc. triangulation for given case
+        
+        :Call:
+            >>> cart3d.PrepareTri(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2014-12-01 ``@ddalle``: First version
+        """
+        # Get function for rotations, etc.
+        keys = self.x.GetKeysByType('TriFunction')
+        # Get the list of functions.
+        funcs = [self.x.defns[key]['Function'] for key in keys] 
+        # Loop through the functions.
+        for (key, func) in zip(keys, funcs):
+            # Apply it.
+            exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
         
     # Check a case.
     def CheckCase(self, i):
