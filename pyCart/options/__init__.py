@@ -536,6 +536,26 @@ class Options(odict):
         self._flowCart()
         self['flowCart'].set_vizTD(vizTD, i)
         
+    # Get the relaxation step command
+    def get_fc_clean(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_fc_clean(i)
+        
+    # Set the relaxation step command
+    def set_fc_clean(self, fc_clean=rc0('fc_clean'), i=None):
+        self._flowCart()
+        self['flowCart'].set_fc_clean(fc_clean, i)
+        
+    # Get the number of iterations to average over
+    def get_fc_stats(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_fc_stats(i)
+    
+    # Set the number of iterations to average over
+    def set_fc_stats(self, nstats=rc0('fc_stats'), i=None):
+        self._flowCart()
+        self['flowCart'].set_fc_stats(nstats, i)
+        
     # Get the limiter
     def get_limiter(self, i=None):
         self._flowCart()
@@ -619,7 +639,7 @@ class Options(odict):
     # Copy over the documentation.
     for k in ['InputSeq', 'IterSeq', 'first_order', 'robust_mode', 'unsteady', 
             'mpi_fc', 'use_aero_csh', 'tm', 'nSteps', 'dt', 'checkptTD',
-            'vizTD',
+            'vizTD', 'fc_clean', 'fc_stats',
             'it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'tecO', 'fmg', 'pmg',
             'y_is_spanwise', 'binaryIO', 'nProc', 'mpicmd', 'qsub', 'resub']:
         # Get the documentation for the "get" and "set" functions

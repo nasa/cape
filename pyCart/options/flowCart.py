@@ -629,6 +629,86 @@ class flowCart(odict):
         """
         self.set_key('vizTD', vizTD, i)
         
+    
+    # Get the time-accurate initial relaxation status
+    def get_fc_clean(self, i=None):
+        """
+        Return whether or not to run an initial relaxation step before starting
+        time-accurate solution
+        
+        :Call:
+            >>> fc_clean = opts.get_fc_clean(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *fc_clean*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to run relaxation step
+        :Versions:
+            * 2014-12-01 ``@ddalle``: First version
+        """
+        return self.get_key('fc_clean', i)
+        
+    # Set the time-accurate initial relaxation status
+    def set_fc_clean(self, fc_clean=rc0('fc_clean'), i=None):
+        """
+        Set whether or not to run an initial relaxation step before starting
+        time-accurate solution
+        
+        :Call:
+            >>> opts.set_fc_clean(fc_clean, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *fc_clean*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to run relaxation step
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014-12-01 ``@ddalle``: First version
+        """
+        self.set_key('fc_clean', fc_clean, i)
+        
+    
+    # Get the number of iterations to use for iterative or time averaging
+    def get_fc_stats(self, i=None):
+        """Get number of iterations to use for iterative or time averaging
+        
+        :Call:
+            >>> nstats = opts.get_fc_stats(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *nstats*: :class:`int` or :class:`list`(:class:`int`)
+                Number of iterations to use for averaging (off if ``0``)
+        :Versions:
+            * 2014-12-01 ``@ddalle``: First version
+        """
+        return self.get_key('fc_stats', i)
+        
+    # Set the number of iterations to use for iterative or time averaging
+    def set_fc_stats(self, nstats=rc0('fc_stats'), i=None):
+        """Get number of iterations to use for iterative or time averaging
+        
+        :Call:
+            >>> opts.set_fc_stats(nstats, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *nstats*: :class:`int` or :class:`list`(:class:`int`)
+                Number of iterations to use for averaging (off if ``0``)
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014-12-01 ``@ddalle``: First version
+        """
+        self.set_key('fc_stats', nstats, i)
+        
         
     # Get the flowCart limiter
     def get_limiter(self, i=None):

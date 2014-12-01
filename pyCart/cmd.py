@@ -201,6 +201,8 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         nSteps  = cart3d.opts.get_nSteps(i)
         chkptTD = cart3d.opts.get_checkptTD(i)
         vizTD   = cart3d.opts.get_vizTD(i)
+        clean   = cart3d.opts.get_fc_clean(i)
+        nstats  = cart3d.opts.get_fc_stats(i)
     elif fc is not None:
         # Get values from direct settings.
         mpi_fc  = fc.get_mpi_fc(i)
@@ -222,6 +224,8 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         nSteps  = fc.get_nSteps(i)
         chkptTD = fc.get_checkptTD(i)
         vizTD   = fc.get_vizTD(i)
+        clean   = fc.get_fc_clean(i)
+        nstats  = fc.get_fc_stats(i)
     else:
         # Get values from keyword arguments
         mpi_fc  = kwargs.get('mpi_fc', False)
@@ -243,6 +247,8 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         nSteps  = kwargs.get('nSteps', 100)
         chkptTD = kwargs.get('checkptTD', None)
         vizTD   = kwargs.get('vizTD', None)
+        clean   = kwargs.get('clean', False)
+        nstats  = kwargs.get('stats', 0)
     # Initialize command.
     if td_fc and mpi_fc:
         # Unsteady MPI flowCart
@@ -263,12 +269,14 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
     if td_fc:
         # Increase iteration ocunt.
         nSteps += kwargs.get('n', 0)
-        # Number of steps
+        # Number of steps and time step
         if nSteps: cmd += ['-nSteps', str(nSteps)]
+        if dt:     cmd += ['-dt', str(dt)]
         # Other unsteady options.
-        if dt:      cmd += ['-dt', str(dt)]
         if chkptTD: cmd += ['-checkptTD', str(chkptTD)]
         if vizTD:   cmd += ['-vizTD', str(vizTD)]
+        if clean:   cmd += ['-clean']
+        if nstats:  cmd += ['-stats', str(nstats)]
     else:
         # Increase the iteration count.
         it_fc += kwargs.get('n', 0)
