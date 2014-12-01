@@ -982,104 +982,104 @@ class Options(odict):
     # ============
     
     # Get PBS *join* setting
-    def get_PBS_j(self):
+    def get_PBS_j(self, i=None):
         self._PBS()
-        return self['PBS'].get_PBS_j()
+        return self['PBS'].get_PBS_j(i)
         
     # Set PBS *join* setting
-    def set_PBS_j(self, j=rc0('PBS_j')):
+    def set_PBS_j(self, j=rc0('PBS_j'), i=None):
         self._PBS()
-        self['PBS'].set_PBS_j(j)
+        self['PBS'].set_PBS_j(j, i)
     
     # Get PBS *rerun* setting
-    def get_PBS_r(self):
+    def get_PBS_r(self, i=None):
         self._PBS()
-        return self['PBS'].get_PBS_r()
+        return self['PBS'].get_PBS_r(i)
         
     # Set PBS *rerun* setting
-    def set_PBS_r(self, r=rc0('PBS_r')):
+    def set_PBS_r(self, r=rc0('PBS_r'), i=None):
         self._PBS()
-        self['PBS'].set_PBS_r(r)
+        self['PBS'].set_PBS_r(r, i)
     
     # Get PBS shell setting
-    def get_PBS_S(self):
+    def get_PBS_S(self, i=None):
         self._PBS()
-        return self['PBS'].get_PBS_S()
+        return self['PBS'].get_PBS_S(i)
         
     # Set PBS shell setting
-    def set_PBS_S(self, S=rc0('PBS_S')):
+    def set_PBS_S(self, S=rc0('PBS_S'), i=None):
         self._PBS()
-        self['PBS'].set_PBS_S(S)
+        self['PBS'].set_PBS_S(S, i)
     
     # Get PBS nNodes setting
-    def get_PBS_select(self):
+    def get_PBS_select(self, i=None):
         self._PBS()
-        return self['PBS'].get_PBS_select()
+        return self['PBS'].get_PBS_select(i)
         
     # Set PBS nNodes setting
-    def set_PBS_select(self, n=rc0('PBS_select')):
+    def set_PBS_select(self, n=rc0('PBS_select'), i=None):
         self._PBS()
-        self['PBS'].set_PBS_select(n)
+        self['PBS'].set_PBS_select(n, i)
     
     # Get PBS CPUS/node setting
-    def get_PBS_ncpus(self):
+    def get_PBS_ncpus(self, i=None):
         self._PBS()
-        return self['PBS'].get_PBS_ncpus()
+        return self['PBS'].get_PBS_ncpus(i)
         
     # Set PBS CPUs/node setting
-    def set_PBS_ncpus(self, n=rc0('PBS_ncpus')):
+    def set_PBS_ncpus(self, n=rc0('PBS_ncpus'), i=None):
         self._PBS()
-        self['PBS'].set_PBS_ncpus(n)
+        self['PBS'].set_PBS_ncpus(n, i)
     
     # Get PBS MPI procs/node setting
     def get_PBS_mpiprocs(self):
         self._PBS()
-        return self['PBS'].get_PBS_mpiprocs()
+        return self['PBS'].get_PBS_mpiprocs(i)
         
     # Set PBS *rerun* setting
-    def set_PBS_mpiprocs(self, n=rc0('PBS_mpiprocs')):
+    def set_PBS_mpiprocs(self, n=rc0('PBS_mpiprocs'), i=None):
         self._PBS()
-        self['PBS'].set_PBS_mpiprocs(n)
+        self['PBS'].set_PBS_mpiprocs(n, i)
     
     # Get PBS model or arch setting
-    def get_PBS_model(self):
+    def get_PBS_model(self, i=None):
         self._PBS()
-        return self['PBS'].get_PBS_model()
+        return self['PBS'].get_PBS_model(i)
         
     # Set PBS model or arch setting
-    def set_PBS_model(self, s=rc0('PBS_model')):
+    def set_PBS_model(self, s=rc0('PBS_model'), i=None):
         self._PBS()
-        self['PBS'].set_PBS_model(s)
+        self['PBS'].set_PBS_model(s, i)
     
     # Get PBS group setting
-    def get_PBS_W(self):
+    def get_PBS_W(self, i=None):
         self._PBS()
-        return self['PBS'].get_PBS_W()
+        return self['PBS'].get_PBS_W(i)
         
     # Set PBS group setting
-    def set_PBS_W(self, W=rc0('PBS_W')):
+    def set_PBS_W(self, W=rc0('PBS_W'), i=None):
         self._PBS()
-        self['PBS'].set_PBS_W(W)
+        self['PBS'].set_PBS_W(W, i)
     
     # Get PBS queue setting
-    def get_PBS_q(self):
+    def get_PBS_q(self, i=None):
         self._PBS()
-        return self['PBS'].get_PBS_q()
+        return self['PBS'].get_PBS_q(i)
         
     # Set PBS queue setting
-    def set_PBS_q(self, q=rc0('PBS_q')):
+    def set_PBS_q(self, q=rc0('PBS_q'), i=None):
         self._PBS()
-        self['PBS'].set_PBS_q(q)
+        self['PBS'].set_PBS_q(q, i)
     
     # Get PBS walltime setting
-    def get_PBS_walltime(self):
+    def get_PBS_walltime(self, i=None):
         self._PBS()
-        return self['PBS'].get_PBS_walltime()
+        return self['PBS'].get_PBS_walltime(i)
         
     # Set PBS walltime setting
-    def set_PBS_walltime(self, t=rc0('PBS_walltime')):
+    def set_PBS_walltime(self, t=rc0('PBS_walltime'), i=None):
         self._PBS()
-        self['PBS'].set_PBS_walltime(t)
+        self['PBS'].set_PBS_walltime(t, i)
         
     # Copy over the documentation.
     for k in ['PBS_j', 'PBS_r', 'PBS_S', 'PBS_select', 'PBS_mpiprocs',
