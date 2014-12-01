@@ -1038,7 +1038,7 @@ class Options(odict):
         self['PBS'].set_PBS_ncpus(n, i)
     
     # Get PBS MPI procs/node setting
-    def get_PBS_mpiprocs(self):
+    def get_PBS_mpiprocs(self, i=None):
         self._PBS()
         return self['PBS'].get_PBS_mpiprocs(i)
         
