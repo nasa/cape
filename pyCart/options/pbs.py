@@ -8,6 +8,38 @@ from util import rc0, odict
 class PBS(odict):
     """Dictionary-based interfaced for options specific to ``flowCart``"""
     
+    # Get the number of unique PBS jobs.
+    def get_nPBS(self):
+        """Return the maximum number of unique PBS inputs
+        
+        For example, if a case is set up to be run in two parts, and the first
+        phase needs only one node (*select=1*) while the second phase needs 10
+        nodes (*select=10*), then the input file should have 
+        ``"select": [1, 10]``, and the output of this function will be ``2``.
+        
+        :Call:
+            >>> n = opts.get_nPBS()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *n*: :class:`int`
+                Number of unique PBS scripts
+        :Versions:
+            * 2014-12-01 ``@ddalle``: First version
+        """
+        # Initialize the number of jobs.
+        n = 1
+        # Loop the keys.
+        for v in self.values():
+            # Test if it's a list.
+            if type(v).__name__ in ['list', 'ndarray']:
+                # Update the length.
+                n = max(n, len(v))
+        # Output
+        return n
+        
+    
     # Get number of nodes
     def get_PBS_select(self, i=None):
         """Return the number of nodes

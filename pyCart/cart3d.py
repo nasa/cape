@@ -1069,68 +1069,84 @@ class Cart3d(object):
         if not os.path.isdir(frun): os.mkdir(frun, dmask)
         # Go to the folder.
         os.chdir(frun)
+        # Determine number of unique PBS scripts.
+        if self.opts.get_nPBS() > 1:
+            # If more than one, use unique PBS script for each run.
+            nPBS = self.opts.get_nSeq()
+        else:
+            # Otherwise use a single PBS script.
+            nPBS = 1
         
-        # Initialize the PBS script.
-        f = open('run_cart3d.pbs', 'w')
-        # Get the shell path (must be bash)
-        sh = self.opts.get_PBS_S()
-        # Write to script both ways.
-        f.write('#!%s\n' % sh)
-        f.write('#PBS -S %s\n' % sh)
-        # Get the shell name.
-        lbl = self.GetPBSName(i)
-        # Write it to the script
-        f.write('#PBS -N %s\n' % lbl)
-        # Get the rerun status.
-        PBS_r = self.opts.get_PBS_r()
-        # Write if specified.
-        if PBS_r: f.write('#PBS -r %s\n' % PBS_r)
-        # Get the option for combining STDIO/STDOUT
-        PBS_j = self.opts.get_PBS_j()
-        # Write if specified.
-        if PBS_j: f.write('#PBS -j %s\n' % PBS_j)
-        # Get the number of nodes, etc.
-        nnode = self.opts.get_PBS_select()
-        ncpus = self.opts.get_PBS_ncpus()
-        nmpis = self.opts.get_PBS_mpiprocs()
-        smodl = self.opts.get_PBS_model()
-        # Form the -l line.
-        line = '#PBS -l select=%i:ncpus=%i' % (nnode, ncpus)
-        # Add other settings
-        if nmpis: line += (':mpiprocs=%i' % nmpis)
-        if smodl: line += (':model=%s' % smodl)
-        # Write the line.
-        f.write(line + '\n')
-        # Get the walltime.
-        t = self.opts.get_PBS_walltime()
-        # Write it.
-        f.write('#PBS -l walltime=%s\n' % t)
-        # Check for a group list.
-        PBS_W = self.opts.get_PBS_W()
-        # Write if specified.
-        if PBS_W: f.write('#PBS -W %s\n' % PBS_W)
-        # Get the queue.
-        PBS_q = self.opts.get_PBS_q()
-        # Write it.
-        if PBS_q: f.write('#PBS -q %s\n\n' % PBS_q)
-        
-        # Go to the working directory.
-        f.write('# Go to the working directory.\n')
-        f.write('cd %s\n\n' % os.getcwd())
-        
-        # Write a header for the shell commands.
-        f.write('# Additional shell commands\n')
-        # Loop through the shell commands.
-        for line in self.opts.get_ShellCmds():
+        # Loop through the runs.
+        for j in range(nPBS):
+            # PBS script name.
+            if nPBS > 1:
+                # Put PBS number in file name.
+                fpbs = 'run_cart3d.%02i.pbs' % j
+            else:
+                # Use single PBS script with plain name.
+                fpbs = 'run_cart3d.pbs'
+            # Initialize the PBS script.
+            f = open(fpbs, 'w')
+            # Get the shell path (must be bash)
+            sh = self.opts.get_PBS_S(j)
+            # Write to script both ways.
+            f.write('#!%s\n' % sh)
+            f.write('#PBS -S %s\n' % sh)
+            # Get the shell name.
+            lbl = self.GetPBSName(i)
+            # Write it to the script
+            f.write('#PBS -N %s\n' % lbl)
+            # Get the rerun status.
+            PBS_r = self.opts.get_PBS_r(j)
+            # Write if specified.
+            if PBS_r: f.write('#PBS -r %s\n' % PBS_r)
+            # Get the option for combining STDIO/STDOUT
+            PBS_j = self.opts.get_PBS_j(j)
+            # Write if specified.
+            if PBS_j: f.write('#PBS -j %s\n' % PBS_j)
+            # Get the number of nodes, etc.
+            nnode = self.opts.get_PBS_select(j)
+            ncpus = self.opts.get_PBS_ncpus(j)
+            nmpis = self.opts.get_PBS_mpiprocs(j)
+            smodl = self.opts.get_PBS_model(j)
+            # Form the -l line.
+            line = '#PBS -l select=%i:ncpus=%i' % (nnode, ncpus)
+            # Add other settings
+            if nmpis: line += (':mpiprocs=%i' % nmpis)
+            if smodl: line += (':model=%s' % smodl)
+            # Write the line.
+            f.write(line + '\n')
+            # Get the walltime.
+            t = self.opts.get_PBS_walltime(j)
             # Write it.
-            f.write('%s\n' % line)
-        
-        # Simply call the advanced interface.
-        f.write('\n# Call the flow_cart/mpi_flowCart/aero.csh interface.\n')
-        f.write('run_flowCart.py')
-        
-        # Close the file.
-        f.close()
+            f.write('#PBS -l walltime=%s\n' % t)
+            # Check for a group list.
+            PBS_W = self.opts.get_PBS_W(j)
+            # Write if specified.
+            if PBS_W: f.write('#PBS -W %s\n' % PBS_W)
+            # Get the queue.
+            PBS_q = self.opts.get_PBS_q(j)
+            # Write it.
+            if PBS_q: f.write('#PBS -q %s\n\n' % PBS_q)
+            
+            # Go to the working directory.
+            f.write('# Go to the working directory.\n')
+            f.write('cd %s\n\n' % os.getcwd())
+            
+            # Write a header for the shell commands.
+            f.write('# Additional shell commands\n')
+            # Loop through the shell commands.
+            for line in self.opts.get_ShellCmds():
+                # Write it.
+                f.write('%s\n' % line)
+            
+            # Simply call the advanced interface.
+            f.write('\n# Call the flow_cart/mpi_flowCart/aero.csh interface.\n')
+            f.write('run_flowCart.py')
+            
+            # Close the file.
+            f.close()
         # Return.
         os.chdir(fpwd)
         

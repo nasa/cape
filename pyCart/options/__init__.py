@@ -981,6 +981,12 @@ class Options(odict):
     # PBS settings
     # ============
     
+    # Get number of unique PBS scripts
+    def get_nPBS(self):
+        self._PBS()
+        return self['PBS'].get_nPBS()
+    get_nPBS.__doc__ = PBS.get_nPBS.__doc__
+    
     # Get PBS *join* setting
     def get_PBS_j(self, i=None):
         self._PBS()

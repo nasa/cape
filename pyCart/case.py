@@ -123,8 +123,10 @@ def run_flowCart():
         # Run full restart command, including qsub if appropriate
         StartCase()
     else:
+        # Get the name of the PBS script
+        fpbs = GetPBSScript(i)
         # Just run the case directly (keep the same PBS job).
-        callf(['bash', 'run_cart3d.pbs'])
+        callf(['bash', fpbs])
     
     
 # Function to call script or submit.
@@ -142,12 +144,48 @@ def StartCase():
     i = GetInputNumber(fc)
     # Check qsub status.
     if fc.get_qsub(i):
+        # Get the name of the PBS file.
+        fpbs = GetPBSScript(i)
         # Submit the case.
-        pbs = queue.pqsub('run_cart3d.pbs')
+        pbs = queue.pqsub(fpbs)
         return pbs
     else:
         # Simply run the case. Don't reset modules either.
         run_flowCart()
+        
+
+# Function to determine which PBS script to call
+def GetPBSScript(i=None):
+    """Determine the file name of the PBS script to call
+    
+    This is a compatibility function for cases that do or do not have multiple
+    PBS scripts in a single run directory
+    
+    :Call:
+        >>> fpbs = pyCart.case.GetPBSScript(i=None)
+    :Inputs:
+        *i*: :class:`int`
+            Run index
+    :Outputs:
+        *fpbs*: :class:`str`
+            Name of PBS script to call
+    :Versions:
+        * 2014-12-01 ``@ddalle``: First version
+    """
+    # Form the full file name, e.g. run_cart3d.00.pbs
+    if i is not None:
+        # Create the name.
+        fpbs = 'run_cart3d.%02i.pbs' % i
+        # Check for the file.
+        if os.path.isfile(fpbs):
+            # This is the preferred option if it exists.
+            return fpbs
+        else:
+            # File not found; use basic file name
+            return 'run_cart3d.pbs'
+    else:
+        # Do not search for numbered PBS script if *i* is None
+        return 'run_cart3d.pbs'
     
 
 # Function to read the local settings file.
