@@ -14,6 +14,10 @@
 # Cart3D setup/grid folders
 Grid*
 
+# Sandbox foloders
+sandbox/
+scratch/
+
 # Post-processing folders
 
 

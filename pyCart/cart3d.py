@@ -24,6 +24,8 @@ from . import queue
 from . import bin
 # Run directory module
 from . import case
+# Folder management
+from . import manage
 
 # Functions and classes from other modules
 from trajectory import Trajectory
@@ -1232,7 +1234,7 @@ class Cart3d(object):
             os.chdir(self.RootDir)
             os.chdir(frun)
             # Status update
-            print(fdir)
+            print(frun)
             # Manage the directory.
             manage.TarAdapt()
         # Go back to original directory.

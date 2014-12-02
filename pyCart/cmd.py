@@ -290,8 +290,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
     if mg_fc:   cmd += ['-mg', str(mg_fc)]
     if not fmg: cmd += ['-no_fmg']
     if buffLim: cmd += ['-buffLim']
-    # Binary option doesn't exist for mpi_flowCart
-    if (not mpi_fc) and binIO: cmd += ['-binaryIO']
+    if binIO:   cmd += ['-binaryIO']
     # Process and translate the cut-cell gradient variable.
     if (tm is not None) and tm:
         # Second-order cut cells
