@@ -135,10 +135,10 @@ class Cart3d(object):
         *cart3d.RootDir*: :class:`str`
             Absolute path to the root directory
     :Versions:
-        * 2014.05.28 ``@ddalle``  : First version
-        * 2014.06.03 ``@ddalle``  : Renamed class `Cntl` --> `Cart3d`
-        * 2014.06.30 ``@ddalle``  : Reduced number of data members
-        * 2014.07.27 ``@ddalle``  : `cart3d.Trajectory` --> `cart3d.x`
+        * 2014-05-28 ``@ddalle``  : First version
+        * 2014-06-03 ``@ddalle``  : Renamed class `Cntl` --> `Cart3d`
+        * 2014-06-30 ``@ddalle``  : Reduced number of data members
+        * 2014-07-27 ``@ddalle``  : `cart3d.Trajectory` --> `cart3d.x`
     """
     
     # Initialization method
@@ -183,7 +183,7 @@ class Cart3d(object):
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         # Get Modules.
         lmod = self.opts.get("Modules", [])
@@ -338,7 +338,7 @@ class Cart3d(object):
             *j*: :class:`bool`
                 Whether or not to display job ID numbers
         :Versions:
-            * 2014.10.04 ``@ddalle``: First version
+            * 2014-10-04 ``@ddalle``: First version
         """
         self.SubmitJobs(c=True, j=kw.get('j',False))
         
@@ -356,7 +356,7 @@ class Cart3d(object):
             *j*: :class:`bool`
                 Whether or not to display job ID numbers
         :Versions:
-            * 2014.10.05 ``@ddalle``: First version
+            * 2014-10-05 ``@ddalle``: First version
         """
         # Get flag that tells pycart only to check jobs.
         qCheck = kw.get('c', False)
@@ -480,7 +480,7 @@ class Cart3d(object):
             *pbs*: :class:`int` or ``None``
                 PBS job ID if submitted successfully
         :Versions:
-            * 2014.10.06 ``@ddalle``: First version
+            * 2014-10-06 ``@ddalle``: First version
         """
         # Check status.
         if self.CheckCase(i) is None:
@@ -521,8 +521,8 @@ class Cart3d(object):
             *jobs*: :class:`dict`
                 Information on each job, ``jobs[jobID]`` for each submitted job
         :Versions:
-            * 2014.10.04 ``@ddalle``: First version
-            * 2014.10.06 ``@ddalle``: Checking queue status
+            * 2014-10-04 ``@ddalle``: First version
+            * 2014-10-06 ``@ddalle``: Checking queue status
         """
         # Current iteration count
         n = self.CheckCase(i)
@@ -583,7 +583,7 @@ class Cart3d(object):
             *q*: :class:`bool`
                 Whether or not the mesh for case *i* is prepared
         :Versions:
-            * 2014.09.29 ``@ddalle``: First version
+            * 2014-09-29 ``@ddalle``: First version
         """
         # Check input.
         if type(i).__name__ != "int":
@@ -641,7 +641,7 @@ class Cart3d(object):
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Versions:
-            * 2014.09.29 ``@ddalle``: First version
+            * 2014-09-29 ``@ddalle``: First version
         """
         # ---------
         # Case info
@@ -708,6 +708,8 @@ class Cart3d(object):
         self.PrepareTri(i)
         # Write the tri file.
         self.tri.Write('Components.i.tri')
+        # Reset the mesh to the original.
+        self.tri = self.tri0
         # --------------------
         # Volume mesh creation
         # --------------------
@@ -723,8 +725,6 @@ class Cart3d(object):
         bin.cubes(self)
         # Run mgPrep
         bin.mgPrep(self)
-        # Reset the mesh to the original.
-        self.tri = self.tri0
         # Return to original folder.
         os.chdir(fpwd)
         
@@ -766,7 +766,7 @@ class Cart3d(object):
             *n*: :class:`int` or ``None``
                 Number of completed iterations or ``None`` if not set up
         :Versions:
-            * 2014.09.27 ``@ddalle``: First version
+            * 2014-09-27 ``@ddalle``: First version
         """
          # Check input.
         if type(i).__name__ != "int":
@@ -955,7 +955,7 @@ class Cart3d(object):
             *lbl*: :class:`str`
                 Short name for the PBS job, visible via `qstat`
         :Versions:
-            * 2014.09.30 ``@ddalle``: First version
+            * 2014-09-30 ``@ddalle``: First version
         """
         # Extract the trajectory.
         x = self.x
@@ -1001,7 +1001,7 @@ class Cart3d(object):
             *pbs*: :class:`int` or ``None``
                 Most recently reported job number for case *i*
         :Versions:
-            * 2014.10.06 ``@ddalle``: First version
+            * 2014-10-06 ``@ddalle``: First version
         """
         # Check the case.
         if self.CheckCase(i) is None: return None
@@ -1046,7 +1046,7 @@ class Cart3d(object):
             *q*: :class:`bool`
                 If ``True``, case has :file:`RUNNING` file in it
         :Versions:
-            * 2014.10.03 ``@ddalle``: First version
+            * 2014-10-03 ``@ddalle``: First version
         """
         # Safely go to root.
         fpwd = os.getcwd()
@@ -1074,7 +1074,7 @@ class Cart3d(object):
             *i*: :class:`int`
                 Run index
         :Versions:
-            * 2014.09.30 ``@ddalle``: First version
+            * 2014-09-30 ``@ddalle``: First version
         """
         # Get the case name.
         frun = self.x.GetFullFolderNames(i)
@@ -1179,7 +1179,7 @@ class Cart3d(object):
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         # Loop through BBoxes
         for BBox in self.opts.get_BBox():
@@ -1252,9 +1252,9 @@ class Cart3d(object):
             *i*: :class:`int`
                 Run index
         :Versions:
-            * 2014.06.04 ``@ddalle``: First version
-            * 2014.06.06 ``@ddalle``: Low-level functionality for grid folders
-            * 2014.09.30 ``@ddalle``: Changed to write only a single case
+            * 2014-06-04 ``@ddalle``: First version
+            * 2014-06-06 ``@ddalle``: Low-level functionality for grid folders
+            * 2014-09-30 ``@ddalle``: Changed to write only a single case
         """
         # Extract trajectory.
         x = self.x
@@ -1339,8 +1339,8 @@ class Cart3d(object):
             *i*: :class:`int`
                 Run idnex
         :Versions:
-            * 2014.06.10 ``@ddalle``: First version
-            * 2014.10.03 ``@ddalle``: Version 2.0
+            * 2014-06-10 ``@ddalle``: First version
+            * 2014-10-03 ``@ddalle``: Version 2.0
         """
         # Test if it's present (not required)
         try:
@@ -1402,7 +1402,7 @@ class Cart3d(object):
         :Effects:
             Creates *cart3d.LoadsCC* instance
         :Versions:
-            * 2014.06.05 ``@ddalle``: First version
+            * 2014-06-05 ``@ddalle``: First version
         """
         # Call the constructor.
         self.LoadsCC = LoadsDat(self, fname="loadsCC.dat")
@@ -1418,7 +1418,7 @@ class Cart3d(object):
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
         :Versions:
-            * 2014.06.04 ``@ddalle``: First version
+            * 2014-06-04 ``@ddalle``: First version
         """
         # Check for the attribute.
         if not hasattr(self, 'LoadsCC'):
@@ -1439,7 +1439,7 @@ class Cart3d(object):
         :Effects:
             Creates *cart3d.LoadsCC* instance
         :Versions:
-            * 2014.06.04 ``@ddalle``: First version
+            * 2014-06-04 ``@ddalle``: First version
         """
         # Call the constructor.
         self.LoadsTRI = LoadsDat(self, fname="loadsTRI.dat")
@@ -1455,7 +1455,7 @@ class Cart3d(object):
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
         :Versions:
-            * 2014.06.04 ``@ddalle``: First version
+            * 2014-06-04 ``@ddalle``: First version
         """
         # Check for the attribute.
         if not hasattr(self, 'LoadsTRI'):
@@ -1463,104 +1463,6 @@ class Cart3d(object):
         # Write.
         self.LoadsTRI.Write(self.x)
         return None
-    
-    
-    
-    # Check for root location
-    def CheckRootDir(self):
-        """Check if the current directory is the case root directory
-        
-        Suppose the directory structure for a case is as follows.
-        
-        * `/nobackup/uuser/plane/`
-            * `Grid_d0.0/`
-                * `m1.20/`
-                * `m1.40/`
-            * `Grid_d1.0/`
-                * `m1.20/`
-                * `m1.40/`
-                
-        Then this function will return ``True`` if and only if the current
-        working directory is ``'/nobackup/uuser/plane/'``.
-        
-        :Call:
-            >>> q = cart3d.CheckRootDir()
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Global pyCart settings object instance
-        :Outputs:
-            *q*: :class:`bool`
-                True if current working directory is the case root directory
-        :Versions:
-            * 2014.06.30 ``@ddalle``: First version
-        """
-        # Compare the working directory and the stored root directory.
-        return os.path.abspath('.') == self.RootDir
-    
-    # Check for group location
-    def CheckGroupDir(self):
-        """
-        Check if the current directory is a group-level directory
-        
-        Suppose the directory structure for a case is as follows.
-        
-        * `/nobackup/uuser/plane/`
-            * `Grid_d0.0/`
-                * `m1.20/`
-                * `m1.40/`
-            * `Grid_d1.0/`
-                * `m1.20/`
-                * `m1.40/`
-                
-        Then this function will return ``True`` if and only if the current
-        working directory is ``'/nobackup/uuser/plane/Grid_d0.0'`` or 
-        ``'/nobackup/uuser/plane/Grid_d1.0'``.
-        
-        :Call:
-            >>> q = cart3d.CheckGroupDir()
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Global pyCart settings object instance
-        :Outputs:
-            *q*: :class:`bool`
-                True if current working directory is a group-level directory
-        :Versions:
-            * 2014.06.30 ``@ddalle``: First version
-        """
-        # Compare the working directory and the stored root directory.
-        return os.path.abspath('..') == self.RootDir
-    
-    # Check for group location
-    def CheckCaseDir(self):
-        """
-        Check if the current directory is a case-level directory
-        
-        Suppose the directory structure for a case is as follows.
-        
-        * `/nobackup/uuser/plane/`
-            * `Grid_d0.0/`
-                * `m1.20/`
-                * `m1.40/`
-            * `Grid_d1.0/`
-                * `m1.20/`
-                * `m1.40/`
-                
-        Then this function will return ``True`` if the current working 
-        directory is either of the ``'m1.20'`` or ``'m1.40'`` folders.
-        
-        :Call:
-            >>> q = cart3d.CheckCaseDir()
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Global pyCart settings object instance
-        :Outputs:
-            *q*: :class:`bool`
-                True if current working directory is a group-level directory
-        :Versions:
-            * 2014.06.30 ``@ddalle``: First version
-        """
-        # Compare the working directory and the stored root directory.
-        return os.path.abspath(os.path.join('..','..')) == self.RootDir
         
 
 
@@ -1583,7 +1485,7 @@ def ReadTrajectoryFile(fname='Trajectory.dat', keys=['Mach','alpha','beta'],
         *x*: :class:`pyCart.trajectory.Trajectory`
             Instance of the pyCart trajectory class
     :Versions:
-        * 2014.05.27 ``@ddalle``: First version
+        * 2014-05-27 ``@ddalle``: First version
     """
     return Trajectory(fname, keys, prefix)
     
