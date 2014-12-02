@@ -25,7 +25,7 @@ def callf(cmdi, f=None, shell=None):
         *shell*: :class:`bool`
             Whether or not a shell is needed
     :Versions:
-        * 2014.08.30 ``@ddalle``: First version
+        * 2014-08-30 ``@ddalle``: First version
     """
     # Process the shell option
     shell = bool(shell)
@@ -66,7 +66,7 @@ def _assertfile(fname):
         *fname*: :class:`str`
             Name of file to test
     :Versions:
-        * 2014.06.30 ``@ddalle``: First version
+        * 2014-06-30 ``@ddalle``: First version
     """
     # Check for the file.
     if not os.path.isfile(fname):
@@ -85,7 +85,7 @@ def _upgradeDocString(doccmd):
         *docbin*: :class:`str`
             Docstring for :mod:`pyCart.bin`
     :Versions:
-        * 2014.09.10 ``@ddalle``: First version
+        * 2014-09-10 ``@ddalle``: First version
     """
     # Replace module reference.
     txt = doccmd.replace(".cmd.", ".bin.")

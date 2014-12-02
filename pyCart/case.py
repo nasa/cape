@@ -25,7 +25,7 @@ def run_flowCart():
     :Call:
         >>> pyCart.case.run_flowCart()
     :Versions:
-        * 2014.10.02 ``@ddalle``: First version
+        * 2014-10-02 ``@ddalle``: First version
     """
     # Check for RUNNING file.
     if os.path.isfile('RUNNING'):
@@ -136,7 +136,7 @@ def StartCase():
     :Call:
         >>> pyCart.case.StartCase()
     :Versions:
-        * 2014.10.06 ``@ddalle``: First version
+        * 2014-10-06 ``@ddalle``: First version
     """
     # Get the config.
     fc = ReadCaseJSON()
@@ -198,7 +198,7 @@ def ReadCaseJSON():
         *fc*: :class:`pyCart.options.flowCart.flowCart`
             Options interface for `flowCart`
     :Versions:
-        * 2014.10.02 ``@ddalle``: First version
+        * 2014-10-02 ``@ddalle``: First version
     """
     # Read the file, fail if not present.
     f = open('case.json')
@@ -358,7 +358,7 @@ def GetInputNumber(fc):
         *i*: :class:`int`
             Most appropriate run number for a restart
     :Versions:
-        * 2014.10.02 ``@ddalle``: First version
+        * 2014-10-02 ``@ddalle``: First version
     """
     # Get the run index.
     n = GetCheckResubIter()

@@ -1477,7 +1477,7 @@ def ReadTrajectoryFile(fname='Trajectory.dat', keys=['Mach','alpha','beta'],
     :Inputs:
         *fname*: :class:`str`
             Name of file to read, defaults to ``'Trajectory.dat'``
-        *keys*: :class:`list` of :class:`str` items
+        *keys*: :class:`list` (:class:`str`)
             List of variable names, defaults to ``['Mach','alpha','beta']``
         *prefix*: :class:`str`
             Header for name of each folder
