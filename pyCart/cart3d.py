@@ -894,7 +894,7 @@ class Cart3d(object):
         # Write a JSON file with the flowCart settings.
         f = open('case.json', 'w')
         # Dump the flowCart settings.
-        json.dump(self.opts['flowCart'], f, indent=0)
+        json.dump(self.opts['flowCart'], f, indent=1)
         # Close the file.
         f.close()
         # Write the PBS script.
