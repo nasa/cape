@@ -10,13 +10,13 @@ a :class:`pyCart.cart3d.Cart3d` instance.
 
 
 # Function to call cubes.
-def cubes(cart3d=None, maxR=10, reorder=True, cubes_a=None, cubes_b=None):
+def cubes(cart3d=None, **kw):
     """
     Interface to Cart3D script `cubes`
     
     :Call:
         >>> cmd = pyCart.cmd.cubes(cart3d)
-        >>> cmd = pyCart.cmd.cubes(maxR=10, reorder=True, **kwargs)
+        >>> cmd = pyCart.cmd.cubes(maxR=11, reorder=True, **kwargs)
     :Inputs:
         *cart3d*: :class:`pyCart.cart3d.Cart3d`
             Global pyCart settings instance
@@ -24,25 +24,36 @@ def cubes(cart3d=None, maxR=10, reorder=True, cubes_a=None, cubes_b=None):
             Number of refinements to make
         *reorder*: :class:`bool`
             Whether or not to reorder mesh
-        *cubes_a*: :class:`int`
-            `cubes` "a" parameter
-        *cubes_b*: :class:`int`
-            `cubes` "b" parameter
+        *a*: :class:`int`
+            `cubes` angle criterion
+        *b*: :class:`int`
+            Number of buffer layers
+        *sf*: :class:`int`
+            Number of extra refinements around sharp edges
     :Outputs:
         *cmd*: :class:`list` (:class:`str`)
             Command split into a list of strings
     :Versions:
-        * 2014.06.30 ``@ddalle``: First version
-        * 2014.09.02 ``@ddalle``: Rewritten with new options paradigm
-        * 2014.09.10 ``@ddalle``: Split into cmd and bin
+        * 2014-06-30 ``@ddalle``: First version
+        * 2014-09-02 ``@ddalle``: Rewritten with new options paradigm
+        * 2014-09-10 ``@ddalle``: Split into cmd and bin
+        * 2014-12-02 ``@ddalle``: Moved to keyword arguments and added *sf*
     """
     # Check cart3d input.
     if cart3d is not None:
         # Apply values
-        maxR    = cart3d.opts.get_maxR()
-        reorder = cart3d.opts.get_reorder()
-        cubes_a = cart3d.opts.get_cubes_a()
-        cubes_b = cart3d.opts.get_cubes_b()
+        maxR    = cart3d.opts.get_maxR(0)
+        reorder = cart3d.opts.get_reorder(0)
+        cubes_a = cart3d.opts.get_cubes_a(0)
+        cubes_b = cart3d.opts.get_cubes_b(0)
+        sf      = cart3d.opts.get_sf(0)
+    else:
+        # Get keyword arguments
+        maxR    = kw.get('maxR', 11)
+        reorder = kw.get('reorder', True)
+        cubes_a = kw.get('a', 10)
+        cubes_b = kw.get('b', 2)
+        sf      = kw.get('sf', 0)
     # Initialize command
     cmd = ['cubes', '-pre', 'preSpec.c3d.cntl']
     # Add options.
@@ -50,17 +61,18 @@ def cubes(cart3d=None, maxR=10, reorder=True, cubes_a=None, cubes_b=None):
     if reorder: cmd += ['-reorder']
     if cubes_a: cmd += ['-a', str(cubes_a)]
     if cubes_b: cmd += ['-b', str(cubes_b)]
+    if sf:      cmd += ['-sf', str(sf)]
     # Return the command.
     return cmd
     
 # Function to call mgPrep
-def mgPrep(cart3d=None, **kwargs):
+def mgPrep(cart3d=None, **kw):
     """
     Interface to Cart3D script `mgPrep`
     
     :Call:
         >>> cmd = pyCart.cmd.mgPrep(cart3d)
-        >>> cmd = pyCart.cmd.mgPrep(**kwargs)
+        >>> cmd = pyCart.cmd.mgPrep(**kw)
     :Inputs:
         *cart3d*: :class:`pyCart.cart3d.Cart3d`
             Global pyCart settings instance
@@ -70,7 +82,7 @@ def mgPrep(cart3d=None, **kwargs):
         *cmd*: :class:`list` (:class:`str`)
             Command split into a list of strings
     :Versions:
-        * 2014.09.02 ``@ddalle``: First version
+        * 2014-09-02 ``@ddalle``: First version
     """
     # Check cart3d input.
     if cart3d is not None:
@@ -79,8 +91,8 @@ def mgPrep(cart3d=None, **kwargs):
         pmg   = cart3d.opts.get_pmg(0)
     else:
         # Get values
-        mg_fc = kwargs.get('mg_fc', 3)
-        pmg   = kwargs.get('pmg', 0)
+        mg_fc = kw.get('mg_fc', 3)
+        pmg   = kw.get('pmg', 0)
     # Initialize command.
     cmd = ['mgPrep']
     # Add options.
@@ -115,18 +127,21 @@ def autoInputs(cart3d=None, r=8, ftri='Components.i.tri', **kw):
     # Check cart3d input.
     if cart3d is not None:
         # Apply values
-        r     = cart3d.opts.get_r()
+        r     = cart3d.opts.get_r(0)
         ftri  = 'Components.i.tri'
-        maxR  = cart3d.opts.get_maxR()
+        maxR  = cart3d.opts.get_maxR(0)
+        nDiv  = cart3d.opts.get_nDiv(0)
     else:
         # Get values from keyword arguments
         maxR  = kwargs.get('maxR', 10)
+        nDiv  = kwargs.get('nDiv', 5)
     # Initialize command.
     cmd = ['autoInputs']
     # Add options.
     if r:    cmd += ['-r', str(r)]
     if ftri: cmd += ['-t', ftri]
     if maxR: cmd += ['-maxR', str(maxR)]
+    if nDiv: cmd += ['-nDiv', str(nDiv)]
     # Return the command.
     return cmd
 

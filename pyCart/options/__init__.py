@@ -927,6 +927,16 @@ class Options(odict):
     def set_r(self, r=rc0('r'), i=None):
         self._Mesh()
         self['Mesh'].set_r(r, i)
+        
+    # Get the number of background mesh divisions.
+    def get_nDiv(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_nDiv(i)
+        
+    # Set the number of background mesh divisions.
+    def set_nDiv(self, nDiv=rc0('nDiv'), i=None):
+        self._Mesh()
+        self['Mesh'].set_nDiv(nDiv, i)
     
     # Get the number of refinements
     def get_maxR(self, i=None):
@@ -968,10 +978,20 @@ class Options(odict):
         self._Mesh()
         self['Mesh'].set_reorder(reorder, i)
         
+    # Get the number of extra refinements around sharp edges
+    def get_sf(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_sf(i)
+        
+    # Seth the number of extra refinements around sharp edges
+    def set_sf(self, sf=rc0('sf'), i=None):
+        self._Mesh()
+        self['Mesh'].set_sf(sf, i)
+        
         
     # Copy over the documentation.
     for k in ['TriFile', 'preSpecCntl', 'inputC3d', 'BBox', 'XLev', 'mesh2d',
-            'r', 'maxR', 'cubes_a', 'cubes_b', 'reorder']:
+            'r', 'nDiv', 'maxR', 'cubes_a', 'cubes_b', 'reorder', 'sf']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Mesh,'set_'+k).__doc__

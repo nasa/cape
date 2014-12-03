@@ -14,7 +14,7 @@ class autoInputs(odict):
         """Get the nominal mesh radius
         
         :Call:
-            >>> r = opts.get_r(i=None):
+            >>> r = opts.get_r(i=None)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
@@ -24,7 +24,7 @@ class autoInputs(odict):
             *r*: :class:`float` or :class:`list`(:class:`float`)
                 Nominal mesh radius
         :Versions:
-            * 2014.08.03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: First version
         """
         return self.get_key('r', i)
         
@@ -42,9 +42,46 @@ class autoInputs(odict):
             *i*: :class:`int` or ``None``
                 Run index
         :Versions:
-            * 2014.08.03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: First version
         """
         self.set_key('r', r, i)
+        
+    # Get the number of initial divisions
+    def get_nDiv(self, i=None):
+        """Get the number of divisions in background mesh
+        
+        :Call:
+            >>> nDiv = opts.get_nDiv(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *nDiv*: :class:`int` or :class:`list`(:class:`int`)
+                Number of background mesh divisions
+        :Versions:
+            * 2014-12-02 ``@ddalle``: First version
+        """
+        return self.get_key('nDiv', i)
+        
+    # Set the number of initial mesh divisions
+    def set_nDiv(self, nDiv=rc0('nDiv'), i=None):
+        """Set the number of divisions in background mesh
+        
+        :Call:
+            >>> opts.set_nDiv(nDiv, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *nDiv*: :class:`int` or :class:`list`(:class:`int`)
+                Number of background mesh divisions
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014-12-02 ``@ddalle``: First version
+        """
+        self.set_key('nDiv', nDiv, i)
         
         
 # Class for cubes
@@ -66,7 +103,7 @@ class cubes(odict):
             *maxR*: :class:`int` or :class:`list`(:class:`int`)
                 (Maximum) number of refinements for initial mesh
         :Versions:
-            * 2014.08.03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: First version
         """
         return self.get_key('maxR', i)
         
@@ -84,7 +121,7 @@ class cubes(odict):
             *i*: :class:`int` or ``None``
                 Run index
         :Versions:
-            * 2014.08.03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: First version
         """
         self.set_key('maxR', maxR, i)
         
@@ -103,7 +140,7 @@ class cubes(odict):
             *cubes_a*: :class:`int` or :class:`list`(:class:`int`)
                 Customizable parameter for `cubes`
         :Versions:
-            * 2014.08.03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: First version
         """
         return self.get_key('cubes_a', i)
         
@@ -121,7 +158,7 @@ class cubes(odict):
             *i*: :class:`int` or ``None``
                 Run index
         :Versions:
-            * 2014.08.03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: First version
         """
         self.set_key('cubes_a', cubes_a, i)
         
@@ -140,7 +177,7 @@ class cubes(odict):
             *cubes_b*: :class:`int` or :class:`list`(:class:`int`)
                 Customizable parameter for `cubes`
         :Versions:
-            * 2014.08.03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: First version
         """
         return self.get_key('cubes_b', i)
         
@@ -158,7 +195,7 @@ class cubes(odict):
             *i*: :class:`int` or ``None``
                 Run index
         :Versions:
-            * 2014.08.03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: First version
         """
         self.set_key('cubes_b', cubes_b, i)
         
@@ -177,7 +214,7 @@ class cubes(odict):
             *reorder*: :class:`bool` or :class:`list`(:class:`bool`)
                 Reorder status
         :Versions:
-            * 2014.08.03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: First version
         """
         return self.get_key('reorder', i)
         
@@ -186,7 +223,7 @@ class cubes(odict):
         """Set the `cubes` reordering status
         
         :Call:
-            opts.set_reorder(reorder, i=None)
+            >>> opts.set_reorder(reorder, i=None)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
@@ -195,9 +232,47 @@ class cubes(odict):
             *i*: :class:`int` or ``None``
                 Run index
         :Versions:
-            * 2014.08.03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: First version
         """
         self.set_key('reorder', reorder, i)
+        
+    # Get the number of initial refinements at sharp edges
+    def get_sf(self, i=None):
+        """Get the number of additional refinements around sharp edges
+        
+        :Call:
+            >>> sf = opts.get_sf(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *sf*: :class:`int` or :class:`list`(:class:`int`)
+                Number of additional refinements at sharp edges
+        :Versions:
+            * 2014-12-02 ``@ddalle``: First version
+        """
+        return self.get_key('sf', i)
+        
+    # Set the number of additional refinements at sharp edges
+    def set_sf(self, sf=rc0('sf'), i=None):
+        """Set the number of additional refinements around sharp edges
+        
+        :Call:
+            >>> opts.set_sf(sf, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *sf*: :class:`int` or :class:`list`(:class:`int`)
+                Number of additional refinements at sharp edges
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014-12-02 ``@ddalle``: First version
+        """
+        self.set_key('sf', sf, i)
+            
         
 
 # Class for Cart3D mesh settings
@@ -250,7 +325,7 @@ class Mesh(odict):
             *TriFile*: :class:`str` or :class:`list`(:class:`str`)
                 Surface triangulation file
         :Versions:
-            * 2014.08.03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: First version
         """
         return self.get_key('TriFile', i)
         
@@ -268,7 +343,7 @@ class Mesh(odict):
             *i*: :class:`int` or ``None``
                 Run index
         :Versions:
-            * 2014.08.03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: First version
         """
         self.set_key('TriFile', TriFile, i)
             
@@ -286,7 +361,7 @@ class Mesh(odict):
             *fpre*: :class:`str`
                 Mesh prespecification file
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         return self.get_key('preSpecCntl')
         
@@ -302,7 +377,7 @@ class Mesh(odict):
             *fpre*: :class:`str`
                 Mesh prespecification file
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         self.set_key('preSpecCntl', fpre)
         
@@ -320,7 +395,7 @@ class Mesh(odict):
             *fpre*: :class:`str`
                 Mesh prespecification file
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         return self.get_key('inputC3d')
         
@@ -336,7 +411,7 @@ class Mesh(odict):
             *fc3d*: :class:`str`
                 Mesh input file
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         self.set_key('inputC3d', fc3d)
         
@@ -354,7 +429,7 @@ class Mesh(odict):
             *BBox*: :class:`list`(:class:`dict`)
                 List of bounding box specifications
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         # Get the bounding boxes.
         BBox = self.get_key('BBox')
@@ -375,7 +450,7 @@ class Mesh(odict):
             *BBox*: :class:`list`(:class:`dict`)
                 List of bounding box specifications
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         self.set_key('BBox', BBox)
         
@@ -393,7 +468,7 @@ class Mesh(odict):
             *XLev*: :class:`list`(:class:`dict`)
                 List of surface refinement specifications
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         # Get the bounding boxes.
         XLev = self.get_key('XLev')
@@ -414,7 +489,7 @@ class Mesh(odict):
             *XLev*: :class:`list`(:class:`dict`)
                 List of surface refinement specifications
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         self.set_key('XLev', XLev)
         
@@ -434,7 +509,7 @@ class Mesh(odict):
             *mesh2d*: :class:`bool` or :class:`list`(:class:`bool`)
                 Two-dimensional if ``True``, three-dimensional otherwise
         :Versions:
-            * 2014.08.03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: First version
         """
         return self.get_key('mesh2d', i)
     
@@ -452,7 +527,7 @@ class Mesh(odict):
             *i*: :class:`int` or ``None``
                 Run index
         :Versions:
-            * 2014.08.03 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: First version
         """
         self.set_key('mesh2d', mesh2d, i)
     
@@ -471,8 +546,18 @@ class Mesh(odict):
         self._autoInputs()
         self['autoInputs'].set_r(r, i)
         
+    # Get the background mesh divisions
+    def get_nDiv(self, i=None):
+        self._autoInputs()
+        return self['autoInputs'].get_nDiv(i)
+    
+    # Set the background mesh divisions
+    def set_nDiv(self, nDiv=rc0('nDiv'), i=None):
+        self._autoInputs()
+        self['autoInputs'].set_nDiv(nDiv, i)
+        
     # Copy over the documentation.
-    for k in ['r']:
+    for k in ['r', 'nDiv']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(autoInputs,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(autoInputs,'set_'+k).__doc__
@@ -521,10 +606,20 @@ class Mesh(odict):
     def set_reorder(self, reorder=rc0('reorder'), i=None):
         self._cubes()
         self['cubes'].set_reorder(reorder, i)
+        
+    # Get the additional refinements around sharp edges
+    def get_sf(self, i=None):
+        self._cubes()
+        return self['cubes'].get_sf(i)
+        
+    # Set the additional refinements around sharp edges
+    def set_sf(self, sf=rc0('sf'), i=None):
+        self._cubes()
+        self['cubes'].set_sf(sf, i)
 
 
     # Copy over the documentation.
-    for k in ['maxR', 'cubes_a', 'cubes_b', 'reorder']:
+    for k in ['maxR', 'cubes_a', 'cubes_b', 'reorder', 'sf']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(cubes,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(cubes,'set_'+k).__doc__
