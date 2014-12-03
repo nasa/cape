@@ -122,7 +122,7 @@ def autoInputs(cart3d=None, r=8, ftri='Components.i.tri', **kw):
         *cmd*: :class:`list` (:class:`str`)
             Command split into a list of strings
     :Versions:
-        * 2014.09.02 ``@ddalle``: First version
+        * 2014-09-02 ``@ddalle``: First version
     """
     # Check cart3d input.
     if cart3d is not None:

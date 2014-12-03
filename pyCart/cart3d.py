@@ -24,8 +24,6 @@ from . import queue
 from . import bin
 # Run directory module
 from . import case
-# Folder management
-from . import manage
 
 # Functions and classes from other modules
 from trajectory import Trajectory
@@ -41,7 +39,6 @@ from config      import Config
 from tri import Tri
 
 # Import history modules.
-#import aero
 import history
 
 # Get the root directory of the module.
@@ -60,19 +57,16 @@ def _upgradeDocString(docstr, fromclass):
     
     :Call:
         >>> doc3d = _upgradDocString(docstr, fromclass)
-        
     :Inputs:
         *docstr*: :class:`str`
             Docstring (e.g. ``x.__doc__``) from some other method
         *fromclass*: :class:`str`
             Name of class of the original docstring (e.g. ``type(x).__name__``)
-            
     :Outputs:
         *doc3d*: :class:`str`
             Docstring with certain substitutions, e.g. ``x.`` --> ``cart3d.``
-            
     :Versions:
-        * 2014.07.28 ``@ddalle``: First version
+        * 2014-07-28 ``@ddalle``: First version
     """
     # Check the input class.
     if fromclass in ['Trajectory']:
@@ -900,7 +894,7 @@ class Cart3d(object):
         # Write a JSON file with the flowCart settings.
         f = open('case.json', 'w')
         # Dump the flowCart settings.
-        json.dump(self.opts['flowCart'], f, indent=1)
+        json.dump(self.opts['flowCart'], f, indent=0)
         # Close the file.
         f.close()
         # Write the PBS script.
@@ -1234,7 +1228,7 @@ class Cart3d(object):
             os.chdir(self.RootDir)
             os.chdir(frun)
             # Status update
-            print(frun)
+            print(fdir)
             # Manage the directory.
             manage.TarAdapt()
         # Go back to original directory.
