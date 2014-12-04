@@ -869,14 +869,10 @@ class Cart3d(object):
         else:
             # Get the name of the configuration and input files.
             fxml = os.path.join(self.RootDir, self.opts.get_ConfigFile())
-            fpre = os.path.join(self.RootDir, self.opts.get_preSpecCntl())
             fc3d = os.path.join(self.RootDir, self.opts.get_inputC3d())
             # Copy the config file.
             if os.path.isfile(fxml):
                 shutil.copy(fxml, 'Config.xml')
-            # Copy the preSpec file.
-            if os.path.isfile(fpre):
-                shutil.copy(fpre, 'preSpec.c3d.cntl')
             # Copy the input.c3d file.
             if os.path.isfile(fc3d):
                 shutil.copy(fc3d, 'input.c3d')
