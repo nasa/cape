@@ -466,6 +466,16 @@ class Options(odict):
         self._flowCart()
         self['flowCart'].set_use_aero_csh(ac, i)
         
+    # Get jumpstart status
+    def get_jumpstart(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_jumpstart(i)
+        
+    # Jumpstart status
+    def set_jumpstart(self, js=rc0('jumpstart'), i=None):
+        self._flowCart()
+        self['flowCart'].set_jumpstart(js, i)
+        
     # Get cut-cell gradient flag
     def get_tm(self, i=None):
         self._flowCart()
@@ -639,7 +649,7 @@ class Options(odict):
     # Copy over the documentation.
     for k in ['InputSeq', 'IterSeq', 'first_order', 'robust_mode', 'unsteady', 
             'mpi_fc', 'use_aero_csh', 'tm', 'nSteps', 'dt', 'checkptTD',
-            'vizTD', 'fc_clean', 'fc_stats',
+            'vizTD', 'fc_clean', 'fc_stats', 'jumpstart',
             'it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'tecO', 'fmg', 'pmg',
             'y_is_spanwise', 'binaryIO', 'nProc', 'mpicmd', 'qsub', 'resub']:
         # Get the documentation for the "get" and "set" functions

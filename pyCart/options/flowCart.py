@@ -378,7 +378,7 @@ class flowCart(odict):
             *ac*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not to use `aero.csh`
         :Versions:
-            * 2014.10.03 ``@ddalle``: First version
+            * 2014-10-03 ``@ddalle``: First version
         """
         return self.get_key('use_aero_csh', i)
     
@@ -396,9 +396,47 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Run index
         :Versions:
-            * 2014.10.03 ``@ddalle``: First version
+            * 2014-10-03 ``@ddalle``: First version
         """
         self.set_key('use_aero_csh', ac, i)
+        
+    
+    # Get jumpstart status
+    def get_jumpstart(self, i=None):
+        """
+        Return whether or not to "jump start", i.e. create meshes before running
+        :file:`aero.csh`.
+        
+        :Call:
+            >>> js = opts.get_jumpstart()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *js*: :class:`bool`
+                Whether or not to jumpstart
+        :Versions:
+            * 2014-12-04 ``@ddalle``: First version
+        """
+        return self.get_key('restart', i)
+        
+    # Set jumpstart status
+    def set_jumpstart(self, js=rc0('jumpstart'), i=None):
+        """
+        Set whether or not to "jump start", i.e. create meshes before running
+        :file:`aero.csh`.
+        
+        :Call:
+            >>> opts.get_jumpstart(js)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *js*: :class:`bool`
+                Whether or not to jumpstart
+        :Versions:
+            * 2014-12-04 ``@ddalle``: First version
+        """
+        self.set_key('jumpstart', js, i)
         
     
     # Get the CFL number

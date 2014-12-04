@@ -89,17 +89,20 @@ def run_flowCart():
         if i > 0:
             # Restart case.
             cmdi = ['./aero.csh', 'restart']
-        else:
+        elif fc.get_jumpstart():
             # Initial case
             cmdi = ['./aero.csh', 'jumpstart']
-    elif fc.get_unsteady(i):
-        # Get the number of previous unsteady steps.
-        n = GetUnsteadyIter()
-        # Call flowCart directly.
-        cmdi = cmd.flowCart(fc=fc, i=i, n=n)
+        else:
+            # Initial case and create grid
+            cmdi = ['./aero.csh']
     else:
-        # Get the number of previous steady steps.
-        n = GetSteadyIter()
+        # Check how many iterations by which to offset the count.
+        if fc.get_unsteady(i):
+            # Get the number of previous unsteady steps.
+            n = GetUnsteadyIter()
+        else:
+            # Get the number of previous steady steps.
+            n = GetSteadyIter()
         # Call flowCart directly.
         cmdi = cmd.flowCart(fc=fc, i=i, n=n)
     # Run the command.
