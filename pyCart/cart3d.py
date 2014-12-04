@@ -1371,6 +1371,11 @@ class Cart3d(object):
             self.AeroCsh.SetABuffer(self.opts.get_abuff(j))
             self.AeroCsh.SetFinalMeshXRef(self.opts.get_final_mesh_xref(j))
             self.AeroCsh.SetBinaryIO(self.opts.get_binaryIO(j))
+            # Initial mesh inputs; may not be used.
+            self.AeroCsh.SetCubesA(self.opts.get_cubes_a(0))
+            self.AeroCsh.SetCubesB(self.opts.get_cubes_b(0))
+            self.AeroCsh.SetMaxR(self.opts.get_maxR(0))
+            self.AeroCsh.SetPreSpec(True)
             # Process the adaptation-specific lists.
             self.AeroCsh.SetAPC(self.opts.get_apc())
             self.AeroCsh.SetMeshGrowth(self.opts.get_mesh_growth())

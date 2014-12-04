@@ -531,9 +531,75 @@ class AeroCsh(FileCntl):
         # Set this value (integer)
         self.SetVar('final_mesh_xref', xref)
     
+    # Function to set `cubes` angle criterion
+    def SetCubesA(self, a):
+        """Set the angle criterion for `cubes`
+        
+        :Call:
+            >>> AC.SetCubesA(a)
+        :Inputs:
+            *AC*: :class:`pyCart.aeroCsh.AeroCsh`
+                Instance of the :file:`aero.csh` manipulation class
+            *a*: :class:`float`
+                Angle criterion for `cubes`
+        :Versions:
+            * 2014-12-04 ``@ddalle``: First version
+        """
+        self.SetVar('cubes_a', a)
+        
+    # Function to set `cubes` number of buffer layers
+    def SetCubesB(self, b):
+        """Set number of buffer layers for `cubes`
+        
+        :Call:
+            >>> AC.SetCubesB(b)
+        :Inputs:
+            *AC*: :class:`pyCart.aeroCsh.AeroCsh`
+                Instance of the :file:`aero.csh` manipulation class
+            *b*: :class:`int`
+                Number of buffer layers for `cubes`
+        :Versions:
+            * 2014-12-04 ``@ddalle``: First version
+        """
+        self.SetVar('cubes_b', b)
     
-    
-    
+    # Function to set maximum number of revisions
+    def SetMaxR(self, maxR):
+        """Set the maximum number of refinements for `cubes`
+        
+        :Call:
+            >>> AC.SetMaxR(maxR)
+        :Inputs:
+            *AC*: :class:`pyCart.aeroCsh.AeroCsh`
+                Instance of the :file:`aero.csh` manipulation class
+            *maxR*: :class:`int`
+                Maximum number of refinements for `cubes`
+        :Versions:
+            * 2014-12-04 ``@ddalle``: First version
+        """
+        self.SetVar('maxR', maxR)
+        
+    # Function to turn on (or off) preSpec for cubes
+    def SetPreSpec(self, pre=True):
+        """Turn on or off :file:`preSpec.c3d.cntl`
+            
+        :Call:
+            >>> AC.SetPreSpec(pre=True)
+        :Inputs:
+            *AC*: :class:`pyCart.aeroCsh.AeroCsh`
+                Instance of the :file:`aero.csh` manipulation class
+            *pre*: :class:`bool`
+                Whether or not to use prespecified regions 
+        :Versions:
+            * 2014-12-04 ``@ddalle``: First version
+        """
+        # Check input
+        if pre:
+            # On: set preSpec to 1
+            self.SetVar('use_preSpec', 1)
+        else:
+            # Off: set preSpec to 0
+            self.SetVar('use_preSpec', 0)
     
     
     
