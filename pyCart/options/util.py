@@ -91,7 +91,7 @@ rc = {
     "BBox": [],
     "XLev": [],
     "r": 30.0,
-    "nDiv": 5,
+    "nDiv": 4,
     "maxR": 11,
     "pre": "preSpec.c3d.cntl",
     "cubes_a": 10,

@@ -134,7 +134,7 @@ def autoInputs(cart3d=None, r=8, ftri='Components.i.tri', **kw):
     else:
         # Get values from keyword arguments
         maxR  = kwargs.get('maxR', 10)
-        nDiv  = kwargs.get('nDiv', 5)
+        nDiv  = kwargs.get('nDiv', 4)
     # Initialize command.
     cmd = ['autoInputs']
     # Add options.
