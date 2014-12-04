@@ -27,7 +27,7 @@ def AlphaTPhi2AlphaBeta(alpha_t, phi):
         *beta*: :class:`float` or :class:`numpy.array`
             Sideslip angle
     :Versions:
-        * 2014.06.02 ``@ddalle``: First version
+        * 2014-06-02 ``@ddalle``: First version
     """
     # Trig functions.
     ca = _np.cos(alpha_t*_np.pi/180); cp = _np.cos(phi*_np.pi/180)
@@ -62,8 +62,8 @@ def AlphaBeta2AlphaTPhi(alpha, beta):
         *phi*: :class:`float` or :class:`numpy.array`
             Total roll angle
     :Versions:
-        * 2014.06.02 ``@ddalle``: First version
-        * 2014.11.05 ``@ddalle``: Transposed alpha and beta in *w* formula
+        * 2014-06-02 ``@ddalle``: First version
+        * 2014-11-05 ``@ddalle``: Transposed alpha and beta in *w* formula
     """
     # Trig functions.
     ca = _np.cos(alpha*_np.pi/180); cb = _np.cos(beta*_np.pi/180)

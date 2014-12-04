@@ -32,7 +32,7 @@ def AppendParent(Comps, comp, k, compID):
         *comp*: :class:`dict`
             Dictionary with *compID* appended in appropriate places
     :Versions:
-        * 2014.10.13 ``@ddalle``: First version
+        * 2014-10-13 ``@ddalle``: First version
     """
     # Get the component.
     c = Comps[k]
@@ -69,7 +69,7 @@ class Config:
         *cfg*: :class:`pyCart.config.Config`
             Instance of configuration class
     :Versions:
-        * 2014.10.12 ``@ddalle``: First version
+        * 2014-10-12 ``@ddalle``: First version
     """
     
     # Initialization method

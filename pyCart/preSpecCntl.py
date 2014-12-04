@@ -31,7 +31,7 @@ class PreSpecCntl(FileCntl):
         *fname*: :class:`str`
             Name of CNTL file to read, defaults to ``'preSpec.c3d.cntl'``
     :Versions:
-        * 2014.06.16 ``@ddalle``: First version
+        * 2014-06-16 ``@ddalle``: First version
     """
     
     # Initialization method (not based off of FileCntl)
@@ -62,7 +62,7 @@ class PreSpecCntl(FileCntl):
         :Effects:
             Adds a bounding box line to the existing boxes
         :Versions:
-            * 2014.06.16 ``@ddalle``: First version
+            * 2014-06-16 ``@ddalle``: First version
         """
         # Compose the line.
         line = "BBox: %-2i %10.4f %10.4f %10.4f %10.4f %10.4f %10.4f\n" % (
@@ -80,7 +80,7 @@ class PreSpecCntl(FileCntl):
             *preSpec*: :class:`pyCart.preSpecCntl.PreSpecCntl`
                 Instance of the :file:`preSpec.c3d.cntl` interface
         :Versions:
-            * 2014.06.16 ``@ddalle``: First version
+            * 2014-06-16 ``@ddalle``: First version
         """
         # Delete the lines.
         self.DeleteLineInSectionStartsWith(
@@ -100,7 +100,7 @@ class PreSpecCntl(FileCntl):
                 Number of refinements to use in the box
             *compID*: :class:`int` or :class:`list`(:class:`int`)
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         # Check the input.
         if type(compID).__name__ in ['int', 'float']:
@@ -127,13 +127,11 @@ class PreSpecCntl(FileCntl):
             *preSpec*: :class:`pyCart.preSpecCntl.PreSpecCntl`
                 Instance of the :file:`preSpec.c3d.cntl` interface
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         # Delete the lines.
         self.DeleteLineInSectionStartsWith(
             'Prespecified_Adaptation_Regions', 'XLev')
-        
-        
         
         
         

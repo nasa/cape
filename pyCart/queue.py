@@ -27,7 +27,7 @@ def qsub(fname):
         *pbs*: :class:`int` or ``None``
             PBS job ID number if submission was successful
     :Versions:
-        * 2014.10.05 ``@ddalle``: First version
+        * 2014-10-05 ``@ddalle``: First version
     """
     # Call the command with safety
     try:
@@ -58,7 +58,7 @@ def pqsub(fname, fout="jobID.dat"):
         *pbs*: :class:`int` or ``None``
             PBS job ID number if submission was successful
     :Versions:
-        * 2014.10.06 ``@ddalle``: First version
+        * 2014-10-06 ``@ddalle``: First version
     """
     # Submit the job.
     pbs = qsub(fname)
@@ -86,7 +86,7 @@ def qstat(u=None):
         *jobs*: :class:`dict`
             Information on each job, ``jobs[jobID]`` for each submitted job
     :Versions:
-        * 2014.10.06 ``@ddalle``: First versoin
+        * 2014-10-06 ``@ddalle``: First versoin
     """
     # Process username
     if u is None:

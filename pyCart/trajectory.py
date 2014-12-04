@@ -55,8 +55,8 @@ class Trajectory:
         ``getattr(x, key)``: :class:`numpy.ndarray`, *dtype=float*
             Vector of values of each variable specified in *keys*
     :Versions:
-        2014.05.28 ``@ddalle``: First version
-        2014.06.05 ``@ddalle``: Generalized for user-defined keys
+        2014-05-28 ``@ddalle``: First version
+        2014-06-05 ``@ddalle``: Generalized for user-defined keys
     """
     
     # Initialization method
@@ -133,7 +133,7 @@ class Trajectory:
             *fname*: :class:`str`
                 Name of trajectory file
         :Versions:
-            * 2014.10.13 ``@ddalle``: Cut code from __init__ method
+            * 2014-10-13 ``@ddalle``: Cut code from __init__ method
         """
         # Open the file.
         f = open(fname)
@@ -201,8 +201,8 @@ class Trajectory:
             *x.abbrv*: :class:`dict`
                 Dictionary of abbreviations for each trajectory key
         :Versions:
-            * 2014.06.05 ``@ddalle``: First version
-            * 2014.06.17 ``@ddalle``: Overhauled to read from ``defns`` dict
+            * 2014-06-05 ``@ddalle``: First version
+            * 2014-06-17 ``@ddalle``: Overhauled to read from ``defns`` dict
         """
         # Overall default key
         odefkey = defns.get('Default', {})
@@ -321,7 +321,7 @@ class Trajectory:
             Creates fields that save the properties of the groups.  These fields
             are called *x.GroupKeys*, *x.GroupX*, *x.GroupID*.
         :Versions:
-            * 2014.06.05 ``@ddalle``: First version
+            * 2014-06-05 ``@ddalle``: First version
         """
         # Initialize matrix of group-generating key values.
         x = []
@@ -402,8 +402,8 @@ class Trajectory:
             *dname*: :class:`str` or :class:`list`
                 Folder name or list of folder names
         :Versions:
-            * 2014.05.28 ``@ddalle``: First version
-            * 2014.06.05 ``@ddalle``: Refined to variables that use common grid
+            * 2014-05-28 ``@ddalle``: First version
+            * 2014-06-05 ``@ddalle``: Refined to variables that use common grid
         """
         # Process the prefix.
         if prefix is None: prefix = self.prefix
@@ -445,7 +445,7 @@ class Trajectory:
             *dname*: :class:`str` or :class:`list`
                 Folder name or list of folder names
         :Versions:
-            * 2014.06.05 ``@ddalle``: First version
+            * 2014-06-05 ``@ddalle``: First version
         """
         # Check for prefix variables.
         #if 
@@ -488,7 +488,7 @@ class Trajectory:
             *dname*: :class:`str` or :class:`list`
                 Folder name or list of folder names
         :Versions:
-            * 2014.09.03 ``@ddalle``: First version
+            * 2014-09-03 ``@ddalle``: First version
         """
         # Get all group folder names
         dlist = self.GetGroupFolderNames()
@@ -536,7 +536,7 @@ class Trajectory:
             *dname*: :class:`str` or :class:`list`
                 Folder name or list of folder names
         :Versions:
-            * 2014.06.05 ``@ddalle``: First version
+            * 2014-06-05 ``@ddalle``: First version
         """
         # Get the two components.
         glist = self.GetGroupFolderNames(i)
@@ -564,7 +564,7 @@ class Trajectory:
             *j*: :class:`int`
                 Index of group that contains case *i*
         :Versions:
-            * 2014.09.27 ``@ddalle``: First versoin
+            * 2014-09-27 ``@ddalle``: First versoin
         """
         # Check inputs.
         if type(i).__name__ != 'int':
@@ -594,7 +594,7 @@ class Trajectory:
             *keys*: :class:`numpy.ndarray`(:class:`str`)
                 List of keys such that ``x[key]['Type']`` matches *KeyType*
         :Versions:
-            * 2014.10.07 ``@ddalle``: First version
+            * 2014-10-07 ``@ddalle``: First version
         """
         # List of key types
         KT = np.array([self.defns[k]['Type'] for k in self.keys])
@@ -616,7 +616,7 @@ class Trajectory:
             *keys*: :class:`numpy.ndarray`(:class:`str`)
                 List of keys such that ``x[key]['Value']`` matches *val*
         :Versions:
-            * 2014.10.07 ``@ddalle``: First version
+            * 2014-10-07 ``@ddalle``: First version
         """
         # List of key types
         KV = np.array([self.defns[k]['Value'] for k in self.keys])
@@ -643,8 +643,8 @@ class Trajectory:
             *dname*: :class:`str` or :class:`list`
                 Name containing value for each key in *keys*
         :Versions:
-            * 2014.06.05 ``@ddalle``: First version
-            * 2014.10.03 ``@ddalle``: Added suffixes
+            * 2014-06-05 ``@ddalle``: First version
+            * 2014-10-03 ``@ddalle``: Added suffixes
         """
         # Process the key types.
         types = [self.defns[k].get("Type","") for k in keys]
