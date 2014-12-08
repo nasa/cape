@@ -719,10 +719,12 @@ class Cart3d(object):
         self.PreSpecCntl = PreSpecCntl('preSpec.c3d.cntl')
         # Bounding box control...
         self.PreparePreSpecCntl()
-        # Run cubes.
-        bin.cubes(self)
-        # Run mgPrep
-        bin.mgPrep(self)
+        # Check for jumpstart.
+        if not self.opts.get_use_aero_csh(0) or self.opts.get_jumpstart(0):
+            # Run cubes.
+            bin.cubes(self)
+            # Run mgPrep
+            bin.mgPrep(self)
         # Return to original folder.
         os.chdir(fpwd)
         
