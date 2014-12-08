@@ -1279,6 +1279,8 @@ class Cart3d(object):
             k = x.keys[KeyTypes.index('beta')]
             # Set the value.
             self.InputCntl.SetBeta(getattr(x,k)[i])
+        # Specify list of forces to track with `clic`
+        self.InputCntl.RequestForce(self.opts.get_ClicForces())
         # Set reference values.
         self.InputCntl.SetReferenceArea(self.opts.get_RefArea())
         self.InputCntl.SetReferenceLength(self.opts.get_RefLength())

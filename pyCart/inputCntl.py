@@ -559,12 +559,37 @@ class InputCntl(FileCntl):
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Design_Info', reg, line)
         
+    # Function to get Cart3D to report the forces on several components
+    def RequestForce(self, comps):
+        """Request the force coefficients on a component or list of components
+        
+        :Call:
+            >>> IC.RequestForce(comps)
+        :Inputs:
+            *comps*: :class:`str` | :class:`int` | :class:`list`
+                Name of component to log or ``"all"`` or ``"entire"``
+        :Effects:
+            Adds a line to :file:`input.cntl` that looks like "Force entire",
+            if it is not already present for each entry in *comps*
+        :Versions:
+            * 2014-12-08 ``@ddalle``: First version
+        """
+        # Check the input type.
+        if type(comps).__name__ in ['list', 'array']:
+            # Loop through entries.
+            for compID in comps:
+                # Ensure that the force is present.
+                self.RequestSingleForce(compID)
+        else:
+            # Request the specified single component.
+            self.RequestSingleForce(comps)
+        
     # Function to get Cart3D to report the forces on a component
-    def RequestForce(self, compID):
+    def RequestSingleForce(self, compID):
         """Request the force coefficients on a particular component
         
         :Call:
-            >>> IC.RequestForce(compID)
+            >>> IC.RequestSingleForce(compID)
         :Inputs:
             *compID*: :class:`str` or :class:`int`
                 Name of component to log or ``"all"`` or ``"entire"``
@@ -573,6 +598,7 @@ class InputCntl(FileCntl):
             if it is not already present.
         :Versions:
             * 2014-06-09 ``@ddalle``: First version
+            * 2014-12-08 ``@ddalle``: Renamed from `RequestForce`
         """
         # Line looks like "Force $compID", but arbitrary white space.
         reg = 'Force\s+' + str(compID) + '$'
@@ -615,9 +641,6 @@ class InputCntl(FileCntl):
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing', reg,
             'Moment_Point  %s %s %s  %s\n' % (x,y,z,compID))
-    
-    
-    
     
     
     
