@@ -418,7 +418,7 @@ class flowCart(odict):
         :Versions:
             * 2014-12-04 ``@ddalle``: First version
         """
-        return self.get_key('restart', i)
+        return self.get_key('jumpstart', i)
         
     # Set jumpstart status
     def set_jumpstart(self, js=rc0('jumpstart'), i=None):

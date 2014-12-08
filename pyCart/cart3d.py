@@ -792,9 +792,13 @@ class Cart3d(object):
             if not os.path.isfile('input.00.cntl'): n=None
             # Settings file.
             if not os.path.isfile('case.json'): n=None
+        # Check for the mesh.
+        if n is not None:
+            # Read the settings.
+            fc = case.ReadCaseJSON()
             # Check for which mesh file to look for.
-            if os.path.isdir('adapt00') or os.path.islink('BEST'):
-                # Mesh file is gone; but it exists somewhere else
+            if fc.get_use_aero_csh(0):
+                # Mesh file is gone or will be created during aero.csh
                 pass
             elif self.opts.get_mg() > 0:
                 # Look for the multigrid mesh
