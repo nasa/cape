@@ -1176,6 +1176,21 @@ class Options(odict):
         eval('set_'+k).__doc__ = getattr(Config,'set_'+k).__doc__
         
         
+    # Get list of components to request forces for
+    def get_ClicForces(self, i=None):
+        self._Config()
+        return self['Config'].get_ClicForces(i)
+        
+    # Set list of components to request forces for
+    def set_ClicForces(self, comp="entire", i=None):
+        self._Config()
+        self['Config'].set_ClicForces(comp, i)
+        
+    # Add a component to get force history of
+    def add_ClicForce(self, comp="entire"):
+        self._Config()
+        self['Config'].add_ClicForce(comp)
+        
     # Get list of cut planes
     def get_Xslices(self, i=None):
         self._Config()
@@ -1222,7 +1237,7 @@ class Options(odict):
         self['Config'].add_Zslice(z)
         
     # Copy over the documentation.
-    for k in ['Xslice', 'Yslice', 'Zslice']:
+    for k in ['ClicForce', 'Xslice', 'Yslice', 'Zslice']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k+'s').__doc__ = getattr(Config,'get_'+k+'s').__doc__
         eval('set_'+k+'s').__doc__ = getattr(Config,'set_'+k+'s').__doc__

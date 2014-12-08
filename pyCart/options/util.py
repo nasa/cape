@@ -150,7 +150,7 @@ def getel(x, i=None):
         200
         
     :Versions:
-        * 2014.07.29 ``@ddalle``: First version
+        * 2014-07-29 ``@ddalle``: First version
     """
     # Check the type.
     if i is None:
@@ -206,7 +206,7 @@ def setel(x, i, xi):
         'a'
         
     :Versions:
-        * 2014.07.29 ``@ddalle``: First version
+        * 2014-07-29 ``@ddalle``: First version
     """
     # Check the index input.
     if i is None:
@@ -308,8 +308,8 @@ def getPyCartDefaults():
             Dictionary of settings read from JSON file
     
     :Versions:
-        * 2014.06.03 ``@ddalle``: First version
-        * 2014.07.28 ``@ddalle``: Moved to new options module
+        * 2014-06-03 ``@ddalle``: First version
+        * 2014-07-28 ``@ddalle``: Moved to new options module
     """
     # Read the fixed default file.
     lines = open(os.path.join(PyCartFolder, 
@@ -340,8 +340,8 @@ def applyDefaults(opts, defs):
             Input dictionary with all of the fields of *defs*
     
     :Versions:
-        * 2014.06.17 ``@ddalle``: First version
-        * 2014.07.28 ``@ddalle``: Cleaned and moved to options module
+        * 2014-06-17 ``@ddalle``: First version
+        * 2014-07-28 ``@ddalle``: Cleaned and moved to options module
     """
     # Loop through the keys in the options dict.
     for k in defs:
@@ -387,7 +387,7 @@ class odict(dict):
         :See also:
             * :func:`pyCart.options.util.getel`
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014-08-02 ``@ddalle``: First version
         """
         # Get the value after applying defaults.
         v = self.get(k, rc.get(k))
@@ -415,7 +415,7 @@ class odict(dict):
         :See also:
             * :func:`pyCart.options.util.setel`
         :Versions:
-            * 2014.08.02 ``@ddalle``: First version
+            * 2014-08-02 ``@ddalle``: First version
         """
         # Check for default value.
         if v is None:

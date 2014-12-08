@@ -23,7 +23,7 @@ class Config(odict):
             *fname*: :class:`str`
                 Configuration file name, usually ``'Config.xml'``
         :Versions:
-            * 2014.09.29 ``@ddalle``: First version
+            * 2014-09-29 ``@ddalle``: First version
         """
         return self.get_key('ConfigFile',0)
         
@@ -32,14 +32,14 @@ class Config(odict):
         """Set the configuration file name
         
         :Call:
-            opts.set_ConfigFile(fname)
+            >>> opts.set_ConfigFile(fname)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
             *fname*: :class:`str`
                 Configuration file name, usually ``'Config.xml'``
         :Versions:
-            * 2014.09.29 ``@ddalle``: First version
+            * 2014-09-29 ``@ddalle``: First version
         """
         self.set_key('ConfigFile', fname)
     
@@ -64,7 +64,7 @@ class Config(odict):
             *A*: :class:`float`
                 Global reference area or reference area for a component.
         :Versions:
-            * 2014.09.29 ``@ddalle``: First version
+            * 2014-09-29 ``@ddalle``: First version
         """
         # Get the specified value.
         RefA = self.get('RefArea')
@@ -106,7 +106,7 @@ class Config(odict):
             *comp*: :class:`str` or :class:`int`
                 Name of component or component index
         :Versions:
-            * 2014.09.29 ``@ddalle``: First version
+            * 2014-09-29 ``@ddalle``: First version
         """
         # Check the component input.
         if comp is None:
@@ -149,7 +149,7 @@ class Config(odict):
             *L*: :class:`float`                        
                 Global reference length or reference length for a component
         :Versions:
-            * 2014.09.29 ``@ddalle``: First version
+            * 2014-09-29 ``@ddalle``: First version
         """
         # Get the specified value.
         RefL = self.get('RefLength')
@@ -191,7 +191,7 @@ class Config(odict):
             *comp*: :class:`str` or :class:`int`
                 Name of component or component index
         :Versions:
-            * 2014.09.29 ``@ddalle``: First version
+            * 2014-09-29 ``@ddalle``: First version
         """
         # Check the component input.
         if comp is None:
@@ -234,7 +234,7 @@ class Config(odict):
             *x*: [:class:`float`, :class:`float`, :class:`float`]
                 Global moment reference point or that for a component
         :Versions:
-            * 2014.09.29 ``@ddalle``: First version
+            * 2014-09-29 ``@ddalle``: First version
         """
         # Get the specified value.
         RefP = self.get('RefPoint')
@@ -279,7 +279,7 @@ class Config(odict):
             *comp*: :class:`str` or :class:`int`
                 Name of component or component index
         :Versions:
-            * 2014.09.29 ``@ddalle``: First version
+            * 2014-09-29 ``@ddalle``: First version
         """
         # Check the component input.
         if comp is None:
@@ -300,6 +300,69 @@ class Config(odict):
                 self['RefPoint'] = {"default": list(RefP)}
             # Assign the specified value.
             self['RefPoint'][comp] = list(x)
+        
+    
+    # Get the list of forces to report
+    def get_ClicForces(self, i=None):
+        """Get force or list of forces requested to track using `clic`
+        
+        :Call:
+            >>> comp = opts.get_ClicForces(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: ``None`` | :class:`int` | :class:`list`(:class:`int`)
+                Index of component in list to return
+        :Outputs:
+            *comp*: :class:`str` | :class:`int` | :class:`list`
+                Component or list of components to track with `clic`
+        :Versions:
+            * 2014-12-08 ``@ddalle``: First version
+        """
+        # Get the values.
+        comp = self.get_key('Force', i)
+        # Check to make sure it's a list.
+        if (i is None) and (type(comp).__name__!="list"):
+            # Create simple list.
+            comp = [comp]
+        # Output
+        return comp
+        
+    # Set a clic force
+    def set_ClicForces(self, comp='entire', i=None):
+        """Set force or list of forces by index to track using `clic`
+        
+        :Call:
+            >>> opts.set_ClicForces(comp, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *comp*: :class:`str` | :class:`int` | :class:`list`
+                Component or list of components to track with `clic`
+            *i*: ``None`` | :class:`int` | :class:`list`(:class:`int`)
+                Index of component in list to return
+        :Versions:
+            * 2014-12-08 ``@ddalle``: First version
+        """
+        self.set_key('Force', comp, i)
+    
+    # Add an additional clic force
+    def add_ClicForce(self, comp):
+        """Add a component to track using `clic`
+        
+        :Call:
+            >>> opts.add_ClicForce(comp)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *comp*: :class:`str` or :class:`int`
+        :Versions:
+            * 2014-12-08 ``@ddalle``: First version
+        """
+        # Get the current list.
+        comps = self.get_ClicForce()
+        # Set the input value as an addendum to the list.
+        self.set_key('Force', comp, len(comps))
     
     
     # Get cut plane extraction coordinate(s)
@@ -318,9 +381,16 @@ class Config(odict):
             *x*: :class:`float` or :class:`list`(:class:`float`)
                 Cut plane coordinate(s)
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
-        return self.get_key('Xslices', i)
+        # Get the values.
+        Xslices = self.get_key('Xslices', i)
+        # Check for required list.
+        if (i is None) and (type(Xslices).__name__ not in ['list','array']):
+            # Convert scalar to list
+            Xslices = [Xslices]
+        # Output
+        return Xslices
         
     # Set cut plane extraction coordinate(s)
     def set_Xslices(self, x, i=None):
@@ -337,7 +407,7 @@ class Config(odict):
             *i*: :class:`int`
                 Index of cut plane coordinate to extract
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         self.set_key('Xslices', x, i)
         
@@ -353,7 +423,7 @@ class Config(odict):
             *x*: :class:`float`
                 Cut plane coordinate
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         # Get the current list.
         Xslices = self.get_key('Xslices')
@@ -377,9 +447,15 @@ class Config(odict):
             *y*: :class:`float` or :class:`list`(:class:`float`)
                 Cut plane coordinate(s)
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
-        return self.get_key('Yslices', i)
+        Yslices = self.get_key('Yslices', i)
+        # Check for required list.
+        if (i is None) and (type(Yslices).__name__ not in ['list','array']):
+            # Convert scalar to list
+            Yslices = [Yslices]
+        # Output
+        return Yslices
         
     # Set cut plane extraction coordinate(s)
     def set_Yslices(self, y, i=None):
@@ -396,7 +472,7 @@ class Config(odict):
             *i*: :class:`int`
                 Index of cut plane coordinate to extract
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         self.set_key('Yslices', y, i)
         
@@ -412,7 +488,7 @@ class Config(odict):
             *y*: :class:`float`
                 Cut plane coordinate
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         # Get the current list.
         Yslices = self.get_key('Yslices')
@@ -436,9 +512,15 @@ class Config(odict):
             *z*: :class:`float` or :class:`list`(:class:`float`)
                 Cut plane coordinate(s)
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
-        return self.get_key('Zslices', i)
+        Zslices = self.get_key('Zslices', i)
+        # Check for required list.
+        if (i is None) and (type(Zslices).__name__ not in ['list','array']):
+            # Convert scalar to list
+            Zslices = [Zslices]
+        # Output
+        return Zslices
         
     # Set cut plane extraction coordinate(s)
     def set_Zslices(self, z, i=None):
@@ -455,7 +537,7 @@ class Config(odict):
             *i*: :class:`int`
                 Index of cut plane coordinate to extract
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         self.set_key('Zslices', z, i)
         
@@ -471,7 +553,7 @@ class Config(odict):
             *z*: :class:`float`
                 Cut plane coordinate
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         # Get the current list.
         Zslices = self.get_key('Zslices')
