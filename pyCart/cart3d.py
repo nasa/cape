@@ -927,6 +927,8 @@ class Cart3d(object):
             # Go back and quit.
             os.chdir(fpwd)
             return
+        # Go to the folder.
+        os.chdir(frun)
         # Write folder.
         f = open('case.json', 'w')
         # Dump the flowCart settings.
@@ -960,6 +962,8 @@ class Cart3d(object):
             # Go back and quit.
             os.chdir(fpwd)
             return
+        # Go to the folder.
+        os.chdir(frun)
         # Write folder.
         f = open('plot.json', 'w')
         # Dump the flowCart settings.
