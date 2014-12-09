@@ -295,7 +295,7 @@ class Plot(odict):
         dC = Deltas.get(coeff, dC)
         # Check for component-specific information
         if comp not in self: return dC
-        # Check for hard value for the componet.
+        # Check for hard value for the component.
         dC = self[comp].get('d'+coeff, dC)
         # Check for dictionary
         Deltas = self[comp].get('Deltas', {})

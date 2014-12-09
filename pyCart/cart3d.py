@@ -896,14 +896,43 @@ class Cart3d(object):
         self.PrepareInputCntl(i)
         self.PrepareAeroCsh(i)
         # Write a JSON file with the flowCart settings.
-        f = open('case.json', 'w')
-        # Dump the flowCart settings.
-        json.dump(self.opts['flowCart'], f, indent=1)
-        # Close the file.
-        f.close()
+        self.WriteCaseJSON(i)
         # Write the PBS script.
         self.WritePBS(i)
         # Return to original location.
+        os.chdir(fpwd)
+        
+    # Write flowCart options to JSON file
+    def WriteCaseJSON(self, i):
+        """Write JSON file with `flowCart` and related settings for case *i*
+        
+        :Call:
+            >>> cart3d.WriteCaseJSON(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Run index
+        :Versions:
+            * 2014-12-08 ``@ddalle``: First version
+        """
+        # Safely go to root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get the case name.
+        frun = self.x.GetFullFolderNames(i)
+        # Check if it exists.
+        if not os.path.isdir(frun):
+            # Go back and quit.
+            os.chdir(fpwd)
+            return
+        # Write folder.
+        f = open('case.json', 'w')
+        # Dump the flowCart settings.
+        json.dump(self.opts['flowcart'], f, indent=1)
+        # Close the file.
+        f.close()
+        # Return to original location
         os.chdir(fpwd)
         
     # Get last iter
@@ -921,7 +950,7 @@ class Cart3d(object):
             *nIter*: :class:`int`
                 Number of iterations required for case *i*
         :Versions:
-            * 2014.10.03 ``@ddalle``: First version
+            * 2014-10-03 ``@ddalle``: First version
         """
         # Check the case
         if self.CheckCase(i) is None:
