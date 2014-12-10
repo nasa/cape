@@ -36,6 +36,7 @@ from inputCntl   import InputCntl
 from aeroCsh     import AeroCsh
 from preSpecCntl import PreSpecCntl
 from config      import Config
+from aero        import Aero
 
 # Import triangulation
 from tri import Tri
@@ -248,10 +249,12 @@ class Cart3d(object):
         Most plotting options are read from :mod:`pyCart.options.Plot`
         
         :Call:
-            >>> h = cart3d.Plot(comp, **kw)
+            >>> h = cart3d.Plot(comp=None)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
+            *comp*: :class:`str`
+                Optional name of class to plot
         :Versions:
             * 2014-11-12 ``@ddalle``: First version
             * 2014-11-24 ``@ddalle``: Rewritten for looping through cases
@@ -259,10 +262,10 @@ class Cart3d(object):
         # Check for the aero module.
         try:
             # Mindlessly check if Python recognizes the name.
-            aero
+            aeroPlot
         except NameError:
             # Import the aero module.
-            import aero
+            import aeroPlot
         # Save current location.
         fpwd = os.getcwd()
         # Get the case names.
@@ -275,10 +278,10 @@ class Cart3d(object):
         # Initialize output.
         pdf = {}
         # Make a new figure.
-        aero.plt.figure()
+        aeroPlot.plt.figure()
         # Initialize the pdf documents
         for comp in comps:
-            pdf[comp] = aero.PdfPages('aero_%s.pdf'%comp)
+            pdf[comp] = aeroPlot.PdfPages('aero_%s.pdf'%comp)
         # Loop through runs.
         for i in range(len(fruns)):
             # Get the folder name.
@@ -294,12 +297,12 @@ class Cart3d(object):
             # Loop through components.
             for comp in comps:
                 # Clear the figure (to avoid having hundreds of figs).
-                aero.plt.clf()
+                aeroPlot.plt.clf()
                 # List of coefficients to plot
                 coeffs = self.opts.get_PlotCoeffs(comp)
                 # Get plot dimensions
-                nRow = self.opts.get_nPlotRows(comp)
-                nCol = self.opts.get_nPlotCols(comp)
+                kw['nRow'] = self.opts.get_nPlotRows(comp)
+                kw['nCol'] = self.opts.get_nPlotCols(comp)
                 # Get options (which may be specific to component).
                 kw['n'] = self.opts.get_nPlotIter(comp)
                 kw['nAvg'] = self.opts.get_nAverage(comp)
@@ -310,11 +313,11 @@ class Cart3d(object):
                 for coeff in coeffs:
                     kw['d'][coeff] = self.opts.get_PlotDelta(coeff, comp)
                 # Read the aerodata and extract the single component.
-                FM = aero.Aero([comp])[comp]
+                AP = aeroPlot.AeroPlot([comp])
                 # Label the run.
                 kw['tag'] = 'Case %i: %s\nComponent=%s' % (i+1, frun, comp)
                 # Create the plot.
-                h = FM.Plot(nRow, nCol, coeffs, **kw)
+                h = AP.Plot(comp, coeffs, **kw)
                 # Save it to the PdfPages instance.
                 pdf[comp].savefig(h['fig'])
         # Return to original location.
