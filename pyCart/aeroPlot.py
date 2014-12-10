@@ -109,7 +109,7 @@ class AeroPlot(Aero):
         # Get the axes.
         h['ax'] = plt.gca()
         # Set the xlimits.
-        h['ax'].set_xlim((i0, nIter+25))
+        h['ax'].set_xlim((i0, FM.i[-1]+25))
         # Make a label for the mean value.
         lbl = u'%s = %.4f' % (c, cAvg)
         h['val'] = plt.text(0.81, 1.06, lbl, horizontalalignment='right',
@@ -161,7 +161,7 @@ class AeroPlot(Aero):
         # Get the axes.
         h['ax'] = plt.gca()
         # Set the xlimits.
-        h['ax'].set_xlim((i0, self.Residual.nIter+25))
+        h['ax'].set_xlim((i0, self.i[-1]+25))
         # Output.
         return h
             
