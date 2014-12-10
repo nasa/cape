@@ -102,8 +102,8 @@ class AeroPlot(Aero):
                 plt.plot([iA,iB], [cMax,cMax], 'r-', lw=0.8))
         # Plot the mean.
         h['mean'] = (
-            plt.plot([i0,i0Avg], [cAvg, cAvg], 'r--', lw=1.0) + 
-            plt.plot([i0Avg,nIter], [cAvg, cAvg], 'r-', lw=1.0))
+            plt.plot([i0,iA], [cAvg, cAvg], 'r--', lw=1.0) + 
+            plt.plot([iA,iB], [cAvg, cAvg], 'r-', lw=1.0))
         # Plot the coefficient.
         h[c] = plt.plot(FM.i[i0:], C[i0:], 'k-', lw=1.5)
         # Labels.
