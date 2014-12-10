@@ -338,16 +338,57 @@ class FM(object):
             self.CLL = A[:,4]
             self.CLM = A[:,5]
             self.CLN = A[:,6]
+            # Save list of coefficients.
+            self.coeffs = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
         elif (self.MRP.size==3) and (m == 4):
             # Save only moments.
             self.CLL = A[:,1]
             self.CLM = A[:,2]
             self.CLN = A[:,3]
+            # Save list of coefficients.
+            self.coeffs = ['CLL', 'CLM', 'CLN']
         elif (m == 4):
             # Save only forces.
             self.CA = A[:,1]
             self.CY = A[:,2]
             self.CN = A[:,3]
+            # Save list of coefficients.
+            self.coeffs = ['CA', 'CY', 'CN']
+        
+    # Method to get averages and standard deviations
+    def GetStats(self, nAvg=100):
+        """Get mean, min, max, and standard deviation for all coefficients
+        
+        :Call:
+            >>> s = FM.GetStats(nAvg=100)
+        :Inputs:
+            *FM*: :class:`pyCart.aero.FM`
+                Instance of the force and moment class
+            *nAvg*: :class:`int`
+                Number of iterations in window
+        :Outputs:
+            *s*: :class:`dict` (:class:`float`)
+                Dictionary of mean, min, max, std for each coefficient
+        :Versions:
+            * 2014-12-09 ``@ddalle``: First version
+        """
+        # Process min indices for plotting and averaging.
+        i0 = max(0, self.i.size-nAvg)
+        # Initialize output.
+        s = {}
+        # Loop through coefficients.
+        for c in self.coeffs:
+            # Get the values
+            F = getattr(self, c)
+            # Save the mean value.
+            s[c] = np.mean(F[i0:])
+            # Save the statistics.
+            s[c+'_min'] = np.min(F[i0:])
+            s[c+'_max'] = np.max(F[i0:])
+            s[c+'_std'] = np.std(F[i0:])
+        # Output
+        return s
+            
 
     
 
