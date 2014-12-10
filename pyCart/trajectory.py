@@ -502,6 +502,52 @@ class Trajectory:
             # Return the whole list
             return dlist
     
+    # Function to filter cases
+    def Filter(self, cons):
+        """Filter cases according to a set of constraints
+        
+        The constraints are specified as a list of strings that contain
+        inequalities of variables that are in *x.keys*.
+        
+        For example, if *m* is the name of a key (presumably meaning Mach
+        number), and *a* is a variable presumably representing angle of attack,
+        the following example finds the indices of all cases with Mach number
+        greater than 1.5 and angle of attack equal to ``2.0``.
+        
+            >>> i = x.Filter(['m>1.5', 'a==2.0'])
+            
+        A warning will be produces if one of the constraints does not correspond
+        to a trajectory variable or cannot be evaluated for any other reason.
+        
+        :Call:
+            >>> i = x.Filter(cons)
+        :Inputs:
+            *x*: :class:`pyCart.trajectory.Trajectory`
+                Instance of the pyCart trajectory class
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints
+        :Outputs:
+            *i*: :class:`numpy.ndarray` (:class:`int`)
+                Index of group(s) to process
+        :Versions:
+            * 2014-12-09 ``@ddalle``: First version
+        """
+        # Initialize the conditions.
+        # Just trying to create a vector of "True"s with right dimensions.
+        i = np.arange(self.nCase) > -1
+        # Loop through constraints
+        for con in cons:
+            # Constraint may fail with bad input.
+            try:
+                # Apply the constraint.
+                i = np.logical_and(i, eval('self.' + con))
+            except Exception:
+                # Print a warning and move on.
+                print("Constraint '%s' failed to evaluate." % con)
+        # Output.
+        return np.where(i)[0]
+        
+        
     # Function to return the full folder names.
     def GetFullFolderNames(self, i=None, prefix=None):
         """

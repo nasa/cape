@@ -11,6 +11,28 @@ relatively simple commands.
     .. code-block:: bash
     
         $ pycart [options]
+        
+:Examples:
+    
+    The basic call submits all jobs prescribed in the file :file:`pyCart.json`
+    
+        .. code-block:: bash
+            
+            $ pycart
+            
+    This command uses the inputs from :file:`poweron.json` and only displays
+    statuses.  No jobs are submitted.
+    
+        .. code-block:: bash
+        
+            $ pycart -f poweron.json -c
+            
+    This command submits at most 5 jobs, but only cases with "Mach" greater
+    than 1.5 and "alpha" equal to 0.0 are considered as candidates.
+    
+        .. code-block:: bash
+        
+            $ pycart -n 5 --cons "Mach>0.5, alpha==0.0"
     
 :Options:
 
@@ -19,19 +41,31 @@ relatively simple commands.
         
     -c
         Check status and don't submit new jobs
+    
+    -j
+        Show the PBS job numbers as well
         
-    -q QUEUE
-        Submit to a specific queue (defaults to "sls_aero1")
+    -f FNAME
+        Use pyCart input file *FNAME* (defaults to 'pyCart.json')
+        
+    -p [COMP]
+        Create multi-page PDF plots according to settings in *FNAME*.  If 
+        *COMP* is specified, only that component is plotted
 
     -n NJOB
         Submit at most *NJOB* PBS scripts (defaults to unlimited)
         
-    -f FNAME
-        Use pyCart input file *FNAME* (defaults to 'pyCart.json')
+    -q QUEUE
+        Submit to a specific queue (defaults to "sls_aero1")
+        
+    --cons CONS
+        Only consider cases that pass a list of inequalities separated by
+        commas.  Constraints must use variable names (not abbreviations) from
+        the trajectory described in *FNAME*.
 
 :Versions:
-    * 2014.10.03 ``@ddalle``: Started
-    * 2014.10.06 ``@ddalle``: First version
+    * 2014-10-03 ``@ddalle``: Started
+    * 2014-10-06 ``@ddalle``: First version
 """
 
 # Import the full module
@@ -44,7 +78,11 @@ if __name__ == "__main__":
     # Parse inputs.
     a, kw = readflagstar(pyCart.os.sys.argv)
     
-    # Filter command...
+    # Get constraints and convert text to list.
+    cons  = kw.get('cons',        '').split(',')
+    cons += kw.get('constraints', '').split(',')
+    # Set the constraints back into the keywords.
+    kw['cons'] = cons
     
     # Check for a help flag.
     if kw.get('h') or kw.get('help'):

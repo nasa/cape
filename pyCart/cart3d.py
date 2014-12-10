@@ -340,10 +340,16 @@ class Cart3d(object):
                 Instance of control class containing relevant parameters
             *j*: :class:`bool`
                 Whether or not to display job ID numbers
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2014-10-04 ``@ddalle``: First version
+            * 2014-12-09 ``@ddalle``: Added constraints
         """
-        self.SubmitJobs(c=True, j=kw.get('j',False))
+        # Force the "check" option to true.
+        kw['c'] = True
+        # Call the job submitter but don't allow submitting.
+        self.SubmitJobs(**kw)
         
     # Master interface function
     def SubmitJobs(self, **kw):
@@ -358,8 +364,13 @@ class Cart3d(object):
                 If ``True``, only display status; do not submit new jobs
             *j*: :class:`bool`
                 Whether or not to display job ID numbers
+            *n*: :class:`int`
+                Maximum number of jobs to submit
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2014-10-05 ``@ddalle``: First version
+            * 2014-12-09 ``@ddalle``: Added constraints
         """
         # Get flag that tells pycart only to check jobs.
         qCheck = kw.get('c', False)
@@ -367,12 +378,19 @@ class Cart3d(object):
         qJobID = kw.get('j', False)
         # Maximum number of jobs
         nSubMax = int(kw.get('n', 10))
+        # Process constraints.
+        cons = kw.get('cons', [])
+        # Apply constraints.
+        i = self.x.Filter(cons)
+        # Get the case names.
+        fruns = self.x.GetFullFolderNames(i)
+        
         # Get the qstat info (safely; do not raise an exception).
         jobs = queue.qstat(u=kw.get('u',os.environ['USER']))
         # Initialize number of submitted jobs
         nSub = 0
-        # Get the case names.
-        fruns = self.x.GetFullFolderNames()
+        # Initialize number of jobs in queue.
+        nQue = 0
         # Maximum length of one of the names
         lrun = max([len(frun) for frun in fruns])
         # Print the right number of '-' chars
@@ -398,7 +416,7 @@ class Cart3d(object):
         total = {'PASS':0, 'PASS*':0, '---':0, 'INCOMP':0,
             'RUN':0, 'DONE':0, 'QUEUE':0}
         # Loop through the runs.
-        for i in range(self.x.nCase):
+        for i in range(len(fruns)):
             # Extract case
             frun = fruns[i]
             # Check status.
