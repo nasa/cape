@@ -34,9 +34,8 @@ class Aero(dict):
             List of components to read; defaults to all components available
     :Outputs:
         *aero*: :class:`pyCart.aero.Aero`
-            Instance of the aero history class
-        *aero*: :class:`dict` (:class:`numpy.ndarray`)
-            Dictionary of force and/or moment histories
+            Instance of the aero history class, similar to dictionary of force
+            and/or moment histories
     :Versions:
         * 2014-11-12 ``@ddalle``: Starter version
     """
@@ -452,7 +451,7 @@ class History(object):
         # Save the number of iterations.
         self.nIter = A.shape[0]
         # Save the iteration numbers.
-        self.i = np.arange(self.nIter) + 1
+        self.i = A[:,0]
         # Save the CPU time per processor.
         self.CPUtime = A[:,1]
         # Save the maximum residual.

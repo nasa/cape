@@ -25,7 +25,24 @@ import os
 # Module for plotting components
 class AeroPlot(Aero):
     """
+    Aerodynamic history class with plotting
+    =======================================
     
+    This class provides an interface to important data from a run directory.  It
+    reads force and moment histories for named components, if available, and
+    other types of data can also be stored
+    
+    :Call:
+        >>> aero = pyCart.aeroPlot.AeroPlot(comps=[])
+    :Inputs:
+        *comps*: :class:`list` (:class:`str`)
+            List of components to read; defaults to all components available
+    :Outputs:
+        *AP*: :class:`pyCart.aeroplot.AeroPlot`
+            Instance of the aero history class, similar to dictionary of force
+            and/or moment histories
+    :Versions:
+        * 2014-12-10 ``@ddalle``: First version
     """
     
         
