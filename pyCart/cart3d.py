@@ -1301,21 +1301,27 @@ class Cart3d(object):
         self.PreSpecCntl.Write('preSpec.c3d.cntl')
         
     # Function to archive 'adaptXX/' folders (except for newest)
-    def TarAdapt(self):
+    def TarAdapt(self, cons=[]):
         """Tar ``adaptNN/`` folders except for most recent one
         
         :Call:
             >>> cart3d.TarAdapt()
+            >>> cart3d.TarAdapt(cons=[])
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints
         :Versions:
             * 2014-11-14 ``@ddalle``: First version
+            * 2014-12-10 ``@ddalle``: Added constraints
         """
         # Save current path.
         fpwd = os.getcwd()
+        # Apply filter (constraints).
+        i = self.x.Filter(cons)
         # Get folder names.
-        fruns = self.x.GetFullFolderNames()
+        fruns = self.x.GetFullFolderNames(i)
         # Loop through folders.
         for frun in fruns:
             # Go to folder.
