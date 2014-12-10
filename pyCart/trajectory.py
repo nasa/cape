@@ -537,6 +537,8 @@ class Trajectory:
         i = np.arange(self.nCase) > -1
         # Loop through constraints
         for con in cons:
+            # Check for empty constraints.
+            if len(con.strip()) == 0: continue
             # Constraint may fail with bad input.
             try:
                 # Apply the constraint.
