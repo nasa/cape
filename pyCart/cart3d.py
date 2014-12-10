@@ -40,9 +40,6 @@ from config      import Config
 # Import triangulation
 from tri import Tri
 
-# Import history modules.
-import history
-
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
 
@@ -286,8 +283,13 @@ class Cart3d(object):
         for i in range(len(fruns)):
             # Get the folder name.
             frun = fruns[i]
-            # Go to the folder.
+            # Status update.
+            print(frun)
+            # Go to root.
             os.chdir(self.RootDir)
+            # Check for folder.
+            if not os.path.isdir(frun): continue
+            # Go to folder.
             os.chdir(frun)
             # Loop through components.
             for comp in comps:
@@ -895,7 +897,7 @@ class Cart3d(object):
         # Write the input.cntl and aero.csh file(s).
         self.PrepareInputCntl(i)
         self.PrepareAeroCsh(i)
-        # Write a JSON file with the flowCart settings.
+        # Write a JSON files with flowCart and plot settings.
         self.WriteCaseJSON(i)
         self.WritePlotJSON(i)
         # Write the PBS script.

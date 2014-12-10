@@ -15,12 +15,6 @@ import os
 import numpy as np
 # Advanced text (regular expressions)
 import re
-# Import history interface
-from history import History
-# Plotting
-import matplotlib.pyplot as plt
-from matplotlib.text import Text
-from matplotlib.backends.backend_pdf import PdfPages
 
 
 # Aerodynamic history class
@@ -69,13 +63,15 @@ class Aero(dict):
             fdir = '.'
         # Read the loadsCC.dat file to see what components are requested.
         self.ReadLoadsCC()
+        # Read the residuals.
+        self.Residual = History()
         # Default component list.
-        if (not comps):
-            # Extract keys from dictionary.
-            comps = self.Components.keys()
-        elif (type(comps).__name__ == "str"):
+        if (type(comps).__name__ in ["str", "unicode", "int"]):
             # Make a singleton list.
             comps = [comps]
+        elif len(comps) < 1:
+            # Extract keys from dictionary.
+            comps = self.Components.keys()
         # Loop through components.
         for comp in comps:
             # Expected name of the history file.
@@ -352,327 +348,19 @@ class FM(object):
             self.CA = A[:,1]
             self.CY = A[:,2]
             self.CN = A[:,3]
-            
-    # Function to plot force coeffs and residual (resid is only a blank)
-    def Plot4(self, **kw):
-        """Initialize a plot for three force coefficients and L1 residual
-        
-        :Call:
-            >>> h = FM.Plot4(**kw)
-        :Inputs:
-            *FM*: :class:`pyCart.aero.FM`
-                Instance of the force and moment class
-            *n*: :class:`int`
-                Only show the last *n* iterations
-            *nAvg*: :class:`int`
-                Use the last *nAvg* iterations to compute an average
-            *d0*: :class:`float`
-                Default delta to use
-            *kw*: :class:`dict`
-                Keyword arguments passed to :func:`pyCart.aero.Aero.plot`
-        :Outputs:
-            *h*: :class:`dict`
-                Dictionary of figure/plot handles
-        :Versions:
-            * 2014-11-12 ``@ddalle``: First version
-        """
-        # Plot the forces and residual.
-        h = self.Plot(2, 2, ['CA', 'CY', 'CN', 'L1'], **kw)
-        # Output
-        return h
-        
-    # Function to plot force coefficients only
-    def PlotForce(self, **kw):
-        """Initialize a plot for three force coefficients
-        
-        :Call:
-            >>> h = FM.PlotForce(**kw)
-        :Inputs:
-            *FM*: :class:`pyCart.aero.FM`
-                Instance of the force and moment class
-            *n*: :class:`int`
-                Only show the last *n* iterations
-            *nAvg*: :class:`int`
-                Use the last *nAvg* iterations to compute an average
-            *d0*: :class:`float`
-                Default delta to use
-            *kw*: :class:`dict`
-                Keyword arguments passed to :func:`pyCart.aero.Aero.plot`
-        :Outputs:
-            *h*: :class:`dict`
-                Dictionary of figure/plot handles
-        :Versions:
-            * 2014-11-12 ``@ddalle``: First version
-        """
-        # Plot the forces, but leave a spot for residual.
-        h = self.Plot(3, 1, ['CA', 'CY', 'CN'], **kw)
-        # Output
-        return h
-        
-    # Function to plot longitudinal forces and moments.
-    def PlotLongitudinal(self, **kw):
-        """Initialize a plot for longitudinal forces and moments
-        
-        :Call:
-            >>> h = FM.PlotLongitudinal(**kw)
-        :Inputs:
-            *FM*: :class:`pyCart.aero.FM`
-                Instance of the force and moment class
-            *n*: :class:`int`
-                Only show the last *n* iterations
-            *nAvg*: :class:`int`
-                Use the last *nAvg* iterations to compute an average
-            *d0*: :class:`float`
-                Default delta to use
-            *kw*: :class:`dict`
-                Keyword arguments passed to :func:`pyCart.aero.Aero.plot`
-        :Outputs:
-            *h*: :class:`dict`
-                Dictionary of figure/plot handles
-        :Versions:
-            * 2014-11-12 ``@ddalle``: First version
-        """
-        # Plot the forces, but leave a spot for residual.
-        h = self.Plot(3, 1, ['CA', 'CN', 'CLM'], **kw)
-        # Output
-        return h
-        
-    # Function to plot longitudinal forces and moments.
-    def Plot4Long(self, **kw):
-        """Initialize a plot for longitudinal forces and moments and L1 resid
-        
-        :Call:
-            >>> h = FM.Plot4Long(**kw)
-        :Inputs:
-            *FM*: :class:`pyCart.aero.FM`
-                Instance of the force and moment class
-            *n*: :class:`int`
-                Only show the last *n* iterations
-            *nAvg*: :class:`int`
-                Use the last *nAvg* iterations to compute an average
-            *d0*: :class:`float`
-                Default delta to use
-            *kw*: :class:`dict`
-                Keyword arguments passed to :func:`pyCart.aero.Aero.plot`
-        :Outputs:
-            *h*: :class:`dict`
-                Dictionary of figure/plot handles
-        :Versions:
-            * 2014-11-12 ``@ddalle``: First version
-        """
-        # Plot the forces and residual.
-        h = self.Plot(2, 2, ['CA', 'CN', 'CLM', 'L1'], **kw)
-        # Output
-        return h
-        
-    # Function to plot lateral forces and moments.
-    def PlotLateral(self, **kw):
-        """Initialize a plot for longitudinal forces and moments and L1 resid
-        
-        :Call:
-            >>> h = FM.PlotLateral(**kw)
-        :Inputs:
-            *FM*: :class:`pyCart.aero.FM`
-                Instance of the force and moment class
-            *n*: :class:`int`
-                Only show the last *n* iterations
-            *nAvg*: :class:`int`
-                Use the last *nAvg* iterations to compute an average
-            *d0*: :class:`float`
-                Default delta to use
-            *kw*: :class:`dict`
-                Keyword arguments passed to :func:`pyCart.aero.Aero.plot`
-        :Outputs:
-            *h*: :class:`dict`
-                Dictionary of figure/plot handles
-        :Versions:
-            * 2014-11-12 ``@ddalle``: First version
-        """
-        # Plot the forces, but leave a spot for residual.
-        h = self.Plot(2, 2, ['CY', 'CN', 'CLM', 'CLN'], **kw)
-        # Output
-        return h
-            
-    # Function to plot several coefficients.
-    def Plot(self, nRow, nCol, C, n=1000, nAvg=100, d={}, d0=0.01, **kw):
-        """Plot one or several component histories
-        
-        :Call:
-            >>> h = FM.Plot(nRow, nCol, C, n=1000, nAvg=100, d0=0.01, **kw)
-        :Inputs:
-            *FM*: :class:`pyCart.aero.FM`
-                Instance of the force and moment class
-            *nRow*: :class:`int`
-                Number of rows of subplots to make
-            *nCol*: :class:`int`
-                Number of columns of subplots to make
-            *C*: :class:`list` (:class:`str`)
-                List of coefficients or ``'L1'`` to plot
-            *n*: :class:`int`
-                Only show the last *n* iterations
-            *nAvg*: :class:`int`
-                Use the last *nAvg* iterations to compute an average
-            *d0*: :class:`float`
-                Default delta to use
-            *d*: :class:`dict`
-                Dictionary of deltas for each component
-            *tag*: :class:`str` 
-                Tag to put in upper corner, for instance case number and name
-            *restriction*: :class:`str`
-                Type of data, e.g. ``"SBU - ITAR"`` or ``"U/FOUO"``
-        :Outputs:
-            *h*: :class:`dict`
-                Dictionary of figure/plot handles
-        :Versions:
-            * 2014-11-12 ``@ddalle``: First version
-        """
-        # Check for single input.
-        if type(C).__name__ == "str": C = [C]
-        # Number of components
-        nC = len(C)
-        # Check inputs.
-        if nC > nRow*nCol:
-            raise IOError("Too many components")
-        # Initialize handles.
-        h = {}
-        # Loop through components.
-        for i in range(nC):
-            # Get coefficient.
-            c = C[i]
-            # Pull up the subplot.
-            plt.subplot(nRow, nCol, i+1)
-            # Check if residual was requested.
-            if c == 'L1':
-                # Read the history.
-                hist = Hist()
-                # Plot it.
-                h[c] = hist.PlotL1(n=n)
-            else:
-                # Get the delta
-                di = d.get(c, d0)
-                # Plot
-                h[c] = self.PlotCoeff(c, n=n, nAvg=nAvg, d=di)
-            # Turn off overlapping xlabels for condensed plots.
-            if (nCol==1 or nRow>2) and (i+nCol<nC):
-                # Kill the xlabel and xticklabels.
-                h[c]['ax'].set_xticklabels(())
-                h[c]['ax'].set_xlabel('')
-        # Max of number 
-        n0 = max(nCol, nRow)
-        # Determine target font size.
-        if n0 == 1:
-            # Font size (default)
-            fsize = 12
-        elif n0 == 2:
-            # Smaller
-            fsize = 9
-        else:
-            # Really small
-            fsize = 8
-        # Loop through the text labels.
-        for h_t in plt.gcf().findobj(Text):
-            # Apply the target font size.
-            h_t.set_fontsize(fsize)
-        # Add tag.
-        tag = kw.get('tag', '')
-        h['tag'] = plt.figtext(0.015, 0.985, tag, verticalalignment='top')
-        # Add restriction.
-        txt = kw.get('restriction', '')
-        h['restriction'] = plt.figtext(0.5, 0.01, txt,
-            horizontalalignment='center')
-        # Attempt to use the tight_layout() utility.
-        try:
-            # Add room for labels with *rect*, and tighten up other margins.
-            plt.gcf().tight_layout(pad=0.2, w_pad=0.5, h_pad=0.7,
-                rect=(0,0.015,1,0.91))
-        except Exception:
-            pass
-        # Save the figure.
-        h['fig'] = plt.gcf()
-        # Output
-        return h
-        
-    # Function to plot a single coefficient.
-    def PlotCoeff(self, c, n=1000, nAvg=100, d=0.01):
-        """Plot a single coefficient history
-        
-        :Call:
-            >>> h = FM.PlotCoeff(c, n=1000, nAvg=100, d=0.01)
-        :Inputs:
-            *FM*: :class:`pyCart.aero.FM`
-                Instance of the force and moment class
-            *c*: :class:`str`
-                Name of coefficient to plot, e.g. ``'CA'``
-            *n*: :class:`int`
-                Only show the last *n* iterations
-            *nAvg*: :class:`int`
-                Use the last *nAvg* iterations to compute an average
-            *d*: :class:`float`
-                Delta in the coefficient to show expected range
-        :Outputs:
-            *h*: :class:`dict`
-                Dictionary of figure/plot handles
-        :Versions:
-            * 2014-11-12 ``@ddalle``: First version
-        """
-        # Extract the data.
-        C = getattr(self, c)
-        # Number of iterations present.
-        nIter = self.i.size
-        # Process min indices for plotting and averaging.
-        i0 = max(0, nIter-n)
-        i0Avg = max(0, nIter-nAvg)
-        # Calculate mean.
-        cAvg = np.mean(C[i0Avg:])
-        # Initialize dictionary of handles.
-        h = {}
-        # Calculate range of interest.
-        if d:
-            # Limits
-            cMin = cAvg-d
-            cMax = cAvg+d
-            # Plot the target window boundaries.
-            h['min'] = (
-                plt.plot([i0,i0Avg], [cMin,cMin], 'r:', lw=0.8) +
-                plt.plot([i0Avg,nIter], [cMin,cMin], 'r-', lw=0.8))
-            h['max'] = (
-                plt.plot([i0,i0Avg], [cMax,cMax], 'r:', lw=0.8) +
-                plt.plot([i0Avg,nIter], [cMax,cMax], 'r-', lw=0.8))
-        # Plot the mean.
-        h['mean'] = (
-            plt.plot([i0,i0Avg], [cAvg, cAvg], 'r--', lw=1.0) + 
-            plt.plot([i0Avg,nIter], [cAvg, cAvg], 'r-', lw=1.0))
-        # Plot the coefficient.
-        h[c] = plt.plot(self.i[i0:], C[i0:], 'k-', lw=1.5)
-        # Labels.
-        h['x'] = plt.xlabel('Iteration Number')
-        h['y'] = plt.ylabel(c)
-        # Get the axes.
-        h['ax'] = plt.gca()
-        # Set the xlimits.
-        h['ax'].set_xlim((i0, nIter+25))
-        # Make a label for the mean value.
-        lbl = u'%s = %.4f' % (c, cAvg)
-        h['val'] = plt.text(0.81, 1.06, lbl, horizontalalignment='right',
-            verticalalignment='top', transform=h['ax'].transAxes)
-        # Make a label for the deviation.
-        lbl = u'\u00B1 %.4f' % d
-        h['d'] = plt.text(1.0, 1.06, lbl, color='r',
-            horizontalalignment='right', verticalalignment='top',
-            transform=h['ax'].transAxes)
-        # Output.
-        return h
-            
+
     
 
 # Aerodynamic history class
-class Hist(History):
+class History(object):
     """
+    Iterative history class
+    
     This class provides an interface to residuals, CPU time, and similar data
     for a given run directory
     
     :Call:
-        >>> hist = pyCart.aero.Hist()
+        >>> hist = pyCart.history.History()
     :Outputs:
         *hist*: :class:`pyCart.history.History`
             Instance of the run history class
@@ -680,42 +368,71 @@ class Hist(History):
         * 2014-11-12 ``@ddalle``: Starter version
     """
     
-    # Plot function
-    def PlotL1(self, n=None):
-        """Plot the L1 residual
+    # Initialization method
+    def __init__(self):
+        """Initialization method
         
-        :Call:
-            >>> h = hist.PlotL1()
-            >>> h = hist.PlotL1(n)
-        :Inputs:
-            *hist*: :class:`pyCart.aero.Hist`
-                Instance of the run history class
-            *n*: :class:`int`
-                Only show the last *n* iterations
-        :Outputs:
-            *h*: :class:`dict`
-                Dictionary of figure/plot handles
         :Versions:
             * 2014-11-12 ``@ddalle``: First version
         """
-        # Initialize dictionary.
-        h = {}
-        # Get iteration numbers.
-        if n is None:
-            # Use all iterations
-            i0 = 0
+        
+        # Process the best data folder.
+        if os.path.isfile('history.dat'):
+            # Subsequent non-adaptive runs
+            fdir = '.'
+        elif os.path.islink('BEST'):
+            # There's a BEST/ folder; use it as most recent adaptation cycle.
+            fdir = 'BEST'
+        elif os.path.isdir('adapt00'):
+            # It's an adaptive run, but it hasn't gotten far yet.
+            fdir = 'adapt00'
         else:
-            # Use only last *n* iterations
-            i0 = max(0, self.nIter - n)
-        # Plot the residual.
-        h['L1'] = plt.semilogy(self.i[i0:], self.L1Resid[i0:], 'k-', lw=1.5)
-        # Labels
-        h['x'] = plt.xlabel('Iteration Number')
-        h['y'] = plt.ylabel('L1 Residual')
-        # Get the axes.
-        h['ax'] = plt.gca()
-        # Set the xlimits.
-        h['ax'].set_xlim((i0, self.nIter+25))
-        # Output.
-        return h
+            # This is not an adaptive cycle; use root folder.
+            fdir = '.'
+        # History file name.
+        fhist = os.path.join(fdir, 'history.dat')
+        # Read the file.
+        lines = open(fhist).readlines()
+        # Filter comments.
+        lines = [l for l in lines if not l.startswith('#')]
+        # Convert all the values to floats.
+        A = np.array([[float(v) for v in l.split()] for l in lines])
+        # Get the indices of steady-state iterations.
+        # (Time-accurate iterations are marked with decimal step numbers.)
+        i = np.array(['.' not in l.split()[0] for l in lines])
+        # Check for steady-state iterations.
+        if np.any(i):
+            # Get the last steady-state iteration.
+            n0 = np.max(A[i,0])
+            # Add this to the time-accurate iteration numbers.
+            A[np.logical_not(i),0] += n0
+        # Eliminate subiterations.
+        A = A[np.mod(A[:,0], 1.0) == 0.0]
+        # Save the number of iterations.
+        self.nIter = A.shape[0]
+        # Save the iteration numbers.
+        self.i = np.arange(self.nIter) + 1
+        # Save the CPU time per processor.
+        self.CPUtime = A[:,1]
+        # Save the maximum residual.
+        self.maxResid = A[:,2]
+        # Save the global residual.
+        self.L1Resid = A[:,3]
+        # Check for a 'user_time.dat' file.
+        if os.path.isfile('user_time.dat'):
+            # Initialize time
+            t = 0.0
+            # Loop through lines.
+            for line in open('user_time.dat').readlines():
+                # Check comment.
+                if line.startswith('#'): continue
+                # Add to the time.
+                t += np.sum([float(v) for v in line.split()[1:]])
+        else:
+            # Find the indices of run break points.
+            i = np.where(self.CPUtime[1:] < self.CPUtime[:-1])[0]
+            # Sum the end times.
+            t = np.sum(self.CPUtime[i]) + self.CPUtime[-1]
+        # Save the time.
+        self.CPUhours = t / 3600.
         

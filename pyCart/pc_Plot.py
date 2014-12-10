@@ -6,7 +6,7 @@ Command-line plotting interface: :mod:`pyCart.pc_Plot`
 """
 
 # Modules
-from . import aero
+from . import aeroPlot
 # System interface
 import os
 
@@ -55,7 +55,7 @@ def pc_Plot(C, **kw):
         * 2014-11-13 ``@ddalle``: First version
     """
     # New figure.
-    aero.plt.figure()
+    aeroPlot.plt.figure()
     # Number of components
     nC = len(C)
     # Get the component.
@@ -76,7 +76,7 @@ def pc_Plot(C, **kw):
             nRow = nC
     elif nRow is None:
         # Figure out the right number of rows.
-        nRow = pyCart.aero.np.ceil(float(nC)/float(nRow))
+        nRow = pyCart.aeroPlot.np.ceil(float(nC)/float(nRow))
     # Ensure integers.
     nRow = int(nRow)
     nCol = int(nCol)
@@ -133,6 +133,8 @@ def pc_Plot(C, **kw):
         d[c] = dc
     # Plot keyword arguments
     kwp = {
+        'nRow': nRow,
+        'nCol': nCol,
         'n': int(kw.get('nShow', kw.get('n', 1000))),
         'nAvg': int(kw.get('nAvg', 100)),
         'tag': kw.get('tag', ftag),
@@ -141,9 +143,9 @@ def pc_Plot(C, **kw):
     }
         
     # Read the component.
-    FM = aero.Aero([comp])[comp]
+    AP = aeroPlot.AeroPlot([comp])
     # Plot the components.
-    h = FM.Plot(nRow, nCol, C, **kwp)
+    h = AP.Plot(comp, C, **kwp)
     
     # Save the file.
     if fname.endswith('png') or fname.endswith('jpg'):
@@ -156,6 +158,6 @@ def pc_Plot(C, **kw):
         h['fig'].savefig(fname)
     # Check for interactive mode.
     if kw.get('i'):
-        aero.plt.show()
+        aeroPlot.plt.show()
         
         
