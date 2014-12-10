@@ -83,6 +83,9 @@ class AeroPlot(Aero):
         i0Avg = max(0, nIter-nAvg)
         # Calculate mean.
         cAvg = np.mean(C[i0Avg:])
+        # Get the actual iteration numbers to use for averaging.
+        iA = FM.i[i0Avg]
+        iB = FM.i[-1]
         # Initialize dictionary of handles.
         h = {}
         # Calculate range of interest.
@@ -92,11 +95,11 @@ class AeroPlot(Aero):
             cMax = cAvg+d
             # Plot the target window boundaries.
             h['min'] = (
-                plt.plot([i0,i0Avg], [cMin,cMin], 'r:', lw=0.8) +
-                plt.plot([i0Avg,nIter], [cMin,cMin], 'r-', lw=0.8))
+                plt.plot([i0,iA], [cMin,cMin], 'r:', lw=0.8) +
+                plt.plot([iA,iB], [cMin,cMin], 'r-', lw=0.8))
             h['max'] = (
-                plt.plot([i0,i0Avg], [cMax,cMax], 'r:', lw=0.8) +
-                plt.plot([i0Avg,nIter], [cMax,cMax], 'r-', lw=0.8))
+                plt.plot([i0,iA], [cMax,cMax], 'r:', lw=0.8) +
+                plt.plot([iA,iB], [cMax,cMax], 'r-', lw=0.8))
         # Plot the mean.
         h['mean'] = (
             plt.plot([i0,i0Avg], [cAvg, cAvg], 'r--', lw=1.0) + 
@@ -109,7 +112,7 @@ class AeroPlot(Aero):
         # Get the axes.
         h['ax'] = plt.gca()
         # Set the xlimits.
-        h['ax'].set_xlim((i0, FM.i[-1]+25))
+        h['ax'].set_xlim((i0, iB+25))
         # Make a label for the mean value.
         lbl = u'%s = %.4f' % (c, cAvg)
         h['val'] = plt.text(0.81, 1.06, lbl, horizontalalignment='right',
@@ -161,7 +164,7 @@ class AeroPlot(Aero):
         # Get the axes.
         h['ax'] = plt.gca()
         # Set the xlimits.
-        h['ax'].set_xlim((i0, self.i[-1]+25))
+        h['ax'].set_xlim((i0, self.Residual.i[-1]+25))
         # Output.
         return h
             
