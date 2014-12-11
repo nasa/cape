@@ -13,7 +13,7 @@ import numpy as np
 # Configuration file processor
 import json
 # Date processing
-from datetime.datetime import now
+from datetime import datetime
 # File system and operating system management
 import os, shutil
 import subprocess as sp
@@ -277,9 +277,9 @@ class Cart3d(object):
         for i in range(len(fruns)):
             # Go to the folder.
             os.chdir(self.RootDir)
-            os.chdir(frun)
+            os.chdir(fruns[i])
             # Read the forces and/or moments.
-            A = aero.Aero(comps)
+            A = Aero(comps)
             # Loop through components.
             for comp in comps:
                 # Extract the data for that component.
@@ -290,7 +290,7 @@ class Cart3d(object):
                     f = open('aero_%s.dat' % comp, 'w')
                     # Write the header.
                     f.write("# aero data for '%s' extracted on %s\n" %
-                        (comp, now().strftime('%Y-%m-%d %H:%M:%S %Z'))
+                        (comp,datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')))
                     # Empty line.
                     f.write('#\n')
                     # Reference quantities
@@ -313,14 +313,14 @@ class Cart3d(object):
                         # Just write the name.
                         f.write('%s, ' % k)
                     # Loop through coefficients.
-                    for c in FM.Coefficients:
+                    for c in FM.coeffs:
                         # Write the name.
                         f.write('%s, ' % c)
                     # New line
                     f.write('\b\b\n')
                     
-                # Close the file.
-                f.close()
+                    # Close the file.
+                    f.close()
             
         
     # Function to plot most recent results.
