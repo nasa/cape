@@ -244,9 +244,10 @@ class Config(odict):
             if (comp in RefP):
                 # Return the specific component.
                 x = RefP[comp]
-            elif comp == 'default':
-                # Default value.
-                x = RefP.get('default', [0.0, 0.0, 0.0])
+            elif type(comp).__name__ in ['str', 'unicode']:
+                # Default value. ('default' or 'entire' works)
+                x = RefP.get('default',
+                    RefP.get('entire', [0.0, 0.0, 0.0]))
             else:
                 # Return the whole dict.
                 x = RefP
