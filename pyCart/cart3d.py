@@ -12,6 +12,8 @@ script libraries.
 import numpy as np
 # Configuration file processor
 import json
+# Date processing
+from datetime.datetime import now
 # File system and operating system management
 import os, shutil
 import subprocess as sp
@@ -241,6 +243,85 @@ class Cart3d(object):
         # Return to original location.
         os.chdir(fpwd)
         
+    # Function to collect statistics
+    def Aero(self, **kw):
+        """Collect force and moment data
+        
+        :Call:
+            >>> cart3d.Aero(comp=None, cons=[], **kw)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *comp*: :class:`str`
+                Optional name of class to plot
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints like ``'Mach<=0.5'``
+        :Outputs:
+            *d*: :class:`dict`
+                Dictionary of mean, min, max, std for each coefficient
+        :Versions:
+            * 2014-12-12 ``@ddalle``: First version
+        """
+        # Save current location.
+        fpwd = os.getcwd()
+        # Apply constraints
+        i = self.x.Filter(kw.get('cons', []))
+        # Get the case names.
+        fruns = self.x.GetFullFolderNames(i)
+        # Get the list of components to plot.
+        comps = self.opts.get_PlotComponents()
+        # Check for command-line override.
+        if kw.get('comp'):
+            comps = [kw['comp']]
+        # Loop through runs.
+        for i in range(len(fruns)):
+            # Go to the folder.
+            os.chdir(self.RootDir)
+            os.chdir(frun)
+            # Read the forces and/or moments.
+            A = aero.Aero(comps)
+            # Loop through components.
+            for comp in comps:
+                # Extract the data for that component.
+                FM = A[comp]
+                # For the first case, initialize the files.
+                if i == 0:
+                    # Open the file.
+                    f = open('aero_%s.dat' % comp, 'w')
+                    # Write the header.
+                    f.write("# aero data for '%s' extracted on %s\n" %
+                        (comp, now().strftime('%Y-%m-%d %H:%M:%S %Z'))
+                    # Empty line.
+                    f.write('#\n')
+                    # Reference quantities
+                    f.write('# Reference Area = %.6E\n' %
+                        self.opts.get_RefArea(comp))
+                    f.write('# Reference Length = %.6E\n' %
+                        self.opts.get_RefLength(comp))
+                    # Get the MRP.
+                    xMRP = self.opts.get_RefPoint(comp)
+                    # Write it.
+                    f.write('# XMRP = %.6E\n' % xMRP[0])
+                    f.write('# YMRP = %.6E\n' % xMRP[1])
+                    # Check for 3D.
+                    if len(xMRP) > 2:
+                        f.write('# ZMRP = %.6E\n' % xMRP[2])
+                    # Empty line and start of variable list.
+                    f.write('#\n#')
+                    # Loop through trajectory keys.
+                    for k in self.x.keys:
+                        # Just write the name.
+                        f.write('%s, ' % k)
+                    # Loop through coefficients.
+                    for c in FM.Coefficients:
+                        # Write the name.
+                        f.write('%s, ' % c)
+                    # New line
+                    f.write('\b\b\n')
+                    
+                # Close the file.
+                f.close()
+            
         
     # Function to plot most recent results.
     def Plot(self, **kw):
@@ -255,9 +336,12 @@ class Cart3d(object):
                 Instance of control class containing relevant parameters
             *comp*: :class:`str`
                 Optional name of class to plot
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2014-11-12 ``@ddalle``: First version
             * 2014-11-24 ``@ddalle``: Rewritten for looping through cases
+            * 2014-12-10 ``@ddalle``: Applied constraints
         """
         # Check for the aero module.
         try:
@@ -268,8 +352,10 @@ class Cart3d(object):
             import aeroPlot
         # Save current location.
         fpwd = os.getcwd()
+        # Apply constraints
+        i = self.x.Filter(kw.get('cons', []))
         # Get the case names.
-        fruns = self.x.GetFullFolderNames()
+        fruns = self.x.GetFullFolderNames(i)
         # Get the list of components to plot.
         comps = self.opts.get_PlotComponents()
         # Check for command-line override.
