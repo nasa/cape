@@ -101,12 +101,18 @@ if __name__ == "__main__":
         cart3d.DisplayStatus(**kw)
     elif kw.get('p'):
         # Check for component.
-        if kw['p'] == True:
-            # Plot with default options
-            cart3d.Plot()
-        else:
+        if kw['p'] != True:
             # Plot requested component.
-            cart3d.Plot(comp=kw['p'])
+            kw['comp'] = kw['p']
+        # Plot with default options
+        cart3d.Plot(**kw)
+    elif kw.get('aero'):
+        # Check for component.
+        if kw['aero'] != True:
+            # Process requested component
+            kw['comp'] = kw['aero']
+        # Collect force and moment data.
+        cart3d.Aero(**kw)
     elif kw.get('a'):
         # Archive folders
         cart3d.TarAdapt()

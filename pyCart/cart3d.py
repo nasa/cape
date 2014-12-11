@@ -279,6 +279,8 @@ class Cart3d(object):
         f = {}
         # Loop through runs.
         for i in range(len(fruns)):
+            # Print folder name.
+            print(fruns[i])
             # Check for iterations.
             if not self.CheckCase(I[i]): continue
             # Go to root folder.
@@ -295,7 +297,7 @@ class Cart3d(object):
                 # Get the statistics.
                 s = FM.GetStats(nAvg=nAvg)
                 # For the first case, initialize the files.
-                if f == {}:
+                if comp not in f:
                     # Initialize the component for the output.
                     d[comp] = {}
                     # Loop through coeffs to initalize output further.
@@ -325,9 +327,9 @@ class Cart3d(object):
                     f[comp].write('# YMRP = %.6E\n' % xMRP[1])
                     # Check for 3D.
                     if len(xMRP) > 2:
-                        f.write('# ZMRP = %.6E\n' % xMRP[2])
+                        f[comp].write('# ZMRP = %.6E\n' % xMRP[2])
                     # Empty line and start of variable list.
-                    f[comp].write('#\n#')
+                    f[comp].write('#\n# ')
                     # Loop through trajectory keys.
                     for k in self.x.keys:
                         # Just write the name.
@@ -361,7 +363,7 @@ class Cart3d(object):
                     f[comp].write('%.8E, ' % s[c+'_max'])
                     f[comp].write('%.8E, ' % s[c+'_std'])
                 # Write the number of iterations and num used for statistics.
-                f.write('%i, %i\n' % (FM.i[-1], nAvg))
+                f[comp].write('%i, %i\n' % (FM.i[-1], nAvg))
                         
         # Close the files.
         for comp in comps:
@@ -925,7 +927,7 @@ class Cart3d(object):
             * 2014-09-27 ``@ddalle``: First version
         """
          # Check input.
-        if type(i).__name__ != "int":
+        if type(i).__name__ not in ["int", "int64", "int32"]:
             raise TypeError(
                 "Input to :func:`Cart3d.CheckCase()` must be :class:`int`.")
         # Get the group name.
