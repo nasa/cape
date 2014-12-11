@@ -125,6 +125,10 @@ if __name__ == "__main__":
     elif kw.get('a'):
         # Archive folders
         cart3d.TarAdapt()
+    elif kw.get('apply'):
+        # Apply JSON settings
+        cart3d.ApplyFlowCartSettings(**kw)
     else:
         # Do it.
         cart3d.SubmitJobs(**kw)
+    

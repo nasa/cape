@@ -1436,7 +1436,7 @@ class Cart3d(object):
         self.PreSpecCntl.Write('preSpec.c3d.cntl')
         
     # Function to archive 'adaptXX/' folders (except for newest)
-    def TarAdapt(self, cons=[]):
+    def TarAdapt(self, cons=[], **kw):
         """Tar ``adaptNN/`` folders except for most recent one
         
         :Call:
