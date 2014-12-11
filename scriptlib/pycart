@@ -62,10 +62,19 @@ relatively simple commands.
         Only consider cases that pass a list of inequalities separated by
         commas.  Constraints must use variable names (not abbreviations) from
         the trajectory described in *FNAME*.
+        
+    --aero
+        Loop through cases and extract force and moment coefficients and
+        statistics for components described in the "Plot" section of *FNAME*
+        
+    --apply
+        Apply the settings in *FNAME* to all cases; way to quickly change
+        settings for a set of runs
 
 :Versions:
     * 2014-10-03 ``@ddalle``: Started
     * 2014-10-06 ``@ddalle``: First version
+    * 2014-12-11 ``@ddalle``: Version 2.0 with constraints, plot, and F&M
 """
 
 # Import the full module

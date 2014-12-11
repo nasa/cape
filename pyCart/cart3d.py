@@ -1468,6 +1468,29 @@ class Cart3d(object):
             manage.TarAdapt()
         # Go back to original directory.
         os.chdir(fpwd)
+        
+    # Function to apply settings from a specific JSON file
+    def ApplyFlowCartSettings(self, cons=[], **kw):
+        """Apply settings from *cart3d.opts* to a set of cases
+        
+        This rewrites the :file:`case.json` file in the specified directories.
+        
+        :Call:
+            >>> cart3d.ApplyFlowCartSettings(cons=[])
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints
+        :Versions:
+            * 2014-12-11 ``@ddalle``: First version
+        """
+        # Apply filter.
+        I = self.x.Filter(cons)
+        # Loop through cases.
+        for i in I:
+            # Write the JSON file.
+            self.WriteCaseJSON(i)
     
     # Function to prepare "input.cntl" files
     def PrepareInputCntl(self, i):
