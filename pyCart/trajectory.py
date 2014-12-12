@@ -715,7 +715,7 @@ class Trajectory:
             # The prefix is likely to be the whole name.
             dname = str(prefix)
             # Add underscore if there are keys.
-            if keys: dname += "_"
+            if (keys is not None) and (len(keys)>0): dname += "_"
         else:
             # Initialize an empty string.
             dname = ""
