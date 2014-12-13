@@ -406,6 +406,16 @@ class Options(odict):
         self._flowCart()
         self['flowCart'].set_it_fc(it_fc, i)
         
+    # Get number of orders for early termination
+    def get_nOrders(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_nOrders(i)
+        
+    # Set number of orders for early termination
+    def set_nOrders(self, nOrders=rc0('nOrders'), i=None):
+        self._flowCart()
+        self['flowCart'].set_nOrders(nOrders, i)
+        
     # Get flowCart iteration count
     def get_mg_fc(self, i=None):
         self._flowCart()
@@ -649,7 +659,7 @@ class Options(odict):
     # Copy over the documentation.
     for k in ['InputSeq', 'IterSeq', 'first_order', 'robust_mode', 'unsteady', 
             'mpi_fc', 'use_aero_csh', 'tm', 'nSteps', 'dt', 'checkptTD',
-            'vizTD', 'fc_clean', 'fc_stats', 'jumpstart',
+            'vizTD', 'fc_clean', 'fc_stats', 'jumpstart', 'nOrders',
             'it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'tecO', 'fmg', 'pmg',
             'y_is_spanwise', 'binaryIO', 'nProc', 'mpicmd', 'qsub', 'resub']:
         # Get the documentation for the "get" and "set" functions

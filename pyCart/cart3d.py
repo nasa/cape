@@ -1561,6 +1561,8 @@ class Cart3d(object):
         
         # Loop through the runs.
         for j in range(self.opts.get_nSeq()):
+            # Write the number of orders of magnitude for early convergence.
+            self.InputCntl.SetNOrders(self.opts.get_nOrders(j))
             # Get the first-order status.
             fo = self.opts.get_first_order(j)
             # Set the status.
