@@ -124,7 +124,7 @@ if __name__ == "__main__":
         cart3d.Aero(**kw)
     elif kw.get('a'):
         # Archive folders
-        cart3d.TarAdapt()
+        cart3d.TarAdapt(**kw)
     elif kw.get('apply'):
         # Apply JSON settings
         cart3d.ApplyFlowCartSettings(**kw)

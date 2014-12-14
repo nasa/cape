@@ -628,7 +628,7 @@ class TriBase(object):
         CompID0 = np.unique(self.CompID)
         CompID1 = np.unique(tri.CompID)
         # Concatenate the component vector.
-        if np.intersect1d(CompID0, CompID1):
+        if np.any(np.intersect1d(CompID0, CompID1)):
             # Number of components in the original triangulation
             nC = np.max(self.CompID)
             # Adjust CompIDs to avoid overlap.

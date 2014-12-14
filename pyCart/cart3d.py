@@ -1459,11 +1459,14 @@ class Cart3d(object):
         fruns = self.x.GetFullFolderNames(i)
         # Loop through folders.
         for frun in fruns:
-            # Go to folder.
+            # Go home.
             os.chdir(self.RootDir)
-            os.chdir(frun)
+            # Check for folder.
+            if not os.path.isdir(frun): continue
             # Status update
             print(frun)
+            # Go to the folder
+            os.chdir(frun)
             # Manage the directory.
             manage.TarAdapt()
         # Go back to original directory.
