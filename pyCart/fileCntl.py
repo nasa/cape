@@ -764,7 +764,7 @@ class FileCntl:
         # Loop backward through the lines.
         while i < len(self.Section[sec]):
             # Get the line.
-            L = self.lines[i]
+            L = self.Section[sec][i]
             # Check it.
             if L.startswith(start):
                 # Increase the count.
@@ -773,7 +773,7 @@ class FileCntl:
                 # Delete the line.
                 self.Section[sec].__delitem__(i)
                 # Check for limit.
-                if n >= count:
+                if (count) and (n >= count):
                     return n
             else:
                 # Increase the line number.

@@ -1561,6 +1561,8 @@ class Cart3d(object):
         
         # Loop through the runs.
         for j in range(self.opts.get_nSeq()):
+            # Set up the Runge-Kutta coefficients.
+            self.InputCntl.SetRungeKutta(self.opts.get_RKScheme(j))
             # Get the first-order status.
             fo = self.opts.get_first_order(j)
             # Set the status.

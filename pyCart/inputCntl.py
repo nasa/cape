@@ -517,6 +517,8 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetOutputForce(Name, **kwargs)
         :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
             *Name*: :class:`str`
                 Name of the force (required)
             *force*: :class:`int` [ {0} | 1 | 2 | None]
@@ -566,6 +568,8 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.RequestForce(comps)
         :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
             *comps*: :class:`str` | :class:`int` | :class:`list`
                 Name of component to log or ``"all"`` or ``"entire"``
         :Effects:
@@ -591,6 +595,8 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.RequestSingleForce(compID)
         :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
             *compID*: :class:`str` or :class:`int`
                 Name of component to log or ``"all"`` or ``"entire"``
         :Effects:
@@ -609,12 +615,13 @@ class InputCntl(FileCntl):
         
     # Function to get Cart3D to report the moments on a component
     def RequestMoment(self, compID, MRP=None):
-        """
-        Request the moment coefficients on a particular component.
+        """Request the moment coefficients on a particular component.
         
         :Call:
             >>> IC.RequestMoment(compID, MRP)
         :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
             *compID*: :class:`str` or :class:`int`
                 Name of component to log or ``"all"`` or ``"entire"``
             *MRP*: *array_like*
@@ -641,6 +648,110 @@ class InputCntl(FileCntl):
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing', reg,
             'Moment_Point  %s %s %s  %s\n' % (x,y,z,compID))
+        
+    # Function to set Runge-Kutta inputs
+    def SetRungeKutta(self, RK):
+        """Set the Runge-Kutta time step coefficients
+        
+        The input can be a list of lists or a string or ``None``.  If it's a
+        string, the the function will attempt to use one of the following known
+        sets of Runge-Kutta inputs.  The first column is the stage coefficient,
+        and the second column is whether or not to use a gradient evaluation in
+        that stage.
+        
+            * ``'van Leer 5-stage' | 'VL5' | 2 | '2' | 'default'``
+                *RK* = [
+                    [0.0695, 1],
+                    [0.1602, 0],
+                    [0.2898, 0],
+                    [0.5060, 0],
+                    [1.0,    0]]
+            * ``'first-order' | 1 | '1'``
+                *RK* = [
+                    [0.0695, 0],
+                    [0.1602, 0],
+                    [0.2898, 0],
+                    [0.5060, 0],
+                    [1.0,    0]]
+            * ``'robust'``
+                *RK* = [
+                    [0.0695, 1],
+                    [0.1602, 1],
+                    [0.2898, 1],
+                    [0.5060, 1],
+                    [1.0,    1]]
+            * ``'VL3-1'``
+                *RK* = [
+                    [0.1481, 1],
+                    [0.4,    0],
+                    [1.0,    0]]
+            * ``'van Leer 3-stage' | 'VL3-2' | 'VL3' ``
+                *RK* = [
+                    [0.1918, 1],
+                    [0.4929, 0],
+                    [1.0,    0]]
+            * ``'van Leer 4-stage' | 'VL4'``
+                *RK* = [
+                    [0.1084, 1], 
+                    [0.2602, 1],
+                    [0.5052, 1],
+                    [1.0,    0]]
+        
+        :Call:
+            >>> IC.SetRungeKutta(RK)
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            *RK*: :class:`str` or :class:`list` ([:class:`float`,:class:`int`])
+                Named Runge-Kutta scheme or list of coefficients and gradient
+                evaluation flags
+        :Effects:
+            Deletes current lines beginning with ``RK`` in the
+            `Solver_Control_Information` section and replaces them with the
+            specified values
+        :Versions:
+            * 2014-12-17 ``@ddalle``: First version
+        """
+        # Check for recognized inputs.
+        if (RK is None) or (RK=='None'):
+            # Do nothing
+            return
+        elif type(RK).__name__ not in ['list', 'ndarray']:
+            # Not a list; check for recognition
+            if RK in ['van Leer 5-stage', 'VL5', 2, '2', 'default']:
+                # Default inputs.
+                RK = [[0.0695, 1], [0.1602, 0],
+                    [0.2898, 0], [0.5060, 0], [1.0, 0]]
+            elif RK in ['van Leer 4-stage', 'VL4']:
+                # 4-stage inputs
+                RK = [[0.1084, 1], [0.2602, 1], [0.5052, 1], [1.0, 0]]
+            elif RK in ['van Leer 3-stage', 'VL3', 'VL3-2']:
+                # 3-stage inputs
+                RK = [[0.1918, 1], [0.4929, 0], [1.0,    0]]
+            elif RK in ['VL3-1']:
+                # 3-stage cheapo
+                RK = [[0.1481, 1], [0.4, 0], [1.0, 0]]
+            elif RK in ['first-order']:
+                # VL5 with no grad evals
+                RK = [[0.0695, 0], [0.1602, 0],
+                    [0.2898, 0], [0.5060, 0], [1.0, 0]]
+            elif RK in ['robust']:
+                # VL5 with all grad evals
+                RK = [[0.0695, 1], [0.1602, 1],
+                    [0.2898, 1], [0.5060, 1], [1.0, 1]]
+            else:
+                # Oh no!
+                raise IOError("Runge-Kutta scheme '%s' not recognized." % RK)
+        # Name of the relevant section
+        sec = 'Solver_Control_Information'
+        # Clear the lines.
+        self.DeleteLineInSectionStartsWith(sec, 'RK', count=None)
+        # Add the new ones. (Loop through stages backwards)
+        for RKi in RK[::-1]:
+            # Create the line.
+            line = 'RK       %7.4f    %i\n' % (RKi[0], RKi[1])
+            # Add it to front of section.
+            self.PrependLineToSection(sec, line) 
     
     
     

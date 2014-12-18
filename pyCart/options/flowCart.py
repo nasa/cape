@@ -2,7 +2,39 @@
 
 
 # Import options-specific utilities
-from util import rc0, odict
+from util import rc0, odict, isArray
+
+# Function to test if something is an acceptable Runge-Kutta object
+def isRK(RK):
+    """
+    Determine if a variable has a value that can be interpreted as a single set
+    of Runge-Kutta stage inputs
+    
+    :Call:
+        >>> q = isRK(RK)
+    :Inputs:
+        *RK*: any
+            Any variable
+    :Outputs:
+        *q*: :class:`bool`
+            ``True`` unless *RK* is a list with depth not equal to 2
+    :Versions:
+        * 2014-12-17 ``@ddalle``: First version
+    """
+    # Check if the input is an array.
+    if not isArray(RK): return True
+    # Check the the first element.
+    if (len(RK)<1) or (not isArray(RK[0])): return False
+    # The first element is now a list
+    RK0 = RK[0]
+    # Check the first element of RK0
+    if (len(RK0)==2) and (not isArray(RK0[0])):
+        # This looks like an Nx2 input.
+        return True
+    else:
+        # The above case is the only type of acceptable list.
+        return False
+        
 
 # Class for flowCart settings
 class flowCart(odict):
@@ -131,6 +163,100 @@ class flowCart(odict):
         """
         return self.get_IterSeq(self.get_nSeq())
             
+    
+    # Get the Runge-Kutta scheme
+    def get_RKScheme(self, i=None):
+        """Return the Runge-Kutta scheme for a run
+        
+        :Call:
+            >>> RK = opts.get_RKScheme(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *RK*: :class:`str` or :class:`list` ([:class:`float`,:class:`int`])
+                Named Runge-Kutta scheme or list of coefficients and gradient
+                evaluation flags
+        :See also:
+            * :func:`pyCart.inputCntl.InputCntl.SetRungeKutta`
+        :Versions:
+            * 2014-12-17 ``@ddalle``: First version
+        """
+        # Get the value.
+        RK = self.get('RKScheme', rc0('RKScheme'))
+        # Check the type.
+        if i is None:
+            # Just output
+            return RK
+        if isRK(RK):
+            # No list.
+            return RK
+        else:
+            # Check for empty input.
+            if len(RK) == 0:
+                return None
+            # Array-like
+            if i:
+                # Check the length.
+                if i >= len(RK):
+                    # Take the last element.
+                    return RK[-1]
+                else:
+                    # Take the *i*th element.
+                    return RK[i]
+            else:
+                # Use the first element.
+                return RK[0]
+                
+    # Set the Runge-Kutta scheme for a certain run
+    def set_RKScheme(self, RK=rc0('RKScheme'), i=None):
+        """Set the Runge-Kutta scheme for a run
+        
+        :Call:
+            >>> opts.set_RKScheme(RK, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *RK*: :class:`str` or :class:`list` ([:class:`float`,:class:`int`])
+                Named Runge-Kutta scheme or list of coefficients and gradient
+                evaluation flags
+            *i*: :class:`int` or ``None``
+                Run index
+        :See also:
+            * :func:`pyCart.inputCntl.InputCntl.SetRungeKutta`
+        :Versions:
+            * 2014-12-17 ``@ddalle``: First version
+        """
+        # Get the current value.
+        x = self.get('RKScheme', rc0('RKScheme'))
+        # Check the index input.
+        if i is None:
+            # Scalar output
+            self['RKScheme'] = RK
+        else:
+            # Ensure list.
+            if isRK(x):
+                # Make a list.
+                y = [x]
+            else:
+                # Already a list.
+                y = list(x)
+            # Make sure *y* is long enough.
+            for j in range(len(y), i):
+                y.append(y[-1])
+            # Check if we are setting an element or appending it.
+            if i >= len(y):
+                # Append
+                y.append(RK)
+            else:
+                # Set the value.
+                y[i] = RK
+            # Output
+            self['RKScheme'] = y
+            
+        
         
     # Get first-order status
     def get_first_order(self, i=None):
@@ -147,7 +273,7 @@ class flowCart(odict):
             *fo*: :class:`int` or :class:`list`(:class:`int`)
                 Switch for running `flowCart` in first-order mode
         :Versions:
-            * 2014.10.02 ``@ddalle``: First version
+            * 2014-10-02 ``@ddalle``: First version
         """
         return self.get_key('first_order', i)
         
@@ -166,7 +292,7 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Run index
         :Versions:
-            * 2014.10.02 ``@ddalle``: First version
+            * 2014-10-02 ``@ddalle``: First version
         """
         self.set_key('first_order', fo, i)
             

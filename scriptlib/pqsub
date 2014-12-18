@@ -27,7 +27,7 @@ to a file called :file:`jobID.dat` or the value of *FOUT* (see below).
         Save job number to file *FOUT* (default 'jobID.dat')
 
 :Versions:
-    * 2014.10.06 ``@ddalle``: First version
+    * 2014-10-06 ``@ddalle``: First version
 """
 
 # Import the full module

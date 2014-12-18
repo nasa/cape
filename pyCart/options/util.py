@@ -52,6 +52,7 @@ rc = {
     "cfl": 1.1,
     "cflmin": 0.8,
     "mg_fc": 3,
+    "RKScheme": None, # This means don't change it.
     "dt": 0.1,
     "mpi_fc": False,
     "unsteady": False,
@@ -155,7 +156,7 @@ def getel(x, i=None):
     # Check the type.
     if i is None:
         return x
-    if type(x).__name__ in ['list', 'array']:
+    if type(x).__name__ in ['list', 'array', 'ndarray']:
         # Check for empty input.
         if len(x) == 0:
             return None
@@ -213,7 +214,7 @@ def setel(x, i, xi):
         # Scalar output
         return xi
     # Ensure list.
-    if type(x).__name__ == 'array':
+    if type(x).__name__ == 'ndarray':
         # NumPy array
         y = list(x)
     elif type(x).__name__ != 'list':
@@ -355,6 +356,22 @@ def applyDefaults(opts, defs):
     # Output the modified defaults.
     return opts
     
+# Test if a variable is "list-like"
+def isArray(x):
+    """Test if a variable is "list-like."
+    
+    :Call:
+        >>> q = isArray(x)
+    :Inputs:
+        *x*: any
+            Any variable
+    :Outputs:
+        *q*: :class:`bool`
+            ``True`` if and only if *x* is a list or NumPy array
+    :Versions:
+        * 2014-12-17 ``@ddalle``: First version
+    """
+    return (type(x).__name__ in ['list', 'ndarray'])
     
 # Dictionary derivative specific to options
 class odict(dict):
