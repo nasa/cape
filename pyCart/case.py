@@ -411,6 +411,36 @@ def GetHistoryIter(fname='history.dat'):
     except Exception:
         # If any of that fails, return 0
         return 0
+
+# Function to check if last line is unsteady
+def CheckUnsteadyHistory(fname='history.dat'):
+    """Check if the current history ends with an unsteady iteration
+
+    :Call:
+        >>> q = pyCart.case.CheckUnsteadyHistory(fname='history.dat')
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to read
+    :Outputs:
+        *q*: :class:`float`
+            Whether or not the last iteration of *fname* has a '.' in it
+    :Versions:
+        * 2014-12-17 ``@ddalle``: First version
+    """
+    # Check the file beforehand.
+    if not os.path.isfile(fname):
+        # No history
+        return False
+    # Check the file's contents.
+    try:
+        # Try to tail the last line.
+        txt = sp.Popen(['tail', '-1', fname], stdout=sp.PIPE).communicate()[0]
+        # Check for a dot.
+        return ('.' in txt.split()[0])
+    except Exception:
+        # Something failed; invalid history
+        return False
+
     
 # Function to get the most recent working folder
 def GetWorkingFolder():
@@ -460,6 +490,10 @@ def GetCurrentIter():
     """
     # Try to get iteration number from working folder.
     ntd = GetHistoryIter()
+    # Check it.
+    if ntd and (not CheckUnsteadyHistory()):
+        # Don't read adapt??/ history
+        return ntd
     # Initialize adaptive iteration number
     n0 = 0
     # Check for adapt?? folders
