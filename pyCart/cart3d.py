@@ -1517,8 +1517,6 @@ class Cart3d(object):
         x = self.x
         # Process the key types.
         KeyTypes = [x.defns[k]['Type'] for k in x.keys]
-        # Set the options.
-        self.InputCntl.SetCFL(self.opts.get_cfl())
         
         # Set the flight conditions.
         # Mach number
@@ -1566,6 +1564,8 @@ class Cart3d(object):
         for j in range(self.opts.get_nSeq()):
             # Set up the Runge-Kutta coefficients.
             self.InputCntl.SetRungeKutta(self.opts.get_RKScheme(j))
+            # Set the CFL number
+            self.InputCntl.SetCFL(self.opts.get_cfl(j))
             # Write the number of orders of magnitude for early convergence.
             self.InputCntl.SetNOrders(self.opts.get_nOrders(j))
             # Get the first-order status.
