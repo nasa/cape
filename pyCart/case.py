@@ -9,7 +9,7 @@ from options.flowCart import flowCart
 # Binary interface.
 from bin import callf, sp
 # Interface for writing commands
-from . import cmd, queue
+from . import cmd, queue, manage
 
 # Read the local JSON file.
 import json
@@ -26,6 +26,7 @@ def run_flowCart():
         >>> pyCart.case.run_flowCart()
     :Versions:
         * 2014-10-02 ``@ddalle``: First version
+        * 2014-12-18 ``@ddalle``: Added :func:`TarAdapt` call after run
     """
     # Check for RUNNING file.
     if os.path.isfile('RUNNING'):
@@ -113,9 +114,13 @@ def run_flowCart():
     os.rename('flowCart.out', 'run.%02i.%i' % (i, n))
     # Check for TecPlot files to save.
     if os.path.isfile('cutPlanes.plt'):
-        os.rename('cutPlanes.plt', 'cutPlanes.%02i.plt' % i)
+        os.rename('cutPlanes.plt', 'cutPlanes.%05i.plt' % n)
     if os.path.isfile('Components.i.plt'):
-        os.rename('Components.i.plt', 'Components.%02i.plt' % i)
+        os.rename('Components.i.plt', 'Components.%05i.plt' % n)
+    # Clean up the folder as appropriate.
+    if fc.get_use_aero_csh(i):
+        # Tar old adaptation folders.
+        manage.TarAdapt()
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
     # Check current iteration count.
