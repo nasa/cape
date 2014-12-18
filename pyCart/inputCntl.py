@@ -197,8 +197,7 @@ class InputCntl(FileCntl):
         
     # Function to set the sideslip angle
     def SetBeta(self, beta):
-        """
-        Set the sideslip angle
+        """Set the sideslip angle
         
         :Call:
             >>> IC.SetBeta(beta)
@@ -219,8 +218,7 @@ class InputCntl(FileCntl):
         
     # Function to set the CFL number
     def SetCFL(self, CFL):
-        """
-        Set the CFL number
+        """Set the CFL number
         
         :Call:
             >>> IC.SetCFL(CFL)
@@ -238,6 +236,29 @@ class InputCntl(FileCntl):
         self.ReplaceOrAddLineToSectionStartsWith('Solver_Control_Information',
             'CFL ', 'CFL%11s%s\n' % ('', CFL))
         return None
+        
+    # Function to set the number of orders of convergence to terminate at
+    def SetNOrders(self, nOrders):
+        """
+        Set the early termination criterion in number of orders of magnitude
+        decrease in the global L1 residual
+        
+        :Call:
+            >>> IC.SetNOrders(nOrders)
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            *nOrders*: :class:`int`
+                Number of orders of convergence at which to terminate early
+        :Effects:
+            Replaces a line in "Convergence_History_reporting"
+        :Versions:
+            * 2014-12-12 ``@ddalle``: First version
+        """
+        # Replace the line or add it if necessary.
+        self.ReplaceOrAddLineToSectionStartsWith(
+            'Convergence_History_reporting',
+            'nOrders ', 'nOrders   %2i\n' % nOrders)
         
         
     # Function to set the list of x-slices

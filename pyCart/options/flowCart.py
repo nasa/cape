@@ -350,7 +350,7 @@ class flowCart(odict):
             *it_fc*: :class:`int` or :class:`list`(:class:`int`)
                 Number of iterations for run *i* or all runs if ``i==None``
         :Versions:
-            * 2014.08.01 ``@ddalle``: First version
+            * 2014-08-01 ``@ddalle``: First version
         """
         return self.get_key('it_fc', i)
         
@@ -369,9 +369,47 @@ class flowCart(odict):
             *i*: :class:`int` or ``None``
                 Run index
         :Versions:
-            * 2014.08.01 ``@ddalle``: First version
+            * 2014-08-01 ``@ddalle``: First version
         """
         self.set_key('it_fc', it_fc, i)
+        
+    
+    # Number orders of convergence to terminate early at
+    def get_nOrders(self, i=None):
+        """Get the number of orders of convergence for early termination
+        
+        :Call:
+            >>> nOrders = opts.get_nOrders(i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *nOrders*: :class:`int`
+                Number of orders for convergence
+        :Versions:
+            * 2014-12-12 ``@ddalle``: First version
+        """
+        return self.get_key('nOrders', i)
+        
+    # Set number orders of convergence to terminate early at
+    def set_nOrders(self, nOrders=rc0('nOrders'), i=None):
+        """Set the number of orders of convergence for early termination
+        
+        :Call:
+            >>> opts.set_nOrders(nOrders, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *nOrders*: :class:`int`
+                Number of orders for convergence
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014-12-12 ``@ddalle``: First version
+        """
+        self.set_key('nOrders', nOrders, i)
         
         
     # Get flowCart multigrd levels

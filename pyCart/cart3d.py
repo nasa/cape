@@ -1459,11 +1459,14 @@ class Cart3d(object):
         fruns = self.x.GetFullFolderNames(i)
         # Loop through folders.
         for frun in fruns:
-            # Go to folder.
+            # Go home.
             os.chdir(self.RootDir)
-            os.chdir(frun)
+            # Check for folder.
+            if not os.path.isdir(frun): continue
             # Status update
             print(frun)
+            # Go to the folder
+            os.chdir(frun)
             # Manage the directory.
             manage.TarAdapt()
         # Go back to original directory.
@@ -1563,6 +1566,8 @@ class Cart3d(object):
         for j in range(self.opts.get_nSeq()):
             # Set up the Runge-Kutta coefficients.
             self.InputCntl.SetRungeKutta(self.opts.get_RKScheme(j))
+            # Write the number of orders of magnitude for early convergence.
+            self.InputCntl.SetNOrders(self.opts.get_nOrders(j))
             # Get the first-order status.
             fo = self.opts.get_first_order(j)
             # Set the status.

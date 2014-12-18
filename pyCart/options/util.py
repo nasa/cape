@@ -51,6 +51,7 @@ rc = {
     "it_fc": 200,
     "cfl": 1.1,
     "cflmin": 0.8,
+    "nOrders": 12,
     "mg_fc": 3,
     "RKScheme": None, # This means don't change it.
     "dt": 0.1,
