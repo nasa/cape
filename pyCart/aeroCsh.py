@@ -47,7 +47,7 @@ class AeroCsh(FileCntl):
             >>> FC.Write()
             >>> FC.Write(fname)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`pyCart.fileCnftl.FileCntl` or derivative
                 File control instance, defaults to *FC.fname*
             *fname*: :class:`str`
                 Name of file to write to
@@ -304,7 +304,7 @@ class AeroCsh(FileCntl):
         """Set the number of multigrid levels for `adjointCart`
         
         :Call:
-            >>> AC.SeAdjointCartMG(mg_ad)
+            >>> AC.SetAdjointCartMG(mg_ad)
         :Inputs:
             *AC*: :class:`pyCart.aeroCsh.AeroCsh`
                 Instance of the :file:`aero.csh` manipulation class
@@ -314,6 +314,50 @@ class AeroCsh(FileCntl):
             * 2014-11-20 ``@ddalle``: First version
         """
         self.SetVar('mg_ad', mg_ad)
+        
+    # Turn on or off buffer limiting.
+    def SetBuffLim(self, buffLim):
+        """Turn on or off buffer limiting to smear shocks
+        
+        :Call:
+            >>> AC.SetBuffLim(buffLim)
+        :Inputs:
+            *AC*: :class:`pyCart.aeroCsh.AeroCsh`
+                Instance of the :file:`aero.csh` manipulation class
+            *buffLim*: :class:`bool`
+                Whether or not to use the ``-buffLim`` flag
+        :Versions:
+            * 2014-12-19 ``@ddalle``: First version
+        """
+        # Check input.
+        if buffLim:
+            # Turn flag on.
+            self.SetVar('buffLim', '-buffLim')
+        else:
+            # Turn flag off
+            self.SetVar('buffLim', '')
+            
+    # Turn on or off cut-cell first-order option
+    def SetTM(self, tm):
+        """Turn on or off option to use first-order cut cells
+        
+        :Call:
+            >>> AC.SetTM(tm)
+        :Inputs:
+            *AC*: :class:`pyCart.aeroCsh.AeroCsh`
+                Instance of the :file:`aero.csh` manipulation class
+            *tm*: :class:`bool` or :class:`int`
+                Use first-order cut cells (*tm=0*) or not (*tm=1*)
+        :Versions:
+            * 2014-12-19 ``@ddalle``: First version
+        """
+        # Check inputs.
+        if tm:
+            # Second-order cut cells
+            self.SetVar('tm', 1)
+        else:
+            # First-order cut cells
+            self.SetVar('tm', 0)
         
     # Set the binary I/O setting
     def SetBinaryIO(self, binaryIO):

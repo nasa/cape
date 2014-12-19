@@ -178,6 +178,8 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
             Minimum CFL number allowed for problem cells or iterations
         *tm*: :class:`bool`
             Whether or not to use second-order cut cells
+        *buffLim*: :class:`bool`
+            Whether or not to use buffer limiting to smear shocks
         *binaryIO*: :class:`bool`
             Whether or not to use binary format for input/output files
         *limiter*: :class:`int`

@@ -1670,6 +1670,7 @@ class Cart3d(object):
             self.AeroCsh.SetAdjointCartMG(self.opts.get_mg_ad(j))
             self.AeroCsh.SetFMG(self.opts.get_fmg(j))
             self.AeroCsh.SetPMG(self.opts.get_pmg(j))
+            self.AeroCsh.SetTM(self.opts.get_tm(j))
             self.AeroCsh.SetAdjFirstOrder(self.opts.get_adj_first_order(j))
             self.AeroCsh.SetLimiter(self.opts.get_limiter(j))
             self.AeroCsh.SetYIsSpanwise(self.opts.get_y_is_spanwise(j))

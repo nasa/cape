@@ -486,16 +486,6 @@ class Options(odict):
         self._flowCart()
         self['flowCart'].set_jumpstart(js, i)
         
-    # Get cut-cell gradient flag
-    def get_tm(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_tm(i)
-        
-    # Set cut-cell gradient flag
-    def set_tm(self, tm=rc0('tm'), i=None):
-        self._flowCart()
-        self['flowCart'].set_tm(tm, i)
-        
     # Get the nominal CFL number
     def get_cfl(self, i=None):
         self._flowCart()
@@ -535,6 +525,26 @@ class Options(odict):
     def set_nSteps(self, nSteps=rc0('nSteps'), i=None):
         self._flowCart()
         self['flowCart'].set_nSteps(nSteps, i)
+        
+    # Get cut-cell gradient flag
+    def get_tm(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_tm(i)
+        
+    # Set cut-cell gradient flag
+    def set_tm(self, tm=rc0('tm'), i=None):
+        self._flowCart()
+        self['flowCart'].set_tm(tm, i)
+        
+    # Get buffer limiter switch
+    def get_buffLim(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_buffLim(i)
+        
+    # Set buffer limiter switch.
+    def set_buffLim(self, buffLim=rc0('buffLim'), i=None):
+        self._flowCart()
+        self['flowCart'].set_buffLim(buffLim, i)
         
     # Get the number of time steps between checkpoints
     def get_checkptTD(self, i=None):
@@ -670,7 +680,7 @@ class Options(odict):
     for k in ['InputSeq', 'IterSeq', 'first_order', 'robust_mode', 'unsteady', 
             'mpi_fc', 'use_aero_csh', 'tm', 'nSteps', 'dt', 'checkptTD',
             'vizTD', 'fc_clean', 'fc_stats', 'jumpstart', 'RKScheme',
-            'nOrders',
+            'nOrders', 'buffLim',
             'it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'tecO', 'fmg', 'pmg',
             'y_is_spanwise', 'binaryIO', 'nProc', 'mpicmd', 'qsub', 'resub']:
         # Get the documentation for the "get" and "set" functions

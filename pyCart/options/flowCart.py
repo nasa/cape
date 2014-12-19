@@ -1157,7 +1157,7 @@ class flowCart(odict):
         :Versions:
             * 2014-11-21 ``@ddalle``: First version
         """
-        return self.get_key('tm', i)
+        return self.get_key('buffLim', i)
     
     # Set the buffer limit setting
     def set_buffLim(self, buffLim=rc0('buffLim'), i=None):
