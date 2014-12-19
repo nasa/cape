@@ -109,23 +109,24 @@ def TarViz():
     """
     # Globs and tarballs
     VizGlob = [
-        'Components.i.[0-9]*.stats.{plt,dat}',
-        'Components.i.[0-9]*.{plt,dat}',
-        'cutPlanes.[0-9]*.{plt,dat}']
+        'Components.i.[0-9]*.stats',
+        'Components.i.[0-9]*',
+        'cutPlanes.[0-9]*']
     VizTar = [
         'Components.i.stats.tar',
         'Components.i.tar',
         'cutPlanes.tar']
     # Loop through the globs.
     for (fglob, ftar) in zip(VizGlob, VizTar):
+        # Get the matches
+        fnames = glob.glob(fglob+'.dat') + glob.glob(fglob+'.plt')
         # Check for a match to the glob.
-        if len(glob.glob(fglob)) == 0: continue
+        if len(fnames) == 0: continue
         # Status update
         print("  '%s' --> '%s'" % (fglob, ftar))
         # Tar surface TecPlot files
-        ierr = sp.call(['tar', '-uf', ftar, fglob])
+        ierr = sp.call(['tar', '-uf', ftar] + fnames)
         if ierr: continue
         # Delete files
-        ierr = sp.call(['rm', fglob])
-        if ierr: continue
+        ierr = sp.call(['rm'] + fnames)
     
