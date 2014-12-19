@@ -93,4 +93,39 @@ def ExpandAdapt():
         if ierr: continue
         # Remove the tarball.
         os.remove(ftar)
+        
+        
+# Function to tar up visualization checkpoints
+def TarViz():
+    """Add all visualization surface and cut plane TecPlot files to tar balls
+    
+    This reduces file count by tarring :file:`Components.i.*.plt` and
+    :file:`cutPlanes.*.plt`.
+    
+    :Call:
+        >>> pyCart.manage.TarViz()
+    :Versions:
+        * 2014-12-18 ``@ddalle``: First version
+    """
+    # Globs and tarballs
+    VizGlob = [
+        'Components.i.[0-9]*.stats.{plt,dat}',
+        'Components.i.[0-9]*.{plt,dat}',
+        'cutPlanes.[0-9]*.{plt,dat}']
+    VizTar = [
+        'Components.i.stats.tar',
+        'Components.i.tar',
+        'cutPlanes.tar']
+    # Loop through the globs.
+    for (fglob, ftar) in zip(VizGlob, VizTar):
+        # Check for a match to the glob.
+        if len(glob.glob(fglob)) == 0: continue
+        # Status update
+        print("  '%s' --> '%s'" % (fglob, ftar))
+        # Tar surface TecPlot files
+        ierr = sp.call(['tar', '-uf', ftar, fglob])
+        if ierr: continue
+        # Delete files
+        ierr = sp.call(['rm', fglob])
+        if ierr: continue
     
