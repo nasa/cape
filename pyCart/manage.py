@@ -123,7 +123,7 @@ def TarViz():
         # Check for a match to the glob.
         if len(fnames) == 0: continue
         # Status update
-        print("  '%s' --> '%s'" % (fglob, ftar))
+        print("  '%s.{dat,plt}' --> '%s'" % (fglob, ftar))
         # Tar surface TecPlot files
         ierr = sp.call(['tar', '-uf', ftar] + fnames)
         if ierr: continue

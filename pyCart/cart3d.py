@@ -1472,6 +1472,44 @@ class Cart3d(object):
         # Go back to original directory.
         os.chdir(fpwd)
         
+    # Function to archive 'adaptXX/' folders (except for newest)
+    def TarViz(self, cons=[], **kw):
+        """Tar ``adaptNN/`` folders except for most recent one
+        
+        :Call:
+            >>> cart3d.TarViz()
+            >>> cart3d.TarViz(cons=[])
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints
+        :Versions:
+            * 2014-12-18 ``@ddalle``: First version
+        """
+        # Save current path.
+        fpwd = os.getcwd()
+        # Loop through folders.
+        for i in self.x.Filter(cons):
+            # Get folder name.
+            frun = self.x.GetFullFolderNames(i)
+            # Go home.
+            os.chdir(self.RootDir)
+            # Check for folder.
+            if not os.path.isdir(frun): continue
+            # Status update
+            print(frun)
+            # Go to the folder
+            os.chdir(frun)
+            # Read the options.
+            fc = case.ReadCaseJSON()
+            # Check if it's unsteady.
+            if not fc.get_unsteady(-1): continue
+            # Manage the directory.
+            manage.TarViz()
+        # Go back to original directory.
+        os.chdir(fpwd)
+        
     # Function to apply settings from a specific JSON file
     def ApplyFlowCartSettings(self, cons=[], **kw):
         """Apply settings from *cart3d.opts* to a set of cases

@@ -118,9 +118,12 @@ def run_flowCart():
     if os.path.isfile('Components.i.plt'):
         os.rename('Components.i.plt', 'Components.%05i.plt' % n)
     # Clean up the folder as appropriate.
+    # Tar old adaptation folders.
     if fc.get_use_aero_csh(i):
-        # Tar old adaptation folders.
         manage.TarAdapt()
+    # Tar visualization files.
+    if fc.get_unsteady(i):
+        manage.TarViz()
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
     # Check current iteration count.
