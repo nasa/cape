@@ -237,6 +237,8 @@ class Cart3d(object):
             tri = Tri(ftri)
         # Save it.
         self.tri = tri
+        # Make a copy of the original to revert to after rotations, etc.
+        self.tri0 = self.tri.Copy()
         # Check for a config file.
         os.chdir(self.RootDir)
         self.tri.config = Config(self.opts.get_ConfigFile())
@@ -858,14 +860,12 @@ class Cart3d(object):
         print("  Preparing surface triangulation...")
         # Read the mesh.
         self.ReadTri()
-        # Copy the original mesh.
-        self.tri0 = self.tri.Copy()
+        # Revert to initial surface.
+        self.tri = self.tri0.Copy()
         # Apply rotations, translations, etc.
         self.PrepareTri(i)
         # Write the tri file.
         self.tri.Write('Components.i.tri')
-        # Reset the mesh to the original.
-        self.tri = self.tri0
         # --------------------
         # Volume mesh creation
         # --------------------
