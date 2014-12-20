@@ -237,11 +237,11 @@ class Cart3d(object):
             tri = Tri(ftri)
         # Save it.
         self.tri = tri
-        # Make a copy of the original to revert to after rotations, etc.
-        self.tri0 = self.tri.Copy()
         # Check for a config file.
         os.chdir(self.RootDir)
         self.tri.config = Config(self.opts.get_ConfigFile())
+        # Make a copy of the original to revert to after rotations, etc.
+        self.tri0 = self.tri.Copy()
         # Return to original location.
         os.chdir(fpwd)
         
