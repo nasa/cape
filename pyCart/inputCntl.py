@@ -561,7 +561,7 @@ class InputCntl(FileCntl):
             * 2014-11-19 ``@ddalle``: First version
         """
         # Line looks like "optForce  CY_L 1 0 0 1 0. 1. 0  Core"
-        reg = 'optForce\s+' + str(Name)
+        reg = 'optForce\s+' + str(Name) + '\s'
         # Process the other inputs (with defaults)
         Force = kwargs.get('force', 0)
         Frame = kwargs.get('frame', 0)
