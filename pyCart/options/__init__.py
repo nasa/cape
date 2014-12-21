@@ -33,6 +33,7 @@ from .pbs         import PBS
 from .Config      import Config
 from .Functional  import Functional
 from .Plot        import Plot
+from .DataBook    import DataBook
 
 
 # Class definition
@@ -82,6 +83,7 @@ class Options(odict):
         self._Config()
         self._Functional()
         self._Plot()
+        self._DataBook()
         # Add extra folders to path.
         self.AddPythonPath()
         
@@ -96,7 +98,7 @@ class Options(odict):
             *opts*: :class:`pyCart.options.Options`
                 Options interface
         :Versions:
-            * 2014.10.08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: First version
         """
         # Get the "PythonPath" option
         lpath = self.get("PythonPath", [])
@@ -109,7 +111,6 @@ class Options(odict):
         for fdir in lpath:
             # Add absolute path, not relative.
             os.sys.path.append(os.path.abspath(fdir))
-            
     
     # ============
     # Initializers
@@ -216,6 +217,17 @@ class Options(odict):
         elif type(self['Plot']).__name__ == 'dict':
             # Convert to (barely) special class.
             self['Plot'] = Plot(**self['Plot'])
+            
+    # Initialization method for pyCart databook
+    def _DataBook(self):
+        """Initialize data book options if necessary"""
+        # Check status.
+        if 'DataBook' not in self:
+            # Missing entirely.
+            self['DataBook'] = DataBook()
+        elif type(self['DataBook']).__name__ == 'dict':
+            # Convert to special class
+            self['DataBook'] = DataBook(**self['DataBook'])
     
     # ==============
     # Global Options
@@ -1337,4 +1349,75 @@ class Options(odict):
             'nPlotCols', 'PlotRestriction', 'PlotDelta']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Plot,'get_'+k).__doc__
+    
+    # =========
+    # Data book
+    # =========
+    
+    # Get list of components.
+    def get_DataBookComponents(self):
+        self._DataBook()
+        return self['DataBook'].get_DataBookComponents()
+    
+    # Get list of coefficients for a specific component
+    def get_DataBookCoeffs(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookCoeffs(comp)
+        
+    # Get data book targets for a specific coefficient
+    def get_CompTargets(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_CompTargets(comp)
+        
+    # Get data book columns for a specific coefficient
+    def get_DataBookCols(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookCols(comp)
+    
+    # Get list of targets
+    def get_DataBookTargets(self):
+        self._DataBook()
+        return self['DataBook'].get_DataBookTargets()
+    
+    # Copy over the documentation.
+    for k in ['DataBookComponents', 'DataBookCoeffs', 'DataBookTargets',
+            'DataBookCols', 'CompTargets']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
+    
+    # Number of iterations used for statistics
+    def get_nStats(self):
+        self._DataBook()
+        return self['DataBook'].get_nStats()
+    
+    # Set number of iterations
+    def set_nStats(self, nStats=rc0('db_stats')):
+        self._DataBook()
+        self['DataBook'].set_nStats(nStats)
+        
+    # Data book directory
+    def get_DataBookDir(self):
+        self._DataBook()
+        return self['DataBook'].get_DataBookDir()
+    
+    # Set data book directory
+    def set_DataBookDir(self, fdir=rc0('db_dir')):
+        self._DataBook()
+        self['DataBook'].set_DataBookDir(fdir)
+        
+    # Data book file delimiter
+    def get_Delimiter(self):
+        self._DataBook()
+        return self['DataBook'].get_Delimiter()
+        
+    # Set data book file delimiter
+    def set_Delimiter(self, delim=rc0('Delimiter')):
+        self._DataBook()
+        self['DataBook'].set_Delimiter(delim)
+        
+    # Copy over the documentation.
+    for k in ['nStats', 'DataBookDir', 'Delimiter']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(DataBook,'set_'+k).__doc__
     

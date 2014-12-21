@@ -131,6 +131,96 @@
         "RefPoint": [0.0, 0.0, 0.0]
     },
     
+    // Requirements for the data book
+    "DataBook": {
+        // List of components
+        "Components": [
+            "CORE_No_Base", "RSRB_No_Base", "LSRB_No_Base",
+            "RSRB_Thrust_No_Base", "LSRB_Thrust_No_Base"
+        ],
+        // Number of iterations to use for statistics.
+        "nStats": 7000,
+        // Place to put the data book
+        "Folder": "data/poweron_test",
+        // Sources for target information
+        "Targets": [{"Name": "UPWT 1891", "File": "data/WT.poweron.dat"}],
+        // Information about each component.
+        // (Available information read from loadsCC.dat)
+        "CORE_No_Base": {
+            // List of coefficients to put in databook
+            "Coefficients": ["CA", "CY", "CN", "CLL", "CLM", "CLN"],
+            // Values to match these against
+            "Targets": {
+                "CA": "CAFC", "CLL": "CLLFC",
+                "CY": "CYFC", "CLM": "CLMFC",
+                "CN": "CNFC", "CLN": "CLNFC"
+        }},
+        // Right booster without thrust surfaces or base/sting
+        "RSRB_No_Base": {
+            // List of coefficients to put in databook
+            "Coefficients": ["CA", "CY", "CN", "CLL", "CLM", "CLN"],
+            // List of fields
+            "Targets": {
+                "CY": "CYFBR", "CLM": "CLMBR",
+                "CN": "CNFBR", "CLN": "CLNBR"
+            },
+            // Booster coefficients need to be rotated into body frame.
+            // Automatically checks for *y_is_spanwise* option
+            "Transformations": [
+                {"Type": "Euler321",
+                "psi": "dpsiR", "theta": "dthetaR", "phi": "dphiR"}
+            ]
+        },
+        // Left booster without thrust surfaces or base/sting
+        "LSRB_No_Base": {
+            // List of coefficients to put in databook
+            "Coefficients": ["CA", "CY", "CN", "CLL", "CLM", "CLN"],
+            // List of fields
+            "Targets": {
+                "CY": "CYFBL", "CLM": "CLMBL",
+                "CN": "CNFBL", "CLN": "CLNBL"
+            },
+            // Booster coefficients need to be rotated into body frame.
+            // Automatically checks for *y_is_spanwise* option
+            "Transformations": [
+                {"Type": "Euler321",
+                "psi": "dpsiL", "theta": "dthetaL", "phi": "dphiL"}
+            ]
+        },
+        // Right booster without thrust surfaces or base/sting
+        "RSRB_Thrust_No_Base": {
+            // List of coefficients to put in databook
+            "Coefficients": ["CA", "CY", "CN", "CLL", "CLM", "CLN"],
+            // List of fields
+            "Targets": {
+                "CY": "CYFBRT", "CLM": "CLMBRT",
+                "CN": "CNFBRT", "CLN": "CLNBRT"
+            },
+            // Booster coefficients need to be rotated into body frame.
+            // Automatically checks for *y_is_spanwise* option
+            "Transformations": [
+                {"Type": "Euler321",
+                "psi": "dpsiR", "theta": "dthetaR", "phi": "dphiR"}
+            ]
+        },
+        // Left booster without thrust surfaces or base/sting
+        "LSRB_Thrust_No_Base": {
+            // List of coefficients to put in databook
+            "Coefficients": ["CA", "CY", "CN", "CLL", "CLM", "CLN"],
+            // List of fields
+            "Targets": {
+                "CY": "CYFBLT", "CLM": "CLMBLT",
+                "CN": "CNFBLT", "CLN": "CLNBLT"
+            },
+            // Booster coefficients need to be rotated into body frame.
+            // Automatically checks for *y_is_spanwise* option
+            "Transformations": [
+                {"Type": "Euler321",
+                "psi": "dpsiL", "theta": "dthetaL", "phi": "dphiL"}
+            ]
+        }
+    },
+    
     // Trajectory description
     "Trajectory": {
         // If a file is specified, and it exists, trajectory values will be

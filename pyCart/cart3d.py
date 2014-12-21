@@ -1612,9 +1612,6 @@ class Cart3d(object):
             if fo:
                 # Run `flowCart` in first-order mode (everywhere)
                 self.InputCntl.SetFirstOrder()
-            else:
-                # Run `flowCart` in second-order mode (cut cells are separate)
-                self.InputCntl.SetSecondOrder()
             # Get robust mode.
             if self.opts.get_robust_mode(j):
                 # Set robust mode.
