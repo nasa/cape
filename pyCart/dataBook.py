@@ -318,7 +318,7 @@ class DBTarget(dict):
         # Loop until finding a line that doesn't begin with comment char.
         line = comchar
         nskip = 0
-        while (not line.strip().startswith(comchar)):
+        while line.strip().startswith(comchar):
             # Save the old line.
             headers = line
             # Read the next line
