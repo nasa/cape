@@ -263,115 +263,23 @@ class Cart3d(object):
                 Dictionary of mean, min, max, std for each coefficient
         :Versions:
             * 2014-12-12 ``@ddalle``: First version
+            * 2014-12-22 ``@ddalle``: Completely rewrote with DataBook class
         """
         # Save current location.
         fpwd = os.getcwd()
+        os.chdir(self.RootDir)
         # Apply constraints
         I = self.x.Filter(kw.get('cons', []))
-        # Get the case names.
-        fruns = self.x.GetFullFolderNames(I)
-        # Get the list of components to plot.
-        comps = self.opts.get_PlotComponents()
-        # Check for command-line override.
-        if kw.get('comp'):
-            comps = [kw['comp']]
-        # Initialize output
-        d = {}
-        # Initialize the file handles.
-        f = {}
-        # Loop through runs.
-        for i in range(len(fruns)):
-            # Print folder name.
-            print(fruns[i])
-            # Check for iterations.
-            if not self.CheckCase(I[i]): continue
-            # Go to root folder.
-            os.chdir(self.RootDir)
-            os.chdir(fruns[i])
-            # Read the forces and/or moments.
-            A = Aero(comps)
-            # Loop through components.
-            for comp in comps:
-                # Extract the data for that component.
-                FM = A[comp]
-                # Number of iterations used for averaging.
-                nAvg = self.opts.get_nAverage(comp)
-                # Get the statistics.
-                s = FM.GetStats(nAvg=nAvg)
-                # For the first case, initialize the files.
-                if comp not in f:
-                    # Initialize the component for the output.
-                    d[comp] = {}
-                    # Loop through coeffs to initalize output further.
-                    for c in s:
-                        # Just want an empty list for now.
-                        d[comp][c] = []
-                    # Iteration number.
-                    d[comp]['Run'] = []
-                    # Go to root folder (to hold files).
-                    os.chdir(self.RootDir)
-                    # Open the file.
-                    f[comp] = open('aero_%s.dat' % comp, 'w')
-                    # Write the header.
-                    f[comp].write("# aero data for '%s' extracted on %s\n" %
-                        (comp,datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')))
-                    # Empty line.
-                    f[comp].write('#\n')
-                    # Reference quantities
-                    f[comp].write('# Reference Area = %.6E\n' %
-                        self.opts.get_RefArea(comp))
-                    f[comp].write('# Reference Length = %.6E\n' %
-                        self.opts.get_RefLength(comp))
-                    # Get the MRP.
-                    xMRP = self.opts.get_RefPoint(comp)
-                    # Write it.
-                    f[comp].write('# XMRP = %.6E\n' % xMRP[0])
-                    f[comp].write('# YMRP = %.6E\n' % xMRP[1])
-                    # Check for 3D.
-                    if len(xMRP) > 2:
-                        f[comp].write('# ZMRP = %.6E\n' % xMRP[2])
-                    # Empty line and start of variable list.
-                    f[comp].write('#\n# ')
-                    # Loop through trajectory keys.
-                    for k in self.x.keys:
-                        # Just write the name.
-                        f[comp].write('%s, ' % k)
-                    # Loop through coefficients.
-                    for c in FM.coeffs:
-                        # Write the name. (represents the means)
-                        f[comp].write('%s, ' % c)
-                    # Loop through again to write min, max, std
-                    for c in FM.coeffs:
-                        f[comp].write('%s_min, ' % c)
-                        f[comp].write('%s_max, ' % c)
-                        f[comp].write('%s_std, ' % c)
-                    # Write the number of iterations and num used for stats.
-                    f[comp].write('nIter, nIterStats\n')
-                # Save the data to the output.
-                for c in s:
-                    d[comp][c].append(s[c])
-                # Save the case number.
-                d[comp]['Run'].append(I[i])
-                # Write the conditions (trajectory key values).
-                for k in self.x.keys:
-                    # Use the full value as the string format.
-                    f[comp].write('%s, ' % getattr(self.x,k)[I[i]])
-                # Write the means.
-                for c in FM.coeffs:
-                    f[comp].write('%.8E, ' % s[c])
-                # Write the min, max, std for each coefficient.
-                for c in FM.coeffs:
-                    f[comp].write('%.8E, ' % s[c+'_min'])
-                    f[comp].write('%.8E, ' % s[c+'_max'])
-                    f[comp].write('%.8E, ' % s[c+'_std'])
-                # Write the number of iterations and num used for statistics.
-                f[comp].write('%i, %i\n' % (FM.i[-1], nAvg))
-                        
-        # Close the files.
-        for comp in comps:
-            f[comp].close()
-        # Output
-        return d
+        # Read the existing data book
+        DB = DataBook(self.x, self.opts)
+        # Read the results and update as necessary.
+        DB.UpdateDataBook(I)
+        # Write the data book to file.
+        DB.Write()
+        # Return to original location.
+        os.chdir(fpwd)
+        # Save the data book
+        self.DataBook = DB
             
         
     # Function to plot most recent results.

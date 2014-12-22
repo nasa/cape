@@ -291,8 +291,12 @@ class DataBook(odict):
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
         """
+        # Data columns (from CFD)
+        dcols = self.get_DataBookDataCols(comp)
+        # Target columns (for comparison)
+        tcols = self.get_DataBookTargetCols(comp)
         # Output
-        return self.get_DataBookDataCols() + self.get_DataBookTargetCols()
+        return dcols + tcols
         
     # Get full list of data columns for a specific component
     def get_DataBookDataCols(self, comp):

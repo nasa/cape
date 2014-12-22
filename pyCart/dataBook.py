@@ -68,6 +68,10 @@ class DataBook(dict):
         self.Components = opts.get_DataBookComponents()
         # Save the folder
         self.Dir = opts.get_DataBookDir()
+        # Save the trajectory.
+        self.x = x
+        # Save the options.
+        self.opts = opts
         # Make sure the destination folder exists.
         for fdir in self.Dir.split('/'):
             # Check if the folder exists.
@@ -84,9 +88,9 @@ class DataBook(dict):
         # Initialize targets.
         self.Targets = []
         # Read the targets.
-        for targ in self.opts.get_DataBookTargets():
+        for targ in opts.get_DataBookTargets():
             # Read the file.
-            self.Targets.append(DBTarget(targ, self.opts))
+            self.Targets.append(DBTarget(targ, opts))
             
     # Write the data book
     def Write(self):
@@ -195,6 +199,10 @@ class DataBook(dict):
             DC.n += 1
             # Process the statistics.
             s = FM.GetStats(nStats)
+            # This is the part where we do transformations....
+
+
+
             # Save the data.
             if np.isnan(j):
                 # Append trajectory values.
@@ -204,6 +212,9 @@ class DataBook(dict):
                 # Append values.
                 for c in DC.DataCols:
                     DC[c] = np.hstack((DC[c], [s[c]]))
+                # Append iteration counts.
+                DC['nIter']  = np.hstack((DC['nIter'], [nIter]))
+                DC['nStats'] = np.hstack((DC['nStats'], [nStats]))
                 # Process the target.
                 if len(DC.TargetCols) > 0:
                     # Select one.
@@ -222,23 +233,26 @@ class DataBook(dict):
                         # No match
                         jt = np.nan
                 # Append targets.
-                for c in DC.TargetCols:
+                for c in DC.targs:
                     # Determine the target to use.
-                    it, ct = self.GetTargetIndex(c)
+                    it, ct = self.GetTargetIndex(DC.targs[c])
+                    # Target name of the coefficient
+                    cc = c + '_t'
                     # Store it.
                     if np.isnan(jt):
                         # No match found
-                        DC[c] = np.hstack((DC[c], [np.nan]))
+                        DC[cc] = np.hstack((DC[cc], [np.nan]))
                     else:
                         # Append the match.
-                        DC[c] = np.hstack((DC[c], [DBT[ct][jt]]))
+                        DC[cc] = np.hstack((DC[cc], [DBT[ct][jt]]))
             else:
                 # No need to update trajectory values.
                 # Update data values.
                 for c in DC.DataCols:
                     DC[c][j] = s[c]
                 # No reason to update targets, either.
-                    
+        # Go back.
+        os.chdir(self.RootDir)
                     
                     
                     
@@ -272,7 +286,9 @@ class DataBook(dict):
             # Split.
             ctarg = ftarg.split("/")
             # Find the name,
-            i = TNames.index
+            i = TNames.index(ctarg[0])
+            # Column name
+            c = ctarg[1]
         else:
             # Use the first target.
             i = 0
@@ -328,6 +344,8 @@ class DBComp(dict):
         self.opts = opts
         self.comp = comp
         self.cols = cols
+        # Save the target translations.
+        self.targs = opts.get_CompTargets(comp)
         # Divide columns into parts.
         self.DataCols = opts.get_DataBookDataCols(comp)
         self.TargetCols = opts.get_DataBookTargetCols(comp)
@@ -435,11 +453,11 @@ class DBComp(dict):
         f.write('#\n')
         # Reference quantities
         f.write('# Reference Area = %.6E\n' %
-            self.opts.get_RefArea(comp))
+            self.opts.get_RefArea(self.comp))
         f.write('# Reference Length = %.6E\n' %
-            self.opts.get_RefLength(comp))
+            self.opts.get_RefLength(self.comp))
         # Get the nominal MRP.
-        xMRP = self.opts.get_RefPoint(comp)
+        xMRP = self.opts.get_RefPoint(self.comp)
         # Write it.
         f.write('# Nominal moment reference point:\n')
         f.write('# XMRP = %.6E\n' % xMRP[0])
@@ -496,7 +514,7 @@ class DBComp(dict):
         # Loop through keys requested for matches.
         for k in self.x.keys:
             # Get the target value (from the trajectory)
-            v = getattr(x,k)[i]
+            v = getattr(self.x,k)[i]
             # Search for matches.
             try:
                 # Filter test criterion.
