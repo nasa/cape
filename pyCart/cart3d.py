@@ -38,7 +38,7 @@ from inputCntl   import InputCntl
 from aeroCsh     import AeroCsh
 from preSpecCntl import PreSpecCntl
 from config      import Config
-from aero        import Aero
+from dataBook    import Aero, DataBook, CaseFM
 
 # Import triangulation
 from tri import Tri

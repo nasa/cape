@@ -16,7 +16,7 @@ from matplotlib.text import Text
 from matplotlib.backends.backend_pdf import PdfPages
 
 # Modules
-from .aero import Aero, FM, History
+from .dataBook import Aero
 # System interface
 import os
 
@@ -33,7 +33,7 @@ class AeroPlot(Aero):
     other types of data can also be stored
     
     :Call:
-        >>> aero = pyCart.aeroPlot.AeroPlot(comps=[])
+        >>> AP = pyCart.aeroPlot.AeroPlot(comps=[])
     :Inputs:
         *comps*: :class:`list` (:class:`str`)
             List of components to read; defaults to all components available
@@ -53,7 +53,7 @@ class AeroPlot(Aero):
         :Call:
             >>> h = AP.PlotCoeff(comp, c, n=1000, nAvg=100, d=0.01)
         :Inputs:
-            *AP*: :class:`pyCart.aero.AeroPlot`
+            *AP*: :class:`pyCart.aeroPlot.AeroPlot`
                 Instance of the force history plotting class
             *comp*: :class:`str`
                 Name of component to plot
