@@ -271,6 +271,95 @@ class DBComp(dict):
         # Close the file.
         f.close()
         
+# Data book target instance
+class DBTarget(dict):
+    """
+    Class to handle data from data book target files.  There are more
+    constraints on target files than the files that data book creates, and raw
+    data books created by pyCart are not valid target files.
+    
+    :Call:
+        >>> DBT = pyCart.dataBook.DBTarget(x, opts, targ)
+    :Inputs:
+        *x*: :class:`pyCart.trajectory.Trajectory`
+            The current pyCart trajectory (i.e. run matrix)
+        *opts*: :class:`pyCart.options.Options`
+            Global pyCart options instance to determine which fields are useful
+        *targ*: :class:`str`
+            
+    :Outputs:
+        *DB*: :class:`pyCart.dataBook.DataBook`
+            Instance of the pyCart data book class
+    :Versions:
+        * 2014-12-20 ``@ddalle``: Started
+    """
+    
+    # Initialization method
+    def __init__(self, targ, opts):
+        """Initialization method
+        
+        :Versions:
+            * 2014-12-21 ``@ddalle``: First version
+        """
+        # Source file
+        fname = targ.get_TargetFile()
+        # Name of this target.
+        tname = targ.get_TargetName()
+        # Check for the file.
+        if not os.path.isfile(fname):
+            raise IOError(
+                "Target source file '%s' could not be found." % fname)
+        # Delimiter
+        delim = targ.get_Delimiter()
+        # Comment character
+        comchar = targ.get_CommentChar()
+        # Read it.
+        self.data = np.loadtxt(fname, delimiter=delim, comments=comchar)
+        # Open the file again.
+        f = open(fname)
+        # Loop until finding a line that doesn't begin with comment char.
+        line = comchar
+        while (not line.strip().startswith(comchar)):
+            # Save the old line.
+            headers = line
+            # Read the next line
+            line = f.readline()
+        # Close the file.
+        f.close()
+        # Translate into headers
+        self.headers = headers.strip().split(delim)
+        # Initialize requested fields.
+        cols = []
+        # Process the required fields.
+        for comp in opts.get_DataBookComponents():
+            # Loop through the targets.
+            for ctarg in opts.get_CompTargets(comp):
+                # Get the target source for this entry.
+                if '/' not in ctarg:
+                    # Only one target source; assume it's this one.
+                    ti = tname
+                    fi = ctarg
+                else:
+                    # Read the target name.
+                    ti = ctarg.split('/')[0]
+                    # Name of the column
+                    fi = ctarg.split('/')[1]
+                # Check if the target is from this target source.
+                if ti != tname: continue
+                # Add the field if necessary.
+                if fi not in cols:
+                    # Check if the column is present.
+                    if fi not in self.headers:
+                        raise IOError("There is not field '%s' in '%s'."
+                            % (fi, ti))
+                    # Add the column
+                    cols.append(fi)
+        # Process the columns.
+        for col in cols:
+            # Find it and save it as a key.
+            self[col] = A[:,self.headers.index(col)]
+        
+        
 # Aerodynamic history class
 class Aero(dict):
     """

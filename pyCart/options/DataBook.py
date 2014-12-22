@@ -325,7 +325,7 @@ class DBTarget(odict):
         :Call:
             >>> Name = opts.get_TargetName()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`pyCart.options.DataBook.DBTarget`
                 Options interface
         :Outputs:
             *Name*: :class:`str`
@@ -342,7 +342,7 @@ class DBTarget(odict):
         :Call:
             >>> fname = opts.get_TargetFile()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`pyCart.options.DataBook.DBTarget`
                 Options interface
         :Outputs:
             *fname*: :class:`str`
@@ -352,12 +352,39 @@ class DBTarget(odict):
         """
         return self.get('File', 'Target.dat')
         
+    # Get the delimiter
+    def get_Delimiter(self):
+        """Get the delimiter for a target file
+        
+        :Call:
+            >>> delim = opts.get_Delimiter()
+        :Inputs:
+            *opts*: :class:`pyCart.options.DataBook.DBTarget`
+                Options interface
+        :Outputs:
+            *delim*: :class:`str`
+                Delimiter text
+        :Versions:
+            * 2014-12-21 ``@ddalle``: First version
+        """
+        return self.get('Delimiter', rc0('Delimiter'))
+        
+    # Get the comment character.
+    def get_CommentChar(self):
+        """Get the character to used to mark comments
+        
+        :Call:
+            >>> comchar = opts.get_CommentChar()
+        :Inputs:
+            *opts*: :class:`pyCart.options.DataBook.DBTarget`
+                Options interface
+        :Outputs:
+            *comchar*: :class:`str`
+                Comment character (may be multiple characters)
+        :Versions:
+            * 2014-12-21 ``@ddalle``: First version
+        """
+        return self.get('Comment', '#')
     
-## Class for each component
-#class DBComp(odict):
-#    """Dictionary-based interface for databook components"""
-#    
-#    # Get the 
-            
         
 
