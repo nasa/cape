@@ -299,6 +299,8 @@ class DBTarget(dict):
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
         """
+        # Save the target options
+        self.opts = targ
         # Source file
         fname = targ.get_TargetFile()
         # Name of this target.
@@ -407,11 +409,11 @@ class DBTarget(dict):
         j = np.arange(self.data.shape[0])
         # Get the trajectory key translations.   This determines which keys to
         # filter and what those keys are called in the source file.
-        tkeys = self.get_Trajectory()
+        tkeys = self.opts.get_Trajectory()
         # Loop through keys requested for matches.
         for k in tkeys:
             # Get the tolerance.
-            tol = self.get_Tol(k)
+            tol = self.opts.get_Tol(k)
             # Get the target value (from the trajectory)
             v = getattr(x,k)[i]
             # Get the name of the column according to the source file.
