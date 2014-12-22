@@ -154,8 +154,8 @@ class DBComp(dict):
         """
         # Check for default file name
         if fname is None: fname = self.fname
-        # Check for the file.
-        if os.path.isfile(fname):
+        # Try to read the file.
+        try:
             # DataBook delimiter
             delim = self.opts.get_Delimiter()
             # Initialize column number
@@ -181,7 +181,7 @@ class DBComp(dict):
             # Number of iterations used for averaging.
             self['nStats'] = np.loadtxt(fname, 
                 delimiter=delim, dtype=int, usecols=[nCol+1])
-        else:
+        except Exception:
             # Initialize empty trajectory arrays.
             for k in self.x.keys:
                 # Get the type.
@@ -270,6 +270,49 @@ class DBComp(dict):
             f.write('%i%s%i\n' % (self['nIter'][i], delim, self['nStats'][i]))
         # Close the file.
         f.close()
+        
+        # Find an entry by trajectory variables.
+    def FindMatch(self, i):
+        """Find an entry by run matrix (trajectory) variables
+        
+        It is assumed that exact matches can be found.
+        
+        :Call:
+            >>> j = DBi.FindMatch(i)
+        :Inputs:
+            *DBi*: :class:`pyCart.dataBook.DBComp`
+                Instance of the pyCart data book target data carrier
+            *i*: :class:`int`
+                Index of the case from the trajectory to try match
+        :Outputs:
+            *j*: :class:`numpy.ndarray` (:class:`int`)
+                Array of index that matches the trajectory case or ``NaN``
+        :Versions:
+            * 2014-12-22 ``@ddalle``: First version
+        """
+        # Initialize indices (assume all are matches)
+        j = np.arange(self.n)
+        # Loop through keys requested for matches.
+        for k in self.x.keys:
+            # Get the target value (from the trajectory)
+            v = getattr(x,k)[i]
+            # Search for matches.
+            try:
+                # Filter test criterion.
+                jk = np.where(self[k] == v)[0]
+                # Restrict to rows that match the above.
+                j = np.intersect1d(j, jk)
+            except Exception:
+                # No match found.
+                return np.nan
+        # Output
+        try:
+            # There should be exactly one match.
+            return j[0]
+        except Exception:
+            # Return no match.
+            return np.nan
+        
         
 # Data book target instance
 class DBTarget(dict):
