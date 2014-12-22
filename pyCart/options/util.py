@@ -70,7 +70,7 @@ rc = {
     "fc_stats": 0,
     "db_stats": 0,
     "db_dir": "data",
-    "Delimiter": ", ",
+    "Delimiter": ",",
     "binaryIO": True,
     "tecO": True,
     "fmg": True,

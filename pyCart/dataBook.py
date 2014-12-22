@@ -317,7 +317,7 @@ class DBTarget(dict):
         f = open(fname)
         # Loop until finding a line that doesn't begin with comment char.
         line = comchar
-        nskip = 0
+        nskip = -1
         while line.strip().startswith(comchar):
             # Save the old line.
             headers = line
@@ -328,11 +328,12 @@ class DBTarget(dict):
         f.close()
         # Translate into headers
         self.headers = headers.strip().split(delim)
+
         # Read it.
         self.data = np.loadtxt(fname, delimiter=delim, skiprows=nskip)
         # Initialize requested fields with the fields that correspond to
         # trajectory keys
-        cols = opts.get_Trajectory().values()
+        cols = targ.get_Trajectory().values()
         # Process the required fields.
         for comp in opts.get_DataBookComponents():
             # Loop through the targets.
@@ -360,7 +361,7 @@ class DBTarget(dict):
         # Process the columns.
         for col in cols:
             # Find it and save it as a key.
-            self[col] = A[:,self.headers.index(col)]
+            self[col] = self.data[:,self.headers.index(col)]
         
     # Find a case
         
