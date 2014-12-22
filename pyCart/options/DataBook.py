@@ -276,10 +276,33 @@ class DataBook(odict):
         
         This includes the list of coefficients, e.g. ``['CA', 'CY', 'CN']``;
         statistics such as ``'CA_min'`` if *nStats* is greater than 0; and
-        targets such as ``'CA
+        targets such as ``'CA_t`` if there is a target for *CA*.
         
         :Call:
             >>> cols = opts.get_DataBookCols(comp)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *cols*: :class:`list` (:class:`str`)
+                List of coefficients and other columns for that coefficient
+        :Versions:
+            * 2014-12-21 ``@ddalle``: First version
+        """
+        # Output
+        return self.get_DataBookDataCols() + self.get_DataBookTargetCols()
+        
+    # Get full list of data columns for a specific component
+    def get_DataBookDataCols(self, comp):
+        """Get the list of data book columns for a specific component
+        
+        This includes the list of coefficients, e.g. ``['CA', 'CY', 'CN']``;
+        statistics such as ``'CA_min'`` if *nStats* is greater than 0.
+        
+        :Call:
+            >>> cols = opts.get_DataBookDataCols(comp)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
@@ -297,13 +320,34 @@ class DataBook(odict):
         cols = [] + coeffs
         # Get the number of iterations used for statistics
         nStats = self.get_nStats()
-        # Options for te
         # Process statistical columns.
         if nStats > 0:
             # Loop through columns.
             for c in coeffs:
                 # Append all statistical columns.
                 cols += [c+'_min', c+'_max', c+'_std']
+        # Output.
+        return cols
+        
+    # Get list of target data columns for a specific component
+    def get_DataBookTargetCols(self, comp):
+        """Get the list of data book target columns for a specific component
+        
+        :Call:
+            >>> cols = opts.get_DataBookDataCols(comp)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *cols*: :class:`list` (:class:`str`)
+                List of coefficient target values
+        :Versions:
+            * 2014-12-21 ``@ddalle``: First version
+        """
+        # Initialize output
+        cols = []
         # Process targets.
         targs = self.get_CompTargets(comp)
         # Loop through the targets.

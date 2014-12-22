@@ -1373,6 +1373,16 @@ class Options(odict):
     def get_DataBookCols(self, comp):
         self._DataBook()
         return self['DataBook'].get_DataBookCols(comp)
+        
+    # Get data book data columns for a specific coefficient
+    def get_DataBookDataCols(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookDataCols(comp)
+        
+    # Get data book target columns for a specific coefficient
+    def get_DataBookTargetCols(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookTargetCols(comp)
     
     # Get list of targets
     def get_DataBookTargets(self):
@@ -1381,7 +1391,8 @@ class Options(odict):
     
     # Copy over the documentation.
     for k in ['DataBookComponents', 'DataBookCoeffs', 'DataBookTargets',
-            'DataBookCols', 'CompTargets']:
+            'DataBookCols', 'CompTargets',
+            'DataBookDataCols', 'DataBookTargetCols']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
     

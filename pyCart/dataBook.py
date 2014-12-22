@@ -80,8 +80,206 @@ class DataBook(dict):
         # Loop through the components.
         for comp in self.Components:
             # Initialize the data book.
-            self = DBComp(comp, x, opts, fdir)
+            self[comp] = DBComp(comp, x, opts, fdir)
+        # Initialize targets.
+        self.Targets = []
+        # Read the targets.
+        for targ in self.opts.get_DataBookTargets():
+            # Read the file.
+            self.Targets.append(DBTarget(targ, self.opts))
+            
+    # Write the data book
+    def Write(self):
+        """Write the current data book in Python memory to file
         
+        :Call:
+            >>> DB.Write()
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+        :Versions:
+            * 2014-12-22 ``@ddalle``: First version
+        """
+        # Loop through the components.
+        for comp in self.Components:
+            self[comp].Write()
+            
+    # Update data book
+    def UpdateDataBook(self, I):
+        """Update the data book for a list of cases from the run matrix
+        
+        :Call:
+            >>> DB.UpdateDataBook(I)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *I*: :class:`list` (:class:`int`)
+                List of trajectory indices
+        :Versions:
+            * 2014-12-22 ``@ddalle``: First version
+        """
+        # Loop through indices.
+        for i in I:
+            self.UpdateCase(i)
+        
+            
+    # Update or add an entry.
+    def UpdateCase(self, i):
+        """Update or add a trajectory to a data book
+        
+        The history of a run directory is processed if either one of three
+        criteria are met.
+        
+            1. The case is not already in the data book
+            2. The most recent iteration is greater than the data book value
+            3. The number of iterations used to create statistics has changed
+        
+        :Call:
+            >>> DB.UpdateCase(i)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *i*: :class:`int`
+                Trajectory index
+        :Versions:
+            * 2014-12-22 ``@ddalle``: First version
+        """
+        # Get the first data book component.
+        c0 = self.Components[0]
+        # Try to find a match existing in the data book.
+        j = self[c0].FindMatch(i)
+        # Get the name of the folder.
+        frun = self.x.GetFullFolderNames(i)
+        # Status update.
+        print(frun)
+        # Go home.
+        os.chdir(self.RootDir)
+        # Check if the folder exists.
+        if not os.path.isdir(frun):
+            # Nothing to do.
+            return
+        # Go to the folder.
+        os.chdir(frun)
+        # Get the current iteration number.
+        nIter = GetCurrentIter()
+        # Get the number of iterations used for stats.
+        nStats = self.opts.get_nStats()
+        # Process whether or not to update.
+        if np.isnan(j):
+            # No current entry.
+            print("  Adding new databook entry at iteration %s." % nIter)
+            q = True
+        elif self[c0]['nIter'] < nIter:
+            # Update
+            print("  Updating from iteration %s to %s."
+                % (self[c0]['nIter'], nIter))
+            q = True
+        elif self[c0]['nStats'] != nStats:
+            # Change statistics
+            print("  Recomputing statistics using %i iterations." % nStats)
+            q = True
+        else:
+            # Up-to-date
+            print("  Databook up to date.")
+            q = False
+        # Check for an update
+        if (not q): return
+        # Read the history.
+        A = Aero(self.Components)
+        # Loop through components.
+        for comp in self.Components:
+            # Extract the component history and component databook.
+            FM = A[comp]
+            DC = self[comp]
+            # Add to the number of cases.
+            DC.n += 1
+            # Process the statistics.
+            s = FM.GetStats(nStats)
+            # Save the data.
+            if np.isnan(j):
+                # Append trajectory values.
+                for k in self.x.keys:
+                    # I hate the way NumPy does appending.
+                    DC[k] = np.hstack((DC[k], [getattr(self.x,k)[i]]))
+                # Append values.
+                for c in DC.DataCols:
+                    DC[c] = np.hstack((DC[c], [s[c]]))
+                # Process the target.
+                if len(DC.TargetCols) > 0:
+                    # Select one.
+                    c = DC.TargetCols[0]
+                    # Determine which target is in use.
+                    it, ct = self.GetTargetIndex(c)
+                    # Select the target.
+                    DBT = self.Targets[it]
+                    # Find matches
+                    jt = DBT.FindMatch(self.x, i)
+                    # Check for a match.
+                    if len(jt) > 0:
+                        # Select the first match.
+                        jt = jt[0]
+                    else:
+                        # No match
+                        jt = np.nan
+                # Append targets.
+                for c in DC.TargetCols:
+                    # Determine the target to use.
+                    it, ct = self.GetTargetIndex(c)
+                    # Store it.
+                    if np.isnan(jt):
+                        # No match found
+                        DC[c] = np.hstack((DC[c], [np.nan]))
+                    else:
+                        # Append the match.
+                        DC[c] = np.hstack((DC[c], [DBT[ct][jt]]))
+            else:
+                # No need to update trajectory values.
+                # Update data values.
+                for c in DC.DataCols:
+                    DC[c][j] = s[c]
+                # No reason to update targets, either.
+                    
+                    
+                    
+                    
+    # Get target to use based on target name
+    def GetTargetIndex(self, ftarg):
+        """Get the index of the target to use based on a name
+        
+        For example, if "UPWT/CAFC" will use the target "UPWT" and the column
+        named "CAFC".  If there is no "/" character in the name, the first
+        available target is used.
+        
+        :Call:
+            >>> i, c = self.GetTargetIndex(ftarg)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *targ*: :class:`str`
+                Name of the target and column
+        :Outputs:
+            *i*: :class:`int`
+                Index of the target to use
+            *c*: :class:`str`
+                Name of the column to use from that target
+        :Versions:
+            * 2014-12-22 ``@ddalle``: First version
+        """
+        # Check if there's a slash
+        if "/" in ftarg:
+            # List of target names.
+            TNames = [DBT.Name for DBT in self.Targets]
+            # Split.
+            ctarg = ftarg.split("/")
+            # Find the name,
+            i = TNames.index
+        else:
+            # Use the first target.
+            i = 0
+            c = ftarg
+        # Output
+        return i, c
+            
                 
                 
 # Individual component data book
@@ -130,6 +328,9 @@ class DBComp(dict):
         self.opts = opts
         self.comp = comp
         self.cols = cols
+        # Divide columns into parts.
+        self.DataCols = opts.get_DataBookDataCols(comp)
+        self.TargetCols = opts.get_DataBookTargetCols(comp)
         # Save the file name.
         self.fname = fname
         
@@ -352,6 +553,8 @@ class DBTarget(dict):
         if not os.path.isfile(fname):
             raise IOError(
                 "Target source file '%s' could not be found." % fname)
+        # Save the name.
+        self.Name = tname
         # Delimiter
         delim = targ.get_Delimiter()
         # Comment character
