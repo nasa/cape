@@ -330,12 +330,13 @@ class DBTarget(dict):
         self.headers = headers.strip().split(delim)
         # Read it.
         self.data = np.loadtxt(fname, delimiter=delim, skiprows=nskip)
-        # Initialize requested fields.
-        cols = []
+        # Initialize requested fields with the fields that correspond to
+        # trajectory keys
+        cols = opts.get_Trajectory().values()
         # Process the required fields.
         for comp in opts.get_DataBookComponents():
             # Loop through the targets.
-            for ctarg in opts.get_CompTargets(comp):
+            for ctarg in opts.get_CompTargets(comp).values():
                 # Get the target source for this entry.
                 if '/' not in ctarg:
                     # Only one target source; assume it's this one.
@@ -360,6 +361,8 @@ class DBTarget(dict):
         for col in cols:
             # Find it and save it as a key.
             self[col] = A[:,self.headers.index(col)]
+        
+    # Find a case
         
         
 # Aerodynamic history class

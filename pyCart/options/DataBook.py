@@ -386,5 +386,20 @@ class DBTarget(odict):
         """
         return self.get('Comment', '#')
     
+    # Get trajectory conversion
+    def get_Trajectory(self):
+        """Get the trajectory translations
         
+        :Call:
+            >>> traj = opst.get_Trajectory()
+        :Inputs:
+            *opts*: :class:`pyCart.options.DataBook.DBTarget`
+                Options interface
+        :Outputs:
+            *comchar*: :class:`str`
+                Comment character (may be multiple characters)
+        :Versions:
+            * 2014-12-21 ``@ddalle``: First version
+        """
+        return self.get('Trajectory', {})
 
