@@ -313,21 +313,23 @@ class DBTarget(dict):
         delim = targ.get_Delimiter()
         # Comment character
         comchar = targ.get_CommentChar()
-        # Read it.
-        self.data = np.loadtxt(fname, delimiter=delim, comments=comchar)
         # Open the file again.
         f = open(fname)
         # Loop until finding a line that doesn't begin with comment char.
         line = comchar
+        nskip = 0
         while (not line.strip().startswith(comchar)):
             # Save the old line.
             headers = line
             # Read the next line
             line = f.readline()
+            nskip += 1
         # Close the file.
         f.close()
         # Translate into headers
         self.headers = headers.strip().split(delim)
+        # Read it.
+        self.data = np.loadtxt(fname, delimiter=delim, skiprows=nskip)
         # Initialize requested fields.
         cols = []
         # Process the required fields.
