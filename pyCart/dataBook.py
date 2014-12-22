@@ -279,17 +279,15 @@ class DBTarget(dict):
     data books created by pyCart are not valid target files.
     
     :Call:
-        >>> DBT = pyCart.dataBook.DBTarget(x, opts, targ)
+        >>> DBT = pyCart.dataBook.DBTarget(targ, opts)
     :Inputs:
-        *x*: :class:`pyCart.trajectory.Trajectory`
-            The current pyCart trajectory (i.e. run matrix)
+        *targ*: :class:`pyCart.options.DataBook.DBTarget`
+            Instance of a target source options interface
         *opts*: :class:`pyCart.options.Options`
             Global pyCart options instance to determine which fields are useful
-        *targ*: :class:`str`
-            
     :Outputs:
-        *DB*: :class:`pyCart.dataBook.DataBook`
-            Instance of the pyCart data book class
+        *DBT*: :class:`pyCart.dataBook.DBTarget`
+            Instance of the pyCart data book target data carrier
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
     """
@@ -362,7 +360,72 @@ class DBTarget(dict):
             # Find it and save it as a key.
             self[col] = A[:,self.headers.index(col)]
         
-    # Find a case
+    # Find an entry by trajectory variables.
+    def FindMatch(self, x, i):
+        """Find an entry by run matrix (trajectory) variables
+        
+        Cases will be considered matches by comparing variables specified in 
+        the *DataBook* section of :file:`pyCart.json` as cases to compare
+        against.  Suppose that the control file contains the following.
+        
+        .. code-block:: python
+        
+            "DataBook": {
+                "Targets": {
+                    "Name": "Experiment",
+                    "File": "WT.dat",
+                    "Trajectory": {"alpha": "ALPHA", "Mach": "MACH"}
+                    "Tolerances": {
+                        "alpha": 0.05,
+                        "Mach": 0.01
+                    }
+                }
+            }
+        
+        Then any entry in the data book target that matches the Mach number
+        within 0.01 (using a column labeled *MACH*) and alpha to within 0.05 is
+        considered a match.  If there are more trajectory variables, they are
+        not used for this filtering of matches.
+        
+        :Call:
+            >>> j = DBT.FindMatch(x, i)
+        :Inputs:
+            *DBT*: :class:`pyCart.dataBook.DBTarget`
+                Instance of the pyCart data book target data carrier
+            *x*: :class:`pyCart.trajectory.Trajectory`
+                The current pyCart trajectory (i.e. run matrix)
+            *i*: :class:`int`
+                Index of the case from the trajectory to try match
+        :Outputs:
+            *j*: :class:`numpy.ndarray` (:class:`int`)
+                Array of indices that match the trajectory within tolerances
+        :Versions:
+            * 2014-12-21 ``@ddalle``: First version
+        """
+        # Initialize indices (assume all are matches)
+        j = np.arange(self.data.shape[0])
+        # Get the trajectory key translations.   This determines which keys to
+        # filter and what those keys are called in the source file.
+        tkeys = self.get_Trajectory()
+        # Loop through keys requested for matches.
+        for k in tkeys:
+            # Get the tolerance.
+            tol = self.get_Tol(k)
+            # Get the target value (from the trajectory)
+            v = getattr(x,k)[i]
+            # Get the name of the column according to the source file.
+            c = tkeys[k]
+            # Search for matches.
+            try:
+                # Filter test criterion.
+                jk = np.where(np.abs(self[c] - v) <= tol)[0]
+                # Restrict to rows that match the above.
+                j = np.intersect1d(j, jk)
+            except Exception:
+                pass
+        # Output
+        return j
+            
         
         
 # Aerodynamic history class

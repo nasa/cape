@@ -143,7 +143,19 @@
         // Place to put the data book
         "Folder": "data/poweron_test",
         // Sources for target information
-        "Targets": [{"Name": "UPWT 1891", "File": "data/WT.poweron.dat"}],
+        "Targets": [
+            {"Name": "UPWT 1891",
+            "File": "data/WT.poweron.dat",
+            "Trajectory": {
+                "alpha": "ALPHAC", "beta": "BETAC",
+                "dxR": "DXBR", "dyR": "DYBR", "dzR": "DZBR",
+                "dxL": "DXBL", "dyL": "DYBL", "dzL": "DZBL",
+                "dpsiR": "DPSIBR", "dthetaR": "DTHETABR", "dphiR": "DPHIBR",
+                "dpsiL": "DPSIBL", "dthetaL": "DTHETABL", "dphiL": "DPHIBL"
+            },
+            // Tolerance for matching a trajectory variable
+            "Tolerances": 0.01
+        }],
         // Information about each component.
         // (Available information read from loadsCC.dat)
         "CORE_No_Base": {
