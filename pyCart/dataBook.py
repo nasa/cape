@@ -163,21 +163,21 @@ class DBComp(dict):
                 t = self.x.defns[k].get('Value', 'float')
                 # Read the column
                 self[k] = np.loadtxt(fname, 
-                    delimiter=delim, dtype=t, usecols=nCol)
+                    delimiter=delim, dtype=t, usecols=[nCol])
                 # Increase the column number
                 nCol += 1
             # Loop through the data book columns.
             for c in self.cols:
                 # Add the column.
-                self[c] = np.loadtxt(fname, delimiter=delim, usecols=nCol)
+                self[c] = np.loadtxt(fname, delimiter=delim, usecols=[nCol])
                 # Increase column number.
                 nCol += 1
             # Last iteration number
             self['nIter'] = np.loadtxt(fname, 
-                delimiter=delim, dtype=int, usecols=nCol)
+                delimiter=delim, dtype=int, usecols=[nCol])
             # Number of iterations used for averaging.
             self['nStats'] = np.loadtxt(fname, 
-                delimiter=delim, dtype=int, usecols=nCol+1)
+                delimiter=delim, dtype=int, usecols=[nCol+1])
         else:
             # Initialize empty trajectory arrays.
             for k in self.x.keys:
@@ -252,9 +252,9 @@ class DBComp(dict):
         # Loop through coefficients.
         for c in self.cols:
             # Write the name. (represents the means)
-            f.write(c + delim
+            f.write(c + delim)
         # Write the number of iterations and num used for stats.
-        f.write('nIter, nStats\n')
+        f.write('nIter%snStats\n' % delim)
         # Loop through the database entries.
         for i in np.arange(self.n):
             # Write the trajectory points.
