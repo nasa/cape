@@ -402,4 +402,38 @@ class DBTarget(odict):
             * 2014-12-21 ``@ddalle``: First version
         """
         return self.get('Trajectory', {})
+        
+    # Get the tolerance for a given trajectory variable
+    def get_Tol(self, k=None):
+        """
+        Get the tolerance to consider a target condition to be a match of the
+        run matrix point, either a default value or a tolerance for a specific
+        trajectory variable
+        
+        :Call:
+            >>> tol = opts.get_Tol()
+            >>> tol = opts.get_Tol(k)
+        :Inputs:
+            *opts*: :class:`pyCart.options.DataBook.DBTarget`
+                Options interface
+            *k*: :class:`str`
+                Name of a trajectory variable
+        :Versions:
+            * 2014-12-21 ``@ddalle``: First version
+        """
+        # Get the entry for "DataBook/Target/Tolerances".
+        tols = self.get('Tolerances', 0.01)
+        # Check the type.
+        if type(tols).__name__ != "dict":
+            # Use it as a default and output it.
+            return tols
+        # Else, get the default value.
+        dtol = tols.get('default', 0.01)
+        # Check if default was requested.
+        if k is None:
+            # Return the default.
+            return dtol
+        else:
+            # Try to return the specific tolerance.
+            return tols.get(k, dtol)
 
