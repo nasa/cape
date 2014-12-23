@@ -92,6 +92,24 @@ class DataBook(dict):
             # Read the file.
             self.Targets.append(DBTarget(targ, opts))
             
+    # Command-line representation
+    def __repr__(self):
+        """Representation method
+        
+        :Versions;
+            * 2014-12-22 ``@ddalle``: First version
+        """
+        # Initialize string
+        lbl = "<DataBook "
+        # Add the number of components.
+        lbl += "nComp=%i " % len(self.Components)
+        # Add the number of conditions.
+        lbl += "nCase=%i>" % self[self.Components[0]].n
+        # Output
+        return lbl
+    # String conversion
+    __str__ = __repr__
+            
     # Write the data book
     def Write(self):
         """Write the current data book in Python memory to file
@@ -197,12 +215,12 @@ class DataBook(dict):
             DC = self[comp]
             # Add to the number of cases.
             DC.n += 1
-            # Process the statistics.
-            s = FM.GetStats(nStats)
             # This is the part where we do transformations....
 
 
 
+            # Process the statistics.
+            s = FM.GetStats(nStats)
             # Save the data.
             if np.isnan(j):
                 # Append trajectory values.
@@ -1027,6 +1045,113 @@ class CaseFM(object):
             self.CN = A[:,3]
             # Save list of coefficients.
             self.coeffs = ['CA', 'CY', 'CN']
+        
+    def TransformFM(self, topts, x, i):
+        """Transform a force and moment history
+        
+        Available transformations and their required parameters are listed
+        below.
+        
+            * "Euler321": "psi", "theta", "phi"
+            
+        Trajectory variables are used to specify values to use for the
+        transformation variables.  For example,
+        
+            .. code-block:: python
+            
+                topts = {"Type": "Euler321",
+                    "psi": "Psi", "theta": "Theta", "phi": "Phi"}
+        
+        will cause this function to perform a reverse Euler 3-2-1 transformation
+        using *x.Psi[i]*, *x.Theta[i]*, and *x.Phi[i]* as the angles.
+        
+        :Call:
+            >>> FM.TransformFM(topts, x, i)
+        :Inputs:
+            *FM*: :class:`pyCart.aero.FM`
+                Instance of the force and moment class
+            *topts*: :class:`dict`
+                Dictionary of options for the transformation
+            *x*: :class:`pyCart.trajectory.Trajectory`
+                The run matrix used for this analysis
+            *i*: :class:`int`
+                The index of the case to transform in the current run matrix
+        :Versions:
+            * 2014-12-22 ``@ddalle``: First version
+        """
+        # Get the transformation type.
+        ttype = topts.get("Type", "")
+        # Check it.
+        if ttype in ["Euler321"]:
+            # Get the angle variable names.
+            # Use same as default in case it's obvious what they should be.
+            kph = topts.get('phi', 'phi')
+            kth = topts.get('theta', 'theta')
+            kps = topts.get('psi', 'psi')
+            # Extract values from the trajectory.
+            phi   = getattr(x,kph)[i]
+            theta = getattr(x,kth)[i]
+            psi   = getattr(x,kps)[i]
+            # Sines and cosines
+            cph = np.cos(phi); cth = np.cos(theta); cps = np.cos(psi)
+            sph = np.sin(phi); sth = np.sin(theta); sps = np.sin(psi)
+            # Make the matrices.
+            # Roll matrix
+            R1 = np.array([[1, 0, 0], [0, cph, sph], [0, -sph, cph]])
+            # Pitch matrix
+            R2 = np.array([[cth, 0, sth], [0, 1, 0], [-sth, 0, cth]])
+            # Yaw matrix
+            R3 = np.array([[cps, sps, 0], [-sps, cps, 0], [0, 0, 1]])
+            # Combined transformation matrix.
+            # Remember, these are applied backwards in order to undo the
+            # original Euler transformation that got the component here.
+            R = np.dot(R3, np.dot(R2, R1))
+            # Force transformations
+            if 'CY' in self.coeffs:
+                # Assemble forces.
+                Fc = np.vstack((self.CA, self.CY, self.CN))
+                # Transform.
+                Fb = np.dot(R, Fc)
+                # Extract (is this necessary?)
+                self.CA = Fb[0]
+                self.CY = Fb[1]
+                self.CN = Fb[2]
+            elif 'CN' in self.coeffs:
+                # Use zeros for side force.
+                CY = np.zeros_like(self.CN)
+                # Assemble forces.
+                Fc = np.vstack((self.CA, CY, self.CN))
+                # Transform.
+                Fb = np.dot(R, Fc)
+                # Extract
+                self.CA = Fb[0]
+                self.CN = Fb[2]
+            # Moment transformations
+            if 'CLN' in self.coeffs:
+                # Assemble moment vector.
+                Mc = np.vstack((self.CLL, self.CLM, self.CLN))
+                # Transform.
+                Mb = np.dot(R, Mc)
+                # Extract.
+                self.CLL = Mb[0]
+                self.CLM = Mb[1]
+                self.CLN = MB[2]
+            elif 'CLM' in self.coeffs:
+                # Use zeros for roll and yaw moment.
+                CLL = np.zeros_like(self.CLM)
+                CLN = np.zeros_like(self.CLN)
+                # Assemble moment vector.
+                Mc = np.vstack((CLL, self.CLM, CLN))
+                # Transform.
+                Mb = np.dot(R, Mc)
+                # Extract.
+                self.CLM = Mb[1]
+                
+        else:
+            raise IOError(
+                "Transformation type '%s' is not recognized." % ttype)
+        
+        
         
     # Method to get averages and standard deviations
     def GetStats(self, nAvg=100):

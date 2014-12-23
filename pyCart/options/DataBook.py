@@ -270,6 +270,36 @@ class DataBook(odict):
         # Output
         return targs
         
+    # Get the transformations for a specific component
+    def get_DataBookTransformations(self, comp):
+        """
+        Get the transformations required to transform a component's data book
+        into the body frame of that component.
+        
+        :Call:
+            >>> tlist = opts.get_DataBookTransformations(comp)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *tlist*: :class:`list` (:class:`dict`)
+                List of targets for that component
+        :Versions:
+            * 2014-12-22 ``@ddalle``: First version
+        """
+        # Get the options for the component.
+        copts = self.get(comp, {})
+        # Get the value specified, defaulting to an empty list.
+        tlist = copts.get('Transformations', [])
+        # Make sure it's a list.
+        if type(tlist).__name__ not in ['list', 'ndarray']:
+            # Probably a single transformation; put it in a list
+            tlist = [tlist]
+        # Output
+        return tlist
+        
     # Get full list of columns for a specific component
     def get_DataBookCols(self, comp):
         """Get the full list of data book columns for a specific component
