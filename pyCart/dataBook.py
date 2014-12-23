@@ -216,9 +216,11 @@ class DataBook(dict):
             # Add to the number of cases.
             DC.n += 1
             # This is the part where we do transformations....
-
-
-
+            # Loop through the transformations.ss
+            for topts in self.opts.get_DataBookTransformations(comp):
+                # Apply the transformation.
+                FM.TransformFM(topts, x. i)
+                
             # Process the statistics.
             s = FM.GetStats(nStats)
             # Save the data.
