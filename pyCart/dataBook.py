@@ -1099,15 +1099,15 @@ class CaseFM(object):
             sph = np.sin(phi); sth = np.sin(theta); sps = np.sin(psi)
             # Make the matrices.
             # Roll matrix
-            R1 = np.array([[1, 0, 0], [0, cph, sph], [0, -sph, cph]])
+            R1 = np.array([[1, 0, 0], [0, cph, -sph], [0, sph, cph]])
             # Pitch matrix
-            R2 = np.array([[cth, 0, sth], [0, 1, 0], [-sth, 0, cth]])
+            R2 = np.array([[cth, 0, -sth], [0, 1, 0], [sth, 0, cth]])
             # Yaw matrix
-            R3 = np.array([[cps, sps, 0], [-sps, cps, 0], [0, 0, 1]])
+            R3 = np.array([[cps, -sps, 0], [sps, cps, 0], [0, 0, 1]])
             # Combined transformation matrix.
             # Remember, these are applied backwards in order to undo the
             # original Euler transformation that got the component here.
-            R = np.dot(R3, np.dot(R2, R1))
+            R = np.dot(R1, np.dot(R2, R3))
             # Force transformations
             if 'CY' in self.coeffs:
                 # Assemble forces.
