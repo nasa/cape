@@ -122,6 +122,8 @@ class DataBook(dict):
         :Versions:
             * 2014-12-22 ``@ddalle``: First version
         """
+        # Start from root directory.
+        os.chdir(self.RootDir)
         # Loop through the components.
         for comp in self.Components:
             self[comp].Write()
@@ -191,12 +193,12 @@ class DataBook(dict):
             # No current entry.
             print("  Adding new databook entry at iteration %s." % nIter)
             q = True
-        elif self[c0]['nIter'] < nIter:
+        elif self[c0]['nIter'][j] < nIter:
             # Update
             print("  Updating from iteration %s to %s."
-                % (self[c0]['nIter'], nIter))
+                % (self[c0]['nIter'][j], nIter))
             q = True
-        elif self[c0]['nStats'] != nStats:
+        elif self[c0]['nStats'][j] != nStats:
             # Change statistics
             print("  Recomputing statistics using %i iterations." % nStats)
             q = True
@@ -219,7 +221,7 @@ class DataBook(dict):
             # Loop through the transformations.ss
             for topts in self.opts.get_DataBookTransformations(comp):
                 # Apply the transformation.
-                FM.TransformFM(topts, x. i)
+                FM.TransformFM(topts, self.x, i)
                 
             # Process the statistics.
             s = FM.GetStats(nStats)
@@ -539,6 +541,10 @@ class DBComp(dict):
             try:
                 # Filter test criterion.
                 jk = np.where(self[k] == v)[0]
+                # Check if the last element should pass but doesn't.
+                if (v == self[k][-1]):
+                    # Add the last element.
+                    jk = np.union1d(jk, [len(self[k])-1])
                 # Restrict to rows that match the above.
                 j = np.intersect1d(j, jk)
             except Exception:
@@ -1137,7 +1143,7 @@ class CaseFM(object):
                 # Extract.
                 self.CLL = Mb[0]
                 self.CLM = Mb[1]
-                self.CLN = MB[2]
+                self.CLN = Mb[2]
             elif 'CLM' in self.coeffs:
                 # Use zeros for roll and yaw moment.
                 CLL = np.zeros_like(self.CLM)
@@ -1172,8 +1178,13 @@ class CaseFM(object):
         :Versions:
             * 2014-12-09 ``@ddalle``: First version
         """
-        # Process min indices for plotting and averaging.
-        i0 = max(0, self.i.size-nAvg)
+        # Default values.
+        if (nAvg is None) or (nAvg < 2):
+            # Use last iteration
+            i0 = self.i.size - 1
+        else:
+           # Process min indices for plotting and averaging.
+            i0 = max(0, self.i.size-nAvg)
         # Initialize output.
         s = {}
         # Loop through coefficients.
@@ -1182,10 +1193,12 @@ class CaseFM(object):
             F = getattr(self, c)
             # Save the mean value.
             s[c] = np.mean(F[i0:])
-            # Save the statistics.
-            s[c+'_min'] = np.min(F[i0:])
-            s[c+'_max'] = np.max(F[i0:])
-            s[c+'_std'] = np.std(F[i0:])
+            # Check for statistics.
+            if (nAvg is not None) or (nAvg == 0):
+                # Save the statistics.
+                s[c+'_min'] = np.min(F[i0:])
+                s[c+'_max'] = np.max(F[i0:])
+                s[c+'_std'] = np.std(F[i0:])
         # Output
         return s
             
