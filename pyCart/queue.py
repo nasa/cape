@@ -42,6 +42,32 @@ def qsub(fname):
         # Failed; return None
         return None
         
+# Function to delete jobs from the queue.
+def qdel(jobID):
+    """Delete a PBS job by number
+    
+    :Call:
+        >>> pyCart.queue.qdel(jobID)
+    :Inputs:
+        *pbs*: :class:`int` or :class:`list` (:class:`int`)
+            PBS job ID number if submission was successful
+    :Versions:
+        * 2014-12-26 ``@ddalle``: First version
+    """
+    # Convert to list if necessary.
+    if type(jobID).__name__ not in ['list', 'ndarray']:
+        # Convert to list.
+        jobID = [jobID]
+    # Call the command with safety.
+    for jobI in jobID:
+        try:
+            # Call `qdel`
+            sp.Popen(['qdel', str(jobI)], stdout=sp.PIPE).communicate()[0]
+            # Status update.
+            print("  Deleted PBS job %i" % jobI)
+        except Exception:
+            print("  Failed to delete PBS job %s" % jobI)
+        
 
 # Function to call `qsub` and save the job ID
 def pqsub(fname, fout="jobID.dat"):

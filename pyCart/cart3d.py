@@ -459,7 +459,7 @@ class Cart3d(object):
             print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3)
         # Initialize dictionary of statuses.
         total = {'PASS':0, 'PASS*':0, '---':0, 'INCOMP':0,
-            'RUN':0, 'DONE':0, 'QUEUE':0}
+            'RUN':0, 'DONE':0, 'QUEUE':0, 'ERROR':0}
         # Loop through the runs.
         for i in range(len(fruns)):
             # Extract case
@@ -483,6 +483,11 @@ class Cart3d(object):
                 nMax = self.GetLastIter(i)
                 # Iteration string
                 itr = "%i/%i" % (n, nMax)
+                # Check for queue killing
+                if qkill and (jobID in jobs):
+                    # Set the status to none.
+                    jobs[jobID]["R"] = "K"
+                    
                 # Check the queue.
                 if jobID in jobs:
                     # Get whatever the qstat command said.
