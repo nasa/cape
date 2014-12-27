@@ -164,6 +164,23 @@ def StartCase():
         # Simply run the case. Don't reset modules either.
         run_flowCart()
         
+# Function to delete job and remove running file.
+def StopCase():
+    """Stop a case by deleting its PBS job and removing :file:`RUNNING` file
+    
+    :Call:
+        >>> pyCart.case.StopCase()
+    :Versions:
+        * 2014-12-27 ``@ddalle``: First version
+    """
+    # Get the job number.
+    jobID = queue.pqjob()
+    # Try to delete it.
+    queue.qdel(jobID)
+    # Check if the RUNNING file exists.
+    if os.path.isfile('RUNNING'):
+        # Delete it.
+        os.remove('RUNNING')
 
 # Function to determine which PBS script to call
 def GetPBSScript(i=None):

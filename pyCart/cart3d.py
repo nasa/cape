@@ -421,6 +421,10 @@ class Cart3d(object):
         qCheck = kw.get('c', False)
         # Get flag to show job IDs
         qJobID = kw.get('j', False)
+        # Check whether or not to kill PBS jobs
+        qKill = kw.get('qdel', False)
+        # No submissions if we're just deleting.
+        if qKill: qCheck = True
         # Maximum number of jobs
         nSubMax = int(kw.get('n', 10))
         # Process constraints.
@@ -483,11 +487,6 @@ class Cart3d(object):
                 nMax = self.GetLastIter(i)
                 # Iteration string
                 itr = "%i/%i" % (n, nMax)
-                # Check for queue killing
-                if qkill and (jobID in jobs):
-                    # Set the status to none.
-                    jobs[jobID]["R"] = "K"
-                    
                 # Check the queue.
                 if jobID in jobs:
                     # Get whatever the qstat command said.
@@ -495,6 +494,10 @@ class Cart3d(object):
                 else:
                     # Not found by qstat (or not a jobID at all)
                     que = "."
+                # Check for queue killing
+                if qKill and (jobID in jobs):
+                    # Delete it.
+                    self.StopCase(i)
             # Print info
             if qJobID and jobID in jobs:
                 # Print job number.
@@ -577,6 +580,37 @@ class Cart3d(object):
         os.chdir(fpwd)
         # Output
         return pbs
+        
+    # Function to terminate a case: qdel and remove RUNNING file
+    def StopCase(self, i):
+        """
+        Stop a case by deleting its PBS job and removing the :file:`RUNNING`
+        file.
+        
+        :Call:
+            >>> cart3d.StopCase(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2014-12-27 ``@ddalle``: First version
+        """
+        # Check status.
+        if self.CheckCase(i) is None:
+            # Case not ready
+            return
+        # Safely go to root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get the case name and go there.
+        frun = self.x.GetFullFolderNames(i)
+        os.chdir(frun)
+        # Stop the job if possible.
+        case.StopCase()
+        # Go back.
+        os.chdir(fpwd)
             
     # Function to determine if case is PASS, ---, INCOMP, etc.
     def CheckCaseStatus(self, i, jobs={}):

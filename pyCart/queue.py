@@ -64,9 +64,9 @@ def qdel(jobID):
             # Call `qdel`
             sp.Popen(['qdel', str(jobI)], stdout=sp.PIPE).communicate()[0]
             # Status update.
-            print("  Deleted PBS job %i" % jobI)
+            print("     Deleted PBS job %i" % jobI)
         except Exception:
-            print("  Failed to delete PBS job %s" % jobI)
+            print("     Failed to delete PBS job %s" % jobI)
         
 
 # Function to call `qsub` and save the job ID
@@ -98,6 +98,33 @@ def pqsub(fname, fout="jobID.dat"):
         f.close()
     # Return the number.
     return pbs
+    
+# Function to get the job ID
+def pqjob(fname="jobID.dat"):
+    """Read the PBS job number from file
+    
+    :Call:
+        >>> pbs = pyCart.queue.pqjob()
+        >>> pbs = pyCart.queue.pqjob(fname="jobID.dat")
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to read containing PBS job number
+    :Outputs:
+        *pbs*: :class:`int`
+            PBS job ID number if possible or ``0`` if file could not be read 
+    :Versions:
+        * 2014-12-27 ``@ddalle``: First version
+    """
+    # Be safe.
+    try:
+        # Read the file.
+        line = open(fname).readline().strip()
+        # Get the first value.
+        pbs = int(line.split()[0])
+        # Output
+        return pbs
+    except Exception:
+        return None
         
 # Function to get `qstat` information
 def qstat(u=None):
