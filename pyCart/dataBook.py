@@ -34,6 +34,24 @@ dmask = 0777 - umask
 # ---------------------------------
 #-->
 
+# Dedicated function to load Matplotlib only when needed.
+def ImportPyPlot():
+    """Import :mod:`matplotlib.pyplot` if not loaded
+    
+    :Call:
+        >>> pyCart.dataBook.ImportPyPlot()
+    :Versions:
+        * 2014-12-27 ``@ddalle``: First version
+    """
+    # Check for PyPlot.
+    try:
+        plt
+    except NameError:
+        # Load the modules.
+        import matplotlib.pyplot as plt
+        from matplotlib.text import Text
+        from matplotlib.backends.backend_pdf import PdfPages
+
 
 # Aerodynamic history class
 class DataBook(dict):
@@ -512,7 +530,7 @@ class DBComp(dict):
         # Close the file.
         f.close()
         
-        # Find an entry by trajectory variables.
+    # Find an entry by trajectory variables.
     def FindMatch(self, i):
         """Find an entry by run matrix (trajectory) variables
         
@@ -557,6 +575,61 @@ class DBComp(dict):
         except Exception:
             # Return no match.
             return np.nan
+            
+    # Find entries in a sweep.
+    def FindSweep(self, i, key=None, **kw):
+        """Find a the indices of values in a sweep of one variable
+        
+        The goal of this function is to return a list of indices of points from
+        the databook that sweeps through a single variable while the other
+        variables remain constant (to tolerance).
+        
+        The search is seeded by a point in the databook, and tolerances are
+        specified for the other variables.  It is 
+        
+        :Call:
+            >>> j = DBi.FindSweep(i, key=None, **kw)
+        :Inputs:
+            *i*: :class:`int`
+                Index of databook entry to seed the search
+            *key*: :class:`str`
+                Name of variable to sort by (defaults to first trajectory key)
+        :Outputs:
+            *j*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices of cases meeting sweep criteria
+        :Versions:
+            * 2014-12-27 ``@ddalle``: First version
+        """
+        # Initialize indices
+        j = np.arange(self.n)
+        # Get default key if necessary.
+        if (key is None):
+            # Use the default value.
+            key = self.x.keys[0]
+        # Make sure the key is usable.
+        if (key not in self.x.keys):
+            raise IOError("Sweep key '%s' is not a trajectory variable." % key)
+        # Loop through keys.
+        for k in kw:
+            # Check if the kwarg is a trajectory key.
+            if k not in self.x.keys: continue
+            # Get the target value.
+            v = self[k][i]
+            # Check the criteria.
+            try:
+                # Filter test.
+                qj = np.abs(self[k][j] - v) <= kw[k]
+                # Check last element.
+                if (not qj[-1]) and (np.abs(self[k][j[-1]]-v)<=kw[k]):
+                    # Set the last element to True.
+                    qj[-1] = True
+                # Restrict to cases that pass this test.
+                j = j[qj]
+            except Exception:
+                # No match or failed test.
+                return np.array([])
+        # Output.
+        return j
         
         
 # Data book target instance

@@ -156,6 +156,8 @@
             // Tolerance for matching a trajectory variable
             "Tolerances": 0.01
         }],
+        // Different plots to make
+
         // Information about each component.
         // (Available information read from loadsCC.dat)
         "CORE_No_Base": {
