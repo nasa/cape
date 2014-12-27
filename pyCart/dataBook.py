@@ -294,8 +294,6 @@ class DataBook(dict):
         # Go back.
         os.chdir(self.RootDir)
                     
-                    
-                    
     # Get target to use based on target name
     def GetTargetIndex(self, ftarg):
         """Get the index of the target to use based on a name
@@ -336,6 +334,21 @@ class DataBook(dict):
         # Output
         return i, c
             
+    # Initialize a sweep plot
+    def InitPlot(self, key, c):
+        """
+        """
+        # Make sure the plotting modules are present.
+        ImportPyPlot()
+        # Open a figure.
+        hf = plt.figure()
+        # Set the xaxes.
+        ha = plt.gca()
+        # Axes labels.
+        plt.xlabel('%s' % key)
+        plt.ylabel('%s' % c)
+        # Output
+        return hf
                 
                 
 # Individual component data book
@@ -693,11 +706,13 @@ class DBComp(dict):
             # Save the sweep.
             I.append(j)
             # Remove the cases in the current sweep.
-            jNoMatch = np.diff1d(jNoMatch, j)
+            jNoMatch = np.setdiff1d(jNoMatch, j)
             # Increase the safety counter.
             n += 1
         # Output.
         return I
+        
+    # Function to plot a single sweep
         
         
 # Data book target instance
@@ -859,7 +874,74 @@ class DBTarget(dict):
                 pass
         # Output
         return j
-            
+        
+    # Find a sweep by component databook variables
+    def FindSweep(self, DBi, i, key=None, **kw):
+        """Find a sweep of a single variable within a databook target
+        
+        :Call:
+            >>> j = DBT.FindSweep(DBi, i, key=None, **kw)
+        :Inputs:
+            *DBT*: :class:`pyCart.dataBook.DBTarget`
+                Instance of the pyCart data book target data carrier
+            *DBi*: :class:`pyCart.dataBook.DBComp`
+                Instance of the pyCart data book component
+            *i*: :class:`int`
+                Index of databook entry to seed the search
+            *key*: :class:`str`
+                Name of variable to sort by (defaults to first trajectory key)
+            *kw*: :class:`dict` (:class:`float` or :class:`int`)
+                Keyword arguments of tolerances for keys to use in filter
+        :Outputs:
+            *j*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices of cases meeting sweep criteria
+        :Versions:
+            * 2014-12-27 ``@ddalle``: First version
+        """
+        # Initialize indices (assume all are matches)
+        j = np.arange(self.data.shape[0])
+        # Get the trajectory key translations.   This determines which keys to
+        # filter and what those keys are called in the source file.
+        tkeys = self.opts.get_Trajectory()
+        # Get default key if necessary.
+        if (key is None):
+            # Use the default value.
+            key = DBi.x.keys[0]
+        # Make sure the key is usable.
+        if (key not in DBi.x.keys):
+            raise IOError("Sweep key '%s' is not a trajectory variable." % key)
+        # Loop through keys.
+        for k in kw:
+            # Check if the kwarg is a trajectory key.
+            if k not in DBi.x.keys: continue
+            # Get the target value.
+            v = DBi[k][i]
+            # Get the name of the column according to the source file.
+            c = tkeys[k]
+            # Check the criteria.
+            try:
+                # Check for strings.
+                if DBi.x.defns[k]["Value"] in ["str", "unicode"]:
+                    # Filter strings.
+                    qj = self[c][j] == v
+                    # Check last element.
+                    if (not qj[-1]) and (self[c][j[-1]]==v):
+                        # Set the last element to True.
+                        qj[-1] = True
+                else:
+                    # Filter test.
+                    qj = np.abs(self[c][j] - v) <= kw[k]
+                    # Check last element.
+                    if (not qj[-1]) and (np.abs(self[c][j[-1]]-v)<=kw[k]):
+                        # Set the last element to True.
+                        qj[-1] = True
+                # Restrict to cases that pass this test.
+                j = j[qj]
+            except Exception:
+                # No match or failed test.
+                return np.array([])
+        # Output.
+        return j
         
         
 # Aerodynamic history class
