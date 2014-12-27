@@ -120,7 +120,7 @@ class DataBook(dict):
         # Initialize string
         lbl = "<DataBook "
         # Add the number of components.
-        lbl += "nComp=%i " % len(self.Components)
+        lbl += "nComp=%i, " % len(self.Components)
         # Add the number of conditions.
         lbl += "nCase=%i>" % self[self.Components[0]].n
         # Output
@@ -394,6 +394,22 @@ class DBComp(dict):
         
         # Read the file or initialize empty arrays.
         self.Read(fname)
+            
+    # Command-line representation
+    def __repr__(self):
+        """Representation method
+        
+        :Versions;
+            * 2014-12-27 ``@ddalle``: First version
+        """
+        # Initialize string
+        lbl = "<DBComp %s," % self.comp
+        # Add the number of conditions.
+        lbl += "nCase=%i>" % self[self.Components[0]].n
+        # Output
+        return lbl
+    # String conversion
+    __str__ = __repr__
         
         
     # Function to read data book files
@@ -540,7 +556,7 @@ class DBComp(dict):
             >>> j = DBi.FindMatch(i)
         :Inputs:
             *DBi*: :class:`pyCart.dataBook.DBComp`
-                Instance of the pyCart data book target data carrier
+                Instance of the pyCart data book component
             *i*: :class:`int`
                 Index of the case from the trajectory to try match
         :Outputs:
@@ -585,15 +601,20 @@ class DBComp(dict):
         variables remain constant (to tolerance).
         
         The search is seeded by a point in the databook, and tolerances are
-        specified for the other variables.  It is 
+        specified for the other variables.  Only trajectory keys specified as
+        keyword arguments are used as filter criteria.
         
         :Call:
             >>> j = DBi.FindSweep(i, key=None, **kw)
         :Inputs:
+            *DBi*: :class:`pyCart.dataBook.DBComp`
+                Instance of the pyCart data book component
             *i*: :class:`int`
                 Index of databook entry to seed the search
             *key*: :class:`str`
                 Name of variable to sort by (defaults to first trajectory key)
+            *kw*: :class:`dict` (:class:`float` or :class:`int`)
+                Keyword arguments of tolerances for keys to use in filter
         :Outputs:
             *j*: :class:`numpy.ndarray` (:class:`int`)
                 List of indices of cases meeting sweep criteria
@@ -617,12 +638,21 @@ class DBComp(dict):
             v = self[k][i]
             # Check the criteria.
             try:
-                # Filter test.
-                qj = np.abs(self[k][j] - v) <= kw[k]
-                # Check last element.
-                if (not qj[-1]) and (np.abs(self[k][j[-1]]-v)<=kw[k]):
-                    # Set the last element to True.
-                    qj[-1] = True
+                # Check for strings.
+                if self.x.defns[k]["Value"] in ["str", "unicode"]:
+                    # Filter strings.
+                    qj = self[k][j] == v
+                    # Check last element.
+                    if (not qj[-1]) and (self[k][j[-1]]==v):
+                        # Set the last element to True.
+                        qj[-1] = True
+                else:
+                    # Filter test.
+                    qj = np.abs(self[k][j] - v) <= kw[k]
+                    # Check last element.
+                    if (not qj[-1]) and (np.abs(self[k][j[-1]]-v)<=kw[k]):
+                        # Set the last element to True.
+                        qj[-1] = True
                 # Restrict to cases that pass this test.
                 j = j[qj]
             except Exception:
@@ -630,6 +660,44 @@ class DBComp(dict):
                 return np.array([])
         # Output.
         return j
+        
+    # Function to divide databook into sweeps
+    def GetSweeps(self, key=None, **kw):
+        """Divide databook entries into sweeps of one variable
+        
+        :Call:
+            >>> I = DBi.GetSweeps(key=None, **kw)
+        :Inputs:
+            *DBi*: :class:`pyCart.dataBook.DBComp`
+                Instance of the pyCart data book component
+            *key*: :class:`str`
+                Name of variable to sort by (defaults to first trajectory key)
+        :Outputs:
+            *I*: :class:`list` (:class:`numpy.ndarray` (:class:`int`))
+                List of sweep arrays
+        :Versions:
+            * 2014-12-27 ``@ddalle``: First version
+        """
+        # Initialize data set.
+        jNoMatch = np.arange(self.n)
+        # Initialize output
+        I = []
+        # Escape criteria
+        n = 0
+        # Loop until all cases are in a sweep.
+        while (n<1000) and (len(jNoMatch)>0):
+            # Get the first index that hasn't been put into a sweep jet.
+            i = jNoMatch[0]
+            # Get the sweep.
+            j = self.FindSweep(i, key, **kw)
+            # Save the sweep.
+            I.append(j)
+            # Remove the cases in the current sweep.
+            jNoMatch = np.diff1d(jNoMatch, j)
+            # Increase the safety counter.
+            n += 1
+        # Output.
+        return I
         
         
 # Data book target instance
