@@ -21,6 +21,7 @@ class DataBook(odict):
             self[k] = kw[k]
         # Upgrade important groups to their own classes.
         self._DBTarget()
+        self._DBPlot()
     
     # Initialization and confirmation for autoInputs options
     def _DBTarget(self):
@@ -64,11 +65,15 @@ class DataBook(odict):
             # Invalid
             raise IOError('Data book plot options must be a list.')
         # Initialize the plots.
-        self['Plots'] = []
-        # Loop through the plots
-        for o_i in o_plt:
+        self['Plot'] = []
+        # Initialize if possible.
+        for i in range(0, len(o_plt)):
             # Convert to special class.
-            self['Plots'].append(DBPlot(**o_i))
+            self['Plot'].append(DBPlot(**o_plt[0]))
+        # Loop through the plots
+        for i in range(1, len(o_plt)):
+            # Initialize with previous object.
+            self['Plot'].append(DBPlot(defs=self['Plots'][i-1], **o_plt[i]))
     
     # Get the list of components.
     def get_DataBookComponents(self):
