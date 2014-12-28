@@ -608,6 +608,9 @@ class DBPlot(odict):
                 "Sweep", "Components", "PlotOptions", "TargetOptions"]:
             # Save the property, defaulting to the last dict
             self[k] = kw.get(k, defs.get(k))
+        # Make sure "Components" is a list.
+        if type(self["Components"]).__name__ not in ['list', 'ndarray']:
+            self["Components"] = [self["Components"]]
             
     # Function to get the plot options
     def get_PlotOptions(self, i=None):
@@ -653,3 +656,24 @@ class DBPlot(odict):
         # Create dict of non-list
         return {k: getel(o_plt[k], i) for k in o_plt}
             
+    # Get the component name.
+    def get_Component(self, i=None):
+        """Get the component name of plot *i*
+        
+        :Call:
+            >>> comp = DBP.get_Component(i=None)
+        :Inputs:
+            *DBP*: :class:`pyCart.options.DataBook.DBPlot`
+                Instance of databook plot options class
+            *i*: :class:`int` or ``None``
+                Plot index to extract options for
+        :Outputs:
+            *comp*: :class:`str`
+                Name of component
+        :Versions:
+            * 2014-12-28 ``@ddalle``: First version
+        """
+        # Extract component(s)
+        comps = self.get("Components", [])
+        # Extract safely.
+        return getel(comps, i)

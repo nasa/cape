@@ -368,8 +368,85 @@ class DataBook(dict):
         # Axes labels.
         plt.xlabel(DBP["XLabel"])
         plt.ylabel(DBP["YLabel"])
+        # Add the restriction text.
+        txt = DBP.get('Restriction', '')
+        self.restriction = plt.figtext(0.5, 0.01, txt,
+            horizontalalignment='center')
+        # Initialize the tag (states variables that are constant)
+        self.tag = plt.figtext(0.015, 0.985, '', verticalalignment='top')
         
-    # Function to 
+    # Function to create a plot for an individual sweep
+    def PlotSweep(self, I, i):
+        """Create databook plot *i* for a single sweep
+        
+        :Call:
+            >>> DB.PlotSweep(I, i)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices in sweep
+            *i*: :class:`int`
+                Index of data book plot to initialize
+        :Versions:
+            * 2014-12-28 ``@ddalle``: First version
+        """
+        # Initialize a component plot.
+        self.InitPlot(i)
+        # Extract the options.
+        DBP = self.opts.get_DataBookPlots()[i]
+        # Axis variables
+        xv = DBP["XAxis"]
+        yv = DBP["YAxis"]
+        # Sweep specifications
+        kw = DBP["Sweep"]
+        # Get the components.
+        comps = DBP["Components"]
+        # Loop through the components.
+        for j in range(len(comps)):
+            # Get the component.
+            DBc = self[comps[j]]
+            # Plot it.
+            DBc.PlotSweep(I, i, j)
+            # Check for a target.
+            if DBc.targs.get(yv) is None: continue
+            # Target indicies
+            it, ct = self.GetTargetIndex(DBc.targs.get(yv))
+            # Extract the target.
+            DBT = self.Targets[it]
+            # Get the sweep.
+            It = DBT.FindSweep(DBc, I[0], key=xv, **kw)
+            # Plot the target sweep.
+            DBT.PlotSweep(It, i, j)
+            
+            
+            
+        
+        
+        
+        
+    # Function to create a plot for an individual sweep
+    def Plot(self, i):
+        """Create databook plot *i* for a single sweep
+        
+        :Call:
+            >>> DB.Plot(i)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *i*: :class:`int`
+                Index of data book plot to initialize
+        :Versions:
+            * 2014-12-28 ``@ddalle``: First version
+        """
+        # Make sure the plotting modules are present.
+        ImportPyPlot()
+        # Extract the options.
+        DBP = self.opts.get_DataBookPlots()[i]
+        # File name. (e.g. "db_RSRB-LSRB_CY.pdf"
+        fname = 'db_%s_%s.pdf' % ("-".join(DBP["Components"]),  DBP["YAxis"])
+        # Save plot file name.
+        self.figname = fname
     
                 
 # Individual component data book
@@ -763,19 +840,8 @@ class DBComp(dict):
         yv = DBP['YAxis']
         # Get the options
         o_plt = DBP.get_PlotOptions(j)
-        # Extract the filter keys used.
-        keys = DBP['Sweep']
         # Initialize the label.
-        lbl = xv
-        # Loop through sweep keys.
-        for k in keys:
-            # Check the variable type.
-            if self.x.defns[k]["Value"] == "float":
-                # Use a short float.
-                lbl += (", %.2f" % self[k][I[0]])
-            else:
-                # USe the direct string.
-                lbl += (", %s" % self[k][I[0]])
+        lbl = self.comp
         # Plot
         line = plt.plot(self[xv][I], self[yv][I], label=lbl, **o_plt)[0]
         # Output.
@@ -812,7 +878,8 @@ class DBTarget(dict):
             * 2014-12-21 ``@ddalle``: First version
         """
         # Save the target options
-        self.opts = targ
+        self.opts = opts
+        self.topts = targ
         # Source file
         fname = targ.get_TargetFile()
         # Name of this target.
@@ -923,11 +990,11 @@ class DBTarget(dict):
         j = np.arange(self.data.shape[0])
         # Get the trajectory key translations.   This determines which keys to
         # filter and what those keys are called in the source file.
-        tkeys = self.opts.get_Trajectory()
+        tkeys = self.topts.get_Trajectory()
         # Loop through keys requested for matches.
         for k in tkeys:
             # Get the tolerance.
-            tol = self.opts.get_Tol(k)
+            tol = self.topts.get_Tol(k)
             # Get the target value (from the trajectory)
             v = getattr(x,k)[i]
             # Get the name of the column according to the source file.
@@ -970,7 +1037,7 @@ class DBTarget(dict):
         j = np.arange(self.data.shape[0])
         # Get the trajectory key translations.   This determines which keys to
         # filter and what those keys are called in the source file.
-        tkeys = self.opts.get_Trajectory()
+        tkeys = self.topts.get_Trajectory()
         # Get default key if necessary.
         if (key is None):
             # Use the default value.
@@ -1010,6 +1077,51 @@ class DBTarget(dict):
                 return np.array([])
         # Output.
         return j
+        
+    # Function to plot a single sweep.
+    def PlotSweep(self, I, i, j=0):
+        """Plot a fixed set of indices with known options
+        
+        :Call:
+            >>> line = DBT.PlotSweep(I, i, j=0)
+        :Inputs:
+            *DBT*: :class:`pyCart.dataBook.DBTarget`
+                Instance of the pyCart data book target data carrier
+            *I*: :class:`list` (:class:`numpy.ndarray` (:class:`int`))
+                List of sweep arrays
+            *i*: :class:`int`
+                Index of data book target plot options to use
+            *j*: :class:`int`
+                Index of plot options to use (if there are multiple components)
+        :Outputs:
+            *line*: :class:`matplotlib.lines.Line2D`
+                Handle for the sweep line that is drawn
+        :Versions:
+            * 2014-12-27 ``@ddalle``: First version
+        """
+        # Ensure plot modules are loaded
+        ImportPyPlot()
+        # Extract the options.
+        DBP = self.opts.get_DataBookPlots()[i]
+        # Determine what component we're plotting.
+        comp = DBP.get_Component(j)
+        # Determine the axes.
+        xv = DBP['XAxis']
+        yv = DBP['YAxis']
+        # Convert trajectory variable into target column.
+        xt = self.topts.get_Trajectory().get(xv)
+        # Convert y-axis variable into target column.
+        yt = self.opts.get_CompTarget(comp).get(yv)
+        # Make sure something was found.
+        if yt is None: return
+        # Get the options
+        o_plt = DBP.get_TargetOptions(j)
+        # Initialize the label.
+        lbl = '%s, %s' % (self.Name, comp)
+        # Plot
+        line = plt.plot(self[xt][I], self[yt][I], label=lbl, **o_plt)[0]
+        # Output.
+        return line
         
         
 # Aerodynamic history class
