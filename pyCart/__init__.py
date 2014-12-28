@@ -71,7 +71,7 @@ _fname = os.path.abspath(__file__)
 
 # Saved folder names
 PyCartFolder = os.path.split(_fname)[0]
-TemplateFodler = os.path.join(PyCartFolder, "templates")
+TemplateFolder = os.path.join(PyCartFolder, "templates")
 
 
 # Import classes and methods from the submodules
@@ -84,7 +84,6 @@ from case   import ReadCaseJSON, run_flowCart
 from inputCntl   import InputCntl
 from aeroCsh     import AeroCsh
 from preSpecCntl import PreSpecCntl
-
 
 # Get the conversion tools directly.
 from convert import *

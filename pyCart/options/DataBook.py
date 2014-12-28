@@ -2,7 +2,7 @@
 
 
 # Import options-specific utilities
-from util import rc0, odict
+from util import rc0, odict, getel
 
 
 # Class for autoInputs
@@ -45,6 +45,30 @@ class DataBook(odict):
         for targ in targs:
             # Convert to special class.
             self['Targets'].append(DBTarget(**targ))
+            
+    # Get the plot options.
+    def _DBPlot(self):
+        """Initialize plot options"""
+        # Check if missing entirely.
+        if 'Plot' not in self:
+            # Empty.
+            self['Plot'] = []
+            return None
+        # Read the plots
+        o_plt = self['Plot']
+        # Check the type.
+        if type(o_plt).__name__ == 'dict':
+            # Convert to singleton list.
+            o_plt = [o_plt]
+        elif type(o_plt).__name__ not in ['list', 'ndarray']:
+            # Invalid
+            raise IOError('Data book plot options must be a list.')
+        # Initialize the plots.
+        self['Plots'] = []
+        # Loop through the plots
+        for o_i in o_plt:
+            # Convert to special class.
+            self['Plots'].append(DBPlot(**o_i))
     
     # Get the list of components.
     def get_DataBookComponents(self):
@@ -175,16 +199,16 @@ class DataBook(odict):
                                                 
     # Get the targets
     def get_DataBookTargets(self):
-        """Get the list of components to be used for the data book
+        """Get the list of targets to be used for the data book
         
         :Call:
-            >>> comps = opts.get_DataBookTargets()
+            >>> targets = opts.get_DataBookTargets()
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
         :Outputs:
             *targets*: :class:`list` (:class:`dict`)
-                List of components
+                List of targets
         :Versions:
             * 2014-12-20 ``@ddalle``: First version
         """
@@ -199,6 +223,33 @@ class DataBook(odict):
                 raise IOError("Target '%s' is not a DBTarget." % targ)
         # Output
         return targets
+        
+    # Get the plots
+    def get_DataBookPlots(self):
+        """Get the list of data book plots
+        
+        :Call:
+            >>> o_plt = opts.get_DataBookPlots()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *o_plt*: :class:`list` (:class:`pyCart.options.DataBook.DBPlot`)
+                List of data book plot descriptors
+        :Versions:
+            * 2014-12-20 ``@ddalle``: First version
+        """
+        # Get the value from the dictionary.
+        o_plt = self.get('Plot', [])
+        # Make sure it's a list.
+        if type(o_plt).__name__ not in ['list']:
+            o_plt = [o_plt]
+        # Check contents.
+        for o_i in o_plt:
+            if (type(o_i).__name__ not in ['DBPlot']):
+                raise IOError("Plot '%s' is not a DBPlot." % o_i)
+        # Output
+        return o_plt
         
     # Get the coefficients for a specific component
     def get_DataBookCoeffs(self, comp):
@@ -515,3 +566,85 @@ class DBTarget(odict):
             # Try to return the specific tolerance.
             return tols.get(k, dtol)
 
+# Class for target data
+class DBPlot(odict):
+    """Dictionary-based interface for databook plots
+    
+    :Call:
+        >>> DBP = DBPlot(defs={}, **kw)
+    :Inputs:
+        *defs*: :class:`dict`
+            Dictionary of default options from previous dictionary.
+        *XAxis*: :class:`str`
+            Name of variable to use for *x* axis
+        *XLabel*: :class:`str`
+            Label for *x* axis of plots
+        *YAxis*: :class:`str`
+            Name of variable to plot
+        *YLabel*: :class:`str`
+            Label for *y* axis of plots
+        *Tolerances*: :class:`dict`
+            Dict of trajectory keys to hold constant, and their tolerances
+        *Restriction*: :class:`str`
+            Text label for limited distribution, e.g. "ITAR"
+        *PlotOptions*: :class:`dict`
+            Dict of options passed to :func:`matplotlib.pyplot.plot`
+    :Outputs:
+        *DBP*: :class:`pyCart.options.DataBook.DBPlot`
+            Instance of databook plot options class
+    :Versions:
+        * 2014-12-27 ``@ddalle``: First version
+    """
+    
+    # Initialization method
+    def __init__(self, defs={}, **kw):
+        # Loop through recognized keys.
+        for k in ["XAxis", "XLabel", "YAxis", "YLabel", "Restriction",
+                "Sweep", "Coefficients", "PlotOptions", "TargetOptions"]:
+            # Save the property, defaulting to the last dict
+            self[k] = kw.get(k, defs.get(k))
+            
+    # Function to get the plot options
+    def get_PlotOptions(self, i=None):
+        """Get the plot options for component *i*
+        
+        :Call:
+            >>> o_plt = DBP.get_PlotOptions(i=None)
+        :Inputs:
+            *DBP*: :class:`pyCart.options.DataBook.DBPlot`
+                Instance of databook plot options class
+            *i*: :class:`int` or ``None``
+                Plot index to extract options for
+        :Outputs:
+            *o_plt*: :class:`dict`
+                Dictionary of plot options
+        :Versions:
+            * 2014-12-27 ``@ddalle``: First version
+        """
+        # Extract option keys
+        o_plt = self["PlotOptions"]
+        # Create dict of non-list
+        o_plt {k: getel(o_plt[k], i) for k in o_plt}
+        
+    # Get the target options.
+    def get_TargetOptions(self, i=None):
+        """Get the plot options for target *i*
+        
+        :Call:
+            >>> o_plt = DBP.get_TargetOptions(i=None)
+        :Inputs:
+            *DBP*: :class:`pyCart.options.DataBook.DBPlot`
+                Instance of databook plot options class
+            *i*: :class:`int` or ``None``
+                Plot index to extract options for
+        :Outputs:
+            *o_plt*: :class:`dict`
+                Dictionary of plot options
+        :Versions:
+            * 2014-12-27 ``@ddalle``: First version
+        """
+        # Extract option keys
+        o_plt = self["TargetOptions"]
+        # Create dict of non-list
+        o_plt {k: getel(o_plt[k], i) for k in o_plt}
+            

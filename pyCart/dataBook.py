@@ -34,6 +34,11 @@ dmask = 0777 - umask
 # ---------------------------------
 #-->
 
+# Placeholder variables for plotting functions.
+plt = 0
+Text = 0
+PdfPages = 0
+
 # Dedicated function to load Matplotlib only when needed.
 def ImportPyPlot():
     """Import :mod:`matplotlib.pyplot` if not loaded
@@ -45,8 +50,12 @@ def ImportPyPlot():
     """
     # Check for PyPlot.
     try:
-        plt
-    except NameError:
+        plt.gcf
+    except AttributeError:
+        # Make global variables
+        global plt
+        global Text
+        global PdfPages
         # Load the modules.
         import matplotlib.pyplot as plt
         from matplotlib.text import Text
@@ -335,21 +344,33 @@ class DataBook(dict):
         return i, c
             
     # Initialize a sweep plot
-    def InitPlot(self, key, c):
-        """
+    def InitPlot(self, i):
+        """Initialize databook plot *i*
+        
+        :Call:
+            >>> DB.InitPlot(i)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *i*: :class:`int`
+                Index of data book plot to initialize
+        :Versions:
+            * 2014-12-27 ``@ddalle``: First version
         """
         # Make sure the plotting modules are present.
         ImportPyPlot()
+        # Extract the options.
+        DBP = self.opts.get_DataBookPlots()[i]
         # Open a figure.
-        hf = plt.figure()
-        # Set the xaxes.
-        ha = plt.gca()
+        self.fig = plt.figure()
+        # Save the axes.
+        self.ax = plt.gca()
         # Axes labels.
-        plt.xlabel('%s' % key)
-        plt.ylabel('%s' % c)
-        # Output
-        return hf
-                
+        plt.xlabel(DBP["XLabel"])
+        plt.ylabel(DBP["YLabel"])
+        
+    # Function to 
+    
                 
 # Individual component data book
 class DBComp(dict):
@@ -712,7 +733,52 @@ class DBComp(dict):
         # Output.
         return I
         
-    # Function to plot a single sweep
+    # Function to plot a single sweep.
+    def PlotSweep(self, I, i):
+        """Plot a fixed set of indices with known options
+        
+        :Call:
+            >>> line = DBi.PlotSweep(I, i)
+        :Inputs:
+            *DBi*: :class:`pyCart.dataBook.DBComp`
+                Instance of the pyCart data book component
+            *I*: :class:`list` (:class:`numpy.ndarray` (:class:`int`))
+                List of sweep arrays
+            *i*: :class:`int`
+                Index of data book plot options to use
+        :Outputs:
+            *line*: :class:`matplotlib.lines.Line2D`
+                Handle for the sweep line that is drawn
+        :Versions:
+            * 2014-12-27 ``@ddalle``: First version
+        """
+        # Ensure plot modules are loaded
+        ImportPyPlot()
+        # Extract the options.
+        DBP = self.opts.get_DataBookPlots()[i]
+        # Determine the axes.
+        xv = DBP['XAxis']
+        yv = DBP['YAxis']
+        # Get the options
+        o_plt = DBP.get_PlotOptions(i)
+        # Extract the filter keys used.
+        keys = DBP['Sweep']
+        # Initialize the label.
+        lbl = xv
+        # Loop through sweep keys.
+        for k in keys:
+            # Check the variable type.
+            if self.x.defns[k]["Value"] == "float":
+                # Use a short float.
+                lbl += (", %.2f" % self[k][I[0]])
+            else:
+                # USe the direct string.
+                lbl += (", %s" % self[k][I[0]])
+        # Plot
+        line = plt.plot(self[xv][I], self[yv][I], **o_plt, label=lbl)[0]
+        # Output.
+        return line
+        
         
         
 # Data book target instance

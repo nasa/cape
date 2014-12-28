@@ -157,7 +157,18 @@
             "Tolerances": 0.01
         }],
         // Different plots to make
-
+        "Plot": [{
+            "XAxis": "dxR",
+            "XLabel": "Axial SRB Displacement [in]",
+            "YAxis": "CY",
+            "YLabel": "Side force coefficient (CY)",
+            "Components": ["RSRB_No_Base", "SSRB_No_Base"],
+            "Restriction": "SBU - ITAR",
+            "Sweep": {
+                "dyR": 0.05, "dzR": 0.05, "dthetaR": 0.05, "dphiR": 0.05},
+            "PlotOptions": {"lw": 2, "color": "k", "marker": "^"},
+            "TargetOptions": {"lw": 1.5, "color": "r", "marker": "o"}
+        }],
         // Information about each component.
         // (Available information read from loadsCC.dat)
         "CORE_No_Base": {
