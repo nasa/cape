@@ -624,7 +624,7 @@ class DBPlot(odict):
         # Extract option keys
         o_plt = self["PlotOptions"]
         # Create dict of non-list
-        o_plt {k: getel(o_plt[k], i) for k in o_plt}
+        o_plt = {k: getel(o_plt[k], i) for k in o_plt}
         
     # Get the target options.
     def get_TargetOptions(self, i=None):
@@ -646,5 +646,5 @@ class DBPlot(odict):
         # Extract option keys
         o_plt = self["TargetOptions"]
         # Create dict of non-list
-        o_plt {k: getel(o_plt[k], i) for k in o_plt}
+        o_plt = {k: getel(o_plt[k], i) for k in o_plt}
             

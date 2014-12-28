@@ -48,14 +48,14 @@ def ImportPyPlot():
     :Versions:
         * 2014-12-27 ``@ddalle``: First version
     """
+    # Make global variables
+    global plt
+    global Text
+    global PdfPages
     # Check for PyPlot.
     try:
         plt.gcf
     except AttributeError:
-        # Make global variables
-        global plt
-        global Text
-        global PdfPages
         # Load the modules.
         import matplotlib.pyplot as plt
         from matplotlib.text import Text
@@ -775,7 +775,7 @@ class DBComp(dict):
                 # USe the direct string.
                 lbl += (", %s" % self[k][I[0]])
         # Plot
-        line = plt.plot(self[xv][I], self[yv][I], **o_plt, label=lbl)[0]
+        line = plt.plot(self[xv][I], self[yv][I], label=lbl, **o_plt)[0]
         # Output.
         return line
         
