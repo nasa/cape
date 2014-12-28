@@ -734,11 +734,11 @@ class DBComp(dict):
         return I
         
     # Function to plot a single sweep.
-    def PlotSweep(self, I, i):
+    def PlotSweep(self, I, i, j=0):
         """Plot a fixed set of indices with known options
         
         :Call:
-            >>> line = DBi.PlotSweep(I, i)
+            >>> line = DBi.PlotSweep(I, i, j=0)
         :Inputs:
             *DBi*: :class:`pyCart.dataBook.DBComp`
                 Instance of the pyCart data book component
@@ -746,6 +746,8 @@ class DBComp(dict):
                 List of sweep arrays
             *i*: :class:`int`
                 Index of data book plot options to use
+            *j*: :class:`int`
+                Index of plot options to use (if there are multiple components)
         :Outputs:
             *line*: :class:`matplotlib.lines.Line2D`
                 Handle for the sweep line that is drawn
@@ -760,7 +762,7 @@ class DBComp(dict):
         xv = DBP['XAxis']
         yv = DBP['YAxis']
         # Get the options
-        o_plt = DBP.get_PlotOptions(i)
+        o_plt = DBP.get_PlotOptions(j)
         # Extract the filter keys used.
         keys = DBP['Sweep']
         # Initialize the label.

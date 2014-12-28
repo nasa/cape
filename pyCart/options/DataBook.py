@@ -67,13 +67,13 @@ class DataBook(odict):
         # Initialize the plots.
         self['Plot'] = []
         # Initialize if possible.
-        for i in range(0, len(o_plt)):
+        if len(o_plt) > 0:
             # Convert to special class.
             self['Plot'].append(DBPlot(**o_plt[0]))
         # Loop through the plots
         for i in range(1, len(o_plt)):
             # Initialize with previous object.
-            self['Plot'].append(DBPlot(defs=self['Plots'][i-1], **o_plt[i]))
+            self['Plot'].append(DBPlot(defs=self['Plot'][i-1], **o_plt[i]))
     
     # Get the list of components.
     def get_DataBookComponents(self):
@@ -605,7 +605,7 @@ class DBPlot(odict):
     def __init__(self, defs={}, **kw):
         # Loop through recognized keys.
         for k in ["XAxis", "XLabel", "YAxis", "YLabel", "Restriction",
-                "Sweep", "Coefficients", "PlotOptions", "TargetOptions"]:
+                "Sweep", "Components", "PlotOptions", "TargetOptions"]:
             # Save the property, defaulting to the last dict
             self[k] = kw.get(k, defs.get(k))
             
@@ -627,9 +627,9 @@ class DBPlot(odict):
             * 2014-12-27 ``@ddalle``: First version
         """
         # Extract option keys
-        o_plt = self["PlotOptions"]
+        o_plt = self.get("PlotOptions", {})
         # Create dict of non-list
-        o_plt = {k: getel(o_plt[k], i) for k in o_plt}
+        return {k: getel(o_plt[k], i) for k in o_plt}
         
     # Get the target options.
     def get_TargetOptions(self, i=None):
@@ -649,7 +649,7 @@ class DBPlot(odict):
             * 2014-12-27 ``@ddalle``: First version
         """
         # Extract option keys
-        o_plt = self["TargetOptions"]
+        o_plt = self.get("TargetOptions", {})
         # Create dict of non-list
-        o_plt = {k: getel(o_plt[k], i) for k in o_plt}
+        return {k: getel(o_plt[k], i) for k in o_plt}
             
