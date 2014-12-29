@@ -432,7 +432,7 @@ class DataBook(dict):
         self.ax.set_ylim((ylim[0], 1.22*ylim[1]-0.22*ylim[0]))
         # Activate legend.
         self.legend = self.ax.legend(loc='upper center', fontsize='small',
-            bbox_to_anchor=(0.5, 1.05), labelspacing=1)
+            bbox_to_anchor=(0.5, 1.05), labelspacing=0.5)
         # Figure tag list.
         tags = []
         # Loop through sweep parameters.
