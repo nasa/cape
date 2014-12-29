@@ -153,19 +153,24 @@ class DataBook(dict):
             self[comp].Write()
             
     # Update data book
-    def UpdateDataBook(self, I):
+    def UpdateDataBook(self, I=None):
         """Update the data book for a list of cases from the run matrix
         
         :Call:
+            >>> DB.UpdateDataBook()
             >>> DB.UpdateDataBook(I)
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pyCart data book class
-            *I*: :class:`list` (:class:`int`)
-                List of trajectory indices
+            *I*: :class:`list` (:class:`int`) or ``None``
+                List of trajectory indices or update all cases in trajectory
         :Versions:
             * 2014-12-22 ``@ddalle``: First version
         """
+        # Default.
+        if I is None:
+            # Use all trajectory points.
+            I = range(self.x.nCase)
         # Loop through indices.
         for i in I:
             self.UpdateCase(i)
@@ -1143,7 +1148,7 @@ class DBTarget(dict):
                 # No match or failed test.
                 return np.array([])
         # Get the order that would sort *j*.
-        jo = np.argsort(self[key][j])
+        jo = np.argsort(self[tkeys[key]][j])
         # Output (sorted)
         return j[jo]
         

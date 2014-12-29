@@ -245,6 +245,44 @@ class Cart3d(object):
         # Return to original location.
         os.chdir(fpwd)
         
+    # Function to read the databook.
+    def ReadDataBook(self):
+        """Read the current data book
+        
+        :Call:
+            >>> cart3d.ReadDataBook()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+        :Versions:
+            * 2014-12-28 ``@ddalle``: First version
+        """
+        # Test for an existing data book.
+        try:
+            self.DataBook
+            return
+        except AttributeError:
+            pass
+        # Read the data book.
+        self.DataBook = DataBook(self.x, self.opts)
+        
+    # Function to plot the databook.
+    def PlotDataBook(self):
+        """Plot all data book plots as specified in options
+        
+        :Call:
+            >>> cart3d.PlotDataBook()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+        :Versions:
+            * 2014-12-28 ``@ddalle``: First version
+        """
+        # Make sure the data book is present.
+        self.ReadDataBook()
+        # Get the plot options.
+        
+        
     # Function to collect statistics
     def Aero(self, **kw):
         """Collect force and moment data
@@ -270,16 +308,14 @@ class Cart3d(object):
         os.chdir(self.RootDir)
         # Apply constraints
         I = self.x.Filter(kw.get('cons', []))
-        # Read the existing data book
-        DB = DataBook(self.x, self.opts)
+        # Read the existing data book.
+        self.ReadDataBook()
         # Read the results and update as necessary.
-        DB.UpdateDataBook(I)
+        self.DataBook.UpdateDataBook(I)
         # Write the data book to file.
-        DB.Write()
+        self.DataBook.Write()
         # Return to original location.
         os.chdir(fpwd)
-        # Save the data book
-        self.DataBook = DB
             
         
     # Function to plot most recent results.
