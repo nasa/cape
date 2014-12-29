@@ -281,6 +281,11 @@ class Cart3d(object):
         # Make sure the data book is present.
         self.ReadDataBook()
         # Get the plot options.
+        DBPs = self.opts.get_DataBookPlots()
+        # Loop through them.
+        for i in range(len(DBPs)):
+            # Plot it using pyCart.DataBook.Plot
+            self.DataBook.Plot(i)
         
         
     # Function to collect statistics
