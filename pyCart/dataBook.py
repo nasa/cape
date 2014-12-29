@@ -905,6 +905,7 @@ class DBComp(dict):
                 Handles for the sweep line that is drawn
         :Versions:
             * 2014-12-27 ``@ddalle``: First version
+            * 2014-12-29 ``@ddalle``: Added min/max and standard deviation
         """
         # Ensure plot modules are loaded
         ImportPyPlot()
@@ -945,7 +946,7 @@ class DBComp(dict):
         # Plot
         lines += plt.plot(self[xv][I], self[yv][I], label=lbl, **o_plt)
         # Output.
-        return line
+        return lines
         
         
         
