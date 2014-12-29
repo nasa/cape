@@ -433,6 +433,10 @@ class DataBook(dict):
         # Activate legend.
         self.legend = self.ax.legend(loc='upper center',
             bbox_to_anchor=(0.5, 1.05))
+        # Make the text size smaller.
+        for ht in self.legend.get_texts():
+            # Decrease the size.
+            ht.set_size('small')
         # Figure tag list.
         tags = []
         # Loop through sweep parameters.
