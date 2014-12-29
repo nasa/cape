@@ -284,6 +284,9 @@ class Cart3d(object):
         DBPs = self.opts.get_DataBookPlots()
         # Loop through them.
         for i in range(len(DBPs)):
+            # Status update.
+            print("Plot %2i: %s/%s" % 
+                (i, DBPs[i]['Components'][0], DBPs[i]['YAxis']))
             # Plot it using pyCart.DataBook.Plot
             self.DataBook.Plot(i)
         

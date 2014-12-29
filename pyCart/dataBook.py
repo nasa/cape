@@ -890,7 +890,7 @@ class DBComp(dict):
         """Plot a fixed set of indices with known options
         
         :Call:
-            >>> line = DBi.PlotSweep(I, i, j=0)
+            >>> lines = DBi.PlotSweep(I, i, j=0)
         :Inputs:
             *DBi*: :class:`pyCart.dataBook.DBComp`
                 Instance of the pyCart data book component
@@ -901,8 +901,8 @@ class DBComp(dict):
             *j*: :class:`int`
                 Index of plot options to use (if there are multiple components)
         :Outputs:
-            *line*: :class:`matplotlib.lines.Line2D`
-                Handle for the sweep line that is drawn
+            *lines*: :class:`list` (:class:`matplotlib.lines.Line2D`)
+                Handles for the sweep line that is drawn
         :Versions:
             * 2014-12-27 ``@ddalle``: First version
         """
@@ -913,12 +913,37 @@ class DBComp(dict):
         # Determine the axes.
         xv = DBP['XAxis']
         yv = DBP['YAxis']
+        # Initialize output.
+        lines = []
+        # Check for min/max
+        if DBP['MinMax'] and self.opts.get_nStats():
+            # Get the min/max plot options
+            o_plt = DBP.get_MinMaxOptions(j)
+            # Initialize the label.
+            lbl = '%s/Min-Max' % self.comp
+            # Plot it.
+            lines += plt.fill_between(self[xv][I],
+                self[yv+'_min'][I], self[yv+'_max'][I], label=lbl, **o_plt)
+        # Check for standard deviation.
+        if DBP['StandardDeviation'] and self.opts.get_nStats():
+            # Get the standard deviation plot options.
+            o_plt = DBP.get_StDevOptions(j)
+            # Multiplier.
+            ksig = DBP['StandardDeviation']
+            # Initialize the label.  (e.g. CORE/3\sigma)
+            lbl = u'%s/%i\u03C3' % (self.comp, ksig)\
+            # Extract values
+            y = self[yv][I]
+            s = self[yv+'_std'][I]
+            # Plot it.
+            lines += plt.fill_between(self[xv][I],
+                y-ksig*s, y+ksig*s, label=lbl, **o_plt)
         # Get the options
         o_plt = DBP.get_PlotOptions(j)
         # Initialize the label.
         lbl = self.comp
         # Plot
-        line = plt.plot(self[xv][I], self[yv][I], label=lbl, **o_plt)[0]
+        lines += plt.plot(self[xv][I], self[yv][I], label=lbl, **o_plt)
         # Output.
         return line
         
