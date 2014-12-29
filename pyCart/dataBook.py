@@ -516,7 +516,7 @@ class DBComp(dict):
         # Initialize string
         lbl = "<DBComp %s," % self.comp
         # Add the number of conditions.
-        lbl += "nCase=%i>" % self[self.Components[0]].n
+        lbl += "nCase=%i>" % self.n
         # Output
         return lbl
     # String conversion
@@ -1111,7 +1111,7 @@ class DBTarget(dict):
         # Convert trajectory variable into target column.
         xt = self.topts.get_Trajectory().get(xv)
         # Convert y-axis variable into target column.
-        yt = self.opts.get_CompTarget(comp).get(yv)
+        yt = self.opts.get_CompTargets(comp).get(yv)
         # Make sure something was found.
         if yt is None: return
         # Get the options
