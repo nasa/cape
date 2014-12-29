@@ -923,8 +923,8 @@ class DBComp(dict):
             # Initialize the label.
             lbl = '%s/Min-Max' % self.comp
             # Plot it.
-            lines += plt.fill_between(self[xv][I],
-                self[yv+'_min'][I], self[yv+'_max'][I], label=lbl, **o_plt)
+            lines.append(plt.fill_between(self[xv][I],
+                self[yv+'_min'][I], self[yv+'_max'][I], label=lbl, **o_plt))
         # Check for standard deviation.
         if DBP['StandardDeviation'] and self.opts.get_nStats():
             # Get the standard deviation plot options.
@@ -937,8 +937,8 @@ class DBComp(dict):
             y = self[yv][I]
             s = self[yv+'_std'][I]
             # Plot it.
-            lines += plt.fill_between(self[xv][I],
-                y-ksig*s, y+ksig*s, label=lbl, **o_plt)
+            lines.append(plt.fill_between(self[xv][I],
+                y-ksig*s, y+ksig*s, label=lbl, **o_plt))
         # Get the options
         o_plt = DBP.get_PlotOptions(j)
         # Initialize the label.
