@@ -594,6 +594,18 @@ class DBPlot(odict):
             Text label for limited distribution, e.g. "ITAR"
         *PlotOptions*: :class:`dict`
             Dict of options passed to :func:`matplotlib.pyplot.plot`
+        *TargetOptions*: :class:`dict`
+            Dict of plot options for target lines
+        *Output*: :class:`str`  [ 'PDF' | 'PNG' | 'SVG' ]
+            Extension for optional individual plots (no output otherwise)
+        *StandardDeviation*: :class:`float`
+            Multiple of standard deviation to show (only show if >0)
+        *MinMax*: :class:`bool`
+            Whether or not to plot min and max from iterative history
+        *MinMaxOptions*: :class:`dict`
+            Options for min/max plot to :func:`matplotlib.pyplot.fill_between`
+        *StDevOptions*: :class:`dict`
+            Plot options for standard deviation plot 
     :Outputs:
         *DBP*: :class:`pyCart.options.DataBook.DBPlot`
             Instance of databook plot options class
@@ -605,7 +617,9 @@ class DBPlot(odict):
     def __init__(self, defs={}, **kw):
         # Loop through recognized keys.
         for k in ["XAxis", "XLabel", "YAxis", "YLabel", "Restriction",
-                "Sweep", "Components", "PlotOptions", "TargetOptions"]:
+                "Sweep", "Components", "Output", "StandardDeviation", "MinMax", 
+                "PlotOptions", "TargetOptions",
+                "MinMaxOptions", "StDevOptions"]:
             # Save the property, defaulting to the last dict
             self[k] = kw.get(k, defs.get(k))
         # Make sure "Components" is a list.
@@ -632,7 +646,12 @@ class DBPlot(odict):
         # Extract option keys
         o_plt = self.get("PlotOptions", {})
         # Create dict of non-list
-        return {k: getel(o_plt[k], i) for k in o_plt}
+        o_plt = {k: getel(o_plt[k], i) for k in o_plt}
+        # Set some defaults.
+        o_plt.setdefault("color", "k")
+        o_plt.setdefault("marker", "^")
+        # Output
+        retur o_plt
         
     # Get the target options.
     def get_TargetOptions(self, i=None):
@@ -654,7 +673,70 @@ class DBPlot(odict):
         # Extract option keys
         o_plt = self.get("TargetOptions", {})
         # Create dict of non-list
-        return {k: getel(o_plt[k], i) for k in o_plt}
+        o_plt = {k: getel(o_plt[k], i) for k in o_plt}
+        # Set some defaults.
+        o_plt.setdefault("color", "r")
+        o_plt.setdefault("marker", "o")
+        # Output
+        retur o_plt
+        
+    # Get the target options.
+    def get_MinMaxOptions(self, i=None):
+        """Get the plot options for min/max plot *i*
+        
+        :Call:
+            >>> o_plt = DBP.get_MinMaxOptions(i=None)
+        :Inputs:
+            *DBP*: :class:`pyCart.options.DataBook.DBPlot`
+                Instance of databook plot options class
+            *i*: :class:`int` or ``None``
+                Plot index to extract options for
+        :Outputs:
+            *o_plt*: :class:`dict`
+                Dictionary of plot options
+        :Versions:
+            * 2014-12-28 ``@ddalle``: First version
+        """
+        # Extract option keys
+        o_plt = self.get("MinMaxOptions", {})
+        # Create dict of non-list
+        o_plt = {k: getel(o_plt[k], i) for k in o_plt}
+        # Set some defaults.
+        o_plt.setdefault("color", self.get_PlotOptions(i).get("color", "k"))
+        o_plt.setdefault("facecolor", o_plt["color"])
+        o_plt.setdefault("marker", "None")
+        o_plt.setdefault("alpha", 0.5)
+        # Output
+        retur o_plt
+        
+    # Get the target options.
+    def get_StDevOptions(self, i=None):
+        """Get the plot options for standard deviation plot *i*
+        
+        :Call:
+            >>> o_plt = DBP.get_MinMaxOptions(i=None)
+        :Inputs:
+            *DBP*: :class:`pyCart.options.DataBook.DBPlot`
+                Instance of databook plot options class
+            *i*: :class:`int` or ``None``
+                Plot index to extract options for
+        :Outputs:
+            *o_plt*: :class:`dict`
+                Dictionary of plot options
+        :Versions:
+            * 2014-12-28 ``@ddalle``: First version
+        """
+        # Extract option keys
+        o_plt = self.get("StDevOptions", {})
+        # Create dict of non-list
+        o_plt = {k: getel(o_plt[k], i) for k in o_plt}
+        # Set some defaults.
+        o_plt.setdefault("color", self.get_PlotOptions(i).get("color", "k"))
+        o_plt.setdefault("facecolor", o_plt["color"])
+        o_plt.setdefault("marker", "None")
+        o_plt.setdefault("alpha", 0.5)
+        # Output
+        retur o_plt
             
     # Get the component name.
     def get_Component(self, i=None):
@@ -677,3 +759,5 @@ class DBPlot(odict):
         comps = self.get("Components", [])
         # Extract safely.
         return getel(comps, i)
+    
+    

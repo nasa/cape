@@ -36,7 +36,6 @@ dmask = 0777 - umask
 
 # Placeholder variables for plotting functions.
 plt = 0
-Text = 0
 PdfPages = 0
 
 # Dedicated function to load Matplotlib only when needed.
@@ -50,7 +49,6 @@ def ImportPyPlot():
     """
     # Make global variables
     global plt
-    global Text
     global PdfPages
     # Check for PyPlot.
     try:
@@ -58,7 +56,6 @@ def ImportPyPlot():
     except AttributeError:
         # Load the modules.
         import matplotlib.pyplot as plt
-        from matplotlib.text import Text
         from matplotlib.backends.backend_pdf import PdfPages
 
 
@@ -372,6 +369,13 @@ class DataBook(dict):
         txt = DBP.get('Restriction', '')
         self.restriction = plt.figtext(0.5, 0.01, txt,
             horizontalalignment='center')
+        # Compress the plot slightly if there's a restriction.
+        if len(txt) > 0:
+            # Get the position.
+            box = self.ax.get_position()
+            # Move it up slightly.
+            self.ax.set_position(
+                [box.x0, box.y0+0.05*box.height, box.width, 0.95*box.height])
         # Initialize the tag (states variables that are constant)
         self.tag = plt.figtext(0.015, 0.985, '', verticalalignment='top')
         
@@ -418,10 +422,27 @@ class DataBook(dict):
             It = DBT.FindSweep(DBc, I[0], key=xv, **kw)
             # Plot the target sweep.
             DBT.PlotSweep(It, i, j)
-            
-            
-            
-        
+        # Add margin to the y-axis limits
+        ylim = self.ax.get_ylim()
+        self.ax.set_ylim((ylim[0], 1.05*ylim[1]-0.05*ylim[0]))
+        # Activate legend.
+        self.legend = self.ax.legend(loc='upper center',
+            bbox_to_anchor=(0.5, 1.05))
+        # Figure tag list.
+        tags = []
+        # Loop through sweep parameters.
+        for k in kw:
+            # Check the parameter type.
+            if self.x.defns[k]["Value"] == "float":
+                # Short float label.
+                tags.append('%s=%.2f' % (k, DBc[k][I[0]]))
+            else:
+                # Use literal string conversion.
+                tags.append('%s=%s' % (k, DBc[k][I[0]]))
+        # Set the figure text.
+        self.tag.set_text(", ".join(tags))
+        # Draw the figure.
+        plt.draw()
         
         
         
@@ -443,10 +464,54 @@ class DataBook(dict):
         ImportPyPlot()
         # Extract the options.
         DBP = self.opts.get_DataBookPlots()[i]
-        # File name. (e.g. "db_RSRB-LSRB_CY.pdf"
-        fname = 'db_%s_%s.pdf' % ("-".join(DBP["Components"]),  DBP["YAxis"])
-        # Save plot file name.
-        self.figname = fname
+        # Axis variables
+        xv = DBP["XAxis"]
+        yv = DBP["YAxis"]
+        # Sweep specifications
+        kw = DBP["Sweep"]
+        # Get the components.
+        comps = DBP["Components"]
+        # Get output option.
+        o_out = DBP.get("Output", "")
+        # Output folder
+        fdir = os.path.join(self.RootDir, self.opts.get_DataBookDir())
+        # Output file name.
+        fname = 'db_%s_%s' % ("-".join(comps),  yv)
+        # File name. 
+        fbase = os.path.join(fdir, fname)
+        # Save plot file name. (e.g. "db_RSRB-LSRB_CY.pdf")
+        self.figname = os.path.join(fdir, fname+".pdf")
+        # Select the first component.
+        DBc = self[comps[0]]
+        # Get the sweeps.
+        I = DBc.GetSweeps(xv, **kw)
+        # Initialize the PDF.
+        self.pdf = PdfPages(self.figname)
+        # Loop through the sweeps.
+        for j in range(len(I)):
+            # Call the individual sweep plot function.
+            self.PlotSweep(I[j], i)
+            # Add the plot.
+            self.pdf.savefig(self.fig)
+            # Individual filename (if needed)
+            f_i = fbase + ("_Sweep%03i" % j)
+            # Process individual output.
+            if o_out in ["pdf", "PDF"]:
+                # Save as a PDF.
+                self.fig.savefig(f_i+".pdf")
+            elif o_out in ["svg", "SVG"]:
+                # Save as an SVG.
+                self.fig.savefig(f_i+".svg")
+            elif o_out in ["png", "PNG"]:
+                # Get resolution.
+                fdpi = DBP.get("DPI", 120)
+                # Save as a PNG.
+                self.fig.savefig(f_i+".png", dpi=fdpi)
+        # Close the multipage PDF to create the document.
+        self.pdf.close()
+        # Close all the figures.
+        plt.close('all')
+                
     
                 
 # Individual component data book
