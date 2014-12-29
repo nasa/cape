@@ -379,8 +379,8 @@ class DataBook(dict):
             # Get the position.
             box = self.ax.get_position()
             # Move it up slightly.
-            self.ax.set_position([box.x0+0.01*box.width,
-                box.y0+0.03*box.height, 1.02*box.width, 0.99*box.height])
+            self.ax.set_position([box.x0+0.02*box.width,
+                box.y0+0.03*box.height, 1.04*box.width, 0.99*box.height])
         # Initialize the tag (states variables that are constant)
         self.tag = plt.figtext(0.015, 0.985, '', verticalalignment='top')
         
@@ -429,7 +429,7 @@ class DataBook(dict):
             DBT.PlotSweep(It, i, j)
         # Add margin to the y-axis limits
         ylim = self.ax.get_ylim()
-        self.ax.set_ylim((ylim[0], 1.1*ylim[1]-0.1*ylim[0]))
+        self.ax.set_ylim((ylim[0], 1.2*ylim[1]-0.2*ylim[0]))
         # Activate legend.
         self.legend = self.ax.legend(loc='upper center',
             bbox_to_anchor=(0.5, 1.05))

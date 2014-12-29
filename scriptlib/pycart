@@ -108,6 +108,9 @@ if __name__ == "__main__":
     if kw.get('c'):
         # Display status.
         cart3d.DisplayStatus(**kw)
+    elif kw.get('plot'):
+        # Update data book plots.
+        cart3d.PlotDataBook()
     elif kw.get('p'):
         # Check for component.
         if kw['p'] != True:
