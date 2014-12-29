@@ -651,7 +651,7 @@ class DBPlot(odict):
         o_plt.setdefault("color", "k")
         o_plt.setdefault("marker", "^")
         # Output
-        retur o_plt
+        return o_plt
         
     # Get the target options.
     def get_TargetOptions(self, i=None):
@@ -678,7 +678,7 @@ class DBPlot(odict):
         o_plt.setdefault("color", "r")
         o_plt.setdefault("marker", "o")
         # Output
-        retur o_plt
+        return o_plt
         
     # Get the target options.
     def get_MinMaxOptions(self, i=None):
@@ -707,7 +707,7 @@ class DBPlot(odict):
         o_plt.setdefault("marker", "None")
         o_plt.setdefault("alpha", 0.5)
         # Output
-        retur o_plt
+        return o_plt
         
     # Get the target options.
     def get_StDevOptions(self, i=None):
@@ -736,7 +736,7 @@ class DBPlot(odict):
         o_plt.setdefault("marker", "None")
         o_plt.setdefault("alpha", 0.5)
         # Output
-        retur o_plt
+        return o_plt
             
     # Get the component name.
     def get_Component(self, i=None):
