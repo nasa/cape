@@ -38,6 +38,9 @@ dmask = 0777 - umask
 plt = 0
 PdfPages = 0
 
+# Radian -> degree conversion
+deg = np.pi / 180.0
+
 # Dedicated function to load Matplotlib only when needed.
 def ImportPyPlot():
     """Import :mod:`matplotlib.pyplot` if not loaded
@@ -1574,9 +1577,9 @@ class CaseFM(object):
             kth = topts.get('theta', 'theta')
             kps = topts.get('psi', 'psi')
             # Extract values from the trajectory.
-            phi   = getattr(x,kph)[i]
-            theta = getattr(x,kth)[i]
-            psi   = getattr(x,kps)[i]
+            phi   = getattr(x,kph)[i]*deg
+            theta = getattr(x,kth)[i]*deg
+            psi   = getattr(x,kps)[i]*deg
             # Sines and cosines
             cph = np.cos(phi); cth = np.cos(theta); cps = np.cos(psi)
             sph = np.sin(phi); sth = np.sin(theta); sps = np.sin(psi)
