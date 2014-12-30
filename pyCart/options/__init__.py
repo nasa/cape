@@ -1436,8 +1436,18 @@ class Options(odict):
         self._DataBook()
         self['DataBook'].set_Delimiter(delim)
         
+    # Key to use for sorting the data book
+    def get_SortKey(self):
+        self._DataBook()
+        return self['DataBook'].get_SortKey()
+    
+    # Set key to use for sorting the data book
+    def set_SortKey(self, key):
+        self._DataBook()
+        self['DataBook'].set_SortKey(key)
+        
     # Copy over the documentation.
-    for k in ['nStats', 'DataBookDir', 'Delimiter']:
+    for k in ['nStats', 'DataBookDir', 'Delimiter', 'SortKey']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(DataBook,'set_'+k).__doc__

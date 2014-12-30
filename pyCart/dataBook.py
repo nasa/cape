@@ -151,9 +151,49 @@ class DataBook(dict):
         """
         # Start from root directory.
         os.chdir(self.RootDir)
+        # Get the sort key.
+        skey = self.opts.get_SortKey()
+        # Sort the data book if there is a key.
+        if skey is not None:
+            # Check for a list.
+            if type(skey).__name__ in ["list", "ndarray"]:
+                # Loop through sort keys.
+                for k in skey:
+                    self.Sort(k)
+            else:
+                # Sort on the single key.
+                self.Sort(skey)
         # Loop through the components.
         for comp in self.Components:
             self[comp].Write()
+            
+    # Function to sort data book
+    def Sort(self, key=None, I=None):
+        """Sort a data book according to either a key or an index
+        
+        :Call:
+            >>> DB.Sort()
+            >>> DB.Sort(key)
+            >>> DB.Sort(I=None)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *key*: :class:`str`
+                Name of trajectory key to use for sorting; default is first key
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices; must have same size as data book
+        :Versions:
+            * 2014-12-30 ``@ddalle``: First version
+        """
+        # Process inputs.
+        if I is None:
+            # Use indirect sort on the first component.
+            I = self[self.Components[0]].ArgSort(key)
+        # Loop through components.
+        for comp in self.Components:
+            # Apply the DBComp.Sort() method.
+            self[comp].Sort(I=I)
+            
             
     # Update data book
     def UpdateDataBook(self, I=None):
@@ -729,6 +769,68 @@ class DBComp(dict):
             f.write('%i%s%i\n' % (self['nIter'][i], delim, self['nStats'][i]))
         # Close the file.
         f.close()
+        
+    # Function to get sorting indices.
+    def ArgSort(self, key=None):
+        """Return indices that would sort a data book by a trajectory key
+        
+        :Call:
+            >>> I = DBi.ArgSort(key=None)
+        :Inputs:
+            *DBi*: :class:`pyCart.dataBook.DBComp`
+                Instance of the pyCart data book component
+            *key*: :class:`str`
+                Name of trajectory key to use for sorting; default is first key
+        :Outputs:
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices; must have same size as data book
+        :Versions:
+            * 2014-12-30 ``@ddalle``: First version
+        """
+        # Process the key.
+        if key is None: key = self.x.keys[0]
+        # Indirect sort on it.
+        I = np.argsort(self[key])
+        # Output.
+        return I
+            
+    # Function to sort data book
+    def Sort(self, key=None, I=None):
+        """Sort a data book according to either a key or an index
+        
+        :Call:
+            >>> DBi.Sort()
+            >>> DBi.Sort(key)
+            >>> DBi.Sort(I=None)
+        :Inputs:
+            *DBi*: :class:`pyCart.dataBook.DBComp`
+                Instance of the pyCart data book component
+            *key*: :class:`str`
+                Name of trajectory key to use for sorting; default is first key
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices; must have same size as data book
+        :Versions:
+            * 2014-12-30 ``@ddalle``: First version
+        """
+        # Process inputs.
+        if I is not None:
+            # Index array specified; check its quality.
+            if type(I).__name__ not in ["ndarray", "list"]:
+                # Not a suitable list.
+                raise IOError("Index list is unusable type.")
+            elif len(I) != self.n:
+                # Incompatible length.
+                raise IOError(("Index list length (%i) " % len(I)) +
+                    ("is not equal to data book size (%i)." % self.n))
+        else:
+            # Default key if necessary
+            if key is None: key = self.x.keys[0]
+            # Use ArgSort to get indices that sort on that key.
+            I = self.ArgSort(key)
+        # Sort all fields.
+        for k in self:
+            # Sort it.
+            self[k] = self[k][I]
         
     # Find an entry by trajectory variables.
     def FindMatch(self, i):

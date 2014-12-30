@@ -201,6 +201,39 @@ class DataBook(odict):
         """
         self['Delimiter'] = delim
         
+    # Get the key on which to sort
+    def get_SortKey(self):
+        """Get the key to use for sorting the data book
+        
+        :Call:
+            >>> key = opts.get_SortKey()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *key*: :class:`str` or ``None``
+                Name of key to sort with
+        :Versions:
+            * 2014-12-30 ``@ddalle``: First version
+        """
+        return self.get('Sort')
+        
+    # Set the key on which to sort
+    def set_SortKey(self, key):
+        """Set the key to use for sorting the data book
+        
+        :Call:
+            >>> opts.set_SortKey(key)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *key*: :class:`str` or ``None``
+                Name of key to sort with
+        :Versions:
+            * 2014-12-30 ``@ddalle``: First version
+        """
+        self['Sort'] = key
+        
                                                 
     # Get the targets
     def get_DataBookTargets(self):
@@ -644,9 +677,12 @@ class DBPlot(odict):
             * 2014-12-27 ``@ddalle``: First version
         """
         # Extract option keys
-        o_plt = self.get("PlotOptions", {})
+        o_in = self.get("PlotOptions", {})
         # Create dict of non-list
-        o_plt = {k: getel(o_plt[k], i) for k in o_plt}
+        o_plt = {}
+        # Loop through keys because Python <2.7 can't handle dict iterators :(
+        for k in o_in:
+            o_plt[k] = getel(o_in[k], i)
         # Set some defaults.
         o_plt.setdefault("color", "k")
         o_plt.setdefault("marker", "^")
@@ -671,9 +707,12 @@ class DBPlot(odict):
             * 2014-12-27 ``@ddalle``: First version
         """
         # Extract option keys
-        o_plt = self.get("TargetOptions", {})
+        o_in = self.get("TargetOptions", {})
         # Create dict of non-list
-        o_plt = {k: getel(o_plt[k], i) for k in o_plt}
+        o_plt = {}
+        # Loop through keys because Python <2.7 can't handle dict iterators :(
+        for k in o_in:
+            o_plt[k] = getel(o_in[k], i)
         # Set some defaults.
         o_plt.setdefault("color", "r")
         o_plt.setdefault("marker", "o")
@@ -698,9 +737,12 @@ class DBPlot(odict):
             * 2014-12-28 ``@ddalle``: First version
         """
         # Extract option keys
-        o_plt = self.get("MinMaxOptions", {})
+        o_in = self.get("MinMaxOptions", {})
         # Create dict of non-list
-        o_plt = {k: getel(o_plt[k], i) for k in o_plt}
+        o_plt = {}
+        # Loop through keys because Python <2.7 can't handle dict iterators :(
+        for k in o_in:
+            o_plt[k] = getel(o_in[k], i)
         # Set some defaults.
         o_plt.setdefault("color", self.get_PlotOptions(i).get("color", "k"))
         o_plt.setdefault("facecolor", o_plt["color"])
@@ -727,9 +769,12 @@ class DBPlot(odict):
             * 2014-12-28 ``@ddalle``: First version
         """
         # Extract option keys
-        o_plt = self.get("StDevOptions", {})
+        o_in = self.get("StDevOptions", {})
         # Create dict of non-list
-        o_plt = {k: getel(o_plt[k], i) for k in o_plt}
+        o_plt = {}
+        # Loop through keys because Python <2.7 can't handle dict iterators :(
+        for k in o_in:
+            o_plt[k] = getel(o_in[k], i)
         # Set some defaults.
         o_plt.setdefault("color", self.get_PlotOptions(i).get("color", "k"))
         o_plt.setdefault("facecolor", o_plt["color"])
