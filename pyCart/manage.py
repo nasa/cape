@@ -48,6 +48,10 @@ def TarAdapt():
     fdirs = glob.glob('adapt[0-9][0-9]')
     # Max adaptation
     imax = max([int(fdir[5:]) for fdir in fdirs])
+    # Check for subsequent iterations. (can tar last folder then)
+    if os.path.isfile('history.dat') and os.path.islink('Restart.file'):
+        # Increase *imax* so that last folder gets tarred.
+        imax += 1
     # Loop through adaptXX/ folders.
     for fdir in fdirs:
         # Get the adaptation number.
@@ -64,6 +68,11 @@ def TarAdapt():
             continue
         # Status update
         print("%s --> %s" % (fdir, fdir+'.tar'))
+        # Get the check files.
+        fglob = glob.glob(os.path.join(fdir, 'check*'))
+        # Remove check files before tarring.
+        for fchk in fglob:
+            os.remove(fchk)
         # Tar the folder.
         ierr = sp.call(['tar', '-cf', fdir+'.tar', fdir])
         # Check for errors.
