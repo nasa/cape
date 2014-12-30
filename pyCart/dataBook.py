@@ -429,7 +429,7 @@ class DataBook(dict):
             DBT.PlotSweep(It, i, j)
         # Add margin to the y-axis limits
         ylim = self.ax.get_ylim()
-        self.ax.set_ylim((ylim[0], 1.22*ylim[1]-0.22*ylim[0]))
+        self.ax.set_ylim((ylim[0], 1.21*ylim[1]-0.21*ylim[0]))
         # Activate legend.
         self.legend = self.ax.legend(loc='upper center', fontsize='small',
             bbox_to_anchor=(0.5, 1.05), labelspacing=1)
