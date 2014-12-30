@@ -484,7 +484,7 @@ class DataBook(dict):
         # Output folder
         fdir = os.path.join(self.RootDir, self.opts.get_DataBookDir())
         # Output file name.
-        fname = 'db_%s_%s' % ("-".join(comps),  yv)
+        fname = 'db_%s_%s_%s' % ("-".join(comps),  yv, xv)
         # File name. 
         fbase = os.path.join(fdir, fname)
         # Save plot file name. (e.g. "db_RSRB-LSRB_CY.pdf")
