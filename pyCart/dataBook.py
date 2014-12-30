@@ -267,7 +267,7 @@ class DataBook(dict):
             q = True
         elif self[c0]['nIter'][j] < nIter:
             # Update
-            print("  Updating from iteration %s to %s."
+            print("  Updating from iteration %i to %i."
                 % (self[c0]['nIter'][j], nIter))
             q = True
         elif self[c0]['nStats'][j] != nStats:
@@ -1859,6 +1859,20 @@ class CaseFM(object):
                 # Extract.
                 self.CLM = Mb[1]
                 
+        elif ttype in ["ScaleCoeffs"]:
+            # Loop through coefficients.
+            for c in topts:
+                # Check if it's an available coefficient.
+                if c not in self.coeffs: continue
+                # Get the value.
+                k = topts[c]
+                # Check if it's a number.
+                if type(k).__name__ not in ["float", "int"]:
+                    # Assume they meant to flip it.
+                    k = -1.0
+                # Scale.
+                setattr(self,c, k*getattr(self,c))
+            
         else:
             raise IOError(
                 "Transformation type '%s' is not recognized." % ttype)

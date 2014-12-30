@@ -211,7 +211,7 @@ class DataBook(odict):
             *opts*: :class:`pyCart.options.Options`
                 Options interface
         :Outputs:
-            *key*: :class:`str` or ``None``
+            *key*: :class:`str` | ``None`` | :class:`list` (:class:`str`)
                 Name of key to sort with
         :Versions:
             * 2014-12-30 ``@ddalle``: First version
@@ -227,7 +227,7 @@ class DataBook(odict):
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
-            *key*: :class:`str` or ``None``
+            *key*: :class:`str` | ``None`` | :class:`list` (:class:`str`)
                 Name of key to sort with
         :Versions:
             * 2014-12-30 ``@ddalle``: First version
