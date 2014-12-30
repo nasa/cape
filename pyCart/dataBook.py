@@ -287,8 +287,6 @@ class DataBook(dict):
             # Extract the component history and component databook.
             FM = A[comp]
             DC = self[comp]
-            # Add to the number of cases.
-            DC.n += 1
             # This is the part where we do transformations....
             # Loop through the transformations.ss
             for topts in self.opts.get_DataBookTransformations(comp):
@@ -299,6 +297,8 @@ class DataBook(dict):
             s = FM.GetStats(nStats)
             # Save the data.
             if np.isnan(j):
+                # Add the the number of cases.
+                DC.n += 1
                 # Append trajectory values.
                 for k in self.x.keys:
                     # I hate the way NumPy does appending.
@@ -635,7 +635,7 @@ class DBComp(dict):
             * 2014-12-27 ``@ddalle``: First version
         """
         # Initialize string
-        lbl = "<DBComp %s," % self.comp
+        lbl = "<DBComp %s, " % self.comp
         # Add the number of conditions.
         lbl += "nCase=%i>" % self.n
         # Output
