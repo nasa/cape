@@ -454,6 +454,14 @@ class DataBook(dict):
         kw = DBP["Sweep"]
         # Get the components.
         comps = DBP["Components"]
+        # Plot the min/max and standard deviation plots first.
+        # This prevents the region plots from covering mean results.
+        for j in range(len(comps)):
+            # Get the component.
+            DBc = self[comps[j]]
+            # Plot it.
+            DBc.PlotSweepMinMax(I, i, j)
+            DBc.PlotSweepStDev(I, i, j)
         # Loop through the components.
         for j in range(len(comps)):
             # Get the component.
@@ -998,12 +1006,12 @@ class DBComp(dict):
         # Output.
         return I
         
-    # Function to plot a single sweep.
-    def PlotSweep(self, I, i, j=0):
-        """Plot a fixed set of indices with known options
+    # Function to plot a single sweep min/max plot
+    def PlotSweepMinMax(self, I, i, j=0):
+        """Plot minimum and maximum for a fixed set of indices
         
         :Call:
-            >>> lines = DBi.PlotSweep(I, i, j=0)
+            >>> lines = DBi.PlotSweepMinMax(I, i, j=0)
         :Inputs:
             *DBi*: :class:`pyCart.dataBook.DBComp`
                 Instance of the pyCart data book component
@@ -1014,32 +1022,63 @@ class DBComp(dict):
             *j*: :class:`int`
                 Index of plot options to use (if there are multiple components)
         :Outputs:
-            *lines*: :class:`list` (:class:`matplotlib.lines.Line2D`)
+            *line*: :class:`matplotlib.collections.PolyCollection`
                 Handles for the sweep line that is drawn
         :Versions:
-            * 2014-12-27 ``@ddalle``: First version
-            * 2014-12-29 ``@ddalle``: Added min/max and standard deviation
+            * 2014-12-30 ``@ddalle``: First version
         """
         # Ensure plot modules are loaded
         ImportPyPlot()
         # Extract the options.
         DBP = self.opts.get_DataBookPlots()[i]
-        # Determine the axes.
-        xv = DBP['XAxis']
-        yv = DBP['YAxis']
-        # Initialize output.
-        lines = []
         # Check for min/max
         if DBP['MinMax'] and self.opts.get_nStats():
+            # Determine the axes.
+            xv = DBP['XAxis']
+            yv = DBP['YAxis']
             # Get the min/max plot options
             o_plt = DBP.get_MinMaxOptions(j)
             # Initialize the label.
             lbl = '%s/Min-Max' % self.comp
             # Plot it.
-            lines.append(plt.fill_between(self[xv][I],
-                self[yv+'_min'][I], self[yv+'_max'][I], label=lbl, **o_plt))
+            line = plt.fill_between(self[xv][I],
+                self[yv+'_min'][I], self[yv+'_max'][I], label=lbl, **o_plt)
+        else:
+            # No line.
+            line = None
+        # Output
+        return line
+        
+    # Function to plot a single sweep min/max plot
+    def PlotSweepStDev(self, I, i, j=0):
+        """Plot standard deviation spread for a fixed set of indices
+        
+        :Call:
+            >>> lines = DBi.PlotSweepStDev(I, i, j=0)
+        :Inputs:
+            *DBi*: :class:`pyCart.dataBook.DBComp`
+                Instance of the pyCart data book component
+            *I*: :class:`list` (:class:`numpy.ndarray` (:class:`int`))
+                List of sweep arrays
+            *i*: :class:`int`
+                Index of data book plot options to use
+            *j*: :class:`int`
+                Index of plot options to use (if there are multiple components)
+        :Outputs:
+            *line*: :class:`matplotlib.collections.PolyCollection`
+                Handles for the sweep line that is drawn
+        :Versions:
+            * 2014-12-30 ``@ddalle``: First version
+        """
+        # Ensure plot modules are loaded
+        ImportPyPlot()
+        # Extract the options.
+        DBP = self.opts.get_DataBookPlots()[i]
         # Check for standard deviation.
         if DBP['StandardDeviation'] and self.opts.get_nStats():
+            # Determine the axes.
+            xv = DBP['XAxis']
+            yv = DBP['YAxis']
             # Get the standard deviation plot options.
             o_plt = DBP.get_StDevOptions(j)
             # Multiplier.
@@ -1050,16 +1089,52 @@ class DBComp(dict):
             y = self[yv][I]
             s = self[yv+'_std'][I]
             # Plot it.
-            lines.append(plt.fill_between(self[xv][I],
-                y-ksig*s, y+ksig*s, label=lbl, **o_plt))
+            line = plt.fill_between(self[xv][I],
+                y-ksig*s, y+ksig*s, label=lbl, **o_plt)
+        else:
+            # No line.
+            line = None
+        # Output
+        return line
+        
+    # Function to plot a single sweep.
+    def PlotSweep(self, I, i, j=0):
+        """Plot a fixed set of indices with known options
+        
+        :Call:
+            >>> line = DBi.PlotSweep(I, i, j=0)
+        :Inputs:
+            *DBi*: :class:`pyCart.dataBook.DBComp`
+                Instance of the pyCart data book component
+            *I*: :class:`list` (:class:`numpy.ndarray` (:class:`int`))
+                List of sweep arrays
+            *i*: :class:`int`
+                Index of data book plot options to use
+            *j*: :class:`int`
+                Index of plot options to use (if there are multiple components)
+        :Outputs:
+            *line*: :class:`matplotlib.lines.Line2D`
+                Handles for the sweep line that is drawn
+        :Versions:
+            * 2014-12-27 ``@ddalle``: First version
+            * 2014-12-29 ``@ddalle``: Added min/max and standard deviation
+            * 2014-12-30 ``@ddalle``: Moved min/max to sep func for layering
+        """
+        # Ensure plot modules are loaded
+        ImportPyPlot()
+        # Extract the options.
+        DBP = self.opts.get_DataBookPlots()[i]
+        # Determine the axes.
+        xv = DBP['XAxis']
+        yv = DBP['YAxis']
         # Get the options
         o_plt = DBP.get_PlotOptions(j)
         # Initialize the label.
         lbl = self.comp
         # Plot
-        lines += plt.plot(self[xv][I], self[yv][I], label=lbl, **o_plt)
+        line = plt.plot(self[xv][I], self[yv][I], label=lbl, **o_plt)[0]
         # Output.
-        return lines
+        return line
         
         
         
