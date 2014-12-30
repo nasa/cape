@@ -263,7 +263,7 @@ class DataBook(dict):
         # Process whether or not to update.
         if np.isnan(j):
             # No current entry.
-            print("  Adding new databook entry at iteration %s." % nIter)
+            print("  Adding new databook entry at iteration %i." % nIter)
             q = True
         elif self[c0]['nIter'][j] < nIter:
             # Update

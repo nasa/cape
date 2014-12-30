@@ -50,22 +50,19 @@ def TarAdapt():
     imax = max([int(fdir[5:]) for fdir in fdirs])
     # Check for subsequent iterations. (can tar last folder then)
     qtar = os.path.isfile('history.dat') and os.path.islink('Restart.file')
+    # Check if the folder is in use.
+    quse = (fdir == fbest) or (i >= imax)
     # Loop through adaptXX/ folders.
     for fdir in fdirs:
         # Get the adaptation number.
         i = int(fdir[5:])
-        # Check for things to skip.
-        if qtar:
-            # Tar all adapt folders no matter what.
-            pass
-        elif fdir == fbest:
-            # Target of BEST/; leave alone
-            continue
-        elif not os.path.isdir(fdir):
+        # Make sure nothing happened to the folder in the meantime.
+        if not os.path.isdir(fdir):
             # Not a folder; what?
             continue
-        elif i >= imax:
-            # No higher adaptations
+        # Don't process the folder if in use.
+        if quse and (not qtar):
+            # We'll get it later.
             continue
         # Status update
         print("%s --> %s" % (fdir, fdir+'.tar'))
@@ -77,7 +74,9 @@ def TarAdapt():
             os.remove(f)
         # Tar the folder.
         ierr = sp.call(['tar', '-cf', fdir+'.tar', fdir])
-        # Check for errors.
+        if ierr: continue
+        # Untar the history file.
+        ierr = sp.call(['tar', '-xf', fdir+'.tar', fdir+'/history.dat'])
         if ierr: continue
         # Remove the folder.
         shutil.rmtree(fdir)
