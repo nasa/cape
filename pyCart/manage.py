@@ -49,15 +49,16 @@ def TarAdapt():
     # Max adaptation
     imax = max([int(fdir[5:]) for fdir in fdirs])
     # Check for subsequent iterations. (can tar last folder then)
-    if os.path.isfile('history.dat') and os.path.islink('Restart.file'):
-        # Increase *imax* so that last folder gets tarred.
-        imax += 1
+    qtar = os.path.isfile('history.dat') and os.path.islink('Restart.file')
     # Loop through adaptXX/ folders.
     for fdir in fdirs:
         # Get the adaptation number.
         i = int(fdir[5:])
         # Check for things to skip.
-        if fdir == fbest:
+        if qtar:
+            # Tar all adapt folders no matter what.
+            pass
+        elif fdir == fbest:
             # Target of BEST/; leave alone
             continue
         elif not os.path.isdir(fdir):
@@ -97,6 +98,8 @@ def ExpandAdapt():
         fdir = ftar.split('.')[0]
         # Check for that folder.
         if os.path.exists(fdir): continue
+        # Status update
+        print("%s --> %s" % (fdir+'.tar', fdir))
         # Untar
         ierr = sp.call(['tar', '-xf', ftar])
         # Check for errors.
