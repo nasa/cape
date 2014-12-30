@@ -777,7 +777,7 @@ class DBComp(dict):
             return np.nan
             
     # Find entries in a sweep.
-    def FindSweep(self, i, key=None, **kw):
+    def FindSweep(self, i, key=None, j0=None, **kw):
         """Find a the indices of values in a sweep of one variable
         
         The goal of this function is to return a list of indices of points from
@@ -790,6 +790,7 @@ class DBComp(dict):
         
         :Call:
             >>> j = DBi.FindSweep(i, key=None, **kw)
+            >>> j = DBi.FindSweep(i, key=None, j0=None, **kw)
         :Inputs:
             *DBi*: :class:`pyCart.dataBook.DBComp`
                 Instance of the pyCart data book component
@@ -797,6 +798,8 @@ class DBComp(dict):
                 Index of databook entry to seed the search
             *key*: :class:`str`
                 Name of variable to sort by (defaults to first trajectory key)
+            *j0*: :class:`numpy.ndarray` (:class:`int`) or ``None``
+                List of indices of cases to filter
             *kw*: :class:`dict` (:class:`float` or :class:`int`)
                 Keyword arguments of tolerances for keys to use in filter
         :Outputs:
@@ -805,8 +808,16 @@ class DBComp(dict):
         :Versions:
             * 2014-12-27 ``@ddalle``: First version
         """
-        # Initialize indices
-        j = np.arange(self.n)
+        # Initialize indices.
+        if j0 = None:
+            # Use all cases.
+            j = np.arange(self.n)
+        elif type(j0).__name__ == "ndarray":
+            # Copy the initial values.
+            j = j0.copy()
+        else:
+            # Assume it's a list...
+            j = j0
         # Get default key if necessary.
         if (key is None):
             # Use the default value.
@@ -1112,7 +1123,7 @@ class DBTarget(dict):
         return j
         
     # Find a sweep by component databook variables
-    def FindSweep(self, DBi, i, key=None, **kw):
+    def FindSweep(self, DBi, i, key=None, j0=None, **kw):
         """Find a sweep of a single variable within a databook target
         
         :Call:
@@ -1124,6 +1135,8 @@ class DBTarget(dict):
                 Instance of the pyCart data book component
             *i*: :class:`int`
                 Index of databook entry to seed the search
+            *j0*: :class:`numpy.ndarray` (:class:`int`) or ``None``
+                List of indices of cases to filter
             *key*: :class:`str`
                 Name of variable to sort by (defaults to first trajectory key)
             *kw*: :class:`dict` (:class:`float` or :class:`int`)
@@ -1134,8 +1147,16 @@ class DBTarget(dict):
         :Versions:
             * 2014-12-27 ``@ddalle``: First version
         """
-        # Initialize indices (assume all are matches)
-        j = np.arange(self.data.shape[0])
+        # Initialize indices.
+        if j0 = None:
+            # Use all cases.
+            j = np.arange(self.data.shape[0])
+        elif type(j0).__name__ == "ndarray":
+            # Copy the initial values.
+            j = j0.copy()
+        else:
+            # Assume it's a list...
+            j = j0
         # Get the trajectory key translations.   This determines which keys to
         # filter and what those keys are called in the source file.
         tkeys = self.topts.get_Trajectory()
