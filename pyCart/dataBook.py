@@ -809,7 +809,7 @@ class DBComp(dict):
             * 2014-12-27 ``@ddalle``: First version
         """
         # Initialize indices.
-        if j0 = None:
+        if j0 is None:
             # Use all cases.
             j = np.arange(self.n)
         elif type(j0).__name__ == "ndarray":
@@ -1148,7 +1148,7 @@ class DBTarget(dict):
             * 2014-12-27 ``@ddalle``: First version
         """
         # Initialize indices.
-        if j0 = None:
+        if j0 is None:
             # Use all cases.
             j = np.arange(self.data.shape[0])
         elif type(j0).__name__ == "ndarray":
