@@ -68,11 +68,12 @@ def TarAdapt():
             continue
         # Status update
         print("%s --> %s" % (fdir, fdir+'.tar'))
-        # Get the check files.
-        fglob = glob.glob(os.path.join(fdir, 'check*'))
         # Remove check files before tarring.
-        for fchk in fglob:
-            os.remove(fchk)
+        for f in glob.glob(os.path.join(fdir, 'check*')):
+            os.remove(f)
+        # Remove mesh files before tarring.
+        for f in glob.glob(os.path.join(fdir, 'Mesh*.c3d')):
+            os.remove(f)
         # Tar the folder.
         ierr = sp.call(['tar', '-cf', fdir+'.tar', fdir])
         # Check for errors.
