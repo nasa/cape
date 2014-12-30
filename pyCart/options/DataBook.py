@@ -682,7 +682,15 @@ class DBPlot(odict):
         o_plt = {}
         # Loop through keys because Python <2.7 can't handle dict iterators :(
         for k in o_in:
-            o_plt[k] = getel(o_in[k], i)
+            # Get the option (list).
+            o_k = o_in[k]
+            # Check if it's a list.
+            if type(o_k).__name__ == 'list':
+                # Cycle through list.
+                o_plt[k] = o_k[i % len(o_k)]
+            else:
+                # Use the non-list value.
+                o_plt[k] = o_k
         # Set some defaults.
         o_plt.setdefault("color", "k")
         o_plt.setdefault("marker", "^")
@@ -712,7 +720,15 @@ class DBPlot(odict):
         o_plt = {}
         # Loop through keys because Python <2.7 can't handle dict iterators :(
         for k in o_in:
-            o_plt[k] = getel(o_in[k], i)
+            # Get the option (list).
+            o_k = o_in[k]
+            # Check if it's a list.
+            if type(o_k).__name__ == 'list':
+                # Cycle through list.
+                o_plt[k] = o_k[i % len(o_k)]
+            else:
+                # Use the non-list value.
+                o_plt[k] = o_k
         # Set some defaults.
         o_plt.setdefault("color", "r")
         o_plt.setdefault("marker", "o")
@@ -742,7 +758,15 @@ class DBPlot(odict):
         o_plt = {}
         # Loop through keys because Python <2.7 can't handle dict iterators :(
         for k in o_in:
-            o_plt[k] = getel(o_in[k], i)
+            # Get the option (list).
+            o_k = o_in[k]
+            # Check if it's a list.
+            if type(o_k).__name__ == 'list':
+                # Cycle through list.
+                o_plt[k] = o_k[i % len(o_k)]
+            else:
+                # Use the non-list value.
+                o_plt[k] = o_k
         # Set some defaults.
         o_plt.setdefault("color", self.get_PlotOptions(i).get("color", "k"))
         o_plt.setdefault("facecolor", o_plt["color"])
@@ -774,7 +798,15 @@ class DBPlot(odict):
         o_plt = {}
         # Loop through keys because Python <2.7 can't handle dict iterators :(
         for k in o_in:
-            o_plt[k] = getel(o_in[k], i)
+            # Get the option (list).
+            o_k = o_in[k]
+            # Check if it's a list.
+            if type(o_k).__name__ == 'list':
+                # Cycle through list.
+                o_plt[k] = o_k[i % len(o_k)]
+            else:
+                # Use the non-list value.
+                o_plt[k] = o_k
         # Set some defaults.
         o_plt.setdefault("color", self.get_PlotOptions(i).get("color", "k"))
         o_plt.setdefault("facecolor", o_plt["color"])
