@@ -156,6 +156,11 @@ class Trajectory:
                 self.PASS.append(True)
                 # Shift the entries.
                 v.pop()
+            elif v[0].lower() in ['p', '$p', 'pass']:
+                # Case is marked as passed.
+                self.PASS.append(True)
+                # Shift the entries.
+                v.pop(0)
             else:
                 # Case is unmarked.
                 self.PASS.append(False)
