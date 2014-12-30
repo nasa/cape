@@ -704,8 +704,8 @@ class DBPlot(odict):
         # Set some defaults.
         o_plt.setdefault("color", self.get_PlotOptions(i).get("color", "k"))
         o_plt.setdefault("facecolor", o_plt["color"])
-        o_plt.setdefault("marker", "None")
         o_plt.setdefault("alpha", 0.5)
+        o_plt.setdefault("lw", 0.2)
         # Output
         return o_plt
         
@@ -733,8 +733,8 @@ class DBPlot(odict):
         # Set some defaults.
         o_plt.setdefault("color", self.get_PlotOptions(i).get("color", "k"))
         o_plt.setdefault("facecolor", o_plt["color"])
-        o_plt.setdefault("marker", "None")
         o_plt.setdefault("alpha", 0.5)
+        o_plt.setdefault("lw", 0.2)
         # Output
         return o_plt
             

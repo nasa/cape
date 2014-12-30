@@ -38,6 +38,9 @@ dmask = 0777 - umask
 plt = 0
 PdfPages = 0
 
+# Radian -> degree conversion
+deg = np.pi / 180.0
+
 # Dedicated function to load Matplotlib only when needed.
 def ImportPyPlot():
     """Import :mod:`matplotlib.pyplot` if not loaded
@@ -432,7 +435,7 @@ class DataBook(dict):
         self.ax.set_ylim((ylim[0], 1.21*ylim[1]-0.21*ylim[0]))
         # Activate legend.
         self.legend = self.ax.legend(loc='upper center', fontsize='small',
-            bbox_to_anchor=(0.5, 1.05), labelspacing=1)
+            bbox_to_anchor=(0.5, 1.05), labelspacing=0.5)
         # Figure tag list.
         tags = []
         # Loop through sweep parameters.
@@ -887,7 +890,7 @@ class DBComp(dict):
         """Plot a fixed set of indices with known options
         
         :Call:
-            >>> line = DBi.PlotSweep(I, i, j=0)
+            >>> lines = DBi.PlotSweep(I, i, j=0)
         :Inputs:
             *DBi*: :class:`pyCart.dataBook.DBComp`
                 Instance of the pyCart data book component
@@ -898,10 +901,11 @@ class DBComp(dict):
             *j*: :class:`int`
                 Index of plot options to use (if there are multiple components)
         :Outputs:
-            *line*: :class:`matplotlib.lines.Line2D`
-                Handle for the sweep line that is drawn
+            *lines*: :class:`list` (:class:`matplotlib.lines.Line2D`)
+                Handles for the sweep line that is drawn
         :Versions:
             * 2014-12-27 ``@ddalle``: First version
+            * 2014-12-29 ``@ddalle``: Added min/max and standard deviation
         """
         # Ensure plot modules are loaded
         ImportPyPlot()
@@ -910,14 +914,39 @@ class DBComp(dict):
         # Determine the axes.
         xv = DBP['XAxis']
         yv = DBP['YAxis']
+        # Initialize output.
+        lines = []
+        # Check for min/max
+        if DBP['MinMax'] and self.opts.get_nStats():
+            # Get the min/max plot options
+            o_plt = DBP.get_MinMaxOptions(j)
+            # Initialize the label.
+            lbl = '%s/Min-Max' % self.comp
+            # Plot it.
+            lines.append(plt.fill_between(self[xv][I],
+                self[yv+'_min'][I], self[yv+'_max'][I], label=lbl, **o_plt))
+        # Check for standard deviation.
+        if DBP['StandardDeviation'] and self.opts.get_nStats():
+            # Get the standard deviation plot options.
+            o_plt = DBP.get_StDevOptions(j)
+            # Multiplier.
+            ksig = DBP['StandardDeviation']
+            # Initialize the label.  (e.g. CORE/3\sigma)
+            lbl = u'%s/%i\u03C3' % (self.comp, ksig)\
+            # Extract values
+            y = self[yv][I]
+            s = self[yv+'_std'][I]
+            # Plot it.
+            lines.append(plt.fill_between(self[xv][I],
+                y-ksig*s, y+ksig*s, label=lbl, **o_plt))
         # Get the options
         o_plt = DBP.get_PlotOptions(j)
         # Initialize the label.
         lbl = self.comp
         # Plot
-        line = plt.plot(self[xv][I], self[yv][I], label=lbl, **o_plt)[0]
+        lines += plt.plot(self[xv][I], self[yv][I], label=lbl, **o_plt)
         # Output.
-        return line
+        return lines
         
         
         
@@ -1574,9 +1603,9 @@ class CaseFM(object):
             kth = topts.get('theta', 'theta')
             kps = topts.get('psi', 'psi')
             # Extract values from the trajectory.
-            phi   = getattr(x,kph)[i]
-            theta = getattr(x,kth)[i]
-            psi   = getattr(x,kps)[i]
+            phi   = getattr(x,kph)[i]*deg
+            theta = getattr(x,kth)[i]*deg
+            psi   = getattr(x,kps)[i]*deg
             # Sines and cosines
             cph = np.cos(phi); cth = np.cos(theta); cps = np.cos(psi)
             sph = np.sin(phi); sth = np.sin(theta); sps = np.sin(psi)

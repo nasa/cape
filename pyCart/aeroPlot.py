@@ -263,6 +263,12 @@ class AeroPlot(Aero):
         txt = kw.get('restriction', '')
         h['restriction'] = plt.figtext(0.5, 0.01, txt,
             horizontalalignment='center')
+        # Add PASS label (empty but handle is useful)
+        h['pass'] = plt.figtext(0.99, 0.97, "", color="#00E500",
+            horizontalalignment='right')
+        # Add iteration label
+        h['iter'] = plt.figtext(0.99, 0.94, "%i/" % self[comp].i[-1],
+            horizontalalignment='right', size=9)
         # Attempt to use the tight_layout() utility.
         try:
             # Add room for labels with *rect*, and tighten up other margins.
