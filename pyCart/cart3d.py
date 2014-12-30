@@ -407,6 +407,15 @@ class Cart3d(object):
                 kw['tag'] = 'Case %i: %s\nComponent=%s' % (i+1, frun, comp)
                 # Create the plot.
                 h = AP.Plot(comp, coeffs, **kw)
+                # Check the pass flag.
+                if self.x.PASS[i]:
+                    # Set it.
+                    h['pass'].set_text('PASS')
+                # Read the case options.
+                fc = case.ReadCaseJSON()
+                # Reset the iteration flag
+                h['iter'].set_text('%i/%i' % 
+                    (AP[comp].i[-1], fc.get_LastIter()))
                 # Save it to the PdfPages instance.
                 pdf[comp].savefig(h['fig'])
         # Return to original location.
