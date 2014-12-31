@@ -518,9 +518,11 @@ class Cart3d(object):
         total = {'PASS':0, 'PASS*':0, '---':0, 'INCOMP':0,
             'RUN':0, 'DONE':0, 'QUEUE':0, 'ERROR':0}
         # Loop through the runs.
-        for i in I:
+        for j in range(len(I)):
+            # Case index.
+            i = I[j]
             # Extract case
-            frun = fruns[I.index(i)]
+            frun = fruns[j]
             # Check status.
             sts = self.CheckCaseStatus(i, jobs)
             # Get active job number.
