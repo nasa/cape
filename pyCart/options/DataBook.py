@@ -627,6 +627,8 @@ class DBPlot(odict):
             Dict of trajectory keys to hold constant, and their tolerances
         *Carpet*: :class:`dict`
             Dict with one key and a tolerance; adds multiple lines to plot
+        *Targets*: :class:`bool`
+            Option to not show targets (default is ``True``)
         *Restriction*: :class:`str`
             Text label for limited distribution, e.g. "ITAR"
         *PlotOptions*: :class:`dict`
@@ -652,10 +654,12 @@ class DBPlot(odict):
     
     # Initialization method
     def __init__(self, defs={}, **kw):
+        # Default default targets option
+        defs.setdefault("Targets", True)
         # Loop through recognized keys.
         for k in ["XAxis", "XLabel", "YAxis", "YLabel", "Restriction",
                 "Sweep", "Components", "Output", "StandardDeviation", "MinMax", 
-                "Label", "Carpet", "PlotOptions", "TargetOptions",
+                "Label", "Carpet", "Targets", "PlotOptions", "TargetOptions",
                 "MinMaxOptions", "StDevOptions"]:
             # Save the property, defaulting to the last dict
             self[k] = kw.get(k, defs.get(k))

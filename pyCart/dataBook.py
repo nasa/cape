@@ -501,6 +501,8 @@ class DataBook(dict):
                 line.set_label(flbl)
             # Check for a target.
             if DBc.targs.get(yv) is None: continue
+            # Possible to not want targets.
+            if not DBP["Targets"]: continue
             # Target indicies
             it, ct = self.GetTargetIndex(DBc.targs.get(yv))
             # Extract the target.
