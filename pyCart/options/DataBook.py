@@ -623,8 +623,10 @@ class DBPlot(odict):
             Name of variable to plot
         *YLabel*: :class:`str`
             Label for *y* axis of plots
-        *Tolerances*: :class:`dict`
+        *Sweep*: :class:`dict`
             Dict of trajectory keys to hold constant, and their tolerances
+        *Carpet*: :class:`dict`
+            Dict with one key and a tolerance; adds multiple lines to plot
         *Restriction*: :class:`str`
             Text label for limited distribution, e.g. "ITAR"
         *PlotOptions*: :class:`dict`
@@ -653,7 +655,7 @@ class DBPlot(odict):
         # Loop through recognized keys.
         for k in ["XAxis", "XLabel", "YAxis", "YLabel", "Restriction",
                 "Sweep", "Components", "Output", "StandardDeviation", "MinMax", 
-                "Label", "PlotOptions", "TargetOptions",
+                "Label", "Carpet", "PlotOptions", "TargetOptions",
                 "MinMaxOptions", "StDevOptions"]:
             # Save the property, defaulting to the last dict
             self[k] = kw.get(k, defs.get(k))

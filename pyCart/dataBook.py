@@ -504,7 +504,7 @@ class DataBook(dict):
         
     # Function to create a plot for an individual sweep
     def Plot(self, i):
-        """Create databook plot *i* for a single sweep
+        """Create data book plot *i*, a multipage PDF
         
         :Call:
             >>> DB.Plot(i)
@@ -515,6 +515,34 @@ class DataBook(dict):
                 Index of data book plot to initialize
         :Versions:
             * 2014-12-28 ``@ddalle``: First version
+            * 2014-12-30 ``@ddalle``: Separated out into two functions
+        """
+        # Make sure the plotting modules are present.
+        ImportPyPlot()
+        # Extract the options.
+        DBP = self.opts.get_DataBookPlots()[i]
+        # Check the type.
+        if DBP.get("Carpet"):
+            # Carpet plot.
+            pass
+        else:
+            # Regular sweep plot.
+            self.PlotSweeps(i)
+        
+        
+    # Function to create a plot for an individual sweep
+    def PlotSweeps(self, i):
+        """Create multipage data book plot *i* if it is not a carpet plot
+        
+        :Call:
+            >>> DB.PlotSweeps(i)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *i*: :class:`int`
+                Index of data book plot to initialize
+        :Versions:
+            * 2014-12-30 ``@ddalle``: Copied from old :func:`DB.Plot`
         """
         # Make sure the plotting modules are present.
         ImportPyPlot()
@@ -541,7 +569,7 @@ class DataBook(dict):
         fname = 'db_%s_%s_%s' % (flbl,  yv, xv)
         # File name. 
         fbase = os.path.join(fdir, fname)
-        # Save plot file name. (e.g. "db_RSRB-LSRB_CY.pdf")
+        # Save plot file name. (e.g. "db_RSRB-LSRB_CY_Mach.pdf")
         self.figname = os.path.join(fdir, fname+".pdf")
         # Select the first component.
         DBc = self[comps[0]]
@@ -557,6 +585,91 @@ class DataBook(dict):
             self.pdf.savefig(self.fig)
             # Individual filename (if needed)
             f_i = fbase + ("_Sweep%03i" % j)
+            # Process individual output.
+            if o_out in ["pdf", "PDF"]:
+                # Save as a PDF.
+                self.fig.savefig(f_i+".pdf")
+            elif o_out in ["svg", "SVG"]:
+                # Save as an SVG.
+                self.fig.savefig(f_i+".svg")
+            elif o_out in ["png", "PNG"]:
+                # Get resolution.
+                fdpi = DBP.get("DPI", 120)
+                # Save as a PNG.
+                self.fig.savefig(f_i+".png", dpi=fdpi)
+        # Close the multipage PDF to create the document.
+        self.pdf.close()
+        # Close all the figures.
+        plt.close('all')
+        
+    # Function to create a set of carpet plots
+    def PlotCarpets(self, i):
+        """Create multipage data book plot *i* if it _is_ a carpet plot
+        
+        :Call:
+            >>> DB.PlotCarpets(i)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *i*: :class:`int`
+                Index of data book plot to initialize
+        :Versions:
+            * 2014-12-30 ``@ddalle``: Forked from old :func:`DB.Plot`
+        """
+        # Make sure the plotting modules are present.
+        ImportPyPlot()
+        # Extract the options.
+        DBP = self.opts.get_DataBookPlots()[i]
+        # Axis variables
+        xv = DBP["XAxis"]
+        yv = DBP["YAxis"]
+        # Carpet dictionary.
+        o_carpet = DBP.get("Carpet")
+        # Check it.  No errors; just quit.
+        if type(o_carpet).__name__ != "dict": return
+        # Carpet variable.
+        cv = o_carpet.keys()[0]
+        ctol = o_carpet[cv]
+        # Check the carpet variable.
+        if cv not in self.x.keys:
+            raise IOError(("Carpet search variable '%s' is not a " % cv)
+                + "trajectory key.")
+        # Sweep specifications
+        kw = DBP["Sweep"]
+        # Get the components.
+        comps = DBP["Components"]
+        # Get output option.
+        o_out = DBP.get("Output", "")
+        # Output folder
+        fdir = os.path.join(self.RootDir, self.opts.get_DataBookDir())
+        # Get the label for this plot.
+        flbl = DBP["Label"]
+        # Default label
+        if flbl is None or len(flbl)==0:
+            # Use list of components.
+            flbl = "-".join(comps)
+        # Output file name.
+        fname = 'db_%s_%s_%s-%s' % (flbl,  yv, xv, cv)
+        # File name. 
+        fbase = os.path.join(fdir, fname)
+        # Save plot file name. (e.g. "db_RSRB_CY_Mach-alpha.pdf")
+        self.figname = os.path.join(fdir, fname+".pdf")
+        # Select the first component.
+        DBc = self[comps[0]]
+        # Get the sweeps.
+        J = DBc.GetCarpets(xv, cv, ctol, **kw)
+        # Initialize the PDF.
+        self.pdf = PdfPages(self.figname)
+        # Loop through the carpets.
+        for I in J:
+            # Loop through the sweeps.
+            for j in range(len(I)):
+                # Call the individual sweep plot function.
+                self.PlotSweep(I[j], i)
+            # Add the plot.
+            self.pdf.savefig(self.fig)
+            # Individual filename (if needed)
+            f_i = fbase + ("_Carpet%03i" % j)
             # Process individual output.
             if o_out in ["pdf", "PDF"]:
                 # Save as a PDF.
