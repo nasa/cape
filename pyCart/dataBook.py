@@ -428,11 +428,11 @@ class DataBook(dict):
         self.tag = plt.figtext(0.015, 0.985, '', verticalalignment='top')
         
     # Function to create a plot for an individual sweep
-    def PlotSweep(self, I, i):
+    def PlotSweep(self, I, i, istyle=0, lbl=None):
         """Create databook plot *i* for a single sweep
         
         :Call:
-            >>> DB.PlotSweep(I, i)
+            >>> DB.PlotSweep(I, i, istyle=0, lbl=None
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pyCart data book class
@@ -440,6 +440,11 @@ class DataBook(dict):
                 List of indices in sweep
             *i*: :class:`int`
                 Index of data book plot to initialize
+            *istyle*: :class:`bool`
+                Plot style offset.  Start from plot style *istyle*; see also
+                :func:`pyCart.options.DataBook.DBPlot.get_PlotOptions`
+            *lbl*: :class:`str`
+                Additional text to add to legend labels
         :Versions:
             * 2014-12-28 ``@ddalle``: First version
         """
@@ -450,7 +455,6 @@ class DataBook(dict):
         yv = DBP["YAxis"]
         # Sweep specifications
         kw = DBP["Sweep"]
-        print("  I=%s" % I)
         # Check for carpet.
         o_carpet = DBP["Carpet"]
         # Check if it's a nonempty dict.
@@ -467,14 +471,20 @@ class DataBook(dict):
             # Get the component.
             DBc = self[comps[j]]
             # Plot it.
-            DBc.PlotSweepMinMax(I, i, j)
-            DBc.PlotSweepStDev(I, i, j)
+            DBc.PlotSweepMinMax(I, i, j+istyle)
+            DBc.PlotSweepStDev(I, i, j+istyle)
         # Loop through the components.
         for j in range(len(comps)):
             # Get the component.
             DBc = self[comps[j]]
             # Plot it.
-            DBc.PlotSweep(I, i, j)
+            line = DBc.PlotSweep(I, i, j+istyle)
+            # Append a label if so requested.
+            if lbl:
+                # Form the new label.
+                flbl = "%s, %s" % (line.get_label(), lbl)
+                # Set it.
+                line.set_label(flbl)
             # Check for a target.
             if DBc.targs.get(yv) is None: continue
             # Target indicies
@@ -484,7 +494,13 @@ class DataBook(dict):
             # Get the sweep.
             It = DBT.FindSweep(DBc, I[0], key=xv, **kw)
             # Plot the target sweep.
-            DBT.PlotSweep(It, i, j)
+            line = DBT.PlotSweep(It, i, j+istyle)
+            # Append a label if so requested.
+            if lbl:
+                # Form the new label.
+                flbl = "%s, %s" % (line.get_label(), lbl)
+                # Set it.
+                line.set_label(flbl)
         # Add margin to the y-axis limits
         ylim = self.ax.get_ylim()
         self.ax.set_ylim((ylim[0], 1.21*ylim[1]-0.21*ylim[0]))
@@ -629,9 +645,12 @@ class DataBook(dict):
         ImportPyPlot()
         # Extract the options.
         DBP = self.opts.get_DataBookPlots()[i]
+        # Number of components.
+        nComp = len(DBP["Components"])
         # Axis variables
         xv = DBP["XAxis"]
         yv = DBP["YAxis"]
+        
         # Carpet dictionary.
         o_carpet = DBP.get("Carpet")
         # Check it.  No errors; just quit.
@@ -643,6 +662,7 @@ class DataBook(dict):
         if cv not in self.x.keys:
             raise IOError(("Carpet search variable '%s' is not a " % cv)
                 + "trajectory key.")
+            
         # Sweep specifications
         kw = DBP["Sweep"]
         # Get the components.
@@ -659,17 +679,24 @@ class DataBook(dict):
             flbl = "-".join(comps)
         # Output file name.
         fname = 'db_%s_%s_%s-%s' % (flbl,  yv, xv, cv)
-        print("i=%i")
         print("  fname=%s" % fname)
         # File name. 
         fbase = os.path.join(fdir, fname)
         # Save plot file name. (e.g. "db_RSRB_CY_Mach-alpha.pdf")
         self.figname = os.path.join(fdir, fname+".pdf")
+        
         # Select the first component.
         DBc = self[comps[0]]
         # Get the sweeps.
         J = DBc.GetCarpets(xv, cv, ctol, **kw)
-        print("Carpet... %s: %f" % (cv, ctol))
+        # String format for additional legend label to specify *cv* value.
+        if self.x.defns[cv]["Value"] == "float":
+            # Short label.
+            s_lgnd = "%s=%%.2f" % cv
+        else:
+            # Use literal
+            s_lgnd = "%s=%%s" % cv
+        
         # Initialize the PDF.
         self.pdf = PdfPages(self.figname)
         # Loop through the carpets.
@@ -680,10 +707,14 @@ class DataBook(dict):
             I = J[ij]
             # Loop through the sweeps.
             print("k=%i" % ij)
-            for j in I:
+            for jj in I:
+                # Extract indices
+                j = I[jj]
                 print(" j=%s" % j)
+                # Form the additional label using initial value of *cv*.
+                f_lgnd = s_lgnd % DBc[cv][j[0]]
                 # Call the individual sweep plot function.
-                self.PlotSweep(j, i)
+                self.PlotSweep(j, i, istyle=jj*nComp, lbl=f_lgnd)
             # Add the plot.
             self.pdf.savefig(self.fig)
             # Individual filename (if needed)
@@ -1219,7 +1250,7 @@ class DBComp(dict):
             *i*: :class:`int`
                 Index of data book plot options to use
             *j*: :class:`int`
-                Index of plot options to use (if there are multiple components)
+                Index of plot options to use (if there are multiple curves)
         :Outputs:
             *line*: :class:`matplotlib.collections.PolyCollection`
                 Handles for the sweep line that is drawn
@@ -1262,7 +1293,7 @@ class DBComp(dict):
             *i*: :class:`int`
                 Index of data book plot options to use
             *j*: :class:`int`
-                Index of plot options to use (if there are multiple components)
+                Index of plot options to use (if there are multiple curves)
         :Outputs:
             *line*: :class:`matplotlib.collections.PolyCollection`
                 Handles for the sweep line that is drawn
@@ -1310,7 +1341,7 @@ class DBComp(dict):
             *i*: :class:`int`
                 Index of data book plot options to use
             *j*: :class:`int`
-                Index of plot options to use (if there are multiple components)
+                Index of plot options to use (if there are multiple curves)
         :Outputs:
             *line*: :class:`matplotlib.lines.Line2D`
                 Handles for the sweep line that is drawn
