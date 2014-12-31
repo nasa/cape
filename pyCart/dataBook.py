@@ -261,7 +261,11 @@ class DataBook(dict):
         # Get the number of iterations used for stats.
         nStats = self.opts.get_nStats()
         # Process whether or not to update.
-        if np.isnan(j):
+        if (not nIter) or (nIter < nStats):
+            # Not enough iterations (or zero iterations)
+            print("  Not enough iterations (%s) for analysis." % nIter)
+            q = False
+        elif np.isnan(j):
             # No current entry.
             print("  Adding new databook entry at iteration %i." % nIter)
             q = True
@@ -274,9 +278,6 @@ class DataBook(dict):
             # Change statistics
             print("  Recomputing statistics using %i iterations." % nStats)
             q = True
-        elif (not nIter) or (nIter < nStats):
-            # Not enough iterations (or zero iterations)
-            print("  Not enough iterations (%s) for analysis." % nIter)
         else:
             # Up-to-date
             print("  Databook up to date.")
