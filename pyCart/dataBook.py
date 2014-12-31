@@ -459,19 +459,9 @@ class DataBook(dict):
         comps = DBP["Components"]
         # Initial component
         DBc = self[comps[0]]
-        # Figure tag list.
-        tags = []
-        # Loop through sweep parameters.
-        for k in kw:
-            # Check the parameter type.
-            if self.x.defns[k]["Value"] == "float":
-                # Short float label.
-                tags.append('%s=%.2f' % (k, DBc[k][I[0]]))
-            else:
-                # Use literal string conversion.
-                tags.append('%s=%s' % (k, DBc[k][I[0]]))
-        print("tags: %s" % tags)
-                
+        
+        # Copy of sweep keys for target search.
+        tkw = kw.copy()
         # Check for carpet.
         o_carpet = DBP["Carpet"]
         # Check if it's a nonempty dict.
@@ -479,7 +469,7 @@ class DataBook(dict):
             # Get the carpet parameter.
             cv = o_carpet.keys()[0]
             # Add it to the target sweep criteria.
-            kw[cv] = o_carpet[cv]
+            tkw[cv] = o_carpet[cv]
         # Plot the min/max and standard deviation plots first.
         # This prevents the region plots from covering mean results.
         for j in range(len(comps)):
@@ -509,7 +499,7 @@ class DataBook(dict):
             # Extract the target.
             DBT = self.Targets[it]
             # Get the sweep.
-            It = DBT.FindSweep(DBc, I[0], key=xv, **kw)
+            It = DBT.FindSweep(DBc, I[0], key=xv, **tkw)
             # Plot the target sweep.
             line = DBT.PlotSweep(It, i, j+istyle)
             # Append a label if so requested.
@@ -528,6 +518,17 @@ class DataBook(dict):
         else:
             # Just small
             fsize = 9
+        # Figure tag list.
+        tags = []
+        # Loop through sweep parameters.
+        for k in kw:
+            # Check the parameter type.
+            if self.x.defns[k]["Value"] == "float":
+                # Short float label.
+                tags.append('%s=%.2f' % (k, DBc[k][I[0]]))
+            else:
+                # Use literal string conversion.
+                tags.append('%s=%s' % (k, DBc[k][I[0]]))
         # Activate legend.
         self.legend = self.ax.legend(loc='upper center', fontsize=fsize,
             bbox_to_anchor=(0.5, 1.05), labelspacing=0.5)
