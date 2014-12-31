@@ -483,9 +483,7 @@ class Cart3d(object):
         # Process constraints.
         cons = kw.get('cons', [])
         # Apply constraints.
-        i = self.x.Filter(cons)
-        # Get the case names.
-        fruns = self.x.GetFullFolderNames(i)
+        I = self.x.Filter(cons)
         
         # Get the qstat info (safely; do not raise an exception).
         jobs = queue.qstat(u=kw.get('u',os.environ['USER']))
@@ -518,9 +516,9 @@ class Cart3d(object):
         total = {'PASS':0, 'PASS*':0, '---':0, 'INCOMP':0,
             'RUN':0, 'DONE':0, 'QUEUE':0, 'ERROR':0}
         # Loop through the runs.
-        for i in range(len(fruns)):
+        for i in I:
             # Extract case
-            frun = fruns[i]
+            frun = self.x.GetFullFolderNames(i)
             # Check status.
             sts = self.CheckCaseStatus(i, jobs)
             # Get active job number.
