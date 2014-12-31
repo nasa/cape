@@ -524,7 +524,7 @@ class DataBook(dict):
         # Check the type.
         if DBP.get("Carpet"):
             # Carpet plot.
-            pass
+            self.PlotCarpets(i)s
         else:
             # Regular sweep plot.
             self.PlotSweeps(i)
