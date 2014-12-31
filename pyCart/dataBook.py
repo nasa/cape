@@ -455,6 +455,10 @@ class DataBook(dict):
         yv = DBP["YAxis"]
         # Sweep specifications
         kw = DBP["Sweep"]
+        # Get the components.
+        comps = DBP["Components"]
+        # Initial component
+        DBc = self[comps[0]]
         # Figure tag list.
         tags = []
         # Loop through sweep parameters.
@@ -475,8 +479,6 @@ class DataBook(dict):
             cv = o_carpet.keys()[0]
             # Add it to the target sweep criteria.
             kw[cv] = o_carpet[cv]
-        # Get the components.
-        comps = DBP["Components"]
         # Plot the min/max and standard deviation plots first.
         # This prevents the region plots from covering mean results.
         for j in range(len(comps)):
