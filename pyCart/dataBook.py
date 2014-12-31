@@ -1060,7 +1060,7 @@ class DBComp(dict):
                 # Get the first index that hasn't been subdivided yet.
                 ii = j[0]
                 # Get the sweep. (only
-                ji = self.FindSweep(i, key, j0=j, **cdict)
+                ji = self.FindSweep(ii, key, j0=j, **cdict)
                 # Remove the cases from the sweep.
                 j = np.setdiff1d(j, ji)
                 # Increase safety counter.
