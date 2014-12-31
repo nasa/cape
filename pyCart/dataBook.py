@@ -455,6 +455,18 @@ class DataBook(dict):
         yv = DBP["YAxis"]
         # Sweep specifications
         kw = DBP["Sweep"]
+        # Figure tag list.
+        tags = []
+        # Loop through sweep parameters.
+        for k in kw:
+            # Check the parameter type.
+            if self.x.defns[k]["Value"] == "float":
+                # Short float label.
+                tags.append('%s=%.2f' % (k, DBc[k][I[0]]))
+            else:
+                # Use literal string conversion.
+                tags.append('%s=%s' % (k, DBc[k][I[0]]))
+                
         # Check for carpet.
         o_carpet = DBP["Carpet"]
         # Check if it's a nonempty dict.
@@ -504,20 +516,16 @@ class DataBook(dict):
         # Add margin to the y-axis limits
         ylim = self.ax.get_ylim()
         self.ax.set_ylim((ylim[0], 1.21*ylim[1]-0.21*ylim[0]))
+        # See if font size needs to be smaller.
+        if len(self.ax.get_lines()) > 5:
+            # Very small
+            fsize = 6
+        else:
+            # Just small
+            fsize = 8
         # Activate legend.
-        self.legend = self.ax.legend(loc='upper center', fontsize='small',
+        self.legend = self.ax.legend(loc='upper center', fontsize=fsize,
             bbox_to_anchor=(0.5, 1.05), labelspacing=0.5)
-        # Figure tag list.
-        tags = []
-        # Loop through sweep parameters.
-        for k in kw:
-            # Check the parameter type.
-            if self.x.defns[k]["Value"] == "float":
-                # Short float label.
-                tags.append('%s=%.2f' % (k, DBc[k][I[0]]))
-            else:
-                # Use literal string conversion.
-                tags.append('%s=%s' % (k, DBc[k][I[0]]))
         # Set the figure text.
         self.tag.set_text(", ".join(tags))
         # Draw the figure.
