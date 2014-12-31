@@ -556,13 +556,13 @@ class Cart3d(object):
             # Print info
             if qJobID and jobID in jobs:
                 # Print job number.
-                print(stncl % (i, frun, sts, itr, que, jobID))
+                print(stncl % (j, frun, sts, itr, que, jobID))
             elif qJobID:
                 # Print blank job number.
-                print(stncl % (i, frun, sts, itr, que, ""))
+                print(stncl % (j, frun, sts, itr, que, ""))
             else:
                 # No job number.
-                print(stncl % (i, frun, sts, itr, que))
+                print(stncl % (j, frun, sts, itr, que))
             # Check status.
             if qCheck or nSub >= nSubMax: continue
             # If submitting is allowed, check the job status.

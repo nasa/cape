@@ -274,6 +274,9 @@ class DataBook(dict):
             # Change statistics
             print("  Recomputing statistics using %i iterations." % nStats)
             q = True
+        elif (not nIter) or (nIter < nStats):
+            # Not enough iterations (or zero iterations)
+            print("  Not enough iterations (%s) for analysis." % nIter)
         else:
             # Up-to-date
             print("  Databook up to date.")
