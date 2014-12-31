@@ -513,8 +513,8 @@ class DataBook(dict):
                 # Set it.
                 line.set_label(flbl)
         # Add margin to the y-axis limits
-        ylim = self.ax.get_ylim()
-        self.ax.set_ylim((ylim[0], 1.21*ylim[1]-0.21*ylim[0]))
+        ymin, ymax = self.ax.get_ylim()
+        self.ax.set_ylim((1.05*ymin-0.05*ymax, 1.21*ymax-0.21*ymin))
         # See if font size needs to be smaller.
         if len(self.ax.get_lines()) > 5:
             # Very small
@@ -640,8 +640,8 @@ class DataBook(dict):
                 fdpi = DBP.get("DPI", 120)
                 # Save as a PNG.
                 self.fig.savefig(f_i+".png", dpi=fdpi)
-        # Close the multipage PDF to create the document.
-        self.pdf.close()
+            # Close the figure.
+            plt.close(self.fig)
         # Close all the figures.
         plt.close('all')
         
