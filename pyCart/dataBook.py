@@ -531,8 +531,14 @@ class DataBook(dict):
         o_out = DBP.get("Output", "")
         # Output folder
         fdir = os.path.join(self.RootDir, self.opts.get_DataBookDir())
+        # Get the label for this plot.
+        flbl = DBP["Label"]
+        # Default label
+        if flbl is None or len(flbl)==0:
+            # Use list of components.
+            flbl = "-".join(comps)
         # Output file name.
-        fname = 'db_%s_%s_%s' % ("-".join(comps),  yv, xv)
+        fname = 'db_%s_%s_%s' % (flbl,  yv, xv)
         # File name. 
         fbase = os.path.join(fdir, fname)
         # Save plot file name. (e.g. "db_RSRB-LSRB_CY.pdf")
@@ -968,7 +974,7 @@ class DBComp(dict):
         # Output (sorted)
         return j[jo]
         
-    # Function to divide databook into sweeps
+    # Function to divide data book into sweeps
     def GetSweeps(self, key=None, **kw):
         """Divide databook entries into sweeps of one variable
         
@@ -989,11 +995,11 @@ class DBComp(dict):
         jNoMatch = np.arange(self.n)
         # Initialize output
         I = []
-        # Escape criteria
+        # Escape criterion
         n = 0
         # Loop until all cases are in a sweep.
         while (n<1000) and (len(jNoMatch)>0):
-            # Get the first index that hasn't been put into a sweep jet.
+            # Get the first index that hasn't been put into a sweep yet.
             i = jNoMatch[0]
             # Get the sweep.
             j = self.FindSweep(i, key, **kw)
@@ -1005,6 +1011,68 @@ class DBComp(dict):
             n += 1
         # Output.
         return I
+        
+    # Function to divide data book into carpets
+    def GetCarpets(self, key, ckey, tol, **kw):
+        """Divide data book entries into carpet sweeps of two variables
+        
+        :Call:
+            >>> J = DBi.GetCarpets(key, ckey, tol, **kw)
+        :Inputs:
+            *DBi*: :class:`pyCart.dataBook.DBComp`
+                Instance of the pyCart data book component
+            *key*: :class:`str`
+                Primary sweep variable, *x*-axis of plots
+            *ckey*: :class:`str`
+                Secondary sweep variable
+            *tol*: :class:`float`
+                Tolerance for the secondary sweep variable
+        :Outputs:
+            *J*: :class:`list` (:class:`list` (:class:`numpy.ndarray`))
+                List of sweep arrays
+        :Versions:
+            * 2014-12-30 ``@ddalle``: First version
+        """
+        # Initialize data set.
+        jNoMatch = np.arange(self.n)
+        # Initialize output
+        J = []
+        # Escape criterion
+        n = 0
+        # Dictionary to use as keyword arguments for secondary searches.
+        cdict = {ckey: tol}
+        # Loop until all cases are in a carpet (rug?)
+        while (n<1000) and (len(jNoMatch)>0):
+            # Get the first index that hasn't been put into a carpet yet.
+            i = jNoMatch[0]
+            # Get the sweep.
+            j = self.FindSweep(i, key, **kw)
+            # Remove the cases in the current sweep.
+            jNoMatch = np.setdiff1d(jNoMatch, j)
+            # Increase the safety counter.
+            n += 1
+            # Safety subcounter
+            ni = 0
+            # Initialize individual carpet.
+            I = []
+            # Loop until the big sweep is divided.
+            while (ni<100) and (len(j)>0):
+                # Get the first index that hasn't been subdivided yet.
+                ii = j[0]
+                # Get the sweep. (only
+                ji = self.FindSweep(i, key, j0=j, **cdict)
+                # Remove the cases from the sweep.
+                j = np.setdiff1d(j, ji)
+                # Increase safety counter.
+                ni += 1
+                # Save the subsweep.
+                I.append(ji)
+            # Save the carpet.
+            J.append(I)
+        # Output
+        return J
+            
+        
         
     # Function to plot a single sweep min/max plot
     def PlotSweepMinMax(self, I, i, j=0):

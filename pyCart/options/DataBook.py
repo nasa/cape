@@ -612,7 +612,9 @@ class DBPlot(odict):
         >>> DBP = DBPlot(defs={}, **kw)
     :Inputs:
         *defs*: :class:`dict`
-            Dictionary of default options from previous dictionary.
+            Dictionary of default options from previous dictionary
+        *Label*: :class:`str`
+            Label for the plot (defaults to list of components in the plot)
         *XAxis*: :class:`str`
             Name of variable to use for *x* axis
         *XLabel*: :class:`str`
@@ -651,7 +653,7 @@ class DBPlot(odict):
         # Loop through recognized keys.
         for k in ["XAxis", "XLabel", "YAxis", "YLabel", "Restriction",
                 "Sweep", "Components", "Output", "StandardDeviation", "MinMax", 
-                "PlotOptions", "TargetOptions",
+                "Label", "PlotOptions", "TargetOptions",
                 "MinMaxOptions", "StDevOptions"]:
             # Save the property, defaulting to the last dict
             self[k] = kw.get(k, defs.get(k))
