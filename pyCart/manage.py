@@ -50,12 +50,12 @@ def TarAdapt():
     imax = max([int(fdir[5:]) for fdir in fdirs])
     # Check for subsequent iterations. (can tar last folder then)
     qtar = os.path.isfile('history.dat') and os.path.islink('Restart.file')
-    # Check if the folder is in use.
-    quse = (fdir == fbest) or (i >= imax)
     # Loop through adaptXX/ folders.
     for fdir in fdirs:
         # Get the adaptation number.
         i = int(fdir[5:])
+        # Check if the folder is in use.
+        quse = (fdir == fbest) or (i >= imax)
         # Make sure nothing happened to the folder in the meantime.
         if not os.path.isdir(fdir):
             # Not a folder; what?
