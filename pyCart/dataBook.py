@@ -443,8 +443,6 @@ class DataBook(dict):
         :Versions:
             * 2014-12-28 ``@ddalle``: First version
         """
-        # Initialize a component plot.
-        self.InitPlot(i)
         # Extract the options.
         DBP = self.opts.get_DataBookPlots()[i]
         # Axis variables
@@ -452,6 +450,15 @@ class DataBook(dict):
         yv = DBP["YAxis"]
         # Sweep specifications
         kw = DBP["Sweep"]
+        print("  I=%s" % I)
+        # Check for carpet.
+        o_carpet = DBP["Carpet"]
+        # Check if it's a nonempty dict.
+        if o_carpet and (type(o_carpet).__name__ == "dict"):
+            # Get the carpet parameter.
+            cv = o_carpet.keys()[0]
+            # Add it to the target sweep criteria.
+            kw[cv] = o_carpet[cv]
         # Get the components.
         comps = DBP["Components"]
         # Plot the min/max and standard deviation plots first.
@@ -579,6 +586,8 @@ class DataBook(dict):
         self.pdf = PdfPages(self.figname)
         # Loop through the sweeps.
         for j in range(len(I)):
+            # Initialize a component plot.
+            self.InitPlot(i)
             # Call the individual sweep plot function.
             self.PlotSweep(I[j], i)
             # Add the plot.
@@ -650,6 +659,8 @@ class DataBook(dict):
             flbl = "-".join(comps)
         # Output file name.
         fname = 'db_%s_%s_%s-%s' % (flbl,  yv, xv, cv)
+        print("i=%i")
+        print("  fname=%s" % fname)
         # File name. 
         fbase = os.path.join(fdir, fname)
         # Save plot file name. (e.g. "db_RSRB_CY_Mach-alpha.pdf")
@@ -658,18 +669,25 @@ class DataBook(dict):
         DBc = self[comps[0]]
         # Get the sweeps.
         J = DBc.GetCarpets(xv, cv, ctol, **kw)
+        print("Carpet... %s: %f" % (cv, ctol))
         # Initialize the PDF.
         self.pdf = PdfPages(self.figname)
         # Loop through the carpets.
-        for I in J:
+        for ij in range(len(J)):
+            # Initialize a component plot.
+            self.InitPlot(i)
+            # Extract sweep.
+            I = J[ij]
             # Loop through the sweeps.
-            for j in range(len(I)):
+            print("k=%i" % ij)
+            for j in I:
+                print(" j=%s" % j)
                 # Call the individual sweep plot function.
-                self.PlotSweep(I[j], i)
+                self.PlotSweep(j, i)
             # Add the plot.
             self.pdf.savefig(self.fig)
             # Individual filename (if needed)
-            f_i = fbase + ("_Carpet%03i" % j)
+            f_i = fbase + ("_Carpet%03i" % ij)
             # Process individual output.
             if o_out in ["pdf", "PDF"]:
                 # Save as a PDF.
