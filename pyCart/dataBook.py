@@ -722,7 +722,6 @@ class DataBook(dict):
             for jj in range(len(I)):
                 # Extract indices
                 j = I[jj]
-                print("  j=%s" % j)
                 # Form the additional label using initial value of *cv*.
                 f_lgnd = s_lgnd % DBc[cv][j[0]]
                 # Call the individual sweep plot function.
