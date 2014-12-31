@@ -679,7 +679,6 @@ class DataBook(dict):
             flbl = "-".join(comps)
         # Output file name.
         fname = 'db_%s_%s_%s-%s' % (flbl,  yv, xv, cv)
-        print("  fname=%s" % fname)
         # File name. 
         fbase = os.path.join(fdir, fname)
         # Save plot file name. (e.g. "db_RSRB_CY_Mach-alpha.pdf")
@@ -706,11 +705,9 @@ class DataBook(dict):
             # Extract sweep.
             I = J[ij]
             # Loop through the sweeps.
-            print("k=%i" % ij)
-            for jj in I:
+            for jj in range(len(I)):
                 # Extract indices
                 j = I[jj]
-                print(" j=%s" % j)
                 # Form the additional label using initial value of *cv*.
                 f_lgnd = s_lgnd % DBc[cv][j[0]]
                 # Call the individual sweep plot function.
