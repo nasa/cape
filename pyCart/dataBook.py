@@ -521,10 +521,10 @@ class DataBook(dict):
         # See if font size needs to be smaller.
         if len(self.ax.get_lines()) > 5:
             # Very small
-            fsize = 6
+            fsize = 7
         else:
             # Just small
-            fsize = 8
+            fsize = 9
         # Activate legend.
         self.legend = self.ax.legend(loc='upper center', fontsize=fsize,
             bbox_to_anchor=(0.5, 1.05), labelspacing=0.5)
