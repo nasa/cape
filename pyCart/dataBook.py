@@ -642,8 +642,8 @@ class DataBook(dict):
                 self.fig.savefig(f_i+".png", dpi=fdpi)
             # Close the figure.
             plt.close(self.fig)
-        # Close all the figures.
-        plt.close('all')
+        # Close the multipage PDF to create the document.
+        self.pdf.close()
         
     # Function to create a set of carpet plots
     def PlotCarpets(self, i):
