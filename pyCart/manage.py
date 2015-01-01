@@ -156,7 +156,7 @@ def ClearCheck():
     # Check for a match.
     if len(fglob) > 0:
         # Get the max index.
-        imax = max([int(f.split()[1]) for f in fglob])
+        imax = max([int(f.split('.')[1]) for f in fglob])
         # Loop through glob.
         for f in fglob:
             # Check the index.
@@ -168,7 +168,7 @@ def ClearCheck():
     # Check for a match.
     if len(fglob) > 0:
         # Get the max index.
-        imax = max([int(f.split()[1]) for f in fglob])
+        imax = max([int(f.split('.')[1]) for f in fglob])
         # Loop through glob.
         for f in fglob:
             # Check the index.
