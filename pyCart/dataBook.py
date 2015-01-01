@@ -492,11 +492,13 @@ class DataBook(dict):
             if DBP.get("MinMax", False):
                 # Add (min/max) to the label.
                 flbl = "%s (min/max)" % line.get_label()
+                line.set_label(flbl)
             # Add standard deviation to the label.
             if DBP.get("StandardDeviation", 0):
                 # Add (\pm k*\sigma) to the label.
                 flbl = u"%s (\u00B1%.1f\u03C3)" % (
                     line.get_label(), DBP["StandardDeviation"])
+                line.set_label(flbl)
             # Append a label if so requested.
             if lbl:
                 # Form the new label.
