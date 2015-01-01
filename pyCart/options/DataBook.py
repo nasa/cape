@@ -666,7 +666,7 @@ class DBPlot(odict):
         # Make sure "Components" is a list.
         if type(self["Components"]).__name__ not in ['list', 'ndarray']:
             self["Components"] = [self["Components"]]
-            
+        
     # Function to get the plot options
     def get_PlotOptions(self, i=None):
         """Get the plot options for component *i*

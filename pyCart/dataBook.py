@@ -488,6 +488,15 @@ class DataBook(dict):
             DBc = self[comps[j]]
             # Plot it.
             line = DBc.PlotSweep(I, i, j+istyle)
+            # Add min/max to label.
+            if DBP.get("MinMax", False):
+                # Add (min/max) to the label.
+                flbl = "%s (min/max)" % line.get_label()
+            # Add standard deviation to the label.
+            if DBP.get("StandardDeviation", 0):
+                # Add (\pm k*\sigma) to the label.
+                flbl = u"%s (\u00B1%.1f\u03C3)" % (
+                    line.get_label(), DBP["StandardDeviation"])
             # Append a label if so requested.
             if lbl:
                 # Form the new label.
@@ -1283,11 +1292,9 @@ class DBComp(dict):
             yv = DBP['YAxis']
             # Get the min/max plot options
             o_plt = DBP.get_MinMaxOptions(j)
-            # Initialize the label.
-            lbl = '%s/Min-Max' % self.comp
             # Plot it.
             line = plt.fill_between(self[xv][I],
-                self[yv+'_min'][I], self[yv+'_max'][I], label=lbl, **o_plt)
+                self[yv+'_min'][I], self[yv+'_max'][I], **o_plt)
         else:
             # No line.
             line = None
@@ -1328,14 +1335,11 @@ class DBComp(dict):
             o_plt = DBP.get_StDevOptions(j)
             # Multiplier.
             ksig = DBP['StandardDeviation']
-            # Initialize the label.  (e.g. CORE/3\sigma)
-            lbl = u'%s/%i\u03C3' % (self.comp, ksig)\
             # Extract values
             y = self[yv][I]
             s = self[yv+'_std'][I]
             # Plot it.
-            line = plt.fill_between(self[xv][I],
-                y-ksig*s, y+ksig*s, label=lbl, **o_plt)
+            line = plt.fill_between(self[xv][I], y-ksig*s, y+ksig*s, **o_plt)
         else:
             # No line.
             line = None
