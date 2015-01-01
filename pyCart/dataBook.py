@@ -545,9 +545,16 @@ class DataBook(dict):
                 # Use literal string conversion.
                 tags.append('%s=%s' % (k, DBc[k][I[0]]))
         # Activate legend.
-        self.legend = self.ax.legend(loc='upper center',
-            prop=dict(size=fsize, family="DejaVu Sans"),
-            bbox_to_anchor=(0.5, 1.05), labelspacing=0.5)
+        try:
+            # Try to force the DejaVu Sans font to get "sigma".
+            self.legend = self.ax.legend(loc='upper center',
+                prop=dict(size=fsize, family="DejaVu Sans"),
+                bbox_to_anchor=(0.5, 1.05), labelspacing=0.5)
+        except Exception:
+            # Legend with default font.
+            self.legend = self.ax.legend(loc='upper center',
+                prop=dict(size=fsize),
+                bbox_to_anchor=(0.5, 1.05), labelspacing=0.5)
         # Set the figure text.
         self.tag.set_text(", ".join(tags))
         # Draw the figure.
