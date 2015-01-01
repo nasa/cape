@@ -153,22 +153,26 @@ def ClearCheck():
     """
     # Get the check.* files.
     fglob = glob.glob('check.?????')
-    # Get the max index.
-    imax = [int(f.split()[1]) for f in fglob]
-    # Loop through glob.
-    for f in fglob:
-        # Check the index.
-        if int(f.split()[1]) < imax:
-            # Remove it.
-            os.remove(f)
+    # Check for a match.
+    if len(fglob) > 0:
+        # Get the max index.
+        imax = max([int(f.split()[1]) for f in fglob])
+        # Loop through glob.
+        for f in fglob:
+            # Check the index.
+            if int(f.split()[1]) < imax:
+                # Remove it.
+                os.remove(f)
     # Get the check.* files.
     fglob = glob.glob('check.??????.td')
-    # Get the max index.
-    imax = [int(f.split()[1]) for f in fglob]
-    # Loop through glob.
-    for f in fglob:
-        # Check the index.
-        if int(f.split()[1]) < imax:
-            # Remove it.
-            os.remove(f)
+    # Check for a match.
+    if len(fglob) > 0:
+        # Get the max index.
+        imax = max([int(f.split()[1]) for f in fglob])
+        # Loop through glob.
+        for f in fglob:
+            # Check the index.
+            if int(f.split()[1]) < imax:
+                # Remove it.
+                os.remove(f)
     
