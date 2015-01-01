@@ -160,7 +160,7 @@ def ClearCheck():
         # Loop through glob.
         for f in fglob:
             # Check the index.
-            if int(f.split()[1]) < imax:
+            if int(f.split('.')[1]) < imax:
                 # Remove it.
                 os.remove(f)
     # Get the check.* files.
@@ -172,7 +172,7 @@ def ClearCheck():
         # Loop through glob.
         for f in fglob:
             # Check the index.
-            if int(f.split()[1]) < imax:
+            if int(f.split('.')[1]) < imax:
                 # Remove it.
                 os.remove(f)
     
