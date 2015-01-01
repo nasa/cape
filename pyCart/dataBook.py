@@ -505,7 +505,7 @@ class DataBook(dict):
             # Get the sweep.
             It = DBT.FindSweep(DBc, I[0], key=xv, **tkw)
             # Plot the target sweep.
-            line = DBT.PlotSweep(It, i, j+istyle)
+            line = DBT.PlotSweep(It, i, j, istyle)
             # Append a label if so requested.
             if lbl:
                 # Form the new label.
@@ -1625,11 +1625,11 @@ class DBTarget(dict):
         return j[jo]
         
     # Function to plot a single sweep.
-    def PlotSweep(self, I, i, j=0):
+    def PlotSweep(self, I, i, j=0, istyle=0,):
         """Plot a fixed set of indices with known options
         
         :Call:
-            >>> line = DBT.PlotSweep(I, i, j=0)
+            >>> line = DBT.PlotSweep(I, i, j=0, istyle=0)
         :Inputs:
             *DBT*: :class:`pyCart.dataBook.DBTarget`
                 Instance of the pyCart data book target data carrier
@@ -1638,7 +1638,9 @@ class DBTarget(dict):
             *i*: :class:`int`
                 Index of data book target plot options to use
             *j*: :class:`int`
-                Index of plot options to use (if there are multiple components)
+                Index of component to use (if there are multiple components)
+            *istyle*: :class:`int`
+                Offset for plot options
         :Outputs:
             *line*: :class:`matplotlib.lines.Line2D`
                 Handle for the sweep line that is drawn
@@ -1661,7 +1663,7 @@ class DBTarget(dict):
         # Make sure something was found.
         if yt is None: return
         # Get the options
-        o_plt = DBP.get_TargetOptions(j)
+        o_plt = DBP.get_TargetOptions(j+istyle)
         # Initialize the label.
         lbl = '%s, %s' % (self.Name, comp)
         # Plot
