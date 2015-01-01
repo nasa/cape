@@ -502,7 +502,7 @@ class DataBook(dict):
             # Append a label if so requested.
             if lbl:
                 # Form the new label.
-                flbl = "%s, %s" % (line.get_label(), lbl)
+                flbl = u"%s, %s" % (line.get_label(), lbl)
                 # Set it.
                 line.set_label(flbl)
             # Check for a target.
@@ -520,7 +520,7 @@ class DataBook(dict):
             # Append a label if so requested.
             if lbl:
                 # Form the new label.
-                flbl = "%s, %s" % (line.get_label(), lbl)
+                flbl = u"%s, %s" % (line.get_label(), lbl)
                 # Set it.
                 line.set_label(flbl)
         # Add margin to the y-axis limits
@@ -545,7 +545,8 @@ class DataBook(dict):
                 # Use literal string conversion.
                 tags.append('%s=%s' % (k, DBc[k][I[0]]))
         # Activate legend.
-        self.legend = self.ax.legend(loc='upper center', fontsize=fsize,
+        self.legend = self.ax.legend(loc='upper center',
+            prop=dict(size=fsize, family="DejaVu Sans"),
             bbox_to_anchor=(0.5, 1.05), labelspacing=0.5)
         # Set the figure text.
         self.tag.set_text(", ".join(tags))
