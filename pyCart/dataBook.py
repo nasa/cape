@@ -257,7 +257,7 @@ class DataBook(dict):
         # Go to the folder.
         os.chdir(frun)
         # Get the current iteration number.
-        nIter = GetCurrentIter()
+        nIter = int(GetCurrentIter())
         # Get the number of iterations used for stats.
         nStats = self.opts.get_nStats()
         # Process whether or not to update.
@@ -2261,8 +2261,8 @@ class CaseResid(object):
             # For *ni0*, 2000.000 --> 2000; 1999.900 --> 1999
             ni1 = np.array(A[n0:,0], dtype=int)
             # Look for iterations where the index crosses an integer.
-            i0 = np.insert(np.where(ni0[1:] > ni0[:-1])[0]+1, 0, 0)
-            i1 = np.where(ni1[1:] > ni1[:-1])[0]+1
+            i0 = np.insert(np.where(ni0[1:] > ni0[:-1])[0]+1, 0, 0) + n0
+            i1 = np.where(ni1[1:] > ni1[:-1])[0] + 1 + n0
         else:
             # No unsteady iterations.
             i0 = np.array([], dtype=int)
