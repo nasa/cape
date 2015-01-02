@@ -110,6 +110,11 @@ def run_flowCart():
         cmdi = cmd.flowCart(fc=fc, i=i, n=n)
     # Run the command.
     callf(cmdi, f='flowCart.out')
+    # Remove the RUNNING file.
+    if os.path.isfile('RUNNING'): os.remove('RUNNING')
+    # Tar visualization files.
+    if fc.get_unsteady(i):
+        manage.TarViz()
     # Last reported iteration number
     n = GetHistoryIter()
     # Check status
@@ -150,13 +155,8 @@ def run_flowCart():
     # Tar old adaptation folders.
     if fc.get_use_aero_csh(i):
         manage.TarAdapt()
-    # Tar visualization files.
-    if fc.get_unsteady(i):
-        manage.TarViz()
     # Clear check files.
     manage.ClearCheck()
-    # Remove the RUNNING file.
-    if os.path.isfile('RUNNING'): os.remove('RUNNING')
     # Check current iteration count.
     if n >= fc.get_LastIter():
         return
