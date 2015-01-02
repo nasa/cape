@@ -2262,7 +2262,7 @@ class CaseResid(object):
             ni1 = np.array(A[n0:,0], dtype=int)
             # Look for iterations where the index crosses an integer.
             i0 = np.insert(np.where(ni0[1:] > ni0[:-1])[0]+1, 0, 0)
-            i1 = np.where(ni1[1:] > ni1[:-1])[0]
+            i1 = np.where(ni1[1:] > ni1[:-1])[0]+1
         else:
             # No unsteady iterations.
             i0 = np.array([], dtype=int)
@@ -2270,10 +2270,17 @@ class CaseResid(object):
         # Prepend the steady-state iterations.
         i0 = np.hstack((np.arange(n0), i0))
         i1 = np.hstack((np.arange(n0), i1))
+        # Make sure these stupid things are ints.
+        i0 = np.array(i0, dtype=int)
+        i1 = np.array(i1, dtype=int)
         # Save the initial residuals.
         self.L1Resid0 = A[i0, 3]
         # Rewrite the history.dat file without middle subiterations.
-        open(fhist, 'w').writelines(np.array(lines)[np.union1d(i0, i1)])
+        if not os.path.isfile('RUNNING'):
+            # Iterations to keep.
+            i = np.union1d(i0, i1)
+            # Write the integer iterations and the first subiterations.
+            open(fhist, 'w').writelines(np.array(lines)[i])
         # Eliminate subiterations.
         A = A[np.mod(A[:,0], 1.0) == 0.0]
         # Save the number of iterations.
