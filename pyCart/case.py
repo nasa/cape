@@ -130,6 +130,13 @@ def run_flowCart():
         f.write('# Bombed at iteration %.6f with residual %.2E.\n' % (n, L1))
         f.write('%13.6f\n' % n)
         return
+    # Check for a hard-to-detect failure present in the output file.
+    if CheckFailed():
+        # Some other failure
+        f.open('FAIL', 'w')
+        # Copy the last line of flowCart.out
+        f.write('# %s' % tail('flowCart.out'))
+        return
     # Get the new restart iteration.
     n = GetCheckResubIter()
     # Assuming that worked, move the temp output file.
@@ -205,6 +212,31 @@ def StopCase():
     if os.path.isfile('RUNNING'):
         # Delete it.
         os.remove('RUNNING')
+        
+# Function to check output file for some kind of failure.
+def CheckFailed():
+    """Check the :file:`flowCart.out` file for a failure
+    
+    :Call:
+        >>> q = pyCart.case.CheckFailed()
+    :Outputs:
+        *q*: :class:`bool`
+            Whether or not the last line of `flowCart.out` contains 'fail'
+    :Versions:
+        * 2015-01-02 ``@ddalle``: First version
+    """
+    # Check for the file.
+    if os.path.isfile('flowCart.out'):
+        # Read the last line.
+        if 'fail' in tail('flowCart.out', 1):
+            # This is a failure.
+            return True
+        else:
+            # Normal completed run.
+            return False
+    else:
+        # No flowCart.out file
+        return False
 
 # Function to determine which PBS script to call
 def GetPBSScript(i=None):
