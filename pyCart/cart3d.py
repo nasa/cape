@@ -1283,13 +1283,12 @@ class Cart3d(object):
         os.chdir(self.RootDir)
         # Get run name
         frun = self.x.GetFullFolderNames(i)
-        # Check for folder.
-        if not os.path.isfile(os.path.join(frun, 'RUNNING')):
-            # No file (or possibly no folder)
-            return False
-        else:
-            # File exists.
-            return True
+        # Check for the RUNNING file.
+        q = os.path.isfile(os.path.join(frun, 'RUNNING'))
+        # Go home.
+        os.chdir(fpwd)
+        # Output
+        return q
             
     # Check for a failure.
     def CheckError(self, i):
@@ -1313,13 +1312,12 @@ class Cart3d(object):
         os.chdir(self.RootDir)
         # Get run name
         frun = self.x.GetFullFolderNames(i)
-        # Check for folder.
-        if not os.path.isfile(os.path.join(frun, 'FAIL')):
-            # No file (or possibly no folder)
-            return False
-        else:
-            # File exists.
-            return True
+        # Check for the RUNNING file.
+        q = os.path.isfile(os.path.join(frun, 'FAIL'))
+        # Go home.
+        os.chdir(fpwd)
+        # Output
+        return q
         
         
     # Write the PBS script.
