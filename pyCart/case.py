@@ -146,6 +146,8 @@ def run_flowCart():
     # Tar visualization files.
     if fc.get_unsteady(i):
         manage.TarViz()
+    # Clear check files.
+    manage.ClearCheck()
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
     # Check current iteration count.

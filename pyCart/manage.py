@@ -141,4 +141,38 @@ def TarViz():
         if ierr: continue
         # Delete files
         ierr = sp.call(['rm'] + fnames)
+        
+# Clear old check files.
+def ClearCheck():
+    """Clear old :file:`check.?????` and :file:`check.??????.td`
+    
+    :Call:
+        >>> pyCart.manage.ClearCheck()
+    :Versions:
+        * 2014-12-31 ``@ddalle``: First version
+    """
+    # Get the check.* files.
+    fglob = glob.glob('check.?????')
+    # Check for a match.
+    if len(fglob) > 0:
+        # Get the max index.
+        imax = max([int(f.split('.')[1]) for f in fglob])
+        # Loop through glob.
+        for f in fglob:
+            # Check the index.
+            if int(f.split('.')[1]) < imax:
+                # Remove it.
+                os.remove(f)
+    # Get the check.* files.
+    fglob = glob.glob('check.??????.td')
+    # Check for a match.
+    if len(fglob) > 0:
+        # Get the max index.
+        imax = max([int(f.split('.')[1]) for f in fglob])
+        # Loop through glob.
+        for f in fglob:
+            # Check the index.
+            if int(f.split('.')[1]) < imax:
+                # Remove it.
+                os.remove(f)
     
