@@ -54,6 +54,50 @@ def callf(cmdi, f=None, shell=None):
             os.remove('RUNNING')
         # Exit with error notifier.
         raise SystemError("Command failed with status %i." % ierr)
+        
+# Function to get the last line of a file.
+def tail(fname, n=1):
+    """Tail the last *n* lines of a file 
+    
+    :Call:
+        >>> txt = tail(fname, n=1)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to tail
+        *n*: :class:`int`
+            Number of lines to process
+    :Outputs:
+        *txt*: :class:`str`
+            Output of built-in `tail` function
+    :Versions:
+        * 2015-01-12 ``@ddalle``: First version
+    """
+    # Create the command.
+    cmd = ['tail', '-%i'%n, fname]
+    # Use Popen because check_output is 2.7+
+    return sp.Popen(cmd, stdout=sp.PIPE).communicate()[0]
+        
+# Function to get the first line of a file.
+def head(fname, n=1):
+    """Extract the first *n* lines of a file 
+    
+    :Call:
+        >>> txt = head(fname, n=1)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to tail
+        *n*: :class:`int`
+            Number of lines to process
+    :Outputs:
+        *txt*: :class:`str`
+            Output of built-in `tail` function
+    :Versions:
+        * 2015-01-12 ``@ddalle``: First version
+    """
+    # Create the command.
+    cmd = ['head', '-%i'%n, fname]
+    # Use Popen because check_output is 2.7+
+    return sp.Popen(cmd, stdout=sp.PIPE).communicate()[0]
 
 # Simple function to make sure a file is present
 def _assertfile(fname):

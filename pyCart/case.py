@@ -7,7 +7,7 @@ Case for interacting with individual run cases: :mod:`pyCart.case`
 # Import options class
 from options.flowCart import flowCart
 # Binary interface.
-from bin import callf, sp
+from bin import callf, tail
 # Interface for writing commands
 from . import cmd, queue, manage
 
@@ -449,7 +449,7 @@ def GetHistoryIter(fname='history.dat'):
     # Check the file.
     try:
         # Try to tail the last line.
-        txt = sp.Popen(['tail', '-1', fname], stdout=sp.PIPE).communicate()[0]
+        txt = tail(fname)
         # Try to get the integer.
         return float(txt.split()[0])
     except Exception:
@@ -478,7 +478,7 @@ def GetHistoryResid(fname='history.dat'):
     # Check the file.
     try:
         # Try to tail the last line.
-        txt = sp.Popen(['tail', '-1', fname], stdout=sp.PIPE).communicate()[0]
+        txt = tail(fname)
         # Try to get the integer.
         return float(txt.split()[3])
     except Exception:
@@ -507,7 +507,7 @@ def CheckUnsteadyHistory(fname='history.dat'):
     # Check the file's contents.
     try:
         # Try to tail the last line.
-        txt = sp.Popen(['tail', '-1', fname], stdout=sp.PIPE).communicate()[0]
+        txt = tail(fname)
         # Check for a dot.
         return ('.' in txt.split()[0])
     except Exception:
