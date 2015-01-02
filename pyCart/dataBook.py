@@ -286,6 +286,8 @@ class DataBook(dict):
         if (not q): return
         # Read the history.
         A = Aero(self.Components)
+        # Process the residual drop
+        nOrders = A.Residual.GetNOrders(nStats)
         # Loop through components.
         for comp in self.Components:
             # Extract the component history and component databook.
@@ -310,6 +312,8 @@ class DataBook(dict):
                 # Append values.
                 for c in DC.DataCols:
                     DC[c] = np.hstack((DC[c], [s[c]]))
+                # Append residual drop.
+                DC['nOrders'] = np.hstack((DC['nOrders'], [nOrders]))
                 # Append iteration counts.
                 DC['nIter']  = np.hstack((DC['nIter'], [nIter]))
                 DC['nStats'] = np.hstack((DC['nStats'], [nStats]))
@@ -884,12 +888,15 @@ class DBComp(dict):
                 self[c] = np.loadtxt(fname, delimiter=delim, usecols=[nCol])
                 # Increase column number.
                 nCol += 1
+            # Number of orders of magnitude or residual drop.
+            self['nOrders'] = np.loadtxt(fname, 
+                delimiter=delim, dtype=float, usecols=[nCol])
             # Last iteration number
             self['nIter'] = np.loadtxt(fname, 
-                delimiter=delim, dtype=int, usecols=[nCol])
+                delimiter=delim, dtype=int, usecols=[nCol+1])
             # Number of iterations used for averaging.
             self['nStats'] = np.loadtxt(fname, 
-                delimiter=delim, dtype=int, usecols=[nCol+1])
+                delimiter=delim, dtype=int, usecols=[nCol+2])
         except Exception:
             # Initialize empty trajectory arrays.
             for k in self.x.keys:
@@ -900,6 +907,8 @@ class DBComp(dict):
             # Initialize the data columns.
             for c in self.cols:
                 self[c] = np.array([])
+            # Number of orders of magnitude of residual drop
+            self['nOrders'] = np.array([], dtype=float)
             # Last iteration number
             self['nIter'] = np.array([], dtype=int)
             # Number of iterations used for averaging.
@@ -966,7 +975,7 @@ class DBComp(dict):
             # Write the name. (represents the means)
             f.write(c + delim)
         # Write the number of iterations and num used for stats.
-        f.write('nIter%snStats\n' % delim)
+        f.write('nOrders%snIter%snStats\n' % (delim, delim))
         # Loop through the database entries.
         for i in np.arange(self.n):
             # Write the trajectory points.
@@ -975,6 +984,8 @@ class DBComp(dict):
             # Write values.
             for c in self.cols:
                 f.write('%.8E%s' % (self[c][i], delim))
+            # Write the residual
+            f.write('%.4f%s' % (self['nOrders'][i], delim))
             # Write number of iterations.
             f.write('%i%s%i\n' % (self['nIter'][i], delim, self['nStats'][i]))
         # Close the file.
@@ -2268,5 +2279,31 @@ class CaseResid(object):
             t = np.sum(self.CPUtime[i]) + self.CPUtime[-1]
         # Save the time.
         self.CPUhours = t / 3600.
+        
+    # Number of orders of magnitude of residual drop
+    def GetNOrders(self, nStats=1):
+        """Get the number of orders of magnitude of residual drop
+        
+        :Call:
+            >>> nOrders = hist.GetNOrders(nStats=1)
+        :Inputs:
+            *hist*: :class:`pyCart.dataBook.CaseResid`
+                Instance of the DataBook residual history
+            *nStats*: :class:`int`
+                Number of iterations to use for averaging the final residual
+        :Outputs:
+            *nOrders*: :class:`float`
+                Number of orders of magnitude of residual drop
+        :Versions:
+            * 2015-01-01 ``@ddalle``: First versoin
+        """
+        # Process the number of usable iterations available.
+        i = max(self.nIter-nStats, 0)
+        # Get the maximum residual.
+        L1Max = np.log10(np.max(self.L1Resid))
+        # Get the average terminal residual.
+        L1End = np.log10(np.mean(self.L1Resid[i:]))
+        # Return the drop
+        return L1Max - L1End
         
         
