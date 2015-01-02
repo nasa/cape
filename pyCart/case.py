@@ -15,6 +15,8 @@ from . import cmd, queue, manage
 import json
 # File control
 import os, glob, shutil
+# Basic numerics
+from numpy import nan, isnan
 
 
 # Function to setup and call the appropriate flowCart file.
@@ -108,6 +110,26 @@ def run_flowCart():
         cmdi = cmd.flowCart(fc=fc, i=i, n=n)
     # Run the command.
     callf(cmdi, f='flowCart.out')
+    # Last reported iteration number
+    n = GetHistoryIter()
+    # Check status
+    if n % 1 != 0:
+        # Ended with a failed unsteady cycle!
+        f = open('FAIL', 'w')
+        # Write the failure type.
+        f.write('# Ended with failed unsteady cycle at iteration:\n')
+        f.write('%13.6f\n' % n)
+        return
+    # Last reported residual
+    L1 = GetHistoryResid()
+    # Check for bad (large or NaN) values.
+    if isnan(L1) or L1>1.0e+8:
+        # Exploded.
+        f.open('FAIL', 'w')
+        # Write the failure type.
+        f.write('# Bombed at iteration %.6f with residual %.2E.\n' % (n, L1))
+        f.write('%13.6f\n' % n)
+        return
     # Get the new restart iteration.
     n = GetCheckResubIter()
     # Assuming that worked, move the temp output file.
@@ -431,6 +453,35 @@ def GetHistoryIter(fname='history.dat'):
     except Exception:
         # If any of that fails, return 0
         return 0
+        
+# Get last residual from 'history.dat' file
+def GetHistoryResid(fname='history.dat'):
+    """Get the last residual in a :file:`history.dat` file
+    
+    :Call:
+        >>> L1 = pyCart.case.GetHistoryResid(fname='history.dat')
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to read
+    :Outputs:
+        *L1*: :class:`float`
+            Last L1 residual
+    :Versions:
+        * 2015-01-02 ``@ddalle``: First version
+    """
+    # Check the file beforehand.
+    if not os.path.isfile(fname):
+        # No history
+        return nan
+    # Check the file.
+    try:
+        # Try to tail the last line.
+        txt = sp.Popen(['tail', '-1', fname], stdout=sp.PIPE).communicate()[0]
+        # Try to get the integer.
+        return float(txt.split()[3])
+    except Exception:
+        # If any of that fails, return 0
+        return nan
 
 # Function to check if last line is unsteady
 def CheckUnsteadyHistory(fname='history.dat'):
