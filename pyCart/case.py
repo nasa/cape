@@ -600,7 +600,7 @@ def GetCurrentIter():
     # Get the working folder.
     fdir = GetWorkingFolder()
     # Get the residual.
-    return GetHistoryResid(os.path.join(fdir, 'history.dat'))
+    return GetHistoryIter(os.path.join(fdir, 'history.dat'))
     
 # Function to get most recent L1 residual
 def GetCurrentResid():
