@@ -2282,7 +2282,7 @@ class CaseResid(object):
             # Write the integer iterations and the first subiterations.
             open(fhist, 'w').writelines(np.array(lines)[i])
         # Eliminate subiterations.
-        A = A[np.mod(A[:,0], 1.0) == 0.0]
+        A = A[i1]
         # Save the number of iterations.
         self.nIter = int(A[-1,0])
         # Save the iteration numbers.
