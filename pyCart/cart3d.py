@@ -697,6 +697,9 @@ class Cart3d(object):
             if self.CheckRunning(i):
                 # Case currently marked as running.
                 sts = "RUN"
+            elif self.CheckError(i):
+                # Case has some sort of error.
+                sts = "ERROR"
             else:
                 # Get maximum iteration count.
                 nMax = self.GetLastIter(i)
@@ -1282,6 +1285,36 @@ class Cart3d(object):
         frun = self.x.GetFullFolderNames(i)
         # Check for folder.
         if not os.path.isfile(os.path.join(frun, 'RUNNING')):
+            # No file (or possibly no folder)
+            return False
+        else:
+            # File exists.
+            return True
+            
+    # Check for a failure.
+    def CheckError(self, i):
+        """Check if a case has a failure
+        
+        :Call:
+            >>> q = cart3d.CheckError(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *q*: :class:`bool`
+                If ``True``, case has :file:`FAIL` file in it
+        :Versions:
+            * 2015-01-02 ``@ddalle``: First version
+        """
+        # Safely go to root.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get run name
+        frun = self.x.GetFullFolderNames(i)
+        # Check for folder.
+        if not os.path.isfile(os.path.join(frun, 'FAIL')):
             # No file (or possibly no folder)
             return False
         else:
