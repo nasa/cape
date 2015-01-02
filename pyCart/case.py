@@ -112,9 +112,13 @@ def run_flowCart():
     callf(cmdi, f='flowCart.out')
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
+    # Clean up the folder as appropriate.
     # Tar visualization files.
     if fc.get_unsteady(i):
         manage.TarViz()
+    # Tar old adaptation folders.
+    if fc.get_use_aero_csh(i):
+        manage.TarAdapt()
     # Last reported iteration number
     n = GetHistoryIter()
     # Check status
@@ -157,11 +161,7 @@ def run_flowCart():
         os.rename('cutPlanes.plt', 'cutPlanes.%05i.plt' % n)
     if os.path.isfile('Components.i.plt'):
         os.rename('Components.i.plt', 'Components.%05i.plt' % n)
-    # Clean up the folder as appropriate.
-    # Tar old adaptation folders.
-    if fc.get_use_aero_csh(i):
-        manage.TarAdapt()
-    # Clear check files.
+    # Clear check files as appropriate.
     manage.ClearCheck()
     # Check current iteration count.
     if n >= fc.get_LastIter():
@@ -625,7 +625,7 @@ def GetCurrentResid():
     # Check for adapt?? folders
     for fi in glob.glob('adapt??'):
         # Attempt to read it.
-        ni = GetHistoryIter(os.path.join(fi, 'history.dat'))
+        ni = GetHistoryResid(os.path.join(fi, 'history.dat'))
         # Check it.
         if ni > n0:
             # Update best estimate.
