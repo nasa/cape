@@ -128,7 +128,7 @@ def run_flowCart():
         f.close()
         return
     # Last reported residual
-    L1 = GetHistoryResid()
+    L1 = GetCurrentResid()
     # Check for bad (large or NaN) values.
     if isnan(L1) or L1>1.0e+8:
         # Exploded.
@@ -579,8 +579,6 @@ def GetWorkingFolder():
         if ni > n0:
             # Current best estimate of working directory.
             fdir = fi
-            # Update best estimate.
-            n0 = ni
     # Output
     return fdir
        
@@ -592,7 +590,24 @@ def GetCurrentIter():
     global iteration numbering.
 
     :Call:
-        >>> n = pyCart.case.GetCurrentIter()
+        >>> n = pyCart.case.GetCurrentResid()
+    :Outputs:
+        *L1*: :class:`float`
+            Last L1 residual
+    :Versions:
+        * 2015-01-02 ``@ddalle``: First version
+    """
+    # Get the working folder.
+    fdir = GetWorkingFolder()
+    # Get the residual.
+    return GetHistoryResid(os.path.join(fdir, 'history.dat'))
+    
+# Function to get most recent L1 residual
+def GetCurrentResid():
+    """Get the residual of the most recent iteration including unsaved progress
+
+    :Call:
+        >>> L1 = pyCart.case.GetCurrentIter()
     :Outputs:
         *n*: :class:`int`
             Most recent index written to :file:`history.dat`
