@@ -2250,10 +2250,34 @@ class CaseResid(object):
             n0 = np.max(A[i,0])
             # Add this to the time-accurate iteration numbers.
             A[np.logical_not(i),0] += n0
+        else:
+            # Not steady-state iterations.
+            n0 = 0
+        # Process unsteady iterations if any.
+        if A[-1,0] > n0:
+            # Get the integer values of the iteration indices.
+            # For *ni0*, 2000.000 --> 1999; 2000.100 --> 2000
+            ni0 = np.array(A[n0:,0]-1e-4, dtype=int)
+            # For *ni0*, 2000.000 --> 2000; 1999.900 --> 1999
+            ni1 = np.array(A[n0:,0], dtype=int)
+            # Look for iterations where the index crosses an integer.
+            i0 = np.insert(np.where(ni0[1:] > ni0[:-1])[0]+1, 0, 0)
+            i1 = np.where(ni1[1:] > ni1[:-1])[0]
+        else:
+            # No unsteady iterations.
+            i0 = np.array([], dtype=int)
+            i1 = np.array([], dtype=int)
+        # Prepend the steady-state iterations.
+        i0 = np.hstack((np.arange(n0), i0))
+        i1 = np.hstack((np.arange(n0), i1))
+        # Save the initial residuals.
+        self.L1Resid0 = A[i0, 3]
+        # Rewrite the history.dat file without middle subiterations.
+        open(fhist, 'w').writelines(np.array(lines)[np.union1d(i0, i1)])
         # Eliminate subiterations.
         A = A[np.mod(A[:,0], 1.0) == 0.0]
         # Save the number of iterations.
-        self.nIter = A.shape[0]
+        self.nIter = int(A[-1,0])
         # Save the iteration numbers.
         self.i = A[:,0]
         # Save the CPU time per processor.
@@ -2262,21 +2286,25 @@ class CaseResid(object):
         self.maxResid = A[:,2]
         # Save the global residual.
         self.L1Resid = A[:,3]
+        # Process the CPUtime used for steady cycles.
+        if n0 > 0:
+            # At least one steady-state cycle.
+            t = self.CPUtime[n0-1]
+        else:
+            # No steady state cycles.
+            t = 0.0
+        # Process the unsteady cycles.
+        if self.nIter > n0:
+            # Add up total CPU time for unsteady cycles.
+            t += np.sum(self.CPUtime[n0:])
         # Check for a 'user_time.dat' file.
         if os.path.isfile('user_time.dat'):
-            # Initialize time
-            t = 0.0
             # Loop through lines.
             for line in open('user_time.dat').readlines():
                 # Check comment.
                 if line.startswith('#'): continue
-                # Add to the time.
-                t += np.sum([float(v) for v in line.split()[1:]])
-        else:
-            # Find the indices of run break points.
-            i = np.where(self.CPUtime[1:] < self.CPUtime[:-1])[0]
-            # Sum the end times.
-            t = np.sum(self.CPUtime[i]) + self.CPUtime[-1]
+                # Add to the time everything except flowCart time.
+                t += np.sum([float(v) for v in line.split()[2:]])
         # Save the time.
         self.CPUhours = t / 3600.
         
@@ -2305,5 +2333,33 @@ class CaseResid(object):
         L1End = np.log10(np.mean(self.L1Resid[i:]))
         # Return the drop
         return L1Max - L1End
+        
+    # Number of orders of unsteady residual drop
+    def GetNOrdersUnsteady(self, n=1):
+        """
+        Get the number of orders of magnitude of unsteady residual drop for each
+        of the last *n* unsteady iteration cycles.
+        
+        :Call:
+            >>> nOrders = hist.GetNOrders(n=1)
+        :Inputs:
+            *hist*: :class:`pyCart.dataBook.CaseResid`
+                Instance of the DataBook residual history
+            *n*: :class:`int`
+                Number of iterations to analyze
+        :Outputs:
+            *nOrders*: :class:`numpy.ndarray` (:class:`float`), shape=(n,)
+                Number of orders of magnitude of unsteady residual drop
+        :Versions:
+            * 2015-01-01 ``@ddalle``: First versoin
+        """
+        # Process the number of usable iterations available.
+        i = max(self.nIter-n, 0)
+        # Get the initial residuals
+        L1Init = np.log10(self.L1Resid0[i:])
+        # Get the terminal residuals.
+        L1End = np.log10(self.L1Resid[i:])
+        # Return the drop
+        return L1Init - L1End
         
         
