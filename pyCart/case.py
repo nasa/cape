@@ -124,23 +124,29 @@ def run_flowCart():
         # Write the failure type.
         f.write('# Ended with failed unsteady cycle at iteration:\n')
         f.write('%13.6f\n' % n)
+        # Quit
+        f.close()
         return
     # Last reported residual
     L1 = GetHistoryResid()
     # Check for bad (large or NaN) values.
     if isnan(L1) or L1>1.0e+8:
         # Exploded.
-        f.open('FAIL', 'w')
+        f = open('FAIL', 'w')
         # Write the failure type.
         f.write('# Bombed at iteration %.6f with residual %.2E.\n' % (n, L1))
         f.write('%13.6f\n' % n)
+        # Quit
+        f.close()
         return
     # Check for a hard-to-detect failure present in the output file.
     if CheckFailed():
         # Some other failure
-        f.open('FAIL', 'w')
+        f = open('FAIL', 'w')
         # Copy the last line of flowCart.out
         f.write('# %s' % tail('flowCart.out'))
+        # Quit
+        f.close()
         return
     # Get the new restart iteration.
     n = GetCheckResubIter()
