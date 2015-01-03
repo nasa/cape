@@ -46,6 +46,8 @@ def TarAdapt():
     fbest = os.path.split(os.path.realpath('BEST'))[-1]
     # Initial list of adaptXX/ folders.
     fdirs = glob.glob('adapt[0-9][0-9]')
+    # Quit if none were found.
+    if len(fdirs) == 0: return
     # Max adaptation
     imax = max([int(fdir[5:]) for fdir in fdirs])
     # Check for subsequent iterations. (can tar last folder then)
@@ -73,13 +75,15 @@ def TarAdapt():
         for f in glob.glob(os.path.join(fdir, 'Mesh*.c3d')):
             os.remove(f)
         # Tar the folder.
-        ierr = sp.call(['tar', '-cf', fdir+'.tar', fdir])
-        if ierr: continue
-        # Untar the history file.
-        ierr = sp.call(['tar', '-xf', fdir+'.tar', fdir+'/history.dat'])
+        ierr = sp.call(['tar', '-uf', fdir+'.tar', fdir])
         if ierr: continue
         # Remove the folder.
         shutil.rmtree(fdir)
+        # Check for minimal last adaptation.
+        if quse:
+            # Untar the history file.
+            ierr = sp.call(['tar', '-xf', fdir+'.tar', fdir+'/history.dat'])
+            if ierr: continue
         
         
 # Function to undo the above
