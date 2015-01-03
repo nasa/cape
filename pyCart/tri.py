@@ -17,6 +17,12 @@ import numpy as np
 # File system and operating system management
 import os
 
+# Attempt to load the compiled helper module.
+try:
+    from . import _pycart as pc
+except ImportError:
+    pass
+
 
 # Triangulation class
 class TriBase(object):
@@ -234,13 +240,63 @@ class TriBase(object):
         # Close the file.
         fid.close()
         
+    # Fall-through function to write the triangulation to file.
+    def Write(self, fname='Components.i.tri'):
+        """Write triangulation to file using fastest method available
+        
+        :Call:
+            >>> tri.WriteSlow(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Examples:
+            >>> tri = pyCart.ReadTri('bJet.i.tri')
+            >>> tri.Write('bjet2.tri')
+        :Versions:
+            * 2014-05-23 ``@ddalle``: First version
+            * 2015-01-03 ``@ddalle``: Added C capability
+        """
+        # Try the fast way.
+        try:
+            # Fast method using compiled C.
+            self.WriteFast(fname)
+        except Exception:
+            # Slow method using Python code.
+            self.WriteSlow(fname)
     
-    # Function to write a triangulation to file.
-    def Write(self, fname):
+    # Function to write a triangulation to file as fast as possible.
+    def WriteFast(self, fname='Components.i.tri'):
+        """Try using a compiled function to write to file
+        
+        :Call:
+            >>> tri.WriteSlow(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Versions:
+            * 2015-01-03 ``@ddalle``: First version
+        """
+        # See what happens.
+        # Write the nodes.
+        pc.WriteTri(self.Nodes, self.Tris)
+        # Write the component IDs.
+        pc.WriteCompID(self.CompID)
+        # Check the file name.
+        if fname != "Components.i.tri":
+            # Move the file.
+            os.rename("Components.i.tri", fname)
+            
+    
+    # Function to write a triangulation to file the old-fashioned way.
+    def WriteSlow(self, fname='Components.i.tri'):
         """Write a triangulation to file
         
         :Call:
-            >>> tri.Write(fname)
+            >>> tri.WriteSlow(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance to be translated

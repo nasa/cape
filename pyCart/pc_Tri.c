@@ -8,6 +8,7 @@
 // Functions to extract data from a NumPy array
 #define np2d(X, i, j) *((double *) PyArray_GETPTR2(X, i, j))
 #define np2i(X, i, j) *((int *)    PyArray_GETPTR2(X, i, j))
+#define np1i(X, i)    *((int *)    PyArray_GETPTR1(X, i))
 
 // Function to write Components.i.tri file
 PyObject *
@@ -42,7 +43,7 @@ pc_WriteTri(PyObject *self, PyObject *args)
             "Nodal indices must be Nx3 array.");
         return NULL;
     }
-    // Read number of nodes.
+    // Read number of triangles.
     nTri = (int) PyArray_DIM(T, 0);
     
     // Open output file for writing (wipe out if it exists.)
@@ -83,8 +84,46 @@ pc_WriteTri(PyObject *self, PyObject *args)
 PyObject *
 pc_WriteCompID(PyObject *self, PyObject *args)
 {
-    int ierr;
+    int i, ierr;
+    int nTri;
+    FILE *fid;
+    PyArrayObject *C;
     
-    // Return a number.
-    return Py_BuildValue("n", 0);
+    // Process the inputs.
+    if (!PyArg_ParseTuple(args, "O", &C)) {
+        // Check for failure.
+        PyErr_SetString(PyExc_RuntimeError, \
+            "Could not process inputs to :func:`pc.WriteCompID`");
+        return NULL;
+    }
+    
+    // Check for two-dimensional Mx1 array.
+    if (PyArray_NDIM(C) != 1) {
+        PyErr_SetString(PyExc_ValueError, \
+            "Nodal coordinates must be one-dimensional array.");
+        return NULL;
+    }
+    // Read number of triangles.
+    nTri = (int) PyArray_DIM(C, 0);
+    
+    // Open output file for writing (wipe out if it exists.)
+    fid = fopen("Components.i.tri", "a");
+    // Loop through triangles.
+    for (i=0; i<nTri; i++) {
+        // Write a single triangle.
+        fprintf(fid, "%i\n", np1i(C,i));
+    }
+    
+    // Close the file.
+    ierr = fclose(fid);
+    if (ierr) {
+        // Failure on close?
+        PyErr_SetString(PyExc_IOError, \
+            "Failure on closing file 'Components.i.tri'");
+        return NULL;
+    }
+    
+    // Return None.
+    Py_INCREF(Py_None);
+    return Py_None;
 }

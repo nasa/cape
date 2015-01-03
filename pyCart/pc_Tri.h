@@ -9,10 +9,13 @@ char doc_WriteTri[] =
 ":Call:\n"
 "   >>> pc.WriteTri(P, T)\n"
 ":Inputs:\n"
-"   *C*: :class:`numpy.ndarray` (:class:`int`) shape=(M,)\n"
-"       Vector of component IDs\n"
+"   *P*: :class:`numpy.ndarray` (:class:`float`) shape=(N,3)\n"
+"       Matrix of nodal coordinates\n"
+"   *T*: :class:`numpy.ndarray` (:class:`int`) shape=(M,3)\n"
+"       Matrix of of nodal indices for each triangle\n"
 ":Versions:\n"
 "   * 2014-01-02 ``@ddalle``: First version\n";
+
 
 PyObject *
 pc_WriteCompID(PyObject *self, PyObject *args);
