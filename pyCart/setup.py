@@ -21,8 +21,6 @@ ldflags = config.get("compiler", "extra_ldflags").split()
 
 # Extra include directories
 include_dirs = config.get("compiler", "extra_include_dirs").split()
-print(include_dirs)
-print(os.listdir(include_dirs[0]))
 
 # Assemble the information for the module.
 _pycart = Extension("_pycart",
