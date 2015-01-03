@@ -14,6 +14,11 @@
 # Cart3D setup/grid folders
 Grid*
 
+# pyCart Python/C binaries
+pyCart/build/
+*.o
+*.so
+
 # Sandbox foloders
 sandbox/
 scratch/
