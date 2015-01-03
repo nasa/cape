@@ -1,6 +1,7 @@
 # Packages
 from distutils.core import setup, Extension
 import ConfigParser
+import os
 import os.path as op
 
 
@@ -10,19 +11,24 @@ config = ConfigParser.SafeConfigParser()
 config.read("../config.cfg")
 
 # Path to this file
-directory = op.dirname(op.realpath(__file__))
+fpwd = op.dirname(op.realpath(__file__))
 
-# Compiler and linker options
-cflagstrs = config.get("compiler", "extra_cflags")
-cflags = [str(x) for x in cflagstrs.split(' ')]
+# C compiler flags
+cflags = config.get("compiler", "extra_cflags").split()
 
-ldflagstrs = config.get("compiler", "extra_ldflags")
-ldflags = [str(x) for x in ldflagstrs.split(' ')]
+# Linker options
+ldflags = config.get("compiler", "extra_ldflags").split()
 
+# Extra include directories
+include_dirs = config.get("compiler", "extra_include_dirs").split()
+print(include_dirs)
+print(os.listdir(include_dirs[0]))
 
 # Assemble the information for the module.
 _pycart = Extension("_pycart",
-    include_dirs = [],
+    include_dirs = include_dirs,
+    extra_compile_args = cflags,
+    extra_link_args = ldflags,
     sources = [
         "_pycartmodule.c",
         "pc_Tri.c"])
@@ -31,6 +37,6 @@ _pycart = Extension("_pycart",
 # Compile and link
 setup(
     name="python-cart3d",
-    version="1.0",
+    version="0.1",
     description="This package provides some fast methods for pyCart",
     ext_modules=[_pycart])
