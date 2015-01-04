@@ -583,14 +583,14 @@ def GetWorkingFolder():
     return fdir
        
 # Function to get most recent adaptive iteration
-def GetCurrentIter():
+def GetCurrentResod():
     """Get the most recent iteration including unsaved progress
 
     Iteration numbers from time-accurate restarts are corrected to match the
     global iteration numbering.
 
     :Call:
-        >>> n = pyCart.case.GetCurrentResid()
+        >>> L1 = pyCart.case.GetCurrentResid()
     :Outputs:
         *L1*: :class:`float`
             Last L1 residual
@@ -600,14 +600,14 @@ def GetCurrentIter():
     # Get the working folder.
     fdir = GetWorkingFolder()
     # Get the residual.
-    return GetHistoryIter(os.path.join(fdir, 'history.dat'))
+    return GetHistoryResid(os.path.join(fdir, 'history.dat'))
     
 # Function to get most recent L1 residual
-def GetCurrentResid():
+def GetCurrentIter():
     """Get the residual of the most recent iteration including unsaved progress
 
     :Call:
-        >>> L1 = pyCart.case.GetCurrentIter()
+        >>> n = pyCart.case.GetCurrentIter()
     :Outputs:
         *n*: :class:`int`
             Most recent index written to :file:`history.dat`
@@ -625,7 +625,7 @@ def GetCurrentResid():
     # Check for adapt?? folders
     for fi in glob.glob('adapt??'):
         # Attempt to read it.
-        ni = GetHistoryResid(os.path.join(fi, 'history.dat'))
+        ni = GetHistoryIter(os.path.join(fi, 'history.dat'))
         # Check it.
         if ni > n0:
             # Update best estimate.
