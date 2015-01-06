@@ -583,7 +583,7 @@ def GetWorkingFolder():
     return fdir
        
 # Function to get most recent adaptive iteration
-def GetCurrentResod():
+def GetCurrentResid():
     """Get the most recent iteration including unsaved progress
 
     Iteration numbers from time-accurate restarts are corrected to match the
