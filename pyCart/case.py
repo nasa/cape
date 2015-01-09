@@ -453,13 +453,15 @@ def GetInputNumber(fc):
     # Get the run index.
     n = GetCheckResubIter()
     # Loop through possible input numbers.
-    for i in range(fc.get_nSeq()):
+    for j in range(fc.get_nSeq()):
+        # Get the actual run number
+        i = fc.get_InputSeq(j)
         # Check for output files.
         if not glob.glob('run.%02i.*' % i):
             # This run has not been completed yet.
             return i
         # Check the iteration number.
-        if n < fc.get_IterSeq(i):
+        if n < fc.get_IterSeq(j):
             # This case has been run, but hasn't reached the min iter cutoff
             return i
     # Case completed; just return the last value.

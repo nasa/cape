@@ -63,7 +63,7 @@ rc = {
     "jumpstart": False,
     "limiter": 2,
     "y_is_spanwise": True,
-    "nSteps": 100,
+    "nSteps": 10,
     "checkptTD": None,
     "vizTD": None,
     "fc_clean": False,
