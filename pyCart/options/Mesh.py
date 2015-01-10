@@ -264,7 +264,7 @@ class cubes(odict):
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
-            *sf*: :class:`int` or :class:`list`(:class:`int`)
+            *sf*: :class:`int` or :class:`list` (:class:`int`)
                 Number of additional refinements at sharp edges
             *i*: :class:`int` or ``None``
                 Run index

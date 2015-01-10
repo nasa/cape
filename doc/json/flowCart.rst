@@ -265,10 +265,14 @@ example, is the case submitted as a PBS job?  Is it run in MPI mode?  Is it run
 unsteady (time-accurate)?  Is it an adaptive run?  The full list of options is
 below
 
+    *nProc*: {``8``} | :class:`int` | :class:`list` (:class:`int`)
+        Number of processors to use.  For MPI cases, this is the *total* number
+        of processors across all nodes
+        
     *unsteady*: ``true`` | {:class:`false`} | :class;`list` (:class:`bool`)
         Whether or not to run unsteady simulation by adding the ``-steady``
         flag and switching the binary to either `td_flowCart` or
-        `mpx_td_flowCart`
+        `mpix_td_flowCart`
         
     *mpi_fc*: ``true`` | {``false``} | :class;`list` (:class:`bool`)
         Whether or not to use MPI version of the code.  Switches binary to
@@ -282,9 +286,9 @@ below
         Whether or not to resubmit a new job at the end of a run or simply
         continue on with the current Job ID
         
-    *use-areo-shell*: ``true`` | {``false``} | :class;`list` (:class:`bool`)
+    *use_aero_shell*: ``true`` | {``false``} | :class;`list` (:class:`bool`)
         Whether or not the current index of the run is adaptive
         
-    *jmpstart*: `true`` | {``false``} | :class;`list` (:class:`bool`)
-        Whether or not to jumpstart adaptive cases with an existing volume
+    *jumpstart*: `true`` | {``false``} | :class;`list` (:class:`bool`)
+        Whether or not to jump start adaptive cases with an existing volume
         meshes.

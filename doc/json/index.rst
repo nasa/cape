@@ -66,7 +66,7 @@ the major parts of the file.
             "Adaptation": {
                 // These share names with variables in `aero.csh`
                 "n_adapt_cycles": [2, 5],
-                "ws_it" 200
+                "ws_it": [200]
             },
             
             // Settings to define the initial mesh
@@ -104,4 +104,6 @@ of how the options are used.
     uncategorized
     PBS
     flowCart
-    
+    adjointCart
+    Adaptation
+    Mesh
