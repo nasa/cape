@@ -1572,6 +1572,8 @@ class Cart3d(object):
         fpwd = os.getcwd()
         # Loop through folders.
         for i in self.x.Filter(cons):
+            # Go to root folder.
+            os.chdir(self.RootDir)
             # Get folder name.
             frun = self.x.GetFullFolderNames(i)
             # Status update
@@ -1584,7 +1586,6 @@ class Cart3d(object):
                 print("  Case is not marked PASS.")
                 continue
             # Go to the folder.
-            os.chdir(self.RootDir)
             os.chdir(frun)
             # Archive.
             manage.ArchiveFolder(self.opts)
