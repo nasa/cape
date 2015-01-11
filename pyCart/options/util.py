@@ -118,7 +118,14 @@ rc = {
     "PBS_model": "ivy",
     "PBS_W": "",
     "PBS_q": "normal",
-    "PBS_walltime": "8:00:00"
+    "PBS_walltime": "8:00:00",
+    "ArchiveFolder": "",
+    "ArchiveFormat": "tar",
+    "ArchiveAction": "skeleton",
+    "nCheckPoint": 2,
+    "TarViz": "tar",
+    "TarAdapt": "tar",
+    "TarPBS": "tar"
 }
 
 # Utility function to get elements sanely

@@ -19,7 +19,7 @@ import os, shutil, glob
 import subprocess as sp
 
 # Function to compress extra folders
-def TarAdapt():
+def TarAdapt(fmt="tar"):
     """Replace ``adaptXX`` folders with a tarball except for most recent
     
     For example, if there are 3 adaptations in the current folder, the
@@ -34,14 +34,37 @@ def TarAdapt():
     deleted.
     
     :Call:
-        >>> pyCart.manage.TarAdapt()
+        >>> pyCart.manage.TarAdapt(fmt="tar")
+    :Inputs:
+        *fmt*: {``"tar"``} | ``"gzip"`` | ``"bz2"``
+            Format, can be 'tar', 'gzip', or 'bzip'
     :Versions:
         * 2014-11-12 ``@ddalle``: First version
+        * 2015-01-10 ``@ddalle``: Added format as an option
     """
     # Check for a BEST/ foldoer.
     if not os.path.islink('BEST'):
         # No adaptation cycles to compress.
         return
+    # Process command header.
+    if fmt in ['gzip', 'tgz']:
+        # GZip format
+        # Tar command
+        cmdu = ['tar', '-uzf']
+        # Untar command
+        cmdx = ['tar', '-xzf']
+        # File extension
+        ext = '.tgz'
+    elif fmt in ['bz2', 'bz', 'bzip', 'bzip2', 'tbz']:
+        # BZip2 format
+        cmdu = ['tar', '-uJf']
+        cmdx = ['tar', '-xJf']
+        ext = '.tbz'
+    else:
+        # Just use tar
+        cmdu = ['tar', '-uf']
+        cmdx = ['tar', '-xf']
+        ext = '.tar'
     # Get the most recent cycle.
     fbest = os.path.split(os.path.realpath('BEST'))[-1]
     # Initial list of adaptXX/ folders.
@@ -75,36 +98,55 @@ def TarAdapt():
         for f in glob.glob(os.path.join(fdir, 'Mesh*.c3d')):
             os.remove(f)
         # Tar the folder.
-        ierr = sp.call(['tar', '-uf', fdir+'.tar', fdir])
+        ierr = sp.call(cmdu + [fdir+ext, fdir])
         if ierr: continue
         # Remove the folder.
         shutil.rmtree(fdir)
         # Check for minimal last adaptation.
         if quse:
             # Untar the history file.
-            ierr = sp.call(['tar', '-xf', fdir+'.tar', fdir+'/history.dat'])
+            ierr = sp.call(cmdx + [fdir+ext, fdir+'/history.dat'])
             if ierr: continue
         
         
 # Function to undo the above
-def ExpandAdapt():
+def ExpandAdapt(fmt="tar"):
     """Expand :file:`adaptXX.tar`` files
     
     :Call:
-        >>> pyCart.manage.ExpandAdapt()
+        >>> pyCart.manage.ExpandAdapt(fmt="tar")
+    :Inputs:
+        *fmt*: {``"tar"``} | ``"gzip"`` | ``"bz2"``
+            Format, can be 'tar', 'gzip', or 'bzip'
     :Versions:
         * 2014-11-12 ``@ddalle``: First version
+        * 2015-01-10 ``@ddalle``: Added format as an option
     """
+    # Process command header.
+    if fmt in ['gzip', 'tgz']:
+        # GZip format
+        # Untar command
+        cmdx = ['tar', '-xzf']
+        # File extension
+        ext = '.tgz'
+    elif fmt in ['bz2', 'bz', 'bzip', 'bzip2', 'tbz']:
+        # BZip2 format
+        cmdx = ['tar', '-xJf']
+        ext = '.tbz'
+    else:
+        # Just use tar
+        cmdx = ['tar', '-xf']
+        ext = '.tar'
     # Loop through adapt?? tarballs.
-    for ftar in glob.glob('adapt[0-9][0-9].tar'):
+    for ftar in glob.glob('adapt[0-9][0-9]'+ext):
         # Create the expected folder name.
         fdir = ftar.split('.')[0]
         # Check for that folder.
         if os.path.exists(fdir): continue
         # Status update
-        print("%s --> %s" % (fdir+'.tar', fdir))
+        print("%s --> %s" % (ftar, fdir))
         # Untar
-        ierr = sp.call(['tar', '-xf', ftar])
+        ierr = sp.call(cmdx + [ftar])
         # Check for errors.
         if ierr: continue
         # Remove the tarball.
@@ -112,26 +154,45 @@ def ExpandAdapt():
         
         
 # Function to tar up visualization checkpoints
-def TarViz():
+def TarViz(fmt="tar"):
     """Add all visualization surface and cut plane TecPlot files to tar balls
     
     This reduces file count by tarring :file:`Components.i.*.plt` and
     :file:`cutPlanes.*.plt`.
     
     :Call:
-        >>> pyCart.manage.TarViz()
+        >>> pyCart.manage.TarViz(fmt="tar")
+    :Inputs:
+        *fmt*: {``"tar"``} | ``"gzip"`` | ``"bz2"``
+            Format, can be 'tar', 'gzip', or 'bzip'
     :Versions:
         * 2014-12-18 ``@ddalle``: First version
+        * 2015-01-10 ``@ddalle``: Added format as an option
     """
+    # Process command header.
+    if fmt in ['gzip', 'tgz']:
+        # GZip format
+        # Tar command
+        cmdu = ['tar', '-uzf']
+        # File extension
+        ext = '.tgz'
+    elif fmt in ['bz2', 'bz', 'bzip', 'bzip2', 'tbz']:
+        # BZip2 format
+        cmdu = ['tar', '-uJf']
+        ext = '.tbz'
+    else:
+        # Just use tar
+        cmdu = ['tar', '-uf']
+        ext = '.tar'
     # Globs and tarballs
     VizGlob = [
         'Components.i.[0-9]*.stats',
         'Components.i.[0-9]*',
         'cutPlanes.[0-9]*']
     VizTar = [
-        'Components.i.stats.tar',
-        'Components.i.tar',
-        'cutPlanes.tar']
+        'Components.i.stats'+ext,
+        'Components.i'+ext,
+        'cutPlanes'+ext]
     # Loop through the globs.
     for (fglob, ftar) in zip(VizGlob, VizTar):
         # Get the matches
@@ -141,42 +202,40 @@ def TarViz():
         # Status update
         print("  '%s.{dat,plt}' --> '%s'" % (fglob, ftar))
         # Tar surface TecPlot files
-        ierr = sp.call(['tar', '-uf', ftar] + fnames)
+        ierr = sp.call(cmdu + [ftar] + fnames)
         if ierr: continue
         # Delete files
         ierr = sp.call(['rm'] + fnames)
         
 # Clear old check files.
-def ClearCheck():
+def ClearCheck(n=1):
     """Clear old :file:`check.?????` and :file:`check.??????.td`
     
     :Call:
-        >>> pyCart.manage.ClearCheck()
+        >>> pyCart.manage.ClearCheck(n=1)
+    :Inputs:
+        *n*: :class:`int`
+            Keep the last *n* check points.
     :Versions:
         * 2014-12-31 ``@ddalle``: First version
+        * 2015-01-10 ``@ddalle``: Added *n* setting
     """
-    # Get the check.* files.
-    fglob = glob.glob('check.?????')
+    # Exit if *n* is not positive.
+    if n <= 0: return
+    # Get the check.* files... in order.
+    fglob = glob.glob('check.?????').sort()
     # Check for a match.
-    if len(fglob) > 0:
-        # Get the max index.
-        imax = max([int(f.split('.')[1]) for f in fglob])
-        # Loop through glob.
-        for f in fglob:
-            # Check the index.
-            if int(f.split('.')[1]) < imax:
-                # Remove it.
-                os.remove(f)
+    if len(fglob) > n:
+        # Loop through the glob until the last *n* files.
+        for f in fglob[:-n]:
+            # Remove it.
+            os.remove(f)
     # Get the check.* files.
-    fglob = glob.glob('check.??????.td')
+    fglob = glob.glob('check.??????.td').sort()
     # Check for a match.
-    if len(fglob) > 0:
-        # Get the max index.
-        imax = max([int(f.split('.')[1]) for f in fglob])
-        # Loop through glob.
-        for f in fglob:
-            # Check the index.
-            if int(f.split('.')[1]) < imax:
-                # Remove it.
-                os.remove(f)
+    if len(fglob) > n:
+        # Loop through the glob until the last *n* files.
+        for f in fglob[:-n]:
+            # Remove it.
+            os.remove(f)
     
