@@ -1572,15 +1572,20 @@ class Cart3d(object):
         fpwd = os.getcwd()
         # Loop through folders.
         for i in self.x.Filter(cons):
-            # Check if the case is passed.
-            if not self.x.PASS[i]: continue
             # Get folder name.
             frun = self.x.GetFullFolderNames(i)
+            # Status update
+            print(frun)
+            # Check if the case is ready.
+            if not os.path.isdir(frun):
+                print("  Folder does not exist.")
+                continue
+            elif not self.x.PASS[i]:
+                print("  Case is not marked PASS.")
+                continue
             # Go to the folder.
             os.chdir(self.RootDir)
             os.chdir(frun)
-            # Status update
-            print(frun)
             # Archive.
             manage.ArchiveFolder(self.opts)
         # Go back to original directory.

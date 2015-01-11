@@ -129,6 +129,9 @@ if __name__ == "__main__":
         # Archive folders
         cart3d.TarAdapt(**kw)
         cart3d.TarViz(**kw)
+    elif kw.get('archive'):
+        # Archive cases
+        cart3d.ArchiveCases(**kw)
     elif kw.get('apply'):
         # Apply JSON settings
         cart3d.ApplyFlowCartSettings(**kw)
