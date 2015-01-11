@@ -1484,6 +1484,10 @@ class Cart3d(object):
             * 2014-11-14 ``@ddalle``: First version
             * 2014-12-10 ``@ddalle``: Added constraints
         """
+        # Get the format.
+        fmt=self.opts.get_TarAdapt()
+        # Check for directive not to archive.
+        if not fmt: return
         # Save current path.
         fpwd = os.getcwd()
         # Apply filter (constraints).
@@ -1501,7 +1505,7 @@ class Cart3d(object):
             # Go to the folder
             os.chdir(frun)
             # Manage the directory.
-            manage.TarAdapt()
+            manage.TarAdapt(fmt)
         # Go back to original directory.
         os.chdir(fpwd)
         
@@ -1511,7 +1515,7 @@ class Cart3d(object):
         
         :Call:
             >>> cart3d.TarViz()
-            >>> cart3d.TarViz(cons=[])
+            >>> cart3d.TarViz(cons=[], **kw)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
@@ -1520,6 +1524,10 @@ class Cart3d(object):
         :Versions:
             * 2014-12-18 ``@ddalle``: First version
         """
+        # Get the format.
+        fmt=self.opts.get_TarViz()
+        # Check for directive not to archive.
+        if not fmt: return
         # Save current path.
         fpwd = os.getcwd()
         # Loop through folders.
@@ -1539,7 +1547,42 @@ class Cart3d(object):
             # Check if it's unsteady.
             if not fc.get_unsteady(-1): continue
             # Manage the directory.
-            manage.TarViz()
+            manage.TarViz(fmt)
+        # Go back to original directory.
+        os.chdir(fpwd)
+        
+    # Function to archive 'adaptXX/' folders (except for newest)
+    def ArchiveCases(self, cons=[], **kw):
+        """Archive completed cases and clean them up if specified
+        
+        :Call:
+            >>> cart3d.ArchiveCases()
+            >>> cart3d.ArchiveCases(cons=[], **kw)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
+        :Versions:
+            * 2015-01-11 ``@ddalle``: First version
+        """
+        # Get the format.
+        fmt = self.opts.get_ArchiveAction()
+        # Check for directive not to archive.
+        if not fmt or not self.opts.get_ArchiveFolder(): return
+        # Save current path.
+        fpwd = os.getcwd()
+        # Loop through folders.
+        for i in self.x.Filter(cons):
+            # Check if the case is passed.
+            if not self.x.PASS[i]: continue
+            # Get folder name.
+            frun = self.x.GetFullFolderNames(i)
+            # Go to the folder.
+            os.chdir(self.RootDir)
+            os.chdir(frun)
+            # Status update
+            print(frun)
+            # Archive.
+            manage.ArchiveFolder(self.opts)
         # Go back to original directory.
         os.chdir(fpwd)
         

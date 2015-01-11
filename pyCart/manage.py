@@ -238,4 +238,105 @@ def ClearCheck(n=1):
         for f in fglob[:-n]:
             # Remove it.
             os.remove(f)
+            
+# Archive folder.
+def ArchiveFolder(opts):
+    """
+    Archive a folder to a backup location and clean up the folder if requested
     
+    :Call:
+        >>> pyCart.manage.ArchiveFolder(opts)
+    :Inputs:
+        *opts*: :class:`pyCart.options.Options`
+            Options interface of pyCart management interface
+    :Versions:
+        * 2015-01-11 ``@ddalle``: First version
+    """
+    # Get clean up action command.
+    farch = opts.get_ArchiveAction()
+    # Get the archive root directory.
+    flfe = opts.get_ArchiveFolder()
+    # If no action, do not backup
+    if not farch or not flfe: return
+    
+    # Get the current folder.
+    fdir = os.path.split(os.getcwd())[-1]
+    # Go up a folder.
+    os.chdir('..')
+    # Get the group folder
+    fgrp = os.path.split(os.getcwd())[-1]
+    
+    # Get the archive format.
+    fmt = opts.get_ArchiveFormat()
+    # Get the extension.
+    if fmt in ['gzip', 'tgz', 'gz']:
+        # GZip format
+        cmdu = ['tar', '-uzf']
+        ext = '.tgz'
+    elif fmt in ['bz2', 'bz', 'bzip', 'bzip2', 'tbz']:
+        # BZip2 format
+        cmdu = ['tar', '-uJf']
+        ext = '.tbz'
+    else:
+        # Just use tar
+        cmdu = ['tar', '-uf']
+        ext = '.tar'
+    # Form the destination file name.
+    ftar = os.path.join(flfe, fgrp, fdir+ext)
+    # Check if it's a remote copy.
+    if os.pathsep in ftar:
+        # Remote copy; get the command
+        fcmd = opts.get_RemoteCopy()
+        # Status update.
+        print("  %s  -->  %s" % (fdir, fdir+ext))
+        # Tar the folder locally.
+        ierr = sp.call(cmdu + [fdir+ext, fdir])
+        if ierr: raise SystemError("Archiving failed.")
+        # Status update.
+        print("  %s  -->  %s" % (fdir+ext, ftar))
+        # Remote copy the archive.
+        ierr = sp.call([fcmd, fdir+ext, ftar])
+        if ierr: raise SystemError("Remote copy failed.")
+        # Clean up.
+        os.remove(fdir+ext)
+    else:
+        # Local destination
+        print("  %s  -->  %s" % (fdir, ftar))
+        # Tar directly to archive.
+        ierr = sp.call(cmdu + [ftar, fdir])
+        if ierr: raise SystemError("Archiving failed.")
+    # Check for further clean up.
+    if farch in ['rm', 'delete']:
+        # Remove the folder.
+        shutil.rmtree(fdir)
+    elif farch in ['skeleton']:
+        # Delete most stuff.
+        # Go back into the folder.
+        os.chdir(fdir)
+        # Clean-up
+        SkeletonFolder()
+        
+# Clean up a folder but don't delete it.
+def SkeletonFolder():
+    """Clean up a folder of everything but the essentials
+    
+    :Call:
+        >>> pyCart.manage.SkeletonFolder()
+    :Versions:
+        * 2015-01-11 ``@ddalle``: First version
+    """
+    # Get list of adapt?? folders.
+    fglob = glob.glob('adapt??').sort()
+    # Delete adapt folders except for the last one.
+    for f in fglob[:-1]: os.remove(f)
+    # Clear checkpoint files.
+    fglob = glob.glob('check*')
+    for f in fglob: os.remove(f)
+    # Remove *.tar files
+    for f in glob.glob('*.tar'): os.remove(f)
+    # Remove *.tgz files
+    for f in glob.glob('*.tgz'): os.remove(f)
+    # Remove *.tbz files
+    for f in glob.glob('*.tbz'): os.remove(f)
+
+
