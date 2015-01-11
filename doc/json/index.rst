@@ -108,3 +108,5 @@ of how the options are used.
     Adaptation
     Mesh
     Config
+    Plot
+    DataBook

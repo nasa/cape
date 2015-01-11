@@ -22,7 +22,10 @@ lists the defaults.
             "RefArea": 1.0,
             "RefLength": 1.0,
             "RefPoint": [0.0, 0.0, 0.0],
-            "Force": ["entire"]
+            "Force": ["entire"],
+            "Xslices": [],
+            "Yslices": [],
+            "Zslices": []
         }
         
 These are indeed the defaults, but this example is misleadingly simple.  The
@@ -67,3 +70,12 @@ The full dictionary of "Config" options is shown below.
         
     *Force*: {``["entire"]``} | :class:`list` (:class:`str`)
         List of components on which to request force history
+        
+    *Xslices*: {``[]``} | ``[0.0]`` | :class:`list` (:class:`float`)
+        List of x-coordinates at which to extract cut planes
+        
+    *Yslices*: {``[]``} | ``[0.0]`` | :class:`list` (:class:`float`)
+        List of y-coordinates at which to extract cut planes
+        
+    *Zslices*: {``[]``} | ``[0.0]`` | :class:`list` (:class:`float`)
+        List of z-coordinates at which to extract cut planes
