@@ -283,8 +283,12 @@ def ArchiveFolder(opts):
         ext = '.tar'
     # Form the destination file name.
     ftar = os.path.join(flfe, fgrp, fdir+ext)
+    # Check if it exists.
+    if CheckArchive(ftar):
+        print("  Archive exists: %s" % ftar)
+        return
     # Check if it's a remote copy.
-    if os.pathsep in ftar:
+    if ':' in ftar:
         # Remote copy; get the command
         fcmd = opts.get_RemoteCopy()
         # Status update.
@@ -326,7 +330,8 @@ def SkeletonFolder():
         * 2015-01-11 ``@ddalle``: First version
     """
     # Get list of adapt?? folders.
-    fglob = glob.glob('adapt??').sort()
+    fglob = glob.glob('adapt??')
+    fglob.sort()
     # Delete adapt folders except for the last one.
     for f in fglob[:-1]: os.remove(f)
     # Clear checkpoint files.
@@ -338,5 +343,31 @@ def SkeletonFolder():
     for f in glob.glob('*.tgz'): os.remove(f)
     # Remove *.tbz files
     for f in glob.glob('*.tbz'): os.remove(f)
-
+    
+# Check if an archive already exists
+def CheckArchive(ftar):
+    """Check if an archive already exists
+    
+    :Call:
+        >>> q = pyCart.manage.CheckArchive(ftar)
+    :Inputs:
+        *ftar*: :class:`str`
+            Full path to archive folder
+    :Outputs:
+        *q*: :class:`bool`
+            Returns ``True`` if *ftar* exists
+    :Versions:
+        * 2015-01-11 ``@ddalle``: First version
+    """
+    # Check for a remote folder.
+    if ':' in ftar:
+        # Remote
+        fssh, fdir = ftar.split(':')
+        # Will return an error code if file does not exist.
+        ierr = sp.call(['ssh', fssh, 'test', '-f', fdir])
+        # Process it.
+        return ierr == 0
+    else:
+        # Local
+        return os.path.isfile(ftar)
 
