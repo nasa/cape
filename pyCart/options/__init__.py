@@ -34,6 +34,7 @@ from .Config      import Config
 from .Functional  import Functional
 from .Plot        import Plot
 from .DataBook    import DataBook
+from .Management  import Management
 
 
 # Class definition
@@ -84,6 +85,7 @@ class Options(odict):
         self._Functional()
         self._Plot()
         self._DataBook()
+        self._Management()
         # Add extra folders to path.
         self.AddPythonPath()
         
@@ -228,6 +230,17 @@ class Options(odict):
         elif type(self['DataBook']).__name__ == 'dict':
             # Convert to special class
             self['DataBook'] = DataBook(**self['DataBook'])
+    
+    # Initialization method for folder management optoins
+    def _Management(self):
+        """Initialize folder management options if necessary"""
+        # Check status.
+        if 'Management' not in self:
+            # Missing entirely.
+            self['Management'] = Management()
+        elif type(self['Management']).__name__ == 'dict':
+            # Convert to special class
+            self['Management'] = Management(**self['Management'])
     
     # ==============
     # Global Options
@@ -1167,6 +1180,97 @@ class Options(odict):
         eval('get_'+k).__doc__ = getattr(PBS,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(PBS,'set_'+k).__doc__
     
+    
+    # =================
+    # Folder management
+    # =================
+    
+    # Get the archive folder
+    def get_ArchiveFolder(self):
+        self._Management()
+        return self['Management'].get_ArchiveFolder()
+        
+    # Set the archive folder
+    def set_ArchiveFolder(self, fdir=rc0('ArchiveFolder')):
+        self._Management()
+        self['Management'].set_ArchiveFolder(fdir)
+        
+    # Get the archive format
+    def get_ArchiveFormat(self):
+        self._Management()
+        return self['Management'].get_ArchiveFormat()
+        
+    # Set the archive format
+    def set_ArchiveFormat(self, fmt=rc0('ArchiveFormat')):
+        self._Management()
+        self['Management'].set_ArchiveFormat(fmt)
+        
+    # Get the archive action
+    def get_ArchiveAction(self):
+        self._Management()
+        return self['Management'].get_ArchiveAction()
+        
+    # Set the archive action
+    def set_ArchiveAction(self, fcmd=rc0('ArchiveAction')):
+        self._Management()
+        self['Management'].set_ArchiveAction(fcmd)
+        
+    # Get the remote copy command
+    def get_RemoteCopy(self):
+        self._Management()
+        return self['Management'].get_RemoteCopy()
+        
+    # Set the remote copy command
+    def set_RemoteCopy(self, fcmd=rc0('RemoteCopy')):
+        self._Management()
+        self['Management'].set_RemoteCopy(fcmd)
+        
+    # Get the number of check point files to keep around
+    def get_nCheckPoint(self):
+        self._Management()
+        return self['Management'].get_nCheckPoint()
+        
+    # Set the number of check point files to keep around
+    def set_nCheckPoint(self, nchk=rc0('nCheckPoint')):
+        self._Management()
+        self['Management'].set_nCheckPoint(nchk)
+        
+    # Get the archive format for visualization files
+    def get_TarViz(self):
+        self._Management()
+        return self['Management'].get_TarViz()
+        
+    # Set the archive format for visualization files
+    def set_TarViz(self, fmt=rc0('TarViz')):
+        self._Management()
+        self['Management'].set_TarViz(fmt)
+        
+    # Get the archive format for adaptation folders
+    def get_TarAdapt(self):
+        self._Management()
+        return self['Management'].get_TarAdapt()
+        
+    # Set the archive format for adaptation folders
+    def set_TarAdapt(self, fmt=rc0('TarAdapt')):
+        self._Management()
+        self['Management'].set_TarAdapt(fmt)
+        
+    # Get the archive format for visualization files
+    def get_TarPBS(self):
+        self._Management()
+        return self['Management'].get_TarPBS()
+        
+    # Set the archive format for visualization files
+    def set_TarPBS(self, fmt=rc0('TarPBS')):
+        self._Management()
+        self['Management'].set_TarPBS(fmt)
+        
+    # Copy over the documentation.
+    for k in ['ArchiveFolder', 'ArchiveFormat', 'ArchiveAction',
+            'RemoteCopy', 'nCheckPoint', 'TarViz', 'TarAdapt', 'TarPBS']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(Management,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(Management,'set_'+k).__doc__
     
     # =============
     # Configuration
