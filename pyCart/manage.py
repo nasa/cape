@@ -223,7 +223,8 @@ def ClearCheck(n=1):
     # Exit if *n* is not positive.
     if n <= 0: return
     # Get the check.* files... in order.
-    fglob = glob.glob('check.?????').sort()
+    fglob = glob.glob('check.?????')
+    fglob.sort()
     # Check for a match.
     if len(fglob) > n:
         # Loop through the glob until the last *n* files.
