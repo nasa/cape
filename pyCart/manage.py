@@ -232,7 +232,8 @@ def ClearCheck(n=1):
             # Remove it.
             os.remove(f)
     # Get the check.* files.
-    fglob = glob.glob('check.??????.td').sort()
+    fglob = glob.glob('check.??????.td')
+    fglob.sort()
     # Check for a match.
     if len(fglob) > n:
         # Loop through the glob until the last *n* files.
