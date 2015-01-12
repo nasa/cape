@@ -356,9 +356,9 @@ class Cart3d(object):
         # Save current location.
         fpwd = os.getcwd()
         # Apply constraints
-        i = self.x.Filter(kw.get('cons', []))
+        I = self.x.Filter(kw.get('cons', []))
         # Get the case names.
-        fruns = self.x.GetFullFolderNames(i)
+        fruns = self.x.GetFullFolderNames(I)
         # Get the list of components to plot.
         comps = self.opts.get_PlotComponents()
         # Check for command-line override.
@@ -408,7 +408,7 @@ class Cart3d(object):
                 # Create the plot.
                 h = AP.Plot(comp, coeffs, **kw)
                 # Check the pass flag.
-                if self.x.PASS[i]:
+                if self.x.PASS[I[i]]:
                     # Set it.
                     h['pass'].set_text('PASS')
                 # Read the case options.
