@@ -352,7 +352,10 @@ class DataBook(dict):
                 # Update data values.
                 for c in DC.DataCols:
                     DC[c][j] = s[c]
-                # No reason to update targets, either.
+                # Update the other statistics.
+                DC['nOrders'][j] = nOrders
+                DC['nIter'][j]   = nIter
+                DC['nStats'][j]  = nStats
         # Go back.
         os.chdir(self.RootDir)
                     
