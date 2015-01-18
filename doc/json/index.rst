@@ -75,6 +75,12 @@ the major parts of the file.
             // Settings to define component names, reference points, etc.
             "Config": {},
             
+            // Settings for the output functional for adaptation
+            "Functional": {},
+            
+            // Settings for folder management and archiving
+            "Management": {},
+            
             // Definitions of iterative history plots to make
             "Plot": {},
             
@@ -108,5 +114,7 @@ of how the options are used.
     Adaptation
     Mesh
     Config
+    Functional
+    Management
     Plot
     DataBook
