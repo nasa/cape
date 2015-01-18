@@ -956,14 +956,18 @@ class Cart3d(object):
         if n is not None:
             # Go to the group folder.
             os.chdir(frun)
+            # Check the history iteration
+            n = case.GetCurrentIter()
+        # Check for cases with no iterations yet.
+        if n == 0:
             # Check for the surface file.
             if not os.path.isfile('Components.i.tri'): n = None
             # Input file.
-            if not os.path.isfile('input.00.cntl'): n=None
+            if not os.path.isfile('input.00.cntl'): n = None
             # Settings file.
-            if not os.path.isfile('case.json'): n=None
-        # Check for the mesh.
-        if n is not None:
+            if not os.path.isfile('case.json'): n = None
+        # Check for the mesh if no iterations yet.
+        if n == 0:
             # Read the settings.
             fc = case.ReadCaseJSON()
             # Check for which mesh file to look for.
@@ -976,14 +980,6 @@ class Cart3d(object):
             else:
                 # Look for the original mesh
                 if not os.path.isfile('Mesh.c3d'): n = None
-        # Output if None
-        if n is None:
-            # Go back to starting point.
-            os.chdir(fpwd)
-            # Quit.
-            return None
-        # Get the iteration number.
-        n = case.GetCurrentIter()
         # Return to original folder.
         os.chdir(fpwd)
         # Output.
