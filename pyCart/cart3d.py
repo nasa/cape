@@ -494,7 +494,14 @@ class Cart3d(object):
         # Initialize number of jobs in queue.
         nQue = 0
         # Maximum length of one of the names
-        lrun = max([len(frun) for frun in fruns])
+        if len(fruns) > 0:
+            # Check the cases
+            lrun = max([len(frun) for frun in fruns])
+        else:
+            # Just use a default value.
+            lrun = 0
+        # Make sure it's as long as the header
+        lrun = max(lrun, 21)
         # Print the right number of '-' chars
         f = '-'; s = ' '
         # Create the string stencil.

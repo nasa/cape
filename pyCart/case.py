@@ -89,7 +89,7 @@ def run_flowCart():
         # Create a link to this run.
         os.symlink('aero.%02i.csh' % i, 'aero.csh')
         # Call the aero.csh command
-        if i > 0:
+        if i > 0 or GetCurrentIter() > 0:
             # Restart case.
             cmdi = ['./aero.csh', 'restart']
         elif fc.get_jumpstart():
