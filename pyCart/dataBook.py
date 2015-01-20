@@ -1636,10 +1636,35 @@ class DBTarget(dict):
                         # Set the last element to True.
                         qj[-1] = True
                 else:
+                    # Process tolerance
+                    ktol = kw[k]
+                    # Check the tolerance type.
+                    if type(ktol).__name__ in ["str", "unicode"]:
+                        # Check for a relative tolerance.
+                        ktol = ktol.split('+')
+                        # Convert to floats; check for %
+                        for ki in range(len(ktol)):
+                            # Check for percent sign.
+                            if ktol[ki].endswith('%'):
+                                # Percentage value.
+                                ktol[ki] = 0.01*float(ktol[ki][:-1])
+                            else:
+                                # Just a float.
+                                ktol[ki] = float(ktol[ki])
+                    else:
+                        # Make it a list of one float tolerance.
+                        ktol = [float(ktol)]
+                    # Check for length.
+                    if len(ktol) == 1:
+                        # Just absolute tolerance
+                        ktol = ktol[0]
+                    else:
+                        # Absolute and relative tolerance
+                        ktol = ktol[0] + ktol[1]*np.abs(self[c][j]) 
                     # Filter test.
-                    qj = np.abs(self[c][j] - v) <= kw[k]
+                    qj = np.abs(self[c][j] - v) <= ktol
                     # Check last element.
-                    if (not qj[-1]) and (np.abs(self[c][j[-1]]-v)<=kw[k]):
+                    if (not qj[-1]) and (np.abs(self[c][j[-1]]-v)<=ktol):
                         # Set the last element to True.
                         qj[-1] = True
                 # Restrict to cases that pass this test.
