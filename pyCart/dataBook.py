@@ -1168,15 +1168,6 @@ class DBComp(dict):
                         # Set the last element to True.
                         qj[-1] = True
                 else:
-                # Check for strings.
-                if DBi.x.defns[k]["Value"] in ["str", "unicode"]:
-                    # Filter strings.
-                    qj = self[c][j] == v
-                    # Check last element.
-                    if (not qj[-1]) and (self[c][j[-1]]==v):
-                        # Set the last element to True.
-                        qj[-1] = True
-                else:
                     # Process tolerance
                     ktol = kw[k]
                     # Check the tolerance type.
