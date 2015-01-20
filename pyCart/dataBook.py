@@ -882,7 +882,7 @@ class DBComp(dict):
                 t = self.x.defns[k].get('Value', 'float')
                 # Read the column
                 self[k] = np.loadtxt(fname, 
-                    delimiter=delim, dtype=t, usecols=[nCol])
+                    delimiter=delim, dtype=str(t), usecols=[nCol])
                 # Increase the column number
                 nCol += 1
             # Loop through the data book columns.
@@ -906,7 +906,7 @@ class DBComp(dict):
                 # Get the type.
                 t = self.x.defns[k].get('Value', 'float')
                 # Initialize an empty array.
-                self[k] = np.array([], dtype=t)
+                self[k] = np.array([], dtype=str(t))
             # Initialize the data columns.
             for c in self.cols:
                 self[c] = np.array([])
@@ -1189,14 +1189,14 @@ class DBComp(dict):
                     # Check for length.
                     if len(ktol) == 1:
                         # Just absolute tolerance
-                        ktol = ktol[0]*np.ones_like(self[k][j])
+                        ktol = ktol[0]
                     else:
                         # Absolute and relative tolerance
-                        ktol = ktol[0] + ktol[1]*np.abs(self[k][j])
+                        ktol = ktol[0] + ktol[1]*abs(v)
                     # Filter test.
                     qj = np.abs(self[k][j] - v) <= ktol
                     # Check last element.
-                    if (not qj[-1]) and (np.abs(self[k][j[-1]]-v)<=ktol[-1]):
+                    if (not qj[-1]) and (np.abs(self[k][j[-1]]-v)<=ktol):
                         # Set the last element to True.
                         qj[-1] = True
                 # Restrict to cases that pass this test.
@@ -1682,14 +1682,14 @@ class DBTarget(dict):
                     # Check for length.
                     if len(ktol) == 1:
                         # Just absolute tolerance
-                        ktol = ktol[0]*np.ones_like(self[c][j])
+                        ktol = ktol[0]
                     else:
                         # Absolute and relative tolerance
-                        ktol = ktol[0] + ktol[1]*np.abs(self[c][j])
+                        ktol = ktol[0] + ktol[1]*abs(v)
                     # Filter test.
                     qj = np.abs(self[c][j] - v) <= ktol
                     # Check last element.
-                    if (not qj[-1]) and (np.abs(self[c][j[-1]]-v)<=ktol[-1]):
+                    if (not qj[-1]) and (np.abs(self[c][j[-1]]-v)<=ktol):
                         # Set the last element to True.
                         qj[-1] = True
                 # Restrict to cases that pass this test.
