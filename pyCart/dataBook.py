@@ -2254,7 +2254,7 @@ class CaseResid(object):
             # Add this to the time-accurate iteration numbers.
             A[np.logical_not(i),0] += n0
         else:
-            # Not steady-state iterations.
+            # No steady-state iterations.
             n0 = 0
         # Process unsteady iterations if any.
         if A[-1,0] > n0:
@@ -2270,9 +2270,16 @@ class CaseResid(object):
             # No unsteady iterations.
             i0 = np.array([], dtype=int)
             i1 = np.array([], dtype=int)
+        # Indices of steady-state iterations
+        if n0 > 0:
+            # Get the steady-state iterations from the '.' test above.
+            i2 = np.where(i)[0]
+        else:
+            # No steady-state iterations
+            i2 = np.arange(0)
         # Prepend the steady-state iterations.
-        i0 = np.hstack((np.arange(n0), i0))
-        i1 = np.hstack((np.arange(n0), i1))
+        i0 = np.hstack((i2, i0))
+        i1 = np.hstack((i2, i1))
         # Make sure these stupid things are ints.
         i0 = np.array(i0, dtype=int)
         i1 = np.array(i1, dtype=int)
@@ -2299,14 +2306,18 @@ class CaseResid(object):
         # Process the CPUtime used for steady cycles.
         if n0 > 0:
             # At least one steady-state cycle.
-            t = self.CPUtime[n0-1]
+            # Find the index of the last steady-state iter.
+            i0 = np.where(self.i==n0)[0] + 1
+            # Get the CPU time used up to that point.
+            t = self.CPUtime[i0-1]
         else:
             # No steady state cycles.
+            i0 = 0
             t = 0.0
         # Process the unsteady cycles.
         if self.nIter > n0:
             # Add up total CPU time for unsteady cycles.
-            t += np.sum(self.CPUtime[n0:])
+            t += np.sum(self.CPUtime[i0:])
         # Check for a 'user_time.dat' file.
         if os.path.isfile('user_time.dat'):
             # Loop through lines.
