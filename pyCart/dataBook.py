@@ -1168,10 +1168,44 @@ class DBComp(dict):
                         # Set the last element to True.
                         qj[-1] = True
                 else:
-                    # Filter test.
-                    qj = np.abs(self[k][j] - v) <= kw[k]
+                # Check for strings.
+                if DBi.x.defns[k]["Value"] in ["str", "unicode"]:
+                    # Filter strings.
+                    qj = self[c][j] == v
                     # Check last element.
-                    if (not qj[-1]) and (np.abs(self[k][j[-1]]-v)<=kw[k]):
+                    if (not qj[-1]) and (self[c][j[-1]]==v):
+                        # Set the last element to True.
+                        qj[-1] = True
+                else:
+                    # Process tolerance
+                    ktol = kw[k]
+                    # Check the tolerance type.
+                    if type(ktol).__name__ in ["str", "unicode"]:
+                        # Check for a relative tolerance.
+                        ktol = ktol.split('+')
+                        # Convert to floats; check for %
+                        for ki in range(len(ktol)):
+                            # Check for percent sign.
+                            if ktol[ki].endswith('%'):
+                                # Percentage value.
+                                ktol[ki] = 0.01*float(ktol[ki][:-1])
+                            else:
+                                # Just a float.
+                                ktol[ki] = float(ktol[ki])
+                    else:
+                        # Make it a list of one float tolerance.
+                        ktol = [float(ktol)]
+                    # Check for length.
+                    if len(ktol) == 1:
+                        # Just absolute tolerance
+                        ktol = ktol[0]*np.ones_like(self[k][j])
+                    else:
+                        # Absolute and relative tolerance
+                        ktol = ktol[0] + ktol[1]*np.abs(self[k][j])
+                    # Filter test.
+                    qj = np.abs(self[k][j] - v) <= ktol
+                    # Check last element.
+                    if (not qj[-1]) and (np.abs(self[k][j[-1]]-v)<=ktol[-1]):
                         # Set the last element to True.
                         qj[-1] = True
                 # Restrict to cases that pass this test.
@@ -1657,14 +1691,14 @@ class DBTarget(dict):
                     # Check for length.
                     if len(ktol) == 1:
                         # Just absolute tolerance
-                        ktol = ktol[0]
+                        ktol = ktol[0]*np.ones_like(self[c][j])
                     else:
                         # Absolute and relative tolerance
-                        ktol = ktol[0] + ktol[1]*np.abs(self[c][j]) 
+                        ktol = ktol[0] + ktol[1]*np.abs(self[c][j])
                     # Filter test.
                     qj = np.abs(self[c][j] - v) <= ktol
                     # Check last element.
-                    if (not qj[-1]) and (np.abs(self[c][j[-1]]-v)<=ktol):
+                    if (not qj[-1]) and (np.abs(self[c][j[-1]]-v)<=ktol[-1]):
                         # Set the last element to True.
                         qj[-1] = True
                 # Restrict to cases that pass this test.
