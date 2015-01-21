@@ -273,15 +273,15 @@ def ArchiveFolder(opts):
     # Get the extension.
     if fmt in ['gzip', 'tgz', 'gz']:
         # GZip format
-        cmdu = ['tar', '-uzf']
+        cmdu = ['tar', '-czf']
         ext = '.tgz'
     elif fmt in ['bz2', 'bz', 'bzip', 'bzip2', 'tbz']:
         # BZip2 format
-        cmdu = ['tar', '-uJf']
+        cmdu = ['tar', '-cJf']
         ext = '.tbz'
     else:
         # Just use tar
-        cmdu = ['tar', '-uf']
+        cmdu = ['tar', '-cf']
         ext = '.tar'
     # Form the destination file name.
     ftar = os.path.join(flfe, fgrp, fdir+ext)
