@@ -15,7 +15,10 @@ the TriBase class apply to all other classes as well.
 # Numerics
 import numpy as np
 # File system and operating system management
-import os
+import os, shutil
+# Specific commands to copy files and call commands.
+from shutil import copy
+from subprocess import call
 
 # Attempt to load the compiled helper module.
 try:
@@ -568,7 +571,7 @@ class TriBase(object):
         
     # Function to get tri indices from component ID(s)
     def GetTrisFromCompID(self, i=None):
-        """ Find indices of triangles with specified component ID(s)
+        """Find indices of triangles with specified component ID(s)
         
         :Call:
             >>> k = tri.GetTrisFromCompID(i)
@@ -598,6 +601,84 @@ class TriBase(object):
                 K = np.logical_or(K, self.CompID==ii)
         # Turn boolean vector into vector of indices]
         return np.where(K)[0]
+        
+    # Get subtriangulation from CompID list
+    def GetSubTri(self, i=None):
+        """
+        Get the portion of the triangulation that contains specified component
+        ID(s).
+        
+        :Call:
+            >>> tri0 = tri.GetSubTri(i=None)
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance to be translated
+            *i*: :class:`int` or :class:`list` (:class:`int`)
+                Component ID or list of component IDs
+        :Outputs:
+            *tri0*: :class:`pyCart.tri.Tri`
+                Copied triangulation containing only faces with CompID in *i*
+        :Versions:
+            * 2015-01-23 ``@ddalle``: First version
+        """
+        # Get the triangle indices.
+        k = self.GetTrisFromCompID(i)
+        # Make a copy of the triangulation.
+        tri0 = self.Copy()
+        # Restrict *tri0* to the matching faces.
+        tri0.Tris = tri0.Tris[k]
+        tri0.CompID = tri0.CompID[k]
+        # Output
+        return tri0
+        
+    # Create a 3-view of a component (or list of) using TecPlot
+    def TecPlot3View(self, fname, i=None):
+        """Create a 3-view PNG of a component(s) using TecPlot
+        
+        :Call:
+            >>> tri.TecPlot3View(fname, i=None)
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Created file is ``'%s.png' % fname``
+            *i*: :class:`int` or :class:`list` (:class:`int`)
+                Component ID or list of component IDs
+        :Versions:
+            * 2015-01-23 ``@ddalle``: First version
+        """
+        # Get the subtriangulation.
+        tri0 = self.GetSubTri(i)
+        # Name of .tri file
+        ftri = '%s.tri' % fname
+        # Write triangulation file.
+        tri0.Write(ftri)
+        # Hide output.
+        f = open('pc_Explode.out', 'w+')
+        # Convert it to an STL.
+        call(['tri2stl', '-i', ftri, '-o', 'comp.stl'], stdout=f)
+        # Cleanup.
+        for f in ['iso-comp.mcr', 'iso-comp.lay']:
+            # Check for the file.
+            if os.path.isfile(f):
+                # Delete it.
+                os.remove(f)
+        # Copy the template layout file and macro.
+        copy(os.path.join(ftec, 'iso-comp.lay'), '.')
+        copy(os.path.join(ftec, 'iso-comp.mcr'), '.')
+        # Create the image.
+        sp.call(['tecplot', '-b', '-p', 'iso-comp.mcr'], stdout=f)
+        # Close the output file.
+        f.close()
+        # Rename the PNG
+        os.rename('iso-comp.png', '%s.png' % fname)
+        # Cleanup.
+        for f in ['iso-comp.mcr', 'iso-comp.lay', 'comp.stl']:
+            # Check for the file.
+            if os.path.isfile(f):
+                # Delete it.
+                os.remove(f)
+        
         
     
     # Function to translate the triangulation
