@@ -135,6 +135,9 @@ if __name__ == "__main__":
     elif kw.get('apply'):
         # Apply JSON settings
         cart3d.ApplyFlowCartSettings(**kw)
+    elif kw.get('explode'):
+        # Break out each named component.
+        cart3d.ExplodeTri()
     else:
         # Do it.
         cart3d.SubmitJobs(**kw)

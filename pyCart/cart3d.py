@@ -1471,6 +1471,44 @@ class Cart3d(object):
         # Write the file.
         self.PreSpecCntl.Write('preSpec.c3d.cntl')
         
+    # Function to create a PNG for the 3-view of each component.
+    def ExplodeTri(self):
+        """Create a 3-view of each named or numbered component using TecPlot
+        
+        This will create a folder called ``subtri/`` in the master directory for
+        this *cart3d* object, and it will contain a triangulation for each named
+        component inf :file:`Config.xml` along with a three-view plot of each
+        component created using TecPlot if possible.
+        
+        :Call:
+            >>> cart3d.ExplodeTri()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
+        :Versions:
+            * 2015-01-23 ``@ddalle``: First version
+        """
+        # Go to root folder safely.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Read the triangulation if necessary.
+        self.ReadTri()
+        # Folder name to hold subtriangulations and 3-view plots
+        fdir = "subtri"
+        # Create the folder if necessary.
+        if not os.path.isdir(fdir): os.mkdir(fdir, dmask)
+        # Go to the folder.
+        os.chdir(fdir)
+        # Be safe.
+        try:
+            # Start creating the figures and subtris.
+            self.tri.TecPlotExplode()
+        except:
+            pass
+        # Go to original location.
+        os.chdir(fpwd)
+        
+        
     # Function to archive 'adaptXX/' folders (except for newest)
     def TarAdapt(self, cons=[], **kw):
         """Tar ``adaptNN/`` folders except for most recent one

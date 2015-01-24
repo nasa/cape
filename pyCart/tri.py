@@ -21,9 +21,10 @@ from shutil import copy
 from subprocess import call
 
 # pyCart base folder
-PyCartFolder = os.path.split(os.path.abspath(__file__))[0]
+pyCartFolder = os.path.split(os.path.abspath(__file__))[0]
 # Folder containing TecPlot templates
-ftec = os.path.join(PyCartFolder, "templates", "tec")
+ftec = os.path.split(pyCartFolder)[0]
+ftec = os.path.join(ftec, "templates", "tecplot")
 
 # Attempt to load the compiled helper module.
 try:
@@ -633,6 +634,8 @@ class TriBase(object):
         # Restrict *tri0* to the matching faces.
         tri0.Tris = tri0.Tris[k]
         tri0.CompID = tri0.CompID[k]
+        # Save the reduced number of tris.
+        tri0.nTri = k.size
         # Output
         return tri0
         
@@ -659,26 +662,26 @@ class TriBase(object):
         # Write triangulation file.
         tri0.Write(ftri)
         # Hide output.
-        f = open('pc_Explode.out', 'w+')
+        f = open('pc_Explode.out', 'w')
         # Convert it to an STL.
         call(['tri2stl', '-i', ftri, '-o', 'comp.stl'], stdout=f)
         # Cleanup.
-        for f in ['iso-comp.mcr', 'iso-comp.lay']:
+        for fi in ['iso-comp.mcr', 'iso-comp.lay']:
             # Check for the file.
-            if os.path.isfile(f):
+            if os.path.isfile(fi):
                 # Delete it.
-                os.remove(f)
+                os.remove(fi)
         # Copy the template layout file and macro.
         copy(os.path.join(ftec, 'iso-comp.lay'), '.')
         copy(os.path.join(ftec, 'iso-comp.mcr'), '.')
         # Create the image.
-        sp.call(['tecplot', '-b', '-p', 'iso-comp.mcr'], stdout=f)
+        call(['tecplot', '-b', '-p', 'iso-comp.mcr'], stdout=f)
         # Close the output file.
         f.close()
         # Rename the PNG
         os.rename('iso-comp.png', '%s.png' % fname)
         # Cleanup.
-        for f in ['iso-comp.mcr', 'iso-comp.lay', 'comp.stl']:
+        for f in ['iso-comp.mcr','iso-comp.lay','comp.stl','pc_Explode.out']:
             # Check for the file.
             if os.path.isfile(f):
                 # Delete it.
@@ -710,6 +713,8 @@ class TriBase(object):
             print("Plotting each named component in config ...")
             # Loop through named faces.
             for comp in self.config.faces:
+                # Status update
+                print("    %s.png" % comp)
                 # Get the CompIDs for that face.
                 k = self.config.GetCompID(comp)
                 # Create the 3-view using that name.
