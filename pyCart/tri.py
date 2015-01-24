@@ -21,7 +21,7 @@ from shutil import copy
 from subprocess import call
 
 # pyCart base folder
-PyCartFolder = os.path.split(_fname)[0]
+PyCartFolder = os.path.split(os.path.abspath(__file__))[0]
 # Folder containing TecPlot templates
 ftec = os.path.join(PyCartFolder, "templates", "tec")
 
@@ -684,14 +684,14 @@ class TriBase(object):
                 # Delete it.
                 os.remove(f)
                 
-   # Function to plot all components!
-   def TecPlotExplode(self):
-       """
-       Create a 3-view of each available named component in *tri.config* (read
-       from :file:`Config.xml`) if available.  If not, create a 3-view plot for
-       each *CompID*, e.g. :file:`1.png`, :file:`2.png`, etc.
-       
-       Call:
+    # Function to plot all components!
+    def TecPlotExplode(self):
+        """
+        Create a 3-view of each available named component in *tri.config* (read
+        from :file:`Config.xml`) if available.  If not, create a 3-view plot for
+        each *CompID*, e.g. :file:`1.png`, :file:`2.png`, etc.
+        
+        Call:
             >>> tri.TecPlot3View(fname, i=None)
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
