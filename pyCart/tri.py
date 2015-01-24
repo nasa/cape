@@ -20,6 +20,11 @@ import os, shutil
 from shutil import copy
 from subprocess import call
 
+# pyCart base folder
+PyCartFolder = os.path.split(_fname)[0]
+# Folder containing TecPlot templates
+ftec = os.path.join(PyCartFolder, "templates", "tec")
+
 # Attempt to load the compiled helper module.
 try:
     from . import _pycart as pc
@@ -539,7 +544,7 @@ class TriBase(object):
             >>> j = tri.GetNodesFromCompID(i)
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
-                Triangulation instance to be translated
+                Triangulation instance
             *i*: :class:`int` or :class:`list` (:class:`int`)
                 Component ID or list of component IDs
         :Outputs:
@@ -577,7 +582,7 @@ class TriBase(object):
             >>> k = tri.GetTrisFromCompID(i)
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
-                Triangulation instance to be translated
+                Triangulation instance
             *i*: :class:`int` or :class:`list` (:class:`int`)
                 Component ID or list of component IDs
         :Outputs:
@@ -612,7 +617,7 @@ class TriBase(object):
             >>> tri0 = tri.GetSubTri(i=None)
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
-                Triangulation instance to be translated
+                Triangulation instance
             *i*: :class:`int` or :class:`list` (:class:`int`)
                 Component ID or list of component IDs
         :Outputs:
@@ -639,7 +644,7 @@ class TriBase(object):
             >>> tri.TecPlot3View(fname, i=None)
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
-                Triangulation instance to be translated
+                Triangulation instance
             *fname*: :class:`str`
                 Created file is ``'%s.png' % fname``
             *i*: :class:`int` or :class:`list` (:class:`int`)
@@ -678,7 +683,47 @@ class TriBase(object):
             if os.path.isfile(f):
                 # Delete it.
                 os.remove(f)
-        
+                
+   # Function to plot all components!
+   def TecPlotExplode(self):
+       """
+       Create a 3-view of each available named component in *tri.config* (read
+       from :file:`Config.xml`) if available.  If not, create a 3-view plot for
+       each *CompID*, e.g. :file:`1.png`, :file:`2.png`, etc.
+       
+       Call:
+            >>> tri.TecPlot3View(fname, i=None)
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance
+        :Versions:
+            * 2015-01-23 ``@ddalle``: First version
+        """
+        # Plot "entire.png"
+        print("Plotting entire surface ...")
+        print("    entire.png")
+        # Create the 3-view using the name "entire" (much like Cart3D)
+        self.TecPlot3View('entire', None)
+        # Check for a config.
+        try:
+            # Appropriate status update.
+            print("Plotting each named component in config ...")
+            # Loop through named faces.
+            for comp in self.config.faces:
+                # Get the CompIDs for that face.
+                k = self.config.GetCompID(comp)
+                # Create the 3-view using that name.
+                self.TecPlot3View(comp, k)
+        except Exception:
+            # Loop through CompID.
+            print("FAILED.")
+            print("Plotting each numbered CompID ...")
+            # Loop through the available CompIDs
+            for i in np.unique(self.CompID):
+                # Status update.
+                print("    %s.png" % i)
+                # Create the 3-view plot for just that CompID==i
+                self.TecPlot3View(i, i)
         
     
     # Function to translate the triangulation
