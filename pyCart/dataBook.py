@@ -1495,7 +1495,7 @@ class DBTarget(dict):
         # Close the file.
         f.close()
         # Translate into headers
-        self.headers = headers.strip().split(delim)
+        self.headers = headers.lstrip('#').strip().split(delim)
 
         # Read it.
         self.data = np.loadtxt(fname, delimiter=delim, skiprows=nskip)
@@ -1694,6 +1694,7 @@ class DBTarget(dict):
                         qj[-1] = True
                 # Restrict to cases that pass this test.
                 j = j[qj]
+
             except Exception:
                 # No match or failed test.
                 return np.array([])
