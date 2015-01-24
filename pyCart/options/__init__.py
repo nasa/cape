@@ -246,6 +246,40 @@ class Options(odict):
     # Global Options
     # ==============
     
+    # Method to get the max number of jobs to submit.
+    def get_nSubmit(self):
+        """Return the maximum number of jobs to submit at one time
+        
+        :Call:
+            >>> nSub = opts.get_nSubmit()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *nSub*: :class:`int`
+                Maximum number of jobs to submit
+        :Versions:
+            * 2015-01-24 ``@ddalle``: First version
+        """
+        return self.get('nSubmit', rc0('nSubmit'))
+        
+    # Set the max number of jobs to submit.
+    def set_nSubmit(self, nSub=rc0('nSubmit')):
+        """Set the maximum number of jobs to submit at one time
+        
+        :Call:
+            >>> opts.set_nSubmit(nSub)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *nSub*: :class:`int`
+                Maximum number of jobs to submit
+        :Versions:
+            * 2015-01-24 ``@ddalle``: First version
+        """
+        self['nSubmit'] = nSub
+        
+        
     # Method to get the input file
     def get_InputCntl(self):
         """Return the name of the master :file:`input.cntl` file
@@ -259,7 +293,7 @@ class Options(odict):
             *fname*: :class:`str`
                 Name of Cart3D input control template file
         :Versions:
-            * 2014.09.30 ``@ddalle``: First version
+            * 2014-09-30 ``@ddalle``: First version
         """
         return self.get('InputCntl', rc0('InputCntl'))
         

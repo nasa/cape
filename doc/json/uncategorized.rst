@@ -56,6 +56,22 @@ be
         
 for the two input files.
 
+Maximum Number of Jobs to Submit
+================================
+This parameter sets the maximum number of jobs that pyCart will submit with a
+single call to *pycart*.
+
+    .. code-block:: javascript
+    
+        "nSubmit": 10
+        
+However, this value can be overridden from the command line using the ``-n``
+option.
+
+    .. code-block:: bash
+    
+        $ pycart -n 20
+
 Startup Shell Commands
 ======================
 

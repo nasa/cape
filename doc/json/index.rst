@@ -40,6 +40,7 @@ the major parts of the file.
     
         {
             // Stand-alone options
+            "nSubmit": 10,
             "ShellCmds": [],
             "InputCntl": "input.cntl",
             "AeroCsh": "aero.csh",
@@ -118,3 +119,4 @@ of how the options are used.
     Management
     Plot
     DataBook
+    Trajectory

@@ -34,6 +34,7 @@ PyCartFolder = os.path.split(os.path.split(_fname)[0])[0]
 
 # Backup default settings (in case deleted from :file:`pyCart.defaults.json`)
 rc = {
+    "nSubmit": 10,
     "InputCntl": "input.cntl",
     "AeroCsh": "aero.csh",
     "GroupMesh": True,
