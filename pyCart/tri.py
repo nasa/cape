@@ -530,7 +530,7 @@ class TriBase(object):
        
     # Function to get node indices from component ID(s)
     def GetNodesFromCompID(self, i=None):
-        """Find node indices based face component ID(s)
+        """Find node indices from face component ID(s)
         
         :Call:
             >>> j = tri.GetNodesFromCompID(i)
@@ -540,7 +540,7 @@ class TriBase(object):
             *i*: :class:`int` or :class:`list` (:class:`int`)
                 Component ID or list of component IDs
         :Outputs:
-            *j*: :class:`numpy.array`(:class:`int`)
+            *j*: :class:`numpy.array` (:class:`int`)
                 Node indices, 0-based
         :Versions:
             * 2014-09-27 ``@ddalle``: First version
@@ -565,6 +565,39 @@ class TriBase(object):
             j = np.unique(J) - 1
         # Output
         return j
+        
+    # Function to get tri indices from component ID(s)
+    def GetTrisFromCompID(self, i=None):
+        """ Find indices of triangles with specified component ID(s)
+        
+        :Call:
+            >>> k = tri.GetTrisFromCompID(i)
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance to be translated
+            *i*: :class:`int` or :class:`list` (:class:`int`)
+                Component ID or list of component IDs
+        :Outputs:
+            *k*: :class:`numpy.ndarray` (:class:`int`)
+        :Versions:
+            * 2015-01-23 ``@ddalle``: First version
+        """
+        # Process inputs.
+        if i is None:
+            # Return all the tris.
+            return np.arange(self.nTri)
+        elif np.isscalar(i):
+            # Get a single component.
+            K = self.CompID == i
+        else:
+            # Initialize with all False (same size as number of tris)
+            K = self.CompID < 0
+            # List of components.
+            for ii in i:
+                # Add matches for component *ii*.
+                K = np.logical_or(K, self.CompID==ii)
+        # Turn boolean vector into vector of indices]
+        return np.where(K)[0]
         
     
     # Function to translate the triangulation
