@@ -74,7 +74,6 @@ option.
 
 Startup Shell Commands
 ======================
-
 An important miscellaneous option, especially for cases submitted as PBS jobs,
 lists commands to run within the shell before running any Cart3D commands.
 This is a list of strings that will be placed at the top of the run script in
@@ -123,28 +122,28 @@ here is that you also need to tell the interpreter where the pyCart commands
 are---hence the ``"module load pycart"`` line.
 
 
-The Group Mesh Option
-=====================
+Special Python Modules
+======================
+Some advanced runs require features that simply do not fit into the main pyCart
+set of options.  This would be true no matter much work is put into the code.
+Indeed, one of the purposes of pyCart is to still be helpful when this situation
+inevitably occurs.
 
-The final miscellaneous option controls a peculiar setting that allows meshes
-to share common meshes.  For example, many CFD run matrices are sweeps of Mach
-number, angle of attack, and sideslip angle.  All of them could conceivably use
-the same mesh, and this option allows that if set to ``true``.  The default is
-also ``true``.
+The following two lines allow the user to define a custom Python module (or list
+of modules, if the user deems that appropriate).
 
     .. code-block:: javascript
     
-        "GroupMesh": true
+        "PythonPath": ["tools/"],
+        "Modules": ["mymod", "thatmod"]
         
-If this option is set to ``true``, then the volume mesh is created once for
-each "group" of cases, and only links are created in the individual case
-folders.  For adaptive inputs, only the initial mesh is shared, and thus the
-savings can be relatively minimal.
+The first variable causes pyCart to append the folder ``tools/`` to the
+environment variable ``$PYTHONPATH``.  This means that files in ``tools/`` can
+be imported as Python modules.
 
-An example where this setting can be useful where there are also multiple
-groups is the deflections of control surface.  Each position of, for example,
-an elevator requires its own mesh, but changing the angle of attack does not
-require a new mesh.  Thus grouping cases by elevator deflection angle can be
-useful for saving mesh preparation time and file storage.
-
-For cases where each case requires its own mesh, set this option to ``false``.
+The second variable lists Python modules that will be imported every time the
+:file:`pyCart.json` file is loaded.  The way this is implemented is by just
+running the standard ``import mymod`` and ``import thatmod`` syntax, and then
+the functions and other information in those modules will be available to pyCart
+for that run.
+        

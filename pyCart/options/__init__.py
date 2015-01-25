@@ -309,7 +309,7 @@ class Options(odict):
             *fname*: :class:`str`
                 Name of Cart3D input control template file
         :Versions:
-            * 2014.09.30 ``@ddalle``: First version
+            * 2014-09-30 ``@ddalle``: First version
         """
         self['InputCntl'] = fname
     
@@ -326,7 +326,7 @@ class Options(odict):
             *fname*: :class:`str`
                 Name of Cart3D aero shell template file
         :Versions:
-            * 2014.09.30 ``@ddalle``: First version
+            * 2014-09-30 ``@ddalle``: First version
         """
         return self.get('AeroCsh', rc0('AeroCsh'))
         
@@ -342,7 +342,7 @@ class Options(odict):
             *fname*: :class:`str`
                 Name of Cart3D asero shell template file
         :Versions:
-            * 2014.09.30 ``@ddalle``: First version
+            * 2014-09-30 ``@ddalle``: First version
         """
         self['AeroCsh'] = fname
     
@@ -359,8 +359,10 @@ class Options(odict):
             *qGM*: :class:`bool`
                 True all cases in a group use the same (starting) mesh
         :Versions:
-            * 2014.10.06 ``@ddalle``: First version
+            * 2014-10-06 ``@ddalle``: First version
         """
+        # Safely get the trajectory.
+        x = self.get('Trajectory', {})
         return self.get('GroupMesh', rc0('GroupMesh'))
         
     # Method to specify that meshes do or do not use the same mesh
@@ -375,9 +377,9 @@ class Options(odict):
             *qGM*: :class:`bool`
                 True all cases in a group use the same (starting) mesh
         :Versions:
-            * 2014.10.06 ``@ddalle``: First version
+            * 2014-10-06 ``@ddalle``: First version
         """
-        self['GroupMesh'] = qGM
+        self['Trajectory']['GroupMesh'] = qGM
         
     
     # ==============

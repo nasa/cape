@@ -34,6 +34,8 @@ class Trajectory:
             Prefix to be used for each case folder name
         *GroupPrefix*: :class:`str`
             Prefix to be used for each grid folder name
+        *GroupMesh*: :class:`bool`
+            Whether or not cases in same group can share volume grids
         *Definitions*: :class:`dict`
             Dictionary of definitions for each key
     :Outputs:
@@ -278,7 +280,7 @@ class Trajectory:
                     "Format": "%s",
                     "Abbreviation": ""
                 }
-            elif key.lower() in ['config', 'groupprefix']:
+            elif key.lower() in ['config', 'GroupPrefix']:
                 # Group name or prefix, e.g. 'poweroff', 'poweron', etc.
                 defkey = {
                     "Group": True,

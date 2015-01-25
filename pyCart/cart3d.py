@@ -28,6 +28,8 @@ from . import bin
 from . import case
 # Run directory management
 from . import manage
+# Alpha-beta / alpha_t-phi business
+from . import convert
 
 # Functions and classes from other modules
 from trajectory import Trajectory
@@ -1685,16 +1687,36 @@ class Cart3d(object):
             self.InputCntl.SetMach(getattr(x,k)[i])
         # Angle of attack
         if 'alpha' in KeyTypes:
-            # Find out which 
-            k = x.keys[KeyTypes.index('alpha')]
+            # Find the key.
+            k = x.GetKeysByType('alpha')[0]
             # Set the value.
             self.InputCntl.SetAlpha(getattr(x,k)[i])
         # Sideslip angle
         if 'beta' in KeyTypes:
-            # Find out which key it is.
-            k = x.keys[KeyTypes.index('beta')]
+            # Find the key.
+            k = x.GetKeysByType('beta')[0]
             # Set the value.
             self.InputCntl.SetBeta(getattr(x,k)[i])
+        # Check for total angle of attack.
+        if 'alpha_t' in KeyTypes:
+            # Find out which key it is.
+            k = x.GetKeysByType('alpha_t')[0]
+            # Get the value.
+            av = getattr(x,k)[i]
+            # Check for roll angle.
+            if 'phi' in KeyTypes:
+                # Kind the ky.
+                k = x.GetKeysByType('phi')[0]
+                # Get the value.
+                rv = getattr(x,k)[i]
+            else:
+                # Set roll to zero.
+                rv = 0.0
+            # Convert the values to aoa and aos.
+            a, b = convert.AlphaTPhi2AlphaBeta(av, rv)
+            # Set them.
+            self.InputCntl.SetAlpha(a)
+            self.InputCntl.SetBeta(b)
         # Specify list of forces to track with `clic`
         self.InputCntl.RequestForce(self.opts.get_ClicForces())
         # Set reference values.
