@@ -363,7 +363,7 @@ class Options(odict):
         """
         # Safely get the trajectory.
         x = self.get('Trajectory', {})
-        return self.get('GroupMesh', rc0('GroupMesh'))
+        return x.get('GroupMesh', rc0('GroupMesh'))
         
     # Method to specify that meshes do or do not use the same mesh
     def set_GroupMesh(self, qGM=rc0('GroupMesh')):
