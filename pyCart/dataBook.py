@@ -1917,7 +1917,7 @@ class Aero(dict):
             # Try to find reference point.
             try:
                 # Search for text like '(17.0, 0, 0)'.
-                txt = re.search('\(([0-9., -]+)\)', line).group(1)
+                txt = re.search('\(([0-9EeDd., -]+)\)', line).group(1)
                 # Split into coordinates.
                 MRP = np.array([float(v) for v in txt.split(',')])
                 # Save it.
