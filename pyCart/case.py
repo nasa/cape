@@ -457,15 +457,15 @@ def GetInputNumber(fc):
         # Get the actual run number
         i = fc.get_InputSeq(j)
         # Check for output files.
-        if not glob.glob('run.%02i.*' % i):
+        if not glob.glob('run.%02i.*' % j):
             # This run has not been completed yet.
-            return i
+            return j
         # Check the iteration number.
         if n < fc.get_IterSeq(j):
             # This case has been run, but hasn't reached the min iter cutoff
-            return i
+            return j
     # Case completed; just return the last value.
-    return i
+    return j
     
 # Function to read last line of 'history.dat' file
 def GetHistoryIter(fname='history.dat'):

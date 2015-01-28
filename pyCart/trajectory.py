@@ -622,7 +622,7 @@ class Trajectory:
             * 2014-09-27 ``@ddalle``: First versoin
         """
         # Check inputs.
-        if type(i).__name__ != 'int':
+        if not type(i).__name__.startswith('int'):
             raise TypeError("Input to :func:`Trajectory.GetGroupIndex` must"
                 + " be :class:`int`.")
         # Get name of group for case *i*.
