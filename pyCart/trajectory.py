@@ -85,7 +85,12 @@ class Trajectory:
         # Loop through the keys to see if any were specified in the inputs.
         for key in keys:
             # Check inputs for that key.
-            if key in kwargs:
+            if key not in kwargs: continue
+            # Check the specification type.
+            if type(kwargs[key]).__name__ not in ['list']:
+                # Use the same value for all cases
+                self.text[key] = [str(kwargs[key])] * len(self.text[keys[0]])
+            else:
                 # Set it with the new value.
                 self.text[key] = [str(v) for v in kwargs[key]]
         # Check if PASS markers are specified.
