@@ -59,7 +59,7 @@ class AeroCsh(FileCntl):
         # Make sure the file is 
         
     # Function to set generic values, since they have the same format.
-    def SetVar(self, name, val):
+    def SetVar(self, name, val, f=False):
         """Set generic :file:`aero.csh` variable value
         
         :Call:
@@ -82,6 +82,9 @@ class AeroCsh(FileCntl):
         if val == '':
             # Empty line, used to turn a flag off.
             line = 'set %s \n' % name
+        elif f:
+            # Force character to be written as a float!
+            line = 'set %s = %.20f\n' % (name, float(val))
         else:
             # Set a value.
             line = 'set %s = %s\n' % (name, val)
@@ -102,7 +105,7 @@ class AeroCsh(FileCntl):
         :Versions:
             * 2014-06-10 ``@ddalle``: First version
         """
-        self.SetVar('etol', etol)
+        self.SetVar('etol', etol, True)
         
     # Function to set the number of refinements
     def SetnRefinements(self, maxR):

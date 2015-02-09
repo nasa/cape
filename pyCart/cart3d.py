@@ -1802,6 +1802,7 @@ class Cart3d(object):
             # Only write aero.csh for adaptive cases.
             if not self.opts.get_use_aero_csh(j): continue
             # Process global options
+            self.AeroCsh.SetErrorTolerance(self.opts.get_etol(j))
             self.AeroCsh.SetCFL(self.opts.get_cfl(j))
             self.AeroCsh.SetCFLMin(self.opts.get_cflmin(j))
             self.AeroCsh.SetnIter(self.opts.get_it_fc(j))
