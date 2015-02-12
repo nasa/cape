@@ -365,7 +365,10 @@ class Cart3d(object):
         comps = self.opts.get_PlotComponents()
         # Check for command-line override.
         if kw.get('comp'):
+            # Use the command-line 
             comps = [kw['comp']]
+            # Remove it from the keyword arguments.
+            kw.pop('comp', None)
         # Initialize output.
         pdf = {}
         # Make a new figure.

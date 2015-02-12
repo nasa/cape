@@ -157,6 +157,10 @@ class AeroPlot(Aero):
         i  = self.Residual.i[i0:]
         L1 = self.Residual.L1Resid[i0:]
         L0 = self.Residual.L1Resid0[i0:]
+        # Check if L0 is too long.
+        if len(L0) > len(i):
+            # Trim it.
+            L0 = L0[:len(i)]
         # Plot the initial residual if there are any unsteady iterations.
         if L0[-1] > L1[-1]:
             h['L0'] = plt.semilogy(i, L0, 'b-', lw=1.2)
