@@ -144,6 +144,48 @@ def autoInputs(cart3d=None, r=8, ftri='Components.i.tri', **kw):
     if nDiv: cmd += ['-nDiv', str(nDiv)]
     # Return the command.
     return cmd
+    
+# Function to call verify
+def verify(ftri='Components.i.tri'):
+    """Interface to Cart3D binary `verify`
+    
+    :Call:
+        >>> cmd = pyCart.cmd.verify(ftri='Components.i.tri')
+    :Inputs:
+        *ftri*: :class:`str`
+            Name of *tri* file to test
+    :Outputs:
+        *cmd*: :class:`list` (:class:`str`)
+            Command split into a list of strings
+    :Versions:
+        * 2015-02-13 ``@ddalle``: First version
+    """
+    # Build the command.
+    cmd = ['verify', ftri]
+    # Output
+    return cmd
+    
+# Function to call intersect
+def intersect(fin='Components.tri', fout='Components.i.tri'):
+    """Interface to Cart3D binary `intersect`
+    
+    :Call:
+        >>> cmd = cmd.intersect(fin='Components.tri', fout='Components.i.tri')
+    :Inputs:
+        *fin*: :class:`str`
+            Name of input *tri* file
+        *fout*: :class:`str`
+            Name of output *tri* file (intersected)
+    :Outputs:
+        *cmd*: :class:`list` (:class:`str`)
+            Command split into a list of strings
+    :Versions:
+        * 2015-02-13 ``@ddalle``: First version
+    """
+    # Build the command
+    cmd = ['intersect', '-i', fin, '-o', fout]
+    # Output
+    return cmd
 
 # Function to create flowCart command
 def flowCart(cart3d=None, fc=None, i=0, **kwargs):

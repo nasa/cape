@@ -98,6 +98,8 @@ rc = {
     "BBox": [],
     "XLev": [],
     "r": 30.0,
+    "verify": False,
+    "intersect": False,
     "nDiv": 4,
     "maxR": 11,
     "pre": "preSpec.c3d.cntl",

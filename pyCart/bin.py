@@ -12,7 +12,7 @@ import subprocess as sp
 import cmd
 
 # Function to call commands with a different STDOUT
-def callf(cmdi, f=None, shell=None):
+def calli(cmdi, f=None, shell=None):
     """Call a command with alternate STDOUT by filename
     
     :Call:
@@ -24,8 +24,12 @@ def callf(cmdi, f=None, shell=None):
             File name to which to store STDOUT
         *shell*: :class:`bool`
             Whether or not a shell is needed
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code, ``0`` for successful execution
     :Versions:
         * 2014-08-30 ``@ddalle``: First version
+        * 2015-02-13 ``@ddalle``: Split into part with return code
     """
     # Process the shell option
     shell = bool(shell)
@@ -46,6 +50,28 @@ def callf(cmdi, f=None, shell=None):
     else:
         # Call the command.
         ierr = sp.call(cmdi, shell=shell)
+    # Output
+    return ierr
+        
+# Function to call commands with a different STDOUT
+def callf(cmdi, f=None, shell=None):
+    """Call a command with alternate STDOUT by filename
+    
+    :Call:
+        >>> callf(cmdi, f=None, shell=None)
+    :Inputs:
+        *cmdi*: :class:`list` (:class:`str`)
+            List of strings as for :func:`subprocess.call`
+        *f*: :class:`str`
+            File name to which to store STDOUT
+        *shell*: :class:`bool`
+            Whether or not a shell is needed
+    :Versions:
+        * 2014-08-30 ``@ddalle``: First version
+        # 2015-02-13 ``@ddalle``: Split most of code to :func:`calli`
+    """
+    # Call the command with output status
+    ierr = calli(cmdi, f, shell)
     # Check the status.
     if ierr:
         # Remove RUNNING file.
@@ -161,6 +187,35 @@ def cubes(cart3d=None, **kwargs):
     callf(cmdi, f='cubes.out')
 # Docstring
 cubes.__doc__ = _upgradeDocString(cmd.cubes.__doc__)
+
+# Function to call verify
+def verify(ftri='Components.i.tri'):
+    # Required file
+    _assertfile(ftri)
+    # Get command
+    cmdi = cmd.verify(ftri)
+    # Run the command.
+    ierr = calli(cmdi, f='verify.out')
+    # Check status.
+    if ierr:
+        # Create a failure file.
+        f = open('FAIL', 'a+')
+        # Write the reason
+        f.write('verify\n')
+        f.close()
+        # Exit.
+        raise SystemError('Triangulation contains errors!')
+# Docstring
+verify.__doc__ = _upgradeDocString(cmd.verify.__doc__)
+
+# Function to call intersect
+def intersect(fin='Components.tri', fout='Components.i.tri'):
+    # Required file
+    _assertfile(fin)
+    # Get command.
+    cmdi = cmd.intersect(fin=fin, fout=fout)
+    # Run the command.
+    callf(cmdi, f='intersect.out')
     
 # Function to call mgPrep
 def mgPrep(cart3d=None, **kwargs):

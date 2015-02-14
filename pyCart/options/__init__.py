@@ -960,6 +960,26 @@ class Options(odict):
     # mesh creation parameters
     # ========================
     
+    # Get verify status
+    def get_verify(self):
+        self._Mesh()
+        return self['Mesh'].get_verify()
+        
+    # Set verify status
+    def set_verify(self, q):
+        self._Mesh()
+        self['Mesh'].set_verify(q)
+    
+    # Get intersect status
+    def get_intersect(self):
+        self._Mesh()
+        return self['Mesh'].get_intersect()
+        
+    # Set intersect status
+    def set_intersect(self, q):
+        self._Mesh()
+        self['Mesh'].set_intersect(q)
+        
     # Get triangulation file(s)
     def get_TriFile(self, i=None):
         self._Mesh()
@@ -1092,7 +1112,8 @@ class Options(odict):
         
         
     # Copy over the documentation.
-    for k in ['TriFile', 'preSpecCntl', 'inputC3d', 'BBox', 'XLev', 'mesh2d',
+    for k in ['verify', 'intersect', 'TriFile', 'preSpecCntl', 'inputC3d',
+            'BBox', 'XLev', 'mesh2d',
             'r', 'nDiv', 'maxR', 'cubes_a', 'cubes_b', 'reorder', 'sf']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__

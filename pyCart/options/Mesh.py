@@ -310,6 +310,76 @@ class Mesh(odict):
             self['cubes'] = cubes(**self['cubes'])
             
     
+    # Get verify status
+    def get_verify(self):
+        """Determine whether or not to call `verify` before running `cubes`.
+        
+        :Call:
+            >>> q = opts.get_verify()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not to run `verify`
+        :Versions:
+            * 2015-02-13 ``@ddalle``: First version
+        """
+        return self.get_key('verify')
+        
+    # Set verify status
+    def set_verify(self, q=rc0('verify')):
+        """Set whether or not to call `verify` before running `cubes`.
+        
+        :Call:
+            >>> opts.get_verify(q)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not to run `verify`
+        :Versions:
+            * 2015-02-13 ``@ddalle``: First version
+        """
+        return self.get_key('verify')
+            
+    
+    # Get intersect status
+    def get_intersect(self):
+        """Determine whether or not to call `intersect` before running `cubes`.
+        
+        :Call:
+            >>> q = opts.get_intersect()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not to run `intersect`
+        :Versions:
+            * 2015-02-13 ``@ddalle``: First version
+        """
+        return self.get_key('intersect')
+        
+    # Set verify status
+    def set_intersect(self, q=rc0('intersect')):
+        """Set whether or not to call `intersect` before running `cubes`.
+        
+        :Call:
+            >>> opts.set_intersect(q)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not to run `intersect`
+        :Versions:
+            * 2015-02-13 ``@ddalle``: First version
+        """
+        return self.get_key('intersect')
+        
+        
     # Get the triangulation file(s)
     def get_TriFile(self, i=None):
         """Return the surface triangulation file
