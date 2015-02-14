@@ -888,19 +888,9 @@ class Cart3d(object):
         if self.opts.get_intersect():
             # Write the tri file as non-intersected.
             self.tri.Write('Components.tri')
-            # Status update.
-            print("    Intersecting triangulation components...")
-            # Intersect it.
-            bin.intersect('Components.tri', 'Components.i.tri')
         else:
             # Write the tri file.
             self.tri.Write('Components.i.tri')
-        ## Verify the triangulation quality?
-        #if self.opts.get_verify():
-        #    # Status update.
-        #    print("    Verifying validity of surface triangulation...")
-        #    # Check the recently written tri file.
-        #    bin.verify('Components.i.tri')
         # --------------------
         # Volume mesh creation
         # --------------------
@@ -1442,15 +1432,20 @@ class Cart3d(object):
                 # Write it.
                 f.write('%s\n' % line)
             
-            # Check for `verify` calle
+            # Initialize options to `run_flowCart.py`
+            flgs = ''
+            # Check for `verify` call.
             if j==0 and self.opts.get_verify():
                 # Call `verify`
-                f.write('\n# Run verification code.\n')
-                f.write('run_verify.py\n')
+                flgs += ' --verify'
+            # Check for `intersect` call.
+            if j==0 and self.opts.get_intersect():
+                # Call `intersect`
+                flgs += ' --intersect'
 
             # Simply call the advanced interface.
             f.write('\n# Call the flow_cart/mpi_flowCart/aero.csh interface.\n')
-            f.write('run_flowCart.py')
+            f.write('run_flowCart.py' + flgs)
             
             # Close the file.
             f.close()
