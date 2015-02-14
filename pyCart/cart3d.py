@@ -881,8 +881,23 @@ class Cart3d(object):
         self.tri = self.tri0.Copy()
         # Apply rotations, translations, etc.
         self.PrepareTri(i)
-        # Write the tri file.
-        self.tri.Write('Components.i.tri')
+        # Check intersection status.
+        if self.opts.get_intersect():
+            # Write the tri file as non-intersected.
+            self.tri.Write('Components.tri')
+            # Status update.
+            print("    Intersecting triangulation components...")
+            # Intersect it.
+            bin.intersect('Components.tri', 'Components.i.tri')
+        else:
+            # Write the tri file.
+            self.tri.Write('Components.i.tri')
+        # Verify the triangulation quality?
+        if self.opts.get_verify():
+            # Status update.
+            print("    Verifying validity of surface triangulation...")
+            # Check the recently written tri file.
+            bin.verify('Components.i.tri')
         # --------------------
         # Volume mesh creation
         # --------------------
