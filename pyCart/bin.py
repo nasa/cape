@@ -44,7 +44,7 @@ def calli(cmdi, f=None, shell=None):
         # Open the file.
         fid = open(f, 'w')
         # Call the command.
-        ierr = sp.call(cmdi, stdout=fid, shell=shell)
+        ierr = sp.call(cmdi, stdout=fid, stderr=fid, shell=shell)
         # Close the file.
         fid.close()
     else:
@@ -197,7 +197,7 @@ def verify(ftri='Components.i.tri'):
     # Run the command.
     ierr = calli(cmdi, f='verify.out')
     # Check status.
-    if ierr:
+    if ierr or os.path.isfile('tecplot.bad'):
         # Create a failure file.
         f = open('FAIL', 'a+')
         # Write the reason
