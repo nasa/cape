@@ -6,10 +6,8 @@ Case for interacting with individual run cases: :mod:`pyCart.case`
 
 # Import options class
 from options.flowCart import flowCart
-# Binary interface.
-from bin import callf, tail
 # Interface for writing commands
-from . import cmd, queue, manage
+from . import cmd, queue, manage, bin
 
 # Read the local JSON file.
 import json
@@ -20,12 +18,17 @@ from numpy import nan, isnan
 
 
 # Function to setup and call the appropriate flowCart file.
-def run_flowCart():
+def run_flowCart(verify=False, isect=False):
     """
     Setup and run the appropriate `flowCart`, `mpi_flowCart` command
     
     :Call:
-        >>> pyCart.case.run_flowCart()
+        >>> pyCart.case.run_flowCart(verify=False, isect=False)
+    :Inputs:
+        *verify*: :class:`bool`
+            Whether or not to run `verify` before running `flowCart`
+        *isect*: :class:`bool`
+            Whether or not to run `intersect` before running `flowCart`
     :Versions:
         * 2014-10-02 ``@ddalle``: First version
         * 2014-12-18 ``@ddalle``: Added :func:`TarAdapt` call after run
@@ -38,6 +41,12 @@ def run_flowCart():
     os.system('touch RUNNING')
     # Get the settings.
     fc = ReadCaseJSON()
+    # Check for initial run
+    if GetRestartIter() == 0:
+        # Check for intersect.
+        if isect: bin.intesect('Components.tri', 'Components.i.tri')
+        # Check for verify
+        if verify: bin.verify('Components.i.tri')
     # Determine the run index.
     i = GetInputNumber(fc)
     # Create a restart file if appropriate.
@@ -109,7 +118,7 @@ def run_flowCart():
         # Call flowCart directly.
         cmdi = cmd.flowCart(fc=fc, i=i, n=n)
     # Run the command.
-    callf(cmdi, f='flowCart.out')
+    bin.callf(cmdi, f='flowCart.out')
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
     # Clean up the folder as appropriate.
@@ -148,7 +157,7 @@ def run_flowCart():
         # Some other failure
         f = open('FAIL', 'w')
         # Copy the last line of flowCart.out
-        f.write('# %s' % tail('flowCart.out'))
+        f.write('# %s' % bin.tail('flowCart.out'))
         # Quit
         f.close()
         return
@@ -174,7 +183,7 @@ def run_flowCart():
         # Get the name of the PBS script
         fpbs = GetPBSScript(i)
         # Just run the case directly (keep the same PBS job).
-        callf(['bash', fpbs])
+        bin.callf(['bash', fpbs])
     
     
 # Function to call script or submit.
@@ -234,7 +243,7 @@ def CheckFailed():
     # Check for the file.
     if os.path.isfile('flowCart.out'):
         # Read the last line.
-        if 'fail' in tail('flowCart.out', 1):
+        if 'fail' in bin.tail('flowCart.out', 1):
             # This is a failure.
             return True
         else:
@@ -489,7 +498,7 @@ def GetHistoryIter(fname='history.dat'):
     # Check the file.
     try:
         # Try to tail the last line.
-        txt = tail(fname)
+        txt = bin.tail(fname)
         # Try to get the integer.
         return float(txt.split()[0])
     except Exception:
@@ -518,7 +527,7 @@ def GetHistoryResid(fname='history.dat'):
     # Check the file.
     try:
         # Try to tail the last line.
-        txt = tail(fname)
+        txt = bin.tail(fname)
         # Try to get the integer.
         return float(txt.split()[3])
     except Exception:
@@ -547,7 +556,7 @@ def CheckUnsteadyHistory(fname='history.dat'):
     # Check the file's contents.
     try:
         # Try to tail the last line.
-        txt = tail(fname)
+        txt = bin.tail(fname)
         # Check for a dot.
         return ('.' in txt.split()[0])
     except Exception:
