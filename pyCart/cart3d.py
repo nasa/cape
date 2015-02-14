@@ -701,7 +701,10 @@ class Cart3d(object):
         # Try to get a job ID.
         jobID = self.GetPBSJobID(i)
         # Check if the case is prepared.
-        if n is None:
+        if self.CheckError(i):
+            # Case contains :file:`FAIL`
+            sts = "ERROR"
+        elif n is None:
             # Nothing prepared.
             sts = "---"
         else:
@@ -892,12 +895,12 @@ class Cart3d(object):
         else:
             # Write the tri file.
             self.tri.Write('Components.i.tri')
-        # Verify the triangulation quality?
-        if self.opts.get_verify():
-            # Status update.
-            print("    Verifying validity of surface triangulation...")
-            # Check the recently written tri file.
-            bin.verify('Components.i.tri')
+        ## Verify the triangulation quality?
+        #if self.opts.get_verify():
+        #    # Status update.
+        #    print("    Verifying validity of surface triangulation...")
+        #    # Check the recently written tri file.
+        #    bin.verify('Components.i.tri')
         # --------------------
         # Volume mesh creation
         # --------------------
@@ -1439,6 +1442,12 @@ class Cart3d(object):
                 # Write it.
                 f.write('%s\n' % line)
             
+            # Check for `verify` calle
+            if j==0 and self.opts.get_verify():
+                # Call `verify`
+                f.write('\n# Run verification code.\n')
+                f.write('run_verify.py\n')
+
             # Simply call the advanced interface.
             f.write('\n# Call the flow_cart/mpi_flowCart/aero.csh interface.\n')
             f.write('run_flowCart.py')

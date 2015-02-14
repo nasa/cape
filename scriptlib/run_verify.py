@@ -11,19 +11,19 @@ if a restart is appropriate, etc.), sets that case up, and runs it.
 """
 
 # Import the module specifically for this task.
-import pyCart.case
+import pyCart.bin
 
 # Simple function to call the main function of that module.
-def run_flowCart():
-    """Calls :func:`pyCart.case.run_flowCart`
+def run_verify():
+    """Calls :func:`pyCart.bin.verify`
     
     :Call:
-        >>> run_flowCart()
+        >>> run_verify()
     :Versions:
-        * 2014.10.02 ``@ddalle``: First version
+        * 2015-02-13 ``@ddalle``: First version
     """
     pyCart.case.run_flowCart()
     
 # Check if run as a script.
 if __name__ == "__main__":
-    run_flowCart()
+    run_verify()
