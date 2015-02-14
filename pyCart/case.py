@@ -570,7 +570,7 @@ def GetWorkingFolder():
         * 2014-11-24 ``@ddalle``: First version
     """
     # Try to get iteration number from working folder.
-    n0 = GetHistoryIter()
+    n0 = GetCurrentIter()
     # Initialize working directory.
     fdir = '.'
     # Check for adapt?? folders
@@ -578,7 +578,7 @@ def GetWorkingFolder():
         # Attempt to read it.
         ni = GetHistoryIter(os.path.join(fi, 'history.dat'))
         # Check it.
-        if ni > n0:
+        if ni >= n0:
             # Current best estimate of working directory.
             fdir = fi
     # Output

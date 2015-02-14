@@ -2264,18 +2264,7 @@ class CaseResid(object):
         """
         
         # Process the best data folder.
-        if os.path.isfile('history.dat'):
-            # Subsequent non-adaptive runs
-            fdir = '.'
-        elif os.path.islink('BEST'):
-            # There's a BEST/ folder; use it as most recent adaptation cycle.
-            fdir = 'BEST'
-        elif os.path.isdir('adapt00'):
-            # It's an adaptive run, but it hasn't gotten far yet.
-            fdir = 'adapt00'
-        else:
-            # This is not an adaptive cycle; use root folder.
-            fdir = '.'
+        fdir = GetWorkingFolder()
         # History file name.
         fhist = os.path.join(fdir, 'history.dat')
         # Read the file.
