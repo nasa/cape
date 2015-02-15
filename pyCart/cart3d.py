@@ -385,7 +385,7 @@ class Cart3d(object):
             # Go to root.
             os.chdir(self.RootDir)
             # Check for folder.
-            if not os.path.isdir(frun): continue
+            if not self.CheckCase(i): continue
             # Go to folder.
             os.chdir(frun)
             # Loop through components.
