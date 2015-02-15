@@ -1952,24 +1952,41 @@ class Aero(dict):
         FM = self[comp]
         # Extract the data.
         C = getattr(FM, c)
-        # Process last iteration to use.
-        if i is None:
-            # Use last iteration
-            iB = FM.i[-1]
-        else:
+        # ---------
+        # Last Iter 
+        # ---------
+        # Most likely last iteration
+        iB = FM.i[-1]
+        # Check for an input last iter
+        if i is not None:
             # Attempt to use requested iter.
-            
+            if i < iB:
+                # Using an earlier iter; make sure to use one in the hist.
+                # Find the iterations that are less than i.
+                iB = FM.i[np.where(FM.i <= i)[0][-1]]
+        # Get the index of *iB* in *FM.i*.
+        jB = np.where(FM.i == iB)[0][-1]
+        # ----------
+        # First Iter
+        # ----------
+        # Get the starting iteration number to use.
+        i0 = max(0, iB-n)
+        # Make sure *iA* is in *FM.i* and get the index.
+        j0 = np.where(FM.i <= i0)[0][-1]
+        # Reselect *iA* in case initial value was not in *FM.i*.
+        i0 = FM.i[j0]
+        # --------------
+        # Averaging Iter
+        # --------------
+        iA = max(0, iB-nAvg)
+        # Make sure *iV* is in *FM.i* and get the index.
+        jA = np.where(FM.i <= iA)[0][-1]
+        # Reselect *iV* in case initial value was not in *FM.i*.
+        iA = FM.i[jA]
         # Number of iterations present.
         nIter = FM.i.size
-        # I
-        # Process min indices for plotting and averaging.
-        i0 = max(0, nIter-n)
-        i0Avg = max(0, nIter-nAvg)
         # Calculate mean.
-        cAvg = np.mean(C[i0Avg:])
-        # Get the actual iteration numbers to use for averaging.
-        iA = FM.i[i0Avg]
-        iB = FM.i[-1]
+        cAvg = np.mean(C[jA:jB+1])
         # Initialize dictionary of handles.
         h = {}
         # Calculate range of interest.
@@ -1989,7 +2006,7 @@ class Aero(dict):
             plt.plot([i0,iA], [cAvg, cAvg], 'r--', lw=1.0) + 
             plt.plot([iA,iB], [cAvg, cAvg], 'r-', lw=1.0))
         # Plot the coefficient.
-        h[c] = plt.plot(FM.i[i0:], C[i0:], 'k-', lw=1.5)
+        h[c] = plt.plot(FM.i[j0:], C[j0:], 'k-', lw=1.5)
         # Labels.
         h['x'] = plt.xlabel('Iteration Number')
         h['y'] = plt.ylabel(c)
