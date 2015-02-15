@@ -1983,8 +1983,9 @@ class Aero(dict):
         jA = np.where(FM.i <= iA)[0][-1]
         # Reselect *iV* in case initial value was not in *FM.i*.
         iA = FM.i[jA]
-        # Number of iterations present.
-        nIter = FM.i.size
+        # --------
+        # Plotting
+        # --------
         # Calculate mean.
         cAvg = np.mean(C[jA:jB+1])
         # Initialize dictionary of handles.
@@ -2053,10 +2054,42 @@ class Aero(dict):
         # Get iteration numbers.
         if n is None:
             # Use all iterations
-            i0 = 0
-        else:
-            # Use only last *n* iterations
-            i0 = max(0, self.Residual.nIter - n)
+            n = self.Residual.i[-1]
+        # ---------
+        # Last Iter 
+        # ---------
+        # Most likely last iteration
+        iB = self.Residual.i[-1]
+        # Check for an input last iter
+        if i is not None:
+            # Attempt to use requested iter.
+            if i < iB:
+                # Using an earlier iter; make sure to use one in the hist.
+                jB = np.where(self.Residual.i <= i)[0][-1]
+                # Find the iterations that are less than i.
+                iB = self.Residual.i[jB]
+        # Get the index of *iB* in *FM.i*.
+        jB = np.where(self.Residual.i == iB)[0][-1]
+        # ----------
+        # First Iter
+        # ----------
+        # Get the starting iteration number to use.
+        i0 = max(0, iB-n) + 1
+        # Make sure *iA* is in *FM.i* and get the index.
+        j0 = np.where(self.Residual.i <= i0)[0][-1]
+        # Reselect *iA* in case initial value was not in *FM.i*.
+        i0 = self.Residual.i[j0]
+        # --------------
+        # Averaging Iter
+        # --------------
+        iA = max(0, iB-nAvg) + 1
+        # Make sure *iV* is in *FM.i* and get the index.
+        jA = np.where(self.Residual.i <= iA)[0][-1]
+        # Reselect *iV* in case initial value was not in *FM.i*.
+        iA = self.Residual.i[jA]
+        # --------
+        # Plotting
+        # --------
         # Extract iteration numbers and residuals.
         i  = self.Residual.i[i0:]
         L1 = self.Residual.L1Resid[i0:]
@@ -2076,7 +2109,7 @@ class Aero(dict):
         # Get the axes.
         h['ax'] = plt.gca()
         # Set the xlimits.
-        h['ax'].set_xlim((i0, self.Residual.i[-1]+25))
+        h['ax'].set_xlim((i0, iB+25))
         # Output.
         return h
             
