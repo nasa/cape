@@ -1924,7 +1924,7 @@ class Aero(dict):
         :Call:
             >>> h = AP.PlotCoeff(comp, c, n=1000, nAvg=100, d=0.01, i=None)
         :Inputs:
-            *AP*: :class:`pyCart.aeroPlot.AeroPlot`
+            *AP*: :class:`pyCart.aeroPlot.Plot`
                 Instance of the force history plotting class
             *comp*: :class:`str`
                 Name of component to plot
@@ -1978,6 +1978,7 @@ class Aero(dict):
         # --------------
         # Averaging Iter
         # --------------
+        # Get the first iteration to use in averaging.
         iA = max(0, iB-nAvg) + 1
         # Make sure *iV* is in *FM.i* and get the index.
         jA = np.where(FM.i <= iA)[0][-1]
@@ -2028,17 +2029,18 @@ class Aero(dict):
         return h
     
     # Plot function
-    def PlotL1(self, n=None):
+    def PlotL1(self, n=None, i=None):
         """Plot the L1 residual
         
         :Call:
-            >>> h = AP.PlotL1()
-            >>> h = AP.PlotL1(n)
+            >>> h = AP.PlotL1(n=None, i=None)
         :Inputs:
-            *AP*: :class:`pyCart.aero.AeroPlot`
+            *AP*: :class:`pyCart.aero.Aero`
                 Instance of the force history plotting class
             *n*: :class:`int`
                 Only show the last *n* iterations
+            *i*: :class:`int`
+                Plot up to iteration *i*
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
@@ -2079,14 +2081,6 @@ class Aero(dict):
         j0 = np.where(self.Residual.i <= i0)[0][-1]
         # Reselect *iA* in case initial value was not in *FM.i*.
         i0 = self.Residual.i[j0]
-        # --------------
-        # Averaging Iter
-        # --------------
-        iA = max(0, iB-nAvg) + 1
-        # Make sure *iV* is in *FM.i* and get the index.
-        jA = np.where(self.Residual.i <= iA)[0][-1]
-        # Reselect *iV* in case initial value was not in *FM.i*.
-        iA = self.Residual.i[jA]
         # --------
         # Plotting
         # --------
@@ -2120,7 +2114,7 @@ class Aero(dict):
         :Call:
             >>> h = AP.Plot(comp, C, d={}, n=1000, nAvg=100, **kw)
         :Inputs:
-            *AP*: :class:`pyCart.aero.AeroPlot`
+            *AP*: :class:`pyCart.aero.Plot`
                 Instance of the force history plotting class
             *comp*: :class:`str`
                 Name of component to plot
@@ -2236,7 +2230,7 @@ class Aero(dict):
         :Call:
             >>> h = AP.Plot4(comp, **kw)
         :Inputs:
-            *AP*: :class:`pyCart.aero.AeroPlot`
+            *AP*: :class:`pyCart.aero.Plot`
                 Instance of the force history plotting class
             *comp*: :class:`str`
                 Name of component to plot
@@ -2266,7 +2260,7 @@ class Aero(dict):
         :Call:
             >>> h = AP.PlotForce(comp, **kw)
         :Inputs:
-            *AP*: :class:`pyCart.aero.AeroPlot`
+            *AP*: :class:`pyCart.aero.Plot`
                 Instance of the force history plotting class
             *comp*: :class:`str`
                 Name of component to plot

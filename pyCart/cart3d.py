@@ -404,7 +404,6 @@ class Cart3d(object):
                     kw['d'][coeff] = self.opts.get_PlotDelta(coeff, comp)
                 # Read the aerodata and extract the single component.
                 AP = dataBook.Aero([comp])
-                print(AP)
                 # Label the run.
                 kw['tag'] = 'Case %i: %s\nComponent=%s' % (i+1, frun, comp)
                 # Create the plot.
