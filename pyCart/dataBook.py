@@ -1970,7 +1970,7 @@ class Aero(dict):
         # First Iter
         # ----------
         # Get the starting iteration number to use.
-        i0 = max(0, iB-n)
+        i0 = max(0, iB-n) + 1
         # Make sure *iA* is in *FM.i* and get the index.
         j0 = np.where(FM.i <= i0)[0][-1]
         # Reselect *iA* in case initial value was not in *FM.i*.
@@ -1978,7 +1978,7 @@ class Aero(dict):
         # --------------
         # Averaging Iter
         # --------------
-        iA = max(0, iB-nAvg)
+        iA = max(0, iB-nAvg) + 1
         # Make sure *iV* is in *FM.i* and get the index.
         jA = np.where(FM.i <= iA)[0][-1]
         # Reselect *iV* in case initial value was not in *FM.i*.

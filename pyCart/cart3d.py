@@ -381,7 +381,7 @@ class Cart3d(object):
             # Go to root.
             os.chdir(self.RootDir)
             # Check for folder.
-            if not self.CheckCase(i): continue
+            if not self.CheckCase(I[i]): continue
             # Go to folder.
             os.chdir(frun)
             # Loop through components.
@@ -404,6 +404,7 @@ class Cart3d(object):
                     kw['d'][coeff] = self.opts.get_PlotDelta(coeff, comp)
                 # Read the aerodata and extract the single component.
                 AP = dataBook.Aero([comp])
+                print(AP)
                 # Label the run.
                 kw['tag'] = 'Case %i: %s\nComponent=%s' % (i+1, frun, comp)
                 # Create the plot.
