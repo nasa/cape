@@ -576,7 +576,7 @@ class Cart3d(object):
                 # No job number.
                 print(stncl % (j, frun, sts, itr, que))
             # Check status.
-            if qCheck or nSub >= nSubMax: continue
+            if qCheck: continue
             # If submitting is allowed, check the job status.
             if sts in ['---', 'INCOMP']:
                 # Prepare the job.
@@ -585,6 +585,8 @@ class Cart3d(object):
                 self.StartCase(i)
                 # Increase job number
                 nSub += 1
+            # Don't continue checking if maximum submissions reached.
+            if nSub >= nSubMax: break
         # Extra line.
         print("")
         # State how many jobs submitted.
