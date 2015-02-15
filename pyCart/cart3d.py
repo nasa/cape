@@ -906,6 +906,14 @@ class Cart3d(object):
         self.PreparePreSpecCntl()
         # Check for jumpstart.
         if not self.opts.get_use_aero_csh(0) or self.opts.get_jumpstart(0):
+            # Check for intersect step.
+            if self.opts.get_intersect():
+                # Run intersect.
+                bin.intersect('Components.tri', 'Components.i.tri')
+            # Check for verify step.
+            if self.opts.get_verify():
+                # Run verify.
+                bin.verify('Components.i.tri')
             # Run cubes.
             bin.cubes(self)
             # Run mgPrep
@@ -1436,12 +1444,15 @@ class Cart3d(object):
             
             # Initialize options to `run_flowCart.py`
             flgs = ''
+            # Check for potential need of preprocessing.
+            qflg = j==0 and (self.opts.get_use_aero_csh(0) 
+                and not self.get_jumpstart(0))
             # Check for `verify` call.
-            if j==0 and self.opts.get_verify():
+            if qflg and self.opts.get_verify():
                 # Call `verify`
                 flgs += ' --verify'
             # Check for `intersect` call.
-            if j==0 and self.opts.get_intersect():
+            if qflg and self.opts.get_intersect():
                 # Call `intersect`
                 flgs += ' --intersect'
 

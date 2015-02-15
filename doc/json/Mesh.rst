@@ -17,6 +17,9 @@ values as they could be written in a JSON pyCart settings file
     .. code-block:: javascript
     
         "Mesh": {
+            "intersect": false,
+            "verify": false,
+            
             // File names
             "TriFile": "Components.i.tri",
             "preSpecCntl": "preSpec.c3d.cntl",
@@ -40,6 +43,23 @@ values as they could be written in a JSON pyCart settings file
                 "sf": 0
             }
         }
+        
+Preprocessing Steps
+===================
+
+Two important optional steps in the Cart3D grid preparation process are
+`intersect` and `verify`.  The former of these turns self-intersecting surface
+triangulations into water-tight surfaces, and `verify` checks a surface for
+various errors.  Open edges, zero-length edges, and intersections are all things
+that `verify` checks for.  If either of these options are activated, pyCart
+tries to run them as part of the job (i.e. as part of
+:func:`pyCart.case.run_flowCart`), but they must be run before `cubes`.
+
+    *intersect*: ``true`` | {``false``}
+        Whether or not to run `intersect` before creating volume mesh
+        
+    *verify*: ``true`` | {``false``}
+        Whether or not to run `verify` before creating volume mesh
             
 File Names and Basic Settings
 =============================
