@@ -53,6 +53,7 @@ def ImportPyPlot():
     # Make global variables
     global plt
     global PdfPages
+    global Text
     # Check for PyPlot.
     try:
         plt.gcf
@@ -60,6 +61,7 @@ def ImportPyPlot():
         # Load the modules.
         import matplotlib.pyplot as plt
         from matplotlib.backends.backend_pdf import PdfPages
+        from matplotlib.text import Text
 
 
 # Aerodynamic history class

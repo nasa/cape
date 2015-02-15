@@ -30,6 +30,8 @@ from . import case
 from . import manage
 # Alpha-beta / alpha_t-phi business
 from . import convert
+# Data book and plotting
+from . import dataBook
 
 # Functions and classes from other modules
 from trajectory import Trajectory
@@ -40,7 +42,6 @@ from inputCntl   import InputCntl
 from aeroCsh     import AeroCsh
 from preSpecCntl import PreSpecCntl
 from config      import Config
-from dataBook    import Aero, DataBook, CaseFM
 
 # Import triangulation
 from tri import Tri
@@ -266,7 +267,7 @@ class Cart3d(object):
         except AttributeError:
             pass
         # Read the data book.
-        self.DataBook = DataBook(self.x, self.opts)
+        self.DataBook = dataBook.DataBook(self.x, self.opts)
         
     # Function to plot the databook.
     def PlotDataBook(self):
@@ -348,13 +349,8 @@ class Cart3d(object):
             * 2014-11-24 ``@ddalle``: Rewritten for looping through cases
             * 2014-12-10 ``@ddalle``: Applied constraints
         """
-        # Check for the aero module.
-        try:
-            # Mindlessly check if Python recognizes the name.
-            aeroPlot
-        except NameError:
-            # Import the aero module.
-            import aeroPlot
+        # Make sure that pyplot is loaded
+        dataBook.ImportPyPlot()
         # Save current location.
         fpwd = os.getcwd()
         # Apply constraints
@@ -372,10 +368,10 @@ class Cart3d(object):
         # Initialize output.
         pdf = {}
         # Make a new figure.
-        aeroPlot.plt.figure()
+        dataBook.plt.figure()
         # Initialize the pdf documents
         for comp in comps:
-            pdf[comp] = aeroPlot.PdfPages('aero_%s.pdf'%comp)
+            pdf[comp] = dataBook.PdfPages('aero_%s.pdf'%comp)
         # Loop through runs.
         for i in range(len(fruns)):
             # Get the folder name.
@@ -391,7 +387,7 @@ class Cart3d(object):
             # Loop through components.
             for comp in comps:
                 # Clear the figure (to avoid having hundreds of figs).
-                aeroPlot.plt.clf()
+                dataBook.plt.clf()
                 # List of coefficients to plot
                 coeffs = self.opts.get_PlotCoeffs(comp)
                 # Get plot dimensions
@@ -407,7 +403,7 @@ class Cart3d(object):
                 for coeff in coeffs:
                     kw['d'][coeff] = self.opts.get_PlotDelta(coeff, comp)
                 # Read the aerodata and extract the single component.
-                AP = aeroPlot.AeroPlot([comp])
+                AP = dataBook.Aero([comp])
                 # Label the run.
                 kw['tag'] = 'Case %i: %s\nComponent=%s' % (i+1, frun, comp)
                 # Create the plot.
