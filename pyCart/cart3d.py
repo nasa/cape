@@ -1442,7 +1442,7 @@ class Cart3d(object):
             flgs = ''
             # Check for potential need of preprocessing.
             qflg = j==0 and (self.opts.get_use_aero_csh(0) 
-                and not self.get_jumpstart(0))
+                and not self.opts.get_jumpstart(0))
             # Check for `verify` call.
             if qflg and self.opts.get_verify():
                 # Call `verify`
