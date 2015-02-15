@@ -1918,11 +1918,11 @@ class Aero(dict):
                 print("Warning: no reference point in line:\n  '%s'" % line)
                 # Function to plot a single coefficient.
     
-    def PlotCoeff(self, comp, c, n=1000, nAvg=100, d=0.01):
+    def PlotCoeff(self, comp, c, n=1000, nAvg=100, d=0.01, i=None):
         """Plot a single coefficient history
         
         :Call:
-            >>> h = AP.PlotCoeff(comp, c, n=1000, nAvg=100, d=0.01)
+            >>> h = AP.PlotCoeff(comp, c, n=1000, nAvg=100, d=0.01, i=None)
         :Inputs:
             *AP*: :class:`pyCart.aeroPlot.AeroPlot`
                 Instance of the force history plotting class
@@ -1936,6 +1936,8 @@ class Aero(dict):
                 Use the last *nAvg* iterations to compute an average
             *d*: :class:`float`
                 Delta in the coefficient to show expected range
+            *i*: :class:`int`
+                Last iteration to use (defaults to last iteration available)
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
@@ -1950,8 +1952,16 @@ class Aero(dict):
         FM = self[comp]
         # Extract the data.
         C = getattr(FM, c)
+        # Process last iteration to use.
+        if i is None:
+            # Use last iteration
+            iB = FM.i[-1]
+        else:
+            # Attempt to use requested iter.
+            
         # Number of iterations present.
         nIter = FM.i.size
+        # I
         # Process min indices for plotting and averaging.
         i0 = max(0, nIter-n)
         i0Avg = max(0, nIter-nAvg)
