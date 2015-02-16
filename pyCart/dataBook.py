@@ -2101,7 +2101,7 @@ class Aero(dict):
         # Number of iterations per independent sample.
         nInd = np.round(kBin / jBin)
         # Uncertainty in the mean
-        muStd = cStd / np.sqrt(nStat/nInd)
+        muStd = cStd / np.sqrt(max(1,nStat/nInd))
         # Initialize dictionary of handles.
         h = {}
         # Plot the histogram.
