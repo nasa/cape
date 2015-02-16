@@ -2114,16 +2114,24 @@ class Aero(dict):
         h['ax'] = plt.gca()
         # Make a label for the mean value.
         lbl = u'\u03BC(%s) = %.4f' % (c, cAvg)
-        h['mu'] = plt.text(1.0, 1.06, lbl, horizontalalignment='right',
+        h['mu'] = plt.text(0.98, 1.06, lbl, horizontalalignment='right',
             verticalalignment='top', transform=h['ax'].transAxes)
         # Make a label for the standard deviation.
-        lbl = u'\u03A3(%s) = %.4f' % (c, cStd)
-        h['sigma'] = plt.text(1.0, 0.98, lbl, horizontalalignment='right',
+        lbl = u'\u03C3(%s) = %.4f' % (c, cStd)
+        h['sigma'] = plt.text(0.98, 0.98, lbl, horizontalalignment='right',
             verticalalignment='top', transform=h['ax'].transAxes)
         # Make a label for the uncertainty.
-        lbl = u'\u03A3(\u03BC) = %.4f' % muStd
-        h['err'] = plt.text(1.0, 0.88, lbl, horizontalalignment='right',
+        lbl = u'\u03C3(\u03BC) = %.4f' % muStd
+        h['err'] = plt.text(0.98, 0.9, lbl, horizontalalignment='right',
             verticalalignment='top', transform=h['ax'].transAxes)
+        # Attempt to set font to one with Greek symbols.
+        try:
+            # Set the fonts.
+            h['mu'].set_family("DejaVu Sans")
+            h['sigma'].set_family("DejaVu Sans")
+            h['err'].set_family("DejaVu Sans")
+        except Exception:
+            pass
         # Make 
         # Output.
         return h
