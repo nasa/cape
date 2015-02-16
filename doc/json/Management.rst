@@ -37,6 +37,12 @@ below.
         
     *ArchiveFormat*: {``"tar"``} | ``"gz"`` | ``"bz2"``
         Format to use for archives of cases
+    
+    *ArchiveType*: {``"full"``} | "viz" | "best" | "hist"
+        Sets which files to archive; other files are deleted before creating
+        archive.  The ``"viz"`` option only deletes mesh files; ``"best"``
+        deletes previous adaptation archives, and ``"hist"`` deletes old
+        adaptations, mesh files, surface triangulations, and TecPlot files.
         
     *ArchiveAction*: ``""`` | {``"skeleton"``} | ``"delete"``
         Action to take after creating archive; do nothing, remove nonessential

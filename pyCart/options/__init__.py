@@ -1262,6 +1262,16 @@ class Options(odict):
         self._Management()
         self['Management'].set_ArchiveFormat(fmt)
         
+    # Get the archive type
+    def get_ArchiveType(self):
+        self._Management()
+        return self['Management'].get_ArchiveType()
+        
+    # Set the archive type
+    def set_ArchiveType(self, atype=rc0('ArchiveType')):
+        self._Management()
+        self['Management'].set_ArchiveType(atype)
+        
     # Get the archive action
     def get_ArchiveAction(self):
         self._Management()
@@ -1323,7 +1333,7 @@ class Options(odict):
         self['Management'].set_TarPBS(fmt)
         
     # Copy over the documentation.
-    for k in ['ArchiveFolder', 'ArchiveFormat', 'ArchiveAction',
+    for k in ['ArchiveFolder', 'ArchiveFormat', 'ArchiveAction', 'ArchiveType',
             'RemoteCopy', 'nCheckPoint', 'TarViz', 'TarAdapt', 'TarPBS']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Management,'get_'+k).__doc__

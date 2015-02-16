@@ -289,6 +289,8 @@ def ArchiveFolder(opts):
     if CheckArchive(ftar):
         print("  Archive exists: %s" % ftar)
         return
+    # Check what to archive.
+    
     # Check if it's a remote copy.
     if ':' in ftar:
         # Remote copy; get the command

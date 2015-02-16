@@ -125,6 +125,7 @@ rc = {
     "ArchiveFolder": "",
     "ArchiveFormat": "tar",
     "ArchiveAction": "skeleton",
+    "ArchiveType": "full",
     "RemoteCopy": "scp",
     "nCheckPoint": 2,
     "TarViz": "tar",

@@ -75,6 +75,43 @@ class Management(odict):
         """
         self.set_key('ArchiveFormat', fmt)
         
+    # Get archive type
+    def get_ArchiveType(self):
+        """Return the archive type; determines what is deleted before archiving
+        
+        Note that all types except ``"full"`` will delete files from the working
+        folder before archiving.  However, archiving actions, including the
+        preliminary deletions, only take place if the case is marked *PASS*.
+        
+        :Call:
+            >>> atype = opts.get_ArchiveType()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *fcmd*: {"full"} | "viz" | "best" | "hist"
+                Name of archive type
+        :Versions:
+            * 2015-02-16 ``@ddalle``: First version
+        """
+        return self.get_key('ArchiveType')
+        
+    # Set archive type
+    def set_ArchiveType(self, atype=rc0('ArchiveType')):
+        """Set the archive type; determines what is deleted before archiving
+        
+        :Call:
+            >>> opts.set_ArchiveType(atype)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *atype*: {"full"} | "viz" | "best" | "hist"
+                Name of archive type
+        :Versions:
+            * 2015-02-16 ``@ddalle``: First version
+        """
+        self.set_key('ArchiveType', atype)
+        
     # Get archiving action
     def get_ArchiveAction(self):
         """Return the action to take after finishing a case
