@@ -2088,6 +2088,20 @@ class Aero(dict):
         # Calculate statistics.
         cAvg = np.mean(C[jA:jB+1])
         cStd = np.std(C[jA:jB+1])
+        # Calculate # of independent samples
+        # Number of available samples
+        nStat = jB - jA + 1
+        # Bin size.
+        kBin = int(np.sqrt(nStat))
+        # Split into bins.
+        cBin = np.array(
+            [np.mean(C[jA+k*kBin:jA+(k+1)*kBin]) for k in range(kBin)])
+        # Number of independent samples in each bin.
+        jBin = min(float(kBin), (np.std(C)/np.std(cBin))**2)
+        # Number of iterations per independent sample.
+        nInd = np.round(kBin / jBin)
+        # Uncertainty in the mean
+        muStd = cStd / np.sqrt(nStat/nInd)
         # Initialize dictionary of handles.
         h = {}
         # Plot the histogram.
@@ -2100,13 +2114,17 @@ class Aero(dict):
         h['ax'] = plt.gca()
         # Make a label for the mean value.
         lbl = u'\u03BC(%s) = %.4f' % (c, cAvg)
-        h['val'] = plt.text(0.81, 1.06, lbl, horizontalalignment='right',
+        h['mu'] = plt.text(1.0, 1.06, lbl, horizontalalignment='right',
             verticalalignment='top', transform=h['ax'].transAxes)
-        ## Make a label for the deviation.
-        #lbl = u'\u00B1 %.4f' % d
-        #h['d'] = plt.text(1.0, 1.06, lbl, color='r',
-        #    horizontalalignment='right', verticalalignment='top',
-        #    transform=h['ax'].transAxes)
+        # Make a label for the standard deviation.
+        lbl = u'\u03A3(%s) = %.4f' % (c, cStd)
+        h['sigma'] = plt.text(1.0, 0.98, lbl, horizontalalignment='right',
+            verticalalignment='top', transform=h['ax'].transAxes)
+        # Make a label for the uncertainty.
+        lbl = u'\u03A3(\u03BC) = %.4f' % muStd
+        h['err'] = plt.text(1.0, 0.88, lbl, horizontalalignment='right',
+            verticalalignment='top', transform=h['ax'].transAxes)
+        # Make 
         # Output.
         return h
         
