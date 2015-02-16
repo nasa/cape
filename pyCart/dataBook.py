@@ -2028,6 +2028,91 @@ class Aero(dict):
         # Output.
         return h
     
+    # Plot coefficient histogram
+    def PlotCoeffHist(self, comp, c, nAvg=100, nBin=20, i=None):
+        """Plot a single coefficient history
+        
+        :Call:
+            >>> h = AP.PlotCoeff(comp, c, n=1000, nAvg=100, d=0.01, i=None)
+        :Inputs:
+            *AP*: :class:`pyCart.aeroPlot.Plot`
+                Instance of the force history plotting class
+            *comp*: :class:`str`
+                Name of component to plot
+            *c*: :class:`str`
+                Name of coefficient to plot, e.g. ``'CA'``
+            *nAvg*: :class:`int`
+                Use the last *nAvg* iterations to compute an average
+            *nBin*: :class:`int`
+                Number of bins to plot
+            *i*: :class:`int`
+                Last iteration to use (defaults to last iteration available)
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of figure/plot handles
+        :Versions:
+            * 2015-02-15 ``@ddalle``: First version
+        """
+        # Make sure plotting modules are present.
+        ImportPyPlot()
+        # Extract the component.
+        FM = self[comp]
+        # Extract the data.
+        C = getattr(FM, c)
+        # ---------
+        # Last Iter 
+        # ---------
+        # Most likely last iteration
+        iB = FM.i[-1]
+        # Check for an input last iter
+        if i is not None:
+            # Attempt to use requested iter.
+            if i < iB:
+                # Using an earlier iter; make sure to use one in the hist.
+                # Find the iterations that are less than i.
+                iB = FM.i[np.where(FM.i <= i)[0][-1]]
+        # Get the index of *iB* in *FM.i*.
+        jB = np.where(FM.i == iB)[0][-1]
+        # --------------
+        # Averaging Iter
+        # --------------
+        # Get the first iteration to use in averaging.
+        iA = max(0, iB-nAvg) + 1
+        # Make sure *iV* is in *FM.i* and get the index.
+        jA = np.where(FM.i <= iA)[0][-1]
+        # Reselect *iV* in case initial value was not in *FM.i*.
+        iA = FM.i[jA]
+        # --------
+        # Plotting
+        # --------
+        # Calculate statistics.
+        cAvg = np.mean(C[jA:jB+1])
+        cStd = np.std(C[jA:jB+1])
+        # Initialize dictionary of handles.
+        h = {}
+        # Plot the histogram.
+        h[c] = plt.hist(C[jA:jB+1], nBin,
+            normed=1, histtype='bar', rwidth=0.85, color='#2020ff')
+        # Labels.
+        h['x'] = plt.xlabel(c)
+        h['y'] = plt.ylabel('PDF')
+        # Get the axes.
+        h['ax'] = plt.gca()
+        # Make a label for the mean value.
+        lbl = u'\u03BC(%s) = %.4f' % (c, cAvg)
+        h['val'] = plt.text(0.81, 1.06, lbl, horizontalalignment='right',
+            verticalalignment='top', transform=h['ax'].transAxes)
+        ## Make a label for the deviation.
+        #lbl = u'\u00B1 %.4f' % d
+        #h['d'] = plt.text(1.0, 1.06, lbl, color='r',
+        #    horizontalalignment='right', verticalalignment='top',
+        #    transform=h['ax'].transAxes)
+        # Output.
+        return h
+        
+        
+        
+        
     # Plot function
     def PlotL1(self, n=None, i=None):
         """Plot the L1 residual
@@ -2151,6 +2236,8 @@ class Aero(dict):
         nCol = kw.get('nCol', 2)
         n    = kw.get('n', 1000)
         nAvg = kw.get('nAvg', 100)
+        nBin = kw.get('nBin', 20)
+        ni   = kw.get('i')
         d0   = kw.get('d0', 0.01)
         # Check for single input.
         if type(C).__name__ == "str": C = [C]
@@ -2172,11 +2259,16 @@ class Aero(dict):
             if c == 'L1':
                 # Plot it.
                 h[c] = self.PlotL1(n=n)
+            elif c.endswith('Hist'):
+                # Get the coeff name.
+                ci = c[:-4]
+                # Plot histogram
+                h[c] = self.PlotCoeffHist(comp, c, nAvg=nAvg, nBin=nBin, i=ni)
             else:
                 # Get the delta
                 di = d.get(c, d0)
                 # Plot
-                h[c] = self.PlotCoeff(comp, c, n=n, nAvg=nAvg, d=di)
+                h[c] = self.PlotCoeff(comp, c, n=n, nAvg=nAvg, d=di, i=ni)
             # Turn off overlapping xlabels for condensed plots.
             if (nCol==1 or nRow>2) and (i+nCol<nC):
                 # Kill the xlabel and xticklabels.
