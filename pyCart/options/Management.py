@@ -83,6 +83,11 @@ class Management(odict):
         folder before archiving.  However, archiving actions, including the
         preliminary deletions, only take place if the case is marked *PASS*.
         
+            * ``"full"``: Archives all contents of run directory
+            * ``"best"``: Deletes all previous adaptation folders
+            * ``"viz"``: Deletes all :file:`Mesh*.c3d` files and check files
+            * ``"hist"``: Deletes all mesh, tri, and TecPlot files
+        
         :Call:
             >>> atype = opts.get_ArchiveType()
         :Inputs:

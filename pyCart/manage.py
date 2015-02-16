@@ -289,8 +289,33 @@ def ArchiveFolder(opts):
     if CheckArchive(ftar):
         print("  Archive exists: %s" % ftar)
         return
-    # Check what to archive.
-    
+    # Get the archive type.
+    atype = opts.get_ArchiveType()
+    # Go to the folder.
+    os.chdir(fdir)
+    # Check if old adapts should be removed.
+    if atype.lower() in ['best', 'viz', 'hist']:
+        # Find and remove adapt??.tar files.
+        fglob = glob.glob('adapt??.tar')
+        for f in fglob: os.remove(f)
+    # Check if Mesh files should be deleted.
+    if atype.lower() in ['viz', 'hist']:
+        # Find and delete Mesh files.
+        fglob = glob.glob('Mesh*.c3d') + glob.glob('adapt??/Mesh*.c3d')
+        for f in fglob: os.remove(f)
+        # Find and delete check files
+        fglob = glob.glob('check*') + glob.glob('adapt??/check*')
+        for f in fglob: os.remove(f)
+    # Check if other files should be removed.
+    if atype.lower() in ['hist']:
+        # Loop through other globs.
+        for fname in ['*.tri', '*.triq', '*.plt']:
+            # Find the files.
+            fglob = glob.glob(fname) + glob.glob('adapt??/' + fname)
+            # Delete them.
+            for f in fglob: os.remove(f)
+    # Go back up to group folder.
+    os.chdir('..')
     # Check if it's a remote copy.
     if ':' in ftar:
         # Remote copy; get the command
