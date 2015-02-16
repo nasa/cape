@@ -120,8 +120,10 @@ class Plot(odict):
             coeffs = [coeffs]
         # Check contents.
         for coeff in coeffs:
-            if coeff not in ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN', 'L1']:
-                raise IOError("Coefficients '%s' not recognized." % coeff)
+            if coeff not in ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN', 'L1',
+                    'CAhist', 'CYhist', 'CNhist',
+                    'CLLhist', 'CLMhist', 'CLNhist']:
+                raise IOError("Coefficient '%s' not recognized." % coeff)
         # Output
         return coeffs
         

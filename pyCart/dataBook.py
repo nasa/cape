@@ -2259,11 +2259,11 @@ class Aero(dict):
             if c == 'L1':
                 # Plot it.
                 h[c] = self.PlotL1(n=n)
-            elif c.endswith('Hist'):
+            elif c.endswith('hist'):
                 # Get the coeff name.
                 ci = c[:-4]
                 # Plot histogram
-                h[c] = self.PlotCoeffHist(comp, c, nAvg=nAvg, nBin=nBin, i=ni)
+                h[c] = self.PlotCoeffHist(comp, ci, nAvg=nAvg, nBin=nBin, i=ni)
             else:
                 # Get the delta
                 di = d.get(c, d0)
