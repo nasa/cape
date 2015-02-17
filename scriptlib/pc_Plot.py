@@ -39,6 +39,9 @@ following list.
     -p COMP
         Plot the forces and moments on *COMP* [{entire} | :class:`str`]
         
+    -f FNAME
+        Use settings from file *FNAME* [{plot.json} | :class:`str`]
+        
     --nRow NROW
         Use *NROW* rows in the plot
         

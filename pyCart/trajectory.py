@@ -75,8 +75,9 @@ class Trajectory:
         self.keys = keys
         self.prefix = prefix
         self.GroupPrefix = groupPrefix
-        # List of PASS markers
+        # List of PASS and ERROR markers
         self.PASS = []
+        self.ERROR = []
         # Process the key definitions.
         self.ProcessKeyDefinitions(defns)
         # Read the file.
@@ -96,8 +97,13 @@ class Trajectory:
         # Check if PASS markers are specified.
         if 'PASS' in kwargs:
             self.PASS = kwargs['PASS']
-        # Convert PASS list to numpy.
-        self.PASS = np.array(self.PASS)
+        # Check if ERROR markers are specified.
+        if 'ERROR' in kwargs:
+            self.ERROR = kwargs['ERROR']
+        
+        # Convert PASS and ERROR list to numpy.
+        self.PASS  = np.array(self.PASS)
+        self.ERROR = np.array(self.ERROR)
         # Create the numeric versions.
         for key in keys:
             # Check the key type.
@@ -161,16 +167,27 @@ class Trajectory:
             if v[-1].lower() in ['$p', 'pass']:
                 # Case is marked as passed.
                 self.PASS.append(True)
+                self.ERROR.append(False)
                 # Shift the entries.
                 v.pop()
             elif v[0].lower() in ['p', '$p', 'pass']:
                 # Case is marked as passed.
                 self.PASS.append(True)
+                self.ERROR.append(False)
                 # Shift the entries.
                 v.pop(0)
+            elif v[-1].lower() in ['$e', 'error']:
+                # Case is marked as error.
+                self.PASS.append(False)
+                self.ERROR.append(True)
+            elif v[0].lower() in ['e', '$e', 'error']:
+                # Case is marked as error.
+                self.PASS.append(False)
+                self.ERROR.append(True)
             else:
                 # Case is unmarked.
                 self.PASS.append(False)
+                self.ERROR.append(False)
             # Save the strings.
             for k in range(nVar):
                 # Check for text.
