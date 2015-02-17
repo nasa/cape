@@ -180,10 +180,14 @@ class Trajectory:
                 # Case is marked as error.
                 self.PASS.append(False)
                 self.ERROR.append(True)
+                # Shift the entries.
+                v.pop()
             elif v[0].lower() in ['e', '$e', 'error']:
                 # Case is marked as error.
                 self.PASS.append(False)
                 self.ERROR.append(True)
+                # Shift the entries.
+                v.pop(0)
             else:
                 # Case is unmarked.
                 self.PASS.append(False)
