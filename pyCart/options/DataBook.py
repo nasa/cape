@@ -29,7 +29,7 @@ class DataBook(odict):
         # Check for missing entirely.
         if 'Targets' not in self:
             # Empty/default
-            self['Targets'] = [DBTarget()]
+            self['Targets'] = []
             return None
         # Read the targets
         targs = self['Targets']

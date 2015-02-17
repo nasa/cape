@@ -2601,10 +2601,27 @@ class CaseFM(object):
             kph = topts.get('phi', 'phi')
             kth = topts.get('theta', 'theta')
             kps = topts.get('psi', 'psi')
-            # Extract values from the trajectory.
-            phi   = getattr(x,kph)[i]*deg
-            theta = getattr(x,kth)[i]*deg
-            psi   = getattr(x,kps)[i]*deg
+            # Extract roll
+            if kph.startswith('-'):
+                # Negative roll angle.
+                phi = -getattr(x,kph[1:])[i]*deg
+            else:
+                # Positive roll
+                phi = getattr(x,kph)[i]*deg
+            # Extract pitch
+            if kth.startswith('-'):
+                # Negative pitch
+                theta = -getattr(x,kth[1:])[i]*deg
+            else:
+                # Positive pitch
+                theta = getattr(x,kth)[i]*deg
+            # Extract yaw
+            if kps.startswith('-'):
+                # Negative yaw
+                psi = -getattr(x,kps[1:])[i]*deg
+            else:
+                # Positive pitch
+                psi = getattr(x,kps)[i]*deg
             # Sines and cosines
             cph = np.cos(phi); cth = np.cos(theta); cps = np.cos(psi)
             sph = np.sin(phi); sth = np.sin(theta); sps = np.sin(psi)
