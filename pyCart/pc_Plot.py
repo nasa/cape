@@ -6,12 +6,15 @@ Command-line plotting interface: :mod:`pyCart.pc_Plot`
 """
 
 # pyCart modules
-from .dataBook import Aero, plt, np
-from .case import ReadCaseJSON, GetCurrentIter
+from .dataBook import Aero
+from .case import ReadCaseJSON
+from .options.Plot import Plot
 # System interface
 import os
 # Reading JSON files
 import json
+# Plotting
+import matplotlib.pyplot as plt
 
 # Function to read the local settings file.
 def ReadPlotJSON(fname='plot.json'):
@@ -175,6 +178,9 @@ def pc_Plot(C=[], **kw):
     # Check for 'case.json' flag.
     if os.path.isfile('case.json'):
         fc = ReadCaseJSON()
+
+    # Read the data.
+    AP = Aero(comps)
     
     # Loop through components.
     for comp in comps:
@@ -190,7 +196,7 @@ def pc_Plot(C=[], **kw):
         d = {}
         # Loop through coefficients.
         for coeff in coeffs:
-            d[coeff] = self.opts.get_PlotDelta(coeff, comp)
+            d[coeff] = opts.get_PlotDelta(coeff, comp)
         
         # Plot keyword arguments
         kwp = {
@@ -203,10 +209,8 @@ def pc_Plot(C=[], **kw):
             'd': d
         }
             
-        # Read the component.
-        AP = Aero([comp])
         # Plot the components.
-        h = AP.Plot(comp, C, **kwp)
+        h = AP.Plot(comp, coeffs, **kwp)
         
         # Check the pass flag.
         if kw.get('PASS'): h['pass'].set_text('PASS')
