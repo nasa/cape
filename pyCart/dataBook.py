@@ -2274,7 +2274,7 @@ class Aero(dict):
             raise IOError("Too many components for %i rows and %i columns" 
                 % (nRow, nCol))
         # Initialize handles.
-        h = {}
+        h = CasePlot()
         # Loop through components.
         for i in range(nC):
             # Get coefficient.
@@ -2333,13 +2333,16 @@ class Aero(dict):
         try:
             # Add room for labels with *rect*, and tighten up other margins.
             plt.gcf().tight_layout(pad=0.2, w_pad=0.5, h_pad=0.7,
-                rect=(0,0.015,1,0.91))
+                rect=(0.01,0.015,0.99,0.91))
         except Exception:
             pass
         # Save the figure.
         h['fig'] = plt.gcf()
         # Output
         return h
+        
+    # Function to add plot restriction label
+    
             
     # Function to plot force coeffs and residual (resid is only a blank)
     def Plot4(self, comp, **kw):
@@ -2400,8 +2403,22 @@ class Aero(dict):
         h = self.Plot(comp, ['CA', 'CY', 'CN'], nRow=3, nCol=1, **kw)
         # Output
         return h
-                
-        
+    
+# Class to hold coefficient plots
+class CasePlot(dict):
+    """
+    This class is a container for case history plots, including force/moment
+    plots, histograms, and residuals
+    
+    
+    :Versions:
+        * 2015-02-19 ``@ddalle``: First version
+    """
+    pass
+
+
+    
+    
 # Individual component force and moment
 class CaseFM(object):
     """
