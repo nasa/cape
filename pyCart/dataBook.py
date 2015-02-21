@@ -20,6 +20,8 @@ from datetime import datetime
 
 # Use this to only update entries with newer iterations.
 from .case import GetCurrentIter, GetWorkingFolder
+# Utilities or advanced statistics
+from . import util
 
 #<!--
 # ---------------------------------
@@ -2088,20 +2090,10 @@ class Aero(dict):
         # Calculate statistics.
         cAvg = np.mean(C[jA:jB+1])
         cStd = np.std(C[jA:jB+1])
+        cErr = util.SigmaMean(C[jA:jB+1])
         # Calculate # of independent samples
         # Number of available samples
         nStat = jB - jA + 1
-        # Bin size.
-        kBin = int(np.sqrt(nStat))
-        # Split into bins.
-        cBin = np.array(
-            [np.mean(C[jA+k*kBin:jA+(k+1)*kBin]) for k in range(kBin)])
-        # Number of independent samples in each bin.
-        jBin = min(float(kBin), (np.std(C)/np.std(cBin))**2)
-        # Number of iterations per independent sample.
-        nInd = np.round(kBin / jBin)
-        # Uncertainty in the mean
-        muStd = cStd / np.sqrt(max(1,nStat/nInd))
         # Initialize dictionary of handles.
         h = {}
         # Plot the histogram.
@@ -2121,7 +2113,7 @@ class Aero(dict):
         h['sigma'] = plt.text(0.02, 1.06, lbl, horizontalalignment='left',
             verticalalignment='top', transform=h['ax'].transAxes)
         # Make a label for the uncertainty.
-        lbl = u'\u03C3(\u03BC) = %.4f' % muStd
+        lbl = u'\u03C3(\u03BC) = %.4f' % cErr
         h['err'] = plt.text(0.02, 0.98, lbl, horizontalalignment='left',
             verticalalignment='top', transform=h['ax'].transAxes)
         # Attempt to set font to one with Greek symbols.
@@ -2752,6 +2744,7 @@ class CaseFM(object):
                 s[c+'_min'] = np.min(F[i0:])
                 s[c+'_max'] = np.max(F[i0:])
                 s[c+'_std'] = np.std(F[i0:])
+                s[c+'_err'] = util.SigmaMean(F[i0:])
         # Output
         return s
             
