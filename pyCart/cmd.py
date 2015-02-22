@@ -128,9 +128,15 @@ def autoInputs(cart3d=None, r=8, ftri='Components.i.tri', **kw):
     if cart3d is not None:
         # Apply values
         r     = cart3d.opts.get_r(0)
-        ftri  = 'Components.i.tri'
         maxR  = cart3d.opts.get_maxR(0)
         nDiv  = cart3d.opts.get_nDiv(0)
+        # Check for the appropriate tri file type.
+        if os.path.isfile('Components.i.tri'):
+            # Intersected surface
+            ftri = 'Components.i.tri'
+        else:
+            # Surface will be intersected later
+            ftri = 'Components.tri'
     else:
         # Get values from keyword arguments
         maxR  = kwargs.get('maxR', 10)
