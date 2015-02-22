@@ -8,6 +8,8 @@ command-line options are either specified as keyword arguments or inherited from
 a :class:`pyCart.cart3d.Cart3d` instance.
 """
 
+# File checking.
+import os.path
 
 # Function to call cubes.
 def cubes(cart3d=None, **kw):
