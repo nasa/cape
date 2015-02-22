@@ -488,6 +488,35 @@ class TriBase(object):
         # Done
         return None
         
+    # Get edge lengths
+    def GetLengths(self):
+        """Get the lengths of edges
+        
+        :Call:
+            >>> tri.GetLengths()
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance
+        :Effects:
+            *tri.Lengths*: :class:`numpy.ndarray`, shape=(tri.nTri,3)
+                Length of edge of each triangle
+        :Versions:
+            * 2015-02-21 ``@ddalle``: First version
+        """
+        # Extract the vertices of each tri.
+        x = self.Nodes[self.Tris-1, 0]
+        y = self.Nodes[self.Tris-1, 1]
+        z = self.Nodes[self.Tris-1, 2]
+        # Get the deltas from node 0->1, 1->2, 2->1
+        x01 = np.vstack((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
+        x12 = np.vstack((x[:,2]-x[:,1], y[:,2]-y[:,1], z[:,2]-z[:,1]))
+        x20 = np.vstack((x[:,0]-x[:,2], y[:,0]-y[:,2], z[:,0]-z[:,2]))
+        # Calculate lengths.
+        self.Lengths = np.vstack((
+            np.sqrt(np.sum(x01**2, 0)),
+            np.sqrt(np.sum(x12**2, 0)),
+            np.sqrt(np.sum(x20**2, 0)))).transpose()
+        
         
     # Function to map component ID numbers to those in a Config.
     def ApplyConfig(self, cfg):

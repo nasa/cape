@@ -215,7 +215,16 @@ def intersect(fin='Components.tri', fout='Components.i.tri'):
     # Get command.
     cmdi = cmd.intersect(fin=fin, fout=fout)
     # Run the command.
-    callf(cmdi, f='intersect.out')
+    ierr = calli(cmdi, f='intersect.out')
+    # Check status.
+    if ierr or not os.path.isfile(fout):
+        # Create a failure file.
+        f = open('FAIL', 'a+')
+        # Write the reason
+        f.write('intersect\n')
+        f.close()
+        # Exit.
+        raise SystemError('Intersection failed!')
     
 # Function to call mgPrep
 def mgPrep(cart3d=None, **kwargs):
