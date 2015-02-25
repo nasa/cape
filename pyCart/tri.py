@@ -245,7 +245,7 @@ class TriBase(object):
         tri.Write(fname)
         
     # Function to map each face's CompID to the closest match from another tri
-    def SubMapCompID(self, tric, compID, iA=0, iB=None):
+    def SubMapCompID(self, tric, compID, kc=None):
         """
         Map CompID of each face to the CompID of the nearest face in another
         triangulation.  This is a common step after running `intersect`.
@@ -259,40 +259,87 @@ class TriBase(object):
                 Triangulation with more desirable CompIDs to be copied
             *compID*: :class:`int`
                 Component ID to map from *tric*
-            *iA*: :class:`int`
-                Index of first face in *tric* to consider
-            *iB*: :class:`int`
-                Index of second face in *tric* to consider
+            *k1*: :class:`numpy.ndarray` (:class:`int`)
+                Indices of faces in *tric* to considerider
         :Versions:
             * 2015-02-24 ``@ddalle``: First version
         """
         # Default last index.
-        if iB is None: iB = tric.nTri
+        if kc is None: kc = np.arange(tric.nTri)
         # Indices of tris to map.
-        k = np.where(self.CompID == compID)[0]
+        K1 = np.where(self.CompID == compID)[0]
         # Check for a single component to map (volume really is one CompID).
-        if len(np.unique(tric.CompID[iA:iB])) == 1:
+        if len(np.unique(tric.CompID[kc])) == 1:
             # Map that component to each face in *k*.
-            self.CompID[k] = tric.CompID[iA]
+            self.CompID[K1] = tric.CompID[kc[0]]
             # That's it.
             return
+        # Make copy of the target indices.
+        K0 = np.array(kc).copy()
+        # Extract target triangle vertices
+        x0 = tric.Nodes[tric.Tris[K0]-1,0]
+        y0 = tric.Nodes[tric.Tris[K0]-1,1]
+        z0 = tric.Nodes[tric.Tris[K0]-1,2]
+        # Current vertices
+        x1 = self.Nodes[self.Tris[K1]-1,0]
+        y1 = self.Nodes[self.Tris[K1]-1,1]
+        z1 = self.Nodes[self.Tris[K1]-1,2]
+        # Length scale
+        tol = 1e-6 * np.sqrt(np.sum(
+            (np.max(self.Nodes,0)-np.min(self.Nodes,0))**2))
+        # Start with the first tri.
+        k0 = 0
+        k1 = 0
+        # Loop until one of the two sets of faces is exhausted.
+        while (k0<len(K0)-1) and (k1<len(K1)-1):
+            # Current point from intersected geometry.
+            xk = x1[k1]; yk = y1[k1]; zk = z1[k1]
+            # Distance to current intersected triangle.
+            d0 = np.sqrt(
+                (x0[k0:,0]-xk[0])**2 + (x0[k0:,1]-xk[1])**2 +
+                (x0[k0:,2]-xk[2])**2 + (y0[k0:,0]-yk[0])**2 +
+                (y0[k0:,1]-yk[1])**2 + (y0[k0:,2]-yk[2])**2 +
+                (z0[k0:,0]-zk[0])**2 + (z0[k0:,1]-zk[1])**2 +
+                (z0[k0:,2]-zk[2])**2)
+            # Find the index of this tri in the target set.
+            i0 = np.where(d0 <= tol)[0]
+            # Check for match.
+            if len(i0) == 0:
+                # No match.
+                k1 += 1
+            else:
+                # Take the first point.
+                k0 += i0[0]
+            # Try to match all the remaining points.
+            n = min(len(K0)-k0, len(K1)-k1)
+            # Calculate total of distances between vertices.
+            dk = np.sqrt(np.sum((x1[k1:k1+n]-x0[k0:k0+n])**2 +
+                (y1[k1:k1+n]-y0[k0:k0+n])**2 +
+                (z1[k1:k1+n]-z0[k0:k0+n])**2, 1))
+            # Find the first tri that does _not_ match.
+            j = np.where(dk<=tol)[0][-1] + 1
+            # Copy these *j* CompIDs.
+            self.CompID[K1[k1:k1+j]] = tric.CompID[K0[k0:k0+j]]
+            # Move to next tri in intersected surface.
+            k1 += j; k0 += j
+        
+        # Find the triangles that are _still_ the old CompID
+        K = np.where(self.CompID == compID)[0]
+        
         # Calculate the centroids of the target components.
-        x0 = np.mean(tric.Nodes[tric.Tris[iA:iB]-1, 0], 1)
-        y0 = np.mean(tric.Nodes[tric.Tris[iA:iB]-1, 1], 1)
-        z0 = np.mean(tric.Nodes[tric.Tris[iA:iB]-1, 2], 1)
+        x0 = np.mean(tric.Nodes[tric.Tris[K0]-1, 0], 1)
+        y0 = np.mean(tric.Nodes[tric.Tris[K0]-1, 1], 1)
+        z0 = np.mean(tric.Nodes[tric.Tris[K0]-1, 2], 1)
         # Calculate centroids of current tris.
         x1 = np.mean(self.Nodes[self.Tris-1,0], 1)
         y1 = np.mean(self.Nodes[self.Tris-1,1], 1)
         z1 = np.mean(self.Nodes[self.Tris-1,2], 1)
         # Loop through components.
-        for i in k:
+        for i in K:
             # Find the closest centroid from *tric*.
             j = np.argmin((x0-x1[i])**2 + (y0-y1[i])**2 + (z0-z1[i])**2)
-            # Status update
-            if i%100 == 0:
-                print("%7i: %i" % (i, tric.CompID[iA+j]))
             # Map it.
-            self.CompID[i] = tric.CompID[iA+j]
+            self.CompID[i] = tric.CompID[K0[j]]
         
     # Function to read a .tri file
     def Read(self, fname):
