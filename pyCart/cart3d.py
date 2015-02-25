@@ -231,13 +231,19 @@ class Cart3d(object):
         if type(ftri).__name__ == 'list':
             # Read the initial triangulation.
             tri = Tri(ftri[0])
+            # Save the number of nodes to this point.
+            tri.iTri = [tri.nTri]
             # Loop through the remaining tri files.
             for f in ftri[1:]:
                 # Append the file.
                 tri.Add(Tri(f))
+                # Save the node number.
+                tri.iTri.append(tri.nTri)
         else:
             # Just read the triangulation file.
             tri = Tri(ftri)
+            # Save the one break point.
+            tri.iTri = [tri.nTri]
         # Save it.
         self.tri = tri
         # Check for a config file.

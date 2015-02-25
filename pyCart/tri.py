@@ -214,7 +214,85 @@ class TriBase(object):
         else:
             # Read from file.
             self.CompID = np.fromfile(f, dtype=int, count=self.nTri, sep=" ")
+            
+    # Function to write .tri file with one CompID per break
+    def WriteVolTri(self, fname='Components.tri'):
+        """Write a .tri file with one CompID per break in *tri.iTri*
         
+        This is a necessary step of running `intersect` because each polyhedron
+        (i.e. water-tight volume) must have a single uniform component ID before
+        running `intersect`.
+        
+        :Call:
+            >>> tri.WriteCompIDTri(fname='Components.c.tri')
+        :Inputs:
+            *tri*: :class:`pyCart.tri.TriBase` or derivative
+                Triangulation instance
+            *fname*: :class:`str`
+                Name of .tri file for use as input to `intersect`
+        :Versions:
+            * 2015-02-24 ``@ddalle``: First version
+        """
+        # Copy the triangulation.
+        tri = self.Copy()
+        # Set first volume.
+        tri.CompID[:self.iTri[0]] = 1
+        # Loop through volumes as marked in *tri.iTri*
+        for k in range(len(self.iTri)-1):
+            # Set the CompID for each tri in that volume.
+            tri.CompID[self.iTri[k]:self.iTri[k+1]] = k+2
+        # Write the triangulation to file.
+        tri.Write(fname)
+        
+    # Function to map each face's CompID to the closest match from another tri
+    def SubMapCompID(self, tric, compID, iA=0, iB=None):
+        """
+        Map CompID of each face to the CompID of the nearest face in another
+        triangulation.  This is a common step after running `intersect`.
+        
+        :Call:
+            >>> tri.SubMapdCompID(tric, compID, iA=0, iB=-1)
+        :Inputs:
+            *tri*: :class:`pyCart.tri.TriBase` or derivative
+                Triangulation instance
+            *tric*: :class:`pyCart.tri.TriBase` or derivative
+                Triangulation with more desirable CompIDs to be copied
+            *compID*: :class:`int`
+                Component ID to map from *tric*
+            *iA*: :class:`int`
+                Index of first face in *tric* to consider
+            *iB*: :class:`int`
+                Index of second face in *tric* to consider
+        :Versions:
+            * 2015-02-24 ``@ddalle``: First version
+        """
+        # Default last index.
+        if iB is None: iB = tric.nTri
+        # Indices of tris to map.
+        k = np.where(self.CompID == compID)[0]
+        # Check for a single component to map (volume really is one CompID).
+        if len(np.unique(tric.CompID[iA:iB])) == 1:
+            # Map that component to each face in *k*.
+            self.CompID[k] = tric.CompID[iA]
+            # That's it.
+            return
+        # Calculate the centroids of the target components.
+        x0 = np.mean(tric.Nodes[tric.Tris[iA:iB]-1, 0], 1)
+        y0 = np.mean(tric.Nodes[tric.Tris[iA:iB]-1, 1], 1)
+        z0 = np.mean(tric.Nodes[tric.Tris[iA:iB]-1, 2], 1)
+        # Calculate centroids of current tris.
+        x1 = np.mean(self.Nodes[self.Tris-1,0], 1)
+        y1 = np.mean(self.Nodes[self.Tris-1,1], 1)
+        z1 = np.mean(self.Nodes[self.Tris-1,2], 1)
+        # Loop through components.
+        for i in k:
+            # Find the closest centroid from *tric*.
+            j = np.argmin((x0-x1[i])**2 + (y0-y1[i])**2 + (z0-z1[i])**2)
+            # Status update
+            if i%100 == 0:
+                print("%7i: %i" % (i, tric.CompID[iA+j]))
+            # Map it.
+            self.CompID[i] = tric.CompID[iA+j]
         
     # Function to read a .tri file
     def Read(self, fname):
