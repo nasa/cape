@@ -245,13 +245,13 @@ class TriBase(object):
         tri.Write(fname)
         
     # Function to map each face's CompID to the closest match from another tri
-    def SubMapCompID(self, tric, compID, kc=None):
+    def MapSubCompID(self, tric, compID, kc=None):
         """
         Map CompID of each face to the CompID of the nearest face in another
         triangulation.  This is a common step after running `intersect`.
         
         :Call:
-            >>> tri.SubMapdCompID(tric, compID, iA=0, iB=-1)
+            >>> tri.MapSubCompID(tric, compID, iA=0, iB=-1)
         :Inputs:
             *tri*: :class:`pyCart.tri.TriBase` or derivative
                 Triangulation instance
@@ -340,6 +340,30 @@ class TriBase(object):
             j = np.argmin((x0-x1[i])**2 + (y0-y1[i])**2 + (z0-z1[i])**2)
             # Map it.
             self.CompID[i] = tric.CompID[K0[j]]
+            
+    # Function to fully map component IDs
+    def MapCompID(self, tric, tri0):
+        """
+        Map CompIDs from pre-intersected triangulation to an intersected
+        triangulation.  In standard pyCart terminology, this is a transformation
+        from :file:`Components.o.tri` to :file:`Components.i.tri`
+        
+        :Call:
+            >>> tri.MapCompID(tric, tri0)
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation interface
+            *tric*: :class:`pyCart.tri.Tri`
+                Full CompID breakdown prior to intersection
+            *tri0*: :class:`pyCart.tri.Tri`
+                Input triangulation to `intersect`
+        :Versions:
+            * 2015-02-25 ``@ddalle``: First version
+        """
+        # Get the components from the pre-intersected triangulation.
+        comps = np.unique(tri0.CompID)
+        
+        
         
     # Function to read a .tri file
     def Read(self, fname):
