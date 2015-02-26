@@ -365,7 +365,7 @@ class TriBase(object):
         # Loop through comps.
         for compID in comps:
             # Get the faces with that comp ID (before intersection)
-            kc = np.where(tri0.CompID == comp)[0]
+            kc = np.where(tri0.CompID == compID)[0]
             # Map the compIDs for that component.
             self.MapSubCompID(tric, compID, kc)
         
