@@ -890,8 +890,10 @@ class Cart3d(object):
         self.PrepareTri(i)
         # Check intersection status.
         if self.opts.get_intersect():
-            # Write the tri file as non-intersected.
-            self.tri.Write('Components.tri')
+            # Write the tri file as non-intersected; each volume is one CompID
+            self.tri.WriteVolTri('Components.tri')
+            # Write the existing triangulation with existing CompIDs.
+            self.tri.Write('Components.c.tri')
         else:
             # Write the tri file.
             self.tri.Write('Components.i.tri')
@@ -911,7 +913,17 @@ class Cart3d(object):
             # Check for intersect step.
             if self.opts.get_intersect():
                 # Run intersect.
-                bin.intersect('Components.tri', 'Components.i.tri')
+                bin.intersect('Components.tri', 'Components.o.tri')
+                # Read the original triangulation.
+                tric = Tri('Components.c.tri')
+                # Read the intersected triangulation.
+                trii = Tri('Components.o.tri')
+                # Read the pre-intersection triangulation.
+                tri0 = Tri('Components.tri')
+                # Map the Component IDs.
+                trii.MapCompID(tric, tri0)
+                # Write the triangulation.
+                trii.Write('Components.i.tri')
             # Check for verify step.
             if self.opts.get_verify():
                 # Run verify.

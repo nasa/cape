@@ -362,7 +362,12 @@ class TriBase(object):
         """
         # Get the components from the pre-intersected triangulation.
         comps = np.unique(tri0.CompID)
-        
+        # Loop through comps.
+        for compID in comps:
+            # Get the faces with that comp ID (before intersection)
+            kc = np.where(tri0.CompID == comp)[0]
+            # Map the compIDs for that component.
+            self.MapSubCompID(tric, compID, kc)
         
         
     # Function to read a .tri file
@@ -399,23 +404,29 @@ class TriBase(object):
         fid.close()
         
     # Fall-through function to write the triangulation to file.
-    def Write(self, fname='Components.i.tri'):
+    def Write(self, fname='Components.i.tri', v=True):
         """Write triangulation to file using fastest method available
         
         :Call:
-            >>> tri.WriteSlow(fname='Components.i.tri')
+            >>> tri.WriteSlow(fname='Components.i.tri', v=True)
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance to be translated
             *fname*: :class:`str`
                 Name of triangulation file to create
+            *v*: :class:`bool`
+                Whether or not
         :Examples:
             >>> tri = pyCart.ReadTri('bJet.i.tri')
             >>> tri.Write('bjet2.tri')
         :Versions:
             * 2014-05-23 ``@ddalle``: First version
             * 2015-01-03 ``@ddalle``: Added C capability
+            * 2015-02-25 ``@ddalle``: Added status update
         """
+        # Status update.
+        if v:
+            print("     Writing triangulation: '%s'" % fname)
         # Try the fast way.
         try:
             # Fast method using compiled C.

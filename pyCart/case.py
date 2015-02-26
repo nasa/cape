@@ -9,6 +9,9 @@ from options.flowCart import flowCart
 # Interface for writing commands
 from . import cmd, queue, manage, bin
 
+# Need triangulations for cases with `intersect`
+from .tri import Tri
+
 # Read the local JSON file.
 import json
 # File control
@@ -44,7 +47,19 @@ def run_flowCart(verify=False, isect=False):
     # Check for initial run
     if GetRestartIter() == 0:
         # Check for intersect.
-        if isect: bin.intesect('Components.tri', 'Components.i.tri')
+        if isect:
+            # Run intersect.
+            bin.intersect('Components.tri', 'Components.o.tri')
+            # Read the original triangulation.
+            tric = Tri('Components.c.tri')
+            # Read the intersected triangulation.
+            trii = Tri('Components.o.tri')
+            # Read the pre-intersection triangulation.
+            tri0 = Tri('Components.tri')
+            # Map the Component IDs.
+            trii.MapCompID(tric, tri0)
+            # Write the triangulation.
+            trii.Write('Components.i.tri')
         # Check for verify
         if verify: bin.verify('Components.i.tri')
     # Determine the run index.

@@ -65,6 +65,9 @@ import re
 # Maximum number of case
 MAXCASES = 10000
 
+# Save version number
+version = "0.3a"
+
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
