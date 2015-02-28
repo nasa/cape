@@ -1251,4 +1251,172 @@ class FileCntl:
         # Done
         return lines
         
+    # Get index of a line that starts with a literal
+    def GetIndexStartsWith(self, start, n=None):
+        """Find indices of lines that start with a given literal pattern
         
+        :Call:
+            >>> i = FC.GetIndexStartsWith(start)
+            >>> i = FC.GetIndexStartsWith(start, n)
+        :Inputs:
+            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+                File control instance
+            *start*: :class:`str`
+                String to test as literal match for beginning of each line
+            *n*: :class:`int`
+                Maximum number of matches to search for
+        :Outputs:
+            *i*: :class:`list` (:class:`int`)
+                List of lines that match pattern
+        :Versions:
+            * 2015-02-28 ``@ddalle``: First version
+        """
+        # Set the update status.
+        self.UpdateLines()
+        # Initialize matches
+        i = []
+        # Number of matches
+        m = 0
+        # Loop through the lines.
+        for k in range(len(self.lines)):
+            # Check for maximum matches.
+            if n and m>=n: break
+            # Check for a match.
+            if self.lines[k].startswith(start):
+                # Add to match list
+                i.append(k)
+                # Increase count
+                m += 1
+        # Done
+        return i
+        
+    # Get index of a line that starts with a literal
+    def GetIndexSearch(self, reg, n=None):
+        """Find indices of lines that start with a given regular expression
+        
+        :Call:
+            >>> i = FC.GetIndexSearch(reg)
+            >>> i = FC.GetIndexSearch(reg, n)
+        :Inputs:
+            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+                File control instance
+            *reg*: :class:`str`
+                Regular expression to match beginning of line
+            *n*: :class:`int`
+                Maximum number of matches to search for
+        :Outputs:
+            *i*: :class:`list` (:class:`int`)
+                List of lines that match pattern
+        :Versions:
+            * 2014-02-28 ``@ddalle``: First version
+        """
+        # Set the update status.
+        self.UpdateLines()
+        # Initialize matches
+        i = []
+        # Number of matches
+        m = 0
+        # Loop through the lines.
+        for k in range(len(self.lines)):
+            # Check for maximum matches.
+            if n and m>=n: break
+            # Check for a match.
+            if re.search(reg, self.lines[k]):
+                # Add to match list
+                i.append(k)
+                # Increase count
+                m += 1
+        # Done
+        return i
+        
+    # Get index a line that starts with a literal
+    def GetIndexInSectionStartsWith(self, sec, start, n=None):
+        """
+        Find indices of lines in a given section that start with a given
+        literal pattern
+        
+        :Call:
+            >>> i = FC.GetIndexInSectionStartsWith(sec, start)
+            >>> i = FC.GetIndexInSectionStartsWith(sec, start, n)
+        :Inputs:
+            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+                File control instance
+            *sec*: :class:`str`
+                Name of section to search in
+            *start*: :class:`str`
+                String to test as literal match for beginning of each line
+            *n*: :class:`int`
+                Maximum number of matches to search for
+        :Outputs:
+            *i*: :class:`list` (:class:`int`)
+                List of indices of lines in section that match pattern
+        :Versions:
+            * 2014-02-28 ``@ddalle``: First version
+        """
+        # Set the update status.
+        self.UpdateSections()
+        # Initialize matches
+        i = []
+        # Number of matches
+        m = 0
+        # Check if the section exists.
+        if sec not in self.SectionNames: return i
+        # Loop through the lines.
+        for k in range(len(self.Section[sec]:))
+            # Check for maximum matches.
+            if n and m>=n: break
+            # Check for a match.
+            if self.Section[sec][k].startswith(start):
+                # Add to match list
+                i.append(k)
+                # Increase count
+                m += 1
+        # Done
+        return i
+        
+    # Get index of a line that starts with a literal
+    def GetIndexInSectionSearch(self, sec, reg, n=None):
+        """
+        Find indices of lines in a given section that start with a regular
+        expression
+        
+        :Call:
+            >>> i = FC.GetIndexInSectionSearch(sec, reg)
+            >>> i = FC.GetIndexInSectionSearch(sec, reg, n)
+        :Inputs:
+            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+                File control instance
+            *sec*: :class:`str`
+                Name of section to search in
+            *reg*: :class:`str`
+                Regular expression to match beginning of line
+            *n*: :class:`int`
+                Maximum number of matches to search for
+        :Outputs:
+            *i*: :class:`list` (:class:`int`)
+                List of indices of lines in section that match pattern
+        :Versions:
+            * 2014-02-28 ``@ddalle``: First version
+        """
+        # Set the update status.
+        self.UpdateSections()
+        # Initialize matches
+        i = []
+        # Number of matches
+        m = 0
+        # Check if the section exists.
+        if sec not in self.SectionNames: return i
+        # Loop through the lines.
+        for k in range(len(self.Section[sec])):
+            # Check for maximum matches.
+            if n and m>=n: break
+            # Check for a match.
+            if re.search(reg, self.Section[sec][k]):
+                # Add to match list
+                i.append(k)
+                # Increase count
+                m += 1
+        # Done
+        return i
+        
+    
