@@ -1586,6 +1586,26 @@ class Options(odict):
     def set_nStats(self, nStats=rc0('db_stats')):
         self._DataBook()
         self['DataBook'].set_nStats(nStats)
+    
+    # Min iteration used for statistics
+    def get_nMin(self):
+        self._DataBook()
+        return self['DataBook'].get_nMin()
+    
+    # Min iterationused for statistics
+    def set_nMin(self, nMin=rc0('db_min')):
+        self._DataBook()
+        self['DataBook'].set_nMin(nMin)
+    
+    # Max number of iterations used for statistics
+    def get_nMaxStats(self):
+        self._DataBook()
+        return self['DataBook'].get_nMaxStats()
+    
+    # Max number of iterations used for statistics
+    def set_nMaxStats(self, nMax=rc0('db_max')):
+        self._DataBook()
+        self['DataBook'].set_nMaxStats(nMax)
         
     # Data book directory
     def get_DataBookDir(self):
@@ -1618,7 +1638,8 @@ class Options(odict):
         self['DataBook'].set_SortKey(key)
         
     # Copy over the documentation.
-    for k in ['nStats', 'DataBookDir', 'Delimiter', 'SortKey']:
+    for k in ['nStats', 'nMin', 'nMaxStats',  
+            'DataBookDir', 'Delimiter', 'SortKey']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(DataBook,'set_'+k).__doc__

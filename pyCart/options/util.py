@@ -70,6 +70,8 @@ rc = {
     "fc_clean": False,
     "fc_stats": 0,
     "db_stats": 0,
+    "db_min": 0,
+    "db_max": 0,
     "db_dir": "data",
     "Delimiter": ",",
     "binaryIO": True,

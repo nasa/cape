@@ -121,10 +121,10 @@ class DataBook(odict):
         
     # Set the number of initial mesh divisions
     def set_nStats(self, nStats=rc0('db_stats')):
-        """Set the number of divisions in background mesh
+        """Set the number of iterations to be used for collecting statistics
         
         :Call:
-            >>> opts.set_nDiv(nStats)
+            >>> opts.set_nStats(nStats)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
@@ -134,6 +134,72 @@ class DataBook(odict):
             * 2014-12-20 ``@ddalle``: First version
         """
         self['nStats'] = nStats
+        
+    # Get the earliest iteration to consider
+    def get_nMin(self):
+        """Get the minimum iteration number to consider for statistics
+        
+        :Call:
+            >>> nMin = opts.get_nMin()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *nMin*: :class:`int`
+                Minimum iteration index to consider for statistics
+        :Versions:
+            * 2015-02-28 ``@ddalle``: First version
+        """
+        return self.get_key('nMin', rc0('db_min'))
+        
+    # Set the number of initial mesh divisions
+    def set_nMin(self, nMin=rc0('db_min')):
+        """Set the minimum iteration number to consider for statistics
+        
+        :Call:
+            >>> opts.set_nMin(nMin)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *nMin*: :class:`int`
+                Minimum iteration index to consider for statistics
+        :Versions:
+            * 2015-02-28 ``@ddalle``: First version
+        """
+        self['nMin'] = nStats
+        
+    # Get the number of initial divisions
+    def get_nMaxStats(self):
+        """Get the maximum number of iterations to be used for statistics
+        
+        :Call:
+            >>> nMax = opts.get_nMaxStats()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *nMax*: :class:`int`
+                Maximum number of iterations to be used for statistics
+        :Versions:
+            * 2014-12-20 ``@ddalle``: First version
+        """
+        return self.get_key('nMaxStats', rc0('db_max'))
+        
+    # Set the maximum number of initial mesh divisions
+    def set_nMaxStats(self, nMax=rc0('db_max')):
+        """Set the maximum number of iterations to be used for statistics
+        
+        :Call:
+            >>> opts.set_nMaxStats(nMax)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *nStats*: :class:`int`
+                Number of iterations to be used for statistics
+        :Versions:
+            * 2014-12-20 ``@ddalle``: First version
+        """
+        self['nMaxStats'] = nMax
         
     # Get the location
     def get_DataBookDir(self):

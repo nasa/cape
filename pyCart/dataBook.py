@@ -264,8 +264,12 @@ class DataBook(dict):
         nIter = int(GetCurrentIter())
         # Get the number of iterations used for stats.
         nStats = self.opts.get_nStats()
+        # Get the iteration at which statistics can begin.
+        nMin = self.opts.get_nMin()
+        # Maximum number of iterations allowd.
+        nMax = self.opts.get_nMax()
         # Process whether or not to update.
-        if (not nIter) or (nIter < nStats):
+        if (not nIter) or (nIter < nMin + nStats):
             # Not enough iterations (or zero iterations)
             print("  Not enough iterations (%s) for analysis." % nIter)
             q = False
@@ -278,7 +282,7 @@ class DataBook(dict):
             print("  Updating from iteration %i to %i."
                 % (self[c0]['nIter'][j], nIter))
             q = True
-        elif self[c0]['nStats'][j] != nStats:
+        elif self[c0]['nStats'][j] < nStats:
             # Change statistics
             print("  Recomputing statistics using %i iterations." % nStats)
             q = True
@@ -305,6 +309,8 @@ class DataBook(dict):
                 
             # Process the statistics.
             s = FM.GetStats(nStats)
+            
+            
             # Save the data.
             if np.isnan(j):
                 # Add the the number of cases.
