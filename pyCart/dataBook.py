@@ -266,8 +266,6 @@ class DataBook(dict):
         nStats = self.opts.get_nStats()
         # Get the iteration at which statistics can begin.
         nMin = self.opts.get_nMin()
-        # Maximum number of iterations allowd.
-        nMax = self.opts.get_nMax()
         # Process whether or not to update.
         if (not nIter) or (nIter < nMin + nStats):
             # Not enough iterations (or zero iterations)
@@ -294,6 +292,8 @@ class DataBook(dict):
         if (not q): return
         # Read the history.
         A = Aero(self.Components)
+        # Maximum number of iterations allowed.
+        nMax = min(nIter-nMin, self.opts.get_nMax())
         # Process the residual drop
         nOrders = A.Residual.GetNOrders(nStats)
         # Loop through components.
@@ -1837,7 +1837,9 @@ class Aero(dict):
             # Make the component.
             self[comp] = CaseFM(d['C'], MRP=d['MRP'], A=A)
             
-            
+    # Function to calculate statistics and select ideal nStats
+    
+    
     # Function to read 'loadsCC.dat'
     def ReadLoadsCC(self):
         """Read forces and moments from a :file:`loadsCC.dat` file if possible
