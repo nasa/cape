@@ -150,7 +150,12 @@ class DataBook(odict):
         :Versions:
             * 2015-02-28 ``@ddalle``: First version
         """
-        return self.get_key('nMin', rc0('db_min'))
+        # Check for a value.
+        nMin = self.get_key('nMin', 0) 
+        # Make nontrivial
+        if nMin is None: nMin = 0
+        # Output
+        return nMin
         
     # Set the number of initial mesh divisions
     def set_nMin(self, nMin=rc0('db_min')):

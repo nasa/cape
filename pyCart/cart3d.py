@@ -904,6 +904,14 @@ class Cart3d(object):
         if self.opts.get_r():
             # Run autoInputs
             bin.autoInputs(self)
+            # Fix the name of the triangulation in the 'input.c3d' file
+            if self.opts.get_intersect():
+                # Read the intersect file.
+                lines = open('input.c3d').readlines()
+                # Change the triangulation file
+                lines[7] = '  Components.i.tri\n'
+                # Write the corrected file.
+                open('input.c3d', 'w').writelines(lines)
         # Read the resulting preSpec.c3d.cntl file
         self.PreSpecCntl = PreSpecCntl('preSpec.c3d.cntl')
         # Bounding box control...
@@ -998,7 +1006,9 @@ class Cart3d(object):
         # Check for cases with no iterations yet.
         if n == 0:
             # Check for the surface file.
-            if not os.path.isfile('Components.i.tri'): n = None
+            if not (os.path.isfile('Components.i.tri')
+                    or os.path.isfile('Components.tri')):
+                n = None
             # Input file.
             if not os.path.isfile('input.00.cntl'): n = None
             # Settings file.

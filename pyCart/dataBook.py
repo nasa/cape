@@ -293,7 +293,7 @@ class DataBook(dict):
         # Read the history.
         A = Aero(self.Components)
         # Maximum number of iterations allowed.
-        nMax = min(nIter-nMin, self.opts.get_nMax())
+        nMax = min(nIter-nMin, self.opts.get_nMaxStats())
         # Process the residual drop
         nOrders = A.Residual.GetNOrders(nStats)
         # Loop through components.

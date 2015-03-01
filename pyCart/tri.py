@@ -235,12 +235,14 @@ class TriBase(object):
         """
         # Copy the triangulation.
         tri = self.Copy()
+        # Current maximum CompID
+        comp0 = np.max(self.CompID)
         # Set first volume.
-        tri.CompID[:self.iTri[0]] = 1
+        tri.CompID[:self.iTri[0]] = comp0 + 1
         # Loop through volumes as marked in *tri.iTri*
         for k in range(len(self.iTri)-1):
             # Set the CompID for each tri in that volume.
-            tri.CompID[self.iTri[k]:self.iTri[k+1]] = k+2
+            tri.CompID[self.iTri[k]:self.iTri[k+1]] = comp0 + k + 2
         # Write the triangulation to file.
         tri.Write(fname)
         
@@ -523,6 +525,11 @@ class TriBase(object):
         # Try to copy the configuration.
         try:
             tri.config = self.config.Copy()
+        except Exception:
+            pass
+        # Try to copy the original barriers.
+        try:
+            tri.iTri = self.iTri
         except Exception:
             pass
         # Output the new triangulation.
