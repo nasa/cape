@@ -308,8 +308,7 @@ class DataBook(dict):
                 FM.TransformFM(topts, self.x, i)
                 
             # Process the statistics.
-            s = FM.GetStats(nStats)
-            
+            s = FM.GetStats(nStats, nMax)
             
             # Save the data.
             if np.isnan(j):
@@ -326,7 +325,7 @@ class DataBook(dict):
                 DC['nOrders'] = np.hstack((DC['nOrders'], [nOrders]))
                 # Append iteration counts.
                 DC['nIter']  = np.hstack((DC['nIter'], [nIter]))
-                DC['nStats'] = np.hstack((DC['nStats'], [nStats]))
+                DC['nStats'] = np.hstack((DC['nStats'], [s['nStats']]))
                 # Process the target.
                 if len(DC.TargetCols) > 0:
                     # Select one.
@@ -365,7 +364,7 @@ class DataBook(dict):
                 # Update the other statistics.
                 DC['nOrders'][j] = nOrders
                 DC['nIter'][j]   = nIter
-                DC['nStats'][j]  = nStats
+                DC['nStats'][j]  = s['nStats']
         # Go back.
         os.chdir(self.RootDir)
                     
@@ -1838,16 +1837,49 @@ class Aero(dict):
             self[comp] = CaseFM(d['C'], MRP=d['MRP'], A=A)
             
     # Function to calculate statistics and select ideal nStats
-    
+    def GetStats(self, nStats=0, nMax=0):
+        """
+        Get statistics for all components and decide how many iterations to use
+        for calculating statistics.
+        
+        The number of iterations to use is selected such that the sum of squares
+        of all errors (all coefficients of each component) is minimized.  Only
+        *nStats*, *nMax*, and integer multiples of *nStats* are considered as
+        candidates for the number of iterations to use.
+        
+        :Call:
+            >>> S = A.GetStats(nStats, nMax=0)
+        :Inputs:
+            *nStats*: :class:`int`
+                Nominal number of iterations to use in statistics
+            *nMax*: :class:`int`
+                Maximum number of iterations to use for statistics
+        :Outputs:
+            *S*: :class:`dict` (:class:`dict` (:class:`float`))
+                Dictionary of statistics for each component
+        :See also:
+            :func:`pyCart.dataBook.CaseFM.GetStats`
+        :Versions:
+            * 2015-02-28 ``@ddalle``: First version
+        """
+        # Initialize statistics for this count.
+        S = {}
+        # Loop through components.
+        for comp in A:
+            # Get the statistics.
+            S[comp] = A[comp].GetStats(n)
+        # Output
+        return S
+        
     
     # Function to read 'loadsCC.dat'
     def ReadLoadsCC(self):
         """Read forces and moments from a :file:`loadsCC.dat` file if possible
         
         :Call:
-            >> aero.ReadLoadsCC()
+            >> A.ReadLoadsCC()
         :Inputs:
-            *aero*: :class:`pyCart.aero.Aero`
+            *A*: :class:`pyCart.aero.Aero`
                 Instance of the aero history class
         :Versions:
             * 2014-11-12 ``@ddalle``: First version
@@ -2598,7 +2630,7 @@ class CaseFM(object):
         :Call:
             >>> FM.TransformFM(topts, x, i)
         :Inputs:
-            *FM*: :class:`pyCart.aero.FM`
+            *FM*: :class:`pyCart.dataBook.CaseFM`
                 Instance of the force and moment class
             *topts*: :class:`dict`
                 Dictionary of options for the transformation
@@ -2715,29 +2747,30 @@ class CaseFM(object):
         
         
     # Method to get averages and standard deviations
-    def GetStats(self, nAvg=100):
+    def GetStatsN(self, nStats=100):
         """Get mean, min, max, and standard deviation for all coefficients
         
         :Call:
-            >>> s = FM.GetStats(nAvg=100)
+            >>> s = FM.GetStatsN(nStats, nMax=None)
         :Inputs:
-            *FM*: :class:`pyCart.aero.FM`
+            *FM*: :class:`pyCart.dataBook.CaseFM`
                 Instance of the force and moment class
-            *nAvg*: :class:`int`
-                Number of iterations in window
+            *nStats*: :class:`int`
+                Minimum number of iterations in window to use for statistics
         :Outputs:
             *s*: :class:`dict` (:class:`float`)
                 Dictionary of mean, min, max, std for each coefficient
         :Versions:
             * 2014-12-09 ``@ddalle``: First version
+            * 2015-02-28 ``@ddalle``: Renamed from :func:`GetStats`
         """
         # Default values.
-        if (nAvg is None) or (nAvg < 2):
+        if (nStats is None) or (nStats < 2):
             # Use last iteration
             i0 = self.i.size - 1
         else:
            # Process min indices for plotting and averaging.
-            i0 = max(0, self.i.size-nAvg)
+            i0 = max(0, self.i.size-nStats)
         # Initialize output.
         s = {}
         # Loop through coefficients.
@@ -2747,7 +2780,7 @@ class CaseFM(object):
             # Save the mean value.
             s[c] = np.mean(F[i0:])
             # Check for statistics.
-            if (nAvg is not None) or (nAvg == 0):
+            if (nStats is not None) or (nStats < 2):
                 # Save the statistics.
                 s[c+'_min'] = np.min(F[i0:])
                 s[c+'_max'] = np.max(F[i0:])
@@ -2756,6 +2789,60 @@ class CaseFM(object):
         # Output
         return s
             
+    # Method to get averages and standard deviations
+    def GetStats(self, nStats=100, nMax=None):
+        """Get mean, min, max, and standard deviation for all coefficients
+        
+        :Call:
+            >>> s = FM.GetStats(nStats, nMax=None)
+        :Inputs:
+            *FM*: :class:`pyCart.dataBook.CaseFM`
+                Instance of the force and moment class
+            *nStats*: :class:`int`
+                Minimum number of iterations in window to use for statistics
+            *nMax*: :class:`int`
+                Maximum number of iterations to use for statistics
+        :Outputs:
+            *s*: :class:`dict` (:class:`float`)
+                Dictionary of mean, min, max, std for each coefficient
+        :Versions:
+            * 2015-02-28 ``@ddalle``: First version
+        """
+        # Make sure the number of iterations used is an integer.
+        if not nStats: nStats = 1
+        # Process list of candidate numbers of iterations for statistics.
+        if nMax and (nStats > 1) and (nMax >= 1.5*nStats):
+            # Nontrivial list of candidates
+            # Multiples of *nStats*
+            N = [k*nStats for k in range(int(nMax/nStats))]
+            # Check if *nMax* should also be considered.
+            if nMax >= 1.5*N[-1]:
+                # Add *nMax*
+                N.append(nMax)
+        else:
+            # Only one candidate.
+            N = [nStats]
+        # Initialize error as infinity.
+        e = np.inf;
+        # Loop through list of candidate iteration counts
+        for n in N:
+            # Get the statistics.
+            sn = self.GetStatsN(n)
+            # Save the number of iterations used.
+            sn['nStats'] = n
+            # If there is only one candidate, return it.
+            if len(N) == 1: return sn
+            # Calculate the composite error.
+            en = np.sqrt(np.sum([sn[c+'_err']**2 for c in self.coeffs]))
+            # Calibrate to slightly favor less iterations
+            en = en * (0.75 + 0.25*np.sqrt(n)/np.sqrt(N[0]))
+            # Check if this error is an improvement.
+            if en < e:
+                # Select these statistics, and update the best scaled error.
+                s = sn
+                e = en
+        # Output.
+        return s
 
     
 

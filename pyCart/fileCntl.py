@@ -1362,7 +1362,7 @@ class FileCntl:
         # Check if the section exists.
         if sec not in self.SectionNames: return i
         # Loop through the lines.
-        for k in range(len(self.Section[sec]:))
+        for k in range(len(self.Section[sec])):
             # Check for maximum matches.
             if n and m>=n: break
             # Check for a match.
