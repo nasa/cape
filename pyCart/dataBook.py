@@ -294,8 +294,6 @@ class DataBook(dict):
         A = Aero(self.Components)
         # Maximum number of iterations allowed.
         nMax = min(nIter-nMin, self.opts.get_nMaxStats())
-        # Process the residual drop
-        nOrders = A.Residual.GetNOrders(nStats)
         # Loop through components.
         for comp in self.Components:
             # Extract the component history and component databook.
@@ -309,6 +307,8 @@ class DataBook(dict):
                 
             # Process the statistics.
             s = FM.GetStats(nStats, nMax)
+            # Get the corresponding residual drop
+            nOrders = A.Residual.GetNOrders(s['nStats'])
             
             # Save the data.
             if np.isnan(j):
