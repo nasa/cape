@@ -2814,7 +2814,7 @@ class CaseFM(object):
         if nMax and (nStats > 1) and (nMax >= 1.5*nStats):
             # Nontrivial list of candidates
             # Multiples of *nStats*
-            N = [k*nStats for k in range(int(nMax/nStats))]
+            N = [k*nStats for k in range(1, int(nMax/nStats)+1)]
             # Check if *nMax* should also be considered.
             if nMax >= 1.5*N[-1]:
                 # Add *nMax*
