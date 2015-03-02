@@ -466,6 +466,7 @@ class InputCntl(FileCntl):
             # Just set it.
             self.SetSingleMomentPoint(xMRP)
         
+    # Function to a single moment reference point
     def SetSingleMomentPoint(self, x, compID='all'):
         """Set the moment reference point in an :file:`input.cntl` file
         
@@ -495,6 +496,41 @@ class InputCntl(FileCntl):
         # Replace or add the line.
         self.ReplaceOrAddLineToSectionSearch(
             'Force_Moment_Processing', reg, line)
+        
+    # Function to get a reference point
+    def GetSingleMomentPoint(self, compID='all'):
+        """Get the moment reference point of a component in :file:`input.cntl`
+        
+        :Call:
+            >>> x = IC.GetSingleMomentPoint(compID)
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            *compID*: :class:`str`
+                Component to which reference applies (default is ``'all'``)
+        :Outputs:
+            *x*: :class:`list` (:class:`float`)
+                List of three coordinates of moment reference point
+        :Versions:
+            * 2015-03-02 ``@ddalle``: First version
+        """
+        # Regular expression to look for.
+        reg = 'Moment_Point.*%s\s*$' % compID
+        # Find the line.
+        line = self.GetLineInSectionSearch('Force_Moment_Processing', reg, 1)
+        # Check for a match.
+        if len(line) == 0: return [0.0, 0.0, 0.0]
+        # Split into values.
+        v = line[0].split()
+        # Try to process the coordinates.
+        try:
+            # Form the vector.
+            x = [float(v[1]), float(v[2]), float(v[3])]
+            # Output.
+            return x
+        except Exception:
+            # Give up.
+            return [0.0, 0.0, 0.0]
         
     # Function to set a surface boundary condition (e.g. nozzle condition)
     def SetSurfBC(self, compID, u):
