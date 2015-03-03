@@ -5,6 +5,8 @@ Utilities for pyCart: :mod:`pyCart.util`
 
 # Numerics
 import numpy as np
+# File system
+import subprocess as sp
 
 # Function to get uncertainty in the mean
 def SigmaMean(x):
@@ -40,5 +42,29 @@ def SigmaMean(x):
     # Output
     return si * np.sqrt(float(ni)/float(n))
     
-
+# Function to get Tecplot command
+def GetTecplotComand():
+    """Return the Tecplot 360 command on the current system
+    
+    The preference is 'tec360EX', 'tec360', 'tecplot'.  An exception is raised
+    if none of these commands can be found.
+    
+    :Call:
+        >>> cmd = pyCart.util.GetTecplotCommand()
+    :Outputs:
+        *cmd*: :class:`str`
+            Name of the command to the current 'tec360' command
+    :Versions:
+        * 2015-03-02 ``@ddalle``: First version
+    """
+    # Loop through list of possible commands
+    for cmd in ['tec360EX', 'tec360', 'tecplot']:
+        # Use `which` to see where the command might be.
+        ierr = sp.call(['which', cmd])
+        # Check.
+        if ierr: continue
+        # If this point is reached, we found the command.
+        return cmd
+    # If this point is reached, no command was found.
+    raise SystemError('No Tecplot360 command found')
 

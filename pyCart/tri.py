@@ -19,6 +19,7 @@ import os, shutil
 # Specific commands to copy files and call commands.
 from shutil import copy
 from subprocess import call
+from util import GetTecplotCommand
 
 # pyCart base folder
 pyCartFolder = os.path.split(os.path.abspath(__file__))[0]
@@ -870,8 +871,10 @@ class TriBase(object):
         # Copy the template layout file and macro.
         copy(os.path.join(ftec, 'iso-comp.lay'), '.')
         copy(os.path.join(ftec, 'iso-comp.mcr'), '.')
+        # Get the command for tecplot
+        t360 = GetTecplotCommand()
         # Create the image.
-        call(['tecplot', '-b', '-p', 'iso-comp.mcr'], stdout=f)
+        call([t360, '-b', '-p', 'iso-comp.mcr'], stdout=f)
         # Close the output file.
         f.close()
         # Rename the PNG
