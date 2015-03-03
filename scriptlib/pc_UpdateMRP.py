@@ -88,8 +88,9 @@ def UpdateCaseMRP(cart3d, comp):
     # Read the force and moment history for that component.
     FM = pyCart.Aero([comp])[comp]
     # Shift the MRP.
-    FM.ShiftMRP(x, xi)# Process the best data folder.
-        fdir = GetWorkingFolder()
+    FM.ShiftMRP(x, xi)
+    # Process the best data folder.
+    fdir = GetWorkingFolder()
     # Write the ...
     FM.Write(os.path.join(fdir, '%s.test.dat'%comp))
     
@@ -121,14 +122,14 @@ if __name__ == "__main__":
     cart3d = pyCart.Cart3d(fname)
     
     # Apply the constraints.
-    I = self.x.Filter(cons)
+    I = cart3d.x.Filter(cons)
     # Get the case names.
-    fruns = self.x.GetFullFolderNames(I)
+    fruns = cart3d.x.GetFullFolderNames(I)
     
     # Loop through the runs.
     for frun in fruns:
         # Change to the directory.
-        os.chdir(self.RootDir)
+        os.chdir(cart3d.RootDir)
         os.chdir(frun)
         # Status update
         print(frun)
