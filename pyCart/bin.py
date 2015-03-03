@@ -192,6 +192,9 @@ cubes.__doc__ = _upgradeDocString(cmd.cubes.__doc__)
 def verify(ftri='Components.i.tri'):
     # Required file
     _assertfile(ftri)
+    # If there is currently a 'tecplot.bad' file, move it.
+    if os.path.isfile('tecplot.bad'):
+        os.rename('tecplot.bad', 'tecplot.old.bad')
     # Get command
     cmdi = cmd.verify(ftri)
     # Run the command.
