@@ -2744,6 +2744,94 @@ class CaseFM(object):
             raise IOError(
                 "Transformation type '%s' is not recognized." % ttype)
         
+    # Method to shift the MRC
+    def ShiftMRP(self, x, xi=None):
+        """Shift the moment reference point
+        
+        :Call:
+            >>> FM.ShiftMRP(x, xi=None)
+        :Inputs:
+            *FM*: :class:`pyCart.dataBook.CaseFM`
+                Instance of the force and moment class
+            *x*: :class:`list` (:class:`float`)
+                Target moment reference point
+            *xi*: :class:`list` (:class:`float`)
+                Current moment reference point (default: *self.MRP*)
+        :Versions:
+            * 2015-03-02 ``@ddalle``: First version
+        """
+        # Check for moments.
+        if ('CA' not in self.coeffs) or ('CLM' not in self.coeffs):
+            # Not a force/moment history
+            return
+        # Rolling moment: side force
+        if ('CLL' in self.coeffs) and ('CY' in self.coeffs):
+            self.CLL -= (xi[3]-x[3])*self.CY
+        # Rolling moment: normal force
+        if ('CLL' in self.coeffs) and ('CN' in self.coeffs):
+            self.CLL += (xi[2]-x[2])*self.CN
+        # Pitching moment: normal force
+        if ('CLM' in self.coeffs) and ('CN' in self.coeffs):
+            self.CLM -= (xi[1]-x[1])*self.CN
+        # Pitching moment: axial force
+        if ('CLM' in self.coeffs) and ('CA' in self.coeffs):
+            self.CLM += (xi[3]-x[3])*self.CA
+        # Yawing moment: axial force
+        if ('CLN' in self.coeffs) and ('CA' in self.coeffs):
+            self.CLN -= (x[2]-xi[2])*self.CA
+        # Yawing moment: axial force
+        if ('CLN' in self.coeffs) and ('CY' in self.coeffs):
+            self.CLN += (x[1]-xi[1])*self.CY
+            
+    # Write a pure file.
+    def Write(self, fname):
+        """Write contents to force/moment file
+        
+        :Call:
+            >>> FM.Write(fname)
+        :Inputs:
+            *FM*: :class:`pyCart.dataBook.CaseFM`
+                Instance of the force and moment class
+            *fname*: :class:`str`
+                Name of file to write.
+        :Versions:
+            * 2015-03-02 ``@ddalle``: First version
+        """
+        # Open the file for writing.
+        f = open(fname, 'w')
+        # Start the header.
+        f.write('# cycle')
+        # Check for basic force coefficients.
+        if 'CA' in self.coeffs:
+            f.write(' Fx Fy')
+        # Check for side force.
+        if 'CY' in self.coeffs:
+            f.write(' Fz')
+        # Check for 3D moments.
+        if 'CLN' in self.coeffs:
+            # 3D moments
+            f.write(' CLL CLM CLN')
+        elif 'CLM' in self.coeffs:
+            # 2D, only pitching moment
+            f.write(' CLM')
+        # End the header.
+        f.write('\n')
+        # Initialize the data.
+        A = np.array([self.i])
+        # Loop through coefficients.
+        for c in self.coeffs:
+            # Append the data.
+            A = np.vstack((A, [getattr(self,c)]))
+        # Transpose.
+        A = A.transpose()
+        # Form the string flag.
+        flg = '%i' + (' %s'*len(self.coeffs)) + '\n'
+        # Loop through iterations.
+        for v in A:
+            # Write the line.
+            f.write(flg % tuple(v))
+        # Close the file.
+        f.close()
         
         
     # Method to get averages and standard deviations
