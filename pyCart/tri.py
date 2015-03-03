@@ -864,6 +864,7 @@ class TriBase(object):
         # Hide output.
         f = open('/dev/null', 'w')
         # Convert it to an STL.
+        print("     Converting to STL: '%s' -> 'comp.stl'" % ftri)
         call(['tri2stl', '-i', ftri, '-o', 'comp.stl'], stdout=f)
         # Cleanup.
         for fi in ['iso-comp.mcr', 'iso-comp.lay']:
@@ -877,13 +878,14 @@ class TriBase(object):
         # Get the command for tecplot
         t360 = GetTecplotCommand()
         # Create the image.
+        print("     Creating image '%s.png' using `%s`" % (fname, t360))
         call([t360, '-b', '-p', 'iso-comp.mcr'], stdout=f)
         # Close the output file.
         f.close()
         # Rename the PNG
         os.rename('iso-comp.png', '%s.png' % fname)
         # Cleanup.
-        for f in ['iso-comp.mcr','iso-comp.lay','comp.stl','pc_Explode.out']:
+        for f in ['iso-comp.mcr', 'iso-comp.lay', 'comp.stl']:
             # Check for the file.
             if os.path.isfile(f):
                 # Delete it.

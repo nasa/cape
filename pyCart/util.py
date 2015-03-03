@@ -58,11 +58,11 @@ def GetTecplotCommand():
         * 2015-03-02 ``@ddalle``: First version
     """
     # Shut up about output.
-    f = open('/dev/null/', 'w')
+    f = open('/dev/null', 'w')
     # Loop through list of possible commands
     for cmd in ['tec360EX', 'tec360', 'tecplot']:
         # Use `which` to see where the command might be.
-        ierr = sp.call(['which', cmd], stdout=f)
+        ierr = sp.call(['which', cmd], stdout=f, stderr=f)
         # Check.
         if ierr: continue
         # If this point is reached, we found the command.
