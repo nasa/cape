@@ -10,7 +10,7 @@
 #define np2i(X, i, j) *((int *)    PyArray_GETPTR2(X, i, j))
 #define np1i(X, i)    *((int *)    PyArray_GETPTR1(X, i))
 
-// Function to write Components.i.tri file
+// Function to write Components.pyCart.tri file
 PyObject *
 pc_WriteTri(PyObject *self, PyObject *args)
 {
@@ -47,7 +47,7 @@ pc_WriteTri(PyObject *self, PyObject *args)
     nTri = (int) PyArray_DIM(T, 0);
     
     // Open output file for writing (wipe out if it exists.)
-    fid = fopen("Components.i.tri", "w");
+    fid = fopen("Components.pyCart.tri", "w");
     
     // Write the number of nodes and tris.
     fprintf(fid, "%12i%12i\n", nNode, nTri);
@@ -70,7 +70,7 @@ pc_WriteTri(PyObject *self, PyObject *args)
     if (ierr) {
         // Failure on close?
         PyErr_SetString(PyExc_IOError, \
-            "Failure on closing file 'Components.i.tri'");
+            "Failure on closing file 'Components.pyCart.tri'");
         return NULL;
     }
     
@@ -107,7 +107,7 @@ pc_WriteCompID(PyObject *self, PyObject *args)
     nTri = (int) PyArray_DIM(C, 0);
     
     // Open output file for writing (wipe out if it exists.)
-    fid = fopen("Components.i.tri", "a");
+    fid = fopen("Components.pyCart.tri", "a");
     // Loop through triangles.
     for (i=0; i<nTri; i++) {
         // Write a single triangle.
@@ -119,7 +119,7 @@ pc_WriteCompID(PyObject *self, PyObject *args)
     if (ierr) {
         // Failure on close?
         PyErr_SetString(PyExc_IOError, \
-            "Failure on closing file 'Components.i.tri'");
+            "Failure on closing file 'Components.pyCart.tri'");
         return NULL;
     }
     

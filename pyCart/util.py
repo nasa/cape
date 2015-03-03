@@ -43,7 +43,7 @@ def SigmaMean(x):
     return si * np.sqrt(float(ni)/float(n))
     
 # Function to get Tecplot command
-def GetTecplotComand():
+def GetTecplotCommand():
     """Return the Tecplot 360 command on the current system
     
     The preference is 'tec360EX', 'tec360', 'tecplot'.  An exception is raised
@@ -57,10 +57,12 @@ def GetTecplotComand():
     :Versions:
         * 2015-03-02 ``@ddalle``: First version
     """
+    # Shut up about output.
+    f = open('/dev/null/', 'w')
     # Loop through list of possible commands
     for cmd in ['tec360EX', 'tec360', 'tecplot']:
         # Use `which` to see where the command might be.
-        ierr = sp.call(['which', cmd])
+        ierr = sp.call(['which', cmd], stdout=f)
         # Check.
         if ierr: continue
         # If this point is reached, we found the command.

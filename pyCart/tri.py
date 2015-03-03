@@ -19,7 +19,7 @@ import os, shutil
 # Specific commands to copy files and call commands.
 from shutil import copy
 from subprocess import call
-from util import GetTecplotCommand
+from .util import GetTecplotCommand
 
 # pyCart base folder
 pyCartFolder = os.path.split(os.path.abspath(__file__))[0]
@@ -458,9 +458,9 @@ class TriBase(object):
         # Write the component IDs.
         pc.WriteCompID(self.CompID)
         # Check the file name.
-        if fname != "Components.i.tri":
+        if fname != "Components.pyCart.tri":
             # Move the file.
-            os.rename("Components.i.tri", fname)
+            os.rename("Components.pyCart.tri", fname)
             
     
     # Function to write a triangulation to file the old-fashioned way.
@@ -792,6 +792,9 @@ class TriBase(object):
         if i is None:
             # Return all the tris.
             return np.arange(self.nTri)
+        elif i == 'entire':
+            # Return all the tris.
+            return np.arange(self.nTri)
         elif np.isscalar(i):
             # Get a single component.
             K = self.CompID == i
@@ -837,11 +840,11 @@ class TriBase(object):
         return tri0
         
     # Create a 3-view of a component (or list of) using TecPlot
-    def TecPlot3View(self, fname, i=None):
+    def Tecplot3View(self, fname, i=None):
         """Create a 3-view PNG of a component(s) using TecPlot
         
         :Call:
-            >>> tri.TecPlot3View(fname, i=None)
+            >>> tri.Tecplot3View(fname, i=None)
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance
@@ -859,7 +862,7 @@ class TriBase(object):
         # Write triangulation file.
         tri0.Write(ftri)
         # Hide output.
-        f = open('pc_Explode.out', 'w')
+        f = open('/dev/null', 'w')
         # Convert it to an STL.
         call(['tri2stl', '-i', ftri, '-o', 'comp.stl'], stdout=f)
         # Cleanup.
@@ -887,14 +890,14 @@ class TriBase(object):
                 os.remove(f)
                 
     # Function to plot all components!
-    def TecPlotExplode(self):
+    def TecplotExplode(self):
         """
         Create a 3-view of each available named component in *tri.config* (read
         from :file:`Config.xml`) if available.  If not, create a 3-view plot for
         each *CompID*, e.g. :file:`1.png`, :file:`2.png`, etc.
         
         Call:
-            >>> tri.TecPlot3View(fname, i=None)
+            >>> tri.Tecplot3View(fname, i=None)
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance
@@ -917,7 +920,7 @@ class TriBase(object):
                 # Get the CompIDs for that face.
                 k = self.config.GetCompID(comp)
                 # Create the 3-view using that name.
-                self.TecPlot3View(comp, k)
+                self.Tecplot3View(comp, k)
         except Exception:
             # Loop through CompID.
             print("FAILED.")
@@ -927,7 +930,7 @@ class TriBase(object):
                 # Status update.
                 print("    %s.png" % i)
                 # Create the 3-view plot for just that CompID==i
-                self.TecPlot3View(i, i)
+                self.Tecplot3View(i, i)
         
     
     # Function to translate the triangulation
