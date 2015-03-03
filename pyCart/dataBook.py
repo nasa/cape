@@ -2745,14 +2745,16 @@ class CaseFM(object):
                 "Transformation type '%s' is not recognized." % ttype)
         
     # Method to shift the MRC
-    def ShiftMRP(self, x, xi=None):
+    def ShiftMRP(self, Lref, x, xi=None):
         """Shift the moment reference point
         
         :Call:
-            >>> FM.ShiftMRP(x, xi=None)
+            >>> FM.ShiftMRP(Lref, x, xi=None)
         :Inputs:
             *FM*: :class:`pyCart.dataBook.CaseFM`
                 Instance of the force and moment class
+            *Lref*: :class:`float`
+                Reference length
             *x*: :class:`list` (:class:`float`)
                 Target moment reference point
             *xi*: :class:`list` (:class:`float`)
@@ -2766,22 +2768,22 @@ class CaseFM(object):
             return
         # Rolling moment: side force
         if ('CLL' in self.coeffs) and ('CY' in self.coeffs):
-            self.CLL -= (xi[3]-x[3])*self.CY
+            self.CLL -= (xi[2]-x[2])/Lref*self.CY
         # Rolling moment: normal force
         if ('CLL' in self.coeffs) and ('CN' in self.coeffs):
-            self.CLL += (xi[2]-x[2])*self.CN
+            self.CLL += (xi[1]-x[1])/Lref*self.CN
         # Pitching moment: normal force
         if ('CLM' in self.coeffs) and ('CN' in self.coeffs):
-            self.CLM -= (xi[1]-x[1])*self.CN
+            self.CLM -= (xi[0]-x[0])/Lref*self.CN
         # Pitching moment: axial force
         if ('CLM' in self.coeffs) and ('CA' in self.coeffs):
-            self.CLM += (xi[3]-x[3])*self.CA
+            self.CLM += (xi[2]-x[2])/Lref*self.CA
         # Yawing moment: axial force
         if ('CLN' in self.coeffs) and ('CA' in self.coeffs):
-            self.CLN -= (x[2]-xi[2])*self.CA
+            self.CLN -= (x[1]-xi[1])/Lref*self.CA
         # Yawing moment: axial force
         if ('CLN' in self.coeffs) and ('CY' in self.coeffs):
-            self.CLN += (x[1]-xi[1])*self.CY
+            self.CLN += (x[0]-xi[0])/Lref*self.CY
             
     # Write a pure file.
     def Write(self, fname):

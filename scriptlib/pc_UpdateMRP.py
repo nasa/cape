@@ -66,37 +66,39 @@ def UpdateCaseMRP(cart3d, comp):
     # Check for matches
     if len(fcntl) > 0:
         # Get latest.
-        ncntl = max([int(f.split(1)) for f in fcntl])
+        ncntl = max([int(f.split('.')[1]) for f in fcntl])
         # Form the file.
-        fcntl = 'input.%02.cntl' % ncntl
+        fcntl = 'input.%02i.cntl' % ncntl
     else:
         # Use the base file
         fcntl = 'input.cntl'
     # Open the input control file interface.
-    IC = pyCart.InputCntl()
+    IC = pyCart.InputCntl(fcntl)
     # Get the MRP for that component that was actually used
     xi = IC.GetSingleMomentPoint(comp)
     # Get what the MRP should be.
     x = cart3d.opts.get_RefPoint(comp)
     # Get the distance between the two.
     L = sqrt((x[0]-xi[0])**2 + (x[1]-xi[1])**2 + (x[2]-xi[2])**2)
+    # Reference length
+    Lref = cart3d.opts.get_RefLength()
     # Check the distance.
-    if L/cart3d.opts.get_RefLength() <= 0.01:
-        return
+    if L/Lref <= 0.01: return
     # Write.
-    print("  Updating MRP %s: %s -> %s" % (comp, xi, x))
+    print("  Updating MRP '%s': %s -> %s" % (comp, xi, x))
     # Read the force and moment history for that component.
     FM = pyCart.Aero([comp])[comp]
     # Shift the MRP.
-    FM.ShiftMRP(x, xi)
+    FM.ShiftMRP(Lref, x, xi)
     # Process the best data folder.
-    fdir = GetWorkingFolder()
-    # Write the ...
-    FM.Write(os.path.join(fdir, '%s.test.dat'%comp))
+    fdir = pyCart.case.GetWorkingFolder()
+    # Overwrite the original data file.
+    FM.Write(os.path.join(fdir, '%s.dat'%comp))
     
     # Set the correct value.
     IC.SetSingleMomentPoint(x, comp)
-    # Write the corrected ...
+    # Write the corrected input file.
+    IC.Write(fcntl)
     
     
 # Check if run as a script.
