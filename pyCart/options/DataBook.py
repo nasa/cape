@@ -519,7 +519,7 @@ class DataBook(odict):
             # Loop through columns.
             for c in coeffs:
                 # Append all statistical columns.
-                cols += [c+'_min', c+'_max', c+'_std']
+                cols += [c+'_min', c+'_max', c+'_std', c+'_err']
         # Output.
         return cols
         
