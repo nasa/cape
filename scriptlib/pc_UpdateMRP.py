@@ -88,14 +88,16 @@ def UpdateCaseMRP(cart3d, comp):
     Lref = cart3d.opts.get_RefLength()
     # Check the distance.
     if L/Lref <= 0.01: return
+    # Process the best data folder.
+    fdir = pyCart.case.GetWorkingFolder()
+    # Check for the file
+    if not os.path.isfile(os.path.join(fdir, '%s.dat'%comp)): return
     # Write.
     print("  Updating MRP '%s': %s -> %s" % (comp, xi, x))
     # Read the force and moment history for that component.
     FM = pyCart.Aero([comp])[comp]
     # Shift the MRP.
     FM.ShiftMRP(Lref, x, xi)
-    # Process the best data folder.
-    fdir = pyCart.case.GetWorkingFolder()
     # Overwrite the original data file.
     FM.Write(os.path.join(fdir, '%s.dat'%comp))
     
