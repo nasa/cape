@@ -72,6 +72,10 @@ def UpdateCaseMRP(cart3d, comp):
     else:
         # Use the base file
         fcntl = 'input.cntl'
+    # Check for the file.
+    if not os.path.isfile(fcntl): return
+    # Check for failure or RUNNING
+    if os.path.isfile('RUNNING') or os.path.isfile('FAIL'): return
     # Open the input control file interface.
     IC = pyCart.InputCntl(fcntl)
     # Get the MRP for that component that was actually used
