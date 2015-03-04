@@ -1960,11 +1960,12 @@ class Aero(dict):
                 print("Warning: no reference point in line:\n  '%s'" % line)
                 # Function to plot a single coefficient.
     
-    def PlotCoeff(self, comp, c, n=1000, nAvg=100, d=0.01, i=None):
+    def PlotCoeff(self, comp, c, n=1000, nAvg=100, d=0.01,
+            nStart=None, nLast=None):
         """Plot a single coefficient history
         
         :Call:
-            >>> h = AP.PlotCoeff(comp, c, n=1000, nAvg=100, d=0.01, i=None)
+            >>> h = AP.PlotCoeff(comp, c, n=1000, nAvg=100, **kw)
         :Inputs:
             *AP*: :class:`pyCart.aeroPlot.Plot`
                 Instance of the force history plotting class
@@ -1978,8 +1979,10 @@ class Aero(dict):
                 Use the last *nAvg* iterations to compute an average
             *d*: :class:`float`
                 Delta in the coefficient to show expected range
-            *i*: :class:`int`
+            *nLast*: :class:`int`
                 Last iteration to use (defaults to last iteration available)
+            *nStart*: :class:`int`
+                First iteration to plot
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
@@ -1987,6 +1990,7 @@ class Aero(dict):
             * 2014-11-12 ``@ddalle``: First version
             * 2014-12-09 ``@ddalle``: Transferred to :class:`AeroPlot`
             * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
+            * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
         """
         # Make sure plotting modules are present.
         ImportPyPlot()
@@ -2000,19 +2004,19 @@ class Aero(dict):
         # Most likely last iteration
         iB = FM.i[-1]
         # Check for an input last iter
-        if i is not None:
+        if nLast is not None:
             # Attempt to use requested iter.
-            if i < iB:
+            if nLast < iB:
                 # Using an earlier iter; make sure to use one in the hist.
                 # Find the iterations that are less than i.
-                iB = FM.i[np.where(FM.i <= i)[0][-1]]
+                iB = FM.i[np.where(FM.i <= nLast)[0][-1]]
         # Get the index of *iB* in *FM.i*.
         jB = np.where(FM.i == iB)[0][-1]
         # ----------
         # First Iter
         # ----------
         # Get the starting iteration number to use.
-        i0 = max(0, iB-n) + 1
+        i0 = max(0, iB-n, nStart) + 1
         # Make sure *iA* is in *FM.i* and get the index.
         j0 = np.where(FM.i <= i0)[0][-1]
         # Reselect *iA* in case initial value was not in *FM.i*.
@@ -2071,11 +2075,11 @@ class Aero(dict):
         return h
     
     # Plot coefficient histogram
-    def PlotCoeffHist(self, comp, c, nAvg=100, nBin=20, i=None):
+    def PlotCoeffHist(self, comp, c, nAvg=100, nBin=20, nLast=None, **kw):
         """Plot a single coefficient history
         
         :Call:
-            >>> h = AP.PlotCoeff(comp, c, n=1000, nAvg=100, d=0.01, i=None)
+            >>> h = AP.PlotCoeff(comp, c, n=1000, nAvg=100, **kw)
         :Inputs:
             *AP*: :class:`pyCart.aeroPlot.Plot`
                 Instance of the force history plotting class
@@ -2087,7 +2091,7 @@ class Aero(dict):
                 Use the last *nAvg* iterations to compute an average
             *nBin*: :class:`int`
                 Number of bins to plot
-            *i*: :class:`int`
+            *nLast*: :class:`int`
                 Last iteration to use (defaults to last iteration available)
         :Outputs:
             *h*: :class:`dict`
@@ -2107,12 +2111,12 @@ class Aero(dict):
         # Most likely last iteration
         iB = FM.i[-1]
         # Check for an input last iter
-        if i is not None:
+        if nLast is not None:
             # Attempt to use requested iter.
-            if i < iB:
+            if nLast < iB:
                 # Using an earlier iter; make sure to use one in the hist.
                 # Find the iterations that are less than i.
-                iB = FM.i[np.where(FM.i <= i)[0][-1]]
+                iB = FM.i[np.where(FM.i <= nLast)[0][-1]]
         # Get the index of *iB* in *FM.i*.
         jB = np.where(FM.i == iB)[0][-1]
         # --------------
@@ -2172,18 +2176,20 @@ class Aero(dict):
         
         
     # Plot function
-    def PlotL1(self, n=None, i=None):
+    def PlotL1(self, n=None, nStart=None, nLast=None):
         """Plot the L1 residual
         
         :Call:
-            >>> h = AP.PlotL1(n=None, i=None)
+            >>> h = AP.PlotL1(n=None, nStart=None, nLast=None)
         :Inputs:
             *AP*: :class:`pyCart.aero.Aero`
                 Instance of the force history plotting class
             *n*: :class:`int`
                 Only show the last *n* iterations
-            *i*: :class:`int`
-                Plot up to iteration *i*
+            *nStart*: :class:`int`
+                Plot starting at iteration *nStart*
+            *nLast*: :class:`int`
+                Plot up to iteration *nLast*
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
@@ -2191,6 +2197,7 @@ class Aero(dict):
             * 2014-11-12 ``@ddalle``: First version
             * 2014-12-09 ``@ddalle``: Moved to :class:`AeroPlot`
             * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
+            * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
         """
         # Make sure plotting modules are present.
         ImportPyPlot()
@@ -2206,11 +2213,11 @@ class Aero(dict):
         # Most likely last iteration
         iB = self.Residual.i[-1]
         # Check for an input last iter
-        if i is not None:
+        if nLast is not None:
             # Attempt to use requested iter.
-            if i < iB:
+            if nLast < iB:
                 # Using an earlier iter; make sure to use one in the hist.
-                jB = np.where(self.Residual.i <= i)[0][-1]
+                jB = np.where(self.Residual.i <= nLast)[0][-1]
                 # Find the iterations that are less than i.
                 iB = self.Residual.i[jB]
         # Get the index of *iB* in *FM.i*.
@@ -2219,7 +2226,7 @@ class Aero(dict):
         # First Iter
         # ----------
         # Get the starting iteration number to use.
-        i0 = max(0, iB-n) + 1
+        i0 = max(0, iB-n, nStart) + 1
         # Make sure *iA* is in *FM.i* and get the index.
         j0 = np.where(self.Residual.i <= i0)[0][-1]
         # Reselect *iA* in case initial value was not in *FM.i*.
