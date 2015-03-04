@@ -1489,6 +1489,16 @@ class Options(odict):
     def get_nPlotIter(self, comp=None):
         self._Plot()
         return self['Plot'].get_nPlotIter(comp)
+    
+    # Get the last iteration to plot
+    def get_nPlotLast(self, comp=None):
+        self._Plot()
+        return self['Plot'].get_nPlotLast(comp)
+        
+    # Get the first iteration to plot
+    def get_nPlotFirst(self, comp=None):
+        self._Plot()
+        return self['Plot'].get_nPlotFirst(comp)
         
     # Get the number of iterations to use for averaging
     def get_nAverage(self, comp=None):
@@ -1517,6 +1527,7 @@ class Options(odict):
         
     # Copy over the documentation.
     for k in ['PlotCoeffs', 'nPlotIter', 'nAverage', 'nPlotRows',
+            'nPlotLast', 'nPlotFirst',
             'nPlotCols', 'PlotRestriction', 'PlotDelta']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Plot,'get_'+k).__doc__

@@ -157,6 +157,58 @@ class Plot(odict):
         # Output
         return nPlot
         
+    # Function to get the last iteration to plot
+    def get_nPlotLast(self, comp=None):
+        """Return the last iteration to plot
+        
+        :Call:
+            >>> nLast = opts.get_nPlotLast(comp)
+        :Inptus:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *comp*: :class:`str` or :class:`int`
+                Name of component to plot
+        :Outputs:
+            *nLast*: :class:`int`
+                Last iteration to plot for coefficient plots
+        :Versions:
+            * 2015-03-04 ``@ddalle``: First version
+        """
+        # Get the default.
+        nLast = self.get('nLast')
+        # Check for specific component.
+        if comp in self:
+            # Value supersedes
+            nLast = self[comp].get('nLast', nLast)
+        # Output
+        return nLast
+        
+    # Function to get the first iteration to plot
+    def get_nPlotFirst(self, comp=None):
+        """Return the first iteration to plot in coefficient plots
+        
+        :Call:
+            >>> nFirst = opts.get_nPlotFirst(comp)
+        :Inptus:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *comp*: :class:`str` or :class:`int`
+                Name of component to plot
+        :Outputs:
+            *nFirst*: :class:`int`
+                First iteration to plot for coefficient plots
+        :Versions:
+            * 2015-03-04 ``@ddalle``: First version
+        """
+        # Get the default.
+        nFirst = self.get('nFirst')
+        # Check for specific component.
+        if comp in self:
+            # Value supersedes
+            nFirst = self[comp].get('nFirst', nFirst)
+        # Output
+        return nFirst
+        
     # Function to get the number of iterations for averaging
     def get_nAverage(self, comp=None):
         """Return the number of iterations to use for averaging
