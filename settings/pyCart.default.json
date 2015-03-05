@@ -164,7 +164,7 @@
         // Extra label to put in bottom center of each plot.
         "Restriction": "SBU - ITAR",
         // Number of iterations to show.
-        "nPlot": 1000,
+        //"nPlot": 1000,
         // Number of iterations to use in averge.
         "nAverage": 100,
         // Number of rows and columns to plot

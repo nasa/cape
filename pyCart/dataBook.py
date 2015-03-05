@@ -1963,7 +1963,7 @@ class Aero(dict):
                 print("Warning: no reference point in line:\n  '%s'" % line)
                 # Function to plot a single coefficient.
     
-    def PlotCoeff(self, comp, c, n=1000, nAvg=100, d=0.01,
+    def PlotCoeff(self, comp, c, n=None, nAvg=100, d=0.01,
             nFirst=None, nLast=None):
         """Plot a single coefficient history
         
@@ -2018,6 +2018,8 @@ class Aero(dict):
         # ----------
         # First Iter
         # ----------
+        # Default number of iterations: all
+        if n is None: n = len(FM.i)
         # Get the starting iteration number to use.
         i0 = max(0, iB-n, nFirst) + 1
         # Make sure *iA* is in *FM.i* and get the index.
