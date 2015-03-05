@@ -2279,6 +2279,10 @@ class Aero(dict):
                 List of coefficients or ``'L1'`` to plot
             *n*: :class:`int`
                 Only show the last *n* iterations
+            *nFirst*: :class:`int`
+                First iteration to plot
+            *nLast*: :class:`int`
+                Last iteration to plot
             *nAvg*: :class:`int`
                 Use the last *nAvg* iterations to compute an average
             *d0*: :class:`float`
@@ -2296,6 +2300,7 @@ class Aero(dict):
             * 2014-11-12 ``@ddalle``: First version
             * 2014-12-09 ``@ddalle``: Moved to :class:`AeroPlot`
             * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
+            * 2015-03-04 ``@ddalle``: Added *nFirst* and *nLast*
         """
         # Make sure plotting modules are present.
         ImportPyPlot()
@@ -2305,8 +2310,10 @@ class Aero(dict):
         n    = kw.get('n', 1000)
         nAvg = kw.get('nAvg', 100)
         nBin = kw.get('nBin', 20)
-        ni   = kw.get('i')
         d0   = kw.get('d0', 0.01)
+        # Window control
+        nFirst = kw.get('nFirst')
+        nLast  = kw.get('nLast')
         # Check for single input.
         if type(C).__name__ == "str": C = [C]
         # Number of components
@@ -2326,17 +2333,19 @@ class Aero(dict):
             # Check if residual was requested.
             if c == 'L1':
                 # Plot it.
-                h[c] = self.PlotL1(n=n)
+                h[c] = self.PlotL1(n=n, nFirst=nFirst, nLast=nLast)
             elif c.endswith('hist'):
                 # Get the coeff name.
                 ci = c[:-4]
                 # Plot histogram
-                h[c] = self.PlotCoeffHist(comp, ci, nAvg=nAvg, nBin=nBin, i=ni)
+                h[c] = self.PlotCoeffHist(comp, ci, nAvg=nAvg, nBin=nBin, 
+                    nLast=nLast)
             else:
                 # Get the delta
                 di = d.get(c, d0)
                 # Plot
-                h[c] = self.PlotCoeff(comp, c, n=n, nAvg=nAvg, d=di, i=ni)
+                h[c] = self.PlotCoeff(comp, c, n=n, nAvg=nAvg, d=di,
+                    nFirst=nFirst, nLast=nLast)
             # Turn off overlapping xlabels for condensed plots.
             if (nCol==1 or nRow>2) and (i+nCol<nC):
                 # Kill the xlabel and xticklabels.
