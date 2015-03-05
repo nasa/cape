@@ -1886,17 +1886,20 @@ class Aero(dict):
         """
         # Initialize list of components.
         self.Components = {}
+        # Get working directory.
+        fdir = GetWorkingFolder()
+        # Path to the file.
+        fCC = os.path.join(fdir, 'loadsCC.dat')
         # Check for the file.
-        if os.path.isfile(os.path.join('BEST', 'loadsCC.dat')):
-            # Use the most recent file.
-            fCC = os.path.join('BEST', 'loadsCC.dat')
-        elif os.path.isfile(os.path.join('adapt00', 'loadsCC.dat')):
-            # Most recent adaptation currently running; no file in BEST
-            fCC = os.path.join('adapt00', 'loadsCC.dat')
-        elif os.path.isfile('loadsCC.dat'):
-            # Non-adaptive run
-            fCC = 'loadsCC.dat'
-        else:
+        if not os.path.isfile(fCC):
+            # Change the loadsTRI.dat
+            fCC = os.path.join(fdir, 'loadsTRI.dat')
+        # Try again.
+        if not os.path.isfile(fCC):
+            # Change to common directory.
+            fCC = os.path.join('..', '..', 'inputs', 'loadsCC.dat')
+        # Check for the last time.
+        if not os.path.isfile(fCC):
             # Nothing to do.
             return None
         # Read the file.
