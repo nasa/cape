@@ -402,6 +402,8 @@ class Cart3d(object):
                 # Get options (which may be specific to component).
                 kw['n'] = self.opts.get_nPlotIter(comp)
                 kw['nAvg'] = self.opts.get_nAverage(comp)
+                kw['nLast'] = self.opts.get_nPlotLast(comp)
+                kw['nFirst'] = self.opts.get_nPlotFirst(comp)
                 kw['restriction'] = self.opts.get_PlotRestriction(comp)
                 # Initialize dictionary of deltas.
                 kw['d'] = {}

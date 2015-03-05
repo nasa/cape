@@ -60,6 +60,12 @@ following list.
     -n NSHOW, --nShow NSHOW
         Show only the last *NSHOW* iterations in plots
     
+    --nFirst NFIRST
+        Start plot at iteration *NFIRST*
+        
+    --nLast NLAST
+        Only plot to iteration *NLAST*
+    
     --nAvg NAVG
         Calculate averages using last *NAVG* iterations for forces and moments
         

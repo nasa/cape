@@ -1961,7 +1961,7 @@ class Aero(dict):
                 # Function to plot a single coefficient.
     
     def PlotCoeff(self, comp, c, n=1000, nAvg=100, d=0.01,
-            nStart=None, nLast=None):
+            nFirst=None, nLast=None):
         """Plot a single coefficient history
         
         :Call:
@@ -1981,7 +1981,7 @@ class Aero(dict):
                 Delta in the coefficient to show expected range
             *nLast*: :class:`int`
                 Last iteration to use (defaults to last iteration available)
-            *nStart*: :class:`int`
+            *nFirst*: :class:`int`
                 First iteration to plot
         :Outputs:
             *h*: :class:`dict`
@@ -2016,7 +2016,7 @@ class Aero(dict):
         # First Iter
         # ----------
         # Get the starting iteration number to use.
-        i0 = max(0, iB-n, nStart) + 1
+        i0 = max(0, iB-n, nFirst) + 1
         # Make sure *iA* is in *FM.i* and get the index.
         j0 = np.where(FM.i <= i0)[0][-1]
         # Reselect *iA* in case initial value was not in *FM.i*.
@@ -2176,17 +2176,17 @@ class Aero(dict):
         
         
     # Plot function
-    def PlotL1(self, n=None, nStart=None, nLast=None):
+    def PlotL1(self, n=None, nFirst=None, nLast=None):
         """Plot the L1 residual
         
         :Call:
-            >>> h = AP.PlotL1(n=None, nStart=None, nLast=None)
+            >>> h = AP.PlotL1(n=None, nFirst=None, nLast=None)
         :Inputs:
             *AP*: :class:`pyCart.aero.Aero`
                 Instance of the force history plotting class
             *n*: :class:`int`
                 Only show the last *n* iterations
-            *nStart*: :class:`int`
+            *nFirst*: :class:`int`
                 Plot starting at iteration *nStart*
             *nLast*: :class:`int`
                 Plot up to iteration *nLast*
@@ -2226,7 +2226,7 @@ class Aero(dict):
         # First Iter
         # ----------
         # Get the starting iteration number to use.
-        i0 = max(0, iB-n, nStart) + 1
+        i0 = max(0, iB-n, nFirst) + 1
         # Make sure *iA* is in *FM.i* and get the index.
         j0 = np.where(self.Residual.i <= i0)[0][-1]
         # Reselect *iA* in case initial value was not in *FM.i*.

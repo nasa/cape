@@ -55,6 +55,12 @@ def ProcessCLI(opts, C=[], **kw):
             Options interface for iterative history plots
         *C*: :class:`list` (:class:`str`)
             List of coefficients to plot
+        *n*: :class:`int`
+            Number of iterations to plot
+        *nAve*: :class:`int`
+            Number of iterations to use for statistics
+        *nFirst*: :class:`int`
+            
         *f*: {``'plot.json'``} | :class:`str`
             Name of JSON formatting file to read
         *p*: {``'entire'``} | :class:`str`
@@ -100,6 +106,9 @@ def ProcessCLI(opts, C=[], **kw):
     if kw.get('nAve'): opts['nAverage'] = kw['nAve']
     # Number of iterations to plot.
     if kw.get('n'): opts['nAverage'] = kw['n']
+    # Start and end iterations
+    if kw.get('nLast'):  opts['nLast']  = kw['nLast']
+    if kw.get('nFirst'): opts['nFirst'] = kw['nFirst']
     # Check for component plot.
     if kw.get('p'): opts.set_PlotComponents([kw['p']])
     # Number of rows and columns.
@@ -203,6 +212,8 @@ def pc_Plot(C=[], **kw):
             'nRow': opts.get_nPlotRows(comp),
             'nCol': opts.get_nPlotCols(comp),
             'n': opts.get_nPlotIter(comp),
+            'nFirst': opts.get_nFirst(comp),
+            'nLast': opts.get_nLast(comp),
             'nAvg': opts.get_nAverage(comp),
             'tag': kw.get('tag', ftag),
             'restriction': opts.get_PlotRestriction(comp),
