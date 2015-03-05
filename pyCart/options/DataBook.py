@@ -206,6 +206,39 @@ class DataBook(odict):
         """
         self['nMaxStats'] = nMax
         
+    # Get a specific iteration to end statistics at
+    def get_nLastStats(self):
+        """Get the iteration at which to end statistics
+        
+        :Call:
+            >>> nLast = opts.get_nLastStats()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *nLast*: :class:`int`
+                Maximum iteration to use for statistics
+        :Versions:
+            * 2015-03-04 ``@ddalle``: First version
+        """
+        return self.get('nLastStats')
+        
+    # Set a specific iteration to end statistics at
+    def set_nLastStats(self, nLast=None):
+        """Get the iteration at which to end statistics
+        
+        :Call:
+            >>> opts.get_nLastStats(nLast)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *nLast*: :class:`int`
+                Maximum iteration to use for statistics
+        :Versions:
+            * 2015-03-04 ``@ddalle``: First version
+        """
+        self['nLastStats'] = nLast
+        
     # Get the location
     def get_DataBookDir(self):
         """Get the folder that holds the data book

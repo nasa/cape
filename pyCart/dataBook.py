@@ -2858,30 +2858,47 @@ class CaseFM(object):
         
         
     # Method to get averages and standard deviations
-    def GetStatsN(self, nStats=100):
+    def GetStatsN(self, nStats=100, nLast=None):
         """Get mean, min, max, and standard deviation for all coefficients
         
         :Call:
-            >>> s = FM.GetStatsN(nStats, nMax=None)
+            >>> s = FM.GetStatsN(nStats, nFirst=None, nLast=None)
         :Inputs:
             *FM*: :class:`pyCart.dataBook.CaseFM`
                 Instance of the force and moment class
             *nStats*: :class:`int`
-                Minimum number of iterations in window to use for statistics
+                Number of iterations in window to use for statistics
+            *nLast*: :class:`int`
+                Last iteration to use for statistics
         :Outputs:
             *s*: :class:`dict` (:class:`float`)
                 Dictionary of mean, min, max, std for each coefficient
         :Versions:
             * 2014-12-09 ``@ddalle``: First version
             * 2015-02-28 ``@ddalle``: Renamed from :func:`GetStats`
+            * 2015-03-04 ``@ddalle``: Added last iteration capability
         """
+        # Last iteration to use.
+        if nLast:
+            # Attempt to use requested iter.
+            if nLast < self.i.size:
+                # Using an earlier iter; make sure to use one in the hist.
+                jLast = np.where(self.i <= nLast)[0][-1]
+                # Find the iterations that are less than i.
+                iLast = self.i[jLast]
+            else:
+                # Use the last iteration.
+                iLast = self.i.size
+        else:
+            # Just use the last iteration
+            iLast = self.i.size
         # Default values.
         if (nStats is None) or (nStats < 2):
             # Use last iteration
-            i0 = self.i.size - 1
+            i0 = iLast - 1
         else:
            # Process min indices for plotting and averaging.
-            i0 = max(0, self.i.size-nStats)
+            i0 = max(0, iLast-nStats)
         # Initialize output.
         s = {}
         # Loop through coefficients.
@@ -2893,19 +2910,19 @@ class CaseFM(object):
             # Check for statistics.
             if (nStats is not None) or (nStats < 2):
                 # Save the statistics.
-                s[c+'_min'] = np.min(F[i0:])
-                s[c+'_max'] = np.max(F[i0:])
-                s[c+'_std'] = np.std(F[i0:])
-                s[c+'_err'] = util.SigmaMean(F[i0:])
+                s[c+'_min'] = np.min(F[i0:iLast])
+                s[c+'_max'] = np.max(F[i0:iLast])
+                s[c+'_std'] = np.std(F[i0:iLast])
+                s[c+'_err'] = util.SigmaMean(F[i0:iLast])
         # Output
         return s
             
     # Method to get averages and standard deviations
-    def GetStats(self, nStats=100, nMax=None):
+    def GetStats(self, nStats=100, nMax=None, nLast=None):
         """Get mean, min, max, and standard deviation for all coefficients
         
         :Call:
-            >>> s = FM.GetStats(nStats, nMax=None)
+            >>> s = FM.GetStats(nStats, nMax=None, nLast=None)
         :Inputs:
             *FM*: :class:`pyCart.dataBook.CaseFM`
                 Instance of the force and moment class
@@ -2913,11 +2930,14 @@ class CaseFM(object):
                 Minimum number of iterations in window to use for statistics
             *nMax*: :class:`int`
                 Maximum number of iterations to use for statistics
+            *nLast*: :class:`int`
+                Last iteration to use for statistics
         :Outputs:
             *s*: :class:`dict` (:class:`float`)
                 Dictionary of mean, min, max, std for each coefficient
         :Versions:
             * 2015-02-28 ``@ddalle``: First version
+            * 2015-03-04 ``@ddalle``: Added last iteration capability
         """
         # Make sure the number of iterations used is an integer.
         if not nStats: nStats = 1
@@ -2938,7 +2958,7 @@ class CaseFM(object):
         # Loop through list of candidate iteration counts
         for n in N:
             # Get the statistics.
-            sn = self.GetStatsN(n)
+            sn = self.GetStatsN(n, nLast=nLast)
             # Save the number of iterations used.
             sn['nStats'] = n
             # If there is only one candidate, return it.
