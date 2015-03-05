@@ -149,7 +149,7 @@ class Plot(odict):
             * 2014-11-23 ``@ddalle``: First version
         """
         # Get the default.
-        nPlot = self.get('nPlot', rc0('nPlot'))
+        nPlot = self.get('nPlot')
         # Check for specific component.
         if comp in self:
             # Value supersedes
