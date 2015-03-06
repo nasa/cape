@@ -319,14 +319,14 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
     # Initialize command.
     if td_fc and mpi_fc:
         # Unsteady MPI flowCart
-        cmd = [mpicmd, '-np', str(nProc), 'td_mpix_flowCart', 
+        cmd = [mpicmd, '-np', str(nProc), 'mpix_flowCart', 
             '-his', '-clic', '-unsteady']
     elif td_fc:
         # Unsteady but not MPI
-        cmd = ['td_flowCart', '-his', '-clic', '-unsteady']
+        cmd = ['flowCart', '-his', '-clic', '-unsteady']
     elif mpi_fc:
         # Use mpi_flowCart but not unsteady
-        cmd = [mpicmd, '-np', str(nProc), 'td_mpix_flowCart', '-his', '-clic']
+        cmd = [mpicmd, '-np', str(nProc), 'mpix_flowCart', '-his', '-clic']
     else:
         # Use single-node flowCart.
         cmd = ['flowCart', '-his', '-clic']
