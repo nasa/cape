@@ -1870,7 +1870,6 @@ class Aero(dict):
             S[comp] = A[comp].GetStats(n)
         # Output
         return S
-        
     
     # Function to read 'loadsCC.dat'
     def ReadLoadsCC(self):
@@ -1963,15 +1962,14 @@ class Aero(dict):
                 print("Warning: no reference point in line:\n  '%s'" % line)
                 # Function to plot a single coefficient.
     
-    def PlotCoeff(self, comp, c, n=None, nAvg=100, d=0.01,
-            nFirst=None, nLast=None):
+    def PlotCoeff(self, comp, c, n=None, nAvg=100, d=0.01, **kw):
         """Plot a single coefficient history
         
         :Call:
-            >>> h = AP.PlotCoeff(comp, c, n=1000, nAvg=100, **kw)
+            >>> h = A.PlotCoeff(comp, c, n=1000, nAvg=100, **kw)
         :Inputs:
-            *AP*: :class:`pyCart.aeroPlot.Plot`
-                Instance of the force history plotting class
+            *A*: :class:`pyCart.dataBook.Aero`
+                Instance of the force history class
             *comp*: :class:`str`
                 Name of component to plot
             *c*: :class:`str`
@@ -1995,99 +1993,22 @@ class Aero(dict):
             * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
             * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
         """
-        # Make sure plotting modules are present.
-        ImportPyPlot()
         # Extract the component.
         FM = self[comp]
-        # Extract the data.
-        C = getattr(FM, c)
-        # ---------
-        # Last Iter 
-        # ---------
-        # Most likely last iteration
-        iB = FM.i[-1]
-        # Check for an input last iter
-        if nLast is not None:
-            # Attempt to use requested iter.
-            if nLast < iB:
-                # Using an earlier iter; make sure to use one in the hist.
-                # Find the iterations that are less than i.
-                iB = FM.i[np.where(FM.i <= nLast)[0][-1]]
-        # Get the index of *iB* in *FM.i*.
-        jB = np.where(FM.i == iB)[0][-1]
-        # ----------
-        # First Iter
-        # ----------
-        # Default number of iterations: all
-        if n is None: n = len(FM.i)
-        # Get the starting iteration number to use.
-        i0 = max(0, iB-n, nFirst) + 1
-        # Make sure *iA* is in *FM.i* and get the index.
-        j0 = np.where(FM.i <= i0)[0][-1]
-        # Reselect *iA* in case initial value was not in *FM.i*.
-        i0 = FM.i[j0]
-        # --------------
-        # Averaging Iter
-        # --------------
-        # Get the first iteration to use in averaging.
-        iA = max(0, iB-nAvg) + 1
-        # Make sure *iV* is in *FM.i* and get the index.
-        jA = np.where(FM.i <= iA)[0][-1]
-        # Reselect *iV* in case initial value was not in *FM.i*.
-        iA = FM.i[jA]
-        # --------
-        # Plotting
-        # --------
-        # Calculate mean.
-        cAvg = np.mean(C[jA:jB+1])
-        # Initialize dictionary of handles.
-        h = {}
-        # Calculate range of interest.
-        if d:
-            # Limits
-            cMin = cAvg-d
-            cMax = cAvg+d
-            # Plot the target window boundaries.
-            h['min'] = (
-                plt.plot([i0,iA], [cMin,cMin], 'r:', lw=0.8) +
-                plt.plot([iA,iB], [cMin,cMin], 'r-', lw=0.8))
-            h['max'] = (
-                plt.plot([i0,iA], [cMax,cMax], 'r:', lw=0.8) +
-                plt.plot([iA,iB], [cMax,cMax], 'r-', lw=0.8))
-        # Plot the mean.
-        h['mean'] = (
-            plt.plot([i0,iA], [cAvg, cAvg], 'r--', lw=1.0) + 
-            plt.plot([iA,iB], [cAvg, cAvg], 'r-', lw=1.0))
-        # Plot the coefficient.
-        h[c] = plt.plot(FM.i[j0:], C[j0:], 'k-', lw=1.5)
-        # Labels.
-        h['x'] = plt.xlabel('Iteration Number')
-        h['y'] = plt.ylabel(c)
-        # Get the axes.
-        h['ax'] = plt.gca()
-        # Set the xlimits.
-        h['ax'].set_xlim((i0, iB+25))
-        # Make a label for the mean value.
-        lbl = u'%s = %.4f' % (c, cAvg)
-        h['val'] = plt.text(0.81, 1.06, lbl, horizontalalignment='right',
-            verticalalignment='top', transform=h['ax'].transAxes)
-        # Make a label for the deviation.
-        lbl = u'\u00B1 %.4f' % d
-        h['d'] = plt.text(1.0, 1.06, lbl, color='r',
-            horizontalalignment='right', verticalalignment='top',
-            transform=h['ax'].transAxes)
+        # Create the plot.
+        h = FM.PlotCoeff(c, n=n, nAvg=nAvg, d=d, **kw)
         # Output.
         return h
     
     # Plot coefficient histogram
     def PlotCoeffHist(self, comp, c, nAvg=100, nBin=20, nLast=None, **kw):
-        """Plot a single coefficient history
+        """Plot a single coefficient histogram
         
         :Call:
-            >>> h = AP.PlotCoeff(comp, c, n=1000, nAvg=100, **kw)
+            >>> h = A.PlotCoeffHist(comp, c, n=1000, nAvg=100, **kw)
         :Inputs:
-            *AP*: :class:`pyCart.aeroPlot.Plot`
-                Instance of the force history plotting class
+            *A*: :class:`pyCart.dataBook.Aero`
+                Instance of the force history class
             *comp*: :class:`str`
                 Name of component to plot
             *c*: :class:`str`
@@ -2103,81 +2024,14 @@ class Aero(dict):
                 Dictionary of figure/plot handles
         :Versions:
             * 2015-02-15 ``@ddalle``: First version
+            * 2015-03-06 ``@ddalle``: Added *nLast* and fixed documentation
         """
-        # Make sure plotting modules are present.
-        ImportPyPlot()
         # Extract the component.
         FM = self[comp]
-        # Extract the data.
-        C = getattr(FM, c)
-        # ---------
-        # Last Iter 
-        # ---------
-        # Most likely last iteration
-        iB = FM.i[-1]
-        # Check for an input last iter
-        if nLast is not None:
-            # Attempt to use requested iter.
-            if nLast < iB:
-                # Using an earlier iter; make sure to use one in the hist.
-                # Find the iterations that are less than i.
-                iB = FM.i[np.where(FM.i <= nLast)[0][-1]]
-        # Get the index of *iB* in *FM.i*.
-        jB = np.where(FM.i == iB)[0][-1]
-        # --------------
-        # Averaging Iter
-        # --------------
-        # Get the first iteration to use in averaging.
-        iA = max(0, iB-nAvg) + 1
-        # Make sure *iV* is in *FM.i* and get the index.
-        jA = np.where(FM.i <= iA)[0][-1]
-        # Reselect *iV* in case initial value was not in *FM.i*.
-        iA = FM.i[jA]
-        # --------
-        # Plotting
-        # --------
-        # Calculate statistics.
-        cAvg = np.mean(C[jA:jB+1])
-        cStd = np.std(C[jA:jB+1])
-        cErr = util.SigmaMean(C[jA:jB+1])
-        # Calculate # of independent samples
-        # Number of available samples
-        nStat = jB - jA + 1
-        # Initialize dictionary of handles.
-        h = {}
-        # Plot the histogram.
-        h[c] = plt.hist(C[jA:jB+1], nBin,
-            normed=1, histtype='bar', rwidth=0.85, color='#2020ff')
-        # Labels.
-        h['x'] = plt.xlabel(c)
-        h['y'] = plt.ylabel('PDF')
-        # Get the axes.
-        h['ax'] = plt.gca()
-        # Make a label for the mean value.
-        lbl = u'\u03BC(%s) = %.4f' % (c, cAvg)
-        h['mu'] = plt.text(1.0, 1.06, lbl, horizontalalignment='right',
-            verticalalignment='top', transform=h['ax'].transAxes)
-        # Make a label for the standard deviation.
-        lbl = u'\u03C3(%s) = %.4f' % (c, cStd)
-        h['sigma'] = plt.text(0.02, 1.06, lbl, horizontalalignment='left',
-            verticalalignment='top', transform=h['ax'].transAxes)
-        # Make a label for the uncertainty.
-        lbl = u'\u03C3(\u03BC) = %.4f' % cErr
-        h['err'] = plt.text(0.02, 0.98, lbl, horizontalalignment='left',
-            verticalalignment='top', transform=h['ax'].transAxes)
-        # Attempt to set font to one with Greek symbols.
-        try:
-            # Set the fonts.
-            h['mu'].set_family("DejaVu Sans")
-            h['sigma'].set_family("DejaVu Sans")
-            h['err'].set_family("DejaVu Sans")
-        except Exception:
-            pass
-        # Make 
+        # Create the plot.
+        h = FM.PlotCoeffHist(c, nAvg=nAvg, nBin=nBin, nLast=nLast, **kw)
         # Output.
         return h
-        
-        
         
         
     # Plot function
@@ -2185,10 +2039,10 @@ class Aero(dict):
         """Plot the L1 residual
         
         :Call:
-            >>> h = AP.PlotL1(n=None, nFirst=None, nLast=None)
+            >>> h = A.PlotL1(n=None, nFirst=None, nLast=None)
         :Inputs:
-            *AP*: :class:`pyCart.aero.Aero`
-                Instance of the force history plotting class
+            *A*: :class:`pyCart.dataBook.Aero`
+                Instance of the force history class
             *n*: :class:`int`
                 Only show the last *n* iterations
             *nFirst*: :class:`int`
@@ -2206,59 +2060,8 @@ class Aero(dict):
         """
         # Make sure plotting modules are present.
         ImportPyPlot()
-        # Initialize dictionary.
-        h = {}
-        # Get iteration numbers.
-        if n is None:
-            # Use all iterations
-            n = self.Residual.i[-1]
-        # ---------
-        # Last Iter 
-        # ---------
-        # Most likely last iteration
-        iB = self.Residual.i[-1]
-        # Check for an input last iter
-        if nLast is not None:
-            # Attempt to use requested iter.
-            if nLast < iB:
-                # Using an earlier iter; make sure to use one in the hist.
-                jB = np.where(self.Residual.i <= nLast)[0][-1]
-                # Find the iterations that are less than i.
-                iB = self.Residual.i[jB]
-        # Get the index of *iB* in *FM.i*.
-        jB = np.where(self.Residual.i == iB)[0][-1]
-        # ----------
-        # First Iter
-        # ----------
-        # Get the starting iteration number to use.
-        i0 = max(0, iB-n, nFirst) + 1
-        # Make sure *iA* is in *FM.i* and get the index.
-        j0 = np.where(self.Residual.i <= i0)[0][-1]
-        # Reselect *iA* in case initial value was not in *FM.i*.
-        i0 = self.Residual.i[j0]
-        # --------
-        # Plotting
-        # --------
-        # Extract iteration numbers and residuals.
-        i  = self.Residual.i[i0:]
-        L1 = self.Residual.L1Resid[i0:]
-        L0 = self.Residual.L1Resid0[i0:]
-        # Check if L0 is too long.
-        if len(L0) > len(i):
-            # Trim it.
-            L0 = L0[:len(i)]
-        # Plot the initial residual if there are any unsteady iterations.
-        if L0[-1] > L1[-1]:
-            h['L0'] = plt.semilogy(i, L0, 'b-', lw=1.2)
-        # Plot the residual.
-        h['L1'] = plt.semilogy(i, L1, 'k-', lw=1.5)
-        # Labels
-        h['x'] = plt.xlabel('Iteration Number')
-        h['y'] = plt.ylabel('L1 Residual')
-        # Get the axes.
-        h['ax'] = plt.gca()
-        # Set the xlimits.
-        h['ax'].set_xlim((i0, iB+25))
+        # Create the plot.
+        h = self.Residual.PlotL1(n=n, nFirst=nFirst, nLast=nLast)
         # Output.
         return h
             
@@ -2857,6 +2660,34 @@ class CaseFM(object):
         f.close()
         
         
+    # Function to get index of a certain iteration number
+    def GetIterationIndex(self, i):
+        """Return index of a particular iteration in *FM.i*
+        
+        If the iteration *i* is not present in the history, the index of the
+        last available iteration less than or equal to *i* is returned.
+        
+        :Call:
+            >>> j = FM.GetIterationIndex(i)
+        :Inputs:
+            *FM*: :class:`pyCart.dataBook.CaseFM`
+                Instance of the force and moment class
+            *i*: :class:`int`
+                Iteration number
+        :Outputs:
+            *j*: :class:`int`
+                Index of last iteration in *FM.i* less than or equal to *i*
+        :Versions:
+            * 2015-03-06 ``@ddalle``: First version
+        """
+        # Check for *i* less than first iteration.
+        if i < self.i[0]: return 0
+        # Find the index.
+        j = np.where(self.i <= i)[0][-1]
+        # Output
+        return j
+        
+        
     # Method to get averages and standard deviations
     def GetStatsN(self, nStats=100, nLast=None):
         """Get mean, min, max, and standard deviation for all coefficients
@@ -2883,7 +2714,7 @@ class CaseFM(object):
             # Attempt to use requested iter.
             if nLast < self.i.size:
                 # Using an earlier iter; make sure to use one in the hist.
-                jLast = np.where(self.i <= nLast)[0][-1]
+                jLast = self.GetIterationIndex(nLast)
                 # Find the iterations that are less than i.
                 iLast = self.i[jLast]
             else:
@@ -2974,6 +2805,221 @@ class CaseFM(object):
                 e = en
         # Output.
         return s
+    
+    def PlotCoeff(self, c, n=None, nAvg=100, d=0.01, **kw):
+        """Plot a single coefficient history
+        
+        :Call:
+            >>> h = FM.PlotCoeff(comp, c, n=1000, nAvg=100, **kw)
+        :Inputs:
+            *FM*: :class:`pyCart.dataBook.CaseFM`
+                Instance of the component force history class
+            *c*: :class:`str`
+                Name of coefficient to plot, e.g. ``'CA'``
+            *n*: :class:`int`
+                Only show the last *n* iterations
+            *nAvg*: :class:`int`
+                Use the last *nAvg* iterations to compute an average
+            *d*: :class:`float`
+                Delta in the coefficient to show expected range
+            *nLast*: :class:`int`
+                Last iteration to use (defaults to last iteration available)
+            *nFirst*: :class:`int`
+                First iteration to plot
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of figure/plot handles
+        :Versions:
+            * 2014-11-12 ``@ddalle``: First version
+            * 2014-12-09 ``@ddalle``: Transferred to :class:`AeroPlot`
+            * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
+            * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
+        """
+        # Make sure plotting modules are present.
+        ImportPyPlot()
+        # Extract the component.
+        FM = self[comp]
+        # Extract the data.
+        C = getattr(self, c)
+        # Process inputs.
+        nLast = kw.get('nLast')
+        nFirst = kw.get('nFirst')
+        # ---------
+        # Last Iter 
+        # ---------
+        # Most likely last iteration
+        iB = self.i[-1]
+        # Check for an input last iter
+        if nLast is not None:
+            # Attempt to use requested iter.
+            if nLast < iB:
+                # Using an earlier iter; make sure to use one in the hist.
+                # Find the iterations that are less than i.
+                jB = self.GetIterationIndex(nLast)
+                iB = self.i[jB]
+        # Get the index of *iB* in *self.i*.
+        jB = self.GetIterationIndex(iB)
+        # ----------
+        # First Iter
+        # ----------
+        # Default number of iterations: all
+        if n is None: n = len(self.i)
+        # Get the starting iteration number to use.
+        i0 = max(0, iB-n, nFirst) + 1
+        # Make sure *iA* is in *self.i* and get the index.
+        j0 = self.GetIterationIndex(i0)
+        # Reselect *iA* in case initial value was not in *self.i*.
+        i0 = self.i[j0]
+        # --------------
+        # Averaging Iter
+        # --------------
+        # Get the first iteration to use in averaging.
+        iA = max(0, iB-nAvg) + 1
+        # Make sure *iV* is in *self.i* and get the index.
+        jA = self.GetIterationIndex(iA)
+        # Reselect *iV* in case initial value was not in *self.i*.
+        iA = self.i[jA]
+        # --------
+        # Plotting
+        # --------
+        # Calculate mean.
+        cAvg = np.mean(C[jA:jB+1])
+        # Initialize dictionary of handles.
+        h = {}
+        # Calculate range of interest.
+        if d:
+            # Limits
+            cMin = cAvg-d
+            cMax = cAvg+d
+            # Plot the target window boundaries.
+            h['min'] = (
+                plt.plot([i0,iA], [cMin,cMin], 'r:', lw=0.8) +
+                plt.plot([iA,iB], [cMin,cMin], 'r-', lw=0.8))
+            h['max'] = (
+                plt.plot([i0,iA], [cMax,cMax], 'r:', lw=0.8) +
+                plt.plot([iA,iB], [cMax,cMax], 'r-', lw=0.8))
+        # Plot the mean.
+        h['mean'] = (
+            plt.plot([i0,iA], [cAvg, cAvg], 'r--', lw=1.0) + 
+            plt.plot([iA,iB], [cAvg, cAvg], 'r-', lw=1.0))
+        # Plot the coefficient.
+        h[c] = plt.plot(self.i[j0:], C[j0:], 'k-', lw=1.5)
+        # Labels.
+        h['x'] = plt.xlabel('Iteration Number')
+        h['y'] = plt.ylabel(c)
+        # Get the axes.
+        h['ax'] = plt.gca()
+        # Set the xlimits.
+        h['ax'].set_xlim((i0, iB+25))
+        # Make a label for the mean value.
+        lbl = u'%s = %.4f' % (c, cAvg)
+        h['val'] = plt.text(0.81, 1.06, lbl, horizontalalignment='right',
+            verticalalignment='top', transform=h['ax'].transAxes)
+        # Make a label for the deviation.
+        lbl = u'\u00B1 %.4f' % d
+        h['d'] = plt.text(1.0, 1.06, lbl, color='r',
+            horizontalalignment='right', verticalalignment='top',
+            transform=h['ax'].transAxes)
+        # Output.
+        return h
+    
+    # Plot coefficient histogram
+    def PlotCoeffHist(self, c, nAvg=100, nBin=20, nLast=None, **kw):
+        """Plot a single coefficient histogram
+        
+        :Call:
+            >>> h = FM.PlotCoeffHist(comp, c, n=1000, nAvg=100, **kw)
+        :Inputs:
+            *FM*: :class:`pyCart.dataBook.CaseFM`
+                Instance of the component force history class
+            *comp*: :class:`str`
+                Name of component to plot
+            *c*: :class:`str`
+                Name of coefficient to plot, e.g. ``'CA'``
+            *nAvg*: :class:`int`
+                Use the last *nAvg* iterations to compute an average
+            *nBin*: :class:`int`
+                Number of bins to plot
+            *nLast*: :class:`int`
+                Last iteration to use (defaults to last iteration available)
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of figure/plot handles
+        :Versions:
+            * 2015-02-15 ``@ddalle``: First version
+            * 2015-03-06 ``@ddalle``: Added *nLast* and fixed documentation
+            * 2015-03-06 ``@ddalle``: Copied to :class:`CaseFM`
+        """
+        # Make sure plotting modules are present.
+        ImportPyPlot()
+        # Extract the data.
+        C = getattr(self, c)
+        # ---------
+        # Last Iter 
+        # ---------
+        # Most likely last iteration
+        iB = self.i[-1]
+        # Check for an input last iter
+        if nLast is not None:
+            # Attempt to use requested iter.
+            if nLast < iB:
+                # Using an earlier iter; make sure to use one in the hist.
+                # Find the iterations that are less than i.
+                jB = self.GetIterationIndex(nLast)
+                iB = self.i[jB]
+        # Get the index of *iB* in *FM.i*.
+        jB = self.GetIterationIndex(iB)
+        # --------------
+        # Averaging Iter
+        # --------------
+        # Get the first iteration to use in averaging.
+        iA = max(0, iB-nAvg) + 1
+        # Make sure *iV* is in *FM.i* and get the index.
+        jA = self.GetIterationIndex(iA)
+        # Reselect *iV* in case initial value was not in *FM.i*.
+        iA = self.i[jA]
+        # --------
+        # Plotting
+        # --------
+        # Calculate statistics.
+        cAvg = np.mean(C[jA:jB+1])
+        cStd = np.std(C[jA:jB+1])
+        cErr = util.SigmaMean(C[jA:jB+1])
+        # Calculate # of independent samples
+        # Number of available samples
+        nStat = jB - jA + 1
+        # Initialize dictionary of handles.
+        h = {}
+        # Plot the histogram.
+        h[c] = plt.hist(C[jA:jB+1], nBin,
+            normed=1, histtype='bar', rwidth=0.85, color='#2020ff')
+        # Labels.
+        h['x'] = plt.xlabel(c)
+        h['y'] = plt.ylabel('PDF')
+        # Get the axes.
+        h['ax'] = plt.gca()
+        # Make a label for the mean value.
+        lbl = u'\u03BC(%s) = %.4f' % (c, cAvg)
+        h['mu'] = plt.text(1.0, 1.06, lbl, horizontalalignment='right',
+            verticalalignment='top', transform=h['ax'].transAxes)
+        # Make a label for the standard deviation.
+        lbl = u'\u03C3(%s) = %.4f' % (c, cStd)
+        h['sigma'] = plt.text(0.02, 1.06, lbl, horizontalalignment='left',
+            verticalalignment='top', transform=h['ax'].transAxes)
+        # Make a label for the uncertainty.
+        lbl = u'\u03C3(\u03BC) = %.4f' % cErr
+        h['err'] = plt.text(0.02, 0.98, lbl, horizontalalignment='left',
+            verticalalignment='top', transform=h['ax'].transAxes)
+        # Attempt to set font to one with Greek symbols.
+        try:
+            # Set the fonts.
+            h['mu'].set_family("DejaVu Sans")
+            h['sigma'].set_family("DejaVu Sans")
+            h['err'].set_family("DejaVu Sans")
+        except Exception:
+            pass
+        # Output.
+        return h
 
     
 
@@ -3150,5 +3196,87 @@ class CaseResid(object):
         L1End = np.log10(self.L1Resid[i:])
         # Return the drop
         return L1Init - L1End
+        
+    # Plot function
+    def PlotL1(self, n=None, nFirst=None, nLast=None):
+        """Plot the L1 residual
+        
+        :Call:
+            >>> h = hist.PlotL1(n=None, nFirst=None, nLast=None)
+        :Inputs:
+            *hist*: :class:`pyCart.dataBook.CaseResid`
+                Instance of the DataBook residual history
+            *n*: :class:`int`
+                Only show the last *n* iterations
+            *nFirst*: :class:`int`
+                Plot starting at iteration *nStart*
+            *nLast*: :class:`int`
+                Plot up to iteration *nLast*
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of figure/plot handles
+        :Versions:
+            * 2014-11-12 ``@ddalle``: First version
+            * 2014-12-09 ``@ddalle``: Moved to :class:`AeroPlot`
+            * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
+            * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
+        """
+        # Make sure plotting modules are present.
+        ImportPyPlot()
+        # Initialize dictionary.
+        h = {}
+        # Get iteration numbers.
+        if n is None:
+            # Use all iterations
+            n = self.i[-1]
+        # ---------
+        # Last Iter 
+        # ---------
+        # Most likely last iteration
+        iB = self.i[-1]
+        # Check for an input last iter
+        if nLast is not None:
+            # Attempt to use requested iter.
+            if nLast < iB:
+                # Using an earlier iter; make sure to use one in the hist.
+                jB = np.where(self.i <= nLast)[0][-1]
+                # Find the iterations that are less than i.
+                iB = self.i[jB]
+        # Get the index of *iB* in *FM.i*.
+        jB = np.where(self.i == iB)[0][-1]
+        # ----------
+        # First Iter
+        # ----------
+        # Get the starting iteration number to use.
+        i0 = max(0, iB-n, nFirst) + 1
+        # Make sure *iA* is in *FM.i* and get the index.
+        j0 = np.where(self.i <= i0)[0][-1]
+        # Reselect *iA* in case initial value was not in *FM.i*.
+        i0 = self.i[j0]
+        # --------
+        # Plotting
+        # --------
+        # Extract iteration numbers and residuals.
+        i  = self.i[i0:]
+        L1 = self.L1Resid[i0:]
+        L0 = self.L1Resid0[i0:]
+        # Check if L0 is too long.
+        if len(L0) > len(i):
+            # Trim it.
+            L0 = L0[:len(i)]
+        # Plot the initial residual if there are any unsteady iterations.
+        if L0[-1] > L1[-1]:
+            h['L0'] = plt.semilogy(i, L0, 'b-', lw=1.2)
+        # Plot the residual.
+        h['L1'] = plt.semilogy(i, L1, 'k-', lw=1.5)
+        # Labels
+        h['x'] = plt.xlabel('Iteration Number')
+        h['y'] = plt.ylabel('L1 Residual')
+        # Get the axes.
+        h['ax'] = plt.gca()
+        # Set the xlimits.
+        h['ax'].set_xlim((i0, iB+25))
+        # Output.
+        return h
         
         
