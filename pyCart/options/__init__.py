@@ -35,6 +35,7 @@ from .Functional  import Functional
 from .Plot        import Plot
 from .DataBook    import DataBook
 from .Management  import Management
+from .Report      import Report, Figure
 
 
 # Class definition
@@ -85,6 +86,7 @@ class Options(odict):
         self._Functional()
         self._Plot()
         self._DataBook()
+        self._Report()
         self._Management()
         # Add extra folders to path.
         self.AddPythonPath()
@@ -230,6 +232,17 @@ class Options(odict):
         elif type(self['DataBook']).__name__ == 'dict':
             # Convert to special class
             self['DataBook'] = DataBook(**self['DataBook'])
+            
+    # Initialization method for pyCart automated report
+    def _Report(self):
+        """Initialize report options if necessary"""
+        # Check status.
+        if 'Report' not in self:
+            # Missing entirely.
+            sel['Report'] = Report()
+        elif type(self['Report']).__name__ == 'dict':
+            # Convert to special class
+            self['Report'] = Report(**self['Report'])
     
     # Initialization method for folder management optoins
     def _Management(self):

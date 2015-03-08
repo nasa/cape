@@ -29,25 +29,22 @@ class InputCntl(FileCntl):
     :Call:
         >>> cntl = pyCart.InputCntl()
         >>> cntl = pyCart.InputCntl(fname)
-        
     :Inputs:
         *fname*: :class:`str`
             Name of CNTL file to read, defaults to ``'input.cntl'``
+    :Version:
+        * 2014-06-04 ``@ddalle``: First version
     """
     
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="input.cntl"):
         """Initialization method"""
-        # Versions:
-        #  2014-06-04 @ddalle  : First version
-        
         # Read the file.
         self.Read(fname)
         # Save the file name.
         self.fname = fname
         # Split into sections.
         self.SplitToSections(reg="\$__([\w_]+)")
-        return None
         
     # Function to set to first-order mode
     def SetFirstOrder(self):

@@ -246,6 +246,75 @@
         }
     },
     
+    // Report specifications
+    "Report": {
+        // Defaults
+        "Figures": {
+            // Results tables figure
+            "Summary": {
+                // List of subfigures
+                "Subfigures": ["Conditions", "Forces"],
+                // Generic options
+                "Alignment": "left"
+            },
+            // Force convergence figure
+            "History": {
+                "Subfigures": [
+                    "RSRB_CA", "RSRB_CY", "RSRB_CN",
+                    "LSRB_CA", "LSRB_CY", "LSRB_CN", "L1"
+                ],
+                "Header": "Force, moment, and residual histories",
+                "Alignment": "center"
+            }
+        },
+        // Set options for specific subfigures
+        "Subfigures": {
+            // RSRB plots
+            "RSRB": {
+                "Type": "PlotCoeff",
+                "Component": "RSRB_No_Base",
+                "Delta": 0.02
+            },
+            "RSRB_CA": {"Type": "RSRB", "Coefficient": "CA", "Delta": 0.005}, 
+            "RSRB_CY": {"Type": "RSRB", "Coefficient": "CY"},
+            "RSRB_CN": {"Type": "RSRB", "Coefficient": "CN"},
+            // LSRB plots
+            "LSRB": {
+                "Type": "PlotCoeff",
+                "Component": "LSRB_No_Base",
+                "Delta": 0.02
+            },
+            "LSRB_CA": {"Type": "LSRB", "Coefficient": "CA", "Delta": 0.005}, 
+            "LSRB_CY": {"Type": "LSRB", "Coefficient": "CY"},
+            "LSRB_CN": {"Type": "LSRB", "Coefficient": "CN"},
+            "L1": {"Type": "PlotL1"},
+            // Conditions table
+            "Conditions": {
+                "Type": "Conditions",
+                "Header": "Conditions",
+                "Position": "t",
+                "SkipVars": ["ky", "kz", "kps", "kth", "kph"]
+            },
+            // Force and moment results table
+            "Forces": {
+                "Type": "Summary",
+                "Header": "Force \\& moment summary",
+                "Position": "t",
+                "Iteration": 0,
+                "Components": ["CORE_No_Base", "LSRB_No_Base", "RSRB_No_Base"],
+                "Coefficients": ["CA", "CY", "CN"],
+                "CA": ["mu", "std", "err"],
+                "CN": ["mu", "err"]
+            }   
+        }, 
+        // Case history
+        "case": {
+            "Title": "Cart3D Force, Moment, \\& Residual Report",
+            "Figures": ["Summary", "History"]
+        }
+    },
+            
+    
     // Trajectory description
     "Trajectory": {
         // If a file is specified, and it exists, trajectory values will be

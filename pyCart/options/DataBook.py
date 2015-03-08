@@ -1,4 +1,4 @@
-"""Interface for Cart3D meshing settings"""
+"""Interface for Cart3D data book configuration"""
 
 
 # Import options-specific utilities
