@@ -8,6 +8,40 @@ from .util import rc0, odict
 class Report(odict):
     """Dictionary-based interface for options specific to plotting"""
     
+    # List of reports
+    def get_ReportList(self):
+        """Get list of reports available to create
+        
+        :Call:
+            >>> reps = opts.get_ReportList()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *reps*: :class:`list` (:class:`str`)
+                List of reports by name
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Get the full list of keys.
+        K = self.keys()
+        # Initialize outputs.
+        reps = []
+        # Loop through keys/
+        for k in K:
+            # Check the key
+            if k in ['Figures', 'Subfigures']:
+                # Known universal option
+                continue
+            elif type(self[k]).__name__ != 'dict':
+                # Mystery type
+                continue
+            else:
+                # Append to list of reports.
+                reps.append(k)
+        # Output
+        return reps
+            
     # List of figures
     def get_FigList(self):
         """Get list of figures for a report
@@ -91,12 +125,12 @@ class Report(odict):
             * 2015-03-08 ``@ddalle``: First version
         """
         # Check for the figure.
-        if fig in self.get_SubfigList():
+        if sfig in self.get_SubfigList():
             # Get the figure.
             return self['Subfigures'][sfig]
         else:
             # Return empty figure.
-            return 
+            return
             
     # Get alignment for a figure
     def get_FigAlignment(self, fig):
@@ -120,8 +154,197 @@ class Report(odict):
         # Get the option
         return F.get('Alignment', 'center')
     
-
+    # Get figure header
+    def get_FigHeader(self, fig):
+        """Get header (if any) for a figure
+        
+        :Call:
+            >>> lbl = opts.get_FigHeader(fig)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *fig*: :class:`str`
+                Name of figure
+        :Outputs:
+            *lbl*: :class:`str`
+                Figure header
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Get the figure.
+        F = self.get_Figure(fig)
+        # Return the header.
+        return F.get('Header', '')
 
     # Get list of subfigures in a figure
-    
-    
+    def get_FigSubfigList(self, fig):
+        """Get list of subfigures for a figure
+        
+        :Call:
+            >>> sfigs = opts.get_FigSubfigList(fig)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *fig*: :class:`str`
+                Name of figure
+        :Outputs:
+            *sfigs*: :class:`list` (:class:`str`)
+                Figure header
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Get the figure.
+        F = self.get_Figure(fig)
+        # Return the list of subfigures
+        return F.get('Subfigures', [])
+        
+        
+    # Process subfigure type
+    def get_SubfigType(self, sfig):
+        """Get type for an individual subfigure
+        
+        :Call:
+            >>> t = opts.get_SubfigType(sfig)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *sfig*: :class:`str`
+                Name of subfigure
+        :Outputs:
+            *t*: :class:`str`
+                Subfigure type
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Get the subfigure
+        S = self.get_Subfigure(sfig)
+        # Return the type.
+        return S.get('Type', '')
+        
+    # Get base type of a figure
+    def get_SubfigBaseType(self, sfig):
+        """Get type for an individual subfigure
+        
+        :Call:
+            >>> t = opts.get_SubfigBaseType(sfig)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *sfig*: :class:`str`
+                Name of subfigure
+        :Outputs:
+            *t*: ['Conditions', 'Summary', 'PlotCoeff', 'PlotL1']
+                Subfigure parent type
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Get the subfigure specified type
+        t = self.get_SubfigType(sfig)
+        # Check if it is a base category.
+        if t in ['Conditions', 'Summary', 'PlotCoeff', 'PlotL1']:
+            # Yes, it is.
+            return t
+        else:
+            # Derived type; recurse.
+            return self.get_SubfigBaseType(t)
+        
+    # Process defaults.
+    def get_SubfigOpt(self, sfig, opt):
+        """Retrieve an option for a subfigure, applying necessary defaults
+        
+        :Call:
+            >>> val = opts.get_SubfigOpt(sfig, opt)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *sfig*: :class:`str`
+                Name of subfigure
+            *opt*: :class:`str`
+                Name of option to retrieve
+        :Outputs:
+            *val*: any
+                Subfigure option value
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Get the subfigure.
+        S = self.get_Subfigure(sfig)
+        # Check if the option is present
+        if opt in S:
+            # Simple non-default case
+            return S[opt]
+        # Get the type.
+        t = self.get_SubfigType(sfig)
+        # Process known defaults.
+        if t in ['Conditions']:
+            # Default conditions subfigure
+            S = {
+                "Header": "Conditions",
+                "Position": "t",
+                "Alignment": "left",
+                "Width": 0.4,
+                "SkipVars": []
+            }
+        elif t in ['Summary']:
+            # Default results summary
+            S = {
+                "Header": "Force \\& moment summary",
+                "Position": "t",
+                "Alignment": "left",
+                "Width": 0.6,
+                "Iteration": 0,
+                "Components": ["entire"],
+                "Coefficients": ["CA", "CY", "CN"],
+                "CA": ["mu", "std", "err"],
+                "CY": ["mu", "std", "err"],
+                "CN": ["mu", "std", "err"],
+                "CLL": ["mu", "std", "err"],
+                "CLM": ["mu", "std", "err"],
+                "CLN": ["mu", "std", "err"]
+            }
+        elif t in ['PlotCoeff']:
+            # Force or moment history
+            S = {
+                "Header": "",
+                "Position": "b",
+                "Alignment": "center",
+                "Width": 0.5,
+                "Component": "entire",
+                "Coefficient": "CN",
+                "Delta": 0
+            }
+        elif t in ['PlotL1']:
+            # Residual history
+            S = {
+                "Header": "",
+                "Position": "b",
+                "Alignment": "center",
+                "Width": 0.5
+            }
+        else:
+            # This is a derived subfigure type; recurse.
+            return self.get_SubfigOpt(t, opt)
+        # Get the default value.
+        return S.get(opt)
+        
+    # Process subfigure alignment
+    def get_SubfigAlignment(self, sfig):
+        """Get alignment for a subfigure
+        
+        :Call:
+            >>> algn = opts.get_SubfigAlignment(sfig)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *sfig*: :class:`str`
+                Name of subfigure
+        :Outputs:
+            *algn*: :class:`str`
+                Subfigure alignment
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Get the subfigure.
+        S = self.get_Subfigure(self, sfig)
+        
+        

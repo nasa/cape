@@ -35,7 +35,7 @@ from .Functional  import Functional
 from .Plot        import Plot
 from .DataBook    import DataBook
 from .Management  import Management
-from .Report      import Report, Figure
+from .Report      import Report
 
 
 # Class definition
