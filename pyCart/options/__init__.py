@@ -239,7 +239,7 @@ class Options(odict):
         # Check status.
         if 'Report' not in self:
             # Missing entirely.
-            sel['Report'] = Report()
+            self['Report'] = Report()
         elif type(self['Report']).__name__ == 'dict':
             # Convert to special class
             self['Report'] = Report(**self['Report'])
