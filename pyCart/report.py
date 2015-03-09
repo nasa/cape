@@ -103,10 +103,12 @@ class Report(object):
         """Open, create if necessary, and update LaTeX file for a case
         
         :Call:
-            >>> R.OpenCase(i)
+            >>> R.UpdateCase(i)
         :Inputs:
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
+            *i*: :class:`int`
+                Case index
         :Versions:
             * 2015-03-08 ``@ddalle``: First version
         """
@@ -564,6 +566,7 @@ class Report(object):
         f.write('\\usepackage{amssymb}\n')
         f.write('\\usepackage{times}\n')
         f.write('\\usepackage{DejaVuSansMono}\n')
+        f.write('\\usepackage[usenames]{xcolor}\n')
         f.write('\\usepackage[T1]{fontenc}\n\n')
         
         # Set the title and author.
@@ -718,7 +721,7 @@ class Report(object):
             * 2015-03-08 ``@ddalle``: First version
         """
         # Get archive option.
-        q = self.cart3d.opts.get_ReportArchive(rep)
+        q = self.cart3d.opts.get_ReportArchive()
         # Check direction.
         if fdir.startswith('..'):
             # Check archive option.
