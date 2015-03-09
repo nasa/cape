@@ -110,9 +110,14 @@ class Report(object):
         :Versions:
             * 2015-03-08 ``@ddalle``: First version
         """
+        # --------
+        # Checking
+        # --------
         # Get the case name.
         fgrp = self.cart3d.x.GetGroupFolderNames(i)
         fdir = self.cart3d.x.GetFolderNames(i)
+        # Add the include statement to the document.
+        
         # Go to the report directory if necessary.
         fpwd = os.getcwd()
         os.chdir(self.cart3d.RootDir)
@@ -136,17 +141,176 @@ class Report(object):
             # Go home and quit.
             os.chdir(fpwd)
             return
+        # -------------
+        # Initial setup
+        # -------------
         # Check for the file.
         if not os.path.isfile(self.fname): self.WriteCaseSkeleton(i)
         # Open it.
         self.cases[i] = tex.Tex(self.fname)
         # Set the iteration number and status header.
         self.SetHeaderStatus(i)
+        # -------
+        # Figures
+        # -------
         
+        
+        
+    # Function to write a figure.
+    def UpdateFigure(self, fig, i):
+        """Write the figure and update the contents as necessary for *fig*
+        
+        :Call:
+            >>> R.UpdateFigure(fig, i)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *fig*: :class:`str`
+                Name of figure to update
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2014-03-08 ``@ddalle``: First version
+        """
+        # -----
+        # Setup
+        # -----
+        # Handle for the case file.
+        tx = self.case[i]
+        tf = tx['Figures']
+        # Figure header line
+        ffig = '%%<%s\n' % fig
+        # Check for the figure.
+        if ffig in tf:
+            # Get the location.
+            ifig = tf.index(ffig)
+            # Get the location of the end of the figure.
+            ofig = ifig + tf[ifig:].index('%>\n')
+            # Delete those lines (to be replaced).
+            del tf[ifig:(ofig+1)]
+        else:
+            # Insert the figure right before the end.
+            ifig = len(tf) - 1
+        # --------------
+        # Initialization
+        # --------------
+        # Initialize lines
+        lines = []
+        # Write the header line.
+        lines.append(ffig)
+        # Do not indent anything.
+        lines.append('\\noindent\n')
+        # Get the optional header
+        fhdr = self.cart3d.opts.get_FigHeader(fig)
+        if fhdr:
+            # Add it.
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+            lines.append('\\vskip-6pt\n')
+        # Start the figure.
+        lines.append('\\begin{figure}[!h]\n')
+        # -------
+        # Subfigs
+        # -------
+        # Get list of subfigures.
+        sfigs = self.cart3d.opts.get_FigSubfigList(fig)
+        # Loop through subfigs.
+        for sfig in sfigs:
+            # Get the base type.
+            btyp = self.cart3d.opts.get_SubfigBaseType(sfig)
+            # Process it.
+            if btyp == 'Conditions':
+                # Get the content.
+                lines += self.SubfigConditions(sfig, i)
+                
+            # Put some space.
+            lines += '\n'
+        # -------
+        # Cleanup
+        # -------
+        # End the figure for LaTeX
+        lines.append('\\end{figure}\n')
+        # pyCart report end figure marker
+        lines.append('%>\n')
+        # Add the lines to the section.
+        for line in lines:
+            tf.insert(ifig, line)
+            ifig += 1
+        # Synchronize the overall text.
+        tx.UpdateLines()
+        
+    # Function to write conditions table
+    def SubfigConditions(self, sfig, i):
+        """Create lines for a "Conditions" subfigure
+        
+        :Call:
+            >>> lines = R.SubfigConditions(sfig, i)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2014-03-08 ``@ddalle``: First version
+        """
+        # Extract the trajectory
+        x = self.cart3d.x
+        # Get the vertical alignment.
+        hv = self.cart3d.opts.get_SubfigOpt(sfig, 'Position')
+        # Get subfigure width
+        wsfig = self.cart3d.opts.get_SubfigOpt(sfig, 'Width')
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = self.cart3d.opts.get_SubfigOpt(sfig, 'Header')
+        if fhdr:
+            # Write it.
+            lines.append('\\noindent\n')
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+        # Begin the table.
+        lines.append('\\noindent\n')
+        lines.append('\\begin{tabular}{ll|c}\n')
+        # Header row
+        lines.append('\\hline \\hline\n')
+        lines.append('\\textbf{\\textsf{Variable}} &\n')
+        lines.append('\\textbf{\\textsf{Abbr.}} &\n')
+        lines.append('\\textbf{\\textsf{Value}} \\\\\n')
+        lines.append('\\hline\n')
+        
+        # Get the variables to skip.
+        skvs = self.cart3d.opts.get_SubfigOpt(sfig, 'SkipVars')
+        # Loop through the figures.
+        for k in x.keys:
+            # Check if it's a skip variable
+            if k in skvs: continue
+            # Write the variable name.
+            line = k
+            # Append the abbreviation.
+            line += " & {\small\textsf{%s}} & " % x.defns[k]['Abbreviation']
+            # Append the value.
+            if x.defns[k]['Value'] in ['str', 'unicode']:
+                # Put the value in sans serif
+                line += "{\small\textsf{%s}} \\\\" % getattr(x,k)[i]
+            elif x.defns[k]['Value'] in ['float', 'int']:
+                # Put the value as a number
+                line += "$%s$ \\\\" % getattr(x,k)[i]
+            else:
+                # Just put a string
+                line += "%s \\\\" % getattr(x,k)[i]
+            # Add the line to the table.
+            lines.append(line)
+        
+        # Finish the subfigure
+        lines.append('\\hline \\hline\n')
+        lines.append('\\end{tabular}\n')
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
         
         
     # Read the iteration to which the figures for this report have been updated
-    def ReadCaseJSONIter():
+    def ReadCaseJSONIter(self):
         """Read JSON file to determine what the current iteration for the report is
         
         The status is read from the present working directory
@@ -176,7 +340,7 @@ class Report(object):
         return tuple(opts.get(self.rep, [None, None]))
         
     # Set the iteration of the JSON file.
-    def SetCaseJSONIter(n, sts):
+    def SetCaseJSONIter(self, n, sts):
         """Mark the JSON file to say that the figure is up to date
         
         :Call:
@@ -303,7 +467,7 @@ class Report(object):
         os.chdir(fpwd)
         
     # Function to write skeleton for a case.
-    def WriteCaseSkeleton(i):
+    def WriteCaseSkeleton(self, i):
         """Initialize LaTeX file for case *i*
         
         :Call:
@@ -336,7 +500,7 @@ class Report(object):
         f.close()
         
     # Function to set the upper-right header
-    def SetHeaderStatus(i):
+    def SetHeaderStatus(self, i):
         """Set header to state iteration progress and summary status
         
         :Call:
