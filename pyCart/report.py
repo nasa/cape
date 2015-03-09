@@ -218,7 +218,7 @@ class Report(object):
         if fhdr:
             # Add it.
             lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
-            lines.append('\\vskip-6pt\n')
+            lines.append('\\vskip-10pt\n')
         # Start the figure.
         lines.append('\\begin{figure}[!h]\n')
         # -------
@@ -399,7 +399,7 @@ class Report(object):
         # Create plot if possible
         if nIter >= 2:
             # Don't use iterations before *nMin*
-            nMax = min(nMax, nCur-nMin)
+            nMax = min(nMax, nIter-nMin)
             # Go to the run directory.
             os.chdir(self.cart3d.RootDir)
             os.chdir(frun)
@@ -408,7 +408,7 @@ class Report(object):
             # Get the statistics.
             s = FM.GetStats(nStats=nStats, nMax=nMax, nLast=nPlotLast)
             # Draw the plot.
-            h = FM.PlotCoeff(c, n=nPlot, nAvg=s['nStats'],
+            h = FM.PlotCoeff(coeff, n=nPlotIter, nAvg=s['nStats'],
                 nFirst=nPlotFirst, nLast=nPlotLast, d=dc)
             # Change back to report folder.
             os.chdir(fpwd)
@@ -424,11 +424,13 @@ class Report(object):
             else:
                 # Save with resolution.
                 h['fig'].savefig(fimg, dpi=dpi)
+            # Close the figure.
+            h['fig'].clf()
             # Include the graphics.
             lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
                 % (frun, fimg))
         # Set the caption.
-        lines.append('\\caption{%s}\n' % fcpt)
+        lines.append('\\caption*{%s}\n' % fcpt)
         # Close the subfigure.
         lines.append('\\end{subfigure}\n')
         # Output
@@ -727,7 +729,7 @@ class Report(object):
         
         # Small captions if needed
         f.write('\\captionsetup[subfigure]')
-        f.write('{textfont=sf,font+=footnotesize}\n\n')
+        f.write('{textfont=sf,font+=scriptsize}\n\n')
         
         # Macros for setting cases.
         f.write('\\newcommand{\\thecase}{}\n')

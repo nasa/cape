@@ -2839,8 +2839,6 @@ class CaseFM(object):
         """
         # Make sure plotting modules are present.
         ImportPyPlot()
-        # Extract the component.
-        FM = self[comp]
         # Extract the data.
         C = getattr(self, c)
         # Process inputs.
@@ -2909,7 +2907,8 @@ class CaseFM(object):
         # Labels.
         h['x'] = plt.xlabel('Iteration Number')
         h['y'] = plt.ylabel(c)
-        # Get the axes.
+        # Get the figure and axes.
+        h['fig'] = plt.gcf()
         h['ax'] = plt.gca()
         # Set the xlimits.
         h['ax'].set_xlim((i0, iB+25))
