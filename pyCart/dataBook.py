@@ -1837,7 +1837,7 @@ class Aero(dict):
             self[comp] = CaseFM(d['C'], MRP=d['MRP'], A=A)
             
     # Function to calculate statistics and select ideal nStats
-    def GetStats(self, nStats=0, nMax=0):
+    def GetStats(self, nStats=0, nMax=0, nLast=None):
         """
         Get statistics for all components and decide how many iterations to use
         for calculating statistics.
@@ -1848,12 +1848,14 @@ class Aero(dict):
         candidates for the number of iterations to use.
         
         :Call:
-            >>> S = A.GetStats(nStats, nMax=0)
+            >>> S = A.GetStats(nStats, nMax=0, nLast=None)
         :Inputs:
             *nStats*: :class:`int`
                 Nominal number of iterations to use in statistics
             *nMax*: :class:`int`
                 Maximum number of iterations to use for statistics
+            *nLast*: :class:`int`
+                Specific iteration at which to get statistics
         :Outputs:
             *S*: :class:`dict` (:class:`dict` (:class:`float`))
                 Dictionary of statistics for each component
@@ -1865,9 +1867,9 @@ class Aero(dict):
         # Initialize statistics for this count.
         S = {}
         # Loop through components.
-        for comp in A:
+        for comp in self:
             # Get the statistics.
-            S[comp] = A[comp].GetStats(n)
+            S[comp] = self[comp].GetStats(n, nMax=nMax, nLast=nLast)
         # Output
         return S
     

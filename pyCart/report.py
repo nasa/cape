@@ -54,7 +54,7 @@ class Report(object):
         fpwd = os.getcwd()
         os.chdir(cart3d.RootDir)
         # Create the report folder if necessary.
-        if not os.path.isdir('report'): os.mkdir(report, dmask)
+        if not os.path.isdir('report'): os.mkdir('report', dmask)
         # Go into the report folder.
         os.chdir('report')
         # Get the options and save them.
@@ -307,6 +307,153 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
+        
+    # Function to write summary table
+    def SubfigSummary(self, sfig, i):
+        """Create lines for a "Summary" subfigure
+        
+        :Call:
+            >>> lines = R.SubfigSummary(sfig, i)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2014-03-08 ``@ddalle``: First version
+        """
+        # Save current folder.
+        fpwd = os.getcwd()
+        # Get the status and data book options
+        nIter  = self.cart3d.CheckCase(i)
+        nStats = self.cart3d.opts.get_nStats()
+        nMin   = self.cart3d.opts.get_nMin()
+        nMax   = self.cart3d.opts.get_nMaxStats()
+        # Iteration at which to build table
+        nOpt = self.cart3d.opts.get_SubfigOpt(sfig, "Iteration")
+        # Make sure current progress is a number
+        if nIter is None: nIter = 0
+        # Get the components.
+        comps = self.cart3d.opts.get_SubfigOpt(sfig, "Components")
+        # Translate into absolute iteration number if relative.
+        if nOpt == 0:
+            # Use last iteration (standard)
+            nCur = nIter
+        elif nOpt < 0:
+            # Use iteration relative to the end
+            nCur = nIter + 1 + nOpt
+        else:
+            # Use the number
+            nCur = nOpt
+        # Get statistics if possible.
+        if nCur >= max(1, nMin+nStats):
+            # Don't use iterations before *nMin*
+            nMax = min(nMax, nCur-nMin)
+            # Go to the run directory.
+            os.chdir(self.cart3d.RootDir)
+            os.chdir(cart3d.x.GetFullFolderNames(i))
+            # Read the Aero history
+            A = Aero(comps)
+            # Get the statistics.
+            S = A.GetStats(nStats=nStats, nMax=nMax, nLast=nCur)
+        else:
+            # No stats.
+            S = {}
+        # Get the vertical alignment.
+        hv = self.cart3d.opts.get_SubfigOpt(sfig, 'Position')
+        # Get subfigure width
+        wsfig = self.cart3d.opts.get_SubfigOpt(sfig, 'Width')
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = self.cart3d.opts.get_SubfigOpt(sfig, 'Header')
+        # Add the iteration number to header
+        line = '\\textbf{\\textit{%s}} (Iteration %i' % (fhdr, nCur)
+        # Add number of iterations used for statistics
+        if len(S)>0:
+            # Add stats count.
+            line += (', {\\small \texttt{nStats=%i}}' % S[comps[0]]['nStats'])
+        # Close parentheses
+        line += ')\\par\n'
+        # Write the header.
+        lines.append('\\noindent\n')
+        lines.append(line)
+        # Begin the table with the right amount of columns.
+        lines.append('\\begin{tabular}{l' + ('|c'*len(comps)) + '}\n')
+        # Write headers.
+        lines.append('\\textbf{\\textsf{Coefficient}\n')
+        for comp in comps:
+            lines.append(' & \\textbf{\\textsf{%s}} \n' % comp)
+        lines.append('\\\\\n')
+        # Loop through coefficients
+        for c in self.cart3d.opts.get_SubfigOpt(sfig, "Coefficients"):
+            # Convert coefficient title to symbol
+            if c in ['CA', 'CY', 'CN']:
+                # Just add underscore
+                fc = c[0] + '_' + c[1]
+            elif c in ['CLL']:
+                # Special rolling moment
+                fc = 'C_\ell'
+            elif c in ['CLM', 'CLN']:
+                # Other moments
+                fc = 'C_%s' % c[-1].lower()
+            else:
+                # What?
+                fc = 'C_{%s}' % c[1:]
+            # Print horizontal line
+            lines.append('\\hline\n')
+            # Loop through statistical varieties.
+            for fs in self.cart3d.opts.get_SubfigOpt(sfig, c):
+                # Write the description
+                if fs == 'mu':
+                    # Mean
+                    lines.append('\\textit{%s} mean, $\\mu(%s)$\n' % (c, fc))
+                elif fs == 'std':
+                    # Standard deviation
+                    lines.append(
+                        '\\textit{%s} standard deviation, $\\sigma(%s)$\n'
+                        % (c, fc))
+                elif fs == 'err':
+                    # Uncertainty
+                    lines.append('\\textit{%s} iterative uncertainty, ' % c 
+                        + '$\\varepsilon(%s)$' % fc)
+                elif fs == 'min':
+                    # Min value
+                    lines.append(
+                        '\\textit{%s} minimum, $\\min(%s)$' % (c, fc))
+                elif fs == 'max':
+                    # Min value
+                    lines.append(
+                        '\\textit{%s} maximum, $\\max(%s)$' % (c, fc))
+                # Initialize line
+                line = ''
+                # Loop through components.
+                for comp in comps:
+                    # Check for iterations.
+                    if nCur <= 0:
+                        # No iterations
+                        line += '& $-$ '
+                    elif fs == 'mu':
+                        # Process value.
+                        line += ('& $%.4f$ ' % S[comp][c])
+                    elif (fs in ['min', 'max']) or (S[comp]['nStats'] > 1):
+                        # Process min/max or statistical value
+                        line += ('& $%.4f$ ' % S[comp][c+'_'+fs])
+                    else:
+                        # No statistics
+                        line += '& $-$ '
+                # Finish the line and append it.
+                line += '\\\\\n'
+                lines.append(line)
+        # Finish table and subfigure
+        lines.append('\\hline \\hline\n')
+        lines.append('\\end{tabular}\n')
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
+        
         
         
     # Read the iteration to which the figures for this report have been updated
