@@ -240,6 +240,9 @@ class Report(object):
             elif btyp == 'PlotCoeff':
                 # Get the force or moment history plot
                 lines += self.SubfigPlotCoeff(sfig, i)
+            elif btyp == 'PlotL1':
+                # Get the residual plot
+                lines += self.SubfigPlotL1(sfig, i)
         # -------
         # Cleanup
         # -------
@@ -431,6 +434,98 @@ class Report(object):
                 % (frun, fimg))
         # Set the caption.
         lines.append('\\caption*{%s}\n' % fcpt)
+        # Close the subfigure.
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
+        
+    # Function to create coefficient plot and write figure
+    def SubfigPlotL1(self, sfig, i):
+        """Create plot for L1 residual
+        
+        :Call:
+            >>> lines = R.SubfigPlotL1(sfig, i)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2014-03-09 ``@ddalle``: First version
+        """
+        # Save current folder.
+        fpwd = os.getcwd()
+        # Case folder
+        frun = self.cart3d.x.GetFullFolderNames(i)
+        # Extract options
+        opts = self.cart3d.opts
+        # Get the component.
+        comp = opts.get_SubfigOpt(sfig, "Component")
+        # Get the coefficient
+        coeff = opts.get_SubfigOpt(sfig, "Coefficient")
+        # Current status
+        nIter  = self.cart3d.CheckCase(i)
+        # Numbers of iterations for plots
+        nPlotIter  = opts.get_SubfigOpt(sfig, "nPlot")
+        nPlotFirst = opts.get_SubfigOpt(sfig, "nPlotFirst")
+        nPlotLast  = opts.get_SubfigOpt(sfig, "nPlotLast")
+        # Check for defaults.
+        if nPlotIter  is None: nPlotIter  = opts.get_nPlotIter(comp)
+        if nPlotFirst is None: nPlotFirst = opts.get_nPlotFirst(comp)
+        if nPlotLast  is None: nPlotLast  = opts.get_nPlotLast(comp)
+        # Get caption.
+        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        # Get the vertical alignment.
+        hv = opts.get_SubfigOpt(sfig, "Position")
+        # Get subfigure width
+        wsfig = opts.get_SubfigOpt(sfig, "Width")
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = opts.get_SubfigOpt(sfig, "Header")
+        # Alignment
+        algn = opts.get_SubfigOpt(sfig, "Alignment")
+        # Set alignment.
+        if algn.lower() == "center":
+            lines.append('\\centering\n')
+        # Write the header.
+        if fhdr:
+            # Save the line
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+            lines.append('\\vskip-6pt\n')
+        # Create plot if possible
+        if nIter >= 2:
+            # Go to the run directory.
+            os.chdir(self.cart3d.RootDir)
+            os.chdir(frun)
+            # Read the Aero history.
+            hist = CaseResid()
+            # Draw the plot.
+            h = hist.PlotCoeff(coeff, n=nPlotIter, 
+                nFirst=nPlotFirst, nLast=nPlotLast)
+            # Change back to report folder.
+            os.chdir(fpwd)
+            # Get the file formatting
+            fmt = opts.get_SubfigOpt(sfig, "Format")
+            dpi = opts.get_SubfigOpt(sfig, "DPI")
+            # Figure name
+            fimg = '%s.%s' % (sfig, fmt)
+            # Save the figure.
+            if fmt in ['pdf']:
+                # Save as vector-based image.
+                h['fig'].savefig(fimg)
+            else:
+                # Save with resolution.
+                h['fig'].savefig(fimg, dpi=dpi)
+            # Close the figure.
+            h['fig'].clf()
+            # Include the graphics.
+            lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                % (frun, fimg))
+        # Set the caption.
+        if fcpt: lines.append('\\caption*{%s}\n' % fcpt)
         # Close the subfigure.
         lines.append('\\end{subfigure}\n')
         # Output
