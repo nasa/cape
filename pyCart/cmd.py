@@ -320,7 +320,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
     if td_fc and mpi_fc:
         # Unsteady MPI flowCart
         cmd = [mpicmd, '-np', str(nProc), 'mpix_flowCart', 
-            '-his', '-clic', '-unsteady']
+            '-his', '-clic']
     elif td_fc:
         # Unsteady but not MPI
         cmd = ['flowCart', '-his', '-clic', '-unsteady']

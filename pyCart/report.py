@@ -129,17 +129,17 @@ class Report(object):
         # Go to the group folder.
         os.chdir(fgrp)
         # Create the case folder if necessary.
-        if not (os.path.isfile(fdir+'.tar') or os.path.isdir(fgrp)):
+        if not (os.path.isfile(fdir+'.tar') or os.path.isdir(fdir)):
             os.mkdir(fdir, dmask)
         # Go into the folder.
         self.cd(fdir)
         # Read the status file.
-        nr, stsr = self.ReadCaseIter()
+        nr, stsr = self.ReadCaseJSONIter()
         # Get the actual iteration number.
-        n = self.CheckCase(i)
-        sts = self.CheckStatus(i)
+        n = self.cart3d.CheckCase(i)
+        sts = self.cart3d.CheckCaseStatus(i)
         # Check if there's anything to do.
-        if not (nr is None) or (nr < n) or (stsr != sts):
+        if not ((nr is None) or (nr < n) or (stsr != sts)):
             # Go home and quit.
             os.chdir(fpwd)
             return
@@ -160,7 +160,13 @@ class Report(object):
         # Loop through figures.
         for fig in figs:
             self.UpdateFigure(fig, i)
-        
+        # -----
+        # Write
+        # -----
+        # Write the updated lines.
+        self.cases[i].Write()
+        # Go home.
+        os.chdir(fpwd)
         
         
     # Function to write a figure.
@@ -183,8 +189,8 @@ class Report(object):
         # Setup
         # -----
         # Handle for the case file.
-        tx = self.case[i]
-        tf = tx['Figures']
+        tx = self.cases[i]
+        tf = tx.Section['Figures']
         # Figure header line
         ffig = '%%<%s\n' % fig
         # Check for the figure.
@@ -238,13 +244,14 @@ class Report(object):
         lines.append('\\end{figure}\n')
         # pyCart report end figure marker
         lines.append('%>\n')
-        lines.append('\n')
         # Add the lines to the section.
         for line in lines:
             tf.insert(ifig, line)
             ifig += 1
-        # Synchronize the overall text.
-        self._updated_sections = True
+        # Update the section
+        tx.Section['Figures'] = tf
+        tx._updated_sections = True
+        # Synchronize the document
         tx.UpdateLines()
         
     # Function to write conditions table
@@ -294,19 +301,20 @@ class Report(object):
             # Check if it's a skip variable
             if k in skvs: continue
             # Write the variable name.
-            line = k
+            line = "{\\small\\textsf{%s}}" % k.replace('_', '\_')
             # Append the abbreviation.
-            line += " & {\small\textsf{%s}} & " % x.defns[k]['Abbreviation']
+            line += (" & {\\small\\textsf{%s}} & " % 
+                x.defns[k]['Abbreviation'].replace('_', '\_'))
             # Append the value.
             if x.defns[k]['Value'] in ['str', 'unicode']:
                 # Put the value in sans serif
-                line += "{\small\textsf{%s}} \\\\" % getattr(x,k)[i]
+                line += "{\\small\\textsf{%s}} \\\\\n" % getattr(x,k)[i]
             elif x.defns[k]['Value'] in ['float', 'int']:
                 # Put the value as a number
-                line += "$%s$ \\\\" % getattr(x,k)[i]
+                line += "$%s$ \\\\\n" % getattr(x,k)[i]
             else:
                 # Just put a string
-                line += "%s \\\\" % getattr(x,k)[i]
+                line += "%s \\\\\n" % getattr(x,k)[i]
             # Add the line to the table.
             lines.append(line)
         
@@ -362,7 +370,7 @@ class Report(object):
             nMax = min(nMax, nCur-nMin)
             # Go to the run directory.
             os.chdir(self.cart3d.RootDir)
-            os.chdir(cart3d.x.GetFullFolderNames(i))
+            os.chdir(self.cart3d.x.GetFullFolderNames(i))
             # Read the Aero history
             A = Aero(comps)
             # Get the statistics.
@@ -370,6 +378,8 @@ class Report(object):
         else:
             # No stats.
             S = {}
+        # Go back to original folder.
+        os.chdir(fpwd)
         # Get the vertical alignment.
         hv = self.cart3d.opts.get_SubfigOpt(sfig, 'Position')
         # Get subfigure width
@@ -383,7 +393,7 @@ class Report(object):
         # Add number of iterations used for statistics
         if len(S)>0:
             # Add stats count.
-            line += (', {\\small \texttt{nStats=%i}}' % S[comps[0]]['nStats'])
+            line += (', {\\small\\texttt{nStats=%i}}' % S[comps[0]]['nStats'])
         # Close parentheses
         line += ')\\par\n'
         # Write the header.
@@ -392,9 +402,11 @@ class Report(object):
         # Begin the table with the right amount of columns.
         lines.append('\\begin{tabular}{l' + ('|c'*len(comps)) + '}\n')
         # Write headers.
-        lines.append('\\textbf{\\textsf{Coefficient}\n')
+        lines.append('\\hline \\hline\n')
+        lines.append('\\textbf{\\textsf{Coefficient}}\n')
         for comp in comps:
-            lines.append(' & \\textbf{\\textsf{%s}} \n' % comp)
+            lines.append(' & {\\small\\texttt{%s}} \n'
+                % comp.replace('_', '\_'))
         lines.append('\\\\\n')
         # Loop through coefficients
         for c in self.cart3d.opts.get_SubfigOpt(sfig, "Coefficients"):
@@ -426,16 +438,16 @@ class Report(object):
                         % (c, fc))
                 elif fs == 'err':
                     # Uncertainty
-                    lines.append('\\textit{%s} iterative uncertainty, ' % c 
-                        + '$\\varepsilon(%s)$' % fc)
+                    lines.append('\\textit{%s} iterative uncertainty,\n' % c 
+                        + '$\\varepsilon(%s)$ ' % fc)
                 elif fs == 'min':
                     # Min value
                     lines.append(
-                        '\\textit{%s} minimum, $\\min(%s)$' % (c, fc))
+                        '\\textit{%s} minimum, $\\min(%s)$\n' % (c, fc))
                 elif fs == 'max':
                     # Min value
                     lines.append(
-                        '\\textit{%s} maximum, $\\max(%s)$' % (c, fc))
+                        '\\textit{%s} maximum, $\\max(%s)$\n' % (c, fc))
                 # Initialize line
                 line = ''
                 # Loop through components.
@@ -485,7 +497,7 @@ class Report(object):
             * 2014-10-02 ``@ddalle``: First version
         """
         # Check for the file.
-        if not os.path.isfile('report.json'): return None
+        if not os.path.isfile('report.json'): return [None, None]
         # Open the file
         f = open('report.json')
         # Read the settings.
@@ -559,15 +571,16 @@ class Report(object):
         f.write('    footskip=0.15in]{geometry}\n')
         # Other packages
         f.write('\\usepackage{graphicx}\n')
+        f.write('\\usepackage{caption}\n')
         f.write('\\usepackage{subcaption}\n')
         f.write('\\usepackage{hyperref}\n')
         f.write('\\usepackage{fancyhdr}\n')
         f.write('\\usepackage{amsmath}\n')
         f.write('\\usepackage{amssymb}\n')
         f.write('\\usepackage{times}\n')
-        f.write('\\usepackage{DejaVuSansMono}\n')
         f.write('\\usepackage[usenames]{xcolor}\n')
-        f.write('\\usepackage[T1]{fontenc}\n\n')
+        f.write('\\usepackage[T1]{fontenc}\n')
+        f.write('\\usepackage[scaled]{beramono}\n\n')
         
         # Set the title and author.
         f.write('\\title{%s}\n' % self.cart3d.opts.get_ReportTitle(self.rep))
@@ -591,7 +604,7 @@ class Report(object):
         # Empty header/footer format for first page
         f.write('\\fancypagestyle{plain}{%\n')
         f.write(' \\renewcommand{\\headrulewidth}{0pt}%\n')
-        f.write(' \\renewcommand(\\footrulewidth}{0pt}%\n')
+        f.write(' \\renewcommand{\\footrulewidth}{0pt}%\n')
         f.write(' \\fancyhf{}%\n')
         f.write('}\n\n')
         
@@ -652,6 +665,7 @@ class Report(object):
         
         # Empty section for the figures
         f.write('%$__Figures\n')
+        f.write('\n')
         
         # Close the file.
         f.close()
@@ -671,11 +685,11 @@ class Report(object):
             * 2014-03-08 ``@ddalle``: First version
         """
         # Get case current iteration
-        n = cart3d.CheckStatus(i)
+        n = self.cart3d.CheckCase(i)
         # Get case number of required iterations
-        nMax = cart3d.GetLastIter(i)
+        nMax = self.cart3d.GetLastIter(i)
         # Get status
-        sts = cart3d.CheckCaseStatus(i)
+        sts = self.cart3d.CheckCaseStatus(i)
         # Form iteration string
         if n is None:
             # Unknown.
@@ -699,7 +713,7 @@ class Report(object):
         self.cases[i].ReplaceOrAddLineToSectionStartsWith(
             '_header', '\\fancyhead[R]', line, -1)
         # Update sections.
-        self.UpdateLines()
+        self.cases[i].UpdateLines()
             
         
     

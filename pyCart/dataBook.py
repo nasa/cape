@@ -1869,7 +1869,7 @@ class Aero(dict):
         # Loop through components.
         for comp in self:
             # Get the statistics.
-            S[comp] = self[comp].GetStats(n, nMax=nMax, nLast=nLast)
+            S[comp] = self[comp].GetStats(nStats, nMax=nMax, nLast=nLast)
         # Output
         return S
     
