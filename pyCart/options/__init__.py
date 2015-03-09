@@ -1678,3 +1678,105 @@ class Options(odict):
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(DataBook,'set_'+k).__doc__
     
+    # =======
+    # Reports
+    # =======
+    
+    # Get report list
+    def get_ReportList(self):
+        self._Report()
+        return self['Report'].get_ReportList()
+        
+    # Get figure list
+    def get_FigList(self):
+        self._Report()
+        return self['Report'].get_FigList()
+    
+    # Get subfigure list
+    def get_SubfigList(self):
+        self._Report()
+        return self['Report'].get_SubfigList()
+        
+    # Get options for a single report
+    def get_Report(self, rep):
+        self._Report()
+        return self['Report'].get_Report(rep)
+        
+    # Get options for a single figure
+    def get_Figure(self, fig):
+        self._Report()
+        return self['Report'].get_Figure(fig)
+        
+    # Get options for a single subfigure
+    def get_Subfigure(self, sfig):
+        self._Report()
+        return self['Report'].get_Subfigure(sfig)
+        
+    # Get list of figures in a report
+    def get_ReportFigList(self, rep):
+        self._Report()
+        return self['Report'].get_ReportFigList(rep)
+        
+    # Get title string for a report
+    def get_ReportTitle(self, rep):
+        self._Report()
+        return self['Report'].get_ReportTitle(rep)
+        
+    # Get distribution limitation for a report
+    def get_ReportRestriction(self, rep):
+        self._Report()
+        return self['Report'].get_ReportRestriction(rep)
+    
+    # Get logo for a report
+    def get_ReportLogo(self, rep):
+        self._Report()
+        return self['Report'].get_ReportLogo(rep)
+        
+    # Get author string for a report
+    def get_ReportAuthor(self, rep):
+        self._Report()
+        return self['Report'].get_ReportAuthor(rep)
+        
+    # Get the list of subfigures in a figure
+    def get_FigSubfigList(self, fig):
+        self._Report()
+        return self['Report'].get_FigSubfigList(fig)
+        
+    # Get the figure alignment
+    def get_FigAlignment(self, fig):
+        self._Report()
+        return self['Report'].get_FigAlignment(fig)
+        
+    # Get the figure header
+    def get_FigHeader(self, fig):
+        self._Report()
+        return self['Report'].get_FigHeader(fig)
+    
+    # Get the subfigure type
+    def get_SubfigType(self, sfig):
+        self._Report()
+        return self['Report'].get_SubfigType(sfig)
+        
+    # Get the subfigure base type
+    def get_SubfigBaseType(self, sfig):
+        self._Report()
+        return self['Report'].get_SubfigBaseType(sfig)
+        
+    # Get an option for a subfigure
+    def get_SubfigOpt(self, sfig, opt):
+        self._Report()
+        return self['Report'].get_SubfigOpt(sfig, opt)
+    
+    # Copy over the documentation
+    for k in ['ReportList', 'FigList', 'SubfigList',
+            'Figure', 'Subfigure', 'Report',
+            'ReportFigList', 'ReportTitle', 'ReportAuthor',
+            'ReportRestriction', 'ReportLogo', 
+            'FigSubfigList', 'FigAlignment', 'FigHeader',
+            'SubfigType', 'SubfigBaseType', 'SubfigOpt'
+    ]:
+        # Get the documentation from the submodule
+        eval('get_'+k).__doc__ = getattr(Report,'get_'+k).__doc__
+    
+    
+    

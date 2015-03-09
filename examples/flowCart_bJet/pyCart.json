@@ -310,6 +310,9 @@
         // Case history
         "case": {
             "Title": "Cart3D Force, Moment, \\& Residual Report",
+            "Author": "Derek J.~Dalle",
+            "Logo": "NASA_logo.pdf",
+            "Restriction": "SBU - ITAR",
             "Figures": ["Summary", "History"]
         }
     },

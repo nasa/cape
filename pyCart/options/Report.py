@@ -82,6 +82,31 @@ class Report(odict):
         # Output the keys.
         return sfigs.keys()
         
+    # Get the report options.
+    def get_Report(self, rep):
+        """Return an interface to an individual figure
+        
+        :Call:
+            >>> R = opts.get_Report(rep)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *fig*: :class:`str`
+                Name of figure
+        :Outputs:
+            *R*: :class:`dict`
+                Options for figure *rep*
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Check for the figure.
+        if rep in self.get_ReportList():
+            # Get the figure.
+            return self[rep]
+        else:
+            # Return empty figure.
+            return {}
+        
     # Get the figure itself.
     def get_Figure(self, fig):
         """Return an interface to an individual figure
@@ -94,7 +119,7 @@ class Report(odict):
             *fig*: :class:`str`
                 Name of figure
         :Outputs:
-            *F*: :class:`pyCart.options.Report.Figure` or :class:`dict`
+            *F*: :class:`dict`
                 Options for figure *fig*
         :Versions:
             * 2015-03-08 ``@ddalle``: First version
@@ -119,7 +144,7 @@ class Report(odict):
             *sfig*: :class:`str`
                 Name of subfigure
         :Outputs:
-            *S*: :class:`pyCart.options.Report.Subfigure` or :class:`dict`
+            *S*: :class:`dict`
                 Options for subfigure *sfig*
         :Versions:
             * 2015-03-08 ``@ddalle``: First version
@@ -131,6 +156,121 @@ class Report(odict):
         else:
             # Return empty figure.
             return
+            
+    # Get report list of figures.
+    def get_ReportFigList(self, rep):
+        """Get list of figures in a report
+        
+        :Call:
+            >>> figs = opts.get_ReportFigList(rep)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *figs*: :class:`list` (:class:`str`)
+                List of figures in the report
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Get the report.
+        R = self.get_Report(rep)
+        # Get the list of figures.
+        return R.get('Figures', [])
+        
+    # Get report title
+    def get_ReportTitle(self, rep):
+        """Get the title of a report
+        
+        :Call:
+            >>> ttl = opts.get_ReportTitle(rep)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *ttl*: :class:`str`
+                Report title
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Get the report.
+        R = self.get_Report(rep)
+        # Get the title
+        return R.get('Title', 'pyCart Automated Report')
+        
+    # Get report author
+    def get_ReportAuthor(self, rep):
+        """Get the title of a report
+        
+        :Call:
+            >>> auth = opts.get_ReportTitle(rep)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *auth*: :class:`str`
+                Report author
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Get the report.
+        R = self.get_Report(rep)
+        # Get the title
+        return R.get('Author', '')
+        
+    # Get report restriction
+    def get_ReportRestriction(self, rep):
+        """Get the restriction for a report
+        
+        For example, this may be "SBU - ITAR" or "FOUO"
+        
+        :Call:
+            >>> lbl = opts.get_ReportRestriction(rep)
+        :Inputs:
+            *opts*: :class:`pycart.options.Options`
+                Options interface
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *lbl*: :class:`str`
+                Distribution restriction
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Get the report.
+        R = self.get_Report(rep)
+        # Get the title
+        return R.get('Restriction', '')
+        
+    # Get report logo
+    def get_ReportLogo(self, rep):
+        """Get the restriction for a report
+        
+        For example, this may be "SBU - ITAR" or "FOUO"
+        
+        :Call:
+            >>> fimg = opts.get_ReportLogo(rep)
+        :Inputs:
+            *opts*: :class:`pycart.options.Options`
+                Options interface
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *fimg*: :class:`str`
+                File name of logo relative to ``report/`` directory
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Get the report.
+        R = self.get_Report(rep)
+        # Get the title
+        return R.get('Logo', '')
+        
             
     # Get alignment for a figure
     def get_FigAlignment(self, fig):
@@ -326,25 +466,5 @@ class Report(odict):
             return self.get_SubfigOpt(t, opt)
         # Get the default value.
         return S.get(opt)
-        
-    # Process subfigure alignment
-    def get_SubfigAlignment(self, sfig):
-        """Get alignment for a subfigure
-        
-        :Call:
-            >>> algn = opts.get_SubfigAlignment(sfig)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *sfig*: :class:`str`
-                Name of subfigure
-        :Outputs:
-            *algn*: :class:`str`
-                Subfigure alignment
-        :Versions:
-            * 2015-03-08 ``@ddalle``: First version
-        """
-        # Get the subfigure.
-        S = self.get_Subfigure(self, sfig)
         
         
