@@ -237,6 +237,9 @@ class Report(object):
             elif btyp == 'Summary':
                 # Get the force and/or moment summary
                 lines += self.SubfigSummary(sfig, i)
+            elif btyp == 'PlotCoeff':
+                # Get the force or moment history plot
+                lines += self.SubfigPlotCoeff(sfig, i)
         # -------
         # Cleanup
         # -------
@@ -325,6 +328,113 @@ class Report(object):
         # Output
         return lines
         
+    # Function to create coefficient plot and write figure
+    def SubfigPlotCoeff(self, sfig, i):
+        """Create plot for a coefficient and input lines int LaTeX file
+        
+        :Call:
+            >>> lines = R.SubfigPlotCoeff(sfig, i)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2014-03-09 ``@ddalle``: First version
+        """
+        # Save current folder.
+        fpwd = os.getcwd()
+        # Case folder
+        frun = self.cart3d.x.GetFullFolderNames(i)
+        # Extract options
+        opts = self.cart3d.opts
+        # Get the component.
+        comp = opts.get_SubfigOpt(sfig, "Component")
+        # Get the coefficient
+        coeff = opts.get_SubfigOpt(sfig, "Coefficient")
+        # Current status
+        nIter  = self.cart3d.CheckCase(i)
+        # Numbers of iterations for statistics
+        nStats = opts.get_SubfigOpt(sfig, "nStats")
+        nMin   = opts.get_SubfigOpt(sfig, "nMinStats")
+        nMax   = opts.get_SubfigOpt(sfig, "nMaxStats")
+        # Get the status and data book options
+        if nStats is None: nStats = opts.get_nStats()
+        if nMin   is None: nMin   = opts.get_nMin()
+        if nMax   is None: nMax   = opts.get_nMaxStats()
+        # Numbers of iterations for plots
+        nPlotIter  = opts.get_SubfigOpt(sfig, "nPlot")
+        nPlotFirst = opts.get_SubfigOpt(sfig, "nPlotFirst")
+        nPlotLast  = opts.get_SubfigOpt(sfig, "nPlotLast")
+        # Check for defaults.
+        if nPlotIter  is None: nPlotIter  = opts.get_nPlotIter(comp)
+        if nPlotFirst is None: nPlotFirst = opts.get_nPlotFirst(comp)
+        if nPlotLast  is None: nPlotLast  = opts.get_nPlotLast(comp)
+        # Get caption.
+        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        # Process default caption. 
+        if fcpt is None: fcpt = "%s/%s" % (comp.replace('_','\_'), coeff)
+        # Get the delta value
+        dc = opts.get_SubfigOpt(sfig, "Delta")
+        # Get the vertical alignment.
+        hv = opts.get_SubfigOpt(sfig, "Position")
+        # Get subfigure width
+        wsfig = opts.get_SubfigOpt(sfig, "Width")
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = opts.get_SubfigOpt(sfig, "Header")
+        # Alignment
+        algn = opts.get_SubfigOpt(sfig, "Alignment")
+        # Set alignment.
+        if algn.lower() == "center":
+            lines.append('\\centering\n')
+        # Write the header.
+        if fhdr:
+            # Save the line
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+            lines.append('\\vskip-6pt\n')
+        # Create plot if possible
+        if nIter >= 2:
+            # Don't use iterations before *nMin*
+            nMax = min(nMax, nCur-nMin)
+            # Go to the run directory.
+            os.chdir(self.cart3d.RootDir)
+            os.chdir(frun)
+            # Read the Aero history.
+            FM = Aero([comp])[comp]
+            # Get the statistics.
+            s = FM.GetStats(nStats=nStats, nMax=nMax, nLast=nPlotLast)
+            # Draw the plot.
+            h = FM.PlotCoeff(c, n=nPlot, nAvg=s['nStats'],
+                nFirst=nPlotFirst, nLast=nPlotLast, d=dc)
+            # Change back to report folder.
+            os.chdir(fpwd)
+            # Get the file formatting
+            fmt = opts.get_SubfigOpt(sfig, "Format")
+            dpi = opts.get_SubfigOpt(sfig, "DPI")
+            # Figure name
+            fimg = '%s.%s' % (sfig, fmt)
+            # Save the figure.
+            if fmt in ['pdf']:
+                # Save as vector-based image.
+                h['fig'].savefig(fimg)
+            else:
+                # Save with resolution.
+                h['fig'].savefig(fimg, dpi=dpi)
+            # Include the graphics.
+            lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                % (frun, fimg))
+        # Set the caption.
+        lines.append('\\caption{%s}\n' % fcpt)
+        # Close the subfigure.
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
+        
+        
     # Function to write summary table
     def SubfigSummary(self, sfig, i):
         """Create lines for a "Summary" subfigure
@@ -339,21 +449,28 @@ class Report(object):
             *i*: :class:`int`
                 Case index
         :Versions:
-            * 2014-03-08 ``@ddalle``: First version
+            * 2014-03-09 ``@ddalle``: First version
         """
         # Save current folder.
         fpwd = os.getcwd()
-        # Get the status and data book options
+        # Extract options
+        opts = self.cart3d.opts
+        # Current status
         nIter  = self.cart3d.CheckCase(i)
-        nStats = self.cart3d.opts.get_nStats()
-        nMin   = self.cart3d.opts.get_nMin()
-        nMax   = self.cart3d.opts.get_nMaxStats()
+        # Numbers of iterations for statistics
+        nStats = opts.get_SubfigOpt(sfig, "nStats")
+        nMin   = opts.get_SubfigOpt(sfig, "nMinStats")
+        nMax   = opts.get_SubfigOpt(sfig, "nMaxStats")
+        # Get the status and data book options
+        if nStats is None: nStats = opts.get_nStats()
+        if nMin   is None: nMin   = opts.get_nMin()
+        if nMax   is None: nMax   = opts.get_nMaxStats()
         # Iteration at which to build table
-        nOpt = self.cart3d.opts.get_SubfigOpt(sfig, "Iteration")
+        nOpt = opts.get_SubfigOpt(sfig, "Iteration")
         # Make sure current progress is a number
         if nIter is None: nIter = 0
         # Get the components.
-        comps = self.cart3d.opts.get_SubfigOpt(sfig, "Components")
+        comps = opts.get_SubfigOpt(sfig, "Components")
         # Translate into absolute iteration number if relative.
         if nOpt == 0:
             # Use last iteration (standard)

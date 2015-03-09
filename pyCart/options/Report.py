@@ -468,7 +468,9 @@ class Report(odict):
                 "Width": 0.5,
                 "Component": "entire",
                 "Coefficient": "CN",
-                "Delta": 0
+                "Delta": 0,
+                "Format": "pdf",
+                "DPI": 150
             }
         elif t in ['PlotL1']:
             # Residual history
@@ -476,7 +478,9 @@ class Report(odict):
                 "Header": "",
                 "Position": "b",
                 "Alignment": "center",
-                "Width": 0.5
+                "Width": 0.5,
+                "Format": "pdf",
+                "DPI": 150
             }
         else:
             # This is a derived subfigure type; recurse.
