@@ -153,6 +153,11 @@ class Report(object):
         # -------
         # Figures
         # -------
+        # Get list of figures.
+        figs = self.cart3d.opts.get_ReportFigList(self.rep)
+        # Loop through figures.
+        for fig in figs:
+            self.UpdateFigure(fig, i)
         
         
         
@@ -221,9 +226,9 @@ class Report(object):
             if btyp == 'Conditions':
                 # Get the content.
                 lines += self.SubfigConditions(sfig, i)
-                
-            # Put some space.
-            lines += '\n'
+            elif btyp == 'Summary':
+                # Get the force and/or moment summary
+                lines += self.SubfigSummary(sfig, i)
         # -------
         # Cleanup
         # -------
@@ -231,11 +236,13 @@ class Report(object):
         lines.append('\\end{figure}\n')
         # pyCart report end figure marker
         lines.append('%>\n')
+        lines.append('\n')
         # Add the lines to the section.
         for line in lines:
             tf.insert(ifig, line)
             ifig += 1
         # Synchronize the overall text.
+        self._updated_sections = True
         tx.UpdateLines()
         
     # Function to write conditions table
