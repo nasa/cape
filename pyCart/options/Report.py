@@ -30,7 +30,7 @@ class Report(odict):
         # Loop through keys/
         for k in K:
             # Check the key
-            if k in ['Figures', 'Subfigures']:
+            if k in ['Figures', 'Subfigures', 'Archive']:
                 # Known universal option
                 continue
             elif type(self[k]).__name__ != 'dict':
@@ -271,6 +271,23 @@ class Report(odict):
         # Get the title
         return R.get('Logo', '')
         
+    # Get report archive status
+    def get_ReportArchive(self):
+        """Get the option of whether or not to archive report folders
+        
+        :Call:
+            >>> qtar = opts.get_ReportArchive()
+        :Inputs:
+            *opts*: :class:`pycart.options.Options`
+                Options interface
+        :Outputs:
+            *qtar*: :class:`bool`
+                Whether or not to tar archives
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Get the title
+        return self.get('Archive', False)
             
     # Get alignment for a figure
     def get_FigAlignment(self, fig):

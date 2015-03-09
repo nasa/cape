@@ -60,6 +60,8 @@ class Report(object):
         # Get the options and save them.
         self.rep = rep
         self.opts = cart3d.opts['Report'][rep]
+        # Initialize a dictionary of handles to case LaTeX files
+        self.cases = {}
         # Read the file if applicable
         self.OpenMain()
         
@@ -96,6 +98,119 @@ class Report(object):
         # Return
         os.chdir(fpwd)
         
+    # Function to create the file for a case
+    def UpdateCase(self, i):
+        """Open, create if necessary, and update LaTeX file for a case
+        
+        :Call:
+            >>> R.OpenCase(i)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Get the case name.
+        fgrp = self.cart3d.x.GetGroupFolderNames(i)
+        fdir = self.cart3d.x.GetFolderNames(i)
+        # Go to the report directory if necessary.
+        fpwd = os.getcwd()
+        os.chdir(self.cart3d.RootDir)
+        os.chdir('report')
+        # Create the folder if necessary.
+        if not os.path.isdir(fgrp): os.mkdir(fgrp, dmask)
+        # Go to the group folder.
+        os.chdir(fgrp)
+        # Create the case folder if necessary.
+        if not (os.path.isfile(fdir+'.tar') or os.path.isdir(fgrp)):
+            os.mkdir(fdir, dmask)
+        # Go into the folder.
+        self.cd(fdir)
+        # Read the status file.
+        nr, stsr = self.ReadCaseIter()
+        # Get the actual iteration number.
+        n = self.CheckCase(i)
+        sts = self.CheckStatus(i)
+        # Check if there's anything to do.
+        if not (nr is None) or (nr < n) or (stsr != sts):
+            # Go home and quit.
+            os.chdir(fpwd)
+            return
+        # Check for the file.
+        if not os.path.isfile(self.fname): self.WriteCaseSkeleton(i)
+        # Open it.
+        self.cases[i] = tex.Tex(self.fname)
+        # Set the iteration number and status header.
+        self.SetHeaderStatus(i)
+        
+        
+        
+    # Read the iteration to which the figures for this report have been updated
+    def ReadCaseJSONIter():
+        """Read JSON file to determine what the current iteration for the report is
+        
+        The status is read from the present working directory
+        
+        :Call:
+            >>> n, sts = R.ReadCaseJSONIter()
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+        :Outputs:
+            *n*: :class:`int` or :class:`float`
+                Iteration at which the figure has been created
+            *sts*: :class:`str`
+                Status for the case
+        :Versions:
+            * 2014-10-02 ``@ddalle``: First version
+        """
+        # Check for the file.
+        if not os.path.isfile('report.json'): return None
+        # Open the file
+        f = open('report.json')
+        # Read the settings.
+        opts = json.load(f)
+        # Close the file.
+        f.close()
+        # Read the status for this iteration
+        return tuple(opts.get(self.rep, [None, None]))
+        
+    # Set the iteration of the JSON file.
+    def SetCaseJSONIter(n, sts):
+        """Mark the JSON file to say that the figure is up to date
+        
+        :Call:
+            >>> R.SetCaseJSONIter(n, sts)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *n*: :class:`int` or :class:`float`
+                Iteration at which the figure has been created
+            *sts*: :class:`str`
+                Status for the case
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Check for the file.
+        if os.path.isfile('report.json'):
+            # Open the file.
+            f = open('report.json')
+            # Read the settings.
+            opts = json.load(f)
+            # Close the file.
+            f.close()
+        else:
+            # Create empty settings.
+            opts = {}
+        # Set the iteration number.
+        opts[self.rep] = [n, sts]
+        # Create the updated JSON file
+        f = open('report.json', 'w')
+        # Write the contents.
+        json.dump(opts)
+        # Close file.
+        f.close()
+        
     # Function to create the skeleton for a master LaTeX file
     def WriteSkeleton(self):
         """Create and write preamble for master LaTeX file for report
@@ -108,7 +223,7 @@ class Report(object):
         :Versions:
             * 2015-03-08 ``@ddalle``: First version
         """
-        # Got to the report folder.
+        # Go to the report folder.
         fpwd = os.getcwd()
         os.chdir(self.cart3d.RootDir)
         os.chdir('report')
@@ -187,7 +302,121 @@ class Report(object):
         # Return
         os.chdir(fpwd)
         
+    # Function to write skeleton for a case.
+    def WriteCaseSkeleton(i):
+        """Initialize LaTeX file for case *i*
         
+        :Call:
+            >>> R.WriteCaseSkeleton(i)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2014-03-08 ``@ddalle``: First version
+        """
+        # Get the name of the case
+        frun = self.cart3d.x.GetFullFolderNames(i)
         
+        # Create the file (delete if necessary)
+        f = open(self.fname, 'w')
+        
+        # Write the header.
+        f.write('\n\\newpage\n')
+        f.write('\\setcase{%s}\n' % frun.replace('_', '\\_'))
+        f.write('\\phantomsection\n')
+        f.write('\\addcontentsline{toc}{section}{\\texttt{\\thecase}}\n')
+        f.write('\\fancyhead[L]{\\texttt{\\thecase}}\n\n')
+        
+        # Empty section for the figures
+        f.write('%$__Figures\n')
+        
+        # Close the file.
+        f.close()
+        
+    # Function to set the upper-right header
+    def SetHeaderStatus(i):
+        """Set header to state iteration progress and summary status
+        
+        :Call:
+            >>> R.WriteCaseSkeleton(i)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2014-03-08 ``@ddalle``: First version
+        """
+        # Get case current iteration
+        n = cart3d.CheckStatus(i)
+        # Get case number of required iterations
+        nMax = cart3d.GetLastIter(i)
+        # Get status
+        sts = cart3d.CheckCaseStatus(i)
+        # Form iteration string
+        if n is None:
+            # Unknown.
+            fitr = '-/%s' % self.cart3d.opts.get_IterSeq(-1)
+        else:
+            # Use the values.
+            fitr = '%s/%s' % (n, nMax)
+        # Form string for the status type
+        if sts == "PASS":
+            # Set green
+            fsts = '\\color{green}\\textbf{PASS}'
+        elif sts == "ERROR":
+            # Set red
+            fsts = '\\color{red}\\textbf{ERROR}'
+        else:
+            # No color (black)
+            fsts = '\\textbf{%s}' % sts
+        # Form the line.
+        line = '\\fancyhead[R]{\\textsf{%s, \large%s}}\n' % (fitr, fsts)
+        # Put the line into the text.
+        self.cases[i].ReplaceOrAddLineToSectionStartsWith(
+            '_header', '\\fancyhead[R]', line, -1)
+        # Update sections.
+        self.UpdateLines()
+            
+        
+    
+        
+    # Function to go into a folder, respecting archive option
+    def cd(self, fdir):
+        """Interface to :func:`os.chdir`, respecting "Archive" option
+        
+        This function can only change one directory at a time.
+        
+        :Call:
+            >>> R.cd(fdir)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *fdir*: :class:`str`
+                Name of directory to change to
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Get archive option.
+        q = self.cart3d.opts.get_ReportArchive(rep)
+        # Check direction.
+        if fdir.startswith('..'):
+            # Check archive option.
+            if q:
+                # Tar and clean up if necessary.
+                tar.chdir_up()
+            else:
+                # Go up a folder.
+                os.chdir('..')
+        else:
+            # Check archive option.
+            if q:
+                # Untar if necessary
+                tar.chdir_in(fdir)
+            else:
+                # Go into the folder
+                os.chdir(fdir)
         
         

@@ -1737,6 +1737,11 @@ class Options(odict):
         self._Report()
         return self['Report'].get_ReportAuthor(rep)
         
+    # Get archive option
+    def get_ReportArchive(self):
+        self._Report()
+        return self['Report'].get_ReportArchive()
+        
     # Get the list of subfigures in a figure
     def get_FigSubfigList(self, fig):
         self._Report()
@@ -1771,7 +1776,7 @@ class Options(odict):
     for k in ['ReportList', 'FigList', 'SubfigList',
             'Figure', 'Subfigure', 'Report',
             'ReportFigList', 'ReportTitle', 'ReportAuthor',
-            'ReportRestriction', 'ReportLogo', 
+            'ReportRestriction', 'ReportLogo',  'ReportArchive',
             'FigSubfigList', 'FigAlignment', 'FigHeader',
             'SubfigType', 'SubfigBaseType', 'SubfigOpt'
     ]:
