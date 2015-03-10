@@ -179,6 +179,8 @@ class Report(object):
         # -----
         # Write the updated lines.
         self.cases[i].Write()
+        # Mark the case status.
+        self.SetCaseJSONIter(n, sts)
         # Go home.
         os.chdir(fpwd)
         
@@ -938,7 +940,13 @@ class Report(object):
         # Open the file
         f = open('report.json')
         # Read the settings.
-        opts = json.load(f)
+        try:
+            # Read from file
+            opts = json.load(f)
+        except Exception:
+            # Problem with the file.
+            f.close()
+            return [None, None]
         # Close the file.
         f.close()
         # Read the status for this iteration
@@ -965,7 +973,11 @@ class Report(object):
             # Open the file.
             f = open('report.json')
             # Read the settings.
-            opts = json.load(f)
+            try:
+                opts = json.load(f)
+            except Exception:
+                # Problem with the file.
+                opts = {}
             # Close the file.
             f.close()
         else:
@@ -976,7 +988,7 @@ class Report(object):
         # Create the updated JSON file
         f = open('report.json', 'w')
         # Write the contents.
-        json.dump(opts)
+        json.dump(opts, f)
         # Close file.
         f.close()
         
