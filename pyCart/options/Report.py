@@ -466,9 +466,12 @@ class Report(odict):
                 "Position": "b",
                 "Alignment": "center",
                 "Width": 0.5,
+                "FigWidth": 6,
+                "FigHeight": 4.5,
                 "Component": "entire",
                 "Coefficient": "CN",
                 "Delta": 0,
+                "StandardDeviation": 0,
                 "Format": "pdf",
                 "DPI": 150
             }
@@ -479,8 +482,19 @@ class Report(odict):
                 "Position": "b",
                 "Alignment": "center",
                 "Width": 0.5,
+                "FigWidth": 6,
+                "FigHeight": 4.5,
                 "Format": "pdf",
                 "DPI": 150
+            }
+        elif t in ['Tec3View']:
+            # Component 3-view
+            S = {
+                "Header": "",
+                "Position": "b",
+                "Alignment": "center",
+                "Width": 0.66,
+                "Component": "entire"
             }
         else:
             # This is a derived subfigure type; recurse.

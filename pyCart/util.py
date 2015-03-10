@@ -70,3 +70,22 @@ def GetTecplotCommand():
     # If this point is reached, no command was found.
     raise SystemError('No Tecplot360 command found')
 
+# Function to fix "NoneType is not iterable" nonsense
+def denone(x):
+    """Replace ``None`` with ``[]`` to avoid iterative problems
+    
+    :Call:
+        >>> y = pycart.util.denone(x)
+    :Inputs:
+        *x*: any
+            Any variable
+    :Outputs:
+        *y*: any
+            Same as *x* unless *x* is ``None``, then ``[]``
+    :Versions:
+        * 2015-03-09 ``@ddalle``: First version
+    """
+    if x is None:
+        return []
+    else:
+        return x

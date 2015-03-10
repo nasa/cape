@@ -384,8 +384,6 @@ class Report(object):
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
         # Process default caption. 
         if fcpt is None: fcpt = "%s/%s" % (comp.replace('_','\_'), coeff)
-        # Get the delta value
-        dc = opts.get_SubfigOpt(sfig, "Delta")
         # Get the vertical alignment.
         hv = opts.get_SubfigOpt(sfig, "Position")
         # Get subfigure width
@@ -415,12 +413,24 @@ class Report(object):
             FM = Aero([comp])[comp]
             # Get the statistics.
             s = FM.GetStats(nStats=nStats, nMax=nMax, nLast=nPlotLast)
-            # Get figure width
+            # Get the manual range to show
+            dc = opts.get_SubfigOpt(sfig, "Delta")
+            # Get the multiple of standard deviation to show
+            ksig = opts.get_SubfigOpt(sfig, "StandardDeviation")
+            # Get figure dimensions.
             figw = opts.get_SubfigOpt(sfig, "FigureWidth")
             figh = opts.get_SubfigOpt(sfig, "FigureHeight")
+            # Plot options
+            kw_p = opts.get_SubfigOpt(sfig, "LineOptions")
+            kw_m = opts.get_SubfigOpt(sfig, "MeanOptions")
+            kw_s = opts.get_SubfigOpt(sfig, "StDevOptions")
+            kw_d = opts.get_SubfigOpt(sfig, "DeltaOptions")
             # Draw the plot.
             h = FM.PlotCoeff(coeff, n=nPlotIter, nAvg=s['nStats'],
-                nFirst=nPlotFirst, nLast=nPlotLast, d=dc,
+                nFirst=nPlotFirst, nLast=nPlotLast,
+                LineOptions=kw_p, MeanOptions=kw_m,
+                d=dc, DeltaOptions=kw_d
+                k=ksig, StDevOptions=kw_s,
                 FigWidth=figw, FigHeight=figh)
             # Change back to report folder.
             os.chdir(fpwd)

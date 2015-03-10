@@ -20,6 +20,8 @@ from datetime import datetime
 
 # Use this to only update entries with newer iterations.
 from .case import GetCurrentIter, GetWorkingFolder
+# Finer control of dicts
+from .options import odict
 # Utilities or advanced statistics
 from . import util
 
@@ -2816,7 +2818,7 @@ class CaseFM(object):
         # Output.
         return s
     
-    def PlotCoeff(self, c, n=None, nAvg=100, d=0.01, **kw):
+    def PlotCoeff(self, c, n=None, nAvg=100, **kw):
         """Plot a single coefficient history
         
         :Call:
@@ -2832,6 +2834,7 @@ class CaseFM(object):
                 Use the last *nAvg* iterations to compute an average
             *d*: :class:`float`
                 Delta in the coefficient to show expected range
+            *k*: :class:
             *nLast*: :class:`int`
                 Last iteration to use (defaults to last iteration available)
             *nFirst*: :class:`int`
@@ -2856,9 +2859,15 @@ class CaseFM(object):
         # Process inputs.
         nLast = kw.get('nLast')
         nFirst = kw.get('nFirst')
+        # Iterative uncertainty options
+        dc = kw.get("d", 0.0)
+        ksig = kw.get("k", 0.0)
+        uerr = kw.get("u", 0.0)
         # Other plot options
         fw = kw.get('FigWidth')
         fh = kw.get('FigHeight')
+        # Get statistics
+        s = self.GetStatsN(nAvg, nLast=nLast) 
         # ---------
         # Last Iter 
         # ---------
@@ -2894,31 +2903,82 @@ class CaseFM(object):
         jA = self.GetIterationIndex(iA)
         # Reselect *iV* in case initial value was not in *self.i*.
         iA = self.i[jA]
-        # --------
-        # Plotting
-        # --------
-        # Calculate mean.
-        cAvg = np.mean(C[jA:jB+1])
+        # -----------------------
+        # Standard deviation plot
+        # -----------------------
         # Initialize dictionary of handles.
         h = {}
-        # Calculate range of interest.
-        if d:
+        # Shortcut for the mean
+        cAvg = s[c]
+        # Initialize plot options for standard deviation
+        kw_s = odict(color='b', ls="none", facecolor="b", alpha=0.5)
+        # Show iterative n*standard deviation
+        if ksig and s["nStats">2]:
+            # Extract plot options from kwargs
+            for k in util.denone(kw.get("StDevOptions", {})):
+                # Override the default option.
+                kw_s[k] = kw["StDevOptions"][k]
             # Limits
-            cMin = cAvg-d
-            cMax = cAvg+d
+            cMin = cAvg - ksig*s[c+"_std"]
+            cMax = cAvg + ksig*s[c+"_std"]
             # Plot the target window boundaries.
-            h['min'] = (
-                plt.plot([i0,iA], [cMin,cMin], 'r:', lw=0.8) +
-                plt.plot([iA,iB], [cMin,cMin], 'r-', lw=0.8))
-            h['max'] = (
-                plt.plot([i0,iA], [cMax,cMax], 'r:', lw=0.8) +
-                plt.plot([iA,iB], [cMax,cMax], 'r-', lw=0.8))
+            h['std'] = plt.fill_between([iA,iB], cMin, cMax, **kw_s)
+        # --------------------------
+        # Iterative uncertainty plot
+        # --------------------------
+        kw_u = odict(color='b', ls="none", facecolor="b", alpha=0.5)
+        
+        # ---------
+        # Mean plot
+        # ---------
+        # Initialize plot options for mean.
+        kw_m = odict(color=kw.get("color", "0.1"), ls=[":", "-"], lw=1.0)
+        # Extract plot options from kwargs
+        for k in util.denone(kw.get("MeanOptions", {})):
+            # Override the default option.
+            kw_m[k] = kw["MeanOptions"][k]
+        # Turn into two groups.
+        kw0 = {k: kw_m.get_key(k, 0) for k in kw_m}
+        kw1 = {k: kw_m.get_key(k, 1) for k in kw_m}
         # Plot the mean.
         h['mean'] = (
-            plt.plot([i0,iA], [cAvg, cAvg], 'r--', lw=1.0) + 
-            plt.plot([iA,iB], [cAvg, cAvg], 'r-', lw=1.0))
+            plt.plot([i0,iA], [cAvg, cAvg], **kw0) + 
+            plt.plot([iA,iB], [cAvg, cAvg], **kw1))
+        # ----------
+        # Delta plot
+        # ----------
+        # Initialize options for delta.
+        kw_d = odict(color="r", ls="--", lw=0.8)
+        # Calculate range of interest.
+        if dc:
+            # Extract plot options from kwargs
+            for k in util.denone(kw.get("DeltaOptions", {})):
+                # Override the default option.
+                kw_d[k] = kw["DeltaOptions"][k]
+            # Turn into two groups.
+            kw0 = {k: kw_d.get_key(k, 0) for k in kw_d}
+            kw1 = {k: kw_d.get_key(k, 1) for k in kw_d}
+            # Limits
+            cMin = cAvg-dc
+            cMax = cAvg+dc
+            # Plot the target window boundaries.
+            h['min'] = (
+                plt.plot([i0,iA], [cMin,cMin], **kw0) +
+                plt.plot([iA,iB], [cMin,cMin], **kw1))
+            h['max'] = (
+                plt.plot([i0,iA], [cMax,cMax], **kw0) +
+                plt.plot([iA,iB], [cMax,cMax], **kw1))
+        # ------------
+        # Primary plot
+        # ------------
+        # Initialize primary plot options.
+        kw_p = odict(color=kw.get("color","k"), ls="-", lw=1.5)
+        # Extract plot options from kwargs
+        for k in util.denone(kw.get("LineOptions", {})):
+            # Override the default option.
+            kw_p[k] = kw["LineOptions"][k]
         # Plot the coefficient.
-        h[c] = plt.plot(self.i[j0:], C[j0:], 'k-', lw=1.5)
+        h[c] = plt.plot(self.i[j0:], C[j0:], **kw_p)
         # Labels.
         h['x'] = plt.xlabel('Iteration Number')
         h['y'] = plt.ylabel(c)
@@ -2931,19 +2991,44 @@ class CaseFM(object):
         if fh: h['fig'].set_figheight(fh)
         if fw: h['fig'].set_figwidth(fw)
         # Attempt to apply tight axes.
-        try:
-            plt.tight_layout()
-        except Exception:
-            pass
+        try: plt.tight_layout()
+        except Exception: pass
+        # ------
+        # Labels
+        # ------
         # Make a label for the mean value.
-        lbl = u'%s = %.4f' % (c, cAvg)
-        h['val'] = plt.text(0.81, 1.06, lbl, horizontalalignment='right',
-            verticalalignment='top', transform=h['ax'].transAxes)
+        if kw.get("ShowMean", True):
+            # Form: CA = 0.0204
+            lbl = u'%s = %.4f' % (c, cAvg)
+            # Create the handle.
+            h['mu'] = plt.text(1.0, 1.06, lbl, color=kw_p['color'],
+                horizontalalignment='right', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['mu'].set_family("DejaVu Sans")
+            except Exception: pass
         # Make a label for the deviation.
-        lbl = u'\u00B1 %.4f' % d
-        h['d'] = plt.text(1.0, 1.06, lbl, color='r',
-            horizontalalignment='right', verticalalignment='top',
-            transform=h['ax'].transAxes)
+        if dc and kw.get("ShowDelta", True):
+            # Form: \DeltaCA = 0.0050
+            lbl = u'\u0394%s = %.4f' % (c, dc)
+            # Create the handle.
+            h['d'] = plt.text(1.0, 0.92, lbl, color=kw_d.get_key('color',1),
+                horizontalalignment='right', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['d'].set_family("DejaVu Sans")
+            except Exception: pass
+        # Make a label for the standard deviation.
+        if ksig and s['nStats']>2:
+            # Form \sigma(CA) = 0.0032
+            lbl = u'\u03C3(%s) = %.4f' % (c, ksig*s['nStats'])
+            # Create the handle.
+            h['sig'] = plt.text(0.05, 1.06, lbl, color=kw_s.get_key('color',1),
+                horizontalalignment='right', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['sig'].set_family("DejaVu Sans")
+            except Exception: pass
         # Output.
         return h
     
