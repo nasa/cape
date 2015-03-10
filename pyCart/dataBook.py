@@ -56,6 +56,7 @@ def ImportPyPlot():
     """
     # Make global variables
     global plt
+    global tform
     global PdfPages
     global Text
     # Check for PyPlot.
@@ -64,6 +65,7 @@ def ImportPyPlot():
     except AttributeError:
         # Load the modules.
         import matplotlib.pyplot as plt
+        import matplotlib.transforms as tform
         from matplotlib.backends.backend_pdf import PdfPages
         from matplotlib.text import Text
 
@@ -2911,9 +2913,9 @@ class CaseFM(object):
         # Shortcut for the mean
         cAvg = s[c]
         # Initialize plot options for standard deviation
-        kw_s = odict(color='b', ls="none", facecolor="b", alpha=0.5)
+        kw_s = odict(color='b', lw=0.0, facecolor="b", alpha=0.5)
         # Show iterative n*standard deviation
-        if ksig and s["nStats">2]:
+        if ksig and nAvg>2:
             # Extract plot options from kwargs
             for k in util.denone(kw.get("StDevOptions", {})):
                 # Override the default option.
@@ -2922,7 +2924,7 @@ class CaseFM(object):
             cMin = cAvg - ksig*s[c+"_std"]
             cMax = cAvg + ksig*s[c+"_std"]
             # Plot the target window boundaries.
-            h['std'] = plt.fill_between([iA,iB], cMin, cMax, **kw_s)
+            h['std'] = plt.fill_between([iA,iB], [cMin]*2, [cMax]*2, **kw_s)
         # --------------------------
         # Iterative uncertainty plot
         # --------------------------
@@ -2996,12 +2998,15 @@ class CaseFM(object):
         # ------
         # Labels
         # ------
+        # Get coordinate limits
+        xmin, xmax = h['ax'].get_xlim()
+        ymin, ymax = h['ax'].get_ylim()
         # Make a label for the mean value.
         if kw.get("ShowMean", True):
             # Form: CA = 0.0204
             lbl = u'%s = %.4f' % (c, cAvg)
             # Create the handle.
-            h['mu'] = plt.text(1.0, 1.06, lbl, color=kw_p['color'],
+            h['mu'] = plt.text(0.99, 1.06, lbl, color=kw_p['color'],
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -3012,19 +3017,19 @@ class CaseFM(object):
             # Form: \DeltaCA = 0.0050
             lbl = u'\u0394%s = %.4f' % (c, dc)
             # Create the handle.
-            h['d'] = plt.text(1.0, 0.92, lbl, color=kw_d.get_key('color',1),
+            h['d'] = plt.text(0.99, 0.96, lbl, color=kw_d.get_key('color',1),
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
             try: h['d'].set_family("DejaVu Sans")
             except Exception: pass
         # Make a label for the standard deviation.
-        if ksig and s['nStats']>2:
+        if ksig and nAvg>2 and kw.get("ShowSigma", True):
             # Form \sigma(CA) = 0.0032
-            lbl = u'\u03C3(%s) = %.4f' % (c, ksig*s['nStats'])
+            lbl = u'\u03C3(%s) = %.4f' % (c, ksig*s[c+'_std'])
             # Create the handle.
             h['sig'] = plt.text(0.05, 1.06, lbl, color=kw_s.get_key('color',1),
-                horizontalalignment='right', verticalalignment='top',
+                horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
             try: h['sig'].set_family("DejaVu Sans")

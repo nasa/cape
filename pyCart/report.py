@@ -429,7 +429,7 @@ class Report(object):
             h = FM.PlotCoeff(coeff, n=nPlotIter, nAvg=s['nStats'],
                 nFirst=nPlotFirst, nLast=nPlotLast,
                 LineOptions=kw_p, MeanOptions=kw_m,
-                d=dc, DeltaOptions=kw_d
+                d=dc, DeltaOptions=kw_d,
                 k=ksig, StDevOptions=kw_s,
                 FigWidth=figw, FigHeight=figh)
             # Change back to report folder.
