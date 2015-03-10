@@ -607,11 +607,11 @@ class Report(object):
         # Path to the triangulation
         ftri = os.path.join(frun, 'Components.i.tri')
         # Check for that file.
-        if not os.path.join(ftri):
+        if not os.path.isfile(ftri):
             # Try non-intersected file.
             ftri = os.path.join(frun, 'Components.c.tri')
         # Check for the triangulation file.
-        if os.path.join(ftri):
+        if os.path.isfile(ftri):
             # Read the configuration file.
             conf = Config(opts.get_ConfigFile())
             # Read the triangulation file.
@@ -652,7 +652,7 @@ class Report(object):
         # Create the image.
         tri.Tecplot3View(fname, comp)
         # Remove the triangulation
-        os.remove('%.tri' % comp)
+        os.remove('%s.tri' % fname)
         # Include the graphics.
         lines.append('\\includegraphics[width=\\textwidth]{%s/%s.png}\n'
             % (frun, fname))
