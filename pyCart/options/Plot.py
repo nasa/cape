@@ -377,7 +377,7 @@ class Plot(odict):
         return self.get('FigWidth', rc0('FigWidth'))
                 
     # Plot figure height
-    def get_PlotFigheight(self):
+    def get_PlotFigHeight(self):
         """Get the figure height for plot
         
         :Call:

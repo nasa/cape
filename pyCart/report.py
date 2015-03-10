@@ -442,7 +442,7 @@ class Report(object):
             lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
                 % (frun, fimg))
         # Set the caption.
-        lines.append('\\caption*{\\small %s}\n' % fcpt)
+        lines.append('\\caption*{\\scriptsize%s}\n' % fcpt)
         # Close the subfigure.
         lines.append('\\end{subfigure}\n')
         # Output
@@ -921,6 +921,9 @@ class Report(object):
         if n is None:
             # Unknown.
             fitr = '-/%s' % self.cart3d.opts.get_IterSeq(-1)
+        elif int(n) == n:
+            # Use an integer iteration number
+            fitr = '%i/%s' % (int(n), nMax)
         else:
             # Use the values.
             fitr = '%s/%s' % (n, nMax)
