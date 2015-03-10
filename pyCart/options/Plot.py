@@ -358,4 +358,40 @@ class Plot(odict):
         # Output
         return dC
                 
+    # Plot figure width
+    def get_PlotFigWidth(self):
+        """Get the figure width for plot
         
+        :Call:
+            >>> w = opts.get_PlotFigWidth()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *w*: :class:`float`
+                Figure width
+        :Versions:
+            * 2015-03-09 ``@ddalle``: First version
+        """
+        # Get the width.
+        return self.get('FigWidth', rc0('FigWidth'))
+                
+    # Plot figure height
+    def get_PlotFigheight(self):
+        """Get the figure height for plot
+        
+        :Call:
+            >>> h = opts.get_PlotFigHeight()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *h*: :class:`float`
+                Figure height
+        :Versions:
+            * 2015-03-09 ``@ddalle``: First version
+        """
+        # Get the width.
+        return self.get('FigHeight', rc0('FigHeight'))
+        
+    

@@ -415,9 +415,13 @@ class Report(object):
             FM = Aero([comp])[comp]
             # Get the statistics.
             s = FM.GetStats(nStats=nStats, nMax=nMax, nLast=nPlotLast)
+            # Get figure width
+            figw = opts.get_SubfigOpt(sfig, "FigureWidth")
+            figh = opts.get_SubfigOpt(sfig, "FigureHeight")
             # Draw the plot.
             h = FM.PlotCoeff(coeff, n=nPlotIter, nAvg=s['nStats'],
-                nFirst=nPlotFirst, nLast=nPlotLast, d=dc)
+                nFirst=nPlotFirst, nLast=nPlotLast, d=dc,
+                FigWidth=figw, FigHeight=figh)
             # Change back to report folder.
             os.chdir(fpwd)
             # Get the file formatting
@@ -505,11 +509,15 @@ class Report(object):
             # Go to the run directory.
             os.chdir(self.cart3d.RootDir)
             os.chdir(frun)
+            # Get figure width
+            figw = opts.get_SubfigOpt(sfig, "FigureWidth")
+            figh = opts.get_SubfigOpt(sfig, "FigureHeight")
             # Read the Aero history.
             hist = CaseResid()
             # Draw the plot.
             h = hist.PlotL1(n=nPlotIter, 
-                nFirst=nPlotFirst, nLast=nPlotLast)
+                nFirst=nPlotFirst, nLast=nPlotLast,
+                FigWidth=figw, FigHeight=figh)
             # Change back to report folder.
             os.chdir(fpwd)
             # Get the file formatting

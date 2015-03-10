@@ -1538,9 +1538,19 @@ class Options(odict):
         self._Plot()
         return self['Plot'].get_PlotDelta(coeff, comp)
         
+    # Get the plot figure width
+    def get_PlotFigWidth(self):
+        self._Plot()
+        return self['Plot'].get_PlotFigWidth()
+        
+    # Get the plot figure height
+    def get_PlotFigHeight(self):
+        self._Plot()
+        return self['Plot'].get_PlotFigHeight()
+        
     # Copy over the documentation.
     for k in ['PlotCoeffs', 'nPlotIter', 'nAverage', 'nPlotRows',
-            'nPlotLast', 'nPlotFirst',
+            'nPlotLast', 'nPlotFirst', 'PlotFigWidth', 'PlotFigHeight',
             'nPlotCols', 'PlotRestriction', 'PlotDelta']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Plot,'get_'+k).__doc__

@@ -114,6 +114,8 @@ rc = {
     "nPlot": None,
     "nRow": 2,
     "nCol": 2,
+    "FigWidth": 8,
+    "FigHeight": 6,
     "PBS_j": "oe",
     "PBS_r": "n",
     "PBS_S": "/bin/bash",

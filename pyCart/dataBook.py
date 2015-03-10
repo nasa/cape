@@ -2021,6 +2021,10 @@ class Aero(dict):
                 Number of bins to plot
             *nLast*: :class:`int`
                 Last iteration to use (defaults to last iteration available)
+            *FigWidth*: :class:`float`
+                Figure width
+            *FigHeight*: :class:`float`
+                Figure height
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
@@ -2037,7 +2041,7 @@ class Aero(dict):
         
         
     # Plot function
-    def PlotL1(self, n=None, nFirst=None, nLast=None):
+    def PlotL1(self, n=None, nFirst=None, nLast=None, **kw):
         """Plot the L1 residual
         
         :Call:
@@ -2063,7 +2067,7 @@ class Aero(dict):
         # Make sure plotting modules are present.
         ImportPyPlot()
         # Create the plot.
-        h = self.Residual.PlotL1(n=n, nFirst=nFirst, nLast=nLast)
+        h = self.Residual.PlotL1(n=n, nFirst=nFirst, nLast=nLast, **kw)
         # Output.
         return h
             
@@ -2100,6 +2104,10 @@ class Aero(dict):
                 Tag to put in upper corner, for instance case number and name
             *restriction*: :class:`str`
                 Type of data, e.g. ``"SBU - ITAR"`` or ``"U/FOUO"``
+            *FigWidth*: :class:`float`
+                Figure width
+            *FigHeight*: :class:`float`
+                Figure height
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
@@ -2828,6 +2836,10 @@ class CaseFM(object):
                 Last iteration to use (defaults to last iteration available)
             *nFirst*: :class:`int`
                 First iteration to plot
+            *FigWidth*: :class:`float`
+                Figure width
+            *FigHeight*: :class:`float`
+                Figure height
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
@@ -2844,6 +2856,9 @@ class CaseFM(object):
         # Process inputs.
         nLast = kw.get('nLast')
         nFirst = kw.get('nFirst')
+        # Other plot options
+        fw = kw.get('FigWidth')
+        fh = kw.get('FigHeight')
         # ---------
         # Last Iter 
         # ---------
@@ -2912,6 +2927,14 @@ class CaseFM(object):
         h['ax'] = plt.gca()
         # Set the xlimits.
         h['ax'].set_xlim((i0, iB+25))
+        # Set figure dimensions
+        if fh: h['fig'].set_figheight(fh)
+        if fw: h['fig'].set_figwidth(fw)
+        # Attempt to apply tight axes.
+        try:
+            plt.tight_layout()
+        except Exception:
+            pass
         # Make a label for the mean value.
         lbl = u'%s = %.4f' % (c, cAvg)
         h['val'] = plt.text(0.81, 1.06, lbl, horizontalalignment='right',
@@ -2943,6 +2966,10 @@ class CaseFM(object):
                 Number of bins to plot
             *nLast*: :class:`int`
                 Last iteration to use (defaults to last iteration available)
+            *FigWidth*: :class:`float`
+                Figure width
+            *FigHeight*: :class:`float`
+                Figure height
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
@@ -2955,6 +2982,9 @@ class CaseFM(object):
         ImportPyPlot()
         # Extract the data.
         C = getattr(self, c)
+        # Process other options
+        fw = kw.get('FigWidth')
+        fh = kw.get('FigHeight')
         # ---------
         # Last Iter 
         # ---------
@@ -2997,8 +3027,17 @@ class CaseFM(object):
         # Labels.
         h['x'] = plt.xlabel(c)
         h['y'] = plt.ylabel('PDF')
-        # Get the axes.
+        # Get the figure and axes.
+        h['fig'] = plt.gcf()
         h['ax'] = plt.gca()
+        # Set figure dimensions
+        if fh: h['fig'].set_figheight(fh)
+        if fw: h['fig'].set_figwidth(fw)
+        # Attempt to apply tight axes.
+        try:
+            plt.tight_layout()
+        except Exception:
+            pass
         # Make a label for the mean value.
         lbl = u'\u03BC(%s) = %.4f' % (c, cAvg)
         h['mu'] = plt.text(1.0, 1.06, lbl, horizontalalignment='right',
@@ -3199,11 +3238,11 @@ class CaseResid(object):
         return L1Init - L1End
         
     # Plot function
-    def PlotL1(self, n=None, nFirst=None, nLast=None):
+    def PlotL1(self, n=None, nFirst=None, nLast=None, **kw):
         """Plot the L1 residual
         
         :Call:
-            >>> h = hist.PlotL1(n=None, nFirst=None, nLast=None)
+            >>> h = hist.PlotL1(n=None, nFirst=None, nLast=None, **kw)
         :Inputs:
             *hist*: :class:`pyCart.dataBook.CaseResid`
                 Instance of the DataBook residual history
@@ -3213,6 +3252,10 @@ class CaseResid(object):
                 Plot starting at iteration *nStart*
             *nLast*: :class:`int`
                 Plot up to iteration *nLast*
+            *FigWidth*: :class:`float`
+                Figure width
+            *FigHeight*: :class:`float`
+                Figure height
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
@@ -3230,6 +3273,9 @@ class CaseResid(object):
         if n is None:
             # Use all iterations
             n = self.i[-1]
+        # Process other options
+        fw = kw.get('FigWidth')
+        fh = kw.get('Figheight')
         # ---------
         # Last Iter 
         # ---------
@@ -3276,6 +3322,14 @@ class CaseResid(object):
         # Get the figures and axes.
         h['ax'] = plt.gca()
         h['fig'] = plt.gcf()
+        # Set figure dimensions
+        if fh: h['fig'].set_figheight(fh)
+        if fw: h['fig'].set_figwidth(fw)
+        # Attempt to apply tight axes.
+        try:
+            plt.tight_layout()
+        except Exception:
+            pass
         # Set the xlimits.
         h['ax'].set_xlim((i0, iB+25))
         # Output.
