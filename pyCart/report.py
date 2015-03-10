@@ -221,6 +221,11 @@ class Report(object):
             lines.append('\\vskip-10pt\n')
         # Start the figure.
         lines.append('\\begin{figure}[!h]\n')
+        # Get figure alignment
+        falgn = self.cart3d.opts.get_FigAlignment(fig)
+        if falgn.lower() == "center":
+            # Centering
+            lines.append('\\centering\n')
         # -------
         # Subfigs
         # -------
@@ -433,7 +438,7 @@ class Report(object):
             lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
                 % (frun, fimg))
         # Set the caption.
-        lines.append('\\caption*{%s}\n' % fcpt)
+        lines.append('\\caption*{\\small %s}\n' % fcpt)
         # Close the subfigure.
         lines.append('\\end{subfigure}\n')
         # Output
@@ -503,7 +508,7 @@ class Report(object):
             # Read the Aero history.
             hist = CaseResid()
             # Draw the plot.
-            h = hist.PlotCoeff(coeff, n=nPlotIter, 
+            h = hist.PlotL1(n=nPlotIter, 
                 nFirst=nPlotFirst, nLast=nPlotLast)
             # Change back to report folder.
             os.chdir(fpwd)
@@ -525,7 +530,7 @@ class Report(object):
             lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
                 % (frun, fimg))
         # Set the caption.
-        if fcpt: lines.append('\\caption*{%s}\n' % fcpt)
+        if fcpt: lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
         lines.append('\\end{subfigure}\n')
         # Output
@@ -823,8 +828,8 @@ class Report(object):
         f.write('}\n\n')
         
         # Small captions if needed
-        f.write('\\captionsetup[subfigure]')
-        f.write('{textfont=sf,font+=scriptsize}\n\n')
+        f.write('\\captionsetup[subfigure]{textfont=sf}\n')
+        f.write('\\captionsetup[subfigure]{skip=0pt}\n\n')
         
         # Macros for setting cases.
         f.write('\\newcommand{\\thecase}{}\n')

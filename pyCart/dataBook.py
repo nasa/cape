@@ -3273,8 +3273,9 @@ class CaseResid(object):
         # Labels
         h['x'] = plt.xlabel('Iteration Number')
         h['y'] = plt.ylabel('L1 Residual')
-        # Get the axes.
+        # Get the figures and axes.
         h['ax'] = plt.gca()
+        h['fig'] = plt.gcf()
         # Set the xlimits.
         h['ax'].set_xlim((i0, iB+25))
         # Output.
