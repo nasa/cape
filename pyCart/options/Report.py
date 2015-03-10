@@ -179,6 +179,50 @@ class Report(odict):
         # Get the list of figures.
         return R.get('Figures', [])
         
+    # Get report list of figures for cases marked FAIL
+    def get_ReportErrorFigList(self, rep):
+        """Get list of figures for cases marked FAIL
+        
+        :Call:
+            >>> figs = opts.get_ReportErrorFigList(rep)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *figs*: :class:`list` (:class:`str`)
+                List of figures in the report
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Get the report.
+        R = self.get_Report(rep)
+        # Get the list of figures.
+        return R.get('ErrorFigures', R.get('Figures', []))
+        
+    # Get report list of figures for cases marked FAIL
+    def get_ReportZeroFigList(self, rep):
+        """Get list of figures for cases with zero iterations
+        
+        :Call:
+            >>> figs = opts.get_ReportZeroFigList(rep)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *figs*: :class:`list` (:class:`str`)
+                List of figures in the report
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Get the report.
+        R = self.get_Report(rep)
+        # Get the list of figures.
+        return R.get('ZeroFigures', R.get('Figures', []))
+        
     # Get report title
     def get_ReportTitle(self, rep):
         """Get the title of a report

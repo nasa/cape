@@ -1727,6 +1727,16 @@ class Options(odict):
         self._Report()
         return self['Report'].get_ReportFigList(rep)
         
+    # Get list of figures in a report
+    def get_ReportErrorFigList(self, rep):
+        self._Report()
+        return self['Report'].get_ReportErrorFigList(rep)
+        
+    # Get list of figures in a report
+    def get_ReportZeroFigList(self, rep):
+        self._Report()
+        return self['Report'].get_ReportZeroFigList(rep)
+        
     # Get title string for a report
     def get_ReportTitle(self, rep):
         self._Report()
@@ -1785,7 +1795,8 @@ class Options(odict):
     # Copy over the documentation
     for k in ['ReportList', 'FigList', 'SubfigList',
             'Figure', 'Subfigure', 'Report',
-            'ReportFigList', 'ReportTitle', 'ReportAuthor',
+            'ReportFigList', 'ReportErrorFigList', 'ReportZeroFigList', 
+            'ReportTitle', 'ReportAuthor',
             'ReportRestriction', 'ReportLogo',  'ReportArchive',
             'FigSubfigList', 'FigAlignment', 'FigHeader',
             'SubfigType', 'SubfigBaseType', 'SubfigOpt'

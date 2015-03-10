@@ -161,8 +161,16 @@ class Report(object):
         # -------
         # Figures
         # -------
-        # Get list of figures.
-        figs = self.cart3d.opts.get_ReportFigList(self.rep)
+        # Check for alternate statuses.
+        if sts == "ERROR":
+            # Get the figures for FAILed cases
+            figs = self.cart3d.opts.get_ReportErrorFigList(self.rep)
+        elif n:
+            # Nominal case with some results
+            figs = self.cart3d.opts.get_ReportFigList(self.rep)
+        else:
+            # No FAIL file, but no iterations
+            figs = self.cart3d.opts.get_ReportZeroFigList(self.rep)
         # Loop through figures.
         for fig in figs:
             self.UpdateFigure(fig, i)
