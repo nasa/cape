@@ -708,7 +708,7 @@ def LinkPLT():
         # Test if the file actually exists.
         if os.path.isfile(fplt):
             # Create the link.
-            os.link(fplt, fname)
+            os.symlink(fplt, fname)
     # Cut planes file
     fname = 'cutPlanes.plt'
     # Check for existing files.
@@ -747,6 +747,6 @@ def LinkPLT():
         # Test if the file actually exists.
         if os.path.isfile(fplt):
             # Create the link.
-            os.link(fplt, fname)
+            os.symlink(fplt, fname)
             
     

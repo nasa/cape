@@ -1,12 +1,14 @@
 """Function for Automated Report Interface"""
 
 # File system interface
-import os
+import os, json
 
 # Local modules needed
 from . import tex, tar
 # Data book and plotting
 from .dataBook import Aero, CaseFM, CaseResid
+# Folder management
+from .case import LinkPLT
 # Configuration and surface tri
 from .tri    import Tri
 from .config import Config
@@ -254,6 +256,9 @@ class Report(object):
             elif btyp == 'Tecplot3View':
                 # Get the Tecplot component view
                 lines += self.SubfigTecplot3View(sfig, i)
+            elif btyp == 'TecplotLayout':
+                # Get the Tecplot layout view
+                lines += self.SubfigTecplotLayout(sfig, i)
         # -------
         # Cleanup
         # -------
@@ -640,6 +645,90 @@ class Report(object):
         # Include the graphics.
         lines.append('\\includegraphics[width=\\textwidth]{%s/%s.png}\n'
             % (frun, fname))
+        # Set the caption.
+        if fcpt: lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
+        # Close the subfigure.
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
+       
+   # Function to create coefficient plot and write figure
+    def SubfigTecplotLayout(self, sfig, i):
+        """Create image based on a Tecplot layout file
+        
+        :Call:
+            >>> lines = R.SubfigTecplot3View(sfig, i)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2014-03-10 ``@ddalle``: First version
+        """
+        # Save current folder.
+        fpwd = os.getcwd()
+        # Case folder
+        frun = self.cart3d.x.GetFullFolderNames(i)
+        # Extract options
+        opts = self.cart3d.opts
+        # Get the component.
+        comp = opts.get_SubfigOpt(sfig, "Component")
+        # Get caption.
+        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        # Get the vertical alignment.
+        hv = opts.get_SubfigOpt(sfig, "Position")
+        # Get subfigure width
+        wsfig = opts.get_SubfigOpt(sfig, "Width")
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = opts.get_SubfigOpt(sfig, "Header")
+        # Alignment
+        algn = opts.get_SubfigOpt(sfig, "Alignment")
+        # Set alignment.
+        if algn.lower() == "center":
+            lines.append('\\centering\n')
+        # Write the header.
+        if fhdr:
+            # Save the line
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+            lines.append('\\vskip-6pt\n')
+        # Go to the Cart3D folder
+        os.chdir(self.cart3d.RootDir)
+        # Check if the run directory exists.
+        if os.path.isdir(frun):
+            # Go there.
+            os.chdir(frun)
+            # Get the most recent PLT files.
+            LinkPLT()
+            # Layout file
+            flay = opts.get_SubfigOpt(sfig, "Layout")
+            # Figure width in pixels (can be ``None``).
+            wfig = opts.get_SubfigOpt(sfig, "FigWidth")
+            # Layout file without extension
+            fname = ".".join(flay.split(".")[:-1])
+            # Figure file name.
+            fname = "%s-%s.png" % (sfig, fname)
+            # Check for the files.
+            if (os.path.isfile('Components.i.plt') and 
+                    os.path.isfile('cutPlanes.plt')):
+                # Run Tecplot
+                try:
+                    # Run the layout.
+                    ExportLayout(flay, fname=fname, w=wfig)
+                    # Move the file.
+                    os.rename(fname, os.path.join(fpwd,fname))
+                    # Include the graphics.
+                    lines.append(
+                        '\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                        % (frun, fname)) 
+                except Exception:
+                    pass
+        # Go to the report case folder
+        os.chdir(fpwd)
         # Set the caption.
         if fcpt: lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
