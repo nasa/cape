@@ -3009,8 +3009,8 @@ class CaseFM(object):
         # Labels
         # ------
         # y-coordinates above and below the box
-        yf = 3.0 * np.sqrt(len(h['fig'].get_axes)) / fh
-        yu = 1.0 + 0.06*yf
+        yf = 3.0 * np.sqrt(len(h['fig'].get_axes())) / h['fig'].get_figheight()
+        yu = 1.0 + 0.065*yf
         yl = 1.0 - 0.04*yf
         # Make a label for the mean value.
         if kw.get("ShowMu", True):
@@ -3039,7 +3039,7 @@ class CaseFM(object):
             # Form \sigma(CA) = 0.0032
             lbl = u'\u03C3(%s) = %.4f' % (c, ksig*s[c+'_std'])
             # Create the handle.
-            h['sig'] = plt.text(0.05, yu, lbl, color=kw_s.get_key('color',1),
+            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_key('color',1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -3050,7 +3050,7 @@ class CaseFM(object):
             # Form \sigma(CA) = 0.0032
             lbl = u'\u0395(%s) = %.4f' % (c, ueps*s[c+'_err'])
             # Create the handle.
-            h['eps'] = plt.text(0.05, yl, lbl, color=kw_u.get_key('color',1),
+            h['eps'] = plt.text(0.01, yl, lbl, color=kw_u.get_key('color',1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
