@@ -103,21 +103,26 @@ class Report(object):
         os.chdir(fpwd)
         
     # Function to update report for several cases
-    def UpdateCases(self, cons=[]):
+    def UpdateCases(self, I=None, cons=[]):
         """Update several cases and add the lines to the master LaTeX file
         
         :Call:
+            >>> R.UpdateCases(I)
             >>> R.UpdateCases(cons=[])
         :Inputs:
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
+            *I*: :class:`list` (:class:`int`)
+                List of case indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints to define what cases to update
         :Versions:
             * 2015-03-10 ``@ddalle``: First version
         """
-        # Apply constraints
-        I = self.x.Filter(kw.get('cons', []))
+        # Check for use of constraints instead of direct list.
+        if I is None:
+            # Apply constraints
+            I = self.x.Filter(kw.get('cons', []))
         # Clear out the lines.
         del self.tex.Section['Cases'][1:-1]
         # Loop through those cases.
