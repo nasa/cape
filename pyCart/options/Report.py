@@ -498,6 +498,15 @@ class Report(odict):
                 "Width": 0.66,
                 "Component": "entire"
             }
+        elif t in ['Tecplot']:
+            # Generic Tecplot layout
+            S = {
+                "Header": "",
+                "Position": "b",
+                "Alignment": "center",
+                "Width": 0.5,
+                "Layout": "layout.lay"
+            }
         else:
             # This is a derived subfigure type; recurse.
             return self.get_SubfigOpt(t, opt)

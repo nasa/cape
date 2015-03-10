@@ -659,4 +659,94 @@ def GetCurrentIter():
     # Output the total.
     return n0 + ntd
     
+# Link best tecplot files
+def LinkPLT():
+    """Link the most recent Tecplot files to fixed file names
+    
+    Uses file names :file:`Components.i.plt` and :file:`cutPlanes.plt`
+    
+    :Call:
+        >>> pyCart.case.LinkPLT()
+    :Versions:
+        * 2015-03-10 ``@ddalle``: First version
+    """
+    # Surface file
+    fname = 'Components.i.plt'
+    # Check for existing regular files.
+    if os.path.isfile(fname) and not os.path.islink(fname):
+        pass
+    else:
+        # Remove the file if necessary.
+        if os.path.isfile(fname) or os.path.islink(fname):
+            os.remove(fname)
+        # Get the working directory.
+        fdir = GetWorkingFolder()
+        # Check it.
+        if fdir == ".":
+            # List files that could match.
+            fglob = glob.glob('Components.*[0-9]*.plt')
+            # Check for empty glob
+            if len(fglob) == 0:
+                # Try the BEST/ folder
+                fplt = os.path.join('BEST', fname)
+            else:
+                # Get indices of those files
+                nplt = [int(f.split('.')[-2]) for f in fglob]
+                # Max index.
+                fplt = fglob[nplt.index(max(nplt))]
+        else:
+            # File from the working folder if it exists.
+            fplt = os.path.join(fdir, fname)
+            # Check for the file
+            if not os.path.isfile(fplt):
+                # Get the adaptation number.
+                nadapt = int(fdir[-2:])
+                # Try the previous adaptation file
+                fdir = 'adapt%02i' % (nadapt-1)
+                # Use the previous folder.
+                fplt = os.path.join(fdir, fname)
+        # Test if the file actually exists.
+        if os.path.isfile(fplt):
+            # Create the link.
+            os.link(fplt, fname)
+    # Cut planes file
+    fname = 'cutPlanes.plt'
+    # Check for existing files.
+    if os.path.isfile(fname) and not os.path.islink(fname):
+        pass
+    else:
+        # Remove the file if necessary.
+        if os.path.isfile(fname) or os.path.islink(fname):
+            os.remove(fname)
+        # Get the working directory.
+        fdir = GetWorkingFolder()
+        # Check it.
+        if fdir == ".":
+            # List files that could match.
+            fglob = glob.glob('cutPlanes.[0-9]*.plt')
+            # Check for empty glob
+            if len(fglob) == 0:
+                # Try the BEST/ folder
+                fplt = os.path.join('BEST', fname)
+            else:
+                # Get indices of those files
+                nplt = [int(f.split('.')[-2]) for f in fglob]
+                # Max index.
+                fplt = fglob[nplt.index(max(nplt))]
+        else:
+            # File from the working folder if it exists.
+            fplt = os.path.join(fdir, fname)
+            # Check for the file
+            if not os.path.isfile(fplt):
+                # Get the adaptation number.
+                nadapt = int(fdir[-2:])
+                # Try the previous adaptation file
+                fdir = 'adapt%02i' % (nadapt-1)
+                # Use the previous folder.
+                fplt = os.path.join(fdir, fname)
+        # Test if the file actually exists.
+        if os.path.isfile(fplt):
+            # Create the link.
+            os.link(fplt, fname)
+            
     
