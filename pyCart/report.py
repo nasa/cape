@@ -1,14 +1,15 @@
 """Function for Automated Report Interface"""
 
 # File system interface
-import os, json
+import os, json, shutil
 
 # Local modules needed
 from . import tex, tar
 # Data book and plotting
 from .dataBook import Aero, CaseFM, CaseResid
-# Folder management
-from .case import LinkPLT
+# Folder and Tecplot management
+from .case    import LinkPLT
+from .tecplot import ExportLayout
 # Configuration and surface tri
 from .tri    import Tri
 from .config import Config
@@ -256,7 +257,7 @@ class Report(object):
             elif btyp == 'Tecplot3View':
                 # Get the Tecplot component view
                 lines += self.SubfigTecplot3View(sfig, i)
-            elif btyp == 'TecplotLayout':
+            elif btyp == 'Tecplot':
                 # Get the Tecplot layout view
                 lines += self.SubfigTecplotLayout(sfig, i)
         # -------
@@ -642,6 +643,8 @@ class Report(object):
         fname = "%s-%s" % (sfig, comp)
         # Create the image.
         tri.Tecplot3View(fname, comp)
+        # Remove the triangulation
+        os.remove('%.tri' % comp)
         # Include the graphics.
         lines.append('\\includegraphics[width=\\textwidth]{%s/%s.png}\n'
             % (frun, fname))

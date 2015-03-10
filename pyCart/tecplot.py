@@ -311,7 +311,7 @@ class TecMacro(Tecscript):
             * 2015-03-10 ``@ddalle``: First version
         """
         # Form the export format code
-        txt = 'EXPORTSETUP = %s' % fmt
+        txt = 'EXPORTFORMAT = %s' % fmt
         # Do the replacement
         self.ReplaceCommand('EXPORTSETUP', txt, k=2, reg='EXPORTFORMAT')
         
