@@ -7,6 +7,17 @@ Utilities for pyCart: :mod:`pyCart.util`
 import numpy as np
 # File system
 import subprocess as sp
+# Import path utilities
+import os.path
+
+
+
+# pyCart base folder
+pyCartFolder = os.path.split(os.path.abspath(__file__))[0]
+# Folder containing TecPlot templates
+TecFolder = os.path.split(pyCartFolder)[0]
+TecFolder = os.path.join(TecFolder, "templates", "tecplot")
+
 
 # Function to get uncertainty in the mean
 def SigmaMean(x):

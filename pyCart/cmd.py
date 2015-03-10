@@ -10,6 +10,31 @@ a :class:`pyCart.cart3d.Cart3d` instance.
 
 # File checking.
 import os.path
+# Get command to run tecplot
+from .util import GetTecplotCommand
+
+# Function to run tecplot
+def tecmcr(mcr="export-lay.mcr", **kw):
+    """
+    Run a Tecplot macro
+    
+    :Call:
+        >>> cmd = pyCart.cmd.tecmcr(mcr="export-lay.mcr")
+    :Inputs:
+        *mcr*: :class:`str`
+            File name of Tecplot macro
+    :Outputs:
+        *cmd*: :class:`list` (:class:`str`)
+            Command split into a list of strings
+    :Versions:
+        * 2015-03-10 ``@ddalle``: First version
+    """
+    # Get tecplot command
+    t360 = GetTecplotCommand()
+    # Form the command
+    cmd = [t360, '-b', '-p', mcr]
+    # Output
+    return cmd
 
 # Function to call cubes.
 def cubes(cart3d=None, **kw):
