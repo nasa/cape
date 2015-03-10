@@ -70,8 +70,6 @@ class Report(object):
         self.cases = {}
         # Read the file if applicable
         self.OpenMain()
-        
-        
         # Return
         os.chdir(fpwd)
         
@@ -103,6 +101,29 @@ class Report(object):
             raise IOError("Bad LaTeX file '%s'" % self.fname)
         # Return
         os.chdir(fpwd)
+        
+    # Function to update report for several cases
+    def UpdateCases(self, cons=[]):
+        """Update several cases and add the lines to the master LaTeX file
+        
+        :Call:
+            >>> R.UpdateCases(cons=[])
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints to define what cases to update
+        :Versions:
+            * 2015-03-10 ``@ddalle``: First version
+        """
+        # Apply constraints
+        I = self.x.Filter(kw.get('cons', []))
+        # Clear out the lines.
+        del self.tex.Section['Cases'][1:-1]
+        # Loop through those cases.
+        for i in I:
+            # Update the case
+            self.UpdateCase(i)
         
     # Function to create the file for a case
     def UpdateCase(self, i):
@@ -139,6 +160,9 @@ class Report(object):
             os.mkdir(fdir, dmask)
         # Go into the folder.
         self.cd(fdir)
+        # Add the line to the master LaTeX file
+        self.tex.Section['Cases'].insert(-1,
+            '\\input{%s/%s/%s}\n' % (fgrp, fdir, self.fname))
         # Read the status file.
         nr, stsr = self.ReadCaseJSONIter()
         # Get the actual iteration number.
