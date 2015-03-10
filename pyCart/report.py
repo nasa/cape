@@ -706,6 +706,10 @@ class Report(object):
             LinkPLT()
             # Layout file
             flay = opts.get_SubfigOpt(sfig, "Layout")
+            # Full path to layout file
+            fsrc = os.path.join(self.cart3d.RootDir, flay)
+            # Get just the file name
+            flay = os.path.split(flay)[-1]
             # Figure width in pixels (can be ``None``).
             wfig = opts.get_SubfigOpt(sfig, "FigWidth")
             # Layout file without extension
@@ -717,6 +721,8 @@ class Report(object):
                     os.path.isfile('cutPlanes.plt')):
                 # Run Tecplot
                 try:
+                    # Copy the file into the current folder.
+                    shutil.copy(fsrc, '.')
                     # Run the layout.
                     ExportLayout(flay, fname=fname, w=wfig)
                     # Move the file.
@@ -724,7 +730,9 @@ class Report(object):
                     # Include the graphics.
                     lines.append(
                         '\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                        % (frun, fname)) 
+                        % (frun, fname))
+                    # Remove the layout file.
+                    os.remove(flay)
                 except Exception:
                     pass
         # Go to the report case folder
