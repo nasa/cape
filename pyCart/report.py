@@ -251,6 +251,9 @@ class Report(object):
             elif btyp == 'PlotL1':
                 # Get the residual plot
                 lines += self.SubfigPlotL1(sfig, i)
+            elif btyp == 'Tecplot3View':
+                # Get the Tecplot component view
+                lines += self.SubfigTecplot3View(sfig, i)
         # -------
         # Cleanup
         # -------
@@ -764,8 +767,8 @@ class Report(object):
                         % (c, fc))
                 elif fs == 'err':
                     # Uncertainty
-                    lines.append('\\textit{%s} iterative uncertainty,\n' % c 
-                        + '$\\varepsilon(%s)$ ' % fc)
+                    lines.append('\\textit{%s} iterative uncertainty, ' % c 
+                        + '$\\varepsilon(%s)$\n' % fc)
                 elif fs == 'min':
                     # Min value
                     lines.append(

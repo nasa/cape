@@ -399,7 +399,7 @@ class Report(odict):
         t = self.get_SubfigType(sfig)
         # Check if it is a base category.
         if t in ['Conditions', 'Summary', 'PlotCoeff', 'PlotL1',
-        'Tecplot3view']:
+        'Tecplot3View']:
             # Yes, it is.
             return t
         else:
