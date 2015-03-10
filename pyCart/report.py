@@ -456,7 +456,7 @@ class Report(object):
             lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
                 % (frun, fimg))
         # Set the caption.
-        lines.append('\\caption*{\\scriptsize%s}\n' % fcpt)
+        lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
         lines.append('\\end{subfigure}\n')
         # Output

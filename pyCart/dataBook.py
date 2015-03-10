@@ -2913,7 +2913,7 @@ class CaseFM(object):
         # Shortcut for the mean
         cAvg = s[c]
         # Initialize plot options for standard deviation
-        kw_s = odict(color='b', lw=0.0, facecolor="b", alpha=0.5)
+        kw_s = odict(color='b', lw=0.0, facecolor="b", alpha=0.35)
         # Show iterative n*standard deviation
         if ksig and nAvg>2:
             # Extract plot options from kwargs
@@ -2928,7 +2928,7 @@ class CaseFM(object):
         # --------------------------
         # Iterative uncertainty plot
         # --------------------------
-        kw_u = odict(color='g', ls="none", facecolor="g", alpha=0.5)
+        kw_u = odict(color='g', ls="none", facecolor="g", alpha=0.4)
         # Show iterative n*standard deviation
         if uerr and nAvg>2:
             # Extract plot options from kwargs
