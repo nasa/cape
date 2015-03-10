@@ -7,6 +7,9 @@ import os
 from . import tex, tar
 # Data book and plotting
 from .dataBook import Aero, CaseFM, CaseResid
+# Configuration and surface tri
+from .tri    import Tri
+from .config import Config
 
 #<!--
 # ---------------------------------
@@ -557,7 +560,89 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
+       
+   # Function to create coefficient plot and write figure
+    def SubfigTecplot3View(self, sfig, i):
+        """Create image of surface for one component using Tecplot
         
+        :Call:
+            >>> lines = R.SubfigTecplot3View(sfig, i)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2014-03-10 ``@ddalle``: First version
+        """
+        # Save current folder.
+        fpwd = os.getcwd()
+        # Case folder
+        frun = self.cart3d.x.GetFullFolderNames(i)
+        # Extract options
+        opts = self.cart3d.opts
+        # Get the component.
+        comp = opts.get_SubfigOpt(sfig, "Component")
+        # Go to the Cart3D folder
+        os.chdir(self.cart3d.RootDir)
+        # Path to the triangulation
+        ftri = os.path.join(frun, 'Components.i.tri')
+        # Check for that file.
+        if not os.path.join(ftri):
+            # Try non-intersected file.
+            ftri = os.path.join(frun, 'Components.c.tri')
+        # Check for the triangulation file.
+        if os.path.join(ftri):
+            # Read the configuration file.
+            conf = Config(opts.get_ConfigFile())
+            # Read the triangulation file.
+            tri = Tri(ftri)
+            # Apply the configuration
+            tri.conf = conf
+        else:
+            # Read the standard triangulation
+            cart3d.ReadTri()
+            # Rotate for the appropriate case.
+            cart3d.PrepareTri(i)
+            # Extract the triangulation
+            tri = cart3d.tri
+        # Get caption.
+        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        # Get the vertical alignment.
+        hv = opts.get_SubfigOpt(sfig, "Position")
+        # Get subfigure width
+        wsfig = opts.get_SubfigOpt(sfig, "Width")
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = opts.get_SubfigOpt(sfig, "Header")
+        # Alignment
+        algn = opts.get_SubfigOpt(sfig, "Alignment")
+        # Set alignment.
+        if algn.lower() == "center":
+            lines.append('\\centering\n')
+        # Write the header.
+        if fhdr:
+            # Save the line
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+            lines.append('\\vskip-6pt\n')
+        # Go to the report case folder
+        os.chdir(fpwd)
+        # File name
+        fname = "%s-%s" % (sfig, comp)
+        # Create the image.
+        tri.Tecplot3View(fname, comp)
+        # Include the graphics.
+        lines.append('\\includegraphics[width=\\textwidth]{%s/%s.png}\n'
+            % (frun, fname))
+        # Set the caption.
+        if fcpt: lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
+        # Close the subfigure.
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
         
     # Function to write summary table
     def SubfigSummary(self, sfig, i):

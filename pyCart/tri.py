@@ -850,8 +850,8 @@ class TriBase(object):
                 Triangulation instance
             *fname*: :class:`str`
                 Created file is ``'%s.png' % fname``
-            *i*: :class:`int` or :class:`list` (:class:`int`)
-                Component ID or list of component IDs
+            *i*: :class:`str` or :class:`int` or :class:`list` (:class:`int`)
+                Component name, ID or list of component IDs
         :Versions:
             * 2015-01-23 ``@ddalle``: First version
         """

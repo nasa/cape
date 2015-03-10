@@ -398,7 +398,8 @@ class Report(odict):
         # Get the subfigure specified type
         t = self.get_SubfigType(sfig)
         # Check if it is a base category.
-        if t in ['Conditions', 'Summary', 'PlotCoeff', 'PlotL1']:
+        if t in ['Conditions', 'Summary', 'PlotCoeff', 'PlotL1',
+        'Tecplot3view']:
             # Yes, it is.
             return t
         else:
@@ -488,7 +489,7 @@ class Report(odict):
                 "Format": "pdf",
                 "DPI": 150
             }
-        elif t in ['Tec3View']:
+        elif t in ['Tecplot3View']:
             # Component 3-view
             S = {
                 "Header": "",

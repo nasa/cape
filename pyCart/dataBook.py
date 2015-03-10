@@ -2950,8 +2950,10 @@ class CaseFM(object):
             # Override the default option.
             kw_m[k] = kw["MeanOptions"][k]
         # Turn into two groups.
-        kw0 = {k: kw_m.get_key(k, 0) for k in kw_m}
-        kw1 = {k: kw_m.get_key(k, 1) for k in kw_m}
+        kw0 = {}; kw1 = {}
+        for k in kw_m:
+            kw0[k] = kw_m.get_key(k, 0)
+            kw1[k] = kw_m.get_key(k, 1)
         # Plot the mean.
         h['mean'] = (
             plt.plot([i0,iA], [cAvg, cAvg], **kw0) + 
@@ -2968,8 +2970,10 @@ class CaseFM(object):
                 # Override the default option.
                 kw_d[k] = kw["DeltaOptions"][k]
             # Turn into two groups.
-            kw0 = {k: kw_d.get_key(k, 0) for k in kw_d}
-            kw1 = {k: kw_d.get_key(k, 1) for k in kw_d}
+            kw0 = {}; kw1 = {}
+            for k in kw_m:
+                kw0[k] = kw_d.get_key(k, 0)
+                kw1[k] = kw_d.get_key(k, 1)
             # Limits
             cMin = cAvg-dc
             cMax = cAvg+dc
