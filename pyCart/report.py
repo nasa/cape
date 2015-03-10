@@ -417,6 +417,8 @@ class Report(object):
             dc = opts.get_SubfigOpt(sfig, "Delta")
             # Get the multiple of standard deviation to show
             ksig = opts.get_SubfigOpt(sfig, "StandardDeviation")
+            # Get the multiple of iterative error to show
+            uerr = opts.get_SubfigOpt(sfig, "IterativeError")
             # Get figure dimensions.
             figw = opts.get_SubfigOpt(sfig, "FigureWidth")
             figh = opts.get_SubfigOpt(sfig, "FigureHeight")
@@ -424,6 +426,7 @@ class Report(object):
             kw_p = opts.get_SubfigOpt(sfig, "LineOptions")
             kw_m = opts.get_SubfigOpt(sfig, "MeanOptions")
             kw_s = opts.get_SubfigOpt(sfig, "StDevOptions")
+            kw_u = opts.get_SubfigOpt(sfig, "ErrPltOptions")
             kw_d = opts.get_SubfigOpt(sfig, "DeltaOptions")
             # Draw the plot.
             h = FM.PlotCoeff(coeff, n=nPlotIter, nAvg=s['nStats'],
@@ -431,6 +434,7 @@ class Report(object):
                 LineOptions=kw_p, MeanOptions=kw_m,
                 d=dc, DeltaOptions=kw_d,
                 k=ksig, StDevOptions=kw_s,
+                u=uerr, ErrPltOptions=kw_u,
                 FigWidth=figw, FigHeight=figh)
             # Change back to report folder.
             os.chdir(fpwd)

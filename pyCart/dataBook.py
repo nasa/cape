@@ -2928,8 +2928,18 @@ class CaseFM(object):
         # --------------------------
         # Iterative uncertainty plot
         # --------------------------
-        kw_u = odict(color='b', ls="none", facecolor="b", alpha=0.5)
-        
+        kw_u = odict(color='g', ls="none", facecolor="g", alpha=0.5)
+        # Show iterative n*standard deviation
+        if uerr and nAvg>2:
+            # Extract plot options from kwargs
+            for k in util.denone(kw.get("ErrPltOptions", {})):
+                # Override the default option.
+                kw_u[k] = kw["ErrPltOptions"][k]
+            # Limits
+            cMin = cAvg - uerr*s[c+"_err"]
+            cMax = cAvg + uerr*s[c+"_err"]
+            # Plot the target window boundaries.
+            h['err'] = plt.fill_between([iA,iB], [cMin]*2, [cMax]*2, **kw_u)
         # ---------
         # Mean plot
         # ---------
@@ -2998,15 +3008,16 @@ class CaseFM(object):
         # ------
         # Labels
         # ------
-        # Get coordinate limits
-        xmin, xmax = h['ax'].get_xlim()
-        ymin, ymax = h['ax'].get_ylim()
+        # y-coordinates above and below the box
+        yf = 3.0 * np.sqrt(len(h['fig'].get_axes)) / fh
+        yu = 1.0 + 0.06*yf
+        yl = 1.0 - 0.04*yf
         # Make a label for the mean value.
-        if kw.get("ShowMean", True):
+        if kw.get("ShowMu", True):
             # Form: CA = 0.0204
             lbl = u'%s = %.4f' % (c, cAvg)
             # Create the handle.
-            h['mu'] = plt.text(0.99, 1.06, lbl, color=kw_p['color'],
+            h['mu'] = plt.text(0.99, yu, lbl, color=kw_p['color'],
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -3017,7 +3028,7 @@ class CaseFM(object):
             # Form: \DeltaCA = 0.0050
             lbl = u'\u0394%s = %.4f' % (c, dc)
             # Create the handle.
-            h['d'] = plt.text(0.99, 0.96, lbl, color=kw_d.get_key('color',1),
+            h['d'] = plt.text(0.99, yl, lbl, color=kw_d.get_key('color',1),
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -3028,7 +3039,18 @@ class CaseFM(object):
             # Form \sigma(CA) = 0.0032
             lbl = u'\u03C3(%s) = %.4f' % (c, ksig*s[c+'_std'])
             # Create the handle.
-            h['sig'] = plt.text(0.05, 1.06, lbl, color=kw_s.get_key('color',1),
+            h['sig'] = plt.text(0.05, yu, lbl, color=kw_s.get_key('color',1),
+                horizontalalignment='left', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['sig'].set_family("DejaVu Sans")
+            except Exception: pass
+        # Make a label for the iterative uncertainty.
+        if uerr and nAvg>2 and kw.get("ShowEpsilon", True):
+            # Form \sigma(CA) = 0.0032
+            lbl = u'\u0395(%s) = %.4f' % (c, ueps*s[c+'_err'])
+            # Create the handle.
+            h['eps'] = plt.text(0.05, yl, lbl, color=kw_u.get_key('color',1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.

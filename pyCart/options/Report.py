@@ -470,8 +470,9 @@ class Report(odict):
                 "FigHeight": 4.5,
                 "Component": "entire",
                 "Coefficient": "CN",
-                "Delta": 0,
-                "StandardDeviation": 0,
+                "Delta": 0.0,
+                "StandardDeviation": 0.0,
+                "IterativeError": 0.0,
                 "Format": "pdf",
                 "DPI": 150
             }
