@@ -118,7 +118,7 @@ if __name__ == "__main__":
     # Process index list.
     if ('I' in kw) and (kw['I'] != True):
         # Turn into a single list
-        I = cart3d.x.ExpandIndices(kw['I'])
+        kw['I'] = cart3d.x.ExpandIndices(kw['I'])
     
     # Process inputs.
     if kw.get('c'):

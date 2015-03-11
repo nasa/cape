@@ -536,7 +536,7 @@ class Trajectory:
             return dlist
     
     # Function to filter cases
-    def Filter(self, cons):
+    def Filter(self, cons, I=None):
         """Filter cases according to a set of constraints
         
         The constraints are specified as a list of strings that contain
@@ -554,11 +554,14 @@ class Trajectory:
         
         :Call:
             >>> i = x.Filter(cons)
+            >>> i = x.Fitler(cons, I)
         :Inputs:
             *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
             *cons*: :class:`list` (:class:`str`)
                 List of constraints
+            *I*: :class:`list` (:class:`int`)
+                List of initial indices to consider
         :Outputs:
             *i*: :class:`numpy.ndarray` (:class:`int`)
                 Index of group(s) to process
@@ -566,8 +569,14 @@ class Trajectory:
             * 2014-12-09 ``@ddalle``: First version
         """
         # Initialize the conditions.
-        # Just trying to create a vector of "True"s with right dimensions.
-        i = np.arange(self.nCase) > -1
+        if I is None:
+            # Consider all indices
+            i = np.arange(self.nCase) > -1
+        else:
+            # Start with all indices failed.
+            i = np.arange(self.nCase) < -1
+            # Set the specified indices to True
+            i[I] = True
         # Loop through constraints
         for con in cons:
             # Check for empty constraints.
@@ -631,11 +640,12 @@ class Trajectory:
         
     # Get indices
     def GetIndices(self, **kw):
-        """Get indices from either list or constraints, preferring list
+        """Get indices from either list or constraints or both
         
         :Call:
             >>> I = x.GetIndices()
             >>> I = x.GetIndices(I=I)
+            >>> I = x.GetIndices(I=I, cons=cons)
             >>> I = x.GetIndices(cons=cons)
         :Inputs:
             *x*: :class:`pyCart.trajectory.Trajectory`
@@ -653,7 +663,10 @@ class Trajectory:
         # Check for list.
         if "I" in kw:
             # Just a list, use it.
-            return np.array(kw['I'])
+            I = np.array(kw['I'])
+            # Check for constraints.
+            if "cons" in kw:
+                return self.Filter(kw['cons'], I)
         elif "cons" in kw:
             # Apply the constraints filter.
             return self.Filter(kw['cons'])
