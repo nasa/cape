@@ -33,6 +33,7 @@ class Tex(FileCntl):
             Instance of LaTeX report interface
     :Versions:
         * 2015-03-07 ``@ddalle``: Started
+        * 2015-03-10 ``@ddalle``: First version
     """
     
     # Initialization method (not based off of FileCntl)
@@ -81,8 +82,12 @@ class Tex(FileCntl):
         fpwd = os.getcwd()
         # Go to the file's location
         os.chdir(self.fdir)
+        # Hide the output.
+        f = open('/dev/null', 'w')
         # Compile.
-        sp.call(['pdflatex', '-interaction=nonstopmode', self.fname])
+        sp.call(['pdflatex', '-interaction=nonstopmode', self.fname], stdout=f)
+        # Close the output "file".
+        f.close()
         # Go back to original location
-        os.chdir(fwpd)
+        os.chdir(fpwd)
     

@@ -1,7 +1,7 @@
 """Function for Automated Report Interface"""
 
 # File system interface
-import os, json, shutil
+import os, json, shutil, glob
 
 # Local modules needed
 from . import tex, tar
@@ -45,7 +45,8 @@ class Report(object):
         *R*: :class:`pyCart.report.Report
             Automated report interface
     :Versions:
-        * 2015-03-07 ``@dalle``: Started
+        * 2015-03-07 ``@ddalle``: Started
+        * 2015-03-10 ``@ddalle``: First version
     """
     # Initialization method
     def __init__(self, cart3d, rep):
@@ -129,6 +130,31 @@ class Report(object):
         for i in I:
             # Update the case
             self.UpdateCase(i)
+        # Update the text.
+        self.tex._updated_sections = True
+        self.tex.UpdateLines()
+        # Master file location\
+        fpwd = os.getcwd()
+        os.chdir(self.cart3d.RootDir)
+        os.chdir('report')
+        # Write the file.
+        self.tex.Write()
+        # Compmile it.
+        print("Compiling...")
+        self.tex.Compile()
+        # Need to compile twice for links
+        print("Compiling...")
+        self.tex.Compile()
+        # Clean up
+        print("Cleaning up")
+        # Get other 'report-*.*' files.
+        fglob = glob.glob('%s*' % self.fname[:-3])
+        # Delete most of them.
+        for f in fglob:
+            # Check for the two good ones.
+            if f[-3:] in ['tex', 'pdf']: continue
+            # Else remove it.
+            os.remove(f)
         
     # Function to create the file for a case
     def UpdateCase(self, i):
@@ -150,8 +176,8 @@ class Report(object):
         # Get the case name.
         fgrp = self.cart3d.x.GetGroupFolderNames(i)
         fdir = self.cart3d.x.GetFolderNames(i)
-        # Add the include statement to the document.
-        
+        # Status update
+        print('%s/%s' % (fgrp, fdir))
         # Go to the report directory if necessary.
         fpwd = os.getcwd()
         os.chdir(self.cart3d.RootDir)
@@ -181,6 +207,16 @@ class Report(object):
         # -------------
         # Initial setup
         # -------------
+        # Status update
+        if nr == n:
+            # Changing status
+            print("  Updating status %s --> %s" % (stsr, sts))
+        elif nr:
+            # More iterations
+            print("  Updating from iteration %s --> %s" % (nr, n))
+        else:
+            # New case
+            print("  New report at iteration %s" % n)
         # Check for the file.
         if not os.path.isfile(self.fname): self.WriteCaseSkeleton(i)
         # Open it.
@@ -651,11 +687,11 @@ class Report(object):
             tri.conf = conf
         else:
             # Read the standard triangulation
-            cart3d.ReadTri()
+            self.cart3d.ReadTri()
             # Rotate for the appropriate case.
-            cart3d.PrepareTri(i)
+            self.cart3d.PrepareTri(i)
             # Extract the triangulation
-            tri = cart3d.tri
+            tri = self.cart3d.tri
         # Get caption.
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
         # Get the vertical alignment.
@@ -1012,6 +1048,8 @@ class Report(object):
         else:
             # Create empty settings.
             opts = {}
+        # Write 0 instead of null
+        if n is None: n = 0
         # Set the iteration number.
         opts[self.rep] = [n, sts]
         # Create the updated JSON file
