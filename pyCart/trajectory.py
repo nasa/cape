@@ -653,7 +653,7 @@ class Trajectory:
         # Check for list.
         if "I" in kw:
             # Just a list, use it.
-            return np.array(I)
+            return np.array(kw['I'])
         elif "cons" in kw:
             # Apply the constraints filter.
             return self.Filter(kw['cons'])
