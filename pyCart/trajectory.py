@@ -661,13 +661,13 @@ class Trajectory:
             * 2015-03-10 ``@ddalle``: First version
         """
         # Check for list.
-        if "I" in kw:
+        if kw.get("I") is not None:
             # Just a list, use it.
             I = np.array(kw['I'])
             # Check for constraints.
-            if "cons" in kw:
+            if kw.get("cons") not in [None, []]:
                 return self.Filter(kw['cons'], I)
-        elif "cons" in kw:
+        elif kw.get("cons") not in [None, []]:
             # Apply the constraints filter.
             return self.Filter(kw['cons'])
         else:

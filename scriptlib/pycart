@@ -165,7 +165,7 @@ if __name__ == "__main__":
         # Loop through reports.
         for rep in reps:
             # Get the report.
-            R = pyCart.report.Report(rep)
+            R = pyCart.report.Report(cart3d, rep)
             # Update according to other options
             R.UpdateCases(**kw)
     else:

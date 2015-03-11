@@ -121,9 +121,7 @@ class Report(object):
             * 2015-03-10 ``@ddalle``: First version
         """
         # Check for use of constraints instead of direct list.
-        if I is None:
-            # Apply constraints
-            I = self.x.Filter(kw.get('cons', []))
+        I = self.cart3d.x.GetIndices(cons=cons, I=I)
         # Clear out the lines.
         del self.tex.Section['Cases'][1:-1]
         # Loop through those cases.
@@ -688,6 +686,8 @@ class Report(object):
         else:
             # Read the standard triangulation
             self.cart3d.ReadTri()
+            # Make sure to start from initial position.
+            self.cart3d.tri = self.cart3d.tri0.Copy()
             # Rotate for the appropriate case.
             self.cart3d.PrepareTri(i)
             # Extract the triangulation
