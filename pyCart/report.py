@@ -496,6 +496,10 @@ class Report(object):
             os.chdir(frun)
             # Read the Aero history.
             FM = Aero([comp])[comp]
+            # Loop through the transformations.
+            for topts in opts.get_DataBookTransformations(comp):
+                # Apply the transformation.
+                FM.TransformFM(topts, self.cart3d.x, i)
             # Get the statistics.
             s = FM.GetStats(nStats=nStats, nMax=nMax, nLast=nPlotLast)
             # Get the manual range to show
@@ -877,6 +881,12 @@ class Report(object):
             os.chdir(self.cart3d.x.GetFullFolderNames(i))
             # Read the Aero history
             A = Aero(comps)
+            # Transform each comparison.
+            for comp in comps:
+                # Loop through the transformations.
+                for topts in opts.get_DataBookTransformations(comp):
+                    # Apply the transformation.
+                    A[comp].TransformFM(topts, self.cart3d.x, i)
             # Get the statistics.
             S = A.GetStats(nStats=nStats, nMax=nMax, nLast=nCur)
         else:

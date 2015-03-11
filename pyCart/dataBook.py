@@ -303,8 +303,7 @@ class DataBook(dict):
             # Extract the component history and component databook.
             FM = A[comp]
             DC = self[comp]
-            # This is the part where we do transformations....
-            # Loop through the transformations.ss
+            # Loop through the transformations.
             for topts in self.opts.get_DataBookTransformations(comp):
                 # Apply the transformation.
                 FM.TransformFM(topts, self.x, i)
