@@ -104,7 +104,7 @@ class Report(object):
         os.chdir(fpwd)
         
     # Function to update report for several cases
-    def UpdateCases(self, I=None, cons=[]):
+    def UpdateCases(self, I=None, cons=[], **kw):
         """Update several cases and add the lines to the master LaTeX file
         
         :Call:

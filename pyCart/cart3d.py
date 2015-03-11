@@ -311,6 +311,8 @@ class Cart3d(object):
                 Instance of control class containing relevant parameters
             *comp*: :class:`str`
                 Optional name of class to plot
+            *I*: :class:`list` (:class:`int`)
+                List of indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints like ``'Mach<=0.5'``
         :Outputs:
@@ -324,7 +326,7 @@ class Cart3d(object):
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
         # Apply constraints
-        I = self.x.Filter(kw.get('cons', []))
+        I = self.x.GetIndices(**kw)
         # Read the existing data book.
         self.ReadDataBook()
         # Read the results and update as necessary.
@@ -348,19 +350,22 @@ class Cart3d(object):
                 Instance of control class containing relevant parameters
             *comp*: :class:`str`
                 Optional name of class to plot
+            *I*: :class:`list` (:class:`int`)
+                List of indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2014-11-12 ``@ddalle``: First version
             * 2014-11-24 ``@ddalle``: Rewritten for looping through cases
             * 2014-12-10 ``@ddalle``: Applied constraints
+            * 2015-03-10 ``@ddalle``: Added list of indices as an input
         """
         # Make sure that pyplot is loaded
         dataBook.ImportPyPlot()
         # Save current location.
         fpwd = os.getcwd()
-        # Apply constraints
-        I = self.x.Filter(kw.get('cons', []))
+        # Get list of indices.
+        I = self.x.GetIndices(**kw)
         # Get the case names.
         fruns = self.x.GetFullFolderNames(I)
         # Get the list of components to plot.
@@ -473,6 +478,8 @@ class Cart3d(object):
                 Whether or not to display job ID numbers
             *n*: :class:`int`
                 Maximum number of jobs to submit
+            *I*: :class:`list` (:class:`int`)
+                List of indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
@@ -489,10 +496,8 @@ class Cart3d(object):
         if qKill: qCheck = True
         # Maximum number of jobs
         nSubMax = int(kw.get('n', 10))
-        # Process constraints.
-        cons = kw.get('cons', [])
-        # Apply constraints.
-        I = self.x.Filter(cons)
+        # Get list of indices.
+        I = self.x.GetIndices(**kw)
         # Get the case names.
         fruns = self.x.GetFullFolderNames(I)
         
@@ -1573,7 +1578,7 @@ class Cart3d(object):
         
         
     # Function to archive 'adaptXX/' folders (except for newest)
-    def TarAdapt(self, cons=[], **kw):
+    def TarAdapt(self, **kw):
         """Tar ``adaptNN/`` folders except for most recent one
         
         :Call:
@@ -1582,6 +1587,8 @@ class Cart3d(object):
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
+            *I*: :class:`list` (:class:`int`)
+                List of indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints
         :Versions:
@@ -1594,8 +1601,8 @@ class Cart3d(object):
         if not fmt: return
         # Save current path.
         fpwd = os.getcwd()
-        # Apply filter (constraints).
-        i = self.x.Filter(cons)
+        # Get list of indices.
+        i = self.x.GetIndices(**kw)
         # Get folder names.
         fruns = self.x.GetFullFolderNames(i)
         # Loop through folders.
@@ -1614,7 +1621,7 @@ class Cart3d(object):
         os.chdir(fpwd)
         
     # Function to archive 'adaptXX/' folders (except for newest)
-    def TarViz(self, cons=[], **kw):
+    def TarViz(self, **kw):
         """Tar ``adaptNN/`` folders except for most recent one
         
         :Call:
@@ -1623,6 +1630,8 @@ class Cart3d(object):
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
+            *I*: :class:`list` (:class:`int`)
+                List of indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints
         :Versions:
@@ -1635,7 +1644,7 @@ class Cart3d(object):
         # Save current path.
         fpwd = os.getcwd()
         # Loop through folders.
-        for i in self.x.Filter(cons):
+        for i in self.x.GetIndices(**kw):
             # Get folder name.
             frun = self.x.GetFullFolderNames(i)
             # Go home.
@@ -1656,7 +1665,7 @@ class Cart3d(object):
         os.chdir(fpwd)
         
     # Function to archive 'adaptXX/' folders (except for newest)
-    def ArchiveCases(self, cons=[], **kw):
+    def ArchiveCases(self, **kw):
         """Archive completed cases and clean them up if specified
         
         :Call:
@@ -1665,6 +1674,10 @@ class Cart3d(object):
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints
         :Versions:
             * 2015-01-11 ``@ddalle``: First version
         """
@@ -1675,7 +1688,7 @@ class Cart3d(object):
         # Save current path.
         fpwd = os.getcwd()
         # Loop through folders.
-        for i in self.x.Filter(cons):
+        for i in self.x.GetIndices(**kw):
             # Go to root folder.
             os.chdir(self.RootDir)
             # Get folder name.
@@ -1697,7 +1710,7 @@ class Cart3d(object):
         os.chdir(fpwd)
         
     # Function to apply settings from a specific JSON file
-    def ApplyFlowCartSettings(self, cons=[], **kw):
+    def ApplyFlowCartSettings(self, **kw):
         """Apply settings from *cart3d.opts* to a set of cases
         
         This rewrites the :file:`case.json` file in the specified directories.
@@ -1707,13 +1720,15 @@ class Cart3d(object):
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
+            *I*: :class:`list` (:class:`int`)
+                List of indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints
         :Versions:
             * 2014-12-11 ``@ddalle``: First version
         """
         # Apply filter.
-        I = self.x.Filter(cons)
+        I = self.x.GetIndices(**kw)
         # Loop through cases.
         for i in I:
             # Write the JSON file.

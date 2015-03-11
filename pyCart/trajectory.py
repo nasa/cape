@@ -582,6 +582,85 @@ class Trajectory:
         # Output.
         return np.where(i)[0]
         
+    # Function to expand indices
+    def ExpandIndices(self, itxt):
+        """Expand string of subscripts into a list of indices
+        
+        :Call:
+            >>> I = x.ExpandIndices(itxt)
+        :Inputs:
+            *x*: :class:`pyCart.trajectory.Trajectory`
+                Instance of the pyCart trajectory class
+            *itxt*: :class:`str` or :class:`unicode`
+                Text of subscripts, separated by ';'
+        :Outputs:
+            *I*: :class:`list` (:class:`int`)
+                Array of indices matching any of the input indices
+        :Examples:
+            >>> x.ExpandIndices(':5')
+            array([0, 1, 2, 3, 4])
+            >>> x.ExpandIndices(':4;7,8')
+            array([0, 1, 2, 3, 7, 8])
+        :Versions:
+            * 2015-03-10 ``@ddalle``: First version
+        """
+        # Check the input.
+        if type(itxt).__name__ not in ['str', 'unicode']:
+            return []
+        # Get the full list of indices.
+        I0 = range(self.nCase)
+        # Initialize output
+        I = []
+        # Split the input by semicolons.
+        for i in itxt.split(';'):
+            # Ignore []
+            i = i.lstrip('[').rstrip(']')
+            try:
+                # Check for a ':'
+                if ':' in i:
+                    # Add a range.
+                    I += eval('I0[%s]' % i)
+                else:
+                    # List
+                    I += list(eval(i))
+            except Exception:
+                # Status update.
+                print("Index specification '%s' failed to evaluate." % i)
+        # Return the matches.
+        return I
+        
+    # Get indices
+    def GetIndices(self, **kw):
+        """Get indices from either list or constraints, preferring list
+        
+        :Call:
+            >>> I = x.GetIndices()
+            >>> I = x.GetIndices(I=I)
+            >>> I = x.GetIndices(cons=cons)
+        :Inputs:
+            *x*: :class:`pyCart.trajectory.Trajectory`
+                Instance of the pyCart trajectory class
+            *I*: :class:`numpy.ndarray` or :class:`list`
+                Array of indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints
+        :Outputs:
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                Array of indices
+        :Versions:
+            * 2015-03-10 ``@ddalle``: First version
+        """
+        # Check for list.
+        if "I" in kw:
+            # Just a list, use it.
+            return np.array(I)
+        elif "cons" in kw:
+            # Apply the constraints filter.
+            return self.Filter(kw['cons'])
+        else:
+            # Return all the indices
+            return np.arange(self.nCase)
+        
         
     # Function to return the full folder names.
     def GetFullFolderNames(self, i=None, prefix=None):

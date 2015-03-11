@@ -63,6 +63,15 @@ relatively simple commands.
         commas.  Constraints must use variable names (not abbreviations) from
         the trajectory described in *FNAME*.
         
+    -I INDS
+        Specify a list of cases to consider directly by index
+        
+    --plot
+        Plot sweeps of data book
+        
+    --report FREP
+        Update report named *FREP* or all reports if *FREP* is not specified
+        
     --aero
         Loop through cases and extract force and moment coefficients and
         statistics for components described in the "Plot" section of *FNAME*
@@ -79,6 +88,8 @@ relatively simple commands.
 
 # Import the full module
 import pyCart
+# Automated report generation
+import pyCart.report
 # Input parsing
 from pyCart.argread import readflagstar
     
@@ -87,22 +98,29 @@ if __name__ == "__main__":
     # Parse inputs.
     a, kw = readflagstar(pyCart.os.sys.argv)
     
+    # Check for a help flag.
+    if kw.get('h') or kw.get('help'):
+        print(__doc__)
+        pyCart.os.sys.exit()
+    
     # Get constraints and convert text to list.
     cons  = kw.get('cons',        '').split(',')
     cons += kw.get('constraints', '').split(',')
     # Set the constraints back into the keywords.
     kw['cons'] = cons
-    
-    # Check for a help flag.
-    if kw.get('h') or kw.get('help'):
-        print(__doc__)
-        pyCart.os.sys.exit()
         
     # Get file name.
     fname = kw.get('f', 'pyCart.json')
     
     # Try to read it.
     cart3d = pyCart.Cart3d(fname)
+    
+    # Process index list.
+    if ('I' in kw) and (kw['I'] != True):
+        # Turn into a single list
+        I = cart3d.x.ExpandIndices(kw['I'])
+        print(I)
+        pyCart.os.sys.exit()
     
     # Process inputs.
     if kw.get('c'):
@@ -138,6 +156,20 @@ if __name__ == "__main__":
     elif kw.get('explode'):
         # Break out each named component.
         cart3d.ExplodeTri()
+    elif kw.get('report'):
+        # Get the report(s) to create.
+        if kw['report'] == True:
+            # All reports
+            reps = cart3d.opts.get_ReportList()
+        else:
+            # User-specified report
+            reps = [kw['report']]
+        # Loop through reports.
+        for rep in reps:
+            # Get the report.
+            R = pyCart.report.Report(rep)
+            # Update according to other options
+            R.UpdateCases(**kw)
     else:
         # Do it.
         cart3d.SubmitJobs(**kw)
