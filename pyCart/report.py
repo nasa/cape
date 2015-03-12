@@ -967,7 +967,7 @@ class Report(object):
                 # Loop through components.
                 for comp in comps:
                     # Check for iterations.
-                    if nCur <= 0:
+                    if nCur <= 0 or comp not in S:
                         # No iterations
                         line += '& $-$ '
                     elif fs == 'mu':
