@@ -200,6 +200,7 @@ class Report(object):
         # Check if there's anything to do.
         if not ((nr is None) or (nr < n) or (stsr != sts)):
             # Go home and quit.
+            self.cd('..')
             os.chdir(fpwd)
             return
         # -------------
@@ -245,6 +246,7 @@ class Report(object):
         # Mark the case status.
         self.SetCaseJSONIter(n, sts)
         # Go home.
+        self.cd('..')
         os.chdir(fpwd)
         
         
