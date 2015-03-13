@@ -333,7 +333,6 @@ class Cart3d(object):
         if kw.get('delete', False):
             # Delete cases.
             self.DataBook.Delete(I)
-            return
         else:
             # Read the results and update as necessary.
             self.DataBook.UpdateDataBook(I)
