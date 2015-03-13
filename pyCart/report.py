@@ -144,7 +144,17 @@ class Report(object):
         print("Compiling...")
         self.tex.Compile()
         # Clean up
-        print("Cleaning up")
+        print("Cleaning up...")
+        # Check for folder archiving
+        if self.cart3d.opts.get_ReportArchive():
+            # Loop through folders.
+            for frun in self.cart3d.x.GetFullFolderNames(I):
+                # Go to the folder.
+                os.chdir(frun)
+                # Go up one, archiving if necessary.
+                self.cd('..')
+                # Go back to root directory.
+                os.chdir('..')
         # Get other 'report-*.*' files.
         fglob = glob.glob('%s*' % self.fname[:-3])
         # Delete most of them.
@@ -200,7 +210,6 @@ class Report(object):
         # Check if there's anything to do.
         if not ((nr is None) or (nr < n) or (stsr != sts)):
             # Go home and quit.
-            self.cd('..')
             os.chdir(fpwd)
             return
         # -------------
@@ -246,7 +255,6 @@ class Report(object):
         # Mark the case status.
         self.SetCaseJSONIter(n, sts)
         # Go home.
-        self.cd('..')
         os.chdir(fpwd)
         
         
@@ -341,7 +349,7 @@ class Report(object):
         # End the figure for LaTeX
         lines.append('\\end{figure}\n')
         # pyCart report end figure marker
-        lines.append('%>\n')
+        lines.append('%>\n\n')
         # Add the lines to the section.
         for line in lines:
             tf.insert(ifig, line)
@@ -1277,12 +1285,7 @@ class Report(object):
                 # Go up a folder.
                 os.chdir('..')
         else:
-            # Check archive option.
-            if q:
-                # Untar if necessary
-                tar.chdir_in(fdir)
-            else:
-                # Go into the folder
-                os.chdir(fdir)
+            # Untar if necessary
+            tar.chdir_in(fdir)
         
         

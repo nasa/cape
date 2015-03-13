@@ -85,9 +85,13 @@ class Tex(FileCntl):
         # Hide the output.
         f = open('/dev/null', 'w')
         # Compile.
-        sp.call(['pdflatex', '-interaction=nonstopmode', self.fname], stdout=f)
+        ierr = sp.call(['pdflatex', '-interaction=nonstopmode', self.fname],
+            stdout=f)
         # Close the output "file".
         f.close()
         # Go back to original location
         os.chdir(fpwd)
+        # Check compile status.
+        if ierr:
+            raise SystemError("Compiling '%s' failed." % self.fname)
     

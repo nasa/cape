@@ -46,7 +46,7 @@ def tar(ftar, *a):
         * 2015-03-07 ``@ddalle``: First version
     """
     # Untar the folder.
-    ierr = sp.call(['tar', '-uf', ftar] + a)
+    ierr = sp.call(['tar', '-uf', ftar] + list(a))
     # Output
     return ierr
 
