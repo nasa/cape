@@ -208,7 +208,7 @@ class Report(object):
         n = self.cart3d.CheckCase(i)
         sts = self.cart3d.CheckCaseStatus(i)
         # Check if there's anything to do.
-        if not ((nr is None) or (nr < n) or (stsr != sts)):
+        if not ((nr is None) or (n>0 and nr!=n) or (stsr != sts)):
             # Go home and quit.
             os.chdir(fpwd)
             return
@@ -216,7 +216,7 @@ class Report(object):
         # Initial setup
         # -------------
         # Status update
-        if nr == n:
+        if nr == n and nr is not None:
             # Changing status
             print("  Updating status %s --> %s" % (stsr, sts))
         elif nr:
