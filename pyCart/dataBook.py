@@ -226,6 +226,49 @@ class DataBook(dict):
         for i in I:
             self.UpdateCase(i)
         
+    # Function to delete entries by index
+    def Delete(self, I):
+        """Delete list of cases from data book
+        
+        :Call:
+            >>> DB.Delete(I)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *I*: :class:`list` (:class:`int`)
+                List of trajectory indices or update all cases in trajectory
+        :Versions:
+            * 2015-03-13 ``@ddalle``: First version
+        """
+        # Get the first data book component.
+        DBc = self[self.Components[0]]
+        # Number of cases in current data book.
+        nCase = DBc.n
+        # Initialize data book index array.
+        J = []
+        # Loop though indices to delete.
+        for i in I:
+            # Find the match.
+            j = DBc.FindMatch(i)
+            # Check if one was found.
+            if np.isnan(j): continue
+            # Append to the list of data book indices.
+            J.append(j)
+        # Initialize mask of cases to keep.
+        mask = np.ones(nCase, dtype=bool)
+        # Set values equal to false for cases to be deleted.
+        mask[J] = False
+        # Loop through components.
+        for comp in self.Components:
+            # Extract data book component.
+            DBc = self[comp]
+            # Loop through data book columns.
+            for c in DBc.DataCols:
+                # Apply the mask
+                DBc[c] = DBc[c][mask]
+            # Update the number of entries.
+            DBc.n = len(DBc[c]['nIter'])
+        
             
     # Update or add an entry.
     def UpdateCase(self, i):

@@ -329,8 +329,14 @@ class Cart3d(object):
         I = self.x.GetIndices(**kw)
         # Read the existing data book.
         self.ReadDataBook()
-        # Read the results and update as necessary.
-        self.DataBook.UpdateDataBook(I)
+        # Check if we are deleting or adding.
+        if kw.get('delete', False):
+            # Delete cases.
+            self.DataBook.Delete(I)
+            return
+        else:
+            # Read the results and update as necessary.
+            self.DataBook.UpdateDataBook(I)
         # Write the data book to file.
         self.DataBook.Write()
         # Return to original location.
