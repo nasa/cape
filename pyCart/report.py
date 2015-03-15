@@ -226,7 +226,9 @@ class Report(object):
             # New case
             print("  New report at iteration %s" % n)
         # Check for the file.
-        if not os.path.isfile(self.fname): self.WriteCaseSkeleton(i)
+        if os.path.isfile(self.fname): os.remove(self.fname)
+        # Make the skeleton file.
+        self.WriteCaseSkeleton(i)
         # Open it.
         self.cases[i] = tex.Tex(self.fname)
         # Set the iteration number and status header.
