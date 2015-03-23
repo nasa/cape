@@ -226,7 +226,9 @@ class Report(object):
             # New case
             print("  New report at iteration %s" % n)
         # Check for the file.
-        if not os.path.isfile(self.fname): self.WriteCaseSkeleton(i)
+        if os.path.isfile(self.fname): os.remove(self.fname)
+        # Make the skeleton file.
+        self.WriteCaseSkeleton(i)
         # Open it.
         self.cases[i] = tex.Tex(self.fname)
         # Set the iteration number and status header.
@@ -972,6 +974,10 @@ class Report(object):
                     # Min value
                     lines.append(
                         '\\textit{%s} maximum, $\\max(%s)$\n' % (c, fc))
+                elif fs == "t":
+                    # Target value
+                    lines.append(
+                        '\\textit{%s} target, $t(%s)$\n' % (c, fc))
                 # Initialize line
                 line = ''
                 # Loop through components.
@@ -984,8 +990,13 @@ class Report(object):
                         # Process value.
                         line += ('& $%.4f$ ' % S[comp][c])
                     elif (fs in ['min', 'max']) or (S[comp]['nStats'] > 1):
-                        # Process min/max or statistical value
-                        line += ('& $%.4f$ ' % S[comp][c+'_'+fs])
+                        # Present?
+                        if (c+'_'+fs) in S[comp]:
+                            # Process min/max or statistical value
+                            line += ('& $%.4f$ ' % S[comp][c+'_'+fs])
+                        else:
+                            # Missing
+                            line += '& $-$ '
                     else:
                         # No statistics
                         line += '& $-$ '

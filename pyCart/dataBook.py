@@ -263,11 +263,11 @@ class DataBook(dict):
             # Extract data book component.
             DBc = self[comp]
             # Loop through data book columns.
-            for c in DBc.DataCols:
+            for c in DBc.keys():
                 # Apply the mask
                 DBc[c] = DBc[c][mask]
             # Update the number of entries.
-            DBc.n = len(DBc[c]['nIter'])
+            DBc.n = len(DBc['nIter'])
         
             
     # Update or add an entry.
