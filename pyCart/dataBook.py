@@ -1288,7 +1288,7 @@ class DBComp(dict):
         # Escape criterion
         n = 0
         # Loop until all cases are in a sweep.
-        while (n<1000) and (len(jNoMatch)>0):
+        while (n<10000) and (len(jNoMatch)>0):
             # Get the first index that hasn't been put into a sweep yet.
             i = jNoMatch[0]
             # Get the sweep.

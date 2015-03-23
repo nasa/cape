@@ -1,21 +1,19 @@
 #!/usr/bin/env python
 """
-Fix cases' moment reference points: :file:`pc_UpdateMRP.py`
-===========================================================
+Copy one component's MRP to another: :file:`pc_CopyMRP.py`
+==========================================================
 
-Go through folders and ensure that forces and moments match the settings in the
-pyCart master JSON file.
+Go through folders and copy the MRP from one component to another component.
 
 :Usage:
     .. code-block:: bash
     
-        $ pc_UpdateMRP.py $COMP1 [options]
-        $ pc_UpdateMRP.py $COMP1 $COMP2 ... [options]
+        $ pc_CopyMRP.py $COMP1 $COMP2 [options]
         
 :Inputs:
     
-    *COMP1*: Name of first component to check and/or fix
-    *COMP2*: Name of component to check and/or fix
+    *COMP1*: Name of component to copy MRP from
+    *COMP2*: Name of component whose MRP will be changed
     
 :Options:
 
@@ -25,17 +23,13 @@ pyCart master JSON file.
     -f FNAME
         Use pyCart input file *FNAME* (defaults to 'pyCart.json')
         
-    -p [COMP]
-        Create multi-page PDF plots according to settings in *FNAME*.  If 
-        *COMP* is specified, only that component is plotted
-        
     --cons CONS
         Only consider cases that pass a list of inequalities separated by
         commas.  Constraints must use variable names (not abbreviations) from
         the trajectory described in *FNAME*.
 
 :Versions:
-    * 2015-03-02 ``@ddalle``: First version
+    * 2015-03-23 ``@ddalle``: First version
 """
 
 # Import the full module
@@ -48,7 +42,7 @@ import os, glob
 from numpy import sqrt
 
 # Function to fix an individual case
-def UpdateCaseMRP(cart3d, comp):
+def CopyCaseMRP(cart3d, comp1, comp2):
     """
     Update ``dat`` file(s) for a given component in the current folder if the
     most appropriate :file:`input.cntl` file has a MRP for that component that
@@ -57,14 +51,16 @@ def UpdateCaseMRP(cart3d, comp):
     Only the files used for the pyCart data book are updated.
     
     :Call:
-        >>> UpdateCaseMRP(cart3d, comp, x)
+        >>> CopyCaseMRP(cart3d, comp1, comp2)
     :Inputs:
         *cart3d*: :class:`pyCart.cart3d.Cart3d`
             Master Cart3D interface instance
-        *comp*: :class:`str`
-            Name of component that will be updated
+        *comp1*: :class:`str`
+            Name of component that will be copied from
+        *comp2*: :class:`str`
+            Name of component that will be copied to
     :Versions:
-        * 2015-03-02 ``@ddalle``: First version
+        * 2015-03-23 ``@ddalle``: First version
     """
     # List sequential input.cntl files
     fcntl = glob.glob('input.??.cntl')
@@ -84,11 +80,11 @@ def UpdateCaseMRP(cart3d, comp):
     # Open the input control file interface.
     IC = pyCart.InputCntl(fcntl)
     # Get the MRP for that component that was actually used
-    xi = IC.GetSingleMomentPoint(comp)
+    xi = IC.GetSingleMomentPoint(comp2)
     # Get what the MRP should be.
-    x = cart3d.opts.get_RefPoint(comp)
+    xo = IC.GetSingleMomentPoint(comp1)
     # Get the distance between the two.
-    L = sqrt((x[0]-xi[0])**2 + (x[1]-xi[1])**2 + (x[2]-xi[2])**2)
+    L = sqrt((xo[0]-xi[0])**2 + (xo[1]-xi[1])**2 + (xo[2]-xi[2])**2)
     # Reference length
     Lref = cart3d.opts.get_RefLength()
     # Check the distance.
@@ -96,18 +92,18 @@ def UpdateCaseMRP(cart3d, comp):
     # Process the best data folder.
     fdir = pyCart.case.GetWorkingFolder()
     # Check for the file
-    if not os.path.isfile(os.path.join(fdir, '%s.dat'%comp)): return
+    if not os.path.isfile(os.path.join(fdir, '%s.dat'%comp2)): return
     # Write.
-    print("  Updating MRP '%s': %s -> %s" % (comp, xi, x))
+    print("  Updating MRP '%s': %s -> %s" % (comp2, xi, xo))
     # Read the force and moment history for that component.
-    FM = pyCart.Aero([comp])[comp]
+    FM = pyCart.Aero([comp2])[comp2]
     # Shift the MRP.
-    FM.ShiftMRP(Lref, x, xi)
+    FM.ShiftMRP(Lref, xo, xi)
     # Overwrite the original data file.
-    FM.Write(os.path.join(fdir, '%s.dat'%comp))
+    FM.Write(os.path.join(fdir, '%s.dat'%comp2))
     
-    # Set the correct value.
-    IC.SetSingleMomentPoint(x, comp)
+    # Set the correct value in the file.
+    IC.SetSingleMomentPoint(xo, comp2)
     # Write the corrected input file.
     IC.Write(fcntl)
     
@@ -128,6 +124,14 @@ if __name__ == "__main__":
         print(__doc__)
         pyCart.os.sys.exit()
         
+    # Check for adequate components.
+    if len(a) != 2:
+        print(__doc__)
+        raise IOError("Need exactly two components as inputs.")
+        
+    # Unpack the components
+    comp1, comp2 = a
+        
     # Get file name.
     fname = kw.get('f', 'pyCart.json')
     
@@ -146,8 +150,6 @@ if __name__ == "__main__":
         os.chdir(frun)
         # Status update
         print(frun)
-        # Loop through components.
-        for comp in a:
-            # Update the data.
-            UpdateCaseMRP(cart3d, comp)
+        # Update the data.
+        CopyCaseMRP(cart3d, comp1, comp2)
     
