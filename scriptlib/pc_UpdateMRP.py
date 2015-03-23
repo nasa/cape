@@ -141,8 +141,11 @@ if __name__ == "__main__":
     
     # Loop through the runs.
     for frun in fruns:
-        # Change to the directory.
+        # Go to root directory.
         os.chdir(cart3d.RootDir)
+        # Check for folder.
+        if not os.path.isdir(frun): continue
+        # Go to the folder.
         os.chdir(frun)
         # Status update
         print(frun)
