@@ -666,7 +666,11 @@ class Trajectory:
             I = np.array(kw['I'])
             # Check for constraints.
             if kw.get("cons") not in [None, []]:
+                # Apply the constraints, too.
                 return self.Filter(kw['cons'], I)
+            else:
+                # Return the directly-specified indices
+                return I
         elif kw.get("cons") not in [None, []]:
             # Apply the constraints filter.
             return self.Filter(kw['cons'])

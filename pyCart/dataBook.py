@@ -3444,7 +3444,7 @@ class CaseResid(object):
             # Attempt to use requested iter.
             if nLast < iB:
                 # Using an earlier iter; make sure to use one in the hist.
-                jB = np.where(self.i <= nLast)[0][-1]
+                jB = self.GetIterationIndex(nLast)
                 # Find the iterations that are less than i.
                 iB = self.i[jB]
         # Get the index of *iB* in *FM.i*.
@@ -3455,7 +3455,7 @@ class CaseResid(object):
         # Get the starting iteration number to use.
         i0 = max(0, iB-n, nFirst) + 1
         # Make sure *iA* is in *FM.i* and get the index.
-        j0 = np.where(self.i <= i0)[0][-1]
+        j0 = self.GetIterationIndex(i0)
         # Reselect *iA* in case initial value was not in *FM.i*.
         i0 = self.i[j0]
         # --------
@@ -3492,5 +3492,33 @@ class CaseResid(object):
         h['ax'].set_xlim((i0, iB+25))
         # Output.
         return h
+        
+        
+    # Function to get index of a certain iteration number
+    def GetIterationIndex(self, i):
+        """Return index of a particular iteration in *hist.i*
+        
+        If the iteration *i* is not present in the history, the index of the
+        last available iteration less than or equal to *i* is returned.
+        
+        :Call:
+            >>> j = hist.GetIterationIndex(i)
+        :Inputs:
+            *hist*: :class:`pyCart.dataBook.CaseResid`
+                Instance of the residual history class
+            *i*: :class:`int`
+                Iteration number
+        :Outputs:
+            *j*: :class:`int`
+                Index of last iteration in *FM.i* less than or equal to *i*
+        :Versions:
+            * 2015-03-06 ``@ddalle``: First version
+        """
+        # Check for *i* less than first iteration.
+        if i < self.i[0]: return 0
+        # Find the index.
+        j = np.where(self.i <= i)[0][-1]
+        # Output
+        return j
         
         

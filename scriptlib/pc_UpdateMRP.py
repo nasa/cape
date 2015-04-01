@@ -66,6 +66,8 @@ def UpdateCaseMRP(cart3d, comp):
     :Versions:
         * 2015-03-02 ``@ddalle``: First version
     """
+    # Process the best data folder.
+    fdir = pyCart.case.GetWorkingFolder()
     # List sequential input.cntl files
     fcntl = glob.glob('input.??.cntl')
     # Check for matches
@@ -76,7 +78,7 @@ def UpdateCaseMRP(cart3d, comp):
         fcntl = 'input.%02i.cntl' % ncntl
     else:
         # Use the base file
-        fcntl = 'input.cntl'
+        fcntl = os.path.join(fdir, 'input.cntl')
     # Check for the file.
     if not os.path.isfile(fcntl): return
     # Check for failure or RUNNING
