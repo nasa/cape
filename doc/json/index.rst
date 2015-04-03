@@ -121,5 +121,6 @@ of how the options are used.
     Functional
     Management
     Plot
+    Report
     DataBook
     Trajectory

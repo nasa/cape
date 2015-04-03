@@ -11,12 +11,7 @@ generation.
     .. code-block:: javascript
     
         "Report": {
-            "Report": {
-                "Title": "Automated Cart3D Report",
-                "Figures": ["Summary", "Forces"],
-                "FailFigures": ["Summary", "Surface"],
-                "ZeroFigures": ["Summary", "Surface"]
-            },
+            "Archive": false,
             "Figures": {
                 "Summary": {
                     "Alignment": "left",
@@ -39,37 +34,35 @@ generation.
                     "Type": "Summary"
                 },
                 "Surface": {
-                
+                    "Tecplot": "surface.lay"
                 },
                 "CA": {
                     "Width": 0.5
-                },
+                }
+            }, 
+            "Report": {
+                "Title": "Automated Cart3D Report",
+                "Figures": ["Summary", "Forces"],
+                "FailFigures": ["Summary", "Surface"],
+                "ZeroFigures": ["Summary", "Surface"]
             }
         }
 
-It is also possible to specify special rules for given components, for example
-if one component has more unsteadiness than others, or if the user wants to plot
-moments on one coefficient.  See the following example.
+These sections are put into action by calls of ``pycart --report``.  There are
+three recognized settings: "Archive", "Figures", and "Subfigures".  Remaining
+options are identified as the names of reports.  The example above has one
+report named "Report", but the JSON file may have more reports with different
+names.  Users may build a specific report with a command such as ``pycart
+--report case`` (assuming there is a report called "case").
 
-    .. code-block:: javascript
-    
-        "Plot": {
-            "Components": ["LeftWing", "LeftAileron", "Fuselage"],
-            "Coefficients": ["CA", "CY", "CN", "L1"],
-            "Deltas": {"CA": 0.005, "CY": 0.01, "CN": 0.01},
-            "LeftAileron": {
-                "Coefficients": ["CLL", "CLM", "CLN"],
-                "nRow": 3,
-                "nCol": 1,
-                "dCLL": 0.002,
-                "dCLM": 0.005,
-                "dCLN": 0.005
-            }
-        }
-        
-What this example shows is that the user can specify options that by default
-apply to all the component plots, but the user can specify specific options for
-each individual component plot that override these defaults.
+Each report contains a "Title", a list of figures for nominal cases, a list of
+figures for cases that fail (optional), and a list of figures for cases that
+have not been started yet (optional).  Each case has one or more pages (but each
+case starts on a new page) that contains the appropriate list of figures from
+these three possibilities.
+
+Each figure contains an alignment, a heading, and a list of subfigures.  The
+subfigure definitions contain the real information about the report.
 
 The description of the available options is shown below.
 
