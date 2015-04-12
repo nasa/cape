@@ -80,6 +80,13 @@ relatively simple commands.
         Apply the settings in *FNAME* to all cases; way to quickly change
         settings for a set of runs
 
+    -a
+        Archive folders according to settings in "Management" section of
+        *FNAME*
+
+    --expand
+        Unarchive :file:`adapt??.tar` files in run folders
+
 :Versions:
     * 2014-10-03 ``@ddalle``: Started
     * 2014-10-06 ``@ddalle``: First version
@@ -145,6 +152,9 @@ if __name__ == "__main__":
         # Archive folders
         cart3d.TarAdapt(**kw)
         cart3d.TarViz(**kw)
+    elif kw.get('expand'):
+        # Archive folders
+        cart3d.UntarAdapt(**kw)
     elif kw.get('archive'):
         # Archive cases
         cart3d.ArchiveCases(**kw)

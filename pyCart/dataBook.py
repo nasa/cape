@@ -3054,8 +3054,11 @@ class CaseFM(object):
         # ------
         # Labels
         # ------
+        # y-coordinates of the current axes w.r.t. figure scale
+        ya = h['ax'].get_position().get_points()
+        ha = ya[1,1] - ya[0,1]
         # y-coordinates above and below the box
-        yf = 3.0 * np.sqrt(len(h['fig'].get_axes())) / h['fig'].get_figheight()
+        yf = 2.5 / ha / h['fig'].get_figheight()
         yu = 1.0 + 0.065*yf
         yl = 1.0 - 0.04*yf
         # Make a label for the mean value.

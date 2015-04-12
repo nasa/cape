@@ -1582,6 +1582,48 @@ class Cart3d(object):
         os.chdir(fpwd)
         
         
+    # Function to unarchive 'adaptXX/' folders (except for newest)
+    def UntarAdapt(self, **kw):
+        """Tar ``adaptNN/`` folders except for most recent one
+        
+        :Call:
+            >>> cart3d.UntarAdapt()
+            >>> cart3d.UntarAdapt(cons=[])
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints
+        :Versions:
+            * 2015-04-12 ``@ddalle``: First version
+        """
+        # Get the format.
+        fmt=self.opts.get_TarAdapt()
+        # Check for directive not to archive.
+        if not fmt: return
+        # Save current path.
+        fpwd = os.getcwd()
+        # Get list of indices.
+        i = self.x.GetIndices(**kw)
+        # Get folder names.
+        fruns = self.x.GetFullFolderNames(i)
+        # Loop through folders.
+        for frun in fruns:
+            # Go home.
+            os.chdir(self.RootDir)
+            # Check for folder.
+            if not os.path.isdir(frun): continue
+            # Status update
+            print(frun)
+            # Go to the folder
+            os.chdir(frun)
+            # Manage the directory.
+            manage.ExpandAdapt(fmt)
+        # Go back to original directory.
+        os.chdir(fpwd)    
+        
     # Function to archive 'adaptXX/' folders (except for newest)
     def TarAdapt(self, **kw):
         """Tar ``adaptNN/`` folders except for most recent one
@@ -1668,6 +1710,7 @@ class Cart3d(object):
             manage.TarViz(fmt)
         # Go back to original directory.
         os.chdir(fpwd)
+
         
     # Function to archive 'adaptXX/' folders (except for newest)
     def ArchiveCases(self, **kw):
