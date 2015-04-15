@@ -597,7 +597,7 @@ class InputCntl(FileCntl):
         reg = 'optForce\s+' + str(Name) + '\s'
         # Process the other inputs (with defaults)
         Force = kwargs.get('force', 0)
-        Frame = kwargs.get('frame', 0)
+        Frame = kwargs.get('frame', 1)
         Weight = kwargs.get('weight', 1.0)
         CompID = kwargs.get('compID', 'entire')
         # Less likely inputs
