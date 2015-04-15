@@ -65,7 +65,6 @@ There are many more flags to `pycart`, including options to compress or archive
 folders, plot iterative histories, and constrain to only a subset of the run
 matrix.
 
-
 Controlling runs with pyCart really focuses on the :file:`pyCart.json` file.
 This file is divided into sections, some of which are mandatory.  The three
 most important sections describe the inputs to `flowCart`, the meshing options,
@@ -76,7 +75,7 @@ Contents
 ========
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
     :numbered:
     
     json/index
@@ -93,5 +92,4 @@ Indices and tables
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`
 

@@ -88,6 +88,9 @@ the major parts of the file.
             // Describe what forces and moments to record in the data book.
             "DataBook": {},
             
+            // Describe reports to create to summarize results
+            "Report": {},
+            
             // Mandatory definition of run matrix.
             "Trajectory": {
                 // This method points to a file that contains run conditions.
@@ -118,5 +121,6 @@ of how the options are used.
     Functional
     Management
     Plot
+    Report
     DataBook
     Trajectory
