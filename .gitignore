@@ -27,7 +27,9 @@ scratch/
 
 
 # Any subfolder of an example
-examples/*/*/
+examples/adapt_bJet/poweroff
+examples/flowCart_bJet/poweron
+examples/flowCart_bJet/poweroff
 
 # Shell files placed in examples.
 examples/*/*.sh
