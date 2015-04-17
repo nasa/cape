@@ -484,9 +484,85 @@ class TriBase(object):
         np.savetxt(fid, self.CompID, fmt="%i",      delimiter=' ')
         # Close the file.
         fid.close()
-        # End
-        return None
         
+    # Function to write a UH3D file
+    def WriteUH3D(self, fname='Components.i.uh3d'):
+        """Write a triangulation to a UH3D file
+        
+        :Call:
+            >>> tri.WriteUH3D(fname='Components.i.uh3d')
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Examples:
+            >>> tri = pyCart.ReadTri('bJet.i.tri')
+            >>> tri.WriteUH3D('bjet2.uh3d')
+        :Versions:
+            * 2015-04-17 ``@ddalle``: First version
+        """
+        # Initialize labels
+        lbls = {}
+        # Try to invert the configuration.
+        try:
+            # Loop through named components.
+            for gID in self.config.faces:
+                # Get the value.
+                cID = self.config.GetCompID(gID)
+                # Check the length.
+                if len(cID) != 1: continue
+                # Add it to the list.
+                lbls[cID[0]] = gID
+        except Exception:
+            pass
+        # Write the file.
+        self.WriteUH3DSlow(fname, lbls)
+        
+        
+    # Function to write a UH3D file the old-fashioned way.
+    def WriteUH3DSlow(self, fname='Components.i.uh3d', lbls={}):
+        """Write a triangulation to a UH3D file
+        
+        :Call:
+            >>> tri.WriteUH3DSlow(fname='Components.i.uh3d')
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Versions:
+            * 2015-04-17 ``@ddalle``: First version
+        """
+        # Number of component IDs
+        nID = len(np.unique(self.CompID))
+        # Open the file for creation.
+        fid = open(fname, 'w')
+        # Write the author line.
+        fid.write(' file created by pyCart\n')
+        # Write the information line.
+        fid.write('%i, %i, %i, %i, %i, %i\n' %
+            (self.nNode, self.nNode, self.nTri, self.nTri, nID, nID))
+        # Loop through the nodes.
+        for i in np.arange(self.nNode):
+            # Write the line (with 1-based node index).
+            fid.write('%i, %.12f, %.12f, %.12f\n' %
+                (i+1, self.Nodes[i,0], self.Nodes[i,1], self.Nodes[i,2]))
+        # Loop through the triangles.
+        for k in np.arange(self.nTri):
+            # Write the line (with 1-based triangle index and CompID).
+            fid.write('%i, %i, %i, %i, %i\n' % (k+1, self.Tris[k,0], 
+                self.Tris[k,1], self.Tris[k,0], self.CompID[k]))
+        # Loop through the component names.
+        for k in range(nID):
+            # Get the name that will be written.
+            lbl = lbls.get(k, str(k))
+            # Write the label.
+            fid.write("%i, '%s'\n" % (k+1, lbl))
+        # Write termination line.
+        fid.write('99,99,99,99,99\n')
+        # Close the file.
+        fid.close()
         
     # Function to copy a triangulation and unlink it.
     def Copy(self):
