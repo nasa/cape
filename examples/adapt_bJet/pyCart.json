@@ -23,7 +23,7 @@
 	// Commands to load at head of PBS scripts
 	"ShellCmds": [
         ". $MODULESHOME/init/bash",
-	    "module use -a /u/wk/ddalle/Modules",
+	    "module use -a /u/ddalle/share/modulefiles",
 	    "module load cart3d",
 	    "module load pycart",
         "ulimit -S -s 4194304"
