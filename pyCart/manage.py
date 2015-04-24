@@ -362,7 +362,7 @@ def SkeletonFolder():
     fglob = glob.glob('adapt??')
     fglob.sort()
     # Delete adapt folders except for the last one.
-    for f in fglob[:-1]: os.remove(f)
+    for f in fglob[:-1]: shutil.rmtree(f)
     # Clear checkpoint files.
     fglob = glob.glob('check*')
     for f in fglob: os.remove(f)
