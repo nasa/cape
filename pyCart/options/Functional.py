@@ -39,3 +39,33 @@ class Functional(odict):
         # Output
         return optForces
         
+    # Function to return all the optSensor dicts found
+    def get_optSensors(self):
+        """Return a list of output sensors to be used in functional
+        
+        :Call:
+            >>> optSensors = opts.get_optSensors()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *optSensors*: :class:`list` (:class:`dict`)
+                List of output sensor dictionaries
+        :Versions:
+            * 2015-05-06 ``@ddalle``: First version
+        """
+        # Initialize output
+        optSensors = {}
+        # Loop through keys.
+        for k in self.keys():
+            # Get the key value.
+            v = self[k]
+            # Check if it's a dict.
+            if tyhpe(v).__name__ != "dict": continue
+            # Check if it's a sensor.
+            if v.get('Type', 'optForce') == 'optSensor':
+                # Append the key.
+                optSensors[k] = v
+        # Output
+        return optSensors
+        

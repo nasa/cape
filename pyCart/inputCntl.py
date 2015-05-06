@@ -284,7 +284,6 @@ class InputCntl(FileCntl):
         # Write the line.
         self.ReplaceOrAddLineToSectionStartsWith('Post_Processing',
             'Xslices', line + '\n')
-        return None
         
     # Function to set the list of x-slices
     def SetYSlices(self, y):
@@ -312,7 +311,6 @@ class InputCntl(FileCntl):
         # Write the line.
         self.ReplaceOrAddLineToSectionStartsWith('Post_Processing',
             'Yslices', line + '\n')
-        return None
         
     # Function to set the list of x-slices
     def SetZSlices(self, z):
@@ -340,7 +338,56 @@ class InputCntl(FileCntl):
         # Write the line.
         self.ReplaceOrAddLineToSectionStartsWith('Post_Processing',
             'Zslices', line + '\n')
-        return None
+        
+    # Function to write a line sensor
+    def AddLineSensor(self, name, X):
+        """Write a line sensor
+        
+        :Call:
+            >>> IC.AddLineSensor(name, X)
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            *name*: :class:`str`
+                Name of the line sensor
+            *X*: :class:`list` (:class:`double`)
+                List of start x,y,z and end x,y,z
+        :Versions:
+            * 2015-05-06 ``@ddalle``: First version
+        """
+        # Check input length.
+        if len(X) < 6:
+            raise IOError(
+                "Line sensor '%s' needs start x,y,z and end x,y,z" % X)
+        # Initialize the output line.
+        line = "lineSensor %s " % name
+        # Add the start and end coordinates.
+        for x in X[:6]:
+            line += (" %s" % X[i])
+        # Regular expression of existing line sensor to search for
+        reg = 'lineSensor\s*%s\s$' % name
+        # Write the line
+        self.ReplaceorAddLineToSectionSearch('Post_Processing',
+            reg, line + "\n")
+        
+    # Set list of line sensors
+    def SetLineSensors(self, LS):
+        """Write all line sensors
+        
+        :Call:
+            >>> IC.SetLineSensors(LS)
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            *LS*: :class:`dict`
+                Dictionary of line sensors
+        :Versions:
+            * 2015-05-06 ``@ddalle``: First version
+        """
+        # Loop through line sensors.
+        for name in LS:
+            self.AddLineSensor(name, LS[name])
+        
         
     # Function to set the reference area(s)
     def SetReferenceArea(self, A):
@@ -610,10 +657,49 @@ class InputCntl(FileCntl):
             line = '# optForce %12s' % Name
         else:
             # Full line
-            line = 'optForce %12s %7s %7i %6i %6i %9s %8s   0   %s\n' % (
+            line = 'optForce %12s %7s %7i %6i %6f %9s %8s   0   %s\n' % (
                 Name, Force, Frame, J, N, Target, Weight, CompID)
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Design_Info', reg, line)
+        
+    # Function to set an output functional line or point sensor
+    def SetOutputSensor(self, Name, **kwargs):
+        """Request a line or point sensor
+        
+        :Call:
+            >>> IC.SetOutputSensor(Name, **kwargs)
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            *Name*: :class:`str`
+                Name of the sensor (required)
+            *J*: :class:`int` [ {0} | 1 ]
+                Modifier of sensor, not normally used
+            *N*: :class:`int` [ {2} | :class:`int` ]
+                Exponent on sensor, usually 2 for line sensors
+            *target*: :class:`float` [ {0.0} | :class:`float` ]
+                Target value for the functional
+        :Versions:
+            * 2015-05-06 ``@ddalle``: First version
+        """
+        # Line looks like "optSensor Line1 0 2 0.0 1.0 0"
+        reg = 'optSensor\s+' + str(Name) + '\s'
+        # Process the other inputs (with defaults)
+        Weight = kwargs.get('weight', 1.0)
+        Target = kwargs.get('target', 0.0)
+        J = kwargs.get('J', 0)
+        N = kwargs.get('N', 2)
+        # Form the output line.
+        if Weight == 0.0:
+            # Use this to delete the line.
+            line = '# optSensor %12s' % Name
+        else:
+            # Full line
+            line = 'optSensor %12s %7i %6i %6f %9s   0\n' % (
+                Name, J, N, Target, Weight)
+        # Replace the line or add it if necessary.
+        self.ReplaceOrAddLineToSectionSearch('Design_Info', reg, line)
+        
         
     # Function to get Cart3D to report the forces on several components
     def RequestForce(self, comps):

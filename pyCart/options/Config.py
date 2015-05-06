@@ -561,4 +561,83 @@ class Config(odict):
         # Set the input value as an addendum to the list.
         self.set_key('Zslices', z, len(Zslices))
         
+    
+    # Get line sensors
+    def get_LineSensors(self, name=None):
+        """Get dictionary of line sensors
         
+        :Call:
+            >>> LS = opts.get_LineSensors(name=None):
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *name*: :class:`str`
+                Name of individual line sensor to extract
+        :Outputs:
+            *LS*: :class:`dict` (:class:`dict`)
+                Line sensor or dictionary of line sensors
+        :Versions:
+            * 2015-05-06 ``@ddalle``: First version
+        """
+        # Extract list.
+        LS = self.get('LineSensors', {})
+        # Check for an individual name.
+        if name is not None:
+            # Return individual line
+            return LS.get(name)
+        else:
+            # Return the whole list.
+            return LS
+            
+    # Set line sensors
+    def set_LineSensors(self, LS={}, name=None, X=[]):
+        """Set dictionary of line sensors or individual line sensor
+        
+        :Call:
+            >>> opts.set_LineSensors(LS={})
+            >>> opts.set_LineSensors(name=None, X=[])
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *name*: :class:`str`
+                Name of individual line sensor to set
+            *X*: :class:`list` (:class:`double`, *len*\ =6)
+                List of start x,y,z and end x,y,z
+        :Outputs:
+            *LS*: :class:`dict` (:class:`dict`)
+                Line sensor or dictionary of line sensors
+        :Versions:
+            * 2015-05-06 ``@ddalle``: First version
+        """
+        # Check version of the call.
+        if name is not None:
+            # Initialize line sensors if necessary.
+            self.setdefault('LineSensors', {})
+            # Set the line sensor.
+            self['LineSensors'][name] = X
+        else:
+            # Set the full list.
+            self['LineSensors'] = LS
+            
+    # Add an additional line sensor.
+    def add_LineSensor(self, name, X):
+        """Add an additional line sensor
+        
+        :Call:
+            >>> opts.add_LineSensor(name, X)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *name*: :class:`str`
+                Name of individual line sensor to extract
+            *X*: :class:`list` (:class:`double`, *len*\ =6)
+                List of start x,y,z and end x,y,z
+        :Versions:
+            * 2015-05-06 ``@ddalle``: First version
+        """
+        # Initialize line sensors if necessary.
+        self.setdefault('LineSensors', {})
+        # Set the line sensor.
+        self['LineSensors'][name] = X
+            
+            

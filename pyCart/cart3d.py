@@ -1866,6 +1866,10 @@ class Cart3d(object):
         for Name, kw in self.opts.get_optForces().items():
             # Set the force.
             self.InputCntl.SetOutputForce(Name, **kw)
+        # Loop through the output functional 'optSensor's
+        for Name, kw in sel.opts.get_optSensors().items():
+            # Set the sensor.
+            self.InputCntl.SetOutputSensor(Name, **kw)
         
         # Loop through the runs.
         for j in range(self.opts.get_nSeq()):
