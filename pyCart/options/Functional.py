@@ -61,7 +61,7 @@ class Functional(odict):
             # Get the key value.
             v = self[k]
             # Check if it's a dict.
-            if tyhpe(v).__name__ != "dict": continue
+            if type(v).__name__ != "dict": continue
             # Check if it's a sensor.
             if v.get('Type', 'optForce') == 'optSensor':
                 # Append the key.

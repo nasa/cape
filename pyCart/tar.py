@@ -65,10 +65,6 @@ def chdir_up():
     os.chdir('..')
     # Name of the file.
     ftar = fpwd + '.tar'
-    # Check for the file.
-    if os.path.isfile(ftar):
-        # Check the date.
-        if os.path.getmtime(ftar) < os.path.getmtime(fpwd): return
     # Update or create the archive.
     ierr = tar(ftar, fpwd)
     # Check for failure.
