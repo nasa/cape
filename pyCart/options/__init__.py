@@ -1472,17 +1472,17 @@ class Options(odict):
     # Get list of sensors
     def get_LineSensors(self, name=None):
         self._Config()
-        self['LineSensors'].get_LineSensors(name)
+        self['Config'].get_LineSensors(name)
         
     # Set list of sensors
     def set_LineSensors(self, LS={}, name=None, X=[]):
         self._Config()
-        self['LineSensors'].set_LineSensors(LS=LS, name=name, X=X)
+        self['Config'].set_LineSensors(LS=LS, name=name, X=X)
     
     # Set line sensors
     def add_LineSensor(self, name, X):
         self._Config()
-        self['LineSensors'].add_LineSensor(name, X)
+        self['Config'].add_LineSensor(name, X)
         
     # Copy over the documentation.
     for k in ['ClicForce', 'Xslice', 'Yslice', 'Zslice', 'LineSensor']:
