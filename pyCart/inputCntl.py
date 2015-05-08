@@ -388,6 +388,55 @@ class InputCntl(FileCntl):
         for name in LS:
             self.AddLineSensor(name, LS[name])
         
+    # Function to write a point sensor
+    def AddPointSensor(self, name, X):
+        """Write a point sensor
+        
+        :Call:
+            >>> IC.AddPointSensor(name, X)
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            *name*: :class:`str`
+                Name of the line sensor
+            *X*: :class:`list` (:class:`double`)
+                List of point x,y,z coordinates
+        :Versions:
+            * 2015-05-07 ``@ddalle``: First version
+        """
+        # Check input length.
+        if len(X) < 3:
+            raise IOError(
+                "Point sensor '%s' has less than three coordinates" % X)
+        # Initialize the output line.
+        line = "pointSensor %s " % name
+        # Add the start and end coordinates.
+        for x in X[:3]:
+            line += (" %s" % X[i])
+        # Regular expression of existing line sensor to search for
+        reg = 'pointSensor\s*%s\s$' % name
+        # Write the line
+        self.ReplaceorAddLineToSectionSearch('Post_Processing',
+            reg, line + "\n")
+        
+    # Set list of point sensors
+    def SetPointSensors(self, PS):
+        """Write all point sensors
+        
+        :Call:
+            >>> IC.SetPointSensors(PS)
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            *PS*: :class:`dict`
+                Dictionary of point sensors
+        :Versions:
+            * 2015-05-07 ``@ddalle``: First version
+        """
+        # Loop through line sensors.
+        for name in PS:
+            self.AddPointSensor(name, PS[name])
+        
         
     # Function to set the reference area(s)
     def SetReferenceArea(self, A):

@@ -1483,9 +1483,25 @@ class Options(odict):
     def add_LineSensor(self, name, X):
         self._Config()
         self['Config'].add_LineSensor(name, X)
+    
+    # Get list of sensors
+    def get_PointSensors(self, name=None):
+        self._Config()
+        self['Config'].get_PointSensors(name)
+        
+    # Set list of sensors
+    def set_PointSensors(self, PS={}, name=None, X=[]):
+        self._Config()
+        self['Config'].set_PointSensors(PS=PS, name=name, X=X)
+    
+    # Set line sensors
+    def add_PointSensor(self, name, X):
+        self._Config()
+        self['Config'].add_PointSensor(name, X)
         
     # Copy over the documentation.
-    for k in ['ClicForce', 'Xslice', 'Yslice', 'Zslice', 'LineSensor']:
+    for k in ['ClicForce', 'Xslice', 'Yslice', 'Zslice',
+            'PointSensor', 'LineSensor']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k+'s').__doc__ = getattr(Config,'get_'+k+'s').__doc__
         eval('set_'+k+'s').__doc__ = getattr(Config,'set_'+k+'s').__doc__

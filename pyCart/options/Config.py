@@ -603,7 +603,6 @@ class Config(odict):
                 Name of individual line sensor to set
             *X*: :class:`list` (:class:`double`, *len*\ =6)
                 List of start x,y,z and end x,y,z
-        :Outputs:
             *LS*: :class:`dict` (:class:`dict`)
                 Line sensor or dictionary of line sensors
         :Versions:
@@ -639,5 +638,83 @@ class Config(odict):
         self.setdefault('LineSensors', {})
         # Set the line sensor.
         self['LineSensors'][name] = X
+        
+        
+    # Get point sensors
+    def get_PointSensors(self, name=None):
+        """Get dictionary of point sensors
+        
+        :Call:
+            >>> PS = opts.get_PointSensors(name=None):
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *name*: :class:`str`
+                Name of individual line sensor to extract
+        :Outputs:
+            *PS*: :class:`dict` (:class:`dict`)
+                Point sensor or dictionary of point sensors
+        :Versions:
+            * 2015-05-07 ``@ddalle``: First version
+        """
+        # Extract list.
+        PS = self.get('PointSensors', {})
+        # Check for an individual name.
+        if name is not None:
+            # Return individual line
+            return LS.get(name)
+        else:
+            # Return the whole list.
+            return LS
+            
+    # Set point sensors
+    def set_PointSensors(self, PS={}, name=None, X=[]):
+        """Set dictionary of point sensors or individual point sensor
+        
+        :Call:
+            >>> opts.set_PointSensors(LS={})
+            >>> opts.set_PointSensors(name=None, X=[])
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *name*: :class:`str`
+                Name of individual line sensor to set
+            *X*: :class:`list` (:class:`double`, *len*\ =3)
+                List of point x,y,z coordinates
+            *PS*: :class:`dict` (:class:`dict`)
+                Point sensor or dictionary of point sensors
+        :Versions:
+            * 2015-05-07 ``@ddalle``: First version
+        """
+        # Check version of the call.
+        if name is not None:
+            # Initialize point sensors if necessary.
+            self.setdefault('PointSensors', {})
+            # Set the point sensor.
+            self['PointSensors'][name] = X
+        else:
+            # Set the full list.
+            self['PointSensors'] = PS
+            
+    # Add an additional point sensor.
+    def add_PointSensor(self, name, X):
+        """Add an additional point sensor
+        
+        :Call:
+            >>> opts.add_PointSensor(name, X)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *name*: :class:`str`
+                Name of individual line sensor to extract
+            *X*: :class:`list` (:class:`double`, *len*\ =3)
+                List of point x,y,z sensors
+        :Versions:
+            * 2015-05-07 ``@ddalle``: First version
+        """
+        # Initialize point sensors if necessary.
+        self.setdefault('PointSensors', {})
+        # Set the point sensor.
+        self['PointSensors'][name] = X
             
             
