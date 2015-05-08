@@ -115,6 +115,18 @@ class Trajectory:
                 # Normal numeric value
                 setattr(self, key,
                     np.array([int(v) for v in self.text[key]]))
+            elif self.defns[key]['Value'] == 'hex':
+                # Hex numeric value
+                setattr(self, key,
+                    np.array([eval('0x'+v) for v in self.text[key]]))
+            elif self.defns[key]['Value'] in ['oct', 'octal']:
+                # Octal value
+                setattr(self, key,
+                    np.array([eval('0o'+v) for v in self.text[key]]))
+            elif self.defns[key]['Value'] in ['bin', 'binary']:
+                # Binary value
+                setattr(self, key,
+                    np.array([eval('0b'+v) for v in self.text[key]]))
             else:
                 # Assume string
                 setattr(self, key, np.array(self.text[key]))
