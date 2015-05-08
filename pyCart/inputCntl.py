@@ -363,11 +363,11 @@ class InputCntl(FileCntl):
         line = "lineSensor %s " % name
         # Add the start and end coordinates.
         for x in X[:6]:
-            line += (" %s" % X[i])
+            line += (" %s" % x)
         # Regular expression of existing line sensor to search for
         reg = 'lineSensor\s*%s\s$' % name
         # Write the line
-        self.ReplaceorAddLineToSectionSearch('Post_Processing',
+        self.ReplaceOrAddLineToSectionSearch('Post_Processing',
             reg, line + "\n")
         
     # Set list of line sensors
@@ -657,7 +657,7 @@ class InputCntl(FileCntl):
             line = '# optForce %12s' % Name
         else:
             # Full line
-            line = 'optForce %12s %7s %7i %6i %6f %9s %8s   0   %s\n' % (
+            line = 'optForce %12s %7s %7i %6i %6i %9s %8s   0   %s\n' % (
                 Name, Force, Frame, J, N, Target, Weight, CompID)
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Design_Info', reg, line)
@@ -695,7 +695,7 @@ class InputCntl(FileCntl):
             line = '# optSensor %12s' % Name
         else:
             # Full line
-            line = 'optSensor %12s %7i %6i %6f %9s   0\n' % (
+            line = 'optSensor %12s %7i %6i %6s %9s   0\n' % (
                 Name, J, N, Target, Weight)
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Design_Info', reg, line)

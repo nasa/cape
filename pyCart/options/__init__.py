@@ -1472,7 +1472,7 @@ class Options(odict):
     # Get list of sensors
     def get_LineSensors(self, name=None):
         self._Config()
-        self['Config'].get_LineSensors(name)
+        return self['Config'].get_LineSensors(name)
         
     # Set list of sensors
     def set_LineSensors(self, LS={}, name=None, X=[]):
