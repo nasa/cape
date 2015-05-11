@@ -1487,7 +1487,7 @@ class Options(odict):
     # Get list of sensors
     def get_PointSensors(self, name=None):
         self._Config()
-        self['Config'].get_PointSensors(name)
+        return self['Config'].get_PointSensors(name)
         
     # Set list of sensors
     def set_PointSensors(self, PS={}, name=None, X=[]):

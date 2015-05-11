@@ -662,10 +662,10 @@ class Config(odict):
         # Check for an individual name.
         if name is not None:
             # Return individual line
-            return LS.get(name)
+            return PS.get(name)
         else:
             # Return the whole list.
-            return LS
+            return PS
             
     # Set point sensors
     def set_PointSensors(self, PS={}, name=None, X=[]):

@@ -1863,8 +1863,10 @@ class Cart3d(object):
         if YSlices: self.InputCntl.SetYSlices(YSlices)
         if ZSlices: self.InputCntl.SetZSlices(ZSlices)
         # Get the sensors
+        PS = self.opts.get_PointSensors()
         LS = self.opts.get_LineSensors()
         # Process sensors
+        if PS: self.InputCntl.SetPointSensors(PS)
         if LS: self.InputCntl.SetLineSensors(LS)
         # Loop through the output functional 'optForce's
         for Name, kw in self.opts.get_optForces().items():

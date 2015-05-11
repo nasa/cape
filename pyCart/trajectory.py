@@ -641,9 +641,12 @@ class Trajectory:
                 if ':' in i:
                     # Add a range.
                     I += eval('I0[%s]' % i)
-                else:
+                elif ',' in i:
                     # List
                     I += list(eval(i))
+                else:
+                    # Individual case
+                    I += [eval(i)]
             except Exception:
                 # Status update.
                 print("Index specification '%s' failed to evaluate." % i)

@@ -412,11 +412,11 @@ class InputCntl(FileCntl):
         line = "pointSensor %s " % name
         # Add the start and end coordinates.
         for x in X[:3]:
-            line += (" %s" % X[i])
+            line += (" %s" % x)
         # Regular expression of existing line sensor to search for
         reg = 'pointSensor\s*%s\s$' % name
         # Write the line
-        self.ReplaceorAddLineToSectionSearch('Post_Processing',
+        self.ReplaceOrAddLineToSectionSearch('Post_Processing',
             reg, line + "\n")
         
     # Set list of point sensors
