@@ -451,11 +451,11 @@ class Report(odict):
             return self.get_SubfigBaseType(t)
         
     # Process defaults.
-    def get_SubfigOpt(self, sfig, opt):
+    def get_SubfigOpt(self, sfig, opt, i=None):
         """Retrieve an option for a subfigure, applying necessary defaults
         
         :Call:
-            >>> val = opts.get_SubfigOpt(sfig, opt)
+            >>> val = opts.get_SubfigOpt(sfig, opt, i=None)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
@@ -463,6 +463,8 @@ class Report(odict):
                 Name of subfigure
             *opt*: :class:`str`
                 Name of option to retrieve
+            *i*: :class:`int`
+                Index of subfigure option to extract
         :Outputs:
             *val*: any
                 Subfigure option value
@@ -556,6 +558,13 @@ class Report(odict):
             # This is a derived subfigure type; recurse.
             return self.get_SubfigOpt(t, opt)
         # Get the default value.
-        return S.get(opt)
+        o = S.get(opt)
+        # Process output type.
+        if (i is not None) and (type(o).__name__ in ['list', 'ndarray']):
+            # Extract by index.
+            return o[i]
+        else:
+            # Return full option
+            return o
         
         

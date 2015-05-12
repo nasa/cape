@@ -459,6 +459,13 @@ class Report(object):
         comp = opts.get_SubfigOpt(sfig, "Component")
         # Get the coefficient
         coeff = opts.get_SubfigOpt(sfig, "Coefficient")
+        # List of coefficients
+        if type(coeff).__name__ in ['list', 'ndarray']:
+            # Already a list.
+            coeffs = coeff
+        else:
+            # List with one entry
+            coeffs = [coeff]
         # Current status
         nIter  = self.cart3d.CheckCase(i)
         # Numbers of iterations for statistics

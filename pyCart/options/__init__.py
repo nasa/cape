@@ -1825,9 +1825,9 @@ class Options(odict):
         return self['Report'].get_SubfigBaseType(sfig)
         
     # Get an option for a subfigure
-    def get_SubfigOpt(self, sfig, opt):
+    def get_SubfigOpt(self, sfig, opt, i=None):
         self._Report()
-        return self['Report'].get_SubfigOpt(sfig, opt)
+        return self['Report'].get_SubfigOpt(sfig, opt, i=i)
     
     # Copy over the documentation
     for k in ['ReportList', 'FigList', 'SubfigList',
