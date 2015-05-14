@@ -711,6 +711,61 @@ class InputCntl(FileCntl):
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Design_Info', reg, line)
         
+    # Function to set an output functional force
+    def SetOutputMoment(self, Name, **kwargs):
+        """Request a force be added to the output functional
+        
+        :Call:
+            >>> IC.SetOutputMoment(Name, **kwargs)
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            *Name*: :class:`str`
+                Name of the force (required)
+            *index*: :class:`int` [ {0} | :class:`int` ]
+                Index of which MRP to use for named component
+            *moment*: :class:`int` [ {0} | 1 | 2 | None]
+                Force axis, e.g. ``0`` for axial force. If ``moment=None``, this
+                component is not used in the output.
+            *frame*: :class:`int` [ {0} | 1 ]
+                Body frame (``0``) or velocity frame (``1``)
+            *weight*: :class:`float` [ {1.0} | :class:`float` ]
+                Linear weight on term in overall functional
+            *compID*: :class:`str` [ {entire} | :class:`str` | :class:`int` ]
+                Component to use for calculating the force
+            *J*: :class:`int` [ {0} | 1 ]
+                Modifier of force, not normally used
+            *N*: :class:`int` [ {1} | :class:`int` ]
+                Exponent on force coefficient
+            *target*: :class:`float` [ {0.0} | :class:`float` ]
+                Target value for the functional; irrelevant if *N*\ =1
+        :Versions:
+            * 2014-11-19 ``@ddalle``: First version
+        """
+        # Line looks like "optForce  CY_L 1 0 0 1 0. 1. 0  Core"
+        reg = 'optMoment_Point\s+' + str(Name) + '\s'
+        # Process the other inputs (with defaults)
+        Index = kwargs.get('index', 0)
+        Force = kwargs.get('moment', 0)
+        Frame = kwargs.get('frame', 1)
+        Weight = kwargs.get('weight', 1.0)
+        CompID = kwargs.get('compID', 'entire')
+        # Less likely inputs
+        Target = kwargs.get('target', 0.0)
+        J = kwargs.get('J', 0)
+        N = kwargs.get('N', 1)
+        # Form the line.
+        if Force is None:
+            # Use this to delete the line.
+            line = '# optMoment_Point %12s' % Name
+        else:
+            # Full line
+            line = (
+                'optMoment_Point %12s %7s %7s %7i %6i %6i %9s %8s   0   %s\n'
+                % (Name, Index, Force, Frame, J, N, Target, Weight, CompID))
+        # Replace the line or add it if necessary.
+        self.ReplaceOrAddLineToSectionSearch('Design_Info', reg, line)
+        
     # Function to set an output functional line or point sensor
     def SetOutputSensor(self, Name, **kwargs):
         """Request a line or point sensor

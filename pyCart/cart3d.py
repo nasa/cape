@@ -1876,6 +1876,10 @@ class Cart3d(object):
         for Name, kw in self.opts.get_optSensors().items():
             # Set the sensor.
             self.InputCntl.SetOutputSensor(Name, **kw)
+        # Loop through the output functional 'optMoment's
+        for Name, kw in self.opts.get_optMoments().items():
+            # Set the sensor.
+            self.InputCntl.SetOutputMoment(Name, **kw)
         
         # Loop through the runs.
         for j in range(self.opts.get_nSeq()):

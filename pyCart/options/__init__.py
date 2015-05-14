@@ -882,6 +882,12 @@ class Options(odict):
         return self['Functional'].get_optSensors()
     get_optSensors.__doc__ = Functional.get_optSensors.__doc__
     
+    # Get the optMoments
+    def get_optMoments(self):
+        self._Functional()
+        return self['Functional'].get_optMoments()
+    get_optMoments.__doc__ = Functional.get_optMoments.__doc__
+    
         
     # ===================
     # Adaptation settings
