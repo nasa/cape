@@ -107,6 +107,9 @@ class Trajectory:
         # Create the numeric versions.
         for key in keys:
             # Check the key type.
+            if 'Value' not in self.defns[key]:
+                print("Definition for trajectory key '%s' appears incomplete."
+                    % key)
             if self.defns[key]['Value'] == 'float':
                 # Normal numeric value
                 setattr(self, key,

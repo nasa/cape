@@ -419,6 +419,9 @@ class Report(odict):
         """
         # Get the subfigure
         S = self.get_Subfigure(sfig)
+        # Check for a find.
+        if S is None:
+            raise IOError("Subfigure '%s' was not found." % sfig)
         # Return the type.
         return S.get('Type', '')
         

@@ -1256,9 +1256,12 @@ class Cart3d(object):
         # Loop through keys.
         for k in x.keys[0:]:
             # Skip it if not part of the label.
+            if not x.defns[k].get('Label', True):
+                continue
             
-            # Check for strings.
+            # Default print flag
             if x.defns[k]['Value'] == 'float':
+                # Float
                 # Use two decimals for first key.
                 if k == x.keys[0]:
                     # Gets two decimals
@@ -1266,11 +1269,15 @@ class Cart3d(object):
                 else:
                     # Single-decimal
                     slbl = '%s%.1f'
-                # Append to the label with only one decimal
-                lbl += (slbl % (x.abbrv[k], getattr(x,k)[i]))
-            elif x.defns[k]['Value'] == 'int':
-                # Append to the label.
-                lbl += ('%s%i' % (x.abbrv[k], getattr(x,k)[i]))
+            else:
+                # Simply use string
+                slbl = '%s%s'
+            # Non-default string
+            slbl = x.defns[k].get('Label', slbl)
+            # Strip underscores
+            slbl = slbl.replace('_', '')
+            # Append to the label with only one decimal
+            lbl += (slbl % (x.abbrv[k], getattr(x,k)[i]))
         # Check length.
         if len(lbl) > 15:
             # 16-char limit (or is it 15?)
