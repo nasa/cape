@@ -26,12 +26,15 @@ class Report(odict):
         # Get the full list of keys.
         K = self.keys()
         # Initialize outputs.
-        reps = []
+        reps = self.get('Reports', [])
         # Loop through keys/
         for k in K:
             # Check the key
-            if k in ['Figures', 'Subfigures', 'Archive']:
+            if k in ['Figures', 'Subfigures', 'Archive', 'Reports']:
                 # Known universal option
+                continue
+            elif k in reps:
+                # Already included
                 continue
             elif type(self[k]).__name__ != 'dict':
                 # Mystery type

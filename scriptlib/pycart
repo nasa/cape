@@ -169,7 +169,7 @@ if __name__ == "__main__":
         # Get the report(s) to create.
         if kw['report'] == True:
             # All reports
-            reps = cart3d.opts.get_ReportList()
+            reps = [cart3d.opts.get_ReportList()[0]]
         else:
             # User-specified report
             reps = [kw['report']]
