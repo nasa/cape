@@ -482,7 +482,7 @@ class Report(odict):
         # Check if the option is present
         if opt in S:
             # Simple non-default case
-            return S[opt]
+            return getel(S[opt], i)
         # Get the type.
         t = self.get_SubfigType(sfig)
         # Process known defaults.
@@ -562,7 +562,7 @@ class Report(odict):
             }
         else:
             # This is a derived subfigure type; recurse.
-            return self.get_SubfigOpt(t, opt)
+            return self.get_SubfigOpt(t, opt, i)
         # Get the default value.
         o = S.get(opt)
         # Process output type.
