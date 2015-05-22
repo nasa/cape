@@ -302,18 +302,15 @@ def stripComments(lines, char='#'):
         # Split into lines.
         lines = lines.split('\n')
     # Loop until last line
-    while i < len(lines):
+    for i in range(len(lines)):
         # Get the line and strip leading and trailing white space.
         line = lines[i].strip()
         # Check it.
         if line.startswith(char):
-            # Remove it.
-            lines.__delitem__(i)
-        else:
-            # Move to the next line.
-            i += 1
+            # Remove the content.
+            lines[i] = ""
     # Return the remaining lines.
-    return "".join(lines)
+    return '\n'.join(lines)
 
 
 # Function to get the defautl settings.

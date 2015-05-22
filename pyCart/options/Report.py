@@ -44,6 +44,57 @@ class Report(odict):
                 reps.append(k)
         # Output
         return reps
+        
+    # Report type
+    def get_ReportType(self, frep):
+        """Get report type
+        
+        :Call:
+            >>> ftyp = opts.get_ReportType(frep)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *frep*: :class:`str`
+                Name of report
+        :Outputs:
+            *ftyp*: :class:`str` [{case} | compare | set | sweep]
+                Figure type
+        :Versions:
+            * 2015-05-22 ``@ddalle``: First version
+        """
+        # Get figure
+        rep = self.get(frep, {})
+        # Get type
+        return rep.get("Type", "case")
+        
+    # Get reports by type
+    def get_ReportsByType(self, ftyp):
+        """Return list of reports with matching type
+        
+        :Call:
+            >>> reps = opts.get_ReportsByType(ftyp)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *ftyp*: :class:`str` [case | compare | set | sweep]
+                Figure type
+        :Outputs:
+            *reps*: :class:`list` (:class:`str`)
+                List of reports with matching type
+        :Versions:
+            * 2015-05-22 ``@ddalle``: First version
+        """
+        # Initialize
+        reps = []
+        # Get full list.
+        for frep in self.get_ReportList():
+            # Check the type
+            if self.get_ReportType(frep) == ftyp:
+                # Append if it matches.
+                reps.append(frep)
+        # Output
+        return reps
+        
             
     # List of figures
     def get_FigList(self):
@@ -476,6 +527,7 @@ class Report(odict):
                 Subfigure option value
         :Versions:
             * 2015-03-08 ``@ddalle``: First version
+            * 2015-05-22 ``@ddalle``: Support for multiple coeffs in PlotCoeff
         """
         # Get the subfigure.
         S = self.get_Subfigure(sfig)

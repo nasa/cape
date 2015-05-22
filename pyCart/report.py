@@ -150,6 +150,22 @@ class Report(object):
             if f[-3:] in ['tex', 'pdf']: continue
             # Else remove it.
             os.remove(f)
+            
+    # Function to update a figure for comparing two or more cases
+    def UpdateCompareFigure(self, fig, **kw):
+        """Update a figure that compares two or more cases
+        
+        :Call:
+            >>> R.UpdateCompareFigure(fig)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *fig*: :class:`str`
+                Name of figure
+        :Versions:
+            * 2015-05-22 ``@ddalle``: Started
+        """
+        pass
         
         
     # Function to update report for several cases
