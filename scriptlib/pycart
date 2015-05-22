@@ -178,7 +178,7 @@ if __name__ == "__main__":
             # Get the report.
             R = pyCart.report.Report(cart3d, rep)
             # Update according to other options
-            R.UpdateCases(**kw)
+            R.UpdateReport(**kw)
     else:
         # Do it.
         cart3d.SubmitJobs(**kw)

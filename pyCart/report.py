@@ -103,13 +103,13 @@ class Report(object):
         # Return
         os.chdir(fpwd)
         
-    # Function to update report for several cases
-    def UpdateCases(self, I=None, cons=[], **kw):
-        """Update several cases and add the lines to the master LaTeX file
+    # Function to update report
+    def UpdateReport(self, I=None, cons=[], **kw):
+        """Update a report based on the list of figures
         
         :Call:
-            >>> R.UpdateCases(I)
-            >>> R.UpdateCases(cons=[])
+            >>> R.UpdateReport(I)
+            >>> R.UpdateReport(cons=[])
         :Inputs:
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
@@ -118,23 +118,10 @@ class Report(object):
             *cons*: :class:`list` (:class:`str`)
                 List of constraints to define what cases to update
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
+            * 2015-05-22 ``@ddalle``: First version
         """
-        # Check for use of constraints instead of direct list.
-        I = self.cart3d.x.GetIndices(cons=cons, I=I)
-        # Clear out the lines.
-        del self.tex.Section['Cases'][1:-1]
-        # Loop through those cases.
-        for i in I:
-            # Update the case
-            self.UpdateCase(i)
-        # Update the text.
-        self.tex._updated_sections = True
-        self.tex.UpdateLines()
-        # Master file location\
-        fpwd = os.getcwd()
-        os.chdir(self.cart3d.RootDir)
-        os.chdir('report')
+        # Update any case-by-case figures.
+        self.UpdateCases(I, cons, **kw)
         # Write the file.
         self.tex.Write()
         # Compmile it.
@@ -163,6 +150,41 @@ class Report(object):
             if f[-3:] in ['tex', 'pdf']: continue
             # Else remove it.
             os.remove(f)
+        
+        
+    # Function to update report for several cases
+    def UpdateCases(self, I=None, cons=[], **kw):
+        """Update several cases and add the lines to the master LaTeX file
+        
+        :Call:
+            >>> R.UpdateCases(I)
+            >>> R.UpdateCases(cons=[])
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *I*: :class:`list` (:class:`int`)
+                List of case indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints to define what cases to update
+        :Versions:
+            * 2015-03-10 ``@ddalle``: First version
+            * 2015-05-22 ``@ddalle``: Moved compilation portion to UpdateReport
+        """
+        # Check for use of constraints instead of direct list.
+        I = self.cart3d.x.GetIndices(cons=cons, I=I)
+        # Clear out the lines.
+        del self.tex.Section['Cases'][1:-1]
+        # Loop through those cases.
+        for i in I:
+            # Update the case
+            self.UpdateCase(i)
+        # Update the text.
+        self.tex._updated_sections = True
+        self.tex.UpdateLines()
+        # Master file location
+        fpwd = os.getcwd()
+        os.chdir(self.cart3d.RootDir)
+        os.chdir('report')
         
     # Function to create the file for a case
     def UpdateCase(self, i):
@@ -443,7 +465,7 @@ class Report(object):
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
-                Name of sfigure to update
+                Name of subfigure to update
             *i*: :class:`int`
                 Case index
         :Versions:
