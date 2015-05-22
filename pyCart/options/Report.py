@@ -2,7 +2,7 @@
 
 
 # Import options-specific utilities
-from .util import rc0, odict
+from .util import rc0, odict, getel
 
 # Class for flowCart settings
 class Report(odict):
@@ -457,11 +457,11 @@ class Report(odict):
             return self.get_SubfigBaseType(t)
         
     # Process defaults.
-    def get_SubfigOpt(self, sfig, opt, i=None):
+    def get_SubfigOpt(self, sfig, opt, i=None, k=None):
         """Retrieve an option for a subfigure, applying necessary defaults
         
         :Call:
-            >>> val = opts.get_SubfigOpt(sfig, opt, i=None)
+            >>> val = opts.get_SubfigOpt(sfig, opt, i=None, k=None)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
@@ -566,11 +566,6 @@ class Report(odict):
         # Get the default value.
         o = S.get(opt)
         # Process output type.
-        if (i is not None) and (type(o).__name__ in ['list', 'ndarray']):
-            # Extract by index.
-            return o[i]
-        else:
-            # Return full option
-            return o
+        return getel(o, i)
         
         

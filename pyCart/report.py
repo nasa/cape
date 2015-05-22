@@ -483,29 +483,17 @@ class Report(object):
         coeff = opts.get_SubfigOpt(sfig, "Coefficient")
         # List of coefficients
         if type(coeff).__name__ in ['list', 'ndarray']:
-            # Already a list.
-            coeffs = coeff
+            # List of coefficients
+            nCoeff = len(coeff)
         else:
-            # List with one entry
-            coeffs = [coeff]
+            # One entry
+            nCoeff = 1
+        # Check for list of components
+        if type(comp).__name__ in ['list', 'ndarray']:
+            # List of components
+            nCoeff = max(nCoeff, len(comp))
         # Current status
         nIter  = self.cart3d.CheckCase(i)
-        # Numbers of iterations for statistics
-        nStats = opts.get_SubfigOpt(sfig, "nStats")
-        nMin   = opts.get_SubfigOpt(sfig, "nMinStats")
-        nMax   = opts.get_SubfigOpt(sfig, "nMaxStats")
-        # Get the status and data book options
-        if nStats is None: nStats = opts.get_nStats()
-        if nMin   is None: nMin   = opts.get_nMin()
-        if nMax   is None: nMax   = opts.get_nMaxStats()
-        # Numbers of iterations for plots
-        nPlotIter  = opts.get_SubfigOpt(sfig, "nPlot")
-        nPlotFirst = opts.get_SubfigOpt(sfig, "nPlotFirst")
-        nPlotLast  = opts.get_SubfigOpt(sfig, "nPlotLast")
-        # Check for defaults.
-        if nPlotIter  is None: nPlotIter  = opts.get_nPlotIter(comp)
-        if nPlotFirst is None: nPlotFirst = opts.get_nPlotFirst(comp)
-        if nPlotLast  is None: nPlotLast  = opts.get_nPlotLast(comp)
         # Get caption.
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
         # Process default caption. 
@@ -528,8 +516,29 @@ class Report(object):
             # Save the line
             lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
             lines.append('\\vskip-6pt\n')
-        # Create plot if possible
-        if nIter >= 2:
+        # Loop through plots.
+        for k in range(nCoeff):
+            # Get the component and coefficient.
+            comp = opts.get_SubfigOpt(sfig, "Component", k)
+            coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
+            # Numbers of iterations
+            nStats = opts.get_SubfigOpt(sfig, "nStats",    k)
+            nMin   = opts.get_SubfigOpt(sfig, "nMinStats", k)
+            nMax   = opts.get_SubfigOpt(sfig, "nMaxStats", k)
+            # Default to databook options
+            if nStats is None: nStats = opts.get_nStats()
+            if nMin   is None: nMin   = opts.get_nMin()
+            if nMax   is None: nMax   = opts.get_nMaxStats()
+            # Numbers of iterations for plots
+            nPlotIter  = opts.get_SubfigOpt(sfig, "nPlot",      k)
+            nPlotFirst = opts.get_SubfigOpt(sfig, "nPlotFirst", k)
+            nPlotLast  = opts.get_SubfigOpt(sfig, "nPlotLast",  k)
+            # Check for defaults
+            if nPlotIter  is None: nPlotIter  = opts.get_nPlotIter(comp)
+            if nPlotFirst is None: nPlotFirst = opts.get_nPlotFirst(comp)
+            if nPlotLast  is None: nPlotLast  = opts.get_nPlotLast(comp)
+            # Check if there are iterations.
+            if nIter < 2: continue
             # Don't use iterations before *nMin*
             nMax = min(nMax, nIter-nMin)
             # Go to the run directory.
@@ -544,20 +553,20 @@ class Report(object):
             # Get the statistics.
             s = FM.GetStats(nStats=nStats, nMax=nMax, nLast=nPlotLast)
             # Get the manual range to show
-            dc = opts.get_SubfigOpt(sfig, "Delta")
+            dc = opts.get_SubfigOpt(sfig, "Delta", k)
             # Get the multiple of standard deviation to show
-            ksig = opts.get_SubfigOpt(sfig, "StandardDeviation")
+            ksig = opts.get_SubfigOpt(sfig, "StandardDeviation", k)
             # Get the multiple of iterative error to show
-            uerr = opts.get_SubfigOpt(sfig, "IterativeError")
+            uerr = opts.get_SubfigOpt(sfig, "IterativeError", k)
             # Get figure dimensions.
-            figw = opts.get_SubfigOpt(sfig, "FigureWidth")
-            figh = opts.get_SubfigOpt(sfig, "FigureHeight")
+            figw = opts.get_SubfigOpt(sfig, "FigureWidth", k)
+            figh = opts.get_SubfigOpt(sfig, "FigureHeight", k)
             # Plot options
-            kw_p = opts.get_SubfigOpt(sfig, "LineOptions")
-            kw_m = opts.get_SubfigOpt(sfig, "MeanOptions")
-            kw_s = opts.get_SubfigOpt(sfig, "StDevOptions")
-            kw_u = opts.get_SubfigOpt(sfig, "ErrPltOptions")
-            kw_d = opts.get_SubfigOpt(sfig, "DeltaOptions")
+            kw_p = opts.get_SubfigOpt(sfig, "LineOptions",   k)
+            kw_m = opts.get_SubfigOpt(sfig, "MeanOptions",   k)
+            kw_s = opts.get_SubfigOpt(sfig, "StDevOptions",  k)
+            kw_u = opts.get_SubfigOpt(sfig, "ErrPltOptions", k)
+            kw_d = opts.get_SubfigOpt(sfig, "DeltaOptions",  k)
             # Draw the plot.
             h = FM.PlotCoeff(coeff, n=nPlotIter, nAvg=s['nStats'],
                 nFirst=nPlotFirst, nLast=nPlotLast,
@@ -566,8 +575,10 @@ class Report(object):
                 k=ksig, StDevOptions=kw_s,
                 u=uerr, ErrPltOptions=kw_u,
                 FigWidth=figw, FigHeight=figh)
-            # Change back to report folder.
-            os.chdir(fpwd)
+        # Change back to report folder.
+        os.chdir(fpwd)
+        # Check for a figure to write.
+        if nIter >= 2:
             # Get the file formatting
             fmt = opts.get_SubfigOpt(sfig, "Format")
             dpi = opts.get_SubfigOpt(sfig, "DPI")
