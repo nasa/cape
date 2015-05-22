@@ -158,6 +158,7 @@ class DataBook(dict):
             * 2015-05-22 ``@ddalle``: First version
         """
         # Get the first component.
+        DBc = self[self.Components[0]]
         # Loop through the fields.
         for k in self.x.keys:
             # Copy the data.
