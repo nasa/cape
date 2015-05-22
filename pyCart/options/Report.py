@@ -43,58 +43,7 @@ class Report(odict):
                 # Append to list of reports.
                 reps.append(k)
         # Output
-        return reps
-        
-    # Report type
-    def get_ReportType(self, frep):
-        """Get report type
-        
-        :Call:
-            >>> ftyp = opts.get_ReportType(frep)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *frep*: :class:`str`
-                Name of report
-        :Outputs:
-            *ftyp*: :class:`str` [{case} | compare | set | sweep]
-                Figure type
-        :Versions:
-            * 2015-05-22 ``@ddalle``: First version
-        """
-        # Get figure
-        rep = self.get(frep, {})
-        # Get type
-        return rep.get("Type", "case")
-        
-    # Get reports by type
-    def get_ReportsByType(self, ftyp):
-        """Return list of reports with matching type
-        
-        :Call:
-            >>> reps = opts.get_ReportsByType(ftyp)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *ftyp*: :class:`str` [case | compare | set | sweep]
-                Figure type
-        :Outputs:
-            *reps*: :class:`list` (:class:`str`)
-                List of reports with matching type
-        :Versions:
-            * 2015-05-22 ``@ddalle``: First version
-        """
-        # Initialize
-        reps = []
-        # Get full list.
-        for frep in self.get_ReportList():
-            # Check the type
-            if self.get_ReportType(frep) == ftyp:
-                # Append if it matches.
-                reps.append(frep)
-        # Output
-        return reps
-        
+        return reps        
             
     # List of figures
     def get_FigList(self):
@@ -276,6 +225,28 @@ class Report(odict):
         R = self.get_Report(rep)
         # Get the list of figures.
         return R.get('ZeroFigures', R.get('Figures', []))
+        
+    # Get report list of sweeps
+    def get_ReportSweepFigList(self, rep):
+        """Get list of figures plotting a sweep of data
+        
+        :Call:
+            >>> figs = opts.get_ReportSweepFigList(rep)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *figs*: :class:`list` (:class:`str`)
+                List of "sweep" figures in the report
+        :Versions:
+            * 2015-05-22 ``@ddalle``: First version
+        """
+        # Get the report.
+        R = self.get_Report(rep)
+        # Get the list of figures.
+        return R.get('SweepFigures', [])
         
     # Get report title
     def get_ReportTitle(self, rep):

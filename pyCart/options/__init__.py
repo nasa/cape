@@ -1740,16 +1740,6 @@ class Options(odict):
         self._Report()
         return self['Report'].get_ReportList()
         
-    # Get report type
-    def get_ReportType(self, frep):
-        self._Report()
-        return self['Report'].get_ReportType(frep)
-        
-    # Get reports by type
-    def get_ReportsByType(self, ftyp):
-        self._Report()
-        return self['Report'].get_ReportsByType(ftyp)
-        
     # Get figure list
     def get_FigList(self):
         self._Report()
@@ -1789,6 +1779,11 @@ class Options(odict):
     def get_ReportZeroFigList(self, rep):
         self._Report()
         return self['Report'].get_ReportZeroFigList(rep)
+        
+    # Get list of sweep figures in a report
+    def get_ReportSweepFigList(self, rep):
+        self._Report()
+        return self['Report'].get_ReportSweepFigList(rep)
         
     # Get title string for a report
     def get_ReportTitle(self, rep):
@@ -1847,9 +1842,9 @@ class Options(odict):
     
     # Copy over the documentation
     for k in ['ReportList', 'FigList', 'SubfigList',
-            'ReportType', 'ReportsByType',
             'Figure', 'Subfigure', 'Report',
             'ReportFigList', 'ReportErrorFigList', 'ReportZeroFigList', 
+            'ReportSweepFigList',
             'ReportTitle', 'ReportAuthor',
             'ReportRestriction', 'ReportLogo',  'ReportArchive',
             'FigSubfigList', 'FigAlignment', 'FigHeader',
