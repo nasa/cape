@@ -64,6 +64,8 @@ class Trajectory:
     # Initialization method
     def __init__(self, **kwargs):
         """Initialization method"""
+        # Check for an empty trajectory
+        if kwargs.get('Empty', False): return
         # Process the inputs.
         fname = kwargs.get('File', None)
         keys = kwargs.get('Keys', ['Mach', 'alpha', 'beta'])
@@ -148,6 +150,42 @@ class Trajectory:
         # Return a string.
         return '<pyCart.Trajectory(nCase=%i, keys=%s)>' % (self.nCase,
             self.keys)
+        
+    # Copy the trajectory
+    def Copy(self):
+        """Return a copy of the trajectory
+        
+        :Call:
+            >>> y = x.Copy()
+        :Inputs:
+            *x*: :class:`pyCart.trajectory.Trajectory`
+                Instance of the trajectory class
+        :Outputs:
+            *y*: :class:`pyCart.trajectory.Trajectory`
+                Separate trajectory with same data
+        :Versions:
+            * 2015-05-22 ``@ddalle``
+        """
+        # Initialize an empty trajectory.
+        y = Trajectory(Empty=True)
+        # Copy the fields.
+        y.defns       = self.defns
+        y.keys        = self.keys
+        y.text        = self.text
+        y.prefix      = self.prefix
+        y.GroupPrefix = self.GroupPrefix
+        y.PASS        = self.PASS
+        y.ERROR       = self.ERROR
+        y.nCase       = self.nCase
+        # Loop through keys to copy values.
+        for k in self.keys:
+            # Copy the array
+            setattr(y,k, getattr(self,k).copy())
+        # Process groups to make it a full trajectory.
+        self.ProcessGroups()
+        # Output
+        return y
+        
         
     # Function to read a file
     def ReadTrajectoryFile(self, fname):

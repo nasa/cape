@@ -104,7 +104,7 @@ class DataBook(dict):
         # Save the folder
         self.Dir = opts.get_DataBookDir()
         # Save the trajectory.
-        self.x = x
+        self.x = x.Copy()
         # Save the options.
         self.opts = opts
         # Make sure the destination folder exists.
@@ -144,6 +144,26 @@ class DataBook(dict):
         return lbl
     # String conversion
     __str__ = __repr__
+    
+    # Match the databook copy of the trajectory
+    def UpdateTrajectory(self):
+        """Match the trajectory to the cases in the data book
+        
+        :Call:
+            >>> DB.UpdateTrajectory()
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+        :Versions:
+            * 2015-05-22 ``@ddalle``: First version
+        """
+        # Get the first component.
+        # Loop through the fields.
+        for k in self.x.keys:
+            # Copy the data.
+            setattr(self.x, k, DBc[k])
+        # Set the number of cases.
+        self.x.nCase = DBc.n
             
     # Write the data book
     def Write(self):
