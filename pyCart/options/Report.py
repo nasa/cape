@@ -526,8 +526,16 @@ class Report(odict):
                 "Delta": 0.0,
                 "StandardDeviation": 0.0,
                 "IterativeError": 0.0,
+                "ShowMu": [True, False],
+                "ShowSigma": [True, False],
+                "ShowDelta": [True, False],
+                "ShowEpsilon": False,
                 "Format": "pdf",
-                "DPI": 150
+                "DPI": 150,
+                "LineOptions": [
+                    {"color": "k"}, {"color": "b"},
+                    {"color": "g"}, {"color": "c"}
+                ]
             }
         elif t in ['PlotL1']:
             # Residual history

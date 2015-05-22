@@ -567,6 +567,11 @@ class Report(object):
             kw_s = opts.get_SubfigOpt(sfig, "StDevOptions",  k)
             kw_u = opts.get_SubfigOpt(sfig, "ErrPltOptions", k)
             kw_d = opts.get_SubfigOpt(sfig, "DeltaOptions",  k)
+            # Label options
+            sh_m = opts.get_SubfigOpt(sfig, "ShowMu", k)
+            sh_s = opts.get_SubfigOpt(sfig, "ShowSigma", k)
+            sh_d = opts.get_SubfigOpt(sfig, "ShowDelta", k)
+            sh_e = opts.get_SubfigOpt(sfig, "ShowEpsilon", k)
             # Draw the plot.
             h = FM.PlotCoeff(coeff, n=nPlotIter, nAvg=s['nStats'],
                 nFirst=nPlotFirst, nLast=nPlotLast,
@@ -574,6 +579,8 @@ class Report(object):
                 d=dc, DeltaOptions=kw_d,
                 k=ksig, StDevOptions=kw_s,
                 u=uerr, ErrPltOptions=kw_u,
+                ShowMu=sh_m, ShowDelta=sh_d,
+                ShowSigma=sh_s, ShowEspsilon=sh_e,
                 FigWidth=figw, FigHeight=figh)
         # Change back to report folder.
         os.chdir(fpwd)

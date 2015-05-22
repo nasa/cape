@@ -3037,12 +3037,21 @@ class CaseFM(object):
             kw_p[k] = kw["LineOptions"][k]
         # Plot the coefficient.
         h[c] = plt.plot(self.i[j0:], C[j0:], **kw_p)
-        # Labels.
-        h['x'] = plt.xlabel('Iteration Number')
-        h['y'] = plt.ylabel(c)
+        # Check for an existing ylabel
+        ly = h['ax'].get_ylabel()
+        # Compare to the requested ylabel
+        if ly and ly != c:
+            # Combine labels
+            ly = ly + '/' + c
+        else:
+            # Use the coefficient
+            ly = c
         # Get the figure and axes.
         h['fig'] = plt.gcf()
         h['ax'] = plt.gca()
+        # Labels.
+        h['x'] = plt.xlabel('Iteration Number')
+        h['y'] = plt.ylabel(ly)
         # Set the xlimits.
         h['ax'].set_xlim((i0, iB+25))
         # Set figure dimensions
