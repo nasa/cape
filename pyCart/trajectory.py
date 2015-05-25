@@ -820,6 +820,52 @@ class Trajectory:
         # Apply the final mask and return it.
         return I[m]
         
+    # Function to get set of sweeps based on criteria
+    def GetSweeps(self, **kw):
+        """
+        Return a list of index sets in which each list contains cases that
+        satisfy specified criteria.
+        
+        For example, using ``EqCons=['mach']`` will cause the method to return
+        lists of points with the same Mach number.
+        
+        :Call:
+            >>> J = x.GetSweeps(**kw)
+        :Inputs:
+            *EqCons*: :class:`list` (:class:`str`)
+                List of trajectory keys which must match (exactly) the first
+                point in the sweep
+            *TolCons*: :class:`dict` (:class:`float`)
+                Dictionary whose keys are trajectory keys which must match the
+                first point in the sweep to a specified tolerance and whose
+                values are the specified tolerances
+            *IndexTol*: :class:`int`
+                If specified, only trajectory points in the range
+                ``[i0,i0+IndexTol]`` are considered for the sweep
+        :Outputs:
+            *I*: :class:`list` (:class:`numpy.ndarray` (:class:`int`))
+                List of trajectory point indices in the sweep
+        :Versions:
+            * 2015-05-25 ``@ddalle``: First version
+        """
+        # Initialize mask (list of ``True`` with *nCase* entries)
+        M = np.arange(self.nCase) > -1
+        # Initialize output.
+        J = []
+        # Safety check: no more than *nCase* sets.
+        i = 0
+        # Loop through cases.
+        while np.any(M) and i<self.nCase:
+            # Increase number of sweeps.
+            i += 1
+            # Get the current sweep.
+            I = self.GetSweep(M, **kw)
+            # Save it.
+            J.append(I)
+            # Update the mask.
+            M[I] = False
+        # Output
+        return J
         
         
     # Function to return the full folder names.
