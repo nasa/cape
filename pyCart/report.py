@@ -152,18 +152,18 @@ class Report(object):
             os.remove(f)
             
     # Function to update a figure for comparing two or more cases
-    def UpdateCompareFigure(self, fig, **kw):
+    def UpdateSweepFigure(self, fig, **kw):
         """Update a figure that compares two or more cases
         
         :Call:
-            >>> R.UpdateCompareFigure(fig)
+            >>> R.UpdateSweepFigure(fig)
         :Inputs:
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
             *fig*: :class:`str`
                 Name of figure
         :Versions:
-            * 2015-05-22 ``@ddalle``: Started
+            * 2015-05-24 ``@ddalle``: Started
         """
         pass
         

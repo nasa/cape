@@ -733,6 +733,93 @@ class Trajectory:
         else:
             # Return all the indices
             return np.arange(self.nCase)
+            
+    # Function to get sweep based on constraints
+    def GetSweep(self, M, **kw):
+        """
+        Return a list of indices meeting sweep constraints
+        
+        The sweep uses the index of the first entry of ``True`` in *M*, i.e.
+        ``i0=np.where(M)[0][0]``.  Then the sweep contains all other points that
+        meet all criteria with respect to trajectory point *i0*.
+        
+        For example, using ``EqCons=['mach']`` will cause the method to return
+        points with *x.mach* matching *x.mach[i0]*.
+        
+        :Call:
+            >>> I = x.GetSweep(M, **kw)
+        :Inputs:
+            *M*: :class:`numpy.ndarray` (:class:`bool`)
+                Mask of which trajectory points should be considered
+            *EqCons*: :class:`list` (:class:`str`)
+                List of trajectory keys which must match (exactly) the first
+                point in the sweep
+            *TolCons*: :class:`dict` (:class:`float`)
+                Dictionary whose keys are trajectory keys which must match the
+                first point in the sweep to a specified tolerance and whose
+                values are the specified tolerances
+            *IndexTol*: :class:`int`
+                If specified, only trajectory points in the range
+                ``[i0,i0+IndexTol]`` are considered for the sweep
+        :Outputs:
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of trajectory point indices in the sweep
+        :Versions:
+            * 2015-05-24 ``@ddalle``: First version
+        """
+        # Check for an *i0* point.
+        if not np.any(M): return np.array([])
+        # Copy the mask.
+        m = M.copy()
+        # Get the first index.
+        i0 = np.where(M)[0][0]
+        # Check for an IndexTol.
+        itol = kw.get('IndexTol', self.nCase)
+        # Max index to consider.
+        imax = min(self.nCase, i0+itol)
+        # Filter if necessary.
+        if imax < self.nCase:
+            # Remove from the mask
+            m[imax:] = False
+        # Loop through equality constraints.
+        for c in kw.get('EqCons', []):
+            # Get the key (for instance if matching ``k%10``)
+            k = re.split('[^a-zA-Z_]', c)[0]
+            # Check for the key.
+            if k not in self.keys:
+                raise IOError(
+                    "Could not find trajectory key for constraint '%s'." % c)
+            # Get the target value.
+            x0 = getattr(self,k)[i0]
+            # Form the constraint.
+            con = 'self.%s == %s' % (c, x0)
+            # Apply the constraint.
+            m = np.logical_and(m, eval(con))
+        # Loop through tolerance-based constraints.
+        for c in kw.get('TolCons', {}):
+            # Get the key (for instance if matching 'i%10', key is 'i')
+            k = re.split('[^a-zA-Z_]', c)[0]
+            # Check for the key.
+            if k not in self.keys:
+                raise IOError(
+                    "Could not find trajectory key for constraint '%s'." % c)
+            # Get tolerance.
+            tol = kw['TolCons'][c]
+            # Get the target value.
+            x0 = getattr(self,k)[i0]
+            # Form the greater-than constraint.
+            con = 'self.%s >= %s' % (c, x0-tol)
+            # Apply the constraint.
+            m = np.logical_and(m, eval(con))
+            # Form the less-than constraint.
+            con = 'self.%s <= %s' % (c, x0+tol)
+            # Apply the constraint.
+            m = np.logical_and(m, eval(con))
+        # Initialize output.
+        I = np.arange(self.nCase)
+        # Apply the final mask and return it.
+        return I[m]
+        
         
         
     # Function to return the full folder names.

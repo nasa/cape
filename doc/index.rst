@@ -52,14 +52,14 @@ specified in the control file), the ``--aero`` flag will lead to that action.
     
         $ pycart -f run.json --aero
         
-The last option to be highlighted on the front page is the data book plot
-option.  This will read the data from the current data book and create plots of
-the force and/or moment coefficients that the user selects as a function of
-variables that the user also specifies.
+The last option to be highlighted on the front page is the automated report
+generation capability.  This command generates a multipage PDF based on settings
+in the "Report" section of :file:`run.json` that usually gives a summary of each
+case in the run directory on its own page.
 
     .. code-block:: bash
     
-        $ pycart -f run.json --plot
+        $ pycart -f run.json --report
         
 There are many more flags to `pycart`, including options to compress or archive
 folders, plot iterative histories, and constrain to only a subset of the run
@@ -70,9 +70,6 @@ This file is divided into sections, some of which are mandatory.  The three
 most important sections describe the inputs to `flowCart`, the meshing options,
 and the nature of the run matrix including variable definitions.
 
-
-Contents
-========
 
 .. toctree::
     :maxdepth: 2
