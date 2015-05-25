@@ -667,14 +667,21 @@ class Trajectory:
             * 2015-03-10 ``@ddalle``: First version
         """
         # Check the input.
-        if type(itxt).__name__ not in ['str', 'unicode']:
+        if type(itxt).__name__ in ['list', 'ndarray']:
+            # Already split
+            ITXT = itxt
+        elif type(itxt).__name__ in ['str', 'unicode']:
+            # Split.
+            ITXT = itxt.split(';')
+        else:
+            # Invalid format
             return []
         # Get the full list of indices.
         I0 = range(self.nCase)
         # Initialize output
         I = []
         # Split the input by semicolons.
-        for i in itxt.split(';'):
+        for i in ITXT:
             # Ignore []
             i = i.lstrip('[').rstrip(']')
             try:
@@ -832,6 +839,11 @@ class Trajectory:
         :Call:
             >>> J = x.GetSweeps(**kw)
         :Inputs:
+            *cons*: :class:`list` (:class:`str`)
+                List of global constraints; only points satisfying these
+                constraints will be in one of the output sweeps
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices to restrict to
             *EqCons*: :class:`list` (:class:`str`)
                 List of trajectory keys which must match (exactly) the first
                 point in the sweep
@@ -843,13 +855,17 @@ class Trajectory:
                 If specified, only trajectory points in the range
                 ``[i0,i0+IndexTol]`` are considered for the sweep
         :Outputs:
-            *I*: :class:`list` (:class:`numpy.ndarray` (:class:`int`))
-                List of trajectory point indices in the sweep
+            *J*: :class:`list` (:class:`numpy.ndarray` (:class:`int`))
+                List of trajectory point sweeps
         :Versions:
             * 2015-05-25 ``@ddalle``: First version
         """
-        # Initialize mask (list of ``True`` with *nCase* entries)
-        M = np.arange(self.nCase) > -1
+        # Expand global index constraints.
+        I0 = self.GetIndices(I=kw.get('I'), cons=kw.get('cons'))
+        # Initialize mask (list of ``False`` with *nCase* entries)
+        M = np.arange(self.nCase) < 0
+        # Set the mask to ``True`` for any cases passing global constraints.
+        M[I0] = True
         # Initialize output.
         J = []
         # Safety check: no more than *nCase* sets.
