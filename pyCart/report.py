@@ -132,6 +132,8 @@ class Report(object):
         self.tex.Compile()
         # Clean up
         print("Cleaning up...")
+        # Check for use of constraints instead of direct list.
+        I = self.cart3d.x.GetIndices(cons=cons, I=I)
         # Check for folder archiving
         if self.cart3d.opts.get_ReportArchive():
             # Loop through folders.

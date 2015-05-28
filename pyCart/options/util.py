@@ -309,6 +309,9 @@ def stripComments(lines, char='#'):
         if line.startswith(char):
             # Remove the content.
             lines[i] = ""
+        else:
+            # Remove the newline if appropriate
+            lines[i] = lines[i].rstrip()
     # Return the remaining lines.
     return '\n'.join(lines)
 

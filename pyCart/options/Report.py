@@ -556,8 +556,9 @@ class Report(odict):
                 "Format": "pdf",
                 "DPI": 150,
                 "LineOptions": [
-                    {"color": "k"}, {"color": "b"},
-                    {"color": "g"}, {"color": "c"}
+                    {"color": "k"}, {"color": "g"},
+                    {"color": "c"}, {"color": "m"},
+                    {"color": "b"}, {"color": "r"}
                 ]
             }
         elif t in ['PlotL1']:
