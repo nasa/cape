@@ -890,7 +890,7 @@ class DBComp(dict):
         fdir = opts.get_DataBookDir()
         
         # Construct the file name.
-        fcomp = 'aero_%s.dat' % comp
+        fcomp = 'aero_%s.csv' % comp
         # Folder name for compatibility.
         fdir = fdir.replace("/", os.sep)
         # Construct the full file name.
@@ -940,7 +940,7 @@ class DBComp(dict):
             *DBi*: :class:`pyCart.dataBook.DBComp`
                 An individual component data book
             *fname*: :class:`str`
-                Name of file to read (default: ``'aero_%s.dat' % self.comp``)
+                Name of file to read (default: ``'aero_%s.csv' % self.comp``)
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
         """
@@ -1006,7 +1006,7 @@ class DBComp(dict):
             *DBi*: :class:`pyCart.dataBook.DBComp`
                 An individual component data book
             *fname*: :class:`str`
-                Name of file to read (default: ``'aero_%s.dat' % self.comp``)
+                Name of file to read (default: ``'aero_%s.csv' % self.comp``)
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
         """

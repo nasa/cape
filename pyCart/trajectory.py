@@ -169,14 +169,18 @@ class Trajectory:
         # Initialize an empty trajectory.
         y = Trajectory(Empty=True)
         # Copy the fields.
-        y.defns       = self.defns
-        y.keys        = self.keys
-        y.text        = self.text
-        y.prefix      = self.prefix
-        y.GroupPrefix = self.GroupPrefix
-        y.PASS        = self.PASS
-        y.ERROR       = self.ERROR
-        y.nCase       = self.nCase
+        y.defns  = self.defns
+        y.abbrv  = self.abbrv
+        y.keys   = self.keys
+        y.text   = self.text
+        y.prefix = self.prefix
+        y.PASS   = self.PASS
+        y.ERROR  = self.ERROR
+        y.nCase  = self.nCase
+        # Group-related info
+        y.GroupPrefix  = self.GroupPrefix
+        y.GroupKeys    = self.GroupKeys
+        y.NonGroupKeys = self.NonGroupKeys
         # Loop through keys to copy values.
         for k in self.keys:
             # Copy the array
