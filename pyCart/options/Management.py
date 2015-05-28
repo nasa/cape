@@ -168,7 +168,7 @@ class Management(odict):
         return self.get_key('RemoteCopy')
         
     # Set archiving command
-    def set_RemoteCopy(self):
+    def set_RemoteCopy(self, fcmd='scp'):
         """Set the command used for remote copying
         
         :Call:
@@ -181,6 +181,7 @@ class Management(odict):
         :Versions:
             * 2015-01-10 ``@ddalle``: First version
         """
+        self.set_key('RemoteCopy', fcmd)
         
     # Get number of check points to keep around
     def get_nCheckPoint(self):

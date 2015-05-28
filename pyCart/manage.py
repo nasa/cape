@@ -261,12 +261,40 @@ def ArchiveFolder(opts):
     # If no action, do not backup
     if not farch or not flfe: return
     
+    # Ensure folder exists.
+    if ':' in flfe:
+        # Split off host name
+        fhost, fldir = flfe.split(':')
+        # Check remotely.
+        if sp.call(['ssh', fhost, 'test', '-d', fldir]) != 0:
+            # Create it.
+            sp.call(['ssh', fhost, 'mkdir', fldir])
+    else:
+        # Test locally.
+        if not os.path.isdir(flfe):
+            # Create it.
+            os.mkdir(flfe, 0750)
+            
     # Get the current folder.
     fdir = os.path.split(os.getcwd())[-1]
     # Go up a folder.
     os.chdir('..')
     # Get the group folder
     fgrp = os.path.split(os.getcwd())[-1]
+    
+    # Ensure group folder exists.
+    if ':' in flfe:
+        # Remote group address.
+        flgrp = os.path.join(fldir, fgrp)
+        # Check remotely.
+        if sp.call(['ssh', fhost, 'test', '-d', flgrp]) != 0:
+            # Create it.
+            sp.call(['ssh', fhost, 'mkdir', flgrp])
+    else:
+        # Test locally.
+        if not os.path.isdir(os.path.join(flfe, fgrp)):
+            # Create it.
+            os.mkdir(os.path.join(flfe, fgrp), 0750)
     
     # Get the archive format.
     fmt = opts.get_ArchiveFormat()

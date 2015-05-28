@@ -723,8 +723,20 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-       
-   # Function to create coefficient plot and write figure
+    
+    # Function to plot mean coefficient for a sweep
+    def SubfigSweepCoeff(self, sfig, I):
+        """Plot a sweep of a coefficient over several cases
+        
+        :Call:
+            >>> h = R.SubfigSweepCoeff(sfig, I)
+        :Versions:
+            * 2015-05-28 ``@ddalle``: First version
+        """
+        pass
+        
+        
+    # Function to create coefficient plot and write figure
     def SubfigTecplot3View(self, sfig, i):
         """Create image of surface for one component using Tecplot
         
