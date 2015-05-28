@@ -1740,6 +1740,11 @@ class Options(odict):
         self._Report()
         return self['Report'].get_ReportList()
         
+    # Get sweep list
+    def get_SweepList(self):
+        self._Report()
+        return self['Report'].get_SweepList()
+        
     # Get figure list
     def get_FigList(self):
         self._Report()
@@ -1765,6 +1770,11 @@ class Options(odict):
         self._Report()
         return self['Report'].get_Subfigure(sfig)
         
+    # Get list of sweeps in a report
+    def get_ReportSweepList(self, rep):
+        self._Report()
+        return self['Report'].get_ReportSweepList(rep)
+        
     # Get list of figures in a report
     def get_ReportFigList(self, rep):
         self._Report()
@@ -1780,10 +1790,10 @@ class Options(odict):
         self._Report()
         return self['Report'].get_ReportZeroFigList(rep)
         
-    # Get list of sweep figures in a report
-    def get_ReportSweepFigList(self, rep):
+    # Get list of figures in a sweep
+    def get_SweepFigList(self, rep):
         self._Report()
-        return self['Report'].get_ReportSweepFigList(rep)
+        return self['Report'].get_SweepFigList(rep)
         
     # Get title string for a report
     def get_ReportTitle(self, rep):
@@ -1841,10 +1851,10 @@ class Options(odict):
         return self['Report'].get_SubfigOpt(sfig, opt, i=i)
     
     # Copy over the documentation
-    for k in ['ReportList', 'FigList', 'SubfigList',
+    for k in ['ReportList', 'SweepList', 'FigList', 'SubfigList',
             'Figure', 'Subfigure', 'Report',
             'ReportFigList', 'ReportErrorFigList', 'ReportZeroFigList', 
-            'ReportSweepFigList',
+            'ReportSweepList', 'SweepFigList',
             'ReportTitle', 'ReportAuthor',
             'ReportRestriction', 'ReportLogo',  'ReportArchive',
             'FigSubfigList', 'FigAlignment', 'FigHeader',

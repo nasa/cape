@@ -43,9 +43,29 @@ class Report(odict):
                 # Append to list of reports.
                 reps.append(k)
         # Output
-        return reps        
-            
-    # List of figures
+        return reps
+    
+    # List of sweeps
+    def get_SweepList():
+        """Get list of sweeps for a report
+        
+        :Call:
+            >>> fswps = opts.get_SweepList()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *figs*: :class:`list` (:class:`str`)
+                List of figures by name
+        :Versions:
+            * 2015-05-28 ``@ddalle``: First version
+        """
+        # Get sweep list.
+        fswps = self.get('Sweeps', {})
+        # Output the keys.
+        return fswps.keys()
+        
+    # List of figures (case)
     def get_FigList(self):
         """Get list of figures for a report
         
@@ -160,6 +180,28 @@ class Report(odict):
             # Return empty figure.
             return
             
+    # Get report list of sweeps.
+    def get_ReportSweepList(self, rep):
+        """Get list of sweeps in a report
+        
+        :Call:
+            >>> fswps = opts.get_ReportSweepList(rep)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *fswps*: :class:`list` (:class:`str`)
+                List of sweeps in the report
+        :Versions:
+            * 2015-05-28 ``@ddalle``: First version
+        """
+        # Get the report.
+        R = self.get_Report(rep)
+        # Get the list of sweeps.
+        return R.get('Sweeps', [])
+            
     # Get report list of figures.
     def get_ReportFigList(self, rep):
         """Get list of figures in a report
@@ -225,28 +267,6 @@ class Report(odict):
         R = self.get_Report(rep)
         # Get the list of figures.
         return R.get('ZeroFigures', R.get('Figures', []))
-        
-    # Get report list of sweeps
-    def get_ReportSweepFigList(self, rep):
-        """Get list of figures plotting a sweep of data
-        
-        :Call:
-            >>> figs = opts.get_ReportSweepFigList(rep)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *figs*: :class:`list` (:class:`str`)
-                List of "sweep" figures in the report
-        :Versions:
-            * 2015-05-22 ``@ddalle``: First version
-        """
-        # Get the report.
-        R = self.get_Report(rep)
-        # Get the list of figures.
-        return R.get('SweepFigures', [])
         
     # Get report title
     def get_ReportTitle(self, rep):
@@ -401,6 +421,28 @@ class Report(odict):
         F = self.get_Figure(fig)
         # Return the header.
         return F.get('Header', '')
+        
+    # Get list of figures in a sweep
+    def get_SweepFigList(self, fswp):
+        """Get list of figures in a sweep
+        
+        :Call:
+            >>> figs = opts.get_SweepFigList(fswp)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *fswp*: :class:`str`
+                Name of sweep
+        :Outputs:
+            *figs*: :class:`list` (:class:`str`)
+                List of "sweep" figures in the report
+        :Versions:
+            * 2015-05-28 ``@ddalle``: First version
+        """
+        # Get the report.
+        R = self.get_Sweep(fswp)
+        # Get the list of figures.
+        return R.get('Figures', [])
 
     # Get list of subfigures in a figure
     def get_FigSubfigList(self, fig):
