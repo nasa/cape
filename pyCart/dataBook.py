@@ -3466,7 +3466,7 @@ class CaseResid(object):
             n = self.i[-1]
         # Process other options
         fw = kw.get('FigWidth')
-        fh = kw.get('Figheight')
+        fh = kw.get('FigHeight')
         # ---------
         # Last Iter 
         # ---------
