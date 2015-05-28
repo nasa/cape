@@ -68,6 +68,7 @@ class Report(object):
         self.rep = rep
         self.opts = cart3d.opts['Report'][rep]
         # Initialize a dictionary of handles to case LaTeX files
+        self.sweeps = {}
         self.cases = {}
         # Read the file if applicable
         self.OpenMain()
@@ -153,21 +154,37 @@ class Report(object):
             # Else remove it.
             os.remove(f)
             
-    # Function to update a figure for comparing two or more cases
-    def UpdateSweepFigure(self, fig, **kw):
-        """Update a figure that compares two or more cases
+    
+    # Function to update sweeps
+    def UpdateSweeps(self, I=None, cons=[], **kw):
+        """Update pages of the report related to data book sweeps
         
         :Call:
-            >>> R.UpdateSweepFigure(fig)
+            >>> R.UpdateSweeps(I=None, cons=[], **kw)
         :Inputs:
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
-            *fig*: :class:`str`
-                Name of figure
+            *I*: :class:`list` (:class:`int`)
+                List of case indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints to define what cases to update
         :Versions:
-            * 2015-05-24 ``@ddalle``: Started
+            * 2015-05-28 ``@ddalle``: Started
         """
-        pass
+        # Apply constraints and get global list.
+        I = self.cart3d.x.GetIndices(cons=cons, I=I)
+        # Clear out the lines.
+        del self.tex.Section['Sweeps'][1:-1]
+        # Loop through the sweep figures.
+        for fswp in self.opts.get_ReportSweepList(self.rep):
+            # Update the figure.
+            self.UpdateSweep(fswp, I)
+        # Update the text.
+        self.tex._updated_sections = True
+        self.tex.UpdateLines()
+        # Master file location
+        os.chdir(self.cart3d.RootDir)
+        os.chdir('report')
         
         
     # Function to update report for several cases
@@ -200,9 +217,27 @@ class Report(object):
         self.tex._updated_sections = True
         self.tex.UpdateLines()
         # Master file location
-        fpwd = os.getcwd()
         os.chdir(self.cart3d.RootDir)
         os.chdir('report')
+        
+    # Function to update a sweep
+    def UpdateSweep(self, fswp, I):
+        """Update the pages of a sweep
+        
+        :Call:
+            >>> R.UpdateSweep(fswp, I)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *fswp*: :class:`str`
+                Name of sweep to update
+            *I*: :class:`list` (:class:`int`)
+                List of case indices to use as global constraints
+        :Versions:
+            * 2015-05-28 ``@ddalle``: First version
+        """
+        # Sweep
+        pass
         
     # Function to create the file for a case
     def UpdateCase(self, i):
@@ -729,11 +764,20 @@ class Report(object):
         """Plot a sweep of a coefficient over several cases
         
         :Call:
-            >>> h = R.SubfigSweepCoeff(sfig, I)
+            >>> R.SubfigSweepCoeff(sfig, I)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices in the sweep
         :Versions:
             * 2015-05-28 ``@ddalle``: First version
         """
-        pass
+        # Read the data book (only performed once).
+        self.cart3d.ReadDataBook()
+        # 
         
         
     # Function to create coefficient plot and write figure
@@ -1246,6 +1290,9 @@ class Report(object):
         f.write('\\pagestyle{plain}\n')
         f.write('\\maketitle\n\n')
         f.write('\\pagestyle{pycart}\n\n')
+        
+        # Skeleton for the sweep
+        f.write('%$__Sweeps\n\n')
         
         # Skeleton for the main part of the report.
         f.write('%$__Cases\n')
