@@ -377,12 +377,12 @@ class Report(object):
         lines = []
         # Write the header line.
         lines.append(ffig)
-        # Do not indent anything.
-        lines.append('\\noindent\n')
         # Get the optional header
         fhdr = self.cart3d.opts.get_FigHeader(fig)
         if fhdr:
-            # Add it.
+            # Do not indent anything.
+            lines.append('\\noindent\n')
+            # Add the header.
             lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
             lines.append('\\vskip-10pt\n')
         # Start the figure.
