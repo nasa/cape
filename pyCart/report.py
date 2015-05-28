@@ -236,6 +236,21 @@ class Report(object):
         :Versions:
             * 2015-05-28 ``@ddalle``: First version
         """
+        # Read the data book.
+        self.cart3d.ReadDataBook()
+        # Check if only restricting to point currently in the trajectory.
+        if self.opts.get_SweepOpt(fswp, 'TrajectoryOnly'):
+            # Match the data book to the trajectory
+            self.cart3d.DataBook.MatchTrajectory()
+        else:
+            # Match the trajectory to the data book.
+            self.cart3d.DataBook.UpdateTrajectory()
+        # Sweep constraints
+        
+        
+        # Divide the cases into individual sweeps.
+        J = self.cart3d.x.GetSweeps()
+        
         # Sweep
         pass
         

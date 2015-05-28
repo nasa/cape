@@ -182,11 +182,26 @@ class DataBook(dict):
         DBc = self[self.Components[0]]
         # Initialize indices of points to keep.
         I = []
+        J = []
         # Loop through trajectory points.
         for i in range(self.x.nCase):
             # Look for a match
-            ii = DBc.FindMatch(j)
-            # 
+            j = DBc.FindMatch(i)
+            # Check for no matches.
+            if np.isnan(j): continue
+            # Match: append to both lists.
+            I.append(i)
+            J.append(j)
+        # Loop through the trajectory keys.
+        for k in self.x.keys:
+            # Restrict to trajectory points that were found.
+            setattr(self.x,k, getattr(self.x,k)[I])
+        # Loop through the databook components.
+        for comp in self.Components:
+            # Loop through fields.
+            for k in DBc.keys():
+                # Restrict to matched cases.
+                self[comp][k] = self[comp][k][J]
             
     # Write the data book
     def Write(self):
