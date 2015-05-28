@@ -171,14 +171,12 @@ class Report(object):
         :Versions:
             * 2015-05-28 ``@ddalle``: Started
         """
-        # Apply constraints and get global list.
-        I = self.cart3d.x.GetIndices(cons=cons, I=I)
         # Clear out the lines.
         del self.tex.Section['Sweeps'][1:-1]
         # Loop through the sweep figures.
         for fswp in self.opts.get_ReportSweepList(self.rep):
             # Update the figure.
-            self.UpdateSweep(fswp, I)
+            self.UpdateSweep(fswp, I=I, cons=cons)
         # Update the text.
         self.tex._updated_sections = True
         self.tex.UpdateLines()
@@ -221,7 +219,7 @@ class Report(object):
         os.chdir('report')
         
     # Function to update a sweep
-    def UpdateSweep(self, fswp, I):
+    def UpdateSweep(self, fswp, I=None, cons=[]):
         """Update the pages of a sweep
         
         :Call:
@@ -232,7 +230,9 @@ class Report(object):
             *fswp*: :class:`str`
                 Name of sweep to update
             *I*: :class:`list` (:class:`int`)
-                List of case indices to use as global constraints
+                List of case indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints to define what cases to update
         :Versions:
             * 2015-05-28 ``@ddalle``: First version
         """

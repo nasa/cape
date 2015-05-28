@@ -570,8 +570,6 @@ class Report(odict):
         if opt in S:
             # Simple case: option directly specified
             return S[opt]
-        # Get the type.
-        t = self.get_SubfigType(fswp)
         # Default values.
         S = {
             "TrajectoryOnly": False,

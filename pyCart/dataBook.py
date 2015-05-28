@@ -165,6 +165,28 @@ class DataBook(dict):
             setattr(self.x, k, DBc[k])
         # Set the number of cases.
         self.x.nCase = DBc.n
+        
+    # Restrict the data book object to points in the trajectory.
+    def MatchTrajectory(self):
+        """Restrict the data book object to points in the trajectory
+        
+        :Call:
+            >>> DB.MatchTrajectory()
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+        :Versions:
+            * 2015-05-28 ``@ddalle``: First version
+        """
+        # Get the first component.
+        DBc = self[self.Components[0]]
+        # Initialize indices of points to keep.
+        I = []
+        # Loop through trajectory points.
+        for i in range(self.x.nCase):
+            # Look for a match
+            ii = DBc.FindMatch(j)
+            # 
             
     # Write the data book
     def Write(self):
@@ -1131,6 +1153,49 @@ class DBComp(dict):
         for k in self:
             # Sort it.
             self[k] = self[k][I]
+            
+    # Find the index of the point in the trajectory.
+    def GetTrajectoryIndex(self, j):
+        """Find an entry in the run matrix (trajectory)
+        
+        :Call:
+            >>> i = DBi.GetTrajectoryIndex(self, j)
+        :Inputs:
+            *DBi*: :class:`pyCart.dataBook.DBComp`
+                Instance of the pyCart data book component
+            *j*: :class:`int`
+                Index of the case from the databook to try match
+        :Outputs:
+            *i*: :class:`int`
+                Trajectory index or ``None``
+        :Versions:
+            * 2015-05-28 ``@ddalle``: First version
+        """
+        # Initialize indices (assume all trajectory points match to start).
+        i = np.arange(self.x.nCase)
+        # Loop through keys requested for matches.
+        for k in self.x.keys:
+            # Get the target value from the data book.
+            v = self[k][j]
+            # Search for matches.
+            try:
+                # Filter test criterion.
+                ik = np.where(getattr(self.x,k) == v)[0]
+                # Check if the last element should pass but doesn't.
+                if (v == getattr(self.x,k)[-1]):
+                    # Add the last element.
+                    ik = np.union1d(ik, [self.x.nCase-1])
+                # Restrict to rows that match above.
+                i = np.intersect1d(i, ik)
+            except Exception:
+                return None
+        # Output
+        try:
+            # There should be one match.
+            return i[0]
+        except Exception:
+            # No matches.
+            return None
         
     # Find an entry by trajectory variables.
     def FindMatch(self, i):
