@@ -178,7 +178,32 @@ class Report(odict):
             return self['Subfigures'][sfig]
         else:
             # Return empty figure.
-            return
+            return {}
+            
+    # Get the sweep
+    def get_Sweep(self, fswp):
+        """Return a sweep and its options
+        
+        :Call:
+            >>> S = opts.get_Sweep(fswp)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *fswp*: :class:`str`
+                Name of sweep
+        :Outputs:
+            *S*: :class:`dict`
+                Options for sweep *fswp*
+        :Versions:
+            * 2015-05-28 ``@ddalle``: First version
+        """
+        # Check for the sweep.
+        if fswp in self.get_SweepList():
+            # get the sweep.
+            return self['Sweeps'][fswp]
+        else:
+            # Return an empty sweep
+            return {}
             
     # Get report list of sweeps.
     def get_ReportSweepList(self, rep):
@@ -519,6 +544,47 @@ class Report(odict):
         else:
             # Derived type; recurse.
             return self.get_SubfigBaseType(t)
+            
+    # Get option from a sweep
+    def get_SweepOpt(self, fswp, opt):
+        """Retrieve an option for a sweep
+        
+        :Call:
+            >>> val = opts.get_SweepOpt(fswp, opt)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *sfig*: :class:`str`
+                Name of subfigure
+            *opt*: :class:`str`
+                Name of option to retrieve
+        :Outputs:
+            *val*: any
+                Sweep option value
+        :Versions:
+            * 2015-05-28 ``@ddalle``: First version
+        """
+        # Get the sweep
+        S = self.get_Sweep(fswp)
+        # Check if the option is present.
+        if opt in S:
+            # Simple case: option directly specified
+            return S[opt]
+        # Get the type.
+        t = self.get_SubfigType(fswp)
+        # Default values.
+        S = {
+            "TrajectoryOnly": False,
+            "Figures": [],
+            "EqCons": [],
+            "TolCons": {},
+            "GlobalCons": [],
+            "IndexTol": None,
+            "Indices": None
+        }
+        # Output
+        return S.get(opt)
+            
         
     # Process defaults.
     def get_SubfigOpt(self, sfig, opt, i=None, k=None):

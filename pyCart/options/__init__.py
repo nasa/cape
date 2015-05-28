@@ -1770,6 +1770,11 @@ class Options(odict):
         self._Report()
         return self['Report'].get_Subfigure(sfig)
         
+    # Get options for a single sweep
+    def get_Sweep(self, fswp):
+        self._Report()
+        return self['Report'].get_Sweep(fswp)
+        
     # Get list of sweeps in a report
     def get_ReportSweepList(self, rep):
         self._Report()
@@ -1852,7 +1857,7 @@ class Options(odict):
     
     # Copy over the documentation
     for k in ['ReportList', 'SweepList', 'FigList', 'SubfigList',
-            'Figure', 'Subfigure', 'Report',
+            'Figure', 'Subfigure', 'Report', 'Sweep',
             'ReportFigList', 'ReportErrorFigList', 'ReportZeroFigList', 
             'ReportSweepList', 'SweepFigList',
             'ReportTitle', 'ReportAuthor',

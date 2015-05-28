@@ -787,7 +787,12 @@ class Trajectory:
         # Check for an IndexTol.
         itol = kw.get('IndexTol', self.nCase)
         # Max index to consider.
-        imax = min(self.nCase, i0+itol)
+        if type(itol).__name__.startswith('int'):
+            # Possible maximum index
+            imax = min(self.nCase, i0+itol)
+        else:
+            # Do not reject points based on index.
+            imax = self.nCase
         # Filter if necessary.
         if imax < self.nCase:
             # Remove from the mask
