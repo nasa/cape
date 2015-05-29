@@ -121,6 +121,8 @@ class Report(object):
         :Versions:
             * 2015-05-22 ``@ddalle``: First version
         """
+        # Update any sweep figures.
+        self.UpdateSweeps(I, cons, **kw)
         # Update any case-by-case figures.
         self.UpdateCases(I, cons, **kw)
         # Write the file.
@@ -234,7 +236,7 @@ class Report(object):
             *cons*: :class:`list` (:class:`str`)
                 List of constraints to define what cases to update
         :Versions:
-            * 2015-05-28 ``@ddalle``: First version
+            * 2015-05-29 ``@ddalle``: First version
         """
         # Read the data book.
         self.cart3d.ReadDataBook()
@@ -245,14 +247,129 @@ class Report(object):
         else:
             # Match the trajectory to the data book.
             self.cart3d.DataBook.UpdateTrajectory()
+            # Do not restrict indexes.
+            I = np.arange(self.cart3d.x.nCase)
         # Sweep constraints
-        
-        
+        EqCons = self.opts.get_SweepOpt(fswp, 'EqCons')
+        TolCons = self.opts.get_SweepOpt(fswp, 'TolCons')
+        IndexTol = self.opts.get_SweepOpt(fswp, 'IndexTol')
+        # Global constraints
+        GlobCons = self.opts.get_SweepOpt(fswp, 'GlobalCons')
+        Indices  = self.opts.get_SweepOpt(fswp, 'Indices')
+        # Turn command-line constraints into indices.
+        I0 = self.x.GetIndices(cons=cons, I=I)
+        # Turn report sweep definition into indices.
+        I1 = self.x.GetIndices(cons=GlobCons, I=Indices)
+        # Restrict Indices
+        I = np.intersect1d(I0, I1)
         # Divide the cases into individual sweeps.
-        J = self.cart3d.x.GetSweeps()
+        J = self.cart3d.x.GetSweeps(I=I,
+            EqCons=EqCons, TolCons=TolCons, IndexTol=IndexTol)
+        # Add a marker in the main document for this sweep.
+        self.tex.Section['Sweeps'].insert(-1, '%!_%s\n' % fswp)
+        # Save current location
+        fpwd = os.getcwd()
+        # Go to report folder.
+        os.chdir(self.cart3d.RootDir)
+        os.chdir('report')
+        # Initialize sweep TeX handles.
+        self.sweeps[fswp] = {}
+        # Name of sweep folder.
+        fdir = 'sweep-%s' % fswp
+        # Create folder if necessary.
+        if not os.path.isdir(fdir):
+            os.mkdir(fdir, 0750)
+        # Enter the sweep folder.
+        os.chdir(fdir)
+        # Loop through pages.
+        for I in J:
+            # Update the sweep page.
+            self.UpdateSweepPage(fswp, I)
+        # Return to original directory
+        os.chdir(fpwd)
         
-        # Sweep
-        pass
+    # Update a page for a single sweep
+    def UpdateSweepPage(self, fswp, I):
+        """Update one page of a sweep for an automatic report
+        
+        :Call:
+            >>> R.UpdateSweepPage(fswp, I)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *fswp*: :class:`str`
+                Name of sweep to update
+            *I*: :class:`list` (:class:`int`)
+                List of cases in this sweep
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # --------
+        # Checking
+        # --------
+        # Get the case names in this sweep.
+        fdirs = self.x.GetFullFolderNames(I)
+        # Split group and case name for first case in the sweep.
+        fgrp, frun = os.path.split(fdirs[0])
+        # Use the first case as the name of the subsweep.
+        frun = os.path.join(fgrp, frun)
+        # Status update
+        print('%s/%s' % (fswp, frun))
+        # Make sure folders exist.
+        if not os.path.isdir(fgrp): os.mkdir(fgrp, 0750)
+        if not os.path.isdir(frun): os.mkdir(frun, 0750)
+        # Enter the sweep folder.
+        os.chdir(frun)
+        # Add a line to the master document.
+        self.tex.Section['Sweeps'].insert(-1,
+            '\\input{sweep-%s/%s/%s.tex\n' % (fswp, frun, self.fname))
+        # Read the status file.
+        fdirr, Ir, nIterr = self.ReadSweepJSONIter()
+        # Extract first component.
+        DBc = self.cart3d.DataBook[self.cart3d.DataBook.Components[0]]
+        # Get current iteration numbers.
+        nIters = list(DBc['nIter'][I])
+        # Check if there's anything to do.
+        if (Ir == list(I)) and (fdirr == fdirs) and (nIters == nIterr):
+            return
+        # -------------
+        # Initial setup
+        # -------------
+        # Status update
+        if fdirr is None:
+            # New report
+            print("  New report")
+        if fdirr != fdirs:
+            # Changing status
+            print("  Updating list of case")
+        elif nIters != nIterr:
+            # More iterations
+            print("  Updating at least one case")
+        else:
+            # New case
+            print("  Modifying index numbers")
+        # Create the tex file.
+        self.WriteSweepSkeleton(fswp, I[0])
+        # Create the TeX handle.
+        self.sweeps[fswp][I[0]] = tex.Tex(fname=self.fname)
+        # -------
+        # Figures
+        # -------
+        # Get the figures.
+        figs = self.opts.get_SweepOpt(fswp, "Figures")
+        # Loop through the figures.
+        for fig in figs:
+            # Update the figure.
+            self.UpdateFigure(fig, I, fswp)# -----
+        # Write
+        # -----
+        # Write the updated lines.
+        self.sweeps[fswp][I[0]].Write()
+        # Mark the case status.
+        self.SetSweepJSONIter(I)
+        # Go home.
+        os.chdir(fpwd)
+        
         
     # Function to create the file for a case
     def UpdateCase(self, i):
@@ -351,11 +468,12 @@ class Report(object):
         
         
     # Function to write a figure.
-    def UpdateFigure(self, fig, i):
+    def UpdateFigure(self, fig, i, fswp=None):
         """Write the figure and update the contents as necessary for *fig*
         
         :Call:
             >>> R.UpdateFigure(fig, i)
+            >>> R.UpdateFigure(fig, I, fswp)
         :Inputs:
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
@@ -363,15 +481,28 @@ class Report(object):
                 Name of figure to update
             *i*: :class:`int`
                 Case index
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of case indices
+            *fswp*: :class:`str`
+                Name of sweep
         :Versions:
             * 2014-03-08 ``@ddalle``: First version
+            * 2015-05-29 ``@ddalle``: Extended to include sweeps
         """
         # -----
         # Setup
         # -----
-        # Handle for the case file.
-        tx = self.cases[i]
-        tf = tx.Section['Figures']
+        # Check for sweep
+        if fswp is None:
+            # Handle for the case file.
+            tx = self.cases[i]
+            tf = tx.Section['Figures']
+        else:
+            # Transfer variable names.
+            I = i; i = I[0]
+            # Handle for the subsweep file.
+            tx = self.sweeps[fswp][i]
+            tf = tx.Section['Figures']
         # Figure header line
         ffig = '%%<%s\n' % fig
         # Check for the figure.
@@ -410,8 +541,52 @@ class Report(object):
         # -------
         # Subfigs
         # -------
+        # Update the subfigures.
+        if fswp is None:
+            # Update case subfigures
+            lines += self.UpdateCaseSubfigs(fig, i)
+        else:
+            pass
+        # -------
+        # Cleanup
+        # -------
+        # End the figure for LaTeX
+        lines.append('\\end{figure}\n')
+        # pyCart report end figure marker
+        lines.append('%>\n\n')
+        # Add the lines to the section.
+        for line in lines:
+            tf.insert(ifig, line)
+            ifig += 1
+        # Update the section
+        tx.Section['Figures'] = tf
+        tx._updated_sections = True
+        # Synchronize the document
+        tx.UpdateLines()
+        
+    # Update subfig for case
+    def UpdateCaseSubfigs(self, fig, i):
+        """Update subfigures for a case figure *fig*
+        
+        :Call:
+            >>> lines = R.UpdateCaseSubfigs(fig, i)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *fig*: :class:`str`
+                Name of figure to update
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *lines*: :class:`list` (:class:`str`)
+                List of lines for LaTeX file
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
         # Get list of subfigures.
         sfigs = self.cart3d.opts.get_FigSubfigList(fig)
+        # Initialize lines
+        lines = []
         # Loop through subfigs.
         for sfig in sfigs:
             # Get the base type.
@@ -435,22 +610,47 @@ class Report(object):
             elif btyp == 'Tecplot':
                 # Get the Tecplot layout view
                 lines += self.SubfigTecplotLayout(sfig, i)
-        # -------
-        # Cleanup
-        # -------
-        # End the figure for LaTeX
-        lines.append('\\end{figure}\n')
-        # pyCart report end figure marker
-        lines.append('%>\n\n')
-        # Add the lines to the section.
-        for line in lines:
-            tf.insert(ifig, line)
-            ifig += 1
-        # Update the section
-        tx.Section['Figures'] = tf
-        tx._updated_sections = True
-        # Synchronize the document
-        tx.UpdateLines()
+        # Output
+        return lines
+        
+    # Update subfig for a sweep
+    def UpdateSweepSubfigs(self, fig, fswp, I):
+        """Update subfigures for a sweep figure *fig*
+        
+        :Call:
+            >>> lines = R.UpdateSweepSubfigs(fig, fswp, I)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *fig*: :class:`str`
+                Name of figure to update
+            *fswp*: :class:`str`
+                Name of sweep
+            *I*: :class:`numpy.ndarray` (:class:`list`)
+                List of case indices in the subsweep
+        :Outputs:
+            *lines*: :class:`list` (:class:`str`)
+                List of lines for LaTeX file
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # Get list of subfigures.
+        sfigs = self.cart3d.opts.get_FigSubfigList(fig)
+        # Initialize lines
+        lines = []
+        # Loop through subfigs.
+        for sfig in sfigs:
+            # Get the base type.
+            btyp = self.cart3d.opts.get_SubfigBaseType(sfig)
+            # Process it.
+            if btyp == 'Conditions':
+                # Get the content.
+                lines += self.SubfigConditions(sfig, I[0])
+            elif btyp == 'SweepConditions':
+                # Get the variables constant in the sweep
+                lines += self.SubfigSweepConditions(sfig, fswp)
+        # Output
+        return lines
         
     # Function to write conditions table
     def SubfigConditions(self, sfig, i):
@@ -494,7 +694,7 @@ class Report(object):
         
         # Get the variables to skip.
         skvs = self.cart3d.opts.get_SubfigOpt(sfig, 'SkipVars')
-        # Loop through the figures.
+        # Loop through the trajectory keys.
         for k in x.keys:
             # Check if it's a skip variable
             if k in skvs: continue
@@ -522,6 +722,103 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
+        
+    # Function to write sweep conditions table
+    def SbufigSweepConditions(self, sfig, fswp, i):
+        """Create lines for a "SweepConditions" subfigure
+        
+        :Call:
+            >>> lines = R.SubfigSweepConditions(sfig, fswp)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *fswp*: :class:`str`
+                Name of sweep
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *lines*: :class:`str`
+                List of lines in the subfigure
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # Extract the trajectory.
+        x = self.cart3d.x
+        # Get the vertical alignment.
+        hv = self.cart3d.opts.get_SubfigOpt(sfig, 'Position')
+        # Get subfigure width
+        wsfig = self.cart3d.opts.get_SubfigOpt(sfig, 'Width')
+        # First line.
+        lines = ['\\begin{subfigure}[%s][%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = self.cart3d.opts.get_SubfigOpt(sfig, 'Header')
+        if fhdr:
+            # Write the header.
+            lines.append('\\noindent\n')
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+        # Begin the table.
+        lines.append('\\noindent\n')
+        lines.append('\\begin{tabular}{l|cc}\n')
+        # Header row
+        lines.append('\\hline \\hline\n')
+        lines.append('\\textbf{\\textsf{Variable}} &\n')
+        lines.append('\\textbf{\\textsf{Value}} &\n')
+        lines.append('\\textbf{\\textsf{Constraint}} \\\\ \n')
+        lines.append('\\hline\n')
+        
+        # Get equality and tolerance constraints.
+        eqkeys  = self.get_SweepOpt(fswp, 'EqCons')
+        tolkeys = self.get_SweepOpt(fswp, 'TolCons')
+        # Loop through the trajectory keys.
+        for k in x.keys:
+            # Check if it's an equality value.
+            if k in eqkeys:
+                # Equality constraint
+                scon = '$=$'
+            elif k in tolkeys:
+                # Tolerance constraint
+                scon = '$\pm%s$' % tolkeys[k]
+            else:
+                # Not a constraint.
+                continue
+            # Write the variable name.
+            line = "{\\small\\textsf{%s}}" % k.replace('_', '\_')
+            # Append the value.
+            if x.defns[k]['Value'] in ['str', 'unicode']:
+                # Put the value in sans serif
+                line += "{\\small\\textsf{%s}} &" % getattr(x,k)[i]
+            elif x.defns[k]['Value'] in ['float', 'int']:
+                # Put the value as a number.
+                line += "$%s$ &" % getattr(x,k)[i]
+            else:
+                # Put the string.
+                line += "%s &" % getattr(x,k)[i]
+            # Append the constraint
+            line += " %s \\\\ \n" % scon
+            # Append the line.
+            lines.append(line)
+        # Index tolerance
+        itol = self.get_SweepOpt(fswp, 'IndexTol')
+        # Max index
+        if type(itol).__name__.startswith('int'):
+            # Apply the constraint.
+            imax = min(i+itol, x.nCase)
+        else:
+            # Max index
+            imax = x.nCase
+        # Write the line
+        lines.append("{{\small\textit{i}} & %i & $[%i,%i]$ \\\\ \n"
+            % (i, i, imax))
+        
+        # Finish the subfigure
+        lines.append('\\hline \\hline\n')
+        lines.append('\\end{tabular}\n')
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
+        
         
     # Function to create coefficient plot and write figure
     def SubfigPlotCoeff(self, sfig, i):
@@ -1150,7 +1447,7 @@ class Report(object):
         
     # Read the iteration to which the figures for this report have been updated
     def ReadCaseJSONIter(self):
-        """Read JSON file to determine what the current iteration for the report is
+        """Read JSON file to determine the current iteration for the report
         
         The status is read from the present working directory
         
@@ -1183,6 +1480,50 @@ class Report(object):
         f.close()
         # Read the status for this iteration
         return tuple(opts.get(self.rep, [None, None]))
+        
+    # Read the iteration numbers and cases in a sweep
+    def ReadSweepJSONIter(self):
+        """
+        Read JSON file to determine the current iteration and list of cases for
+        a sweep report
+        
+        :Call:
+            >>> fruns, I, nIter = R.ReadSweepJSONIter()
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+        :Outputs:
+            *fruns*: :class:`list` (:class:`str`)
+                List of case names
+            *I*: :class:`list` (:class:`int`)
+                List of case indices
+            *nIter*: :class:`list` (:class:`int`)
+                Number of iterations for each case
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # Check for the file.
+        if not os.path.isfile('report.json'): return (None, None, None)
+        # Open the file
+        f = open('report.json')
+        # Read the settings.
+        try:
+            # Rread from file
+            opts = json.load(f)
+        except Exception:
+            # Problem with the file
+            f.close()
+            return (None, None, None)
+        # Close the file.
+        f.close()
+        # Read the status for this iteration.
+        sts = opts.get(self.rep, {"Cases": None, "I": None, "nIter": None})
+        # Output
+        return (
+            sts.get("Cases", None),
+            sts.get("I", None),
+            sts.get("nIter", None))
+        
         
     # Set the iteration of the JSON file.
     def SetCaseJSONIter(self, n, sts):
@@ -1225,6 +1566,48 @@ class Report(object):
         json.dump(opts, f)
         # Close file.
         f.close()
+        
+    # Set the iteration numbers for a sweep
+    def SetSweepJSONIter(self, I):
+        """Mark the JSON file to state what iteration each case is at
+        
+        :Call:
+            >>> R.SetSweepJSONIter
+        
+        """
+        # Check for the file.
+        if os.path.isfile('report.json'):
+            # Open the file.
+            f = open('report.json')
+            # Read the settings.
+            try:
+                opts = json.load(f)
+            except Exception:
+                opts = {}
+            # Close the file.
+            f.close()
+        else:
+            # Create empty settings.
+            opts = {}
+        # Get case names.
+        fruns = self.cart3d.x.GetFullFolderNames(I)
+        # Get first component
+        DBc = self.cart3d.DataBook[self.cart3d.DataBook.Components[0]]
+        # Get current iteration numbers.
+        nIter = DBc['nIter'][I]
+        # Loop through the cases in the sweep.
+        opts[self.rep] = {
+            "Cases": fruns,
+            "I": I,
+            "nIter": nIter
+        }
+        # Create the updated JSON file
+        f = open('report.json', 'w')
+        # Write the contents.
+        json.dump(opts, f)
+        # Close file.
+        f.close()
+            
         
     # Function to create the skeleton for a master LaTeX file
     def WriteSkeleton(self):
@@ -1351,6 +1734,41 @@ class Report(object):
         
         # Empty section for the figures
         f.write('%$__Figures\n')
+        f.write('\n')
+        
+        # Close the file.
+        f.close()
+        
+    # Function to write skeleton for a sweep
+    def WriteSweepSkeleton(self, fswp, i):
+        """Initialize LaTeX file for sweep *fswp* beginning with case *i*
+        
+        :Call:
+            >>> R.WriteSweepSkeleton(fswp, i)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # Get the name of the case.
+        frun = self.cart3d.x.GetFullFolderNames(i)
+        
+        # Create the file (delete if necessary)
+        f = open(self.fname, 'w')
+        
+        # Write the header.
+        f.write('\n\\newpage\n')
+        f.write('\\setcase{%s}\n' % frun.replace('_', '\\_'))
+        f.write('\\setsweep{%s}\n' % fswp)
+        f.write('\\phantomsection\n')
+        f.write('\\fancyhead[L]{\\texttt{\\thesweep/\\thecase}}\n')
+        f.write('\\fancyhead[R]{}\n\n')
+        
+        # Empty section for the figures
+        f.write('$__Figures\n')
         f.write('\n')
         
         # Close the file.
