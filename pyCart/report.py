@@ -2,6 +2,8 @@
 
 # File system interface
 import os, json, shutil, glob
+# Numerics
+import numpy as np
 
 # Local modules needed
 from . import tex, tar
@@ -135,18 +137,8 @@ class Report(object):
         self.tex.Compile()
         # Clean up
         print("Cleaning up...")
-        # Check for use of constraints instead of direct list.
-        I = self.cart3d.x.GetIndices(cons=cons, I=I)
-        # Check for folder archiving
-        if self.cart3d.opts.get_ReportArchive():
-            # Loop through folders.
-            for frun in self.cart3d.x.GetFullFolderNames(I):
-                # Go to the folder.
-                os.chdir(frun)
-                # Go up one, archiving if necessary.
-                self.cd('..')
-                # Go back to root directory.
-                os.chdir('..')
+        # Clean up cases
+        self.CleanUpCases(I=I, cons=cons)
         # Get other 'report-*.*' files.
         fglob = glob.glob('%s*' % self.fname[:-3])
         # Delete most of them.
@@ -176,7 +168,7 @@ class Report(object):
         # Clear out the lines.
         del self.tex.Section['Sweeps'][1:-1]
         # Loop through the sweep figures.
-        for fswp in self.opts.get_ReportSweepList(self.rep):
+        for fswp in self.cart3d.opts.get_ReportSweepList(self.rep):
             # Update the figure.
             self.UpdateSweep(fswp, I=I, cons=cons)
         # Update the text.
@@ -220,6 +212,77 @@ class Report(object):
         os.chdir(self.cart3d.RootDir)
         os.chdir('report')
         
+    # Clean up cases
+    def CleanUpCases(self, I=None, cons=[]):
+        """Clean up case figures
+        
+        :Call:
+            >>> R.CleanUpCases(I=None, cons=[])
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *I*: :class:`list` (:class:`int`)
+                List of case indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints to define what cases to update
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # Check for use of constraints instead of direct list.
+        I = self.cart3d.x.GetIndices(cons=cons, I=I)
+        # Check for folder archiving
+        if self.cart3d.opts.get_ReportArchive():
+            # Loop through folders.
+            for frun in self.cart3d.x.GetFullFolderNames(I):
+                # Go to the folder.
+                os.chdir(frun)
+                # Go up one, archiving if necessary.
+                self.cd('..')
+                # Go back to root directory.
+                os.chdir('..')
+        
+    # Clean up sweeps
+    def CleanUpSweeps(self, I=None, cons=[]):
+        """Clean up the folders for all sweeps
+        
+        :Call:
+            >>> R.CleanUpSweeps(I=None, cons=[])
+        :Inputs:
+            *I*: :class:`list` (:class:`int`)
+                List of case indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints to define what cases to update
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # Check for folder archiving
+        if not self.cart3d.opts.get_ReportArchive(): return
+        # Loop through the sweeps.
+        for fswp in self.opts.get('Sweeps', []):
+            # Check if only restricting to point currently in the trajectory.
+            if self.cart3d.opts.get_SweepOpt(fswp, 'TrajectoryOnly'):
+                # Read the data book with the trajectory as the source.
+                self.ReadDataBook("trajectory")
+            else:
+                # Read the data book with the data book as the source.
+                self.ReadDataBook("data")
+            # Go to the sweep folder.
+            os.chdir('sweep-%s' % fswp)
+            # Get the sweeps themselves (i.e. lists of indices)
+            J = self.GetSweepIndices(fswp, I, cons)
+            # Loop through the subsweeps.
+            for j in J:
+                # Get the first folder name.
+                frun = self.cart3d.DataBook.x.GetFullFolderNames(j[0])
+                # Go to the folder.
+                os.chdir(frun)
+                # Go up one, archiving if necessary.
+                self.cd('..')
+                # Go back up to the sweep folder.
+                os.chdir('..')
+            # Go back up to report folder.
+            os.chdir('..')
+        
     # Function to update a sweep
     def UpdateSweep(self, fswp, I=None, cons=[]):
         """Update the pages of a sweep
@@ -238,35 +301,10 @@ class Report(object):
         :Versions:
             * 2015-05-29 ``@ddalle``: First version
         """
-        # Read the data book.
-        self.cart3d.ReadDataBook()
-        # Check if only restricting to point currently in the trajectory.
-        if self.opts.get_SweepOpt(fswp, 'TrajectoryOnly'):
-            # Match the data book to the trajectory
-            self.cart3d.DataBook.MatchTrajectory()
-        else:
-            # Match the trajectory to the data book.
-            self.cart3d.DataBook.UpdateTrajectory()
-            # Do not restrict indexes.
-            I = np.arange(self.cart3d.x.nCase)
-        # Sweep constraints
-        EqCons = self.opts.get_SweepOpt(fswp, 'EqCons')
-        TolCons = self.opts.get_SweepOpt(fswp, 'TolCons')
-        IndexTol = self.opts.get_SweepOpt(fswp, 'IndexTol')
-        # Global constraints
-        GlobCons = self.opts.get_SweepOpt(fswp, 'GlobalCons')
-        Indices  = self.opts.get_SweepOpt(fswp, 'Indices')
-        # Turn command-line constraints into indices.
-        I0 = self.x.GetIndices(cons=cons, I=I)
-        # Turn report sweep definition into indices.
-        I1 = self.x.GetIndices(cons=GlobCons, I=Indices)
-        # Restrict Indices
-        I = np.intersect1d(I0, I1)
-        # Divide the cases into individual sweeps.
-        J = self.cart3d.x.GetSweeps(I=I,
-            EqCons=EqCons, TolCons=TolCons, IndexTol=IndexTol)
+        # Divide the cases into sweeps.
+        J = self.GetSweepIndices(fswp, I, cons)
         # Add a marker in the main document for this sweep.
-        self.tex.Section['Sweeps'].insert(-1, '%!_%s\n' % fswp)
+        self.tex.Section['Sweeps'].insert(-1, '%%!_%s\n' % fswp)
         # Save current location
         fpwd = os.getcwd()
         # Go to report folder.
@@ -287,6 +325,8 @@ class Report(object):
             self.UpdateSweepPage(fswp, I)
         # Return to original directory
         os.chdir(fpwd)
+        # Delete the data book.
+        del self.cart3d.DataBook
         
     # Update a page for a single sweep
     def UpdateSweepPage(self, fswp, I):
@@ -307,8 +347,10 @@ class Report(object):
         # --------
         # Checking
         # --------
+        # Save location
+        fpwd = os.getcwd()
         # Get the case names in this sweep.
-        fdirs = self.x.GetFullFolderNames(I)
+        fdirs = self.cart3d.x.GetFullFolderNames(I)
         # Split group and case name for first case in the sweep.
         fgrp, frun = os.path.split(fdirs[0])
         # Use the first case as the name of the subsweep.
@@ -322,7 +364,7 @@ class Report(object):
         os.chdir(frun)
         # Add a line to the master document.
         self.tex.Section['Sweeps'].insert(-1,
-            '\\input{sweep-%s/%s/%s.tex\n' % (fswp, frun, self.fname))
+            '\\input{sweep-%s/%s/%s}\n' % (fswp, frun, self.fname))
         # Read the status file.
         fdirr, Ir, nIterr = self.ReadSweepJSONIter()
         # Extract first component.
@@ -331,6 +373,8 @@ class Report(object):
         nIters = list(DBc['nIter'][I])
         # Check if there's anything to do.
         if (Ir == list(I)) and (fdirr == fdirs) and (nIters == nIterr):
+            # Return and quit.
+            os.chdir(fpwd)
             return
         # -------------
         # Initial setup
@@ -338,8 +382,8 @@ class Report(object):
         # Status update
         if fdirr is None:
             # New report
-            print("  New report")
-        if fdirr != fdirs:
+            print("  New report page")
+        elif fdirr != fdirs:
             # Changing status
             print("  Updating list of case")
         elif nIters != nIterr:
@@ -356,11 +400,12 @@ class Report(object):
         # Figures
         # -------
         # Get the figures.
-        figs = self.opts.get_SweepOpt(fswp, "Figures")
+        figs = self.cart3d.opts.get_SweepOpt(fswp, "Figures")
         # Loop through the figures.
         for fig in figs:
             # Update the figure.
-            self.UpdateFigure(fig, I, fswp)# -----
+            self.UpdateFigure(fig, I, fswp)
+        # -----
         # Write
         # -----
         # Write the updated lines.
@@ -546,7 +591,8 @@ class Report(object):
             # Update case subfigures
             lines += self.UpdateCaseSubfigs(fig, i)
         else:
-            pass
+            # Update sweep subfigures
+            lines += self.UpdateSweepSubfigs(fig, fswp, I)
         # -------
         # Cleanup
         # -------
@@ -648,7 +694,7 @@ class Report(object):
                 lines += self.SubfigConditions(sfig, I[0])
             elif btyp == 'SweepConditions':
                 # Get the variables constant in the sweep
-                lines += self.SubfigSweepConditions(sfig, fswp)
+                lines += self.SubfigSweepConditions(sfig, fswp, I[0])
         # Output
         return lines
         
@@ -724,7 +770,7 @@ class Report(object):
         return lines
         
     # Function to write sweep conditions table
-    def SbufigSweepConditions(self, sfig, fswp, i):
+    def SubfigSweepConditions(self, sfig, fswp, i):
         """Create lines for a "SweepConditions" subfigure
         
         :Call:
@@ -769,8 +815,8 @@ class Report(object):
         lines.append('\\hline\n')
         
         # Get equality and tolerance constraints.
-        eqkeys  = self.get_SweepOpt(fswp, 'EqCons')
-        tolkeys = self.get_SweepOpt(fswp, 'TolCons')
+        eqkeys  = self.cart3d.opts.get_SweepOpt(fswp, 'EqCons')
+        tolkeys = self.cart3d.opts.get_SweepOpt(fswp, 'TolCons')
         # Loop through the trajectory keys.
         for k in x.keys:
             # Check if it's an equality value.
@@ -784,7 +830,7 @@ class Report(object):
                 # Not a constraint.
                 continue
             # Write the variable name.
-            line = "{\\small\\textsf{%s}}" % k.replace('_', '\_')
+            line = "{\\small\\textsf{%s}} & " % k.replace('_', '\_')
             # Append the value.
             if x.defns[k]['Value'] in ['str', 'unicode']:
                 # Put the value in sans serif
@@ -800,7 +846,7 @@ class Report(object):
             # Append the line.
             lines.append(line)
         # Index tolerance
-        itol = self.get_SweepOpt(fswp, 'IndexTol')
+        itol = self.cart3d.opts.get_SweepOpt(fswp, 'IndexTol')
         # Max index
         if type(itol).__name__.startswith('int'):
             # Apply the constraint.
@@ -809,7 +855,7 @@ class Report(object):
             # Max index
             imax = x.nCase
         # Write the line
-        lines.append("{{\small\textit{i}} & %i & $[%i,%i]$ \\\\ \n"
+        lines.append("{\\small\\textit{i}} & $%i$ & $[%i,%i]$ \\\\ \n"
             % (i, i, imax))
         
         # Finish the subfigure
@@ -1517,12 +1563,7 @@ class Report(object):
         # Close the file.
         f.close()
         # Read the status for this iteration.
-        sts = opts.get(self.rep, {"Cases": None, "I": None, "nIter": None})
-        # Output
-        return (
-            sts.get("Cases", None),
-            sts.get("I", None),
-            sts.get("nIter", None))
+        return (opts.get("Cases"), opts.get("I"), opts.get("nIter"))
         
         
     # Set the iteration of the JSON file.
@@ -1594,17 +1635,17 @@ class Report(object):
         # Get first component
         DBc = self.cart3d.DataBook[self.cart3d.DataBook.Components[0]]
         # Get current iteration numbers.
-        nIter = DBc['nIter'][I]
+        nIter = list(DBc['nIter'][I])
         # Loop through the cases in the sweep.
-        opts[self.rep] = {
+        opts = {
             "Cases": fruns,
-            "I": I,
+            "I": list(I),
             "nIter": nIter
         }
         # Create the updated JSON file
         f = open('report.json', 'w')
         # Write the contents.
-        json.dump(opts, f)
+        json.dump(opts, f, indent=1)
         # Close file.
         f.close()
             
@@ -1680,7 +1721,10 @@ class Report(object):
         
         # Macros for setting cases.
         f.write('\\newcommand{\\thecase}{}\n')
+        f.write('\\newcommand{\\thesweep}{}\n')
         f.write('\\newcommand{\\setcase}[1]{\\renewcommand{\\thecase}{#1}}\n')
+        f.write(
+            '\\newcommand{\\setsweep}[1]{\\renewcommand{\\thesweep}{#1}}\n')
         
         # Actual document
         f.write('\n%$__Begin\n')
@@ -1768,7 +1812,7 @@ class Report(object):
         f.write('\\fancyhead[R]{}\n\n')
         
         # Empty section for the figures
-        f.write('$__Figures\n')
+        f.write('%$__Figures\n')
         f.write('\n')
         
         # Close the file.
@@ -1823,6 +1867,105 @@ class Report(object):
         self.cases[i].UpdateLines()
             
         
+            
+            
+    # Function to get update sweeps
+    def GetSweepIndices(self, fswp, I=None, cons=[]):
+        """Divide cases into individual sweeps
+        
+        :Call:
+            >>> J = R.GetSweepIndices(fswp, I=None, cons=[])
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *fswp*: :class:`str`
+                Name of sweep to update
+            *I*: :class:`list` (:class:`int`)
+                List of case indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints to define what cases to update
+        :Outputs:
+            *J*: :class:`list` (:class:`numpy.ndarray` (:class:`int`))
+                List of sweep index lists
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # Check if only restricting to point currently in the trajectory.
+        if self.cart3d.opts.get_SweepOpt(fswp, 'TrajectoryOnly'):
+            # Read the data book with the trajectory as the source.
+            self.ReadDataBook("trajectory")
+        else:
+            # Read the data book with the data book as the source.
+            self.ReadDataBook("data")
+            # Do not restrict indexes.
+            I = np.arange(self.cart3d.DataBook.x.nCase)
+        # Extract options
+        opts = self.cart3d.opts
+        # Sweep constraints
+        EqCons = opts.get_SweepOpt(fswp, 'EqCons')
+        TolCons = opts.get_SweepOpt(fswp, 'TolCons')
+        IndexTol = opts.get_SweepOpt(fswp, 'IndexTol')
+        # Global constraints
+        GlobCons = opts.get_SweepOpt(fswp, 'GlobalCons')
+        Indices  = opts.get_SweepOpt(fswp, 'Indices')
+        # Extract trajectory.
+        x = self.cart3d.DataBook.x
+        # Turn command-line constraints into indices.
+        I0 = x.GetIndices(cons=cons, I=I)
+        # Turn report sweep definition into indices.
+        I1 = x.GetIndices(cons=GlobCons, I=Indices)
+        # Restrict Indices
+        I = np.intersect1d(I0, I1)
+        # Divide the cases into individual sweeps.
+        J = x.GetSweeps(I=I, EqCons=EqCons, TolCons=TolCons, IndexTol=IndexTol)
+        # Output
+        return J
+        
+    # Function to read the data book and reread it if necessary
+    def ReadDataBook(self, fsrc="data"):
+        """Read the data book if necessary for a specific sweep
+        
+        :Call:
+            >>> R.ReadDataBook(fsrc="data")
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *fsrc*: :class:`str` [{data} | trajectory]
+                Data book source
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # Check if there's a data book at all.
+        try:
+            self.cart3d.DataBook
+        except Exception:
+            # Read the data book.
+            self.cart3d.ReadDataBook()
+            # Set the source to "inconsistent".
+            self.cart3d.DataBook.source = 'none'
+        # Check the existing source.
+        if fsrc == self.cart3d.DataBook.source:
+            # Everything is good.
+            return
+        elif self.cart3d.DataBook.source != 'none':
+            # Delete the data book.
+            del self.cart3d.DataBook
+            # Reread
+            self.cart3d.ReadDataBook()
+            # Set the source to "inconsistent".
+            self.cart3d.DataBook.source = 'none'
+        # Check the requested source.
+        if fsrc == "trajectory":
+            # Match the data book to the trajectory
+            self.cart3d.DataBook.MatchTrajectory()
+            # Save the data book source.
+            self.cart3d.DataBook.source = "trajectory"
+        else:
+            # Match the trajectory to the data book.
+            self.cart3d.DataBook.UpdateTrajectory()
+            # Save the data book source.
+            self.cart3d.DataBook.source = "data"
+            
     
         
     # Function to go into a folder, respecting archive option

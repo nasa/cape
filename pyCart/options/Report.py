@@ -46,7 +46,7 @@ class Report(odict):
         return reps
     
     # List of sweeps
-    def get_SweepList():
+    def get_SweepList(self):
         """Get list of sweeps for a report
         
         :Call:
@@ -537,10 +537,14 @@ class Report(odict):
         # Get the subfigure specified type
         t = self.get_SubfigType(sfig)
         # Check if it is a base category.
-        if t in ['Conditions', 'Summary', 'PlotCoeff', 'PlotL1',
-        'Tecplot3View', 'Tecplot']:
+        if t in ['Conditions', 'SweepConditions', 'Summary', 'PlotCoeff',
+                'PlotL1','Tecplot3View', 'Tecplot']:
             # Yes, it is.
             return t
+        elif t in [sfig, '']:
+            # Recursion error
+            raise IOError(
+                "Subfigure '%s' does not have recognized type." % sfig)
         else:
             # Derived type; recurse.
             return self.get_SubfigBaseType(t)
@@ -624,6 +628,14 @@ class Report(odict):
                 "Width": 0.4,
                 "SkipVars": []
             }
+        elif t in ["SweepConditions"]:
+            # Default sweep conditions
+            S = {
+                "Header": "Sweep Constraints",
+                "Position": "t",
+                "Alignment": "left",
+                "Width": 0.4
+            }
         elif t in ['Summary']:
             # Default results summary
             S = {
@@ -698,6 +710,9 @@ class Report(odict):
                 "FigWidth": 1024,
                 "Layout": "layout.lay"
             }
+        elif t in [sfig, '']:
+            # Unrecognized figure.
+            raise IOError("Subfigure '%s' type is not recognized" % sfig)
         else:
             # This is a derived subfigure type; recurse.
             return self.get_SubfigOpt(t, opt, i)

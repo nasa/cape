@@ -1858,7 +1858,7 @@ class Options(odict):
     # Get an option for a sweep
     def get_SweepOpt(self, fswp, opt):
         self._Report()
-        return self['Report'].get_Sweep(sfig)
+        return self['Report'].get_SweepOpt(fswp, opt)
     
     # Copy over the documentation
     for k in ['ReportList', 'SweepList', 'FigList', 'SubfigList',
