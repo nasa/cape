@@ -272,8 +272,13 @@ class Cart3d(object):
             return
         except AttributeError:
             pass
+        # Go to root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
         # Read the data book.
         self.DataBook = dataBook.DataBook(self.x, self.opts)
+        # Return to original folder.
+        os.chdir(fpwd)
         
     # Function to plot the databook.
     def PlotDataBook(self):

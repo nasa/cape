@@ -139,6 +139,7 @@ class Report(object):
         print("Cleaning up...")
         # Clean up cases
         self.CleanUpCases(I=I, cons=cons)
+        self.CleanUpSweeps(I=I, cons=cons)
         # Get other 'report-*.*' files.
         fglob = glob.glob('%s*' % self.fname[:-3])
         # Delete most of them.
@@ -325,8 +326,6 @@ class Report(object):
             self.UpdateSweepPage(fswp, I)
         # Return to original directory
         os.chdir(fpwd)
-        # Delete the data book.
-        del self.cart3d.DataBook
         
     # Update a page for a single sweep
     def UpdateSweepPage(self, fswp, I):
@@ -350,18 +349,22 @@ class Report(object):
         # Save location
         fpwd = os.getcwd()
         # Get the case names in this sweep.
-        fdirs = self.cart3d.x.GetFullFolderNames(I)
+        fdirs = self.cart3d.DataBook.x.GetFullFolderNames(I)
         # Split group and case name for first case in the sweep.
-        fgrp, frun = os.path.split(fdirs[0])
+        fgrp, fdir = os.path.split(fdirs[0])
         # Use the first case as the name of the subsweep.
-        frun = os.path.join(fgrp, frun)
+        frun = os.path.join(fgrp, fdir)
         # Status update
         print('%s/%s' % (fswp, frun))
-        # Make sure folders exist.
-        if not os.path.isdir(fgrp): os.mkdir(fgrp, 0750)
-        if not os.path.isdir(frun): os.mkdir(frun, 0750)
-        # Enter the sweep folder.
-        os.chdir(frun)
+        # Make sure group folder exists.
+        if not os.path.isdir(fgrp): os.mkdir(fgrp, dmask)
+        # Go into the group folder.
+        os.chdir(fgrp)
+        # Create the case folder if necessary.
+        if not (os.path.isfile(fdir+'.tar') or os.path.isdir(fdir)):
+            os.mkdir(fdir, dmask)
+        # Go into the folder.
+        self.cd(fdir)
         # Add a line to the master document.
         self.tex.Section['Sweeps'].insert(-1,
             '\\input{sweep-%s/%s/%s}\n' % (fswp, frun, self.fname))
@@ -385,7 +388,7 @@ class Report(object):
             print("  New report page")
         elif fdirr != fdirs:
             # Changing status
-            print("  Updating list of case")
+            print("  Updating list of cases")
         elif nIters != nIterr:
             # More iterations
             print("  Updating at least one case")
@@ -714,8 +717,13 @@ class Report(object):
         :Versions:
             * 2014-03-08 ``@ddalle``: First version
         """
-        # Extract the trajectory
-        x = self.cart3d.x
+        # Extract the trajectory.
+        try:
+            # Read the data book trajectory.
+            x = self.cart3d.DataBook.x
+        except Exception:
+            # Use the run matrix trajectory.
+            x = self.cart3d.x
         # Get the vertical alignment.
         hv = self.cart3d.opts.get_SubfigOpt(sfig, 'Position')
         # Get subfigure width
@@ -791,13 +799,18 @@ class Report(object):
             * 2015-05-29 ``@ddalle``: First version
         """
         # Extract the trajectory.
-        x = self.cart3d.x
+        try:
+            # Read the data book trajectory.
+            x = self.cart3d.DataBook.x
+        except Exception:
+            # Use the run matrix trajectory.
+            x = self.cart3d.x
         # Get the vertical alignment.
         hv = self.cart3d.opts.get_SubfigOpt(sfig, 'Position')
         # Get subfigure width
         wsfig = self.cart3d.opts.get_SubfigOpt(sfig, 'Width')
         # First line.
-        lines = ['\\begin{subfigure}[%s][%.2f\\textwidth}\n' % (hv, wsfig)]
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
         # Check for a header.
         fhdr = self.cart3d.opts.get_SubfigOpt(sfig, 'Header')
         if fhdr:
@@ -1631,7 +1644,7 @@ class Report(object):
             # Create empty settings.
             opts = {}
         # Get case names.
-        fruns = self.cart3d.x.GetFullFolderNames(I)
+        fruns = self.cart3d.DataBook.x.GetFullFolderNames(I)
         # Get first component
         DBc = self.cart3d.DataBook[self.cart3d.DataBook.Components[0]]
         # Get current iteration numbers.
@@ -1798,7 +1811,7 @@ class Report(object):
             * 2015-05-29 ``@ddalle``: First version
         """
         # Get the name of the case.
-        frun = self.cart3d.x.GetFullFolderNames(i)
+        frun = self.cart3d.DataBook.x.GetFullFolderNames(i)
         
         # Create the file (delete if necessary)
         f = open(self.fname, 'w')
@@ -1810,6 +1823,10 @@ class Report(object):
         f.write('\\phantomsection\n')
         f.write('\\fancyhead[L]{\\texttt{\\thesweep/\\thecase}}\n')
         f.write('\\fancyhead[R]{}\n\n')
+
+        # Set the table of contents entry.
+        f.write('\\addcontentsline{toc}{section}' +
+            '{\\texttt{\\thesweep/\\thecase}}\n')
         
         # Empty section for the figures
         f.write('%$__Figures\n')
