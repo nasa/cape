@@ -2979,7 +2979,6 @@ class CaseFM(object):
                 Use the last *nAvg* iterations to compute an average
             *d*: :class:`float`
                 Delta in the coefficient to show expected range
-            *k*: :class:
             *nLast*: :class:`int`
                 Last iteration to use (defaults to last iteration available)
             *nFirst*: :class:`int`
@@ -3056,7 +3055,8 @@ class CaseFM(object):
         # Shortcut for the mean
         cAvg = s[c]
         # Initialize plot options for standard deviation
-        kw_s = odict(color='b', lw=0.0, facecolor="b", alpha=0.35)
+        kw_s = odict(color='b', lw=0.0,
+            facecolor="b", alpha=0.35, zorder=1)
         # Show iterative n*standard deviation
         if ksig and nAvg>2:
             # Extract plot options from kwargs
@@ -3071,7 +3071,8 @@ class CaseFM(object):
         # --------------------------
         # Iterative uncertainty plot
         # --------------------------
-        kw_u = odict(color='g', ls="none", facecolor="g", alpha=0.4)
+        kw_u = odict(color='g', ls="none",
+            facecolor="g", alpha=0.4, zorder=2)
         # Show iterative n*standard deviation
         if uerr and nAvg>2:
             # Extract plot options from kwargs
@@ -3087,7 +3088,8 @@ class CaseFM(object):
         # Mean plot
         # ---------
         # Initialize plot options for mean.
-        kw_m = odict(color=kw.get("color", "0.1"), ls=[":", "-"], lw=1.0)
+        kw_m = odict(color=kw.get("color", "0.1"),
+            ls=[":", "-"], lw=1.0, zorder=8)
         # Extract plot options from kwargs
         for k in util.denone(kw.get("MeanOptions", {})):
             # Override the default option.
@@ -3105,7 +3107,7 @@ class CaseFM(object):
         # Delta plot
         # ----------
         # Initialize options for delta.
-        kw_d = odict(color="r", ls="--", lw=0.8)
+        kw_d = odict(color="r", ls="--", lw=0.8, zorder=4)
         # Calculate range of interest.
         if dc:
             # Extract plot options from kwargs
@@ -3131,7 +3133,7 @@ class CaseFM(object):
         # Primary plot
         # ------------
         # Initialize primary plot options.
-        kw_p = odict(color=kw.get("color","k"), ls="-", lw=1.5)
+        kw_p = odict(color=kw.get("color","k"), ls="-", lw=1.5, zorder=7)
         # Extract plot options from kwargs
         for k in util.denone(kw.get("LineOptions", {})):
             # Override the default option.
