@@ -331,8 +331,14 @@ def ArchiveFolder(opts):
         # Find and delete Mesh files.
         fglob = glob.glob('Mesh*.c3d') + glob.glob('adapt??/Mesh*.c3d')
         for f in fglob: os.remove(f)
+    # Check if restart files should be deleted.
+    if atype.lower() in ['hist']:
         # Find and delete check files
         fglob = glob.glob('check*') + glob.glob('adapt??/check*')
+        for f in fglob: os.remove(f)
+    elif atype.lower() in ['viz']:
+        # Only old check files.
+        fglob = glob.glob('adapt??/check*')
         for f in fglob: os.remove(f)
     # Check if other files should be removed.
     if atype.lower() in ['hist']:
