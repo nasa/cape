@@ -342,6 +342,11 @@ def ArchiveFolder(opts):
             fglob = glob.glob(fname) + glob.glob('adapt??/' + fname)
             # Delete them.
             for f in fglob: os.remove(f)
+    # Almost always delete the ADAPT/ and EMBED/ folders
+    if atype.lower() not in ['full']:
+        # Delete those folders before archiving.
+        for fd in ['ADAPT', 'EMBED']:
+            shutil.rmtree(fd)
     # Go back up to group folder.
     os.chdir('..')
     # Check if it's a remote copy.
