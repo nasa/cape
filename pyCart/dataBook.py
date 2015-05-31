@@ -511,6 +511,75 @@ class DataBook(dict):
             c = ftarg
         # Output
         return i, c
+        
+    # Plot a sweep of one or more coefficients
+    def PlotCoeff(self, comp, coeff, I, **kw):
+        """Plot a sweep of one coefficients over several cases
+        
+        :Call:
+            >>> h = DB.PlotCoeff(comp, coeff, I, **kw)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *comp*: :class:`str`
+                Component whose coefficient is being plotted
+            *coeff*: :class:`str`
+                Coefficient being plotted
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indexes of cases to include in sweep
+            *x*: [ {None} | :class:`str` ]
+                Trajectory key for *x* axis (or plot against index if ``None``)
+            *StDev*: [ {None} | :class:`float` ]
+                Multiple of iterative history standard deviation to plot
+            *MinMax*: [ {False} | True ]
+                Whether to plot minimum and maximum over iterative history
+            *LineOptionss*: :class:`dict`
+                Plot options for the primary line(s)
+            *StDevOptions*: :class:`dict`
+                Dictionary of plot options for the standard deviation plot
+            *MinMaxOptions*: :class:`dict`
+                Dictionary of plot options for the min/max plot
+            *FigWidth*: :class:`float`
+                Width of figure in inches
+            *FigHeight*: :class:`float`
+                Height of figure in inches
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of plot handles
+        :Versions:
+            * 2015-05-30 ``@ddalle``: First version
+        """
+        # Make sure the plotting modules are present.
+        ImportPyPlot()
+        # Extract the component.
+        DBc = self[comp]
+        # Get horizontal key.
+        xk = kw.get('x')
+        # Figure dimensions
+        fw = kw.get('FigWidth', 6)
+        fh = kw.get('FigHeight', 4.5)
+        # Iterative uncertainty options
+        qmmx = kw.get('MinMax', 0)
+        ksig = kw.get('StDev')
+        # Initialize output
+        h = {}
+        # -----------------------
+        # Standard Deviation Plot
+        # -----------------------
+        # Initialize plot options for standard deviation
+        kw_s = odict(color='b', lw=0.0,
+            facecolor='b', alpha=0.38, zorder=1)
+        # Show iterative standard deviation.
+        if ksig:
+            # Extract plot options from keyword arguments.
+            for k in util.denone(kw.get("StDevOptions")):
+                # Override the default option.
+                kw_s[k] = kw["StDevOptions"][k]
+                
+        
+        
+        
+        
             
     # Initialize a sweep plot
     def InitPlot(self, i):
