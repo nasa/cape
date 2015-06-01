@@ -1123,6 +1123,8 @@ class Report(object):
             # Get the component and coefficient.
             comp = opts.get_SubfigOpt(sfig, "Component", k)
             coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
+            # Plot label (for legend)
+            lbl = opts.get_SubfigOpt(sfig, "Label", k)
             # Get the multiple of standard deviation to show
             ksig = opts.get_SubfigOpt(sfig, "StandardDeviation", k)
             qmmx = opts.get_SubfigOpt(sfig, "MinMax", k)
@@ -1139,6 +1141,8 @@ class Report(object):
                 StDev=ksig, StDevOptions=kw_s,
                 MinMax=qmmx, MinMaxOptions=kw_m,
                 FigWidth=figw, FigHeight=figh)
+        # Check for manually specified x-axis label.
+        
         # Change back to report folder.
         os.chdir(fpwd)
         # Get the file formatting

@@ -574,6 +574,8 @@ class DataBook(dict):
             xv = DBc[xk][I]
         # Extract the mean values.
         yv = DBc[coeff][I]
+        # Initialize label.
+        lbl = kw.get('Label', comp)
         # -----------------------
         # Standard Deviation Plot
         # -----------------------
@@ -582,6 +584,8 @@ class DataBook(dict):
             facecolor='b', alpha=0.35, zorder=1)
         # Show iterative standard deviation.
         if ksig:
+            # Add standard deviation to label.
+            lbl = u'%s (\u00B1%s\u03C3)' % (lbl, ksig)
             # Extract plot options from keyword arguments.
             for k in util.denone(kw.get("StDevOptions")):
                 # Option.
@@ -600,6 +604,8 @@ class DataBook(dict):
             facecolor='g', alpha=0.35, zorder=2)
         # Show min/max options
         if qmmx:
+            # Add min/max to label.
+            lbl = u'%s (min/max)' % (lbl)
             # Extract plot options from keyword arguments.
             for k in util.denone(kw.get("MinMaxOptions")):
                 # Option
@@ -622,6 +628,8 @@ class DataBook(dict):
             o_k = kw["LineOptions"][k]
             # Override the default option.
             if o_k is not None: kw_p[k] = o_k
+        # Label
+        kw_p.setdefault('label', lbl)
         # Plot it.
         h['line'] = plt.plot(xv, yv, **kw_p)
         # ----------
