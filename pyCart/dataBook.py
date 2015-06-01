@@ -3131,7 +3131,8 @@ class CaseFM(object):
             # Extract plot options from kwargs
             for k in util.denone(kw.get("StDevOptions", {})):
                 # Override the default option.
-                kw_s[k] = kw["StDevOptions"][k]
+                if kw["StDevOptions"][k] is not None:
+                    kw_s[k] = kw["StDevOptions"][k]
             # Limits
             cMin = cAvg - ksig*s[c+"_std"]
             cMax = cAvg + ksig*s[c+"_std"]
@@ -3147,7 +3148,8 @@ class CaseFM(object):
             # Extract plot options from kwargs
             for k in util.denone(kw.get("ErrPltOptions", {})):
                 # Override the default option.
-                kw_u[k] = kw["ErrPltOptions"][k]
+                if kw["ErrPltOptions"][k] is not None:
+                    kw_u[k] = kw["ErrPltOptions"][k]
             # Limits
             cMin = cAvg - uerr*s[c+"_err"]
             cMax = cAvg + uerr*s[c+"_err"]
@@ -3162,7 +3164,8 @@ class CaseFM(object):
         # Extract plot options from kwargs
         for k in util.denone(kw.get("MeanOptions", {})):
             # Override the default option.
-            kw_m[k] = kw["MeanOptions"][k]
+            if kw["MeanOptions"][k] is not None:
+                kw_m[k] = kw["MeanOptions"][k]
         # Turn into two groups.
         kw0 = {}; kw1 = {}
         for k in kw_m:
@@ -3182,7 +3185,8 @@ class CaseFM(object):
             # Extract plot options from kwargs
             for k in util.denone(kw.get("DeltaOptions", {})):
                 # Override the default option.
-                kw_d[k] = kw["DeltaOptions"][k]
+                if kw["DeltaOptions"][k] is not None:
+                    kw_d[k] = kw["DeltaOptions"][k]
             # Turn into two groups.
             kw0 = {}; kw1 = {}
             for k in kw_m:
@@ -3206,7 +3210,8 @@ class CaseFM(object):
         # Extract plot options from kwargs
         for k in util.denone(kw.get("LineOptions", {})):
             # Override the default option.
-            kw_p[k] = kw["LineOptions"][k]
+            if kw["LineOptions"][k] is not None:
+                kw_p[k] = kw["LineOptions"][k]
         # Plot the coefficient.
         h[c] = plt.plot(self.i[j0:], C[j0:], **kw_p)
         # Get the figure and axes.

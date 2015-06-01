@@ -673,11 +673,12 @@ class Report(odict):
                 "ShowEpsilon": False,
                 "Format": "pdf",
                 "DPI": 150,
-                "LineOptions": [
-                    {"color": "k"}, {"color": "g"},
-                    {"color": "c"}, {"color": "m"},
-                    {"color": "b"}, {"color": "r"}
-                ]
+                "LineOptions": {"color": ["k","g","c","m","b","r"]},
+                "MeanOptions": {"ls": None},
+                "StDevOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
+                "ErrPlotOptions": {
+                    "facecolor": "g", "alpha": 0.4, "ls": "none"},
+                "DeltaOptions": {"color": None}
             }
         elif t in ['SweepCoeff']:
             # Force or moment sweep (over several cases)
@@ -694,8 +695,14 @@ class Report(odict):
                 "StandardDeviation": 0.0,
                 "MinMax": False,
                 "LineOptions": {"color": "k", "marker": ["^", "s", "o"]},
-                "MinMaxOptions": {"alpha": 0.5, "lw": 0.2, "marker": ""},
-                "StDevOptions": {"alpha": 0.5, "lw": 0.2, "marker": ""},
+                "MinMaxOptions": {
+                    "facecolor": "g", "color": "g",
+                    "alpha": 0.4, "lw": 0.2, "marker": "none"
+                },
+                "StDevOptions": {
+                    "facecolor": "b", "color": "b",
+                    "alpha": 0.35, "lw": 0.2, "marker": "none"
+                },
                 "Format": "pdf",
                 "DPI": 150
             }
