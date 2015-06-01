@@ -86,7 +86,7 @@ def denone(x):
     """Replace ``None`` with ``[]`` to avoid iterative problems
     
     :Call:
-        >>> y = pycart.util.denone(x)
+        >>> y = pyCart.util.denone(x)
     :Inputs:
         *x*: any
             Any variable
@@ -100,3 +100,21 @@ def denone(x):
         return []
     else:
         return x
+        
+# Check if an object is a list.
+def islist(x):
+    """Check if an object is a list or not
+    
+    :Call:
+        >>> q = pyCart.util.islist(x)
+    :Inputs:
+        *x*: any
+            Any variable
+    :Outputs:
+        *q*: :class:`bool`
+            Whether or not *x* is in [:class:`list` or :class:`numpy.ndarray`]
+    :Versions:
+        * 2015-06-01 ``@ddalle``: First version
+    """
+    return type(x).__name__ in ['list', 'ndarray']
+    

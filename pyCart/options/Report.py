@@ -2,7 +2,7 @@
 
 
 # Import options-specific utilities
-from .util import rc0, odict, getel
+from .util import rc0, odict, getel, isArray
 
 # Class for flowCart settings
 class Report(odict):
@@ -593,7 +593,7 @@ class Report(odict):
         """Retrieve an option for a subfigure, applying necessary defaults
         
         :Call:
-            >>> val = opts.get_SubfigOpt(sfig, opt, i=None, k=None)
+            >>> val = opts.get_SubfigOpt(sfig, opt, i=None)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
@@ -679,6 +679,26 @@ class Report(odict):
                     {"color": "b"}, {"color": "r"}
                 ]
             }
+        elif t in ['SweepCoeff']:
+            # Force or moment sweep (over several cases)
+            S = {
+                "Header": "",
+                "Position": "b",
+                "Alignment": "center",
+                "PlotVar": None,
+                "Width": 0.5,
+                "FigWidth": 6,
+                "FigHeight": 4.5,
+                "Component": "entire",
+                "Coefficient": "CN",
+                "StandardDeviation": 0.0,
+                "MinMax": False,
+                "LineOptions": {"color": "k", "marker": ["^", "s", "o"]},
+                "MinMaxOptions": {"alpha": 0.5, "lw": 0.2, "marker": ""},
+                "StDevOptions": {"alpha": 0.5, "lw": 0.2, "marker": ""},
+                "Format": "pdf",
+                "DPI": 150
+            }
         elif t in ['PlotL1']:
             # Residual history
             S = {
@@ -720,5 +740,86 @@ class Report(odict):
         o = S.get(opt)
         # Process output type.
         return getel(o, i)
+        
+    # Special function for plot options, which repeat
+    def get_SubfigPlotOpt(self, sfig, opt, i):
+        """
+        Retrieve an option for a subfigure plot, cycling through list of options
+        if necessary.
+        
+        For example, ``{"color": "k", "marker": ["^", "+", "o"]}`` results in a
+        sequence of plot options as follows.
+        
+            0. ``{"color": "k", "marker": "^"}``
+            1. ``{"color": "k", "marker": "+"}``
+            2. ``{"color": "k", "marker": "o"}``
+            3. ``{"color": "k", "marker": "^"}``
+            4. ``{"color": "k", "marker": "+"}``
+        
+        :Call:
+            >>> val = opts.get_SubfigPlotOpt(sfig, opt, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *sfig*: :class:`str`
+                Name of subfigure
+            *opt*: :class:`str`
+                Name of option to retrieve
+            *i*: :class:`int`
+                Index of subfigure option to extract
+        :Outputs:
+            *val*: any
+                Subfigure option value
+        :Versions:
+            * 2015-06-01 ``@ddalle``: First version
+        """
+        # Get the list of options.
+        o_in = self.get_SubfigOpt(sfig, opt)
+        # Make sure it's not None
+        if o_in is None: o_in = {}
+        # Check if it's a list.
+        if isArray(o_in) and len(o_in)>0:
+            # Cycle through list.
+            o_in = o_in[i % len(o_in)]
+        # Initialize dict of subfig plot options
+        o_plt = {}
+        # Loop through keys.
+        for k in o_in:
+            # Get the option (may be a list).
+            o_k = o_in[k]
+            # Check if it's a list.
+            if isArray(o_k) and len(o_k)>0:
+                # Cycle through the list.
+                o_plt[k] = o_k[i % len(o_k)]
+            else:
+                # Use the non-list value.
+                o_plt[k] = o_k
+        # Default to the line options if necessary.
+        # (This step ensures that StDev and MinMax plots automatically default
+        #  to the same color as the Line plots.)
+        o_def = self.get_SubfigOpt(sfig, 'LineOptions')
+        # Make sure it's not None
+        if o_def is None: o_def = {}
+        # Check if it's a list.
+        if isArray(o_def) and len(o_def)>0:
+            # Cycle through list.
+            o_def = o_def[i % len(o_def)]
+        # Loop through keys.
+        for k in o_def:
+            # Get the option (may be a list).
+            o_k = o_def[k]
+            # Check if it's a list.
+            if isArray(o_k) and len(o_k)>0:
+                # Cycle through list and set as default.
+                o_plt.setdefault(k, o_k[i % len(o_k)])
+            else:
+                # Use the non-list value as a default.
+                o_plt.setdefault(k, o_k)
+        # Additional options for area plots
+        if opt in ['MinMaxOptions', 'StDevOptions']:
+            # Check for face color.
+            o_plt.setdefault('facecolor', o_plt.get('color'))
+        # Output.
+        return o_plt
         
         

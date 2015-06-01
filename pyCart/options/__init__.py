@@ -1855,6 +1855,11 @@ class Options(odict):
         self._Report()
         return self['Report'].get_SubfigOpt(sfig, opt, i=i)
         
+    # Get an option for a subfigure
+    def get_SubfigPlotOpt(self, sfig, opt, i=None):
+        self._Report()
+        return self['Report'].get_SubfigPlotOpt(sfig, opt, i=i)
+        
     # Get an option for a sweep
     def get_SweepOpt(self, fswp, opt):
         self._Report()
@@ -1868,7 +1873,8 @@ class Options(odict):
             'ReportTitle', 'ReportAuthor',
             'ReportRestriction', 'ReportLogo',  'ReportArchive',
             'FigSubfigList', 'FigAlignment', 'FigHeader',
-            'SubfigType', 'SubfigBaseType', 'SubfigOpt', 'SweepOpt'
+            'SubfigType', 'SubfigBaseType', 'SubfigOpt', 'SweepOpt',
+            'SubfigPlotOpt'
     ]:
         # Get the documentation from the submodule
         eval('get_'+k).__doc__ = getattr(Report,'get_'+k).__doc__
