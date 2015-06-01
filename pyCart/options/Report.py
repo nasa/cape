@@ -538,7 +538,7 @@ class Report(odict):
         t = self.get_SubfigType(sfig)
         # Check if it is a base category.
         if t in ['Conditions', 'SweepConditions', 'Summary', 'PlotCoeff',
-                'PlotL1','Tecplot3View', 'Tecplot']:
+                'SweepCoeff', 'PlotL1', 'Tecplot3View', 'Tecplot']:
             # Yes, it is.
             return t
         elif t in [sfig, '']:
@@ -686,7 +686,7 @@ class Report(odict):
                 "Header": "",
                 "Position": "b",
                 "Alignment": "center",
-                "PlotVar": None,
+                "XAxis": None,
                 "Width": 0.5,
                 "FigWidth": 6,
                 "FigHeight": 4.5,
@@ -695,13 +695,12 @@ class Report(odict):
                 "StandardDeviation": 0.0,
                 "MinMax": False,
                 "LineOptions": {"color": "k", "marker": ["^", "s", "o"]},
+                "TargetOptions": {"color": "r"},
                 "MinMaxOptions": {
-                    "facecolor": "g", "color": "g",
-                    "alpha": 0.4, "lw": 0.2, "marker": "none"
+                    "facecolor": "g", "color": "g", "alpha": 0.4, "lw": 0.0
                 },
                 "StDevOptions": {
-                    "facecolor": "b", "color": "b",
-                    "alpha": 0.35, "lw": 0.2, "marker": "none"
+                    "facecolor": "b", "color": "b", "alpha": 0.35, "lw": 0.0
                 },
                 "Format": "pdf",
                 "DPI": 150
@@ -792,6 +791,10 @@ class Report(odict):
         o_plt = {}
         # Loop through keys.
         for k in o_in:
+            # Do not apply 'marker' to fill_between plots
+            if opt in ['MinMaxOptions', 'StDevOptions', 'ErrPltOptions']:
+                if k in ['marker']:
+                    continue
             # Get the option (may be a list).
             o_k = o_in[k]
             # Check if it's a list.
@@ -813,6 +816,10 @@ class Report(odict):
             o_def = o_def[i % len(o_def)]
         # Loop through keys.
         for k in o_def:
+            # Do not apply 'marker' to fill_between plots
+            if opt in ['MinMaxOptions', 'StDevOptions', 'ErrPltOptions']:
+                if k in ['marker']:
+                    continue
             # Get the option (may be a list).
             o_k = o_def[k]
             # Check if it's a list.
@@ -823,7 +830,7 @@ class Report(odict):
                 # Use the non-list value as a default.
                 o_plt.setdefault(k, o_k)
         # Additional options for area plots
-        if opt in ['MinMaxOptions', 'StDevOptions']:
+        if opt in ['MinMaxOptions', 'StDevOptions', 'ErrPltOptions']:
             # Check for face color.
             o_plt.setdefault('facecolor', o_plt.get('color'))
         # Output.

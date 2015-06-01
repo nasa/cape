@@ -687,10 +687,12 @@ class Report(object):
         sfigs = self.cart3d.opts.get_FigSubfigList(fig)
         # Initialize lines
         lines = []
+        print("%s: %i" % (fswp, I[0]))
         # Loop through subfigs.
         for sfig in sfigs:
             # Get the base type.
             btyp = self.cart3d.opts.get_SubfigBaseType(sfig)
+            print("  %s: %s" % (sfig, btyp))
             # Process it.
             if btyp == 'Conditions':
                 # Get the content.
@@ -698,6 +700,9 @@ class Report(object):
             elif btyp == 'SweepConditions':
                 # Get the variables constant in the sweep
                 lines += self.SubfigSweepConditions(sfig, fswp, I[0])
+            elif btyp == 'SweepCoeff':
+                # Plot a coefficient sweep
+                lines += self.SubfigSweepCoeff(sfig, fswp, I)
         # Output
         return lines
         
@@ -921,7 +926,16 @@ class Report(object):
         # Get caption.
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
         # Process default caption. 
-        if fcpt is None: fcpt = "%s/%s" % (comp.replace('_','\_'), coeff)
+        if fcpt is None:
+            # Check for a list.
+            if type(comp).__name__ in ['list']:
+                # Join them, e.g. "[RSRB,LSRB]/CA"
+                fcpt = "[" + ",".join(comp) + "]"
+            else:
+                # Use the coefficient.
+                fcpt = comp
+            # Ensure there are no underscores.
+            fcpt = "%s/%s" % (fcpt, coeff)
         # Get the vertical alignment.
         hv = opts.get_SubfigOpt(sfig, "Position")
         # Get subfigure width
@@ -1016,7 +1030,7 @@ class Report(object):
             # Figure name
             fimg = '%s.%s' % (sfig, fmt)
             # Save the figure.
-            if fmt in ['pdf']:
+            if fmt in ['pdf', 'svg']:
                 # Save as vector-based image.
                 h['fig'].savefig(fimg)
             else:
@@ -1027,6 +1041,125 @@ class Report(object):
             # Include the graphics.
             lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
                 % (frun, fimg))
+        # Set the caption.
+        lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
+        # Close the subfigure.
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
+    
+    # Function to plot mean coefficient for a sweep
+    def SubfigSweepCoeff(self, sfig, fswp, I):
+        """Plot a sweep of a coefficient over several cases
+        
+        :Call:
+            >>> R.SubfigSweepCoeff(sfig, fswp, I)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *fswp*: :class:`str`
+                Name of sweep
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices in the sweep
+        :Versions:
+            * 2015-05-28 ``@ddalle``: First version
+        """
+        # Save current folder.
+        fpwd = os.getcwd()
+        # Extract options
+        opts = self.cart3d.opts
+        # Case folder
+        frun = self.cart3d.x.GetFullFolderNames(I[0])
+        # Get the component.
+        comp = opts.get_SubfigOpt(sfig, "Component")
+        # Get the coefficient
+        coeff = opts.get_SubfigOpt(sfig, "Coefficient")
+        # Horizontal axis variable
+        xk = opts.get_SubfigOpt(sfig, "XAxis")
+        # List of coefficients
+        if type(coeff).__name__ in ['list', 'ndarray']:
+            # List of coefficients
+            nCoeff = len(coeff)
+        else:
+            # One entry
+            nCoeff = 1
+        # Check for list of components
+        if type(comp).__name__ in ['list', 'ndarray']:
+            # List of components
+            nCoeff = max(nCoeff, len(comp))
+        # Get caption.
+        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        # Process default caption. 
+        if fcpt is None:
+            # Check for a list.
+            if type(comp).__name__ in ['list']:
+                # Join them, e.g. "[RSRB,LSRB]/CA"
+                fcpt = "[" + ",".join(comp) + "]"
+            else:
+                # Use the coefficient.
+                fcpt = comp
+            # Ensure there are no underscores.
+            fcpt = "%s/%s" % (fcpt, coeff)
+        # Get the vertical alignment.
+        hv = opts.get_SubfigOpt(sfig, "Position")
+        # Get subfigure width
+        wsfig = opts.get_SubfigOpt(sfig, "Width")
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = opts.get_SubfigOpt(sfig, "Header")
+        # Alignment
+        algn = opts.get_SubfigOpt(sfig, "Alignment")
+        # Set alignment.
+        if algn.lower() == "center":
+            lines.append('\\centering\n')
+        # Write the header.
+        if fhdr:
+            # Save the line
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+            lines.append('\\vskip-6pt\n')
+        # Loop through plots.
+        for k in range(nCoeff):
+            # Get the component and coefficient.
+            comp = opts.get_SubfigOpt(sfig, "Component", k)
+            coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
+            # Get the multiple of standard deviation to show
+            ksig = opts.get_SubfigOpt(sfig, "StandardDeviation", k)
+            qmmx = opts.get_SubfigOpt(sfig, "MinMax", k)
+            # Get figure dimensions.
+            figw = opts.get_SubfigOpt(sfig, "FigureWidth", k)
+            figh = opts.get_SubfigOpt(sfig, "FigureHeight", k)
+            # Plot options
+            kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",   k)
+            kw_s = opts.get_SubfigPlotOpt(sfig, "StDevOptions",  k)
+            kw_m = opts.get_SubfigPlotOpt(sfig, "MinMaxOptions", k)
+            # Draw the plot.
+            h = self.cart3d.DataBook.PlotCoeff(comp, coeff, I, x=xk,
+                LineOptions=kw_p,
+                StDev=ksig, StDevOptions=kw_s,
+                MinMax=qmmx, MinMaxOptions=kw_m,
+                FigWidth=figw, FigHeight=figh)
+        # Change back to report folder.
+        os.chdir(fpwd)
+        # Get the file formatting
+        fmt = opts.get_SubfigOpt(sfig, "Format")
+        dpi = opts.get_SubfigOpt(sfig, "DPI")
+        # Figure name
+        fimg = '%s.%s' % (sfig, fmt)
+        # Save the figure.
+        if fmt in ['pdf', 'svg']:
+            # Save as vector-based image.
+            h['fig'].savefig(fimg)
+        else:
+            # Save with resolution.
+            h['fig'].savefig(fimg, dpi=dpi)
+        # Close the figure.
+        h['fig'].clf()
+        # Include the graphics.
+        lines.append('\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
+            % (fswp, frun, fimg))
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
@@ -1129,26 +1262,6 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-    
-    # Function to plot mean coefficient for a sweep
-    def SubfigSweepCoeff(self, sfig, I):
-        """Plot a sweep of a coefficient over several cases
-        
-        :Call:
-            >>> R.SubfigSweepCoeff(sfig, I)
-        :Inputs:
-            *R*: :class:`pyCart.report.Report`
-                Automated report interface
-            *sfig*: :class:`str`
-                Name of sfigure to update
-            *I*: :class:`numpy.ndarray` (:class:`int`)
-                List of indices in the sweep
-        :Versions:
-            * 2015-05-28 ``@ddalle``: First version
-        """
-        # Read the data book (only performed once).
-        self.cart3d.ReadDataBook()
-        # 
         
         
     # Function to create coefficient plot and write figure

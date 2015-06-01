@@ -563,22 +563,93 @@ class DataBook(dict):
         ksig = kw.get('StDev')
         # Initialize output
         h = {}
+        # Extract the values for the x-axis.
+        if xk is None or xk == 'Index':
+            # Use the indices as the x-axis
+            xv = I
+            # Label
+            xk = 'Index'
+        else:
+            # Extract the values.
+            xv = DBc[xk][I]
+        # Extract the mean values.
+        yv = DBc[coeff][I]
         # -----------------------
         # Standard Deviation Plot
         # -----------------------
         # Initialize plot options for standard deviation
         kw_s = odict(color='b', lw=0.0,
-            facecolor='b', alpha=0.38, zorder=1)
+            facecolor='b', alpha=0.35, zorder=1)
         # Show iterative standard deviation.
         if ksig:
             # Extract plot options from keyword arguments.
             for k in util.denone(kw.get("StDevOptions")):
+                # Option.
+                o_k = kw["StDevOptions"][k]
                 # Override the default option.
-                kw_s[k] = kw["StDevOptions"][k]
-                
-        
-        
-        
+                if o_k is not None: kw_s[k] = o_k
+            # Get the standard deviation value.
+            sv = DBc[coeff+"_std"][I]
+            # Plot it.
+            h['std'] = plt.fill_between(xv, yv-ksig*sv, yv+ksig*sv, **kw_s)
+        # ------------
+        # Min/Max Plot
+        # ------------
+        # Initialize plot options for min/max
+        kw_m = odict(color='g', lw=0.0,
+            facecolor='g', alpha=0.35, zorder=2)
+        # Show min/max options
+        if qmmx:
+            # Extract plot options from keyword arguments.
+            for k in util.denone(kw.get("MinMaxOptions")):
+                # Option
+                o_k = kw["MinMaxOptions"][k]
+                # Override the default option.
+                if o_k is not None: kw_m[k] = o_k
+            # Get the min and max values.
+            ymin = DBc[coeff+"_min"][I]
+            ymax = DBc[coeff+"_max"][I]
+            # Plot it.
+            h['max'] = plt.fill_between(xv, ymin, ymax, **kw_m)
+        # ------------
+        # Primary Plot
+        # ------------
+        # Initialize plot options for primary plot
+        kw_p = odict(color='k', marker='^', zorder=8, ls='-')
+        # Plot options
+        for k in util.denone(kw.get("LineOptions")):
+            # Option
+            o_k = kw["LineOptions"][k]
+            # Override the default option.
+            if o_k is not None: kw_p[k] = o_k
+        # Plot it.
+        h['line'] = plt.plot(xv, yv, **kw_p)
+        # ----------
+        # Formatting
+        # ----------
+        # Get the figure and axes.
+        h['fig'] = plt.gcf()
+        h['ax'] = plt.gca()
+        # Check for an existing ylabel
+        ly = h['ax'].get_ylabel()
+        # Compare to requested ylabel
+        if ly and ly != coeff:
+            # Combine labels.
+            ly = ly + '/' + coeff
+        else:
+            # Use the coefficient.
+            ly = coeff
+        # Labels.
+        h['x'] = plt.xlabel(xk)
+        h['y'] = plt.ylabel(ly)
+        # Figure dimensions.
+        if fh: h['fig'].set_figheight(fh)
+        if fw: h['fig'].set_figwidth(fw)
+        # Attempt to apply tight axes.
+        try: plt.tight_layout()
+        except Exception: pass
+        # Output
+        return h
         
             
     # Initialize a sweep plot
