@@ -687,12 +687,10 @@ class Report(object):
         sfigs = self.cart3d.opts.get_FigSubfigList(fig)
         # Initialize lines
         lines = []
-        print("%s: %i" % (fswp, I[0]))
         # Loop through subfigs.
         for sfig in sfigs:
             # Get the base type.
             btyp = self.cart3d.opts.get_SubfigBaseType(sfig)
-            print("  %s: %s" % (sfig, btyp))
             # Process it.
             if btyp == 'Conditions':
                 # Get the content.
@@ -1077,7 +1075,7 @@ class Report(object):
         # Get the coefficient
         coeff = opts.get_SubfigOpt(sfig, "Coefficient")
         # Horizontal axis variable
-        xk = opts.get_SubfigOpt(sfig, "XAxis")
+        xk = opts.get_SweepOpt(fswp, "XAxis")
         # List of coefficients
         if type(coeff).__name__ in ['list', 'ndarray']:
             # List of coefficients
@@ -2031,6 +2029,8 @@ class Report(object):
             I = np.arange(self.cart3d.DataBook.x.nCase)
         # Extract options
         opts = self.cart3d.opts
+        # Sort variable
+        xk = opts.get_SweepOpt(fswp, 'XAxis')
         # Sweep constraints
         EqCons = opts.get_SweepOpt(fswp, 'EqCons')
         TolCons = opts.get_SweepOpt(fswp, 'TolCons')
@@ -2047,7 +2047,8 @@ class Report(object):
         # Restrict Indices
         I = np.intersect1d(I0, I1)
         # Divide the cases into individual sweeps.
-        J = x.GetSweeps(I=I, EqCons=EqCons, TolCons=TolCons, IndexTol=IndexTol)
+        J = x.GetSweeps(I=I, SortVar=xk, 
+            EqCons=EqCons, TolCons=TolCons, IndexTol=IndexTol)
         # Output
         return J
         

@@ -762,6 +762,8 @@ class Trajectory:
         :Inputs:
             *M*: :class:`numpy.ndarray` (:class:`bool`)
                 Mask of which trajectory points should be considered
+            *SortVar*: :class:`str`
+                Variable by which to sort each sweep
             *EqCons*: :class:`list` (:class:`str`)
                 List of trajectory keys which must match (exactly) the first
                 point in the sweep
@@ -782,6 +784,8 @@ class Trajectory:
         if not np.any(M): return np.array([])
         # Copy the mask.
         m = M.copy()
+        # Sort key.
+        xk = kw.get('SortVar')
         # Get the first index.
         i0 = np.where(M)[0][0]
         # Check for an IndexTol.
@@ -833,8 +837,16 @@ class Trajectory:
             m = np.logical_and(m, eval(con))
         # Initialize output.
         I = np.arange(self.nCase)
-        # Apply the final mask and return it.
-        return I[m]
+        # Apply the final mask.
+        J = I[m]
+        # Check for a sort variable.
+        if xk is not None:
+            # Sort based on that key.
+            j = np.argsort(getattr(self,xk)[J])
+            # Sort the indices.
+            J = J[j]
+        # Output
+        return J
         
     # Function to get set of sweeps based on criteria
     def GetSweeps(self, **kw):
@@ -853,6 +865,8 @@ class Trajectory:
                 constraints will be in one of the output sweeps
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of indices to restrict to
+            *SortVar*: :class:`str`
+                Variable by which to sort each sweep
             *EqCons*: :class:`list` (:class:`str`)
                 List of trajectory keys which must match (exactly) the first
                 point in the sweep
