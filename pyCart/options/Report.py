@@ -537,13 +537,14 @@ class Report(odict):
         # Get the subfigure specified type
         t = self.get_SubfigType(sfig)
         # Check if it is a base category.
-        if t in ['Conditions', 'SweepConditions', 'Summary', 'PlotCoeff',
+        if t in ['Conditions', 'SweepConditions', 'SweepCases', 
+                'Summary', 'PlotCoeff',
                 'SweepCoeff', 'PlotL1', 'Tecplot3View', 'Tecplot']:
             # Yes, it is.
             return t
         elif t in [sfig, '']:
             # Recursion error
-            raise IOError(
+            raise ValueError(
                 "Subfigure '%s' does not have recognized type." % sfig)
         else:
             # Derived type; recurse.
@@ -632,6 +633,14 @@ class Report(odict):
             # Default sweep conditions
             S = {
                 "Header": "Sweep Constraints",
+                "Position": "t",
+                "Alignment": "left",
+                "Width": 0.4
+            }
+        elif t in ['SweepCases']:
+            # List of cases in a sweep
+            S = {
+                "Header": "Sweep Cases",
                 "Position": "t",
                 "Alignment": "left",
                 "Width": 0.4

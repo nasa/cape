@@ -694,10 +694,13 @@ class Report(object):
             # Process it.
             if btyp == 'Conditions':
                 # Get the content.
-                lines += self.SubfigConditions(sfig, I[0])
+                lines += self.SubfigConditions(sfig, I)
             elif btyp == 'SweepConditions':
                 # Get the variables constant in the sweep
                 lines += self.SubfigSweepConditions(sfig, fswp, I[0])
+            elif btyp == 'SweepCases':
+                # Get the list of cases.
+                lines += self.SubfigSweepCases(sfig, fswp, I)
             elif btyp == 'SweepCoeff':
                 # Plot a coefficient sweep
                 lines += self.SubfigSweepCoeff(sfig, fswp, I)
@@ -705,11 +708,12 @@ class Report(object):
         return lines
         
     # Function to write conditions table
-    def SubfigConditions(self, sfig, i):
+    def SubfigConditions(self, sfig, I):
         """Create lines for a "Conditions" subfigure
         
         :Call:
             >>> lines = R.SubfigConditions(sfig, i)
+            >>> lines = R.SubfigConditions(sfig, I)
         :Inputs:
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
@@ -717,8 +721,11 @@ class Report(object):
                 Name of sfigure to update
             *i*: :class:`int`
                 Case index
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of case indices
         :Versions:
             * 2014-03-08 ``@ddalle``: First version
+            * 2014-06-02 ``@ddalle``: Added range capability
         """
         # Extract the trajectory.
         try:
@@ -727,6 +734,14 @@ class Report(object):
         except Exception:
             # Use the run matrix trajectory.
             x = self.cart3d.x
+        # Check input type.
+        if type(I).__name__ in ['list', 'ndarray']:
+            # Extract firs index.
+            i = I[0]
+        else:
+            # Use index value given and make a list with one entry.
+            i = I
+            I = np.array([i])
         # Get the vertical alignment.
         hv = self.cart3d.opts.get_SubfigOpt(sfig, 'Position')
         # Get subfigure width
@@ -760,16 +775,39 @@ class Report(object):
             # Append the abbreviation.
             line += (" & {\\small\\textsf{%s}} & " % 
                 x.defns[k]['Abbreviation'].replace('_', '\_'))
+            # Get values.
+            v = getattr(x,k)[I]
             # Append the value.
             if x.defns[k]['Value'] in ['str', 'unicode']:
                 # Put the value in sans serif
-                line += "{\\small\\textsf{%s}} \\\\\n" % getattr(x,k)[i]
+                line += "{\\small\\textsf{%s}} &" % v[0]
             elif x.defns[k]['Value'] in ['float', 'int']:
-                # Put the value as a number
-                line += "$%s$ \\\\\n" % getattr(x,k)[i]
+                # Check for range.
+                if max(v) > min(v):
+                    # Print both values.
+                    line += "$%s$, [$%s$, $%s$] \\\\\n" % (v[0],min(v),max(v))
+                else:
+                    # Put the value as a number.
+                    line += "$%s$ \\\\\n" % v[0]
+            elif x.defns[k]['Value'] in ['hex']:
+                # Check for range
+                if max(v) > min(v):
+                    # Print min/max values.
+                    line += "0x%x, [0x%x, 0x%x] \\\\\n" % (v[0],min(v),max(v))
+                else:
+                    # Put the value as a hex code.
+                    line += "0x%x \\\\\n" % v[0]
+            elif x.defns[k]['Value'] in ['oct', 'octal']:
+                # Check for range
+                if max(v) > min(v):
+                    # Print min/max values
+                    line += "0o%o, [0o%o, 0o%o] \\\\\n" % (v[0],min(v),max(v))
+                else:
+                    # Put the value as a hex code.
+                    line += "0o%o \\\\\n" % v[0]
             else:
-                # Just put a string
-                line += "%s \\\\\n" % getattr(x,k)[i]
+                # Put the virst value as string (other type)
+                line += "%s \\\\\n" % v[0]
             # Add the line to the table.
             lines.append(line)
         
@@ -785,7 +823,7 @@ class Report(object):
         """Create lines for a "SweepConditions" subfigure
         
         :Call:
-            >>> lines = R.SubfigSweepConditions(sfig, fswp)
+            >>> lines = R.SubfigSweepConditions(sfig, fswp, I)
         :Inputs:
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
@@ -800,6 +838,7 @@ class Report(object):
                 List of lines in the subfigure
         :Versions:
             * 2015-05-29 ``@ddalle``: First version
+            * 2015-06-02 ``@ddalle``: Min/max values
         """
         # Extract the trajectory.
         try:
@@ -850,12 +889,18 @@ class Report(object):
             # Append the value.
             if x.defns[k]['Value'] in ['str', 'unicode']:
                 # Put the value in sans serif
-                line += "{\\small\\textsf{%s}} &" % getattr(x,k)[i]
+                line += "{\\small\\textsf{%s}} \\\\\n" % getattr(x,k)[i]
             elif x.defns[k]['Value'] in ['float', 'int']:
-                # Put the value as a number.
+                # Put the value as a number
                 line += "$%s$ &" % getattr(x,k)[i]
+            elif x.defns[k]['Value'] in ['hex']:
+                # Put the value as a hex code.
+                line += "0x%x &" % getattr(x,k)[i]
+            elif x.defns[k]['Value'] in ['oct', 'octal']:
+                # Put the value as a hex code.
+                line += "0o%o &" % getattr(x,k)[i]
             else:
-                # Put the string.
+                # Just put a string
                 line += "%s &" % getattr(x,k)[i]
             # Append the constraint
             line += " %s \\\\ \n" % scon
@@ -873,6 +918,72 @@ class Report(object):
         # Write the line
         lines.append("{\\small\\textit{i}} & $%i$ & $[%i,%i]$ \\\\ \n"
             % (i, i, imax))
+        
+        # Finish the subfigure
+        lines.append('\\hline \\hline\n')
+        lines.append('\\end{tabular}\n')
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
+        
+    # Function to write sweep conditions table
+    def SubfigSweepCases(self, sfig, fswp, I):
+        """Create lines for a "SweepConditions" subfigure
+        
+        :Call:
+            >>> lines = R.SubfigSweepCases(sfig, fswp, I)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *fswp*: :class:`str`
+                Name of sweep
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                Case indices
+        :Outputs:
+            *lines*: :class:`str`
+                List of lines in the subfigure
+        :Versions:
+            * 2015-06-02 ``@ddalle``: First version
+        """
+        # Extract the trajectory.
+        try:
+            # Read the data book trajectory.
+            x = self.cart3d.DataBook.x
+        except Exception:
+            # Use the run matrix trajectory.
+            x = self.cart3d.x
+        # Get the vertical alignment.
+        hv = self.cart3d.opts.get_SubfigOpt(sfig, 'Position')
+        # Get subfigure width
+        wsfig = self.cart3d.opts.get_SubfigOpt(sfig, 'Width')
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = self.cart3d.opts.get_SubfigOpt(sfig, 'Header')
+        if fhdr:
+            # Write the header.
+            lines.append('\\noindent\n')
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+        # Begin the table.
+        lines.append('\\noindent\n')
+        lines.append('\\begin{tabular}{c|l}\n')
+        # Header row
+        lines.append('\\hline \\hline\n')
+        lines.append('\\textbf{\\textsf{Index}} &\n')
+        lines.append('\\textbf{\\textsf{Case}} \\\\ \n')
+        lines.append('\\hline\n')
+        
+        # Get the cases.
+        fruns = x.GetFullFolderNames(I)
+        # Loop through the cases.
+        for j in range(len(I)):
+            # Extract index and folder name.
+            i = I[j]
+            frun = fruns[j].replace('_', '\_')
+            # Add the index and folder name.
+            lines.append('\\texttt{%i} & \\texttt{%s} \\\\ \n' % (i, frun))
         
         # Finish the subfigure
         lines.append('\\hline \\hline\n')
@@ -1137,7 +1248,7 @@ class Report(object):
             kw_m = opts.get_SubfigPlotOpt(sfig, "MinMaxOptions", k)
             # Draw the plot.
             h = self.cart3d.DataBook.PlotCoeff(comp, coeff, I, x=xk,
-                LineOptions=kw_p,
+                Label=lbl, LineOptions=kw_p,
                 StDev=ksig, StDevOptions=kw_s,
                 MinMax=qmmx, MinMaxOptions=kw_m,
                 FigWidth=figw, FigHeight=figh)
