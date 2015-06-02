@@ -223,6 +223,8 @@ class DataBook(dict):
         if skey is not None:
             # Check for a list.
             if type(skey).__name__ in ["list", "ndarray"]:
+                # Reverse the order.
+                skey.reverse()
                 # Loop through sort keys.
                 for k in skey:
                     self.Sort(k)
@@ -231,6 +233,7 @@ class DataBook(dict):
                 self.Sort(skey)
         # Loop through the components.
         for comp in self.Components:
+            # Write individual component.
             self[comp].Write()
             
     # Function to sort data book
