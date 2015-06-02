@@ -529,6 +529,10 @@ class DataBook(dict):
                 List of indexes of cases to include in sweep
             *x*: [ {None} | :class:`str` ]
                 Trajectory key for *x* axis (or plot against index if ``None``)
+            *Label*: [ {*comp*} | :class:`str` ]
+                Manually specified label
+            *Legend*: [ {True} | False ]
+                Whether or not to use a legend
             *StDev*: [ {None} | :class:`float` ]
                 Multiple of iterative history standard deviation to plot
             *MinMax*: [ {False} | True ]
@@ -586,6 +590,7 @@ class DataBook(dict):
         if ksig:
             # Add standard deviation to label.
             lbl = u'%s (\u00B1%s\u03C3)' % (lbl, ksig)
+            print(lbl)
             # Extract plot options from keyword arguments.
             for k in util.denone(kw.get("StDevOptions")):
                 # Option.
@@ -650,6 +655,30 @@ class DataBook(dict):
         # Labels.
         h['x'] = plt.xlabel(xk)
         h['y'] = plt.ylabel(ly)
+        # Legend.
+        if kw.get('Legend', True):
+            # Add extra room for the legend.
+            ymin, ymax = h['ax'].get_ylim()
+            # Add margin to the y-axis limit.
+            h['ax'].set_ylim((ymin, 1.21*ymax-0.21*ymin))
+            # Font size checks.
+            if len(h['ax'].get_lines()) > 5:
+                # Very small
+                fsize = 7
+            else:
+                # Just small
+                fsize = 9
+            # Activate the legend.
+            try:
+                # Use a font that has the proper symbols.
+                h['legend'] = h['ax'].legend(loc='upper center',
+                    prop=dict(size=fsize, family="DejaVu Sans"),
+                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
+            except Exception:
+                # Default font.
+                h['legend'] = h['ax'].legend(loc='upper center',
+                    prop=dict(size=fsize),
+                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
         # Figure dimensions.
         if fh: h['fig'].set_figheight(fh)
         if fw: h['fig'].set_figwidth(fw)

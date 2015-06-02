@@ -1141,8 +1141,15 @@ class Report(object):
                 StDev=ksig, StDevOptions=kw_s,
                 MinMax=qmmx, MinMaxOptions=kw_m,
                 FigWidth=figw, FigHeight=figh)
-        # Check for manually specified x-axis label.
-        
+        # Check for manually specified axes labels.
+        xlbl = opts.get_SubfigOpt(sfig, "XLabel")
+        ylbl = opts.get_SubfigOpt(sfig, "YLabel")
+        # Specify x-axis label if given.
+        if xlbl is not None:
+            h['ax'].set_xlabel(xlbl)
+        # Specify x-axis label if given.
+        if ylbl is not None:
+            h['ax'].set_ylabel(ylbl)
         # Change back to report folder.
         os.chdir(fpwd)
         # Get the file formatting
