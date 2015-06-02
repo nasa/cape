@@ -66,9 +66,6 @@ relatively simple commands.
     -I INDS
         Specify a list of cases to consider directly by index
         
-    --plot
-        Plot sweeps of data book
-        
     --report FREP
         Update report named *FREP* or all reports if *FREP* is not specified
         
@@ -132,9 +129,6 @@ if __name__ == "__main__":
     if kw.get('c'):
         # Display status.
         cart3d.DisplayStatus(**kw)
-    elif kw.get('plot'):
-        # Update data book plots.
-        cart3d.PlotDataBook()
     elif kw.get('p'):
         # Check for component.
         if kw['p'] != True:
