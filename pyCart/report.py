@@ -1177,10 +1177,21 @@ class Report(object):
         """
         # Save current folder.
         fpwd = os.getcwd()
-        # Extract options
+        # Extract options and trajectory
+        x = self.cart3d.DataBook.x
         opts = self.cart3d.opts
         # Case folder
-        frun = self.cart3d.x.GetFullFolderNames(I[0])
+        frun = x.GetFullFolderNames(I[0])
+        # Carpet constraints
+        CEq = opts.get_SweepOpt(fswp, "CarpetEqCons")
+        CTol = opts.get_SweepOpt(fswp, "CarpetTolCons")
+        # Check for carpet constraints.
+        if CEq or CTol:
+            # Divide sweep into subsweeps.
+            J = x.GetSweeps(I=I, EqCons=CEq, TolCons=CTol)
+        else:
+            # Single sweep
+            J = [I]
         # Get the component.
         comp = opts.get_SubfigOpt(sfig, "Component")
         # Get the coefficient
@@ -1198,6 +1209,8 @@ class Report(object):
         if type(comp).__name__ in ['list', 'ndarray']:
             # List of components
             nCoeff = max(nCoeff, len(comp))
+        # Number of sweeps
+        nSweep = len(J)
         # Get caption.
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
         # Process default caption. 
@@ -1230,12 +1243,32 @@ class Report(object):
             lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
             lines.append('\\vskip-6pt\n')
         # Loop through plots.
-        for k in range(nCoeff):
+        for i in range(nSweep*nCoeff):
+            # Coefficient index
+            k = i % nCoeff
+            # Sweep index
+            j = i / nCoeff
             # Get the component and coefficient.
             comp = opts.get_SubfigOpt(sfig, "Component", k)
             coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
             # Plot label (for legend)
             lbl = opts.get_SubfigOpt(sfig, "Label", k)
+            # Append carpet constraints to label if appropriate.
+            for kx in CEq:
+                # Default base label
+                if not lbl: lbl = comp
+                # Value of the key or modified key for all points.
+                V = eval('x.%s' % kx)
+                # Print the subsweep equality constraint in the label.
+                lbl += ", %s=%s" % (kx, V[J[j][0]])
+            # More carpet constraints
+            for kx in CTol:
+                # Default base label
+                if not lbl: lbl = comp
+                # Value of the key or modified key for all points.
+                V = eval('x.%s' % kx)
+                # Print the subsweep tolerance constraint in the label.
+                lbl += u", %s=%s\u00B1%s" % (kx, V[J[j][0]], CTol[kx]) 
             # Get the multiple of standard deviation to show
             ksig = opts.get_SubfigOpt(sfig, "StandardDeviation", k)
             qmmx = opts.get_SubfigOpt(sfig, "MinMax", k)
@@ -1243,11 +1276,11 @@ class Report(object):
             figw = opts.get_SubfigOpt(sfig, "FigureWidth", k)
             figh = opts.get_SubfigOpt(sfig, "FigureHeight", k)
             # Plot options
-            kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",   k)
-            kw_s = opts.get_SubfigPlotOpt(sfig, "StDevOptions",  k)
-            kw_m = opts.get_SubfigPlotOpt(sfig, "MinMaxOptions", k)
+            kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",   i)
+            kw_s = opts.get_SubfigPlotOpt(sfig, "StDevOptions",  i)
+            kw_m = opts.get_SubfigPlotOpt(sfig, "MinMaxOptions", i)
             # Draw the plot.
-            h = self.cart3d.DataBook.PlotCoeff(comp, coeff, I, x=xk,
+            h = self.cart3d.DataBook.PlotCoeff(comp, coeff, J[j], x=xk,
                 Label=lbl, LineOptions=kw_p,
                 StDev=ksig, StDevOptions=kw_s,
                 MinMax=qmmx, MinMaxOptions=kw_m,

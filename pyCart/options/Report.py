@@ -581,6 +581,8 @@ class Report(odict):
             "Figures": [],
             "EqCons": [],
             "TolCons": {},
+            "CarpetEqCons": [],
+            "CarpetTolCons": {},
             "GlobalCons": [],
             "IndexTol": None,
             "Indices": None

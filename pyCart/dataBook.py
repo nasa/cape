@@ -593,7 +593,6 @@ class DataBook(dict):
         if ksig:
             # Add standard deviation to label.
             lbl = u'%s (\u00B1%s\u03C3)' % (lbl, ksig)
-            print(lbl)
             # Extract plot options from keyword arguments.
             for k in util.denone(kw.get("StDevOptions")):
                 # Option.
