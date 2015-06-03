@@ -786,6 +786,12 @@ class Trajectory:
         m = M.copy()
         # Sort key.
         xk = kw.get('SortVar')
+        # Get constraints
+        EqCons  = kw.get('EqCons',  [])
+        TolCons = kw.get('TolCons', {})
+        # Ensure no NoneType
+        if EqCons  is None: EqCons = []
+        if TolCons is None: TolCons = {}
         # Get the first index.
         i0 = np.where(M)[0][0]
         # Check for an IndexTol.
@@ -802,7 +808,7 @@ class Trajectory:
             # Remove from the mask
             m[imax:] = False
         # Loop through equality constraints.
-        for c in kw.get('EqCons', []):
+        for c in EqCons:
             # Get the key (for instance if matching ``k%10``)
             k = re.split('[^a-zA-Z_]', c)[0]
             # Check for the key.
@@ -816,7 +822,7 @@ class Trajectory:
             # Apply the constraint.
             m = np.logical_and(m, eval(con))
         # Loop through tolerance-based constraints.
-        for c in kw.get('TolCons', {}):
+        for c in TolCons:
             # Get the key (for instance if matching 'i%10', key is 'i')
             k = re.split('[^a-zA-Z_]', c)[0]
             # Check for the key.
@@ -824,7 +830,7 @@ class Trajectory:
                 raise IOError(
                     "Could not find trajectory key for constraint '%s'." % c)
             # Get tolerance.
-            tol = kw['TolCons'][c]
+            tol = TolCons[c]
             # Get the target value.
             x0 = getattr(self,k)[i0]
             # Form the greater-than constraint.
@@ -859,6 +865,7 @@ class Trajectory:
         
         :Call:
             >>> J = x.GetSweeps(**kw)
+            >>> K = x.GetSweeps(CarpetEqCons=[], CarpetTolCons={}, **kw)
         :Inputs:
             *cons*: :class:`list` (:class:`str`)
                 List of global constraints; only points satisfying these
@@ -877,9 +884,16 @@ class Trajectory:
             *IndexTol*: :class:`int`
                 If specified, only trajectory points in the range
                 ``[i0,i0+IndexTol]`` are considered for the sweep
+            *CarpetEqCons*: :class:`list` (:class:`str`)
+                List of trajectory keys which subdivide each sweep into
+                subsweeps
+            *CarpetTolCons*: :class:`dict` (:class:`float`)
+                Dictionary of tolerance constraints to subdivide each sweep
         :Outputs:
             *J*: :class:`list` (:class:`numpy.ndarray` (:class:`int`))
                 List of trajectory point sweeps
+            *K*: :class:`list` (:class:`list` (:class:`numpy.ndarray`))
+                List of trajectory sweep subsets
         :Versions:
             * 2015-05-25 ``@ddalle``: First version
         """
@@ -889,6 +903,9 @@ class Trajectory:
         M = np.arange(self.nCase) < 0
         # Set the mask to ``True`` for any cases passing global constraints.
         M[I0] = True
+        # Carpet constraints.
+        CEq = kw.get('CarpetEqCons', [])
+        CTol = kw.get('CarpetTolCons', {})
         # Initialize output.
         J = []
         # Safety check: no more than *nCase* sets.
@@ -899,8 +916,15 @@ class Trajectory:
             i += 1
             # Get the current sweep.
             I = self.GetSweep(M, **kw)
-            # Save it.
-            J.append(I)
+            # Check for carpet subdivision
+            if CEq or CTol:
+                # Reenter function with simpler constraints.
+                j = self.GetSweeps(I=I, EqCons=CEq, TolCons=CTol)
+                # Save the carpet subdivision
+                J.append(j)
+            else:
+                # Save the sweep as is.
+                J.append(I)
             # Update the mask.
             M[I] = False
         # Output

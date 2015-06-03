@@ -12,6 +12,13 @@ generation.
     
         "Report": {
             "Archive": false,
+            "Reports": ["case"],
+            "case": {
+                "Title": "Automated Cart3D Report",
+                "Figures": ["Summary", "Forces"],
+                "FailFigures": ["Summary", "Surface"],
+                "ZeroFigures": ["Summary", "Surface"]
+            },
             "Figures": {
                 "Summary": {
                     "Alignment": "left",
@@ -34,32 +41,41 @@ generation.
                     "Type": "Summary"
                 },
                 "Surface": {
-                    "Tecplot": "surface.lay"
+                    "Type": "Tecplot",
+                    "Layout": "surface.lay"
                 },
-                "CA": {
-                    "Width": 0.5
-                }
-            }, 
-            "Report": {
-                "Title": "Automated Cart3D Report",
-                "Figures": ["Summary", "Forces"],
-                "FailFigures": ["Summary", "Surface"],
-                "ZeroFigures": ["Summary", "Surface"]
+                "wingFM": {
+                    "Type": "PlotCoeff",
+                    "Component": "CA",
+                    "Width": 0.5,
+                    "StandardDeviation": 1.0, 
+                    "nStats": 200
+                },
+                "CA": {"Type": "wingFM" "Coefficient": "CA"},
+                "CY": {"Type": "wingFM" "Coefficient": "CY"},
+                "CN": {"Type": "wingFM" "Coefficient": "CN"},
+                "L1": {"Type": "PlotL1"}
             }
         }
 
 These sections are put into action by calls of ``pycart --report``.  There are
-three recognized settings: "Archive", "Figures", and "Subfigures".  Remaining
-options are identified as the names of reports.  The example above has one
-report named "Report", but the JSON file may have more reports with different
-names.  Users may build a specific report with a command such as ``pycart
---report case`` (assuming there is a report called "case").
+three primary fields: "Sweeps", "Figures", and "Subfigures", along with two
+minor settings of "Archive" and "Reports".  Remaining options are identified as
+the names of reports.  The example above has one report named "Report", but the
+JSON file may have more reports with different names.  Users may build a
+specific report with a command such as ``pycart --report case`` (assuming there
+is a report called ``"case"``).
 
 Each report contains a "Title", a list of figures for nominal cases, a list of
 figures for cases that fail (optional), and a list of figures for cases that
 have not been started yet (optional).  Each case has one or more pages (but each
 case starts on a new page) that contains the appropriate list of figures from
 these three possibilities.
+
+In addition, a report can contain so-called "Sweeps," which report status and
+results from subsets of the run matrix.  For example, one can create a page of a
+report for cases having the same angle of attack and sideslip, and the page
+could contain plots versus Mach number.
 
 Each figure contains an alignment, a heading, and a list of subfigures.  The
 subfigure definitions contain the real information about the report.
