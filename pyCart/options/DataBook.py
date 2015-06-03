@@ -606,6 +606,33 @@ class DBTarget(odict):
         """
         return self.get('Name', 'Target')
         
+    # Get the components that this target describes
+    def get_TargetComponents(self):
+        """Get the list of components described by this component
+        
+        Returning ``None`` is a flag to use all components from the data book.
+        
+        :Call:
+            >>> comps = opts.get_TargetComponents()
+        :Inputs:
+            *opts*: :class:`pyCart.options.DataBook.DBTarget`
+                Options interface
+        :Outputs:
+            *comps*: :class:`list` (:class:`str`)
+                List of components (``None`` if not specified)
+        :Versions:
+            * 2015-06-03 ``@ddalle``: First version
+        """
+        # Get the list
+        comps = self.get('Components')
+        # Check type.
+        if type(comps).__name__ in ['str', 'unicode']:
+            # String: make it a list.
+            return [comps]
+        else:
+            # List, ``None``, or nonsense
+            return comps
+        
     # Get the fie name
     def get_TargetFile(self):
         """Get the file name for the target

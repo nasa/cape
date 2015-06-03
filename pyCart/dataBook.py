@@ -125,7 +125,7 @@ class DataBook(dict):
         # Read the targets.
         for targ in opts.get_DataBookTargets():
             # Read the file.
-            self.Targets.append(DBTarget(targ, opts))
+            self.Targets.append(DBTarget(targ, x, opts))
             
     # Command-line representation
     def __repr__(self):
@@ -530,6 +530,7 @@ class DataBook(dict):
                 Coefficient being plotted
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of indexes of cases to include in sweep
+        :Keyword Arguments:
             *x*: [ {None} | :class:`str` ]
                 Trajectory key for *x* axis (or plot against index if ``None``)
             *Label*: [ {*comp*} | :class:`str` ]
@@ -1410,10 +1411,12 @@ class DBTarget(dict):
     data books created by pyCart are not valid target files.
     
     :Call:
-        >>> DBT = pyCart.dataBook.DBTarget(targ, opts)
+        >>> DBT = pyCart.dataBook.DBTarget(targ, x, opts)
     :Inputs:
         *targ*: :class:`pyCart.options.DataBook.DBTarget`
             Instance of a target source options interface
+        *x*: :class:`pyCart.trajectory.Trajectory`
+            Run matrix interface
         *opts*: :class:`pyCart.options.Options`
             Global pyCart options instance to determine which fields are useful
     :Outputs:
@@ -1424,19 +1427,42 @@ class DBTarget(dict):
     """
     
     # Initialization method
-    def __init__(self, targ, opts):
+    def __init__(self, targ, x, opts):
         """Initialization method
         
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
+            * 2015-06-03 ``@ddalle``: Added trajectory, split into methods
         """
         # Save the target options
         self.opts = opts
         self.topts = targ
+        # Save the trajectory.
+        self.x = x.Copy()
+        
+        # Read the data
+        self.ReadData()
+        # Process the columns.
+        self.ProcessColumns()
+        # Make the trajectory data match the available list of points.
+        self.UpdateTrajectory()
+    
+    # Read the data
+    def ReadData(self):
+        """Read data file according to stored options
+        
+        :Call:
+            >>> DBT.ReadData()
+        :Inputs:
+            *DBT*: :class:`pyCart.dataBook.DBTarget`
+                Instance of the data book target class
+        :Versions:
+            * 2015-06-03 ``@ddalle``: Copied from :func:`__init__` method
+        """
         # Source file
-        fname = targ.get_TargetFile()
+        fname = self.topts.get_TargetFile()
         # Name of this target.
-        tname = targ.get_TargetName()
+        tname = self.topts.get_TargetName()
         # Check for the file.
         if not os.path.isfile(fname):
             raise IOError(
@@ -1444,9 +1470,9 @@ class DBTarget(dict):
         # Save the name.
         self.Name = tname
         # Delimiter
-        delim = targ.get_Delimiter()
+        delim = self.topts.get_Delimiter()
         # Comment character
-        comchar = targ.get_CommentChar()
+        comchar = self.topts.get_CommentChar()
         # Open the file again.
         f = open(fname)
         # Loop until finding a line that doesn't begin with comment char.
@@ -1465,17 +1491,60 @@ class DBTarget(dict):
 
         # Read it.
         self.data = np.loadtxt(fname, delimiter=delim, skiprows=nskip)
-        # Initialize requested fields with the fields that correspond to
-        # trajectory keys
-        cols = targ.get_Trajectory().values()
+        # Save number of points.
+        self.n = self.data.shape[0]
+    
+    # Read the columns and split into useful dict.
+    def ProcessColumns(self):
+        """Process data columns and split into dictionary keys
+        
+        :Call:
+            >>> DBT.ProcessColumns()
+        :Inputs:
+            *DBT*: :class:`pyCart.dataBook.DBTarget`
+                Instance of the data book target class
+        :Versions:
+            * 2015-06-03 ``@ddalle``: Copied from :func:`__init__` method
+        """
+        # Initialize data fields.
+        cols = []
+        # Names of columns corresponding to trajectory keys.
+        tkeys = self.topts.get_Trajectory()
+        # Loop through trajectory fields.
+        for k in self.x.keys:
+            # Get field name.
+            col = tkeys.get(k, k)
+            # Check for manually turned-off trajectory.
+            if col is None:
+                # Manually turned off.
+                continue
+            elif col not in self.headers:
+                # Not present in the file.
+                continue
+            # Append the key.
+            cols.append(col)
+        # Initialize translations for force/moment coefficients
+        ckeys = {}
+        # List of potential components.
+        tcomps = self.topts.get_TargetComponents()
+        # Check for default.
+        if tcomps is None:
+            # Use all components.
+            tcomps = self.opts.get_DataBookComponents()
         # Process the required fields.
-        for comp in opts.get_DataBookComponents():
-            # Loop through the targets.
-            for ctarg in opts.get_CompTargets(comp).values():
+        for comp in tcomps:
+            # Initialize translations for this component.
+            ckeys[comp] = {}
+            # Get targets for this component.
+            ctargs = self.opts.get_CompTargets(comp)
+            # Loop through the possible force/moment coefficients.
+            for c in ['CA','CY','CN','CLL','CLM','CLN']:
+                # Get the translated name
+                ctarg = ctargs.get(c, c)
                 # Get the target source for this entry.
                 if '/' not in ctarg:
                     # Only one target source; assume it's this one.
-                    ti = tname
+                    ti = self.Name
                     fi = ctarg
                 else:
                     # Read the target name.
@@ -1483,19 +1552,246 @@ class DBTarget(dict):
                     # Name of the column
                     fi = ctarg.split('/')[1]
                 # Check if the target is from this target source.
-                if ti != tname: continue
+                if ti != self.Name: continue
+                # Check if the column is present in the headers.
+                if fi not in self.headers:
+                    # Check for default.
+                    if ctarg in ctargs:
+                        # Manually specified and not recognized: error
+                        raise KeyError("There is no field '%s' in file '%s'."
+                            % (fi, self.topts.get_TargetFile()))
+                    else:
+                        # Autoselected name but not in the file.
+                        continue
                 # Add the field if necessary.
-                if fi not in cols:
-                    # Check if the column is present.
-                    if fi not in self.headers:
-                        raise IOError("There is not field '%s' in '%s'."
-                            % (fi, ti))
-                    # Add the column
-                    cols.append(fi)
-        # Process the columns.
+                if fi in cols:
+                    raise IOError(
+                        "Column '%s' of file '%s' used more than once."
+                        % (fi, self.topts.get_TargetFile()))
+                # Add the column.
+                cols.append(fi)
+                # Add to the translation dictionary.
+                ckeys[comp][c] = fi
+        # Extract the data into a dict with a key for each relevant column.
         for col in cols:
             # Find it and save it as a key.
             self[col] = self.data[:,self.headers.index(col)]
+        # Save the data keys translations.
+        self.ckeys = ckeys
+        
+    # Match the databook copy of the trajectory
+    def UpdateTrajectory(self):
+        """Match the trajectory to the cases in the data book
+        
+        :Call:
+            >>> DBT.UpdateTrajectory()
+        :Inputs:
+            *DBT*: :class:`pyCart.dataBook.DBTarget`
+                Instance of the data book target class
+        :Versions:
+            * 2015-06-03 ``@ddalle``: First version
+        """
+        # Get trajectory key specifications.
+        tkeys = self.opts.get_Trajectory()
+        # Loop through the trajectory keys.
+        for k in self.x.keys:
+            # Get the column name in the target.
+            tk = tkeys.get(k, k)
+            # Set the value if it's a default.
+            tkeys.setdefault(k, tk)
+            # Check for ``None``
+            if (tk is None) or (tk not in self):
+                # Use NaN as the value.
+                setattr(self.x,k, np.nan*np.ones(self.n))
+                # Set the value.
+                tkeys[k] = None
+                continue
+            # Update the trajectory values to match those of the trajectory.
+            setattr(self.x,k, self[tk])
+        # Save the key translations.
+        self.xkeys = tkeys
+        # Set the number of cases in the "trajectory."
+        self.x.nCase = self.n
+        
+    # Plot a sweep of one or more coefficients
+    def PlotCoeff(self, comp, coeff, I, **kw):
+        """Plot a sweep of one coefficients over several cases
+        
+        :Call:
+            >>> h = DBT.PlotCoeff(comp, coeff, I, **kw)
+        :Inputs:
+            *DBT*: :class:`pyCart.dataBook.DBTarget`
+                Instance of the pyCart data book target class
+            *comp*: :class:`str`
+                Component whose coefficient is being plotted
+            *coeff*: :class:`str`
+                Coefficient being plotted
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indexes of cases to include in sweep
+        :Keyword Arguments:
+            *x*: [ {None} | :class:`str` ]
+                Trajectory key for *x* axis (or plot against index if ``None``)
+            *Label*: [ {*comp*} | :class:`str` ]
+                Manually specified label
+            *Legend*: [ {True} | False ]
+                Whether or not to use a legend
+            *StDev*: [ {None} | :class:`float` ]
+                Multiple of iterative history standard deviation to plot
+            *MinMax*: [ {False} | True ]
+                Whether to plot minimum and maximum over iterative history
+            *LineOptionss*: :class:`dict`
+                Plot options for the primary line(s)
+            *StDevOptions*: :class:`dict`
+                Dictionary of plot options for the standard deviation plot
+            *MinMaxOptions*: :class:`dict`
+                Dictionary of plot options for the min/max plot
+            *FigWidth*: :class:`float`
+                Width of figure in inches
+            *FigHeight*: :class:`float`
+                Height of figure in inches
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of plot handles
+        :Versions:
+            * 2015-05-30 ``@ddalle``: First version
+        """
+        # Make sure the plotting modules are present.
+        ImportPyPlot()
+        # Get horizontal key.
+        xk = kw.get('x')
+        # Figure dimensions
+        fw = kw.get('FigWidth', 6)
+        fh = kw.get('FigHeight', 4.5)
+        # Iterative uncertainty options
+        qmmx = kw.get('MinMax', 0)
+        ksig = kw.get('StDev')
+        # Initialize output
+        h = {}
+        # Extract the values for the x-axis.
+        if xk is None or xk == 'Index':
+            # Use the indices as the x-axis
+            xv = I
+            # Label
+            xk = 'Index'
+        else:
+            # Check if the value is present.
+            if xk not in self.xkeys: return
+            # Extract the values.
+            xv = self[self.xkeys[xk]][I]
+        # Check if the coefficient is in the target data.
+        if (comp not in self.ckeys) or (coeff not in self.ckeys[comp]):
+            # No data.
+            return
+        # Extract the mean values.
+        yv = self[self.ckeys[comp][coeff]][I]
+        # Initialize label.
+        lbl = kw.get('Label', '%s/%s' % (self.Name, comp))
+        # -----------------------
+        # Standard Deviation Plot
+        # -----------------------
+        # Initialize plot options for standard deviation.
+        kw_s = odict(color='c', lw=0.0,
+            facecolor='c', alpha=0.35, zorder=1)
+        # Show iterative standard deviation.
+        if ksig:
+            # Add standard deviation to label.
+            lbl = u'%s (\u00B1%s\u03C3)' % (lbl, ksig)
+            # Extract plot options from keyword arguments.
+            for k in util.denone(kw.get("StDevOptions")):
+                # Option.
+                o_k = kw["StDevOptions"][k]
+                # Override the default option.
+                if o_k is not None: kw_s[k] = o_k
+            # Get the standard deviation value.
+            sv = DBc[coeff+"_std"][I]
+            # Plot it.
+            h['std'] = plt.fill_between(xv, yv-ksig*sv, yv+ksig*sv, **kw_s)
+        # ------------
+        # Min/Max Plot
+        # ------------
+        # Initialize plot options for min/max
+        kw_m = odict(color='m', lw=0.0,
+            facecolor='m', alpha=0.35, zorder=2)
+        # Show min/max options
+        if qmmx:
+            # Add min/max to label.
+            lbl = u'%s (min/max)' % (lbl)
+            # Extract plot options from keyword arguments.
+            for k in util.denone(kw.get("MinMaxOptions")):
+                # Option
+                o_k = kw["MinMaxOptions"][k]
+                # Override the default option.
+                if o_k is not None: kw_m[k] = o_k
+            # Get the min and max values.
+            ymin = DBc[coeff+"_min"][I]
+            ymax = DBc[coeff+"_max"][I]
+            # Plot it.
+            h['max'] = plt.fill_between(xv, ymin, ymax, **kw_m)
+        # ------------
+        # Primary Plot
+        # ------------
+        # Initialize plot options for primary plot
+        kw_p = odict(color='r', marker='^', zorder=7, ls='-')
+        # Plot options
+        for k in util.denone(kw.get("LineOptions")):
+            # Option
+            o_k = kw["LineOptions"][k]
+            # Override the default option.
+            if o_k is not None: kw_p[k] = o_k
+        # Label
+        kw_p.setdefault('label', lbl)
+        # Plot it.
+        h['line'] = plt.plot(xv, yv, **kw_p)
+        # ----------
+        # Formatting
+        # ----------
+        # Get the figure and axes.
+        h['fig'] = plt.gcf()
+        h['ax'] = plt.gca()
+        # Check for an existing ylabel
+        ly = h['ax'].get_ylabel()
+        # Compare to requested ylabel
+        if ly and ly != coeff:
+            # Combine labels.
+            ly = ly + '/' + coeff
+        else:
+            # Use the coefficient.
+            ly = coeff
+        # Labels.
+        h['x'] = plt.xlabel(xk)
+        h['y'] = plt.ylabel(ly)
+        # Legend.
+        if kw.get('Legend', True):
+            # Add extra room for the legend.
+            ymin, ymax = h['ax'].get_ylim()
+            # Add margin to the y-axis limit.
+            h['ax'].set_ylim((ymin, 1.21*ymax-0.21*ymin))
+            # Font size checks.
+            if len(h['ax'].get_lines()) > 5:
+                # Very small
+                fsize = 7
+            else:
+                # Just small
+                fsize = 9
+            # Activate the legend.
+            try:
+                # Use a font that has the proper symbols.
+                h['legend'] = h['ax'].legend(loc='upper center',
+                    prop=dict(size=fsize, family="DejaVu Sans"),
+                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
+            except Exception:
+                # Default font.
+                h['legend'] = h['ax'].legend(loc='upper center',
+                    prop=dict(size=fsize),
+                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
+        # Figure dimensions.
+        if fh: h['fig'].set_figheight(fh)
+        if fw: h['fig'].set_figwidth(fw)
+        # Attempt to apply tight axes.
+        try: plt.tight_layout()
+        except Exception: pass
+        # Output
+        return h
         
     # Find an entry by trajectory variables.
     def FindMatch(self, x, i):
@@ -1921,6 +2217,7 @@ class Aero(dict):
                 print("Warning: no reference point in line:\n  '%s'" % line)
                 # Function to plot a single coefficient.
     
+    # Plot coefficient iterative history
     def PlotCoeff(self, comp, c, n=None, nAvg=100, d=0.01, **kw):
         """Plot a single coefficient history
         
@@ -2386,6 +2683,7 @@ class CaseFM(object):
             # Save list of coefficients.
             self.coeffs = ['CA', 'CY', 'CN']
         
+    # Transform force or moment reference frame
     def TransformFM(self, topts, x, i):
         """Transform a force and moment history
         
