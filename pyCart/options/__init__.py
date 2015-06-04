@@ -1642,15 +1642,10 @@ class Options(odict):
         self._DataBook()
         return self['DataBook'].get_DataBookTargets()
     
-    # Get list of plots
-    def get_DataBookPlots(self):
-        self._DataBook()
-        return self['DataBook'].get_DataBookPlots()
-    
     # Copy over the documentation.
     for k in ['DataBookComponents', 'DataBookCoeffs', 'DataBookTargets',
             'DataBookCols', 'CompTargets', 'DataBookTransformations',
-            'DataBookDataCols', 'DataBookTargetCols', 'DataBookPlots']:
+            'DataBookDataCols', 'DataBookTargetCols']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
     
