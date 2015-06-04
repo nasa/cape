@@ -126,7 +126,8 @@ class Report(object):
         # Update any sweep figures.
         self.UpdateSweeps(I, cons, **kw)
         # Update any case-by-case figures.
-        self.UpdateCases(I, cons, **kw)
+        if self.HasCaseFigures():
+            self.UpdateCases(I, cons, **kw)
         # Write the file.
         self.tex.Write()
         # Compmile it.
@@ -137,9 +138,11 @@ class Report(object):
         self.tex.Compile()
         # Clean up
         print("Cleaning up...")
-        # Clean up cases
-        self.CleanUpCases(I=I, cons=cons)
+        # Clean up sweeps
         self.CleanUpSweeps(I=I, cons=cons)
+        # Clean up cases
+        if self.HasCaseFigures():
+            self.CleanUpCases(I=I, cons=cons)
         # Get other 'report-*.*' files.
         fglob = glob.glob('%s*' % self.fname[:-3])
         # Delete most of them.
@@ -439,8 +442,6 @@ class Report(object):
         # Get the case name.
         fgrp = self.cart3d.x.GetGroupFolderNames(i)
         fdir = self.cart3d.x.GetFolderNames(i)
-        # Status update
-        print('%s/%s' % (fgrp, fdir))
         # Go to the report directory if necessary.
         fpwd = os.getcwd()
         os.chdir(self.cart3d.RootDir)
@@ -454,22 +455,39 @@ class Report(object):
             os.mkdir(fdir, dmask)
         # Go into the folder.
         self.cd(fdir)
-        # Add the line to the master LaTeX file
-        self.tex.Section['Cases'].insert(-1,
-            '\\input{%s/%s/%s}\n' % (fgrp, fdir, self.fname))
+        # ------------
+        # Status check
+        # ------------
         # Read the status file.
         nr, stsr = self.ReadCaseJSONIter()
         # Get the actual iteration number.
         n = self.cart3d.CheckCase(i)
         sts = self.cart3d.CheckCaseStatus(i)
+        # Get the figure list
+        if sts == "ERROR":
+            # Get the figures for FAILed cases
+            figs = self.cart3d.opts.get_ReportErrorFigList(self.rep)
+        elif n:
+            # Nominal case with some results
+            figs = self.cart3d.opts.get_ReportFigList(self.rep)
+        else:
+            # No FAIL file, but no iterations
+            figs = self.cart3d.opts.get_ReportZeroFigList(self.rep)
+        # If no figures to run; exit.
+        if len(figs) == 0:
+            # Go home and quit.
+            os.chdir(fpwd)
+            return
+        # Add the line to the master LaTeX file.
+        self.tex.Section['Cases'].insert(-1,
+            '\\input{%s/%s/%s}\n' % (fgrp, fdir, self.fname))
+        # Status update
+        print('%s/%s' % (fgrp, fdir))
         # Check if there's anything to do.
         if not ((nr is None) or (n>0 and nr!=n) or (stsr != sts)):
             # Go home and quit.
             os.chdir(fpwd)
             return
-        # -------------
-        # Initial setup
-        # -------------
         # Status update
         if nr == n and nr is not None:
             # Changing status
@@ -480,6 +498,9 @@ class Report(object):
         else:
             # New case
             print("  New report at iteration %s" % n)
+        # -------------
+        # Initial setup
+        # -------------
         # Check for the file.
         if os.path.isfile(self.fname): os.remove(self.fname)
         # Make the skeleton file.
@@ -491,16 +512,6 @@ class Report(object):
         # -------
         # Figures
         # -------
-        # Check for alternate statuses.
-        if sts == "ERROR":
-            # Get the figures for FAILed cases
-            figs = self.cart3d.opts.get_ReportErrorFigList(self.rep)
-        elif n:
-            # Nominal case with some results
-            figs = self.cart3d.opts.get_ReportFigList(self.rep)
-        else:
-            # No FAIL file, but no iterations
-            figs = self.cart3d.opts.get_ReportZeroFigList(self.rep)
         # Loop through figures.
         for fig in figs:
             self.UpdateFigure(fig, i)
@@ -2152,6 +2163,29 @@ class Report(object):
         
             
             
+    # Check for any case figures
+    def HasCaseFigures(self):
+        """Check if there are any case figures for this report
+        
+        :Call:
+            >>> q = R.HasCaseFigures()
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not any of report figure lists has nonzero length
+        :Versions:
+            * 2015-06-03 ``@ddalle``: First version
+        """
+        # Get the three sets of lists.
+        cfigs = self.cart3d.opts.get_ReportFigList(self.rep)
+        efigs = self.cart3d.opts.get_ReportErrorFigList(self.rep)
+        zfigs = self.cart3d.opts.get_ReportZeroFigList(self.rep)
+        # Check if any of them have nozero length.
+        return (len(cfigs)>0) or (len(efigs)>0) or (len(zfigs)>0)
+    
+    
     # Function to get update sweeps
     def GetSweepIndices(self, fswp, I=None, cons=[]):
         """Divide cases into individual sweeps
