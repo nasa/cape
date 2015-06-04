@@ -2243,6 +2243,44 @@ class Report(object):
         # Output
         return J
         
+    # Function to get subset of target catches matching a sweep
+    def GetTargetSweepIndices(self, fswp, i0, itarg):
+        """
+        Return indices of a target data set that correspond to sweep constraints
+        from a data book point
+        
+        :Call:
+            >>> I = R.GetTargetSweepIndices(fswp, i0, itarg)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *fswp*: :class:`str`
+                Name of sweep to update
+            *i0*: :class:`int`
+                Index of point in *R.cart3d.DataBook.x* to use as reference
+            *itarg*: :class:`int`
+                Index of the target in data book to use
+        :Outputs:
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of target data indices
+        :Versions:
+            * 2015-06-03 ``@ddalle``: First version
+        """
+        # Extract the target interface.
+        DBT = self.cart3d.DataBook.Targets[itarg]
+        # Extract options
+        opts = self.cart3d.opts
+        # Sort variable
+        xk = opts.get_SweepOpt(fswp, 'XAxis')
+        # Sweep constraints
+        EqCons = opts.get_SweepOpt(fswp, 'EqCons')
+        TolCons = opts.get_SweepOpt(fswp, 'TolCons')
+        # Get the matching sweep.
+        I = DBT.x.GetCoSweep(self.cart3d.DataBook.x, i0,
+            SortVar=xk, EqCons=EqCons, TolCons=TolCons)
+        # Output
+        return I
+        
     # Function to read the data book and reread it if necessary
     def ReadDataBook(self, fsrc="data"):
         """Read the data book if necessary for a specific sweep

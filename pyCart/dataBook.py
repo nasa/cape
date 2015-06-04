@@ -488,7 +488,7 @@ class DataBook(dict):
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pyCart data book class
-            *targ*: :class:`str`
+            *ftarg*: :class:`str`
                 Name of the target and column
         :Outputs:
             *i*: :class:`int`
