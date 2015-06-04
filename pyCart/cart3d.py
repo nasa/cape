@@ -280,30 +280,6 @@ class Cart3d(object):
         # Return to original folder.
         os.chdir(fpwd)
         
-    # Function to plot the databook.
-    def PlotDataBook(self):
-        """Plot all data book plots as specified in options
-        
-        :Call:
-            >>> cart3d.PlotDataBook()
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-        :Versions:
-            * 2014-12-28 ``@ddalle``: First version
-        """
-        # Make sure the data book is present.
-        self.ReadDataBook()
-        # Get the plot options.
-        DBPs = self.opts.get_DataBookPlots()
-        # Loop through them.
-        for i in range(len(DBPs)):
-            # Status update.
-            print("Plot %2i: %s/%s" % 
-                (i, DBPs[i]['Components'][0], DBPs[i]['YAxis']))
-            # Plot it using pyCart.DataBook.Plot
-            self.DataBook.Plot(i)
-        
         
     # Function to collect statistics
     def Aero(self, **kw):
