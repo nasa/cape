@@ -324,25 +324,27 @@ class Report(object):
         # Enter the sweep folder.
         os.chdir(fdir)
         # Loop through pages.
-        for I in J:
+        for i in range(len(J)):
             # Update the sweep page.
-            self.UpdateSweepPage(fswp, I)
+            self.UpdateSweepPage(fswp, J[i], JT[i])
         # Return to original directory
         os.chdir(fpwd)
         
     # Update a page for a single sweep
-    def UpdateSweepPage(self, fswp, I):
+    def UpdateSweepPage(self, fswp, I, IT=[]):
         """Update one page of a sweep for an automatic report
         
         :Call:
-            >>> R.UpdateSweepPage(fswp, I)
+            >>> R.UpdateSweepPage(fswp, I, IT=[])
         :Inputs:
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
             *fswp*: :class:`str`
                 Name of sweep to update
-            *I*: :class:`list` (:class:`int`)
+            *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of cases in this sweep
+            *IT*: :class:`list` (:class:`numpy.ndarray` (:class:`int`))
+                List of correspond indices for each target
         :Versions:
             * 2015-05-29 ``@ddalle``: First version
         """
@@ -2236,7 +2238,7 @@ class Report(object):
         # Restrict Indices
         I = np.intersect1d(I0, I1)
         # Divide the cases into individual sweeps.
-        J = x.GetSweeps(I=I, SortVar=xk, 
+        J = x.GetSweeps(I=I, SortVar=xk,
             EqCons=EqCons, TolCons=TolCons, IndexTol=IndexTol)
         # Output
         return J
