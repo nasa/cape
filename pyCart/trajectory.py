@@ -759,7 +759,10 @@ class Trajectory:
         
         :Call:
             >>> I = x.GetSweep(M, **kw)
+            >>> I, IT = x.GetSweep(M, TargetX=[], **kw)
         :Inputs:
+            *x*: :class:`pyCart.trajectory.Trajectory`
+                Instance of the pyCart trajectory class
             *M*: :class:`numpy.ndarray` (:class:`bool`)
                 Mask of which trajectory points should be considered
             *SortVar*: :class:`str`
@@ -774,11 +777,14 @@ class Trajectory:
             *IndexTol*: :class:`int`
                 If specified, only trajectory points in the range
                 ``[i0,i0+IndexTol]`` are considered for the sweep
+            *TargetX*: :class:`list` (:class:`pyCart.trajectory.Trajectory`)
+                List of target trajectories
         :Outputs:
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of trajectory point indices in the sweep
         :Versions:
             * 2015-05-24 ``@ddalle``: First version
+            * 2015-06-03 ``@ddalle``: Added target trajectories
         """
         # Check for an *i0* point.
         if not np.any(M): return np.array([])
@@ -807,6 +813,20 @@ class Trajectory:
         if imax < self.nCase:
             # Remove from the mask
             m[imax:] = False
+        # Check for target trajectories.
+        XT = kw.get('TargetX', [])
+        # Check for `None`
+        if XT is None: XT = []
+        # Check for single target trajectory.
+        if type(XT).__name__ != 'list': XT = [XT]
+        # Initialize target masks.
+        MT = []
+        IT = []
+        # Loop through targets for initialization.
+        for xt in XT:
+            # Initial mask (accept all cases).
+            MT.append(np.arange(xt.nCase)>0)
+            IT.append(np.arange(xt.nCase))
         # Loop through equality constraints.
         for c in EqCons:
             # Get the key (for instance if matching ``k%10``)
@@ -821,6 +841,14 @@ class Trajectory:
             con = 'self.%s == %s' % (c, x0)
             # Apply the constraint.
             m = np.logical_and(m, eval(con))
+            # Loop through target trajectories.
+            for i in range(len(XT)):
+                # Get the trajectory handle.
+                xt = XT[i]
+                # Form the constraint.
+                con = 'xt.%s == %s' % (c, x0)
+                # Apply it.
+                MT[i] = np.logical_and(MT[i], eval(con))
         # Loop through tolerance-based constraints.
         for c in TolCons:
             # Get the key (for instance if matching 'i%10', key is 'i')
@@ -841,18 +869,47 @@ class Trajectory:
             con = 'self.%s <= %s' % (c, x0+tol)
             # Apply the constraint.
             m = np.logical_and(m, eval(con))
+            # Loop through target trajectories.
+            for i in range(len(XT)):
+                # Get the trajectory handle.
+                xt = XT[i]
+                # Form the min constraint.
+                con = 'xt.%s >= %s' % (c, x0-tol)
+                # Apply it.
+                MT[i] = np.logical_and(MT[i], eval(con))
+                # Form the max constraint.
+                con = 'xt.%s <= %s' % (c, x0+tol)
+                # Apply it.
+                MT[i] = np.logical_and(MT[i], eval(con))
         # Initialize output.
         I = np.arange(self.nCase)
         # Apply the final mask.
         J = I[m]
+        # Initialize target outputs.
+        JT = []
+        # Loop through targets.
+        for i in range(len(XT)):
+            # Append the final mask.
+            JT.append(IT[i][MT[i]])
         # Check for a sort variable.
         if xk is not None:
             # Sort based on that key.
             j = np.argsort(getattr(self,xk)[J])
             # Sort the indices.
             J = J[j]
+            # Loop through targets.
+            for i in range(len(XT)):
+                # Sort order for the sort key.
+                j = np.argsort(getattr(XT[i],xk)[JT[i]])
+                # Sort the indices.
+                JT[i] = JT[i][j]
         # Output
-        return J
+        if 'TargetX' in kw:
+            # Return indices for this trajectory and targets.
+            return J, JT
+        else:
+            # Only indices for the current trajectory.
+            return J
         
     # Function to get set of sweeps based on criteria
     def GetSweeps(self, **kw):
@@ -865,7 +922,7 @@ class Trajectory:
         
         :Call:
             >>> J = x.GetSweeps(**kw)
-            >>> K = x.GetSweeps(CarpetEqCons=[], CarpetTolCons={}, **kw)
+            >>> J, JT = x.GetSweeps(TargetX=[], **kw)
         :Inputs:
             *cons*: :class:`list` (:class:`str`)
                 List of global constraints; only points satisfying these
@@ -884,18 +941,16 @@ class Trajectory:
             *IndexTol*: :class:`int`
                 If specified, only trajectory points in the range
                 ``[i0,i0+IndexTol]`` are considered for the sweep
-            *CarpetEqCons*: :class:`list` (:class:`str`)
-                List of trajectory keys which subdivide each sweep into
-                subsweeps
-            *CarpetTolCons*: :class:`dict` (:class:`float`)
-                Dictionary of tolerance constraints to subdivide each sweep
+            *TargetX*: :class:`list` (:class:`pyCart.trajectory.Trajectory`)
+                List of target trajectories
         :Outputs:
             *J*: :class:`list` (:class:`numpy.ndarray` (:class:`int`))
                 List of trajectory point sweeps
-            *K*: :class:`list` (:class:`list` (:class:`numpy.ndarray`))
-                List of trajectory sweep subsets
+            *JT*: :class:`list` (:class:`list` (:class:`numpy.ndarray`))
+                List of target trajectory co-sweeps
         :Versions:
             * 2015-05-25 ``@ddalle``: First version
+            * 2015-06-03 ``@ddalle``: Added target co-trajectories
         """
         # Expand global index constraints.
         I0 = self.GetIndices(I=kw.get('I'), cons=kw.get('cons'))
@@ -903,11 +958,10 @@ class Trajectory:
         M = np.arange(self.nCase) < 0
         # Set the mask to ``True`` for any cases passing global constraints.
         M[I0] = True
-        # Carpet constraints.
-        CEq = kw.get('CarpetEqCons', [])
-        CTol = kw.get('CarpetTolCons', {})
         # Initialize output.
         J = []
+        # Initialize target output
+        JT = []
         # Safety check: no more than *nCase* sets.
         i = 0
         # Loop through cases.
@@ -915,15 +969,16 @@ class Trajectory:
             # Increase number of sweeps.
             i += 1
             # Get the current sweep.
-            I = self.GetSweep(M, **kw)
-            # Check for carpet subdivision
-            if CEq or CTol:
-                # Reenter function with simpler constraints.
-                j = self.GetSweeps(I=I, EqCons=CEq, TolCons=CTol)
-                # Save the carpet subdivision
-                J.append(j)
+            if 'TargetX' in kw:
+                # Get sweeps for this trajectory and target(s).
+                I, IT = self.GetSweep(M, **kw)
+                # Save the sweeps.
+                J.append(I)
+                JT.append(IT)
             else:
-                # Save the sweep as is.
+                # Get sweep for this trajectory.
+                I = self.GetSweep(M, **kw)
+                # Save the sweep.
                 J.append(I)
             # Update the mask.
             M[I] = False
