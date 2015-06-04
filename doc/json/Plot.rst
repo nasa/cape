@@ -5,7 +5,9 @@ Iterative History Plotting
 
 The section in :file:`pyCart.json` labeled "Plot" is for plotting iterative
 histories of certain components along with (optionally) the L1 residual history.
-The list of available options and defaults is shown below.
+This capability has been mostly superseded by the "Report" section, but it is
+included for compatibility/preference purposes.  The list of available options
+and defaults is shown below.
 
     .. code-block:: javascript
     

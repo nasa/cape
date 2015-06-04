@@ -1441,6 +1441,10 @@ class Report(object):
         comps = opts.get_SubfigOpt(sfig, "Component")
         # List of coefficients
         coeffs = opts.get_SubfigOpt(sfig, "Coefficient")
+        # Get the target handle.
+        DBT = self.cart3d.DataBook.GetTargetByName(targ)
+        # Get the nominal label of the target
+        tlbl = DBT.topts.get_TargetLabel()
         # Number of coefficients.
         if type(coeffs).__name__ in ['list']:
             # Coefficient name
@@ -1450,18 +1454,18 @@ class Report(object):
                 # Component name
                 comp = opts.get_SubfigOpt(sfig, "Component", k)
                 # Include component and coefficient in label.
-                return '%s %s/%s' % (targ, comp, coeff)
+                return '%s %s/%s' % (tlbl, comp, coeff)
             else:
                 # Include coefficient in label.
-                return '%s %s' % (targ, coeff)
+                return '%s %s' % (tlbl, coeff)
         elif type(comps).__name__ in ['list']:
             # Component name
             comp = opts.get_SubfigOpt(sfig, "Component", k)
             # Include component in label.
-            return '%s %s' % (targ, comp)
+            return '%s %s' % (tlbl, comp)
         else:
             # Just use target
-            return targ
+            return tlbl
         
     # Function to get the list of targets for a subfigure
     def SubfigTargets(self, sfig):

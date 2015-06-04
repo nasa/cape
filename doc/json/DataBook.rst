@@ -5,8 +5,8 @@ Data Book Definitions
 
 The section in :file:`pyCart.json` labeled "DataBook" is an optional section
 used to allow pyCart to create a data book of relevant coefficients and
-statistics.  The section can also be used to define a series of plots that make
-exploring the data book easier for the user and customer.
+statistics.  It enables collecting key results and statistics for entire run
+matrices into a small number of files.
 
 This section has very few defaults, so the following is an example that shows
 many of the features of the pyCart data book.  The example is taken from the SLS
@@ -64,53 +64,13 @@ the repetitive aspects removed for brevity.
                         "psi": "dpsiR", "theta": "dthetaR", "phi": "dphiR"},
                     {"Type": "ScaleCoeffs", "CLL": -1.0, "CLN": -1.0}
                 ]
-            },
-            "Plot": [
-                {
-                    "XAxis": "dxR",
-                    "XLabel": "Axial SRB Displacement",
-                    "YAxis": "CA",
-                    "YLabel": "Axial force coefficient (CA)",
-                    "Lable": "CORE",
-                    "Components": ["CORE_No_Base"],
-                    "Restriction": "SBU - ITAR",
-                    "Sweep": {"alpha": 0.02, "beta": 0.05, "dyR": 0.05,
-                        "dzR": 0.05, "dthetaR": 0.15, "dpsiR": 0.15},
-                    "PlotOptions": {"lw": 2, "color": "k",
-                        "marker": ["o", "s", "^", "*", "p"]},
-                    "TargetOptions": {"lw": 1.5, "color": "r",
-                        "marker": ["o", "s", "^", "*", "p"]},
-                    "StandardDeviation": 1.0,
-                    "StDevOptions": {"lw": 0.05, "color": "#001080",
-                        "facecolor": "#9090EF", "alpha": 0.6},
-                    "MinMax": false,
-                    "MinMaxOptions": {"color": "g", "alpha": 0.4} 
-                },
-                {
-                    "YAxis": "CY",
-                    "YLabel": "Side force coefficient (CY)"
-                },
-                {
-                    "YAxis": "CN",
-                    "YLabel": "Normal force coefficient (CN)"
-                },
-                {
-                    "Components": ["LSRB_No_Base", "RSRB_No_Base"],
-                    "Label": "SRB",
-                    "YAxis": "CY",
-                    "YLabel": "Side force coefficient (CY)"
-                },
-                {
-                    "YAxis": "CN",
-                    "YLabel": "Normal force coefficient (CN)"
-                }
-            ]
+            }
         }
 
 Clearly there are a lot of pieces to the data book definition (many of which are
 optional).  These can be roughly divided into the following sections: general
-definitions and setup, target definitions for comparing results, component
-definitions, and plotting directives.
+definitions and setup, target definitions for comparing results,  and component
+definitions.
 
 General Data Book Definitions
 =============================
@@ -120,16 +80,26 @@ The following dictionary of options describes the general options.
     *Components*: :class:`list` (:class:`str`)
         List of components to analyze and create data book entries for
         
-    *nStats*: :class:`int`
+    *nStats*: [ {``1``} | :class:`int` ]
         Number of iterations to use for computing statistics (such as mean,
         iterative history min and max, and standard deviation)
+    
+    *nMin*: [ {``0``} | :class:`int` ]
+        Minimum iteration number allowed for inclusion in results and
+        statistics; a case must have at least ``nMin+nStats`` iterations for
+        inclusion in the data book
+        
+    *nMaxStats*: [ {``None``} | :class:`int` ]
+        Optional parameter for maximum number of iterations for inclusion in
+        statistics; pyCart will use ``nStats<=n<=nMaxStats`` iterations based on
+        its estimate of resulting iterative uncertainty
     
     *Folder*: :class:`str`
         Location in which to store data book (relative to pyCart root)
         
-    *Sort*: :class:`str`
-        Trajectory key on which to sort data book; ignored if empty or not the
-        name of a trajectory variable
+    *Sort*: :class:`str` | :class:`list` (:class:`str`)
+        Trajectory key(s) on which to sort data book; ignored if empty or not
+        the name of a trajectory variable
         
 These options are relatively straightforward.  The result of creating or
 updating the data book will be a file such as :file:`aero_CORE_No_Base.dat`,
@@ -152,11 +122,11 @@ Target or Comparison Data Sources
 =================================
 
 The *Targets* key is an optional parameter that points to another data source
-for use as a reference value both in the data book files and any plots.
-Currently these data sources must be a single file, and the user specifies in
-this section the location for that file, a label for the data source, and a list
-of columns that correspond to the trajectory variables.  The list of *Targets*
-parameters is given below.
+(or multiple other data sources) for use as a reference value both in the data
+book files and plots. Each "Target" is read from a single file that contains
+columns used to map points in that file to run matrix conditions and one or more
+force/moment coefficients for one or more components in the data book. The list
+of *Targets* parameters is given below.
 
     *Targets*: {``[]``} | ``[T]`` | :class:`list` (:class:`dict`)
         List of target dict descriptions
@@ -165,7 +135,10 @@ parameters is given below.
             Individual target description
             
             *Name*: :class:`str`
-                Label to be used for this data source
+                Identifier to be used for this label
+            
+            *Label*: :class:`str`
+                Label to be used for this data source; defaults to *Name*
                 
             *File*: :class:`str`
                 File name of the data source

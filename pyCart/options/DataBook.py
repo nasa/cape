@@ -563,7 +563,7 @@ class DBTarget(odict):
     
     # Get the maximum number of refinements
     def get_TargetName(self):
-        """Get the name/label for a given target
+        """Get the name/identifier for a given data book target
         
         :Call:
             >>> Name = opts.get_TargetName()
@@ -572,11 +572,29 @@ class DBTarget(odict):
                 Options interface
         :Outputs:
             *Name*: :class:`str`
-                Name of the component (label for plots)
+                Identifier for the target
         :Versions:
             * 2014-08-03 ``@ddalle``: First version
         """
         return self.get('Name', 'Target')
+        
+    # Get the label
+    def get_TargetLabel(self):
+        """Get the name/identifier for a given data book target
+        
+        :Call:
+            >>> lbl = opts.get_TargetLabel()
+        :Inputs:
+            *opts*: :class:`pyCart.options.DataBook.DBTarget`
+                Options interface
+        :Outputs:
+            *lbl*: :class:`str`
+                Label for the data book target to be used in plots and reports 
+        :Versions:
+            * 2015-06-04 ``@ddalle``: First version
+        """
+        # Default to target identifier
+        return self.get('Label', self.get_TargetName())
         
     # Get the components that this target describes
     def get_TargetComponents(self):
