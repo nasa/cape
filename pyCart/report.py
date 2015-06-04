@@ -1205,6 +1205,20 @@ class Report(object):
         else:
             # Single sweep
             J = [I]
+        # Get list of targets
+        targs = self.SubfigTargets(sfig)
+        # Initialize target sweeps
+        JT = {}
+        # Loop through targets.
+        for targ in targs:
+            # Initialize target sweeps.
+            jt = []
+            # Loop through carpet subsweeps
+            for I in J:
+                # Get co-sweep
+                jt.append(self.GetTargetSweepIndices(fswp, I[0], targ))
+            # Save the sweeps.
+            JT[targ] = jt
         # Get the component.
         comp = opts.get_SubfigOpt(sfig, "Component")
         # Get the coefficient
@@ -1265,23 +1279,25 @@ class Report(object):
             comp = opts.get_SubfigOpt(sfig, "Component", k)
             coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
             # Plot label (for legend)
-            lbl = opts.get_SubfigOpt(sfig, "Label", k)
+            lbl = self.get_SubfigPlotLabel(sfig, "Label", k)
+            # Carpet label appendix
+            clbl = ""
             # Append carpet constraints to label if appropriate.
             for kx in CEq:
-                # Default base label
-                if not lbl: lbl = comp
                 # Value of the key or modified key for all points.
                 V = eval('x.%s' % kx)
                 # Print the subsweep equality constraint in the label.
-                lbl += ", %s=%s" % (kx, V[J[j][0]])
+                clbl += ", %s=%s" % (kx, V[J[j][0]])
             # More carpet constraints
             for kx in CTol:
-                # Default base label
-                if not lbl: lbl = comp
                 # Value of the key or modified key for all points.
                 V = eval('x.%s' % kx)
                 # Print the subsweep tolerance constraint in the label.
-                lbl += u", %s=%s\u00B1%s" % (kx, V[J[j][0]], CTol[kx]) 
+                clbl += u", %s=%s\u00B1%s" % (kx, V[J[j][0]], CTol[kx])
+            # Add appendix to label.
+            lbl += clbl
+            # Don't start with a comma!
+            lbl = lbl.lstrip(", ")
             # Get the multiple of standard deviation to show
             ksig = opts.get_SubfigOpt(sfig, "StandardDeviation", k)
             qmmx = opts.get_SubfigOpt(sfig, "MinMax", k)
@@ -1298,6 +1314,28 @@ class Report(object):
                 StDev=ksig, StDevOptions=kw_s,
                 MinMax=qmmx, MinMaxOptions=kw_m,
                 FigWidth=figw, FigHeight=figh)
+            # Loop through targets
+            for targ in targs:
+                # Get the target handle.
+                DBT = self.cart3d.DataBook.GetTargetByName(targ)
+                # Check if the *comp*/*coeff* combination is available.
+                if (comp not in DBT.ckeys) or (coeff not in DBT.ckeys[comp]):
+                    continue
+                # Get target plot label.
+                tlbl = self.SubfigPlotTargetLabel(sfig, k, targ) + clbl
+                # Don't start with comma.
+                tlbl = tlbl.lstrip(", ")
+                # Specified target plot options
+                kw_t = opts.get_SubfigPlotOpt(sfig, "TargetOptions",
+                    targs.index(targ))
+                # Initialize target plot options.
+                kw_l = kw_p
+                # Apply non-default options
+                for k_i in kw_t: kw_l[k_i] = kw_t[k_i]
+                # Draw the plot
+                DBT.PlotCoeff(comp. coeff, JT[targ][j], x=xk,
+                    Label=tlbl, LineOptions=kw_l,
+                    FigWidth=figw, FigHeight=figh)
         # Check for manually specified axes labels.
         xlbl = opts.get_SubfigOpt(sfig, "XLabel")
         ylbl = opts.get_SubfigOpt(sfig, "YLabel")
@@ -1332,6 +1370,133 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
+        
+    # Get subfig label for plot *k*
+    def SubfigPlotLabel(self, sfig, k):
+        """Get line label for subfigure plot
+        
+        :Call:
+            >>> lbl = R.SubfigPlotLabel(sfig, k)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *k*: :class:`int`
+                Plot index
+        :Outputs:
+            *lbl*: :class:`str`
+                Plot label
+        :Versions:
+            * 2015-06-04 ``@ddalle``: First version
+        """
+        # Get the label if specified.
+        lbl = self.cart3d.opts.get_SubfigOpt(sfig, "Label", k)
+        # Check.
+        if lbl is not None: return lbl
+        # Component name
+        comp = opts.get_SubfigOpt(sfig, "Component", k)
+        # List of coefficients
+        coeffs = opts.get_SubfigOpt(sfig, "Coefficient")
+        # Number of coefficients.
+        if type(coeffs).__name__ in ['list']:
+            # Coefficient name
+            coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
+            # Include coefficient in default label.
+            return '%s/%s' % (comp, coeff)
+        else:
+            # Just use the component
+            return comp
+        
+    # Get subfig label for target plot *k*
+    def SubfigTargetPlotLabel(self, sfig, k, targ):
+        """Get line label for subfigure plot
+        
+        :Call:
+            >>> lbl = R.SubfigPlotLabel(sfig, k, targ)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *k*: :class:`int`
+                Plot index
+            *targ*: :class:`str`
+                Name of target
+        :Outputs:
+            *lbl*: :class:`str`
+                Plot label for target plot
+        :Versions:
+            * 2015-06-04 ``@ddalle``: First version
+        """
+        # Get list of targets
+        targs = self.SubfigTargets(sfig)
+        # Target index among list of targets for this subfigure
+        kt = targs.index(targ)
+        # Get the label if specified.
+        lbl = self.cart3d.opts.get_SubfigOpt(sfig, "TargetLabel", kt)
+        # Check.
+        if lbl is not None: return lbl
+        # List of components
+        comps = opts.get_SubfigOpt(sfig, "Component")
+        # List of coefficients
+        coeffs = opts.get_SubfigOpt(sfig, "Coefficient")
+        # Number of coefficients.
+        if type(coeffs).__name__ in ['list']:
+            # Coefficient name
+            coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
+            # Check number of components
+            if type(comps).__name__ in ['list']:
+                # Component name
+                comp = opts.get_SubfigOpt(sfig, "Component", k)
+                # Include component and coefficient in label.
+                return '%s %s/%s' % (targ, comp, coeff)
+            else:
+                # Include coefficient in label.
+                return '%s %s' % (targ, coeff)
+        elif type(comps).__name__ in ['list']:
+            # Component name
+            comp = opts.get_SubfigOpt(sfig, "Component", k)
+            # Include component in label.
+            return '%s %s' % (targ, comp)
+        else:
+            # Just use target
+            return targ
+        
+    # Function to get the list of targets for a subfigure
+    def SubfigTargets(self, sfig):
+        """Return list of targets (by name) for a subfigure
+        
+        :Call:
+            >>> targs = R.SubfigTargets(sfig)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+        :Outputs:
+            *targs*: :class:`list` (:class:`str`)
+                List of target names
+        :Versions:
+            * 2015-06-04 ``@ddalle``: First version
+        """
+        # Target option for this subfigure (defaults to all targets)
+        otarg = self.cart3d.opts.get_SubfigOpt(sfig, "Target")
+        # Process list of targets.
+        if type(otarg).__name__ in ['list', 'ndarray']:
+            # List of targets directly specified
+            targs = otarg
+        elif type(otarg).__name__ in ['str', 'unicode']:
+            # Single target
+            targs = [otarg]
+        elif otarg:
+            # All targets
+            targs = [DBT.Name for DBT in self.cart3d.DataBook]
+        else:
+            # No targets
+            targs = []
+        # Output
+        return targs
         
     # Function to create coefficient plot and write figure
     def SubfigPlotL1(self, sfig, i):
@@ -1517,7 +1682,7 @@ class Report(object):
         # Output
         return lines
        
-   # Function to create coefficient plot and write figure
+    # Function to create coefficient plot and write figure
     def SubfigTecplotLayout(self, sfig, i):
         """Create image based on a Tecplot layout file
         
@@ -2244,13 +2409,13 @@ class Report(object):
         return J
         
     # Function to get subset of target catches matching a sweep
-    def GetTargetSweepIndices(self, fswp, i0, itarg):
+    def GetTargetSweepIndices(self, fswp, i0, targ):
         """
         Return indices of a target data set that correspond to sweep constraints
         from a data book point
         
         :Call:
-            >>> I = R.GetTargetSweepIndices(fswp, i0, itarg)
+            >>> I = R.GetTargetSweepIndices(fswp, i0, targ)
         :Inputs:
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
@@ -2258,8 +2423,8 @@ class Report(object):
                 Name of sweep to update
             *i0*: :class:`int`
                 Index of point in *R.cart3d.DataBook.x* to use as reference
-            *itarg*: :class:`int`
-                Index of the target in data book to use
+            *targ*: :class:`int`
+                Name of the target in data book to use
         :Outputs:
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of target data indices
@@ -2267,7 +2432,7 @@ class Report(object):
             * 2015-06-03 ``@ddalle``: First version
         """
         # Extract the target interface.
-        DBT = self.cart3d.DataBook.Targets[itarg]
+        DBT = self.cart3d.DataBook.GetTargetByName(targ)
         # Extract options
         opts = self.cart3d.opts
         # Sort variable

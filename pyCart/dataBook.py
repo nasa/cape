@@ -476,6 +476,32 @@ class DataBook(dict):
         os.chdir(self.RootDir)
                     
     # Get target to use based on target name
+    def GetTargetByName(self, targ):
+        """Get a target handle by name of the target
+        
+        :Call:
+            >>> DBT = DB.GetTargetByName(targ)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *targ*: :class:`str`
+                Name of target to find
+        :Outputs:
+            *DBT*: :class:`pyCart.dataBook.DBTarget`
+                Instance of the pyCart data book target class
+        :Versions:
+            * 2015-06-04 ``@ddalle``: First version
+        """
+        # List of target names.
+        targs = [DBT.Name for DBT in self.Targets]
+        # Check for the target.
+        if targ not in targs:
+            # Target not found.
+            raise ValueError("Target named '%s' not in data book." % targ)
+        # Return the target handle.
+        return self.Targets[targs.index(targ)]
+    
+    # Get index of target to use based on coefficient name
     def GetTargetIndex(self, ftarg):
         """Get the index of the target to use based on a name
         
@@ -1592,7 +1618,7 @@ class DBTarget(dict):
             * 2015-06-03 ``@ddalle``: First version
         """
         # Get trajectory key specifications.
-        tkeys = self.opts.get_Trajectory()
+        tkeys = self.topts.get_Trajectory()
         # Loop through the trajectory keys.
         for k in self.x.keys:
             # Get the column name in the target.
@@ -1615,7 +1641,7 @@ class DBTarget(dict):
         
     # Plot a sweep of one or more coefficients
     def PlotCoeff(self, comp, coeff, I, **kw):
-        """Plot a sweep of one coefficients over several cases
+        """Plot a sweep of one coefficient over several cases
         
         :Call:
             >>> h = DBT.PlotCoeff(comp, coeff, I, **kw)

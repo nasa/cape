@@ -698,6 +698,7 @@ class Report(odict):
                 "Position": "b",
                 "Alignment": "center",
                 "XAxis": None,
+                "Target": False,
                 "Width": 0.5,
                 "FigWidth": 6,
                 "FigHeight": 4.5,
@@ -706,7 +707,7 @@ class Report(odict):
                 "StandardDeviation": 0.0,
                 "MinMax": False,
                 "LineOptions": {"color": "k", "marker": ["^", "s", "o"]},
-                "TargetOptions": {"color": "r"},
+                "TargetOptions": {"color": "r", "marker": ["^","s","o"]},
                 "MinMaxOptions": {
                     "facecolor": "g", "color": "g", "alpha": 0.4, "lw": 0.0
                 },

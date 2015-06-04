@@ -689,7 +689,7 @@ class DBTarget(odict):
         """Get the trajectory translations
         
         :Call:
-            >>> traj = opst.get_Trajectory()
+            >>> traj = opts.get_Trajectory()
         :Inputs:
             *opts*: :class:`pyCart.options.DataBook.DBTarget`
                 Options interface
