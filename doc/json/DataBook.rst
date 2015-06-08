@@ -98,25 +98,26 @@ The following dictionary of options describes the general options.
         Location in which to store data book (relative to pyCart root)
         
     *Sort*: :class:`str` | :class:`list` (:class:`str`)
-        Trajectory key(s) on which to sort data book; ignored if empty or not
-        the name of a trajectory variable
+        Trajectory key(s) on which to sort data book (in reverse order if a
+        :class:`list`); ignored if not the name of a trajectory variable
         
 These options are relatively straightforward.  The result of creating or
-updating the data book will be a file such as :file:`aero_CORE_No_Base.dat`,
-:file:`aero_LSRB_No_Base.dat`, etc. for each component in the *Components* list.
+updating the data book will be a file such as :file:`aero_CORE_No_Base.csb`,
+:file:`aero_LSRB_No_Base.csv`, etc. for each component in the *Components* list.
 These files will be placed in the location *Folder*, which is created if
 necessary.
 
 When pyCart updates the data book, it only updates cases that from the active
 trajectory that have new iterations.  Meanwhile, the data book can contain
 results that are not in the current trajectory (for example if the user has
-commented out some lines of the current trajectory file).
+commented out some lines of the current trajectory file or multiple run matrices
+are combined into a common data book).
 
 The *Sort* key, if specified causes pyCart to sort the lines of those data book
 files before writing them.  The data is basically considered to be unsorted by
 pyCart (search routines are used before collecting plot data, for example), but
 having a small amount of organization in the files helps maintain sanity for a
-user that inspects them manually.
+user that inspects them manually or other tool that uses the data book.
 
 Target or Comparison Data Sources
 =================================
@@ -138,13 +139,21 @@ of *Targets* parameters is given below.
                 Identifier to be used for this label
             
             *Label*: :class:`str`
-                Label to be used for this data source; defaults to *Name*
+                Label to be used for this data source, e.g. in plot legends;
+                defaults to value of *Name* option
                 
             *File*: :class:`str`
                 File name of the data source
             
             *Delimiter*: {``", "``} | ``","`` | ``" "`` | :class:`str`
                 Delimiter to be used when reading/writing data book files
+            
+            *Comment*: {``"#"``} | :class:`str`
+                Character used to denote comment line in source file
+                
+            *Components*: :class:`list` (:class:`str`)
+                List of components to which this target file applies; default is
+                all components in the data book
             
             *Trajectory*: :class:`dict` (:class:`str`)
                 Dictionary of column names for trajectory variables to be used
@@ -188,15 +197,15 @@ optional except *Type*, and that has a default value.
                 *Type*: ``"Euler321"``
                     Specify the transformation type
                     
-                *phi*: {``"phi"``} | :class:`str`
+                *phi*: {``"phi"``} | ``"-phi"`` | :class:`str`
                     Name of the trajectory variable to use for the roll angle
                     transformation value
                     
-                *theta*: {``"theta"``} | :class:`str`
+                *theta*: {``"theta"``} | ``"-theta"`` | :class:`str`
                     Name of the trajectory variable to use for the pitch angle
                     transformation value
                     
-                *psi*: {``"psi"``} | :class:`str`
+                *psi*: {``"psi"``} | ``"-psi"`` | :class:`str`
                     Name of the trajectory variable to use for the yaw angle
                     transformation value
                     
@@ -214,101 +223,5 @@ optional except *Type*, and that has a default value.
                     
                 *CLN*: {``1.0``} | ``-1.0`` | :class:`float`
                     Scale factor by which to multiply *CLN* values
-                    
-Data Book Plotting Options
-==========================
 
-This is the section in which the user can specify optional plots to sweep
-through the data book in various ways in order to gain a better understanding of
-the results.
-
-The section is essentially a list of :class:`dict`\ s that each specify a single
-type of plot.  However, pyCart has the space-saving feature that any option that
-is not specified in a plot defaults to whatever value it had in the previous
-plot.  Suppose that you have decided that you want all the Cart3D data to be
-plotted with black lines, and all the target data should be plotted with red
-lines.  Then you would set this in the *PlotOptions* and *TargetOptions* keys,
-respectively, for the first plot and never enter those options again for the
-remaining plots.  In the example at the top of this page, that is indeed the
-method that was used.
-
-The list below is a dictionary for the possible options for an individual plot. 
-The required options are *XAxis*, *YAxis*, *Sweep*, and *Components*, but keep
-in mind that these don't necessarily need to be defined for each plot if the
-values from the previous plot are appropriate.
-
-    *P*: :class:`dict`
-        Specifications for an individual plot; each parameter defaults to
-        previous plot's value
-        
-        *XAxis*: :class:`str` [required]
-            Name of trajectory variable to use as x-axis for data book sweeps
-            
-        *XLabel*: {*XAxis*} | :class:`str`
-            Text to use for label on plot's x-axis.
-            
-        *YAxis*: :class:`str` [required]
-            Name of trajectory variable to use as y-axis
-            
-        *YLabel*: {*YAxis*} | :class:`str`
-            Text to use for label on plot's y-axis
-            
-        *Components*: :class:`list` (:class:`str`) [required]
-            List of components to include in plot
-            
-        *Label*: {``"-".join(Components)``} | :class:`str`
-            Label to use for this plot in the output file name
-            
-        *Sweep*: ``{"x0": v0}`` | :class:`dict` (:class:`float`) [required]
-            Dictionary of trajectory variable tolerances used to define
-            parameter sweeps.  For example, if the trajectory keys are
-            ``"Mach"``, ``"alpha"``, ``"beta"``, and you want to plot sweeps
-            versus Mach number for fixed *alpha* and *beta*, use ``"Sweep":
-            {"alpha": 0.01, "beta": 0.01}``
-            
-            *x0*: :class:`str`
-                Name of a trajectory key used to define sweeps
-                
-            *v0*: :class:`float` >=0
-                Tolerance to allow in variation during the sweep
-                
-        *Restriction*: {``""``} | ``"SBU - ITAR"`` | :class:`str`
-            Distribution limitation to print at bottom center of each plot
-            
-        *PlotOptions*: {``{"color": "k", "marker": "^"}``} | :class:`dict`
-            Dictionary of plot options for Cart3D data.  See
-            `matplotlib.pyplot.plot
-            <http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.plot>`_
-            for details.  If a parameter is a list, e.g. ``{"marker": ["^", "s",
-            "o"]}``, pyCart will loop through the values for each line in the
-            series.
-            
-        *TargetOptions*: {``{"color": "r", "marker": "o"}``} | :class:`dict`
-            Dictionary of plot options for reference (target) data.  See above
-            for further details.
-            
-        *StandardDeviation*: {``0``} | :class:`float`
-            If this parameter is nonzero, a filled region is plotted above and
-            below the mean  of *YAxis* from the iterative history is plotted.
-            The height of the filled region is 2 times *StandardDeviation* times
-            the iterative history standard deviation at each point.
-            
-        *StDevOptions*: ``{"alpha": 0.5, "lw": 0.2}`` | :class:`dict`
-            Dictionary of plot options for standard deviation window. See
-            `matplotlib.pyplot.fill_between
-            <http://matplotlib.org/
-            api/pyplot_api.html#matplotlib.pyplot.fill_between>`_ for full
-            description of possible options.
-            
-        *MinMax*: ``true`` | {``false``}
-            If ``true``, plot the minimum and maximum value of *YAxis* from the
-            last *nStats* iterations at each point.
-            
-        *Carpet*: {``{}``} | :class:`dict`
-            This variable has the same structure as *Sweep* from above but has a
-            roughly perpendicular function.  Suppose that the trajectory keys
-            are ``"Mach"``, ``"alpha"``, and ``"beta"``.  To get sweeps versus
-            Mach number for different values of *alpha*, but with all lines on
-            the same plot having the same value of *beta*, set *Sweep* equal to
-            ``{"beta": 0.01}``, and set *Carpet* equal to ``{"alpha": 0.01}``.
             

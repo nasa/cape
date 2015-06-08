@@ -8,11 +8,7 @@ Script Library
     pyCart directly from the system command line.
     
     .. toctree::
-        
-        SetupGrids
-        SetupRuns
-        GatherLoadsCC
-        GatherLoadsTRI
+    
         UH3D2Tri
         CombineTri
         
