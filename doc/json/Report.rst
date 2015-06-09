@@ -188,6 +188,11 @@ The full list of available options is below.
                 Name of trajectory key used to sort subset; if ``None``, sort by
                 data book index
                 
+            *TrajectoryOnly*: ``true`` | {``false``}
+                By default, the data book is the source for sweep plots; this
+                option can restrict the plots to points in the current run
+                matrix
+                
             *GlobalCons*: ``[]`` | :class:`list` (:class:`str`)
                 List of global constraints to only divide part of the run matrix
                 into subsets
@@ -221,11 +226,104 @@ Figure Definitions
 Each figure contains a small number of options used to define the figure.  The
 primary option is a list of subfigures, and the others are also defined below.
 
-    *Figures*: ``{}`` | ``{[F]}`` | :class:`dict` (:class:`dict`)
+    *Figures*: {``{}``} | ``{[F]}`` | :class:`dict` (:class:`dict`)
         Dictionary of figure definitions
         
         *F*: :class:`dict`
             Dictionary of settings for figure called ``"F"``
             
-            *Heading*: :class:`str`
+            *Header*: :class:`str`
                 Title to be placed at the top of the figure
+                
+            *Alignment*: {``"left"``} | ``"center"`` | ``"right"``
+                Horizontal alignment for the figure
+                
+            *Subfigures*: ``[]`` | :class:`list` (:class:`str`)
+                List of subfigures
+
+Subfigure Definitions
+=====================
+
+Each subfigure contains several key options including heading and caption and
+two alignment options.  The key option is *Type*, which categorizes which kind
+of subfigure is being generated, and it must be traceable to one of several
+defined subfigure types.
+
+The list of options common to each subfigure is shown below.
+
+    *Subfigures*: {``{}``} | ``{[U]}`` | :class:`dict` (:class:`dict`)
+        Dictionary of subfigure definitions
+        
+        *U*: :class:`dict`
+            Dictionary of settings for subfigure called ``"U"``
+            
+            *Type*: ``"Conditions"`` | ``"SweepConditions"`` |
+                    ``"SweepCases"`` | ``"Summary"`` | ``"PlotCoeff"`` |
+                    ``"SweepCoeff"`` | ``"PlotL1"`` | ``"Tecplot3View"`` |
+                    ``"Tecplot"`` | :class:`str`
+                    
+                Subfigure type
+            
+            *Header*: {``""``} | :class:`str`
+                Heading to be placed above the subfigure (bold, italic)
+                
+            *Caption*: {``""``} | :class:`str`
+                Caption to be placed below figure
+                
+            *Position*: {``"t"``} | ``"b"``
+                Vertical alignment of subfigure; top or bottom
+                
+            *Alignment*: ``"left"`` | {``"center"``}
+                Horizontal alignment of subfigure
+                
+            *Width*: :class:`float`
+                Width of subfigure as a fraction of text width
+            
+However, the *Type* value does not always have to be from the list of possible
+values above.  Another option is to define one subfigure and use that
+subfigure's options as the basis for another one.  An example of this is below.
+
+    .. code-block:: javascript
+    
+        "Subfigures": {
+            "Wing": {
+                "Type": "PlotCoeff",
+                "Component": "wing",
+            },
+            "CN": {
+                "Type": "Wing",
+                "Coefficient": "CN"
+            },
+            "CLM": {
+                "Type": "Wing",
+                "Coefficient": "CLM"
+            }
+        }
+
+This defines two coefficient plots, which both use the *Component* named 
+``"wing"``.  When using a previous template subfigure is used as *Type*, all of
+the options from that subfigure are used as defaults, which can save many lines
+in the JSON file when there are several similar figures defined.
+
+The subsections that follow describe options that correspond to options for each
+base type of subfigure.
+
+Run Conditions Table Subfigure
+------------------------------
+The ``"Conditions"`` subfigure creates a table of conditions for the independent
+variables.  The primary purpose is to list the run conditions for each case for
+the observer to quickly reference which case is being analyzed.  The options are
+listed below.
+
+    *C*: :Class:`dict`
+        Dictionary of settings for *Conditions* type subfigure
+        
+        *Type*: ``"Conditions"``
+            Subfigure type
+            
+        
+        
+        *SkipVars*: {``[]``} | :class:`list` (:class:`str`)
+            List of trajectory keys not to include in conditions table
+            
+            
