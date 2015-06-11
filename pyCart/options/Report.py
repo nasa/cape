@@ -585,7 +585,8 @@ class Report(odict):
             "CarpetTolCons": {},
             "GlobalCons": [],
             "IndexTol": None,
-            "Indices": None
+            "Indices": None,
+            "MinCases": 1
         }
         # Output
         return S.get(opt)
@@ -645,7 +646,7 @@ class Report(odict):
                 "Header": "Sweep Cases",
                 "Position": "t",
                 "Alignment": "left",
-                "Width": 0.4
+                "Width": 0.6
             }
         elif t in ['Summary']:
             # Default results summary

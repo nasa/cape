@@ -304,9 +304,12 @@ class Report(object):
                 List of constraints to define what cases to update
         :Versions:
             * 2015-05-29 ``@ddalle``: First version
+            * 2015-06-11 ``@ddalle``: Added minimum cases per page
         """
         # Divide the cases into sweeps.
         J = self.GetSweepIndices(fswp, I, cons)
+        # Minimum number of cases per page
+        nMin = self.cart3d.opts.get_SweepOpt(fswp, 'MinCases')
         # Add a marker in the main document for this sweep.
         self.tex.Section['Sweeps'].insert(-1, '%%!_%s\n' % fswp)
         # Save current location
@@ -325,8 +328,10 @@ class Report(object):
         os.chdir(fdir)
         # Loop through pages.
         for i in range(len(J)):
+            # Check for enough cases to report a sweep.
+            if len(J[i]) < nMin: continue
             # Update the sweep page.
-            self.UpdateSweepPage(fswp, J[i], JT[i])
+            self.UpdateSweepPage(fswp, J[i])
         # Return to original directory
         os.chdir(fpwd)
         
