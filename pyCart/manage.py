@@ -352,7 +352,8 @@ def ArchiveFolder(opts):
     if atype.lower() not in ['full']:
         # Delete those folders before archiving.
         for fd in ['ADAPT', 'EMBED']:
-            shutil.rmtree(fd)
+            # Check for the folder.
+            if os.path.isdir(fd): shutil.rmtree(fd)
     # Go back up to group folder.
     os.chdir('..')
     # Check if it's a remote copy.

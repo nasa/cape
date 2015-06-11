@@ -313,6 +313,8 @@ class TriBase(object):
             dk = np.sqrt(np.sum((x1[k1:k1+n]-x0[k0:k0+n])**2 +
                 (y1[k1:k1+n]-y0[k0:k0+n])**2 +
                 (z1[k1:k1+n]-z0[k0:k0+n])**2, 1))
+            # Check for a match.
+            if not np.any(dk<=tol): continue
             # Find the first tri that does _not_ match.
             j = np.where(dk<=tol)[0][-1] + 1
             # Copy these *j* CompIDs.
