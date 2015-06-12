@@ -93,5 +93,6 @@ class Tex(FileCntl):
         os.chdir(fpwd)
         # Check compile status.
         if ierr:
-            raise SystemError("Compiling '%s' failed." % self.fname)
+            raise SystemError("Compiling '%s' failed with status %i."
+                % (self.fname, ierr))
     

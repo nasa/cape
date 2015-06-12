@@ -589,16 +589,15 @@ class Report(object):
         lines = []
         # Write the header line.
         lines.append(ffig)
+        # Start the figure.
+        lines.append('\\begin{figure}[!h]\n')
         # Get the optional header
         fhdr = self.cart3d.opts.get_FigHeader(fig)
         if fhdr:
-            # Do not indent anything.
-            lines.append('\\noindent\n')
-            # Add the header.
+            # Add the header as a semitrivial subfigure.
+            lines.append('\\begin{subfigure}[t]{\\textwidth}\n')
             lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
-            lines.append('\\vskip-10pt\n')
-        # Start the figure.
-        lines.append('\\begin{figure}[!h]\n')
+            lines.append('\\end{subfigure}\n')
         # Get figure alignment
         falgn = self.cart3d.opts.get_FigAlignment(fig)
         if falgn.lower() == "center":
@@ -798,7 +797,7 @@ class Report(object):
             # Append the value.
             if x.defns[k]['Value'] in ['str', 'unicode']:
                 # Put the value in sans serif
-                line += "{\\small\\textsf{%s}} &" % v[0]
+                line += "{\\small\\textsf{%s}} \\\\\n" % v[0]
             elif x.defns[k]['Value'] in ['float', 'int']:
                 # Check for range.
                 if max(v) > min(v):
@@ -1061,8 +1060,10 @@ class Report(object):
             else:
                 # Use the coefficient.
                 fcpt = comp
-            # Ensure there are no underscores.
+            # Defaut: Wing/CY
             fcpt = "%s/%s" % (fcpt, coeff)
+        # Ensure there are no underscores.
+        fcpt = fcpt.replace('_', '\_')
         # Get the vertical alignment.
         hv = opts.get_SubfigOpt(sfig, "Position")
         # Get subfigure width
@@ -1254,8 +1255,10 @@ class Report(object):
             else:
                 # Use the coefficient.
                 fcpt = comp
-            # Ensure there are no underscores.
+            # Default format: RSRB/CLM
             fcpt = "%s/%s" % (fcpt, coeff)
+        # Ensure there are no underscores.
+        fcpt = fcpt.replace("_", "\_")
         # Get the vertical alignment.
         hv = opts.get_SubfigOpt(sfig, "Position")
         # Get subfigure width
@@ -1597,7 +1600,9 @@ class Report(object):
             lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
                 % (frun, fimg))
         # Set the caption.
-        if fcpt: lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
+        if fcpt:
+            lines.append('\\caption*{\scriptsize %s}\n' % 
+                fcpt.replace('_', '\_'))
         # Close the subfigure.
         lines.append('\\end{subfigure}\n')
         # Output
@@ -1685,7 +1690,9 @@ class Report(object):
         lines.append('\\includegraphics[width=\\textwidth]{%s/%s.png}\n'
             % (frun, fname))
         # Set the caption.
-        if fcpt: lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
+        if fcpt:
+            lines.append('\\caption*{\scriptsize %s}\n' %
+                fcpt.replace('_', '\_'))
         # Close the subfigure.
         lines.append('\\end{subfigure}\n')
         # Output
@@ -1777,7 +1784,9 @@ class Report(object):
         # Go to the report case folder
         os.chdir(fpwd)
         # Set the caption.
-        if fcpt: lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
+        if fcpt:
+            lines.append('\\caption*{\scriptsize %s}\n' % 
+                fcpt.replace('_', '\_'))
         # Close the subfigure.
         lines.append('\\end{subfigure}\n')
         # Output
@@ -2151,6 +2160,7 @@ class Report(object):
         f.write('\\usepackage{amsmath}\n')
         f.write('\\usepackage{amssymb}\n')
         f.write('\\usepackage{times}\n')
+        f.write('\\usepackage{placeins}\n')
         f.write('\\usepackage[usenames]{xcolor}\n')
         f.write('\\usepackage[T1]{fontenc}\n')
         f.write('\\usepackage[scaled]{beramono}\n\n')
@@ -2234,9 +2244,12 @@ class Report(object):
         
         # Create the file (delete if necessary)
         f = open(self.fname, 'w')
+
+        # Make sure no spilling of figures onto other pages
+        f.write('\n\\FloatBarrier\n')
         
         # Write the header.
-        f.write('\n\\newpage\n')
+        f.write('\\newpage\n')
         f.write('\\setcase{%s}\n' % frun.replace('_', '\\_'))
         f.write('\\phantomsection\n')
         f.write('\\addcontentsline{toc}{section}{\\texttt{\\thecase}}\n')

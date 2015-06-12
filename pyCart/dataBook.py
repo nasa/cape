@@ -2690,6 +2690,8 @@ class CaseFM(object):
         if ksig and nAvg>2:
             # Extract plot options from kwargs
             for k in util.denone(kw.get("StDevOptions", {})):
+                # Ignore linestyle and ls
+                if k in ['ls', 'linestyle']: continue
                 # Override the default option.
                 if kw["StDevOptions"][k] is not None:
                     kw_s[k] = kw["StDevOptions"][k]
@@ -2707,6 +2709,8 @@ class CaseFM(object):
         if uerr and nAvg>2:
             # Extract plot options from kwargs
             for k in util.denone(kw.get("ErrPltOptions", {})):
+                # Ignore linestyle and ls
+                if k in ['ls', 'linestyle']: continue
                 # Override the default option.
                 if kw["ErrPltOptions"][k] is not None:
                     kw_u[k] = kw["ErrPltOptions"][k]
