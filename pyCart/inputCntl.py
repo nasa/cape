@@ -394,7 +394,7 @@ class InputCntl(FileCntl):
         for x in X[:6]:
             line += (" %s" % x)
         # Regular expression of existing line sensor to search for
-        reg = 'lineSensor\s*%s\s$' % name
+        reg = 'lineSensor\s*%s' % name
         # Write the line
         self.ReplaceOrAddLineToSectionSearch('Post_Processing',
             reg, line + "\n")
@@ -443,7 +443,7 @@ class InputCntl(FileCntl):
         for x in X[:3]:
             line += (" %s" % x)
         # Regular expression of existing line sensor to search for
-        reg = 'pointSensor\s*%s\s$' % name
+        reg = 'pointSensor\s*%s' % name
         # Write the line
         self.ReplaceOrAddLineToSectionSearch('Post_Processing',
             reg, line + "\n")

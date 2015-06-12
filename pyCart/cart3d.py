@@ -1792,6 +1792,8 @@ class Cart3d(object):
         x = self.x
         # Process the key types.
         KeyTypes = [x.defns[k]['Type'] for k in x.keys]
+        # Reread the file.
+        self.InputCntl = InputCntl(self.opts.get_InputCntl())
         
         # Set the flight conditions.
         # Mach number
