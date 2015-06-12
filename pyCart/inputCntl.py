@@ -46,6 +46,35 @@ class InputCntl(FileCntl):
         # Split into sections.
         self.SplitToSections(reg="\$__([\w_]+)")
         
+    # Copy the file
+    def Copy(self, fname):
+        """Copy a file interface
+        
+        :Call:
+            >>> IC2 = IC.Copy()
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+        :Outputs:
+            *IC2*: :class:`pyCart.inputCntl.InputCntl`
+                Duplicate file control instance for :file:`input.cntl`
+        :Versions:
+            * 2015-06-12 ``@ddalle``: First version
+        """
+        # Create empty instance.
+        IC = InputCntl(fname=None)
+        # Copy the file name.
+        IC.fname = self.fname
+        IC.lines = self.lines
+        # Copy the sections
+        IC.Section = self.Section
+        IC.SectionNames = self.SectionNames
+        # Update flags.
+        IC._updated_sections = self._updated_sections
+        IC._updated_lines = self._updated_lines
+        # Output
+        return IC
+        
     # Function to set to first-order mode
     def SetFirstOrder(self):
         """

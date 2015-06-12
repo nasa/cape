@@ -150,9 +150,10 @@ class FileCntl:
     """
     
     # Initialization method; not useful for derived classes
-    def __init__(self, fname):
+    def __init__(self, fname=None):
         # Read the file.
-        self.Read(fname)
+        if fname is not None:
+            self.Read(fname)
         # Save the file name.
         self.fname = fname
     
