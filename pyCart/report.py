@@ -1061,9 +1061,9 @@ class Report(object):
                 # Use the coefficient.
                 fcpt = comp
             # Defaut: Wing/CY
-            fcpt = "%s/%s" % (fcpt, coeff)
-        # Ensure there are no underscores.
-        fcpt = fcpt.replace('_', '\_')
+            fcpt = ("%s/%s" % (fcpt, coeff))
+            # Ensure there are no underscores.
+            fcpt = fcpt.replace('_', '\_')
         # Get the vertical alignment.
         hv = opts.get_SubfigOpt(sfig, "Position")
         # Get subfigure width
@@ -1257,8 +1257,8 @@ class Report(object):
                 fcpt = comp
             # Default format: RSRB/CLM
             fcpt = "%s/%s" % (fcpt, coeff)
-        # Ensure there are no underscores.
-        fcpt = fcpt.replace("_", "\_")
+            # Ensure there are no underscores.
+            fcpt = fcpt.replace("_", "\_")
         # Get the vertical alignment.
         hv = opts.get_SubfigOpt(sfig, "Position")
         # Get subfigure width
@@ -1600,9 +1600,7 @@ class Report(object):
             lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
                 % (frun, fimg))
         # Set the caption.
-        if fcpt:
-            lines.append('\\caption*{\scriptsize %s}\n' % 
-                fcpt.replace('_', '\_'))
+        if fcpt: lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
         lines.append('\\end{subfigure}\n')
         # Output
@@ -1690,9 +1688,7 @@ class Report(object):
         lines.append('\\includegraphics[width=\\textwidth]{%s/%s.png}\n'
             % (frun, fname))
         # Set the caption.
-        if fcpt:
-            lines.append('\\caption*{\scriptsize %s}\n' %
-                fcpt.replace('_', '\_'))
+        if fcpt: lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
         lines.append('\\end{subfigure}\n')
         # Output
@@ -1785,8 +1781,7 @@ class Report(object):
         os.chdir(fpwd)
         # Set the caption.
         if fcpt:
-            lines.append('\\caption*{\scriptsize %s}\n' % 
-                fcpt.replace('_', '\_'))
+            lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
         lines.append('\\end{subfigure}\n')
         # Output

@@ -152,6 +152,9 @@ class Cart3d(object):
         # Save all the options as a reference.
         self.opts = opts
         
+        # Save the current directory as the root.
+        self.RootDir = os.getcwd()
+        
         # Import modules
         self.ImportModules()
         
@@ -159,11 +162,8 @@ class Cart3d(object):
         self.x = Trajectory(**opts['Trajectory'])
         
         # Read the input files.
-        self.InputCntl = InputCntl(self.opts.get_InputCntl())
+        self.ReadInputCntl()
         self.AeroCsh   = AeroCsh(self.opts.get_AeroCsh())
-        
-        # Save the current directory as the root.
-        self.RootDir = os.getcwd()
         
         
     # Output representation
@@ -1094,6 +1094,8 @@ class Cart3d(object):
         keys = self.x.GetKeysByType('CaseFunction')
         # Get the list of functions.
         funcs = [self.x.defns[key]['Function'] for key in keys] 
+        # Reread the input file(s).
+        self.ReadInputCntl()
         # Loop through the functions.
         for (key, func) in zip(keys, funcs):
             # Apply it.
@@ -1769,6 +1771,26 @@ class Cart3d(object):
         for i in I:
             # Write the JSON file.
             self.WriteCaseJSON(i)
+
+    # Function to read the "input.cntl" file
+    def ReadInputCntl(self):
+        """Read the :file:`input.cntl` file
+
+        :Call:
+            >>> cart3d.ReadInputCntl()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+        :Versions:
+            * 2015-06-13 ``@ddalle``: First version
+        """
+        # Save location
+        fpwd = os.getcwd()
+        # Change to root.
+        os.chdir(self.RootDir)
+        # Read the file.
+        self.InputCntl = InputCntl(self.opts.get_InputCntl())
+        # Go back to original location
+        os.chdir(fpwd)
     
     # Function to prepare "input.cntl" files
     def PrepareInputCntl(self, i):
@@ -1792,8 +1814,9 @@ class Cart3d(object):
         x = self.x
         # Process the key types.
         KeyTypes = [x.defns[k]['Type'] for k in x.keys]
-        # Reread the file.
-        self.InputCntl = InputCntl(self.opts.get_InputCntl())
+        # Go safely to root folder.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
         
         # Set the flight conditions.
         # Mach number
@@ -1837,9 +1860,6 @@ class Cart3d(object):
         self.InputCntl.SetReferenceArea(self.opts.get_RefArea())
         self.InputCntl.SetReferenceLength(self.opts.get_RefLength())
         self.InputCntl.SetMomentPoint(self.opts.get_RefPoint())
-        # Go safely to root folder.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
