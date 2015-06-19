@@ -952,27 +952,27 @@ class DBComp(dict):
         # Check for multiple keys.
         if type(key).__name__ in ['list', 'ndarray', 'tuple']:
             # Init pre-array list of ordered n-lets like [(0,1,0), ..., ]
-            Z = zip(tuple(DBc[k] for k in keys))
+            Z = zip(*[self[k] for k in key])
             # Init list of key definitions
             dt = []
             # Loop through keys to get data types (dtype)
-            for k in keys:
+            for k in key:
                 # Get the type.
                 dtk = self.x.defns[k]['Value']
                 # Convert it to numpy jargon.
                 if dtk in ['float']:
                     # Numeric value
-                    dt.append((k, 'f'))
+                    dt.append((str(k), 'f'))
                 elif dtk in ['int', 'hex', 'oct', 'octal']:
                     # Stored as an integer
-                    dt.append((k, 'i'))
+                    dt.append((str(k), 'i'))
                 else:
                     # String is default.
-                    dt.append((k, '|S32'))
+                    dt.append((str(k), 'S32'))
             # Create the array to be used for multicolumn sort.
             A = np.array(Z, dtype=dt)
             # Get the sorting order
-            I = np.argsort(A, order=keys)
+            I = np.argsort(A, order=[str(k) for k in key])
         else:
             # Indirect sort on a single key.
             I = np.argsort(self[key])
