@@ -327,7 +327,7 @@ def ArchiveFolder(opts):
         fglob = glob.glob('adapt??.tar')
         for f in fglob: os.remove(f)
     # Check if Mesh files should be deleted.
-    if atype.lower() in ['viz', 'hist']:
+    if atype.lower() in ['hist']:
         # Find and delete Mesh files.
         fglob = glob.glob('Mesh*.c3d') + glob.glob('adapt??/Mesh*.c3d')
         for f in fglob: os.remove(f)

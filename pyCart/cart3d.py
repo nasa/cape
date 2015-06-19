@@ -1737,7 +1737,7 @@ class Cart3d(object):
             if not os.path.isdir(frun):
                 print("  Folder does not exist.")
                 continue
-            elif not self.x.PASS[i]:
+            elif self.CheckCaseStatus(i) != 'PASS':
                 print("  Case is not marked PASS.")
                 continue
             # Go to the folder.
