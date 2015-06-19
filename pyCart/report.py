@@ -32,6 +32,7 @@ os.umask(umask)
 # ---------------------------------
 #-->
 
+
 # Class to interface with report generation and updating.
 class Report(object):
     """Interface for automated report generation
@@ -469,7 +470,10 @@ class Report(object):
         nr, stsr = self.ReadCaseJSONIter()
         # Get the actual iteration number.
         n = self.cart3d.CheckCase(i)
+        # Check status.
         sts = self.cart3d.CheckCaseStatus(i)
+        # Call `qstat` if needed.
+        if sts == "INCOMP": sts = self.cart3d.CheckCaseStatus(i, auto=True)
         # Get the figure list
         if sts == "ERROR":
             # Get the figures for FAILed cases

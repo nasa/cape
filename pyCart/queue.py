@@ -127,7 +127,7 @@ def pqjob(fname="jobID.dat"):
         return None
         
 # Function to get `qstat` information
-def qstat(u=None):
+def qstat(u=None, J=None):
     """Call `qstat` and process information
     
     :Call:
@@ -139,15 +139,23 @@ def qstat(u=None):
         *jobs*: :class:`dict`
             Information on each job, ``jobs[jobID]`` for each submitted job
     :Versions:
-        * 2014-10-06 ``@ddalle``: First versoin
+        * 2014-10-06 ``@ddalle``: First version
+        * 2015-06-19 ``@ddalle``: Added ``qstat -J`` option
     """
     # Process username
     if u is None:
         u = os.environ['USER']
+    # Form the command
+    if J is not None:
+        # Call for a specific job.
+        cmd = ['qstat', '-J', J]
+    else:
+        # Call for a user.
+        cmd = ['qstat', '-u', u]
     # Call the command with safety.
     try:
         # Call `qstat` with output.
-        txt = sp.Popen(['qstat', '-u', u], stdout=sp.PIPE).communicate()[0]
+        txt = sp.Popen(cmd, stdout=sp.PIPE).communicate()[0]
         # Split into lines.
         lines = txt.split('\n')
         # Initialize jobs.
