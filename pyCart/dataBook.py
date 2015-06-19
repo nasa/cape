@@ -214,6 +214,7 @@ class DataBook(dict):
                 Instance of the pyCart data book class
         :Versions:
             * 2014-12-22 ``@ddalle``: First version
+            * 2015-06-19 ``@ddalle``: New multi-key sort
         """
         # Start from root directory.
         os.chdir(self.RootDir)
@@ -221,16 +222,8 @@ class DataBook(dict):
         skey = self.opts.get_SortKey()
         # Sort the data book if there is a key.
         if skey is not None:
-            # Check for a list.
-            if type(skey).__name__ in ["list", "ndarray"]:
-                # Reverse the order.
-                skey.reverse()
-                # Loop through sort keys.
-                for k in skey:
-                    self.Sort(k)
-            else:
-                # Sort on the single key.
-                self.Sort(skey)
+            # Sort on either a single key or multiple keys.
+            self.Sort(skey)
         # Loop through the components.
         for comp in self.Components:
             # Write individual component.
@@ -247,12 +240,13 @@ class DataBook(dict):
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pyCart data book class
-            *key*: :class:`str`
-                Name of trajectory key to use for sorting; default is first key
+            *key*: :class:`str` or :class:`list` (:class:`str`)
+                Name of trajectory key or list of keys on which to sort
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of indices; must have same size as data book
         :Versions:
             * 2014-12-30 ``@ddalle``: First version
+            * 2015-06-19 ``@ddalle``: New multi-key sort
         """
         # Process inputs.
         if I is None:
@@ -955,8 +949,33 @@ class DBComp(dict):
         """
         # Process the key.
         if key is None: key = self.x.keys[0]
-        # Indirect sort on it.
-        I = np.argsort(self[key])
+        # Check for multiple keys.
+        if type(key).__name__ in ['list', 'ndarray', 'tuple']:
+            # Init pre-array list of ordered n-lets like [(0,1,0), ..., ]
+            Z = zip(tuple(DBc[k] for k in keys))
+            # Init list of key definitions
+            dt = []
+            # Loop through keys to get data types (dtype)
+            for k in keys:
+                # Get the type.
+                dtk = self.x.defns[k]['Value']
+                # Convert it to numpy jargon.
+                if dtk in ['float']:
+                    # Numeric value
+                    dt.append((k, 'f'))
+                elif dtk in ['int', 'hex', 'oct', 'octal']:
+                    # Stored as an integer
+                    dt.append((k, 'i'))
+                else:
+                    # String is default.
+                    dt.append((k, '|S32'))
+            # Create the array to be used for multicolumn sort.
+            A = np.array(Z, dtype=dt)
+            # Get the sorting order
+            I = np.argsort(A, order=keys)
+        else:
+            # Indirect sort on a single key.
+            I = np.argsort(self[key])
         # Output.
         return I
             
@@ -983,10 +1002,10 @@ class DBComp(dict):
             # Index array specified; check its quality.
             if type(I).__name__ not in ["ndarray", "list"]:
                 # Not a suitable list.
-                raise IOError("Index list is unusable type.")
+                raise TypeError("Index list is unusable type.")
             elif len(I) != self.n:
                 # Incompatible length.
-                raise IOError(("Index list length (%i) " % len(I)) +
+                raise IndexError(("Index list length (%i) " % len(I)) +
                     ("is not equal to data book size (%i)." % self.n))
         else:
             # Default key if necessary
