@@ -677,11 +677,11 @@ class Cart3d(object):
         os.chdir(fpwd)
             
     # Function to determine if case is PASS, ---, INCOMP, etc.
-    def CheckCaseStatus(self, i, jobs={}):
+    def CheckCaseStatus(self, i, jobs={}, auto=False):
         """Determine the current status of a case
         
         :Call:
-            >>> sts = cart3d.CheckCaseStatus(i, jobs={})
+            >>> sts = cart3d.CheckCaseStatus(i, jobs={}, auto=False)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
@@ -697,6 +697,10 @@ class Cart3d(object):
         n = self.CheckCase(i)
         # Try to get a job ID.
         jobID = self.GetPBSJobID(i)
+        # Check for auto-status
+        if (jobs=={}) and auto:
+            # Call qstat for this job.
+            jobs = queue.qstat(J=jobID)
         # Check if the case is prepared.
         if self.CheckError(i):
             # Case contains :file:`FAIL`
