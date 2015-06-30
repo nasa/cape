@@ -678,11 +678,18 @@ class DataBook(dict):
         # Labels.
         h['x'] = plt.xlabel(xk)
         h['y'] = plt.ylabel(ly)
+        # Data mins and maxes.
+        yminv = 1.05*min(yv) - 0.05*max(yv)
+        ymaxv = 1.05*max(yv) - 0.05*min(yv)
+        # Current limits.
+        ymin, ymax = h['ax'].get_ylim()
+        # Make sure data is included.
+        h['ax'].set_ylim((min(ymin, yminv), max(ymax, ymaxv)))
         # Legend.
         if kw.get('Legend', True):
-            # Add extra room for the legend.
+            # Get current limits.
             ymin, ymax = h['ax'].get_ylim()
-            # Add margin to the y-axis limit.
+            # Add extra room for the legend.
             h['ax'].set_ylim((ymin, 1.21*ymax-0.21*ymin))
             # Font size checks.
             if len(h['ax'].get_lines()) > 5:
@@ -1465,6 +1472,13 @@ class DBTarget(dict):
         # Labels.
         h['x'] = plt.xlabel(xk)
         h['y'] = plt.ylabel(ly)
+        # Data mins and maxes.
+        yminv = 1.05*min(yv) - 0.05*max(yv)
+        ymaxv = 1.05*max(yv) - 0.05*min(yv)
+        # Current limits.
+        ymin, ymax = h['ax'].get_ylim()
+        # Make sure data is included.
+        h['ax'].set_ylim((min(ymin, yminv), max(ymax, ymaxv)))
         # Legend.
         if kw.get('Legend', True):
             # Add extra room for the legend.

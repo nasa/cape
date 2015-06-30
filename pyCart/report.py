@@ -266,8 +266,12 @@ class Report(object):
         """
         # Check for folder archiving
         if not self.cart3d.opts.get_ReportArchive(): return
+        # Get sweep list
+        fswps = self.opts.get('Sweeps', [])
+        # Check type.
+        if type(fswps).__name__ not in ['list', 'ndarray']: fswps = [fswps]
         # Loop through the sweeps.
-        for fswp in self.opts.get('Sweeps', []):
+        for fswp in fswps:
             # Check if only restricting to point currently in the trajectory.
             if self.cart3d.opts.get_SweepOpt(fswp, 'TrajectoryOnly'):
                 # Read the data book with the trajectory as the source.
