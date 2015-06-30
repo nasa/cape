@@ -172,8 +172,12 @@ class Report(object):
         """
         # Clear out the lines.
         del self.tex.Section['Sweeps'][1:-1]
+        # Get sweeps.
+        fswps = self.cart3d.opts.get_ReportSweepList(self.rep)
+        # Check for a list.
+        if type(fswps).__name__ not in ['list', 'ndarray']: fswps = [fswps]
         # Loop through the sweep figures.
-        for fswp in self.cart3d.opts.get_ReportSweepList(self.rep):
+        for fswp in fswps:
             # Update the figure.
             self.UpdateSweep(fswp, I=I, cons=cons)
         # Update the text.
@@ -1291,7 +1295,7 @@ class Report(object):
             comp = opts.get_SubfigOpt(sfig, "Component", k)
             coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
             # Plot label (for legend)
-            lbl = self.get_SubfigPlotLabel(sfig, "Label", k)
+            lbl = self.SubfigPlotLabel(sfig, k)
             # Carpet label appendix
             clbl = ""
             # Append carpet constraints to label if appropriate.
