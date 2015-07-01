@@ -681,16 +681,22 @@ class DataBook(dict):
         # Data mins and maxes.
         yminv = 1.05*min(yv) - 0.05*max(yv)
         ymaxv = 1.05*max(yv) - 0.05*min(yv)
+        xminv = 1.05*min(xv) - 0.05*max(xv)
+        xmaxv = 1.05*max(xv) - 0.05*min(xv)
         # Current limits.
         ymin, ymax = h['ax'].get_ylim()
+        xmin, xmax = h['ax'].get_xlim()
         # Make sure data is included.
         h['ax'].set_ylim((min(ymin, yminv), max(ymax, ymaxv)))
+        h['ax'].set_xlim((min(xmin, xminv), max(xmax, xmaxv)))
         # Legend.
         if kw.get('Legend', True):
             # Get current limits.
             ymin, ymax = h['ax'].get_ylim()
+            # Ensure adequate room
+            ymax = max(1.21*ymaxv-0.21*yminv, ymax)
             # Add extra room for the legend.
-            h['ax'].set_ylim((ymin, 1.21*ymax-0.21*ymin))
+            h['ax'].set_ylim((ymin, ymax))
             # Font size checks.
             if len(h['ax'].get_lines()) > 5:
                 # Very small
@@ -848,6 +854,8 @@ class DBComp(dict):
             for k in self.x.keys:
                 # Get the type.
                 t = self.x.defns[k].get('Value', 'float')
+                # Convert type.
+                if t in ['hex', 'oct', 'octal', 'bin']: t = 'int'
                 # Initialize an empty array.
                 self[k] = np.array([], dtype=str(t))
             # Initialize the data columns.
@@ -1475,16 +1483,22 @@ class DBTarget(dict):
         # Data mins and maxes.
         yminv = 1.05*min(yv) - 0.05*max(yv)
         ymaxv = 1.05*max(yv) - 0.05*min(yv)
+        xminv = 1.05*min(xv) - 0.05*max(xv)
+        xmaxv = 1.05*max(xv) - 0.05*min(xv)
         # Current limits.
         ymin, ymax = h['ax'].get_ylim()
+        xmin, xmax = h['ax'].get_xlim()
         # Make sure data is included.
         h['ax'].set_ylim((min(ymin, yminv), max(ymax, ymaxv)))
+        h['ax'].set_xlim((min(xmin, xminv), max(xmax, xmaxv)))
         # Legend.
         if kw.get('Legend', True):
             # Add extra room for the legend.
             ymin, ymax = h['ax'].get_ylim()
-            # Add margin to the y-axis limit.
-            h['ax'].set_ylim((ymin, 1.21*ymax-0.21*ymin))
+            # Ensure adequate room
+            ymax = max(1.21*ymaxv-0.21*yminv, ymax)
+            # Add extra room for the legend.
+            h['ax'].set_ylim((ymin, ymax))
             # Font size checks.
             if len(h['ax'].get_lines()) > 5:
                 # Very small
