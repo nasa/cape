@@ -681,20 +681,27 @@ class DataBook(dict):
         # Data mins and maxes.
         yminv = 1.05*min(yv) - 0.05*max(yv)
         ymaxv = 1.05*max(yv) - 0.05*min(yv)
-        xminv = 1.05*min(xv) - 0.05*max(xv)
-        xmaxv = 1.05*max(xv) - 0.05*min(xv)
+        xmin = min(xv)
+        xmax = max(xv)
+        # Get the list of lines.
+        for hl in h['ax'].get_lines():
+            # Compare the limits to that line's limits.
+            xmin = min(xmin, min(hl.get_xdata()))
+            xmax = max(xmax, max(hl.get_xdata()))
+        # Expand x-limits slightly.
+        xminv = 1.05*xmin - 0.05*xmax
+        xmaxv = 1.05*xmax - 0.05*xmin
         # Current limits.
         ymin, ymax = h['ax'].get_ylim()
-        xmin, xmax = h['ax'].get_xlim()
         # Make sure data is included.
+        h['ax'].set_xlim(xminv, xmaxv)
         h['ax'].set_ylim((min(ymin, yminv), max(ymax, ymaxv)))
-        h['ax'].set_xlim((min(xmin, xminv), max(xmax, xmaxv)))
         # Legend.
         if kw.get('Legend', True):
             # Get current limits.
             ymin, ymax = h['ax'].get_ylim()
             # Ensure adequate room
-            ymax = max(1.21*ymaxv-0.21*yminv, ymax)
+            ymax = max(1.21*ymaxv-0.21*ymin, ymax)
             # Add extra room for the legend.
             h['ax'].set_ylim((ymin, ymax))
             # Font size checks.
@@ -829,6 +836,8 @@ class DBComp(dict):
             for k in self.x.keys:
                 # Get the type.
                 t = self.x.defns[k].get('Value', 'float')
+                # Convert type.
+                if t in ['hex', 'oct', 'octal', 'bin']: t = 'int'
                 # Read the column
                 self[k] = np.loadtxt(fname, 
                     delimiter=delim, dtype=str(t), usecols=[nCol])
@@ -1483,20 +1492,27 @@ class DBTarget(dict):
         # Data mins and maxes.
         yminv = 1.05*min(yv) - 0.05*max(yv)
         ymaxv = 1.05*max(yv) - 0.05*min(yv)
-        xminv = 1.05*min(xv) - 0.05*max(xv)
-        xmaxv = 1.05*max(xv) - 0.05*min(xv)
+        xmin = min(xv)
+        xmax = max(xv)
+        # Get the list of lines.
+        for hl in h['ax'].get_lines():
+            # Compare the limits to that line's limits.
+            xmin = min(xmin, min(hl.get_xdata()))
+            xmax = max(xmax, max(hl.get_xdata()))
+        # Expand x-limits slightly.
+        xminv = 1.05*xmin - 0.05*xmax
+        xmaxv = 1.05*xmax - 0.05*xmin
         # Current limits.
         ymin, ymax = h['ax'].get_ylim()
-        xmin, xmax = h['ax'].get_xlim()
         # Make sure data is included.
+        h['ax'].set_xlim(xminv, xmaxv)
         h['ax'].set_ylim((min(ymin, yminv), max(ymax, ymaxv)))
-        h['ax'].set_xlim((min(xmin, xminv), max(xmax, xmaxv)))
         # Legend.
         if kw.get('Legend', True):
             # Add extra room for the legend.
             ymin, ymax = h['ax'].get_ylim()
             # Ensure adequate room
-            ymax = max(1.21*ymaxv-0.21*yminv, ymax)
+            ymax = max(1.21*ymaxv-0.21*ymin, ymax)
             # Add extra room for the legend.
             h['ax'].set_ylim((ymin, ymax))
             # Font size checks.
