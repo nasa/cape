@@ -1287,11 +1287,31 @@ class DBTarget(dict):
         f.close()
         # Translate into headers
         self.headers = headers.lstrip('#').strip().split(delim)
+        # Save number of points.
+        self.n = len(self.headers)
 
         # Read it.
-        self.data = np.loadtxt(fname, delimiter=delim, skiprows=nskip)
-        # Save number of points.
-        self.n = self.data.shape[0]
+        # Initialize data.
+        self.data = []
+        # Loop through columns.
+        for i in range(self.n):
+            # Try reading as an integer first.
+            try:
+                self.data.append(np.loadtxt(
+                    fname, delimiter=delim, skiprows=nskip, dtype=int))
+                continue
+            except Exception:
+                pass
+            # Try reading as a float second.
+            try:
+                self.data.append(np.loadtxt(
+                    fname, delimiter=delim, skiprows=nskip, dtype=float))
+                continue
+            except Exception:
+                pass
+            # Try reading as a string last.
+            self.data.append(np.loadtxt(
+                fname, delimiter=delim, skiprows=nskip, dtype=str))
     
     # Read the columns and split into useful dict.
     def ProcessColumns(self):
@@ -1374,7 +1394,7 @@ class DBTarget(dict):
         # Extract the data into a dict with a key for each relevant column.
         for col in cols:
             # Find it and save it as a key.
-            self[col] = self.data[:,self.headers.index(col)]
+            self[col] = self.data[self.headers.index(col)]
         # Save the data keys translations.
         self.ckeys = ckeys
         
@@ -1639,7 +1659,7 @@ class DBTarget(dict):
             * 2014-12-21 ``@ddalle``: First version
         """
         # Initialize indices (assume all are matches)
-        j = np.arange(self.data.shape[0])
+        j = np.arange(self.n)
         # Get the trajectory key translations.   This determines which keys to
         # filter and what those keys are called in the source file.
         tkeys = self.topts.get_Trajectory()
