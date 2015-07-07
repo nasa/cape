@@ -678,32 +678,18 @@ class DataBook(dict):
         # Labels.
         h['x'] = plt.xlabel(xk)
         h['y'] = plt.ylabel(ly)
-        # Data mins and maxes.
-        yminv = 1.05*min(yv) - 0.05*max(yv)
-        ymaxv = 1.05*max(yv) - 0.05*min(yv)
-        xmin = min(xv)
-        xmax = max(xv)
-        # Get the list of lines.
-        for hl in h['ax'].get_lines():
-            # Compare the limits to that line's limits.
-            xmin = min(xmin, min(hl.get_xdata()))
-            xmax = max(xmax, max(hl.get_xdata()))
-        # Expand x-limits slightly.
-        xminv = 1.05*xmin - 0.05*xmax
-        xmaxv = 1.05*xmax - 0.05*xmin
-        # Current limits.
-        ymin, ymax = h['ax'].get_ylim()
+        # Get limits that include all data (and not extra).
+        xmin, xmax = get_xlim(ha, pad=0.05)
+        ymin, ymax = get_ylim(ha, pad=0.05)
         # Make sure data is included.
-        h['ax'].set_xlim(xminv, xmaxv)
-        h['ax'].set_ylim((min(ymin, yminv), max(ymax, ymaxv)))
+        h['ax'].set_xlim(xmin, xmax)
+        h['ax'].set_ylim(ymin, ymax)
         # Legend.
         if kw.get('Legend', True):
             # Get current limits.
-            ymin, ymax = h['ax'].get_ylim()
-            # Ensure adequate room
-            ymax = max(1.21*ymaxv-0.21*ymin, ymax)
+            ymin, ymax = get_ylim(ha, pad=0.05)
             # Add extra room for the legend.
-            h['ax'].set_ylim((ymin, ymax))
+            h['ax'].set_ylim((ymin, 1.2*ymax-0.2*ymin))
             # Font size checks.
             if len(h['ax'].get_lines()) > 5:
                 # Very small
@@ -732,8 +718,92 @@ class DataBook(dict):
         return h
         
             
+# Function to automatically get inclusive data limits.
+def get_ylim(ha, pad=0.05):
+    """Calculate appropriate *y*-limits to include all lines in a plot
     
+    Plotted objects in the classes :class:`matplotlib.lines.Lines2D` and
+    :class:`matplotlib.collections.PolyCollection` are checked.
     
+    :Call:
+        >>> ymin, ymax = get_ylim(ha, pad=0.05)
+    :Inputs:
+        *ha*: :class:`matplotlib.axes.AxesSubplot`
+            Axis handle
+        *pad*: :class:`float`
+            Extra padding to min and max values to plot.
+    :Outputs:
+        *ymin*: :class:`float`
+            Minimum *y* coordinate including padding
+        *ymax*: :class:`float`
+            Maximum *y* coordinate including padding
+    :Versions:
+        * 2015-07-06 ``@ddalle``: First version
+    """
+    # Initialize limits.
+    ymin = np.inf
+    ymax = -np.inf
+    # Loop through all children of the input axes.
+    for h in ha.get_children():
+        # Get the type.
+        t = type(h).__name__
+        # Check the class.
+        if t == 'Lines2D':
+            # Check the min and max data
+            ymin = min(ymin, min(h.get_ydata()))
+            ymax = max(ymax, max(h.get_ydata()))
+        elif t == 'PolyCollection':
+            # Get the path.
+            P = h.get_paths()[0]
+            # Get the coordinates.
+            ymin = min(ymin, min(P.vertices[:,1]))
+            ymax = max(ymax, max(P.vertices[:,1]))
+    # Add padding.
+    yminv = (1+pad)*ymin - pad*ymax
+    ymaxv = (1+pad)*ymax - pad*ymin
+    # Output
+    return yminv, ymaxv
+    
+# Function to automatically get inclusive data limits.
+def get_xlim(ha, pad=0.05):
+    """Calculate appropriate *x*-limits to include all lines in a plot
+    
+    Plotted objects in the classes :class:`matplotlib.lines.Lines2D` are
+    checked.
+    
+    :Call:
+        >>> xmin, xmax = get_xlim(ha, pad=0.05)
+    :Inputs:
+        *ha*: :class:`matplotlib.axes.AxesSubplot`
+            Axis handle
+        *pad*: :class:`float`
+            Extra padding to min and max values to plot.
+    :Outputs:
+        *xmin*: :class:`float`
+            Minimum *x* coordinate including padding
+        *xmax*: :class:`float`
+            Maximum *x* coordinate including padding
+    :Versions:
+        * 2015-07-06 ``@ddalle``: First version
+    """
+    # Initialize limits.
+    xmin = np.inf
+    xmax = -np.inf
+    # Loop through all children of the input axes.
+    for h in ha.get_children():
+        # Get the type.
+        t = type(h).__name__
+        # Check the class.
+        if t == 'Lines2D':
+            # Check the min and max data
+            xmin = min(xmin, min(h.get_xdata()))
+            xmax = max(xmax, max(h.get_xdata()))
+    # Add padding.
+    xminv = (1+pad)*xmin - pad*xmax
+    xmaxv = (1+pad)*xmax - pad*xmin
+    # Output
+    return xminv, xmaxv
+        
                 
 # Individual component data book
 class DBComp(dict):
@@ -1489,32 +1559,16 @@ class DBTarget(dict):
         # Labels.
         h['x'] = plt.xlabel(xk)
         h['y'] = plt.ylabel(ly)
-        # Data mins and maxes.
-        yminv = 1.05*min(yv) - 0.05*max(yv)
-        ymaxv = 1.05*max(yv) - 0.05*min(yv)
-        xmin = min(xv)
-        xmax = max(xv)
-        # Get the list of lines.
-        for hl in h['ax'].get_lines():
-            # Compare the limits to that line's limits.
-            xmin = min(xmin, min(hl.get_xdata()))
-            xmax = max(xmax, max(hl.get_xdata()))
-        # Expand x-limits slightly.
-        xminv = 1.05*xmin - 0.05*xmax
-        xmaxv = 1.05*xmax - 0.05*xmin
-        # Current limits.
-        ymin, ymax = h['ax'].get_ylim()
+        # Get limits to include all data.
+        xmin, xmax = get_xlim(h['ax'], pad=0.05)
+        ymin, ymax = get_ylim(h['ax'], pad=0.05)
         # Make sure data is included.
-        h['ax'].set_xlim(xminv, xmaxv)
-        h['ax'].set_ylim((min(ymin, yminv), max(ymax, ymaxv)))
+        h['ax'].set_xlim(xmin, xmax)
+        h['ax'].set_ylim(ymin, ymax)
         # Legend.
         if kw.get('Legend', True):
             # Add extra room for the legend.
-            ymin, ymax = h['ax'].get_ylim()
-            # Ensure adequate room
-            ymax = max(1.21*ymaxv-0.21*ymin, ymax)
-            # Add extra room for the legend.
-            h['ax'].set_ylim((ymin, ymax))
+            h['ax'].set_ylim((ymin, 1.2*ymax-0.2*ymin))
             # Font size checks.
             if len(h['ax'].get_lines()) > 5:
                 # Very small
