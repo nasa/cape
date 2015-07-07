@@ -679,15 +679,15 @@ class DataBook(dict):
         h['x'] = plt.xlabel(xk)
         h['y'] = plt.ylabel(ly)
         # Get limits that include all data (and not extra).
-        xmin, xmax = get_xlim(ha, pad=0.05)
-        ymin, ymax = get_ylim(ha, pad=0.05)
+        xmin, xmax = get_xlim(h['ax'], pad=0.05)
+        ymin, ymax = get_ylim(h['ax'], pad=0.05)
         # Make sure data is included.
         h['ax'].set_xlim(xmin, xmax)
         h['ax'].set_ylim(ymin, ymax)
         # Legend.
         if kw.get('Legend', True):
             # Get current limits.
-            ymin, ymax = get_ylim(ha, pad=0.05)
+            ymin, ymax = get_ylim(h['ax'], pad=0.05)
             # Add extra room for the legend.
             h['ax'].set_ylim((ymin, 1.2*ymax-0.2*ymin))
             # Font size checks.
@@ -748,7 +748,7 @@ def get_ylim(ha, pad=0.05):
         # Get the type.
         t = type(h).__name__
         # Check the class.
-        if t == 'Lines2D':
+        if t == 'Line2D':
             # Check the min and max data
             ymin = min(ymin, min(h.get_ydata()))
             ymax = max(ymax, max(h.get_ydata()))
@@ -794,7 +794,7 @@ def get_xlim(ha, pad=0.05):
         # Get the type.
         t = type(h).__name__
         # Check the class.
-        if t == 'Lines2D':
+        if t == 'Line2D':
             # Check the min and max data
             xmin = min(xmin, min(h.get_xdata()))
             xmax = max(xmax, max(h.get_xdata()))
