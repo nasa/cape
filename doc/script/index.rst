@@ -9,6 +9,7 @@ Script Library
     
     .. toctree::
     
+        pycart
         UH3D2Tri
         CombineTri
         

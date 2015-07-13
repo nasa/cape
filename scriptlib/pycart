@@ -66,8 +66,8 @@ relatively simple commands.
     -I INDS
         Specify a list of cases to consider directly by index
         
-    --report FREP
-        Update report named *FREP* or all reports if *FREP* is not specified
+    --report REP
+        Update report named *REP* or first report if *REP* is not specified
         
     --aero
         Loop through cases and extract force and moment coefficients and
