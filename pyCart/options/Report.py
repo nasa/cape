@@ -806,7 +806,7 @@ class Report(odict):
         for k in o_in:
             # Do not apply 'marker' to fill_between plots
             if opt in ['MinMaxOptions', 'StDevOptions', 'ErrPltOptions']:
-                if k in ['marker']:
+                if k in ['marker', 'ls']:
                     continue
             # Get the option (may be a list).
             o_k = o_in[k]
@@ -831,7 +831,7 @@ class Report(odict):
         for k in o_def:
             # Do not apply 'marker' to fill_between plots
             if opt in ['MinMaxOptions', 'StDevOptions', 'ErrPltOptions']:
-                if k in ['marker']:
+                if k in ['marker', 'ls']:
                     continue
             # Get the option (may be a list).
             o_k = o_def[k]

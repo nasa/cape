@@ -113,12 +113,6 @@ if __name__ == "__main__":
     # Parse inputs.
     a, kw = readkeys(pyCart.os.sys.argv)
     
-    # Get constraints and convert text to list.
-    cons  = kw.get('cons',        '').split(',')
-    cons += kw.get('constraints', '').split(',')
-    # Set the constraints back into the keywords.
-    kw['cons'] = cons
-    
     # Check for a help flag.
     if kw.get('h') or kw.get('help'):
         print(__doc__)
@@ -138,8 +132,17 @@ if __name__ == "__main__":
     # Try to read it.
     cart3d = pyCart.Cart3d(fname)
     
+    # Get constraints and convert text to list.
+    cons  = kw.get('cons',        '').split(',')
+    cons += kw.get('constraints', '').split(',')
+    # Set the constraints back into the keywords.
+    kw['cons'] = cons
+    # Check for index list
+    if 'I' in kw:
+        kw['I'] = cart3d.x.ExpandIndices(kw['I'])
+    
     # Apply the constraints.
-    I = cart3d.x.Filter(cons)
+    I = cart3d.x.GetIndices(**kw)
     # Get the case names.
     fruns = cart3d.x.GetFullFolderNames(I)
     

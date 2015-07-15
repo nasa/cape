@@ -1248,19 +1248,13 @@ class Cart3d(object):
             
             # Default print flag
             if x.defns[k]['Value'] == 'float':
-                # Float
-                # Use two decimals for first key.
-                if k == x.keys[0]:
-                    # Gets two decimals
-                    slbl = '%s%.2f'
-                else:
-                    # Single-decimal
-                    slbl = '%s%.1f'
+                # Float: get two decimals if nonzero
+                slbl = '%s%.2f'.rstrip('0').rstrip('.')
             else:
                 # Simply use string
                 slbl = '%s%s'
             # Non-default string
-            slbl = x.defns[k].get('Label', slbl)
+            slbl = x.defns[k].get('PBSLabel', slbl)
             # Strip underscores
             slbl = slbl.replace('_', '')
             # Append to the label with only one decimal

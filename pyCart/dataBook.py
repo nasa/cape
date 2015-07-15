@@ -758,6 +758,11 @@ def get_ylim(ha, pad=0.05):
             # Get the coordinates.
             ymin = min(ymin, min(P.vertices[:,1]))
             ymax = max(ymax, max(P.vertices[:,1]))
+    # Check for identical values
+    if ymax - ymin <= 0.1*pad:
+        # Expand by manual amount,.
+        ymax += pad*ymax
+        ymin -= pad*ymin
     # Add padding.
     yminv = (1+pad)*ymin - pad*ymax
     ymaxv = (1+pad)*ymax - pad*ymin
@@ -798,6 +803,11 @@ def get_xlim(ha, pad=0.05):
             # Check the min and max data
             xmin = min(xmin, min(h.get_xdata()))
             xmax = max(xmax, max(h.get_xdata()))
+    # Check for identical values
+    if xmax - xmin <= 0.1*pad:
+        # Expand by manual amount,.
+        xmax += pad*xmax
+        xmin -= pad*xmin
     # Add padding.
     xminv = (1+pad)*xmin - pad*xmax
     xmaxv = (1+pad)*xmax - pad*xmin
