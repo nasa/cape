@@ -1065,7 +1065,8 @@ class Cart3d(object):
         # Different processes for GroupMesh and CaseMesh
         if self.opts.get_GroupMesh():
             # Copy the required files.
-            for fname in ['input.c3d', 'Mesh.c3d.Info', 'Config.xml']:
+            for fname in ['input.c3d', 'preSpec.c3d.cntl', 
+                    'Mesh.c3d.Info', 'Config.xml']:
                 # Source path.
                 fsrc = os.path.join('..', fname)
                 # Check for the file.
