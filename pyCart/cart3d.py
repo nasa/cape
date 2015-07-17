@@ -1073,8 +1073,8 @@ class Cart3d(object):
                     # Copy it.
                     shutil.copy(fsrc, fname)
             # Create links that are available.
-            for fname in ['Components.i.tri', 'Mesh.c3d', 'Mesh.mg.c3d',
-                    'Mesh.R.c3d']:
+            for fname in ['Mesh.c3d', 'Mesh.mg.c3d', 'Mesh.R.c3d',
+                    'Components.i.tri', 'Components.tri', 'Components.c.tri']:
                 # Source path.
                 fsrc = os.path.join(os.path.abspath('..'), fname)
                 # Remove the file if it's present.
