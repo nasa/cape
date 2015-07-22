@@ -782,8 +782,10 @@ class Cart3d(object):
             return False
         # Go to the group folder.
         os.chdir(fgrp)
+        # Extract options
+        opts = self.opts
         # Check for group mesh.
-        if not self.opts.get_GroupMesh():
+        if not opts.get_GroupMesh():
             # Get the case name.
             frun = self.x.GetFolderNames(i)
             # Check if it's there.
@@ -794,15 +796,24 @@ class Cart3d(object):
             os.chdir(frun)
         # Go to working folder. ('.' or 'adapt??/')
         os.chdir(case.GetWorkingFolder())
-        # Check for the surface file.
-        if not os.path.isfile('Components.i.tri'): q = False
-        # Check for which mesh file to look for.
-        if q and self.opts.get_mg() > 0:
-            # Look for the multigrid mesh
-            if not os.path.isfile('Mesh.mg.c3d'): q = False
+        # Check for a mesh file?
+        if not opts.get_use_aero_csh(0) or opts.get_jumpstart(0):
+            # Intersected mesh file.
+            if not os.path.isfile('Components.i.tri'): q = False
+            # Mesh file.
+            if q and opts.get_mg() > 0:
+                # Look for multigrid mesh
+                if not os.path.isfile('Mesh.mg.c3d'): q = False
+            elif q:
+                # Look for original mesh
+                if not os.path.isfile('Mesh.c3d'): q = False
+        elif opts.get_intersect():
+            # Pre-intersect surface files.
+            if not os.path.isfile('Components.c.tri'): q = False
+            if q and not os.path.isfile('Components.tri'): q = False
         else:
-            # Look for the original mesh
-            if not os.path.isfile('Mesh.c3d'): q = False
+            # Intersected file
+            if not os.path.isfile('Components.i.tri'): q = False
         # Return to original folder.
         os.chdir(fpwd)
         # Output.

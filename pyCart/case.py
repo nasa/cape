@@ -155,10 +155,11 @@ def run_flowCart(verify=False, isect=False):
         # Quit
         f.close()
         return
-    # Last reported residual
-    L1 = GetCurrentResid()
+    # First and last reported residual
+    L1i = GetFirstResid()
+    L1f = GetCurrentResid()
     # Check for bad (large or NaN) values.
-    if isnan(L1) or L1>1.0e+8:
+    if isnan(L1f) or L1f/(0.1+L1i)>1.0e+6:
         # Exploded.
         f = open('FAIL', 'w')
         # Write the failure type.
@@ -548,6 +549,7 @@ def GetHistoryResid(fname='history.dat'):
     except Exception:
         # If any of that fails, return 0
         return nan
+        
 
 # Function to check if last line is unsteady
 def CheckUnsteadyHistory(fname='history.dat'):
@@ -627,6 +629,42 @@ def GetCurrentResid():
     fdir = GetWorkingFolder()
     # Get the residual.
     return GetHistoryResid(os.path.join(fdir, 'history.dat'))
+
+# Function to get first recent adaptive iteration
+def GetFirstResid():
+    """Get the first iteration
+
+    :Call:
+        >>> L1 = pyCart.case.GetFirstResid()
+    :Outputs:
+        *L1*: :class:`float`
+            First L1 residual
+    :Versions:
+        * 2015-07-22 ``@ddalle``: First version
+    """
+    # Get the working folder.
+    fdir = GetWorkingFolder()
+    # File name
+    fname = os.path.join(fdir, 'history.dat')
+    # Check the file beforehand.
+    if not os.path.isfile(fname):
+        # No history
+        return nan
+    # Check the file.
+    try:
+        # Try to open the file.
+        f = open(fname, 'r')
+        # Initialize line.
+        txt = '#'
+        # Read the lines until it's not a comment.
+        while txt.startswith('#'):
+            # Read the next line.
+            txt = f.readline()
+        # Try to get the integer.
+        return float(txt.split()[3])
+    except Exception:
+        # If any of that fails, return 0
+        return nan
     
 # Function to get most recent L1 residual
 def GetCurrentIter():
