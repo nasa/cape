@@ -1261,16 +1261,22 @@ class Cart3d(object):
             # Default print flag
             if x.defns[k]['Value'] == 'float':
                 # Float: get two decimals if nonzero
-                slbl = '%s%.2f'.rstrip('0').rstrip('.')
+                sfmt = '%.2f'
             else:
                 # Simply use string
-                slbl = '%s%s'
-            # Non-default string
-            slbl = x.defns[k].get('PBSLabel', slbl)
+                sfmt = '%s'
+            # Non-default strings
+            slbl = x.defns[k].get('PBSLabel', x.abbrv[k])
+            sfmt = x.defns[k].get('PBSFormat', sfmt)
+            # Apply values
+            slbl = slbl + (sfmt % getattr(x,k)[i])
             # Strip underscores
             slbl = slbl.replace('_', '')
-            # Append to the label with only one decimal
-            lbl += (slbl % (x.abbrv[k], getattr(x,k)[i]))
+            # Strop trailing zeros and decimals if float
+            if x.defns[k]['Value'] == 'float':
+                slbl = slbl.rstrip('0').rstrip('.')
+            # Append to the label.
+            lbl += slbl
         # Check length.
         if len(lbl) > 15:
             # 16-char limit (or is it 15?)
