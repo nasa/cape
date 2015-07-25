@@ -163,7 +163,7 @@ def run_flowCart(verify=False, isect=False):
         # Exploded.
         f = open('FAIL', 'w')
         # Write the failure type.
-        f.write('# Bombed at iteration %.6f with residual %.2E.\n' % (n, L1))
+        f.write('# Bombed at iteration %.6f with residual %.2E.\n' % (n, L1f))
         f.write('%13.6f\n' % n)
         # Quit
         f.close()
@@ -599,6 +599,9 @@ def GetWorkingFolder():
     n0 = GetCurrentIter()
     # Initialize working directory.
     fdir = '.'
+    # Implementation of returning to adapt after startup turned off
+    if os.path.isfile('history.dat') and not os.path.islink('history.dat'):
+        return fdir
     # Check for adapt?? folders
     for fi in glob.glob('adapt??'):
         # Attempt to read it.
