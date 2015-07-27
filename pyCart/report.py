@@ -508,12 +508,12 @@ class Report(object):
             os.chdir(fpwd)
             return
         # Status update
-        if nr == n and nr is not None:
-            # Changing status
-            print("  Updating status %s --> %s" % (stsr, sts))
-        elif nr:
+        if n != nr:
             # More iterations
             print("  Updating from iteration %s --> %s" % (nr, n))
+        elif sts != stsr
+            # Changing status
+            print("  Updating status %s --> %s" % (stsr, sts))
         else:
             # New case
             print("  New report at iteration %s" % n)
@@ -531,9 +531,11 @@ class Report(object):
         # -------
         # Figures
         # -------
-        # Loop through figures.
-        for fig in figs:
-            self.UpdateFigure(fig, i)
+        # Check if figures need updating.
+        if (n != nr):
+            # Loop through figures.
+            for fig in figs:
+                self.UpdateFigure(fig, i)
         # -----
         # Write
         # -----
