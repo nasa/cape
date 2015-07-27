@@ -1055,12 +1055,12 @@ class Cart3d(object):
         :Versions:
             * 2014-09-30 ``@ddalle``: First version
         """
-        # Prepare the mesh.
-        self.PrepareMesh(i)
         # Get the existing status.
         n = self.CheckCase(i)
         # Quit if prepared.
         if n is not None: return None
+        # Prepare the mesh.
+        self.PrepareMesh(i)
         # Get the run name.
         frun = self.x.GetFullFolderNames(i)
         # Save current location.
