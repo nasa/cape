@@ -132,9 +132,12 @@ def qstat(u=None, J=None):
     
     :Call:
         >>> jobs = pyCart.queue.qstat(u=None)
+        >>> jobs = pyCart.queue.qstat(J=None)
     :Inputs:
         *u*: :class:`str`
             User name, defaults to ``os.environ[USER]``
+        *J*: :class:`int`
+            Specific job ID for which to check
     :Outputs:
         *jobs*: :class:`dict`
             Information on each job, ``jobs[jobID]`` for each submitted job
@@ -148,7 +151,7 @@ def qstat(u=None, J=None):
     # Form the command
     if J is not None:
         # Call for a specific job.
-        cmd = ['qstat', '-J', J]
+        cmd = ['qstat', '-J', str(J)]
     else:
         # Call for a user.
         cmd = ['qstat', '-u', u]

@@ -481,7 +481,9 @@ class Report(object):
         # Check status.
         sts = self.cart3d.CheckCaseStatus(i)
         # Call `qstat` if needed.
-        if sts == "INCOMP": sts = self.cart3d.CheckCaseStatus(i, auto=True)
+        if (sts == "INCOMP") and (n is not None):
+            # Check the current queue
+            sts = self.cart3d.CheckCaseStatus(i, auto=True)
         # Get the figure list
         if sts == "ERROR":
             # Get the figures for FAILed cases
@@ -511,7 +513,7 @@ class Report(object):
         if n != nr:
             # More iterations
             print("  Updating from iteration %s --> %s" % (nr, n))
-        elif sts != stsr
+        elif sts != stsr:
             # Changing status
             print("  Updating status %s --> %s" % (stsr, sts))
         else:
@@ -532,7 +534,7 @@ class Report(object):
         # Figures
         # -------
         # Check if figures need updating.
-        if (n != nr):
+        if not ((n==nr) and (stsr=='DONE') and (sts=='PASS')):
             # Loop through figures.
             for fig in figs:
                 self.UpdateFigure(fig, i)
