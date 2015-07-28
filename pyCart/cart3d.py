@@ -151,7 +151,7 @@ class Cart3d(object):
         
         # Save all the options as a reference.
         self.opts = opts
-        
+
         # Save the current directory as the root.
         self.RootDir = os.getcwd()
         
@@ -164,6 +164,9 @@ class Cart3d(object):
         # Read the input files.
         self.ReadInputCntl()
         self.AeroCsh   = AeroCsh(self.opts.get_AeroCsh())
+
+        # Job list
+        self.jobs = {}
         
         
     # Output representation
@@ -489,6 +492,8 @@ class Cart3d(object):
         
         # Get the qstat info (safely; do not raise an exception).
         jobs = queue.qstat(u=kw.get('u',os.environ['USER']))
+        # Save the jobs.
+        self.jobs = jobs
         # Initialize number of submitted jobs
         nSub = 0
         # Initialize number of jobs in queue.
@@ -677,11 +682,11 @@ class Cart3d(object):
         os.chdir(fpwd)
             
     # Function to determine if case is PASS, ---, INCOMP, etc.
-    def CheckCaseStatus(self, i, jobs={}, auto=False):
+    def CheckCaseStatus(self, i, jobs=None, auto=False):
         """Determine the current status of a case
         
         :Call:
-            >>> sts = cart3d.CheckCaseStatus(i, jobs={}, auto=False)
+            >>> sts = cart3d.CheckCaseStatus(i, jobs=None, auto=False)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
@@ -697,10 +702,15 @@ class Cart3d(object):
         n = self.CheckCase(i)
         # Try to get a job ID.
         jobID = self.GetPBSJobID(i)
+        # Default jobs.
+        if jobs is None:
+            # Use current status.
+            jobs = self.jobs
         # Check for auto-status
         if (jobs=={}) and auto:
-            # Call qstat for this job.
-            jobs = queue.qstat(J=jobID)
+            # Call qstat.
+            self.jobs = queue.qstat()
+            jobs = self.jobs
         # Check if the case is prepared.
         if self.CheckError(i):
             # Case contains :file:`FAIL`
