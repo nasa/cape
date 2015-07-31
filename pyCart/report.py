@@ -485,12 +485,12 @@ class Report(object):
             # Check the current queue
             sts = self.cart3d.CheckCaseStatus(i, auto=True)
         # Get the figure list
-        if sts == "ERROR":
-            # Get the figures for FAILed cases
-            figs = self.cart3d.opts.get_ReportErrorFigList(self.rep)
-        elif n:
+        if n:
             # Nominal case with some results
             figs = self.cart3d.opts.get_ReportFigList(self.rep)
+        elif sts == "ERROR":
+            # Get the figures for FAILed cases
+            figs = self.cart3d.opts.get_ReportErrorFigList(self.rep)
         else:
             # No FAIL file, but no iterations
             figs = self.cart3d.opts.get_ReportZeroFigList(self.rep)
@@ -523,9 +523,9 @@ class Report(object):
         # Initial setup
         # -------------
         # Check for the file.
-        if os.path.isfile(self.fname): os.remove(self.fname)
-        # Make the skeleton file.
-        self.WriteCaseSkeleton(i)
+        if not os.path.isfile(self.fname):
+            # Make the skeleton file.
+            self.WriteCaseSkeleton(i)
         # Open it.
         self.cases[i] = tex.Tex(self.fname)
         # Set the iteration number and status header.

@@ -491,7 +491,7 @@ class Cart3d(object):
         fruns = self.x.GetFullFolderNames(I)
         
         # Get the qstat info (safely; do not raise an exception).
-        jobs = queue.qstat(u=kw.get('u',os.environ['USER']))
+        jobs = queue.qstat(u=kw.get('u'))
         # Save the jobs.
         self.jobs = jobs
         # Initialize number of submitted jobs
@@ -536,7 +536,7 @@ class Cart3d(object):
             # Extract case
             frun = fruns[j]
             # Check status.
-            sts = self.CheckCaseStatus(i, jobs)
+            sts = self.CheckCaseStatus(i, jobs, u=kw.get('u'))
             # Get active job number.
             jobID = self.GetPBSJobID(i)
             # Append.
@@ -682,11 +682,11 @@ class Cart3d(object):
         os.chdir(fpwd)
             
     # Function to determine if case is PASS, ---, INCOMP, etc.
-    def CheckCaseStatus(self, i, jobs=None, auto=False):
+    def CheckCaseStatus(self, i, jobs=None, auto=False, u=None):
         """Determine the current status of a case
         
         :Call:
-            >>> sts = cart3d.CheckCaseStatus(i, jobs=None, auto=False)
+            >>> sts = cart3d.CheckCaseStatus(i, jobs=None, auto=False, u=None)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
@@ -694,6 +694,8 @@ class Cart3d(object):
                 Index of the case to check (0-based)
             *jobs*: :class:`dict`
                 Information on each job, ``jobs[jobID]`` for each submitted job
+            *u*: :class:`str`
+                User name (defaults to ``os.environ['USER']``)
         :Versions:
             * 2014-10-04 ``@ddalle``: First version
             * 2014-10-06 ``@ddalle``: Checking queue status
@@ -709,7 +711,7 @@ class Cart3d(object):
         # Check for auto-status
         if (jobs=={}) and auto:
             # Call qstat.
-            self.jobs = queue.qstat()
+            self.jobs = queue.qstat(u=u)
             jobs = self.jobs
         # Check if the case is prepared.
         if self.CheckError(i):
