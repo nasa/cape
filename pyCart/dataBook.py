@@ -1305,23 +1305,16 @@ class DBTarget(dict):
         self.data = []
         # Loop through columns.
         for i in range(self.n):
-            # Try reading as an integer first.
-            try:
-                self.data.append(np.loadtxt(
-                    fname, delimiter=delim, skiprows=nskip, dtype=int))
-                continue
-            except Exception:
-                pass
             # Try reading as a float second.
             try:
-                self.data.append(np.loadtxt(
-                    fname, delimiter=delim, skiprows=nskip, dtype=float))
+                self.data.append(np.loadtxt(fname, delimiter=delim,
+                    skiprows=nskip, dtype=float, usecols=(i,)))
                 continue
             except Exception:
                 pass
             # Try reading as a string last.
-            self.data.append(np.loadtxt(
-                fname, delimiter=delim, skiprows=nskip, dtype=str))
+            self.data.append(np.loadtxt(fname, delimiter=delim,
+                skiprows=nskip, dtype=str, usecols=(i,)))
     
     # Read the columns and split into useful dict.
     def ProcessColumns(self):
@@ -1368,6 +1361,11 @@ class DBTarget(dict):
             ctargs = self.opts.get_CompTargets(comp)
             # Loop through the possible force/moment coefficients.
             for c in ['CA','CY','CN','CLL','CLM','CLN']:
+                
+                
+                print(" %s/%s" % (comp, c))
+                
+                
                 # Get the translated name
                 ctarg = ctargs.get(c, c)
                 # Get the target source for this entry.
