@@ -111,7 +111,7 @@ if __name__ == "__main__":
     cons  = kw.get('cons',        '').split(',')
     cons += kw.get('constraints', '').split(',')
     # Set the constraints back into the keywords.
-    kw['cons'] = cons
+    kw['cons'] = [con.strip() for con in cons]
         
     # Get file name.
     fname = kw.get('f', 'pyCart.json')

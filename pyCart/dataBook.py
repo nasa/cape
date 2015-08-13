@@ -1315,6 +1315,8 @@ class DBTarget(dict):
             # Try reading as a string last.
             self.data.append(np.loadtxt(fname, delimiter=delim,
                 skiprows=nskip, dtype=str, usecols=(i,)))
+        # Number of cases
+        self.nCase = len(self.data[0])
     
     # Read the columns and split into useful dict.
     def ProcessColumns(self):
@@ -1361,11 +1363,6 @@ class DBTarget(dict):
             ctargs = self.opts.get_CompTargets(comp)
             # Loop through the possible force/moment coefficients.
             for c in ['CA','CY','CN','CLL','CLM','CLN']:
-                
-                
-                print(" %s/%s" % (comp, c))
-                
-                
                 # Get the translated name
                 ctarg = ctargs.get(c, c)
                 # Get the target source for this entry.
@@ -1438,7 +1435,7 @@ class DBTarget(dict):
         # Save the key translations.
         self.xkeys = tkeys
         # Set the number of cases in the "trajectory."
-        self.x.nCase = self.n
+        self.x.nCase = self.nCase
         
     # Plot a sweep of one or more coefficients
     def PlotCoeff(self, comp, coeff, I, **kw):

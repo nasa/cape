@@ -488,10 +488,8 @@ class DataBook(odict):
         """
         # Data columns (from CFD)
         dcols = self.get_DataBookDataCols(comp)
-        # Target columns (for comparison)
-        tcols = self.get_DataBookTargetCols(comp)
         # Output
-        return dcols + tcols
+        return dcols
         
     # Get full list of data columns for a specific component
     def get_DataBookDataCols(self, comp):

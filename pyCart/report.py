@@ -1227,6 +1227,10 @@ class Report(object):
         else:
             # Single sweep
             J = [I]
+        # Get the component.
+        comp = opts.get_SubfigOpt(sfig, "Component")
+        # Get the coefficient
+        coeff = opts.get_SubfigOpt(sfig, "Coefficient")
         # Get list of targets
         targs = self.SubfigTargets(sfig)
         # Initialize target sweeps
@@ -1241,10 +1245,6 @@ class Report(object):
                 jt.append(self.GetTargetSweepIndices(fswp, I[0], targ))
             # Save the sweeps.
             JT[targ] = jt
-        # Get the component.
-        comp = opts.get_SubfigOpt(sfig, "Component")
-        # Get the coefficient
-        coeff = opts.get_SubfigOpt(sfig, "Coefficient")
         # Horizontal axis variable
         xk = opts.get_SweepOpt(fswp, "XAxis")
         # List of coefficients
@@ -1342,11 +1342,14 @@ class Report(object):
             for targ in targs:
                 # Get the target handle.
                 DBT = self.cart3d.DataBook.GetTargetByName(targ)
+                # Check for results to plot.
+                if len(JT[targ][j]) == 0:
+                    continue
                 # Check if the *comp*/*coeff* combination is available.
                 if (comp not in DBT.ckeys) or (coeff not in DBT.ckeys[comp]):
                     continue
                 # Get target plot label.
-                tlbl = self.SubfigPlotTargetLabel(sfig, k, targ) + clbl
+                tlbl = self.SubfigTargetPlotLabel(sfig, k, targ) + clbl
                 # Don't start with comma.
                 tlbl = tlbl.lstrip(", ")
                 # Specified target plot options
@@ -1357,7 +1360,7 @@ class Report(object):
                 # Apply non-default options
                 for k_i in kw_t: kw_l[k_i] = kw_t[k_i]
                 # Draw the plot
-                DBT.PlotCoeff(comp. coeff, JT[targ][j], x=xk,
+                DBT.PlotCoeff(comp, coeff, JT[targ][j], x=xk,
                     Label=tlbl, LineOptions=kw_l,
                     FigWidth=figw, FigHeight=figh)
         # Check for manually specified axes labels.
@@ -1453,12 +1456,14 @@ class Report(object):
         :Versions:
             * 2015-06-04 ``@ddalle``: First version
         """
+        # Extract options
+        opts = self.cart3d.opts
         # Get list of targets
         targs = self.SubfigTargets(sfig)
         # Target index among list of targets for this subfigure
         kt = targs.index(targ)
         # Get the label if specified.
-        lbl = self.cart3d.opts.get_SubfigOpt(sfig, "TargetLabel", kt)
+        lbl = opts.get_SubfigOpt(sfig, "TargetLabel", kt)
         # Check.
         if lbl is not None: return lbl
         # List of components
@@ -2495,7 +2500,15 @@ class Report(object):
         """
         # Check if there's a data book at all.
         try:
+            # Reference the data book
             self.cart3d.DataBook
+            # Set source to "data"
+            try: 
+                # Check data book source
+                self.cart3d.DataBook.source
+            except Exception:
+                # Set source to none.
+                self.cart3d.DataBook.source = 'none'
         except Exception:
             # Read the data book.
             self.cart3d.ReadDataBook()
