@@ -1173,18 +1173,24 @@ class Report(object):
             dpi = opts.get_SubfigOpt(sfig, "DPI")
             # Figure name
             fimg = '%s.%s' % (sfig, fmt)
+            fpdf = '%s.pdf' % sfig
             # Save the figure.
-            if fmt in ['pdf', 'svg']:
+            if fmt in ['pdf']:
                 # Save as vector-based image.
                 h['fig'].savefig(fimg)
+            elif fmt in ['svg']:
+                # Save as PDF and SVG
+                h['fig'].savefig(fimg)
+                h['fig'].savefig(fpdf)
             else:
                 # Save with resolution.
                 h['fig'].savefig(fimg, dpi=dpi)
+                h['fig'].savefig(fpdf)
             # Close the figure.
             h['fig'].clf()
             # Include the graphics.
             lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                % (frun, fimg))
+                % (frun, fpdf))
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
