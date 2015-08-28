@@ -888,14 +888,25 @@ class Trajectory:
             *IndexTol*: :class:`int`
                 If specified, only trajectory points in the range
                 ``[i0,i0+IndexTol]`` are considered for the sweep
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of *x* indices to consider in the sweep
         :Outputs:
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of *x* indices in the sweep
         :Versions:
             * 2015-06-03 ``@ddalle``: First version
         """
-        # Copy the mask.
-        m = np.arange(self.nCase) > -1
+        # Check for list of indices
+        I = kw.get('I')
+        # Initial mask
+        if I is not None and len(I) > 0:
+            # Initialize mask
+            m = np.arange(self.nCase) < 0
+            # Consider cases in initial list
+            m[I] = True
+        else:
+            # Initialize mask to ``True``.
+            m = np.arange(self.nCase) > -1
         # Sort key.
         xk = kw.get('SortVar')
         # Get constraints

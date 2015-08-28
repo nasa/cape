@@ -2447,7 +2447,7 @@ class Report(object):
         return J
         
     # Function to get subset of target catches matching a sweep
-    def GetTargetSweepIndices(self, fswp, i0, targ):
+    def GetTargetSweepIndices(self, fswp, i0, targ, cons=[]):
         """
         Return indices of a target data set that correspond to sweep constraints
         from a data book point
@@ -2478,9 +2478,17 @@ class Report(object):
         # Sweep constraints
         EqCons = opts.get_SweepOpt(fswp, 'EqCons')
         TolCons = opts.get_SweepOpt(fswp, 'TolCons')
+        # Global constraints
+        GlobCons = opts.get_SweepOpt(fswp, 'GlobalCons')
+        # Turn command-line constraints into indices.
+        I0 = DBT.x.GetIndices(cons=cons)
+        # Turn report sweep definition into indices.
+        I1 = DBT.x.GetIndices(cons=GlobCons)
+        # Restrict Indices
+        I = np.intersect1d(I0, I1)
         # Get the matching sweep.
         I = DBT.x.GetCoSweep(self.cart3d.DataBook.x, i0,
-            SortVar=xk, EqCons=EqCons, TolCons=TolCons)
+            SortVar=xk, EqCons=EqCons, TolCons=TolCons, I=I)
         # Output
         return I
         
