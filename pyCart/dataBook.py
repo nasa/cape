@@ -643,6 +643,72 @@ class DataBook(dict):
             if len(m) == 0: return np.nan
         # Return the first match.
         return m[0]
+    
+    # Get match for a single index
+    def GetDBMatch(self, h, ftarg, tol=0.0, tols={}):
+        """Get index of a target match (if any) for one data book entry
+        
+        :Call:
+            >>> i = DB.GetDBMatch(j, ftarg, tol=0.0, tols={})
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *j*: :class:`int` or ``np.nan``
+                Data book target index
+            *ftarg*: :class:`str`
+                Name of the target and column
+            *tol*: :class:`float`
+                Tolerance for matching all keys (``0.0`` enforces equality)
+            *tols*: :class:`dict`
+                Dictionary of specific tolerances for each key
+        :Outputs:
+            *i*: :class:`int`
+                Data book index
+        :Versions:
+            * 2015-08-30 ``@ddalle``: First version
+        """
+        # Check inputs.
+        if type(tols).__name__ not in ['dict']:
+            raise IOError("Keyword argument *tols* to " +
+                ":func:`GetTargetMatches` must be a :class:`dict`.") 
+        # First component.
+        DBC = self[self.Components[0]]
+        # Get the target.
+        DBT = self.GetTargetByName(ftarg)
+        # Get trajectory keys.
+        tkeys = DBT.topts.get_Trajectory()
+        # Initialize constraints.
+        cons = {}
+        # Loop through trajectory keys
+        for k in self.x.keys:
+            # Get the column name.
+            col = tkeys.get(k, k)
+            # Continue if column not present.
+            if col is None or col not in DBT: continue
+            # Get the constraint
+            cons[k] = tols.get(k, tol)
+            # Set the key.
+            tkeys.setdefault(k, col)
+        # Initialize match indices
+        m = np.arange(DBC.n)
+        # Loop through tkeys
+        for k in tkeys:
+            # Get the trajectory key.
+            tk = tkeys[k]
+            # Make sure there's a key.
+            if tk is None: continue
+            # Check type.
+            if self.x.defns[k]['Value'].startswith('float'):
+                # Apply the constraint.
+                m = np.intersect1d(m, np.where(
+                    np.abs(DBC[k] - DBT[tk][j]) <= cons[k])[0])
+            else:
+                # Apply equality constraint.
+                m = np.intersect1d(m, np.where(DBC[k]==DBT[tk][j])[0])
+            # Check if empty; if so exit with no match.
+            if len(m) == 0: return np.nan
+        # Return the first match.
+        return m[0]
             
         
     # Plot a sweep of one or more coefficients
