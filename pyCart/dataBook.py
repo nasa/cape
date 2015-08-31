@@ -540,7 +540,7 @@ class DataBook(dict):
         """Get vectors of indices matching targets
         
         :Call:
-            >>> J = DB.GetTargetMatches(ftarg, tol=0.0, tols={})
+            >>> I, J = DB.GetTargetMatches(ftarg, tol=0.0, tols={})
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pyCart data book class
@@ -551,6 +551,8 @@ class DataBook(dict):
             *tols*: :class:`dict`
                 Dictionary of specific tolerances for each key
         :Outputs:
+            *I*: :class:`numpy.ndarray`
+                Array of data book indices with matches
             *J*: :class:`numpy.ndarray`
                 Array of target indices for each data book index
         :Versions:
@@ -559,13 +561,22 @@ class DataBook(dict):
         # First component.
         DBC = self[self.Components[0]]
         # Initialize indices of targets *J*
-        J = np.arange(DBC.n)
+        I = []
+        J = []
         # Loop through cases.
         for i in np.arange(DBC.n):
             # Get the match.
-            J[i] = self.GetTargetMatch(i, ftarg, tol=tol, tols=tols)
+            j = self.GetTargetMatch(i, ftarg, tol=tol, tols=tols)
+            # Check it.
+            if np.isnan(j): continue
+            # Append it.
+            I.append(i)
+            J.append(j)
+        # Convert to array.
+        I = np.array(I)
+        J = np.array(J)
         # Output
-        return J
+        return I, J
     
     # Get match for a single index
     def GetTargetMatch(self, i, ftarg, tol=0.0, tols={}):
