@@ -599,7 +599,7 @@ class DataBook(dict):
         # Get the target.
         DBT = self.GetTargetByName(ftarg)
         # Get trajectory keys.
-        tkeys = DBT.topts.get_Trajectory
+        tkeys = DBT.topts.get_Trajectory()
         # Initialize constraints.
         cons = {}
         # Loop through trajectory keys
@@ -610,15 +610,24 @@ class DataBook(dict):
             if col is None or col not in DBT: continue
             # Get the constraint
             cons[k] = tols.get(k, tol)
+            # Set the key.
+            tkeys.setdefault(k, col)
         # Initialize match indices
         m = np.arange(DBT.nCase)
         # Loop through tkeys
         for k in tkeys:
             # Get the trajectory key.
             tk = tkeys[k]
-            # Apply the constraint.
-            m = np.intersect1d(m, np.where(
-                np.abs(DBC[k] - DBT[tk]) <= cons[k])[0])
+            # Make sure there's a key.
+            if tk is None: continue
+            # Check type.
+            if self.x.defns[k]['Value'].startswith('float'):
+                # Apply the constraint.
+                m = np.intersect1d(m, np.where(
+                    np.abs(DBC[k][i] - DBT[tk]) <= cons[k])[0])
+            else:
+                # Apply equality constraint.
+                m = np.intersect1d(m, np.where(DBC[k][i]==DBT[tk])[0])
             # Check if empty; if so exit with no match.
             if len(m) == 0: return np.nan
         # Return the first match.
