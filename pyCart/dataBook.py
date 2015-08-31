@@ -535,6 +535,96 @@ class DataBook(dict):
         # Output
         return i, c
         
+    # Get lists of indices of matches
+    def GetTargetMatches(self, ftarg, tol=0.0, tols={}):
+        """Get vectors of indices matching targets
+        
+        :Call:
+            >>> J = DB.GetTargetMatches(ftarg, tol=0.0, tols={})
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *ftarg*: :class:`str`
+                Name of the target and column
+            *tol*: :class:`float`
+                Tolerance for matching all keys (``0.0`` enforces equality)
+            *tols*: :class:`dict`
+                Dictionary of specific tolerances for each key
+        :Outputs:
+            *J*: :class:`numpy.ndarray`
+                Array of target indices for each data book index
+        :Versions:
+            * 2015-08-30 ``@ddalle``: First version
+        """
+        # First component.
+        DBC = self[self.Components[0]]
+        # Initialize indices of targets *J*
+        J = np.arange(DBC.n)
+        # Loop through cases.
+        for i in np.arange(DBC.n):
+            # Get the match.
+            J[i] = self.GetTargetMatch(i, ftarg, tol=tol, tols=tols)
+        # Output
+        return J
+    
+    # Get match for a single index
+    def GetTargetMatch(self, i, ftarg, tol=0.0, tols={}):
+        """Get index of a target match (if any) for one data book entry
+        
+        :Call:
+            >>> j = DB.GetTargetMatch(i, ftarg, tol=0.0, tols={})
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *i*: :class:`int`
+                Data book index
+            *ftarg*: :class:`str`
+                Name of the target and column
+            *tol*: :class:`float`
+                Tolerance for matching all keys (``0.0`` enforces equality)
+            *tols*: :class:`dict`
+                Dictionary of specific tolerances for each key
+        :Outputs:
+            *j*: :class:`int` or ``np.nan``
+                Data book target index
+        :Versions:
+            * 2015-08-30 ``@ddalle``: First version
+        """
+        # Check inputs.
+        if type(tols).__name__ not in ['dict']:
+            raise IOError("Keyword argument *tols* to " +
+                ":func:`GetTargetMatches` must be a :class:`dict`.") 
+        # First component.
+        DBC = self[self.Components[0]]
+        # Get the target.
+        DBT = self.GetTargetByName(ftarg)
+        # Get trajectory keys.
+        tkeys = DBT.topts.get_Trajectory
+        # Initialize constraints.
+        cons = {}
+        # Loop through trajectory keys
+        for k in self.x.keys:
+            # Get the column name.
+            col = tkeys.get(k, k)
+            # Continue if column not present.
+            if col is None or col not in DBT: continue
+            # Get the constraint
+            cons[k] = tols.get(k, tol)
+        # Initialize match indices
+        m = np.arange(DBT.nCase)
+        # Loop through tkeys
+        for k in tkeys:
+            # Get the trajectory key.
+            tk = tkeys[k]
+            # Apply the constraint.
+            m = np.intersect1d(m, np.where(
+                np.abs(DBC[k] - DBT[tk]) <= cons[k])[0])
+            # Check if empty; if so exit with no match.
+            if len(m) == 0: return np.nan
+        # Return the first match.
+        return m[0]
+            
+        
     # Plot a sweep of one or more coefficients
     def PlotCoeff(self, comp, coeff, I, **kw):
         """Plot a sweep of one coefficients over several cases
