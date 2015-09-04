@@ -1209,10 +1209,10 @@ class Trajectory:
         for k in keys:
             # Skip text
             if self.defns[k]["Value"] == "str": continue
-            # Skip unentered values
-            if (not self.text[k][i]): continue
             # Check for unlabeled values
             if (not self.defns[k].get("Label", True)): continue
+            # Skip unentered values
+            if (i>=len(self.text[k])) or (not self.text[k][i]): continue
             # Make the string of what's going to be printed.
             # This is something like ``'%.2f' % x.alpha[i]``.
             lbl = self.defns[k]["Format"] % getattr(self,k)[i]
@@ -1223,7 +1223,7 @@ class Trajectory:
             # Only look for labels.
             if self.defns[k].get("Type") != "Label": continue
             # Check the value.
-            if self.text[k][i]:
+            if (i < len(self.text[k])) and self.text[k][i]:
                 # Add underscore if necessary.
                 if dname: dname += "_"
                 # Add the label itself

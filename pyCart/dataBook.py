@@ -444,19 +444,6 @@ class DataBook(dict):
                     else:
                         # No match
                         jt = np.nan
-                # Append targets.
-                for c in DC.targs:
-                    # Determine the target to use.
-                    it, ct = self.GetTargetIndex(DC.targs[c])
-                    # Target name of the coefficient
-                    cc = c + '_t'
-                    # Store it.
-                    if np.isnan(jt):
-                        # No match found
-                        DC[cc] = np.hstack((DC[cc], [np.nan]))
-                    else:
-                        # Append the match.
-                        DC[cc] = np.hstack((DC[cc], [DBT[ct][jt]]))
             else:
                 # No need to update trajectory values.
                 # Update data values.
@@ -1105,6 +1092,7 @@ class DBComp(dict):
                 self[c] = np.loadtxt(fname, delimiter=delim, usecols=[nCol])
                 # Increase column number.
                 nCol += 1
+            # Column conversion
             # Number of orders of magnitude or residual drop.
             self['nOrders'] = np.loadtxt(fname, 
                 delimiter=delim, dtype=float, usecols=[nCol])
@@ -1608,6 +1596,8 @@ class DBTarget(dict):
                 continue
             # Update the trajectory values to match those of the trajectory.
             setattr(self.x,k, self[tk])
+            # Set the text.
+            self.x.text[k] = [str(xk) for xk in self[tk]]
         # Save the key translations.
         self.xkeys = tkeys
         # Set the number of cases in the "trajectory."

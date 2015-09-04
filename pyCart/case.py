@@ -106,6 +106,9 @@ def run_flowCart(verify=False, isect=False):
         nProc = fc.get_nProc()
         # Set it.
         os.environ['OMP_NUM_THREADS'] = str(nProc)
+    # Get rid of linked plt files
+    if os.path.islink('Components.i.plt'): os.remove('Components.i.plt')
+    if os.path.islink('cutPlanes.plt'):    os.remove('cutPlanes.plt')
     # Check for adaptive runs.
     if fc.get_use_aero_csh(i):
         # Delete the existing aero.csh file
