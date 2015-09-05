@@ -163,6 +163,8 @@ class DataBook(dict):
         for k in self.x.keys:
             # Copy the data.
             setattr(self.x, k, DBc[k])
+            # Set the text.
+            self.x.text[k] = [str(xk) for xk in DBc[k]]
         # Set the number of cases.
         self.x.nCase = DBc.n
         
