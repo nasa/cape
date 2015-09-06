@@ -429,23 +429,6 @@ class DataBook(dict):
                 # Append iteration counts.
                 DC['nIter']  = np.hstack((DC['nIter'], [nIter]))
                 DC['nStats'] = np.hstack((DC['nStats'], [s['nStats']]))
-                # Process the target.
-                if len(DC.TargetCols) > 0:
-                    # Select one.
-                    c = DC.TargetCols[0]
-                    # Determine which target is in use.
-                    it, ct = self.GetTargetIndex(c)
-                    # Select the target.
-                    DBT = self.Targets[it]
-                    # Find matches
-                    jt = DBT.FindMatch(self.x, i)
-                    # Check for a match.
-                    if len(jt) > 0:
-                        # Select the first match.
-                        jt = jt[0]
-                    else:
-                        # No match
-                        jt = np.nan
             else:
                 # No need to update trajectory values.
                 # Update data values.
@@ -1030,7 +1013,6 @@ class DBComp(dict):
         self.targs = opts.get_CompTargets(comp)
         # Divide columns into parts.
         self.DataCols = opts.get_DataBookDataCols(comp)
-        self.TargetCols = opts.get_DataBookTargetCols(comp)
         # Save the file name.
         self.fname = fname
         
