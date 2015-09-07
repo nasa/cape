@@ -51,9 +51,6 @@ The following classes are imported in this module, so that code like
     * :class:`pyCart.post.LoadsDat`
 """
 
-# Set version number.  Don't forget to update it.
-__version__ = 0.1
-
 # Configuration file processor
 import json
 # File system and operating system management
@@ -62,11 +59,8 @@ import os
 import re
 
 
-# Maximum number of case
-MAXCASES = 10000
-
 # Save version number
-version = "0.3a"
+version = "0.4a"
 
 
 # Get the root directory of the module.
