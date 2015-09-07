@@ -1449,6 +1449,44 @@ class DBTarget(dict):
         self.n = len(self.headers)
 
         # Read it.
+        try:
+            # Read the target all at once.
+            self.ReadAllData(fname, delimiter=delim, skiprows=nskip)
+        except Exception:
+            # Read the data by columns.
+            self.ReadDataByColumn(fname, delimiter=delim, skiprows=nskip)
+
+    # Read the data file all at once.
+    def ReadAllData(self, fname, delimiter=",", skiprows=0):
+        """Read target data file all at once
+
+        :Call:
+            >>> DBT.ReadAllData(fname, delimiter=",", skiprows=0)
+        :Inputs:
+            *DBT*: :class:`pyCart.dataBook.DBTarget`
+                Instance of the data book target class
+            *fname*: :class:`str`
+                Name of file to read
+            *delimiter*: :class:`str`
+                Data delimiter character(s)
+            *skiprows*: :class:`int`
+                Number of header rows to skip
+        :Versions:
+            * 2015-09-07 ``@ddalle``: First version
+        """
+        # Read the data.
+        self.data = np.loadtxt(fname, delimiter=delimiter,
+            skiprows=skiprows, dtype=float).transpose()
+        # Save the number of cases.
+        self.nCase = len(self.data[0])
+
+    # Read data one column at a time
+    def ReadDataByColumn(self, fname, delimiter=",", skiprows=0):
+        """Read target data one column at a time
+
+        :Versions:
+            * 2015-09-07 ``@ddalle``: First version
+        """
         # Initialize data.
         self.data = []
         # Loop through columns.
@@ -1465,6 +1503,7 @@ class DBTarget(dict):
                 skiprows=nskip, dtype=str, usecols=(i,)))
         # Number of cases
         self.nCase = len(self.data[0])
+
     
     # Read the columns and split into useful dict.
     def ProcessColumns(self):
