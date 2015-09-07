@@ -1493,14 +1493,14 @@ class DBTarget(dict):
         for i in range(self.n):
             # Try reading as a float second.
             try:
-                self.data.append(np.loadtxt(fname, delimiter=delim,
-                    skiprows=nskip, dtype=float, usecols=(i,)))
+                self.data.append(np.loadtxt(fname, delimiter=delimiter,
+                    skiprows=skiprows, dtype=float, usecols=(i,)))
                 continue
             except Exception:
                 pass
             # Try reading as a string last.
-            self.data.append(np.loadtxt(fname, delimiter=delim,
-                skiprows=nskip, dtype=str, usecols=(i,)))
+            self.data.append(np.loadtxt(fname, delimiter=delimiter,
+                skiprows=skiprows, dtype=str, usecols=(i,)))
         # Number of cases
         self.nCase = len(self.data[0])
 
