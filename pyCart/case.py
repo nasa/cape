@@ -1,7 +1,17 @@
 """
-Case for interacting with individual run cases: :mod:`pyCart.case`
-==================================================================
+Case Control Module: :mod:`pyCart.case`
+=======================================
 
+This module contains the important function :func:`case.run_flowCart`, which
+actually runs `flowCart` or `aero.csh`, along with the utilities that support
+it.
+
+For instance, it contains function to determine how many iterations have been
+run, what the working folder is (e.g. ``.``, ``adapt00``, etc.), and what
+command-line options to run.
+
+:Versions:
+    * 2015-09-07 ``@ddalle``: First documentation
 """
 
 # Import options class
@@ -44,24 +54,9 @@ def run_flowCart(verify=False, isect=False):
     os.system('touch RUNNING')
     # Get the settings.
     fc = ReadCaseJSON()
-    # Check for initial run
-    if GetRestartIter() == 0:
-        # Check for intersect.
-        if isect:
-            # Run intersect.
-            bin.intersect('Components.tri', 'Components.o.tri')
-            # Read the original triangulation.
-            tric = Tri('Components.c.tri')
-            # Read the intersected triangulation.
-            trii = Tri('Components.o.tri')
-            # Read the pre-intersection triangulation.
-            tri0 = Tri('Components.tri')
-            # Map the Component IDs.
-            trii.MapCompID(tric, tri0)
-            # Write the triangulation.
-            trii.Write('Components.i.tri')
-        # Check for verify
-        if verify: bin.verify('Components.i.tri')
+    # Run intersect and verify
+    IntersectCase(isect=isect)
+    Verifycase(verify=verify)
     # Determine the run index.
     i = GetInputNumber(fc)
     # Create a restart file if appropriate.
@@ -205,6 +200,60 @@ def run_flowCart(verify=False, isect=False):
         bin.callf(['bash', fpbs])
     
     
+
+# Function to intersect geometry if appropriate
+def IntersectCase(isect=False):
+    """Run `intersect` to combine geometries if appropriate
+    
+    :Call:
+        >>> IntersectCase(isect=False)
+    :Inputs:
+        *isect*: :class:`bool`
+            Whether or not to run `intersect` before running `flowCart`
+    :Versions:
+        * 2015-09-07 ``@ddalle``: Split from :func:`run_flowCart`
+    """
+    # Check for intersect status.
+    if not isect: return
+    # Check for initial run
+    if GetRestartIter() != 0: return
+    # Check for triangulation file.
+    if os.path.isfile('Components.i.tri'):
+        # Note this.
+        print("File 'Components.i.tri' already exists; aborting intersect.")
+        return
+    # Run intersect.
+    bin.intersect('Components.tri', 'Components.o.tri')
+    # Read the original triangulation.
+    tric = Tri('Components.c.tri')
+    # Read the intersected triangulation.
+    trii = Tri('Components.o.tri')
+    # Read the pre-intersection triangulation.
+    tri0 = Tri('Components.tri')
+    # Map the Component IDs.
+    trii.MapCompID(tric, tri0)
+    # Write the triangulation.
+    trii.Write('Components.i.tri')
+    
+# Function to verify if requested
+def VerifyCase(verify=False):
+    """Run `verify` to check triangulation if appropriate
+    
+    :Call:
+        >>> VerifyCase(verify=False)
+    :Inputs:
+        *verify*: :class:`bool``
+            Whether or not to run `verify` before running `flowCart`
+    :Versions:
+        * 2015-09-07 ``@ddalle``: Split from :func:`fun_flowCart`
+    """
+    # Check for verify
+    if not verify: return
+    # Check for initial run
+    if GetRestartIter() != 0: return
+    # Run it.
+    bin.verify('Components.i.tri')
+
 # Function to call script or submit.
 def StartCase():
     """Start a case by either submitting it or calling with a system command

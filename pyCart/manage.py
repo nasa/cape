@@ -73,8 +73,6 @@ def TarAdapt(fmt="tar"):
     if len(fdirs) == 0: return
     # Max adaptation
     imax = max([int(fdir[5:]) for fdir in fdirs])
-    # Check for subsequent iterations. (can tar last folder then)
-    qtar = os.path.isfile('history.dat') and os.path.islink('Restart.file')
     # Loop through adaptXX/ folders.
     for fdir in fdirs:
         # Get the adaptation number.
@@ -82,13 +80,9 @@ def TarAdapt(fmt="tar"):
         # Check if the folder is in use.
         quse = (fdir == fbest) or (i >= imax)
         # Make sure nothing happened to the folder in the meantime.
-        if not os.path.isdir(fdir):
-            # Not a folder; what?
-            continue
+        if not os.path.isdir(fdir): continue
         # Don't process the folder if in use.
-        if quse and (not qtar):
-            # We'll get it later.
-            continue
+        if quse: continue
         # Status update
         print("%s --> %s" % (fdir, fdir+'.tar'))
         # Remove check files before tarring.
@@ -102,11 +96,6 @@ def TarAdapt(fmt="tar"):
         if ierr: continue
         # Remove the folder.
         shutil.rmtree(fdir)
-        # Check for minimal last adaptation.
-        if quse:
-            # Untar the history file.
-            ierr = sp.call(cmdx + [fdir+ext, fdir+'/history.dat'])
-            if ierr: continue
         
         
 # Function to undo the above
