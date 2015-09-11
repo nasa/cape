@@ -324,109 +324,6 @@ class Cart3d(object):
         self.DataBook.Write()
         # Return to original location.
         os.chdir(fpwd)
-            
-        
-    # Function to plot most recent results.
-    def Plot(self, **kw):
-        """Plot force, moment, and/or residual history for all cases
-        
-        Most plotting options are read from :mod:`pyCart.options.Plot`
-        
-        :Call:
-            >>> h = cart3d.Plot(comp=None)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *comp*: :class:`str`
-                Optional name of class to plot
-            *I*: :class:`list` (:class:`int`)
-                List of indices
-            *cons*: :class:`list` (:class:`str`)
-                List of constraints like ``'Mach<=0.5'``
-        :Versions:
-            * 2014-11-12 ``@ddalle``: First version
-            * 2014-11-24 ``@ddalle``: Rewritten for looping through cases
-            * 2014-12-10 ``@ddalle``: Applied constraints
-            * 2015-03-10 ``@ddalle``: Added list of indices as an input
-        """
-        # Make sure that pyplot is loaded
-        dataBook.ImportPyPlot()
-        # Save current location.
-        fpwd = os.getcwd()
-        # Get list of indices.
-        I = self.x.GetIndices(**kw)
-        # Get the case names.
-        fruns = self.x.GetFullFolderNames(I)
-        # Get the list of components to plot.
-        comps = self.opts.get_PlotComponents()
-        # Check for command-line override.
-        if kw.get('comp'):
-            # Use the command-line 
-            comps = [kw['comp']]
-            # Remove it from the keyword arguments.
-            kw.pop('comp', None)
-        # Initialize output.
-        pdf = {}
-        # Make a new figure.
-        dataBook.plt.figure()
-        # Initialize the pdf documents
-        for comp in comps:
-            pdf[comp] = dataBook.PdfPages('aero_%s.pdf'%comp)
-        # Loop through runs.
-        for i in range(len(fruns)):
-            # Get the folder name.
-            frun = fruns[i]
-            # Status update.
-            print(frun)
-            # Go to root.
-            os.chdir(self.RootDir)
-            # Check for folder.
-            if not self.CheckCase(I[i]): continue
-            # Go to folder.
-            os.chdir(frun)
-            # Loop through components.
-            for comp in comps:
-                # Clear the figure (to avoid having hundreds of figs).
-                dataBook.plt.clf()
-                # List of coefficients to plot
-                coeffs = self.opts.get_PlotCoeffs(comp)
-                # Get plot dimensions
-                kw['nRow'] = self.opts.get_nPlotRows(comp)
-                kw['nCol'] = self.opts.get_nPlotCols(comp)
-                # Get options (which may be specific to component).
-                kw['n'] = self.opts.get_nPlotIter(comp)
-                kw['nAvg'] = self.opts.get_nAverage(comp)
-                kw['nLast'] = self.opts.get_nPlotLast(comp)
-                kw['nFirst'] = self.opts.get_nPlotFirst(comp)
-                kw['restriction'] = self.opts.get_PlotRestriction(comp)
-                # Initialize dictionary of deltas.
-                kw['d'] = {}
-                # Loop through coefficients.
-                for coeff in coeffs:
-                    kw['d'][coeff] = self.opts.get_PlotDelta(coeff, comp)
-                # Read the aerodata and extract the single component.
-                AP = dataBook.Aero([comp])
-                # Label the run.
-                kw['tag'] = 'Case %i: %s\nComponent=%s' % (i+1, frun, comp)
-                # Create the plot.
-                h = AP.Plot(comp, coeffs, **kw)
-                # Check the pass flag.
-                if self.x.PASS[I[i]]:
-                    # Set it.
-                    h['pass'].set_text('PASS')
-                # Read the case options.
-                fc = case.ReadCaseJSON()
-                # Reset the iteration flag
-                h['iter'].set_text('%i/%i' % 
-                    (AP[comp].i[-1], fc.get_LastIter()))
-                # Save it to the PdfPages instance.
-                pdf[comp].savefig(h['fig'])
-        # Return to original location.
-        os.chdir(fpwd)
-        # Close the PdfPages instances
-        for comp in comps:
-            pdf[comp].close()
-        
         
     # Function to display current status
     def DisplayStatus(self, **kw):
@@ -978,13 +875,173 @@ class Cart3d(object):
             * 2014-12-01 ``@ddalle``: First version
         """
         # Get function for rotations, etc.
-        keys = self.x.GetKeysByType('TriFunction')
-        # Get the list of functions.
-        funcs = [self.x.defns[key]['Function'] for key in keys] 
-        # Loop through the functions.
-        for (key, func) in zip(keys, funcs):
-            # Apply it.
-            exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+        keys = self.x.GetKeysByType(['translation', 'rotation', 'TriFunction'])
+        # Loop through keys.
+        for key in keys:
+            # Type
+            kt = self.x.defns[key]['Type']
+            # Filter on which type of triangulation modification it is.
+            if kt == "TriFunction":
+                # Special triangulation function
+                self.PrepareTriFunction(key, i)
+            elif kt.lower() == "translation":
+                # Component(s) translation
+                self.PrepareTriTranslation(key, i)
+            elif kt.lower() == "rotation":
+                # Component(s) translation
+                raise RuntimeError("Rotations not implemented yet!")
+            
+    # Apply a special triangulation function
+    def PrepareTriFunction(self, key, i):
+        """Apply special triangulation modification function for a case
+        
+        :Call:
+            >>> cart3d.PrepareTriFunction(key, i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2015-09-11 ``@ddalle``: First version
+        """
+        # Get the function for this *TriFunction*
+        func = self.x.defns[key]['Function']
+        # Apply it.
+        exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+        
+    # Apply a triangulation translation
+    def PrepareTriTranslation(self, key, i):
+        """Apply a translation to a component or components
+        
+        :Call:
+            >>> cart3d.PrepareTriTranslation(key, i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2015-09-11 ``@ddalle``: First version
+        """
+        # Get the options for this key.
+        kopts = self.x[defns][key]
+        # Get the components to translate.
+        compID  = self.tri.GetCompID(kopts.get('CompID'))
+        # Components to translate in opposite direction
+        compIDR = self.tri.GetCompID(kopts.get('CompIDRSymmetric', []))
+        # Check for a direction
+        if 'Vector' not in kopts:
+            raise IOError(
+                "Rotation key '%s' does not have a 'Vector'." % key)
+        # Get the direction and its type
+        vec = kopts['Vector']
+        tvec = type(vec).__name__
+        # Get points to translate along with it.
+        pts  = kopts.get('Points', [])
+        ptsR = kopts.get('PointsSymmetric', [])
+        # Make sure these are lists.
+        if type(pts).__name__  != 'list': pts  = list(pts)
+        if type(ptsR).__name__ != 'list': ptsR = list(ptsR)
+        # Check the type
+        if tvec in ['list', 'ndarray']:
+            # Specified directly.
+            u = np.array(vec)
+        else:
+            # Named vector
+            u = np.array(self.opts.get_Point(vec))
+        # Form the translation vector
+        v = u * getattr(self.x,key)[i]
+        # Translate the triangulation
+        self.tri.Translate(v, i=compID)
+        self.tri.Translate(-v, i=compIDR)
+        # Loop through translation points.
+        for pt in pts:
+            # Get point
+            x = self.opts.get_Point(pt)
+            # Apply transformation.
+            self.opts.set_Point(x+v, pt)
+        # Loop through translation points.
+        for pt in ptsR:
+            # Get point
+            x = self.opts.get_Point(pt)
+            # Apply transformation.
+            self.opts.set_Point(x-v, pt)
+            
+    # Apply a triangulation rotation
+    def PrepareTriRotation(self, key, i):
+        """Apply a rotation to a component or components
+        
+        :Call:
+            >>> cart3d.PrepareTriRotation(key, i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2015-09-11 ``@ddalle``: First version
+        """
+        # Get the options for this key.
+        kopts = self.x[defns][key]
+        # Get the components to translate.
+        compID = self.tri.GetCompID(kopts.get('CompID'))
+        # Components to translate in opposite direction
+        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []))
+        # Symmetry applied to rotation vector.
+        kv = kopts.get('VectorSymmetry', [1.0, 1.0, 1.0])
+        ka = kopts.get('AngleSymmetry', -1.0)
+        # Check for a direction
+        if 'Vector' not in kopts:
+            raise KeyError(
+                "Rotation key '%s' does not have a 'Vector'." % key)
+        # Get the direction and its type.
+        vec = kopts['Vector']
+        # Check type
+        if len(vec) != 2:
+            raise KeyError(
+                "Rotation key '%s' vector must be exactly two points." % key)
+        # Get start and end points of rotation vector.
+        v0 = kopts['Vector'][0]
+        v1 = kopts['Vector'][1]
+        # Types
+        tv0 = type(v0).__name__
+        tv1 = type(v1).__name__
+        # Convert to coordinates if necessary.
+        if tv0.startswith('str') or tv0=='unicode':
+            v0 = self.opts.get_Point(v0)
+        if tv1.startswith('str') or tv1=='unicode':
+            v1 = self.opts.get_Point(v1)
+        # Symmetry rotation vectors.
+        v0R = kv*v0
+        v1R = kv*v1
+        # Get points to translate along with it.
+        pts  = kopts.get('Points', [])
+        ptsR = kopts.get('PointsSymmetric', [])
+        # Make sure these are lists.
+        if type(pts).__name__  != 'list': pts  = list(pts)
+        if type(ptsR).__name__ != 'list': ptsR = list(ptsR)
+        # Rotation angle
+        theta = getattr(self.x,key)[i]
+        # Rotate the triangulation.
+        self.tri.Rotate(v0,  v1,  theta,  i=compID)
+        self.tri.Rotate(v0R, v1R, ka*theta, i=CompIDR)
+        # Points to be rotated
+        X  = np.array([self.opts.get_Point(pt) for pt in pts])
+        XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
+        # Apply transformation
+        Y  = RotatePoints(X,  v0,  v1,  theta)
+        YR = RotatePoints(XR, v0R, v1R, ka*theta)
+        # Save the points.
+        for j in range(len(pts)):
+            # Set the new value.
+            self.opts.set_Point(Y[j], pts[j])
+        # Save the symmetric points.
+        for j in range(len(ptsR)):
+            # Set the new value.
+            self.opts.set_Point(YR[j], ptsR[j])
+        
+    
         
     # Check a case.
     def CheckCase(self, i):

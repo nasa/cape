@@ -1119,11 +1119,14 @@ class Trajectory:
         
         :Call:
             >>> keys = x.GetKeysByType(KeyType)
+            >>> keys = x.GetKeysByType(KeyTypes)
         :Inputs:
             *x*: :class:`pyCart.trajectory.Trajectory`
                 Instance of pyCart trajectory class
             *KeyType*: :class:`str`
                 Key type to search for
+            *KeyTypes*: :class:`list` (:class:`str`)
+                List of key types to search for
         :Outputs:
             *keys*: :class:`numpy.ndarray`(:class:`str`)
                 List of keys such that ``x[key]['Type']`` matches *KeyType*
@@ -1132,8 +1135,23 @@ class Trajectory:
         """
         # List of key types
         KT = np.array([self.defns[k]['Type'] for k in self.keys])
-        # Return matches
-        return np.array(self.keys)[KT == KeyType]
+        # Class of input
+        kt = type(KeyType).__name__
+        # Depends on the type of what we are searching for
+        if kt.startswith('str') or kt=='unicode':
+            # Return matches
+            return np.array(self.keys)[KT == KeyType]
+        elif kt not in ['list', 'ndarray']:
+            # Not usable
+            raise TypeError("Cannot search for keys of type '%s'" % KeyType)
+        # Initialize list of matches to all ``False``
+        U = np.arange(len(self.keys)) < 0
+        # Loop through types given as input.
+        for k in KeyType:
+            # Search for this kind of key.
+            U = np.logical_or(U, KT == k)
+        # Output.
+        return np.array(self.keys)[np.where(U)[0]]
         
     # Get keys by type of its value
     def GetKeysByValue(self, val):

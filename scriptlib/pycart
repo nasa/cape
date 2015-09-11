@@ -47,10 +47,6 @@ relatively simple commands.
         
     -f FNAME
         Use pyCart input file *FNAME* (defaults to 'pyCart.json')
-        
-    -p [COMP]
-        Create multi-page PDF plots according to settings in *FNAME*.  If 
-        *COMP* is specified, only that component is plotted
 
     -n NJOB
         Submit at most *NJOB* PBS scripts (defaults to unlimited)
@@ -123,19 +119,10 @@ if __name__ == "__main__":
     if ('I' in kw) and (kw['I'] != True):
         # Turn into a single list
         kw['I'] = cart3d.x.ExpandIndices(kw['I'])
-
-    
     # Process inputs.
     if kw.get('c'):
         # Display status.
         cart3d.DisplayStatus(**kw)
-    elif kw.get('p'):
-        # Check for component.
-        if kw['p'] != True:
-            # Plot requested component.
-            kw['comp'] = kw['p']
-        # Plot with default options
-        cart3d.Plot(**kw)
     elif kw.get('aero'):
         # Check for component.
         if kw['aero'] != True:

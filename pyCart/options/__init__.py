@@ -1408,8 +1408,18 @@ class Options(odict):
         self._Config()
         self['Config'].set_RefPoint(x, comp)
         
+    # Get valid point
+    def get_Point(self, name=None):
+        self._Config()
+        return self['Config'].get_Point(name)
+        
+    # Set valid point
+    def set_Point(self, x=rc0('RefPoint'), name=None):
+        self._Config()
+        self['Config'].set_Point(x, name)
+        
     # Copy over the documentation.
-    for k in ['ConfigFile', 'RefArea', 'RefLength', 'RefPoint']:
+    for k in ['ConfigFile', 'RefArea', 'RefLength', 'RefPoint', 'Point']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Config,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Config,'set_'+k).__doc__

@@ -4,8 +4,6 @@
 # Import options-specific utilities
 from util import rc0, odict
 
-# Need 
-
 # Class for PBS settings
 class Config(odict):
     """Dictionary-based interfaced for options specific to ``flowCart``"""
@@ -214,6 +212,62 @@ class Config(odict):
             self['RefLength'][comp] = L
             
             
+    # Get points
+    def get_Point(self, name=None):
+        """Return the coordinates of a point by name
+        
+        :Call:
+            >>> x = opts.get_Point(name=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *name*: :class:`str`
+                Point name
+        :Outputs:
+            *x*: [:class:`float`, :class:`float`, :class:`float`]
+                Coordinates of that point
+        :Versions:
+            * 2015-09-11 ``@ddalle``: First version
+        """
+        # Get the specified points.
+        P = self.get('Points', {})
+        # Check input consistency.
+        if name not in P:
+            raise IOError(
+                "Point named '%s' is not specified in the 'Config' section."
+                % name)
+        # Get the coordinates.
+        return P[name]
+        
+    # Set the value of a point.
+    def set_Point(self, x, name=None):
+        """Set or alter the coordinates of a point by name
+        
+        :Call:
+            >>> opts.set_Point(x, name)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *x*: [:class:`float`, :class:`float`, :class:`float`]
+                Coordinates of that point
+            *name*: :class:`str`
+                Point name
+        :Versions:
+            * 2015-09-11 ``@ddalle``: First version
+        """
+        # Make sure that "Points" are included.
+        self.setdefault('Points', {})
+        # Check the input
+        if type(x).__name__ not in ['list', 'ndarray']:
+            # Not a vector
+            raise IOError(
+                "Cannot set point '%s' to a non-array value." % name)
+        elif len(x) < 2 or len(x) > 3:
+            # Not a 3-vector
+            raise IOError("Value for point '%s' is not a valid point." % name)
+        # Set it.
+        self['Points'][name] = list(x)
+        
     # Get moment reference point for a given component.
     def get_RefPoint(self, comp=None):
         """Return the global moment reference point or that of a component

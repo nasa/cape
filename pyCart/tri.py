@@ -369,6 +369,36 @@ class TriBase(object):
             self.MapSubCompID(tric, compID, kc)
         
         
+    # Function to get compIDs by name
+    def GetCompID(self, face=None):
+        """Get components by name
+        
+        :Call:
+            >>> compID = tri.GetCompID()
+            >>> compID = tri.GetCompID(face)
+        :Inputs:
+            *tri*: :class:`pyCart.tri.Tri`
+                Triangulation interface
+            *face*: :class:`str` or :class:`int` or :class:`list`
+                Component number, name, or list of component numbers and names
+        :Outputs:
+            *compID*: :class:`list`(:class:`int`)
+                List of component IDs
+        :Versions:
+            * 2014-10-12 ``@ddalle``: First version
+        """
+        # Check input type.
+        if face is None:
+            # Return all components
+            return list(np.unique(self.CompID))
+        # Try the config.
+        try:
+            return self.config.GetCompID(face)
+        except Exception:
+            # Failed; return all components.
+            return list(np.unique(self.CompID))
+        
+        
     # Function to read a .tri file
     def Read(self, fname):
         """Read a triangulation file (from ``*.tri``)
@@ -1035,6 +1065,8 @@ class TriBase(object):
             * 2014-05-23 ``@ddalle``: First version
             * 2014-10-08 ``@ddalle``: Exported functionality to function
         """
+        # Check for abort.
+        if (i is None) or (i == []): return
         # Check the first input type.
         if type(dx).__name__ in ['list', 'ndarray']:
             # Vector
@@ -1080,6 +1112,8 @@ class TriBase(object):
             * 2014-05-27 ``@ddalle``: First version
             * 2014-10-07 ``@ddalle``: Exported functionality to function
         """
+        # Check for abort.
+        if (i is None) or (i == []): return
         # Get the node indices.
         j = self.GetNodesFromCompID(i)
         # Extract the points.
