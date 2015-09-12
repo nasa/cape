@@ -369,7 +369,7 @@ class Config(odict):
             # It's just a number.
             x = RefP
         # Output
-        return x
+        return self.expand_Point(x)
         
     # Set the reference length for a given component.
     def set_RefPoint(self, x, comp=None):
@@ -496,6 +496,21 @@ class Config(odict):
         if (i is None) and (type(Xslices).__name__ not in ['list','array']):
             # Convert scalar to list
             Xslices = [Xslices]
+        # Current output type
+        typx = type(Xslices).__name__
+        # Output
+        if typx in ['list','array']:
+            # Loop through points.
+            for j in range(len(Xslices)):
+                # Type
+                typj = type(Xslices[j]).__name__
+                # Check type.
+                if typj.startswith('str') or typj == 'unicode':
+                    # Convert the point
+                    Xslices[j] = self.get_Point(Xslices[j])[0]
+        elif typx.startswith('str') or typx=='unicode':
+            # Convert the point.
+            Xslices = self.get_Point(Xslices)[0]
         # Output
         return Xslices
         
@@ -561,6 +576,21 @@ class Config(odict):
         if (i is None) and (type(Yslices).__name__ not in ['list','array']):
             # Convert scalar to list
             Yslices = [Yslices]
+        # Current output type
+        typy = type(Yslices).__name__
+        # Output
+        if typy in ['list','array']:
+            # Loop through points.
+            for j in range(len(Yslices)):
+                # Type
+                typj = type(Yslices[j]).__name__
+                # Check type.
+                if typj.startswith('str') or typj == 'unicode':
+                    # Convert the point
+                    Yslices[j] = self.get_Point(Yslices[j])[1]
+        elif typy.startswith('str') or typy=='unicode':
+            # Convert the point.
+            Yslices = self.get_Point(Yslices)[1]
         # Output
         return Yslices
         
@@ -626,6 +656,23 @@ class Config(odict):
         if (i is None) and (type(Zslices).__name__ not in ['list','array']):
             # Convert scalar to list
             Zslices = [Zslices]
+        # Output
+        return Zslices
+        # Current output type
+        typz = type(Zslices).__name__
+        # Output
+        if typz in ['list','array']:
+            # Loop through points.
+            for j in range(len(Zslices)):
+                # Type
+                typj = type(Zslices[j]).__name__
+                # Check type.
+                if typj.startswith('str') or typj == 'unicode':
+                    # Convert the point
+                    Zslices[j] = self.get_Point(Yslices[j])[2]
+        elif typx.startswith('str') or typx=='unicode':
+            # Convert the point.
+            Zslices = self.get_Point(Zslices)[2]
         # Output
         return Zslices
         
