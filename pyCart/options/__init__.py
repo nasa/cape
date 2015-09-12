@@ -1421,7 +1421,7 @@ class Options(odict):
     # Expand point/dictionary of points
     def expand_Point(self, x):
         self._Config()
-        self['Config'].expand_Point(x)
+        return self['Config'].expand_Point(x)
     expand_Point.__doc__ = Config.expand_Point.__doc__
         
     # Copy over the documentation.
