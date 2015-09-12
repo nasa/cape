@@ -1418,6 +1418,12 @@ class Options(odict):
         self._Config()
         self['Config'].set_Point(x, name)
         
+    # Expand point/dictionary of points
+    def expand_Point(self, x):
+        self._Config()
+        self['Config'].expand_Point(x)
+    expand_Point.__doc__ = Config.expand_Point.__doc__
+        
     # Copy over the documentation.
     for k in ['ConfigFile', 'RefArea', 'RefLength', 'RefPoint', 'Point']:
         # Get the documentation for the "get" and "set" functions

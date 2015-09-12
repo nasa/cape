@@ -216,8 +216,11 @@ class Config(odict):
     def get_Point(self, name=None):
         """Return the coordinates of a point by name
         
+        If the input is a point, it is simply returned
+        
         :Call:
             >>> x = opts.get_Point(name=None)
+            >>> x = opts.get_Point(x)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
@@ -231,6 +234,9 @@ class Config(odict):
         """
         # Get the specified points.
         P = self.get('Points', {})
+        # If it's already a vector, use it.
+        if type(name).__name__ in ['list', 'ndarray']:
+            return name
         # Check input consistency.
         if name not in P:
             raise IOError(
@@ -267,6 +273,52 @@ class Config(odict):
             raise IOError("Value for point '%s' is not a valid point." % name)
         # Set it.
         self['Points'][name] = list(x)
+        
+    # Expand point names
+    def expand_Point(self, x):
+        """Expand points that are specified by name instead of value
+        
+        :Call:
+            >>> x = opts.expand_Point(x)
+            >>> x = opts.expand_Point(s)
+            >>> X = opts.expand_Point(d)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *x*: :class:`list` (:class:`float`)
+                Point
+            *s*: :class:`str`
+                Point name
+            *d*: :class:`dict`
+                Dictionary of points and point names
+        :Outputs:
+            *x*: [:class:`float`, :class:`float`, :class:`float`]
+                Point
+            *X*: :class:`dict`
+                Dictionary of points
+        :Versions:
+            * 2015-09-12 ``@ddalle``: First version
+        """
+        # Input type
+        typ = type(x).__name__
+        # Check input type.
+        if typ.startswith('str') or typ == 'unicode':
+            # Single point name
+            return self.get_Point(x)
+        elif typ in ['list', 'ndarray']:
+            # Already a point.
+            return x
+        elif typ != 'dict':
+            # Unrecognized
+            raise TypeError("Cannot expand points of type '%s'" % typ)
+        # Initialize output dictionary
+        X = x.copy()
+        # Loop through keys.
+        for k in X:
+            # Expand the value of that point.
+            X[k] = self.get_Point(x[k])
+        # Output
+        return X
         
     # Get moment reference point for a given component.
     def get_RefPoint(self, comp=None):
@@ -312,7 +364,7 @@ class Config(odict):
                 x = RefP[comp]
             else:
                 # Return the first entry.
-                x = Refp
+                x = RefP
         else:
             # It's just a number.
             x = RefP
