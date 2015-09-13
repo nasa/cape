@@ -737,10 +737,10 @@ class Config(odict):
         # Check for an individual name.
         if name is not None:
             # Return individual line
-            return LS.get(name)
+            return self.expand_Point(LS.get(name))
         else:
             # Return the whole list.
-            return LS
+            return self.expand_Point(LS)
             
     # Set line sensors
     def set_LineSensors(self, LS={}, name=None, X=[]):
@@ -815,10 +815,10 @@ class Config(odict):
         # Check for an individual name.
         if name is not None:
             # Return individual line
-            return PS.get(name)
+            return self.expand_Point(PS.get(name))
         else:
             # Return the whole list.
-            return PS
+            return self.expand_Point(PS)
             
     # Set point sensors
     def set_PointSensors(self, PS={}, name=None, X=[]):
