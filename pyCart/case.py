@@ -56,7 +56,7 @@ def run_flowCart(verify=False, isect=False):
     fc = ReadCaseJSON()
     # Run intersect and verify
     IntersectCase(isect=isect)
-    Verifycase(verify=verify)
+    VerifyCase(verify=verify)
     # Determine the run index.
     i = GetInputNumber(fc)
     # Create a restart file if appropriate.
