@@ -1659,6 +1659,8 @@ class Triq(TriBase):
             Number of state variables at each node
         *triq.q*: :class:`np.ndarray` (:class:`float`), (*nNode*, *nq*)
             State vector at each node
+        *triq.n*: :class:`int`
+            Number of files averaged in this triangulation (used for weight)
     """
     
     def __init__(self, fname=None, nNode=None, Nodes=None,
@@ -1728,18 +1730,19 @@ class Triq(TriBase):
             self.nNode, self.nTri, self.nq)
         
     # Function to read a .triq file
-    def Read(self, fname):
-        """Read a triangulation file (from ``*.tri``)
+    def Read(self, fname, n=1):
+        """Read a q-triangulation file (from ``*.triq``)
         
         :Call:
-            >>> tri.Read(fname)
+            >>> triq.Read(fname)
+            >>> triq.
         :Inputs:
-            *tri*: :class:`pyCart.tri.Tri`
+            *triq*: :class:`pyCart.tri.Triq`
                 Triangulation instance
             *fname*: :class:`str`
                 Name of triangulation file to read
         :Versions:
-            * 2014-06-02 ``@ddalle``: split from initialization method
+            * 2015-09-14 ``@ddalle``: First version
         """
         # Open the file
         fid = open(fname, 'r')
@@ -1767,13 +1770,50 @@ class Triq(TriBase):
         # Close the file.
         fid.close()
         
+        # Weight: number of files included in file
+        self.n = n
+        
     # Function to write a .triq file
     def Write(self, fname):
-        """
+        """Write a q-triangulation ``.triq`` file
         
+        :Call:
+            >>> triq.Write(fname)
+        :Inputs:
+            *triq*: :class:`pyCart.tri.Triq`
+                Triangulation instance
+            *fname*: :class:`str`
+                Name of triangulation file to write
+        :Versions:
+            * 2015-09-14 ``@ddalle``: First version
         """
         self.WriteTriq(fname)
         
+    # Function to calculate weighted average.
+    def WeightedAverage(self, triq):
+        """Calculate weighted average with a second triangulation
+        
+        :Call:
+            >>> triq.WeightedAverage(triq2)
+        :Inputs:
+            *triq*: :class:`pyCart.tri.Triq`
+                Triangulation instance
+            *triq2*: class:`pyCart.tri.Triq`
+                Second triangulation instance
+        :Versions:
+            * 2015-09-14 ``@ddalle``: First version
+        """
+        # Check consistency.
+        if self.nNode != triq.nNode:
+            raise ValueError("Triangulations must have same number of nodes.")
+        elif self.nTri != triq.nTri:
+            raise ValueError("Triangulations must have same number of tris.")
+        elif self.nq != triq.nq:
+            raise ValueError("Triangulations must have same number of states.")
+        # Weighted average
+        self.q = (self.n*self.q + triq.n*triq.q) / (self.n+triq.n)
+        # Update count.
+        self.n += triq.n
         
 
 # Function to read .tri files

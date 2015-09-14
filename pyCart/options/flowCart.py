@@ -374,6 +374,53 @@ class flowCart(odict):
         self.set_key('it_fc', it_fc, i)
         
     
+    # Number of iterations between averaging operation
+    def get_it_avg(self, i=None):
+        """
+        Return the number of iterations between writing ``triq`` file for
+        cumulative averaging.  If ``0``, do not perform averaging.
+        
+        Not available during ``aero.csh`` runs.
+        
+        :Call:
+            >>> it_avg = opts.get_it_avg(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *it_avg*: :class:`int` or :class:`list`(:class:`int`)
+                Stopping interval between averaging for run *i*
+        :Versions:
+            * 2015-09-14 ``@ddalle``: First version
+        """
+        return self.get_key('it_avg', i)
+        
+    # Set flowCart iteration averaging interval count
+    def set_it_avg(self, it_avg=rc0('it_avg'), i=None):
+        """
+        Set the number of iterations between writing ``triq`` file for
+        cumulative averaging.  If ``0``, do not perform averaging.
+        
+        Not available during ``aero.csh`` runs.
+        
+        :Call:
+            >>> opts.set_it_avg(it_avg)
+            >>> opts.set_it_avg(it_avg, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *it_avg*: :class:`int` or :class:`list`(:class:`int`)
+                Stopping interval between averaging for run *i*
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2015-09-14 ``@ddalle``: First version
+        """
+        self.get_key('it_avg', i)
+        
+    
     # Number orders of convergence to terminate early at
     def get_nOrders(self, i=None):
         """Get the number of orders of convergence for early termination

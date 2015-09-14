@@ -61,6 +61,7 @@ rc = {
     "qsub": True,
     "resub": False,
     "use_aero_csh": False,
+    "it_avg": 0,
     "jumpstart": False,
     "limiter": 2,
     "y_is_spanwise": True,
