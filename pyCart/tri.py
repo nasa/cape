@@ -50,24 +50,24 @@ class TriBase(object):
             Name of triangulation file (UH3D format)
         *nNode*: :class:`int`
             Number of nodes in triangulation
-        *Nodes*: :class:`numpy.array(dtype=float)`, (*nNode*, 3)
+        *Nodes*: :class:`np.ndarray` (:class:`float`), (*nNode*, 3)
             Matrix of *x,y,z*-coordinates of each node
         *nTri*: :class:`int`
             Number of triangles in triangulation
-        *Tris*: :class:`numpy.array(dtype=int)`, (*nTri*, 3)
+        *Tris*: :class:`np.ndarray` (:class:`int`), (*nTri*, 3)
             Indices of triangle vertex nodes
-        *CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
+        *CompID*: :class:`np.ndarray` (:class:`int`), (*nTri*)
             Component number for each triangle
     :Data members:
         *tri.nNode*: :class:`int`
             Number of nodes in triangulation
-        *tri.Nodes*: :class:`numpy.array(dtype=float)`, (*nNode*, 3)
+        *tri.Nodes*: :class:`np.ndarray` (:class:`float`), (*nNode*, 3)
             Matrix of *x,y,z*-coordinates of each node
         *tri.nTri*: :class:`int`
             Number of triangles in triangulation
-        *tri.Tris*: :class:`numpy.array(dtype=int)`, (*nTri*, 3)
+        *tri.Tris*: :class:`np.ndarray` (:class:`int`), (*nTri*, 3)
             Indices of triangle vertex nodes
-        *tri.CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
+        *tri.CompID*: :class:`np.ndarray` (:class:`int`), (*nTri*)
             Component number for each triangle
     :Versions:
         * 2014-05-23 ``@ddalle``: First version
@@ -134,7 +134,6 @@ class TriBase(object):
     # String representation is the same
     __str__ = __repr__
         
-    
     # Function to read node coordinates from .triq+ file
     def ReadNodes(self, f, nNode):
         """Read node coordinates from a .tri file.
@@ -209,6 +208,33 @@ class TriBase(object):
         else:
             # Read from file.
             self.CompID = np.fromfile(f, dtype=int, count=self.nTri, sep=" ")
+        
+    # Function to read node coordinates from .triq+ file
+    def ReadQ(self, f, nNode, nq):
+        """Read node states from a ``.triq`` file.
+        
+        :Call:
+            >>> triq.ReadQ(f, nNode, nq)
+        :Inputs:
+            *tri*: :class:`pyCart.tri.TriBase` or derivative
+                Triangulation instance
+            *f*: :class:`file`
+                Open file handle
+            *nNode*: :class:`int`
+                Number of nodes to read
+            *nq*: :class:`int`
+                Number of state variables at each node
+        :Effects:
+            Reads and creates *tri.Nodes*; file remains open.
+        :Versions:
+            * 2015-09-14 ``@ddalle``: First version
+        """
+        # Save the state count.
+        self.nq = nq
+        # Read the nodes.
+        q = np.fromfile(f, dtype=float, count=nNode*nq, sep=" ")
+        # Reshape into a matrix.
+        self.q = q.reshape((nNode,nq))
             
     # Function to write .tri file with one CompID per break
     def WriteVolTri(self, fname='Components.tri'):
@@ -469,7 +495,7 @@ class TriBase(object):
         """Try using a compiled function to write to file
         
         :Call:
-            >>> tri.WriteSlow(fname='Components.i.tri')
+            >>> tri.WriteFast(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance to be translated
@@ -478,7 +504,6 @@ class TriBase(object):
         :Versions:
             * 2015-01-03 ``@ddalle``: First version
         """
-        # See what happens.
         # Write the nodes.
         pc.WriteTri(self.Nodes, self.Tris)
         # Write the component IDs.
@@ -494,7 +519,7 @@ class TriBase(object):
         """Write a triangulation to file
         
         :Call:
-            >>> tri.WriteSlow(fname='Components.i.tri')
+            >>> tri.Write(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`pyCart.tri.Tri`
                 Triangulation instance to be translated
@@ -516,6 +541,95 @@ class TriBase(object):
         np.savetxt(fid, self.CompID, fmt="%i",      delimiter=' ')
         # Close the file.
         fid.close()
+        
+    # Fall-through function to write the triangulation to file.
+    def WriteTriq(self, fname='Components.i.triq', v=True):
+        """Write q-triangulation to file using fastest method available
+        
+        :Call:
+            >>> triq.WriteTriq(fname='Components.i.triq', v=True)
+        :Inputs:
+            *triq*: :class:`pyCart.tri.Triq`
+                Triangulation instance to be written
+            *fname*: :class:`str`
+                Name of triangulation file to create
+            *v*: :class:`bool`
+                Whether or not
+        :Examples:
+            >>> triq = pyCart.ReadTriq('bJet.i.triq')
+            >>> triq.Write('bjet2.triq')
+        :Versions:
+            * 2014-05-23 ``@ddalle``: First version
+            * 2015-01-03 ``@ddalle``: Added C capability
+            * 2015-02-25 ``@ddalle``: Added status update
+            * 2015-09-14 ``@ddalle``: Copied from :func:`TriBase.WriteTri`
+        """
+        # Status update.
+        if v:
+            print("     Writing triangulation: '%s'" % fname)
+        # Try the fast way.
+        try:
+            # Fast method using compiled C.
+            self.WriteTriqFast(fname)
+        except Exception:
+            # Slow method using Python code.
+            self.WriteTriqSlow(fname)
+        
+    # Function to write a triq file the old-fashioned way.
+    def WriteTriqSlow(self, fname='Components.i.triq'):
+        """Write a triangulation file with state to file
+        
+        :Call:
+            >>> triq.WriteTriqSlow(fname='Components.i.triq')
+        :Inputs:
+            *triq*: :class:`pyCart.tri.Triq`
+                Triangulation instance to be written
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Examples:
+            >>> triq = pyCart.ReadTriQ('bJet.i.triq')
+            >>> triq.Write('bjet2.triq')
+        :Versions:
+            * 2015-09-14 ``@ddalle``: First version
+        """
+        # Write the Common portion of the triangulation
+        self.WriteSlow(fname=fname)
+        # Open the file to append.
+        fid = open(fname, 'a')
+        # Loop through states.
+        for qi in q:
+            # Write the pressure coefficient.
+            fid.write('%.6f\n' % qi[0])
+            # Line of text for the remaining state variables.
+            line = ' ' + ' '.join(['%.6f' % qij for qij in qi[1:]]) + '\n'
+            # Write it
+            fid.write(line)
+        # Close the flie.
+        fid.close()
+        
+    # Function to write a triq file via C function
+    def WriteTriqFast(self, fname='Components.i.triq'):
+        """Write a triangulation file with state to file via Python/C
+        
+        :Call:
+            >>> triq.WriteTriqFast(fname='Components.i.triq')
+        :Inputs:
+            *triq*: :class:`pyCart.tri.Triq`
+                Triangulation instance to be written
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Examples:
+            >>> triq = pyCart.ReadTriQ('bJet.i.triq')
+            >>> triq.Write('bjet2.triq')
+        :Versions:
+            * 2015-09-14 ``@ddalle``: First version
+        """
+        # Write the nodes.
+        pc.WriteTriQ(self.Nodes, self.Tris, self.CompID, self.q)
+        # Check the file name.
+        if fname != "Components.pyCart.tri":
+            # Move the file.
+            os.rename("Components.pyCart.tri", fname)
         
     # Function to write a UH3D file
     def WriteUH3D(self, fname='Components.i.uh3d'):
@@ -1385,24 +1499,24 @@ class Tri(TriBase):
             Name of triangulation file (UH3D format)
         *nNode*: :class:`int`
             Number of nodes in triangulation
-        *Nodes*: :class:`numpy.array(dtype=float)`, (*nNode*, 3)
+        *Nodes*: :class:`np.ndarray` (:class:`float`), (*nNode*, 3)
             Matrix of *x,y,z*-coordinates of each node
         *nTri*: :class:`int`
             Number of triangles in triangulation
-        *Tris*: :class:`numpy.array(dtype=int)`, (*nTri*, 3)
+        *Tris*: :class:`np.ndarray` (:class:`int`), (*nTri*, 3)
             Indices of triangle vertex nodes
-        *CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
+        *CompID*: :class:`np.ndarray` (:class:`int`), (*nTri*)
             Component number for each triangle
     :Data members:
         *tri.nNode*: :class:`int`
             Number of nodes in triangulation
-        *tri.Nodes*: :class:`numpy.array(dtype=float)`, (*nNode*, 3)
+        *tri.Nodes*: :class:`np.ndarray` (:class:`float`), (*nNode*, 3)
             Matrix of *x,y,z*-coordinates of each node
         *tri.nTri*: :class:`int`
             Number of triangles in triangulation
-        *tri.Tris*: :class:`numpy.array(dtype=int)`, (*nTri*, 3)
+        *tri.Tris*: :class:`np.ndarray` (:class:`int`), (*nTri*, 3)
             Indices of triangle vertex nodes
-        *tri.CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
+        *tri.CompID*: :class:`np.ndarray` (:class:`int`), (*nTri*)
             Component number for each triangle
     """
     
@@ -1511,34 +1625,40 @@ class Triq(TriBase):
     all triangles ``1``.
     
     :Call:
-        >>> tri = pyCart.Triq(fname=fname)
-        >>> tri = pyCart.Triq(Nodes=Nodes, Tris=Tris, CompID=CompID, q=q)
+        >>> triq = pyCart.Triq(fname=fname)
+        >>> triq = pyCart.Triq(Nodes=Nodes, Tris=Tris, CompID=CompID, q=q)
     :Inputs:
         *fname*: :class:`str`
             Name of triangulation file to read (Cart3D format)
-        *uh3d*: :class:`str`
-            Name of triangulation file (UH3D format)
         *nNode*: :class:`int`
             Number of nodes in triangulation
-        *Nodes*: :class:`numpy.array(dtype=float)`, (*nNode*, 3)
+        *Nodes*: :class:`np.ndarray` (:class:`float`), (*nNode*, 3)
             Matrix of *x,y,z*-coordinates of each node
         *nTri*: :class:`int`
             Number of triangles in triangulation
-        *Tris*: :class:`numpy.array(dtype=int)`, (*nTri*, 3)
+        *Tris*: :class:`np.ndarray` (:class:`int`), (*nTri*, 3)
             Indices of triangle vertex nodes
-        *CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
+        *CompID*: :class:`np.ndarray`, (*nTri*)
             Component number for each triangle
+        *nq*: :class:`int`
+            Number of state variables at each node
+        *q*: :class:`np.ndarray` (:class:`float`), (*nNode*, *nq*)
+            State vector at each node
     :Data members:
-        *tri.nNode*: :class:`int`
+        *triq.nNode*: :class:`int`
             Number of nodes in triangulation
-        *tri.Nodes*: :class:`numpy.array(dtype=float)`, (*nNode*, 3)
+        *triq.Nodes*: :class:`np.ndarray` (:class:`float`), (*nNode*, 3)
             Matrix of *x,y,z*-coordinates of each node
-        *tri.nTri*: :class:`int`
+        *triq.nTri*: :class:`int`
             Number of triangles in triangulation
-        *tri.Tris*: :class:`numpy.array(dtype=int)`, (*nTri*, 3)
+        *triq.Tris*: :class:`np.ndarray` (:class:`int`), (*nTri*, 3)
             Indices of triangle vertex nodes
-        *tri.CompID*: :class:`numpy.array(dtype=int)`, (*nTri*)
+        *triq.CompID*: :class:`np.ndarray` (:class:`int`), (*nTri*)
             Component number for each triangle
+        *triq.nq*: :class:`int`
+            Number of state variables at each node
+        *triq.q*: :class:`np.ndarray` (:class:`float`), (*nNode*, *nq*)
+            State vector at each node
     """
     
     def __init__(self, fname=None, nNode=None, Nodes=None,
@@ -1607,7 +1727,7 @@ class Triq(TriBase):
         return '<pyCart.tri.Triq(nNode=%i, nTri=%i, nq=%i)>' % (
             self.nNode, self.nTri, self.nq)
         
-    # Function to read a .tri file
+    # Function to read a .triq file
     def Read(self, fname):
         """Read a triangulation file (from ``*.tri``)
         
@@ -1641,12 +1761,20 @@ class Triq(TriBase):
         self.ReadTris(fid, nTri)
         # Read or assign component IDs.
         self.ReadCompID(fid)
+        # Read the sate.
+        self.ReadQ(fid, nNode, nq)
         
         # Close the file.
-        fid.close() 
+        fid.close()
+        
+    # Function to write a .triq file
+    def Write(self, fname):
+        """
+        
+        """
+        self.WriteTriq(fname)
         
         
-
 
 # Function to read .tri files
 def ReadTri(fname):

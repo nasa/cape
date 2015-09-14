@@ -72,7 +72,7 @@ TemplateFolder = os.path.join(PyCartFolder, "templates")
 
 
 # Import classes and methods from the submodules
-from tri    import Tri, ReadTri, WriteTri
+from tri    import Tri, Triq, ReadTri, WriteTri
 from cart3d import Cart3d, Trajectory, ReadTrajectoryFile
 from config import Config
 from case   import ReadCaseJSON, run_flowCart

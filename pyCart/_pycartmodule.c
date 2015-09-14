@@ -12,6 +12,7 @@ static PyMethodDef Methods[] = {
     // pc_Tri methods
     {"WriteTri", pc_WriteTri, METH_VARARGS, doc_WriteTri},
     {"WriteCompID", pc_WriteCompID, METH_VARARGS, doc_WriteCompID},
+    {"WriteTriQ", pc_WriteTriQ, METH_VARARGS, doc_WriteTriQ},
     {NULL, NULL, 0, NULL}
 };
 
