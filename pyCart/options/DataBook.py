@@ -101,6 +101,33 @@ class DataBook(odict):
         # Output
         return comps
         
+    # Get the list of line load entries
+    def get_DataBookLineLoads(self):
+        """Get the list of sectional loads components in the data book
+        
+        :Call:
+            >>> comps = opts.get_DataBookLineLoads()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *comps*: :class:`list`
+                List of components or line load groups
+        :Versions:
+            * 2015-09-15 ``@ddalle``: First version
+        """
+        # Get the value from the dictionary.
+        comps = self.get('LineLoads', [])
+        # Make sure it's a list
+        if type(comps).__name__ not in ['str', 'int', 'unicode']:
+            comps = [comps]
+        # Check contents.
+        for comp in comps:
+            if (type(comp).__name__ not in ['str', 'int', 'unicode']):
+                raise IOError("Component '%s' is not a str or int." % comp)
+        # Output
+        return comps
+        
     # Get the number of initial divisions
     def get_nStats(self):
         """Get the number of iterations to be used for collecting statistics
@@ -553,6 +580,52 @@ class DataBook(odict):
             cols.append(c+'_t')
         # Output
         return cols
+        
+    # Get list of components in a lineload group
+    def get_LineLoadComponents(self, comp):
+        """Get the list of components for a sectional load group
+        
+        :Call:
+            >>> comps = opts.get_LineLoadComponents(comp)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of line load group
+        :Outputs:
+            *comps*: :class:`list` | :class:`str` | :class:`int`
+                List of components to be included in sectional loads
+        :Versions:
+            * 2015-09-15 ``@ddalle``: First version
+        """
+        # Get component options
+        copts = self.get(comp, {})
+        # Get the component
+        comps = copts.get("Component", "entire")
+        # Output
+        return comps
+        
+    # Get the number of cuts
+    def get_LineLoad_nCut(self, comp):
+        """Get the number of cuts to make for a sectional load group
+        
+        :Call:
+            >>> nCut = opts.get_LineLoad_nCut(comp)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of line load group
+        :Outputs:
+            *nCut*: :class:`int`
+                Number of cuts to include in line loads
+        :Versions:
+            * 2015-09-15 ``@ddalle``: First version
+        """
+        # Get component options
+        copts = self.get(comp, {})
+        # Get the number of cuts
+        nCut = copts.get("nCut", db0("nCut"))
         
         
 # Class for target data

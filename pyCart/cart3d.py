@@ -1034,9 +1034,8 @@ class Cart3d(object):
         for j in range(len(ptsR)):
             # Set the new value.
             self.opts.set_Point(YR[j], ptsR[j])
-        
     
-        
+    
     # Check a case.
     def CheckCase(self, i):
         """Check current status of run *i*
@@ -1102,7 +1101,6 @@ class Cart3d(object):
         os.chdir(fpwd)
         # Output.
         return n
-        
         
     # Prepare a case.
     def PrepareCase(self, i):

@@ -1632,6 +1632,11 @@ class Options(odict):
     def get_DataBookComponents(self):
         self._DataBook()
         return self['DataBook'].get_DataBookComponents()
+        
+    # Get list of line load components.
+    def get_DataBookLineLoads(self):
+        self._DataBook()
+        return self['DataBook'].get_DataBookLineLoads()
     
     # Get list of coefficients for a specific component
     def get_DataBookCoeffs(self, comp):
@@ -1667,11 +1672,24 @@ class Options(odict):
     def get_DataBookTargets(self):
         self._DataBook()
         return self['DataBook'].get_DataBookTargets()
+        
+    # Get components for a line load
+    def get_LineLoadComponents(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_LineLoadComponents(comp)
+        
+    # Get number of cuts for a line load group
+    def get_LineLoad_nCut(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_LineLoad_nCut(comp)
     
     # Copy over the documentation.
-    for k in ['DataBookComponents', 'DataBookCoeffs', 'DataBookTargets',
+    for k in ['DataBookComponents', 'DataBookLineLoads',
+            'DataBookCoeffs', 'DataBookTargets',
             'DataBookCols', 'CompTargets', 'DataBookTransformations',
-            'DataBookDataCols', 'DataBookTargetCols']:
+            'DataBookDataCols', 'DataBookTargetCols',
+            'LineLoadComponents', 'LineLoad_nCut'
+    ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
     

@@ -74,6 +74,7 @@ rc = {
     "db_min": 0,
     "db_max": 0,
     "db_dir": "data",
+    "db_nCut": 200,
     "Delimiter": ",",
     "binaryIO": True,
     "tecO": True,

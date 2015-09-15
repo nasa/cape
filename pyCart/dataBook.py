@@ -3,10 +3,11 @@ Data Book Module: :mod:`pyCart.dataBook`
 ========================================
 
 This module contains functions for reading and processing forces, moments, and
-other statistics from a trajectory
+other statistics from cases in a trajectory.
 
 :Versions:
     * 2014-12-20 ``@ddalle``: Started
+    * 2015-01-01 ``@ddalle``: First version
 """
 
 # File interface
@@ -864,6 +865,7 @@ class DataBook(dict):
         except Exception: pass
         # Output
         return h
+# class DataBook
         
             
 # Function to automatically get inclusive data limits.
@@ -961,7 +963,8 @@ def get_xlim(ha, pad=0.05):
     xmaxv = (1+pad)*xmax - pad*xmin
     # Output
     return xminv, xmaxv
-        
+# DataBook Plot functions
+
                 
 # Individual component data book
 class DBComp(dict):
@@ -1357,7 +1360,7 @@ class DBComp(dict):
         except Exception:
             # Return no match.
             return np.nan
-            
+# class DBComp
         
         
 # Data book target instance
@@ -1875,6 +1878,7 @@ class DBTarget(dict):
                 pass
         # Output
         return j
+# class DBTarget
         
         
 # Aerodynamic history class
@@ -2387,7 +2391,7 @@ class Aero(dict):
         h = self.Plot(comp, ['CA', 'CY', 'CN'], nRow=3, nCol=1, **kw)
         # Output
         return h
-
+# class Aero
     
     
 # Individual component force and moment
@@ -3302,7 +3306,7 @@ class CaseFM(object):
             pass
         # Output.
         return h
-
+# class CaseFM
     
 
 # Aerodynamic history class
@@ -3604,5 +3608,5 @@ class CaseResid(object):
         j = np.where(self.i <= i)[0][-1]
         # Output
         return j
-        
+# class CaseResid
         
