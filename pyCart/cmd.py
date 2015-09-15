@@ -243,6 +243,8 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
             Number of iterations to run ``flowCart``
         *mg_fc*: :class:`int`
             Number of multigrid levels to use
+        *it_avg*: :class:`int`
+            Iterations between averaging break; overrides *it_fc*
         *fmg*: :class:`bool` 
             Whether to use full multigrid (adds ``-no_fmg`` flag if ``False``)
         *pmg*: :class:`bool`
@@ -276,6 +278,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         # Get values from internal settings.
         mpi_fc  = cart3d.opts.get_mpi_fc(i)
         it_fc   = cart3d.opts.get_it_fc(i)
+        it_avg  = cart3d.opts.get_it_avg(i)
         limiter = cart3d.opts.get_limiter(i)
         y_span  = cart3d.opts.get_y_is_spanwise(i)
         binIO   = cart3d.opts.get_binaryIO(i)
@@ -299,6 +302,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         # Get values from direct settings.
         mpi_fc  = fc.get_mpi_fc(i)
         it_fc   = fc.get_it_fc(i)
+        it_avg  = fc.get_it_avg(i)
         limiter = fc.get_limiter(i)
         y_span  = fc.get_y_is_spanwise(i)
         binIO   = fc.get_binaryIO(i)
@@ -322,6 +326,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         # Get values from keyword arguments
         mpi_fc  = kwargs.get('mpi_fc', False)
         it_fc   = kwargs.get('it_fc', 200)
+        it_avg  = kwargs.get('it_avg', 0)
         limiter = kwargs.get('limiter', 2)
         y_span  = kwargs.get('y_is_spanwise', True)
         binIO   = kwargs.get('binaryIO', False)
@@ -341,6 +346,8 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         vizTD   = kwargs.get('vizTD', None)
         clean   = kwargs.get('clean', False)
         nstats  = kwargs.get('stats', 0)
+    # Check for override *it_fc* iteration count.
+    if it_avg: it_fc = it_avg
     # Initialize command.
     if td_fc and mpi_fc:
         # Unsteady MPI flowCart

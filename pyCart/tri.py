@@ -1735,12 +1735,14 @@ class Triq(TriBase):
         
         :Call:
             >>> triq.Read(fname)
-            >>> triq.
+            >>> triq.Read(fname, n=1)
         :Inputs:
             *triq*: :class:`pyCart.tri.Triq`
                 Triangulation instance
             *fname*: :class:`str`
                 Name of triangulation file to read
+            *n*: :class:`int`
+                Number of iterations used for weighted averaging
         :Versions:
             * 2015-09-14 ``@ddalle``: First version
         """
@@ -1810,6 +1812,11 @@ class Triq(TriBase):
             raise ValueError("Triangulations must have same number of tris.")
         elif self.nq != triq.nq:
             raise ValueError("Triangulations must have same number of states.")
+        # Degenerate case.
+        if self.n == 0:
+            # Use the second input.
+            self.q = triq.q
+            self.n = triq.n
         # Weighted average
         self.q = (self.n*self.q + triq.n*triq.q) / (self.n+triq.n)
         # Update count.

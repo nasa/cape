@@ -20,7 +20,7 @@ from options.flowCart import flowCart
 from . import cmd, queue, manage, bin
 
 # Need triangulations for cases with `intersect`
-from .tri import Tri
+from .tri import Tri, Triq
 
 # Read the local JSON file.
 import json
@@ -120,6 +120,44 @@ def run_flowCart(verify=False, isect=False):
         else:
             # Initial case and create grid
             cmdi = ['./aero.csh']
+        # Run the command.
+        bin.callf(cmdi, f='flowCart.out')
+    elif fc.get_it_avg(i):
+        # Check how many iterations by which to offset the count.
+        if fc.get_unsteady(i):
+            # Get the number of previous unsteady steps.
+            n = GetUnsteadyIter()
+        else:
+            # Get the number of previous steady steps.
+            n = GetSteadyIter()
+        # Initialize triq.
+        triq = Triq('Components.i.tri', n=0)
+        # Requested iterations
+        it_fc = fc.get_it_fc(i)
+        # Start and end iterations
+        n0 = n
+        n1 = n + it_fc
+        # Loop through iterations.
+        for j in range(it_fc):
+            # flowCart command automatically accepts *it_avg*; update *n*
+            cmdi = cmd.flowCart(fc=fc, i=i, n=n)
+            # Run the command for *it_avg* iterations.
+            bin.callf(cmdi, f='flowCart.out')
+            # Read the triq file
+            triqj = Triq('Components.i.triq')
+            # Weighted average
+            triq.WeightedAverage(triqj)
+            # Get new iteration count.
+            if fc.get_unsteady(i):
+                # Get the number of previous unsteady steps.
+                n = GetUnsteadyIter()
+            else:
+                # Get the number of previous steady steps.
+                n = GetSteadyIter()
+            # Check for completion
+            if n >= n1: break
+        # Write the averaged triq file
+        triq.Write('Components.%05i.%05i.triq' % (n0, n))
     else:
         # Check how many iterations by which to offset the count.
         if fc.get_unsteady(i):
@@ -130,8 +168,8 @@ def run_flowCart(verify=False, isect=False):
             n = GetSteadyIter()
         # Call flowCart directly.
         cmdi = cmd.flowCart(fc=fc, i=i, n=n)
-    # Run the command.
-    bin.callf(cmdi, f='flowCart.out')
+        # Run the command.
+        bin.callf(cmdi, f='flowCart.out')
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
     # Clean up the folder as appropriate.
