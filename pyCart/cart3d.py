@@ -44,7 +44,7 @@ from preSpecCntl import PreSpecCntl
 from config      import Config
 
 # Import triangulation
-from tri import Tri
+from tri import Tri, RotatePoints
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -888,8 +888,8 @@ class Cart3d(object):
                 # Component(s) translation
                 self.PrepareTriTranslation(key, i)
             elif kt.lower() == "rotation":
-                # Component(s) translation
-                raise RuntimeError("Rotations not implemented yet!")
+                # Component(s) rotation
+                self.PrepareTriRotation(key, i)
             
     # Apply a special triangulation function
     def PrepareTriFunction(self, key, i):
@@ -925,11 +925,11 @@ class Cart3d(object):
             * 2015-09-11 ``@ddalle``: First version
         """
         # Get the options for this key.
-        kopts = self.x[defns][key]
+        kopts = self.x.defns[key]
         # Get the components to translate.
         compID  = self.tri.GetCompID(kopts.get('CompID'))
         # Components to translate in opposite direction
-        compIDR = self.tri.GetCompID(kopts.get('CompIDRSymmetric', []))
+        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []))
         # Check for a direction
         if 'Vector' not in kopts:
             raise IOError(
@@ -983,7 +983,7 @@ class Cart3d(object):
             * 2015-09-11 ``@ddalle``: First version
         """
         # Get the options for this key.
-        kopts = self.x[defns][key]
+        kopts = self.x.defns[key]
         # Get the components to translate.
         compID = self.tri.GetCompID(kopts.get('CompID'))
         # Components to translate in opposite direction
@@ -991,6 +991,8 @@ class Cart3d(object):
         # Symmetry applied to rotation vector.
         kv = kopts.get('VectorSymmetry', [1.0, 1.0, 1.0])
         ka = kopts.get('AngleSymmetry', -1.0)
+        # Convert list -> numpy.ndarray
+        if type(kv).__name__ == "list": kv = np.array(kv)
         # Check for a direction
         if 'Vector' not in kopts:
             raise KeyError(
@@ -1002,16 +1004,8 @@ class Cart3d(object):
             raise KeyError(
                 "Rotation key '%s' vector must be exactly two points." % key)
         # Get start and end points of rotation vector.
-        v0 = kopts['Vector'][0]
-        v1 = kopts['Vector'][1]
-        # Types
-        tv0 = type(v0).__name__
-        tv1 = type(v1).__name__
-        # Convert to coordinates if necessary.
-        if tv0.startswith('str') or tv0=='unicode':
-            v0 = self.opts.get_Point(v0)
-        if tv1.startswith('str') or tv1=='unicode':
-            v1 = self.opts.get_Point(v1)
+        v0 = np.array(self.opts.get_Point(kopts['Vector'][0]))
+        v1 = np.array(self.opts.get_Point(kopts['Vector'][1]))
         # Symmetry rotation vectors.
         v0R = kv*v0
         v1R = kv*v1
@@ -1025,7 +1019,7 @@ class Cart3d(object):
         theta = getattr(self.x,key)[i]
         # Rotate the triangulation.
         self.tri.Rotate(v0,  v1,  theta,  i=compID)
-        self.tri.Rotate(v0R, v1R, ka*theta, i=CompIDR)
+        self.tri.Rotate(v0R, v1R, ka*theta, i=compIDR)
         # Points to be rotated
         X  = np.array([self.opts.get_Point(pt) for pt in pts])
         XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
