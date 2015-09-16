@@ -1398,7 +1398,7 @@ class TriBase(object):
         
         
     # Function to add a bounding box based on a component and buffer
-    def GetCompBBox(self, **kwargs):
+    def GetCompBBox(self, compID=[], **kwargs):
         """
         Find a bounding box based on the coordinates of a specified component
         or list of components, with an optional buffer or buffers in each
@@ -1438,10 +1438,8 @@ class TriBase(object):
             * 2014-06-16 ``@ddalle``: First version
             * 2014-08-03 ``@ddalle``: Changed "buff" --> "pad"
         """
-        # Get the component specifier.
-        face = kwargs.get('compID')
         # Process it into a list of component IDs.
-        compID = self.config.GetCompID(face)
+        compID = self.config.GetCompID(compID)
         # Quit if none specified.
         if not compID: return None
         # Get the overall buffer.

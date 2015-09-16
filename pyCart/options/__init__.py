@@ -1682,13 +1682,29 @@ class Options(odict):
     def get_LineLoad_nCut(self, comp):
         self._DataBook()
         return self['DataBook'].get_LineLoad_nCut(comp)
+        
+    # Get Mach number option
+    def get_ComponentMach(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_ComponentMach(comp)
+        
+    # Get Gamma option
+    def get_ComponentGamma(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_ComponentGamma(comp)
+        
+    # Get Reynolds number option
+    def get_ComponentReynoldsNumber(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_ComponentReynoldsNumber(comp)
     
     # Copy over the documentation.
     for k in ['DataBookComponents', 'DataBookLineLoads',
             'DataBookCoeffs', 'DataBookTargets',
             'DataBookCols', 'CompTargets', 'DataBookTransformations',
             'DataBookDataCols', 'DataBookTargetCols',
-            'LineLoadComponents', 'LineLoad_nCut'
+            'LineLoadComponents', 'LineLoad_nCut', 'ComponentGamma',
+            'ComponentMach', 'ComponentReynoldsNumber'
     ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__

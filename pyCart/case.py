@@ -157,7 +157,7 @@ def run_flowCart(verify=False, isect=False):
             # Check for completion
             if n >= n1: break
         # Write the averaged triq file
-        triq.Write('Components.%05i.%05i.triq' % (n0, n))
+        triq.Write('Components.%i.%i.%i.triq' % (j, n0+1, n))
     else:
         # Check how many iterations by which to offset the count.
         if fc.get_unsteady(i):

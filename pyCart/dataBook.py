@@ -126,7 +126,7 @@ class DataBook(dict):
         # Read the targets.
         for targ in opts.get_DataBookTargets():
             # Read the file.
-            self.Targets.append(DBTarget(targ, x, opts))
+            self.ReadTarget(targ)
             
     # Command-line representation
     def __repr__(self):
@@ -145,6 +145,27 @@ class DataBook(dict):
         return lbl
     # String conversion
     __str__ = __repr__
+    
+    # Function to read targets if necessary
+    def ReadTarget(self, targ):
+        """Read a data book target if it is not already present
+        
+        :Call:
+            >>> DB.ReadTarget(targ)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *targ*: :class:`str`
+                Target name
+        :Versions:
+            * 2015-09-16 ``@ddalle``: First version
+        """
+        # Try to access the target.
+        try:
+            self.Targets[targ]
+        except Exception:
+            # Read the file.
+            self.Targets.append(DBTarget(targ, self.x, self.opts))
     
     # Match the databook copy of the trajectory
     def UpdateTrajectory(self):
@@ -980,8 +1001,6 @@ class DBComp(dict):
             Trajectory for processing variable types
         *opts*: :class:`pyCart.options.Options`
             Global pyCart options instance
-        *fdir*: :class:`str`
-            Data book folder (forward slash separators)
     :Outputs:
         *DBi*: :class:`pyCart.dataBook.DBComp`
             An individual component data book
@@ -989,7 +1008,7 @@ class DBComp(dict):
         * 2014-12-20 ``@ddalle``: Started
     """
     # Initialization method
-    def __init__(self, comp, x, opts, fdir="data"):
+    def __init__(self, comp, x, opts):
         """Initialization method
         
         :Versions:
@@ -1026,7 +1045,7 @@ class DBComp(dict):
     def __repr__(self):
         """Representation method
         
-        :Versions;
+        :Versions:
             * 2014-12-27 ``@ddalle``: First version
         """
         # Initialize string
@@ -1112,7 +1131,7 @@ class DBComp(dict):
         
     # Function to write data book files
     def Write(self, fname=None):
-        """Write a single data book file or initialize empty arrays
+        """Write a single data book file
         
         :Call:
             >>> DBi.Write()
@@ -2404,8 +2423,6 @@ class CaseFM(object):
     :Call:
         >>> FM = pyCart.dataBook.CaseFM(C, MRP=None, A=None)
     :Inputs:
-        *aero*: :class:`pyCart.aero.Aero`
-            Instance of the aero history class
         *C*: :class:`list` (:class:`str`)
             List of coefficients to initialize
         *MRP*: :class:`numpy.ndarray` (:class:`float`) shape=(3,)
