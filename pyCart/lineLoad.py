@@ -20,6 +20,14 @@ from .options import odict
 from . import util
 
 
+# Line loads
+class DBLineLoad(object):
+    """Data book line load class
+    
+    """
+    
+
+
 # Line loads for a case
 class CaseLL(object):
     """Line load class
