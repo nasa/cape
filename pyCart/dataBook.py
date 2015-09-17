@@ -127,6 +127,8 @@ class DataBook(dict):
         for targ in opts.get_DataBookTargets():
             # Read the file.
             self.ReadTarget(targ)
+        # Initialize line loads
+        self.LineLoads = []
             
     # Command-line representation
     def __repr__(self):
@@ -166,6 +168,27 @@ class DataBook(dict):
         except Exception:
             # Read the file.
             self.Targets.append(DBTarget(targ, self.x, self.opts))
+            
+    # Read line load
+    def ReadLineLoad(self, comp):
+        """Read a line load data book target if it is not already present
+        
+        :Call:
+            >>> DB.ReadLineLoad(comp)
+        :Inputs:
+            *DB*: :class:`pycart.dataBook.DataBook`
+                Instance of the pycart data book class
+            *comp*: :class:`str`
+                Line load component group
+        :Versions:
+            * 2015-09-16 ``@ddalle``: First version
+        """
+        # Try to access the line load
+        try:
+            self.LineLoads[comp]
+        except Exception:
+            # Read the file.
+            self.LineLoads.append(DBLineLoad(self.cart3d, comp))
     
     # Match the databook copy of the trajectory
     def UpdateTrajectory(self):
@@ -349,6 +372,26 @@ class DataBook(dict):
             DBc.n = len(DBc['nIter'])
         
             
+    # Update one line load case
+    def UpdateLineLoadCase(self, comp, i):
+        """Update one line load case if necessary
+        
+        :Call:
+            >>> DB.UpdateLineLoadCase(comp, i)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *comp*: :class:`str`
+                Name of line load group
+            *i*: :class:`int`
+                Case number
+        :Versions:
+            * 2015-09-17 ``@ddalle``: First version
+        """
+        # Read the line loads if necessary
+        self.ReadLineLoad(comp)
+        # 
+        
     # Update or add an entry.
     def UpdateCase(self, i):
         """Update or add a trajectory to a data book

@@ -236,6 +236,95 @@ class DBLineLoad(object):
             f.write('%i%s' % (self['nStats'][i], delim))
         # Close the file.
         f.close()
+        
+    # Function to sort the data book
+    def ArgSort(self, key=None):
+        """Return indices that would sort a a data book by a trajectory key
+        
+        :Call:
+            >>> I = DBL.ArgSort(key=None)
+        :Inputs:
+            *DBL*: :class;`pyCart.lineLoad.DBLineLoad`
+                Instance of line load group data book
+            *key*: :class:`str`
+                Name of trajectory key to use for sorting; default is first key
+        :Outputs:
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices; must have same size as data book
+        :Versions:
+            * 2015-09-15 ``@ddalle``: First version
+        """
+        # Process the key.
+        if key is None: key = self.x.keys[0]
+        # Check for multiple keys.
+        if type(key).__name__ in ['list', 'ndarray', 'tuple']:
+            # Init pre-array list of ordered n-lets like [(0,1,0), ..., ]
+            Z = zip(*[self[k] for k in key])
+            # Init list of key definitions
+            dt = []
+            # Loop through keys to get data types (dtype)
+            for k in key:
+                # Get the type.
+                dtk = self.cart3d.x.defns[k]['Value']
+                # Convert it to numpy jargon.
+                if dtk in ['float']:
+                    # Numeric value
+                    dt.append((str(k), 'f'))
+                elif dtk in ['int', 'hex', 'oct', 'octal']:
+                    # Stored as an integer
+                    dt.append((str(k), 'i'))
+                else:
+                    # String is default.
+                    dt.append((str(k), 'S32'))
+            # Create the array to be used for multicolumn sort.
+            A = np.array(Z, dtype=dt)
+            # Get the sorting order
+            I = np.argsort(A, order=[str(k) for k in key])
+        else:
+            # Indirect sort on a single key.
+            I = np.argsort(self[key])
+        # Output.
+        return I
+        
+    # Function to sort data book
+    def Sort(self, key=None, I=None):
+        """Sort a data book according to either a key or an index
+        
+        :Call:
+            >>> DBL.Sort()
+            >>> DBL.Sort(key)
+            >>> DBL.Sort(I=None)
+        :Inputs:
+            *DBL*: :class:`pyCart.lineLoad.DBLineLoad`
+                Instance of the pyCart data book line load group
+            *key*: :class:`str`
+                Name of trajectory key to use for sorting; default is first key
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices; must have same size as data book
+        :Versions:
+            * 2014-12-30 ``@ddalle``: First version
+        """
+        # Process inputs.
+        if I is not None:
+            # Index array specified; check its quality.
+            if type(I).__name__ not in ["ndarray", "list"]:
+                # Not a suitable list.
+                raise TypeError("Index list is unusable type.")
+            elif len(I) != self.n:
+                # Incompatible length.
+                raise IndexError(("Index list length (%i) " % len(I)) +
+                    ("is not equal to data book size (%i)." % self.n))
+        else:
+            # Default key if necessary
+            if key is None: key = self.x.keys[0]
+            # Use ArgSort to get indices that sort on that key.
+            I = self.ArgSort(key)
+        # Sort all fields.
+        for k in self:
+            # Sort it.
+            self[k] = self[k][I]
+        
+# class DBLineLoad
     
 
 # Line loads
