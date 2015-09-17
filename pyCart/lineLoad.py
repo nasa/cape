@@ -579,7 +579,7 @@ class CaseLL(object):
         # Get working folder.
         fwrk = os.path.abspath(case.GetWorkingFolder())
         # Get triangulation file
-        ftrq, nStats, i0, i1 = self.GetTriqFile()
+        ftrq, nStats, i0, i1 = GetTriqFile()
         # Full path to triangulation
         ftriq = os.path.join(fwrk, ftrq)
         # Check for ``triq`` file
@@ -605,92 +605,6 @@ class CaseLL(object):
         # Clean up.
         tar.chdir_up()
         os.chdir(fpwd)
-        
-    # Function to determine newest triangulation file
-    def GetTriqFile(self):
-        """Get most recent ``triq`` file and its associated iterations
-        
-        :Call:
-            >>> ftriq, n, i0, i1 = LL.GetTriqFile()
-        :Inputs:
-            *LL*: :class:`pyCart.lineLoad.CaseLL`
-                Instance of data book line load interface
-        :Outputs:
-            *ftriq*: :class:`str`
-                Name of ``triq`` file
-            *n*: :class:`int`
-                Number of iterations included
-            *i0*: :class:`int`
-                First iteration in the averaging
-            *i1*: :class:`int`
-                Last iteration in the averaging
-        :Versions:
-            * 2015-09-16 ``@ddalle``: First version
-        """
-        # Get the working directory.
-        fwrk = case.GetWorkingFolder()
-        # Go there.
-        fpwd = os.getcwd()
-        os.chdir(fwrk)
-        # Get the glob of numbered files.
-        fglob3 = glob.glob('Components.*.*.*.triq')
-        fglob2 = glob.glob('Components.*.*.triq')
-        fglob1 = glob.glob('Components.[0-9]*.triq')
-        # Check it.
-        if len(fglob3) > 0:
-            # Get last iterations
-            I0 = [int(f.split('.')[3]) for f in fglob3]
-            # Index of best iteration
-            j = np.argmax(I0)
-            # Iterations there.
-            i1 = I0[j]
-            i0 = int(fglob3[j].split('.')[2])
-            # Count
-            n = int(fglob3[j].split('.')[1])
-            # File name
-            ftriq = fglob3[j]
-        if len(fglob2) > 0:
-            # Get last iterations
-            I0 = [int(f.split('.')[2]) for f in fglob2]
-            # Index of best iteration
-            j = np.argmax(I0)
-            # Iterations there.
-            i1 = I0[j]
-            i0 = int(fglob2[j].split('.')[1])
-            # File name
-            ftriq = fglob2[j]
-        # Check it.
-        elif len(fglob1) > 0:
-            # Get last iterations
-            I0 = [int(f.split('.')[1]) for f in fglob1]
-            # Index of best iteration
-            j = np.argmax(I0)
-            # Iterations there.
-            i1 = I0[j]
-            i0 = I0[j]
-            # Count
-            n = i1 - i0 + 1
-            # File name
-            ftriq = fglob1[j]
-        # Plain file
-        elif os.path.isfile('Components.i.triq'):
-            # Iteration counts: assume it's most recent iteration
-            i1 = self.cart3d.CheckCase(self.i)
-            i0 = i1
-            # Count
-            n = 1
-            # file name
-            ftriq = 'Components.i.triq'
-        else:
-            # No iterations
-            i1 = None
-            i0 = None
-            n = None
-            ftriq = None
-        # Output
-        os.chdir(fpwd)
-        return ftriq, n, i0, i1
-        
     
     # Function to read a file
     def ReadLDS(fname):
@@ -739,5 +653,86 @@ class CaseLL(object):
         self.CLN = D[:,6]
 # class CaseLL
 
-        
+
+# Function to determine newest triangulation file
+def GetTriqFile():
+    """Get most recent ``triq`` file and its associated iterations
+    
+    :Call:
+        >>> ftriq, n, i0, i1 = GetTriqFile()
+    :Outputs:
+        *ftriq*: :class:`str`
+            Name of ``triq`` file
+        *n*: :class:`int`
+            Number of iterations included
+        *i0*: :class:`int`
+            First iteration in the averaging
+        *i1*: :class:`int`
+            Last iteration in the averaging
+    :Versions:
+        * 2015-09-16 ``@ddalle``: First version
+    """
+    # Get the working directory.
+    fwrk = case.GetWorkingFolder()
+    # Go there.
+    fpwd = os.getcwd()
+    os.chdir(fwrk)
+    # Get the glob of numbered files.
+    fglob3 = glob.glob('Components.*.*.*.triq')
+    fglob2 = glob.glob('Components.*.*.triq')
+    fglob1 = glob.glob('Components.[0-9]*.triq')
+    # Check it.
+    if len(fglob3) > 0:
+        # Get last iterations
+        I0 = [int(f.split('.')[3]) for f in fglob3]
+        # Index of best iteration
+        j = np.argmax(I0)
+        # Iterations there.
+        i1 = I0[j]
+        i0 = int(fglob3[j].split('.')[2])
+        # Count
+        n = int(fglob3[j].split('.')[1])
+        # File name
+        ftriq = fglob3[j]
+    if len(fglob2) > 0:
+        # Get last iterations
+        I0 = [int(f.split('.')[2]) for f in fglob2]
+        # Index of best iteration
+        j = np.argmax(I0)
+        # Iterations there.
+        i1 = I0[j]
+        i0 = int(fglob2[j].split('.')[1])
+        # File name
+        ftriq = fglob2[j]
+    # Check it.
+    elif len(fglob1) > 0:
+        # Get last iterations
+        I0 = [int(f.split('.')[1]) for f in fglob1]
+        # Index of best iteration
+        j = np.argmax(I0)
+        # Iterations there.
+        i1 = I0[j]
+        i0 = I0[j]
+        # Count
+        n = i1 - i0 + 1
+        # File name
+        ftriq = fglob1[j]
+    # Plain file
+    elif os.path.isfile('Components.i.triq'):
+        # Iteration counts: assume it's most recent iteration
+        i1 = self.cart3d.CheckCase(self.i)
+        i0 = i1
+        # Count
+        n = 1
+        # file name
+        ftriq = 'Components.i.triq'
+    else:
+        # No iterations
+        i1 = None
+        i0 = None
+        n = None
+        ftriq = None
+    # Output
+    os.chdir(fpwd)
+    return ftriq, n, i0, i1
             

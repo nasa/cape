@@ -25,6 +25,8 @@ from .case import GetCurrentIter, GetWorkingFolder
 from .options import odict
 # Utilities or advanced statistics
 from . import util
+# Line loads
+from . import lineLoad
 
 #<!--
 # ---------------------------------
@@ -188,7 +190,8 @@ class DataBook(dict):
             self.LineLoads[comp]
         except Exception:
             # Read the file.
-            self.LineLoads.append(DBLineLoad(self.cart3d, comp))
+            self.LineLoads.append(
+                lineLoad.DBLineLoad(self.cart3d, comp))
     
     # Match the databook copy of the trajectory
     def UpdateTrajectory(self):
@@ -327,6 +330,29 @@ class DataBook(dict):
         # Loop through indices.
         for i in I:
             self.UpdateCase(i)
+            
+    # Update line load data book
+    def UpdateLineLoadDataBook(self, comp, I=None):
+        """Update a line load data book for a list of cases
+        
+        :Call:
+            >>> DB.UpdateLineLoadDataBook(comp)
+            >>> DB.UpdateLineLoadDataBook(comp, I)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *I*: :class:`list` (:class:`int`) or ``None``
+                List of trajectory indices or update all cases in trajectory
+        :Versions:
+            * 2015-09-17 ``@ddalle``: First version
+        """
+        # Default case list
+        if I is None:
+            # Use all trajectory points
+            I = range(self.x.nCase)
+        # Loop through indices.
+        for i in I:
+            self.UpdateLineLoadCase(comp, i)
         
     # Function to delete entries by index
     def Delete(self, I):
@@ -390,8 +416,10 @@ class DataBook(dict):
         """
         # Read the line loads if necessary
         self.ReadLineLoad(comp)
+        # Extract line load
+        DBL = self.LineLoad[comp]
         # Try to find a match existing in the data book.
-        j = self.LineLoad[comp].FindMatch(i)
+        j = DBL.FindMatch(i)
         # Get the name of the folder.
         frun = self.cart3d.x.GetFullFolderNames(i)
         # Status update.
@@ -405,13 +433,63 @@ class DataBook(dict):
             return
         # Go to the folder.
         os.chdir(frun)
-        
+        # Determine minimum number of iterations required.
+        nAvg = self.opts.get_nStats()
+        nMin = self.opts.get_nMin()
+        # Get the number of iterations
+        ftriq, nStats, n0, nIter = lineLoad.GetTriqFile()
+        # Process whether or not to update.
+        if (not nIter) or (nIter < nMin + nStats):
+            # Not enough iterations (or zero iterations)
+            print("  Not enough iterations (%s) for analysis." % nIter)
+            q = False
+        elif np.isnan(j):
+            # No current entry.
+            print("  Adding new databook entry at iteration %i." % nIter)
+            q = True
+        elif DBL['nIter'][j] < nIter:
+            # Update
+            print("  Updating from iteration %i to %i."
+                % (self[c0]['nIter'][j], nIter))
+            q = True
+        elif DBL['nStats'][j] < nStats:
+            # Change statistics
+            print("  Recomputing statistics using %i iterations." % nStats)
+            q = True
+        else:
+            # Up-to-date
+            print("  Databook up to date.")
+            q = False
+        # Check for an update
+        if (not q): return
+        # Read the new line load
+        LL = lineLoad.CaseLL(self.cart3d, i, comp)
+        # Save the data.
+        if np.isnan(j):
+            # Add the the number of cases.
+            DBL.n += 1
+            # Append trajectory values.
+            for k in self.x.keys:
+                # I found a better way to append in NumPy.
+                DBL[k] = np.append(DBL[k], getattr(self.cart3d.x,k)[i])
+            # Save parameters.
+            DBL['Mach'] = np.append(DBL['Mach'], LL.Mach)
+            DBL['Re']   = np.append(DBL['Re'],   LL.Re)
+            DBL['XMRP'] = np.append(DBL['XMRP'], LL.MRP[0])
+            DBL['YMRP'] = np.append(DBL['YMRP'], LL.MRP[1])
+            DBL['ZMRP'] = np.append(DBL['ZMRP'], LL.MRP[2])
+            # Append iteration counts.
+            DBL['nIter']  = np.append(DBL['nIter'],  nIter)
+            DBL['nStats'] = np.append(DBL['nStats'], nStats)
+        else:
+            # No need to update trajectory values.
+            # Update the other statistics.
+            DBL['nIter'][j]   = nIter
+            DBL['nStats'][j]  = nStats 
         
         # Go back.
         os.chdir(fpwd)
-        
-        
-        
+    
     # Update or add an entry.
     def UpdateCase(self, i):
         """Update or add a trajectory to a data book
