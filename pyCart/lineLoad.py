@@ -324,6 +324,52 @@ class DBLineLoad(object):
             # Sort it.
             self[k] = self[k][I]
         
+    # Find an entry by trajectory variables.
+    def FindMatch(self, i):
+        """Find an entry by run matrix (trajectory) variables
+        
+        It is assumed that exact matches can be found.
+        
+        :Call:
+            >>> j = DBL.FindMatch(i)
+        :Inputs:
+            *DBL*: :class:`pyCart.lineLoad.DBLineLoad`
+                Instance of the pyCart line load data book
+            *i*: :class:`int`
+                Index of the case from the trajectory to try match
+        :Outputs:
+            *j*: :class:`numpy.ndarray` (:class:`int`)
+                Array of index that matches the trajectory case or ``NaN``
+        :Versions:
+            * 2014-12-22 ``@ddalle``: First version
+            * 2015-09-16 ``@ddalle``: Copied from :class:`dataBook.DBComp`
+        """
+        # Initialize indices (assume all are matches)
+        j = np.arange(self.n)
+        # Loop through keys requested for matches.
+        for k in self.cart3d.x.keys:
+            # Get the target value (from the trajectory)
+            v = getattr(self.x,k)[i]
+            # Search for matches.
+            try:
+                # Filter test criterion.
+                jk = np.where(self[k] == v)[0]
+                # Check if the last element should pass but doesn't.
+                if (v == self[k][-1]):
+                    # Add the last element.
+                    jk = np.union1d(jk, [len(self[k])-1])
+                # Restrict to rows that match the above.
+                j = np.intersect1d(j, jk)
+            except Exception:
+                # No match found.
+                return np.nan
+        # Output
+        try:
+            # There should be exactly one match.
+            return j[0]
+        except Exception:
+            # Return no match.
+            return np.nan
 # class DBLineLoad
     
 

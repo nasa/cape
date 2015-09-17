@@ -390,7 +390,27 @@ class DataBook(dict):
         """
         # Read the line loads if necessary
         self.ReadLineLoad(comp)
-        # 
+        # Try to find a match existing in the data book.
+        j = self.LineLoad[comp].FindMatch(i)
+        # Get the name of the folder.
+        frun = self.cart3d.x.GetFullFolderNames(i)
+        # Status update.
+        print(frun)
+        # Go home
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Check if the folder exists.
+        if not os.path.isdir(frun):
+            os.chdir(fpwd)
+            return
+        # Go to the folder.
+        os.chdir(frun)
+        
+        
+        # Go back.
+        os.chdir(fpwd)
+        
+        
         
     # Update or add an entry.
     def UpdateCase(self, i):
