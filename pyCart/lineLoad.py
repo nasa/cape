@@ -557,8 +557,6 @@ class CaseLL(object):
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
         """
-        # Initialize line load
-        self.LL = None
         # Change to root directory.
         fpwd = os.getcwd()
         os.chdir(self.cart3d.RootDir)
@@ -605,23 +603,50 @@ class CaseLL(object):
         # Clean up.
         tar.chdir_up()
         os.chdir(fpwd)
+        
+    # Read the seam curves
+    def ReadSeamCurves(self):
+        """Read seam curves from a line load directory
+        
+        :Call:
+            >>> LL.ReadSeamCurves()
+        :Inputs:
+            *LL*: :class:`pyCart.lineLoad.CaseLL`
+                Instance of data book line load interface
+        :Versions:
+            * 2015-09-17 ``@ddalle``: First version
+        """# Change to root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.cart3d.RootDir)
+        # Name of triload folder
+        ftri = 'fomo-lineload'
+        # Name of output files.
+        fsmy = 'LineLoad_%s.smy' % self.comp
+        fsmz = 'LineLoad_%s.smz' % self.comp
+        # Get working directory
+        fdir = self.cart3d.x.GetFullFolderNames(i)
+        # Enter
+        os.chdir(frun)
+        # Enter the lineload folder and untar if necessary.
+        tar.chdir_in(ftri)
+        # Read the seam curves.
+        self.smy = ReadSeam(fsmy)
+        self.smz = ReadSeam(fsmz)
+        # Clean up.
+        tar.chdir_up()
+        os.chdir(fpwd)
     
     # Function to read a file
-    def ReadLDS(fname):
+    def ReadLDS(self, fname):
         """Read a sectional loads ``*.?lds`` from `triloadCmd`
         
         :Call:
-            >>> d = ReadLDS(fname)
+            >>> LL.ReadLDS(fname)
         :Inputs:
+            *LL*: :class:`pyCart.lineLoad.CaseLL`
+                Single-case line load interface
             *fname*: :class:`str`
                 Name of file to read
-        :Outputs:
-            *d*: :class:`dict` (:class:`numpy.ndarray`)
-                Dictionary of each line load coefficient
-            *d['x']*: :class:`numpy.ndarray`
-                Vector of cut coordinates
-            *d['CA']*: :class:`numpy.ndarray`
-                Axial force contribution
         :Versions:
             * 2015-09-15 ``@ddalle``: First version
         """
@@ -653,6 +678,111 @@ class CaseLL(object):
         self.CLN = D[:,6]
 # class CaseLL
 
+        
+# Function to read a seam file
+def ReadSeam(fname):
+    """Read a seam  ``*.sm[yz]`` file
+    
+    :Call:
+        >>> s = ReadSeam(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to read
+    :Outputs:
+        *s*: :class:`dict`
+            Dictionary of seem curves
+        *s['x']*: :class:`list` (:class:`numpy.ndarray`)
+            List of *x* coordinates of seam curves
+        *s['y']*: :class:`float` or :class:`list` (:class:`numpy.ndarray`)
+            Fixed *y* coordinate or list of seam curve *y* coordinates
+        *s['z']*: :class:`float` or :class:`list` (:class:`numpy.ndarray`)
+            Fixed *z* coordinate or list of seam curve *z* coordinates
+    :Versions:
+        * 2015-09-17 ``@ddalle``: First version
+    """
+    # Initialize data.
+    s = {'x':[], 'y':[], 'z':[]}
+    # Open the file.
+    f = open(fname, 'r')
+    # Read first line.
+    line = f.readline()
+    # Get the axis and value
+    txt = line.split()[-2]
+    ax  = txt.split('=')[0]
+    val = float(txt.split('=')[1])
+    # Save it.
+    s[ax] = val
+    # Read two lines.
+    f.readline()
+    f.readline()
+    # Loop through curves.
+    while line != '':
+        # Get data
+        D = np.fromfile(f, count=-1, sep=" ")
+        # Check size.
+        m = np.floor(D.size/2) * 2
+        # Save the data.
+        if ax == 'y':
+            # y-cut
+            s['x'].append(D[0:m:2])
+            s['z'].append(D[1:m:2])
+        else:
+            # z-cut
+            s['x'].append(D[0:m:2])
+            s['y'].append(D[1:m:2])
+        # Read two lines.
+        f.readline()
+        f.readline()
+    # Cleanup
+    f.close()
+    # Output
+    return s
+        
+# Function to write a seam file
+def WriteSeam(fname, s):
+    """Write a seam curve file
+    
+    :Call:
+        >>> WriteSeam(fname, s)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to read
+        *s*: :class:`dict`
+            Dictionary of seem curves
+        *s['x']*: :class:`list` (:class:`numpy.ndarray`)
+            List of *x* coordinates of seam curves
+        *s['y']*: :class:`float` or :class:`list` (:class:`numpy.ndarray`)
+            Fixed *y* coordinate or list of seam curve *y* coordinates
+        *s['z']*: :class:`float` or :class:`list` (:class:`numpy.ndarray`)
+            Fixed *z* coordinate or list of seam curve *z* coordinates
+    :Versions:
+        * 2015-09-17 ``@ddalle``: First version
+    """
+    # Check axis
+    if type(s['y']).__name__ in ['list', 'ndarray']:
+        # z-cuts
+        ax = 'z'
+        ct = 'y'
+    else:
+        # y-cuts
+        ax = 'y'
+        ct = 'z'
+    # Open the file.
+    f = open(fname)
+    # Write the header line.
+    f.write(' #Seam curves for %s=%s plane\n' % (ax, s[ax]))
+    # Loop through seems
+    for i in range(len(s['x'])):
+        # Header
+        f.write(' #Seam curve %11i\n' % i)
+        # Extract coordinates
+        x = s['x'][i]
+        y = s[ct][i]
+        # Write contents
+        for j in np.arange(len(x)):
+            f.write(" %11.6f %11.6f\n" % (x[j], y[j]))
+    # Cleanup
+    f.close()
 
 # Function to determine newest triangulation file
 def GetTriqFile():

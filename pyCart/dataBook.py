@@ -464,6 +464,8 @@ class DataBook(dict):
         if (not q): return
         # Read the new line load
         LL = lineLoad.CaseLL(self.cart3d, i, comp)
+        # Calculate it.
+        LL.CalculateLineLoads()
         # Save the data.
         if np.isnan(j):
             # Add the the number of cases.
