@@ -416,6 +416,13 @@ class DataBook(dict):
         """
         # Read the line loads if necessary
         self.ReadLineLoad(comp)
+        # Data book directory
+        fdat = self.cart3d.opts.get_DataBookDir()
+        flls = 'lineloads-%s' % comp
+        fldb = os.path.join(fdat, flls)
+        # Expected seam cut file
+        fsmy = os.path.join(self.cart3d.Rootdir, fldb, '%s.smy'%comp)
+        fsmz = os.path.join(self.cart3d.Rootdir, fldb, '%s.smz'%comp)
         # Extract line load
         DBL = self.LineLoad[comp]
         # Try to find a match existing in the data book.
@@ -427,6 +434,9 @@ class DataBook(dict):
         # Go home
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
+        # Check if the folder exists.
+        if not os.path.join(fldb):
+            os.mkdir(flds, 0027)
         # Check if the folder exists.
         if not os.path.isdir(frun):
             os.chdir(fpwd)
@@ -466,6 +476,15 @@ class DataBook(dict):
         LL = lineLoad.CaseLL(self.cart3d, i, comp)
         # Calculate it.
         LL.CalculateLineLoads()
+        # Check if the seam cut file exists.
+        if not os.path.isfile(fsmy):
+            # Collect seam cuts.
+            q_seam = True
+            # Read the seam curves.
+            LL.ReadSeamCurves()
+        else:
+            # Seam cuts already present.
+            q_seam = False
         # Save the data.
         if np.isnan(j):
             # Add the the number of cases.
@@ -487,8 +506,19 @@ class DataBook(dict):
             # No need to update trajectory values.
             # Update the other statistics.
             DBL['nIter'][j]   = nIter
-            DBL['nStats'][j]  = nStats 
-        
+            DBL['nStats'][j]  = nStats
+        # Go into the databook folder
+        os.chdir(self.cart3d.RootDir)
+        os.chdir(fldb)
+        # Lineloads file name
+        flds = frun.replace(os.sep, '-')
+        # Write the loads
+        lineload.WriteLDS(flds)
+        # Write the seam curves if appropriate
+        if q_seam:
+            # Write both
+            lineLoad.WriteSeam(fsmy, LL.smy)
+            lineLoad.WriteSeam(fsmz, LL.smz)
         # Go back.
         os.chdir(fpwd)
     
