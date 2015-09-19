@@ -676,6 +676,11 @@ class CaseLL(object):
         self.CLL = D[:,4]
         self.CLM = D[:,5]
         self.CLN = D[:,6]
+        
+    # Plot a line load
+    def PlotLDS(self, coeff):
+        pass
+    
 # class CaseLL
 
         
