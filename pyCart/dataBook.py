@@ -2043,7 +2043,6 @@ class Aero(dict):
                 c = re.search('\(([A-Za-z_]+)\)', line).group(1)
             except Exception:
                 # Failed to find expected text.
-                print("Warning: no coefficient name in line:\n  '%s'" % line) 
                 continue
             # Filter the coefficient.
             if c == 'C_A':
