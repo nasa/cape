@@ -27,6 +27,7 @@ from util import *
 # Import more specific modules for controlling subgroups of options
 from .pbs        import PBS
 from .Management import Management
+from .Mesh       import Mesh
 
 # Class definition
 class Options(odict):
@@ -98,6 +99,17 @@ class Options(odict):
     # ============
     # Initializers
     # ============
+    
+    # Initialization and confirmation for Adaptation options
+    def _Mesh(self):
+        """Initialize mesh options if necessary"""
+        # Check status
+        if 'Mesh' not in self:
+            # Missing entirely
+            self['Mesh'] = Mesh()
+        elif type(self['Mesh']).__name__ == 'dict':
+            # Convert to special class.
+            self['Mesh'] = Mesh(**self['Mesh'])
             
     # Initialization and confirmation for PBS options
     def _PBS(self):
@@ -114,6 +126,16 @@ class Options(odict):
             # Convert to special class.
             self['PBS'] = PBS(**tmp)
     
+    # Initialization method for folder management optoins
+    def _Management(self):
+        """Initialize folder management options if necessary"""
+        # Check status.
+        if 'Management' not in self:
+            # Missing entirely.
+            self['Management'] = Management()
+        elif type(self['Management']).__name__ == 'dict':
+            # Convert to special class
+            self['Management'] = Management(**self['Management'])
     
     
     # ==============
