@@ -656,8 +656,6 @@ class Config(odict):
         if (i is None) and (type(Zslices).__name__ not in ['list','array']):
             # Convert scalar to list
             Zslices = [Zslices]
-        # Output
-        return Zslices
         # Current output type
         typz = type(Zslices).__name__
         # Output
@@ -669,7 +667,7 @@ class Config(odict):
                 # Check type.
                 if typj.startswith('str') or typj == 'unicode':
                     # Convert the point
-                    Zslices[j] = self.get_Point(Yslices[j])[2]
+                    Zslices[j] = self.get_Point(Zslices[j])[2]
         elif typx.startswith('str') or typx=='unicode':
             # Convert the point.
             Zslices = self.get_Point(Zslices)[2]

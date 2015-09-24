@@ -171,7 +171,8 @@ class Report(object):
             * 2015-05-28 ``@ddalle``: Started
         """
         # Clear out the lines.
-        del self.tex.Section['Sweeps'][1:-1]
+        if 'Sweeps' in self.tex.Section:
+            del self.tex.Section['Sweeps'][1:-1]
         # Get sweeps.
         fswps = self.cart3d.opts.get_ReportSweepList(self.rep)
         # Check for a list.
