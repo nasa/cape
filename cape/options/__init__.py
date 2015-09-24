@@ -27,6 +27,7 @@ from util import *
 # Import more specific modules for controlling subgroups of options
 from .pbs        import PBS
 from .Management import Management
+from .DataBook   import DataBook
 from .Mesh       import Mesh
 
 # Class definition
@@ -69,6 +70,9 @@ class Options(odict):
             self[k] = kw[k]
         # Upgrade important groups to their own classes.
         self._PBS()
+        self._Mesh()
+        self._Management()
+        self._DataBook()
         # Add extra folders to path.
         self.AddPythonPath()
         
@@ -136,6 +140,17 @@ class Options(odict):
         elif type(self['Management']).__name__ == 'dict':
             # Convert to special class
             self['Management'] = Management(**self['Management'])
+            
+    # Initialization method for pyCart databook
+    def _DataBook(self):
+        """Initialize data book options if necessary"""
+        # Check status.
+        if 'DataBook' not in self:
+            # Missing entirely.
+            self['DataBook'] = DataBook()
+        elif type(self['DataBook']).__name__ == 'dict':
+            # Convert to special class
+            self['DataBook'] = DataBook(**self['DataBook'])
     
     
     # ==============

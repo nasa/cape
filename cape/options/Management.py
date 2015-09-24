@@ -1,4 +1,10 @@
-"""Interface for options specific to running `adjointCart`"""
+"""
+Template Module for File Management Options 
+===========================================
+
+This module interfaces options for archiving run directories.  The primary
+options are generic to all solvers.
+"""
 
 
 # Import options-specific utilities

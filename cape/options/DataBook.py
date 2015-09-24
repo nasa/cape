@@ -1,5 +1,11 @@
-"""Interface for Cart3D data book configuration"""
+"""
+Data Book Options Module: :mod:`cape.options.DataBook`
+======================================================
 
+This module contains the basic interface for data book options generic to all
+solvers.  Some options are not generic, and so the derivative options classes
+such as :class:`pyCart.options.DataBook.DataBook` have additional methods.
+"""
 
 # Import options-specific utilities
 from util import rc0, odict, getel
@@ -45,7 +51,7 @@ class DataBook(odict):
         for targ in targs:
             # Convert to special class.
             self['Targets'].append(DBTarget(**targ))
-    
+            
     # Get the list of components.
     def get_DataBookComponents(self):
         """Get the list of components to be used for the data book
@@ -335,7 +341,6 @@ class DataBook(odict):
             * 2014-12-30 ``@ddalle``: First version
         """
         self['Sort'] = key
-        
                                                 
     # Get the targets
     def get_DataBookTargets(self):
@@ -598,80 +603,9 @@ class DataBook(odict):
         copts = self.get(comp, {})
         # Get the number of cuts
         return copts.get("nCut", rc0("db_nCut"))
-        
-    # Get the Mach number option
-    def get_ComponentMach(self, comp):
-        """Get the Mach number option for a data book group
-        
-        Mostly used for line loads; coefficients require Mach number
-        
-        :Call:
-            >>> o_mach = opts.get_ComponentMach(comp)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of line load group
-        :Outputs:
-            *o_mach*: :class:`str` | :class:`float`
-                Trajectory key to use as Mach number or fixed value
-        :Versions:
-            * 2015-09-15 ``@ddalle``: First version
-        """
-        # Get component options
-        copts = self.get(comp, {})
-        # Get the Mach number option
-        return self.get("Mach", "mach")
-        
-    # Get the gamma option
-    def get_ComponentGamma(self, comp):
-        """Get the Mach number option for a data book group
-        
-        Mostly used for line loads; coefficients require Mach number
-        
-        :Call:
-            >>> o_mach = opts.get_ComponentMach(comp)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of line load group
-        :Outputs:
-            *o_mach*: :class:`str` | :class:`float`
-                Trajectory key to use as Mach number or fixed value
-        :Versions:
-            * 2015-09-15 ``@ddalle``: First version
-        """
-        # Get component options
-        copts = self.get(comp, {})
-        # Get the Mach number option
-        return self.get("Gamma", 1.4)
-        
-    # Get the Reynolds Number option
-    def get_ComponentReynoldsNumber(self, comp):
-        """Get the Reynolds number option for a data book group
-        
-        Mostly used for line loads; coefficients require Mach number
-        
-        :Call:
-            >>> o_re = opts.get_ComponentReynoldsNumber(comp)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of line load group
-        :Outputs:
-            *o_mach*: :class:`str` | :class:`float`
-                Trajectory key to use as Reynolds number or fixed value
-        :Versions:
-            * 2015-09-15 ``@ddalle``: First version
-        """
-        # Get component options
-        copts = self.get(comp, {})
-        # Get the Mach number option
-        return self.get("Re", None)
-        
-        
+# class DataBook        
+            
+            
 # Class for target data
 class DBTarget(odict):
     """Dictionary-based interface for databook targets"""
@@ -805,5 +739,5 @@ class DBTarget(odict):
             * 2014-12-21 ``@ddalle``: First version
         """
         return self.get('Trajectory', {})
-
+# class DBTarget
 
