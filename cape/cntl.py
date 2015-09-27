@@ -21,7 +21,13 @@ import json
 import os
 
 # Local modules
-from .options import Options
+from . import options
+
+# Functions and classes from other modules
+from trajectory import Trajectory
+
+# Import triangulation
+from tri import Tri, RotatePoints
 
 
 
@@ -53,6 +59,16 @@ class Cntl(object):
         
         # Import modules
         self.ImportModules()
+        
+        # Process the trajectory.
+        self.x = Trajectory(**opts['Trajectory'])
+        
+        # Read the input files.
+        self.ReadInputCntl()
+        self.AeroCsh   = AeroCsh(self.opts.get_AeroCsh())
+
+        # Job list
+        self.jobs = {}
         
         
     # Output representation
@@ -93,8 +109,77 @@ class Cntl(object):
             print("Importing module '%s'." % imod)
             # Load the module by its name
             exec('self.%s = __import__("%s")' % (imod, imod))
-            
         
+    # Function to prepare the triangulation for each grid folder
+    def ReadTri(self):
+        """Read initial triangulation file(s)
+        
+        :Call:
+            >>> cntl.ReadTri()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+        :Versions:
+            * 2014-08-30 ``@ddalle``: First version
+        """
+        # Only read triangulation if not already present.
+        try:
+            self.tri
+            return
+        except Exception:
+            pass
+        # Get the list of tri files.
+        ftri = self.opts.get_TriFile()
+        # Status update.
+        print("  Reading tri file(s) from root directory.")
+        # Go to root folder safely.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Read them.
+        if type(ftri).__name__ == 'list':
+            # Read the initial triangulation.
+            tri = Tri(ftri[0])
+            # Save the number of nodes to this point.
+            tri.iTri = [tri.nTri]
+            # Loop through the remaining tri files.
+            for f in ftri[1:]:
+                # Append the file.
+                tri.Add(Tri(f))
+                # Save the node number.
+                tri.iTri.append(tri.nTri)
+        else:
+            # Just read the triangulation file.
+            tri = Tri(ftri)
+            # Save the one break point.
+            tri.iTri = [tri.nTri]
+        # Save it.
+        self.tri = tri
+        # Check for a config file.
+        os.chdir(self.RootDir)
+        self.tri.config = Config(self.opts.get_ConfigFile())
+        # Make a copy of the original to revert to after rotations, etc.
+        self.tri0 = self.tri.Copy()
+        # Return to original location.
+        os.chdir(fpwd)
+            
+    # Make a directory
+    def mkdir(self, fdir):
+        """Make a directory with the correct permissions
+        
+        :Call:
+            >>> cntl.mkdir(fdir)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *fdir*: :class:`str`
+                Directory to create
+        :Versions:
+            * 2015-09-27 ``@ddalle``: First version
+        """
+        # Get umask
+        umask = self.opts.get_umask()
+        # Make the directory.
+        os.mkdir(fdir, umask)
         
         
         

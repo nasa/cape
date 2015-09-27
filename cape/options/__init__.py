@@ -28,7 +28,9 @@ from util import *
 from .pbs        import PBS
 from .Management import Management
 from .DataBook   import DataBook
+from .Report     import Report
 from .Mesh       import Mesh
+from .Config     import Config
 
 # Class definition
 class Options(odict):
@@ -72,7 +74,9 @@ class Options(odict):
         self._PBS()
         self._Mesh()
         self._Management()
+        self._Report()
         self._DataBook()
+        self._Config()
         # Add extra folders to path.
         self.AddPythonPath()
         
@@ -141,7 +145,7 @@ class Options(odict):
             # Convert to special class
             self['Management'] = Management(**self['Management'])
             
-    # Initialization method for pyCart databook
+    # Initialization method for databook
     def _DataBook(self):
         """Initialize data book options if necessary"""
         # Check status.
@@ -151,7 +155,39 @@ class Options(odict):
         elif type(self['DataBook']).__name__ == 'dict':
             # Convert to special class
             self['DataBook'] = DataBook(**self['DataBook'])
-    
+            
+    # Initialization method for automated report
+    def _Report(self):
+        """Initialize report options if necessary"""
+        # Check status.
+        if 'Report' not in self:
+            # Missing entirely.
+            self['Report'] = Report()
+        elif type(self['Report']).__name__ == 'dict':
+            # Convert to special class
+            self['Report'] = Report(**self['Report'])
+            
+    # Initialization and confirmation for PBS options
+    def _Config(self):
+        """Initialize configuration options if necessary"""
+        # Check status.
+        if 'Config' not in self:
+            # Missing entirely
+            self['Config'] = Config()
+        elif type(self['Config']).__name__ == 'dict':
+            # Add prefix to all the keys.
+            tmp = {}
+            for k in self['Config']:
+                # Check for "File"
+                if k == 'File':
+                    # Add prefix.
+                    tmp["Config"+k] = self['Config'][k]
+                else:
+                    # Use the key as is.
+                    tmp[k] = self['Config'][k]
+            # Convert to special class.
+            self['Config'] = Config(**tmp)
+        
     
     # ==============
     # Global Options
@@ -225,6 +261,72 @@ class Options(odict):
         """
         self['Trajectory']['GroupMesh'] = qGM
         
+    # Get the umask
+    def get_umask(self):
+        """Get the current file permissions mask
+        
+        The default value is the read from the system
+        
+        :Call:
+            >>> umask = opts.get_umask(umask=None)
+        :Inputs:
+            *opts* :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *umask*: :class:`oct`
+                File permissions mask
+        :Versions:
+            * 2015-09-27 ``@ddalle``: First version
+        """
+        # Read the option.
+        umask = self.get('umask')
+        # Check for string
+        if type(umask).__name__ in ['unicode', 'str']:
+            # Convert to oct
+            umask = eval('0o' + umask)
+        # Check if we need to use the default.
+        if umask is None:
+            # Get the value.
+            umask = os.popen('umask', 'r', 1).read()
+            # Convert to value.
+            umask = eval('0o' + umask.strip())
+        # Output
+        return umask
+        
+    # Get the directory permissions to use
+    def get_dmask(self):
+        """Get the permissions to assign to new folders
+        
+        :Call:
+            >>> dmask = opts.get_dmask()
+        :Inputs:
+            *opts* :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *umask*: :class:`int`
+                File permissions mask
+        :Versions:
+            * 2015-09-27 ``@ddalle``: First version
+        """
+        # Get the umask
+        umask = self.get_umask()
+        # Subtract UMASK from full open permissions
+        return 0o0777 - umask
+        
+    # Apply the umask
+    def apply_umask(self):
+        """Apply the permissions filter
+        
+        :Call:
+            >>> opts.apply_umask()
+        :Inputs:
+            *opts* :class:`pyCart.options.Options`
+                Options interface
+        :Versions:
+            * 2015-09-27 ``@ddalle``: First version
+        """
+        os.umask(self.get_umask())
+            
     
     # ==============
     # Shell Commands
@@ -254,6 +356,7 @@ class Options(odict):
     # ============
     # PBS settings
     # ============
+   # <
     
     # Get number of unique PBS scripts
     def get_nPBS(self):
@@ -367,11 +470,82 @@ class Options(odict):
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(PBS,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(PBS,'set_'+k).__doc__
+   # > 
+   
     
+    # =============
+    # Configuration
+    # =============
+   #<
+   
+    # Get config file name
+    def get_ConfigFile(self):
+        self._Config()
+        return self['Config'].get_ConfigFile()
+        
+    # Set config file name
+    def set_ConfigFile(self, fname=rc0('ConfigFile')):
+        self._Config()
+        self['Config'].set_ConfigFile(fname)
+    
+    # Get reference area
+    def get_RefArea(self, comp=None):
+        self._Config()
+        return self['Config'].get_RefArea(comp)
+        
+    # Set config file name
+    def set_RefArea(self, A=rc0('RefArea'), comp=None):
+        self._Config()
+        self['Config'].set_RefArea(A, comp)
+    
+    # Get reference length
+    def get_RefLength(self, comp=None):
+        self._Config()
+        return self['Config'].get_RefLength(comp)
+        
+    # Set config file name
+    def set_RefLength(self, L=rc0('RefLength'), comp=None):
+        self._Config()
+        self['Config'].set_RefLength(L, comp)
+    
+    # Get moment reference point
+    def get_RefPoint(self, comp=None):
+        self._Config()
+        return self['Config'].get_RefPoint(comp)
+        
+    # Set moment reference point
+    def set_RefPoint(self, x=rc0('RefPoint'), comp=None):
+        self._Config()
+        self['Config'].set_RefPoint(x, comp)
+        
+    # Get valid point
+    def get_Point(self, name=None):
+        self._Config()
+        return self['Config'].get_Point(name)
+        
+    # Set valid point
+    def set_Point(self, x=rc0('RefPoint'), name=None):
+        self._Config()
+        self['Config'].set_Point(x, name)
+        
+    # Expand point/dictionary of points
+    def expand_Point(self, x):
+        self._Config()
+        return self['Config'].expand_Point(x)
+    expand_Point.__doc__ = Config.expand_Point.__doc__
+        
+    # Copy over the documentation.
+    for k in ['ConfigFile', 'RefArea', 'RefLength', 'RefPoint', 'Point']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(Config,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(Config,'set_'+k).__doc__
+   # >
+   
     
     # =================
     # Folder management
     # =================
+   # <
     
     # Get the archive folder
     def get_ArchiveFolder(self):
@@ -425,9 +599,310 @@ class Options(odict):
         
     # Copy over the documentation.
     for k in ['ArchiveFolder', 'ArchiveFormat', 'ArchiveAction', 'ArchiveType',
-            'RemoteCopy', 'TarPBS']:
+            'RemoteCopy']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Management,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Management,'set_'+k).__doc__
-
+   # >
+    
+    
+    # =========
+    # Data book
+    # =========
+   # <
+    
+    # Get list of components.
+    def get_DataBookComponents(self):
+        self._DataBook()
+        return self['DataBook'].get_DataBookComponents()
+        
+    # Get list of line load components.
+    def get_DataBookLineLoads(self):
+        self._DataBook()
+        return self['DataBook'].get_DataBookLineLoads()
+    
+    # Get list of coefficients for a specific component
+    def get_DataBookCoeffs(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookCoeffs(comp)
+        
+    # Get data book targets for a specific coefficient
+    def get_CompTargets(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_CompTargets(comp)
+        
+    # Get data book transformations for a specific component
+    def get_DataBookTransformations(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookTransformations(comp)
+        
+    # Get data book columns for a specific coefficient
+    def get_DataBookCols(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookCols(comp)
+        
+    # Get data book data columns for a specific coefficient
+    def get_DataBookDataCols(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookDataCols(comp)
+        
+    # Get data book target columns for a specific coefficient
+    def get_DataBookTargetCols(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookTargetCols(comp)
+    
+    # Get list of targets
+    def get_DataBookTargets(self):
+        self._DataBook()
+        return self['DataBook'].get_DataBookTargets()
+        
+    # Get components for a line load
+    def get_LineLoadComponents(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_LineLoadComponents(comp)
+        
+    # Get number of cuts for a line load group
+    def get_LineLoad_nCut(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_LineLoad_nCut(comp)
+    
+    # Copy over the documentation.
+    for k in ['DataBookComponents', 'DataBookLineLoads',
+            'DataBookCoeffs', 'DataBookTargets',
+            'DataBookCols', 'CompTargets', 'DataBookTransformations',
+            'DataBookDataCols', 'DataBookTargetCols',
+            'LineLoadComponents', 'LineLoad_nCut'
+    ]:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
+    
+    # Number of iterations used for statistics
+    def get_nStats(self):
+        self._DataBook()
+        return self['DataBook'].get_nStats()
+    
+    # Set number of iterations
+    def set_nStats(self, nStats=rc0('db_stats')):
+        self._DataBook()
+        self['DataBook'].set_nStats(nStats)
+    
+    # Min iteration used for statistics
+    def get_nMin(self):
+        self._DataBook()
+        return self['DataBook'].get_nMin()
+    
+    # Min iterationused for statistics
+    def set_nMin(self, nMin=rc0('db_min')):
+        self._DataBook()
+        self['DataBook'].set_nMin(nMin)
+    
+    # Max number of iterations used for statistics
+    def get_nMaxStats(self):
+        self._DataBook()
+        return self['DataBook'].get_nMaxStats()
+    
+    # Max number of iterations used for statistics
+    def set_nMaxStats(self, nMax=rc0('db_max')):
+        self._DataBook()
+        self['DataBook'].set_nMaxStats(nMax)
+    
+    # Max iter for statistics
+    def get_nLastStats(self):
+        self._DataBook()
+        return self['DataBook'].get_nLastStats()
+    
+    # Max iter for statistics
+    def set_nLastStats(self, nLast=None):
+        self._DataBook()
+        self['DataBook'].set_nLastStats(nLast)
+        
+    # Data book directory
+    def get_DataBookDir(self):
+        self._DataBook()
+        return self['DataBook'].get_DataBookDir()
+    
+    # Set data book directory
+    def set_DataBookDir(self, fdir=rc0('db_dir')):
+        self._DataBook()
+        self['DataBook'].set_DataBookDir(fdir)
+        
+    # Data book file delimiter
+    def get_Delimiter(self):
+        self._DataBook()
+        return self['DataBook'].get_Delimiter()
+        
+    # Set data book file delimiter
+    def set_Delimiter(self, delim=rc0('Delimiter')):
+        self._DataBook()
+        self['DataBook'].set_Delimiter(delim)
+        
+    # Key to use for sorting the data book
+    def get_SortKey(self):
+        self._DataBook()
+        return self['DataBook'].get_SortKey()
+    
+    # Set key to use for sorting the data book
+    def set_SortKey(self, key):
+        self._DataBook()
+        self['DataBook'].set_SortKey(key)
+        
+    # Copy over the documentation.
+    for k in ['nStats', 'nMin', 'nMaxStats', 'nLastStats', 
+            'DataBookDir', 'Delimiter', 'SortKey']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(DataBook,'set_'+k).__doc__
+   # >
+    
+    # =======
+    # Reports
+    # =======
+   # <
+    
+    # Get report list
+    def get_ReportList(self):
+        self._Report()
+        return self['Report'].get_ReportList()
+        
+    # Get sweep list
+    def get_SweepList(self):
+        self._Report()
+        return self['Report'].get_SweepList()
+        
+    # Get figure list
+    def get_FigList(self):
+        self._Report()
+        return self['Report'].get_FigList()
+    
+    # Get subfigure list
+    def get_SubfigList(self):
+        self._Report()
+        return self['Report'].get_SubfigList()
+        
+    # Get options for a single report
+    def get_Report(self, rep):
+        self._Report()
+        return self['Report'].get_Report(rep)
+        
+    # Get options for a single figure
+    def get_Figure(self, fig):
+        self._Report()
+        return self['Report'].get_Figure(fig)
+        
+    # Get options for a single subfigure
+    def get_Subfigure(self, sfig):
+        self._Report()
+        return self['Report'].get_Subfigure(sfig)
+        
+    # Get options for a single sweep
+    def get_Sweep(self, fswp):
+        self._Report()
+        return self['Report'].get_Sweep(fswp)
+        
+    # Get list of sweeps in a report
+    def get_ReportSweepList(self, rep):
+        self._Report()
+        return self['Report'].get_ReportSweepList(rep)
+        
+    # Get list of figures in a report
+    def get_ReportFigList(self, rep):
+        self._Report()
+        return self['Report'].get_ReportFigList(rep)
+        
+    # Get list of figures in a report
+    def get_ReportErrorFigList(self, rep):
+        self._Report()
+        return self['Report'].get_ReportErrorFigList(rep)
+        
+    # Get list of figures in a report
+    def get_ReportZeroFigList(self, rep):
+        self._Report()
+        return self['Report'].get_ReportZeroFigList(rep)
+        
+    # Get list of figures in a sweep
+    def get_SweepFigList(self, rep):
+        self._Report()
+        return self['Report'].get_SweepFigList(rep)
+        
+    # Get title string for a report
+    def get_ReportTitle(self, rep):
+        self._Report()
+        return self['Report'].get_ReportTitle(rep)
+        
+    # Get distribution limitation for a report
+    def get_ReportRestriction(self, rep):
+        self._Report()
+        return self['Report'].get_ReportRestriction(rep)
+    
+    # Get logo for a report
+    def get_ReportLogo(self, rep):
+        self._Report()
+        return self['Report'].get_ReportLogo(rep)
+        
+    # Get author string for a report
+    def get_ReportAuthor(self, rep):
+        self._Report()
+        return self['Report'].get_ReportAuthor(rep)
+        
+    # Get archive option
+    def get_ReportArchive(self):
+        self._Report()
+        return self['Report'].get_ReportArchive()
+        
+    # Get the list of subfigures in a figure
+    def get_FigSubfigList(self, fig):
+        self._Report()
+        return self['Report'].get_FigSubfigList(fig)
+        
+    # Get the figure alignment
+    def get_FigAlignment(self, fig):
+        self._Report()
+        return self['Report'].get_FigAlignment(fig)
+        
+    # Get the figure header
+    def get_FigHeader(self, fig):
+        self._Report()
+        return self['Report'].get_FigHeader(fig)
+    
+    # Get the subfigure type
+    def get_SubfigType(self, sfig):
+        self._Report()
+        return self['Report'].get_SubfigType(sfig)
+        
+    # Get the subfigure base type
+    def get_SubfigBaseType(self, sfig):
+        self._Report()
+        return self['Report'].get_SubfigBaseType(sfig)
+        
+    # Get an option for a subfigure
+    def get_SubfigOpt(self, sfig, opt, i=None):
+        self._Report()
+        return self['Report'].get_SubfigOpt(sfig, opt, i=i)
+        
+    # Get an option for a subfigure
+    def get_SubfigPlotOpt(self, sfig, opt, i=None):
+        self._Report()
+        return self['Report'].get_SubfigPlotOpt(sfig, opt, i=i)
+        
+    # Get an option for a sweep
+    def get_SweepOpt(self, fswp, opt):
+        self._Report()
+        return self['Report'].get_SweepOpt(fswp, opt)
+    
+    # Copy over the documentation
+    for k in ['ReportList', 'SweepList', 'FigList', 'SubfigList',
+            'Figure', 'Subfigure', 'Report', 'Sweep',
+            'ReportFigList', 'ReportErrorFigList', 'ReportZeroFigList', 
+            'ReportSweepList', 'SweepFigList',
+            'ReportTitle', 'ReportAuthor',
+            'ReportRestriction', 'ReportLogo',  'ReportArchive',
+            'FigSubfigList', 'FigAlignment', 'FigHeader',
+            'SubfigType', 'SubfigBaseType', 'SubfigOpt', 'SweepOpt',
+            'SubfigPlotOpt'
+    ]:
+        # Get the documentation from the submodule
+        eval('get_'+k).__doc__ = getattr(Report,'get_'+k).__doc__
+   # >
+   
+# class Options
 

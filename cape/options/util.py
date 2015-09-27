@@ -31,18 +31,42 @@ _fname = os.path.abspath(__file__)
 
 # Saved folder names
 CapeFolder = os.path.split(os.path.split(_fname)[0])[0]
+# Parent folder
+BaseFolder = os.path.split(CapeFolder)[0]
 
 # Backup default settings (in case deleted from :file:`pyCart.defaults.json`)
 rc = {
     "nSubmit": 10,
     "GroupMesh": True,
+    "ConfigFile": "Config.xml",
     "RefArea": 1.0,
     "RefLength": 1.0,
     "RefPoint": [0.0, 0.0, 0.0],
+    "Xslices": [0.0],
+    "Yslices": [0.0],
+    "Zslices": [0.0],
     "InputSeq": [0],
     "IterSeq": [200],
+    "cfl": 1.1,
+    "cflmin": 0.8,
+    "nOrders": 12,
+    "dt": 0.1,
     "qsub": True,
     "resub": False,
+    "y_is_spanwise": True,
+    "db_stats": 0,
+    "db_min": 0,
+    "db_max": 0,
+    "db_dir": "data",
+    "db_nCut": 200,
+    "Delimiter": ",",
+    "binaryIO": True,
+    "tecO": True,
+    "nProc": 8,
+    "mpicmd": "mpiexec",
+    "TriFile": "Components.i.tri",
+    "mesh2d": False,
+    "dC": 0.01,
     "nAvg": 100,
     "nPlot": None,
     "nRow": 2,
@@ -63,7 +87,11 @@ rc = {
     "ArchiveFormat": "tar",
     "ArchiveAction": "skeleton",
     "ArchiveType": "full",
-    "RemoteCopy": "scp"
+    "RemoteCopy": "scp",
+    "nCheckPoint": 2,
+    "TarViz": "tar",
+    "TarAdapt": "tar",
+    "TarPBS": "tar"
 }
 
 # Utility function to get elements sanely
@@ -282,7 +310,7 @@ def getCapeDefaults():
         * 2015-09-20 ``@ddalle``: First version
     """
     # File name
-    fname = os.path.join(CapeFolder, 'settings', 'cape.default.json')
+    fname = os.path.join(BaseFolder, 'settings', 'cape.default.json')
     # Read the settings.
     return getDefaults(fname)
     

@@ -1,0 +1,200 @@
+{
+    // Settings for the PBS script
+    "PBS": {
+        "j": "oe",
+        "r": "n",
+        "S": "/bin/bash",
+        "select": 1,
+        "ncpus": 12,
+        "mpiprocs": 12,
+        "model": "",
+        "W": "",
+        "q": "normal",
+        "walltime": "2:00:00"
+    },
+    
+	// The names of these two files have the obvious defaults.
+	"InputCntl": "input.cntl",
+	"AeroCsh": "aero.csh",
+	
+	// Whether or not to use the same mesh for all cases in a group
+	"GroupMesh": true,
+	
+	// Commands to load at head of run scripts (run_cart3d.pbs)
+	"ShellCmds": [
+	    ". $MODULESHOME/init/bash",
+	    "module load cart3d",
+	    "module load pycart",
+	    "ulimit -S -s 4194304"
+	],
+	
+	// This section sets the parameters for flowCart.
+	// The names for these parameters are copied from `aero.csh`.
+	"flowCart": {
+	    // Run sequence
+	    "InputSeq": [0],
+	    "IterSeq": [200],
+	    // flowCart order
+	    "first_order": 0,
+        "robust_mode": 0,
+	    // Use MPI?
+	    "mpi_fc": 0,
+        // Use aero.csh?
+        "use_aero_csh": 0,
+	    // Submit jobs to the queue?
+	    "qsub": false,
+	    // Jobs automatically start next job?
+	    "resub": false,
+	    // Basic number of iterations
+	    "it_fc": 200,
+	    // Nominal CFL number
+	    "cfl": 1.1,
+	    "cflmin": 0.8,
+	    // Multigrid levels for flowcart
+	    "mg_fc": 3,
+	    // Limiter type
+	    "limiter": 2,
+	    // Cut cell gradient
+	    "tm": false,
+        // Full multigrid
+        "fmg": true,
+        // Poly multigrid
+        "pmg": false,
+	    // If this is set to true, angle of attack changes z-velocity
+	    "y_is_spanwise": true,
+	    // Use binary input/output instead of ASCII
+	    "binaryIO": true,
+        // Write a Tecplot triangulation soltuion file
+        "tecO": true,
+	    // Number of threads
+	    "nProc": 8,
+	    // Command to use for MPI
+	    "mpicmd": "mpiexec"
+	},
+	
+	// This section sets the parameters for adjointCart.
+	"adjointCart": {
+	    // Number of iterations
+	    "it_ad": 120,
+	    // Multigrid levels
+	    "mg_ad": 3,
+        // First-order adjoints
+        "adj_first_order": false
+	},
+	
+	// Parameters for adaptation
+	"Adaptation": {
+	    // Number of adaptation cycles
+	    "n_adapt_cycles": 0,
+	    // Functional error tolerance
+	    "etol": 0.000001,
+	    // Stop adapting when this number of cells is reached
+        "max_nCells": 25000000,
+	    
+	    // Number of flowCart iters on each new mesh
+	    //  cycle  1   2   3   4   5   6   7   8   9  10   11+  
+	    "ws_it": [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 100],
+	    
+	    // Growth in the number of cells
+	    //       cycle   1    2    3    4    5    6    7+  
+	    "mesh_growth": [1.5 ,1.5, 2.0, 2.0, 2.0, 2.0, 2.5],
+	    
+	    // Adaptation type, see `aero.csh` for more info
+	    // cycle 1    2+
+	    "apc": ["p", "a"],
+        
+        // Number of buffer layers
+        "buf": 1,
+        // Number of extra refinements on final error map
+        "final_mesh_xref": 0
+	},
+
+	// Parameters for creating the mesh
+    "Mesh": {
+        // This can be a list of .tri files.
+        "TriFile": "Components.i.tri",
+        // Setting for 2D meshes
+        "mesh2d": false,
+        
+        // Parameters for autoInputs
+        "autoInputs": {
+            // Nominal mesh radius (set to [], "", or 0 to turn off)
+            "r": 8
+        },
+        
+        // Parameters for cubes
+        "cubes": {
+            // Number of refinements
+            "maxR": 11,
+            // Prespecified bounding boxes (set to [] or "" to turn off)
+            "pre": "preSpec.c3d.cntl",
+            // Internal parameters
+            "cubes_a": 10,
+            "cubes_b": 2,
+            "reorder": true
+        }
+    },
+    
+    // Describe the reference values and config.
+    "Config": {
+        // Defer to a file for most things.
+        "File": "Config.xml",
+        // Reference values (turned off by default)
+        "RefArea": 1.0,
+        "RefLength": 1.0,
+        // The moment point can be specified as a dictionary of components.
+        "RefPoint": [0.0, 0.0, 0.0]
+    },
+
+    // Plotting options
+    "Plot": {
+        // Components to plot
+        "Components": ["entire"],
+        // Coefficients
+        "Coefficients": ["CA", "CY", "CN", "L1"],
+        // Deltas for each curve
+        "Deltas": {
+            "CA": 0.01,
+            "CY": 0.02,
+            "CN": 0.02,
+            "CLL": 0.005,
+            "CLM": 0.02,
+            "CLN": 0.02
+        },
+        // Extra label to put in bottom center of each plot.
+        "Restriction": "SBU - ITAR",
+        // Number of iterations to show.
+        //"nPlot": 1000,
+        // Number of iterations to use in averge.
+        "nAverage": 100,
+        // Number of rows and columns to plot
+        "nRow": 2,
+        "nCol": 2
+    },
+    
+    // Trajectory description
+    "Trajectory": {
+        // If a file is specified, and it exists, trajectory values will be 
+        // read from it.  Trajectory values can also be specified locally.
+        "File": "Trajectory.dat",
+        // REQUIRED: Name of the variables to vary in the trajectory
+        "Keys": ["Mach", "alpha", "beta"],
+        // Prefix placed in front of folder name
+        //   i.e.  "F_m2.50a4.00r30.00/" if Prefix="F", or
+        //         "m2.50a4.00r30.00/" if Prefix=""
+        "Prefix": "",
+        // Prefix for the groups of conditions using the same mesh
+        "GroupPrefix": "Grid",
+        # Default properties for a new variable
+        # This also serves as the template for new variables
+        "Definitions": {
+            # Default parameter
+            "Default": {
+                "Group": true,
+                "Type": "Group",
+                "Script": ""
+            }
+        # Predefined parameter: Mach
+        }
+    }
+}

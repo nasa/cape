@@ -160,10 +160,6 @@ class Cart3d(object):
         
         # Process the trajectory.
         self.x = Trajectory(**opts['Trajectory'])
-        
-        # Read the input files.
-        self.ReadInputCntl()
-        self.AeroCsh   = AeroCsh(self.opts.get_AeroCsh())
 
         # Job list
         self.jobs = {}
