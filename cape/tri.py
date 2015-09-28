@@ -23,7 +23,7 @@ from .util import GetTecplotCommand, TecFolder
 
 # Attempt to load the compiled helper module.
 try:
-    from . import _pycart as pc
+    from . import _cape as pc
 except ImportError:
     pass
 

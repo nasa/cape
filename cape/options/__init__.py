@@ -103,6 +103,25 @@ class Options(odict):
         for fdir in lpath:
             # Add absolute path, not relative.
             os.sys.path.append(os.path.abspath(fdir))
+            
+    # Make a directory
+    def mkdir(self, fdir):
+        """Make a directory with the correct permissions
+        
+        :Call:
+            >>> opts.mkdir(fdir)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *fdir*: :class:`str`
+                Directory to create
+        :Versions:
+            * 2015-09-27 ``@ddalle``: First version
+        """
+        # Get umask
+        umask = self.get_umask()
+        # Make the directory.
+        os.mkdir(fdir, umask)
     
     # ============
     # Initializers
