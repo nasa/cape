@@ -67,6 +67,9 @@ class Cntl(object):
         # Job list
         self.jobs = {}
         
+        # Set umask
+        os.umask(self.opts.get_umask())
+        
         
     # Output representation
     def __repr__(self):
@@ -201,85 +204,6 @@ class Cntl(object):
         kw['c'] = True
         # Call the job submitter but don't allow submitting.
         self.SubmitJobs(**kw)
-        
-    # Function to start a case: submit or run
-    def StartCase(self, i):
-        """Start a case by either submitting it 
-        
-        This function checks whether or not a case is submittable.  If so, the
-        case is submitted via :func:`cape.queue.pqsub`, and otherwise the
-        case is started using a system call.
-        
-        It is assumed that the case has been prepared.
-        
-        :Call:
-            >>> pbs = cntl.StartCase(i)
-        :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Outputs:
-            *pbs*: :class:`int` or ``None``
-                PBS job ID if submitted successfully
-        :Versions:
-            * 2014-10-06 ``@ddalle``: First version
-        """
-        # Check status.
-        if self.CheckCase(i) is None:
-            # Case not ready
-            return
-        elif self.CheckRunning(i):
-            # Case already running!
-            return
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get case name and go to the folder.
-        frun = self.x.GetFullFolderNames(i)
-        os.chdir(frun)
-        # Print status.
-        print("     Starting case '%s'." % frun)
-        # Start the case by either submitting or calling it.
-        pbs = case.StartCase()
-        # Display the PBS job ID if that's appropriate.
-        if pbs:
-            print("     Submitted job: %i" % pbs)
-        # Go back.
-        os.chdir(fpwd)
-        # Output
-        return pbs
-        
-    # Function to terminate a case: qdel and remove RUNNING file
-    def StopCase(self, i):
-        """
-        Stop a case by deleting its PBS job and removing the :file:`RUNNING`
-        file.
-        
-        :Call:
-            >>> cart3d.StopCase(i)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Versions:
-            * 2014-12-27 ``@ddalle``: First version
-        """
-        # Check status.
-        if self.CheckCase(i) is None:
-            # Case not ready
-            return
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the case name and go there.
-        frun = self.x.GetFullFolderNames(i)
-        os.chdir(frun)
-        # Stop the job if possible.
-        case.StopCase()
-        # Go back.
-        os.chdir(fpwd)
         
     # Master interface function
     def SubmitJobs(self, **kw):
@@ -431,6 +355,87 @@ class Cntl(object):
         # Print the line.
         if fline: print(fline)
         
+    # Function to start a case: submit or run
+    def StartCase(self, i):
+        """Start a case by either submitting it 
+        
+        This function checks whether or not a case is submittable.  If so, the
+        case is submitted via :func:`cape.queue.pqsub`, and otherwise the
+        case is started using a system call.
+        
+        It is assumed that the case has been prepared.
+        
+        :Call:
+            >>> pbs = cntl.StartCase(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Outputs:
+            *pbs*: :class:`int` or ``None``
+                PBS job ID if submitted successfully
+        :Versions:
+            * 2014-10-06 ``@ddalle``: First version
+        """
+        # Check status.
+        if self.CheckCase(i) is None:
+            # Case not ready
+            return
+        elif self.CheckRunning(i):
+            # Case already running!
+            return
+        # Safely go to root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get case name and go to the folder.
+        frun = self.x.GetFullFolderNames(i)
+        os.chdir(frun)
+        # Print status.
+        print("     Starting case '%s'." % frun)
+        # Start the case by either submitting or calling it.
+        pbs = case.StartCase()
+        # Display the PBS job ID if that's appropriate.
+        if pbs:
+            print("     Submitted job: %i" % pbs)
+        # Go back.
+        os.chdir(fpwd)
+        # Output
+        return pbs
+        
+    # Function to terminate a case: qdel and remove RUNNING file
+    def StopCase(self, i):
+        """
+        Stop a case by deleting its PBS job and removing the :file:`RUNNING`
+        file.
+        
+        :Call:
+            >>> cart3d.StopCase(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2014-12-27 ``@ddalle``: First version
+        """
+        # Check status.
+        if self.CheckCase(i) is None:
+            # Case not ready
+            return
+        # Safely go to root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get the case name and go there.
+        frun = self.x.GetFullFolderNames(i)
+        os.chdir(frun)
+        # Stop the job if possible.
+        case.StopCase()
+        # Go back.
+        os.chdir(fpwd)
+        
+    
+        
     # Function to determine if case is PASS, ---, INCOMP, etc.
     def CheckCaseStatus(self, i, jobs=None, auto=False, u=None):
         """Determine the current status of a case
@@ -573,9 +578,9 @@ class Cntl(object):
         """Get PBS job number if one exists
         
         :Call:
-            >>> pbs = cart3d.GetPBSJobID(i)
+            >>> pbs = cntl.GetPBSJobID(i)
         :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+            *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Run index
@@ -612,6 +617,77 @@ class Cntl(object):
         os.chdir(fpwd)
         # Output
         return pbs
+        
+    # Write a PBS header
+    def WritePBSHeader(self, f, i, j):
+        """Write common part of PBS script
+        
+        :Call:
+            >>> cntl.WritePBSHeader(f, i, j)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *f*: :class:`file`
+                Open file handle
+            *i*: :class:`int`
+                Case index
+            *j*: :class:`int`
+                Run index
+        :Versions:
+            * 2015-09-30 ``@ddalle``: Separated from WritePBS
+        """
+        # Get the shell path (must be bash)
+        sh = self.opts.get_PBS_S(j)
+        # Write to script both ways.
+        f.write('#!%s\n' % sh)
+        f.write('#PBS -S %s\n' % sh)
+        # Get the shell name.
+        lbl = self.GetPBSName(i)
+        # Write it to the script
+        f.write('#PBS -N %s\n' % lbl)
+        # Get the rerun status.
+        PBS_r = self.opts.get_PBS_r(j)
+        # Write if specified.
+        if PBS_r: f.write('#PBS -r %s\n' % PBS_r)
+        # Get the option for combining STDIO/STDOUT
+        PBS_j = self.opts.get_PBS_j(j)
+        # Write if specified.
+        if PBS_j: f.write('#PBS -j %s\n' % PBS_j)
+        # Get the number of nodes, etc.
+        nnode = self.opts.get_PBS_select(j)
+        ncpus = self.opts.get_PBS_ncpus(j)
+        nmpis = self.opts.get_PBS_mpiprocs(j)
+        smodl = self.opts.get_PBS_model(j)
+        # Form the -l line.
+        line = '#PBS -l select=%i:ncpus=%i' % (nnode, ncpus)
+        # Add other settings
+        if nmpis: line += (':mpiprocs=%i' % nmpis)
+        if smodl: line += (':model=%s' % smodl)
+        # Write the line.
+        f.write(line + '\n')
+        # Get the walltime.
+        t = self.opts.get_PBS_walltime(j)
+        # Write it.
+        f.write('#PBS -l walltime=%s\n' % t)
+        # Check for a group list.
+        PBS_W = self.opts.get_PBS_W(j)
+        # Write if specified.
+        if PBS_W: f.write('#PBS -W %s\n' % PBS_W)
+        # Get the queue.
+        PBS_q = self.opts.get_PBS_q(j)
+        # Write it.
+        if PBS_q: f.write('#PBS -q %s\n\n' % PBS_q)
+        
+        # Go to the working directory.
+        f.write('# Go to the working directory.\n')
+        f.write('cd %s\n\n' % os.getcwd())
+        
+        # Write a header for the shell commands.
+        f.write('# Additional shell commands\n')
+        # Loop through the shell commands.
+        for line in self.opts.get_ShellCmds():
+            # Write it.
+            f.write('%s\n' % line)
         
     # Check if a case is running.
     def CheckRunning(self, i):

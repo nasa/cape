@@ -48,7 +48,6 @@ The following classes are imported in this module, so that code like
     * :class:`pyCart.inputCntl.InputCntl`
     * :class:`pyCart.aeroCsh.AeroCsh`
     * :class:`pyCart.preSpecCntl.PreSpecCntl`
-    * :class:`pyCart.post.LoadsDat`
 """
 
 # Configuration file processor
@@ -72,8 +71,8 @@ TemplateFolder = os.path.join(PyCartFolder, "templates")
 
 
 # Import classes and methods from the submodules
-from tri    import Tri, Triq, ReadTri, WriteTri
-from cart3d import Cart3d, Trajectory, ReadTrajectoryFile
+from tri    import Tri, Triq
+from cart3d import Cart3d, Trajectory
 from config import Config
 from case   import ReadCaseJSON, run_flowCart
 
