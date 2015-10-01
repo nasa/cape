@@ -1,6 +1,6 @@
 """
-File control base module: :mod:`pyCart.fileCntl`
-================================================
+File control base module: :mod:`cape.fileCntl`
+==============================================
 
 This provides common methods to control objects for various specific files.  
 This includes various methods for reading files, splitting it into sections,
@@ -130,11 +130,11 @@ class FileCntl:
     Base file control class
     
     The lines of the file can be split into sections based on a regular
-    expression (see :func:`pyCart.fileCntl.FileCntl.SplitToSections`); most
+    expression (see :func:`cape.fileCntl.FileCntl.SplitToSections`); most
     methods will keep the overall line list and the section breakout consistent.
     
     :Call:
-        >>> FC = pyCart.fileCntl.FileCntl(fname)
+        >>> FC = cape.fileCntl.FileCntl(fname)
     :Inputs:
         *fname*: :class:`str`
             Name of file to read from and manipulate

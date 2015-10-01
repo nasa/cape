@@ -7,7 +7,7 @@ manipulating pyCart's automated reports
 """
 
 # Import the base file control class.
-from fileCntl import FileCntl, _num, _float
+from cape.fileCntl import FileCntl, _num, _float
 
 # File interface
 import os

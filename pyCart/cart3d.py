@@ -130,6 +130,27 @@ class Cart3d(Cntl):
         * 2014-06-30 ``@ddalle``  : Reduced number of data members
         * 2014-07-27 ``@ddalle``  : `cart3d.Trajectory` --> `cart3d.x`
     """ 
+    # Initialization method
+    def __init__(self, fname="pyCart.json"):
+        """Initialization method for :mod:`cape.cntl.Cntl`"""
+        
+        # Read settings
+        self.opts = options.Options(fname=fname)
+        
+        #Save the current directory as the root
+        self.RootDir = os.getcwd()
+        
+        # Import modules
+        self.ImportModules()
+        
+        # Process the trajectory.
+        self.x = Trajectory(**self.opts['Trajectory'])
+
+        # Job list
+        self.jobs = {}
+        
+        # Set umask
+        os.umask(self.opts.get_umask())
         
     # Output representation
     def __repr__(self):

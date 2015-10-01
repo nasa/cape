@@ -7,7 +7,7 @@ manipulating Tecplot layout files and macros.
 """
 
 # Import the base file control class.
-from .fileCntl import FileCntl
+from cape.fileCntl import FileCntl
 # Import command to actually run Tecplot
 from .bin import tecmcr
 # Import Tecplot folder
