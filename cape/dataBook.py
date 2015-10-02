@@ -128,7 +128,7 @@ class DataBook(dict):
         # Initialize line loads
         self.LineLoads = []
         
-     # Command-line representation
+    # Command-line representation
     def __repr__(self):
         """Representation method
         
@@ -147,7 +147,7 @@ class DataBook(dict):
     __str__ = __repr__
         
         
-        # Function to read targets if necessary
+    # Function to read targets if necessary
     def ReadTarget(self, targ):
         """Read a data book target if it is not already present
         
