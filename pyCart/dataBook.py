@@ -43,7 +43,6 @@ dmask = 0777 - umask
 
 # Placeholder variables for plotting functions.
 plt = 0
-PdfPages = 0
 
 # Radian -> degree conversion
 deg = np.pi / 180.0
@@ -60,7 +59,6 @@ def ImportPyPlot():
     # Make global variables
     global plt
     global tform
-    global PdfPages
     global Text
     # Check for PyPlot.
     try:
@@ -69,7 +67,6 @@ def ImportPyPlot():
         # Load the modules.
         import matplotlib.pyplot as plt
         import matplotlib.transforms as tform
-        from matplotlib.backends.backend_pdf import PdfPages
         from matplotlib.text import Text
 
 
@@ -1236,8 +1233,8 @@ class DBComp(dict):
         """Read a single data book file or initialize empty arrays
         
         :Call:
-            >>> DBi.Read()
-            >>> DBi.Read(fname)
+            >>> DBc.Read()
+            >>> DBc.Read(fname)
         :Inputs:
             *DBi*: :class:`pyCart.dataBook.DBComp`
                 An individual component data book
