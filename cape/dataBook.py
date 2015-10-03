@@ -19,14 +19,10 @@ import re
 # Date processing
 from datetime import datetime
 
-# Use this to only update entries with newer iterations.
-from .case import GetCurrentIter, GetWorkingFolder
 # Finer control of dicts
 from .options import odict
 # Utilities or advanced statistics
 from . import util
-# Line loads
-from . import lineLoad
 
 #<!--
 # ---------------------------------
@@ -155,7 +151,7 @@ class DataBook(dict):
             >>> DB.ReadTarget(targ)
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
-                Instance of the pyCart data book class
+                Instance of the CAPE data book class
             *targ*: :class:`str`
                 Target name
         :Versions:
@@ -167,6 +163,120 @@ class DataBook(dict):
         except Exception:
             # Read the file.
             self.Targets.append(DBTarget(targ, self.x, self.opts))
+            
+    # Match the databook copy of the trajectory
+    def UpdateTrajectory(self):
+        """Match the trajectory to the cases in the data book
+        
+        :Call:
+            >>> DB.UpdateTrajectory()
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the CAPE data book class
+        :Versions:
+            * 2015-05-22 ``@ddalle``: First version
+        """
+        # Get the first component.
+        DBc = self[self.Components[0]]
+        # Loop through the fields.
+        for k in self.x.keys:
+            # Copy the data.
+            setattr(self.x, k, DBc[k])
+            # Set the text.
+            self.x.text[k] = [str(xk) for xk in DBc[k]]
+        # Set the number of cases.
+        self.x.nCase = DBc.n
+        
+    # Restrict the data book object to points in the trajectory.
+    def MatchTrajectory(self):
+        """Restrict the data book object to points in the trajectory
+        
+        :Call:
+            >>> DB.MatchTrajectory()
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the CAPE data book class
+        :Versions:
+            * 2015-05-28 ``@ddalle``: First version
+        """
+        # Get the first component.
+        DBc = self[self.Components[0]]
+        # Initialize indices of points to keep.
+        I = []
+        J = []
+        # Loop through trajectory points.
+        for i in range(self.x.nCase):
+            # Look for a match
+            j = DBc.FindMatch(i)
+            # Check for no matches.
+            if np.isnan(j): continue
+            # Match: append to both lists.
+            I.append(i)
+            J.append(j)
+        # Loop through the trajectory keys.
+        for k in self.x.keys:
+            # Restrict to trajectory points that were found.
+            setattr(self.x,k, getattr(self.x,k)[I])
+        # Loop through the databook components.
+        for comp in self.Components:
+            # Loop through fields.
+            for k in DBc.keys():
+                # Restrict to matched cases.
+                self[comp][k] = self[comp][k][J]
+            
+    # Write the data book
+    def Write(self):
+        """Write the current data book in Python memory to file
+        
+        :Call:
+            >>> DB.Write()
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the CAPE data book class
+        :Versions:
+            * 2014-12-22 ``@ddalle``: First version
+            * 2015-06-19 ``@ddalle``: New multi-key sort
+        """
+        # Start from root directory.
+        os.chdir(self.RootDir)
+        # Get the sort key.
+        skey = self.opts.get_SortKey()
+        # Sort the data book if there is a key.
+        if skey is not None:
+            # Sort on either a single key or multiple keys.
+            self.Sort(skey)
+        # Loop through the components.
+        for comp in self.Components:
+            # Write individual component.
+            self[comp].Write()
+            
+    # Function to sort data book
+    def Sort(self, key=None, I=None):
+        """Sort a data book according to either a key or an index
+        
+        :Call:
+            >>> DB.Sort()
+            >>> DB.Sort(key)
+            >>> DB.Sort(I=None)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the CAPE data book class
+            *key*: :class:`str` or :class:`list` (:class:`str`)
+                Name of trajectory key or list of keys on which to sort
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices; must have same size as data book
+        :Versions:
+            * 2014-12-30 ``@ddalle``: First version
+            * 2015-06-19 ``@ddalle``: New multi-key sort
+        """
+        # Process inputs.
+        if I is None:
+            # Use indirect sort on the first component.
+            I = self[self.Components[0]].ArgSort(key)
+        # Loop through components.
+        for comp in self.Components:
+            # Apply the DBComp.Sort() method.
+            self[comp].Sort(I=I)
             
     
         

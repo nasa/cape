@@ -13,7 +13,7 @@ Actual functionality is left to individual modules such as :mod:`pyCart.case`.
 # Import options class
 from options.util import odict
 # Interface for writing commands
-from . import cmd, queue, manage, bin
+from . import queue
 
 # Need triangulations for cases with `intersect`
 from .tri import Tri, Triq
