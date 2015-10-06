@@ -97,11 +97,11 @@ def UH3D2Tri(*a, **kw):
     ztol = kw.get('ztol')
     # Apply tolerances
     if xtol is not None:
-        tri.Nodes[abs(tri.Nodes[:,0])<=xtol, 0] = 0.0
+        tri.Nodes[abs(tri.Nodes[:,0])<=float(xtol), 0] = 0.0
     if ytol is not None:
-        tri.Nodes[abs(tri.Nodes[:,1])<=xtol, 1] = 0.0
+        tri.Nodes[abs(tri.Nodes[:,1])<=float(ytol), 1] = 0.0
     if ztol is not None:
-        tri.Nodes[abs(tri.Nodes[:,2])<=xtol, 2] = 0.0 
+        tri.Nodes[abs(tri.Nodes[:,2])<=float(ztol), 2] = 0.0
     
     # Write it.
     tri.Write(ftri)
