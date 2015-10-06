@@ -91,6 +91,18 @@ def UH3D2Tri(*a, **kw):
     # Read in the UH3D file.
     tri = pyCart.Tri(uh3d=fuh3d)
     
+    # Check for tolerances
+    xtol = kw.get('xtol')
+    ytol = kw.get('ytol')
+    ztol = kw.get('ztol')
+    # Apply tolerances
+    if xtol is not None:
+        tri.Nodes[abs(tri.Nodes[:,0])<=xtol, 0] = 0.0
+    if ytol is not None:
+        tri.Nodes[abs(tri.Nodes[:,1])<=xtol, 1] = 0.0
+    if ztol is not None:
+        tri.Nodes[abs(tri.Nodes[:,2])<=xtol, 2] = 0.0 
+    
     # Write it.
     tri.Write(ftri)
     
