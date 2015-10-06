@@ -35,7 +35,7 @@ pc_WriteTriNodes(FILE *fid, PyArrayObject *P)
         // Two-dimensional nodes
         for (i=0; i<nNode; i++) {
             // Write a single node.
-            fprintf(fid, "%+15.8E %+15.8E\n", \
+            fprintf(fid, "%+19.12E %+19.12E\n", \
                 np2d(P,i,0), np2d(P,i,1));
             // Increase the count.
             n += 1;
@@ -45,7 +45,7 @@ pc_WriteTriNodes(FILE *fid, PyArrayObject *P)
         // Three-dimensional nodes
         for (i=0; i<nNode; i++) {
             // Write a single node.
-            fprintf(fid, "%+15.8E %+15.8E %+15.8E\n", \
+            fprintf(fid, "%+19.12E %+19.12E %+19.12E\n", \
                 np2d(P,i,0), np2d(P,i,1), np2d(P,i,2));
             // Increase the count.
             n += 1;
@@ -158,11 +158,11 @@ pc_WriteTriState(FILE *fid, PyArrayObject *Q)
     // Loop through triangles.
     for (i=0; i<nNode; i++) {
         // Write a the first entry (Cp).
-        fprintf(fid, "%.6f\n", np2d(Q,i,0));
+        fprintf(fid, "%.12f\n", np2d(Q,i,0));
         // Loop through remaining state variables.
         for (j=1; j<nq; j++) {
             // Write the value.
-            fprintf(fid, " %.6f", np2d(Q,i,j));
+            fprintf(fid, " %.12f", np2d(Q,i,j));
         }
         // End the line.
         fprintf(fid, "\n");
@@ -225,13 +225,13 @@ pc_WriteTri(PyObject *self, PyObject *args)
     ierr = pc_WriteTriNodes(fid, P);
     if (ierr) {
         PyErr_SetString(PyExc_IOError, \
-            "Failure writing nodes to `Components.pyCart.tri'");
+            "Failure writing nodes to 'Components.pyCart.tri'");
     }
     // Write the tris.
     ierr = pc_WriteTriTris(fid, T);
     if (ierr) {
         PyErr_SetString(PyExc_IOError, \
-            "Failure writing tris to `Components.pyCart.tri'");
+            "Failure writing tris to 'Components.pyCart.tri'");
     }
     
     // Close the file.

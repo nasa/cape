@@ -536,7 +536,7 @@ class TriBase(object):
         # Write the number of nodes and triangles.
         fid.write('%i  %i\n' % (self.nNode, self.nTri))
         # Write the nodal coordinates, tris, and component ids.
-        np.savetxt(fid, self.Nodes, fmt="%+15.8e", delimiter=' ')
+        np.savetxt(fid, self.Nodes, fmt="%+19.12e", delimiter=' ')
         np.savetxt(fid, self.Tris,  fmt="%i",      delimiter=' ')
         np.savetxt(fid, self.CompID, fmt="%i",      delimiter=' ')
         # Close the file.
@@ -791,8 +791,8 @@ class TriBase(object):
         self.Nodes = Nodes
         
         # Initialize the Tris and component numbers
-        Tris = np.zeros((nTri, 3))
-        CompID = np.ones(nTri)
+        Tris = np.zeros((nTri, 3), dtype=int)
+        CompID = np.ones(nTri, dtype=int)
         # Loop through the lines.
         for i in range(nTri):
             # Read the line.
