@@ -28,12 +28,25 @@ Convert a '.uh3d' file to a Cart3D triangulation format.
         
     -o TRI
         Use *TRI* as name of created output file
+       
+    -c XML
+        Use file *XML* to map component ID numbers
+        
+    -xtol XTOL
+        Truncate nodal coordinates within *XTOL* of x=0 plane to zero
+        
+    -ytol YTOL
+        Truncate nodal coordinates within *YTOL* of y=0 plane to zero
+        
+    -ztol ZTOL
+        Truncate nodal coordinates within *ZTOL* of z=0 plane to zero
     
 If the name of the output file is not specified, it will just add '.tri' as the
 extension to the input (deleting '.uh3d' if possible).
 
 :Versions:
     * 2014-06-12 ``@ddalle``: First version
+    * 2015-10-09 ``@ddalle``: Added tolerances and Config.xml processing
 """
 
 # Get the pyCart module.
@@ -49,18 +62,25 @@ def UH3D2Tri(*a, **kw):
     Convert a UH3D triangulation file to Cart3D tri format
     
     :Call:
-        >>> UH3D2Tri(uh3d, tri, h=False)
-        >>> UH3D2Tri(i=uh3d, o=tri, h=False)
+        >>> UH3D2Tri(uh3d, tri, c=None)
+        >>> UH3D2Tri(i=uh3d, o=tri, c=None)
     :Inputs:
         *uh3d*: :class:`str`
             Name of input file
         *tri*: :class:`str`
             Name of output file (defaults to value of uh3d but with ``.tri`` as
             the extension in the place of ``.uh3d``
-        *h*: :class:`bool`
-            Display help and exit if ``True``
+        *c*: :class:`str`
+            (Optional) name of configuration file to apply
+        *xtol*: :class:`float` | :class:`str`
+            Tolerance for *x*-coordinates to be truncated to zero
+        *ytol*: :class:`float` | :class:`str`
+            Tolerance for *y*-coordinates to be truncated to zero
+        *ztol*: :class:`float` | :class:`str`
+            Tolerance for *z*-coordinates to be truncated to zero
     :Versions:
         * 2014-06-12 ``@ddalle``: First documented version
+        * 2015-10-09 ``@ddalle``: Added ``Config.xml`` and *ytol*
     """
     # Get the file pyCart settings file name.
     if len(a) == 0:
@@ -81,7 +101,7 @@ def UH3D2Tri(*a, **kw):
     # Get the file pyCart settings file name.
     if len(a) <= 2:
         # Defaults
-        ftri = fuh3d.rstrip('.uh3d') + '.tri'
+        ftri = fuh3d.rstrip('uh3d') + 'tri'
     else:
         # Use the first general input.
         ftri = a[1]
@@ -90,6 +110,15 @@ def UH3D2Tri(*a, **kw):
         
     # Read in the UH3D file.
     tri = pyCart.Tri(uh3d=fuh3d)
+    
+    # Configuration
+    fxml = kw.get('c')
+    # Apply configuration if requested.
+    if fxml:
+        # Read the configuration.
+        cfg = pyCart.config.Config(fxml)
+        # Apply it.
+        tri.ApplyConfig(cfg)
     
     # Check for tolerances
     xtol = kw.get('xtol')
