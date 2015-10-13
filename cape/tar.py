@@ -1,5 +1,9 @@
 """
-Module for Semiautomatic Folder Archiving: :mod:`pyCart.tar`
+Module for Semiautomatic Folder Archiving: :mod:`cape.tar`
+==========================================================
+
+This is a module for tarring and untarring folders automatically in combination
+with changing directory into and out of the folder.
 """
 
 # System interface

@@ -19,7 +19,7 @@ from datetime import datetime
 # Utilities or advanced statistics
 from . import util
 from . import case
-from . import tar
+from cape import tar
 
 
 # Data book of line loads
