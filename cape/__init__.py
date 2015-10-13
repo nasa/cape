@@ -59,32 +59,32 @@ import re
 
 
 # Save version number
-version = "0.4a"
+version = "0.4b"
 
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
 
 # Saved folder names
-PyCartFolder = os.path.split(_fname)[0]
-TemplateFolder = os.path.join(PyCartFolder, "templates")
+CapeFolder = os.path.split(_fname)[0]
+TemplateFolder = os.path.join(CapeFolder, "templates")
 
 
 # Import classes and methods from the submodules
-from tri    import Tri, Triq
-from cart3d import Cart3d, Trajectory
-from config import Config
-from case   import ReadCaseJSON, run_flowCart
+#from tri    import Tri, Triq, ReadTri, WriteTri
+from cntl   import Cntl
+#from config import Config
+#from case   import ReadCaseJSON, run_flowCart
 
 # Import the file control classes.
-from inputCntl   import InputCntl
-from aeroCsh     import AeroCsh
-from preSpecCntl import PreSpecCntl
-from dataBook    import CaseFM, Aero
+#from inputCntl   import InputCntl
+#from aeroCsh     import AeroCsh
+#from preSpecCntl import PreSpecCntl
+#from dataBook    import CaseFM, Aero
 
 # Get the conversion tools directly.
-from convert import *
+#from convert import *
 
 # Wholesale modules
-import manage
+#import manage
 

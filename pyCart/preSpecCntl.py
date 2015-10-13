@@ -14,7 +14,7 @@ refinement boxes.
 """
 
 # Import the base file control class.
-from fileCntl import FileCntl, _num, _float
+from cape.fileCntl import FileCntl, _num, _float
 
 # Base this class off of the main file control class.
 class PreSpecCntl(FileCntl):

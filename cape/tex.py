@@ -1,13 +1,13 @@
 """
-Module to interface with LaTeX automated reports: :mod:`pyCart.tex`
-===================================================================
+Module to interface with LaTeX: :mod:`cape.tex`
+===============================================
 
-This is a module built off of the :mod:`pyCart.fileCntl` module customized for
+This is a module built off of the :mod:`cape.fileCntl` module customized for
 manipulating pyCart's automated reports
 """
 
 # Import the base file control class.
-from fileCntl import FileCntl, _num, _float
+from .fileCntl import FileCntl, _num, _float
 
 # File interface
 import os

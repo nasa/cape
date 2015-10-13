@@ -9,7 +9,7 @@ CFL number or number of adaptation cycles.
 """
 
 # Import the base file control class.
-from fileCntl import FileCntl, _num, _float
+from cape.fileCntl import FileCntl, _num, _float
 
 # Make sure the thing
 

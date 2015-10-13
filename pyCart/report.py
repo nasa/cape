@@ -6,7 +6,7 @@ import os, json, shutil, glob
 import numpy as np
 
 # Local modules needed
-from . import tex, tar
+import cape as tex, tar
 # Data book and plotting
 from .dataBook import Aero, CaseFM, CaseResid
 # Folder and Tecplot management

@@ -24,6 +24,9 @@ value of a given parameter should be is below.
 # Import options-specific utilities (loads :mod:`os`, too)
 from util import *
 
+# Import template module
+import cape.options
+
 # Import modules for controlling specific parts of Cart3D
 from .flowCart    import flowCart
 from .adjointCart import adjointCart
@@ -39,7 +42,7 @@ from .Report      import Report
 
 
 # Class definition
-class Options(odict):
+class Options(cape.options.Options):
     """
     Options structure, subclass of :class:`dict`
     
@@ -90,31 +93,6 @@ class Options(odict):
         self._Management()
         # Add extra folders to path.
         self.AddPythonPath()
-        
-        
-    # Function to add to the path.
-    def AddPythonPath(self):
-        """Add requested locations to the Python path
-        
-        :Call:
-            >>> opts.AddPythonPath()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Versions:
-            * 2014-10-08 ``@ddalle``: First version
-        """
-        # Get the "PythonPath" option
-        lpath = self.get("PythonPath", [])
-        # Quit if empty.
-        if (not lpath): return
-        # Ensure list.
-        if type(lpath).__name__ != "list":
-            lpath = [lpath]
-        # Loop through elements.
-        for fdir in lpath:
-            # Add absolute path, not relative.
-            os.sys.path.append(os.path.abspath(fdir))
     
     # ============
     # Initializers
@@ -164,42 +142,6 @@ class Options(odict):
             # Convert to special class.
             self['Mesh'] = Mesh(**self['Mesh'])
             
-    # Initialization and confirmation for PBS options
-    def _PBS(self):
-        """Initialize PBS options if necessary"""
-        # Check status.
-        if 'PBS' not in self:
-            # Missing entirely
-            self['PBS'] = PBS()
-        elif type(self['PBS']).__name__ == 'dict':
-            # Add prefix to all the keys.
-            tmp = {}
-            for k in self['PBS']:
-                tmp["PBS_"+k] = self['PBS'][k]
-            # Convert to special class.
-            self['PBS'] = PBS(**tmp)
-            
-    # Initialization and confirmation for PBS options
-    def _Config(self):
-        """Initialize configuration options if necessary"""
-        # Check status.
-        if 'Config' not in self:
-            # Missing entirely
-            self['Config'] = Config()
-        elif type(self['Config']).__name__ == 'dict':
-            # Add prefix to all the keys.
-            tmp = {}
-            for k in self['Config']:
-                # Check for "File"
-                if k == 'File':
-                    # Add prefix.
-                    tmp["Config"+k] = self['Config'][k]
-                else:
-                    # Use the key as is.
-                    tmp[k] = self['Config'][k]
-            # Convert to special class.
-            self['Config'] = Config(**tmp)
-            
     # Initialization method for Cart3D output functional
     def _Functional(self):
         """Initialize Cart3D output functional if neccessary"""
@@ -221,77 +163,10 @@ class Options(odict):
         elif type(self['Plot']).__name__ == 'dict':
             # Convert to (barely) special class.
             self['Plot'] = Plot(**self['Plot'])
-            
-    # Initialization method for pyCart databook
-    def _DataBook(self):
-        """Initialize data book options if necessary"""
-        # Check status.
-        if 'DataBook' not in self:
-            # Missing entirely.
-            self['DataBook'] = DataBook()
-        elif type(self['DataBook']).__name__ == 'dict':
-            # Convert to special class
-            self['DataBook'] = DataBook(**self['DataBook'])
-            
-    # Initialization method for pyCart automated report
-    def _Report(self):
-        """Initialize report options if necessary"""
-        # Check status.
-        if 'Report' not in self:
-            # Missing entirely.
-            self['Report'] = Report()
-        elif type(self['Report']).__name__ == 'dict':
-            # Convert to special class
-            self['Report'] = Report(**self['Report'])
-    
-    # Initialization method for folder management optoins
-    def _Management(self):
-        """Initialize folder management options if necessary"""
-        # Check status.
-        if 'Management' not in self:
-            # Missing entirely.
-            self['Management'] = Management()
-        elif type(self['Management']).__name__ == 'dict':
-            # Convert to special class
-            self['Management'] = Management(**self['Management'])
     
     # ==============
     # Global Options
     # ==============
-    
-    # Method to get the max number of jobs to submit.
-    def get_nSubmit(self):
-        """Return the maximum number of jobs to submit at one time
-        
-        :Call:
-            >>> nSub = opts.get_nSubmit()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *nSub*: :class:`int`
-                Maximum number of jobs to submit
-        :Versions:
-            * 2015-01-24 ``@ddalle``: First version
-        """
-        return self.get('nSubmit', rc0('nSubmit'))
-        
-    # Set the max number of jobs to submit.
-    def set_nSubmit(self, nSub=rc0('nSubmit')):
-        """Set the maximum number of jobs to submit at one time
-        
-        :Call:
-            >>> opts.set_nSubmit(nSub)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *nSub*: :class:`int`
-                Maximum number of jobs to submit
-        :Versions:
-            * 2015-01-24 ``@ddalle``: First version
-        """
-        self['nSubmit'] = nSub
-        
         
     # Method to get the input file
     def get_InputCntl(self):
@@ -393,36 +268,12 @@ class Options(odict):
             * 2014-10-06 ``@ddalle``: First version
         """
         self['Trajectory']['GroupMesh'] = qGM
-        
-    
-    # ==============
-    # Shell Commands
-    # ==============
-    
-    # Function to get the shell commands
-    def get_ShellCmds(self):
-        """Get shell commands, if any
-        
-        :Call:
-            >>> cmds = opts.get_ShellCmds()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *cmds*: :class:`list`
-        """
-        # Get the commands.
-        cmds = self.get('ShellCmds', [])
-        # Turn to a list if not.
-        if type(cmds).__name__ != 'list':
-            cmds = [cmds]
-        # Output
-        return cmds
     
     # ===================
     # flowCart parameters
     # ===================
-    
+   # <
+   
     # Get number of inputs
     def get_nSeq(self):
         self._flowCart()
@@ -770,12 +621,13 @@ class Options(odict):
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(flowCart,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(flowCart,'set_'+k).__doc__
-        
+   # >    
     
     
     # ====================
     # adjointCart settings
     # ====================
+   # <
     
     # Number of iterations
     def get_it_ad(self, i=None):
@@ -812,6 +664,7 @@ class Options(odict):
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(adjointCart,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(adjointCart,'set_'+k).__doc__
+   # >
     
     # ================
     # multigrid levels
@@ -902,6 +755,7 @@ class Options(odict):
     # ===================
     # Adaptation settings
     # ===================
+   # <
     
     # Get number of adapt cycles
     def get_n_adapt_cycles(self, i=None):
@@ -989,11 +843,13 @@ class Options(odict):
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Adaptation,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Adaptation,'set_'+k).__doc__
-            
+   # >
+   
     
     # ========================
     # mesh creation parameters
     # ========================
+   # <
     
     # Get verify status
     def get_verify(self):
@@ -1153,179 +1009,20 @@ class Options(odict):
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Mesh,'set_'+k).__doc__
-        
+   # >
+   
         
     # ============
     # PBS settings
     # ============
-    
-    # Get number of unique PBS scripts
-    def get_nPBS(self):
-        self._PBS()
-        return self['PBS'].get_nPBS()
-    get_nPBS.__doc__ = PBS.get_nPBS.__doc__
-    
-    # Get PBS *join* setting
-    def get_PBS_j(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_j(i)
-        
-    # Set PBS *join* setting
-    def set_PBS_j(self, j=rc0('PBS_j'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_j(j, i)
-    
-    # Get PBS *rerun* setting
-    def get_PBS_r(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_r(i)
-        
-    # Set PBS *rerun* setting
-    def set_PBS_r(self, r=rc0('PBS_r'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_r(r, i)
-    
-    # Get PBS shell setting
-    def get_PBS_S(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_S(i)
-        
-    # Set PBS shell setting
-    def set_PBS_S(self, S=rc0('PBS_S'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_S(S, i)
-    
-    # Get PBS nNodes setting
-    def get_PBS_select(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_select(i)
-        
-    # Set PBS nNodes setting
-    def set_PBS_select(self, n=rc0('PBS_select'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_select(n, i)
-    
-    # Get PBS CPUS/node setting
-    def get_PBS_ncpus(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_ncpus(i)
-        
-    # Set PBS CPUs/node setting
-    def set_PBS_ncpus(self, n=rc0('PBS_ncpus'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_ncpus(n, i)
-    
-    # Get PBS MPI procs/node setting
-    def get_PBS_mpiprocs(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_mpiprocs(i)
-        
-    # Set PBS *rerun* setting
-    def set_PBS_mpiprocs(self, n=rc0('PBS_mpiprocs'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_mpiprocs(n, i)
-    
-    # Get PBS model or arch setting
-    def get_PBS_model(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_model(i)
-        
-    # Set PBS model or arch setting
-    def set_PBS_model(self, s=rc0('PBS_model'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_model(s, i)
-    
-    # Get PBS group setting
-    def get_PBS_W(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_W(i)
-        
-    # Set PBS group setting
-    def set_PBS_W(self, W=rc0('PBS_W'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_W(W, i)
-    
-    # Get PBS queue setting
-    def get_PBS_q(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_q(i)
-        
-    # Set PBS queue setting
-    def set_PBS_q(self, q=rc0('PBS_q'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_q(q, i)
-    
-    # Get PBS walltime setting
-    def get_PBS_walltime(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_walltime(i)
-        
-    # Set PBS walltime setting
-    def set_PBS_walltime(self, t=rc0('PBS_walltime'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_walltime(t, i)
-        
-    # Copy over the documentation.
-    for k in ['PBS_j', 'PBS_r', 'PBS_S', 'PBS_select', 'PBS_mpiprocs',
-            'PBS_ncpus', 'PBS_model', 'PBS_W', 'PBS_q', 'PBS_walltime']:
-        # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(PBS,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(PBS,'set_'+k).__doc__
+   # <
+   # >
     
     
     # =================
     # Folder management
     # =================
-    
-    # Get the archive folder
-    def get_ArchiveFolder(self):
-        self._Management()
-        return self['Management'].get_ArchiveFolder()
-        
-    # Set the archive folder
-    def set_ArchiveFolder(self, fdir=rc0('ArchiveFolder')):
-        self._Management()
-        self['Management'].set_ArchiveFolder(fdir)
-        
-    # Get the archive format
-    def get_ArchiveFormat(self):
-        self._Management()
-        return self['Management'].get_ArchiveFormat()
-        
-    # Set the archive format
-    def set_ArchiveFormat(self, fmt=rc0('ArchiveFormat')):
-        self._Management()
-        self['Management'].set_ArchiveFormat(fmt)
-        
-    # Get the archive type
-    def get_ArchiveType(self):
-        self._Management()
-        return self['Management'].get_ArchiveType()
-        
-    # Set the archive type
-    def set_ArchiveType(self, atype=rc0('ArchiveType')):
-        self._Management()
-        self['Management'].set_ArchiveType(atype)
-        
-    # Get the archive action
-    def get_ArchiveAction(self):
-        self._Management()
-        return self['Management'].get_ArchiveAction()
-        
-    # Set the archive action
-    def set_ArchiveAction(self, fcmd=rc0('ArchiveAction')):
-        self._Management()
-        self['Management'].set_ArchiveAction(fcmd)
-        
-    # Get the remote copy command
-    def get_RemoteCopy(self):
-        self._Management()
-        return self['Management'].get_RemoteCopy()
-        
-    # Set the remote copy command
-    def set_RemoteCopy(self, fcmd=rc0('RemoteCopy')):
-        self._Management()
-        self['Management'].set_RemoteCopy(fcmd)
+   # <
         
     # Get the number of check point files to keep around
     def get_nCheckPoint(self):
@@ -1337,6 +1034,16 @@ class Options(odict):
         self._Management()
         self['Management'].set_nCheckPoint(nchk)
         
+    # Get the archive status for adaptation folders
+    def get_TarAdapt(self):
+        self._Management()
+        return self['Management'].get_TarAdapt()
+        
+    # Get the archive status for adaptation folders
+    def set_TarAdapt(self, fmt=rc0('TarAdapt')):
+        self._Management()
+        self['Management'].set_TarAdapt(fmt)
+        
     # Get the archive format for visualization files
     def get_TarViz(self):
         self._Management()
@@ -1346,16 +1053,6 @@ class Options(odict):
     def set_TarViz(self, fmt=rc0('TarViz')):
         self._Management()
         self['Management'].set_TarViz(fmt)
-        
-    # Get the archive format for adaptation folders
-    def get_TarAdapt(self):
-        self._Management()
-        return self['Management'].get_TarAdapt()
-        
-    # Set the archive format for adaptation folders
-    def set_TarAdapt(self, fmt=rc0('TarAdapt')):
-        self._Management()
-        self['Management'].set_TarAdapt(fmt)
         
     # Get the archive format for visualization files
     def get_TarPBS(self):
@@ -1368,78 +1065,17 @@ class Options(odict):
         self['Management'].set_TarPBS(fmt)
         
     # Copy over the documentation.
-    for k in ['ArchiveFolder', 'ArchiveFormat', 'ArchiveAction', 'ArchiveType',
-            'RemoteCopy', 'nCheckPoint', 'TarViz', 'TarAdapt', 'TarPBS']:
+    for k in ['nCheckPoint', 'TarViz', 'TarAdapt', 'TarPBS']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Management,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Management,'set_'+k).__doc__
+   # >
+   
     
     # =============
     # Configuration
     # =============
-    
-    # Get config file name
-    def get_ConfigFile(self):
-        self._Config()
-        return self['Config'].get_ConfigFile()
-        
-    # Set config file name
-    def set_ConfigFile(self, fname=rc0('ConfigFile')):
-        self._Config()
-        self['Config'].set_ConfigFile(fname)
-    
-    # Get reference area
-    def get_RefArea(self, comp=None):
-        self._Config()
-        return self['Config'].get_RefArea(comp)
-        
-    # Set config file name
-    def set_RefArea(self, A=rc0('RefArea'), comp=None):
-        self._Config()
-        self['Config'].set_RefArea(A, comp)
-    
-    # Get reference length
-    def get_RefLength(self, comp=None):
-        self._Config()
-        return self['Config'].get_RefLength(comp)
-        
-    # Set config file name
-    def set_RefLength(self, L=rc0('RefLength'), comp=None):
-        self._Config()
-        self['Config'].set_RefLength(L, comp)
-    
-    # Get moment reference point
-    def get_RefPoint(self, comp=None):
-        self._Config()
-        return self['Config'].get_RefPoint(comp)
-        
-    # Set moment reference point
-    def set_RefPoint(self, x=rc0('RefPoint'), comp=None):
-        self._Config()
-        self['Config'].set_RefPoint(x, comp)
-        
-    # Get valid point
-    def get_Point(self, name=None):
-        self._Config()
-        return self['Config'].get_Point(name)
-        
-    # Set valid point
-    def set_Point(self, x=rc0('RefPoint'), name=None):
-        self._Config()
-        self['Config'].set_Point(x, name)
-        
-    # Expand point/dictionary of points
-    def expand_Point(self, x):
-        self._Config()
-        return self['Config'].expand_Point(x)
-    expand_Point.__doc__ = Config.expand_Point.__doc__
-        
-    # Copy over the documentation.
-    for k in ['ConfigFile', 'RefArea', 'RefLength', 'RefPoint', 'Point']:
-        # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(Config,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(Config,'set_'+k).__doc__
-        
+   # <
         
     # Get list of components to request forces for
     def get_ClicForces(self, i=None):
@@ -1538,12 +1174,14 @@ class Options(odict):
         eval('get_'+k+'s').__doc__ = getattr(Config,'get_'+k+'s').__doc__
         eval('set_'+k+'s').__doc__ = getattr(Config,'set_'+k+'s').__doc__
         eval('add_'+k).__doc__ = getattr(Config,'add_'+k).__doc__
-
+   # >
+   
     
     # ========
     # Plotting
     # ========
-    
+   # <
+   
     # Get list of components to plot
     def get_PlotComponents(self):
         self._Plot()
@@ -1623,65 +1261,13 @@ class Options(odict):
             'nPlotCols', 'PlotRestriction', 'PlotDelta']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Plot,'get_'+k).__doc__
+   # >
+   
     
     # =========
     # Data book
     # =========
-    
-    # Get list of components.
-    def get_DataBookComponents(self):
-        self._DataBook()
-        return self['DataBook'].get_DataBookComponents()
-        
-    # Get list of line load components.
-    def get_DataBookLineLoads(self):
-        self._DataBook()
-        return self['DataBook'].get_DataBookLineLoads()
-    
-    # Get list of coefficients for a specific component
-    def get_DataBookCoeffs(self, comp):
-        self._DataBook()
-        return self['DataBook'].get_DataBookCoeffs(comp)
-        
-    # Get data book targets for a specific coefficient
-    def get_CompTargets(self, comp):
-        self._DataBook()
-        return self['DataBook'].get_CompTargets(comp)
-        
-    # Get data book transformations for a specific component
-    def get_DataBookTransformations(self, comp):
-        self._DataBook()
-        return self['DataBook'].get_DataBookTransformations(comp)
-        
-    # Get data book columns for a specific coefficient
-    def get_DataBookCols(self, comp):
-        self._DataBook()
-        return self['DataBook'].get_DataBookCols(comp)
-        
-    # Get data book data columns for a specific coefficient
-    def get_DataBookDataCols(self, comp):
-        self._DataBook()
-        return self['DataBook'].get_DataBookDataCols(comp)
-        
-    # Get data book target columns for a specific coefficient
-    def get_DataBookTargetCols(self, comp):
-        self._DataBook()
-        return self['DataBook'].get_DataBookTargetCols(comp)
-    
-    # Get list of targets
-    def get_DataBookTargets(self):
-        self._DataBook()
-        return self['DataBook'].get_DataBookTargets()
-        
-    # Get components for a line load
-    def get_LineLoadComponents(self, comp):
-        self._DataBook()
-        return self['DataBook'].get_LineLoadComponents(comp)
-        
-    # Get number of cuts for a line load group
-    def get_LineLoad_nCut(self, comp):
-        self._DataBook()
-        return self['DataBook'].get_LineLoad_nCut(comp)
+   # <
         
     # Get Mach number option
     def get_ComponentMach(self, comp):
@@ -1699,96 +1285,18 @@ class Options(odict):
         return self['DataBook'].get_ComponentReynoldsNumber(comp)
     
     # Copy over the documentation.
-    for k in ['DataBookComponents', 'DataBookLineLoads',
-            'DataBookCoeffs', 'DataBookTargets',
-            'DataBookCols', 'CompTargets', 'DataBookTransformations',
-            'DataBookDataCols', 'DataBookTargetCols',
-            'LineLoadComponents', 'LineLoad_nCut', 'ComponentGamma',
-            'ComponentMach', 'ComponentReynoldsNumber'
+    for k in [
+        'ComponentGamma', 'ComponentMach', 'ComponentReynoldsNumber'
     ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
-    
-    # Number of iterations used for statistics
-    def get_nStats(self):
-        self._DataBook()
-        return self['DataBook'].get_nStats()
-    
-    # Set number of iterations
-    def set_nStats(self, nStats=rc0('db_stats')):
-        self._DataBook()
-        self['DataBook'].set_nStats(nStats)
-    
-    # Min iteration used for statistics
-    def get_nMin(self):
-        self._DataBook()
-        return self['DataBook'].get_nMin()
-    
-    # Min iterationused for statistics
-    def set_nMin(self, nMin=rc0('db_min')):
-        self._DataBook()
-        self['DataBook'].set_nMin(nMin)
-    
-    # Max number of iterations used for statistics
-    def get_nMaxStats(self):
-        self._DataBook()
-        return self['DataBook'].get_nMaxStats()
-    
-    # Max number of iterations used for statistics
-    def set_nMaxStats(self, nMax=rc0('db_max')):
-        self._DataBook()
-        self['DataBook'].set_nMaxStats(nMax)
-    
-    # Max iter for statistics
-    def get_nLastStats(self):
-        self._DataBook()
-        return self['DataBook'].get_nLastStats()
-    
-    # Max iter for statistics
-    def set_nLastStats(self, nLast=None):
-        self._DataBook()
-        self['DataBook'].set_nLastStats(nLast)
-        
-    # Data book directory
-    def get_DataBookDir(self):
-        self._DataBook()
-        return self['DataBook'].get_DataBookDir()
-    
-    # Set data book directory
-    def set_DataBookDir(self, fdir=rc0('db_dir')):
-        self._DataBook()
-        self['DataBook'].set_DataBookDir(fdir)
-        
-    # Data book file delimiter
-    def get_Delimiter(self):
-        self._DataBook()
-        return self['DataBook'].get_Delimiter()
-        
-    # Set data book file delimiter
-    def set_Delimiter(self, delim=rc0('Delimiter')):
-        self._DataBook()
-        self['DataBook'].set_Delimiter(delim)
-        
-    # Key to use for sorting the data book
-    def get_SortKey(self):
-        self._DataBook()
-        return self['DataBook'].get_SortKey()
-    
-    # Set key to use for sorting the data book
-    def set_SortKey(self, key):
-        self._DataBook()
-        self['DataBook'].set_SortKey(key)
-        
-    # Copy over the documentation.
-    for k in ['nStats', 'nMin', 'nMaxStats', 'nLastStats', 
-            'DataBookDir', 'Delimiter', 'SortKey']:
-        # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(DataBook,'set_'+k).__doc__
+   # >
+   
     
     # =======
     # Reports
     # =======
+   # <
     
     # Get report list
     def get_ReportList(self):
@@ -1921,18 +1429,10 @@ class Options(odict):
         return self['Report'].get_SweepOpt(fswp, opt)
     
     # Copy over the documentation
-    for k in ['ReportList', 'SweepList', 'FigList', 'SubfigList',
-            'Figure', 'Subfigure', 'Report', 'Sweep',
-            'ReportFigList', 'ReportErrorFigList', 'ReportZeroFigList', 
-            'ReportSweepList', 'SweepFigList',
-            'ReportTitle', 'ReportAuthor',
-            'ReportRestriction', 'ReportLogo',  'ReportArchive',
-            'FigSubfigList', 'FigAlignment', 'FigHeader',
-            'SubfigType', 'SubfigBaseType', 'SubfigOpt', 'SweepOpt',
-            'SubfigPlotOpt'
-    ]:
+    for k in []:
         # Get the documentation from the submodule
         eval('get_'+k).__doc__ = getattr(Report,'get_'+k).__doc__
+   # >
     
     
     
