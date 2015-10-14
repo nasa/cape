@@ -276,6 +276,10 @@ class Cart3d(Cntl):
     #    # Output
     #    return pbs
     #    
+    
+    def CaseStartCase(self):
+        return case.StartCase()
+
     ## Function to terminate a case: qdel and remove RUNNING file
     #def StopCase(self, i):
     #    """

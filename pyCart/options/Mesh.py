@@ -433,7 +433,17 @@ class Mesh(odict):
         :Versions:
             * 2014-10-08 ``@ddalle``: First version
         """
-        return self.get_key('preSpecCntl')
+        # Get the value
+        self._cubes()
+        fpre = self['cubes'].get_key('pre')
+        # Check for ``None``
+        if fpre is None:
+            # Use default
+            return rc0('preSpecCntl')
+        else:
+            # Specified value
+            return fpre
+
         
     # Set the mesh prespecification file
     def set_preSpecCntl(self, fpre=rc0('preSpecCntl')):
@@ -449,7 +459,8 @@ class Mesh(odict):
         :Versions:
             * 2014-10-08 ``@ddalle``: First version
         """
-        self.set_key('preSpecCntl', fpre)
+        self._cubes()
+        self['cubes'].set_key('pre', fpre)
         
         
     # Get the mesh input file
@@ -467,7 +478,15 @@ class Mesh(odict):
         :Versions:
             * 2014-10-08 ``@ddalle``: First version
         """
-        return self.get_key('inputC3d')
+        # Get value
+        fc3d = self.get_key('inputC3d')
+        # Check for default.
+        if fc3d is None:
+            # Code default
+            return rc0('inputC3d')
+        else:
+            # Specified value
+            return fc3d
         
     # Set the mesh input file
     def set_inputC3d(self, fc3d=rc0('inputC3d')):

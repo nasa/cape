@@ -23,9 +23,11 @@ import os
 # Local modules
 from . import options
 from . import queue
+from . import case
 
 # Functions and classes from other modules
 from trajectory import Trajectory
+from config     import Config
 
 # Import triangulation
 from tri import Tri, RotatePoints
@@ -396,7 +398,7 @@ class Cntl(object):
         # Print status.
         print("     Starting case '%s'." % frun)
         # Start the case by either submitting or calling it.
-        pbs = case.StartCase()
+        pbs = self.CaseStartCase()
         # Display the PBS job ID if that's appropriate.
         if pbs:
             print("     Submitted job: %i" % pbs)
@@ -404,6 +406,10 @@ class Cntl(object):
         os.chdir(fpwd)
         # Output
         return pbs
+
+    # Function to start the case
+    def CaseStartCase(self):
+        return case.StartCase()
         
     # Function to terminate a case: qdel and remove RUNNING file
     def StopCase(self, i):
