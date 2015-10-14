@@ -23,8 +23,8 @@ value of a given parameter should be is below.
 
 # Interaction with the OS
 import os
-# JSON module
-import json
+# Text processing
+import re, json
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -216,8 +216,7 @@ def setel(x, i, xi):
 
 # Function to ensure scalar from above
 def rc0(p):
-    """
-    Return default setting from ``pyCart.options.rc``, but ensure a scalar
+    """Return default setting from ``cape.options.rc``, but ensure a scalar
     
     :Call:
         >>> v = rc0(s)
@@ -233,7 +232,7 @@ def rc0(p):
     # Use the `getel` function to do this.
     return getel(rc[p], 0)
     
-
+    
 # Function to delete comment lines.
 def stripComments(lines, char='#'):
     """
@@ -271,7 +270,68 @@ def stripComments(lines, char='#'):
             lines[i] = lines[i].rstrip()
     # Return the remaining lines.
     return '\n'.join(lines)
+    
 
+# Function to expand CSV file inputs
+def expandJSONFile(lines):
+    """Expand contents of other JSON files
+    
+    :Call:
+        >>> L = expandJSONFile(lines)
+        >>> L = expandJSONFile(txt)
+    :Inputs:
+        *lines*: :class:`list` (:class:`str`)
+            List of lines from a file
+        *txt*: :class:`str`
+            Single string of text including newline characters
+    :Outputs:
+        *L*: (:class:`str`)
+            Full text with references to JSON file(s) expanded
+    :Versions:
+        * 2015-10-14 ``@ddalle``: First version
+    """
+    # Strip comments
+    lines = stripComments(lines, '#')
+    lines = stripComments(lines, '//')
+    # Split lines
+    lines = lines.split('\n')
+    # Start with the first line.
+    i = 0
+    # Loop through lines.
+    while i < len(lines):
+        # Get the line.
+        line = lines[i]
+        # Check for JSON file
+        if 'JSONFile' not in line:
+            # Go to next line.
+            i += 1
+            continue
+        # Get the tag.
+        txt = re.findall('JSONFile\([-"/\\w.= ]+\)', line)
+        # Double check match
+        if len(txt) == 0:
+            # Go to next line.
+            i += 1
+            continue
+        # Split the line on the JSONFile() command
+        j = line.index('JSONFile(')
+        # Extract the file name.
+        fjson = re.findall('"[-/\\w.= ]+"', txt[0])[0].strip('"')
+        # Read that file.
+        lines_json = open(fjson, 'r').readlines()
+        # Strip that file of comments.
+        lines_json = stripComments(lines_json, '#')
+        lines_json = stripComments(lines_json, '//')
+        # Return to list format
+        lines_json = lines_json.split('\n')
+        # Split the line on this command.
+        line_0 = [line[:j] + lines_json[0]]
+        line_1 = [lines_json[-1] + line[j+len(txt[0]):]]
+        # Insert the new line set.
+        lines = lines[:i] + line_0 + lines_json[1:-1] + line_1 + lines[i+1:]
+    # Return the lines as one string.
+    return '\n'.join(lines)
+    
 
 # Function to get the default settings.
 def getDefaults(fname):

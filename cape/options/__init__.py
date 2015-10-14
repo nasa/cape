@@ -55,9 +55,8 @@ class Options(odict):
         if fname:
             # Read the input file.
             lines = open(fname).readlines()
-            # Strip comments and join list into a single string.
-            lines = stripComments(lines, '#')
-            lines = stripComments(lines, '//')
+            # Expand references to other JSON files and strip comments
+            lines = expandJSONFile(lines)
             # Get the equivalent dictionary.
             d = json.loads(lines)
             # Loop through the keys.

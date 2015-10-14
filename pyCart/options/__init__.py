@@ -64,9 +64,8 @@ class Options(cape.options.Options):
         if fname:
             # Read the input file.
             lines = open(fname).readlines()
-            # Strip comments and join list into a single string.
-            lines = stripComments(lines, '#')
-            lines = stripComments(lines, '//')
+            # Expand references to other JSON files and strip comments
+            lines = expandJSONFile(lines)
             # Get the equivalent dictionary.
             d = json.loads(lines)
             # Loop through the keys.
@@ -141,6 +140,75 @@ class Options(cape.options.Options):
         elif type(self['Mesh']).__name__ == 'dict':
             # Convert to special class.
             self['Mesh'] = Mesh(**self['Mesh'])
+            
+    # Initialization and confirmation for PBS options
+    def _PBS(self):
+        """Initialize PBS options if necessary"""
+        # Check status.
+        if 'PBS' not in self:
+            # Missing entirely
+            self['PBS'] = PBS()
+        elif type(self['PBS']).__name__ == 'dict':
+            # Add prefix to all the keys.
+            tmp = {}
+            for k in self['PBS']:
+                tmp["PBS_"+k] = self['PBS'][k]
+            # Convert to special class.
+            self['PBS'] = PBS(**tmp)
+    
+    # Initialization method for folder management optoins
+    def _Management(self):
+        """Initialize folder management options if necessary"""
+        # Check status.
+        if 'Management' not in self:
+            # Missing entirely.
+            self['Management'] = Management()
+        elif type(self['Management']).__name__ == 'dict':
+            # Convert to special class
+            self['Management'] = Management(**self['Management'])
+            
+    # Initialization method for databook
+    def _DataBook(self):
+        """Initialize data book options if necessary"""
+        # Check status.
+        if 'DataBook' not in self:
+            # Missing entirely.
+            self['DataBook'] = DataBook()
+        elif type(self['DataBook']).__name__ == 'dict':
+            # Convert to special class
+            self['DataBook'] = DataBook(**self['DataBook'])
+            
+    # Initialization method for automated report
+    def _Report(self):
+        """Initialize report options if necessary"""
+        # Check status.
+        if 'Report' not in self:
+            # Missing entirely.
+            self['Report'] = Report()
+        elif type(self['Report']).__name__ == 'dict':
+            # Convert to special class
+            self['Report'] = Report(**self['Report'])
+            
+    # Initialization and confirmation for PBS options
+    def _Config(self):
+        """Initialize configuration options if necessary"""
+        # Check status.
+        if 'Config' not in self:
+            # Missing entirely
+            self['Config'] = Config()
+        elif type(self['Config']).__name__ == 'dict':
+            # Add prefix to all the keys.
+            tmp = {}
+            for k in self['Config']:
+                # Check for "File"
+                if k == 'File':
+                    # Add prefix.
+                    tmp["Config"+k] = self['Config'][k]
+                else:
+                    # Use the key as is.
+                    tmp[k] = self['Config'][k]
+            # Convert to special class.
+            self['Config'] = Config(**tmp)
             
     # Initialization method for Cart3D output functional
     def _Functional(self):
