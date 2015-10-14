@@ -246,6 +246,28 @@ class Cart3d(Cntl):
             * 2015-10-14 ``@ddalle``: First version
         """
         return case.StartCase()
+        
+    # Get the current iteration number from :mod:`case`
+    def CaseGetCurrentIter(self):
+        """Get the current iteration number from the appropriate module
+        
+        This function utilizes the :mod:`cape.case` module, and so it must be
+        copied to the definition for each solver's control class
+        
+        :Call:
+            >>> n = cart3d.CaseGetCurrentIter()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Outputs:
+            *n*: :class:`int` or ``None``
+                Number of completed iterations or ``None`` if not set up
+        :Versions:
+            * 2015-10-14 ``@ddalle``: First version
+        """
+        return case.GetCurrentIter()
             
     # Function to check if the mesh for case i exists
     def CheckMesh(self, i):

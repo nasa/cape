@@ -558,6 +558,7 @@ class Cntl(object):
         :Versions:
             * 2014-09-27 ``@ddalle``: First version
             * 2015-09-27 ``@ddalle``: Generic version
+            * 2015-10-14 ``@ddalle``: Removed dependence on :mod:`case`
         """
          # Check input.
         if type(i).__name__ not in ["int", "int64", "int32"]:
@@ -578,13 +579,36 @@ class Cntl(object):
             # Go to the group folder.
             os.chdir(frun)
             # Check the history iteration
-            n = case.GetCurrentIter()
+            n = self.CaseGetCurrentIter()
         # If zero, check if the required files are set up.
         if (n == 0) and self.CheckNone(): n = None
         # Return to original folder.
         os.chdir(fpwd)
         # Output.
         return n
+        
+    # Get the current iteration number from :mod:`case`
+    def CaseGetCurrentIter(self):
+        """Get the current iteration number from the appropriate module
+        
+        This function utilizes the :mod:`cape.case` module, and so it must be
+        copied to the definition for each solver's control class
+        
+        :Call:
+            >>> n = cntl.CaseGetCurrentIter()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Outputs:
+            *n*: :class:`int` or ``None``
+                Number of completed iterations or ``None`` if not set up
+        :Versions:
+            * 2015-10-14 ``@ddalle``: First version
+        """
+        return case.GetCurrentIter()
+        
         
     # Check if cases with zero iterations are not yet setup to run
     def CheckNone(self):
