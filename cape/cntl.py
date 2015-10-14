@@ -406,9 +406,24 @@ class Cntl(object):
         os.chdir(fpwd)
         # Output
         return pbs
-
-    # Function to start the case
+    
     def CaseStartCase(self):
+        """Start a case by either submitting it or running it
+        
+        This function relies on :mod:`cape.case`, and so it is customized for
+        the correct solver only in that it calls the correct *case* module.
+        
+        :Call:
+            >>> pbs = cart3d.CaseStartCase()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+        :Outputs:
+            *pbs*: :class:`int` or ``None``
+                PBS job ID if submitted successfully
+        :Versions:
+            * 2015-10-14 ``@ddalle``: First version
+        """
         return case.StartCase()
         
     # Function to terminate a case: qdel and remove RUNNING file

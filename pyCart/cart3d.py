@@ -227,89 +227,25 @@ class Cart3d(Cntl):
         self.DataBook.Write()
         # Return to original location.
         os.chdir(fpwd)
-        
-    ## Function to start a case: submit or run
-    #def StartCase(self, i):
-    #    """Start a case by either submitting it 
-    #    
-    #    This function checks whether or not a case is submittable.  If so, the
-    #    case is submitted via :func:`pyCart.queue.pqsub`, and otherwise the
-    #    case is started using a system call.
-    #    
-    #    It is assumed that the case has been prepared.
-    #    
-    #    :Call:
-    #        >>> pbs = cart3d.StartCase(i)
-    #    :Inputs:
-    #        *cart3d*: :class:`pyCart.cart3d.Cart3d`
-    #            Instance of control class containing relevant parameters
-    #        *i*: :class:`int`
-    #            Index of the case to check (0-based)
-    #    :Outputs:
-    #        *pbs*: :class:`int` or ``None``
-    #            PBS job ID if submitted successfully
-    #    :Versions:
-    #        * 2014-10-06 ``@ddalle``: First version
-    #    """
-    #    # Check status.
-    #    if self.CheckCase(i) is None:
-    #        # Case not ready
-    #        return
-    #    elif self.CheckRunning(i):
-    #        # Case already running!
-    #        return
-    #    # Safely go to root directory.
-    #    fpwd = os.getcwd()
-    #    os.chdir(self.RootDir)
-    #    # Get case name and go to the folder.
-    #    frun = self.x.GetFullFolderNames(i)
-    #    os.chdir(frun)
-    #    # Print status.
-    #    print("     Starting case '%s'." % frun)
-    #    # Start the case by either submitting or calling it.
-    #    pbs = case.StartCase()
-    #    # Display the PBS job ID if that's appropriate.
-    #    if pbs:
-    #        print("     Submitted job: %i" % pbs)
-    #    # Go back.
-    #    os.chdir(fpwd)
-    #    # Output
-    #    return pbs
-    #    
     
     def CaseStartCase(self):
+        """Start a case by either submitting it or running it
+        
+        This function relies on :mod:`pyCart.case`, and so it is customized for
+        the Cart3D solver only in that it calles the correct *case* module.
+        
+        :Call:
+            >>> pbs = cart3d.CaseStartCase()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+        :Outputs:
+            *pbs*: :class:`int` or ``None``
+                PBS job ID if submitted successfully
+        :Versions:
+            * 2015-10-14 ``@ddalle``: First version
+        """
         return case.StartCase()
-
-    ## Function to terminate a case: qdel and remove RUNNING file
-    #def StopCase(self, i):
-    #    """
-    #    Stop a case by deleting its PBS job and removing the :file:`RUNNING`
-    #    file.
-    #    
-    #    :Call:
-    #        >>> cart3d.StopCase(i)
-    #    :Inputs:
-    #        *cart3d*: :class:`pyCart.cart3d.Cart3d`
-    #            Instance of control class containing relevant parameters
-    #        *i*: :class:`int`
-    #            Index of the case to check (0-based)
-    #    :Versions:
-    #        * 2014-12-27 ``@ddalle``: First version
-    #    """
-    #    # Check status.
-    #    if self.CheckCase(i) is None:
-    #        # Case not ready
-    #        return
-    #    # Safely go to root directory.
-    #    fpwd = os.getcwd()
-    #    os.chdir(self.RootDir)
-    #    # Get the case name and go there.
-    #    frun = self.x.GetFullFolderNames(i)
-    #    os.chdir(frun)
-    #    # Stop the job if possible.
-    #    case.StopCase()
-    #    # Go back.
-    #    os.chdir(fpwd)
             
     # Function to check if the mesh for case i exists
     def CheckMesh(self, i):

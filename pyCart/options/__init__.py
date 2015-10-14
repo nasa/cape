@@ -73,6 +73,8 @@ class Options(cape.options.Options):
                 kw[k] = d[k]
         # Read the defaults.
         defs = getPyCartDefaults()
+        print(defs['Mesh'])
+        
         # Apply the defaults.
         kw = applyDefaults(kw, defs)
         # Store the data in *this* instance

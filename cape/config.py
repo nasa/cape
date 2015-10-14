@@ -1,6 +1,6 @@
 """
-Module to interface with configuration files: :mod:`pyCart.Config`
-==================================================================
+Module to interface with TRI configuration files: :mod:`cape.Config`
+====================================================================
 
 This is a module to interact with :file:`Config.xml` files.
 """
@@ -61,7 +61,7 @@ class Config:
     """Configuration class for interfacing :file:`Config.xml` files
     
     :Call:
-        >>> cfg = pyCart.Config(fname='Config.xml')
+        >>> cfg = cape.Config(fname='Config.xml')
     :Inputs:
         *fname*: :class:`str`
             Name of configuration file to read
@@ -131,10 +131,10 @@ class Config:
         """
         Return the string representation of a :file:`Config.xml` file.
         
-        This looks like ``<pyCart.Config(nComp=N, faces=['Core', ...])>``
+        This looks like ``<cape.Config(nComp=N, faces=['Core', ...])>``
         """
         # Return a string.
-        return '<pyCart.Config(nComp=%i, faces=%s)>' % (
+        return '<cape.Config(nComp=%i, faces=%s)>' % (
             len(self.faces), self.faces.keys())
         
     # Method to get CompIDs from generic input
@@ -144,7 +144,7 @@ class Config:
         :Call:
             >>> compID = cfg.GetCompID(face)
         :Inputs:
-            *cfg*: :class:`pyCart.config.Config`
+            *cfg*: :class:`cape.config.Config`
                 Instance of configuration class
             *face*: :class:`str` or :class:`int` or :class:`list`
                 Component number, name, or list of component numbers and names
@@ -188,10 +188,10 @@ class Config:
         :Call:
             >>> cfg2 = cfg.Copy()
         :Inputs:
-            *cfg*: :class:`pyCart.config.Config`
+            *cfg*: :class:`cape.config.Config`
                 Instance of configuration class
         :Outputs:
-            *cfg2*: :class:`pyCart.config.Config`
+            *cfg2*: :class:`cape.config.Config`
                 Copy of input
         :Versions:
             * 2014-11-24 ``@ddalle``: First version
