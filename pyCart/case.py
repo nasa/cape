@@ -169,7 +169,9 @@ def run_flowCart(verify=False, isect=False):
         # Call flowCart directly.
         cmdi = cmd.flowCart(fc=fc, i=i, n=n)
         # Run the command.
+        print("Label 041")
         bin.callf(cmdi, f='flowCart.out')
+        print("Label 042")
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
     # Clean up the folder as appropriate.
