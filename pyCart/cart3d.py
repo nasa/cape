@@ -729,6 +729,7 @@ class Cart3d(Cntl):
         funcs = [self.x.defns[key]['Function'] for key in keys] 
         # Reread the input file(s).
         self.ReadInputCntl()
+        self.ReadAeroCsh()
         # Loop through the functions.
         for (key, func) in zip(keys, funcs):
             # Apply it.
@@ -886,7 +887,7 @@ class Cart3d(Cntl):
         # Go to the root directory.
         os.chdir(self.RootDir)
         # Make folder if necessary.
-        if not os.path.isdir(frun): os.mkdir(frun, dmask)
+        if not os.path.isdir(frun): self.mkdir(frun)
         # Go to the folder.
         os.chdir(frun)
         # Determine number of unique PBS scripts.
@@ -1002,7 +1003,7 @@ class Cart3d(Cntl):
         # Folder name to hold subtriangulations and 3-view plots
         fdir = "subtri"
         # Create the folder if necessary.
-        if not os.path.isdir(fdir): os.mkdir(fdir, dmask)
+        if not os.path.isdir(fdir): self.mkdir(fdir)
         # Go to the folder.
         os.chdir(fdir)
         # Be safe.
@@ -1226,13 +1227,33 @@ class Cart3d(Cntl):
         :Versions:
             * 2015-06-13 ``@ddalle``: First version
         """
-        # Save location
+        # Change to root safely.
         fpwd = os.getcwd()
-        # Change to root.
         os.chdir(self.RootDir)
         # Read the file.
         self.InputCntl = InputCntl(self.opts.get_InputCntl())
         # Go back to original location
+        os.chdir(fpwd)
+        
+    # Function re read "aero.csh" files
+    def ReadAeroCsh(self):
+        """Read the :file:`aero.csh` file
+
+        :Call:
+            >>> cart3d.ReadAeroCsh()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+        :Versions:
+            * 2015-10-14 ``@ddalle``: Revived from deletion
+        """
+        # Check for adaptation.
+        if not np.any(self.opts.get_use_aero_csh()): return
+        # Change to root safely.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Read the file.
+        self.AeroCsh = AeroCsh(self.opts.get_AeroCsh())
+        # Go back to original location.
         os.chdir(fpwd)
     
     # Function to prepare "input.cntl" files
@@ -1306,7 +1327,7 @@ class Cart3d(Cntl):
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
-        if not os.path.isdir(frun): os.mkdir(frun, dmask)
+        if not os.path.isdir(frun): self.mkdir(frun)
         # Get the cut planes.
         XSlices = self.opts.get_Xslices()
         YSlices = self.opts.get_Yslices()
@@ -1387,7 +1408,7 @@ class Cart3d(Cntl):
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
-        if not os.path.isdir(frun): os.mkdir(frun, dmask)
+        if not os.path.isdir(frun): self.mkdir(frun)
         # Loop through the run sequence.
         for j in range(self.opts.get_nSeq()):
             # Only write aero.csh for adaptive cases.
@@ -1425,7 +1446,7 @@ class Cart3d(Cntl):
             # Write the input file.
             self.AeroCsh.Write(fout)
             # Make it executable.
-            os.chmod(fout, dmask)
+            os.chmod(fout, 0777 - self.opts.get_umask())
         # Go back home.
         os.chdir(fpwd)
         # Done

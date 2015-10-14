@@ -26,7 +26,7 @@ class adjointCart(odict):
         :Versions:
             * 2014.08.01 ``@ddalle``: First version
         """
-        return self.get_key('it_fc', i)
+        return self.get_key('it_ad', i)
         
     # Set adjointCart iteration count
     def set_it_ad(self, it_ad=rc0('it_ad'), i=None):

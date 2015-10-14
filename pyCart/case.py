@@ -107,7 +107,7 @@ def run_flowCart(verify=False, isect=False):
     # Check for adaptive runs.
     if fc.get_use_aero_csh(i):
         # Delete the existing aero.csh file
-        if os.path.isfile('aero.csh'): os.remove('aero.csh')
+        if os.path.islink('aero.csh'): os.remove('aero.csh')
         # Create a link to this run.
         os.symlink('aero.%02i.csh' % i, 'aero.csh')
         # Call the aero.csh command
