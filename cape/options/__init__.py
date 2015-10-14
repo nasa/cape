@@ -119,8 +119,10 @@ class Options(odict):
         """
         # Get umask
         umask = self.get_umask()
+        # Apply umask
+        dmask = 0777 - umask
         # Make the directory.
-        os.mkdir(fdir, umask)
+        os.mkdir(fdir, dmask)
     
     # ============
     # Initializers

@@ -178,8 +178,10 @@ class Cntl(object):
         """
         # Get umask
         umask = self.opts.get_umask()
+        # Apply mask
+        dmask = 0777 - umask
         # Make the directory.
-        os.mkdir(fdir, umask)
+        os.mkdir(fdir, dmask)
         
     # Function to display current status
     def DisplayStatus(self, **kw):
