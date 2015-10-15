@@ -27,11 +27,22 @@ class InputCntl(FileCntl):
     class.
     
     :Call:
-        >>> cntl = pyCart.InputCntl()
-        >>> cntl = pyCart.InputCntl(fname)
+        >>> IC = pyCart.InputCntl()
+        >>> IC = pyCart.InputCntl(fname)
     :Inputs:
         *fname*: :class:`str`
             Name of CNTL file to read, defaults to ``'input.cntl'``
+    :Outputs:
+        *IC*: :class:`pyCart.inputCntl.InputCntl`
+            Interface to :file:`input.cntl` and its settings
+        *IC.fname*: :class:`str`
+            Name of the file that was read
+        *IC.lines*: :class:`list` (:class:`str`)
+            List of lines, which may be altered
+        *IC.SectionNames*: :class:`list` (:class:`str`)
+            List of section names
+        *IC.Section*: :class:`dict` (:class:`list`)
+            Lines split into sections by section name
     :Version:
         * 2014-06-04 ``@ddalle``: First version
     """
