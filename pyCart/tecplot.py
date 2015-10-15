@@ -78,6 +78,48 @@ class Tecscript(FileCntl):
         # Get the command list
         self.UpdateCommands()
         
+    # Set variable
+    def SetVar(self, key, val):
+        """Set a variable to a particular value
+        
+        :Call:
+            >>> tec.SetVar(key, val)
+        :Inputs:
+            *tec*: :class:`pyCart.tecplot.Tecscript` or derivative
+                Instance of Tecplot script base class
+            *key*: :class:`str`
+                Name of variable
+            *val*: any
+                Value to set the variable, converted via :func:`str`
+        :Versions:
+            * 2015-10-15 ``@ddalle``: First version
+        """
+        # Form the command
+        cmd = 'VarSet'
+        # Form the text to replace
+        reg = '\|%s\|' % key
+        # Form the text to insert
+        txt = '|%s| = %s' % (key, val)
+        # Replace or insert the command
+        self.ReplaceCommand('VarSet', txt=txt, reg=reg)
+        
+    # Set the freestream Mach number
+    def SetMach(self, mach):
+        """Set the freestream Mach number
+        
+        :Call:
+            >>> tec.SetMach(mach)
+        :Inputs:
+            *tec*: :class:`pyCart.tecplot.Tecscript` or derivative
+                Instance of Tecplot script base class
+            *mach*: :class:`float`
+                Freestream Mach number
+        :Versions:
+            * 2015-10-15 ``@ddalle``: First version
+        """
+        # Set the variable
+        self.SetVar('Minf', mach)
+        
     # Function to get command names and line indices
     def UpdateCommands(self):
         """Find lines that start with '$!' and report their indices
@@ -111,6 +153,8 @@ class Tecscript(FileCntl):
         :Inputs:
             *tec*: :class:`pyCart.tecplot.Tecscript` or derivative
                 Instance of Tecplot script base class
+            *cmd*: :class:`str`
+                Title of the command to delete
             *txt*: :class:`str`
                 Regular expression for text after the command
             *lines*: :class:`list` (:class:`str`)
@@ -206,6 +250,8 @@ class Tecscript(FileCntl):
         :Inputs:
             *tec*: :class:`pyCart.tecplot.Tecscript` or derivative
                 Instance of Tecplot script base class
+            *cmd*: :class:`str`
+                Title of the command to insert
             *txt*: :class:`str`
                 Text to add after the command on the same line
             *lines*: :class:`list` (:class:`str`)
@@ -247,6 +293,8 @@ class Tecscript(FileCntl):
         :Inputs:
             *tec*: :class:`pyCart.tecplot.Tecscript` or derivative
                 Instance of Tecplot script base class
+            *cmd*: :class:`str`
+                Title of the command to replace
             *txt*: :class:`str`
                 Text to add after the command on the same line
             *lines*: :class:`list` (:class:`str`)
@@ -371,5 +419,6 @@ class TecMacro(Tecscript):
         txt = 'IMAGEWIDTH = %i' % w
         # Do the replacement
         self.ReplaceCommand('EXPORTSETUP', txt, k=-3, reg='IMAGEWIDTH')
-        
+# class TecMacro
+
     

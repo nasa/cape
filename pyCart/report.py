@@ -1727,7 +1727,7 @@ class Report(object):
         """Create image based on a Tecplot layout file
         
         :Call:
-            >>> lines = R.SubfigTecplot3View(sfig, i)
+            >>> lines = R.SubfigTecplotLayout(sfig, i)
         :Inputs:
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
@@ -1780,6 +1780,15 @@ class Report(object):
             fsrc = os.path.join(self.cart3d.RootDir, flay)
             # Get just the file name
             flay = os.path.split(flay)[-1]
+            # Read the Mach number option
+            omach = opts.get_SubfigOpt(sfig, "Mach")
+            # Read the Tecplot layout
+            tec = Tecscript(fsrc)
+            # Set the Mach number
+            try:
+                tec.SetMach(getattr(self.cart3d.x,omach)[i])
+            except Exception:
+                pass
             # Figure width in pixels (can be ``None``).
             wfig = opts.get_SubfigOpt(sfig, "FigWidth")
             # Layout file without extension
@@ -1792,7 +1801,7 @@ class Report(object):
                 # Run Tecplot
                 try:
                     # Copy the file into the current folder.
-                    shutil.copy(fsrc, '.')
+                    tec.Write(flay)
                     # Run the layout.
                     ExportLayout(flay, fname=fname, w=wfig)
                     # Move the file.
@@ -1802,7 +1811,7 @@ class Report(object):
                         '\\includegraphics[width=\\textwidth]{%s/%s}\n'
                         % (frun, fname))
                     # Remove the layout file.
-                    os.remove(flay)
+                    #os.remove(flay)
                 except Exception:
                     pass
         # Go to the report case folder
@@ -2584,5 +2593,6 @@ class Report(object):
         else:
             # Untar if necessary
             tar.chdir_in(fdir)
-        
+# class Report
+
         
