@@ -47,7 +47,7 @@ def ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", w=None):
     # Run the macro
     tecmcr(mcr=fmcr)
     # Remove the macro
-    os.remove(fmcr)
+    #os.remove(fmcr)
 
 # Base this class off of the main file control class.
 class Tecscript(FileCntl):

@@ -11,7 +11,7 @@ from cape import tex, tar
 from .dataBook import Aero, CaseFM, CaseResid
 # Folder and Tecplot management
 from .case    import LinkPLT
-from .tecplot import ExportLayout
+from .tecplot import ExportLayout, Tecscript
 # Configuration and surface tri
 from .tri    import Tri
 from .config import Config
@@ -1791,10 +1791,12 @@ class Report(object):
                 pass
             # Figure width in pixels (can be ``None``).
             wfig = opts.get_SubfigOpt(sfig, "FigWidth")
+            # Width in the report
+            wplt = opts.get_SubfigOpt(sfig, "Width")
             # Layout file without extension
             fname = ".".join(flay.split(".")[:-1])
             # Figure file name.
-            fname = "%s-%s.png" % (sfig, fname)
+            fname = "%s.png" % (sfig)
             # Check for the files.
             if (os.path.isfile('Components.i.plt') and 
                     os.path.isfile('cutPlanes.plt')):
@@ -1806,10 +1808,12 @@ class Report(object):
                     ExportLayout(flay, fname=fname, w=wfig)
                     # Move the file.
                     os.rename(fname, os.path.join(fpwd,fname))
-                    # Include the graphics.
-                    lines.append(
+                    # Form the line
+                    line = (
                         '\\includegraphics[width=\\textwidth]{%s/%s}\n'
                         % (frun, fname))
+                    # Include the graphics.
+                    lines.append(line)
                     # Remove the layout file.
                     #os.remove(flay)
                 except Exception:
