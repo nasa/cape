@@ -607,8 +607,13 @@ class Aero(cape.dataBook.Aero):
             # Convert all the values to floats
             # Can't make this an array yet because it's not rectangular.
             V = [[float(v) for v in l.split()] for l in lines]
-            # Columns to use: 0 and {-6,-3}:
-            n = len(self.Components[comp]['C'])
+            # Columns to use: 0 and {-6,-3}
+            try:
+                # Read from loadsCC.dat
+                n = len(self.Components[comp]['C'])
+            except Exception:
+                # Infer; could fail for some 2D cases
+                n = (len(V[0])/3) * 3
             # Create an array with the original data.
             A = np.array([v[0:1] + v[-n:] for v in V])
             # Get the number of entries in each row.
@@ -622,9 +627,21 @@ class Aero(cape.dataBook.Aero):
                 # Add that iteration number to the time-accurate steps.
                 A[L!=n+1,0] += n0
             # Extract info from components for readability
-            d = self.Components[comp]
-            # Make the component.
-            self[comp] = CaseFM(d['C'], MRP=d['MRP'], A=A)
+            try:
+                # Read from loadsCC.dat
+                d = self.Components[comp]
+            except Exception:
+                # No MRP known.
+                d = {"MRP": [0.0, 0.0, 0.0]}
+                # Decide force or moment
+                if n == 3:
+                    # Apparently a force
+                    d['C'] = ["CA", "CY", "CN"]
+                else:
+                    # Apparemntly moment
+                    d['C'] = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
+                # Make the component.
+                self[comp] = CaseFM(d['C'], MRP=d['MRP'], A=A)
             
     # Function to calculate statistics and select ideal nStats
     def GetStats(self, nStats=0, nMax=0, nLast=None):
