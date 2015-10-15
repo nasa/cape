@@ -177,11 +177,13 @@ def TarViz(fmt="tar"):
     VizGlob = [
         'Components.i.[0-9]*.stats',
         'Components.i.[0-9]*',
-        'cutPlanes.[0-9]*']
+        'cutPlanes.[0-9]*',
+        'pointSensors.[0-9]*']
     VizTar = [
         'Components.i.stats'+ext,
         'Components.i'+ext,
-        'cutPlanes'+ext]
+        'cutPlanes'+ext,
+        'pointSensors'+ext]
     # Loop through the globs.
     for (fglob, ftar) in zip(VizGlob, VizTar):
         # Get the matches

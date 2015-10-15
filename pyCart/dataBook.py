@@ -640,8 +640,8 @@ class Aero(cape.dataBook.Aero):
                 else:
                     # Apparemntly moment
                     d['C'] = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
-                # Make the component.
-                self[comp] = CaseFM(d['C'], MRP=d['MRP'], A=A)
+            # Make the component.
+            self[comp] = CaseFM(d['C'], MRP=d['MRP'], A=A)
             
     # Function to calculate statistics and select ideal nStats
     def GetStats(self, nStats=0, nMax=0, nLast=None):
