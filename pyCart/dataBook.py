@@ -457,7 +457,8 @@ def get_ylim(ha, pad=0.05):
     return cape.get_ylim(ha, pad=pad)
     
 # Function to automatically get inclusive data limits.
-def get_xlim(ha, pad=0.05):"""Calculate appropriate *x*-limits to include all lines in a plot
+def get_xlim(ha, pad=0.05):
+    """Calculate appropriate *x*-limits to include all lines in a plot
     
     Plotted objects in the classes :class:`matplotlib.lines.Lines2D` are
     checked.
