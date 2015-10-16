@@ -25,8 +25,20 @@ class Report(object):
         *rep*: :class:`str`
             Name of report to update
     :Outputs:
-        *R*: :class:`pyCart.report.Report
+        *R*: :class:`cape.report.Report` or derivative
             Automated report interface
+        *R.cntl*: :class:`cape.cntl.Cntl` or derivative
+            Overall solver control interface
+        *R.rep*: :class:`str`
+            Name of report, same as *rep*
+        *R.opts*: :class:`cape.options.Report.Report` or derivative
+            Options specific to report *rep*
+        *R.cases*: :class:`dict` (:class:`cape.tex.Tex`)
+            Dictionary of LaTeX handles for each single-case page
+        *R.sweeps*: :class:`dict` (:class:`cape.tex.Tex`)
+            Dictionary of LaTeX handles for each single-sweep page
+        *R.tex*: :class:`cape.tex.Tex`
+            Handle to main LaTeX file
     :Versions:
         * 2015-03-07 ``@ddalle``: Started
         * 2015-03-10 ``@ddalle``: First version
@@ -59,6 +71,17 @@ class Report(object):
         # Return
         os.chdir(fpwd)
     
+    # String conversion
+    def __repr__(self):
+        """String/representation method
+        
+        :Versions:
+            * 2015-10-16 ``@ddalle``: First version
+        """
+        return '<cape.Report("%s")>' % self.rep
+    # Copy the function
+    __str__ = __repr__
+        
     
     # Make a folder
     def mkdir(self, fdir):
@@ -87,7 +110,7 @@ class Report(object):
         :Call:
             >>> R.OpenMain()
         :Inputs:
-            *R*: :class:`pyCart.report.Report`
+            *R*: :class:`cape.report.Report`
                 Automated report interface
         :Versions:
             * 2015-03-08 ``@ddalle``: First version
@@ -107,8 +130,6 @@ class Report(object):
             raise IOError("Bad LaTeX file '%s'" % self.fname)
         # Return
         os.chdir(fpwd)
-        
-        
         
     # Function to create the skeleton for a master LaTeX file
     def WriteSkeleton(self):
@@ -289,10 +310,857 @@ class Report(object):
         f.close()
     
     
+    # Function to update report
+    def UpdateReport(self, I=None, cons=[], **kw):
+        """Update a report based on the list of figures
+        
+        :Call:
+            >>> R.UpdateReport(I)
+            >>> R.UpdateReport(cons=[])
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *I*: :class:`list` (:class:`int`)
+                List of case indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints to define what cases to update
+        :Versions:
+            * 2015-05-22 ``@ddalle``: First version
+        """
+        # Update any sweep figures.
+        self.UpdateSweeps(I, cons, **kw)
+        # Update any case-by-case figures.
+        if self.HasCaseFigures():
+            self.UpdateCases(I, cons, **kw)
+        # Write the file.
+        self.tex.Write()
+        # Compmile it.
+        print("Compiling...")
+        self.tex.Compile()
+        # Need to compile twice for links
+        print("Compiling...")
+        self.tex.Compile()
+        # Clean up
+        print("Cleaning up...")
+        # Clean up sweeps
+        self.CleanUpSweeps(I=I, cons=cons)
+        # Clean up cases
+        if self.HasCaseFigures():
+            self.CleanUpCases(I=I, cons=cons)
+        # Get other 'report-*.*' files.
+        fglob = glob.glob('%s*' % self.fname[:-3])
+        # Delete most of them.
+        for f in fglob:
+            # Check for the two good ones.
+            if f[-3:] in ['tex', 'pdf']: continue
+            # Else remove it.
+            os.remove(f)
     
+    # Function to update sweeps
+    def UpdateSweeps(self, I=None, cons=[], **kw):
+        """Update pages of the report related to data book sweeps
+        
+        :Call:
+            >>> R.UpdateSweeps(I=None, cons=[], **kw)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *I*: :class:`list` (:class:`int`)
+                List of case indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints to define what cases to update
+        :Versions:
+            * 2015-05-28 ``@ddalle``: Started
+        """
+        # Clear out the lines.
+        if 'Sweeps' in self.tex.Section:
+            del self.tex.Section['Sweeps'][1:-1]
+        # Get sweeps.
+        fswps = self.cntl.opts.get_ReportSweepList(self.rep)
+        # Check for a list.
+        if type(fswps).__name__ not in ['list', 'ndarray']: fswps = [fswps]
+        # Loop through the sweep figures.
+        for fswp in fswps:
+            # Update the figure.
+            self.UpdateSweep(fswp, I=I, cons=cons)
+        # Update the text.
+        self.tex._updated_sections = True
+        self.tex.UpdateLines()
+        # Master file location
+        os.chdir(self.cntl.RootDir)
+        os.chdir('report')
+        
+    # Function to update report for several cases
+    def UpdateCases(self, I=None, cons=[], **kw):
+        """Update several cases and add the lines to the master LaTeX file
+        
+        :Call:
+            >>> R.UpdateCases(I)
+            >>> R.UpdateCases(cons=[])
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *I*: :class:`list` (:class:`int`)
+                List of case indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints to define what cases to update
+        :Versions:
+            * 2015-03-10 ``@ddalle``: First version
+            * 2015-05-22 ``@ddalle``: Moved compilation portion to UpdateReport
+        """
+        # Check for use of constraints instead of direct list.
+        I = self.cntl.x.GetIndices(cons=cons, I=I)
+        # Clear out the lines.
+        del self.tex.Section['Cases'][1:-1]
+        # Loop through those cases.
+        for i in I:
+            # Update the case
+            self.UpdateCase(i)
+        # Update the text.
+        self.tex._updated_sections = True
+        self.tex.UpdateLines()
+        # Master file location
+        os.chdir(self.cntl.RootDir)
+        os.chdir('report')
+        
+    # Clean up cases
+    def CleanUpCases(self, I=None, cons=[]):
+        """Clean up case folders
+        
+        :Call:
+            >>> R.CleanUpCases(I=None, cons=[])
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *I*: :class:`list` (:class:`int`)
+                List of case indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints to define what cases to update
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # Check for use of constraints instead of direct list.
+        I = self.cntl.x.GetIndices(cons=cons, I=I)
+        # Check for folder archiving
+        if self.cntl.opts.get_ReportArchive():
+            # Loop through folders.
+            for frun in self.cntl.x.GetFullFolderNames(I):
+                # Go to the folder.
+                os.chdir(frun)
+                # Go up one, archiving if necessary.
+                self.cd('..')
+                # Go back to root directory.
+                os.chdir('..')
+        
+    # Clean up sweeps
+    def CleanUpSweeps(self, I=None, cons=[]):
+        """Clean up the folders for all sweeps
+        
+        :Call:
+            >>> R.CleanUpSweeps(I=None, cons=[])
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *I*: :class:`list` (:class:`int`)
+                List of case indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints to define what cases to update
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # Check for folder archiving
+        if not self.cntl.opts.get_ReportArchive(): return
+        # Get sweep list
+        fswps = self.opts.get('Sweeps', [])
+        # Check type.
+        if type(fswps).__name__ not in ['list', 'ndarray']: fswps = [fswps]
+        # Loop through the sweeps.
+        for fswp in fswps:
+            # Check if only restricting to point currently in the trajectory.
+            if self.cntl.opts.get_SweepOpt(fswp, 'TrajectoryOnly'):
+                # Read the data book with the trajectory as the source.
+                self.ReadDataBook("trajectory")
+            else:
+                # Read the data book with the data book as the source.
+                self.ReadDataBook("data")
+            # Go to the sweep folder.
+            os.chdir('sweep-%s' % fswp)
+            # Get the sweeps themselves (i.e. lists of indices)
+            J = self.GetSweepIndices(fswp, I, cons)
+            # Loop through the subsweeps.
+            for j in J:
+                # Get the first folder name.
+                frun = self.cntl.DataBook.x.GetFullFolderNames(j[0])
+                # Go to the folder.
+                os.chdir(frun)
+                # Go up one, archiving if necessary.
+                self.cd('..')
+                # Go back up to the sweep folder.
+                os.chdir('..')
+            # Go back up to report folder.
+            os.chdir('..')
+        
+    # Function to update a sweep
+    def UpdateSweep(self, fswp, I=None, cons=[]):
+        """Update the pages of a sweep
+        
+        :Call:
+            >>> R.UpdateSweep(fswp, I)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *fswp*: :class:`str`
+                Name of sweep to update
+            *I*: :class:`list` (:class:`int`)
+                List of case indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints to define what cases to update
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+            * 2015-06-11 ``@ddalle``: Added minimum cases per page
+        """
+        # Divide the cases into sweeps.
+        J = self.GetSweepIndices(fswp, I, cons)
+        # Minimum number of cases per page
+        nMin = self.cntl.opts.get_SweepOpt(fswp, 'MinCases')
+        # Add a marker in the main document for this sweep.
+        self.tex.Section['Sweeps'].insert(-1, '%%!_%s\n' % fswp)
+        # Save current location
+        fpwd = os.getcwd()
+        # Go to report folder.
+        os.chdir(self.cntl.RootDir)
+        os.chdir('report')
+        # Initialize sweep TeX handles.
+        self.sweeps[fswp] = {}
+        # Name of sweep folder.
+        fdir = 'sweep-%s' % fswp
+        # Create folder if necessary.
+        if not os.path.isdir(fdir):
+            self.mkdir(fdir)
+        # Enter the sweep folder.
+        os.chdir(fdir)
+        # Loop through pages.
+        for i in range(len(J)):
+            # Check for enough cases to report a sweep.
+            if len(J[i]) < nMin: continue
+            # Update the sweep page.
+            self.UpdateSweepPage(fswp, J[i])
+        # Return to original directory
+        os.chdir(fpwd)
+        
+    # Update a page for a single sweep
+    def UpdateSweepPage(self, fswp, I, IT=[]):
+        """Update one page of a sweep for an automatic report
+        
+        :Call:
+            >>> R.UpdateSweepPage(fswp, I, IT=[])
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *fswp*: :class:`str`
+                Name of sweep to update
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of cases in this sweep
+            *IT*: :class:`list` (:class:`numpy.ndarray` (:class:`int`))
+                List of correspond indices for each target
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # --------
+        # Checking
+        # --------
+        # Save location
+        fpwd = os.getcwd()
+        # Get the case names in this sweep.
+        fdirs = self.cntl.DataBook.x.GetFullFolderNames(I)
+        # Split group and case name for first case in the sweep.
+        fgrp, fdir = os.path.split(fdirs[0])
+        # Use the first case as the name of the subsweep.
+        frun = os.path.join(fgrp, fdir)
+        # Status update
+        print('%s/%s' % (fswp, frun))
+        # Make sure group folder exists.
+        if not os.path.isdir(fgrp): self.mkdir(fgrp)
+        # Go into the group folder.
+        os.chdir(fgrp)
+        # Create the case folder if necessary.
+        if not (os.path.isfile(fdir+'.tar') or os.path.isdir(fdir)):
+            self.mkdir(fdir)
+        # Go into the folder.
+        self.cd(fdir)
+        # Add a line to the master document.
+        self.tex.Section['Sweeps'].insert(-1,
+            '\\input{sweep-%s/%s/%s}\n' % (fswp, frun, self.fname))
+        # Read the status file.
+        fdirr, Ir, nIterr = self.ReadSweepJSONIter()
+        # Extract first component.
+        DBc = self.cntl.DataBook[self.cntl.DataBook.Components[0]]
+        # Get current iteration numbers.
+        nIters = list(DBc['nIter'][I])
+        # Check if there's anything to do.
+        if (Ir == list(I)) and (fdirr == fdirs) and (nIters == nIterr):
+            # Return and quit.
+            os.chdir(fpwd)
+            return
+        # -------------
+        # Initial setup
+        # -------------
+        # Status update
+        if fdirr is None:
+            # New report
+            print("  New report page")
+        elif fdirr != fdirs:
+            # Changing status
+            print("  Updating list of cases")
+        elif nIters != nIterr:
+            # More iterations
+            print("  Updating at least one case")
+        else:
+            # New case
+            print("  Modifying index numbers")
+        # Create the tex file.
+        self.WriteSweepSkeleton(fswp, I[0])
+        # Create the TeX handle.
+        self.sweeps[fswp][I[0]] = tex.Tex(fname=self.fname)
+        # -------
+        # Figures
+        # -------
+        # Get the figures.
+        figs = self.cntl.opts.get_SweepOpt(fswp, "Figures")
+        # Loop through the figures.
+        for fig in figs:
+            # Update the figure.
+            self.UpdateFigure(fig, I, fswp)
+        # -----
+        # Write
+        # -----
+        # Write the updated lines.
+        self.sweeps[fswp][I[0]].Write()
+        # Mark the case status.
+        self.SetSweepJSONIter(I)
+        # Go home.
+        os.chdir(fpwd)
     
+    # Function to create the file for a case
+    def UpdateCase(self, i):
+        """Open, create if necessary, and update LaTeX file for a case
+        
+        :Call:
+            >>> R.UpdateCase(i)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # --------
+        # Checking
+        # --------
+        # Get the case name.
+        fgrp = self.cntl.x.GetGroupFolderNames(i)
+        fdir = self.cntl.x.GetFolderNames(i)
+        # Go to the report directory if necessary.
+        fpwd = os.getcwd()
+        os.chdir(self.cntl.RootDir)
+        os.chdir('report')
+        # Create the folder if necessary.
+        if not os.path.isdir(fgrp): self.mkdir(fgrp)
+        # Go to the group folder.
+        os.chdir(fgrp)
+        # Create the case folder if necessary.
+        if not (os.path.isfile(fdir+'.tar') or os.path.isdir(fdir)):
+            self.mkdir(fdir)
+        # Go into the folder.
+        self.cd(fdir)
+        # ------------
+        # Status check
+        # ------------
+        # Read the status file.
+        nr, stsr = self.ReadCaseJSONIter()
+        # Get the actual iteration number.
+        n = self.cntl.CheckCase(i)
+        # Check status.
+        sts = self.cntl.CheckCaseStatus(i)
+        # Call `qstat` if needed.
+        if (sts == "INCOMP") and (n is not None):
+            # Check the current queue
+            sts = self.cntl.CheckCaseStatus(i, auto=True)
+        # Get the figure list
+        if n:
+            # Nominal case with some results
+            figs = self.cntl.opts.get_ReportFigList(self.rep)
+        elif sts == "ERROR":
+            # Get the figures for FAILed cases
+            figs = self.cntl.opts.get_ReportErrorFigList(self.rep)
+        else:
+            # No FAIL file, but no iterations
+            figs = self.cntl.opts.get_ReportZeroFigList(self.rep)
+        # If no figures to run; exit.
+        if len(figs) == 0:
+            # Go home and quit.
+            os.chdir(fpwd)
+            return
+        # Add the line to the master LaTeX file.
+        self.tex.Section['Cases'].insert(-1,
+            '\\input{%s/%s/%s}\n' % (fgrp, fdir, self.fname))
+        # Status update
+        print('%s/%s' % (fgrp, fdir))
+        # Check if there's anything to do.
+        if not ((nr is None) or (n>0 and nr!=n) or (stsr != sts)):
+            # Go home and quit.
+            os.chdir(fpwd)
+            return
+        # Status update
+        if n != nr:
+            # More iterations
+            print("  Updating from iteration %s --> %s" % (nr, n))
+        elif sts != stsr:
+            # Changing status
+            print("  Updating status %s --> %s" % (stsr, sts))
+        else:
+            # New case
+            print("  New report at iteration %s" % n)
+        # -------------
+        # Initial setup
+        # -------------
+        # Check for the file.
+        if not os.path.isfile(self.fname):
+            # Make the skeleton file.
+            self.WriteCaseSkeleton(i)
+        # Open it.
+        self.cases[i] = tex.Tex(self.fname)
+        # Set the iteration number and status header.
+        self.SetHeaderStatus(i)
+        # -------
+        # Figures
+        # -------
+        # Check if figures need updating.
+        if not ((n==nr) and (stsr=='DONE') and (sts=='PASS')):
+            # Loop through figures.
+            for fig in figs:
+                self.UpdateFigure(fig, i)
+        # -----
+        # Write
+        # -----
+        # Write the updated lines.
+        self.cases[i].Write()
+        # Mark the case status.
+        self.SetCaseJSONIter(n, sts)
+        # Go home.
+        os.chdir(fpwd)
+        
+    # Function to write a figure.
+    def UpdateFigure(self, fig, i, fswp=None):
+        """Write the figure and update the contents as necessary for *fig*
+        
+        :Call:
+            >>> R.UpdateFigure(fig, i)
+            >>> R.UpdateFigure(fig, I, fswp)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *fig*: :class:`str`
+                Name of figure to update
+            *i*: :class:`int`
+                Case index
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of case indices
+            *fswp*: :class:`str`
+                Name of sweep
+        :Versions:
+            * 2014-03-08 ``@ddalle``: First version
+            * 2015-05-29 ``@ddalle``: Extended to include sweeps
+        """
+        # -----
+        # Setup
+        # -----
+        # Check for sweep
+        if fswp is None:
+            # Handle for the case file.
+            tx = self.cases[i]
+            tf = tx.Section['Figures']
+        else:
+            # Transfer variable names.
+            I = i; i = I[0]
+            # Handle for the subsweep file.
+            tx = self.sweeps[fswp][i]
+            tf = tx.Section['Figures']
+        # Figure header line
+        ffig = '%%<%s\n' % fig
+        # Check for the figure.
+        if ffig in tf:
+            # Get the location.
+            ifig = tf.index(ffig)
+            # Get the location of the end of the figure.
+            ofig = ifig + tf[ifig:].index('%>\n')
+            # Delete those lines (to be replaced).
+            del tf[ifig:(ofig+1)]
+        else:
+            # Insert the figure right before the end.
+            ifig = len(tf) - 1
+        # --------------
+        # Initialization
+        # --------------
+        # Initialize lines
+        lines = []
+        # Write the header line.
+        lines.append(ffig)
+        # Start the figure.
+        lines.append('\\begin{figure}[!h]\n')
+        # Get the optional header
+        fhdr = self.cntl.opts.get_FigHeader(fig)
+        if fhdr:
+            # Add the header as a semitrivial subfigure.
+            lines.append('\\begin{subfigure}[t]{\\textwidth}\n')
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+            lines.append('\\end{subfigure}\n')
+        # Get figure alignment
+        falgn = self.cntl.opts.get_FigAlignment(fig)
+        if falgn.lower() == "center":
+            # Centering
+            lines.append('\\centering\n')
+        # -------
+        # Subfigs
+        # -------
+        # Update the subfigures.
+        if fswp is None:
+            # Update case subfigures
+            lines += self.UpdateCaseSubfigs(fig, i)
+        else:
+            # Update sweep subfigures
+            lines += self.UpdateSweepSubfigs(fig, fswp, I)
+        # -------
+        # Cleanup
+        # -------
+        # End the figure for LaTeX
+        lines.append('\\end{figure}\n')
+        # cape report end figure marker
+        lines.append('%>\n\n')
+        # Add the lines to the section.
+        for line in lines:
+            tf.insert(ifig, line)
+            ifig += 1
+        # Update the section
+        tx.Section['Figures'] = tf
+        tx._updated_sections = True
+        # Synchronize the document
+        tx.UpdateLines()
+        
+    # Update subfig for case
+    def UpdateCaseSubfigs(self, fig, i):
+        """Update subfigures for a case figure *fig*
+        
+        :Call:
+            >>> lines = R.UpdateCaseSubfigs(fig, i)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *fig*: :class:`str`
+                Name of figure to update
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *lines*: :class:`list` (:class:`str`)
+                List of lines for LaTeX file
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # Get list of subfigures.
+        sfigs = self.cntl.opts.get_FigSubfigList(fig)
+        # Initialize lines
+        lines = []
+        # Loop through subfigs.
+        for sfig in sfigs:
+            # Get the base type.
+            btyp = self.cntl.opts.get_SubfigBaseType(sfig)
+            # Process it.
+            if btyp == 'Conditions':
+                # Get the content.
+                lines += self.SubfigConditions(sfig, i)
+            elif btyp == 'Summary':
+                # Get the force and/or moment summary
+                lines += self.SubfigSummary(sfig, i)
+            elif btyp == 'PlotCoeff':
+                # Get the force or moment history plot
+                lines += self.SubfigPlotCoeff(sfig, i)
+            elif btyp == 'PlotL1':
+                # Get the residual plot
+                lines += self.SubfigPlotL1(sfig, i)
+            elif btyp == 'Tecplot3View':
+                # Get the Tecplot component view
+                lines += self.SubfigTecplot3View(sfig, i)
+            elif btyp == 'Tecplot':
+                # Get the Tecplot layout view
+                lines += self.SubfigTecplotLayout(sfig, i)
+        # Output
+        return lines
+        
+    # Update subfig for a sweep
+    def UpdateSweepSubfigs(self, fig, fswp, I):
+        """Update subfigures for a sweep figure *fig*
+        
+        :Call:
+            >>> lines = R.UpdateSweepSubfigs(fig, fswp, I)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *fig*: :class:`str`
+                Name of figure to update
+            *fswp*: :class:`str`
+                Name of sweep
+            *I*: :class:`numpy.ndarray` (:class:`list`)
+                List of case indices in the subsweep
+        :Outputs:
+            *lines*: :class:`list` (:class:`str`)
+                List of lines for LaTeX file
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # Get list of subfigures.
+        sfigs = self.cntl.opts.get_FigSubfigList(fig)
+        # Initialize lines
+        lines = []
+        # Loop through subfigs.
+        for sfig in sfigs:
+            # Get the base type.
+            btyp = self.cntl.opts.get_SubfigBaseType(sfig)
+            # Process it.
+            if btyp == 'Conditions':
+                # Get the content.
+                lines += self.SubfigConditions(sfig, I)
+            elif btyp == 'SweepConditions':
+                # Get the variables constant in the sweep
+                lines += self.SubfigSweepConditions(sfig, fswp, I[0])
+            elif btyp == 'SweepCases':
+                # Get the list of cases.
+                lines += self.SubfigSweepCases(sfig, fswp, I)
+            elif btyp == 'SweepCoeff':
+                # Plot a coefficient sweep
+                lines += self.SubfigSweepCoeff(sfig, fswp, I)
+        # Output
+        return lines
     
+    # Function to write conditions table
+    def SubfigConditions(self, sfig, I):
+        """Create lines for a "Conditions" subfigure
+        
+        :Call:
+            >>> lines = R.SubfigConditions(sfig, i)
+            >>> lines = R.SubfigConditions(sfig, I)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *i*: :class:`int`
+                Case index
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of case indices
+        :Versions:
+            * 2014-03-08 ``@ddalle``: First version
+            * 2014-06-02 ``@ddalle``: Added range capability
+        """
+        # Extract the trajectory.
+        try:
+            # Read the data book trajectory.
+            x = self.cntl.DataBook.x
+        except Exception:
+            # Use the run matrix trajectory.
+            x = self.cntl.x
+        # Check input type.
+        if type(I).__name__ in ['list', 'ndarray']:
+            # Extract firs index.
+            i = I[0]
+        else:
+            # Use index value given and make a list with one entry.
+            i = I
+            I = np.array([i])
+        # Get the vertical alignment.
+        hv = self.cntl.opts.get_SubfigOpt(sfig, 'Position')
+        # Get subfigure width
+        wsfig = self.cntl.opts.get_SubfigOpt(sfig, 'Width')
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = self.cntl.opts.get_SubfigOpt(sfig, 'Header')
+        if fhdr:
+            # Write it.
+            lines.append('\\noindent\n')
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+        # Begin the table.
+        lines.append('\\noindent\n')
+        lines.append('\\begin{tabular}{ll|c}\n')
+        # Header row
+        lines.append('\\hline \\hline\n')
+        lines.append('\\textbf{\\textsf{Variable}} &\n')
+        lines.append('\\textbf{\\textsf{Abbr.}} &\n')
+        lines.append('\\textbf{\\textsf{Value}} \\\\\n')
+        lines.append('\\hline\n')
+        
+        # Get the variables to skip.
+        skvs = self.cntl.opts.get_SubfigOpt(sfig, 'SkipVars')
+        # Loop through the trajectory keys.
+        for k in x.keys:
+            # Check if it's a skip variable
+            if k in skvs: continue
+            # Write the variable name.
+            line = "{\\small\\textsf{%s}}" % k.replace('_', '\_')
+            # Append the abbreviation.
+            line += (" & {\\small\\textsf{%s}} & " % 
+                x.defns[k]['Abbreviation'].replace('_', '\_'))
+            # Get values.
+            v = getattr(x,k)[I]
+            # Append the value.
+            if x.defns[k]['Value'] in ['str', 'unicode']:
+                # Put the value in sans serif
+                line += "{\\small\\textsf{%s}} \\\\\n" % v[0]
+            elif x.defns[k]['Value'] in ['float', 'int']:
+                # Check for range.
+                if max(v) > min(v):
+                    # Print both values.
+                    line += "$%s$, [$%s$, $%s$] \\\\\n" % (v[0],min(v),max(v))
+                else:
+                    # Put the value as a number.
+                    line += "$%s$ \\\\\n" % v[0]
+            elif x.defns[k]['Value'] in ['hex']:
+                # Check for range
+                if max(v) > min(v):
+                    # Print min/max values.
+                    line += "0x%x, [0x%x, 0x%x] \\\\\n" % (v[0],min(v),max(v))
+                else:
+                    # Put the value as a hex code.
+                    line += "0x%x \\\\\n" % v[0]
+            elif x.defns[k]['Value'] in ['oct', 'octal']:
+                # Check for range
+                if max(v) > min(v):
+                    # Print min/max values
+                    line += "0o%o, [0o%o, 0o%o] \\\\\n" % (v[0],min(v),max(v))
+                else:
+                    # Put the value as a hex code.
+                    line += "0o%o \\\\\n" % v[0]
+            else:
+                # Put the virst value as string (other type)
+                line += "%s \\\\\n" % v[0]
+            # Add the line to the table.
+            lines.append(line)
+        
+        # Finish the subfigure
+        lines.append('\\hline \\hline\n')
+        lines.append('\\end{tabular}\n')
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
     
+    # Function to write sweep conditions table
+    def SubfigSweepConditions(self, sfig, fswp, i):
+        """Create lines for a "SweepConditions" subfigure
+        
+        :Call:
+            >>> lines = R.SubfigSweepConditions(sfig, fswp, I)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *fswp*: :class:`str`
+                Name of sweep
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *lines*: :class:`str`
+                List of lines in the subfigure
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+            * 2015-06-02 ``@ddalle``: Min/max values
+        """
+        # Extract the trajectory.
+        try:
+            # Read the data book trajectory.
+            x = self.cntl.DataBook.x
+        except Exception:
+            # Use the run matrix trajectory.
+            x = self.cntl.x
+        # Get the vertical alignment.
+        hv = self.cntl.opts.get_SubfigOpt(sfig, 'Position')
+        # Get subfigure width
+        wsfig = self.cntl.opts.get_SubfigOpt(sfig, 'Width')
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = self.cntl.opts.get_SubfigOpt(sfig, 'Header')
+        if fhdr:
+            # Write the header.
+            lines.append('\\noindent\n')
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+        # Begin the table.
+        lines.append('\\noindent\n')
+        lines.append('\\begin{tabular}{l|cc}\n')
+        # Header row
+        lines.append('\\hline \\hline\n')
+        lines.append('\\textbf{\\textsf{Variable}} &\n')
+        lines.append('\\textbf{\\textsf{Value}} &\n')
+        lines.append('\\textbf{\\textsf{Constraint}} \\\\ \n')
+        lines.append('\\hline\n')
+        
+        # Get equality and tolerance constraints.
+        eqkeys  = self.cntl.opts.get_SweepOpt(fswp, 'EqCons')
+        tolkeys = self.cntl.opts.get_SweepOpt(fswp, 'TolCons')
+        # Loop through the trajectory keys.
+        for k in x.keys:
+            # Check if it's an equality value.
+            if k in eqkeys:
+                # Equality constraint
+                scon = '$=$'
+            elif k in tolkeys:
+                # Tolerance constraint
+                scon = '$\pm%s$' % tolkeys[k]
+            else:
+                # Not a constraint.
+                continue
+            # Write the variable name.
+            line = "{\\small\\textsf{%s}} & " % k.replace('_', '\_')
+            # Append the value.
+            if x.defns[k]['Value'] in ['str', 'unicode']:
+                # Put the value in sans serif
+                line += "{\\small\\textsf{%s}} \\\\\n" % getattr(x,k)[i]
+            elif x.defns[k]['Value'] in ['float', 'int']:
+                # Put the value as a number
+                line += "$%s$ &" % getattr(x,k)[i]
+            elif x.defns[k]['Value'] in ['hex']:
+                # Put the value as a hex code.
+                line += "0x%x &" % getattr(x,k)[i]
+            elif x.defns[k]['Value'] in ['oct', 'octal']:
+                # Put the value as a hex code.
+                line += "0o%o &" % getattr(x,k)[i]
+            else:
+                # Just put a string
+                line += "%s &" % getattr(x,k)[i]
+            # Append the constraint
+            line += " %s \\\\ \n" % scon
+            # Append the line.
+            lines.append(line)
+        # Index tolerance
+        itol = self.cntl.opts.get_SweepOpt(fswp, 'IndexTol')
+        # Max index
+        if type(itol).__name__.startswith('int'):
+            # Apply the constraint.
+            imax = min(i+itol, x.nCase)
+        else:
+            # Max index
+            imax = x.nCase
+        # Write the line
+        lines.append("{\\small\\textit{i}} & $%i$ & $[%i,%i]$ \\\\ \n"
+            % (i, i, imax))
+        
+        # Finish the subfigure
+        lines.append('\\hline \\hline\n')
+        lines.append('\\end{tabular}\n')
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
+        
     # Function to write sweep conditions table
     def SubfigSweepCases(self, sfig, fswp, I):
         """Create lines for a "SweepConditions" subfigure
@@ -300,7 +1168,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigSweepCases(sfig, fswp, I)
         :Inputs:
-            *R*: :class:`pyCart.report.Report`
+            *R*: :class:`cape.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -366,7 +1234,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigPlotCoeff(sfig, i)
         :Inputs:
-            *R*: :class:`pyCart.report.Report`
+            *R*: :class:`cape.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of subfigure to update
@@ -378,9 +1246,9 @@ class Report(object):
         # Save current folder.
         fpwd = os.getcwd()
         # Case folder
-        frun = self.cart3d.x.GetFullFolderNames(i)
+        frun = self.cntl.x.GetFullFolderNames(i)
         # Extract options
-        opts = self.cart3d.opts
+        opts = self.cntl.opts
         # Get the component.
         comp = opts.get_SubfigOpt(sfig, "Component")
         # Get the coefficient
@@ -397,7 +1265,7 @@ class Report(object):
             # List of components
             nCoeff = max(nCoeff, len(comp))
         # Current status
-        nIter  = self.cart3d.CheckCase(i)
+        nIter  = self.cntl.CheckCase(i)
         # Get caption.
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
         # Process default caption. 
@@ -457,14 +1325,14 @@ class Report(object):
             # Don't use iterations before *nMin*
             nMax = min(nMax, nIter-nMin)
             # Go to the run directory.
-            os.chdir(self.cart3d.RootDir)
+            os.chdir(self.cntl.RootDir)
             os.chdir(frun)
             # Read the Aero history.
             FM = Aero([comp])[comp]
             # Loop through the transformations.
             for topts in opts.get_DataBookTransformations(comp):
                 # Apply the transformation.
-                FM.TransformFM(topts, self.cart3d.x, i)
+                FM.TransformFM(topts, self.cntl.x, i)
             # Get the statistics.
             s = FM.GetStats(nStats=nStats, nMax=nMax, nLast=nPlotLast)
             # Get the manual range to show
@@ -538,7 +1406,7 @@ class Report(object):
         :Call:
             >>> R.SubfigSweepCoeff(sfig, fswp, I)
         :Inputs:
-            *R*: :class:`pyCart.report.Report`
+            *R*: :class:`cape.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -871,8 +1739,6 @@ class Report(object):
             targs = []
         # Output
         return targs
-      
-      
         
     # Function to create coefficient plot and write figure
     def SubfigPlotL1(self, sfig, i):
@@ -971,6 +1837,8 @@ class Report(object):
         return lines
         
         
+    
+    
         
     # Function to write summary table
     def SubfigSummary(self, sfig, i):
@@ -979,7 +1847,7 @@ class Report(object):
         :Call:
             >>> lines = R.SubfigSummary(sfig, i)
         :Inputs:
-            *R*: :class:`pyCart.report.Report`
+            *R*: :class:`cape.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -1023,8 +1891,8 @@ class Report(object):
             # Don't use iterations before *nMin*
             nMax = min(nMax, nCur-nMin)
             # Go to the run directory.
-            os.chdir(self.cart3d.RootDir)
-            os.chdir(self.cart3d.x.GetFullFolderNames(i))
+            os.chdir(self.cntl.RootDir)
+            os.chdir(self.cntl.x.GetFullFolderNames(i))
             # Read the Aero history
             A = Aero(comps)
             # Transform each comparison.
@@ -1032,7 +1900,7 @@ class Report(object):
                 # Loop through the transformations.
                 for topts in opts.get_DataBookTransformations(comp):
                     # Apply the transformation.
-                    A[comp].TransformFM(topts, self.cart3d.x, i)
+                    A[comp].TransformFM(topts, self.cntl.x, i)
             # Get the statistics.
             S = A.GetStats(nStats=nStats, nMax=nMax, nLast=nCur)
         else:
@@ -1069,7 +1937,7 @@ class Report(object):
                 % comp.replace('_', '\_'))
         lines.append('\\\\\n')
         # Loop through coefficients
-        for c in self.cart3d.opts.get_SubfigOpt(sfig, "Coefficients"):
+        for c in self.cntl.opts.get_SubfigOpt(sfig, "Coefficients"):
             # Convert coefficient title to symbol
             if c in ['CA', 'CY', 'CN']:
                 # Just add underscore
@@ -1086,7 +1954,7 @@ class Report(object):
             # Print horizontal line
             lines.append('\\hline\n')
             # Loop through statistical varieties.
-            for fs in self.cart3d.opts.get_SubfigOpt(sfig, c):
+            for fs in self.cntl.opts.get_SubfigOpt(sfig, c):
                 # Write the description
                 if fs == 'mu':
                     # Mean
@@ -1291,7 +2159,7 @@ class Report(object):
         # Get case names.
         fruns = self.cntl.DataBook.x.GetFullFolderNames(I)
         # Get first component
-        DBc = self.cntl.DataBook[self.cart3d.DataBook.Components[0]]
+        DBc = self.cntl.DataBook[self.cntl.DataBook.Components[0]]
         # Get current iteration numbers.
         nIter = list(DBc['nIter'][I])
         # Loop through the cases in the sweep.
@@ -1446,7 +2314,7 @@ class Report(object):
             *fswp*: :class:`str`
                 Name of sweep to update
             *i0*: :class:`int`
-                Index of point in *R.cart3d.DataBook.x* to use as reference
+                Index of point in *R.cntl.DataBook.x* to use as reference
             *targ*: :class:`int`
                 Name of the target in data book to use
         :Outputs:
