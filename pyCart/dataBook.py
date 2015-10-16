@@ -31,19 +31,6 @@ from . import lineLoad
 # Template module
 import cape.dataBook
 
-#<!--
-# ---------------------------------
-# I consider this portion temporary
-
-# Get the umask value.
-umask = 0027
-# Get the folder permissions.
-fmask = 0777 - umask
-dmask = 0777 - umask
-
-# ---------------------------------
-#-->
-
 # Placeholder variables for plotting functions.
 plt = 0
 
@@ -114,9 +101,6 @@ class DataBook(cape.dataBook.DataBook):
             # Read the file.
             self.LineLoads.append(
                 lineLoad.DBLineLoad(self.cart3d, comp))
-    
-    
-            
     
     # Update data book
     def UpdateDataBook(self, I=None):
@@ -450,52 +434,15 @@ class DataBook(cape.dataBook.DataBook):
             
 # Function to automatically get inclusive data limits.
 def get_ylim(ha, pad=0.05):
-    """Calculate appropriate *y*-limits to include all lines in a plot
-    
-    Plotted objects in the classes :class:`matplotlib.lines.Lines2D` and
-    :class:`matplotlib.collections.PolyCollection` are checked.
-    
-    :Call:
-        >>> ymin, ymax = get_ylim(ha, pad=0.05)
-    :Inputs:
-        *ha*: :class:`matplotlib.axes.AxesSubplot`
-            Axis handle
-        *pad*: :class:`float`
-            Extra padding to min and max values to plot.
-    :Outputs:
-        *ymin*: :class:`float`
-            Minimum *y* coordinate including padding
-        *ymax*: :class:`float`
-            Maximum *y* coordinate including padding
-    :Versions:
-        * 2015-07-06 ``@ddalle``: First version
-    """
     return cape.get_ylim(ha, pad=pad)
+# Copy documentation
+get_ylim.__doc__ = cape.get_ylim.__doc__
     
 # Function to automatically get inclusive data limits.
 def get_xlim(ha, pad=0.05):
-    """Calculate appropriate *x*-limits to include all lines in a plot
-    
-    Plotted objects in the classes :class:`matplotlib.lines.Lines2D` are
-    checked.
-    
-    :Call:
-        >>> xmin, xmax = get_xlim(ha, pad=0.05)
-    :Inputs:
-        *ha*: :class:`matplotlib.axes.AxesSubplot`
-            Axis handle
-        *pad*: :class:`float`
-            Extra padding to min and max values to plot.
-    :Outputs:
-        *xmin*: :class:`float`
-            Minimum *x* coordinate including padding
-        *xmax*: :class:`float`
-            Maximum *x* coordinate including padding
-    :Versions:
-        * 2015-07-06 ``@ddalle``: First version
-    """
     return cape.get_xlim(ha, pad=pad)
-# DataBook Plot functions
+# Copy documentation
+get_xlim.__doc__ = cape.get_xlim.__doc__
 
                 
 # Individual component data book
@@ -548,6 +495,177 @@ class DBTarget(cape.dataBook.DBTarget):
     
     pass
 # class DBTarget
+        
+        
+class TestCaseFM(object):
+    """Test in stand-alone CaseFM class
+    
+    :Version:
+        * 2015-10-16 ``@ddalle``: Started
+    """
+    
+    def __init__(self, comp):
+        """Initialization method
+        
+        :Versions:
+            * 2015-10-16 ``@ddalle``: First version
+        """
+        # Save component name
+        self.comp = comp
+        # Get the working folder.
+        fdir = GetWorkingFolder()
+        # Expected name of the component history file
+        fname = os.path.join(fdir, comp+'.dat')
+        # Check if it exists.
+        if not os.path.isfile(fname):
+            # Make an empty CaseFM
+            self.MakeEmpty()
+            return
+        # Otherwise, read the file.
+        lines = open(fname).readlines()
+        # Process the column meanings.
+        self.ProcessColumnNames(lines)
+        # Filter comments
+        lines = [l for l in lines if not l.startswith('#')]
+        # Convert all values to floats
+        # (This is not guaranteed to be rectangular yet.)
+        V = [[float(v) for v in l.split()] for l in lines]
+        # Number of coefficients.
+        n = len(self.C)
+        # Create an array with the original data
+        A = np.array([v[0:1] + v[-n:] for v in V])
+        # Get number of values in each raw data row.
+        L = np.array([len(v) for v in V])
+        # Check for columns without an extra column.
+        if np.any(L == n+1):
+            # At least one steady-state iteration.
+            n0 = np.max(A[L==n+1,0])
+            # Add that iteration number to the time-accurate steps.
+            A[L!=n+1,0] += n0
+        # Save the values.
+        for k in range(n+1):
+            # Set the values from column *k* of the data
+            setattr(self,self.cols[k], A[:,k])
+        
+        
+        
+    # Function to make empty one.
+    def MakeEmpty(self):
+        """Create empty *CaseFM* instance
+        
+        :Call:
+            >>> FM.MakeEmpty()
+        :Inputs:
+            *FM*: :class:`pyCart.dataBook.CaseFM`
+                Case force/moment history
+        :Versions:
+            * 2015-10-16 ``@ddalle``: First version
+        """
+        # Make all entries empty.
+        self.i = np.array([])
+        self.CA = np.array([])
+        self.CY = np.array([])
+        self.CN = np.array([])
+        self.CLL = np.array([])
+        self.CLM = np.array([])
+        self.CLN = np.array([])
+        # Save a default list of columns and components.
+        self.C = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
+        self.cols = ['i'] + self.C
+        
+    # Process the column names
+    def ProcessColumnNames(self, lines):
+        """Determine column names
+        
+        :Call:
+            >>> FM.ProcessColumnNames(lines)
+        :Inputs:
+            *FM*: :class:`pyCart.dataBook.CaseFM`
+                Case force/moment history
+            *lines*: :class:`list` (:class:`str`)
+                List of lines from the data file
+        :Versions:
+            * 2015-10-16 ``@ddalle``: First version
+        """
+        # Get the lines from the file that explain the contents.
+        lines = [l for l in lines if l.startswith('# cycle')]
+        # Check for lines
+        if len(lines) == 0:
+            # Alert to the status of this file.
+            print("Warning: no header found for component '%s'" % self.comp)
+            # Use a data line.
+            lines = [l for l in lines if not l.startswith('#')]
+            # Check for lines.
+            if len(lines) == 0:
+                print("Warning: no data found for component '%s'" % self.comp)
+                # Empty
+                self.MakeEmpty()
+                return
+            # Split into values
+            vals = lines[0].split()
+            # Guess at the uses from contents.
+            if len(vals) > 6:
+                # Full force-moment
+                self.C = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
+                self.txt = ['Fx', 'Fy', 'Fz', 'Mx', 'My', 'Mz']
+            elif len(vals) in [4,5]:
+                # Force only (ambiguous with 2D F&M
+                self.C = ['CA', 'CY', 'CN']
+                self.txt = ['Fx', 'Fy', 'Fz']
+            else:
+                # Guess at 2D force
+                self.C = ['CA', 'CN']
+                self.txt = ['Fx', 'Fz']
+            # Add iteration to column list.
+            self.cols = ['i'] + self.C
+            self.txt.prepend('cycle')
+            return
+        # Read the contents
+        self.txt = lines[0].lstrip('#').strip().split()
+        self.cols = []
+        self.C = []
+        # Loop through columns.
+        for i in range(len(self.txt)):
+            # Get the raw column name.
+            col = self.txt[i]
+            # Filter its name
+            if col == 'cycle':
+                # Iteration number
+                self.cols.append('i')
+            elif col == 'i':
+                # Iteration number
+                self.cols.append('i')
+            elif col == 'Fx':
+                # Axial force coefficient
+                self.cols.append('CA')
+                self.C.append('CA')
+            elif col == 'Fy':
+                # Side force coefficient
+                self.cols.append('CY')
+                self.C.append('CY')
+            elif col == 'Fz':
+                # Normal force coefficient
+                self.cols.append('CN')
+                self.C.append('CN')
+            elif col == 'Mx':
+                # Rolling moment
+                self.cols.append('CLL')
+                self.C.append('CLL')
+            elif col == 'My':
+                # Pitching moment
+                self.cols.append('CLM')
+                self.C.append('CLM')
+            elif col == 'Mz':
+                # Yawing moment
+                self.cols.append('CLN')
+                self.C.append('CLN')
+            else:
+                # Something else
+                self.cols.append(col)
+                self.C.append(col)
+                
+        
+# class CaseFM
         
         
 # Aerodynamic history class
