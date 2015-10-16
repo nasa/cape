@@ -11,7 +11,7 @@ import cape.report
 # Local modules needed
 from cape import tex, tar
 # Data book and plotting
-from .dataBook import Aero, CaseFM, CaseResid
+from .dataBook import CaseFM, CaseResid
 # Folder and Tecplot management
 from .case    import LinkPLT
 from .tecplot import ExportLayout, Tecscript
@@ -69,7 +69,7 @@ class Report(cape.report.Report):
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
         """
-        return Aero([comp])[comp]
+        return CaseFM(comp)
         
     # Read residual history
     def ReadCaseResid(self):

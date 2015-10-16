@@ -383,15 +383,14 @@ class DataBook(cape.dataBook.DataBook):
             q = False
         # Check for an update
         if (not q): return
-        # Read the history.
-        A = Aero(self.Components)
         # Maximum number of iterations allowed.
         nMax = min(nIter-nMin, self.opts.get_nMaxStats())
         # Loop through components.
         for comp in self.Components:
-            # Extract the component history and component databook.
-            FM = A[comp]
-            DC = self[comp]
+            # Read the iterative history for that component.
+            FM = CaseFM(comp)
+            # Extract the component databook.
+            DBc = self[comp]
             # Loop through the transformations.
             for topts in self.opts.get_DataBookTransformations(comp):
                 # Apply the transformation.
@@ -405,28 +404,28 @@ class DataBook(cape.dataBook.DataBook):
             # Save the data.
             if np.isnan(j):
                 # Add the the number of cases.
-                DC.n += 1
+                DBc.n += 1
                 # Append trajectory values.
                 for k in self.x.keys:
                     # I hate the way NumPy does appending.
-                    DC[k] = np.hstack((DC[k], [getattr(self.x,k)[i]]))
+                    DBc[k] = np.hstack((DBc[k], [getattr(self.x,k)[i]]))
                 # Append values.
                 for c in DC.DataCols:
-                    DC[c] = np.hstack((DC[c], [s[c]]))
+                    DBc[c] = np.hstack((DBc[c], [s[c]]))
                 # Append residual drop.
-                DC['nOrders'] = np.hstack((DC['nOrders'], [nOrders]))
+                DBc['nOrders'] = np.hstack((DBc['nOrders'], [nOrders]))
                 # Append iteration counts.
-                DC['nIter']  = np.hstack((DC['nIter'], [nIter]))
-                DC['nStats'] = np.hstack((DC['nStats'], [s['nStats']]))
+                DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
+                DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
             else:
                 # No need to update trajectory values.
                 # Update data values.
-                for c in DC.DataCols:
-                    DC[c][j] = s[c]
+                for c in DBc.DataCols:
+                    DBc[c][j] = s[c]
                 # Update the other statistics.
-                DC['nOrders'][j] = nOrders
-                DC['nIter'][j]   = nIter
-                DC['nStats'][j]  = s['nStats']
+                DBc['nOrders'][j] = nOrders
+                DBc['nIter'][j]   = nIter
+                DBc['nStats'][j]  = s['nStats']
         # Go back.
         os.chdir(self.RootDir)
 # class DataBook
@@ -532,8 +531,9 @@ class DBTarget(cape.dataBook.DBTarget):
     
     pass
 # class DBTarget
-        
-        
+ 
+ 
+# Component force & moment residual history
 class TestCaseFM(object):
     """Test in stand-alone CaseFM class
     
@@ -541,11 +541,58 @@ class TestCaseFM(object):
         * 2015-10-16 ``@ddalle``: Started
     """
     
+    
+        
+        
+# Individual component force and moment
+class CaseFM(cape.dataBook.CaseFM):
+    """
+    This class contains methods for reading data about an the histroy of an
+    individual component for a single case.  The list of available components
+    comes from a :file:`loadsCC.dat` file if one exists.
+    
+    :Call:
+        >>> FM = pyCart.dataBook.CaseFM(C, MRP=None, A=None)
+    :Inputs:
+        *C*: :class:`list` (:class:`str`)
+            List of coefficients to initialize
+        *MRP*: :class:`numpy.ndarray` (:class:`float`) shape=(3,)
+            Moment reference point
+        *A*: :class:`numpy.ndarray` shape=(*N*,4) or shape=(*N*,7)
+            Matrix of forces and/or moments at *N* iterations
+    :Outputs:
+        *FM*: :class:`pyCart.aero.FM`
+            Instance of the force and moment class
+        *FM.C*: :class:`list` (:class:`str`)
+            List of coefficients
+        *FM.MRP*: :class:`numpy.ndarray` (:class:`float`) shape=(3,)
+            Moment reference point
+        *FM.i*: :class:`numpy.ndarray` shape=(0,)
+            List of iteration numbers
+        *FM.CA*: :class:`numpy.ndarray` shape=(0,)
+            Axial force coefficient at each iteration
+        *FM.CY*: :class:`numpy.ndarray` shape=(0,)
+            Lateral force coefficient at each iteration
+        *FM.CN*: :class:`numpy.ndarray` shape=(0,)
+            Normal force coefficient at each iteration
+        *FM.CLL*: :class:`numpy.ndarray` shape=(0,)
+            Rolling moment coefficient at each iteration
+        *FM.CLM*: :class:`numpy.ndarray` shape=(0,)
+            Pitching moment coefficient at each iteration
+        *FM.CLN*: :class:`numpy.ndarray` shape=(0,)
+            Yaw moment coefficient at each iteration
+    :Versions:
+        * 2014-11-12 ``@ddalle``: Starter version
+        * 2014-12-21 ``@ddalle``: Copied from previous `aero.FM`
+        * 2015-10-16 ``@ddalle``: Self-contained version
+    """
+    # Initialization method
     def __init__(self, comp):
         """Initialization method
         
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
+            * 2014-11-12 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: Eliminated reliance on pyCart.Aero
         """
         # Save component name
         self.comp = comp
@@ -584,8 +631,6 @@ class TestCaseFM(object):
             # Set the values from column *k* of the data
             setattr(self,self.cols[k], A[:,k])
         
-        
-        
     # Function to make empty one.
     def MakeEmpty(self):
         """Create empty *CaseFM* instance
@@ -607,8 +652,8 @@ class TestCaseFM(object):
         self.CLM = np.array([])
         self.CLN = np.array([])
         # Save a default list of columns and components.
-        self.C = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
-        self.cols = ['i'] + self.C
+        self.coeffs = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
+        self.cols = ['i'] + self.coeffs
         
     # Process the column names
     def ProcessColumnNames(self, lines):
@@ -660,7 +705,7 @@ class TestCaseFM(object):
         # Read the contents
         self.txt = lines[0].lstrip('#').strip().split()
         self.cols = []
-        self.C = []
+        self.coeffs = []
         # Loop through columns.
         for i in range(len(self.txt)):
             # Get the raw column name.
@@ -675,441 +720,31 @@ class TestCaseFM(object):
             elif col == 'Fx':
                 # Axial force coefficient
                 self.cols.append('CA')
-                self.C.append('CA')
+                self.coeffs.append('CA')
             elif col == 'Fy':
                 # Side force coefficient
                 self.cols.append('CY')
-                self.C.append('CY')
+                self.coeffs.append('CY')
             elif col == 'Fz':
                 # Normal force coefficient
                 self.cols.append('CN')
-                self.C.append('CN')
+                self.coeffs.append('CN')
             elif col == 'Mx':
                 # Rolling moment
                 self.cols.append('CLL')
-                self.C.append('CLL')
+                self.coeffs.append('CLL')
             elif col == 'My':
                 # Pitching moment
                 self.cols.append('CLM')
-                self.C.append('CLM')
+                self.coeffs.append('CLM')
             elif col == 'Mz':
                 # Yawing moment
                 self.cols.append('CLN')
-                self.C.append('CLN')
+                self.coeffs.append('CLN')
             else:
                 # Something else
                 self.cols.append(col)
-                self.C.append(col)
-                
-        
-# class CaseFM
-        
-        
-# Aerodynamic history class
-class Aero(cape.dataBook.Aero):
-    """
-    This class provides an interface to important data from a run directory.  It
-    reads force and moment histories for named components, if available, and
-    other types of data can also be stored
-    
-    :Call:
-        >>> aero = pyCart.dataBook.Aero(comps=[])
-    :Inputs:
-        *comps*: :class:`list` (:class:`str`)
-            List of components to read; defaults to all components available
-    :Outputs:
-        *aero*: :class:`pyCart.aero.Aero`
-            Instance of the aero history class, similar to dictionary of force
-            and/or moment histories
-    :Versions:
-        * 2014-11-12 ``@ddalle``: Starter version
-        * 2014-12-21 ``@ddalle``: Copied from previous `aero.Aero`
-    """
-    
-    # Initialization method
-    def __init__(self, comps=[]):
-        """Initialization method
-        
-        :Versions:
-            * 2014-11-12 ``@ddalle``: First version
-        """
-        # Process the best data folder.
-        fdir = GetWorkingFolder()
-        # Read the loadsCC.dat file to see what components are requested.
-        self.ReadLoadsCC()
-        # Read the residuals.
-        self.Residual = CaseResid()
-        # Default component list.
-        if (type(comps).__name__ in ["str", "unicode", "int"]):
-            # Make a singleton list.
-            comps = [comps]
-        elif len(comps) < 1:
-            # Extract keys from dictionary.
-            comps = self.Components.keys()
-        # Loop through components.
-        for comp in comps:
-            # Expected name of the history file.
-            fname = os.path.join(fdir, comp+'.dat')
-            # Check if it exists.
-            if not os.path.isfile(fname):
-                # Warn and got to the next component.
-                print("Warning: Component '%s' was not found." % comp)
-                continue
-            # Otherwise, read the file.
-            lines = open(fname).readlines()
-            # Filter comments
-            lines = [l for l in lines if not l.startswith('#')]
-            # Convert all the values to floats
-            # Can't make this an array yet because it's not rectangular.
-            V = [[float(v) for v in l.split()] for l in lines]
-            # Columns to use: 0 and {-6,-3}
-            try:
-                # Read from loadsCC.dat
-                n = len(self.Components[comp]['C'])
-            except Exception:
-                # Infer; could fail for some 2D cases
-                n = (len(V[0])/3) * 3
-            # Create an array with the original data.
-            A = np.array([v[0:1] + v[-n:] for v in V])
-            # Get the number of entries in each row.
-            # This will be one larger if a time-accurate iteration.
-            # It's a column of zeros, and it's the second column.
-            L = np.array([len(v) for v in V])
-            # Check for steady-state iterations.
-            if np.any(L == n+1):
-                # At least one steady-state iteration
-                n0 = np.max(A[L==n+1,0])
-                # Add that iteration number to the time-accurate steps.
-                A[L!=n+1,0] += n0
-            # Extract info from components for readability
-            try:
-                # Read from loadsCC.dat
-                d = self.Components[comp]
-            except Exception:
-                # No MRP known.
-                d = {"MRP": [0.0, 0.0, 0.0]}
-                # Decide force or moment
-                if n == 3:
-                    # Apparently a force
-                    d['C'] = ["CA", "CY", "CN"]
-                else:
-                    # Apparemntly moment
-                    d['C'] = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
-            # Make the component.
-            self[comp] = CaseFM(d['C'], MRP=d['MRP'], A=A)
-            
-    # Function to calculate statistics and select ideal nStats
-    def GetStats(self, nStats=0, nMax=0, nLast=None):
-        """
-        Get statistics for all components and decide how many iterations to use
-        for calculating statistics.
-        
-        The number of iterations to use is selected such that the sum of squares
-        of all errors (all coefficients of each component) is minimized.  Only
-        *nStats*, *nMax*, and integer multiples of *nStats* are considered as
-        candidates for the number of iterations to use.
-        
-        :Call:
-            >>> S = A.GetStats(nStats, nMax=0, nLast=None)
-        :Inputs:
-            *nStats*: :class:`int`
-                Nominal number of iterations to use in statistics
-            *nMax*: :class:`int`
-                Maximum number of iterations to use for statistics
-            *nLast*: :class:`int`
-                Specific iteration at which to get statistics
-        :Outputs:
-            *S*: :class:`dict` (:class:`dict` (:class:`float`))
-                Dictionary of statistics for each component
-        :See also:
-            :func:`pyCart.dataBook.CaseFM.GetStats`
-        :Versions:
-            * 2015-02-28 ``@ddalle``: First version
-        """
-        # Initialize statistics for this count.
-        S = {}
-        # Loop through components.
-        for comp in self:
-            # Get the statistics.
-            S[comp] = self[comp].GetStats(nStats, nMax=nMax, nLast=nLast)
-        # Output
-        return S
-    
-    # Function to read 'loadsCC.dat'
-    def ReadLoadsCC(self):
-        """Read forces and moments from a :file:`loadsCC.dat` file if possible
-        
-        :Call:
-            >> A.ReadLoadsCC()
-        :Inputs:
-            *A*: :class:`pyCart.aero.Aero`
-                Instance of the aero history class
-        :Versions:
-            * 2014-11-12 ``@ddalle``: First version
-        """
-        # Initialize list of components.
-        self.Components = {}
-        # Get working directory.
-        fdir = GetWorkingFolder()
-        # Path to the file.
-        fCC = os.path.join(fdir, 'loadsCC.dat')
-        # Check for the file.
-        if not os.path.isfile(fCC):
-            # Change the loadsTRI.dat
-            fCC = os.path.join(fdir, 'loadsTRI.dat')
-        # Try again.
-        if not os.path.isfile(fCC):
-            # Change to common directory.
-            fCC = os.path.join('..', '..', 'inputs', 'loadsCC.dat')
-        # Check for the last time.
-        if not os.path.isfile(fCC):
-            # Nothing to do.
-            return None
-        # Read the file.
-        linesCC = open(fCC).readlines()
-        # Loop through the lines.
-        for line in linesCC:
-            # Strip line.
-            line = line.strip()
-            # Check for empty line or comment.
-            if (not line) or line.startswith('#'): continue
-            # Get name of component.
-            comp = line.split()[0]
-            # Add line to dictionary if necessary.
-            if comp not in self.Components:
-                self.Components[comp] = {'C':[], 'MRP':None}
-            # Try to get the coefficient name.
-            try:
-                # Find text like '(C_A)' and return 'C_A'.
-                c = re.search('\(([A-Za-z_]+)\)', line).group(1)
-            except Exception:
-                # Failed to find expected text.
-                continue
-            # Filter the coefficient.
-            if c == 'C_A':
-                # Axial force
-                self.Components[comp]['C'].append('CA')
-                continue
-            elif c == 'C_Y': 
-                # Lateral force
-                self.Components[comp]['C'].append('CY')
-                continue
-            elif c == 'C_N':
-                # Normal force
-                self.Components[comp]['C'].append('CN')
-                continue
-            elif c == 'C_M_x':
-                # Rolling moment
-                self.Components[comp]['C'].append('CLL')
-            elif c == 'C_M_y':
-                # Pitching moment
-                self.Components[comp]['C'].append('CLM')
-            elif c == 'C_M_z':
-                # Yaw moment
-                self.Components[comp]['C'].append('CLN')
-            else:
-                # Extra coefficient such as lift, drag, etc.
-                continue
-            # Only process reference point once.
-            if self.Components[comp]['MRP'] is not None: continue
-            # Try to find reference point.
-            try:
-                # Search for text like '(17.0, 0, 0)'.
-                txt = re.search('\(([0-9EeDd., +-]+)\)', line).group(1)
-                # Split into coordinates.
-                MRP = np.array([float(v) for v in txt.split(',')])
-                # Save it.
-                self.Components[comp]['MRP'] = MRP
-            except Exception:
-                # Failed to find expected text.
-                print("Warning: no reference point in line:\n  '%s'" % line)
-                # Function to plot a single coefficient.
-    
-    
-            
-    # Function to plot several coefficients.
-    def Plot(self, comp, C, d={}, **kw):
-        """Plot one or several component histories
-        
-        :Call:
-            >>> h = AP.Plot(comp, C, d={}, n=1000, nAvg=100, **kw)
-        :Inputs:
-            *AP*: :class:`pyCart.aero.Plot`
-                Instance of the force history plotting class
-            *comp*: :class:`str`
-                Name of component to plot
-            *nRow*: :class:`int`
-                Number of rows of subplots to make
-            *nCol*: :class:`int`
-                Number of columns of subplots to make
-            *C*: :class:`list` (:class:`str`)
-                List of coefficients or ``'L1'`` to plot
-            *n*: :class:`int`
-                Only show the last *n* iterations
-            *nFirst*: :class:`int`
-                First iteration to plot
-            *nLast*: :class:`int`
-                Last iteration to plot
-            *nAvg*: :class:`int`
-                Use the last *nAvg* iterations to compute an average
-            *d0*: :class:`float`
-                Default delta to use
-            *d*: :class:`dict`
-                Dictionary of deltas for each component
-            *tag*: :class:`str` 
-                Tag to put in upper corner, for instance case number and name
-            *restriction*: :class:`str`
-                Type of data, e.g. ``"SBU - ITAR"`` or ``"U/FOUO"``
-            *FigWidth*: :class:`float`
-                Figure width
-            *FigHeight*: :class:`float`
-                Figure height
-        :Outputs:
-            *h*: :class:`dict`
-                Dictionary of figure/plot handles
-        :Versions:
-            * 2014-11-12 ``@ddalle``: First version
-            * 2014-12-09 ``@ddalle``: Moved to :class:`AeroPlot`
-            * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
-            * 2015-03-04 ``@ddalle``: Added *nFirst* and *nLast*
-        """
-        # Make sure plotting modules are present.
-        ImportPyPlot()
-        # Read inputs
-        nRow = kw.get('nRow', 2)
-        nCol = kw.get('nCol', 2)
-        n    = kw.get('n', 1000)
-        nAvg = kw.get('nAvg', 100)
-        nBin = kw.get('nBin', 20)
-        d0   = kw.get('d0', 0.01)
-        # Window control
-        nFirst = kw.get('nFirst')
-        nLast  = kw.get('nLast')
-        # Check for single input.
-        if type(C).__name__ == "str": C = [C]
-        # Number of components
-        nC = len(C)
-        # Check inputs.
-        if nC > nRow*nCol:
-            raise IOError("Too many components for %i rows and %i columns" 
-                % (nRow, nCol))
-        # Initialize handles.
-        h = CasePlot()
-        # Loop through components.
-        for i in range(nC):
-            # Get coefficient.
-            c = C[i]
-            # Pull up the subplot.
-            plt.subplot(nRow, nCol, i+1)
-            # Check if residual was requested.
-            if c == 'L1':
-                # Plot it.
-                h[c] = self.PlotL1(n=n, nFirst=nFirst, nLast=nLast)
-            elif c.endswith('hist'):
-                # Get the coeff name.
-                ci = c[:-4]
-                # Plot histogram
-                h[c] = self.PlotCoeffHist(comp, ci, nAvg=nAvg, nBin=nBin, 
-                    nLast=nLast)
-            else:
-                # Get the delta
-                di = d.get(c, d0)
-                # Plot
-                h[c] = self.PlotCoeff(comp, c, n=n, nAvg=nAvg, d=di,
-                    nFirst=nFirst, nLast=nLast)
-            # Turn off overlapping xlabels for condensed plots.
-            if (nCol==1 or nRow>2) and (i+nCol<nC):
-                # Kill the xlabel and xticklabels.
-                h[c]['ax'].set_xticklabels(())
-                h[c]['ax'].set_xlabel('')
-        # Max of number 
-        n0 = max(nCol, nRow)
-        # Determine target font size.
-        if n0 == 1:
-            # Font size (default)
-            fsize = 12
-        elif n0 == 2:
-            # Smaller
-            fsize = 9
-        else:
-            # Really small
-            fsize = 8
-        # Loop through the text labels.
-        for h_t in plt.gcf().findobj(Text):
-            # Apply the target font size.
-            h_t.set_fontsize(fsize)
-        # Add tag.
-        tag = kw.get('tag', '')
-        h['tag'] = plt.figtext(0.015, 0.985, tag, verticalalignment='top')
-        # Add restriction.
-        txt = kw.get('restriction', '')
-        h['restriction'] = plt.figtext(0.5, 0.01, txt,
-            horizontalalignment='center')
-        # Add PASS label (empty but handle is useful)
-        h['pass'] = plt.figtext(0.99, 0.97, "", color="#00E500",
-            horizontalalignment='right')
-        # Add iteration label
-        h['iter'] = plt.figtext(0.99, 0.94, "%i/" % self[comp].i[-1],
-            horizontalalignment='right', size=9)
-        # Attempt to use the tight_layout() utility.
-        try:
-            # Add room for labels with *rect*, and tighten up other margins.
-            plt.gcf().tight_layout(pad=0.2, w_pad=0.5, h_pad=0.7,
-                rect=(0.01,0.015,0.99,0.91))
-        except Exception:
-            pass
-        # Save the figure.
-        h['fig'] = plt.gcf()
-        # Output
-        return h
-        
-    # Function to add plot restriction label
-    
-            
-# class Aero
-    
-    
-# Individual component force and moment
-class CaseFM(cape.dataBook.CaseFM):
-    """
-    This class contains methods for reading data about an the histroy of an
-    individual component for a single case.  The list of available components
-    comes from a :file:`loadsCC.dat` file if one exists.
-    
-    :Call:
-        >>> FM = pyCart.dataBook.CaseFM(C, MRP=None, A=None)
-    :Inputs:
-        *C*: :class:`list` (:class:`str`)
-            List of coefficients to initialize
-        *MRP*: :class:`numpy.ndarray` (:class:`float`) shape=(3,)
-            Moment reference point
-        *A*: :class:`numpy.ndarray` shape=(*N*,4) or shape=(*N*,7)
-            Matrix of forces and/or moments at *N* iterations
-    :Outputs:
-        *FM*: :class:`pyCart.aero.FM`
-            Instance of the force and moment class
-        *FM.C*: :class:`list` (:class:`str`)
-            List of coefficients
-        *FM.MRP*: :class:`numpy.ndarray` (:class:`float`) shape=(3,)
-            Moment reference point
-        *FM.i*: :class:`numpy.ndarray` shape=(0,)
-            List of iteration numbers
-        *FM.CA*: :class:`numpy.ndarray` shape=(0,)
-            Axial force coefficient at each iteration
-        *FM.CY*: :class:`numpy.ndarray` shape=(0,)
-            Lateral force coefficient at each iteration
-        *FM.CN*: :class:`numpy.ndarray` shape=(0,)
-            Normal force coefficient at each iteration
-        *FM.CLL*: :class:`numpy.ndarray` shape=(0,)
-            Rolling moment coefficient at each iteration
-        *FM.CLM*: :class:`numpy.ndarray` shape=(0,)
-            Pitching moment coefficient at each iteration
-        *FM.CLN*: :class:`numpy.ndarray` shape=(0,)
-            Yaw moment coefficient at each iteration
-    :Versions:
-        * 2014-11-12 ``@ddalle``: Starter version
-        * 2014-12-21 ``@ddalle``: Copied from previous `aero.FM`
-    """
+                self.coeffs.append(col)
         
     # Write a pure file.
     def Write(self, fname):
@@ -1128,20 +763,9 @@ class CaseFM(cape.dataBook.CaseFM):
         # Open the file for writing.
         f = open(fname, 'w')
         # Start the header.
-        f.write('# cycle')
-        # Check for basic force coefficients.
-        if 'CA' in self.coeffs:
-            f.write(' Fx Fy')
-        # Check for side force.
-        if 'CY' in self.coeffs:
-            f.write(' Fz')
-        # Check for 3D moments.
-        if 'CLN' in self.coeffs:
-            # 3D moments
-            f.write(' CLL CLM CLN')
-        elif 'CLM' in self.coeffs:
-            # 2D, only pitching moment
-            f.write(' CLM')
+        f.write('# ')
+        # Write the raw column titles
+        f.write(' '.join(self.txt))
         # End the header.
         f.write('\n')
         # Initialize the data.
@@ -1160,9 +784,6 @@ class CaseFM(cape.dataBook.CaseFM):
             f.write(flg % tuple(v))
         # Close the file.
         f.close()
-        
-        
-    
 # class CaseFM
     
 

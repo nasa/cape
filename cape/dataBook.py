@@ -1729,175 +1729,6 @@ class DBTarget(dict):
 # class DBTarget
 
 
-# Aerodynamic history class
-class Aero(dict):
-    """
-    This class provides an interface to important data from a run directory.  It
-    reads force and moment histories for named components, if available, and
-    other types of data can also be stored
-    
-    :Call:
-        >>> A = cape.dataBook.Aero(comps=[])
-    :Inputs:
-        *comps*: :class:`list` (:class:`str`)
-            List of components to read; defaults to all components available
-    :Outputs:
-        *A*: :class:`cape.dataBook.Aero`
-            Instance of the aero history class, similar to dictionary of force
-            and/or moment histories
-    :Versions:
-        * 2014-11-12 ``@ddalle``: Starter version
-        * 2014-12-21 ``@ddalle``: Copied from previous `aero.Aero`
-    """
-    
-    # Function to calculate statistics and select ideal nStats
-    def GetStats(self, nStats=0, nMax=0, nLast=None):
-        """
-        Get statistics for all components and decide how many iterations to use
-        for calculating statistics.
-        
-        The number of iterations to use is selected such that the sum of squares
-        of all errors (all coefficients of each component) is minimized.  Only
-        *nStats*, *nMax*, and integer multiples of *nStats* are considered as
-        candidates for the number of iterations to use.
-        
-        :Call:
-            >>> S = A.GetStats(nStats, nMax=0, nLast=None)
-        :Inputs:
-            *A*: :class:`cape.dataBook.Aero`
-                Instance of the aero history class
-            *nStats*: :class:`int`
-                Nominal number of iterations to use in statistics
-            *nMax*: :class:`int`
-                Maximum number of iterations to use for statistics
-            *nLast*: :class:`int`
-                Specific iteration at which to get statistics
-        :Outputs:
-            *S*: :class:`dict` (:class:`dict` (:class:`float`))
-                Dictionary of statistics for each component
-        :See also:
-            :func:`pyCart.dataBook.CaseFM.GetStats`
-        :Versions:
-            * 2015-02-28 ``@ddalle``: First version
-        """
-        # Initialize statistics for this count.
-        S = {}
-        # Loop through components.
-        for comp in self:
-            # Get the statistics.
-            S[comp] = self[comp].GetStats(nStats, nMax=nMax, nLast=nLast)
-        # Output
-        return S
-        
-    # Plot coefficient iterative history
-    def PlotCoeff(self, comp, c, n=None, nAvg=100, d=0.01, **kw):
-        """Plot a single coefficient history
-        
-        :Call:
-            >>> h = A.PlotCoeff(comp, c, n=1000, nAvg=100, **kw)
-        :Inputs:
-            *A*: :class:`pyCart.dataBook.Aero`
-                Instance of the force history class
-            *comp*: :class:`str`
-                Name of component to plot
-            *c*: :class:`str`
-                Name of coefficient to plot, e.g. ``'CA'``
-            *n*: :class:`int`
-                Only show the last *n* iterations
-            *nAvg*: :class:`int`
-                Use the last *nAvg* iterations to compute an average
-            *d*: :class:`float`
-                Delta in the coefficient to show expected range
-            *nLast*: :class:`int`
-                Last iteration to use (defaults to last iteration available)
-            *nFirst*: :class:`int`
-                First iteration to plot
-        :Outputs:
-            *h*: :class:`dict`
-                Dictionary of figure/plot handles
-        :Versions:
-            * 2014-11-12 ``@ddalle``: First version
-            * 2014-12-09 ``@ddalle``: Transferred to :class:`AeroPlot`
-            * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
-            * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
-        """
-        # Extract the component.
-        FM = self[comp]
-        # Create the plot.
-        h = FM.PlotCoeff(c, n=n, nAvg=nAvg, d=d, **kw)
-        # Output.
-        return h
-    
-    # Plot coefficient histogram
-    def PlotCoeffHist(self, comp, c, nAvg=100, nBin=20, nLast=None, **kw):
-        """Plot a single coefficient histogram
-        
-        :Call:
-            >>> h = A.PlotCoeffHist(comp, c, n=1000, nAvg=100, **kw)
-        :Inputs:
-            *A*: :class:`cape.dataBook.Aero`
-                Instance of the force history class
-            *comp*: :class:`str`
-                Name of component to plot
-            *c*: :class:`str`
-                Name of coefficient to plot, e.g. ``'CA'``
-            *nAvg*: :class:`int`
-                Use the last *nAvg* iterations to compute an average
-            *nBin*: :class:`int`
-                Number of bins to plot
-            *nLast*: :class:`int`
-                Last iteration to use (defaults to last iteration available)
-            *FigWidth*: :class:`float`
-                Figure width
-            *FigHeight*: :class:`float`
-                Figure height
-        :Outputs:
-            *h*: :class:`dict`
-                Dictionary of figure/plot handles
-        :Versions:
-            * 2015-02-15 ``@ddalle``: First version
-            * 2015-03-06 ``@ddalle``: Added *nLast* and fixed documentation
-        """
-        # Extract the component.
-        FM = self[comp]
-        # Create the plot.
-        h = FM.PlotCoeffHist(c, nAvg=nAvg, nBin=nBin, nLast=nLast, **kw)
-        # Output.
-        return h
-
-    # Plot function
-    def PlotL1(self, n=None, nFirst=None, nLast=None, **kw):
-        """Plot the L1 residual
-        
-        :Call:
-            >>> h = A.PlotL1(n=None, nFirst=None, nLast=None)
-        :Inputs:
-            *A*: :class:`cape.dataBook.Aero`
-                Instance of the force history class
-            *n*: :class:`int`
-                Only show the last *n* iterations
-            *nFirst*: :class:`int`
-                Plot starting at iteration *nStart*
-            *nLast*: :class:`int`
-                Plot up to iteration *nLast*
-        :Outputs:
-            *h*: :class:`dict`
-                Dictionary of figure/plot handles
-        :Versions:
-            * 2014-11-12 ``@ddalle``: First version
-            * 2014-12-09 ``@ddalle``: Moved to :class:`AeroPlot`
-            * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
-            * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
-        """
-        # Make sure plotting modules are present.
-        ImportPyPlot()
-        # Create the plot.
-        h = self.Residual.PlotL1(n=n, nFirst=nFirst, nLast=nLast, **kw)
-        # Output.
-        return h
-
-
-# class Aero
 # Individual component force and moment
 class CaseFM(object):
     """
@@ -1940,58 +1771,32 @@ class CaseFM(object):
         * 2014-12-21 ``@ddalle``: Copied from previous `aero.FM`
     """
     # Initialization method
-    def __init__(self, C, MRP=None, A=None):
+    def __init__(self, comp):
         """Initialization method
         
         :Versions:
             * 2014-11-12 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: Trivial generic version
         """
-        # Save component list.
-        self.C = C
-        # Initialize iteration list.
+        # Save the component name.
+        self.comp = comp
+        # Empty iterations
         self.i = np.array([])
-        # Loop through components.
-        for c in C:
-            setattr(self, c, np.array([]))
-        # Save the MRP.
-        self.MRP = np.array(MRP)
-        # Check for data.
-        if A is not None:
-            # Use method to parse.
-            self.AddData(A)
             
     # Function to display contents
     def __repr__(self):
         """Representation method
         
-        Returns one of the following:
+        Returns the following format, with ``'entire'`` replaced with the
+        component name, *FM.comp*
         
-            * ``'<dataBook.CaseFM Force, i=100>'``
-            * ``'<dataBook.CaseFM Moment, i=100, MRP=(0.00, 1.00, 2.00)>'``
-            * ``'<dataBook.CaseFM FM, i=100, MRP=(0.00, 1.00, 2.00)>'``
+            * ``'<dataBook.CaseFM('entire', i=100)>'``
         
         :Versions:
             * 2014-11-12 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: Generic version
         """
-        # Initialize the string.
-        txt = '<dataBook.CaseFM '
-        # Check for a moment.
-        if ('CA' in self.C) and ('CLL' in self.C):
-            # Force and moment.
-            txt += 'FM'
-        elif ('CA' in self.C):
-            # Force only
-            txt += 'Force'
-        elif ('CLL' in self.C):
-            # Moment only
-            txt += 'Moment'
-        # Add number of iterations.
-        txt += (', i=%i' % self.i.size)
-        # Add MRP if possible.
-        if (self.MRP.size == 3):
-            txt += (', MRP=(%.2f, %.2f, %.2f)' % tuple(self.MRP))
-        # Finish the string and return it.
-        return txt + '>'
+        return "<dataBook.CaseFM('%s', i=%i)>" % (self.comp, len(self.i))
     # String method
     __str__ = __repr__
     
@@ -2008,36 +1813,12 @@ class CaseFM(object):
                 Matrix of forces and/or moments at *N* iterations
         :Versions:
             * 2014-11-12 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: Version 2.0, complete rewrite
         """
-        # Get size of A.
-        n, m = A.shape
-        # Save the iterations.
-        self.i = A[:,0]
-        # Check size.
-        if m == 7:
-            # Save all fields.
-            self.CA = A[:,1]
-            self.CY = A[:,2]
-            self.CN = A[:,3]
-            self.CLL = A[:,4]
-            self.CLM = A[:,5]
-            self.CLN = A[:,6]
-            # Save list of coefficients.
-            self.coeffs = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
-        elif (self.MRP.size==3) and (m == 4):
-            # Save only moments.
-            self.CLL = A[:,1]
-            self.CLM = A[:,2]
-            self.CLN = A[:,3]
-            # Save list of coefficients.
-            self.coeffs = ['CLL', 'CLM', 'CLN']
-        elif (m == 4):
-            # Save only forces.
-            self.CA = A[:,1]
-            self.CY = A[:,2]
-            self.CN = A[:,3]
-            # Save list of coefficients.
-            self.coeffs = ['CA', 'CY', 'CN']
+        # Save the values.
+        for k in range(len(self.cols)):
+            # Set the values from column *k* of the data
+            setattr(self,self.cols[k], A[:,k])
     
     # Transform force or moment reference frame
     def TransformFM(self, topts, x, i):
@@ -2243,8 +2024,6 @@ class CaseFM(object):
         j = np.where(self.i <= i)[0][-1]
         # Output
         return j
-    
-    
         
         
     # Method to get averages and standard deviations

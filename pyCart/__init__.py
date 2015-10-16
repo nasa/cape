@@ -80,7 +80,7 @@ from case   import ReadCaseJSON, run_flowCart
 from inputCntl   import InputCntl
 from aeroCsh     import AeroCsh
 from preSpecCntl import PreSpecCntl
-from dataBook    import CaseFM, Aero
+from dataBook    import CaseFM, CaseResid
 
 # Get the conversion tools directly.
 from convert import *
