@@ -24,6 +24,9 @@ except ImportError:
 # Import base triangulation
 import cape.tri
 
+# Rotation functions
+from cape.geom import RotatePoints, TranslatePoints
+
 
 # Regular triangulation class
 class Tri(cape.tri.Tri):
