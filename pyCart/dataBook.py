@@ -434,17 +434,53 @@ class DataBook(cape.dataBook.DataBook):
             
 # Function to automatically get inclusive data limits.
 def get_ylim(ha, pad=0.05):
+    """Calculate appropriate *y*-limits to include all lines in a plot
+    
+    Plotted objects in the classes :class:`matplotlib.lines.Lines2D` and
+    :class:`matplotlib.collections.PolyCollection` are checked.
+    
+    :Call:
+        >>> ymin, ymax = get_ylim(ha, pad=0.05)
+    :Inputs:
+        *ha*: :class:`matplotlib.axes.AxesSubplot`
+            Axis handle
+        *pad*: :class:`float`
+            Extra padding to min and max values to plot.
+    :Outputs:
+        *ymin*: :class:`float`
+            Minimum *y* coordinate including padding
+        *ymax*: :class:`float`
+            Maximum *y* coordinate including padding
+    :Versions:
+        * 2015-07-06 ``@ddalle``: First version
+    """
     return cape.get_ylim(ha, pad=pad)
-# Copy documentation
-get_ylim.__doc__ = cape.get_ylim.__doc__
     
 # Function to automatically get inclusive data limits.
-def get_xlim(ha, pad=0.05):
+def get_xlim(ha, pad=0.05):"""Calculate appropriate *x*-limits to include all lines in a plot
+    
+    Plotted objects in the classes :class:`matplotlib.lines.Lines2D` are
+    checked.
+    
+    :Call:
+        >>> xmin, xmax = get_xlim(ha, pad=0.05)
+    :Inputs:
+        *ha*: :class:`matplotlib.axes.AxesSubplot`
+            Axis handle
+        *pad*: :class:`float`
+            Extra padding to min and max values to plot.
+    :Outputs:
+        *xmin*: :class:`float`
+            Minimum *x* coordinate including padding
+        *xmax*: :class:`float`
+            Maximum *x* coordinate including padding
+    :Versions:
+        * 2015-07-06 ``@ddalle``: First version
+    """
     return cape.get_xlim(ha, pad=pad)
-# Copy documentation
-get_xlim.__doc__ = cape.get_xlim.__doc__
+# DataBook Plot functions
 
-                
+
 # Individual component data book
 class DBComp(cape.dataBook.DBComp):
     """
