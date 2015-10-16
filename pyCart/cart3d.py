@@ -89,8 +89,6 @@ def _upgradeDocString(docstr, fromclass):
     # Output
     return docstr
 
-
-
     
 # Class to read input files
 class Cart3d(Cntl):
@@ -228,6 +226,7 @@ class Cart3d(Cntl):
         # Return to original location.
         os.chdir(fpwd)
     
+    # Call the correct :mod:`case` module
     def CaseStartCase(self):
         """Start a case by either submitting it or running it
         
@@ -835,58 +834,7 @@ class Cart3d(Cntl):
         # Output
         return fc.get_LastIter()
         
-    # Get PBS name
-    def GetPBSName(self, i):
-        """Get PBS name for a given case
-        
-        :Call:
-            >>> lbl = cart3d.GetPBSName(i)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *lbl*: :class:`str`
-                Short name for the PBS job, visible via `qstat`
-        :Versions:
-            * 2014-09-30 ``@ddalle``: First version
-        """
-        # Extract the trajectory.
-        x = self.x
-        # Initialize label.
-        lbl = ''
-        # Loop through keys.
-        for k in x.keys[0:]:
-            # Skip it if not part of the label.
-            if not x.defns[k].get('Label', True):
-                continue
-            
-            # Default print flag
-            if x.defns[k]['Value'] == 'float':
-                # Float: get two decimals if nonzero
-                sfmt = '%.2f'
-            else:
-                # Simply use string
-                sfmt = '%s'
-            # Non-default strings
-            slbl = x.defns[k].get('PBSLabel', x.abbrv[k])
-            sfmt = x.defns[k].get('PBSFormat', sfmt)
-            # Apply values
-            slbl = slbl + (sfmt % getattr(x,k)[i])
-            # Strip underscores
-            slbl = slbl.replace('_', '')
-            # Strop trailing zeros and decimals if float
-            if x.defns[k]['Value'] == 'float':
-                slbl = slbl.rstrip('0').rstrip('.')
-            # Append to the label.
-            lbl += slbl
-        # Check length.
-        if len(lbl) > 15:
-            # 16-char limit (or is it 15?)
-            lbl = lbl[:15]
-        # Output
-        return lbl
+    
         
     # Write the PBS script.
     def WritePBS(self, i):

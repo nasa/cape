@@ -58,6 +58,8 @@ class Report(object):
         os.chdir(cntl.RootDir)
         # Create the report folder if necessary.
         if not os.path.isdir('report'): cntl.mkdir('report')
+        # Set the umask.
+        os.umask(cntl.opts.get_umask())
         # Go into the report folder.
         os.chdir('report')
         # Get the options and save them.
@@ -1328,7 +1330,7 @@ class Report(object):
             os.chdir(self.cntl.RootDir)
             os.chdir(frun)
             # Read the Aero history.
-            FM = Aero([comp])[comp]
+            FM = self.ReadCaseFM(comp)
             # Loop through the transformations.
             for topts in opts.get_DataBookTransformations(comp):
                 # Apply the transformation.
@@ -1805,7 +1807,7 @@ class Report(object):
             figw = opts.get_SubfigOpt(sfig, "FigureWidth")
             figh = opts.get_SubfigOpt(sfig, "FigureHeight")
             # Read the Aero history.
-            hist = CaseResid()
+            hist = self.ReadCaseResid()
             # Draw the plot.
             h = hist.PlotL1(n=nPlotIter, 
                 nFirst=nPlotFirst, nLast=nPlotLast,
@@ -1838,7 +1840,46 @@ class Report(object):
         
         
     
-    
+        
+    # Read iterative history
+    def ReadCaseFM(self, comp):
+        """Read iterative history for a component
+        
+        This function needs to be customized for each solver
+        
+        :Call:
+            >>> FM = R.ReadCaseFM(comp)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *comp*: :class:`str`
+                Name of component to read
+        :Outputs:
+            *FM*: ``None`` or :class:`cape.dataBook.CaseFM` derivative
+                Case iterative force & moment history for one component
+        :Versions:
+            * 2015-10-16 ``@ddalle``: First version
+        """
+        return None
+        
+    # Read residual history
+    def ReadCaseResid(self):
+        """Read iterative residual history for a component
+        
+        This function needs to be customized for each solver
+        
+        :Call:
+            >>> hist = R.ReadCaseResid()
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+        :Outputs:
+            *hist*: ``None`` or :class:`cape.dataBook.CaseResid` derivative
+                Case iterative residual history for one case
+        :Versions:
+            * 2015-10-16 ``@ddalle``: First version
+        """
+        return None
         
     # Function to write summary table
     def SubfigSummary(self, sfig, i):

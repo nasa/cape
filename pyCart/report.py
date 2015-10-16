@@ -19,22 +19,6 @@ from .tecplot import ExportLayout, Tecscript
 from .tri    import Tri
 from .config import Config
 
-#<!--
-# ---------------------------------
-# I consider this portion temporary
-
-# Get the umask value.
-umask = 0027
-# Get the folder permissions.
-fmask = 0777 - umask
-dmask = 0777 - umask
-
-# Change the umask to a reasonable value.
-os.umask(umask)
-
-# ---------------------------------
-#-->
-
 
 # Class to interface with report generation and updating.
 class Report(cape.report.Report):
@@ -66,6 +50,45 @@ class Report(cape.report.Report):
     # Copy the function
     __str__ = __repr__
     
+    # Read iterative history
+    def ReadCaseFM(self, comp):
+        """Read iterative history for a component
+        
+        This function needs to be customized for each solver
+        
+        :Call:
+            >>> FM = R.ReadCaseFM(comp)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *comp*: :class:`str`
+                Name of component to read
+        :Outputs:
+            *FM*: ``None`` or :class:`cape.dataBook.CaseFM` derivative
+                Case iterative force & moment history for one component
+        :Versions:
+            * 2015-10-16 ``@ddalle``: First version
+        """
+        return Aero([comp])[comp]
+        
+    # Read residual history
+    def ReadCaseResid(self):
+        """Read iterative residual history for a component
+        
+        This function needs to be customized for each solver
+        
+        :Call:
+            >>> hist = R.ReadCaseResid()
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+        :Outputs:
+            *hist*: ``None`` or :class:`cape.dataBook.CaseResid` derivative
+                Case iterative residual history for one case
+        :Versions:
+            * 2015-10-16 ``@ddalle``: First version
+        """
+        return CaseResid()
         
         
     # Function to create coefficient plot and write figure
