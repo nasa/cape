@@ -76,11 +76,11 @@ class Namelist(FileCntl):
         return nml
         
     # Function to set generic values, since they have the same format.
-    def SetVar(self, sec, name, val, s=False, f=False):
+    def SetVar(self, sec, name, val):
         """Set generic :file:`fun3d.nml` variable value
         
         :Call:
-            >>> nml.SetVar(sec, name, val, f=False)
+            >>> nml.SetVar(sec, name, val)
         :Inputs:
             *nml*: :class:`pyFun.namelist.Namelist`
                 File control instance for :file:`fun3d.nml`
@@ -90,8 +90,6 @@ class Namelist(FileCntl):
                 Name of variable as identified in 'aero.csh'
             *val*: any, converted using :func:`str`
                 Value to which variable is set in final script
-            *f*: :class:`bool`
-                If ``True``, force value to be written as a float
         :Versions:
             * 2014-06-10 ``@ddalle``: First version
         """
@@ -100,23 +98,10 @@ class Namelist(FileCntl):
             raise KeyError("Section '%s' not found." % sec)
         # Line regular expression: "XXXX=" but with white spaces
         reg = '^\s*' + str(name) + '\s*[=\n]'
-        # Convert *val* to string.
-        val = str(val)
         # Form the output line.
-        if f:
-            # Force character to be written as a float!
-            line = '    %s = %.20f\n' % (name, float(val))
-        elif s:
-            # Force quotes
-            line = '    %s = "%s"\n' % (name, val)
-        elif type(val).__name__ in ['str', 'unicode']:
-            # Force quotes
-            line = '    %s = "%s"\n' % (name, val)
-        else:
-            # Set a value.
-            line = '    %s = %s\n' % (name, val)
+        line = '   %s = %s\n' % (name, self.ConvertToText(val))
         # Replace the line; prepend it if missing
-        self.ReplaceOrAddLineToSectionSearch(sec, reg, line)
+        self.ReplaceOrAddLineToSectionSearch(sec, reg, line, 1)
         
     # Function to get the value of a variable
     def GetVar(self, sec, name):
@@ -132,7 +117,7 @@ class Namelist(FileCntl):
             *name*: :class:`str`
                 Name of variable as identified in 'aero.csh'
         :Outputs:
-            *val*: :class:`str` or :class:`unicode`
+            *val*: :class:`str` | :class:`float` | :class:`int` | :class:`list`
                 Value to which variable is set in final script
         :Versions:
             * 2015-10-15 ``@ddalle``: First version
@@ -149,9 +134,9 @@ class Namelist(FileCntl):
         # Split on the equal sign
         vals = lines[0].split('=')
         # Check for a match
-        if len(vals) < 1: return ''
-        # Return the value
-        return vals[1]
+        if len(vals) < 1: return None
+        # Convert to Python value
+        return self.ConvertToVal(vals[1])
         
     # Function set the Mach number.
     def SetMach(self, mach):
@@ -277,6 +262,148 @@ class Namelist(FileCntl):
             * 2015-10-15 ``@ddalle``: First version
         """
         self.SetVar('reference_physical_properties', 'reynolds_number', Re)
+        
+    
+    
+    # Return a dictionary
+    def ReturnDict(self):
+        """Return a dictionary of options that mirrors the namelist
+        
+        :Call:
+            >>> opts = nml.ReturnDict()
+        :Inputs:
+            *nml*: :class:`pyFun.namelist.Namelist`
+                File control instance for :file:`fun3d.nml`
+        :Outputs:
+            *opts*: :class:`dict`
+                Dictionary of namelist options
+        :Versions:
+            * 2015-10-16 ``@ddalle``: First version
+        """
+        # Initialize dictionary
+        opts = {}
+        # Loop through sections
+        for sec in self.SectionNames[1:]:
+            # Initialize the section dictionary
+            o = {}
+            # Loop through the lines
+            for line in self.Section[sec]:
+                # Split the line to values
+                vals = line.split('=')
+                # Check for a parameter.
+                if len(vals) < 2: continue
+                # Get the name.
+                key = vals[0].strip()
+                val = vals[1].strip()
+                # Set the value.
+                o[key] = self.ConvertToVal(val)
+            # Set the section dictionary
+            opts[sec] = o
+        # Output
+        return opts
+        
+    # Apply a whole bunch of options
+    def ApplyDict(self, opts):
+        """Apply a whole dictionary of settings to the namelist
+        
+        :Call:
+            >>> nml.ApplyDict(opts)
+        :Inputs:
+            *nml*: :class:`pyFun.namelist.Namelist`
+                File control instance for :file:`fun3d.nml`
+            *opts*: :class:`dict`
+                Dictionary of namelist options
+        :Versions:
+            * 2015-10-16 ``@ddalle``: First version
+        """
+        # Loop through major keys.
+        for sec in opts.keys():
+            # Check it it's a section
+            if sec not in self.SectionNames:
+                # Initialize the section.
+                self.SectionNames.append(sec)
+                # Add the lines
+                self.Section[sec] = [
+                    ' &%s\n' % sec,
+                    ' /\n', '\n'
+                ]
+            # Loop through the keys in this subnamelist/section
+            for k in opts[sec].keys():
+                # Set the value.
+                self.SetVar(sec, k, opts[sec][k])
+    
+    
+    # Conversion
+    def ConvertToVal(self, val):
+        """Convert a text file value to Python based on a series of rules
+        
+        :Call:
+            >>> v = nml.ConvertToVal(val)
+        :Inputs:
+            *nml*: :class:`pyFun.namelist.Namelist`
+                File control instance for :file:`fun3d.nml`
+            *val*: :class:`str` | :class:`unicode`
+                Text of the value from file
+        :Outputs:
+            *v*: :class:`str` | :class:`int` | :class:`float` | :class:`list`
+                Evaluated value of the text
+        :Versions:
+            * 2015-10-16 ``@ddalle``: First version
+        """
+        # Check inputs.
+        if type(val).__name__ not in ['str', 'unicode']:
+            # Not a string; return as is.
+            return val
+        # Split to parts
+        V = val.split()
+        # Check the value.
+        try:
+            # Check the value.
+            if '"' in val:
+                # It's a string.  Remove the quotes.
+                return eval(val)
+            elif len(V) == 0:
+                # Nothing here.
+                return None
+            elif lev(V) == 1:
+                # Convert to float/integer
+                return eval(val)
+            else:
+                # List
+                return [eval(v) for v in V]
+        except Exception:
+            # Give it back, whatever it was.
+            return val
+            
+    # Conversion to text
+    def ConvertToText(self, v):
+        """Convert a value to text to write in the namelist file
+        
+        :Call:
+            >>> val = nml.ConvertToText(v)
+        :Inputs:
+            *nml*: :class:`pyFun.namelist.Namelist`
+                File control instance for :file:`fun3d.nml`
+            *v*: :class:`str` | :class:`int` | :class:`float` | :class:`list`
+                Evaluated value of the text
+        :Outputs:
+            *val*: :class:`str` | :class:`unicode`
+                Text of the value from file
+        :Versions:
+            * 2015-10-16 ``@ddalle``: First version
+        """
+        # Form the output line.
+        if type(v).__name__ in ['str', 'unicode']:
+            # Force quotes
+            return '"%s"' % v
+        elif type(v).__name__ in ['list', 'ndarray']:
+            # List (convert to string first)
+            V = [str(vi) for vi in v]
+            return " ".join(V)
+        else:
+            # Use the built-in string converter
+            return str(v)
+        
         
 # class Namelist
 

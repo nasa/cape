@@ -38,7 +38,7 @@ def isRK(RK):
 
 # Class for flowCart settings
 class flowCart(odict):
-    """Dictionary-based interfaced for options specific to ``flowCart``"""
+    """Dictionary-based interface for options specific to ``flowCart``"""
     
     # Run input sequence
     def get_InputSeq(self, i=None):

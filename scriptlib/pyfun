@@ -1,0 +1,80 @@
+#!/usr/bin/env python
+
+# Import the full module
+import pyFun
+# Automated report generation
+#import pyFun.report
+# Input parsing
+from pyCart.argread import readflagstar
+
+# Import docstring (makes the docstring available to module import)
+import pf_doc
+__doc__ = pf_doc.__doc__
+    
+# Check if run as a script.
+if __name__ == "__main__":
+    # Parse inputs.
+    a, kw = readflagstar(pyFun.os.sys.argv)
+    
+    # Check for a help flag.
+    if kw.get('h') or kw.get('help'):
+        print(__doc__)
+        pyFun.os.sys.exit()
+    
+    # Get constraints and convert text to list.
+    cons  = kw.get('cons',        '').split(',')
+    cons += kw.get('constraints', '').split(',')
+    # Set the constraints back into the keywords.
+    kw['cons'] = [con.strip() for con in cons]
+        
+    # Get file name.
+    fname = kw.get('f', 'pyFun.json')
+    
+    # Try to read it.
+    fun3d = pyFun.Fun3d(fname)
+    
+    # Process index list.
+    if ('I' in kw) and (kw['I'] != True):
+        # Turn into a single list
+        kw['I'] = fun3d.x.ExpandIndices(kw['I'])
+    # Process inputs.
+    if kw.get('c'):
+        # Display status.
+        fun3d.DisplayStatus(**kw)
+    elif kw.get('aero'):
+        # Check for component.
+        if kw['aero'] != True:
+            # Process requested component
+            kw['comp'] = kw['aero']
+        # Collect force and moment data.
+        fun3d.Aero(**kw)
+    #elif kw.get('expand'):
+    #    # Archive folders
+    #    fun3d.UntarAdapt(**kw)
+    #elif kw.get('archive'):
+    #    # Archive cases
+    #    fun3d.ArchiveCases(**kw)
+    #elif kw.get('apply'):
+    #    # Apply JSON settings
+    #    fun3d.ApplyFlowCartSettings(**kw)
+    #elif kw.get('explode'):
+    #    # Break out each named component.
+    #    fun3d.ExplodeTri()
+    #elif kw.get('report'):
+    #    # Get the report(s) to create.
+    #    if kw['report'] == True:
+    #        # All reports
+    #        reps = [fun3d.opts.get_ReportList()[0]]
+    #    else:
+    #        # User-specified report
+    #        reps = [kw['report']]
+    #    # Loop through reports.
+    #    for rep in reps:
+    #        # Get the report.
+    #        R = pyFun.report.Report(fun3d, rep)
+    #        # Update according to other options
+    #        R.UpdateReport(**kw)
+    else:
+        # Do it.
+        fun3d.SubmitJobs(**kw)
+    

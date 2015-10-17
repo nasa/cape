@@ -1,4 +1,4 @@
-"""Interface for pyCart automated report generation"""
+"""Interface for automated report generation: :mod:`pyFun.options.Report`"""
 
 
 # Import options-specific utilities

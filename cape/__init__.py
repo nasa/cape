@@ -50,13 +50,8 @@ The following classes are imported in this module, so that code like
     * :class:`pyCart.preSpecCntl.PreSpecCntl`
 """
 
-# Configuration file processor
-import json
 # File system and operating system management
 import os
-# More powerful text processing
-import re
-
 
 # Save version number
 version = "0.4b"

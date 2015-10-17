@@ -50,25 +50,17 @@ The following classes are imported in this module, so that code like
     * :class:`pyCart.preSpecCntl.PreSpecCntl`
 """
 
-# Configuration file processor
-import json
-# File system and operating system management
+# System
 import os
-# More powerful text processing
-import re
-
 
 # Save version number
-version = "0.4a"
-
+version = "0.4c"
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
 
 # Saved folder names
 PyCartFolder = os.path.split(_fname)[0]
-TemplateFolder = os.path.join(PyCartFolder, "templates")
-
 
 # Import classes and methods from the submodules
 from tri    import Tri, Triq

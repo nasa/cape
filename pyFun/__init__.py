@@ -50,17 +50,18 @@ The following classes are imported in this module, so that code like
     * :class:`pyCart.preSpecCntl.PreSpecCntl`
 """
 
-# File system and operating system management
+# System
 import os
-
 
 # Save version number
 version = "0.4c"
-
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
 
 # Saved folder names
 PyFunFolder = os.path.split(_fname)[0]
+
+# Import Control module
+from fun3d  import Fun3d, Trajectory
 

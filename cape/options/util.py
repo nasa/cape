@@ -382,12 +382,12 @@ def applyDefaults(opts, defs):
     :Call:
         >>> opts = applyDefaults(opts, defs)
     :Inputs:
-        *opts*: :class:`dict`
+        *opts*: :class:`dict` | :class:`odict`
             Options dictionary with some options possibly missing
         *defs*: :class:`dict`
             Full dictionary of default settings
     :Outputs:
-        *opts*: :class:`dict`
+        *opts*: :class:`dict` | :class:`odict`
             Input dictionary with all of the fields of *defs*
     :Versions:
         * 2014-06-17 ``@ddalle``: First version

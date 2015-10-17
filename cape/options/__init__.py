@@ -212,6 +212,7 @@ class Options(odict):
     # ==============
     # Global Options
     # ==============
+   # <
     
     # Method to get the max number of jobs to submit.
     def get_nSubmit(self):
@@ -346,11 +347,12 @@ class Options(odict):
             * 2015-09-27 ``@ddalle``: First version
         """
         os.umask(self.get_umask())
-            
+   # >
     
     # ==============
     # Shell Commands
     # ==============
+   # <
     
     # Function to get the shell commands
     def get_ShellCmds(self):
@@ -371,7 +373,7 @@ class Options(odict):
             cmds = [cmds]
         # Output
         return cmds
-        
+   # >
         
     # ============
     # PBS settings

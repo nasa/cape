@@ -97,6 +97,7 @@ class Options(cape.options.Options):
     # ============
     # Initializers
     # ============
+   # <
     
     # Initialization and confirmation for flowCart options
     def _flowCart(self):
@@ -232,11 +233,13 @@ class Options(cape.options.Options):
         elif type(self['Plot']).__name__ == 'dict':
             # Convert to (barely) special class.
             self['Plot'] = Plot(**self['Plot'])
+   # >
     
     # ==============
     # Global Options
     # ==============
-        
+   # <
+    
     # Method to get the input file
     def get_InputCntl(self):
         """Return the name of the master :file:`input.cntl` file
@@ -337,6 +340,7 @@ class Options(cape.options.Options):
             * 2014-10-06 ``@ddalle``: First version
         """
         self['Trajectory']['GroupMesh'] = qGM
+   # >
     
     # ===================
     # flowCart parameters
@@ -738,7 +742,8 @@ class Options(cape.options.Options):
     # ================
     # multigrid levels
     # ================
-        
+   # <
+    
     # Method to get the number of multigrid levels
     def get_mg(self, i=None):
         """Return the number of multigrid levels
@@ -796,11 +801,12 @@ class Options(cape.options.Options):
         """
         self.set_mg_fc(mg, i)
         self.set_mg_ad(mg, i)
-        
+   # >
         
     # =================
     # Output functional
     # =================
+   # <
     
     # Get the optForces
     def get_optForces(self):
@@ -819,7 +825,7 @@ class Options(cape.options.Options):
         self._Functional()
         return self['Functional'].get_optMoments()
     get_optMoments.__doc__ = Functional.get_optMoments.__doc__
-    
+   # >
         
     # ===================
     # Adaptation settings
@@ -1367,141 +1373,12 @@ class Options(cape.options.Options):
     # =======
    # <
     
-    # Get report list
-    def get_ReportList(self):
-        self._Report()
-        return self['Report'].get_ReportList()
-        
-    # Get sweep list
-    def get_SweepList(self):
-        self._Report()
-        return self['Report'].get_SweepList()
-        
-    # Get figure list
-    def get_FigList(self):
-        self._Report()
-        return self['Report'].get_FigList()
-    
-    # Get subfigure list
-    def get_SubfigList(self):
-        self._Report()
-        return self['Report'].get_SubfigList()
-        
-    # Get options for a single report
-    def get_Report(self, rep):
-        self._Report()
-        return self['Report'].get_Report(rep)
-        
-    # Get options for a single figure
-    def get_Figure(self, fig):
-        self._Report()
-        return self['Report'].get_Figure(fig)
-        
-    # Get options for a single subfigure
-    def get_Subfigure(self, sfig):
-        self._Report()
-        return self['Report'].get_Subfigure(sfig)
-        
-    # Get options for a single sweep
-    def get_Sweep(self, fswp):
-        self._Report()
-        return self['Report'].get_Sweep(fswp)
-        
-    # Get list of sweeps in a report
-    def get_ReportSweepList(self, rep):
-        self._Report()
-        return self['Report'].get_ReportSweepList(rep)
-        
-    # Get list of figures in a report
-    def get_ReportFigList(self, rep):
-        self._Report()
-        return self['Report'].get_ReportFigList(rep)
-        
-    # Get list of figures in a report
-    def get_ReportErrorFigList(self, rep):
-        self._Report()
-        return self['Report'].get_ReportErrorFigList(rep)
-        
-    # Get list of figures in a report
-    def get_ReportZeroFigList(self, rep):
-        self._Report()
-        return self['Report'].get_ReportZeroFigList(rep)
-        
-    # Get list of figures in a sweep
-    def get_SweepFigList(self, rep):
-        self._Report()
-        return self['Report'].get_SweepFigList(rep)
-        
-    # Get title string for a report
-    def get_ReportTitle(self, rep):
-        self._Report()
-        return self['Report'].get_ReportTitle(rep)
-        
-    # Get distribution limitation for a report
-    def get_ReportRestriction(self, rep):
-        self._Report()
-        return self['Report'].get_ReportRestriction(rep)
-    
-    # Get logo for a report
-    def get_ReportLogo(self, rep):
-        self._Report()
-        return self['Report'].get_ReportLogo(rep)
-        
-    # Get author string for a report
-    def get_ReportAuthor(self, rep):
-        self._Report()
-        return self['Report'].get_ReportAuthor(rep)
-        
-    # Get archive option
-    def get_ReportArchive(self):
-        self._Report()
-        return self['Report'].get_ReportArchive()
-        
-    # Get the list of subfigures in a figure
-    def get_FigSubfigList(self, fig):
-        self._Report()
-        return self['Report'].get_FigSubfigList(fig)
-        
-    # Get the figure alignment
-    def get_FigAlignment(self, fig):
-        self._Report()
-        return self['Report'].get_FigAlignment(fig)
-        
-    # Get the figure header
-    def get_FigHeader(self, fig):
-        self._Report()
-        return self['Report'].get_FigHeader(fig)
-    
-    # Get the subfigure type
-    def get_SubfigType(self, sfig):
-        self._Report()
-        return self['Report'].get_SubfigType(sfig)
-        
-    # Get the subfigure base type
-    def get_SubfigBaseType(self, sfig):
-        self._Report()
-        return self['Report'].get_SubfigBaseType(sfig)
-        
-    # Get an option for a subfigure
-    def get_SubfigOpt(self, sfig, opt, i=None):
-        self._Report()
-        return self['Report'].get_SubfigOpt(sfig, opt, i=i)
-        
-    # Get an option for a subfigure
-    def get_SubfigPlotOpt(self, sfig, opt, i=None):
-        self._Report()
-        return self['Report'].get_SubfigPlotOpt(sfig, opt, i=i)
-        
-    # Get an option for a sweep
-    def get_SweepOpt(self, fswp, opt):
-        self._Report()
-        return self['Report'].get_SweepOpt(fswp, opt)
-    
     # Copy over the documentation
     for k in []:
         # Get the documentation from the submodule
         eval('get_'+k).__doc__ = getattr(Report,'get_'+k).__doc__
    # >
     
-    
-    
+# class Options
+
+

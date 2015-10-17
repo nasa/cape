@@ -1213,6 +1213,7 @@ class Cart3d(Cntl):
             >>> cart3d.ReadAeroCsh()
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
         :Versions:
             * 2015-10-14 ``@ddalle``: Revived from deletion
         """

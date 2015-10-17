@@ -1,9 +1,9 @@
 """
-Utilities for pyCart Options module: :mod:`pyCart.options.util`
-===============================================================
+Utilities for pyFun Options module: :mod:`pyFun.options.util`
+=============================================================
 
 This module provides tools to read, access, modify, and write settings for
-:mod:`pyCart`.  The class is based off of the built-int :class:`dict` class, so
+:mod:`pyFun`.  The class is based off of the built-int :class:`dict` class, so
 its default behavior, such as ``opts['InputCntl']`` or 
 ``opts.get('InputCntl')`` are also present.  In addition, many convenience
 methods, such as ``opts.set_it_fc(n)``, which sets the number of
@@ -16,7 +16,7 @@ value of a given parameter should be is below.
     *. Values directly specified in the input file, :file:`pyCart.json`
     
     *. Values specified in the default control file,
-       :file:`$PYCART/settings/pyCart.default.json`
+       :file:`$PYFUN/settings/pyFun.default.json`
     
     *. Hard-coded defaults from this module
 """
@@ -28,12 +28,12 @@ from cape.options.util import *
 _fname = os.path.abspath(__file__)
 
 # Saved folder names
-PyCartFolder = os.path.split(os.path.split(_fname)[0])[0]
+PyFunFolder = os.path.split(os.path.split(_fname)[0])[0]
 
 # Backup default settings (in case deleted from :file:`pyCart.defaults.json`)
 rc = {
     "nSubmit": 10,
-    "InputCntl": "input.cntl",
+    "Namelist": "fun3d.nml",
     "AeroCsh": "aero.csh",
     "GroupMesh": True,
     "ConfigFile": "Config.xml",
@@ -95,8 +95,6 @@ rc = {
     "final_mesh_xref": 0,
     "TriFile": "Components.i.tri",
     "mesh2d": False,
-    "preSpecCntl": "preSpec.c3d.cntl",
-    "inputC3d": "input.c3d",
     "BBox": [],
     "XLev": [],
     "r": 30.0,
@@ -159,26 +157,25 @@ def rc0(p):
 
 
 # Function to get the defautl settings.
-def getPyCartDefaults():
+def getPyFunDefaults():
     """
     Read :file:`pyCart.default.json` default settings configuration file
     
     :Call:
-        >>> defs = getPyCartDefaults()
-        
+        >>> defs = getPyFunDefaults()
     :Outputs:
         *defs*: :class:`dict`
             Dictionary of settings read from JSON file
-    
     :Versions:
         * 2014-06-03 ``@ddalle``: First version
         * 2014-07-28 ``@ddalle``: Moved to new options module
     """
     # Read the fixed default file.
-    lines = open(os.path.join(PyCartFolder, 
-        "..", "settings", "pyCart.default.json")).readlines()
+    lines = open(os.path.join(PyFunFolder, 
+        "..", "settings", "pyFun.default.json")).readlines()
     # Strip comments and join list into a single string.
     lines = expandJSONFile(lines)
     # Process the default input file.
     return json.loads(lines)
-        
+
+
