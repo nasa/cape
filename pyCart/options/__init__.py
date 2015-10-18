@@ -694,7 +694,7 @@ class Options(cape.options.Options):
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(flowCart,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(flowCart,'set_'+k).__doc__
-   # >    
+   # >
     
     
     # ====================

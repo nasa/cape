@@ -20,6 +20,8 @@ from cape.cntl import Cntl
 
 # pyCart settings class
 from . import options
+# Alpha-beta conversions
+from cape import convert
 
 # Functions and classes from other modules
 from trajectory import Trajectory
@@ -114,6 +116,87 @@ class Fun3d(Cntl):
         # Read the file.
         self.Namelist = Namelist(self.opts.get_Namelist())
         # Go back to original location
+        os.chdir(fpwd)
+        
+    # Function to prepare "input.cntl" files
+    def PrepareNamelist(self, i):
+        """
+        Write :file:`fun3d.nml` for run case *i* in the appropriate folder
+        and with the appropriate settings.
+        
+        :Call:
+            >>> cart3d.PrepareInputCntl(i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
+            *i*: :class:`int`
+                Run index
+        :Versions:
+            * 2014-06-04 ``@ddalle``: First version
+            * 2014-06-06 ``@ddalle``: Low-level functionality for grid folders
+            * 2014-09-30 ``@ddalle``: Changed to write only a single case
+        """
+        # Extract trajectory.
+        x = self.x
+        # Process the key types.
+        KeyTypes = [x.defns[k]['Type'] for k in x.keys]
+        # Go safely to root folder.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Set the flight conditions.
+        # Mach number
+        for k in x.GetKeysByType('Mach'):
+            self.Namelist.SetMach(getattr(x,k)[i])
+        # Angle of attack
+        if 'alpha' in KeyTypes:
+            # Find the key.
+            k = x.GetKeysByType('alpha')[0]
+            # Set the value.
+            self.Namelist.SetAlpha(getattr(x,k)[i])
+        # Sideslip angle
+        if 'beta' in KeyTypes:
+            # Find the key.
+            k = x.GetKeysByType('beta')[0]
+            # Set the value.
+            self.Namelist.SetBeta(getattr(x,k)[i])
+        # Check for total angle of attack.
+        if 'alpha_t' in KeyTypes:
+            # Find out which key it is.
+            k = x.GetKeysByType('alpha_t')[0]
+            # Get the value.
+            av = getattr(x,k)[i]
+            # Check for roll angle.
+            if 'phi' in KeyTypes:
+                # Kind the ky.
+                k = x.GetKeysByType('phi')[0]
+                # Get the value.
+                rv = getattr(x,k)[i]
+            else:
+                # Set roll to zero.
+                rv = 0.0
+            # Convert the values to aoa and aos.
+            a, b = convert.AlphaTPhi2AlphaBeta(av, rv)
+            # Set them.
+            self.Namelist.SetAlpha(a)
+            self.Namelist.SetBeta(b)
+        ## Specify list of forces to track with `clic`
+        #self.Namelist.RequestForce(self.opts.get_ClicForces())
+        ## Set reference values.
+        #self.Namelist.SetReferenceArea(self.opts.get_RefArea())
+        #self.Namelist.SetReferenceLength(self.opts.get_RefLength())
+        #self.Namelist.SetMomentPoint(self.opts.get_RefPoint())
+        # Get the case.
+        frun = self.x.GetFullFolderNames(i)
+        # Make folder if necessary.
+        if not os.path.isdir(frun): self.mkdir(frun)
+        
+        # Loop through the runs.
+        for j in range(self.opts.get_nSeq()):
+            # Name of output file.
+            fout = os.path.join(frun, 'fun3d.%02i.nml' % j)
+            # Write the input file.
+            self.Namelist.Write(fout)
+        # Return to original path.
         os.chdir(fpwd)
         
         

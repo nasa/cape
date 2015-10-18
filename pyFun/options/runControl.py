@@ -1,14 +1,22 @@
-"""Interface for automated report generation: :mod:`pyFun.options.Report`"""
+"""
+Interface to FUN3D run control options
+======================================
+
+This module provides a class to mirror the Fortran namelist capability.  For
+now, nonunique section names are not allowed.
+"""
+
+
 
 
 # Import options-specific utilities
 from .util import rc0, getel
 
 # Import template module
-import cape.options.Report
+import cape.options.RunControl
 
 # Class for Report settings
-class Report(cape.options.Report):
+class RunControl(cape.options.RunControl):
     """Dictionary-based interface for automated reports
     
     :Call:
@@ -18,6 +26,6 @@ class Report(cape.options.Report):
     """
     
     pass
-# class Report
+# class RunControl
 
 

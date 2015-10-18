@@ -31,6 +31,7 @@ from .DataBook   import DataBook, DBTarget
 from .Report     import Report
 from .Mesh       import Mesh
 from .Config     import Config
+from .runControl import RunControl
 
 # Class definition
 class Options(odict):
@@ -76,6 +77,7 @@ class Options(odict):
         self._Report()
         self._DataBook()
         self._Config()
+        self._RunControl()
         # Add extra folders to path.
         self.AddPythonPath()
         
@@ -127,6 +129,18 @@ class Options(odict):
     # ============
     # Initializers
     # ============
+   # < 
+   
+    # Initialization method for folder management optoins
+    def _RunControl(self):
+        """Initialize folder management options if necessary"""
+        # Check status.
+        if 'RunControl' not in self:
+            # Missing entirely.
+            self['RunControl'] = RunControl()
+        elif type(self['RunControl']).__name__ == 'dict':
+            # Convert to special class
+            self['RunControl'] = RunControl(**self['RunControl'])
     
     # Initialization and confirmation for Adaptation options
     def _Mesh(self):
@@ -208,6 +222,7 @@ class Options(odict):
             # Convert to special class.
             self['Config'] = Config(**tmp)
         
+   # >
     
     # ==============
     # Global Options
@@ -348,6 +363,98 @@ class Options(odict):
         """
         os.umask(self.get_umask())
    # >
+    
+    
+    # ===================
+    # Overall run control
+    # ===================
+   # <
+   
+    # Get number of inputs
+    def get_nSeq(self):
+        self._RunControl()
+        return self['RunControl'].get_nSeq()
+    # Copy documentation
+    get_nSeq.__doc__ = RunControl.get_nSeq.__doc__
+    
+    # Get input sequence
+    def get_InputSeq(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_InputSeq(i)
+        
+    # Set input sequence
+    def set_InputSeq(self, InputSeq=rc0('InputSeq'), i=None):
+        self._RunControl()
+        self['RunControl'].set_InputSeq(InputSeq, i)
+        
+    # Get iteration break points
+    def get_IterSeq(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_IterSeq(i)
+        
+    # Set Iteration break points
+    def set_IterSeq(self, IterSeq=rc0('IterSeq'), i=None):
+        self._RunControl()
+        return self['RunControl'].set_IterSeq(IterSeq, i)
+        
+    # Get MPI status
+    def get_MPI(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_mpi_fc(i)
+        
+    # Set MPI status
+    def set_MPI(self, MPI=rc0('MPI'), i=None):
+        self._RunControl()
+        self['RunControl'].set_mpi_fc(mpi_fc, i)
+        
+    # Get the number of threads for RunControl
+    def get_nProc(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_nProc(i)
+        
+    # Set the number of threads for RunControl
+    def set_nProc(self, nProc=rc0('nProc'), i=None):
+        self._RunControl()
+        self['RunControl'].set_nProc(nProc, i)
+        
+    # Get the MPI system command
+    def get_mpicmd(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_mpicmd(i)
+        
+    # Set the MPI system command
+    def set_mpicmd(self, mpicmd=rc0('mpicmd'), i=None):
+        self._RunControl()
+        self['RunControl'].set_mpicmd(mpicmd, i)
+        
+    # Get the submittable/nonsubmittalbe status
+    def get_qsub(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_qsub(i)
+        
+    # Set the submittable/nonsubmittalbe status
+    def set_qsub(self, qsub=rc0('qsub'), i=None):
+        self._RunControl()
+        self['RunControl'].set_qsub(qsub, i)
+        
+    # Get the resubmittable/nonresubmittalbe status
+    def get_resub(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_resub(i)
+        
+    # Set the resubmittable/nonresubmittalbe status
+    def set_resub(self, resub=rc0('resub'), i=None):
+        self._RunControl()
+        self['RunControl'].set_resub(resub, i)
+        
+    # Copy over the documentation.
+    for k in ['InputSeq', 'IterSeq',  
+            'MPI', 'nProc', 'mpicmd', 'qsub', 'resub']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
+   # >
+   
     
     # ==============
     # Shell Commands

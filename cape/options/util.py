@@ -64,6 +64,7 @@ rc = {
     "tecO": True,
     "nProc": 8,
     "mpicmd": "mpiexec",
+    "MPI": False,
     "TriFile": "Components.i.tri",
     "mesh2d": False,
     "dC": 0.01,

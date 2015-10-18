@@ -54,7 +54,7 @@ rc = {
     "mg_fc": 3,
     "RKScheme": None, # This means don't change it.
     "dt": 0.1,
-    "mpi_fc": False,
+    "MPI": False,
     "unsteady": False,
     "qsub": True,
     "resub": False,
