@@ -99,14 +99,16 @@ class Fun3d(Cntl):
         
         
     # Read the namelist
-    def ReadNamelist(self):
+    def ReadNamelist(self, j=0):
         """Read the :file:`fun3d.nml` file
         
         :Call:
-            >>> fun3d.ReadInputCntl()
+            >>> fun3d.ReadInputCntl(j=0)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of the pyFun control class
+            *j*: :class:`int`
+                Run sequence index
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
         """
@@ -114,9 +116,90 @@ class Fun3d(Cntl):
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
         # Read the file.
-        self.Namelist = Namelist(self.opts.get_Namelist())
+        self.Namelist = Namelist(self.opts.get_Namelist(j))
         # Go back to original location
         os.chdir(fpwd)
+        
+    # Get the project rootname
+    def GetProjectRootName(self, j=0):
+        """Get the project root name
+        
+        The JSON file overrides the value from the namelist file if appropriate
+        
+        :Call:
+            >>> name = fun3d.GetProjectName(j=0)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of global pyFun settings object
+            *j*: :class:`int`
+                Run sequence index
+        :Outputs:
+            *name*: :class:`str`
+                Project root name
+        :Versions:
+            * 2015-10-18 ``@ddalle``: First version
+        """
+        # Read the namelist.
+        self.ReadNamelist(j)
+        # Get the namelist value.
+        nname = self.Namelist.GetVar('project', 'project_rootname')
+        # Check for options value
+        if nfmt is None:
+            # Use the options value.
+            return self.opts.get_project_rootname(j)
+        elif 'Fun3D' not in self.opts:
+            # No namelist options
+            return nname
+        elif 'project' not in self.opts['Fun3D']:
+            # No project options
+            return nname
+        elif 'project_rootname' not in self.opts['Fun3D']['project']:
+            # No rootname
+            return nname
+        else:
+            # Use the options value.
+            return self.opts.get_project_rootname(j)
+            
+    # Get the grid format
+    def GetGridFormat(self, j=0):
+        """Get the grid format
+        
+        The JSON file overrides the value from the namelist file
+        
+        :Call:
+            >>> fmt = fun3d.GetGridFormat(j=0)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of global pyFun settings object
+            *j*: :class:`int`
+                Run sequence index
+        :Outputs:
+            *fmt*: :class:`str`
+                Project root name
+        :Versions:
+            * 2015-10-18 ``@ddalle``: First version
+        """
+        # Read the namelist
+        self.ReadNamelist(j)
+        # Get the namelist value
+        nfmt = self.Namelist.GetVar('raw_grid', 'grid_format')
+        # Check for options value
+        if nfmt is None:
+            # Use the options value.
+            return self.opts.get_grid_format(j)
+        elif 'Fun3D' not in self.opts:
+            # No namelist options
+            return nname
+        elif 'raw_grid' not in self.opts['Fun3D']:
+            # No project options
+            return nname
+        elif 'grid_format' not in self.opts['Fun3D']['raw_grid']:
+            # No rootname
+            return nname
+        else:
+            # Use the options value.
+            return self.opts.get_grid_format(j)
+            
         
     # Function to prepare "input.cntl" files
     def PrepareNamelist(self, i):
@@ -125,9 +208,9 @@ class Fun3d(Cntl):
         and with the appropriate settings.
         
         :Call:
-            >>> cart3d.PrepareInputCntl(i)
+            >>> fun3d.PrepareNamelist(i)
         :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of global pyCart settings object
             *i*: :class:`int`
                 Run index
@@ -136,6 +219,8 @@ class Fun3d(Cntl):
             * 2014-06-06 ``@ddalle``: Low-level functionality for grid folders
             * 2014-09-30 ``@ddalle``: Changed to write only a single case
         """
+        # Read namelist *j*
+        self.ReadNamelist(j)
         # Extract trajectory.
         x = self.x
         # Process the key types.
@@ -189,9 +274,12 @@ class Fun3d(Cntl):
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
         if not os.path.isdir(frun): self.mkdir(frun)
-        
-        # Loop through the runs.
+        # Loop through input sequence
         for j in range(self.opts.get_nSeq()):
+            # Get the reduced namelist for sequence *j*
+            nopts = self.opts.select_namelist(j)
+            # Apply them to this namelist
+            self.Namelist.ApplyDict(nopts)
             # Name of output file.
             fout = os.path.join(frun, 'fun3d.%02i.nml' % j)
             # Write the input file.

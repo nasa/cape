@@ -32,7 +32,7 @@ from .pbs         import PBS
 from .DataBook    import DataBook
 from .Report      import Report
 from .runControl  import RunControl
-
+from .fun3d       import Fun3D
 
 # Class definition
 class Options(cape.options.Options):
@@ -110,6 +110,17 @@ class Options(cape.options.Options):
         elif type(self['RunControl']).__name__ == 'dict':
             # Convert to special class
             self['RunControl'] = RunControl(**self['RunControl'])
+            
+    
+    def _Fun3D(self):
+        """Initialize namelist options"""
+        # Check status.
+        if 'Fun3D' not in self:
+            # Missing entirely.
+            self['Fun3D'] = Fun3D()
+        elif type(self['Fun3D']).__name__ == 'dict':
+            # Convert to special class
+            self['Fun3D'] = Fun3D(**self['Fun3D'])
     
     # Initialization method for databook
     def _DataBook(self):
@@ -140,21 +151,23 @@ class Options(cape.options.Options):
    # <
     
     # Method to get the namelist template
-    def get_Namelist(self):
+    def get_Namelist(self, j=None):
         """Return the name of the master :file:`fun3d.nml` file
         
         :Call:
-            >>> fname = opts.get_Namelist()
+            >>> fname = opts.get_Namelist(j=None)
         :Inputs:
             *opts*: :class:`pyFun.options.Options`
                 Options interface
+            *j*: :class:`int` or ``None``
+                Run sequence index
         :Outputs:
             *fname*: :class:`str`
                 Name of FUN3D namelist template file
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
         """
-        return self.get('InputCntl', rc0('InputCntl'))
+        return self.get_key('Namelist', j)
         
     # Method to set the namelist template
     def set_Namelist(self, fname):
@@ -298,7 +311,33 @@ class Options(cape.options.Options):
         eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
    # >
    
+    # =================
+    # Namelist settings
+    # =================
+   # <
+    
+    # Project settings
+    def get_project(self, i=None):
+        self._Fun3D()
+        return self['Fun3D'].get_project(i)
         
+    # Project rootname
+    def get_project_rootname(self, i=None):
+        self._Fun3D()
+        return self['Fun3D'].get_project_rootname(i)
+        
+    # Copy documentation
+    for k in ['project', 'project_rootname']:
+        eval('get_'+k).__doc__ = getattr(Fun3D,'get_'+k).__doc__
+        
+    # Downselect
+    def select_namelist(self, i=None):
+        self._Fun3D()
+        return self['Fun3D'].select_namelist(i)
+    select_namelist.__doc__ = Fun3D.select_namelist.__doc__
+   # >
+   
+    
     # ============
     # PBS settings
     # ============

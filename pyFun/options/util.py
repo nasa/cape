@@ -132,7 +132,9 @@ rc = {
     "nCheckPoint": 2,
     "TarViz": "tar",
     "TarAdapt": "tar",
-    "TarPBS": "tar"
+    "TarPBS": "tar",
+    "project_rootname": "pyfun",
+    "grid_format": "fast"
 }
     
 

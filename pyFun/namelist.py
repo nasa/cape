@@ -130,7 +130,7 @@ class Namelist(FileCntl):
         # Find the line.
         lines = self.GetLineInSectionStartsWith(sec, name, 1)
         # Exit if no match
-        if len(lines) == 0: return ''
+        if len(lines) == 0: return None
         # Split on the equal sign
         vals = lines[0].split('=')
         # Check for a match
@@ -172,8 +172,7 @@ class Namelist(FileCntl):
             * 2014-06-10 ``@ddalle``: First version
         """
         # Get the value.
-        return _float(
-            self.GetVar('reference_physical_properties', 'mach_number'))
+        return self.GetVar('reference_physical_properties', 'mach_number')
         
     # Function to set the angle of attack
     def SetAlpha(self, alpha):
@@ -263,6 +262,23 @@ class Namelist(FileCntl):
         """
         self.SetVar('reference_physical_properties', 'reynolds_number', Re)
         
+    
+    # Get the project root name
+    def GetRootname(self):
+        """Get the project root name
+        
+        :Call:
+            >>> name = nml.GetRootname()
+        :Inputs:
+            *nml*: :class:`pyFun.namelist.Namelist`
+                File control instance for :file:`fun3d.nml`
+        :Outputs:
+            *name*: :class:`str`
+                Name of project
+        :Versions:
+            * 2015-10-18 ``@ddalle``: First version
+        """
+        return self.GetVar('project', 'project_rootname')
     
     
     # Return a dictionary
