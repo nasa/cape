@@ -128,7 +128,7 @@ class Namelist(FileCntl):
         # Line regular expression: "XXXX=" but with white spaces
         reg = '^\s*' + str(name) + '\s*[=\n]'
         # Find the line.
-        lines = self.GetLineInSectionStartsWith(sec, name, 1)
+        lines = self.GetLineInSectionSearch(sec, reg, 1)
         # Exit if no match
         if len(lines) == 0: return None
         # Split on the equal sign

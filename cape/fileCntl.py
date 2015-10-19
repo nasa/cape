@@ -1006,7 +1006,7 @@ class FileCntl:
         return n
         
         
-        # Replace a line or add it if not found
+    # Replace a line or add it if not found
     def ReplaceOrAddLineSearch(self, reg, line, i=None):
         """
         Replace a line that starts with a given regular expression or add the

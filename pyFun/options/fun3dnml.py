@@ -31,7 +31,7 @@ class Fun3DNml(odict):
             * 2015-10-18 ``@ddalle``: First version
         """
         # Get the value
-        d = getel(self, 'project', i) 
+        d = getel(self.get('project'), i) 
         # Check for None
         if d is None:
             # Return empty dict
@@ -58,7 +58,7 @@ class Fun3DNml(odict):
             * 2015-10-18 ``@ddalle``: First version
         """
         # Get the value
-        d = getel(self, 'raw_grid', i) 
+        d = getel(self.get('raw_grid'), i) 
         # Check for None
         if d is None:
             # Return empty dict
@@ -134,13 +134,13 @@ class Fun3DNml(odict):
         # Loop through keys
         for sec in self:
             # Get the list
-            L = getel(self, sec, i)
+            L = getel(self[sec], i)
             # Initialize this list.
             d[sec] = {}
             # Loop through subkeys
             for k in L:
                 # Select the key and assign it.
-                d[sec][k] = getel(L, k, i)
+                d[sec][k] = getel(L[k], i)
         # Output
         return d
         
@@ -172,6 +172,6 @@ class Fun3DNml(odict):
         # Select the namelist
         d = getel(self, sec, i)
         # Select the value.
-        return getel(d, key, i)
+        return getel(d.get(key), i)
         
         

@@ -345,7 +345,7 @@ class Cart3d(Cntl):
         """Prepare the mesh for case *i* if necessary.
         
         :Call:
-            >>> q = cart3d.PrepareMesh(i)
+            >>> cart3d.PrepareMesh(i)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
@@ -651,8 +651,13 @@ class Cart3d(Cntl):
         
     # Check if cases with zero iterations are not yet setup to run
     def CheckNone(self):
-        """Check if case *i* has the necessary files to run
+        """Check if the current folder has the necessary files to run
         
+        :Call:
+            >>> q = cart3d.CheckNone()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
         :Versions:
             * 2015-09-27 ``@ddalle``: First version
         """
@@ -684,7 +689,7 @@ class Cart3d(Cntl):
         """Prepare case for running if necessary
         
         :Call:
-            >>> n = cart3d.PrepareCase(i)
+            >>> cart3d.PrepareCase(i)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
@@ -717,7 +722,7 @@ class Cart3d(Cntl):
             for fname in ['input.c3d', 'preSpec.c3d.cntl', 
                     'Mesh.c3d.Info', 'Config.xml']:
                 # Source path.
-                fsrc = os.path.join('..', fname)
+                fsrc = os.path.join(os.path.abspath('..'), fname)
                 # Check for the file.
                 if os.path.isfile(fsrc):
                     # Copy it.
@@ -897,7 +902,7 @@ class Cart3d(Cntl):
                 flgs += ' --intersect'
 
             # Simply call the advanced interface.
-            f.write('\n# Call the flow_cart/mpi_flowCart/aero.csh interface.\n')
+            f.write('\n# Call the flowCart/mpix_flowCart/aero.csh interface.\n')
             f.write('run_flowCart.py' + flgs)
             
             # Close the file.
@@ -1497,7 +1502,6 @@ class Cart3d(Cntl):
         self.LoadsTRI.Write(self.x)
         return None
         
-
-
+# class Cart3D
 
 

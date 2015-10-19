@@ -193,7 +193,7 @@ class Fun3d(Cntl):
         # Get the namelist value.
         nname = self.Namelist.GetVar('project', 'project_rootname')
         # Check for options value
-        if nfmt is None:
+        if nname is None:
             # Use the options value.
             return self.opts.get_project_rootname(j)
         elif 'Fun3D' not in self.opts:
@@ -287,6 +287,280 @@ class Fun3d(Cntl):
         # Output
         return rc.get_LastIter()
         
+        
+    # Get list of raw file names
+    def GetInputMeshFileNames(self):
+        """Return the list of mesh files from file
+        
+        :Call:
+            >>> fname = fun3d.GetInputMeshFileNames()
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+        :Outputs:
+            *fname*: :class:`list` (:class:`str`)
+                List of file names read from root directory
+        :Versions:
+            * 2015-10-19 ``@ddalle``: First version
+        """
+        # Get the file names from *opts*
+        fname = self.opts.get_MeshFile()
+        # Ensure list.
+        if type(fname).__name__ not in ['list', 'ndarray']:
+            # Convert to list.
+            return [fname]
+        else:
+            # Return output
+            return fname
+        
+    # Get list of mesh file names that should be in a case folder.
+    def GetProcessedMeshFileNames(self):
+        """Return the list of mesh files that are written
+        
+        :Call:
+            >>> fname = fun3d.GetProcessedMeshFileNames()
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+        :Outputs:
+            *fname*: :class:`list` (:class:`str`)
+                List of file names written to case folders
+        :Versions:
+            * 2015-10-19 ``@ddalle``: First version
+        """
+        # Get the input file names.
+        fin = self.GetInputMeshFileNames()
+        # Initialize output
+        fname = []
+        # Get project name
+        fproj = self.GetProjectRootName()
+        # Loop through input files.
+        for f in fin:
+            # Get extension
+            fext = f.split('.')[-1]
+            # Use project name plus the same extension
+            fname.append("%s.%s" % (fproj, fext))
+        # Output
+        return fname
+        
+    # Function to check if the mesh for case *i* is prepared
+    def CheckMesh(self, i):
+        """Check if the mesh for case *i* is prepared
+        
+        :Call:
+            >>> q = fun3d.CheckMesh(i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not the mesh for case *i* is prepared
+        :Versions:
+            * 2015-10-19 ``@ddalle``: First version
+        """
+        # Check input
+        if not type(i).__name__.startswith("int"):
+            raise TypeError("Case index must be an integer")
+        # Get the group name.
+        fgrp = self.x.GetGroupFolderNames(i)
+        frun = self.x.GetFolderNames(i)
+        # Initialize with a "pass" location
+        q = True
+        # Go safely to root folder.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Check for the group folder.
+        if not os.path.isdir(fgrp):
+            os.chdir(fpwd)
+            return False
+        # Extract options
+        opts = self.opts
+        # Enter the group folder.
+        os.chdir(fgrp)
+        # Check for individual-folder mesh settings
+        if not opts.get_GroupMesh():
+            # Check for the case folder.
+            if not os.path.isdir(frun):
+                # No case folder; no mesh
+                os.chdir(fpwd)
+                return False
+            # Enter the folder.
+            os.chdir(frun)
+        # Get list of mesh file names
+        fmesh = self.GetProcessedMeshFileNames()
+        # Check for presence
+        for f in fmesh:
+            # Check for the file
+            q = q and os.path.isfile(f)
+        # Return to original folder.
+        os.chdir(fpwd)
+        # Output
+        return q
+        
+    # Prepare the mesh for case *i* (if necessary)
+    def PrepareMesh(self, i):
+        """Prepare the mesh for case *i* if necessary
+        
+        :Call:
+            >>> fun3d.PrepareMesh(i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2015-10-19 ``@ddalle``: First version
+        """
+        # ---------
+        # Case info
+        # ---------
+        # Get the case name.
+        frun = self.x.GetFullFolderNames(i)
+        # Get the name of the group.
+        fgrp = self.x.GetGroupFolderNames(i)
+        # Check the mesh.
+        if self.CheckMesh(i):
+            return None
+        # ------------------
+        # Folder preparation
+        # ------------------
+        # Remember current location.
+        fpwd = os.getcwd()
+        # Go to root folder.
+        os.chdir(self.RootDir)
+        # Check for the group folder and make it if necessary.
+        if not os.path.isdir(fgrp):
+            self.mkdir(fgrp)
+        # Check for groups with common meshes.
+        if self.opts.get_GrompMesh():
+            # Get the group index.
+            j = self.x.GetGroupIndex(i)
+            # Status update
+            print("  Group name: '%s' (index $i)" % (fgrp,j))
+            # Enter the group folder.
+            os.chdir(fgrp)
+        else:
+            # Check if the fun folder exists.
+            if not os.path.isdir(frun):
+                self.mkdir(frun)
+            # Status update
+            print("  Case name: '%s' (ndex %i)" % (frun,i))
+            # Enter the case folder.
+            os.chdir(frun)
+        # ----------
+        # Copy files
+        # ----------
+        # Get the names of the raw input files and target files
+        finp = self.GetInputMeshFileNames()
+        fmsh = self.GetProcessedMeshFileNames()
+        # Loop through those files
+        for j in range(len(finp)):
+            # Original and final file names
+            f0 = os.path.join(self.RootDir, finp[j])
+            f1 = fmsh[j]
+            # Copy fhe file.
+            if os.path.isfile(f0):
+                shutil.copyfile(f0, f1)
+        # -------
+        # Cleanup
+        # -------
+        # Return to original folder
+        os.chdir(fpwd)
+        
+        
+    # Check if cases with zero iterations are not yet setup to run
+    def CheckNone(self):
+        """Check if the current folder has the necessary files to run
+        
+        :Call:
+            >>> q = fun3d.CheckNone()
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+        :Versions:
+            * 2015-10-19 ``@ddalle``: First version
+        """
+        # Check for the surface file.
+        if not (os.path.isfile('Components.i.tri')
+                or os.path.isfile('Components.tri')):
+            n = None
+        # Input file.
+        if not os.path.isfile('fun3d.00.nml'): return True
+        # Settings file.
+        if not os.path.isfile('case.json'): return True
+        # Get mesh file names
+        fmsh = self.GetProcessedMeshFileNames()
+        # Check for them.
+        for f in fmsh:
+            if not os.path.isfile(f): return True
+        # Apparently no issues.
+        return False
+
+    
+    # Prepare a case.
+    def PrepareCase(self, i):
+        """Prepare a case for running if it is not already prepared
+        
+        :Call:
+            >>> fun3d.PrepareCase(i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of case to prepare/analyze
+        :Versions:
+            * 2015-10-19 ``@ddalle``: First version
+        """
+        # Get the existing status.
+        n = self.CheckCase(i)
+        # Quit if already prepared.
+        if n is not None: return
+        # Prepare the mesh (and create folders if necessary).
+        self.PrepareMesh(i)
+        # Get the run name.
+        frun = self.x.GetFullFolderNames(i)
+        # Go to root folder safely.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Enter the run directory.
+        if not os.path.isdir(frun): self.mkdir(frun)
+        os.chdir(frun)
+        # Write the conditions to a simple JSON file.
+        self.x.WriteConditionsJSON(i)
+        # Different processes for GroupMesh and CaseMesh
+        if self.opts.get_GroupMesh():
+            # Required file names
+            fmsh = self.GetProcessedMeshFileNames()
+            # Copy the required files.
+            for fname in fmsh:
+                # Source path
+                fsrc = os.path.join(os.path.abspath('..'), fname)
+                # Check for the file
+                if os.path.isfile(fname):
+                    os.remove(fname)
+                # Create the link.
+                if os.path.isfile(fsrc):
+                    os.symlink(fsrc, fname)
+        # Get function for setting boundary conditions, etc.
+        keys = self.x.GetKeysByType('CaseFunction')
+        # Get the list of functions.
+        funcs = [self.x.defns[key]['Function'] for key in keys]
+        # Reread namelist
+        self.ReadNamelist()
+        # Loop through the functions.
+        for (key, func) in zip(keys, funcs):
+            # Apply it.
+            exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+        # Write the fun3d.nml file(s).
+        self.PrepareNamelist(i)
+        # Write a JSON file with
+        self.WriteCaseJSON(i)
+        # Write the PBS script.
+        self.WritePBS(i)
+        # Return to original location
+        os.chdir(fpwd)
         
         
         
@@ -414,6 +688,86 @@ class Fun3d(Cntl):
         f.close()
         # Return to original location
         os.chdir(fpwd)
+        
+    # Write the PBS script.
+    def WritePBS(self, i):
+        """Write the PBS script(s) for a given case
+        
+        :Call:
+            >>> fun3d.WritePBS(i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Run index
+        :Versions:
+            * 2014-10-19 ``@ddalle``: First version
+        """
+        # Get the case name.
+        frun = self.x.GetFullFolderNames(i)
+        # Remember current location.
+        fpwd = os.getcwd()
+        # Go to the root directory.
+        os.chdir(self.RootDir)
+        # Make folder if necessary.
+        if not os.path.isdir(frun): self.mkdir(frun)
+        # Go to the folder.
+        os.chdir(frun)
+        # Determine number of unique PBS scripts.
+        if self.opts.get_nPBS() > 1:
+            # If more than one, use unique PBS script for each run.
+            nPBS = self.opts.get_nSeq()
+        else:
+            # Otherwise use a single PBS script.
+            nPBS = 1
+        
+        # Loop through the runs.
+        for j in range(nPBS):
+            # PBS script name.
+            if nPBS > 1:
+                # Put PBS number in file name.
+                fpbs = 'run_fun3d.%02i.pbs' % j
+            else:
+                # Use single PBS script with plain name.
+                fpbs = 'run_fun3d.pbs'
+            # Initialize the PBS script.
+            f = open(fpbs, 'w')
+            # Write the header.
+            self.WritePBSHeader(f, i, j)
+            
+            # Initialize options to `run_FUN3D.py`
+            flgs = ''
+
+            # Simply call the advanced interface.
+            f.write('\n# Call the FUN3D interface.\n')
+            f.write('run_fun3d.py' + flgs)
+            
+            # Close the file.
+            f.close()
+        # Return.
+        os.chdir(fpwd)
+        
+    # Call the correct :mod:`case` module to start a case
+    def CaseStartCase(self):
+        """Start a case by either submitting it or running it
+        
+        This function relies on :mod:`pyCart.case`, and so it is customized for
+        the Cart3D solver only in that it calles the correct *case* module.
+        
+        :Call:
+            >>> pbs = cart3d.CaseStartCase()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+        :Outputs:
+            *pbs*: :class:`int` or ``None``
+                PBS job ID if submitted successfully
+        :Versions:
+            * 2015-10-14 ``@ddalle``: First version
+        """
+        return case.StartCase()
+        
+        
         
 # class Fun3d
 
