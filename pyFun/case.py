@@ -64,7 +64,7 @@ def run_fun3d():
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
     # Get the last iteration number
-    n = GetCCurrentIter()
+    n = GetCurrentIter()
     # Assuming that worked, move the temp output file.
     os.rename('fun3d.out', 'run.%02i.%i' % (i, n))
     # Rename the flow file, too.
