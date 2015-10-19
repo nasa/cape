@@ -33,6 +33,7 @@ from .DataBook    import DataBook
 from .Report      import Report
 from .runControl  import RunControl
 from .fun3dnml    import Fun3DNml
+from .Mesh        import Mesh
 
 # Class definition
 class Options(cape.options.Options):
@@ -77,6 +78,7 @@ class Options(cape.options.Options):
         self._DataBook()
         self._Report()
         self._RunControl()
+        self._Mesh()
         # Add extra folders to path.
         self.AddPythonPath()
     
@@ -110,8 +112,8 @@ class Options(cape.options.Options):
         elif type(self['RunControl']).__name__ == 'dict':
             # Convert to special class
             self['RunControl'] = RunControl(**self['RunControl'])
-            
     
+    # Initialization method for namelist variables
     def _Fun3D(self):
         """Initialize namelist options"""
         # Check status.
@@ -121,6 +123,17 @@ class Options(cape.options.Options):
         elif type(self['Fun3D']).__name__ == 'dict':
             # Convert to special class
             self['Fun3D'] = Fun3DNml(**self['Fun3D'])
+    
+    # Initialization method for mesh settings
+    def _Mesh(self):
+        """Initialize mesh options"""
+        # Check status.
+        if 'Mesh' not in self:
+            # Missing entirely.
+            self['Mesh'] = Mesh()
+        elif type(self['Mesh']).__name__ == 'dict':
+            # Convert to special class
+            self['Mesh'] = Mesh(**self['Mesh'])
     
     # Initialization method for databook
     def _DataBook(self):
@@ -321,13 +334,28 @@ class Options(cape.options.Options):
         self._Fun3D()
         return self['Fun3D'].get_project(i)
         
+    # Grid settings
+    def get_raw_grid(self, i=None):
+        self._Fun3D()
+        return self['Fun3D'].get_raw_grid(i)
+        
     # Project rootname
     def get_project_rootname(self, i=None):
         self._Fun3D()
         return self['Fun3D'].get_project_rootname(i)
         
+    # Grid format
+    def get_grid_format(self, i=None):
+        self._Fun3D()
+        return self['Fun3D'].get_grid_format(i)
+        
+    # Generic value
+    def get_namelist_var(self, sec, key, i=None):
+        self._Fun3D()
+        return self['Fun3D'].get_namelist_var(sec, key, i)
+        
     # Copy documentation
-    for k in ['project', 'project_rootname']:
+    for k in ['project', 'project_rootname', 'raw_grid', 'grid_format']:
         eval('get_'+k).__doc__ = getattr(Fun3DNml,'get_'+k).__doc__
         
     # Downselect
@@ -337,6 +365,21 @@ class Options(cape.options.Options):
     select_namelist.__doc__ = Fun3DNml.select_namelist.__doc__
    # >
    
+    
+    # =============
+    # Mesh settings
+    # =============
+   # <
+    
+    # File names
+    def get_MeshFile(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_MeshFile(i)
+        
+    # Copy documentation
+    for k in ['MeshFile']:
+        eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
+   # >
     
     # ============
     # PBS settings

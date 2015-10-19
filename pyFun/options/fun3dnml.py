@@ -143,6 +143,35 @@ class Fun3DNml(odict):
                 d[sec][k] = getel(L, k, i)
         # Output
         return d
-            
+        
+    # Get value by name
+    def get_namelist_val(self, sec, key, i=None):
+        """Select a namelist key from a specified section
+        
+        Roughly, this returns ``opts[sec][key]``.
+        
+        :Call:
+            >>> val = opts.get_namelist_val(sec, key, i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *sec*: :class:`str`
+                Section name
+            *key*: :class:`str`
+                Variable name
+            *i*: :class:`int` or ``None``
+                Run sequence index
+        :Outputs:
+            *val*: :class:`int` | :class:`float` | :class:`str` | :class:`list`
+                Value from JSON options
+        :Versions:
+            * 2015-10-19 ``@ddalle``: First version
+        """
+        # Check for namelist
+        if sec not in self: return None
+        # Select the namelist
+        d = getel(self, sec, i)
+        # Select the value.
+        return getel(d, key, i)
         
         

@@ -82,7 +82,8 @@ class autoInputs(odict):
             * 2014-12-02 ``@ddalle``: First version
         """
         self.set_key('nDiv', nDiv, i)
-        
+# class autoInputs
+
         
 # Class for cubes
 class cubes(odict):
@@ -272,12 +273,12 @@ class cubes(odict):
             * 2014-12-02 ``@ddalle``: First version
         """
         self.set_key('sf', sf, i)
-            
+# class cubes
         
 
 # Class for Cart3D mesh settings
 class Mesh(odict):
-    """Dictionary-based interfaced for options for Cart3D meshing"""
+    """Dictionary-based interface for options for Cart3D meshing"""
     
     # Initialization method
     def __init__(self, fname=None, **kw):

@@ -18,9 +18,13 @@ import subprocess as sp
 # Import template class
 from cape.cntl import Cntl
 
-# pyCart settings class
+# Local classes
+from namelist  import Namelist
+
+# Other pyFun modules
 from . import options
-# Alpha-beta conversions
+from . import case
+# Unmodified CAPE modules
 from cape import convert
 
 # Functions and classes from other modules
@@ -86,6 +90,9 @@ class Fun3d(Cntl):
         # Job list
         self.jobs = {}
         
+        # Read the namelist.
+        self.ReadNamelist()
+        
         # Set umask
         os.umask(self.opts.get_umask())
         
@@ -119,6 +126,48 @@ class Fun3d(Cntl):
         self.Namelist = Namelist(self.opts.get_Namelist(j))
         # Go back to original location
         os.chdir(fpwd)
+        
+    # Get namelist var
+    def GetNamelistVar(self, sec, key, j=0):
+        """Get a namelist variable's value
+        
+        The JSON file overrides the value from the namelist file
+        
+        :Call:
+            >>> val = fun3d.GetNamelistVar(sec, key, j=0)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of global pyFun settings object
+            *sec*: :class:`str`
+                Name of namelist section
+            *key*: :class:`str`
+                Variable to read
+            *j*: :class:`int`
+                Run sequence index
+        :Outputs:
+            *val*: :class:`int` | :class:`float` | :class:`str` | :class:`list`
+                Value
+        :Versions:
+            * 2015-10-19 ``@ddalle``: First version
+        """
+        # Get the namelist value.
+        nval = self.Namelist.GetVar(sec, key)
+        # Check for options value.
+        if nval is None:
+            # No namelist file value
+            return self.opts.get_namelist_var(sec, key, j)
+        elif 'Fun3D' not in self.opts:
+            # No namelist in options
+            return nval
+        elif sec not in self.opts['Fun3D']:
+            # No corresponding options section
+            return nval
+        elif key not in self.opts['Fun3D'][sec]:
+            # Value not specified in the options namelist
+            return nval
+        else:
+            # Default to the options
+            return self.opts_get_namelist_var(sec, key, i)
         
     # Get the project rootname
     def GetProjectRootName(self, j=0):
@@ -179,27 +228,67 @@ class Fun3d(Cntl):
         :Versions:
             * 2015-10-18 ``@ddalle``: First version
         """
-        # Read the namelist
-        self.ReadNamelist(j)
-        # Get the namelist value
-        nfmt = self.Namelist.GetVar('raw_grid', 'grid_format')
-        # Check for options value
-        if nfmt is None:
-            # Use the options value.
-            return self.opts.get_grid_format(j)
-        elif 'Fun3D' not in self.opts:
-            # No namelist options
-            return nname
-        elif 'raw_grid' not in self.opts['Fun3D']:
-            # No project options
-            return nname
-        elif 'grid_format' not in self.opts['Fun3D']['raw_grid']:
-            # No rootname
-            return nname
-        else:
-            # Use the options value.
-            return self.opts.get_grid_format(j)
+        return self.GetNamelistVar('raw_grid', 'grid_format', j)
             
+
+    # Get the current iteration number from :mod:`case`
+    def CaseGetCurrentIter(self):
+        """Get the current iteration number from the appropriate module
+        
+        This function utilizes the :mod:`cape.case` module, and so it must be
+        copied to the definition for each solver's control class
+        
+        :Call:
+            >>> n = fun3d.CaseGetCurrentIter()
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Outputs:
+            *n*: :class:`int` or ``None``
+                Number of completed iterations or ``None`` if not set up
+        :Versions:
+            * 2015-10-14 ``@ddalle``: First version
+        """
+        return case.GetCurrentIter()
+        
+    # Get last iter
+    def GetLastIter(self, i):
+        """Get minimum required iteration for a given run to be completed
+        
+        :Call:
+            >>> nIter = fun3d.GetLastIter(i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *nIter*: :class:`int`
+                Number of iterations required for case *i*
+        :Versions:
+            * 2014-10-03 ``@ddalle``: First version
+        """
+        # Check the case
+        if self.CheckCase(i) is None:
+            return None
+        # Safely go to root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get the case name.
+        frun = self.x.GetFullFolderNames(i)
+        # Go there.
+        os.chdir(frun)
+        # Read the local case.json file.
+        rc = case.ReadCaseJSON()
+        # Return to original location.
+        os.chdir(fpwd)
+        # Output
+        return rc.get_LastIter()
+        
+        
+        
         
     # Function to prepare "input.cntl" files
     def PrepareNamelist(self, i):
@@ -219,8 +308,8 @@ class Fun3d(Cntl):
             * 2014-06-06 ``@ddalle``: Low-level functionality for grid folders
             * 2014-09-30 ``@ddalle``: Changed to write only a single case
         """
-        # Read namelist *j*
-        self.ReadNamelist(j)
+        # Read namelist file
+        self.ReadNamelist()
         # Extract trajectory.
         x = self.x
         # Process the key types.
@@ -287,6 +376,44 @@ class Fun3d(Cntl):
         # Return to original path.
         os.chdir(fpwd)
         
+        
+        
+        
+    # Write run control options to JSON file
+    def WriteCaseJSON(self, i):
+        """Write JSON file with run control and related settings for case *i*
+        
+        :Call:
+            >>> fun3d.WriteCaseJSON(i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Run index
+        :Versions:
+            * 2015-10-19
+            ``@ddalle``: First version
+        """
+        # Safely go to root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get the case name.
+        frun = self.x.GetFullFolderNames(i)
+        # Check if it exists.
+        if not os.path.isdir(frun):
+            # Go back and quit.
+            os.chdir(fpwd)
+            return
+        # Go to the folder.
+        os.chdir(frun)
+        # Write folder.
+        f = open('case.json', 'w')
+        # Dump the flowCart settings.
+        json.dump(self.opts['flowCart'], f, indent=1)
+        # Close the file.
+        f.close()
+        # Return to original location
+        os.chdir(fpwd)
         
 # class Fun3d
 

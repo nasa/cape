@@ -407,6 +407,7 @@ class Cntl(object):
         # Output
         return pbs
     
+    # Call the correct module to start the case
     def CaseStartCase(self):
         """Start a case by either submitting it or running it
         
@@ -799,9 +800,9 @@ class Cntl(object):
         """Get minimum required iteration for a given run to be completed
         
         :Call:
-            >>> nIter = cart3d.GetLastIter(i)
+            >>> nIter = cntl.GetLastIter(i)
         :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+            *cart3d*: :class:`cape.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Run index

@@ -794,7 +794,7 @@ class Cart3d(Cntl):
         # Write folder.
         f = open('case.json', 'w')
         # Dump the flowCart settings.
-        json.dump(self.opts['flowCart'], f, indent=1)
+        json.dump(self.opts['RunControl'], f, indent=1)
         # Close the file.
         f.close()
         # Return to original location
