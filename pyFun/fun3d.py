@@ -251,7 +251,13 @@ class Fun3d(Cntl):
         :Versions:
             * 2015-10-14 ``@ddalle``: First version
         """
-        return case.GetCurrentIter()
+        # Read value
+        n = case.GetCurrentIter()
+        # Default to zero.
+        if n is None:
+            return 0
+        else:
+            return n
         
     # Get last iter
     def GetLastIter(self, i):
@@ -434,11 +440,11 @@ class Fun3d(Cntl):
         if not os.path.isdir(fgrp):
             self.mkdir(fgrp)
         # Check for groups with common meshes.
-        if self.opts.get_GrompMesh():
+        if self.opts.get_GroupMesh():
             # Get the group index.
             j = self.x.GetGroupIndex(i)
             # Status update
-            print("  Group name: '%s' (index $i)" % (fgrp,j))
+            print("  Group name: '%s' (index %i)" % (fgrp,j))
             # Enter the group folder.
             os.chdir(fgrp)
         else:
@@ -683,7 +689,7 @@ class Fun3d(Cntl):
         # Write folder.
         f = open('case.json', 'w')
         # Dump the flowCart settings.
-        json.dump(self.opts['flowCart'], f, indent=1)
+        json.dump(self.opts['RunControl'], f, indent=1)
         # Close the file.
         f.close()
         # Return to original location

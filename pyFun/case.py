@@ -18,9 +18,6 @@ from . import bin
 import json
 # File control
 import os, glob, shutil
-# Basic numerics
-from numpy import nan, isnan
-
 
 
 # Function to complete final setup and call the appropriate FUN3D commands
@@ -50,7 +47,7 @@ def run_fun3d():
     if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
         os.remove('fun3d.nml')
     # Create the correct namelist.
-    os.symlink('fun3d.%02i.nml', 'fun3d.nml')
+    os.symlink('fun3d.%02i.nml'%i, 'fun3d.nml')
     # Check for `nodet` vs `nodet_mpi`
     if rc.get_MPI(i):
         # Get number of nodes
@@ -271,16 +268,20 @@ def GetCurrentIter():
     """
     # Read the project rootname
     try:
-        rname = GetCurrentIter()
+        rname = GetProjectRootname()
     except Exception:
         # No iterations
-        return nan
+        return None
+    # Check for currently running case.
+    if os.path.isfile('RUNNING'):
+        # Call separate routine.
+        return GetRunningIter()
     # Assemble file name.
     fname = "%s_hist.dat" % rname
     # Check for the file.
     if not os.path.isfile(fname):
         # No history to read.
-        return nan
+        return None
     # Check the file.
     try:
         # Tail the file
@@ -289,7 +290,39 @@ def GetCurrentIter():
         return float(txt.split()[0])
     except Exception:
         # Failure; return no-iteration result.
-        return nan
+        return None
+        
+# Get the last line (or two) from a running output file
+def GetRunningIter():
+    """Get the most recent iteration number for a running file
+    
+    :Call:
+        >>> n = pyFun.case.GetRunningIter()
+    :Outputs:
+        *n*: :class:`float`
+            Most recent iteration number
+    :Versions:
+        * 2015-10-19 ``@ddalle``: First version
+    """
+    # Check for the file.
+    if not os.path.isfile('fun3d.out'): return None
+    # Read the 'fun3d.out' file
+    try:
+        # Get the last two lines.
+        L0, L1 = bin.tail('fun3d.out', 2).strip().split('\n')
+        # Check last line.
+        if L1.split()[0] == "Lift":
+            # Use second-to-last line
+            return float(L0.split()[0])
+        elif L0.split()[0] == "Lift":
+            # Use last line.
+            return float(L1.split()[0])
+        else:
+            # Not interpreted
+            return None
+    except Exception:
+        # Failure; return no-iteration result.
+        return None
 
 # Function to get total iteration number
 def GetRestartIter():
