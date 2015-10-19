@@ -13,10 +13,10 @@ now, nonunique section names are not allowed.
 from .util import rc0, getel
 
 # Import template module
-import cape.options.RunControl
+import cape.options.runControl
 
 # Class for Report settings
-class RunControl(cape.options.RunControl):
+class RunControl(cape.options.runControl.RunControl):
     """Dictionary-based interface for automated reports
     
     :Call:

@@ -10,7 +10,7 @@ now, nonunique section names are not allowed.
 from util import rc0, odict, getel
 
 # Class for namelist settings
-class Fun3d(odict):
+class Fun3DNml(odict):
     """Dictionary-based interface for FUN3D namelists"""
     
     # Get the project namelist

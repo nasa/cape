@@ -32,7 +32,7 @@ from .pbs         import PBS
 from .DataBook    import DataBook
 from .Report      import Report
 from .runControl  import RunControl
-from .fun3d       import Fun3D
+from .fun3dnml    import Fun3DNml
 
 # Class definition
 class Options(cape.options.Options):
@@ -117,10 +117,10 @@ class Options(cape.options.Options):
         # Check status.
         if 'Fun3D' not in self:
             # Missing entirely.
-            self['Fun3D'] = Fun3D()
+            self['Fun3D'] = Fun3DNml()
         elif type(self['Fun3D']).__name__ == 'dict':
             # Convert to special class
-            self['Fun3D'] = Fun3D(**self['Fun3D'])
+            self['Fun3D'] = Fun3DNml(**self['Fun3D'])
     
     # Initialization method for databook
     def _DataBook(self):
@@ -328,13 +328,13 @@ class Options(cape.options.Options):
         
     # Copy documentation
     for k in ['project', 'project_rootname']:
-        eval('get_'+k).__doc__ = getattr(Fun3D,'get_'+k).__doc__
+        eval('get_'+k).__doc__ = getattr(Fun3DNml,'get_'+k).__doc__
         
     # Downselect
     def select_namelist(self, i=None):
         self._Fun3D()
         return self['Fun3D'].select_namelist(i)
-    select_namelist.__doc__ = Fun3D.select_namelist.__doc__
+    select_namelist.__doc__ = Fun3DNml.select_namelist.__doc__
    # >
    
     
