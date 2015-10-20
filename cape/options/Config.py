@@ -22,7 +22,7 @@ class Config(odict):
         :Call:
             >>> fname = opts.get_ConfigFile()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *fname*: :class:`str`
@@ -39,7 +39,7 @@ class Config(odict):
         :Call:
             >>> opts.set_ConfigFile(fname)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *fname*: :class:`str`
                 Configuration file name, usually ``'Config.xml'``
@@ -47,7 +47,49 @@ class Config(odict):
             * 2014-09-29 ``@ddalle``: First version
         """
         self.set_key('ConfigFile', fname)
+        
+    # Components
+    def get_ConfigComponents(self, i=None):
+        """Get configuration components
+        
+        :Call:
+            >>> comps = opts.get_ConfigComponents()
+            >>> comp = opts.get_ConfigComponents(i)
+        :Inputs:
+            *opts*: :class:`cape.options.Options
+                Options interface
+            *i*: :class:`int`
+                List index
+        :Outputs:
+            *comps*: :class:`list` (:class:`str`)
+                List of components
+            *comp*: :class:`str`
+                Single component
+        :Versions:
+            * 2015-10-20 ``@ddalle``: First version
+        """
+        return self.get_key("Components", i)
     
+    # Components
+    def set_ConfigComponents(self, comps, i=None):
+        """Set configuration components
+        
+        :Call:
+            >>> opts.set_ConfigComponents(comps)
+            >>> opts.set_ConfigComponents(comp, i)
+        :Inputs:
+            *opts*: :class:`cape.options.Options
+                Options interface
+            *i*: :class:`int`
+                List index
+            *comps*: :class:`list` (:class:`str`)
+                List of components
+            *comp*: :class:`str`
+                Single component
+        :Versions:
+            * 2015-10-20 ``@ddalle``: First version
+        """
+        self.set_key('Components', comps, i)
     
     # Get reference area for a given component.
     def get_RefArea(self, comp=None):
@@ -61,7 +103,7 @@ class Config(odict):
             >>> A = opts.get_RefArea()
             >>> A = opts.get_RefArea(comp=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component or component index
@@ -104,7 +146,7 @@ class Config(odict):
             >>> opts.set_RefArea(A)
             >>> opts.set_RefArea(A, comp=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *A*: :class:`float`
                 Global reference area or reference area for a component.
@@ -146,7 +188,7 @@ class Config(odict):
             >>> L = opts.get_RefLength()
             >>> L = opts.get_RefLength(comp=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component or component index
@@ -189,7 +231,7 @@ class Config(odict):
             >>> opts.set_RefLength(L)
             >>> opts.set_RefLength(L, comp=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *L*: :class:`float`
                 Global reference length or reference length for a component 
@@ -229,7 +271,7 @@ class Config(odict):
             >>> x = opts.get_Point(name=None)
             >>> x = opts.get_Point(x)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *name*: :class:`str`
                 Point name
@@ -259,7 +301,7 @@ class Config(odict):
         :Call:
             >>> opts.set_Point(x, name)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *x*: [:class:`float`, :class:`float`, :class:`float`]
                 Coordinates of that point
@@ -290,7 +332,7 @@ class Config(odict):
             >>> x = opts.expand_Point(s)
             >>> X = opts.expand_Point(d)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *x*: :class:`list` (:class:`float`)
                 Point
@@ -339,7 +381,7 @@ class Config(odict):
             >>> x = opts.get_RefPoint()
             >>> x = opts.get_RefPoint(comp=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component or component index
@@ -386,7 +428,7 @@ class Config(odict):
             >>> opts.set_RefPoint(x)
             >>> opts.set_RefPoint(x, comp=None)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *x*: [:class:`float`, :class:`float`, :class:`float`]
                 Global moment reference point or that for a component 

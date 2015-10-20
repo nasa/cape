@@ -51,9 +51,9 @@ def run_fun3d():
     # Check for `nodet` vs `nodet_mpi`
     if rc.get_MPI(i):
         # Get number of nodes
-        nProc = rc.get_nProc(i)
+        nProc = str(rc.get_nProc(i))
         # Get the command to run MPI on this machine
-        mpicmd = rc.get_mpi
+        mpicmd = rc.get_mpicmd()
         # nodet_mpi command
         cmdi = [mpicmd, '-np', nProc, 'nodet_mpi', '--animation_freq', '-1']
     else:

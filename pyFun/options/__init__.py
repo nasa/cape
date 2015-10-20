@@ -34,6 +34,7 @@ from .Report      import Report
 from .runControl  import RunControl
 from .fun3dnml    import Fun3DNml
 from .Mesh        import Mesh
+from .Config      import Config
 
 # Class definition
 class Options(cape.options.Options):
@@ -79,6 +80,7 @@ class Options(cape.options.Options):
         self._Report()
         self._RunControl()
         self._Mesh()
+        self._Config()
         # Add extra folders to path.
         self.AddPythonPath()
     
@@ -156,6 +158,27 @@ class Options(cape.options.Options):
         elif type(self['Report']).__name__ == 'dict':
             # Convert to special class
             self['Report'] = Report(**self['Report'])
+            
+    # Initialization and confirmation for PBS options
+    def _Config(self):
+        """Initialize configuration options if necessary"""
+        # Check status.
+        if 'Config' not in self:
+            # Missing entirely
+            self['Config'] = Config()
+        elif type(self['Config']).__name__ == 'dict':
+            # Add prefix to all the keys.
+            tmp = {}
+            for k in self['Config']:
+                # Check for "File"
+                if k == 'File':
+                    # Add prefix.
+                    tmp["Config"+k] = self['Config'][k]
+                else:
+                    # Use the key as is.
+                    tmp[k] = self['Config'][k]
+            # Convert to special class.
+            self['Config'] = Config(**tmp)
    # >
     
     # ==============
@@ -379,6 +402,29 @@ class Options(cape.options.Options):
     # Copy documentation
     for k in ['MeshFile']:
         eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
+   # >
+    
+    
+    # =============
+    # Configuration
+    # =============
+   #<
+    
+    # Get components
+    def get_ConfigInput(self, comp):
+        self._Config()
+        return self['Config'].get_ConfigInput(comp)
+        
+    # Set components
+    def set_ConfigInput(self, comp, inp):
+        self._Config()
+        self['Config'].set_ConfigInput(comp, inp)
+        
+    # Copy over the documentation.
+    for k in ['ConfigInput']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(Config,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(Config,'set_'+k).__doc__
    # >
     
     # ============

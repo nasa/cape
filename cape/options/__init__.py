@@ -616,7 +616,17 @@ class Options(odict):
     # Configuration
     # =============
    #<
-   
+    
+    # Get components
+    def get_ConfigComponents(self, i=None):
+        self._Config()
+        return self['Config'].get_ConfigComponents(i)
+        
+    # Set components
+    def set_ConfigComponents(self, comps, i=None):
+        self._Config()
+        self['Config'].set_ConfigComponents(comps, i)
+        
     # Get config file name
     def get_ConfigFile(self):
         self._Config()
@@ -674,7 +684,8 @@ class Options(odict):
     expand_Point.__doc__ = Config.expand_Point.__doc__
         
     # Copy over the documentation.
-    for k in ['ConfigFile', 'RefArea', 'RefLength', 'RefPoint', 'Point']:
+    for k in ['ConfigComponents', 'ConfigFile', 
+    'RefArea', 'RefLength', 'RefPoint', 'Point']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Config,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Config,'set_'+k).__doc__

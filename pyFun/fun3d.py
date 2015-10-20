@@ -343,9 +343,15 @@ class Fun3d(Cntl):
         # Loop through input files.
         for f in fin:
             # Get extension
-            fext = f.split('.')[-1]
-            # Use project name plus the same extension
-            fname.append("%s.%s" % (fproj, fext))
+            fsplt = f.split('.')
+            fext = fsplt[-1]
+            # Use project name plus the same extension.
+            if len(f) > 1 and fsplt[-2] in ["lb8"]:
+                # Copy second-to-last extension
+                fname.append('%s.%s.%s' % (fproj, fsplt[-2], fext))
+            else:
+                # Just the extension
+                fname.append("%s.%s" % (fproj, fext))
         # Output
         return fname
         
@@ -569,7 +575,6 @@ class Fun3d(Cntl):
         os.chdir(fpwd)
         
         
-        
     # Function to prepare "input.cntl" files
     def PrepareNamelist(self, i):
         """
@@ -645,12 +650,8 @@ class Fun3d(Cntl):
             k = x.GetKeysByType('T')[0]
             # Set the value.
             self.Namelist.SetTemperature(getattr(x,k)[i])
-        ## Specify list of forces to track with `clic`
-        #self.Namelist.RequestForce(self.opts.get_ClicForces())
-        ## Set reference values.
-        #self.Namelist.SetReferenceArea(self.opts.get_RefArea())
-        #self.Namelist.SetReferenceLength(self.opts.get_RefLength())
-        #self.Namelist.SetMomentPoint(self.opts.get_RefPoint())
+        # Set up the component force & moment tracking
+        self.PrepareNamelistConfig()
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
@@ -678,7 +679,63 @@ class Fun3d(Cntl):
         # Return to original path.
         os.chdir(fpwd)
         
+    # Set up a namelist config
+    def PrepareNamelistConfig(self):
+        """Write the lines for the force/moment output in a namelist file
         
+        :Call:
+            >>> fun3d.PrepareNamelistConfig()
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+        :Versions:
+            * 2015-10-20 ``@ddalle``: First version
+        """
+        # Get the components
+        comps = self.opts.get_ConfigComponents()
+        # Number
+        n = len(comps)
+        # Quit if nothing to do
+        if n == 0: return
+        # Extract namelist
+        nml = self.Namelist
+        # Set the number of components
+        nml.SetVar('component_parameters', 'number_of_components', n)
+        # Loop through specified components.
+        for k in range(1,n+1):
+            # Get component.
+            comp = comps[k-1]
+            # Get input definitions.
+            inp = self.opts.get_ConfigInput(comp)
+            # Set input definitions.
+            if inp is not None:
+                nml.SetVar('component_parameters', 'component_input', inp, k)
+            # Reference area
+            if 'RefArea' in self.opts['Config']:
+                # Get reference area.
+                RefA = self.opts.get_RefArea(comp)
+                # Set it
+                nml.SetVar('component_parameters', 'component_sref', RefA, k)
+            # Moment reference center
+            if 'RefPoint' in self.opts['Config']:
+                # Get MRP
+                RefP = self.opts.get_RefPoint(comp)
+                # Set the x- and y-coordinates
+                nml.SetVar('component_parameters', 'component_xmc', RefP[0], k)
+                nml.SetVar('component_parameters', 'component_ymc', RefP[1], k)
+                # Check for z-coordinate
+                if len(RefP) > 2:
+                    nml.SetVar(
+                        'component_parameters', 'component_zmc', RefP[2], k)
+            # Reference length
+            if 'RefLength' in self.opts['Config']:
+                # Get reference length
+                RefL = self.opts.get_RefLength(comp)
+                # Set both reference lengths
+                nml.SetVar('component_parameters', 'component_cref', RefL, k)
+                nml.SetVar('component_parameters', 'component_bref', RefL, k)
+            # Set the component name
+            nml.SetVar('component_parameters', 'component_name', comp, k)
         
         
     # Write run control options to JSON file

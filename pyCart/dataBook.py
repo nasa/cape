@@ -21,8 +21,6 @@ from datetime import datetime
 
 # Use this to only update entries with newer iterations.
 from .case import GetCurrentIter, GetWorkingFolder
-# Finer control of dicts
-from .options import odict
 # Utilities or advanced statistics
 from . import util
 # Line loads

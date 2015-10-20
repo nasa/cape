@@ -452,14 +452,16 @@ class Namelist(FileCntl):
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
         """
+        # Get the type
+        t = type(v).__name__
         # Form the output line.
-        if type(v).__name__ in ['str', 'unicode']:
+        if t in ['str', 'unicode']:
             # Force quotes
             return '"%s"' % v
-        elif v == True:
+        elif t in ['bool'] and v:
             # Boolean
             return ".true."
-        elif v == False:
+        elif t in ['bool']:
             # Boolean
             return ".false."
         elif type(v).__name__ in ['list', 'ndarray']:
