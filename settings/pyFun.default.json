@@ -29,13 +29,7 @@
     
     // Describe the reference values and config.
     "Config": {
-        // Defer to a file for most things.
-        "File": "Config.xml",
-        // Reference values (turned off by default)
-        "RefArea": 1.0,
-        "RefLength": 1.0,
-        // The moment point can be specified as a dictionary of components.
-        "RefPoint": [0.0, 0.0, 0.0]
+        
     },
 
     // Plotting options

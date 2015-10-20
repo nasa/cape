@@ -76,6 +76,8 @@ class DataBook(cape.dataBook.DataBook):
             Instance of the pyCart data book class
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
+        * 2015-01-03 ``@ddalle``: First version
+        * 2015-10-16 ``@ddalle``: Subclassed to :mod:`cape.dataBook.DataBook`
     """
     
     # Read line load
@@ -529,42 +531,30 @@ class DBTarget(cape.dataBook.DBTarget):
     
     pass
 # class DBTarget
- 
- 
-# Component force & moment residual history
-class TestCaseFM(object):
-    """Test in stand-alone CaseFM class
-    
-    :Version:
-        * 2015-10-16 ``@ddalle``: Started
-    """
-    
+
     
         
         
 # Individual component force and moment
 class CaseFM(cape.dataBook.CaseFM):
     """
-    This class contains methods for reading data about an the histroy of an
-    individual component for a single case.  The list of available components
-    comes from a :file:`loadsCC.dat` file if one exists.
+    This class contains methods for reading data about an the history of an
+    individual component for a single case.  It reads the file :file:`$comp.dat`
+    where *comp* is the name of the component.  From this file it determines
+    which coefficients are recorded automatically.  If some of the comment lines
+    from the Cart3D output file have been deleted, it guesses at the column
+    definitions based on the number of columns.
     
     :Call:
-        >>> FM = pyCart.dataBook.CaseFM(C, MRP=None, A=None)
+        >>> FM = pyCart.dataBook.CaseFM(comp)
     :Inputs:
-        *C*: :class:`list` (:class:`str`)
-            List of coefficients to initialize
-        *MRP*: :class:`numpy.ndarray` (:class:`float`) shape=(3,)
-            Moment reference point
-        *A*: :class:`numpy.ndarray` shape=(*N*,4) or shape=(*N*,7)
-            Matrix of forces and/or moments at *N* iterations
+        *comp*: :class:`str`
+            Name of component to process
     :Outputs:
         *FM*: :class:`pyCart.aero.FM`
             Instance of the force and moment class
-        *FM.C*: :class:`list` (:class:`str`)
+        *FM.coeffs*: :class:`list` (:class:`str`)
             List of coefficients
-        *FM.MRP*: :class:`numpy.ndarray` (:class:`float`) shape=(3,)
-            Moment reference point
         *FM.i*: :class:`numpy.ndarray` shape=(0,)
             List of iteration numbers
         *FM.CA*: :class:`numpy.ndarray` shape=(0,)
@@ -613,7 +603,7 @@ class CaseFM(cape.dataBook.CaseFM):
         # (This is not guaranteed to be rectangular yet.)
         V = [[float(v) for v in l.split()] for l in lines]
         # Number of coefficients.
-        n = len(self.C)
+        n = len(self.coeffs)
         # Create an array with the original data
         A = np.array([v[0:1] + v[-n:] for v in V])
         # Get number of values in each raw data row.

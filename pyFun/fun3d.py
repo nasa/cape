@@ -699,10 +699,8 @@ class Fun3d(Cntl):
         if n == 0: return
         # Extract namelist
         nml = self.Namelist
-        # Set the number of components
-        nml.SetVar('component_parameters', 'number_of_components', n)
         # Loop through specified components.
-        for k in range(1,n+1):
+        for k in range(n,0,-1):
             # Get component.
             comp = comps[k-1]
             # Get input definitions.
@@ -736,6 +734,10 @@ class Fun3d(Cntl):
                 nml.SetVar('component_parameters', 'component_bref', RefL, k)
             # Set the component name
             nml.SetVar('component_parameters', 'component_name', comp, k)
+            # Tell FUN3D to determine the number of components on its own.
+            nml.SetVar('component_parameters', 'component_count', -1, k)
+        # Set the number of components
+        nml.SetVar('component_parameters', 'number_of_components', n)
         
         
     # Write run control options to JSON file

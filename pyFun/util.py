@@ -1,5 +1,5 @@
 """
-Utilities for pyCart: :mod:`pyCart.util`
+Utilities for pyFun: :mod:`pyFun.util`
 ========================================
 
 """
@@ -9,6 +9,6 @@ from cape.util import *
 
 
 # pyCart base folder
-pyCartFolder = os.path.split(os.path.abspath(__file__))[0]
+pyFunFolder = os.path.split(os.path.abspath(__file__))[0]
 
 
