@@ -354,6 +354,26 @@ class Trajectory:
                     "Format": "%s",
                     "Abbreviation": "r"
                 }
+            elif key.lower() in ['re', 'reynolds', 'reynolds_number']:
+                # Reynolds number per unit
+                defkey = {
+                    "Group": False,
+                    "Type": "Re",
+                    "Value": "float",
+                    "Format": "%.2e",
+                    "Label": False,
+                    "Abbreviation": "Re"
+                }
+            elif key == "T" or key.lower() in ['temp', 'temperature']:
+                # Static temperature
+                defkey = {
+                    "Group": False,
+                    "Type": "T",
+                    "Value": "float",
+                    "Format": "%s",
+                    "Label": False,
+                    "Abbreviation": "T"
+                }
             elif key.lower() in ['label', 'suffix']:
                 # Extra label for case (non-group)
                 defkey = {

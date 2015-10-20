@@ -45,6 +45,7 @@ rc = {
     "Xslices": [0.0],
     "Yslices": [0.0],
     "Zslices": [0.0],
+    "nIter": 100,
     "InputSeq": [0],
     "IterSeq": [200],
     "cfl": 1.1,

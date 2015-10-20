@@ -76,11 +76,12 @@ class Namelist(FileCntl):
         return nml
         
     # Function to set generic values, since they have the same format.
-    def SetVar(self, sec, name, val):
+    def SetVar(self, sec, name, val, k=None):
         """Set generic :file:`fun3d.nml` variable value
         
         :Call:
             >>> nml.SetVar(sec, name, val)
+            >>> nml.SetVar(sec, name, val, k)
         :Inputs:
             *nml*: :class:`pyFun.namelist.Namelist`
                 File control instance for :file:`fun3d.nml`
@@ -88,27 +89,40 @@ class Namelist(FileCntl):
                 Name of section in which to set variable
             *name*: :class:`str`
                 Name of variable as identified in 'aero.csh'
-            *val*: any, converted using :func:`str`
+            *val*: any
                 Value to which variable is set in final script
+            *k*: :class:`int`
+                Namelist index
         :Versions:
             * 2014-06-10 ``@ddalle``: First version
+            * 2015-10-20 ``@ddalle``: Added Fortran index
         """
         # Check sections
         if sec not in self.SectionNames:
             raise KeyError("Section '%s' not found." % sec)
-        # Line regular expression: "XXXX=" but with white spaces
-        reg = '^\s*' + str(name) + '\s*[=\n]'
-        # Form the output line.
-        line = '   %s = %s\n' % (name, self.ConvertToText(val))
+        # Check format
+        if k is None:
+            # Format: '   component = "something"'
+            # Line regular expression: "XXXX=" but with white spaces
+            reg = '^\s*%s\s*[=\n]' % name
+            # Form the output line.
+            line = '   %s = %s\n' % (name, self.ConvertToText(val))
+        else:
+            # Format: '   component(1) = "something"'
+            # Line regular expression: "XXXX([0-9]+)=" but with white spaces
+            reg = '^\s*%s\(%i\)\s*[=\n]' % (name, k)
+            # Form the output line.
+            line = '   %s(%i) = %s\n' % (name, k, self.ConvertToText(val))
         # Replace the line; prepend it if missing
         self.ReplaceOrAddLineToSectionSearch(sec, reg, line, 1)
         
     # Function to get the value of a variable
-    def GetVar(self, sec, name):
+    def GetVar(self, sec, name, k=None):
         """Get value of a variable
         
         :Call:
             >>> val = nml.GetVar(sec, name)
+            >>> val = nml.GetVar(sec, name, k)
         :Inputs:
             *nml*: :class:`pyFun.namelist.Namelist`
                 File control instance for :file:`fun3d.nml`
@@ -116,17 +130,25 @@ class Namelist(FileCntl):
                 Name of section in which to set variable
             *name*: :class:`str`
                 Name of variable as identified in 'aero.csh'
+            *k*: :class:`int`
+                Namelist index
         :Outputs:
-            *val*: :class:`str` | :class:`float` | :class:`int` | :class:`list`
+            *val*: any
                 Value to which variable is set in final script
         :Versions:
             * 2015-10-15 ``@ddalle``: First version
+            * 2015-10-20 ``@ddalle``: Added Fortran index
         """
         # Check sections
         if sec not in self.SectionNames:
             raise KeyError("Section '%s' not found." % sec)
-        # Line regular expression: "XXXX=" but with white spaces
-        reg = '^\s*' + str(name) + '\s*[=\n]'
+        # Check for index
+        if k is None:
+            # Line regular expression: "XXXX=" but with white spaces
+            reg = '^\s*%s\s*[=\n]' % name
+        else:
+            # Index: "XXXX(k)=" but with white spaces
+            reg = '^\s*%s\(%i\)\s*[=\n]' % (name, k)
         # Find the line.
         lines = self.GetLineInSectionSearch(sec, reg, 1)
         # Exit if no match
@@ -262,6 +284,22 @@ class Namelist(FileCntl):
         """
         self.SetVar('reference_physical_properties', 'reynolds_number', Re)
         
+    # Set the number of iterations
+    def SetnIter(self, nIter):
+        """Set the number of iterations
+        
+        :Call:
+            >>> nml.SetnIter(nIter)
+        :Inputs:
+            *nml*: :class:`pyFun.namelist.Namelist`
+                File control instance for :file:`fun3d.nml`
+            *nIter*: :class:`int`
+                Number of iterations to run
+        :Versions:
+            * 2015-10-20 ``@ddalle``: First version
+        """
+        self.SetVar('code_run_control', 'steps', nIter)
+        
     
     # Get the project root name
     def GetRootname(self):
@@ -375,9 +413,15 @@ class Namelist(FileCntl):
         # Check the value.
         try:
             # Check the value.
-            if '"' in val:
+            if ('"' in val) or ("'" in val):
                 # It's a string.  Remove the quotes.
                 return eval(val)
+            elif val.lower() == ".false.":
+                # Boolean
+                return False
+            elif val.lower() == ".true.":
+                # Boolean
+                return True
             elif len(V) == 0:
                 # Nothing here.
                 return None
@@ -412,6 +456,12 @@ class Namelist(FileCntl):
         if type(v).__name__ in ['str', 'unicode']:
             # Force quotes
             return '"%s"' % v
+        elif v == True:
+            # Boolean
+            return ".true."
+        elif v == False:
+            # Boolean
+            return ".false."
         elif type(v).__name__ in ['list', 'ndarray']:
             # List (convert to string first)
             V = [str(vi) for vi in v]

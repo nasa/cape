@@ -633,6 +633,18 @@ class Fun3d(Cntl):
             # Set them.
             self.Namelist.SetAlpha(a)
             self.Namelist.SetBeta(b)
+        # Check for Reynolds number
+        if 'Re' in KeyTypes:
+            # Find the key.
+            k = x.GetKeysByType('Re')[0]
+            # Set the value.
+            self.Namelist.SetReynoldsNumber(getattr(x,k)[i])
+        # Check for temperature
+        if 'T' in KeyTypes:
+            # Find the key.
+            k = x.GetKeysByType('T')[0]
+            # Set the value.
+            self.Namelist.SetTemperature(getattr(x,k)[i])
         ## Specify list of forces to track with `clic`
         #self.Namelist.RequestForce(self.opts.get_ClicForces())
         ## Set reference values.
@@ -653,6 +665,8 @@ class Fun3d(Cntl):
             else:
                 # Later sequence; restart
                 self.Namelist.SetVar('code_run_control', 'restart_read', 'on')
+            # Set number of iterations
+            self.Namelist.SetnIter(self.opts.get_nIter(j))
             # Get the reduced namelist for sequence *j*
             nopts = self.opts.select_namelist(j)
             # Apply them to this namelist

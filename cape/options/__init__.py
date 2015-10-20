@@ -377,6 +377,16 @@ class Options(odict):
     # Copy documentation
     get_nSeq.__doc__ = RunControl.get_nSeq.__doc__
     
+    # Get number of iterations
+    def get_nIter(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_nIter(i)
+        
+    # Set number of iterations
+    def set_nIter(self, nIter=rc0('nIter'), i=None):
+        self._RunControl()
+        self['RunControl'].set_nIter(nIter, i)
+    
     # Get input sequence
     def get_InputSeq(self, i=None):
         self._RunControl()
@@ -448,7 +458,7 @@ class Options(odict):
         self['RunControl'].set_resub(resub, i)
         
     # Copy over the documentation.
-    for k in ['InputSeq', 'IterSeq',  
+    for k in ['nIter', 'InputSeq', 'IterSeq',  
             'MPI', 'nProc', 'mpicmd', 'qsub', 'resub']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__

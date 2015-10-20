@@ -11,7 +11,46 @@ from util import rc0, odict
 
 # Class for namelist settings
 class RunControl(odict):
-    """Dictionary-based interface for FUN3D run control"""
+    """Dictionary-based interface for generic code run control"""
+    
+    # Number of iterations
+    def get_nIter(self, i=None):
+        """Return the number of iterations for run sequence *i*
+        
+        :Call:
+            >>> nIter = opts.get_nIter(i=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run sequence index
+        :Outputs:
+            *nIter*: :class:`int` or :class:`list` (:class:`int`)
+                Number of iterations to run
+        :Versions:
+            * 2015-10-20 ``@ddalle``: First version
+        """
+        return self.get_key('nIter', i)
+        
+    # Set number of iterations
+    def set_nIter(self, nIter=rc0('nIter'), i=None):
+        """Set the number of iterations for run sequence *i*
+        
+        :Call:
+            >>> nIter = opts.get_nIter(i=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run sequence index
+        :Outputs:
+            *nIter*: :class:`int` or :class:`list` (:class:`int`)
+                Number of iterations to run
+        :Versions:
+            * 2015-10-20 ``@ddalle``: First version
+        """
+        self.set_key('nIter', nIter, i)
+            
     
     # Run input sequence
     def get_InputSeq(self, i=None):

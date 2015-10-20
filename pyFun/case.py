@@ -261,10 +261,36 @@ def GetCurrentIter():
     :Call:
         >>> n = pyFun.case.GetHistoryIter()
     :Outputs:
-        *n*: :class:`float`
+        *n*: :class:`int` | ``None``
             Last iteration number
     :Versions:
         * 2015-10-19 ``@ddalle``: First version
+    """
+    # Read the two sources
+    nh = GetHistoryIter()
+    nr = GetRunningIter()
+    # Process
+    if nr is None:
+        # No running iterations; check history
+        return nh
+    elif nh is None:
+        # No completed sets but some iterations running
+        return nr
+    else:
+        # Some iterations saved and some running
+        return nh + nr
+        
+# Get the number of finished iterations
+def GetHistoryIter():
+    """Get the most recent iteration number for a history file
+    
+    :Call:
+        >>> n = pyFun.case.GetHistoryIter()
+    :Outputs:
+        *n*: :class:`int` | ``None``
+            Most recent iteration number
+    :Versions:
+        * 2015-10-20 ``@ddalle``: First version
     """
     # Read the project rootname
     try:
@@ -272,10 +298,6 @@ def GetCurrentIter():
     except Exception:
         # No iterations
         return None
-    # Check for currently running case.
-    if os.path.isfile('RUNNING'):
-        # Call separate routine.
-        return GetRunningIter()
     # Assemble file name.
     fname = "%s_hist.dat" % rname
     # Check for the file.
@@ -287,7 +309,7 @@ def GetCurrentIter():
         # Tail the file
         txt = bin.tail(fname)
         # Get the iteration number.
-        return float(txt.split()[0])
+        return int(txt.split()[0])
     except Exception:
         # Failure; return no-iteration result.
         return None
@@ -299,30 +321,27 @@ def GetRunningIter():
     :Call:
         >>> n = pyFun.case.GetRunningIter()
     :Outputs:
-        *n*: :class:`float`
+        *n*: :class:`int` | ``None``
             Most recent iteration number
     :Versions:
         * 2015-10-19 ``@ddalle``: First version
     """
     # Check for the file.
     if not os.path.isfile('fun3d.out'): return None
-    # Read the 'fun3d.out' file
-    try:
-        # Get the last two lines.
-        L0, L1 = bin.tail('fun3d.out', 2).strip().split('\n')
-        # Check last line.
-        if L1.split()[0] == "Lift":
-            # Use second-to-last line
-            return float(L0.split()[0])
-        elif L0.split()[0] == "Lift":
-            # Use last line.
-            return float(L1.split()[0])
-        else:
-            # Not interpreted
-            return None
-    except Exception:
-        # Failure; return no-iteration result.
-        return None
+    # Get the last three lines of :file:`fun3d.out`
+    lines = bin.tail('fun3d.out', 3).strip().split('\n')
+    # Initialize output
+    n = None
+    # Try each line.
+    for line in lines:
+        try:
+            # Try to use an integer for the first entry.
+            n = int(line.split()[0])
+            break
+        except Exception:
+            continue
+    # Output
+    return n
 
 # Function to get total iteration number
 def GetRestartIter():
