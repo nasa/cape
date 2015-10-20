@@ -645,6 +645,14 @@ class Fun3d(Cntl):
         if not os.path.isdir(frun): self.mkdir(frun)
         # Loop through input sequence
         for j in range(self.opts.get_nSeq()):
+            # Set the "restart_read" property appropriately
+            # This setting is overridden by *nopts* if appropriate
+            if j == 0:
+                # First run sequence; not restart
+                self.Namelist.SetVar('code_run_control', 'restart_read', 'off')
+            else:
+                # Later sequence; restart
+                self.Namelist.SetVar('code_run_control', 'restart_read', 'on')
             # Get the reduced namelist for sequence *j*
             nopts = self.opts.select_namelist(j)
             # Apply them to this namelist
