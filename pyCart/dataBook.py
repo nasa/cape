@@ -799,7 +799,6 @@ class CaseResid(cape.dataBook.CaseResid):
         :Versions:
             * 2014-11-12 ``@ddalle``: First version
         """
-        
         # Process the best data folder.
         fdir = GetWorkingFolder()
         # History file name.

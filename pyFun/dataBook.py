@@ -125,7 +125,7 @@ class CaseFM(cape.dataBook.CaseFM):
         # Save component name
         self.comp = comp
         # Get the project rootname
-        self.proj = GetProjectRootname()
+        self.proj = proj
         # Expected name of the component history file
         self.fname = '%s_fm_%s.dat' % (proj.lower(), comp.lower())
         # Check if it exists.
@@ -179,8 +179,6 @@ class CaseFM(cape.dataBook.CaseFM):
         :Inputs:
             *FM*: :class:`pyFun.dataBook.CaseFM`
                 Case force/moment history
-            *fname*: :class:`str`
-                Name of file
         :Versions:
             * 2015-10-20 ``@ddalle``: First version
         """
@@ -233,6 +231,8 @@ class CaseFM(cape.dataBook.CaseFM):
                     # Line starts with something else; continue
                     self._hdr += 1
                     continue
+        # Close the file
+        f.close()
         # Initialize column indices and their meanings.
         self.inds = []
         self.cols = []
@@ -274,4 +274,173 @@ class CaseFM(cape.dataBook.CaseFM):
         
         
 # class CaseFM
+
+
+# Class to keep track of residuals
+def CaseResid(cape.dataBook.CaseResid):
+    """FUN3D iterative history class
+    
+    This class provides an interface to residuals, CPU time, and similar data
+    for a given case
+    
+    :Call:
+        >>> hist = pyFun.dataBook.CaseResid(proj)
+    :Inputs:
+        *proj*: :class:`str`
+            Project root name
+    :Outputs:
+        *hist*: :class:`pyFun.dataBook.CaseResid`
+            Instance of the run history class
+    :Versions:
+        * 2015-10-21 ``@ddalle``: First version
+    """
+    
+    # Initialization method
+    def __init__(self, proj):
+        """Initialization method
+        
+        :Versions:
+            * 2015-10-21 ``@ddalle``: First version
+        """
+        # Save the project root name
+        self.proj = proj
+        # Expected name of the history file
+        self.fname = "%s_hist.dat" % proj.lower()
+        # Check if it esists.
+        if not os.path.isfile(self.fname):
+            # Make an empty history
+            self.MakeEmpty()
+            return
+        # Process the column indices
+        self.ProcessColumnNames()
+        # Read the data.
+        A = np.loadtxt(self.fname,
+            skiprows=self._hdr, usecols=tuple(self.inds))
+        # Number of columns.
+        n = len(self.cols)
+        # Save the values.
+        for k in range(n):
+            # Set the values from column *k* of *A*
+            setattr(self,self.cols[k], A[:,k])
+        
+        
+    # Function to make empty one.
+    def MakeEmpty(self):
+        """Create empty *CaseResid* instance
+        
+        :Call:
+            >>> hist.MakeEmpty()
+        :Inputs:
+            *hist*: :class:`pyFun.dataBook.CaseResid`
+                Case residual history
+        :Versions:
+            * 2015-10-20 ``@ddalle``: First version
+        """
+        # Make all entries empty.
+        self.i = np.array([])
+        self.R_1 = np.array([])
+        self.R_2 = np.array([])
+        self.R_3 = np.array([])
+        self.R_4 = np.array([])
+        self.R_5 = np.array([])
+        self.R_6 = np.array([])
+        # Save a default list of columns
+        self.cols = ['i', 'R_1', 'R_2', 'R_3', 'R_4', 'R_5', 'R_6']
+        
+    # Process the column names
+    def ProcessColumnNames(self):
+        """Determine column names
+        
+        :Call:
+            >>> hist.ProcessColumnNames()
+        :Inputs:
+            *hist*: :class:`pyFun.dataBook.CaseResid`
+                Case force/moment history
+        :Versions:
+            * 2015-10-20 ``@ddalle``: First version
+        """
+        # Initialize variables and read flag
+        keys = []
+        flag = 0
+        # Number of header lines
+        self._hdr = 0
+        # Open the file
+        f = open(self.fname)
+        # Loop through lines
+        while self._hdr < 100:
+            # Strip whitespace from the line.
+            l = f.readline().strip()
+            # Check the line
+            if flag == 0:
+                # Count line
+                self._hdr += 1
+                # Check for "variables"
+                if not l.lower().startswith('variables'): continue
+                # Set the flag.
+                flag = True
+                # Split on '=' sign.
+                L = l.split('=')
+                # Check for first variable.
+                if len(L) < 2: continue
+                # Split variables on as things between quotes
+                vals = re.findall('"\w+"', L[1])
+                # Append to the list.
+                keys += [v.strip('"') for v in vals]
+            elif flag == 1:
+                # Count line
+                self._hdr += 1
+                # Reading more lines of variables
+                if not l.startswith('"'):
+                    # Done with variables; read extra headers
+                    flag = 2
+                    continue
+                # Split variables on as things between quotes
+                vals = re.findall('"\w+"', l)
+                # Append to the list.
+                keys += [v.strip('"') for v in vals]
+            else:
+                # Check if it starts with an integer
+                try:
+                    # If it's an integer, stop reading lines.
+                    float(l.split()[0])
+                    break
+                except Exception:
+                    # Line starts with something else; continue
+                    self._hdr += 1
+                    continue
+        # Close the file
+        f.close()
+        # Initialize column indices and their meanings.
+        self.inds = []
+        self.cols = []
+        # Check for iteration column.
+        if "Iteration" in keys:
+            self.inds.append(keys.index("Iteration"))
+            self.cols.append('i')
+        # Check for CA (axial force)
+        if "R_1" in keys:
+            self.inds.append(keys.index("R_1"))
+            self.cols.append('R_1')
+        # Check for CA (axial force)
+        if "R_2" in keys:
+            self.inds.append(keys.index("R_2"))
+            self.cols.append('R_2')
+        # Check for CA (axial force)
+        if "R_3" in keys:
+            self.inds.append(keys.index("R_3"))
+            self.cols.append('R_3')
+        # Check for CA (axial force)
+        if "R_4" in keys:
+            self.inds.append(keys.index("R_4"))
+            self.cols.append('R_4')
+        # Check for CA (axial force)
+        if "R_5" in keys:
+            self.inds.append(keys.index("R_5"))
+            self.cols.append('R_5')
+        # Check for CA (axial force)
+        if "R_6" in keys:
+            self.inds.append(keys.index("R_6"))
+            self.cols.append('R_6')
+
+# class CaseResid
 
