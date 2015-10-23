@@ -386,9 +386,38 @@ class Msh(object):
         self.Prisms = self.Cells[self.CellTypes == 6]
         self.Tets   = self.Cells[self.CellTypes == 2]
         
-        
+    # Get the prisms
+    def GetPrisms(self):
+        # Check if the cells have been initialized
+        if self.Cells.shape(0) != self.nCells:
+            self.Cells = np.zeros((self.nCell,8), dtype=int)
+        # Check for prisms.
+        if not np.any(self.CellTypes == 6): return
+        # Loop through tri faces
+        for k in np.where(self.Faces[:,3]==0)[0]:
+            # Extract the face.
+            fk = self.Faces[k]
+            # Left and right cells
+            jl = self.FaceCells[k,0]
+            jr = self.FaceCells[k,1]
+            # Process
+            self.ProcessPrismsTri(f, jl, 0)
+            self.ProcessPrismsTri(f, jr, 1)
+        # Loop through quad faces
+        for k in np.where(self.Faces[:,3]>0)[0]:
+            # Extract the face.
+            fk = self.Faces[k]
+            # Left and right cells
+            jl = self.FaceCells[k,0]
+            jr = self.FaceCells[k,1]
+            # Process
+            self.ProcessPrismsQuad(f, jl, 0)
+    # 
+            
+            
+    
     # Process one face
-    def ProcessFaceLR(self, f, j, L):
+    def PreparePrismsTri(self, f, j, L):
         """Process the cell indices of a single face
         
         :Call:
@@ -404,40 +433,93 @@ class Msh(object):
             * 2015-10-22 ``@ddalle``: First version
         """
         # Check for boundary face (only one side)
-        if j == 0: return
-        # Check the face type
-        if f[3] == 0:
-            # Tri
-            n = 3
-            f = f[:3]
-        else:
-            # Quad
-            n = 4
+        if (j == 0): return
+        # Check for quad; process these in second step
+        if (f[3] > 0): return
         # Get the cell type.
         t = self.CellTypes[j-1]
-        # Switch on face/cell types
-        if (n==4) and (t==6):
-            # Quad in prism cell; ignore
+        # Check for prisms.
+        if (t != 6): return
+        # Check for existing information.
+        if (self.Cells[j-1,0] > 0):
+            # Already processed; fill in during quad processing
             return
-        elif (n==3) and (t==6):
-            # Tri in prsim cell; process
-            # Check for existing information.
-            if self.Cells[j-1,0] == 0:
-                # Save inward normal in first slot
-                if L == 0:
-                    # Save inward normal as-is
-                    self.Cells[j-1,0:3] = f
-                else:
-                    # Reverse the outward normal
-                    self.Cells[j-1,0:3] = f[::-1]
-            else:
-                # Save outward normal in second slot.
-                if L == 0:
-                    # Save reverse of inward normal
-                    self.Cells[j-1,3:6] = f[::-1]
-                else:
-                    # Save outward normal as is
-                    self.Cells[j-1,3:6] = f
+        elif (L == 0):
+            # Save inward normal in first slot
+            self.Cells[j-1,0:3] = f[:3]
+        else:
+            # Save reversed outward normal in first slot.
+            self.Cells[j-1,0:3] = f[2::-1]
+    
+    # Prepare quad contributions to prism cells
+    def PreparePrismsQuad(self, f, j, L):
+        # Check for boundary face (only one side of the face in flow)
+        if (j == 0): return
+        # Check for tri
+        if (f[3] == 0): return
+        # Get the cell type
+        t = self.CellTypes[j-1]
+        # Check type
+        if (t != 6): return
+        # Process the cell
+        c = self.Cells[j-1,0:6]
+        # Check if it's already processed.
+        if np.all(c): return
+        # Process quad node 0
+        if f[0] == c[0]:
+            # Check the neighbors of f[0]
+            if (f[1]==c[1]) or (f[1]==c[2]):
+                # Node f[3] must be in adjacent prism layer
+                c[3] = f[3]
+                
+            elif (f[3]==c[1]) or (f[3]==c[2]):
+                # Node f[1] must be in adjacent prism layer
+                c[3] = f[1]
+        elif f[0] == c[1]:
+            # Check the neighbors of f[0]
+            if (f[1]==c[2]) or (f[1]==c[0]):
+                # Node f[3] must be in adjacent prism layer
+                c[4] = f[3]
+            elif (f[3]==c[2]) or (f[3]==c[0]):
+                # Node f[1] must be in adjacent prism layer
+                c[4] = f[1]
+        elif f[0] == c[2]:
+            # Check the neighbors of f[0]
+            if (f[1]==c[0]) or (f[1]==c[1]):
+                # Node f[3] must be in adjacent prism layer
+                c[5] = f[3]
+            elif (f[3]==c[0]) or (f[3]==c[1]):
+                # Node f[1] must be in adjacent prism layer
+                c[5] = f[1]
+                
+                
+                
+                
+                
+            # Check f[1], f[3] for neighbors in this prism layer.
+            if (f[1]!=c[1]) and (f[1]!=c[2]):
+                # Node f[1] is adjacent prism layer
+                c[3] = f[1]
+            elif (f[3]!=c[1]) and (f[3]!=c[2]):
+                # Node f[3] is adjacent prism layer
+                c[3] = f[3]
+        elif f[0] == c[1]:
+            # Check f[1], f[3] for neighbors in this prism layer.
+            if (f[1]!=c[2]) and (f[1]!=c[0]):
+                # Node f[1] is adjacent prism layer
+                c[4] = f[1]
+            elif (f[3]!=c[2]) and (f[3]!=c[0]):
+                # Node f[3] is adjacent prism layer
+                c[4] = f[3]
+        elif f[0] == c[2]:
+            # Check f[1], f[3] for neighbors in this prism layer.
+            if (f[1]!=c[0]) and (f[1]!=c[2]):
+                # Node f[1] is adjacent prism layer
+                c[5] = f[1]
+            elif (f[3]!=c[0]) and (f[3]!=c[2]):
+                # Node f[3] is adjacent prism layer
+                c[5] = f[3]
+        # Process quad node 1
                     
                     
     # Line up the two tri faces of prism cells
