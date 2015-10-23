@@ -388,11 +388,26 @@ class Msh(object):
         
     # Get the prisms
     def GetPrisms(self):
+        """Get the volume cells from the face connectivity
+        
+        The results are saved to *M.Prisms* as :class:`np.ndarray`
+        ((*M.nPrism*, 6), :class:`int`)
+        
+        :Call:
+            >>> M.GetCells()
+        :Inputs:
+            *M*: :class:`cape.msh.Msh`
+                Volume mesh interface
+        :Versions:
+            * 2015-10-23 ``@ddalle``: First version
+        """
         # Check if the cells have been initialized
-        if self.Cells.shape(0) != self.nCells:
+        if self.Cells.shape[0] != self.nCell:
             self.Cells = np.zeros((self.nCell,8), dtype=int)
         # Check for prisms.
-        if not np.any(self.CellTypes == 6): return
+        if not np.any(self.CellTypes == 6):
+            self.nPrism = 0
+            return
         # Loop through tri faces
         for k in np.where(self.Faces[:,3]==0)[0]:
             # Extract the face.
@@ -401,8 +416,8 @@ class Msh(object):
             jl = self.FaceCells[k,0]
             jr = self.FaceCells[k,1]
             # Process
-            self.ProcessPrismsTri(f, jl, 0)
-            self.ProcessPrismsTri(f, jr, 1)
+            self.ProcessPrismsTri(fk, jl, 0)
+            self.ProcessPrismsTri(fk, jr, 1)
         # Loop through quad faces
         for k in np.where(self.Faces[:,3]>0)[0]:
             # Extract the face.
@@ -411,23 +426,27 @@ class Msh(object):
             jl = self.FaceCells[k,0]
             jr = self.FaceCells[k,1]
             # Process
-            self.ProcessPrismsQuad(f, jl, 0)
-    # 
-            
+            self.ProcessPrismsQuad(fk, jl)
+            self.ProcessPrismsQuad(fk, jr)
+        # Set the prisms
+        self.Prisms = self.Cells[self.CellTypes==6,:6]
+        self.nPrism = self.Prisms.shape[0]
             
     
     # Process one face
-    def PreparePrismsTri(self, f, j, L):
-        """Process the cell indices of a single face
+    def ProcessPrismsTri(self, f, j, L):
+        """Process the prism cell information of one tri
         
         :Call:
-            >>> M.ProcessFaceK(k, j)
+            >>> M.ProcessPrismsTri(f, j, L)
         :Inputs:
             *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
-            *k*: :class:`int`
-                Face index
+            *f*: :class:`np.ndarray` ((4), :class:`int`)
+                List of vertex indices in a face (should be a tri)
             *j*: :class:`int`
+                Index of neighboring cell
+            *L*: :class:`int`
                 Index for left (1) or right (0)
         :Versions:
             * 2015-10-22 ``@ddalle``: First version
@@ -452,7 +471,21 @@ class Msh(object):
             self.Cells[j-1,0:3] = f[2::-1]
     
     # Prepare quad contributions to prism cells
-    def PreparePrismsQuad(self, f, j, L):
+    def ProcessPrismsQuad(self, f, j):
+        """Process the prism cell information of one quad
+        
+        :Call:
+            >>> M.ProcessPrismsQuad(f, j)
+        :Inputs:
+            *M*: :class:`cape.msh.Msh`
+                Volume mesh interface
+            *f*: :class:`np.ndarray` ((4), :class:`int`)
+                List of vertex indices in a face (should be a tri)
+            *j*: :class:`int`
+                Index of neighboring cell
+        :Versions:
+            * 2015-10-23 ``@ddalle``: First version
+        """
         # Check for boundary face (only one side of the face in flow)
         if (j == 0): return
         # Check for tri
@@ -465,71 +498,166 @@ class Msh(object):
         c = self.Cells[j-1,0:6]
         # Check if it's already processed.
         if np.all(c): return
+        # Find which quad nodes are in *c* layer 0 and which are in layer 1
         # Process quad node 0
-        if f[0] == c[0]:
+        if (f[0] == c[0]):
             # Check the neighbors of f[0]
-            if (f[1]==c[1]) or (f[1]==c[2]):
-                # Node f[3] must be in adjacent prism layer
+            if (f[1] == c[1]):
+                # f[3],c[3]-----f[2],c[4]
+                #     |             |
+                # f[0],c[0]-----f[1],c[1]
                 c[3] = f[3]
-                
-            elif (f[3]==c[1]) or (f[3]==c[2]):
-                # Node f[1] must be in adjacent prism layer
-                c[3] = f[1]
-        elif f[0] == c[1]:
-            # Check the neighbors of f[0]
-            if (f[1]==c[2]) or (f[1]==c[0]):
-                # Node f[3] must be in adjacent prism layer
-                c[4] = f[3]
-            elif (f[3]==c[2]) or (f[3]==c[0]):
-                # Node f[1] must be in adjacent prism layer
-                c[4] = f[1]
-        elif f[0] == c[2]:
-            # Check the neighbors of f[0]
-            if (f[1]==c[0]) or (f[1]==c[1]):
-                # Node f[3] must be in adjacent prism layer
-                c[5] = f[3]
-            elif (f[3]==c[0]) or (f[3]==c[1]):
-                # Node f[1] must be in adjacent prism layer
-                c[5] = f[1]
-                
-                
-                
-                
-                
-            # Check f[1], f[3] for neighbors in this prism layer.
-            if (f[1]!=c[1]) and (f[1]!=c[2]):
-                # Node f[1] is adjacent prism layer
-                c[3] = f[1]
-            elif (f[3]!=c[1]) and (f[3]!=c[2]):
-                # Node f[3] is adjacent prism layer
+                c[4] = f[2]
+            elif (f[1] == c[2]):
+                # f[3],c[3]-----f[2],c[5]
+                #     |             |
+                # f[0],c[0]-----f[1],c[2]
                 c[3] = f[3]
-        elif f[0] == c[1]:
-            # Check f[1], f[3] for neighbors in this prism layer.
-            if (f[1]!=c[2]) and (f[1]!=c[0]):
-                # Node f[1] is adjacent prism layer
-                c[4] = f[1]
-            elif (f[3]!=c[2]) and (f[3]!=c[0]):
-                # Node f[3] is adjacent prism layer
+                c[5] = f[2]
+            elif (f[3] == c[1]):
+                # f[1],c[3]-----f[2],c[4]
+                #     |             |
+                # f[0],c[0]-----f[3],c[1]
+                c[3] = f[1]
+                c[4] = f[2]
+            elif (f[3] == c[2]):
+                # f[1],c[3]-----f[2],c[5]
+                #     |             |
+                # f[0],c[0]-----f[3],c[1]
+                c[3] = f[1]
+                c[5] = f[2]
+        elif (f[0] == c[1]):
+            # Check the neighbors of f[0]
+            if (f[1] == c[2]):
+                # f[3],c[4]-----f[2],c[5]
+                #     |             |
+                # f[0],c[1]-----f[1],c[2]
                 c[4] = f[3]
-        elif f[0] == c[2]:
-            # Check f[1], f[3] for neighbors in this prism layer.
-            if (f[1]!=c[0]) and (f[1]!=c[2]):
-                # Node f[1] is adjacent prism layer
-                c[5] = f[1]
-            elif (f[3]!=c[0]) and (f[3]!=c[2]):
-                # Node f[3] is adjacent prism layer
+                c[5] = f[2]
+            elif (f[1] == c[0]):
+                # f[3],c[4]-----f[2],c[3]
+                #     |             |
+                # f[0],c[1]-----f[1],c[0]
+                c[4] = f[3]
+                c[3] = f[2]
+            elif (f[3] == c[2]):
+                # f[1],c[4]-----f[2],c[5]
+                #     |             |
+                # f[0],c[1]-----f[3],c[2]
+                c[4] = f[1]
+                c[5] = f[2]
+            elif (f[3] == c[0]):
+                # f[1],c[4]-----f[2],c[3]
+                #     |             |
+                # f[0],c[1]-----f[3],c[0]
+                c[4] = f[1]
+                c[3] = f[2]
+        elif (f[0] == c[2]):
+            # Check the neighbors of f[0]
+            if (f[1] == c[0]):
+                # f[3],c[5]-----f[2],c[3]
+                #     |             |
+                # f[0],c[2]-----f[1],c[0]
                 c[5] = f[3]
-        # Process quad node 1
-                    
-                    
-    # Line up the two tri faces of prism cells
-    def RepairPrisms(self):
-        """Repair prisms so that the two triangular faces are aligned
+                c[3] = f[2]
+            elif (f[1] == c[1]):
+                # f[3],c[5]-----f[2],c[4]
+                #     |             |
+                # f[0],c[2]-----f[1],c[1]
+                c[5] = f[3]
+                c[4] = f[2]
+            elif (f[3] == c[0]):
+                # f[1],c[5]-----f[2],c[3]
+                #     |             |
+                # f[0],c[2]-----f[3],c[0]
+                c[5] = f[1]
+                c[3] = f[2]
+            elif (f[3] == c[1]):
+                # f[1],c[5]-----f[2],c[4]
+                #     |             |
+                # f[0],c[2]-----f[3],c[1]
+                c[5] = f[1]
+                c[4] = f[2]
+        elif (f[2] == c[0]):
+            # Check the neighbors of f[2]
+            if (f[1] == c[1]):
+                # f[3],c[3]-----f[0],c[4]
+                #     |             |
+                # f[2],c[0]-----f[1],c[1]
+                c[3] = f[3]
+                c[4] = f[0]
+            elif (f[1] == c[2]):
+                # f[3],c[3]-----f[0],c[5]
+                #     |             |
+                # f[2],c[0]-----f[1],c[2]
+                c[3] = f[3]
+                c[5] = f[0]
+            elif (f[3] == c[1]):
+                # f[1],c[3]-----f[0],c[4]
+                #     |             |
+                # f[2],c[0]-----f[3],c[1]
+                c[3] = f[1]
+                c[4] = f[0]
+            elif (f[3] == c[2]):
+                # f[1],c[3]-----f[0],c[5]
+                #     |             |
+                # f[2],c[0]-----f[3],c[1]
+                c[3] = f[1]
+                c[5] = f[0]
+        elif (f[2] == c[1]):
+            # Check the neighbors of f[0]
+            if (f[1] == c[2]):
+                # f[3],c[4]-----f[0],c[5]
+                #     |             |
+                # f[2],c[1]-----f[1],c[2]
+                c[4] = f[3]
+                c[5] = f[0]
+            elif (f[1] == c[0]):
+                # f[3],c[4]-----f[0],c[3]
+                #     |             |
+                # f[2],c[1]-----f[1],c[0]
+                c[4] = f[3]
+                c[3] = f[0]
+            elif (f[3] == c[2]):
+                # f[1],c[4]-----f[0],c[5]
+                #     |             |
+                # f[2],c[1]-----f[3],c[2]
+                c[4] = f[1]
+                c[5] = f[0]
+            elif (f[3] == c[0]):
+                # f[1],c[4]-----f[0],c[3]
+                #     |             |
+                # f[2],c[1]-----f[3],c[0]
+                c[4] = f[1]
+                c[3] = f[0]
+        elif (f[2] == c[2]):
+            # Check the neighbors of f[0]
+            if (f[1] == c[0]):
+                # f[3],c[5]-----f[0],c[3]
+                #     |             |
+                # f[2],c[2]-----f[1],c[0]
+                c[5] = f[3]
+                c[3] = f[0]
+            elif (f[1] == c[1]):
+                # f[3],c[5]-----f[0],c[4]
+                #     |             |
+                # f[2],c[2]-----f[1],c[1]
+                c[5] = f[3]
+                c[4] = f[0]
+            elif (f[3] == c[0]):
+                # f[1],c[5]-----f[0],c[3]
+                #     |             |
+                # f[2],c[2]-----f[3],c[0]
+                c[5] = f[1]
+                c[3] = f[0]
+            elif (f[3] == c[1]):
+                # f[1],c[5]-----f[0],c[4]
+                #     |             |
+                # f[2],c[2]-----f[3],c[1]
+                c[5] = f[1]
+                c[4] = f[0]
         
-        :Versions:
-            * 2015-10-22 ``@ddalle``: First version
-        """
-        pass
+        
         
 # class Msh
 
