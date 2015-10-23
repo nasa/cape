@@ -2601,14 +2601,16 @@ class CaseResid(object):
         return L1Init - L1End
         
     # Plot function
-    def PlotL1(self, n=None, nFirst=None, nLast=None, **kw):
-        """Plot the L1 residual
+    def PlotResid(self, c='L1Resid', n=None, nFirst=None, nLast=None, **kw):
+        """Plot a residual by name
         
         :Call:
-            >>> h = hist.PlotL1(n=None, nFirst=None, nLast=None, **kw)
+            >>> h = hist.PlotResid(c='L1Resid', n=None, **kw)
         :Inputs:
-            *hist*: :class:`pyCart.dataBook.CaseResid`
+            *hist*: :class:`cape.dataBook.CaseResid`
                 Instance of the DataBook residual history
+            *c*: :class:`str`
+                Name of coefficient to plot
             *n*: :class:`int`
                 Only show the last *n* iterations
             *nFirst*: :class:`int`
@@ -2619,6 +2621,8 @@ class CaseResid(object):
                 Figure width
             *FigHeight*: :class:`float`
                 Figure height
+            *YLabel*: :class:`str`
+                Label for *y*-axis
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
@@ -2627,6 +2631,7 @@ class CaseResid(object):
             * 2014-12-09 ``@ddalle``: Moved to :class:`AeroPlot`
             * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
             * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
+            * 2015-10-21 ``@ddalle``: Copied from :func:`PlotL1`
         """
         # Make sure plotting modules are present.
         ImportPyPlot()
@@ -2668,8 +2673,16 @@ class CaseResid(object):
         # --------
         # Extract iteration numbers and residuals.
         i  = self.i[i0:]
-        L1 = self.L1Resid[i0:]
-        L0 = self.L1Resid0[i0:]
+        # Nominal residual
+        try:
+            L1 = getattr(self,c)[i0:]
+        except Exception:
+            L1 = np.zeros_like(i)
+        # Residual before subiterations
+        try:
+            L0 = getattr(self,c+'0')[i0:]
+        except Exception:
+            L0 = np.zeros_like(i)
         # Check if L0 is too long.
         if len(L0) > len(i):
             # Trim it.
@@ -2681,7 +2694,7 @@ class CaseResid(object):
         h['L1'] = plt.semilogy(i, L1, 'k-', lw=1.5)
         # Labels
         h['x'] = plt.xlabel('Iteration Number')
-        h['y'] = plt.ylabel('L1 Residual')
+        h['y'] = plt.ylabel(kw.get('YLabel', c))
         # Get the figures and axes.
         h['ax'] = plt.gca()
         h['fig'] = plt.gcf()
@@ -2698,6 +2711,72 @@ class CaseResid(object):
         # Output.
         return h
         
+    # Plot function
+    def PlotL1(self, n=None, nFirst=None, nLast=None, **kw):
+        """Plot the L1 residual
+        
+        :Call:
+            >>> h = hist.PlotL1(n=None, nFirst=None, nLast=None, **kw)
+        :Inputs:
+            *hist*: :class:`cape.dataBook.CaseResid`
+                Instance of the DataBook residual history
+            *n*: :class:`int`
+                Only show the last *n* iterations
+            *nFirst*: :class:`int`
+                Plot starting at iteration *nStart*
+            *nLast*: :class:`int`
+                Plot up to iteration *nLast*
+            *FigWidth*: :class:`float`
+                Figure width
+            *FigHeight*: :class:`float`
+                Figure height
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of figure/plot handles
+        :Versions:
+            * 2014-11-12 ``@ddalle``: First version
+            * 2014-12-09 ``@ddalle``: Moved to :class:`AeroPlot`
+            * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
+            * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
+            * 2015-10-21 ``@ddalle``: Referred to :func:`PlotResid`
+        """
+        # Plot 'L1Resid'
+        return self.PlotResid('L1Resid', 
+            n=n, nFirst=nFirst, nLast=nLast, YLabel='L1 Residual')
+        
+    # Plot function
+    def PlotL2(self, n=None, nFirst=None, nLast=None, **kw):
+        """Plot the L2 residual
+        
+        :Call:
+            >>> h = hist.PlotL2(n=None, nFirst=None, nLast=None, **kw)
+        :Inputs:
+            *hist*: :class:`cape.dataBook.CaseResid`
+                Instance of the DataBook residual history
+            *n*: :class:`int`
+                Only show the last *n* iterations
+            *nFirst*: :class:`int`
+                Plot starting at iteration *nStart*
+            *nLast*: :class:`int`
+                Plot up to iteration *nLast*
+            *FigWidth*: :class:`float`
+                Figure width
+            *FigHeight*: :class:`float`
+                Figure height
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of figure/plot handles
+        :Versions:
+            * 2014-11-12 ``@ddalle``: First version
+            * 2014-12-09 ``@ddalle``: Moved to :class:`AeroPlot`
+            * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
+            * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
+            * 2015-10-21 ``@ddalle``: Referred to :func:`PlotResid`
+        """
+        # Plot 'L1Resid'
+        return self.PlotResid('L2Resid', 
+            n=n, nFirst=nFirst, nLast=nLast, YLabel='L2 Residual')
+        
         
     # Function to get index of a certain iteration number
     def GetIterationIndex(self, i):
@@ -2709,7 +2788,7 @@ class CaseResid(object):
         :Call:
             >>> j = hist.GetIterationIndex(i)
         :Inputs:
-            *hist*: :class:`pyCart.dataBook.CaseResid`
+            *hist*: :class:`cape.dataBook.CaseResid`
                 Instance of the residual history class
             *i*: :class:`int`
                 Iteration number

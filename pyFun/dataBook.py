@@ -206,7 +206,7 @@ class CaseFM(cape.dataBook.CaseFM):
                 # Check for first variable.
                 if len(L) < 2: continue
                 # Split variables on as things between quotes
-                vals = re.findall('"\w+"', L[1])
+                vals = re.findall('"[\w ]+"', L[1])
                 # Append to the list.
                 keys += [v.strip('"') for v in vals]
             elif flag == 1:
@@ -218,7 +218,7 @@ class CaseFM(cape.dataBook.CaseFM):
                     flag = 2
                     continue
                 # Split variables on as things between quotes
-                vals = re.findall('"\w+"', l)
+                vals = re.findall('"[\w ]+"', l)
                 # Append to the list.
                 keys += [v.strip('"') for v in vals]
             else:
@@ -271,13 +271,102 @@ class CaseFM(cape.dataBook.CaseFM):
             self.inds.append(keys.index("C_M_z"))
             self.cols.append('CLN')
             self.coeffs.append('CLN')
-        
+        # Check for CL
+        if "C_L" in keys:
+            self.inds.append(keys.index("C_L"))
+            self.cols.append('CL')
+            self.coeffs.append('CL')
+        # Check for CD
+        if "C_D" in keys:
+            self.inds.append(keys.index("C_D"))
+            self.cols.append('CD')
+            self.coeffs.append('CD')
+        # Check for CA (axial force)
+        if "C_xp" in keys:
+            self.inds.append(keys.index("C_xp"))
+            self.cols.append('CAp')
+            self.coeffs.append('CAp')
+        # Check for CY (body side force)
+        if "C_yp" in keys:
+            self.inds.append(keys.index("C_yp"))
+            self.cols.append('CYp')
+            self.coeffs.append('CYp')
+        # Check for CN (normal force)
+        if "C_zp" in keys:
+            self.inds.append(keys.index("C_zp"))
+            self.cols.append('CNp')
+            self.coeffs.append('CNp')
+        # Check for CLL (rolling moment)
+        if "C_M_xp" in keys:
+            self.inds.append(keys.index("C_M_xp"))
+            self.cols.append('CLLp')
+            self.coeffs.append('CLLp')
+        # Check for CLM (pitching moment)
+        if "C_M_yp" in keys:
+            self.inds.append(keys.index("C_M_yp"))
+            self.cols.append('CLMp')
+            self.coeffs.append('CLMp')
+        # Check for CLN (yawing moment)
+        if "C_M_zp" in keys:
+            self.inds.append(keys.index("C_M_zp"))
+            self.cols.append('CLNp')
+            self.coeffs.append('CLNp')
+        # Check for CL
+        if "C_Lp" in keys:
+            self.inds.append(keys.index("C_Lp"))
+            self.cols.append('CLp')
+            self.coeffs.append('CLp')
+        # Check for CD
+        if "C_Dp" in keys:
+            self.inds.append(keys.index("C_Dp"))
+            self.cols.append('CDp')
+            self.coeffs.append('CDp')
+        # Check for CA (axial force)
+        if "C_xv" in keys:
+            self.inds.append(keys.index("C_xv"))
+            self.cols.append('CAv')
+            self.coeffs.append('CAv')
+        # Check for CY (body side force)
+        if "C_yv" in keys:
+            self.inds.append(keys.index("C_yv"))
+            self.cols.append('CYv')
+            self.coeffs.append('CYv')
+        # Check for CN (normal force)
+        if "C_zv" in keys:
+            self.inds.append(keys.index("C_zv"))
+            self.cols.append('CNv')
+            self.coeffs.append('CNv')
+        # Check for CLL (rolling moment)
+        if "C_M_xv" in keys:
+            self.inds.append(keys.index("C_M_xv"))
+            self.cols.append('CLLv')
+            self.coeffs.append('CLLv')
+        # Check for CLM (pitching moment)
+        if "C_M_yv" in keys:
+            self.inds.append(keys.index("C_M_yv"))
+            self.cols.append('CLMv')
+            self.coeffs.append('CLMv')
+        # Check for CLN (yawing moment)
+        if "C_M_zv" in keys:
+            self.inds.append(keys.index("C_M_zv"))
+            self.cols.append('CLNv')
+            self.coeffs.append('CLNv')
+        # Check for CL
+        if "C_Lv" in keys:
+            self.inds.append(keys.index("C_Lv"))
+            self.cols.append('CLv')
+            self.coeffs.append('CLv')
+        # Check for CD
+        if "C_Dv" in keys:
+            self.inds.append(keys.index("C_Dv"))
+            self.cols.append('CDv')
+            self.coeffs.append('CDv')
         
 # class CaseFM
 
 
 # Class to keep track of residuals
-def CaseResid(cape.dataBook.CaseResid):
+class CaseResid(cape.dataBook.CaseResid):
     """FUN3D iterative history class
     
     This class provides an interface to residuals, CPU time, and similar data
@@ -322,7 +411,74 @@ def CaseResid(cape.dataBook.CaseResid):
         for k in range(n):
             # Set the values from column *k* of *A*
             setattr(self,self.cols[k], A[:,k])
+        # Save number of iterations
+        self.nIter = A.shape[0]
+        # Initialize residuals
+        L2 = np.zeros(self.nIter)
+        # Check residuals
+        if 'R_1' in self.cols: L2 += (self.R_1**2)
+        if 'R_2' in self.cols: L2 += (self.R_2**2)
+        if 'R_3' in self.cols: L2 += (self.R_3**2)
+        if 'R_4' in self.cols: L2 += (self.R_4**2)
+        if 'R_5' in self.cols: L2 += (self.R_5**2)
+        # Save residuals
+        self.L2Resid = np.sqrt(L2)
         
+    # Plot R_1
+    def PlotR1(self, **kw):
+        """Plot the density
+        
+        :Call:
+            >>> h = hist.PlotR1(n=None, nFirst=None, nLast=None, **kw)
+        :Inputs:
+            *hist*: :class:`pyFun.dataBook.CaseResid`
+                Instance of the DataBook residual history
+            *n*: :class:`int`
+                Only show the last *n* iterations
+            *nFirst*: :class:`int`
+                Plot starting at iteration *nStart*
+            *nLast*: :class:`int`
+                Plot up to iteration *nLast*
+            *FigWidth*: :class:`float`
+                Figure width
+            *FigHeight*: :class:`float`
+                Figure height
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of figure/plot handles
+        :Versions:
+            * 2015-10-21 ``@ddalle``: First version
+        """
+        # Plot "R_1"
+        return self.PlotResid('R_1', YLabel='Density Residual', **kw)
+        
+    # Plot turbulence residual
+    def PlotTurbResid(self, **kw):
+        """Plot the turbulence residual
+        
+        :Call:
+            >>> h = hist.PlotTurbResid(n=None, nFirst=None, nLast=None, **kw)
+        :Inputs:
+            *hist*: :class:`pyFun.dataBook.CaseResid`
+                Instance of the DataBook residual history
+            *n*: :class:`int`
+                Only show the last *n* iterations
+            *nFirst*: :class:`int`
+                Plot starting at iteration *nStart*
+            *nLast*: :class:`int`
+                Plot up to iteration *nLast*
+            *FigWidth*: :class:`float`
+                Figure width
+            *FigHeight*: :class:`float`
+                Figure height
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of figure/plot handles
+        :Versions:
+            * 2015-10-21 ``@ddalle``: First version
+        """
+        # Plot "R_6"
+        return self.PlotResid('R_6', YLabel='Turbulence Residual', **kw)
         
     # Function to make empty one.
     def MakeEmpty(self):
@@ -338,12 +494,17 @@ def CaseResid(cape.dataBook.CaseResid):
         """
         # Make all entries empty.
         self.i = np.array([])
+        self.t = np.array([])
         self.R_1 = np.array([])
         self.R_2 = np.array([])
         self.R_3 = np.array([])
         self.R_4 = np.array([])
         self.R_5 = np.array([])
         self.R_6 = np.array([])
+        # Residuals
+        self.L2Resid = np.array([])
+        # Number of iterations
+        self.nIter = 0
         # Save a default list of columns
         self.cols = ['i', 'R_1', 'R_2', 'R_3', 'R_4', 'R_5', 'R_6']
         
@@ -383,7 +544,7 @@ def CaseResid(cape.dataBook.CaseResid):
                 # Check for first variable.
                 if len(L) < 2: continue
                 # Split variables on as things between quotes
-                vals = re.findall('"\w+"', L[1])
+                vals = re.findall('"[\w ]+"', L[1])
                 # Append to the list.
                 keys += [v.strip('"') for v in vals]
             elif flag == 1:
@@ -395,7 +556,7 @@ def CaseResid(cape.dataBook.CaseResid):
                     flag = 2
                     continue
                 # Split variables on as things between quotes
-                vals = re.findall('"\w+"', l)
+                vals = re.findall('"[\w ]+"', l)
                 # Append to the list.
                 keys += [v.strip('"') for v in vals]
             else:
@@ -417,6 +578,9 @@ def CaseResid(cape.dataBook.CaseResid):
         if "Iteration" in keys:
             self.inds.append(keys.index("Iteration"))
             self.cols.append('i')
+        if "Wall Time" in keys:
+            self.inds.append(keys.index("Wall Time"))
+            self.cols.append('CPUtime')
         # Check for CA (axial force)
         if "R_1" in keys:
             self.inds.append(keys.index("R_1"))
@@ -442,5 +606,34 @@ def CaseResid(cape.dataBook.CaseResid):
             self.inds.append(keys.index("R_6"))
             self.cols.append('R_6')
 
+    # Number of orders of magintude of residual drop
+    def GetNOrders(self, nStats=1):
+        """Get the number of orders of magnitude of residual drop
+        
+        :Call:
+            >>> nOrders = hist.GetNOrders(nStats=1)
+            
+        :Inputs:
+            *hist*: :class:`cape.dataBook.CaseResid`
+                Instance of the DataBook residual history
+            *nStats*: :class:`int`
+                Number of iterations to use for averaging the final residual
+        :Outputs:
+            *nOrders*: :class:`float`
+                Number of orders of magnitude of residual drop
+        :Versions:
+            * 2015-10-21 ``@ddalle``: First versoin
+        """
+        
+        # Process the number of usable iterations available.
+        i = max(self.nIter-nStats, 0)
+        # Get the maximum residual.
+        L1Max = np.log10(np.max(self.R_1))
+        # Get the average terminal residual.
+        L1End = np.log10(np.mean(self.R_1[i:]))
+        # Return the drop
+        return L1Max - L1End
+        
+    
 # class CaseResid
 
