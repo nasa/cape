@@ -1,6 +1,6 @@
 """
-FLUENT mesh module: :mod:`cape.msh`
-===================================
+FLUENT mesh module: :mod:`cape.mesh`
+====================================
 
 This module provides the utilities for interacting with Cart3D triangulations,
 including annotated triangulations (including ``.triq`` files).  Triangulations
@@ -20,7 +20,7 @@ import re
 import os, shutil
 
 # MSH class
-class Msh(object):
+class Mesh(object):
     """Interface for FUN3D meshes based on Fluent(R) file format
     
     :Cell types:
@@ -78,7 +78,7 @@ class Msh(object):
         :Call:
             >>> M.ReadFluentASCII(fname)
         :Inputs:
-            *M*: :class:`cape.msh.Msh`
+            *M*: :class:`cape.mesh.Mesh`
                 Volume mesh interface
             *fname*: :class:`str`
                 Name of ``.msh`` file to read
@@ -145,6 +145,76 @@ class Msh(object):
         # Close the file.
         f.close()
         
+    # Write an AFLR3 mesh file
+    def WriteAFLR3ASCII(self, fname):
+        """Write AFLR3 mesh file
+        
+        :Call:
+            >>> M.WriteAFLR3ASCII(fname)
+        :Inputs:
+            *M*: :class:`cape.mesh.Mesh`
+                Volume mesh interface
+            *fname*: :class:`str`
+                Name of ``.ugrid`` file to write
+        :Versions:
+            * 2015-10-23 ``@ddalle``: First version
+        """
+        # Get the boundary zones
+        kB = self.GetBoundaryZoneIDs()
+        # Initialize indices of tri and quad boundary faces
+        ift = (np.arange(self.nFace) < 0)
+        ifq = (np.arange(self.nFace) < 0)
+        # Loop through boundary faces
+        for k in kB:
+            # Select the faces
+            fk = (self.FaceID == k)
+            # Count faces on boundary.
+            ift = np.logical_or(ift, np.logical_and(fk,self.Faces[:,3]==0))
+            ifq = np.logical_or(ifq, np.logical_and(fk,self.Faces[:,3]>0))
+        # Count faces
+        ntface = np.sum(ift)
+        nqface = np.sum(ifq)
+        # Create array of FaceIDs for boundary faces
+        ifacetag = np.hstack((self.FaceID[ift], self.FaceID[ifq]))
+        # Open the file.
+        f = open(fname, 'w')
+        # Write number of nodes and numbers of boundary faces 
+        f.write('%i %i %i ' % (self.nNode, ntface, nqface))
+        # Write number of volume cells of each type
+        f.write('%i %i %i %i\n' %
+            (self.nTet, self.nPyr, self.nPrism, self.nHex))
+        # Write the nodes.
+        np.savetxt(f, self.Nodes, fmt="%20.16f", delimiter=" ")
+        # Write triangular boundary faces
+        if ntface > 0:
+            # Downselect.
+            if2nt = self.Faces[ift,:3].copy()
+            # Check for left-handed tris.
+            rft = (self.FaceCells[ift,0] == 0)
+            if2nt[rft] = if2nt[rft,2::-1]
+            # Write
+            np.savetxt(f, if2nt, fmt="%i", delimiter=" ")
+        # Write quad boundary 
+        if nqface > 0:
+            # Downselect.
+            if2nq = self.Faces[ifq,:].copy()
+            # Check for left-handed tris.
+            rfq = (self.FaceCells[ifq,0] == 0)
+            if2nq[rfq] = if2nq[rfq,3::-1]
+            # Write
+            np.savetxt(f, if2nq, fmt="%i", delimiter=" ")
+        # Write the boundary face IDs (in a single line!)
+        ifacetag.tofile(f, format="%i", sep=" ")
+        f.write("\n")
+        # Write the tetrahedral cells.
+        if self.nTet > 0:   np.savetxt(f, self.Tets, fmt="%i", delimiter=" ")
+        if self.nPyr > 0:   np.savetxt(f, self.Pyrs, fmt="%i", delimiter=" ")
+        if self.nPrism > 0: np.savetxt(f, self.Prisms, fmt="%i", delimiter=" ")
+        if self.nHex > 0:   np.savetxt(f, self.Hexes, fmt="%i", delimiter=" ")
+        # Close the file.
+        f.close()
+        
+        
         
     # Function to process line
     def GetFluentLineType(self, line):
@@ -162,7 +232,7 @@ class Msh(object):
         :Call:
             >>> typ, vals, q = M.GetFluentLineType(line)
         :Inputs:
-            *M*: :class:`cape.msh.Msh`
+            *M*: :class:`cape.mesh.Mesh`
                 Volume mesh interface
             *line*: :class:`str`
                 Text from a Fluent line
@@ -237,7 +307,7 @@ class Msh(object):
         :Call:
             >>> M.ReadFluentNodesASCII(f, i0, i1)
         :Inputs:
-            *M*: :class:`cape.msh.Msh`
+            *M*: :class:`cape.mesh.Mesh`
                 Volume mesh interface
             *f*: :class:`file`
                 File handle in correct location
@@ -269,7 +339,7 @@ class Msh(object):
         :Call:
             >>> M.ReadFluentTrisASCII(f, k, i0, i1)
         :Inputs:
-            *M*: :class:`cape.msh.Msh`
+            *M*: :class:`cape.mesh.Mesh`
                 Volume mesh interface
             *f*: :class:`file`
                 File handle in correct location
@@ -310,7 +380,7 @@ class Msh(object):
         :Call:
             >>> M.ReadFluentQuadsASCII(f, k, i0, i1)
         :Inputs:
-            *M*: :class:`cape.msh.Msh`
+            *M*: :class:`cape.mesh.Mesh`
                 Volume mesh interface
             *f*: :class:`file`
                 File handle in correct location
@@ -357,46 +427,42 @@ class Msh(object):
     def GetCells(self):
         """Get the volume cells from the face connectivity
         
-        The results are saved to *M.Prisms* as :class:`np.ndarray`
-        ((*M.nPrism*, 6), :class:`int`)
+        The results are saved to the following :class:`np.ndarray` arrays of
+        :class:`int`\ s.
+        
+            * *M.Cells*:  (*M.nCell*, 8)
+            * *M.Tets*:   (*M.nTet*, 4)
+            * *M.Pyrs*:   (*M.nPyr*, 5)
+            * *M.Prisms*: (*M.nPrism*, 6)
+            * *M.Hexes*:  (*M.nHex*, 8)
         
         :Call:
             >>> M.GetCells()
         :Inputs:
-            *M*: :class:`cape.msh.Msh`
+            *M*: :class:`cape.mesh.Mesh`
                 Volume mesh interface
         :Versions:
             * 2015-10-22 ``@ddalle``: First version
         """
         # Initialize the cells.
         self.Cells = np.zeros((self.nCell,8), dtype=int)
-        # Loop through the faces.
-        for k in np.arange(self.nFace):
-            # Extract the face.
-            fk = self.Faces[k]
-            # Left and right cells
-            jl = self.FaceCells[k,1]
-            jr = self.FaceCells[k,0]
-            print("k=%i, jl=%i, jr=%i, f=%s" % (k, jl, jr, fk))
-            # Process
-            self.ProcessFaceLR(fk, jl, 1)
-            self.ProcessFaceLR(fk, jr, 0)
-            
-        # Split into types
-        self.Prisms = self.Cells[self.CellTypes == 6]
-        self.Tets   = self.Cells[self.CellTypes == 2]
+        # Process known cell types
+        self.GetPrisms()
+        self.GetTets()
+        self.GetPyrs()
+        self.GetHexes()
         
     # Get the prisms
     def GetPrisms(self):
-        """Get the volume cells from the face connectivity
+        """Get the prism volume cells from the face connectivity
         
         The results are saved to *M.Prisms* as :class:`np.ndarray`
         ((*M.nPrism*, 6), :class:`int`)
         
         :Call:
-            >>> M.GetCells()
+            >>> M.GetPrisms()
         :Inputs:
-            *M*: :class:`cape.msh.Msh`
+            *M*: :class:`cape.mesh.Mesh`
                 Volume mesh interface
         :Versions:
             * 2015-10-23 ``@ddalle``: First version
@@ -428,9 +494,99 @@ class Msh(object):
             # Process
             self.ProcessPrismsQuad(fk, jl)
             self.ProcessPrismsQuad(fk, jr)
-        # Set the prisms
+        # Select the prisms
         self.Prisms = self.Cells[self.CellTypes==6,:6]
         self.nPrism = self.Prisms.shape[0]
+        
+    # Get the tetrahedra cells
+    def GetTets(self):
+        """Get the tetrahedron volume cells from the face connectivity
+        
+        The results are saved to *M.Tets* as :class:`np.ndarray`
+        ((*M.nTet*, 4), :class:`int`)
+        
+        :Call:
+            >>> M.GetTets()
+        :Inputs:
+            *M*: :class:`cape.mesh.Mesh`
+                Volume mesh interface
+        :Versions:
+            * 2015-10-23 ``@ddalle``: First version
+        """
+        # Check if the cells have been initialized
+        if self.Cells.shape[0] != self.nCell:
+            self.Cells = np.zeros((self.nCell,8), dtype=int)
+        # Check for prisms.
+        if not np.any(self.CellTypes == 2):
+            self.nTet = 0
+            return
+        # Loop through tri faces
+        for k in np.where(self.Faces[:,3]==0)[0]:
+            # Extract the face.
+            fk = self.Faces[k]
+            # Left and right cells
+            jl = self.FaceCells[k,0]
+            jr = self.FaceCells[k,1]
+            # Process
+            self.ProcessTetsTri(fk, jl, 0)
+            self.ProcessTetsTri(fk, jr, 1)
+        # Select the tetrahedra
+        self.Tets = self.Cells[self.CellTypes==2,:4]
+        self.nTet = self.Tets.shape[0]
+        
+    # Get the pyramid cells
+    def GetPyrs(self):
+        """Get the pyramid volume cells from the face connectivity
+        
+        The results are saved to *M.Pyrs* as :class:`np.ndarray`
+        ((*M.nPyr*, 5), :class:`int`)
+        
+        :Call:
+            >>> M.GetPyrs()
+        :Inputs:
+            *M*: :class:`cape.mesh.Mesh`
+                Volume mesh interface
+        :Versions:
+            * 2015-10-23 ``@ddalle``: Placeholder
+        """
+        # Check if the cells have been initialized
+        if self.Cells.shape[0] != self.nCell:
+            self.Cells = np.zeros((self.nCell,8), dtype=int)
+        # Check for prisms.
+        if not np.any(self.CellTypes == 5):
+            self.nPyr = 0
+            return
+        # Process faces ...
+        # Select the pyramids
+        self.Pyrs = self.Cells[self.CellTypes==5,:5]
+        self.nPyr = self.Pyrs.shape[0]
+        
+    # Get the pyramid cells
+    def GetHexes(self):
+        """Get the hexahedron volume cells from the face connectivity
+        
+        The results are saved to *M.Hexes* as :class:`np.ndarray`
+        ((*M.nHex*, 8), :class:`int`)
+        
+        :Call:
+            >>> M.GetHexe()
+        :Inputs:
+            *M*: :class:`cape.mesh.Mesh`
+                Volume mesh interface
+        :Versions:
+            * 2015-10-23 ``@ddalle``: Placeholder
+        """
+        # Check if the cells have been initialized
+        if self.Cells.shape[0] != self.nCell:
+            self.Cells = np.zeros((self.nCell,8), dtype=int)
+        # Check for prisms.
+        if not np.any(self.CellTypes ==4):
+            self.nHex = 0
+            return
+        # Process faces ...
+        # Select the hexes
+        self.Hexes = self.Cells[self.CellTypes==5,:8]
+        self.nHex = self.Hexes.shape[0]
             
     
     # Process one face
@@ -440,7 +596,7 @@ class Msh(object):
         :Call:
             >>> M.ProcessPrismsTri(f, j, L)
         :Inputs:
-            *M*: :class:`cape.msh.Msh`
+            *M*: :class:`cape.mesh.Mesh`
                 Volume mesh interface
             *f*: :class:`np.ndarray` ((4), :class:`int`)
                 List of vertex indices in a face (should be a tri)
@@ -477,7 +633,7 @@ class Msh(object):
         :Call:
             >>> M.ProcessPrismsQuad(f, j)
         :Inputs:
-            *M*: :class:`cape.msh.Msh`
+            *M*: :class:`cape.mesh.Mesh`
                 Volume mesh interface
             *f*: :class:`np.ndarray` ((4), :class:`int`)
                 List of vertex indices in a face (should be a tri)
@@ -657,7 +813,108 @@ class Msh(object):
                 c[5] = f[1]
                 c[4] = f[0]
         
+    # Prepare tri contributions to tet cells
+    def ProcessTetsTri(self, f, j, L):
+        """Process the tetrahedron cell information of one tri
         
+        :Call:
+            >>> M.ProcessTetsTri(f, j, L)
+        :Inputs:
+            *M*: :class:`cape.mesh.Mesh`
+                Volume mesh interface
+            *f*: :class:`np.ndarray` ((4), :class:`int`)
+                List of vertex indices in a face (should be a tri)
+            *j*: :class:`int`
+                Index of neighboring cell
+            *L*: :class:`int`
+                Index for left (1) or right (0)
+        :Versions:
+            * 2015-10-23 ``@ddalle``: First version
+        """
+        # Check for boundary face (cell on only one side of face)
+        if (j == 0): return
+        # Check for quad.
+        if (f[3] > 0): return
+        # Get the cell type.
+        t = self.CellTypes[j-1]
+        # Check for tetrahedra
+        if (t != 2): return
+        # Extract vertices
+        c = self.Cells[j-1]
+        # Check for existing information
+        if (c[3] > 0):
+            # Already processed; continue
+            return
+        elif (c[0] > 0):
+            # Process remaining vertices
+            # Check for overlapping nodes.
+            if (f[0] == c[0]):
+                # Check nodes f[1] and f[2]
+                if (f[1]==c[1]) or (f[1]==c[2]):
+                    c[3] = f[2]
+                elif (f[2]==c[1]) or (f[2]==c[2]):
+                    c[3] = f[1]
+            elif (f[0] == c[1]):
+                # Check nodes f[1] and f[2]
+                if (f[1]==c[2]) or (f[1]==c[0]):
+                    c[3] = f[2]
+                elif (f[2]==c[2]) or (f[2]==c[0]):
+                    c[3] = f[1]
+            elif (f[0] == c[2]):
+                # Check nodes f[1] and f[2]
+                if (f[1]==c[0]) or (f[1]==c[1]):
+                    c[3] = f[2]
+                elif (f[2]==c[0]) or (f[2]==c[1]):
+                    c[3] = f[1]
+            else:
+                # Node f[0] is not in the tet yet.
+                c[3] = f[0]
+        elif L == 0:
+            # Save nodes with inward normal
+            self.Cells[j-1,:3] = f[:3]
+        else:
+            # Save nodes with reversed outward normal
+            self.Cells[j-1,:3] = f[2::-1]
         
-# class Msh
+    # Select zones by type
+    def GetZoneIDsByType(self, typs):
+        """Select the zone IDs that match a list of names
+        
+        :Call:
+            >>> K = M.GetZoneIDsByType(typs)
+        :Inputs:
+            *M*: :class:`cape.mesh.Mesh`
+                Volume mesh interface
+            *typs*: :class:`list` (:class:`str`)
+                List of types
+        :Outputs:
+            *K*: :class:`list` (:class:`int`)
+                List of zone IDs
+        :Versions:
+            * 2015-10-23 ``@ddalle``: Placeholder
+        """
+        # Process the zones
+        return [z[0] for z in self.Zones if z[1] in typs]
+    
+    # Get the list of boundary zones
+    def GetBoundaryZoneIDs(self):
+        """Select the zone IDs that match a list of names
+        
+        :Call:
+            >>> K = M.GetZoneIDsByType(typs)
+        :Inputs:
+            *M*: :class:`cape.mesh.Mesh`
+                Volume mesh interface
+            *typs*: :class:`list` (:class:`str`)
+                List of types
+        :Outputs:
+            *K*: :class:`list` (:class:`int`)
+                List of zone IDs
+        :Versions:
+            * 2015-10-23 ``@ddalle``: Placeholder
+        """
+        # Process the zones
+        return self.GetZoneIDsByType(['wall', 'symmetry'])
+        
+# class Mesh
 
