@@ -5,7 +5,7 @@ import pyFun
 # Automated report generation
 #import pyFun.report
 # Input parsing
-from pyCart.argread import readflagstar
+from cape.argread import readflagstar
 
 # Import docstring (makes the docstring available to module import)
 import pf_doc
