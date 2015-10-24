@@ -87,6 +87,8 @@ class Mesh(object):
         """
         # Open the file
         f = open(fname)
+        # Status update
+        print("Reading ASCII Fluent(R) mesh file '%s'" % fname)
         # Read the lines.
         line ='\n'
         while line != '':
@@ -101,12 +103,16 @@ class Mesh(object):
             elif typ == 2:
                 # Dimensionality
                 self.nDim = vals[0]
+                # Status update
+                print("  %i-dimensional mesh" % self.nDim)
             elif typ == 10:
                 # Nodes
                 if q:
                     # Closed line; overall count
                     self.nNode = vals[2]
                     self.Nodes = np.zeros((self.nNode, self.nDim))
+                    # Status update
+                    print("  Node count: %i" % self.nNode)
                 else:
                     # Read the nodes
                     self.ReadFluentNodesASCII(f, vals[1], vals[2])
@@ -119,9 +125,14 @@ class Mesh(object):
                     self.FaceID = np.zeros(self.nFace, dtype=int)
                     # Connectivity
                     self.FaceCells = np.zeros((self.nFace, 2), dtype=int)
+                    # Status update
+                    print("  Face count: %i" % self.nFace)
                 elif vals[4] == 3:
                     # Read tris
                     self.ReadFluentTrisASCII(f, vals[0], vals[1], vals[2])
+                elif vals[4] == 4:
+                    # Read quads
+                    self.ReadFluentQuadsASCII(f, vals[0], vals[1], vals[2])
                 elif vals[4] == 0:
                     # Read prisms
                     self.ReadFluentMixedFacesASCII(
@@ -136,6 +147,8 @@ class Mesh(object):
                     self.nCell = vals[2]
                     # Initialize types
                     self.CellTypes = np.zeros(self.nCell, dtype=int)
+                    # Status update
+                    print("  Cell count: %i" % self.nCell)
                 else:
                     # Save the types.
                     self.CellTypes[vals[1]-1:vals[2]] = vals[-1]
@@ -159,6 +172,8 @@ class Mesh(object):
         :Versions:
             * 2015-10-23 ``@ddalle``: First version
         """
+        # Status update.
+        print("Writing ASCII AFLR2 file '%s'" % fname)
         # Get the boundary zones
         kB = self.GetBoundaryZoneIDs()
         # Initialize indices of tri and quad boundary faces
@@ -293,7 +308,7 @@ class Mesh(object):
         elif typ == 39:
             # One index and two strings
             V = txt[1:-1].split()
-            vals = [int(V[0], 16)] + V[1:]
+            vals = [int(V[0])] + V[1:]
         else:
             # List of integers
             vals = [int(v, 16) for v in txt[1:-1].split()]
@@ -320,6 +335,8 @@ class Mesh(object):
         """
         # Number of nodes
         nnode = i1 - i0 + 1
+        # Status update
+        print("    Reading %i nodes" % nnode)
         # Number of values to read
         nval = self.nDim * nnode
         # Read the data.
@@ -334,7 +351,7 @@ class Mesh(object):
 
     # Function to read tri faces
     def ReadFluentTrisASCII(self, f, k, i0, i1):
-        """Read nodes from an ASCII Fluent mesh file
+        """Read a block of triangular faces from an ASCII Fluent mesh file
         
         :Call:
             >>> M.ReadFluentTrisASCII(f, k, i0, i1)
@@ -354,6 +371,8 @@ class Mesh(object):
         """
         # Number of lines
         ntri = i1 - i0 + 1
+        # Status update
+        print("    Reading %i tri faces" % ntri)
         # Read the lines
         A = np.array([
             # Split the line as a row of hex integers
@@ -372,10 +391,53 @@ class Mesh(object):
         self.FaceCells[i0-1:i1] = A[:,3:]
         # Read closing parentheses.
         f.readline()
+
+    # Function to read tri faces
+    def ReadFluentQuadsASCII(self, f, k, i0, i1):
+        """Read a block of quad faces from an ASCII Fluent mesh file
+        
+        :Call:
+            >>> M.ReadFluentQuadsASCII(f, k, i0, i1)
+        :Inputs:
+            *M*: :class:`cape.mesh.Mesh`
+                Volume mesh interface
+            *f*: :class:`file`
+                File handle in correct location
+            *k*: :class:`int`
+                Component ID for these faces
+            *i0*: :class:`int`
+                Index (1-based) of first node to read
+            *i1*: :class:`int`
+                Index (1-based) of last node to read
+        :Versions:
+            * 2015-10-22 ``@ddalle``: First version
+        """
+        # Number of lines
+        nq = i1 - i0 + 1
+        # Status update
+        print("    Reading %i quad faces" % nq)
+        # Read the lines
+        A = np.array([
+            # Split the line as a row of hex integers
+            [int(v, 16) for v in f.readline().split()]
+            # Loop through proper number of lines
+            for i in range(ntri)
+        ])
+        # Check size
+        if A.size != 6*nq:
+            raise IOError("Failed to read %i quads" % nq)
+        # Save the nodes
+        self.Faces[i0-1:i1,] = A[:,:4]
+        # Save the labels.
+        self.FaceID[i0-1:i1] = k
+        # Save the cells to which the nodes are connected
+        self.FaceCells[i0-1:i1] = A[:,4:]
+        # Read closing parentheses.
+        f.readline()
     
     # Function to read quad faces
     def ReadFluentMixedFacesASCII(self, f, k, i0, i1):
-        """Read nodes from an ASCII Fluent mesh file
+        """Read a block of mixed-type faces from an ASCII Fluent mesh file
         
         :Call:
             >>> M.ReadFluentQuadsASCII(f, k, i0, i1)
@@ -395,31 +457,35 @@ class Mesh(object):
         """
         # Number of lines
         n = i1 - i0 + 1
+        # Status update
+        print("    Reading %i mixed-type faces" % n)
         # Read the lines
         A = np.array([
-            # Split the line as a row of hex integers
-            [int(v, 16) for v in f.readline().split()]
+            # Split the line as a row of hex integers (ensure 7 nums per row)
+            ([int(v, 16) for v in f.readline().split()]+[0])[:7]
             # Loop through proper number of lines
             for i in range(n)
         ])
-        # Check face types
-        if A[0,0] == 3:
-            # Triangles
-            # Check size
-            if A.size != 6*n:
-                raise IOError("Failed to read %i tris" % n)
-            # Save the nodes
-            self.Faces[i0-1:i1,:3] = A[:,1:4]
-        elif A[0,0] == 4:
-            # Quads
-            if A.size != 7*n:
-                raise IOError("Failed to read %i quads" % n)
-            # Save the nodes.
-            self.Faces[i0-1:i1,:4] = A[:,1:5]
+        # Check shape
+        if A.shape[0] != n:
+            raise IOError("Failed to read %i mixed faces" % n)
+        # Locate tris and quads
+        jt = (A[:,0] == 3)
+        jq = (A[:,0] == 4)
+        # Check for triangles
+        if np.any(jt):
+            # Save the face-to-node info
+            self.Faces[i0-1:i1,:3][jt] = A[jt,1:4]
+            # Save the face-to-cell info
+            self.FaceCells[i0-1:i1][jt] = A[jt,4:6]
+        # Check for quads
+        if np.any(jq):
+            # Save the face-to-node info
+            self.Faces[i0-1:i1,:4][jq] = A[jq,1:5]
+            # Save the face-to-cell info
+            self.FaceCells[i0-1:i1][jq] = A[jq,5:7]
         # Save the labels.
         self.FaceID[i0-1:i1] = k
-        # Save the cells to which the nodes are connected
-        self.FaceCells[i0-1:i1] = A[:,-2:]
         # Read closing parentheses.
         f.readline()
         
@@ -446,6 +512,8 @@ class Mesh(object):
         """
         # Initialize the cells.
         self.Cells = np.zeros((self.nCell,8), dtype=int)
+        # Status update
+        print("Processing cell-to-node info needed for some formats")
         # Process known cell types
         self.GetPrisms()
         self.GetTets()
@@ -474,6 +542,8 @@ class Mesh(object):
         if not np.any(self.CellTypes == 6):
             self.nPrism = 0
             return
+        # Status update
+        print("  Processing node-to-prism indices")
         # Loop through tri faces
         for k in np.where(self.Faces[:,3]==0)[0]:
             # Extract the face.
@@ -520,6 +590,8 @@ class Mesh(object):
         if not np.any(self.CellTypes == 2):
             self.nTet = 0
             return
+        # Status update
+        print("  Processing node-to-tetrahedron indices")
         # Loop through tri faces
         for k in np.where(self.Faces[:,3]==0)[0]:
             # Extract the face.
