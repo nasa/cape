@@ -1,36 +1,30 @@
 #!/usr/bin/env python
 """
-Convert UH3D triangulation to Cart3D format: :mod:`pc_UH3D2Tri`
-===============================================================
+Convert Fluent unstructured mesh to AFLR3 formatted
+===================================================
 
-Convert a '.uh3d' file to a Cart3D triangulation format.
+Convert a Fluent :file:`.msh` file to AFLR3 format.
 
 :Call:
 
     .. code-block:: console
     
-        $ pc_UH3D2Tri.py $uh3d
-        $ pc_UH3D2Tri.py -i $uh3d
-        $ pc_UH3D2Tri.py $uh3d $tri
-        $ pc_UH3D2Tri.py -i $uh3d -o $tri
-        $ pc_UH3D2Tri.py -h
+        $ pf_Msh2Ugrid.py $msh $ugrid [OPTIONS]
+        $ pf_Msh2Ugrid.py [OPTIONS]
 
 :Inputs:
-    * *uh3d*: Name of input '.uh3d' file
-    * *tri*: Name of output '.tri' file
+    * *msh*: Name of input '.msh' file
+    * *ugrid*: Name of output '.grid' file
     
 :Options:
     -h, --help
         Display this help message and exit
         
-    -i UH3D
-        Use *UH3D* as input file
+    -i MSH
+        Use *MSH* as input file
         
-    -o TRI
-        Use *TRI* as name of created output file
-       
-    -c XML
-        Use file *XML* to map component ID numbers
+    -o UGRID
+        Use *UGRID* as name of created output file
         
     -xtol XTOL
         Truncate nodal coordinates within *XTOL* of x=0 plane to zero
@@ -45,8 +39,7 @@ If the name of the output file is not specified, it will just add '.tri' as the
 extension to the input (deleting '.uh3d' if possible).
 
 :Versions:
-    * 2014-06-12 ``@ddalle``: First version
-    * 2015-10-09 ``@ddalle``: Added tolerances and Config.xml processing
+    * 2015-10-23 ``@ddalle``: First version
 """
 
 # Get the CAPE mesh module.
@@ -54,7 +47,7 @@ import cape.mesh
 # Module to handle inputs and os interface
 import sys
 # Command-line input parser
-import pyCart.argread as argr
+import cape.argread as argr
 
 # Main function
 def Msh2Ugrid(*a, **kw):
