@@ -1,0 +1,5 @@
+
+# Ignore folders containing example results
+*/poweron
+*/poweroff
+*/report

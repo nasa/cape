@@ -524,9 +524,15 @@ class Mesh(odict):
         # Get the bounding boxes.
         BBox = self.get_key('BBox')
         # Make sure it's a list.
-        if type(BBox).__name__ == 'dict': BBox = [BBox]
-        # Output
-        return BBox
+        if type(BBox).__name__ == 'dict':
+            # Single component
+            return [BBox]
+        elif BBox is None:
+            # Return empty list
+            return []
+        else:
+            # Given as list.
+            return BBox
         
     # Set the list of bounding boxes.
     def set_BBox(self, BBox=rc0('BBox')):
@@ -563,9 +569,15 @@ class Mesh(odict):
         # Get the bounding boxes.
         XLev = self.get_key('XLev')
         # Make sure it's a list.
-        if type(XLev).__name__ == 'dict': XLev = [XLev]
-        # Output
-        return XLev
+        if type(XLev).__name__ == 'dict':
+            # Single component
+            return [XLev]
+        elif XLev is None:
+            # Empty list
+            return []
+        else:
+            # List
+            return XLev
         
     # Set the list of XLev specifications.
     def set_XLev(self, XLev=rc0('XLev')):
