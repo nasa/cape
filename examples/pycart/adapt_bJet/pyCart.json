@@ -1,31 +1,10 @@
 {
-    // Settings for the PBS script
-    "PBS": {
-        "j": "oe",
-        "r": "n",
-        "S": "/bin/bash",
-        "select": 2,
-        "ncpus": 20,
-        "mpiprocs": 20,
-        "model": "ivy",
-        "W": "group_list=e0847",
-        "q": "devel",
-        "walltime": "2:00:00"
-    },
-    
 	// The names of these two files have the obvious defaults.
 	"InputCntl": "inputs/input.cntl",
 	"AeroCsh": "inputs/aero.csh",
-
-    // Use the same mesh for all cases in the same group
-    "GroupMesh": true,
 	
 	// Commands to load at head of PBS scripts
 	"ShellCmds": [
-        ". $MODULESHOME/init/bash",
-	    "module use -a /u/ddalle/share/modulefiles",
-	    "module load cart3d",
-	    "module load pycart",
         "ulimit -S -s 4194304"
 	],
     
@@ -159,11 +138,9 @@
         // Number of iterations to use for statistics.
         "nStats": 7000,
         // Place to put the data book
-        "Folder": "data/poweron_test",
+        "Folder": "data/poweroff",
         // Sources for target information
         "Targets": [ ],
-        // Different plots to make
-        "Plot": [ ],
         // Information about each component.
         // (Available information read from loadsCC.dat)
         "fuselage": {
@@ -265,9 +242,11 @@
     "Trajectory": {
         // If a file is specified, and it exists, trajectory values will be
         // read from it.  Trajectory values can also be specified locally.
-        "File": "inputs/Trajectory.dat",
+        "File": "inputs/matrix.csv",
         "Keys": ["Mach", "alpha", "beta", "config", "Label"],
         // Configuration name [default]
-        "GroupPrefix": "poweroff"
+        "GroupPrefix": "poweroff",
+        // Use the same mesh for all cases
+        "GroupMesh": true
     }
 }

@@ -1205,8 +1205,16 @@ class Cart3d(Cntl):
         # Change to root safely.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
-        # Read the file.
-        self.InputCntl = InputCntl(self.opts.get_InputCntl())
+        # Input file name
+        fname = self.opts.get_InputCntl()
+        # Check if the file exists.
+        if os.path.isfile(fname):
+            # Read the file.
+            self.InputCntl = InputCntl(fname)
+        else:
+            # Use the template
+            print("Using template for 'input.cntl' file")
+            self.InputCntl = InputCntl(options.getCart3DTemplate('input.cntl'))
         # Go back to original location
         os.chdir(fpwd)
         
@@ -1227,8 +1235,16 @@ class Cart3d(Cntl):
         # Change to root safely.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
-        # Read the file.
-        self.AeroCsh = AeroCsh(self.opts.get_AeroCsh())
+        # AeroCsh file name
+        fname = self.opts.get_AeroCsh()
+        # Check if the file exists.
+        if os.path.isfile(fname):
+            # Read the file.
+            self.AeroCsh = AeroCsh(fname)
+        else:
+            # Use the template
+            print("Using template for 'aero.csh' file")
+            self.AeroCsh = AeroCsh(options.getCart3DTemplate('aero.csh'))
         # Go back to original location.
         os.chdir(fpwd)
     

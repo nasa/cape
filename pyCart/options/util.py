@@ -158,18 +158,16 @@ def rc0(p):
     return getel(rc[p], 0)
 
 
-# Function to get the defautl settings.
+# Function to get the default settings.
 def getPyCartDefaults():
     """
     Read :file:`pyCart.default.json` default settings configuration file
     
     :Call:
         >>> defs = getPyCartDefaults()
-        
     :Outputs:
         *defs*: :class:`dict`
             Dictionary of settings read from JSON file
-    
     :Versions:
         * 2014-06-03 ``@ddalle``: First version
         * 2014-07-28 ``@ddalle``: Moved to new options module
@@ -181,4 +179,24 @@ def getPyCartDefaults():
     lines = expandJSONFile(lines)
     # Process the default input file.
     return json.loads(lines)
+    
+# Function to get a template file name
+def getCart3DTemplate(fname):
+    """Get full path to template with file name *fname*
+    
+    :Call:
+        >>> fabs = getPyCartTemplate(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file, such as :file:`input.cntl`
+    :Outputs:
+        *fabs*: :class:`str`
+            Full path to the file, :file:`$PYCART/templates/cart3d/$fname`
+    :Versions:
+        * 2015-10-26 ``@ddalle``: First version
+    """
+    # Construct the path relative to the Cape template folder
+    fc3d = os.path.join('cart3d', fname)
+    # Get the full path
+    return getTemplateFile(fc3d)
         

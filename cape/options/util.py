@@ -376,6 +376,23 @@ def getCapeDefaults():
     # Read the settings.
     return getDefaults(fname)
     
+# Function to get template
+def getTemplateFile(fname):
+    """Get the absolute path to a template file by name
+    
+    :Call:
+        >>> fabs = getTemplateFile(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file, such as :file:`input.cntl`
+        *fabs*: :class:`str`
+            Full path to file
+    :Versions:
+        * 2015-10-26 ``@ddalle``: First version
+    """
+    # Join with BaseFolder and 'templates'
+    return os.path.join(BaseFolder, 'templates', fname)
+    
     
 # Get the keys of the default dict.
 def applyDefaults(opts, defs):
