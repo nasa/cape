@@ -20,7 +20,6 @@ from cape.fileCntl import FileCntl, _num, _float
 class InputCntl(FileCntl):
     """
     File control class for :file:`input.cntl`
-    =========================================
             
     This class is derived from the :class:`pyCart.fileCntl.FileCntl` class, so
     all methods applicable to that class can also be used for instances of this
@@ -969,7 +968,7 @@ class InputCntl(FileCntl):
                     [0.1481, 1],
                     [0.4,    0],
                     [1.0,    0]]
-            * ``'van Leer 3-stage' | 'VL3-2' | 'VL3' ``
+            * ``'van Leer 3-stage' | 'VL3-2' | 'VL3'``
                 *RK* = [
                     [0.1918, 1],
                     [0.4929, 0],
@@ -986,12 +985,12 @@ class InputCntl(FileCntl):
         :Inputs:
             *IC*: :class:`pyCart.inputCntl.InputCntl`
                 File control instance for :file:`input.cntl`
-            *RK*: :class:`str` or :class:`list` ([:class:`float`,:class:`int`])
+            *RK*: :class:`str` | :class:`list` ([:class:`float`, :class:`int`])
                 Named Runge-Kutta scheme or list of coefficients and gradient
                 evaluation flags
         :Effects:
             Deletes current lines beginning with ``RK`` in the
-            `Solver_Control_Information` section and replaces them with the
+            ``Solver_Control_Information`` section and replaces them with the
             specified values
         :Versions:
             * 2014-12-17 ``@ddalle``: First version
