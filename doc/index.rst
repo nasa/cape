@@ -45,71 +45,69 @@ pyCart Capabilities
 The Cart3D interface, pyCart, has quite a few capabilities.  Some highlights
 and critical aspects are listed below.
 
-    * Automatically create parametrically-named folders for cases in a matrix   
-    * Edit (according to run matrix variables) and copy Cart3D input files
+    * Automatically create parametrically-named folders for cases in a matrix
+    
+    * Copy Cart3D input files to run files and edit them according to run matrix
+      variables and global input settings
+      
+    * Create PBS scripts and submit them automatically
+    
+    * Simplified interface for refining initial volume mesh using component
+      names
+    
     * Built-in variables such as Mach number, angle of attack, and sideslip
+    
+    * Rotate components (such as fins or separating bodies) using Euler angles
+      or a hinge axis
+    
+    * Automated averaging of iterative histories and statistics for databases
+    
+    * Automated reports of iterative histories and Tecplot layouts
+    
+    * Interface for custom functions for more advanced run matrix variables such
+      as thrust settings
 
 The basic usage for this module is to create a file called :file:`pyCart.json`
-and use the script `pycart`.  In addition to this control file for pyCart,
+and use the script ``pycart``.  In addition to this control file for pyCart,
 several other Cart3D input files (or, more accurately, input template files)
-must be provided.
+can be provided or interfaced.  The names below are canonical names; it is
+possible to use other file names when setting up configurations.
 
     * Cart3D input control file, :file:`input.cntl`
     * Surface triangulation file, :file:`Components.i.tri`
-    * Optionally, :file:`Config.xml` to name and group surface components
+    * Surface triangulation component names, :file:`Config.xml`
     * If an adaptive run, an adaptive run script, :file:`aero.csh`
-    * There must also be a run matrix, which can either be specified within
-      :file:`pyCart.json` or within a separate file
+    * Run matrix, either specified within :file:`pyCart.json` or a file
 
-All of these files can have different names for cases when that helps in the
-organization of runs, but these are the default file names.  If all these files
-exist in the same folder, the following is the basic command that will start up
-to 10 cases.
 
-    .. code-block:: bash
+pyFun Capabilities
+------------------
+The FUN3D interface, pyFun, is newer and has somewhat fewer capabilities,
+although most of the database and reporting capabilities are inherited from
+pyCart.  Some capabilities are highlighted below.
+
+    * Automatically create parametrically-named folders for cases in a matrix
     
-        $ pycart
-        
-The following will start up to *N* cases.
-
-    .. code-block:: bash
+    * Copy FUN3D input files to run files and edit them according to run matrix
+      variables and global input settings
+      
+    * Create PBS scripts and submit them automatically
     
-        $ pycart -n $N
-        
-This will start no cases but show you the status of all the runs.
-
-    .. code-block:: bash
+    * Built-in variables such as Mach number, angle of attack, sideslip,
+      Reynolds number, and temperature
     
-        $ pycart -c
-        
-Changing the flag to ``-cj`` will also show PBS job numbers for cases where a
-current job is either running or in the queue.  Supposing that the file is not
-called :file:`pyCart.json` but :file:`run.json`, the ``-f`` flag can be used.
-If at least some cases have partially run, the command to update or create the
-data book (i.e. analyze force and moment coefficients and statistics as
-specified in the control file), the ``--aero`` flag will lead to that action.
-
-    .. code-block:: bash
+    * Automated averaging of iterative histories and statistics for databases
     
-        $ pycart -f run.json --aero
-        
-The last option to be highlighted on the front page is the automated report
-generation capability.  This command generates a multipage PDF based on settings
-in the "Report" section of :file:`run.json` that usually gives a summary of each
-case in the run directory on its own page.
-
-    .. code-block:: bash
+    * Automated reports of iterative histories and Tecplot layouts
     
-        $ pycart -f run.json --report
-        
-There are many more flags to `pycart`, including options to compress or archive
-folders, plot iterative histories, and constrain to only a subset of the run
-matrix.
+The basic usage for this module is to create a file called :file:`pyFun.json`
+and use the script ``pyfun``.  The required FUN3D input files are described
+below.
 
-Controlling runs with pyCart really focuses on the :file:`pyCart.json` file.
-This file is divided into sections, some of which are mandatory.  The three
-most important sections describe the inputs to `flowCart`, the meshing options,
-and the nature of the run matrix including variable definitions.
+    * FUN3D run settings template, :file:`fun3d.nml`
+    * Mesh file; a recommended format is AFLR3, :file:`*.ugrid`
+    * Boundary condition file, :file:`*.mapbc`
+    * Run matrix, either specified within :file:`pyFun.json` or a file
 
 
 .. toctree::
