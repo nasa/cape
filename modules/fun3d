@@ -1,0 +1,31 @@
+#%Module1.0############################################################
+##
+## FUN3D modulefile
+##
+proc ModulesHelp { } {
+	global version modroot
+
+	puts stderr"\n\tThis module configures FUN3D\n"
+}
+
+# Explain the file.
+module-whatis "loads FUN3D"
+
+# Module parameters
+set     app        fun3d
+set     version    current
+
+# Modules in conflict
+conflict cart3d
+
+# Local variables
+set FUN3D       $HOME/fun3d
+set FUN3D_ARCH  serial
+
+# Export variables
+setenv FUN3D       $FUN3D
+setenv FUN3D_ARCH  $FUN3D_ARCH
+
+# Folders to add to path
+prepend-path PATH $FUN3D
+prepend-path PATH $FUN3D/$FUN3D_ARCH/bin

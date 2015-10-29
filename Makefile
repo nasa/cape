@@ -4,11 +4,22 @@ SHELL = /bin/sh
 TOPDIR = .
 # Source directory
 MODULEDIR = pyCart
+CARTDIR = pyCart
+CAPEDIR = cape
+FUNDIR = pyFun
 all: build
 
 .PHONY: build
 build:
 	(cd $(MODULEDIR); ./build.py)
+
+.PHONY: pycart
+pycart:
+	(cd $(CARTDIR); ./build.py)
+
+.PHONY: cape
+cape:
+	(cd $(CAPEDIR); ./build.py)
 
 .PHONY: clean
 clean:
