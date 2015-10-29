@@ -71,5 +71,6 @@ and the nature of the run matrix including variable definitions.
 .. toctree::
     :maxdepth: 2
 
+    examples/index
     json/index
     pyCart/index
