@@ -98,4 +98,97 @@ folder, create a case folder for the first set of conditions to run, and call
         
         ---=1,
         
-Specifically
+Obviously in these examples the value of ``PWD`` will differ from what is shown
+in these examples. This command tells pyCart to loop through the cases until if
+finds the first case to run. Because no cases had been run prior to executing
+this command, the following steps are taken as a result of this command.
+
+    1. Read project settings from :file:`pyCart.json` and conditions from
+       :file:`matrix.csv`
+        
+    2. Create the mesh
+    
+      A. Create the ``poweroff`` folder
+      B. Read the ``bullet.tri`` file and write it to the ``poweroff`` folder
+      C. Run ``autoInputs`` to create ``input.c3d`` and ``preSpec.c3d.cntl``
+      D. Run ``cubes`` to create volume mesh :file:`Mesh.c3d`
+      E. Run ``mgPrep`` to prepare the grid for multigrid
+       
+    3. Prepare the case
+    
+      A. Create the ``m1.50a0.0b0.0`` folder
+      B. Link the mesh files created in the previous step
+      C. Copy the template ``input.cntl`` and set Mach, alpha, and beta
+      D. Create a PBS script :file:`run_cart3d.pbs`
+    
+    4. Run the case by calling ``bash run_cart3d.pbs``
+
+Let's run another case.
+
+    .. code-block:: none
+    
+        $ pycart -n 1
+        Case Config/Run Directory  Status  Iterations  Que 
+        ---- --------------------- ------- ----------- ---
+        0    poweroff/m1.5a0.0b0.0 DONE    200/200     .   
+        1    poweroff/m2.0a0.0b0.0 ---     /           .   
+        Using template for 'input.cntl' file
+             Starting case 'poweroff/m2.0a0.0b0.0'.
+         > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -binaryIO -tm 0
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/bullet/poweroff/m2.0a0.0b0.0')
+             (STDOUT = 'flowCart.out')
+        
+        Submitted or ran 1 job(s).
+        
+        ---=1, DONE=1,
+
+This time, there is a lot less output because the different cases can use the
+same mesh.  In the description of the tasks performed for the first case, step
+2 can be skipped for subsequent runs.
+
+Now let's check the status again using ``pycart -c``.
+
+    .. code-block:: none
+    
+        $ pycart -c
+        Case Config/Run Directory  Status  Iterations  Que 
+        ---- --------------------- ------- ----------- ---
+        0    poweroff/m1.5a0.0b0.0 DONE    200/200     .   
+        1    poweroff/m2.0a0.0b0.0 DONE    200/200     .   
+        2    poweroff/m2.0a2.0b0.0 ---     /           .   
+        3    poweroff/m2.0a2.0b2.0 ---     /           .   
+                
+        ---=2, DONE=2,
+    
+That's it.  Now we have two cases run in separate folders, and each looks like a
+standard Cart3D run.  Finally, the default call to ``pycart`` is equivalent to
+``pycart -f pyCart.json -n 10``.  Running this case in the current folder gives
+the following results.
+
+    .. code-block:: none
+    
+        $ pycart
+        Case Config/Run Directory  Status  Iterations  Que 
+        ---- --------------------- ------- ----------- ---
+        0    poweroff/m1.5a0.0b0.0 DONE    200/200     .   
+        1    poweroff/m2.0a0.0b0.0 DONE    200/200     .   
+        2    poweroff/m2.0a2.0b0.0 ---     /           .   
+        Using template for 'input.cntl' file
+             Starting case 'poweroff/m2.0a2.0b0.0'.
+         > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -binaryIO -tm 0
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/bullet/poweroff/m2.0a2.0b0.0')
+             (STDOUT = 'flowCart.out')
+        3    poweroff/m2.0a2.0b2.0 ---     /           .   
+        Using template for 'input.cntl' file
+             Starting case 'poweroff/m2.0a2.0b2.0'.
+         > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -binaryIO -tm 0
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/bullet/poweroff/m2.0a2.0b2.0')
+             (STDOUT = 'flowCart.out')
+        
+        Submitted or ran 2 job(s).
+        
+        ---=2, DONE=2,
+
+This attempts to run 10 cases, but the first two cases are already completed.
+Since there are only two cases remaining, the job quits before it can get to 10
+cases.
