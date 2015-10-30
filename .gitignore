@@ -11,8 +11,8 @@
 # Cart3D huge files.
 *.c3d
 
-# Cart3D setup/grid folders
-Grid*
+# Example definitions
+examples/cad
 
 # pyCart Python/C binaries
 pyCart/build/
