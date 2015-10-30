@@ -1,0 +1,32 @@
+#%Module1.0############################################################
+##
+## Cart3D modulefile
+##
+proc ModulesHelp { } {
+	global version modroot
+
+	puts stderr"\n\tThis module configures Cart3D\n"
+}
+
+# Explain the file.
+module-whatis "loads Cart3D"
+
+# Module parameters
+set     app        cart3d
+set     version    current
+
+# Modules in conflict
+conflict cart3d
+
+# Local variables
+set CART3D       $HOME/cart3d1.5
+set CART3D_ARCH  X86_64_ICC
+
+# Export variables
+setenv CART3D       $CART3D
+setenv CART3D_ARCH  $CART3D_ARCH
+
+# Folders to add to path
+prepend-path PATH $CART3D
+prepend-path PATH $CART3D/bin
+prepend-path PATH $CART3D/bin/$CART3D_ARCH

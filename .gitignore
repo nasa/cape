@@ -11,8 +11,8 @@
 # Cart3D huge files.
 *.c3d
 
-# Cart3D setup/grid folders
-Grid*
+# Example definitions
+examples/cad
 
 # pyCart Python/C binaries
 pyCart/build/
@@ -23,18 +23,9 @@ pyCart/build/
 sandbox/
 scratch/
 
-# Post-processing folders
-
-
-# Any subfolder of an example
-examples/adapt_bJet/poweroff
-examples/flowCart_bJet/poweron
-examples/flowCart_bJet/poweroff
-
-# Shell files placed in examples.
-examples/*/*.sh
-examples/*/*.csh
-examples/*/*.bash
+# Releases
+release/*.gz
+release/*.zip
 
 # Documentation outputs
 doc/_*
