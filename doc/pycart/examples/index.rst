@@ -12,5 +12,5 @@ pyCart and Cart3D.
 .. toctree::
     :maxdepth: 2
     
-    bullet/index
-    arrow/index
+    bullet
+    arrow

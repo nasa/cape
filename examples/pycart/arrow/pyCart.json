@@ -1,57 +1,34 @@
 {
-	
-	// Commands to load at head of PBS scripts
+    // Setup for run scripts
 	"ShellCmds": [
         "ulimit -S -s 4194304"
 	],
     
-    // This section sets the parameters for flowCart.
-	// The names for these parameters are copied from `aero.csh`.
+	// Control for the solver itself
 	"flowCart": {
         // Run sequence
         "InputSeq": [0],
         "IterSeq": [200],
-        // flowCart order
-        "first_order": 0,
-	    // Basic number of iterations
 	    "it_fc": 200,
-        // Use MPI?
+	    // Options for ``flowCart``
         "mpi_fc": 0,
-        // Use aero.csh?
         "use_aero_csh": 0,
-	    // Nominal CFL number
 	    "cfl": 1.1,
-	    "cflmin": 0.8,
-	    // Multigrid levels for flowcart
 	    "mg_fc": 3,
-	    // Limiter type
-	    "limiter": 2,
-        // Cut cells first-order?
-        "tm": 0,
-	    // If this is set to true, angle of attack changes z-velocity
 	    "y_is_spanwise": true,
-	    // Number of threads
 	    "nProc": 4
 	},
 
-	// Parameters for creating the mesh
+	// Mesh settings
     "Mesh": {
-        // This can be a list of .tri files.
+        // Surface triangulation
         "TriFile": "arrow.tri",
-        
-        // Parameters for autoInputs
-        "autoInputs": {
-            // Nominal mesh radius (set to [], "", 0, or false to turn off)
-            "r": 8
-        },
-        
-        // Parameters for cubes
+        // Defines the flow domain automatically
+        "autoInputs": {"r": 8},
+        // Volume mesh options
         "cubes": {
-            // Number of refinements
             "maxR": 10,
-            // Prespecified bounding boxes (set to [] or "" to turn off)
             "pre": "preSpec.c3d.cntl",
-            // Internal parameters
             "cubes_a": 10,
             "cubes_b": 2,
             "reorder": true
@@ -62,24 +39,19 @@
     "Config": {
         // Defer to a file for most things.
         "File": "arrow.xml",
-        // Which forces should be reported
-        "Force": ["cap", "body", "bullet_no_base", "bullet_total"],
-        // Reference values
+        // Declare forces and moments
+        "Force": ["cap", "body", "fins", "bullet_no_base", "bullet_total"],
+        "RefPoint": {"bullet_no_base": [0.0, 0.0, 0.0]}
+        // Reference quantities
         "RefArea": 3.14159,
         "RefLength": 1.0,
-        // The moment point can be specified as a dictionary of components.
-        "RefPoint": {"bullet_no_base": [0.0, 0.0, 0.0]}
     },
     
-    // Trajectory description
+    // Trajectory (i.e. run matrix) description
     "Trajectory": {
-        // If a file is specified, and it exists, trajectory values will be
-        // read from it.  Trajectory values can also be specified locally.
-        "File": "matrix.csv",
         "Keys": ["Mach", "alpha_t", "phi"],
-        // Copy the mesh
+        "File": "matrix.csv",
         "GroupMesh": true,
-        // Configuration name [default]
         "GroupPrefix": "poweroff"
     }
 }

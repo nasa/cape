@@ -46,5 +46,38 @@ the features of pyCart.
         19   poweroff/m2.5a1.0r30.0  ---     /           .   
         20   poweroff/m2.5a1.0r45.0  ---     /           .   
         
-        ---=21,  
+        ---=21, 
+        
+Let's look at the files in this folder.
+
+    * ``pyCart.json``: Master settings for running pyCart, input to ``pycart``
+    * ``arrow.tri``: Surface triangulation (ASCII)
+    * ``arrow.xml``: Names for components of the surface
+    * ``matrix.csv``: Run matrix
+    
+JSON Settings
+-------------
+The :file:`pyCart.json` file contains the master settings divided into several
+sections, which we will discuss in more detail.  The overall contents of the
+file look something like the following, with the ``...`` replaced by more
+content.
+
+    .. code-block:: javascript
+    
+        {
+            // Setup for run scripts
+            "ShellCmds": [
+                "ulimit -S -s 4194304"
+            ],
+            
+            ...
+            
+            // Trajectory (i.e. run matrix) description
+            "Trajectory": {
+                "Keys": ["Mach", "alpha_t", "phi"],
+                "File": "matrix.csv",
+                "GroupMesh": true,
+                "GroupPrefix": "poweroff"
+            }
+        }
 
