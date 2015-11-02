@@ -511,9 +511,9 @@ class TriBase(object):
         # Write the component IDs.
         pc.WriteCompID(self.CompID)
         # Check the file name.
-        if fname != "Components.cape.tri":
+        if fname != "Components.pyCart.tri":
             # Move the file.
-            os.rename("Components.cape.tri", fname)
+            os.rename("Components.pyCart.tri", fname)
             
     
     # Function to write a triangulation to file the old-fashioned way.
