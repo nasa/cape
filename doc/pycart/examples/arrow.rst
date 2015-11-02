@@ -351,7 +351,7 @@ Let's run one case, but not the first case.  We can do this by using the
 
     .. code-block:: none
     
-        $ pycart -I 10
+        $ pycart -I 12
         Case Config/Run Directory    Status  Iterations  Que 
         ---- ----------------------- ------- ----------- ---
         0    poweroff/m1.75a1.0r15.0 ---     /           .   
@@ -382,7 +382,7 @@ We can check the status of all the cases at Mach 1.75 using the following.
 
     .. code-block:: none
     
-        $ pycart -I 9:13 -c
+        $ pycart -I 11:15 -c
         Case Config/Run Directory    Status  Iterations  Que 
         ---- ----------------------- ------- ----------- ---
         0    poweroff/m1.75a1.0r0.0  ---     /           .   
@@ -397,7 +397,7 @@ a constraint.  Let's run the remaining Mach 1.75 cases using that capability.
 
     .. code-block:: none
     
-        $ pycart --cons "Mach==1.75"
+        $ pycart --cons "Mach==1.75, alpha_t==1.0"
         Case Config/Run Directory    Status  Iterations  Que 
         ---- ----------------------- ------- ----------- ---
         0    poweroff/m1.75a1.0r0.0  ---     /           .   
@@ -471,4 +471,37 @@ look something like the following.
         BBox: 7    6.479   7.653   -1.900  -1.099   -0.401   0.401   #  Comp #11
         BBox: 7    6.479   7.653   -0.401   0.400   -1.900  -1.099   #  Comp #12
         BBox: 7    6.479   7.653    1.099   1.900   -0.400   0.401   #  Comp #13
+
+The third row of *BBox* commands define a region with *x*-coordinates between
+1.7 and 7.3, *y*-coordinates between -0.8 and +0.8, and *z*-coordinates between
+-0.8 and +0.8.  Within this region, ``cubes`` must make a mesh that has been
+refined at least 7 times.  In other words, the mesh size must be at least 128
+times smaller than the original mesh.
+
+Now let's look at the files in a run folder.
+
+    .. code-block:: none
+    
+        $ cd m1.75a1.00r0.00
+        $ ls
+        body.dat              Components.i.tri     history.dat    moments.dat
+        bullet_no_base.dat    Components.i.triq    input.00.cntl  preSpec.c3d.cntl
+        bullet_total.dat      conditions.json      input.c3d      run.00.200
+        cap.dat               Config.xml           input.cntl     run_cart3d.pbs
+        case.json             cutPlanes.00200.plt  loadsCC.dat     
+        check.00200           entire.dat           Mesh.c3d.Info  
+        checkDT.00200         forces.dat           Mesh.mg.c3d    
+        Components.00200.plt  functional.dat       Mesh.R.c3d     
+
+Obviously, there are quite a few files, although many of them are links.  For
+example, the files that are listed here and in the parent folder discussed above
+are either links or copies.  The :file:`input.c3d` and :file:`preSpec.c3d.cntl`
+files are copied because they are small.
+
+Most of the files ending with ``.dat`` are iterative history files.  Some of
+these are standard results of running ``flowCart``, and others are specifically
+requested.  The most special of these is :file:`history.dat`, which contains the
+residual history.  In pyCart, this file is used to determine how many iterations
+have been run.
+
 
