@@ -6,6 +6,9 @@ Generic CAPE Geometry Module: :mod:`cape.geom`
     * 2015-09-30 ``@ddalle``: First version
 """
 
+# Numerics
+import numpy as np
+
 # Function to rotate a triangulation about an arbitrary vector
 def RotatePoints(X, v1, v2, theta):
     """Rotate a list of points
@@ -33,6 +36,9 @@ def RotatePoints(X, v1, v2, theta):
     # Ensure array.
     if type(X).__name__ != 'ndarray':
         X = np.array(X)
+    # Check for points.
+    if X.size == 0:
+        return X
     # Ensure list of points.
     if len(X.shape) == 1:
         X = np.array([X])

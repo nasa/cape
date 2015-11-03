@@ -9,7 +9,7 @@ cases (i.e., the "trajectory").
 # Basic numerics
 import numpy as np
 # More powerful text processing
-import re
+import re, fnmatch
 # File system and operating system management
 import os
 
@@ -641,7 +641,7 @@ class Trajectory:
                 List of initial indices to consider
         :Outputs:
             *i*: :class:`numpy.ndarray` (:class:`int`)
-                Index of group(s) to process
+                List of indices that match constraints
         :Versions:
             * 2014-12-09 ``@ddalle``: First version
         """
@@ -665,8 +665,132 @@ class Trajectory:
             except Exception:
                 # Print a warning and move on.
                 print("Constraint '%s' failed to evaluate." % con)
-        # Output.
+        # Output
         return np.where(i)[0]
+        
+    # Function to filter by checking if string is in the name
+    def FilterString(self, txt, I=None):
+        """Filter cases by whether or not they contain a substring
+        
+        :Call:
+            >>> i = x.FilterString(txt)
+            >>> i = x.FilterString(txt, I)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Instance of the pyCart trajectory class
+            *txt*: :class:`str`
+                Substring to use as filter
+            *I*: :class:`list` (:class:`int`)
+                List of initial indices to consider
+        :Outputs:
+            *i*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices that match constraints
+        :Versions:
+            * 2015-11-02 ``@ddalle``: First version
+        """
+        # Initialize the conditions.
+        if I is None:
+            # Consider all indices
+            i = np.arange(self.nCase) > -1
+        else:
+            # Start with all indices failed.
+            i = np.arange(self.nCase) < -1
+            # Set the specified indices to True
+            i[I] = True
+        # Loop through conditions
+        for j in np.where(i)[0]:
+            # Get the case name.
+            frun = self.GetFullFolderNames(j)
+            # Check if the string is in there.
+            if txt not in frun:
+                i[j] = False
+        # Output
+        return np.where(i)[0]
+        
+    # Function to filter by checking if string is in the name
+    def FilterWildcard(self, txt, I=None):
+        """Filter cases by whether or not they contain a substring
+        
+        This function uses file wild cards, so for example
+        ``x.FilterWildcard('*m?.0*')`` matches any case whose name contains
+        ``m1.0`` or ``m2.0``, etc.  To make sure the ``?`` is a number, use
+        ``*m[0-9].0``.  To obtain a filter that matches both ``m10.0`` and
+        ``m1.0``, see :func:`FilterRegex`.
+        
+        :Call:
+            >>> i = x.FilterWildcard(txt)
+            >>> i = x.FilterWildcard(txt, I)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Instance of the pyCart trajectory class
+            *txt*: :class:`str`
+                Wildcard to use as filter
+            *I*: :class:`list` (:class:`int`)
+                List of initial indices to consider
+        :Outputs:
+            *i*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices that match constraints
+        :Versions:
+            * 2015-11-02 ``@ddalle``: First version
+        """
+        # Initialize the conditions.
+        if I is None:
+            # Consider all indices
+            i = np.arange(self.nCase) > -1
+        else:
+            # Start with all indices failed.
+            i = np.arange(self.nCase) < -1
+            # Set the specified indices to True
+            i[I] = True
+        # Loop through conditions
+        for j in np.where(i)[0]:
+            # Get the case name.
+            frun = self.GetFullFolderNames(j)
+            # Check if the string is in there.
+            if not fnmatch.fnmatch(frun, txt):
+                i[j] = False
+        # Output
+        return np.where(i)[0]
+        
+        # Function to filter by checking if string is in the name
+    def FilterRegex(self, txt, I=None):
+        """Filter cases by whether or not they match a regular expression
+        
+        :Call:
+            >>> i = x.FilterRegex(txt)
+            >>> i = x.FilterRegex(txt, I)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Instance of the pyCart trajectory class
+            *txt*: :class:`str`
+                Wildcard to use as filter
+            *I*: :class:`list` (:class:`int`)
+                List of initial indices to consider
+        :Outputs:
+            *i*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices that match constraints
+        :Versions:
+            * 2015-11-02 ``@ddalle``: First version
+        """
+        # Initialize the conditions.
+        if I is None:
+            # Consider all indices
+            i = np.arange(self.nCase) > -1
+        else:
+            # Start with all indices failed.
+            i = np.arange(self.nCase) < -1
+            # Set the specified indices to True
+            i[I] = True
+        # Loop through conditions
+        for j in np.where(i)[0]:
+            # Get the case name.
+            frun = self.GetFullFolderNames(j)
+            # Check if the name matches the regular expression.
+            if not re.search(txt, frun):
+                i[j] = False
+        # Output
+        return np.where(i)[0]
+        
         
     # Function to expand indices
     def ExpandIndices(self, itxt):
@@ -754,16 +878,27 @@ class Trajectory:
             # Check for constraints.
             if kw.get("cons") not in [None, []]:
                 # Apply the constraints, too.
-                return self.Filter(kw['cons'], I)
-            else:
-                # Return the directly-specified indices
-                return I
+                I = self.Filter(kw['cons'], I)
         elif kw.get("cons") not in [None, []]:
             # Apply the constraints filter.
-            return self.Filter(kw['cons'])
+            I = self.Filter(kw['cons'])
         else:
             # Return all the indices
-            return np.arange(self.nCase)
+            I = np.arange(self.nCase)
+        # Check for regular expression filter
+        if kw.get('re') not in [None, '']:
+            # Filter by regular expression
+            I = self.FilterRegex(kw.get('re'), I)
+        # Check for wildcard filter
+        if kw.get('glob') not in [None, '']:
+            # Filter by wildcard glob
+            I = self.FilterWildcard(kw.get('glob'), I)
+        # Check for simple substring
+        if kw.get('filter') not in [None, '']:
+            # Filter by substring
+            I = self.FilterString(kw.get('filter'), I)
+        # Output
+        return I
             
     # Function to get sweep based on constraints
     def GetSweep(self, M, **kw):

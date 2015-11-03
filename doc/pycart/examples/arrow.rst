@@ -424,6 +424,11 @@ a constraint.  Let's run the remaining Mach 1.75 cases using that capability.
         
         ---=3, DONE=1,
         
+It is also possible to select these cases using ``pycart --filter m1.75a1``,
+``pycart --glob "*m1.75a1*"``, or ``pycart --re "m1\.75a1"``.  The last of these
+checks for a regular expression, which allows more complex filters to be
+applied.
+        
 Run Folders and Output Files
 ----------------------------
 Let's take a look at the files that pyCart created.  First, let's look at the 
@@ -482,7 +487,7 @@ Now let's look at the files in a run folder.
 
     .. code-block:: none
     
-        $ cd m1.75a1.00r0.00
+        $ cd m1.75a1.0r0.0
         $ ls
         body.dat              Components.i.tri     history.dat    moments.dat
         bullet_no_base.dat    Components.i.triq    input.00.cntl  preSpec.c3d.cntl
@@ -502,6 +507,66 @@ Most of the files ending with ``.dat`` are iterative history files.  Some of
 these are standard results of running ``flowCart``, and others are specifically
 requested.  The most special of these is :file:`history.dat`, which contains the
 residual history.  In pyCart, this file is used to determine how many iterations
-have been run.
+have been run.  With the exception of some comment lines, each line reports one
+iteration number and the residual at that iteration.
 
+The files :file:`forces.dat` and :file:`moments.dat` report the forces and
+moments on the ``entire`` component, i.e. the entire triangulation.  These files
+are always produced, report results before any axis changes, and are ignored by
+pyCart.  Four other files, :file:`body.dat`, :file:`bullet_no_base.dat`,
+:file:`bullet_total.dat`, and :file:`cap.dat`, are specifically requested.
+Cart3D produces them because the :file:`input.cntl` file contains lines ``Force
+body``, ``Force cap``, etc. in the ``$__Force_Moment_Processing:`` section.
+Although we did not request ``entire`` in our pyCart setup, it got produced here
+because the template ``input.cntl`` file contains the line ``Force entire``.
+These ``.dat`` files are used by pyCart to read the iterative history of forces
+and moments on parts of the vehicle.
+
+The volume and surfaceresults files are ``check.00200``,
+``Components.00200.plt``, ``Components.i.triq``, and ``cutPlanes.00200.plt``.
+The ``check.00200`` file is a binary file used and created by Cart3D, and the
+``plt`` files are Tecplot files.  These Tecplot files are created by Cart3D, and
+pyCart changes the file names by inserting the iteration numbers to which they
+correspond.  Finally, the ``Components.i.triq`` file is very similar to the
+surface triangulation except with extra info describing the state solution at
+each vertex.  Noe that the ``Components.0200.plt`` and ``Components.i.triq``
+files do not contain identical information because the Tecplot file references
+the Cartesian volume mesh projected onto the surface while the ``triq`` file
+only has solution data at the triangulation vertices.
+
+Also in this folder are the files ``run_cart3d.pbs``, which is a script used to
+run ``flowCart``.
+
+    .. code-block:: bash
+    
+        #!/bin/bash
+        #PBS -S /bin/bash
+        #PBS -N m1.75a1r0
+        #PBS -r n
+        #PBS -j oe
+        #PBS -l select=1:ncpus=12:mpiprocs=12
+        #PBS -l walltime=2:00:00
+        #PBS -q normal
+        
+        # Go to the working directory.
+        cd /u/wk/ddalle/usr/pycart/examples/pycart/arrow/poweroff/m1.75a1.0r0.0
+        
+        # Additional shell commands
+        ulimit -S -s 4194304
+        
+        # Call the flowCart/mpix_flowCart/aero.csh interface.
+        run_flowCart.py
+
+The script includes some PBS settings (which are not used in this example), a
+command to change to the correct folder using an absolute path, whatever shell
+commands are specified in the JSON file, and a command to determine the correct
+Cart3D command.  The file :file:`case.json` contains all of the
+:file:`pyCart.json` settings from the ``"flowCart"`` section, because they are
+needed to determine the command-line inputs.
+
+That covers the essential files for this example.  The very import
+:file:`input.cntl` file (which in this case is just a link to
+:file:`input.00.cntl`) is worthy of far more discussion, and there are several
+other files that have varying degrees of utility, but that will have to come at
+a different time and place.
 

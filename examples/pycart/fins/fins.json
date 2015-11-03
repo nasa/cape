@@ -21,8 +21,16 @@
 
 	// Mesh settings
     "Mesh": {
+        // Intersect
+        "intersect": true,
         // Surface triangulation
-        "TriFile": "arrow.tri",
+        "TriFile": [
+            "inputs/bullet.tri",
+            "inputs/fin1.tri",
+            "inputs/fin2.tri",
+            "inputs/fin3.tri",
+            "inputs/fin4.tri"
+        ],
         // Defines the flow domain automatically
         "autoInputs": {"r": 8},
         // Volume mesh options
@@ -38,7 +46,7 @@
     // Describe the reference values and config.
     "Config": {
         // Defer to a file for most things.
-        "File": "arrow.xml",
+        "File": "inputs/arrow.xml",
         // Declare forces and moments
         "Force": ["cap", "body", "fins", "bullet_no_base", "bullet_total"],
         "RefPoint": {"bullet_no_base": [0.0, 0.0, 0.0]},
@@ -49,9 +57,31 @@
     
     // Trajectory (i.e. run matrix) description
     "Trajectory": {
-        "Keys": ["Mach", "alpha_t", "phi"],
-        "File": "matrix.csv",
+        # Global run matrix definitions
+        "Keys": ["Mach", "alpha_t", "phi", "d2", "d4"],
+        "File": "inputs/matrix.csv",
         "GroupMesh": true,
-        "GroupPrefix": "poweroff"
+        "GroupPrefix": "poweroff",
+        // Customized key definitions
+        "Definitions": {
+            // Rotate fin 2
+            "d2": {
+                "Group": true,
+                "Type": "rotation",
+                "Value": "float",
+                "CompID": "fin2",
+                "Vector": [[7.2,0,0], [7.2,-1,0]],
+                "Format": "%+05.1f"
+            },
+            // Rotate fin 4
+            "d4": {
+                "Group": true,
+                "Type": "rotation",
+                "Value": "float",
+                "CompID": "fin4",
+                "Vector": [[7.2,0,0], [7.2,1,0]],
+                "Format": "%+05.1f"
+            }
+        }
     }
 }
