@@ -1,4 +1,6 @@
 
+.. _pycart-ex-arrow:
+
 Demo 2: Closer Analysis of Simple Arrow Shape
 =============================================
 
