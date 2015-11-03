@@ -41,8 +41,8 @@ def run_fun3d():
     fproj = GetProjectRootname()
     # Determine the run index.
     i = GetInputNumber(rc)
-    # Set the restart file.
-    SetRestartIter()
+    # Set the restart file and flag if necessary.
+    SetRestartIter(rc)
     # Delete any input file.
     if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
         os.remove('fun3d.nml')
@@ -72,15 +72,8 @@ def run_fun3d():
     # Check current iteration count.
     if n >= rc.get_LastIter():
         return
-    # Resubmit if asked.
-    if rc.get_resub(i):
-        # Run full restart command, including qsub if appropriate
-        StartCase()
-    else:
-        # Get the name of the PBS script
-        fpbs = GetPBSScript(i)
-        # Just run the case directly (keep the same PBS job).
-        bin.callf(['bash', fpbs])
+    # Resubmit/restart if this point is reached.
+    StartCase()
 
 # Function to call script or submit.
 def StartCase():
@@ -204,7 +197,7 @@ def GetNamelist(rc=None):
         # Get run index.
         i = GetInputNumber(rc)
         # Read the namelist file.
-        return Namelist('fun3d.%s.nml' % i)
+        return Namelist('fun3d.%02i.nml' % i)
 
 
 # Get the project rootname
@@ -369,12 +362,14 @@ def GetRestartIter():
     return n
     
 # Function to set the most recent file as restart file.
-def SetRestartIter(n=None):
+def SetRestartIter(rc, n=None):
     """Set a given check file as the restart point
     
     :Call:
-        >>> pyCart.case.SetRestartIter(n=None, ntd=None)
+        >>> pyFun.case.SetRestartIter(rc, n=None)
     :Inputs:
+        *rc*: :class:`pyFun.options.runControl.RunControl`
+            Run control options
         *n*: :class:`int`
             Restart iteration number, defaults to most recent available
     :Versions:
@@ -383,17 +378,28 @@ def SetRestartIter(n=None):
     """
     # Check the input.
     if n is None: n = GetRestartIter()
+    # Read the namelist.
+    nml = GetNamelist(rc)
+    # Set restart flag
+    if n > 0:
+        # Set the restart flag on.
+        nml.SetRestart()
+    else:
+        # Set the restart flag off.
+        nml.SetRestart(False)
+    # Write the namelist.
+    nml.Write()
     # Get project name.
     fproj = GetProjectRootname()
     # Restart file name
     fname = '%s.flow' % fproj
     # Remove the current restart file if necessary.
-    if os.path.isfile(fname):
-        # Full file exists: abort!
-        raise SystemError("Restart flow file '%s' already exists!" % fname)
-    elif os.path.islink(fname):
+    if os.path.islink(fname):
         # Remove the link
         os.remove(fname)
+    elif os.path.isfile(fname):
+        # Full file exists: abort!
+        raise SystemError("Restart flow file '%s' already exists!" % fname)
     # Quit if no check point.
     if n == 0: return None
     # Source file

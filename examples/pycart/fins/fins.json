@@ -71,7 +71,7 @@
                 "Value": "float",
                 "CompID": "fin2",
                 "Vector": [[7.2,0,0], [7.2,-1,0]],
-                "Format": "%+05.1f"
+                "Format": "%+03i_"
             },
             // Rotate fin 4
             "d4": {
@@ -80,7 +80,7 @@
                 "Value": "float",
                 "CompID": "fin4",
                 "Vector": [[7.2,0,0], [7.2,1,0]],
-                "Format": "%+05.1f"
+                "Format": "%+03i"
             }
         }
     }

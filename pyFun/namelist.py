@@ -106,13 +106,13 @@ class Namelist(FileCntl):
             # Line regular expression: "XXXX=" but with white spaces
             reg = '^\s*%s\s*[=\n]' % name
             # Form the output line.
-            line = '   %s = %s\n' % (name, self.ConvertToText(val))
+            line = '    %s = %s\n' % (name, self.ConvertToText(val))
         else:
             # Format: '   component(1) = "something"'
             # Line regular expression: "XXXX([0-9]+)=" but with white spaces
             reg = '^\s*%s\(%i\)\s*[=\n]' % (name, k)
             # Form the output line.
-            line = '   %s(%i) = %s\n' % (name, k, self.ConvertToText(val))
+            line = '    %s(%i) = %s\n' % (name, k, self.ConvertToText(val))
         # Replace the line; prepend it if missing
         self.ReplaceOrAddLineToSectionSearch(sec, reg, line, 1)
         
@@ -159,6 +159,28 @@ class Namelist(FileCntl):
         if len(vals) < 1: return None
         # Convert to Python value
         return self.ConvertToVal(vals[1])
+        
+    # Set restart on
+    def SetRestart(self, q=True):
+        """Set the FUN3D restart flag on or off
+        
+        :Call:
+            >>> nml.SetRestart(q=True)
+        :Inputs:
+            *nml*: :class:`pyFun.namelist.Namelist`
+                File control instance for :file:`fun3d.nml`
+            *q*: :class:`bool` | ``"on"`` | ``"off"`` | ``None``
+                Restart option, ``None`` turns flag to ``"on"``
+        :Versions:
+            * 2015-11-03 ``@ddalle``: First version
+        """
+        # Check status
+        if (q is None) or (q and (q != "off")):
+            # Turn restart on.
+            self.SetVar('code_run_control', 'restart_read', 'on')
+        else:
+            # Turn restart off.
+            self.SetVar('code_run_control', 'restart_read', 'off')
         
     # Function set the Mach number.
     def SetMach(self, mach):
