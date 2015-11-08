@@ -142,7 +142,6 @@ def run_flowCart(verify=False, isect=False):
             # flowCart command automatically accepts *it_avg*; update *n*
             cmdi = cmd.flowCart(fc=fc, i=i, n=n)
             # Run the command for *it_avg* iterations.
-            print("Label 027: We should not be here!!!!")
             bin.callf(cmdi, f='flowCart.out')
             # Read the triq file
             triqj = Triq('Components.i.triq')
