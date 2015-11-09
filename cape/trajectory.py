@@ -752,7 +752,7 @@ class Trajectory:
         # Output
         return np.where(i)[0]
         
-        # Function to filter by checking if string is in the name
+    # Function to filter by checking if string is in the name
     def FilterRegex(self, txt, I=None):
         """Filter cases by whether or not they match a regular expression
         

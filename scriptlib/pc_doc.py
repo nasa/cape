@@ -37,48 +37,57 @@ relatively simple commands.
 :Options:
 
     -h, --help
-        Display this help message and quit
+         Display this help message and quit
         
     -c
-        Check status and don't submit new jobs
+         Check status and don't submit new jobs
     
     -j
-        Show the PBS job numbers as well
+         Show the PBS job numbers as well
         
     -f FNAME
-        Use pyCart input file *FNAME* (defaults to 'pyCart.json')
+         Use pyCart input file *FNAME* (defaults to 'pyCart.json')
 
     -n NJOB
-        Submit at most *NJOB* PBS scripts (defaults to unlimited)
+         Submit at most *NJOB* PBS scripts (defaults to unlimited)
         
     -q QUEUE
-        Submit to a specific queue (defaults to "sls_aero1")
+         Submit to a specific queue (defaults to "sls_aero1")
         
     --cons CONS
-        Only consider cases that pass a list of inequalities separated by
-        commas.  Constraints must use variable names (not abbreviations) from
-        the trajectory described in *FNAME*.
+         Only consider cases that pass a list of inequalities separated by
+         commas.  Constraints must use variable names (not abbreviations) from
+         the trajectory described in *FNAME*.
         
     -I INDS
-        Specify a list of cases to consider directly by index
+         Specify a list of cases to consider directly by index
+        
+    --re REGEX
+         Restrict to cases whose name matches regular expression *REGEX*
+        
+    --filter TXT
+         Restrict to cases whose name contains the text *TXT*
+        
+    --glob WC
+         Restrict to cases whose name matches the glob/wildcard *WC*
         
     --report REP
-        Update report named *REP* or first report if *REP* is not specified
+         Update report named *REP* or first report if *REP* is not specified
         
     --aero
-        Loop through cases and extract force and moment coefficients and
-        statistics for components described in the "Plot" section of *FNAME*
+         Loop through cases and extract force and moment coefficients and
+         statistics for components described in the "Plot" section of *FNAME*
         
     --apply
-        Apply the settings in *FNAME* to all cases; way to quickly change
-        settings for a set of runs
+         Apply the settings in *FNAME* to all cases; way to quickly change
+         settings for a set of runs
 
     -a
-        Archive folders according to settings in "Management" section of
-        *FNAME*
+         Archive folders according to settings in "Management" section of
+         *FNAME*
 
     --expand
-        Unarchive :file:`adapt??.tar` files in run folders
+         Unarchive :file:`adapt??.tar` files in run folders
 
 :Versions:
     * 2014-10-03 ``@ddalle``: Started

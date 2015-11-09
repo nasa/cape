@@ -446,7 +446,7 @@ class Cart3d(Cntl):
         # Bounding box control...
         self.PreparePreSpecCntl()
         # Check for jumpstart.
-        if not self.opts.get_use_aero_csh(0) or self.opts.get_jumpstart(0):
+        if not self.opts.get_Adaptive(0) or self.opts.get_jumpstart(0):
             # Check for intersect step.
             if self.opts.get_intersect():
                 # Run intersect.

@@ -54,7 +54,7 @@ relatively simple commands.
     -q QUEUE
         Submit to a specific queue (defaults to "sls_aero1")
         
-    --cons CONS
+    --cons CNS
         Only consider cases that pass a list of inequalities separated by
         commas.  Constraints must use variable names (not abbreviations) from
         the trajectory described in *FNAME*.
@@ -62,8 +62,17 @@ relatively simple commands.
     -I INDS
         Specify a list of cases to consider directly by index
         
-    --report REP
-        Update report named *REP* or first report if *REP* is not specified
+    --re REGEX
+        Restrict to cases whose name matches regular expression *REGEX*
+        
+    --filter TXT
+        Restrict to cases whose name contains the test *TXT*
+        
+    --glob TXT
+        Restrict to cases whose name matches the glob *TXT*
+        
+    --report RP
+        Update report named *RP* or first report if *RP* is not specified
         
     --aero
         Loop through cases and extract force and moment coefficients and
