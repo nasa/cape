@@ -770,41 +770,7 @@ class Cart3d(Cntl):
         # Return to original location.
         os.chdir(fpwd)
         
-    # Write flowCart options to JSON file
-    def WriteCaseJSON(self, i):
-        """Write JSON file with `flowCart` and related settings for case *i*
-        
-        :Call:
-            >>> cart3d.WriteCaseJSON(i)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Run index
-        :Versions:
-            * 2014-12-08 ``@ddalle``: First version
-        """
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists.
-        if not os.path.isdir(frun):
-            # Go back and quit.
-            os.chdir(fpwd)
-            return
-        # Go to the folder.
-        os.chdir(frun)
-        # Write folder.
-        f = open('case.json', 'w')
-        # Dump the flowCart settings.
-        json.dump(self.opts['flowCart'], f, indent=1)
-        # Close the file.
-        f.close()
-        # Return to original location
-        os.chdir(fpwd)
-        
+    
     # Get last iter
     def GetLastIter(self, i):
         """Get minimum required iteration for a given run to be completed
@@ -833,11 +799,11 @@ class Cart3d(Cntl):
         # Go there.
         os.chdir(frun)
         # Read the local case.json file.
-        fc = case.ReadCaseJSON()
+        rc = case.ReadCaseJSON()
         # Return to original location.
         os.chdir(fpwd)
         # Output
-        return fc.get_LastIter()
+        return rc.get_LastIter()
         
     
         
@@ -1379,7 +1345,7 @@ class Cart3d(Cntl):
         with the appropriate settings.
         
         :Call:
-            >>>car3d.PrepareAeroCsh(i)
+            >>> cart3d.PrepareAeroCsh(i)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
@@ -1404,41 +1370,13 @@ class Cart3d(Cntl):
         # Loop through the run sequence.
         for j in range(self.opts.get_nSeq()):
             # Only write aero.csh for adaptive cases.
-            if not self.opts.get_use_aero_csh(j): continue
-            # Process global options
-            self.AeroCsh.SetErrorTolerance(self.opts.get_etol(j))
-            self.AeroCsh.SetCFL(self.opts.get_cfl(j))
-            self.AeroCsh.SetCFLMin(self.opts.get_cflmin(j))
-            self.AeroCsh.SetnIter(self.opts.get_it_fc(j))
-            self.AeroCsh.SetnIterAdjoint(self.opts.get_it_ad(j))
-            self.AeroCsh.SetnAdapt(self.opts.get_n_adapt_cycles(j))
-            self.AeroCsh.SetnRefinements(self.opts.get_maxR(j))
-            self.AeroCsh.SetFlowCartMG(self.opts.get_mg_fc(j))
-            self.AeroCsh.SetAdjointCartMG(self.opts.get_mg_ad(j))
-            self.AeroCsh.SetFMG(self.opts.get_fmg(j))
-            self.AeroCsh.SetPMG(self.opts.get_pmg(j))
-            self.AeroCsh.SetTM(self.opts.get_tm(j))
-            self.AeroCsh.SetAdjFirstOrder(self.opts.get_adj_first_order(j))
-            self.AeroCsh.SetLimiter(self.opts.get_limiter(j))
-            self.AeroCsh.SetYIsSpanwise(self.opts.get_y_is_spanwise(j))
-            self.AeroCsh.SetABuffer(self.opts.get_abuff(j))
-            self.AeroCsh.SetFinalMeshXRef(self.opts.get_final_mesh_xref(j))
-            self.AeroCsh.SetBinaryIO(self.opts.get_binaryIO(j))
-            # Initial mesh inputs; may not be used.
-            self.AeroCsh.SetCubesA(self.opts.get_cubes_a(0))
-            self.AeroCsh.SetCubesB(self.opts.get_cubes_b(0))
-            self.AeroCsh.SetMaxR(self.opts.get_maxR(0))
-            self.AeroCsh.SetPreSpec(True)
-            # Process the adaptation-specific lists.
-            self.AeroCsh.SetAPC(self.opts.get_apc())
-            self.AeroCsh.SetMeshGrowth(self.opts.get_mesh_growth())
-            self.AeroCsh.SetnIterList(self.opts.get_ws_it())
+            if not self.opts.get_Adaptive(j): continue
+            # Process options.
+            self.AeroCsh.Prepare(self.opts, j)
             # Destination file name
             fout = os.path.join(frun, 'aero.%02i.csh' % j)
             # Write the input file.
-            self.AeroCsh.Write(fout)
-            # Make it executable.
-            os.chmod(fout, 0777 - self.opts.get_umask())
+            self.AeroCsh.WriteEx(fout)
         # Go back home.
         os.chdir(fpwd)
         # Done

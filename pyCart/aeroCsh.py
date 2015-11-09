@@ -56,7 +56,51 @@ class AeroCsh(FileCntl):
         """
         # Use the FileCntl.WriteEx method instead of FileCntl.Write
         self.WriteEx(fname=fname)
-        # Make sure the file is 
+        
+    # Prepare case
+    def Prepare(self, opts, j=0):
+        """Prepare an ``aero.csh`` file
+        
+        :Call:
+            >>> AC.Prepare(opts, j)
+        :Inputs:
+            *AC*: :class:`pyCart.aeroCsh.AeroCsh`
+                Instance of the :file:`aero.csh` manipulation class
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *j*: :class:`int`
+                Run sequence index
+        :Versions:
+            * 2015-11-09 ``@ddalle``: Split from :func:`Cart3d.PrepareAeroCsh`
+        """
+        # Process global options
+        self.SetErrorTolerance(opts.get_etol(j))
+        self.SetCFL(opts.get_cfl(j))
+        self.SetCFLMin(opts.get_cflmin(j))
+        self.SetnIter(opts.get_it_fc(j))
+        self.SetnIterAdjoint(opts.get_it_ad(j))
+        self.SetnAdapt(opts.get_n_adapt_cycles(j))
+        self.SetnRefinements(opts.get_maxR(j))
+        self.SetFlowCartMG(opts.get_mg_fc(j))
+        self.SetAdjointCartMG(opts.get_mg_ad(j))
+        self.SetFMG(opts.get_fmg(j))
+        self.SetPMG(opts.get_pmg(j))
+        self.SetTM(opts.get_tm(j))
+        self.SetAdjFirstOrder(opts.get_adj_first_order(j))
+        self.SetLimiter(opts.get_limiter(j))
+        self.SetYIsSpanwise(opts.get_y_is_spanwise(j))
+        self.SetABuffer(opts.get_abuff(j))
+        self.SetFinalMeshXRef(opts.get_final_mesh_xref(j))
+        self.SetBinaryIO(opts.get_binaryIO(j))
+        # Initial mesh inputs; may not be used.
+        self.SetCubesA(opts.get_cubes_a(0))
+        self.SetCubesB(opts.get_cubes_b(0))
+        self.SetMaxR(opts.get_maxR(0))
+        self.SetPreSpec(True)
+        # Process the adaptation-specific lists.
+        self.SetAPC(opts.get_apc())
+        self.SetMeshGrowth(opts.get_mesh_growth())
+        self.SetnIterList(opts.get_ws_it())
         
     # Function to set generic values, since they have the same format.
     def SetVar(self, name, val, f=False):

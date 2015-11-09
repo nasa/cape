@@ -364,7 +364,6 @@ class FileCntl:
         f.write("".join(self.lines))
         # Close the file and exit.
         f.close()
-        return None
         
     # Method to write the file as an executable.
     def WriteEx(self, fname=None):
@@ -381,19 +380,17 @@ class FileCntl:
         :Versions:
             * 2014-06-23 ``@ddalle``: First version
         """
-        # Update the lines if appropriate.
-        self.UpdateLines()
-        # Default file name.
-        if fname is None: fname = self.fname
-        # Open the new file.
-        f = open(fname, 'w')
-        # Write the joined text.
-        f.write("".join(self.lines))
-        # Close the file and exit.
-        f.close()
+        # Write the file.
+        self.Write(fname)
+        # Get the mode of the file
+        fmod = os.stat(fname).st_mode & 0o7777
+        # Make sure the user-executable bit is set.
+        fmod = fmod | 0o700
+        # Check for group-readable and universe-readable
+        if fmod & 0o040: fmod = fmod | 0o070
+        if fmod & 0o004: fmod = fmod | 0o007
         # Change the mode.
-        os.chmod(fname, 0750)
-        return None
+        os.chmod(fname, fmod)
         
         
     # Method to replace a line that starts with a given string
