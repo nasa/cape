@@ -114,7 +114,7 @@ class DataBook(dict):
         # Loop through the components.
         for comp in self.Components:
             # Initialize the data book.
-            self[comp] = DBComp(comp, x, opts, fdir)
+            self.InitDBComp(comp, x, opts)
         # Initialize targets.
         self.Targets = []
         # Read the targets.
@@ -142,6 +142,25 @@ class DataBook(dict):
     # String conversion
     __str__ = __repr__
         
+    # Initialize a DBComp object
+    def InitDBComp(self, comp, x, opts):
+        """Initialize data book for one component
+        
+        :Call:
+            >>> DB.InitDBComp(comp, x, opts)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *comp*: :class:`str`
+                Name of component
+            *x*: :class:`pyCart.trajectory.Trajectory`
+                The current pyCart trajectory (i.e. run matrix)
+            *opts*: :class:`pyCart.options.Options`
+                Global pyCart options instance
+        :Versions:
+            * 2015-11-10 ``@ddalle``: First version
+        """
+        self[comp] = DBComp(comp, x, opts)
         
     # Function to read targets if necessary
     def ReadTarget(self, targ):
@@ -906,17 +925,20 @@ class DBComp(dict):
                 # Convert type.
                 if t in ['hex', 'oct', 'octal', 'bin']: t = 'int'
                 # Read the column
-                self[k] = np.loadtxt(fname, 
+                self[k] = np.loadtxt(fname,
                     delimiter=delim, dtype=str(t), usecols=[nCol])
+                # Fix single-entry values.
+                if self[k].ndim == 0: self[k] = np.array([self[k]])
                 # Increase the column number
                 nCol += 1
             # Loop through the data book columns.
             for c in self.cols:
                 # Add the column.
                 self[c] = np.loadtxt(fname, delimiter=delim, usecols=[nCol])
+                # Fix single-entry values.
+                if self[c].ndim == 0: self[c] = np.array([self[c]])
                 # Increase column number.
                 nCol += 1
-            # Column conversion
             # Number of orders of magnitude or residual drop.
             self['nOrders'] = np.loadtxt(fname, 
                 delimiter=delim, dtype=float, usecols=[nCol])
@@ -926,6 +948,9 @@ class DBComp(dict):
             # Number of iterations used for averaging.
             self['nStats'] = np.loadtxt(fname, 
                 delimiter=delim, dtype=int, usecols=[nCol+2])
+            # Fix singletons.
+            for k in ['nOrders', 'nIter', 'nStats']:
+                if self[k].ndim == 0: self[k] = np.array([self[k]])
         except Exception:
             # Initialize empty trajectory arrays.
             for k in self.x.keys:

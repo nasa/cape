@@ -144,7 +144,7 @@ def run_flowCart(verify=False, isect=False):
         # Loop through iterations.
         for j in range(it_fc):
             # flowCart command automatically accepts *it_avg*; update *n*
-            cmdi = cmd.flowCart(rc=rc, i=i, n=n)
+            cmdi = cmd.flowCart(fc=rc, i=i, n=n)
             # Run the command for *it_avg* iterations.
             bin.callf(cmdi, f='flowCart.out')
             # Read the triq file
@@ -171,7 +171,7 @@ def run_flowCart(verify=False, isect=False):
             # Get the number of previous steady steps.
             n = GetSteadyIter()
         # Call flowCart directly.
-        cmdi = cmd.flowCart(rc=rc, i=i, n=n)
+        cmdi = cmd.flowCart(fc=rc, i=i, n=n)
         # Run the command.
         bin.callf(cmdi, f='flowCart.out')
     # Remove the RUNNING file.

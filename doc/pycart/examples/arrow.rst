@@ -69,10 +69,13 @@ content.
     .. code-block:: javascript
     
         {
-            // Setup for run scripts
-            "ShellCmds": [
-                "ulimit -S -s 4194304"
-            ],
+            // Iteration control and command-line inputs
+            "RunControl": {
+                // Run sequence
+                "InputSeq": [0],
+                "IterSeq": [200],
+                ...
+            },
             
             ...
             
@@ -85,39 +88,47 @@ content.
             }
         }
 
-The first entry ``"ShellCmds"`` provides a list of commands to run in each
-script.  This is primarily important when submitting jobs to a PBS server,
-because PBS jobs start without loading any environment settings, etc.  The
-contents of this command, ``"ulimit -S -s 4194304"`` increases the stack size.
-Many CFD solvers, including, Cart3D recommend removing the limit to this
-setting, but some other programs don't like that.
-
-Many users will simply put ``"source ~/.bashrc"`` or something similar here,
-which can work but with problems for sharing projects with multiple users.
-Often the commands ``"module load pycart"`` and ``"module load cart3d"`` will
-appear here in well-organized projects.
+The first section (actually, the order does not matter, but it's the first
+section in the file provided) is the ``"RunControl"`` section, which has
+settings for the overall run procedure (such as number of iterations, whether or
+not to submit the job to a queue, etc.) and command-line inputs to the various
+Cart3D programs.
 
     .. code-block:: javascript
     
-        "flowCart": {
+        "RunControl": {
             // Run sequence
             "InputSeq": [0],
             "IterSeq": [200],
-            "it_fc": 200,
+            // System configuration
+            "nProc": 4,
             // Options for ``flowCart``
-            "mpi_fc": 0,
-            "use_aero_csh": 0,
-            "cfl": 1.1,
-            "mg_fc": 3,
-            "y_is_spanwise": true,
-            "nProc": 4
+            "flowCart": {
+                "it_fc": 200,
+                "mpi_fc": 0,
+                "use_aero_csh": 0,
+                "cfl": 1.1,
+                "mg_fc": 3,
+                "y_is_spanwise": true
+            },
+            // Defines the flow domain automatically
+            "autoInputs": {"r": 8},
+            // Volume mesh options
+            "cubes": {
+                "maxR": 10,
+                "pre": "preSpec.c3d.cntl",
+                "cubes_a": 10,
+                "cubes_b": 2,
+                "reorder": true
+            }
         },
         
-The ``"flowCart"`` section contains the main settings for running Cart3D.  Many
-of the variable names, such as *it_fc*, are copied from Cart3D's template
-:file:`aero.csh` scripts or command-line inputs to Cart3D's ``flowCart``.
-The three main options (which are required for any pyCart project) are
-*InputSeq*, *IterSeq*, and *it_fc*.
+The ``"flowCart"`` section contains command-line inputs for running
+``flowCart``, which is the main flow solver of Cart3D, or ``mpix_flowCart``,
+which is the MPI version of the same. Many of the variable names, such as
+*it_fc*, are copied from Cart3D's template :file:`aero.csh` scripts or
+command-line inputs to Cart3D's ``flowCart``. The three main options (which are
+required for any pyCart project) are *InputSeq*, *IterSeq*, and *it_fc*.
 
     +------------+---------------------------------------------------------+
     | Variable   | Description                                             |
@@ -150,37 +161,25 @@ iterations first.  It might have something like ``"IterSeq": [0, 400]`` and
 run at least ``0`` iterations and then input set ``1`` until it has run at least
 ``400`` iterations.
 
-The remaining inputs are quite a bit simpler.  For example *mpi_fc* is a boolean
-flag to use the MPI ``mpix_flowCart`` command, and *use_aero_csh* is a flag that
-tells pyCart to run adaptively using :file:`aero.csh`.  Also, *nProc* sets the
-total number of cores or threads to use.
-
-    .. code-block:: javascript
-    
-        "Mesh": {
-            // Surface triangulation
-            "TriFile": "arrow.tri",
-            // Defines the flow domain automatically
-            "autoInputs": {"r": 8},
-            // Volume mesh options
-            "cubes": {
-                "maxR": 10,
-                "pre": "preSpec.c3d.cntl",
-                "cubes_a": 10,
-                "cubes_b": 2,
-                "reorder": true
-            }
-        },
-        
-The *Mesh* section controls inputs to the Cart3D commands that produce the
-volume mesh.  The *TriFile* setting is relatively obvious and points to the name
-of the surface triangulation.  The next section allows pyCart to use the Cart3D
-binary ``autoInputs`` to create the flow domain and basic volume mesh
+The remaining inputs are quite a bit simpler. For example *nProc* sets the total
+number of cores or threads to use. The next section allows pyCart to use the
+Cart3D binary ``autoInputs`` to create the flow domain and basic volume mesh
 parameters with the command ``autoInputs -r 8``, which sets the farfield
 boundary at roughly 8 times the size of your surface triangulation.
 
 Running ``autoInputs`` creates files ``input.c3d`` and ``preSpec.c3d.cntl``,
 which are given as inputs to the volume generator ``cubes``.
+
+    .. code-block:: javascript
+    
+        "Mesh": {
+            // Surface triangulation
+            "TriFile": "arrow.tri"
+        },
+        
+The *Mesh* section controls inputs to the Cart3D commands that produce the
+volume mesh.  The *TriFile* setting is relatively obvious and points to the name
+of the surface triangulation.  
 
     .. code-block:: javascript
     
@@ -554,7 +553,6 @@ run ``flowCart``.
         cd /u/wk/ddalle/usr/pycart/examples/pycart/arrow/poweroff/m1.75a1.0r0.0
         
         # Additional shell commands
-        ulimit -S -s 4194304
         
         # Call the flowCart/mpix_flowCart/aero.csh interface.
         run_flowCart.py

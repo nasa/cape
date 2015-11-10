@@ -79,6 +79,26 @@ class DataBook(cape.dataBook.DataBook):
         * 2015-01-03 ``@ddalle``: First version
         * 2015-10-16 ``@ddalle``: Subclassed to :mod:`cape.dataBook.DataBook`
     """
+        
+    # Initialize a DBComp object
+    def InitDBComp(self, comp, x, opts):
+        """Initialize data book for one component
+        
+        :Call:
+            >>> DB.InitDBComp(comp, x, opts)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *comp*: :class:`str`
+                Name of component
+            *x*: :class:`pyCart.trajectory.Trajectory`
+                The current pyCart trajectory (i.e. run matrix)
+            *opts*: :class:`pyCart.options.Options`
+                Global pyCart options instance
+        :Versions:
+            * 2015-11-10 ``@ddalle``: First version
+        """
+        self[comp] = DBComp(comp, x, opts)
     
     # Read line load
     def ReadLineLoad(self, comp):
@@ -385,6 +405,8 @@ class DataBook(cape.dataBook.DataBook):
         if (not q): return
         # Maximum number of iterations allowed.
         nMax = min(nIter-nMin, self.opts.get_nMaxStats())
+        # Read residual
+        H = CaseResid()
         # Loop through components.
         for comp in self.Components:
             # Read the iterative history for that component.
@@ -399,7 +421,7 @@ class DataBook(cape.dataBook.DataBook):
             # Process the statistics.
             s = FM.GetStats(nStats, nMax)
             # Get the corresponding residual drop
-            nOrders = A.Residual.GetNOrders(s['nStats'])
+            nOrders = H.GetNOrders(s['nStats'])
             
             # Save the data.
             if np.isnan(j):
@@ -410,7 +432,7 @@ class DataBook(cape.dataBook.DataBook):
                     # I hate the way NumPy does appending.
                     DBc[k] = np.hstack((DBc[k], [getattr(self.x,k)[i]]))
                 # Append values.
-                for c in DC.DataCols:
+                for c in DBc.DataCols:
                     DBc[c] = np.hstack((DBc[c], [s[c]]))
                 # Append residual drop.
                 DBc['nOrders'] = np.hstack((DBc['nOrders'], [nOrders]))

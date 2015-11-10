@@ -1,28 +1,20 @@
 {
-    // Setup for run scripts
-	"ShellCmds": [
-        "ulimit -S -s 4194304"
-	],
-    
-	// Control for the solver itself
-	"flowCart": {
+	// Iteration control and command-line inputs
+	"RunControl": {
         // Run sequence
         "InputSeq": [0],
         "IterSeq": [200],
-	    "it_fc": 200,
+        // System configuration
+	    "nProc": 4,
 	    // Options for ``flowCart``
-        "mpi_fc": 0,
-        "use_aero_csh": 0,
-	    "cfl": 1.1,
-	    "mg_fc": 3,
-	    "y_is_spanwise": true,
-	    "nProc": 4
-	},
-
-	// Mesh settings
-    "Mesh": {
-        // Surface triangulation
-        "TriFile": "arrow.tri",
+	    "flowCart": {
+            "it_fc": 200,
+            "mpi_fc": 0,
+            "use_aero_csh": 0,
+            "cfl": 1.1,
+            "mg_fc": 3,
+            "y_is_spanwise": true
+        },
         // Defines the flow domain automatically
         "autoInputs": {"r": 8},
         // Volume mesh options
@@ -33,6 +25,12 @@
             "cubes_b": 2,
             "reorder": true
         }
+	},
+
+	// Mesh settings
+    "Mesh": {
+        // Surface triangulation
+        "TriFile": "arrow.tri"
     },
     
     // Describe the reference values and config.
