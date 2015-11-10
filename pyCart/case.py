@@ -25,7 +25,7 @@ from .tri import Tri, Triq
 # Read the local JSON file.
 import json
 # File control
-import os, glob, shutil
+import os, resource, glob, shutil
 # Basic numerics
 from numpy import nan, isnan
 
@@ -101,6 +101,8 @@ def run_flowCart(verify=False, isect=False):
         nProc = rc.get_nProc()
         # Set it.
         os.environ['OMP_NUM_THREADS'] = str(nProc)
+    # Set a huge stack size limit.
+    resource.setrlimit(resource.RLIMIT_STACK, (4294967296, 4294967296))
     # Get rid of linked plt files
     if os.path.islink('Components.i.plt'): os.remove('Components.i.plt')
     if os.path.islink('cutPlanes.plt'):    os.remove('cutPlanes.plt')
