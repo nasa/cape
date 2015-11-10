@@ -723,9 +723,20 @@ class Options(cape.options.Options):
     def set_sf(self, sf=rc0('sf'), i=None):
         self._RunControl()
         self['RunControl'].set_sf(sf, i)
+    
+    # Get preSpec file
+    def get_preSpecCntl(self):
+        self._RunControl()
+        return self['RunControl'].get_preSpecCntl()
+        
+    # Set preSpec file
+    def set_preSpecCntl(self, fpre=rc0('pre')):
+        self._RunControl()
+        self['RunControl'].set_preSpecCntl(fpre)
         
     # Copy over the documentation.
-    for k in ['r', 'nDiv', 'maxR', 'cubes_a', 'cubes_b', 'reorder', 'sf']:
+    for k in ['r', 'nDiv', 
+            'preSpecCntl', 'maxR', 'cubes_a', 'cubes_b', 'reorder', 'sf']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
@@ -948,26 +959,6 @@ class Options(cape.options.Options):
         self._Mesh()
         self['Mesh'].set_TriFile(TriFile, i)
     
-    # Get preSpec file
-    def get_preSpecCntl(self):
-        self._Mesh()
-        return self['Mesh'].get_preSpecCntl()
-        
-    # Set preSpec file
-    def set_preSpecCntl(self, fpre=rc0('preSpecCntl')):
-        self._Mesh()
-        self['Mesh'].set_preSpecCntl(fpre)
-    
-    # Get cubes input file
-    def get_inputC3d(self):
-        self._Mesh()
-        return self['Mesh'].get_inputC3d()
-        
-    # Set cubes input file
-    def set_inputC3d(self, fc3d=rc0('inputC3d')):
-        self._Mesh()
-        self['Mesh'].set_inputC3d(fc3d)
-    
     # Get BBoxes
     def get_BBox(self):
         self._Mesh()
@@ -998,13 +989,8 @@ class Options(cape.options.Options):
         self._Mesh()
         self['Mesh'].set_mesh2d(mesh2d, i)
         
-    
-        
-        
     # Copy over the documentation.
-    for k in ['verify', 'intersect', 'TriFile', 'preSpecCntl', 'inputC3d',
-            'BBox', 'XLev', 'mesh2d',
-            'r', 'nDiv', 'maxR', 'cubes_a', 'cubes_b', 'reorder', 'sf']:
+    for k in ['verify', 'intersect', 'TriFile', 'BBox', 'XLev', 'mesh2d']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Mesh,'set_'+k).__doc__

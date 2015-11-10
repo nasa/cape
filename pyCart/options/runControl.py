@@ -36,527 +36,8 @@ def isRK(RK):
     else:
         # The above case is the only type of acceptable list.
         return False
-        
+# def isRK
 
-# Class for flowCart settings
-class RunControl(cape.options.runControl.RunControl):
-    """Dictionary-based interface for options specific to ``flowCart``"""
-    
-    
-    # Initialization method
-    def __init__(self, fname=None, **kw):
-        # Store the data in *this* instance
-        for k in kw:
-            self[k] = kw[k]
-        # Upgrade important groups to their own classes.
-        self._flowCart()
-        self._adjointCart()
-        self._autoInputs()
-        self._cubes()
-    
-    # Initialization and confirmation for flowCart options
-    def _flowCart(self):
-        """Initialize `flowCart` optiosn if necessary"""
-        if 'flowCart' not in self:
-            # Empty/default
-            self['flowCart'] = flowCart()
-        elif type(self['flowCart']).__name__ == 'dict':
-            # Convert to special class
-            self['flowCart'] = flowCart(**self['flowCart'])
-    
-    # Initialization and confirmation for autoInputs options
-    def _autoInputs(self):
-        """Initialize `autoInputs` options if necessary"""
-        # Check for missing entirely.
-        if 'autoInputs' not in self:
-            # Empty/default
-            self['autoInputs'] = autoInputs()
-        elif type(self['autoInputs']).__name__ == 'dict':
-            # Convert to special class.
-            self['autoInputs'] = autoInputs(**self['autoInputs'])
-    
-    # Initialization and confirmation for cubes options
-    def _cubes(self):
-        """Initialize `cubes` options if necessary"""
-        # Check for missing entirely.
-        if 'cubes' not in self:
-            # Empty/default
-            self['cubes'] = cubes()
-        elif type(self['cubes']).__name__ == 'dict':
-            # Convert to special class.
-            self['cubes'] = cubes(**self['cubes'])
-        
-    # Get aero.csh status
-    def get_Adaptive(self, i=None):
-        """Return whether or not to use `aero.csh`
-        
-        :Call:
-            >>> ac = opts.get_Adaptive(i=None)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Run index
-        :Outputs:
-            *ac*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not to use `aero.csh`
-        :Versions:
-            * 2014-10-03 ``@ddalle``: First version
-        """
-        return self.get_key('Adaptive', i)
-    
-    # Set aero.csh status
-    def set_Adaptive(self, ac=rc0('Adaptive'), i=None):
-        """Set whether or not to use `aero.csh`
-        
-        :Call:
-            >>> opts.set_Adaptive(ac, i)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *ac*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not to use `aero.csh`
-            *i*: :class:`int` or ``None``
-                Run index
-        :Versions:
-            * 2014-10-03 ``@ddalle``: First version
-        """
-        self.set_key('Adaptive', ac, i)
-        
-    # Get jumpstart status
-    def get_jumpstart(self, i=None):
-        """
-        Return whether or not to "jump start", i.e. create meshes before running
-        :file:`aero.csh`.
-        
-        :Call:
-            >>> js = opts.get_jumpstart()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *js*: :class:`bool`
-                Whether or not to jumpstart
-        :Versions:
-            * 2014-12-04 ``@ddalle``: First version
-        """
-        return self.get_key('jumpstart', i)
-        
-    # Set jumpstart status
-    def set_jumpstart(self, js=rc0('jumpstart'), i=None):
-        """
-        Set whether or not to "jump start", i.e. create meshes before running
-        :file:`aero.csh`.
-        
-        :Call:
-            >>> opts.get_jumpstart(js)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *js*: :class:`bool`
-                Whether or not to jumpstart
-        :Versions:
-            * 2014-12-04 ``@ddalle``: First version
-        """
-        self.set_key('jumpstart', js, i)
-    
-    
-    
-    # ===================
-    # flowCart parameters
-    # ===================
-   # <
-    
-    # Get flowCart order
-    def get_first_order(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_first_order(i)
-        
-    # Set flowCart order
-    def set_first_order(self, fo=rc0('first_order'), i=None):
-        self._flowCart()
-        self['flowCart'].set_first_order(fo, i)
-    
-    # Get flowCart robust mode
-    def get_robust_mode(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_robust_mode(i)
-        
-    # Set flowCart robust mode
-    def set_robust_mode(self, rm=rc0('robust_mode'), i=None):
-        self._flowCart()
-        self['flowCart'].set_robust_mode(rm, i)
-    
-    # Number of iterations
-    def get_it_fc(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_it_fc(i)
-        
-    # Set flowCart iteration count
-    def set_it_fc(self, it_fc=rc0('it_fc'), i=None):
-        self._flowCart()
-        self['flowCart'].set_it_fc(it_fc, i)
-    
-    # Averaging interval
-    def get_it_avg(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_it_avg(i)
-        
-    # Get the number of subiterations
-    def get_it_sub(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_it_sub(i)
-        
-    # Set the number of subiterations
-    def set_it_sub(self, it_sub=rc0('it_sub'), i=None):
-        self._flowCart()
-        self['flowCart'].set_it_sub(it_sub, i)
-        
-    # Set flowCart averaging interval
-    def set_it_avg(self, it_avg=rc0('it_avg'), i=None):
-        self._flowCart()
-        self['flowCart'].set_it_fc(it_avg, i)
-        
-    # Get number of orders for early termination
-    def get_nOrders(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_nOrders(i)
-        
-    # Set number of orders for early termination
-    def set_nOrders(self, nOrders=rc0('nOrders'), i=None):
-        self._flowCart()
-        self['flowCart'].set_nOrders(nOrders, i)
-        
-    # Get flowCart iteration count
-    def get_mg_fc(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_mg_fc(i)
-        
-    # Set flowCart iteration count
-    def set_mg_fc(self, mg_fc=rc0('mg_fc'), i=None):
-        self._flowCart()
-        self['flowCart'].set_mg_fc(mg_fc, i)
-        
-    # Get flowCart full multigrid setting
-    def get_fmg(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_fmg(i)
-        
-    # Set flowCart multigrid
-    def set_fmg(self, fmg=rc0('fmg'), i=None):
-        self._flowCart()
-        self['flowCart'].set_fmg(fmg, i)
-        
-    # Get flowCart ploy multigrid setting
-    def get_pmg(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_pmg(i)
-        
-    # Set flowCart multigrid
-    def set_pmg(self, pmg=rc0('pmg'), i=None):
-        self._flowCart()
-        self['flowCart'].set_pmg(pmg, i)
-        
-    # Get unsteady status
-    def get_unsteady(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_unsteady(i)
-        
-    # Set unsteady status
-    def set_unsteady(self, td_fc=rc0('unsteady'), i=None):
-        self._flowCart()
-        self['flowCart'].set_unsteady(td_fc, i)
-        
-    # Get the nominal CFL number
-    def get_cfl(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_cfl(i)
-        
-    # Set the nominal CFL number
-    def set_cfl(self, cfl=rc0('cfl'), i=None):
-        self._flowCart()
-        self['flowCart'].set_cfl(cfl, i)
-        
-    # Get the minimum CFL number
-    def get_cflmin(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_cflmin(i)
-    
-    # Set the minimum CFL number
-    def set_cflmin(self, cflmin=rc0('cflmin'), i=None):
-        self._flowCart()
-        self['flowCart'].set_cflmin(cflmin, i)
-        
-    # Get the nondimensional physical time step
-    def get_dt(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_dt(i)
-        
-    # Set the nondimensional physical time step
-    def set_dt(self, dt=rc0('dt'), i=None):
-        self._flowCart()
-        self['flowCart'].set_dt(dt, i)
-        
-    # Get cut-cell gradient flag
-    def get_tm(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_tm(i)
-        
-    # Set cut-cell gradient flag
-    def set_tm(self, tm=rc0('tm'), i=None):
-        self._flowCart()
-        self['flowCart'].set_tm(tm, i)
-        
-    # Get buffer limiter switch
-    def get_buffLim(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_buffLim(i)
-        
-    # Set buffer limiter switch.
-    def set_buffLim(self, buffLim=rc0('buffLim'), i=None):
-        self._flowCart()
-        self['flowCart'].set_buffLim(buffLim, i)
-        
-    # Get the number of time steps between checkpoints
-    def get_checkptTD(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_checkptTD(i)
-        
-    # Set the number of time steps between checkpoints
-    def set_checkptTD(self, checkptTD=rc0('checkptTD'), i=None):
-        self._flowCart()
-        self['flowCart'].set_checkptTD(checkptTD, i)
-        
-    # Get the number of time steps between visualization outputs
-    def get_vizTD(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_vizTD(i)
-        
-    # Set the number of time steps visualization outputs
-    def set_vizTD(self, vizTD=rc0('vizTD'), i=None):
-        self._flowCart()
-        self['flowCart'].set_vizTD(vizTD, i)
-        
-    # Get the relaxation step command
-    def get_fc_clean(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_fc_clean(i)
-        
-    # Set the relaxation step command
-    def set_fc_clean(self, fc_clean=rc0('fc_clean'), i=None):
-        self._flowCart()
-        self['flowCart'].set_fc_clean(fc_clean, i)
-        
-    # Get the number of iterations to average over
-    def get_fc_stats(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_fc_stats(i)
-    
-    # Set the number of iterations to average over
-    def set_fc_stats(self, nstats=rc0('fc_stats'), i=None):
-        self._flowCart()
-        self['flowCart'].set_fc_stats(nstats, i)
-        
-    # Get the limiter
-    def get_limiter(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_limiter(i)
-    
-    # Set the limiter
-    def set_limiter(self, limiter=rc0('limiter'), i=None):
-        self._flowCart()
-        self['flowCart'].set_limiter(limiter, i)
-        
-    # Get the y_is_spanwise status
-    def get_y_is_spanwise(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_y_is_spanwise(i)
-        
-    # Set the y_is_spanwise status
-    def set_y_is_spanwise(self, y_is_spanwise=rc0('y_is_spanwise'), i=None):
-        self._flowCart()
-        self['flowCart'].set_y_is_spanwise(y_is_spanwise, i)
-        
-    # Get the binary I/O status
-    def get_binaryIO(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_binaryIO(i)
-        
-    # Set the binary I/O status
-    def set_binaryIO(self, binaryIO=rc0('binaryIO'), i=None):
-        self._flowCart()
-        self['flowCart'].set_binaryIO(binaryIO, i)
-        
-    # Get the Tecplot output status
-    def get_tecO(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_tecO(i)
-        
-    # Set the Tecplot output status
-    def set_tecO(self, tecO=rc0('tecO'), i=None):
-        self._flowCart()
-        self['flowCart'].set_tecO(tecO, i)
-        
-    # Get the current Runge-Kutta scheme
-    def get_RKScheme(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_RKScheme(i)
-        
-    # Set the Runge-Kutta scheme
-    def set_RKScheme(self, RK=rc0('RKScheme'), i=None):
-        self._flowCart()
-        self['flowCart'].set_RKScheme(RK, i)
-        
-    # Copy over the documentation.
-    for k in ['it_fc', 'it_sub', 'it_avg', 'dt',
-            'unsteady', 'first_order', 'robust_mode', 'RKScheme',
-            'tm', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'fmg', 'pmg', 
-            'checkptTD', 'vizTD', 'fc_clean', 'fc_stats',
-            'nOrders', 'buffLim', 'y_is_spanwise',
-            'binaryIO', 'tecO']:
-        # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(flowCart,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(flowCart,'set_'+k).__doc__
-   # >
-   
-    # ====================
-    # adjointCart settings
-    # ====================
-   # <
-    
-    # Number of iterations
-    def get_it_ad(self, i=None):
-        self._adjointCart()
-        return self['adjointCart'].get_it_ad(i)
-        
-    # Set adjointCart iteration count
-    def set_it_ad(self, it_ad=rc0('it_ad'), i=None):
-        self._adjointCart()
-        self['adjointCart'].set_it_ad(it_ad, i)
-    
-    # Get adjointCart iteration count
-    def get_mg_ad(self, i=None):
-        self._adjointCart()
-        return self['adjointCart'].get_mg_ad(i)
-        
-    # Set adjointCart iteration count
-    def set_mg_ad(self, mg_ad=rc0('mg_ad'), i=None):
-        self._adjointCart()
-        self['adjointCart'].set_mg_ad(mg_ad, i)
-        
-    # First-order adjoint
-    def get_adj_first_order(self, i=None):
-        self._adjointCart()
-        return self['adjointCart'].get_adj_first_order(i)
-        
-    # First-order adjoint
-    def set_adj_first_order(self, adj=rc0('adj_first_order'), i=None):
-        self._adjointCart()
-        self['adjointCart'].set_adj_first_order(adj, i)
-        
-    # Copy over the documentation.
-    for k in ['it_ad', 'mg_ad', 'adj_first_order']:
-        # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(adjointCart,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(adjointCart,'set_'+k).__doc__
-   # >
-    
-    # ==========
-    # autoInputs
-    # ==========
-   # <
-    
-    # Get the nominal mesh radius
-    def get_r(self, i=None):
-        self._autoInputs()
-        return self['autoInputs'].get_r(i)
-        
-    # Set the nominal mesh radius
-    def set_r(self, r=rc0('r'), i=None):
-        self._autoInputs()
-        self['autoInputs'].set_r(r, i)
-        
-    # Get the background mesh divisions
-    def get_nDiv(self, i=None):
-        self._autoInputs()
-        return self['autoInputs'].get_nDiv(i)
-    
-    # Set the background mesh divisions
-    def set_nDiv(self, nDiv=rc0('nDiv'), i=None):
-        self._autoInputs()
-        self['autoInputs'].set_nDiv(nDiv, i)
-        
-    # Copy over the documentation.
-    for k in ['r', 'nDiv']:
-        # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(autoInputs,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(autoInputs,'set_'+k).__doc__
-   # >
-        
-    # =====
-    # cubes
-    # =====
-   # <
-    
-    # Get the number of refinements
-    def get_maxR(self, i=None):
-        self._cubes()
-        return self['cubes'].get_maxR(i)
-        
-    # Set the number of refinements
-    def set_maxR(self, maxR=rc0('maxR'), i=None):
-        self._cubes()
-        self['cubes'].set_maxR(maxR, i)
-        
-    # Get the 'cubes_a' parameter
-    def get_cubes_a(self, i=None):
-        self._cubes()
-        return self['cubes'].get_cubes_a(i)
-        
-    # Set the 'cubes_a' parameter
-    def set_cubes_a(self, cubes_a=rc0('cubes_a'), i=None):
-        self._cubes()
-        self['cubes'].set_cubes_a(cubes_a, i)
-        
-    # Get the 'cubes_b' parameter
-    def get_cubes_b(self, i=None):
-        self._cubes()
-        return self['cubes'].get_cubes_b(i)
-        
-    # Set the 'cubes_a' parameter
-    def set_cubes_b(self, cubes_b=rc0('cubes_b'), i=None):
-        self._cubes()
-        self['cubes'].set_cubes_b(cubes_b, i)
-        
-    # Get the mesh reordering status
-    def get_reorder(self, i=None):
-        self._cubes()
-        return self['cubes'].get_reorder(i)
-        
-    # Set the mesh reordering status
-    def set_reorder(self, reorder=rc0('reorder'), i=None):
-        self._cubes()
-        self['cubes'].set_reorder(reorder, i)
-        
-    # Get the additional refinements around sharp edges
-    def get_sf(self, i=None):
-        self._cubes()
-        return self['cubes'].get_sf(i)
-        
-    # Set the additional refinements around sharp edges
-    def set_sf(self, sf=rc0('sf'), i=None):
-        self._cubes()
-        self['cubes'].set_sf(sf, i)
-
-
-    # Copy over the documentation.
-    for k in ['maxR', 'cubes_a', 'cubes_b', 'reorder', 'sf']:
-        # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(cubes,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(cubes,'set_'+k).__doc__
-   # >
-    
-    
         
 # Class for flowCart inputs
 class flowCart(odict):
@@ -1670,7 +1151,6 @@ class adjointCart(odict):
         self.set_key('adj_first_order', adj, i)
 # class adjointCart
 
-
 # Class for autoInputs
 class autoInputs(odict):
     """Dictionary-based interface for `autoInputs` options"""
@@ -1750,7 +1230,6 @@ class autoInputs(odict):
         self.set_key('nDiv', nDiv, i)
 # class autoInputs
 
-        
 # Class for cubes
 class cubes(odict):
     """Dictionary-based interface for `cubes` options"""
@@ -1915,7 +1394,7 @@ class cubes(odict):
             *i*: :class:`int` or ``None``
                 Run index
         :Outputs:
-            *sf*: :class:`int` or :class:`list`(:class:`int`)
+            *sf*: :class:`int` or :class:`list` (:class:`int`)
                 Number of additional refinements at sharp edges
         :Versions:
             * 2014-12-02 ``@ddalle``: First version
@@ -1939,6 +1418,590 @@ class cubes(odict):
             * 2014-12-02 ``@ddalle``: First version
         """
         self.set_key('sf', sf, i)
+    
+            
+    
+    # Get the mesh prespecification file
+    def get_preSpecCntl(self):
+        """Return the template :file:`preSpec.c3d.cntl` file
+        
+        :Call:
+            >>> fpre = opts.get_preSpecCntl(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *fpre*: :class:`str`
+                Mesh prespecification file
+        :Versions:
+            * 2014-10-08 ``@ddalle``: First version
+        """
+        # Get the value
+        fpre = self.get_key('pre', 0)
+        # Check for ``None``
+        if fpre is None:
+            # Use default
+            return rc0('pre')
+        else:
+            # Specified value
+            return fpre
+
+        
+    # Set the mesh prespecification file
+    def set_preSpecCntl(self, fpre=rc0('pre')):
+        """Set the template :file:`preSpec.c3d.cntl` file
+        
+        :Call:
+            >>> opts.set_preSpecCntl(fpre)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *fpre*: :class:`str`
+                Mesh prespecification file
+        :Versions:
+            * 2014-10-08 ``@ddalle``: First version
+        """
+        self.set_key('pre', fpre)
+            
 # class cubes
+        
+
+# Class for flowCart settings
+class RunControl(cape.options.runControl.RunControl):
+    """Dictionary-based interface for options specific to ``flowCart``"""
+    
+    # Initialization method
+    def __init__(self, fname=None, **kw):
+        # Store the data in *this* instance
+        for k in kw:
+            self[k] = kw[k]
+        # Upgrade important groups to their own classes.
+        self._flowCart()
+        self._adjointCart()
+        self._autoInputs()
+        self._cubes()
+    
+    # Initialization and confirmation for flowCart options
+    def _flowCart(self):
+        """Initialize `flowCart` optiosn if necessary"""
+        if 'flowCart' not in self:
+            # Empty/default
+            self['flowCart'] = flowCart()
+        elif type(self['flowCart']).__name__ == 'dict':
+            # Convert to special class
+            self['flowCart'] = flowCart(**self['flowCart'])
+    
+    # Initialization and confirmation for adjointCart options
+    def _adjointCart(self):
+        """Initialize `adjointCart` optiosn if necessary"""
+        if 'adjointCart' not in self:
+            # Empty/default
+            self['adjointcart'] = adjointCart()
+        elif type(self['adjointCart']).__name__ == 'dict':
+            # Convert to special class
+            self['adjointCart'] = adjointCart(**self['adjointCart'])
+    
+    # Initialization and confirmation for autoInputs options
+    def _autoInputs(self):
+        """Initialize `autoInputs` options if necessary"""
+        # Check for missing entirely.
+        if 'autoInputs' not in self:
+            # Empty/default
+            self['autoInputs'] = autoInputs()
+        elif type(self['autoInputs']).__name__ == 'dict':
+            # Convert to special class.
+            self['autoInputs'] = autoInputs(**self['autoInputs'])
+    
+    # Initialization and confirmation for cubes options
+    def _cubes(self):
+        """Initialize `cubes` options if necessary"""
+        # Check for missing entirely.
+        if 'cubes' not in self:
+            # Empty/default
+            self['cubes'] = cubes()
+        elif type(self['cubes']).__name__ == 'dict':
+            # Convert to special class.
+            self['cubes'] = cubes(**self['cubes'])
+        
+    # Get aero.csh status
+    def get_Adaptive(self, i=None):
+        """Return whether or not to use `aero.csh`
+        
+        :Call:
+            >>> ac = opts.get_Adaptive(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *ac*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to use `aero.csh`
+        :Versions:
+            * 2014-10-03 ``@ddalle``: First version
+        """
+        return self.get_key('Adaptive', i)
+    
+    # Set aero.csh status
+    def set_Adaptive(self, ac=rc0('Adaptive'), i=None):
+        """Set whether or not to use `aero.csh`
+        
+        :Call:
+            >>> opts.set_Adaptive(ac, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *ac*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to use `aero.csh`
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014-10-03 ``@ddalle``: First version
+        """
+        self.set_key('Adaptive', ac, i)
+        
+    # Get jumpstart status
+    def get_jumpstart(self, i=None):
+        """
+        Return whether or not to "jump start", i.e. create meshes before running
+        :file:`aero.csh`.
+        
+        :Call:
+            >>> js = opts.get_jumpstart()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *js*: :class:`bool`
+                Whether or not to jumpstart
+        :Versions:
+            * 2014-12-04 ``@ddalle``: First version
+        """
+        return self.get_key('jumpstart', i)
+        
+    # Set jumpstart status
+    def set_jumpstart(self, js=rc0('jumpstart'), i=None):
+        """
+        Set whether or not to "jump start", i.e. create meshes before running
+        :file:`aero.csh`.
+        
+        :Call:
+            >>> opts.get_jumpstart(js)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *js*: :class:`bool`
+                Whether or not to jumpstart
+        :Versions:
+            * 2014-12-04 ``@ddalle``: First version
+        """
+        self.set_key('jumpstart', js, i)
+    
+    
+    
+    # ===================
+    # flowCart parameters
+    # ===================
+   # <
+    
+    # Get flowCart order
+    def get_first_order(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_first_order(i)
+        
+    # Set flowCart order
+    def set_first_order(self, fo=rc0('first_order'), i=None):
+        self._flowCart()
+        self['flowCart'].set_first_order(fo, i)
+    
+    # Get flowCart robust mode
+    def get_robust_mode(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_robust_mode(i)
+        
+    # Set flowCart robust mode
+    def set_robust_mode(self, rm=rc0('robust_mode'), i=None):
+        self._flowCart()
+        self['flowCart'].set_robust_mode(rm, i)
+    
+    # Number of iterations
+    def get_it_fc(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_it_fc(i)
+        
+    # Set flowCart iteration count
+    def set_it_fc(self, it_fc=rc0('it_fc'), i=None):
+        self._flowCart()
+        self['flowCart'].set_it_fc(it_fc, i)
+    
+    # Averaging interval
+    def get_it_avg(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_it_avg(i)
+        
+    # Get the number of subiterations
+    def get_it_sub(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_it_sub(i)
+        
+    # Set the number of subiterations
+    def set_it_sub(self, it_sub=rc0('it_sub'), i=None):
+        self._flowCart()
+        self['flowCart'].set_it_sub(it_sub, i)
+        
+    # Set flowCart averaging interval
+    def set_it_avg(self, it_avg=rc0('it_avg'), i=None):
+        self._flowCart()
+        self['flowCart'].set_it_fc(it_avg, i)
+        
+    # Get number of orders for early termination
+    def get_nOrders(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_nOrders(i)
+        
+    # Set number of orders for early termination
+    def set_nOrders(self, nOrders=rc0('nOrders'), i=None):
+        self._flowCart()
+        self['flowCart'].set_nOrders(nOrders, i)
+        
+    # Get flowCart iteration count
+    def get_mg_fc(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_mg_fc(i)
+        
+    # Set flowCart iteration count
+    def set_mg_fc(self, mg_fc=rc0('mg_fc'), i=None):
+        self._flowCart()
+        self['flowCart'].set_mg_fc(mg_fc, i)
+        
+    # Get flowCart full multigrid setting
+    def get_fmg(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_fmg(i)
+        
+    # Set flowCart multigrid
+    def set_fmg(self, fmg=rc0('fmg'), i=None):
+        self._flowCart()
+        self['flowCart'].set_fmg(fmg, i)
+        
+    # Get flowCart ploy multigrid setting
+    def get_pmg(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_pmg(i)
+        
+    # Set flowCart multigrid
+    def set_pmg(self, pmg=rc0('pmg'), i=None):
+        self._flowCart()
+        self['flowCart'].set_pmg(pmg, i)
+        
+    # Get unsteady status
+    def get_unsteady(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_unsteady(i)
+        
+    # Set unsteady status
+    def set_unsteady(self, td_fc=rc0('unsteady'), i=None):
+        self._flowCart()
+        self['flowCart'].set_unsteady(td_fc, i)
+        
+    # Get the nominal CFL number
+    def get_cfl(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_cfl(i)
+        
+    # Set the nominal CFL number
+    def set_cfl(self, cfl=rc0('cfl'), i=None):
+        self._flowCart()
+        self['flowCart'].set_cfl(cfl, i)
+        
+    # Get the minimum CFL number
+    def get_cflmin(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_cflmin(i)
+    
+    # Set the minimum CFL number
+    def set_cflmin(self, cflmin=rc0('cflmin'), i=None):
+        self._flowCart()
+        self['flowCart'].set_cflmin(cflmin, i)
+        
+    # Get the nondimensional physical time step
+    def get_dt(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_dt(i)
+        
+    # Set the nondimensional physical time step
+    def set_dt(self, dt=rc0('dt'), i=None):
+        self._flowCart()
+        self['flowCart'].set_dt(dt, i)
+        
+    # Get cut-cell gradient flag
+    def get_tm(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_tm(i)
+        
+    # Set cut-cell gradient flag
+    def set_tm(self, tm=rc0('tm'), i=None):
+        self._flowCart()
+        self['flowCart'].set_tm(tm, i)
+        
+    # Get buffer limiter switch
+    def get_buffLim(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_buffLim(i)
+        
+    # Set buffer limiter switch.
+    def set_buffLim(self, buffLim=rc0('buffLim'), i=None):
+        self._flowCart()
+        self['flowCart'].set_buffLim(buffLim, i)
+        
+    # Get the number of time steps between checkpoints
+    def get_checkptTD(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_checkptTD(i)
+        
+    # Set the number of time steps between checkpoints
+    def set_checkptTD(self, checkptTD=rc0('checkptTD'), i=None):
+        self._flowCart()
+        self['flowCart'].set_checkptTD(checkptTD, i)
+        
+    # Get the number of time steps between visualization outputs
+    def get_vizTD(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_vizTD(i)
+        
+    # Set the number of time steps visualization outputs
+    def set_vizTD(self, vizTD=rc0('vizTD'), i=None):
+        self._flowCart()
+        self['flowCart'].set_vizTD(vizTD, i)
+        
+    # Get the relaxation step command
+    def get_fc_clean(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_fc_clean(i)
+        
+    # Set the relaxation step command
+    def set_fc_clean(self, fc_clean=rc0('fc_clean'), i=None):
+        self._flowCart()
+        self['flowCart'].set_fc_clean(fc_clean, i)
+        
+    # Get the number of iterations to average over
+    def get_fc_stats(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_fc_stats(i)
+    
+    # Set the number of iterations to average over
+    def set_fc_stats(self, nstats=rc0('fc_stats'), i=None):
+        self._flowCart()
+        self['flowCart'].set_fc_stats(nstats, i)
+        
+    # Get the limiter
+    def get_limiter(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_limiter(i)
+    
+    # Set the limiter
+    def set_limiter(self, limiter=rc0('limiter'), i=None):
+        self._flowCart()
+        self['flowCart'].set_limiter(limiter, i)
+        
+    # Get the y_is_spanwise status
+    def get_y_is_spanwise(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_y_is_spanwise(i)
+        
+    # Set the y_is_spanwise status
+    def set_y_is_spanwise(self, y_is_spanwise=rc0('y_is_spanwise'), i=None):
+        self._flowCart()
+        self['flowCart'].set_y_is_spanwise(y_is_spanwise, i)
+        
+    # Get the binary I/O status
+    def get_binaryIO(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_binaryIO(i)
+        
+    # Set the binary I/O status
+    def set_binaryIO(self, binaryIO=rc0('binaryIO'), i=None):
+        self._flowCart()
+        self['flowCart'].set_binaryIO(binaryIO, i)
+        
+    # Get the Tecplot output status
+    def get_tecO(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_tecO(i)
+        
+    # Set the Tecplot output status
+    def set_tecO(self, tecO=rc0('tecO'), i=None):
+        self._flowCart()
+        self['flowCart'].set_tecO(tecO, i)
+        
+    # Get the current Runge-Kutta scheme
+    def get_RKScheme(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_RKScheme(i)
+        
+    # Set the Runge-Kutta scheme
+    def set_RKScheme(self, RK=rc0('RKScheme'), i=None):
+        self._flowCart()
+        self['flowCart'].set_RKScheme(RK, i)
+        
+    # Copy over the documentation.
+    for k in ['it_fc', 'it_sub', 'it_avg', 'dt',
+            'unsteady', 'first_order', 'robust_mode', 'RKScheme',
+            'tm', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'fmg', 'pmg', 
+            'checkptTD', 'vizTD', 'fc_clean', 'fc_stats',
+            'nOrders', 'buffLim', 'y_is_spanwise',
+            'binaryIO', 'tecO']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(flowCart,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(flowCart,'set_'+k).__doc__
+   # >
+   
+    # ====================
+    # adjointCart settings
+    # ====================
+   # <
+    
+    # Number of iterations
+    def get_it_ad(self, i=None):
+        self._adjointCart()
+        return self['adjointCart'].get_it_ad(i)
+        
+    # Set adjointCart iteration count
+    def set_it_ad(self, it_ad=rc0('it_ad'), i=None):
+        self._adjointCart()
+        self['adjointCart'].set_it_ad(it_ad, i)
+    
+    # Get adjointCart iteration count
+    def get_mg_ad(self, i=None):
+        self._adjointCart()
+        return self['adjointCart'].get_mg_ad(i)
+        
+    # Set adjointCart iteration count
+    def set_mg_ad(self, mg_ad=rc0('mg_ad'), i=None):
+        self._adjointCart()
+        self['adjointCart'].set_mg_ad(mg_ad, i)
+        
+    # First-order adjoint
+    def get_adj_first_order(self, i=None):
+        self._adjointCart()
+        return self['adjointCart'].get_adj_first_order(i)
+        
+    # First-order adjoint
+    def set_adj_first_order(self, adj=rc0('adj_first_order'), i=None):
+        self._adjointCart()
+        self['adjointCart'].set_adj_first_order(adj, i)
+        
+    # Copy over the documentation.
+    for k in ['it_ad', 'mg_ad', 'adj_first_order']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(adjointCart,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(adjointCart,'set_'+k).__doc__
+   # >
+    
+    # ==========
+    # autoInputs
+    # ==========
+   # <
+    
+    # Get the nominal mesh radius
+    def get_r(self, i=None):
+        self._autoInputs()
+        return self['autoInputs'].get_r(i)
+        
+    # Set the nominal mesh radius
+    def set_r(self, r=rc0('r'), i=None):
+        self._autoInputs()
+        self['autoInputs'].set_r(r, i)
+        
+    # Get the background mesh divisions
+    def get_nDiv(self, i=None):
+        self._autoInputs()
+        return self['autoInputs'].get_nDiv(i)
+    
+    # Set the background mesh divisions
+    def set_nDiv(self, nDiv=rc0('nDiv'), i=None):
+        self._autoInputs()
+        self['autoInputs'].set_nDiv(nDiv, i)
+        
+    # Copy over the documentation.
+    for k in ['r', 'nDiv']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(autoInputs,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(autoInputs,'set_'+k).__doc__
+   # >
+        
+    # =====
+    # cubes
+    # =====
+   # <
+    
+    # Get the number of refinements
+    def get_maxR(self, i=None):
+        self._cubes()
+        return self['cubes'].get_maxR(i)
+        
+    # Set the number of refinements
+    def set_maxR(self, maxR=rc0('maxR'), i=None):
+        self._cubes()
+        self['cubes'].set_maxR(maxR, i)
+        
+    # Get the 'cubes_a' parameter
+    def get_cubes_a(self, i=None):
+        self._cubes()
+        return self['cubes'].get_cubes_a(i)
+        
+    # Set the 'cubes_a' parameter
+    def set_cubes_a(self, cubes_a=rc0('cubes_a'), i=None):
+        self._cubes()
+        self['cubes'].set_cubes_a(cubes_a, i)
+        
+    # Get the 'cubes_b' parameter
+    def get_cubes_b(self, i=None):
+        self._cubes()
+        return self['cubes'].get_cubes_b(i)
+        
+    # Set the 'cubes_a' parameter
+    def set_cubes_b(self, cubes_b=rc0('cubes_b'), i=None):
+        self._cubes()
+        self['cubes'].set_cubes_b(cubes_b, i)
+        
+    # Get the mesh reordering status
+    def get_reorder(self, i=None):
+        self._cubes()
+        return self['cubes'].get_reorder(i)
+        
+    # Set the mesh reordering status
+    def set_reorder(self, reorder=rc0('reorder'), i=None):
+        self._cubes()
+        self['cubes'].set_reorder(reorder, i)
+        
+    # Get the additional refinements around sharp edges
+    def get_sf(self, i=None):
+        self._cubes()
+        return self['cubes'].get_sf(i)
+        
+    # Set the additional refinements around sharp edges
+    def set_sf(self, sf=rc0('sf'), i=None):
+        self._cubes()
+        self['cubes'].set_sf(sf, i)
+    
+    # Get preSpec file
+    def get_preSpecCntl(self):
+        self._cubes()
+        return self['cubes'].get_preSpecCntl()
+        
+    # Set preSpec file
+    def set_preSpecCntl(self, fpre=rc0('pre')):
+        self._cubes()
+        self['cubes'].set_preSpecCntl(fpre)
+
+
+    # Copy over the documentation.
+    for k in ['maxR', 'cubes_a', 'cubes_b', 'reorder', 'sf', 'preSpecCntl']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(cubes,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(cubes,'set_'+k).__doc__
+   # >
+# class RunControl
         
 

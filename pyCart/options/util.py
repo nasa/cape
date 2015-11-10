@@ -96,7 +96,7 @@ rc = {
     "final_mesh_xref": 0,
     "TriFile": "Components.i.tri",
     "mesh2d": False,
-    "preSpecCntl": "preSpec.c3d.cntl",
+    "pre": "preSpec.c3d.cntl",
     "inputC3d": "input.c3d",
     "BBox": [],
     "XLev": [],
