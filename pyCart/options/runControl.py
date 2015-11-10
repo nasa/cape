@@ -3,6 +3,8 @@
 
 # Import options-specific utilities
 from util import rc0, odict, isArray
+# Run control class
+import cape.options.runControl
 
 # Function to test if something is an acceptable Runge-Kutta object
 def isRK(RK):
@@ -37,132 +39,84 @@ def isRK(RK):
         
 
 # Class for flowCart settings
-class flowCart(odict):
+class RunControl(cape.options.runControl.RunControl):
     """Dictionary-based interface for options specific to ``flowCart``"""
+        
+        
+    # Get aero.csh status
+    def get_Adaptive(self, i=None):
+        """Return whether or not to use `aero.csh`
+        
+        :Call:
+            >>> ac = opts.get_Adaptive(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *ac*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to use `aero.csh`
+        :Versions:
+            * 2014-10-03 ``@ddalle``: First version
+        """
+        return self.get_key('use_aero_csh', i)
     
-    # Run input sequence
-    def get_InputSeq(self, i=None):
-        """Return the input sequence for `flowCart`
+    # Set aero.csh status
+    def set_Adaptive(self, ac=rc0('Adaptive'), i=None):
+        """Set whether or not to use `aero.csh`
         
         :Call:
-            >>> InputSeq = opts.get_InputSeq(i=None)
+            >>> opts.set_Adaptive(ac, i)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
-            *i*: :class:`int` or ``None``
-                Run index
-        :Outputs:
-            *InputSeq*: :class:`int` or :class:`list`(:class:`int`)
-                Sequence of input run index(es)
-        :Versions:
-            * 2014.10.02 ``@ddalle``: First version
-        """
-        return self.get_key('InputSeq', i)
-        
-    # Set run input sequence.
-    def set_InputSeq(self, InputSeq=rc0('InputSeq'), i=None):
-        """Set the input sequence for `flowCart`
-        
-        :Call:
-            >>> opts.get_InputSeq(InputSeq, i=None)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *InputSeq*: :class:`int` or :class:`list`(:class:`int`)
-                Sequence of input run index(es)
+            *ac*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to use `aero.csh`
             *i*: :class:`int` or ``None``
                 Run index
         :Versions:
-            * 2014.10.02 ``@ddalle``: First version
+            * 2014-10-03 ``@ddalle``: First version
         """
-        self.set_key('InputSeq', InputSeq, i)
-        
-    
-    # Get minimum cumulative iteration count
-    def get_IterSeq(self, i=None):
-        """
-        Get the break points for run *i*.  Input *i* will be repeated until the
-        cumulative iteration count is greater than or equal to *IterSeq[i]*.
-        
-        :Call:
-            >>> IterSeq = opts.get_IterSeq(i=None)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Run index
-        :Outputs:
-            *IterSeq*: :class:`int` or :class:`list`(:class:`int`)
-                Sequence of iteration break points
-        :Versions:
-            * 2014.10.02 ``@ddalle``: First version
-        """
-        return self.get_key('IterSeq', i)
-        
-    # Set minimum cumulative iteration count
-    def set_IterSeq(self, IterSeq, i=None):
-        """
-        Get the break points for run *i*.  Input *i* will be repeated until the
-        cumulative iteration count is greater than or equal to *IterSeq[i]*.
-        
-        :Call:
-            >>> opts.get_IterSeq(IterSeq, i=None)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Run index
-        :Outputs:
-            *IterSeq*: :class:`int` or :class:`list`(:class:`int`)
-                Sequence of iteration break points
-        :Versions:
-            * 2014.10.02 ``@ddalle``: First version
-        """
-        self.set_key('IterSeq', IterSeq, i)
+        self.set_key('use_aero_csh', ac, i)
         
     
-    # Number of iterations
-    def get_nSeq(self):
-        """Return the number of input sets in the sequence
+    # Get jumpstart status
+    def get_jumpstart(self, i=None):
+        """
+        Return whether or not to "jump start", i.e. create meshes before running
+        :file:`aero.csh`.
         
         :Call:
-            >>> nSeq = opts.get_nSeq()
+            >>> js = opts.get_jumpstart()
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
         :Outputs:
-            *nSeq*: :class:`int`
-                Number of input sets in the sequence
+            *js*: :class:`bool`
+                Whether or not to jumpstart
         :Versions:
-            * 2014.10.02 ``@ddalle``: First version
+            * 2014-12-04 ``@ddalle``: First version
         """
-        # Get the input sequence.
-        InputSeq = self.get_InputSeq()
-        # Check if it's a list.
-        if type(InputSeq).__name__ == "list":
-            # Use the length.
-            return len(InputSeq)
-        else:
-            # Something is messed up.
-            return 1
-            
-    # Minimum required number of iterations
-    def get_LastIter(self):
-        """Return the minimum number of iterations for case to be done
+        return self.get_key('jumpstart', i)
+        
+    # Set jumpstart status
+    def set_jumpstart(self, js=rc0('jumpstart'), i=None):
+        """
+        Set whether or not to "jump start", i.e. create meshes before running
+        :file:`aero.csh`.
         
         :Call:
-            >>> nIter = opts.get_LastIter()
+            >>> opts.get_jumpstart(js)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
-        :Outputs:
-            *nIter*: :class:`int`
-                Number of required iterations for case
+            *js*: :class:`bool`
+                Whether or not to jumpstart
         :Versions:
-            * 2014.10.02 ``@ddalle``: First version
+            * 2014-12-04 ``@ddalle``: First version
         """
-        return self.get_IterSeq(self.get_nSeq())
-            
+        self.set_key('jumpstart', js, i)
     
     # Get the Runge-Kutta scheme
     def get_RKScheme(self, i=None):
@@ -572,82 +526,6 @@ class flowCart(odict):
             * 2014-11-28 ``@ddalle``: First version
         """
         self.set_key('unsteady', td_fc, i)
-        
-        
-    # Get aero.csh status
-    def get_use_aero_csh(self, i=None):
-        """Return whether or not to use `aero.csh`
-        
-        :Call:
-            >>> ac = opts.get_use_aero_csh(i=None)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Run index
-        :Outputs:
-            *ac*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not to use `aero.csh`
-        :Versions:
-            * 2014-10-03 ``@ddalle``: First version
-        """
-        return self.get_key('use_aero_csh', i)
-    
-    # Set aero.csh status
-    def set_use_aero_csh(self, ac=rc0('use_aero_csh'), i=None):
-        """Set whether or not to use `aero.csh`
-        
-        :Call:
-            >>> opts.set_use_aero_csh(ac, i)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *ac*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not to use `aero.csh`
-            *i*: :class:`int` or ``None``
-                Run index
-        :Versions:
-            * 2014-10-03 ``@ddalle``: First version
-        """
-        self.set_key('use_aero_csh', ac, i)
-        
-    
-    # Get jumpstart status
-    def get_jumpstart(self, i=None):
-        """
-        Return whether or not to "jump start", i.e. create meshes before running
-        :file:`aero.csh`.
-        
-        :Call:
-            >>> js = opts.get_jumpstart()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *js*: :class:`bool`
-                Whether or not to jumpstart
-        :Versions:
-            * 2014-12-04 ``@ddalle``: First version
-        """
-        return self.get_key('jumpstart', i)
-        
-    # Set jumpstart status
-    def set_jumpstart(self, js=rc0('jumpstart'), i=None):
-        """
-        Set whether or not to "jump start", i.e. create meshes before running
-        :file:`aero.csh`.
-        
-        :Call:
-            >>> opts.get_jumpstart(js)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *js*: :class:`bool`
-                Whether or not to jumpstart
-        :Versions:
-            * 2014-12-04 ``@ddalle``: First version
-        """
-        self.set_key('jumpstart', js, i)
         
     
     # Get the CFL number

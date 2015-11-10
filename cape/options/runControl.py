@@ -50,6 +50,47 @@ class RunControl(odict):
             * 2015-10-20 ``@ddalle``: First version
         """
         self.set_key('nIter', nIter, i)
+    
+
+    # Function to get the shell commands
+    def get_ShellCmds(self):
+        """Get shell commands, if any
+        
+        :Call:
+            >>> cmds = opts.get_ShellCmds()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *cmds*: :class:`list` (:class:`str`)
+                List of initialization commands
+        :Versions:
+            * 2015-11-08 ``@ddalle``: Moved to "RunControl"
+        """
+        # Get the commands.
+        cmds = self.get('ShellCmds', [])
+        # Turn to a list if not.
+        if type(cmds).__name__ != 'list':
+            cmds = [cmds]
+        # Output
+        return cmds
+        
+    # Function to set the shell commands
+    def set_ShellCmds(self, cmds):
+        """Set shell commands
+        
+        :Call:
+            >>> opts.set_ChellCmds(cmds=[])
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *cmds*: :class:`list` (:class:`str`)
+                List of initialization commands
+        :Versions:
+            * 2015-11-08 ``@ddalle``: First version
+        """
+        # Set them.
+        self['ShellCmds'] = cmds
             
     
     # Run input sequence
@@ -328,30 +369,30 @@ class RunControl(odict):
         
     
     # Get the resubmittable-job status
-    def get_resub(self, i=None):
+    def get_Resubmit(self, i=None):
         """Determine whether or not a job should restart or resubmit itself
         
         :Call:
-            >>> resub = opts.get_resub(i=None)
+            >>> resub = opts.get_Resubmit(i=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Run index
         :Outputs:
-            *resub*: :class:`bool` or :class:`list`(:class:`bool`)
+            *resub*: :class:`bool` | :class:`list` (:class:`bool`)
                 Whether or not to resubmit/restart a case
         :Versions:
             * 2014-10-05 ``@ddalle``: First version
         """
-        return self.get_key('resub', i)
+        return self.get_key('Resubmit', i)
     
     # Set the resubmittable-job status
-    def set_resub(self, resub=rc0('resub'), i=None):
+    def set_Resubmit(self, resub=rc0('resub'), i=None):
         """Set jobs as resubmittable or nonresubmittable
         
         :Call:
-            >>> opts.set_resub(resub, i)
+            >>> opts.set_Resubmit(resub, i)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -362,5 +403,45 @@ class RunControl(odict):
         :Versions:
             * 2014-10-05 ``@ddalle``: First version
         """
-        self.set_key('resub', resub, i)
+        self.set_key('Resubmit', resub, i)
+        
+    # Get the continuance status
+    def get_Continue(self, i=None):
+        """Determine if restarts of the same run input should be resubmitted
+        
+        :Call:
+            >> cont = opts.get_Continue(i=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *cont*: :class:`bool` | :class:`list` (:class:`bool`)
+                Whether or not to continue restarts of same input sequence
+                without resubmitting
+        :Versions:
+            * 2015-11-08 ``@ddalle``: First version
+        """
+        return self.get_key('Continue', i)
+        
+    # Set the continuance status
+    def set_Continue(self, cont=rc0('continue'), i=None):
+        """Set the resubmit status for restarts of the same input sequence
+        
+        :Call:
+            >> opts.set_Continue(, cont, i=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *cont*: :class:`bool` | :class:`list` (:class:`bool`)
+                Whether or not to continue restarts of same input sequence
+                without resubmitting
+        :Versions:
+            * 2015-11-08 ``@ddalle``: First version
+        """
+        
     

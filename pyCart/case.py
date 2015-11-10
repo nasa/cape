@@ -15,7 +15,7 @@ command-line options to run.
 """
 
 # Import options class
-from options.flowCart import flowCart
+from options.runControl import RunControl
 # Interface for writing commands
 from . import cmd, queue, manage, bin
 
@@ -53,14 +53,14 @@ def run_flowCart(verify=False, isect=False):
     # Touch the running file.
     os.system('touch RUNNING')
     # Get the settings.
-    fc = ReadCaseJSON()
+    rc = ReadCaseJSON()
     # Run intersect and verify
     IntersectCase(isect=isect)
     VerifyCase(verify=verify)
     # Determine the run index.
-    i = GetInputNumber(fc)
+    i = GetInputNumber(rc)
     # Create a restart file if appropriate.
-    if not fc.get_use_aero_csh(i):
+    if not rc.get_use_aero_csh(i):
         # Automatically determine the best check file to use.
         SetRestartIter()
     # Delete any input file.
@@ -69,7 +69,7 @@ def run_flowCart(verify=False, isect=False):
     # Create the correct input file.
     os.symlink('input.%02i.cntl' % i, 'input.cntl')
     # Extra prep for adaptive --> non-adaptive
-    if (i>0) and (not fc.get_use_aero_csh(i)) and (os.path.isdir('BEST')
+    if (i>0) and (not rc.get_use_aero_csh(i)) and (os.path.isdir('BEST')
             and (not os.path.isfile('history.dat'))):
         # Go to the best adaptive result.
         os.chdir('BEST')
@@ -84,7 +84,7 @@ def run_flowCart(verify=False, isect=False):
             # Copy the file.
             shutil.copy('BEST/'+fname, fname)
     # Convince aero.csh to use the *new* input.cntl
-    if (i>0) and (fc.get_use_aero_csh(i)) and (fc.get_use_aero_csh(i-1)):
+    if (i>0) and (rc.get_use_aero_csh(i)) and (rc.get_use_aero_csh(i-1)):
         # Go to the best adaptive result.
         os.chdir('BEST')
         # Check for an input.cntl file
@@ -96,16 +96,16 @@ def run_flowCart(verify=False, isect=False):
         # Copy the new input file.
         shutil.copy('input.%02i.cntl' % i, 'BEST/input.cntl')
     # Check for flowCart vs. mpi_flowCart
-    if not fc.get_mpi_fc(i):
+    if not rc.get_mpi_fc(i):
         # Get the number of threads, which may be irrelevant.
-        nProc = fc.get_nProc()
+        nProc = rc.get_nProc()
         # Set it.
         os.environ['OMP_NUM_THREADS'] = str(nProc)
     # Get rid of linked plt files
     if os.path.islink('Components.i.plt'): os.remove('Components.i.plt')
     if os.path.islink('cutPlanes.plt'):    os.remove('cutPlanes.plt')
     # Check for adaptive runs.
-    if fc.get_use_aero_csh(i):
+    if rc.get_use_aero_csh(i):
         # Delete the existing aero.csh file
         if os.path.islink('aero.csh'): os.remove('aero.csh')
         # Create a link to this run.
@@ -114,7 +114,7 @@ def run_flowCart(verify=False, isect=False):
         if i > 0 or GetCurrentIter() > 0:
             # Restart case.
             cmdi = ['./aero.csh', 'restart']
-        elif fc.get_jumpstart():
+        elif rc.get_jumpstart():
             # Initial case
             cmdi = ['./aero.csh', 'jumpstart']
         else:
@@ -122,9 +122,9 @@ def run_flowCart(verify=False, isect=False):
             cmdi = ['./aero.csh']
         # Run the command.
         bin.callf(cmdi, f='flowCart.out')
-    elif fc.get_it_avg(i):
+    elif rc.get_it_avg(i):
         # Check how many iterations by which to offset the count.
-        if fc.get_unsteady(i):
+        if rc.get_unsteady(i):
             # Get the number of previous unsteady steps.
             n = GetUnsteadyIter()
         else:
@@ -133,14 +133,14 @@ def run_flowCart(verify=False, isect=False):
         # Initialize triq.
         triq = Triq('Components.i.tri', n=0)
         # Requested iterations
-        it_fc = fc.get_it_fc(i)
+        it_fc = rc.get_it_fc(i)
         # Start and end iterations
         n0 = n
         n1 = n + it_fc
         # Loop through iterations.
         for j in range(it_fc):
             # flowCart command automatically accepts *it_avg*; update *n*
-            cmdi = cmd.flowCart(fc=fc, i=i, n=n)
+            cmdi = cmd.flowCart(rc=rc, i=i, n=n)
             # Run the command for *it_avg* iterations.
             bin.callf(cmdi, f='flowCart.out')
             # Read the triq file
@@ -148,7 +148,7 @@ def run_flowCart(verify=False, isect=False):
             # Weighted average
             triq.WeightedAverage(triqj)
             # Get new iteration count.
-            if fc.get_unsteady(i):
+            if rc.get_unsteady(i):
                 # Get the number of previous unsteady steps.
                 n = GetUnsteadyIter()
             else:
@@ -160,24 +160,24 @@ def run_flowCart(verify=False, isect=False):
         triq.Write('Components.%i.%i.%i.triq' % (j, n0+1, n))
     else:
         # Check how many iterations by which to offset the count.
-        if fc.get_unsteady(i):
+        if rc.get_unsteady(i):
             # Get the number of previous unsteady steps.
             n = GetUnsteadyIter()
         else:
             # Get the number of previous steady steps.
             n = GetSteadyIter()
         # Call flowCart directly.
-        cmdi = cmd.flowCart(fc=fc, i=i, n=n)
+        cmdi = cmd.flowCart(rc=rc, i=i, n=n)
         # Run the command.
         bin.callf(cmdi, f='flowCart.out')
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
     # Clean up the folder as appropriate.
     # Tar visualization files.
-    if fc.get_unsteady(i):
+    if rc.get_unsteady(i):
         manage.TarViz()
     # Tar old adaptation folders.
-    if fc.get_use_aero_csh(i):
+    if rc.get_use_aero_csh(i):
         manage.TarAdapt()
     # Last reported iteration number
     n = GetHistoryIter()
@@ -225,10 +225,10 @@ def run_flowCart(verify=False, isect=False):
     # Clear check files as appropriate.
     manage.ClearCheck()
     # Check current iteration count.
-    if n >= fc.get_LastIter():
+    if n >= rc.get_LastIter():
         return
     # Resubmit if asked.
-    if fc.get_resub(i):
+    if rc.get_resub(i):
         # Run full restart command, including qsub if appropriate
         StartCase()
     else:
@@ -283,7 +283,7 @@ def VerifyCase(verify=False):
         *verify*: :class:`bool``
             Whether or not to run `verify` before running `flowCart`
     :Versions:
-        * 2015-09-07 ``@ddalle``: Split from :func:`fun_flowCart`
+        * 2015-09-07 ``@ddalle``: Split from :func:`run_flowCart`
     """
     # Check for verify
     if not verify: return
@@ -302,11 +302,11 @@ def StartCase():
         * 2014-10-06 ``@ddalle``: First version
     """
     # Get the config.
-    fc = ReadCaseJSON()
+    rc = ReadCaseJSON()
     # Determine the run index.
-    i = GetInputNumber(fc)
+    i = GetInputNumber(rc)
     # Check qsub status.
-    if fc.get_qsub(i):
+    if rc.get_qsub(i):
         # Get the name of the PBS file.
         fpbs = GetPBSScript(i)
         # Submit the case.
@@ -398,10 +398,10 @@ def ReadCaseJSON():
     """Read `flowCart` settings for local case
     
     :Call:
-        >>> fc = pyCart.case.ReadCaseJSON()
+        >>> rc = pyCart.case.ReadCaseJSON()
     :Outputs:
-        *fc*: :class:`pyCart.options.flowCart.flowCart`
-            Options interface for `flowCart`
+        *rc*: :class:`pyCart.options.runControl.RunControl`
+            Options interface for run
     :Versions:
         * 2014-10-02 ``@ddalle``: First version
     """
@@ -411,10 +411,10 @@ def ReadCaseJSON():
     opts = json.load(f)
     # Close the file.
     f.close()
-    # Convert to a flowCart object.
-    fc = flowCart(**opts)
+    # Convert to a RunControl object.
+    rc = RunControl(**opts)
     # Output
-    return fc
+    return rc
     
 
 # Function to get the most recent check file.
@@ -527,7 +527,7 @@ def SetRestartIter(n=None, ntd=None):
             Unsteady iteration number
     :Versions:
         * 2014-10-02 ``@ddalle``: First version
-        * 2014-11-28 ``@ddalle``: Added `td_flowCart` compatibility
+        * 2014-11-28 ``@ddalle``: Added time-accurate compatibility
     """
     # Check the input.
     if n   is None: n = GetSteadyIter()
@@ -551,13 +551,13 @@ def SetRestartIter(n=None, ntd=None):
     
     
 # Function to chose the correct input to use from the sequence.
-def GetInputNumber(fc):
+def GetInputNumber(rc):
     """Determine the appropriate input number based on results available
     
     :Call:
-        >>> i = pyCart.case.GetInputNumber(fc)
+        >>> i = pyCart.case.GetInputNumber(rc)
     :Inputs:
-        *fc*: :class:`pyCart.options.flowCart.flowCart`
+        *rc*: :class:`pyCart.options.runControl.RunControl`
             Options interface for `flowCart`
     :Outputs:
         *i*: :class:`int`
@@ -568,15 +568,15 @@ def GetInputNumber(fc):
     # Get the run index.
     n = GetCheckResubIter()
     # Loop through possible input numbers.
-    for j in range(fc.get_nSeq()):
+    for j in range(rc.get_nSeq()):
         # Get the actual run number
-        i = fc.get_InputSeq(j)
+        i = rc.get_InputSeq(j)
         # Check for output files.
         if len(glob.glob('run.%02i.*' % i)) == 0:
             # This run has not been completed yet.
             return i
         # Check the iteration number.
-        if n < fc.get_IterSeq(j):
+        if n < rc.get_IterSeq(j):
             # This case has been run, but hasn't reached the min iter cutoff
             return i
     # Case completed; just return the last value.

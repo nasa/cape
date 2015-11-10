@@ -407,6 +407,16 @@ class Options(odict):
         self._RunControl()
         return self['RunControl'].set_IterSeq(IterSeq, i)
         
+    # Get shell commands
+    def get_ShellCmds(self):
+        self._RunControl()
+        return self['RunControl'].get_ShellCmds()
+    
+    # Set shell commands
+    def set_ShellCmds(self, cmds=[]):
+        self._RunControl()
+        sellf['RunControl'].set_ShellCmds(cmds)
+        
     # Get MPI status
     def get_MPI(self, i=None):
         self._RunControl()
@@ -465,32 +475,6 @@ class Options(odict):
         eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
    # >
    
-    
-    # ==============
-    # Shell Commands
-    # ==============
-   # <
-    
-    # Function to get the shell commands
-    def get_ShellCmds(self):
-        """Get shell commands, if any
-        
-        :Call:
-            >>> cmds = opts.get_ShellCmds()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *cmds*: :class:`list`
-        """
-        # Get the commands.
-        cmds = self.get('ShellCmds', [])
-        # Turn to a list if not.
-        if type(cmds).__name__ != 'list':
-            cmds = [cmds]
-        # Output
-        return cmds
-   # >
         
     # ============
     # PBS settings

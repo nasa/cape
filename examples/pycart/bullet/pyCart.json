@@ -5,33 +5,38 @@
         "ulimit -S -s 4194304"
 	],
     
-    // This section sets the parameters for flowCart.
-	// The names for these parameters are copied from `aero.csh`.
-	"flowCart": {
+    // Options for overall run control and command-line inputs
+    "RunControl": {
         // Run sequence
         "InputSeq": [0],
         "IterSeq": [200],
-        // flowCart order
-        "first_order": 0,
-	    // Basic number of iterations
-	    "it_fc": 200,
-        // Use MPI?
-        "mpi_fc": 0,
-        // Use aero.csh?
-        "use_aero_csh": 0,
-	    // Nominal CFL number
-	    "cfl": 1.1,
-	    "cflmin": 0.8,
-	    // Multigrid levels for flowcart
-	    "mg_fc": 3,
-	    // Limiter type
-	    "limiter": 2,
-        // Cut cells first-order?
-        "tm": 0,
-	    // If this is set to true, angle of attack changes z-velocity
-	    "y_is_spanwise": true,
-	    // Number of threads
-	    "nProc": 4
+        // Operation modes
+        "nProc": 4,
+        "MPI": false,
+        "Adaptive": false,
+        
+        // Command-line inputs to `flowCart`
+        "flowCart": {
+            // flowCart order
+            "first_order": 0,
+            // Basic number of iterations
+            "it_fc": 200,
+            // Use MPI?
+            "mpi_fc": 0,
+            // Use aero.csh?
+            "use_aero_csh": 0,
+            // Nominal CFL number
+            "cfl": 1.1,
+            "cflmin": 0.8,
+            // Multigrid levels for flowcart
+            "mg_fc": 3,
+            // Limiter type
+            "limiter": 2,
+            // Cut cells first-order?
+            "tm": 0,
+            // If this is set to true, angle of attack changes z-velocity
+            "y_is_spanwise": true
+	    }
 	},
 
 	// Parameters for creating the mesh

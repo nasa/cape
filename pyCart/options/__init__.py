@@ -28,7 +28,7 @@ from util import *
 import cape.options
 
 # Import modules for controlling specific parts of Cart3D
-from .flowCart    import flowCart
+from .runControl  import RunControl
 from .adjointCart import adjointCart
 from .Adaptation  import Adaptation
 from .Mesh        import Mesh
@@ -80,7 +80,7 @@ class Options(cape.options.Options):
         for k in kw:
             self[k] = kw[k]
         # Upgrade important groups to their own classes.
-        self._flowCart()
+        self._RunControl()
         self._adjointCart()
         self._Adaptation()
         self._Mesh()
@@ -99,16 +99,16 @@ class Options(cape.options.Options):
     # ============
    # <
     
-    # Initialization and confirmation for flowCart options
-    def _flowCart(self):
-        """Initialize `flowCart` options if necessary"""
+    # Initialization and confirmation for RunControl options
+    def _RunControl(self):
+        """Initialize `RunControl` options if necessary"""
         # Check for missing entirely.
-        if 'flowCart' not in self:
+        if 'RunControl' not in self:
             # Empty/default
-            self['flowCart'] = flowCart()
-        elif type(self['flowCart']).__name__ == 'dict':
+            self['RunControl'] = RunControl()
+        elif type(self['RunControl']).__name__ == 'dict':
             # Convert to special class.
-            self['flowCart'] = flowCart(**self['flowCart'])
+            self['RunControl'] = RunControl(**self['RunControl'])
             
     # Initialization and confirmation for adjointCart options
     def _adjointCart(self):
@@ -343,346 +343,346 @@ class Options(cape.options.Options):
    # >
     
     # ===================
-    # flowCart parameters
+    # RunControl parameters
     # ===================
    # <
    
     # Get number of inputs
     def get_nSeq(self):
-        self._flowCart()
-        return self['flowCart'].get_nSeq()
+        self._RunControl()
+        return self['RunControl'].get_nSeq()
     # Copy documentation
-    get_nSeq.__doc__ = flowCart.get_nSeq.__doc__
+    get_nSeq.__doc__ = RunControl.get_nSeq.__doc__
     
     # Get input sequence
     def get_InputSeq(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_InputSeq(i)
+        self._RunControl()
+        return self['RunControl'].get_InputSeq(i)
         
     # Set input sequence
     def set_InputSeq(self, InputSeq=rc0('InputSeq'), i=None):
-        self._flowCart()
-        self['flowCart'].set_InputSeq(InputSeq, i)
+        self._RunControl()
+        self['RunControl'].set_InputSeq(InputSeq, i)
         
     # Get iteration break points
     def get_IterSeq(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_IterSeq(i)
+        self._RunControl()
+        return self['RunControl'].get_IterSeq(i)
         
     # Set Iteration break points
     def set_IterSeq(self, IterSeq=rc0('IterSeq'), i=None):
-        self._flowCart()
-        return self['flowCart'].set_IterSeq(IterSeq, i)
+        self._RunControl()
+        return self['RunControl'].set_IterSeq(IterSeq, i)
     
-    # Get flowCart order
+    # Get RunControl order
     def get_first_order(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_first_order(i)
+        self._RunControl()
+        return self['RunControl'].get_first_order(i)
         
-    # Set flowCart order
+    # Set RunControl order
     def set_first_order(self, fo=rc0('first_order'), i=None):
-        self._flowCart()
-        self['flowCart'].set_first_order(fo, i)
+        self._RunControl()
+        self['RunControl'].set_first_order(fo, i)
     
-    # Get flowCart robust mode
+    # Get RunControl robust mode
     def get_robust_mode(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_robust_mode(i)
+        self._RunControl()
+        return self['RunControl'].get_robust_mode(i)
         
-    # Set flowCart robust mode
+    # Set RunControl robust mode
     def set_robust_mode(self, rm=rc0('robust_mode'), i=None):
-        self._flowCart()
-        self['flowCart'].set_robust_mode(rm, i)
+        self._RunControl()
+        self['RunControl'].set_robust_mode(rm, i)
     
     # Number of iterations
     def get_it_fc(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_it_fc(i)
+        self._RunControl()
+        return self['RunControl'].get_it_fc(i)
         
-    # Set flowCart iteration count
+    # Set RunControl iteration count
     def set_it_fc(self, it_fc=rc0('it_fc'), i=None):
-        self._flowCart()
-        self['flowCart'].set_it_fc(it_fc, i)
+        self._RunControl()
+        self['RunControl'].set_it_fc(it_fc, i)
     
     # Averaging interval
     def get_it_avg(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_it_avg(i)
+        self._RunControl()
+        return self['RunControl'].get_it_avg(i)
         
-    # Set flowCart averaging interval
+    # Set RunControl averaging interval
     def set_it_avg(self, it_avg=rc0('it_avg'), i=None):
-        self._flowCart()
-        self['flowCart'].set_it_fc(it_avg, i)
+        self._RunControl()
+        self['RunControl'].set_it_fc(it_avg, i)
         
     # Get number of orders for early termination
     def get_nOrders(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_nOrders(i)
+        self._RunControl()
+        return self['RunControl'].get_nOrders(i)
         
     # Set number of orders for early termination
     def set_nOrders(self, nOrders=rc0('nOrders'), i=None):
-        self._flowCart()
-        self['flowCart'].set_nOrders(nOrders, i)
+        self._RunControl()
+        self['RunControl'].set_nOrders(nOrders, i)
         
     # Get flowCart iteration count
     def get_mg_fc(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_mg_fc(i)
+        self._RunControl()
+        return self['RunControl'].get_mg_fc(i)
         
     # Set flowCart iteration count
     def set_mg_fc(self, mg_fc=rc0('mg_fc'), i=None):
-        self._flowCart()
-        self['flowCart'].set_mg_fc(mg_fc, i)
+        self._RunControl()
+        self['RunControl'].set_mg_fc(mg_fc, i)
         
     # Get flowCart full multigrid setting
     def get_fmg(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_fmg(i)
+        self._RunControl()
+        return self['RunControl'].get_fmg(i)
         
     # Set flowCart multigrid
     def set_fmg(self, fmg=rc0('fmg'), i=None):
-        self._flowCart()
-        self['flowCart'].set_fmg(fmg, i)
+        self._RunControl()
+        self['RunControl'].set_fmg(fmg, i)
         
     # Get flowCart ploy multigrid setting
     def get_pmg(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_pmg(i)
+        self._RunControl()
+        return self['RunControl'].get_pmg(i)
         
     # Set flowCart multigrid
     def set_pmg(self, pmg=rc0('pmg'), i=None):
-        self._flowCart()
-        self['flowCart'].set_pmg(pmg, i)
+        self._RunControl()
+        self['RunControl'].set_pmg(pmg, i)
         
     # Get MPI status
     def get_mpi_fc(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_mpi_fc(i)
+        self._RunControl()
+        return self['RunControl'].get_mpi_fc(i)
         
     # Set MPI status
     def set_mpi_fc(self, mpi_fc=rc0('mpi_fc'), i=None):
-        self._flowCart()
-        self['flowCart'].set_mpi_fc(mpi_fc, i)
+        self._RunControl()
+        self['RunControl'].set_mpi_fc(mpi_fc, i)
         
     # Get unsteady status
     def get_unsteady(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_unsteady(i)
+        self._RunControl()
+        return self['RunControl'].get_unsteady(i)
         
     # Set unsteady status
     def set_unsteady(self, td_fc=rc0('unsteady'), i=None):
-        self._flowCart()
-        self['flowCart'].set_unsteady(td_fc, i)
+        self._RunControl()
+        self['RunControl'].set_unsteady(td_fc, i)
         
     # Get aero.csh status
     def get_use_aero_csh(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_use_aero_csh(i)
+        self._RunControl()
+        return self['RunControl'].get_use_aero_csh(i)
         
     # Set aero.csh status
     def set_use_aero_csh(self, ac=rc0('use_aero_csh'), i=None):
-        self._flowCart()
-        self['flowCart'].set_use_aero_csh(ac, i)
+        self._RunControl()
+        self['RunControl'].set_use_aero_csh(ac, i)
         
     # Get jumpstart status
     def get_jumpstart(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_jumpstart(i)
+        self._RunControl()
+        return self['RunControl'].get_jumpstart(i)
         
     # Jumpstart status
     def set_jumpstart(self, js=rc0('jumpstart'), i=None):
-        self._flowCart()
-        self['flowCart'].set_jumpstart(js, i)
+        self._RunControl()
+        self['RunControl'].set_jumpstart(js, i)
         
     # Get the nominal CFL number
     def get_cfl(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_cfl(i)
+        self._RunControl()
+        return self['RunControl'].get_cfl(i)
         
     # Set the nominal CFL number
     def set_cfl(self, cfl=rc0('cfl'), i=None):
-        self._flowCart()
-        self['flowCart'].set_cfl(cfl, i)
+        self._RunControl()
+        self['RunControl'].set_cfl(cfl, i)
         
     # Get the minimum CFL number
     def get_cflmin(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_cflmin(i)
+        self._RunControl()
+        return self['RunControl'].get_cflmin(i)
     
     # Set the minimum CFL number
     def set_cflmin(self, cflmin=rc0('cflmin'), i=None):
-        self._flowCart()
-        self['flowCart'].set_cflmin(cflmin, i)
+        self._RunControl()
+        self['RunControl'].set_cflmin(cflmin, i)
         
     # Get the nondimensional physical time step
     def get_dt(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_dt(i)
+        self._RunControl()
+        return self['RunControl'].get_dt(i)
         
     # Set the nondimensional physical time step
     def set_dt(self, dt=rc0('dt'), i=None):
-        self._flowCart()
-        self['flowCart'].set_dt(dt, i)
+        self._RunControl()
+        self['RunControl'].set_dt(dt, i)
         
     # Get the number of physical time steps to advance
     def get_nSteps(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_nSteps(i)
+        self._RunControl()
+        return self['RunControl'].get_nSteps(i)
         
     # Set the number of physical time steps to advance
     def set_nSteps(self, nSteps=rc0('nSteps'), i=None):
-        self._flowCart()
-        self['flowCart'].set_nSteps(nSteps, i)
+        self._RunControl()
+        self['RunControl'].set_nSteps(nSteps, i)
         
     # Get cut-cell gradient flag
     def get_tm(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_tm(i)
+        self._RunControl()
+        return self['RunControl'].get_tm(i)
         
     # Set cut-cell gradient flag
     def set_tm(self, tm=rc0('tm'), i=None):
-        self._flowCart()
-        self['flowCart'].set_tm(tm, i)
+        self._RunControl()
+        self['RunControl'].set_tm(tm, i)
         
     # Get buffer limiter switch
     def get_buffLim(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_buffLim(i)
+        self._RunControl()
+        return self['RunControl'].get_buffLim(i)
         
     # Set buffer limiter switch.
     def set_buffLim(self, buffLim=rc0('buffLim'), i=None):
-        self._flowCart()
-        self['flowCart'].set_buffLim(buffLim, i)
+        self._RunControl()
+        self['RunControl'].set_buffLim(buffLim, i)
         
     # Get the number of time steps between checkpoints
     def get_checkptTD(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_checkptTD(i)
+        self._RunControl()
+        return self['RunControl'].get_checkptTD(i)
         
     # Set the number of time steps between checkpoints
     def set_checkptTD(self, checkptTD=rc0('checkptTD'), i=None):
-        self._flowCart()
-        self['flowCart'].set_checkptTD(checkptTD, i)
+        self._RunControl()
+        self['RunControl'].set_checkptTD(checkptTD, i)
         
     # Get the number of time steps between visualization outputs
     def get_vizTD(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_vizTD(i)
+        self._RunControl()
+        return self['RunControl'].get_vizTD(i)
         
     # Set the number of time steps visualization outputs
     def set_vizTD(self, vizTD=rc0('vizTD'), i=None):
-        self._flowCart()
-        self['flowCart'].set_vizTD(vizTD, i)
+        self._RunControl()
+        self['RunControl'].set_vizTD(vizTD, i)
         
     # Get the relaxation step command
     def get_fc_clean(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_fc_clean(i)
+        self._RunControl()
+        return self['RunControl'].get_fc_clean(i)
         
     # Set the relaxation step command
     def set_fc_clean(self, fc_clean=rc0('fc_clean'), i=None):
-        self._flowCart()
-        self['flowCart'].set_fc_clean(fc_clean, i)
+        self._RunControl()
+        self['RunControl'].set_fc_clean(fc_clean, i)
         
     # Get the number of iterations to average over
     def get_fc_stats(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_fc_stats(i)
+        self._RunControl()
+        return self['RunControl'].get_fc_stats(i)
     
     # Set the number of iterations to average over
     def set_fc_stats(self, nstats=rc0('fc_stats'), i=None):
-        self._flowCart()
-        self['flowCart'].set_fc_stats(nstats, i)
+        self._RunControl()
+        self['RunControl'].set_fc_stats(nstats, i)
         
     # Get the limiter
     def get_limiter(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_limiter(i)
+        self._RunControl()
+        return self['RunControl'].get_limiter(i)
     
     # Set the limiter
     def set_limiter(self, limiter=rc0('limiter'), i=None):
-        self._flowCart()
-        self['flowCart'].set_limiter(limiter, i)
+        self._RunControl()
+        self['RunControl'].set_limiter(limiter, i)
         
     # Get the y_is_spanwise status
     def get_y_is_spanwise(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_y_is_spanwise(i)
+        self._RunControl()
+        return self['RunControl'].get_y_is_spanwise(i)
         
     # Set the y_is_spanwise status
     def set_y_is_spanwise(self, y_is_spanwise=rc0('y_is_spanwise'), i=None):
-        self._flowCart()
-        self['flowCart'].set_y_is_spanwise(y_is_spanwise, i)
+        self._RunControl()
+        self['RunControl'].set_y_is_spanwise(y_is_spanwise, i)
         
     # Get the binary I/O status
     def get_binaryIO(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_binaryIO(i)
+        self._RunControl()
+        return self['RunControl'].get_binaryIO(i)
         
     # Set the binary I/O status
     def set_binaryIO(self, binaryIO=rc0('binaryIO'), i=None):
-        self._flowCart()
-        self['flowCart'].set_binaryIO(binaryIO, i)
+        self._RunControl()
+        self['RunControl'].set_binaryIO(binaryIO, i)
         
     # Get the Tecplot output status
     def get_tecO(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_tecO(i)
+        self._RunControl()
+        return self['RunControl'].get_tecO(i)
         
     # Set the Tecplot output status
     def set_tecO(self, tecO=rc0('tecO'), i=None):
-        self._flowCart()
-        self['flowCart'].set_tecO(tecO, i)
+        self._RunControl()
+        self['RunControl'].set_tecO(tecO, i)
         
-    # Get the number of threads for flowCart
+    # Get the number of threads
     def get_nProc(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_nProc(i)
+        self._RunControl()
+        return self['RunControl'].get_nProc(i)
         
-    # Set the number of threads for flowCart
+    # Set the number of threads
     def set_nProc(self, nProc=rc0('nProc'), i=None):
-        self._flowCart()
-        self['flowCart'].set_nProc(nProc, i)
+        self._RunControl()
+        self['RunControl'].set_nProc(nProc, i)
         
     # Get the MPI system command
     def get_mpicmd(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_mpicmd(i)
+        self._RunControl()
+        return self['RunControl'].get_mpicmd(i)
         
     # Set the MPI system command
     def set_mpicmd(self, mpicmd=rc0('mpicmd'), i=None):
-        self._flowCart()
-        self['flowCart'].set_mpicmd(mpicmd, i)
+        self._RunControl()
+        self['RunControl'].set_mpicmd(mpicmd, i)
         
     # Get the submittable/nonsubmittalbe status
     def get_qsub(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_qsub(i)
+        self._RunControl()
+        return self['RunControl'].get_qsub(i)
         
     # Set the submittable/nonsubmittalbe status
     def set_qsub(self, qsub=rc0('qsub'), i=None):
-        self._flowCart()
-        self['flowCart'].set_qsub(qsub, i)
+        self._RunControl()
+        self['RunControl'].set_qsub(qsub, i)
         
     # Get the resubmittable/nonresubmittalbe status
     def get_resub(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_resub(i)
+        self._RunControl()
+        return self['RunControl'].get_resub(i)
         
     # Set the resubmittable/nonresubmittalbe status
     def set_resub(self, resub=rc0('resub'), i=None):
-        self._flowCart()
-        self['flowCart'].set_resub(resub, i)
+        self._RunControl()
+        self['RunControl'].set_resub(resub, i)
         
     # Get the current Runge-Kutta scheme
     def get_RKScheme(self, i=None):
-        self._flowCart()
-        return self['flowCart'].get_RKScheme(i)
+        self._RunControl()
+        return self['RunControl'].get_RKScheme(i)
         
     # Set the Runge-Kutta scheme
     def set_RKScheme(self, RK=rc0('RKScheme'), i=None):
-        self._flowCart()
-        self['flowCart'].set_RKScheme(RK, i)
+        self._RunControl()
+        self['RunControl'].set_RKScheme(RK, i)
         
     # Copy over the documentation.
     for k in ['InputSeq', 'IterSeq', 'first_order', 'robust_mode', 'unsteady', 
@@ -692,8 +692,8 @@ class Options(cape.options.Options):
             'it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'tecO', 'fmg', 'pmg',
             'y_is_spanwise', 'binaryIO', 'nProc', 'mpicmd', 'qsub', 'resub']:
         # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(flowCart,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(flowCart,'set_'+k).__doc__
+        eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
    # >
     
     
@@ -707,17 +707,17 @@ class Options(cape.options.Options):
         self._adjointCart()
         return self['adjointCart'].get_it_ad(i)
         
-    # Set flowCart iteration count
+    # Set adjointCart iteration count
     def set_it_ad(self, it_ad=rc0('it_ad'), i=None):
         self._adjointCart()
         self['adjointCart'].set_it_ad(it_ad, i)
     
-    # Get flowCart iteration count
+    # Get adjointCart iteration count
     def get_mg_ad(self, i=None):
         self._adjointCart()
         return self['adjointCart'].get_mg_ad(i)
         
-    # Set flowCart iteration count
+    # Set adjointCart iteration count
     def set_mg_ad(self, mg_ad=rc0('mg_ad'), i=None):
         self._adjointCart()
         self['adjointCart'].set_mg_ad(mg_ad, i)

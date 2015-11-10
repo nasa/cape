@@ -54,6 +54,7 @@ rc = {
     "dt": 0.1,
     "qsub": True,
     "resub": False,
+    "cont": True,
     "y_is_spanwise": True,
     "db_stats": 0,
     "db_min": 0,
