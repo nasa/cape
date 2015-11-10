@@ -36,13 +36,7 @@
             "tm": 0,
             // If this is set to true, angle of attack changes z-velocity
             "y_is_spanwise": true
-	    }
-	},
-
-	// Parameters for creating the mesh
-    "Mesh": {
-        // This can be a list of .tri files.
-        "TriFile": "bullet.tri",
+	    },
         
         // Parameters for autoInputs
         "autoInputs": {
@@ -61,6 +55,12 @@
             "cubes_b": 2,
             "reorder": true
         }
+	},
+
+	// Parameters for creating the mesh
+    "Mesh": {
+        // This can be a list of .tri files.
+        "TriFile": "bullet.tri"
     },
     
     // Describe the reference values and config.

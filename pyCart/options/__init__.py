@@ -29,7 +29,6 @@ import cape.options
 
 # Import modules for controlling specific parts of Cart3D
 from .runControl  import RunControl
-from .adjointCart import adjointCart
 from .Adaptation  import Adaptation
 from .Mesh        import Mesh
 from .pbs         import PBS
@@ -81,7 +80,6 @@ class Options(cape.options.Options):
             self[k] = kw[k]
         # Upgrade important groups to their own classes.
         self._RunControl()
-        self._adjointCart()
         self._Adaptation()
         self._Mesh()
         self._PBS()
@@ -109,17 +107,6 @@ class Options(cape.options.Options):
         elif type(self['RunControl']).__name__ == 'dict':
             # Convert to special class.
             self['RunControl'] = RunControl(**self['RunControl'])
-            
-    # Initialization and confirmation for adjointCart options
-    def _adjointCart(self):
-        """Initialize `adjointCart` options if necessary"""
-        # Check for missing entirely.
-        if 'adjointCart' not in self:
-            # Empty/default
-            self['adjointCart'] = adjointCart()
-        elif type(self['adjointCart']).__name__ == 'dict':
-            # Convert to special class.
-            self['adjointCart'] = adjointCart(**self['adjointCart'])
     
     # Initialization and confirmation for Adaptation options
     def _Adaptation(self):
@@ -342,54 +329,47 @@ class Options(cape.options.Options):
         self['Trajectory']['GroupMesh'] = qGM
    # >
     
-    # ===================
+    # =====================
     # RunControl parameters
-    # ===================
+    # =====================
    # <
-   
-    # Get number of inputs
-    def get_nSeq(self):
+        
+    # Get aero.csh status
+    def get_Adaptive(self, i=None):
         self._RunControl()
-        return self['RunControl'].get_nSeq()
-    # Copy documentation
-    get_nSeq.__doc__ = RunControl.get_nSeq.__doc__
+        return self['RunControl'].get_Adaptive(i)
+        
+    # Set aero.csh status
+    def set_Adaptive(self, ac=rc0('Adaptive'), i=None):
+        self._RunControl()
+        self['RunControl'].set_Adaptive(ac, i)
+        
+    # Get jumpstart status
+    def get_jumpstart(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_jumpstart(i)
+        
+    # Jumpstart status
+    def set_jumpstart(self, js=rc0('jumpstart'), i=None):
+        self._RunControl()
+        self['RunControl'].set_jumpstart(js, i)
     
-    # Get input sequence
-    def get_InputSeq(self, i=None):
-        self._RunControl()
-        return self['RunControl'].get_InputSeq(i)
-        
-    # Set input sequence
-    def set_InputSeq(self, InputSeq=rc0('InputSeq'), i=None):
-        self._RunControl()
-        self['RunControl'].set_InputSeq(InputSeq, i)
-        
-    # Get iteration break points
-    def get_IterSeq(self, i=None):
-        self._RunControl()
-        return self['RunControl'].get_IterSeq(i)
-        
-    # Set Iteration break points
-    def set_IterSeq(self, IterSeq=rc0('IterSeq'), i=None):
-        self._RunControl()
-        return self['RunControl'].set_IterSeq(IterSeq, i)
-    
-    # Get RunControl order
+    # Get flowCart order
     def get_first_order(self, i=None):
         self._RunControl()
         return self['RunControl'].get_first_order(i)
         
-    # Set RunControl order
+    # Set flowCart order
     def set_first_order(self, fo=rc0('first_order'), i=None):
         self._RunControl()
         self['RunControl'].set_first_order(fo, i)
     
-    # Get RunControl robust mode
+    # Get flowCart robust mode
     def get_robust_mode(self, i=None):
         self._RunControl()
         return self['RunControl'].get_robust_mode(i)
         
-    # Set RunControl robust mode
+    # Set flowCart robust mode
     def set_robust_mode(self, rm=rc0('robust_mode'), i=None):
         self._RunControl()
         self['RunControl'].set_robust_mode(rm, i)
@@ -454,16 +434,6 @@ class Options(cape.options.Options):
         self._RunControl()
         self['RunControl'].set_pmg(pmg, i)
         
-    # Get MPI status
-    def get_mpi_fc(self, i=None):
-        self._RunControl()
-        return self['RunControl'].get_mpi_fc(i)
-        
-    # Set MPI status
-    def set_mpi_fc(self, mpi_fc=rc0('mpi_fc'), i=None):
-        self._RunControl()
-        self['RunControl'].set_mpi_fc(mpi_fc, i)
-        
     # Get unsteady status
     def get_unsteady(self, i=None):
         self._RunControl()
@@ -473,26 +443,6 @@ class Options(cape.options.Options):
     def set_unsteady(self, td_fc=rc0('unsteady'), i=None):
         self._RunControl()
         self['RunControl'].set_unsteady(td_fc, i)
-        
-    # Get aero.csh status
-    def get_use_aero_csh(self, i=None):
-        self._RunControl()
-        return self['RunControl'].get_use_aero_csh(i)
-        
-    # Set aero.csh status
-    def set_use_aero_csh(self, ac=rc0('use_aero_csh'), i=None):
-        self._RunControl()
-        self['RunControl'].set_use_aero_csh(ac, i)
-        
-    # Get jumpstart status
-    def get_jumpstart(self, i=None):
-        self._RunControl()
-        return self['RunControl'].get_jumpstart(i)
-        
-    # Jumpstart status
-    def set_jumpstart(self, js=rc0('jumpstart'), i=None):
-        self._RunControl()
-        self['RunControl'].set_jumpstart(js, i)
         
     # Get the nominal CFL number
     def get_cfl(self, i=None):
@@ -524,15 +474,15 @@ class Options(cape.options.Options):
         self._RunControl()
         self['RunControl'].set_dt(dt, i)
         
-    # Get the number of physical time steps to advance
-    def get_nSteps(self, i=None):
+    # Get the number of subiterations
+    def get_it_sub(self, i=None):
         self._RunControl()
-        return self['RunControl'].get_nSteps(i)
+        return self['RunControl'].get_it_sub(i)
         
-    # Set the number of physical time steps to advance
-    def set_nSteps(self, nSteps=rc0('nSteps'), i=None):
+    # Set the number of subiterations
+    def set_it_sub(self, it_sub=rc0('it_sub'), i=None):
         self._RunControl()
-        self['RunControl'].set_nSteps(nSteps, i)
+        self['RunControl'].set_it_sub(it_sub, i)
         
     # Get cut-cell gradient flag
     def get_tm(self, i=None):
@@ -634,46 +584,6 @@ class Options(cape.options.Options):
         self._RunControl()
         self['RunControl'].set_tecO(tecO, i)
         
-    # Get the number of threads
-    def get_nProc(self, i=None):
-        self._RunControl()
-        return self['RunControl'].get_nProc(i)
-        
-    # Set the number of threads
-    def set_nProc(self, nProc=rc0('nProc'), i=None):
-        self._RunControl()
-        self['RunControl'].set_nProc(nProc, i)
-        
-    # Get the MPI system command
-    def get_mpicmd(self, i=None):
-        self._RunControl()
-        return self['RunControl'].get_mpicmd(i)
-        
-    # Set the MPI system command
-    def set_mpicmd(self, mpicmd=rc0('mpicmd'), i=None):
-        self._RunControl()
-        self['RunControl'].set_mpicmd(mpicmd, i)
-        
-    # Get the submittable/nonsubmittalbe status
-    def get_qsub(self, i=None):
-        self._RunControl()
-        return self['RunControl'].get_qsub(i)
-        
-    # Set the submittable/nonsubmittalbe status
-    def set_qsub(self, qsub=rc0('qsub'), i=None):
-        self._RunControl()
-        self['RunControl'].set_qsub(qsub, i)
-        
-    # Get the resubmittable/nonresubmittalbe status
-    def get_resub(self, i=None):
-        self._RunControl()
-        return self['RunControl'].get_resub(i)
-        
-    # Set the resubmittable/nonresubmittalbe status
-    def set_resub(self, resub=rc0('resub'), i=None):
-        self._RunControl()
-        self['RunControl'].set_resub(resub, i)
-        
     # Get the current Runge-Kutta scheme
     def get_RKScheme(self, i=None):
         self._RunControl()
@@ -685,12 +595,12 @@ class Options(cape.options.Options):
         self['RunControl'].set_RKScheme(RK, i)
         
     # Copy over the documentation.
-    for k in ['InputSeq', 'IterSeq', 'first_order', 'robust_mode', 'unsteady', 
-            'mpi_fc', 'use_aero_csh', 'tm', 'nSteps', 'dt', 'checkptTD',
+    for k in ['first_order', 'robust_mode', 'unsteady', 
+            'Adaptive', 'tm', 'dt', 'checkptTD',
             'vizTD', 'fc_clean', 'fc_stats', 'jumpstart', 'RKScheme',
-            'nOrders', 'buffLim', 'it_avg',
+            'nOrders', 'buffLim', 'it_avg', 'it_sub',
             'it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'tecO', 'fmg', 'pmg',
-            'y_is_spanwise', 'binaryIO', 'nProc', 'mpicmd', 'qsub', 'resub']:
+            'y_is_spanwise', 'binaryIO']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
@@ -704,41 +614,123 @@ class Options(cape.options.Options):
     
     # Number of iterations
     def get_it_ad(self, i=None):
-        self._adjointCart()
-        return self['adjointCart'].get_it_ad(i)
+        self._RunControl()
+        return self['RunControl'].get_it_ad(i)
         
     # Set adjointCart iteration count
     def set_it_ad(self, it_ad=rc0('it_ad'), i=None):
-        self._adjointCart()
-        self['adjointCart'].set_it_ad(it_ad, i)
+        self._RunControl()
+        self['RunControl'].set_it_ad(it_ad, i)
     
     # Get adjointCart iteration count
     def get_mg_ad(self, i=None):
-        self._adjointCart()
-        return self['adjointCart'].get_mg_ad(i)
+        self._RunControl()
+        return self['RunControl'].get_mg_ad(i)
         
     # Set adjointCart iteration count
     def set_mg_ad(self, mg_ad=rc0('mg_ad'), i=None):
-        self._adjointCart()
-        self['adjointCart'].set_mg_ad(mg_ad, i)
+        self._RunControl()
+        self['RunControl'].set_mg_ad(mg_ad, i)
         
     # First-order adjoint
     def get_adj_first_order(self, i=None):
-        self._adjointCart()
-        return self['adjointCart'].get_adj_first_order(i)
+        self._RunControl()
+        return self['RunControl'].get_adj_first_order(i)
         
     # First-order adjoint
     def set_adj_first_order(self, adj=rc0('adj_first_order'), i=None):
-        self._adjointCart()
-        self['adjointCart'].set_adj_first_order(adj, i)
+        self._RunControl()
+        self['RunControl'].set_adj_first_order(adj, i)
         
     # Copy over the documentation.
     for k in ['it_ad', 'mg_ad', 'adj_first_order']:
         # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(adjointCart,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(adjointCart,'set_'+k).__doc__
+        eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
    # >
     
+    # ====================
+    # autoInputs and cubes
+    # ====================
+   # <
+   
+    # Get the nominal mesh radius
+    def get_r(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_r(i)
+        
+    # Set the nominal mesh radius
+    def set_r(self, r=rc0('r'), i=None):
+        self._RunControl()
+        self['RunControl'].set_r(r, i)
+        
+    # Get the number of background mesh divisions.
+    def get_nDiv(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_nDiv(i)
+        
+    # Set the number of background mesh divisions.
+    def set_nDiv(self, nDiv=rc0('nDiv'), i=None):
+        self._RunControl()
+        self['RunControl'].set_nDiv(nDiv, i)
+    
+    # Get the number of refinements
+    def get_maxR(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_maxR(i)
+        
+    # Set the number of refinements
+    def set_maxR(self, maxR=rc0('maxR'), i=None):
+        self._RunControl()
+        self['RunControl'].set_maxR(maxR, i)
+        
+    # Get the 'cubes_a' parameter
+    def get_cubes_a(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_cubes_a(i)
+        
+    # Set the 'cubes_a' parameter
+    def set_cubes_a(self, cubes_a=rc0('cubes_a'), i=None):
+        self._RunControl()
+        self['RunControl'].set_cubes_a(cubes_a, i)
+        
+    # Get the 'cubes_b' parameter
+    def get_cubes_b(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_cubes_b(i)
+        
+    # Set the 'cubes_b' parameter
+    def set_cubes_b(self, cubes_b=rc0('cubes_b'), i=None):
+        self._RunControl()
+        self['RunControl'].set_cubes_b(cubes_b, i)
+        
+    # Get the mesh reordering status
+    def get_reorder(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_reorder(i)
+        
+    # Set the mesh reordering status
+    def set_reorder(self, reorder=rc0('reorder'), i=None):
+        self._RunControl()
+        self['RunControl'].set_reorder(reorder, i)
+        
+    # Get the number of extra refinements around sharp edges
+    def get_sf(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_sf(i)
+        
+    # Seth the number of extra refinements around sharp edges
+    def set_sf(self, sf=rc0('sf'), i=None):
+        self._RunControl()
+        self['RunControl'].set_sf(sf, i)
+        
+    # Copy over the documentation.
+    for k in ['r', 'nDiv', 'maxR', 'cubes_a', 'cubes_b', 'reorder', 'sf']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
+   # >
+        
     # ================
     # multigrid levels
     # ================
@@ -1006,75 +998,7 @@ class Options(cape.options.Options):
         self._Mesh()
         self['Mesh'].set_mesh2d(mesh2d, i)
         
-    # Get the nominal mesh radius
-    def get_r(self, i=None):
-        self._Mesh()
-        return self['Mesh'].get_r(i)
-        
-    # Set the nominal mesh radius
-    def set_r(self, r=rc0('r'), i=None):
-        self._Mesh()
-        self['Mesh'].set_r(r, i)
-        
-    # Get the number of background mesh divisions.
-    def get_nDiv(self, i=None):
-        self._Mesh()
-        return self['Mesh'].get_nDiv(i)
-        
-    # Set the number of background mesh divisions.
-    def set_nDiv(self, nDiv=rc0('nDiv'), i=None):
-        self._Mesh()
-        self['Mesh'].set_nDiv(nDiv, i)
     
-    # Get the number of refinements
-    def get_maxR(self, i=None):
-        self._Mesh()
-        return self['Mesh'].get_maxR(i)
-        
-    # Set the number of refinements
-    def set_maxR(self, maxR=rc0('maxR'), i=None):
-        self._Mesh()
-        self['Mesh'].set_maxR(maxR, i)
-        
-    # Get the 'cubes_a' parameter
-    def get_cubes_a(self, i=None):
-        self._Mesh()
-        return self['Mesh'].get_cubes_a(i)
-        
-    # Set the 'cubes_a' parameter
-    def set_cubes_a(self, cubes_a=rc0('cubes_a'), i=None):
-        self._Mesh()
-        self['Mesh'].set_cubes_a(cubes_a, i)
-        
-    # Get the 'cubes_b' parameter
-    def get_cubes_b(self, i=None):
-        self._Mesh()
-        return self['Mesh'].get_cubes_b(i)
-        
-    # Set the 'cubes_b' parameter
-    def set_cubes_b(self, cubes_b=rc0('cubes_b'), i=None):
-        self._Mesh()
-        self['Mesh'].set_cubes_b(cubes_b, i)
-        
-    # Get the mesh reordering status
-    def get_reorder(self, i=None):
-        self._Mesh()
-        return self['Mesh'].get_reorder(i)
-        
-    # Set the mesh reordering status
-    def set_reorder(self, reorder=rc0('reorder'), i=None):
-        self._Mesh()
-        self['Mesh'].set_reorder(reorder, i)
-        
-    # Get the number of extra refinements around sharp edges
-    def get_sf(self, i=None):
-        self._Mesh()
-        return self['Mesh'].get_sf(i)
-        
-    # Seth the number of extra refinements around sharp edges
-    def set_sf(self, sf=rc0('sf'), i=None):
-        self._Mesh()
-        self['Mesh'].set_sf(sf, i)
         
         
     # Copy over the documentation.

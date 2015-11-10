@@ -17,69 +17,97 @@
 	"InputCntl": "input.cntl",
 	"AeroCsh": "aero.csh",
 	
-	// Whether or not to use the same mesh for all cases in a group
-	"GroupMesh": true,
-	
-	// Commands to load at head of run scripts (run_cart3d.pbs)
-	"ShellCmds": [
-	    ". $MODULESHOME/init/bash",
-	    "module load cart3d",
-	    "module load pycart",
-	    "ulimit -S -s 4194304"
-	],
-	
-	// This section sets the parameters for flowCart.
-	// The names for these parameters are copied from `aero.csh`.
-	"flowCart": {
+	// Iteration control and command-line inputs
+	"RunControl": {
 	    // Run sequence
 	    "InputSeq": [0],
 	    "IterSeq": [200],
-	    // flowCart order
-	    "first_order": 0,
-        "robust_mode": 0,
-	    // Use MPI?
-	    "mpi_fc": 0,
-        // Use aero.csh?
-        "use_aero_csh": 0,
-	    // Submit jobs to the queue?
-	    "qsub": false,
-	    // Jobs automatically start next job?
-	    "resub": false,
-	    // Basic number of iterations
-	    "it_fc": 200,
-	    // Nominal CFL number
-	    "cfl": 1.1,
-	    "cflmin": 0.8,
-	    // Multigrid levels for flowcart
-	    "mg_fc": 3,
-	    // Limiter type
-	    "limiter": 2,
-	    // Cut cell gradient
-	    "tm": false,
-        // Full multigrid
-        "fmg": true,
-        // Poly multigrid
-        "pmg": false,
-	    // If this is set to true, angle of attack changes z-velocity
-	    "y_is_spanwise": true,
-	    // Use binary input/output instead of ASCII
-	    "binaryIO": true,
-        // Write a Tecplot triangulation soltuion file
-        "tecO": true,
 	    // Number of threads
 	    "nProc": 8,
-	    // Command to use for MPI
-	    "mpicmd": "mpiexec"
-	},
-	
-	// This section sets the parameters for adjointCart.
-	"adjointCart": {
-	    // Number of iterations
-	    "it_ad": 120,
-	    // Multigrid levels
-	    "mg_ad": 3,
-        // First-order adjoints
-        "adj_first_order": false
+	    // Mode
+	    "Adaptive": false,
+	    "MPI": false,
+	    "qsub": false,
+	    "Resubmit": false,
+	    "Continue": true,
+	    // System interface
+	    "mpicmd": "mpiexec",
+        // Commands to load at head of run scripts (run_cart3d.pbs)
+        "ShellCmds": [
+            ". $MODULESHOME/init/bash",
+            "module load cart3d",
+            "module load pycart",
+            "ulimit -S -s 4194304"
+        ],
+        
+	    // flowCart inputs
+	    "flowCart": {
+            // Basic number of iterations
+            "it_fc": 200,
+            "it_avg": 0,
+            "it_sub": 10,
+            // Unsteady inputs
+            "unsteady": false,
+            "dt": 1.0,
+	        // Runge-Kutta inputs
+            "first_order": 0,
+            "robust_mode": 0,
+            // Nominal CFL number
+            "cfl": 1.1,
+            "cflmin": 0.8,
+            // Multigrid levels for flowcart
+            "mg_fc": 3,
+            // Limiter type
+            "limiter": 2,
+            // Cut cell gradient
+            "tm": false,
+            // Full multigrid
+            "fmg": true,
+            // Poly multigrid
+            "pmg": false,
+            // If this is set to true, angle of attack changes z-velocity
+            "y_is_spanwise": true,
+            // Use binary input/output instead of ASCII
+            "binaryIO": true,
+            // Write a Tecplot triangulation soltuion file
+            "tecO": true,
+            // Unsteady outputs
+            "fc_stats": 0,
+            "vizTD": 0,
+            "checkpointTD": 0
+        },
+        
+        // adjointCart inputs
+        "adjointCart": {
+            // Number of iterations
+            "it_ad": 120,
+            // Multigrid levels
+            "mg_ad": 3,
+            // First-order adjoints
+            "adj_first_order": false
+        },
+        
+        // autoInputs inputs
+        "autoInputs": {
+            // Nominal mesh radius (set to [], "", or 0 to turn off)
+            "r": 8,
+            // Initial number of divisions
+            "nDiv": 4
+        },
+        
+        // cubes inputs
+        "cubes": {
+            // Number of refinements
+            "maxR": 11,
+            // Prespecified bounding boxes (set to [] or "" to turn off)
+            "pre": "preSpec.c3d.cntl",
+            // Angle, buffer layers, and sharp edges
+            "cubes_a": 10,
+            "cubes_b": 2,
+            "sf": 0,
+            // Reorder mesh for better speed
+            "reorder": true
+        }
 	},
 	
 	// Parameters for adaptation
@@ -115,24 +143,12 @@
         "TriFile": "Components.i.tri",
         // Setting for 2D meshes
         "mesh2d": false,
-        
-        // Parameters for autoInputs
-        "autoInputs": {
-            // Nominal mesh radius (set to [], "", or 0 to turn off)
-            "r": 8
-        },
-        
-        // Parameters for cubes
-        "cubes": {
-            // Number of refinements
-            "maxR": 11,
-            // Prespecified bounding boxes (set to [] or "" to turn off)
-            "pre": "preSpec.c3d.cntl",
-            // Internal parameters
-            "cubes_a": 10,
-            "cubes_b": 2,
-            "reorder": true
-        }
+        // Intersection and checking
+        "intersect": false,
+        "verify": false,
+        // Files with standard names
+        "inputC3d": "input.c3d",
+        "preSpecCntl": "preSpec.c3d.cntl"
     },
     
     // Describe the reference values and config.

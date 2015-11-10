@@ -458,18 +458,28 @@ class Options(odict):
         self['RunControl'].set_qsub(qsub, i)
         
     # Get the resubmittable/nonresubmittalbe status
-    def get_resub(self, i=None):
+    def get_Resubmit(self, i=None):
         self._RunControl()
-        return self['RunControl'].get_resub(i)
+        return self['RunControl'].get_Resubmit(i)
         
     # Set the resubmittable/nonresubmittalbe status
-    def set_resub(self, resub=rc0('resub'), i=None):
+    def set_Resubmit(self, resub=rc0('Resubmit'), i=None):
         self._RunControl()
-        self['RunControl'].set_resub(resub, i)
+        self['RunControl'].set_Resubmit(resub, i)
+        
+    # Get the continuance setting for repeated inputs
+    def get_Continue(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_Continue(i)
+        
+    # Set the continuance setting for repeated inputs
+    def set_Continue(self, cont=rc0('Continue'), i=None):
+        self._RunControl()
+        self['RunControl'].set_Continue(cont, i)
         
     # Copy over the documentation.
     for k in ['nIter', 'InputSeq', 'IterSeq',  
-            'MPI', 'nProc', 'mpicmd', 'qsub', 'resub']:
+            'MPI', 'nProc', 'mpicmd', 'qsub', 'Resubmit', 'Continue']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__

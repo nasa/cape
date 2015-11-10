@@ -388,7 +388,7 @@ class RunControl(odict):
         return self.get_key('Resubmit', i)
     
     # Set the resubmittable-job status
-    def set_Resubmit(self, resub=rc0('resub'), i=None):
+    def set_Resubmit(self, resub=rc0('Resubmit'), i=None):
         """Set jobs as resubmittable or nonresubmittable
         
         :Call:
@@ -426,7 +426,7 @@ class RunControl(odict):
         return self.get_key('Continue', i)
         
     # Set the continuance status
-    def set_Continue(self, cont=rc0('continue'), i=None):
+    def set_Continue(self, cont=rc0('Continue'), i=None):
         """Set the resubmit status for restarts of the same input sequence
         
         :Call:
@@ -443,5 +443,5 @@ class RunControl(odict):
         :Versions:
             * 2015-11-08 ``@ddalle``: First version
         """
-        
+        self.set_key('Continue', cont, i)
     

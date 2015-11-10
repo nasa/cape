@@ -276,9 +276,10 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
     # Check for cart3d input
     if cart3d is not None:
         # Get values from internal settings.
-        mpi_fc  = cart3d.opts.get_mpi_fc(i)
+        mpi_fc  = cart3d.opts.get_MPI(i)
         it_fc   = cart3d.opts.get_it_fc(i)
         it_avg  = cart3d.opts.get_it_avg(i)
+        it_sub  = cart3d.opts.get_it_sub(i)
         limiter = cart3d.opts.get_limiter(i)
         y_span  = cart3d.opts.get_y_is_spanwise(i)
         binIO   = cart3d.opts.get_binaryIO(i)
@@ -300,9 +301,10 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         nstats  = cart3d.opts.get_fc_stats(i)
     elif fc is not None:
         # Get values from direct settings.
-        mpi_fc  = fc.get_mpi_fc(i)
+        mpi_fc  = fc.get_MPI(i)
         it_fc   = fc.get_it_fc(i)
         it_avg  = fc.get_it_avg(i)
+        it_sub  = fc.get_it_sub(i)
         limiter = fc.get_limiter(i)
         y_span  = fc.get_y_is_spanwise(i)
         binIO   = fc.get_binaryIO(i)
@@ -324,9 +326,10 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         nstats  = fc.get_fc_stats(i)
     else:
         # Get values from keyword arguments
-        mpi_fc  = kwargs.get('mpi_fc', False)
+        mpi_fc  = kwargs.get('MPI', False)
         it_fc   = kwargs.get('it_fc', 200)
         it_avg  = kwargs.get('it_avg', 0)
+        it_sub  = kwargs.get('it_sub', 10)
         limiter = kwargs.get('limiter', 2)
         y_span  = kwargs.get('y_is_spanwise', True)
         binIO   = kwargs.get('binaryIO', False)
@@ -366,10 +369,11 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
     if (i>0): cmd += ['-restart']
     # Number of steps
     if td_fc:
-        # Increase iteration ocunt.
-        nSteps += kwargs.get('n', 0)
-        # Number of steps and time step
-        if nSteps: cmd += ['-nSteps', str(nSteps)]
+        # Increase iteration count by the number of previously computed iters.
+        it_fc += kwargs.get('n', 0)
+        # Number of steps, subiterations (mg cycles), and time step
+        if it_fc:  cmd += ['-nSteps', str(it_fc)]
+        if it_sub: cmd += ['-N', str(it_sub)]
         if dt:     cmd += ['-dt', str(dt)]
         # Other unsteady options.
         if chkptTD: cmd += ['-checkptTD', str(chkptTD)]
@@ -379,8 +383,8 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
     else:
         # Increase the iteration count.
         it_fc += kwargs.get('n', 0)
-    # Multigrid cycles
-    if it_fc:   cmd += ['-N', str(it_fc)]
+        # Multigrid cycles
+        if it_fc:   cmd += ['-N', str(it_fc)]
     # Add options
     if y_span:  cmd += ['-y_is_spanwise']
     if limiter: cmd += ['-limiter', str(limiter)]
