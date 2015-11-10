@@ -1192,6 +1192,43 @@ class Adaptation(odict):
             * 2014.08.02 ``@ddalle``: First version
         """
         self.set_key('n_adapt_cycles', nAdapt, i)
+    
+    # Get jumpstart status
+    def get_jumpstart(self, i=None):
+        """
+        Return whether or not to "jump start", i.e. create meshes before running
+        :file:`aero.csh`.
+        
+        :Call:
+            >>> js = opts.get_jumpstart()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *js*: :class:`bool`
+                Whether or not to jumpstart
+        :Versions:
+            * 2014-12-04 ``@ddalle``: First version
+        """
+        return self.get_key('jumpstart', i)
+        
+    # Set jumpstart status
+    def set_jumpstart(self, js=rc0('jumpstart'), i=None):
+        """
+        Set whether or not to "jump start", i.e. create meshes before running
+        :file:`aero.csh`.
+        
+        :Call:
+            >>> opts.get_jumpstart(js)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *js*: :class:`bool`
+                Whether or not to jumpstart
+        :Versions:
+            * 2014-12-04 ``@ddalle``: First version
+        """
+        self.set_key('jumpstart', js, i)
         
         
     # Get the adaptation tolerance
@@ -1863,62 +1900,15 @@ class RunControl(cape.options.runControl.RunControl):
         :Versions:
             * 2014-10-03 ``@ddalle``: First version
         """
-        return self.get_key('Adaptive', i)
-    
-    # Set aero.csh status
-    def set_Adaptive(self, ac=rc0('Adaptive'), i=None):
-        """Set whether or not to use `aero.csh`
-        
-        :Call:
-            >>> opts.set_Adaptive(ac, i)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *ac*: :class:`bool` or :class:`list`(:class:`bool`)
-                Whether or not to use `aero.csh`
-            *i*: :class:`int` or ``None``
-                Run index
-        :Versions:
-            * 2014-10-03 ``@ddalle``: First version
-        """
-        self.set_key('Adaptive', ac, i)
-        
-    # Get jumpstart status
-    def get_jumpstart(self, i=None):
-        """
-        Return whether or not to "jump start", i.e. create meshes before running
-        :file:`aero.csh`.
-        
-        :Call:
-            >>> js = opts.get_jumpstart()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *js*: :class:`bool`
-                Whether or not to jumpstart
-        :Versions:
-            * 2014-12-04 ``@ddalle``: First version
-        """
-        return self.get_key('jumpstart', i)
-        
-    # Set jumpstart status
-    def set_jumpstart(self, js=rc0('jumpstart'), i=None):
-        """
-        Set whether or not to "jump start", i.e. create meshes before running
-        :file:`aero.csh`.
-        
-        :Call:
-            >>> opts.get_jumpstart(js)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *js*: :class:`bool`
-                Whether or not to jumpstart
-        :Versions:
-            * 2014-12-04 ``@ddalle``: First version
-        """
-        self.set_key('jumpstart', js, i)
+        # Make sure adaptation settings are present
+        self._Adaptation()
+        # Check the number of cycles
+        if self['Adaptation'].get_key('n_adapt_cycles', i) > 0:
+            # At least one cycle
+            return True
+        else:
+            # ``None`` or ``0``
+            return False
    # >
     
     # ===================
@@ -2234,6 +2224,16 @@ class RunControl(cape.options.runControl.RunControl):
     def set_n_adapt_cycles(self, nAdapt=rc0('n_adapt_cycles'), i=None):
         self._Adaptation()
         self['Adaptation'].set_n_adapt_cycles(nAdapt, i)
+        
+    # Get jumpstart status
+    def get_jumpstart(self, i=None):
+        self._Adaptation()
+        return self['Adaptation'].get_jumpstart(i)
+        
+    # Jumpstart status
+    def set_jumpstart(self, js=rc0('jumpstart'), i=None):
+        self._Adaptation()
+        self['Adaptation'].set_jumpstart(js, i)
     
     # Get error tolerance
     def get_etol(self, i=None):

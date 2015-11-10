@@ -60,7 +60,7 @@ def run_flowCart(verify=False, isect=False):
     # Determine the run index.
     i = GetInputNumber(rc)
     # Create a restart file if appropriate.
-    if not rc.get_use_aero_csh(i):
+    if not rc.get_Adaptive(i):
         # Automatically determine the best check file to use.
         SetRestartIter()
     # Delete any input file.
@@ -69,7 +69,7 @@ def run_flowCart(verify=False, isect=False):
     # Create the correct input file.
     os.symlink('input.%02i.cntl' % i, 'input.cntl')
     # Extra prep for adaptive --> non-adaptive
-    if (i>0) and (not rc.get_use_aero_csh(i)) and (os.path.isdir('BEST')
+    if (i>0) and (not rc.get_Adaptive(i)) and (os.path.isdir('BEST')
             and (not os.path.isfile('history.dat'))):
         # Go to the best adaptive result.
         os.chdir('BEST')
@@ -84,7 +84,7 @@ def run_flowCart(verify=False, isect=False):
             # Copy the file.
             shutil.copy('BEST/'+fname, fname)
     # Convince aero.csh to use the *new* input.cntl
-    if (i>0) and (rc.get_use_aero_csh(i)) and (rc.get_use_aero_csh(i-1)):
+    if (i>0) and (rc.get_Adaptive(i)) and (rc.get_Adaptive(i-1)):
         # Go to the best adaptive result.
         os.chdir('BEST')
         # Check for an input.cntl file
@@ -105,7 +105,7 @@ def run_flowCart(verify=False, isect=False):
     if os.path.islink('Components.i.plt'): os.remove('Components.i.plt')
     if os.path.islink('cutPlanes.plt'):    os.remove('cutPlanes.plt')
     # Check for adaptive runs.
-    if rc.get_use_aero_csh(i):
+    if rc.get_Adaptive(i):
         # Delete the existing aero.csh file
         if os.path.islink('aero.csh'): os.remove('aero.csh')
         # Create a link to this run.
@@ -177,7 +177,7 @@ def run_flowCart(verify=False, isect=False):
     if rc.get_unsteady(i):
         manage.TarViz()
     # Tar old adaptation folders.
-    if rc.get_use_aero_csh(i):
+    if rc.get_Adaptive(i):
         manage.TarAdapt()
     # Last reported iteration number
     n = GetHistoryIter()

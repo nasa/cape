@@ -318,7 +318,7 @@ class Cart3d(Cntl):
         # Go to working folder. ('.' or 'adapt??/')
         os.chdir(case.GetWorkingFolder())
         # Check for a mesh file?
-        if not opts.get_use_aero_csh(0) or opts.get_jumpstart(0):
+        if not opts.get_Adaptive(0) or opts.get_jumpstart(0):
             # Intersected mesh file.
             if not os.path.isfile('Components.i.tri'): q = False
             # Mesh file.
@@ -672,7 +672,7 @@ class Cart3d(Cntl):
         # Read the settings.
         fc = case.ReadCaseJSON()
         # Check for which mesh file to look for.
-        if fc.get_use_aero_csh(0):
+        if fc.get_Adaptive(0):
             # Mesh file is gone or will be created during aero.csh
             pass
         elif self.opts.get_mg() > 0:
@@ -856,7 +856,7 @@ class Cart3d(Cntl):
             # Initialize options to `run_flowCart.py`
             flgs = ''
             # Check for potential need of preprocessing.
-            qflg = j==0 and (self.opts.get_use_aero_csh(0) 
+            qflg = j==0 and (self.opts.get_Adaptive(0) 
                 and not self.opts.get_jumpstart(0))
             # Check for `verify` call.
             if qflg and self.opts.get_verify():
@@ -1197,7 +1197,7 @@ class Cart3d(Cntl):
             * 2015-10-14 ``@ddalle``: Revived from deletion
         """
         # Check for adaptation.
-        if not np.any(self.opts.get_use_aero_csh()): return
+        if not np.any(self.opts.get_Adaptive()): return
         # Change to root safely.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)

@@ -325,21 +325,7 @@ class Options(cape.options.Options):
     def get_Adaptive(self, i=None):
         self._RunControl()
         return self['RunControl'].get_Adaptive(i)
-        
-    # Set aero.csh status
-    def set_Adaptive(self, ac=rc0('Adaptive'), i=None):
-        self._RunControl()
-        self['RunControl'].set_Adaptive(ac, i)
-        
-    # Get jumpstart status
-    def get_jumpstart(self, i=None):
-        self._RunControl()
-        return self['RunControl'].get_jumpstart(i)
-        
-    # Jumpstart status
-    def set_jumpstart(self, js=rc0('jumpstart'), i=None):
-        self._RunControl()
-        self['RunControl'].set_jumpstart(js, i)
+    get_Adaptive.__doc__ = RunControl.get_Adaptive.__doc__
     
     # Get flowCart order
     def get_first_order(self, i=None):
@@ -583,8 +569,8 @@ class Options(cape.options.Options):
         
     # Copy over the documentation.
     for k in ['first_order', 'robust_mode', 'unsteady', 
-            'Adaptive', 'tm', 'dt', 'checkptTD',
-            'vizTD', 'fc_clean', 'fc_stats', 'jumpstart', 'RKScheme',
+            'tm', 'dt', 'checkptTD',
+            'vizTD', 'fc_clean', 'fc_stats', 'RKScheme',
             'nOrders', 'buffLim', 'it_avg', 'it_sub',
             'it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'tecO', 'fmg', 'pmg',
             'y_is_spanwise', 'binaryIO']:
@@ -793,30 +779,6 @@ class Options(cape.options.Options):
         self.set_mg_ad(mg, i)
    # >
         
-    # =================
-    # Output functional
-    # =================
-   # <
-    
-    # Get the optForces
-    def get_optForces(self):
-        self._Functional()
-        return self['Functional'].get_optForces()
-    get_optForces.__doc__ = Functional.get_optForces.__doc__
-    
-    # Get the optSensors
-    def get_optSensors(self):
-        self._Functional()
-        return self['Functional'].get_optSensors()
-    get_optSensors.__doc__ = Functional.get_optSensors.__doc__
-    
-    # Get the optMoments
-    def get_optMoments(self):
-        self._Functional()
-        return self['Functional'].get_optMoments()
-    get_optMoments.__doc__ = Functional.get_optMoments.__doc__
-   # >
-        
     # ===================
     # Adaptation settings
     # ===================
@@ -831,6 +793,16 @@ class Options(cape.options.Options):
     def set_n_adapt_cycles(self, nAdapt=rc0('n_adapt_cycles'), i=None):
         self._RunControl()
         self['RunControl'].set_n_adapt_cycles(nAdapt, i)
+        
+    # Get jumpstart status
+    def get_jumpstart(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_jumpstart(i)
+        
+    # Jumpstart status
+    def set_jumpstart(self, js=rc0('jumpstart'), i=None):
+        self._RunControl()
+        self['RunControl'].set_jumpstart(js, i)
     
     # Get error tolerance
     def get_etol(self, i=None):
@@ -903,13 +875,37 @@ class Options(cape.options.Options):
         self['RunControl'].set_final_mesh_xref(xref, i)
         
     # Copy over the documentation.
-    for k in ['n_adapt_cycles', 'etol', 'max_nCells', 'ws_it',
+    for k in ['n_adapt_cycles', 'jumpstart', 'etol', 'max_nCells', 'ws_it',
             'mesh_growth', 'apc', 'abuff', 'final_mesh_xref']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
    # >
    
+        
+    # =================
+    # Output functional
+    # =================
+   # <
+    
+    # Get the optForces
+    def get_optForces(self):
+        self._Functional()
+        return self['Functional'].get_optForces()
+    get_optForces.__doc__ = Functional.get_optForces.__doc__
+    
+    # Get the optSensors
+    def get_optSensors(self):
+        self._Functional()
+        return self['Functional'].get_optSensors()
+    get_optSensors.__doc__ = Functional.get_optSensors.__doc__
+    
+    # Get the optMoments
+    def get_optMoments(self):
+        self._Functional()
+        return self['Functional'].get_optMoments()
+    get_optMoments.__doc__ = Functional.get_optMoments.__doc__
+   # >
     
     # ========================
     # mesh creation parameters

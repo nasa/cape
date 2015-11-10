@@ -25,7 +25,6 @@
 	    // Number of threads
 	    "nProc": 8,
 	    // Mode
-	    "Adaptive": false,
 	    "MPI": false,
 	    "qsub": false,
 	    "Resubmit": false,
