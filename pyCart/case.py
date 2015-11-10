@@ -96,7 +96,7 @@ def run_flowCart(verify=False, isect=False):
         # Copy the new input file.
         shutil.copy('input.%02i.cntl' % i, 'BEST/input.cntl')
     # Check for flowCart vs. mpi_flowCart
-    if not rc.get_mpi_fc(i):
+    if not rc.get_MPI(i):
         # Get the number of threads, which may be irrelevant.
         nProc = rc.get_nProc()
         # Set it.
@@ -227,15 +227,8 @@ def run_flowCart(verify=False, isect=False):
     # Check current iteration count.
     if n >= rc.get_LastIter():
         return
-    # Resubmit if asked.
-    if rc.get_resub(i):
-        # Run full restart command, including qsub if appropriate
-        StartCase()
-    else:
-        # Get the name of the PBS script
-        fpbs = GetPBSScript(i)
-        # Just run the case directly (keep the same PBS job).
-        bin.callf(['bash', fpbs])
+    # Run full restart command, including qsub if appropriate
+    StartCase(i)
     
     
 
@@ -293,25 +286,44 @@ def VerifyCase(verify=False):
     bin.verify('Components.i.tri')
 
 # Function to call script or submit.
-def StartCase():
+def StartCase(i0=None):
     """Start a case by either submitting it or calling with a system command
     
     :Call:
-        >>> pyCart.case.StartCase()
+        >>> pyCart.case.StartCase(i0=None)
+    :Inputs:
+        *i0*: :class:`int` | ``None``
+            Run sequence index of the previous run
     :Versions:
         * 2014-10-06 ``@ddalle``: First version
+        * 2015-11-08 ``@ddalle``: Added resubmit/continue functionality
     """
     # Get the config.
     rc = ReadCaseJSON()
     # Determine the run index.
     i = GetInputNumber(rc)
     # Check qsub status.
-    if rc.get_qsub(i):
+    if not rc.get_qsub(i):
+        # Run the case.
+        run_flowCart()
+    elif i == 0:
+        # Submit first case
         # Get the name of the PBS file.
         fpbs = GetPBSScript(i)
         # Submit the case.
         pbs = queue.pqsub(fpbs)
         return pbs
+    elif rc.get_Resubmit(i):
+        # Check for continuance
+        if (i0 is None) or (i>i0) or (not rc.get_Continue(i)):
+            # Get the name of the PBS file.
+            fpbs = GetPBSScript(i)
+            # Submit the case.
+            pbs = queue.pqsub(fpbs)
+            return pbs
+        else:
+            # Continue on the same job
+            run_flowCart()
     else:
         # Simply run the case. Don't reset modules either.
         run_flowCart()

@@ -244,5 +244,38 @@ class Mesh(odict):
             * 2014-08-03 ``@ddalle``: First version
         """
         self.set_key('mesh2d', mesh2d, i)
+        
+    # Get input.c3d file name (Not using autoInputs)
+    def get_inputC3d(self):
+        """Get the ``cubes`` input file name if not using ``autoInputs``
+        
+        :Call:
+            >>> fc3d = opts.get_inputC3d()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *fc3d*: :class:`str`
+                Name of input file
+        :Versions:
+            * 2015-11-08 ``@ddalle``: Redone
+        """
+        return self.get_key('inputC3d', 0)
+        
+    # Set the input.c3d file name
+    def set_inputC3d(self, fc3d=rc0('inputC3d')):
+        """Set the ``cubes`` input file name if not using ``autoInputs``
+        
+        :Call:
+            >>> opts.set_inputC3d(fc3d)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *fc3d*: :class:`str`
+                Name of input file
+        :Versions:
+            * 2015-11-08 ``@ddalle``: Redone
+        """
+        self['inputC3d'] = fc3d
     
 

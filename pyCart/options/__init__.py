@@ -972,8 +972,19 @@ class Options(cape.options.Options):
         self._Mesh()
         self['Mesh'].set_mesh2d(mesh2d, i)
         
+    # ``cubes`` input file
+    def get_inputC3d(self):
+        self._Mesh()
+        return self['Mesh'].get_inputC3d()
+    
+    # ``cubes`` input file
+    def set_inputC3d(self, fc3d=rc0('inputC3d')):
+        self._Mesh()
+        self['Mesh'].set_inputC3d(fc3d)
+        
     # Copy over the documentation.
-    for k in ['verify', 'intersect', 'TriFile', 'BBox', 'XLev', 'mesh2d']:
+    for k in ['verify', 'intersect', 'TriFile', 'BBox', 'XLev', 'mesh2d',
+            'inputC3d']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Mesh,'set_'+k).__doc__
