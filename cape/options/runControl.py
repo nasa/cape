@@ -7,12 +7,306 @@ now, nonunique section names are not allowed.
 """
 
 # Ipmort options-specific utilities
-from util import rc0, odict
+from util import rc0, odict, getel
 
-# Class for namelist settings
+# Environment class
+class Environ(odict):
+    """Class for environment variables"""
+    
+    # Get an environment variable by name
+    def get_Environ(self, key, i=0):
+        """Get an environment variable setting by name of environment variable
+        
+        :Call:
+            >>> val = opts.get_Environ(key, i=0)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *key*: :class:`str`
+                Name of the environment variable
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *val*: :class:`str`
+                Value to set the environment variable to
+        :Versions:
+            * 2015-11-10 ``@ddalle``: First version
+        """
+        # Check for the key.
+        if key not in self:
+            raise KeyError("Environment variable '%s' is not set in JSON file"
+                % key)
+        # Get the setting or list of settings
+        V = self[key]
+        # Select the value for run sequence *i*
+        return str(getel(V, i))
+        
+    # Set an environment variable by name
+    def set_Environ(self, key, val, i=None):
+        """Set an environment variable setting by name of environment variable
+        
+        :Call:
+            >>> val = opts.get_Environ(key, i=0)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *key*: :class:`str`
+                Name of the environment variable
+            *val*: :class:`str`
+                Value to set the environment variable to
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2015-11-10 ``@ddalle``: First version
+        """
+        # Initialize the key if necessary.
+        self.setdefault(key, "")
+        # Set the value by run sequence.
+        self[key] = setel(self[key], str(val), i)
+# class Environ
+
+# Resource limits class
+class ulimit(odict):
+    """Class for resource limits"""
+    
+    # Get a ulimit setting
+    def get_ulimit(self, u, i=0):
+        """Get a resource limit (``ulimit``) setting by its command-line flag
+        
+        :Call:
+            >>> l = opts.get_ulimit(u, i=0)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *u*: :class:`str`
+                Name of the ``ulimit`` flag
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *l*: :class:`int`
+                Value of the resource limit
+        :Versions:
+            * 2015-11-10 ``@ddalle``: First version
+        """
+        # Check for setting
+        if u not in self:
+            # Default flag name
+            rcu = 'ulimit_' + u
+            # Check for default
+            if rcu in rc0:
+                # Use the default setting
+                return rc0[rcu]
+            else:
+                # No setting found
+                raise KeyError("Found no setting for 'ulimit -%s'" % u)
+        # Process the setting
+        V = self[u]
+        # Select the value for run sequence *i*
+        return getel(V, i)
+        
+    # Set a ulimit setting
+    def set_ulimit(self, u, l=None, i=None):
+        """Set a resource limit (``ulimit``) setting by its command-line flag
+        
+        :Call:
+            >>> opts.set_ulimit(u, l=None, i=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *u*: :class:`str`
+                Name of the ``ulimit`` flag
+            *l*: :class:`int`
+                Value of the limit
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2015-11-10 ``@ddalle``: First version
+        """
+        # Get default
+        if l is None: udef = rc0["ulimit_%s"%u]
+        # Initialize if necessary.
+        self.setdefault(u, None)
+        # Set the value.
+        self[key] = setel(self[u], l, i)
+        
+    # Stack size
+    def get_s(self, i=0):
+        """Get the stack size limit, ``ulimit -s``
+        
+        :Call:
+            >>> s = opts.get_s(i=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *s*: :class:`int`
+                Value of the stack size limit
+        :Versions:
+            * 2015-11-10 ``@ddalle``: First version
+        """
+        return self.get_ulimit('s', i)
+        
+    # Stack size
+    def set_s(self, s, i=0):
+        """Get the stack size limit, ``ulimit -s``
+        
+        :Call:
+            >>> opts.set_s(s, i=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *s*: :class:`int`
+                Value of the stack size limit
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2015-11-10 ``@ddalle``: First version
+        """
+        self.set_ulimit('s', s, i)
+        
+    # Stack size
+    def get_stack_size(self, i=0):
+        """Get the stack size limit, ``ulimit -s``
+        
+        :Call:
+            >>> s = opts.get_stack_size(i=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *s*: :class:`int`
+                Value of the stack size limit
+        :Versions:
+            * 2015-11-10 ``@ddalle``: First version
+        """
+        return self.get_s(i)
+        
+    # Stack size
+    def set_stack_size(self, s, i=0):
+        """Get the stack size limit, ``ulimit -s``
+        
+        :Call:
+            >>> opts.set_stack_size(s, i=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *s*: :class:`int`
+                Value of the stack size limit
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2015-11-10 ``@ddalle``: First version
+        """
+        self.set_s(i)
+        
+        
+# class ulimit
+
+# Class for iteration & mode control settings and command-line inputs
 class RunControl(odict):
     """Dictionary-based interface for generic code run control"""
     
+    # Initialization method
+    def __init__(self, fname=None, **kw):
+        # Store the data in *this* instance
+        for k in kw:
+            self[k] = kw[k]
+        # Upgrade important groups to their own classes.
+        self._Environ()
+        self._ulimit()
+    
+    # ===========
+    # Environment
+    # ===========
+   # <
+    
+    # Environment variable interface
+    def _Environ(self):
+        """Initialize environment variables if necessary"""
+        if 'Environ' not in self:
+            # Empty/default
+            self['Environ'] = Environ()
+        elif type(self['Environ']).__name__ == 'dict':
+            # Convert to special class
+            self['Environ'] = Environ(**self['Environ'])
+    
+    # Get environment variable
+    def get_Environ(self, key, i=0):
+        self._Environ()
+        return self['Environ'].get_Environ(key, i)
+        
+    # Set environment variable
+    def set_Environ(self, key, val, i=None):
+        self._Environ()
+        self['Environ'].set_Environ(key, val, i)
+        
+    # Copy documentation
+    for k in ['Environ']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(Environ,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(Environ,'set_'+k).__doc__
+   # >
+   
+    # ===============
+    # Resource Limits
+    # ===============
+   # <
+   
+    # Environment variable interface
+    def _ulimit(self):
+        """Initialize environment variables if necessary"""
+        if 'ulimit' not in self:
+            # Empty/default
+            self['ulimit'] = ulimit()
+        elif type(self['ulimit']).__name__ == 'dict':
+            # Convert to special class
+            self['ulimit'] = ulimit(**self['ulimit'])
+    
+    # Get resource limit variable
+    def get_ulimit(self, u, i=0):
+        self._ulimit()
+        return self['ulimit'].get_ulimit(u, i)
+        
+    # Set resource limit variable
+    def set_ulimit(self, u, l, i=None):
+        self._ulimit()
+        self['ulimit'].set_Environ(u, l, i)
+        
+    # Stack size
+    def get_ulimit_s(self, i=0):
+        self._ulimit()
+        return self['ulimit'].get_s(i)
+        
+    # Stack size
+    def set_ulimit_s(self, s=rc0('ulimit_s'), i=0):
+        self._ulimit()
+        self['ulimit'].set_s(s, i)
+        
+    # Stack size
+    def get_stack_size(self, i=0):
+        self._ulimit()
+        return self['ulimit'].get_stack_size(i)
+    
+    # Stack size
+    def set_stack_size(self, s=rc0('ulimit_s'), i=0):
+        self._ulimit()
+        self['ulimit'].set_stack_size(s, i)
+        
+    # Copy documentation
+    for k in ['ulimit', 'stack_size']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(ulimit,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(ulimit,'set_'+k).__doc__
+   # >
+    
+    # =============== 
+    # Local Functions
+    # ===============
+   # <
     # Number of iterations
     def get_nIter(self, i=None):
         """Return the number of iterations for run sequence *i*
@@ -52,47 +346,6 @@ class RunControl(odict):
         self.set_key('nIter', nIter, i)
     
 
-    # Function to get the shell commands
-    def get_ShellCmds(self):
-        """Get shell commands, if any
-        
-        :Call:
-            >>> cmds = opts.get_ShellCmds()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *cmds*: :class:`list` (:class:`str`)
-                List of initialization commands
-        :Versions:
-            * 2015-11-08 ``@ddalle``: Moved to "RunControl"
-        """
-        # Get the commands.
-        cmds = self.get('ShellCmds', [])
-        # Turn to a list if not.
-        if type(cmds).__name__ != 'list':
-            cmds = [cmds]
-        # Output
-        return cmds
-        
-    # Function to set the shell commands
-    def set_ShellCmds(self, cmds):
-        """Set shell commands
-        
-        :Call:
-            >>> opts.set_ChellCmds(cmds=[])
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *cmds*: :class:`list` (:class:`str`)
-                List of initialization commands
-        :Versions:
-            * 2015-11-08 ``@ddalle``: First version
-        """
-        # Set them.
-        self['ShellCmds'] = cmds
-            
-    
     # Run input sequence
     def get_InputSeq(self, i=None):
         """Return the input sequence for `flowCart`
@@ -444,4 +697,6 @@ class RunControl(odict):
             * 2015-11-08 ``@ddalle``: First version
         """
         self.set_key('Continue', cont, i)
-    
+   # >
+   
+# class RunControl

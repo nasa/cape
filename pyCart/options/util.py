@@ -127,6 +127,7 @@ rc = {
     "PBS_W": "",
     "PBS_q": "normal",
     "PBS_walltime": "8:00:00",
+    "ulimit_s": 4194304,
     "ArchiveFolder": "",
     "ArchiveFormat": "tar",
     "ArchiveAction": "skeleton",

@@ -14,12 +14,14 @@ command-line options to run.
     * 2015-09-07 ``@ddalle``: First documentation
 """
 
+# Reused classes
+from cape.case import PrepareEnvironment
 # Import options class
 from options.runControl import RunControl
 # Interface for writing commands
 from . import cmd, queue, manage, bin
 
-# Need triangulations for cases with `intersect`
+# Need triangulations for cases with `intersect` and for averaging
 from .tri import Tri, Triq
 
 # Read the local JSON file.
@@ -101,8 +103,8 @@ def run_flowCart(verify=False, isect=False):
         nProc = rc.get_nProc()
         # Set it.
         os.environ['OMP_NUM_THREADS'] = str(nProc)
-    # Set a huge stack size limit.
-    resource.setrlimit(resource.RLIMIT_STACK, (4294967296, 4294967296))
+    # Prepare environment variables (other than OMP_NUM_THREADS)
+    PrepareEnvironment(rc, i)
     # Get rid of linked plt files
     if os.path.islink('Components.i.plt'): os.remove('Components.i.plt')
     if os.path.islink('cutPlanes.plt'):    os.remove('cutPlanes.plt')

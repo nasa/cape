@@ -11,7 +11,7 @@ Actual functionality is left to individual modules such as :mod:`pyCart.case`.
 """
 
 # Import options class
-from options.util import odict
+from options.runControl import RunControl
 # Interface for writing commands
 from . import queue
 
@@ -21,7 +21,7 @@ from .tri import Tri, Triq
 # Read the local JSON file.
 import json
 # File control
-import os, glob, shutil
+import os, resource, glob, shutil
 # Basic numerics
 from numpy import nan, isnan
 
@@ -50,14 +50,14 @@ def StartCase():
         return pbs
     else:
         # Simply run the case. Don't reset modules either.
-        run_flowCart()
+        pass
         
 # Function to delete job and remove running file.
 def StopCase():
     """Stop a case by deleting its PBS job and removing :file:`RUNNING` file
     
     :Call:
-        >>> pyCart.case.StopCase()
+        >>> case.StopCase()
     :Versions:
         * 2014-12-27 ``@ddalle``: First version
     """
@@ -76,10 +76,10 @@ def ReadCaseJSON():
     """Read Cape settings for local case
     
     :Call:
-        >>> fc = cape.case.ReadCaseJSON()
+        >>> rc = cape.case.ReadCaseJSON()
     :Outputs:
-        *fc*: :class:`pyCart.options.flowCart.flowCart`
-            Options interface for `flowCart`
+        *rc*: :class:`cape.options.runControl.RunControl`
+            Options interface for run control and command-line inputs
     :Versions:
         * 2014-10-02 ``@ddalle``: First version
     """
@@ -90,9 +90,40 @@ def ReadCaseJSON():
     # Close the file.
     f.close()
     # Convert to a Cape options object.
-    fc = odict(**opts)
+    fc = RunControl(**opts)
     # Output
     return fc
+    
+# Function to set the environment
+def PrepareEnvironment(rc, i=0):
+    """Set environment variables and alter any resource limits (``ulimit``)
+    
+    :Call:
+        >>> case.PrepareEnvironment(rc, i=0)
+    :Inputs:
+        *rc*: :class:`cape.options.runControl.RunControl`
+            Options interface for run control and command-line inputs
+        *i*: :class:`int`
+            Run sequence number
+    :Versions:
+        * 2015-11-10 ``@ddalle``: First version
+    """
+    # Loop through environment variables.
+    for key in rc.get('Environ', {}):
+        # Get the environment variable
+        val = rc.get_Environ(key, i)
+        # Set the environment variable.
+        os.environ[key] = val
+    # Set the stack size
+    s = rc.get_stack_size(i)
+    # Check the type.
+    if s > 0:
+        # Set the value numerically.
+        resource.setrlimit(resource.RLIMIT_STACK, (1024*s, 1024*s))
+    else:
+        # Set unlimited
+        resource.setrlimit(resource.RLIMIT_STACK, 
+            (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
     
 # Function to get most recent L1 residual
 def GetCurrentIter():

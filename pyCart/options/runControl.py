@@ -1807,7 +1807,16 @@ class cubes(odict):
         """
         self.set_key('pre', fpre)
 # class cubes
-        
+
+# Class for environment variables
+class Environ(cape.options.runControl.Environ):
+    pass
+# class Environ
+
+# Class for resource limits
+class ulimit(cape.options.runControl.ulimit):
+    pass
+# class ulimit
 
 # Class for flowCart settings
 class RunControl(cape.options.runControl.RunControl):
@@ -1824,7 +1833,14 @@ class RunControl(cape.options.runControl.RunControl):
         self._Adaptation()
         self._autoInputs()
         self._cubes()
+        self._Environ()
+        self._ulimit()
     
+    # ============ 
+    # Initializers
+    # ============
+   # <
+   
     # Initialization and confirmation for flowCart options
     def _flowCart(self):
         """Initialize `flowCart` optiosn if necessary"""
@@ -1877,7 +1893,28 @@ class RunControl(cape.options.runControl.RunControl):
         elif type(self['cubes']).__name__ == 'dict':
             # Convert to special class.
             self['cubes'] = cubes(**self['cubes'])
-        
+            
+    # Environment variable interface
+    def _Environ(self):
+        """Initialize environment variables if necessary"""
+        if 'Environ' not in self:
+            # Empty/default
+            self['Environ'] = Environ()
+        elif type(self['Environ']).__name__ == 'dict':
+            # Convert to special class
+            self['Environ'] = Environ(**self['Environ'])
+            
+    # Environment variable interface
+    def _ulimit(self):
+        """Initialize environment variables if necessary"""
+        if 'ulimit' not in self:
+            # Empty/default
+            self['ulimit'] = ulimit()
+        elif type(self['ulimit']).__name__ == 'dict':
+            # Convert to special class
+            self['ulimit'] = ulimit(**self['ulimit'])
+            
+   # >
     
     # ============== 
     # Local settings

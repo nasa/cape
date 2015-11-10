@@ -228,6 +228,46 @@ class Options(odict):
     # Global Options
     # ==============
    # <
+   
+    # Function to get the shell commands
+    def get_ShellCmds(self):
+        """Get shell commands, if any
+        
+        :Call:
+            >>> cmds = opts.get_ShellCmds()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *cmds*: :class:`list` (:class:`str`)
+                List of initialization commands
+        :Versions:
+            * 2015-11-08 ``@ddalle``: Moved to "RunControl"
+        """
+        # Get the commands.
+        cmds = self.get('ShellCmds', [])
+        # Turn to a list if not.
+        if type(cmds).__name__ != 'list':
+            cmds = [cmds]
+        # Output
+        return cmds
+        
+    # Function to set the shell commands
+    def set_ShellCmds(self, cmds):
+        """Set shell commands
+        
+        :Call:
+            >>> opts.set_ChellCmds(cmds=[])
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *cmds*: :class:`list` (:class:`str`)
+                List of initialization commands
+        :Versions:
+            * 2015-11-08 ``@ddalle``: First version
+        """
+        # Set them.
+        self['ShellCmds'] = cmds
     
     # Method to get the max number of jobs to submit.
     def get_nSubmit(self):
@@ -407,15 +447,25 @@ class Options(odict):
         self._RunControl()
         return self['RunControl'].set_IterSeq(IterSeq, i)
         
-    # Get shell commands
-    def get_ShellCmds(self):
+    # Get environment variable(s)
+    def get_Environ(self, i=None):
         self._RunControl()
-        return self['RunControl'].get_ShellCmds()
+        return self['RunControl'].get_Environ(i)
     
-    # Set shell commands
-    def set_ShellCmds(self, cmds=[]):
+    # Set environment variable
+    def set_Environ(self, key, val, i=None):
         self._RunControl()
-        sellf['RunControl'].set_ShellCmds(cmds)
+        self['RunControl'].set_Environ(key, val, i)
+        
+    # Get ulimit parameter
+    def get_ulimit(self, u='s', i=None):
+        self._RunControl()
+        return self['RunControl'].get_ulimit(u, i)
+        
+    # Set ulimit parameter
+    def set_ulimit(self, u, l, i=None):
+        self._RunControl()
+        self['RunControl'].set_ulimit(u, l, i)
         
     # Get MPI status
     def get_MPI(self, i=None):
@@ -478,7 +528,7 @@ class Options(odict):
         self['RunControl'].set_Continue(cont, i)
         
     # Copy over the documentation.
-    for k in ['nIter', 'InputSeq', 'IterSeq',  
+    for k in ['nIter', 'InputSeq', 'IterSeq', 'Environ', 'ulimit',
             'MPI', 'nProc', 'mpicmd', 'qsub', 'Resubmit', 'Continue']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__

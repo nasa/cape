@@ -13,6 +13,14 @@
         "walltime": "2:00:00"
     },
     
+    // Commands to load at head of run scripts (run_cart3d.pbs)
+    "ShellCmds": [
+        ". $MODULESHOME/init/bash",
+        "module load cart3d",
+        "module load pycart",
+        "ulimit -S -s 4194304"
+    ],
+    
 	// The names of these two files have the obvious defaults.
 	"InputCntl": "input.cntl",
 	"AeroCsh": "aero.csh",
@@ -31,13 +39,8 @@
 	    "Continue": true,
 	    // System interface
 	    "mpicmd": "mpiexec",
-        // Commands to load at head of run scripts (run_cart3d.pbs)
-        "ShellCmds": [
-            ". $MODULESHOME/init/bash",
-            "module load cart3d",
-            "module load pycart",
-            "ulimit -S -s 4194304"
-        ],
+        "Environ": {},
+        "ulimit": {"s": 4194304},
         
 	    // flowCart inputs
 	    "flowCart": {
