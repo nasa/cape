@@ -87,6 +87,35 @@
             "adj_first_order": false
         },
         
+        // Parameters for adaptation
+        "Adaptation": {
+            // Whether or not to use initial mesh
+            "jumpstart": false,
+            // Number of adaptation cycles
+            "n_adapt_cycles": 0,
+            // Functional error tolerance
+            "etol": 0.000001,
+            // Stop adapting when this number of cells is reached
+            "max_nCells": 25000000,
+            
+            // Number of flowCart iters on each new mesh
+            //  cycle  1   2   3   4   5   6   7   8   9  10   11+  
+            "ws_it": [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 100],
+            
+            // Growth in the number of cells
+            //       cycle   1    2    3    4    5    6    7+  
+            "mesh_growth": [1.5 ,1.5, 2.0, 2.0, 2.0, 2.0, 2.5],
+            
+            // Adaptation type, see `aero.csh` for more info
+            // cycle 1    2+
+            "apc": ["p", "a"],
+            
+            // Number of buffer layers
+            "buf": 1,
+            // Number of extra refinements on final error map
+            "final_mesh_xref": 0
+        },
+        
         // autoInputs inputs
         "autoInputs": {
             // Nominal mesh radius (set to [], "", or 0 to turn off)
@@ -108,33 +137,6 @@
             // Reorder mesh for better speed
             "reorder": true
         }
-	},
-	
-	// Parameters for adaptation
-	"Adaptation": {
-	    // Number of adaptation cycles
-	    "n_adapt_cycles": 0,
-	    // Functional error tolerance
-	    "etol": 0.000001,
-	    // Stop adapting when this number of cells is reached
-        "max_nCells": 25000000,
-	    
-	    // Number of flowCart iters on each new mesh
-	    //  cycle  1   2   3   4   5   6   7   8   9  10   11+  
-	    "ws_it": [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 100],
-	    
-	    // Growth in the number of cells
-	    //       cycle   1    2    3    4    5    6    7+  
-	    "mesh_growth": [1.5 ,1.5, 2.0, 2.0, 2.0, 2.0, 2.5],
-	    
-	    // Adaptation type, see `aero.csh` for more info
-	    // cycle 1    2+
-	    "apc": ["p", "a"],
-        
-        // Number of buffer layers
-        "buf": 1,
-        // Number of extra refinements on final error map
-        "final_mesh_xref": 0
 	},
 
 	// Parameters for creating the mesh

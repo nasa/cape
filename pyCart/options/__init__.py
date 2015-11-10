@@ -29,7 +29,6 @@ import cape.options
 
 # Import modules for controlling specific parts of Cart3D
 from .runControl  import RunControl
-from .Adaptation  import Adaptation
 from .Mesh        import Mesh
 from .pbs         import PBS
 from .Config      import Config
@@ -80,7 +79,6 @@ class Options(cape.options.Options):
             self[k] = kw[k]
         # Upgrade important groups to their own classes.
         self._RunControl()
-        self._Adaptation()
         self._Mesh()
         self._PBS()
         self._Config()
@@ -107,17 +105,6 @@ class Options(cape.options.Options):
         elif type(self['RunControl']).__name__ == 'dict':
             # Convert to special class.
             self['RunControl'] = RunControl(**self['RunControl'])
-    
-    # Initialization and confirmation for Adaptation options
-    def _Adaptation(self):
-        """Initialize adaptation options if necessary"""
-        # Check status
-        if 'Adaptation' not in self:
-            # Missing entirely
-            self['Adaptation'] = Adaptation()
-        elif type(self['Adaptation']).__name__ == 'dict':
-            # Convert to special class.
-            self['Adaptation'] = Adaptation(**self['Adaptation'])
     
     # Initialization and confirmation for Adaptation options
     def _Mesh(self):
@@ -837,90 +824,90 @@ class Options(cape.options.Options):
     
     # Get number of adapt cycles
     def get_n_adapt_cycles(self, i=None):
-        self._Adaptation()
-        return self['Adaptation'].get_n_adapt_cycles(i)
+        self._RunControl()
+        return self['RunControl'].get_n_adapt_cycles(i)
         
     # Set number of adapt cycles
     def set_n_adapt_cycles(self, nAdapt=rc0('n_adapt_cycles'), i=None):
-        self._Adaptation()
-        self['Adaptation'].set_n_adapt_cycles(nAdapt, i)
+        self._RunControl()
+        self['RunControl'].set_n_adapt_cycles(nAdapt, i)
     
     # Get error tolerance
     def get_etol(self, i=None):
-        self._Adaptation()
-        return self['Adaptation'].get_etol(i)
+        self._RunControl()
+        return self['RunControl'].get_etol(i)
         
     # Set error tolerance
     def set_etol(self, etol=rc0('etol'), i=None):
-        self._Adaptation()
-        self['Adaptation'].set_etol(etol, i)
+        self._RunControl()
+        self['RunControl'].set_etol(etol, i)
     
     # Get maximum cell count
     def get_max_nCells(self, i=None):
-        self._Adaptation()
-        return self['Adaptation'].get_max_nCells(i)
+        self._RunControl()
+        return self['RunControl'].get_max_nCells(i)
         
     # Set maximum cell count
     def set_max_nCells(self, etol=rc0('max_nCells'), i=None):
-        self._Adaptation()
-        self['Adaptation'].set_max_nCells(etol, i)
+        self._RunControl()
+        self['RunControl'].set_max_nCells(etol, i)
     
     # Get flowCart iterations on refined meshes
     def get_ws_it(self, i=None):
-        self._Adaptation()
-        return self['Adaptation'].get_ws_it(i)
+        self._RunControl()
+        return self['RunControl'].get_ws_it(i)
         
     # Set flowCart iterations on refined meshes
     def set_ws_it(self, ws_it=rc0('ws_it'), i=None):
-        self._Adaptation()
-        self['Adaptation'].set_ws_it(ws_it, i)
+        self._RunControl()
+        self['RunControl'].set_ws_it(ws_it, i)
         
     # Get mesh growth ratio
     def get_mesh_growth(self, i=None):
-        self._Adaptation()
-        return self['Adaptation'].get_mesh_growth(i)
+        self._RunControl()
+        return self['RunControl'].get_mesh_growth(i)
         
     # Set mesh growth ratio
     def set_mesh_growth(self, mesh_growth=rc0('mesh_growth'), i=None):
-        self._Adaptation()
-        self['Adaptation'].set_mesh_growth(mesh_growth, i)
+        self._RunControl()
+        self['RunControl'].set_mesh_growth(mesh_growth, i)
         
     # Get mesh refinement cycle type
     def get_apc(self, i=None):
-        self._Adaptation()
-        return self['Adaptation'].get_apc(i)
+        self._RunControl()
+        return self['RunControl'].get_apc(i)
         
     # Set mesh refinement cycle type
     def set_apc(self, apc=rc0('apc'), i=None):
-        self._Adaptation()
-        self['Adaptation'].set_apc(apc, i)
+        self._RunControl()
+        self['RunControl'].set_apc(apc, i)
         
     # Get number of buffer layers
     def get_abuff(self, i=None):
-        self._Adaptation()
-        return self['Adaptation'].get_abuff(i)
+        self._RunControl()
+        return self['RunControl'].get_abuff(i)
         
     # Set number of buffer layers
     def set_abuff(self, buf=rc0('buf'), i=None):
-        self._Adaptation()
-        self['Adaptation'].set_abuff(abuff, i)
+        self._RunControl()
+        self['RunControl'].set_abuff(abuff, i)
     
     # Get number of additional adaptations on final error map
     def get_final_mesh_xref(self, i=None):
-        self._Adaptation()
-        return self['Adaptation'].get_final_mesh_xref(i)
+        self._RunControl()
+        return self['RunControl'].get_final_mesh_xref(i)
     
     # Set number of additional adaptations on final error map
     def set_final_mesh_xref(self, xref=rc0('final_mesh_xref'), i=None):
-        self._Adaptation()
-        self['Adaptation'].set_final_mesh_xref(xref, i)
+        self._RunControl()
+        self['RunControl'].set_final_mesh_xref(xref, i)
         
     # Copy over the documentation.
     for k in ['n_adapt_cycles', 'etol', 'max_nCells', 'ws_it',
             'mesh_growth', 'apc', 'abuff', 'final_mesh_xref']:
         # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(Adaptation,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(Adaptation,'set_'+k).__doc__
+        eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
    # >
    
     

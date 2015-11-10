@@ -1151,6 +1151,316 @@ class adjointCart(odict):
         self.set_key('adj_first_order', adj, i)
 # class adjointCart
 
+# Class for flowCart settings
+class Adaptation(odict):
+    """Dictionary-based interfaced for options for Cart3D adaptation"""
+    
+    
+    # Get number of adaptation cycles
+    def get_n_adapt_cycles(self, i=None):
+        """Return the number of Cart3D number of adaptation cycles
+        
+        :Call:
+            >>> nAdapt = opts.get_n_adapt_cycles(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *nAdapt*: :class:`int` or :class:`list`(:class:`int`)
+                Number of adaptation cycles
+        :Versions:
+            * 2014.08.02 ``@ddalle``: First version
+        """
+        return self.get_key('n_adapt_cycles', i)
+        
+    # Set adjointCart iteration count
+    def set_n_adapt_cycles(self, nAdapt=rc0('n_adapt_cycles'), i=None):
+        """Set the number of Cart3D adaptation cycles
+        
+        :Call:
+            >>> opts.set_n_adaptation_cycles(nAdapt, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *nAdapt*: :class:`int` or :class:`list`(:class:`int`)
+                Number of iterations for run *i* or all runs if ``i==None``
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014.08.02 ``@ddalle``: First version
+        """
+        self.set_key('n_adapt_cycles', nAdapt, i)
+        
+        
+    # Get the adaptation tolerance
+    def get_etol(self, i=None):
+        """Return the target output error tolerance
+        
+        :Call:
+            >>> etol = opts.get_etol(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *etol*: :class:`float` or :class:`list`(:class:`float`)
+                Output error tolerance
+        :Versions:
+            * 2014.08.02 ``@ddalle``: First version
+        """
+        return self.get_key('etol', i)
+        
+    # Set the adaptation tolerance
+    def set_etol(self, etol=rc0('etol'), i=None):
+        """Set the output error tolerance
+        
+        :Call:
+            >>> opts.set_etol(etol, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *etol*: :class:`float` or :class:`list`(:class:`float`)
+                Output error tolerance
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014.08.02 ``@ddalle``: First version
+        """
+        self.set_key('etol', etol, i)
+        
+        
+    # Get the maximum cell count
+    def get_max_nCells(self, i=None):
+        """Return the maximum cell count
+        
+        :Call:
+            >>> max_nCells = opts.get_max_nCells(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *etol*: :class:`float` or :class:`list`(:class:`float`)
+                Output error tolerance
+        :Versions:
+            * 2014.08.02 ``@ddalle``: First version
+        """
+        return self.get_key('etol', i)
+    
+    # Set the maximum cell count
+    def set_max_nCells(self, max_nCells=rc0('max_nCells'), i=None):
+        """Return the maximum cell count
+        
+        :Call:
+            >>> max_nCells = opts.get_max_nCells(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *etol*: :class:`float` or :class:`list`(:class:`float`)
+                Output error tolerance
+        :Versions:
+            * 2014.08.02 ``@ddalle``: First version
+        """
+        self.set_key('max_nCells', max_nCells)
+        
+        
+    # Get the number of flowCart iterations for refined meshes
+    def get_ws_it(self, i=None):
+        """Get number of `flowCart` iterations on refined mesh *i*
+        
+        :Call:
+            >>> ws_it = opts.get_ws_it(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *ws_it*: :class:`int` or :class:`list`(:class:`int`)
+                Number of `flowCart` iterations
+        :Versions:
+            * 2014.08.02 ``@ddalle``: First version
+        """
+        return self.get_key('ws_it', i)
+    
+    # Set the number of flowcart iterations fore refined meshes
+    def set_ws_it(self, ws_it=rc0('ws_it'), i=None):
+        """Set number of `flowCart` iterations on refined mesh *i*
+        
+        :Call:
+            >>> opts.set_ws_it(ws_it, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *ws_it*: :class:`int` or :class:`list`(:class:`int`)
+                Number of `flowCart` iterations
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014.08.02 ``@ddalle``: First version
+        """
+        self.set_key('ws_it', ws_it, i)
+        
+    
+    # Get the mesh growth ratio for refinement i
+    def get_mesh_growth(self, i=None):
+        """Get the refinement cell count ratio
+        
+        :Call:
+            >>> mesh_growth = opts.get_mesh_growth(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *mesh_growth*: :class:`float` or :class:`list`(:class:`float`)
+                Refinement mesh growth ratio
+        :Versions:
+            * 2014.08.02 ``@ddalle``: First version
+        """
+        return self.get_key('mesh_growth', i)
+    
+    # Set the number of flowcart iterations fore refined meshes
+    def set_mesh_growth(self, mesh_growth=rc0('mesh_growth'), i=None):
+        """Set the refinement cell count ratio
+        
+        :Call:
+            >>> opts.set_mesh_growth(mesh_growth, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *mesh_growth*: :class:`float` or :class:`list`(:class:`float`)
+                Refinement mesh growth ratio
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014.08.02 ``@ddalle``: First version
+        """
+        self.set_key('mesh_growth', mesh_growth, i)
+    
+    
+    # Get the adaptation type
+    def get_apc(self, i=None):
+        """Get the adaptation type
+        
+        :Call:
+            >>> apc = opts.get_apc(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *apc*: :class:`str` or :class:`list`(:class:`str`)
+                Adaptation cycle type, ``"a"`` or ``"p"``
+        :Versions:
+            * 2014.08.02 ``@ddalle``: First version
+        """
+        return self.get_key('apc', i)
+    
+    # Set the adaptation type
+    def set_apc(self, apc=rc0('apc'), i=None):
+        """Set the adaptation type
+        
+        :Call:
+            >>> opts.set_apc(apc, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *apc*: :class:`str` or :class:`list`(:class:`str`)
+                Adaptation cycle type, ``"a"`` or ``"p"``
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014.08.02 ``@ddalle``: First version
+        """
+        self.set_key('apc', apc, i)
+
+
+    # Get the number of buffer layers
+    def get_abuff(self, i=None):
+        """Get the number of buffer layers
+        
+        :Call:
+            >>> buf = opts.get_abuff(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *buf*: :class:`int` or :class:`list`(:class:`int`)
+                Number of buffer layers
+        :Versions:
+            * 2014-11-14 ``@ddalle``: First version
+        """
+        return self.get_key('buf', i)
+        
+    # Set the number of buffer layers.
+    def set_abuff(self, buf=rc0('buf'), i=None):
+        """Set the number of buffer layers
+        
+        :Call:
+            >>> opts.set_abuff(buf, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *buf*: :class:`int` or :class:`list`(:class:`int`)
+                Number of buffer layers
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014-11-14 ``@ddalle``: First version
+        """
+        self.set_key('buf', buf, i)
+
+
+    # Get the number of additional adaptations using same error map
+    def get_final_mesh_xref(self, i=None):
+        """Get the number additional adaptations to perform on final error map
+        
+        :Call:
+            >>> xref = opts.get_final_mesh_xref(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *xref*: :class:`int` or :class:`list`(:class:`int`)
+                Number of additional adaptations
+        :Versions:
+            * 2014-11-19 ``@ddalle``: First version
+        """
+        return self.get_key('final_mesh_xref', i)
+
+    # Set the number of additional adaptations using same error map
+    def set_final_mesh_xref(self, xref=rc0('final_mesh_xref'), i=None):
+        """Set the number additional adaptations to perform on final error map
+        
+        :Call:
+            >>> opts.set_final_mesh_xref(xref, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *xref*: :class:`int` or :class:`list`(:class:`int`)
+                Number of additional adaptations
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2014-11-19 ``@ddalle``: First version
+        """
+        self.set_key('final_mesh_xref', xref, i)
+# class Adaptation
+
 # Class for autoInputs
 class autoInputs(odict):
     """Dictionary-based interface for `autoInputs` options"""
@@ -1419,8 +1729,6 @@ class cubes(odict):
         """
         self.set_key('sf', sf, i)
     
-            
-    
     # Get the mesh prespecification file
     def get_preSpecCntl(self):
         """Return the template :file:`preSpec.c3d.cntl` file
@@ -1446,7 +1754,6 @@ class cubes(odict):
             # Specified value
             return fpre
 
-        
     # Set the mesh prespecification file
     def set_preSpecCntl(self, fpre=rc0('pre')):
         """Set the template :file:`preSpec.c3d.cntl` file
@@ -1462,7 +1769,6 @@ class cubes(odict):
             * 2014-10-08 ``@ddalle``: First version
         """
         self.set_key('pre', fpre)
-            
 # class cubes
         
 
@@ -1478,6 +1784,7 @@ class RunControl(cape.options.runControl.RunControl):
         # Upgrade important groups to their own classes.
         self._flowCart()
         self._adjointCart()
+        self._Adaptation()
         self._autoInputs()
         self._cubes()
     
@@ -1502,6 +1809,17 @@ class RunControl(cape.options.runControl.RunControl):
             self['adjointCart'] = adjointCart(**self['adjointCart'])
     
     # Initialization and confirmation for autoInputs options
+    def _Adaptation(self):
+        """Initialize adaptive options if necessary"""
+        # Check for missing entirely.
+        if 'Adaptation' not in self:
+            # Empty/default
+            self['Adaptation'] = Adaptation()
+        elif type(self['Adaptation']).__name__ == 'dict':
+            # Convert to special class.
+            self['Adaptation'] = Adaptation(**self['Adaptation'])
+    
+    # Initialization and confirmation for autoInputs options
     def _autoInputs(self):
         """Initialize `autoInputs` options if necessary"""
         # Check for missing entirely.
@@ -1523,6 +1841,11 @@ class RunControl(cape.options.runControl.RunControl):
             # Convert to special class.
             self['cubes'] = cubes(**self['cubes'])
         
+    
+    # ============== 
+    # Local settings
+    # ==============
+   # <
     # Get aero.csh status
     def get_Adaptive(self, i=None):
         """Return whether or not to use `aero.csh`
@@ -1596,8 +1919,7 @@ class RunControl(cape.options.runControl.RunControl):
             * 2014-12-04 ``@ddalle``: First version
         """
         self.set_key('jumpstart', js, i)
-    
-    
+   # >
     
     # ===================
     # flowCart parameters
@@ -1896,6 +2218,99 @@ class RunControl(cape.options.runControl.RunControl):
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(adjointCart,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(adjointCart,'set_'+k).__doc__
+   # >
+    
+    # ===================
+    # Adaptation settings
+    # ===================
+   # <
+    
+    # Get number of adapt cycles
+    def get_n_adapt_cycles(self, i=None):
+        self._Adaptation()
+        return self['Adaptation'].get_n_adapt_cycles(i)
+        
+    # Set number of adapt cycles
+    def set_n_adapt_cycles(self, nAdapt=rc0('n_adapt_cycles'), i=None):
+        self._Adaptation()
+        self['Adaptation'].set_n_adapt_cycles(nAdapt, i)
+    
+    # Get error tolerance
+    def get_etol(self, i=None):
+        self._Adaptation()
+        return self['Adaptation'].get_etol(i)
+        
+    # Set error tolerance
+    def set_etol(self, etol=rc0('etol'), i=None):
+        self._Adaptation()
+        self['Adaptation'].set_etol(etol, i)
+    
+    # Get maximum cell count
+    def get_max_nCells(self, i=None):
+        self._Adaptation()
+        return self['Adaptation'].get_max_nCells(i)
+        
+    # Set maximum cell count
+    def set_max_nCells(self, etol=rc0('max_nCells'), i=None):
+        self._Adaptation()
+        self['Adaptation'].set_max_nCells(etol, i)
+    
+    # Get flowCart iterations on refined meshes
+    def get_ws_it(self, i=None):
+        self._Adaptation()
+        return self['Adaptation'].get_ws_it(i)
+        
+    # Set flowCart iterations on refined meshes
+    def set_ws_it(self, ws_it=rc0('ws_it'), i=None):
+        self._Adaptation()
+        self['Adaptation'].set_ws_it(ws_it, i)
+        
+    # Get mesh growth ratio
+    def get_mesh_growth(self, i=None):
+        self._Adaptation()
+        return self['Adaptation'].get_mesh_growth(i)
+        
+    # Set mesh growth ratio
+    def set_mesh_growth(self, mesh_growth=rc0('mesh_growth'), i=None):
+        self._Adaptation()
+        self['Adaptation'].set_mesh_growth(mesh_growth, i)
+        
+    # Get mesh refinement cycle type
+    def get_apc(self, i=None):
+        self._Adaptation()
+        return self['Adaptation'].get_apc(i)
+        
+    # Set mesh refinement cycle type
+    def set_apc(self, apc=rc0('apc'), i=None):
+        self._Adaptation()
+        self['Adaptation'].set_apc(apc, i)
+        
+    # Get number of buffer layers
+    def get_abuff(self, i=None):
+        self._Adaptation()
+        return self['Adaptation'].get_abuff(i)
+        
+    # Set number of buffer layers
+    def set_abuff(self, buf=rc0('buf'), i=None):
+        self._Adaptation()
+        self['Adaptation'].set_abuff(abuff, i)
+    
+    # Get number of additional adaptations on final error map
+    def get_final_mesh_xref(self, i=None):
+        self._Adaptation()
+        return self['Adaptation'].get_final_mesh_xref(i)
+    
+    # Set number of additional adaptations on final error map
+    def set_final_mesh_xref(self, xref=rc0('final_mesh_xref'), i=None):
+        self._Adaptation()
+        self['Adaptation'].set_final_mesh_xref(xref, i)
+        
+    # Copy over the documentation.
+    for k in ['n_adapt_cycles', 'etol', 'max_nCells', 'ws_it',
+            'mesh_growth', 'apc', 'abuff', 'final_mesh_xref']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(Adaptation,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(Adaptation,'set_'+k).__doc__
    # >
     
     # ==========
