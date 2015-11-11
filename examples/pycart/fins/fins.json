@@ -1,22 +1,31 @@
 {
-    // Setup for run scripts
-	"ShellCmds": [
-        "ulimit -S -s 4194304"
-	],
-    
 	// Control for the solver itself
-	"flowCart": {
+	"RunControl": {
         // Run sequence
         "InputSeq": [0],
         "IterSeq": [200],
-	    "it_fc": 200,
-	    // Options for ``flowCart``
-        "mpi_fc": 0,
-        "use_aero_csh": 0,
-	    "cfl": 1.1,
-	    "mg_fc": 3,
-	    "y_is_spanwise": true,
-	    "nProc": 4
+        // System inputs
+	    "nProc": 4,
+        // Options for ``flowCart``
+        "flowCart": {
+            "it_fc": 200,
+            "cfl": 1.1,
+            "mg_fc": 3,
+            "y_is_spanwise": true
+	    },
+        // Defines the flow domain automatically
+        "autoInputs": {
+            "r": 8,
+            "nDiv": 4
+        },
+        // Volume mesh options
+        "cubes": {
+            "maxR": 10,
+            "pre": "preSpec.c3d.cntl",
+            "cubes_a": 10,
+            "cubes_b": 2,
+            "reorder": true
+        }
 	},
 
 	// Mesh settings
@@ -30,17 +39,7 @@
             "inputs/fin2.tri",
             "inputs/fin3.tri",
             "inputs/fin4.tri"
-        ],
-        // Defines the flow domain automatically
-        "autoInputs": {"r": 8},
-        // Volume mesh options
-        "cubes": {
-            "maxR": 10,
-            "pre": "preSpec.c3d.cntl",
-            "cubes_a": 10,
-            "cubes_b": 2,
-            "reorder": true
-        }
+        ]
     },
     
     // Describe the reference values and config.
