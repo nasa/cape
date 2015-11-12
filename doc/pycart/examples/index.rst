@@ -15,3 +15,4 @@ pyCart and Cart3D.
     bullet
     arrow
     fins
+    bJet/bJet

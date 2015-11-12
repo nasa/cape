@@ -72,9 +72,98 @@ Then ``intersect`` is run with the command run above, which generates
 :file:`Components.o.tri`.  This file also has only five component IDs, and these
 are mapped back into the original component ID numbering by comparing to
 :file:`Components.c.tri` to generate the final triangulation
-:file:`Components.i.tri` with its seven component IDs.  This may seem like a
-minor point, but pyCart has been used for configurations with more than 200
-component IDs in three bodies.  Splitting the intersected triangulations back
-into organized component IDs would be exceedingly difficult without this tool.
+:file:`Components.i.tri` with its seven component IDs.
+
+Otherwise, the solution proceeds in the same manner as a non-intersecting case. 
+Let's take a closer look at the ``"Mesh"`` and ``"Trajectory"`` sections of the
+pyCart input file :file:`fins.json` to explain how this was set up.
+
+    .. code-block:: javascript
+    
+        "Mesh": {
+            // Intersect
+            "intersect": true,
+            // Surface triangulation
+            "TriFile": [
+                "inputs/bullet.tri",
+                "inputs/fin1.tri",
+                "inputs/fin2.tri",
+                "inputs/fin3.tri",
+                "inputs/fin4.tri"
+            ]
+        },
+        
+The ``"Mesh"`` section is relatively simple but contains a little bit more
+information than the default section.  The individual water-tight volumes are
+split into separate ``tri`` files, which provides pyCart two layers of
+information about how to split up the surface.  Each ``tri`` file may contain
+multiple component IDs (in this case, only :file:`bullet.tri` contains more than
+one component ID), but each file should contain a single closed surface.  Then
+pyCart combines all these triangulations before intersecting them.  If 
+*intersect* is not set to ``true``, using multiple triangulation files has
+little effect.
+
+    .. code-block:: javascript
+    
+        // Trajectory (i.e. run matrix) description
+        "Trajectory": {
+            // Global run matrix definitions
+            "Keys": ["Mach", "alpha_t", "phi", "d2", "d4"],
+            "File": "inputs/matrix.csv",
+            "GroupMesh": true,
+            "GroupPrefix": "poweroff",
+            // Customized key definitions
+            "Definitions": {
+                // Rotate fin 2
+                "d2": {
+                    "Group": true,
+                    "Type": "rotation",
+                    "CompID": "fin2",
+                    "Vector": [[7.2,0,0], [7.2,-1,0]],
+                    ++"Value": "float",
+                    "Format": "%+03i_"
+                },
+                // Rotate fin 4
+                "d4": {
+                    "Group": true,
+                    "Type": "rotation",
+                    "CompID": "fin4",
+                    "Vector": [[7.2,0,0], [7.2,1,0]],
+                    "Value": "float",
+                    "Format": "%+03i"
+                }
+            }
+        }
+        
+The ``"Trajectory"`` section, which defines the run matrix input variables, is
+more interesting, so let's go through the settings one-by-one.  The *Keys* input
+sets the list of input variables.  The first three are common variables for many
+configurations and as such are automatically recognized by pyCart.  The *File*
+parameter simply points to a file that contains the values of each input
+variable at which to run the configuration.
+
+Setting *GroupMesh* to true tells pyCart that the run matrix can be split into
+groups of cases such that each case in one group can use the same mesh, and
+*GroupPrefix* sets the base name of the group folders.
+
+The last parameter, *Definitions*, is the interesting part of this example.
+Because *Mach*, *alpha_t*, and *phi* are such common input variables (called
+"trajectory keys" in CAPE terminology) that we can rely on the default
+definitions.  (Default trajectory key definitions can be altered by editing the
+file ``$PYCART/settings/pyCart.default.json``.)  The other two parameters are
+fin rotations, which require customization.
+
+The trajectory key *d2* is set up to rotate fin #2.  We set *Group* to ``true``
+because cases with the same fin deflections can use the same mesh.  The *Type*
+is set to ``"rotation"``, which pyCart recognizes and reduces some of our work
+in defining it here.  We set *CompID* to ``"fin2"``, which tells pyCart to
+rotate any triangles in the component defined as ``"fin2"`` in the
+:file:`Config.xml` file.  Then *Vector* gives a list of two points that define a
+vector about which to rotate the points.
+
+Finally, *Format* sets a ``printf`` style format string for how the value is
+printed in the folder name.  It's set to integer in this example, which would
+create problems for fin deflection angles like ``2.1``.  Anyway, this example
+shows how to set up general component rotations very quickly.
 
 

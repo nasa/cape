@@ -114,6 +114,7 @@ below.
     :maxdepth: 2
     :numbered:
     
+    install
     pycart/index
     script/index
     template/index

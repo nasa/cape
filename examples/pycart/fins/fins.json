@@ -56,7 +56,7 @@
     
     // Trajectory (i.e. run matrix) description
     "Trajectory": {
-        # Global run matrix definitions
+        // Global run matrix definitions
         "Keys": ["Mach", "alpha_t", "phi", "d2", "d4"],
         "File": "inputs/matrix.csv",
         "GroupMesh": true,
@@ -67,18 +67,18 @@
             "d2": {
                 "Group": true,
                 "Type": "rotation",
-                "Value": "float",
                 "CompID": "fin2",
                 "Vector": [[7.2,0,0], [7.2,-1,0]],
+                "Value": "float",
                 "Format": "%+03i_"
             },
             // Rotate fin 4
             "d4": {
                 "Group": true,
                 "Type": "rotation",
-                "Value": "float",
                 "CompID": "fin4",
                 "Vector": [[7.2,0,0], [7.2,1,0]],
+                "Value": "float",
                 "Format": "%+03i"
             }
         }

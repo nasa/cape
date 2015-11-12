@@ -16,7 +16,7 @@ set     app        cape
 set     version    current
 
 # Local variables
-set  CAPE   $HOME/cape_0.4c
+set  CAPE   $HOME/cape_0.5
 
 # Set environment variables
 setenv  CAPE              $CAPE

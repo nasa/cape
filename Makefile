@@ -11,7 +11,7 @@ all: build
 
 .PHONY: build
 build:
-	(cd $(MODULEDIR); ./build.py)
+	(cd $(CAPEDIR); ./build.py; cd ../$(CARTDIR); ./build.py)
 
 .PHONY: pycart
 pycart:
@@ -23,4 +23,4 @@ cape:
 
 .PHONY: clean
 clean:
-	(cd $(MODULEDIR); rm _pycart.so)
+	(cd $(CAPEDIR); rm _cape.so; cd ../$(CARTDIR); rm _pycart.so
