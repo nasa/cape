@@ -40,35 +40,37 @@ the major parts of the file.
     
         {
             // Stand-alone options
-            "nSubmit": 10,
             "ShellCmds": [],
             "InputCntl": "input.cntl",
             "AeroCsh": "aero.csh",
-            "GroupMesh": true,
             
             // Settings for creating PBS scripts, if applicable
             "PBS": {},
             
-            // Primary settings for running flowCart
-            "flowCart": {
-                // Some of these variables are specific to pyCart
+            // Primary settings for running Cart3D
+            "RunControl": {
+                // Overall control of mode and number of iterations
                 "InputSeq": [0, 1],
                 "IterSeq": [0, 1500],
                 "qsub": false,
-                // Most variables use their names from `aero.csh`
-                "it_fc": 500,
-                "mg_fc": 3
+                // Inputs to flowCart
+                "flowCart": {
+                    "it_fc": 500,
+                    "mg_fc": 3
+                },
+                // Meshing options
+                "autoInputs": {},
+                "cubes": {},
+                // Adaptation settings
+                "adjointCart": {},
+                "Adaptation": {
+                    "n_adapt_cycles": [2, 5],
+                    "ws_it": [200]
+                },
             },
             
             // Options for running adjointCart, if an adaptive run
             "adjointCart": {},
-            
-            // Settings to control adaptation.
-            "Adaptation": {
-                // These share names with variables in `aero.csh`
-                "n_adapt_cycles": [2, 5],
-                "ws_it": [200]
-            },
             
             // Settings to define the initial mesh
             "Mesh": {},
@@ -94,10 +96,11 @@ the major parts of the file.
             // Mandatory definition of run matrix.
             "Trajectory": {
                 // This method points to a file that contains run conditions.
-                "File": "Trajectory.dat",
+                "File": "Trajectory.csv",
                 // It is mandatory to define what the input variables are.
                 "Keys": ["Mach", "alpha", "beta"],
-                "GroupPrefix": "poweroff"
+                "GroupPrefix": "poweroff",
+                "GroupMesh": false
             }
         }
         
