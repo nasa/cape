@@ -1936,16 +1936,29 @@ class RunControl(cape.options.runControl.RunControl):
                 Whether or not to use `aero.csh`
         :Versions:
             * 2014-10-03 ``@ddalle``: First version
+            * 2015-11-13 ``@ddalle``: ``use_aero_csh`` -> ``Adaptive``
         """
-        # Make sure adaptation settings are present
-        self._Adaptation()
-        # Check the number of cycles
-        if self['Adaptation'].get_key('n_adapt_cycles', i) > 0:
-            # At least one cycle
-            return True
-        else:
-            # ``None`` or ``0``
-            return False
+        return self.get_key('Adaptive', i)
+        
+    # Set aero.csh status
+    def set_Adaptive(self, ac=rc0('Adaptive'), i=None):
+        """Return whether or not to use `aero.csh`
+        
+        :Call:
+            >>> opts.set_Adaptive(ac, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *ac*: :class:`bool` or :class:`list`(:class:`bool`)
+                Whether or not to use `aero.csh`
+        :Versions:
+            * 2014-10-03 ``@ddalle``: First version
+            * 2015-11-13 ``@ddalle``: ``use_aero_csh`` -> ``Adaptive``
+        """
+        self.set_key('Adaptive', ac, i)
    # >
     
     # ===================

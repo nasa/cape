@@ -131,6 +131,15 @@ def UH3D2Tri(*a, **kw):
         tri.Nodes[abs(tri.Nodes[:,1])<=float(ytol), 1] = 0.0
     if ztol is not None:
         tri.Nodes[abs(tri.Nodes[:,2])<=float(ztol), 2] = 0.0
+        
+    # Check for nudges
+    dx = kw.get('dx')
+    dy = kw.get('dy')
+    dz = kw.get('dz')
+    # Apply nudges
+    if dx is not None: tri.Nodes[:,0] += float(dx)
+    if dy is not None: tri.Nodes[:,1] += float(dy)
+    if dz is not None: tri.Nodes[:,2] += float(dz)
     
     # Write it.
     tri.Write(ftri)

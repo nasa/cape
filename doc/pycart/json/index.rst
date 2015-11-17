@@ -69,9 +69,6 @@ the major parts of the file.
                 },
             },
             
-            // Options for running adjointCart, if an adaptive run
-            "adjointCart": {},
-            
             // Settings to define the initial mesh
             "Mesh": {},
             

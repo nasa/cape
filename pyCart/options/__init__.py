@@ -325,7 +325,11 @@ class Options(cape.options.Options):
     def get_Adaptive(self, i=None):
         self._RunControl()
         return self['RunControl'].get_Adaptive(i)
-    get_Adaptive.__doc__ = RunControl.get_Adaptive.__doc__
+        
+    # Set aero.csh status
+    def set_Adaptive(self, ac=rc0('Adaptive'), i=None):
+        self._RunControl()
+        self['RunControl'].set_Adaptive(ac, i)
     
     # Get flowCart order
     def get_first_order(self, i=None):
@@ -568,7 +572,7 @@ class Options(cape.options.Options):
         self['RunControl'].set_RKScheme(RK, i)
         
     # Copy over the documentation.
-    for k in ['first_order', 'robust_mode', 'unsteady', 
+    for k in ['Adaptive', 'first_order', 'robust_mode', 'unsteady', 
             'tm', 'dt', 'checkptTD',
             'vizTD', 'fc_clean', 'fc_stats', 'RKScheme',
             'nOrders', 'buffLim', 'it_avg', 'it_sub',

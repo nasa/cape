@@ -340,12 +340,12 @@ class FileCntl:
         return None
         
     # Method to write the file.
-    def Write(self, fname=None):
+    def _Write(self, fname=None):
         """Write to text file
         
         :Call:
-            >>> FC.Write()
-            >>> FC.Write(fname)
+            >>> FC._Write()
+            >>> FC._Write(fname)
         :Inputs:
             *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
                 File control instance, defaults to *FC.fname*
@@ -365,6 +365,25 @@ class FileCntl:
         # Close the file and exit.
         f.close()
         
+    # Method to write the file.
+    def Write(self, fname=None):
+        """Write to text file
+        
+        :Call:
+            >>> FC.Write()
+            >>> FC.Write(fname)
+        :Inputs:
+            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+                File control instance, defaults to *FC.fname*
+            *fname*: :class:`str`
+                Name of file to write to
+        :Versions:
+            * 2014-06-03 ``@ddalle``: First version
+            * 2015-11-16 ``@ddalle``: Moved contents to :func:`_Write`
+        """
+        # Update the lines if appropriate.
+        self._Write()
+        
     # Method to write the file as an executable.
     def WriteEx(self, fname=None):
         """Write to text file as an executable script
@@ -381,7 +400,7 @@ class FileCntl:
             * 2014-06-23 ``@ddalle``: First version
         """
         # Write the file.
-        self.Write(fname)
+        self._Write(fname)
         # Get the mode of the file
         fmod = os.stat(fname).st_mode & 0o7777
         # Make sure the user-executable bit is set.

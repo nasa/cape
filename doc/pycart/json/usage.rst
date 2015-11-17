@@ -29,10 +29,9 @@ The location from which either of these two methods is called (i.e., the current
 working directory) is remembered as the root directory for the run.  Locations
 of other files are relative to this directory.
         
-A useful feature of pyCart that is somewhat unusual is that it is possible to
-define a "run sequence," which causes Cart3D to be run in multiple parts where
-each part uses different settings.  Here are a number of reasons that a user
-may want to do this.
+pyCart uses a "run sequence," which causes Cart3D to be run in multiple parts
+where each part uses different settings. Here are a number of reasons that a
+user may want to do this.
 
     #. You want to run unsteady analysis but want to get an adapted mesh first. 
        This requires running `aero.csh` and then running `flowCart` manually.
@@ -43,13 +42,12 @@ may want to do this.
         number of iterations before continuing to the desired inputs.
         
 The way that a user specifies these run sequences is by making some of the
-input keys in :file:`flowCart.json` lists instead of single entries.  In this
-case, two keys in the "flowCart" section become mandatory.  Consider the
-following example.
+input keys in :file:`pyCart.json` lists instead of single entries.  Two keys
+in the "RunControl" section are mandatory.
 
     .. code-block:: javascript
     
-        "flowCart": {
+        "RunSequence": {
             "InputSeq": [0, 1, 2],
             "IterSeq": [0, 0, 1500]
         }
@@ -57,7 +55,7 @@ following example.
 This tells pyCart to run Cart3D with input set 0 once, then with input set 1
 once, and finally with input set 2 until at least 1500 total iterations have
 been run.  To define these different input sets, the user can change *any*
-other setting to a list.  However, it is **not** required that the user must
+other setting to a list.  However, it is *not* required that the user must
 make *all* settings into a list.  Furthermore, the lists do not have to a
 length of at least 3; if the input sequence number is greater than the length
 of the list, the last element of the list is used.  Consider the following more
@@ -65,18 +63,20 @@ complete example.
 
     .. code-block:: javascript
     
-        "flowCart": {
+        "RunSequence": {
             "InputSeq": [0, 1, 2],
             "IterSeq": [0, 0, 2000],
-            "first_order": [true, false],
-            "unsteady": [false, false, true],
-            "use_aero_csh": [true, true, false],
-            "it_fc": 500
-        },
+            "Adaptive": [true, true, false],
+            "flowCart": {
+                "it_fc": 500,
+                "first_order": [true, false],
+                "unsteady": [false, false, true]
+            },
         
-        "Adaptation": {
-            "n_adapt_cycles": [3, 5]
-        {
+            "Adaptation": {
+                "n_adapt_cycles": [3, 5]
+            }
+        },
         
 There are three input sequences (``0``, ``1``, and ``2``), which can be
 described as follows.
@@ -90,3 +90,5 @@ The fact that ``"first_order": [true, false]`` has only two entries means that
 the last run will just use the last value, ``false``, as the option.
 Similarly, since *it_fc* is not specified as a list, the same value of ``500``
 is used for all three runs.
+
+
