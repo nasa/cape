@@ -1927,6 +1927,8 @@ class Report(object):
         else:
             # Use the number
             nCur = nOpt
+        # Initialize statistics
+        S = {}
         # Get statistics if possible.
         if nCur >= max(1, nMin+nStats):
             # Don't use iterations before *nMin*
@@ -1934,16 +1936,16 @@ class Report(object):
             # Go to the run directory.
             os.chdir(self.cntl.RootDir)
             os.chdir(self.cntl.x.GetFullFolderNames(i))
-            # Read the Aero history
-            A = Aero(comps)
-            # Transform each comparison.
+            # Loop through components
             for comp in comps:
+                # Read the Aero history.
+                FM = self.ReadCaseFM(comp)
                 # Loop through the transformations.
                 for topts in opts.get_DataBookTransformations(comp):
                     # Apply the transformation.
-                    A[comp].TransformFM(topts, self.cntl.x, i)
-            # Get the statistics.
-            S = A.GetStats(nStats=nStats, nMax=nMax, nLast=nCur)
+                    FM.TransformFM(topts, self.cntl.x, i)
+                # Get the statistics.
+                S[comp] = FM.GetStats(nStats=nStats, nMax=nMax, nLast=nCur)
         else:
             # No stats.
             S = {}

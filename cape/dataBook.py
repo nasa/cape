@@ -2162,7 +2162,7 @@ class CaseFM(object):
             # Calibrate to slightly favor less iterations
             en = en * (0.75 + 0.25*np.sqrt(n)/np.sqrt(N[0]))
             # Check if this error is an improvement.
-            if en < e:
+            if (n == min(N)) or (en < e):
                 # Select these statistics, and update the best scaled error.
                 s = sn
                 e = en

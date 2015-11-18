@@ -382,7 +382,7 @@ class FileCntl:
             * 2015-11-16 ``@ddalle``: Moved contents to :func:`_Write`
         """
         # Update the lines if appropriate.
-        self._Write()
+        self._Write(fname)
         
     # Method to write the file as an executable.
     def WriteEx(self, fname=None):
