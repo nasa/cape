@@ -2,6 +2,9 @@
 Demo 4: Business Jet, Data Book, and Automated Reports
 ======================================================
 
+The following example uses a more complex geometry to demonstrate Cart3D's
+capabilities and the ease with which complex geometries can be analyzed.  Let's
+run the first case in the ``$PYCART/examples/pycart/bJet`` folder.
 
     .. code-block:: none
     

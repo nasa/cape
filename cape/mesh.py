@@ -628,7 +628,28 @@ class Mesh(object):
         if not np.any(self.CellTypes == 5):
             self.nPyr = 0
             return
-        # Process faces ...
+        # Status update
+        print("  Processing node-to-pyramid indices")
+        # Loop through quad faces
+        for k in np.where(self.Faces[:,3]>0)[0]:
+            # Extract the face.
+            fk = self.Faces[k]
+            # Left and right cells
+            jl = self.FaceCells[k,0]
+            jr = self.FaceCells[k,1]
+            # Process
+            self.ProcessPyrsQuad(fk, jl, 0)
+            self.ProcessPyrsQuad(fk, jr, 1)
+        # Loop through tri faces
+        for k in np.where(self.Faces[:,3]==0)[0]:
+            # Extract the face.
+            fk = self.Faces[k]
+            # Left and right cells
+            jl = self.FaceCells[k,0]
+            jr = self.FaceCells[k,1]
+            # Process
+            self.ProcessPyrsTri(fk, jl, 0)
+            self.ProcessPyrsTri(fk, jr, 1)
         # Select the pyramids
         self.Pyrs = self.Cells[self.CellTypes==5,:5]
         self.nPyr = self.Pyrs.shape[0]
@@ -660,6 +681,99 @@ class Mesh(object):
         self.Hexes = self.Cells[self.CellTypes==5,:8]
         self.nHex = self.Hexes.shape[0]
             
+    
+    # Process quad face for pyramid
+    def ProcessPyrsQuad(self, f, j, L):
+        """Process the pyramid cell information of one quad
+        
+        :Call:
+            >>> M.ProcessPyrsQuad(f, j, L)
+        :Inputs:
+            *M*: :class:`cape.mesh.Mesh`
+                Volume mesh interface
+            *f*: :class:`np.ndarray` ((4), :class:`int`)
+                List of vertex indices in a face (should be a quad)
+            *j*: :class:`int`
+                Index of neighboring cell
+            *L*: :class:`int`
+                Index for left (1) or right (0)
+        :Versions:
+            * 2015-11-17 ``@ddalle``: First version
+        """
+        # Check for boundary face (only one side)
+        if (j == 0): return
+        # Check for tri; process these next
+        if (f[3] == 0): return
+        # Get the cell type.
+        t = self.CellTypes[j-1]
+        # Check for prisms.
+        if (t != 5): return
+        # Extract vertices
+        c = self.Cells[j-1]
+        # Check for existing information
+        if (c[0] > 0):
+            # Already partially processed; continue to next face
+            return
+        elif L == 1:
+            # Save nodes with inward normal
+            self.Cells[j-1,:4] = f[:4]
+        else:
+            # Save nodes with reversed outward normal
+            self.Cells[j-1,:4] = f[3::-1]
+            
+    # Process tri face for pyramid
+    def ProcessPyrsTri(self, f, j, L):
+        """Process the pyramid cell information of one tri
+        
+        :Call:
+            >>> M.ProcessPyrsTri(f, j, L)
+        :Inputs:
+            *M*: :class:`cape.mesh.Mesh`
+                Volume mesh interface
+            *f*: :class:`np.ndarray` ((4), :class:`int`)
+                List of vertex indices in a face (should be a quad)
+            *j*: :class:`int`
+                Index of neighboring cell
+            *L*: :class:`int`
+                Index for left (1) or right (0)
+        :Versions:
+            * 2015-11-17 ``@ddalle``: First version
+        """
+        # Check for boundary face (only one side)
+        if (j == 0): return
+        # Check for quad; should be processed previously
+        if (f[3] > 0): return
+        # Get the cell type.
+        t = self.CellTypes[j-1]
+        # Check for prisms.
+        if (t != 5): return
+        # Extract vertices
+        c = self.Cells[j-1]
+        # Check for existing information
+        if (c[4] > 0):
+            # Already partially processed; continue to next face
+            return
+        # Figure out which vertex is missing
+        if f[0] in c[:4]:
+            # Tri 0 matches a pyr vertex
+            if f[1] in c[:4]:
+                # Store tri 2
+                c[4] = f[2]
+            elif f[2] in c[:4]
+                # Store tri 1
+                c[4] = f[1]
+            else:
+                # Error
+                raise IOError("Tri %s matches pyr only at vertex 0")
+        elif f[1] in c[:4]:
+            # Tri 1 matches a pyr vertex
+            if f[2] in c[:4]:
+                # Store tri 0
+                c[4] = f[0]
+            else:
+                raise IOError("Tri %s matches pyr only at vertex 1")
+        else:
+            raise IOError("Tri %s does not match pyr at vertex 0 or 1")
     
     # Process one face
     def ProcessPrismsTri(self, f, j, L):
