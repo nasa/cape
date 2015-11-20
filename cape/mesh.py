@@ -139,16 +139,19 @@ class Mesh(object):
                         f, vals[0], vals[1], vals[2])
             elif typ == 12:
                 # Cells
-                if not q:
-                    # Cells should not actually be spelled out, confused
-                    continue
-                elif vals[0] == 0:
+                if vals[0] == 0:
                     # Overall count
                     self.nCell = vals[2]
                     # Initialize types
                     self.CellTypes = np.zeros(self.nCell, dtype=int)
                     # Status update
                     print("  Cell count: %i" % self.nCell)
+                elif not q:
+                    # Mixed cell specifications
+                    self.CellTypes[vals[1]-1:vals[2]] = np.fromfile(
+                            f, dtype=int, count=vals[2]-vals[1]+1, sep=' ')
+                    # Read 
+                    continue
                 else:
                     # Save the types.
                     self.CellTypes[vals[1]-1:vals[2]] = vals[-1]
@@ -219,7 +222,7 @@ class Mesh(object):
             # Write
             np.savetxt(f, if2nq, fmt="%i", delimiter=" ")
         # Write the boundary face IDs (in a single line!)
-        ifacetag.tofile(f, format="%i", sep=" ")
+        ifacetag.tofile(f, format="%i", sep="\n")
         f.write("\n")
         # Write the tetrahedral cells.
         if self.nTet > 0:   np.savetxt(f, self.Tets, fmt="%i", delimiter=" ")
@@ -759,7 +762,7 @@ class Mesh(object):
             if f[1] in c[:4]:
                 # Store tri 2
                 c[4] = f[2]
-            elif f[2] in c[:4]
+            elif f[2] in c[:4]:
                 # Store tri 1
                 c[4] = f[1]
             else:

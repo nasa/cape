@@ -22,12 +22,47 @@ from subprocess import call
 # Utilities
 from .util import GetTecplotCommand, TecFolder
 from .geom import TranslatePoints, RotatePoints
+from .config import Config
 
 # Attempt to load the compiled helper module.
 try:
     from . import _cape as pc
 except ImportError:
     pass
+
+# Function to get a non comment line
+def _readline(f, comment='#'):
+    """Read line that is nonempty and not a comment
+    
+    :Call:
+        >>> line = _readline(f, comment='#')
+    :Inputs:
+        *f*: :class:`file`
+            File instance
+        *comment*: :class:`str`
+            Character(s) that begins a comment
+    :Outputs:
+        *line*: :class:`str`
+            Nontrivial line or `''` if at end of file
+    :Versions:
+        * 2015-11-19 ``@ddalle``: First version
+    """
+    # Read a line.
+    line = f.readline()
+    # Check for empty line (EOF)
+    if line == '': return line
+    # Process stripped line
+    lstrp = line.strip()
+    # Check if otherwise empty or a comment
+    while (lstrp=='') or lstrp.startswith(comment):
+        # Read the next line.
+        line = f.readline()
+        # Check for empty line (EOF)
+        if line == '': return line
+        # Process stripped line
+        lstrp = line.strip()
+    # Return the line.
+    return line
 
 
 # Triangulation class
@@ -42,14 +77,16 @@ class TriBase(object):
     all triangles ``1``.
     
     :Call:
-        >>> tri = cape.tri.TriBase(fname=fname)
-        >>> tri = cape.tri.TriBase(uh3d=uh3d)
+        >>> tri = cape.tri.TriBase(fname=fname, c=None)
+        >>> tri = cape.tri.TriBase(uh3d=uh3d, c=None)
         >>> tri = cape.tri.TriBase(Nodes=Nodes, Tris=Tris, CompID=CompID)
     :Inputs:
         *fname*: :class:`str`
             Name of triangulation file to read (Cart3D format)
         *uh3d*: :class:`str`
             Name of triangulation file (UH3D format)
+        *c*: :class:`str`
+            Name of configuration file (e.g. ``Config.xml``)
         *nNode*: :class:`int`
             Number of nodes in triangulation
         *Nodes*: :class:`np.ndarray` (:class:`float`), (*nNode*, 3)
@@ -74,14 +111,16 @@ class TriBase(object):
     :Versions:
         * 2014-05-23 ``@ddalle``: First version
         * 2014-06-02 ``@ddalle``: Added UH3D reading capability
+        * 2015-11-19 ``@ddalle``: Added AFLR3 surface capability
     """
     # Initialization method
-    def __init__(self, fname=None, uh3d=None,
+    def __init__(self, fname=None, uh3d=None, c=None,
         nNode=None, Nodes=None, nTri=None, Tris=None, CompID=None):
         """Initialization method"""
         # Versions:
-        #  2014.05.23 @ddalle  : First version
-        #  2014.06.02 @ddalle  : Added UH3D reading capability
+        #  2014-05-23 @ddalle: First version
+        #  2014-06-02 @ddalle: Added UH3D reading capability
+        #  2015-11-19 @ddalle: Added XML reading and AFLR3 surfs
         
         # Check if file is specified.
         if fname is not None:
@@ -118,6 +157,10 @@ class TriBase(object):
             self.nTri = nTri
             self.Tris = Tris
             self.CompID = CompID
+        
+        # Check for configuration
+        if c is not None:
+            self.config = Config(c)
             
         # End
         return None
@@ -423,8 +466,13 @@ class TriBase(object):
         try:
             return self.config.GetCompID(face)
         except Exception:
-            # Failed; return all components.
-            return list(np.unique(self.CompID))
+            # Return itself if an integer
+            try:
+                # Return the face itself
+                return [int(face)]
+            except Exception:
+                # Failed; return all components.
+                return list(np.unique(self.CompID))
         
         
     # Function to read a .tri file
@@ -483,7 +531,7 @@ class TriBase(object):
         """
         # Status update.
         if v:
-            print("     Writing triangulation: '%s'" % fname)
+            print("    Writing triangulation: '%s'" % fname)
         # Try the fast way.
         try:
             # Fast method using compiled C.
@@ -673,12 +721,14 @@ class TriBase(object):
         """Write a triangulation to a UH3D file
         
         :Call:
-            >>> tri.WriteUH3DSlow(fname='Components.i.uh3d')
+            >>> tri.WriteUH3DSlow(fname='Components.i.uh3d', lbls={})
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance to be translated
             *fname*: :class:`str`
                 Name of triangulation file to create
+            *lbls*: :class:`dict`
+                Optioan dict of names for component IDs, e.g. ``{1: "body"}`` 
         :Versions:
             * 2015-04-17 ``@ddalle``: First version
         """
@@ -711,6 +761,115 @@ class TriBase(object):
         fid.write('99,99,99,99,99\n')
         # Close the file.
         fid.close()
+        
+    # Function to write a UH3D file
+    def WriteSurf(self, fname='Components.i.surf'):
+        """Write a triangulation to a AFLR3 surface file
+        
+        :Call:
+            >>> tri.WriteSurf(fname='Components.i.surf')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Versions:
+            * 2015-11-19 ``@ddalle``: First version
+        """
+        # Status update
+        print("    Writing ALFR3 surface: '%s'" % fname)
+        # Write the file.
+        self.WriteSurfSlow(fname)
+    
+    # Function to write a SURF file the old-fashioned way.
+    def WriteSurfSlow(self, fname="Components.surf"):
+        """Write an AFLR3 ``surf`` surface mesh file
+        
+        :Call:
+            >>> tri.WriteSurfSlow(fname='Components.surf'
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Versions:
+            * 2015-11-19 ``@ddalle``: First version
+        """
+        # Open the file for creation.
+        fid = open(fname, 'w')
+        # Write the number of tris, quads, points
+        fid.write('%i 0 %i\n' % (self.nTri, self.nNode))
+        # Loop through the nodes.
+        for i in np.arange(self.nNode):
+            # Write the line (with 1-based node index).
+            fid.write('%.12f %.12f %.12f 0 0\n' %
+                (self.Nodes[i,0], self.Nodes[i,1], self.Nodes[i,2]))
+        # Loop through the triangles.
+        for k in np.arange(self.nTri):
+            # Write the line (with 1-based triangle index and CompID).
+            fid.write('%i %i %i %i 0 %i\n' % (self.Tris[k,0], 
+                self.Tris[k,1], self.Tris[k,2], self.CompID[k], self.BCs[k]))
+        # Close the file.
+        fid.close()
+        
+    # Map boundary condition tags
+    def MapBCs_AFLR3(self, BCs={}):
+        """Initialize and map boundary condition indices for AFLR3
+        
+        :Call:
+            >>> tri.MapBCs_AFLR3(BCs)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *BCs*: :class:`dict` (:class:`str` | :class:`int`)
+                Dictionary of boundary conditions for CompIDs or component names
+        :Versions:
+            * 2015-11-19 ``@ddalle``: First version
+        """
+        # Initialize the BCs to -1 (grow boundary layer)
+        self.BCs = -1 * np.ones_like(self.CompID)
+        # Loop through BCs
+        for comp in BCs:
+            # Get the tris matching the component ID
+            I = self.GetTrisFromCompID(self.GetCompID(comp))
+            # Modify those BCs
+            self.BCs[I] = BCs[comp]
+            
+    # Read boundary condition map
+    def ReadBCs_AFLR3(self, fname):
+        """Initialize and map boundary condition indices for AFLR3 from file
+        
+        :Call:
+            >>> tri.ReadBCs_AFLR3(fname)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *fname*: :class:`str`
+                Name of boundary condition map file
+        :Versions:
+            * 2015-11-19 ``@ddalle``: First version
+        """
+        # Read the boundary condition file
+        f = open(fname, 'r')
+        # Initialize boundary condition map
+        BCs = {}
+        # Loop through lines
+        line = "start"
+        while line != '':
+            # Read the line.
+            line = _readline(f)
+            # Exit at end of file
+            if line == '': break
+            # Get the component name and then the BC index
+            comp = line.split()[0]
+            bc   = int(line.split()[1])
+            # Save the boundary condtion
+            BCs[comp] = bc
+        # Close the file.
+        f.close()
+        # Apply the boundary conditions
+        self.MapBCs_AFLR3(BCs)
+            
         
     # Function to copy a triangulation and unlink it.
     def Copy(self):
@@ -903,6 +1062,23 @@ class TriBase(object):
             np.sqrt(np.sum(x12**2, 0)),
             np.sqrt(np.sum(x20**2, 0)))).transpose()
         
+    # Function to read and apply Config.xml
+    def ReadConfig(self, c):
+        """Read a ``Config.xml`` labeling and grouping of component IDs
+        
+        :Call:
+            >>> tri.ReadConfig(c)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *c*: :class:`str`
+                Configuration file name
+        :Versions:
+            * 2015-11-19 ``@ddalle``: First version
+        """
+        # Read the configuration and save it.
+        self.config = Config(c)
+        
         
     # Function to map component ID numbers to those in a Config.
     def ApplyConfig(self, cfg):
@@ -924,7 +1100,7 @@ class TriBase(object):
         order of changing the component numbers.
         
         :Call:
-            tri.ApplyConfig(cfg)
+            >>> tri.ApplyConfig(cfg)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
@@ -1489,14 +1665,16 @@ class Tri(TriBase):
     all triangles ``1``.
     
     :Call:
-        >>> tri = cape.Tri(fname=fname)
-        >>> tri = cape.Tri(uh3d=uh3d)
+        >>> tri = cape.Tri(fname=fname, c=None)
+        >>> tri = cape.Tri(uh3d=uh3d, c=None)
         >>> tri = cape.Tri(Nodes=Nodes, Tris=Tris, CompID=CompID)
     :Inputs:
         *fname*: :class:`str`
             Name of triangulation file to read (Cart3D format)
         *uh3d*: :class:`str`
             Name of triangulation file (UH3D format)
+        *c*: :class:`str`
+            Name of configuration file (usually ``Config.xml``)
         *nNode*: :class:`int`
             Number of nodes in triangulation
         *Nodes*: :class:`np.ndarray` (:class:`float`), (*nNode*, 3)
@@ -1520,7 +1698,7 @@ class Tri(TriBase):
             Component number for each triangle
     """
     
-    def __init__(self, fname=None, uh3d=None,
+    def __init__(self, fname=None, uh3d=None, c=None,
         nNode=None, Nodes=None, nTri=None, Tris=None, CompID=None):
         """Initialization method
         
@@ -1564,6 +1742,10 @@ class Tri(TriBase):
             self.Tris = Tris
             self.CompID = CompID
             
+        # Check for configuration
+        if c is not None:
+            self.config = Config(c)
+        
         # End
         return None
         
@@ -1625,11 +1807,13 @@ class Triq(TriBase):
     all triangles ``1``.
     
     :Call:
-        >>> triq = cape.Triq(fname=fname)
+        >>> triq = cape.Triq(fname=fname, c=None)
         >>> triq = cape.Triq(Nodes=Nodes, Tris=Tris, CompID=CompID, q=q)
     :Inputs:
         *fname*: :class:`str`
             Name of triangulation file to read (Cart3D format)
+        *c*: :class:`str`
+            Name of configuration file (usually ``Config.xml``)
         *nNode*: :class:`int`
             Number of nodes in triangulation
         *Nodes*: :class:`np.ndarray` (:class:`float`), (*nNode*, 3)
@@ -1663,7 +1847,7 @@ class Triq(TriBase):
             Number of files averaged in this triangulation (used for weight)
     """
     
-    def __init__(self, fname=None, nNode=None, Nodes=None,
+    def __init__(self, fname=None, nNode=None, Nodes=None, c=None,
         nTri=None, Tris=None, CompID=None, nq=None, q=None):
         """Initialization method
         
@@ -1713,6 +1897,10 @@ class Triq(TriBase):
             self.CompID = CompID
             self.nq = nq
             self.q = q
+            
+        # Check for configuration
+        if c is not None:
+            self.config = Config(c)
             
         # End
         return None
