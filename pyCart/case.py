@@ -226,6 +226,10 @@ def run_flowCart(verify=False, isect=False):
         os.rename('cutPlanes.plt', 'cutPlanes.%05i.plt' % n)
     if os.path.isfile('Components.i.plt'):
         os.rename('Components.i.plt', 'Components.%05i.plt' % n)
+    if os.path.isfile('cutPlanes.dat'):
+        os.rename('cutPlanes.dat', 'cutPlanes.%05i.dat' % n)
+    if os.path.isfile('Components.i.dat'):
+        os.rename('Components.i.dat', 'Components.%05i.dat' % n)
     # Clear check files as appropriate.
     manage.ClearCheck()
     # Check current iteration count.
@@ -806,6 +810,68 @@ def GetCurrentIter():
     # Output the total.
     return n0 + ntd
     
+# Link best file based on name and glob
+def LinkFromGlob(fname, fglb, isplit=-2, csplit='.'):
+    """Link the most recent file to a basic unmarked file name
+    
+    The function will attempt to map numbered or adapted file names using the
+    most recent iteration or adaptation.  The following gives examples of links
+    that could be created using ``Components.i.plt`` for *fname* and
+    ``Components.[0-9]*.plt`` for *fglb*.
+    
+        * ``Components.i.plt`` (no link)
+        * ``Components.01000.plt`` --> ``Components.i.plt``
+        * ``adapt03/Components.i.plt`` --> ``Components.i.plt``
+    
+    :Call:
+        >>> pyCart.case.LinkFromGlob(fname, fglb, isplit=-2, csplit='.')
+    :Inputs:
+        *fname*: :class:`str`
+            Name of unmarked file, like ``Components.i.plt``
+        *fglb*: :class:`str`
+            Glob for marked file names
+        *isplit*: :class:`int`
+            Which value of ``f.split()`` to use to get index number
+        *csplit*: :class:`str`
+            Character on which to split to find indices, usually ``'.'``
+    :Versions:
+        * 2015-11-20 ``@ddalle``: First version
+    """
+    # Check for already-existing regular file.
+    if os.path.isfile(fname) and not os.path.islink(fname): return
+    # Remove the link if necessary.
+    if os.path.isfile(fname) or os.path.islink(fname):
+        os.remove(fname)
+    # Get the working directory.
+    fdir = GetWorkingFolder()
+    # Check it.
+    if fdir == '.':
+        # List files that match the requested glob.
+        fglob = glob.glob(fglb)
+        # Check for empty glob.
+        if len(fglob) == 0: return
+        # Get indices from those files.
+        n = [int(f.split(csplit)[isplit]) for f in fglob]
+        # Extract file with maximum index.
+        fsrc = fglob[n.index(max(n))]
+    else:
+        # File from the working folder (if it exists)
+        fsrc = os.path.join(fdir, fname)
+        # Check for the file.
+        if not os.path.isfile(fsrc):
+            # Get the adaptation number of the working folder
+            nadapt = int(fdir[-2:])
+            # Try the previous adaptation file.
+            fdir = 'adapt%02i' % (nadapt-1)
+            # Use that folder.
+            fsrc = os.path.join(fdir, fname)
+        # Check for the file again.
+        if not os.path.isfile(fsrc): return
+    # Create the link if possible
+    if os.path.isfile(fsrc): os.symlink(fsrc, fname)
+            
+    
+    
 # Link best tecplot files
 def LinkPLT():
     """Link the most recent Tecplot files to fixed file names
@@ -816,84 +882,12 @@ def LinkPLT():
         >>> pyCart.case.LinkPLT()
     :Versions:
         * 2015-03-10 ``@ddalle``: First version
+        * 2015-11-20 ``@ddalle``: Delegate work and support ``*.dat`` files
     """
     # Surface file
-    fname = 'Components.i.plt'
-    # Check for existing regular files.
-    if os.path.isfile(fname) and not os.path.islink(fname):
-        pass
-    else:
-        # Remove the file if necessary.
-        if os.path.isfile(fname) or os.path.islink(fname):
-            os.remove(fname)
-        # Get the working directory.
-        fdir = GetWorkingFolder()
-        # Check it.
-        if fdir == ".":
-            # List files that could match.
-            fglob = glob.glob('Components.*[0-9]*.plt')
-            # Check for empty glob
-            if len(fglob) == 0:
-                # Try the BEST/ folder
-                fplt = os.path.join('BEST', fname)
-            else:
-                # Get indices of those files
-                nplt = [int(f.split('.')[-2]) for f in fglob]
-                # Max index.
-                fplt = fglob[nplt.index(max(nplt))]
-        else:
-            # File from the working folder if it exists.
-            fplt = os.path.join(fdir, fname)
-            # Check for the file
-            if not os.path.isfile(fplt):
-                # Get the adaptation number.
-                nadapt = int(fdir[-2:])
-                # Try the previous adaptation file
-                fdir = 'adapt%02i' % (nadapt-1)
-                # Use the previous folder.
-                fplt = os.path.join(fdir, fname)
-        # Test if the file actually exists.
-        if os.path.isfile(fplt):
-            # Create the link.
-            os.symlink(fplt, fname)
-    # Cut planes file
-    fname = 'cutPlanes.plt'
-    # Check for existing files.
-    if os.path.isfile(fname) and not os.path.islink(fname):
-        pass
-    else:
-        # Remove the file if necessary.
-        if os.path.isfile(fname) or os.path.islink(fname):
-            os.remove(fname)
-        # Get the working directory.
-        fdir = GetWorkingFolder()
-        # Check it.
-        if fdir == ".":
-            # List files that could match.
-            fglob = glob.glob('cutPlanes.[0-9]*.plt')
-            # Check for empty glob
-            if len(fglob) == 0:
-                # Try the BEST/ folder
-                fplt = os.path.join('BEST', fname)
-            else:
-                # Get indices of those files
-                nplt = [int(f.split('.')[-2]) for f in fglob]
-                # Max index.
-                fplt = fglob[nplt.index(max(nplt))]
-        else:
-            # File from the working folder if it exists.
-            fplt = os.path.join(fdir, fname)
-            # Check for the file
-            if not os.path.isfile(fplt):
-                # Get the adaptation number.
-                nadapt = int(fdir[-2:])
-                # Try the previous adaptation file
-                fdir = 'adapt%02i' % (nadapt-1)
-                # Use the previous folder.
-                fplt = os.path.join(fdir, fname)
-        # Test if the file actually exists.
-        if os.path.isfile(fplt):
-            # Create the link.
-            os.symlink(fplt, fname)
+    LinkFromGlob('Components.i.plt', 'Components.[0-9]*.plt', -2)
+    LinkFromGlob('Components.i.dat', 'Components.[0-9]*.dat', -2)
+    LinkFromGlob('cutPlanes.plt',    'cutPlanes.[0-9]*.plt', -2)
+    LinkFromGlob('cutPlanes.dat',    'cutPlanes.[0-9]*.dat', -2)
             
     

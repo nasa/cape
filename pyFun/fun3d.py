@@ -340,13 +340,15 @@ class Fun3d(Cntl):
         fname = []
         # Get project name
         fproj = self.GetProjectRootName()
+        # Special name extensions
+        ffmt = ["b8", "lb8", "b4", "lb4", "r8", "lr8", "r4", "lr4"]
         # Loop through input files.
         for f in fin:
             # Get extension
             fsplt = f.split('.')
             fext = fsplt[-1]
             # Use project name plus the same extension.
-            if len(f) > 1 and fsplt[-2] in ["lb8"]:
+            if len(f) > 1 and fsplt[-2] in ffmt:
                 # Copy second-to-last extension
                 fname.append('%s.%s.%s' % (fproj, fsplt[-2], fext))
             else:
