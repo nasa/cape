@@ -6,8 +6,10 @@ Basis Module for Automated Report Interface: :mod:`cape.report`
 
 # File system inreface
 import os, json, shutil, glob
-# Numeris
+# Numerics
 import numpy as np
+# Paraview Python script
+from .bin import pvpython
 
 # Local modules needed
 import tex, tar
@@ -1880,6 +1882,99 @@ class Report(object):
             * 2015-10-16 ``@ddalle``: First version
         """
         return None
+        
+    # Function to create coefficient plot and write figure
+    def SubfigParaviewLayout(self, sfig, i):
+        """Create image based on a Paraview Python script
+        
+        :Call:
+            >>> lines = R.SubfigParaviewLayout(sfig, i)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2015-11-22 ``@ddalle``: First version
+        """
+        # Save current folder.
+        fpwd = os.getcwd()
+        # Case folder
+        frun = self.cntl.x.GetFullFolderNames(i)
+        # Extract options
+        opts = self.cntl.opts
+        # Get the component.
+        comp = opts.get_SubfigOpt(sfig, "Component")
+        # Get caption.
+        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        # Get the vertical alignment.
+        hv = opts.get_SubfigOpt(sfig, "Position")
+        # Get subfigure width
+        wsfig = opts.get_SubfigOpt(sfig, "Width")
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = opts.get_SubfigOpt(sfig, "Header")
+        # Alignment
+        algn = opts.get_SubfigOpt(sfig, "Alignment")
+        # Set alignment.
+        if algn.lower() == "center":
+            lines.append('\\centering\n')
+        # Write the header.
+        if fhdr:
+            # Save the line
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+            lines.append('\\vskip-6pt\n')
+        # Go to the Cart3D folder
+        os.chdir(self.cntl.RootDir)
+        # Check if the run directory exists.
+        if os.path.isdir(frun):
+            # Go there.
+            os.chdir(frun)
+            # Get the most recent PLT files.
+            LinkPLT()
+            # Layout file
+            flay = opts.get_SubfigOpt(sfig, "Layout")
+            # Full path to layout file
+            fsrc = os.path.join(self.cntl.RootDir, flay)
+            # Get just the file name
+            flay = os.path.split(flay)[-1]
+            # Figure width in pixels (can be ``None``).
+            wfig = opts.get_SubfigOpt(sfig, "FigWidth")
+            # Width in the report
+            wplt = opts.get_SubfigOpt(sfig, "Width")
+            # Figure file name.
+            fname = "%s.png" % (sfig)
+            # Check for the files.
+            if (os.path.isfile('Components.i.plt') and 
+                    os.path.isfile('cutPlanes.plt')):
+                # Run Tecplot
+                try:
+                    # Copy the file into the current folder.
+                    shutil.copy(fsrc, '.')
+                    # Run the layout.
+                    pvpython(flay)
+                    # Move the file to the location this subfig was built in
+                    os.rename(fname, os.path.join(fpwd,fname))
+                    # Form the line
+                    line = (
+                        '\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                        % (frun, fname))
+                    # Include the graphics.
+                    lines.append(line)
+                except Exception:
+                    pass
+        # Go to the report case folder
+        os.chdir(fpwd)
+        # Set the caption.
+        if fcpt:
+            lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
+        # Close the subfigure.
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
         
     # Function to write summary table
     def SubfigSummary(self, sfig, i):

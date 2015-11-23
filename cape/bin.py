@@ -174,6 +174,24 @@ def _upgradeDocString(doccmd):
     # Output
     return docbin
     
+# Stand-alone function to run a Tecplot layout file
+def pvpython(lay, *args):
+    """Stand-alone function to execute a Paraview Python script
     
+    :Call:
+        >>> pvpython(lay, *args)
+        >>> pvpython(lay, a1, a2, ...)
+    :Inputs:
+        *lay*: :class:`str`
+            Name of script to run
+        *a1*: :class:`str`
+            Command-line input to the script
+    :Versions:
+        * 2015-11-22 ``@ddalle``: First version
+    """
+    # Command to run
+    cmdi = ['pvpython', lay] + [str(a) for a in args]
+    # Call the script
+    callf(cmdi, stdout='pvpython.out')
     
     

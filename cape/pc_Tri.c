@@ -389,3 +389,25 @@ pc_WriteTriQ(PyObject *self, PyObject *args)
     Py_INCREF(Py_None);
     return Py_None;
 }
+
+
+// Function to write Components.pyCart.stl file
+PyObject *
+pc_WriteSTL(PyObject *self, PyObject *args)
+{
+    int i, ierr;
+    int nNode, nTri;
+    FILE *fid;
+    PyArrayObject *P, *T, *N;
+    
+    // Process the inputs
+    if (!PyArg_ParseTuple(args, "OOO", &P, &T, &N)) {
+        // Check for failure.
+        PyErr_SetString(PyExc_RuntimeError, \
+            "Could not process inputs to :func:`pc.WriteSTL`");
+        return NULL;
+    }
+    
+    // Check for two-dimensional node array.
+    
+}
