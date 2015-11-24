@@ -396,6 +396,7 @@ PyObject *
 pc_WriteSTL(PyObject *self, PyObject *args)
 {
     int i, ierr;
+    int i0, i1, i2;
     int nNode, nTri;
     FILE *fid;
     PyArrayObject *P, *T, *N;
@@ -409,5 +410,68 @@ pc_WriteSTL(PyObject *self, PyObject *args)
     }
     
     // Check for two-dimensional node array.
+    if (PyArray_NDIM(P) != 2) {
+        PyErr_SetString(PyExc_ValueError, \
+            "Nodal coordinates must be Nx3 or Nx2 array.");
+        return NULL;
+    }
+    // Read number of nodes.
+    nNode = (int) PyArray_DIM(P, 0);
     
+    // Check for two-dimensional Nx3 array.
+    if (PyArray_NDIM(T) != 2 || PyArray_DIM(T, 1) != 3) {
+        PyErr_SetString(PyExc_ValueError, \
+            "Nodal indices must be Nx3 array.");
+        return NULL;
+    }
+    // Read number of triangles.
+    nTri = (int) PyArray_DIM(T, 0);
+    
+    // Check for third two-dimensional Nx3 array.
+    if (PyArray_NDIM(T) != 2 || PyArray_DIM(T,1) != 3) {
+        PyErr_SetString(PyExc_ValueError, \
+            "Normal vectors must be Nx3 array.");
+        return NULL;
+    }
+    
+    // Open output file for writing (wipe out if it exists.)
+    fid = fopen("Components.pyCart.stl", "w");
+    
+    // Write the header.
+    fprintf(fid, "solid\n");
+    
+    // Loop through the triangles
+    for (i=1; i<=nTri; i++) {
+        // Write a single triangle.
+        fprintf(fid, "   facet normal   %5.2f %5.2f %5.2f\n", \
+            np2i(N,i,0), np2i(N,i,1), np2i(N,i,2));
+        // Extract node numbers
+        i0 = np2i(T,i,0);
+        i1 = np2i(T,i,1);
+        i2 = np2i(T,i,2);
+        // Write the vertices
+        fprintf(fid, "      outer loop\n");
+        fprintf(fid, "         vertex   %5.2f %5.2f %5.2f\n", \
+            np2i(P,i0,0), np2i(P,i0,1), np2i(P,i0,2));
+        fprintf(fid, "         vertex   %5.2f %5.2f %5.2f\n", \
+            np2i(P,i1,0), np2i(P,i1,1), np2i(P,i1,2));
+        fprintf(fid, "         vertex   %5.2f %5.2f %5.2f\n", \
+            np2i(P,i2,0), np2i(P,i2,1), np2i(P,i2,2));
+        // Triangle footer
+        fprintf(fid, "      endloop\n");
+        fprintf(fid, "   endfacet\n");
+    }
+    
+    // Close the file.
+    ierr = fclose(fid);
+    if (ierr) {
+        // Failure on close?
+        PyErr_SetString(PyExc_IOError, \
+            "Failure on closing file 'Components.pyCart.tri'");
+        return NULL;
+    }
+    
+    // Return None.
+    Py_INCREF(Py_None);
+    return Py_None;
 }
