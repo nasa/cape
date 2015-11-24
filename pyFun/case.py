@@ -11,8 +11,7 @@ from options.runControl import RunControl
 # Import the namelist
 from namelist import Namelist
 # Interface for writing commands
-from . import bin, cmd
-
+from . import bin, cmd, queue
 
 # Read the local JSON file
 import json

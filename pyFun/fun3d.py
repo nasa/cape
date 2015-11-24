@@ -460,7 +460,7 @@ class Fun3d(Cntl):
             if not os.path.isdir(frun):
                 self.mkdir(frun)
             # Status update
-            print("  Case name: '%s' (ndex %i)" % (frun,i))
+            print("  Case name: '%s' (index %i)" % (frun,i))
             # Enter the case folder.
             os.chdir(frun)
         # ----------
