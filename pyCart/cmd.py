@@ -203,14 +203,14 @@ def intersect(fin='Components.tri', fout='Components.i.tri'):
     """Interface to Cart3D binary `intersect`
     
     :Call:
-        >>> cmd = cmd.intersect(fin='Components.tri', fout='Components.i.tri')
+        >>> cmdi = cmd.intersect(fin='Components.tri', fout='Components.i.tri')
     :Inputs:
         *fin*: :class:`str`
             Name of input *tri* file
         *fout*: :class:`str`
             Name of output *tri* file (intersected)
     :Outputs:
-        *cmd*: :class:`list` (:class:`str`)
+        *cmdi*: :class:`list` (:class:`str`)
             Command split into a list of strings
     :Versions:
         * 2015-02-13 ``@ddalle``: First version
@@ -225,9 +225,9 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
     """Interface to Cart3D binary ``flowCart``
     
     :Call:
-        >>> cmd = pyCart.cmd.flowCart(cart3d, i=0)
-        >>> cmd = pyCart.cmd.flowCart(fc=None, i=0)
-        >>> cmd = pyCart.cmd.flowCart(**kwargs)
+        >>> cmdi = pyCart.cmd.flowCart(cart3d, i=0)
+        >>> cmdi = pyCart.cmd.flowCart(fc=None, i=0)
+        >>> cmdi = pyCart.cmd.flowCart(**kwargs)
     :Inputs:
         *cart3d*: :class:`pyCart.cart3d.Cart3d`
             Global pyCart settings instance
@@ -268,7 +268,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         *buffLim*: :class:`bool`
             Whether or not to use buffer limits for strong off-body shocks
     :Outputs:
-        *cmd*: :class:`list` (:class:`str`)
+        *cmdi*: :class:`list` (:class:`str`)
             Command split into a list of strings
     :Versions:
         * 2014-09-07 ``@ddalle``: First version
@@ -362,12 +362,14 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
     else:
         # Use single-node flowCart.
         cmd = ['flowCart', '-his', '-clic']
+    # Offset iterations
+    n = kwargs.get('n', 0)
     # Check for restart
-    if (i>0): cmd += ['-restart']
+    if (i>0) or (n>0): cmd += ['-restart']
     # Number of steps
     if td_fc:
         # Increase iteration count by the number of previously computed iters.
-        it_fc += kwargs.get('n', 0)
+        it_fc += n
         # Number of steps, subiterations (mg cycles), and time step
         if it_fc:  cmd += ['-nSteps', str(it_fc)]
         if it_sub: cmd += ['-N', str(it_sub)]
@@ -379,7 +381,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         if nstats:  cmd += ['-stats', str(nstats)]
     else:
         # Increase the iteration count.
-        it_fc += kwargs.get('n', 0)
+        it_fc += n
         # Multigrid cycles
         if it_fc:   cmd += ['-N', str(it_fc)]
     # Add options

@@ -11,7 +11,7 @@ from options.runControl import RunControl
 # Import the namelist
 from namelist import Namelist
 # Interface for writing commands
-from . import bin
+from . import bin, cmd
 
 
 # Read the local JSON file
@@ -48,17 +48,8 @@ def run_fun3d():
         os.remove('fun3d.nml')
     # Create the correct namelist.
     os.symlink('fun3d.%02i.nml'%i, 'fun3d.nml')
-    # Check for `nodet` vs `nodet_mpi`
-    if rc.get_MPI(i):
-        # Get number of nodes
-        nProc = str(rc.get_nProc(i))
-        # Get the command to run MPI on this machine
-        mpicmd = rc.get_mpicmd()
-        # nodet_mpi command
-        cmdi = [mpicmd, '-np', nProc, 'nodet_mpi', '--animation_freq', '-1']
-    else:
-        # nodet command
-        cmdi = ['nodet', '--animation_freq', '-1']
+    # Get the `nodet` or `nodet_mpi` command
+    cmdi = cmd.nodet(rc)
     # Call the command.
     bin.callf(cmdi, f='fun3d.out')
     # Remove the RUNNING file.

@@ -34,7 +34,7 @@ CapeFolder = os.path.split(os.path.split(_fname)[0])[0]
 # Parent folder
 BaseFolder = os.path.split(CapeFolder)[0]
 
-# Backup default settings (in case deleted from :file:`pyCart.defaults.json`)
+# Backup default settings
 rc = {
     "nSubmit": 10,
     "GroupMesh": True,

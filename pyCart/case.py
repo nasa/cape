@@ -871,7 +871,6 @@ def LinkFromGlob(fname, fglb, isplit=-2, csplit='.'):
     if os.path.isfile(fsrc): os.symlink(fsrc, fname)
             
     
-    
 # Link best tecplot files
 def LinkPLT():
     """Link the most recent Tecplot files to fixed file names

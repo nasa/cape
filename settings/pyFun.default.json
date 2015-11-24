@@ -16,16 +16,35 @@
 	// The names of these two files have the obvious defaults.
 	"Namelist": "inputs/fun3d.nml",
 	
-	// Whether or not to use the same mesh for all cases in a group
-	"GroupMesh": true,
-	
 	// Commands to load at head of run scripts (run_cart3d.pbs)
 	"ShellCmds": [
 	    ". $MODULESHOME/init/bash",
 	    "module load fun3d",
-	    "module load pycart",
-	    "ulimit -S -s 4194304"
+	    "module load pycart"
 	],
+	
+	// Iteration control and command-line inputs
+	"RunControl": {
+	    // Run sequence
+	    "InputSeq": [0],
+	    "IterSeq": [200],
+	    // Number of threads
+	    "nProc": 8,
+	    // Mode
+	    "Adaptive": false,
+	    "MPI": false,
+	    "qsub": false,
+	    "Resubmit": false,
+	    "Continue": true,
+	    // System interface
+	    "mpicmd": "mpiexec",
+        "Environ": {},
+        "ulimit": {"s": 4194304},
+        // nodet inputs
+        "nodet": {
+            "animation_freq": -1
+        }
+    },
     
     // Describe the reference values and config.
     "Config": {
@@ -62,7 +81,7 @@
     "Trajectory": {
         // If a file is specified, and it exists, trajectory values will be 
         // read from it.  Trajectory values can also be specified locally.
-        "File": "inputs/matrix/trajectory.csv",
+        "File": "matrix.csv",
         // REQUIRED: Name of the variables to vary in the trajectory
         "Keys": ["mach", "alpha", "beta"],
         // Prefix placed in front of folder name
