@@ -20,7 +20,7 @@ import os, shutil
 from shutil import copy
 from subprocess import call
 # Utilities
-from .util import GetTecplotCommand, TecFolder
+from .util import GetTecplotCommand, TecFolder, ParaviewFolder
 from .geom import TranslatePoints, RotatePoints
 from .config import Config
 
@@ -569,7 +569,7 @@ class TriBase(object):
         """Write a triangulation to file
         
         :Call:
-            >>> tri.Write(fname='Components.i.tri')
+            >>> tri.WriteSlow(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance to be translated
@@ -591,6 +591,76 @@ class TriBase(object):
         np.savetxt(fid, self.CompID, fmt="%i",      delimiter=' ')
         # Close the file.
         fid.close()
+        
+    # Write STL using python language
+    def WriteSTL(self, fname='Components.i.stl', v=True):
+        """Write a triangulation to an STL file
+        
+        :Call:
+            >>> tri.WriteSTL(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Versions:
+            * 2015-11-22 ``@ddalle``: First version
+        """
+        # Status update.
+        if v:
+            print("    Writing triangulation: '%s'" % fname)
+        # Try the fast way.
+        try:
+            # Fast method using compiled C.
+            self.WriteSTLFast(fname)
+        except Exception:
+            # Slow method using Python code.
+            self.WriteSTLSlow(fname)
+        
+    # Write STL using python language
+    def WriteSTLSlow(self, fname='Components.i.stl'):
+        """Write a triangulation to an STL file
+        
+        :Call:
+            >>> tri.WriteSTLSlow(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Versions:
+            * 2015-11-22 ``@ddalle``: First version
+        """
+        # Ensure that normals have been calculated
+        self.GetNormals()
+        # Open the file for creation.
+        f = open(fname, 'w')
+        # Header
+        f.write('solid\n')
+        # Loop through triangles
+        for i in np.arange(self.nTri):
+            # Triangle
+            ti = self.Tris[i]
+            # Normal
+            ni = self.Normals[i]
+            # Vertices
+            x0 = self.Nodes[ti[0]]
+            x1 = self.Nodes[ti[1]]
+            x2 = self.Nodes[ti[2]]
+            # Write header and normal vector
+            f.write('   facet normal   %12.5e %12.5e %12.5e\n' % tuple(ni))
+            # Write vertices
+            f.write('      outer loop\n')
+            f.write('         vertex   %12.5e %12.5e %12.5e\n' % tuple(x0))
+            f.write('         vertex   %12.5e %12.5e %12.5e\n' % tuple(x1))
+            f.write('         vertex   %12.5e %12.5e %12.5e\n' % tuple(x2))
+            # Close the loop
+            f.write('      endloop\n')
+            f.write('   endfacet\n')
+        # End header
+        f.write('endsolid\n')
+        # Close the file.
+        f.close()
         
     # Fall-through function to write the triangulation to file.
     def WriteTriq(self, fname='Components.i.triq', v=True):
@@ -1284,7 +1354,7 @@ class TriBase(object):
             if os.path.isfile(f):
                 # Delete it.
                 os.remove(f)
-                
+    
     # Function to plot all components!
     def TecplotExplode(self):
         """
@@ -1327,6 +1397,57 @@ class TriBase(object):
                 print("    %s.png" % i)
                 # Create the 3-view plot for just that CompID==i
                 self.Tecplot3View(i, i)
+        
+    
+    # Create a surface view of a component using Paraview
+    def ParaviewPlot(self, fname, i=None, r='x', u='y'):
+        """Create a plot of the surface of one component using Paraview
+        
+        :Call:
+            >>> tri.ParaviewPlot(fname, i=None, r='x', u='y')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *fname*: :class:`str`
+                Created file is ``'%s.png' % fname``
+            *i*: :class:`str` or :class:`int` or :class:`list` (:class:`int`)
+                Component name, ID or list of component IDs
+            *r*: :class:`str` | :class:`list` (:class:`int`)
+                Axis pointing to the right in plot
+            *u*: :class:`str` | :class:`list` (:class:`int`)
+                Axis pointing upward in plot
+        :Versions:
+            * 2015-11-22 ``@ddalle``: First version
+        """
+        # Get the subtriangulation
+        tri0 = self.GetSubTri(i)
+        # Name of .tri and .stl files
+        ftri = '%s.tri' % fname
+        # Write the triangulation file
+        tri0.Write(ftri)
+        # Hide output
+        f = open('/dev/null', 'w')
+        # Convert to STL
+        print("      Converting to STL: '%s' -> comp.stl'" % ftri)
+        call(['tri2stl', '-i', ftri, '-o', 'comp.stl'], stdout=f)
+        # Cleanup if any old files
+        for fi in ['cape_stl.py']:
+            if os.path.isfile(fi): os.remove(fi)
+        # Copy the template Paraview script
+        copy(os.path.join(ParaviewFolder, 'cape_stl.py'), '.')
+        # Create the image.
+        print("      Creating image '%s.png' using `pvpython`" % fname)
+        call(['pvpython', 'cape_stl.py', str(r), str(u)], stdout=f)
+        # Close null output file.
+        fclose()
+        # Rename the PNG.
+        os.rename('cape_stl.png', '%s.png' % fname)
+        # Cleanup.
+        for f in ['cape_stl.py', 'comp.stl']:
+            # Check for the file.
+            if os.path.isfile(f):
+                # Delete it.
+                os.remove(f)
         
     
     # Function to translate the triangulation

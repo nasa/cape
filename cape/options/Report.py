@@ -544,8 +544,8 @@ class Report(odict):
         t = self.get_SubfigType(sfig)
         # Check if it is a base category.
         if t in ['Conditions', 'SweepConditions', 'SweepCases', 
-                'Summary', 'PlotCoeff',
-                'SweepCoeff', 'PlotL1', 'Tecplot3View', 'Tecplot']:
+                'Summary', 'PlotCoeff', 'SweepCoeff', 'PlotL1',
+                'Tecplot3View', 'Tecplot', 'ParaviewTri', 'Paraview']:
             # Yes, it is.
             return t
         elif t in [sfig, '']:
@@ -755,6 +755,26 @@ class Report(odict):
                 "FigWidth": 1024,
                 "Layout": "layout.lay"
             }
+        elif t in ['ParaviewTri']:
+            # Surface component with axes specified
+            S = {
+                "Header": "",
+                "Position": "b",
+                "Alignment": "center",
+                "Width": 0.5,
+                "Component": "entire",
+                "RightAxis": "x",
+                "UpAxis": "y"
+            }
+        elif t in ['Paraview']:
+            # General Paraview script
+            S = {
+                "Header": "",
+                "Position": "b",
+                "Alignment": "center",
+                "Width": 0.5,
+                "Layout": "layout.py"
+            }
         elif t in [sfig, '']:
             # Unrecognized figure.
             raise IOError("Subfigure '%s' type is not recognized" % sfig)
@@ -854,5 +874,5 @@ class Report(odict):
             o_plt.setdefault('facecolor', o_plt.get('color'))
         # Output.
         return o_plt
-        
+# class Report
 

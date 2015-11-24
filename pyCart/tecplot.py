@@ -1,6 +1,6 @@
 """
 Module to interface with Tecplot scripts: :mod:`pyCart.tecplot`
-======================================================================
+===============================================================
 
 This is a module built off of the :mod:`pyCart.fileCntl` module customized for
 manipulating Tecplot layout files and macros.

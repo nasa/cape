@@ -15,10 +15,11 @@ import os.path
 
 # cape base folder
 capeFolder = os.path.split(os.path.abspath(__file__))[0]
+rootFolder = os.path.split(capeFolder)[0]
 # Folder containing TecPlot templates
-TecFolder = os.path.split(capeFolder)[0]
-TecFolder = os.path.join(TecFolder, "templates", "tecplot")
-
+TecFolder = os.path.join(rootFolder, "templates", "tecplot")
+# Folder containing Paraview templates
+ParaviewFolder = os.path.join(rootFolder, "templates", "paraview")
 
 # Function to get uncertainty in the mean
 def SigmaMean(x):
