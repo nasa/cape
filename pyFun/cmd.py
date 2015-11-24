@@ -71,14 +71,14 @@ def nodet(opts=None, i=0, **kw):
         # Use the serial ``nodet`` command
         cmdi = ['nodet']
     # Loop through command-line inputs
-    for k in kw:
+    for k in cli_nodet:
         # Get the value.
-        v = kw[k]
+        v = cli_nodet[k]
         # Check the type
         if v == True:
             # Just an option with no value
             cmdi.append('--'+k)
-        elif v == False or V is None:
+        elif v == False or v is None:
             # Do not use.
             pass
         else:

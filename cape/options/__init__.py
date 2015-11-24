@@ -470,12 +470,12 @@ class Options(odict):
     # Get MPI status
     def get_MPI(self, i=None):
         self._RunControl()
-        return self['RunControl'].get_mpi_fc(i)
+        return self['RunControl'].get_MPI(i)
         
     # Set MPI status
     def set_MPI(self, MPI=rc0('MPI'), i=None):
         self._RunControl()
-        self['RunControl'].set_mpi_fc(mpi_fc, i)
+        self['RunControl'].set_MPI(MPI, i)
         
     # Get the number of threads for RunControl
     def get_nProc(self, i=None):
