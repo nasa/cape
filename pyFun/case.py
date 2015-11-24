@@ -312,7 +312,8 @@ def GetRunningIter():
     # Check for the file.
     if not os.path.isfile('fun3d.out'): return None
     # Get the last three lines of :file:`fun3d.out`
-    lines = bin.tail('fun3d.out', 3).strip().split('\n')
+    lines = bin.tail('fun3d.out', 7).strip().split('\n')
+    lines.reverse()
     # Initialize output
     n = None
     # Try each line.
