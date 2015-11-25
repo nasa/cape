@@ -664,12 +664,12 @@ class Report(odict):
                 "Iteration": 0,
                 "Components": ["entire"],
                 "Coefficients": ["CA", "CY", "CN"],
-                "CA": ["mu", "std", "err"],
-                "CY": ["mu", "std", "err"],
-                "CN": ["mu", "std", "err"],
-                "CLL": ["mu", "std", "err"],
-                "CLM": ["mu", "std", "err"],
-                "CLN": ["mu", "std", "err"]
+                "CA": ["mu", "std"],
+                "CY": ["mu", "std"],
+                "CN": ["mu", "std"],
+                "CLL": ["mu", "std"],
+                "CLM": ["mu", "std"],
+                "CLN": ["mu", "std"]
             }
         elif t in ['PlotCoeff']:
             # Force or moment history
