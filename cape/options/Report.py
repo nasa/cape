@@ -736,6 +736,31 @@ class Report(odict):
                 "Format": "pdf",
                 "DPI": 150
             }
+        elif t in ['PlotL2']:
+            # Residual history
+            S = {
+                "Header": "",
+                "Position": "b",
+                "Alignment": "center",
+                "Width": 0.5,
+                "FigWidth": 6,
+                "FigHeight": 4.5,
+                "Format": "pdf",
+                "DPI": 150
+            }
+        elif t in ["PlotResid"]:
+            S = {
+                "Residual": "R_1",
+                "YLabel": "Residual",
+                "Header": "",
+                "Position": "b",
+                "Alignment": "center",
+                "Width": 0.5,
+                "FigWidth": 6,
+                "FigHeight": 4.5,
+                "Format": "pdf",
+                "DPI": 150
+            }
         elif t in ['Tecplot3View']:
             # Component 3-view
             S = {

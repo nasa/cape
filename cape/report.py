@@ -892,6 +892,15 @@ class Report(object):
             elif btyp == 'PlotL1':
                 # Get the residual plot
                 lines += self.SubfigPlotL1(sfig, i)
+            elif btyp == 'PlotL2':
+                # Get the global residual plot
+                lines += self.SubfigPlotL2(sfig, i)
+            elif btyp == 'PlotTurbResid':
+                # Plot the turbulence residual, or as close as this is
+                lines += self.SubfigPlotTurbResid(sfig, i)
+            elif btyp == 'PlotResid':
+                # Plot generic residual
+                lines += self.SubfigPlotResid(sfig, i)
             elif btyp == 'Tecplot3View':
                 # Get the Tecplot component view
                 lines += self.SubfigTecplot3View(sfig, i)
@@ -1759,6 +1768,64 @@ class Report(object):
                 Case index
         :Versions:
             * 2014-03-09 ``@ddalle``: First version
+            * 2015-11-25 ``@ddalle``: Moved contents to :func:`SubfigPlotResid`
+        """
+        return self.SubfigPlotResid(sfig, i, c='L1')
+        
+    # Function to create L2 plot and write figure
+    def SubfigPlotL2(self, sfig, i):
+        """Create plot for L2 residual
+        
+        :Call:
+            >>> lines = R.SubfigPlotL2(sfig, i)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2015-11-25 ``@ddalle``: First version
+        """
+        return self.SubfigPlotResid(sfig, i, c='L2')
+        
+    # Function to create L2 plot and write figure
+    def SubfigPlotTurbResid(self, sfig, i):
+        """Create plot for turbulence residual
+        
+        :Call:
+            >>> lines = R.SubfigPlotTurbResid(sfig, i)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2015-11-25 ``@ddalle``: First version
+        """
+        return self.SubfigPlotResid(sfig, i, c='TurbResid')
+    
+    # Function to create coefficient plot and write figure
+    def SubfigPlotResid(self, sfig, i, c=None):
+        """Create plot for named residual
+        
+        :Call:
+            >>> lines = R.SubfigPlotResid(sfig, i, r=None)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *i*: :class:`int`
+                Case index
+            *r*: :class:`str`
+                Name of residual to plot (defaults to option from JSON)
+        :Versions:
+            * 2014-03-09 ``@ddalle``: First version
+            * 2015-11-25 ``@ddalle``: Forked from :func:`SubfigPlotL1`
         """
         # Save current folder.
         fpwd = os.getcwd()
@@ -1809,11 +1876,28 @@ class Report(object):
             figw = opts.get_SubfigOpt(sfig, "FigureWidth")
             figh = opts.get_SubfigOpt(sfig, "FigureHeight")
             # Read the Aero history.
-            hist = self.ReadCaseResid()
-            # Draw the plot.
-            h = hist.PlotL1(n=nPlotIter, 
-                nFirst=nPlotFirst, nLast=nPlotLast,
-                FigWidth=figw, FigHeight=figh)
+            H = self.ReadCaseResid()
+            # Options dictionary
+            kw_p = {"nFirst": nPlotFirst, "nLast": nPlotLast,
+                "FigWidth": figw, "FigHeight": figh}
+            # Determine which function to call
+            if c == "L1":
+                # Draw the "L1" plot
+                h = H.PlotL1(n=nPlotIter, **kw)
+            elif c == "L2":
+                # Plot global L2 residual
+                h = H.PlotL2(n=nPlotIter, **kw)
+            elif c == "TurbResid":
+                # Plot turbulence residual
+                h = H.PlotTurbResid(n=nPlotIter, **kw)
+            else:
+                # Plot named residual
+                # Get y-axis label
+                kw["YLabel"] = opts.get_SubfigOpt(sfig, 'YLabel')
+                # Get coefficient
+                cr = opts.get_SubfigOpt(sfig, "Residual")
+                # Plot it
+                h = H.PlotResid(c=cr, n=nPlotIter, **kw)
             # Change back to report folder.
             os.chdir(fpwd)
             # Get the file formatting
@@ -1839,8 +1923,6 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-        
-        
     
         
     # Read iterative history

@@ -60,20 +60,20 @@ if __name__ == "__main__":
     #elif kw.get('explode'):
     #    # Break out each named component.
     #    fun3d.ExplodeTri()
-    #elif kw.get('report'):
-    #    # Get the report(s) to create.
-    #    if kw['report'] == True:
-    #        # All reports
-    #        reps = [fun3d.opts.get_ReportList()[0]]
-    #    else:
-    #        # User-specified report
-    #        reps = [kw['report']]
-    #    # Loop through reports.
-    #    for rep in reps:
-    #        # Get the report.
-    #        R = pyFun.report.Report(fun3d, rep)
-    #        # Update according to other options
-    #        R.UpdateReport(**kw)
+    elif kw.get('report'):
+        # Get the report(s) to create.
+        if kw['report'] == True:
+            # All reports
+            reps = [fun3d.opts.get_ReportList()[0]]
+        else:
+            # User-specified report
+            reps = [kw['report']]
+        # Loop through reports.
+        for rep in reps:
+            # Get the report.
+            R = pyFun.report.Report(fun3d, rep)
+            # Update according to other options
+            R.UpdateReport(**kw)
     else:
         # Do it.
         fun3d.SubmitJobs(**kw)
