@@ -5,25 +5,26 @@ Control Files for pyCart (:file:`pyCart.json`)
 **********************************************
 
 This section describes the JSON files that provide the master control to the
-pyCart package.  The file format, JSON, stands for "Javascript Object
-Notation," which is a standard file format but relatively recent.  There is one
-extension for pyCart JSON files, which is that comments are allowed, using
-either ``//`` (preferred) or ``#`` as the comment character.  Newer versions of
-`vi` or `vim`  recognize this file format for syntax highlighting, as do some
-other text editors, and setting the highlight mode to javascript is a useful
-way to convince other programs to provide useful syntax highlighting.
+pyCart package. The file format, `JSON <http://json.org>`_, stands for
+"JavaScript Object Notation," which is a standard file format but relatively
+recent. There is one extension for pyCart JSON files, which is that comments are
+allowed, using either ``//`` (preferred) or ``#`` as the comment character.
+Newer versions of `vi` or `vim` recognize this file format for syntax
+highlighting, as do some other text editors, and setting the highlight mode to
+javascript is a useful way to convince other programs to provide useful syntax
+highlighting.
 
 Creating JSON files is very similar to creating a text file that contains a
-single Python :class:`dict`, with a couple of differences.
+single Python :class:`dict`, with a few differences.
 
     #. Only double quotes are allowed; single quotes are not valid string
        characters.
     #. Each key name must be a string; syntax like ``{1: "a"}`` is not valid.
-    #. True and false are denoted ``true`` and ``false`` instead of the Python
-       standard ``True`` and ``False``.
-    #. The only available types are :class:`int`, :class:`float`, :class:`str`,
-       :class:`bool`, :class:`list`, and :class:`dict`.  However, nesting is
-       entirely allowed.
+    #. True and false are denoted ``true``, ``false``, and ``null`` instead of
+        the Python standard ``True``, ``False``, and ``None``.
+    #. The only available types are :class:`int`, :class:`float`,
+       :class:`unicode`, :class:`bool`, :class:`list`, and :class:`dict`.
+    #. Other JSON files can be imported using ``JSONFile(othersettings.json)``.
 
 The pyCart control file, which by default is called :file:`pyCart.json` but can
 also have other names, is split into several sections.  Most aspects of the
@@ -81,14 +82,11 @@ the major parts of the file.
             // Settings for folder management and archiving
             "Management": {},
             
-            // Definitions of iterative history plots to make
-            "Plot": {},
-            
             // Describe what forces and moments to record in the data book.
             "DataBook": {},
             
             // Describe reports to create to summarize results
-            "Report": {},
+            "Report": JSONFile("Report.json"),
             
             // Mandatory definition of run matrix.
             "Trajectory": {

@@ -312,7 +312,7 @@ def expandJSONFile(lines):
             continue
         # Get the tag.
         txt = re.findall('JSONFile\([-"/\\w.= ]+\)', line)
-        # Double check match
+        # Double-check match
         if len(txt) == 0:
             # Go to next line.
             i += 1
