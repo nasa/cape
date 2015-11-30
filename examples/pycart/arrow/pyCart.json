@@ -2,8 +2,8 @@
 	// Iteration control and command-line inputs
 	"RunControl": {
         // Run sequence
-        "InputSeq": [0],
-        "IterSeq": [200],
+        "PhaseSequece": [0],
+        "PhaseIters": [200],
         // System configuration
 	    "nProc": 4,
 	    // Options for ``flowCart``

@@ -2,8 +2,8 @@
     // Options for overall run control and command-line inputs
     "RunControl": {
         // Run sequence
-        "InputSeq": [0],
-        "IterSeq": [200],
+        "PhaseSequence": [0],
+        "PhaseIters": [200],
         // Operation modes
         "nProc": 4,
         "MPI": false,

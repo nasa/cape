@@ -3,8 +3,8 @@
 	// The names for these parameters are copied from `aero.csh`.
 	"RunControl": {
         // Run sequence
-        "InputSeq": [0, 1],
-        "IterSeq": [0, 300],
+        "PhaseSequence": [0, 1],
+        "PhaseIters": [0, 300],
 	    // Number of threads
 	    "nProc": 4,
 	    

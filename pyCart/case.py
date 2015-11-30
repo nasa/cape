@@ -60,7 +60,7 @@ def run_flowCart(verify=False, isect=False):
     IntersectCase(isect=isect)
     VerifyCase(verify=verify)
     # Determine the run index.
-    i = GetInputNumber(rc)
+    i = GetPhaseNumber(rc)
     # Create a restart file if appropriate.
     if not rc.get_Adaptive(i):
         # Automatically determine the best check file to use.
@@ -309,7 +309,7 @@ def StartCase(i0=None):
     # Get the config.
     rc = ReadCaseJSON()
     # Determine the run index.
-    i = GetInputNumber(rc)
+    i = GetPhaseNumber(rc)
     # Check qsub status.
     if not rc.get_qsub(i):
         # Run the case.
@@ -390,7 +390,7 @@ def GetPBSScript(i=None):
         >>> fpbs = pyCart.case.GetPBSScript(i=None)
     :Inputs:
         *i*: :class:`int`
-            Run index
+            Phase number
     :Outputs:
         *fpbs*: :class:`str`
             Name of PBS script to call
@@ -571,17 +571,17 @@ def SetRestartIter(n=None, ntd=None):
     
     
 # Function to chose the correct input to use from the sequence.
-def GetInputNumber(rc):
+def GetPhaseNumber(rc):
     """Determine the appropriate input number based on results available
     
     :Call:
-        >>> i = pyCart.case.GetInputNumber(rc)
+        >>> i = pyCart.case.GetPhaseNumber(rc)
     :Inputs:
         *rc*: :class:`pyCart.options.runControl.RunControl`
             Options interface for `flowCart`
     :Outputs:
         *i*: :class:`int`
-            Most appropriate run number for a restart
+            Most appropriate phase number for a restart
     :Versions:
         * 2014-10-02 ``@ddalle``: First version
     """
@@ -590,13 +590,13 @@ def GetInputNumber(rc):
     # Loop through possible input numbers.
     for j in range(rc.get_nSeq()):
         # Get the actual run number
-        i = rc.get_InputSeq(j)
+        i = rc.get_PhaseSequence(j)
         # Check for output files.
         if len(glob.glob('run.%02i.*' % i)) == 0:
             # This run has not been completed yet.
             return i
         # Check the iteration number.
-        if n < rc.get_IterSeq(j):
+        if n < rc.get_PhaseIters(j):
             # This case has been run, but hasn't reached the min iter cutoff
             return i
     # Case completed; just return the last value.

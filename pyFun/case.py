@@ -39,7 +39,7 @@ def run_fun3d():
     # Get the project name
     fproj = GetProjectRootname()
     # Determine the run index.
-    i = GetInputNumber(rc)
+    i = GetPhaseNumber(rc)
     # Set the restart file and flag if necessary.
     SetRestartIter(rc)
     # Delete any input file.
@@ -78,7 +78,7 @@ def StartCase():
     # Get the config.
     rc = ReadCaseJSON()
     # Determine the run index.
-    i = GetInputNumber(rc)
+    i = GetPhaseNumber(rc)
     # Check qsub status.
     if rc.get_qsub(i):
         # Get the name of the PBS file.
@@ -125,17 +125,17 @@ def GetPBSScript(i=None):
         return 'run_fun3d.pbs'
     
 # Function to chose the correct input to use from the sequence.
-def GetInputNumber(rc):
+def GetPhaseNumber(rc):
     """Determine the appropriate input number based on results available
     
     :Call:
-        >>> i = pyFun.case.GetInputNumber(rc)
+        >>> i = pyFun.case.GetPhaseNumber(rc)
     :Inputs:
         *rc*: :class:`pyFun.options.runControl.RunControl`
             Options interface for run control
     :Outputs:
         *i*: :class:`int`
-            Most appropriate run number for a restart
+            Most appropriate phase number for a restart
     :Versions:
         * 2014-10-02 ``@ddalle``: First version
         * 2015-10-19 ``@ddalle``: FUN3D version
@@ -145,7 +145,7 @@ def GetInputNumber(rc):
     # Loop through possible input numbers.
     for j in range(rc.get_nSeq()):
         # Get the actual run number
-        i = rc.get_InputSeq(j)
+        i = rc.get_PhaseSequence(j)
         # Check for output files.
         if len(glob.glob('run.%02i.*' % i)) == 0:
             # This run has not been completed yet.
@@ -185,7 +185,7 @@ def GetNamelist(rc=None):
             return Namelist(fglob[0])
     else:
         # Get run index.
-        i = GetInputNumber(rc)
+        i = GetPhaseNumber(rc)
         # Read the namelist file.
         return Namelist('fun3d.%02i.nml' % i)
 

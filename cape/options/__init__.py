@@ -428,24 +428,24 @@ class Options(odict):
         self['RunControl'].set_nIter(nIter, i)
     
     # Get input sequence
-    def get_InputSeq(self, i=None):
+    def get_PhaseSequence(self, i=None):
         self._RunControl()
-        return self['RunControl'].get_InputSeq(i)
+        return self['RunControl'].get_PhaseSequence(i)
         
     # Set input sequence
-    def set_InputSeq(self, InputSeq=rc0('InputSeq'), i=None):
+    def set_PhaseSequence(self, PhaseSeq=rc0('PhaseSequence'), i=None):
         self._RunControl()
-        self['RunControl'].set_InputSeq(InputSeq, i)
+        self['RunControl'].set_PhaseSequence(PhaseSeq, i)
         
     # Get iteration break points
-    def get_IterSeq(self, i=None):
+    def get_PhaseIters(self, i=None):
         self._RunControl()
-        return self['RunControl'].get_IterSeq(i)
+        return self['RunControl'].get_PhaseIters(i)
         
     # Set Iteration break points
-    def set_IterSeq(self, IterSeq=rc0('IterSeq'), i=None):
+    def set_PhaseIters(self, PhaseIters=rc0('PhaseIters'), i=None):
         self._RunControl()
-        return self['RunControl'].set_IterSeq(IterSeq, i)
+        return self['RunControl'].set_PhaseIters(PhaseIters, i)
         
     # Get environment variable(s)
     def get_Environ(self, i=None):
@@ -528,7 +528,7 @@ class Options(odict):
         self['RunControl'].set_Continue(cont, i)
         
     # Copy over the documentation.
-    for k in ['nIter', 'InputSeq', 'IterSeq', 'Environ', 'ulimit',
+    for k in ['nIter', 'PhaseSequence', 'PhaseIters', 'Environ', 'ulimit',
             'MPI', 'nProc', 'mpicmd', 'qsub', 'Resubmit', 'Continue']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__

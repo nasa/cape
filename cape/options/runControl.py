@@ -25,7 +25,7 @@ class Environ(odict):
             *key*: :class:`str`
                 Name of the environment variable
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Outputs:
             *val*: :class:`str`
                 Value to set the environment variable to
@@ -55,7 +55,7 @@ class Environ(odict):
             *val*: :class:`str`
                 Value to set the environment variable to
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Versions:
             * 2015-11-10 ``@ddalle``: First version
         """
@@ -81,7 +81,7 @@ class ulimit(odict):
             *u*: :class:`str`
                 Name of the ``ulimit`` flag
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Outputs:
             *l*: :class:`int`
                 Value of the resource limit
@@ -118,7 +118,7 @@ class ulimit(odict):
             *l*: :class:`int`
                 Value of the limit
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Versions:
             * 2015-11-10 ``@ddalle``: First version
         """
@@ -139,7 +139,7 @@ class ulimit(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Outputs:
             *s*: :class:`int`
                 Value of the stack size limit
@@ -160,7 +160,7 @@ class ulimit(odict):
             *s*: :class:`int`
                 Value of the stack size limit
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Versions:
             * 2015-11-10 ``@ddalle``: First version
         """
@@ -176,7 +176,7 @@ class ulimit(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Outputs:
             *s*: :class:`int`
                 Value of the stack size limit
@@ -197,7 +197,7 @@ class ulimit(odict):
             *s*: :class:`int`
                 Value of the stack size limit
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Versions:
             * 2015-11-10 ``@ddalle``: First version
         """
@@ -336,7 +336,7 @@ class RunControl(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
-                Run sequence index
+                Phase number
         :Outputs:
             *nIter*: :class:`int` or :class:`list` (:class:`int`)
                 Number of iterations to run
@@ -347,87 +347,88 @@ class RunControl(odict):
     
 
     # Run input sequence
-    def get_InputSeq(self, i=None):
+    def get_PhaseSequence(self, i=None):
         """Return the input sequence for `flowCart`
         
         :Call:
-            >>> InputSeq = opts.get_InputSeq(i=None)
+            >>> PhaseSeq = opts.get_PhaseSequence(i=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Outputs:
-            *InputSeq*: :class:`int` or :class:`list`(:class:`int`)
+            *PhaseSeq*: :class:`int` or :class:`list`(:class:`int`)
                 Sequence of input run index(es)
         :Versions:
             * 2014-10-02 ``@ddalle``: First version
+            * 2015-11-27 ``@ddalle``: InputSeq -> PhaseSeq
         """
-        return self.get_key('InputSeq', i)
+        return self.get_key('PhaseSequence', i)
         
     # Set run input sequence.
-    def set_InputSeq(self, InputSeq=rc0('InputSeq'), i=None):
+    def set_PhaseSequence(self, PhaseSeq=rc0('PhaseSequence'), i=None):
         """Set the input sequence for `flowCart`
         
         :Call:
-            >>> opts.get_InputSeq(InputSeq, i=None)
+            >>> opts.get_PhaseSequence(PhaseSeq, i=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *InputSeq*: :class:`int` or :class:`list`(:class:`int`)
+            *PhaseSeq*: :class:`int` or :class:`list`(:class:`int`)
                 Sequence of input run index(es)
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Versions:
             * 2014-10-02 ``@ddalle``: First version
         """
-        self.set_key('InputSeq', InputSeq, i)
+        self.set_key('PhaseSequence', PhaseSeq, i)
         
     
     # Get minimum cumulative iteration count
-    def get_IterSeq(self, i=None):
+    def get_PhaseIters(self, i=None):
         """
         Get the break points for run *i*.  Input *i* will be repeated until the
-        cumulative iteration count is greater than or equal to *IterSeq[i]*.
+        cumulative iteration count is greater than or equal to *PhaseIters[i]*.
         
         :Call:
-            >>> IterSeq = opts.get_IterSeq(i=None)
+            >>> PhaseIters = opts.get_PhaseIters(i=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Outputs:
-            *IterSeq*: :class:`int` or :class:`list`(:class:`int`)
+            *PhaseIters*: :class:`int` or :class:`list`(:class:`int`)
                 Sequence of iteration break points
         :Versions:
             * 2014-10-02 ``@ddalle``: First version
         """
-        return self.get_key('IterSeq', i)
+        return self.get_key('PhaseIters', i)
         
     # Set minimum cumulative iteration count
-    def set_IterSeq(self, IterSeq, i=None):
+    def set_PhaseIters(self, PhaseIters, i=None):
         """
         Get the break points for run *i*.  Input *i* will be repeated until the
-        cumulative iteration count is greater than or equal to *IterSeq[i]*.
+        cumulative iteration count is greater than or equal to *PhaseIters[i]*.
         
         :Call:
-            >>> opts.get_IterSeq(IterSeq, i=None)
+            >>> opts.get_PhaseIters(PhaseIters, i=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Outputs:
-            *IterSeq*: :class:`int` or :class:`list`(:class:`int`)
+            *PhaseIters*: :class:`int` or :class:`list`(:class:`int`)
                 Sequence of iteration break points
         :Versions:
             * 2014-10-02 ``@ddalle``: First version
         """
-        self.set_key('IterSeq', IterSeq, i)
+        self.set_key('PhaseIters', PhaseIters, i)
         
     
-    # Number of iterations
+    # Number of phases
     def get_nSeq(self):
         """Return the number of input sets in the sequence
         
@@ -443,11 +444,11 @@ class RunControl(odict):
             * 2014.10.02 ``@ddalle``: First version
         """
         # Get the input sequence.
-        InputSeq = self.get_InputSeq()
+        PhaseSeq = self.get_PhaseSequence()
         # Check if it's a list.
-        if type(InputSeq).__name__ == "list":
+        if type(PhaseSeq).__name__ == "list":
             # Use the length.
-            return len(InputSeq)
+            return len(PhaseSeq)
         else:
             # Something is messed up.
             return 1
@@ -467,7 +468,7 @@ class RunControl(odict):
         :Versions:
             * 2014-10-02 ``@ddalle``: First version
         """
-        return self.get_IterSeq(self.get_nSeq())
+        return self.get_PhaseIters(self.get_nSeq())
         
     # Get MPI status
     def get_MPI(self, i):
@@ -517,7 +518,7 @@ class RunControl(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Outputs:
             *nProc*: :class:`int` or :class:`list`(:class:`int`)
                 Number of threads for `flowCart`
@@ -539,7 +540,7 @@ class RunControl(odict):
             *nProc*: :class:`int` or :class:`list`(:class:`int`)
                 Number of threads for `flowCart`
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Versions:
             * 2014-08-02 ``@ddalle``: First version
             * 2014-10-02 ``@ddalle``: Switched to "nProc"
@@ -556,7 +557,7 @@ class RunControl(odict):
             *opts*: :class:`pyCart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Outputs:
             *mpicmd*: :class:`str`
                 System command to call MPI
@@ -577,7 +578,7 @@ class RunControl(odict):
             *mpicmd*: :class:`str`
                 System command to call MPI
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Versions:
             * 2014-10-02 ``@ddalle``: First version
         """
@@ -593,7 +594,7 @@ class RunControl(odict):
             *opts*: :class:`pyCart.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Outputs:
             *qsub*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not to submit case to PBS
@@ -614,7 +615,7 @@ class RunControl(odict):
             *qsub*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not to submit case to PBS
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Versions:
             * 2014-10-05 ``@ddalle``: First version
         """
@@ -631,7 +632,7 @@ class RunControl(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Outputs:
             *resub*: :class:`bool` | :class:`list` (:class:`bool`)
                 Whether or not to resubmit/restart a case
@@ -652,7 +653,7 @@ class RunControl(odict):
             *resub*: :class:`bool` or :class:`list`(:class:`bool`)
                 Whether or not to resubmit/restart a case
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Versions:
             * 2014-10-05 ``@ddalle``: First version
         """
@@ -668,7 +669,7 @@ class RunControl(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Outputs:
             *cont*: :class:`bool` | :class:`list` (:class:`bool`)
                 Whether or not to continue restarts of same input sequence
@@ -688,7 +689,7 @@ class RunControl(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
-                Run index
+                Phase number
         :Outputs:
             *cont*: :class:`bool` | :class:`list` (:class:`bool`)
                 Whether or not to continue restarts of same input sequence
