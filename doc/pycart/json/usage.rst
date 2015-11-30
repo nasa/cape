@@ -47,9 +47,9 @@ in the "RunControl" section are mandatory.
 
     .. code-block:: javascript
     
-        "RunSequence": {
-            "InputSeq": [0, 1, 2],
-            "IterSeq": [0, 0, 1500]
+        "RunControl": {
+            "PhaseSequence": [0, 1, 2],
+            "PhaseIters": [0, 0, 1500]
         }
 
 This tells pyCart to run Cart3D with input set 0 once, then with input set 1
