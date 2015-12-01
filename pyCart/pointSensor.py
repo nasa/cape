@@ -105,6 +105,8 @@ class CasePointSensor(object):
             Number of iterations recorded in point sensor history
         *P.nd*: ``2`` | ``3``
             Number of dimensions
+        *P.nSteady*: :class:`int`
+            Maximum steady-state iteration number
         *P.data*: :class:`numpy.ndarray` (*nPoint*, *nIter*, 10 | 12)
             Data array
     :Versions:
@@ -122,6 +124,7 @@ class CasePointSensor(object):
             self.nPoint = None
             self.nIter = 0
             self.nd = None
+            self.nSteady = 0
             self.data = np.zeros((0,0,12))
         # Read iterations if necessary.
         self.UpdateIterations()
@@ -141,44 +144,35 @@ class CasePointSensor(object):
         :Versions:
             * 2015-11-30 ``@ddalle``: First version
         """
-        # Extract iterative history
+        # Get latest iteration.
         if self.nPoint > 0:
-            i = self.data[0,:,-1]
+            imax = self.data[0,-1,-1]
         else:
-            i = np.array([])
-        # Get last iteration
-        if len(i) > 0: imax = max(i)
-        else: imax = 0
+            imax = 0
         # Check for steady-state iteration.
         if get_iter('pointSensors.dat') > imax:
             # Read the file.
             PS = PointSensor('pointSensors.dat')
             # Save the iterations
             self.AppendIteration(PS)
-            # Extract iterative history
-            i = self.data[0,:,-1]
-            # Get last iteration
-            if len(i) > 0: imax = max(i)
-            else: imax = 0
+            # Update the steady-state iteration count
+            if self.nPoint > 0:
+                self.nSteady = PS.data[0,-1]
+                imax = self.nSteady
         # Check for time-accurate iterations.
         fglob = glob.glob('pointSensors.[0-9][0-9]*.dat')
         iglob = np.array([int(f.split('.')[1]) for f in fglob])
         iglob.sort()
-        # Check scenario
-        if os.path.isfile('pointSensors.dat'):
-            # Check for reset.
-            if len(i) > 1 and np.any(i[1:] < i[:-1]):
-                # At least one time-accurate data point included
-                iglob = iglob[iglob > imax]
-        else:
-            # Time-accurate results only; filter on *imax*
-            iglob = iglob[iglob > imax]
+        # Time-accurate results only; filter on *imax*
+        iglob = iglob[iglob > imax-self.nSteady]
         # Read the time-accurate iterations
         for i in iglob:
             # File name
             fi = "pointSensors.%06i.dat" % i
             # Read the file.
             PS = PointSensor(fi)
+            # Increase time-accurate iteration number
+            PS.i += self.nSteady
             # Save the data.
             self.AppendIteration(PS)
         
@@ -203,11 +197,12 @@ class CasePointSensor(object):
         # Read the first line, which contains identifiers.
         line = readline(f)
         # Get the values
-        nPoint, nIter, nd = [int(v) for v in line.split()]
+        nPoint, nIter, nd, nSteady = [int(v) for v in line.split()]
         # Save
-        self.nPoint = nPoint
-        self.nIter  = nIter
-        self.nd     = nd
+        self.nPoint  = nPoint
+        self.nIter   = nIter
+        self.nd      = nd
+        self.nSteady = nSteady
         # Number of data columns
         if nd == 2:
             # Two-dimensional data
@@ -234,8 +229,11 @@ class CasePointSensor(object):
         """
         # Open the file
         f = open(fname, 'w')
+        # Write column names
+        f.write('nPoint, nIter, nd, nSteady\n')
         # Write header.
-        f.write('%i %i %i\n' % (self.nPoint, self.nIter, self.nd))
+        f.write('%i %i %i %i\n' %
+            (self.nPoint, self.nIter, self.nd, self.nSteady))
         # Write flag
         if self.nd == 2:
             # Point, 2 coordinates, 5 states, refinements, iteration
@@ -243,12 +241,10 @@ class CasePointSensor(object):
         else:
             # Point, 3 coordinates, 6 states, refinements, iteration
             fflag = '%4i' + (' %15.8e'*9) + ' %2i %9.3f\n'
-        # Get the iterations
-        iIter = self.data[0,:,-1]
         # Loop through points
         for k in range(self.nPoint):
             # Loop through iterations
-            for i in iIter:
+            for i in range(self.nIter):
                 # Write the info.
                 f.write(fflag % tuple(self.data[k,i,:]))
         # Close the file.
@@ -298,6 +294,7 @@ class CasePointSensor(object):
         # Increase iteration count.
         self.nIter += 1
         
+        
     # Get the pressure coefficient
     def GetCp(self, k=None, imin=None, imax=None):
         """Get pressure coefficients at points *k* for one or more iterations
@@ -305,6 +302,8 @@ class CasePointSensor(object):
         :Call:
             >>> CP = P.GetCp(k=None, imin=None, imax=None)
         :Inputs:
+            *P*: :class:`pyCart.pointSensor.CasePointSensor`
+                Iterative point sensor history
             *k*: :class:`int` | :class:`list` (:class:`int`) | ``None``
                 Point index or list of points (all points if ``None``)
             *imin*: :class:`int` | ``None``
