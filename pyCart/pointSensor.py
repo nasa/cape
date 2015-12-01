@@ -14,9 +14,10 @@ control when used in other modules
 import os, glob
 # Basic numerics
 import numpy as np
-# Special read line ignoring comments
-from .util import readline
-from .bin  import tail
+# Local function
+from .util      import readline
+from .bin       import tail
+from .inputCntl import InputCntl
 
 
 # Check iteration number
@@ -43,6 +44,39 @@ def get_iter(fname):
     except Exception:
         # No iterations
         return 0
+        
+# Get Mach number from function
+def get_mach():
+    """Get Mach number from most appropriate :file:`input.??.cntl` file
+    
+    :Call:
+        >>> M = get_mach()
+    :Outputs:
+        *M*: :class:`float`
+            Mach number as determined from Cart3D input file
+    :Versions:
+        * 2015-12-01 ``@ddalle``: First version
+    """
+    # Look for numbered input files
+    fglob = glob.glob("input.[0-9][0-9]*.cntl")
+    # Safety catch.
+    try:
+        # No phases?
+        if len(fglob) == 0 and os.path.isfile('input.cntl'):
+            # Read the unmarked file
+            ICntl = InputCntl('input.cntl')
+        else:
+            # Get phase numbers
+            iglob = [int(f.split('.')[1]) for f in fglob]
+            # Maximum phase
+            ICntl = InputCntl('input.%02i.cntl' % max(iglob))
+        # Get the Mach number
+        return ICntl.GetMach()
+    except Exception:
+        # Nothing, give 0.0
+        return 0.0
+        
+# end functions
 
 
 # Data book of point sensors
@@ -56,7 +90,26 @@ class DBPointSensor(object):
 
 # Individual point sensor
 class CasePointSensor(object):
+    """Individual case point sensor history
     
+    :Call:
+        >>> P = CasePointSensor()
+    :Outputs:
+        *P*: :class:`pyCart.pointSensor.CasePointSensor`
+            Case point sensor
+        *P.mach*: :class:`float`
+            Mach number for this case; for calculating pressure coefficient
+        *P.nPoint*: :class:`int`
+            Number of point sensors
+        *P.nIter*: :class:`int`
+            Number of iterations recorded in point sensor history
+        *P.nd*: ``2`` | ``3``
+            Number of dimensions
+        *P.data*: :class:`numpy.ndarray` (*nPoint*, *nIter*, 10 | 12)
+            Data array
+    :Versions:
+        * 2015-12-01 ``@ddalle``: First version
+    """
     # Initialization method
     def __init__(self):
         """Initialization method"""
@@ -72,6 +125,8 @@ class CasePointSensor(object):
             self.data = np.zeros((0,0,12))
         # Read iterations if necessary.
         self.UpdateIterations()
+        # Save the Mach number
+        self.mach = get_mach()
         
     
     # Read the steady-state output file
@@ -134,9 +189,6 @@ class CasePointSensor(object):
         :Inputs:
             *fname*: :class:`str`
                 Name of point sensor history file
-        :Outputs:
-            *P*: :class:`pyCart.pointSensor.CasePointSensor`
-                Iterative point sensor history
         :Versions:
             * 2015-11-30 ``@ddalle``: First version
         """
@@ -164,6 +216,40 @@ class CasePointSensor(object):
         A = np.fromfile(f, dtype=float, count=nPoint*nIter*nCol, sep=" ")
         # Reshape
         self.data = A.reshape((nPoint, nIter, nCol))
+        
+    # Write history file
+    def WriteHist(self, fname='pointSensors.hist.dat'):
+        """Write point sensor iterative history file
+        
+        :Call:
+            >>> P.WriteHist(fname='pointSensors.hist.dat')
+        :Inputs:
+            *fname*: :class:`str`
+                Name of point sensor history file
+        :Versions:
+            * 2015-12-01 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'w')
+        # Write header.
+        f.write('%i %i %i\n' % (self.nPoint, self.nIter, self.nd))
+        # Write flag
+        if self.nd == 2:
+            # Point, 2 coordinates, 5 states, refinements, iteration
+            fflag '%4i' + (' %15.8e'*7) + ' %2i %9.3f\n'
+        else:
+            # Point, 3 coordinates, 6 states, refinements, iteration
+            fflag '%4i' + (' %15.8e'*9) + ' %2i %9.3f\n'
+        # Get the iterations
+        iIter = self.data[0,:,-1]
+        # Loop through points
+        for k in range(self.nPoint):
+            # Loop through iterations
+            for i in iIter:
+                # Write the info.
+                f.write(fflag % tuple(self.data[k,i,:]))
+        # Close the file.
+        f.close()
         
     # Add another point sensor
     def AppendIteration(self, PS):
@@ -204,6 +290,34 @@ class CasePointSensor(object):
         # Append to history.
         self.data = np.hstack(
             (self.data, A.reshape((self.nPoint,1,self.nCol))))
+        
+    # Get the pressure coefficient
+    def GetCp(self, k=None, imin=None, imax=None):
+        """Get pressure coefficients at points *k* for one or more iterations
+        
+        :Call:
+            >>> CP = P.GetCp(k=None, imin=None, imax=None)
+        :Inputs:
+            *k*: :class:`int` | :class:`list` (:class:`int`) | ``None``
+                Point index or list of points (all points if ``None``)
+            *imin*: :class:`int` | ``None``
+                Minimum iteration number to include
+            *imax*: :class:`int` | ``None``
+                Maximum iteration number to include
+        :Versions:
+            * 2015-12-01 ``@ddalle``: First version
+        """
+        # Default point indices.
+        if k is None: k = np.arange(self.nPoint)
+        # List of iterations.
+        iIter = self.data[0,:,-1]
+        # Indices
+        i = np.arange(self.nIter) > -1
+        # Filter indices
+        if imin is not None: i[iIter<imin] = False
+        if imax is not None: i[iIter>imax] = False
+        # Select the data
+        return self.data[k,i,self.nd] / (0.7*self.mach**2)
         
 # class CasePointSensor
 
