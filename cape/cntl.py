@@ -825,7 +825,7 @@ class Cntl(object):
         # Read the local case.json file.
         fc = case.ReadCaseJSON()
         # Option for desired iterations
-        N = fc.get('IterSeq', 0)
+        N = fc.get('PhaseIters', 0)
         # Return to original location.
         os.chdir(fpwd)
         # Output the last entry (if list)

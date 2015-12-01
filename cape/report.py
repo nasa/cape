@@ -2418,7 +2418,7 @@ class Report(object):
         # Form iteration string
         if n is None:
             # Unknown.
-            fitr = '-/%s' % self.cntl.opts.get_IterSeq(-1)
+            fitr = '-/%s' % self.cntl.opts.get_PhaseIters(-1)
         elif int(n) == n:
             # Use an integer iteration number
             fitr = '%i/%s' % (int(n), nMax)
