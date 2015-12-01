@@ -142,14 +142,17 @@ class CasePointSensor(object):
             * 2015-11-30 ``@ddalle``: First version
         """
         # Extract iterative history
-        i = self.data[0,:,-1]
+        if self.nPoint > 0:
+            i = self.data[0,:,-1]
+        else:
+            i = np.array([])
         # Get last iteration
         if len(i) > 0: imax = max(i)
         else: imax = 0
         # Check for steady-state iteration.
-        if get_iter('pointSensors.dat') > imax
+        if get_iter('pointSensors.dat') > imax:
             # Read the file.
-            PS = PointSensor('pointSensor.dat')
+            PS = PointSensor('pointSensors.dat')
             # Save the iterations
             self.AppendIteration(PS)
             # Extract iterative history
@@ -159,7 +162,7 @@ class CasePointSensor(object):
             else: imax = 0
         # Check for time-accurate iterations.
         fglob = glob.glob('pointSensors.[0-9][0-9]*.dat')
-        iglob = np.array([int(f) for f in fglob])
+        iglob = np.array([int(f.split('.')[1]) for f in fglob])
         iglob.sort()
         # Check scenario
         if os.path.isfile('pointSensors.dat'):
@@ -173,7 +176,7 @@ class CasePointSensor(object):
         # Read the time-accurate iterations
         for i in iglob:
             # File name
-            fi = "pointSensors.%05i.dat" % i
+            fi = "pointSensors.%06i.dat" % i
             # Read the file.
             PS = PointSensor(fi)
             # Save the data.
@@ -236,10 +239,10 @@ class CasePointSensor(object):
         # Write flag
         if self.nd == 2:
             # Point, 2 coordinates, 5 states, refinements, iteration
-            fflag '%4i' + (' %15.8e'*7) + ' %2i %9.3f\n'
+            fflag = '%4i' + (' %15.8e'*7) + ' %2i %9.3f\n'
         else:
             # Point, 3 coordinates, 6 states, refinements, iteration
-            fflag '%4i' + (' %15.8e'*9) + ' %2i %9.3f\n'
+            fflag = '%4i' + (' %15.8e'*9) + ' %2i %9.3f\n'
         # Get the iterations
         iIter = self.data[0,:,-1]
         # Loop through points
@@ -287,9 +290,13 @@ class CasePointSensor(object):
                 "History is %-D; point sensor is %i-D." % (self.nd, PS.nd))
         # Get data from point sensor and add point number
         A = np.hstack((np.array([range(self.nPoint)]).transpose(), PS.data))
+        # Number of columns
+        nCol = A.shape[1]
         # Append to history.
         self.data = np.hstack(
-            (self.data, A.reshape((self.nPoint,1,self.nCol))))
+            (self.data, A.reshape((self.nPoint,1,nCol))))
+        # Increase iteration count.
+        self.nIter += 1
         
     # Get the pressure coefficient
     def GetCp(self, k=None, imin=None, imax=None):
