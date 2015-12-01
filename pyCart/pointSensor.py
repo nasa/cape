@@ -354,12 +354,12 @@ class PointSensor(object):
         # Check for data
         if data is None:
             # Read the file.
-            self.data = np.loadtxt(fname, comments='#')
-        else:
-            # Save the input data.
-            self.data = data
+            data = np.loadtxt(fname, comments='#')
         # Check the dimensionality.
-        if self.data.shape[1] == 9:
+        if data.shape[1] == 9:
+            # Sort
+            i = np.lexsort((data[:,1], data[:,0]))
+            self.data = data[i,:]
             # Two-dimensional data
             self.nd = 2
             self.X = self.data[:,0]
@@ -372,6 +372,9 @@ class PointSensor(object):
             self.RefLev = self.data[:,7]
             self.i      = self.data[:,8]
         else:
+            # Sort
+            i = np.lexsort((data[:,2], data[:,1], data[:,0]))
+            self.data = data[i,:]
             # Three-dimensional data
             self.nd = 3
             self.X = self.data[:,0]
@@ -385,6 +388,7 @@ class PointSensor(object):
             self.P   = self.data[:,8]
             self.RefLev = self.data[:,9]
             self.i      = self.data[:,10]
+        # Sort
         # Save number of points
         self.nPoint = self.data.shape[0]
         # Number of averaged iterations
