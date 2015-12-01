@@ -230,7 +230,7 @@ class CasePointSensor(object):
         # Open the file
         f = open(fname, 'w')
         # Write column names
-        f.write('nPoint, nIter, nd, nSteady\n')
+        f.write('# nPoint, nIter, nd, nSteady\n')
         # Write header.
         f.write('%i %i %i %i\n' %
             (self.nPoint, self.nIter, self.nd, self.nSteady))
