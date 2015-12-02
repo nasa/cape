@@ -299,6 +299,53 @@ class flowCart(odict):
         """
         self.set_key('it_avg', it_avg, i)
         
+        
+    # Number of startup iterations
+    def get_it_start(self, i=None):
+        """
+        Return the number of iterations before writing ``triq`` file for
+        cumulative averaging.  If ``0``, do not perform averaging.
+        
+        Not available during ``aero.csh`` runs.
+        
+        :Call:
+            >>> it_start = opts.get_it_start(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *it_start*: :class:`int` or :class:`list`(:class:`int`)
+                Startup iterations before averaging for phase *i*
+        :Versions:
+            * 2015-12-02 ``@ddalle``: First version
+        """
+        return self.get_key('it_start', i)
+        
+    # Set flowCart startup iterations
+    def set_it_start(self, it_start=rc0('it_start'), i=None):
+        """
+        Set the number of iterations before writing ``triq`` file for
+        cumulative averaging.  If ``0``, do not perform averaging.
+        
+        Not available during ``aero.csh`` runs.
+        
+        :Call:
+            >>> opts.set_it_start(it_start)
+            >>> opts.set_it_start(it_start, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *it_start*: :class:`int` or :class:`list`(:class:`int`)
+                Startup iterations before averaging for phase *i*
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2015-12-02 ``@ddalle``: First version
+        """
+        self.set_key('it_start', it_start, i)
+        
     
     # Get setting for ``Components.i.triq``
     def get_clic(self, i=None):
@@ -2042,7 +2089,7 @@ class RunControl(cape.options.runControl.RunControl):
     # Set flowCart averaging interval
     def set_it_avg(self, it_avg=rc0('it_avg'), i=None):
         self._flowCart()
-        self['flowCart'].set_it_fc(it_avg, i)
+        self['flowCart'].set_it_avg(it_avg, i)
         
     # Get the number of subiterations
     def get_it_sub(self, i=None):
@@ -2053,6 +2100,16 @@ class RunControl(cape.options.runControl.RunControl):
     def set_it_sub(self, it_sub=rc0('it_sub'), i=None):
         self._flowCart()
         self['flowCart'].set_it_sub(it_sub, i)
+        
+    # Get the number of startup iterations
+    def get_it_start(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_it_start(i)
+        
+    # Set the number of subiterations
+    def set_it_start(self, it_start=rc0('it_start'), i=None):
+        self._flowCart()
+        self['flowCart'].set_it_start(it_start, i)
         
     # Setting for ``Components.i.triq``
     def get_clic(self, i=None):
@@ -2255,7 +2312,7 @@ class RunControl(cape.options.runControl.RunControl):
         self['flowCart'].set_RKScheme(RK, i)
         
     # Copy over the documentation.
-    for k in ['it_fc', 'it_sub', 'it_avg', 'dt', 'clic',
+    for k in ['it_fc', 'it_sub', 'it_avg', 'it_start', 'dt', 'clic',
             'unsteady', 'first_order', 'robust_mode', 'RKScheme',
             'tm', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'fmg', 'pmg', 
             'checkptTD', 'vizTD', 'fc_clean', 'fc_stats',

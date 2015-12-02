@@ -361,6 +361,16 @@ class Options(cape.options.Options):
         self._RunControl()
         self['RunControl'].set_it_fc(it_fc, i)
     
+    # Startup iteration interval
+    def get_it_start(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_it_start(i)
+        
+    # Set startup iteration interval
+    def set_it_start(self, it_start=rc0('it_start'), i=None):
+        self._RunControl()
+        self['RunControl'].set_it_start(it_start, i)
+    
     # Averaging write interval
     def get_it_avg(self, i=None):
         self._RunControl()

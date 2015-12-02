@@ -717,7 +717,7 @@ class TriBase(object):
         # Open the file to append.
         fid = open(fname, 'a')
         # Loop through states.
-        for qi in q:
+        for qi in self.q:
             # Write the pressure coefficient.
             fid.write('%.6f\n' % qi[0])
             # Line of text for the remaining state variables.
@@ -747,9 +747,9 @@ class TriBase(object):
         # Write the nodes.
         pc.WriteTriQ(self.Nodes, self.Tris, self.CompID, self.q)
         # Check the file name.
-        if fname != "Components.cape.tri":
+        if fname != "Components.pyCart.tri":
             # Move the file.
-            os.rename("Components.cape.tri", fname)
+            os.rename("Components.pyCart.tri", fname)
         
     # Function to write a UH3D file
     def WriteUH3D(self, fname='Components.i.uh3d'):
@@ -1772,6 +1772,7 @@ class TriBase(object):
         zmax = np.max(z) + zp
         # Return the list.
         return np.array([xmin, xmax, ymin, ymax, zmin, zmax])
+# class TriBase
 
 
 # Regular triangulation class
@@ -1968,7 +1969,7 @@ class Triq(TriBase):
             Number of files averaged in this triangulation (used for weight)
     """
     
-    def __init__(self, fname=None, nNode=None, Nodes=None, c=None,
+    def __init__(self, fname=None, n=1, nNode=None, Nodes=None, c=None,
         nTri=None, Tris=None, CompID=None, nq=None, q=None):
         """Initialization method
         
@@ -1979,7 +1980,7 @@ class Triq(TriBase):
         # Check if file is specified.
         if fname is not None:
             # Read from file.
-            self.Read(fname)
+            self.Read(fname, n=n)
             
         else:
             # Process inputs.
@@ -2017,6 +2018,7 @@ class Triq(TriBase):
             self.Tris = Tris
             self.CompID = CompID
             self.nq = nq
+            self.n = n
             self.q = q
             
         # Check for configuration
@@ -2119,18 +2121,20 @@ class Triq(TriBase):
             raise ValueError("Triangulations must have same number of nodes.")
         elif self.nTri != triq.nTri:
             raise ValueError("Triangulations must have same number of tris.")
-        elif self.nq != triq.nq:
+        elif self.n > 0 and self.nq != triq.nq:
             raise ValueError("Triangulations must have same number of states.")
         # Degenerate case.
         if self.n == 0:
             # Use the second input.
             self.q = triq.q
             self.n = triq.n
+            self.nq = triq.nq
         # Weighted average
         self.q = (self.n*self.q + triq.n*triq.q) / (self.n+triq.n)
         # Update count.
         self.n += triq.n
-        
+# class Triq
+
 
 # Function to read .tri files
 def ReadTri(fname):
@@ -2175,6 +2179,5 @@ def WriteTri(fname, tri):
     # Call the triangulation's write method.
     tri.Write(fname)
     return None
-    
-
+# def WriteTri
     

@@ -46,6 +46,7 @@
 	    "flowCart": {
             // Basic number of iterations
             "it_fc": 200,
+            "it_start": 100,
             "it_avg": 0,
             "it_sub": 10,
             // Unsteady inputs

@@ -247,6 +247,8 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
             Number of multigrid levels to use
         *it_avg*: :class:`int`
             Iterations between averaging break; overrides *it_fc*
+        *it_start*: :class:`int`
+            Startup iterations before starting averaging
         *fmg*: :class:`bool` 
             Whether to use full multigrid (adds ``-no_fmg`` flag if ``False``)
         *pmg*: :class:`bool`
@@ -362,7 +364,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         cmd = ['flowCart', '-his', '-unsteady']
     elif mpi_fc:
         # Use mpi_flowCart but not unsteady
-        cmd = [mpicmd, '-np', str(nProc), 'mpix_flowCart', '-his', '-clic']
+        cmd = [mpicmd, '-np', str(nProc), 'mpix_flowCart', '-his']
     else:
         # Use single-node flowCart.
         cmd = ['flowCart', '-his']

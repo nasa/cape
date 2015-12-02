@@ -35,6 +35,8 @@ def get_iter(fname):
     :Versions:
         * 2015-11-30 ``@ddalle``: First version
     """
+    # Check for file.
+    if not os.path.isfile(fname): return 0
     # Safely check the last line of the file.
     try:
         # Get the last line.
@@ -230,7 +232,16 @@ class CasePointSensor(object):
         # Open the file
         f = open(fname, 'w')
         # Write column names
-        f.write('nPoint, nIter, nd, iSteady\n')
+        f.write('# nPoint, nIter, nd, iSteady\n')
+        # Write variable names
+        if self.nd == 2:
+            # Two-dimensional data
+            f.write("# VARIABLES = X Y (P-Pinf)/Pinf RHO U V P ")
+            f.write("RefLev mgCycle/Time\n")
+        else:
+            # Three-dimensional data
+            f.write("# VARIABLES = X Y Z (P-Pinf)/Pinf RHO U V W P ")
+            f.write("RefLev mgCycle/Time\n")
         # Write header.
         f.write('%i %i %i %i\n' %
             (self.nPoint, self.nIter, self.nd, self.iSteady))
@@ -446,13 +457,13 @@ class PointSensor(object):
         # Write header
         if self.nd == 2:
             # Two-dimensional data
-            f.write("VARIABLES = X Y (P-Pinf)/Pinf RHO U V P ")
+            f.write("# VARIABLES = X Y (P-Pinf)/Pinf RHO U V P ")
             f.write("RefLev mgCycle/Time\n")
             # Format string
             fpr = (7*' %15.8e' + ' %i %7.3f\n')
         else:
             # Three-dimensional data
-            f.write("VARIABLES = X Y Z (P-Pinf)/Pinf RHO U V W P ")
+            f.write("# VARIABLES = X Y Z (P-Pinf)/Pinf RHO U V W P ")
             f.write("RefLev mgCycle/Time\n")
             # Format string
             fpr = (9*' %15.8e' + ' %i %7.3f\n')

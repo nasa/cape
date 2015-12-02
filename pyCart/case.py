@@ -20,6 +20,8 @@ from cape.case import PrepareEnvironment
 from options.runControl import RunControl
 # Interface for writing commands
 from . import cmd, queue, manage, bin
+# Point sensors
+from . import pointSensor
 
 # Need triangulations for cases with `intersect` and for averaging
 from .tri import Tri, Triq
@@ -137,7 +139,7 @@ def run_flowCart(verify=False, isect=False):
             # Get the number of previous steady steps.
             n = GetSteadyIter()
         # Initialize triq.
-        triq = Triq('Components.i.tri', n=0)
+        if rc.get_clic(i): triq = Triq('Components.i.tri', n=0)
         # Initialize point sensor
         PS = pointSensor.CasePointSensor()
         # Requested iterations
@@ -145,12 +147,29 @@ def run_flowCart(verify=False, isect=False):
         # Start and end iterations
         n0 = n
         n1 = n + it_fc
+        # Initialize list of files to delete.
+        gbin = []
         # Loop through iterations.
         for j in range(it_fc):
             # flowCart command automatically accepts *it_avg*; update *n*
-            cmdi = cmd.flowCart(fc=rc, i=i, n=n)
+            if j==0 and rc.get_it_start(i)>0:
+                # Save settings.
+                it_avg = rc.get_it_avg()
+                # Startup iterations
+                rc.set_it_avg(rc.get_it_start(i))
+                # Increase reference for averaging.
+                n0 += rc.get_it_start(i)
+                # Modified command
+                cmdi = cmd.flowCart(fc=rc, i=i, n=n)
+                # Reset averaging settings
+                rc.set_it_avg(it_avg)
+            else:
+                # Normal stops every *it_avg* iterations.
+                cmdi = cmd.flowCart(fc=rc, i=i, n=n)
             # Run the command for *it_avg* iterations.
+            print("slow...")
             bin.callf(cmdi, f='flowCart.out')
+            print("  ...slow")
             # Automatically determine the best check file to use.
             SetRestartIter()
             # Get new iteration count.
@@ -160,16 +179,28 @@ def run_flowCart(verify=False, isect=False):
             else:
                 # Get the number of previous steady steps.
                 n = GetSteadyIter()
-            # Read the triq file
-            triqj = Triq('Components.i.triq')
-            # Weighted average
-            triq.WeightedAverage(triqj)
+            # Process triq files
+            if rc.get_clic(i):
+                # Read the triq file
+                triqj = Triq('Components.i.triq')
+                # Weighted average
+                triq.WeightedAverage(triqj)
             # Update history
             PS.UpdateIterations()
             # Check for completion
-            if n >= n1: break
+            if (n>=n1) or (j+1==it_fc): break
+            # List of checkpoint files to delete.
+            if rc.get_unsteady(i):
+                # Checkpoint file to delete.
+                gbin.append('check.%06i.td' % n)
+            else:
+                gbin.append('check.%05i' % n)
+                gbin.append('checkDT.%05i' % n)
+        # Cleanup
+        for f in gbin: os.remove(f)
         # Write the averaged triq file
-        triq.Write('Components.%i.%i.%i.triq' % (j, n0+1, n))
+        if rc.get_clic(i):
+            triq.Write('Components.%i.%i.%i.triq' % (j+1, n0+1, n))
         # Write the point sensor history file.
         try: PS.WriteHist()
         except Exception: pass
