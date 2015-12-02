@@ -105,7 +105,7 @@ class CasePointSensor(object):
             Number of iterations recorded in point sensor history
         *P.nd*: ``2`` | ``3``
             Number of dimensions
-        *P.nSteady*: :class:`int`
+        *P.iSteady*: :class:`int`
             Maximum steady-state iteration number
         *P.data*: :class:`numpy.ndarray` (*nPoint*, *nIter*, 10 | 12)
             Data array
@@ -124,7 +124,7 @@ class CasePointSensor(object):
             self.nPoint = None
             self.nIter = 0
             self.nd = None
-            self.nSteady = 0
+            self.iSteady = 0
             self.data = np.zeros((0,0,12))
         # Read iterations if necessary.
         self.UpdateIterations()
@@ -157,14 +157,14 @@ class CasePointSensor(object):
             self.AppendIteration(PS)
             # Update the steady-state iteration count
             if self.nPoint > 0:
-                self.nSteady = PS.data[0,-1]
-                imax = self.nSteady
+                self.iSteady = PS.data[0,-1]
+                imax = self.iSteady
         # Check for time-accurate iterations.
         fglob = glob.glob('pointSensors.[0-9][0-9]*.dat')
         iglob = np.array([int(f.split('.')[1]) for f in fglob])
         iglob.sort()
         # Time-accurate results only; filter on *imax*
-        iglob = iglob[iglob > imax-self.nSteady]
+        iglob = iglob[iglob > imax-self.iSteady]
         # Read the time-accurate iterations
         for i in iglob:
             # File name
@@ -172,7 +172,7 @@ class CasePointSensor(object):
             # Read the file.
             PS = PointSensor(fi)
             # Increase time-accurate iteration number
-            PS.i += self.nSteady
+            PS.i += self.iSteady
             # Save the data.
             self.AppendIteration(PS)
         
@@ -197,12 +197,12 @@ class CasePointSensor(object):
         # Read the first line, which contains identifiers.
         line = readline(f)
         # Get the values
-        nPoint, nIter, nd, nSteady = [int(v) for v in line.split()]
+        nPoint, nIter, nd, iSteady = [int(v) for v in line.split()]
         # Save
         self.nPoint  = nPoint
         self.nIter   = nIter
         self.nd      = nd
-        self.nSteady = nSteady
+        self.iSteady = iSteady
         # Number of data columns
         if nd == 2:
             # Two-dimensional data
@@ -230,10 +230,10 @@ class CasePointSensor(object):
         # Open the file
         f = open(fname, 'w')
         # Write column names
-        f.write('nPoint, nIter, nd, nSteady\n')
+        f.write('nPoint, nIter, nd, iSteady\n')
         # Write header.
         f.write('%i %i %i %i\n' %
-            (self.nPoint, self.nIter, self.nd, self.nSteady))
+            (self.nPoint, self.nIter, self.nd, self.iSteady))
         # Write flag
         if self.nd == 2:
             # Point, 2 coordinates, 5 states, refinements, iteration
