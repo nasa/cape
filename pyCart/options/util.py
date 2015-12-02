@@ -49,6 +49,7 @@ rc = {
     "first_order": 0,
     "robust_mode": 0,
     "it_fc": 200,
+    "clic": True,
     "cfl": 1.1,
     "cflmin": 0.8,
     "nOrders": 12,

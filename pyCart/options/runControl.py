@@ -297,9 +297,47 @@ class flowCart(odict):
         :Versions:
             * 2015-09-14 ``@ddalle``: First version
         """
-        self.get_key('it_avg', i)
+        self.set_key('it_avg', it_avg, i)
         
     
+    # Get setting for ``Components.i.triq``
+    def get_clic(self, i=None):
+        """Get setting for whether or not to write ``Components.i.triq`` file
+        
+        :Call:
+            >>> clic = opts.get_clic(i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *clic*: :class:`bool`
+                Whether or not to write ``Components.i.triq`` on exit
+        :Versions:
+            * 2015-09-14 ``@ddalle``: First version
+        """
+        return self.get_key('clic', i)
+        
+    # Set setting for ``Components.i.triq``
+    def set_clic(self, clic=rc0('clic'), i=None):
+        """Get setting for whether or not to write ``Components.i.triq`` file
+        
+        :Call:
+            >>> opts.set_clic(clic, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *clic*: :class:`bool`
+                Whether or not to write ``Components.i.triq`` on exit
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2015-09-14 ``@ddalle``: First version
+        """
+        self.set_key('clic', clic, i)
+        
+        
     # Number orders of convergence to terminate early at
     def get_nOrders(self, i=None):
         """Get the number of orders of convergence for early termination
@@ -2001,6 +2039,11 @@ class RunControl(cape.options.runControl.RunControl):
         self._flowCart()
         return self['flowCart'].get_it_avg(i)
         
+    # Set flowCart averaging interval
+    def set_it_avg(self, it_avg=rc0('it_avg'), i=None):
+        self._flowCart()
+        self['flowCart'].set_it_fc(it_avg, i)
+        
     # Get the number of subiterations
     def get_it_sub(self, i=None):
         self._flowCart()
@@ -2011,10 +2054,15 @@ class RunControl(cape.options.runControl.RunControl):
         self._flowCart()
         self['flowCart'].set_it_sub(it_sub, i)
         
-    # Set flowCart averaging interval
-    def set_it_avg(self, it_avg=rc0('it_avg'), i=None):
+    # Setting for ``Components.i.triq``
+    def get_clic(self, i=None):
         self._flowCart()
-        self['flowCart'].set_it_fc(it_avg, i)
+        return self['flowCart'].get_clic(i)
+        
+    # Setting for ``Components.i.triq``
+    def set_clic(self, clic=rc0('clic'), i=None):
+        self._flowCart()
+        self['flowCart'].set_clic(clic, i)
         
     # Get number of orders for early termination
     def get_nOrders(self, i=None):
@@ -2207,7 +2255,7 @@ class RunControl(cape.options.runControl.RunControl):
         self['flowCart'].set_RKScheme(RK, i)
         
     # Copy over the documentation.
-    for k in ['it_fc', 'it_sub', 'it_avg', 'dt',
+    for k in ['it_fc', 'it_sub', 'it_avg', 'dt', 'clic',
             'unsteady', 'first_order', 'robust_mode', 'RKScheme',
             'tm', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'fmg', 'pmg', 
             'checkptTD', 'vizTD', 'fc_clean', 'fc_stats',

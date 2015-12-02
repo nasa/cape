@@ -361,15 +361,35 @@ class Options(cape.options.Options):
         self._RunControl()
         self['RunControl'].set_it_fc(it_fc, i)
     
-    # Averaging interval
+    # Averaging write interval
     def get_it_avg(self, i=None):
         self._RunControl()
         return self['RunControl'].get_it_avg(i)
         
-    # Set RunControl averaging interval
+    # Set RunControl write averaging interval
     def set_it_avg(self, it_avg=rc0('it_avg'), i=None):
         self._RunControl()
-        self['RunControl'].set_it_fc(it_avg, i)
+        self['RunControl'].set_it_avg(it_avg, i)
+    
+    # Subiterations
+    def get_it_sub(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_it_sub(i)
+        
+    # Subiterations
+    def set_it_sub(self, it_sub=rc0('it_sub'), i=None):
+        self._RunControl()
+        self['RunControl'].set_it_sub(it_sub, i)
+        
+    # Setting for ``Components.i.triq``
+    def get_clic(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_clic(i)
+        
+    # Setting for ``Components.i.triq``
+    def set_clic(self, clic=rc0('clic'), i=None):
+        self._RunControl()
+        self['RunControl'].set_clic(clic, i)
         
     # Get number of orders for early termination
     def get_nOrders(self, i=None):
@@ -450,16 +470,6 @@ class Options(cape.options.Options):
     def set_dt(self, dt=rc0('dt'), i=None):
         self._RunControl()
         self['RunControl'].set_dt(dt, i)
-        
-    # Get the number of subiterations
-    def get_it_sub(self, i=None):
-        self._RunControl()
-        return self['RunControl'].get_it_sub(i)
-        
-    # Set the number of subiterations
-    def set_it_sub(self, it_sub=rc0('it_sub'), i=None):
-        self._RunControl()
-        self['RunControl'].set_it_sub(it_sub, i)
         
     # Get cut-cell gradient flag
     def get_tm(self, i=None):
@@ -575,7 +585,7 @@ class Options(cape.options.Options):
     for k in ['Adaptive', 'first_order', 'robust_mode', 'unsteady', 
             'tm', 'dt', 'checkptTD',
             'vizTD', 'fc_clean', 'fc_stats', 'RKScheme',
-            'nOrders', 'buffLim', 'it_avg', 'it_sub',
+            'nOrders', 'buffLim', 'it_avg', 'it_sub', 'clic',
             'it_fc', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'tecO', 'fmg', 'pmg',
             'y_is_spanwise', 'binaryIO']:
         # Get the documentation for the "get" and "set" functions

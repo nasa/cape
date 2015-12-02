@@ -71,8 +71,10 @@
             "y_is_spanwise": true,
             // Use binary input/output instead of ASCII
             "binaryIO": true,
-            // Write a Tecplot triangulation soltuion file
+            // Write a Tecplot triangulation solution file
             "tecO": true,
+            // Write .triq file
+            "clic": true,
             // Unsteady outputs
             "fc_stats": 0,
             "vizTD": 0,

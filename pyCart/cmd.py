@@ -237,6 +237,8 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
             Run index (restart if *i* is greater than *0*)
         *n*: :class:`int`
             Iteration number from which to start (affects ``-N`` setting)
+        *clic*: :class:`bool`
+            Whether or not to create ``Components.i.triq`` file
         *mpi_fc*: :class:`bool`
             Whether or not to use MPI version
         *it_fc*: :class:`int`
@@ -298,6 +300,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         vizTD   = cart3d.opts.get_vizTD(i)
         clean   = cart3d.opts.get_fc_clean(i)
         nstats  = cart3d.opts.get_fc_stats(i)
+        clic    = cart3d.opts.get_clic(i)
     elif fc is not None:
         # Get values from direct settings.
         mpi_fc  = fc.get_MPI(i)
@@ -322,6 +325,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         vizTD   = fc.get_vizTD(i)
         clean   = fc.get_fc_clean(i)
         nstats  = fc.get_fc_stats(i)
+        clic    = fc.get_clic(i)
     else:
         # Get values from keyword arguments
         mpi_fc  = kwargs.get('MPI', False)
@@ -346,22 +350,24 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         vizTD   = kwargs.get('vizTD', None)
         clean   = kwargs.get('clean', False)
         nstats  = kwargs.get('stats', 0)
+        clic    = kwargs.get('clic', True)
     # Check for override *it_fc* iteration count.
     if it_avg: it_fc = it_avg
     # Initialize command.
     if td_fc and mpi_fc:
         # Unsteady MPI flowCart
-        cmd = [mpicmd, '-np', str(nProc), 'mpix_flowCart', 
-            '-his', '-clic']
+        cmd = [mpicmd, '-np', str(nProc), 'mpix_flowCart', '-his', '-unsteady']
     elif td_fc:
         # Unsteady but not MPI
-        cmd = ['flowCart', '-his', '-clic', '-unsteady']
+        cmd = ['flowCart', '-his', '-unsteady']
     elif mpi_fc:
         # Use mpi_flowCart but not unsteady
         cmd = [mpicmd, '-np', str(nProc), 'mpix_flowCart', '-his', '-clic']
     else:
         # Use single-node flowCart.
-        cmd = ['flowCart', '-his', '-clic']
+        cmd = ['flowCart', '-his']
+    # Check 'clic' option (creates ``Components.i.triq``)
+    if clic: cmd += ['-clic']
     # Offset iterations
     n = kwargs.get('n', 0)
     # Check for restart
