@@ -89,12 +89,12 @@ rc = {
     "ulimit_s": 4194304,
     "ArchiveFolder": "",
     "ArchiveFormat": "tar",
-    "ArchiveAction": "skeleton",
+    "ArchiveAction": "full",
     "ArchiveType": "full",
     "RemoteCopy": "scp",
     "nCheckPoint": 2,
-    "TarViz": "tar",
-    "TarAdapt": "tar",
+    "TarViz": "full",
+    "TarAdapt": "none",
     "TarPBS": "tar"
 }
 

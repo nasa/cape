@@ -1904,12 +1904,12 @@ class ulimit(cape.options.runControl.ulimit):
 # class ulimit
 
 # Class for case management
-class Management(cape.options.runControl.Management):
+class Archive(cape.options.runControl.Archive):
     """
     Dictionary-based interfaced for options specific to folder management
     
     :Call:
-        >>> opts = Management(**kw)
+        >>> opts = Archive(**kw)
     :Versions:
         * 2015-09-28 ``@ddalle``: Subclassed to CAPE
     """
@@ -2012,7 +2012,7 @@ class Management(cape.options.runControl.Management):
             * 2015-01-10 ``@ddalle``: First version
         """
         self.set_key('TarAdapt', fmt)
-# class Management
+# class Archive
 
 
 # Class for flowCart settings
@@ -2032,7 +2032,7 @@ class RunControl(cape.options.runControl.RunControl):
         self._cubes()
         self._Environ()
         self._ulimit()
-        self._Management()
+        self._Archive()
     
     # ============ 
     # Initializers
@@ -2686,57 +2686,57 @@ class RunControl(cape.options.runControl.RunControl):
         eval('set_'+k).__doc__ = getattr(cubes,'set_'+k).__doc__
    # >
     
-    # ==========
-    # Management
-    # ==========
+    # =================
+    # Folder management
+    # =================
    # <
     
     # Initialization method for folder management optoins
-    def _Management(self):
+    def _Archive(self):
         """Initialize folder management options if necessary"""
         # Check status.
-        if 'Management' not in self:
+        if 'Archive' not in self:
             # Missing entirely.
-            self['Management'] = Management()
-        elif type(self['Management']).__name__ == 'dict':
+            self['Archive'] = Archive()
+        elif type(self['Archive']).__name__ == 'dict':
             # Convert to special class
-            self['Management'] = Management(**self['Management'])
+            self['Archive'] = Archive(**self['Archive'])
     
     # Get the number of check point files to keep around
     def get_nCheckPoint(self):
-        self._Management()
-        return self['Management'].get_nCheckPoint()
+        self._Archive()
+        return self['Archive'].get_nCheckPoint()
         
     # Set the number of check point files to keep around
     def set_nCheckPoint(self, nchk=rc0('nCheckPoint')):
-        self._Management()
-        self['Management'].set_nCheckPoint(nchk)
+        self._Archive()
+        self['Archive'].set_nCheckPoint(nchk)
         
     # Get the archive status for adaptation folders
     def get_TarAdapt(self):
-        self._Management()
-        return self['Management'].get_TarAdapt()
+        self._Archive()
+        return self['Archive'].get_TarAdapt()
         
     # Get the archive status for adaptation folders
     def set_TarAdapt(self, fmt=rc0('TarAdapt')):
-        self._Management()
-        self['Management'].set_TarAdapt(fmt)
+        self._Archive()
+        self['Archive'].set_TarAdapt(fmt)
         
     # Get the archive format for visualization files
     def get_TarViz(self):
-        self._Management()
-        return self['Management'].get_TarViz()
+        self._Archive()
+        return self['Archive'].get_TarViz()
         
     # Set the archive format for visualization files
     def set_TarViz(self, fmt=rc0('TarViz')):
-        self._Management()
-        self['Management'].set_TarViz(fmt)
+        self._Archive()
+        self['Archive'].set_TarViz(fmt)
         
     # Copy over the documentation.
     for k in ['nCheckPoint', 'TarViz', 'TarAdapt']:
         # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(Management,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(Management,'set_'+k).__doc__
+        eval('get_'+k).__doc__ = getattr(Archive,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(Archive,'set_'+k).__doc__
    # >
    
 # class RunControl

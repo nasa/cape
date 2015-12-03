@@ -35,7 +35,6 @@ from .Config      import Config
 from .Functional  import Functional
 from .Plot        import Plot
 from .DataBook    import DataBook
-from .Management  import Management
 from .Report      import Report
 
 
@@ -86,7 +85,6 @@ class Options(cape.options.Options):
         self._Plot()
         self._DataBook()
         self._Report()
-        self._Management()
         # Add extra folders to path.
         self.AddPythonPath()
     
@@ -131,17 +129,6 @@ class Options(cape.options.Options):
                 tmp["PBS_"+k] = self['PBS'][k]
             # Convert to special class.
             self['PBS'] = PBS(**tmp)
-    
-    # Initialization method for folder management optoins
-    def _Management(self):
-        """Initialize folder management options if necessary"""
-        # Check status.
-        if 'Management' not in self:
-            # Missing entirely.
-            self['Management'] = Management()
-        elif type(self['Management']).__name__ == 'dict':
-            # Convert to special class
-            self['Management'] = Management(**self['Management'])
             
     # Initialization method for databook
     def _DataBook(self):

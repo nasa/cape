@@ -141,6 +141,17 @@
             "sf": 0,
             // Reorder mesh for better speed
             "reorder": true
+        },
+        
+        // Folder management
+        "Archive": {
+            "RemoteCopy": "scp",
+            "ArchiveFormat": "tar",
+            "ArchiveAction": "full",
+            "ArchiveType": "full",
+            "TarViz": "full",
+            "TarAdapt": "restart",
+            "nCheckPoint": 2
         }
 	},
 

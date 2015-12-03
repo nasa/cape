@@ -206,8 +206,8 @@ class ulimit(odict):
         
 # class ulimit
 
-# Class for flowCart settings
-class Management(odict):
+# Class for folder management and archiving
+class Archive(odict):
     """Dictionary-based interfaced for options specific to folder management"""
     
     
@@ -417,7 +417,7 @@ class Management(odict):
             * 2015-01-10 ``@ddalle``: First version
         """
         self.set_key('TarPBS', fmt)
-# class Management
+# class Archive
 
 
 # Class for iteration & mode control settings and command-line inputs
@@ -432,7 +432,7 @@ class RunControl(odict):
         # Upgrade important groups to their own classes.
         self._Environ()
         self._ulimit()
-        self._Management()
+        self._Archive()
     
     # ===========
     # Environment
@@ -518,78 +518,78 @@ class RunControl(odict):
         eval('set_'+k).__doc__ = getattr(ulimit,'set_'+k).__doc__
    # >
    
-    # ==========
-    # Management
-    # ==========
+    # =================
+    # Folder management
+    # =================
    # <
     
     # Initialization method for folder management optoins
-    def _Management(self):
+    def _Archive(self):
         """Initialize folder management options if necessary"""
         # Check status.
-        if 'Management' not in self:
+        if 'Archive' not in self:
             # Missing entirely.
-            self['Management'] = Management()
-        elif type(self['Management']).__name__ == 'dict':
+            self['Archive'] = Archive()
+        elif type(self['Archive']).__name__ == 'dict':
             # Convert to special class
-            self['Management'] = Management(**self['Management'])
+            self['Archive'] = Archive(**self['Archive'])
       
     # Get the archive folder
     def get_ArchiveFolder(self):
-        self._Management()
-        return self['Management'].get_ArchiveFolder()
+        self._Archive()
+        return self['Archive'].get_ArchiveFolder()
         
     # Set the archive folder
     def set_ArchiveFolder(self, fdir=rc0('ArchiveFolder')):
-        self._Management()
-        self['Management'].set_ArchiveFolder(fdir)
+        self._Archive()
+        self['Archive'].set_ArchiveFolder(fdir)
         
     # Get the archive format
     def get_ArchiveFormat(self):
-        self._Management()
-        return self['Management'].get_ArchiveFormat()
+        self._Archive()
+        return self['Archive'].get_ArchiveFormat()
         
     # Set the archive format
     def set_ArchiveFormat(self, fmt=rc0('ArchiveFormat')):
-        self._Management()
-        self['Management'].set_ArchiveFormat(fmt)
+        self._Archive()
+        self['Archive'].set_ArchiveFormat(fmt)
         
     # Get the archive type
     def get_ArchiveType(self):
-        self._Management()
-        return self['Management'].get_ArchiveType()
+        self._Archive()
+        return self['Archive'].get_ArchiveType()
         
     # Set the archive type
     def set_ArchiveType(self, atype=rc0('ArchiveType')):
-        self._Management()
-        self['Management'].set_ArchiveType(atype)
+        self._Archive()
+        self['Archive'].set_ArchiveType(atype)
         
     # Get the archive action
     def get_ArchiveAction(self):
-        self._Management()
-        return self['Management'].get_ArchiveAction()
+        self._Archive()
+        return self['Archive'].get_ArchiveAction()
         
     # Set the archive action
     def set_ArchiveAction(self, fcmd=rc0('ArchiveAction')):
-        self._Management()
-        self['Management'].set_ArchiveAction(fcmd)
+        self._Archive()
+        self['Archive'].set_ArchiveAction(fcmd)
         
     # Get the remote copy command
     def get_RemoteCopy(self):
-        self._Management()
-        return self['Management'].get_RemoteCopy()
+        self._Archive()
+        return self['Archive'].get_RemoteCopy()
         
     # Set the remote copy command
     def set_RemoteCopy(self, fcmd=rc0('RemoteCopy')):
-        self._Management()
-        self['Management'].set_RemoteCopy(fcmd)
+        self._Archive()
+        self['Archive'].set_RemoteCopy(fcmd)
         
     # Copy over the documentation.
     for k in ['ArchiveFolder', 'ArchiveFormat', 'ArchiveAction', 'ArchiveType',
             'RemoteCopy']:
         # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(Management,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(Management,'set_'+k).__doc__      
+        eval('get_'+k).__doc__ = getattr(Archive,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(Archive,'set_'+k).__doc__      
    # >
     
     # =============== 

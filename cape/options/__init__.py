@@ -26,7 +26,6 @@ from util import *
 
 # Import more specific modules for controlling subgroups of options
 from .pbs        import PBS
-from .Management import Management
 from .DataBook   import DataBook, DBTarget
 from .Report     import Report
 from .Mesh       import Mesh
