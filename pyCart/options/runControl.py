@@ -297,9 +297,94 @@ class flowCart(odict):
         :Versions:
             * 2015-09-14 ``@ddalle``: First version
         """
-        self.get_key('it_avg', i)
+        self.set_key('it_avg', it_avg, i)
+        
+        
+    # Number of startup iterations
+    def get_it_start(self, i=None):
+        """
+        Return the number of iterations before writing ``triq`` file for
+        cumulative averaging.  If ``0``, do not perform averaging.
+        
+        Not available during ``aero.csh`` runs.
+        
+        :Call:
+            >>> it_start = opts.get_it_start(i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *it_start*: :class:`int` or :class:`list`(:class:`int`)
+                Startup iterations before averaging for phase *i*
+        :Versions:
+            * 2015-12-02 ``@ddalle``: First version
+        """
+        return self.get_key('it_start', i)
+        
+    # Set flowCart startup iterations
+    def set_it_start(self, it_start=rc0('it_start'), i=None):
+        """
+        Set the number of iterations before writing ``triq`` file for
+        cumulative averaging.  If ``0``, do not perform averaging.
+        
+        Not available during ``aero.csh`` runs.
+        
+        :Call:
+            >>> opts.set_it_start(it_start)
+            >>> opts.set_it_start(it_start, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *it_start*: :class:`int` or :class:`list`(:class:`int`)
+                Startup iterations before averaging for phase *i*
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2015-12-02 ``@ddalle``: First version
+        """
+        self.set_key('it_start', it_start, i)
         
     
+    # Get setting for ``Components.i.triq``
+    def get_clic(self, i=None):
+        """Get setting for whether or not to write ``Components.i.triq`` file
+        
+        :Call:
+            >>> clic = opts.get_clic(i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Run index
+        :Outputs:
+            *clic*: :class:`bool`
+                Whether or not to write ``Components.i.triq`` on exit
+        :Versions:
+            * 2015-09-14 ``@ddalle``: First version
+        """
+        return self.get_key('clic', i)
+        
+    # Set setting for ``Components.i.triq``
+    def set_clic(self, clic=rc0('clic'), i=None):
+        """Get setting for whether or not to write ``Components.i.triq`` file
+        
+        :Call:
+            >>> opts.set_clic(clic, i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *clic*: :class:`bool`
+                Whether or not to write ``Components.i.triq`` on exit
+            *i*: :class:`int` or ``None``
+                Run index
+        :Versions:
+            * 2015-09-14 ``@ddalle``: First version
+        """
+        self.set_key('clic', clic, i)
+        
+        
     # Number orders of convergence to terminate early at
     def get_nOrders(self, i=None):
         """Get the number of orders of convergence for early termination
@@ -1818,6 +1903,118 @@ class ulimit(cape.options.runControl.ulimit):
     pass
 # class ulimit
 
+# Class for case management
+class Management(cape.options.runControl.Management):
+    """
+    Dictionary-based interfaced for options specific to folder management
+    
+    :Call:
+        >>> opts = Management(**kw)
+    :Versions:
+        * 2015-09-28 ``@ddalle``: Subclassed to CAPE
+    """
+        
+    # Get number of check points to keep around
+    def get_nCheckPoint(self):
+        """Return the number of check point files to keep
+        
+        :Call:
+            >>> nchk = opts.get_nCheckPoint()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *nchk*: :class:`int`
+                Number of check files to keep (all if ``0``)
+        :Versions:
+            * 2015-01-10 ``@ddalle``: First version
+        """
+        return self.get_key('nCheckPoint')
+        
+    # Set the number of check point files to keep around
+    def set_nCheckPoint(self, nchk=rc0('nCheckPoint')):
+        """Set the number of check point files to keep
+        
+        :Call:
+            >>> opts.set_nCheckPoint(nchk)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *nchk*: :class:`int`
+                Number of check files to keep (all if ``0``)
+        :Versions:
+            * 2015-01-10 ``@ddalle``: First version
+        """
+        self.set_key('nCheckPoint', nchk)
+        
+    # Get the archive format for visualization files
+    def get_TarViz(self):
+        """Return the archive format for visualization files
+        
+        :Call:
+            >>> fmt = opts.get_TarViz()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *fmt*: ``""`` | {``"tar"``} | ``"gzip"`` | ``"bz2"``
+                Archive format
+        :Versions:
+            * 2015-01-10 ``@ddalle``: First version
+        """
+        return self.get_key('TarViz')
+        
+    # Set the archive format for visualization files
+    def set_TarViz(self, fmt=rc0('TarViz')):
+        """Set the archive format for visualization files
+        
+        :Call:
+            >>> opts.set_TarViz(fmt)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *fmt*: ``""`` | {``"tar"``} | ``"gzip"`` | ``"bz2"``
+                Archive format
+        :Versions:
+            * 2015-01-10 ``@ddalle``: First version
+        """
+        self.set_key('TarViz', fmt)
+        
+    # Get the archive format for visualization files
+    def get_TarAdapt(self):
+        """Return the archive format for adapt folders
+        
+        :Call:
+            >>> fmt = opts.get_TarAdapt()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *fmt*: ``""`` | {``"tar"``} | ``"gzip"`` | ``"bz2"``
+                Archive format
+        :Versions:
+            * 2015-01-10 ``@ddalle``: First version
+        """
+        return self.get_key('TarAdapt')
+        
+    # Set the archive format for visualization files
+    def set_TarAdapt(self, fmt=rc0('TarAdapt')):
+        """Set the archive format for adapt folders
+        
+        :Call:
+            >>> opts.set_TarAdapt(fmt)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *fmt*: ``""`` | {``"tar"``} | ``"gzip"`` | ``"bz2"``
+                Archive format
+        :Versions:
+            * 2015-01-10 ``@ddalle``: First version
+        """
+        self.set_key('TarAdapt', fmt)
+# class Management
+
+
 # Class for flowCart settings
 class RunControl(cape.options.runControl.RunControl):
     """Dictionary-based interface for options specific to ``flowCart``"""
@@ -1835,6 +2032,7 @@ class RunControl(cape.options.runControl.RunControl):
         self._cubes()
         self._Environ()
         self._ulimit()
+        self._Management()
     
     # ============ 
     # Initializers
@@ -2001,6 +2199,11 @@ class RunControl(cape.options.runControl.RunControl):
         self._flowCart()
         return self['flowCart'].get_it_avg(i)
         
+    # Set flowCart averaging interval
+    def set_it_avg(self, it_avg=rc0('it_avg'), i=None):
+        self._flowCart()
+        self['flowCart'].set_it_avg(it_avg, i)
+        
     # Get the number of subiterations
     def get_it_sub(self, i=None):
         self._flowCart()
@@ -2011,10 +2214,25 @@ class RunControl(cape.options.runControl.RunControl):
         self._flowCart()
         self['flowCart'].set_it_sub(it_sub, i)
         
-    # Set flowCart averaging interval
-    def set_it_avg(self, it_avg=rc0('it_avg'), i=None):
+    # Get the number of startup iterations
+    def get_it_start(self, i=None):
         self._flowCart()
-        self['flowCart'].set_it_fc(it_avg, i)
+        return self['flowCart'].get_it_start(i)
+        
+    # Set the number of subiterations
+    def set_it_start(self, it_start=rc0('it_start'), i=None):
+        self._flowCart()
+        self['flowCart'].set_it_start(it_start, i)
+        
+    # Setting for ``Components.i.triq``
+    def get_clic(self, i=None):
+        self._flowCart()
+        return self['flowCart'].get_clic(i)
+        
+    # Setting for ``Components.i.triq``
+    def set_clic(self, clic=rc0('clic'), i=None):
+        self._flowCart()
+        self['flowCart'].set_clic(clic, i)
         
     # Get number of orders for early termination
     def get_nOrders(self, i=None):
@@ -2207,7 +2425,7 @@ class RunControl(cape.options.runControl.RunControl):
         self['flowCart'].set_RKScheme(RK, i)
         
     # Copy over the documentation.
-    for k in ['it_fc', 'it_sub', 'it_avg', 'dt',
+    for k in ['it_fc', 'it_sub', 'it_avg', 'it_start', 'dt', 'clic',
             'unsteady', 'first_order', 'robust_mode', 'RKScheme',
             'tm', 'mg_fc', 'cfl', 'cflmin', 'limiter', 'fmg', 'pmg', 
             'checkptTD', 'vizTD', 'fc_clean', 'fc_stats',
@@ -2467,6 +2685,60 @@ class RunControl(cape.options.runControl.RunControl):
         eval('get_'+k).__doc__ = getattr(cubes,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(cubes,'set_'+k).__doc__
    # >
+    
+    # ==========
+    # Management
+    # ==========
+   # <
+    
+    # Initialization method for folder management optoins
+    def _Management(self):
+        """Initialize folder management options if necessary"""
+        # Check status.
+        if 'Management' not in self:
+            # Missing entirely.
+            self['Management'] = Management()
+        elif type(self['Management']).__name__ == 'dict':
+            # Convert to special class
+            self['Management'] = Management(**self['Management'])
+    
+    # Get the number of check point files to keep around
+    def get_nCheckPoint(self):
+        self._Management()
+        return self['Management'].get_nCheckPoint()
+        
+    # Set the number of check point files to keep around
+    def set_nCheckPoint(self, nchk=rc0('nCheckPoint')):
+        self._Management()
+        self['Management'].set_nCheckPoint(nchk)
+        
+    # Get the archive status for adaptation folders
+    def get_TarAdapt(self):
+        self._Management()
+        return self['Management'].get_TarAdapt()
+        
+    # Get the archive status for adaptation folders
+    def set_TarAdapt(self, fmt=rc0('TarAdapt')):
+        self._Management()
+        self['Management'].set_TarAdapt(fmt)
+        
+    # Get the archive format for visualization files
+    def get_TarViz(self):
+        self._Management()
+        return self['Management'].get_TarViz()
+        
+    # Set the archive format for visualization files
+    def set_TarViz(self, fmt=rc0('TarViz')):
+        self._Management()
+        self['Management'].set_TarViz(fmt)
+        
+    # Copy over the documentation.
+    for k in ['nCheckPoint', 'TarViz', 'TarAdapt']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(Management,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(Management,'set_'+k).__doc__
+   # >
+   
 # class RunControl
         
 

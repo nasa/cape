@@ -9,7 +9,7 @@ import numpy as np
 # File system
 import subprocess as sp
 # Import path utilities
-import os.path
+import os.path, sys
 
 
 
@@ -54,6 +54,40 @@ def SigmaMean(x):
     si = np.std(X)
     # Output
     return si * np.sqrt(float(ni)/float(n))
+    
+# Function to get a non comment line
+def readline(f, comment='#'):
+    """Read line that is nonempty and not a comment
+    
+    :Call:
+        >>> line = readline(f, comment='#')
+    :Inputs:
+        *f*: :class:`file`
+            File instance
+        *comment*: :class:`str`
+            Character(s) that begins a comment
+    :Outputs:
+        *line*: :class:`str`
+            Nontrivial line or `''` if at end of file
+    :Versions:
+        * 2015-11-19 ``@ddalle``: First version
+    """
+    # Read a line.
+    line = f.readline()
+    # Check for empty line (EOF)
+    if line == '': return line
+    # Process stripped line
+    lstrp = line.strip()
+    # Check if otherwise empty or a comment
+    while (lstrp=='') or lstrp.startswith(comment):
+        # Read the next line.
+        line = f.readline()
+        # Check for empty line (EOF)
+        if line == '': return line
+        # Process stripped line
+        lstrp = line.strip()
+    # Return the line.
+    return line
     
 # Function to get Tecplot command
 def GetTecplotCommand():

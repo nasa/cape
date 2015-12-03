@@ -20,6 +20,8 @@ from cape.case import PrepareEnvironment
 from options.runControl import RunControl
 # Interface for writing commands
 from . import cmd, queue, manage, bin
+# Point sensors
+from . import pointSensor
 
 # Need triangulations for cases with `intersect` and for averaging
 from .tri import Tri, Triq
@@ -105,9 +107,11 @@ def run_flowCart(verify=False, isect=False):
         os.environ['OMP_NUM_THREADS'] = str(nProc)
     # Prepare environment variables (other than OMP_NUM_THREADS)
     PrepareEnvironment(rc, i)
-    # Get rid of linked plt files
+    # Get rid of linked Tecplot files
     if os.path.islink('Components.i.plt'): os.remove('Components.i.plt')
+    if os.path.islink('Components.i.dat'): os.remove('Components.i.dat')
     if os.path.islink('cutPlanes.plt'):    os.remove('cutPlanes.plt')
+    if os.path.islink('cutPlanes.dat'):    os.remove('cutPlanes.dat')
     # Check for adaptive runs.
     if rc.get_Adaptive(i):
         # Delete the existing aero.csh file
@@ -135,7 +139,9 @@ def run_flowCart(verify=False, isect=False):
             # Get the number of previous steady steps.
             n = GetSteadyIter()
         # Initialize triq.
-        triq = Triq('Components.i.tri', n=0)
+        if rc.get_clic(i): triq = Triq('Components.i.tri', n=0)
+        # Initialize point sensor
+        PS = pointSensor.CasePointSensor()
         # Requested iterations
         it_fc = rc.get_it_fc(i)
         # Start and end iterations
@@ -144,13 +150,24 @@ def run_flowCart(verify=False, isect=False):
         # Loop through iterations.
         for j in range(it_fc):
             # flowCart command automatically accepts *it_avg*; update *n*
-            cmdi = cmd.flowCart(fc=rc, i=i, n=n)
+            if j==0 and rc.get_it_start(i)>0:
+                # Save settings.
+                it_avg = rc.get_it_avg()
+                # Startup iterations
+                rc.set_it_avg(rc.get_it_start(i))
+                # Increase reference for averaging.
+                n0 += rc.get_it_start(i)
+                # Modified command
+                cmdi = cmd.flowCart(fc=rc, i=i, n=n)
+                # Reset averaging settings
+                rc.set_it_avg(it_avg)
+            else:
+                # Normal stops every *it_avg* iterations.
+                cmdi = cmd.flowCart(fc=rc, i=i, n=n)
             # Run the command for *it_avg* iterations.
             bin.callf(cmdi, f='flowCart.out')
-            # Read the triq file
-            triqj = Triq('Components.i.triq')
-            # Weighted average
-            triq.WeightedAverage(triqj)
+            # Automatically determine the best check file to use.
+            SetRestartIter()
             # Get new iteration count.
             if rc.get_unsteady(i):
                 # Get the number of previous unsteady steps.
@@ -158,10 +175,28 @@ def run_flowCart(verify=False, isect=False):
             else:
                 # Get the number of previous steady steps.
                 n = GetSteadyIter()
+            # Process triq files
+            if rc.get_clic(i):
+                # Read the triq file
+                triqj = Triq('Components.i.triq')
+                # Weighted average
+                triq.WeightedAverage(triqj)
+            # Update history
+            PS.UpdateIterations()
             # Check for completion
-            if n >= n1: break
+            if (n>=n1) or (j+1==it_fc): break
+            # Clean some checkpoint files.
+            if rc.get_unsteady(i):
+                os.remove('check.%06i.td' % n)
+            else:
+                os.remove('check.%05i' % n)
+                os.remove('checkDT.%05i' % n)
         # Write the averaged triq file
-        triq.Write('Components.%i.%i.%i.triq' % (j, n0+1, n))
+        if rc.get_clic(i):
+            triq.Write('Components.%i.%i.%i.triq' % (j+1, n0+1, n))
+        # Write the point sensor history file.
+        try: PS.WriteHist()
+        except Exception: pass
     else:
         # Check how many iterations by which to offset the count.
         if rc.get_unsteady(i):
@@ -231,7 +266,7 @@ def run_flowCart(verify=False, isect=False):
     if os.path.isfile('Components.i.dat'):
         os.rename('Components.i.dat', 'Components.%05i.dat' % n)
     # Clear check files as appropriate.
-    manage.ClearCheck()
+    manage.ClearCheck(rc.get_nCheckPoint(i))
     # Check current iteration count.
     if n >= rc.get_LastIter():
         return

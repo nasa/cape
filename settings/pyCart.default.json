@@ -46,6 +46,7 @@
 	    "flowCart": {
             // Basic number of iterations
             "it_fc": 200,
+            "it_start": 100,
             "it_avg": 0,
             "it_sub": 10,
             // Unsteady inputs
@@ -71,8 +72,10 @@
             "y_is_spanwise": true,
             // Use binary input/output instead of ASCII
             "binaryIO": true,
-            // Write a Tecplot triangulation soltuion file
+            // Write a Tecplot triangulation solution file
             "tecO": true,
+            // Write .triq file
+            "clic": true,
             // Unsteady outputs
             "fc_stats": 0,
             "vizTD": 0,
