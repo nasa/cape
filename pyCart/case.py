@@ -147,8 +147,6 @@ def run_flowCart(verify=False, isect=False):
         # Start and end iterations
         n0 = n
         n1 = n + it_fc
-        # Initialize list of files to delete.
-        gbin = []
         # Loop through iterations.
         for j in range(it_fc):
             # flowCart command automatically accepts *it_avg*; update *n*
@@ -167,9 +165,7 @@ def run_flowCart(verify=False, isect=False):
                 # Normal stops every *it_avg* iterations.
                 cmdi = cmd.flowCart(fc=rc, i=i, n=n)
             # Run the command for *it_avg* iterations.
-            print("slow...")
             bin.callf(cmdi, f='flowCart.out')
-            print("  ...slow")
             # Automatically determine the best check file to use.
             SetRestartIter()
             # Get new iteration count.
@@ -189,15 +185,12 @@ def run_flowCart(verify=False, isect=False):
             PS.UpdateIterations()
             # Check for completion
             if (n>=n1) or (j+1==it_fc): break
-            # List of checkpoint files to delete.
+            # Clean some checkpoint files.
             if rc.get_unsteady(i):
-                # Checkpoint file to delete.
-                gbin.append('check.%06i.td' % n)
+                os.remove('check.%06i.td' % n)
             else:
-                gbin.append('check.%05i' % n)
-                gbin.append('checkDT.%05i' % n)
-        # Cleanup
-        for f in gbin: os.remove(f)
+                os.remove('check.%05i' % n)
+                os.remove('checkDT.%05i' % n)
         # Write the averaged triq file
         if rc.get_clic(i):
             triq.Write('Components.%i.%i.%i.triq' % (j+1, n0+1, n))
@@ -273,7 +266,7 @@ def run_flowCart(verify=False, isect=False):
     if os.path.isfile('Components.i.dat'):
         os.rename('Components.i.dat', 'Components.%05i.dat' % n)
     # Clear check files as appropriate.
-    manage.ClearCheck()
+    manage.ClearCheck(rc.get_nCheckPoint(i))
     # Check current iteration count.
     if n >= rc.get_LastIter():
         return

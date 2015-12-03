@@ -1029,49 +1029,39 @@ class Options(cape.options.Options):
         
     # Get the number of check point files to keep around
     def get_nCheckPoint(self):
-        self._Management()
-        return self['Management'].get_nCheckPoint()
+        self._RunControl()
+        return self['RunControl'].get_nCheckPoint()
         
     # Set the number of check point files to keep around
     def set_nCheckPoint(self, nchk=rc0('nCheckPoint')):
-        self._Management()
-        self['Management'].set_nCheckPoint(nchk)
+        self._RunControl()
+        self['RunControl'].set_nCheckPoint(nchk)
         
     # Get the archive status for adaptation folders
     def get_TarAdapt(self):
-        self._Management()
-        return self['Management'].get_TarAdapt()
+        self._RunControl()
+        return self['RunControl'].get_TarAdapt()
         
     # Get the archive status for adaptation folders
     def set_TarAdapt(self, fmt=rc0('TarAdapt')):
-        self._Management()
-        self['Management'].set_TarAdapt(fmt)
+        self._RunControl()
+        self['RunControl'].set_TarAdapt(fmt)
         
     # Get the archive format for visualization files
     def get_TarViz(self):
-        self._Management()
-        return self['Management'].get_TarViz()
+        self._RunControl()
+        return self['RunControl'].get_TarViz()
         
     # Set the archive format for visualization files
     def set_TarViz(self, fmt=rc0('TarViz')):
-        self._Management()
-        self['Management'].set_TarViz(fmt)
-        
-    # Get the archive format for visualization files
-    def get_TarPBS(self):
-        self._Management()
-        return self['Management'].get_TarPBS()
-        
-    # Set the archive format for visualization files
-    def set_TarPBS(self, fmt=rc0('TarPBS')):
-        self._Management()
-        self['Management'].set_TarPBS(fmt)
+        self._RunControl()
+        self['RunControl'].set_TarViz(fmt)
         
     # Copy over the documentation.
-    for k in ['nCheckPoint', 'TarViz', 'TarAdapt', 'TarPBS']:
+    for k in ['nCheckPoint', 'TarViz', 'TarAdapt']:
         # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(Management,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(Management,'set_'+k).__doc__
+        eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
    # >
    
     

@@ -73,7 +73,6 @@ class Options(odict):
         # Upgrade important groups to their own classes.
         self._PBS()
         self._Mesh()
-        self._Management()
         self._Report()
         self._DataBook()
         self._Config()
@@ -167,17 +166,6 @@ class Options(odict):
                 tmp["PBS_"+k] = self['PBS'][k]
             # Convert to special class.
             self['PBS'] = PBS(**tmp)
-    
-    # Initialization method for folder management optoins
-    def _Management(self):
-        """Initialize folder management options if necessary"""
-        # Check status.
-        if 'Management' not in self:
-            # Missing entirely.
-            self['Management'] = Management()
-        elif type(self['Management']).__name__ == 'dict':
-            # Convert to special class
-            self['Management'] = Management(**self['Management'])
             
     # Initialization method for databook
     def _DataBook(self):
@@ -743,60 +731,60 @@ class Options(odict):
     
     # Get the archive folder
     def get_ArchiveFolder(self):
-        self._Management()
-        return self['Management'].get_ArchiveFolder()
+        self._RunControl()
+        return self['RunControl'].get_ArchiveFolder()
         
     # Set the archive folder
     def set_ArchiveFolder(self, fdir=rc0('ArchiveFolder')):
-        self._Management()
-        self['Management'].set_ArchiveFolder(fdir)
+        self._RunControl()
+        self['RunControl'].set_ArchiveFolder(fdir)
         
     # Get the archive format
     def get_ArchiveFormat(self):
-        self._Management()
-        return self['Management'].get_ArchiveFormat()
+        self._RunControl()
+        return self['RunControl'].get_ArchiveFormat()
         
     # Set the archive format
     def set_ArchiveFormat(self, fmt=rc0('ArchiveFormat')):
-        self._Management()
-        self['Management'].set_ArchiveFormat(fmt)
+        self._RunControl()
+        self['RunControl'].set_ArchiveFormat(fmt)
         
     # Get the archive type
     def get_ArchiveType(self):
-        self._Management()
-        return self['Management'].get_ArchiveType()
+        self._RunControl()
+        return self['RunControl'].get_ArchiveType()
         
     # Set the archive type
     def set_ArchiveType(self, atype=rc0('ArchiveType')):
-        self._Management()
-        self['Management'].set_ArchiveType(atype)
+        self._RunControl()
+        self['RunControl'].set_ArchiveType(atype)
         
     # Get the archive action
     def get_ArchiveAction(self):
-        self._Management()
-        return self['Management'].get_ArchiveAction()
+        self._RunControl()
+        return self['RunControl'].get_ArchiveAction()
         
     # Set the archive action
     def set_ArchiveAction(self, fcmd=rc0('ArchiveAction')):
-        self._Management()
-        self['Management'].set_ArchiveAction(fcmd)
+        self._RunControl()
+        self['RunControl'].set_ArchiveAction(fcmd)
         
     # Get the remote copy command
     def get_RemoteCopy(self):
-        self._Management()
-        return self['Management'].get_RemoteCopy()
+        self._RunControl()
+        return self['RunControl'].get_RemoteCopy()
         
     # Set the remote copy command
     def set_RemoteCopy(self, fcmd=rc0('RemoteCopy')):
-        self._Management()
-        self['Management'].set_RemoteCopy(fcmd)
+        self._RunControl()
+        self['RunControl'].set_RemoteCopy(fcmd)
         
     # Copy over the documentation.
     for k in ['ArchiveFolder', 'ArchiveFormat', 'ArchiveAction', 'ArchiveType',
             'RemoteCopy']:
         # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(Management,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(Management,'set_'+k).__doc__
+        eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
    # >
     
     

@@ -1903,6 +1903,118 @@ class ulimit(cape.options.runControl.ulimit):
     pass
 # class ulimit
 
+# Class for case management
+class Management(cape.options.runControl.Management):
+    """
+    Dictionary-based interfaced for options specific to folder management
+    
+    :Call:
+        >>> opts = Management(**kw)
+    :Versions:
+        * 2015-09-28 ``@ddalle``: Subclassed to CAPE
+    """
+        
+    # Get number of check points to keep around
+    def get_nCheckPoint(self):
+        """Return the number of check point files to keep
+        
+        :Call:
+            >>> nchk = opts.get_nCheckPoint()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *nchk*: :class:`int`
+                Number of check files to keep (all if ``0``)
+        :Versions:
+            * 2015-01-10 ``@ddalle``: First version
+        """
+        return self.get_key('nCheckPoint')
+        
+    # Set the number of check point files to keep around
+    def set_nCheckPoint(self, nchk=rc0('nCheckPoint')):
+        """Set the number of check point files to keep
+        
+        :Call:
+            >>> opts.set_nCheckPoint(nchk)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *nchk*: :class:`int`
+                Number of check files to keep (all if ``0``)
+        :Versions:
+            * 2015-01-10 ``@ddalle``: First version
+        """
+        self.set_key('nCheckPoint', nchk)
+        
+    # Get the archive format for visualization files
+    def get_TarViz(self):
+        """Return the archive format for visualization files
+        
+        :Call:
+            >>> fmt = opts.get_TarViz()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *fmt*: ``""`` | {``"tar"``} | ``"gzip"`` | ``"bz2"``
+                Archive format
+        :Versions:
+            * 2015-01-10 ``@ddalle``: First version
+        """
+        return self.get_key('TarViz')
+        
+    # Set the archive format for visualization files
+    def set_TarViz(self, fmt=rc0('TarViz')):
+        """Set the archive format for visualization files
+        
+        :Call:
+            >>> opts.set_TarViz(fmt)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *fmt*: ``""`` | {``"tar"``} | ``"gzip"`` | ``"bz2"``
+                Archive format
+        :Versions:
+            * 2015-01-10 ``@ddalle``: First version
+        """
+        self.set_key('TarViz', fmt)
+        
+    # Get the archive format for visualization files
+    def get_TarAdapt(self):
+        """Return the archive format for adapt folders
+        
+        :Call:
+            >>> fmt = opts.get_TarAdapt()
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *fmt*: ``""`` | {``"tar"``} | ``"gzip"`` | ``"bz2"``
+                Archive format
+        :Versions:
+            * 2015-01-10 ``@ddalle``: First version
+        """
+        return self.get_key('TarAdapt')
+        
+    # Set the archive format for visualization files
+    def set_TarAdapt(self, fmt=rc0('TarAdapt')):
+        """Set the archive format for adapt folders
+        
+        :Call:
+            >>> opts.set_TarAdapt(fmt)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *fmt*: ``""`` | {``"tar"``} | ``"gzip"`` | ``"bz2"``
+                Archive format
+        :Versions:
+            * 2015-01-10 ``@ddalle``: First version
+        """
+        self.set_key('TarAdapt', fmt)
+# class Management
+
+
 # Class for flowCart settings
 class RunControl(cape.options.runControl.RunControl):
     """Dictionary-based interface for options specific to ``flowCart``"""
@@ -1920,6 +2032,7 @@ class RunControl(cape.options.runControl.RunControl):
         self._cubes()
         self._Environ()
         self._ulimit()
+        self._Management()
     
     # ============ 
     # Initializers
@@ -2572,6 +2685,60 @@ class RunControl(cape.options.runControl.RunControl):
         eval('get_'+k).__doc__ = getattr(cubes,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(cubes,'set_'+k).__doc__
    # >
+    
+    # ==========
+    # Management
+    # ==========
+   # <
+    
+    # Initialization method for folder management optoins
+    def _Management(self):
+        """Initialize folder management options if necessary"""
+        # Check status.
+        if 'Management' not in self:
+            # Missing entirely.
+            self['Management'] = Management()
+        elif type(self['Management']).__name__ == 'dict':
+            # Convert to special class
+            self['Management'] = Management(**self['Management'])
+    
+    # Get the number of check point files to keep around
+    def get_nCheckPoint(self):
+        self._Management()
+        return self['Management'].get_nCheckPoint()
+        
+    # Set the number of check point files to keep around
+    def set_nCheckPoint(self, nchk=rc0('nCheckPoint')):
+        self._Management()
+        self['Management'].set_nCheckPoint(nchk)
+        
+    # Get the archive status for adaptation folders
+    def get_TarAdapt(self):
+        self._Management()
+        return self['Management'].get_TarAdapt()
+        
+    # Get the archive status for adaptation folders
+    def set_TarAdapt(self, fmt=rc0('TarAdapt')):
+        self._Management()
+        self['Management'].set_TarAdapt(fmt)
+        
+    # Get the archive format for visualization files
+    def get_TarViz(self):
+        self._Management()
+        return self['Management'].get_TarViz()
+        
+    # Set the archive format for visualization files
+    def set_TarViz(self, fmt=rc0('TarViz')):
+        self._Management()
+        self['Management'].set_TarViz(fmt)
+        
+    # Copy over the documentation.
+    for k in ['nCheckPoint', 'TarViz', 'TarAdapt']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(Management,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(Management,'set_'+k).__doc__
+   # >
+   
 # class RunControl
         
 
