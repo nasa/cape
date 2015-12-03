@@ -975,9 +975,9 @@ class Cart3d(Cntl):
             * 2015-04-12 ``@ddalle``: First version
         """
         # Get the format.
-        fmt=self.opts.get_TarAdapt()
+        opt = self.opts.get_TarAdapt()
         # Check for directive not to archive.
-        if not fmt: return
+        if not opt or opt=="none": return
         # Save current path.
         fpwd = os.getcwd()
         # Get list of indices.
@@ -995,7 +995,7 @@ class Cart3d(Cntl):
             # Go to the folder
             os.chdir(frun)
             # Manage the directory.
-            manage.ExpandAdapt(fmt)
+            manage.ExpandAdapt(self.opts)
         # Go back to original directory.
         os.chdir(fpwd)    
         
@@ -1018,9 +1018,9 @@ class Cart3d(Cntl):
             * 2014-12-10 ``@ddalle``: Added constraints
         """
         # Get the format.
-        fmt=self.opts.get_TarAdapt()
+        opt = self.opts.get_TarAdapt()
         # Check for directive not to archive.
-        if not fmt: return
+        if not opt or opt=="none": return
         # Save current path.
         fpwd = os.getcwd()
         # Get list of indices.
@@ -1038,7 +1038,7 @@ class Cart3d(Cntl):
             # Go to the folder
             os.chdir(frun)
             # Manage the directory.
-            manage.TarAdapt(fmt)
+            manage.TarAdapt(self.opts)
         # Go back to original directory.
         os.chdir(fpwd)
         
@@ -1060,7 +1060,9 @@ class Cart3d(Cntl):
             * 2014-12-18 ``@ddalle``: First version
         """
         # Get the format.
-        fmt=self.opts.get_TarViz()
+        opt = self.opts.get_TarViz()
+        # Check for directive not to archive.
+        if not opt or opt=="none": return
         # Check for directive not to archive.
         if not fmt: return
         # Save current path.
@@ -1082,7 +1084,7 @@ class Cart3d(Cntl):
             # Check if it's unsteady.
             if not fc.get_unsteady(-1): continue
             # Manage the directory.
-            manage.TarViz(fmt)
+            manage.TarViz(self.opts)
         # Go back to original directory.
         os.chdir(fpwd)
 

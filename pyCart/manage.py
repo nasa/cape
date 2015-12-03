@@ -19,7 +19,7 @@ import os, shutil, glob
 import subprocess as sp
 
 # Function to compress extra folders
-def TarAdapt(fmt="tar"):
+def TarAdapt(opts):
     """Replace ``adaptXX`` folders with a tarball except for most recent
     
     For example, if there are 3 adaptations in the current folder, the
@@ -34,18 +34,42 @@ def TarAdapt(fmt="tar"):
     deleted.
     
     :Call:
-        >>> pyCart.manage.TarAdapt(fmt="tar")
+        >>> pyCart.manage.TarAdapt(opts)
     :Inputs:
-        *fmt*: {``"tar"``} | ``"gzip"`` | ``"bz2"``
+        *opts*: :class:`pyCart.options.Options`
+            Options interface
+        *opts.get_TarAdapt()*: {``"restart"``} | ``"full"`` | ``"none"``
+            Archiving action to take
+        *opts.get_ArchiveFormat()*: {``"tar"``} | ``"gzip"`` | ``"bz2"``
             Format, can be 'tar', 'gzip', or 'bzip'
     :Versions:
         * 2014-11-12 ``@ddalle``: First version
         * 2015-01-10 ``@ddalle``: Added format as an option
+        * 2015-12-02 ``@ddalle``: Options
     """
     # Check for a BEST/ foldoer.
     if not os.path.islink('BEST'):
         # No adaptation cycles to compress.
         return
+    # Check format
+    fmt = opts.get_ArchiveFormat()
+    # Action to take
+    topt = opts.get_TarAdapt()
+    # Process option
+    if topt is None:
+        # Lazy no-archive
+        return
+    elif type(topt).__name__ not in ['str', 'unicode']:
+        # Not a string
+        raise TypeError(
+            '"TarAdapt" option should be in ["none", "full", "restart"')
+    elif topt.lower() == "none":
+        # Do nothing
+        return
+    elif topt.lower() not in ["full", "restart"]:
+        # Unrecognized option
+        raise TypeError(
+            '"TarAdapt" option should be in ["none", "full", "restart"')
     # Process command header.
     if fmt in ['gzip', 'tgz']:
         # GZip format
@@ -85,12 +109,14 @@ def TarAdapt(fmt="tar"):
         if quse: continue
         # Status update
         print("%s --> %s" % (fdir, fdir+'.tar'))
-        # Remove check files before tarring.
-        for f in glob.glob(os.path.join(fdir, 'check*')):
-            os.remove(f)
-        # Remove mesh files before tarring.
-        for f in glob.glob(os.path.join(fdir, 'Mesh*.c3d')):
-            os.remove(f)
+        # Check cleanup option
+        if topt.lower() in ["restart", "hist", "skeleton"]:
+            # Remove check files before tarring.
+            for f in glob.glob(os.path.join(fdir, 'check*')):
+                os.remove(f)
+            # Remove mesh files before tarring.
+            for f in glob.glob(os.path.join(fdir, 'Mesh*.c3d')):
+                os.remove(f)
         # Tar the folder.
         ierr = sp.call(cmdu + [fdir+ext, fdir])
         if ierr: continue
@@ -99,18 +125,22 @@ def TarAdapt(fmt="tar"):
         
         
 # Function to undo the above
-def ExpandAdapt(fmt="tar"):
+def ExpandAdapt(opts):
     """Expand :file:`adaptXX.tar`` files
     
     :Call:
         >>> pyCart.manage.ExpandAdapt(fmt="tar")
     :Inputs:
-        *fmt*: {``"tar"``} | ``"gzip"`` | ``"bz2"``
+        *opts*: :class:`pyCart.options.Options`
+            Options interface
+        *opts.get_ArchiveFormat()*: {``"tar"``} | ``"gzip"`` | ``"bz2"``
             Format, can be 'tar', 'gzip', or 'bzip'
     :Versions:
         * 2014-11-12 ``@ddalle``: First version
         * 2015-01-10 ``@ddalle``: Added format as an option
     """
+    # Get format
+    fmt = opts.get_ArchiveFormat()
     # Process command header.
     if fmt in ['gzip', 'tgz']:
         # GZip format
@@ -143,21 +173,44 @@ def ExpandAdapt(fmt="tar"):
         
         
 # Function to tar up visualization checkpoints
-def TarViz(fmt="tar"):
+def TarViz(opts):
     """Add all visualization surface and cut plane TecPlot files to tar balls
     
     This reduces file count by tarring :file:`Components.i.*.plt` and
     :file:`cutPlanes.*.plt`.
     
     :Call:
-        >>> pyCart.manage.TarViz(fmt="tar")
+        >>> pyCart.manage.TarViz(opts)
     :Inputs:
-        *fmt*: {``"tar"``} | ``"gzip"`` | ``"bz2"``
+        *opts*: :class:`pyCart.options.Options`
+            Options interface
+        *opts.get_TarViz()*: ``"restart"`` | {``"full"``} | ``"none"``
+            Archiving action to take
+        *opts.get_ArchiveFormat()*: {``"tar"``} | ``"gzip"`` | ``"bz2"``
             Format, can be 'tar', 'gzip', or 'bzip'
     :Versions:
         * 2014-12-18 ``@ddalle``: First version
         * 2015-01-10 ``@ddalle``: Added format as an option
     """
+    # Check format
+    fmt = opts.get_ArchiveFormat()
+    # Action to take
+    topt = opts.get_TarAdapt()
+    # Process option
+    if topt is None:
+        # Lazy no-archive
+        return
+    elif type(topt).__name__ not in ['str', 'unicode']:
+        # Not a string
+        raise TypeError(
+            '"TarViz" option should be in ["none", "full", "restart"')
+    elif topt.lower() == "none":
+        # Do nothing
+        return
+    elif topt.lower() not in ["full", "restart"]:
+        # Unrecognized option
+        raise TypeError(
+            '"TarViz" option should be in ["none", "full", "restart"')
     # Process command header.
     if fmt in ['gzip', 'tgz']:
         # GZip format

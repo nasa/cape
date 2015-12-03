@@ -214,10 +214,10 @@ def run_flowCart(verify=False, isect=False):
     # Clean up the folder as appropriate.
     # Tar visualization files.
     if rc.get_unsteady(i):
-        manage.TarViz()
+        manage.TarViz(rc)
     # Tar old adaptation folders.
     if rc.get_Adaptive(i):
-        manage.TarAdapt()
+        manage.TarAdapt(rc)
     # Last reported iteration number
     n = GetHistoryIter()
     # Check status
