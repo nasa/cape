@@ -398,7 +398,7 @@ class InputCntl(FileCntl):
         # Regular expression of existing line sensor to search for
         reg = 'lineSensor\s*%s' % name
         # Get the line
-        line = self.GetLinInSectionSearch('Post_Processing', reg)
+        line = self.GetLineInSectionSearch('Post_Processing', reg)
         # Split
         V = line.split()
         # Convert to coordinates
@@ -473,7 +473,7 @@ class InputCntl(FileCntl):
         # Regular expression of existing line sensor to search for
         reg = 'pointSensor\s*%s' % name
         # Get the line
-        line = self.GetLinInSectionSearch('Post_Processing', reg)
+        line = self.GetLineInSectionSearch('Post_Processing', reg)
         # Split
         V = line.split()
         # Convert to coordinates

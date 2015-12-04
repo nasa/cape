@@ -17,7 +17,7 @@ import numpy as np
 # Date processing
 from datetime import datetime
 # Local function
-from .util      import readline, GetTotalHistIter
+from .util      import readline, SigmaMean, GetTotalHistIter
 from .bin       import tail
 from .inputCntl import InputCntl
 
@@ -246,8 +246,9 @@ class DBPointSensor(cape.dataBook.DBBase):
         # Go to the case folder.
         os.chdir(frun)
         # Determine ninimum number of iterations required
-        nStats = self.opts.get_nStats(self.name)
-        nMin   = self.opts.get_nMin(self.name)
+        nStats = self.cntl.opts.get_nStats(self.name)
+        nMin   = self.cntl.opts.get_nMin(self.name)
+        nLast  = self.cntl.opts.get_nLastStats(self.name)
         # Get last potential iteration
         nIter = int(GetTotalHistIter()) 
         # Decide whether or not to update.
@@ -256,18 +257,20 @@ class DBPointSensor(cape.dataBook.DBBase):
             print("  Not enough iterations (%s) for analysis." % nIter)
             os.chdir(fpwd); return
         # Read the point sensor history.
-        PS = CasePointSensor()
+        P = CasePointSensor()
         # Get minimum iteration that would be included if we compute stats now
-        if PS.nIter < nStats:
+        if P.nIter < nStats:
             # Not enough samples
             print("  Not enough point samples (%s) for analysis." % PS.nIter)
             os.chdir(fpwd); return
-        elif PS.nPoint < 1:
+        elif P.nPoint < 1:
             # No points?
             print("  Point sensor history contains no points.")
             os.chdir(fpwd); return
         # Get list of iterations
-        iIter = PS.iIter
+        iIter = P.iIter
+        # Downselect if *nLast* in use
+        if nLast > 0: iIter = iIter[iIter<=nLast]
         # Minimum iteration that will be included in stats
         if nStats == 0:
             # No averaging; just use last iteration
@@ -280,7 +283,37 @@ class DBPointSensor(cape.dataBook.DBBase):
             # Too early
             print("  Not enough samples after min iteration %i." % nMin)
             os.chdir(fpwd); return
-        # 
+        # Find the point.
+        # Calculate statistics
+        s = P.GetStats(ipt, nStats=nStats, nLast=nLast)
+        
+        # Save the data.
+            if np.isnan(j):
+                # Add the the number of cases.
+                DBc.n += 1
+                # Append trajectory values.
+                for k in self.x.keys:
+                    # I hate the way NumPy does appending.
+                    DBc[k] = np.hstack((DBc[k], [getattr(self.x,k)[i]]))
+                # Append values.
+                for c in DBc.DataCols:
+                    DBc[c] = np.hstack((DBc[c], [s[c]]))
+                # Append residual drop.
+                DBc['nOrders'] = np.hstack((DBc['nOrders'], [nOrders]))
+                # Append iteration counts.
+                DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
+                DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
+            else:
+                # No need to update trajectory values.
+                # Update data values.
+                for c in DBc.DataCols:
+                    DBc[c][j] = s[c]
+                # Update the other statistics.
+                DBc['nOrders'][j] = nOrders
+                DBc['nIter'][j]   = nIter
+                DBc['nStats'][j]  = s['nStats']
+        # Go back.
+        os.chdir(self.RootDir)
             
     
 
@@ -566,9 +599,37 @@ class CasePointSensor(object):
         A = self.data[k, :, :]
         # Insert Z, Cp, and W as appropriate
         if self.nd == 2:
-            # 
-            pass
-            
+            # Calculate Cp
+            Cp = np.array([A[:,2] / (0.7*self.mach**2)]) 
+            # Insert zeros for Z and W
+            Z = np.zeros_like(A[:,:1])
+            B = np.hstack((A[:,:2], Z, Cp, A[:,2:5], Z, A[:,5:]))
+        else:
+            # Calculate Cp
+            Cp = np.array([A[:,3] / (0.7*self.mach**2)])
+            # Insert *Cp*
+            B = np.hstack((A[:,:3], Cp, A[:,3:]))
+        # Save coordinates
+        s['X'] = B[0,0]
+        s['Y'] = B[0,1]
+        s['Z'] = B[0,2]
+        # List of states
+        fcols = ['Cp', 'dp', 'rho', 'U', 'V', 'W', 'P']
+        # Loop through columns
+        for i in range(len(fcols)):
+            # State name and values
+            c = fcols[i]
+            V = B[i+3,I]
+            # Save mean value.
+            s[c] = np.mean(V)
+            # Save statistics
+            s[c+'_min'] = np.min(V)
+            s[c+'_max'] = np.max(V)
+            s[c+'_std'] = np.std(V)
+            s[c+'_err'] = SigmaMean(V)
+        # Output
+        return s
+        
     
     # Get the pressure coefficient
     def GetCp(self, k=None, imin=None, imax=None):

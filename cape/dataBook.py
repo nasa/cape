@@ -2467,7 +2467,7 @@ class CaseFM(object):
             # Get the values
             F = getattr(self, c)
             # Save the mean value.
-            s[c] = np.mean(F[i0:])
+            s[c] = np.mean(F[i0:iLast])
             # Check for statistics.
             if (nStats is not None) or (nStats < 2):
                 # Save the statistics.
