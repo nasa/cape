@@ -1883,21 +1883,21 @@ class Report(object):
             # Determine which function to call
             if c == "L1":
                 # Draw the "L1" plot
-                h = H.PlotL1(n=nPlotIter, **kw)
+                h = H.PlotL1(n=nPlotIter, **kw_p)
             elif c == "L2":
                 # Plot global L2 residual
-                h = H.PlotL2(n=nPlotIter, **kw)
+                h = H.PlotL2(n=nPlotIter, **kw_p)
             elif c == "TurbResid":
                 # Plot turbulence residual
-                h = H.PlotTurbResid(n=nPlotIter, **kw)
+                h = H.PlotTurbResid(n=nPlotIter, **kw_p)
             else:
                 # Plot named residual
                 # Get y-axis label
-                kw["YLabel"] = opts.get_SubfigOpt(sfig, 'YLabel')
+                kw_p["YLabel"] = opts.get_SubfigOpt(sfig, 'YLabel')
                 # Get coefficient
                 cr = opts.get_SubfigOpt(sfig, "Residual")
                 # Plot it
-                h = H.PlotResid(c=cr, n=nPlotIter, **kw)
+                h = H.PlotResid(c=cr, n=nPlotIter, **kw_p)
             # Change back to report folder.
             os.chdir(fpwd)
             # Get the file formatting
