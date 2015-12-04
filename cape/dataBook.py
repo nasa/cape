@@ -844,6 +844,7 @@ class DBComp(dict):
             An individual component data book
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
+        * 2014-12-22 ``@ddalle``: First version
     """
     # Initialization method
     def __init__(self, comp, x, opts):

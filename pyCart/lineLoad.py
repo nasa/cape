@@ -94,6 +94,7 @@ class DBLineLoad(object):
         lbl += "nCase=%i>" % self.n
         # Output
         return lbl
+    __str__ = __repr__
         
     # function to read line load data book summary
     def Read(self, fname=None):
@@ -172,7 +173,7 @@ class DBLineLoad(object):
     
     # Function to write line load data book summary file
     def Write(self, fname=None):
-        """Wrie a single line load data book summary file
+        """Write a single line load data book summary file
         
         :Call:
             >>> DBL.Write()

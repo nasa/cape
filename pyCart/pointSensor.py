@@ -83,11 +83,196 @@ def get_mach():
 
 # Data book of point sensors
 class DBPointSensor(object):
+    """
+    Point sensor data book
     
-    pass
+    :Call:
+        >>> DBP = DBPointSensor(cart3d, pt)
+    :Inputs:
+        *cart3d*: :class:`pyCart.cart3d.Cart3d`
+            Cart3D settings and commands interface
+        *pt*: :class:`str`
+            Name of point
+    :Outputs:
+        *DBP*: :class:`pyCart.pointSensor.DBPointSensor`
+            An individual point sensor data book
+    :Versions:
+        * 2015-12-04 ``@ddalle``: Started
+    """
+    # Initialization method
+    def __init__(self, cart3d, pt):
+        """Initialization method
+        
+        :Versions:
+            * 2015-12-04 ``@ddalle``: First version
+        """
+        # Folder containing the data book
+        fdir = opts.get_DataBookDir()
+        # Folder name for compatibility
+        fdir = fdir.replace("/", os.sep)
+        
+        # File name
+        fpt = 'pt_%s.csv' % pt
+        # Absolute path to point sensors
+        fname = os.path.join(fdir, fpt)
+        
+        # Save point name
+        self.pt = pt
+        # Save the CNTL
+        self.cntl = cart3d
+        # Save the file name
+        self.fname = fname
+        
+        # Read the file or initialize empty arrays.
+        self.Read(fname)
+        
+    # Representation method
+    def __repr__(self):
+        """Representation method
+        
+        :Versions:
+            * 2015-09-16 ``@ddalle``: First version
+        """
+        # Initialize string
+        lbl = "<DBPointSensor %s, " % self.pt
+        # Number of cases in book
+        lbl += "nCase=%i>" % self.n
+        # Output
+        return lbl
+    __str__ = __repr__
 
-
-
+    # Read point sensor data
+    def Read(self, fname=None):
+        """Read a data book statistics file for a single point sensor
+        
+        :Call:
+            >>> DBP.Read()
+            >>> DBP.Read(fname)
+        :Inputs:
+            *DBP*: :class:`pyCart.pointSensor.DBPointSensor`
+                An individual point sensor data book
+            *fname*: :class:`str`
+                Name of data file to read
+        :Versions:
+            * 2015-12-04 ``@ddalle``: First version
+        """
+        # Check for default file name
+        if fname is None: fname = self.fname
+        # List of data fields
+        fCols = ['X', 'Y', 'Z', 'Cp', 'dp', 'U', 'V', 'W', 'P',
+            'Cp_std', 'Cp_min', 'Cp_max', 'dp_std', 'dp_min', 'dp_max',
+            'rho_std', 'rho_min', 'rho_max', 'U_std', 'U_min', 'U_max',
+            'V_std', 'V_min', 'V_max', 'W_std', 'W_min', 'W_max',
+            'P_std', 'P_min', 'P_max', 'RefLev']
+        # List of integer cols
+        iCols = ['nIter', 'nStats']
+        # Counts
+        nfCol = len(fCols)
+        niCol = len(iCols)
+        # Try to read the file.
+        try:
+            # Data book delimiter
+            delim = self.opts.get_Delimiter()
+            # Initialize column number.
+            nxCol = 0
+            # Loop through the trajectory keys.
+            for k in self.cntl.x.keys:
+                # Get the type.
+                t = self.cntl.x.defns[k].get('Value', 'float')
+                # Convert type.
+                if t in ['hex', 'oct', 'octal', 'bin']: t = 'int'
+                # Read the column
+                self[k] = np.loadtxt(fname,
+                    delimiter=delim, dtype=str(t), usecols=[nxCol])
+                # Increase the column number.
+                nxCol += 1
+            # Read the float columns
+            A = np.loadtxt(fname, delimiter=delim, dtype=float,
+                usecols=range(nxCol,nxCol+nfCol))
+            # Read the integer columns
+            B = np.loadtxt(fname, delimiter=delim, dtype=int,
+                usecols=range(nxCol+nfCol,nxCol+nfCol+niCol))
+            # Distribute.
+            for i in range(nfCol):
+                self[fCols[i]] = A[:,i]
+            for i in range(niCol):
+                self[iCols[i]] = B[:,i]
+        except Exception:
+            # Initialize empty trajectory arrays
+            for k in self.cart3d.x.keys:
+                # get the type.
+                t = self.cart3d.x.defns[k].get('Value', 'float')
+                # convert type
+                if t in ['hex', 'oct', 'octal', 'bin']: t = 'int'
+                # Initialize an empty array.
+                self[k] = np.array([], dtype=str(t))
+            # Initialize float parameters
+            for col in fCols:
+                self[col] = np.array([], dtype=float)
+            # Initialize integer counts
+            for col in iCols:
+                self[col] = np.array([], dtype=int)
+        # Save identifiers.
+        self.xCols = self.cntl.x.keys
+        self.fCols = fCols
+        self.iCols = iCols
+        self.nxCol = nxCol
+        self.nfCol = nfCol
+        self.niCol = niCol
+        # Number of cases
+        self.n = len(self[k])
+        
+    # Output
+    def Write(self, fname=None):
+        """Write a single point sensor data book summary file
+        
+        :Call:
+            >>> DBP.Write()
+            >>> DBP.Write(fname)
+        :Inputs:
+            *DBP*: :class:`pyCart.pointSensor.DBPointSensor`
+                An individual point sensor data book
+            *fname*: :class:`str`
+                Name of data file to read
+        :Versions:
+            * 2015-12-04 ``@ddalle``: First version
+        """
+        # Check for default file name
+        if fname is None: fname = self.fname
+        # check for a previous old file.
+        if os.path.isfile(fname+".old"):
+            # Remove it.
+            os.remove(fname+".old")
+        # Check for an existing data file.
+        if os.path.isfile(fname):
+            # Move it to ".old"
+            os.rename(fname, fname+".old")
+        # DataBook delimiter
+        delim = self.cart3d.opts.get_Delimiter()
+        # Open the file.
+        f = open(fname, 'w')
+        # Write the header
+        f.write("# Point sensor statistics for '%s' extracted on %s\n" %
+            (self.pt, datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')))
+        # Empty line.
+        f.write('#\n#')
+        # Variable list
+        f.write(delim.join(self.xCols) + ' ')
+        f.write(delim.join(self.fCols) + ' ')
+        f.write(delim.join(self.iCols) + '\n')
+        # Loop through database entries
+        for i in np.arange(self.n):
+            # Write the trajectory values.
+            for k in self.xCols:
+                f.write('%s%s' % (self[k][i], delim))
+            # Write data values
+            for k in self.fCols:
+                f.write('%s%s' % (self[k][i], delim))
+            # Iteration counts
+            f.write('%i%s' % (self['nIter'][i], delim))
+            f.write('%i\n' % (self['nStats'][i], delim))
+        # Close the file.
+        f.close()
 
 
 # Individual point sensor
