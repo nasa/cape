@@ -19,12 +19,11 @@ import re
 # Date processing
 from datetime import datetime
 
-# Use this to only update entries with newer iterations.
-from .case import GetCurrentIter, GetWorkingFolder
 # Utilities or advanced statistics
 from . import util
-# Line loads
+# Line loads and other data types
 from . import lineLoad
+from . import pointSensor
 
 # Template module
 import cape.dataBook
@@ -374,7 +373,7 @@ class DataBook(cape.dataBook.DataBook):
         # Go to the folder.
         os.chdir(frun)
         # Get the current iteration number.
-        nIter = int(GetCurrentIter())
+        nIter = int(util.GetTotalHistIter())
         # Get the number of iterations used for stats.
         nStats = self.opts.get_nStats()
         # Get the iteration at which statistics can begin.
@@ -607,7 +606,7 @@ class CaseFM(cape.dataBook.CaseFM):
         # Save component name
         self.comp = comp
         # Get the working folder.
-        fdir = GetWorkingFolder()
+        fdir = util.GetWorkingFolder()
         # Expected name of the component history file
         fname = os.path.join(fdir, comp+'.dat')
         # Check if it exists.
@@ -822,7 +821,7 @@ class CaseResid(cape.dataBook.CaseResid):
             * 2014-11-12 ``@ddalle``: First version
         """
         # Process the best data folder.
-        fdir = GetWorkingFolder()
+        fdir = util.GetWorkingFolder()
         # History file name.
         fhist = os.path.join(fdir, 'history.dat')
         # Read the file.

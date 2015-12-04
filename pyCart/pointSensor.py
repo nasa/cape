@@ -17,7 +17,7 @@ import numpy as np
 # Date processing
 from datetime import datetime
 # Local function
-from .util      import readline, GetTotalHistIter
+from .util      import readline, GetTotalHistIter, GetWorkingFolder
 from .bin       import tail
 from .inputCntl import InputCntl
 
@@ -315,7 +315,7 @@ class DBPointSensor(cape.dataBook.DBBase):
                 self[c] = np.hstack((self[c], [s[c]]))
             # Append iteration counts.
             self['nIter']  = np.hstack((self['nIter'], iIter[-1:]))
-            self['nStats'] = np.hstack((self['nStats'], nStats]))
+            self['nStats'] = np.hstack((self['nStats'], [nStats]))
         else:
             # No need to update trajectory values.
             # Update data values.

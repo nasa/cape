@@ -11,6 +11,78 @@ from cape.util import *
 # pyCart base folder
 pyCartFolder = os.path.split(os.path.abspath(__file__))[0]
 
+    
+# Function to get the most recent working folder
+def GetWorkingFolder():
+    """Get the most recent working folder
+    
+    Can be one of the following:
+    
+        * ``.`` (present directory)
+        * ``adapt??``
+        * ``adapt??/FLOW``
+    
+    This function must be called from the top level of a case run directory.
+    
+    :Call:
+        >>> fdir = pyCart.util.GetWorkingFolder()
+    :Outputs:
+        *fdir*: :class:`str`
+            Name of the most recently used working folder with a history file
+    :Versions:
+        * 2014-11-24 ``@ddalle``: First version
+    """
+    # Try to get iteration number from working folder.
+    n0 = GetTotalHistIter()
+    # Initialize working directory.
+    fdir = '.'
+    # Implementation of returning to adapt after startup turned off
+    if os.path.isfile('history.dat') and not os.path.islink('history.dat'):
+        return fdir
+    # Check for adapt?? folders
+    fglob = glob.glob('adapt??')
+    fglob.sort().reverse()
+    # Check adapt?? folders in reverse
+    for fi in fglob:
+        # Search for `history.dat` file.
+        if os.path.isfile(os.path.join(fi, 'history.dat')): return fi
+    # Output
+    return fdir
+    
+# Function to read last line of 'history.dat' file
+def GetHistIter(fname='history.dat'):
+    """Get the most recent iteration number from a :file:`history.dat` file
+    
+    :Call:
+        >>> n = pyCart.util.GetHistIter(fname='history.dat')
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to read
+    :Outputs:
+        *n*: :class:`float`
+            Last iteration number
+    :Versions:
+        * 2014-11-24 ``@ddalle``: First version
+        * 2015-12-04 ``@ddalle``: Copied to `pyCart.util`
+    """
+    # Check the file beforehand.
+    if not os.path.isfile(fname):
+        # No history
+        return 0
+    # Check the file.
+    try:
+        # Try to tail the last line.
+        txt = sp.Popen(['tail', '-1', fname]).communicate()[0]
+        # Try to get the integer.
+        return float(txt.split()[0])
+    except Exception:
+        # Read the last line.
+        line = f.readlines()[-1]
+        # Get iteration string
+        txt = line.split()[0]
+        # Return iteration number
+        return float(txt)
+
 # Get steady-state history iteration
 def GetSteadyHistIter():
     """Get largest steady-state iteration number from ``history.dat``
@@ -103,7 +175,14 @@ def GetUnsteadyHistIter():
         txt = sp.Popen(['tail -n 1 %s' % fname],
             shell=True).communicate()[0]
         # Get the first entry, which is the iteration number.
-        return float(txt.split()[0])
+        txt0 = txt.split()[0]
+        # Check for unsteady.
+        if '.' in txt0:
+            # Ends with a time-accurate iteration
+            return float(txt0)
+        else:
+            # Ends with a steady-state iteration
+            return 0
     except Exception:
         # Read the last line.
         line = f.readlines()[-1]
