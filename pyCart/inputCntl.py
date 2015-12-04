@@ -398,11 +398,13 @@ class InputCntl(FileCntl):
         # Regular expression of existing line sensor to search for
         reg = 'lineSensor\s*%s' % name
         # Get the line
-        line = self.GetLineInSectionSearch('Post_Processing', reg)
+        lines = self.GetLineInSectionSearch('Post_Processing', reg, 1)
+        # Check for a match.
+        if len(lines) == 0: return None
         # Split
-        V = line.split()
+        V = lines[0].split()
         # Convert to coordinates
-        return [float(v) for v in V[1:]]
+        return [float(v) for v in V[2:]]
         
     # Function to write a line sensor
     def AddLineSensor(self, name, X):
@@ -473,11 +475,13 @@ class InputCntl(FileCntl):
         # Regular expression of existing line sensor to search for
         reg = 'pointSensor\s*%s' % name
         # Get the line
-        line = self.GetLineInSectionSearch('Post_Processing', reg)
+        lines = self.GetLineInSectionSearch('Post_Processing', reg)
+        # Check for a match.
+        if len(lines) == 0: return None
         # Split
-        V = line.split()
+        V = lines[0].split()
         # Convert to coordinates
-        return [float(v) for v in V[1:]]
+        return [float(v) for v in V[2:]]
         
     # Function to write a point sensor
     def AddPointSensor(self, name, X):

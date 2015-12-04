@@ -288,30 +288,30 @@ class DBPointSensor(cape.dataBook.DBBase):
         s = P.GetStats(ipt, nStats=nStats, nLast=nLast)
         
         # Save the data.
-            if np.isnan(j):
-                # Add the the number of cases.
-                DBc.n += 1
-                # Append trajectory values.
-                for k in self.x.keys:
-                    # I hate the way NumPy does appending.
-                    DBc[k] = np.hstack((DBc[k], [getattr(self.x,k)[i]]))
-                # Append values.
-                for c in DBc.DataCols:
-                    DBc[c] = np.hstack((DBc[c], [s[c]]))
-                # Append residual drop.
-                DBc['nOrders'] = np.hstack((DBc['nOrders'], [nOrders]))
-                # Append iteration counts.
-                DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
-                DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
-            else:
-                # No need to update trajectory values.
-                # Update data values.
-                for c in DBc.DataCols:
-                    DBc[c][j] = s[c]
-                # Update the other statistics.
-                DBc['nOrders'][j] = nOrders
-                DBc['nIter'][j]   = nIter
-                DBc['nStats'][j]  = s['nStats']
+        if np.isnan(j):
+            # Add the the number of cases.
+            DBc.n += 1
+            # Append trajectory values.
+            for k in self.x.keys:
+                # I hate the way NumPy does appending.
+                DBc[k] = np.hstack((DBc[k], [getattr(self.x,k)[i]]))
+            # Append values.
+            for c in DBc.DataCols:
+                DBc[c] = np.hstack((DBc[c], [s[c]]))
+            # Append residual drop.
+            DBc['nOrders'] = np.hstack((DBc['nOrders'], [nOrders]))
+            # Append iteration counts.
+            DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
+            DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
+        else:
+            # No need to update trajectory values.
+            # Update data values.
+            for c in DBc.DataCols:
+                DBc[c][j] = s[c]
+            # Update the other statistics.
+            DBc['nOrders'][j] = nOrders
+            DBc['nIter'][j]   = nIter
+            DBc['nStats'][j]  = s['nStats']
         # Go back.
         os.chdir(self.RootDir)
             
