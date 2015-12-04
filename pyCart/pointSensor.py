@@ -17,7 +17,7 @@ import numpy as np
 # Date processing
 from datetime import datetime
 # Local function
-from .util      import readline, SigmaMean, GetTotalHistIter
+from .util      import readline, GetTotalHistIter
 from .bin       import tail
 from .inputCntl import InputCntl
 
@@ -256,6 +256,20 @@ class DBPointSensor(cape.dataBook.DBBase):
             # Not enough iterations
             print("  Not enough iterations (%s) for analysis." % nIter)
             os.chdir(fpwd); return
+        elif np.isnan(j):
+            # No current history
+            print("  Adding new databook entry.")
+        elif self['nStats'][j] != nStats:
+            # New history
+            print("  Recomputing statistics using %i samples." % nStats)
+        elif self['nIter'][j] == nIter:
+            # Up-to-date
+            print("  Databook up-to-date.")
+            os.chdir(fpwd); return
+        elif self['nIter'][j] == get_iter('pointSensors.hist.dat'):
+            # Up-to-date
+            print("  Databook up-to-date.")
+            os.chdir(fpwd); return
         # Read the point sensor history.
         P = CasePointSensor()
         # Get minimum iteration that would be included if we compute stats now
@@ -284,38 +298,36 @@ class DBPointSensor(cape.dataBook.DBBase):
             print("  Not enough samples after min iteration %i." % nMin)
             os.chdir(fpwd); return
         # Find the point.
+        kpt = P.GetPointSensorIndex(self.pt)
         # Calculate statistics
-        s = P.GetStats(ipt, nStats=nStats, nLast=nLast)
+        s = P.GetStats(kpt, nStats=nStats, nLast=nLast)
         
         # Save the data.
         if np.isnan(j):
             # Add the the number of cases.
-            DBc.n += 1
+            self.n += 1
             # Append trajectory values.
-            for k in self.x.keys:
+            for k in self.xCols:
                 # I hate the way NumPy does appending.
-                DBc[k] = np.hstack((DBc[k], [getattr(self.x,k)[i]]))
+                self[k] = np.hstack((self[k], [getattr(self.cntl.x,k)[i]]))
             # Append values.
-            for c in DBc.DataCols:
-                DBc[c] = np.hstack((DBc[c], [s[c]]))
-            # Append residual drop.
-            DBc['nOrders'] = np.hstack((DBc['nOrders'], [nOrders]))
+            for c in self.fCols:
+                self[c] = np.hstack((self[c], [s[c]]))
             # Append iteration counts.
-            DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
-            DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
+            self['nIter']  = np.hstack((self['nIter'], iIter[-1:]))
+            self['nStats'] = np.hstack((self['nStats'], nStats]))
         else:
             # No need to update trajectory values.
             # Update data values.
-            for c in DBc.DataCols:
-                DBc[c][j] = s[c]
+            for c in self.fCols:
+                self[c][j] = s[c]
             # Update the other statistics.
-            DBc['nOrders'][j] = nOrders
-            DBc['nIter'][j]   = nIter
-            DBc['nStats'][j]  = s['nStats']
+            self['nIter'][j]   = iIter[-1]
+            self['nStats'][j]  = nStats
         # Go back.
-        os.chdir(self.RootDir)
+        os.chdir(fpwd)
             
-    
+# class DBPointSensor
 
 
 # Individual point sensor
@@ -546,6 +558,35 @@ class CasePointSensor(object):
         
         
     
+    # Get point sensor by name
+    def GetPointSensorIndex(self, name):
+        """Get the index of a point sensor by its name in ``input.cntl``
+        
+        :Call:
+            >>> k = P.GetPointSensorIndex(name)
+        :Inputs:
+            *P*: :class:`pyCart.pointSensor.CasePointSensor`
+                Iterative point sensor history
+            *name*: :class:`str`
+                Name of the sensor
+        :Outputs:
+            *k*: :class;`int`
+                Index of nearest point in the sampled data
+        :Versions:
+            * 2105-12-04 ``@ddalle``: First version
+        """
+        # Get coordinates from :file:`input.cntl`
+        r = self.InputCntl.GetPointSensor(name)
+        # Get the coordinates for all point sensors from data
+        R = self.data[:,0,1:self.nd+1]
+        # Calculate distances
+        if self.nd == 2:
+            L2 = (r[0]-R[:,0])**2 + (r[1]-R[:,1])**2
+        else:
+            L2 = (r[0]-R[:,0])**2 + (r[1]-R[:,1])**2 + (r[2]-R[:,2])**2
+        # Find the minimum distance.
+        return np.argmin(L2)
+        
     # Compute statistics
     def GetStats(self, k, nStats=1, nLast=None):
         """Compute min, max, mean, and standard deviation of each quantity
@@ -626,8 +667,7 @@ class CasePointSensor(object):
             s[c+'_min'] = np.min(V)
             s[c+'_max'] = np.max(V)
             s[c+'_std'] = np.std(V)
-            s[c+'_err'] = SigmaMean(V)
-        # Output
+        # Output,
         return s
         
     
