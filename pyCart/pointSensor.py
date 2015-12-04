@@ -637,17 +637,17 @@ class CasePointSensor(object):
         # Initialize output
         s = {}
         # Extract data for this point.
-        A = self.data[k, :, :]
+        A = self.data[k, :, 1:]
         # Insert Z, Cp, and W as appropriate
         if self.nd == 2:
             # Calculate Cp
-            Cp = np.array([A[:,2] / (0.7*self.mach**2)]) 
+            Cp = A[:,2:3] / (0.7*self.mach**2)
             # Insert zeros for Z and W
             Z = np.zeros_like(A[:,:1])
             B = np.hstack((A[:,:2], Z, Cp, A[:,2:5], Z, A[:,5:]))
         else:
             # Calculate Cp
-            Cp = np.array([A[:,3] / (0.7*self.mach**2)])
+            Cp = A[:,3:4] / (0.7*self.mach**2)
             # Insert *Cp*
             B = np.hstack((A[:,:3], Cp, A[:,3:]))
         # Save coordinates
@@ -660,7 +660,7 @@ class CasePointSensor(object):
         for i in range(len(fcols)):
             # State name and values
             c = fcols[i]
-            V = B[i+3,I]
+            V = B[I,i+3]
             # Save mean value.
             s[c] = np.mean(V)
             # Save statistics
