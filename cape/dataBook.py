@@ -922,6 +922,8 @@ class DBBase(dict):
                 # Read the column
                 self[k] = np.loadtxt(fname,
                     delimiter=delim, dtype=str(t), usecols=[nxCol])
+                # Fix single-entry values.
+                if self[k].ndim == 0: self[k] = np.array([self[k]])
                 # Increase the column number.
                 nxCol += 1
             # Read the float columns
@@ -930,6 +932,10 @@ class DBBase(dict):
             # Read the integer columns
             B = np.loadtxt(fname, delimiter=delim, dtype=int,
                 usecols=range(nxCol+self.nfCol,nxCol+self.nfCol+self.niCol))
+            # Fix single-entry values.
+            if A.ndim == 0:
+                A = np.array([A])
+                B = np.array([B])
             # Distribute.
             for i in range(self.nfCol):
                 self[self.fCols[i]] = A[:,i]

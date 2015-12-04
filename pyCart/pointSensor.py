@@ -17,7 +17,7 @@ import numpy as np
 # Date processing
 from datetime import datetime
 # Local function
-from .util      import readline
+from .util      import readline, GetTotalHistIter
 from .bin       import tail
 from .inputCntl import InputCntl
 
@@ -25,6 +25,35 @@ from .inputCntl import InputCntl
 import cape.dataBook
 
 
+# Read best input.cntl file.
+def get_InputCntl():
+    """Read the best ``input.cntl`` or ``input.??.cntl`` file
+    
+    :Call:
+        >>> IC = get_InputCntl()
+    :Outputs:
+        *IC*: :class:`pyCart.inputCntl.InputCntl`
+            File interface to Cart3D input file ``input.cntl``
+    :Versions:
+        * 2015-12-04 ``@ddalle``: First version
+    """
+    # Look for numbered input files
+    fglob = glob.glob("input.[0-9][0-9]*.cntl")
+    # Safety catch.
+    try:
+        # No phases?
+        if len(fglob) == 0 and os.path.isfile('input.cntl'):
+            # Read the unmarked file
+            return InputCntl('input.cntl')
+        else:
+            # Get phase numbers
+            iglob = [int(f.split('.')[1]) for f in fglob]
+            # Maximum phase
+            return InputCntl('input.%02i.cntl' % max(iglob))
+    except Exception:
+        # No handle.
+        return None
+    
 # Check iteration number
 def get_iter(fname):
     """Get iteration number from a point sensor single-iteration file
@@ -53,11 +82,14 @@ def get_iter(fname):
         return 0
         
 # Get Mach number from function
-def get_mach():
+def get_mach(IC=None):
     """Get Mach number from most appropriate :file:`input.??.cntl` file
     
     :Call:
-        >>> M = get_mach()
+        >>> M = get_mach(IC=None)
+    :Inputs:
+        *IC*: :class:`pyCart.inputCntl.InputCntl`
+            File interface to Cart3D input file ``input.cntl``
     :Outputs:
         *M*: :class:`float`
             Mach number as determined from Cart3D input file
@@ -68,21 +100,36 @@ def get_mach():
     fglob = glob.glob("input.[0-9][0-9]*.cntl")
     # Safety catch.
     try:
-        # No phases?
-        if len(fglob) == 0 and os.path.isfile('input.cntl'):
-            # Read the unmarked file
-            ICntl = InputCntl('input.cntl')
-        else:
-            # Get phase numbers
-            iglob = [int(f.split('.')[1]) for f in fglob]
-            # Maximum phase
-            ICntl = InputCntl('input.%02i.cntl' % max(iglob))
+        # Read ``input.cntl`` if necessary.
+        if IC is None: IC = get_InputCntl()
         # Get the Mach number
-        return ICntl.GetMach()
+        return IC.GetMach()
     except Exception:
         # Nothing, give 0.0
         return 0.0
         
+# Get point sensor history iterations
+def get_nStatsPS():
+    """Return info about iterations at which point sensors have been recorded
+    
+    :Call:
+        >>> nStats = get_nStatsPS()
+    :Outputs:
+        *nIter*: :class:`int`
+            Last available iteration for which a point sensor is recorded
+        *nStats*: :class:`int`
+            Number of iterations at which point sensors are recorded
+    :Versions:
+        * 2015-12-04 ``@ddalle``: First version
+    """
+    # Check for the file.
+    if not os.path.isfile('pointSensors.hist.dat'):
+        return 0
+    # Open the file and get the first line.
+    f = open('pointSensors.hist.dat', 'r')
+    line = readline(f)
+    # Output
+    return nStats
 # end functions
 
 
@@ -92,12 +139,14 @@ class DBPointSensor(cape.dataBook.DBBase):
     Point sensor data book
     
     :Call:
-        >>> DBP = DBPointSensor(cart3d, pt)
+        >>> DBP = DBPointSensor(cart3d, pt, name=None)
     :Inputs:
         *cart3d*: :class:`pyCart.cart3d.Cart3d`
             Cart3D settings and commands interface
         *pt*: :class:`str`
             Name of point
+        *name*: :class:`str` | ``None``
+            Name of data book item (defaults to *pt*)
     :Outputs:
         *DBP*: :class:`pyCart.pointSensor.DBPointSensor`
             An individual point sensor data book
@@ -105,7 +154,7 @@ class DBPointSensor(cape.dataBook.DBBase):
         * 2015-12-04 ``@ddalle``: Started
     """
     # Initialization method
-    def __init__(self, cart3d, pt):
+    def __init__(self, cart3d, pt, name=None):
         """Initialization method
         
         :Versions:
@@ -121,6 +170,13 @@ class DBPointSensor(cape.dataBook.DBBase):
         # Absolute path to point sensors
         fname = os.path.join(fdir, fpt)
         
+        # Save data book title
+        if name is None:
+            # Default name
+            self.name = pt
+        else:
+            # Specified name
+            self.name = name
         # Save point name
         self.pt = pt
         # Save the CNTL
@@ -160,6 +216,72 @@ class DBPointSensor(cape.dataBook.DBBase):
         return lbl
     __str__ = __repr__
     
+    # Process a case
+    def UpdateCase(self, i):
+        """Update one point sensor case if necessary
+        
+        :Call:
+            >>> DBP.UpdateCase(i)
+        :Inputs:
+            *DBP*: :class:`pyCart.pointSensor.DBPointSensor`
+                An individual point sensor data book
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2015-12-04 ``@ddalle``: First version
+        """
+        # Try to find a match existing in the data book
+        j = self.FindMatch(i)
+        # Get the name of the folder.
+        frun = self.cntl.x.GetFullFolderNames(i)
+        # Status update
+        print(frun)
+        # Go home
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Check if the folder exists.
+        if not os.path.isdir(frun):
+            os.chdir(fpwd)
+            return
+        # Go to the case folder.
+        os.chdir(frun)
+        # Determine ninimum number of iterations required
+        nStats = self.opts.get_nStats(self.name)
+        nMin   = self.opts.get_nMin(self.name)
+        # Get last potential iteration
+        nIter = int(GetTotalHistIter()) 
+        # Decide whether or not to update.
+        if (not nIter) or (nIter < nMin + nStats):
+            # Not enough iterations
+            print("  Not enough iterations (%s) for analysis." % nIter)
+            os.chdir(fpwd); return
+        # Read the point sensor history.
+        PS = CasePointSensor()
+        # Get minimum iteration that would be included if we compute stats now
+        if PS.nIter < nStats:
+            # Not enough samples
+            print("  Not enough point samples (%s) for analysis." % PS.nIter)
+            os.chdir(fpwd); return
+        elif PS.nPoint < 1:
+            # No points?
+            print("  Point sensor history contains no points.")
+            os.chdir(fpwd); return
+        # Get list of iterations
+        iIter = PS.iIter
+        # Minimum iteration that will be included in stats
+        if nStats == 0:
+            # No averaging; just use last iteration
+            iStats0 = iIter[-1]
+        else:
+            # Read backwards *nStats* samples from the end
+            iStats0 = iIter[-nStats]
+        # Check that.
+        if iStats0 < nMin:
+            # Too early
+            print("  Not enough samples after min iteration %i." % nMin)
+            os.chdir(fpwd); return
+        # 
+            
     
 
 
@@ -201,10 +323,13 @@ class CasePointSensor(object):
             self.nd = None
             self.iSteady = 0
             self.data = np.zeros((0,0,12))
+            self.iIter = np.array([])
         # Read iterations if necessary.
         self.UpdateIterations()
+        # Input file
+        self.InputCntl = get_InputCntl()
         # Save the Mach number
-        self.mach = get_mach()
+        self.mach = get_mach(self.InputCntl)
         
     
     # Read the steady-state output file
@@ -224,10 +349,19 @@ class CasePointSensor(object):
             imax = self.data[0,-1,-1]
         else:
             imax = 0
-        # Check for steady-state iteration.
-        if get_iter('pointSensors.dat') > imax:
+        # Check for steady-state outputs.
+        fglob = glob.glob('{adapt??/,}pointSensors.dat')
+        iglob = np.array([get_iter(f) for f in fglob])
+        # Order the steady-state outputs.
+        I = iglob.argsort()
+        fglob = fglob[I]
+        iglob = iglob[I]
+        # Loop through steady-state iterations
+        for i in range(len(fglob)):
+            # Check if it's up-to-date
+            if iglob[i] <= imax: continue
             # Read the file.
-            PS = PointSensor('pointSensors.dat')
+            PS = PointSensor(fglob[i])
             # Save the iterations
             self.AppendIteration(PS)
             # Update the steady-state iteration count
@@ -289,6 +423,8 @@ class CasePointSensor(object):
         A = np.fromfile(f, dtype=float, count=nPoint*nIter*nCol, sep=" ")
         # Reshape
         self.data = A.reshape((nPoint, nIter, nCol))
+        # Save the iterations at which samples are recoreded
+        self.iIter = self.data[0,:,-1]
         
     # Write history file
     def WriteHist(self, fname='pointSensors.hist.dat'):
@@ -379,6 +515,64 @@ class CasePointSensor(object):
         self.nIter += 1
         
         
+    
+    # Compute statistics
+    def GetStats(self, k, nStats=1, nLast=None):
+        """Compute min, max, mean, and standard deviation of each quantity
+        
+        This includes computing pressure coefficient.  NaNs are reported as the
+        standard deviation if *nStats* is 1 or 0.  If the point sensor is
+        two-dimensional, i.e. *P.nd* is 2, the *W* velocity is reported as 0.0.
+        
+        :Call:
+            >>> s = P.GetStats(k, nStats=1, nLast=None)
+        :Inputs:
+            *P*: :class:`pyCart.pointSensor.CasePointSensor`
+                Iterative point sensor history
+            *nStats*: :class:`int`
+                Number of samples to use for computing statistics
+            *nLast*: :class:`int` | ``None``
+                If specified, maximum iteration to use
+        :Outputs:
+            *s*: :class:`dict` (:class:`float`)
+                Dictionary of mean, min, max, std for each variable
+        :Versions:
+            * 2015-12-04 ``@ddalle``: First version
+        """
+        # Last iteration to use.
+        if nLast:
+            # Attempt to use requested iter.
+            if nLast < self.iIter[0]:
+                # No earlier iterative histories
+                I = np.array([])
+            else:
+                # Apply filter.
+                I = np.where(self.iIter <= nLast)[0]
+            # Check for sufficient samples
+            if I.size < nStats:
+                raise RuntimeError("Less than %i samples before iteration %i"
+                    % (nStats, nLast))
+            # Filter last *nStats* samples.
+            I = I[-nStats:]
+        else:
+            # Initialize to all samples included
+            I = np.arange(self.nIter)
+            # Check for number of iterations
+            if I.size < nStats:
+                raise RuntimeError("Less than %i samples before iteration %i"
+                    % (nStats, nLast))
+            # Filter last *nStats* samples.
+            I = I[-nStats:]
+        # Initialize output
+        s = {}
+        # Extract data for this point.
+        A = self.data[k, :, :]
+        # Insert Z, Cp, and W as appropriate
+        if self.nd == 2:
+            # 
+            pass
+            
+    
     # Get the pressure coefficient
     def GetCp(self, k=None, imin=None, imax=None):
         """Get pressure coefficients at points *k* for one or more iterations

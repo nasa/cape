@@ -130,6 +130,12 @@ def run_flowCart(verify=False, isect=False):
             cmdi = ['./aero.csh']
         # Run the command.
         bin.callf(cmdi, f='flowCart.out')
+        # Check for point sensors
+        if os.path.isfile(os.path.join('BEST', 'pointSensors.dat')):
+            # Collect point sensor data
+            PS = pointSensor.CasePointSensor()
+            PS.UpdateIterations()
+            PS.WriteHist()
     elif rc.get_it_avg(i):
         # Check how many iterations by which to offset the count.
         if rc.get_unsteady(i):
@@ -211,6 +217,12 @@ def run_flowCart(verify=False, isect=False):
         cmdi = cmd.flowCart(fc=rc, i=i, n=n)
         # Run the command.
         bin.callf(cmdi, f='flowCart.out')
+        # Check for point sensors
+        if os.path.isfile(os.path.join('BEST', 'pointSensors.dat')):
+            # Collect point sensor data
+            PS = pointSensor.CasePointSensor()
+            PS.UpdateIterations()
+            PS.WriteHist()
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
     # Clean up the folder as appropriate.

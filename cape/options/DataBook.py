@@ -59,7 +59,7 @@ class DataBook(odict):
         :Call:
             >>> comps = opts.get_DataBookComponents()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *comps*: :class:`list`
@@ -86,7 +86,7 @@ class DataBook(odict):
         :Call:
             >>> comps = opts.get_DataBookLineLoads()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *comps*: :class:`list`
@@ -107,21 +107,31 @@ class DataBook(odict):
         return comps
         
     # Get the number of initial divisions
-    def get_nStats(self):
+    def get_nStats(self, comp=None):
         """Get the number of iterations to be used for collecting statistics
         
         :Call:
             >>> nStats = opts.get_nStats()
+            >>> nStats = opts.get_nStats(comp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
+            *comp*: :class:`str`
+                Name of specific data book component to query
         :Outputs:
             *nStats*: :class:`int`
                 Number of iterations to be used for statistics
         :Versions:
             * 2014-12-20 ``@ddalle``: First version
         """
-        return self.get_key('nStats', 0)
+        # Global data book setting
+        db_stats self.get_key('nStats', 0)
+        # Process
+        if comp is None:
+            return db_stats
+        else:
+            # Return specific setting; default to global
+            return self[comp].get('nStats', db_stats)
         
     # Set the number of initial mesh divisions
     def set_nStats(self, nStats=rc0('db_stats')):
@@ -140,13 +150,14 @@ class DataBook(odict):
         self['nStats'] = nStats
         
     # Get the earliest iteration to consider
-    def get_nMin(self):
+    def get_nMin(self, comp=None):
         """Get the minimum iteration number to consider for statistics
         
         :Call:
             >>> nMin = opts.get_nMin()
+            >>> nMin = opts.get_nMin(comp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *nMin*: :class:`int`
@@ -155,7 +166,14 @@ class DataBook(odict):
             * 2015-02-28 ``@ddalle``: First version
         """
         # Check for a value.
-        nMin = self.get_key('nMin', 0) 
+        db_nMin = self.get_key('nMin', 0)
+        # Check inputs
+        if comp is None:
+            # Global setting
+            nMin = db_nMin
+        else:
+            # Specific setting; default to global
+            nMin = self[comp].get('nMin', db_nMin)
         # Make nontrivial
         if nMin is None: nMin = 0
         # Output
@@ -168,7 +186,7 @@ class DataBook(odict):
         :Call:
             >>> opts.set_nMin(nMin)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *nMin*: :class:`int`
                 Minimum iteration index to consider for statistics
@@ -178,21 +196,32 @@ class DataBook(odict):
         self['nMin'] = nStats
         
     # Get the number of initial divisions
-    def get_nMaxStats(self):
+    def get_nMaxStats(self, comp=None):
         """Get the maximum number of iterations to be used for statistics
         
         :Call:
             >>> nMax = opts.get_nMaxStats()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
+            *comp*: :class:`str`
+                Name of specific data book to query
         :Outputs:
             *nMax*: :class:`int`
                 Maximum number of iterations to be used for statistics
         :Versions:
             * 2014-12-20 ``@ddalle``: First version
         """
-        return self.get_key('nMaxStats', rc0('db_max'))
+        # Read global option
+        db_nMax = self.get_key('nMaxStats', rc0('db_max'))
+        # Process request type
+        if comp is None:
+            # Global
+            return db_nMax
+        else:
+            # Return specific setting; default to global
+            return self[comp].get('nMaxStats', db_nMax)
+        
         
     # Set the maximum number of initial mesh divisions
     def set_nMaxStats(self, nMax=rc0('db_max')):
@@ -201,7 +230,7 @@ class DataBook(odict):
         :Call:
             >>> opts.set_nMaxStats(nMax)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *nStats*: :class:`int`
                 Number of iterations to be used for statistics
@@ -211,21 +240,32 @@ class DataBook(odict):
         self['nMaxStats'] = nMax
         
     # Get a specific iteration to end statistics at
-    def get_nLastStats(self):
+    def get_nLastStats(self, comp=None):
         """Get the iteration at which to end statistics
         
         :Call:
             >>> nLast = opts.get_nLastStats()
+            >>> nLast = opts.get_nLastStats(comp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
+            *comp*: :class:`str`
+                Name of specific data book to query
         :Outputs:
             *nLast*: :class:`int`
                 Maximum iteration to use for statistics
         :Versions:
             * 2015-03-04 ``@ddalle``: First version
         """
-        return self.get('nLastStats')
+        # Global option
+        db_nLast = self.get('nLastStats')
+        # Process request type
+        if comp is None:
+            # Global data book setting
+            return db_nLast
+        else:
+            # Return specific setting
+            return self[comp].get('nLastStats', db_nLast)
         
     # Set a specific iteration to end statistics at
     def set_nLastStats(self, nLast=None):
@@ -234,7 +274,7 @@ class DataBook(odict):
         :Call:
             >>> opts.get_nLastStats(nLast)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *nLast*: :class:`int`
                 Maximum iteration to use for statistics
