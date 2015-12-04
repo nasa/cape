@@ -1009,7 +1009,7 @@ class DBBase(dict):
             for k in self.iCols[:-1]:
                 f.write('%i%s' % (self[k][i], delim))
             # Last column
-            f.write('%i\n' % self[self.iCols[-1])
+            f.write('%i\n' % self.iCols[-1])
         # Close the file.
         f.close()
         

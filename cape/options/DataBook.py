@@ -125,7 +125,7 @@ class DataBook(odict):
             * 2014-12-20 ``@ddalle``: First version
         """
         # Global data book setting
-        db_stats self.get_key('nStats', 0)
+        db_stats = self.get_key('nStats', 0)
         # Process
         if comp is None:
             return db_stats

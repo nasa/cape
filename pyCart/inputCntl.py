@@ -402,7 +402,7 @@ class InputCntl(FileCntl):
         # Split
         V = line.split()
         # Convert to coordinates
-        return [float(v) for V[1:]]
+        return [float(v) for v in V[1:]]
         
     # Function to write a line sensor
     def AddLineSensor(self, name, X):
@@ -477,7 +477,7 @@ class InputCntl(FileCntl):
         # Split
         V = line.split()
         # Convert to coordinates
-        return [float(v) for V[1:]]
+        return [float(v) for v in V[1:]]
         
     # Function to write a point sensor
     def AddPointSensor(self, name, X):

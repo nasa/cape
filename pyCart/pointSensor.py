@@ -350,18 +350,15 @@ class CasePointSensor(object):
         else:
             imax = 0
         # Check for steady-state outputs.
-        fglob = glob.glob('{adapt??/,}pointSensors.dat')
-        iglob = np.array([get_iter(f) for f in fglob])
-        # Order the steady-state outputs.
-        I = iglob.argsort()
-        fglob = fglob[I]
-        iglob = iglob[I]
+        fglob = glob.glob('adapt??/pointSensors.dat')
+        fglob += glob.glob('pointSensors.dat')
+        fglob.sort()
         # Loop through steady-state iterations
-        for i in range(len(fglob)):
+        for f in fglob:
             # Check if it's up-to-date
-            if iglob[i] <= imax: continue
+            if get_iter(f) <= imax: continue
             # Read the file.
-            PS = PointSensor(fglob[i])
+            PS = PointSensor(f)
             # Save the iterations
             self.AppendIteration(PS)
             # Update the steady-state iteration count
