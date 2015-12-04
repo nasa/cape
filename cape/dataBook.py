@@ -826,6 +826,366 @@ def get_xlim(ha, pad=0.05):
 
 
 # Data book for an individual component
+class DBBase(dict):
+    """
+    Individual item data book basis class
+    
+    :Call:
+        >>> DBi = DBBase(comp, cntl)
+    :Inputs:
+        *comp*: :class:`str`
+            Name of the component or other item name
+        *cntl*: :class:`cape.cntl.Cntl` or derivative
+            Code control and settings interface
+    :Outputs:
+        *DBi*: :class:`cape.dataBook.DBBase`
+            An individual item data book
+    :Versions:
+        * 2014-12-22 ``@ddalle``: First version
+        * 2015-12-04 ``@ddalle``: Forked from :class:`DBComp`
+    """
+    # Initialization method
+    def __init__(self, comp, cntl):
+        """Initialization method
+        
+        :Versions:
+            * 2014-12-21 ``@ddalle``: First version
+        """
+        # Get the directory.
+        fdir = opts.get_DataBookDir()
+        
+        # Construct the file name.
+        fcomp = 'aero_%s.csv' % comp
+        # Folder name for compatibility.
+        fdir = fdir.replace("/", os.sep)
+        # Construct the full file name.
+        fname = os.path.join(fdir, fcomp)
+        
+        # Save relevant information
+        self.cntl = cntl
+        self.comp = comp
+        # Save column names.
+        self.xCols = cntl.x.keys
+        self.fCols = []
+        self.iCols = []
+        # Counts
+        self.nxCol = len(self.xCols)
+        self.nfCol = len(self.fCols)
+        self.niCol = len(self.iCols)
+        # Save the file name.
+        self.fname = fname
+        
+        # Read the file or initialize empty arrays.
+        self.Read(fname)
+            
+    # Command-line representation
+    def __repr__(self):
+        """Representation method
+        
+        :Versions:
+            * 2014-12-27 ``@ddalle``: First version
+        """
+        # Initialize string
+        return "<DBBase, nCase=%i>" % self.n
+    # String conversion
+    __str__ = __repr__
+    
+    # Read point sensor data
+    def Read(self, fname=None):
+        """Read a data book statistics file for a single point sensor
+        
+        :Call:
+            >>> DBP.Read()
+            >>> DBP.Read(fname)
+        :Inputs:
+            *DBP*: :class:`pyCart.pointSensor.DBPointSensor`
+                An individual point sensor data book
+            *fname*: :class:`str`
+                Name of data file to read
+        :Versions:
+            * 2015-12-04 ``@ddalle``: First version
+        """
+        # Check for default file name
+        if fname is None: fname = self.fname
+        # Try to read the file.
+        try:
+            # Data book delimiter
+            delim = self.cntl.opts.get_Delimiter()
+            # Initialize column number.
+            nxCol = 0
+            # Loop through the trajectory keys.
+            for k in self.xCols:
+                # Get the type.
+                t = self.cntl.x.defns[k].get('Value', 'float')
+                # Convert type.
+                if t in ['hex', 'oct', 'octal', 'bin']: t = 'int'
+                # Read the column
+                self[k] = np.loadtxt(fname,
+                    delimiter=delim, dtype=str(t), usecols=[nxCol])
+                # Increase the column number.
+                nxCol += 1
+            # Read the float columns
+            A = np.loadtxt(fname, delimiter=delim, dtype=float,
+                usecols=range(nxCol,nxCol+self.nfCol))
+            # Read the integer columns
+            B = np.loadtxt(fname, delimiter=delim, dtype=int,
+                usecols=range(nxCol+self.nfCol,nxCol+self.nfCol+self.niCol))
+            # Distribute.
+            for i in range(self.nfCol):
+                self[self.fCols[i]] = A[:,i]
+            for i in range(self.niCol):
+                self[self.iCols[i]] = B[:,i]
+        except Exception:
+            # Initialize empty trajectory arrays
+            for k in self.xCols:
+                # get the type.
+                t = self.cntl.x.defns[k].get('Value', 'float')
+                # convert type
+                if t in ['hex', 'oct', 'octal', 'bin']: t = 'int'
+                # Initialize an empty array.
+                self[k] = np.array([], dtype=str(t))
+            # Initialize float parameters
+            for col in self.fCols:
+                self[col] = np.array([], dtype=float)
+            # Initialize integer counts
+            for col in self.iCols:
+                self[col] = np.array([], dtype=int)
+        # Number of cases
+        self.n = len(self[k])
+        
+    # Output
+    def Write(self, fname=None):
+        """Write a single point sensor data book summary file
+        
+        :Call:
+            >>> DBi.Write()
+            >>> DBi.Write(fname)
+        :Inputs:
+            *DBi*: :class:`cape.dataBook.DBBase`
+                An individual item data book
+            *fname*: :class:`str`
+                Name of data file to read
+        :Versions:
+            * 2015-12-04 ``@ddalle``: First version
+        """
+        # Check for default file name
+        if fname is None: fname = self.fname
+        # check for a previous old file.
+        if os.path.isfile(fname+".old"):
+            # Remove it.
+            os.remove(fname+".old")
+        # Check for an existing data file.
+        if os.path.isfile(fname):
+            # Move it to ".old"
+            os.rename(fname, fname+".old")
+        # DataBook delimiter
+        delim = self.cart3d.opts.get_Delimiter()
+        # Open the file.
+        f = open(fname, 'w')
+        # Write the header
+        f.write("# Point sensor statistics for '%s' extracted on %s\n" %
+            (self.pt, datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')))
+        # Empty line.
+        f.write('#\n#')
+        # Variable list
+        f.write(delim.join(self.xCols) + ' ')
+        f.write(delim.join(self.fCols) + ' ')
+        f.write(delim.join(self.iCols) + '\n')
+        # Loop through database entries
+        for i in np.arange(self.n):
+            # Write the trajectory values.
+            for k in self.xCols:
+                f.write('%s%s' % (self[k][i], delim))
+            # Write data values
+            for k in self.fCols:
+                f.write('%s%s' % (self[k][i], delim))
+            # Iteration counts
+            for k in self.iCols[:-1]:
+                f.write('%i%s' % (self[k][i], delim))
+            # Last column
+            f.write('%i\n' % self[self.iCols[-1])
+        # Close the file.
+        f.close()
+        
+    # Function to get sorting indices.
+    def ArgSort(self, key=None):
+        """Return indices that would sort a data book by a trajectory key
+        
+        :Call:
+            >>> I = DBi.ArgSort(key=None)
+        :Inputs:
+            *DBi*: :class:`cape.dataBook.DBBase`
+                An individual item data book
+            *key*: :class:`str`
+                Name of trajectory key to use for sorting; default is first key
+        :Outputs:
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices; must have same size as data book
+        :Versions:
+            * 2014-12-30 ``@ddalle``: First version
+        """
+        # Process the key.
+        if key is None: key = self.x.keys[0]
+        # Check for multiple keys.
+        if type(key).__name__ in ['list', 'ndarray', 'tuple']:
+            # Init pre-array list of ordered n-lets like [(0,1,0), ..., ]
+            Z = zip(*[self[k] for k in key])
+            # Init list of key definitions
+            dt = []
+            # Loop through keys to get data types (dtype)
+            for k in key:
+                # Get the type.
+                dtk = self.cntl.x.defns[k]['Value']
+                # Convert it to numpy jargon.
+                if dtk in ['float']:
+                    # Numeric value
+                    dt.append((str(k), 'f'))
+                elif dtk in ['int', 'hex', 'oct', 'octal']:
+                    # Stored as an integer
+                    dt.append((str(k), 'i'))
+                else:
+                    # String is default.
+                    dt.append((str(k), 'S32'))
+            # Create the array to be used for multicolumn sort.
+            A = np.array(Z, dtype=dt)
+            # Get the sorting order
+            I = np.argsort(A, order=[str(k) for k in key])
+        else:
+            # Indirect sort on a single key.
+            I = np.argsort(self[key])
+        # Output.
+        return I
+            
+    # Function to sort data book
+    def Sort(self, key=None, I=None):
+        """Sort a data book according to either a key or an index
+        
+        :Call:
+            >>> DBi.Sort()
+            >>> DBi.Sort(key)
+            >>> DBi.Sort(I=None)
+        :Inputs:
+            *DBi*: :class:`cape.dataBook.DBBase`
+                An individual item data book
+            *key*: :class:`str`
+                Name of trajectory key to use for sorting; default is first key
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices; must have same size as data book
+        :Versions:
+            * 2014-12-30 ``@ddalle``: First version
+        """
+        # Process inputs.
+        if I is not None:
+            # Index array specified; check its quality.
+            if type(I).__name__ not in ["ndarray", "list"]:
+                # Not a suitable list.
+                raise TypeError("Index list is unusable type.")
+            elif len(I) != self.n:
+                # Incompatible length.
+                raise IndexError(("Index list length (%i) " % len(I)) +
+                    ("is not equal to data book size (%i)." % self.n))
+        else:
+            # Default key if necessary
+            if key is None: key = self.cntl.x.keys[0]
+            # Use ArgSort to get indices that sort on that key.
+            I = self.ArgSort(key)
+        # Sort all fields.
+        for k in self:
+            # Sort it.
+            self[k] = self[k][I]
+            
+    # Find the index of the point in the trajectory.
+    def GetTrajectoryIndex(self, j):
+        """Find an entry in the run matrix (trajectory)
+        
+        :Call:
+            >>> i = DBi.GetTrajectoryIndex(self, j)
+        :Inputs:
+            *DBi*: :class:`cape.dataBook.DBBase`
+                An individual item data book
+            *j*: :class:`int`
+                Index of the case from the databook to try match
+        :Outputs:
+            *i*: :class:`int`
+                Trajectory index or ``None``
+        :Versions:
+            * 2015-05-28 ``@ddalle``: First version
+        """
+        # Initialize indices (assume all trajectory points match to start).
+        i = np.arange(self.cntl.x.nCase)
+        # Loop through keys requested for matches.
+        for k in self.cntl.x.keys:
+            # Get the target value from the data book.
+            v = self[k][j]
+            # Search for matches.
+            try:
+                # Filter test criterion.
+                ik = np.where(getattr(self.cntl.x,k) == v)[0]
+                # Check if the last element should pass but doesn't.
+                if (v == getattr(self.cntl.x,k)[-1]):
+                    # Add the last element.
+                    ik = np.union1d(ik, [self.cntl.x.nCase-1])
+                # Restrict to rows that match above.
+                i = np.intersect1d(i, ik)
+            except Exception:
+                return None
+        # Output
+        try:
+            # There should be one match.
+            return i[0]
+        except Exception:
+            # No matches.
+            return None
+        
+    # Find an entry by trajectory variables.
+    def FindMatch(self, i):
+        """Find an entry by run matrix (trajectory) variables
+        
+        It is assumed that exact matches can be found.
+        
+        :Call:
+            >>> j = DBi.FindMatch(i)
+        :Inputs:
+            *DBi*: :class:`cape.dataBook.DBBase`
+                An individual item data book
+            *i*: :class:`int`
+                Index of the case from the trajectory to try match
+        :Outputs:
+            *j*: :class:`numpy.ndarray` (:class:`int`)
+                Array of index that matches the trajectory case or ``NaN``
+        :Versions:
+            * 2014-12-22 ``@ddalle``: First version
+        """
+        # Initialize indices (assume all are matches)
+        j = np.arange(self.n)
+        # Loop through keys requested for matches.
+        for k in self.cntl.x.keys:
+            # Get the target value (from the trajectory)
+            v = getattr(self.cntl.x,k)[i]
+            # Search for matches.
+            try:
+                # Filter test criterion.
+                jk = np.where(self[k] == v)[0]
+                # Check if the last element should pass but doesn't.
+                if (v == self[k][-1]):
+                    # Add the last element.
+                    jk = np.union1d(jk, [len(self[k])-1])
+                # Restrict to rows that match the above.
+                j = np.intersect1d(j, jk)
+            except Exception:
+                # No match found.
+                return np.nan
+        # Output
+        try:
+            # There should be exactly one match.
+            return j[0]
+        except Exception:
+            # Return no match.
+            return np.nan
+# class DBBase
+
+
+# Data book for an individual component
 class DBComp(dict):
     """
     Individual component data book

@@ -377,6 +377,32 @@ class InputCntl(FileCntl):
         # Write the line.
         self.ReplaceOrAddLineToSectionStartsWith('Post_Processing',
             'Zslices', line + '\n')
+            
+    # Function to report the line sensors
+    def GetLineSensor(self, name):
+        """Get the coordinates for a line sensor
+        
+        :Call:
+            >>> X = IC.GetLineSensor(name)
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            *name*: :class:`str`
+                Name of the line sensor
+        :Outputs:
+            *X*: :class:`list` (:class:`float`)
+                List of start x,y,z and end x,y,z
+        :Versions:
+            * 2015-12-04 ``@ddalle``: First version
+        """
+        # Regular expression of existing line sensor to search for
+        reg = 'lineSensor\s*%s' % name
+        # Get the line
+        line = self.GetLinInSectionSearch('Post_Processing', reg)
+        # Split
+        V = line.split()
+        # Convert to coordinates
+        return [float(v) for V[1:]]
         
     # Function to write a line sensor
     def AddLineSensor(self, name, X):
@@ -389,7 +415,7 @@ class InputCntl(FileCntl):
                 File control instance for :file:`input.cntl`
             *name*: :class:`str`
                 Name of the line sensor
-            *X*: :class:`list` (:class:`double`)
+            *X*: :class:`list` (:class:`float`)
                 List of start x,y,z and end x,y,z
         :Versions:
             * 2015-05-06 ``@ddalle``: First version
@@ -426,6 +452,32 @@ class InputCntl(FileCntl):
         # Loop through line sensors.
         for name in LS:
             self.AddLineSensor(name, LS[name])
+            
+    # Function to report the point sensors
+    def GetPointSensor(self, name):
+        """Get the coordinates for a point sensor
+        
+        :Call:
+            >>> X = IC.GetPointSensor(name)
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+            *name*: :class:`str`
+                Name of the line sensor
+        :Outputs:
+            *X*: :class:`list` (:class:`float`)
+                List of point x,y,z coordinates
+        :Versions:
+            * 2015-12-04 ``@ddalle``: First version
+        """
+        # Regular expression of existing line sensor to search for
+        reg = 'pointSensor\s*%s' % name
+        # Get the line
+        line = self.GetLinInSectionSearch('Post_Processing', reg)
+        # Split
+        V = line.split()
+        # Convert to coordinates
+        return [float(v) for V[1:]]
         
     # Function to write a point sensor
     def AddPointSensor(self, name, X):
@@ -438,7 +490,7 @@ class InputCntl(FileCntl):
                 File control instance for :file:`input.cntl`
             *name*: :class:`str`
                 Name of the line sensor
-            *X*: :class:`list` (:class:`double`)
+            *X*: :class:`list` (:class:`float`)
                 List of point x,y,z coordinates
         :Versions:
             * 2015-05-07 ``@ddalle``: First version

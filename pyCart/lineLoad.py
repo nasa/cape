@@ -234,7 +234,7 @@ class DBLineLoad(object):
             f.write('%s%s' % (self['ZMRP'][i], delim))
             # Iteration counts
             f.write('%i%s' % (self['nIter'][i], delim))
-            f.write('%i%s' % (self['nStats'][i], delim))
+            f.write('%i\n' % (self['nStats'][i], delim))
         # Close the file.
         f.close()
         
