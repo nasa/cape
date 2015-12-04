@@ -102,7 +102,7 @@ def run_flowCart(verify=False, isect=False):
     # Check for flowCart vs. mpi_flowCart
     if not rc.get_MPI(i):
         # Get the number of threads, which may be irrelevant.
-        nProc = rc.get_nProc()
+        nProc = rc.get_nProc(i)
         # Set it.
         os.environ['OMP_NUM_THREADS'] = str(nProc)
     # Prepare environment variables (other than OMP_NUM_THREADS)
@@ -185,12 +185,14 @@ def run_flowCart(verify=False, isect=False):
             PS.UpdateIterations()
             # Check for completion
             if (n>=n1) or (j+1==it_fc): break
-            # Clean some checkpoint files.
-            if rc.get_unsteady(i):
-                os.remove('check.%06i.td' % n)
-            else:
-                os.remove('check.%05i' % n)
-                os.remove('checkDT.%05i' % n)
+            # Clear check files as appropriate.
+            manage.ClearCheck(rc.get_nCheckPoint(i))
+            ## Clean some checkpoint files.
+            #if rc.get_unsteady(i):
+            #    os.remove('check.%06i.td' % n)
+            #else:
+            #    os.remove('check.%05i' % n)
+            #    os.remove('checkDT.%05i' % n)
         # Write the averaged triq file
         if rc.get_clic(i):
             triq.Write('Components.%i.%i.%i.triq' % (j+1, n0+1, n))

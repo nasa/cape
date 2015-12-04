@@ -277,6 +277,10 @@ def ClearCheck(n=1):
         for f in fglob[:-n]:
             # Remove it.
             os.remove(f)
+            # Build the checkDT.????? file name
+            fDT = 'checkDT.' + f.split('.')[1]
+            # Delete that file if it exists.
+            if os.path.isfile(fDT): os.remove(fDT)
     # Get the check.* files.
     fglob = glob.glob('check.??????.td')
     fglob.sort()

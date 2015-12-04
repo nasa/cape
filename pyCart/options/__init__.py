@@ -1015,14 +1015,14 @@ class Options(cape.options.Options):
    # <
         
     # Get the number of check point files to keep around
-    def get_nCheckPoint(self):
+    def get_nCheckPoint(self, i=None):
         self._RunControl()
-        return self['RunControl'].get_nCheckPoint()
+        return self['RunControl'].get_nCheckPoint(i)
         
     # Set the number of check point files to keep around
-    def set_nCheckPoint(self, nchk=rc0('nCheckPoint')):
+    def set_nCheckPoint(self, nchk=rc0('nCheckPoint'), i=None):
         self._RunControl()
-        self['RunControl'].set_nCheckPoint(nchk)
+        self['RunControl'].set_nCheckPoint(nchk, i)
         
     # Get the archive status for adaptation folders
     def get_TarAdapt(self):

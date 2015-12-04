@@ -356,13 +356,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
     # Check for override *it_fc* iteration count.
     if it_avg: it_fc = it_avg
     # Initialize command.
-    if td_fc and mpi_fc:
-        # Unsteady MPI flowCart
-        cmd = [mpicmd, '-np', str(nProc), 'mpix_flowCart', '-his', '-unsteady']
-    elif td_fc:
-        # Unsteady but not MPI
-        cmd = ['flowCart', '-his', '-unsteady']
-    elif mpi_fc:
+    if mpi_fc:
         # Use mpi_flowCart but not unsteady
         cmd = [mpicmd, '-np', str(nProc), 'mpix_flowCart', '-his']
     else:

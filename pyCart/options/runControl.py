@@ -1915,24 +1915,26 @@ class Archive(cape.options.runControl.Archive):
     """
         
     # Get number of check points to keep around
-    def get_nCheckPoint(self):
+    def get_nCheckPoint(self, i=None):
         """Return the number of check point files to keep
         
         :Call:
-            >>> nchk = opts.get_nCheckPoint()
+            >>> nchk = opts.get_nCheckPoint(i=None)
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
+            *i*: :class:`int`
+                Phase number
         :Outputs:
             *nchk*: :class:`int`
                 Number of check files to keep (all if ``0``)
         :Versions:
             * 2015-01-10 ``@ddalle``: First version
         """
-        return self.get_key('nCheckPoint')
+        return self.get_key('nCheckPoint', i)
         
     # Set the number of check point files to keep around
-    def set_nCheckPoint(self, nchk=rc0('nCheckPoint')):
+    def set_nCheckPoint(self, nchk=rc0('nCheckPoint'), i=None):
         """Set the number of check point files to keep
         
         :Call:
@@ -1942,10 +1944,12 @@ class Archive(cape.options.runControl.Archive):
                 Options interface
             *nchk*: :class:`int`
                 Number of check files to keep (all if ``0``)
+            *i*: :class:`int`
+                Phase number
         :Versions:
             * 2015-01-10 ``@ddalle``: First version
         """
-        self.set_key('nCheckPoint', nchk)
+        self.set_key('nCheckPoint', nchk, i)
         
     # Get the archive format for visualization files
     def get_TarViz(self):
@@ -2703,14 +2707,14 @@ class RunControl(cape.options.runControl.RunControl):
             self['Archive'] = Archive(**self['Archive'])
     
     # Get the number of check point files to keep around
-    def get_nCheckPoint(self):
+    def get_nCheckPoint(self, i=None):
         self._Archive()
-        return self['Archive'].get_nCheckPoint()
+        return self['Archive'].get_nCheckPoint(i)
         
     # Set the number of check point files to keep around
-    def set_nCheckPoint(self, nchk=rc0('nCheckPoint')):
+    def set_nCheckPoint(self, nchk=rc0('nCheckPoint'), i=None):
         self._Archive()
-        self['Archive'].set_nCheckPoint(nchk)
+        self['Archive'].set_nCheckPoint(nchk, i)
         
     # Get the archive status for adaptation folders
     def get_TarAdapt(self):
