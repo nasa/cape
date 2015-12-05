@@ -132,6 +132,130 @@ def get_nStatsPS():
     return nStats
 # end functions
 
+# Data book for group of point sensors
+class DBPointSensorGroup(object):
+    """
+    Point sensor group data book
+    
+    :Call:
+        >>> DBPG = DBPointSensorGroup(cart3d, name)
+    :Inputs:
+        *cart3d*: :class:`pyCart.cart3d.Cart3d`
+            Cart3D settings and commands interface
+        *name*: :class:`str` | ``None``
+            Name of data book item (defaults to *pt*)
+    :Outputs:
+        *DBPG*: :class:`pyCart.pointSensor.DBPointSensorGroup`
+            A point sensor group data book
+    :Versions:
+        * 2015-12-04 ``@ddalle``: First version
+    """
+    # Initialization method
+    def __int__(self, cart3d, name):
+        """Initialization method
+        
+        :Versions:
+            * 2015-12-04 ``@ddalle``: First version
+        """
+        # Save the interface.
+        self.cntl = cart3d
+        # Save the name
+        self.name = name
+        # Get the list of points.
+        self.pts = cart3d.opts.get_DBGroupPoints(name)
+        # Loop through the points.
+        for pt in self.pts:
+            self[pt] = DBPointSensor(cart3d, pt, name)
+            
+    # Representation method
+    def __repr__(self):
+        """Representation method
+        
+        :Versions:
+            * 2015-12-04 ``@ddalle``: First version
+        """
+        # Initialize string
+        lbl = "<DBPointSensorGroup %s, " % self.name
+        # Number of cases in book
+        lbl += "nPoint=%i>" % len(self.pts)
+        # Output
+        return lbl
+    __str__ = __repr__
+            
+    # Output method
+    def Write(self):
+        """Write to file each point sensor data book in a group
+        
+        :Call:
+            >>> DBPG.Write()
+        :Inputs:
+            *DBPG*: :class:`pyCart.pointSensor.DBPointSensorGroup`
+                A point sensor group data book
+        :Versions:
+            * 2015-12-04 ``@ddalle``: First version
+        """
+        # Loop through points
+        for pt in self.pts:
+            self[pt].Write()
+    
+    # Process a case
+    def UpdateCase(self, i):
+        """Prepare to update one point sensor case if necessary
+        
+        :Call:
+            >>> DBPG.UpdateCase(i)
+        :Inputs:
+            *DBPG*: :class:`pyCart.pointSensor.DBPointSensorGroup`
+                A point sensor group data book
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2015-12-04 ``@ddalle``: First version
+        """
+        # Check update status.
+        q, P = self._UpdateCase(i)
+        # Exit if no return necessary
+        if not q: return
+        # Try to find a match existing in the data book
+        j = self.FindMatch(i)
+        # Determine ninimum number of iterations required
+        nStats = self.cntl.opts.get_nStats(self.name)
+        nLast  = self.cntl.opts.get_nLastStats(self.name)
+        # Get list of iterations
+        iIter = P.iIter
+        
+        # Loop through points.
+        for pt in self.pts:
+            # Find the point.
+            kpt = P.GetPointSensorIndex(pt)
+            # Calculate statistics
+            s = P.GetStats(kpt, nStats=nStats, nLast=nLast)
+            
+            # Save the data.
+            if np.isnan(j):
+                # Add the the number of cases.
+                self.n += 1
+                # Append trajectory values.
+                for k in self[pt].xCols:
+                    # I hate the way NumPy does appending.
+                    self[pt][k] = np.hstack((self[pt][k], 
+                        [getattr(self.cntl.x,k)[i]]))
+                # Append values.
+                for c in self.fCols:
+                    self[pt][c] = np.hstack((self[pt][c], [s[c]]))
+                # Append iteration counts.
+                self[pt]['nIter']  = np.hstack((self['nIter'], iIter[-1:]))
+                self[pt]['nStats'] = np.hstack((self['nStats'], [nStats]))
+            else:
+                # No need to update trajectory values.
+                # Update data values.
+                for c in self.fCols:
+                    self[pt][c][j] = s[c]
+                # Update the other statistics.
+                self[pt]['nIter'][j]   = iIter[-1]
+                self[pt]['nStats'][j]  = nStats
+# class DBPointSensorGroup
+
 
 # Data book of point sensors
 class DBPointSensor(cape.dataBook.DBBase):
@@ -218,7 +342,7 @@ class DBPointSensor(cape.dataBook.DBBase):
     
     # Process a case
     def UpdateCase(self, i):
-        """Update one point sensor case if necessary
+        """Prepare to update one point sensor case if necessary
         
         :Call:
             >>> DBP.UpdateCase(i)
@@ -230,73 +354,23 @@ class DBPointSensor(cape.dataBook.DBBase):
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
+        # Check update status.
+        q, P = self._UpdateCase(i)
+        # Exit if no return necessary
+        if not q: return
         # Try to find a match existing in the data book
         j = self.FindMatch(i)
         # Get the name of the folder.
         frun = self.cntl.x.GetFullFolderNames(i)
-        # Status update
-        print(frun)
-        # Go home
+        # Go to the case folder (it exists due to above tests).
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
-        # Check if the folder exists.
-        if not os.path.isdir(frun):
-            os.chdir(fpwd)
-            return
-        # Go to the case folder.
         os.chdir(frun)
         # Determine ninimum number of iterations required
         nStats = self.cntl.opts.get_nStats(self.name)
-        nMin   = self.cntl.opts.get_nMin(self.name)
         nLast  = self.cntl.opts.get_nLastStats(self.name)
-        # Get last potential iteration
-        nIter = int(GetTotalHistIter()) 
-        # Decide whether or not to update.
-        if (not nIter) or (nIter < nMin + nStats):
-            # Not enough iterations
-            print("  Not enough iterations (%s) for analysis." % nIter)
-            os.chdir(fpwd); return
-        elif np.isnan(j):
-            # No current history
-            print("  Adding new databook entry.")
-        elif self['nStats'][j] != nStats:
-            # New history
-            print("  Recomputing statistics using %i samples." % nStats)
-        elif self['nIter'][j] == nIter:
-            # Up-to-date
-            print("  Databook up-to-date.")
-            os.chdir(fpwd); return
-        elif self['nIter'][j] == get_iter('pointSensors.hist.dat'):
-            # Up-to-date
-            print("  Databook up-to-date.")
-            os.chdir(fpwd); return
-        # Read the point sensor history.
-        P = CasePointSensor()
-        # Get minimum iteration that would be included if we compute stats now
-        if P.nIter < nStats:
-            # Not enough samples
-            print("  Not enough point samples (%s) for analysis." % PS.nIter)
-            os.chdir(fpwd); return
-        elif P.nPoint < 1:
-            # No points?
-            print("  Point sensor history contains no points.")
-            os.chdir(fpwd); return
         # Get list of iterations
         iIter = P.iIter
-        # Downselect if *nLast* in use
-        if nLast > 0: iIter = iIter[iIter<=nLast]
-        # Minimum iteration that will be included in stats
-        if nStats == 0:
-            # No averaging; just use last iteration
-            iStats0 = iIter[-1]
-        else:
-            # Read backwards *nStats* samples from the end
-            iStats0 = iIter[-nStats]
-        # Check that.
-        if iStats0 < nMin:
-            # Too early
-            print("  Not enough samples after min iteration %i." % nMin)
-            os.chdir(fpwd); return
         # Find the point.
         kpt = P.GetPointSensorIndex(self.pt)
         # Calculate statistics
@@ -326,6 +400,95 @@ class DBPointSensor(cape.dataBook.DBBase):
             self['nStats'][j]  = nStats
         # Go back.
         os.chdir(fpwd)
+    
+    # Process a case
+    def _UpdateCase(self, i):
+        """Prepare to update one point sensor case if necessary
+        
+        :Call:
+            >>> q, P = DBP._UpdateCase(i)
+        :Inputs:
+            *DBP*: :class:`pyCart.pointSensor.DBPointSensor`
+                An individual point sensor data book
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not to compute update
+            *P*: :class:`pyCart.pointSensor.PointSensor`
+                Individual case point sensor history
+        :Versions:
+            * 2015-12-04 ``@ddalle``: First version
+        """
+        # Try to find a match existing in the data book
+        j = self.FindMatch(i)
+        # Get the name of the folder.
+        frun = self.cntl.x.GetFullFolderNames(i)
+        # Status update
+        print(frun)
+        # Go home
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Check if the folder exists.
+        if not os.path.isdir(frun):
+            os.chdir(fpwd)
+            return False, None
+        # Go to the case folder.
+        os.chdir(frun)
+        # Determine ninimum number of iterations required
+        nStats = self.cntl.opts.get_nStats(self.name)
+        nMin   = self.cntl.opts.get_nMin(self.name)
+        nLast  = self.cntl.opts.get_nLastStats(self.name)
+        # Get last potential iteration
+        nIter = int(GetTotalHistIter()) 
+        # Decide whether or not to update.
+        if (not nIter) or (nIter < nMin + nStats):
+            # Not enough iterations
+            print("  Not enough iterations (%s) for analysis." % nIter)
+            os.chdir(fpwd); return False, None
+        elif np.isnan(j):
+            # No current history
+            print("  Adding new databook entry.")
+        elif self['nStats'][j] != nStats:
+            # New history
+            print("  Recomputing statistics using %i samples." % nStats)
+        elif self['nIter'][j] == nIter:
+            # Up-to-date
+            print("  Databook up-to-date.")
+            os.chdir(fpwd); return False, None
+        elif self['nIter'][j] == get_iter('pointSensors.hist.dat'):
+            # Up-to-date
+            print("  Databook up-to-date.")
+            os.chdir(fpwd); return False, None
+        # Read the point sensor history.
+        P = CasePointSensor()
+        # Get minimum iteration that would be included if we compute stats now
+        if P.nIter < nStats:
+            # Not enough samples
+            print("  Not enough point samples (%s) for analysis." % PS.nIter)
+            os.chdir(fpwd); return False, None
+        elif P.nPoint < 1:
+            # No points?
+            print("  Point sensor history contains no points.")
+            os.chdir(fpwd); return False, None
+        # Get list of iterations
+        iIter = P.iIter
+        # Downselect if *nLast* in use
+        if nLast > 0: iIter = iIter[iIter<=nLast]
+        # Minimum iteration that will be included in stats
+        if nStats == 0:
+            # No averaging; just use last iteration
+            iStats0 = iIter[-1]
+        else:
+            # Read backwards *nStats* samples from the end
+            iStats0 = iIter[-nStats]
+        # Check that.
+        if iStats0 < nMin:
+            # Too early
+            print("  Not enough samples after min iteration %i." % nMin)
+            os.chdir(fpwd); return False, None
+        else:
+            os.chdir(fpwd); return True, P
             
 # class DBPointSensor
 

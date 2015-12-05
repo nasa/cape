@@ -120,6 +120,22 @@ class DataBook(cape.dataBook.DataBook):
             # Read the file.
             self.LineLoads.append(
                 lineLoad.DBLineLoad(self.cart3d, comp))
+            
+    # Read point sensor (group)
+    def ReadPointSensor(self, name):
+        """
+        """
+        # Initialize if necessary.
+        try: self.PointSensors
+        except Exception: self.PointSensors = {}
+        try:
+            self.PointSensors[name]
+        except Exception:
+            # Read the point sensor.
+            self.PointSensors.append(
+                pointSensor.DBPointSensorGroup(self.cntl, name))
+        pass
+    
     
     # Update data book
     def UpdateDataBook(self, I=None):

@@ -92,6 +92,39 @@ class DataBook(cape.options.DataBook):
         # Get the Mach number option
         return self.get("Re", None)
         
+    # Get list of point in a point sensor group
+    def get_DBGroupPoints(self, name):
+        """Get the list of points in a group
+        
+        For example, get the list of point sensors in a point sensor group
+        
+        :Call:
+            >>> pts = opts.get_DBGroupPoints(name)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *name*: :class:`str`
+                Name of data book group
+        :Outputs:
+            *pts*: :class:`list` (:class:`str`)
+                List of points (by name) in the group
+        :Versions:
+            * 2015-12-04 ``@ddalle``: First version
+        """
+        # Check.
+        if name not in self:
+            raise KeyError("Data book group '%s' not found" % name)
+        # Check for points.
+        pts = self[name].get("Points", [name])
+        # Check if it's a list.
+        if type(pts).__name__ in ['list', 'ndarray']:
+            # Return list as-is
+            return pts
+        else:
+            # Singleton list
+            return [pts]
+        
+        
         
 # Class for target data
 class DBTarget(cape.options.DBTarget):
