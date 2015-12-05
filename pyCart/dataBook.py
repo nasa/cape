@@ -119,22 +119,34 @@ class DataBook(cape.dataBook.DataBook):
         except Exception:
             # Read the file.
             self.LineLoads.append(
-                lineLoad.DBLineLoad(self.cart3d, comp))
+                lineLoad.DBLineLoad(self.x, self.opts, comp))
             
     # Read point sensor (group)
     def ReadPointSensor(self, name):
-        """
+        """Read a point sensor group if it is not already present
+        
+        :Call:
+            >>> DB.ReadPointSensor(name)
+        :Inputs:
+            *DB*: :class:`pycart.dataBook.DataBook`
+                Instance of the pycart data book class
+            *name*: :class:`str`
+                Name of point sensor group
+        :Versions:
+            * 2015-12-04 ``@ddalle``: First version
         """
         # Initialize if necessary.
-        try: self.PointSensors
-        except Exception: self.PointSensors = {}
+        try: 
+            self.PointSensors
+        except Exception:
+            self.PointSensors = {}
+        # Initialize the group if necessary
         try:
             self.PointSensors[name]
         except Exception:
             # Read the point sensor.
-            self.PointSensors.append(
-                pointSensor.DBPointSensorGroup(self.cntl, name))
-        pass
+            self.PointSensors[name] = \
+                pointSensor.DBPointSensorGroup(self.x, self.opts, name)
     
     
     # Update data book
@@ -182,6 +194,32 @@ class DataBook(cape.dataBook.DataBook):
         # Loop through indices.
         for i in I:
             self.UpdateLineLoadCase(comp, i)
+            
+    # Update point sensor group
+    def UpdatePointSensor(self, name, I=None):
+        """Update a point sensor group data book for a list of cases
+        
+        :Call:
+            >>> DB.UpdatePointSensorGroup(name)
+            >>> DB.UpdatePointSensorGroup(name, I)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *I*: :class:`list` (:class:`int`) or ``None``
+                List of trajectory indices or update all cases in trajectory
+        :Versions:
+            * 2015-10-04 ``@ddalle``: First version
+        """
+        # Default case list
+        if I is None:
+            # Use all trajectory points
+            I = range(self.x.nCase)
+        # Read the point sensors if necessary
+        self.ReadPointSensor(name)
+        # Loop through cases.
+        for i in I:
+            # Update the point sensors for that case
+            self.PointSensors[name].UpdateCase(i)
         
     # Function to delete entries by index
     def Delete(self, I):

@@ -138,10 +138,12 @@ class DBPointSensorGroup(object):
     Point sensor group data book
     
     :Call:
-        >>> DBPG = DBPointSensorGroup(cart3d, name)
+        >>> DBPG = DBPointSensorGroup(x, opts, name)
     :Inputs:
-        *cart3d*: :class:`pyCart.cart3d.Cart3d`
-            Cart3D settings and commands interface
+        *x*: :class:`cape.trajectory.Trajectory`
+            Trajectory/run matrix interface
+        *opts*: :class:`cape.options.Options`
+            Options interface
         *name*: :class:`str` | ``None``
             Name of data book item (defaults to *pt*)
     :Outputs:
@@ -151,21 +153,22 @@ class DBPointSensorGroup(object):
         * 2015-12-04 ``@ddalle``: First version
     """
     # Initialization method
-    def __int__(self, cart3d, name):
+    def __int__(self, x, opts, name):
         """Initialization method
         
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
         # Save the interface.
-        self.cntl = cart3d
+        self.x = x
+        self.opts = opts
         # Save the name
         self.name = name
         # Get the list of points.
-        self.pts = cart3d.opts.get_DBGroupPoints(name)
+        self.pts = opts.get_DBGroupPoints(name)
         # Loop through the points.
         for pt in self.pts:
-            self[pt] = DBPointSensor(cart3d, pt, name)
+            self[pt] = DBPointSensor(x, opts, pt, name)
             
     # Representation method
     def __repr__(self):
@@ -219,8 +222,8 @@ class DBPointSensorGroup(object):
         # Try to find a match existing in the data book
         j = self.FindMatch(i)
         # Determine ninimum number of iterations required
-        nStats = self.cntl.opts.get_nStats(self.name)
-        nLast  = self.cntl.opts.get_nLastStats(self.name)
+        nStats = self.opts.get_nStats(self.name)
+        nLast  = self.opts.get_nLastStats(self.name)
         # Get list of iterations
         iIter = P.iIter
         
@@ -239,7 +242,7 @@ class DBPointSensorGroup(object):
                 for k in self[pt].xCols:
                     # I hate the way NumPy does appending.
                     self[pt][k] = np.hstack((self[pt][k], 
-                        [getattr(self.cntl.x,k)[i]]))
+                        [getattr(self.x,k)[i]]))
                 # Append values.
                 for c in self.fCols:
                     self[pt][c] = np.hstack((self[pt][c], [s[c]]))
@@ -263,10 +266,12 @@ class DBPointSensor(cape.dataBook.DBBase):
     Point sensor data book
     
     :Call:
-        >>> DBP = DBPointSensor(cart3d, pt, name=None)
+        >>> DBP = DBPointSensor(x, opts, pt, name=None)
     :Inputs:
-        *cart3d*: :class:`pyCart.cart3d.Cart3d`
-            Cart3D settings and commands interface
+        *x*: :class:`cape.trajectory.Trajectory`
+            Trajectory/run matrix interface
+        *opts*: :class:`cape.options.Options`
+            Options interface
         *pt*: :class:`str`
             Name of point
         *name*: :class:`str` | ``None``
@@ -278,7 +283,7 @@ class DBPointSensor(cape.dataBook.DBBase):
         * 2015-12-04 ``@ddalle``: Started
     """
     # Initialization method
-    def __init__(self, cart3d, pt, name=None):
+    def __init__(self, x, opts, pt, name=None):
         """Initialization method
         
         :Versions:
@@ -304,11 +309,12 @@ class DBPointSensor(cape.dataBook.DBBase):
         # Save point name
         self.pt = pt
         # Save the CNTL
-        self.cntl = cart3d
+        self.x = x
+        self.opts = opts
         # Save the file name
         self.fname = fname
         # Column types
-        self.xCols = self.cntl.x.keys
+        self.xCols = self.x.keys
         self.fCols = [
             'X', 'Y', 'Z', 'Cp', 'dp', 'U', 'V', 'W', 'P',
             'Cp_std', 'Cp_min', 'Cp_max', 'dp_std', 'dp_min', 'dp_max',
@@ -361,14 +367,14 @@ class DBPointSensor(cape.dataBook.DBBase):
         # Try to find a match existing in the data book
         j = self.FindMatch(i)
         # Get the name of the folder.
-        frun = self.cntl.x.GetFullFolderNames(i)
+        frun = self.x.GetFullFolderNames(i)
         # Go to the case folder (it exists due to above tests).
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
         os.chdir(frun)
         # Determine ninimum number of iterations required
-        nStats = self.cntl.opts.get_nStats(self.name)
-        nLast  = self.cntl.opts.get_nLastStats(self.name)
+        nStats = self.opts.get_nStats(self.name)
+        nLast  = self.opts.get_nLastStats(self.name)
         # Get list of iterations
         iIter = P.iIter
         # Find the point.
@@ -383,7 +389,7 @@ class DBPointSensor(cape.dataBook.DBBase):
             # Append trajectory values.
             for k in self.xCols:
                 # I hate the way NumPy does appending.
-                self[k] = np.hstack((self[k], [getattr(self.cntl.x,k)[i]]))
+                self[k] = np.hstack((self[k], [getattr(self.x,k)[i]]))
             # Append values.
             for c in self.fCols:
                 self[c] = np.hstack((self[c], [s[c]]))
@@ -423,7 +429,7 @@ class DBPointSensor(cape.dataBook.DBBase):
         # Try to find a match existing in the data book
         j = self.FindMatch(i)
         # Get the name of the folder.
-        frun = self.cntl.x.GetFullFolderNames(i)
+        frun = self.x.GetFullFolderNames(i)
         # Status update
         print(frun)
         # Go home
@@ -436,9 +442,9 @@ class DBPointSensor(cape.dataBook.DBBase):
         # Go to the case folder.
         os.chdir(frun)
         # Determine ninimum number of iterations required
-        nStats = self.cntl.opts.get_nStats(self.name)
-        nMin   = self.cntl.opts.get_nMin(self.name)
-        nLast  = self.cntl.opts.get_nLastStats(self.name)
+        nStats = self.opts.get_nStats(self.name)
+        nMin   = self.opts.get_nMin(self.name)
+        nLast  = self.opts.get_nLastStats(self.name)
         # Get last potential iteration
         nIter = int(GetTotalHistIter()) 
         # Decide whether or not to update.

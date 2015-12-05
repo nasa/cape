@@ -831,12 +831,14 @@ class DBBase(dict):
     Individual item data book basis class
     
     :Call:
-        >>> DBi = DBBase(comp, cntl)
+        >>> DBi = DBBase(comp, x, opts)
     :Inputs:
         *comp*: :class:`str`
             Name of the component or other item name
-        *cntl*: :class:`cape.cntl.Cntl` or derivative
-            Code control and settings interface
+        *x*: :class:`cape.trajectory.Trajectory`
+            Trajectory/run matrix interface
+        *opts*: :class:`cape.options.Options`
+            Options interface
     :Outputs:
         *DBi*: :class:`cape.dataBook.DBBase`
             An individual item data book
@@ -845,7 +847,7 @@ class DBBase(dict):
         * 2015-12-04 ``@ddalle``: Forked from :class:`DBComp`
     """
     # Initialization method
-    def __init__(self, comp, cntl):
+    def __init__(self, comp, x, opts):
         """Initialization method
         
         :Versions:
@@ -862,10 +864,11 @@ class DBBase(dict):
         fname = os.path.join(fdir, fcomp)
         
         # Save relevant information
-        self.cntl = cntl
+        self.x = x
+        self.opts = opts
         self.comp = comp
         # Save column names.
-        self.xCols = cntl.x.keys
+        self.xCols = x.keys
         self.fCols = []
         self.iCols = []
         # Counts
@@ -910,13 +913,13 @@ class DBBase(dict):
         # Try to read the file.
         try:
             # Data book delimiter
-            delim = self.cntl.opts.get_Delimiter()
+            delim = self.opts.get_Delimiter()
             # Initialize column number.
             nxCol = 0
             # Loop through the trajectory keys.
             for k in self.xCols:
                 # Get the type.
-                t = self.cntl.x.defns[k].get('Value', 'float')
+                t = self.x.defns[k].get('Value', 'float')
                 # Convert type.
                 if t in ['hex', 'oct', 'octal', 'bin']: t = 'int'
                 # Read the column
@@ -945,7 +948,7 @@ class DBBase(dict):
             # Initialize empty trajectory arrays
             for k in self.xCols:
                 # get the type.
-                t = self.cntl.x.defns[k].get('Value', 'float')
+                t = self.x.defns[k].get('Value', 'float')
                 # convert type
                 if t in ['hex', 'oct', 'octal', 'bin']: t = 'int'
                 # Initialize an empty array.
@@ -1041,7 +1044,7 @@ class DBBase(dict):
             # Loop through keys to get data types (dtype)
             for k in key:
                 # Get the type.
-                dtk = self.cntl.x.defns[k]['Value']
+                dtk = self.x.defns[k]['Value']
                 # Convert it to numpy jargon.
                 if dtk in ['float']:
                     # Numeric value
@@ -1092,7 +1095,7 @@ class DBBase(dict):
                     ("is not equal to data book size (%i)." % self.n))
         else:
             # Default key if necessary
-            if key is None: key = self.cntl.x.keys[0]
+            if key is None: key = self.x.keys[0]
             # Use ArgSort to get indices that sort on that key.
             I = self.ArgSort(key)
         # Sort all fields.
@@ -1118,19 +1121,19 @@ class DBBase(dict):
             * 2015-05-28 ``@ddalle``: First version
         """
         # Initialize indices (assume all trajectory points match to start).
-        i = np.arange(self.cntl.x.nCase)
+        i = np.arange(self.x.nCase)
         # Loop through keys requested for matches.
-        for k in self.cntl.x.keys:
+        for k in self.x.keys:
             # Get the target value from the data book.
             v = self[k][j]
             # Search for matches.
             try:
                 # Filter test criterion.
-                ik = np.where(getattr(self.cntl.x,k) == v)[0]
+                ik = np.where(getattr(self.x,k) == v)[0]
                 # Check if the last element should pass but doesn't.
-                if (v == getattr(self.cntl.x,k)[-1]):
+                if (v == getattr(self.x,k)[-1]):
                     # Add the last element.
-                    ik = np.union1d(ik, [self.cntl.x.nCase-1])
+                    ik = np.union1d(ik, [self.x.nCase-1])
                 # Restrict to rows that match above.
                 i = np.intersect1d(i, ik)
             except Exception:
@@ -1165,9 +1168,9 @@ class DBBase(dict):
         # Initialize indices (assume all are matches)
         j = np.arange(self.n)
         # Loop through keys requested for matches.
-        for k in self.cntl.x.keys:
+        for k in self.x.keys:
             # Get the target value (from the trajectory)
-            v = getattr(self.cntl.x,k)[i]
+            v = getattr(self.x,k)[i]
             # Search for matches.
             try:
                 # Filter test criterion.
