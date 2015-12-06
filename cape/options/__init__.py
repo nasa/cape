@@ -858,9 +858,9 @@ class Options(odict):
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
     
     # Number of iterations used for statistics
-    def get_nStats(self):
+    def get_nStats(self, comp=None):
         self._DataBook()
-        return self['DataBook'].get_nStats()
+        return self['DataBook'].get_nStats(comp)
     
     # Set number of iterations
     def set_nStats(self, nStats=rc0('db_stats')):
@@ -868,7 +868,7 @@ class Options(odict):
         self['DataBook'].set_nStats(nStats)
     
     # Min iteration used for statistics
-    def get_nMin(self, comp):
+    def get_nMin(self, comp=None):
         self._DataBook()
         return self['DataBook'].get_nMin(comp)
     
@@ -878,7 +878,7 @@ class Options(odict):
         self['DataBook'].set_nMin(nMin)
     
     # Max number of iterations used for statistics
-    def get_nMaxStats(self, comp):
+    def get_nMaxStats(self, comp=None):
         self._DataBook()
         return self['DataBook'].get_nMaxStats(comp)
     
@@ -888,7 +888,7 @@ class Options(odict):
         self['DataBook'].set_nMaxStats(nMax)
     
     # Max iter for statistics
-    def get_nLastStats(self, comp):
+    def get_nLastStats(self, comp=None):
         self._DataBook()
         return self['DataBook'].get_nLastStats(comp)
     

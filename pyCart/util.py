@@ -72,12 +72,12 @@ def GetHistIter(fname='history.dat'):
     # Check the file.
     try:
         # Try to tail the last line.
-        txt = sp.Popen(['tail', '-1', fname]).communicate()[0]
+        txt = sp.Popen(['tail', '-1', fname], stdout=sp.PIPE).communicate()[0]
         # Try to get the integer.
         return float(txt.split()[0])
     except Exception:
         # Read the last line.
-        line = f.readlines()[-1]
+        line = open(fname).readlines()[-1]
         # Get iteration string
         txt = line.split()[0]
         # Return iteration number
@@ -117,7 +117,7 @@ def GetSteadyHistIter():
     try:
         # Get the last steady-state iteration number.
         txt = sp.Popen(['egrep "^\s+[0-9]+ " %s | tail -n 1' % fname],
-            shell=True).communicate()[0]
+            shell=True, stdout=sp.PIPE).communicate()[0]
         # Get the first entry, which is the iteration number.
         return int(txt.split()[0])
     except Exception:
@@ -133,7 +133,10 @@ def GetSteadyHistIter():
             # Check comment.
             if line.startswith('#'): continue
             # Check for decimal.
-            if '.' in line.split()[0]: break
+            try:
+                if '.' in line.split()[0]: break
+            except Exception:
+                break
             # Read iteration number
             n = int(line.split()[0])
         # Output
@@ -172,8 +175,8 @@ def GetUnsteadyHistIter():
     # Call GREP if possible
     try:
         # Get the last steady-state iteration number.
-        txt = sp.Popen(['tail -n 1 %s' % fname],
-            shell=True).communicate()[0]
+        txt = sp.Popen(['tail', '-1', fname],
+            stdout=sp.PIPE).communicate()[0]
         # Get the first entry, which is the iteration number.
         txt0 = txt.split()[0]
         # Check for unsteady.
@@ -185,7 +188,7 @@ def GetUnsteadyHistIter():
             return 0
     except Exception:
         # Read the last line.
-        line = f.readlines()[-1]
+        line = open(fname).readlines()[-1]
         # Get iteration string
         txt = line.split()[0]
         # Check for decimal

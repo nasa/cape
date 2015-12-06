@@ -145,8 +145,8 @@ class DataBook(cape.dataBook.DataBook):
             self.PointSensors[name]
         except Exception:
             # Read the point sensor.
-            self.PointSensors[name] = \
-                pointSensor.DBPointSensorGroup(self.x, self.opts, name)
+            self.PointSensors[name] = pointSensor.DBPointSensorGroup(
+                self.x, self.opts, name, RootDir=self.RootDir)
     
     
     # Update data book

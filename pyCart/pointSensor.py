@@ -133,7 +133,7 @@ def get_nStatsPS():
 # end functions
 
 # Data book for group of point sensors
-class DBPointSensorGroup(object):
+class DBPointSensorGroup(dict):
     """
     Point sensor group data book
     
@@ -146,6 +146,8 @@ class DBPointSensorGroup(object):
             Options interface
         *name*: :class:`str` | ``None``
             Name of data book item (defaults to *pt*)
+        *RootDir*: :class:`str` | ``None``
+            Project root directory absolute path, default is *PWD*
     :Outputs:
         *DBPG*: :class:`pyCart.pointSensor.DBPointSensorGroup`
             A point sensor group data book
@@ -153,12 +155,14 @@ class DBPointSensorGroup(object):
         * 2015-12-04 ``@ddalle``: First version
     """
     # Initialization method
-    def __int__(self, x, opts, name):
+    def __init__(self, x, opts, name, **kw):
         """Initialization method
         
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
+        # Save root directory
+        self.RootDir = kw.get('RootDir', os.getcwd())
         # Save the interface.
         self.x = x
         self.opts = opts
@@ -215,12 +219,15 @@ class DBPointSensorGroup(object):
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
+        # Reference point
+        pt = self.pts[0]
+        DBP = self[pt]
         # Check update status.
-        q, P = self._UpdateCase(i)
+        q, P = DBP._UpdateCase(i)
         # Exit if no return necessary
         if not q: return
         # Try to find a match existing in the data book
-        j = self.FindMatch(i)
+        j = self[pt].FindMatch(i)
         # Determine ninimum number of iterations required
         nStats = self.opts.get_nStats(self.name)
         nLast  = self.opts.get_nLastStats(self.name)
@@ -237,22 +244,22 @@ class DBPointSensorGroup(object):
             # Save the data.
             if np.isnan(j):
                 # Add the the number of cases.
-                self.n += 1
+                self[pt].n += 1
                 # Append trajectory values.
                 for k in self[pt].xCols:
                     # I hate the way NumPy does appending.
                     self[pt][k] = np.hstack((self[pt][k], 
                         [getattr(self.x,k)[i]]))
                 # Append values.
-                for c in self.fCols:
+                for c in self[pt].fCols:
                     self[pt][c] = np.hstack((self[pt][c], [s[c]]))
                 # Append iteration counts.
-                self[pt]['nIter']  = np.hstack((self['nIter'], iIter[-1:]))
-                self[pt]['nStats'] = np.hstack((self['nStats'], [nStats]))
+                self[pt]['nIter']  = np.hstack((self[pt]['nIter'], iIter[-1:]))
+                self[pt]['nStats'] = np.hstack((self[pt]['nStats'], [nStats]))
             else:
                 # No need to update trajectory values.
                 # Update data values.
-                for c in self.fCols:
+                for c in self[pt].fCols:
                     self[pt][c][j] = s[c]
                 # Update the other statistics.
                 self[pt]['nIter'][j]   = iIter[-1]
@@ -276,6 +283,8 @@ class DBPointSensor(cape.dataBook.DBBase):
             Name of point
         *name*: :class:`str` | ``None``
             Name of data book item (defaults to *pt*)
+        *RootDir*: :class:`str` | ``None``
+            Project root directory absolute path, default is *PWD*
     :Outputs:
         *DBP*: :class:`pyCart.pointSensor.DBPointSensor`
             An individual point sensor data book
@@ -283,12 +292,14 @@ class DBPointSensor(cape.dataBook.DBBase):
         * 2015-12-04 ``@ddalle``: Started
     """
     # Initialization method
-    def __init__(self, x, opts, pt, name=None):
+    def __init__(self, x, opts, pt, name=None, **kw):
         """Initialization method
         
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
+        # Save root directory
+        self.RootDir = kw.get('RootDir', os.getcwd())
         # Folder containing the data book
         fdir = opts.get_DataBookDir()
         # Folder name for compatibility
@@ -823,6 +834,8 @@ class CasePointSensor(object):
         s['X'] = B[0,0]
         s['Y'] = B[0,1]
         s['Z'] = B[0,2]
+        # Mean number of refinement levels
+        s['RefLev'] = np.mean(B[I,-2])
         # List of states
         fcols = ['Cp', 'dp', 'rho', 'U', 'V', 'W', 'P']
         # Loop through columns
