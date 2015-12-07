@@ -2120,9 +2120,6 @@ class Report(object):
                     FM.TransformFM(topts, self.cntl.x, i)
                 # Get the statistics.
                 S[comp] = FM.GetStats(nStats=nStats, nMax=nMax, nLast=nCur)
-        else:
-            # No stats.
-            S = {}
         # Go back to original folder.
         os.chdir(fpwd)
         # Get the vertical alignment.

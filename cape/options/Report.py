@@ -544,6 +544,7 @@ class Report(odict):
         t = self.get_SubfigType(sfig)
         # Check if it is a base category.
         if t in ['Conditions', 'SweepConditions', 'SweepCases', 
+                'PointSensorTable',
                 'Summary', 'PlotCoeff', 'SweepCoeff', 'PlotL1', 'PlotPoint',
                 'Tecplot3View', 'Tecplot', 'ParaviewTri', 'Paraview']:
             # Yes, it is.
@@ -670,6 +671,19 @@ class Report(odict):
                 "CLL": ["mu", "std"],
                 "CLM": ["mu", "std"],
                 "CLN": ["mu", "std"]
+            }
+        elif t in ['PointSensorTable']:
+            # Default results summary
+            S = {
+                "Header": "Point sensor results table",
+                "Position": "t",
+                "Alignment": "left",
+                "Width": 0.6,
+                "Iteration": 0,
+                "Group": "",
+                "Points": [],
+                "Coefficients": ["Cp"],
+                "Cp": ["mu", "std"]
             }
         elif t in ['PlotCoeff']:
             # Force or moment history

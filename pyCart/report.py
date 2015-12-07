@@ -550,6 +550,181 @@ class Report(cape.report.Report):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
+    # Function to write pressure coefficient table
+    def SubfigPointSensorTable(self, sfig, i):
+        """Create lines for a "PointSensorTable" subfigure
+        
+        :Call:
+            >>> lines = R.SubfigPointTable(sfig, i)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure to update
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2015-12-07 ``@ddalle``: First version
+        """
+        # Save current folder.
+        fpwd = os.getcwd()
+        # Extract options
+        opts = self.cntl.opts
+        # Current statuts
+        nIter = self.cntl.CheckCase(i)
+        # Coefficients to plot
+        coeffs = opts.get_SubfigOpt(sfig, "Coefficients")
+        # Get the points.
+        grp = opts.get_SubfigOpt(sfig, "Group")
+        pts = opts.get_SubfigOpt(sfig, "Points")
+        # Process point list if a group is specified
+        if grp: pts = opts.get_DBGroupPoints(grp)
+        # Numbers of iterations for statistics
+        nStats = opts.get_SubfigOpt(sfig, "nStats")
+        nMin   = opts.get_SubfigOpt(sfig, "nMinStats")
+        # Get the status and data book options
+        if nStats is None: nStats = opts.get_nStats(grp)
+        if nMin   is None: nMin   = opts.get_nMin(grp)
+        # Iteration at which to build table
+        nOpt = opts.get_SubfigOpt(sfig, "Iteration")
+        # Make sure current progress is a number
+        if nIter is None: nIter = 0
+        # Translate into absolute iteration number if relative.
+        if nOpt == 0:
+            # Use last iteration (standard)
+            nCur = nIter
+        elif nOpt < 0:
+            # Use iteration relative to the end
+            nCur = nIter + 1 + nOpt
+        else:
+            # Use the number
+            nCur = nOpt
+        # Initialize statistics
+        S = {}
+        # Get statistics if possible.
+        if nCur >= max(1, nMin+nStats):
+            # Don't use iterations before *nMin*
+            nMax = min(nMax, nCur-nMin)
+            # Go to the run directory.
+            os.chdir(self.cntl.RootDir)
+            os.chdir(self.cntl.x.GetFullFolderNames(i))
+            # Read the point sensor history
+            P = self.ReadPointSensor()
+            # Loop through components
+            for pt in pts:
+                # Get the statistics.
+                S[pt] = P.GetStats(pt, nStats=nStats, nLast=nCur)
+        # Go back to original folder.
+        os.chdir(fpwd)
+        # Get the vertical alignment.
+        hv = self.cntl.opts.get_SubfigOpt(sfig, 'Position')
+        # Get subfigure width
+        wsfig = self.cntl.opts.get_SubfigOpt(sfig, 'Width')
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = self.cntl.opts.get_SubfigOpt(sfig, 'Header')
+        # Add the iteration number to header
+        line = '\\textbf{\\textit{%s}} (Iteration %i' % (fhdr, nCur)
+        # Add number of iterations used for statistics
+        if len(S)>0:
+            # Add stats count.
+            line += (', {\\small\\texttt{nStats=%i}}' % nStats)
+        # Close parentheses
+        line += ')\\par\n'
+        # Write the header.
+        lines.append('\\noindent\n')
+        lines.append(line)
+        # Begin the table with the right amount of columns.
+        lines.append('\\begin{tabular}{l' + ('|c'*len(coeffs)) + '}\n')
+        # Write headers.
+        lines.append('\\hline \\hline\n')
+        lines.append('\\textbf{\\textsf{Point}}\n')
+        # Write headers
+        for coeff in coeffs:
+            # Get the statistical values to print
+            fs = opts.get_SubfigOpt(sfig, coeff)
+            # Process label
+            if coeff == 'Cp':
+                # Pressure coefficient
+                lbl = "C_p"
+            elif coeff == 'dp':
+                # Delta pressure
+                lbl = "(p-p_\infty)/p_\infty"
+            elif coeff == 'rho':
+                # Static density
+                lbl = '\rho/\rho_\infty'
+            elif coeff == 'U':
+                # x-velocity
+                lbl = 'u/a_\infty'
+            elif coeff == 'V':
+                # y-velocity
+                lbl = 'v/a_\infty'
+            elif coeff == 'W':
+                # z-velocity
+                lbl = 'w/a_\infty'
+            elif coeff == 'P':
+                # weird pressure
+                lbl = 'p/\gamma p_\infty'
+            # Loop through suffixes
+            for fsi in fs:
+                # Check suffix type
+                if fsi in ['target', 't']:
+                    # Target value
+                    lines.append(' & $%s$ target \n' % lbl)
+                elif fsi == ['std', 'sigma']:
+                    # Standard deviation
+                    lines.append(' & $\sigma(\%s)$ \n' % lbl)
+                elif fsi in ['err', 'eps', 'epsilon']:
+                    # Sampling error
+                    lines.append(' & $\varepsilon(\%s)$ \n' % lbl)
+                elif fsi == 'max':
+                    # Maximum value
+                    lines.append(' & max$(\%s)$ \n' % lbl)
+                elif fsi == 'min':
+                    # Minimum value
+                    lines.append(' & min$(\%s)$ \n' % lbl)
+                else:
+                    # Mean
+                    lines.append(' & $%s$ \n' % lbl)
+        # End header
+        lines.append('\\\\\n')
+        lines.append('\hline\n')
+        # Loop through points.
+        for pt in pts:
+            # Write point name.
+            lines.append('\\texttt{%s}\n' % pt.replace('_', '\_'))
+            # Initialize line
+            line = ''
+            # Loop through the coefficients.
+            for coeff in coeffs:
+                # Loop through statistics
+                for fs in opts.get_SubfigOpt(sfig, coeff):
+                    # Process the statistic type
+                    if nCur <= 0 or pt not in S:
+                        # No iterations
+                        line += '& $-$ '
+                    elif fs == 'mu':
+                        # Mean value
+                        line += ('& $%.4f$ ' % S[pt][coeff])
+                    elif fs == 'std':
+                        # Standard deviation
+                        line += ('& %.2e ' % S[pt][coeff+'_'+fs])
+                    elif (coeff+'_'+fs) in S[pt]:
+                        # Other statistic
+                        line += ('& $%.4f$ ' % S[pt][coeff+'_'+fs])
+                    else:
+                        # Missing
+                        line += '& $-$ '
+            # Finish the line and append it.
+            line += '\\\\\n'
+            lines.append(line)
+        # Finish table and subfigure
+        lines.append('\\hline \\hline\n')
+        lines.append('\\end{tabular}\n')
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
 # class Report
 
         
