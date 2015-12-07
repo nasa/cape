@@ -254,7 +254,7 @@ class DBPointSensorGroup(dict):
         nStats = self.opts.get_nStats(self.name)
         nLast  = self.opts.get_nLastStats(self.name)
         # Get list of iterations
-        iIter = P.iIter
+        iIter = P.i
         
         # Loop through points.
         for pt in self.pts:
@@ -409,7 +409,7 @@ class DBPointSensor(cape.dataBook.DBBase):
         nStats = self.opts.get_nStats(self.name)
         nLast  = self.opts.get_nLastStats(self.name)
         # Get list of iterations
-        iIter = P.iIter
+        iIter = P.i
         # Find the point.
         kpt = P.GetPointSensorIndex(self.pt)
         # Calculate statistics
@@ -511,7 +511,7 @@ class DBPointSensor(cape.dataBook.DBBase):
             print("  Point sensor history contains no points.")
             os.chdir(fpwd); return False, None
         # Get list of iterations
-        iIter = P.iIter
+        iIter = P.i
         # Downselect if *nLast* in use
         if nLast > 0: iIter = iIter[iIter<=nLast]
         # Minimum iteration that will be included in stats
@@ -570,7 +570,7 @@ class CasePointSensor(cape.dataBook.CaseData):
             self.nd = None
             self.iSteady = 0
             self.data = np.zeros((0,0,12))
-            self.iIter = np.array([])
+            self.i = np.array([])
         # Read iterations if necessary.
         self.UpdateIterations()
         # Input file
@@ -668,7 +668,7 @@ class CasePointSensor(cape.dataBook.CaseData):
         # Reshape
         self.data = A.reshape((nPoint, nIter, nCol))
         # Save the iterations at which samples are recoreded
-        self.iIter = self.data[0,:,-1]
+        self.i = self.data[0,:,-1]
         
     # Write history file
     def WriteHist(self, fname='pointSensors.hist.dat'):
@@ -814,12 +814,12 @@ class CasePointSensor(cape.dataBook.CaseData):
         # Last iteration to use.
         if nLast:
             # Attempt to use requested iter.
-            if nLast < self.iIter[0]:
+            if nLast < self.i[0]:
                 # No earlier iterative histories
                 I = np.array([])
             else:
                 # Apply filter.
-                I = np.where(self.iIter <= nLast)[0]
+                I = np.where(self.i <= nLast)[0]
             # Check for sufficient samples
             if I.size < nStats:
                 raise RuntimeError("Less than %i samples before iteration %i"
@@ -1046,7 +1046,7 @@ class CasePointSensor(cape.dataBook.CaseData):
             elif c.lower() in ['m', 'mach']:
                 kw["YLabel"] = "Mach Number"
         # Refer to parent plotting class
-        return self.PlotValue(self, c, col=k, **kw)
+        return self.PlotValue(c, col=k, **kw)
         
 # class CasePointSensor
 
