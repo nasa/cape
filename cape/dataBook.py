@@ -2295,27 +2295,30 @@ class CaseData(object):
                 jB = self.GetIterationIndex(nLast)
                 iB = self.i[jB]
         # Get the index of *iB* in *self.i*.
-        jB = self.GetIterationIndex(iB)+1
+        jB = self.GetIterationIndex(iB)
         # ----------
         # First Iter
         # ----------
         # Default number of iterations: all
         if n is None: n = len(self.i)
+        j0 = max(0, jB-n)
+        print("%s, %s, %s" % (0, j0, nFirst))
         # Get the starting iteration number to use.
-        i0 = max(0, iB-n, nFirst) + 1
+        i0 = max(0, self.i[j0], nFirst) + 1
         # Make sure *iA* is in *self.i* and get the index.
         j0 = self.GetIterationIndex(i0)
-        # Reselect *iA* in case initial value was not in *self.i*.
+        # Reselect *i0* in case initial value was not in *self.i*.
         i0 = self.i[j0]
         # --------------
         # Averaging Iter
         # --------------
         # Get the first iteration to use in averaging.
-        iA = max(0, iB-nAvg) + 1
-        # Make sure *iV* is in *self.i* and get the index.
-        jA = self.GetIterationIndex(iA)
+        jA = max(j0, jB-nAvg+1)
         # Reselect *iV* in case initial value was not in *self.i*.
         iA = self.i[jA]
+        print("i0=%i, j0=%i" % (i0, j0))
+        print("iA=%i, jA=%i" % (iA, jA))
+        print("iB=%i, jB=%i" % (iB, jB))
         # -----------------------
         # Standard deviation plot
         # -----------------------
@@ -2428,7 +2431,7 @@ class CaseData(object):
             if kw["LineOptions"][k] is not None:
                 kw_p[k] = kw["LineOptions"][k]
         # Plot the coefficient.
-        h[c] = plt.plot(self.i[j0:jB], C[j0:jB], **kw_p)
+        h[c] = plt.plot(self.i[j0:jB+1], C[j0:jB+1], **kw_p)
         # Get the figure and axes.
         h['fig'] = plt.gcf()
         h['ax'] = plt.gca()
@@ -2448,7 +2451,7 @@ class CaseData(object):
         h['x'] = plt.xlabel(xlbl)
         h['y'] = plt.ylabel(ylbl)
         # Set the xlimits.
-        h['ax'].set_xlim((i0, iB+25))
+        h['ax'].set_xlim((i0, 1.03*iB-0.03*i0))
         # Set figure dimensions
         if fh: h['fig'].set_figheight(fh)
         if fw: h['fig'].set_figwidth(fw)
@@ -2488,9 +2491,12 @@ class CaseData(object):
             try: h['d'].set_family("DejaVu Sans")
             except Exception: pass
         # Make a label for the standard deviation.
-        if ksig and nAvg>2 and kw.get("ShowSigma", True):
+        if nAvg>2 and ((ksig and kw.get("ShowSigma", True)) 
+                or kw.get("ShowSigma", False)):
+            # Printf-style flag
+            flbl = kw.get("SigmaFormat", "%.4f")
             # Form \sigma(CA) = 0.0032
-            lbl = u'\u03C3(%s) = %.4f' % (c, ksig*c_std)
+            lbl = (u'\u03C3(%s) = %s' % (c, flbl)) % c_std
             # Create the handle.
             h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_key('color',1),
                 horizontalalignment='left', verticalalignment='top',
@@ -2499,9 +2505,10 @@ class CaseData(object):
             try: h['sig'].set_family("DejaVu Sans")
             except Exception: pass
         # Make a label for the iterative uncertainty.
-        if uerr and nAvg>2 and kw.get("ShowEpsilon", True):
+        if nAvg>2 and ((uerr and kw.get("ShowEpsilon", True))
+                or kw.get("ShowEpsilon", False)):
             # Form \sigma(CA) = 0.0032
-            lbl = u'\u0395(%s) = %.4f' % (c, ueps*c_err)
+            lbl = u'\u0395(%s) = %.4f' % (c, c_err)
             # Create the handle.
             h['eps'] = plt.text(0.01, yl, lbl, color=kw_u.get_key('color',1),
                 horizontalalignment='left', verticalalignment='top',
