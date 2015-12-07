@@ -19,6 +19,24 @@ from .tecplot import ExportLayout, Tecscript
 from .tri    import Tri
 from .config import Config
 
+# Dedicated function to load pointSensor only when needed.
+def ImportPointSensor():
+    """Import :mod:`pyCart.pointSensor` if not loaded
+    
+    :Call:
+        >>> pyCart.report.ImportPointSensor()
+    :Versions:
+        * 2014-12-27 ``@ddalle``: First version
+    """
+    # Make global variables
+    global pointSensor
+    # Check for PyPlot.
+    try:
+        pointSensor
+    except Exception:
+        # Load the modules.
+        import pointSensor
+
 
 # Class to interface with report generation and updating.
 class Report(cape.report.Report):
@@ -89,6 +107,84 @@ class Report(cape.report.Report):
             * 2015-10-16 ``@ddalle``: First version
         """
         return CaseResid()
+        
+    # Read point sensor history]
+    def ReadPointSensor(self):
+        """Read iterative history for a case
+        
+        :Call:
+            >>> P = R.ReadPointSensor()
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+        :Outputs:
+            *P*: :class:`pyCart.pointSensor.CasePointSensor`
+                Iterative history of point sensors
+        :Versions:
+            * 2015-12-07 ``@ddalle``: First version
+        """
+        # Make sure the modules are present.
+        ImportPointSensor()
+        # Read point sensors history
+        return pointSensor.CasePointSensor()
+        
+    # Update subfig for case
+    def UpdateCaseSubfigs(self, fig, i):
+        """Update subfigures for a case figure *fig*
+        
+        :Call:
+            >>> lines = R.UpdateCaseSubfigs(fig, i)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *fig*: :class:`str`
+                Name of figure to update
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *lines*: :class:`list` (:class:`str`)
+                List of lines for LaTeX file
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # Get list of subfigures.
+        sfigs = self.cntl.opts.get_FigSubfigList(fig)
+        # Initialize lines
+        lines = []
+        # Loop through subfigs.
+        for sfig in sfigs:
+            # Get the base type.
+            btyp = self.cntl.opts.get_SubfigBaseType(sfig)
+            # Process it.
+            if btyp == 'Conditions':
+                # Get the content.
+                lines += self.SubfigConditions(sfig, i)
+            elif btyp == 'Summary':
+                # Get the force and/or moment summary
+                lines += self.SubfigSummary(sfig, i)
+            elif btyp == 'PlotCoeff':
+                # Get the force or moment history plot
+                lines += self.SubfigPlotCoeff(sfig, i)
+            elif btyp == 'PlotPoint':
+                # Get the poitn sensor history plot
+                lines += self.SubfigPlotPoint(sfig, i)
+            elif btyp == 'PlotL1':
+                # Get the residual plot
+                lines += self.SubfigPlotL1(sfig, i)
+            elif btyp == 'PlotResid':
+                # Plot generic residual
+                lines += self.SubfigPlotResid(sfig, i)
+            elif btyp == 'Tecplot3View':
+                # Get the Tecplot component view
+                lines += self.SubfigTecplot3View(sfig, i)
+            elif btyp == 'Tecplot':
+                # Get the Tecplot layout view
+                lines += self.SubfigTecplotLayout(sfig, i)
+            elif btyp == 'Paraview':
+                # Get the Paraview layout view
+                lines += self.SubfigParaviewLayout(sfig, i)
+        # Output
+        return lines
         
         
     # Function to create coefficient plot and write figure
@@ -177,7 +273,174 @@ class Report(cape.report.Report):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-       
+        
+    # Function to plot point sensor history
+    def SubfigPlotPoint(self, sfig, i):
+        """Plot iterative history of a point sensor state
+        
+        :Call:
+            >>> lines = R.SubfigTecplotLayout(sfig, i)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2015-12-07 ``@ddalle``: First version
+        """
+        # Save current folder
+        fpwd = os.getcwd()
+        # Case folder
+        frun = self.cntl.x.GetFullFoldernames(i)
+        # Extract options
+        opts = self.cntl.opts
+        # Extract the point
+        pt = opts.get_SubfigOpt(sfig, "Point")
+        # Get the group
+        grp = opts.get_SubfigOpt(sfig, "Group")
+        # Get the state
+        coeff = opts.get_SubfigOpt(sfig, "Coefficient")
+        # List of coefficients
+        if type(coeff).__name__ in ['list', 'ndarray']:
+            # List of coefficients
+            nCoeff = len(coeff)
+        else:
+            # One entry
+            nCoeff = 1
+        # Check for list of points
+        if type(pt).__name__ in ['list', 'ndarray']:
+            # List of components
+            nCoeff = max(nCoeff, len(pt))
+        # Current status
+        nIter  = self.cntl.CheckCase(i)
+        # Get caption
+        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        # Process default caption
+        if fcpt is None:
+            # Check for a list
+            if type(pt).__name__ in ['list']:
+                # Join them, e.g. "[P1,P2]/Cp"
+                fcpt = "[" + ",",join(pt) + "]"
+            else:
+                # Use the point name
+                fcpt = pt
+            # Add the coefficient title
+            fcpt = "%s/%s" % (fcpt, coeff)
+            # Ensure there are not underscores
+            fcpt = fcpt.replace('_', '\_')
+        # Get the vertical alignment.
+        hv = opts.get_SubfigOpt(sfig, "Position")
+        # Get subfigure width
+        wsfig = opts.get_SubfigOpt(sfig, "Width")
+        # First line
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header
+        fhdr = opts.get_SubfigOpt(sfig, "Header")
+        # Alginment
+        algn = opts.get_SubfigOpt(sfig, "Alignment")
+        # Set alignment
+        if algn.lower() == "center":
+            lines.append('\\centering\n')
+        # Write the header
+        if fhdr:
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+            lines.append('\\vskip-6pt\n')
+        # Go to the run directory.
+        os.chdir(self.cntl.RootDir)
+        os.chdir(frun)
+        # Read the Aero history.
+        P = self.ReadPointSensor()
+        # Loop through plots
+        for k in range(nCoeff):
+            # Get the point and coefficient
+            pt    = opts.get_SubfigOpt(sfig, "Point", k)
+            coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
+            # Numbers of iterations
+            nStats = opts.get_SubfigOpt(sfig, "nStats",     k)
+            nMin   = opts.get_SubfigOpt(sfig, "nMinStats",  k)
+            nMax   = opts.get_SubfigOpt(sfig, "nMaxStats",  k)
+            nLast  = opts.get_SubfigOpt(sfig, "nLastStats", k)
+            # Default to databook options
+            if nStats is None: nStats = opts.get_nStats(grp)
+            if nMin   is None: nMin   = opts.get_nMin(grp)
+            if nMax   is None: nMax   = opts.get_nMaxStats(grp)
+            if nLast  is None: nlast  = opts.get_nLast(grp)
+            # Numbers of iterations for plots
+            nPlotIter  = opts.get_SubfigOpt(sfig, "nPlot",      k)
+            nPlotFirst = opts.get_SubfigOpt(sfig, "nPlotFirst", k)
+            nPlotLast  = opts.get_SubfigOpt(sfig, "nPlotLast",  k)
+            
+            # Check if there are iterations.
+            if nIter < 2: continue
+            # Don't use iterations before *nMin*
+            nMax = min(nMax, nIter-nMin)
+            # Get the manual range to show
+            dc = opts.get_SubfigOpt(sfig, "Delta", k)
+            # Get the multiple of standard deviation to show
+            ksig = opts.get_SubfigOpt(sfig, "StandardDeviation", k)
+            # Get the multiple of iterative error to show
+            uerr = opts.get_SubfigOpt(sfig, "IterativeError", k)
+            # Get figure dimensions.
+            figw = opts.get_SubfigOpt(sfig, "FigureWidth", k)
+            figh = opts.get_SubfigOpt(sfig, "FigureHeight", k)
+            # Plot options
+            kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",   k)
+            kw_m = opts.get_SubfigPlotOpt(sfig, "MeanOptions",   k)
+            kw_s = opts.get_SubfigPlotOpt(sfig, "StDevOptions",  k)
+            kw_u = opts.get_SubfigPlotOpt(sfig, "ErrPltOptions", k)
+            kw_d = opts.get_SubfigPlotOpt(sfig, "DeltaOptions",  k)
+            # Label options
+            sh_m = opts.get_SubfigOpt(sfig, "ShowMu", k)
+            sh_s = opts.get_SubfigOpt(sfig, "ShowSigma", k)
+            sh_d = opts.get_SubfigOpt(sfig, "ShowDelta", k)
+            sh_e = opts.get_SubfigOpt(sfig, "ShowEpsilon", k)
+            # Draw the plot.
+            h = P.PlotPoint(coeff, col=pt, n=nPlotIter, nAvg=nStats,
+                nFirst=nPlotFirst, nLast=nPlotLast,
+                LineOptions=kw_p, MeanOptions=kw_m,
+                d=dc, DeltaOptions=kw_d,
+                k=ksig, StDevOptions=kw_s,
+                u=uerr, ErrPltOptions=kw_u,
+                ShowMu=sh_m, ShowDelta=sh_d,
+                ShowSigma=sh_s, ShowEspsilon=sh_e,
+                FigWidth=figw, FigHeight=figh)
+        # Change back to report folder.
+        os.chdir(fpwd)
+        # Check for a figure to write.
+        if nIter >= 2:
+            # Get the file formatting
+            fmt = opts.get_SubfigOpt(sfig, "Format")
+            dpi = opts.get_SubfigOpt(sfig, "DPI")
+            # Figure name
+            fimg = '%s.%s' % (sfig, fmt)
+            fpdf = '%s.pdf' % sfig
+            # Save the figure.
+            if fmt in ['pdf']:
+                # Save as vector-based image.
+                h['fig'].savefig(fimg)
+            elif fmt in ['svg']:
+                # Save as PDF and SVG
+                h['fig'].savefig(fimg)
+                h['fig'].savefig(fpdf)
+            else:
+                # Save with resolution.
+                h['fig'].savefig(fimg, dpi=dpi)
+                h['fig'].savefig(fpdf)
+            # Close the figure.
+            h['fig'].clf()
+            # Include the graphics.
+            lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                % (frun, fpdf))
+        # Set the caption.
+        lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
+        # Close the subfigure.
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
+            
+        
     # Function to create coefficient plot and write figure
     def SubfigTecplotLayout(self, sfig, i):
         """Create image based on a Tecplot layout file

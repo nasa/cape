@@ -34,28 +34,6 @@ plt = 0
 # Radian -> degree conversion
 deg = np.pi / 180.0
 
-# Dedicated function to load Matplotlib only when needed.
-def ImportPyPlot():
-    """Import :mod:`matplotlib.pyplot` if not loaded
-    
-    :Call:
-        >>> pyCart.dataBook.ImportPyPlot()
-    :Versions:
-        * 2014-12-27 ``@ddalle``: First version
-    """
-    # Make global variables
-    global plt
-    global tform
-    global Text
-    # Check for PyPlot.
-    try:
-        plt.gcf
-    except AttributeError:
-        # Load the modules.
-        import matplotlib.pyplot as plt
-        import matplotlib.transforms as tform
-        from matplotlib.text import Text
-
 
 # Aerodynamic history class
 class DataBook(cape.dataBook.DataBook):

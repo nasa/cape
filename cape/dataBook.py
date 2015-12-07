@@ -2316,9 +2316,6 @@ class CaseData(object):
         jA = max(j0, jB-nAvg+1)
         # Reselect *iV* in case initial value was not in *self.i*.
         iA = self.i[jA]
-        print("i0=%i, j0=%i" % (i0, j0))
-        print("iA=%i, jA=%i" % (iA, jA))
-        print("iB=%i, jB=%i" % (iB, jB))
         # -----------------------
         # Standard deviation plot
         # -----------------------

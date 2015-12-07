@@ -698,6 +698,34 @@ class Report(odict):
                     "facecolor": "g", "alpha": 0.4, "ls": "none"},
                 "DeltaOptions": {"color": None}
             }
+        elif t in ['PlotPoint']:
+            # Point sensor history
+            S = {
+                "Header": "",
+                "Position": "b",
+                "Alignment": "center",
+                "Width": 0.5,
+                "FigWidth": 6,
+                "FigHeight": 4.5,
+                "Point": 0,
+                "Group": "",
+                "Coefficient": "Cp",
+                "Delta": 0.0,
+                "StandardDeviation": 0.0,
+                "IterativeError": 0.0,
+                "ShowMu": [True, False],
+                "ShowSigma": [True, False],
+                "ShowDelta": [True, False],
+                "ShowEpsilon": False,
+                "Format": "pdf",
+                "DPI": 150,
+                "LineOptions": {"color": ["k","g","c","m","b","r"]},
+                "MeanOptions": {"ls": None},
+                "StDevOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
+                "ErrPlotOptions": {
+                    "facecolor": "g", "alpha": 0.4, "ls": "none"},
+                "DeltaOptions": {"color": None}
+            }
         elif t in ['SweepCoeff']:
             # Force or moment sweep (over several cases)
             S = {
@@ -742,6 +770,7 @@ class Report(odict):
                 "Header": "",
                 "Position": "b",
                 "Alignment": "center",
+                "YLabel": "L2 residual",
                 "Width": 0.5,
                 "FigWidth": 6,
                 "FigHeight": 4.5,

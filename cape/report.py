@@ -901,12 +901,9 @@ class Report(object):
             elif btyp == 'PlotResid':
                 # Plot generic residual
                 lines += self.SubfigPlotResid(sfig, i)
-            elif btyp == 'Tecplot3View':
-                # Get the Tecplot component view
-                lines += self.SubfigTecplot3View(sfig, i)
-            elif btyp == 'Tecplot':
-                # Get the Tecplot layout view
-                lines += self.SubfigTecplotLayout(sfig, i)
+            elif btyp == 'Paraview':
+                # Get the Paraview layout view
+                lines += self.SubfigParaviewLayout(sfig, i)
         # Output
         return lines
         
@@ -2032,7 +2029,7 @@ class Report(object):
             # Check for the files.
             if (os.path.isfile('Components.i.plt') and 
                     os.path.isfile('cutPlanes.plt')):
-                # Run Tecplot
+                # Run Paraview
                 try:
                     # Copy the file into the current folder.
                     shutil.copy(fsrc, '.')
