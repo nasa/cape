@@ -2302,7 +2302,6 @@ class CaseData(object):
         # Default number of iterations: all
         if n is None: n = len(self.i)
         j0 = max(0, jB-n)
-        print("%s, %s, %s" % (0, j0, nFirst))
         # Get the starting iteration number to use.
         i0 = max(0, self.i[j0], nFirst) + 1
         # Make sure *iA* is in *self.i* and get the index.
@@ -2811,24 +2810,31 @@ class CaseFM(CaseData):
         # Last iteration to use.
         if nLast:
             # Attempt to use requested iter.
-            if nLast < self.i.size:
+            if self.i.size == 0:
+                # No iterations
+                iLast = 0
+            elif nLast<self.i[-1]:
                 # Using an earlier iter; make sure to use one in the hist.
                 jLast = self.GetIterationIndex(nLast)
                 # Find the iterations that are less than i.
                 iLast = self.i[jLast]
             else:
                 # Use the last iteration.
-                iLast = self.i.size
+                iLast = self.i[-1]
         else:
             # Just use the last iteration
             iLast = self.i.size
+        # Get index
+        jLast = self.GetIterationIndex(iLast)
         # Default values.
         if (nStats is None) or (nStats < 2):
             # Use last iteration
-            i0 = iLast - 1
+            i0 = iLast
         else:
-           # Process min indices for plotting and averaging.
+            # Process min indices for plotting and averaging.
             i0 = max(0, iLast-nStats)
+        # Get index
+        j0 = self.GetIterationIndex(i0)
         # Initialize output.
         s = {}
         # Loop through coefficients.
@@ -2836,14 +2842,14 @@ class CaseFM(CaseData):
             # Get the values
             F = getattr(self, c)
             # Save the mean value.
-            s[c] = np.mean(F[i0:iLast])
+            s[c] = np.mean(F[j0:jLast+1])
             # Check for statistics.
             if (nStats is not None) or (nStats < 2):
                 # Save the statistics.
-                s[c+'_min'] = np.min(F[i0:iLast])
-                s[c+'_max'] = np.max(F[i0:iLast])
-                s[c+'_std'] = np.std(F[i0:iLast])
-                s[c+'_err'] = util.SigmaMean(F[i0:iLast])
+                s[c+'_min'] = np.min(F[j0:jLast+1])
+                s[c+'_max'] = np.max(F[j0:jLast+1])
+                s[c+'_std'] = np.std(F[j0:jLast+1])
+                s[c+'_err'] = util.SigmaMean(F[j0:jLast+1])
         # Output
         return s
             

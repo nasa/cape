@@ -293,7 +293,7 @@ class Report(cape.report.Report):
         # Save current folder
         fpwd = os.getcwd()
         # Case folder
-        frun = self.cntl.x.GetFullFoldernames(i)
+        frun = self.cntl.x.GetFullFolderNames(i)
         # Extract options
         opts = self.cntl.opts
         # Extract the point
@@ -366,7 +366,7 @@ class Report(cape.report.Report):
             if nStats is None: nStats = opts.get_nStats(grp)
             if nMin   is None: nMin   = opts.get_nMin(grp)
             if nMax   is None: nMax   = opts.get_nMaxStats(grp)
-            if nLast  is None: nlast  = opts.get_nLast(grp)
+            if nLast  is None: nLast  = opts.get_nLastStats(grp)
             # Numbers of iterations for plots
             nPlotIter  = opts.get_SubfigOpt(sfig, "nPlot",      k)
             nPlotFirst = opts.get_SubfigOpt(sfig, "nPlotFirst", k)
@@ -396,15 +396,19 @@ class Report(cape.report.Report):
             sh_s = opts.get_SubfigOpt(sfig, "ShowSigma", k)
             sh_d = opts.get_SubfigOpt(sfig, "ShowDelta", k)
             sh_e = opts.get_SubfigOpt(sfig, "ShowEpsilon", k)
+            # Label formatting
+            f_s = opts.get_SubfigOpt(sfig, "SigmaFormat", k)
+            f_e = opts.get_SubfigOpt(sfig, "EpsilonFormat", k)
             # Draw the plot.
-            h = P.PlotPoint(coeff, col=pt, n=nPlotIter, nAvg=nStats,
+            h = P.PlotState(coeff, pt, n=nPlotIter, nAvg=nStats,
                 nFirst=nPlotFirst, nLast=nPlotLast,
                 LineOptions=kw_p, MeanOptions=kw_m,
                 d=dc, DeltaOptions=kw_d,
                 k=ksig, StDevOptions=kw_s,
                 u=uerr, ErrPltOptions=kw_u,
                 ShowMu=sh_m, ShowDelta=sh_d,
-                ShowSigma=sh_s, ShowEspsilon=sh_e,
+                ShowSigma=sh_s, SigmaFormat=f_s,
+                ShowEspsilon=sh_e, EpsilonFormat=f_e,
                 FigWidth=figw, FigHeight=figh)
         # Change back to report folder.
         os.chdir(fpwd)

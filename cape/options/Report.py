@@ -535,7 +535,7 @@ class Report(odict):
             *sfig*: :class:`str`
                 Name of subfigure
         :Outputs:
-            *t*: ['Conditions', 'Summary', 'PlotCoeff', 'PlotL1']
+            *t*: :class:`str`
                 Subfigure parent type
         :Versions:
             * 2015-03-08 ``@ddalle``: First version
@@ -544,7 +544,7 @@ class Report(odict):
         t = self.get_SubfigType(sfig)
         # Check if it is a base category.
         if t in ['Conditions', 'SweepConditions', 'SweepCases', 
-                'Summary', 'PlotCoeff', 'SweepCoeff', 'PlotL1',
+                'Summary', 'PlotCoeff', 'SweepCoeff', 'PlotL1', 'PlotPoint',
                 'Tecplot3View', 'Tecplot', 'ParaviewTri', 'Paraview']:
             # Yes, it is.
             return t

@@ -972,17 +972,17 @@ class CasePointSensor(cape.dataBook.CaseData):
         
     
     # Plot history of a coefficient
-    def PlotState(self, c, k, **kw):
+    def PlotState(self, c, pt, **kw):
         """Plot the iterative history of a state
         
         :Call:
-            >>> h = P.PlotState(c, k, n=None, nAvg=100, **kw)
+            >>> h = P.PlotState(c, pt, n=None, nAvg=100, **kw)
         :Inputs:
             *P*: :class:`pyCart.dataBook.PointSensor`
                 Case component history class
             *c*: :class:`str`
                 Name of coefficient to plot, e.g. ``'Cp'``
-            *k*: :class:`str` | :class:`int`
+            *pt*: :class:`str` | :class:`int`
                 Name or index of point sensor
             *n*: :class:`int`
                 Only show the last *n* iterations
@@ -1046,7 +1046,7 @@ class CasePointSensor(cape.dataBook.CaseData):
             elif c.lower() in ['m', 'mach']:
                 kw["YLabel"] = "Mach Number"
         # Refer to parent plotting class
-        return self.PlotValue(c, col=k, **kw)
+        return self.PlotValue(c, col=pt, **kw)
         
 # class CasePointSensor
 
