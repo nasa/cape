@@ -2124,8 +2124,398 @@ class DBTarget(dict):
 # class DBTarget
 
 
+# Individual case, individual component base class
+class CaseData(object):
+    """Base class for case iterative histories
+    
+    :Call:
+        >>> FM = CaseData()
+    :Versions:
+        * 2015-12-07 ``@ddalle``: First version
+    """
+    # Initialization method
+    def __init__(self):
+        """Initialization method
+        
+        :Versions:
+            * 2015-12-07 ``@ddalle``: First version
+        """
+        # Empty iterations
+        self.i = np.array([])
+        
+    # Function to get index of a certain iteration number
+    def GetIterationIndex(self, i):
+        """Return index of a particular iteration in *FM.i*
+        
+        If the iteration *i* is not present in the history, the index of the
+        last available iteration less than or equal to *i* is returned.
+        
+        :Call:
+            >>> j = FM.GetIterationIndex(i)
+        :Inputs:
+            *FM*: :class:`cape.dataBook.CaseData`
+                Case component history class
+            *i*: :class:`int`
+                Iteration number
+        :Outputs:
+            *j*: :class:`int`
+                Index of last iteration in *FM.i* less than or equal to *i*
+        :Versions:
+            * 2015-03-06 ``@ddalle``: First version
+            * 2015-12-07 ``@ddalle``: Copied from :class:`CaseFM`
+        """
+        # Check for *i* less than first iteration.
+        if (len(self.i)<1) or (i<self.i[0]): return 0
+        # Find the index.
+        j = np.where(self.i <= i)[0][-1]
+        # Output
+        return j
+        
+    # Extract one value/coefficient/state
+    def ExtractValue(self, c):
+        """Extract the iterative history for one coefficient/state
+        
+        This is a placeholder function
+        
+        :Call:
+            >>> C = FM.ExtractValue(c)
+        :Inputs:
+            *FM*: :class:`cape.dataBook.CaseData`
+                Case component history class
+            *c*: :class:`str` 
+                Name of state
+        :Outputs:
+            *C*: :class:`np.ndarray`
+                Array of values for *c* at each sample
+        :Versions:
+            * 2015-12-07 ``@ddalle``: First version
+        """
+        # Direct reference
+        try:
+            # Version of "PS.(c)*
+            return getattr(self,c)
+        except AttributeError:
+            raise AttributeError("Value '%s' is unknown for this class." % c)
+            
+    # Basic plotting function
+    def PlotValue(self, c, col=None, n=None, nAvg=100, **kw):
+        """Plot a single coefficient history
+        
+        :Call:
+            >>> h = FM.PlotValue(c, n=None, nAvg=100, **kw)
+        :Inputs:
+            *FM*: :class:`cape.dataBook.CaseData`
+                Case component history class
+            *c*: :class:`str`
+                Name of coefficient to plot, e.g. ``'CA'``
+            *col*: :class:`str` | :class:`int` | ``None``
+                Select a column by name or index
+            *n*: :class:`int`
+                Only show the last *n* iterations
+            *nAvg*: :class:`int`
+                Use the last *nAvg* iterations to compute an average
+            *d*: :class:`float`
+                Delta in the coefficient to show expected range
+            *k*: :class:`float`
+                Multiple of iterative standard deviation to plot
+            *u*: :class:`float`
+                Multiple of sampling error standard deviation to plot
+            *eps*: :class:`float`
+                Fixed sampling error, default uses :func:`SigmaMean`
+            *nLast*: :class:`int`
+                Last iteration to use (defaults to last iteration available)
+            *nFirst*: :class:`int`
+                First iteration to plot
+            *FigWidth*: :class:`float`
+                Figure width
+            *FigHeight*: :class:`float`
+                Figure height
+            *LineOptions*: :class:`dict`
+                Dictionary of additional options for line plot
+            *StDevOptions*: :class:`dict`
+                Options passed to :func:`plt.fill_between` for stdev plot
+            *ErrPltOptions*: :class:`dict`
+                Options passed to :func:`plt.fill_between` for uncertainty plot
+            *DeltaOptions*: :class:`dict`
+                Options passed to :func:`plt.plot` for reference range plot
+            *MeanOptions*: :class:`dict`
+                Options passed to :func:`plt.plot` for mean line
+            *ShowMu*: :class:`bool`
+                Option to print value of mean
+            *ShowSigma*: :class:`bool`
+                Option to print value of standard deviation
+            *ShowEpsilon*: :class:`bool`
+                Option to print value of sampling error
+            *ShowDelta*: :class:`bool`
+                Option to print reference value
+            *XLabel*: :class:`str`
+                Specified label for *x*-axis, default is ``Iteration Number``
+            *YLabel*: :class:`str`
+                Specified label for *y*-axis, default is *c*
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of figure/plot handles
+        :Versions:
+            * 2014-11-12 ``@ddalle``: First version
+            * 2014-12-09 ``@ddalle``: Transferred to :class:`AeroPlot`
+            * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
+            * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
+            * 2015-12-07 ``@ddalle``: Moved to basis class
+        """
+        # Make sure plotting modules are present.
+        ImportPyPlot()
+        # Extract the data.
+        if col:
+            # Extract data with a separate column reference
+            C = self.ExtractValue(c, col)
+        else:
+            # Extract from whole data set
+            C = self.ExtractValue(c)
+        # Process inputs.
+        nLast = kw.get('nLast')
+        nFirst = kw.get('nFirst')
+        # Iterative uncertainty options
+        dc = kw.get("d", 0.0)
+        ksig = kw.get("k", 0.0)
+        uerr = kw.get("u", 0.0)
+        # Other plot options
+        fw = kw.get('FigWidth')
+        fh = kw.get('FigHeight')
+        # ---------
+        # Last Iter 
+        # ---------
+        # Most likely last iteration
+        iB = self.i[-1]
+        # Check for an input last iter
+        if nLast is not None:
+            # Attempt to use requested iter.
+            if nLast < iB:
+                # Using an earlier iter; make sure to use one in the hist.
+                # Find the iterations that are less than i.
+                jB = self.GetIterationIndex(nLast)
+                iB = self.i[jB]
+        # Get the index of *iB* in *self.i*.
+        jB = self.GetIterationIndex(iB)+1
+        # ----------
+        # First Iter
+        # ----------
+        # Default number of iterations: all
+        if n is None: n = len(self.i)
+        # Get the starting iteration number to use.
+        i0 = max(0, iB-n, nFirst) + 1
+        # Make sure *iA* is in *self.i* and get the index.
+        j0 = self.GetIterationIndex(i0)
+        # Reselect *iA* in case initial value was not in *self.i*.
+        i0 = self.i[j0]
+        # --------------
+        # Averaging Iter
+        # --------------
+        # Get the first iteration to use in averaging.
+        iA = max(0, iB-nAvg) + 1
+        # Make sure *iV* is in *self.i* and get the index.
+        jA = self.GetIterationIndex(iA)
+        # Reselect *iV* in case initial value was not in *self.i*.
+        iA = self.i[jA]
+        # -----------------------
+        # Standard deviation plot
+        # -----------------------
+        # Initialize dictionary of handles.
+        h = {}
+        # Shortcut for the mean
+        cAvg = np.mean(C[jA:jB+1])
+        # Initialize plot options for standard deviation
+        kw_s = odict(color='b', lw=0.0,
+            facecolor="b", alpha=0.35, zorder=1)
+        # Calculate standard deviation if necessary
+        if (ksig and nAvg>2) or kw.get("ShowSigma"):
+            c_std = np.std(C[jA:jB])
+        # Show iterative n*standard deviation
+        if ksig and nAvg>2:
+            # Extract plot options from kwargs
+            for k in util.denone(kw.get("StDevOptions", {})):
+                # Ignore linestyle and ls
+                if k in ['ls', 'linestyle']: continue
+                # Override the default option.
+                if kw["StDevOptions"][k] is not None:
+                    kw_s[k] = kw["StDevOptions"][k]
+            # Limits
+            cMin = cAvg - ksig*c_std
+            cMax = cAvg + ksig*c_std
+            # Plot the target window boundaries.
+            h['std'] = plt.fill_between([iA,iB], [cMin]*2, [cMax]*2, **kw_s)
+        # --------------------------
+        # Iterative uncertainty plot
+        # --------------------------
+        kw_u = odict(color='g', ls="none",
+            facecolor="g", alpha=0.4, zorder=2)
+        # Calculate sampling error if necessary
+        if (uerr and nAvg>2) or kw.get("ShowEpsilon"):
+            # Check for sampling error
+            c_err = kw.get('eps')
+            # Calculate default
+            if c_err is None:
+                # Calculate mean sampling error
+                c_err = SigmaMean(C[jA:jB])
+        # Show iterative n*standard deviation
+        if uerr and nAvg>2:
+            # Extract plot options from kwargs
+            for k in util.denone(kw.get("ErrPltOptions", {})):
+                # Ignore linestyle and ls
+                if k in ['ls', 'linestyle']: continue
+                # Override the default option.
+                if kw["ErrPltOptions"][k] is not None:
+                    kw_u[k] = kw["ErrPltOptions"][k]
+            # Limits
+            cMin = cAvg - uerr*c_err
+            cMax = cAvg + uerr*c_err
+            # Plot the target window boundaries.
+            h['err'] = plt.fill_between([iA,iB], [cMin]*2, [cMax]*2, **kw_u)
+        # ---------
+        # Mean plot
+        # ---------
+        # Initialize plot options for mean.
+        kw_m = odict(color=kw.get("color", "0.1"),
+            ls=[":", "-"], lw=1.0, zorder=8)
+        # Extract plot options from kwargs
+        for k in util.denone(kw.get("MeanOptions", {})):
+            # Override the default option.
+            if kw["MeanOptions"][k] is not None:
+                kw_m[k] = kw["MeanOptions"][k]
+        # Turn into two groups.
+        kw0 = {}; kw1 = {}
+        for k in kw_m:
+            kw0[k] = kw_m.get_key(k, 0)
+            kw1[k] = kw_m.get_key(k, 1)
+        # Plot the mean.
+        h['mean'] = (
+            plt.plot([i0,iA], [cAvg, cAvg], **kw0) + 
+            plt.plot([iA,iB], [cAvg, cAvg], **kw1))
+        # ----------
+        # Delta plot
+        # ----------
+        # Initialize options for delta.
+        kw_d = odict(color="r", ls="--", lw=0.8, zorder=4)
+        # Calculate range of interest.
+        if dc:
+            # Extract plot options from kwargs
+            for k in util.denone(kw.get("DeltaOptions", {})):
+                # Override the default option.
+                if kw["DeltaOptions"][k] is not None:
+                    kw_d[k] = kw["DeltaOptions"][k]
+            # Turn into two groups.
+            kw0 = {}; kw1 = {}
+            for k in kw_m:
+                kw0[k] = kw_d.get_key(k, 0)
+                kw1[k] = kw_d.get_key(k, 1)
+            # Limits
+            cMin = cAvg-dc
+            cMax = cAvg+dc
+            # Plot the target window boundaries.
+            h['min'] = (
+                plt.plot([i0,iA], [cMin,cMin], **kw0) +
+                plt.plot([iA,iB], [cMin,cMin], **kw1))
+            h['max'] = (
+                plt.plot([i0,iA], [cMax,cMax], **kw0) +
+                plt.plot([iA,iB], [cMax,cMax], **kw1))
+        # ------------
+        # Primary plot
+        # ------------
+        # Initialize primary plot options.
+        kw_p = odict(color=kw.get("color","k"), ls="-", lw=1.5, zorder=7)
+        # Extract plot options from kwargs
+        for k in util.denone(kw.get("LineOptions", {})):
+            # Override the default option.
+            if kw["LineOptions"][k] is not None:
+                kw_p[k] = kw["LineOptions"][k]
+        # Plot the coefficient.
+        h[c] = plt.plot(self.i[j0:jB], C[j0:jB], **kw_p)
+        # Get the figure and axes.
+        h['fig'] = plt.gcf()
+        h['ax'] = plt.gca()
+        # Check for an existing ylabel
+        ly = h['ax'].get_ylabel()
+        # Compare to the requested ylabel
+        if ly and ly != c:
+            # Combine labels
+            ly = ly + '/' + c
+        else:
+            # Use the coefficient
+            ly = c
+        # Process axis labels
+        xlbl = kw.get('XLabel', 'Iteration Number')
+        ylbl = kw.get('YLabel', ly)
+        # Labels.
+        h['x'] = plt.xlabel(xlbl)
+        h['y'] = plt.ylabel(ylbl)
+        # Set the xlimits.
+        h['ax'].set_xlim((i0, iB+25))
+        # Set figure dimensions
+        if fh: h['fig'].set_figheight(fh)
+        if fw: h['fig'].set_figwidth(fw)
+        # Attempt to apply tight axes.
+        try: plt.tight_layout()
+        except Exception: pass
+        # ------
+        # Labels
+        # ------
+        # y-coordinates of the current axes w.r.t. figure scale
+        ya = h['ax'].get_position().get_points()
+        ha = ya[1,1] - ya[0,1]
+        # y-coordinates above and below the box
+        yf = 2.5 / ha / h['fig'].get_figheight()
+        yu = 1.0 + 0.065*yf
+        yl = 1.0 - 0.04*yf
+        # Make a label for the mean value.
+        if kw.get("ShowMu", True):
+            # Form: CA = 0.0204
+            lbl = u'%s = %.4f' % (c, cAvg)
+            # Create the handle.
+            h['mu'] = plt.text(0.99, yu, lbl, color=kw_p['color'],
+                horizontalalignment='right', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['mu'].set_family("DejaVu Sans")
+            except Exception: pass
+        # Make a label for the deviation.
+        if dc and kw.get("ShowDelta", True):
+            # Form: \DeltaCA = 0.0050
+            lbl = u'\u0394%s = %.4f' % (c, dc)
+            # Create the handle.
+            h['d'] = plt.text(0.99, yl, lbl, color=kw_d.get_key('color',1),
+                horizontalalignment='right', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['d'].set_family("DejaVu Sans")
+            except Exception: pass
+        # Make a label for the standard deviation.
+        if ksig and nAvg>2 and kw.get("ShowSigma", True):
+            # Form \sigma(CA) = 0.0032
+            lbl = u'\u03C3(%s) = %.4f' % (c, ksig*c_std)
+            # Create the handle.
+            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_key('color',1),
+                horizontalalignment='left', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['sig'].set_family("DejaVu Sans")
+            except Exception: pass
+        # Make a label for the iterative uncertainty.
+        if uerr and nAvg>2 and kw.get("ShowEpsilon", True):
+            # Form \sigma(CA) = 0.0032
+            lbl = u'\u0395(%s) = %.4f' % (c, ueps*c_err)
+            # Create the handle.
+            h['eps'] = plt.text(0.01, yl, lbl, color=kw_u.get_key('color',1),
+                horizontalalignment='left', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['sig'].set_family("DejaVu Sans")
+            except Exception: pass
+        # Output.
+        return h
+# class CaseData
+        
+
 # Individual component force and moment
-class CaseFM(object):
+class CaseFM(CaseData):
     """
     This class contains methods for reading data about an the histroy of an
     individual component for a single case.  The list of available components
@@ -2393,34 +2783,6 @@ class CaseFM(object):
         if ('CLN' in self.coeffs) and ('CY' in self.coeffs):
             self.CLN += (x[0]-xi[0])/Lref*self.CY
     
-    # Function to get index of a certain iteration number
-    def GetIterationIndex(self, i):
-        """Return index of a particular iteration in *FM.i*
-        
-        If the iteration *i* is not present in the history, the index of the
-        last available iteration less than or equal to *i* is returned.
-        
-        :Call:
-            >>> j = FM.GetIterationIndex(i)
-        :Inputs:
-            *FM*: :class:`cape.dataBook.CaseFM`
-                Instance of the force and moment class
-            *i*: :class:`int`
-                Iteration number
-        :Outputs:
-            *j*: :class:`int`
-                Index of last iteration in *FM.i* less than or equal to *i*
-        :Versions:
-            * 2015-03-06 ``@ddalle``: First version
-        """
-        # Check for *i* less than first iteration.
-        if i < self.i[0]: return 0
-        # Find the index.
-        j = np.where(self.i <= i)[0][-1]
-        # Output
-        return j
-        
-        
     # Method to get averages and standard deviations
     def GetStatsN(self, nStats=100, nLast=None):
         """Get mean, min, max, and standard deviation for all coefficients
@@ -2546,7 +2908,7 @@ class CaseFM(object):
         """Plot a single coefficient history
         
         :Call:
-            >>> h = FM.PlotCoeff(comp, c, n=1000, nAvg=100, **kw)
+            >>> h = FM.PlotCoeff(c, n=1000, nAvg=100, **kw)
         :Inputs:
             *FM*: :class:`cape.dataBook.CaseFM`
                 Instance of the component force history class
@@ -2574,239 +2936,10 @@ class CaseFM(object):
             * 2014-12-09 ``@ddalle``: Transferred to :class:`AeroPlot`
             * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
             * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
+            * 2015-12-07 ``@ddalle``: Moved content to base class
         """
-        # Make sure plotting modules are present.
-        ImportPyPlot()
-        # Extract the data.
-        C = getattr(self, c)
-        # Process inputs.
-        nLast = kw.get('nLast')
-        nFirst = kw.get('nFirst')
-        # Iterative uncertainty options
-        dc = kw.get("d", 0.0)
-        ksig = kw.get("k", 0.0)
-        uerr = kw.get("u", 0.0)
-        # Other plot options
-        fw = kw.get('FigWidth')
-        fh = kw.get('FigHeight')
-        # Get statistics
-        s = self.GetStatsN(nAvg, nLast=nLast) 
-        # ---------
-        # Last Iter 
-        # ---------
-        # Most likely last iteration
-        iB = self.i[-1]
-        # Check for an input last iter
-        if nLast is not None:
-            # Attempt to use requested iter.
-            if nLast < iB:
-                # Using an earlier iter; make sure to use one in the hist.
-                # Find the iterations that are less than i.
-                jB = self.GetIterationIndex(nLast)
-                iB = self.i[jB]
-        # Get the index of *iB* in *self.i*.
-        jB = self.GetIterationIndex(iB)
-        # ----------
-        # First Iter
-        # ----------
-        # Default number of iterations: all
-        if n is None: n = len(self.i)
-        # Get the starting iteration number to use.
-        i0 = max(0, iB-n, nFirst) + 1
-        # Make sure *iA* is in *self.i* and get the index.
-        j0 = self.GetIterationIndex(i0)
-        # Reselect *iA* in case initial value was not in *self.i*.
-        i0 = self.i[j0]
-        # --------------
-        # Averaging Iter
-        # --------------
-        # Get the first iteration to use in averaging.
-        iA = max(0, iB-nAvg) + 1
-        # Make sure *iV* is in *self.i* and get the index.
-        jA = self.GetIterationIndex(iA)
-        # Reselect *iV* in case initial value was not in *self.i*.
-        iA = self.i[jA]
-        # -----------------------
-        # Standard deviation plot
-        # -----------------------
-        # Initialize dictionary of handles.
-        h = {}
-        # Shortcut for the mean
-        cAvg = s[c]
-        # Initialize plot options for standard deviation
-        kw_s = odict(color='b', lw=0.0,
-            facecolor="b", alpha=0.35, zorder=1)
-        # Show iterative n*standard deviation
-        if ksig and nAvg>2:
-            # Extract plot options from kwargs
-            for k in util.denone(kw.get("StDevOptions", {})):
-                # Ignore linestyle and ls
-                if k in ['ls', 'linestyle']: continue
-                # Override the default option.
-                if kw["StDevOptions"][k] is not None:
-                    kw_s[k] = kw["StDevOptions"][k]
-            # Limits
-            cMin = cAvg - ksig*s[c+"_std"]
-            cMax = cAvg + ksig*s[c+"_std"]
-            # Plot the target window boundaries.
-            h['std'] = plt.fill_between([iA,iB], [cMin]*2, [cMax]*2, **kw_s)
-        # --------------------------
-        # Iterative uncertainty plot
-        # --------------------------
-        kw_u = odict(color='g', ls="none",
-            facecolor="g", alpha=0.4, zorder=2)
-        # Show iterative n*standard deviation
-        if uerr and nAvg>2:
-            # Extract plot options from kwargs
-            for k in util.denone(kw.get("ErrPltOptions", {})):
-                # Ignore linestyle and ls
-                if k in ['ls', 'linestyle']: continue
-                # Override the default option.
-                if kw["ErrPltOptions"][k] is not None:
-                    kw_u[k] = kw["ErrPltOptions"][k]
-            # Limits
-            cMin = cAvg - uerr*s[c+"_err"]
-            cMax = cAvg + uerr*s[c+"_err"]
-            # Plot the target window boundaries.
-            h['err'] = plt.fill_between([iA,iB], [cMin]*2, [cMax]*2, **kw_u)
-        # ---------
-        # Mean plot
-        # ---------
-        # Initialize plot options for mean.
-        kw_m = odict(color=kw.get("color", "0.1"),
-            ls=[":", "-"], lw=1.0, zorder=8)
-        # Extract plot options from kwargs
-        for k in util.denone(kw.get("MeanOptions", {})):
-            # Override the default option.
-            if kw["MeanOptions"][k] is not None:
-                kw_m[k] = kw["MeanOptions"][k]
-        # Turn into two groups.
-        kw0 = {}; kw1 = {}
-        for k in kw_m:
-            kw0[k] = kw_m.get_key(k, 0)
-            kw1[k] = kw_m.get_key(k, 1)
-        # Plot the mean.
-        h['mean'] = (
-            plt.plot([i0,iA], [cAvg, cAvg], **kw0) + 
-            plt.plot([iA,iB], [cAvg, cAvg], **kw1))
-        # ----------
-        # Delta plot
-        # ----------
-        # Initialize options for delta.
-        kw_d = odict(color="r", ls="--", lw=0.8, zorder=4)
-        # Calculate range of interest.
-        if dc:
-            # Extract plot options from kwargs
-            for k in util.denone(kw.get("DeltaOptions", {})):
-                # Override the default option.
-                if kw["DeltaOptions"][k] is not None:
-                    kw_d[k] = kw["DeltaOptions"][k]
-            # Turn into two groups.
-            kw0 = {}; kw1 = {}
-            for k in kw_m:
-                kw0[k] = kw_d.get_key(k, 0)
-                kw1[k] = kw_d.get_key(k, 1)
-            # Limits
-            cMin = cAvg-dc
-            cMax = cAvg+dc
-            # Plot the target window boundaries.
-            h['min'] = (
-                plt.plot([i0,iA], [cMin,cMin], **kw0) +
-                plt.plot([iA,iB], [cMin,cMin], **kw1))
-            h['max'] = (
-                plt.plot([i0,iA], [cMax,cMax], **kw0) +
-                plt.plot([iA,iB], [cMax,cMax], **kw1))
-        # ------------
-        # Primary plot
-        # ------------
-        # Initialize primary plot options.
-        kw_p = odict(color=kw.get("color","k"), ls="-", lw=1.5, zorder=7)
-        # Extract plot options from kwargs
-        for k in util.denone(kw.get("LineOptions", {})):
-            # Override the default option.
-            if kw["LineOptions"][k] is not None:
-                kw_p[k] = kw["LineOptions"][k]
-        # Plot the coefficient.
-        h[c] = plt.plot(self.i[j0:], C[j0:], **kw_p)
-        # Get the figure and axes.
-        h['fig'] = plt.gcf()
-        h['ax'] = plt.gca()
-        # Check for an existing ylabel
-        ly = h['ax'].get_ylabel()
-        # Compare to the requested ylabel
-        if ly and ly != c:
-            # Combine labels
-            ly = ly + '/' + c
-        else:
-            # Use the coefficient
-            ly = c
-        # Labels.
-        h['x'] = plt.xlabel('Iteration Number')
-        h['y'] = plt.ylabel(ly)
-        # Set the xlimits.
-        h['ax'].set_xlim((i0, iB+25))
-        # Set figure dimensions
-        if fh: h['fig'].set_figheight(fh)
-        if fw: h['fig'].set_figwidth(fw)
-        # Attempt to apply tight axes.
-        try: plt.tight_layout()
-        except Exception: pass
-        # ------
-        # Labels
-        # ------
-        # y-coordinates of the current axes w.r.t. figure scale
-        ya = h['ax'].get_position().get_points()
-        ha = ya[1,1] - ya[0,1]
-        # y-coordinates above and below the box
-        yf = 2.5 / ha / h['fig'].get_figheight()
-        yu = 1.0 + 0.065*yf
-        yl = 1.0 - 0.04*yf
-        # Make a label for the mean value.
-        if kw.get("ShowMu", True):
-            # Form: CA = 0.0204
-            lbl = u'%s = %.4f' % (c, cAvg)
-            # Create the handle.
-            h['mu'] = plt.text(0.99, yu, lbl, color=kw_p['color'],
-                horizontalalignment='right', verticalalignment='top',
-                transform=h['ax'].transAxes)
-            # Correct the font.
-            try: h['mu'].set_family("DejaVu Sans")
-            except Exception: pass
-        # Make a label for the deviation.
-        if dc and kw.get("ShowDelta", True):
-            # Form: \DeltaCA = 0.0050
-            lbl = u'\u0394%s = %.4f' % (c, dc)
-            # Create the handle.
-            h['d'] = plt.text(0.99, yl, lbl, color=kw_d.get_key('color',1),
-                horizontalalignment='right', verticalalignment='top',
-                transform=h['ax'].transAxes)
-            # Correct the font.
-            try: h['d'].set_family("DejaVu Sans")
-            except Exception: pass
-        # Make a label for the standard deviation.
-        if ksig and nAvg>2 and kw.get("ShowSigma", True):
-            # Form \sigma(CA) = 0.0032
-            lbl = u'\u03C3(%s) = %.4f' % (c, ksig*s[c+'_std'])
-            # Create the handle.
-            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_key('color',1),
-                horizontalalignment='left', verticalalignment='top',
-                transform=h['ax'].transAxes)
-            # Correct the font.
-            try: h['sig'].set_family("DejaVu Sans")
-            except Exception: pass
-        # Make a label for the iterative uncertainty.
-        if uerr and nAvg>2 and kw.get("ShowEpsilon", True):
-            # Form \sigma(CA) = 0.0032
-            lbl = u'\u0395(%s) = %.4f' % (c, ueps*s[c+'_err'])
-            # Create the handle.
-            h['eps'] = plt.text(0.01, yl, lbl, color=kw_u.get_key('color',1),
-                horizontalalignment='left', verticalalignment='top',
-                transform=h['ax'].transAxes)
-            # Correct the font.
-            try: h['sig'].set_family("DejaVu Sans")
-            except Exception: pass
-        # Output.
-        return h
+        # Plot appropriately.
+        return self.PlotValue(c, n=n, nAvg=nAvg, **kw)
     
     # Plot coefficient histogram
     def PlotCoeffHist(self, c, nAvg=100, nBin=20, nLast=None, **kw):

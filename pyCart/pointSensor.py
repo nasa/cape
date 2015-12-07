@@ -24,6 +24,28 @@ from .inputCntl import InputCntl
 # Basis module
 import cape.dataBook
 
+# Dedicated function to load Matplotlib only when needed.
+def ImportPyPlot():
+    """Import :mod:`matplotlib.pyplot` if not loaded
+    
+    :Call:
+        >>> pyCart.dataBook.ImportPyPlot()
+    :Versions:
+        * 2014-12-27 ``@ddalle``: First version
+    """
+    # Make global variables
+    global plt
+    global tform
+    global Text
+    # Check for PyPlot.
+    try:
+        plt
+    except AttributeError:
+        # Load the modules.
+        import matplotlib.pyplot as plt
+        import matplotlib.transforms as tform
+        from matplotlib.text import Text
+
 
 # Read best input.cntl file.
 def get_InputCntl():
@@ -511,7 +533,7 @@ class DBPointSensor(cape.dataBook.DBBase):
 
 
 # Individual point sensor
-class CasePointSensor(object):
+class CasePointSensor(cape.dataBook.CaseData):
     """Individual case point sensor history
     
     :Call:
@@ -736,7 +758,6 @@ class CasePointSensor(object):
         # Increase iteration count.
         self.nIter += 1
         
-        
     
     # Get point sensor by name
     def GetPointSensorIndex(self, name):
@@ -852,36 +873,180 @@ class CasePointSensor(object):
         # Output,
         return s
         
-    
-    # Get the pressure coefficient
-    def GetCp(self, k=None, imin=None, imax=None):
-        """Get pressure coefficients at points *k* for one or more iterations
+    # Extract value
+    def ExtractValue(self, c, k=None):
+        """Extract the iterative history for one coefficient/state
+        
+        The following states are available
+        
+            * ``"X"``: x-coordinate of point
+            * ``"Y"``: y-coordinate of point
+            * ``"Z"``: z-coordinate of point
+            * ``"dp"``: static pressure, :math:`p/p_\infty-1`
+            * ``"rho"``: static density, :math:`\rho/\rho_\infty`
+            * ``"U"``: x-component of velocity, :math:`u/a_\infty`
+            * ``"V"``: y-component of velocity, :math:`v/a_\infty`
+            * ``"W"``: z-component of velocity, :math:`w/a_\infty`
+            * ``"P"``: static pressure, :math:`p/(\gamma p_\infty)`
+            * ``"Cp"``: pressure coefficient, :math:`dp/(0.7*M_\infty^2`
+            * ``"p"``: static pressure, :math:`p/p_\infty`
+            * ``"T"``: Static temperature, :math:`T/T_\infty`
+            * ``"M"``: Mach number
         
         :Call:
-            >>> CP = P.GetCp(k=None, imin=None, imax=None)
+            >>> C = PS.ExtractValue(c, k=None)
         :Inputs:
-            *P*: :class:`pyCart.pointSensor.CasePointSensor`
-                Iterative point sensor history
-            *k*: :class:`int` | :class:`list` (:class:`int`) | ``None``
-                Point index or list of points (all points if ``None``)
-            *imin*: :class:`int` | ``None``
-                Minimum iteration number to include
-            *imax*: :class:`int` | ``None``
-                Maximum iteration number to include
+            *PS*: :class:`pyCart.pointSensor.PointSensor
+                Point sensor
+            *c*: :class:`str` 
+                Name of state
+            *k*: :class:`str` | :class:`int` | ``None``
+                Point sensor name or index
+        :Outputs:
+            *C*: :class:`np.ndarray`
+                Array of values for *c* at each sample
         :Versions:
-            * 2015-12-01 ``@ddalle``: First version
+            * 2015-12-07 ``@ddalle``: First version
         """
-        # Default point indices.
-        if k is None: k = np.arange(self.nPoint)
-        # List of iterations.
-        iIter = self.data[0,:,-1]
-        # Indices
-        i = np.arange(self.nIter) > -1
-        # Filter indices
-        if imin is not None: i[iIter<imin] = False
-        if imax is not None: i[iIter>imax] = False
-        # Select the data
-        return self.data[k,i,self.nd] / (0.7*self.mach**2)
+        # Process point sensor specification
+        if k is None:
+            # Extract all data
+            D = self.data.reshape((self.nPoint*self.nIter,12))
+        elif type(k).__name__.startswith('int'):
+            # Select the appropriate point.
+            D = self.data[k,:,:]
+        else:
+            # Get the point index
+            k = self.GetPointSensorIndex(k)
+            # Select.
+            D = self.data[k,:,:]
+        # Extract valid states
+        dp = D[:,4]
+        rho = D[:,5]
+        U = D[:,6]
+        V = D[:,7]
+        W = D[:,8]
+        P = D[:,9]
+        # Check input state
+        if c.lower() in ['m', 'mach']:
+            # Calculate velocity.
+            Vt = np.sqrt(U**2 + V**2 + W**2)
+            # Divide by soundspeed ratio
+            C = Vt / np.sqrt(1.4*P/rho)
+        elif c.lower() in ['cp', 'c_p']:
+            # Get freestream Mach number
+            Minf = self.mach
+            # Calculate pressure coefficient
+            C = dp / (0.7*Minf*Minf)
+        elif c == 'T':
+            # Get static temperature
+            C = 1.4*P/srho
+        elif c == 'p':
+            # Get static pressure
+            C = 1.4*P
+        elif c.lower() == 'rho':
+            # Static density
+            C = rho
+        elif c.lower() == 'dp':
+            # Scaled static pressure
+            C = dp
+        elif c == 'P':
+            # Weird static pressure
+            C = P
+        elif c == 'U':
+            C = U
+        elif c == 'V':
+            C = V
+        elif c == 'W':
+            C = W
+        else:
+            raise AttributeError(
+                "State '%s' is unknown for %iD data." % (c, self.nd))
+        # Output
+        if k is None:
+            # Resize
+            return C.reshape((self.nIter,self.nPoint))
+        else:
+            # Direct output
+            return C
+        
+    
+    # Plot history of a coefficient
+    def PlotState(self, c, k, **kw):
+        """Plot the iterative history of a state
+        
+        :Call:
+            >>> h = P.PlotState(c, k, n=None, nAvg=100, **kw)
+        :Inputs:
+            *P*: :class:`pyCart.dataBook.PointSensor`
+                Case component history class
+            *c*: :class:`str`
+                Name of coefficient to plot, e.g. ``'Cp'``
+            *k*: :class:`str` | :class:`int`
+                Name or index of point sensor
+            *n*: :class:`int`
+                Only show the last *n* iterations
+            *nAvg*: :class:`int`
+                Use the last *nAvg* iterations to compute an average
+            *d*: :class:`float`
+                Delta in the coefficient to show expected range
+            *k*: :class:`float`
+                Multiple of iterative standard deviation to plot
+            *u*: :class:`float`
+                Multiple of sampling error standard deviation to plot
+            *eps*: :class:`float`
+                Fixed sampling error, default uses :func:`SigmaMean`
+            *nLast*: :class:`int`
+                Last iteration to use (defaults to last iteration available)
+            *nFirst*: :class:`int`
+                First iteration to plot
+            *FigWidth*: :class:`float`
+                Figure width
+            *FigHeight*: :class:`float`
+                Figure height
+            *LineOptions*: :class:`dict`
+                Dictionary of additional options for line plot
+            *StDevOptions*: :class:`dict`
+                Options passed to :func:`plt.fill_between` for stdev plot
+            *ErrPltOptions*: :class:`dict`
+                Options passed to :func:`plt.fill_between` for uncertainty plot
+            *DeltaOptions*: :class:`dict`
+                Options passed to :func:`plt.plot` for reference range plot
+            *MeanOptions*: :class:`dict`
+                Options passed to :func:`plt.plot` for mean line
+            *ShowMu*: :class:`bool`
+                Option to print value of mean
+            *ShowSigma*: :class:`bool`
+                Option to print value of standard deviation
+            *ShowEpsilon*: :class:`bool`
+                Option to print value of sampling error
+            *ShowDelta*: :class:`bool`
+                Option to print reference value
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of figure/plot handles
+        :Versions:
+            * 2015-12-07 ``@ddalle``: First version
+        """
+        # Process slightly improved default y-axis labels
+        if "YLabel" not in kw:
+            # Check the state.
+            if c.lower() == 'dp':
+                kw["YLabel"] = r"$(p-p_\infty)/p_\infty$"
+            elif c == 'P':
+                kw["YLabel"] = r"$p/\gamma p_\infty$"
+            elif c.lower() == 'rho':
+                kw["YLabel"] = r"Static Density, $\rho/\rho_\infty$"
+            elif c == 'p':
+                kw["YLabel"] = r"Static Pressure, $p/p_\infty$"
+            elif c == 'T':
+                kw["YLabel"] = r"Static Temperature, $T/T_\infty$"
+            elif c.lower() in ['cp', 'c_p']:
+                kw["YLabel"] = "Pressure Coefficient"
+            elif c.lower() in ['m', 'mach']:
+                kw["YLabel"] = "Mach Number"
+        # Refer to parent plotting class
+        return self.PlotValue(self, c, col=k, **kw)
         
 # class CasePointSensor
 
@@ -928,7 +1093,7 @@ class PointSensor(object):
             self.nd = 2
             self.X = self.data[:,0]
             self.Y = self.data[:,1]
-            self.p   = self.data[:,2]
+            self.dp  = self.data[:,2]
             self.rho = self.data[:,3]
             self.U   = self.data[:,4]
             self.V   = self.data[:,5]
@@ -944,7 +1109,7 @@ class PointSensor(object):
             self.X = self.data[:,0]
             self.Y = self.data[:,1]
             self.Z = self.data[:,2]
-            self.p   = self.data[:,3]
+            self.dp  = self.data[:,3]
             self.rho = self.data[:,4]
             self.U   = self.data[:,5]
             self.V   = self.data[:,6]
@@ -1019,6 +1184,108 @@ class PointSensor(object):
             f.write(fpr % tuple(self.data[i,:]))
         # Close the file.
         f.close()
+        
+    
+    # Extract value
+    def ExtractValue(self, c):
+        """Extract the iterative history for one coefficient/state
+        
+        The following states are available
+        
+            * ``"X"``: x-coordinate of point
+            * ``"Y"``: y-coordinate of point
+            * ``"Z"``: z-coordinate of point
+            * ``"dp"``: static pressure, :math:`p/p_\infty-1`
+            * ``"rho"``: static density, :math:`\rho/\rho_\infty`
+            * ``"U"``: x-component of velocity, :math:`u/a_\infty`
+            * ``"V"``: y-component of velocity, :math:`v/a_\infty`
+            * ``"W"``: z-component of velocity, :math:`w/a_\infty`
+            * ``"P"``: static pressure, :math:`p/(\gamma p_\infty)`
+            * ``"Cp"``: pressure coefficient, :math:`dp/(0.7*M_\infty^2`
+            * ``"p"``: static pressure, :math:`p/p_\infty`
+            * ``"T"``: Static temperature, :math:`T/T_\infty`
+            * ``"M"``: Mach number
+            
+        The values *Z* and *W* are not available for 2D data
+        
+        :Call:
+            >>> C = PS.ExtractValue(c)
+        :Inputs:
+            *PS*: :class:`pyCart.pointSensor.PointSensor
+                Point sensor
+            *c*: :class:`str` 
+                Name of state
+        :Outputs:
+            *C*: :class:`np.ndarray`
+                Array of values for *c* at each sample
+        :Versions:
+            * 2015-12-07 ``@ddalle``: First version
+        """
+        # Check input state
+        if c.lower() in ['m', 'mach']:
+            # Calculate velocity.
+            if self.nd == 2:
+                Vt = np.sqrt(self.U**2 + self.V**2)
+            else:
+                Vt = np.sqrt(self.U**2 + self.V**2 + self.W**2)
+            # Divide by soundspeed ratio
+            return Vt / np.sqrt(1.4*self.P/self.rho)
+        elif c.lower() in ['cp', 'c_p']:
+            # Get freestream Mach number
+            Minf = get_mach()
+            # Calculate pressure coefficient
+            return self.dp / (0.7*Minf*Minf)
+        elif c == 'T':
+            # Get static temperature
+            return 1.4*self.P/self.rho
+        elif c == 'p':
+            # Get static pressure
+            return 1.4*self.P
+        else:
+            # Direct reference
+            try:
+                # Version of "PS.(c)*
+                return getattr(self,c)
+            except AttributeError:
+                raise AttributeError(
+                    "State '%s' is unknown for %iD data." % (c, self.nd))
+        
+        
+    # Plot history
+    def PlotPoint(self, c, n=None, nAvg=100, **kw):
+        """Plot a single point sensor iterative history
+        
+        :Call:
+            >>> h = PS.PlotPoint(c, n=None, nAvg=100, **kw)
+        :Inputs:
+            *PS*: :class:`pyCart.pointSensor.PointSensor`
+                Point sensor
+            *c*: {'dp'} | 'rho' | 'U' | 'V' | 'W' | 'P' 
+                Name of state quantity to plot
+            *n*: :class:`int`
+                Only show the last *n* iterations
+            *nAvg*: :class:`int`
+                Use the last *nAvg* iterations to compute an average
+            *d*: :class:`float`
+                Delta in the coefficient to show expected range
+            *nLast*: :class:`int`
+                Last iteration to use (defaults to last iteration available)
+            *nFirst*: :class:`int`
+                First iteration to plot
+            *FigWidth*: :class:`float`
+                Figure width
+            *FigHeight*: :class:`float`
+                Figure height
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of figure/plot handles
+        :Versions:
+            * 2015-12-07 ``@ddalle``: First version
+        """
+        # Make sure plotting modules are present.
+        ImportPyPlot()
+        # Extract the data.
+        C = self.ExtractValue(c)
     
         
     # Multiplication
