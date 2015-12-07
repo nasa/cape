@@ -162,6 +162,9 @@ class Report(cape.report.Report):
             elif btyp == 'Summary':
                 # Get the force and/or moment summary
                 lines += self.SubfigSummary(sfig, i)
+            elif btyp == 'PointSensorTable':
+                # Get the point sensor table summary
+                lines += self.SubfigPointSensortable(sfig, i)
             elif btyp == 'PlotCoeff':
                 # Get the force or moment history plot
                 lines += self.SubfigPlotCoeff(sfig, i)
