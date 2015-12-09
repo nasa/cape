@@ -97,9 +97,9 @@ def tail(fname, n=1):
         * 2015-01-12 ``@ddalle``: First version
     """
     # Create the command.
-    cmd = ['tail', '-%i'%n, fname]
+    cmdi = ['tail', '-%i'%n, fname]
     # Use Popen because check_output is 2.7+
-    return sp.Popen(cmd, stdout=sp.PIPE).communicate()[0]
+    return sp.Popen(cmdi, stdout=sp.PIPE).communicate()[0]
         
 # Function to get the first line of a file.
 def head(fname, n=1):
