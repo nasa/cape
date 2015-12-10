@@ -6,7 +6,7 @@ Utilities for pyCart: :mod:`pyCart.util`
 
 # Import everything from cape.util
 from cape.util import *
-
+import glob
 
 # pyCart base folder
 pyCartFolder = os.path.split(os.path.abspath(__file__))[0]
@@ -41,7 +41,8 @@ def GetWorkingFolder():
         return fdir
     # Check for adapt?? folders
     fglob = glob.glob('adapt??')
-    fglob.sort().reverse()
+    fglob.sort()
+    fglob.reverse()
     # Check adapt?? folders in reverse
     for fi in fglob:
         # Search for `history.dat` file.

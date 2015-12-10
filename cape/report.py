@@ -1490,8 +1490,8 @@ class Report(object):
                 fcpt = comp
             # Default format: RSRB/CLM
             fcpt = "%s/%s" % (fcpt, coeff)
-            # Ensure there are no underscores.
-            fcpt = fcpt.replace("_", "\_")
+        # Ensure there are no underscores.
+        fcpt = fcpt.replace("_", "\_")
         # Get the vertical alignment.
         hv = opts.get_SubfigOpt(sfig, "Position")
         # Get subfigure width
