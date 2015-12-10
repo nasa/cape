@@ -260,7 +260,7 @@ class Report(object):
         f.write('\n\\FloatBarrier\n')
         
         # Write the header.
-        f.write('\\newpage\n')
+        f.write('\\clearpage\n')
         f.write('\\setcase{%s}\n' % frun.replace('_', '\\_'))
         f.write('\\phantomsection\n')
         f.write('\\addcontentsline{toc}{section}{\\texttt{\\thecase}}\n')
@@ -295,7 +295,7 @@ class Report(object):
         f = open(self.fname, 'w')
         
         # Write the header.
-        f.write('\n\\newpage\n')
+        f.write('\n\\clearpage\n')
         f.write('\\setcase{%s}\n' % frun.replace('_', '\\_'))
         f.write('\\setsweep{%s}\n' % fswp)
         f.write('\\phantomsection\n')
