@@ -164,7 +164,7 @@ class Report(cape.report.Report):
                 lines += self.SubfigSummary(sfig, i)
             elif btyp == 'PointSensorTable':
                 # Get the point sensor table summary
-                lines += self.SubfigPointSensortable(sfig, i)
+                lines += self.SubfigPointSensorTable(sfig, i)
             elif btyp == 'PlotCoeff':
                 # Get the force or moment history plot
                 lines += self.SubfigPlotCoeff(sfig, i)
@@ -606,8 +606,6 @@ class Report(cape.report.Report):
         S = {}
         # Get statistics if possible.
         if nCur >= max(1, nMin+nStats):
-            # Don't use iterations before *nMin*
-            nMax = min(nMax, nCur-nMin)
             # Go to the run directory.
             os.chdir(self.cntl.RootDir)
             os.chdir(self.cntl.x.GetFullFolderNames(i))
@@ -615,8 +613,15 @@ class Report(cape.report.Report):
             P = self.ReadPointSensor()
             # Loop through components
             for pt in pts:
+                # Process point index
+                if type(pt).__name__.startswith('int'):
+                    # Integer specification (dangerous)
+                    kpt = pt
+                else:
+                    # Specified by name
+                    kpt = P.GetPointSensorIndex(pt)
                 # Get the statistics.
-                S[pt] = P.GetStats(pt, nStats=nStats, nLast=nCur)
+                S[pt] = P.GetStats(kpt, nStats=nStats, nLast=nCur)
         # Go back to original folder.
         os.chdir(fpwd)
         # Get the vertical alignment.
@@ -639,7 +644,14 @@ class Report(cape.report.Report):
         lines.append('\\noindent\n')
         lines.append(line)
         # Begin the table with the right amount of columns.
-        lines.append('\\begin{tabular}{l' + ('|c'*len(coeffs)) + '}\n')
+        line = '\\begin{tabular}{l'
+        for coeff in coeffs:
+            # Get the statsitical values to print
+            fs = opts.get_SubfigOpt(sfig, coeff)
+            # Append that many centered columns.
+            line += ('|c'*len(fs))
+        # Write the line to begin the table
+        lines.append(line + '}\n')
         # Write headers.
         lines.append('\\hline \\hline\n')
         lines.append('\\textbf{\\textsf{Point}}\n')
@@ -675,9 +687,9 @@ class Report(cape.report.Report):
                 if fsi in ['target', 't']:
                     # Target value
                     lines.append(' & $%s$ target \n' % lbl)
-                elif fsi == ['std', 'sigma']:
+                elif fsi in ['std', 'sigma']:
                     # Standard deviation
-                    lines.append(' & $\sigma(\%s)$ \n' % lbl)
+                    lines.append(' & $\sigma(%s)$ \n' % lbl)
                 elif fsi in ['err', 'eps', 'epsilon']:
                     # Sampling error
                     lines.append(' & $\varepsilon(\%s)$ \n' % lbl)
