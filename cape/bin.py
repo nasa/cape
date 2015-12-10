@@ -14,7 +14,7 @@ def calli(cmdi, f=None, shell=None):
     """Call a command with alternate STDOUT by filename
     
     :Call:
-        >>> callf(cmdi, f=None, shell=None)
+        >>> calli(cmdi, f=None, shell=None)
     :Inputs:
         *cmdi*: :class:`list` (:class:`str`)
             List of strings as for :func:`subprocess.call`
@@ -52,7 +52,7 @@ def calli(cmdi, f=None, shell=None):
     return ierr
         
 # Function to call commands with a different STDOUT
-def callf(cmdi, f=None, shell=None):
+def callf(cmdi, f=None, shell=None, t=None):
     """Call a command with alternate STDOUT by filename
     
     :Call:
@@ -68,6 +68,7 @@ def callf(cmdi, f=None, shell=None):
         * 2014-08-30 ``@ddalle``: First version
         # 2015-02-13 ``@ddalle``: Split most of code to :func:`calli`
     """
+    # Open time file
     # Call the command with output status
     ierr = calli(cmdi, f, shell)
     # Check the status.
