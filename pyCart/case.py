@@ -28,6 +28,8 @@ from .tri import Tri, Triq
 
 # Read the local JSON file.
 import json
+# Timing
+from datetime import datetime
 # File control
 import os, resource, glob, shutil
 # Basic numerics
@@ -56,6 +58,8 @@ def run_flowCart(verify=False, isect=False):
         raise IOError('Case already running!')
     # Touch the running file.
     os.system('touch RUNNING')
+    # Start timer
+    tic = datetime.now()
     # Get the settings.
     rc = ReadCaseJSON()
     # Run intersect and verify
@@ -193,12 +197,6 @@ def run_flowCart(verify=False, isect=False):
             if (n>=n1) or (j+1==it_fc): break
             # Clear check files as appropriate.
             manage.ClearCheck(rc.get_nCheckPoint(i))
-            ## Clean some checkpoint files.
-            #if rc.get_unsteady(i):
-            #    os.remove('check.%06i.td' % n)
-            #else:
-            #    os.remove('check.%05i' % n)
-            #    os.remove('checkDT.%05i' % n)
         # Write the averaged triq file
         if rc.get_clic(i):
             triq.Write('Components.%i.%i.%i.triq' % (j+1, n0+1, n))
@@ -225,6 +223,8 @@ def run_flowCart(verify=False, isect=False):
             PS.WriteHist()
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
+    # Save time usage
+    WriteUserTime(tic, rc, i)
     # Clean up the folder as appropriate.
     # Tar visualization files.
     if rc.get_unsteady(i):
@@ -288,6 +288,63 @@ def run_flowCart(verify=False, isect=False):
     StartCase(i)
     
     
+# Write time used
+def WriteUserTime(tic, rc, i, fname="pycart_time.dat"):
+    """Write time usage since time *tic* to file
+    
+    :Call:
+        >>> toc = WriteUserTime(tic, rc, i, fname="pycart_time.dat")
+    :Inputs:
+        *tic*: :class:`datetime.datetime`
+            Time from which timer will be measured
+        *rc*: :class:`pyCart.options.runControl.RunControl
+            Options interface
+        *i*: :class:`int`
+            Phase number
+        *fname*: :class:`str`
+            Name of file containing CPU usage history
+    :Outputs:
+        *toc*: :class:`datetime.datetime`
+            Time at which time delta was measured
+    :Versions:
+        * 2015-12-09 ``@ddalle``: First version
+    """
+    # Check if the file exists
+    if not os.path.isfile(fname):
+        # Create it.
+        f = open(fname, 'w')
+        # Write header line
+        f.write("# TotalCPUHours, nProc, program, date, PBS job ID\n")
+    else:
+        # Append to the file
+        f = open(fname, 'a')
+    # Check for job ID
+    if rc.get_qsub(i):
+        try:
+            # Try to read it and convert to integer
+            jobID = open('jobID.dat').readline().split()[0]
+        except Exception:
+            jobID = ''
+    else:
+        # No job ID
+        jobID = ''
+    # Get the time.
+    toc = datetime.now()
+    # Time difference
+    t = toc - tic
+    # Number of processors
+    nProc = rc.get_nProc(i)
+    # Calculate CPU hours
+    CPU = nProc * (t.days*24 + t.seconds/3600.0)
+    # Program name
+    prog = 'run_flowCart.py'
+    # Write the data.
+    f.write('%8.2f, %4i, %-20s, %s, %s\n' % (CPU, nProc, prog,
+        toc.strftime('%Y-%m-%d %H:%M:%S %Z'), jobID))
+    # Cleanup
+    f.close()
+            
+            
 
 # Function to intersect geometry if appropriate
 def IntersectCase(isect=False):
