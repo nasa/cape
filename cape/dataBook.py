@@ -84,7 +84,6 @@ class DataBook(dict):
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
     """
-    
     # Initialization method
     def __init__(self, x, opts):
         """Initialization method
@@ -567,21 +566,32 @@ class DataBook(dict):
                 Multiple of iterative history standard deviation to plot
             *MinMax*: [ {False} | True ]
                 Whether to plot minimum and maximum over iterative history
-            *LineOptionss*: :class:`dict`
+            *Uncertainty*: [ {False} | True ]
+                Whether to plot direct uncertainty
+            *LineOptions*: :class:`dict`
                 Plot options for the primary line(s)
             *StDevOptions*: :class:`dict`
                 Dictionary of plot options for the standard deviation plot
             *MinMaxOptions*: :class:`dict`
                 Dictionary of plot options for the min/max plot
+            *UncertaintyOptions*: :class:`dict`
+                Dictionary of plot options for the uncertainty plot
             *FigWidth*: :class:`float`
                 Width of figure in inches
             *FigHeight*: :class:`float`
                 Height of figure in inches
+            *PlotTypeStDev*: [ {'FillBetween'} | 'ErrorBar' ]
+                Plot function to use for standard deviation plot
+            *PlotTypeMinMax*: [ {'FillBetween'} | 'ErrorBar' ]
+                Plot function to use for min/max plot
+            *PlotTypeUncertainty*: [ 'FillBetween' | {'ErrorBar'} ]
+                Plot function to use for uncertainty plot
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
             * 2015-05-30 ``@ddalle``: First version
+            * 2015-12-14 ``@ddalle``: Added error bars
         """
         # Make sure the plotting modules are present.
         ImportPyPlot()
@@ -593,8 +603,13 @@ class DataBook(dict):
         fw = kw.get('FigWidth', 6)
         fh = kw.get('FigHeight', 4.5)
         # Iterative uncertainty options
-        qmmx = kw.get('MinMax', 0)
+        qmmx = kw.get('MinMax', False)
+        qerr = kw.get('Uncertainty', False)
         ksig = kw.get('StDev')
+        # Get plot types
+        tmmx = kw.get('PlotTypeMinMax', 'FillBetween')
+        terr = kw.get('PlotTypeUncertainty', 'ErrorBar')
+        tsig = kw.get('PlotTypeStDev', 'FillBetween')
         # Initialize output
         h = {}
         # Extract the values for the x-axis.
@@ -613,11 +628,18 @@ class DataBook(dict):
         # -----------------------
         # Standard Deviation Plot
         # -----------------------
-        # Initialize plot options for standard deviation
-        kw_s = odict(color='b', lw=0.0,
-            facecolor='b', alpha=0.35, zorder=1)
+        # Standard deviation fields
+        cstd = coeff + "_std"
         # Show iterative standard deviation.
-        if ksig:
+        if ksig and (cstd in DBc):
+            # Initialize plot options for standard deviation
+            if tsig == "ErrorBar":
+                # Error bars
+                kw_s = odict(color='b', fmt=None, zorder=1)
+            else:
+                # Filled region
+                kw_s = odict(color='b', lw=0.0,
+                    facecolor='b', alpha=0.35, zorder=1)
             # Add standard deviation to label.
             lbl = u'%s (\u00B1%s\u03C3)' % (lbl, ksig)
             # Extract plot options from keyword arguments.
@@ -627,17 +649,30 @@ class DataBook(dict):
                 # Override the default option.
                 if o_k is not None: kw_s[k] = o_k
             # Get the standard deviation value.
-            sv = DBc[coeff+"_std"][I]
-            # Plot it.
-            h['std'] = plt.fill_between(xv, yv-ksig*sv, yv+ksig*sv, **kw_s)
+            sv = DBc[cstd][I]
+            # Check plot type
+            if tsig == "ErrorBar":
+                # Error bars
+                h['std'] = plt.errorbar(xv, yv, yerr=ksig*sv, **kw_s)
+            else:
+                # Filled region
+                h['std'] = plt.fill_between(xv, yv-ksig*sv, yv+ksig*sv, **kw_s)
         # ------------
         # Min/Max Plot
         # ------------
-        # Initialize plot options for min/max
-        kw_m = odict(color='g', lw=0.0,
-            facecolor='g', alpha=0.35, zorder=2)
+        # Min/max fields
+        cmin = coeff + "_min"
+        cmax = coeff + "_max"
         # Show min/max options
-        if qmmx:
+        if qmmx and (cmin in DBc) and (cmax in DBc):
+            # Initialize plot options for min/max
+            if tmmx == "ErrorBar":
+                # Default error bar options
+                kw_m = odict(color='g', fmt=None, zorder=2)
+            else:
+                # Default filled region options
+                kw_m = odict(color='g', lw=0.0,
+                    facecolor='g', alpha=0.35, zorder=2)
             # Add min/max to label.
             lbl = u'%s (min/max)' % (lbl)
             # Extract plot options from keyword arguments.
@@ -647,15 +682,68 @@ class DataBook(dict):
                 # Override the default option.
                 if o_k is not None: kw_m[k] = o_k
             # Get the min and max values.
-            ymin = DBc[coeff+"_min"][I]
-            ymax = DBc[coeff+"_max"][I]
+            ymin = DBc[cmin][I]
+            ymax = DBc[cmax][I]
             # Plot it.
-            h['max'] = plt.fill_between(xv, ymin, ymax, **kw_m)
+            if tmmx == "ErrorBar":
+                # Form +\- error bounds
+                yerr = np.vstack((yv-ymin, ymax-yv))
+                # Plot error bars
+                h['max'] = plt.errorbar(xv, yv, yerr=yerr, **kw_m)
+            else:
+                # Filled region
+                h['max'] = plt.fill_between(xv, ymin, ymax, **kw_m)
+        # ----------------
+        # Uncertainty Plot
+        # ----------------
+        # Uncertainty databook files
+        cu = coeff + "_u"
+        cuP = coeff + "_uP"
+        cuM = coeff + "_uM"
+        # Show uncertainty option
+        if qerr and (cu in DBc) or (cuP in DBc and cuM in DBc):
+            # Initialize plot options for uncertainty
+            if terr == "FillBetween":
+                # Default filled region options
+                kw_u = odict(color='c', lw=0.0,
+                    facecolor='c', alpha=0.35, zorder=3)
+            else:
+                # Default error bar options
+                kw_u = odict(color='c', fmt=None, zorder=3)
+            # Add uncertainty to label
+            lbl = u'%s UQ bounds' % (lbl)
+            # Extract plot options from keyword arguments.
+            for k in util.denone(kw.get("UncertaintyOptions")):
+                # Option
+                o_k = kw["UncertaintyOptions"][k]
+                # Override the default option.
+                if o_k is not None: kw_u[k] = o_k
+            # Get the uncertainty values.
+            if cuP in DBc:
+                # Plus and minus coefficients are given
+                yuP = DBc[cuP]
+                yuM = DBc[cuM]
+            else:
+                # Single uncertainty
+                yuP = DBc[cu]
+                yuM = yuP
+            # Plot
+            if terr == "FillBetween":
+                # Form min and max
+                ymin = yv - yuM
+                ymax = yv + yuP
+                # Filled region
+                h['err'] = plt.fill_between(xv, ymin, ymax, **kw_u)
+            else:
+                # Form +/- error bounds
+                yerr = np.vstack((yuM, yuP))
+                # Plot error bars
+                h['err'] = plt.fill_between(xv, yv, yerr, **kw_u)
         # ------------
         # Primary Plot
         # ------------
         # Initialize plot options for primary plot
-        kw_p = odict(color='k', marker='^', zorder=8, ls='-')
+        kw_p = odict(color='k', marker='^', zorder=9, ls='-')
         # Plot options
         for k in util.denone(kw.get("LineOptions")):
             # Option
@@ -1616,8 +1704,9 @@ class DBTarget(dict):
             Instance of the CAPE data book target class
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
+        * 2015-01-10 ``@ddalle``: First version
+        * 2015-12-14 ``@ddalle``: Added uncertainties
     """
-    
     # Initialization method
     def __init__(self, targ, x, opts):
         """Initialization method
@@ -1795,40 +1884,49 @@ class DBTarget(dict):
             # Get targets for this component.
             ctargs = self.opts.get_CompTargets(comp)
             # Loop through the possible force/moment coefficients.
-            for c in ['CA','CY','CN','CLL','CLM','CLN']:
-                # Get the translated name
-                ctarg = ctargs.get(c, c)
-                # Get the target source for this entry.
-                if '/' not in ctarg:
-                    # Only one target source; assume it's this one.
-                    ti = self.Name
-                    fi = ctarg
-                else:
-                    # Read the target name.
-                    ti = ctarg.split('/')[0]
-                    # Name of the column
-                    fi = ctarg.split('/')[1]
-                # Check if the target is from this target source.
-                if ti != self.Name: continue
-                # Check if the column is present in the headers.
-                if fi not in self.headers:
-                    # Check for default.
-                    if ctarg in ctargs:
-                        # Manually specified and not recognized: error
-                        raise KeyError("There is no field '%s' in file '%s'."
-                            % (fi, self.topts.get_TargetFile()))
+            for cf in ['CA','CY','CN','CLL','CLM','CLN','CL','CD']:
+                # Loop through suffixes
+                for sfx in ['', '_std', '_min', '_max', '_uP', '_uM']:
+                    # Assemble coefficient/statistic name
+                    c = cf + sfx
+                    # Get the translated name
+                    ctarg = ctargs.get(c, c)
+                    # Get the target source for this entry.
+                    if '/' not in ctarg:
+                        # Only one target source; assume it's this one.
+                        ti = self.Name
+                        fi = ctarg
                     else:
-                        # Autoselected name but not in the file.
-                        continue
-                # Add the field if necessary.
-                if fi in cols:
-                    raise IOError(
-                        "Column '%s' of file '%s' used more than once."
-                        % (fi, self.topts.get_TargetFile()))
-                # Add the column.
-                cols.append(fi)
-                # Add to the translation dictionary.
-                ckeys[comp][c] = fi
+                        # Name of target/Name of column
+                        ti, fi = ctarg.split('/')[:2]
+                    # Check if the target is from this target source.
+                    if ti != self.Name: continue
+                    # Check if the column is present in the headers.
+                    if fi not in self.headers:
+                        # Check for default.
+                        if ctarg in ctargs:
+                            # Manually specified and not recognized: error
+                            raise KeyError(
+                                "Missing data book target field:\n" +
+                                "  DBTarget '%s'\n" % self.Name +
+                                "  component '%s'\n" % comp + 
+                                "  coeff '%s'\n" % c +
+                                "  column '%s'\n" % fi)
+                        else:
+                            # Autoselected name but not in the file.
+                            continue
+                    # Add the field if necessary.
+                    if fi in cols:
+                        raise KeyError(
+                            "Repeated data book target column:\n" +
+                            "  DBTarget '%s'\n" % self.Name +
+                            "  component '%s'\n" % comp + 
+                            "  coeff '%s'\n" % c +
+                            "  column '%s'\n" % fi)
+                    # Add the column.
+                    cols.append(fi)
+                    # Add to the translation dictionary.
+                    ckeys[comp][c] = fi
         # Extract the data into a dict with a key for each relevant column.
         for col in cols:
             # Find it and save it as a key.
@@ -1898,21 +1996,32 @@ class DBTarget(dict):
                 Multiple of iterative history standard deviation to plot
             *MinMax*: [ {False} | True ]
                 Whether to plot minimum and maximum over iterative history
-            *LineOptionss*: :class:`dict`
+            *Uncertainty*: [ {False} | True ]
+                Whether to plot direct uncertainty
+            *LineOptions*: :class:`dict`
                 Plot options for the primary line(s)
             *StDevOptions*: :class:`dict`
                 Dictionary of plot options for the standard deviation plot
             *MinMaxOptions*: :class:`dict`
                 Dictionary of plot options for the min/max plot
+            *UncertaintyOptions*: :class:`dict`
+                Dictionary of plot options for the uncertainty plot
             *FigWidth*: :class:`float`
                 Width of figure in inches
             *FigHeight*: :class:`float`
                 Height of figure in inches
+            *PlotTypeStDev*: [ {'FillBetween'} | 'ErrorBar' ]
+                Plot function to use for standard deviation plot
+            *PlotTypeMinMax*: [ {'FillBetween'} | 'ErrorBar' ]
+                Plot function to use for min/max plot
+            *PlotTypeUncertainty*: [ 'FillBetween' | {'ErrorBar'} ]
+                Plot function to use for uncertainty plot
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
             * 2015-05-30 ``@ddalle``: First version
+            * 2015-12-14 ``@ddalle``: Added uncertainties
         """
         # Make sure the plotting modules are present.
         ImportPyPlot()
@@ -1922,8 +2031,13 @@ class DBTarget(dict):
         fw = kw.get('FigWidth', 6)
         fh = kw.get('FigHeight', 4.5)
         # Iterative uncertainty options
-        qmmx = kw.get('MinMax', 0)
-        ksig = kw.get('StDev')
+        qmmx = kw.get('MinMax', False)
+        qerr = kw.get('Unvertainty', False)
+        ksig = kw.get('StDev', 0)
+        # Get plot types
+        tmmx = kw.get('PlotTypeMinMax', 'FillBetween')
+        terr = kw.get('PlotTypeUncertainty', 'ErrorBar')
+        tsig = kw.get('PlotTypeStDev', 'FillBetween')
         # Initialize output
         h = {}
         # Extract the values for the x-axis.
@@ -1937,22 +2051,29 @@ class DBTarget(dict):
             if xk not in self.xkeys: return
             # Extract the values.
             xv = self[self.xkeys[xk]][I]
-        # Check if the coefficient is in the target data.
-        if (comp not in self.ckeys) or (coeff not in self.ckeys[comp]):
-            # No data.
-            return
+        # List of keys available for this component
+        ckeys = self.ckeys.get(comp)
+        # Check for missing component or missing coefficient
+        if (ckeys is None) or (coeff not in ckeys): return
         # Extract the mean values.
-        yv = self[self.ckeys[comp][coeff]][I]
+        yv = self[ckeys[coeff]][I]
         # Initialize label.
         lbl = kw.get('Label', '%s/%s' % (self.Name, comp))
         # -----------------------
         # Standard Deviation Plot
         # -----------------------
-        # Initialize plot options for standard deviation.
-        kw_s = odict(color='c', lw=0.0,
-            facecolor='c', alpha=0.35, zorder=1)
+        # Standard deviation fields
+        cstd = coeff + "_std"
         # Show iterative standard deviation.
-        if ksig:
+        if ksig and (cstd in ckeys):
+            # Initialize plot options for standard deviation
+            if tsig == "ErrorBar":
+                # Error bars
+                kw_s = odict(color='b', fmt=None, zorder=1)
+            else:
+                # Filled region
+                kw_s = odict(color='b', lw=0.0,
+                    facecolor='b', alpha=0.35, zorder=1)
             # Add standard deviation to label.
             lbl = u'%s (\u00B1%s\u03C3)' % (lbl, ksig)
             # Extract plot options from keyword arguments.
@@ -1962,17 +2083,30 @@ class DBTarget(dict):
                 # Override the default option.
                 if o_k is not None: kw_s[k] = o_k
             # Get the standard deviation value.
-            sv = DBc[coeff+"_std"][I]
-            # Plot it.
-            h['std'] = plt.fill_between(xv, yv-ksig*sv, yv+ksig*sv, **kw_s)
+            sv = self[ckeys[cstd]][I]
+            # Check plot type
+            if tsig == "ErrorBar":
+                # Error bars
+                h['std'] = plt.errorbar(xv, yv, yerr=ksig*sv, **kw_s)
+            else:
+                # Filled region
+                h['std'] = plt.fill_between(xv, yv-ksig*sv, yv+ksig*sv, **kw_s)
         # ------------
         # Min/Max Plot
         # ------------
-        # Initialize plot options for min/max
-        kw_m = odict(color='m', lw=0.0,
-            facecolor='m', alpha=0.35, zorder=2)
+        # Min/max fields
+        cmin = coeff + "_min"
+        cmax = coeff + "_max"
         # Show min/max options
-        if qmmx:
+        if qmmx and (cmin in ckeys) and (cmax in ckeys):
+            # Initialize plot options for min/max
+            if tmmx == "ErrorBar":
+                # Default error bar options
+                kw_m = odict(color='g', fmt=None, zorder=2)
+            else:
+                # Default filled region options
+                kw_m = odict(color='g', lw=0.0,
+                    facecolor='g', alpha=0.35, zorder=2)
             # Add min/max to label.
             lbl = u'%s (min/max)' % (lbl)
             # Extract plot options from keyword arguments.
@@ -1982,10 +2116,63 @@ class DBTarget(dict):
                 # Override the default option.
                 if o_k is not None: kw_m[k] = o_k
             # Get the min and max values.
-            ymin = DBc[coeff+"_min"][I]
-            ymax = DBc[coeff+"_max"][I]
+            ymin = self[ckeys[cmin]][I]
+            ymax = self[ckeys[cmax]][I]
             # Plot it.
-            h['max'] = plt.fill_between(xv, ymin, ymax, **kw_m)
+            if tmmx == "ErrorBar":
+                # Form +\- error bounds
+                yerr = np.vstack((yv-ymin, ymax-yv))
+                # Plot error bars
+                h['max'] = plt.errorbar(xv, yv, yerr=yerr, **kw_m)
+            else:
+                # Filled region
+                h['max'] = plt.fill_between(xv, ymin, ymax, **kw_m)
+        # ----------------
+        # Uncertainty Plot
+        # ----------------
+        # Uncertainty databook files
+        cu = coeff + "_u"
+        cuP = coeff + "_uP"
+        cuM = coeff + "_uM"
+        # Show uncertainty option
+        if qerr and (cu in ckeys) or (cuP in ckeys and cuM in ckeys):
+            # Initialize plot options for uncertainty
+            if terr == "FillBetween":
+                # Default filled region options
+                kw_u = odict(color='c', lw=0.0,
+                    facecolor='c', alpha=0.35, zorder=3)
+            else:
+                # Default error bar options
+                kw_u = odict(color='c', fmt=None, zorder=3)
+            # Add uncertainty to label
+            lbl = u'%s UQ bounds' % (lbl)
+            # Extract plot options from keyword arguments.
+            for k in util.denone(kw.get("UncertaintyOptions")):
+                # Option
+                o_k = kw["UncertaintyOptions"][k]
+                # Override the default option.
+                if o_k is not None: kw_u[k] = o_k
+            # Get the uncertainty values.
+            if cuP in ckeys and cuM in ckeys:
+                # Plus and minus coefficients are given
+                yuP = self[ckeys[cuP]]
+                yuM = self[ckeys[cuM]]
+            else:
+                # Single uncertainty
+                yuP = self[ckeys[cu]]
+                yuM = yuP
+            # Plot
+            if terr == "FillBetween":
+                # Form min and max
+                ymin = yv - yuM
+                ymax = yv + yuP
+                # Filled region
+                h['err'] = plt.fill_between(xv, ymin, ymax, **kw_u)
+            else:
+                # Form +/- error bounds
+                yerr = np.vstack((yuM, yuP))
+                # Plot error bars
+                h['err'] = plt.fill_between(xv, yv, yerr, **kw_u)
         # ------------
         # Primary Plot
         # ------------
