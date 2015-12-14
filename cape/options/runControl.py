@@ -647,7 +647,7 @@ class RunControl(odict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Outputs:
-            *PhaseSeq*: :class:`int` or :class:`list`(:class:`int`)
+            *PhaseSeq*: :class:`int` or :class:`list` (:class:`int`)
                 Sequence of input run index(es)
         :Versions:
             * 2014-10-02 ``@ddalle``: First version

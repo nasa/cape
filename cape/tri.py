@@ -16,9 +16,9 @@ the TriBase class apply to all other classes as well.
 import numpy as np
 # File system and operating system management
 import os, shutil
+import subprocess as sp
 # Specific commands to copy files and call commands.
 from shutil import copy
-from subprocess import call
 # Utilities
 from .util import GetTecplotCommand, TecFolder, ParaviewFolder
 from .geom import TranslatePoints, RotatePoints
@@ -1040,7 +1040,7 @@ class TriBase(object):
         ftell = -1
         # Initialize components.
         Conf = {}
-        # Check for named components.
+        # Check for named components
         while fid.tell() != ftell:
             # Save the position.
             ftell = fid.tell()
@@ -1062,6 +1062,118 @@ class TriBase(object):
         self.Conf = Conf
         # Close the file.
         fid.close()
+    
+    # Function to read IDEAS UNV files
+    def ReadUnv(self, fname):
+        """Read an IDEAS format UNV triangulation
+        
+        :Call:
+            >>> tri.ReadUnv(fname)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *fname*: :class:`str`
+                File name
+        :Versions:
+            * 2015-12-13 ``@ddalle``: First version
+        """
+        # Check for the file
+        if not os.path.isfile(fname):
+            raise SystemError("File '%s' does not exist" % fname)
+        # Status update
+        print("  Reading number of points, edges, and tris")
+        # grep command to get number of points
+        # Line type: "    iNode     1      1     11\n"
+        cmdi = ['egrep "^\s+[0-9]+\s+1\s+1\s+11\s*" %s | tail -1' % fname]
+        # Get last line with a point
+        line = sp.Popen(cmdi, stdout=sp.PIPE, shell=True).communicate()[0]
+        # Get number of nodes
+        nNode = int(line.split()[0])
+        # Command to get number of edges
+        # Line type: "   iEdge  11  2  1  7  2"
+        cmdi = ['egrep "^\s+[0-9]+\s+11\s+2\s+1\s+7\s+2\s*$" %s | tail -1'
+        % fname]
+        # Get the last line with an edge declaration
+        line = sp.Popen(cmdi, stdout=sp.PIPE, shell=True).communicate()[0]
+        # Get number of tris
+        nEdge = int(line.split()[0])
+        # Command to get number of tris
+        # Line type: "   iTri  41  2  1  7  3"
+        cmdi = ['egrep "^\s+[0-9]+\s+41\s+2\s+1\s+7\s+3\s*$" %s | tail -1'
+        % fname]
+        # Get the last line with a tri declaration
+        line = sp.Popen(cmdi, stdout=sp.PIPE, shell=True).communicate()[0]
+        # Get number of tris
+        nTri = int(line.split()[0]) - nEdge
+        # Initialize.
+        self.nNode = nNode
+        self.nTri  = nTri
+        self.Nodes = np.zeros((nNode, 3), dtype=float)
+        self.Tris  = np.zeros((nTri,  3), dtype=int)
+        # Initialize a component
+        self.CompID = np.ones((nTri), dtype=int)
+        # Status update
+        print("  Reading %i nodes" % nNode)
+        # Read the file
+        f = open(fname, 'r')
+        # First 19 liens are discarded
+        for i in range(19): f.readline()
+        # Read the points.
+        for j in np.arange(nNode):
+            # Discard declaration line
+            f.readline()
+            # Get nodal coordinates
+            line = f.readline()
+            self.Nodes[j,:] = [float(v) for v in line.split()]
+        # Discard three lines
+        for j in range(3): f.readline()
+        # Status update
+        print("  Discarding %i edges" % nEdge)
+        # Loop through the edges
+        for j in np.arange(nEdge):
+            # Discard the declaration lines
+            f.readline()
+            f.readline()
+            # Discard edges
+            f.readline()
+        # Status update
+        print("  Reading %i triangle faces" % nTri)
+        # Loop through the faces
+        for j in np.arange(nTri):
+            # Discard the declaration line
+            f.readline()
+            # Get node indices
+            self.Tris[j] = [int(v) for v in f.readline().split()]
+        # Discard three lines
+        for j in range(3): f.readline()
+        # Initialize components
+        iComp = 0
+        Conf = {}
+        # Save the named components.
+        self.Conf = Conf
+        # Check for components
+        line = "-1"
+        while line != '':
+            # Read the line
+            line = f.readline()
+            # Check for end
+            if line.strip() in ["-1", ""]: break
+            # Move to next component ID.
+            iComp += 1
+            # Read number of points in component
+            kTri = int(line.split()[-1])
+            # Get the component name
+            comp = f.readline().strip()
+            # Status update
+            print("    Mapping component '%s' -> %i" % (comp, iComp))
+            self.Conf[comp] = iComp
+            # Read the indices of tris in that group
+            KTri = np.fromfile(f, dtype=int, count=4*kTri, sep=" ")
+            # Assign the compID for the corresponding tris
+            self.CompID[KTri[1::4]-nEdge-1] = iComp
+        # Close the file.
+        f.close()
+        
         
         
     # Get normals and areas
@@ -1171,19 +1283,25 @@ class TriBase(object):
         
         :Call:
             >>> tri.ApplyConfig(cfg)
+            >>> tri.ApplyConfig(fcfg)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
             *cfg*: :class:`cape.config.Config`
                 Configuration instance
+            *fcfg*: :class:`str`
         :Versions:
             * 2014-11-10 ``@ddalle``: First version
         """
         # Check for Conf in the triangulation.
         try:
             self.Conf
-        except Exception:
+        except AttributeError:
             return
+        # Check for string input
+        if type(cfg).__name__ in ['str', 'unicode']:
+            # Read the config
+            cfg = Config(cfg)
         # Make a copy of the component IDs.
         compID = self.CompID.copy()
         # Check for components.
@@ -1329,7 +1447,7 @@ class TriBase(object):
         f = open('/dev/null', 'w')
         # Convert it to an STL.
         print("     Converting to STL: '%s' -> 'comp.stl'" % ftri)
-        call(['tri2stl', '-i', ftri, '-o', 'comp.stl'], stdout=f)
+        sp.call(['tri2stl', '-i', ftri, '-o', 'comp.stl'], stdout=f)
         # Cleanup.
         for fi in ['iso-comp.mcr', 'iso-comp.lay']:
             # Check for the file.
@@ -1343,7 +1461,7 @@ class TriBase(object):
         t360 = GetTecplotCommand()
         # Create the image.
         print("     Creating image '%s.png' using `%s`" % (fname, t360))
-        call([t360, '-b', '-p', 'iso-comp.mcr'], stdout=f)
+        sp.call([t360, '-b', '-p', 'iso-comp.mcr'], stdout=f)
         # Close the output file.
         f.close()
         # Rename the PNG
@@ -1429,7 +1547,7 @@ class TriBase(object):
         f = open('/dev/null', 'w')
         # Convert to STL
         print("      Converting to STL: '%s' -> comp.stl'" % ftri)
-        call(['tri2stl', '-i', ftri, '-o', 'comp.stl'], stdout=f)
+        sp.call(['tri2stl', '-i', ftri, '-o', 'comp.stl'], stdout=f)
         # Cleanup if any old files
         for fi in ['cape_stl.py']:
             if os.path.isfile(fi): os.remove(fi)
@@ -1437,7 +1555,7 @@ class TriBase(object):
         copy(os.path.join(ParaviewFolder, 'cape_stl.py'), '.')
         # Create the image.
         print("      Creating image '%s.png' using `pvpython`" % fname)
-        call(['pvpython', 'cape_stl.py', str(r), str(u)], stdout=f)
+        sp.call(['pvpython', 'cape_stl.py', str(r), str(u)], stdout=f)
         # Close null output file.
         fclose()
         # Rename the PNG.
@@ -1738,7 +1856,17 @@ class TriBase(object):
             * 2014-08-03 ``@ddalle``: Changed "buff" --> "pad"
         """
         # Process it into a list of component IDs.
-        compID = self.config.GetCompID(compID)
+        try:
+            # Best option is to use the Config.xml file
+            compID = self.config.GetCompID(compID)
+        except Exception:
+            # Check for scalar
+            if compID is None:
+                # No contents; this might break otherwise
+                return
+            elif type(compID).__name__ not in ['list', 'ndarray']:
+                # Make a singleton list
+                compID = [compID]
         # Quit if none specified.
         if not compID: return None
         # Get the overall buffer.
