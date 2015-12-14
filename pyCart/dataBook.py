@@ -444,8 +444,16 @@ class DataBook(cape.dataBook.DataBook):
             FM = CaseFM(comp)
             # Extract the component databook.
             DBc = self[comp]
+            # List of transformations
+            tcomp = self.opts.get_DataBookTransformations(comp)
+            # List of types
+            ttype = [t.get('Type') for t in tcomp]
+            # Check for ScaleCoeffs
+            if "ScaleCoeffs" not in ttype:
+                # Append a transformation to reverse *CLL* and *CLN*
+                tcomp.append({"Type":"ScaleCoeffs", "CLL":-1.0, "CLN":-1.0})
             # Loop through the transformations.
-            for topts in self.opts.get_DataBookTransformations(comp):
+            for topts in tcomp:
                 # Apply the transformation.
                 FM.TransformFM(topts, self.x, i)
                 

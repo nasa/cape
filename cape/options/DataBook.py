@@ -514,7 +514,7 @@ class DataBook(odict):
         
         This includes the list of coefficients, e.g. ``['CA', 'CY', 'CN']``;
         statistics such as ``'CA_min'`` if *nStats* is greater than 0; and
-        targets such as ``'CA_t`` if there is a target for *CA*.
+        targets such as ``'CA_t'`` if there is a target for *CA*.
         
         :Call:
             >>> cols = opts.get_DataBookCols(comp)
