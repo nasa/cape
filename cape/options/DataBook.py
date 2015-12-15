@@ -408,6 +408,28 @@ class DataBook(odict):
         # Output
         return targets
         
+    # Get the data type of a specific component
+    def get_DataBookType(self, comp):
+        """Get the type of data book entry for one component
+        
+        :Call:
+            >>> ctype = opts.get_DataBookType(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *ctype*: [ {Force} | Moment | FM | PointSensor ]
+                Data book entry type
+        :Versions:
+            * 2015-12-14 ``@ddalle``: First version
+        """
+        # Get the component options.
+        copts = self.get(comp, {})
+        # Return the type
+        return copts.get("Type", "Force")
+        
     # Get the coefficients for a specific component
     def get_DataBookCoeffs(self, comp):
         """Get the list of data book coefficients for a specific component
@@ -415,7 +437,7 @@ class DataBook(odict):
         :Call:
             >>> coeffs = opts.get_DataBookCoeffs(comp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component
@@ -431,7 +453,7 @@ class DataBook(odict):
         coeffs = copts.get("Coefficients", [])
         # Check the type.
         if type(coeffs).__name__ not in ['list']:
-            raise IOError(
+            raise TypeError(
                 "Coefficients for component '%s' must be a list." % comp) 
         # Exit if that exists.
         if len(coeffs) > 0:
@@ -448,8 +470,40 @@ class DataBook(odict):
         elif ctype in ["FM", "full", "Full"]:
             # Force and moment
             coeffs = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
+        elif ctype in ["PointSensor"]:
+            # Default to list of points for a point sensor
+            coeffs = ["Cp"]
         # Output
         return coeffs
+        
+    # Get data book subcomponents
+    def get_DataBookPoints(self, targ):
+        """Get the data book subcomponent for one target
+        
+        For example, for "PointSensor" targets will return the list of points
+        
+        :Call:
+            >>> pts = opts.get_DataBookPoints(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *targ*: :class:`str`
+                Name of data book target
+        :Outputs:
+            *pts*: :class:`list` (:class:`str`)
+                List of subcomponents
+        :Versions:
+            * 2015-12-14 ``@ddalle``: First version
+        """
+        # Get the type
+        ctype = self.get("Type", "Force")
+        # Check the type
+        if ctype in ["PointSensor"]:
+            # Check the point
+            return self.get("Points", [])
+        else:
+            # Otherwise, no subcomponents
+            return []
         
     # Get the targets for a specific component
     def get_CompTargets(self, comp):
@@ -458,7 +512,7 @@ class DataBook(odict):
         :Call:
             >>> targs = opts.get_CompTargets(comp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component

@@ -801,6 +801,16 @@ class Options(odict):
     def get_DataBookLineLoads(self):
         self._DataBook()
         return self['DataBook'].get_DataBookLineLoads()
+        
+    # Get component type
+    def get_DataBookType(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookType(comp)
+        
+    # Get component subcomponents
+    def get_DataBookPoints(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookPoints(comp)
     
     # Get list of coefficients for a specific component
     def get_DataBookCoeffs(self, comp):
@@ -849,6 +859,7 @@ class Options(odict):
     
     # Copy over the documentation.
     for k in ['DataBookComponents', 'DataBookLineLoads',
+            'DataBookType', 'DataBookPoints',
             'DataBookCoeffs', 'DataBookTargets',
             'DataBookCols', 'CompTargets', 'DataBookTransformations',
             'DataBookDataCols', 'DataBookTargetCols',

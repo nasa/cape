@@ -1851,6 +1851,7 @@ class DBTarget(dict):
                 Instance of the data book target class
         :Versions:
             * 2015-06-03 ``@ddalle``: Copied from :func:`__init__` method
+            * 2015-12-14 ``@ddalle``: Added support for point sensors
         """
         # Initialize data fields.
         cols = []
@@ -1883,56 +1884,92 @@ class DBTarget(dict):
             ckeys[comp] = {}
             # Get targets for this component.
             ctargs = self.opts.get_CompTargets(comp)
-            # Loop through the possible force/moment coefficients.
-            for cf in ['CA','CY','CN','CLL','CLM','CLN','CL','CD']:
-                # Loop through suffixes
-                for sfx in ['', '_std', '_min', '_max', '_uP', '_uM']:
-                    # Assemble coefficient/statistic name
-                    c = cf + sfx
-                    # Get the translated name
-                    ctarg = ctargs.get(c, c)
-                    # Get the target source for this entry.
-                    if '/' not in ctarg:
-                        # Only one target source; assume it's this one.
-                        ti = self.Name
-                        fi = ctarg
-                    else:
-                        # Name of target/Name of column
-                        ti, fi = ctarg.split('/')[:2]
-                    # Check if the target is from this target source.
-                    if ti != self.Name: continue
-                    # Check if the column is present in the headers.
-                    if fi not in self.headers:
-                        # Check for default.
-                        if ctarg in ctargs:
-                            # Manually specified and not recognized: error
-                            raise KeyError(
-                                "Missing data book target field:\n" +
-                                "  DBTarget '%s'\n" % self.Name +
-                                "  component '%s'\n" % comp + 
-                                "  coeff '%s'\n" % c +
-                                "  column '%s'\n" % fi)
-                        else:
-                            # Autoselected name but not in the file.
-                            continue
-                    # Add the field if necessary.
-                    if fi in cols:
-                        raise KeyError(
-                            "Repeated data book target column:\n" +
-                            "  DBTarget '%s'\n" % self.Name +
-                            "  component '%s'\n" % comp + 
-                            "  coeff '%s'\n" % c +
-                            "  column '%s'\n" % fi)
-                    # Add the column.
-                    cols.append(fi)
-                    # Add to the translation dictionary.
-                    ckeys[comp][c] = fi
+            # Get data book type
+            ctype  = self.opts.get_DataBookType(comp)
+            # List of coefficients (i.e. no suffixes)
+            coeffs = self.opts.get_DataBookCoeffs(comp)
+            # List of points or otherwise subcomponents
+            pts = self.opts.get_DataBookPoints(comp)
+            # Set default
+            if pts is None or len(pts) == 0: pts = ['']
+            # Loop through subcomponents (usually points or nothing)
+            for pt in pts:
+                # Loop through the possible coefficients
+                for cf in coeffs:
+                    # Loop through suffixes
+                    for sfx in ['', '_std', '_min', '_max', '_uP', '_uM']:
+                        # Assemble coefficient/statistic name
+                        c = '%s/%s_%s' % (pt, cf, sfx)
+                        # Get rid of trivial point/suffix names
+                        c = c.lstrip('/').rstrip('_')
+                        # Get the field name and check its consistency
+                        fi = self.CheckColumn(ctargs, c)
+                        # Add the column.
+                        cols.append(fi)
+                        # Add to the translation dictionary.
+                        ckeys[comp][c] = fi
         # Extract the data into a dict with a key for each relevant column.
         for col in cols:
             # Find it and save it as a key.
             self[col] = self.data[self.headers.index(col)]
         # Save the data keys translations.
         self.ckeys = ckeys
+        
+    # Check column presence and consistency
+    def CheckColumn(self, ctargs, c):
+        """Check a data book target column name and its consistency
+        
+        :Call:
+            >>> fi = DBT.CheckColumn(ctargs, c)
+        :Inputs:
+            *ctargs*: :class:`dict`
+                Dictionary of target column names for each coefficient
+            *c*: :class:`str`
+                Name of the coefficient in question, including suffix
+        :Outputs:
+            *fi*: ``None`` | :class:`str`
+                Name of the column in data book if present
+        :Versions:
+            * 2015-12-14 ``@ddalle``: First version
+        """
+        # Get the translated name
+        ctarg = ctargs.get(c, c)
+        # Get the target source for this entry.
+        if '/' not in ctarg:
+            # Only one target source; assume it's this one.
+            ti = self.Name
+            fi = ctarg
+        else:
+            # Name of target/Name of column
+            ti = ctarg.split('/')[0]
+            fi = '/'.join(ctarg.split('/')[1:])
+        # Check if the target is from this target source.
+        if ti != self.Name: 
+            return None
+        # Check if the column is present in the headers.
+        if fi not in self.headers:
+            # Check for default.
+            if ctarg in ctargs:
+                # Manually specified and not recognized: error
+                raise KeyError(
+                    "Missing data book target field:\n" +
+                    "  DBTarget  '%s'\n" % self.Name +
+                    "  component '%s'\n" % comp + 
+                    "  coeff     '%s'\n" % c +
+                    "  column    '%s'\n" % fi)
+            else:
+                # Autoselected name but not in the file.
+                return None
+        # Add the field if necessary.
+        if fi in cols:
+            raise KeyError(
+                "Repeated data book target column:\n" +
+                "  DBTarget  '%s'\n" % self.Name +
+                "  component '%s'\n" % comp + 
+                "  coeff     '%s'\n" % c +
+                "  column    '%s'\n" % fi)
+        # Return the column name
+        return fi
         
     # Match the databook copy of the trajectory
     def UpdateTrajectory(self):
