@@ -1850,7 +1850,7 @@ class DBTarget(dict):
             * 2015-12-14 ``@ddalle``: Added support for point sensors
         """
         # Initialize data fields.
-        cols = []
+        self.cols = []
         # Names of columns corresponding to trajectory keys.
         tkeys = self.topts.get_Trajectory()
         # Loop through trajectory fields.
@@ -1865,7 +1865,7 @@ class DBTarget(dict):
                 # Not present in the file.
                 continue
             # Append the key.
-            cols.append(col)
+            self.cols.append(col)
         # Initialize translations for force/moment coefficients
         ckeys = {}
         # List of potential components.
@@ -1878,7 +1878,6 @@ class DBTarget(dict):
         for comp in tcomps:
             # Initialize translations for this component.
             ckeys[comp] = {}
-            print("Label 007: comp='%s'" % comp)
             # Get targets for this component.
             ctargs = self.opts.get_CompTargets(comp)
             # Get data book type
@@ -1887,7 +1886,6 @@ class DBTarget(dict):
             coeffs = self.opts.get_DataBookCoeffs(comp)
             # List of points or otherwise subcomponents
             pts = self.opts.get_DataBookPoints(comp)
-            print("Label 009: pts='%s'" % pts)
             # Set default
             if pts is None or len(pts) == 0: pts = ['']
             # Loop through subcomponents (usually points or nothing)
@@ -1896,33 +1894,38 @@ class DBTarget(dict):
                 for cf in coeffs:
                     # Loop through suffixes
                     for sfx in ['', 'std', 'min', 'max', 'uP', 'uM']:
-                        # Assemble coefficient/statistic name
-                        c = '%s/%s_%s' % (pt, cf, sfx)
-                        # Get rid of trivial point/suffix names
-                        c = c.lstrip('/').rstrip('_')
                         # Get the field name and check its consistency
-                        fi = self.CheckColumn(ctargs, c)
+                        fi = self.CheckColumn(ctargs, pt, cf, sfx)
+                        # Check for consistency/presens
+                        if fi is None:
+                            # Go to next line
+                            continue
                         # Add the column.
-                        cols.append(fi)
+                        self.cols.append(fi)
+                        # Assemble coefficient/statistic name
+                        c = '%s.%s_%s' % (pt, cf, sfx)
+                        # Get rid of trivial point/suffix names
+                        c = c.lstrip('/').lstrip('.').rstrip('_')
                         # Add to the translation dictionary.
                         ckeys[comp][c] = fi
         # Extract the data into a dict with a key for each relevant column.
-        print("LABEL 010: cols='%s'" % cols)
-        for col in cols:
+        for col in self.cols:
             # Find it and save it as a key.
             self[col] = self.data[self.headers.index(col)]
         # Save the data keys translations.
         self.ckeys = ckeys
         
     # Check column presence and consistency
-    def CheckColumn(self, ctargs, c):
+    def CheckColumn(self, ctargs, pt, cf, sfx):
         """Check a data book target column name and its consistency
         
         :Call:
-            >>> fi = DBT.CheckColumn(ctargs, c)
+            >>> fi = DBT.CheckColumn(ctargs, pt, c)
         :Inputs:
             *ctargs*: :class:`dict`
                 Dictionary of target column names for each coefficient
+            *pt*: :class:`str`
+                Name of subcomponent (short for 'point')
             *c*: :class:`str`
                 Name of the coefficient in question, including suffix
         :Outputs:
@@ -1931,9 +1934,21 @@ class DBTarget(dict):
         :Versions:
             * 2015-12-14 ``@ddalle``: First version
         """
-        print("Label 011: c='%s'" % c)
+        # Assemble coefficient/statistic name
+        c = '%s.%s_%s' % (pt, cf, sfx)
+        # Get rid of trivial point/suffix names
+        c = c.lstrip('/').lstrip('.').rstrip('_')
+        # Assemble default column name
+        if pt and cf == "Cp" and "Cp" not in self.headers:
+            # Use the name of the point
+            col = '%s_%s' % (pt, sfx)
+        else:
+            # Point.coeff_sfx
+            col = '%s_%s' % (cf, sfx)
+        # Get rid of trivial suffix names
+        col = col.rstrip('_')
         # Get the translated name
-        ctarg = ctargs.get(c, c)
+        ctarg = ctargs.get(c, col)
         # Get the target source for this entry.
         if '/' not in ctarg:
             # Only one target source; assume it's this one.
@@ -1961,7 +1976,7 @@ class DBTarget(dict):
                 # Autoselected name but not in the file.
                 return None
         # Add the field if necessary.
-        if fi in cols:
+        if fi in self.cols:
             raise KeyError(
                 "Repeated data book target column:\n" +
                 "  DBTarget  '%s'\n" % self.Name +
