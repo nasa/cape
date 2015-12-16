@@ -846,6 +846,11 @@ class Options(odict):
         self._DataBook()
         return self['DataBook'].get_DataBookTargets()
         
+    # Get target options
+    def get_DataBookTargetByName(self, targ):
+        self._DataBook()
+        return self['DataBook'].get_DataBookTargetByName(targ)
+        
     # Get components for a line load
     def get_LineLoadComponents(self, comp):
         self._DataBook()
@@ -861,7 +866,7 @@ class Options(odict):
             'DataBookType', 'DataBookPoints',
             'DataBookCoeffs', 'DataBookTargets',
             'DataBookCols', 'CompTargets', 'DataBookTransformations',
-            'DataBookDataCols', 'DataBookTargetCols',
+            'DataBookDataCols', 'DataBookTargetCols', 'DataBookTargetByName',
             'LineLoadComponents', 'LineLoad_nCut'
     ]:
         # Get the documentation for the "get" and "set" functions

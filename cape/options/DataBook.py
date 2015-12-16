@@ -339,7 +339,7 @@ class DataBook(odict):
         :Call:
             >>> opts.set_Delimiter(delim)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *delim*: :class:`str`
                 Delimiter to use in data book files
@@ -355,7 +355,7 @@ class DataBook(odict):
         :Call:
             >>> key = opts.get_SortKey()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *key*: :class:`str` | ``None`` | :class:`list` (:class:`str`)
@@ -372,7 +372,7 @@ class DataBook(odict):
         :Call:
             >>> opts.set_SortKey(key)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *key*: :class:`str` | ``None`` | :class:`list` (:class:`str`)
                 Name of key to sort with
@@ -388,7 +388,7 @@ class DataBook(odict):
         :Call:
             >>> targets = opts.get_DataBookTargets()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *targets*: :class:`list` (:class:`dict`)
@@ -407,6 +407,29 @@ class DataBook(odict):
                 raise IOError("Target '%s' is not a DBTarget." % targ)
         # Output
         return targets
+        
+    # Get a target by name
+    def get_DataBookTargetByName(self, targ):
+        """Get a data book target option set by the name of the target
+        
+        :Call:
+            >>> topts = opts.get_DataBookTargetByName(targ)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *targ*: :class:`str`
+                Name of the data book target
+        :Outputs:
+            * 2015-12-15 ``@ddalle``: First version
+        """
+        # Get the set of targets
+        DBTs = self.get_DataBookTargets()
+        # Get list of names
+        targs = [DBTi.get('Name') for DBTi in DBTs]
+        # Get the index
+        i = targs.index(targ)
+        # Output
+        return DBTs[i]
         
     # Get the data type of a specific component
     def get_DataBookType(self, comp):
@@ -477,7 +500,7 @@ class DataBook(odict):
         return coeffs
         
     # Get data book subcomponents
-    def get_DataBookPoints(self, targ):
+    def get_DataBookPoints(self, comp):
         """Get the data book subcomponent for one target
         
         For example, for "PointSensor" targets will return the list of points
@@ -487,20 +510,22 @@ class DataBook(odict):
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *targ*: :class:`str`
-                Name of data book target
+            *comp*: :class:`str`
+                Name of data book component
         :Outputs:
             *pts*: :class:`list` (:class:`str`)
                 List of subcomponents
         :Versions:
             * 2015-12-14 ``@ddalle``: First version
         """
+        # Get component
+        copts = self.get(comp, {})
         # Get the type
-        ctype = self.get("Type", "Force")
+        ctype = copts.get("Type", "Force")
         # Check the type
         if ctype in ["PointSensor"]:
             # Check the point
-            return self.get("Points", [])
+            return copts.get("Points", [])
         else:
             # Otherwise, no subcomponents
             return []

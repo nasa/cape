@@ -1713,7 +1713,7 @@ class DBTarget(dict):
         """
         # Save the target options
         self.opts = opts
-        self.topts = targ
+        self.topts = opts.get_DataBookTargetByName(targ)
         # Save the trajectory.
         self.x = x.Copy()
         
@@ -1878,6 +1878,7 @@ class DBTarget(dict):
         for comp in tcomps:
             # Initialize translations for this component.
             ckeys[comp] = {}
+            print("Label 007: comp='%s'" % comp)
             # Get targets for this component.
             ctargs = self.opts.get_CompTargets(comp)
             # Get data book type
@@ -1886,6 +1887,7 @@ class DBTarget(dict):
             coeffs = self.opts.get_DataBookCoeffs(comp)
             # List of points or otherwise subcomponents
             pts = self.opts.get_DataBookPoints(comp)
+            print("Label 009: pts='%s'" % pts)
             # Set default
             if pts is None or len(pts) == 0: pts = ['']
             # Loop through subcomponents (usually points or nothing)
@@ -1893,7 +1895,7 @@ class DBTarget(dict):
                 # Loop through the possible coefficients
                 for cf in coeffs:
                     # Loop through suffixes
-                    for sfx in ['', '_std', '_min', '_max', '_uP', '_uM']:
+                    for sfx in ['', 'std', 'min', 'max', 'uP', 'uM']:
                         # Assemble coefficient/statistic name
                         c = '%s/%s_%s' % (pt, cf, sfx)
                         # Get rid of trivial point/suffix names
@@ -1905,6 +1907,7 @@ class DBTarget(dict):
                         # Add to the translation dictionary.
                         ckeys[comp][c] = fi
         # Extract the data into a dict with a key for each relevant column.
+        print("LABEL 010: cols='%s'" % cols)
         for col in cols:
             # Find it and save it as a key.
             self[col] = self.data[self.headers.index(col)]
@@ -1928,6 +1931,7 @@ class DBTarget(dict):
         :Versions:
             * 2015-12-14 ``@ddalle``: First version
         """
+        print("Label 011: c='%s'" % c)
         # Get the translated name
         ctarg = ctargs.get(c, c)
         # Get the target source for this entry.
