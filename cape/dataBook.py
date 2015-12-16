@@ -116,10 +116,6 @@ class DataBook(dict):
             self.InitDBComp(comp, x, opts)
         # Initialize targets.
         self.Targets = []
-        # Read the targets.
-        for targ in opts.get_DataBookTargets():
-            # Read the file.
-            self.ReadTarget(targ)
         # Initialize line loads
         self.LineLoads = []
         

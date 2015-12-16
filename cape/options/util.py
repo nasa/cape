@@ -336,6 +336,63 @@ def expandJSONFile(lines):
     # Return the lines as one string.
     return '\n'.join(lines)
     
+# Function to read JSON file with all the works
+def loadJSONFile(fname):
+    """Read a JSON file with helpful error handling and comment stripping
+    
+    :Call:
+        >>> d = loadJSONFile(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of JSON file to read
+    :Outputs:
+        *d*: :class:`dict`
+            JSON contents in Python form
+    :Versions:
+        * 2015-12-15 ``@ddalle``: First version
+    """
+     # Read the input file.
+    lines = open(fname).readlines()
+    # Expand references to other JSON files and strip comments
+    lines = expandJSONFile(lines)
+    # Process into dictionary
+    try:
+        # Process into dictionary
+        d = json.loads(lines)
+    except Exception as e:
+        # Get the line number
+        try:
+            # Read from the error message
+            txt = re.findall('line [0-9]+', e.args[0])[0]
+            # Line number
+            n = int(txt.split()[1])
+            # Check type
+            if type(lines).__name__ in ['str', 'unicode']:
+                # Not useful; split into list of lines
+                lines = lines.split('\n')
+            # Start and end line number
+            n0 = max(n-2, 0)
+            n1 = min(n+1, len(lines))
+            # Initialize message with 
+            msg = "Error while reading JSON file '%s':\n" % fname
+            # Add the exception's message
+            msg += "\n".join(list(e.args))
+            msg += "\n\nLines surrounding problem area (comments stripped):\n"
+            # Print some lines around the problem
+            for i in range(n0, n1):
+                # Add line with line number
+                msg += ("%4i: %s\n" % (i+1, lines[i]))
+            # Show the message
+            raise ValueError(msg)
+        except ValueError as e:
+            # Raise the error we just made.
+            raise e
+        except Exception:
+            # Unknown error
+            raise e
+    # Output
+    return d
+
 
 # Function to get the default settings.
 def getDefaults(fname):

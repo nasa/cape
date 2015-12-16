@@ -1454,6 +1454,8 @@ class Report(object):
         JT = {}
         # Loop through targets.
         for targ in targs:
+            # Read the target if not present.
+            self.cntl.DataBook.ReadTarget(targ)
             # Initialize target sweeps.
             jt = []
             # Loop through carpet subsweeps
