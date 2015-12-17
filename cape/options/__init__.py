@@ -44,8 +44,11 @@ class Options(odict):
             File to be read as a JSON file with comments
         *kw*: :class:`dict`
             Dictionary to be transformed into :class:`pyCart.options.Options`
+    :Outputs:
+        *opts*: :class:`cape.options.Options`
+            Options interface
     :Versions:
-        * 2014.07.28 ``@ddalle``: First version
+        * 2014-07-28 ``@ddalle``: First version
     """
     
     # Initialization method
@@ -53,12 +56,8 @@ class Options(odict):
         """Initialization method with optional JSON input"""
         # Check for an input file.
         if fname:
-            # Read the input file.
-            lines = open(fname).readlines()
-            # Expand references to other JSON files and strip comments
-            lines = expandJSONFile(lines)
-            # Get the equivalent dictionary.
-            d = json.loads(lines)
+            # Read the JSON file
+            d = loadJSONFile(fname)
             # Loop through the keys.
             for k in d:
                 kw[k] = d[k]
@@ -847,6 +846,11 @@ class Options(odict):
         self._DataBook()
         return self['DataBook'].get_DataBookTargets()
         
+    # Get target options
+    def get_DataBookTargetByName(self, targ):
+        self._DataBook()
+        return self['DataBook'].get_DataBookTargetByName(targ)
+        
     # Get components for a line load
     def get_LineLoadComponents(self, comp):
         self._DataBook()
@@ -862,7 +866,7 @@ class Options(odict):
             'DataBookType', 'DataBookPoints',
             'DataBookCoeffs', 'DataBookTargets',
             'DataBookCols', 'CompTargets', 'DataBookTransformations',
-            'DataBookDataCols', 'DataBookTargetCols',
+            'DataBookDataCols', 'DataBookTargetCols', 'DataBookTargetByName',
             'LineLoadComponents', 'LineLoad_nCut'
     ]:
         # Get the documentation for the "get" and "set" functions

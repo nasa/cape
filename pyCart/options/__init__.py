@@ -58,12 +58,8 @@ class Options(cape.options.Options):
         """Initialization method with optional JSON input"""
         # Check for an input file.
         if fname:
-            # Read the input file.
-            lines = open(fname).readlines()
-            # Expand references to other JSON files and strip comments
-            lines = expandJSONFile(lines)
-            # Get the equivalent dictionary.
-            d = json.loads(lines)
+            # Read the JSON file
+            d = loadJSONFile(fname)
             # Loop through the keys.
             for k in d:
                 kw[k] = d[k]
