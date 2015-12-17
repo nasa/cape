@@ -577,6 +577,8 @@ class Report(cape.report.Report):
         nIter = self.cntl.CheckCase(i)
         # Coefficients to plot
         coeffs = opts.get_SubfigOpt(sfig, "Coefficients")
+        # Get the targets
+        targs = opts.get_SubfigTargets(sfig)
         # Get the points.
         grp = opts.get_SubfigOpt(sfig, "Group")
         pts = opts.get_SubfigOpt(sfig, "Points")

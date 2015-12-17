@@ -682,8 +682,14 @@ class Report(odict):
                 "Iteration": 0,
                 "Group": "",
                 "Points": [],
+                "Targets": [],
                 "Coefficients": ["Cp"],
-                "Cp": ["mu", "std"]
+                "Cp": ["mu", "std"],
+                "rho": ["mu", "std"],
+                "T": ["mu", "std"],
+                "p": ["mu", "std"],
+                "M": ["mu", "std"],
+                "dp": ["mu", "std"]
             }
         elif t in ['PlotCoeff']:
             # Force or moment history
