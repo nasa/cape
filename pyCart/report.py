@@ -585,6 +585,7 @@ class Report(cape.report.Report):
         # Read those targets into the data book, if necessary
         for targ in targs:
             # Read the target data book
+            self.cntl.ReadDataBook()
             self.cntl.DataBook.ReadTarget(targ)
             # Append it to the list
             DBT[targ] = self.cntl.DataBook.GetTargetByName(targ)
