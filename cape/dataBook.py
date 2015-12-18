@@ -72,12 +72,14 @@ class DataBook(dict):
     matrix.
     
     :Call:
-        >>> DB = pyCart.dataBook.DataBook(x, opts)
+        >>> DB = pyCart.dataBook.DataBook(x, opts, RootDir=None)
     :Inputs:
         *x*: :class:`pyCart.trajectory.Trajectory`
             The current pyCart trajectory (i.e. run matrix)
         *opts*: :class:`pyCart.options.Options`
             Global pyCart options instance
+        *RootDir*: :class:`str`
+            Root directory, defaults to ``os.getcwd()``
     :Outputs:
         *DB*: :class:`pyCart.dataBook.DataBook`
             Instance of the pyCart data book class
@@ -85,7 +87,7 @@ class DataBook(dict):
         * 2014-12-20 ``@ddalle``: Started
     """
     # Initialization method
-    def __init__(self, x, opts):
+    def __init__(self, x, opts, RootDir=None):
         """Initialization method
         
         :Versions:
@@ -101,6 +103,13 @@ class DataBook(dict):
         self.x = x.Copy()
         # Save the options.
         self.opts = opts
+        # Root directory
+        if RootDir is None:
+            # Default
+            self.RootDir = os.getcwd()
+        else:
+            # Specified option
+            self.RootDir = RootDir
         # Make sure the destination folder exists.
         for fdir in self.Dir.split('/'):
             # Check if the folder exists.
@@ -176,7 +185,8 @@ class DataBook(dict):
             self.Targets[targ]
         except Exception:
             # Read the file.
-            self.Targets.append(DBTarget(targ, self.x, self.opts))
+            self.Targets.append(
+                DBTarget(targ, self.x, self.opts, self.RootDir))
             
     # Match the databook copy of the trajectory
     def UpdateTrajectory(self):
@@ -1687,7 +1697,7 @@ class DBTarget(dict):
     data books created by pyCart are not valid target files.
     
     :Call:
-        >>> DBT = pyCart.dataBook.DBTarget(targ, x, opts)
+        >>> DBT = pyCart.dataBook.DBTarget(targ, x, opts, RootDir=None)
     :Inputs:
         *targ*: :class:`pyCart.options.DataBook.DBTarget`
             Instance of a target source options interface
@@ -1695,6 +1705,8 @@ class DBTarget(dict):
             Run matrix interface
         *opts*: :class:`pyCart.options.Options`
             Global pyCart options instance to determine which fields are useful
+        *RootDir*: :class:`str`
+            Root directory, defaults to ``os.getcwd()``
     :Outputs:
         *DBT*: :class:`cape.dataBook.DBTarget`
             Instance of the CAPE data book target class
@@ -1704,7 +1716,7 @@ class DBTarget(dict):
         * 2015-12-14 ``@ddalle``: Added uncertainties
     """
     # Initialization method
-    def __init__(self, targ, x, opts):
+    def __init__(self, targ, x, opts, RootDir=None):
         """Initialization method
         
         :Versions:
@@ -1716,6 +1728,13 @@ class DBTarget(dict):
         self.topts = opts.get_DataBookTargetByName(targ)
         # Save the trajectory.
         self.x = x.Copy()
+        # Root directory
+        if RootDir is None:
+            # Default
+            self.RootDir = os.getcwd()
+        else:
+            # Specified option
+            self.RootDir = RootDir
         
         # Read the data
         self.ReadData()
