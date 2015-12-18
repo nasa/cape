@@ -578,7 +578,7 @@ class Report(cape.report.Report):
         # Coefficients to plot
         coeffs = opts.get_SubfigOpt(sfig, "Coefficients")
         # Get the targets
-        targs = opts.get_SubfigTargets(sfig)
+        targs = opts.get_SubfigOpt(sfig, "Targets")
         # Target data and target options
         DBT = {}
         topts = {}
