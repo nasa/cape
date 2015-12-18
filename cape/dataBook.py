@@ -1746,6 +1746,9 @@ class DBTarget(dict):
         :Versions:
             * 2015-06-03 ``@ddalle``: Copied from :func:`__init__` method
         """
+        # Go to root directory
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
         # Source file
         fname = self.topts.get_TargetFile()
         # Name of this target.
@@ -1785,6 +1788,8 @@ class DBTarget(dict):
         except Exception:
             # Read the data by columns.
             self.ReadDataByColumn(fname, delimiter=delim, skiprows=nskip)
+        # Go home
+        os.chdir(fpwd)
 
     # Read the data file all at once.
     def ReadAllData(self, fname, delimiter=",", skiprows=0):
