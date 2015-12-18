@@ -579,6 +579,42 @@ class Report(cape.report.Report):
         coeffs = opts.get_SubfigOpt(sfig, "Coefficients")
         # Get the targets
         targs = opts.get_SubfigTargets(sfig)
+        # Target data and target options
+        DBT = {}
+        topts = {}
+        # Read those targets into the data book, if necessary
+        for targ in targs:
+            # Read the target data book
+            self.cntl.DataBook.ReadTarget(targ)
+            # Append it to the list
+            DBT[targ] = self.cntl.DataBook.GetTargetByName(targ)
+            # Check for coefficient lists
+            tcoeffs = opts.get_SubfigOpt(sfig, "%s.Coefficients"%targ)
+            # Default to main list
+            if tcoeffs is None: tcoeffs = coeffs
+            # Initialize the options for this target
+            topts[targ] = {"Coefficients": tcoeffs}
+            # Get index of first matching point
+            J = DBT[targ].FindMatch(self.cntl.x, i)
+            # Check for matches
+            if len(J) == 0:
+                # No match
+                topts[targ]["Index"] = None
+            else:
+                # Take the first match
+                topts[targ]["Index"] = J[0]
+            # Loop through the coefficients
+            for coeff in tcoeffs:
+                # Get the list of statistical fields for DB and target
+                fsd = opts.get_SubfigOpt(sfig, coeff)
+                fst = opts.get_SubfigOpt(sfig, '%s.%s' % (targ,coeff))
+                # Save the settings
+                if fst is None:
+                    # Use defaults
+                    topts[targ][coeff] = fsd
+                else:
+                    # Use specific settings
+                    topts[targ][coeff] = fst
         # Get the points.
         grp = opts.get_SubfigOpt(sfig, "Group")
         pts = opts.get_SubfigOpt(sfig, "Points")
@@ -650,60 +686,43 @@ class Report(cape.report.Report):
         for coeff in coeffs:
             # Get the statsitical values to print
             fs = opts.get_SubfigOpt(sfig, coeff)
-            # Append that many centered columns.
-            line += ('|c'*len(fs))
+            # Column count
+            nf = len(fs)
+        # Loop through targets
+        for targ in targs:
+            # List of coefficients
+            for coeff in topts[targ]["Coefficients"]:
+                # Get list of target statistical fields for this coeff
+                nf += len(topts[targ][coeff])
+        # Append that many centered columns.
+        line += ('|c'*nf)
         # Write the line to begin the table
         lines.append(line + '}\n')
         # Write headers.
         lines.append('\\hline \\hline\n')
         lines.append('\\textbf{\\textsf{Point}}\n')
+        # Reference point name
+        pt = S.keys()[0]
         # Write headers
         for coeff in coeffs:
-            # Get the statistical values to print
-            fs = opts.get_SubfigOpt(sfig, coeff)
-            # Process label
-            if coeff == 'Cp':
-                # Pressure coefficient
-                lbl = "C_p"
-            elif coeff == 'dp':
-                # Delta pressure
-                lbl = "(p-p_\infty)/p_\infty"
-            elif coeff == 'rho':
-                # Static density
-                lbl = '\rho/\rho_\infty'
-            elif coeff == 'U':
-                # x-velocity
-                lbl = 'u/a_\infty'
-            elif coeff == 'V':
-                # y-velocity
-                lbl = 'v/a_\infty'
-            elif coeff == 'W':
-                # z-velocity
-                lbl = 'w/a_\infty'
-            elif coeff == 'P':
-                # weird pressure
-                lbl = 'p/\gamma p_\infty'
-            # Loop through suffixes
-            for fsi in fs:
-                # Check suffix type
-                if fsi in ['target', 't']:
-                    # Target value
-                    lines.append(' & $%s$ target \n' % lbl)
-                elif fsi in ['std', 'sigma']:
-                    # Standard deviation
-                    lines.append(' & $\sigma(%s)$ \n' % lbl)
-                elif fsi in ['err', 'eps', 'epsilon']:
-                    # Sampling error
-                    lines.append(' & $\varepsilon(\%s)$ \n' % lbl)
-                elif fsi == 'max':
-                    # Maximum value
-                    lines.append(' & max$(\%s)$ \n' % lbl)
-                elif fsi == 'min':
-                    # Minimum value
-                    lines.append(' & min$(\%s)$ \n' % lbl)
-                else:
-                    # Mean
-                    lines.append(' & $%s$ \n' % lbl)
+            # Loop through suffixes for this coefficient
+            for fs in opts.get_SubfigOpt(sfig, coeff):
+                # Get the symbol
+                sym = self.GetStateSymbol(coeff, fs)
+                # Append line line
+                lines.append(' & ' + sym + ' \n')
+        # Write headers for each target
+        for targ in targs:
+            # Get name of target with underscores removed
+            ltarg = targ.replace('_', '\_')
+            # Check coefficients for this target
+            for coeff in topts[targ]["Coefficients"]:
+                # Loop through suffixes for this coefficient
+                for fs in topts[targ][coeff]:
+                    # Get the symbol
+                    sym = self.GetStateSymbol(coeff, fs)
+                    # Append line line
+                    lines.append(' & ' + ltarg + '/' + sym + ' \n')
         # End header
         lines.append('\\\\\n')
         lines.append('\hline\n')
@@ -733,6 +752,29 @@ class Report(cape.report.Report):
                     else:
                         # Missing
                         line += '& $-$ '
+            # Loop through targets
+            for targ in targs:
+                # Loop through the coefficients.
+                for coeff in topts[targ]["Coefficients"]:
+                    # Loop through statistics
+                    for fs in topts[targ][coeff]:
+                        # Name of field
+                        c = ('%s.%s_%s' % (pt, coeff, fs)).rstrip('_mu')
+                        # index
+                        j = topts[targ]["Index"]
+                        # Process the statistic type
+                        if j is None or c not in DBT[targ]:
+                            # No iterations
+                            line += '& $-$ '
+                        elif fs == 'mu':
+                            # Mean value
+                            line += ('& $%.4f$ ' % DBT[targ][c][j])
+                        elif fs == 'std':
+                            # Standard deviation
+                            line += ('& %.2e ' % DBT[targ][c][j])
+                        else:
+                            # Other statistic
+                            line += ('& $%.4f$ ' % DBT[targ][c][j])
             # Finish the line and append it.
             line += '\\\\\n'
             lines.append(line)
@@ -742,6 +784,72 @@ class Report(cape.report.Report):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
+        
+    # Process state symbol
+    def GetStateSymbol(self, coeff, fs):
+        """Get a TeX symbol for a coefficient and statistical field
+        
+        :Call:
+            >>> sym = R.GetStateSymbol(coeff, fs)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report instance
+            *coeff*: Cp | dp | rho | M | T | p
+                Name of coefficient
+            *fs*: mu | std | err | min | max | u
+                Statistical quantity
+        :Outputs:
+            *sym*: :class:`str`
+                TeX symbol (including ``$`` chars) for this field
+        :Versions:
+            * 2015-12-18 ``@ddalle``: First version
+        """
+        # Process label
+        if coeff == 'Cp':
+            # Pressure coefficient
+            lbl = "C_p"
+        elif coeff == 'dp':
+            # Delta pressure
+            lbl = "(p-p_\infty)/p_\infty"
+        elif coeff == 'rho':
+            # Static density
+            lbl = '\rho/\rho_\infty'
+        elif coeff == 'U':
+            # x-velocity
+            lbl = 'u/a_\infty'
+        elif coeff == 'V':
+            # y-velocity
+            lbl = 'v/a_\infty'
+        elif coeff == 'W':
+            # z-velocity
+            lbl = 'w/a_\infty'
+        elif coeff == 'P':
+            # weird pressure
+            lbl = 'p/\gamma p_\infty'
+        else:
+            # Something else?
+            lbl = coeff
+        # Check suffix type
+        if fs in ['std', 'sigma']:
+            # Standard deviation
+            sym = '$\sigma(%s)$' % lbl
+        elif fs in ['err', 'eps', 'epsilon']:
+            # Sampling error
+            sym = '$\varepsilon(%s)$' % lbl
+        elif fs == 'max':
+            # Maximum value
+            sym = 'max$(%s)$' % lbl
+        elif fs == 'min':
+            # Minimum value
+            sym = 'min$(%s)$' % lbl
+        elif fs == 'u':
+            # Uncertainty
+            sym = '$U(%s)$' % lbl
+        else:
+            # Mean
+            sym = '$%s$' % lbl
+        # Output
+        return sym
 # class Report
 
         

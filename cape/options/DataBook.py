@@ -4,7 +4,7 @@ Data Book Options Module: :mod:`cape.options.DataBook`
 
 This module contains the basic interface for data book options generic to all
 solvers.  Some options are not generic, and so the derivative options classes
-such as :class:`pyCart.options.DataBook.DataBook` have additional methods.
+such as :class:`cape.options.DataBook.DataBook` have additional methods.
 """
 
 # Import options-specific utilities
@@ -140,7 +140,7 @@ class DataBook(odict):
         :Call:
             >>> opts.set_nStats(nStats)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *nStats*: :class:`int`
                 Number of iterations to be used for statistics
@@ -289,7 +289,7 @@ class DataBook(odict):
         :Call:
             >>> fdir = opts.get_DataBookDir()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *fdir*: :class:`str`
@@ -306,7 +306,7 @@ class DataBook(odict):
         :Call:
             >>> fdir = opts.get_DataBookDir()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *fdir*: :class:`str`
                 Relative path to data book folder
@@ -322,7 +322,7 @@ class DataBook(odict):
         :Call:
             >>> delim = opts.get_Delimiter()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *delim*: :class:`str`
@@ -566,7 +566,7 @@ class DataBook(odict):
         :Call:
             >>> tlist = opts.get_DataBookTransformations(comp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component
@@ -598,7 +598,7 @@ class DataBook(odict):
         :Call:
             >>> cols = opts.get_DataBookCols(comp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component
@@ -623,7 +623,7 @@ class DataBook(odict):
         :Call:
             >>> cols = opts.get_DataBookDataCols(comp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component
@@ -655,7 +655,7 @@ class DataBook(odict):
         :Call:
             >>> cols = opts.get_DataBookDataCols(comp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of component
@@ -683,7 +683,7 @@ class DataBook(odict):
         :Call:
             >>> comps = opts.get_LineLoadComponents(comp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of line load group
@@ -707,7 +707,7 @@ class DataBook(odict):
         :Call:
             >>> nCut = opts.get_LineLoad_nCut(comp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of line load group
@@ -731,7 +731,7 @@ class DataBook(odict):
         :Call:
             >>> comps = opts.get_PlotComponents()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *comps*: :class:`list` (:class:`str` | :class:`int`)
@@ -758,7 +758,7 @@ class DataBook(odict):
         :Call:
             >>> opts.set_PlotComponents(comps)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comps*: :class:`list` (:class:`str` | :class:`int`)
                 List of components (names or numbers) to plot
@@ -782,7 +782,7 @@ class DataBook(odict):
         :Call:
             >>> opts.add_PlotComponents(comps)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comps*: :class:`list` (:class:`str` | :class:`int`)
                 List of components (names or numbers) to plot
@@ -815,7 +815,7 @@ class DataBook(odict):
         :Call:
             >>> coeffs = opts.get_PlotCoeffs(comp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
@@ -854,7 +854,7 @@ class DataBook(odict):
         :Call:
             >>> nPlot = opts.get_nPlotIter(comp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
@@ -880,7 +880,7 @@ class DataBook(odict):
         :Call:
             >>> nLast = opts.get_nPlotLast(comp)
         :Inptus:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
@@ -906,7 +906,7 @@ class DataBook(odict):
         :Call:
             >>> nFirst = opts.get_nPlotFirst(comp)
         :Inptus:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
@@ -936,7 +936,7 @@ class DataBook(odict):
             >>> nAvg = opts.get_nAverage()
             >>> nAvg = opts.get_nAverage(comp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
@@ -962,7 +962,7 @@ class DataBook(odict):
             >>> nRow = opts.get_nPlotRows()
             >>> nRow = opts.get_nPlotRows(comp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
@@ -988,7 +988,7 @@ class DataBook(odict):
             >>> nCol = opts.get_nPlotCols()
             >>> nCol = opts.get_nPlotCols(comp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
@@ -1014,7 +1014,7 @@ class DataBook(odict):
             >>> sTag = opts.get_nPlotRestriction()
             >>> sTag = opts.get_nPlotRestriction(comp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
@@ -1041,7 +1041,7 @@ class DataBook(odict):
         :Call:
             >>> dC = opts.get_PlotDelta(coeff, comp)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *comp*: :class:`str` or :class:`int`
                 Name of component to plot
@@ -1081,7 +1081,7 @@ class DataBook(odict):
         :Call:
             >>> w = opts.get_PlotFigWidth()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *w*: :class:`float`
@@ -1099,7 +1099,7 @@ class DataBook(odict):
         :Call:
             >>> h = opts.get_PlotFigHeight()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *h*: :class:`float`
@@ -1124,7 +1124,7 @@ class DBTarget(odict):
         :Call:
             >>> Name = opts.get_TargetName()
         :Inputs:
-            *opts*: :class:`pyCart.options.DataBook.DBTarget`
+            *opts*: :class:`cape.options.DataBook.DBTarget`
                 Options interface
         :Outputs:
             *Name*: :class:`str`
@@ -1141,7 +1141,7 @@ class DBTarget(odict):
         :Call:
             >>> lbl = opts.get_TargetLabel()
         :Inputs:
-            *opts*: :class:`pyCart.options.DataBook.DBTarget`
+            *opts*: :class:`cape.options.DataBook.DBTarget`
                 Options interface
         :Outputs:
             *lbl*: :class:`str`
@@ -1161,7 +1161,7 @@ class DBTarget(odict):
         :Call:
             >>> comps = opts.get_TargetComponents()
         :Inputs:
-            *opts*: :class:`pyCart.options.DataBook.DBTarget`
+            *opts*: :class:`cape.options.DataBook.DBTarget`
                 Options interface
         :Outputs:
             *comps*: :class:`list` (:class:`str`)
@@ -1186,7 +1186,7 @@ class DBTarget(odict):
         :Call:
             >>> fname = opts.get_TargetFile()
         :Inputs:
-            *opts*: :class:`pyCart.options.DataBook.DBTarget`
+            *opts*: :class:`cape.options.DataBook.DBTarget`
                 Options interface
         :Outputs:
             *fname*: :class:`str`
@@ -1196,6 +1196,28 @@ class DBTarget(odict):
         """
         return self.get('File', 'Target.dat')
         
+    # Get tolerance
+    def get_Tol(self, xk):
+        """Get the tolerance for a particular trajectory key
+        
+        :Call:
+            >>> tol = opts.get_Tol(xk)
+        :Inputs:
+            *opts*: :class:`cape.options.DataBook.DBTarget`
+                Options interface
+            *xk*: :class:`str`
+                Name of trajectory key
+        :Outputs:
+            *tol*: :class:`float`
+                Tolerance to consider as matching value for a trajectory key
+        :Versions:
+            * 2015-12-16 ``@ddalle``: First version
+        """
+        # Get tolerance option set
+        tolopts = self.get("Tolerances", {})
+        # Get the option specific to this key
+        return tolopts.get(xk, 0.0)
+        
     # Get the delimiter
     def get_Delimiter(self):
         """Get the delimiter for a target file
@@ -1203,7 +1225,7 @@ class DBTarget(odict):
         :Call:
             >>> delim = opts.get_Delimiter()
         :Inputs:
-            *opts*: :class:`pyCart.options.DataBook.DBTarget`
+            *opts*: :class:`cape.options.DataBook.DBTarget`
                 Options interface
         :Outputs:
             *delim*: :class:`str`
@@ -1220,7 +1242,7 @@ class DBTarget(odict):
         :Call:
             >>> comchar = opts.get_CommentChar()
         :Inputs:
-            *opts*: :class:`pyCart.options.DataBook.DBTarget`
+            *opts*: :class:`cape.options.DataBook.DBTarget`
                 Options interface
         :Outputs:
             *comchar*: :class:`str`
@@ -1237,7 +1259,7 @@ class DBTarget(odict):
         :Call:
             >>> traj = opts.get_Trajectory()
         :Inputs:
-            *opts*: :class:`pyCart.options.DataBook.DBTarget`
+            *opts*: :class:`cape.options.DataBook.DBTarget`
                 Options interface
         :Outputs:
             *comchar*: :class:`str`

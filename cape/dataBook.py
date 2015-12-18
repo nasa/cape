@@ -1723,6 +1723,16 @@ class DBTarget(dict):
         self.ProcessColumns()
         # Make the trajectory data match the available list of points.
         self.UpdateTrajectory()
+        
+    # Cannot use the dictionary disp on this; it's too huge
+    def __repr__(self):
+        """Representation method
+        
+        :Versions:
+            * 2015-12-16 ``@ddalle``: First version
+        """
+        return "<DBTarget '%s', n=%i>" % (self.Name, self.nCase)
+    __str__ = __repr__
     
     # Read the data
     def ReadData(self):
@@ -1766,7 +1776,7 @@ class DBTarget(dict):
         # Translate into headers
         self.headers = headers.lstrip('#').strip().split(delim)
         # Save number of points.
-        self.n = len(self.headers)
+        self.nCol = len(self.headers)
 
         # Read it.
         try:
@@ -1821,7 +1831,7 @@ class DBTarget(dict):
         # Initialize data.
         self.data = []
         # Loop through columns.
-        for i in range(self.n):
+        for i in range(self.nCol):
             # Try reading as a float second.
             try:
                 self.data.append(np.loadtxt(fname, delimiter=delimiter,
@@ -2009,7 +2019,7 @@ class DBTarget(dict):
             # Check for ``None``
             if (tk is None) or (tk not in self):
                 # Use NaN as the value.
-                setattr(self.x,k, np.nan*np.ones(self.n))
+                setattr(self.x,k, np.nan*np.ones(self.nCase))
                 # Set the value.
                 tkeys[k] = None
                 continue
@@ -2338,18 +2348,20 @@ class DBTarget(dict):
             * 2014-12-21 ``@ddalle``: First version
         """
         # Initialize indices (assume all are matches)
-        j = np.arange(self.n)
+        j = np.arange(self.nCase)
         # Get the trajectory key translations.   This determines which keys to
         # filter and what those keys are called in the source file.
         tkeys = self.topts.get_Trajectory()
         # Loop through keys requested for matches.
         for k in tkeys:
+            # Get the name of the column according to the source file.
+            c = tkeys[k]
+            # Skip it if key not recognized
+            if c is None: continue
             # Get the tolerance.
             tol = self.topts.get_Tol(k)
             # Get the target value (from the trajectory)
             v = getattr(x,k)[i]
-            # Get the name of the column according to the source file.
-            c = tkeys[k]
             # Search for matches.
             try:
                 # Filter test criterion.
