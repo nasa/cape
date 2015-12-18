@@ -760,6 +760,16 @@ class Report(cape.report.Report):
                     for fs in topts[targ][coeff]:
                         # Name of field
                         c = ('%s.%s_%s' % (pt, coeff, fs)).rstrip('_mu')
+                        # Column names
+                        ckeys = DBT[targ].ckeys
+                        # Name of column
+                        if grp not in ckeys or c not in ckeys[grp]:
+                            # No match for this coefficient
+                            line += '& $-$ '
+                            continue
+                        else:
+                            # Get the column
+                            col = ckeys[grp]
                         # index
                         j = topts[targ]["Index"]
                         # Process the statistic type
@@ -768,13 +778,13 @@ class Report(cape.report.Report):
                             line += '& $-$ '
                         elif fs == 'mu':
                             # Mean value
-                            line += ('& $%.4f$ ' % DBT[targ][c][j])
+                            line += ('& $%.4f$ ' % DBT[targ][col][j])
                         elif fs == 'std':
                             # Standard deviation
-                            line += ('& %.2e ' % DBT[targ][c][j])
+                            line += ('& %.2e ' % DBT[targ][col][j])
                         else:
                             # Other statistic
-                            line += ('& $%.4f$ ' % DBT[targ][c][j])
+                            line += ('& $%.4f$ ' % DBT[targ][col][j])
             # Finish the line and append it.
             line += '\\\\\n'
             lines.append(line)
