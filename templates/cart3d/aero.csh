@@ -117,7 +117,6 @@ set avg_window = 1
 set mesh2d = 0
 
 # binaryIO tecplot output (default yes)
-set binaryIO 
 set binaryIO = '-binaryIO'
 
 # adaptation restart 

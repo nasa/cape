@@ -784,6 +784,95 @@ class Options(odict):
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
    # >
+   
+    
+    # ========
+    # Plotting
+    # ========
+   # <
+   
+    # Get list of components to plot
+    def get_PlotComponents(self):
+        self._DataBook()
+        return self['DataBook'].get_PlotComponents()
+    get_PlotComponents.__doc__ = DataBook.get_PlotComponents.__doc__
+        
+    # Set list of components to plot
+    def set_PlotComponents(self, comps=['entire']):
+        self._DataBook()
+        self['DataBook'].set_PlotComponents(comps)
+    set_PlotComponents.__doc__ = DataBook.set_PlotComponents.__doc__
+        
+    # Add to list of components to plot
+    def add_PlotComponents(self, comp):
+        self._DataBook()
+        self['DataBook'].add_PlotComponents(comp)
+    add_PlotComponents.__doc__ = DataBook.add_PlotComponents.__doc__
+    
+    # Get the list of coefficients to plot.
+    def get_PlotCoeffs(self, comp=None):
+        self._DataBook()
+        return self['DataBook'].get_PlotCoeffs(comp)
+        
+    # Get the number of iterations to plot
+    def get_nPlotIter(self, comp=None):
+        self._DataBook()
+        return self['DataBook'].get_nPlotIter(comp)
+    
+    # Get the last iteration to plot
+    def get_nPlotLast(self, comp=None):
+        self._DataBook()
+        return self['DataBook'].get_nPlotLast(comp)
+        
+    # Get the first iteration to plot
+    def get_nPlotFirst(self, comp=None):
+        self._DataBook()
+        return self['DataBook'].get_nPlotFirst(comp)
+        
+    # Get the number of iterations to use for averaging
+    def get_nAverage(self, comp=None):
+        self._DataBook()
+        return self['DataBook'].get_nAverage(comp)
+        
+    # Get number of rows to plot
+    def get_nPlotRows(self, comp=None):
+        self._DataBook()
+        return self['DataBook'].get_nPlotRows(comp)
+        
+    # Get number of columns to plot
+    def get_nPlotCols(self, comp=None):
+        self._DataBook()
+        return self['DataBook'].get_nPlotCols(comp)
+        
+    # Get the plot restriction
+    def get_PlotRestriction(self, comp=None):
+        self._DataBook()
+        return self['DataBook'].get_PlotRestriction(comp)
+        
+    # Get the delta for a given component and coefficient
+    def get_PlotDelta(self, coeff, comp=None):
+        self._DataBook()
+        return self['DataBook'].get_PlotDelta(coeff, comp)
+        
+    # Get the plot figure width
+    def get_PlotFigWidth(self):
+        self._DataBook()
+        return self['DataBook'].get_PlotFigWidth()
+        
+    # Get the plot figure height
+    def get_PlotFigHeight(self):
+        self._DataBook()
+        return self['DataBook'].get_PlotFigHeight()
+        
+    # Copy over the documentation.
+    for k in [
+            'PlotCoeffs', 'PlotComponents',
+            'PlotCoeffs', 'nPlotIter', 'nAverage', 'nPlotRows',
+            'nPlotLast', 'nPlotFirst', 'PlotFigWidth', 'PlotFigHeight',
+            'nPlotCols', 'PlotRestriction', 'PlotDelta']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
+   # >
     
     
     # =========
