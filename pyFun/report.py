@@ -87,7 +87,10 @@ class Report(cape.report.Report):
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
         """
-        return CaseResid()
+        # Project rootname
+        proj = self.cntl.GetProjectRootName()
+        # Read the residual history
+        return CaseResid(proj)
         
         
 # class Report
