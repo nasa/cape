@@ -603,7 +603,7 @@ class Report(cape.report.Report):
                 topts[targ]["Index"] = None
             else:
                 # Take the first match
-                topts[targ]["Index"] = J[0]
+                topts[targ]["Index"] = J
             # Loop through the coefficients
             for coeff in tcoeffs:
                 # Get the list of statistical fields for DB and target
@@ -770,22 +770,25 @@ class Report(cape.report.Report):
                             continue
                         else:
                             # Get the column
-                            col = ckeys[grp]
+                            col = ckeys[grp][c]
                         # index
-                        j = topts[targ]["Index"]
+                        J = topts[targ]["Index"]
                         # Process the statistic type
-                        if j is None or c not in DBT[targ]:
+                        if J is None or col not in DBT[targ]:
                             # No iterations
                             line += '& $-$ '
                         elif fs == 'mu':
                             # Mean value
-                            line += ('& $%.4f$ ' % DBT[targ][col][j])
+                            val = np.mean(DBT[targ][col][J])
+                            line += ('& $%.4f$ ' % val)
                         elif fs == 'std':
                             # Standard deviation
-                            line += ('& %.2e ' % DBT[targ][col][j])
+                            val = np.mean(DBT[targ][col][J])
+                            line += ('& %.2e ' % val)
                         else:
                             # Other statistic
-                            line += ('& $%.4f$ ' % DBT[targ][col][j])
+                            val = np.mean(DBT[targ][col][J])
+                            line += ('& $%.4f$ ' % val)
             # Finish the line and append it.
             line += '\\\\\n'
             lines.append(line)
