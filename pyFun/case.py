@@ -151,7 +151,7 @@ def GetPhaseNumber(rc):
             # This run has not been completed yet.
             return i
         # Check the iteration number.
-        if n < rc.get_IterSeq(j):
+        if n < rc.get_PhaseIters(j):
             # This case has been run, but hasn't reached the min iter cutoff
             return i
     # Case completed; just return the last value.
