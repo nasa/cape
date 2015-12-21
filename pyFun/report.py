@@ -13,7 +13,7 @@ from cape import tex, tar
 # Data book and plotting
 from .dataBook import CaseFM, CaseResid
 # Folder and Tecplot management
-from .case    import LinkPLT
+#from .case    import LinkPLT
 
 
 # Class to interface with report generation and updating.
@@ -65,7 +65,10 @@ class Report(cape.report.Report):
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
         """
-        return CaseFM(comp)
+        # Project rootname
+        proj = self.cntl.GetProjectRootName()
+        # Read the history for that component
+        return CaseFM(proj, comp)
         
     # Read residual history
     def ReadCaseResid(self):

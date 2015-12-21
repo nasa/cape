@@ -2087,6 +2087,8 @@ class Report(object):
         if nStats is None: nStats = opts.get_nStats()
         if nMin   is None: nMin   = opts.get_nMin()
         if nMax   is None: nMax   = opts.get_nMaxStats()
+        # Pure defaults
+        if nStats is None: nStats = 1
         # Iteration at which to build table
         nOpt = opts.get_SubfigOpt(sfig, "Iteration")
         # Make sure current progress is a number
