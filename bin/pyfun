@@ -3,7 +3,7 @@
 # Import the full module
 import pyFun
 # Automated report generation
-#import pyFun.report
+import pyFun.report
 # Input parsing
 from cape.argread import readflagstar
 
