@@ -216,7 +216,7 @@ def run_flowCart(verify=False, isect=False):
         # Run the command.
         bin.callf(cmdi, f='flowCart.out')
         # Check for point sensors
-        if os.path.isfile(os.path.join('BEST', 'pointSensors.dat')):
+        if os.path.isfile('pointSensors.dat'):
             # Collect point sensor data
             PS = pointSensor.CasePointSensor()
             PS.UpdateIterations()
