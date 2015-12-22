@@ -6,17 +6,14 @@ This module contains functions to execute FUN3D and interact with individual
 case folders.
 """
 
+# Import cape stuff
+from cape.case import *
 # Import options class
 from options.runControl import RunControl
 # Import the namelist
 from namelist import Namelist
 # Interface for writing commands
 from . import bin, cmd, queue
-
-# Read the local JSON file
-import json
-# File control
-import os, glob, shutil
 
 
 # Function to complete final setup and call the appropriate FUN3D commands
@@ -34,6 +31,8 @@ def run_fun3d():
         raise IOError('Fase already running!')
     # Touch the running file.
     os.system('touch RUNNING')
+    # Start timer
+    tic = datetime.now()
     # Get the run control settings
     rc = ReadCaseJSON()
     # Get the project name
@@ -53,6 +52,8 @@ def run_fun3d():
     bin.callf(cmdi, f='fun3d.out')
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
+    # Save time usage
+    WriteUserTime(tic, rc, i)
     # Get the last iteration number
     n = GetCurrentIter()
     # Assuming that worked, move the temp output file.
@@ -89,6 +90,31 @@ def StartCase():
     else:
         # Simply run the case. Don't reset modules either.
         run_fun3d()
+    
+    
+# Write time used
+def WriteUserTime(tic, rc, i, fname="pyfun_time.dat"):
+    """Write time usage since time *tic* to file
+    
+    :Call:
+        >>> toc = WriteUserTime(tic, rc, i, fname="pyfun_time.dat")
+    :Inputs:
+        *tic*: :class:`datetime.datetime`
+            Time from which timer will be measured
+        *rc*: :class:`pyCart.options.runControl.RunControl
+            Options interface
+        *i*: :class:`int`
+            Phase number
+        *fname*: :class:`str`
+            Name of file containing CPU usage history
+    :Outputs:
+        *toc*: :class:`datetime.datetime`
+            Time at which time delta was measured
+    :Versions:
+        * 2015-12-09 ``@ddalle``: First version
+    """
+    # Call the function from :mode:`cape.case`
+    WriteUserTimeProg(tic, rc, i, fname, 'run_fun3d.py')
 
 # Function to determine which PBS script to call
 def GetPBSScript(i=None):

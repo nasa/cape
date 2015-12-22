@@ -511,6 +511,26 @@ class Fun3d(Cntl):
             if not os.path.isfile(f): return True
         # Apparently no issues.
         return False
+            
+    # Get total CPU hours (actually core hours)
+    def GetCPUTime(self, i):
+        """Read a CAPE-style core-hour file from a case
+        
+        :Call:
+            >>> CPUt = fun3d.GetCPUTime(i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                FUN3D control interface
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *CPUt*: :class:`float` | ``None``
+                Total core hours used in this job
+        :Versions:
+            * 2015-12-22 ``@ddalle``: First version
+        """
+        # Call the general function using hard-coded file name
+        return self.GetCPUTimeFromFile(i, fname='pyfun_time.dat')
 
     
     # Prepare a case.
