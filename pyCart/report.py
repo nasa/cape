@@ -702,8 +702,6 @@ class Report(cape.report.Report):
         # Write headers.
         lines.append('\\hline \\hline\n')
         lines.append('\\textbf{\\textsf{Point}}\n')
-        # Reference point name
-        pt = S.keys()[0]
         # Write headers
         for coeff in coeffs:
             # Loop through suffixes for this coefficient
