@@ -269,20 +269,21 @@ class Cntl(object):
         # Create the string stencil.
         if qJobID:
             # Print status with job numbers.
-            stncl = ('%%-%is ' * 6) % (4, lrun, 7, 11, 3, 7)
+            stncl = ('%%-%is ' * 7) % (4, lrun, 7, 11, 3, 8, 7)
             # Print header row.
             print(stncl % ("Case", "Config/Run Directory", "Status", 
-                "Iterations", "Que", "Job ID"))
+                "Iterations", "Que", "CPU Time", "Job ID"))
             # Print "---- --------" etc.
-            print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3 + s + f*7)
+            print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3 + s
+                f*8 + s + f*7)
         else:
             # Print status without job numbers.
-            stncl = ('%%-%is ' * 5) % (4, lrun, 7, 11, 3)
+            stncl = ('%%-%is ' * 6) % (4, lrun, 7, 11, 3, 8)
             # Print header row.
             print(stncl % ("Case", "Config/Run Directory", "Status", 
-                "Iterations", "Que"))
+                "Iterations", "Que", "CPU Time"))
             # Print "---- --------" etc.
-            print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3)
+            print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3 + s + f*8)
         # Initialize dictionary of statuses.
         total = {'PASS':0, 'PASS*':0, '---':0, 'INCOMP':0,
             'RUN':0, 'DONE':0, 'QUEUE':0, 'ERROR':0}
@@ -300,6 +301,15 @@ class Cntl(object):
             total[sts] += 1
             # Get the current number of iterations
             n = self.CheckCase(i)
+            # Get CPU hours
+            t = self.GetCPUTime(i)
+            # Convert to string
+            if t is None:
+                # Empty string
+                CPUt = ""
+            else:
+                # Convert to %.1f
+                CPUt = ".1f" % t
             # Switch on whether or not case is set up.
             if n is None:
                 # Case is not prepared.
@@ -325,13 +335,13 @@ class Cntl(object):
             # Print info
             if qJobID and jobID in jobs:
                 # Print job number.
-                print(stncl % (j, frun, sts, itr, que, jobID))
+                print(stncl % (j, frun, sts, itr, que, CPUt, jobID))
             elif qJobID:
                 # Print blank job number.
-                print(stncl % (j, frun, sts, itr, que, ""))
+                print(stncl % (j, frun, sts, itr, que, CPUt, ""))
             else:
                 # No job number.
-                print(stncl % (j, frun, sts, itr, que))
+                print(stncl % (j, frun, sts, itr, que, CPUt))
             # Check status.
             if qCheck: continue
             # If submitting is allowed, check the job status.
@@ -417,8 +427,8 @@ class Cntl(object):
         :Call:
             >>> pbs = cart3d.CaseStartCase()
         :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
+            *cntl*: :class:`cape.cntl.Cntl`
+                CAPE control interface
         :Outputs:
             *pbs*: :class:`int` or ``None``
                 PBS job ID if submitted successfully
@@ -620,7 +630,73 @@ class Cntl(object):
         """
         return False
     
-    
+    # Get CPU hours (actually core hours)
+    def GetCPUTimeFromFile(self, i, fname='cape_time.dat'):
+        """Read a CAPE-style core-hour file
+        
+        :Call:
+            >>> CPUt = cntl.GetCPUTimeFromFile(i, fname)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                CAPE control interface
+            *i*: :class:`int`
+                Case index
+            *fname*: :class:`str`
+                Name of file containing timing history
+        :Outputs:
+            *CPUt*: :class:`float` | ``None``
+                Total core hours used in this job
+        :Versions:
+            * 2015-12-22 ``@ddalle``: First version
+        """
+        # Get the group name.
+        frun = self.x.GetFullFolderNames(i)
+        # Go to root folder.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Check if the folder exists.
+        if (not os.path.isdir(frun)):
+            os.chdir(fpwd)
+            return None
+        # Go to the case folder.
+        os.chdir(frun)
+        # Check if the file exists.
+        if not os.path.isfile(fname):
+            os.chdir(fpwd)
+            return None
+        # Read the time.
+        try:
+            # Read the first column of data
+            CPUt = np.loadtxt(fname, comments='#', usecols=(0,), delimiter=',')
+            # Return to original folder.
+            os.chdir(fpwd)
+            # Return the total.
+            return np.sum(CPUt)
+        except Exception:
+            # Could not read file
+            os.chdir(fpwd)
+            return None
+            
+    # Get total CPU hours (actually core hours)
+    def GetCPUTime(self, i):
+        """Read a CAPE-style core-hour file from a case
+        
+        :Call:
+            >>> CPUt = cntl.GetCPUTime(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                CAPE control interface
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *CPUt*: :class:`float` | ``None``
+                Total core hours used in this job
+        :Versions:
+            * 2015-12-22 ``@ddalle``: First version
+        """
+        # Call the general function using hard-coded file name
+        return self.GetCPUTimeFromFile(i, fname='cape_time.dat')
+        
     # Get PBS job ID if possible
     def GetPBSJobID(self, i):
         """Get PBS job number if one exists

@@ -246,6 +246,27 @@ class Cart3d(Cntl):
         """
         return case.StartCase()
         
+            
+    # Get total CPU hours (actually core hours)
+    def GetCPUTime(self, i):
+        """Read a CAPE-style core-hour file from a case
+        
+        :Call:
+            >>> CPUt = cart3d.GetCPUTime(i)
+        :Inputs:
+            *cntl*: :class:`pyCart.cart3d.Cart3d`
+                Cart3D control interface
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *CPUt*: :class:`float` | ``None``
+                Total core hours used in this job
+        :Versions:
+            * 2015-12-22 ``@ddalle``: First version
+        """
+        # Call the general function using hard-coded file name
+        return self.GetCPUTimeFromFile(i, fname='pycart_time.dat')
+        
     # Get the current iteration number from :mod:`case`
     def CaseGetCurrentIter(self):
         """Get the current iteration number from the appropriate module
