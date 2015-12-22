@@ -275,7 +275,7 @@ class Cntl(object):
                 "Iterations", "Que", "CPU Time", "Job ID"))
             # Print "---- --------" etc.
             print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3 + s
-                f*8 + s + f*7)
+                + f*8 + s + f*7)
         else:
             # Print status without job numbers.
             stncl = ('%%-%is ' * 6) % (4, lrun, 7, 11, 3, 8)
@@ -309,7 +309,7 @@ class Cntl(object):
                 CPUt = ""
             else:
                 # Convert to %.1f
-                CPUt = ".1f" % t
+                CPUt = "%8.1f" % t
             # Switch on whether or not case is set up.
             if n is None:
                 # Case is not prepared.
