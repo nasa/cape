@@ -20,6 +20,8 @@ from .tri import Tri, Triq
 
 # Read the local JSON file.
 import json
+# Timing
+from datetime import datetime
 # File control
 import os, resource, glob, shutil
 # Basic numerics
@@ -139,5 +141,62 @@ def GetCurrentIter():
     :Versions:
         * 2015-09-27 ``@ddalle``: First version
     """
-    return 0    
+    return 0
+    
+# Write time used
+def WriteUserTimeProg(tic, rc, i, fname, prog):
+    """Write time usage since time *tic* to file
+    
+    :Call:
+        >>> toc = WriteUserTime(tic, rc, i, fname, prog)
+    :Inputs:
+        *tic*: :class:`datetime.datetime`
+            Time from which timer will be measured
+        *rc*: :class:`pyCart.options.runControl.RunControl
+            Options interface
+        *i*: :class:`int`
+            Phase number
+        *fname*: :class:`str`
+            Name of file containing CPU usage history
+        *prog*: :class:`str`
+            Name of program to write in history
+    :Outputs:
+        *toc*: :class:`datetime.datetime`
+            Time at which time delta was measured
+    :Versions:
+        * 2015-12-09 ``@ddalle``: First version
+        * 2015-12-22 ``@ddalle``: Copied from :mod:`pyCart.case`
+    """
+    # Check if the file exists
+    if not os.path.isfile(fname):
+        # Create it.
+        f = open(fname, 'w')
+        # Write header line
+        f.write("# TotalCPUHours, nProc, program, date, PBS job ID\n")
+    else:
+        # Append to the file
+        f = open(fname, 'a')
+    # Check for job ID
+    if rc.get_qsub(i):
+        try:
+            # Try to read it and convert to integer
+            jobID = open('jobID.dat').readline().split()[0]
+        except Exception:
+            jobID = ''
+    else:
+        # No job ID
+        jobID = ''
+    # Get the time.
+    toc = datetime.now()
+    # Time difference
+    t = toc - tic
+    # Number of processors
+    nProc = rc.get_nProc(i)
+    # Calculate CPU hours
+    CPU = nProc * (t.days*24 + t.seconds/3600.0)
+    # Write the data.
+    f.write('%8.2f, %4i, %-20s, %s, %s\n' % (CPU, nProc, prog,
+        toc.strftime('%Y-%m-%d %H:%M:%S %Z'), jobID))
+    # Cleanup
+    f.close()
     

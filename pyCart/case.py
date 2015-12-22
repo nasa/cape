@@ -15,7 +15,7 @@ command-line options to run.
 """
 
 # Reused classes
-from cape.case import PrepareEnvironment
+from cape.case import *
 # Import options class
 from options.runControl import RunControl
 # Interface for writing commands
@@ -25,15 +25,6 @@ from . import pointSensor
 
 # Need triangulations for cases with `intersect` and for averaging
 from .tri import Tri, Triq
-
-# Read the local JSON file.
-import json
-# Timing
-from datetime import datetime
-# File control
-import os, resource, glob, shutil
-# Basic numerics
-from numpy import nan, isnan
 
 
 # Function to setup and call the appropriate flowCart file.
@@ -309,40 +300,8 @@ def WriteUserTime(tic, rc, i, fname="pycart_time.dat"):
     :Versions:
         * 2015-12-09 ``@ddalle``: First version
     """
-    # Check if the file exists
-    if not os.path.isfile(fname):
-        # Create it.
-        f = open(fname, 'w')
-        # Write header line
-        f.write("# TotalCPUHours, nProc, program, date, PBS job ID\n")
-    else:
-        # Append to the file
-        f = open(fname, 'a')
-    # Check for job ID
-    if rc.get_qsub(i):
-        try:
-            # Try to read it and convert to integer
-            jobID = open('jobID.dat').readline().split()[0]
-        except Exception:
-            jobID = ''
-    else:
-        # No job ID
-        jobID = ''
-    # Get the time.
-    toc = datetime.now()
-    # Time difference
-    t = toc - tic
-    # Number of processors
-    nProc = rc.get_nProc(i)
-    # Calculate CPU hours
-    CPU = nProc * (t.days*24 + t.seconds/3600.0)
-    # Program name
-    prog = 'run_flowCart.py'
-    # Write the data.
-    f.write('%8.2f, %4i, %-20s, %s, %s\n' % (CPU, nProc, prog,
-        toc.strftime('%Y-%m-%d %H:%M:%S %Z'), jobID))
-    # Cleanup
-    f.close()
+    # Call the function from :mode:`cape.case`
+    WriteUserTimeProg(tic, rc, i, fname, 'run_flowCart.py')
             
             
 
