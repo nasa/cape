@@ -1082,6 +1082,7 @@ class Cart3d(Cntl):
         """
         # Get the format.
         opt = self.opts.get_TarViz()
+        fmt = self.opts.get_ArchiveFormat()
         # Check for directive not to archive.
         if not opt or opt=="none": return
         # Check for directive not to archive.
