@@ -243,15 +243,16 @@ def TarViz(opts):
     for (fglob, ftar) in zip(VizGlob, VizTar):
         # Get the matches
         fnames = glob.glob(fglob+'.dat') + glob.glob(fglob+'.plt')
+        fnames.sort()
         # Check for a match to the glob.
         if len(fnames) == 0: continue
         # Status update
         print("  '%s.{dat,plt}' --> '%s'" % (fglob, ftar))
-        # Tar surface TecPlot files
+        # Create archive
         ierr = sp.call(cmdu + [ftar] + fnames)
         if ierr: continue
         # Delete files
-        ierr = sp.call(['rm'] + fnames)
+        ierr = sp.call(['rm'] + fnames[:-1])
         
 # Clear old check files.
 def ClearCheck(n=1):
