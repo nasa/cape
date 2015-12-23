@@ -659,6 +659,8 @@ class Report(cape.report.Report):
                 else:
                     # Specified by name
                     kpt = P.GetPointSensorIndex(pt)
+                # Check for adequate iterations
+                if np.sum(P.i>=nMin) < nStats: continue
                 # Get the statistics.
                 S[pt] = P.GetStats(kpt, nStats=nStats, nLast=nCur)
         # Go back to original folder.

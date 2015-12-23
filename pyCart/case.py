@@ -949,8 +949,8 @@ def LinkPLT():
         * 2015-11-20 ``@ddalle``: Delegate work and support ``*.dat`` files
     """
     # Surface file
-    LinkFromGlob('Components.i.plt', 'Components.[0-9]*.plt', -2)
-    LinkFromGlob('Components.i.dat', 'Components.[0-9]*.dat', -2)
+    LinkFromGlob('Components.i.plt', 'Components.i.[0-9]*.plt', -2)
+    LinkFromGlob('Components.i.dat', 'Components.i.[0-9]*.dat', -2)
     LinkFromGlob('cutPlanes.plt',    'cutPlanes.[0-9]*.plt', -2)
     LinkFromGlob('cutPlanes.dat',    'cutPlanes.[0-9]*.dat', -2)
             
