@@ -115,9 +115,9 @@ below.
     :numbered:
     
     install
+    json/index
     pycart/index
     script/index
-    template/index
     
 ..    pyCart/cart3d
 

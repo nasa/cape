@@ -111,6 +111,7 @@ of how the options are used.
     usage
     uncategorized
     PBS
+    runControl
     flowCart
     adjointCart
     Adaptation

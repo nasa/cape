@@ -11,6 +11,5 @@ Script Library
     
         pycart
         UH3D2Tri
-        CombineTri
         
     
