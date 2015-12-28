@@ -276,7 +276,7 @@ def run_flowCart(verify=False, isect=False):
     if n >= rc.get_LastIter():
         return
     # Run full restart command, including qsub if appropriate
-    StartCase(i)
+    RestartCase(i)
     
     
 # Write time used
@@ -359,17 +359,15 @@ def VerifyCase(verify=False):
     bin.verify('Components.i.tri')
 
 # Function to call script or submit.
-def StartCase(i0=None):
+def StartCase():
     """Start a case by either submitting it or calling with a system command
     
     :Call:
-        >>> pyCart.case.StartCase(i0=None)
-    :Inputs:
-        *i0*: :class:`int` | ``None``
-            Run sequence index of the previous run
+        >>> pyCart.case.StartCase()
     :Versions:
         * 2014-10-06 ``@ddalle``: First version
         * 2015-11-08 ``@ddalle``: Added resubmit/continue functionality
+        * 2015-12-28 ``@ddalle``: Split :func:`RestartCase`
     """
     # Get the config.
     rc = ReadCaseJSON()
@@ -381,13 +379,40 @@ def StartCase(i0=None):
     if not rc.get_qsub(i):
         # Run the case.
         run_flowCart()
-    elif 'SubmitJobs' in fnstack:
-        # Submit because not called from a compute node
+    else:
         # Get the name of the PBS file.
         fpbs = GetPBSScript(i)
         # Submit the case.
         pbs = queue.pqsub(fpbs)
         return pbs
+        
+# Function to call script or submit.
+def RestartCase(i0=None):
+    """Restart a case by either submitting it or calling with a system command
+    
+    This version of the command is called within :func:`run_flowCart` after
+    running a phase or attempting to run a phase.
+    
+    :Call:
+        >>> pyCart.case.RetartCase(i0=None)
+    :Inputs:
+        *i0*: :class:`int` | ``None``
+            Run sequence index of the previous run
+    :Versions:
+        * 2014-10-06 ``@ddalle``: First version
+        * 2015-11-08 ``@ddalle``: Added resubmit/continue functionality
+        * 2015-12-28 ``@ddalle``: Split from :func:`StartCase`
+    """
+    # Get the config.
+    rc = ReadCaseJSON()
+    # Determine the run index.
+    i = GetPhaseNumber(rc)
+    # Get list of function names in the stack.
+    fnstack = [s[3] for s in inspect.stack()]
+    # Check qsub status.
+    if not rc.get_qsub(i):
+        # Run the case.
+        run_flowCart()
     elif rc.get_Resubmit(i):
         # Check for continuance
         if (i0 is None) or (i>i0) or (not rc.get_Continue(i)):
