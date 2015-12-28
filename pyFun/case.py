@@ -337,7 +337,16 @@ def GetRunningIter():
     """
     # Check for the file.
     if not os.path.isfile('fun3d.out'): return None
-    # Get the last three lines of :file:`fun3d.out`
+    # Get the restart iteration line
+    try:
+        # Search for particular text
+        lines = bin.grep('the restart files contains', 'fun3d.out')
+        # Process iteration count from the RHS of the last such line
+        nr = int(lines[-1].split('=')[-1])
+    except Exception:
+        # No restart iterations
+        nr = None
+    # Get the last few lines of :file:`fun3d.out`
     lines = bin.tail('fun3d.out', 7).strip().split('\n')
     lines.reverse()
     # Initialize output
@@ -351,7 +360,12 @@ def GetRunningIter():
         except Exception:
             continue
     # Output
-    return n
+    if n is None:
+        return nr
+    elif nr is None:
+        return n
+    else:
+        return n + nr
 
 # Function to get total iteration number
 def GetRestartIter():

@@ -3502,6 +3502,8 @@ class CaseResid(object):
             L0 = L0[:len(i)]
         # Plot the initial residual if there are any unsteady iterations.
         if L0[-1] > L1[-1]:
+            print("i: %s" % (i.shape))
+            print("L0: %s" % (L0.shape))
             h['L0'] = plt.semilogy(i, L0, 'b-', lw=1.2)
         # Plot the residual.
         h['L1'] = plt.semilogy(i, L1, 'k-', lw=1.5)

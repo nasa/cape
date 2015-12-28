@@ -101,6 +101,33 @@ def tail(fname, n=1):
     cmdi = ['tail', '-%i'%n, fname]
     # Use Popen because check_output is 2.7+
     return sp.Popen(cmdi, stdout=sp.PIPE).communicate()[0]
+
+# Grep lines from a file
+def grep(regex, fname):
+    """Search for a regular expression in a file
+
+    :Call:
+        >>> lines = grep(regex, fname)
+    :Inputs:
+        *regex*: :class:`str`
+            Regular expression for which to search
+        *fname*: :class:`str`
+            Name of file or wild card to search
+    :Outputs:
+        *lines*: :class:`list` (:class:`str`)
+            List of lines containing the sought regular expression
+    :Versions:
+        * 2015-12-28 ``@ddalle``: First version
+    """
+    # Safely call
+    try:
+        # Call egrep so that regular expressions are expanded fully
+        txt = sp.Popen(['egrep', "%s"%regex, fname],
+            stdout=sp.PIPE).communicate()[0]
+        # Split into list of lines
+        return txt.split('\n')
+    except Exception:
+        return []
         
 # Function to get the first line of a file.
 def head(fname, n=1):

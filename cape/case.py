@@ -23,7 +23,7 @@ import json
 # Timing
 from datetime import datetime
 # File control
-import os, resource, glob, shutil
+import os, inspect, resource, glob, shutil
 # Basic numerics
 from numpy import nan, isnan
 
