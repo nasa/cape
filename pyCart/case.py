@@ -407,8 +407,6 @@ def RestartCase(i0=None):
     rc = ReadCaseJSON()
     # Determine the run index.
     i = GetPhaseNumber(rc)
-    # Get list of function names in the stack.
-    fnstack = [s[3] for s in inspect.stack()]
     # Check qsub status.
     if not rc.get_qsub(i):
         # Run the case.

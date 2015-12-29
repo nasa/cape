@@ -282,12 +282,9 @@ def GetCurrentIter():
     if nr is None:
         # No running iterations; check history
         return nh
-    elif nh is None:
-        # No completed sets but some iterations running
-        return nr
     else:
         # Some iterations saved and some running
-        return nh + nr
+        return nr
         
 # Get the number of finished iterations
 def GetHistoryIter():
