@@ -1,16 +1,9 @@
 """
-Module to interface with "input.cntl" files: :mod:`pyCart.inputCntl`
-====================================================================
+Module to interface with "over.namelist" files: :mod:`pyOver.namelist`
+======================================================================
 
-This is a module built off of the :mod:`pyCart.fileCntl` module customized for
-manipulating :file:`input.cntl` files.  Such files are split into section by lines of
-the format
-
-    ``$__Post_Processing``
-    
-and this module is designed to recognize such sections.  The main feature of
-this module is methods to set specific properties of the :file:`input.cntl` 
-file, for example the Mach number or CFL number.
+This is a module built off of the :mod:`cape.fileCntl` module customized for
+manipulating OVERFLOW namelists.
 """
 
 # Import the base file control class.
@@ -37,7 +30,7 @@ class Namelist(cape.namelist.Namelist):
     """
     
     # Initialization method (not based off of FileCntl)
-    def __init__(self, fname="fun3d.nml"):
+    def __init__(self, fname="over.namelist"):
         """Initialization method"""
         # Read the file.
         self.Read(fname)
@@ -45,28 +38,6 @@ class Namelist(cape.namelist.Namelist):
         self.fname = fname
         # Split into sections.
         self.SplitToSections(reg="\&([\w_]+)")
-        
-    # Set restart on
-    def SetRestart(self, q=True):
-        """Set the FUN3D restart flag on or off
-        
-        :Call:
-            >>> nml.SetRestart(q=True)
-        :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
-            *q*: :class:`bool` | ``"on"`` | ``"off"`` | ``None``
-                Restart option, ``None`` turns flag to ``"on"``
-        :Versions:
-            * 2015-11-03 ``@ddalle``: First version
-        """
-        # Check status
-        if (q is None) or (q and (q != "off")):
-            # Turn restart on.
-            self.SetVar('code_run_control', 'restart_read', 'on')
-        else:
-            # Turn restart off.
-            self.SetVar('code_run_control', 'restart_read', 'off')
         
     # Function set the Mach number.
     def SetMach(self, mach):
