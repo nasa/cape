@@ -34,6 +34,11 @@ PyFunFolder = os.path.split(os.path.split(_fname)[0])[0]
 rc["project_rootname"]     ="pyfun"
 rc["grid_format"]          = "aflr3"
 rc["nodet_animation_freq"] = -1
+# Adaptation settings
+rc["Adaptive"]   = False
+rc["Dual"]       = False
+rc["AdaptPhase"] = True
+rc["DualPhase"]  = True
     
 
 # Function to ensure scalar from above

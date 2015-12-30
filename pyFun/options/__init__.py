@@ -262,6 +262,51 @@ class Options(cape.options.Options):
     # ===================
    # <
    
+    # Adaptation setting
+    def get_Adaptive(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_Adaptive(i)
+    
+    # Adaptation setting
+    def set_Adaptive(self, ac=rc0('Adaptive'), i=None):
+        self._RunControl()
+        self['RunControl'].set_Adaptive(ac, i)
+        
+    # Dual setting
+    def get_Dual(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_Dual(i)
+        
+    # Dual setting
+    def set_Dual(self, d=rc0('Dual'), i=None):
+        self._Dual()
+        self['RunControl'].set_dual(d, i)
+        
+    # Adaptive phase setting
+    def get_AdaptPhase(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_AdaptPhase(i)
+        
+    # Adaptive phase setting
+    def set_AdaptPhase(self, qa=rc0('AdaptPhase'), i=None):
+        self._RunControl()
+        self['RunControl'].set_AdaptPhase(qa, i)
+        
+    # Dual phase setting
+    def get_DualPhase(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_DualPhase(i)
+        
+    # Adaptive phase setting
+    def set_DualPhase(self, qd=rc0('DualPhase'), i=None):
+        self._RunControl()
+        self['RunControl'].set_DualPhase(qd, i)
+        
+        
+    for k in ['Adaptive', 'Dual', 'AdaptPhase', 'DualPhase']:
+        eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
+   
    # >
    
     # =================

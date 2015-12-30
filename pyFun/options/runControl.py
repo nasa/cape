@@ -58,12 +58,196 @@ class RunControl(cape.options.runControl.RunControl):
     """Dictionary-based interface for automated reports
     
     :Call:
-        >>> opts = Report(**kw)
+        >>> opts = RunControl(**kw)
     :Versions:
         * 2015-09-28 ``@ddalle``: Subclassed to CAPE
     """
     
-    pass
+    # Initialization method
+    def __init__(self, fname=None, **kw):
+        # Store the data in *this* instance
+        for k in kw:
+            self[k] = kw[k]
+        # Upgrade important groups to their own classes.
+        self._Environ()
+        self._ulimit()
+        self._Archive()
+        self._nodet()
+        
+    # ============ 
+    # Initializers
+    # ============
+   # <
+   
+    # Initialization and confirmation for nodet options
+    def _nodet(self):
+        """Initialize `nodet` optiosn if necessary"""
+        if 'nodet' not in self:
+            # Empty/default
+            self['nodet'] = nodet()
+        elif type(self['nodet']).__name__ == 'dict':
+            # Convert to special class
+            self['nodet'] = nodet(**self['nodet'])
+            
+   # >
+   
+    # ============== 
+    # Local settings
+    # ==============
+   # <
+    # Get adaptive status
+    def get_Adaptive(self, i=None):
+        """Return whether or not to run adaptively
+        
+        :Call:
+            >>> ac = opts.get_Adaptive(i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *i*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *ac*: :class:`bool` | :class:`list` (:class:`bool`)
+                Whether or not to use `aero.csh`
+        :Versions:
+            * 2015-12-30 ``@ddalle``: First version
+        """
+        return self.get_key('Adaptive', i)
+        
+    # Set adaptive status
+    def set_Adaptive(self, ac=rc0('Adaptive'), i=None):
+        """Return whether or not to run adaptively
+        
+        :Call:
+            >>> opts.set_Adaptive(ac, i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *ac*: :class:`bool` | :class:`list` (:class:`bool`)
+                Whether or not to use `aero.csh`
+            *i*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2015-12-30 ``@ddalle``: First version
+        """
+        self.set_key('Adaptive', ac, i)
+        
+    # Get Dual status
+    def get_Dual(self, i=None):
+        """Return whether or not to run in dual-mode with an adjoint
+        
+        This applies to the whole case, not to individual phases
+        
+        :Call:
+            >>> d = opts.get_Dual(i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *i*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *d*: :class:`bool` | :class:`list` (:class:`bool`)
+                Whether or not to run the case with dual mode
+        :Versions:
+            * 2015-12-30 ``@ddalle``: First version
+        """
+        return self.get_key('Dual', i)
+        
+    # Set Dual status
+    def set_Dual(self, d=rc0('Dual'), i=None):
+        """Set whether or not to run in dual-mode with an adjoint
+        
+        This applies to the whole case, not to individual phases
+        
+        :Call:
+            >>> opts.get_Dual(d=False, i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *d*: :class:`bool` | :class:`list` (:class:`bool`)
+                Whether or not to run the case with dual mode
+            *i*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2015-12-30 ``@ddalle``: First version
+        """
+        self.set_key('Dual', d, i)
+        
+    # Get status of phase adaptive
+    def get_AdaptPhase(self, i=None):
+        """Determine whether or not a phase is adaptive
+        
+        :Call:
+            >>> qa = opts.get_AdaptPhase(i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *i*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *qa*: :class:`bool` | :class:`list` (:class:`bool`)
+                Whether or not phase ends with an adaptation
+        :Versions:
+            * 2015-12-30 ``@ddalle``: First version
+        """
+        return self.get_key('AdaptPhase', i)
+        
+    # Set status of phase adaptive
+    def set_AdaptPhase(self, qa=rc0('AdaptPhase'), i=None):
+        """Set whether or not a phase is adaptive
+        
+        :Call:
+            >>> opts.set_AdaptPhase(qa, i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *qa*: :class:`bool` | :class:`list` (:class:`bool`)
+                Whether or not phase ends with an adaptation
+            *i*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2015-12-30 ``@ddalle``: First version
+        """
+        self.set_key('AdaptPhase', qa, i)
+        
+    # Get status of dual phase
+    def get_DualPhase(self, i=None):
+        """Determine whether or not a phase is run with an adjoint
+        
+        :Call:
+            >>> qd = opts.get_DualPhase(i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *i*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *qd*: :class:`bool` | :class:`list` (:class:`bool`)
+                Whether or not phase ends with an adjoint computation
+        :Versions:
+            * 2015-12-30 ``@ddalle``: First version
+        """
+        return self.get_key('DualPhase', i)
+        
+    # Set status of dual phase
+    def set_DualPhase(self, qa=rc0('DualPhase'), i=None):
+        """Set whether or not a phase is run with an adjoint
+        
+        :Call:
+            >>> opts.set_DualPhase(qd, i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *qd*: :class:`bool` | :class:`list` (:class:`bool`)
+                Whether or not phase ends with an adjoint computation
+            *i*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2015-12-30 ``@ddalle``: First version
+        """
+        self.set_key('DualPhase', qa, i)
+   # >
+    
 # class RunControl
 
 
