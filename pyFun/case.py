@@ -339,7 +339,7 @@ def GetRunningIter():
         # Search for particular text
         lines = bin.grep('the restart files contains', 'fun3d.out')
         # Process iteration count from the RHS of the last such line
-        nr = int(lines[-1].split('=')[-1])
+        nr = int(lines[0].split('=')[-1])
     except Exception:
         # No restart iterations
         nr = None
