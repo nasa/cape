@@ -116,6 +116,7 @@ below.
     
     install
     json/index
+    usage/index
     pycart/index
     script/index
     
