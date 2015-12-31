@@ -232,7 +232,7 @@ def GetPhaseNumber(rc):
     return i
 
 # Get the namelist
-def GetNamelist(rc=None):
+def GetNamelist(rc=None, i=None):
     """Read case namelist file
     
     :Call:
@@ -240,6 +240,8 @@ def GetNamelist(rc=None):
     :Inputs:
         *rc*: :class:`pyFun.options.runControl.RunControl`
             Run control options
+        *i*: :class:`int`
+            Phase number
     :Outputs:
         *nml*: :class:`pyFun.namelist.Namelist`
             Namelist interface
@@ -247,6 +249,9 @@ def GetNamelist(rc=None):
         * 2015-10-19 ``@ddalle``: First version
     """
     # Check for detailed inputs
+    if i is not None:
+        # Get the specified namelist
+        return Namelist('fun3d.%02i.nml' % i)
     if rc is None:
         # Check for simplest namelist file
         if os.path.isfile('fun3d.nml'):
@@ -265,22 +270,25 @@ def GetNamelist(rc=None):
 
 
 # Get the project rootname
-def GetProjectRootname(rc=None):
+def GetProjectRootname(rc=None, i=None):
     """Read namelist and return project namelist
     
     :Call:
         >>> rname = pyFun.case.GetProjectRootname()
-        >>> rname = pyFun.case.GetProjectRootname(rc)
+        >>> rname = pyFun.case.GetProjectRootname(rc=None, i=None)
+    :Inputs:
+        *rc*: :class:`pyFun.options.runControl.RunControl`
+            Run control options
+        *i*: :class:`int`
+            Phase number
     :Outputs:
         *rname*: :class:`str`
             Project rootname
-        *rc*: :class:`pyFun.options.runControl.RunControl`
-            Run control options
     :Versions:
         * 2015-10-19 ``@ddalle``: First version
     """
     # Read a namelist.
-    nml = GetNamelist(rc=rc)
+    nml = GetNamelist(rc=rc, i=i)
     # Read the project root name
     return nml.GetRootname()
     
