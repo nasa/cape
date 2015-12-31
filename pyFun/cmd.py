@@ -70,6 +70,11 @@ def nodet(opts=None, i=0, **kw):
     else:
         # Use the serial ``nodet`` command
         cmdi = ['nodet']
+    # Check for "--adapt" flag
+    if kw.get("adapt"):
+        # That should be the only command-line argument
+        cmdi.append("--adapt")
+        return cmdi
     # Loop through command-line inputs
     for k in cli_nodet:
         # Get the value.

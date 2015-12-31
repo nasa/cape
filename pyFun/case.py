@@ -63,8 +63,18 @@ def run_fun3d():
     # Check current iteration count.
     if n >= rc.get_LastIter():
         return
+    # Check for next phase
+    i1 = rc.GetPhaseNumber()
+    # Check for adaptive solves
+    if i1>i and rc.get_Adaptive(i):
+        # Check for adjoint solver
+        if rc.get_Dual(i):
+            pass
+        else:
+            # Run the feature-based adaptive mesher
+            cmdi = cmd.nodet(rc, adapt=True)
     # Resubmit/restart if this point is reached.
-    StartCase()
+    RestartCase(i)
 
 # Function to call script or submit.
 def StartCase():
@@ -87,6 +97,44 @@ def StartCase():
         # Submit the case.
         pbs = queue.pqsub(fpbs)
         return pbs
+    else:
+        # Simply run the case. Don't reset modules either.
+        run_fun3d()
+        
+# Function to call script or submit.
+def RestartCase(i0=None):
+    """Restart a case by either submitting it or calling with a system command
+    
+    This version of the command is called within :func:`run_fun3d` after
+    running a phase or attempting to run a phase.
+    
+    :Call:
+        >>> pyFun.case.RetartCase(i0=None)
+    :Inputs:
+        *i0*: :class:`int` | ``None``
+            Run sequence index of the previous run
+    :Versions:
+        * 2015-12-30 ``@ddalle``: Split from pyCart
+    """
+    # Get the config.
+    rc = ReadCaseJSON()
+    # Determine the run index.
+    i = GetPhaseNumber(rc)
+    # Check qsub status.
+    if not rc.get_qsub(i):
+        # Run the case.
+        run_fun3d()
+    elif rc.get_Resubmit(i):
+        # Check for continuance
+        if (i0 is None) or (i>i0) or (not rc.get_Continue(i)):
+            # Get the name of the PBS file.
+            fpbs = GetPBSScript(i)
+            # Submit the case.
+            pbs = queue.pqsub(fpbs)
+            return pbs
+        else:
+            # Continue on the same job
+            run_fun3d()
     else:
         # Simply run the case. Don't reset modules either.
         run_fun3d()
