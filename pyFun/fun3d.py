@@ -104,26 +104,35 @@ class Fun3d(Cntl):
             self.x.nCase)
         
         
-        
     # Read the namelist
-    def ReadNamelist(self, j=0):
+    def ReadNamelist(self, j=0, q=True):
         """Read the :file:`fun3d.nml` file
         
         :Call:
-            >>> fun3d.ReadInputCntl(j=0)
+            >>> fun3d.ReadInputCntl(j=0, q=True)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of the pyFun control class
             *j*: :class:`int`
-                Run sequence index
+                Phase number
+            *q*: :class:`bool`
+                Whether or not to read to *Namelist*, else *Namelist0*
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
+            * 2015-12-31 ``@ddalle``: Added *Namelist0*
         """
         # CHange to root safely.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
         # Read the file.
-        self.Namelist = Namelist(self.opts.get_Namelist(j))
+        nml = Namelist(self.opts.get_Namelist(j))
+        # Save it.
+        if q:
+            # Read to main slot for modification
+            self.Namelist = nml
+        else:
+            # Template for reading original parameters
+            self.Namelist0 = nml
         # Go back to original location
         os.chdir(fpwd)
         
@@ -181,7 +190,7 @@ class Fun3d(Cntl):
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of global pyFun settings object
             *j*: :class:`int`
-                Run sequence index
+                Phase number
         :Outputs:
             *name*: :class:`str`
                 Project root name
@@ -189,25 +198,37 @@ class Fun3d(Cntl):
             * 2015-10-18 ``@ddalle``: First version
         """
         # Read the namelist.
-        self.ReadNamelist(j)
+        self.ReadNamelist(j, False)
         # Get the namelist value.
-        nname = self.Namelist.GetVar('project', 'project_rootname')
+        nname = self.Namelist0.GetVar('project', 'project_rootname')
+        # Get the options value.
+        oname = self.opts.get_project_rootname(j)
         # Check for options value
         if nname is None:
             # Use the options value.
-            return self.opts.get_project_rootname(j)
+            name = oname
         elif 'Fun3D' not in self.opts:
             # No namelist options
-            return nname
+            name = nname
         elif 'project' not in self.opts['Fun3D']:
             # No project options
-            return nname
+            name = nname
         elif 'project_rootname' not in self.opts['Fun3D']['project']:
             # No rootname
-            return nname
+            name = nname
         else:
             # Use the options value.
-            return self.opts.get_project_rootname(j)
+            name = oname
+        # Check for adaptation number
+        k = self.opts.get_AdaptationNumber(j)
+        # Assemble project name
+        if k is None:
+            # No adaptation numbers
+            return name
+        else:
+            # Append the adaptation number
+            return '%s%02i' % (name, k)
+        
             
     # Get the grid format
     def GetGridFormat(self, j=0):
@@ -694,6 +715,12 @@ class Fun3d(Cntl):
             nopts = self.opts.select_namelist(j)
             # Apply them to this namelist
             self.Namelist.ApplyDict(nopts)
+            # Ensure correct *project_rootname*
+            self.Namelist.SetRootname(self.GetProjectRootName(j))
+            # Check for adaptive phase
+            if self.opts.get_Adaptive() and self.opts.get_AdaptPhase(j):
+                # Set the project rootname of the next phase
+                self.Namelist.SetAdaptRootname(self.GetProjectRootName(j+1))
             # Name of output file.
             fout = os.path.join(frun, 'fun3d.%02i.nml' % j)
             # Write the input file.
@@ -715,6 +742,8 @@ class Fun3d(Cntl):
         """
         # Get the components
         comps = self.opts.get_ConfigComponents()
+        # Exit if no components
+        if comps is None: return
         # Number
         n = len(comps)
         # Quit if nothing to do

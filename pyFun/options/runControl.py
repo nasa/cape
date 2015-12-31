@@ -95,6 +95,44 @@ class RunControl(cape.options.runControl.RunControl):
     # Local settings
     # ==============
    # <
+   
+    # Keep Restart files?
+    def get_KeepRestarts(self, i=None):
+        """Return whether or not to keep restart files
+        
+        :Call:
+            >>> qr = opts.get_KeepRestarts(i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *i*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *qr*: :class:`bool`
+                Whether or not to copy flow solution files
+        :Versions:
+            * 2015-12-31 ``@ddalle``: First version
+        """
+        return self.get_key('KeepRestarts', i)
+        
+    # Force to keep restart files
+    def set_KeepRestarts(self, qr=rc0("KeepRestarts"), i=None):
+        """Set whether or not to keep restart files
+        
+        :Call:
+            >>> opts.get_KeepRestarts(qr, i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *qr*: :class:`bool`
+                Whether or not to copy flow solution files
+            *i*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2015-12-31 ``@ddalle``: First version
+        """
+        self.set_key('KeepRestarts', qr, i)
+        
     # Get adaptive status
     def get_Adaptive(self, i=None):
         """Return whether or not to run adaptively
@@ -246,6 +284,38 @@ class RunControl(cape.options.runControl.RunControl):
             * 2015-12-30 ``@ddalle``: First version
         """
         self.set_key('DualPhase', qa, i)
+        
+        
+    # Get current adaptation number
+    def get_AdaptationNumber(self, i):
+        """Get the adaptation number for a given phase
+        
+        :Call:
+            >>> j = opts.get_AdaptationNumber(i)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *i*: :class:`int`
+                Phase number
+        :Outputs:
+            *j*: :class:`int` | ``None``
+                Number of adaptation prior to phase *i*
+        :Versions:
+            * 2015-12-31 ``@ddalle``: First version
+        """
+        # Check for adaptive case
+        if not self.get_Adaptive():
+            return None
+        # Initialize adaptation number
+        j = 0
+        # Loop through prior phases
+        for k in range(i):
+            # Check if it's an adaptation phase
+            if self.get_AdaptPhase(k):
+                j += 1
+        # Output
+        return j
+        
    # >
     
 # class RunControl

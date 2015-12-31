@@ -57,12 +57,8 @@ class Options(cape.options.Options):
         """Initialization method with optional JSON input"""
         # Check for an input file.
         if fname:
-            # Read the input file.
-            lines = open(fname).readlines()
-            # Expand references to other JSON files and strip comments
-            lines = expandJSONFile(lines)
             # Get the equivalent dictionary.
-            d = json.loads(lines)
+            d = loadJSONFile(fname)
             # Loop through the keys.
             for k in d:
                 kw[k] = d[k]
@@ -261,7 +257,17 @@ class Options(cape.options.Options):
     # Overall run control
     # ===================
    # <
-   
+    
+    # Keep restart files
+    def get_KeepRestarts(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_KeepRestarts(i)
+        
+    # Keep restart files
+    def set_KeepRestarts(self, qr=rc0("KeepRestarts"), i=None):
+        self._RunControl()
+        self['RunControl'].set_KeepRestarts(qr, i)
+        
     # Adaptation setting
     def get_Adaptive(self, i=None):
         self._RunControl()
@@ -269,7 +275,7 @@ class Options(cape.options.Options):
     
     # Adaptation setting
     def set_Adaptive(self, ac=rc0('Adaptive'), i=None):
-        self._RunControl()
+        self._RunControl()            
         self['RunControl'].set_Adaptive(ac, i)
         
     # Dual setting
@@ -302,10 +308,19 @@ class Options(cape.options.Options):
         self._RunControl()
         self['RunControl'].set_DualPhase(qd, i)
         
-        
+    # Copy documentation     
     for k in ['Adaptive', 'Dual', 'AdaptPhase', 'DualPhase']:
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
+   
+    # Adaptation number
+    def get_AdaptationNumber(self, i):
+        self._RunControl()
+        return self['RunControl'].get_AdaptationNumber(i)
+        
+    # Copy documentation
+    for k in ['AdaptationNumber']:
+        eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
    
    # >
    

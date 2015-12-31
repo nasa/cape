@@ -39,13 +39,13 @@ def run_fun3d():
     fproj = GetProjectRootname()
     # Determine the run index.
     i = GetPhaseNumber(rc)
-    # Set the restart file and flag if necessary.
-    SetRestartIter(rc)
     # Delete any input file.
     if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
         os.remove('fun3d.nml')
     # Create the correct namelist.
     os.symlink('fun3d.%02i.nml'%i, 'fun3d.nml')
+    # Prepare for restart if that's appropriate.
+    SetRestartIter(rc)
     # Get the `nodet` or `nodet_mpi` command
     cmdi = cmd.nodet(rc)
     # Call the command.
@@ -54,25 +54,28 @@ def run_fun3d():
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
     # Save time usage
     WriteUserTime(tic, rc, i)
-    # Get the last iteration number
-    n = GetCurrentIter()
     # Assuming that worked, move the temp output file.
     os.rename('fun3d.out', 'run.%02i.%i' % (i, n))
+    # Get the last iteration number
+    n = GetCurrentIter()
     # Rename the flow file, too.
-    os.rename('%s.flow' % fproj, '%s.%i.flow' % (fproj,n))
+    if rc.get_KeepRestarts(i):
+        shutil.copy('%s.flow' % fproj, '%s.%i.flow' % (fproj,n))
     # Check current iteration count.
-    if n >= rc.get_LastIter():
+    if (i==rc.get_PhaseSequence(-1)) and (n>=rc.get_LastIter()):
         return
     # Check for next phase
-    i1 = rc.GetPhaseNumber()
+    i1 = GetPhaseNumber(rc)
     # Check for adaptive solves
-    if i1>i and rc.get_Adaptive(i):
+    if i1>i and rc.get_Adaptive() and rc.get_AdaptPhase(i):
         # Check for adjoint solver
         if rc.get_Dual(i):
             pass
         else:
             # Run the feature-based adaptive mesher
             cmdi = cmd.nodet(rc, adapt=True)
+            # Call the command.
+            bin.callf(cmdi, f='fun3d.out')
     # Resubmit/restart if this point is reached.
     RestartCase(i)
 
@@ -433,13 +436,13 @@ def GetRestartIter():
         * 2015-10-19 ``@ddalle``: First version
     """
     # List the *.*.flow files
-    fflow = glob.glob('*.[0-9][0-9]*.flow')
+    fflow = glob.glob('run.[0-9]*.[0-9]*')
     # Initialize iteration number until informed otherwise.
     n = 0
     # Loop through the matches.
     for fname in fflow:
         # Get the integer for this file.
-        i = int(fname.split('.')[-2])
+        i = int(fname.split('.')[-1])
         # Use the running maximum.
         n = max(i, n)
     # Output
@@ -473,23 +476,4 @@ def SetRestartIter(rc, n=None):
         nml.SetRestart(False)
     # Write the namelist.
     nml.Write()
-    # Get project name.
-    fproj = GetProjectRootname()
-    # Restart file name
-    fname = '%s.flow' % fproj
-    # Remove the current restart file if necessary.
-    if os.path.islink(fname):
-        # Remove the link
-        os.remove(fname)
-    elif os.path.isfile(fname):
-        # Full file exists: abort!
-        raise SystemError("Restart flow file '%s' already exists!" % fname)
-    # Quit if no check point.
-    if n == 0: return None
-    # Source file
-    fsrc = '%s.%i.flow' % (fproj, n)
-    # Create a link to the most appropriate file.
-    if os.path.isfile(fsrc):
-        # Create the appropriate link.
-        os.symlink(fsrc, fname)
 

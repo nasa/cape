@@ -226,9 +226,57 @@ class Namelist(cape.namelist.Namelist):
         """
         return self.GetVar('project', 'project_rootname')
     
+    # Set the project root name
+    def SetRootname(self, name):
+        """Set the project root name
+        
+        :Call:
+            >>> nml.SetRootname(name)
+        :Inputs:
+            *nml*: :class:`pyFun.namelist.Namelist`
+                File control instance for :file:`fun3d.nml`
+            *name*: :class:`str`
+                Name of project
+        :Versions:
+            * 2015-12-31 ``@ddalle``: First version
+        """
+        self.SetVar('project', 'project_rootname', name)
+        print("Label 008: _updated_sections=%s" % self._updated_sections)
+        print("Label 009: '%s'" % self.Section['project'][1].strip())
     
-    
-    
+    # Get the adapt project root name
+    def GetAdaptRootname(self):
+        """Get the post-adaptation project root name
+        
+        :Call:
+            >>> name = nml.GetAdaptRootname()
+        :Inputs:
+            *nml*: :class:`pyFun.namelist.Namelist`
+                File control instance for :file:`fun3d.nml`
+        :Outputs:
+            *name*: :class:`str`
+                Name of adapted project
+        :Versions:
+            * 2015-12-31 ``@ddalle``: First version
+        """
+        return self.GetVar('adapt_mechanics', 'adapt_project')
+        
+    # Set the adapt project root name
+    def SetAdaptRootname(self, name):
+        """Set the post-adaptation project root name
+        
+        :Call:
+            >>> nml.SetAdaptRootname(name)
+        :Inputs:
+            *nml*: :class:`pyFun.namelist.Namelist`
+                File control instance for :file:`fun3d.nml`
+            *name*: :class:`str`
+                Name of adapted project
+        :Versions:
+            * 2015-12-31 ``@ddalle``: First version
+        """
+        self.SetVar('adapt_mechanics', 'adapt_project', name)
+        
 # class Namelist
 
         
