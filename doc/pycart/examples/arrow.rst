@@ -97,55 +97,55 @@ Cart3D programs.
     .. code-block:: javascript
     
         "RunControl": {
-            // Run sequence
-            "InputSeq": [0],
-            "IterSeq": [200],
-            // System configuration
-            "nProc": 4,
-            // Options for ``flowCart``
-            "flowCart": {
-                "it_fc": 200,
-                "mpi_fc": 0,
-                "use_aero_csh": 0,
-                "cfl": 1.1,
-                "mg_fc": 3,
-                "y_is_spanwise": true
-            },
-            // Defines the flow domain automatically
-            "autoInputs": {"r": 8},
-            // Volume mesh options
-            "cubes": {
-                "maxR": 10,
-                "pre": "preSpec.c3d.cntl",
-                "cubes_a": 10,
-                "cubes_b": 2,
-                "reorder": true
-            }
+        // Run sequence
+        "PhaseSequece": [0],
+        "PhaseIters": [200],
+        // System configuration
+	    "nProc": 4,
+	    // Options for ``flowCart``
+	    "flowCart": {
+            "it_fc": 200,
+            "mpi_fc": 0,
+            "use_aero_csh": 0,
+            "cfl": 1.1,
+            "mg_fc": 3,
+            "y_is_spanwise": true
         },
+        // Defines the flow domain automatically
+        "autoInputs": {"r": 8},
+        // Volume mesh options
+        "cubes": {
+            "maxR": 10,
+            "pre": "preSpec.c3d.cntl",
+            "cubes_a": 10,
+            "cubes_b": 2,
+            "reorder": true
+        }
+	},
         
 The ``"flowCart"`` section contains command-line inputs for running
 ``flowCart``, which is the main flow solver of Cart3D, or ``mpix_flowCart``,
 which is the MPI version of the same. Many of the variable names, such as
 *it_fc*, are copied from Cart3D's template :file:`aero.csh` scripts or
 command-line inputs to Cart3D's ``flowCart``. The three main options (which are
-required for any pyCart project) are *InputSeq*, *IterSeq*, and *it_fc*.
+required for any pyCart project) are *PhaseSequence*, *PhaseIters*, and *it_fc*.
 
-    +------------+---------------------------------------------------------+
-    | Variable   | Description                                             |
-    +============+=========================================================+
-    | *it_fc*    | Number of iterations for each call to ``flowCart``,     |
-    |            | short for ``iterations_flowCart``; command-line input   |
-    |            | is ``flowCart -N $it_fc``                               |
-    +------------+---------------------------------------------------------+
-    | *InputSeq* | Input sequence, tells pyCart to run input 0; in more    |
-    |            | complex projects, this will be a list like ``[0,1,3]``  |
-    +------------+---------------------------------------------------------+
-    | *IterSeq*  | Iterations for each sequence; this tells pyCart to      |
-    |            | continue calling ``flowCart`` until 200 iterations have |
-    |            | been run.  If this was ``400``, pyCart would            |
-    |            | automatically run ``flowCart`` twice using the first    |
-    |            | run's results as inputs to the second                   |
-    +------------+---------------------------------------------------------+
+    +-----------------+-------------------------------------------------------+
+    | Variable        | Description                                           |
+    +=================+=======================================================+
+    | *it_fc*         | Number of iterations for each call to ``flowCart``,   |
+    |                 | short for ``iterations_flowCart``; command-line input |
+    |                 | is ``flowCart -N $it_fc``                             |
+    +-----------------+-------------------------------------------------------+
+    | *PhaseSequence* | Input sequence, tells pyCart to run phase 0; in more  |
+    |                 | complex projects, this will be a list like ``[0,1,3]``|
+    +-----------------+-------------------------------------------------------+
+    | *PhaseIters*    | Min iterations for each phase; this tells pyCart to   |
+    |                 | continue calling ``flowCart`` until 200 iterations    |
+    |                 | have been run.  If this was ``400``, pyCart would     |
+    |                 | automatically run ``flowCart`` twice using the first  |
+    |                 | run's results as inputs to the second                 |
+    +-----------------+-------------------------------------------------------+
     
 For a simple case, these parameters seem unnecessarily confusing.  Why not just
 tell ``flowCart`` how many iterations to run and be done with it?  For one
@@ -154,12 +154,12 @@ suggests to ``flowCart`` or ``mpix_flowCart`` how many iterations to run.  If
 ``flowCart`` exits early due to some kind of failure, this convention means that
 pyCart will clearly alert us.
 
-Secondly, some applications require more sophisticated approach.  A common
+Secondly, some applications require more sophisticated approach. A common
 example is a hypersonic case that needs to be run in first-order mode for a few
-iterations first.  It might have something like ``"IterSeq": [0, 400]`` and
-``"InputSeq": [0, 1]``.  This tells pyCart to run input set ``0`` until it has
-run at least ``0`` iterations and then input set ``1`` until it has run at least
-``400`` iterations.
+iterations first. It might have something like ``"PhaseIters": [0, 400]`` and
+``"PhaseSequence": [0, 1]``. This tells pyCart to run input set ``0`` until it
+has run at least ``0`` iterations and then phase ``1`` until it has run at
+least ``400`` iterations.
 
 The remaining inputs are quite a bit simpler. For example *nProc* sets the total
 number of cores or threads to use. The next section allows pyCart to use the
