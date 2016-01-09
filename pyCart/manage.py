@@ -215,12 +215,12 @@ def TarViz(opts):
     if fmt in ['gzip', 'tgz']:
         # GZip format
         # Tar command
-        cmdu = ['tar', '-uzf']
+        cmdu = ['tar', '-czf']
         # File extension
         ext = '.tgz'
     elif fmt in ['bz2', 'bz', 'bzip', 'bzip2', 'tbz']:
         # BZip2 format
-        cmdu = ['tar', '-uJf']
+        cmdu = ['tar', '-cJf']
         ext = '.tbz'
     else:
         # Just use tar
