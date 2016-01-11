@@ -74,14 +74,14 @@ def TarAdapt(opts):
     if fmt in ['gzip', 'tgz']:
         # GZip format
         # Tar command
-        cmdu = ['tar', '-uzf']
+        cmdu = ['tar', '-czf']
         # Untar command
         cmdx = ['tar', '-xzf']
         # File extension
         ext = '.tgz'
     elif fmt in ['bz2', 'bz', 'bzip', 'bzip2', 'tbz']:
         # BZip2 format
-        cmdu = ['tar', '-uJf']
+        cmdu = ['tar', '-cJf']
         cmdx = ['tar', '-xJf']
         ext = '.tbz'
     else:
