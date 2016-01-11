@@ -879,19 +879,23 @@ class CaseResid(cape.dataBook.CaseResid):
             n0 = np.max(A[i,0])
             # Add this to the time-accurate iteration numbers.
             A[np.logical_not(i),0] += n0
+            # Index of first unsteady iteration
+            in0 = np.where(i)[0][-1]+1
         else:
             # No steady-state iterations.
             n0 = 0
+            in0 = 0
         # Process unsteady iterations if any.
         if A[-1,0] > n0:
             # Get the integer values of the iteration indices.
-            # For *ni0*, 2000.000 --> 1999; 2000.100 --> 2000
-            ni0 = np.array(A[n0:,0]-1e-4, dtype=int)
-            # For *ni0*, 2000.000 --> 2000; 1999.900 --> 1999
-            ni1 = np.array(A[n0:,0], dtype=int)
-            # Look for iterations where the index crosses an integer.
-            i0 = np.insert(np.where(ni0[1:] > ni0[:-1])[0]+1, 0, 0) + n0
-            i1 = np.where(ni1[1:] > ni1[:-1])[0] + 1 + n0
+            # For example, both 2000.100 and 2001.00 are part of 2001
+            nii = np.ceil(A[in0:,0])
+            # Get indices of lines in which the iteration changes
+            ii = np.where(nii[1:] != nii[:-1])[0]
+            # Index of first line for each iteration
+            i0 = np.insert(ii+1, 0, 0) + in0
+            # Index of last line for each iteration
+            i1 = np.append(ii, len(nii)-1) + in0
         else:
             # No unsteady iterations.
             i0 = np.array([], dtype=int)

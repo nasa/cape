@@ -972,9 +972,11 @@ def LinkPLT():
         * 2015-11-20 ``@ddalle``: Delegate work and support ``*.dat`` files
     """
     # Surface file
-    if len(glob.glob('Components.i.[0-9]*.{plt,dat}')) > 0:
+    if len(glob.glob('Components.i.[0-9]*.plt')) > 0:
         # Universal format; mpix_flowCart
         LinkFromGlob('Components.i.plt', 'Components.i.[0-9]*.plt', -2)
+    elif len(glob.glob('Components.i.[0-9]*.dat')) > 0:
+        # Universal format without -binaryIO
         LinkFromGlob('Components.i.dat', 'Components.i.[0-9]*.dat', -2)
     else:
         # Special pyCart format renamed from flowcart outputs
