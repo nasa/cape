@@ -265,11 +265,11 @@ def run_flowCart(verify=False, isect=False):
     if os.path.isfile('cutPlanes.plt'):
         os.rename('cutPlanes.plt', 'cutPlanes.%05i.plt' % n)
     if os.path.isfile('Components.i.plt'):
-        os.rename('Components.i.plt', 'Components.%05i.plt' % n)
+        os.rename('Components.i.plt', 'Components.i.%05i.plt' % n)
     if os.path.isfile('cutPlanes.dat'):
         os.rename('cutPlanes.dat', 'cutPlanes.%05i.dat' % n)
     if os.path.isfile('Components.i.dat'):
-        os.rename('Components.i.dat', 'Components.%05i.dat' % n)
+        os.rename('Components.i.dat', 'Components.i.%05i.dat' % n)
     # Clear check files as appropriate.
     manage.ClearCheck(rc.get_nCheckPoint(i))
     # Check current iteration count.
@@ -972,8 +972,15 @@ def LinkPLT():
         * 2015-11-20 ``@ddalle``: Delegate work and support ``*.dat`` files
     """
     # Surface file
-    LinkFromGlob('Components.i.plt', 'Components.[0-9]*.plt', -2)
-    LinkFromGlob('Components.i.dat', 'Components.[0-9]*.dat', -2)
+    if len(glob.glob('Components.i.[0-9]*.{plt,dat}')) > 0:
+        # Universal format; mpix_flowCart
+        LinkFromGlob('Components.i.plt', 'Components.i.[0-9]*.plt', -2)
+        LinkFromGlob('Components.i.dat', 'Components.i.[0-9]*.dat', -2)
+    else:
+        # Special pyCart format renamed from flowcart outputs
+        LinkFromGlob('Components.i.plt', 'Components.[0-9]*.plt', -2)
+        LinkFromGlob('Components.i.dat', 'Components.[0-9]*.dat', -2)
+    # Cut planes
     LinkFromGlob('cutPlanes.plt',    'cutPlanes.[0-9]*.plt', -2)
     LinkFromGlob('cutPlanes.dat',    'cutPlanes.[0-9]*.dat', -2)
             
