@@ -50,8 +50,8 @@ which checks the status of each case in the matrix.
     .. code-block:: bash
     
         $ pycart -c
-        Case Config/Run Directory  Status  Iterations  Que 
-        ---- --------------------- ------- ----------- ---
+        Case Config/Run Directory  Status  Iterations  Que CPU Time
+        ---- --------------------- ------- ----------- --- --------
         0    poweroff/m1.5a0.0b0.0 ---     /           .   
         1    poweroff/m2.0a0.0b0.0 ---     /           .   
         2    poweroff/m2.0a2.0b0.0 ---     /           .   
@@ -72,8 +72,8 @@ folder, create a case folder for the first set of conditions to run, and call
     .. code-block:: none
     
         $ pycart -n 1 
-        Case Config/Run Directory  Status  Iterations  Que 
-        ---- --------------------- ------- ----------- ---
+        Case Config/Run Directory  Status  Iterations  Que CPU Time
+        ---- --------------------- ------- ----------- --- --------
         0    poweroff/m1.5a0.0b0.0 ---     /           .   
           Group name: 'poweroff' (index 0)
           Preparing surface triangulation...
@@ -128,9 +128,9 @@ Let's run another case.
     .. code-block:: none
     
         $ pycart -n 1
-        Case Config/Run Directory  Status  Iterations  Que 
-        ---- --------------------- ------- ----------- ---
-        0    poweroff/m1.5a0.0b0.0 DONE    200/200     .   
+        Case Config/Run Directory  Status  Iterations  Que CPU Time
+        ---- --------------------- ------- ----------- --- --------
+        0    poweroff/m1.5a0.0b0.0 DONE    200/200     .   0.0
         1    poweroff/m2.0a0.0b0.0 ---     /           .   
         Using template for 'input.cntl' file
              Starting case 'poweroff/m2.0a0.0b0.0'.
@@ -146,15 +146,17 @@ This time, there is a lot less output because the different cases can use the
 same mesh.  In the description of the tasks performed for the first case, step
 2 can be skipped for subsequent runs.
 
-Now let's check the status again using ``pycart -c``.
+Now let's check the status again using ``pycart -c``.  The CPU time is listed as
+0.0 for both cases because this simple case takes about 0.02 total hours, and
+the display is rounded down to the nearest tenth of an hour.
 
     .. code-block:: none
     
         $ pycart -c
-        Case Config/Run Directory  Status  Iterations  Que 
-        ---- --------------------- ------- ----------- ---
-        0    poweroff/m1.5a0.0b0.0 DONE    200/200     .   
-        1    poweroff/m2.0a0.0b0.0 DONE    200/200     .   
+        Case Config/Run Directory  Status  Iterations  Que CPU Time
+        ---- --------------------- ------- ----------- --- --------
+        0    poweroff/m1.5a0.0b0.0 DONE    200/200     .   0.0
+        1    poweroff/m2.0a0.0b0.0 DONE    200/200     .   0.0
         2    poweroff/m2.0a2.0b0.0 ---     /           .   
         3    poweroff/m2.0a2.0b2.0 ---     /           .   
                 
@@ -168,10 +170,10 @@ the following results.
     .. code-block:: none
     
         $ pycart
-        Case Config/Run Directory  Status  Iterations  Que 
-        ---- --------------------- ------- ----------- ---
-        0    poweroff/m1.5a0.0b0.0 DONE    200/200     .   
-        1    poweroff/m2.0a0.0b0.0 DONE    200/200     .   
+        Case Config/Run Directory  Status  Iterations  Que CPU Time
+        ---- --------------------- ------- ----------- --- --------
+        0    poweroff/m1.5a0.0b0.0 DONE    200/200     .   0.0
+        1    poweroff/m2.0a0.0b0.0 DONE    200/200     .   0.0
         2    poweroff/m2.0a2.0b0.0 ---     /           .   
         Using template for 'input.cntl' file
              Starting case 'poweroff/m2.0a2.0b0.0'.

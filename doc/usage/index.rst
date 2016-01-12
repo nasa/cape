@@ -133,7 +133,7 @@ strings, and it provides a useful shorthand when discussing features of the
 code.  A table of how various syntaxes are used is below.
 
 ========================   ===================   ==============================
-Syntax                     Format                Description
+Syntax                     Formatted             Description
 ========================   ===================   ==============================
 \``f(a)``                  ``f(a)``              Raw text or source code
 \``$PYCART``               ``$PYCART``           Environment variable
@@ -148,7 +148,40 @@ Syntax                     Format                Description
 The class, mod, and func keys generate links to their formatted documentation
 when Sphinx can find it.
 
-.. _kwarks:
+Some inputs and outputs can have multiple allowed types, which is also
+represented in the docstrings.  In addition, lists, dictionaries, and NumPy
+arrays often have a type, which is shown in parentheses.  For example, ``[0.1,
+0.2, 0.34]`` might be listed as :class:`list` (:class:`float`), and ``{"name":
+"a", "place": "b"}`` might be listed as :class:`dict` (:class:`str`).  Finally,
+default values are sometimes placed in curly braces.  An example portion of a
+document string is shown below.
+
+    .. code-block:: none
+    
+        :Inputs:
+            *a*: :class:`list` (:class:`float`)
+                Description of a list of float values
+            *b*: :class:`int` | ``None``
+                Description of variable that is either an integer or nothing
+            *c*: :class:`dict` | :class:`list`
+                Description of multiple ways to represent some data
+            *q*: {True} | False
+                Description of Boolean variable that defaults to ``True``
+                
+The formatted version of the above looks like this.
+
+    :Inputs:
+        *a*: :class:`list` (:class:`float`)
+            Description of a list of float values
+        *b*: :class:`int` | ``None``
+            Description of variable that is either an integer or nothing
+        *c*: :class:`dict` | :class:`list`
+            Description of multiple ways to represent some data
+        *q*: {True} | False
+            Description of Boolean variable that defaults to ``True``
+
+
+.. _kwargs:
 
 Keyword Arguments
 -----------------

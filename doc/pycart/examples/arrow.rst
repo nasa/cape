@@ -24,8 +24,8 @@ the features of pyCart.
     .. code-block:: none
     
         $ pycart -c
-        Case Config/Run Directory    Status  Iterations  Que 
-        ---- ----------------------- ------- ----------- ---
+        Case Config/Run Directory    Status  Iterations  Que CPU Time
+        ---- ----------------------- ------- ----------- --- --------
         0    poweroff/m1.25a0.0r0.0  ---     /           .   
         1    poweroff/m1.25a1.0r0.0  ---     /           .   
         2    poweroff/m1.25a1.0r15.0 ---     /           .   
@@ -353,8 +353,8 @@ Let's run one case, but not the first case.  We can do this by using the
     .. code-block:: none
     
         $ pycart -I 12
-        Case Config/Run Directory    Status  Iterations  Que 
-        ---- ----------------------- ------- ----------- ---
+        Case Config/Run Directory    Status  Iterations  Que CPU Time
+        ---- ----------------------- ------- ----------- --- --------
         0    poweroff/m1.75a1.0r15.0 ---     /           .   
           Group name: 'poweroff' (index 0)
           Preparing surface triangulation...
@@ -379,15 +379,16 @@ Let's run one case, but not the first case.  We can do this by using the
         
         ---=1, 
 
-We can check the status of all the cases at Mach 1.75 using the following.
+We can check the status of all the cases at Mach 1.75 using the following.  Like
+the previous example, the CPU time is below 0.1 hours.
 
     .. code-block:: none
     
         $ pycart -I 11:15 -c
-        Case Config/Run Directory    Status  Iterations  Que 
-        ---- ----------------------- ------- ----------- ---
+        Case Config/Run Directory    Status  Iterations  Que CPU Time
+        ---- ----------------------- ------- ----------- --- --------
         0    poweroff/m1.75a1.0r0.0  ---     /           .   
-        1    poweroff/m1.75a1.0r15.0 DONE    200/200     .   
+        1    poweroff/m1.75a1.0r15.0 DONE    200/200     .   0.0
         2    poweroff/m1.75a1.0r30.0 ---     /           .   
         3    poweroff/m1.75a1.0r45.0 ---     /           .   
         
@@ -399,15 +400,15 @@ a constraint.  Let's run the remaining Mach 1.75 cases using that capability.
     .. code-block:: none
     
         $ pycart --cons "Mach==1.75, alpha_t==1.0"
-        Case Config/Run Directory    Status  Iterations  Que 
-        ---- ----------------------- ------- ----------- ---
+        Case Config/Run Directory    Status  Iterations  Que CPU Time
+        ---- ----------------------- ------- ----------- --- --------
         0    poweroff/m1.75a1.0r0.0  ---     /           .   
         Using template for 'input.cntl' file
              Starting case 'poweroff/m1.75a1.0r0.0'.
          > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -binaryIO -tm 0
              (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/arrow/poweroff/m1.75a1.0r0.0')
              (STDOUT = 'flowCart.out')
-        1    poweroff/m1.75a1.0r15.0 DONE    200/200     .   
+        1    poweroff/m1.75a1.0r15.0 DONE    200/200     .   0.0
         2    poweroff/m1.75a1.0r30.0 ---     /           .   
         Using template for 'input.cntl' file
              Starting case 'poweroff/m1.75a1.0r30.0'.

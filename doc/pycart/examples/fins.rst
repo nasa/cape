@@ -20,8 +20,8 @@ Let's run a case to see how this works.
     .. code-block:: none
     
         $ pycart -f fins.json -I 7
-        Case Config/Run Directory                   Status  Iterations  Que 
-        ---- -------------------------------------- ------- ----------- ---
+        Case Config/Run Directory                   Status  Iterations  Que CPU Time
+        ---- -------------------------------------- ------- ----------- --- --------
         0    poweroff_d2+05_d4-15/m1.75a1.0r30.0 ---     /           .   
           Group name: 'poweroff_d2+05.0d4-15.0' (index 4)
           Preparing surface triangulation...
