@@ -68,36 +68,16 @@
         // List of components to place in data book
         "Components": ["fuselage", "wing", "htail", "vtail", "engines"],
         // Number of iterations to use for statistics.
-        "nStats": 100,
+        "nStats": 50,
         "nMin": 200,
         // Place to put the data book
         "Folder": "data",
         // Information about each component.
-        "fuselage": {
-            "Type": "FM",
-            "Transformations": [{
-                "Type": "ScaleCoeffs", "CLL": -1.0, "CLN": -1.0}]
-        },
-        "wing": {
-            "Type": "FM",
-            "Transformations": [{
-                "Type": "ScaleCoeffs", "CLL": -1.0, "CLN": -1.0}]
-        },
-        "htail": {
-            "Type": "FM",
-            "Transformations": [{
-                "Type": "ScaleCoeffs", "CLL": -1.0, "CLN": -1.0}]
-        },
-        "vtail": {
-            "Type": "FM",
-            "Transformations": [{
-                "Type": "ScaleCoeffs", "CLL": -1.0, "CLN": -1.0}]
-        },
-        "engines": {
-            "Type": "FM",
-            "Transformations": [{
-                "Type": "ScaleCoeffs", "CLL": -1.0, "CLN": -1.0}]
-        }
+        "fuselage": {"Type": "FM"},
+        "wing":     {"Type": "FM"},
+        "htail":    {"Type": "FM"},
+        "vtail":    {"Type": "FM"},
+        "engines":  {"Type": "FM"}
     },
     
     // Report specifications

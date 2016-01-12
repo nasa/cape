@@ -142,3 +142,48 @@ this point when creating Cart3D's standard :file:`input.cntl` input file.  This
 saves a little bit of effort if a reference point happens to move a little bit,
 but it is also useful in cases where reference points may shift from case to
 case---for example when studying a separation problem or moving fins.
+
+Database Management
+-------------------
+Let's also look at some of pyCart's database management capabilities.  In
+particular, we'll look at automated calculation of mean values and standard
+deviations of aerodynamic forces and moments.
+
+Much like the ``"Config"``, section, the data book, which is controlled by the
+``"DataBook"`` section of :file:`pyCart.json`, needs a list of components to
+keep track of.  In the JSON file snippet below taken from the
+:file:`pyCart.json` file from the business jet example, we're tracking five
+components, and we are recording both the forces and moments for each.
+
+    .. code-block:: javascript
+    
+        "DataBook": {
+            // List of components to place in data book
+            "Components": ["fuselage", "wing", "htail", "vtail", "engines"],
+            // Number of iterations to use for statistics.
+            "nStats": 50,
+            "nMin": 200,
+            // Place to put the data book
+            "Folder": "data",
+            // Information about each component.
+            "fuselage": {"Type": "FM"},
+            "wing":     {"Type": "FM"},
+            "htail":    {"Type": "FM"},
+            "vtail":    {"Type": "FM"},
+            "engines":  {"Type": "FM"}
+        },
+        
+The ``{"Type": "FM"}`` specifier just means that its a default force & moment
+component.  Another common value of *Type* is ``"Force"``, which just ignores
+any moment histories.  These are pretty vanilla data book component definitions;
+it is also possible to specify a transformation if you want to resolve the
+forces and/or moments in a different coordinate system or scale some of the
+results.
+
+Two other important parameters are *nStats* and *nMin*.  The *nMin* parameter in
+this case means that only iterations after iteration 200 can be used to compute
+the mean value and standard deviation in the database.  Using this *nMin*
+parameter is a good error-prevention technique because it automatically leaves
+holes in the database for cases that have not run sufficiently far.  The
+*nStats* parameter means that pyCart will use the last 50 iterations available
+to compute the mean.
