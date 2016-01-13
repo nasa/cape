@@ -121,6 +121,10 @@ class DataBook(dict):
         os.chdir(self.RootDir)
         # Loop through the components.
         for comp in self.Components:
+            # Get component type
+            tcomp = opts.get_DataBookType(comp)
+            # Check if it's an aero-type component
+            if tcomp not in ['FM', 'Force', 'Moment']: continue
             # Initialize the data book.
             self.InitDBComp(comp, x, opts)
         # Initialize targets.
