@@ -446,12 +446,12 @@ class DataBook(cape.dataBook.DataBook):
             DBc = self[comp]
             # List of transformations
             tcomp = self.opts.get_DataBookTransformations(comp)
-            # List of types
-            ttype = [t.get('Type') for t in tcomp]
+            # Special transformation to reverse *CLL* and *CLN*
+            tflight = {"Type": "ScaleCoeffs", "CLL": -1.0, "CLN": -1.0}
             # Check for ScaleCoeffs
-            if "ScaleCoeffs" not in ttype:
+            if tflight not in tcomp:
                 # Append a transformation to reverse *CLL* and *CLN*
-                tcomp.append({"Type":"ScaleCoeffs", "CLL":-1.0, "CLN":-1.0})
+                tcomp.append(tflight)
             # Loop through the transformations.
             for topts in tcomp:
                 # Apply the transformation.
