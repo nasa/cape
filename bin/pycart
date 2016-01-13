@@ -49,6 +49,9 @@ if __name__ == "__main__":
             kw['comp'] = kw['aero']
         # Collect force and moment data.
         cart3d.Aero(**kw)
+    elif kw.get('pt'):
+        # Update point sensor(s) data book
+        cart3d.UpdatePointSensor(**kw)
     elif kw.get('a'):
         # Archive folders
         cart3d.TarAdapt(**kw)

@@ -226,6 +226,44 @@ class Cart3d(Cntl):
         # Return to original location.
         os.chdir(fpwd)
     
+    # Function to update point sensor data book
+    def UpdatePointSensor(self, **kw):
+        """Update point sensor group(s) data book
+        
+        :Call:
+            >>> 
+        :Versions:
+            * 2016-01-13 ``@ddalle``: First version
+        """
+        # Save current location
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Apply constraints
+        I = self.x.GetIndices(**kw)
+        # Read the existing data book.
+        self.ReadDataBook()
+        # Check for a singe point group
+        pt = kw.get('pt')
+        # Turn into list or default list
+        if pt in [None, True]:
+            # Use all components
+            pts = self.opts.get_DataBookComponents()
+        else:
+            # Use the point given.
+            pts = [pt]
+        # Loop through points
+        for pt in pts:
+            # Make sure it's a data book point sensor group
+            if self.opts.get_DataBookType(pt) != 'PointSensor': continue
+            # Read the point sensor group.
+            self.DataBook.ReadPointSensor(pt)
+            # Update it.
+            self.DataBook.UpdatePointSensor(pt, I)
+            # Write the updated results
+            self.DataBook[pt].Write()
+        # Return to original location.
+        os.chdir(fpwd)
+        
     # Call the correct :mod:`case` module
     def CaseStartCase(self):
         """Start a case by either submitting it or running it

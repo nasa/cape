@@ -318,6 +318,7 @@ class DataBook(dict):
         :Versions:
             * 2014-12-30 ``@ddalle``: First version
             * 2015-06-19 ``@ddalle``: New multi-key sort
+            * 2016-01-13 ``@ddalle``: Added checks to allow incomplete comps
         """
         # Process inputs.
         if I is None:
@@ -325,6 +326,10 @@ class DataBook(dict):
             I = self[self.Components[0]].ArgSort(key)
         # Loop through components.
         for comp in self.Components:
+            # Check for component
+            if comp not in self: continue
+            # Check for populated component
+            if self[comp].n != len(I): continue
             # Apply the DBComp.Sort() method.
             self[comp].Sort(I=I)
             
