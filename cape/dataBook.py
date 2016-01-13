@@ -1091,7 +1091,7 @@ class DBBase(dict):
             # Move it to ".old"
             os.rename(fname, fname+".old")
         # DataBook delimiter
-        delim = self.cart3d.opts.get_Delimiter()
+        delim = self.opts.get_Delimiter()
         # Open the file.
         f = open(fname, 'w')
         # Write the header
@@ -1115,7 +1115,7 @@ class DBBase(dict):
             for k in self.iCols[:-1]:
                 f.write('%i%s' % (self[k][i], delim))
             # Last column
-            f.write('%i\n' % self.iCols[-1])
+            f.write('%i\n' % self[self.iCols[-1]][i])
         # Close the file.
         f.close()
         

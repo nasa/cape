@@ -260,7 +260,7 @@ class Cart3d(Cntl):
             # Update it.
             self.DataBook.UpdatePointSensor(pt, I)
             # Write the updated results
-            self.DataBook[pt].Write()
+            self.DataBook.PointSensors[pt].Write()
         # Return to original location.
         os.chdir(fpwd)
         
