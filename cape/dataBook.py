@@ -136,7 +136,7 @@ class DataBook(dict):
     def __repr__(self):
         """Representation method
         
-        :Versions;
+        :Versions:
             * 2014-12-22 ``@ddalle``: First version
         """
         # Initialize string

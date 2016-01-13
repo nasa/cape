@@ -190,12 +190,10 @@ class Cart3d(Cntl):
         """Collect force and moment data
         
         :Call:
-            >>> cart3d.Aero(comp=None, cons=[], **kw)
+            >>> cart3d.Aero(cons=[], **kw)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
-            *comp*: :class:`str`
-                Optional name of class to plot
             *I*: :class:`list` (:class:`int`)
                 List of indices
             *cons*: :class:`list` (:class:`str`)
@@ -231,7 +229,16 @@ class Cart3d(Cntl):
         """Update point sensor group(s) data book
         
         :Call:
-            >>> 
+            >>> cart3d.UPdatePointSensor(pt=None, cons=[], **kw)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *pt*: :class:`str`
+                Optional name of point sensor group to update
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints like ``'Mach<=0.5'``
         :Versions:
             * 2016-01-13 ``@ddalle``: First version
         """
@@ -255,6 +262,8 @@ class Cart3d(Cntl):
         for pt in pts:
             # Make sure it's a data book point sensor group
             if self.opts.get_DataBookType(pt) != 'PointSensor': continue
+            # Print name of point sensor group
+            print("Updating point sensor group '%s' ..." % pt)
             # Read the point sensor group.
             self.DataBook.ReadPointSensor(pt)
             # Update it.
@@ -488,6 +497,14 @@ class Cart3d(Cntl):
         # --------------------
         # Volume mesh creation
         # --------------------
+        # Get functions for mesh functions.
+        keys = self.x.GetKeysByType('MeshFunction')
+        # Loop through the mesh functions
+        for key in keys:
+            # Get the function for this *MeshFunction*
+            func = self.x.defns[key]['Function']
+            # Apply it.
+            exec("%s(self.%s,i=%i)" % (func, getattr(self.x,key)[i], i))
         # Run autoInputs if necessary.
         if self.opts.get_r():
             # Run autoInputs
