@@ -780,7 +780,7 @@ class Cart3d(Cntl):
         # Loop through the functions.
         for (key, func) in zip(keys, funcs):
             # Apply it.
-            exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+            exec("self.%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
         # Write the input.cntl and aero.csh file(s).
         self.PrepareInputCntl(i)
         self.PrepareAeroCsh(i)
