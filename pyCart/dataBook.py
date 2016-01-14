@@ -440,6 +440,9 @@ class DataBook(cape.dataBook.DataBook):
         H = CaseResid()
         # Loop through components.
         for comp in self.Components:
+            # Ensure proper type
+            tcomp = self.opts.get_DataBookType(comp)
+            if tcomp not in ['Force', 'Moment', 'FM']: continue
             # Read the iterative history for that component.
             FM = CaseFM(comp)
             # Extract the component databook.

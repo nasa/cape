@@ -301,6 +301,9 @@ class DataBook(dict):
             self.Sort(skey)
         # Loop through the components.
         for comp in self.Components:
+            # Check the component type.
+            tcomp = self.opts.get_DataBookType(comp)
+            if tcomp not in ['Force', 'Moment', 'FM']: continue
             # Write individual component.
             self[comp].Write()
             
