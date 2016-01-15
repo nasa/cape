@@ -20,9 +20,15 @@ from datetime import datetime
 from .util      import readline, GetTotalHistIter, GetWorkingFolder
 from .bin       import tail
 from .inputCntl import InputCntl
+from .options   import odict
+# Utilities and advanced statistics
+from . import util
 
 # Basis module
 import cape.dataBook
+
+# Placeholder variables for plotting functions.
+plt = 0
 
 # Dedicated function to load Matplotlib only when needed.
 def ImportPyPlot():
@@ -39,7 +45,7 @@ def ImportPyPlot():
     global Text
     # Check for PyPlot.
     try:
-        plt
+        plt.gcf
     except AttributeError:
         # Load the modules.
         import matplotlib.pyplot as plt
@@ -595,6 +601,10 @@ class DBPointSensor(cape.dataBook.DBBase):
         # Calculate basic statistics
         vmu = np.mean(V)
         vstd = np.std(V)
+        # Uncertainty options
+        ksig = kw.get('StDev')
+        # Reference delta
+        dc = kw.get('Delta', 0.0)
         # --------
         # Plotting
         # --------
@@ -604,18 +614,18 @@ class DBPointSensor(cape.dataBook.DBBase):
         # Histogram Plot
         # --------------
         # Initialize plot options for histogram.
-        kw_h = odict(color='b', zorder=5, bins=20)
-        # Extract optionsfrom kwargs
-        for k in util.denone(kw.get("PlotOptions", {})):
+        kw_h = odict(facecolor='c', zorder=2, bins=20)
+        # Extract options from kwargs
+        for k in util.denone(kw.get("HistOptions", {})):
             # Override the default option.
-            kf kw["HistOptions"][k] is not None:
+            if kw["HistOptions"][k] is not None:
                 kw_h[k] = kw["HistOptions"][k]
         # Check for range based on standard deviation
         if kw.get("Range"):
             # Use this number of pair of numbers as multiples of *vstd*
             r = kw["Range"]
             # Check for single number or list
-            if type(r).__name__ in ['ndarray', 'list']:
+            if type(r).__name__ in ['ndarray', 'list', 'tuple']:
                 # Separate lower and upper limits
                 vmin = vmu - r[0]*vstd
                 vmax = vmu + r[1]*vstd
@@ -626,11 +636,104 @@ class DBPointSensor(cape.dataBook.DBBase):
             # Overwrite any range option in *kw_h*
             kw_h['range'] = (vmin, vmax)
         # Plot the historgram.
-        h['hist'] = plt.plot(V, **kw_h)
+        h['hist'] = plt.hist(V, **kw_h)
+        # Get the figure and axes.
+        h['fig'] = plt.gcf()
+        h['ax'] = plt.gca()
+        # Get current axis limits
+        pmin, pmax = h['ax'].get_ylim()
+        # Determine whether or not the distribution is normed
+        q_normed = kw_h.get("normed", True)
+        # Determine whether or not the bars are vertical
+        q_vert = kw_h.get("orientation", "vertical") == "vertical"
         # ---------
         # Mean Plot
         # ---------
-        # Initialize plot options for mean
+        # Option whether or not to plot mean as vertical line.
+        if kw.get("PlotMean", True):
+            # Initialize options for mean plot
+            kw_m = odict(color='k', lw=2, zorder=6)
+            # Extract options from kwargs
+            for k in util.denone(kw.get("MeanOptions", {})):
+                # Override the default option.
+                if kw["MeanOptions"][k] is not None:
+                    kw_m[k] = kw["MeanOptions"][k]
+            # Check orientation
+            if q_vert:
+                # Plot a vertical line for the mean.
+                h['mean'] = plt.plot([vmu,vmu], [pmin,pmax], **kw_m)
+            else:
+                # Plot a horizontal line for th emean.
+                h['mean'] = plt.plot([pmin,pmax], [vmu,vmu], **kw_m)
+        # -----------------------
+        # Standard Deviation Plot
+        # -----------------------
+        # Check whether or not to plot it
+        if ksig and len(I)>2:
+            # Check for single number or list
+            if type(ksig).__name__ in ['ndarray', 'list', 'tuple']:
+                # Separate lower and upper limits
+                vmin = vmu - ksig[0]*vstd
+                vmax = vmu + ksig[1]*vstd
+            else:
+                # Use as a single number
+                vmin = vmu - ksig*vstd
+                vmax = vmu + ksig*vstd
+            # Initialize options for std plot
+            kw_s = odict(color='b', lw=2, zorder=5)
+            # Extract options from kwargs
+            for k in util.denone(kw.get("StDevOptions", {})):
+                # Override the default option.
+                if kw["StDevOptions"][k] is not None:
+                    kw_s[k] = kw["StDevOptions"][k]
+            # Check orientation
+            if q_vert:
+                # Plot a vertical line for the min and max
+                h['std'] = (
+                    plt.plot([vmin,vmin], [pmin,pmax], **kw_s) +
+                    plt.plot([vmax,vmax], [pmin,pmax], **kw_s))
+            else:
+                # Plot a horizontal line for the min and max
+                h['std'] = (
+                    plt.plot([pmin,pmax], [vmin,vmin], **kw_s) +
+                    plt.plot([pmin,pmax], [vmax,vmax], **kw_s))
+        # ----------
+        # Delta Plot
+        # ----------
+        # Check whether or not to plot it
+        if dc:
+            # Initialize options for delta plot
+            kw_d = odict(color="r", ls="--", lw=1.0, zorder=3)
+            # Extract options from kwargs
+            for k in util.denone(kw.get("DeltaOptions", {})):
+                # Override the default option.
+                if kw["DeltaOptions"][k] is not None:
+                    kw_d[k] = kw["DeltaOptions"][k]
+                # Check for single number or list
+            if type(dc).__name__ in ['ndarray', 'list', 'tuple']:
+                # Separate lower and upper limits
+                cmin = vmu - dc[0]
+                cmax = vmu + dc[1]
+            else:
+                # Use as a single number
+                cmin = vmu - dc
+                cmax = vmu + dc
+            # Check orientation
+            if q_vert:
+                # Plot vertical lines for the reference length
+                h['delta'] = (
+                    plt.plot([cmin,cmin], [pmin,pmax], **kw_d) +
+                    plt.plot([cmax,cmax], [pmin,pmax], **kw_d))
+            else:
+                # Plot horizontal lines for reference length
+                h['delta'] = (
+                    plt.plot([pmin,pmax], [cmin,cmin], **kw_d) +
+                    plt.plot([pmin,pmax], [cmax,cmax], **kw_d))
+        # ----------
+        # Formatting
+        # ----------
+        # Default axis labels
+        
         # Attempt to set font to one with Greek symbols.
         try:
             # Set the fonts.

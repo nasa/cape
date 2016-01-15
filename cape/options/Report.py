@@ -770,8 +770,9 @@ class Report(odict):
                 "ShowDelta": False,
                 "Format": "pdf",
                 "DPI": 150,
-                "HistOptions": {"color": ["b","g","c","m","k","r"]},
-                "MeanOptions": {"color": ["b","g","c","m","k","r"]},
+                "PlotMean": True,
+                "HistOptions": {"facecolor": ["c","m","y"], "normed": True},
+                "MeanOptions": {"color": "k", "lw": 2},
                 "StDevOptions": {"color": ["b","g","c","m","k","r"]},
                 "DeltaOptions": {"color": None}
             }
