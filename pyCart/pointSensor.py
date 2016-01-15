@@ -529,6 +529,119 @@ class DBPointSensor(cape.dataBook.DBBase):
         else:
             os.chdir(fpwd); return True, P
             
+            
+    # Plot a sweep of one or more coefficients
+    def PlotValueHist(self, coeff, I, **kw):
+        """Plot a histogram of one coefficient over several cases
+        
+        :Call:
+            >>> h = DBi.PlotHist(coeff, I, **kw)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DBBase`
+                Instance of the data book component class
+            *coeff*: :class:`str`
+                Coefficient being plotted
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indexes of cases to include in sweep
+        :Keyword Arguments:
+            *x*: [ {None} | :class:`str` ]
+                Trajectory key for *x* axis (or plot against index if ``None``)
+            *Label*: [ {*comp*} | :class:`str` ]
+                Manually specified label
+            *Legend*: [ {True} | False ]
+                Whether or not to use a legend
+            *StDev*: [ {None} | :class:`float` ]
+                Multiple of iterative history standard deviation to plot
+            *MinMax*: [ {False} | True ]
+                Whether to plot minimum and maximum over iterative history
+            *Uncertainty*: [ {False} | True ]
+                Whether to plot direct uncertainty
+            *LineOptions*: :class:`dict`
+                Plot options for the primary line(s)
+            *StDevOptions*: :class:`dict`
+                Dictionary of plot options for the standard deviation plot
+            *MinMaxOptions*: :class:`dict`
+                Dictionary of plot options for the min/max plot
+            *UncertaintyOptions*: :class:`dict`
+                Dictionary of plot options for the uncertainty plot
+            *FigWidth*: :class:`float`
+                Width of figure in inches
+            *FigHeight*: :class:`float`
+                Height of figure in inches
+            *PlotTypeStDev*: [ {'FillBetween'} | 'ErrorBar' ]
+                Plot function to use for standard deviation plot
+            *PlotTypeMinMax*: [ {'FillBetween'} | 'ErrorBar' ]
+                Plot function to use for min/max plot
+            *PlotTypeUncertainty*: [ 'FillBetween' | {'ErrorBar'} ]
+                Plot function to use for uncertainty plot
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of plot handles
+        :Versions:
+            * 2015-05-30 ``@ddalle``: First version
+            * 2015-12-14 ``@ddalle``: Added error bars
+        """
+        # -----------
+        # Preparation
+        # -----------
+        # Make sure the plotting modules are present.
+        ImportPyPlot()
+        # Figure dimensions
+        fw = kw.get('FigWidth', 6)
+        fh = kw.get('FigHeight', 4.5)
+        # Extract the values
+        V = self[coeff][I]
+        # Check for outliers ...
+        # Calculate basic statistics
+        vmu = np.mean(V)
+        vstd = np.std(V)
+        # --------
+        # Plotting
+        # --------
+        # Initialize dictionary of handles.
+        h = {}
+        # --------------
+        # Histogram Plot
+        # --------------
+        # Initialize plot options for histogram.
+        kw_h = odict(color='b', zorder=5, bins=20)
+        # Extract optionsfrom kwargs
+        for k in util.denone(kw.get("PlotOptions", {})):
+            # Override the default option.
+            kf kw["HistOptions"][k] is not None:
+                kw_h[k] = kw["HistOptions"][k]
+        # Check for range based on standard deviation
+        if kw.get("Range"):
+            # Use this number of pair of numbers as multiples of *vstd*
+            r = kw["Range"]
+            # Check for single number or list
+            if type(r).__name__ in ['ndarray', 'list']:
+                # Separate lower and upper limits
+                vmin = vmu - r[0]*vstd
+                vmax = vmu + r[1]*vstd
+            else:
+                # Use as a single number
+                vmin = vmu - r*vstd
+                vmax = vmu + r*vstd
+            # Overwrite any range option in *kw_h*
+            kw_h['range'] = (vmin, vmax)
+        # Plot the historgram.
+        h['hist'] = plt.plot(V, **kw_h)
+        # ---------
+        # Mean Plot
+        # ---------
+        # Initialize plot options for mean
+        # Attempt to set font to one with Greek symbols.
+        try:
+            # Set the fonts.
+            h['mu'].set_family("DejaVu Sans")
+            h['sigma'].set_family("DejaVu Sans")
+            h['err'].set_family("DejaVu Sans")
+        except Exception:
+            pass
+        # Output.
+        return h
+        
 # class DBPointSensor
 
 

@@ -545,7 +545,8 @@ class Report(odict):
         # Check if it is a base category.
         if t in ['Conditions', 'SweepConditions', 'SweepCases', 
                 'PointSensorTable', 'Summary',
-                'PlotCoeff', 'SweepCoeff', 'PlotPoint',
+                'PlotCoeff', 'SweepCoeff', 
+                'PlotPoint', 'SweepPointHist',
                 'PlotL1', 'PlotL2', 'PlotResid',
                 'Tecplot3View', 'Tecplot', 'ParaviewTri', 'Paraview']:
             # Yes, it is.
@@ -745,6 +746,33 @@ class Report(odict):
                 "StDevOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
                 "ErrPlotOptions": {
                     "facecolor": "g", "alpha": 0.4, "ls": "none"},
+                "DeltaOptions": {"color": None}
+            }
+        elif t in ['SweepPointHist']:
+            # Point sensor history
+            S = {
+                "Header": "",
+                "Position": "b",
+                "Alignment": "center",
+                "XAxis": None,
+                "Target": False,
+                "Width": 0.5,
+                "FigWidth": 6,
+                "FigHeight": 4.5,
+                "Point": 0,
+                "Group": "",
+                "Coefficient": "Cp",
+                "Delta": 0.0,
+                "StandardDeviation": 3.0,
+                "Range": 4.0,
+                "ShowMu": False,
+                "ShowSigma": False,
+                "ShowDelta": False,
+                "Format": "pdf",
+                "DPI": 150,
+                "HistOptions": {"color": ["b","g","c","m","k","r"]},
+                "MeanOptions": {"color": ["b","g","c","m","k","r"]},
+                "StDevOptions": {"color": ["b","g","c","m","k","r"]},
                 "DeltaOptions": {"color": None}
             }
         elif t in ['SweepCoeff']:
