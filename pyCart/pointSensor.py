@@ -732,8 +732,24 @@ class DBPointSensor(cape.dataBook.DBBase):
         # ----------
         # Formatting
         # ----------
-        # Default axis labels
-        
+        # Set figure dimensions
+        if fh: h['fig'].set_figheight(fh)
+        if fw: h['fig'].set_figwidth(fw)
+        # Attempt to apply tight axes.
+        try: plt.tight_layout()
+        except Exception: pass
+        # ------
+        # Labels
+        # ------
+        # Default value-axis label
+        lx = coeff
+        # Default probability-axis label
+        if q_normed:
+            # Size of bars is probability
+            ly = "Probability"
+        else:
+            # Size of bars is count
+            ly = "Count"
         # Attempt to set font to one with Greek symbols.
         try:
             # Set the fonts.
