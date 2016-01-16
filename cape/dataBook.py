@@ -2535,6 +2535,14 @@ class CaseData(object):
                 Option to print value of sampling error
             *ShowDelta*: :class:`bool`
                 Option to print reference value
+            *MuFormat*: {``"%.4f"``} | :class:`str`
+                Format for text label of the mean value
+            *DeltaFormat*: {``"%.4f"``} | :class:`str`
+                Format for text label of the reference value *d*
+            *SigmaFormat*: {``"%.4f"``} | :class:`str`
+                Format for text label of the iterative standard deviation
+            *EpsilonFormat*: {``"%.4f"``} | :class:`str`
+                Format for text label of the sampling error
             *XLabel*: :class:`str`
                 Specified label for *x*-axis, default is ``Iteration Number``
             *YLabel*: :class:`str`
@@ -2753,8 +2761,10 @@ class CaseData(object):
         yl = 1.0 - 0.04*yf
         # Make a label for the mean value.
         if kw.get("ShowMu", True):
+            # printf-style format flag
+            flbl = kw.get("MuFormat", "%.4f")
             # Form: CA = 0.0204
-            lbl = u'%s = %.4f' % (c, cAvg)
+            lbl = (u'%s = %s' % (c, flbl)) % cAvg
             # Create the handle.
             h['mu'] = plt.text(0.99, yu, lbl, color=kw_p['color'],
                 horizontalalignment='right', verticalalignment='top',
@@ -2764,8 +2774,10 @@ class CaseData(object):
             except Exception: pass
         # Make a label for the deviation.
         if dc and kw.get("ShowDelta", True):
+            # printf-style flag
+            flbl = kw.get("DeltaFormat", "%.4f")
             # Form: \DeltaCA = 0.0050
-            lbl = u'\u0394%s = %.4f' % (c, dc)
+            lbl = (u'\u0394%s = %s' % (c, flbl)) % dc
             # Create the handle.
             h['d'] = plt.text(0.99, yl, lbl, color=kw_d.get_key('color',1),
                 horizontalalignment='right', verticalalignment='top',
@@ -2790,8 +2802,10 @@ class CaseData(object):
         # Make a label for the iterative uncertainty.
         if nAvg>2 and ((uerr and kw.get("ShowEpsilon", True))
                 or kw.get("ShowEpsilon", False)):
-            # Form \sigma(CA) = 0.0032
-            lbl = u'\u0395(%s) = %.4f' % (c, c_err)
+            # printf-style format flag
+            flbl = kw.get("EpsilonFormat", "%.4f")
+            # Form \varepsilon(CA) = 0.0032
+            lbl = (u'\u0395(%s) = %s' % (c, flbl) % c_err
             # Create the handle.
             h['eps'] = plt.text(0.01, yl, lbl, color=kw_u.get_key('color',1),
                 horizontalalignment='left', verticalalignment='top',

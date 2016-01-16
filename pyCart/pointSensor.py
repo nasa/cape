@@ -550,36 +550,40 @@ class DBPointSensor(cape.dataBook.DBBase):
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
-            *x*: [ {None} | :class:`str` ]
-                Trajectory key for *x* axis (or plot against index if ``None``)
             *Label*: [ {*comp*} | :class:`str` ]
                 Manually specified label
             *Legend*: [ {True} | False ]
                 Whether or not to use a legend
             *StDev*: [ {None} | :class:`float` ]
                 Multiple of iterative history standard deviation to plot
-            *MinMax*: [ {False} | True ]
-                Whether to plot minimum and maximum over iterative history
-            *Uncertainty*: [ {False} | True ]
-                Whether to plot direct uncertainty
-            *LineOptions*: :class:`dict`
-                Plot options for the primary line(s)
+            *HistOptions*: :class:`dict`
+                Plot options for the primary histogram
             *StDevOptions*: :class:`dict`
                 Dictionary of plot options for the standard deviation plot
-            *MinMaxOptions*: :class:`dict`
-                Dictionary of plot options for the min/max plot
-            *UncertaintyOptions*: :class:`dict`
-                Dictionary of plot options for the uncertainty plot
-            *FigWidth*: :class:`float`
-                Width of figure in inches
-            *FigHeight*: :class:`float`
-                Height of figure in inches
-            *PlotTypeStDev*: [ {'FillBetween'} | 'ErrorBar' ]
-                Plot function to use for standard deviation plot
-            *PlotTypeMinMax*: [ {'FillBetween'} | 'ErrorBar' ]
-                Plot function to use for min/max plot
-            *PlotTypeUncertainty*: [ 'FillBetween' | {'ErrorBar'} ]
-                Plot function to use for uncertainty plot
+            *DeltaOptions*: :class:`dict`
+                Options passed to :func:`plt.plot` for reference range plot
+            *MeanOptions*: :class:`dict`
+                Options passed to :func:`plt.plot` for mean line
+            *ShowMu*: :class:`bool`
+                Option to print value of mean
+            *ShowSigma*: :class:`bool`
+                Option to print value of standard deviation
+            *ShowEpsilon*: :class:`bool`
+                Option to print value of sampling error
+            *ShowDelta*: :class:`bool`
+                Option to print reference value
+            *MuFormat*: {``"%.4f"``} | :class:`str`
+                Format for text label of the mean value
+            *DeltaFormat*: {``"%.4f"``} | :class:`str`
+                Format for text label of the reference value *d*
+            *SigmaFormat*: {``"%.4f"``} | :class:`str`
+                Format for text label of the iterative standard deviation
+            *EpsilonFormat*: {``"%.4f"``} | :class:`str`
+                Format for text label of the sampling error
+            *XLabel*: :class:`str`
+                Specified label for *x*-axis, default is ``Iteration Number``
+            *YLabel*: :class:`str`
+                Specified label for *y*-axis, default is *c*
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of plot handles
@@ -765,8 +769,10 @@ class DBPointSensor(cape.dataBook.DBBase):
         yl = 1.0 - 0.04*yf
         # Make a label for the mean value.
         if kw.get("ShowMu", True):
+            # printf-style format flag
+            flbl = kw.get("MuFormat", "%.4f")
             # Form: CA = 0.0204
-            lbl = u'%s = %.4f' % (c, cAvg)
+            lbl = (u'%s = %s' % (c, flbl)) % cAvg
             # Create the handle.
             h['mu'] = plt.text(0.99, yu, lbl, color=kw_p['color'],
                 horizontalalignment='right', verticalalignment='top',
@@ -776,8 +782,10 @@ class DBPointSensor(cape.dataBook.DBBase):
             except Exception: pass
         # Make a label for the deviation.
         if dc and kw.get("ShowDelta", True):
+            # printf-style flag
+            flbl = kw.get("DeltaFormat", "%.4f")
             # Form: \DeltaCA = 0.0050
-            lbl = u'\u0394%s = %.4f' % (c, dc)
+            lbl = (u'\u0394%s = %s' % (c, flbl)) % dc
             # Create the handle.
             h['d'] = plt.text(0.99, yl, lbl, color=kw_d.get_key('color',1),
                 horizontalalignment='right', verticalalignment='top',
@@ -786,7 +794,7 @@ class DBPointSensor(cape.dataBook.DBBase):
             try: h['d'].set_family("DejaVu Sans")
             except Exception: pass
         # Make a label for the standard deviation.
-        if nAvg>2 and ((ksig and kw.get("ShowSigma", True)) 
+        if len(I)>2 and ((ksig and kw.get("ShowSigma", True)) 
                 or kw.get("ShowSigma", False)):
             # Printf-style flag
             flbl = kw.get("SigmaFormat", "%.4f")

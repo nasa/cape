@@ -951,6 +951,44 @@ class Report(object):
                 lines += self.SubfigSweepCoeff(sfig, fswp, I)
         # Output
         return lines
+        
+    # Function to initialize a subfigure
+    def SubfigInit(self, sfig):
+        """Create the initial lines of a subfigure
+        
+        :Call:
+            >>> lines = R.SubfigInit(sfig)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure to initialize
+        :Outputs:
+            *lines*: :class:`list` (:class:`str`)
+                Formatting lines to initialize a subfigure common to all types
+        :Versions:
+            * 2016-01-16 ``@ddalle``: First version
+        """
+        # Get the vertical alignment.
+        hv = opts.get_SubfigOpt(sfig, "Position")
+        # Get subfigure width
+        wsfig = opts.get_SubfigOpt(sfig, "Width")
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = opts.get_SubfigOpt(sfig, "Header")
+        # Alignment
+        algn = opts.get_SubfigOpt(sfig, "Alignment")
+        # Set alignment.
+        if algn.lower() == "center":
+            lines.append('\\centering\n')
+        # Write the header.
+        if fhdr:
+            # Save the line
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+            lines.append('\\vskip-6pt\n')
+        # Output
+        return lines
     
     # Function to write conditions table
     def SubfigConditions(self, sfig, I):
@@ -1365,6 +1403,11 @@ class Report(object):
             sh_s = opts.get_SubfigOpt(sfig, "ShowSigma", k)
             sh_d = opts.get_SubfigOpt(sfig, "ShowDelta", k)
             sh_e = opts.get_SubfigOpt(sfig, "ShowEpsilon", k)
+            # Label formats
+            fmt_m = opts.get_SubfigOpt(sfig, "MuFormat", k)
+            fmt_s = opts.get_SubfigOpt(sfig, "SigmaFormat", k)
+            fmt_d = opts.get_SubfigOpt(sfig, "DeltaFormat", k)
+            fmt_e = opts.get_SubfigOpt(sfig, "EpsilonFormat", k)
             # Draw the plot.
             h = FM.PlotCoeff(coeff, n=nPlotIter, nAvg=s['nStats'],
                 nFirst=nPlotFirst, nLast=nPlotLast,
@@ -1372,8 +1415,10 @@ class Report(object):
                 d=dc, DeltaOptions=kw_d,
                 k=ksig, StDevOptions=kw_s,
                 u=uerr, ErrPltOptions=kw_u,
-                ShowMu=sh_m, ShowDelta=sh_d,
-                ShowSigma=sh_s, ShowEspsilon=sh_e,
+                ShowMu=sh_m, MuFormat=fmt_m,
+                ShowDelta=sh_d, DeltaFormat=fmt_d,
+                ShowSigma=sh_s, SigmaFormat=fmt_s,
+                ShowEspsilon=sh_e, EpsilonFormat=fmt_e,
                 FigWidth=figw, FigHeight=figh)
         # Change back to report folder.
         os.chdir(fpwd)
@@ -1386,10 +1431,10 @@ class Report(object):
             fimg = '%s.%s' % (sfig, fmt)
             fpdf = '%s.pdf' % sfig
             # Save the figure.
-            if fmt in ['pdf']:
+            if fmt.lower() in ['pdf']:
                 # Save as vector-based image.
                 h['fig'].savefig(fimg)
-            elif fmt in ['svg']:
+            elif fmt.lower() in ['svg']:
                 # Save as PDF and SVG
                 h['fig'].savefig(fimg)
                 h['fig'].savefig(fpdf)
@@ -1494,24 +1539,8 @@ class Report(object):
             fcpt = "%s/%s" % (fcpt, coeff)
         # Ensure there are no underscores.
         fcpt = fcpt.replace("_", "\_")
-        # Get the vertical alignment.
-        hv = opts.get_SubfigOpt(sfig, "Position")
-        # Get subfigure width
-        wsfig = opts.get_SubfigOpt(sfig, "Width")
-        # First line.
-        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
-        # Check for a header.
-        fhdr = opts.get_SubfigOpt(sfig, "Header")
-        # Alignment
-        algn = opts.get_SubfigOpt(sfig, "Alignment")
-        # Set alignment.
-        if algn.lower() == "center":
-            lines.append('\\centering\n')
-        # Write the header.
-        if fhdr:
-            # Save the line
-            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
-            lines.append('\\vskip-6pt\n')
+        # Initialize subfigure
+        lines = self.SubfigInit(sfig)
         # Loop through plots.
         for i in range(nSweep*nCoeff):
             # Coefficient index
@@ -1599,17 +1628,22 @@ class Report(object):
         # Figure name
         fimg = '%s.%s' % (sfig, fmt)
         # Save the figure.
-        if fmt in ['pdf', 'svg']:
-            # Save as vector-based image.
+        if fmt.lower() in ['pdf']:
+            # Save as vector-based image
             h['fig'].savefig(fimg)
+        elif fmt.lower() in ['svg']:
+            # Save as SVG and PDF
+            h['fig'].savefig(fimg)
+            h['fig'].savefig(fpdf)
         else:
             # Save with resolution.
             h['fig'].savefig(fimg, dpi=dpi)
+            h['fig'].savefig(fpdf)
         # Close the figure.
         h['fig'].clf()
         # Include the graphics.
         lines.append('\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
-            % (fswp, frun, fimg))
+            % (fswp, frun, fpdf))
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.

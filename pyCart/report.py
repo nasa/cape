@@ -189,6 +189,54 @@ class Report(cape.report.Report):
         # Output
         return lines
         
+    # Update subfig for a sweep
+    def UpdateSweepSubfigs(self, fig, fswp, I):
+        """Update subfigures for a sweep figure *fig*
+        
+        :Call:
+            >>> lines = R.UpdateSweepSubfigs(fig, fswp, I)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *fig*: :class:`str`
+                Name of figure to update
+            *fswp*: :class:`str`
+                Name of sweep
+            *I*: :class:`numpy.ndarray` (:class:`list`)
+                List of case indices in the subsweep
+        :Outputs:
+            *lines*: :class:`list` (:class:`str`)
+                List of lines for LaTeX file
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # Get list of subfigures.
+        sfigs = self.cntl.opts.get_FigSubfigList(fig)
+        # Initialize lines
+        lines = []
+        # Loop through subfigs.
+        for sfig in sfigs:
+            # Get the base type.
+            btyp = self.cntl.opts.get_SubfigBaseType(sfig)
+            # Process it.
+            if btyp == 'Conditions':
+                # Get the content.
+                lines += self.SubfigConditions(sfig, I)
+            elif btyp == 'SweepConditions':
+                # Get the variables constant in the sweep
+                lines += self.SubfigSweepConditions(sfig, fswp, I[0])
+            elif btyp == 'SweepCases':
+                # Get the list of cases.
+                lines += self.SubfigSweepCases(sfig, fswp, I)
+            elif btyp == 'SweepCoeff':
+                # Plot a coefficient sweep
+                lines += self.SubfigSweepCoeff(sfig, fswp, I)
+            elif btyp == 'SweepPointHist':
+                # Plot a point sensor histogram
+                lines += self.SubfigSweepPointHist(sfig, fswp, I)
+        # Output
+        return lines
+        
         
     # Function to create coefficient plot and write figure
     def SubfigTecplot3View(self, sfig, i):
@@ -795,6 +843,125 @@ class Report(cape.report.Report):
         # Finish table and subfigure
         lines.append('\\hline \\hline\n')
         lines.append('\\end{tabular}\n')
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
+        
+    # Function to plot mean coefficient for a sweep
+    def SubfigSweepPointHist(self, sfig, fswp, I):
+        """Plot a histogram of a point sensor coefficient over several cases
+        
+        :Call:
+            >>> R.SubfigSweepCoeff(sfig, fswp, I)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *fswp*: :class:`str`
+                Name of sweep
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices in the sweep
+        :Versions:
+            * 2016-01-16 ``@ddalle``: First version
+        """
+        # Save current folder.
+        fpwd = os.getcwd()
+        # Extract options and trajectory
+        x = self.cntl.DataBook.x
+        opts = self.cntl.opts
+        # Case folder
+        frun = x.GetFullFolderNames(I[0])
+        # Carpet constraints
+        CEq = opts.get_SweepOpt(fswp, "CarpetEqCons")
+        CTol = opts.get_SweepOpt(fswp, "CarpetTolCons")
+        # Check for carpet constraints.
+        if CEq or CTol:
+            # Divide sweep into subsweeps.
+            J = x.GetSweeps(I=I, EqCons=CEq, TolCons=CTol)
+        else:
+            # Single sweep
+            J = [I]
+        # Get the component.
+        grp = opts.get_SubfigOpt(sfig, "Group")
+        # Get the point
+        pt = opts.get_SubfigOpt(sfig, "Point")
+        # Get the coefficient
+        coeff = opts.get_SubfigOpt(sfig, "Coefficient")
+        # Get list of targets
+        targs = self.SubfigTargets(sfig)
+        # Read the point sensor group data book
+        self.cntl.DataBook.ReadPointSensor(grp)
+        # Get the point sensor
+        DBP = self.cntl.DataBook.PointSensor[grp][pt]
+        # Target processing ...
+        
+        
+        # Distribution variable
+        xk = opts.get_SweepOpt(fswp, "XAxis")
+        # Get caption
+        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        # Process default caption
+        if fcpt is None:
+            # Use the point name and the coefficient
+            fcpt = "%s/%s" % (pt, coeff)
+        # Ensure that there are not underscores.
+        fcpt = fcpt.replace("_", "\_")
+        # Initialize subfigure
+        lines = self.SubfigInit(sfig)
+        # Form options for point sensor histogram
+        kw_h = {
+            # Reference values
+            "StDev":          opts.get_SubfigOpt(sfig, "StandardDeviation"),
+            "Delta":          opts.get_SubfigOpt(sfig, "Delta"),
+            "PlotMu":         opts.get_SubfigOpt(sfig, "PlotMu"),
+            # Figure dimensions
+            "FigureWidth":    opts.get_SubfigOpt(sfig, "FigureWidth"),
+            "FigureHeight":   opts.get_SubfigOpt(sfig, "FigureHeight"),
+            # Text labels of reference values
+            "ShowMu":         opts.get_SubfigOpt(sfig, "ShowMu"),
+            "ShowSigma":      opts.get_SubfigOpt(sfig, "ShowSigma"),
+            "ShowDelta":      opts.get_SubfigOpt(sfig, "ShowDelta"),
+            # Format flags
+            "MuFormat":       opts.get_SubfigOpt(sfig, "MuFormat"),
+            "SigmaFormat":    opts.get_SubfigOpt(sfig, "SigmaFormat"),
+            "DeltaFormat":    opts.get_SubfigOpt(sfig, "DeltaFormat"),
+            # Plot options
+            "HistOptions":    opts.get_SubfigOpt(sfig, "HistOptions"),
+            "MeanOptions":    opts.get_SubfigOpt(sfig, "MeanOptions"),
+            "StDevOptions":   opts.get_SubfigOpt(sfig, "StDevOptions"),
+            "DeltaOptions":   opts.get_SubfigOpt(sfig, "DeltaOptions")
+        }
+        # Plot the histogram with labels
+        h = DBP.PlotHist(coeff, I, **kw_h)
+        # Change back to report folder
+        os.chdir(fpwd)
+        # Get the file formatting
+        fmt = opts.get_SubfigOpt(sfig, "Format")
+        dpi = opts.get_SubfigOpt(sfig, "DPI")
+        # Figure name
+        fimg = '%s.%s' % (sfig, fmt)
+        fpdf = '%s.pdf' % sfig
+        # Save the figure.
+        if fmt.lower() in ['pdf']:
+            # Save as vector-based image.
+            h['fig'].savefig(fimg)
+        elif fmt.lower() in ['svg']:
+            # Save as PDF and SVG
+            h['fig'].savefig(fimg)
+            h['fig'].savefig(fpdf)
+        else:
+            # Save with resolution
+            h['fig'].savefig(fimg, dpi=dpi)
+            h['fig'].savefig(fpdf)
+        # Close the figure
+        h['fig'].clf()
+        # Include the graphics
+        lines.append('\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
+            % (fswp, frun, fpdf))
+        # Set the caption.
+        lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
+        # Close the subfigure
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
