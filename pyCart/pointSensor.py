@@ -732,15 +732,6 @@ class DBPointSensor(cape.dataBook.DBBase):
         # ----------
         # Formatting
         # ----------
-        # Set figure dimensions
-        if fh: h['fig'].set_figheight(fh)
-        if fw: h['fig'].set_figwidth(fw)
-        # Attempt to apply tight axes.
-        try: plt.tight_layout()
-        except Exception: pass
-        # ------
-        # Labels
-        # ------
         # Default value-axis label
         lx = coeff
         # Default probability-axis label
@@ -750,14 +741,64 @@ class DBPointSensor(cape.dataBook.DBBase):
         else:
             # Size of bars is count
             ly = "Count"
-        # Attempt to set font to one with Greek symbols.
-        try:
-            # Set the fonts.
-            h['mu'].set_family("DejaVu Sans")
-            h['sigma'].set_family("DejaVu Sans")
-            h['err'].set_family("DejaVu Sans")
-        except Exception:
-            pass
+        # Process axis labels
+        xlbl = kw.get('XLabel', lx)
+        ylbl = kw.get('YLabel', ly)
+        # Labels.
+        h['x'] = plt.xlabel(xlbl)
+        h['y'] = plt.ylabel(ylbl)
+        # Set figure dimensions
+        if fh: h['fig'].set_figheight(fh)
+        if fw: h['fig'].set_figwidth(fw)
+        # Attempt to apply tight axes.
+        try: plt.tight_layout()
+        except Exception: pass
+        # ------
+        # Labels
+        # ------
+        # y-coordinates of the current axes w.r.t. figure scale
+        ya = h['ax'].get_position().get_points()
+        ha = ya[1,1] - ya[0,1]
+        # y-coordinates above and below the box
+        yf = 2.5 / ha / h['fig'].get_figheight()
+        yu = 1.0 + 0.065*yf
+        yl = 1.0 - 0.04*yf
+        # Make a label for the mean value.
+        if kw.get("ShowMu", True):
+            # Form: CA = 0.0204
+            lbl = u'%s = %.4f' % (c, cAvg)
+            # Create the handle.
+            h['mu'] = plt.text(0.99, yu, lbl, color=kw_p['color'],
+                horizontalalignment='right', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['mu'].set_family("DejaVu Sans")
+            except Exception: pass
+        # Make a label for the deviation.
+        if dc and kw.get("ShowDelta", True):
+            # Form: \DeltaCA = 0.0050
+            lbl = u'\u0394%s = %.4f' % (c, dc)
+            # Create the handle.
+            h['d'] = plt.text(0.99, yl, lbl, color=kw_d.get_key('color',1),
+                horizontalalignment='right', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['d'].set_family("DejaVu Sans")
+            except Exception: pass
+        # Make a label for the standard deviation.
+        if nAvg>2 and ((ksig and kw.get("ShowSigma", True)) 
+                or kw.get("ShowSigma", False)):
+            # Printf-style flag
+            flbl = kw.get("SigmaFormat", "%.4f")
+            # Form \sigma(CA) = 0.0032
+            lbl = (u'\u03C3(%s) = %s' % (c, flbl)) % c_std
+            # Create the handle.
+            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_key('color',1),
+                horizontalalignment='left', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['sig'].set_family("DejaVu Sans")
+            except Exception: pass
         # Output.
         return h
         
