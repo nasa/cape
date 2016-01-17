@@ -882,11 +882,13 @@ class Report(cape.report.Report):
         targs = self.SubfigTargets(sfig)
         # Read the point sensor group data book
         self.cntl.DataBook.ReadPointSensor(grp)
+        print("DataBook: %s" % self.cntl.DataBook)
         # Get the point sensor
-        DBP = self.cntl.DataBook.PointSensor[grp][pt]
-        
+        DBP = self.cntl.DataBook.PointSensors[grp][pt]
+        print("DataBook['P1']: %s" % self.cntl.DataBook.PointSensors[grp])
+        print("DataBook['%s']['%s']: %s" % (grp, pt, self.cntl.DataBook.PointSensors[grp][pt]))
         # Get the targets
-        targs = opts.get_SubfigTargets(sfig)
+        targs = self.SubfigTargets(sfig)
         # Target labels
         ltarg = opts.get_SubfigOpt(sfig, "TargetLabel")
         # Ensure list
@@ -913,7 +915,7 @@ class Report(cape.report.Report):
                 # Get the name of the column in the target
                 col = DBT.ckeys[grp][ckey]
                 # Save the value.
-                vtarg.append(np.mean(DBT[coeff][I]))
+                vtarg.append(np.mean(DBT[col][I]))
             else:
                 # No value!
                 vtarg.append(None)
@@ -960,8 +962,11 @@ class Report(cape.report.Report):
             "DeltaOptions":   opts.get_SubfigOpt(sfig, "DeltaOptions"),
             "TargetOptions":  opts.get_SubfigOpt(sfig, "TargetOptions")
         }
+        print("%s: I=%s" % (frun, I))
+        print("DBP: %s" % DBP)
+        print("DBP[%s]: %s" % (coeff, DBP[coeff]))
         # Plot the histogram with labels
-        h = DBP.PlotHist(coeff, I, **kw_h)
+        h = DBP.PlotValueHist(coeff, I, **kw_h)
         # Change back to report folder
         os.chdir(fpwd)
         # Get the file formatting

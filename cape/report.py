@@ -969,6 +969,8 @@ class Report(object):
         :Versions:
             * 2016-01-16 ``@ddalle``: First version
         """
+        # Extract options
+        opts = self.cntl.opts
         # Get the vertical alignment.
         hv = opts.get_SubfigOpt(sfig, "Position")
         # Get subfigure width
