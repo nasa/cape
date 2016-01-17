@@ -122,9 +122,14 @@ class DataBook(cape.dataBook.DataBook):
         try:
             self.PointSensors[name]
         except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
             # Read the point sensor.
             self.PointSensors[name] = pointSensor.DBPointSensorGroup(
                 self.x, self.opts, name, RootDir=self.RootDir)
+            # Return to starting locaiton
+            os.chdir(fpwd)
     
     
     # Update data book
