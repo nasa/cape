@@ -493,6 +493,8 @@ class Report(object):
             J = self.GetSweepIndices(fswp, I, cons)
             # Loop through the subsweeps.
             for j in J:
+                # Skip empty sweeps
+                if len(j) == 0: continue
                 # Get the first folder name.
                 frun = self.cntl.DataBook.x.GetFullFolderNames(j[0])
                 # Go to the folder.

@@ -693,7 +693,7 @@ class DBPointSensor(cape.dataBook.DBBase):
         # Option whether or not to plot targets
         if vtarg is not None and len(vtarg)>0:
             # Initialize options for target plot
-            kw_t = odict(color='k', lw=2, ls='.-', zorder=8)
+            kw_t = odict(color='k', lw=2, ls='--', zorder=8)
             # Set label
             if ltarg is not None:
                 # User-specified list of labels
@@ -705,7 +705,7 @@ class DBPointSensor(cape.dataBook.DBBase):
             for k in util.denone(kw.get("TargetOptions", {})):
                 # Override the default option.
                 if kw["TargetOptions"][k] is not None:
-                    kw_t[k] = kw["MeanOptions"][k]
+                    kw_t[k] = kw["TargetOptions"][k]
             # Loop through target values
             for i in range(len(vtarg)):
                 # Select the value
@@ -715,7 +715,7 @@ class DBPointSensor(cape.dataBook.DBBase):
                 # Downselect options
                 kw_ti = {}
                 for k in kw_t:
-                    kw_ti = kw_t.getel(k, i)
+                    kw_ti[k] = kw_t.get_key(k, i)
                 # Initialize handles
                 h['target'] = []
                 # Check orientation
@@ -799,7 +799,7 @@ class DBPointSensor(cape.dataBook.DBBase):
         # Default probability-axis label
         if q_normed:
             # Size of bars is probability
-            ly = "Probability"
+            ly = "Probability Density"
         else:
             # Size of bars is count
             ly = "Count"
@@ -830,9 +830,9 @@ class DBPointSensor(cape.dataBook.DBBase):
             # printf-style format flag
             flbl = kw.get("MuFormat", "%.4f")
             # Form: CA = 0.0204
-            lbl = (u'%s = %s' % (c, flbl)) % cAvg
+            lbl = (u'%s = %s' % (coeff, flbl)) % vmu
             # Create the handle.
-            h['mu'] = plt.text(0.99, yu, lbl, color=kw_p['color'],
+            h['mu'] = plt.text(0.99, yu, lbl, color=kw_m['color'],
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -843,10 +843,10 @@ class DBPointSensor(cape.dataBook.DBBase):
             # printf-style flag
             flbl = kw.get("DeltaFormat", "%.4f")
             # Form: \DeltaCA = 0.0050
-            lbl = (u'\u0394%s = %s' % (c, flbl)) % dc
+            lbl = (u'\u0394%s = %s' % (coeff, flbl)) % dc
             # Create the handle.
-            h['d'] = plt.text(0.99, yl, lbl, color=kw_d.get_key('color',1),
-                horizontalalignment='right', verticalalignment='top',
+            h['d'] = plt.text(0.01, yl, lbl, color=kw_d.get_key('color',1),
+                horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
             try: h['d'].set_family("DejaVu Sans")
@@ -857,7 +857,7 @@ class DBPointSensor(cape.dataBook.DBBase):
             # Printf-style flag
             flbl = kw.get("SigmaFormat", "%.4f")
             # Form \sigma(CA) = 0.0032
-            lbl = (u'\u03C3(%s) = %s' % (c, flbl)) % c_std
+            lbl = (u'\u03C3(%s) = %s' % (coeff, flbl)) % vstd
             # Create the handle.
             h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_key('color',1),
                 horizontalalignment='left', verticalalignment='top',
@@ -872,8 +872,8 @@ class DBPointSensor(cape.dataBook.DBBase):
             # Form Target = 0.0032
             lbl = (u'%s = %s' % (ltarg[0], flbl)) % vtarg[0]
             # Create the handle.
-            h['t'] = plt.text(0.01, yl, lbl, color=kw_t.get_key('color',0),
-                horizontalalignment='left', verticalalignment='top',
+            h['t'] = plt.text(0.99, yl, lbl, color=kw_t.get_key('color',0),
+                horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
             try: h['t'].set_family("DejaVu Sans")

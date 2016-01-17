@@ -781,11 +781,11 @@ class Report(odict):
                 "Format": "pdf",
                 "DPI": 150,
                 "PlotMean": True,
-                "HistOptions": {"facecolor": ["c","m","y"], "normed": True},
+                "HistOptions": {"facecolor": "c", "normed": True, "bins": 20},
                 "MeanOptions": {"color": "k", "lw": 2},
-                "StDevOptions": {"color": ["b","g","c","m","k","r"]},
+                "StDevOptions": {"color": "b"},
                 "DeltaOptions": {"color": "r", "ls": "--"},
-                "TargetOptions": {"color": ["k", "r", "g", "b"], "ls": ".-"}
+                "TargetOptions": {"color": ["k", "r", "g", "b"], "ls": "--"}
             }
         elif t in ['SweepCoeff']:
             # Force or moment sweep (over several cases)

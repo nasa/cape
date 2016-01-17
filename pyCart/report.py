@@ -882,11 +882,8 @@ class Report(cape.report.Report):
         targs = self.SubfigTargets(sfig)
         # Read the point sensor group data book
         self.cntl.DataBook.ReadPointSensor(grp)
-        print("DataBook: %s" % self.cntl.DataBook)
         # Get the point sensor
         DBP = self.cntl.DataBook.PointSensors[grp][pt]
-        print("DataBook['P1']: %s" % self.cntl.DataBook.PointSensors[grp])
-        print("DataBook['%s']['%s']: %s" % (grp, pt, self.cntl.DataBook.PointSensors[grp][pt]))
         # Get the targets
         targs = self.SubfigTargets(sfig)
         # Target labels
@@ -920,7 +917,8 @@ class Report(cape.report.Report):
                 # No value!
                 vtarg.append(None)
             # Default label
-            if len(ltarg) < i: ltarg[i] = targ
+            if len(ltarg) < i or ltarg[i] in [None,False]:
+                ltarg[i] = targ
         # Distribution variable
         xk = opts.get_SweepOpt(fswp, "XAxis")
         # Get caption
@@ -962,9 +960,6 @@ class Report(cape.report.Report):
             "DeltaOptions":   opts.get_SubfigOpt(sfig, "DeltaOptions"),
             "TargetOptions":  opts.get_SubfigOpt(sfig, "TargetOptions")
         }
-        print("%s: I=%s" % (frun, I))
-        print("DBP: %s" % DBP)
-        print("DBP[%s]: %s" % (coeff, DBP[coeff]))
         # Plot the histogram with labels
         h = DBP.PlotValueHist(coeff, I, **kw_h)
         # Change back to report folder
