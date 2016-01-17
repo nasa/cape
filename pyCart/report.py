@@ -940,9 +940,12 @@ class Report(cape.report.Report):
             # Target information
             "TargetValue":    vtarg,
             "TargetLabel":    ltarg,
+            # Axis labels
+            "XLabel":         opts.get_SubfigOpt(sfig, "XLabel"),
+            "YLabel":         opts.get_SubfigOpt(sfig, "YLabel"),
             # Figure dimensions
-            "FigureWidth":    opts.get_SubfigOpt(sfig, "FigureWidth"),
-            "FigureHeight":   opts.get_SubfigOpt(sfig, "FigureHeight"),
+            "FigureWidth":    opts.get_SubfigOpt(sfig, "FigWidth"),
+            "FigureHeight":   opts.get_SubfigOpt(sfig, "FigHeight"),
             # Text labels of reference values
             "ShowMu":         opts.get_SubfigOpt(sfig, "ShowMu"),
             "ShowSigma":      opts.get_SubfigOpt(sfig, "ShowSigma"),

@@ -804,8 +804,11 @@ class DBPointSensor(cape.dataBook.DBBase):
             # Size of bars is count
             ly = "Count"
         # Process axis labels
-        xlbl = kw.get('XLabel', lx)
-        ylbl = kw.get('YLabel', ly)
+        xlbl = kw.get('XLabel')
+        ylbl = kw.get('YLabel')
+        # Apply defaults
+        if xlbl is None: xlbl = lx
+        if ylbl is None: ylbl = ly
         # Labels.
         h['x'] = plt.xlabel(xlbl)
         h['y'] = plt.ylabel(ylbl)

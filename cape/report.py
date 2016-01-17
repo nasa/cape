@@ -1394,8 +1394,8 @@ class Report(object):
             # Get the multiple of iterative error to show
             uerr = opts.get_SubfigOpt(sfig, "IterativeError", k)
             # Get figure dimensions.
-            figw = opts.get_SubfigOpt(sfig, "FigureWidth", k)
-            figh = opts.get_SubfigOpt(sfig, "FigureHeight", k)
+            figw = opts.get_SubfigOpt(sfig, "FigWidth", k)
+            figh = opts.get_SubfigOpt(sfig, "FigHeight", k)
             # Plot options
             kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",   k)
             kw_m = opts.get_SubfigPlotOpt(sfig, "MeanOptions",   k)
@@ -1578,8 +1578,8 @@ class Report(object):
             ksig = opts.get_SubfigOpt(sfig, "StandardDeviation", k)
             qmmx = opts.get_SubfigOpt(sfig, "MinMax", k)
             # Get figure dimensions.
-            figw = opts.get_SubfigOpt(sfig, "FigureWidth", k)
-            figh = opts.get_SubfigOpt(sfig, "FigureHeight", k)
+            figw = opts.get_SubfigOpt(sfig, "FigWidth", k)
+            figh = opts.get_SubfigOpt(sfig, "FigHeight", k)
             # Plot options
             kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",   i)
             kw_s = opts.get_SubfigPlotOpt(sfig, "StDevOptions",  i)
@@ -1910,8 +1910,8 @@ class Report(object):
             os.chdir(self.cntl.RootDir)
             os.chdir(frun)
             # Get figure width
-            figw = opts.get_SubfigOpt(sfig, "FigureWidth")
-            figh = opts.get_SubfigOpt(sfig, "FigureHeight")
+            figw = opts.get_SubfigOpt(sfig, "FigWidth")
+            figh = opts.get_SubfigOpt(sfig, "FigHeight")
             # Read the Aero history.
             H = self.ReadCaseResid()
             # Options dictionary
