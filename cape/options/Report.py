@@ -760,6 +760,7 @@ class Report(odict):
                 "Alignment": "center",
                 "XAxis": None,
                 "Target": False,
+                "TargetLabel": None,
                 "Width": 0.5,
                 "FigWidth": 6,
                 "FigHeight": 4.5,
@@ -769,19 +770,22 @@ class Report(odict):
                 "Delta": 0.0,
                 "StandardDeviation": 3.0,
                 "Range": 4.0,
-                "ShowMu": False,
+                "ShowMu": True,
                 "ShowSigma": False,
                 "ShowDelta": False,
+                "ShowTarget": True,
                 "MuFormat": "%.4f",
                 "SigmaFormat": "%.4f",
                 "DeltaFormat": "%.4f",
+                "TargetFormat": "%.4f",
                 "Format": "pdf",
                 "DPI": 150,
                 "PlotMean": True,
                 "HistOptions": {"facecolor": ["c","m","y"], "normed": True},
                 "MeanOptions": {"color": "k", "lw": 2},
                 "StDevOptions": {"color": ["b","g","c","m","k","r"]},
-                "DeltaOptions": {"color": None}
+                "DeltaOptions": {"color": "r", "ls": "--"},
+                "TargetOptions": {"color": ["r", "k", "g", "b"]}
             }
         elif t in ['SweepCoeff']:
             # Force or moment sweep (over several cases)

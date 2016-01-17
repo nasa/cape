@@ -2805,13 +2805,13 @@ class CaseData(object):
             # printf-style format flag
             flbl = kw.get("EpsilonFormat", "%.4f")
             # Form \varepsilon(CA) = 0.0032
-            lbl = (u'\u0395(%s) = %s' % (c, flbl) % c_err
+            lbl = (u'\u0395(%s) = %s' % (c, flbl)) % c_err
             # Create the handle.
             h['eps'] = plt.text(0.01, yl, lbl, color=kw_u.get_key('color',1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
-            try: h['sig'].set_family("DejaVu Sans")
+            try: h['eps'].set_family("DejaVu Sans")
             except Exception: pass
         # Output.
         return h

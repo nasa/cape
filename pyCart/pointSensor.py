@@ -552,8 +552,10 @@ class DBPointSensor(cape.dataBook.DBBase):
         :Keyword Arguments:
             *Label*: [ {*comp*} | :class:`str` ]
                 Manually specified label
-            *Legend*: [ {True} | False ]
-                Whether or not to use a legend
+            *TargetValue*: :class:`float` | :class:`list` (:class:`float`)
+                Target or list of target values
+            *TargetLabel*: :class:`str` | :class:`list` (:class:`str`)
+                Legend label(s) for target(s)
             *StDev*: [ {None} | :class:`float` ]
                 Multiple of iterative history standard deviation to plot
             *HistOptions*: :class:`dict`
@@ -564,6 +566,8 @@ class DBPointSensor(cape.dataBook.DBBase):
                 Options passed to :func:`plt.plot` for reference range plot
             *MeanOptions*: :class:`dict`
                 Options passed to :func:`plt.plot` for mean line
+            *TargetOptions*: :class:`dict`
+                Options passed to :func:`plt.plot` for target value lines
             *ShowMu*: :class:`bool`
                 Option to print value of mean
             *ShowSigma*: :class:`bool`
@@ -572,14 +576,16 @@ class DBPointSensor(cape.dataBook.DBBase):
                 Option to print value of sampling error
             *ShowDelta*: :class:`bool`
                 Option to print reference value
+            *ShowTarget*: :class:`bool`
+                Option to show target value
             *MuFormat*: {``"%.4f"``} | :class:`str`
                 Format for text label of the mean value
             *DeltaFormat*: {``"%.4f"``} | :class:`str`
                 Format for text label of the reference value *d*
             *SigmaFormat*: {``"%.4f"``} | :class:`str`
                 Format for text label of the iterative standard deviation
-            *EpsilonFormat*: {``"%.4f"``} | :class:`str`
-                Format for text label of the sampling error
+            *TargetFormat*: {``"%.4f"``} | :class:`str`
+                Format for text label of the target value
             *XLabel*: :class:`str`
                 Specified label for *x*-axis, default is ``Iteration Number``
             *YLabel*: :class:`str`
@@ -609,6 +615,17 @@ class DBPointSensor(cape.dataBook.DBBase):
         ksig = kw.get('StDev')
         # Reference delta
         dc = kw.get('Delta', 0.0)
+        # Target values and labels
+        vtarg = kw.get('TargetValue')
+        ltarg = kw.get('TargetLabel')
+        # Convert target values to list
+        if vtarg in [None, False]:
+            vtarg = []
+        elif type(vtarg).__name__ not in ['list', 'tuple', 'ndarray']:
+            vtarg = [vtarg]
+        # Create appropriate target list for 
+        if type(ltarg).__name__ not in ['list', 'tuple', 'ndarray']:
+            ltarg = [ltarg]
         # --------
         # Plotting
         # --------
@@ -657,6 +674,7 @@ class DBPointSensor(cape.dataBook.DBBase):
         if kw.get("PlotMean", True):
             # Initialize options for mean plot
             kw_m = odict(color='k', lw=2, zorder=6)
+            kw_m["label"] = "Mean value"
             # Extract options from kwargs
             for k in util.denone(kw.get("MeanOptions", {})):
                 # Override the default option.
@@ -669,6 +687,46 @@ class DBPointSensor(cape.dataBook.DBBase):
             else:
                 # Plot a horizontal line for th emean.
                 h['mean'] = plt.plot([pmin,pmax], [vmu,vmu], **kw_m)
+        # -----------
+        # Target Plot
+        # -----------
+        # Option whether or not to plot targets
+        if vtarg is not None and len(vtarg)>0:
+            # Initialize options for target plot
+            kw_t = odict(color='r', lw=2, zorder=1)
+            # Set label
+            if ltarg is not None:
+                # User-specified list of labels
+                kw_t["label"] = ltarg
+            else:
+                # Default label
+                kw_t["label"] = "Target"
+            # Extract options for target plot
+            for k in util.denone(kw.get("TargetOptions", {})):
+                # Override the default option.
+                if kw["TargetOptions"][k] is not None:
+                    kw_t[k] = kw["MeanOptions"][k]
+            # Loop through target values
+            for i in range(len(vtarg)):
+                # Select the value
+                vt = vtarg[i]
+                # Check for NaN or None
+                if np.isnan(vt) or vt in [None, False]: continue
+                # Downselect options
+                kw_ti = {}
+                for k in kw_t:
+                    kw_ti = kw_t.getel(k, i)
+                # Initialize handles
+                h['target'] = []
+                # Check orientation
+                if q_vert:
+                    # Plot a vertical line for the target.
+                    h['target'].append(
+                        plt.plot([vt,vt], [pmin,pmax], **kw_ti))
+                else:
+                    # Plot a horizontal line for the target.
+                    h['target'].append(
+                        plt.plot([pmin,pmax], [vt,vt], **kw_ti))
         # -----------------------
         # Standard Deviation Plot
         # -----------------------
@@ -806,6 +864,19 @@ class DBPointSensor(cape.dataBook.DBBase):
                 transform=h['ax'].transAxes)
             # Correct the font.
             try: h['sig'].set_family("DejaVu Sans")
+            except Exception: pass
+        # Make a label for the iterative uncertainty.
+        if len(vtarg)>0 and kw.get("ShowTarget", True):
+            # printf-style format flag
+            flbl = kw.get("TargetFormat", "%.4f")
+            # Form Target = 0.0032
+            lbl = (u'%s = %s' % (ltarg[0], flbl)) % vtarg[0]
+            # Create the handle.
+            h['t'] = plt.text(0.01, yl, lbl, color=kw_t.get_key('color',0),
+                horizontalalignment='left', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['t'].set_family("DejaVu Sans")
             except Exception: pass
         # Output.
         return h

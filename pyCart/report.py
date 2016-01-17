@@ -872,16 +872,6 @@ class Report(cape.report.Report):
         opts = self.cntl.opts
         # Case folder
         frun = x.GetFullFolderNames(I[0])
-        # Carpet constraints
-        CEq = opts.get_SweepOpt(fswp, "CarpetEqCons")
-        CTol = opts.get_SweepOpt(fswp, "CarpetTolCons")
-        # Check for carpet constraints.
-        if CEq or CTol:
-            # Divide sweep into subsweeps.
-            J = x.GetSweeps(I=I, EqCons=CEq, TolCons=CTol)
-        else:
-            # Single sweep
-            J = [I]
         # Get the component.
         grp = opts.get_SubfigOpt(sfig, "Group")
         # Get the point
@@ -894,9 +884,41 @@ class Report(cape.report.Report):
         self.cntl.DataBook.ReadPointSensor(grp)
         # Get the point sensor
         DBP = self.cntl.DataBook.PointSensor[grp][pt]
-        # Target processing ...
         
-        
+        # Get the targets
+        targs = opts.get_SubfigTargets(sfig)
+        # Target labels
+        ltarg = opts.get_SubfigOpt(sfig, "TargetLabel")
+        # Ensure list
+        if type(ltarg).__name__ != 'list':
+            ltarg = [ltarg]
+        # Initialize target values
+        vtarg = []
+        # Number of targets
+        ntarg = len(targs)
+        # Loop through targets.
+        for i in range(ntarg)
+            # Select the target
+            targ = targs[i]
+            # Read the target if not present.
+            self.cntl.DataBook.ReadTarget(targ)
+            # Get the data book target
+            DBT = self.cntl.DataBook.GetTargetByName(targ)
+            # Get the target co-sweep
+            jt = self.GetTargetSweepIndices(fswp, I[0], targ)
+            # Get the proper coefficient
+            ckey = '%s.%s' % (pt, coeff)
+            # Check for a match in the target
+            if grp in DBT.ckeys and ckey in DBT.ckeys[grp]:
+                # Get the name of the column in the target
+                col = DBT.ckeys[grp][ckey]
+                # Save the value.
+                vtarg.append(np.mean(DBT[coeff][I]))
+            else:
+                # No value!
+                vtarg.append(None)
+            # Default label
+            if len(ltarg) < i: ltarg[i] = targ
         # Distribution variable
         xk = opts.get_SweepOpt(fswp, "XAxis")
         # Get caption
@@ -915,6 +937,9 @@ class Report(cape.report.Report):
             "StDev":          opts.get_SubfigOpt(sfig, "StandardDeviation"),
             "Delta":          opts.get_SubfigOpt(sfig, "Delta"),
             "PlotMu":         opts.get_SubfigOpt(sfig, "PlotMu"),
+            # Target information
+            "TargetValue":    vtarg,
+            "TargetLabel":    ltarg,
             # Figure dimensions
             "FigureWidth":    opts.get_SubfigOpt(sfig, "FigureWidth"),
             "FigureHeight":   opts.get_SubfigOpt(sfig, "FigureHeight"),
@@ -922,15 +947,18 @@ class Report(cape.report.Report):
             "ShowMu":         opts.get_SubfigOpt(sfig, "ShowMu"),
             "ShowSigma":      opts.get_SubfigOpt(sfig, "ShowSigma"),
             "ShowDelta":      opts.get_SubfigOpt(sfig, "ShowDelta"),
+            "ShowTarget":     opts.get_SubfigOpt(sfig, "ShowTarget"),
             # Format flags
             "MuFormat":       opts.get_SubfigOpt(sfig, "MuFormat"),
             "SigmaFormat":    opts.get_SubfigOpt(sfig, "SigmaFormat"),
             "DeltaFormat":    opts.get_SubfigOpt(sfig, "DeltaFormat"),
+            "TargetFormat":   opts.get_SubfigOpt(sfig, "TargetFormat"),
             # Plot options
             "HistOptions":    opts.get_SubfigOpt(sfig, "HistOptions"),
             "MeanOptions":    opts.get_SubfigOpt(sfig, "MeanOptions"),
             "StDevOptions":   opts.get_SubfigOpt(sfig, "StDevOptions"),
-            "DeltaOptions":   opts.get_SubfigOpt(sfig, "DeltaOptions")
+            "DeltaOptions":   opts.get_SubfigOpt(sfig, "DeltaOptions"),
+            "TargetOptions":  opts.get_SubfigOpt(sfig, "TargetOptions")
         }
         # Plot the histogram with labels
         h = DBP.PlotHist(coeff, I, **kw_h)
