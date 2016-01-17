@@ -897,7 +897,7 @@ class Report(cape.report.Report):
         # Number of targets
         ntarg = len(targs)
         # Loop through targets.
-        for i in range(ntarg)
+        for i in range(ntarg):
             # Select the target
             targ = targs[i]
             # Read the target if not present.

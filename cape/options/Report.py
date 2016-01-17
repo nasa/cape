@@ -785,7 +785,7 @@ class Report(odict):
                 "MeanOptions": {"color": "k", "lw": 2},
                 "StDevOptions": {"color": ["b","g","c","m","k","r"]},
                 "DeltaOptions": {"color": "r", "ls": "--"},
-                "TargetOptions": {"color": ["r", "k", "g", "b"]}
+                "TargetOptions": {"color": ["k", "r", "g", "b"], "ls": ".-"}
             }
         elif t in ['SweepCoeff']:
             # Force or moment sweep (over several cases)

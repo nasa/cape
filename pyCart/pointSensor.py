@@ -693,7 +693,7 @@ class DBPointSensor(cape.dataBook.DBBase):
         # Option whether or not to plot targets
         if vtarg is not None and len(vtarg)>0:
             # Initialize options for target plot
-            kw_t = odict(color='k', lw=2, ls='.-' zorder=8)
+            kw_t = odict(color='k', lw=2, ls='.-', zorder=8)
             # Set label
             if ltarg is not None:
                 # User-specified list of labels
