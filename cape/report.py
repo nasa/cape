@@ -1631,6 +1631,8 @@ class Report(object):
         dpi = opts.get_SubfigOpt(sfig, "DPI")
         # Figure name
         fimg = '%s.%s' % (sfig, fmt)
+        # PDF version
+        fpdf = '%s.pdf' % sfig
         # Save the figure.
         if fmt.lower() in ['pdf']:
             # Save as vector-based image
