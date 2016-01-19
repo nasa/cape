@@ -912,7 +912,11 @@ class Report(cape.report.Report):
                 # Get the name of the column in the target
                 col = DBT.ckeys[grp][ckey]
                 # Save the value.
-                vtarg.append(np.mean(DBT[col][I]))
+                if len(jt) > 0:
+                    vtarg.append(np.mean(DBT[col][jt]))
+                else:
+                    # No value!
+                    vtarg.append(None)
             else:
                 # No value!
                 vtarg.append(None)
@@ -937,6 +941,7 @@ class Report(cape.report.Report):
             "StDev":          opts.get_SubfigOpt(sfig, "StandardDeviation"),
             "Delta":          opts.get_SubfigOpt(sfig, "Delta"),
             "PlotMu":         opts.get_SubfigOpt(sfig, "PlotMu"),
+            "OutlierSigma":   opts.get_SubfigOpt(sfig, "OutlierSigma"),
             # Target information
             "TargetValue":    vtarg,
             "TargetLabel":    ltarg,

@@ -769,6 +769,7 @@ class Report(odict):
                 "Coefficient": "Cp",
                 "Delta": 0.0,
                 "StandardDeviation": 3.0,
+                "OutlierSigma": 7.0,
                 "Range": 4.0,
                 "ShowMu": True,
                 "ShowSigma": False,

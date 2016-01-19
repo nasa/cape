@@ -607,10 +607,20 @@ class DBPointSensor(cape.dataBook.DBBase):
         fh = kw.get('FigHeight', 4.5)
         # Extract the values
         V = self[coeff][I]
-        # Check for outliers ...
         # Calculate basic statistics
         vmu = np.mean(V)
         vstd = np.std(V)
+        # Check for outliers ...
+        ostd = kw.get('OutlierSigma', 7.0)
+        # Apply outlier tolerance
+        if ostd:
+            # Find indices of cases that are within outlier range
+            J = np.abs(V-vmu)/vstd <= ostd
+            # Downselect
+            V = V[J]
+            # Recompute statistics
+            vmu = np.mean(V)
+            vstd = np.std(V)
         # Uncertainty options
         ksig = kw.get('StDev')
         # Reference delta
