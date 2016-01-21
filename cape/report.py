@@ -449,6 +449,8 @@ class Report(object):
         if self.cntl.opts.get_ReportArchive():
             # Loop through folders.
             for frun in self.cntl.x.GetFullFolderNames(I):
+                # Check for the folder (has trouble if a case is repeated)
+                if not os.path.isdir(frun): continue
                 # Go to the folder.
                 os.chdir(frun)
                 # Go up one, archiving if necessary.
