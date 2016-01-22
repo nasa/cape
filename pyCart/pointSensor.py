@@ -510,7 +510,7 @@ class DBPointSensor(cape.dataBook.DBBase):
         # Get minimum iteration that would be included if we compute stats now
         if P.nIter < nStats:
             # Not enough samples
-            print("  Not enough point samples (%s) for analysis." % PS.nIter)
+            print("  Not enough point samples (%s) for analysis." % P.nIter)
             os.chdir(fpwd); return False, None
         elif P.nPoint < 1:
             # No points?
