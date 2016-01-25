@@ -204,7 +204,6 @@ class FileCntl:
         # Initialize update statuses.
         self._updated_sections = False
         self._updated_lines = False
-        return None
     
     
     # Function to split into sections

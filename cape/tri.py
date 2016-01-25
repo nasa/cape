@@ -957,7 +957,17 @@ class TriBase(object):
             * 2014-06-12 ``@ddalle``: First version
         """
         # Make a new triangulation with no information.
-        tri = Tri()
+        typ = type(self).__name__
+        # Initialize the correct type.
+        if typ == 'Triq':
+            # Initialize with state
+            tri = Triq()
+        elif type == 'TriBase':
+            # Initialize base object
+            tri = TriBase()
+        else:
+            # Default to surface geometry definition
+            tri = Tri()
         # Copy over the scalars.
         tri.nNode = self.nNode
         tri.nTri  = self.nTri
@@ -979,6 +989,17 @@ class TriBase(object):
         try:
             tri.iTri = self.iTri
         except Exception:
+            pass
+        # Try to copy the state
+        try:
+            tri.q = self.q.copy()
+            tri.nq = tri.shape[1]
+        except AttributeError:
+            pass
+        # Try to copy the state length
+        try:
+            tri.n = self.n
+        except AttributeError:
             pass
         # Output the new triangulation.
         return tri
@@ -1175,7 +1196,6 @@ class TriBase(object):
         f.close()
         
         
-        
     # Get normals and areas
     def GetNormals(self):
         """Get the normals and areas of each triangle
@@ -1192,7 +1212,10 @@ class TriBase(object):
                 Unit normal for each triangle is saved
         :Versions:
             * 2014-06-12 ``@ddalle``: First version
+            * 2016-01-23 ``@ddalle``: Added a check before calculating
         """
+        # Check for normals.
+        if hasattr(self, 'Normals'): return
         # Extract the vertices of each tri.
         x = self.Nodes[self.Tris-1, 0]
         y = self.Nodes[self.Tris-1, 1]
@@ -1212,8 +1235,41 @@ class TriBase(object):
         self.Areas = A/2
         # Save the unit normals.
         self.Normals = n
-        # Done
-        return None
+        
+    # Get averaged normals at nodes
+    def GetNodeNormals(self):
+        """Get the area-averaged normals at each node
+        
+        :Call:
+            >>> tri.GetNodeNormals()
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+        :Effects:
+            *tri.NodeNormals*: :class:`np.ndarray`, shape=(tri.nNode,3)
+                Unit normal at each node averaged from neighboring triangles
+        :Versions:
+            * 2016-01-23 ``@ddalle``: First version
+        """
+        # Ensure normals are present
+        self.GetNormals()
+        # Initialize node normals
+        NN = np.zeros((self.nNode, 3))
+        # Get areas
+        TA = np.transpose([self.Areas, self.Areas, self.Areas])
+        # Add in the weighted tri areas for each column of nodes in the tris
+        NN[self.Tris[:,0]-1,:] += (self.Normals*TA)
+        NN[self.Tris[:,1]-1,:] += (self.Normals*TA)
+        NN[self.Tris[:,2]-1,:] += (self.Normals*TA)
+        # Calculate the length of each of these vectors
+        L = np.sqrt(np.sum(NN**2, 1))
+        # Normalize.
+        NN[:,0] /= L
+        NN[:,1] /= L
+        NN[:,2] /= L
+        # Save it.
+        self.NodeNormals = NN
+        
         
     # Get edge lengths
     def GetLengths(self):
@@ -2011,6 +2067,7 @@ class Tri(TriBase):
         return '<cape.tri.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
         
         
+        
     # Function to read a .tri file
     def Read(self, fname):
         """Read a triangulation file (from ``*.tri``)
@@ -2041,8 +2098,7 @@ class Tri(TriBase):
         
         # Close the file.
         fid.close()
-
-
+# class Tri
 
 
 # Regular triangulation class
@@ -2096,7 +2152,7 @@ class Triq(TriBase):
         *triq.n*: :class:`int`
             Number of files averaged in this triangulation (used for weight)
     """
-    
+    # Initialization method
     def __init__(self, fname=None, n=1, nNode=None, Nodes=None, c=None,
         nTri=None, Tris=None, CompID=None, nq=None, q=None):
         """Initialization method
@@ -2261,6 +2317,50 @@ class Triq(TriBase):
         self.q = (self.n*self.q + triq.n*triq.q) / (self.n+triq.n)
         # Update count.
         self.n += triq.n
+    
+    # Apply an angular velocity perturbation
+    def ApplyAngularVelocity(self, xcg, w, Lref=1.0, M=None):
+        """Perturb surface pressures with a normalized rotation rate
+        
+        This is based on a method from Stalnaker:
+        
+            * Stalnaker, J. F. "Rapid Computation of Dynamic Stability
+              Derivatives." *42nd AIAA Aerospace Sciences Meeting and Exhibit.*
+              2004. AIAA Paper 2004-210. doi:10.2514/6.2004-210
+        
+        :Call:
+            >>> triq.ApplyAngularVelocity(xcg, w, Lref=1.0, M=None)
+        :Inputs:
+            *triq*: :class:`cape.tri.Triq`
+                Triangulation instance
+            *xcg*: :class:`np.ndarray` | :class:`list`
+                Center of gravity or point about which body rotates
+            *w*: :class:`np.ndarray` | :class:`list`
+                Angular velocity divided by *Lref* times freestream soundspeed
+            *Lref*: :class:`float`
+                Reference length used for reduced angular velocity
+            *M*: :class:`float`
+                Freestream Mach number for updating *Cp*
+        :Versions:
+            * 2016-01-23 ``@ddalle``: First version
+        """
+        # Calculate area-averaged node normals
+        self.GetNodeNormals()
+        # Make center of gravity vector
+        Xcg = np.repeat([xcg], self.nNode, axis=0)
+        # Calculate angular velocities at each node
+        V = np.cross(self.Nodes-Xcg, w)
+        # Calculate dot product of surface normals and nodal velocities
+        Vn = np.sum(V*self.NodeNormals, 1)
+        # Calculate pressure ratio
+        pr = np.fmax(1-0.2*Vn, 0.0) ** 7.0
+        # Save the updated state
+        self.q[:,5] *= pr
+        # Update the pressure coefficient
+        if M is not None:
+            self.q[:,0] = (self.q[:,5] - 1/1.4) / (0.5*M*M)
+        
+    
 # class Triq
 
 
