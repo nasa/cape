@@ -121,7 +121,10 @@ def PrepareEnvironment(rc, i=0):
     # Check the type.
     if s > 0:
         # Set the value numerically.
-        resource.setrlimit(resource.RLIMIT_STACK, (1024*s, 1024*s))
+        try:
+            resource.setrlimit(resource.RLIMIT_STACK, (1024*s, 1024*s))
+        except ValueError:
+            pass
     else:
         # Set unlimited
         resource.setrlimit(resource.RLIMIT_STACK, 

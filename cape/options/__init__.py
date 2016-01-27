@@ -43,7 +43,7 @@ class Options(odict):
         *fname*: :class:`str`
             File to be read as a JSON file with comments
         *kw*: :class:`dict`
-            Dictionary to be transformed into :class:`pyCart.options.Options`
+            Dictionary to be transformed into :class:`cape.options.Options`
     :Outputs:
         *opts*: :class:`cape.options.Options`
             Options interface
