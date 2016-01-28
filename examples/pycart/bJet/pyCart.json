@@ -85,7 +85,7 @@
         // Definition of the report
         "case": {
             "Title": "Cart3D Force, Moment, \\& Residual Report",
-            "Author": "Derek J.~Dalle",
+            "Author": "pyCart User Manual",
             "Archive": true,
             "Figures": ["Summary", "History"]
         },
@@ -112,6 +112,7 @@
             "wing": {
                 "Type": "PlotCoeff",
                 "Component": "wing",
+                "Width": 0.33,
                 "Delta": 0.02
             },
             "wing_CA": {"Type": "wing", "Coefficient": "CA", "Delta": 0.005}, 
