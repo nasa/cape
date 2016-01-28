@@ -99,8 +99,8 @@
             "History": {
                 "Subfigures": [
                     "wing_CA",  "wing_CY",  "wing_CN",
-                    "wing_CLL", "wing_CLM", "wing_CLN",
-                    "L1",       "htail_CN", "htail_CLM"
+                    "wing_CLL", "wing_CLN", "wing_CLM",
+                    "L1",       "htail_CY", "htail_CLN"
                 ],
                 "Header": "Force, moment, and residual histories",
                 "Alignment": "center"
@@ -113,7 +113,8 @@
                 "Type": "PlotCoeff",
                 "Component": "wing",
                 "Width": 0.33,
-                "Delta": 0.02
+                "Delta": 0.02,
+                "Format": "png"
             },
             "wing_CA": {"Type": "wing", "Coefficient": "CA", "Delta": 0.005}, 
             "wing_CY": {"Type": "wing", "Coefficient": "CY"},
@@ -125,12 +126,19 @@
             "htail": {
                 "Type": "PlotCoeff",
                 "Component": "htail",
-                "Delta": 0.02
+                "Width": 0.33,
+                "Delta": 0.005,
+                "Format": "png"
             },
-            "htail_CLM": {"Type": "htail", "Coefficient": "CLM"},
-            "htail_CN":  {"Type": "htail", "Coefficient": "CN"},
+            "htail_CLN": {"Type": "htail", "Coefficient": "CLN"},
+            "htail_CY":  {"Type": "htail", "Coefficient": "CY"},
             // Residual plot
-            "L1": {"Type": "PlotL1"},
+            "L1": {
+                "Type": "PlotL1",
+                "Caption": "Total L1 density residual",
+                "Width": 0.33,
+                "Format": "png"
+            },
             // Conditions table
             "Conditions": {
                 "Type": "Conditions",
