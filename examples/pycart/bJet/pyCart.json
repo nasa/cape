@@ -119,7 +119,7 @@
             "wing_CN": {"Type": "wing", "Coefficient": "CN"},
             "wing_CLL": {"Type": "wing", "Coefficient": "CLL", "Delta": 0.005},
             "wing_CLM": {"Type": "wing", "Coefficient": "CLM"},
-            "wing_CN": {"Type": "wing", "Coefficient": "CLN"},
+            "wing_CLN": {"Type": "wing", "Coefficient": "CLN"},
             // horizontal tail force/moment plots
             "htail": {
                 "Type": "PlotCoeff",

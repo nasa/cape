@@ -187,3 +187,50 @@ parameter is a good error-prevention technique because it automatically leaves
 holes in the database for cases that have not run sufficiently far.  The
 *nStats* parameter means that pyCart will use the last 50 iterations available
 to compute the mean.
+
+To create or update the data book, run the following command.
+
+    .. code-block:: none
+    
+        $ pycart --aero
+        poweroff/m0.84a0.0b0.0
+          Adding new databook entry at iteration 300.
+        poweroff/m0.84a2.0b0.0
+        poweroff/m0.88a0.0b0.0
+        poweroff/m0.88a2.0b0.0
+        
+In this case, ``pycart`` runs through the run matrix (it is possible to restrict
+this command to a subset of cases just like any ``pycart`` command) and checks
+if any case meets the criteria to be entered into the databook.  Every case must
+be run at least *nMin* + *nStats* iterations.  This creates a few files in the
+``data/`` folder.  Specifically, there is a ``aero_$COMP.csv`` file for each
+*COMP* in the ``"Components"`` field.  As an example, the contents of
+:file:`aero_fuselage.csv` are the following.
+
+    .. code-block:: none
+    
+        # aero data for 'fuselage' extracted on 2016-01-27 16:38:05 
+        #
+        # Reference Area = 1.005300E+03
+        # Reference Length = 6.630000E+01
+        # Nominal moment reference point:
+        # XMRP = 0.000000E+00
+        # YMRP = 0.000000E+00
+        # ZMRP = 0.000000E+00
+        #
+        # Mach,alpha,beta,config,Label,CA,CY,CN,CLL,CLM,CLN,CA_min,CA_max,
+            CA_std,CA_err,CY_min,CY_max,CY_std,CY_err,CN_min,CN_max,CN_std,
+            CN_err,CLL_min,CLL_max,CLL_std,CLL_err,CLM_min,CLM_max,CLM_std,
+            CLM_err,CLN_min,CLN_max,CLN_std,CLN_err,nOrders,nIter,nStats
+        0.84,0.0,0.0,poweroff,,8.93902000E-03,-4.91405000E-03,9.77648294E-06,
+            1.94313000E-06,-4.68098922E-06,-1.51877000E-03,8.93902000E-03,
+            8.93902000E-03,6.93889390E-18,0.00000000E+00,-4.91405000E-03,
+            -4.91405000E-03,2.60208521E-18,0.00000000E+00,9.77640000E-06,
+            9.77653000E-06,3.80553837E-11,1.36840069E-11,1.94313000E-06,
+            1.94313000E-06,0.00000000E+00,0.00000000E+00,-4.68100000E-06,
+            -4.68098000E-06,6.52089771E-12,2.16772288E-12,-1.51877000E-03,
+            -1.51877000E-03,1.30104261E-18,8.03348895E-20,6.7302,300,50
+
+This is a fairly self-explanatory file in which lines starting with ``#`` are
+comments. The indentations shown in the sample are line continuations; the
+actual contents of the file contains two very long lines. 
