@@ -2395,7 +2395,7 @@ class Triq(TriBase):
         # Make center of gravity vector
         Xcg = np.repeat([xcg], self.nNode, axis=0)
         # Calculate angular velocities at each node
-        V = np.cross(self.Nodes-Xcg, w)
+        V = np.cross(self.Nodes-Xcg, w*Lref)
         # Calculate dot product of surface normals and nodal velocities
         Vn = np.sum(V*self.NodeNormals, 1)
         # Calculate pressure ratio

@@ -231,6 +231,33 @@ class InputCntl(FileCntl):
             'alpha ', 'alpha    %+12.8f   # angle of attack\n' % alpha)
         return None
         
+    # Function to get the current angle of attack
+    def GetAlpha(self):
+        """Return the current angle of attack
+        
+        :Call:
+            >>> alpha = IC.GetAlpha()
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+        :Outputs:
+            *alpha*: :class:`float`
+                Angle of attack
+        :Versions:
+            * 2016-01-26 ``@ddalle``: First version
+        """
+        # Find the text
+        lines = self.GetLineInSectionStartsWith('Case_Information', 'alpha', 1)
+        # Convert
+        vals = lines[0].split()
+        # Check for a match.
+        if len(vals)==0 or len(vals[0])<2:
+            # Not enough info
+            return None
+        else:
+            # Convert to float
+            return _float(vals[1])
+        
     # Function to set the sideslip angle
     def SetBeta(self, beta):
         """Set the sideslip angle
@@ -251,6 +278,33 @@ class InputCntl(FileCntl):
         self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
             'beta ', 'beta     %+12.8f   # sideslip angle\n' % beta)
         return None
+        
+    # Function to get the current angle of attack
+    def GetBeta(self):
+        """Return the current angle of sideslip
+        
+        :Call:
+            >>> beta = IC.GetBeta()
+        :Inputs:
+            *IC*: :class:`pyCart.inputCntl.InputCntl`
+                File control instance for :file:`input.cntl`
+        :Outputs:
+            *beta*: :class:`float`
+                Angle of sideslip
+        :Versions:
+            * 2016-01-26 ``@ddalle``: First version
+        """
+        # Find the text
+        lines = self.GetLineInSectionStartsWith('Case_Information', 'beta', 1)
+        # Convert
+        vals = lines[0].split()
+        # Check for a match.
+        if len(vals)==0 or len(vals[0])<2:
+            # Not enough info
+            return None
+        else:
+            # Convert to float
+            return _float(vals[1])
         
     # Function to set the CFL number
     def SetCFL(self, CFL):
