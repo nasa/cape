@@ -234,3 +234,38 @@ be run at least *nMin* + *nStats* iterations.  This creates a few files in the
 This is a fairly self-explanatory file in which lines starting with ``#`` are
 comments. The indentations shown in the sample are line continuations; the
 actual contents of the file contains two very long lines. 
+
+Automated Reports
+-----------------
+This business jet also contains a demo of pyCart's automated report capability.
+Calling ``pyCart --report`` results in a multi-page PDF created using LaTeX.
+There are two modes for these reports: one creates various figures for each case
+in the run matrix, and the other creates various plots for groups of cases.  The
+example below shows the set of plots for the one case we've run in this example.
+
+    .. figure:: report-case.*
+        :width: 5.5in
+        
+    Example report page for case ``poweroff/m0.84a0.0b0.0``
+
+This is the second page of the report generated from the command
+
+    .. code-block:: none
+    
+        $ pycart -I 0 --report
+
+It contains two tables; one of these summarizes the run conditions (i.e., the
+values of the run matrix input variables), and the other presents selected force
+and moment results.  Then there is a set of nine plots that show selected
+quantities at each iteration.  A higher-resolution view of the residual history
+plot is below.
+
+    .. figure:: L1.*
+        :width: 3.5in
+    
+    L1 density residual history for ``poweroff/m0.84a0.0b0.0``
+    
+The settings for this automated report are specified in the ``"Report"`` section
+of :file:`pyCart.json`.
+
+
