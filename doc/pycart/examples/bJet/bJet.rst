@@ -248,7 +248,11 @@ example below shows the set of plots for the one case we've run in this example.
         
     Example report page for case ``poweroff/m0.84a0.0b0.0``
 
-This is the second page of the report generated from the command
+This is the second page of the report generated from the command below.
+Unfortunately, this command relies on having a relatively up-to-date and
+complete PDFLaTeX compiler; without these dependencies, the following command
+will fail (although it will still generate the individual figures as separate
+files).
 
     .. code-block:: none
     
@@ -267,5 +271,107 @@ plot is below.
     
 The settings for this automated report are specified in the ``"Report"`` section
 of :file:`pyCart.json`.
+
+    .. code-block:: javascript
+        
+        "Report": {
+            // Definition of the report
+            "case": {
+                "Title": "Cart3D Force, Moment, \\& Residual Report",
+                "Author": "pyCart User Manual",
+                "Figures": ["Summary", "History"]
+            },
+            // Definitions of figures
+            "Figures": {
+                "Summary": {
+                    "Subfigures": ["Conditions", "Forces"],
+                    "Alignment": "left"
+                },
+                // Force convergence figure
+                "History": {
+                    "Subfigures": [
+                        "wing_CA",  "wing_CY",  "wing_CN",
+                        "wing_CLL", "wing_CLN", "wing_CLM",
+                        "L1",       "htail_CY", "htail_CLN"
+                    ],
+                    "Header": "Force, moment, and residual histories",
+                    "Alignment": "center"
+                }
+            },
+            // Set options for specific subfigures
+            "Subfigures": {
+                ...
+            }
+        }
+        
+The logic for this section is split into definitions for one or several types of
+report that contains at least a title and list of figures, a list of figure
+definitions, and a list of subfigure definitions.  Any key of the parent
+``"Report"`` that is not either ``"Reports"``, ``"Figures"``, ``"Subfigures"``,
+``"Sweeps"``, or ``"Archive"`` is interpreted as a definition for a type of
+report.  In this case, there is one report type called ``"case"`` (using report
+names that start with a lower-case letter is a good convention).  The ``"case"``
+report has two figures, titled ``"Summary"`` and ``"History"``.
+
+Then scrolling down to the ``"Figures"`` section, we see the list of subfigures
+in each. A subfigure is an individual table or plot along with some formatting
+options and a caption.  The following example shows a selection of these
+subfigure definitions that give an idea of their format.
+
+    .. code-block:: javascript
+    
+        "Subfigures": {
+            // Iterative history of component "wing"
+            "wing": {
+                "Type": "PlotCoeff",
+                "Component": "wing",
+                "Width": 0.33,
+                "Delta": 0.02,
+                "Format": "png"
+            },
+            "wing_CA": {"Type": "wing", "Coefficient": "CA", "Delta": 0.005}, 
+            "wing_CY": {"Type": "wing", "Coefficient": "CY"},
+            ...
+            // Residual plot
+            "L1": {
+                "Type": "PlotL1",
+                "Caption": "Total L1 density residual",
+                "Width": 0.33,
+                "Format": "png"
+            },
+            // Conditions table
+            "Conditions": {
+                "Type": "Conditions",
+                "Header": "Conditions",
+                "Position": "t"
+            },
+            // Force and moment results table
+            "Forces": {
+                "Type": "Summary",
+                "Header": "Force \\& moment summary",
+                "Position": "t",
+                "Iteration": 0,
+                "Components": ["wing", "htail", "fuselage"],
+                "Coefficients": ["CA", "CY", "CN"],
+                "CA": ["mu", "std"],
+                "CY": ["mu", "std"],
+                "CN": ["mu", "std"]
+            }
+        }
+        
+There are several predefined types of subfigures, including ``"PlotCoeff"``,
+``"PlotL1"``, ``"Conditions"``, and ``"Summary"``.  The main subfigure type is
+``"PlotCoeff"``, which plots the iterative history of one of the six force or
+moment coefficients on a specified component.  Another useful feature is the
+ability to cascade options by using a previous subfigure definition as the
+``"Type"`` of a later one.  This reduces the number of lines required to define
+groups of plots that have similar options.
+
+The ``"Conditions"`` subfigure type makes a table listing the values of each
+trajectory key for the case in question,  The ``"SkipVars"`` option allows the
+user to omit any subset of these variables from the table.  The ``"Summary"``
+type makes a table of force & moment statistics.  Each value in the
+``"Summary"`` table is computed according to the statistics options from the
+``"DataBooK"`` section described above.
 
 

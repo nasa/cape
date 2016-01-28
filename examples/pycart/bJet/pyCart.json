@@ -86,7 +86,6 @@
         "case": {
             "Title": "Cart3D Force, Moment, \\& Residual Report",
             "Author": "pyCart User Manual",
-            "Archive": true,
             "Figures": ["Summary", "History"]
         },
         // Definitions of figures
