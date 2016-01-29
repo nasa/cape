@@ -118,7 +118,6 @@ set mesh2d = 0
 
 # binaryIO tecplot output (default yes)
 set binaryIO 
-set binaryIO = '-binaryIO'
 
 # adaptation restart 
 # use command line argument or set adapt_restart = 1 for restarts
