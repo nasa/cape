@@ -148,6 +148,15 @@
     
     // Report specifications
     "Report": {
+        // Case history
+        "case": {
+            "Title": "Cart3D Force, Moment, \\& Residual Report",
+            "Author": "Derek J.~Dalle",
+            "Archive": true,
+            "Logo": "NASA_logo.pdf",
+            "Restriction": "SBU - ITAR",
+            "Figures": ["Summary", "History"]
+        },
         // Defaults
         "Figures": {
             // Results tables figure
@@ -206,15 +215,6 @@
                 "CA": ["mu", "std", "err"],
                 "CN": ["mu", "err"]
             }   
-        }, 
-        // Case history
-        "case": {
-            "Title": "Cart3D Force, Moment, \\& Residual Report",
-            "Author": "Derek J.~Dalle",
-            "Archive": true,
-            "Logo": "NASA_logo.pdf",
-            "Restriction": "SBU - ITAR",
-            "Figures": ["Summary", "History"]
         }
     },
             

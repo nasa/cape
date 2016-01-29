@@ -16,3 +16,4 @@ pyCart and Cart3D.
     arrow
     fins
     bJet/bJet
+    adapt_bJet/adapt_bJet
