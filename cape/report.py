@@ -225,20 +225,23 @@ class Report(object):
         # Title page
         f.write('\\pagestyle{plain}\n')
         f.write('\\begin{titlepage}\n')
-        f.write('\\vskip{4ex}\n')
+        f.write('\\vskip4ex\n')
         f.write('\\raggedleft\n')
         # Write the title
         f.write('{\Huge\\sf\\textbf{\n')
-        f.write('%s}}\\par\n' % fttl)
+        f.write('%s\n' % fttl)
+        f.write('}}\n')
         # Write the subtitle
         if fsttl is not None and len(fsttl) > 0:
             f.write('\\vskip2ex\n')
             f.write('{\\Large\\sf\\textit{\n')
-            f.write('%s}}\\par\n' % fsttl)
+            f.write('%s\n' % fsttl)
+            f.write('}}\n')
         # Finish the title with a horizontal line
         f.write('\\rule{0.75\\textwidth}{1pt}\\par\n')
         f.write('\\vskip30ex\n')
         # Write the author
+        f.write('\\raggedright\n')
         f.write('{\\LARGE\\textrm{\n')
         f.write('%s\n' % fauth)
         f.write('}}\n')
