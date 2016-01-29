@@ -241,8 +241,6 @@ class Namelist(cape.namelist.Namelist):
             * 2015-12-31 ``@ddalle``: First version
         """
         self.SetVar('project', 'project_rootname', name)
-        print("Label 008: _updated_sections=%s" % self._updated_sections)
-        print("Label 009: '%s'" % self.Section['project'][1].strip())
     
     # Get the adapt project root name
     def GetAdaptRootname(self):

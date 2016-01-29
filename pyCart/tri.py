@@ -122,6 +122,94 @@ class Triq(cape.tri.Triq):
         *triq.n*: :class:`int`
             Number of files averaged in this triangulation (used for weight)
     """
-    pass
+    
+    
+    # Apply an angular velocity perturbation
+    def ApplyAngularVelocity(self, xcg, w, Lref=1.0, M=None):
+        """Perturb surface pressures with a normalized rotation rate
+        
+        This is based on a method from Stalnaker:
+        
+            * Stalnaker, J. F. "Rapid Computation of Dynamic Stability
+              Derivatives." *42nd AIAA Aerospace Sciences Meeting and Exhibit.*
+              2004. AIAA Paper 2004-210. doi:10.2514/6.2004-210
+        
+        :Call:
+            >>> triq.ApplyAngularVelocity(xcg, w, Lref=1.0, M=None)
+        :Inputs:
+            *triq*: :class:`pyCart.tri.Triq`
+                Triangulation instance
+            *xcg*: :class:`np.ndarray` | :class:`list`
+                Center of gravity or point about which body rotates
+            *w*: :class:`np.ndarray` | :class:`list`
+                Angular velocity divided by *Lref* times freestream soundspeed
+            *Lref*: :class:`float`
+                Reference length used for reduced angular velocity
+            *M*: :class:`float`
+                Freestream Mach number for updating *Cp*
+        :Versions:
+            * 2016-01-23 ``@ddalle``: First version
+        """
+        # Calculate area-averaged node normals
+        self.GetNodeNormals()
+        # Make center of gravity vector
+        Xcg = np.repeat([xcg], self.nNode, axis=0)
+        # Calculate angular velocities at each node
+        V = np.cross(self.Nodes-Xcg, w)
+        # Calculate dot product of surface normals and nodal velocities
+        Vn = np.sum(V*self.NodeNormals, 1)
+        # Local speed of sound (with minimum pressure 0.001)
+        an = np.sqrt(self.q[:,1] / (1.4*np.fmax(self.q[:,5], 0.001)))
+        # Divide by local speed of sound
+        Mn = Vn / an
+        # Calculate pressure ratio
+        pr = np.fmax(1-0.2*Mn, 0.0) ** 7.0
+        # Save the updated state
+        self.q[:,5] *= pr
+        # Update the pressure coefficient
+        if M is not None:
+            self.q[:,0] = (self.q[:,5] - 1/1.4) / (0.5*M*M)
+            
+    # Apply an angular velocity perturbation
+    def ApplyAngularVelocityLinear(self, xcg, w, Lref=1.0, M=None):
+        """Perturb surface pressures with a normalized rotation rate
+        
+        This is based on a method from Stalnaker:
+        
+            * Stalnaker, J. F. "Rapid Computation of Dynamic Stability
+              Derivatives." *42nd AIAA Aerospace Sciences Meeting and Exhibit.*
+              2004. AIAA Paper 2004-210. doi:10.2514/6.2004-210
+        
+        :Call:
+            >>> triq.ApplyAngularVelocityLinear(xcg, w, Lref=1.0, M=None)
+        :Inputs:
+            *triq*: :class:`pyCart.tri.Triq`
+                Triangulation instance
+            *xcg*: :class:`np.ndarray` | :class:`list`
+                Center of gravity or point about which body rotates
+            *w*: :class:`np.ndarray` | :class:`list`
+                Angular velocity divided by *Lref* times freestream soundspeed
+            *Lref*: :class:`float`
+                Reference length used for reduced angular velocity
+            *M*: :class:`float`
+                Freestream Mach number for updating *Cp*
+        :Versions:
+            * 2016-01-23 ``@ddalle``: First version
+        """
+        # Calculate area-averaged node normals
+        self.GetNodeNormals()
+        # Make center of gravity vector
+        Xcg = np.repeat([xcg], self.nNode, axis=0)
+        # Calculate angular velocities at each node
+        V = np.cross(self.Nodes-Xcg, w*Lref)
+        # Calculate dot product of surface normals and nodal velocities
+        Vn = np.sum(V*self.NodeNormals, 1)
+        # Calculate pressure ratio
+        dp = - np.sqrt(1.4*self.q[:,1]*self.q[:,5])*Vn
+        # Save the updated state
+        self.q[:,5] = np.fmax(self.q[:,5]+dp, 0.0)
+        # Update the pressure coefficient
+        if M is not None:
+            self.q[:,0] = (self.q[:,5] - 1/1.4) / (0.5*M*M)
 
 

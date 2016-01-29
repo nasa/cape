@@ -107,7 +107,7 @@
         },
         // Set options for specific subfigures
         "Subfigures": {
-            // set template for iterative history of component "wing"
+            // Iterative history of component "wing"
             "wing": {
                 "Type": "PlotCoeff",
                 "Component": "wing",

@@ -372,6 +372,6 @@ trajectory key for the case in question,  The ``"SkipVars"`` option allows the
 user to omit any subset of these variables from the table.  The ``"Summary"``
 type makes a table of force & moment statistics.  Each value in the
 ``"Summary"`` table is computed according to the statistics options from the
-``"DataBooK"`` section described above.
+``"DataBook"`` section described above.
 
 
