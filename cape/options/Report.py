@@ -321,6 +321,28 @@ class Report(odict):
         # Get the title
         return R.get('Title', 'pyCart Automated Report')
         
+    # Get report subtitle
+    def get_ReportSubtitle(self, rep):
+        """Get the subtitle of a report
+        
+        :Call:
+            >>> ttl = opts.get_ReportSubtitle(rep)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *ttl*: :class:`str`
+                Report subtitle
+        :Versions:
+            * 2016-01-29 ``@ddalle``: First version
+        """
+        # Get the report.
+        R = self.get_Report(rep)
+        # Get the subtitle
+        return R.get('Subtitle', '')
+        
     # Get report author
     def get_ReportAuthor(self, rep):
         """Get the title of a report
@@ -342,6 +364,28 @@ class Report(odict):
         R = self.get_Report(rep)
         # Get the title
         return R.get('Author', '')
+        
+    # Get report affiliation
+    def get_ReportAffiliation(self, rep):
+        """Get the author affiliation of a report
+        
+        :Call:
+            >>> afl = opts.get_ReportAffiliation(rep)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *afl*: :class:`str`
+                Author affiliation for the report
+        :Versions:
+            * 2016-01-29 ``@ddalle``: First version
+        """
+        # Get the report.
+        R = self.get_Report(rep)
+        # Get the subtitle
+        return R.get('Affiliation', '')
         
     # Get report restriction
     def get_ReportRestriction(self, rep):
@@ -369,9 +413,7 @@ class Report(odict):
         
     # Get report logo
     def get_ReportLogo(self, rep):
-        """Get the restriction for a report
-        
-        For example, this may be "SBU - ITAR" or "FOUO"
+        """Get the file name for the report logo (placed in footer of each page)
         
         :Call:
             >>> fimg = opts.get_ReportLogo(rep)
@@ -390,6 +432,28 @@ class Report(odict):
         R = self.get_Report(rep)
         # Get the title
         return R.get('Logo', '')
+        
+    # Get report frontispiece (front page logo)
+    def get_ReportFrontispiece(self, rep):
+        """Get the frontispiece (i.e. title-page logo)
+        
+        :Call:
+            >>> fimg = opts.get_ReportLogo(rep)
+        :Inputs:
+            *opts*: :class:`pycart.options.Options`
+                Options interface
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *fimg*: :class:`str`
+                File name of frontispiece relative to ``report/`` directory
+        :Versions:
+            * 2016-01-29 ``@ddalle``: First version
+        """
+        # Get the report.
+        R = self.get_Report(rep)
+        # Get the title
+        return R.get('Frontispiece', '')
         
     # Get report archive status
     def get_ReportArchive(self):

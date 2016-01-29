@@ -1,4 +1,6 @@
 
+.. _demo-pycart-bJet:
+
 Demo 4: Business Jet, Data Book, and Automated Reports
 ======================================================
 

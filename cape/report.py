@@ -175,23 +175,29 @@ class Report(object):
         f.write('\\usepackage[T1]{fontenc}\n')
         f.write('\\usepackage[scaled]{beramono}\n\n')
         
+        # Get the title and author and etc.
+        fttl  = self.cntl.opts.get_ReportTitle(self.rep)
+        fsttl = self.cntl.opts.get_ReportSubtitle(self.rep)
+        fauth = self.cntl.opts.get_ReportAuthor(self.rep)
+        fafl  = self.cntl.opts.get_ReportAffiliation(self.rep)
+        flogo = self.cntl.opts.get_ReportLogo(self.rep)
+        ffrnt = self.cntl.opts.get_ReportFrontispiece(self.rep)
+        frest = self.cntl.opts.get_ReportRestriction(self.rep)
         # Set the title and author.
-        f.write('\\title{%s}\n' % self.cntl.opts.get_ReportTitle(self.rep))
-        f.write('\\author{%s}\n' % self.cntl.opts.get_ReportAuthor(self.rep))
+        f.write('\\title{%s}\n'  % fttl)
+        f.write('\\author{%s}\n' % fauth)
         
         # Format the header and footer
         f.write('\n\\fancypagestyle{pycart}{%\n')
         f.write(' \\renewcommand{\\headrulewidth}{0.4pt}%\n')
         f.write(' \\renewcommand{\\footrulewidth}{0.4pt}%\n')
         f.write(' \\fancyhf{}%\n')
-        f.write(' \\fancyfoot[C]{\\textbf{\\textsf{%s}}}%%\n'
-            % self.cntl.opts.get_ReportRestriction(self.rep))
+        f.write(' \\fancyfoot[C]{\\textbf{\\textsf{%s}}}%%\n' % frest)
         f.write(' \\fancyfoot[R]{\\thepage}%\n')
         # Check for a logo.
-        if len(self.opts.get('Logo','')) > 0:
+        if flogo is not None and  len(flogo) > 0:
             f.write(' \\fancyfoot[L]{\\raisebox{-0.32in}{%\n')
-            f.write('  \\includegraphics[height=0.45in]{%s}}}%%\n'
-                % self.opts['Logo'])
+            f.write('  \\includegraphics[height=0.45in]{%s}}}%%\n' % flogo)
         # Finish this primary header/footer format
         f.write('}\n\n')
         # Empty header/footer format for first page
@@ -215,8 +221,43 @@ class Report(object):
         # Actual document
         f.write('\n%$__Begin\n')
         f.write('\\begin{document}\n')
+        
+        # Title page
         f.write('\\pagestyle{plain}\n')
-        f.write('\\maketitle\n\n')
+        f.write('\\begin{titlepage}\n')
+        f.write('\\vskip{4ex}\n')
+        f.write('\\raggedleft\n')
+        # Write the title
+        f.write('{\Huge\\sf\\textbf{\n')
+        f.write('%s}}\\par\n' % fttl)
+        # Write the subtitle
+        if fsttl is not None and len(fsttl) > 0:
+            f.write('\\vskip2ex\n')
+            f.write('{\\Large\\sf\\textit{\n')
+            f.write('%s}}\\par\n' % fsttl)
+        # Finish the title with a horizontal line
+        f.write('\\rule{0.75\\textwidth}{1pt}\\par\n')
+        f.write('\\vskip30ex\n')
+        # Write the author
+        f.write('{\\LARGE\\textrm{\n')
+        f.write('%s\n' % fauth)
+        f.write('}}\n')
+        # Write the affiliation
+        if fafl is not None and len(fafl) > 0:
+            f.write('\\vskip2ex\n')
+            f.write('{\\LARGE\\sf\\textbf{\n')
+            f.write('%s\n' % fafl)
+            f.write('}}\n')
+        # Insert the date
+        f.write('\\vskip20ex\n')
+        f.write('{\\LARGE\\sf\\today}\n')
+        # Insert the frontispiece
+        if ffrnt is not None and len(ffrnt) > 0:
+            f.write('\\vskip20ex\n')
+            f.write('\\raggedleft\n')
+            f.write('\\includegraphics[height=2in]{%s}\n' % ffrnt)
+        # Close the tile page
+        f.write('\\end{titlepage}\n')
         f.write('\\pagestyle{pycart}\n\n')
         
         # Skeleton for the sweep
