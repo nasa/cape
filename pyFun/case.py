@@ -54,15 +54,15 @@ def run_fun3d():
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
     # Save time usage
     WriteUserTime(tic, rc, i)
-    # Assuming that worked, move the temp output file.
-    os.rename('fun3d.out', 'run.%02i.%i' % (i, n))
     # Get the last iteration number
     n = GetCurrentIter()
+    # Assuming that worked, move the temp output file.
+    os.rename('fun3d.out', 'run.%02i.%i' % (i, n))
     # Rename the flow file, too.
     if rc.get_KeepRestarts(i):
         shutil.copy('%s.flow' % fproj, '%s.%i.flow' % (fproj,n))
     # Check current iteration count.
-    if (i==rc.get_PhaseSequence(-1)) and (n>=rc.get_LastIter()):
+    if (i>=rc.get_PhaseSequence(-1)) and (n>=rc.get_LastIter()):
         return
     # Check for next phase
     i1 = GetPhaseNumber(rc)
