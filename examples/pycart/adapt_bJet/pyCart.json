@@ -2,11 +2,6 @@
 	// The names of these two files have the obvious defaults.
 	"InputCntl": "inputs/input.cntl",
 	"AeroCsh": "inputs/aero.csh",
-	
-	// Commands to load at head of PBS scripts
-	"ShellCmds": [
-        "ulimit -S -s 4194304"
-	],
     
 	// Phase settings and command-line options
     "RunControl": {
@@ -15,7 +10,6 @@
         "PhaseIters": [0, 1000],
         // Overall settings
         "MPI": false,
-        "mpicmd": "mpiexec",
         "nProc": 8,
         "Adaptive": true,
         
@@ -119,7 +113,7 @@
     // Define the output functional
     "Functional": {
         "CD": {"compID": "entire", "frame": 0, "force": 0, "weight": 1.0},
-        "CL": {"compID": "wing",   "frame": 1, "force": 2, "weight": 0.5}
+        "CL": {"compID": "wing",   "frame": 0, "force": 2, "weight": 0.5}
     },
     
     // Requirements for the data book
@@ -221,13 +215,11 @@
     
     // Trajectory description
     "Trajectory": {
-        // If a file is specified, and it exists, trajectory values will be
-        // read from it.  Trajectory values can also be specified locally.
         "File": "inputs/matrix.csv",
         "Keys": ["Mach", "alpha", "beta", "config", "Label"],
         // Configuration name [default]
         "GroupPrefix": "poweroff",
         // Use the same mesh for all cases
-        "GroupMesh": true
+        "GroupMesh": false
     }
 }
