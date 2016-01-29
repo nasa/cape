@@ -130,6 +130,8 @@ files in the ``inputs/`` folder.  Although this is not the default, it is a good
 convention to keep all input template files in a separate folder.  This makes
 for a little less messy parent folder.
 
+Adaptation Mechanics
+--------------------
 Most of the settings that have been replaced by ``...`` in the preceding code
 snippet are fairly straightforward, and the reader may refer to previous
 examples.  The two new sections are ``"Adaptation"`` and ``"Functional"``.
@@ -208,3 +210,27 @@ lines are shown below.
         optForce  CL       2     1      0      1       0.0      0.5   0   wing
         
 
+Sample Results
+--------------
+The following figures show some results from the ``poweroff/m0.82a0.0b0.0``
+case, which is the first case in the run matrix.
+
+    .. figure:: wing_CA.*
+        :width: 4in
+    
+    Plot of axial force coefficient, *CA*, for the component named "wing"
+    
+    .. figure:: L1.*
+        :width: 4in
+        
+    Plot of *L1* global density residual
+    
+The residual plot very clearly shows how the residual converges to some degree
+on each mesh adaptation cycle and then resets to a much higher level immediately
+after each mesh refinement.  The results of the previous cycle are used as the
+initial conditions for the refined mesh (Cart3D refers to this as a "warm
+start"), but the coarser solution projected onto the finer mesh does result in a
+higher residual.  The axial force coefficient clearly marks the adaptation
+cycles as well.  In this example, the value of *CA* appears to be changing after
+each adaptation cycle, and so more mesh refinement would be appropriate.
+    
