@@ -1114,6 +1114,11 @@ class Options(odict):
         self._Report()
         return self['Report'].get_ReportTitle(rep)
         
+    # Get subtitle string for a report
+    def get_ReportSubtitle(self, rep):
+        self._Report()
+        return self['Report'].get_ReportSubtitle(rep)
+        
     # Get distribution limitation for a report
     def get_ReportRestriction(self, rep):
         self._Report()
@@ -1124,10 +1129,20 @@ class Options(odict):
         self._Report()
         return self['Report'].get_ReportLogo(rep)
         
+    # Get frontispiece file name for a report
+    def get_ReportFrontispiece(self, rep):
+        self._Report()
+        return self['Report'].get_ReportFrontispiece(rep)
+        
     # Get author string for a report
     def get_ReportAuthor(self, rep):
         self._Report()
         return self['Report'].get_ReportAuthor(rep)
+        
+    # Get author affiliation for a report
+    def get_ReportAffiliation(self, rep):
+        self._Report()
+        return self['Report'].get_ReportAffiliation(rep)
         
     # Get archive option
     def get_ReportArchive(self):
@@ -1179,7 +1194,8 @@ class Options(odict):
             'Figure', 'Subfigure', 'Report', 'Sweep',
             'ReportFigList', 'ReportErrorFigList', 'ReportZeroFigList', 
             'ReportSweepList', 'SweepFigList',
-            'ReportTitle', 'ReportAuthor',
+            'ReportTitle', 'ReportSubtitle', 'ReportAuthor',
+            'ReportAffiliation', 'ReportFrontispiece',
             'ReportRestriction', 'ReportLogo',  'ReportArchive',
             'FigSubfigList', 'FigAlignment', 'FigHeader',
             'SubfigType', 'SubfigBaseType', 'SubfigOpt', 'SweepOpt',
