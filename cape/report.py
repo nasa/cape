@@ -1963,7 +1963,7 @@ class Report(object):
             h['fig'].clf()
             # Include the graphics.
             lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                % (frun, fimg))
+                % (frun, fpdf))
         # Set the caption.
         if fcpt: lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
         # Close the subfigure.

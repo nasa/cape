@@ -2482,7 +2482,8 @@ class CaseData(object):
             # Version of "PS.(c)*
             return getattr(self,c)
         except AttributeError:
-            raise AttributeError("Value '%s' is unknown for this class." % c)
+            raise AttributeError("Value '%s' is unknown for component '%s'."
+                % (c, self.comp))
             
     # Basic plotting function
     def PlotValue(self, c, col=None, n=None, nAvg=100, **kw):

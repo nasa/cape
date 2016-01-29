@@ -159,7 +159,7 @@
                 "Subfigures": [
                     "wing_CA",  "wing_CY",  "wing_CN",
                     "wing_CLL", "wing_CLN", "wing_CLM",
-                    "L1",       "htail_CY", "htail_CLN"
+                    "L1",       "htail_CY", "htail_CN"
                 ],
                 "Header": "Force, moment, and residual histories",
                 "Alignment": "center"
@@ -189,8 +189,8 @@
                 "Delta": 0.005,
                 "Format": "png"
             },
-            "htail_CLN": {"Type": "htail", "Coefficient": "CLN"},
-            "htail_CY":  {"Type": "htail", "Coefficient": "CY"},
+            "htail_CN": {"Type": "htail", "Coefficient": "CN"},
+            "htail_CY": {"Type": "htail", "Coefficient": "CY"},
             // Residual plot
             "L1": {
                 "Type": "PlotL1",
