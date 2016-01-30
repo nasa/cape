@@ -245,6 +245,7 @@ class Namelist(FileCntl):
                 Evaluated value of the text
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
+            * 2016-01-29 ``@ddalle``: Added boolean shortcuts, ``.T.``
         """
         # Check inputs.
         if type(val).__name__ not in ['str', 'unicode']:
@@ -258,10 +259,10 @@ class Namelist(FileCntl):
             if ('"' in val) or ("'" in val):
                 # It's a string.  Remove the quotes.
                 return eval(val)
-            elif val.lower() == ".false.":
+            elif val.lower() in [".false.", ".f."]:
                 # Boolean
                 return False
-            elif val.lower() == ".true.":
+            elif val.lower() in [".true.", ".t."]:
                 # Boolean
                 return True
             elif len(V) == 0:
