@@ -117,11 +117,11 @@ class Namelist2(FileCntl):
         return d
         
     # Search for a specific key in a numbered section
-    def GetKeyIndex(self, inml, key):
+    def GetKeyFromListIndex(self, inml, key):
         """Get the value of a key from a specific section
         
         :Call:
-            >>> v = nml.GetKeyIndex(inml, key)
+            >>> v = nml.GetKeyFromListIndex(inml, key)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
                 Old-style namelist interface
@@ -145,15 +145,23 @@ class Namelist2(FileCntl):
         else:
             # Use the line before the start of the next line
             iend = self.ibeg[inml+1]
-        # Get the lines
-        # Extract the lines from list
-        lines = [line.strip() for line in self.lines[ibeg:iend]]
-        # Process the first line.
-        V = lines[0].split()
-        # Strip the name of the namelist.
-        if len(V) > 1:
-            # Return the rest of the line; variables defined on this line
-            pass
+        # Initialize the boolean indicator of a match
+        q = False
+        # Loop through the lines
+        for line in self.lines[ibeg:iend]:
+            # Try to read the key from the line
+            q, v = self.GetKeyFromLine(line, key)
+            # Break if we found it.
+            if q: break
+        # Output
+        return v
+        
+        
+    # Set a key
+    def SetKeyInListIndex(self, inml, key, val):
+        
+        pass
+            
         
     # Try to read a key from a line
     def GetKeyFromLine(self, line, key):
@@ -221,7 +229,7 @@ class Namelist2(FileCntl):
         elif len(vals) == 2:
             # Last value in the line
             txt = ''
-            val = vals[1].rstrip(',')
+            val = vals[1].rstrip(',').strip()
             # Check for trivial value
             if val == "": val = None
         elif txt.startswith('"'):
@@ -303,7 +311,7 @@ class Namelist2(FileCntl):
             elif len(V) == 0:
                 # Nothing here.
                 return None
-            elif lev(V) == 1:
+            elif len(V) == 1:
                 # Convert to float/integer
                 return eval(val)
             else:

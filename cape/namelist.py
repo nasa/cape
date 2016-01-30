@@ -268,7 +268,7 @@ class Namelist(FileCntl):
             elif len(V) == 0:
                 # Nothing here.
                 return None
-            elif lev(V) == 1:
+            elif len(V) == 1:
                 # Convert to float/integer
                 return eval(val)
             else:
