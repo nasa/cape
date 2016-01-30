@@ -159,7 +159,25 @@ class Namelist2(FileCntl):
         
     # Try to read a key from a line
     def GetKeyFromLine(self, line, key):
+        """Read the value of a key from a line
         
+        :Call:
+            >>> q, val = nml.GetKeyFromLine(line, key)
+        :Inputs:
+            *nml*: :class:`cape.namelist2.Namelist2`
+                Old-style namelist interface
+            *line*: :class:`str`
+                A line of text that may or may not contain the value of *key*
+            *key*: :class:`str`
+                Name of key
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not the key was found in the line
+            *val*: :class:`str` | :class:`float` | :class:`int` | :class:`bool`
+                Value of the key, if found
+        :Versions:
+            * 2016-01-29 ``@ddalle``: First version
+        """
         # Check for the line
         if key not in line:
             # Key not read in this text
@@ -194,13 +212,37 @@ class Namelist2(FileCntl):
             
     # Set a key
     def SetKeyInLine(self, line, key, val):
+        """Set the value of a key in a line if the key is already in the line
         
+        :Call:
+            >>> q, txt = nml.SetKeyFromLine(line, key, val)
+        :Inputs:
+            *nml*: :class:`cape.namelist2.Namelist2`
+                Old-style namelist interface
+            *line*: :class:`str`
+                A line of text that may or may not contain the value of *key*
+            *key*: :class:`str`
+                Name of key
+            *val*: :class:`str` | :class:`float` | :class:`int` | :class:`bool`
+                Value of the key, if found
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not the key was found in the line
+            *txt*: :class:`str`
+                New version of the line with *key* reset to *val*
+        :Versions:
+            * 2016-01-29 ``@ddalle``: First version
+        """
         return False, line
     
             
     # Pop line
     def PopLine(self, line):
+        """Read the left-most key from a namelist line of text
         
+        :Versions:
+            * 201-01-29 ``@ddalle``: First version
+        """
         # Strip line
         txt = line.strip()
         # Check for comment
