@@ -206,33 +206,25 @@ class Namelist2(FileCntl):
                 Value of the key, if found
         :Versions:
             * 2016-01-29 ``@ddalle``: First version
+            * 2016-01-30 ``@ddalle``: Case-insensitive
         """
         # Check for the line
-        if key not in line:
+        if key.lower() not in line.lower():
             # Key not read in this text
             return False, None
-        # Otherwise, read the line as a dictionary.
-        d = self.ReadKeysFromLine(line)
-        # Now check for the key again.
-        if key not in d:
-            # The key name is hiding in a comment or string literal
-            return False, None
-        # Get the value.
-        v = d[key]
-        # Check for a list
-        if v is None:
-            # Don't convert a null value
-            val = v
-        elif v and v[0] not in ["'", '"'] and ',' in v:
-            # Split into list
-            V = v.split(',')
-            # Convert each value
-            val = [self.ConvertToVal(vi) for vi in V]
-        else:
-            # Convert the single value
-            val = self.ConvertToVal(v)
-        # Return the value (converted)
-        return True, val
+        # Initialize text remaining.
+        tend = line
+        # Read the keys from this line one-by-one
+        q = False
+        while tend != "":
+            # Read the first key in the remaining text.
+            tend, ki, vi = self.PopLine(tend)
+            # Check for a match.
+            if ki.lower() == key.lower():
+                # Use the value from this key.
+                return True, self.ConvertToVal(vi)
+        # If this point is reached, the key name is hiding in a comment or str
+        return False, None
         
     # Set a key
     def SetKeyInListIndex(self, inml, key, val):
