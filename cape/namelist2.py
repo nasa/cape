@@ -156,7 +156,36 @@ class Namelist2(FileCntl):
         # Output
         return v
         
+    # Function to process a single line
+    def ReadKeysFromLine(self, line):
+        """Read zero or more keys from a single text line
         
+        :Call:
+            >>> d = nml.ReadKeysFromLine(line)
+        :Inputs:
+            *nml*: :class:`cape.namelist2.Namelist2`
+                Old-style namelist interface
+            *line*: :class:`str`
+                One line from a namelist file
+        :Outputs:
+            *d*: :class:`dict` (:class:`str`)
+                Unconverted values of each key
+        :Versions:
+            * 2016-01-29 ``@ddalle``: First version
+        """
+        # Initialize dictionary
+        d = {}
+        # Initialize remaining text
+        txt = line.strip()
+        # Loop until line is over
+        while txt != '':
+            # Read the keys
+            txt, key, val = self.PopLine(txt)
+            # Check for relevant key
+            if key is not None: d[key] = val
+        # Output
+        return d
+    
     # Try to read a key from a line
     def GetKeyFromLine(self, line, key):
         """Read the value of a key from a line
@@ -207,15 +236,55 @@ class Namelist2(FileCntl):
         
     # Set a key
     def SetKeyInListIndex(self, inml, key, val):
+        """Set the value of a key in a list by index
         
-        return
-            
+        If the key is not set in the present text, add it as a new line.  The
+        contents of the file control's text (in *nml.lines*) will be edited, and
+        the list indices will be updated if a line is added.
+        
+        :Call:
+            >>> nml.SetKeyInListIndex(inml, key, val)
+        :Inputs:
+            *nml*: :class:`cape.namelist2.Namelist2`
+                File control instance for old-style Fortran namelist
+            *inml*: :class:`int`
+                Index of namelist to edit
+            *key*: :class:`str`
+                Name of key to alter or set
+            *val*: :class:`any`
+                Value to use for *key*
+        :Versions:
+            * 2015-01-30 ``@ddalle``: First version
+        """
+        # Get index of starting and end lines
+        ibeg = self.ibeg[inml]
+        iend = self.iend[inml]
+        # Initialize the boolean indicator of a match in existing text
+        q = False
+        # Loop through the lines
+        for i in range(ibeg, iend):
+            # Get the line.
+            line = self.lines[i]
+            # Try to set the key in this line
+            q, line = self.SetKeyInLine(line, key, val)
+            # Check for match.
+            if q:
+                # Set this line in the FC's text and exit
+                self.lines[i] = line
+                return
+        # If no match found in existing text, add a line.
+        line = '    %s = %s,\n' % (key, self.ConvertToText(val))
+        # Insert the line.
+        self.lines = self.lines[:iend] + [line] + self.lines[iend:]
+        # Update the namelist indices.
+        self.UpdateNamelist()
+    
     # Set a key
     def SetKeyInLine(self, line, key, val):
         """Set the value of a key in a line if the key is already in the line
         
         :Call:
-            >>> q, txt = nml.SetKeyFromLine(line, key, val)
+            >>> q, line = nml.SetKeyFromLine(line, key, val)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
                 Old-style namelist interface
@@ -228,18 +297,59 @@ class Namelist2(FileCntl):
         :Outputs:
             *q*: :class:`bool`
                 Whether or not the key was found in the line
-            *txt*: :class:`str`
+            *line*: :class:`str`
                 New version of the line with *key* reset to *val*
         :Versions:
             * 2016-01-29 ``@ddalle``: First version
         """
-        return False, line
+        # Check if the key is present in the line of the text.
+        if key not in line:
+            return False, line
+        # Initialize prior and remaining text
+        tbeg = ""
+        tend = line
+        # Loop through keys in this line
+        while True:
+            # Read the first key in the remaining line.
+            txt, ki, vi = self.PopLine(tend)
+            # Check if the key matches the target.
+            if ki.lower() == key.lower():
+                # Match found; exit and remember remaining text
+                tbeg += tend[:tend.index(ki)]
+                tend = txt
+                break
+            # Check if the line is empty.
+            if txt == "":
+                # No match in this line.
+                return False, line
+            # Otherwise, append to the prefix text and keep looking.
+            tbeg += tend[:tend.index(txt)]
+            # Update the text remaining
+            tend = txt
+        # Convert value to text
+        sval = self.ConvertToText(val)
+        line = "%s%s = %s, %s\n" % (tbeg, key, sval, tend)
+        return True, line
     
             
     # Pop line
     def PopLine(self, line):
-        """Read the left-most key from a namelist line of text
+        """Read the left-most key from a namelist line and return rest of line
         
+        :Call:
+            >>> txt, key, val = nml.PopLine(line)
+        :Inputs:
+            *nml*: :class:`cape.namelist2.Namelist2`
+                Old-style namelist interface
+            *line*: :class:`str`
+                One line of namelist text
+        :Outputs:
+            *txt*: :class:`str`
+                Remaining text in *line* after first key has been read
+            *key*: :class:`str`
+                Name of first key read from *line*
+            *val*: ``None`` | :class:`str`
+                Raw (unconverted) value of *key*
         :Versions:
             * 201-01-29 ``@ddalle``: First version
         """
@@ -342,7 +452,7 @@ class Namelist2(FileCntl):
             # Not a string; return as is.
             return val
         # Split to parts
-        V = val.split()
+        V = val.split(',')
         # Check the value.
         try:
             # Check the value.
@@ -370,13 +480,13 @@ class Namelist2(FileCntl):
             
     # Conversion to text
     def ConvertToText(self, v):
-        """Convert a value to text to write in the namelist file
+        """Convert a scalar value to text to write in the namelist file
         
         :Call:
             >>> val = nml.ConvertToText(v)
         :Inputs:
-            *nml*: :class:`cape.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`cape.namelist2.Namelist2`
+                File control instance for old-style Fortran namelist
             *v*: :class:`str` | :class:`int` | :class:`float` | :class:`list`
                 Evaluated value of the text
         :Outputs:
@@ -390,7 +500,7 @@ class Namelist2(FileCntl):
         # Form the output line.
         if t in ['str', 'unicode']:
             # Force quotes
-            return '"%s"' % v
+            return "'%s'" % v
         elif t in ['bool'] and v:
             # Boolean
             return ".T."
@@ -400,40 +510,11 @@ class Namelist2(FileCntl):
         elif type(v).__name__ in ['list', 'ndarray']:
             # List (convert to string first)
             V = [str(vi) for vi in v]
-            return " ".join(V)
+            return ", ".join(V)
         else:
             # Use the built-in string converter
             return str(v)
-        
-    # Function to process a single line
-    def ReadKeysFromLine(self, line):
-        """Read zero or more keys from a single text line
-        
-        :Call:
-            >>> d = nml.ReadKeysFromLine(line)
-        :Inputs:
-            *nml*: :class:`cape.namelist2.Namelist2`
-                Old-style namelist interface
-            *line*: :class:`str`
-                One line from a namelist file
-        :Outputs:
-            *d*: :class:`dict` (:class:`str`)
-                Unconverted values of each key
-        :Versions:
-            * 2016-01-29 ``@ddalle``: First version
-        """
-        # Initialize dictionary
-        d = {}
-        # Initialize remaining text
-        txt = line.strip()
-        # Loop until line is over
-        while txt != '':
-            # Read the keys
-            txt, key, val = self.PopLine(txt)
-            # Check for relevant key
-            if key is not None: d[key] = val
-        # Output
-        return d
-        
+    
+    
 # class Namelist2
 
