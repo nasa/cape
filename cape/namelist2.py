@@ -157,12 +157,6 @@ class Namelist2(FileCntl):
         return v
         
         
-    # Set a key
-    def SetKeyInListIndex(self, inml, key, val):
-        
-        pass
-            
-        
     # Try to read a key from a line
     def GetKeyFromLine(self, line, key):
         
@@ -192,6 +186,17 @@ class Namelist2(FileCntl):
             val = self.ConvertToVal(v)
         # Return the value (converted)
         return True, val
+        
+    # Set a key
+    def SetKeyInListIndex(self, inml, key, val):
+        
+        return
+            
+    # Set a key
+    def SetKeyInLine(self, line, key, val):
+        
+        return False, line
+    
             
     # Pop line
     def PopLine(self, line):
