@@ -17,12 +17,44 @@ class RunControl(cape.options.runControl.RunControl):
     """Dictionary-based interface for automated reports
     
     :Call:
-        >>> opts = Report(**kw)
+        >>> opts = RunControl(**kw)
     :Versions:
-        * 2015-12-29 ``@ddalle``: Subclassed to CAPE
+        * 2016-02-01 ``@ddalle``: First version
     """
+    # Function to get prefix
+    def get_Prefix(self, i=None):
+        """Get the project rootname, or file prefix
+        
+        :Call:
+            >>> fpre = opts.get_Prefix()
+        :Inputs:
+            *opts*: :class:`pyOver.options.Options`
+                Options interface
+        :Outputs:
+            *fpre*: :class:`str`
+                Name of OVERFLOW prefix
+        :Versions:
+            * 2016-02-01 ``@ddalle``: First version
+        """
+        return self.get_key("Prefix", i, "project_rootname")
     
-    pass
+    # Function to get OVERFLOW command
+    def get_overruncmd(self, i=None):
+        """Get the name of the OVERFLOW binary to run
+        
+        :Call:
+            >>> fcmd = opts.get_overruncmd(i)
+        :Inputs:
+            *opts*: :class:`pyOver.options.Options`
+                Options interface
+            *i*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *fcmd*: :class:`cmd`
+                Name of the command-line function to use
+        :Versions:
+            * 2016-02-01 ``@ddalle``: First version
+        """
 # class RunControl
 
 

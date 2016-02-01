@@ -9,11 +9,11 @@ class Mesh(odict):
     """Dictionary-based interface for OVERFLOW meshing options"""
     
     # Mesh filenames
-    def get_MeshFile(self, i=None):
+    def get_MeshFiles(self, i=None):
         """Return the original mesh file names
         
         :Call:
-            >>> fname = opts.get_MeshFile(i=None)
+            >>> fname = opts.get_MeshFiles(i=None)
         :Inputs:
             *opts*: :class:`pyOver.options.Options`
                 Options interface
@@ -25,7 +25,7 @@ class Mesh(odict):
         :Versions:
             * 2015-12-29 ``@ddalle``: First version
         """
-        return self.get_key('MeshFile', i)
+        return self.get_key('Files', i)
 
 # class Mesh
 

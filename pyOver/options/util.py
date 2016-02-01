@@ -31,7 +31,10 @@ _fname = os.path.abspath(__file__)
 PyOverFolder = os.path.split(os.path.split(_fname)[0])[0]
 
 # Backup default settings
-rc["project_rootname"]     ="run"
+rc["OverNamelist"]         = "overflow.inp"
+rc["project_rootname"]     = "run"
+rc["overruncmd"]           = "overrunmpi"
+rc["MPI"]                  = True
     
 
 # Function to ensure scalar from above

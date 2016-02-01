@@ -121,7 +121,7 @@ class Fun3d(Cntl):
             * 2015-10-16 ``@ddalle``: First version
             * 2015-12-31 ``@ddalle``: Added *Namelist0*
         """
-        # CHange to root safely.
+        # Change to root safely.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
         # Read the file.

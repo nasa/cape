@@ -1,0 +1,98 @@
+{
+    // Settings for the PBS script
+    "PBS": {
+        "j": "oe",
+        "r": "n",
+        "S": "/bin/bash",
+        "select": 1,
+        "ncpus": 12,
+        "mpiprocs": 12,
+        "model": "",
+        "W": "",
+        "q": "normal",
+        "walltime": "2:00:00"
+    },
+	
+	// Commands to load at head of run scripts (run_cart3d.pbs)
+	"ShellCmds": [
+	    ". $MODULESHOME/init/bash",
+	    "module load overflow",
+	    "module load pycart"
+	],
+	
+	// Iteration control and command-line inputs
+	"RunControl": {
+	    // Run sequence
+	    "PhaseSequence": [0],
+	    "PhaseIters": [1000],
+	    // Number of threads
+	    "nProc": 8,
+	    // Mode
+	    "Adaptive": false,
+	    "MPI": false,
+	    "qsub": false,
+	    "Resubmit": false,
+	    "Continue": true,
+	    // System interface
+	    "mpicmd": "mpiexec",
+        "Environ": {},
+        "ulimit": {"s": 4194304}
+    },
+    
+    // Describe the reference values and config.
+    "Config": {
+        
+    },
+
+    // Plotting options
+    "Plot": {
+        // Components to plot
+        "Components": ["entire"],
+        // Coefficients
+        "Coefficients": ["CA", "CY", "CN", "L1"],
+        // Deltas for each curve
+        "Deltas": {
+            "CA": 0.01,
+            "CY": 0.02,
+            "CN": 0.02,
+            "CLL": 0.005,
+            "CLM": 0.02,
+            "CLN": 0.02
+        },
+        // Extra label to put in bottom center of each plot.
+        "Restriction": "SBU - ITAR",
+        // Number of iterations to show.
+        //"nPlot": 1000,
+        // Number of iterations to use in averge.
+        "nAverage": 100,
+        // Number of rows and columns to plot
+        "nRow": 2,
+        "nCol": 2
+    },
+    
+    // Trajectory description
+    "Trajectory": {
+        // If a file is specified, and it exists, trajectory values will be 
+        // read from it.  Trajectory values can also be specified locally.
+        "File": "matrix.csv",
+        // REQUIRED: Name of the variables to vary in the trajectory
+        "Keys": ["mach", "alpha", "beta", "Re", "T"],
+        // Prefix placed in front of folder name
+        //   i.e.  "F_m2.50a4.00r30.00/" if Prefix="F", or
+        //         "m2.50a4.00r30.00/" if Prefix=""
+        "Prefix": "",
+        // Prefix for the groups of conditions using the same mesh
+        "GroupPrefix": "",
+        # Default properties for a new variable
+        # This also serves as the template for new variables
+        "Definitions": {
+            # Default parameter
+            "Default": {
+                "Group": true,
+                "Type": "Group",
+                "Script": ""
+            }
+        # Predefined parameter: Mach
+        }
+    }
+}

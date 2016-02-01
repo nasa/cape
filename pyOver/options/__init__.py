@@ -28,6 +28,7 @@ from .pbs         import PBS
 from .DataBook    import DataBook
 from .Report      import Report
 from .runControl  import RunControl
+from .overnml     import OverNml
 from .Mesh        import Mesh
 from .Config      import Config
 
@@ -52,18 +53,13 @@ class Options(cape.options.Options):
         """Initialization method with optional JSON input"""
         # Check for an input file.
         if fname:
-            # Read the input file.
-            lines = open(fname).readlines()
-            # Expand references to other JSON files and strip comments
-            lines = expandJSONFile(lines)
-            # Get the equivalent dictionary.
-            d = json.loads(lines)
+            # Read the JSON file
+            d = loadJSONFile(fname)
             # Loop through the keys.
             for k in d:
                 kw[k] = d[k]
         # Read the defaults.
         defs = getPyOverDefaults()
-        
         # Apply the defaults.
         kw = applyDefaults(kw, defs)
         # Store the data in *this* instance
@@ -74,6 +70,7 @@ class Options(cape.options.Options):
         self._DataBook()
         self._Report()
         self._RunControl()
+        self._Overflow()
         self._Mesh()
         self._Config()
         # Add extra folders to path.
@@ -101,25 +98,25 @@ class Options(cape.options.Options):
             
     # Initialization method for overall run control
     def _RunControl(self):
-        """Initialize report options if necessary"""
+        """Initialize run control options if necessary"""
         # Check status.
         if 'RunControl' not in self:
             # Missing entirely.
-            self['RunControl'] = Report()
+            self['RunControl'] = RunControl()
         elif type(self['RunControl']).__name__ == 'dict':
             # Convert to special class
             self['RunControl'] = RunControl(**self['RunControl'])
-    
-    # Initialization method for namelist variables
-    def _Fun3D(self):
-        """Initialize namelist options"""
+            
+    # Initialization method for namelist interface
+    def _Overflow(self):
+        """Initialize OVERFLOW namelist options if necessary"""
         # Check status.
-        if 'Fun3D' not in self:
+        if 'Overflow' not in self:
             # Missing entirely.
-            self['Fun3D'] = Fun3DNml()
-        elif type(self['Fun3D']).__name__ == 'dict':
+            self['Overflow'] = OverNml()
+        elif type(self['RunControl']).__name__ == 'dict':
             # Convert to special class
-            self['Fun3D'] = Fun3DNml(**self['Fun3D'])
+            self['Overflow'] = OverNml(**self['Overflow'])
     
     # Initialization method for mesh settings
     def _Mesh(self):
@@ -181,6 +178,23 @@ class Options(cape.options.Options):
     # ==============
    # <
     
+    # Get the namelist file name
+    def get_OverNamelist(self, j=None):
+        """Return the name of the master :file:`over.namelist` file
+        
+        :Call:
+            >>> fname = opts.get_OverNamelist()
+        :Inputs:
+            *opts*: :class:`pyOver.options.Options`
+                Options interface
+        :Outputs:
+            *fname*: :class:`str`
+                Name of OVERFLOW namelist template file
+        :Versions:
+            * 2016-02-01 ``@ddalle``: First version
+        """
+        return self.get_key('OverNamelist', j)
+        
     # Method to determine if groups have common meshes.
     def get_GroupMesh(self):
         """Determine whether or not groups have common meshes
@@ -221,29 +235,73 @@ class Options(cape.options.Options):
     # Overall run control
     # ===================
    # <
-   
+    # Get project root name
+    def get_Prefix(self, j=None):
+        self._RunControl()
+        return self['RunControl'].get_Prefix(j)
+        
+    # Get OVERFLOW function name
+    def get_overruncmd(self, j=None):
+        self._RunControl()
+        return self['RunControl'].get_overruncmd(j)
+        
+    # Copy documentation
+    for k in ['Prefix', 'overruncmd']:
+        eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
    # >
    
     # =================
     # Namelist settings
     # =================
    # <
-   
+    
+    # GLOBAL section
+    def get_GLOBAL(self, i=None):
+        self._Overflow()
+        return self['Overflow'].get_GLOBAL(i)
+    
+    # FLOINP section
+    def get_FLOINP(self, i=None):
+        self._Overflow()
+        return self['Overflow'].get_FLOINP(i)
+        
+    # Generic value
+    def get_namelist_var(self, sec, key, i=None):
+        self._Overflow()
+        return self['Overflow'].get_namelist_var(sec, key, i)
+        
+    # Copy documentation
+    for k in ['GLOBAL', 'FLOINP', 'namelist_var']:
+        eval('get_'+k).__doc__ = getattr(OverNml,'get_'+k).__doc__
+        
+    # Downselect
+    def select_namelist(self, i=None):
+        self._Overflow()
+        return self['Fun3D'].select_namelist(i)
+    select_namelist.__doc__ = OverNml.select_namelist.__doc__
    # >
    
     
+    # ==================== 
+    # Grid system settings
+    # ====================
+   #<
+    
+    
+   #>
+   
     # =============
     # Mesh settings
     # =============
    # <
     
     # File names
-    def get_MeshFile(self, i=None):
+    def get_MeshFiles(self, i=None):
         self._Mesh()
-        return self['Mesh'].get_MeshFile(i)
+        return self['Mesh'].get_MeshFiles(i)
         
     # Copy documentation
-    for k in ['MeshFile']:
+    for k in ['MeshFiles']:
         eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
    # >
     

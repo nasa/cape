@@ -1,6 +1,6 @@
 """
-Interface to FUN3D namelist options
-===================================
+Interface to OVERFLOW namelist options
+======================================
 
 This module provides a class to mirror the Fortran namelist capability.  For
 now, nonunique section names are not allowed.
@@ -10,28 +10,28 @@ now, nonunique section names are not allowed.
 from util import rc0, odict, getel
 
 # Class for namelist settings
-class Fun3DNml(odict):
-    """Dictionary-based interface for FUN3D namelists"""
+class OverNml(odict):
+    """Dictionary-based interface for OVERFLOW namelists"""
     
-    # Get the project namelist
-    def get_project(self, i=None):
-        """Return the ``project`` namelist
+    # Get the GLOBAL namelist
+    def get_GLOBAL(self, i=None):
+        """Return the ``GLOBAL`` namelist
         
         :Call:
-            >>> d = opts.get_project(i=None)
+            >>> d = opts.get_GLOBAL(i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`pyOver.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Run sequence index
         :Outputs:
-            *d*: :class:`pyFun.options.odict`
-                Project namelist
+            *d*: :class:`pyOver.options.odict`
+                GLOBAL namelist
         :Versions:
-            * 2015-10-18 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: First version
         """
         # Get the value
-        d = getel(self.get('project'), i) 
+        d = getel(self.get('GLOBAL'), i) 
         # Check for None
         if d is None:
             # Return empty dict
@@ -40,9 +40,9 @@ class Fun3DNml(odict):
             # Convert dictionary to odict
             return odict(**d)
     
-    # Get the project namelist
-    def get_raw_grid(self, i=None):
-        """Return the ``raw_grid`` namelist
+    # Get the FLOINP namelist
+    def get_FLOINP(self, i=None):
+        """Return the ``FLOINP`` namelist
         
         :Call:
             >>> d = opts.get_raw_grid(i=None)
@@ -52,13 +52,13 @@ class Fun3DNml(odict):
             *i*: :class:`int` or ``None``
                 Run sequence index
         :Outputs:
-            *d*: :class:`pyFun.options.odict`
-                Grid namelist
+            *d*: :class:`pyOver.options.odict`
+                Flow inputs namelist
         :Versions:
-            * 2015-10-18 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: First version
         """
         # Get the value
-        d = getel(self.get('raw_grid'), i) 
+        d = getel(self.get('FLOINP'), i) 
         # Check for None
         if d is None:
             # Return empty dict
@@ -66,51 +66,6 @@ class Fun3DNml(odict):
         else:
             # Convert dictionary to odict
             return odict(**d)
-            
-    # Get rootname
-    def get_project_rootname(self, i=None):
-        """Return the project root name
-        
-        :Call:
-            >>> rname = opts.get_project_rootname(i=None)
-        :Inputs:
-            *opts*: :class:`pyFun.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Run sequence index
-        :Outputs:
-            *rname*: :class:`str`
-                Project root name
-        :Versions:
-            * 2015-10-18 ``@ddalle``: First version
-        """
-        # Get the namelist
-        d = self.get_project(i)
-        # Get the value.
-        return d.get_key('project_rootname', i)
-        
-    # Grid format
-    def get_grid_format(self, i=None):
-        """Return the grid format
-        
-        :Call:
-            >>> fmat = opts.get_grid_format(i=None)
-        :Inputs:
-            *opts*: :class:`pyFun.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Run sequence index
-        :Outputs:
-            *fmat*: :class:`str`
-                Grid format
-        :Versions:
-            * 2015-10-18 ``@ddalle``: First version
-        """
-        # Get the raw_grid namelist
-        d = self.get_raw_grid(i)
-        # Get the value.
-        return d.get_key('grid_format', i)
-        
         
     # Reduce to a single run sequence
     def select_namelist(self, i=0):
@@ -119,15 +74,16 @@ class Fun3DNml(odict):
         :Call:
             >>> d = opts.select_namelist(i)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`pyOver.options.Options`
                 Options interface
             *i*: :class:`int` or ``None``
-                Run sequence index
+                Phase number
         :Outputs:
-            *d*: :class:`pyFun.options.odict`
+            *d*: :class:`pyOver.options.odict`
                 Project namelist
         :Versions:
             * 2015-10-18 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: Copied from pyFun
         """
         # Initialize output
         d = {}
@@ -153,19 +109,20 @@ class Fun3DNml(odict):
         :Call:
             >>> val = opts.get_namelist_var(sec, key, i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`pyOver.options.Options`
                 Options interface
             *sec*: :class:`str`
                 Section name
             *key*: :class:`str`
                 Variable name
             *i*: :class:`int` or ``None``
-                Run sequence index
+                Phase number
         :Outputs:
             *val*: :class:`int` | :class:`float` | :class:`str` | :class:`list`
                 Value from JSON options
         :Versions:
             * 2015-10-19 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: Copied from pyFun
         """
         # Check for namelist
         if sec not in self: return None

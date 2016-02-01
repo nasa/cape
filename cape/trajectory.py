@@ -17,7 +17,7 @@ import os
 # Trajectory class
 class Trajectory:
     """
-    Read a simple list of configuration variables
+    Read a list of configuration variables
     
     :Call:
         >>> x = cape.Trajectory(**traj)
@@ -190,7 +190,6 @@ class Trajectory:
         # Output
         return y
         
-        
     # Function to read a file
     def ReadTrajectoryFile(self, fname):
         """Read trajectory variable values from file
@@ -354,7 +353,7 @@ class Trajectory:
                     "Format": "%s",
                     "Abbreviation": "r"
                 }
-            elif key.lower() in ['re', 'reynolds', 'reynolds_number']:
+            elif key.lower() in ['re', 'rey', 'reynolds', 'reynolds_number']:
                 # Reynolds number per unit
                 defkey = {
                     "Group": False,
@@ -364,7 +363,7 @@ class Trajectory:
                     "Label": False,
                     "Abbreviation": "Re"
                 }
-            elif key == "T" or key.lower() in ['temp', 'temperature']:
+            elif key == "T" or key.lower() in ['tinf', 'temp', 'temperature']:
                 # Static temperature
                 defkey = {
                     "Group": False,
@@ -1386,6 +1385,8 @@ class Trajectory:
             if (not self.defns[k].get("Label", True)): continue
             # Skip unentered values
             if (i>=len(self.text[k])) or (not self.text[k][i]): continue
+            # Check for "SkipZero" flag
+            if self.defns[k].get("SkipZero", False): continue
             # Make the string of what's going to be printed.
             # This is something like ``'%.2f' % x.alpha[i]``.
             lbl = self.defns[k]["Format"] % getattr(self,k)[i]

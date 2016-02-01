@@ -18,6 +18,9 @@ import subprocess as sp
 # Import template class
 from cape.cntl import Cntl
 
+# Local classes
+from overNamelist import OverNamelist
+
 # Other pyFun modules
 from . import options
 from . import case
@@ -63,10 +66,13 @@ class Overflow(Cntl):
             Dictionary of options for this case (directly from *fname*)
         *oflow.x*: :class:`pyOver.trajectory.Trajectory`
             Values and definitions for variables in the run matrix
+        *oflow.Namelist*: :class:`pyOver.overNamelist.OverNamelist`
+            Interface to ``over.namelist`` OVERFLOW input file
         *oflow.RootDir*: :class:`str`
             Absolute path to the root directory
     :Versions:
         * 2015-10-16 ``@ddalle``: Started
+        * 2016-02-02 ``@ddalle``: First version
     """ 
     # Initialization method
     def __init__(self, fname="pyOver.json"):
@@ -87,6 +93,9 @@ class Overflow(Cntl):
         # Job list
         self.jobs = {}
         
+        # Read the namelist
+        self.ReadNamelist()
+        
         # Set umask
         os.umask(self.opts.get_umask())
         
@@ -97,6 +106,37 @@ class Overflow(Cntl):
         return "<pyOver.Overflow(nCase=%i)>" % (
             self.x.nCase)
         
+    # Read namelist
+    def ReadNamelist(self, j=0, q=True):
+        """Read the OVERFLOW namelist template
+        
+        :Call:
+            >>> oflow.ReadNamelist(j=0, q=True)
+        :Inputs:
+            *oflow*: :class:`pyOver.overflow.Overflow`
+                Instance of pyOver control class
+            *j*: :class:`int`
+                Phase number
+            *q*: :class:`bool`
+                Whether or not to read to *Namelist*, else *Namelist0*
+        :Versions:
+            * 2016-02-01 ``@ddalle``: First version
+        """
+        # Change to root safely
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Read the file
+        nml = OverNamelist(self.opts.get_OverNamelist(j))
+        # Save it
+        if q:
+            # Read to main slot for modification
+            self.Namelist = nml
+        else:
+            # Template for reading original parameters
+            self.Namelist0 = nml
+        # Go back to original location
+        os.chdir(fpwd)
+        
     # Get namelist var
     def GetNamelistVar(self, sec, key, j=0):
         """Get a namelist variable's value
@@ -104,12 +144,12 @@ class Overflow(Cntl):
         The JSON file overrides the value from the namelist file
         
         :Call:
-            >>> val = fun3d.GetNamelistVar(sec, key, j=0)
+            >>> val = oflow.GetNamelistVar(sec, key, j=0)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of global pyFun settings object
+            *oflow*: :class:`pyOver.overflow.Overflow`
+                Instance of pyOver control class
             *sec*: :class:`str`
-                Name of namelist section
+                Name of namelist section/group
             *key*: :class:`str`
                 Variable to read
             *j*: :class:`int`
@@ -118,88 +158,46 @@ class Overflow(Cntl):
             *val*: :class:`int` | :class:`float` | :class:`str` | :class:`list`
                 Value
         :Versions:
-            * 2015-10-19 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: First version
         """
         # Get the namelist value.
-        nval = self.Namelist.GetVar(sec, key)
+        nval = self.Namelist.GetKeyFromGroupName(sec, key)
         # Check for options value.
         if nval is None:
             # No namelist file value
             return self.opts.get_namelist_var(sec, key, j)
-        elif 'Fun3D' not in self.opts:
+        elif 'Overflow' not in self.opts:
             # No namelist in options
             return nval
-        elif sec not in self.opts['Fun3D']:
+        elif sec not in self.opts['Overflow']:
             # No corresponding options section
             return nval
-        elif key not in self.opts['Fun3D'][sec]:
-            # Value not specified in the options namelist
+        elif key not in self.opts['Overflow'][sec]:
+            # Value not specified in the options namelist section
             return nval
         else:
             # Default to the options
             return self.opts_get_namelist_var(sec, key, i)
         
     # Get the project rootname
-    def GetProjectRootName(self, j=0):
-        """Get the project root name
-        
-        The JSON file overrides the value from the namelist file if appropriate
+    def GetPrefix(self, j=0):
+        """Get the project root name or OVERFLOW file prefix
         
         :Call:
-            >>> name = fun3d.GetProjectName(j=0)
+            >>> name = oflow.GetPrefix(j=0)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of global pyFun settings object
             *j*: :class:`int`
-                Run sequence index
+                Phase number
         :Outputs:
             *name*: :class:`str`
                 Project root name
         :Versions:
-            * 2015-10-18 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: First version
         """
-        # Read the namelist.
-        self.ReadNamelist(j)
-        # Get the namelist value.
-        nname = self.Namelist.GetVar('project', 'project_rootname')
-        # Check for options value
-        if nname is None:
-            # Use the options value.
-            return self.opts.get_project_rootname(j)
-        elif 'Fun3D' not in self.opts:
-            # No namelist options
-            return nname
-        elif 'project' not in self.opts['Fun3D']:
-            # No project options
-            return nname
-        elif 'project_rootname' not in self.opts['Fun3D']['project']:
-            # No rootname
-            return nname
-        else:
-            # Use the options value.
-            return self.opts.get_project_rootname(j)
-            
-    # Get the grid format
-    def GetGridFormat(self, j=0):
-        """Get the grid format
-        
-        The JSON file overrides the value from the namelist file
-        
-        :Call:
-            >>> fmt = fun3d.GetGridFormat(j=0)
-        :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of global pyFun settings object
-            *j*: :class:`int`
-                Run sequence index
-        :Outputs:
-            *fmt*: :class:`str`
-                Project root name
-        :Versions:
-            * 2015-10-18 ``@ddalle``: First version
-        """
-        return self.GetNamelistVar('raw_grid', 'grid_format', j)
-            
+        # Return the value from options
+        return self.opts.get_Prefix(j)
 
     # Get the current iteration number from :mod:`case`
     def CaseGetCurrentIter(self):
@@ -265,11 +263,11 @@ class Overflow(Cntl):
         
         
     # Get list of raw file names
-    def GetInputMeshFileNames(self):
-        """Return the list of mesh files from file
+    def GetMeshFileNames(self):
+        """Return the list of mesh files
         
         :Call:
-            >>> fname = fun3d.GetInputMeshFileNames()
+            >>> fname = fun3d.GetMeshFileNames()
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of control class containing relevant parameters
@@ -277,10 +275,10 @@ class Overflow(Cntl):
             *fname*: :class:`list` (:class:`str`)
                 List of file names read from root directory
         :Versions:
-            * 2015-10-19 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: First version
         """
         # Get the file names from *opts*
-        fname = self.opts.get_MeshFile()
+        fname = self.opts.get_MeshFiles()
         # Ensure list.
         if type(fname).__name__ not in ['list', 'ndarray']:
             # Convert to list.
@@ -289,60 +287,22 @@ class Overflow(Cntl):
             # Return output
             return fname
         
-    # Get list of mesh file names that should be in a case folder.
-    def GetProcessedMeshFileNames(self):
-        """Return the list of mesh files that are written
-        
-        :Call:
-            >>> fname = fun3d.GetProcessedMeshFileNames()
-        :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of control class containing relevant parameters
-        :Outputs:
-            *fname*: :class:`list` (:class:`str`)
-                List of file names written to case folders
-        :Versions:
-            * 2015-10-19 ``@ddalle``: First version
-        """
-        # Get the input file names.
-        fin = self.GetInputMeshFileNames()
-        # Initialize output
-        fname = []
-        # Get project name
-        fproj = self.GetProjectRootName()
-        # Special name extensions
-        ffmt = ["b8", "lb8", "b4", "lb4", "r8", "lr8", "r4", "lr4"]
-        # Loop through input files.
-        for f in fin:
-            # Get extension
-            fsplt = f.split('.')
-            fext = fsplt[-1]
-            # Use project name plus the same extension.
-            if len(f) > 1 and fsplt[-2] in ffmt:
-                # Copy second-to-last extension
-                fname.append('%s.%s.%s' % (fproj, fsplt[-2], fext))
-            else:
-                # Just the extension
-                fname.append("%s.%s" % (fproj, fext))
-        # Output
-        return fname
-        
     # Function to check if the mesh for case *i* is prepared
     def CheckMesh(self, i):
         """Check if the mesh for case *i* is prepared
         
         :Call:
-            >>> q = fun3d.CheckMesh(i)
+            >>> q = oflow.CheckMesh(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of control class containing relevant parameters
+            *oflow*: :class:`pyOver.overflow.Overflow`
+                Instance of OVERFLOW run control class
             *i*: :class:`int`
                 Index of the case to check
         :Outputs:
             *q*: :class:`bool`
                 Whether or not the mesh for case *i* is prepared
         :Versions:
-            * 2015-10-19 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: First version
         """
         # Check input
         if not type(i).__name__.startswith("int"):
@@ -373,7 +333,7 @@ class Overflow(Cntl):
             # Enter the folder.
             os.chdir(frun)
         # Get list of mesh file names
-        fmesh = self.GetProcessedMeshFileNames()
+        fmesh = self.GetMeshFileNames()
         # Check for presence
         for f in fmesh:
             # Check for the file
@@ -417,36 +377,26 @@ class Overflow(Cntl):
         # Check for the group folder and make it if necessary.
         if not os.path.isdir(fgrp):
             self.mkdir(fgrp)
-        # Check for groups with common meshes.
-        if self.opts.get_GroupMesh():
-            # Get the group index.
-            j = self.x.GetGroupIndex(i)
-            # Status update
-            print("  Group name: '%s' (index %i)" % (fgrp,j))
-            # Enter the group folder.
-            os.chdir(fgrp)
-        else:
-            # Check if the fun folder exists.
-            if not os.path.isdir(frun):
-                self.mkdir(frun)
-            # Status update
-            print("  Case name: '%s' (index %i)" % (frun,i))
-            # Enter the case folder.
-            os.chdir(frun)
+        # Check if the fun folder exists.
+        if not os.path.isdir(frun):
+            self.mkdir(frun)
+        # Status update
+        print("  Case name: '%s' (index %i)" % (frun,i))
+        # Enter the case folder.
+        os.chdir(frun)
         # ----------
         # Copy files
         # ----------
         # Get the names of the raw input files and target files
-        finp = self.GetInputMeshFileNames()
-        fmsh = self.GetProcessedMeshFileNames()
+        fmsh = self.GetMeshFileNames()
         # Loop through those files
-        for j in range(len(finp)):
+        for j in range(len(fmsh)):
             # Original and final file names
-            f0 = os.path.join(self.RootDir, finp[j])
+            f0 = os.path.join(self.RootDir, fmsh[j])
             f1 = fmsh[j]
-            # Copy fhe file.
+            # Link the file.
             if os.path.isfile(f0):
-                shutil.copyfile(f0, f1)
+                os.symlink(f0, f1)
         # -------
         # Cleanup
         # -------
@@ -466,16 +416,12 @@ class Overflow(Cntl):
         :Versions:
             * 2015-10-19 ``@ddalle``: First version
         """
-        # Check for the surface file.
-        if not (os.path.isfile('Components.i.tri')
-                or os.path.isfile('Components.tri')):
-            n = None
         # Input file.
-        if not os.path.isfile('fun3d.00.nml'): return True
+        if not os.path.isfile('over.00.nml'): return True
         # Settings file.
         if not os.path.isfile('case.json'): return True
         # Get mesh file names
-        fmsh = self.GetProcessedMeshFileNames()
+        fmsh = self.GetMeshFileNames()
         # Check for them.
         for f in fmsh:
             if not os.path.isfile(f): return True
@@ -487,10 +433,10 @@ class Overflow(Cntl):
         """Read a CAPE-style core-hour file from a case
         
         :Call:
-            >>> CPUt = fun3d.GetCPUTime(i)
+            >>> CPUt = oflow.GetCPUTime(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                FUN3D control interface
+            *oflow*: :class:`pyFun.fun3d.Fun3d`
+                OVERFLOW control interface
             *i*: :class:`int`
                 Case index
         :Outputs:

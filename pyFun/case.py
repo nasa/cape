@@ -28,7 +28,7 @@ def run_fun3d():
     # Check for RUNNING file.
     if os.path.isfile('RUNNING'):
         # Case already running
-        raise IOError('Fase already running!')
+        raise IOError('Case already running!')
     # Touch the running file.
     os.system('touch RUNNING')
     # Start timer
@@ -112,7 +112,7 @@ def RestartCase(i0=None):
     running a phase or attempting to run a phase.
     
     :Call:
-        >>> pyFun.case.RetartCase(i0=None)
+        >>> pyFun.case.RestartCase(i0=None)
     :Inputs:
         *i0*: :class:`int` | ``None``
             Run sequence index of the previous run
@@ -296,7 +296,6 @@ def GetProjectRootname(rc=None, i=None):
     return nml.GetRootname()
     
     
-
 # Function to read the local settings file.
 def ReadCaseJSON():
     """Read `RunControl` settings for local case

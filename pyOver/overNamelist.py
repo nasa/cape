@@ -442,7 +442,7 @@ class OverNamelist(cape.namelist2.Namelist2):
         :Versions:
             * 2016-02-01 ``@ddalle``: First version
         """
-        reutnr self.GetKeyInGroupName('FLOINP', 'TINF')        
+        return self.GetKeyInGroupName('FLOINP', 'TINF')        
         
     # Set the Reynolds number
     def SetReynoldsNumber(self, Re):

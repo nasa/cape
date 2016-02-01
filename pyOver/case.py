@@ -21,14 +21,14 @@ def run_overflow():
     """Setup and run the appropriate OVERFLOW command
     
     :Call:
-        >>> pyFun.case.run_fun3d()
+        >>> pyFun.case.run_overflow()
     :Versions:
-        * 2015-10-19 ``@ddalle``: First version
+        * 2016-02-01 ``@ddalle``: First version
     """
     # Check for RUNNING file.
     if os.path.isfile('RUNNING'):
         # Case already running
-        raise IOError('Fase already running!')
+        raise IOError('Case already running!')
     # Touch the running file.
     os.system('touch RUNNING')
     # Start timer
@@ -36,20 +36,20 @@ def run_overflow():
     # Get the run control settings
     rc = ReadCaseJSON()
     # Get the project name
-    fproj = GetProjectRootname()
+    fproj = GetPrefix()
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Set the restart file and flag if necessary.
-    SetRestartIter(rc)
+    # SetRestartIter(rc)
     # Delete any input file.
-    if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
-        os.remove('fun3d.nml')
+    if os.path.isfile('over.namelist') or os.path.islink('over.namelist'):
+        os.remove('over.namelist')
     # Create the correct namelist.
-    os.symlink('fun3d.%02i.nml'%i, 'fun3d.nml')
+    os.symlink('over.%02i.nml'%i, 'fun3d.nml')
     # Get the `nodet` or `nodet_mpi` command
-    cmdi = cmd.nodet(rc)
+    #cmdi = cmd.nodet(rc)
     # Call the command.
-    bin.callf(cmdi, f='fun3d.out')
+    bin.callf(cmdi, f='pyover.out')
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
     # Save time usage
@@ -57,21 +57,21 @@ def run_overflow():
     # Get the last iteration number
     n = GetCurrentIter()
     # Assuming that worked, move the temp output file.
-    os.rename('fun3d.out', 'run.%02i.%i' % (i, n))
+    os.rename('pyover.out', 'run.%02i.%i' % (i, n))
     # Rename the flow file, too.
-    os.rename('%s.flow' % fproj, '%s.%i.flow' % (fproj,n))
-    # Check current iteration count.
-    if n >= rc.get_LastIter():
+    #os.rename('%s.flow' % fproj, '%s.%i.flow' % (fproj,n))
+    # Check current iteration count and phase
+    if (i>=rc.get_PhaseSequence(-1)) and (n>=rc.get_LastIter()):
         return
     # Resubmit/restart if this point is reached.
-    StartCase()
+    RestartCase(i)
 
 # Function to call script or submit.
 def StartCase():
     """Start a case by either submitting it or calling with a system command
     
     :Call:
-        >>> pyFun.case.StartCase()
+        >>> pyOver.case.StartCase()
     :Versions:
         * 2014-10-06 ``@ddalle``: First version
         * 2015-10-19 ``@ddalle``: Copied from pyCart
@@ -87,6 +87,44 @@ def StartCase():
         # Submit the case.
         pbs = queue.pqsub(fpbs)
         return pbs
+    else:
+        # Simply run the case. Don't reset modules either.
+        run_overflow()
+        
+# Function to call script or submit
+def RestartCase(i0=None):
+    """Restart a case by either submitting it or calling with a system command
+    
+    This version of the command is called with :func:`run_overflow` after
+    running a phase or attempting to run a phase.
+    
+    :Call:
+        >>> pyOver.case.RestartCase(i0=None)
+    :Inputs:
+        *i0*: :class:`int` | ``None``
+            Phase index of the previous run
+    :Versions:
+        * 2016-02-01 ``@ddalle``: First version
+    """
+    # Get the config.
+    rc = ReadCaseJSON()
+    # Determine the run index.
+    i = GetPhaseNumber(rc)
+    # Check qsub status.
+    if not rc.get_qsub(i):
+        # Run the case.
+        run_overflow()
+    elif rc.get_Resubmit(i):
+        # Check for continuance
+        if (i0 is None) or (i>i0) or (not rc.get_Continue(i)):
+            # Get the name of the PBS file.
+            fpbs = GetPBSScript(i)
+            # Submit the case.
+            pbs = queue.pqsub(fpbs)
+            return pbs
+        else:
+            # Continue on the same job
+            run_overflow()
     else:
         # Simply run the case. Don't reset modules either.
         run_overflow()
@@ -217,6 +255,31 @@ def GetNamelist(rc=None):
     
     
 
+
+# Function to get prefix
+def GetPrefix(rc=None, i=None):
+    """Read OVERFLOW file prefix
+    
+    :Call:
+        >>> rname = pyFun.case.GetPrefix()
+        >>> rname = pyFun.case.GetPrefix(rc=None, i=None)
+    :Inputs:
+        *rc*: :class:`pyFun.options.runControl.RunControl`
+            Run control options
+        *i*: :class:`int`
+            Phase number
+    :Outputs:
+        *rname*: :class:`str`
+            Project prefix
+    :Versions:
+        * 2016-02-01 ``@ddalle``: First version
+    """
+    # Get the options if necessary
+    if rc is None:
+        rc = ReadCaseJSON()
+    # Read the prefix
+    return rc.GetPrefix(i)
+    
 # Function to read the local settings file.
 def ReadCaseJSON():
     """Read `RunControl` settings for local case
@@ -269,22 +332,24 @@ def GetCurrentIter():
 def GetHistoryIter():
     """Get the most recent iteration number for a history file
     
+    This function uses the last line from the file ``run.resid``
+    
     :Call:
         >>> n = pyOver.case.GetHistoryIter()
     :Outputs:
         *n*: :class:`int` | ``None``
             Most recent iteration number
     :Versions:
-        * 2015-10-20 ``@ddalle``: First version
+        * 2016-02-01 ``@ddalle``: First version
     """
     # Read the project rootname
     try:
-        rname = GetProjectRootname()
+        rname = GetPrefix()
     except Exception:
-        # No iterations
-        return None
+        # Use "run" as prefix
+        rname = "run"
     # Assemble file name.
-    fname = "%s_hist.dat" % rname
+    fname = "%s.resid" % rname
     # Check for the file.
     if not os.path.isfile(fname):
         # No history to read.
@@ -294,7 +359,7 @@ def GetHistoryIter():
         # Tail the file
         txt = bin.tail(fname)
         # Get the iteration number.
-        return int(txt.split()[0])
+        return int(txt.split()[1])
     except Exception:
         # Failure; return no-iteration result.
         return None
@@ -303,45 +368,31 @@ def GetHistoryIter():
 def GetRunningIter():
     """Get the most recent iteration number for a running file
     
+    This function uses the last line from the file ``resid.out``
+    
     :Call:
-        >>> n = pyFun.case.GetRunningIter()
+        >>> n = pyOver.case.GetRunningIter()
     :Outputs:
         *n*: :class:`int` | ``None``
             Most recent iteration number
     :Versions:
-        * 2015-10-19 ``@ddalle``: First version
+        * 2016-02-01 ``@ddalle``: First version
     """
+    # Assemble file name.
+    fname = "resid.out"
     # Check for the file.
-    if not os.path.isfile('fun3d.out'): return None
-    # Get the restart iteration line
+    if not os.path.isfile(fname):
+        # No history to read.
+        return None
+    # Check the file.
     try:
-        # Search for particular text
-        lines = bin.grep('the restart files contains', 'fun3d.out')
-        # Process iteration count from the RHS of the last such line
-        nr = int(lines[-1].split('=')[-1])
+        # Tail the file
+        txt = bin.tail(fname)
+        # Get the iteration number.
+        return int(txt.split()[1])
     except Exception:
-        # No restart iterations
-        nr = None
-    # Get the last few lines of :file:`fun3d.out`
-    lines = bin.tail('fun3d.out', 7).strip().split('\n')
-    lines.reverse()
-    # Initialize output
-    n = None
-    # Try each line.
-    for line in lines:
-        try:
-            # Try to use an integer for the first entry.
-            n = int(line.split()[0])
-            break
-        except Exception:
-            continue
-    # Output
-    if n is None:
-        return nr
-    elif nr is None:
-        return n
-    else:
-        return n + nr
+        # Failure; return no-iteration result.
+        return None
 
 # Function to get total iteration number
 def GetRestartIter():

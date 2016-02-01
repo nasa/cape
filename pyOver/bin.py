@@ -1,6 +1,6 @@
 """
-FUN3D binary interface module: :mod:`pyFun.bin`
-===============================================
+OVERFLOW binary interface module: :mod:`pyOver.bin`
+===================================================
 
 Direct system interfaces to FUN3D command-line tools
 """

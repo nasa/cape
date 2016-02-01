@@ -1,0 +1,80 @@
+#!/usr/bin/env python
+
+# Import the full module
+import pyOver
+# Automated report generation
+#import pyFun.report
+# Input parsing
+from cape.argread import readflagstar
+
+# Import docstring (makes the docstring available to module import)
+import pf_doc
+__doc__ = pf_doc.__doc__
+    
+# Check if run as a script.
+if __name__ == "__main__":
+    # Parse inputs.
+    a, kw = readflagstar(pyOver.os.sys.argv)
+    
+    # Check for a help flag.
+    if kw.get('h') or kw.get('help'):
+        print(__doc__)
+        pyOver.os.sys.exit()
+    
+    # Get constraints and convert text to list.
+    cons  = kw.get('cons',        '').split(',')
+    cons += kw.get('constraints', '').split(',')
+    # Set the constraints back into the keywords.
+    kw['cons'] = [con.strip() for con in cons]
+        
+    # Get file name.
+    fname = kw.get('f', 'pyOver.json')
+    
+    # Try to read it.
+    oflow = pyOver.Overflow(fname)
+    
+    # Process index list.
+    if ('I' in kw) and (kw['I'] != True):
+        # Turn into a single list
+        kw['I'] = oflow.x.ExpandIndices(kw['I'])
+    # Process inputs.
+    if kw.get('c'):
+        # Display status.
+        oflow.DisplayStatus(**kw)
+    elif kw.get('aero'):
+        # Check for component.
+        if kw['aero'] != True:
+            # Process requested component
+            kw['comp'] = kw['aero']
+        # Collect force and moment data.
+        oflow.Aero(**kw)
+    #elif kw.get('expand'):
+    #    # Archive folders
+    #    oflow.UntarAdapt(**kw)
+    #elif kw.get('archive'):
+    #    # Archive cases
+    #    oflow.ArchiveCases(**kw)
+    #elif kw.get('apply'):
+    #    # Apply JSON settings
+    #    oflow.ApplyFlowCartSettings(**kw)
+    #elif kw.get('explode'):
+    #    # Break out each named component.
+    #    oflow.ExplodeTri()
+    elif kw.get('report'):
+        # Get the report(s) to create.
+        if kw['report'] == True:
+            # All reports
+            reps = [fun3d.opts.get_ReportList()[0]]
+        else:
+            # User-specified report
+            reps = [kw['report']]
+        # Loop through reports.
+        for rep in reps:
+            # Get the report.
+            R = pyFlow.report.Report(oflow, rep)
+            # Update according to other options
+            R.UpdateReport(**kw)
+    else:
+        # Do it.
+        oflow.SubmitJobs(**kw)
+    

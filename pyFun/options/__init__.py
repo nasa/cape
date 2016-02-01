@@ -355,7 +355,8 @@ class Options(cape.options.Options):
         return self['Fun3D'].get_namelist_var(sec, key, i)
         
     # Copy documentation
-    for k in ['project', 'project_rootname', 'raw_grid', 'grid_format']:
+    for k in ['project', 'project_rootname', 'raw_grid', 'grid_format',
+    'namelist_var']:
         eval('get_'+k).__doc__ = getattr(Fun3DNml,'get_'+k).__doc__
         
     # Downselect
