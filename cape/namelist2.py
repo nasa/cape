@@ -16,7 +16,7 @@ file, for example the Mach number or CFL number.
 # Import the base file control class.
 from cape.fileCntl import FileCntl, re
 # Use vector testing
-from numpy import array
+import numpy as np
 
 # Subclass off of the file control class
 class Namelist2(FileCntl):
@@ -35,7 +35,6 @@ class Namelist2(FileCntl):
         self.fname = fname
         # Get the lists of indices of each namelist
         self.UpdateNamelist()
-        
         
     # Function to update the namelists
     def UpdateNamelist(self):
@@ -60,6 +59,43 @@ class Namelist2(FileCntl):
         # Save the names
         self.Names = [self.lines[i].strip().split()[0][1:] for i in J]
         
+        
+    # Find a list by name (and index if repeated)
+    def GetListByName(self, name, inml=0):
+        """Get index of list with a specific name
+        
+        :Call:
+            >>> i = nml.GetListByName(name, inml=0)
+        :Inputs:
+            *nml*: :class:`cape.name.ist2.Namelist2`
+                Old-style namelist interface
+            *inml*: :class:`int`
+                If namlist contains multiple copies, return match number *inml*
+        :Outputs:
+            *i*: :class:`int` | :class:`np.ndarray` (:class:`int`)
+                List index of requested match
+        :Versions:
+            * 2016-01-31 ``@ddalle``: First version
+        """
+        # Search based on lower-case names
+        Names = np.array([Name.lower() for Name in self.Names])
+        # Find the all indices that match
+        I = np.where(Names == name.lower())[0]
+        # Process output
+        if inml is None:
+            # Return all matches
+            return I
+        elif len(I) == 0:
+            # No match
+            return KeyError("Namelist '%s' has no list '%s'" % 
+                (self.fname, name))
+        elif len(I) < inml:
+            # Not enough matches
+            return ValueError("Namelist '%s' has fewer than %i lists named '%s'"
+                % (self.fname, inml, name))
+        else:
+            # Return the requested match
+            return I[inml]
     
     # Turn a namelist into a dict
     def ReadListIndex(self, inml):
@@ -133,9 +169,6 @@ class Namelist2(FileCntl):
         :Versions:
             * 2016-01-29 ``@ddalle``: First version
         """
-        # -----------------
-        # Get section index
-        # -----------------
         # Get index of starting line
         ibeg = self.ibeg[inml]
         # Get index of end line
@@ -155,6 +188,32 @@ class Namelist2(FileCntl):
             if q: break
         # Output
         return v
+        
+    # Search for a specific key by name
+    def GetKeyFromListName(self, name, key, inml=0):
+        """Get the value of a key from a section by name
+        
+        :Call:
+            >>> v = nml.GetKeyFromListName(name, key, inml=0)
+        :Inputs:
+            *nml*: :class:`cape.namelist2.Namelist2`
+                Old-style Fortran namelist interface
+            *name*: :class:`str`
+                List name to search for
+            *key*: :class:`str`
+                Name of key to search for
+            *inml*: :class:`int`
+                If multiple sections have same name, use match number *inml*
+        :Outputs:
+            *v*: :class:`any`
+                Converted value
+        :Versions:
+            * 2016-01-31 ``@ddalle``: First version
+        """
+        # Find matches
+        i = self.GetListByName(name, inml)
+        # Get the key from that list
+        return self.GetKeyFromListIndex(i, key)
         
     # Function to process a single line
     def ReadKeysFromLine(self, line):
@@ -225,6 +284,31 @@ class Namelist2(FileCntl):
                 return True, self.ConvertToVal(vi)
         # If this point is reached, the key name is hiding in a comment or str
         return False, None
+        
+    # Set a key
+    def SetKeyInListName(self, name, key, val, inml=0):
+        """Set the value of a key from a section by name
+        
+        :Call:
+            >>> nml.SetKeyInListName(name, key, val, inml=0)
+        :Inputs:
+            *nml*: :class:`cape.namelist2.Namelist2`
+                Old-style Fortran namelist interface
+            *name*: :class:`str`
+                List name to search for
+            *key*: :class:`str`
+                Name of key to search for
+            *val*: :class:`any`
+                Converted value
+            *inml*: :class:`int`
+                If multiple sections have same name, use match number *inml*
+        :Versions:
+            * 2016-01-31 ``@ddalle``: First version
+        """
+        # Find matches
+        i = self.GetListByName(name, inml)
+        # Get the key from that list
+        return self.SetKeyInListIndex(i, key, val)
         
     # Set a key
     def SetKeyInListIndex(self, inml, key, val):
