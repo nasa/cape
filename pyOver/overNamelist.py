@@ -7,10 +7,10 @@ manipulating OVERFLOW namelists.
 """
 
 # Import the base file control class.
-from cape.namelist2 import Namelist2, np
+import cape.namelist2
 
 # Base this class off of the main file control class.
-class OverNamelist(Namelist2):
+class OverNamelist(cape.namelist2.Namelist2):
     """
     File control class for :file:`over.namelist`
     ============================================
@@ -57,9 +57,9 @@ class OverNamelist(Namelist2):
             * 2016-01-31 ``@ddalle``: First version
         """
         # Get list indices of the 'GRDNAM' lists
-        I = self.GetListByName('GRDNAM', None)
+        I = self.GetGroupByName('GRDNAM', None)
         # Save the names as an array (for easier searching)
-        self.GridNames = [self.GetKeyFromListIndex(i, 'NAME') for i in I]
+        self.GridNames = [self.GetKeyFromGroupIndex(i, 'NAME') for i in I]
         # Save the indices of those lists
         self.iGrid = I
         
@@ -88,38 +88,122 @@ class OverNamelist(Namelist2):
             raise KeyError("No grid named '%s' was found" % grdnam)
         # Return the index
         return self.GridNames.index(grdnam)
-        
+    
     # Get grid number (alias)
-    def GetGridNumber(self, grdnam):
-        """Alias of :func:`pyOver.overNamelist.OverNamelist.GetGridNumber`
-        
-        :Versions:
-            * 2016-01-31 ``@ddalle``: First version
-        """
-        return self.GetGridNumberByName(grdnam)
+    GetGridNumber = GetGridNumberByName
         
     # Get a quantity from a grid (with fallthrough)
-    def GetKeyFromGrid(self, grdnam, name, key):
-        pass
+    def GetKeyFromGrid(self, grdnam, grp, key):
+        """Get the value of a key for a grid with a specific name
+        
+        This function uses fall-through, so if a setting is not explicitly
+        defined for grid *grdnam*, it will check the preceding grid, and the
+        grid before that, etc.
+        
+        :Call:
+            >>> val = nml.GetKeyFromGrid(grdnam, grp, key)
+        :Inputs:
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
+            *grdnam*: :class:`str`
+                Name of the grid
+            *grp*: :class:`str`
+                Name of the namelist group of key to query
+            *key*: :class:`str`
+                Name of the key to query
+        :Outputs:
+            *val*: :class:`str` | :class:`int` | :class:`float` | :class:`bool`
+                Value from the namelist
+        :Versions:
+            * 2016-02-01 ``@ddalle``: First version
+        """
+        # Use lower case for Fortran consistency
+        grpl = grp.lower()
+        # Get the indices of the requested grid
+        jbeg, jend = self.GetGroupIndexByGridName(grdnam)
+        # Get the list of group names
+        grps = [self.Groups[j].lower() for j in range(jbeg,jend)]
+        # Check if the group is in the requested grid definition
+        if grpl in grps:
+            # Group explicitly in *grdnam* defn
+            jgrp = jbeg + grps.index(grpl)
+        else:
+            # Get the groups for grid 0 (i.e. first grid)
+            jbeg, jend = self.GetGroupIndexByGridName(0)
+            grps = [self.Groups[j].lower() for j in range(jbeg,jend)]
+            # If not in grid 0, this is not a valid request
+            if grpl not in grps:
+                raise KeyError("No group named '%s' in grid definitions" % grp)
+            # Otherwise, loop backwards until we find it (fallthrough)
+            igrid = self.GetGridNumberByName(grdnam)
+            # Loop until found
+            while igrid > 0:
+                # Move backwards a grid
+                igrid -= 1
+                # Get the groups for that grid
+                jbeg, jend = self.GetGroupIndexByGridName(igrid)
+                grps = [self.Groups[j].lower() for j in range(jbeg,jend)]
+                # Test for a match
+                if grpl in grps:
+                    # Use this group index; discontinue search
+                    jgrp = jbeg + grps.index(grpl)
+                    break
+        # Get the key from this group.
+        return self.GetKeyFromGroupIndex(jgrp, key)
+        
+    # Set a quantity for a specific grid
+    def SetKeyForGrid(self, grdnam, grp, key, val):
+        """Set the value of a key for a grid with a specific name
+        
+        :Versions:
+            * 2016-02-01 ``@ddalle``: First version
+        """
+        # Use lower-case group name for Fortran consistency
+        grpl = grp.lower()
+        # Get the indices of the requested grid's groups
+        jbeg, jend = self.GetGroupIndexByGridName(grdnam)
+        # Get the list of group names
+        grps = [self.Groups[j].lower() for j in range(jbeg,jend)]
+        # Check if the group is in the requested grid
+        if grpl in grps:
+            # Get the overall index of the requested group
+            jgrp = jbeg + grps.index(grpl)
+        else:
+            # Insert a new group at the end of this grid definition
+            self.InsertGrup(jend, grp)
+            # Use the new group
+            jgrp = jend
+        # Set the key in that group
+        self.SetKeyInGroupIndex(jgrp, key, val)
         
     # Get list of lists in a grid
-    def GetListNamesByGridName(self, grdnam):
+    def GetGroupNamesByGridName(self, grdnam):
         """Get the list names in a grid definition
         
+        :Call:
+            >>> grps = nml.GetGroupNamesByGridName(grdnam)
+        :Inputs:
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
+            *grdnam*: :class:`str`
+                Name of the grid
+        :Outputs:
+            *grps*: :class:`list` (:class:`str`)
+                Group of group names in the grid *grdnam* definition
         :Versions:
             * 2016-01-31 ``@ddalle``: First version
         """
         # Get the start and end indices
-        jbeg, jend = self.GetListIndexByGridName
+        jbeg, jend = self.GetGroupIndexByGridName(grdnam)
         # Return the corresponding list
-        return [self.Names[j] for j in range(jbeg,jend+1)]
+        return [self.Groups[j] for j in range(jbeg,jend)]
     
     # Get start and end of list indices in a grid
-    def GetListIndexByGridName(self, grdnam):
+    def GetGroupIndexByGridName(self, grdnam):
         """Get the indices of the first and last list in a grid by name
         
         :Call:
-            >>> jbeg, jend = nml.GetListIndexByGridName(grdnam)
+            >>> jbeg, jend = nml.GetGroupIndexByGridName(grdnam)
         :Inputs:
             *nml*: :class:`pyOver.overNamelist.OverNamelist`
                 Interface to OVERFLOW input namelist
@@ -142,13 +226,86 @@ class OverNamelist(Namelist2):
         # Get the list index of the last list in this grid
         if grdnum == nGrid:
             # Use the last list
-            jend = len(self.Names)
+            jend = len(self.Groups) + 1
         else:
             # Use the list before the start of the next grid
-            jend = self.iGrid[grdnum+1] - 1
+            jend = self.iGrid[grdnum+1]
         # Output
         return jbeg, jend
         
+    # Get FLOINP value
+    def GetFLOINP(self, key):
+        """Return value of key from the $FLOINP group
+        
+        :Call:
+            >>> val = nml.GetFLOINP(key)
+        :Inputs:
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
+            *key*: :class:`str`
+                Name of field to query
+        :Outputs:
+            *val*: :class:`float` | :class:`list`
+                Value of field *key* in group ``"FLOINP"``
+        :Versions:
+            * 2016-02-01 ``@ddalle``
+        """
+        return self.GetKeyInGroupName('FLOINP', key)
+        
+    # Set FLOINP value
+    def SetFLOINP(self, key, val):
+        """Set the value of key in the $FLOINP group
+        
+        :Call:
+            >>> nml.SetFLOINP(key, val)
+        :Inputs:
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
+            *key*: :class:`str`
+                Name of field to query
+            *val*: :class:`float` | :class:`list`
+                Value of field *key* in group ``"FLOINP"``
+        :Versions:
+            * 2016-02-01 ``@ddalle``
+        """
+        self.SetKeyInGroupName('FLOINP', key, val)
+        
+    # Get GLOBAL value
+    def GetGLOBAL(self, key):
+        """Return value of key from the $GLOBAL group
+        
+        :Call:
+            >>> val = nml.GetGLOBAL(key)
+        :Inputs:
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
+            *key*: :class:`str`
+                Name of field to query
+        :Outputs:
+            *val*: :class:`int` | :class:`bool` | :class:`list`
+                Value of field *key* in group ``"GLOBAL"``
+        :Versions:
+            * 2016-02-01 ``@ddalle``
+        """
+        return self.GetKeyInGroupName('GLOBAL', key)
+        
+    # Set GLOBAL value
+    def SetGLOBAL(self, key, val):
+        """Set value of key from the $GLOBAL group
+        
+        :Call:
+            >>> nml.GetGLOBAL(key, val)
+        :Inputs:
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
+            *key*: :class:`str`
+                Name of field to query
+            *val*: :class:`int` | :class:`bool` | :class:`list`
+                Value of field *key* in group ``"GLOBAL"``
+        :Versions:
+            * 2016-02-01 ``@ddalle``
+        """
+        self.SetKeyInGroupName('GLOBAL', key, val)
         
     # Function set the Mach number.
     def SetMach(self, mach):
@@ -157,34 +314,33 @@ class OverNamelist(Namelist2):
         :Call:
             >>> nml.SetMach(mach)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
             *mach*: :class:`float`
                 Mach number
         :Versions:
-            * 2015-10-15 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: First version
         """
         # Replace the line or add it if necessary.
-        self.SetVar('reference_physical_properties', 'mach_number', mach)
+        self.SetKeyInGroupName('FLOINP', 'FSMACH', mach)
         
     # Function to get the current Mach number.
     def GetMach(self):
-        """
-        Find the current Mach number
+        """Find the current Mach number
         
         :Call:
             >>> mach = nml.GetMach()
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
         :Outputs:
             *M*: :class:`float` (or :class:`str`)
                 Mach number specified in :file:`input.cntl`
         :Versions:
-            * 2014-06-10 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: First version
         """
         # Get the value.
-        return self.GetVar('reference_physical_properties', 'mach_number')
+        return self.GetKeyFromGroupName('FLOINP', 'FSMACH')
         
     # Function to set the angle of attack
     def SetAlpha(self, alpha):
@@ -193,16 +349,33 @@ class OverNamelist(Namelist2):
         :Call:
             >>> nml.SetAlpha(alpha)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
             *alpha*: :class:`float`
                 Angle of attack
         :Versions:
-            * 2015-10-15 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: First version
         """
         # Replace the line or add it if necessary.
-        self.SetVar('reference_physical_properties', 
-            'angle_of_attack', alpha)
+        self.SetKeyInGroupName('FLOINP', 'ALPHA', alpha)
+        
+    # Get the angle of attack
+    def GetAlpha(self):
+        """Return the angle of attack
+        
+        :Call:
+            >>> alpha = nml.GetAlpha()
+        :Inputs:
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
+        :Outputs:
+            *alpha*: :class:`float`
+                Angle of attack
+        :Versions:
+            * 2016-02-01 ``@ddalle``: First version
+        """
+        # Get the value
+        return self.GetKeyFromGroupName('FLOINP', 'ALPHA')
         
     # Function to set the sideslip angle
     def SetBeta(self, beta):
@@ -211,36 +384,32 @@ class OverNamelist(Namelist2):
         :Call:
             >>> nml.SetBeta(beta)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
             *beta*: :class:`float`
                 Sideslip angle
         :Versions:
-            * 2014-06-04 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: First version
         """
         # Replace the line or add it if necessary.
-        self.SetVar('reference_physical_properties',
-            'angle_of_yaw', beta)
+        self.SetKeyInGroupName('FLOINP', 'BETA', beta)
         
-    # Set temperature unites
-    def SetTemperatureUnits(self, units=None):
-        """Set the temperature units
+    # Get the slideslip angle
+    def GetBeta(self):
+        """Get the sideslip angle
         
         :Call:
-            >>> nml.SetTemperatureUnits(units)
+            >>> beta = nml.GetBeta()
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
-            *units*: :class:`str`
-                Units, defaults to ``"Rankine"``
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
+        :Outputs:
+            *beta*: :class:`float`
+                Sideslip angle
         :Versions:
-            * 2015-10-15 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: First version
         """
-        # Check for defaults.
-        if units is None: units = "Rankine"
-        # Replace the line or add it if necessary.
-        self.SetVar('reference_physical_properties',
-            'temperature_units', units)
+        return self.GetKeyFromGroupName('FLOINP', 'BETA')
         
     # Set the temperature
     def SetTemperature(self, T):
@@ -249,14 +418,31 @@ class OverNamelist(Namelist2):
         :Call:
             >>> nml.SetTemperature(T)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
             *T*: :class:`float`
                 Freestream temperature
         :Versions:
-            * 2015-10-15 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: First version
         """
-        self.SetVar('reference_physical_properties', 'temperature', T)
+        self.SetKeyInGroupName('FLOINP', 'TINF', T)
+        
+    # Get the temperature
+    def GetTemperature(self):
+        """Get the freestream temperature
+        
+        :Call:
+            >>> T = nml.GetTemperature()
+        :Inputs:
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
+        :Outputs:
+            *T*: :class:`float`
+                Freestream temperature
+        :Versions:
+            * 2016-02-01 ``@ddalle``: First version
+        """
+        reutnr self.GetKeyInGroupName('FLOINP', 'TINF')        
         
     # Set the Reynolds number
     def SetReynoldsNumber(self, Re):
@@ -265,14 +451,31 @@ class OverNamelist(Namelist2):
         :Call:
             >>> nml.SetReynoldsNumber(Re)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
             *Re*: :class:`float`
                 Reynolds number per unit length
         :Versions:
-            * 2015-10-15 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: First version
         """
-        self.SetVar('reference_physical_properties', 'reynolds_number', Re)
+        self.SetKeyInGroupName('FLOINP', 'REY', Re)
+        
+    # Get the Reynolds number
+    def GetReynoldsNumber(self):
+        """Get the Reynolds number per unit length
+        
+        :Call:
+            >>> Re = nml.GetReynoldsNumber()
+        :Inputs:
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
+        :Outputs:
+            *Re*: :class:`float`
+                Reynolds number per unit length
+        :Versions:
+            * 2016-02-01 ``@ddalle``: First version
+        """
+        return self.GetKeyInGroupName('FLOINP', 'REY')
         
     # Set the number of iterations
     def SetnIter(self, nIter):
@@ -281,34 +484,64 @@ class OverNamelist(Namelist2):
         :Call:
             >>> nml.SetnIter(nIter)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
             *nIter*: :class:`int`
                 Number of iterations to run
         :Versions:
-            * 2015-10-20 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: First version
         """
-        self.SetVar('code_run_control', 'steps', nIter)
+        self.SetKeyInGroupName('GLOBAL', 'NSTEPS', nIter)
         
-    
-    # Get the project root name
-    def GetRootname(self):
-        """Get the project root name
+    # Get the number of iterations
+    def GetnIter(self):
+        """Get the number of iterations
         
         :Call:
-            >>> name = nml.GetRootname()
+            >>> nIter = nml.GetnIter()
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
         :Outputs:
-            *name*: :class:`str`
-                Name of project
+            *nIter*: :class:`int`
+                Number of iterations to run
         :Versions:
-            * 2015-10-18 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: First version
         """
-        return self.GetVar('project', 'project_rootname')
-    
-    
+        return self.GetKeyInGroupName('GLOBAL', 'NSTEPS')
+        
+    # Set the restart setting
+    def SetRestart(self, q=True):
+        """Set or unset restart flag
+        
+        :Call:
+            >>> nml.SetRestart(q=True)
+        :Inputs:
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
+            *q*: :class:`bool`
+                Whether or not to run as a restart
+        :Versions:
+            * 2016-02-01 ``@ddalle``: First version
+        """
+        self.SetKeyInGroupName('GLOBAL', 'RESTRT', q)
+        
+    # Get the restart setting
+    def GetRestart(self):
+        """Get the current restart flag
+        
+        :Call:
+            >>> q = nml.GetRestart()
+        :Inputs:
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not to run as a restart
+        :Versions:
+            * 2016-02-01 ``@ddalle``: First version
+        """
+        return self.GetKeyInGroupName('GLOBAL', 'RESTRT')
     
     
 # class Namelist

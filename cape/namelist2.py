@@ -57,61 +57,88 @@ class Namelist2(FileCntl):
         # Save the end indices
         self.iend = self.GetIndexSearch('\s+[&$]END')
         # Save the names
-        self.Names = [self.lines[i].strip().split()[0][1:] for i in J]
+        self.Groups = [self.lines[i].strip().split()[0][1:] for i in J]
         
-        
-    # Find a list by name (and index if repeated)
-    def GetListByName(self, name, inml=0):
-        """Get index of list with a specific name
+    # Add a group
+    def InsertGroup(self, igrp, grp):
+        """Insert a group as group number *igrp*
         
         :Call:
-            >>> i = nml.GetListByName(name, inml=0)
+            >>> nml.InsertGroup(igrp, grp)
+        :Inputs:
+            *nml*: :class:`cape.namelist2.Namelist2`
+                Old-style namelist interface
+            *igrp*: :class:`int`
+                Index of location at which to insert group
+            *grp*: :class:`str`
+                Name of the group to insert
+        :Versions:
+            * 2016-02-01 ``@ddalle``: First version
+        """
+        # Get the index of the group
+        ibeg = self.ibeg[igrp]
+        # Query the current starting character
+        gchar = self.lines[ibeg].lstrip()[0]
+        # Insert the lines in reverse order
+        self.lines.insert(ibeg, "    %sEND\n" % gchar)
+        self.lines.insert(ibeg, " %s%s\n" % (gchar, grp))
+        # Update the namelist info
+        self.UpdateNamelist()
+        
+    # Find a list by name (and index if repeated)
+    def GetGroupByName(self, grp, igrp=0):
+        """Get index of group with a specific name
+        
+        :Call:
+            >>> i = nml.GetGroupByName(grp, igrp=0)
         :Inputs:
             *nml*: :class:`cape.name.ist2.Namelist2`
                 Old-style namelist interface
-            *inml*: :class:`int`
-                If namlist contains multiple copies, return match number *inml*
+            *grp*: :class:`str`
+                Name of namelist group
+            *igrp*: :class:`int`
+                If namelist contains multiple copies, return match number *igrp*
         :Outputs:
             *i*: :class:`int` | :class:`np.ndarray` (:class:`int`)
-                List index of requested match
+                Group index of requested match
         :Versions:
             * 2016-01-31 ``@ddalle``: First version
         """
         # Search based on lower-case names
-        Names = np.array([Name.lower() for Name in self.Names])
+        grps = np.array([gi.lower() for gi in self.Groups])
         # Find the all indices that match
-        I = np.where(Names == name.lower())[0]
+        I = np.where(grps == grp.lower())[0]
         # Process output
-        if inml is None:
+        if igrp is None:
             # Return all matches
             return I
         elif len(I) == 0:
             # No match
             return KeyError("Namelist '%s' has no list '%s'" % 
-                (self.fname, name))
-        elif len(I) < inml:
+                (self.fname, grp))
+        elif len(I) < igrp:
             # Not enough matches
             return ValueError("Namelist '%s' has fewer than %i lists named '%s'"
-                % (self.fname, inml, name))
+                % (self.fname, igrp, grp))
         else:
             # Return the requested match
-            return I[inml]
+            return I[igrp]
     
     # Turn a namelist into a dict
-    def ReadListIndex(self, inml):
-        """Read namelist *inml* and return a dictionary
+    def ReadGroupIndex(self, igrp):
+        """Read group *igrp* and return a dictionary
         
         The output is a :class:`dict` such as the following
         
             ``{'FSMACH': '0.8', 'ALPHA': '2.0'}``
         
         :Call:
-            >>> d = nml.ReadListIndex(inml)
+            >>> d = nml.ReadGroupIndex(igrp)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
                 Old-style namelist interface
-            *inml*: :class:`int`
-                List index to read
+            *igrp*: :class:`int`
+                Group index to read
         :Outputs:
             *d*: :class:`dict` (:class:`str`)
                 Raw (uncoverted) values of the dict
@@ -121,14 +148,14 @@ class Namelist2(FileCntl):
         # Initialize the dictionary
         d = {}
         # Get index of starting line
-        ibeg = self.ibeg[inml]
+        ibeg = self.ibeg[igrp]
         # Get index of end line
-        if inml == len(self.ibeg):
+        if igrp == len(self.ibeg):
             # Use the last line
             iend = len(self.lines)+1
         else:
             # Use the line before the start of the next line
-            iend = self.ibeg[inml+1]
+            iend = self.ibeg[igrp+1]
         # Get the lines
         lines = [line.strip() for line in self.lines[ibeg:iend]]
         # Process the first line to catch keys in the opening line
@@ -153,11 +180,11 @@ class Namelist2(FileCntl):
         return d
         
     # Search for a specific key in a numbered section
-    def GetKeyFromListIndex(self, inml, key):
+    def GetKeyFromGroupIndex(self, igrp, key):
         """Get the value of a key from a specific section
         
         :Call:
-            >>> v = nml.GetKeyFromListIndex(inml, key)
+            >>> v = nml.GetKeyFromGroupIndex(igrp, key)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
                 Old-style namelist interface
@@ -170,14 +197,14 @@ class Namelist2(FileCntl):
             * 2016-01-29 ``@ddalle``: First version
         """
         # Get index of starting line
-        ibeg = self.ibeg[inml]
+        ibeg = self.ibeg[igrp]
         # Get index of end line
-        if inml == len(self.ibeg):
+        if igrp == len(self.ibeg):
             # Use the last line
             iend = len(self.lines)+1
         else:
             # Use the line before the start of the next line
-            iend = self.ibeg[inml+1]
+            iend = self.ibeg[igrp+1]
         # Initialize the boolean indicator of a match
         q = False
         # Loop through the lines
@@ -190,20 +217,20 @@ class Namelist2(FileCntl):
         return v
         
     # Search for a specific key by name
-    def GetKeyFromListName(self, name, key, inml=0):
-        """Get the value of a key from a section by name
+    def GetKeyFromGroupName(self, grp, key, igrp=0):
+        """Get the value of a key from a section by group name
         
         :Call:
-            >>> v = nml.GetKeyFromListName(name, key, inml=0)
+            >>> v = nml.GetKeyFromGroupName(grp, key, igrp=0)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
                 Old-style Fortran namelist interface
-            *name*: :class:`str`
-                List name to search for
+            *grp*: :class:`str`
+                Group name to search for
             *key*: :class:`str`
                 Name of key to search for
-            *inml*: :class:`int`
-                If multiple sections have same name, use match number *inml*
+            *igrp*: :class:`int`
+                If multiple sections have same name, use match number *igrp*
         :Outputs:
             *v*: :class:`any`
                 Converted value
@@ -211,9 +238,9 @@ class Namelist2(FileCntl):
             * 2016-01-31 ``@ddalle``: First version
         """
         # Find matches
-        i = self.GetListByName(name, inml)
+        i = self.GetGroupByName(grp, igrp)
         # Get the key from that list
-        return self.GetKeyFromListIndex(i, key)
+        return self.GetKeyFromGroupIndex(i, key)
         
     # Function to process a single line
     def ReadKeysFromLine(self, line):
@@ -286,44 +313,44 @@ class Namelist2(FileCntl):
         return False, None
         
     # Set a key
-    def SetKeyInListName(self, name, key, val, inml=0):
-        """Set the value of a key from a section by name
+    def SetKeyInGroupName(self, grp, key, val, igrp=0):
+        """Set the value of a key from a group by name
         
         :Call:
-            >>> nml.SetKeyInListName(name, key, val, inml=0)
+            >>> nml.SetKeyInGroupName(grp, key, val, igrp=0)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
                 Old-style Fortran namelist interface
-            *name*: :class:`str`
-                List name to search for
+            *grp*: :class:`str`
+                Group name to search for
             *key*: :class:`str`
                 Name of key to search for
             *val*: :class:`any`
                 Converted value
-            *inml*: :class:`int`
-                If multiple sections have same name, use match number *inml*
+            *igrp*: :class:`int`
+                If multiple sections have same name, use match number *igrp*
         :Versions:
             * 2016-01-31 ``@ddalle``: First version
         """
         # Find matches
-        i = self.GetListByName(name, inml)
+        i = self.GetGroupByName(grp, igrp)
         # Get the key from that list
-        return self.SetKeyInListIndex(i, key, val)
+        return self.SetKeyInGroupIndex(i, key, val)
         
     # Set a key
-    def SetKeyInListIndex(self, inml, key, val):
-        """Set the value of a key in a list by index
+    def SetKeyInGroupIndex(self, igrp, key, val):
+        """Set the value of a key in a group by index
         
         If the key is not set in the present text, add it as a new line.  The
         contents of the file control's text (in *nml.lines*) will be edited, and
         the list indices will be updated if a line is added.
         
         :Call:
-            >>> nml.SetKeyInListIndex(inml, key, val)
+            >>> nml.SetKeyInGroupIndex(igrp, key, val)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
                 File control instance for old-style Fortran namelist
-            *inml*: :class:`int`
+            *igrp*: :class:`int`
                 Index of namelist to edit
             *key*: :class:`str`
                 Name of key to alter or set
@@ -333,8 +360,8 @@ class Namelist2(FileCntl):
             * 2015-01-30 ``@ddalle``: First version
         """
         # Get index of starting and end lines
-        ibeg = self.ibeg[inml]
-        iend = self.iend[inml]
+        ibeg = self.ibeg[igrp]
+        iend = self.iend[igrp]
         # Initialize the boolean indicator of a match in existing text
         q = False
         # Loop through the lines
@@ -360,7 +387,7 @@ class Namelist2(FileCntl):
         """Set the value of a key in a line if the key is already in the line
         
         :Call:
-            >>> q, line = nml.SetKeyFromLine(line, key, val)
+            >>> q, line = nml.SetKeyInLine(line, key, val)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
                 Old-style namelist interface
@@ -402,9 +429,14 @@ class Namelist2(FileCntl):
             tbeg += tend[:tend.index(txt)]
             # Update the text remaining
             tend = txt
-        # Convert value to text
-        sval = self.ConvertToText(val)
-        line = "%s%s = %s, %s\n" % (tbeg, key, sval, tend)
+        # If the value is ``None``, delete the entry.
+        if val is None:
+            # Use the beginning and remaining text Only
+            line = "%s%s\n" % (tbeg.rstrip(), tend)
+        else:
+            # Convert value to text
+            sval = self.ConvertToText(val)
+            line = "%s%s = %s,%s\n" % (tbeg, key, sval, tend)
         return True, line
     
             

@@ -62,7 +62,7 @@ class Options(cape.options.Options):
             for k in d:
                 kw[k] = d[k]
         # Read the defaults.
-        defs = getPyFunDefaults()
+        defs = getPyOverDefaults()
         
         # Apply the defaults.
         kw = applyDefaults(kw, defs)

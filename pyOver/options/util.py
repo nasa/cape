@@ -31,9 +31,7 @@ _fname = os.path.abspath(__file__)
 PyOverFolder = os.path.split(os.path.split(_fname)[0])[0]
 
 # Backup default settings
-rc["project_rootname"]     ="pyfun"
-rc["grid_format"]          = "aflr3"
-rc["nodet_animation_freq"] = -1
+rc["project_rootname"]     ="run"
     
 
 # Function to ensure scalar from above
@@ -72,11 +70,10 @@ def getPyOverDefaults():
         * 2015-12-29 ``@ddalle``: OVERFLOW version
     """
     # Read the fixed default file.
-    lines = open(os.path.join(PyFunFolder, 
+    lines = open(os.path.join(PyOverFolder, 
         "..", "settings", "pyOver.default.json")).readlines()
     # Strip comments and join list into a single string.
     lines = expandJSONFile(lines)
     # Process the default input file.
     return json.loads(lines)
-
-
+    
