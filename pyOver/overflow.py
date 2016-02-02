@@ -784,10 +784,10 @@ class Overflow(Cntl):
         """Write the PBS script(s) for a given case
         
         :Call:
-            >>> fun3d.WritePBS(i)
+            >>> oflow.WritePBS(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of control class containing relevant parameters
+            *oflow*: :class:`pyOver.overflow.Overflow`
+                Instance of pyOver control class
             *i*: :class:`int`
                 Run index
         :Versions:
@@ -845,10 +845,10 @@ class Overflow(Cntl):
         the Cart3D solver only in that it calles the correct *case* module.
         
         :Call:
-            >>> pbs = cart3d.CaseStartCase()
+            >>> pbs = oflow.CaseStartCase()
         :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
+            *oflow*: :class:`pyOver.overflow.Overflow`
+                Instance of pyOver control class
         :Outputs:
             *pbs*: :class:`int` or ``None``
                 PBS job ID if submitted successfully
