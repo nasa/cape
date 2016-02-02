@@ -560,7 +560,7 @@ class Overflow(Cntl):
         for (key, func) in zip(keys, funcs):
             # Apply it.
             exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
-        # Write the fun3d.nml file(s).
+        # Write the over.namelist file(s).
         self.PrepareNamelist(i)
         # Write a JSON file with
         self.WriteCaseJSON(i)
@@ -676,7 +676,7 @@ class Overflow(Cntl):
                 # Apply the options
                 self.Namelist.ApplyDictToGrid(grdnam, ogrd)
             # Name of output file.
-            fout = os.path.join(frun, '%s.%02i.nml' % (self.GetPrefix(j), j+1))
+            fout = os.path.join(frun, '%s.%02i.inp' % (self.GetPrefix(j), j+1))
             # Write the input file.
             self.Namelist.Write(fout)
         # Return to original path.
@@ -855,10 +855,8 @@ class Overflow(Cntl):
         :Versions:
             * 2015-10-14 ``@ddalle``: First version
         """
-        print("Label 029: Overflow.CaseStartCase")
         return case.StartCase()
         
         
-        
-# class Fun3d
+# class Overflow
 
