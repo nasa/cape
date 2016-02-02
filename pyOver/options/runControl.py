@@ -47,12 +47,31 @@ class overrun(odict):
             *i*: :class:`int` | ``None``
                 Phase number
         :Outputs:
-            *fcmd*: :class:`cmd`
+            *fcmd*: :class:`str`
                 Name of the command-line function to use
         :Versions:
             * 2016-02-01 ``@ddalle``: First version
         """
-        def self.get_key('cmd', i, rck='overrun_cmd')
+        return self.get_key('cmd', i, rck='overrun_cmd')
+        
+    # Function to get extra OVERFLOW arguments
+    def get_overrun_args(self, i=None):
+        """Get extra arguments to *overrun_cmd*
+        
+        :Call:
+            >>> fargs = opts.get_overrun_args(i)
+        :Inputs:
+            *opts*: :class:`pyOver.options.Options`
+                Options interface
+            *i*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *fargs*: :class:`str`
+                Extra command-line arguments/flags
+        :Versions:
+            * 2016-02-02 ``@ddalle``: First version
+        """
+        return self.get_key('args', i, rck='overrun_args')
 # class overrun
 
 # Class for Report settings
@@ -107,8 +126,13 @@ class RunControl(cape.options.runControl.RunControl):
         self._overrun()
         return self["overrun"].get_overrun_cmd(i)
         
+    # Extra ``overrun`` arguments
+    def get_overrun_args(self, i=None):
+        self._overrun()
+        return self["overrun"].get_overrun_args(i)
+        
     # Copy documentation
-    for k in ['aux', 'cmd']:
+    for k in ['aux', 'cmd', 'args']:
         eval('get_overrun_'+k).__doc__ = getattr(
             overrun,'get_overrun_'+k).__doc__
     

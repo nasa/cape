@@ -35,6 +35,7 @@ rc["OverNamelist"]         = "overflow.inp"
 rc["project_rootname"]     = "run"
 rc["overrun_cmd"]          = "overrunmpi"
 rc["overrun_aux"]          = "\"-v pcachem -- dplace -s1\""
+rc["overrun_args"]         = ""
 rc["MPI"]                  = True
 
 # Mesh files

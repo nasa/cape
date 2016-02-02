@@ -13,7 +13,7 @@ from options.runControl import RunControl
 # Import the namelist
 from namelist import Namelist
 # Interface for writing commands
-#from . import bin, cmd, queue
+from . import bin, cmd, queue
 
 
 # Function to complete final setup and call the appropriate FUN3D commands
@@ -23,7 +23,7 @@ def run_overflow():
     :Call:
         >>> pyFun.case.run_overflow()
     :Versions:
-        * 2016-02-01 ``@ddalle``: First version
+        * 2016-02-02 ``@ddalle``: First version
     """
     # Check for RUNNING file.
     if os.path.isfile('RUNNING'):
@@ -39,15 +39,13 @@ def run_overflow():
     fproj = GetPrefix()
     # Determine the run index.
     i = GetPhaseNumber(rc)
-    # Set the restart file and flag if necessary.
-    # SetRestartIter(rc)
     # Delete any input file.
     if os.path.isfile('over.namelist') or os.path.islink('over.namelist'):
         os.remove('over.namelist')
     # Create the correct namelist.
-    os.symlink('over.%02i.nml'%i, 'fun3d.nml')
+    os.symlink('%s.%02i.inp' % (fproj,i+1), 'over.namelist')
     # Get the `nodet` or `nodet_mpi` command
-    #cmdi = cmd.nodet(rc)
+    cmdi = cmd.overrun(rc)
     # Call the command.
     bin.callf(cmdi, f='pyover.out')
     # Remove the RUNNING file.
@@ -57,7 +55,7 @@ def run_overflow():
     # Get the last iteration number
     n = GetCurrentIter()
     # Assuming that worked, move the temp output file.
-    os.rename('pyover.out', 'run.%02i.%i' % (i, n))
+    os.rename('pyover.out', '%s.%02i.%i' % (fproj, i+1, n))
     # Rename the flow file, too.
     #os.rename('%s.flow' % fproj, '%s.%i.flow' % (fproj,n))
     # Check current iteration count and phase
@@ -254,8 +252,6 @@ def GetNamelist(rc=None):
         i = GetPhaseNumber(rc)
         # Read the namelist file.
         return Namelist('%s.%02i.inp' % (rc.get_Prefix(i), i+1))
-    
-    
 
 
 # Function to get prefix
@@ -280,7 +276,7 @@ def GetPrefix(rc=None, i=None):
     if rc is None:
         rc = ReadCaseJSON()
     # Read the prefix
-    return rc.GetPrefix(i)
+    return rc.get_Prefix(i)
     
 # Function to read the local settings file.
 def ReadCaseJSON():
@@ -322,10 +318,14 @@ def GetCurrentIter():
     # Read the two sources
     nh = GetHistoryIter()
     nr = GetRunningIter()
+    no = GetOutIter()
     # Process
-    if nr is None:
+    if nr is None and no is None:
         # No running iterations; check history
         return nh
+    elif nr is None:
+        # Intermediate step
+        return no
     else:
         # Some iterations saved and some running
         return nr
@@ -370,7 +370,7 @@ def GetHistoryIter():
 def GetRunningIter():
     """Get the most recent iteration number for a running file
     
-    This function uses the last line from the file ``resid.out``
+    This function uses the last line from the file ``resid.tmp``
     
     :Call:
         >>> n = pyOver.case.GetRunningIter()
@@ -379,6 +379,36 @@ def GetRunningIter():
             Most recent iteration number
     :Versions:
         * 2016-02-01 ``@ddalle``: First version
+    """
+    # Assemble file name.
+    fname = "resid.tmp"
+    # Check for the file.
+    if not os.path.isfile(fname):
+        # No history to read.
+        return None
+    # Check the file.
+    try:
+        # Tail the file
+        txt = bin.tail(fname)
+        # Get the iteration number.
+        return int(txt.split()[1])
+    except Exception:
+        # Failure; return no-iteration result.
+        return None
+        
+# Get the last line (or two) from a running output file
+def GetOutIter():
+    """Get the most recent iteration number for a running file
+    
+    This function uses the last line from the file ``resid.out``
+    
+    :Call:
+        >>> n = pyOver.case.GetOutIter()
+    :Outputs:
+        *n*: :class:`int` | ``None``
+            Most recent iteration number
+    :Versions:
+        * 2016-02-02 ``@ddalle``: First version
     """
     # Assemble file name.
     fname = "resid.out"
