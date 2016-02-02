@@ -53,15 +53,17 @@ class Namelist2(FileCntl):
             * 2016-01-29 ``@ddalle``: First version
         """
         # Find the lines that start the lists
-        I = self.GetIndexSearch('\s+[&$]')
-        # Ignore $END and &END
-        J = [i for i in I if not self.lines[i].strip().endswith('END')]
+        I = np.array(self.GetIndexSearch('\s+[&$]'))
+        # Get start and end keywords to each line
+        grpnm = np.array([self.lines[i].split()[0][1:] for i in I])
+        kwbeg = np.array([self.lines[i].split()[0][1:].lower()  for i in I])
+        kwend = np.array([self.lines[i].split()[-1][1:].lower() for i in I])
         # Save the start indices
-        self.ibeg = np.array(J)
+        self.ibeg = I[kwbeg != "end"]
         # Save the end indices
-        self.iend = np.array(self.GetIndexSearch('\s+[&$]END'))
+        self.iend = I[kwend == "end"]
         # Save the names
-        self.Groups = [self.lines[i].strip().split()[0][1:] for i in J]
+        self.Groups = grpnm[kwbeg != "end"]
         
     # Apply a whole bunch of options
     def ApplyDict(self, opts):

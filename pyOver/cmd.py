@@ -62,13 +62,13 @@ def overrun(opts=None, i=0, **kw):
         pre    = kw.get("Prefix", "run")
     if ofcmd == "overrunmpi":
         # Use the ``overrunmpi`` script
-        cmdi = [ofcmd, '-np', str(nProc), pre, str(i+1)]
+        cmdi = [ofcmd, '-np', str(nProc), pre, '%02i'%(i+1)]
     elif ofcmd == "overflowmpi":
         # Use the ``overflowmpi`` command
         cmdi = [mpicmd, '-np', str(nProc), ofcmd]
     elif ofcmd == "overrun":
         # Use the ``overrun`` script
-        cmdi = [ofcmd, pre, str(i+1)]
+        cmdi = [ofcmd, pre, '%02i'%(i+1)]
     elif n_mpi:
         # Default to "overflowmpi"
         cmdi = [mpicmd, '-np', str(nProc), ofcmd]
