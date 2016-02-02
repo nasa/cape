@@ -349,6 +349,7 @@ class Cntl(object):
                 # Prepare the job.
                 self.PrepareCase(i)
                 # Start (submit or run) case
+                print("Label 013: calling Cntl.StartCase()")
                 self.StartCase(i)
                 # Increase job number
                 nSub += 1
