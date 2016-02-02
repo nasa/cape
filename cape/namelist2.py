@@ -20,8 +20,12 @@ import numpy as np
 
 # Subclass off of the file control class
 class Namelist2(FileCntl):
+    """
+    File control class for old-style Fortran namelists
     
-    
+    :Versions:
+        * 2016-02-01 ``@ddalle``: First version
+    """
     # Initialization method
     def __init__(self, fname="overflow.inp"):
         """Initialization method
@@ -53,11 +57,36 @@ class Namelist2(FileCntl):
         # Ignore $END and &END
         J = [i for i in I if not self.lines[i].strip().endswith('END')]
         # Save the start indices
-        self.ibeg = J
+        self.ibeg = np.array(J)
         # Save the end indices
-        self.iend = self.GetIndexSearch('\s+[&$]END')
+        self.iend = np.array(self.GetIndexSearch('\s+[&$]END'))
         # Save the names
         self.Groups = [self.lines[i].strip().split()[0][1:] for i in J]
+        
+    # Apply a whole bunch of options
+    def ApplyDict(self, opts):
+        """Apply a whole dictionary of settings to the namelist
+        
+        :Call:
+            >>> nml.ApplyDict(opts)
+        :Inputs:
+            *nml*: :class:`cape.namelist2.Namelist2`
+                Old-style namelist inerface
+            *opts*: :class:`dict`
+                Dictionary of namelist options
+        :Versions:
+            * 2016-02-01 ``@ddalle``: First version
+        """
+        # Loop through major keys.
+        for grp in opts.keys():
+            # Check it it's an existing group
+            if grp not in self.Groups:
+                # Initialize the section.
+                self.InsertGroup(0, grp)
+            # Loop through the keys in this subnamelist/section
+            for k in opts[grp].keys():
+                # Set the value.
+                self.SetKeyInGroupName(sec, k, opts[grp][k])
         
     # Add a group
     def InsertGroup(self, igrp, grp):
@@ -376,11 +405,12 @@ class Namelist2(FileCntl):
                 self.lines[i] = line
                 return
         # If no match found in existing text, add a line.
-        line = '    %s = %s,\n' % (key, self.ConvertToText(val))
+        line = '     %s = %s,\n' % (key, self.ConvertToText(val))
         # Insert the line.
         self.lines = self.lines[:iend] + [line] + self.lines[iend:]
         # Update the namelist indices.
-        self.UpdateNamelist()
+        self.ibeg[igrp+1:] = self.ibeg[igrp+1:] + 1
+        self.iend[igrp+1:] = self.iend[igrp+1:] + 1
     
     # Set a key
     def SetKeyInLine(self, line, key, val):
@@ -432,7 +462,7 @@ class Namelist2(FileCntl):
         # If the value is ``None``, delete the entry.
         if val is None:
             # Use the beginning and remaining text Only
-            line = "%s%s\n" % (tbeg.rstrip(), tend)
+            line = "%s%s\n" % (tbeg, tend.lstrip())
         else:
             # Convert value to text
             sval = self.ConvertToText(val)

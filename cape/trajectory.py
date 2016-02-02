@@ -1386,7 +1386,7 @@ class Trajectory:
             # Skip unentered values
             if (i>=len(self.text[k])) or (not self.text[k][i]): continue
             # Check for "SkipZero" flag
-            if self.defns[k].get("SkipZero", False): continue
+            if self.defns[k].get("SkipIfZero", False): continue
             # Make the string of what's going to be printed.
             # This is something like ``'%.2f' % x.alpha[i]``.
             lbl = self.defns[k]["Format"] % getattr(self,k)[i]

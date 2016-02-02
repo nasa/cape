@@ -29,6 +29,7 @@ from .DataBook    import DataBook
 from .Report      import Report
 from .runControl  import RunControl
 from .overnml     import OverNml
+from .gridSystem  import GridSystemNml
 from .Mesh        import Mesh
 from .Config      import Config
 
@@ -71,6 +72,7 @@ class Options(cape.options.Options):
         self._Report()
         self._RunControl()
         self._Overflow()
+        self._Grids()
         self._Mesh()
         self._Config()
         # Add extra folders to path.
@@ -114,9 +116,20 @@ class Options(cape.options.Options):
         if 'Overflow' not in self:
             # Missing entirely.
             self['Overflow'] = OverNml()
-        elif type(self['RunControl']).__name__ == 'dict':
+        elif type(self['Overflow']).__name__ == 'dict':
             # Convert to special class
             self['Overflow'] = OverNml(**self['Overflow'])
+            
+    # Initialization method for namelist interface
+    def _Grids(self):
+        """Initialize OVERFLOW grid system namelist options if necessary"""
+        # Check status.
+        if 'Grids' not in self:
+            # Missing entirely.
+            self['Grids'] = GridSystemNml()
+        elif type(self['Grids']).__name__ == 'dict':
+            # Convert to special class
+            self['Grids'] = GridSystemNml(**self['Grids'])
     
     # Initialization method for mesh settings
     def _Mesh(self):
@@ -277,7 +290,7 @@ class Options(cape.options.Options):
     # Downselect
     def select_namelist(self, i=None):
         self._Overflow()
-        return self['Fun3D'].select_namelist(i)
+        return self['Overflow'].select_namelist(i)
     select_namelist.__doc__ = OverNml.select_namelist.__doc__
    # >
    
@@ -287,7 +300,35 @@ class Options(cape.options.Options):
     # ====================
    #<
     
+    # Grid system dictionary
+    def get_GridByName(self, grdnam, i=None):
+        self._Grids()
+        return self['Grids'].get_GridByName(grdnam, i)
     
+    # Get default grid options
+    def get_ALL(self, i=None):
+        self._Grids()
+        return self['Grids'].get_ALL(i)
+        
+    # Get grid value (raw)
+    def get_grid_var(self, grdnam, sec, key, i=None):
+        self._Grids()
+        return self['Grids'].get_grid_var(grdnam, sec, key, i=None)
+    
+    # Get grid value with default
+    def get_GridKey(self, grdnam, sec, key, i=None):
+        self._Grids()
+        return self['Grids'].get_GridKey(grdnam, sec, key, i=None)
+        
+    # Copy documentation
+    for k in ['ALL', 'GridByName', 'grid_var', 'GridKey']:
+        eval('get_'+k).__doc__ = getattr(GridSystemNml,'get_'+k).__doc__
+        
+    # Downselect
+    def select_namelist(self, i=None):
+        self._Grids()
+        return self['Grids'].select_namelist(i)
+    select_namelist.__doc__ = GridSystemNml.select_namelist.__doc__
    #>
    
     # =============

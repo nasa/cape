@@ -520,16 +520,14 @@ class Overflow(Cntl):
         and with the appropriate settings.
         
         :Call:
-            >>> fun3d.PrepareNamelist(i)
+            >>> oflow.PrepareNamelist(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of global pyCart settings object
+            *oflow*: :class:`pyOver.overflow.Overflow`
+                Instance of OVERFLOW control class
             *i*: :class:`int`
                 Run index
         :Versions:
-            * 2014-06-04 ``@ddalle``: First version
-            * 2014-06-06 ``@ddalle``: Low-level functionality for grid folders
-            * 2014-09-30 ``@ddalle``: Changed to write only a single case
+            * 2016-02-01 ``@ddalle``: First version
         """
         # Read namelist file
         self.ReadNamelist()
@@ -588,8 +586,6 @@ class Overflow(Cntl):
             k = x.GetKeysByType('T')[0]
             # Set the value.
             self.Namelist.SetTemperature(getattr(x,k)[i])
-        # Set up the component force & moment tracking
-        self.PrepareNamelistConfig()
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
@@ -600,18 +596,30 @@ class Overflow(Cntl):
             # This setting is overridden by *nopts* if appropriate
             if j == 0:
                 # First run sequence; not restart
-                self.Namelist.SetVar('code_run_control', 'restart_read', 'off')
+                self.Namelist.SetRestart(False)
             else:
                 # Later sequence; restart
-                self.Namelist.SetVar('code_run_control', 'restart_read', 'on')
+                self.Namelist.SetRestart(True)
             # Set number of iterations
             self.Namelist.SetnIter(self.opts.get_nIter(j))
             # Get the reduced namelist for sequence *j*
             nopts = self.opts.select_namelist(j)
             # Apply them to this namelist
             self.Namelist.ApplyDict(nopts)
+            # Get options to apply to all grids
+            oall = self.opts.get_ALL(j)
+            # Apply those options
+            self.Namelist.ApplyDictToALL(oall)
+            # Loop through other custom grid systems
+            for grdnam in self.opts.get('Grids',{}):
+                # Skip for key 'ALL'
+                if grdnam == 'ALL': continue
+                # Get options for this grid
+                ogrd = self.opts.get_GridByName(grdnam)
+                # Apply the options
+                self.Namelist.ApplyDictToGrid(grdnam, ogrd)
             # Name of output file.
-            fout = os.path.join(frun, 'fun3d.%02i.nml' % j)
+            fout = os.path.join(frun, 'over.%02i.nml' % j)
             # Write the input file.
             self.Namelist.Write(fout)
         # Return to original path.
@@ -690,8 +698,8 @@ class Overflow(Cntl):
             *i*: :class:`int`
                 Run index
         :Versions:
-            * 2015-10-19
-            ``@ddalle``: First version
+            * 2015-10-19 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: Copied from :mod:`pyFun`
         """
         # Safely go to root directory.
         fpwd = os.getcwd()

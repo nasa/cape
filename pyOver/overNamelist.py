@@ -91,6 +91,65 @@ class OverNamelist(cape.namelist2.Namelist2):
     
     # Get grid number (alias)
     GetGridNumber = GetGridNumberByName
+    
+    # Apply dictionary of options to a grid
+    def ApplyDictToGrid(self, grdnam, opts):
+        """Apply a dictionary of settings to a grid
+        
+        :Call:
+            >>> nml.ApplyDictToGrid(grdnam, opts)
+        :Inputs:
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
+            *grdnam*: :class:`str` | :class:`int`
+                Grid name or index
+            *opts*: :class:`dict`
+                Dictionary of options to apply
+        :Versions:
+            * 2016-02-01 ``@ddalle``: First version
+        """
+        # Get the indices of the requested grid's groups
+        jbeg, jend = self.GetGroupIndexByGridName(grdnam)
+        # Get the list of group names
+        grps = [self.Groups[j].lower() for j in range(jbeg,jend)]
+        # Loop through the major keys
+        for grp in opts:
+            # Use lower-case group name for Fortran consistency
+            grpl = grp.lower()
+            # Find the group index
+            if grpl in grps:
+                # Get the group index (global)
+                jgrp = jbeg + grps.index(grpl)
+            else:
+                # Insert the group
+                self.InsertGroup(jend, grp)
+                jgrp = jend
+                # Update info
+                jend += 1
+            # Loop through the keys
+            for k in opts[grp]:
+                # Set the value.
+                self.SetKeyInGroupIndex(jgrp, k, opts[grp][k])
+                
+    # Apply a dictionary of options to all grids
+    def ApplyDictToALL(self, opts):
+        """Apply a dictionary of settings to all grids
+        
+        :Call:
+            >>> nml.ApplyDictToALL(opts)
+        :Inputs:
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
+            *opts*: :class:`dict`
+                Dictionary of options to apply
+        :Versions:
+            * 2016-02-01 ``@ddalle``: First version
+        """
+        # Loop through groups
+        for igrd in range(len(self.GridNames)):
+            # Apply settings to individual grid
+            print("Grid %i: %s" % (igrd, self.GridNames[igrd]))
+            self.ApplyDictToGrid(igrd, opts)
         
     # Get a quantity from a grid (with fallthrough)
     def GetKeyFromGrid(self, grdnam, grp, key):
@@ -155,6 +214,19 @@ class OverNamelist(cape.namelist2.Namelist2):
     def SetKeyForGrid(self, grdnam, grp, key, val):
         """Set the value of a key for a grid with a specific name
         
+        :Call:
+            >>> nml.SetKeyForGrid(grdnam, grp, key, val)
+        :Inputs:
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
+            *grdnam*: :class:`str` | :class:`int`
+                Name or number of the grid
+            *grp*: :class:`str`
+                Name of the namelist group
+            *key*: :class:`str`
+                Name of the key to set
+            *val*: :class:`str` | :class:`float` | :class:`bool` | ...
+                Value to set the key to
         :Versions:
             * 2016-02-01 ``@ddalle``: First version
         """
@@ -170,7 +242,7 @@ class OverNamelist(cape.namelist2.Namelist2):
             jgrp = jbeg + grps.index(grpl)
         else:
             # Insert a new group at the end of this grid definition
-            self.InsertGrup(jend, grp)
+            self.InsertGroup(jend, grp)
             # Use the new group
             jgrp = jend
         # Set the key in that group
@@ -189,7 +261,7 @@ class OverNamelist(cape.namelist2.Namelist2):
                 Name of the grid
         :Outputs:
             *grps*: :class:`list` (:class:`str`)
-                Group of group names in the grid *grdnam* definition
+                List of group names in the grid *grdnam* definition
         :Versions:
             * 2016-01-31 ``@ddalle``: First version
         """
@@ -224,9 +296,9 @@ class OverNamelist(cape.namelist2.Namelist2):
         # Number of grids
         nGrid = len(self.GridNames)
         # Get the list index of the last list in this grid
-        if grdnum == nGrid:
+        if grdnum >= nGrid-1:
             # Use the last list
-            jend = len(self.Groups) + 1
+            jend = len(self.Groups)
         else:
             # Use the list before the start of the next grid
             jend = self.iGrid[grdnum+1]
