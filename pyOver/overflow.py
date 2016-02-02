@@ -326,7 +326,7 @@ class Overflow(Cntl):
         
         
     # Get list of raw file names
-    def GetMeshFileNames(self):
+    def GetMeshFileNames(self, i=0):
         """Return the list of mesh files
         
         :Call:
@@ -340,15 +340,14 @@ class Overflow(Cntl):
         :Versions:
             * 2016-02-01 ``@ddalle``: First version
         """
+        # Get config
+        config = self.GetConfig(i)
         # Get the file names from *opts*
-        fname = self.opts.get_MeshFiles()
-        # Ensure list.
-        if type(fname).__name__ not in ['list', 'ndarray']:
-            # Convert to list.
-            return [fname]
-        else:
-            # Return output
-            return fname
+        fname = self.opts.get_MeshFiles(config)
+        # Remove folders
+        fname = [os.path.split(f)[-1] for f in fname]
+        # Output
+        return fname
         
     # Function to check if the mesh for case *i* is prepared
     def CheckMesh(self, i):
@@ -370,33 +369,23 @@ class Overflow(Cntl):
         # Check input
         if not type(i).__name__.startswith("int"):
             raise TypeError("Case index must be an integer")
-        # Get the group name.
-        fgrp = self.x.GetGroupFolderNames(i)
-        frun = self.x.GetFolderNames(i)
+        # Get the case folder name.
+        frun = self.x.GetFullFolderNames(i)
         # Initialize with a "pass" location
         q = True
         # Go safely to root folder.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
         # Check for the group folder.
-        if not os.path.isdir(fgrp):
+        if not os.path.isdir(frun):
             os.chdir(fpwd)
             return False
         # Extract options
         opts = self.opts
-        # Enter the group folder.
-        os.chdir(fgrp)
-        # Check for individual-folder mesh settings
-        if not opts.get_GroupMesh():
-            # Check for the case folder.
-            if not os.path.isdir(frun):
-                # No case folder; no mesh
-                os.chdir(fpwd)
-                return False
-            # Enter the folder.
-            os.chdir(frun)
-        # Get list of mesh file names
-        fmesh = self.GetMeshFileNames()
+        # Enter the case folder.
+        os.chdir(frun)
+        # Get list of mesh file names.
+        fmesh = self.GetMeshFileNames(i)
         # Check for presence
         for f in fmesh:
             # Check for the file
@@ -411,14 +400,14 @@ class Overflow(Cntl):
         """Prepare the mesh for case *i* if necessary
         
         :Call:
-            >>> fun3d.PrepareMesh(i)
+            >>> oflow.PrepareMesh(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of control class
+            *oflow*: :class:`pyOver.overflow.Overflow`
+                Instance of pyOver control class
             *i*: :class:`int`
                 Case index
         :Versions:
-            * 2015-10-19 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: First version
         """
         # ---------
         # Case info
@@ -455,7 +444,7 @@ class Overflow(Cntl):
         # Get the configuration folder
         fcfg = self.GetConfigDir(i)
         # Get the names of the raw input files and target files
-        fmsh = self.GetMeshCopyFiles(config)
+        fmsh = self.opts.get_MeshCopyFiles(config)
         # Loop through those files
         for j in range(len(fmsh)):
             # Original and final file names
@@ -465,12 +454,16 @@ class Overflow(Cntl):
             if os.path.isfile(f0):
                 shutil.copy(f0, f1)
         # Get the names of input files to copy
-        fmsh = self.GetMeshLinkFiles(config)
+        fmsh = self.opts.get_MeshLinkFiles(config)
         # Loop through those files
         for j in range(len(fmsh)):
             # Original and final file names
             f0 = os.path.join(fcfg, fmsh[j])
             f1 = os.path.split(fmsh[j])[1]
+            # Remove the file if necessary
+            if os.path.islink(f1): os.remove(f1)
+            # Skip if full file
+            if os.path.isfile(f1): continue
             # Link the file.
             if os.path.isfile(f0):
                 os.symlink(f0, f1)
@@ -557,20 +550,6 @@ class Overflow(Cntl):
         os.chdir(frun)
         # Write the conditions to a simple JSON file.
         self.x.WriteConditionsJSON(i)
-        # Different processes for GroupMesh and CaseMesh
-        if self.opts.get_GroupMesh():
-            # Required file names
-            fmsh = self.GetProcessedMeshFileNames()
-            # Copy the required files.
-            for fname in fmsh:
-                # Source path
-                fsrc = os.path.join(os.path.abspath('..'), fname)
-                # Check for the file
-                if os.path.isfile(fname):
-                    os.remove(fname)
-                # Create the link.
-                if os.path.isfile(fsrc):
-                    os.symlink(fsrc, fname)
         # Get function for setting boundary conditions, etc.
         keys = self.x.GetKeysByType('CaseFunction')
         # Get the list of functions.
@@ -594,7 +573,7 @@ class Overflow(Cntl):
     # Function to prepare "input.cntl" files
     def PrepareNamelist(self, i):
         """
-        Write :file:`fun3d.nml` for run case *i* in the appropriate folder
+        Write :file:`over.namelist` for run case *i* in the appropriate folder
         and with the appropriate settings.
         
         :Call:

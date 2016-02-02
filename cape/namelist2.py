@@ -86,7 +86,7 @@ class Namelist2(FileCntl):
             # Loop through the keys in this subnamelist/section
             for k in opts[grp].keys():
                 # Set the value.
-                self.SetKeyInGroupName(sec, k, opts[grp][k])
+                self.SetKeyInGroupName(grp, k, opts[grp][k])
         
     # Add a group
     def InsertGroup(self, igrp, grp):

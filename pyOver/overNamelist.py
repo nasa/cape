@@ -148,7 +148,6 @@ class OverNamelist(cape.namelist2.Namelist2):
         # Loop through groups
         for igrd in range(len(self.GridNames)):
             # Apply settings to individual grid
-            print("Grid %i: %s" % (igrd, self.GridNames[igrd]))
             self.ApplyDictToGrid(igrd, opts)
         
     # Get a quantity from a grid (with fallthrough)
