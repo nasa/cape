@@ -186,8 +186,8 @@ class Overflow(Cntl):
         :Call:
             >>> name = oflow.GetPrefix(j=0)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of global pyFun settings object
+            *oflow*: :class:`pyOver.overflow.Overflow`
+                Instance of pyOver control class
             *j*: :class:`int`
                 Phase number
         :Outputs:
@@ -198,6 +198,69 @@ class Overflow(Cntl):
         """
         # Return the value from options
         return self.opts.get_Prefix(j)
+        
+    # Get the project rootname
+    def GetConfig(self, i):
+        """Get the configuration (if any) for case *i*
+        
+        If there is no *config* or similar run matrix variable, return the name
+        of the group folder
+        
+        :Call:
+            >>> config = oflow.GetConfig(i)
+        :Inputs:
+            *oflow*: :class:`pyOver.overflow.Overflow`
+                Instance of pyOver control class
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *config*: :class:`str`
+                Case configuration
+        :Versions:
+            * 2016-02-02 ``@ddalle``: First version
+        """
+        # Check for configuration variable(s)
+        xcfg = self.x.GetKeysByType("Config")
+        # If there's no match, return group folder
+        if len(xcfg) == 0:
+            # Return folder name
+            return self.x.GetGroupFolderNames(i)
+        # Initialize output
+        config = ""
+        # Loop through config variables (weird if more than one...)
+        for k in xcfg:
+            config += getattr(self.x,k)[i]
+        # Output
+        return config
+        
+    # Function to get configuration directory
+    def GetConfigDir(self, i):
+        """Return absolute path to configuration folder
+        
+        :Call:
+            >>> fcfg = oflow.GetConfigDir(i)
+        :Inputs:
+            *oflow*: :class:`pyOver.overflow.Overflow`
+                Instance of pyOver control class
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *fcfg*: :class:`str`
+                Full path to configuration folder
+        :Versions:
+            * 2016-02-02 ``@ddalle``: First version
+        """
+        # Configuration of this case
+        config = self.GetConfig(i)
+        # Configuration folder
+        fcfg = self.opts.get_ConfigDir(config)
+        # Check if it begins with a slash.
+        if os.path.isabs(fcfg):
+            # Return as absolute path
+            return fcfg
+        else:
+            # Append the root directory
+            return os.path.join(self.RootDir, fcfg)
 
     # Get the current iteration number from :mod:`case`
     def CaseGetCurrentIter(self):
@@ -387,22 +450,26 @@ class Overflow(Cntl):
         # ----------
         # Copy files
         # ----------
+        # Configuration of this case
+        config = self.GetConfig(i)
+        # Get the configuration folder
+        fcfg = self.GetConfigDir(i)
         # Get the names of the raw input files and target files
-        fmsh = self.GetMeshCopyFiles()
+        fmsh = self.GetMeshCopyFiles(config)
         # Loop through those files
         for j in range(len(fmsh)):
             # Original and final file names
-            f0 = os.path.join(self.RootDir, fmsh[j])
+            f0 = os.path.join(fcfg, fmsh[j])
             f1 = os.path.split(fmsh[j])[1]
             # Link the file.
             if os.path.isfile(f0):
                 shutil.copy(f0, f1)
         # Get the names of input files to copy
-        fmsh = self.GetMeshLinkFiles()
+        fmsh = self.GetMeshLinkFiles(config)
         # Loop through those files
         for j in range(len(fmsh)):
             # Original and final file names
-            f0 = os.path.join(self.RootDir, fmsh[j])
+            f0 = os.path.join(fcfg, fmsh[j])
             f1 = os.path.split(fmsh[j])[1]
             # Link the file.
             if os.path.isfile(f0):

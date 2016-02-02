@@ -386,7 +386,7 @@ class Trajectory:
                 # Group name or prefix, e.g. 'poweroff', 'poweron', etc.
                 defkey = {
                     "Group": True,
-                    "Type": "Prefix",
+                    "Type": "Config",
                     "Value": "str",
                     "Format": "%s",
                     "Abbreviation": ""
@@ -1355,9 +1355,9 @@ class Trajectory:
         # Process the key types.
         types = [self.defns[k].get("Type","") for k in keys]
         # Check for a prefix.
-        if "Prefix" in types:
+        if "Config" in types:
             # Figure out which key it is
-            j = types.index("Prefix")
+            j = types.index("Config")
             # Get the specified prefix.
             fpre = getattr(self,keys[j])[i]
             # Initialize the name.

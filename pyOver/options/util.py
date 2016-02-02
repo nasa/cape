@@ -35,6 +35,30 @@ rc["OverNamelist"]         = "overflow.inp"
 rc["project_rootname"]     = "run"
 rc["overruncmd"]           = "overrunmpi"
 rc["MPI"]                  = True
+
+# Mesh files
+rc["MeshType"]  = "dcf"
+rc["ConfigDir"] = "common"
+# DCF defaults
+rc["LinkFilesDCF"] = [[
+    "grid.in",
+    "xrays.in",
+    "fomo/grid.ibi",
+    "fomo/grid.nsf",
+    "fomo/grid.ptv",
+    "fomo/mixsur.fmp"
+]]
+rc["CopyFilesDCF"] = [[]]
+# Pegasus 5 defaults
+rc["LinkFilesPeg5"] = [[
+    "grid.in",
+    "XINTOUT",
+    "fomo/grid.ibi",
+    "fomo/grid.nsf",
+    "fomo/grid.ptv",
+    "fomo/mixsur.fmp"
+]]
+rc["CopyFilesPeg5"] = [[]]
     
 
 # Function to ensure scalar from above

@@ -337,22 +337,33 @@ class Options(cape.options.Options):
    # <
     
     # File names
-    def get_MeshFiles(self, i=None):
+    def get_MeshFiles(self, config=None):
         self._Mesh()
-        return self['Mesh'].get_MeshFiles(i)
+        return self['Mesh'].get_MeshFiles(config)
         
     # Files to copy
-    def get_MeshCopyFiles(self, i=None):
+    def get_MeshCopyFiles(self, config=None):
         self._Mesh()
-        return self['Mesh'].get_MeshCopyFiles(i)
+        return self['Mesh'].get_MeshCopyFiles(config)
         
     # Files to link
-    def get_MeshLinkFiles(self, i=None):
+    def get_MeshLinkFiles(self, config=None):
         self._Mesh()
-        return self['Mesh'].get_MeshLinkFiles(i)
+        return self['Mesh'].get_MeshLinkFiles(config)
+        
+    # Configuration directory
+    def get_ConfigDir(self, config=None):
+        self._Mesh()
+        return self['Mesh'].get_ConfigDir(config)
+        
+    # Mesh type
+    def get_MeshType(self, config=None):
+        self._Mesh()
+        return self['Mesh'].get_MeshType(config)
         
     # Copy documentation
-    for k in ['MeshFiles', 'MeshCopyFiles', 'MeshLinkFiles']:
+    for k in ['MeshFiles', 'MeshCopyFiles', 'MeshLinkFiles',
+    'ConfigDir', 'MeshType']:
         eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
    # >
     
