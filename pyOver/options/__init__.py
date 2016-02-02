@@ -341,8 +341,18 @@ class Options(cape.options.Options):
         self._Mesh()
         return self['Mesh'].get_MeshFiles(i)
         
+    # Files to copy
+    def get_MeshCopyFiles(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_MeshCopyFiles(i)
+        
+    # Files to link
+    def get_MeshLinkFiles(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_MeshLinkFiles(i)
+        
     # Copy documentation
-    for k in ['MeshFiles']:
+    for k in ['MeshFiles', 'MeshCopyFiles', 'MeshLinkFiles']:
         eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
    # >
     

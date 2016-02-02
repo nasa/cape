@@ -388,12 +388,22 @@ class Overflow(Cntl):
         # Copy files
         # ----------
         # Get the names of the raw input files and target files
-        fmsh = self.GetMeshFileNames()
+        fmsh = self.GetMeshCopyFiles()
         # Loop through those files
         for j in range(len(fmsh)):
             # Original and final file names
             f0 = os.path.join(self.RootDir, fmsh[j])
-            f1 = fmsh[j]
+            f1 = os.path.split(fmsh[j])[1]
+            # Link the file.
+            if os.path.isfile(f0):
+                shutil.copy(f0, f1)
+        # Get the names of input files to copy
+        fmsh = self.GetMeshLinkFiles()
+        # Loop through those files
+        for j in range(len(fmsh)):
+            # Original and final file names
+            f0 = os.path.join(self.RootDir, fmsh[j])
+            f1 = os.path.split(fmsh[j])[1]
             # Link the file.
             if os.path.isfile(f0):
                 os.symlink(f0, f1)
