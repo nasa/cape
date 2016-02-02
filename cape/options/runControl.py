@@ -730,8 +730,13 @@ class RunControl(odict):
             *nSeq*: :class:`int`
                 Number of input sets in the sequence
         :Versions:
-            * 2014.10.02 ``@ddalle``: First version
+            * 2014-10-02 ``@ddalle``: First version
+            * 2015-02-02 ``@ddalle``: Added *nPhase* override
         """
+        # Check for number of phases
+        nPhase = self.get('nPhase')
+        # Output if specified
+        if nPhase is not None: return nPhase
         # Get the input sequence.
         PhaseSeq = self.get_PhaseSequence()
         # Check if it's a list.

@@ -837,10 +837,10 @@ class Overflow(Cntl):
             # PBS script name.
             if nPBS > 1:
                 # Put PBS number in file name.
-                fpbs = 'run_fun3d.%02i.pbs' % j
+                fpbs = 'run_overflow.%02i.pbs' % (j+1)
             else:
                 # Use single PBS script with plain name.
-                fpbs = 'run_fun3d.pbs'
+                fpbs = 'run_overflow.pbs'
             # Initialize the PBS script.
             f = open(fpbs, 'w')
             # Write the header.
@@ -850,8 +850,8 @@ class Overflow(Cntl):
             flgs = ''
 
             # Simply call the advanced interface.
-            f.write('\n# Call the FUN3D interface.\n')
-            f.write('run_fun3d.py' + flgs)
+            f.write('\n# Call the OVERFLOW interface.\n')
+            f.write('run_overflow.py' + flgs)
             
             # Close the file.
             f.close()

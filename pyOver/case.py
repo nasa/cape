@@ -174,7 +174,7 @@ def GetPBSScript(i=None):
     # Form the full file name, e.g. run_cart3d.00.pbs
     if i is not None:
         # Create the name.
-        fpbs = 'run_overflow.%02i.pbs' % i
+        fpbs = 'run_overflow.%02i.pbs' % (i+1)
         # Check for the file.
         if os.path.isfile(fpbs):
             # This is the preferred option if it exists.
