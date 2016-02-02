@@ -33,7 +33,8 @@ PyOverFolder = os.path.split(os.path.split(_fname)[0])[0]
 # Backup default settings
 rc["OverNamelist"]         = "overflow.inp"
 rc["project_rootname"]     = "run"
-rc["overruncmd"]           = "overrunmpi"
+rc["overrun_cmd"]          = "overrunmpi"
+rc["overrun_aux"]          = "\"-v pcachem -- dplace -s1\""
 rc["MPI"]                  = True
 
 # Mesh files

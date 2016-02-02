@@ -253,13 +253,18 @@ class Options(cape.options.Options):
         self._RunControl()
         return self['RunControl'].get_Prefix(j)
         
-    # Get OVERFLOW function name
-    def get_overruncmd(self, j=None):
+    # Get OVERFLOW aux inputs
+    def get_overrun_aux(self, j=None):
         self._RunControl()
-        return self['RunControl'].get_overruncmd(j)
+        return self['RunControl'].get_overrun_aux(j)
+        
+    # Get OVERFLOW function name
+    def get_overrun_cmd(self, j=None):
+        self._RunControl()
+        return self['RunControl'].get_overrun_cmd(j)
         
     # Copy documentation
-    for k in ['Prefix', 'overruncmd']:
+    for k in ['Prefix', 'overrun_aux', 'overrun_cmd']:
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
    # >
    

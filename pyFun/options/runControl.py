@@ -81,7 +81,7 @@ class RunControl(cape.options.runControl.RunControl):
    
     # Initialization and confirmation for nodet options
     def _nodet(self):
-        """Initialize `nodet` optiosn if necessary"""
+        """Initialize `nodet` options if necessary"""
         if 'nodet' not in self:
             # Empty/default
             self['nodet'] = nodet()

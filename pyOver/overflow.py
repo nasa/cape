@@ -494,7 +494,8 @@ class Overflow(Cntl):
             * 2015-10-19 ``@ddalle``: First version
         """
         # Input file.
-        if not os.path.isfile('over.00.nml'): return True
+        finp = '%s.01.inp' % self.GetPrefix()
+        if not os.path.isfile(finp): return True
         # Settings file.
         if not os.path.isfile('case.json'): return True
         # Get mesh file names
@@ -696,7 +697,7 @@ class Overflow(Cntl):
                 # Apply the options
                 self.Namelist.ApplyDictToGrid(grdnam, ogrd)
             # Name of output file.
-            fout = os.path.join(frun, 'over.%02i.nml' % j)
+            fout = os.path.join(frun, '%s.%02i.nml' % (self.GetPrefix(j), j+1))
             # Write the input file.
             self.Namelist.Write(fout)
         # Return to original path.

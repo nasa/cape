@@ -210,8 +210,10 @@ def GetPhaseNumber(rc):
     for j in range(rc.get_nSeq()):
         # Get the actual run number
         i = rc.get_PhaseSequence(j)
+        # Output file glob
+        fglob = '%s.%02i.*' % (rc.get_Prefix(i), i+1)
         # Check for output files.
-        if len(glob.glob('run.%02i.*' % i)) == 0:
+        if len(glob.glob(fglob)) == 0:
             # This run has not been completed yet.
             return i
         # Check the iteration number.
@@ -244,14 +246,14 @@ def GetNamelist(rc=None):
             return Namelist('over.namelist')
         else:
             # Look for namelist files
-            fglob = glob.glob('over.??.nml')
+            fglob = glob.glob('*.[0-9][0-9].inp')
             # Read one of them.
             return Namelist(fglob[0])
     else:
         # Get run index.
         i = GetPhaseNumber(rc)
         # Read the namelist file.
-        return Namelist('over.%02i.nml' % i)
+        return Namelist('%s.%02i.inp' % (rc.get_Prefix(i), i+1))
     
     
 
