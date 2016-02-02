@@ -672,7 +672,7 @@ class Overflow(Cntl):
                 # Skip for key 'ALL'
                 if grdnam == 'ALL': continue
                 # Get options for this grid
-                ogrd = self.opts.get_GridByName(grdnam)
+                ogrd = self.opts.get_GridByName(grdnam, j)
                 # Apply the options
                 self.Namelist.ApplyDictToGrid(grdnam, ogrd)
             # Name of output file.

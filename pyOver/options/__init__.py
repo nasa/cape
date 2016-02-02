@@ -333,12 +333,7 @@ class Options(cape.options.Options):
     # Copy documentation
     for k in ['ALL', 'GridByName', 'grid_var', 'GridKey']:
         eval('get_'+k).__doc__ = getattr(GridSystemNml,'get_'+k).__doc__
-        
-    # Downselect
-    def select_namelist(self, i=None):
-        self._Grids()
-        return self['Grids'].select_namelist(i)
-    select_namelist.__doc__ = GridSystemNml.select_namelist.__doc__
+    
    #>
    
     # =============
