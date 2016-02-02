@@ -11,7 +11,7 @@ from cape.case import *
 # Import options class
 from options.runControl import RunControl
 # Import the namelist
-from namelist import Namelist
+from overNamelist import OverNamelist
 # Interface for writing commands
 from . import bin, cmd, queue
 
@@ -231,27 +231,28 @@ def GetNamelist(rc=None):
         *rc*: :class:`pyFun.options.runControl.RunControl`
             Run control options
     :Outputs:
-        *nml*: :class:`pyFun.namelist.Namelist`
+        *nml*: :class:`pyOver.overNamelist.OverNamelist`
             Namelist interface
     :Versions:
         * 2015-12-29 ``@ddalle``: First version
+        * 2015-02-02 ``@ddalle``: Copied from :mod:`pyFun.case`
     """
     # Check for detailed inputs
     if rc is None:
         # Check for simplest namelist file
         if os.path.isfile('over.namelist'):
             # Read the currently linked namelist.
-            return Namelist('over.namelist')
+            return OverNamelist('over.namelist')
         else:
             # Look for namelist files
             fglob = glob.glob('*.[0-9][0-9].inp')
             # Read one of them.
-            return Namelist(fglob[0])
+            return OverNamelist(fglob[0])
     else:
         # Get run index.
         i = GetPhaseNumber(rc)
         # Read the namelist file.
-        return Namelist('%s.%02i.inp' % (rc.get_Prefix(i), i+1))
+        return OverNamelist('%s.%02i.inp' % (rc.get_Prefix(i), i+1))
 
 
 # Function to get prefix

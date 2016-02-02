@@ -104,10 +104,10 @@ class RunControl(cape.options.runControl.RunControl):
         """Initialize `overrun` options if necessary"""
         if 'overrun' not in self:
             # Empty/default
-            self['overrun'] = nodet()
+            self['overrun'] = overrun()
         elif type(self['overrun']).__name__ == 'dict':
             # Convert to special class
-            self['overrun'] = nodet(**self['overrun'])
+            self['overrun'] = overrun(**self['overrun'])
             
    # >
     

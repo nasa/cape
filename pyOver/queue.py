@@ -1,6 +1,6 @@
 """
-FUN3D queue interface module: :mod:`pyFun.queue`
-================================================
+OVERFLOW queue interface module: :mod:`pyOver.queue`
+====================================================
 
 Contains direct interface for functions like `qsub` and `qstat`.
 

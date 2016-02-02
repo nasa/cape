@@ -60,7 +60,7 @@ def overrun(opts=None, i=0, **kw):
         args   = kw.get("args", "")
         # Prefix
         pre    = kw.get("Prefix", "run")
-    if ofcmd == "overrunmpi"
+    if ofcmd == "overrunmpi":
         # Use the ``overrunmpi`` script
         cmdi = [ofcmd, '-np', str(nProc), pre, str(i+1)]
     elif ofcmd == "overflowmpi":
