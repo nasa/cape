@@ -189,7 +189,7 @@ def GetPhaseNumber(rc):
     """Determine the appropriate input number based on results available
     
     :Call:
-        >>> i = pyFun.case.GetPhaseNumber(rc)
+        >>> i = pyOver.case.GetPhaseNumber(rc)
     :Inputs:
         *rc*: :class:`pyOver.options.runControl.RunControl`
             Options interface for run control
@@ -198,16 +198,17 @@ def GetPhaseNumber(rc):
             Most appropriate phase number for a restart
     :Versions:
         * 2014-10-02 ``@ddalle``: First version
-        * 2015-12-29 ``@ddalle``: OVERFLOW version
+        * 2015-12-29 ``@ddalle``: FUN3D version
+        * 2016-02-03 ``@ddalle``: OVERFLOW version
     """
     # Get the run index.
-    n = GetRestartIter()
+    n = GetRestartIter(rc)
     # Loop through possible input numbers.
     for j in range(rc.get_nSeq()):
         # Get the actual run number
         i = rc.get_PhaseSequence(j)
         # Output file glob
-        fglob = '%s.%02i.*' % (rc.get_Prefix(i), i+1)
+        fglob = '%s.%02i.[0-9]*' % (rc.get_Prefix(i), i+1)
         # Check for output files.
         if len(glob.glob(fglob)) == 0:
             # This run has not been completed yet.
@@ -426,7 +427,7 @@ def GetOutIter():
         return None
 
 # Function to get total iteration number
-def GetRestartIter():
+def GetRestartIter(rc=None):
     """Get total iteration number of most recent flow file
     
     :Call:
@@ -437,14 +438,21 @@ def GetRestartIter():
     :Versions:
         * 2015-10-19 ``@ddalle``: First version
     """
-    # List the *.*.flow files
-    fflow = glob.glob('*.[0-9][0-9]*.flow')
+    # Get prefix
+    rname = GetPrefix(rc)
+    # Output glob
+    fout = glob.glob('%s.[0-9][0-9]*.[0-9]*' % rname)
     # Initialize iteration number until informed otherwise.
     n = 0
     # Loop through the matches.
-    for fname in fflow:
+    for fname in fout:
         # Get the integer for this file.
-        i = int(fname.split('.')[-2])
+        try:
+            # Interpret the iteration number from file name
+            i = int(fname.split('.')[-2])
+        except Exception:
+            # Failed to interpret this file name
+            i = 0
         # Use the running maximum.
         n = max(i, n)
     # Output
