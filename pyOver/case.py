@@ -449,7 +449,7 @@ def GetRestartIter(rc=None):
         # Get the integer for this file.
         try:
             # Interpret the iteration number from file name
-            i = int(fname.split('.')[-2])
+            i = int(fname.split('.')[-1])
         except Exception:
             # Failed to interpret this file name
             i = 0
