@@ -40,6 +40,8 @@ def run_overflow():
     # Delete any input file.
     if os.path.isfile('over.namelist') or os.path.islink('over.namelist'):
         os.remove('over.namelist')
+    # Prepare environment variables (other than OMP_NUM_THREADS)
+    PrepareEnvironment(rc, i)
     # Create the correct namelist.
     shutil.copy('%s.%02i.inp' % (fproj,i+1), 'over.namelist')
     # Get the `nodet` or `nodet_mpi` command

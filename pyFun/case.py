@@ -44,6 +44,8 @@ def run_fun3d():
         os.remove('fun3d.nml')
     # Create the correct namelist.
     os.symlink('fun3d.%02i.nml'%i, 'fun3d.nml')
+    # Prepare environment variables (other than OMP_NUM_THREADS)
+    PrepareEnvironment(rc, i)
     # Prepare for restart if that's appropriate.
     SetRestartIter(rc)
     # Get the `nodet` or `nodet_mpi` command
