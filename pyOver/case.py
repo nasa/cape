@@ -354,7 +354,7 @@ def GetHistoryIter():
     # Check for the file.
     if not os.path.isfile(fname):
         # No history to read.
-        return None
+        return 0.0
     # Check the file.
     try:
         # Tail the file
@@ -363,7 +363,7 @@ def GetHistoryIter():
         return int(txt.split()[1])
     except Exception:
         # Failure; return no-iteration result.
-        return None
+        return 0.0
         
 # Get the last line (or two) from a running output file
 def GetRunningIter():
