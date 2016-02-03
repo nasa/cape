@@ -450,6 +450,12 @@ class Overflow(Cntl):
             # Original and final file names
             f0 = os.path.join(fcfg, fmsh[j])
             f1 = os.path.split(fmsh[j])[1]
+            # Replace 'x.save' -> 'x.restart'
+            f1 = f1.replace('save', 'restart')
+            # Remove the file if necessary
+            if os.path.islink(f1): os.remove(f1)
+            # Skip if full file
+            if os.path.isfile(f1): continue
             # Link the file.
             if os.path.isfile(f0):
                 shutil.copy(f0, f1)
@@ -460,6 +466,8 @@ class Overflow(Cntl):
             # Original and final file names
             f0 = os.path.join(fcfg, fmsh[j])
             f1 = os.path.split(fmsh[j])[1]
+            # Replace 'x.save' -> 'x.restart'
+            f1 = f1.replace('save', 'restart')
             # Remove the file if necessary
             if os.path.islink(f1): os.remove(f1)
             # Skip if full file

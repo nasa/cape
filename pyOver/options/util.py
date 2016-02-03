@@ -54,6 +54,7 @@ rc["CopyFilesDCF"] = [[]]
 # Pegasus 5 defaults
 rc["LinkFilesPeg5"] = [[
     "grid.in",
+    "x.save",
     "XINTOUT",
     "fomo/grid.ibi",
     "fomo/grid.nsf",

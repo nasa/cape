@@ -29,8 +29,6 @@ def run_overflow():
     if os.path.isfile('RUNNING'):
         # Case already running
         raise IOError('Case already running!')
-    # Touch the running file.
-    os.system('touch RUNNING')
     # Start timer
     tic = datetime.now()
     # Get the run control settings
@@ -43,7 +41,7 @@ def run_overflow():
     if os.path.isfile('over.namelist') or os.path.islink('over.namelist'):
         os.remove('over.namelist')
     # Create the correct namelist.
-    os.symlink('%s.%02i.inp' % (fproj,i+1), 'over.namelist')
+    shutil.copy('%s.%02i.inp' % (fproj,i+1), 'over.namelist')
     # Get the `nodet` or `nodet_mpi` command
     cmdi = cmd.overrun(rc)
     # Call the command.
