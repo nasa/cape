@@ -56,8 +56,6 @@ def run_overflow():
     n = GetCurrentIter()
     # Assuming that worked, move the temp output file.
     os.rename('pyover.out', '%s.%02i.%i' % (fproj, i+1, n))
-    # Rename the flow file, too.
-    #os.rename('%s.flow' % fproj, '%s.%i.flow' % (fproj,n))
     # Check current iteration count and phase
     if (i>=rc.get_PhaseSequence(-1)) and (n>=rc.get_LastIter()):
         return
