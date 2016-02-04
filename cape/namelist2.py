@@ -53,9 +53,9 @@ class Namelist2(FileCntl):
             * 2016-01-29 ``@ddalle``: First version
         """
         # Find the lines that start the lists
-        I = np.array(self.GetIndexSearch('\s+[&$]'))
+        I = np.array(self.GetIndexSearch('\s+[&$]'), dtype=int)
         # Find the lines that end with '/'
-        J = np.array(self.GetIndexSearch('\s+[^ !].*/'))
+        J = np.array(self.GetIndexSearch('\s+[^ !].*/^'), dtype=int)
         # Get start and end keywords to each line
         grpnm = np.array([self.lines[i].split()[0][1:] for i in I])
         kwbeg = np.array([self.lines[i].split()[0][1:].lower()  for i in I])
