@@ -502,8 +502,11 @@ class Overflow(Cntl):
         # Get mesh file names
         fmsh = self.GetMeshFileNames()
         # Check for them.
-        for f in fmsh:
-            if not os.path.isfile(f): return True
+        for fi in fmsh:
+            # Check for modified file name: 'save' -> 'restart'
+            fo = fi.replace('save', 'restart')
+            # Check for the file
+            if not os.path.isfile(fo): return True
         # Apparently no issues.
         return False
             
