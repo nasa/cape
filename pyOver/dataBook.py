@@ -649,9 +649,11 @@ class CaseResid(cape.dataBook.CaseResid):
         # Save the prefix
         self.proj = proj
         # Initialize arrays.
-        self.i    = np.array([])
-        self.L2   = np.array([])
-        self.Linf = np.array([])
+        self.i = np.array([])
+        self.L2Resid   = np.array([])
+        self.LInfResid = np.array([])
+        # Turbulence residuals
+        
         
     
     # Representation method
@@ -664,13 +666,152 @@ class CaseResid(cape.dataBook.CaseResid):
         # Display
         return "<pyOver.dataBook.CaseResid n=%i, prefix='%s'>" % (
             len(self.i), self.proj)
+        
+        
+    # Read entire global residual tower
+    def ReadGlobalL2(self):
+        """Read entire global L2 history
+        
+        The file ``history.L2.dat`` is also updated.
+        
+        :Call:
+            >>> R.ReadGlobalL2()
+        :Inputs:
+            *R*: :class:`pyOver.dataBook.CaseResid`
+                Iterative residual history class
+        :Versions:
+            * 2016-02-04 ``@ddalle``: First version
+        """
+        # Read the global history file
+        self.i, self.L2Resid = self.ReadGlobalHist('history.L2.dat')
+        # OVERFLOW file names
+        frun = '%s.resid' % self.proj
+        fout = 'resid.out'
+        ftmp = 'resid.tmp'
+        # Number of iterations read
+        if len(self.i) > 0:
+            # Last iteration
+            n = self.i[-1]
+        else:
+            # Start from the beginning
+            n = 0
+        # Read the archival file
+        self.ReadResidGlobal(frun, coeff="L2")
+        # Read the intermediate file
+        self.ReadResidGlobal(fout, coeff="L2")
+        # Write the updated history (tmp file not safe to write here)
+        self.WriteGlobalHist('history.L2.dat', self.i, self.L2)
+        # Read the temporary file
+        self.ReadResidGlobal(ftmp, coeff="L2")
+    
+    # Read a consolidated history file
+    def ReadGlobalHist(self, fname):
+        """Read a condensed global residual file for faster read times
+        
+        :Call:
+            >>> i, L = R.ReadGlobalHist(fname)
+        :Inputs:
+            *R*: :class:`pyOver.dataBook.CaseResid`
+                Iterative residual history class
+            *i*: :class:`numpy.ndarray` (:class:
+        :Versions:
+            * 2016-02-04 ``@ddalle``: First version
+        """
+        # Check for file.
+        if not os.path.isfile(fname):
+            # Return empty arrays
+            return np.array([]), np.array([])
+        # Try to read the file
+        try:
+            # Read the file.
+            A = np.loadtxt(fname)
+            # Split into columns
+            return A[:,0], A[:,1]
+        except Exception:
+            # Reading file failed
+            return np.array([]), np.array([])
+    
+    # Write a consolidated history file
+    def WriteGlobalHist(self, fname, i, L, n=None):
+        """Write a condensed global residual file for faster read times
+        
+        :Call:
+            >>> R.WriteGlobalHist(fname, i, L, n=None)
+        :Inputs:
+            *R*: :class:`pyOver.dataBook.CaseResid`
+                Iterative residual history class
+            *i*: :class:`np.ndarray` (:class:`float` | :class:`int`)
+                Vector of iteration numbers
+            *L*: :class:`np.ndarray` (:class:`float`)
+                Vector of residuals to write
+            *n*: :class:`int` | ``None``
+                Last iteration already written to file.
+        :Versions:
+            * 2016-02-04 ``@ddalle``: First version
+        """
+        # Default number of lines to skip
+        if n is None:
+            # Query the file.
+            if os.path.isfile(fname):
+                try:
+                    # Read the last line of the file
+                    line = bin.tail(fname)
+                    # Get the iteration number
+                    n = float(line.split()[0])
+                except Exception:
+                    # File exists but has some issues
+                    n = 0
+            else:
+                # Start at the beginning of the array
+                n = 0
+        # Find the index of the first iteration greater than *n*
+        I = np.where(i > n)[0]
+        # If no hits, nothing to write
+        if len(I) == 0: return
+        # Index to start at
+        istart = I[0]
+        # Append to the file
+        f = open(fname, 'a')
+        # Loop through the lines
+        for j in range(istart, len(i)):
+            # Write iteration
+            f.write('%8i %14.7E\n' % (i[j], L[j]))
+        # Close the file.
+        f.close()
+
     
     # Read a global residual file
     def ReadResidGlobal(self, fname, coeff="L2", n=None):
+        """Read a global residual using :func:`numpy.loadtxt` from one file
+        
+        :Call:
+            >>> i, L2 = R.ReadResidGlobal(fname, coeff="L2", n=None)
+            >>> i, Linf = R.ReadResidGlobal(fname, coeff="LInf", n=None)
+        :Inputs:
+            *R*: :class:`pyOver.dataBook.CaseResid`
+                Iterative residual history class
+            *fname*: :class:`str`
+                Name of file to process
+            *coeff*: :class:`str`
+                Name of coefficient to read
+            *n*: :class:`int` | ``None``
+                Number of last iteration that's already processed
+        :Outputs:
+            *i*: :class:`np.ndarray` (:class:`float`)
+                Array of iteration numbers
+            *L2*: :class:`np.ndarray` (:class:`float`)
+                Array of weighted global L2 norms
+            *Linf*: :class:`np.ndarray` (:class:`float`)
+                Array of global L-infinity norms
+        :Versions:
+            * 2016-02-04 ``@ddalle``: First version
+        """
         # Check for the file
         if not os.path.isfile(fname): return
         # First iteration
         i0 = ReadResidFirstIter(fname)
+        # Number of iterations
+        nIter = ReadResidNIter(fname)
         # Number of grids
         nGrid = ReadResidNGrids(fname)
         # Process current iteration number
@@ -682,21 +823,54 @@ class CaseResid(cape.dataBook.CaseResid):
             else:
                 # Use last current iter
                 n = max(self.i)
+        # Number of iterations to skip
+        nIterSkip = max(0, n-i0+1)
         # Skip *nGrid* rows for each iteration
-        nskip = max(0,n-i0) * nGrid
+        nSkip = int(nIterSkip * nGrid)
+        # Number of iterations to be read
+        nIterRead = nIter - nIterSkip
         # Process columns to read
         if coeff.lower() == "linf":
-            # Read the iter, L-infinity norm, nPts
-            cols = (1,3,13)
+            # Read the iter, L-infinity norm
+            cols = (1,3)
+            nc = 2
             # Coefficient
             c = 'Linf'
         else:
             # Read the iter, L2 norm, nPts
             cols = (1,2,13)
+            nc = 3
             # Field name
             c = 'L2'
         # Read the file
-        A = np.loadtxt(fname, skiprows=nskip, usecols=cols)
-        # 
+        A = np.loadtxt(fname, skiprows=nSkip, usecols=cols)
+        # Reshape the data
+        B = np.reshape(A[:nc*nIterRead*nGrid,:], (nIterRead, nGrid, nc))
+        # Get iterations
+        i = B[:,0,0]
+        # Get global residuals
+        if c == "L2":
+            # Get weighted sum
+            L = np.sum(B[:,:,1]*B[:,:,2]**2, axis=1)
+            # Total grid points in each iteration
+            N = np.sum(B[:,:,2], axis=1)
+            # Divide by number of grid points, and take square root
+            L = np.sqrt(L/N)
+            # Append to data
+            self.L2Resid = np.hstack((self.L2Resid, L))
+        else:
+            # Get the maximum value
+            L = np.max(B[:,:,1], axis=1)
+            # Append to data
+            self.LInfResid = np.hstack((self.LInfResid, L))
+        # Check for issues
+        if np.any(np.diff(i) < 0):
+            # Warning
+            print("  Warning: file '%s' contains non-ascending iterations" %
+                fname)
+        # Append to data
+        self.i = np.hstack((self.i, i))
+        # Output
+        return i, L
         
 

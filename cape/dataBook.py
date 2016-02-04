@@ -3517,12 +3517,12 @@ class CaseResid(object):
         try:
             L1 = getattr(self,c)[i0:]
         except Exception:
-            L1 = np.zeros_like(i)
+            L1 = np.nan*np.ones_like(i)
         # Residual before subiterations
         try:
             L0 = getattr(self,c+'0')[i0:]
         except Exception:
-            L0 = np.zeros_like(i)
+            L0 = np.nan*np.ones_like(i)
         # Check if L0 is too long.
         if len(L0) > len(i):
             # Trim it.
@@ -3616,6 +3616,35 @@ class CaseResid(object):
         # Plot 'L1Resid'
         return self.PlotResid('L2Resid', 
             n=n, nFirst=nFirst, nLast=nLast, YLabel='L2 Residual')
+        
+    # Plot function
+    def PlotLInf(self, n=None, nFirst=None, nLast=None, **kw):
+        """Plot the L-infinity residual
+        
+        :Call:
+            >>> h = hist.PlotLInf(n=None, nFirst=None, nLast=None, **kw)
+        :Inputs:
+            *hist*: :class:`cape.dataBook.CaseResid`
+                Instance of the DataBook residual history
+            *n*: :class:`int`
+                Only show the last *n* iterations
+            *nFirst*: :class:`int`
+                Plot starting at iteration *nStart*
+            *nLast*: :class:`int`
+                Plot up to iteration *nLast*
+            *FigWidth*: :class:`float`
+                Figure width
+            *FigHeight*: :class:`float`
+                Figure height
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of figure/plot handles
+        :Versions:
+            * 2016-02-04 ``@ddalle``: Copied from :func:`PlotL2`
+        """
+        # Plot 'L1Resid'
+        return self.PlotResid('LInfResid', 
+            n=n, nFirst=nFirst, nLast=nLast, YLabel='L-infinity Residual')
         
         
     # Function to get index of a certain iteration number
