@@ -437,3 +437,35 @@ class CaseFM(cape.dataBook.CaseFM):
         self.cols = ['i', 't'] + self.coeffs
         
 # class CaseFM
+
+
+# Residual class
+class CaseResid(cape.dataBook.CaseResid):
+    """OVERFLOW iterative residual history class
+    
+    This class provides an interface to residuals for a given case by reading
+    the files ``resid.out``, ``resid.tmp``, ``run.resid``, ``turb.out``,
+    ``species.out``, etc.
+    
+    :Call:
+        >>> R = pyOver.dataBook.CaseResid(proj)
+    :Inputs:
+        *proj*: :class:`str`
+            Project root name
+    :Outputs:
+        *R*: :class:`pyOver.databook.CaseResid`
+            Instance of the residual histroy class
+    :Versions:
+        * 2016-02-03 ``@ddalle``: Started
+    """
+    # Initialization method
+    def __init__(self, proj):
+        """Initialization method
+        
+        :Versions:
+            * 2016-02-03 ``@ddalle``: First version
+        """
+        # Save the prefix
+        self.proj = proj
+        
+
