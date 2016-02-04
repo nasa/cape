@@ -54,6 +54,8 @@ class Namelist2(FileCntl):
         """
         # Find the lines that start the lists
         I = np.array(self.GetIndexSearch('\s+[&$]'))
+        # Find the lines that end with '/'
+        J = np.array(self.GetIndexSearch('\s+[^ !].*/'))
         # Get start and end keywords to each line
         grpnm = np.array([self.lines[i].split()[0][1:] for i in I])
         kwbeg = np.array([self.lines[i].split()[0][1:].lower()  for i in I])
@@ -61,7 +63,7 @@ class Namelist2(FileCntl):
         # Save the start indices
         self.ibeg = I[kwbeg != "end"]
         # Save the end indices
-        self.iend = I[kwend == "end"]
+        self.iend = np.logical_or(I[kwend == "end"], J)
         # Save the names
         self.Groups = grpnm[kwbeg != "end"]
         

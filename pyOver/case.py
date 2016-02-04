@@ -45,7 +45,7 @@ def run_overflow():
     # Create the correct namelist.
     shutil.copy('%s.%02i.inp' % (fproj,i+1), 'over.namelist')
     # Get the `nodet` or `nodet_mpi` command
-    cmdi = cmd.overrun(rc)
+    cmdi = cmd.overrun(rc, i=i)
     # Call the command.
     bin.callf(cmdi, f='pyover.out')
     # Remove the RUNNING file.

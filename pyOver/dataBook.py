@@ -125,7 +125,188 @@ def ReadFomocoNIter(fname, nComp=None):
     f.close()
     # Save number of iterations
     return int(np.ceil(L / (nComp*650.0)))
-# def ReadFomocoComps
+# def ReadFomoco
+
+# Read grid names from a resid file
+def ReadResidGrids(fname):
+    """Get list of grids in an OVERFLOW residual file
+    
+    :Call:
+        >>> grids = pyOver.dataBook.ReadResidGrids(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to read
+    :Outputs:
+        *grids*: :class:`list` (:class:`str`)
+            List of grids
+    :Versions:
+        * 2016-02-04 ``@ddalle``: First version
+    """
+    # Initialize grids
+    comps = []
+    # Open the file
+    f = open(fname, 'r')
+    # Read the first line and last component
+    comp = f.readline().split()[-1]
+    # Loop until a component repeates
+    while comp not in comps:
+        # Add the component
+        comps.append(comp)
+        # Read the next grid name
+        comp = f.readline().split()[-1]
+    # Close the file
+    f.close()
+    # Output
+    return comps
+    
+# Read number of grids from a resid file
+def ReadResidNGrids(fname):
+    """Get number of grids from an OVERFLOW residual file
+    
+    :Call:
+        >>> nGrid = pyOver.dataBook.ReadResidNGrids(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to read
+    :Outputs:
+        *nGrid*: :class:`int`
+            Number of grids
+    :Versions:
+        * 2016-02-04 ``@ddalle``: First version
+    """
+    # Initialize number of grids
+    nGrid = 0
+    # Open the file
+    f = open(fname, 'r')
+    # Read the first grid number
+    iGrid = int(f.readline().split()[0])
+    # Loop until grid number decreases
+    while iGrid > nGrid:
+        # Update grid count
+        nGrid += 1
+        # Read the next grid number.
+        iGrid = int(f.readline().split()[0])
+    # Close the file
+    f.close()
+    # Output
+    return nGrid
+    
+# Read the first iteration number from a resid file.
+def ReadResidFirstIter(fname):
+    """Read the first iteration number in an OVERFLOW residual file
+    
+    :Call:
+        >>> iIter = pyOver.dataBook.ReadResidFirstIter(fname)
+        >>> iIter = pyOver.dataBook.ReadResidFirstIter(f)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to query
+        *f*: :class:`file`
+            Already opened file handle to query
+    :Outputs:
+        *iIter*: :class:`int`
+            Iteration number from first line
+    :Versions:
+        * 2016-02-04 ``@ddalle``: First version
+    """
+    # Check input type
+    if type(fname).__name__ == "file":
+        # Already a file.
+        f = fname
+        # Check if it's open already
+        qf = True
+        # Get current location
+        ft = f.tell()
+    else:
+        # Open the file.
+        f = open(fname, 'r')
+        # Not open
+        qf = False
+    # Read the second entry from the first line
+    iIter = int(f.readline().split()[1])
+    # Close the file.
+    if qf:
+        # Return to original location
+        f.seek(ft)
+    else:
+        # Close the file
+        f.close()
+    # Output
+    return iIter
+    
+# Read the first iteration number from a resid file.
+def ReadResidLastIter(fname):
+    """Read the first iteration number in an OVERFLOW residual file
+    
+    :Call:
+        >>> nIter = pyOver.dataBook.ReadResidLastIter(fname)
+        >>> nIter = pyOver.dataBook.ReadResidLastIter(f)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to query
+        *f*: :class:`file`
+            Already opened file handle to query
+    :Outputs:
+        *nIter*: :class:`int`
+            Iteration number from last line
+    :Versions:
+        * 2016-02-04 ``@ddalle``: First version
+    """
+    # Check input type
+    if type(fname).__name__ == "file":
+        # Already a file.
+        f = fname
+        # Check if it's open already
+        qf = True
+        # Get current location
+        ft = f.tell()
+    else:
+        # Open the file.
+        f = open(fname, 'r')
+        # Not open
+        qf = False
+    # Go to last line
+    f.seek(-218, 2)
+    # Read the second entry from the last line
+    iIter = int(f.readline().split()[1])
+    # Close the file.
+    if qf:
+        # Return to original location
+        f.seek(ft)
+    else:
+        # Close the file
+        f.close()
+    # Output
+    return iIter
+    
+# Get number of iterations from a resid file
+def ReadResidNIter(fname):
+    """Get number of iterations in an OVERFLOW residual file
+    
+    :Call:
+        >>> nIter = pyOver.dataBook.ReadResidNIter(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to query
+    :Outputs:
+        *nIter*: :class:`int`
+            Number of iterations
+    :Versions:
+        * 2016-02-04 ``@ddalle``: First version
+    """
+    # Get the number of grids.
+    nGrid = ReadResidNGrids(fname)
+    # Open the file
+    f = open(fname, 'r')
+    # Go to the end of the file
+    f.seek(0, 2)
+    # Use the position to determine the number of lines
+    nIter = f.tell() / nGrid / 218
+    # close the file.
+    f.close()
+    # Output
+    return nIter
+    
 
 # Aerodynamic history class
 class DataBook(cape.dataBook.DataBook):
@@ -467,5 +648,55 @@ class CaseResid(cape.dataBook.CaseResid):
         """
         # Save the prefix
         self.proj = proj
+        # Initialize arrays.
+        self.i    = np.array([])
+        self.L2   = np.array([])
+        self.Linf = np.array([])
+        
+    
+    # Representation method
+    def __repr__(self):
+        """Representation method
+        
+        :Versions:
+            * 2016-02-04 ``@ddalle``: First version
+        """
+        # Display
+        return "<pyOver.dataBook.CaseResid n=%i, prefix='%s'>" % (
+            len(self.i), self.proj)
+    
+    # Read a global residual file
+    def ReadResidGlobal(self, fname, coeff="L2", n=None):
+        # Check for the file
+        if not os.path.isfile(fname): return
+        # First iteration
+        i0 = ReadResidFirstIter(fname)
+        # Number of grids
+        nGrid = ReadResidNGrids(fname)
+        # Process current iteration number
+        if n is None:
+            # Use last known iteration
+            if len(self.i) == 0:
+                # No iterations
+                n = 0
+            else:
+                # Use last current iter
+                n = max(self.i)
+        # Skip *nGrid* rows for each iteration
+        nskip = max(0,n-i0) * nGrid
+        # Process columns to read
+        if coeff.lower() == "linf":
+            # Read the iter, L-infinity norm, nPts
+            cols = (1,3,13)
+            # Coefficient
+            c = 'Linf'
+        else:
+            # Read the iter, L2 norm, nPts
+            cols = (1,2,13)
+            # Field name
+            c = 'L2'
+        # Read the file
+        A = np.loadtxt(fname, skiprows=nskip, usecols=cols)
+        # 
         
 
