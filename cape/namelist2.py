@@ -63,7 +63,7 @@ class Namelist2(FileCntl):
         # Save the start indices
         self.ibeg = I[kwbeg != "end"]
         # Save the end indices
-        self.iend = np.logical_or(I[kwend == "end"], J)
+        self.iend = np.sort(np.hstack((I[kwend == "end"], J)))
         # Save the names
         self.Groups = grpnm[kwbeg != "end"]
         
