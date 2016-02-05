@@ -80,6 +80,8 @@ def ReadFomocoComps(fname):
     comp = f.readline().strip()
     # Loop until a component repeats
     while comp not in comps:
+        # Check for empty line
+        if comp == "": break
         # Add the component
         comps.append(comp)
         # Move to the next component
@@ -184,8 +186,12 @@ def ReadResidNGrids(fname):
     while iGrid > nGrid:
         # Update grid count
         nGrid += 1
+        # Read the next line.
+        line = f.readline().split()
+        # Check for EndOfFile
+        if len(line) == 0: break
         # Read the next grid number.
-        iGrid = int(f.readline().split()[0])
+        iGrid = int(line[0])
     # Close the file
     f.close()
     # Output
@@ -395,7 +401,7 @@ class CaseFM(cape.dataBook.CaseFM):
         # Read the data.
         self.ReadFomocoData(frun, i_r, nc_r, ni_r, 0)
         self.ReadFomocoData(fout, i_o, nc_o, ni_o, ni_r)
-        self.ReadFomocoData(fout, i_t, nc_t, ni_t, ni_r+ni_o)
+        self.ReadFomocoData(ftmp, i_t, nc_t, ni_t, ni_r+ni_o)
         # Save data as attributes
         self.SaveAttributes()
         
@@ -827,6 +833,9 @@ class CaseResid(cape.dataBook.CaseResid):
         nSkip = int(nIterSkip * nGrid)
         # Number of iterations to be read
         nIterRead = nIter - nIterSkip
+        # Check for something to read
+        if nIterRead <= 0:
+            return np.array([]), np.array([])
         # Process columns to read
         if coeff.lower() == "linf":
             # Read the iter, L-infinity norm

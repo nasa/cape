@@ -91,15 +91,15 @@ class Report(cape.report.Report):
         # Initialize the residual history
         R = CaseResid(proj)
         # Check type
-        t = self.get_SubfigType(sfig)
+        t = self.cntl.opts.get_SubfigBaseType(sfig)
         # Check for named
         if t not in ['PlotL2', 'PlotResid', 'PlotLInf']:
             # Nothing to process
             return R
         # Check the residual to read
-        o_r = self.get_SubfigOpt(sfig, "Residual")
+        o_r = self.cntl.opts.get_SubfigOpt(sfig, "Residual")
         # Check the component to read
-        comp = self.get_SubfigOpt(sfig, "Component")
+        comp = self.cntl.opts.get_SubfigOpt(sfig, "Component")
         # Read the appropriate residuals
         if o_r in ['L2', 'L2Resid', 'L_2']:
             # Check component

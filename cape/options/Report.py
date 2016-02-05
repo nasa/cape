@@ -1002,8 +1002,12 @@ class Report(odict):
         # Process known defaults.
         S = self.defs.get(t)
         # Check for error
-        if S is None:
-            raise ValueError("Subfigure '%s' type is not recognized" % sfig)
+        if S is None and t == sfig:
+            raise ValueError(
+                "Subfigure '%s' does not have a recognized type" % sfig)
+        elif S is None:
+            # Cascading type; recurse
+            return self.get_SubfigOpt(t, opt, i=i, k=k)
         # Get the default value.
         o = S.get(opt)
         # Process output type.

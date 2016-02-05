@@ -236,7 +236,7 @@ class Report(object):
             f.write('\\vskip2ex\n')
             f.write('{\\Large\\sf\\textit{\n')
             f.write('%s\n' % fsttl)
-            f.write('}}\n')
+            f.write('}}\\par\n')
         # Finish the title with a horizontal line
         f.write('\\rule{0.75\\textwidth}{1pt}\\par\n')
         f.write('\\vskip30ex\n')
@@ -1113,7 +1113,7 @@ class Report(object):
             # Append the value.
             if x.defns[k]['Value'] in ['str', 'unicode']:
                 # Put the value in sans serif
-                line += "{\\small\\textsf{%s}} \\\\\n" % v[0]
+                line += "{\\small\\textsf{%s}} \\\\\n"%v[0].replace('_','\_')
             elif x.defns[k]['Value'] in ['float', 'int']:
                 # Check for range.
                 if max(v) > min(v):
@@ -1140,7 +1140,7 @@ class Report(object):
                     line += "0o%o \\\\\n" % v[0]
             else:
                 # Put the virst value as string (other type)
-                line += "%s \\\\\n" % v[0]
+                line += "%s \\\\\n" % v[0].replace('_','\_')
             # Add the line to the table.
             lines.append(line)
         
@@ -1222,7 +1222,8 @@ class Report(object):
             # Append the value.
             if x.defns[k]['Value'] in ['str', 'unicode']:
                 # Put the value in sans serif
-                line += "{\\small\\textsf{%s}} \\\\\n" % getattr(x,k)[i]
+                line += "{\\small\\textsf{%s}} \\\\\n" % (
+                    getattr(x,k)[i].replace('_', '\_'))
             elif x.defns[k]['Value'] in ['float', 'int']:
                 # Put the value as a number
                 line += "$%s$ &" % getattr(x,k)[i]
@@ -1234,7 +1235,7 @@ class Report(object):
                 line += "0o%o &" % getattr(x,k)[i]
             else:
                 # Just put a string
-                line += "%s &" % getattr(x,k)[i]
+                line += "%s &" % getattr(x,k)[i].replace('_','\_')
             # Append the constraint
             line += " %s \\\\ \n" % scon
             # Append the line.
