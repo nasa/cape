@@ -65,7 +65,7 @@ class Report(cape.report.Report):
             * 2016-02-04 ``@ddalle``: First version
         """
         # Project rootname
-        proj = self.cntl.GetProjectRootName()
+        proj = self.cntl.GetPrefix()
         # Read the history for that component
         return CaseFM(proj, comp)
         
@@ -87,7 +87,7 @@ class Report(cape.report.Report):
             * 2016-02-04 ``@ddalle``: First version
         """
         # Project rootname
-        proj = self.cntl.GetProjectRootName()
+        proj = self.cntl.GetPrefix()
         # Initialize the residual history
         R = CaseResid(proj)
         # Check type

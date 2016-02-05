@@ -3,7 +3,7 @@
 # Import the full module
 import pyOver
 # Automated report generation
-#import pyFun.report
+import pyOver.report
 # Input parsing
 from cape.argread import readflagstar
 
@@ -64,14 +64,14 @@ if __name__ == "__main__":
         # Get the report(s) to create.
         if kw['report'] == True:
             # All reports
-            reps = [fun3d.opts.get_ReportList()[0]]
+            reps = [oflow.opts.get_ReportList()[0]]
         else:
             # User-specified report
             reps = [kw['report']]
         # Loop through reports.
         for rep in reps:
             # Get the report.
-            R = pyFlow.report.Report(oflow, rep)
+            R = pyOver.report.Report(oflow, rep)
             # Update according to other options
             R.UpdateReport(**kw)
     else:

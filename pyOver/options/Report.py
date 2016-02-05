@@ -57,7 +57,7 @@ class Report(cape.options.Report):
         self.defs['PlotL2'] = {
             "Header": "",
             "Residual": "L2Resid",
-            "Component": None
+            "Component": None,
             "Position": "b",
             "Alignment": "center",
             "YLabel": "L2 residual",
