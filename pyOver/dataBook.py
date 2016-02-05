@@ -306,7 +306,7 @@ def ReadResidNIter(fname):
     f.close()
     # Output
     return nIter
-    
+# def ReadResid
 
 # Aerodynamic history class
 class DataBook(cape.dataBook.DataBook):
@@ -629,12 +629,12 @@ class CaseResid(cape.dataBook.CaseResid):
     ``species.out``, etc.
     
     :Call:
-        >>> R = pyOver.dataBook.CaseResid(proj)
+        >>> H = pyOver.dataBook.CaseResid(proj)
     :Inputs:
         *proj*: :class:`str`
             Project root name
     :Outputs:
-        *R*: :class:`pyOver.databook.CaseResid`
+        *H*: :class:`pyOver.databook.CaseResid`
             Instance of the residual histroy class
     :Versions:
         * 2016-02-03 ``@ddalle``: Started
@@ -650,12 +650,9 @@ class CaseResid(cape.dataBook.CaseResid):
         self.proj = proj
         # Initialize arrays.
         self.i = np.array([])
-        self.L2Resid   = np.array([])
-        self.LInfResid = np.array([])
-        # Turbulence residuals
+        self.L2   = np.array([])
+        self.Linf = np.array([])
         
-        
-    
     # Representation method
     def __repr__(self):
         """Representation method
@@ -666,6 +663,8 @@ class CaseResid(cape.dataBook.CaseResid):
         # Display
         return "<pyOver.dataBook.CaseResid n=%i, prefix='%s'>" % (
             len(self.i), self.proj)
+    # Copy the function
+    __str__ = __repr__
         
         
     # Read entire global residual tower
@@ -675,15 +674,15 @@ class CaseResid(cape.dataBook.CaseResid):
         The file ``history.L2.dat`` is also updated.
         
         :Call:
-            >>> R.ReadGlobalL2()
+            >>> H.ReadGlobalL2()
         :Inputs:
-            *R*: :class:`pyOver.dataBook.CaseResid`
+            *H*: :class:`pyOver.dataBook.CaseResid`
                 Iterative residual history class
         :Versions:
             * 2016-02-04 ``@ddalle``: First version
         """
         # Read the global history file
-        self.i, self.L2Resid = self.ReadGlobalHist('history.L2.dat')
+        self.i, self.L2 = self.ReadGlobalHist('history.L2.dat')
         # OVERFLOW file names
         frun = '%s.resid' % self.proj
         fout = 'resid.out'
@@ -709,9 +708,9 @@ class CaseResid(cape.dataBook.CaseResid):
         """Read a condensed global residual file for faster read times
         
         :Call:
-            >>> i, L = R.ReadGlobalHist(fname)
+            >>> i, L = H.ReadGlobalHist(fname)
         :Inputs:
-            *R*: :class:`pyOver.dataBook.CaseResid`
+            *H*: :class:`pyOver.dataBook.CaseResid`
                 Iterative residual history class
             *i*: :class:`numpy.ndarray` (:class:
         :Versions:
@@ -736,9 +735,9 @@ class CaseResid(cape.dataBook.CaseResid):
         """Write a condensed global residual file for faster read times
         
         :Call:
-            >>> R.WriteGlobalHist(fname, i, L, n=None)
+            >>> H.WriteGlobalHist(fname, i, L, n=None)
         :Inputs:
-            *R*: :class:`pyOver.dataBook.CaseResid`
+            *H*: :class:`pyOver.dataBook.CaseResid`
                 Iterative residual history class
             *i*: :class:`np.ndarray` (:class:`float` | :class:`int`)
                 Vector of iteration numbers
@@ -779,16 +778,15 @@ class CaseResid(cape.dataBook.CaseResid):
         # Close the file.
         f.close()
 
-    
     # Read a global residual file
     def ReadResidGlobal(self, fname, coeff="L2", n=None):
         """Read a global residual using :func:`numpy.loadtxt` from one file
         
         :Call:
-            >>> i, L2 = R.ReadResidGlobal(fname, coeff="L2", n=None)
-            >>> i, Linf = R.ReadResidGlobal(fname, coeff="LInf", n=None)
+            >>> i, L2 = H.ReadResidGlobal(fname, coeff="L2", n=None)
+            >>> i, Linf = H.ReadResidGlobal(fname, coeff="LInf", n=None)
         :Inputs:
-            *R*: :class:`pyOver.dataBook.CaseResid`
+            *H*: :class:`pyOver.dataBook.CaseResid`
                 Iterative residual history class
             *fname*: :class:`str`
                 Name of file to process
@@ -857,12 +855,12 @@ class CaseResid(cape.dataBook.CaseResid):
             # Divide by number of grid points, and take square root
             L = np.sqrt(L/N)
             # Append to data
-            self.L2Resid = np.hstack((self.L2Resid, L))
+            self.L2 = np.hstack((self.L2, L))
         else:
             # Get the maximum value
             L = np.max(B[:,:,1], axis=1)
             # Append to data
-            self.LInfResid = np.hstack((self.LInfResid, L))
+            self.Linf = np.hstack((self.Linf, L))
         # Check for issues
         if np.any(np.diff(i) < 0):
             # Warning
@@ -872,5 +870,40 @@ class CaseResid(cape.dataBook.CaseResid):
         self.i = np.hstack((self.i, i))
         # Output
         return i, L
+    
+    # Plot L2 norm
+    def PlotL2(self, n=None, nFirst=None, nLast=None, **kw):
+        """Plot the L2 residual
         
+        :Call:
+            >>> h = hist.PlotL2(n=None, nFirst=None, nLast=None, **kw)
+        :Inputs:
+            *hist*: :class:`cape.dataBook.CaseResid`
+                Instance of the DataBook residual history
+            *n*: :class:`int`
+                Only show the last *n* iterations
+            *nFirst*: :class:`int`
+                Plot starting at iteration *nStart*
+            *nLast*: :class:`int`
+                Plot up to iteration *nLast*
+            *FigWidth*: :class:`float`
+                Figure width
+            *FigHeight*: :class:`float`
+                Figure height
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of figure/plot handles
+        :Versions:
+            * 2014-11-12 ``@ddalle``: First version
+            * 2014-12-09 ``@ddalle``: Moved to :class:`AeroPlot`
+            * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
+            * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
+            * 2015-10-21 ``@ddalle``: Referred to :func:`PlotResid`
+        """
+        # Y-label option
+        ylbl = kw.get('YLabel', 'L2 Residual')
+        # Plot 'L2Resid'
+        return self.PlotResid('L2', 
+            n=n, nFirst=nFirst, nLast=nLast, YLabel='L2 Residual')
+# class CaseResid
 

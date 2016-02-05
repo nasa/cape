@@ -14,6 +14,310 @@ from .util import rc0, odict, getel, isArray
 class Report(odict):
     """Dictionary-based interface for options specific to plotting"""
     
+    # Initialization method
+    def __init__(self, **kw):
+        """Initialization method
+        
+        :Call:
+            >>> opts = Report(**kw)
+        :Inputs:
+            *kw*: :class:`dict` | :class:`cape.options.util.odict`
+                Dictionary that is converted to this class
+        :Outputs:
+            *opts*: :class:`cape.options.Report.Report`
+                Options interface
+        :Versions:
+            * 2016-02-04 ``@ddalle``: First version (not using :class:`dict`)
+        """
+        # Initialize
+        for k in kw:
+            self[k] = kw[k]
+        # Initialize subfigure defaults
+        self.SetSubfigDefaults()
+        self.ModSubfigDefaults()
+    
+    # Subfigure defaults
+    def SetSubfigDefaults(self):
+        """Set subfigure default options
+        
+        :Call:
+            >>> opts.SetSubfigDefaults()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Effects:
+            *opts.defns*: :class:`dict`
+                Default options for each subfigure type is set
+        :Versions:
+            * 2016-02-04 ``@ddalle``: First version
+        """
+        # Initialize the dictionary
+        self.defs = {}
+        # Default conditions table figure
+        self.defs["Conditions"] = {
+            "Header": "Conditions",
+            "Position": "t",
+            "Alignment": "left",
+            "Width": 0.4,
+            "SkipVars": []
+        }
+        # Default table of constraints that defines a sweep
+        self.defs["SweepConditions"] = {
+            "Header": "Sweep Constraints",
+            "Position": "t",
+            "Alignment": "left",
+            "Width": 0.4
+        }
+        # List of cases in a sweep
+        self.defs['SweepCases'] = {
+            "Header": "Sweep Cases",
+            "Position": "t",
+            "Alignment": "left",
+            "Width": 0.6
+        }
+        # Default force/moment table
+        self.defs['Summary'] = {
+            "Header": "Force \\& moment summary",
+            "Position": "t",
+            "Alignment": "left",
+            "Width": 0.6,
+            "Iteration": 0,
+            "Components": ["entire"],
+            "Coefficients": ["CA", "CY", "CN"],
+            "CA": ["mu", "std"],
+            "CY": ["mu", "std"],
+            "CN": ["mu", "std"],
+            "CLL": ["mu", "std"],
+            "CLM": ["mu", "std"],
+            "CLN": ["mu", "std"]
+        }
+        # This needs another name, too
+        self.defs['ForceTable'] = self.defs['Summary'].copy()
+        self.defs['FMTable'] = self.defs['Summary'].copy()
+        # Default point sensor table
+        self.defs['PointSensorTable'] = {
+            "Header": "Point sensor results table",
+            "Position": "t",
+            "Alignment": "left",
+            "Width": 0.6,
+            "Iteration": 0,
+            "Group": "",
+            "Points": [],
+            "Targets": [],
+            "Coefficients": ["Cp"],
+            "Cp": ["mu", "std"],
+            "rho": ["mu", "std"],
+            "T": ["mu", "std"],
+            "p": ["mu", "std"],
+            "M": ["mu", "std"],
+            "dp": ["mu", "std"]
+        }
+        # Force or moment iterative history
+        self.defs['PlotCoeff'] = {
+            "Header": "",
+            "Position": "b",
+            "Alignment": "center",
+            "Width": 0.5,
+            "FigWidth": 6,
+            "FigHeight": 4.5,
+            "Component": "entire",
+            "Coefficient": "CN",
+            "Delta": 0.0,
+            "StandardDeviation": 0.0,
+            "IterativeError": 0.0,
+            "ShowMu": [True, False],
+            "ShowSigma": [True, False],
+            "ShowDelta": [True, False],
+            "ShowEpsilon": False,
+            "MuFormat": "%.4f",
+            "SigmaFormat": "%.4f",
+            "DeltaFormat": "%.4f",
+            "EpsilonFormat": "%.4f",
+            "Format": "pdf",
+            "DPI": 150,
+            "LineOptions": {"color": ["k","g","c","m","b","r"]},
+            "MeanOptions": {"ls": None},
+            "StDevOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
+            "ErrPlotOptions": {
+                "facecolor": "g", "alpha": 0.4, "ls": "none"},
+            "DeltaOptions": {"color": None}
+        }
+        # Point sensor history
+        self.defs['PlotPoint'] = {
+            "Header": "",
+            "Position": "b",
+            "Alignment": "center",
+            "Width": 0.5,
+            "FigWidth": 6,
+            "FigHeight": 4.5,
+            "Point": 0,
+            "Group": "",
+            "Coefficient": "Cp",
+            "Delta": 0.0,
+            "StandardDeviation": 0.0,
+            "IterativeError": 0.0,
+            "ShowMu": [True, False],
+            "ShowSigma": [True, False],
+            "ShowDelta": [True, False],
+            "ShowEpsilon": False,
+            "Format": "pdf",
+            "DPI": 150,
+            "LineOptions": {"color": ["k","g","c","m","b","r"]},
+            "MeanOptions": {"ls": None},
+            "StDevOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
+            "ErrPlotOptions": {
+                "facecolor": "g", "alpha": 0.4, "ls": "none"},
+            "DeltaOptions": {"color": None}
+        }
+        # Point sensor retults sweep
+        self.defs['SweepPointHist'] = {
+            "Header": "",
+            "Position": "b",
+            "Alignment": "center",
+            "XAxis": None,
+            "Target": False,
+            "TargetLabel": None,
+            "Width": 0.5,
+            "FigWidth": 6,
+            "FigHeight": 4.5,
+            "Point": 0,
+            "Group": "",
+            "Coefficient": "Cp",
+            "Delta": 0.0,
+            "StandardDeviation": 3.0,
+            "OutlierSigma": 7.0,
+            "Range": 4.0,
+            "ShowMu": True,
+            "ShowSigma": False,
+            "ShowDelta": False,
+            "ShowTarget": True,
+            "MuFormat": "%.4f",
+            "SigmaFormat": "%.4f",
+            "DeltaFormat": "%.4f",
+            "TargetFormat": "%.4f",
+            "Format": "pdf",
+            "DPI": 150,
+            "PlotMean": True,
+            "HistOptions": {"facecolor": "c", "normed": True, "bins": 20},
+            "MeanOptions": {"color": "k", "lw": 2},
+            "StDevOptions": {"color": "b"},
+            "DeltaOptions": {"color": "r", "ls": "--"},
+            "TargetOptions": {"color": ["k", "r", "g", "b"], "ls": "--"}
+        }
+        # Force or moment history
+        self.defs['SweepCoeff'] = {
+            "Header": "",
+            "Position": "b",
+            "Alignment": "center",
+            "XAxis": None,
+            "Target": False,
+            "Width": 0.5,
+            "FigWidth": 6,
+            "FigHeight": 4.5,
+            "Component": "entire",
+            "Coefficient": "CN",
+            "StandardDeviation": 0.0,
+            "MinMax": False,
+            "LineOptions": {"color": "k", "marker": ["^", "s", "o"]},
+            "TargetOptions": {"color": "r", "marker": ["^","s","o"]},
+            "MinMaxOptions": {
+                "facecolor": "g", "color": "g", "alpha": 0.4, "lw": 0.0
+            },
+            "StDevOptions": {
+                "facecolor": "b", "color": "b", "alpha": 0.35, "lw": 0.0
+            },
+            "Format": "pdf",
+            "DPI": 150
+        }
+        # Plot L1 residual
+        self.defs['PlotL1'] = {
+            "Header": "",
+            "Position": "b",
+            "Alignment": "center",
+            "Width": 0.5,
+            "FigWidth": 6,
+            "FigHeight": 4.5,
+            "Format": "pdf",
+            "DPI": 150
+        }
+        # Plot L2 residual
+        self.defs['PlotL2'] = {
+            "Header": "",
+            "Position": "b",
+            "Alignment": "center",
+            "YLabel": "L2 residual",
+            "Width": 0.5,
+            "FigWidth": 6,
+            "FigHeight": 4.5,
+            "Format": "pdf",
+            "DPI": 150
+        }
+        # Plot general residual
+        self.defs["PlotResid"] = {
+            "Residual": "R_1",
+            "YLabel": "Residual",
+            "Header": "",
+            "Position": "b",
+            "Alignment": "center",
+            "Width": 0.5,
+            "FigWidth": 6,
+            "FigHeight": 4.5,
+            "Format": "pdf",
+            "DPI": 150
+        }
+        # Tecplot component 3-view
+        self.defs['Tecplot3View'] = {
+            "Header": "",
+            "Position": "b",
+            "Alignment": "center",
+            "Width": 0.66,
+            "Component": "entire"
+        }
+        # General Tecplot layout
+        self.defs['Tecplot'] = {
+            "Header": "",
+            "Position": "b",
+            "Alignment": "center",
+            "Width": 0.5,
+            "FigWidth": 1024,
+            "Layout": "layout.lay"
+        }
+        # Plot a triangulation with Paraview
+        self.defs['ParaviewTri'] = {
+            "Header": "",
+            "Position": "b",
+            "Alignment": "center",
+            "Width": 0.5,
+            "Component": "entire",
+            "RightAxis": "x",
+            "UpAxis": "y"
+        }
+        # General Paraview script
+        self.defs['Paraview'] = {
+            "Header": "",
+            "Position": "b",
+            "Alignment": "center",
+            "Width": 0.5,
+            "Layout": "layout.py"
+        }
+        
+    # Modify defaults or add definitions for a particular module
+    def ModSubfigDefaults(self):
+        """Modify subfigure defaults for a particular solver
+        
+        If you are seeing this docstring, then there are no unique subfigure
+        defaults for this solver
+        
+        :Call:
+            >>> opts.ModSubfigDefaults()
+        :Inputs:
+            *opts*: :class:`cape.options.Report.Report`
+                Options interface
+        :Versions:
+            * 2016-02-04 ``@ddalle``: First version
+        """
+        return None
+    
     # List of reports
     def get_ReportList(self):
         """Get list of reports available to create
@@ -696,271 +1000,10 @@ class Report(odict):
         # Get the type.
         t = self.get_SubfigType(sfig)
         # Process known defaults.
-        if t in ['Conditions']:
-            # Default conditions subfigure
-            S = {
-                "Header": "Conditions",
-                "Position": "t",
-                "Alignment": "left",
-                "Width": 0.4,
-                "SkipVars": []
-            }
-        elif t in ["SweepConditions"]:
-            # Default sweep conditions
-            S = {
-                "Header": "Sweep Constraints",
-                "Position": "t",
-                "Alignment": "left",
-                "Width": 0.4
-            }
-        elif t in ['SweepCases']:
-            # List of cases in a sweep
-            S = {
-                "Header": "Sweep Cases",
-                "Position": "t",
-                "Alignment": "left",
-                "Width": 0.6
-            }
-        elif t in ['Summary']:
-            # Default results summary
-            S = {
-                "Header": "Force \\& moment summary",
-                "Position": "t",
-                "Alignment": "left",
-                "Width": 0.6,
-                "Iteration": 0,
-                "Components": ["entire"],
-                "Coefficients": ["CA", "CY", "CN"],
-                "CA": ["mu", "std"],
-                "CY": ["mu", "std"],
-                "CN": ["mu", "std"],
-                "CLL": ["mu", "std"],
-                "CLM": ["mu", "std"],
-                "CLN": ["mu", "std"]
-            }
-        elif t in ['PointSensorTable']:
-            # Default results summary
-            S = {
-                "Header": "Point sensor results table",
-                "Position": "t",
-                "Alignment": "left",
-                "Width": 0.6,
-                "Iteration": 0,
-                "Group": "",
-                "Points": [],
-                "Targets": [],
-                "Coefficients": ["Cp"],
-                "Cp": ["mu", "std"],
-                "rho": ["mu", "std"],
-                "T": ["mu", "std"],
-                "p": ["mu", "std"],
-                "M": ["mu", "std"],
-                "dp": ["mu", "std"]
-            }
-        elif t in ['PlotCoeff']:
-            # Force or moment history
-            S = {
-                "Header": "",
-                "Position": "b",
-                "Alignment": "center",
-                "Width": 0.5,
-                "FigWidth": 6,
-                "FigHeight": 4.5,
-                "Component": "entire",
-                "Coefficient": "CN",
-                "Delta": 0.0,
-                "StandardDeviation": 0.0,
-                "IterativeError": 0.0,
-                "ShowMu": [True, False],
-                "ShowSigma": [True, False],
-                "ShowDelta": [True, False],
-                "ShowEpsilon": False,
-                "MuFormat": "%.4f",
-                "SigmaFormat": "%.4f",
-                "DeltaFormat": "%.4f",
-                "EpsilonFormat": "%.4f",
-                "Format": "pdf",
-                "DPI": 150,
-                "LineOptions": {"color": ["k","g","c","m","b","r"]},
-                "MeanOptions": {"ls": None},
-                "StDevOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
-                "ErrPlotOptions": {
-                    "facecolor": "g", "alpha": 0.4, "ls": "none"},
-                "DeltaOptions": {"color": None}
-            }
-        elif t in ['PlotPoint']:
-            # Point sensor history
-            S = {
-                "Header": "",
-                "Position": "b",
-                "Alignment": "center",
-                "Width": 0.5,
-                "FigWidth": 6,
-                "FigHeight": 4.5,
-                "Point": 0,
-                "Group": "",
-                "Coefficient": "Cp",
-                "Delta": 0.0,
-                "StandardDeviation": 0.0,
-                "IterativeError": 0.0,
-                "ShowMu": [True, False],
-                "ShowSigma": [True, False],
-                "ShowDelta": [True, False],
-                "ShowEpsilon": False,
-                "Format": "pdf",
-                "DPI": 150,
-                "LineOptions": {"color": ["k","g","c","m","b","r"]},
-                "MeanOptions": {"ls": None},
-                "StDevOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
-                "ErrPlotOptions": {
-                    "facecolor": "g", "alpha": 0.4, "ls": "none"},
-                "DeltaOptions": {"color": None}
-            }
-        elif t in ['SweepPointHist']:
-            # Point sensor history
-            S = {
-                "Header": "",
-                "Position": "b",
-                "Alignment": "center",
-                "XAxis": None,
-                "Target": False,
-                "TargetLabel": None,
-                "Width": 0.5,
-                "FigWidth": 6,
-                "FigHeight": 4.5,
-                "Point": 0,
-                "Group": "",
-                "Coefficient": "Cp",
-                "Delta": 0.0,
-                "StandardDeviation": 3.0,
-                "OutlierSigma": 7.0,
-                "Range": 4.0,
-                "ShowMu": True,
-                "ShowSigma": False,
-                "ShowDelta": False,
-                "ShowTarget": True,
-                "MuFormat": "%.4f",
-                "SigmaFormat": "%.4f",
-                "DeltaFormat": "%.4f",
-                "TargetFormat": "%.4f",
-                "Format": "pdf",
-                "DPI": 150,
-                "PlotMean": True,
-                "HistOptions": {"facecolor": "c", "normed": True, "bins": 20},
-                "MeanOptions": {"color": "k", "lw": 2},
-                "StDevOptions": {"color": "b"},
-                "DeltaOptions": {"color": "r", "ls": "--"},
-                "TargetOptions": {"color": ["k", "r", "g", "b"], "ls": "--"}
-            }
-        elif t in ['SweepCoeff']:
-            # Force or moment sweep (over several cases)
-            S = {
-                "Header": "",
-                "Position": "b",
-                "Alignment": "center",
-                "XAxis": None,
-                "Target": False,
-                "Width": 0.5,
-                "FigWidth": 6,
-                "FigHeight": 4.5,
-                "Component": "entire",
-                "Coefficient": "CN",
-                "StandardDeviation": 0.0,
-                "MinMax": False,
-                "LineOptions": {"color": "k", "marker": ["^", "s", "o"]},
-                "TargetOptions": {"color": "r", "marker": ["^","s","o"]},
-                "MinMaxOptions": {
-                    "facecolor": "g", "color": "g", "alpha": 0.4, "lw": 0.0
-                },
-                "StDevOptions": {
-                    "facecolor": "b", "color": "b", "alpha": 0.35, "lw": 0.0
-                },
-                "Format": "pdf",
-                "DPI": 150
-            }
-        elif t in ['PlotL1']:
-            # Residual history
-            S = {
-                "Header": "",
-                "Position": "b",
-                "Alignment": "center",
-                "Width": 0.5,
-                "FigWidth": 6,
-                "FigHeight": 4.5,
-                "Format": "pdf",
-                "DPI": 150
-            }
-        elif t in ['PlotL2']:
-            # Residual history
-            S = {
-                "Header": "",
-                "Position": "b",
-                "Alignment": "center",
-                "YLabel": "L2 residual",
-                "Width": 0.5,
-                "FigWidth": 6,
-                "FigHeight": 4.5,
-                "Format": "pdf",
-                "DPI": 150
-            }
-        elif t in ["PlotResid"]:
-            S = {
-                "Residual": "R_1",
-                "YLabel": "Residual",
-                "Header": "",
-                "Position": "b",
-                "Alignment": "center",
-                "Width": 0.5,
-                "FigWidth": 6,
-                "FigHeight": 4.5,
-                "Format": "pdf",
-                "DPI": 150
-            }
-        elif t in ['Tecplot3View']:
-            # Component 3-view
-            S = {
-                "Header": "",
-                "Position": "b",
-                "Alignment": "center",
-                "Width": 0.66,
-                "Component": "entire"
-            }
-        elif t in ['Tecplot']:
-            # Generic Tecplot layout
-            S = {
-                "Header": "",
-                "Position": "b",
-                "Alignment": "center",
-                "Width": 0.5,
-                "FigWidth": 1024,
-                "Layout": "layout.lay"
-            }
-        elif t in ['ParaviewTri']:
-            # Surface component with axes specified
-            S = {
-                "Header": "",
-                "Position": "b",
-                "Alignment": "center",
-                "Width": 0.5,
-                "Component": "entire",
-                "RightAxis": "x",
-                "UpAxis": "y"
-            }
-        elif t in ['Paraview']:
-            # General Paraview script
-            S = {
-                "Header": "",
-                "Position": "b",
-                "Alignment": "center",
-                "Width": 0.5,
-                "Layout": "layout.py"
-            }
-        elif t in [sfig, '']:
-            # Unrecognized figure.
-            raise IOError("Subfigure '%s' type is not recognized" % sfig)
-        else:
-            # This is a derived subfigure type; recurse.
-            return self.get_SubfigOpt(t, opt, i)
+        S = self.defs.get(t)
+        # Check for error
+        if S is None:
+            raise ValueError("Subfigure '%s' type is not recognized" % sfig)
         # Get the default value.
         o = S.get(opt)
         # Process output type.

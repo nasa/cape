@@ -1961,7 +1961,7 @@ class Report(object):
             figw = opts.get_SubfigOpt(sfig, "FigWidth")
             figh = opts.get_SubfigOpt(sfig, "FigHeight")
             # Read the Aero history.
-            H = self.ReadCaseResid()
+            H = self.ReadCaseResid(sfig)
             # Options dictionary
             kw_p = {"nFirst": nPlotFirst, "nLast": nPlotLast,
                 "FigWidth": figw, "FigHeight": figh}
@@ -2014,7 +2014,6 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-    
         
     # Read iterative history
     def ReadCaseFM(self, comp):
@@ -2038,7 +2037,7 @@ class Report(object):
         return None
         
     # Read residual history
-    def ReadCaseResid(self):
+    def ReadCaseResid(self, sfig=None):
         """Read iterative residual history for a component
         
         This function needs to be customized for each solver

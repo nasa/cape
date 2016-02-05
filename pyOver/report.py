@@ -21,18 +21,17 @@ class Report(cape.report.Report):
     """Interface for automated report generation
     
     :Call:
-        >>> R = pyFun.report.Report(fun3d, rep)
+        >>> R = pyOver.report.Report(oflow, rep)
     :Inputs:
-        *fun3d*: :class:`pyFun.fun3d.Fun3d`
+        *oflow*: :class:`pyOver.overflow.Overflow`
             Master Cart3D settings interface
         *rep*: :class:`str`
             Name of report to update
     :Outputs:
-        *R*: :class:`pyFun.report.Report`
+        *R*: :class:`pyOver.report.Report`
             Automated report interface
     :Versions:
-        * 2015-03-07 ``@ddalle``: Started
-        * 2015-03-10 ``@ddalle``: First version
+        * 2016-02-04 ``@ddalle``: First version
     """
     
     # String conversion
@@ -40,9 +39,9 @@ class Report(cape.report.Report):
         """String/representation method
         
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
+            * 2016-02-04 ``@ddalle``: First version
         """
-        return '<pyFun.Report("%s")>' % self.rep
+        return '<pyOver.Report("%s")>' % self.rep
     # Copy the function
     __str__ = __repr__
     
@@ -55,7 +54,7 @@ class Report(cape.report.Report):
         :Call:
             >>> FM = R.ReadCaseFM(comp)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`pyOver.report.Report`
                 Automated report interface
             *comp*: :class:`str`
                 Name of component to read
@@ -63,7 +62,7 @@ class Report(cape.report.Report):
             *FM*: ``None`` or :class:`cape.dataBook.CaseFM` derivative
                 Case iterative force & moment history for one component
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
+            * 2016-02-04 ``@ddalle``: First version
         """
         # Project rootname
         proj = self.cntl.GetProjectRootName()
@@ -77,23 +76,49 @@ class Report(cape.report.Report):
         This function needs to be customized for each solver
         
         :Call:
-            >>> hist = R.ReadCaseResid(sfig=None)
+            >>> hist = R.ReadCaseResid()
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`pyOver.report.Report`
                 Automated report interface
-            *sfig*: :class:`str` | ``None``
-                Name of subfigure to process
         :Outputs:
             *hist*: ``None`` or :class:`cape.dataBook.CaseResid` derivative
                 Case iterative residual history for one case
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
-            * 2016-02-04 ``@ddalle``: Added argument
+            * 2016-02-04 ``@ddalle``: First version
         """
         # Project rootname
         proj = self.cntl.GetProjectRootName()
-        # Read the residual history
-        return CaseResid(proj)
+        # Initialize the residual history
+        R = CaseResid(proj)
+        # Check type
+        t = self.get_SubfigType(sfig)
+        # Check for named
+        if t not in ['PlotL2', 'PlotResid', 'PlotLInf']:
+            # Nothing to process
+            return R
+        # Check the residual to read
+        o_r = self.get_SubfigOpt(sfig, "Residual")
+        # Check the component to read
+        comp = self.get_SubfigOpt(sfig, "Component")
+        # Read the appropriate residuals
+        if o_r in ['L2', 'L2Resid', 'L_2']:
+            # Check component
+            if comp is None:
+                # Read global residual
+                R.ReadGlobalL2()
+            else:
+                # Not implemented
+                R.ReadL2Grid(comp)
+        elif o_r.lower() in ['linf', 'linfresid', 'l_inf']:
+            # Check component
+            if comp is None:
+                # Read global L-infinity residual
+                R.ReadGlobalLInf()
+            else:
+                # Read for a specific grid
+                R.ReadLInfGrid(comp)
+        # Output
+        return R
         
         
 # class Report

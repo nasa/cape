@@ -3580,9 +3580,11 @@ class CaseResid(object):
             * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
             * 2015-10-21 ``@ddalle``: Referred to :func:`PlotResid`
         """
+        # Get y-label
+        ylbl = kw.get('YLabel', 'L1 Residual')
         # Plot 'L1Resid'
         return self.PlotResid('L1Resid', 
-            n=n, nFirst=nFirst, nLast=nLast, YLabel='L1 Residual')
+            n=n, nFirst=nFirst, nLast=nLast, YLabel=ylbl, **kw)
         
     # Plot function
     def PlotL2(self, n=None, nFirst=None, nLast=None, **kw):
@@ -3613,9 +3615,11 @@ class CaseResid(object):
             * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
             * 2015-10-21 ``@ddalle``: Referred to :func:`PlotResid`
         """
-        # Plot 'L1Resid'
-        return self.PlotResid('L2Resid', 
-            n=n, nFirst=nFirst, nLast=nLast, YLabel='L2 Residual')
+        # Get y-label
+        ylbl = kw.get('YLabel', 'L2 Residual')
+        # Plot 'L2Resid'
+        return self.PlotResid('L2Resid', n=n,
+            nFirst=nFirst, nLast=nLast, YLabel=ylbl, **kw)
         
     # Plot function
     def PlotLInf(self, n=None, nFirst=None, nLast=None, **kw):
@@ -3642,9 +3646,11 @@ class CaseResid(object):
         :Versions:
             * 2016-02-04 ``@ddalle``: Copied from :func:`PlotL2`
         """
+        # Get y-label
+        ylbl = kw.get('YLabel', 'L-infinity Residual')
         # Plot 'L1Resid'
-        return self.PlotResid('LInfResid', 
-            n=n, nFirst=nFirst, nLast=nLast, YLabel='L-infinity Residual')
+        return self.PlotResid('Linf', n=n,
+            nFirst=nFirst, nLast=nLast, YLabel=ylbl, **kw)
         
         
     # Function to get index of a certain iteration number

@@ -90,7 +90,7 @@ class Report(cape.report.Report):
         return CaseFM(comp)
         
     # Read residual history
-    def ReadCaseResid(self):
+    def ReadCaseResid(self, sfig=None):
         """Read iterative residual history for a component
         
         This function needs to be customized for each solver
@@ -105,6 +105,7 @@ class Report(cape.report.Report):
                 Case iterative residual history for one case
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
+            * 2016-02-04 ``@ddalle``: Added argument
         """
         return CaseResid()
         
