@@ -298,7 +298,10 @@ class Report(odict):
             "Position": "b",
             "Alignment": "center",
             "Width": 0.5,
-            "Layout": "layout.py"
+            "Layout": "layout.py",
+            "ImageFile": "export.png",
+            "Format": "png",
+            "Command": "pvpython"
         }
         
     # Modify defaults or add definitions for a particular module

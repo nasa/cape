@@ -243,7 +243,7 @@ class Report(object):
         # Write the author
         f.write('\\raggedright\n')
         f.write('{\\LARGE\\textrm{\n')
-        f.write('%s\n' % fauth)
+        f.write('%s%%\n' % fauth)
         f.write('}}\n')
         # Write the affiliation
         if fafl is not None and len(fafl) > 0:
@@ -2107,7 +2107,9 @@ class Report(object):
             # Go there.
             os.chdir(frun)
             # Get the most recent PLT files.
-            LinkPLT()
+            self.LinkVizFiles()
+            os.system('ls')
+            os.system('pwd')
             # Layout file
             flay = opts.get_SubfigOpt(sfig, "Layout")
             # Full path to layout file
@@ -2118,19 +2120,29 @@ class Report(object):
             wfig = opts.get_SubfigOpt(sfig, "FigWidth")
             # Width in the report
             wplt = opts.get_SubfigOpt(sfig, "Width")
+            # Figure extension
+            fext = opts.get_SubfigOpt(sfig, "Format")
             # Figure file name.
-            fname = "%s.png" % (sfig)
+            fname = "%s.%s" % (sfig, fext)
+            # Layout file name
+            fout = opts.get_SubfigOpt(sfig, "ImageFile")
+            # Name of executable
+            fcmd = opts.get_SubfigOpt(sfig, "Command")
             # Check for the files.
-            if (os.path.isfile('Components.i.plt') and 
-                    os.path.isfile('cutPlanes.plt')):
+            qCplt = os.path.isfile('Components.i.plt')
+            qCdat = os.path.isfile('Components.i.dat')
+            qcplt = os.path.isfile('cutPlanes.plt')
+            qcdat = os.path.isfile('cutPlanes.dat')
+            # If files present; go ahead
+            if (qCplt and qcplt) or (qCdat and qcdat):
                 # Run Paraview
                 try:
                     # Copy the file into the current folder.
                     shutil.copy(fsrc, '.')
                     # Run the layout.
-                    pvpython(flay)
+                    pvpython(flay, cmd=fcmd)
                     # Move the file to the location this subfig was built in
-                    os.rename(fname, os.path.join(fpwd,fname))
+                    os.rename(fout, os.path.join(fpwd,fname))
                     # Form the line
                     line = (
                         '\\includegraphics[width=\\textwidth]{%s/%s}\n'
@@ -2139,6 +2151,8 @@ class Report(object):
                     lines.append(line)
                 except Exception:
                     pass
+            else:
+                print("Label 021: I hate you")
         # Go to the report case folder
         os.chdir(fpwd)
         # Set the caption.
@@ -2708,7 +2722,20 @@ class Report(object):
             self.cntl.DataBook.UpdateTrajectory()
             # Save the data book source.
             self.cntl.DataBook.source = "data"
+            
+    # Function to link appropriate visualization files
+    def LinkVizFiles(self):
+        """Create links to appropriate visualization files
         
+        :Call:
+            >>> R.LinkVizFiles()
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+        :Versions:
+            * 2016-02-06 ``@ddalle``: First version
+        """
+        pass
         
     # Function to go into a folder, respecting archive option
     def cd(self, fdir):

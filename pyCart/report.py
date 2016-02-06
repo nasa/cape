@@ -1068,6 +1068,27 @@ class Report(cape.report.Report):
             sym = '$%s$' % lbl
         # Output
         return sym
+            
+    # Function to link appropriate visualization files
+    def LinkVizFiles(self):
+        """Create links to appropriate visualization files
+        
+        Specifically, ``Components.i.plt`` and ``cutPlanes.plt`` or
+        ``Components.i.dat`` and ``cutPlanes.dat`` are created.
+        
+        :Call:
+            >>> R.LinkVizFiles()
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+        :See Also:
+            :func:`pyCart.case.LinkPLT`
+        :Versions:
+            * 2016-02-06 ``@ddalle``: First version
+        """
+        # Defer to function from :func:`pyCart.case`
+        LinkPLT()
+        
 # class Report
 
         
