@@ -102,10 +102,20 @@ class Trajectory:
         # Check if ERROR markers are specified.
         if 'ERROR' in kwargs:
             self.ERROR = kwargs['ERROR']
-        
         # Convert PASS and ERROR list to numpy.
         self.PASS  = np.array(self.PASS)
         self.ERROR = np.array(self.ERROR)
+        # Save the number of cases.
+        nCase = len(self.text[keys[0]])
+        self.nCase = nCase
+        # Number of entries
+        nPass = len(self.PASS)
+        nErr  = len(self.ERROR)
+        # Make sure PASS and ERROR fields have correct length
+        if nPass < nCase:
+            self.PASS = np.hstack((self.PASS, False*np.ones(nCase-nPass)))
+        if nErr < nCase:
+            self.ERROR = np.hstack((self.ERROR, False*np.ones(nCase-nErr)))
         # Create the numeric versions.
         for key in keys:
             # Check the key type.
@@ -135,8 +145,6 @@ class Trajectory:
             else:
                 # Assume string
                 setattr(self, key, np.array(self.text[key]))
-        # Save the number of cases.
-        self.nCase = len(self.text[key])
         # Process the groups (conditions in a group can use same grid).
         self.ProcessGroups()
         

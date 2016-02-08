@@ -68,7 +68,6 @@ def callf(cmdi, f=None, shell=None, t=None):
         * 2014-08-30 ``@ddalle``: First version
         # 2015-02-13 ``@ddalle``: Split most of code to :func:`calli`
     """
-    # Open time file
     # Call the command with output status
     ierr = calli(cmdi, f, shell)
     # Check the status.
@@ -203,23 +202,27 @@ def _upgradeDocString(doccmd):
     return docbin
     
 # Stand-alone function to run a Tecplot layout file
-def pvpython(lay, *args):
+def pvpython(lay, *args, **kw):
     """Stand-alone function to execute a Paraview Python script
     
     :Call:
-        >>> pvpython(lay, *args)
+        >>> pvpython(lay, *args, cmd="pvpython")
         >>> pvpython(lay, a1, a2, ...)
     :Inputs:
         *lay*: :class:`str`
             Name of script to run
+        *cmd*: {``"pvpython"``} | :class:`str`
+            Name of executable to use, may be full path
         *a1*: :class:`str`
             Command-line input to the script
     :Versions:
         * 2015-11-22 ``@ddalle``: First version
     """
+    # Get name of executable
+    fbin = kw.get('cmd', 'pvpython')
     # Command to run
-    cmdi = ['pvpython', lay] + [str(a) for a in args]
+    cmdi = [fbin, lay] + [str(a) for a in args]
     # Call the script
-    callf(cmdi, stdout='pvpython.out')
+    callf(cmdi, f='pvpython.out')
     
     
