@@ -1397,7 +1397,7 @@ class Trajectory:
             # Only look for labels.
             if self.defns[k].get("Type") != "Label": continue
             # Check the value.
-            if (i < len(self.text[k])) and self.text[k][i]:
+            if (i < len(self.text[k])) and self.text[k][i].strip():
                 # Add underscore if necessary.
                 if dname: dname += "_"
                 # Add the label itself
