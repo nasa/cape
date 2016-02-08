@@ -53,9 +53,13 @@ class Namelist2(FileCntl):
             * 2016-01-29 ``@ddalle``: First version
         """
         # Find the lines that start the lists
-        I = np.array(self.GetIndexSearch('\s+[&$]'), dtype=int)
+        I = np.array(self.GetIndexSearch('\s*[&$]'), dtype=int)
         # Find the lines that end with '/'
-        J = np.array(self.GetIndexSearch('\s+[^ !].*/^'), dtype=int)
+        J0 = np.array(self.GetIndexSearch('.*/\s*$'), dtype=int)
+        # Of those, find those that are comments
+        J1 = np.array(self.GetIndexSearch('\s*!.*/\s*$'), dtype=int)
+        # These are the namelist end lines using '/'
+        J = np.setdiff1d(J0, J1)
         # Get start and end keywords to each line
         grpnm = np.array([self.lines[i].split()[0][1:] for i in I])
         kwbeg = np.array([self.lines[i].split()[0][1:].lower()  for i in I])
@@ -110,10 +114,18 @@ class Namelist2(FileCntl):
         """
         # Get the index of the group
         ibeg = self.ibeg[igrp]
+        iend = self.iend[igrp]
         # Query the current starting character
         gchar = self.lines[ibeg].lstrip()[0]
+        # Check end line type
+        if self.lines[iend].rstrip().endswith('/'):
+            # Ends with a '/' line
+            lend = "     /\n"
+        else:
+            # Ends with an $END or &END
+            lend = "     %sEND\n" % gchar
         # Insert the lines in reverse order
-        self.lines.insert(ibeg, "    %sEND\n" % gchar)
+        self.lines.insert(ibeg, lend)
         self.lines.insert(ibeg, " %s%s\n" % (gchar, grp))
         # Update the namelist info
         self.UpdateNamelist()
