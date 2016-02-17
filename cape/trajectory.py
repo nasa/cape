@@ -661,6 +661,8 @@ class Trajectory:
             i = np.arange(self.nCase) < -1
             # Set the specified indices to True
             i[I] = True
+        # Check for None
+        if cons is None: cons = []
         # Loop through constraints
         for con in cons:
             # Check for empty constraints.
@@ -861,37 +863,40 @@ class Trajectory:
         """Get indices from either list or constraints or both
         
         :Call:
-            >>> I = x.GetIndices()
-            >>> I = x.GetIndices(I=I)
-            >>> I = x.GetIndices(I=I, cons=cons)
-            >>> I = x.GetIndices(cons=cons)
+            >>> I = x.GetIndices(I=None, cons=[], **kw)
         :Inputs:
             *x*: :class:`cape.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
-            *I*: :class:`numpy.ndarray` or :class:`list`
-                Array of indices
-            *cons*: :class:`list` (:class:`str`)
-                List of constraints
+            *I*: :class:`list` | :class:`str`
+                Array of indices or text of indices
+            *cons*: :class:`list` (:class:`str`) | :class:`str`
+                List of constraints or text list using commas
+            *re*: :class:`str`
+                Regular expression to test against folder names
+            *filter*: :class:`str`
+                Exact test to test against folder names
+            *glob*: :class:`str`
+                Wild card to test against folder names
         :Outputs:
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 Array of indices
         :Versions:
             * 2015-03-10 ``@ddalle``: First version
+            * 2016-02-17 ``@ddalle``: Upgraded to handle text
         """
-        # Check for list.
-        if kw.get("I") is not None:
-            # Just a list, use it.
-            I = np.array(kw['I'])
-            # Check for constraints.
-            if kw.get("cons") not in [None, []]:
-                # Apply the constraints, too.
-                I = self.Filter(kw['cons'], I)
-        elif kw.get("cons") not in [None, []]:
-            # Apply the constraints filter.
-            I = self.Filter(kw['cons'])
-        else:
-            # Return all the indices
-            I = np.arange(self.nCase)
+        # Get special kwargs
+        I = kw.get("I")
+        cons = kw.get("cons", [])
+        # Check index for string
+        if type(I).__name__ in ['str', 'unicode']:
+            # Process indices
+            I = self.ExpandIndices(I)
+        # Check constraints for string
+        if type(cons).__name__ in ['str', 'unicode']:
+            # Separate into list of constraints
+            cons = cons.split(',')
+        # Initialize indices using "I" and "cons"
+        I = self.Filter(cons, I)
         # Check for regular expression filter
         if kw.get('re') not in [None, '']:
             # Filter by regular expression

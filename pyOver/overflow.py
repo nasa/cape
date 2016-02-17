@@ -125,8 +125,15 @@ class Overflow(Cntl):
         # Change to root safely
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
-        # Read the file
-        nml = OverNamelist(self.opts.get_OverNamelist(j))
+        # File name
+        fnml = self.opts.get_OverNamelist(j)
+        # Check for the file.
+        if not os.path.isfile(fnml):
+            # Do nothing
+            nml = None
+        else:
+            # Read the file
+            nml = OverNamelist(self.opts.get_OverNamelist(j))
         # Save it
         if q:
             # Read to main slot for modification

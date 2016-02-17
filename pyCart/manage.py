@@ -463,6 +463,8 @@ def SkeletonFolder():
     for f in glob.glob('*.tgz'): os.remove(f)
     # Remove *.tbz files
     for f in glob.glob('*.tbz'): os.remove(f)
+    # Remove Mesh.* files
+    for f in glob.glob('Mesh.*'): os.remove(f)
     
 # Check if an archive already exists
 def CheckArchive(ftar):
