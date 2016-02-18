@@ -333,6 +333,38 @@ class DataBook(cape.dataBook.DataBook):
     :Versions:
         * 2015-10-20 ``@ddalle``: Started
     """
+            
+    # Read point sensor (group)
+    def ReadPointSensor(self, name):
+        """Read a point sensor group if it is not already present
+        
+        :Call:
+            >>> DB.ReadPointSensor(name)
+        :Inputs:
+            *DB*: :class:`pyOver.dataBook.DataBook`
+                Instance of the pycart data book class
+            *name*: :class:`str`
+                Name of point sensor group
+        :Versions:
+            * 2015-12-04 ``@ddalle``: Copied from pyCart
+        """
+        # Initialize if necessary.
+        try: 
+            self.PointSensors
+        except Exception:
+            self.PointSensors = {}
+        # Initialize the group if necessary
+        try:
+            self.PointSensors[name]
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Read the point sensor.
+            self.PointSensors[name] = pointSensor.DBPointSensorGroup(
+                self.x, self.opts, name, RootDir=self.RootDir)
+            # Return to starting locaiton
+            os.chdir(fpwd)
     pass
 
 # class DataBook
