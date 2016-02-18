@@ -106,6 +106,32 @@ class Overflow(Cntl):
         return "<pyOver.Overflow(nCase=%i)>" % (
             self.x.nCase)
         
+    # Function to read the databook.
+    def ReadDataBook(self):
+        """Read the current data book
+        
+        :Call:
+            >>> oflow.ReadDataBook()
+        :Inputs:
+            *oflow*: :class:`pyOver.overflow.Overflow`
+                Instance of pyOver control class
+        :Versions:
+            * 2016-02-17 ``@ddalle``: First version
+        """
+        # Test for an existing data book.
+        try:
+            self.DataBook
+            return
+        except AttributeError:
+            pass
+        # Go to root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Read the data book.
+        self.DataBook = dataBook.DataBook(self.x, self.opts)
+        # Return to original folder.
+        os.chdir(fpwd)
+        
     # Read namelist
     def ReadNamelist(self, j=0, q=True):
         """Read the OVERFLOW namelist template
