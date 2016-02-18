@@ -950,13 +950,18 @@ class Options(odict):
         self._DataBook()
         return self['DataBook'].get_LineLoad_nCut(comp)
     
+    # Group/points
+    def get_DBGroupPoints(self, name):
+        self._DataBook()
+        return self['DataBook'].get_DBGroupPoints(name)
+    
     # Copy over the documentation.
     for k in ['DataBookComponents', 'DataBookLineLoads',
-            'DataBookType', 'DataBookPoints',
+            'DataBookType', 'DataBookPoints', 'DBGroupPoints',
             'DataBookCoeffs', 'DataBookTargets',
             'DataBookCols', 'CompTargets', 'DataBookTransformations',
             'DataBookDataCols', 'DataBookTargetCols', 'DataBookTargetByName',
-            'LineLoadComponents', 'LineLoad_nCut'
+            'LineLoadComponents', 'LineLoad_nCut',
     ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__

@@ -1167,15 +1167,9 @@ class Options(cape.options.Options):
         self._DataBook()
         return self['DataBook'].get_ComponentReynoldsNumber(comp)
     
-    # Group/points
-    def get_DBGroupPoints(self, name):
-        self._DataBook()
-        return self['DataBook'].get_DBGroupPoints(name)
-    
     # Copy over the documentation.
     for k in [
-        'ComponentGamma', 'ComponentMach', 'ComponentReynoldsNumber',
-        'DBGroupPoints'
+        'ComponentGamma', 'ComponentMach', 'ComponentReynoldsNumber'
     ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
