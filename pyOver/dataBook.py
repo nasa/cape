@@ -23,6 +23,8 @@ from .case import GetCurrentIter, GetPrefix
 # Utilities or advanced statistics
 from . import util
 from . import bin
+# Data modules
+from . import pointSensor
 
 # Template module
 import cape.dataBook

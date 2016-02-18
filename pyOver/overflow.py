@@ -24,6 +24,7 @@ from overNamelist import OverNamelist
 # Other pyFun modules
 from . import options
 from . import case
+from . import dataBook
 # Unmodified CAPE modules
 from cape import convert
 
