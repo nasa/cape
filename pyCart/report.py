@@ -590,7 +590,7 @@ class Report(cape.report.Report):
                     # Include the graphics.
                     lines.append(line)
                     # Remove the layout file.
-                    #os.remove(flay)
+                    os.remove(flay)
                 except Exception:
                     pass
         # Go to the report case folder
@@ -602,6 +602,7 @@ class Report(cape.report.Report):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
+        
     # Function to write pressure coefficient table
     def SubfigPointSensorTable(self, sfig, i):
         """Create lines for a "PointSensorTable" subfigure
