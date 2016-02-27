@@ -465,23 +465,27 @@ class Q(cape.plot3d.Plot3D):
         K = kw.get("K", np.arange(KS,KE))
         L = kw.get("L", np.arange(LS,LE))
         # Extract freestream states
-        r_inf = self.RHOINF
-        a_inf = self.AINF
+        M_inf = self.FSMACH
+        g_inf = self.GAMINF
         # Extract the *q* grid
         Q = self.Q[IG-1]
         # Get normalized density and energy
         rhos   = Q[0,J,K,L]
         rhoe0s = Q[4,J,K,L]
         # Get the velocity components
-        u = Q[1,J,K,L] * a_inf / rhos
-        v = Q[1,J,K,L] * a_inf / rhos
-        w = Q[1,J,K,L] * a_inf / rhos
+        rhous = Q[1,J,K,L]
+        rhovs = Q[1,J,K,L]
+        rhows = Q[1,J,K,L]
         # Ratios of specific heats
         gam = Q[5,J,K,L]
         # Velocities
-        U = np.sqrt(u**2 + v**2 + w**2)
-        # Pressures
-        p = rhoe0s
+        rhoU2s = rhous**2 + rhovs**2 + rhows**2
+        # Non-dimensional pressures
+        ps = (gam-1)*rhoe0s - 0.5*rhoU2s/rhos
+        # Pressure coefficient
+        Cp = (gam*ps-1)/(0.5*g_inf*M_inf**2)
+        # Output
+        return Cp
         
         
                 
