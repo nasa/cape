@@ -943,10 +943,7 @@ class Report(object):
             elif btyp == 'PlotL2':
                 # Get the global residual plot
                 lines += self.SubfigPlotL2(sfig, i)
-            elif btyp == 'PlotTurbResid':
-                # Plot the turbulence residual, or as close as this is
-                lines += self.SubfigPlotTurbResid(sfig, i)
-            elif btyp == 'PlotResid':
+            elif btyp == ['PlotResid', 'PlotTurbResid', 'PlotSpeciesResid']:
                 # Plot generic residual
                 lines += self.SubfigPlotResid(sfig, i)
             elif btyp == 'Paraview':
@@ -2108,8 +2105,6 @@ class Report(object):
             os.chdir(frun)
             # Get the most recent PLT files.
             self.LinkVizFiles()
-            os.system('ls')
-            os.system('pwd')
             # Layout file
             flay = opts.get_SubfigOpt(sfig, "Layout")
             # Full path to layout file
@@ -2128,31 +2123,22 @@ class Report(object):
             fout = opts.get_SubfigOpt(sfig, "ImageFile")
             # Name of executable
             fcmd = opts.get_SubfigOpt(sfig, "Command")
-            # Check for the files.
-            qCplt = os.path.isfile('Components.i.plt')
-            qCdat = os.path.isfile('Components.i.dat')
-            qcplt = os.path.isfile('cutPlanes.plt')
-            qcdat = os.path.isfile('cutPlanes.dat')
-            # If files present; go ahead
-            if (qCplt and qcplt) or (qCdat and qcdat):
-                # Run Paraview
-                try:
-                    # Copy the file into the current folder.
-                    shutil.copy(fsrc, '.')
-                    # Run the layout.
-                    pvpython(flay, cmd=fcmd)
-                    # Move the file to the location this subfig was built in
-                    os.rename(fout, os.path.join(fpwd,fname))
-                    # Form the line
-                    line = (
-                        '\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                        % (frun, fname))
-                    # Include the graphics.
-                    lines.append(line)
-                except Exception:
-                    pass
-            else:
-                print("Label 021: I hate you")
+            # Run Paraview
+            try:
+                # Copy the file into the current folder.
+                shutil.copy(fsrc, '.')
+                # Run the layout.
+                pvpython(flay, cmd=fcmd)
+                # Move the file to the location this subfig was built in
+                os.rename(fout, os.path.join(fpwd,fname))
+                # Form the line
+                line = (
+                    '\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                    % (frun, fname))
+                # Include the graphics.
+                lines.append(line)
+            except Exception:
+                pass
         # Go to the report case folder
         os.chdir(fpwd)
         # Set the caption.

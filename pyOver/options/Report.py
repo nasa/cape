@@ -56,7 +56,21 @@ class Report(cape.options.Report):
         # Plot L2 residual
         self.defs['PlotL2'] = {
             "Header": "",
-            "Residual": "L2Resid",
+            "Residual": "L2",
+            "Component": None,
+            "Position": "b",
+            "Alignment": "center",
+            "YLabel": "L2 residual",
+            "Width": 0.5,
+            "FigWidth": 6,
+            "FigHeight": 4.5,
+            "Format": "pdf",
+            "DPI": 150
+        }
+        # Plot L2 residual
+        self.defs['PlotLInf'] = {
+            "Header": "",
+            "Residual": "L2",
             "Component": None,
             "Position": "b",
             "Alignment": "center",
@@ -69,7 +83,35 @@ class Report(cape.options.Report):
         }
         # Plot general residual
         self.defs["PlotResid"] = {
-            "Residual": "L2Resid",
+            "Residual": "L2",
+            "Component": None,
+            "YLabel": "Residual",
+            "Header": "",
+            "Position": "b",
+            "Alignment": "center",
+            "Width": 0.5,
+            "FigWidth": 6,
+            "FigHeight": 4.5,
+            "Format": "pdf",
+            "DPI": 150
+        }
+        # Plot general turbulence residual
+        self.defs["PlotTurbResid"] = {
+            "Residual": "L2",
+            "Component": None,
+            "YLabel": "Residual",
+            "Header": "",
+            "Position": "b",
+            "Alignment": "center",
+            "Width": 0.5,
+            "FigWidth": 6,
+            "FigHeight": 4.5,
+            "Format": "pdf",
+            "DPI": 150
+        }
+        # Plot general species residual
+        self.defs["PlotSpeciesResid"] = {
+            "Residual": "L2",
             "Component": None,
             "YLabel": "Residual",
             "Header": "",

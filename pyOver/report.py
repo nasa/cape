@@ -92,31 +92,99 @@ class Report(cape.report.Report):
         R = CaseResid(proj)
         # Check type
         t = self.cntl.opts.get_SubfigBaseType(sfig)
-        # Check for named
-        if t not in ['PlotL2', 'PlotResid', 'PlotLInf']:
-            # Nothing to process
-            return R
         # Check the residual to read
-        o_r = self.cntl.opts.get_SubfigOpt(sfig, "Residual")
+        resid = self.cntl.opts.get_SubfigOpt(sfig, "Residual")
         # Check the component to read
         comp = self.cntl.opts.get_SubfigOpt(sfig, "Component")
-        # Read the appropriate residuals
-        if o_r in ['L2', 'L2Resid', 'L_2']:
-            # Check component
+        # Check type of residual to read
+        if t in ['PlotL2']:
+            # Read spatial L2-norm
             if comp is None:
                 # Read global residual
                 R.ReadGlobalL2()
             else:
-                # Not implemented
+                # Read individual residual
                 R.ReadL2Grid(comp)
-        elif o_r.lower() in ['linf', 'linfresid', 'l_inf']:
-            # Check component
+        elif t in ['PlotLInf']:
+            # Read spatial L-infinity norm
             if comp is None:
-                # Read global L-infinity residual
+                # Read global residual
                 R.ReadGlobalLInf()
             else:
-                # Read for a specific grid
+                # Read individual residual
                 R.ReadLInfGrid(comp)
+        elif t in ['PlotResid']:
+            # Read spatial residual, but check which to read
+            if resid in ['L2']:
+                # Check component
+                if comp is None:
+                    # Read global residual
+                    R.ReadGlobalL2()
+                else:
+                    # Not implemented
+                    R.ReadL2Grid(comp)
+            elif resid in ['LInf']:
+                # Check component
+                if comp is None:
+                    # Read global L-infinity residual
+                    R.ReadGlobalLInf()
+                else:
+                    # Read for a specific grid
+                    R.ReadLInfGrid(comp)
+            else:
+                # Unrecognized type
+                raise ValueError(
+                    ("Residual '%s' for subfigure '%s' is unrecognized\n"
+                    % (resid, sfig)) +
+                    "Available options are 'L2' and 'LInf'")
+        elif t in ['PlotTurbResid']:
+            # Read spatial residual, but check which to read
+            if resid in ['L2']:
+                # Check component
+                if comp is None:
+                    # Read global residual
+                    R.ReadTurbResidL2()
+                else:
+                    # Not implemented
+                    R.ReadTurbL2Grid(comp)
+            elif resid in ['LInf']:
+                # Check component
+                if comp is None:
+                    # Read global L-infinity residual
+                    R.ReadTurbResidLInf()
+                else:
+                    # Read for a specific grid
+                    R.ReadTurbLInfGrid(comp)
+            else:
+                # Unrecognized type
+                raise ValueError(
+                    ("Residual '%s' for subfigure '%s' is unrecognized\n"
+                    % (resid, sfig)) +
+                    "Available options are 'L2' and 'LInf'")
+        elif t in ['PlotSpeciesResid']:
+            # Read spatial residual, but check which to read
+            if resid in ['L2']:
+                # Check component
+                if comp is None:
+                    # Read global residual
+                    R.ReadSpeciesResidL2()
+                else:
+                    # Not implemented
+                    R.ReadSpeciesL2Grid(comp)
+            elif resid in ['LInf']:
+                # Check component
+                if comp is None:
+                    # Read global L-infinity residual
+                    R.ReadSpeciesResidLInf()
+                else:
+                    # Read for a specific grid
+                    R.ReadSpeciesLInfGrid(comp)
+            else:
+                # Unrecognized type
+                raise ValueError(
+                    ("Residual '%s' for subfigure '%s' is unrecognized\n"
+                    % (resid, sfig)) +
+                    "Available options are 'L2' and 'LInf'")
         # Output
         return R
         

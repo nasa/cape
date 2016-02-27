@@ -657,7 +657,7 @@ class CaseResid(cape.dataBook.CaseResid):
         # Initialize arrays.
         self.i = np.array([])
         self.L2   = np.array([])
-        self.Linf = np.array([])
+        self.LInf = np.array([])
         
     # Representation method
     def __repr__(self):
@@ -673,7 +673,7 @@ class CaseResid(cape.dataBook.CaseResid):
     __str__ = __repr__
         
         
-    # Read entire global residual tower
+    # Read entire global residual history
     def ReadGlobalL2(self):
         """Read entire global L2 history
         
@@ -708,6 +708,186 @@ class CaseResid(cape.dataBook.CaseResid):
         self.WriteGlobalHist('history.L2.dat', self.i, self.L2)
         # Read the temporary file
         self.ReadResidGlobal(ftmp, coeff="L2")
+        
+    # Read entire L-inf residual
+    def ReadGlobalLInf(self):
+        """Read entire L-infinity norm history
+        
+        The file ``history.LInf.dat`` is also updated
+        
+        :Call:
+            >>> H.ReadGlobalLInf()
+        :Inputs:
+            *H*: :class:`pyOver.dataBook.CaseResid`
+                Iterative residual history class
+        :Versions:
+            * 2016-02-06 ``@ddalle``: First version
+        """
+        # Read the global history file
+        self.i, self.LInf = self.ReadGlobalHist('histroy.LInf.dat')
+        # OVERFLOW file names
+        frun = '%s.resid' % self.proj
+        fout = 'resid.out'
+        ftmp = 'resid.tmp'
+        # Number of iterations read
+        if len(self.i) > 0:
+            # Last iteration
+            n = self.i[-1]
+        else:
+            # Start from the beginning
+            n = 0
+        # Read the archival file
+        self.ReadResidGlobal(frun, coeff="LInf")
+        # Read the intermediate file
+        self.ReadResidGlobal(fout, coeff="LInf")
+        # Write the updated history (tmp file not safe to write here)
+        self.WriteGlobalHist('history.LInf.dat', self.i, self.L2)
+        # Read the temporary file
+        self.ReadResidGlobal(ftmp, coeff="LInf")
+        
+    # Read turbulence L2 residual
+    def ReadTurbResidL2(self):
+        """Read the entire L2 norm of the turbulence residuals
+        
+        The file ``history.turb.L2.dat`` is also updated
+        
+        :Call:
+            >>> H.ReadTurbResidL2()
+        :Inputs:
+            *H*: :class:`pyOver.dataBook.CaseResid`
+                Iterative residual history class
+        :Versions:
+            * 2016-02-06 ``@ddalle``: First version
+        """
+        # Read the global history file
+        self.i, self.L2 = self.ReadglobalHist('history.turb.L2.dat')
+        # OVERFLOW file names
+        frun = '%.turb' % self.proj
+        fout = 'turb.out'
+        ftmp = 'turb.tmp'
+        # Number of iterations read
+        if len(self.i) > 0:
+            # Last iteration
+            n = self.i[-1]
+        else:
+            # Start from the beginning
+            n = 0
+        # Read the archival file
+        self.ReadResidGlobal(frun, coeff="L2")
+        # Read the intermediate file
+        self.ReadResidGlobal(fout, coeff="L2")
+        # Write the updated history (tmp file not safe to write here)
+        self.WriteGlobalHist('history.turb.L2.dat', self.i, self.L2)
+        # Read the temporary file
+        self.ReadResidGlobal(ftmp, coeff="L2")
+        
+    # Read turbulence LInf residual
+    def ReadTurbResidLInf(self):
+        """Read the global L-infinity norm of the turbulence residuals
+        
+        The file ``history.turb.LInf.dat`` is also updated
+        
+        :Call:
+            >>> H.ReadTurbResidLInf()
+        :Inputs:
+            *H*: :class:`pyOver.dataBook.CaseResid`
+                Iterative residual history class
+        :Versions:
+            * 2016-02-06 ``@ddalle``: First version
+        """
+        # Read the global history file
+        self.i, self.L2 = self.ReadglobalHist('history.turb.LInf.dat')
+        # OVERFLOW file names
+        frun = '%.turb' % self.proj
+        fout = 'turb.out'
+        ftmp = 'turb.tmp'
+        # Number of iterations read
+        if len(self.i) > 0:
+            # Last iteration
+            n = self.i[-1]
+        else:
+            # Start from the beginning
+            n = 0
+        # Read the archival file
+        self.ReadResidGlobal(frun, coeff="LInf")
+        # Read the intermediate file
+        self.ReadResidGlobal(fout, coeff="LInf")
+        # Write the updated history (tmp file not safe to write here)
+        self.WriteGlobalHist('history.turb.LInf.dat', self.i, self.L2)
+        # Read the temporary file
+        self.ReadResidGlobal(ftmp, coeff="LInf")
+        
+    # Read species L2 residual
+    def ReadSpeciesResidL2(self):
+        """Read the global L2 norm of the species equations
+        
+        The file ``history.species.L2.dat`` is also updated
+        
+        :Call:
+            >>> H.ReadSpeciesResidL2()
+        :Inputs:
+            *H*: :class:`pyOver.dataBook.CaseResid`
+                Iterative residual history class
+        :Versions:
+            * 2016-02-06 ``@ddalle``: First version
+        """
+        # Read the global history file
+        self.i, self.L2 = self.ReadglobalHist('history.species.L2.dat')
+        # OVERFLOW file names
+        frun = '%.species' % self.proj
+        fout = 'species.out'
+        ftmp = 'species.tmp'
+        # Number of iterations read
+        if len(self.i) > 0:
+            # Last iteration
+            n = self.i[-1]
+        else:
+            # Start from the beginning
+            n = 0
+        # Read the archival file
+        self.ReadResidGlobal(frun, coeff="L2")
+        # Read the intermediate file
+        self.ReadResidGlobal(fout, coeff="L2")
+        # Write the updated history (tmp file not safe to write here)
+        self.WriteGlobalHist('history.species.L2.dat', self.i, self.L2)
+        # Read the temporary file
+        self.ReadResidGlobal(ftmp, coeff="L2")
+        
+    # Read species LInf residual
+    def ReadSpeciesResidLInf(self):
+        """Read the global L-infinity norm of the species equations
+        
+        The file ``history.species.LInf.dat`` is also updated
+        
+        :Call:
+            >>> H.ReadSpeciesResidLInf()
+        :Inputs:
+            *H*: :class:`pyOver.dataBook.CaseResid`
+                Iterative residual history class
+        :Versions:
+            * 2016-02-06 ``@ddalle``: First version
+        """
+        # Read the global history file
+        self.i, self.L2 = self.ReadglobalHist('history.species.LInf.dat')
+        # OVERFLOW file names
+        frun = '%.species' % self.proj
+        fout = 'species.out'
+        ftmp = 'species.tmp'
+        # Number of iterations read
+        if len(self.i) > 0:
+            # Last iteration
+            n = self.i[-1]
+        else:
+            # Start from the beginning
+            n = 0
+        # Read the archival file
+        self.ReadResidGlobal(frun, coeff="LInf")
+        # Read the intermediate file
+        self.ReadResidGlobal(fout, coeff="LInf")
+        # Write the updated history (tmp file not safe to write here)
+        self.WriteGlobalHist('history.species.LInf.dat', self.i, self.L2)
+        # Read the temporary file
+        self.ReadResidGlobal(ftmp, coeff="LInf")
     
     # Read a consolidated history file
     def ReadGlobalHist(self, fname):
@@ -790,7 +970,7 @@ class CaseResid(cape.dataBook.CaseResid):
         
         :Call:
             >>> i, L2 = H.ReadResidGlobal(fname, coeff="L2", n=None)
-            >>> i, Linf = H.ReadResidGlobal(fname, coeff="LInf", n=None)
+            >>> i, LInf = H.ReadResidGlobal(fname, coeff="LInf", n=None)
         :Inputs:
             *H*: :class:`pyOver.dataBook.CaseResid`
                 Iterative residual history class
@@ -805,7 +985,7 @@ class CaseResid(cape.dataBook.CaseResid):
                 Array of iteration numbers
             *L2*: :class:`np.ndarray` (:class:`float`)
                 Array of weighted global L2 norms
-            *Linf*: :class:`np.ndarray` (:class:`float`)
+            *LInf*: :class:`np.ndarray` (:class:`float`)
                 Array of global L-infinity norms
         :Versions:
             * 2016-02-04 ``@ddalle``: First version
@@ -842,7 +1022,7 @@ class CaseResid(cape.dataBook.CaseResid):
             cols = (1,3)
             nc = 2
             # Coefficient
-            c = 'Linf'
+            c = 'LInf'
         else:
             # Read the iter, L2 norm, nPts
             cols = (1,2,13)
@@ -869,7 +1049,7 @@ class CaseResid(cape.dataBook.CaseResid):
             # Get the maximum value
             L = np.max(B[:,:,1], axis=1)
             # Append to data
-            self.Linf = np.hstack((self.Linf, L))
+            self.LInf = np.hstack((self.LInf, L))
         # Check for issues
         if np.any(np.diff(i) < 0):
             # Warning

@@ -914,12 +914,7 @@ class Report(odict):
         # Get the subfigure specified type
         t = self.get_SubfigType(sfig)
         # Check if it is a base category.
-        if t in ['Conditions', 'SweepConditions', 'SweepCases', 
-                'PointSensorTable', 'Summary',
-                'PlotCoeff', 'SweepCoeff', 
-                'PlotPoint', 'SweepPointHist',
-                'PlotL1', 'PlotL2', 'PlotResid',
-                'Tecplot3View', 'Tecplot', 'ParaviewTri', 'Paraview']:
+        if t in self.defs.keys():
             # Yes, it is.
             return t
         elif t in [sfig, '']:
