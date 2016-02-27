@@ -106,7 +106,7 @@ class DataBook(cape.dataBook.DataBook):
         :Call:
             >>> DB.ReadPointSensor(name)
         :Inputs:
-            *DB*: :class:`pycart.dataBook.DataBook`
+            *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pycart data book class
             *name*: :class:`str`
                 Name of point sensor group

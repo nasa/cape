@@ -24,6 +24,7 @@ from overNamelist import OverNamelist
 # Other pyFun modules
 from . import options
 from . import case
+from . import dataBook
 # Unmodified CAPE modules
 from cape import convert
 
@@ -106,6 +107,32 @@ class Overflow(Cntl):
         return "<pyOver.Overflow(nCase=%i)>" % (
             self.x.nCase)
         
+    # Function to read the databook.
+    def ReadDataBook(self):
+        """Read the current data book
+        
+        :Call:
+            >>> oflow.ReadDataBook()
+        :Inputs:
+            *oflow*: :class:`pyOver.overflow.Overflow`
+                Instance of pyOver control class
+        :Versions:
+            * 2016-02-17 ``@ddalle``: First version
+        """
+        # Test for an existing data book.
+        try:
+            self.DataBook
+            return
+        except AttributeError:
+            pass
+        # Go to root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Read the data book.
+        self.DataBook = dataBook.DataBook(self.x, self.opts)
+        # Return to original folder.
+        os.chdir(fpwd)
+        
     # Read namelist
     def ReadNamelist(self, j=0, q=True):
         """Read the OVERFLOW namelist template
@@ -125,8 +152,15 @@ class Overflow(Cntl):
         # Change to root safely
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
-        # Read the file
-        nml = OverNamelist(self.opts.get_OverNamelist(j))
+        # File name
+        fnml = self.opts.get_OverNamelist(j)
+        # Check for the file.
+        if not os.path.isfile(fnml):
+            # Do nothing
+            nml = None
+        else:
+            # Read the file
+            nml = OverNamelist(self.opts.get_OverNamelist(j))
         # Save it
         if q:
             # Read to main slot for modification

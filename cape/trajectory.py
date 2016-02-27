@@ -102,10 +102,20 @@ class Trajectory:
         # Check if ERROR markers are specified.
         if 'ERROR' in kwargs:
             self.ERROR = kwargs['ERROR']
-        
         # Convert PASS and ERROR list to numpy.
         self.PASS  = np.array(self.PASS)
         self.ERROR = np.array(self.ERROR)
+        # Save the number of cases.
+        nCase = len(self.text[keys[0]])
+        self.nCase = nCase
+        # Number of entries
+        nPass = len(self.PASS)
+        nErr  = len(self.ERROR)
+        # Make sure PASS and ERROR fields have correct length
+        if nPass < nCase:
+            self.PASS = np.hstack((self.PASS, False*np.ones(nCase-nPass)))
+        if nErr < nCase:
+            self.ERROR = np.hstack((self.ERROR, False*np.ones(nCase-nErr)))
         # Create the numeric versions.
         for key in keys:
             # Check the key type.
@@ -135,8 +145,6 @@ class Trajectory:
             else:
                 # Assume string
                 setattr(self, key, np.array(self.text[key]))
-        # Save the number of cases.
-        self.nCase = len(self.text[key])
         # Process the groups (conditions in a group can use same grid).
         self.ProcessGroups()
         
@@ -653,6 +661,8 @@ class Trajectory:
             i = np.arange(self.nCase) < -1
             # Set the specified indices to True
             i[I] = True
+        # Check for None
+        if cons is None: cons = []
         # Loop through constraints
         for con in cons:
             # Check for empty constraints.
@@ -853,37 +863,40 @@ class Trajectory:
         """Get indices from either list or constraints or both
         
         :Call:
-            >>> I = x.GetIndices()
-            >>> I = x.GetIndices(I=I)
-            >>> I = x.GetIndices(I=I, cons=cons)
-            >>> I = x.GetIndices(cons=cons)
+            >>> I = x.GetIndices(I=None, cons=[], **kw)
         :Inputs:
             *x*: :class:`cape.trajectory.Trajectory`
                 Instance of the pyCart trajectory class
-            *I*: :class:`numpy.ndarray` or :class:`list`
-                Array of indices
-            *cons*: :class:`list` (:class:`str`)
-                List of constraints
+            *I*: :class:`list` | :class:`str`
+                Array of indices or text of indices
+            *cons*: :class:`list` (:class:`str`) | :class:`str`
+                List of constraints or text list using commas
+            *re*: :class:`str`
+                Regular expression to test against folder names
+            *filter*: :class:`str`
+                Exact test to test against folder names
+            *glob*: :class:`str`
+                Wild card to test against folder names
         :Outputs:
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 Array of indices
         :Versions:
             * 2015-03-10 ``@ddalle``: First version
+            * 2016-02-17 ``@ddalle``: Upgraded to handle text
         """
-        # Check for list.
-        if kw.get("I") is not None:
-            # Just a list, use it.
-            I = np.array(kw['I'])
-            # Check for constraints.
-            if kw.get("cons") not in [None, []]:
-                # Apply the constraints, too.
-                I = self.Filter(kw['cons'], I)
-        elif kw.get("cons") not in [None, []]:
-            # Apply the constraints filter.
-            I = self.Filter(kw['cons'])
-        else:
-            # Return all the indices
-            I = np.arange(self.nCase)
+        # Get special kwargs
+        I = kw.get("I")
+        cons = kw.get("cons", [])
+        # Check index for string
+        if type(I).__name__ in ['str', 'unicode']:
+            # Process indices
+            I = self.ExpandIndices(I)
+        # Check constraints for string
+        if type(cons).__name__ in ['str', 'unicode']:
+            # Separate into list of constraints
+            cons = cons.split(',')
+        # Initialize indices using "I" and "cons"
+        I = self.Filter(cons, I)
         # Check for regular expression filter
         if kw.get('re') not in [None, '']:
             # Filter by regular expression
@@ -1397,7 +1410,7 @@ class Trajectory:
             # Only look for labels.
             if self.defns[k].get("Type") != "Label": continue
             # Check the value.
-            if (i < len(self.text[k])) and self.text[k][i]:
+            if (i < len(self.text[k])) and self.text[k][i].strip():
                 # Add underscore if necessary.
                 if dname: dname += "_"
                 # Add the label itself

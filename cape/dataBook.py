@@ -1042,7 +1042,7 @@ class DBBase(dict):
             B = np.loadtxt(fname, delimiter=delim, dtype=int,
                 usecols=range(nxCol+self.nfCol,nxCol+self.nfCol+self.niCol))
             # Fix single-entry values.
-            if A.ndim == 0:
+            if A.ndim == 1:
                 A = np.array([A])
                 B = np.array([B])
             # Distribute.
