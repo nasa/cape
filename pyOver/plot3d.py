@@ -44,19 +44,19 @@ class Q(cape.plot3d.Plot3D):
         self.fname = fname
         # File handle
         self.f = None
-        # Determine endianness
-        self.get_byteorder(endian)
-        # Get flags
-        self.get_dtypes()
-        # Read the file
-        self.Read()
         # Save required states
         # Reference viscosity
         self.mu0  = 2.2696e-8
         # Sutherland's law reference temperature [R]
         self.TREF = 198.6
         # Gas constant [unitus ridulous]
-        self.R = 1716.0
+        self.R = 1716.0 
+        # Determine endianness
+        self.get_byteorder(endian)
+        # Get flags
+        self.get_dtypes()
+        # Read the file
+        self.Read()  
         
         
     # Determine byte order
@@ -411,7 +411,7 @@ class Q(cape.plot3d.Plot3D):
         self.read_int()
         
     # Extract CP
-    def get_Cp(self, IG, *kw):
+    def get_Cp(self, IG, **kw):
         """Get pressure coefficients from a grid
         
         Portions of a grid can be extracted either by using a list of indices
@@ -453,13 +453,13 @@ class Q(cape.plot3d.Plot3D):
             * 2016-02-26 ``@ddalle``: First version
         """
         # Process index start indices
-        JS = kw.get("JS", 1)
-        KS = kw.get("KS", 1)
-        LS = kw.get("LS", 1)
+        JS = kw.get("JS", 1) - 1
+        KS = kw.get("KS", 1) - 1
+        LS = kw.get("LS", 1) - 1
         # Process index end indices
-        JE = kw.get("JS", self.JD[IG])
-        KE = kw.get("KE", self.KD[IG])
-        LE = kw.get("LE", self.LD[IG])
+        JE = kw.get("JS", self.JD[IG-1])
+        KE = kw.get("KE", self.KD[IG-1])            
+        LE = kw.get("LE", self.LD[IG-1])
         # Process direct indices
         J = kw.get("J", np.arange(JS,JE))
         K = kw.get("K", np.arange(KS,KE))
