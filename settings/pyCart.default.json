@@ -145,13 +145,30 @@
         
         // Folder management
         "Archive": {
+            // Command to remote copy, if necessary
             "RemoteCopy": "scp",
+            // Format for archives
             "ArchiveFormat": "tar",
+            // This option will go away
             "ArchiveAction": "full",
+            // Archive full folder or create group of archives for each case?
             "ArchiveType": "full",
+            // Archive before marked as PASS?
+            "ArchiveProgress": false,
             "TarViz": "full",
             "TarAdapt": "restart",
-            "nCheckPoint": 2
+            // Files to delete
+            "PreDeleteFiles": [],
+            "PreDeleteDirs": ["ADAPT", "EMBED"],
+            "PostDeleteFiles": [],
+            "PostDeleteDirs": [],
+            "PostUpdateFiles": {
+                "check.*": 1,
+                "checkTD.*": 1
+            },
+            // This is not important because *ArchiveType* is "full"
+            "ArchiveFiles": [],
+            "ArchiveGroups": []
         }
 	},
 

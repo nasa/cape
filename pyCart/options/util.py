@@ -118,6 +118,7 @@ rc["ArchiveFolder"] = ""
 rc["ArchiveFormat"] = "tar"
 rc["ArchiveAction"] = "skeleton"
 rc["ArchiveType"] = "full"
+rc["ArchiveTemplate"] = "full"
 rc["RemoteCopy"] = "scp"
 rc["nCheckPoint"] = 2
 rc["TarViz"] = "tar"

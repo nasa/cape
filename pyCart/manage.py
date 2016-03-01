@@ -17,6 +17,8 @@ delete extra material.
 import os, shutil, glob
 # Command-line interface
 import subprocess as sp
+# Options module
+from .options import Archive
 
 # Function to compress extra folders
 def TarAdapt(opts):
@@ -122,7 +124,7 @@ def TarAdapt(opts):
         if ierr: continue
         # Remove the folder.
         shutil.rmtree(fdir)
-        
+# def TarAdapt
         
 # Function to undo the above
 def ExpandAdapt(opts):
@@ -170,7 +172,7 @@ def ExpandAdapt(opts):
         if ierr: continue
         # Remove the tarball.
         os.remove(ftar)
-        
+# def ExpandAdapt
         
 # Function to tar up visualization checkpoints
 def TarViz(opts):
@@ -253,7 +255,8 @@ def TarViz(opts):
         if ierr: continue
         # Delete files
         ierr = sp.call(['rm'] + fnames[:-1])
-        
+# def TarViz
+
 # Clear old check files.
 def ClearCheck(n=1):
     """Clear old :file:`check.?????` and :file:`check.??????.td`
@@ -291,7 +294,8 @@ def ClearCheck(n=1):
         for f in fglob[:-n]:
             # Remove it.
             os.remove(f)
-            
+# def ClearCheck
+
 # Archive folder.
 def ArchiveFolder(opts):
     """
@@ -439,6 +443,7 @@ def ArchiveFolder(opts):
         os.chdir(fdir)
         # Clean-up
         SkeletonFolder()
+# def ArchiveFolder
         
 # Clean up a folder but don't delete it.
 def SkeletonFolder():
@@ -465,6 +470,7 @@ def SkeletonFolder():
     for f in glob.glob('*.tbz'): os.remove(f)
     # Remove Mesh.* files
     for f in glob.glob('Mesh.*'): os.remove(f)
+# def SkeletonFolder
     
 # Check if an archive already exists
 def CheckArchive(ftar):
@@ -492,4 +498,5 @@ def CheckArchive(ftar):
     else:
         # Local
         return os.path.isfile(ftar)
+# def CheckArchive
 

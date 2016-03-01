@@ -783,6 +783,97 @@ class Options(odict):
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
+        
+    # Get the list of files to delete a priori 
+    def get_ArchivePreDeleteFiles(self):
+        self._RunControl()
+        return self['RunControl'].get_ArchivePreDeleteFiles()
+    
+    # Add to list of files to delete a priori
+    def add_ArchivePreDeleteFiles(self, fpre):
+        self._RunControl()
+        self['RunControl'].add_ArchivePreDeleteFiles(fpre)
+        
+    # Get the list of folders to delete a priori
+    def get_ArchivePreDeleteDirs(self):
+        self._RunControl()
+        return self['RunControl'].get_ArchivePreDeleteDirs()
+    
+    # Add to list of folders to delete a priori
+    def add_ArchivePreDeleteDirs(self, fpre):
+        self._RunControl()
+        self['RunControl'].add_ArchivePreDeleteDirs(fpre)
+        
+    # Get the list of groups to tar a priori
+    def get_ArchivePreArchiveGroups(self):
+        self._RunControl()
+        return self['RunControl'].get_ArchivePreArchiveGroups()
+        
+    # Add to list of groups to tar a priori
+    def add_ArchivePreArchiveGroups(self, fpre):
+        self._RunControl()
+        self['RunControl'].add_ArchivePreArchiveGroups(fpre)
+        
+    # Get the list of folders to tar a priori
+    def get_ArchivePreArchiveDirs(self):
+        self._RunControl()
+        return self['RunControl'].get_PreArchiveDirs()
+        
+    # Add to list of folders to tar apriori
+    def add_ArchivePreArchiveDirs(self, fpre):
+        self._RunControl()
+        self['RunControl'].add_ArchivePreArchiveDirs(fpre)
+        
+    # Get the list of files to delete a posteriori 
+    def get_ArchivePostDeleteFiles(self):
+        self._RunControl()
+        return self['RunControl'].get_ArchivePostDeleteFiles()
+    
+    # Add to list of files to delete a posteriori
+    def add_ArchivePostDeleteFiles(self, fpost):
+        self._RunControl()
+        self['RunControl'].add_ArchivePostDeleteFiles(fpost)
+        
+    # Get the list of folders to delete a posteriori
+    def get_ArchivePostDeleteDirs(self):
+        self._RunControl()
+        return self['RunControl'].get_ArchivePostDeleteDirs()
+    
+    # Add to list of folders to delete a posteriori
+    def add_ArchivePostDeleteDirs(self, fpost):
+        self._RunControl()
+        self['RunControl'].add_ArchivePostDeleteDirs(fpost)
+        
+    # Get the list of groups to tar a posteriori
+    def get_ArchivePostArchiveGroups(self):
+        self._RunControl()
+        return self['RunControl'].get_ArchivePostArchiveGroups()
+        
+    # Add to list of groups to tar a posteriori
+    def add_ArchivePostArchiveGroups(self, fpost):
+        self._RunControl()
+        self['RunControl'].add_ArchivePostArchiveGroups(fpost)
+        
+    # Get the list of folders to tar a posteriori
+    def get_ArchivePostArchiveDirs(self):
+        self._RunControl()
+        return self['RunControl'].get_PostArchiveDirs()
+        
+    # Add to list of folders to tar aposteriori
+    def add_ArchivePostArchiveDirs(self, fpost):
+        self._RunControl()
+        self['RunControl'].add_ArchivePostArchiveDirs(fpost)
+        
+     # Copy over the documentation.
+    for k in [
+            'ArchivePreDeleteFiles',    'ArchivePreDeleteDirs',
+            'ArchivePreArchiveGroups',  'ArchivePreArchiveDirs',
+            'ArchivePostDeleteFiles',   'ArchivePostDeleteDirs',
+            'ArchivePostArchiveGroups', 'ArchivePostArchiveDirs'
+        ]:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
+        eval('add_'+k).__doc__ = getattr(RunControl,'add_'+k).__doc__
    # >
    
     
