@@ -154,6 +154,50 @@ def PostUpdateFiles(opts=None):
     for fpat in fdel:
         DeleteFiles(fpat, n=1)
 
+# Function to delete folders
+def PreDeleteDirs(opts=None):
+    """Delete folders according to *PreDeleteDirs* setting in *Archive* section
+    
+    :Call:
+        >>> pyCart.manage.PreDeleteDirs(opts=None)
+    :Inputs:
+        *opts*: ``None`` | :class:`Archive` | :class:`dict`
+            Options dictionary or options interface
+    :Versions:
+        * 2016-03-01 ``@ddalle``: First version
+    """
+    # Convert options
+    opts = Archive.auto_Archive(opts)
+    # Get files
+    fdel = opts.get_ArchivePreDeleteDirs()
+    # Exit if necessary
+    if fdel is None: return
+    # Delete
+    for fpat in fdel:
+        DeleteDirs(fpat, n=0)
+
+# Function to delete folders
+def PostDeleteDirs(opts=None):
+    """Delete folders according to *PreDeleteDirs* setting in *Archive* section
+    
+    :Call:
+        >>> pyCart.manage.PostDeleteDirs(opts=None)
+    :Inputs:
+        *opts*: ``None`` | :class:`Archive` | :class:`dict`
+            Options dictionary or options interface
+    :Versions:
+        * 2016-03-01 ``@ddalle``: First version
+    """
+    # Convert options
+    opts = Archive.auto_Archive(opts)
+    # Get files
+    fdel = opts.get_ArchivePostDeleteDirs()
+    # Exit if necessary
+    if fdel is None: return
+    # Delete
+    for fpat in fdel:
+        DeleteDirs(fpat, n=0)
+
 # Function to group before archiving
 def PreArchiveGroups(opts=None):
     """Archive file groups from *PreArchiveGroups* setting in *Archive* section
@@ -242,15 +286,15 @@ def PreArchiveDirs(opts=None):
         # Get matches, e.g "adapt??" --> ["adapt00", "adapt01", ...]
         ldir = cape.manage.GetDirMatches(fname)
         # Trim last *n* directories, which are kept
-        if n == 0:
+        if nkeep == 0:
             # Delete all files
             Ldir = ldir
-        elif len(ldir) <= n:
+        elif len(ldir) <= nkeep:
             # Keep all files
             continue
         else:
             # Strip last *n* files from list of deletions
-            Ldir = ldir[:-n]
+            Ldir = ldir[:-nkeep]
         # Loop through directories
         for fdir in Ldir:
             # File name
@@ -286,15 +330,15 @@ def PostArchiveDirs(opts=None):
         # Get matches, e.g "adapt??" --> ["adapt00", "adapt01", ...]
         ldir = cape.manage.GetDirMatches(fname)
         # Trim last *n* directories, which are kept
-        if n == 0:
+        if nkeep == 0:
             # Delete all files
             Ldir = ldir
-        elif len(ldir) <= n:
+        elif len(ldir) <= nkeep:
             # Keep all files
             continue
         else:
             # Strip last *n* files from list of deletions
-            Ldir = ldir[:-n]
+            Ldir = ldir[:-nkeep]
         # Loop through directories
         for fdir in Ldir:
             # File name
@@ -638,7 +682,7 @@ def ArchiveFolder(opts):
     # Get the archive format, extension, and command
     fmt  = opts.get_ArchiveFormat()
     cmdu = opts.get_ArchiveCmd()
-    ext  = opts.get_ArchiveExtension()
+    ext  = "." + opts.get_ArchiveExtension()
     # Form the destination file name.
     ftar = os.path.join(flfe, fgrp, fdir+ext)
     # Check if it exists.
@@ -678,6 +722,8 @@ def ArchiveFolder(opts):
         # Tar directly to archive.
         ierr = sp.call(cmdu + [ftar, fdir])
         if ierr: raise SystemError("Archiving failed.")
+    # Go back into the folder
+    os.chdir(fdir)
     # Check for further clean up.
     PostDeleteFiles(opts)
     PostUpdateFiles(opts)

@@ -50,7 +50,7 @@ def process_ArchiveGroup(grp):
     if (type(grp) != dict) or (len(grp) != 1):
         # Wront length
         raise ValueError(
-            ("Received improper archive group: '%s'" % grp) +
+            ("Received improper archive group: '%s'\n" % grp) +
             "Archive group must be a dict with one entry"
             )
     # Get group
@@ -104,7 +104,7 @@ def process_ArchiveFile(f, n=1):
         return fname, nkeep
     elif tf in ['str', 'unicode']:
         # String file name; use default number of files to keep
-        return fname, n
+        return f, n
     else:
         # Unprocessed type
         raise TypeError("File descriptor '%s' must be int or dict" % f)
@@ -130,7 +130,7 @@ def GetSearchDirs(fsub=None):
     fdirs = []
     # Check for null output
     if fsub is None:
-        return fdirs
+        return ['.']
     # Ensure input list
     if type(fsub).__name__ not in ['list', 'ndarray']:
         fsub = [fsub]
@@ -394,11 +394,13 @@ def TarFileGroup(cmd, ftar, fname):
     :Versions:
         * 2016-03-01 ``@ddalle``: First version
     """
-    # Get list of files
-    fglob = GetFileMatchesList(fname)
     # Check input
     if type(cmd).__name__ != 'list':
         raise TypeError("Input command must be a list of one or two strings")
+    # Get list of files
+    fglob = GetFileMatchesList(fname)
+    # Exit if not matches
+    if len(fglob) < 2: return
     # Create command
     cmdc = cmd + [ftar] + fglob
     # Run the command
@@ -415,7 +417,7 @@ def TarLinks(cmd, ext):
     """Tar all links existing in the current folder
     
     :Call:
-        >>> TarLink()
+        >>> TarLinks()
     :Versions:
         * 2016-03-01 ``@ddalle``: First version
     """
@@ -427,6 +429,8 @@ def TarLinks(cmd, ext):
     for fn in flist:
         # Check if it's a link
         if os.path.islink(fn): flink.append(fn)
+    # Exit if no links
+    if len(flink) < 2: return
     # Create command
     cmdc = cmd + ['links.'+ext] + flink
     # Run command
