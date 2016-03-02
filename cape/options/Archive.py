@@ -9,6 +9,44 @@ that were used to run CFD analysis
 # Ipmort options-specific utilities
 from util import rc0, odict, getel
 
+# Turn dictionary into Archive options
+def auto_Archive(opts):
+    """Automatically convert dict to :mod:`pyCart.options.Archive.Archive`
+    
+    :Call:
+        >>> opts = auto_Archive(opts)
+    :Inputs:
+        *opts*: :class:`dict`
+            Dict of either global, "RunControl" or "Archive" options
+    :Outputs:
+        *opts*: :class:`pyCart.options.Archive.Archive`
+            Instance of archiving options
+    :Versions:
+        * 2016-02-29 ``@ddalle``: First version
+    """
+    # Get type
+    t = type(opts).__name__
+    # Check type
+    if t == "Archive":
+        # Good; quit
+        return opts
+    elif t == "RunControl":
+        # Get the sub-object
+        return opts["Archive"]
+    elif t == "Options":
+        # Get the sub-sub-object
+        return opts["RunControl"]["Archive"]
+    elif t in ["dict", "odict"]:
+        # Downselect if given parent class
+        opts = opts.get("RunControl", opts)
+        opts = opts.get("Archive",    opts)
+        # Convert to class
+        return Archive(**opts)
+    else:
+        # Invalid type
+        raise TypeError("Unformatted input must be type 'dict', not '%s'" % t)
+# def auto_Archive
+
 
 # Class for folder management and archiving
 class Archive(odict):
@@ -263,6 +301,153 @@ class Archive(odict):
         """
         self.set_key('TarPBS', fmt)
    # >
+   
+    # -----
+    # Tools
+    # -----
+   # <
+    # Add to general key
+    def add_to_key(self, key, fpre):
+        """Add to the folders of groups to tar before archiving
+        
+        :Call:
+            >>> opts.add_to_key(key, fpre)
+            >>> opts.add_to_key(key, lpre)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *key*: :class:`str`
+                Name of the key to update
+            *fpre*: :class:`str`
+                Folder or folder glob to add to list
+            *lpre*: :class:`str`
+                List of folders or globs of folders to add to list
+        :Versions:
+            * 2016-02-29 ``@ddalle``: First version
+        """
+        # Check for null inputs
+        if fpre is None: return
+        # Get Current list
+        fdel = self.get_key(key)
+        # Types
+        td = type(fdel).__name__
+        tp = type(fpre).__name__
+        # Check key type
+        if td in ['odict', 'dict']:
+            # Check input type
+            if tp not in ['dict', 'odict']:
+                raise TypeError(
+                    ("Appending to key '%s', with value '%s'\n" % (key, fdel)) +
+                    ("Cannot append type '%s' to dictionary options" % tp))
+            # Append dictionary
+            for fi in fpre:
+                # Check if values is already there
+                if fi not in fdel: fdel[fi] = fpre[fi]
+        elif td in ['list', 'ndarray']:
+            # Check input type
+            if tp not in ['list', 'ndarray']:
+                # Ensure list
+                fpre = [fpre]
+            # Append each file to the list
+            for fi in fpre:
+                # Check if the file is already there
+                if fi not in fdel: fdel.append(fi)
+        # Set the parameter
+        self[key] = fdel
+    
+    # Archive extension
+    def get_ArchiveExtension(self):
+        """Get archive extension
+        
+        :Call:
+            >>> ext = opts.get_ArchiveExtenstion()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *ext*: :class:`str` | {tar} | tgz | bz | bz2 | zip
+                Archive extension
+        :Versions:
+            * 2016-03-01 ``@ddalle``: First version
+        """
+        # Get the format
+        fmt = self.get_ArchiveFormat()
+        # Process
+        if fmt in ['gzip', 'tgz']:
+            # GZip
+            return 'tgz'
+        elif fmt in ['zip']:
+            # Zip
+            return 'zip'
+        elif fmt in ['bzip', 'bz', 'bzip2', 'bz2', 'tbz', 'tbz2']:
+            # bzip2
+            return 'tbz2'
+        else:
+            # Default: tar
+            return 'tar'
+            
+    # Archive command
+    def get_ArchiveCmd(self):
+        """Get archiving command
+        
+        :Call:
+            >>> cmd = opts.get_ArchiveCmd()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *cmd*: :class:`list` (:class:`str`)
+                Tar command and appropriate flags
+        :Versions:
+            * 2016-03-01 ``@ddalle``: First version
+        """
+        # Get the format
+        fmt = self.get_ArchiveFormat()
+        # Process
+        if fmt in ['gzip' ,'tgz']:
+            # Gzip
+            return ['tar', '-czf']
+        elif fmt in ['zip']:
+            # Zip
+            return ['zip', '-r']
+        elif fmt in ['bzip', 'bz', 'bzip2', 'bz2', 'tbz', 'tbz2']:
+            # Bzip2
+            return ['tar', '-cjf']
+        else:
+            # Default: tar
+            return ['tar', '-uf']
+            
+    # Unarchive command
+    def get_UnarchiveCmd(self):
+        """Get command to unarchive
+        
+        :Call:
+            >>> cmd = opts.get_UnarchiveCmd()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *cmd*: :class:`list` (:class:`str`)
+                Untar command and appropriate flags
+        :Versions:
+            * 2016-03-01 ``@ddalle``: First version
+        """
+        # Get the format
+        fmt = self.get_ArchiveFormat()
+        # Process
+        if fmt in ['gzip' ,'tgz']:
+            # Gzip
+            return ['tar', '-xzf']
+        elif fmt in ['zip']:
+            # Zip
+            return ['unzip']
+        elif fmt in ['bzip', 'bz', 'bzip2', 'bz2', 'tbz', 'tbz2']:
+            # Bzip2
+            return ['tar', '-xjf']
+        else:
+            # Default: tar
+            return ['tar', '-xf']
+   # >
     
     # -----------------------
     # Sub-Archive Definitions
@@ -309,18 +494,7 @@ class Archive(odict):
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
         """
-        # Get the current list
-        fdel = self.get_key("PreDeleteFiles")
-        # Check input type
-        if type(fpre).__name__ not in ['list', 'ndarray']:
-            # Ensure list
-            fpre = [fpre]
-        # Append each file to the list
-        for fi in fpre:
-            # Check if the file is already there
-            if fi not in fdel: fdel.append(fi)
-        # Set the parameter
-        self["PreDeleteFiles"] = fdel
+        self.add_to_key("PreDeleteFiles", fpre)
             
     # List of folders to delete
     def get_ArchivePreDeleteDirs(self):
@@ -356,18 +530,7 @@ class Archive(odict):
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
         """
-        # Get Current list
-        fdel = self.get_key("PreDeleteDirs")
-        # Check input type
-        if type(fpre).__name__ not in ['list', 'ndarray']:
-            # Ensure list
-            fpre = [fpre]
-        # Append each file to the list
-        for fi in fpre:
-            # Check if the file is already there
-            if fi not in fdel: fdel.append(fi)
-        # Set the parameter
-        self["PreDeleteDirs"] = fdel
+        self.add_to_key("PreDeleteDirs", fpre)
     
     # List of files to tar before archiving
     def get_ArchivePreArchiveGroups(self):
@@ -403,18 +566,7 @@ class Archive(odict):
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
         """
-        # Get Current list
-        fdel = self.get_key("PreArchiveGroups")
-        # Check input type
-        if type(fpre).__name__ not in ['list', 'ndarray']:
-            # Ensure list
-            fpre = [fpre]
-        # Append each file to the list
-        for fi in fpre:
-            # Check if the file is already there
-            if fi not in fdel: fdel.append(fi)
-        # Set the parameter
-        self["PreArchiveGroupss"] = fdel
+        self.add_to_key("PreArchiveGroups", fpre)
     
     # List of folders to tar before archiving
     def get_ArchivePreArchiveDirs(self):
@@ -450,18 +602,43 @@ class Archive(odict):
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
         """
-        # Get Current list
-        fdel = self.get_key("PreArchiveDirs")
-        # Check input type
-        if type(fpre).__name__ not in ['list', 'ndarray']:
-            # Ensure list
-            fpre = [fpre]
-        # Append each file to the list
-        for fi in fpre:
-            # Check if the file is already there
-            if fi not in fdel: fdel.append(fi)
-        # Set the parameter
-        self["PreArchiveDirs"] = fdel
+        self.add_to_key("PreArchiveDirs", fpre)
+        
+    # List of files to update before archiving
+    def get_ArchivePreUpdateFiles(self):
+        """Get :class:`dict` of files of which to keep only *n*
+        
+        :Call:
+            >>> fglob = opts.get_ArchivePreUpdateFiles()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *fglob*: :class:`list` (:class:`str`)
+                List of file wild cards to delete before archiving
+        :Versions:
+            * 2016-02-029 ``@ddalle``: First version
+        """
+        return self.get_key("PreUpdateFiles")
+        
+    # Add to list of files to update before archiving
+    def add_ArchivePreUpdateFiles(self, fpre):
+        """Add to :class:`dict` of files of which to keep only *n*
+        
+        :Call:
+            >>> opts.add_ArchivePreUpdateFiles(fpre)
+            >>> opts.add_ArchivePreUpdateFiles(lpre)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *fpre*: :class:`str`
+                Folder or folder glob to add to list
+            *lpre*: :class:`str`
+                List of folders or globs of folders to add to list
+        :Versions:
+            * 2016-02-29 ``@ddalle``: First version
+        """
+        self.add_to_key("PreUpdateFiles", fpre)
    # >
     
     # -------------------------
@@ -486,34 +663,23 @@ class Archive(odict):
         return self.get_key("PostDeleteFiles")
         
     # Add to list of files to delete
-    def add_ArchivePostDeleteFiles(self, fpre):
+    def add_ArchivePostDeleteFiles(self, fpost):
         """Add to the list of files to delete after archiving
         
         :Call:
-            >>> opts.add_ArchivePostDeleteFiles(fpre)
-            >>> opts.add_ArchivePostDeleteFiles(lpre)
+            >>> opts.add_ArchivePostDeleteFiles(fpost)
+            >>> opts.add_ArchivePostDeleteFiles(lpost)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *fpre*: :class:`str`
+            *fpost*: :class:`str`
                 File or file glob to add to list
-            *lpre*: :class:`list` (:class:`str`)
+            *lpost*: :class:`list` (:class:`str`)
                 List of files or file globs to add to list
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
         """
-        # Get the current list
-        fdel = self.get_key("PostDeleteFiles")
-        # Check input type
-        if type(fpre).__name__ not in ['list', 'ndarray']:
-            # Ensure list
-            fpre = [fpre]
-        # Append each file to the list
-        for fi in fpre:
-            # Check if the file is already there
-            if fi not in fdel: fdel.append(fi)
-        # Set the parameter
-        self["PostDeleteFiles"] = fdel
+        self.add_to_key("PostDeleteFiles", fpost)
             
     # List of folders to delete
     def get_ArchivePostDeleteDirs(self):
@@ -533,34 +699,23 @@ class Archive(odict):
         return self.get_key("PostDeleteDirs")
         
     # Add to list of folders to delete
-    def add_ArchivePostDeleteDirs(self, fpre):
+    def add_ArchivePostDeleteDirs(self, fpost):
         """Add to the list of folders to delete after archiving
         
         :Call:
-            >>> opts.add_ArchivePostDeleteDirs(fpre)
-            >>> opts.add_ArchivePostDeleteDirs(lpre)
+            >>> opts.add_ArchivePostDeleteDirs(fpost)
+            >>> opts.add_ArchivePostDeleteDirs(lpost)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *fpre*: :class:`str`
+            *fpost*: :class:`str`
                 Folder or file glob to add to list
-            *lpre*: :class:`str`
+            *lpost*: :class:`str`
                 List of folders or globs of folders to add to list
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
         """
-        # Get Current list
-        fdel = self.get_key("PostDeleteDirs")
-        # Check input type
-        if type(fpre).__name__ not in ['list', 'ndarray']:
-            # Ensure list
-            fpre = [fpre]
-        # Append each file to the list
-        for fi in fpre:
-            # Check if the file is already there
-            if fi not in fdel: fdel.append(fi)
-        # Set the parameter
-        self["PostDeleteDirs"] = fdel
+        self.add_to_key("PostDeleteDirs", fpost)
             
     # List of files to tar after archiving
     def get_ArchivePostArchiveGroups(self):
@@ -580,34 +735,23 @@ class Archive(odict):
         return self.get_key("PostArchiveGroups")
         
     # Add to list of folders to delete
-    def add_ArchivePostArchiveGroups(self, fpre):
+    def add_ArchivePostArchiveGroups(self, fpost):
         """Add to the list of groups to tar before archiving
         
         :Call:
-            >>> opts.add_ArchivePostArchiveGroups(fpre)
-            >>> opts.add_ArchivePostArchiveGroups(lpre)
+            >>> opts.add_ArchivePostArchiveGroups(fpost)
+            >>> opts.add_ArchivePostArchiveGroups(lpost)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *fpre*: :class:`str`
+            *fpost*: :class:`str`
                 File glob to add to list
-            *lpre*: :class:`str`
+            *lpost*: :class:`str`
                 List of globs of files to add to list
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
         """
-        # Get Current list
-        fdel = self.get_key("PostArchiveGroups")
-        # Check input type
-        if type(fpre).__name__ not in ['list', 'ndarray']:
-            # Ensure list
-            fpre = [fpre]
-        # Append each file to the list
-        for fi in fpre:
-            # Check if the file is already there
-            if fi not in fdel: fdel.append(fi)
-        # Set the parameter
-        self["PostArchiveGroups"] = fdel
+        self.add_to_key("PostArchiveGroups", fpost)
     
     # List of folders to tar before archiving
     def get_ArchivePostArchiveDirs(self):
@@ -627,34 +771,59 @@ class Archive(odict):
         return self.get_key("PostArchiveDirs")
         
     # Add to list of folders to delete
-    def add_ArchivePostArchiveDirs(self, fpre):
+    def add_ArchivePostArchiveDirs(self, fpost):
         """Add to the folders of groups to tar after archiving
         
         :Call:
-            >>> opts.add_ArchivePostArchiveDirs(fpre)
-            >>> opts.add_ArchivePostArchiveDirs(lpre)
+            >>> opts.add_ArchivePostArchiveDirs(fpost)
+            >>> opts.add_ArchivePostArchiveDirs(lpost)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *fpre*: :class:`str`
+            *fpost*: :class:`str`
                 Folder or folder glob to add to list
-            *lpre*: :class:`str`
+            *lpost*: :class:`str`
                 List of folders or globs of folders to add to list
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
         """
-        # Get Current list
-        fdel = self.get_key("PostArchiveDirs")
-        # Check input type
-        if type(fpre).__name__ not in ['list', 'ndarray']:
-            # Ensure list
-            fpre = [fpre]
-        # Append each file to the list
-        for fi in fpre:
-            # Check if the file is already there
-            if fi not in fdel: fdel.append(fi)
-        # Set the parameter
-        self["PostArchiveDirs"] = fdel
+        self.add_to_key("PostArchiveDirs", fpost)
+        
+    # List of files to update before archiving
+    def get_ArchivePostUpdateFiles(self):
+        """Get :class:`dict` of files of which to keep only *n*
+        
+        :Call:
+            >>> fglob = opts.get_ArchivePostUpdateFiles()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *fglob*: :class:`list` (:class:`str`)
+                List of file wild cards to delete before archiving
+        :Versions:
+            * 2016-02-029 ``@ddalle``: First version
+        """
+        return self.get_key("PreUpdateFiles")
+        
+    # Add to list of files to update before archiving
+    def add_ArchivePostUpdateFiles(self, fpost):
+        """Add to :class:`dict` of files of which to keep only *n*
+        
+        :Call:
+            >>> opts.add_ArchivePostUpdateFiles(fpost)
+            >>> opts.add_ArchivePostUpdateFiles(lpost)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *fpost*: :class:`str`
+                Folder or folder glob to add to list
+            *lpost*: :class:`str`
+                List of folders or globs of folders to add to list
+        :Versions:
+            * 2016-02-29 ``@ddalle``: First version
+        """
+        self.add_to_key("PostUpdateFiles", fpost)
    # >
             
 # class Archive

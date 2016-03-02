@@ -270,8 +270,6 @@ def run_flowCart(verify=False, isect=False):
         os.rename('cutPlanes.dat', 'cutPlanes.%05i.dat' % n)
     if os.path.isfile('Components.i.dat'):
         os.rename('Components.i.dat', 'Components.i.%05i.dat' % n)
-    # Clear check files as appropriate.
-    manage.ClearCheck(rc.get_nCheckPoint(i))
     # Check current iteration count.
     if n >= rc.get_LastIter():
         return

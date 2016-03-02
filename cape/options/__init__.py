@@ -784,6 +784,26 @@ class Options(odict):
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
         
+    # Get the extension
+    def get_ArchiveExtension(self):
+        self._RunControl()
+        return self['RunControl'].get_ArchiveExtension()
+        
+    # Get the archive command
+    def get_ArchiveCmd(self):
+        self._RunControl()
+        return self['RunControl'].get_ArchiveCmd()
+        
+    # Get the unarchive command
+    def get_UnarchiveCmd(self):
+        self._RunControl()
+        return self['RunControl'].get_UnarchiveCmd()
+        
+    # One-way commands
+    for k in ['ArchiveExtension', 'ArchiveCmd', 'UnarchiveCmd']:
+        # Copy documentation
+        eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
+        
     # Get the list of files to delete a priori 
     def get_ArchivePreDeleteFiles(self):
         self._RunControl()
@@ -817,12 +837,22 @@ class Options(odict):
     # Get the list of folders to tar a priori
     def get_ArchivePreArchiveDirs(self):
         self._RunControl()
-        return self['RunControl'].get_PreArchiveDirs()
+        return self['RunControl'].get_ArchivePreArchiveDirs()
         
     # Add to list of folders to tar apriori
     def add_ArchivePreArchiveDirs(self, fpre):
         self._RunControl()
         self['RunControl'].add_ArchivePreArchiveDirs(fpre)
+    
+    # Files to keep only *n*
+    def get_ArchivePreUpdateFiles(self):
+        self._RunControl()
+        return self['RunControl'].get_ArchivePreUpdateFiles()
+        
+    # Files to keep only *n*
+    def add_ArchivePreUpdateFiles(self, fpre):
+        self._RunControl()
+        self['RunControl'].add_ArchivePreUpdateFiles(fpre)
         
     # Get the list of files to delete a posteriori 
     def get_ArchivePostDeleteFiles(self):
@@ -857,19 +887,31 @@ class Options(odict):
     # Get the list of folders to tar a posteriori
     def get_ArchivePostArchiveDirs(self):
         self._RunControl()
-        return self['RunControl'].get_PostArchiveDirs()
+        return self['RunControl'].get_ArvhiePostArchiveDirs()
         
     # Add to list of folders to tar aposteriori
     def add_ArchivePostArchiveDirs(self, fpost):
         self._RunControl()
         self['RunControl'].add_ArchivePostArchiveDirs(fpost)
+    
+    # Files to keep only *n*
+    def get_ArchivePostUpdateFiles(self):
+        self._RunControl()
+        return self['RunControl'].get_ArchivePostUpdateFiles()
+        
+    # Files to keep only *n*
+    def add_ArchivePostUpdateFiles(self, fpost):
+        self._RunControl()
+        self['RunControl'].add_ArchivePostUpdateFiles(fpost)
         
      # Copy over the documentation.
     for k in [
             'ArchivePreDeleteFiles',    'ArchivePreDeleteDirs',
             'ArchivePreArchiveGroups',  'ArchivePreArchiveDirs',
+            'ArchivePreUpdateFiles',
             'ArchivePostDeleteFiles',   'ArchivePostDeleteDirs',
-            'ArchivePostArchiveGroups', 'ArchivePostArchiveDirs'
+            'ArchivePostArchiveGroups', 'ArchivePostArchiveDirs',
+            'ArchivePostUpdateFiles'
         ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__

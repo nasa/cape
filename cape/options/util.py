@@ -99,11 +99,13 @@ rc = {
     "PreDeleteDirs": [[]],
     "PreArchiveGroups": [[]],
     "PreArchiveDirs": [[]],
+    "PreUpdateFiles": [[]],
     "PostDeleteFiles": [[]],
     "PostDeleteDirs": [[]],
     "PostUpdateFiles": [[]],
     "PostArchiveGroups": [[]],
     "PostArchiveDirs": [[]],
+    "PostUpdateFiles": [[]],
     "RemoteCopy": "scp",
     "TarPBS": "tar"
 }

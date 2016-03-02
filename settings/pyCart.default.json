@@ -160,12 +160,13 @@
             // Files to delete
             "PreDeleteFiles": [],
             "PreDeleteDirs": ["ADAPT", "EMBED"],
+            "PreUpdateFiles": [{"adapt??/Mesh.mg.c3d": 1}],
             "PostDeleteFiles": [],
             "PostDeleteDirs": [],
-            "PostUpdateFiles": {
-                "check.*": 1,
-                "checkTD.*": 1
-            },
+            "PostUpdateFiles": [
+                {"check.*": 2},
+                {"checkTD.*": 1}
+            ],
             // This is not important because *ArchiveType* is "full"
             "ArchiveFiles": [],
             "ArchiveGroups": []

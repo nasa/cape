@@ -390,6 +390,26 @@ class RunControl(odict):
         eval('get_'+k).__doc__ = getattr(Archive.Archive,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Archive.Archive,'set_'+k).__doc__
         
+    # Get the extension
+    def get_ArchiveExtension(self):
+        self._Archive()
+        return self['Archive'].get_ArchiveExtension()
+        
+    # Get the archive command
+    def get_ArchiveCmd(self):
+        self._Archive()
+        return self['Archive'].get_ArchiveCmd()
+        
+    # Get the unarchive command
+    def get_UnarchiveCmd(self):
+        self._Archive()
+        return self['Archive'].get_UnarchiveCmd()
+        
+    # One-way commands
+    for k in ['ArchiveExtension', 'ArchiveCmd', 'UnarchiveCmd']:
+        # Copy documentation
+        eval('get_'+k).__doc__ = getattr(Archive.Archive,'get_'+k).__doc__
+        
     # Get the list of files to delete a priori 
     def get_ArchivePreDeleteFiles(self):
         self._Archive()
@@ -435,6 +455,16 @@ class RunControl(odict):
         self._Archive()
         return self['Archive'].get_ArchivePostDeleteFiles()
     
+    # Files to keep only *n*
+    def get_ArchivePreUpdateFiles(self):
+        self._Archive()
+        return self['Archive'].get_ArchivePreUpdateFiles()
+        
+    # Files to keep only *n*
+    def add_ArchivePreUpdateFiles(self, fpre):
+        self._Archive()
+        self['Archive'].add_ArchivePreUpdateFiles(fpre)
+    
     # Add to list of files to delete a posteriori
     def add_ArchivePostDeleteFiles(self, fpost):
         self._Archive()
@@ -469,13 +499,25 @@ class RunControl(odict):
     def add_ArchivePostArchiveDirs(self, fpost):
         self._Archive()
         self['Archive'].add_ArchivePostArchiveDirs(fpost)
+    
+    # Files to keep only *n*
+    def get_ArchivePostUpdateFiles(self):
+        self._Archive()
+        return self['Archive'].get_ArchivePreUpdateFiles()
+        
+    # Files to keep only *n*
+    def add_ArchivePostUpdateFiles(self, fpost):
+        self._Archive()
+        self['Archive'].add_ArchivePreUpdateFiles(fpost)
         
      # Copy over the documentation.
     for k in [
             'ArchivePreDeleteFiles',    'ArchivePreDeleteDirs',
             'ArchivePreArchiveGroups',  'ArchivePreArchiveDirs',
+            'ArchivePreUpdateFiles',
             'ArchivePostDeleteFiles',   'ArchivePostDeleteDirs',
-            'ArchivePostArchiveGroups', 'ArchivePostArchiveDirs'
+            'ArchivePostArchiveGroups', 'ArchivePostArchiveDirs',
+            'ArchivePostUpdateFiles'
         ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Archive.Archive,'get_'+k).__doc__
