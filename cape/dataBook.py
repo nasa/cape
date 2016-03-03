@@ -2396,6 +2396,8 @@ class DBTarget(dict):
             if c is None: continue
             # Get the tolerance.
             tol = self.topts.get_Tol(k)
+            # Skip if no tolerance
+            if tol is None: continue
             # Get the target value (from the trajectory)
             v = getattr(x,k)[i]
             # Search for matches.
