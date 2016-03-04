@@ -46,7 +46,7 @@ def run_flowCart(verify=False, isect=False):
     # Check for RUNNING file.
     if os.path.isfile('RUNNING'):
         # Case already running
-        raise IOError('Case already running!')
+        raise SystemError('Case already running!')
     # Touch the running file.
     os.system('touch RUNNING')
     # Start timer
@@ -58,221 +58,20 @@ def run_flowCart(verify=False, isect=False):
     VerifyCase(verify=verify)
     # Determine the run index.
     i = GetPhaseNumber(rc)
-    # Create a restart file if appropriate.
-    if not rc.get_Adaptive(i):
-        # Automatically determine the best check file to use.
-        SetRestartIter()
-    # Delete any input file.
-    if os.path.isfile('input.cntl') or os.path.islink('input.cntl'):
-        os.remove('input.cntl')
-    # Create the correct input file.
-    os.symlink('input.%02i.cntl' % i, 'input.cntl')
-    # Extra prep for adaptive --> non-adaptive
-    if (i>0) and (not rc.get_Adaptive(i)) and (os.path.isdir('BEST')
-            and (not os.path.isfile('history.dat'))):
-        # Go to the best adaptive result.
-        os.chdir('BEST')
-        # Find all *.dat files and Mesh files
-        fglob = glob.glob('*.dat') + glob.glob('Mesh.*')
-        # Go back up one folder.
-        os.chdir('..')
-        # Copy all the important files.
-        for fname in fglob:
-            # Check for the file.
-            if os.path.isfile(fname): continue
-            # Copy the file.
-            shutil.copy('BEST/'+fname, fname)
-    # Convince aero.csh to use the *new* input.cntl
-    if (i>0) and (rc.get_Adaptive(i)) and (rc.get_Adaptive(i-1)):
-        # Go to the best adaptive result.
-        os.chdir('BEST')
-        # Check for an input.cntl file
-        if os.path.isfile('input.cntl'):
-            # Move it to a representative name.
-            os.rename('input.cntl', 'input.%02i.cntl' % (i-1))
-        # Go back up.
-        os.chdir('..')
-        # Copy the new input file.
-        shutil.copy('input.%02i.cntl' % i, 'BEST/input.cntl')
-    # Check for flowCart vs. mpi_flowCart
-    if not rc.get_MPI(i):
-        # Get the number of threads, which may be irrelevant.
-        nProc = rc.get_nProc(i)
-        # Set it.
-        os.environ['OMP_NUM_THREADS'] = str(nProc)
+    # Prepare all files
+    PrepareFiles(rc, i)
     # Prepare environment variables (other than OMP_NUM_THREADS)
     PrepareEnvironment(rc, i)
-    # Get rid of linked Tecplot files
-    if os.path.islink('Components.i.plt'): os.remove('Components.i.plt')
-    if os.path.islink('Components.i.dat'): os.remove('Components.i.dat')
-    if os.path.islink('cutPlanes.plt'):    os.remove('cutPlanes.plt')
-    if os.path.islink('cutPlanes.dat'):    os.remove('cutPlanes.dat')
-    # Check for adaptive runs.
-    if rc.get_Adaptive(i):
-        # Delete the existing aero.csh file
-        if os.path.islink('aero.csh'): os.remove('aero.csh')
-        # Create a link to this run.
-        os.symlink('aero.%02i.csh' % i, 'aero.csh')
-        # Call the aero.csh command
-        if i > 0 or GetCurrentIter() > 0:
-            # Restart case.
-            cmdi = ['./aero.csh', 'restart']
-        elif rc.get_jumpstart():
-            # Initial case
-            cmdi = ['./aero.csh', 'jumpstart']
-        else:
-            # Initial case and create grid
-            cmdi = ['./aero.csh']
-        # Run the command.
-        bin.callf(cmdi, f='flowCart.out')
-        # Check for point sensors
-        if os.path.isfile(os.path.join('BEST', 'pointSensors.dat')):
-            # Collect point sensor data
-            PS = pointSensor.CasePointSensor()
-            PS.UpdateIterations()
-            PS.WriteHist()
-    elif rc.get_it_avg(i):
-        # Check how many iterations by which to offset the count.
-        if rc.get_unsteady(i):
-            # Get the number of previous unsteady steps.
-            n = GetUnsteadyIter()
-        else:
-            # Get the number of previous steady steps.
-            n = GetSteadyIter()
-        # Initialize triq.
-        if rc.get_clic(i): triq = Triq('Components.i.tri', n=0)
-        # Initialize point sensor
-        PS = pointSensor.CasePointSensor()
-        # Requested iterations
-        it_fc = rc.get_it_fc(i)
-        # Start and end iterations
-        n0 = n
-        n1 = n + it_fc
-        # Loop through iterations.
-        for j in range(it_fc):
-            # flowCart command automatically accepts *it_avg*; update *n*
-            if j==0 and rc.get_it_start(i)>0:
-                # Save settings.
-                it_avg = rc.get_it_avg()
-                # Startup iterations
-                rc.set_it_avg(rc.get_it_start(i))
-                # Increase reference for averaging.
-                n0 += rc.get_it_start(i)
-                # Modified command
-                cmdi = cmd.flowCart(fc=rc, i=i, n=n)
-                # Reset averaging settings
-                rc.set_it_avg(it_avg)
-            else:
-                # Normal stops every *it_avg* iterations.
-                cmdi = cmd.flowCart(fc=rc, i=i, n=n)
-            # Run the command for *it_avg* iterations.
-            bin.callf(cmdi, f='flowCart.out')
-            # Automatically determine the best check file to use.
-            SetRestartIter()
-            # Get new iteration count.
-            if rc.get_unsteady(i):
-                # Get the number of previous unsteady steps.
-                n = GetUnsteadyIter()
-            else:
-                # Get the number of previous steady steps.
-                n = GetSteadyIter()
-            # Process triq files
-            if rc.get_clic(i):
-                # Read the triq file
-                triqj = Triq('Components.i.triq')
-                # Weighted average
-                triq.WeightedAverage(triqj)
-            # Update history
-            PS.UpdateIterations()
-            # Check for completion
-            if (n>=n1) or (j+1==it_fc): break
-            # Clear check files as appropriate.
-            manage.ClearCheck(rc.get_nCheckPoint(i))
-        # Write the averaged triq file
-        if rc.get_clic(i):
-            triq.Write('Components.%i.%i.%i.triq' % (j+1, n0+1, n))
-        # Write the point sensor history file.
-        try: PS.WriteHist()
-        except Exception: pass
-    else:
-        # Check how many iterations by which to offset the count.
-        if rc.get_unsteady(i):
-            # Get the number of previous unsteady steps.
-            n = GetUnsteadyIter()
-        else:
-            # Get the number of previous steady steps.
-            n = GetSteadyIter()
-        # Call flowCart directly.
-        cmdi = cmd.flowCart(fc=rc, i=i, n=n)
-        # Run the command.
-        bin.callf(cmdi, f='flowCart.out')
-        # Check for point sensors
-        if os.path.isfile('pointSensors.dat'):
-            # Collect point sensor data
-            PS = pointSensor.CasePointSensor()
-            PS.UpdateIterations()
-            PS.WriteHist()
+    # Run the appropriate commands
+    RunPhase(rc, i)
+    # Clean up the folder
+    FinalizeFiles(rc, i)
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
     # Save time usage
     WriteUserTime(tic, rc, i)
-    # Clean up the folder as appropriate.
-    # Tar visualization files.
-    if rc.get_unsteady(i):
-        manage.TarViz(rc)
-    # Tar old adaptation folders.
-    if rc.get_Adaptive(i):
-        manage.TarAdapt(rc)
-    # Last reported iteration number
-    n = GetHistoryIter()
-    # Check status
-    if n % 1 != 0:
-        # Ended with a failed unsteady cycle!
-        f = open('FAIL', 'w')
-        # Write the failure type.
-        f.write('# Ended with failed unsteady cycle at iteration:\n')
-        f.write('%13.6f\n' % n)
-        # Quit
-        f.close()
-        return
-    # First and last reported residual
-    L1i = GetFirstResid()
-    L1f = GetCurrentResid()
-    # Check for bad (large or NaN) values.
-    if isnan(L1f) or L1f/(0.1+L1i)>1.0e+6:
-        # Exploded.
-        f = open('FAIL', 'w')
-        # Write the failure type.
-        f.write('# Bombed at iteration %.6f with residual %.2E.\n' % (n, L1f))
-        f.write('%13.6f\n' % n)
-        # Quit
-        f.close()
-        return
-    # Check for a hard-to-detect failure present in the output file.
-    if CheckFailed():
-        # Some other failure
-        f = open('FAIL', 'w')
-        # Copy the last line of flowCart.out
-        f.write('# %s' % bin.tail('flowCart.out'))
-        # Quit
-        f.close()
-        return
-    # Get the new restart iteration.
-    n = GetCheckResubIter()
-    # Assuming that worked, move the temp output file.
-    os.rename('flowCart.out', 'run.%02i.%i' % (i, n))
-    # Check for TecPlot files to save.
-    if os.path.isfile('cutPlanes.plt'):
-        os.rename('cutPlanes.plt', 'cutPlanes.%05i.plt' % n)
-    if os.path.isfile('Components.i.plt'):
-        os.rename('Components.i.plt', 'Components.i.%05i.plt' % n)
-    if os.path.isfile('cutPlanes.dat'):
-        os.rename('cutPlanes.dat', 'cutPlanes.%05i.dat' % n)
-    if os.path.isfile('Components.i.dat'):
-        os.rename('Components.i.dat', 'Components.i.%05i.dat' % n)
-    # Check current iteration count.
-    if n >= rc.get_LastIter():
-        return
+    # Check for bomb/early termination
+    CheckSuccess(rc, i)
     # Run full restart command, including qsub if appropriate
     RestartCase(i)
     
@@ -300,7 +99,6 @@ def WriteUserTime(tic, rc, i, fname="pycart_time.dat"):
     """
     # Call the function from :mode:`cape.case`
     WriteUserTimeProg(tic, rc, i, fname, 'run_flowCart.py')
-            
             
 
 # Function to intersect geometry if appropriate
@@ -355,6 +153,336 @@ def VerifyCase(verify=False):
     if GetRestartIter() != 0: return
     # Run it.
     bin.verify('Components.i.tri')
+    
+# Prepare the files of the case
+def PrepareFiles(rc, i=None):
+    """Prepare file names appropriate to run phase *i* of Cart3D
+    
+    :Call:
+        >>> PrepareFiles(rc, i=None)
+    :Inputs:
+        *rc*: :Class:`pyCart.options.runContro.RunControl`
+            Options interface from ``case.json``
+        *i*: :class:`int`
+            Phase number
+    :Versions:
+        * 2016-03-04 ``@ddalle``: First version
+    """
+    # Get the phase number if necessary
+    if i is None:
+        # Get the phase number.
+        i = GetPhaseNumber(rc)
+    # Create a restart file if appropriate.
+    if not rc.get_Adaptive(i):
+        # Automatically determine the best check file to use.
+        SetRestartIter()
+    # Delete any input file.
+    if os.path.isfile('input.cntl') or os.path.islink('input.cntl'):
+        os.remove('input.cntl')
+    # Create the correct input file.
+    os.symlink('input.%02i.cntl' % i, 'input.cntl')
+    # Extra prep for adaptive --> non-adaptive
+    if (i>0) and (not rc.get_Adaptive(i)) and (os.path.isdir('BEST')
+            and (not os.path.isfile('history.dat'))):
+        # Go to the best adaptive result.
+        os.chdir('BEST')
+        # Find all *.dat files and Mesh files
+        fglob = glob.glob('*.dat') + glob.glob('Mesh.*')
+        # Go back up one folder.
+        os.chdir('..')
+        # Copy all the important files.
+        for fname in fglob:
+            # Check for the file.
+            if os.path.isfile(fname): continue
+            # Copy the file.
+            shutil.copy(os.path.join('BEST',fname), fname)
+    # Convince aero.csh to use the *new* input.cntl
+    if (i>0) and (rc.get_Adaptive(i)) and (rc.get_Adaptive(i-1)):
+        # Go to the best adaptive result.
+        os.chdir('BEST')
+        # Check for an input.cntl file
+        if os.path.isfile('input.cntl'):
+            # Move it to a representative name.
+            os.rename('input.cntl', 'input.%02i.cntl' % (i-1))
+        # Go back up.
+        os.chdir('..')
+        # Copy the new input file.
+        shutil.copy('input.%02i.cntl' % i, 'BEST/input.cntl')
+    # Get rid of linked Tecplot files
+    if os.path.islink('Components.i.plt'): os.remove('Components.i.plt')
+    if os.path.islink('Components.i.dat'): os.remove('Components.i.dat')
+    if os.path.islink('cutPlanes.plt'):    os.remove('cutPlanes.plt')
+    if os.path.islink('cutPlanes.dat'):    os.remove('cutPlanes.dat')
+
+# Run one phase appropriately
+def RunPhase(rc, i):
+    """Run one phase using appropriate commands
+    
+    :Call:
+        >>> RunPhase(rc, i)
+    :Inputs:
+        *rc*: :Class:`pyCart.options.runContro.RunControl`
+            Options interface from ``case.json``
+        *i*: :class:`int`
+            Phase number
+    :Versions:
+        * 2016-03-04 ``@ddalle``: First version
+    
+    """
+    # Check for flowCart vs. mpi_flowCart
+    if not rc.get_MPI(i):
+        # Get the number of threads, which may be irrelevant.
+        nProc = rc.get_nProc(i)
+        # Set it.
+        os.environ['OMP_NUM_THREADS'] = str(nProc)
+    # Check for adaptive runs.
+    if rc.get_Adaptive(i):
+        # Run 'aero.csh'
+        RunAdaptive(rc, i)
+    elif rc.get_it_avg(i):
+        # Run a few iterations at a time
+        RunWithRestarts(rc, i)
+    else:
+        # Run with the nominal inputs
+        RunFixed(rc, i)
+
+# Run one phase adaptively
+def RunAdaptive(rc, i):
+    """Run one phase using adaptive commands
+    
+    :Call:
+        >>> RunAdaptive(rc, i)
+    :Inputs:
+        *rc*: :Class:`pyCart.options.runContro.RunControl`
+            Options interface from ``case.json``
+        *i*: :class:`int`
+            Phase number
+    :Versions:
+        * 2016-03-04 ``@ddalle``: First version
+    """
+    # Delete the existing aero.csh file
+    if os.path.islink('aero.csh'): os.remove('aero.csh')
+    # Create a link to this run.
+    os.symlink('aero.%02i.csh' % i, 'aero.csh')
+    # Call the aero.csh command
+    if i > 0 or GetCurrentIter() > 0:
+        # Restart case.
+        cmdi = ['./aero.csh', 'restart']
+    elif rc.get_jumpstart():
+        # Initial case
+        cmdi = ['./aero.csh', 'jumpstart']
+    else:
+        # Initial case and create grid
+        cmdi = ['./aero.csh']
+    # Run the command.
+    bin.callf(cmdi, f='flowCart.out')
+    # Check for point sensors
+    if os.path.isfile(os.path.join('BEST', 'pointSensors.dat')):
+        # Collect point sensor data
+        PS = pointSensor.CasePointSensor()
+        PS.UpdateIterations()
+        PS.WriteHist()
+
+# Run one phase with *it_avg*
+def RunWithRestarts(rc, i):
+    """Run ``flowCart`` a few iterations at a time for averaging purposes
+    
+    :Call:
+        >>> RunWithRestarts(rc, i)
+    :Inputs:
+        *rc*: :Class:`pyCart.options.runContro.RunControl`
+            Options interface from ``case.json``
+        *i*: :class:`int`
+            Phase number
+    :Versions:
+        * 2016-03-04 ``@ddalle``: First version
+    """
+    # Check how many iterations by which to offset the count.
+    if rc.get_unsteady(i):
+        # Get the number of previous unsteady steps.
+        n = GetUnsteadyIter()
+    else:
+        # Get the number of previous steady steps.
+        n = GetSteadyIter()
+    # Initialize triq.
+    if rc.get_clic(i): triq = Triq('Components.i.tri', n=0)
+    # Initialize point sensor
+    PS = pointSensor.CasePointSensor()
+    # Requested iterations
+    it_fc = rc.get_it_fc(i)
+    # Start and end iterations
+    n0 = n
+    n1 = n + it_fc
+    # Loop through iterations.
+    for j in range(it_fc):
+        # flowCart command automatically accepts *it_avg*; update *n*
+        if j==0 and rc.get_it_start(i)>0:
+            # Save settings.
+            it_avg = rc.get_it_avg()
+            # Startup iterations
+            rc.set_it_avg(rc.get_it_start(i))
+            # Increase reference for averaging.
+            n0 += rc.get_it_start(i)
+            # Modified command
+            cmdi = cmd.flowCart(fc=rc, i=i, n=n)
+            # Reset averaging settings
+            rc.set_it_avg(it_avg)
+        else:
+            # Normal stops every *it_avg* iterations.
+            cmdi = cmd.flowCart(fc=rc, i=i, n=n)
+        # Run the command for *it_avg* iterations.
+        bin.callf(cmdi, f='flowCart.out')
+        # Automatically determine the best check file to use.
+        SetRestartIter()
+        # Get new iteration count.
+        if rc.get_unsteady(i):
+            # Get the number of previous unsteady steps.
+            n = GetUnsteadyIter()
+        else:
+            # Get the number of previous steady steps.
+            n = GetSteadyIter()
+        # Process triq files
+        if rc.get_clic(i):
+            # Read the triq file
+            triqj = Triq('Components.i.triq')
+            # Weighted average
+            triq.WeightedAverage(triqj)
+        # Update history
+        PS.UpdateIterations()
+        # Check for completion
+        if (n>=n1) or (j+1==it_fc): break
+        # Clear check files as appropriate.
+        manage.ClearCheck_iStart(nkeep=1, istart=n0)
+    # Write the averaged triq file
+    if rc.get_clic(i):
+        triq.Write('Components.%i.%i.%i.triq' % (j+1, n0+1, n))
+    # Write the point sensor history file.
+    try: PS.WriteHist()
+    except Exception: pass
+
+# Run the nominal mode
+def RunFixed(rc, i):
+    """Run ``flowCart`` the nominal way
+    
+    :Call:
+        >>> RunFixed(rc, i)
+    :Inputs:
+        *rc*: :Class:`pyCart.options.runContro.RunControl`
+            Options interface from ``case.json``
+        *i*: :class:`int`
+            Phase number
+    :Versions:
+        * 2016-03-04 ``@ddalle``: First version
+    """
+    # Check how many iterations by which to offset the count.
+    if rc.get_unsteady(i):
+        # Get the number of previous unsteady steps.
+        n = GetUnsteadyIter()
+    else:
+        # Get the number of previous steady steps.
+        n = GetSteadyIter()
+    # Call flowCart directly.
+    cmdi = cmd.flowCart(fc=rc, i=i, n=n)
+    # Run the command.
+    bin.callf(cmdi, f='flowCart.out')
+    # Check for point sensors
+    if os.path.isfile('pointSensors.dat'):
+        # Collect point sensor data
+        PS = pointSensor.CasePointSensor()
+        PS.UpdateIterations()
+        PS.WriteHist()
+            
+# Check if a case was run successfully
+def CheckSuccess(rc=None, i=None):
+    """Check iteration counts and residual change for most recent run
+    
+    :Call:
+        >>> q = CheckSuccess(rc=None, i=None)
+    :Inputs:
+        *rc*: :Class:`pyCart.options.runContro.RunControl`
+            Options interface from ``case.json``
+        *i*: :class:`int`
+            Phase number
+    :Outputs:
+        *q*: :class:`bool`
+            Whether or not the case ran successfully, according to these tests
+    :Versions:
+        * 2016-03-04 ``@ddalle``: First version
+    """
+    # Last reported iteration number
+    n = GetHistoryIter()
+    # Check status
+    if n % 1 != 0:
+        # Ended with a failed unsteady cycle!
+        f = open('FAIL', 'w')
+        # Write the failure type.
+        f.write('# Ended with failed unsteady cycle at iteration:\n')
+        f.write('%13.6f\n' % n)
+        # Quit
+        f.close()
+        raise SystemError("Failed unsteady cycle at iteration %.3f" % n)
+    # First and last reported residual
+    L1i = GetFirstResid()
+    L1f = GetCurrentResid()
+    # Check for bad (large or NaN) values.
+    if isnan(L1f) or L1f/(0.1+L1i)>1.0e+6:
+        # Exploded.
+        f = open('FAIL', 'w')
+        # Write the failure type.
+        f.write('# Bombed at iteration %.6f with residual %.2E.\n' % (n, L1f))
+        f.write('%13.6f\n' % n)
+        # Quit
+        f.close()
+        raise SystemError("Bombed at iteration %s with residual %.2E" %
+            (n, L1f))
+    # Check for a hard-to-detect failure present in the output file.
+    if CheckFailed():
+        # Some other failure
+        f = open('FAIL', 'w')
+        # Copy the last line of flowCart.out
+        f.write('# %s' % bin.tail('flowCart.out'))
+        # Quit
+        f.close()
+        raise SystemError("flowcart failed to exit properly")
+    
+# Clean up immediately after running
+def FinalizeFiles(rc, i=None):
+    """Clean up files names after running one cycle of phase *i*
+    
+    :Call:
+        >>> FinalizeFiles(rc, i=None)
+    :Inputs:
+        *rc*: :Class:`pyCart.options.runContro.RunControl`
+            Options interface from ``case.json``
+        *i*: :class:`int`
+            Phase number
+    :Versions:
+        * 2016-03-04 ``@ddalle``: First version
+    """
+    # Get the phase number if necessary
+    if i is None:
+        # Get the phase number.
+        i = GetPhaseNumber(rc)
+    # Clean up the folder as appropriate.
+    # Tar visualization files.
+    if rc.get_unsteady(i):
+        manage.TarViz(rc)
+    # Tar old adaptation folders.
+    if rc.get_Adaptive(i):
+        manage.TarAdapt(rc)
+    # Get the new restart iteration.
+    n = GetCheckResubIter()
+    # Assuming that worked, move the temp output file.
+    os.rename('flowCart.out', 'run.%02i.%i' % (i, n))
+    # Check for TecPlot files to save.
+    if os.path.isfile('cutPlanes.plt'):
+        os.rename('cutPlanes.plt', 'cutPlanes.%05i.plt' % n)
+    if os.path.isfile('Components.i.plt'):
+        os.rename('Components.i.plt', 'Components.i.%05i.plt' % n)
+    if os.path.isfile('cutPlanes.dat'):
+        os.rename('cutPlanes.dat', 'cutPlanes.%05i.dat' % n)
+    if os.path.isfile('Components.i.dat'):
+        os.rename('Components.i.dat', 'Components.i.%05i.dat' % n)
 
 # Function to call script or submit.
 def StartCase():
@@ -403,6 +531,11 @@ def RestartCase(i0=None):
     rc = ReadCaseJSON()
     # Determine the run index.
     i = GetPhaseNumber(rc)
+    # Get the new restart iteration.
+    n = GetCheckResubIter()
+    # Check current iteration count.
+    if n >= rc.get_LastIter():
+        return
     # Check qsub status.
     if not rc.get_qsub(i):
         # Run the case.

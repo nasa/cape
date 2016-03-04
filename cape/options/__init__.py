@@ -757,6 +757,16 @@ class Options(odict):
         self._RunControl()
         self['RunControl'].set_ArchiveType(atype)
         
+    # Get the archive type
+    def get_ArchiveTemplate(self):
+        self._RunControl()
+        return self['RunControl'].get_ArchiveTemplate()
+        
+    # Set the archive type
+    def set_ArchiveTemplate(self, atype=rc0('ArchiveTemplate')):
+        self._RunControl()
+        self['RunControl'].set_ArchiveTemplate(atype)
+        
     # Get the archive action
     def get_ArchiveAction(self):
         self._RunControl()
@@ -779,7 +789,7 @@ class Options(odict):
         
     # Copy over the documentation.
     for k in ['ArchiveFolder', 'ArchiveFormat', 'ArchiveAction', 'ArchiveType',
-            'RemoteCopy']:
+            'RemoteCopy', 'ArchiveTemplate']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__

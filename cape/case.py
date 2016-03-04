@@ -106,7 +106,7 @@ def PrepareEnvironment(rc, i=0):
         *rc*: :class:`cape.options.runControl.RunControl`
             Options interface for run control and command-line inputs
         *i*: :class:`int`
-            Run sequence number
+            Phase number
     :Versions:
         * 2015-11-10 ``@ddalle``: First version
     """

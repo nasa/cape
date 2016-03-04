@@ -385,7 +385,7 @@ class RunControl(odict):
         
     # Copy over the documentation.
     for k in ['ArchiveFolder', 'ArchiveFormat', 'ArchiveAction', 'ArchiveType',
-            'RemoteCopy']:
+            'RemoteCopy', 'ArchiveTemplate']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Archive.Archive,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Archive.Archive,'set_'+k).__doc__

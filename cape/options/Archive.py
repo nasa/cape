@@ -183,7 +183,7 @@ class Archive(odict):
         :Versions:
             * 2015-02-16 ``@ddalle``: First version
         """
-        return self.get_key('ArchiveType')
+        return self.get_key('ArchiveTemplate')
         
     # Set archive type
     def set_ArchiveTemplate(self, atype=rc0('ArchiveTemplate')):

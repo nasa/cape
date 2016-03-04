@@ -624,6 +624,64 @@ def ClearCheck(n=1):
             os.remove(f)
 # def ClearCheck
 
+# Clear check files created during start/stop running
+def ClearCheck_iStart(nkeep=1, istart=0):
+    """Clear check files that were created since iteration *istart*
+    
+    :Call:
+        >>> pyCart.manage.ClearCheck_iStart(nkeep=1, istart=0)
+    :Inputs:
+        *nkeep*: :class:`int`
+            Number of most recent check files to keep
+        *istart*: :class:`int`
+            Do not delete check files prior to iteration *istart*
+    :Versions:
+        * 2016-03-04 ``@ddalle``: First version
+    """
+    # Exit if non-positive
+    if nkeep is None or nkeep < 0: return
+    # Get the check.* files
+    fglob = glob.glob('check.?????')
+    fglob.sort()
+    # check for a match
+    if len(fglob) > n:
+        # Loop through the glob except for the last *nkeep* files
+        for fc in fglob[:-n]:
+            # Check iStart
+            try:
+                # Iteration number
+                i = int(fc.split('.')[1])
+            except Exception:
+                # Not a valid iteration
+                continue
+            # Check if it is a recent enough iteration
+            if i <= istart: continue
+            # Delete the file.
+            os.remove(f)
+            # Build the checkDT.????? file nae
+            fDT = 'checkDT.%05i' % i
+            # Remove it, too.
+            if os.path.isfile(fDT): os.remove(fDT)
+    # Check the check.*.td files
+    fglob = glob.glob('check.???????.td')
+    fglob.sort()
+    # Check for a match
+    if len(fglob) > n:
+        # Loop through glob until the last *n* files
+        for f in fglob[:-n]:
+            # Check iStart
+            try:
+                # Iteration number
+                i = int(fc.split('.')[1])
+            except Exception:
+                # Not a valid iteration
+                continue
+            # Check if it is a recent enough iteration
+            if i <= istart: continue
+            # Delete the file.
+            os.remove(f)
+# def CleaCheck_iStart
+
 # Archive folder.
 def ArchiveFolder(opts):
     """
