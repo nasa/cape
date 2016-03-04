@@ -458,7 +458,7 @@ class DataBook(odict):
             if (type(DBT).__name__ not in ['DBTarget']):
                 raise TypeError("Target '%s' is not a DBTarget." % targ)
         # Output
-        return targets
+        return DBTs
         
     # Get a target by name
     def get_DataBookTargetByName(self, targ):
@@ -1267,7 +1267,7 @@ class DBTarget(odict):
         # Get tolerance option set
         tolopts = self.get("Tolerances", {})
         # Get the option specific to this key
-        return tolopts.get(xk, 0.0)
+        return tolopts.get(xk, None)
         
     # Get the delimiter
     def get_Delimiter(self):

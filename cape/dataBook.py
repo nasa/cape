@@ -193,7 +193,7 @@ class DataBook(dict):
         except Exception:
             # Read the file.
             self.Targets[targ] = DBTarget(
-                targ, self.x, self.opts, self.RootDir))
+                targ, self.x, self.opts, self.RootDir)
             
     # Match the databook copy of the trajectory
     def UpdateTrajectory(self):
