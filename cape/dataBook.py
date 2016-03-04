@@ -128,9 +128,7 @@ class DataBook(dict):
             # Initialize the data book.
             self.InitDBComp(comp, x, opts)
         # Initialize targets.
-        self.Targets = []
-        # Initialize line loads
-        self.LineLoads = []
+        self.Targets = {}
         
     # Command-line representation
     def __repr__(self):
@@ -184,13 +182,18 @@ class DataBook(dict):
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
         """
+        # Initialize targets if necessary
+        try:
+            self.Targets
+        except AttributeError:
+            self.Targets = {}
         # Try to access the target.
         try:
             self.Targets[targ]
         except Exception:
             # Read the file.
-            self.Targets.append(
-                DBTarget(targ, self.x, self.opts, self.RootDir))
+            self.Targets[targ] = DBTarget(
+                targ, self.x, self.opts, self.RootDir))
             
     # Match the databook copy of the trajectory
     def UpdateTrajectory(self):
@@ -232,14 +235,19 @@ class DataBook(dict):
         :Versions:
             * 2015-06-04 ``@ddalle``: First version
         """
-        # List of target names.
-        targs = [DBT.Name for DBT in self.Targets]
+        # Get target list
+        try:
+            # Get the current dict
+            targs = self.Targets
+        except AttributeError:
+            # Not initialized
+            targs = {}
         # Check for the target.
         if targ not in targs:
             # Target not found.
             raise ValueError("Target named '%s' not in data book." % targ)
         # Return the target handle.
-        return self.Targets[targs.index(targ)]
+        return targs[targ]
         
     # Restrict the data book object to points in the trajectory.
     def MatchTrajectory(self):

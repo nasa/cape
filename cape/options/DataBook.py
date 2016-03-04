@@ -424,20 +424,39 @@ class DataBook(odict):
             *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
-            *targets*: :class:`list` (:class:`dict`)
-                List of targets
+            *targets*: :class:`dict` (:class:`dict`)
+                Dictionary of targets
         :Versions:
             * 2014-12-20 ``@ddalle``: First version
         """
         # Get the value from the dictionary.
         targets = self.get('Targets', [])
-        # Make sure it's a list.
-        if type(targets).__name__ not in ['list']:
-            targets = [targets]
+        # Type
+        tt = type(targets).__name__
+        # Check for list or dict
+        if tt in ['dict', 'odict']:
+            # Check if it's a single target
+            if "Name" in tt:
+                # Convert to list with one target
+                DBTs = {targets["Name"]: targets}
+            else:
+                # Must be correct format
+                DBTs = targets
+        elif tt in ['list']:
+            # Convert to dict
+            DBTs = {}
+            for DBT in targets:
+                DBTs[DBT.get('Name')] = DBT
+        else:
+            # Unrecognized
+            raise TypeError("Targets are type '%s'; expecting list or dict"%tt)
         # Check contents.
-        for targ in targets:
-            if (type(targ).__name__ not in ['DBTarget']):
-                raise IOError("Target '%s' is not a DBTarget." % targ)
+        for targ in DBTs:
+            # Extract object
+            DBT = DBTs[targ]
+            # Check type
+            if (type(DBT).__name__ not in ['DBTarget']):
+                raise TypeError("Target '%s' is not a DBTarget." % targ)
         # Output
         return targets
         
@@ -457,12 +476,11 @@ class DataBook(odict):
         """
         # Get the set of targets
         DBTs = self.get_DataBookTargets()
-        # Get list of names
-        targs = [DBTi.get('Name') for DBTi in DBTs]
-        # Get the index
-        i = targs.index(targ)
+        # Check if it's present
+        if targ not in DBTs:
+            raise KeyError("There is no DBTarget called '%s'" % targ)
         # Output
-        return DBTs[i]
+        return DBTs[targ]
         
     # Get the data type of a specific component
     def get_DataBookType(self, comp):
