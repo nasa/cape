@@ -34,6 +34,33 @@ customize these defaults by editing the file
 :file:`$PYCART/settings/pyCart.default.json`, where ``$PYCART`` is the path to
 the pyCart root directory.
 
+The master settings file is loaded in one of two ways: a command-line call to
+the script `pycart` or loading an instance of the :class:`pyCart.cart3d.Cart3d`
+class.  In both cases, the default name of the file is :file:`pyCart.json`, but
+it is possible to use other file names.  The following two examples show the
+status of the run matrix; the first load the inputs from :file:`pyCart.json`,
+and the second loads the inputs from :file:`run/poweron.json`.
+
+    .. code-block:: bash
+    
+        $ pycart -c
+        $ pycart -f run/poweron.json -c
+        
+Within a Python script, the settings can be loaded with the following code.
+
+    .. code-block:: python
+    
+        import pyCart
+        
+        # Loads pyCart.json
+        c1 = pyCart.Cart3d()
+        # Loads run/poweron.json
+        c2 = pyCart.Cart3d('run/poweron.json')
+
+The location from which either of these two methods is called (i.e., the current
+working directory) is remembered as the root directory for the run.  Locations
+of other files are relative to this directory.
+
 The following is a nearly minimal pyCart control file that is presented to show
 the major parts of the file.
 
@@ -54,6 +81,7 @@ the major parts of the file.
                 "InputSeq": [0, 1],
                 "IterSeq": [0, 1500],
                 "qsub": false,
+                "Adaptive": false,
                 // Inputs to flowCart
                 "flowCart": {
                     "it_fc": 500,
@@ -108,7 +136,6 @@ of how the options are used.
 .. toctree::
     :maxdepth: 3
     
-    usage
     uncategorized
     PBS
     runControl
