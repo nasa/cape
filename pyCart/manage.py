@@ -644,9 +644,9 @@ def ClearCheck_iStart(nkeep=1, istart=0):
     fglob = glob.glob('check.?????')
     fglob.sort()
     # check for a match
-    if len(fglob) > n:
+    if len(fglob) > nkeep:
         # Loop through the glob except for the last *nkeep* files
-        for fc in fglob[:-n]:
+        for fc in fglob[:-nkeep]:
             # Check iStart
             try:
                 # Iteration number
@@ -657,7 +657,7 @@ def ClearCheck_iStart(nkeep=1, istart=0):
             # Check if it is a recent enough iteration
             if i <= istart: continue
             # Delete the file.
-            os.remove(f)
+            os.remove(fc)
             # Build the checkDT.????? file nae
             fDT = 'checkDT.%05i' % i
             # Remove it, too.
@@ -666,9 +666,9 @@ def ClearCheck_iStart(nkeep=1, istart=0):
     fglob = glob.glob('check.???????.td')
     fglob.sort()
     # Check for a match
-    if len(fglob) > n:
+    if len(fglob) > nkeep:
         # Loop through glob until the last *n* files
-        for f in fglob[:-n]:
+        for fc in fglob[:-nkeep]:
             # Check iStart
             try:
                 # Iteration number
@@ -679,7 +679,7 @@ def ClearCheck_iStart(nkeep=1, istart=0):
             # Check if it is a recent enough iteration
             if i <= istart: continue
             # Delete the file.
-            os.remove(f)
+            os.remove(fc)
 # def CleaCheck_iStart
 
 # Archive folder.
