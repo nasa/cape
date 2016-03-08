@@ -410,9 +410,9 @@ class Q(cape.plot3d.Plot3D):
         # Read end-of-record
         self.read_int()
         
-    # Extract CP
-    def get_Cp(self, IG, **kw):
-        """Get pressure coefficients from a grid
+    # Get grid indices
+    def expand_grid_indices(self, IG, **kw):
+        """Expand grid indices using a variety of input methods
         
         Portions of a grid can be extracted either by using a list of indices
         using the *J*, *K*, *L* keyword arguments, individual indices using the
@@ -421,7 +421,77 @@ class Q(cape.plot3d.Plot3D):
         specified.
         
         :Call:
-            >>> Cp = q.get_CP(IG, **kw)
+            >>> J, K, L = q.expand_grid_indices(IG, **kw)
+        :Inputs:
+            *q*: :class:`pyOver.plot3d.Q`
+                General OVERFLOW q-file interface
+            *IG*: :class:`int`
+                Grid number (one-based index)
+        :Keyword arguments:
+            *J*: :class:`int` | :class:`list` (:class:`int`) 
+                Single grid index, *j* direction
+            *JS*: :class:`int`
+                Start index, *j* direction
+            *JE*: :class:`int`
+                End index, *j* direction
+            *K*: :class:`int` | :class:`list` (:class:`int`)
+                Single grid index, *k* direction
+            *KS*: :class:`int`
+                Start index, *k* direction
+            *KE*: :class:`int`
+                End index, *k* direction
+            *L*: :class:`int` | :class:`list` (:class:`int`)
+                Single grid index, *l* direction
+            *LS*: :class:`int`
+                Start index, *l* direction
+            *LE*: :class:`int`
+                End index, *l* direction
+        :Outputs:
+            *J*: :class:`np.ndarray` (:class:`int`) 
+                Array of grid indices in *j* direction
+            *K*: :class:`np.ndarray` (:class:`int`) 
+                Array of grid indices in *k* direction
+            *L*: :class:`np.ndarray` (:class:`int`) 
+                Array of grid indices in *l* direction
+        :Versions:
+            * 2016-03-07 ``@ddalle``: First version
+        """
+        # Grid sizes
+        JD = self.JD[IG-1]
+        KD = self.KD[IG-1]
+        LD = self.LD[IG-1]
+        # Process index start indices
+        JS = kw.get("JS", 1)
+        KS = kw.get("KS", 1)
+        LS = kw.get("LS", 1)
+        # Process index end indices
+        JE = kw.get("JE", JD)
+        KE = kw.get("KE", KD)            
+        LE = kw.get("LE", LD)
+        # Check for negative indices
+        if JS < 0: JS += JD
+        if KS < 0: KS += KD
+        if LS < 0: LS += LD
+        if JE < 0: JE += JD
+        if KE < 0: KE += KD
+        if LE < 0: LE += LD
+        # Default indices
+        JDEF = JS if JS==JE else np.arange(JS,JE+1)
+        KDEF = KS if KS==KE else np.arange(KS,KE+1)
+        LDEF = LS if LS==LE else np.arange(LS,LE+1)
+        # Process direct indices
+        J = kw.get("J", JDEF) - 1
+        K = kw.get("K", KDEF) - 1
+        L = kw.get("L", LDEF) - 1
+        # Output
+        return J, K, L
+    
+    # Extract CP
+    def get_Cp(self, IG, **kw):
+        """Get pressure coefficients from a grid
+        
+        :Call:
+            >>> Cp = q.get_Cp(IG, **kw)
         :Inputs:
             *q*: :class:`pyOver.plot3d.Q`
                 General OVERFLOW q-file interface
@@ -449,46 +519,246 @@ class Q(cape.plot3d.Plot3D):
         :Outputs:
             *Cp*: :class:`float` | :class:`numpy.ndarray` (:class:`float`)
                 Pressure coefficient or array of pressure coefficients
+        :See also:
+            :func:`expand_grid_indices`
         :Versions:
             * 2016-02-26 ``@ddalle``: First version
         """
-        # Process index start indices
-        JS = kw.get("JS", 1) - 1
-        KS = kw.get("KS", 1) - 1
-        LS = kw.get("LS", 1) - 1
-        # Process index end indices
-        JE = kw.get("JS", self.JD[IG-1])
-        KE = kw.get("KE", self.KD[IG-1])            
-        LE = kw.get("LE", self.LD[IG-1])
-        # Process direct indices
-        J = kw.get("J", np.arange(JS,JE))
-        K = kw.get("K", np.arange(KS,KE))
-        L = kw.get("L", np.arange(LS,LE))
+        # Expand grid indices
+        J, K, L = self.expand_grid_indices(IG, **kw)
         # Extract freestream states
         M_inf = self.FSMACH
         g_inf = self.GAMINF
         # Extract the *q* grid
         Q = self.Q[IG-1]
         # Get normalized density and energy
-        rhos   = Q[0,J,K,L]
-        rhoe0s = Q[4,J,K,L]
+        rhostar = Q[0,J,K,L]
         # Get the velocity components
-        rhous = Q[1,J,K,L]
-        rhovs = Q[1,J,K,L]
-        rhows = Q[1,J,K,L]
+        ustar = Q[1,J,K,L] / rhostar
+        vstar = Q[2,J,K,L] / rhostar
+        wstar = Q[3,J,K,L] / rhostar
+        # Velocity
+        U2star = ustar*ustar + vstar*vstar + wstar*wstar
+        # Get internal energy
+        estar = Q[4,J,K,L]/rhostar - 0.5*U2star
         # Ratios of specific heats
         gam = Q[5,J,K,L]
-        # Velocities
-        rhoU2s = rhous**2 + rhovs**2 + rhows**2
         # Non-dimensional pressures
-        ps = (gam-1)*rhoe0s - 0.5*rhoU2s/rhos
+        pstar = (gam-1)*rhostar*estar
         # Pressure coefficient
-        Cp = (gam*ps-1)/(0.5*g_inf*M_inf**2)
+        Cp = (gam*pstar-1)/(0.5*g_inf*M_inf**2)
         # Output
         return Cp
         
+    # Extract Mach number
+    def get_M(self, IG, **kw):
+        """Get Mach numbers from a grid
         
-                
+        :Call:
+            >>> M = q.get_M(IG, **kw)
+        :Inputs:
+            *q*: :class:`pyOver.plot3d.Q`
+                General OVERFLOW q-file interface
+            *IG*: :class:`int`
+                Grid number (one-based index)
+        :Keyword arguments:
+            *J*: :class:`int` | :class:`list` (:class:`int`) 
+                Single grid index, *j* direction
+            *JS*: :class:`int`
+                Start index, *j* direction
+            *JE*: :class:`int`
+                End index, *j* direction
+            *K*: :class:`int` | :class:`list` (:class:`int`)
+                Single grid index, *k* direction
+            *KS*: :class:`int`
+                Start index, *k* direction
+            *KE*: :class:`int`
+                End index, *k* direction
+            *L*: :class:`int` | :class:`list` (:class:`int`)
+                Single grid index, *l* direction
+            *LS*: :class:`int`
+                Start index, *l* direction
+            *LE*: :class:`int`
+                End index, *l* direction
+        :Outputs:
+            *M*: :class:`float` | :class:`numpy.ndarray` (:class:`float`)
+                Mach number or array of Mach numbers
+        :See also:
+            :func:`expand_grid_indices`
+        :Versions:
+            * 2016-03-07 ``@ddalle``: First version
+        """
+        # Expand grid indices
+        J, K, L = self.expand_grid_indices(IG, **kw)
+        # Extract freestream states
+        M_inf = self.FSMACH
+        g_inf = self.GAMINF
+        # Extract the *q* grid
+        Q = self.Q[IG-1]
+        # Get normalized density and energy
+        rhostar = Q[0,J,K,L]
+        # Get the velocity components
+        ustar = Q[1,J,K,L] / rhostar
+        vstar = Q[2,J,K,L] / rhostar
+        wstar = Q[3,J,K,L] / rhostar
+        # Velocity
+        U2star = ustar*ustar + vstar*vstar + wstar*wstar
+        # Get internal energy
+        estar = Q[4,J,K,L]/rhostar - 0.5*U2star
+        # Ratios of specific heats
+        gam = Q[5,J,K,L]
+        # Non-dimensional pressures
+        pstar = (gam-1)*rhostar*estar
+        # Sound speed
+        astar = np.sqrt(gam*pstar/rhostar)
+        # Mach number
+        M = np.sqrt(U2star) / astar
+        # Output
+        return M
+        
+    # Extract dimensional pressure
+    def get_p(self, IG, **kw):
+        """Get dimensional point pressures from a grid in lb/ft^2
+        
+        :Call:
+            >>> p = q.get_p(IG, **kw)
+        :Inputs:
+            *q*: :class:`pyOver.plot3d.Q`
+                General OVERFLOW q-file interface
+            *IG*: :class:`int`
+                Grid number (one-based index)
+        :Keyword arguments:
+            *J*: :class:`int` | :class:`list` (:class:`int`) 
+                Single grid index, *j* direction
+            *JS*: :class:`int`
+                Start index, *j* direction
+            *JE*: :class:`int`
+                End index, *j* direction
+            *K*: :class:`int` | :class:`list` (:class:`int`)
+                Single grid index, *k* direction
+            *KS*: :class:`int`
+                Start index, *k* direction
+            *KE*: :class:`int`
+                End index, *k* direction
+            *L*: :class:`int` | :class:`list` (:class:`int`)
+                Single grid index, *l* direction
+            *LS*: :class:`int`
+                Start index, *l* direction
+            *LE*: :class:`int`
+                End index, *l* direction
+        :Outputs:
+            *p*: :class:`float` | :class:`numpy.ndarray` (:class:`float`)
+                Pressure or array of pressures [psf]
+        :See also:
+            :func:`expand_grid_indices`
+        :Versions:
+            * 2016-03-07 ``@ddalle``: First version
+        """
+        # Expand grid indices
+        J, K, L = self.expand_grid_indices(IG, **kw)
+        # Extract freestream states
+        M_inf = self.FSMACH
+        g_inf = self.GAMINF
+        p_inf = self.PINF
+        # Extract the *q* grid
+        Q = self.Q[IG-1]
+        # Get normalized density and energy
+        rhostar = Q[0,J,K,L]
+        # Get the velocity components
+        ustar = Q[1,J,K,L] / rhostar
+        vstar = Q[2,J,K,L] / rhostar
+        wstar = Q[3,J,K,L] / rhostar
+        # Velocity
+        U2star = ustar*ustar + vstar*vstar + wstar*wstar
+        # Get internal energy
+        estar = Q[4,J,K,L]/rhostar - 0.5*U2star
+        # Ratios of specific heats
+        gam = Q[5,J,K,L]
+        # Non-dimensional pressures
+        pstar = (gam-1)*rhostar*estar
+        # Dimensional pressures
+        return gam*p_inf*pstar
+        
+    # Extract dimensional temperature
+    def get_T(self, IG, **kw):
+        """Get dimensional point temperatures from a grid in degrees Rankine
+        
+        :Call:
+            >>> p = q.get_p(IG, **kw)
+        :Inputs:
+            *q*: :class:`pyOver.plot3d.Q`
+                General OVERFLOW q-file interface
+            *IG*: :class:`int`
+                Grid number (one-based index)
+        :Keyword arguments:
+            *J*: :class:`int` | :class:`list` (:class:`int`) 
+                Single grid index, *j* direction
+            *JS*: :class:`int`
+                Start index, *j* direction
+            *JE*: :class:`int`
+                End index, *j* direction
+            *K*: :class:`int` | :class:`list` (:class:`int`)
+                Single grid index, *k* direction
+            *KS*: :class:`int`
+                Start index, *k* direction
+            *KE*: :class:`int`
+                End index, *k* direction
+            *L*: :class:`int` | :class:`list` (:class:`int`)
+                Single grid index, *l* direction
+            *LS*: :class:`int`
+                Start index, *l* direction
+            *LE*: :class:`int`
+                End index, *l* direction
+        :Outputs:
+            *T*: :class:`float` | :class:`numpy.ndarray` (:class:`float`)
+                Temperature or array of temperatures [R]
+        :See also:
+            :func:`expand_grid_indices`
+        :Versions:
+            * 2016-03-07 ``@ddalle``: First version
+        """
+        # Expand grid indices
+        J, K, L = self.expand_grid_indices(IG, **kw)
+        # Extract freestream states
+        M_inf = self.FSMACH
+        g_inf = self.GAMINF
+        T_inf = self.TINF
+        # Extract the *q* grid
+        Q = self.Q[IG-1]
+        # Get normalized density and energy
+        rhostar = Q[0,J,K,L]
+        # Number of species
+        NQC = max(1, self.NQC)
+        # Check for nontrivial gas constant
+        if NQC == 0:
+            # Use the value
+            Rstar = 1.0
+        else:
+            # Dimension of *Q*
+            NQ = self.NQ
+            # Relative values of gas constant
+            RGAS = self.RGAS
+            # Initialize gas constant
+            Rstar = 0.0
+            # Loop through species
+            for i in range(NQC):
+                Rstar += self.RGAS[i] * Q[NQ-NQC-1+i,J,K,L]/rhostar
+        # Get the velocity components
+        ustar = Q[1,J,K,L] / rhostar
+        vstar = Q[2,J,K,L] / rhostar
+        wstar = Q[3,J,K,L] / rhostar
+        # Velocity
+        U2star = ustar*ustar + vstar*vstar + wstar*wstar
+        # Get internal energy
+        estar = Q[4,J,K,L]/rhostar - 0.5*U2star
+        # Temperature
+        return estar
+        # Ratios of specific heats
+        gam = Q[5,J,K,L]
+        # Non-dimensional pressures
+        Tstar = (gam-1)*estar / Rstar
+        # Dimensional pressures
+        return g_inf*T_inf*Tstar            
         
 # class Q
 
