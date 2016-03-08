@@ -208,13 +208,13 @@ class DataBook(dict):
             * 2015-05-22 ``@ddalle``: First version
         """
         # Get the first component.
-        DBc = self[self.Components[0]]
+        DBP = self[self.pts[0]]
         # Loop through the fields.
         for k in self.x.keys:
             # Copy the data.
-            setattr(self.x, k, DBc[k])
+            setattr(self.x, k, DBP[k])
             # Set the text.
-            self.x.text[k] = [str(xk) for xk in DBc[k]]
+            self.x.text[k] = [str(xk) for xk in DBP[k]]
         # Set the number of cases.
         self.x.nCase = DBc.n
                     

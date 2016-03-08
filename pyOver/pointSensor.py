@@ -52,7 +52,7 @@ class DBPointSensorGroup(dict):
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
         # Save the interface.
-        self.x = x
+        self.x = x.Copy()
         self.opts = opts
         # Save the name
         self.name = name
@@ -60,7 +60,7 @@ class DBPointSensorGroup(dict):
         self.pts = opts.get_DBGroupPoints(name)
         # Loop through the points.
         for pt in self.pts:
-            self[pt] = DBPointSensor(x, opts, pt, name)
+            self[pt] = DBPointSensor(self.x, opts, pt, name)
         # Update the trajectory
         self[pt].UpdateTrajectory()
 
@@ -114,6 +114,29 @@ class DBPointSensorGroup(dict):
             self[pt].Sort()
             # Write it
             self[pt].Write()
+            
+    # Match the databook copy of the trajectory
+    def UpdateTrajectory(self):
+        """Match the trajectory to the cases in the data book
+        
+        :Call:
+            >>> DB.UpdateTrajectory()
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the CAPE data book class
+        :Versions:
+            * 2015-05-22 ``@ddalle``: First version
+        """
+        # Get the first component.
+        DBc = self[self.Components[0]]
+        # Loop through the fields.
+        for k in self.x.keys:
+            # Copy the data.
+            setattr(self.x, k, DBc[k])
+            # Set the text.
+            self.x.text[k] = [str(xk) for xk in DBc[k]]
+        # Set the number of cases.
+        self.x.nCase = DBc.n
     
     # Process a case
     def UpdateCase(self, i):
