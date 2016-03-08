@@ -76,6 +76,23 @@ class DBPointSensorGroup(dict):
         # Output
         return lbl
     __str__ = __repr__
+    
+    # Sorting method
+    def Sort(self):
+        """Sort point sensor group
+        
+        :Call:
+            >>> DBPG.Sort()
+        :Inputs:
+            *DBPG*: :class:`pyCart.pointSensor.DBPointSensorGroup`
+                A point sensor group data book
+        :Versions:
+            * 2016-03-08 ``@ddalle``: First version
+        """
+        # Loop through points
+        for pt in self.pts:
+            self[pt].Sort()
+            
             
     # Output method
     def Write(self):
@@ -91,6 +108,9 @@ class DBPointSensorGroup(dict):
         """
         # Loop through points
         for pt in self.pts:
+            # Sort it.
+            self[pt].Sort()
+            # Write it
             self[pt].Write()
     
     # Process a case
