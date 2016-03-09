@@ -61,8 +61,6 @@ class DBPointSensorGroup(dict):
         # Loop through the points.
         for pt in self.pts:
             self[pt] = DBPointSensor(self.x, opts, pt, name)
-        # Update the trajectory
-        self[pt].UpdateTrajectory()
 
     # Representation method
     def __repr__(self):
@@ -128,7 +126,7 @@ class DBPointSensorGroup(dict):
             * 2015-05-22 ``@ddalle``: First version
         """
         # Get the first component.
-        DBc = self[self.Components[0]]
+        DBc = self[self.pts[0]]
         # Loop through the fields.
         for k in self.x.keys:
             # Copy the data.
