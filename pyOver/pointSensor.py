@@ -92,8 +92,7 @@ class DBPointSensorGroup(dict):
         # Loop through points
         for pt in self.pts:
             self[pt].Sort()
-            
-            
+    
     # Output method
     def Write(self):
         """Write to file each point sensor data book in a group
@@ -112,16 +111,16 @@ class DBPointSensorGroup(dict):
             self[pt].Sort()
             # Write it
             self[pt].Write()
-            
+    
     # Match the databook copy of the trajectory
     def UpdateTrajectory(self):
         """Match the trajectory to the cases in the data book
         
         :Call:
-            >>> DB.UpdateTrajectory()
+            >>> DBPG.UpdateTrajectory()
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
-                Instance of the CAPE data book class
+            *DBPG*: :class:`pyCart.pointSensor.DBPointSensorGroup`
+                A point sensor group data book
         :Versions:
             * 2015-05-22 ``@ddalle``: First version
         """
