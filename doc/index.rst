@@ -147,6 +147,7 @@ defined.  In general the required files are the following.
     install
     json/index
     usage/index
+    cape/index
     pycart/index
     script/index
     
