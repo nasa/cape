@@ -342,16 +342,15 @@ class Options(odict):
         """
         # Read the option.
         umask = self.get('umask')
-        # Check for string
-        if type(umask).__name__ in ['unicode', 'str']:
-            # Convert to oct
-            umask = eval('0o' + umask)
         # Check if we need to use the default.
         if umask is None:
             # Get the value.
             umask = os.popen('umask', 'r', 1).read()
             # Convert to value.
             umask = eval('0o' + umask.strip())
+        else:
+            # Convert to octal
+            umask = eval('0o' + str(umask))
         # Output
         return umask
         

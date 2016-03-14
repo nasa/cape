@@ -114,21 +114,70 @@ def PrepareEnvironment(rc, i=0):
     for key in rc.get('Environ', {}):
         # Get the environment variable
         val = rc.get_Environ(key, i)
-        # Set the environment variable.
-        os.environ[key] = val
+        # Check if it stars with "+"
+        if val.startswith("+"):
+            # Check if it's present
+            if key in os.environ:
+                # Append to path
+                os.environ[key] += (os.path.pathsep + val.lstrip('+'))
+            else:
+                # New variable
+                os.environ[key] = val
+        else:
+            # Set the environment variable.
+            os.environ[key] = val
+    # Get ulimit parameters
+    ulim = rc['ulimit']
+    # Block size
+    block = resource.getpagesize()
     # Set the stack size
-    s = rc.get_stack_size(i)
-    # Check the type.
-    if s > 0:
-        # Set the value numerically.
+    SetResourceLimit(resource.RLIMIT_STACK,   ulim, 's', i, 1024)
+    SetResourceLimit(resource.RLIMIT_CORE,    ulim, 'c', i, block)
+    SetResourceLimit(resource.RLIMIT_DATA,    ulim, 'd', i, 1024)
+    SetResourceLimit(resource.RLIMIT_FSIZE,   ulim, 'f', i, block)
+    SetResourceLimit(resource.RLIMIT_MEMLOCK, ulim, 'l', i, 1024)
+    SetResourceLimit(resource.RLIMIT_NOFILE,  ulim, 'n', i, 1)
+    SetResourceLimit(resource.RLIMIT_CPU,     ulim, 't', i, 1)
+    SetResourceLimit(resource.RLIMIT_NPROC,   ulim, 'u', i, 1)
+    SetResourceLimit(resource.RLIMIT_VMEM,    ulim, 'v', i, 1024)
+    
+    
+# Set resource limit
+def SetResourceLimit(r, ulim, u, i=0, unit=1024):
+    """Set resource limit
+    
+    :Call:
+        >>> SetResourceLimit(r, ulim, u, i=0, unit=1024)
+    :Inputs:
+        *r*: :class:`int`
+            Integer code of particular limit, usually from :mod:`resource`
+        *ulim*: :class:`cape.options.ulimit.ulimit`
+            System resource options interface
+        *u*: :class:`str`
+            Name of limit to set
+        *i*: :class:`int`
+            Phase number
+        *unit*: :class:`int`
+            Multiplier, usually for a kbyte
+    :Versions:
+        * 2016-03-13 ``@ddalle``: First version
+    """
+    # Check if the limit has been set
+    if u not in ulim: return
+    # Get the value of the limit
+    l = ulim.get_ulimit(u, i)
+    # Get the type of the input
+    t = type(val).__name__
+    # Check the type
+    if t in ['int', 'float'] and val > 0:
+        # Set the value numerically
         try:
-            resource.setrlimit(resource.RLIMIT_STACK, (1024*s, 1024*s))
+            resource.setrlimit(r, (unit*l, unit*l))
         except ValueError:
             pass
     else:
         # Set unlimited
-        resource.setrlimit(resource.RLIMIT_STACK, 
-            (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+        resource.setrlimit(r, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
     
 # Function to get most recent L1 residual
 def GetCurrentIter():

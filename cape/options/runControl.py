@@ -10,6 +10,7 @@ now, nonunique section names are not allowed.
 from util import rc0, odict, getel
 # Required submodules
 import Archive
+import ulimit
 
 # Environment class
 class Environ(odict):
@@ -66,147 +67,6 @@ class Environ(odict):
         # Set the value by run sequence.
         self[key] = setel(self[key], str(val), i)
 # class Environ
-
-# Resource limits class
-class ulimit(odict):
-    """Class for resource limits"""
-    
-    # Get a ulimit setting
-    def get_ulimit(self, u, i=0):
-        """Get a resource limit (``ulimit``) setting by its command-line flag
-        
-        :Call:
-            >>> l = opts.get_ulimit(u, i=0)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *u*: :class:`str`
-                Name of the ``ulimit`` flag
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *l*: :class:`int`
-                Value of the resource limit
-        :Versions:
-            * 2015-11-10 ``@ddalle``: First version
-        """
-        # Check for setting
-        if u not in self:
-            # Default flag name
-            rcu = 'ulimit_' + u
-            # Check for default
-            if rcu in rc0:
-                # Use the default setting
-                return rc0[rcu]
-            else:
-                # No setting found
-                raise KeyError("Found no setting for 'ulimit -%s'" % u)
-        # Process the setting
-        V = self[u]
-        # Select the value for run sequence *i*
-        return getel(V, i)
-        
-    # Set a ulimit setting
-    def set_ulimit(self, u, l=None, i=None):
-        """Set a resource limit (``ulimit``) setting by its command-line flag
-        
-        :Call:
-            >>> opts.set_ulimit(u, l=None, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *u*: :class:`str`
-                Name of the ``ulimit`` flag
-            *l*: :class:`int`
-                Value of the limit
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2015-11-10 ``@ddalle``: First version
-        """
-        # Get default
-        if l is None: udef = rc0["ulimit_%s"%u]
-        # Initialize if necessary.
-        self.setdefault(u, None)
-        # Set the value.
-        self[key] = setel(self[u], l, i)
-        
-    # Stack size
-    def get_s(self, i=0):
-        """Get the stack size limit, ``ulimit -s``
-        
-        :Call:
-            >>> s = opts.get_s(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *s*: :class:`int`
-                Value of the stack size limit
-        :Versions:
-            * 2015-11-10 ``@ddalle``: First version
-        """
-        return self.get_ulimit('s', i)
-        
-    # Stack size
-    def set_s(self, s, i=0):
-        """Get the stack size limit, ``ulimit -s``
-        
-        :Call:
-            >>> opts.set_s(s, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *s*: :class:`int`
-                Value of the stack size limit
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2015-11-10 ``@ddalle``: First version
-        """
-        self.set_ulimit('s', s, i)
-        
-    # Stack size
-    def get_stack_size(self, i=0):
-        """Get the stack size limit, ``ulimit -s``
-        
-        :Call:
-            >>> s = opts.get_stack_size(i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *s*: :class:`int`
-                Value of the stack size limit
-        :Versions:
-            * 2015-11-10 ``@ddalle``: First version
-        """
-        return self.get_s(i)
-        
-    # Stack size
-    def set_stack_size(self, s, i=0):
-        """Get the stack size limit, ``ulimit -s``
-        
-        :Call:
-            >>> opts.set_stack_size(s, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *s*: :class:`int`
-                Value of the stack size limit
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2015-11-10 ``@ddalle``: First version
-        """
-        self.set_s(i)
-        
-        
-# class ulimit
 
 
 # Class for iteration & mode control settings and command-line inputs
@@ -265,10 +125,10 @@ class RunControl(odict):
         """Initialize environment variables if necessary"""
         if 'ulimit' not in self:
             # Empty/default
-            self['ulimit'] = ulimit()
+            self['ulimit'] = ulimit.ulimit()
         elif type(self['ulimit']).__name__ == 'dict':
             # Convert to special class
-            self['ulimit'] = ulimit(**self['ulimit'])
+            self['ulimit'] = ulimit.ulimit(**self['ulimit'])
     
     # Get resource limit variable
     def get_ulimit(self, u, i=0):
@@ -278,7 +138,7 @@ class RunControl(odict):
     # Set resource limit variable
     def set_ulimit(self, u, l, i=None):
         self._ulimit()
-        self['ulimit'].set_Environ(u, l, i)
+        self['ulimit'].set_ulimit(u, l, i)
         
     # Stack size
     def get_ulimit_s(self, i=0):
@@ -290,21 +150,206 @@ class RunControl(odict):
         self._ulimit()
         self['ulimit'].set_s(s, i)
         
-    # Stack size
-    def get_stack_size(self, i=0):
+    # Core file size
+    def get_ulimit_c(self, i=0):
         self._ulimit()
-        return self['ulimit'].get_stack_size(i)
-    
-    # Stack size
-    def set_stack_size(self, s=rc0('ulimit_s'), i=0):
+        return self['ulimit'].get_c(i)
+        
+    # Core file size
+    def set_ulimit_c(self, c, i=0):
         self._ulimit()
-        self['ulimit'].set_stack_size(s, i)
+        self['ulimit'].set_c(c, i)
+        
+    # Data segment size
+    def get_ulimit_d(self, i=0):
+        self._ulimit()
+        return self['ulimit'].get_d(i)
+        
+    # Data segment size
+    def set_ulimit_d(self, d, i=0):
+        self._ulimit()
+        self['ulimit'].set_d(d, i)
+        
+    # Scheduling priority
+    def get_ulimit_e(self, i=0):
+        self._ulimit()
+        return self['ulimit'].get_e(i)
+        
+    # Scheduling priority
+    def set_ulimit_e(self, e, i=0):
+        self._ulimit()
+        self['ulimit'].set_e(e, i)
+        
+    # File size
+    def get_ulimit_f(self, i=0):
+        self._ulimit()
+        return self['ulimit'].get_f(i)
+        
+    # File size
+    def set_ulimit_f(self, f, i=0):
+        self._ulimit()
+        self['ulimit'].set_f(f, i)
+        
+    # Pending signals
+    def get_ulimit_i(self, i=0):
+        self._ulimit()
+        return self['ulimit'].get_i(i)
+        
+    # Pending signals
+    def set_ulimit_i(self, e, i=0):
+        self._ulimit()
+        self['ulimit'].set_i(e, i)
+        
+    # Max locked memory
+    def get_ulimit_l(self, i=0):
+        self._ulimit()
+        return self['ulimit'].get_l(i)
+        
+    # Max locked memory
+    def set_ulimit_l(self, l, i=0):
+        self._ulimit()
+        self['ulimit'].set_l(l, i)
+        
+    # Max memory
+    def get_ulimit_m(self, i=0):
+        self._ulimit()
+        return self['ulimit'].get_m(i)
+        
+    # Max memory
+    def set_ulimit_m(self, i=0):
+        self._ulimit()
+        self['ulimit'].set_m(i)
+        
+    # Open files
+    def get_ulimit_n(self, i=0):
+        self._ulimit()
+        return self['ulimit'].get_n(i)
+        
+    # Open files
+    def set_ulimit_n(self, n, i=0):
+        self._ulimit()
+        self['ulimit'].set_n(n, i)
+        
+    # Pipe size
+    def get_ulimit_p(self, i=0):
+        self._ulimit()
+        return self['ulimit'].get_p(i)
+        
+    # Pipe size
+    def set_ulimit_p(self, p, i=0):
+        self._ulimit()
+        self['ulimit'].set_p(p, i)
+        
+    # POSIX message queues
+    def get_ulimit_q(self, i=0):
+        self._ulimit()
+        return self['ulimit'].get_q(i)
+        
+    # POSIX message queues
+    def set_ulimit_q(self, q, i=0):
+        self._ulimit()
+        self['ulimit'].set_q(q, i)
+        
+    # Real-time priority
+    def get_ulimit_r(self, i=0):
+        self._ulimit()
+        return self['ulimit'].get_r(i)
+        
+    # Real-time priority
+    def set_ulimit_r(self, r, i=0):
+        self._ulimit()
+        self['ulimit'].set_r(r, i)
+        
+    # CPU time limit
+    def get_ulimit_t(self, i=0):
+        self._ulimit()
+        return self['ulimit'].get_t(i)
+        
+    # CPU time limit
+    def set_ulimit_t(self, t, i=0):
+        self._ulimit()
+        self['ulimit'].set_t(t, i)
+        
+    # Max user processes
+    def get_ulimit_u(self, i=0):
+        self._ulimit()
+        return self['ulimit'].get_u(i)
+        
+    # Max user processes
+    def set_ulimit_u(self, u, i=0):
+        self._ulimit()
+        self['ulimit'].set_u(u, i)
+        
+    # Virtual memory
+    def get_ulimit_v(self, i=0):
+        self._ulimit()
+        return self['ulimit'].get_v(i)
+        
+    # Virtual memory
+    def set_ulimit_v(self, v, i=0):
+        self._ulimit()
+        self['ulimit'].set_v(v, i)
+        
+    # File locks
+    def get_ulimit_x(self, i=0):
+        self._ulimit()
+        return self['ulimit'].get_x(i)
+        
+    # File locks
+    def set_ulimit_x(self, x, i=0):
+        self._ulimit()
+        self['ulimit'].set_x(x, i)
         
     # Copy documentation
-    for k in ['ulimit', 'stack_size']:
+    for k in ['ulimit']:
         # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(ulimit,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(ulimit,'set_'+k).__doc__
+        eval('get_'+k).__doc__ = getattr(ulimit.ulimit,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(ulimit.ulimit,'set_'+k).__doc__
+        
+    # Copy documentation
+    for k in [
+        'c', 'd', 'e', 'f', 'i', 'l', 'm', 'n', 'p', 'q', 'r',
+        's', 't', 'u', 'v', 'x'
+    ]:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_ulimit_'+k).__doc__ = getattr(ulimit.ulimit,'get_'+k).__doc__
+        eval('set_ulimit_'+k).__doc__ = getattr(ulimit.ulimit,'set_'+k).__doc__
+        
+    # "Get" aliases
+    get_stack_size           = get_ulimit_s
+    get_core_file_size       = get_ulimit_c
+    get_data_seg_limit       = get_ulimit_d
+    get_scheduling_priority  = get_ulimit_e
+    get_file_size            = get_ulimit_f
+    get_pending_signal_limit = get_ulimit_i
+    get_max_locked_memory    = get_ulimit_l
+    get_max_memory_size      = get_ulimit_m
+    get_open_file_limit      = get_ulimit_n
+    get_pipe_size            = get_ulimit_p
+    get_message_queues       = get_ulimit_q
+    get_real_time_priority   = get_ulimit_r
+    get_time_limit           = get_ulimit_t
+    get_max_processes        = get_ulimit_u
+    get_virtual_memory_limit = get_ulimit_v
+    get_file_locks_limit     = get_ulimit_x
+    
+    # "Set" aliases
+    set_stack_size           = set_ulimit_s
+    set_core_file_size       = set_ulimit_c
+    set_data_seg_limit       = set_ulimit_d
+    set_scheduling_priority  = set_ulimit_e
+    set_file_size            = set_ulimit_f
+    set_pending_signal_limit = set_ulimit_i
+    set_max_locked_memory    = set_ulimit_l
+    set_max_memory_size      = set_ulimit_m
+    set_open_file_limit      = set_ulimit_n
+    set_pipe_size            = set_ulimit_p
+    set_message_queues       = set_ulimit_q
+    set_real_time_priority   = set_ulimit_r
+    set_time_limit           = set_ulimit_t
+    set_max_processes        = set_ulimit_u
+    set_virtual_memory_limit = set_ulimit_v
+    set_file_locks_limit     = set_ulimit_x
    # >
    
     # =================

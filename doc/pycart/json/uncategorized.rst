@@ -9,10 +9,12 @@ relatively simple inputs, and many of them have usable defaults, although it's
 still a good idea to enter them into the pyCart control file to avoid ambiguity
 and improve traceability.
 
-Cart3D Input Control Files
-==========================
-The first two
-of these are names of files.  They are shown below with their default values.
+Specific Cart3D Input File Templates
+====================================
+
+All of the options in :ref:`the Cape JSON description <cape-json-uncategorized>`
+also apply, and there are only a few additional options, which are described
+here.  The JSON syntaxis shown below with the default values.
 
     .. code-block:: javascript
     
@@ -56,94 +58,20 @@ be
         
 for the two input files.
 
-Maximum Number of Jobs to Submit
+For both of these two files, pyCart provides its own template if the file cannot
+befound in the local directory tree.
+
+        
+Miscellaneous Options Dictionary
 ================================
-This parameter sets the maximum number of jobs that pyCart will submit with a
-single call to *pycart*.
 
-    .. code-block:: javascript
-    
-        "nSubmit": 10
-        
-However, this value can be overridden from the command line using the ``-n``
-option.
+The full list of miscellaneous options specific to pyCart and their allowed
+values are listed below.  These options are in addition to the options listed in
+the :ref:`Miscellaneous Cape Options <cape-json-misc-dict>` section.
 
-    .. code-block:: bash
-    
-        $ pycart -n 20
+    *InputCntl*: {``"input.cntl"``} | :class:`str`
+        Name of Cart3D input file template
+ 
+    *AeroCsh*: {``"aero.csh"``} | :class:`str`
+        Adaptive run script template
 
-Startup Shell Commands
-======================
-An important miscellaneous option, especially for cases submitted as PBS jobs,
-lists commands to run within the shell before running any Cart3D commands.
-This is a list of strings that will be placed at the top of the run script in
-each directory.  By default, this is an empty list, which is probably not
-adequate to successfully run Cart3D.
-
-    .. code-block:: javascript
-    
-        "ShellCmds": []
-        
-When pyCart sets up a case, it creates a run script :file:`run_ cart3d.pbs` in
-each folder (or, if there is a nontrivial run sequence,
-:file:`run_cart3d.00.pbs`, :file:`run_cart3d.01.pbs`, etc.).  The run script
-can use BASH, ``csh``, or any other shell, and this is set in the "PBS" section
-of :file:`pyCart.json`.  The default is BASH (that is, ``"/bin/bash"``), but
-many Cart3D users prefer ``csh``.
-
-If your rc file for your selected shell contains the necessary commands to run
-Cart3D, a possible option is to use the following.
-
-    .. code-block:: javascript
-    
-        "ShellCmds": [". ~/.cshrc"]
-        
-(or ``". ~/.bashrc"``, as appropriate)  This is *highly* discouraged unless
-Cart3D is basically the only software you ever use.  A better option is to put
-the commands that are needed in the :file:`pyCart.json` file, which makes that
-file portable and less subject to later errors or changes.  Here is an example
-that I use to run Cart3D on NASA's Pleiades supercomputer.
-
-    .. code-block:: javascript
-    
-        "ShellCmds": [
-            ". $MODULESHOME/init/bash",
-            "module use -a /u/ddalle/share/modulefiles",
-            "module load cart3d",
-            "module load pycart",
-            "module load mpt",
-            "ulimit -S -s 4194304"
-        ]
-        
-The first command is necessary because PBS jobs are started with very few
-environment variables set.  For running cases in parallel, this command (or
-sourcing a premade :file:`.*shrc` file) is necessary.  Another thing to note
-here is that you also need to tell the interpreter where the pyCart commands
-are---hence the ``"module load pycart"`` line.
-
-
-Special Python Modules
-======================
-Some advanced runs require features that simply do not fit into the main pyCart
-set of options.  This would be true no matter much work is put into the code.
-Indeed, one of the purposes of pyCart is to still be helpful when this situation
-inevitably occurs.
-
-The following two lines allow the user to define a custom Python module (or list
-of modules, if the user deems that appropriate).
-
-    .. code-block:: javascript
-    
-        "PythonPath": ["tools/"],
-        "Modules": ["mymod", "thatmod"]
-        
-The first variable causes pyCart to append the folder ``tools/`` to the
-environment variable ``$PYTHONPATH``.  This means that files in ``tools/`` can
-be imported as Python modules.
-
-The second variable lists Python modules that will be imported every time the
-:file:`pyCart.json` file is loaded.  The way this is implemented is by just
-running the standard ``import mymod`` and ``import thatmod`` syntax, and then
-the functions and other information in those modules will be available to pyCart
-for that run.
-        

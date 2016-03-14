@@ -70,15 +70,15 @@ Three options in the "flowCart" section determine how many iterations to run
 and which input set to use.  These options and their possible values are listed
 below.
 
-    *InputSeq*: {``[0]``} | ``[0, 1]`` | :class:`list` (:class:`int`)
-        List of input sequences to use and order in which to use them.  These
+    *PhaseSequence*: {``[0]``} | ``[0, 1]`` | :class:`list` (:class:`int`)
+        List of input phases to use and order in which to use them.  These
         do not have to be in numerical order.  For example, ``[0, 1, 3]`` is an
         allowable sequence that may become useful if it's later determined that
-        run number 2 is unnecessary or unproductive.
+        phase 2 is unnecessary or unproductive.
         
-    *IterSeq*: {``[200]``} | ``[0, 0, 1000]`` | :class:`list` (:class:`int`)
+    *PhaseIters*: {``[200]``} |:class:`int` | :class:`list` (:class:`int`)
         List of minimum number of total iterations after each run.  This list
-        must have the same length as *InputSeq*, and a ``0`` tells pyCart to
+        must have the same length as *PhaseIters*, and a ``0`` tells Cape to
         continue to the next run regardless of the current iteration count.
         
     *it_fc*: {``200``} | :class:`int` | :class:`list` (:class:`int`)

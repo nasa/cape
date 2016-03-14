@@ -1901,7 +1901,7 @@ class Environ(cape.options.runControl.Environ):
 # class Environ
 
 # Class for resource limits
-class ulimit(cape.options.runControl.ulimit):
+class ulimit(cape.options.runControl.ulimit.ulimit):
     pass
 # class ulimit
 
