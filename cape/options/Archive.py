@@ -449,11 +449,174 @@ class Archive(odict):
             return ['tar', '-xf']
    # >
     
-    # -----------------------
-    # Sub-Archive Definitions
-    # -----------------------
+    # ----------------------------
+    # Progress Archive Definitions
+    # ----------------------------
    # <
-   
+    # List of files to delete
+    def get_ArchiveProgressDeleteFiles(self):
+        """Get list of files to delete at end of each run
+        
+        :Call:
+            >>> fglob = opts.get_ArchiveProgressDeleteFiles()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *fglob*: :class:`list` (:class:`str`)
+                List of file globs to delete at the end of each run
+        :Versions:
+            * 2016-03-14 ``@ddalle``: First version
+        """
+        return self.get_key("ProgressDeleteFiles")
+        
+    # Add to list of files to delete
+    def add_ArchiveProgressDeleteFiles(self, fpro):
+        """Add to the list of files to delete at end of each run
+        
+        :Call:
+            >>> opts.add_ArchiveProgressDeleteFiles(fpro)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *fpro*: :class:`str` | :class:`list` (:class:`str`)
+                File glob or list of file globs to add
+        :Versions:
+            * 2016-03-14 ``@ddalle``: First version
+        """
+        self.add_to_key("ProgressDeleteFiles", fpro)
+        
+    # List of folders to delete
+    def get_ArchiveProgressDeleteDirs(self):
+        """Get list of folders to delete at end of each run
+        
+        :Call:
+            >>> fglob = opts.get_ArchiveProgressDeleteDirs()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *fglob*: :class:`list` (:class:`str`)
+                List of globs of folder names to delete at the end of each run
+        :Versions:
+            * 2016-03-14 ``@ddalle``: First version
+        """
+        return self.get_key("ProgressDeleteDirs")
+        
+    # Add to list of files to delete
+    def add_ArchiveProgressDeleteDirs(self, fpro):
+        """Add to the list of folders to delete at end of each run
+        
+        :Call:
+            >>> opts.add_ArchiveProgressDeleteDirs(fpro)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *fpro*: :class:`str` | :class:`list` (:class:`str`)
+                File glob or list of file globs to add
+        :Versions:
+            * 2016-03-14 ``@ddalle``: First version
+        """
+        self.add_to_key("ProgressDeleteDirs", fpro)
+        
+    # List of files to update
+    def get_ArchiveProgressUpdateFiles(self):
+        """Get list of files to update at end of each run
+        
+        :Call:
+            >>> fglob = opts.get_ArchiveProgressUpdateFiles()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *fglob*: :class:`list` (:class:`str`)
+                List of globs of folder names to delete at the end of each run
+        :Versions:
+            * 2016-03-14 ``@ddalle``: First version
+        """
+        return self.get_key("ProgressUpdateFiles")
+        
+    # Add to list of files to update
+    def add_ArchiveProgressUpdateFiles(self, fpro):
+        """Add to the list of files to update at end of each run
+        
+        :Call:
+            >>> opts.add_ArchiveProgressUpdateFiles(fpro)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *fpro*: :class:`str` | :class:`list` (:class:`str`)
+                File glob or list of file globs to add
+        :Versions:
+            * 2016-03-14 ``@ddalle``: First version
+        """
+        self.add_to_key("ProgressUpdateFiles", fpro)
+        
+    # List of file groups to tar
+    def get_ArchiveProgressTarGroups(self):
+        """Get list of file groups to tar at the end of each run
+        
+        :Call:
+            >>> fglob = opts.get_ArchiveProgressTarGroups()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *fglob*: :class:`list` (:class:`str`)
+                List of globs of folder names to delete at the end of each run
+        :Versions:
+            * 2016-03-14 ``@ddalle``: First version
+        """
+        return self.get_key("ProgressTarGroups")
+        
+    # Add to list of file groups to tar
+    def add_ArchiveProgressTarGroups(self, fpro):
+        """Add to the list of file groups to tar at the end of each run
+        
+        :Call:
+            >>> opts.add_ArchiveProgressTarGroups(fpro)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *fpro*: :class:`str` | :class:`list` (:class:`str`)
+                File glob or list of file globs to add
+        :Versions:
+            * 2016-03-14 ``@ddalle``: First version
+        """
+        self.add_to_key("ProgressTarGroups", fpro)
+        
+    # List of folders to tar
+    def get_ArchiveProgressTarDirs(self):
+        """Get list of folders to tar at the end of each run
+        
+        :Call:
+            >>> fglob = opts.get_ArchiveProgressTarDirs()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *fglob*: :class:`list` (:class:`str`)
+                List of globs of folder names to delete at the end of each run
+        :Versions:
+            * 2016-03-14 ``@ddalle``: First version
+        """
+        return self.get_key("ProgressTarDirs")
+        
+    # Add to list of folders to tar
+    def add_ArchiveProgressTarDirs(self, fpro):
+        """Add to the list of folders to tar at the end of each run
+        
+        :Call:
+            >>> opts.add_ArchiveProgressTarDirs(fpro)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *fpro*: :class:`str` | :class:`list` (:class:`str`)
+                File glob or list of file globs to add
+        :Versions:
+            * 2016-03-14 ``@ddalle``: First version
+        """
+        self.add_to_key("ProgressTarDirs", fpro)
    # >
    
     # ------------------------
@@ -533,11 +696,11 @@ class Archive(odict):
         self.add_to_key("PreDeleteDirs", fpre)
     
     # List of files to tar before archiving
-    def get_ArchivePreArchiveGroups(self):
+    def get_ArchivePreTarGroups(self):
         """Get list of files to tar prior to archiving
         
         :Call:
-            >>> fglob = opts.get_ArchivePreArchiveGroups()
+            >>> fglob = opts.get_ArchivePreTarGroups()
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -547,15 +710,15 @@ class Archive(odict):
         :Versions:
             * 2016-02-029 ``@ddalle``: First version
         """
-        return self.get_key("PreArchiveGroups")
+        return self.get_key("PreTarGroups")
         
     # Add to list of folders to delete
-    def add_ArchivePreArchiveGroups(self, fpre):
+    def add_ArchivePreTarGroups(self, fpre):
         """Add to the list of groups to tar before archiving
         
         :Call:
-            >>> opts.add_ArchivePreArchiveGroups(fpre)
-            >>> opts.add_ArchivePreArchiveGroups(lpre)
+            >>> opts.add_ArchivePreTarGroups(fpre)
+            >>> opts.add_ArchivePreTarGroups(lpre)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -566,14 +729,14 @@ class Archive(odict):
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
         """
-        self.add_to_key("PreArchiveGroups", fpre)
+        self.add_to_key("PreTarGroups", fpre)
     
     # List of folders to tar before archiving
-    def get_ArchivePreArchiveDirs(self):
+    def get_ArchivePreTarDirs(self):
         """Get list of folders to tar prior to archiving
         
         :Call:
-            >>> fglob = opts.get_ArchivePreArchiveDirs()
+            >>> fglob = opts.get_ArchivePreTarDirs()
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -583,15 +746,15 @@ class Archive(odict):
         :Versions:
             * 2016-02-029 ``@ddalle``: First version
         """
-        return self.get_key("PreArchiveDirs")
+        return self.get_key("PreTarDirs")
         
     # Add to list of folders to delete
-    def add_ArchivePreArchiveDirs(self, fpre):
+    def add_ArchivePreTarDirs(self, fpre):
         """Add to the folders of groups to tar before archiving
         
         :Call:
-            >>> opts.add_ArchivePreArchiveDirs(fpre)
-            >>> opts.add_ArchivePreArchiveDirs(lpre)
+            >>> opts.add_ArchivePreTarDirs(fpre)
+            >>> opts.add_ArchivePreTarDirs(lpre)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -602,7 +765,7 @@ class Archive(odict):
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
         """
-        self.add_to_key("PreArchiveDirs", fpre)
+        self.add_to_key("PreTarDirs", fpre)
         
     # List of files to update before archiving
     def get_ArchivePreUpdateFiles(self):
@@ -718,11 +881,11 @@ class Archive(odict):
         self.add_to_key("PostDeleteDirs", fpost)
             
     # List of files to tar after archiving
-    def get_ArchivePostArchiveGroups(self):
+    def get_ArchivePostTarGroups(self):
         """Get list of files to tar prior to archiving
         
         :Call:
-            >>> fglob = opts.get_ArchivePostArchiveGroups()
+            >>> fglob = opts.get_ArchivePostTarGroups()
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -732,15 +895,15 @@ class Archive(odict):
         :Versions:
             * 2016-02-029 ``@ddalle``: First version
         """
-        return self.get_key("PostArchiveGroups")
+        return self.get_key("PostTarGroups")
         
     # Add to list of folders to delete
-    def add_ArchivePostArchiveGroups(self, fpost):
+    def add_ArchivePostTarGroups(self, fpost):
         """Add to the list of groups to tar before archiving
         
         :Call:
-            >>> opts.add_ArchivePostArchiveGroups(fpost)
-            >>> opts.add_ArchivePostArchiveGroups(lpost)
+            >>> opts.add_ArchivePostTarGroups(fpost)
+            >>> opts.add_ArchivePostTarGroups(lpost)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -751,14 +914,14 @@ class Archive(odict):
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
         """
-        self.add_to_key("PostArchiveGroups", fpost)
+        self.add_to_key("PostTarGroups", fpost)
     
     # List of folders to tar before archiving
-    def get_ArchivePostArchiveDirs(self):
+    def get_ArchivePostTarDirs(self):
         """Get list of folders to tar after archiving
         
         :Call:
-            >>> fglob = opts.get_ArchivePostArchiveDirs()
+            >>> fglob = opts.get_ArchivePostTarDirs()
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -768,15 +931,15 @@ class Archive(odict):
         :Versions:
             * 2016-02-029 ``@ddalle``: First version
         """
-        return self.get_key("PostArchiveDirs")
+        return self.get_key("PostTarDirs")
         
     # Add to list of folders to delete
-    def add_ArchivePostArchiveDirs(self, fpost):
+    def add_ArchivePostTarDirs(self, fpost):
         """Add to the folders of groups to tar after archiving
         
         :Call:
-            >>> opts.add_ArchivePostArchiveDirs(fpost)
-            >>> opts.add_ArchivePostArchiveDirs(lpost)
+            >>> opts.add_ArchivePostTarDirs(fpost)
+            >>> opts.add_ArchivePostTarDirs(lpost)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -787,7 +950,7 @@ class Archive(odict):
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
         """
-        self.add_to_key("PostArchiveDirs", fpost)
+        self.add_to_key("PostTarDirs", fpost)
         
     # List of files to update before archiving
     def get_ArchivePostUpdateFiles(self):
@@ -802,9 +965,9 @@ class Archive(odict):
             *fglob*: :class:`list` (:class:`str`)
                 List of file wild cards to delete before archiving
         :Versions:
-            * 2016-02-029 ``@ddalle``: First version
+            * 2016-02-29 ``@ddalle``: First version
         """
-        return self.get_key("PreUpdateFiles")
+        return self.get_key("PostUpdateFiles")
         
     # Add to list of files to update before archiving
     def add_ArchivePostUpdateFiles(self, fpost):
@@ -824,6 +987,42 @@ class Archive(odict):
             * 2016-02-29 ``@ddalle``: First version
         """
         self.add_to_key("PostUpdateFiles", fpost)
+        
+    # List of files to archive at end of each run
+    def get_ArchiveProgressArchiveFiles(self):
+        """Get :class:`dict` of files to archive at end of each run
+        
+        :Call:
+            >>> fglob = opts.get_ArchiveProgressArchiveFiles()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *fglob*: :class:`list` (:class:`str`)
+                List of file wild cards to delete before archiving
+        :Versions:
+            * 2016-03-14 ``@ddalle``: First version
+        """
+        return self.get_key("ProgressArchiveFiles")
+        
+    # Add to list of files to archive at end of each run
+    def add_ArchiveProgressArchiveFiles(self, fpro):
+        """Add to :class:`dict` of files of which to keep only *n*
+        
+        :Call:
+            >>> opts.add_ArchiveProgressArchiveFiles(fpro)
+            >>> opts.add_ArchiveProgressArchiveFiles(lpro)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *fpro*: :class:`str`
+                Folder or folder glob to add to list
+            *lpo*: :class:`str`
+                List of folders or globs of folders to add to list
+        :Versions:
+            * 2016-03-14 ``@ddalle``: First version
+        """
+        self.add_to_key("ProgressArchiveFiles", fpro)
    # >
             
 # class Archive

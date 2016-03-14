@@ -455,6 +455,66 @@ class RunControl(odict):
         # Copy documentation
         eval('get_'+k).__doc__ = getattr(Archive.Archive,'get_'+k).__doc__
         
+    # Get the list of files to delete at end of run 
+    def get_ArchiveProgressDeleteFiles(self):
+        self._Archive()
+        return self['Archive'].get_ArchiveProgressDeleteFiles()
+    
+    # Add to list of files to delete at end of run
+    def add_ArchiveProgressDeleteFiles(self, fpro):
+        self._Archive()
+        self['Archive'].add_ArchiveProgressDeleteFiles(fpro)
+        
+    # Get the list of files to archive at end of run 
+    def get_ArchiveProgressArchiveFiles(self):
+        self._Archive()
+        return self['Archive'].get_ArchiveProgressArchiveFiles()
+    
+    # Add to list of files to archive at end of run
+    def add_ArchiveProgressArchiveFiles(self, fpro):
+        self._Archive()
+        self['Archive'].add_ArchiveProgressArchiveFiles(fpro)
+        
+    # Get the list of folders to delete at end of run
+    def get_ArchiveProgressDeleteDirs(self):
+        self._Archive()
+        return self['Archive'].get_ArchiveProgressDeleteDirs()
+    
+    # Add to list of folders to delete at end of run
+    def add_ArchiveProgressDeleteDirs(self, fpro):
+        self._Archive()
+        self['Archive'].add_ArchiveProgressDeleteDirs(fpro)
+        
+    # Get the list of groups to tar at end of run
+    def get_ArchiveProgressTarGroups(self):
+        self._Archive()
+        return self['Archive'].get_ArchiveProgressTarGroups()
+        
+    # Add to list of groups to tar at end of run
+    def add_ArchiveProgressTarGroups(self, fpro):
+        self._Archive()
+        self['Archive'].add_ArchiveProgressTarGroups(fpro)
+        
+    # Get the list of folders to tar at end of run
+    def get_ArchiveProgressTarDirs(self):
+        self._Archive()
+        return self['Archive'].get_ProgressTarDirs()
+        
+    # Add to list of folders to tar apriori
+    def add_ArchiveProgressTarDirs(self, fpro):
+        self._Archive()
+        self['Archive'].add_ArchiveProgressTarDirs(fpro)
+    
+    # Files to keep only *n*
+    def get_ArchiveProgressUpdateFiles(self):
+        self._Archive()
+        return self['Archive'].get_ArchiveProgressUpdateFiles()
+        
+    # Files to keep only *n*
+    def add_ArchiveProgressUpdateFiles(self, fpro):
+        self._Archive()
+        self['Archive'].add_ArchiveProgressUpdateFiles(fpro)
+        
     # Get the list of files to delete a priori 
     def get_ArchivePreDeleteFiles(self):
         self._Archive()
@@ -476,29 +536,24 @@ class RunControl(odict):
         self['Archive'].add_ArchivePreDeleteDirs(fpre)
         
     # Get the list of groups to tar a priori
-    def get_ArchivePreArchiveGroups(self):
+    def get_ArchivePreTarGroups(self):
         self._Archive()
-        return self['Archive'].get_ArchivePreArchiveGroups()
+        return self['Archive'].get_ArchivePreTarGroups()
         
     # Add to list of groups to tar a priori
-    def add_ArchivePreArchiveGroups(self, fpre):
+    def add_ArchivePreTarGroups(self, fpre):
         self._Archive()
-        self['Archive'].add_ArchivePreArchiveGroups(fpre)
+        self['Archive'].add_ArchivePreTarGroups(fpre)
         
     # Get the list of folders to tar a priori
-    def get_ArchivePreArchiveDirs(self):
+    def get_ArchivePreTarDirs(self):
         self._Archive()
-        return self['Archive'].get_PreArchiveDirs()
+        return self['Archive'].get_PreTarDirs()
         
     # Add to list of folders to tar apriori
-    def add_ArchivePreArchiveDirs(self, fpre):
+    def add_ArchivePreTarDirs(self, fpre):
         self._Archive()
-        self['Archive'].add_ArchivePreArchiveDirs(fpre)
-        
-    # Get the list of files to delete a posteriori 
-    def get_ArchivePostDeleteFiles(self):
-        self._Archive()
-        return self['Archive'].get_ArchivePostDeleteFiles()
+        self['Archive'].add_ArchivePreTarDirs(fpre)
     
     # Files to keep only *n*
     def get_ArchivePreUpdateFiles(self):
@@ -509,6 +564,11 @@ class RunControl(odict):
     def add_ArchivePreUpdateFiles(self, fpre):
         self._Archive()
         self['Archive'].add_ArchivePreUpdateFiles(fpre)
+        
+    # Get the list of files to delete a posteriori 
+    def get_ArchivePostDeleteFiles(self):
+        self._Archive()
+        return self['Archive'].get_ArchivePostDeleteFiles()
     
     # Add to list of files to delete a posteriori
     def add_ArchivePostDeleteFiles(self, fpost):
@@ -526,24 +586,24 @@ class RunControl(odict):
         self['Archive'].add_ArchivePostDeleteDirs(fpost)
         
     # Get the list of groups to tar a posteriori
-    def get_ArchivePostArchiveGroups(self):
+    def get_ArchivePostTarGroups(self):
         self._Archive()
-        return self['Archive'].get_ArchivePostArchiveGroups()
+        return self['Archive'].get_ArchivePostTarGroups()
         
     # Add to list of groups to tar a posteriori
-    def add_ArchivePostArchiveGroups(self, fpost):
+    def add_ArchivePostTarGroups(self, fpost):
         self._Archive()
-        self['Archive'].add_ArchivePostArchiveGroups(fpost)
+        self['Archive'].add_ArchivePostTarGroups(fpost)
         
     # Get the list of folders to tar a posteriori
-    def get_ArchivePostArchiveDirs(self):
+    def get_ArchivePostTarDirs(self):
         self._Archive()
-        return self['Archive'].get_PostArchiveDirs()
+        return self['Archive'].get_PostTarDirs()
         
     # Add to list of folders to tar aposteriori
-    def add_ArchivePostArchiveDirs(self, fpost):
+    def add_ArchivePostTarDirs(self, fpost):
         self._Archive()
-        self['Archive'].add_ArchivePostArchiveDirs(fpost)
+        self['Archive'].add_ArchivePostTarDirs(fpost)
     
     # Files to keep only *n*
     def get_ArchivePostUpdateFiles(self):
@@ -555,13 +615,16 @@ class RunControl(odict):
         self._Archive()
         self['Archive'].add_ArchivePreUpdateFiles(fpost)
         
-     # Copy over the documentation.
+    # Copy over the documentation.
     for k in [
-            'ArchivePreDeleteFiles',    'ArchivePreDeleteDirs',
-            'ArchivePreArchiveGroups',  'ArchivePreArchiveDirs',
-            'ArchivePreUpdateFiles',
-            'ArchivePostDeleteFiles',   'ArchivePostDeleteDirs',
-            'ArchivePostArchiveGroups', 'ArchivePostArchiveDirs',
+            'ArchiveProgressDeleteFiles', 'ArchiveProgressDeleteDirs',
+            'ArchiveProgressTarGroups',   'ArchiveProgressTarDirs',
+            'ArchiveProgressUpdateFiles', 'ArchiveProgressArchiveFiles',
+            'ArchivePreDeleteFiles',      'ArchivePreDeleteDirs',
+            'ArchivePreTarGroups',        'ArchivePreTarDirs',
+            'ArchivePreUpdateFiles',         
+            'ArchivePostDeleteFiles',     'ArchivePostDeleteDirs',
+            'ArchivePostTarGroups',       'ArchivePostTarDirs',
             'ArchivePostUpdateFiles'
         ]:
         # Get the documentation for the "get" and "set" functions

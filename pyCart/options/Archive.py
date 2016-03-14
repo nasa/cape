@@ -126,8 +126,8 @@ class Archive(cape.options.Archive.Archive):
             self.add_ArchivePreDeleteFiles([])
             self.add_ArchivePreDeleteDirs(["ADAPT", "EMBED"])
             # Pre-archiving
-            self.add_ArchivePreArchiveGroups(VizGlob)
-            self.add_ArchivePreArchiveDirs(AdaptDict)
+            self.add_ArchivePreTarGroups(VizGlob)
+            self.add_ArchivePreTarDirs(AdaptDict)
             # Files to delete before saving
             self.add_ArchivePreUpdateFiles([])
             # Files/folders to delete after archiving
@@ -135,15 +135,15 @@ class Archive(cape.options.Archive.Archive):
                 ['adapt??.'+ext, 'checkDT*'])
             self.add_ArchivePostDeleteDirs([])
             # Post-archiving
-            self.add_ArchivePostArchiveGroups([])
-            self.add_ArchivePostArchiveDirs([])
+            self.add_ArchivePostTarGroups([])
+            self.add_ArchivePostTarDirs([])
             # Files to keep only *n*
             self.add_ArchivePostUpdateFiles(CheckDict)
         elif tmp in ["restart"]:
             # Keep everything needed to restart
             # Pre-archiving
-            self.add_ArchivePreArchiveGroups(VizGlob)
-            self.add_ArchivePreArchiveDirs(AdaptDict)
+            self.add_ArchivePreTarGroups(VizGlob)
+            self.add_ArchivePreTarDirs(AdaptDict)
             # Files/folders to delete after archiving
             self.add_ArchivePostDeleteFiles(
                 ['adapt??.'+ext, 'checkDT*', 'Components.i.triq'])
@@ -157,8 +157,8 @@ class Archive(cape.options.Archive.Archive):
             self.add_ArchivePreDeleteFiles(["Mesh*", "checkDT*"])
             self.add_ArchivePreDeleteDirs(["ADAPT", "EMBED"])
             # Pre-archiving
-            self.add_ArchivePreArchiveGroups(VizGlob)
-            self.add_ArchivePreArchiveDirs(AdaptDict)
+            self.add_ArchivePreTarGroups(VizGlob)
+            self.add_ArchivePreTarDirs(AdaptDict)
             self.add_ArchivePreUpdateFiles(CheckDict)
             # Files/folders to delete after archiving
             self.add_ArchivePostDeleteFiles([
@@ -174,8 +174,8 @@ class Archive(cape.options.Archive.Archive):
             self.add_ArchivePreDeleteFiles(["Mesh*"])
             self.add_ArchivePreDeleteDirs(["ADAPT", "EMBED"])
             # Pre-archiving
-            self.add_ArchivePreArchiveGroups(VizGlob)
-            self.add_ArchivePreArchiveDirs(AdaptDict)
+            self.add_ArchivePreTarGroups(VizGlob)
+            self.add_ArchivePreTarDirs(AdaptDict)
             self.add_ArchivePreUpdateFiles(CheckDict)
             # Files/folders to delete after archiving
             self.add_ArchivePostDeleteFiles([
@@ -191,8 +191,8 @@ class Archive(cape.options.Archive.Archive):
             # Pre-archiving
             self.add_ArchivePreDeleteFiles(["Mesh*", "checkDT*"])
             self.add_ArchivePreDeleteDirs(["ADAPT", "EMBED"])
-            self.add_ArchivePreArchiveGroups(VizGlob)
-            self.add_ArchivePreArchiveDirs(AdaptDict)
+            self.add_ArchivePreTarGroups(VizGlob)
+            self.add_ArchivePreTarDirs(AdaptDict)
             self.add_ArchivePreUpdateFiles(CheckDict)
             # Files/folders to delete after archiving
             self.add_ArchivePostDeleteFiles([
@@ -206,8 +206,8 @@ class Archive(cape.options.Archive.Archive):
         else:
             # Basic templates
             self.add_ArchivePreDeleteDirs(["ADAPT", "EMBED"])
-            self.add_ArchivePreArchiveGroups(VizGlob)
-            self.add_ArchivePreArchiveDirs(AdaptDict)
+            self.add_ArchivePreTarGroups(VizGlob)
+            self.add_ArchivePreTarDirs(AdaptDict)
             self.add_ArchivePostDeleteFiles(['checkDT*', '*.lay', '*.out'])
             self.add_ArchivePostUpdateFiles(CheckDict)
         

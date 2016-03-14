@@ -24,330 +24,75 @@ import cape.manage
 
 # Subdirectories
 fsub = ['adapt??']
+# Auto archive function
+aa = Archive.auto_Archive
 
-# Delete files matching a glob
-def DeleteFiles(fdel, n=0):
-    """Delete files that match a file name pattern
-    
-    The function also searches within the `adapt??` folders
+# Perform in-progress file management after each run
+def ManageFilesProgress(opts=None):
+    """Delete or group files and folders at end of each run
     
     :Call:
-        >>> pyCart.manage.DeleteFiles(fdel, n=0)
+        >>> pyCart.manage.ManageFilesProgress(opts=None)
     :Inputs:
-        *fdel*: :class:`str`
-            File name or glob of files to delete
-        *n*: :class:`int`
-            Default number of files to keep
+        *opts*: :class:`pyCart.options.Options` | :class:`dict`
+            Options interface for archiving
     :Versions:
-        * 2016-03-01 ``@ddalle``: First version
-    """
-    # Process file name and keep number
-    fname, nkeep = cape.manage.process_ArchiveFile(fdel, n=n)
-    # Call function from CAPE
-    cape.manage.DeleteFiles_SubDir(fname, n=nkeep, fsub=fsub)
-    
-# Delete folders according to a glob
-def DeleteDirs(fdel, n=0):
-    """Delete folders that match a pattern
-    
-    :Call:
-        >>> pyCart.manage.DeleteDirs(fdel, n=0)
-    :Inputs:
-        *fdel*: :class:`str`
-            Folder name or patter of folder names to delete
-        *n*: :class:`int`
-            Number of files to keep
-    :Versions:
-        * 2016-03-01 ``@ddalle``: First version
-    """
-    # Process file name and keep number
-    fname, nkeep = cape.manage.process_ArchiveFile(fdel, n=n)
-    # Call function from CAPE
-    cape.manage.DeleteDirs_SubDir(fname, n=nkeep)
-# def DeleteDirs
-
-# Function to delete files
-def PreDeleteFiles(opts=None):
-    """Delete files according to *PreDeleteFiles* setting in *Archive* section
-    
-    :Call:
-        >>> pyCart.manage.PreDeleteFiles(opts=None)
-    :Inputs:
-        *opts*: ``None`` | :class:`Archive` | :class:`dict`
-            Options dictionary or options interface
-    :Versions:
-        * 2016-03-01 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: First version
     """
     # Convert options
     opts = Archive.auto_Archive(opts)
-    # Get files
-    fdel = opts.get_ArchivePreDeleteFiles()
-    # Exit if necessary
-    if fdel is None: return
-    # Delete
-    for fpat in fdel:
-        DeleteFiles(fpat, n=0)
-
-# Function to delete files afterwards
-def PostDeleteFiles(opts=None):
-    """Delete files according to *PostDeleteFiles* setting in *Archive* section
+    # Perform actions
+    ProgressDeleteFiles(opts, fsub=fsub)
+    ProgressUpdateFiles(opts, fsub=fsub)
+    ProgressDeleteDirs(opts)
+    ProgressTarGroups(opts)
+    ProgressTarDirs(opts)
+# def ManageFilesProgress
+    
+# Perform pre-archive management
+def ManageFilesPre(opts=None):
+    """Delete or group files and folders before creating archive
     
     :Call:
-        >>> pyCart.manage.PostDeleteFiles(opts=None)
+        >>> pyCart.manage.ManageFilesPre(opts=None)
     :Inputs:
-        *opts*: ``None`` | :class:`Archive` | :class:`dict`
-            Options dictionary or options interface
+        *opts*: :class:`pyCart.options.Options` | :class:`dict`
+            Options interface for archiving
     :Versions:
-        * 2016-03-01 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: First version
     """
     # Convert options
     opts = Archive.auto_Archive(opts)
-    # Get files
-    fdel = opts.get_ArchivePostDeleteFiles()
-    # Exit if necessary
-    if fdel is None: return
-    # Delete
-    for fpat in fdel:
-        DeleteFiles(fpat, n=0)
-
-# Function to delete older files before archiving
-def PreUpdateFiles(opts=None):
-    """Delete files according to *PreUpdateFiles* setting in *Archive* section
+    # Perform actions
+    PreDeleteFiles(opts, fsub=fsub)
+    PreUpdateFiles(opts, fsub=fsub)
+    PreDeleteDirs(opts)
+    PreTarGroups(opts)
+    PreTarDirs(opts)
+# def ManageFilesPre
+    
+# Perform post-archive management
+def ManageFilesPost(opts=None):
+    """Delete or group files and folders after creating archive
     
     :Call:
-        >>> pyCart.manage.PreUpdateFiles(opts=None)
+        >>> pyCart.manage.ManageFilesPost(opts=None)
     :Inputs:
-        *opts*: ``None`` | :class:`Archive` | :class:`dict`
-            Options dictionary or options interface
+        *opts*: :class:`pyCart.options.Options` | :class:`dict`
+            Options interface for archiving
     :Versions:
-        * 2016-03-01 ``@ddalle``: First version
+        * 2016-03-14 ``@ddalle``: First version
     """
     # Convert options
     opts = Archive.auto_Archive(opts)
-    # Get files
-    fdel = opts.get_ArchivePreUpdateFiles()
-    # Exit if necessary
-    if fdel is None: return
-    # Delete
-    for fpat in fdel:
-        DeleteFiles(fpat, n=1)
-
-# Function to delete older files after archiving
-def PostUpdateFiles(opts=None):
-    """Delete files according to *PostUpdateFiles* setting in *Archive* section
+    # Perform actions
+    PostDeleteFiles(opts, fsub=fsub)
+    PostUpdateFiles(opts, fsub=fsub)
+    PostDeleteDirs(opts)
+    PostTarGroups(opts)
+    PostTarDirs(opts)
+# def ManageFilesPost
     
-    :Call:
-        >>> pyCart.manage.PreUpdateFiles(opts=None)
-    :Inputs:
-        *opts*: ``None`` | :class:`Archive` | :class:`dict`
-            Options dictionary or options interface
-    :Versions:
-        * 2016-03-01 ``@ddalle``: First version
-    """
-    # Convert options
-    opts = Archive.auto_Archive(opts)
-    # Get files
-    fdel = opts.get_ArchivePostUpdateFiles()
-    # Exit if necessary
-    if fdel is None: return
-    # Delete
-    for fpat in fdel:
-        DeleteFiles(fpat, n=1)
-
-# Function to delete folders
-def PreDeleteDirs(opts=None):
-    """Delete folders according to *PreDeleteDirs* setting in *Archive* section
-    
-    :Call:
-        >>> pyCart.manage.PreDeleteDirs(opts=None)
-    :Inputs:
-        *opts*: ``None`` | :class:`Archive` | :class:`dict`
-            Options dictionary or options interface
-    :Versions:
-        * 2016-03-01 ``@ddalle``: First version
-    """
-    # Convert options
-    opts = Archive.auto_Archive(opts)
-    # Get files
-    fdel = opts.get_ArchivePreDeleteDirs()
-    # Exit if necessary
-    if fdel is None: return
-    # Delete
-    for fpat in fdel:
-        DeleteDirs(fpat, n=0)
-
-# Function to delete folders
-def PostDeleteDirs(opts=None):
-    """Delete folders according to *PreDeleteDirs* setting in *Archive* section
-    
-    :Call:
-        >>> pyCart.manage.PostDeleteDirs(opts=None)
-    :Inputs:
-        *opts*: ``None`` | :class:`Archive` | :class:`dict`
-            Options dictionary or options interface
-    :Versions:
-        * 2016-03-01 ``@ddalle``: First version
-    """
-    # Convert options
-    opts = Archive.auto_Archive(opts)
-    # Get files
-    fdel = opts.get_ArchivePostDeleteDirs()
-    # Exit if necessary
-    if fdel is None: return
-    # Delete
-    for fpat in fdel:
-        DeleteDirs(fpat, n=0)
-
-# Function to group before archiving
-def PreArchiveGroups(opts=None):
-    """Archive file groups from *PreArchiveGroups* setting in *Archive* section
-    
-    :Call:
-        >>> pyCart.manage.PreArchiveGroups(opts=None)
-    :Inputs:
-        *opts*: ``None`` | :class:`pyCart.options.Archive.Archive`
-            Archive options interface
-    :Versions:
-        * 2016-03-01 ``@ddalle``: First version
-    """
-    # Convert options
-    opts = Archive.auto_Archive(opts)
-    # Get option
-    fgrps = opts.get_ArchivePreArchiveGroups()
-    # Exit if necessary
-    if fgrps is None: return
-    # Get format, command, and extension
-    cmdu = opts.get_ArchiveCmd()
-    ext  = opts.get_ArchiveExtension()
-    # Loop through groups
-    for grp in fgrps:
-        # Process the dict
-        fgrp, fname = cape.manage.process_ArchiveGroup(grp)
-        # File name
-        ftar = '%s.%s' % (fgrp, ext)
-        # Archive
-        cape.manage.TarFileGroup(cmdu, ftar, fname)
-        
-# Function to group after archiving
-def PostArchiveGroups(opts=None):
-    """Archive file groups from *PostArchiveGroups* setting in *Archive* section
-    
-    :Call:
-        >>> pyCart.manage.PostArchiveGroups(opts=None)
-    :Inputs:
-        *opts*: ``None`` | :class:`pyCart.options.Archive.Archive`
-            Archive options interface
-    :Versions:
-        * 2016-03-01 ``@ddalle``: First version
-    """
-    # Convert options
-    opts = Archive.auto_Archive(opts)
-    # Get option
-    fgrps = opts.get_ArchivePostArchiveGroups()
-    # Exit if necessary
-    if fgrps is None: return
-    # Get format, command, and extension
-    cmdu = opts.get_ArchiveCmd()
-    ext  = opts.get_ArchiveExtension()
-    # Loop through groups
-    for grp in fgrps:
-        # Process the dict
-        fgrp, fname = cape.manage.process_ArchiveGroup(grp)
-        # File name
-        ftar = '%s.%s' % (fgrp, ext)
-        # Archive
-        cape.manage.TarFileGroup(cmdu, ftar, fname)
-        
-# Function to tar folders before archiving
-def PreArchiveDirs(opts=None):
-    """Archive folders from *PreArchiveDirs* setting in *Archive* section
-    
-    :Call:
-        >>> pyCart.manage.PostArchiveDirs(opts=None)
-    :Inputs:
-        *opts*: ``None`` | :class:`pyCart.options.Archive.Archive`
-            Archive options interface
-    :Versions:
-        * 2016-03-01 ``@ddalle``: First version
-    """
-    # Convert options
-    opts = Archive.auto_Archive(opts)
-    # Get option
-    fdirs = opts.get_ArchivePreArchiveDirs()
-    # Exit if necessary
-    if fdirs is None: return
-    # get forma,t command, and extension
-    cmdu = opts.get_ArchiveCmd()
-    ext  = opts.get_ArchiveExtension()
-    # Loop through groups
-    for fpat in fdirs:
-        # Number of files not to tar
-        fname, nkeep = cape.manage.process_ArchiveFile(fpat, n=1)
-        # Get matches, e.g "adapt??" --> ["adapt00", "adapt01", ...]
-        ldir = cape.manage.GetDirMatches(fname)
-        # Trim last *n* directories, which are kept
-        if nkeep == 0:
-            # Delete all files
-            Ldir = ldir
-        elif len(ldir) <= nkeep:
-            # Keep all files
-            continue
-        else:
-            # Strip last *n* files from list of deletions
-            Ldir = ldir[:-nkeep]
-        # Loop through directories
-        for fdir in Ldir:
-            # File name
-            ftar = '%s.%s' % (fdir, ext)
-            # Archive
-            cape.mamage.TarDir(cmdu, ftar, fdir)
-
-# Function to tar folders after archiving
-def PostArchiveDirs(opts=None):
-    """Archive folders from *PostArchiveDirs* setting in *Archive* section
-    
-    :Call:
-        >>> pyCart.manage.PostArchiveDirs(opts=None)
-    :Inputs:
-        *opts*: ``None`` | :class:`pyCart.options.Archive.Archive`
-            Archive options interface
-    :Versions:
-        * 2016-03-01 ``@ddalle``: First version
-    """
-    # Convert options
-    opts = Archive.auto_Archive(opts)
-    # Get option
-    fdirs = opts.get_ArchivePostArchiveDirs()
-    # Exit if necessary
-    if fdirs is None: return
-    # get forma,t command, and extension
-    cmdu = opts.get_ArchiveCmd()
-    ext  = opts.get_ArchiveExtension()
-    # Loop through groups
-    for fpat in fdirs:
-        # Number of files not to tar
-        fname, nkeep = cape.manage.process_ArchiveFile(fpat, n=1)
-        # Get matches, e.g "adapt??" --> ["adapt00", "adapt01", ...]
-        ldir = cape.manage.GetDirMatches(fname)
-        # Trim last *n* directories, which are kept
-        if nkeep == 0:
-            # Delete all files
-            Ldir = ldir
-        elif len(ldir) <= nkeep:
-            # Keep all files
-            continue
-        else:
-            # Strip last *n* files from list of deletions
-            Ldir = ldir[:-nkeep]
-        # Loop through directories
-        for fdir in Ldir:
-            # File name
-            ftar = '%s.%s' % (fdir, ext)
-            # Archive
-            cape.manage.TarDir(cmdu, ftar, fdir)
-# def PostArchiveDirs
-
-
 # Function to compress extra folders
 def TarAdapt(opts):
     """Replace ``adaptXX`` folders with a tarball except for most recent
@@ -695,26 +440,16 @@ def ArchiveFolder(opts):
     :Versions:
         * 2015-01-11 ``@ddalle``: First version
     """
-    # Get clean up action command.
-    farch = opts.get_ArchiveAction()
+    # Restrict options to correct class
+    opts = Archive.auto_Archive(opts)
+    # Get archive type
+    ftyp = opts.get_ArchiveType()
     # Get the archive root directory.
     flfe = opts.get_ArchiveFolder()
+    # Get the remote copy command
+    fscp = opts.get_RemoteCopy()
     # If no action, do not backup
-    if not farch or not flfe: return
-    
-    # Ensure folder exists.
-    if ':' in flfe:
-        # Split off host name
-        fhost, fldir = flfe.split(':')
-        # Check remotely.
-        if sp.call(['ssh', fhost, 'test', '-d', fldir]) != 0:
-            # Create it.
-            sp.call(['ssh', fhost, 'mkdir', fldir])
-    else:
-        # Test locally.
-        if not os.path.isdir(flfe):
-            # Create it.
-            opts.mkdir(flfe)
+    if not ftyp or not flfe: return
             
     # Get the current folder.
     fdir = os.path.split(os.getcwd())[-1]
@@ -722,73 +457,43 @@ def ArchiveFolder(opts):
     os.chdir('..')
     # Get the group folder
     fgrp = os.path.split(os.getcwd())[-1]
+    # Get the case folder
+    frun = os.path.join(fgrp, fdir)
     
-    # Ensure group folder exists.
-    if ':' in flfe:
-        # Remote group address.
-        flgrp = os.path.join(fldir, fgrp)
-        # Check remotely.
-        if sp.call(['ssh', fhost, 'test', '-d', flgrp]) != 0:
-            # Create it.
-            sp.call(['ssh', fhost, 'mkdir', flgrp])
-    else:
-        # Test locally.
-        if not os.path.isdir(os.path.join(flfe, fgrp)):
-            # Create it.
-            os.mkdir(os.path.join(flfe, fgrp), 0750)
+    # Ensure folder exists.
+    cape.manage.CreateArchiveFolder(opts)
+    cape.manage.CreateArchiveCaseFolder(opts)
     
     # Get the archive format, extension, and command
     fmt  = opts.get_ArchiveFormat()
     cmdu = opts.get_ArchiveCmd()
     ext  = "." + opts.get_ArchiveExtension()
-    # Form the destination file name.
-    ftar = os.path.join(flfe, fgrp, fdir+ext)
-    # Check if it exists.
-    if CheckArchive(ftar):
-        print("  Archive exists: %s" % ftar)
-        return
     # Go to the folder.
     os.chdir(fdir)
-    # Delete files that need to go first.
-    PreDeleteFiles(opts)
-    PreUpdateFiles(opts)
-    PreDeleteDirs(opts)
-    # Pre-processing groupings if necessary
-    PreArchiveGroups(opts)
-    PreArchiveDirs(opts)
-    # Go back up to group folder.
-    os.chdir('..')
-    # Check if it's a remote copy.
-    if ':' in ftar:
-        # Remote copy; get the command
-        fcmd = opts.get_RemoteCopy()
-        # Status update.
-        print("  %s  -->  %s" % (fdir, fdir+ext))
-        # Tar the folder locally.
-        ierr = sp.call(cmdu + [fdir+ext, fdir])
-        if ierr: raise SystemError("Archiving failed.")
-        # Status update.
-        print("  %s  -->  %s" % (fdir+ext, ftar))
-        # Remote copy the archive.
-        ierr = sp.call([fcmd, fdir+ext, ftar])
-        if ierr: raise SystemError("Remote copy failed.")
-        # Clean up.
-        os.remove(fdir+ext)
+    # Pre-archiving file management
+    ManageFilesPre(opts)
+    # Perform remote copy
+    if ftyp.lower() == "full":
+        # Archive entire folder
+        cape.manage.ArchiveCaseWhole(opts)
+        # Post-archiving file management
+        ManageFilesPost(opts)
     else:
-        # Local destination
-        print("  %s  -->  %s" % (fdir, ftar))
-        # Tar directly to archive.
-        ierr = sp.call(cmdu + [ftar, fdir])
-        if ierr: raise SystemError("Archiving failed.")
-    # Go back into the folder
-    os.chdir(fdir)
-    # Check for further clean up.
-    PostDeleteFiles(opts)
-    PostUpdateFiles(opts)
-    PostDeleteDirs(opts)
-    # Post-archiving groups
-    PostArchiveGroups(opts)
-    PostArchiveDirs(opts)
+        # Partial archive; create folder containing several files
+        # Form destination folder name
+        ftar = os.path.join(flfe, fgrp, fdir)
+        # Archive end-of-run files
+        cape.manage.ProgressArchiveFiles(opts, fsub=fsub)
+        # Create tar balls as appropriate before archiving
+        PostTarGroups(opts, frun=frun)
+        PostTarDirs(opts, frun=frun)
+        # Archive existing tar balls
+        cape.manage.ArchiveFiles(opts, ['*.%s'%ext, '*.tar', '*.zip'])
+        # After archiving, perform clean-up
+        PostDeleteFiles(opts, fsub=fsub)
+        PostUpdateFiles(opts, fsub=fsub)
+        PostDeleteDirs(opts)
+        
 # def ArchiveFolder
         
 # Clean up a folder but don't delete it.

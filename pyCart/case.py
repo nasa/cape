@@ -464,6 +464,7 @@ def FinalizeFiles(rc, i=None):
         # Get the phase number.
         i = GetPhaseNumber(rc)
     # Clean up the folder as appropriate.
+    manage.ManageFilesProgress(rc)
     # Tar visualization files.
     if rc.get_unsteady(i):
         manage.TarViz(rc)

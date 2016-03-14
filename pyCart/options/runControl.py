@@ -5,6 +5,7 @@
 from util import rc0, odict, isArray
 # Run control class
 import cape.options.runControl
+import cape.options.ulimit
 # Submodules
 from .Archive import Archive
 
@@ -1901,7 +1902,7 @@ class Environ(cape.options.runControl.Environ):
 # class Environ
 
 # Class for resource limits
-class ulimit(cape.options.runControl.ulimit.ulimit):
+class ulimit(cape.options.ulimit.ulimit):
     pass
 # class ulimit
 
