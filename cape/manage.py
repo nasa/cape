@@ -59,6 +59,30 @@ def isbrokenlink(fname):
         * 2016-03-14 ``@ddalle``: First version
     """
     return os.path.islink(fname) and not os.path.isfile(fname)
+    
+# Sort files by time
+def sortfiles(fglob):
+    """Sort a glob of files based on the time of their last edit
+    
+    :Call:
+        >>> fsort = sortfiles(fglob)
+    :Inputs:
+        *fglob*: :class:`list` (:class:`str`)
+            List of file names
+    :Outputs:
+        *fsort*: :class:`list` (:class:`str`)
+            Above listed by :func:`os.path.getmtime`
+    :Versions:
+        * 2016-03-14 ``@ddalle``: First version
+    """
+    # Time function
+    ft = os.path.getmtime(f) if os.path.exists(f) else 0.0
+    # Initialize times
+    t = np.array([ft(f) for f in fglob])
+    # Get the order
+    i = np.argsort(t)
+    # Return the files in order
+    return [fglob[j] for j in i]
 
 # Archive group
 def process_ArchiveGroup(grp):
@@ -182,15 +206,20 @@ def GetSearchDirs(fsub=None):
             if fdir in fdirs: continue
             # Append
             fdirs.append(fdir)
-    # Sort
-    fdirs.sort()
+    # Sort it
+    if fsort is None:
+        # Default sorting function
+        fdirs = sortfiles(fdirs)
+    else:
+        # Sort using input
+        fdirs = fsort(fdirs)
     # Append working directory (and make sure it's last)
     fdirs.append('.')
     # Output
     return fdirs
     
 # Get list of matches, generic
-def GetMatches(fname, fsub=None, fkeep=None, ftest=None, n=0):
+def GetMatches(fname, fsub=None, fkeep=None, ftest=None, n=0, fsort=None):
     """Get matches based on arbitrary rules
     
     :Call:
@@ -206,6 +235,8 @@ def GetMatches(fname, fsub=None, fkeep=None, ftest=None, n=0):
             Function to test file type, e.g. :func:`os.path.isdir`
         *n*: :class:`int`
             Default number of files to ignore from the end of the glob
+        *fsort*: :class:`function`
+            Non-default sorting function
     :Outputs:
         *fglob*: :class:`list` (:class:`str`)
             List of files matching input pattern
@@ -230,7 +261,12 @@ def GetMatches(fname, fsub=None, fkeep=None, ftest=None, n=0):
         # Apply the glob
         fglobn = glob.glob(fn)
         # Sort it
-        fglobn.sort()
+        if fsort is None:
+            # Default sorting function
+            fglobn = sortfiles(fglobn)
+        else:
+            # Sort using input
+            fglobn = fsort(fglobn)
         # Check how many files to keep
         if len(fglobn) <= nkeep:
             # Nothing to delete (yet)
@@ -565,10 +601,8 @@ def ArchiveCaseWhole(opts):
         
     # Return to folder
     os.chdir(frun)
-            
-            
-            
-        
+
+    
 # Function to delete folders according to full descriptor
 def DeleteDirs(fdel, fsub=None, n=1):
     """Delete folders that match a glob
