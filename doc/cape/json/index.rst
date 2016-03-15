@@ -55,8 +55,8 @@ A basic template is shown below.
             // PBS job settings
             "PBS": { },
             
-            // Mesh settings
-            "Mesh": { },
+            // Surface subset and point settings
+            "Config": { },
             
             // Data book settings
             "DataBook": { },
@@ -97,4 +97,5 @@ follow.
     runControl
     Archive
     Config
+    DataBook
     

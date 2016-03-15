@@ -28,3 +28,39 @@ The JSON syntax with some nontrivial values is below.
                 "CG": [2.5. 0.0, 0.2]
             }
         }
+        
+The *Components* parameter defines a list of components that the user wants Cape
+to know about.  Quite often, the meaning of the named component is actually
+defined in the *ConfigFile*, for example the way it is done in Cart3D with
+:file:`Config.xml`.  In most cases, these *Components* refer to subsets of the
+surface mesh(es), and they can be used to define components that pyCart, pyOver,
+or pyFun can move around.
+
+The *RefArea* and *RefLength* parameters are universal enough to be included in
+the base :mod:`cape` module because almost any CFD solver or code that uses CFD
+results will utilize reference length and reference area.  The *RefPoint*
+parameter is used to define moment reference points and, for some solvers, also
+the list of components for which moments should be reported.  In addition, it is
+possible to define different reference areas/lengths for different components
+using a :class:`dict` as in the example *RefLength* above.
+
+Finally, the *Point* parameter is a unique capability of Cape that allows points
+to be conveniently defined in one spot.  This can be convenient for a list of
+components that have the same moment reference point.  Furthermore, it is
+essential for configurations that have multiple translations and/or rotations.
+Since the rotation point and rotation axis may move, Cape automatically updates
+*Points* according to the definition of those translations and/or rotations.
+
+The dictionary of options is given below.
+
+    *Components*: {``[]``} | :class:`list` (:class:`str`)
+        List of components for Cape to know about, usually surface subsets
+        
+    *ConfigFile*: {``"Config.xml"``} | :class:`str`
+        Name of file defining surface and/or volume grid subsets
+        
+    *RefArea*: {``3.14159``} | :class:`float` | :class:`dict` (:class:`float`)
+        Reference area or dictionary of reference areas
+        
+    *RefLength*: {``1.0``} | :class:`float` | :class:`dict` (:class:`float`)
+        Reference length or dictionary of reference lengths
