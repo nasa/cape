@@ -323,11 +323,14 @@ defined subfigure types.
 
 The list of options common to each subfigure is shown below.
 
-    *Subfigures*: {``{}``} | ``{[U]}`` | :class:`dict` (:class:`dict`)
+    *Subfigures*: {``{}``} | ``{sfig: U}`` | :class:`dict` (:class:`dict`)
         Dictionary of subfigure definitions
         
+        *sfig*: :class:`str`
+            Name of subfigure
+            
         *U*: :class:`dict`
-            Dictionary of settings for subfigure called ``"U"``
+            Dictionary of settings for subfigure *sfig*
             
             *Type*: ``"Conditions"`` | ``"SweepConditions"`` |
             ``"SweepCases"`` | ``"Summary"`` | ``"PlotCoeff"`` |
@@ -379,4 +382,438 @@ in the JSON file when there are several similar figures defined.
 
 The subsections that follow describe options that correspond to options for each
 base type of subfigure.
+
+.. _cape-json-ReportConditions:
+
+Run Conditions Table Subfigure
+------------------------------
+The ``"Conditions"`` subfigure creates a table of conditions for the independent
+variables.  The primary purpose is to list the run conditions for each case for
+the observer to quickly reference which case is being analyzed.  It creates a
+table with three three columns: name of trajectory key, abbreviation for the
+key, and the value of that key for the case being reported.
+
+If the subfigure is used as part of a sweep report, then the "Value" column will
+show either the value of the first case in the sweep (if all cases in the sweep
+have the same value) or an entry with the format ``v0, [vmin, vmax]`` where *v0*
+is the value at the first point in the sweep, *vmin* is the minimum value for
+that independent variable for each point in the sweep, and *vmax* is the maximum
+value.
+
+The options are listed below.
+    
+    *C*: :class:`dict`
+        Dictionary of settings for *Conditions* type subfigure
+        
+        *Type*: {``"Conditions"``} | :class:`str`
+            Subfigure type
+        
+        *Header*: {``"Conditions"``} | :class:`str`
+            Heading placed above subfigure (bold, italic)
+            
+        *Position*: {``"t"``} | ``"c"`` | ``"b"``
+            Vertical position in row of subfigures
+            
+        *Alignment*: {``"left"``} | ``"center"``
+            Horizontal alignment
+            
+        *Width*: {``0.4``} | :class:`float`
+            Width of subfigure as a fraction of page text width
+        
+        *SkipVars*: {``[]``} | :class:`list` (:class:`str`)
+            List of trajectory keys to not include in conditions table
+
+
+.. _cape-json-ReportSweepConditions:
+
+Sweep Conditions Table Subfigure
+--------------------------------
+The ``"SweepConditions"`` subfigure class, which is only available for sweeps
+(i.e. cannot be included in reports for individual cases), shows the list of
+constraints that define a sweep.  It creates a three-column table with the first
+column the name of the variable, the second column the value of the variable
+(i.e. trajectory key or derived key such as ``k%10``) for the first case in the
+sweep, and the third column a description of the constraint.  The constraint
+description is either ``=``, meaning that all cases in the sweep have the same
+value for that variable, or ``±tol`` if all the cases in the sweep are
+constrained to be within a tolerance *tol* of the first point in the sweep.
+            
+    *C*: :class:`dict`
+        Dictionary of settings for *SweepConditions* type subfigure
+        
+        *Type*: {``"SweepConditions"``} | :class:`str`
+            Subfigure type
+            
+        *Header*: {``"Sweep Constraints"``} | :class:`str`
+            Heading placed above subfigure (bold, italic)
+        
+        *Position*: {``"t"``} | ``"c"`` | ``"b"``
+            Vertical alignment of subfigure
+            
+        *Alignment*: {``"left"``} | ``"center"``
+            Horizontal alignment
+            
+        *Width*: {``0.4``} | :class:`float`
+            Width of subfigure as a fraction of page text width
+
+            
+.. _cape-json-ReportSweepCases:
+
+List of Cases in a Sweep
+------------------------
+The ``"SweepCases"`` subfigure class, which is only available for sweeps, shows
+the list of cases in a sweep.  The method of displaying the sweeps is to list
+the names of each case, i.e. the group/case folder name, in some monospace
+format.  The list of options is below.
+
+    *C*: :class:`dict`
+        Dictionary of settings for *SweepCases* type subfigure
+        
+        *Type*: {``"SweepCases"``} | :class:`str`
+            Subfigure type
+            
+        *Header*: {``"Sweep Cases"``} | :class:`str`
+            Heading placed above subfigure (bold, italic)
+        
+        *Position*: {``"t"``} | ``"c"`` | ``"b"``
+            Vertical alignment of subfigure
+            
+        *Alignment*: {``"left"``} | ``"center"``
+            Horizontal alignment
+            
+        *Width*: {``0.6``} | :class:`float`
+            Width of subfigure as a fraction of page text width
+            
+            
+.. _cape-json-ReportSummary:
+
+Tabular Force & Moment Results
+------------------------------
+The ``"FMTable"`` subfigure class presents a table of textual force and/or
+moment coefficients for an individual case.  The user can specify a list of
+components and a list of coefficients.  For each coefficient, the user may
+choose to display the mean value, the iterative standard deviation, and/or the
+iterative uncertainty estimate.
+
+Aliases for this subfigure are ``"ForceTable`` and ``"Summary"``.
+
+Each component (for example left wing, right wing, fuselage) has its own column,
+and the coefficients form rows.  This subfigure class is only available for case
+reports; it cannot be used on a sweep.
+
+    *S*: :class:`dict`
+        Dictionary of settings for *Summary* subfigures
+        
+        *Type*: {``"Summary"``} | :class:`str`
+            Subfigure type
+            
+        *Header*: {``"Force \\& moment summary"``} | :class:`str`
+            Heading placed above subfigure (bold, italic)
+            
+        *Position*: {``"t"``} | ``"c"`` | ``"b"``
+            Vertical alignment of subfigure
+            
+        *Alignment*: {``"left"``} | ``"center"``
+            Horizontal alignment
+            
+        *Width*: {``0.6``} | :class:`float`
+            Width of subfigure as a fraction of page text width
+            
+        *Iteration*: {``0``} | :class:`int`
+            If nonzero, display results from specified iteration number
+            
+        *Components*: {``["entire"]``} | :class:`list` (:class:`str`)
+            List of components
+            
+        *Coefficients*: {``["CA", "CY", "CN"]``} | :class:`list` (:class:`str`)
+            List of coefficients to display
+            
+        *CA*: {``["mu", "std"]``} | :class:`list` (:class:`str`)
+            Quantities to report for *CA*; mean, standard deviation, and error
+            
+        *CY*: {``["mu", "std"]``} | :class:`list` (:class:`str`)
+            Quantities to report for *CY*; mean, standard deviation, and error
+            
+        *CN*: {``["mu", "std"]``} | :class:`list` (:class:`str`)
+            Quantities to report for *CN*; mean, standard deviation, and error
+            
+        *CLL*: {``["mu", "std"]``} | :class:`list` (:class:`str`)
+            Quantities to report for *CLL*; mean, standard deviation, and error
+            
+        *CLM*: {``["mu", "std"]``} | :class:`list` (:class:`str`)
+            Quantities to report for *CLM*; mean, standard deviation, and error
+            
+        *CLN*: {``["mu", "std"]``} | :class:`list` (:class:`str`)
+            Quantities to report for *CLN*; mean, standard deviation, and error
+    
+
+.. _cape-json-ReportPlotCoeff:
+            
+Iterative Force or Moment Plot
+------------------------------
+To plot iterative histories of force and/or moment coefficients on one or more
+component, use the ``"PlotCoeff"`` subfigure.  There are many options for this
+class of subfigure.  In addition to standard alignment and caption options,
+there are options for which component(s) and coefficient(s) to plot, options for
+how the plots are presented, which iterations to use, output format, and figure
+sizes.
+
+The default caption, which is placed in sans-serif font below the figure, is
+*Component*/*Coefficient*, which may be confusing if two components are
+included.  For example, a caption such as ``"[LeftWing, RightWing]/CY"`` could
+be generated automatically.
+
+The full list of options is shown below.
+
+    *P*: :class:`dict`
+        Dictionary of settings for *PlotCoeff* subfigures
+        
+        *Type*: {``"PlotCoeff"``} | :class:`str`
+            Subfigure type
+            
+        *Header*: {``""``} | :class:`str`
+            Heading placed above subfigure (bold, italic)
+            
+        *Position*: ``"t"`` | ``"c"`` | {``"b"``}
+            Vertical alignment of subfigure
+            
+        *Alignment*: ``"left"`` | {``"center"``}
+            Horizontal alignment
+            
+        *Width*: {``0.5``} | :class:`float`
+            Width of subfigure as a fraction of page text width
+            
+        *nPlotFirst*: {``0``} | :class:`int`
+            First iteration to plot; often useful to eliminate startup
+            transients from the plot which may have a much larger scale than the
+            final value
+            
+        *nPlotLast*: {``null``} | :class:`int`
+            If specified, only plot up to this iteration
+            
+        *nPlot*: {``null``} | :class:`int`
+            If specified, plot at most this many iterations; alternative method
+            to hide startup transients
+            
+        *nStats*: :class:`int`
+            Number of iterations to use for statistics; defaults to data book
+            option
+            
+        *nMinStats*: :class:`int`
+            First iteration to allow to be used for mean calculation
+            
+        *nMaxStats*: :class:`int`
+            Maximum number of iterations to allow to be used in statistics
+            
+        *FigWidth*: {``6.0``} | :class:`float`
+            Width of figure internally to Python; affects aspect ratio of figure
+            and font size when integrated into report; decrease this parameter
+            to make text appear larger in report
+            
+        *FigHeight*: {``4.5``} | :class:`float`
+            Similar to *FigWidth* and primarily used to set aspect ratio
+        
+        *Component*: {``"entire"``} | :class:`str` | :class:`list`
+            Component or list of components to plot, must be name(s) of
+            components defined in :file:`Config.xml`
+            
+        *Coefficient*: ``"CA"`` | ``"CY"`` | {``"CN"``} | ``"CLL"`` | ``"CLM"``
+        | ``"CLN"`` | :class:`list`
+        
+            Force or moment coefficient(s) to plot, any of ``"CA"``
+            
+        *Delta*: {``0.0``} | :class:`float`
+            If nonzero, plot a horizontal line this value above and below the
+            iterative mean, by default with a dashed red line
+            
+        *StandardDeviation*: {``0.0``} | :class:`float`
+            If nonzero, plot a rectangular box centered on the iterative mean
+            value and spanning vertically above and below the mean this number
+            times the iterative standard deviation; the width of the box shows
+            the iteration window used to compute the statistics
+            
+        *IterativeError*: {``0.0``} | :class:`float`
+            If nonzero, plot a rectangular box centered on the iterative mean
+            value and spanning vertically above and below the mean this number
+            times the iterative uncertainty; the width of the box shows
+            the iteration window used to compute the statistics
+            
+        *ShowMu*: {``[true, false]``} | ``true`` | ``false`` | :class:`list`
+            Whether or not to print the mean value in the upper right corner of
+            the plot; by default show the value of the first
+            component/coefficient and not for the others
+            
+        *ShowSigma*: {``[true, false]``} | ``true`` | ``false`` | :class:`list`
+            Whether or not to print the standard deviation in the upper left
+            
+        *ShowDelta*: {``[true, false]``} | ``true`` | ``false`` | :class:`list`
+            Whether or not to print the fixed delta value in the upper right
+            
+        *ShowEpsilon*: ``true`` | {``false``}
+            Whether or not to print iterative uncertainty in upper left
+            
+        *Format*: {``"pdf"``} | ``"svg"`` | ``"png"`` | :class:`str`
+            Format of graphic file to save
+            
+        *DPI*: {``150``} | :class:`int`
+            Resolution (dots per inch) if saved as a raster format
+            
+        *LineOptions*: {``{"color":["k","g","c","m","b","r"]}``} | :class:`dict`
+            Plot options for the primary iterative plot; options are passed to
+            :func:`matplotlib.pyplot.plot`, and lists are cycled through, so the
+            default plots the first history in black, the second in green, etc.
+            
+        *MeanOptions*: {``{"ls": null}``} | :class:`dict`
+            Plot options for the iterative mean value; most options are
+            inherited from *LineOptions*, and setting *ls* to ``None`` as in the
+            default creates a dotted line that is dashed for the iterations used
+            to compute the mean
+            
+        *StDevOptions*: {``{"facecolor": "b", "alpha": 0.35, "ls": "none"}``} |
+        :class:`dict`
+        
+            Plot options for standard deviation plots; options are passed to
+            :func:`matplotlib.pyplot.fill_between`
+            
+        *ErrPlotOptions*: {``{"facecolor": "g", "alpha": 0.4, "ls": "none"}``} |
+        :class:`dict`
+        
+            Plot options for iterative uncertainty window, passed to
+            :func:`matplotlib.pyplot.fill_between`
+            
+        *DeltaOptions*: {``{"color": null}``} | :class:`dict`
+            Plot options for fixed interval plot, passed to
+            :func:`matplotlib.pyplot.plot`
+        
+A typical application of this subfigure involves plotting multiple coefficients,
+and it is often advantageous to define a new subfigure class and allow most of
+the plotting options to "cascade."  Consider the following example used to
+define plots of the force coefficients on left and right wings of some geometry.
+
+    .. code-block:: javascript
+    
+        "Subfigures": {
+            "WingCA": {
+                "Type": "PlotCoeff",
+                "Component": ["LeftWing", "RightWing"],
+                "Coefficient": "CA",
+                "LineOptions": {"color": ["k", "g"]},
+                "StandardDeviation": 1.0
+            },
+            "WingCN": {
+                "Type": "WingCA",
+                "Coefficient": "CN"
+            },
+            "LeftWingCY": {
+                "Type": "WingCA",
+                "Coefficient": "CY",
+                "Component": "LeftWing"
+            },
+            "RightWingCY": {
+                "Type": "LeftWingCY",
+                "Component": "RightWing",
+                "LineOptions": {"color": "g"}
+            }
+            
+The example creates four iterative history plots without having to repeat all
+the options for each subfigure.  All four plots will use a *StandardDeviation*
+value of ``1.0``.  Also note how multiple levels of recursion are allowed as
+shown by the last subfigure which uses ``"LeftWingCY" --> "WingCA" -->
+"PlotCoeff"`` for the *Type* specification.
+
+
+.. _cape-json-ReportSweepCoeff:
+
+Force and Moment Coefficient Sweep Plots
+----------------------------------------
+The ``"SweepCoeff"`` class of subfigure is used to plot one or more force or
+moment coefficients for a sweep of cases.  For example, it can be used to plot
+normal force coefficient versus Mach number for cases having the same angle of
+attack and sideslip angle.  If the sweep including this subfigure have
+*CarpetEqCons* or *CarpetTolCons* specified, the plots on each page (i.e. for
+each sweep) will be divided into multiple lines as divided by the carpet
+constraints.
+
+    *S*: :class:`dict`
+        Dictionary of settings for *SweepCoeff* subfigure
+        
+        *Type*: {``"PlotCoeff"``} | :class:`str`
+            Subfigure type
+            
+        *Header*: {``""``} | :class:`str`
+            Heading placed above subfigure (bold, italic)
+            
+        *Position*: ``"t"`` | ``"c"`` | {``"b"``}
+            Vertical alignment of subfigure
+            
+        *Alignment*: ``"left"`` | {``"center"``}
+            Horizontal alignment
+            
+        *Width*: {``0.5``} | :class:`float`
+            Width of subfigure as a fraction of page text width
+            
+        *FigWidth*: {``6.0``} | :class:`float`
+            Width of figure internally to Python; affects aspect ratio of figure
+            and font size when integrated into report; decrease this parameter
+            to make text appear larger in report
+            
+        *FigHeight*: {``4.5``} | :class:`float`
+            Similar to *FigWidth* and primarily used to set aspect ratio
+        
+        *Component*: {``"entire"``} | :class:`str` | :class:`list`
+            Component or list of components to plot, must be name(s) of
+            components defined in :file:`Config.xml`
+            
+        *Coefficient*: ``"CA"`` | ``"CY"`` | {``"CN"``} | ``"CLL"`` | ``"CLM"``
+        | ``"CLN"`` | :class:`list`
+        
+            Force or moment coefficient(s) to plot, any of ``"CA"``
+            
+        *StandardDeviation*: {``0.0``} | :class:`float`
+            If nonzero, plot the value *StandardDeviation* above and below the
+            mean value at each point
+            
+        *MinMax*: ``true`` | {``false``}
+            Whether or not to plot minimum and maximum value over iterative
+            history
+            
+        *Format*: {``"pdf"``} | ``"svg"`` | ``"png"`` | :class:`str`
+            Format of graphic file to save
+            
+        *DPI*: {``150``} | :class:`int`
+            Resolution (dots per inch) if saved as a raster format
+            
+        *LineOptions*: {``{"color": "k", "marker": ["^","s","o"]}``} |
+        :class:`dict`
+        
+            Plot options for the plot value; options are passed to
+            :func:`matplotlib.pyplot.plot`, and lists are cycled through, so the
+            default plots the first line with a ``"^"`` marker, etc.
+            
+        *TargetOptions*: {``{"color": "r", "marker": ["^","s","o"]}``} |
+        :class:`dict`
+        
+            Plot options for target value plot if the data book contains a
+            target for the current component and coefficient
+            
+        *MinMaxOptions*: {``{"facecolor":"g", "alpha":0.4, "lw":0}``} |
+        :class:`dict`
+        
+            Options for plot of min/max value over iterative window, passed to
+            :func:`matplotlib.pyplot.fill_between`
+            
+        *StDevOptions*: {``{"facecolor":"b", "alpha":0.35, "lw":0}``} |
+        :class:`dict`
+        
+            Plot options for standard deviation plots; options are passed to
+            :func:`matplotlib.pyplot.fill_between`
+            
+        *PlotTypeMinMax*: {``"FillBetween"``} | ``"ErrorBar"``
+            Method for plotting range of values for min/max values
+            
+        *PlotTypeUncertainty*: ``"FillBetween"`` | {``"ErrorBar"``}
+            Method for plotting range of values for sampling error
+            
+        *PlotTypeStDev*: {``"FillBetween"``} | ``"ErrorBar"``
+            Method for plotting range of values for standard deviation plot
 
