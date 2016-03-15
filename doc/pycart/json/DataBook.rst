@@ -102,7 +102,7 @@ The following dictionary of options describes the general options.
         :class:`list`); ignored if not the name of a trajectory variable
         
 These options are relatively straightforward.  The result of creating or
-updating the data book will be a file such as :file:`aero_CORE_No_Base.csb`,
+updating the data book will be a file such as :file:`aero_CORE_No_Base.csv`,
 :file:`aero_LSRB_No_Base.csv`, etc. for each component in the *Components* list.
 These files will be placed in the location *Folder*, which is created if
 necessary.

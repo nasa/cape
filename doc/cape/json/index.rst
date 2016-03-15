@@ -98,4 +98,5 @@ follow.
     Archive
     Config
     DataBook
+    Report
     
