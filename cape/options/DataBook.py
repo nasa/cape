@@ -494,7 +494,7 @@ class DataBook(odict):
             *comp*: :class:`str`
                 Name of component
         :Outputs:
-            *ctype*: [ {Force} | Moment | FM | PointSensor ]
+            *ctype*: {Force} | Moment | FM | PointSensor
                 Data book entry type
         :Versions:
             * 2015-12-14 ``@ddalle``: First version
@@ -549,6 +549,133 @@ class DataBook(odict):
             coeffs = ["Cp"]
         # Output
         return coeffs
+        
+    # Get coefficients for a specific component/coeff
+    def get_DataBookCoeffStats(self, comp, coeff):
+        """Get the list of statistical properties for a specific coefficient
+        
+        :Call:
+            >>> sts = opts.get_DataBookCoeffStats(comp, coeff)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of data book component
+            *coeff*: :class:`str`
+                Name of data book coefficient, e.g. "CA", "CY", etc.
+        :Outputs:
+            *sts*: :class:`list` (mu | std | min | max | err)
+                List of statistical properties for this coefficient
+        :Versions:
+            * 2016-03-15 ``@ddalle``: First version
+        """
+        # Get the component options
+        copts = self.get(comp, {})
+        # Coefficients
+        coeffs = self.get_DataBookCoeffs(comp)
+        # Get the coefficient
+        sts = copts.get(coeff)
+        # Process default if necessary
+        if sts is not None:
+            # Non-default; check the type
+            if type(sts).__name__ not in ['list', 'ndarray']:
+                return TypeError(
+                    "List of statistical properties must be a list")
+            # Output
+            return sts
+        elif coeff in ['x', 'y', 'z', 'X', 'Y', 'Z']:
+            # Coordinates
+            return ['mu']
+        elif coeff in ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']:
+            # Body-frame force/moment
+            return ['mu', 'min', 'max', 'std', 'err']
+        elif coeff in ['CL', 'CN', 'CS']:
+            # Stability-frame force/moment
+            return ['mu', 'min', 'max', 'std', 'err']
+        elif coeff in ['Cp', 'dp', 'p', 'P', 'p/pinf']:
+            # Pressure data
+            return ['mu', 'std', 'min', 'max']
+        elif coeff in ['T', 'T/Tinf', 'a', 'a/ainf']:
+            # Temperature data
+            return ['mu', 'std', 'min', 'max']
+        elif coeff in ['U', 'V', 'W', 'u', 'v', 'w', 'VT', 'vT', 'vt']:
+            # Velocity data
+            return ['mu', 'std', 'min', 'max']
+        elif coeff in ['rho', 'rho/rhoinf']:
+            # Density data
+            return ['mu', 'std', 'min', 'max']
+        elif coeff in ['dCA', 'dCN', 'dCY', 'dCLL', 'dCLM', 'dCLN']:
+            # Sectional loads
+            return ['mu', 'std', 'min', 'max']
+        
+    # Get additional float columns
+    def get_DataBookFloatCols(self, comp):
+        """Get additional numeric columns for component (other than coeffs)
+        
+        :Call:
+            >>> fcols = opts.get_DataBookFloatCols(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of data book component
+        :Outputs:
+            *fcols*: :class:`list` (:class:`str`)
+                List of additional float columns
+        :Versions:
+            * 2016-03-15 ``@ddalle``: First version
+        """
+        # Get the component options
+        copts = self.get(comp, {})
+        # Get data book default
+        fcols_db = self.get("FloatCols")
+        # Get float columns option
+        fcols = copts.get("FloatCols")
+        # Check for default
+        if fcols is not None:
+            # Manual option
+            return fcols
+        elif fcols_db is not None:
+            # Data book option
+            return fcols_db
+        else:
+            # Global default
+            return []
+            
+    # Get integer columns
+    def get_DataBookIntCols(self, comp):
+        """Get integer columns for component
+        
+        :Call:
+            >>> fcols = opts.get_DataBookFloatCols(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of data book component
+        :Outputs:
+            *fcols*: :class:`list` (:class:`str`)
+                List of additional float columns
+        :Versions:
+            * 2016-03-15 ``@ddalle``: First version
+        """
+        # Get the component options
+        copts = self.get(comp, {})
+        # Get data book default
+        icols_db = self.get("IntCols")
+        # Get float columns option
+        icols = copts.get("IntCols")
+        # Check for default
+        if icols is not None:
+            # Manual option
+            return icols
+        elif icols_db is not None:
+            # Data book option
+            return icols_db
+        else:
+            # Global default
+            return ['nIter', 'nStats']
+        
         
     # Get data book subcomponents
     def get_DataBookPoints(self, comp):

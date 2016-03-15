@@ -100,14 +100,14 @@ class DataBook(cape.dataBook.DataBook):
                 lineLoad.DBLineLoad(self.x, self.opts, comp))
             
     # Read point sensor (group)
-    def ReadPointSensor(self, name):
+    def ReadPointSensor(self, name, pts=None):
         """Read a point sensor group if it is not already present
         
         :Call:
             >>> DB.ReadPointSensor(name)
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
-                Instance of the pycart data book class
+                Instance of the pyCart data book class
             *name*: :class:`str`
                 Name of point sensor group
         :Versions:
@@ -120,17 +120,63 @@ class DataBook(cape.dataBook.DataBook):
             self.PointSensors = {}
         # Initialize the group if necessary
         try:
+            # Check for DataBook PointGroup
             self.PointSensors[name]
+            # Check for points
+            if pts is None: pts = self.opts.get_DBGroupPoints(name)
+            # Check for all the points
+            for pt in pts:
+                # Check the point
+                try:
+                    self.PointSensors[name][pt]
+                    continue
+                except Exception:
+                    # Read the new point
+                    self.PointSensors[name][pt] = self._DBPointSensor(
+                        self.x, self.opts, pt, name)
         except Exception:
             # Safely go to root directory
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read the point sensor.
-            self.PointSensors[name] = pointSensor.DBPointSensorGroup(
-                self.x, self.opts, name, RootDir=self.RootDir)
+            self.PointSensors[name] = self._DBPointSensorGroup(
+                self.x, self.opts, name, pts=pts, RootDir=self.RootDir)
             # Return to starting locaiton
             os.chdir(fpwd)
     
+    # Read point sensor (point to correct class)
+    def _DBPointSensorGroup(self, *a, **kw):
+        """Read pyCart data book point sensor group
+        
+        :Call:
+            >>> DBP = DB._DBPointSensorGroup(*a, **kw)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+        :Outputs:
+            *DBP*: :class:`pyCart.pointSensor.DBPointSensorGroup`
+                Data book point sensor group
+        :Versions:
+            * 2016-03-15 ``@ddalle``: First version
+        """
+        return pointSensor.DBPointSensorGroup(*a, **kw)
+    
+    # Read point sensor (point to correct class)
+    def _DBPointSensor(self, *a, **kw):
+        """Read pyCart data book point sensor
+        
+        :Call:
+            >>> DBP = DB._DBPointSensor(*a, **kw)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+        :Outputs:
+            *DBP*: :class:`pyCart.pointSensor.DBPointSensor`
+                Data book point sensor
+        :Versions:
+            * 2016-03-15 ``@ddalle``: First version
+        """
+        return pointSensor.DBPointSensor(*a, **kw)
     
     # Update data book
     def UpdateDataBook(self, I=None):

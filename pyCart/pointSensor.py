@@ -174,6 +174,8 @@ class DBPointSensorGroup(dict):
             Options interface
         *name*: :class:`str` | ``None``
             Name of data book item (defaults to *pt*)
+        *pts*: :class:`list` (:class:`str`) | ``None``
+            List of points to read, by default all points in the group
         *RootDir*: :class:`str` | ``None``
             Project root directory absolute path, default is *PWD*
     :Outputs:
@@ -197,7 +199,7 @@ class DBPointSensorGroup(dict):
         # Save the name
         self.name = name
         # Get the list of points.
-        self.pts = opts.get_DBGroupPoints(name)
+        self.pts = kw.get('pts', opts.get_DBGroupPoints(name))
         # Loop through the points.
         for pt in self.pts:
             self[pt] = DBPointSensor(x, opts, pt, name)
@@ -368,46 +370,35 @@ class DBPointSensor(cape.dataBook.DBBase):
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
+        # Save relevant inputs
+        self.x = x
+        self.opts = opts
+        self.pt = pt
+        # Save data book title
+        if name is None:
+            # Default name
+            self.comp = pt
+        else:
+            # Specified name
+            self.comp = name
+        
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
         # Folder containing the data book
         fdir = opts.get_DataBookDir()
         # Folder name for compatibility
         fdir = fdir.replace("/", os.sep)
+        fdir = fdir.replace("\\", os.sep)
         
         # File name
         fpt = 'pt_%s.csv' % pt
         # Absolute path to point sensors
         fname = os.path.join(fdir, fpt)
-        
-        # Save data book title
-        if name is None:
-            # Default name
-            self.name = pt
-        else:
-            # Specified name
-            self.name = name
-        # Save point name
-        self.pt = pt
-        # Save the CNTL
-        self.x = x
-        self.opts = opts
         # Save the file name
         self.fname = fname
-        # Column types
-        self.xCols = self.x.keys
-        self.fCols = [
-            'X', 'Y', 'Z', 'Cp', 'dp', 'U', 'V', 'W', 'P',
-            'Cp_std', 'Cp_min', 'Cp_max', 'dp_std', 'dp_min', 'dp_max',
-            'rho_std', 'rho_min', 'rho_max', 'U_std', 'U_min', 'U_max',
-            'V_std', 'V_min', 'V_max', 'W_std', 'W_min', 'W_max',
-            'P_std', 'P_min', 'P_max', 'RefLev'
-        ]
-        self.iCols = ['nIter', 'nStats']
-        # Counts
-        self.nxCol = len(self.xCols)
-        self.nfCol = len(self.fCols)
-        self.niCol = len(self.iCols)
+        
+        # Process columns
+        self.ProcessColumns()
         
         # Read the file or initialize empty arrays.
         self.Read(fname)

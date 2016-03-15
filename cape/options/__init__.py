@@ -1078,6 +1078,21 @@ class Options(odict):
         self._DataBook()
         return self['DataBook'].get_DataBookCoeffs(comp)
         
+    # Get list of statistical properties
+    def get_DataBookCoeffStats(self, comp, coeff):
+        self._DataBook()
+        return self['DataBook'].get_DataBookCoeffStats(comp, coeff)
+        
+    # Get list of additional float columns
+    def get_DataBookFloatCols(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookFloatCols(comp)
+    
+    # Get list of integer columns
+    def get_DataBookIntCols(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookIntCols(comp)
+        
     # Get data book targets for a specific coefficient
     def get_CompTargets(self, comp):
         self._DataBook()
@@ -1131,7 +1146,8 @@ class Options(odict):
     # Copy over the documentation.
     for k in ['DataBookComponents', 'DataBookLineLoads',
             'DataBookType', 'DataBookPoints', 'DBGroupPoints',
-            'DataBookCoeffs', 'DataBookTargets',
+            'DataBookCoeffs', 'DataBookTargets', 'DataBookCoeffStats',
+            'DataBookFloatCols', 'DataBookIntCols',
             'DataBookCols', 'CompTargets', 'DataBookTransformations',
             'DataBookDataCols', 'DataBookTargetCols', 'DataBookTargetByName',
             'LineLoadComponents', 'LineLoad_nCut',

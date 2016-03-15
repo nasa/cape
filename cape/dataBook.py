@@ -966,7 +966,13 @@ class DBBase(dict):
         
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
+            * 2016-03-15 ``@ddalle``: Generalized column names
         """
+        # Save relevant inputs
+        self.x = x
+        self.opts = opts
+        self.comp = comp
+        
         # Get the directory.
         fdir = opts.get_DataBookDir()
         
@@ -974,26 +980,18 @@ class DBBase(dict):
         fcomp = 'aero_%s.csv' % comp
         # Folder name for compatibility.
         fdir = fdir.replace("/", os.sep)
+        fdir = fdir.replace("\\", os.sep)
         # Construct the full file name.
         fname = os.path.join(fdir, fcomp)
-        
-        # Save relevant information
-        self.x = x
-        self.opts = opts
-        self.comp = comp
-        # Save column names.
-        self.xCols = x.keys
-        self.fCols = []
-        self.iCols = []
-        # Counts
-        self.nxCol = len(self.xCols)
-        self.nfCol = len(self.fCols)
-        self.niCol = len(self.iCols)
         # Save the file name.
         self.fname = fname
+        self.fdir = fdir
+        
+        # Process columns
+        self.ProcessColumns()
         
         # Read the file or initialize empty arrays.
-        self.Read(fname)
+        self.Read(self.fname)
             
     # Command-line representation
     def __repr__(self):
@@ -1007,6 +1005,71 @@ class DBBase(dict):
     # String conversion
     __str__ = __repr__
     
+    # Process columns
+    def ProcessColumns(self):
+        """Process column names
+        
+        :Call:
+            >>> DBi.ProcessColumns()
+        :Inputs:
+            *DBi*: :class:`cape.dataBook.DBBase`
+                Data book base object
+        :Effects:
+            *DBi.xCols*: :class:`list` (:class:`str`)
+                List of trajectory keys
+            *DBi.fCols*: :class:`list` (:class:`str`)
+                List of floating point data columns
+            *DBi.iCols*: :class:`list` (:class:`str`)
+                List of integer data columns
+            *DBi.cols*: :class:`list` (:class:`str`)
+                Total list of columns
+            *DBi.nxCol*: :class:`int`
+                Number of trajectory keys
+            *DBi.nfCol*: :class:`int`
+                Number of floating point keys
+            *DBi.niCol*: :class:`int`
+                Number of integer data columns
+            *DBi.nCol*: :class:`int`
+                Total number of columns
+        :Versions:
+            * 2016-03015 ``@ddalle``: First version
+        """
+        # Get coefficients
+        coeffs = self.opts.get_DataBookCoeffs(self.comp)
+        # Initialize columns for coefficients
+        cCols = []
+        # Check for mean
+        for coeff in coeffs:
+            # Get list of stats for this column
+            cColi = self.opts.get_DataBookCoeffStats(self.comp, coeff)
+            # Check for 'mu'
+            if 'mu' in cColi: cCols.append(coeff)
+        # Add list of statistics for each column
+        for coeff in coeffs:
+            # Get list of stats for this column
+            cColi = self.opts.get_DataBookCoeffStats(self.comp, coeff)
+            # Remove 'mu' from the list
+            if 'mu' in cColi:
+                cColi.remove('mu')
+            # Append to list
+            for c in cColi:
+                cCols.append('%s_%s' % (coeff,c))
+        # Get additional float columns
+        fCols = self.opts.get_DataBookFloatCols(self.comp)
+        iCols = self.opts.get_DataBookIntCols(self.comp)
+        
+        # Save column names.
+        self.xCols = self.x.keys
+        self.fCols = cCols + fCols
+        self.iCols = iCols
+        self.cols = self.xCols + self.fCols + self.iCols
+        # Counts
+        self.nxCol = len(self.xCols)
+        self.nfCol = len(self.fCols)
+        self.niCol = len(self.iCols)
+        self.nCol = len(self.cols)
+        
+    
     # Read point sensor data
     def Read(self, fname=None):
         """Read a data book statistics file for a single point sensor
@@ -1015,8 +1078,8 @@ class DBBase(dict):
             >>> DBP.Read()
             >>> DBP.Read(fname)
         :Inputs:
-            *DBP*: :class:`pyCart.pointSensor.DBPointSensor`
-                An individual point sensor data book
+            *DBP*: :class:`cape.dataBook.DBBase`
+                Data book base object
             *fname*: :class:`str`
                 Name of data file to read
         :Versions:
@@ -1024,40 +1087,12 @@ class DBBase(dict):
         """
         # Check for default file name
         if fname is None: fname = self.fname
-        # Try to read the file.
+        # Process converters
+        self.ProcessConverters()
+        # Check for the readability of the file
         try:
-            # Data book delimiter
-            delim = self.opts.get_Delimiter()
-            # Initialize column number.
-            nxCol = 0
-            # Loop through the trajectory keys.
-            for k in self.xCols:
-                # Get the type.
-                t = self.x.defns[k].get('Value', 'float')
-                # Convert type.
-                if t in ['hex', 'oct', 'octal', 'bin']: t = 'int'
-                # Read the column
-                self[k] = np.loadtxt(fname,
-                    delimiter=delim, dtype=str(t), usecols=[nxCol])
-                # Fix single-entry values.
-                if self[k].ndim == 0: self[k] = np.array([self[k]])
-                # Increase the column number.
-                nxCol += 1
-            # Read the float columns
-            A = np.loadtxt(fname, delimiter=delim, dtype=float,
-                usecols=range(nxCol,nxCol+self.nfCol))
-            # Read the integer columns
-            B = np.loadtxt(fname, delimiter=delim, dtype=int,
-                usecols=range(nxCol+self.nfCol,nxCol+self.nfCol+self.niCol))
-            # Fix single-entry values.
-            if A.ndim == 1:
-                A = np.array([A])
-                B = np.array([B])
-            # Distribute.
-            for i in range(self.nfCol):
-                self[self.fCols[i]] = A[:,i]
-            for i in range(self.niCol):
-                self[self.iCols[i]] = B[:,i]
+            # Estimate length of file and find first data row
+            nRow, pos = self.EstimateLineCount(fname)
         except Exception:
             # Initialize empty trajectory arrays
             for k in self.xCols:
@@ -1073,8 +1108,189 @@ class DBBase(dict):
             # Initialize integer counts
             for col in self.iCols:
                 self[col] = np.array([], dtype=int)
-        # Number of cases
-        self.n = len(self[k])
+        # Data book delimiter
+        delim = self.opts.get_Delimiter()
+        # Full list of columns
+        cols = self.xCols + self.fCols + self.iCols
+        # List of converters
+        conv = []
+        # Number of columns
+        nCol = len(cols)
+        # Initialize trajectory columns
+        for k in self.xCols:
+            # Get the type
+            t = self.x.defns[k].get('Value', 'float')
+            # Convert type
+            dt = 'int' if t in ['hex','oct','octal','bin'] else t
+            # Initialize the key
+            self[k] = np.zeros(nRow, dtype=str(dt))
+        # Initialize float columns
+        for k in self.fCols:
+            self[k] = np.nan*np.zeros(nRow, dtype='float')
+        # Initialize int columns
+        for k in self.iCols:
+            self[k] = np.nan*np.zeros(nRow, dtype='int')
+        # Open the file
+        f = open(fname)
+        # Go to first data position
+        f.seek(pos)
+        # Warning counter
+        nWarn = 0
+        # Initialize count
+        n = 0
+        # Read next line
+        line = f.readline()
+        # Loop through file
+        while line != '' and n < nRow:
+            # Strip line
+            line = line.strip()
+            # Check for comment
+            if line.startswith('#'): continue
+            # Check for empty line
+            if len(line) == 0: continue
+            # Split into values
+            V = line.split(delim)
+            # Check count
+            if len(V) != nCol:
+                # Increase count
+                nWarn += 1
+                # If too many warnings, exit
+                if nWarn > 50:
+                    raise IOError("Too many warnings")
+                print("  Warning #%i in file '%s'" % (nWarn, fname))
+                print("    Error in data line %i" % n)
+                print("    Expected %i values but found %i" % (nCol,len(V)))
+                continue
+            # Process data
+            for i in range(nCol):
+                # Get key
+                k = cols[i]
+                # Save value
+                self[k][n] = self.rconv[i](V[i])
+            # Increase count
+            n += 1
+            # Read next line
+            line = f.readline()
+        # Trim columns
+        for k in self.cols:
+            self[k] = self[k][:n]
+        # Save column number
+        self.n = n
+        
+    # Estimate number of lines in a file
+    def EstimateLineCount(self, fname=None):
+        """Get a conservative (high) estimate of the number of lines in a file
+        
+        :Call:
+            >>> n, pos = DBP.EstimateLineCount(fname)
+        :Inputs:
+            *DBP*: :class:`cape.dataBook.DBBase`
+                Data book base object
+            *fname*: :class:`str`
+                Name of data file to read
+        :Outputs:
+            *n*: :class:`int`
+                Conservative estimate of length of file
+            *pos*: :class:`int`
+                Position of first data character
+        :Versions:
+            * 2016-03-15 ``@ddalle``: First version
+        """
+        # Check for default file name
+        if fname is None: fname = self.fname
+        # Open the file
+        f = open(fname)
+        # Initialize line
+        line = '#\n'
+        # Loop until not a comment
+        while line.startswith('#'):
+            # Save position
+            pos = f.tell()
+            # Read next line
+            line = f.readline()
+        # Get new position to measure length of a single line
+        pos1 = f.tell()
+        # Move to end of file
+        f.seek(0, 2)
+        # Get current position
+        iend = f.tell()
+        # Close file
+        f.close()
+        # Estimate line count
+        if pos == pos1:
+            # No data
+            n = 1
+        else:
+            # Divide length of data section by length of single line
+            n = int(2*np.ceil(float(iend-pos) / float(pos1-pos)))
+        # Output
+        return n, pos
+        
+    # Set converters
+    def ProcessConverters(self):
+        """Process the list of converters to read and write each column
+        
+        :Call:
+            >>> DBP.ProcessConverters()
+        :Inputs:
+            *DBP*: :class:`cape.dataBook.DataBookBase`
+                Data book base object
+        :Effects:
+            *DBP.rconv*: :class:`list` (:class:`function`)
+                List of read converters
+            *DBP.wflag*: :class:`list` (%i | %.12g | %s)
+                List of write flags
+        :Versions:
+            * 2016-03-15 ``@ddalle``: First version
+        """
+        # Full list of columns
+        cols = self.xCols + self.fCols + self.iCols
+        # List of converters
+        self.rconv = []
+        self.wflag = []
+        # Number of columns
+        nCol = len(cols)
+        # Initialize trajectory columns
+        for k in self.xCols:
+            # Get the type
+            t = self.x.defns[k].get('Value', 'float')
+            # Set the converter
+            if t == 'float':
+                # Float value
+                self.rconv.append(float)
+                self.wflag.append('%.12g')
+            elif t == 'int':
+                # Regular integer value
+                self.rconv.append(int)
+                self.wflag.append('%i')
+            elif t in ['str']:
+                # String value
+                self.rconv.append(str)
+                self.wflag.append('%s')
+            elif t in ['unicode']:
+                # Unicode string
+                self.rconv.append(unicode)
+                self.wflag.append('%s')
+            elif t in ['oct', 'octal']:
+                # Octal integer
+                self.rconv.append(lambda v: eval('0o'+v))
+                self.wflag.append('%i')
+            elif t in ['bin', 'binary']:
+                # Binary integer
+                self.rconv.append(lambda v: eval('0b'+v))
+                self.wflag.append('%i')
+            elif t in ['hex']:
+                # Hexadecimal integer
+                self.rconv.append(lambda v: eval('0x'+v))
+                self.wflag.append('%i')
+        # Initialize float columns
+        for k in self.fCols:
+            self.rconv.append(float)
+            self.wflag.append('%.12g')
+        # Initialize int columns
+        for k in self.iCols:
+            self.rconv.append(int)
+            self.wflag.append('%.12g')
         
     # Output
     def Write(self, fname=None):
@@ -1111,22 +1327,21 @@ class DBBase(dict):
         # Empty line.
         f.write('#\n#')
         # Variable list
-        f.write(delim.join(self.xCols) + ' ')
-        f.write(delim.join(self.fCols) + ' ')
+        f.write(delim.join(self.xCols) + delim)
+        f.write(delim.join(self.fCols) + delim)
         f.write(delim.join(self.iCols) + '\n')
         # Loop through database entries
         for i in np.arange(self.n):
-            # Write the trajectory values.
-            for k in self.xCols:
-                f.write('%s%s' % (self[k][i], delim))
-            # Write data values
-            for k in self.fCols:
-                f.write('%s%s' % (self[k][i], delim))
-            # Iteration counts
-            for k in self.iCols[:-1]:
-                f.write('%i%s' % (self[k][i], delim))
+            # Loop through columns
+            for j in range(self.nCol-1):
+                # Get column name
+                k = self.cols[j]
+                # Write the value
+                f.write((self.wflag[j] % self[k][i]) + delim)
             # Last column
-            f.write('%i\n' % self[self.iCols[-1]][i])
+            k = self.cols[-1]
+            # Write the last column
+            f.write((self.wflag[-1] % self[k][-1]) + '\n')
         # Close the file.
         f.close()
         
@@ -1309,7 +1524,7 @@ class DBBase(dict):
 
 
 # Data book for an individual component
-class DBComp(dict):
+class DBComp(DBBase):
     """
     Individual component data book
     
@@ -1336,8 +1551,11 @@ class DBComp(dict):
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
         """
-        # Get the list of columns for that coefficient.
-        cols = opts.get_DataBookCols(comp)
+        # Save relevant inputs
+        self.x = x
+        self.opts = opts
+        self.comp = comp
+        
         # Get the directory.
         fdir = opts.get_DataBookDir()
         
@@ -1345,23 +1563,23 @@ class DBComp(dict):
         fcomp = 'aero_%s.csv' % comp
         # Folder name for compatibility.
         fdir = fdir.replace("/", os.sep)
+        fdir = fdir.replace("\\", os.sep)
         # Construct the full file name.
         fname = os.path.join(fdir, fcomp)
-        
-        # Save relevant information
-        self.x = x
-        self.opts = opts
-        self.comp = comp
-        self.cols = cols
-        # Save the target translations.
-        self.targs = opts.get_CompTargets(comp)
-        # Divide columns into parts.
-        self.DataCols = opts.get_DataBookDataCols(comp)
         # Save the file name.
         self.fname = fname
+        self.fdir = fdir
+        
+        # Process columns
+        self.ProcessColumns()
         
         # Read the file or initialize empty arrays.
-        self.Read(fname)
+        self.Read(self.fname)
+        
+        # Save the target translations
+        self.targs = opts.get_CompTargets(comp)
+        # Divide columns into parts
+        self.DataCols = opts.get_DataBookDataCols(comp)
             
     # Command-line representation
     def __repr__(self):
@@ -1379,6 +1597,7 @@ class DBComp(dict):
     # String conversion
     __str__ = __repr__
     
+    '''
     # Function to read data book files
     def Read(self, fname=None):
         """Read a single data book file or initialize empty arrays
@@ -1530,7 +1749,7 @@ class DBComp(dict):
             f.write('%i%s%i\n' % (self['nIter'][i], delim, self['nStats'][i]))
         # Close the file.
         f.close()
-        
+    
     # Function to get sorting indices.
     def ArgSort(self, key=None):
         """Return indices that would sort a data book by a trajectory key
@@ -1706,6 +1925,7 @@ class DBComp(dict):
         except Exception:
             # Return no match.
             return np.nan
+    '''
 # class DBComp
 
 
