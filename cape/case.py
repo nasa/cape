@@ -139,7 +139,6 @@ def PrepareEnvironment(rc, i=0):
     SetResourceLimit(resource.RLIMIT_NOFILE,  ulim, 'n', i, 1)
     SetResourceLimit(resource.RLIMIT_CPU,     ulim, 't', i, 1)
     SetResourceLimit(resource.RLIMIT_NPROC,   ulim, 'u', i, 1)
-    SetResourceLimit(resource.RLIMIT_VMEM,    ulim, 'v', i, 1024)
     
     
 # Set resource limit
@@ -167,9 +166,9 @@ def SetResourceLimit(r, ulim, u, i=0, unit=1024):
     # Get the value of the limit
     l = ulim.get_ulimit(u, i)
     # Get the type of the input
-    t = type(val).__name__
+    t = type(l).__name__
     # Check the type
-    if t in ['int', 'float'] and val > 0:
+    if t in ['int', 'float'] and l > 0:
         # Set the value numerically
         try:
             resource.setrlimit(r, (unit*l, unit*l))
