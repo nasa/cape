@@ -1,4 +1,6 @@
 
+.. _pycart-json-Config:
+
 --------------------------------
 Surface Configuration and Naming
 --------------------------------
@@ -18,14 +20,27 @@ lists the defaults.
     .. code-block:: javascript
     
         "Config": {
+            // Config file
             "File": "Config.xml",
+            // Reference values
             "RefArea": 1.0,
-            "RefLength": 1.0,
-            "RefPoint": [0.0, 0.0, 0.0],
-            "Force": ["entire"],
+            "RefLength": {
+                "total": 0.5,
+                "wing": 1.0
+            },
+            // Moment history requests with MRP
+            "RefPoint": {
+                "total": "MRP",
+                "wing": "MRP"
+            },
+            // Force history requests
+            "Force": ["entire", "total", "wing"],
+            // Coordinates at which to output volume slices
             "Xslices": [],
             "Yslices": [],
-            "Zslices": []
+            "Zslices": [],
+            // Locations at which to sample flow state
+            "PointSensors": []
         }
         
 These are indeed the defaults, but this example is misleadingly simple.  The
@@ -56,6 +71,15 @@ The full dictionary of "Config" options is shown below.
     *File*: {``Config.xml``} | :class:`str`
         Name of XML file containing component names and groupings
         
+    *Force*: {``["entire"]``} | :class:`list` (:class:`str`)
+        List of components on which to request force history
+        
+    *Points*: {``{}``} | :class:`dict` (:class:`list`)
+        Dictionary of named points and their coordinates
+        
+    *PointSensors*: {``[]``} | :class:`list` (:class:`list` | :class:`str`)
+        List of named points or point coordinates
+        
     *RefArea*: {``1.0``} | :class:`float` | :class:`dict` (:class:`float`)
         Reference area or :class:`dict` of reference areas for different
         components
@@ -64,12 +88,9 @@ The full dictionary of "Config" options is shown below.
         Reference length or :class:`dict` of reference lengths for different
         components
         
-    *RefPoint*: {``[0.0, 0.0, 0.0]``} | :class:`dict` (:class:`list`)
+    *RefPoint*: {``[0.0, 0.0, 0.0]``} | :class:`dict` | :class:`list`
         Three-dimensional float specifying global reference point or
         :class:`dict` of components and their moment reference points
-        
-    *Force*: {``["entire"]``} | :class:`list` (:class:`str`)
-        List of components on which to request force history
         
     *Xslices*: {``[]``} | ``[0.0]`` | :class:`list` (:class:`float`)
         List of x-coordinates at which to extract cut planes
@@ -79,3 +100,5 @@ The full dictionary of "Config" options is shown below.
         
     *Zslices*: {``[]``} | ``[0.0]`` | :class:`list` (:class:`float`)
         List of z-coordinates at which to extract cut planes
+
+

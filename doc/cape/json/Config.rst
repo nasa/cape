@@ -23,11 +23,16 @@ The JSON syntax with some nontrivial values is below.
                 "wing": 1.0
             },
             "RefPoint": "MRP",
-            "Point": {
+            "Points": {
                 "MRP": [0.0, 0.0, 0.0],
                 "CG": [2.5. 0.0, 0.2]
             }
         }
+        
+Links to additional options for each specific solver are found below.
+
+    * :ref:`Cart3D <pycart-json-Config>`
+    * :ref:`FUN3D <pyfun-json-Config>`
         
 The *Components* parameter defines a list of components that the user wants Cape
 to know about.  Quite often, the meaning of the named component is actually
@@ -59,8 +64,12 @@ The dictionary of options is given below.
     *ConfigFile*: {``"Config.xml"``} | :class:`str`
         Name of file defining surface and/or volume grid subsets
         
+    *Points*: {``{}``} | :class:`dict` (:class:`list`)
+        Dictionary of named points and their coordinates
+        
     *RefArea*: {``3.14159``} | :class:`float` | :class:`dict` (:class:`float`)
         Reference area or dictionary of reference areas
         
     *RefLength*: {``1.0``} | :class:`float` | :class:`dict` (:class:`float`)
         Reference length or dictionary of reference lengths
+

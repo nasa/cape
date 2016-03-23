@@ -50,6 +50,12 @@ manage unneeded files upon completion of runs, which often becomes an important
 feature.  On some file systems, file count is also an important limitation, and
 the methods can also help manage that aspect without deleting files via creation
 of tar balls.
+        
+Links to default options for each specific solver are found below.
+
+    * :ref:`Cart3D <pycart-json-Archive>`
+    * :ref:`FUN3D <pyfun-json-Archive>`
+    * :ref:`OVERFLOW <pyover-json-Archive>`
 
 .. _cape-json-Archive-basic:
 

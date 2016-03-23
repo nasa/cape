@@ -67,6 +67,12 @@ The universal options for this section have the following JSON syntax.
             }
         }
         
+Links to additional options for each specific solver are found below.
+
+    * :ref:`Cart3D <pycart-json-RunControl>`
+    * :ref:`FUN3D <pyfun-json-RunControl>`
+    * :ref:`OVERFLOW <pyover-json-RunControl>`
+        
 .. _cape-json-PhaseControl:
 
 Phase Control Options

@@ -145,11 +145,10 @@ of how the options are used.
     flowCart
     adjointCart
     Adaptation
+    Archive
     Mesh
     Config
     Functional
-    Management
-    Plot
     DataBook
     Report
     Trajectory

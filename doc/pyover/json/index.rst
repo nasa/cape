@@ -77,6 +77,9 @@ the major parts of the file.
             // Settings for creating PBS scripts, if applicable
             "PBS": {},
             
+            // Namelist inputs
+            "Overflow": {},
+            
             // Primary settings for running Cart3D
             "RunControl": {
                 // Overall control of mode and number of iterations
@@ -125,5 +128,6 @@ of how the options are used.
     
     uncategorized
     PBS
-    
+    runControl
+    Archive
     
