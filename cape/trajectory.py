@@ -12,6 +12,8 @@ import numpy as np
 import re, fnmatch
 # File system and operating system management
 import os
+# Conversions and constants
+from . import convert
 
 
 # Trajectory class
@@ -1341,7 +1343,63 @@ class Trajectory:
         KV = np.array([self.defns[k]['Value'] for k in self.keys])
         # Return matches
         return np.array(self.keys)[KV == val]
-            
+    
+    # Get Reynolds number and temperature
+    def GetReynoldsNumber(self, i):
+        """Get Reynolds number (per inch)
+        
+        :Call:
+            >>> Re = x.GetReynoldsNumber(i)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *Re*: :class:`float`
+                Reynolds number per foot
+        :Versions:
+            * 2016-03-23 ``@ddalle``: First version
+        """
+        # Process the key types.
+        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+        # Check for Reynolds number
+        if 'Re' in KeyTypes:
+            # Find the key.
+            k = self.GetKeysByType('Re')[0]
+            # Set the value.
+            return getattr(self,k)[i]
+        # If reached here, we need 'T' and "Mach' at least
+        if 'Mach' not in KeyTypes:
+            return None
+        elif 'T' not in KeyTypes:
+            return None
+        # Get temperature and Mach keys
+        kM = self.GetKeysByType('Mach')[0]
+        kT = self.GetKeysByType('T')[0]
+        # Get temperature and Mach values
+        M = getattr(self,kM)[i]
+        T = getattr(self,kT)[i]
+        # Check for pressure specifier
+        if 'p' in KeyTypes:
+            # Find the key.
+            k = self.GetKeysByType('p')[0]
+            # Get the pressure
+            p = getattr(self,k)[i]
+            # Calculate Reynolds number
+            return convert.ReynoldsPerFoot(p, T, M)
+        elif 'q' in KeyTypes:
+            # Find the key.
+            k = self.GetKeysByType('q')[0]
+            # Get the dynamic pressure
+            q = getattr(self,k)[i]
+            # Calculate static pressure
+            p = q / (0.7*M*M)
+            # Calculate Reynolds number
+            return convert.ReynoldsPerFoot(p, T, M)
+        # If we reach here, missing info.
+        return None
+    
     # Function to assemble a folder name based on a list of keys and an index
     def _AssembleName(self, keys, prefix, i):
         """
