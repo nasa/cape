@@ -49,7 +49,7 @@ class Q(cape.plot3d.Plot3D):
         self.mu0  = 2.2696e-8
         # Sutherland's law reference temperature [R]
         self.TREF = 198.6
-        # Gas constant [unitus ridulous]
+        # Gas constant [unitus ridiculous]
         self.R = 1716.0 
         # Determine endianness
         self.get_byteorder(endian)

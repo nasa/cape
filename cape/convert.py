@@ -1,12 +1,17 @@
 """
-Conversion tools for pyCart
-===========================
+Conversion tools for Cape
+=========================
 
 Perform conversions such as (alpha total, phi) to (alpha, beta).
 """
 
 # Need NumPy for trig.
-import numpy as _np
+import numpy as np
+
+# Conversions
+slug = 14.593903
+inch = 0.0254
+ft = 12*inch
 
 # Convert (total angle of attack, total roll angle) to (aoa, aos)
 def AlphaTPhi2AlphaBeta(alpha_t, phi):
@@ -30,15 +35,15 @@ def AlphaTPhi2AlphaBeta(alpha_t, phi):
         * 2014-06-02 ``@ddalle``: First version
     """
     # Trig functions.
-    ca = _np.cos(alpha_t*_np.pi/180); cp = _np.cos(phi*_np.pi/180)
-    sa = _np.sin(alpha_t*_np.pi/180); sp = _np.sin(phi*_np.pi/180)
+    ca = np.cos(alpha_t*np.pi/180); cp = np.cos(phi*np.pi/180)
+    sa = np.sin(alpha_t*np.pi/180); sp = np.sin(phi*np.pi/180)
     # Get the components of the normalized velocity vector.
     u = ca
     v = sa * sp
     w = sa * cp
     # Convert to alpha, beta
-    alpha = _np.arctan2(w, u) * 180/_np.pi
-    beta = _np.arcsin(v) * 180/_np.pi
+    alpha = np.arctan2(w, u) * 180/np.pi
+    beta = np.arcsin(v) * 180/np.pi
     # Output
     return alpha, beta
     
@@ -66,19 +71,99 @@ def AlphaBeta2AlphaTPhi(alpha, beta):
         * 2014-11-05 ``@ddalle``: Transposed alpha and beta in *w* formula
     """
     # Trig functions.
-    ca = _np.cos(alpha*_np.pi/180); cb = _np.cos(beta*_np.pi/180)
-    sa = _np.sin(alpha*_np.pi/180); sb = _np.sin(beta*_np.pi/180)
+    ca = np.cos(alpha*np.pi/180); cb = np.cos(beta*np.pi/180)
+    sa = np.sin(alpha*np.pi/180); sb = np.sin(beta*np.pi/180)
     # Get the components of the normalized velocity vector.
     u = cb * ca
     v = sb
     w = cb * sa
     # Convert to alpha, beta
-    phi = _np.arctan2(v, w) * 180/_np.pi
-    alpha_t = _np.arccos(u) * 180/_np.pi
+    phi = np.arctan2(v, w) * 180/np.pi
+    alpha_t = np.arccos(u) * 180/np.pi
     # Output
     return alpha_t, phi
     
 
+# Sutherland's law (FPS)
+def SutherlandFPS(T, mu0=None, T0=None, C=None):
+    """Calculate viscosity using Sutherland's law using imperial units
     
+    This returns
+    
+        .. math::
+        
+            \mu = \mu_0 \frac{T_0+C}{T+C}\left(\frac{T}{T_0}\right)^{3/2}
+    
+    :Call:
+        >>> mu = SutherlandFPS(T)
+        >>> mu = SutherlandFPS(T, mu0=None, T0=None, C=None)
+    :Inputs:
+        *T*: :class:`float`
+            Static temperature in degrees Rankine
+        *mu0*: :class:`float`
+            Reference viscosity [slug/ft*s]
+        *T0*: :class:`float`
+            Reference temperature [R]
+        *C*: :class:`float`
+            Reference temperature [R]
+    :Outputs:
+        *mu*: :class:`float`
+            Dynamic viscosity [slug/ft*s]
+    :Versions:
+        * 2016-03-23 ``@ddalle``: First version
+    """
+    # Reference viscosity
+    if mu0 is None: mu0 = 3.58394e-7
+    # Reference temperatures
+    if T0 is None: T0 = 491.67
+    if C  is None: C = 198.6
+    # Sutherland's law
+    return mu0 * (T0+C)/(T+C) * (T/T0)**1.5
+    
+
+# Get Reynolds number
+def ReynoldsPerFoot(p, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
+    """Calculate Reynolds number per foot using Sutherland's Law
+    
+    :Call:
+        >>> Re = ReynoldsPerFoot(p, T, M)
+        >>> Re = ReynoldsPerFoot(p, T, M, gam=None, R=None, T0=None, C=None)
+    :Inputs:
+        *p*: :class:`float`
+            Static pressure [psf]
+        *T*: :class:`float`
+            Static temperature [R]
+        *M*: :class:`float`
+            Mach number
+        *R*: :class:`float`
+            Gas constant [ft^2/s^2*R]
+        *gam*: :class:`float`
+            Ratio of specific heats
+        *mu0*: :class:`float`
+            Reference viscosity [slug/ft*s]
+        *T0*: :class:`float`
+            Reference temperature [R]
+        *C*: :class:`float`
+            Reference temperature [R]
+    :Outputs:
+        *Re*: :class:`float`
+            Reynolds number per foot
+    :Versions:
+        * 2016-03-23 ``@ddalle``: First version
+    """
+    # Gas constant
+    if R is None: R = 1716.0
+    # Ratio of specific heats
+    if gam is None: gam = 1.4
+    # Calculate density
+    rho = p / (R*T)
+    # Sound speed
+    a = np.sqrt(gam*R*T)
+    # Velocity
+    U = M*a
+    # Calculate viscosity
+    mu = SutherlandFPS(T, mu0=mu0, T0=T0, C=C)
+    # Reynolds number per foot
+    return rho*U/mu
     
 
