@@ -1,4 +1,6 @@
 
+.. _pycart-json-Report:
+
 --------------------------------------
 Automated Report Generation with LaTeX
 --------------------------------------

@@ -1,12 +1,12 @@
 
-.. _pycart-json-DataBook:
+.. _pyfun-json-DataBook:
 
 ---------------------
 Data Book Definitions
 ---------------------
 
-The section in :file:`pyCart.json` labeled "DataBook" is an optional section
-used to allow pyCart to create a data book of relevant coefficients and
+The section in :file:`pyFun.json` labeled "DataBook" is an optional section
+used to allow pyFun to create a data book of relevant coefficients and
 statistics.  It enables collecting key results and statistics for entire run
 matrices into a small number of files.
 
@@ -50,4 +50,3 @@ matrices into a small number of files.
         
 All settings, their meanings, and their possible values are described the
 corresponding :ref:`Cape DataBook section <cape-json-DataBook>`.
-

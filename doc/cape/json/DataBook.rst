@@ -49,6 +49,12 @@ capabilities.
             }
         }
         
+Links to default options for each specific solver are found below.
+
+    * :ref:`Cart3D <pycart-json-DataBook>`
+    * :ref:`FUN3D <pyfun-json-DataBook>`
+    * :ref:`OVERFLOW <pyover-json-DataBook>`
+        
 General Data Book Definitions
 =============================
 

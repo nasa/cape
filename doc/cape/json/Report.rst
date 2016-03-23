@@ -85,6 +85,12 @@ the report generation.
                 "mach_CN": {"Type": "mach_CA", "Coefficient": "CN"}
             }
         }
+        
+Links to additional options for each specific solver are found below.
+
+    * :ref:`Cart3D <pycart-json-Report>`
+    * :ref:`FUN3D <pyfun-json-Report>`
+    * :ref:`OVERFLOW <pyover-json-Report>`
 
 These sections are put into action by calls of ``cape --report``, where ``cape``
 can be replaced by ``pycart``, ``pyfun``, or ``pyover``, as appropriate.  This

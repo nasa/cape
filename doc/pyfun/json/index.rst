@@ -127,4 +127,7 @@ of how the options are used.
     runControl
     Archive
     Config
+    DataBook
+    Report
+    Trajectory
     

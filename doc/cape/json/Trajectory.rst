@@ -12,6 +12,12 @@ angle; but in other cases they will require additional description within the
 :file:`cape.json` file.  In still other cases the defaults may be acceptable,
 but the user wants to customize the folder names of some other aspect of the run
 matrix.
+        
+Links to additional options for each specific solver are found below.
+
+    * :ref:`Cart3D <pycart-json-Trajectory>`
+    * :ref:`FUN3D <pyfun-json-Trajectory>`
+    * :ref:`OVERFLOW <pyover-json-Trajectory>`
 
 .. _cape-json-Trajectory-examples:
 
