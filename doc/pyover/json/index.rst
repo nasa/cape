@@ -1,13 +1,13 @@
-.. Documentation for the overall pyCart module.
+.. Documentation for the overall pyOver module.
 
-.. _pycart-json:
+.. _pyover-json:
 
 **********************************************
-Control Files for pyCart (:file:`pyCart.json`)
+Control Files for pyOver (:file:`pyOver.json`)
 **********************************************
 
 This section describes the JSON files that provide the master control to the
-pyCart package. The file format, `JSON <http://json.org>`_, stands for
+pyFun package. The file format, `JSON <http://json.org>`_, stands for
 "JavaScript Object Notation," which is a standard file format but relatively
 recent.  There is one extension for pyCart JSON files, which is that comments are
 allowed, using either ``//`` (preferred) or ``#`` as the comment character.
@@ -28,43 +28,44 @@ that contains a single Python :class:`dict`, with a few differences.
        :class:`unicode`, :class:`bool`, :class:`list`, and :class:`dict`.
     #. Other JSON files can be imported using ``JSONFile(othersettings.json)``.
 
-The pyCart control file, which by default is called :file:`pyCart.json` but can
+The pyFun control file, which by default is called :file:`pyFun.json` but can
 also have other names, is split into several sections.  Most aspects of the
 control file have defaults that will go into effect if the user does not
 specify that option, but several entries are required.  The user can also
 customize these defaults by editing the file
-:file:`$PYCART/settings/pyCart.default.json`, where ``$PYCART`` is the path to
-the pyCart root directory.  Many of the settings are common to all solvers, and
+:file:`$CAPE/settings/pyOver.default.json`, where ``$CAPE`` is the path to
+the Cape root directory.  Many of the settings are common to all solvers, and
 their description can be found in the :ref:`Cape JSON section <cape-json>`.
 
 The master settings file is loaded in one of two ways: a command-line call to
-the script `pycart` or loading an instance of the :class:`pyCart.cart3d.Cart3d`
-class.  In both cases, the default name of the file is :file:`pyCart.json`, but
-it is possible to use other file names.  The following two examples show the
-status of the run matrix; the first load the inputs from :file:`pyCart.json`,
-and the second loads the inputs from :file:`run/poweron.json`.
+the script `pyover` or loading an instance of the
+:class:`pyOver.overflow.Overflow` class. In both cases, the default name of the
+file is :file:`pyOver.json`, but it is possible to use other file names. The
+following two examples show the status of the run matrix; the first load the
+inputs from :file:`pyOver.json`, and the second loads the inputs from
+:file:`run/poweron.json`.
 
     .. code-block:: bash
     
-        $ pycart -c
-        $ pycart -f run/poweron.json -c
+        $ pyover -c
+        $ pyover -f run/poweron.json -c
         
 Within a Python script, the settings can be loaded with the following code.
 
     .. code-block:: python
     
-        import pyCart
+        import pyOver
         
-        # Loads pyCart.json
-        c1 = pyCart.Cart3d()
+        # Loads pyOver.json
+        c1 = pyOver.Overflow()
         # Loads run/poweron.json
-        c2 = pyCart.Cart3d('run/poweron.json')
+        c2 = pyOver.Overflow('run/poweron.json')
 
 The location from which either of these two methods is called (i.e., the current
 working directory) is remembered as the root directory for the run.  Locations
 of other files are relative to this directory.
 
-The following is a nearly minimal pyCart control file that is presented to show
+The following is a nearly minimal pyOver control file that is presented to show
 the major parts of the file.
 
     .. code-block:: javascript
@@ -72,8 +73,6 @@ the major parts of the file.
         {
             // Stand-alone options
             "ShellCmds": [],
-            "InputCntl": "input.cntl",
-            "AeroCsh": "aero.csh",
             
             // Settings for creating PBS scripts, if applicable
             "PBS": {},
@@ -83,22 +82,7 @@ the major parts of the file.
                 // Overall control of mode and number of iterations
                 "InputSeq": [0, 1],
                 "IterSeq": [0, 1500],
-                "qsub": false,
-                "Adaptive": false,
-                // Inputs to flowCart
-                "flowCart": {
-                    "it_fc": 500,
-                    "mg_fc": 3
-                },
-                // Meshing options
-                "autoInputs": {},
-                "cubes": {},
-                // Adaptation settings
-                "adjointCart": {},
-                "Adaptation": {
-                    "n_adapt_cycles": [2, 5],
-                    "ws_it": [200]
-                }
+                "qsub": false
             },
             
             // Settings to define the initial mesh
@@ -132,7 +116,7 @@ the major parts of the file.
         
         
 For more information on these options see the following sections, and the
-documentation for the module :mod:`pyCart.options` also provides descriptions
+documentation for the module :mod:`pyOver.options` also provides descriptions
 of how the options are used.
 
 
@@ -141,15 +125,5 @@ of how the options are used.
     
     uncategorized
     PBS
-    runControl
-    flowCart
-    adjointCart
-    Adaptation
-    Mesh
-    Config
-    Functional
-    Management
-    Plot
-    DataBook
-    Report
-    Trajectory
+    
+    

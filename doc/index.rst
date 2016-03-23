@@ -149,11 +149,10 @@ defined.  In general the required files are the following.
     usage/index
     cape/index
     pycart/index
+    pyfun/index
+    pyover/index
     script/index
     
-..    pyCart/cart3d
-
-
 
 Indices and tables
 ==================

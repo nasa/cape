@@ -1,4 +1,6 @@
 
+.. _json-syntax:
+
 JSON Files for CAPE
 ===================
 

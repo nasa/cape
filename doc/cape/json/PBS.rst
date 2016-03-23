@@ -29,6 +29,12 @@ If the job is to be submitted, simply submit it.  A special script called
     
         $ pqsub run_cart3d.pbs
         
+Links to additional options for each specific solver are found below.
+
+    * :ref:`Cart3D <pycart-json-PBS>`
+    * :ref:`FUN3D <pyfun-json-PBS>`
+    * :ref:`OVERFLOW <pyover-json-PBS>`
+        
 
 Introduction
 ============
@@ -84,7 +90,7 @@ option, which sets the number of nodes, becomes
 The options have names that map directly to the PBS code, and notice that there
 is no ``PBS -W`` line because that option is empty.  Because the user can
 control the shell that is used with the *S* option, either `bash`, `sh`, `csh`,
-or others are compatible with pyCart.
+or others are compatible with Cape.
 
 PBS Option Dictionary
 =====================

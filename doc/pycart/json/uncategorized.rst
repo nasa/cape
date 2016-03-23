@@ -1,4 +1,5 @@
 
+.. _pycart-json-uncategorized:
 
 ----------------------------
 Uncategorized pyCart Options
@@ -7,14 +8,15 @@ Uncategorized pyCart Options
 Several inputs in :file:`pyCart.json` do not go in any category.  They are
 relatively simple inputs, and many of them have usable defaults, although it's
 still a good idea to enter them into the pyCart control file to avoid ambiguity
-and improve traceability.
+and improve traceability.  Additional miscellaneous options can be found in
+:ref:`the corresponding Cape JSON section <cape-json-uncategorized>`.
 
 Specific Cart3D Input File Templates
 ====================================
 
 All of the options in :ref:`the Cape JSON description <cape-json-uncategorized>`
 also apply, and there are only a few additional options, which are described
-here.  The JSON syntaxis shown below with the default values.
+here.  The JSON syntax is shown below with the default values.
 
     .. code-block:: javascript
     

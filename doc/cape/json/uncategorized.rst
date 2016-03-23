@@ -19,6 +19,12 @@ for these options (shown with some non-default values) is
         ],
         "PythonPath": ["tools"],
         "Modules": ["mymod", "thatmod"]
+        
+Links to additional options for each specific solver are found below.
+
+    * :ref:`Cart3D <pycart-json-uncategorized>`
+    * :ref:`FUN3D <pyfun-json-uncategorized>`
+    * :ref:`OVERFLOW <pyover-json-uncategorized>`
 
 
 Maximum Number of Jobs to Submit
