@@ -966,7 +966,7 @@ class Cntl(object):
         :Call:
             >>> n = cntl.PrepareCase(i)
         :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+            *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Index of case to analyze

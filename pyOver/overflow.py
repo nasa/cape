@@ -642,6 +642,10 @@ class Overflow(Cntl):
         os.chdir(self.RootDir)
         # Set the flight conditions.
         # Mach number
+        M = x.GetMach(i)
+        if M  is not None: self.Namelist.SetMach(i)
+        # Angle of attack
+        
         for k in x.GetKeysByType('Mach'):
             self.Namelist.SetMach(getattr(x,k)[i])
         # Angle of attack

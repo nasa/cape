@@ -383,6 +383,26 @@ class Trajectory:
                     "Label": False,
                     "Abbreviation": "T"
                 }
+            elif key in ['p', 'P', 'pinf']:
+                # Static freestream pressure
+                defkey = {
+                    "Group": False,
+                    "Type": "p",
+                    "Value": "float",
+                    "Format": "%s",
+                    "Label": False,
+                    "Abbreviation": "p"
+                }
+            elif key in ['q', 'qinf', 'qbar']:
+                # Dynamic pressure
+                defkey = {
+                    "Group": False,
+                    "Type": "q",
+                    "Value": "float",
+                    "Format": "%s",
+                    "Label": False,
+                    "Abbreviation": "q"
+                }
             elif key.lower() in ['label', 'suffix']:
                 # Extra label for case (non-group)
                 defkey = {
@@ -1344,9 +1364,9 @@ class Trajectory:
         # Return matches
         return np.array(self.keys)[KV == val]
     
-    # Get Reynolds number and temperature
+    # Get Reynolds number
     def GetReynoldsNumber(self, i):
-        """Get Reynolds number (per inch)
+        """Get Reynolds number (per foot)
         
         :Call:
             >>> Re = x.GetReynoldsNumber(i)
@@ -1357,7 +1377,7 @@ class Trajectory:
                 Case number
         :Outputs:
             *Re*: :class:`float`
-                Reynolds number per foot
+                Reynolds number [1/inch | 1/ft]
         :Versions:
             * 2016-03-23 ``@ddalle``: First version
         """
@@ -1380,6 +1400,8 @@ class Trajectory:
         # Get temperature and Mach values
         M = getattr(self,kM)[i]
         T = getattr(self,kT)[i]
+        # Get units
+        u = self.defns[kT].get('Units', 'fps')
         # Check for pressure specifier
         if 'p' in KeyTypes:
             # Find the key.
@@ -1387,7 +1409,12 @@ class Trajectory:
             # Get the pressure
             p = getattr(self,k)[i]
             # Calculate Reynolds number
-            return convert.ReynoldsPerFoot(p, T, M)
+            if u.lower() in ['fps', 'r']:
+                # Imperial units
+                return convert.ReynoldsPerFoot(p, T, M)/12
+            else:
+                # MKS units
+                return convert.ReynoldsPerMeter(p, T, M)
         elif 'q' in KeyTypes:
             # Find the key.
             k = self.GetKeysByType('q')[0]
@@ -1396,7 +1423,372 @@ class Trajectory:
             # Calculate static pressure
             p = q / (0.7*M*M)
             # Calculate Reynolds number
-            return convert.ReynoldsPerFoot(p, T, M)
+            if u.lower() in ['fps', 'r']:
+                # Imperial units
+                return convert.ReynoldsPerFoot(p, T, M)/12
+            else:
+                # MKS units
+                return convert.ReynoldsPerMeter(p, T, M)
+        # If we reach here, missing info.
+        return None
+        
+    # Get Mach number
+    def GetMach(self, i):
+        """Get Mach number
+        
+        :Call:
+            >>> M = x.GetMach(i)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *M*: :class:`float`
+                Mach number
+        :Versions:
+            * 2016-03-24 ``@ddalle``: First version
+        """
+        # Process the key types
+        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+        # Check for temperature
+        if 'Mach' in KeyTypes:
+            # Find the key.
+            k = self.GetKeysByType('Mach')[0]
+            # Return the value
+            return getattr(self,k)[i]
+        # If we reach this point... not doing this conversion
+        return None
+        
+    # Get angle of attack
+    def GetAlpha(self, i):
+        """Get the angle of attack
+        
+        :Call:
+            >>> alpha = x.GetAlpha(i)
+        :Inputs:
+            *x*: :class;`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *alpha*: :class:`float`
+                Angle of attack in degrees
+        :Versions:
+            * 2016-03-24 ``@ddalle``: First version
+        """
+        # Process the key types
+        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+        # Check for angle of attack
+        if 'alpha' in KeyTypes:
+            # Find the key
+            k = self.GetKeysByType('alpha')[0]
+            # Return the value
+            return getattr(self,k)[i]
+        # Check for total angle of attack
+        if 'alpha_t' in KeyTypes:
+            # Get the key
+            k = self.GetKeysByType('alpha_t')[0]
+            # Get the value
+            av = getattr(self,k)[i]
+            # Check for roll angle
+            if 'phi' in KeyTypes:
+                # Get the key
+                k = self.GetKeysByType('phi')[0]
+                # Get the value
+                rv = getattr(self,k)[i]
+            else:
+                # Default value
+                rv = 0.0
+            # Convert to aoa and aos
+            a, b = convert.AlphaTPhi2AlphaBeta(av, rv)
+            # Output
+            return a
+        # No info
+        return None
+        
+    # Get total angle of attack
+    def GetAlphaTotal(self, i):
+        """Get the total angle of attack
+        
+        :Call:
+            >>> av = x.GetAlphaTotal(i)
+        :Inputs:
+            *x*: :class;`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *av*: :class:`float`
+                Total angle of attack in degrees
+        :Versions:
+            * 2016-03-24 ``@ddalle``: First version
+        """
+        # Process the key types
+        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+        # Check for total angle of attack
+        if 'alpha_t' in KeyTypes:
+            # Find the key
+            k = self.GetKeysByType('alpha_t')[0]
+            # Return the value
+            return getattr(self,k)[i]
+        # Check for angle of attack
+        if 'alpha' in nKeyTypes:
+            # Get the key
+            k = self.GetKeysByType('alpha')[0]
+            # Get the value
+            a = getattr(self,k)[i]
+            # Check for sideslip
+            if 'beta' in KeyTypes:
+                # Get the key
+                k = self.GetKeysByType('beta')[0]
+                # Get the value
+                b = getattr(self,k)[i]
+            else:
+                # Default value
+                b = 0.0
+            # Convert to alpha total, phi
+            av, rv = convert.AlphaBeta2AlphaTPhi(a, b)
+            # Output
+            return av
+        # no info
+        return None
+        
+    # Get angle of sideslip
+    def GetBeta(self, i):
+        """Get the sideslip angle
+        
+        :Call:
+            >>> beta = x.GetBeta(i)
+        :Inputs:
+            *x*: :class;`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *beta*: :class:`float`
+                Angle of sideslip in degrees
+        :Versions:
+            * 2016-03-24 ``@ddalle``: First version
+        """
+        # Process the key types
+        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+        # Check for angle of attack
+        if 'beta' in KeyTypes:
+            # Find the key
+            k = self.GetKeysByType('beta')[0]
+            # Return the value
+            return getattr(self,k)[i]
+        # Check for total angle of attack
+        if 'alpha_t' in KeyTypes:
+            # Get the key
+            k = self.GetKeysByType('alpha_t')[0]
+            # Get the value
+            av = getattr(self,k)[i]
+            # Check for roll angle
+            if 'phi' in KeyTypes:
+                # Get the key
+                k = self.GetKeysByType('phi')[0]
+                # Get the value
+                rv = getattr(self,k)[i]
+            else:
+                # Default value
+                rv = 0.0
+            # Convert to aoa and aos
+            a, b = convert.AlphaTPhi2AlphaBeta(av, rv)
+            # Output
+            return b
+        # No info
+        return None
+        
+    # Get velocity roll angle
+    def GetPhi(self, i):
+        """Get the velocity roll angle
+        
+        :Call:
+            >>> phiv = x.GetPhi(i)
+        :Inputs:
+            *x*: :class;`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *phiv*: :class:`float`
+                Velocity roll angle in degrees
+        :Versions:
+            * 2016-03-24 ``@ddalle``: First version
+        """
+        # Process the key types
+        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+        # Check for total angle of attack
+        if 'phi' in KeyTypes:
+            # Find the key
+            k = self.GetKeysByType('alpha_t')[0]
+            # Return the value
+            return getattr(self,k)[i]
+        # Check for angle of attack
+        if 'alpha' in nKeyTypes:
+            # Get the key
+            k = self.GetKeysByType('alpha')[0]
+            # Get the value
+            a = getattr(self,k)[i]
+            # Check for sideslip
+            if 'beta' in KeyTypes:
+                # Get the key
+                k = self.GetKeysByType('beta')[0]
+                # Get the value
+                b = getattr(self,k)[i]
+            else:
+                # Default value
+                b = 0.0
+            # Convert to alpha total, phi
+            av, rv = convert.AlphaBeta2AlphaTPhi(a, b)
+            # Output
+            return rv
+        # no info
+        return None
+        
+    # Get freestream temperature
+    def GetTemperature(self, i):
+        """Get static freestream temperature
+        
+        :Call:
+            >>> T = x.GetTemperature(i)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *T*: :class:`float`
+                Static temperature [R | K]
+        :Versions:
+            * 2016-03-24 ``@ddalle``: First version
+        """
+        # Process the key types
+        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+        # Check for temperature
+        if 'T' in KeyTypes:
+            # Find the key.
+            k = self.GetKeysByType('T')[0]
+            # Return the value
+            return getattr(self,k)[i]
+        # If we reach this point... not doing this conversion
+        return None
+        
+    # Get freestream pressure
+    def GetPressure(self, i):
+        """Get static freestream pressure (in psf or Pa)
+        
+        :Call:
+            >>> p = x.GetPressure(i)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *p*: :class:`float`
+                Static pressure [psf | Pa]
+        :Versions:
+            * 2016-03-24 ``@ddalle``: First version
+        """
+        # Process the key types
+        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+        # Check for static pressure
+        if 'p' in KeyTypes:
+            # Find the key.
+            k = self.GetKeysByType('p')[0]
+            # Output
+            return getattr(self,k)[i]
+        # If we reach this point, we need at least Mach and temperature
+        # Get temperature and Mach keys
+        kM = self.GetKeysByType('Mach')[0]
+        kT = self.GetKeysByType('T')[0]
+        # Get temperature and Mach values
+        M = getattr(self,kM)[i]
+        T = getattr(self,kT)[i]
+        # Get units
+        u = self.defns[kT].get('Units', 'fps')
+        # Check for pressure specifier
+        if 'Re' in KeyTypes:
+            # Find the key.
+            k = self.GetKeysByType('Re')[0]
+            # Get the Reynolds number
+            Re = getattr(self,k)[i]
+            # Calculate Reynolds number
+            if u.lower() in ['fps', 'r']:
+                # Imperial units
+                return convert.PressureFPSFromRe(Re*12, T, M)
+            else:
+                # MKS units
+                return convert.PressureMKSFromRe(Re, T, M)
+        elif 'q' in KeyTypes:
+            # Find the key.
+            k = self.GetKeysByType('q')[0]
+            # Get the dynamic pressure
+            q = getattr(self,k)[i]
+            # Calculate static pressure
+            return q / (0.7*M*M)
+        # If we reach here, missing info.
+        return None
+    
+    # Get freestream pressure
+    def GetDynamicPressure(self, i):
+        """Get dynamic freestream pressure (in psf or Pa)
+        
+        :Call:
+            >>> q = x.GetDynamicPressure(i)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *q*: :class:`float`
+                Dynamic pressure [psf | Pa]
+        :Versions:
+            * 2016-03-24 ``@ddalle``: First version
+        """
+        # Process the key types
+        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+        # Check for dynamic pressure
+        if 'q' in KeyTypes:
+            # Find the key.
+            k = self.GetKeysByType('p')[0]
+            # Output
+            return getattr(self,k)[i]
+        # If we reach this point, we need at least Mach and temperature
+        # Get temperature and Mach keys
+        kM = self.GetKeysByType('Mach')[0]
+        kT = self.GetKeysByType('T')[0]
+        # Get temperature and Mach values
+        M = getattr(self,kM)[i]
+        T = getattr(self,kT)[i]
+        # Get units
+        u = self.defns[kT].get('Units', 'fps')
+        # Check for pressure specifier
+        if 'Re' in KeyTypes:
+            # Find the key.
+            k = self.GetKeysByType('Re')[0]
+            # Get the Reynolds number
+            Re = getattr(self,k)[i]
+            # Check units
+            if u.lower() in ['fps', 'r']:
+                # Imperial units; get pressure
+                p = convert.PressureFPSFromRe(Re*12, T, M)
+            else:
+                # MKS units
+                p = convert.PressureMKSFromRe(Re, T, M)
+            # Dynamic pressure
+            return 0.7*p*M*M
+        elif 'p' in KeyTypes:
+            # Find the key.
+            k = self.GetKeysByType('p')[0]
+            # Get the static pressure
+            p = getattr(self,k)[i]
+            # Calculate dynamic pressure
+            return p * (0.7*M*M)
         # If we reach here, missing info.
         return None
     

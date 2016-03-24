@@ -120,6 +120,42 @@ def SutherlandFPS(T, mu0=None, T0=None, C=None):
     # Sutherland's law
     return mu0 * (T0+C)/(T+C) * (T/T0)**1.5
     
+# Sutherland's law (MKS)
+def SutherlandMKS(T, mu0=None, T0=None, C=None):
+    """Calculate viscosity using Sutherland's law using SI units
+    
+    This returns
+    
+        .. math::
+        
+            \mu = \mu_0 \frac{T_0+C}{T+C}\left(\frac{T}{T_0}\right)^{3/2}
+    
+    :Call:
+        >>> mu = SutherlandMKS(T)
+        >>> mu = SutherlandMKS(T, mu0=None, T0=None, C=None)
+    :Inputs:
+        *T*: :class:`float`
+            Static temperature in degrees Rankine
+        *mu0*: :class:`float`
+            Reference viscosity [kg/m*s]
+        *T0*: :class:`float`
+            Reference temperature [K]
+        *C*: :class:`float`
+            Reference temperature [K]
+    :Outputs:
+        *mu*: :class:`float`
+            Dynamic viscosity [kg/m*s]
+    :Versions:
+        * 2016-03-23 ``@ddalle``: First version
+    """
+    # Reference viscosity
+    if mu0 is None: mu0 = 1.716e-5
+    # Reference temperatures
+    if T0 is None: T0 = 273.15
+    if C  is None: C = 110.33333
+    # Sutherland's law
+    return mu0 * (T0+C)/(T+C) * (T/T0)**1.5
+    
 
 # Get Reynolds number
 def ReynoldsPerFoot(p, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
@@ -166,4 +202,137 @@ def ReynoldsPerFoot(p, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
     # Reynolds number per foot
     return rho*U/mu
     
+# Get Reynolds number
+def ReynoldsPerMeter(p, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
+    """Calculate Reynolds number per meter using Sutherland's Law
+    
+    :Call:
+        >>> Re = ReynoldsPerFoot(p, T, M)
+        >>> Re = ReynoldsPerFoot(p, T, M, gam=None, R=None, T0=None, C=None)
+    :Inputs:
+        *p*: :class:`float`
+            Static pressure [Pa]
+        *T*: :class:`float`
+            Static temperature [K]
+        *M*: :class:`float`
+            Mach number
+        *R*: :class:`float`
+            Gas constant [m^2/s^2*R]
+        *gam*: :class:`float`
+            Ratio of specific heats
+        *mu0*: :class:`float`
+            Reference viscosity [kg/m*s]
+        *T0*: :class:`float`
+            Reference temperature [K]
+        *C*: :class:`float`
+            Reference temperature [K]
+    :Outputs:
+        *Re*: :class:`float`
+            Reynolds number per foot
+    :Versions:
+        * 2016-03-24 ``@ddalle``: First version
+    """
+    # Gas constant
+    if R is None: R = 287.0
+    # Ratio of specific heats
+    if gam is None: gam = 1.4
+    # Calculate density
+    rho = p / (R*T)
+    # Sound speed
+    a = np.sqrt(gam*R*T)
+    # Velocity
+    U = M*a
+    # Calculate viscosity
+    mu = SutherlandMKS(T, mu0=mu0, T0=T0, C=C)
+    # Reynolds number per foot
+    return rho*U/mu
+
+# Calculate pressure from Reynolds number
+def PressureFPSFromRe(Re, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
+    """Calculate pressure from Reynolds number
+    
+    :Call:
+        >>> p = PressureFPSFromRe(Re, T, M)
+        >>> p = PressureFPSFromRe(Re, T, M, R=None, gam=None, **kw)
+    
+    :Inputs:
+        *Re*: :class:`float`
+            Reynolds number per foot
+        *T*: :class:`float`
+            Static temperature [R]
+        *M*: :class:`float`
+            Mach number
+        *R*: :class:`float`
+            Gas constant [ft^2/s^2*R]
+        *gam*: :class:`float`
+            Ratio of specific heats
+        *mu0*: :class:`float`
+            Reference viscosity [slug/ft*s]
+        *T0*: :class:`float`
+            Reference temperature [K]
+        *C*: :class:`float`
+            Reference temperature [K]
+    :Outputs:
+        *p*: :class:`float`
+            Static pressure [psf]
+    :Versions:
+        * 2016-03-24 ``@ddalle``: First version
+    """
+    # Gas constant
+    if R is None: R = 1716.0
+    # Ratio of specific heats
+    if gam is None: gam = 1.4
+    # Sound speed
+    a = np.sqrt(gam*R*T)
+    # Velocity
+    U = M*a
+    # Viscosity
+    mu = SutherlandFPS(T, mu0=mu0, T0=T0, C=C)
+    # Pressure
+    return Re*mu*R*T/U
+
+# Calculate pressure from Reynolds number
+def PressureMKSFromRe(Re, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
+    """Calculate pressure from Reynolds number
+    
+    :Call:
+        >>> p = PressureMKSFromRe(Re, T, M)
+        >>> p = PressureMKSFromRe(Re, T, M, R=None, gam=None, **kw)
+    
+    :Inputs:
+        *Re*: :class:`float`
+            Reynolds number per foot
+        *T*: :class:`float`
+            Static temperature [K]
+        *M*: :class:`float`
+            Mach number
+        *R*: :class:`float`
+            Gas constant [m^2/s^2*R]
+        *gam*: :class:`float`
+            Ratio of specific heats
+        *mu0*: :class:`float`
+            Reference viscosity [kg/m*s]
+        *T0*: :class:`float`
+            Reference temperature [K]
+        *C*: :class:`float`
+            Reference temperature [K]
+    :Outputs:
+        *p*: :class:`float`
+            Static pressure [Pa]
+    :Versions:
+        * 2016-03-24 ``@ddalle``: First version
+    """
+    # Gas constant
+    if R is None: R = 287.0
+    # Ratio of specific heats
+    if gam is None: gam = 1.4
+    # Sound speed
+    a = np.sqrt(gam*R*T)
+    # Velocity
+    U = M*a
+    # Viscosity
+    mu = SutherlandMKS(T, mu0=mu0, T0=T0, C=C)
+    # Pressure
+    return Re*mu*R*T/U
+# def Pressure MKSFromRe
 

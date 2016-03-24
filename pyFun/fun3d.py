@@ -640,59 +640,25 @@ class Fun3d(Cntl):
         self.ReadNamelist()
         # Extract trajectory.
         x = self.x
-        # Process the key types.
-        KeyTypes = [x.defns[k]['Type'] for k in x.keys]
         # Go safely to root folder.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
         # Set the flight conditions.
         # Mach number
-        for k in x.GetKeysByType('Mach'):
-            self.Namelist.SetMach(getattr(x,k)[i])
+        M = x.GetMach(i)
+        if M  is not None: self.Namelist.SetMach(M)
         # Angle of attack
-        if 'alpha' in KeyTypes:
-            # Find the key.
-            k = x.GetKeysByType('alpha')[0]
-            # Set the value.
-            self.Namelist.SetAlpha(getattr(x,k)[i])
+        a = x.GetAlpha(i)
+        if a  is not None: self.Namelist.SetAlpha(a)
         # Sideslip angle
-        if 'beta' in KeyTypes:
-            # Find the key.
-            k = x.GetKeysByType('beta')[0]
-            # Set the value.
-            self.Namelist.SetBeta(getattr(x,k)[i])
-        # Check for total angle of attack.
-        if 'alpha_t' in KeyTypes:
-            # Find out which key it is.
-            k = x.GetKeysByType('alpha_t')[0]
-            # Get the value.
-            av = getattr(x,k)[i]
-            # Check for roll angle.
-            if 'phi' in KeyTypes:
-                # Kind the ky.
-                k = x.GetKeysByType('phi')[0]
-                # Get the value.
-                rv = getattr(x,k)[i]
-            else:
-                # Set roll to zero.
-                rv = 0.0
-            # Convert the values to aoa and aos.
-            a, b = convert.AlphaTPhi2AlphaBeta(av, rv)
-            # Set them.
-            self.Namelist.SetAlpha(a)
-            self.Namelist.SetBeta(b)
-        # Check for Reynolds number
-        if 'Re' in KeyTypes:
-            # Find the key.
-            k = x.GetKeysByType('Re')[0]
-            # Set the value.
-            self.Namelist.SetReynoldsNumber(getattr(x,k)[i])
-        # Check for temperature
-        if 'T' in KeyTypes:
-            # Find the key.
-            k = x.GetKeysByType('T')[0]
-            # Set the value.
-            self.Namelist.SetTemperature(getattr(x,k)[i])
+        b = x.GetBeta(i)
+        if b  is not None: self.Namelist.SetBeta(b)
+        # Reynolds number
+        Re = x.GetReynoldsNumber(i)
+        if Re is not None: self.Namelist.SetReynoldsNumber(Re)
+        # Temperature
+        T = x.GetTemperature(i)
+        if T  is not None: self.Namelist.SetTemperature(T)
         # Set up the component force & moment tracking
         self.PrepareNamelistConfig()
         # Get the case.
