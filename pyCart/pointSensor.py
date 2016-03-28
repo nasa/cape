@@ -482,7 +482,7 @@ class DBPointSensor(cape.pointSensor.DBPointSensor):
             os.chdir(fpwd); return True, P
             
             
-    # class DBPointSensor
+# class DBPointSensor
 
 
 # Individual point sensor
