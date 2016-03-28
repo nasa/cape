@@ -1038,7 +1038,6 @@ class DBBase(dict):
         coeffs = self.opts.get_DataBookCoeffs(self.comp)
         # Initialize columns for coefficients
         cCols = []
-        print("Label 030")
         # Check for mean
         for coeff in coeffs:
             # Get list of stats for this column
@@ -1064,7 +1063,6 @@ class DBBase(dict):
         self.fCols = cCols + fCols
         self.iCols = iCols
         self.cols = self.xCols + self.fCols + self.iCols
-        print(self.cols)
         # Counts
         self.nxCol = len(self.xCols)
         self.nfCol = len(self.fCols)
