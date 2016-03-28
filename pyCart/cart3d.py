@@ -1366,6 +1366,11 @@ class Cart3d(Cntl):
         for Name, kw in self.opts.get_optMoments().items():
             # Set the sensor.
             self.InputCntl.SetOutputMoment(Name, **kw)
+            
+        # SurfBC keys
+        for k in self.x.GetKeysByType('SurfBC'):
+            # Apply the method
+            self.SetSurfBC(k, i)
         
         # Loop through the phases.
         for j in range(self.opts.get_nSeq()):
@@ -1391,6 +1396,100 @@ class Cart3d(Cntl):
             self.InputCntl.Write(fout)
         # Return to original path.
         os.chdir(fpwd)
+        
+    # Function to get surface BC stuff
+    def GetSurfBCState(self, key, i):
+        """Get surface boundary condition state
+        
+        :Call:
+            >>> rho, U, p = cart3d.GetSurfBCState(key, i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
+            *key*: :class:`str`
+                Name of key to process
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *rho*: :class:`float`
+                Non-dimensional static density, :math:`\rho/\rho_\infty`
+            *U*: :class:`float`
+                Non-dimensional velocity, :math:`U/a_\infty`
+            *p*: :class:`float`
+                Non-dimensional static pressure, :math:`p/\gamma p_\infty`
+        :Versions:
+            * 2016-03-28 ``@ddalle``: First version
+        """
+        # Get the inputs
+        p0 = self.x.GetSurfBC_TotalPressure(i, key)
+        T0 = self.x.GetSurfBC_TotalTemperature(i, key)
+        M  = self.x.GetSurfBC_Mach(i, key)
+        # Reference pressure/temp
+        pinf = self.x.GetSurfBC_RefPressure(i, key)
+        Tinf = self.x.GetSurfBC_RefTemperature(i, key)
+        # Freestream ratio of specific heats (Cart3D is single-species)
+        gam = 1.4
+        # Calculate stagnation temperature ratio
+        rT = 1 + (gam-1)/2*M*M
+        # Stagnation-to-static ratios
+        rr = rT ** (1/(gam-1))
+        rp = rT ** (gam/(gam-1))
+        # Reference values
+        rho = (p0/pinf)/(T0/Tinf) / rr
+        p   = (p0/pinf/gam) / rp
+        U   = M * np.sqrt((T0/Tinf) / rT)
+        # Output
+        return rho, U, p
+        
+    # Function to set surface BC for all components from one key
+    def SetSurfBC(self, key, i):
+        """Set all SurfBCs for a particular thrust trajectory key
+        
+        :Call:
+            >>> cart3d.SetSurfBC(key, i)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
+            *key*: :class:`str`
+                Name of key to process
+            *i*: :class:`int`
+                Run index
+        :Versions:
+            * 2016-03-28 ``@ddalle``: First version
+        """
+        # Get the states
+        rho, U, p = self.GetSurfBCState(key, i)
+        # Get the components
+        compIDs = self.x.GetSurfBC_CompID(i, key)
+        # Ensure list
+        if type(compIDs).__name__ not in ['list', 'ndarray']:
+            compIDs = [compIDs]
+        # Loop through the components
+        for comp in compIDs:
+            # Convert to list of IDs
+            try:
+                # Use Config.xml
+                compID = self.tri.config.GetCompID(comp)
+            except AttributeError:
+                # Use a singleton
+                compID = [comp]
+            # Loop through the IDs
+            for ci in compID:
+                # Get the normal
+                ni = self.tri.GetCompNormal(ci)
+                # Velocity components
+                u = U*ni[0]
+                v = U*ni[1]
+                # Check for normal
+                if len(ni) > 2:
+                    # Three-dimensional grid
+                    w = U*ni[2]
+                    # Set condition
+                    self.InputCntl.SetSurfBC(ci, [rho, u, v, w, p])
+                else:
+                    # Two-dimensional grid
+                    self.InputCntl.SetSurfBC(ci, [rho, u, v, p])
+                
         
     # Function prepare the aero.csh files
     def PrepareAeroCsh(self, i):
