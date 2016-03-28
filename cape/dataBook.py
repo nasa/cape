@@ -1032,12 +1032,13 @@ class DBBase(dict):
             *DBi.nCol*: :class:`int`
                 Total number of columns
         :Versions:
-            * 2016-03015 ``@ddalle``: First version
+            * 2016-03-15 ``@ddalle``: First version
         """
         # Get coefficients
         coeffs = self.opts.get_DataBookCoeffs(self.comp)
         # Initialize columns for coefficients
         cCols = []
+        print("Label 030")
         # Check for mean
         for coeff in coeffs:
             # Get list of stats for this column
@@ -1063,6 +1064,7 @@ class DBBase(dict):
         self.fCols = cCols + fCols
         self.iCols = iCols
         self.cols = self.xCols + self.fCols + self.iCols
+        print(self.cols)
         # Counts
         self.nxCol = len(self.xCols)
         self.nfCol = len(self.fCols)
@@ -1108,6 +1110,9 @@ class DBBase(dict):
             # Initialize integer counts
             for col in self.iCols:
                 self[col] = np.array([], dtype=int)
+            # Exit
+            self.n = 0
+            return
         # Data book delimiter
         delim = self.opts.get_Delimiter()
         # Full list of columns
