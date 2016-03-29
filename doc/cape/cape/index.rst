@@ -4,3 +4,8 @@
 .. automodule:: cape
     :members: ReadCaseJSON, AlphaPhi2AlpaTPhi, AlphaTPhi2AlphaBeta
     
+
+.. toctree::
+    :maxdepth: 1
+    
+    argread

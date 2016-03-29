@@ -23,7 +23,44 @@ you intended.)
         cntl = cape.Cntl()
         
 Most of the pyCart submodules essentially contain a single class definition, and
-many of these classes are accessible directly from the :mod:`cape` module.
+many of these classes are accessible directly from the :mod:`cape` module.  The
+list of classes loaded directly in :mod:`cape`.
+
+    * :class:`cape.cntl.Cntl`
+    * :class:`cape.tri.Tri`
+    * :class:`cape.tri.Triq`
+    
+Because Cape is a template module that has no specific solver, few modules are
+loaded directly to :mod:`cape`.  The list of modules loaded are shown below.
+
+    * :mod:`cape.manage`
+
+Some of the other modules available to the API are listed below.
+
+    * :mod:`cape.argread`
+    * :mod:`cape.bin`
+    * :mod:`cape.case`
+    * :mod:`cape.cntl`
+    * :mod:`cape.config`
+    * :mod:`cape.convert`
+    * :mod:`cape.dataBook`
+    * :mod:`cape.fileCntl`
+    * :mod:`cape.geom`
+    * :mod:`cape.mesh`
+    * :mod:`cape.nameelist`
+    * :mod:`cape.namelist2`
+    * :mod:`cape.plot3d`
+    * :mod:`cape.pointSensor`
+    * :mod:`cape.queue`
+    * :mod:`cape.report`
+    * :mod:`cape.tar`
+    * :mod:`cape.tex`
+    * :mod:`cape.trajectory`
+    * :mod:`cape.tri`
+    * :mod:`cape.util`
+
+:Versions:
+    * Version 0.6: 2016-03-30
 """
 
 # File system and operating system management
@@ -42,13 +79,13 @@ TemplateFolder = os.path.join(CapeFolder, "templates")
 
 
 # Import classes and methods from the submodules
-#from tri    import Tri, Triq, ReadTri, WriteTri
+from tri    import Tri, Triq
 from cntl   import Cntl
 from case   import ReadCaseJSON
 
 # Get the conversion tools directly.
 from convert import *
 
-# Wholesale modules
-#import manage
+# Submodules
+from . import manage
 

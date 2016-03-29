@@ -1,5 +1,5 @@
 """
-Command-line argument processor: :mod:`cape.argread`
+Command-Line Argument Processor: :mod:`cape.argread`
 ====================================================
 
 Parse command-line inputs based on one of two methods.  The first method counts
@@ -21,7 +21,17 @@ interpreted equivalently.
     
         $ myScript.py -v -i
         $ myScript.py -vi
+
+A third method is provided to have similar behavior to the Unix ``tar`` command.
+In this case, the following two commands will be different.
+
+    .. code-block:: console
     
+        $ myScript.py -cf mytar.tar
+        $ myScript.py --cf mytar.tar
+        
+The first example sets *c* to ``True`` and *f* to ``"mytar.tar"``; the second
+command sets *cf* to ``"mytar.tar"``.
 """
 
 # Process options using any dash as keyword
