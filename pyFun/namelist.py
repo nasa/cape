@@ -275,6 +275,51 @@ class Namelist(cape.namelist.Namelist):
         """
         self.SetVar('adapt_mechanics', 'adapt_project', name)
         
+    # Get the number of flow initialization volumes
+    def GetNFlowInitVolumes(self):
+        """Get the current number of flow initialization volumes
+        
+        :Call:
+            >>> n = nml.GetNFlowInitVolumes()
+        :Inputs:
+            *nml*: :class:`pyFun.namelist.Namelist`
+                File control instance for :file:`fun3d.nml`
+        :Outputs:
+            *n*: :class:`int`
+                Number of flow initialization volumes
+        :Versions:
+            * 2016-03-29 ``@ddalle``: First version
+        """
+        # Get the nominal value
+        n = self.GetVar('flow_initialization', 'number_of_volumnes')
+        # Check for None
+        if n is None:
+            # Default is zero
+            return 0
+        else:
+            # Use the number
+            return n
+            
+    # Set the number of flow initialization volumes
+    def SetNFlowInitVolumes(self, n):
+        """Set the number of flow initialization volumes
+        
+        :Call:
+            >>> nml.SetNFlowInitVolumes(n)
+        :Inputs:
+            *nml*: :class:`pyFun.namelist.Namelist`
+                File control instance for :file:`fun3d.nml`
+            *n*: :class:`int`
+                Number of flow initialization volumes
+        :Versions:
+            * 2016-03-29 ``@ddalle``: First version
+        """
+        # Set value
+        self.SetVar('flow_initialization', 'number_of_volumnes', n)
+        
+    # Set a flow initialization parameter and update the count
+    def SetFlowInitVar(self, key, val, k):
+        pass
 # class Namelist
 
         
