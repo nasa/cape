@@ -1428,7 +1428,7 @@ class Cart3d(Cntl):
         pinf = self.x.GetSurfBC_RefPressure(i, key)
         Tinf = self.x.GetSurfBC_RefTemperature(i, key)
         # Freestream ratio of specific heats (Cart3D is single-species)
-        gam = 1.4
+        gam = self.x.GetSurfBC_Gamma(i, key)
         # Calculate stagnation temperature ratio
         rT = 1 + (gam-1)/2*M*M
         # Stagnation-to-static ratios

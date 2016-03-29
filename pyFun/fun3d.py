@@ -694,6 +694,76 @@ class Fun3d(Cntl):
         # Return to original path.
         os.chdir(fpwd)
         
+    # Get surface BC inputs
+    def GetSurfBCState(self, key, i):
+        """Get stagnation pressure and temperature ratios
+        
+        :Call:
+            >>> p0, T0 = fun3d.GetSurfBCState(key, i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of global pyFun settings object
+            *key*: :class:`str`
+                Name of key to process
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *p0*: :class:`float`
+                Ratio of BC stagnation pressure to freestream static pressure
+            *T0*: :class:`float`
+                Ratio of BC stagnation temperature to freestream static temp
+        :Versions:
+            * 2016-03-29 ``@ddalle``: First version
+        """
+        # Get the inputs
+        p0 = self.x.GetSurfBC_TotalPressure(i, key)
+        T0 = self.x.GetSurfBC_TotalTemperature(i, key)
+        # Reference pressure/temp
+        pinf = self.x.GetSurfBC_RefPressure(i, key)
+        Tinf = self.x.GetSurfBC_RefTemperature(i, key)
+        # Output
+        return p0/pinf, T0/Tinf
+        
+    # Get startup volume for a surface BC input
+    def GetSurfBCVolume(self, key, compID):
+        """Get coordinates for flow initialization box
+        
+        :Call:
+            >>> x1, x2, r = fun3d.GetSurfBCVolume(key, compID)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of global pyFun settings object
+            *key*: :class:`str`
+                Name of SurfBC key to process
+            *compID*:
+                Component ID for which to calculate flow volume
+        :Outputs:
+            *x1*: :class:`np.ndarray` (:class:`float`)
+                First point of cylinder center line
+            *x2*: :class:`np.ndarray` (:class:`float`)
+                End point of cylinder center line
+            *r*: :class:`float`
+                Radius of cylinder
+        :Versions:
+            * 2016-03-29 ``@ddalle``: First version
+        """
+        # Get the centroid
+        x0 = self.tri.GetCompCentroid(compID)
+        # Area and normal of the component
+        A = self.tri.GetCompArea(compID)
+        N = self.tri.GetCompNormal(compID)
+        # Default radius
+        r0 = np.sqrt(A/np.pi)
+        # Process the length and radius
+        r = self.x.defns[key].get("Radius", r0)
+        L = self.x.defns[key].get("Length", 2*r0)
+        I = self.x.defns[key].get("Inset", 0.1*r0)
+        # Set end points
+        x1 = x0 - I*N
+        x2 = x0 + L*N
+        # Output
+        return x1, x2, r
+        
     # Set up a namelist config
     def PrepareNamelistConfig(self):
         """Write the lines for the force/moment output in a namelist file

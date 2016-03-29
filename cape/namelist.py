@@ -109,10 +109,23 @@ class Namelist(FileCntl):
             line = '    %s = %s\n' % (name, self.ConvertToText(val))
         else:
             # Format: '   component(1) = "something"'
+            # Format: '   component(1,3) = "something"'
+            # Format: '   component(:,1) = "something"'
+            # Index type
+            tk = type(k).__name__
+            # Convert index to string
+            if tk in ['tuple', 'list', 'ndarray']:
+                # Convert to comma-separated list
+                lk = [':' if ki is None else str(ki) for ki in k]
+                # Join list of indices via comma
+                sk = ','.join(lk)
+            else:
+                # Convert to string as appropriate
+                sk = str(k)
             # Line regular expression: "XXXX([0-9]+)=" but with white spaces
-            reg = '^\s*%s\(%i\)\s*[=\n]' % (name, k)
+            reg = '^\s*%s\(%s\)\s*[=\n]' % (name, sk)
             # Form the output line.
-            line = '    %s(%i) = %s\n' % (name, k, self.ConvertToText(val))
+            line = '    %s(%s) = %s\n' % (name, sk, self.ConvertToText(val))
         # Replace the line; prepend it if missing
         self.ReplaceOrAddLineToSectionSearch(sec, reg, line, 1)
         
@@ -147,8 +160,19 @@ class Namelist(FileCntl):
             # Line regular expression: "XXXX=" but with white spaces
             reg = '^\s*%s\s*[=\n]' % name
         else:
+            # Index type
+            tk = type(k).__name__
+            # Convert index to string
+            if tk in ['tuple', 'list', 'ndarray']:
+                # Convert to comma-separated list
+                lk = [':' if ki is None else str(ki) for ki in k]
+                # Join list of indices via comma
+                sk = ','.join(lk)
+            else:
+                # Convert to string as appropriate
+                sk = str(k)
             # Index: "XXXX(k)=" but with white spaces
-            reg = '^\s*%s\(%i\)\s*[=\n]' % (name, k)
+            reg = '^\s*%s\(%s\)\s*[=\n]' % (name, sk)
         # Find the line.
         lines = self.GetLineInSectionSearch(sec, reg, 1)
         # Exit if no match

@@ -403,6 +403,15 @@ class Trajectory:
                     "Label": False,
                     "Abbreviation": "q"
                 }
+            elif key.lower() in ['gamma']:
+                # Freestream ratio of specific heats
+                defkey = {
+                    "Group": False,
+                    "Type": "gamma",
+                    "Value": "float",
+                    "Format": "%s",
+                    "Abbreviation": "g"
+                }
             elif key.lower() in ['p0', 'p_total']:
                 # Surface stagnation pressure ratio
                 defkey = {
@@ -1758,6 +1767,35 @@ class Trajectory:
             return q / (0.7*M*M)
         # If we reach here, missing info.
         return None
+        
+    # Get ratio of specific heats
+    def GetGamma(self, i):
+        """Get freestream ratio of specific heats
+        
+        :Call:
+            >>> gam = x.GetGamma(i)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *gam*: :class:`float`
+                Ratio of specific heats
+        :Versions:
+            * 2016-03-29 ``@ddalle``: First version
+        """
+        # Process the key types
+        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+        # Check for ratio of specific heats
+        if 'gamma' in KeyTypes:
+            # Find the key
+            k = self.GetKeysByType('gamma')[0]
+            # Use the value of that key
+            return getattr(self,k)[i]
+        else:
+            # Default value
+            return 1.4
     
     # Get freestream pressure
     def GetDynamicPressure(self, i):
@@ -1992,7 +2030,7 @@ class Trajectory:
             
     # Get Mach number input for SurfBC input
     def GetSurfBC_Mach(self, i, key=None):
-        """Get mach number input for surface BC key
+        """Get Mach number input for surface BC key
         
         :Call:
             >>> M = x.GetSurfBC_Mach(i, key=None)
@@ -2020,17 +2058,59 @@ class Trajectory:
         # Get the pressure parameter
         om = self.defns[key].get('Mach')
         # Type
-        tm = type(op0).__name__
+        tm = type(om).__name__
         # Process the option
         if om is None:
             # Use the value of this key
             return getattr(self,key)[i]
-        elif tn in ['str', 'unicode']:
+        elif tm in ['str', 'unicode']:
             # Use the value of that key
             return getattr(self,om)[i]
         else:
             # Use the fixed value
             return om
+            
+    # Get ratio of specific heats input for SurfBC key
+    def GetSurfBC_Gamma(self, i, key=None):
+        """Get ratio of specific heats for surface BC key
+        
+        :Call:
+            >>> gam = x.GetSurfBC_Gamma(i, key=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfBC`` key
+        :Outputs:
+            *gam*: :class:`float`
+                Surface boundary condition ratio of specific heats
+        :Versions:
+            * 2016-03-29 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if 'SurfBC' not in KeyTypes: return
+            # Get first key
+            key = self.GetKeysByType('SurfBC')[0]
+        # Get the pressure parameter
+        og = self.defns[key].get('Gamma', 1.4)
+        # Type
+        tg = type(og).__name__
+        # Process the option
+        if og is None:
+            # Use the value of this key
+            return self.GetGamma(i)
+        elif tg in ['str', 'unicode']:
+            # Use the value of that key
+            return getattr(self,og)[i]
+        else:
+            # Use the fixed value
+            return og
             
     # Get component ID(s) input for SurfBC key
     def GetSurfBC_CompID(self, i, key=None):

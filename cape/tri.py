@@ -447,32 +447,39 @@ class TriBase(object):
         :Call:
             >>> compID = tri.GetCompID()
             >>> compID = tri.GetCompID(face)
+            >>> compID = tri.GetCompID(comp)
+            >>> compID = tri.GetCompID(comps)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation interface
-            *face*: :class:`str` or :class:`int` or :class:`list`
-                Component number, name, or list of component numbers and names
+            *face*: :class:`str`
+                Component name
+            *comp*: :class:`int`
+                Component ID
+            *comps*: :class:`list` (:class:`int` | :class:`str`)
+                List of component names or IDs
         :Outputs:
-            *compID*: :class:`list`(:class:`int`)
+            *compID*: :class:`list` (:class:`int`)
                 List of component IDs
         :Versions:
             * 2014-10-12 ``@ddalle``: First version
+            * 2016-03-29 ``@ddalle``: Edited docstring
         """
-        # Check input type.
-        if face is None:
-            # Return all components
-            return list(np.unique(self.CompID))
-        # Try the config.
+        # Process input into a list of component IDs.
         try:
+            # Best option is to use the Config.xml file
             return self.config.GetCompID(face)
         except Exception:
-            # Return itself if an integer
-            try:
-                # Return the face itself
-                return [int(face)]
-            except Exception:
-                # Failed; return all components.
+            # Check for scalar
+            if face is None:
+                # No contents; this might break otherwise
                 return list(np.unique(self.CompID))
+            elif type(face).__name__  in ['list', 'ndarray']:
+                # Return the list
+                return face
+            else:
+                # Make a singleton list
+                return [face]
         
         
     # Function to read a .tri file
@@ -1411,38 +1418,48 @@ class TriBase(object):
         return j
         
     # Function to get tri indices from component ID(s)
-    def GetTrisFromCompID(self, i=None):
+    def GetTrisFromCompID(self, compID=None):
         """Find indices of triangles with specified component ID(s)
         
         :Call:
-            >>> k = tri.GetTrisFromCompID(i)
+            >>> k = tri.GetTrisFromCompID(comp)
+            >>> k = tri.GetTrisFromCompID(comps)
+            >>> k = tri.GetTrisFromCompID(compID)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
-            *i*: :class:`int` or :class:`list` (:class:`int`)
-                Component ID or list of component IDs
+            *comp*: :class:`str`
+                Name of component
+            *comps*: :class:`list` (:class:`int` | :class:`str`)
+                List of component IDs or names
+            *compID*: :class:`int`
+                Component number
         :Outputs:
-            *k*: :class:`numpy.ndarray` (:class:`int`)
+            *k*: :class:`numpy.ndarray` (:class:`int`, shape=(N,))
+                List of triangle indices in requested component(s)
         :Versions:
             * 2015-01-23 ``@ddalle``: First version
         """
         # Process inputs.
-        if i is None:
+        if compID is None:
             # Return all the tris.
             return np.arange(self.nTri)
-        elif i == 'entire':
+        elif compID == 'entire':
             # Return all the tris.
             return np.arange(self.nTri)
-        elif np.isscalar(i):
+        # Get list of components
+        comps = self.GetCompID(compID)
+        # Check for single match
+        if len(comps) == 1:
             # Get a single component.
-            K = self.CompID == i
+            K = self.CompID == comps[0]
         else:
             # Initialize with all False (same size as number of tris)
             K = self.CompID < 0
             # List of components.
-            for ii in i:
+            for comp in comps:
                 # Add matches for component *ii*.
-                K = np.logical_or(K, self.CompID==ii)
+                K = np.logical_or(K, self.CompID==comp)
         # Turn boolean vector into vector of indices]
         return np.where(K)[0]
         
@@ -1789,7 +1806,7 @@ class TriBase(object):
         self.nTri  += tri.nTri
         # Done
         return None
-        
+    
     # Get normals and areas
     def GetCompArea(self, compID, n=None):
         """
@@ -1813,18 +1830,19 @@ class TriBase(object):
             * 2014-06-13 ``@ddalle``: First version
         """
         # Check for areas.
-        if not hasattr(self, 'Areas'):
-            # Calculate them.
+        try:
+            self.Areas
+        except AttributeError:
             self.GetNormals()
         # Find the indices of tris in the component.
-        i = self.CompID == compID
+        k = self.GetTrisFromCompID(compID)
         # Check for direction projection.
         if n is None:
             # No projection
-            return np.sum(self.Areas[i])
+            return np.sum(self.Areas[k])
         else:
             # Extract the normals and copy to new matrix.
-            N = self.Normals[i].copy()
+            N = self.Normals[k].copy()
             # Dot those normals with the requested vector.
             N[:,0] *= n[0]
             N[:,1] *= n[1]
@@ -1832,8 +1850,8 @@ class TriBase(object):
             # Sum to get the dot product.
             d = np.sum(N, 1)
             # Multiply this dot product by the area of each tri
-            return np.sum(self.Areas[i] * d)
-            
+            return np.sum(self.Areas[k] * d)
+    
     # Get normals and areas
     def GetCompNormal(self, compID):
         """Get the area-averaged unit normal of a component
@@ -1852,8 +1870,9 @@ class TriBase(object):
             * 2014-06-13 ``@ddalle``: First version
         """
         # Check for areas.
-        if not hasattr(self, 'Areas'):
-            # Calculate them.
+        try:
+            self.Areas
+        except AttributeError:
             self.GetNormals()
         # Find the indices of tris in the component.
         i = self.CompID == compID
@@ -1868,8 +1887,66 @@ class TriBase(object):
         n = np.mean(N, 0)
         # Unitize.
         return n / np.sqrt(np.sum(n**2))
+    
+    # Get centroid of component
+    def GetCompCentroid(self, compID):
+        """Get the centroid of a component
         
-        
+        :Call:
+            >>> [x, y] = tri.GetCompCentroid(compID)
+            >>> [x, y, z] = tri.GetCompCentroid(compID)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *compID*: :class:`int`
+                Index of the component of which to find the normal
+        :Outputs:
+            *x*: :class:`float`
+                Coordinate of the centroid
+            *y*: :class:`float`
+                Coordinate of the centroid
+            *z*: :class:`float`
+                Coordinate of the centroid
+        :Versions:
+            * 2016-03-29 ``@ddalle``: First version
+        """
+        # Check for areas.
+        try:
+            self.Areas
+        except AttributeError:
+            self.GetNormals()
+        # Get tris
+        k = self.GetTrisFromCompID(compID)
+        # Get corresponding nodes
+        i = self.Tris[k,:] - 1
+        # Get areas of those components
+        A = self.Areas[k]
+        # Total area
+        AT = np.sum(A)
+        # Dimensions
+        nd = self.Nodes.shape[1]
+        # Get coordinates
+        if nd == 2:
+            # 2D coordinates
+            x = np.mean(self.Nodes[i,0], axis=1)
+            y = np.mean(self.Nodes[i,1], axis=1)
+            # Weighting
+            xc = np.sum(x*A) / AT
+            yc = np.sum(y*A) / AT
+            # Output
+            return np.array([xc, yc])
+        else:
+            # 3D coordinates
+            x = np.mean(self.Nodes[i,0], axis=1)
+            y = np.mean(self.Nodes[i,1], axis=1)
+            z = np.mean(self.Nodes[i,2], axis=2)
+            # Weighted averages
+            xc = np.sum(x*A) / AT
+            yc = np.sum(y*A) / AT
+            zc = np.sum(z*A) / AT
+            # Output
+            return np.array([xc, yc, zc])
+    
     # Function to add a bounding box based on a component and buffer
     def GetCompBBox(self, compID=[], **kwargs):
         """
@@ -1912,17 +1989,7 @@ class TriBase(object):
             * 2014-08-03 ``@ddalle``: Changed "buff" --> "pad"
         """
         # Process it into a list of component IDs.
-        try:
-            # Best option is to use the Config.xml file
-            compID = self.config.GetCompID(compID)
-        except Exception:
-            # Check for scalar
-            if compID is None:
-                # No contents; this might break otherwise
-                return
-            elif type(compID).__name__ not in ['list', 'ndarray']:
-                # Make a singleton list
-                compID = [compID]
+        compID = self.GetCompID(compID)
         # Quit if none specified.
         if not compID: return None
         # Get the overall buffer.
