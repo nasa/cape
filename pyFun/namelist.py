@@ -291,7 +291,7 @@ class Namelist(cape.namelist.Namelist):
             * 2016-03-29 ``@ddalle``: First version
         """
         # Get the nominal value
-        n = self.GetVar('flow_initialization', 'number_of_volumnes')
+        n = self.GetVar('flow_initialization', 'number_of_volumes')
         # Check for None
         if n is None:
             # Default is zero
@@ -315,7 +315,7 @@ class Namelist(cape.namelist.Namelist):
             * 2016-03-29 ``@ddalle``: First version
         """
         # Set value
-        self.SetVar('flow_initialization', 'number_of_volumnes', n)
+        self.SetVar('flow_initialization', 'number_of_volumes', n)
         
 # class Namelist
 

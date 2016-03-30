@@ -178,7 +178,7 @@ class MapBC(object):
             raise TypeError("Cannot get surface ID for inputs of type '%s'"%t)
         
     # Get the component ID number
-    def GetCompID(self, face):
+    def GetCompID(self, compID):
         """Get the component ID number used to tag this face in the mesh
         
         :Call:

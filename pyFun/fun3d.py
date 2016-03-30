@@ -692,6 +692,8 @@ class Fun3d(Cntl):
         T = x.GetTemperature(i)
         if T  is not None: self.Namelist.SetTemperature(T)
         
+        # Get the case.
+        frun = self.x.GetFullFolderNames(i)
         # Set up the component force & moment tracking
         self.PrepareNamelistConfig()
         
@@ -702,12 +704,10 @@ class Fun3d(Cntl):
             # Apply the appropriate methods
             self.SetSurfBC(k, i)
         # File name
-        fout = os.path.join(frun, '%s.mapbc'%self.GetProjectRootname(0))
+        fout = os.path.join(frun, '%s.mapbc'%self.GetProjectRootName(0))
         # Write the BC file
-        self.Write(fout)
+        self.MapBC.Write(fout)
         
-        # Get the case.
-        frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
         if not os.path.isdir(frun): self.mkdir(frun)
         # Loop through input sequence
@@ -779,7 +779,8 @@ class Fun3d(Cntl):
         for compID in compIDs:
             # Increase volume number
             n += 1
-            # Get the BC number to set
+            # Convert to ID (if needed) and get the BC number to set
+            compID = self.MapBC.GetCompID(compID)
             surfID = self.MapBC.GetSurfID(compID)
             # Set the BC to the correct value
             self.MapBC.SetBC(compID, 7011)
@@ -801,7 +802,7 @@ class Fun3d(Cntl):
             nml.SetVar('flow_initialization', 'w',   U*N[2], n)
             nml.SetVar('flow_initialization', 'c',   a,      n)
             # Initialize the flow init vol
-            nml.SetVar('flow_initialization', 'type_of_volume', 'cylinder')
+            nml.SetVar('flow_initialization', 'type_of_volume', 'cylinder', n)
             # Set the dimensions of the volume
             nml.SetVar('flow_initialization', 'radius', r, n)
             nml.SetVar('flow_initialization', 'point1', x1, (None,n))
