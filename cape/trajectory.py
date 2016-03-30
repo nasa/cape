@@ -412,7 +412,7 @@ class Trajectory:
                     "Format": "%s",
                     "Abbreviation": "g"
                 }
-            elif key.lower() in ['p0', 'p_total']:
+            elif key.lower() in ['p0', 'p_total'] or key.startswith('p0'):
                 # Surface stagnation pressure ratio
                 defkey = {
                     "Group": False,
@@ -425,8 +425,7 @@ class Trajectory:
                     "RefTemperature": 1.0,
                     "TotalPressure": None,
                     "TotalTemperature": "T0",
-                    "CompID": [],
-                    "Mach": 1.0
+                    "CompID": []
                 }
             elif key.lower() in ['t0', 't_total']:
                 # Surface stagnation temperature ratio
@@ -2056,7 +2055,7 @@ class Trajectory:
             # Get first key
             key = self.GetKeysByType('SurfBC')[0]
         # Get the pressure parameter
-        om = self.defns[key].get('Mach')
+        om = self.defns[key].get('Mach', 1.0)
         # Type
         tm = type(om).__name__
         # Process the option
