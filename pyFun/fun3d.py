@@ -24,6 +24,7 @@ from namelist  import Namelist
 # Other pyFun modules
 from . import options
 from . import case
+from . import mapbc
 # Unmodified CAPE modules
 from cape import convert
 
@@ -659,8 +660,15 @@ class Fun3d(Cntl):
         # Temperature
         T = x.GetTemperature(i)
         if T  is not None: self.Namelist.SetTemperature(T)
+        
         # Set up the component force & moment tracking
         self.PrepareNamelistConfig()
+        
+        # Set the surface BCs
+        for k in self.x.GetKeysByType('SurfBC'):
+            # Apply the appropriate methods
+            self.SetSurfBC(k, i)
+        
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
@@ -693,7 +701,75 @@ class Fun3d(Cntl):
             self.Namelist.Write(fout)
         # Return to original path.
         os.chdir(fpwd)
+    
+    # Prepare surface BC
+    def SetSurfBC(self, key, i):
+        """Set all surface BCs and flow initialization volumes for one key
         
+        This uses the 7011 boundary condition and sets the values of BC
+        stagnation pressure to freestream pressure and stagnation temperature to
+        freestream temperature. Further, it creates a flow initialization volume
+        to help with solution startup
+        
+        :Call:
+            >>> fun3d.SetSurfBC(key, i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of global pyFun settings object
+            *key*: :class:`str`
+                Name of SurfBC key to process
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2016-03-29 ``@ddalle``: First version
+        """
+        # Get the BC inputs
+        p0, T0 = self.GetSurfBCState(key, i)
+        # Get the flow initialization volume state
+        rho, U, a = self.GetSurfBCFlowInitState(key, i)
+        # Get the namelist
+        nml = self.Namelist
+        # Get the components
+        compIDs = self.x.GetSurfBC_CompID(i, key)
+        # Current number of flow initialization volumes
+        n = nml.GetNFlowInitVolumes()
+        # Ensure list
+        if type(compIDs).__name__ not in ['list', 'ndarray']:
+            compIDs = [compIDs]
+        # Boundary condition section
+        sec = 'boundary_conditions'
+        # Loop through the components
+        for compID in compIDs:
+            # Increase volume number
+            n += 1
+            # Get the BC number to set
+            surfID = compID
+            # Set the BC
+            nml.SetVar(sec, 'total_pressure_ratio',    p0, surfID)
+            nml.SetVar(sec, 'total_temperature_ratio', T0, surfID)
+            # Get the flow initialization volume
+            x1, x2, r = self.GetSurfBCVolume(key, compID)
+            # Get the surface normal
+            N = self.tri.GetCompNormal(compID)
+            # Velocity
+            u = U * N[0]
+            v = U * N[1]
+            w = U * N[2]
+            # Set the flow initialization state.
+            nml.SetVar('flow_initialization', 'rho', rho,    n)
+            nml.SetVar('flow_initialization', 'u',   U*N[0], n)
+            nml.SetVar('flow_initialization', 'v',   U*N[1], n)
+            nml.SetVar('flow_initialization', 'w',   U*N[2], n)
+            nml.SetVar('flow_initialization', 'c',   a,      n)
+            # Initialize the flow init vol
+            nml.SetVar('flow_initialization', 'type_of_volume', 'cylinder')
+            # Set the dimensions of the volume
+            nml.SetVar('flow_initialization', 'radius', r, n)
+            nml.SetVar('flow_initialization', 'point1', x1, (None,n))
+            nml.SetVar('flow_initialization', 'point2', x2, (None,n))
+        # Update number of volumes
+        nml.SetNFlowInitVolumes(n)
+    
     # Get surface BC inputs
     def GetSurfBCState(self, key, i):
         """Get stagnation pressure and temperature ratios
@@ -735,7 +811,7 @@ class Fun3d(Cntl):
                 Instance of global pyFun settings object
             *key*: :class:`str`
                 Name of SurfBC key to process
-            *compID*:
+            *compID*: :class:`int`
                 Component ID for which to calculate flow volume
         :Outputs:
             *x1*: :class:`np.ndarray` (:class:`float`)
@@ -763,6 +839,52 @@ class Fun3d(Cntl):
         x2 = x0 + L*N
         # Output
         return x1, x2, r
+        
+    # Get startup conditions for surface BC input
+    def GetSurfBCFlowInitState(self, key, i):
+        """Get nondimensional state for flow initialization volumes
+        
+        :Call:
+            >>> rho, U, c = fun3d.GetSurfBCFlowInitState(key, i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of global pyFun settings object
+            *key*: :class:`str`
+                Name of SurfBC key to process
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *rho*: :class:`float`
+                Normalized static density, *rho/rhoinf*
+            *U*: :class:`float`
+                Normalized velocity, *U/ainf*
+            *c*: :class:`float`
+                Normalized sound speed, *a/ainf*
+        :Versions:
+            * 2016-03-29 ``@ddalle``: First version
+        """
+        # Get the input states
+        p0 = self.x.GetSurfBC_TotalPressure(i, key)
+        T0 = self.x.GetSurfBC_TotalTemperature(i, key)
+        # Reference pressure/temp
+        pinf = self.x.GetSurfBC_RefPressure(i, key)
+        Tinf = self.x.GetSurfBC_RefTemperature(i, key)
+        # Get the Mach number and blending fraction
+        M = self.x.defns[key].get('Mach', 0.2)
+        f = self.x.defns[key].get('Blend', 0.9)
+        # Ratio of specific heats
+        gam = self.x.GetSurfBC_Gamma(i, key)
+        # Calculate stagnation temperature ratio
+        rT = 1 + (gam-1)/2*M*M
+        # Stagnation-to-static ratios
+        rr = rT ** (1/(gam-1))
+        rp = rT ** (gam/(gam-1))
+        # Reference values
+        rho = (p0/pinf)/(T0/Tinf) / rr
+        c   = np.sqrt((f*T0/Tinf) / rT)
+        U   = M * c
+        # Output
+        return rho, U, c
         
     # Set up a namelist config
     def PrepareNamelistConfig(self):

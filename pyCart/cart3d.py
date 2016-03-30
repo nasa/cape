@@ -1412,11 +1412,11 @@ class Cart3d(Cntl):
                 Run index
         :Outputs:
             *rho*: :class:`float`
-                Non-dimensional static density, :math:`\rho/\rho_\infty`
+                Non-dimensional static density, *rho/rhoinf*
             *U*: :class:`float`
-                Non-dimensional velocity, :math:`U/a_\infty`
+                Non-dimensional velocity, *U/ainf*
             *p*: :class:`float`
-                Non-dimensional static pressure, :math:`p/\gamma p_\infty`
+                Non-dimensional static pressure, *p/pinf*
         :Versions:
             * 2016-03-28 ``@ddalle``: First version
         """

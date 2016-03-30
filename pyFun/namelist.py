@@ -317,9 +317,6 @@ class Namelist(cape.namelist.Namelist):
         # Set value
         self.SetVar('flow_initialization', 'number_of_volumnes', n)
         
-    # Set a flow initialization parameter and update the count
-    def SetFlowInitVar(self, key, val, k):
-        pass
 # class Namelist
 
         

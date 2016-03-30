@@ -17,7 +17,7 @@ class Mesh(odict):
         :Inputs:
             *opts*: :class:`pyFun.options.Options`
                 Options interface
-            *i*: :class:`int` or ``None``
+            *i*: :class:`int` | ``None``
                 Optional index
         :Outputs:
             *fname*: :class:`str` | :class:`list` (:class:`str`)
@@ -27,5 +27,44 @@ class Mesh(odict):
         """
         return self.get_key('MeshFile', i)
 
+    # Get the triangulation file(s)
+    def get_TriFile(self, i=None):
+        """Return the surface triangulation file
+        
+        :Call:
+            >>> fname = opts.get_TriFile(i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *i*: :class:`int` | ``None``
+                Run index
+        :Outputs:
+            *fname*: :class:`str` or :class:`list`(:class:`str`)
+                Surface triangulation file
+        :Versions:
+            * 2014-08-03 ``@ddalle``: First version
+            * 2016-03-29 ``@ddalle``: Copied from :mod:`pyCart.options`
+        """
+        return self.get_key('TriFile', i)
+        
+    # Get the surface BC map
+    def get_BCFile(self, i=None):
+        """Return the name of the boundary condition map file
+        
+        :Call:
+            >>> fname = opts.get_BCFile(i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *i*: :class:`int`
+                Phase index
+        :Outputs:
+            *fname*: :class:`str`
+                Boundary condition file name
+        :Versions:
+            * 2016-03-29 ``@ddalle``: First version
+        """
+        return self.get_key('BCFile', i)
+    
 # class Mesh
 

@@ -42,11 +42,9 @@ def readkeys(argv):
     
     :Call:
         >>> (args, kwargs) = argread.readkeys(argv)
-    
     :Inputs:
         *argv*: :class:`list` (:class:`str`)
             List of string inputs; first entry is ignored (from ``sys.argv``)
-    
     :Outputs:
         *args*: :class:`list`
             List of general inputs with no keyword names
@@ -80,7 +78,7 @@ def readkeys(argv):
             {'h': True, 'i': 'in.tri'}
             
     :Versions:
-        * 2014.06.10 ``@ddalle``: First version
+        * 2014-06-10 ``@ddalle``: First version
     """
     # Check the input.
     if type(argv) is not list:
@@ -141,13 +139,11 @@ def readflags(argv):
     :Inputs:
         *argv*: :class:`list` (:class:`str`)
             List of string inputs; first entry is ignored (from ``sys.argv``)
-    
     :Outputs:
         *args*: :class:`list`
             List of general inputs with no keyword names
         *kwargs*: :class:`dict`
             Dictionary of inputs specified with option flags
-    
     :Examples:
         The following shows an example with a stacked flag.
         
@@ -174,7 +170,7 @@ def readflags(argv):
             {'t': True, 'v': True, 'f': True}
             
     :Versions:
-        * 2014.06.10 ``@ddalle``: First version
+        * 2014-06-10 ``@ddalle``: First version
     """
     # Check the input.
     if type(argv) is not list:
@@ -247,17 +243,14 @@ def readflagstar(argv):
     
     :Call:
         >>> (args, kwargs) = argread.readflagstar(argv)
-    
     :Inputs:
         *argv*: :class:`list` (:class:`str`)
             List of string inputs; first entry is ignored (from ``sys.argv``)
-    
     :Outputs:
         *args*: :class:`list`
             List of general inputs with no keyword names
         *kwargs*: :class:`dict`
             Dictionary of inputs specified with option flags
-    
     :Examples:
         The following shows an example with a stacked flag.
         
@@ -284,7 +277,7 @@ def readflagstar(argv):
             {'t': True, 'v': True, 'f': 'fname.dat'}
             
     :Versions:
-        * 2014.10.10 ``@ddalle``: First version
+        * 2014-10-10 ``@ddalle``: First version
     """
     # Check the input.
     if type(argv) is not list:

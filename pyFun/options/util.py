@@ -36,6 +36,8 @@ rc["grid_format"]          = "aflr3"
 rc["nodet_animation_freq"] = -1
 # Solution mode settings
 rc["KeepRestarts"] = False
+# Mesh settings
+rc["BCFile"] = "pyfun.mapbc"
 # Adaptation settings
 rc["Adaptive"]   = False
 rc["Dual"]       = False
