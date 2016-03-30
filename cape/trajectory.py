@@ -1930,7 +1930,7 @@ class Trajectory:
         # Get the pressure parameter
         op = self.defns[key].get('RefPressure', 1.0)
         # Type
-        tp = type(op0).__name__
+        tp = type(op).__name__
         # Process the option
         if op is None:
             # Use the value of this key
@@ -1974,7 +1974,7 @@ class Trajectory:
         # Get the pressure parameter
         ot0 = self.defns[key].get('TotalTemperature')
         # Type
-        tt0 = type(op0).__name__
+        tt0 = type(ot0).__name__
         # Process the option
         if ot0 is None:
             # Use the value of this key
@@ -2016,7 +2016,7 @@ class Trajectory:
         # Get the pressure parameter
         ot = self.defns[key].get('RefTemperature', 1.0)
         # Type
-        tt = type(op0).__name__
+        tt = type(ot).__name__
         # Process the option
         if ot is None:
             # Use the freestream value
@@ -2142,7 +2142,7 @@ class Trajectory:
         # Get the pressure parameter
         oc = self.defns[key].get('CompID')
         # Type
-        tc = type(op0).__name__
+        tc = type(oc).__name__
         # Process the option
         if oc is None:
             # Use the value of this key

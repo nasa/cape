@@ -128,7 +128,7 @@ class Cntl(object):
         try:
             self.tri
             return
-        except Exception:
+        except AttributeError:
             pass
         # Get the list of tri files.
         ftri = self.opts.get_TriFile()

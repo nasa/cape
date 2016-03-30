@@ -94,6 +94,9 @@ class Fun3d(Cntl):
         # Read the namelist.
         self.ReadNamelist()
         
+        # Read the boundary conditions
+        self.ReadMapBC()
+        
         # Set umask
         os.umask(self.opts.get_umask())
         
@@ -104,6 +107,34 @@ class Fun3d(Cntl):
         return "<pyFun.Fun3d(nCase=%i)>" % (
             self.x.nCase)
         
+    # Read the boundary condition map
+    def ReadMapBC(self, j=0, q=True):
+        """Read the FUN3D boundary condition map
+        
+        :Call:
+            >>> fun3d.ReadMapBC(q=True)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of the pyFun control class
+            *q*: {``True``} | ``False``
+                Whether or not to read to *MapBC*, else *MapBC0*
+        :Versions:
+            * 2016-03-30 ``@ddalle``: First version
+        """
+        # Change to root safely
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Read the file
+        BC = mapbc.MapBC(self.opts.get_MapBCFile(j))
+        # Save it.
+        if q:
+            # Read to main slot.
+            self.MapBC = BC
+        else:
+            # Template
+            self.MapBC0 = BC
+        # Go back to original location
+        os.chdir(fpwd)
         
     # Read the namelist
     def ReadNamelist(self, j=0, q=True):
@@ -666,8 +697,14 @@ class Fun3d(Cntl):
         
         # Set the surface BCs
         for k in self.x.GetKeysByType('SurfBC'):
+            # Ensure the presence of the triangulation
+            self.ReadTri()
             # Apply the appropriate methods
             self.SetSurfBC(k, i)
+        # File name
+        fout = os.path.join(frun, '%s.mapbc'%self.GetProjectRootname(0))
+        # Write the BC file
+        self.Write(fout)
         
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
@@ -743,7 +780,9 @@ class Fun3d(Cntl):
             # Increase volume number
             n += 1
             # Get the BC number to set
-            surfID = compID
+            surfID = self.MapBC.GetSurfID(compID)
+            # Set the BC to the correct value
+            self.MapBC.SetBC(compID, 7011)
             # Set the BC
             nml.SetVar(sec, 'total_pressure_ratio',    p0, surfID)
             nml.SetVar(sec, 'total_temperature_ratio', T0, surfID)

@@ -48,11 +48,11 @@ class Mesh(odict):
         return self.get_key('TriFile', i)
         
     # Get the surface BC map
-    def get_BCFile(self, i=None):
+    def get_MapBCFile(self, i=None):
         """Return the name of the boundary condition map file
         
         :Call:
-            >>> fname = opts.get_BCFile(i=None)
+            >>> fname = opts.get_MapBCFile(i=None)
         :Inputs:
             *opts*: :class:`pyFun.options.Options`
                 Options interface

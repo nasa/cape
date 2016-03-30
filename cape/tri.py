@@ -1939,7 +1939,7 @@ class TriBase(object):
             # 3D coordinates
             x = np.mean(self.Nodes[i,0], axis=1)
             y = np.mean(self.Nodes[i,1], axis=1)
-            z = np.mean(self.Nodes[i,2], axis=2)
+            z = np.mean(self.Nodes[i,2], axis=1)
             # Weighted averages
             xc = np.sum(x*A) / AT
             yc = np.sum(y*A) / AT
