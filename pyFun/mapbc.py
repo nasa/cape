@@ -176,6 +176,45 @@ class MapBC(object):
         else:
             # Unknown type
             raise TypeError("Cannot get surface ID for inputs of type '%s'"%t)
+        
+    # Get the component ID number
+    def GetCompID(self, face):
+        """Get the component ID number used to tag this face in the mesh
+        
+        :Call:
+            >>> compID = BC.GetCompID(compID)
+            >>> compID = BC.GetCompID(face)
+        :Inputs:
+            *BC*: :class:`pyFun.mapbc.MapBC`
+                FUN3D boundary condition interface
+            *face*: :class:`str`
+                Name of face
+        :Outputs:
+            *compID*: :class:`int`
+                Face triangulation index
+        :Versions:
+            * 2016-03-30 ``@ddalle``: First version
+        """
+        # Check the type
+        t = type(compID).__name__
+        # Process which type
+        if t.startswith('int'):
+            # Check if the *compID* is present
+            if compID not in self.CompID:
+                raise ValueError(
+                    "No surface with component ID of %s" % compID)
+            # Return index
+            return compID
+        elif t in ['str', 'unicode']:
+            # Check if component name is there
+            if compID not in self.Names:
+                raise ValueError(
+                    "No surface found for name '%s'" % compID)
+            # Get index
+            return self.CompID[self.Names.index(compID)]
+        else:
+            # Unknown type
+            raise TypeError("Cannot get surface ID for inputs of type '%s'"%t)
             
     # Set BC
     def SetBC(self, compID, bc):

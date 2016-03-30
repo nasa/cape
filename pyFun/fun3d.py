@@ -862,6 +862,8 @@ class Fun3d(Cntl):
         :Versions:
             * 2016-03-29 ``@ddalle``: First version
         """
+        # Convert to index if necessary
+        compID = self.MapBC.GetCompID(compID)
         # Get the centroid
         x0 = self.tri.GetCompCentroid(compID)
         # Area and normal of the component
