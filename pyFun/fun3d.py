@@ -922,7 +922,7 @@ class Fun3d(Cntl):
         rr = rT ** (1/(gam-1))
         rp = rT ** (gam/(gam-1))
         # Reference values
-        rho = (p0/pinf)/(T0/Tinf) / rr
+        rho = f*(p0/pinf)/(T0/Tinf) / rr
         c   = np.sqrt((f*T0/Tinf) / rT)
         U   = M * c
         # Output
