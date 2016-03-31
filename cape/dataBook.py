@@ -1122,11 +1122,22 @@ class DBBase(dict):
         # Initialize trajectory columns
         for k in self.xCols:
             # Get the type
-            t = self.x.defns[k].get('Value', 'float')
+            t = str(self.x.defns[k].get('Value', 'float'))
             # Convert type
-            dt = 'int' if t in ['hex','oct','octal','bin'] else t
+            if t in ['hex', 'oct', 'octal', 'bin', 'binary']:
+                # Differently-based integer
+                dt = 'int'
+            elif t.startswith('str'):
+                # Initialize a string with decent length
+                dt = 'S64'
+            elif t.startswith('unicode'):
+                # Initialize a unicode string with decent length
+                dt = 'U64'
+            else:
+                # Use the type as it is
+                dt = str(t)
             # Initialize the key
-            self[k] = np.zeros(nRow, dtype=str(dt))
+            self[k] = np.zeros(nRow, dtype=dt)
         # Initialize float columns
         for k in self.fCols:
             self[k] = np.nan*np.zeros(nRow, dtype='float')
