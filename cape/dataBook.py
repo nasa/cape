@@ -1,13 +1,40 @@
 """
-Data Book Module: :mod:`pyCart.dataBook`
-========================================
+Data book Module: :mod:`cape.dataBook`
+======================================
 
 This module contains functions for reading and processing forces, moments, and
 other statistics from cases in a trajectory.
 
-:Versions:
-    * 2014-12-20 ``@ddalle``: Started
-    * 2015-01-01 ``@ddalle``: First version
+It contains a parent class :class:`cape.dataBook.DataBook` that provides a
+common interface to all of the requested force, moment, point sensor, etc.
+quantities that have been saved in the data book. Informing :mod:`cape` which
+quantities to track, and how to statistically process them, is done using the
+``"DataBook"`` section of the JSON file, and the various data book options are
+handled within the API using the :mod:`cape.options.dataBook` module.
+
+The master data book class :class:`cape.dataBook.DataBook` is based on the
+built-in :class:`dict` class with keys pointing to force and moment data books
+for individual components.  For example, if the JSON file tells Cape to track
+the forces and/or moments on a component called ``"body"``, and the data book is
+the variable *DB*, then the forces and moment data book is ``DB["body"]``.  This
+force and moment data book contains statistically averaged forces and moments
+and other statistical quantities for every case in the run matrix.  The class of
+the force and moment data book is :class:`cape.dataBook.DBComp`.
+
+The data book also has the capability to store "target" data books so that the
+user can compare results of the current CFD solutions to previous results or
+experimental data. These are stored in ``DB["Targets"]`` and use the
+:class:`cape.dataBook.DBTarget` class. Other types of data books can also be
+created, such as the :class:`cape.pointSensor.DBPointSensor` class for tracking
+statistical properties at individual points in the solution field. Data books
+for tracking results of groups of cases are built off of the
+:class:`cape.dataBook.DBBase` class, which contains many common tools such as
+plotting.
+
+The :mod:`cape.dataBook` module also contains modules for processing results
+within individual case folders.  This includes the :class:`cape.dataBook.CaseFM`
+module for reading iterative force/moment histories and the
+:class:`cape.dataBook.CaseResid` for iterative histories of residuals.
 """
 
 # File interface
@@ -24,19 +51,6 @@ from .options import odict
 # Utilities or advanced statistics
 from . import util
 
-#<!--
-# ---------------------------------
-# I consider this portion temporary
-
-# Get the umask value.
-umask = 0027
-# Get the folder permissions.
-fmask = 0777 - umask
-dmask = 0777 - umask
-
-# ---------------------------------
-#-->
-
 # Placeholder variables for plotting functions.
 plt = 0
 
@@ -45,7 +59,7 @@ deg = np.pi / 180.0
 
 # Dedicated function to load Matplotlib only when needed.
 def ImportPyPlot():
-    """Import :mod:`matplotlib.pyplot` if not loaded
+    """Import :mod:`matplotlib.pyplot` if not already loaded
     
     :Call:
         >>> pyCart.dataBook.ImportPyPlot()
@@ -72,19 +86,28 @@ class DataBook(dict):
     matrix.
     
     :Call:
-        >>> DB = pyCart.dataBook.DataBook(x, opts, RootDir=None)
+        >>> DB = cape.dataBook.DataBook(x, opts, RootDir=None)
     :Inputs:
-        *x*: :class:`pyCart.trajectory.Trajectory`
-            The current pyCart trajectory (i.e. run matrix)
-        *opts*: :class:`pyCart.options.Options`
-            Global pyCart options instance
+        *x*: :class:`cape.trajectory.Trajectory`
+            The current Cape trajectory (i.e. run matrix)
+        *opts*: :class:`cape.options.Options`
+            Global Cape options instance
         *RootDir*: :class:`str`
             Root directory, defaults to ``os.getcwd()``
     :Outputs:
-        *DB*: :class:`pyCart.dataBook.DataBook`
-            Instance of the pyCart data book class
+        *DB*: :class:`cape.dataBook.DataBook`
+            Instance of the Cape data book class
+        *DB.x*: :class:`cape.trajectory.Trajectory`
+            Run matrix of rows saved in the data book (differs from input *x*)
+        *DB[comp]*: :class:`cape.dataBook.DBComp`
+            Component data book for component *comp*
+        *DB.Components*: :class:`list` (:class:`str`)
+            List of force/moment components
+        *DB.Targets*: :class:`dict`
+            Dictionary of :class:`cape.dataBook.DBTarget` target data books
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
+        * 2015-01-10 ``@ddalle``: First version
     """
     # Initialization method
     def __init__(self, x, opts, RootDir=None):
@@ -176,7 +199,7 @@ class DataBook(dict):
             >>> DB.ReadTarget(targ)
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
-                Instance of the CAPE data book class
+                Instance of the Cape data book class
             *targ*: :class:`str`
                 Target name
         :Versions:
@@ -203,7 +226,7 @@ class DataBook(dict):
             >>> DB.UpdateTrajectory()
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
-                Instance of the CAPE data book class
+                Instance of the Cape data book class
         :Versions:
             * 2015-05-22 ``@ddalle``: First version
         """
@@ -257,7 +280,7 @@ class DataBook(dict):
             >>> DB.MatchTrajectory()
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
-                Instance of the CAPE data book class
+                Instance of the Cape data book class
         :Versions:
             * 2015-05-28 ``@ddalle``: First version
         """
@@ -294,7 +317,7 @@ class DataBook(dict):
             >>> DB.Write()
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
-                Instance of the CAPE data book class
+                Instance of the Cape data book class
         :Versions:
             * 2014-12-22 ``@ddalle``: First version
             * 2015-06-19 ``@ddalle``: New multi-key sort
@@ -325,8 +348,8 @@ class DataBook(dict):
             >>> DB.Sort(I=None)
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
-                Instance of the CAPE data book class
-            *key*: :class:`str` or :class:`list` (:class:`str`)
+                Instance of the Cape data book class
+            *key*: :class:`str` | :class:`list` (:class:`str`)
                 Name of trajectory key or list of keys on which to sort
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of indices; must have same size as data book
@@ -350,46 +373,6 @@ class DataBook(dict):
             
     
     
-    # Get index of target to use based on coefficient name
-    def GetTargetIndex(self, ftarg):
-        """Get the index of the target to use based on a name
-        
-        For example, if "UPWT/CAFC" will use the target "UPWT" and the column
-        named "CAFC".  If there is no "/" character in the name, the first
-        available target is used.
-        
-        :Call:
-            >>> i, c = self.GetTargetIndex(ftarg)
-        :Inputs:
-            *DB*: :class:`pyCart.dataBook.DataBook`
-                Instance of the pyCart data book class
-            *ftarg*: :class:`str`
-                Name of the target and column
-        :Outputs:
-            *i*: :class:`int`
-                Index of the target to use
-            *c*: :class:`str`
-                Name of the column to use from that target
-        :Versions:
-            * 2014-12-22 ``@ddalle``: First version
-        """
-        # Check if there's a slash
-        if "/" in ftarg:
-            # List of target names.
-            TNames = [DBT.Name for DBT in self.Targets]
-            # Split.
-            ctarg = ftarg.split("/")
-            # Find the name,
-            i = TNames.index(ctarg[0])
-            # Column name
-            c = ctarg[1]
-        else:
-            # Use the first target.
-            i = 0
-            c = ftarg
-        # Output
-        return i, c
-        
     # Get lists of indices of matches
     def GetTargetMatches(self, ftarg, tol=0.0, tols={}):
         """Get vectors of indices matching targets
@@ -573,8 +556,8 @@ class DataBook(dict):
         :Call:
             >>> h = DB.PlotCoeff(comp, coeff, I, **kw)
         :Inputs:
-            *DB*: :class:`pyCart.dataBook.DataBook`
-                Instance of the pyCart data book class
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the data book class
             *comp*: :class:`str`
                 Component whose coefficient is being plotted
             *coeff*: :class:`str`
@@ -1904,7 +1887,7 @@ class DBComp(DBBase):
             >>> j = DBc.FindMatch(i)
         :Inputs:
             *DBc*: :class:`cape.dataBook.DBComp`
-                Instance of the CAPE data book component
+                Instance of the Cape data book component
             *i*: :class:`int`
                 Index of the case from the trajectory to try match
         :Outputs:
@@ -1963,7 +1946,7 @@ class DBTarget(dict):
             Root directory, defaults to ``os.getcwd()``
     :Outputs:
         *DBT*: :class:`cape.dataBook.DBTarget`
-            Instance of the CAPE data book target class
+            Instance of the Cape data book target class
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
         * 2015-01-10 ``@ddalle``: First version
@@ -2072,7 +2055,7 @@ class DBTarget(dict):
             >>> DBT.ReadAllData(fname, delimiter=",", skiprows=0)
         :Inputs:
             *DBT*: :class:`cape.dataBook.DBTarget`
-                Instance of the CAPE data book target class
+                Instance of the Cape data book target class
             *fname*: :class:`str`
                 Name of file to read
             *delimiter*: :class:`str`
@@ -2096,7 +2079,7 @@ class DBTarget(dict):
             >>> DBT.ReadDataByColumn(fname, delimiter=",", skiprows=0)
         :Inputs:
             *DBT*: :class:`cape.dataBook.DBTarget`
-                Instance of the CAPE data book target class
+                Instance of the Cape data book target class
             *fname*: :class:`str`
                 Name of file to read
             *delimiter*: :class:`str`
@@ -2318,7 +2301,7 @@ class DBTarget(dict):
             >>> h = DBT.PlotCoeff(comp, coeff, I, **kw)
         :Inputs:
             *DBT*: :class:`cape.dataBook.DBTarget`
-                Instance of the CAPE data book target class
+                Instance of the Cape data book target class
             *comp*: :class:`str`
                 Component whose coefficient is being plotted
             *coeff*: :class:`str`
@@ -2614,7 +2597,7 @@ class DBTarget(dict):
             >>> j = DBT.FindMatch(x, i)
         :Inputs:
             *DBT*: :class:`cape.dataBook.DBTarget`
-                Instance of the CAPE data book target data carrier
+                Instance of the Cape data book target data carrier
             *x*: :class:`pyCart.trajectory.Trajectory`
                 The current pyCart trajectory (i.e. run matrix)
             *i*: :class:`int`

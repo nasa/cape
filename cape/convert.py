@@ -2,7 +2,10 @@
 Conversion tools for Cape
 =========================
 
-Perform conversions such as (alpha total, phi) to (alpha, beta).
+Perform conversions such as (alpha total, phi) to (alpha, beta).  It also
+contains various utilities such as calculating Sutherland's law for estimating
+viscosity with the standard parameters, which are commonly needed tools for CFD
+solvers.
 """
 
 # Need NumPy for trig.
@@ -92,7 +95,7 @@ def SutherlandFPS(T, mu0=None, T0=None, C=None):
     
         .. math::
         
-            \mu = \mu_0 \frac{T_0+C}{T+C}\left(\frac{T}{T_0}\right)^{3/2}
+            \\mu = \\mu_0 \\frac{T_0+C}{T+C}\\left(\\frac{T}{T_0}\\right)^{3/2}
     
     :Call:
         >>> mu = SutherlandFPS(T)
@@ -100,11 +103,11 @@ def SutherlandFPS(T, mu0=None, T0=None, C=None):
     :Inputs:
         *T*: :class:`float`
             Static temperature in degrees Rankine
-        *mu0*: :class:`float`
+        *mu0*: {``3.58394e-7``} | :class:`float`
             Reference viscosity [slug/ft*s]
-        *T0*: :class:`float`
+        *T0*: {``491.67``} | :class:`float`
             Reference temperature [R]
-        *C*: :class:`float`
+        *C*: {``198.6``} | :class:`float`
             Reference temperature [R]
     :Outputs:
         *mu*: :class:`float`
@@ -128,7 +131,7 @@ def SutherlandMKS(T, mu0=None, T0=None, C=None):
     
         .. math::
         
-            \mu = \mu_0 \frac{T_0+C}{T+C}\left(\frac{T}{T_0}\right)^{3/2}
+            \\mu = \\mu_0 \\frac{T_0+C}{T+C}\\left(\\frac{T}{T_0}\\right)^{3/2}
     
     :Call:
         >>> mu = SutherlandMKS(T)
@@ -136,11 +139,11 @@ def SutherlandMKS(T, mu0=None, T0=None, C=None):
     :Inputs:
         *T*: :class:`float`
             Static temperature in degrees Rankine
-        *mu0*: :class:`float`
+        *mu0*: {``1.716e-5``} | :class:`float`
             Reference viscosity [kg/m*s]
-        *T0*: :class:`float`
+        *T0*: {``273.15``} | :class:`float`
             Reference temperature [K]
-        *C*: :class:`float`
+        *C*: {``110.33333``} | :class:`float`
             Reference temperature [K]
     :Outputs:
         *mu*: :class:`float`
@@ -184,6 +187,9 @@ def ReynoldsPerFoot(p, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
     :Outputs:
         *Re*: :class:`float`
             Reynolds number per foot
+    :See also:
+        * :func:`cape.convert.SutherlandFPS`
+        * :func:`cape.convert.PressureFPSFromRe`
     :Versions:
         * 2016-03-23 ``@ddalle``: First version
     """
@@ -207,8 +213,8 @@ def ReynoldsPerMeter(p, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
     """Calculate Reynolds number per meter using Sutherland's Law
     
     :Call:
-        >>> Re = ReynoldsPerFoot(p, T, M)
-        >>> Re = ReynoldsPerFoot(p, T, M, gam=None, R=None, T0=None, C=None)
+        >>> Re = ReynoldsPerMeter(p, T, M)
+        >>> Re = ReynoldsPerMeter(p, T, M, gam=None, R=None, T0=None, C=None)
     :Inputs:
         *p*: :class:`float`
             Static pressure [Pa]
@@ -229,6 +235,9 @@ def ReynoldsPerMeter(p, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
     :Outputs:
         *Re*: :class:`float`
             Reynolds number per foot
+    :See also:
+        * :func:`cape.convert.SutherlandMKS`
+        * :func:`cape.convert.PressureMKSFromRe`
     :Versions:
         * 2016-03-24 ``@ddalle``: First version
     """
@@ -254,7 +263,6 @@ def PressureFPSFromRe(Re, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
     :Call:
         >>> p = PressureFPSFromRe(Re, T, M)
         >>> p = PressureFPSFromRe(Re, T, M, R=None, gam=None, **kw)
-    
     :Inputs:
         *Re*: :class:`float`
             Reynolds number per foot
@@ -275,6 +283,9 @@ def PressureFPSFromRe(Re, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
     :Outputs:
         *p*: :class:`float`
             Static pressure [psf]
+    :See also:
+        * :func:`cape.convert.SutherlandFPS`
+        * :func:`cape.convert.ReynoldsPerFoot`
     :Versions:
         * 2016-03-24 ``@ddalle``: First version
     """
@@ -298,7 +309,6 @@ def PressureMKSFromRe(Re, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
     :Call:
         >>> p = PressureMKSFromRe(Re, T, M)
         >>> p = PressureMKSFromRe(Re, T, M, R=None, gam=None, **kw)
-    
     :Inputs:
         *Re*: :class:`float`
             Reynolds number per foot
@@ -319,6 +329,9 @@ def PressureMKSFromRe(Re, T, M, R=None, gam=None, mu0=None, T0=None, C=None):
     :Outputs:
         *p*: :class:`float`
             Static pressure [Pa]
+    :See also:
+        * :func:`cape.convert.SutherlandMKS`
+        * :func:`cape.convert.ReynoldsPerMeter`
     :Versions:
         * 2016-03-24 ``@ddalle``: First version
     """

@@ -3,11 +3,24 @@ Case Control Module: :mod:`cape.case`
 =====================================
 
 This module contains templates for interacting with individual cases.  Since
-this is one of the most highly customized modules of the CAPE system, there are
+this is one of the most highly customized modules of the Cape system, there are
 few functions here, and the functions that are present are mostly templates.
 
-Actual functionality is left to individual modules such as :mod:`pyCart.case`.
+In general, the :mod:`case` module is used for actually running the CFD solver
+(and any additional binaries that may be required as part of the run process),
+and it contains other capabilities for renaming files and determining the
+settings for a particular case.  Cape saves many settings for the CFD solver and
+archiving in a file called :file:`case.json` within each case folder, which
+prevents changes to the master JSON file from unpredictably affecting cases that
+have already been initialized or are already running.
 
+Actual functionality is left to individual modules listed below.
+
+    * :mod:`pyCart.case`
+    * :mod:`pyFun.case`
+    * :mod:`pyOver.case`
+
+Several of the key methods for this API module are described below.
 """
 
 # Import options class
@@ -35,7 +48,7 @@ def StartCase():
     The function is empty 
     
     :Call:
-        >>> pyCart.case.StartCase()
+        >>> cape.case.StartCase()
     :Versions:
         * 2015-09-27 ``@ddalle``: Skeleton
     """
@@ -187,7 +200,7 @@ def GetCurrentIter():
     :Call:
         >>> n = cape.case.GetCurrentIter()
     :Outputs:
-        *n*: :class:`int` (``0``)
+        *n*: ``0``
             Most recent index, customized for each solver
     :Versions:
         * 2015-09-27 ``@ddalle``: First version
@@ -203,7 +216,7 @@ def WriteUserTimeProg(tic, rc, i, fname, prog):
     :Inputs:
         *tic*: :class:`datetime.datetime`
             Time from which timer will be measured
-        *rc*: :class:`pyCart.options.runControl.RunControl
+        *rc*: :class:`pyCart.options.runControl.RunControl`
             Options interface
         *i*: :class:`int`
             Phase number
