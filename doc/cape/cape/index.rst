@@ -15,3 +15,8 @@
     config
     convert
     dataBook
+    fileCntl
+    geom
+    manage
+    namelist
+    namelist2

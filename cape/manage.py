@@ -15,8 +15,16 @@ recent *n* files of a certain glob.  For example, if there are solution files
 *PostUpdateFiles* parameter to ``{"flow.??": 2}`` will delete only ``flow.01``
 and ``flow.02``.
 
-:Versions:
-    * 2016-03-01 ``@ddalle``: First version
+The module provides methods to perform deletions, conditional deletions, and
+grouping files into tar or zip archives at multiple stages.  For example,
+:func:`PreDeleteFiles` deletes files after a case has been completed and before
+generating the archive of the case.  On the other hand, :func:`PostDeleteFiles`
+deletes files after creating the archive; the difference is whether or not the
+file in question is included in the archive before it is deleted.
+
+Functions such as :func:`ProgressDeleteFiles` deletes files between phases, and
+as such it is much more dangerous.  Other methods will only delete or archive
+once the case has been marked as PASS by the user.
 """
 
 # File management modules

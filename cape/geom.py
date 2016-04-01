@@ -2,6 +2,9 @@
 Generic CAPE Geometry Module: :mod:`cape.geom`
 ==============================================
 
+This module provides several methods for modifying points or performing other
+geometric manipulations in a way accessible to each of the subclasses.
+
 :Versions:
     * 2015-09-30 ``@ddalle``: First version
 """

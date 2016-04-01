@@ -337,6 +337,10 @@ class DBPointSensor(dataBook.DBBase):
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
+            *FigWidth*: :class:`float`
+                Figure width
+            *FigHeight*: :class:`float`
+                Figure height
             *Label*: [ {*comp*} | :class:`str` ]
                 Manually specified label
             *TargetValue*: :class:`float` | :class:`list` (:class:`float`)
@@ -355,6 +359,8 @@ class DBPointSensor(dataBook.DBBase):
                 Options passed to :func:`plt.plot` for mean line
             *TargetOptions*: :class:`dict`
                 Options passed to :func:`plt.plot` for target value lines
+            *OutlierSigma*: {``7.0``} | :class:`float`
+                Standard deviation multiplier for determining outliers
             *ShowMu*: :class:`bool`
                 Option to print value of mean
             *ShowSigma*: :class:`bool`
@@ -606,6 +612,9 @@ class DBPointSensor(dataBook.DBBase):
         # Apply defaults
         if xlbl is None: xlbl = lx
         if ylbl is None: ylbl = ly
+        # Check for flipping
+        if not q_vert:
+            xlbl, ylbl = ylbl, xlbl
         # Labels.
         h['x'] = plt.xlabel(xlbl)
         h['y'] = plt.ylabel(ylbl)

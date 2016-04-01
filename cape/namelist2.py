@@ -1,16 +1,28 @@
 """
-Interface to Old-Style Fortran Namelists with Repeated Lists
-============================================================
+Module to interface with Fortran namelists: :mod:`cape.namelist2`
+=================================================================
 
-This is a module built off of the :mod:`cape.fileCntl` module customized for
-manipulating :file:`input.cntl` files.  Such files are split into section by lines of
-the format
+This is a module built off of the :mod:`cape.fileCntl.FileCntl` module
+customized for manipulating Fortran namelists.  Such files are split into
+sections which are called "name lists."  Each name list has syntax similar to
+the following.
 
-    ``$__Post_Processing``
+    .. code-block:: none
+    
+        $FLOINP
+            FSMACH = 4.0,
+            ALPHA = 1.0,
+            BETA = 0.0,
+            $END
     
 and this module is designed to recognize such sections.  The main feature of
-this module is methods to set specific properties of the :file:`input.cntl` 
-file, for example the Mach number or CFL number.
+this module is methods to set specific properties of a namelist file, for
+example the Mach number or CFL number.
+
+The difference between this module and :class:`cape.namelist.Namelist` is that
+this module can support multiple namelists with the same title.  This is
+particularly important for Overflow, which has ``GRDNAM``, ``BCINP``, and other
+sections defined for each structured grid.
 """
 
 # Import the base file control class.
