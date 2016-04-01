@@ -37,6 +37,13 @@ class Namelist(FileCntl):
     :Inputs:
         *fname*: :class:`str`
             Name of namelist file to read, defaults to ``'fun3d.nml'``
+    :Outputs:
+        *nml*: :class:`cape.namelist.Namelist`
+            Namelist file control instance
+        *nml.Sections*: :class:`dict` (:class:`list` (:class:`str`))
+            Dictionary of sections containing contents of each namelist
+        *nml.SectionNames*: :class:`list` (:class:`str`)
+            List of section names
     :Version:
         * 2015-10-15 ``@ddalle``: Started
     """

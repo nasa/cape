@@ -33,8 +33,23 @@ import numpy as np
 # Subclass off of the file control class
 class Namelist2(FileCntl):
     """
-    File control class for old-style Fortran namelists
+    File control class for Fortran namelists with duplicate sections
     
+    :Call:
+        >>> nml = Namelist2()
+        >>> nml = Namelist2(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of namelist file to read, defaults to ``'overflow.inp'``
+    :Outputs:
+        *nml*: :class:`cape.namelist2.Namelist2`
+            Namelist file control instance
+        *nml.ibeg*: :class:`np.ndarray` (:class:`int`)
+            Indices of lines starting each namelist/section
+        *nml.iend*: :class:`np.ndarray` (:class:`int`)
+            Indices of lines ending each namelist/section
+        *nml.Groups*: :class:`np.ndarray` (:class:`str`)
+            List of namelist/section/group titles
     :Versions:
         * 2016-02-01 ``@ddalle``: First version
     """
