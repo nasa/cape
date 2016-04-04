@@ -14,11 +14,16 @@ The function :func:`cape.bin.callo` is provided to be a substitute for
 :func:`subprocess.check_output` (which is only available in Python 2.7+).
 Several useful system utilities are also provided that utilize this
 output-gathering capability.
+
+See also the :mod:`cape.cmd` module
 """
 
 # File system and operating system management
 import os
 import subprocess as sp
+
+# Import local command-generating module for complex commands
+from . import cmd
 
 # Function to call commands with a different STDOUT
 def calli(cmdi, f=None, shell=None):
@@ -233,7 +238,7 @@ def _upgradeDocString(doccmd):
     # Output
     return docbin
     
-# Stand-alone function to run a Tecplot layout file
+# Stand-alone function to run a Paraview script
 def pvpython(lay, *args, **kw):
     """Stand-alone function to execute a Paraview Python script
     
@@ -257,4 +262,26 @@ def pvpython(lay, *args, **kw):
     # Call the script
     callf(cmdi, f='pvpython.out')
     
+# Stand-alone aflr3 binary
+def aflr3(opts=None, j=0, **kw):
+    """Run AFLR3 with the appropriate options
     
+    :Call:
+        >>> aflr3(opts=None, j=0, **kw)
+    :Inputs:
+        *opts*: :class:`cape.options.Options`
+            Options interface with access to AFLR3 options
+        *j*: :class:`int`
+            Phase number
+        *kw*: :class:`dict`
+            Raw dictionary of command-line arguments
+    :Versions:
+        * 2016-04-04 ``@ddalle``: First version
+    """
+    # Get the command
+    cmdi = cmd.aflr3(opts=opts, j=j, **kw)
+    # Call the script
+    callf(cmdi, f='aflr3.out')
+    
+# def aflr3
+

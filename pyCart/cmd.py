@@ -5,7 +5,7 @@ Create command strings for Cart3D binaries: :mod:`pyCart.cmd`
 This module contains direct interfaces to Cart3D binaries so that they can be
 called from Python.  Settings for the binaries that are usually specified as
 command-line options are either specified as keyword arguments or inherited from
-a :class:`pyCart.cart3d.Cart3d` instance.
+a :class:`pyCart.cart3d.Cart3d` instance..
 """
 
 # File checking.

@@ -542,7 +542,79 @@ class Options(odict):
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
    # >
-   
+    
+    # =====
+    # AFLR3
+    # =====
+   # <
+    
+    # Get AFLR3 input file
+    def get_aflr3_i(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_aflr3_i(j)
+        
+    # Set AFLR3 input file
+    def set_aflr3_i(self, fname, j=0):
+        self._RunControl()
+        self['RunControl'].set_aflr3_i(fname, j)
+    
+    # Get AFLR3 output file
+    def get_aflr3_o(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_aflr3_o(j)
+        
+    # Set AFLR3 output file
+    def set_aflr3_o(self, fname, j=0):
+        self._RunControl()
+        self['RunControl'].set_aflr3_o(fname, j)
+    
+    # Get stretching ratio
+    def get_blr(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_blr(j)
+        
+    # Set stretching ratio
+    def set_blr(self, blr, j=0):
+        self._RunControl()
+        self['RunControl'].set_blr(blr, j)
+    
+    # Get BL prism layer option
+    def get_blc(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_blc(j)
+        
+    # Set BL prism layer option
+    def set_blc(self, blr, j=0):
+        self._RunControl()
+        self['RunControl'].set_blr(blc, j)
+    
+    # Get wall spacing
+    def get_blds(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_blds(j)
+        
+    # Set wall spacing
+    def set_blds(self, blds, j=0):
+        self._RunControl()
+        self['RunControl'].set_blds(blds, j)
+    
+    # Get max wall angle setting
+    def get_angblisimx(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_angblisimx(j)
+        
+    # Set max wall angle setting
+    def set_angblisimx(self, angbli, j=0):
+        self._RunControl()
+        self['RunControl'].set_angblisimx(angbli, j)
+        
+    # Copy documentation
+    for k in ['aflr3_i', 'aflr3_o',
+        'blc', 'blr', 'blds', 'angblisimx']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(runControl.RunControl,'set_'+k).__doc__
+   # >
         
     # ============
     # PBS settings

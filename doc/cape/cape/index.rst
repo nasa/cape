@@ -11,6 +11,7 @@
     argread
     bin
     case
+    cmd
     cntl
     config
     convert
@@ -27,4 +28,6 @@
     tex
     trajectory
     tri
+    util
     options/index
+    _cape

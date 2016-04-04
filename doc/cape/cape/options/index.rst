@@ -13,6 +13,7 @@
     
     runControl
     ulimit
+    aflr3
     Archive
     pbs
     Config

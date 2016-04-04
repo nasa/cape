@@ -17,6 +17,7 @@ from util import rc0, odict, getel
 # Required submodules
 import Archive
 import ulimit
+import aflr3
 
 # Environment class
 class Environ(odict):
@@ -112,6 +113,7 @@ class RunControl(odict):
         self._Environ()
         self._ulimit()
         self._Archive()
+        self._aflr3()
     
     # ===========
     # Environment
@@ -380,6 +382,89 @@ class RunControl(odict):
     set_max_processes        = set_ulimit_u
     set_virtual_memory_limit = set_ulimit_v
     set_file_locks_limit     = set_ulimit_x
+   # >
+   
+    # =====
+    # AFLR3
+    # =====
+   # <
+   
+    # Environment variable interface
+    def _aflr3(self):
+        """Initialize AFLR3 settings if necessary"""
+        if 'aflr3' not in self:
+            # Empty/default
+            self['aflr3'] = aflr3.aflr3()
+        elif type(self['aflr3']).__name__ == 'dict':
+            # Convert to special class
+            self['aflr3'] = aflr3.aflr3(**self['aflr3'])
+    
+    # Get AFLR3 input file
+    def get_aflr3_i(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_aflr3_i(j)
+        
+    # Set AFLR3 input file
+    def set_aflr3_i(self, fname, j=0):
+        self._aflr3()
+        self['aflr3'].set_aflr3_i(fname, j)
+    
+    # Get AFLR3 output file
+    def get_aflr3_o(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_aflr3_o(j)
+        
+    # Set AFLR3 output file
+    def set_aflr3_o(self, fname, j=0):
+        self._aflr3()
+        self['aflr3'].set_aflr3_o(fname, j)
+    
+    # Get stretching ratio
+    def get_blr(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_blr(j)
+        
+    # Set stretching ratio
+    def set_blr(self, blr, j=0):
+        self._aflr3()
+        self['aflr3'].set_blr(blr, j)
+    
+    # Get BL prism layer option
+    def get_blc(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_blc(j)
+        
+    # Set BL prism layer option
+    def set_blc(self, blr, j=0):
+        self._aflr3()
+        self['aflr3'].set_blr(blc, j)
+    
+    # Get wall spacing
+    def get_blds(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_blds(j)
+        
+    # Set wall spacing
+    def set_blds(self, blds, j=0):
+        self._aflr3()
+        self['aflr3'].set_blds(blds, j)
+    
+    # Get max wall angle setting
+    def get_angblisimx(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_angblisimx(j)
+        
+    # Set max wall angle setting
+    def set_angblisimx(self, angbli, j=0):
+        self._aflr3()
+        self['aflr3'].set_angblisimx(angbli, j)
+        
+    # Copy documentation
+    for k in ['aflr3_i', 'aflr3_o',
+        'blc', 'blr', 'blds', 'angblisimx']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(aflr3.aflr3,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(aflr3.aflr3,'set_'+k).__doc__
    # >
    
     # =================
