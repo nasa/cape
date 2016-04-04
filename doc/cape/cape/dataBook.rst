@@ -1,6 +1,6 @@
 
 .. automodule:: cape.dataBook
-    :members: get_xlim, get_ylim
+    :members: ImportPyPlot, get_xlim, get_ylim
 
     Global data book container class
     --------------------------------

@@ -1,24 +1,13 @@
 """
-Utilities for pyCart Options module: :mod:`pyCart.options.util`
-===============================================================
+Utilities for Cape options module
+=================================
 
-This module provides tools to read, access, modify, and write settings for
-:mod:`pyCart`.  The class is based off of the built-int :class:`dict` class, so
-its default behavior, such as ``opts['InputCntl']`` or 
-``opts.get('InputCntl')`` are also present.  In addition, many convenience
-methods, such as ``opts.set_it_fc(n)``, which sets the number of
-:file:`flowCart` iterations,  are provided.
+This module provides utilities for the Cape options module.  It includes the
+:class:`cape.options.util.odict` class upon which all Cape options classes are
+based, and it several basic methods useful to processing options.
 
-In addition, this module controls default values of each pyCart
-parameter in a two-step process.  The precedence used to determine what the
-value of a given parameter should be is below.
-
-    *. Values directly specified in the input file, :file:`pyCart.json`
-    
-    *. Values specified in the default control file,
-       :file:`$PYCART/settings/pyCart.default.json`
-    
-    *. Hard-coded defaults from this module
+The :func:`getel` and :func:`setel` methods in particular play an important role
+in the entire Cape coding strategy.
 """
 
 # Interaction with the OS
@@ -134,7 +123,7 @@ rc = {
 # Utility function to get elements sanely
 def getel(x, i=None):
     """
-    Return the *i*th element of an array if possible
+    Return element *i* of an array if possible
     
     :Call:
         >>> xi = getel(x)
@@ -193,7 +182,7 @@ def getel(x, i=None):
 # Utility function to set elements sanely
 def setel(x, i, xi):
     """
-    Return the *i*th element of an array if possible
+    Return element *i* of an array if possible
     
     :Call:
         >>> y = setel(x, i, xi)
@@ -555,7 +544,20 @@ def isStr(x):
     
 # Dictionary derivative specific to options
 class odict(dict):
-    """Dictionary-based interfaced for options specific to ``flowCart``"""
+    """Dictionary-based options module
+    
+    :Call:
+        >>> opts = odict(**kw)
+    :Inputs:
+        *kw*: :class:`dict`
+            Dictionary of options
+    :Outputs:
+        *opts*: :class:`cape.options.util.odict`
+            Dictionary-based options interface
+    :Versions:
+        * 2014-08-02 ``@ddalle``: First version
+        * 2015-11-10 ``@ddalle``: More robust :func:`get_key` using *rck*
+    """
     
     # General "get" function
     def get_key(self, k, i=None, rck=None):
@@ -584,7 +586,7 @@ class odict(dict):
                 possible, ``V[-1]`` if *V* is a list and *i* is not ``None``,
                 or ``V`` otherwise
         :See also:
-            * :func:`pyCart.options.util.getel`
+            * :func:`cape.options.util.getel`
         :Versions:
             * 2014-08-02 ``@ddalle``: First version
             * 2015-11-10 ``@ddalle``: Added *rck*
@@ -617,7 +619,7 @@ class odict(dict):
             *rck*: :class:`str` or ``None``
                 Name of key in *rc0* default option dictionary; defaults to *k*
         :See also:
-            * :func:`pyCart.options.util.setel`
+            * :func:`cape.options.util.setel`
         :Versions:
             * 2014-08-02 ``@ddalle``: First version
             * 2015-11-10 ``@ddalle``: Added *rck*

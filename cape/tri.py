@@ -1,14 +1,22 @@
 """
-Cart3D triangulation module: :mod:`cape.tri`
-==============================================
+Surface triangulation module: :mod:`cape.tri`
+=============================================
 
-This module provides the utilities for interacting with Cart3D triangulations,
-including annotated triangulations (including ``.triq`` files).  Triangulations
-can also be read from the UH3D format.
+This module provides the utilities for interacting with Cart3D or Plot3D type
+triangulations, including annotated triangulations (including ``.triq`` files).
+Triangulations can also be read from the UH3D, UNV, and AFLR3 surf formats.
 
 The module consists of individual classes that are built off of a base
 triangulation class :class:`cape.tri.TriBase`.  Methods that are written for
 the TriBase class apply to all other classes as well.
+
+Some triangulation methods are written in Python/C using the :mod:`cape._cape`
+module.  For some repeated tasks (especially writing triangulations to file),
+creating a compiled version can lead to significant time savings.  These are
+relatively simple to compile, but fall-back methods are provided using purely
+Python code in each case.  The convention used for this situation is to provide
+a method like :func:`cape.tri.TriBase.WriteFast` for the compiled version and
+:func:`cape.tri.TriBase.WriteSlow` for the Python version.
 """
 
 # Required modules
@@ -67,7 +75,7 @@ def _readline(f, comment='#'):
 
 # Triangulation class
 class TriBase(object):
-    """cape base triangulation class
+    """Cape base triangulation class
     
     This class provides an interface for a basic triangulation without
     surface data.  It can be created either by reading an ASCII file or
@@ -1353,6 +1361,7 @@ class TriBase(object):
             *cfg*: :class:`cape.config.Config`
                 Configuration instance
             *fcfg*: :class:`str`
+                Name of XML config file
         :Versions:
             * 2014-11-10 ``@ddalle``: First version
         """
@@ -1553,7 +1562,7 @@ class TriBase(object):
         from :file:`Config.xml`) if available.  If not, create a 3-view plot for
         each *CompID*, e.g. :file:`1.png`, :file:`2.png`, etc.
         
-        Call:
+        :Call:
             >>> tri.Tecplot3View(fname, i=None)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
@@ -1643,7 +1652,7 @@ class TriBase(object):
     
     # Function to translate the triangulation
     def Translate(self, dx=None, dy=None, dz=None, i=None):
-        """Translate the nodes of a triangulation object.
+        """Translate the nodes of a triangulation object
             
         The offset coordinates may be specified as individual inputs or a
         single vector of three coordinates.
@@ -1655,7 +1664,7 @@ class TriBase(object):
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance to be translated
-            *dR*: :class:`numpy.ndarray` or :class:`list`
+            *dR*: :class:`numpy.ndarray` | :class:`list`
                 List of three coordinates to use for translation
             *dx*: :class:`float`
                 *x*-coordinate offset
@@ -1663,7 +1672,7 @@ class TriBase(object):
                 *y*-coordinate offset
             *dz*: :class:`float`
                 *z*-coordinate offset
-            *i*: :class:`int` or :class:`list` (:class:`int`0
+            *i*: :class:`int` or :class:`list` (:class:`int`)
                 Component ID(s) to which to apply translation
         :Versions:
             * 2014-05-23 ``@ddalle``: First version
@@ -2028,7 +2037,7 @@ class TriBase(object):
 
 # Regular triangulation class
 class Tri(TriBase):
-    """cape triangulation class
+    """Cape surface mesh interface
     
     This class provides an interface for a basic triangulation without
     surface data.  It can be created either by reading an ASCII file or
@@ -2170,14 +2179,10 @@ class Tri(TriBase):
 
 # Regular triangulation class
 class Triq(TriBase):
-    """cape triangulation class
+    """Class for surface geometry with solution values at each point
     
-    This class provides an interface for a basic triangulation without
-    surface data.  It can be created either by reading an ASCII file or
-    specifying the data directly.
-    
-    When no component numbers are specified, the object created will label
-    all triangles ``1``.
+    This class is based on the concept of Cart3D ``triq`` files, which are also
+    utilized by some Overflow utilities, including ``overint``.
     
     :Call:
         >>> triq = cape.Triq(fname=fname, c=None)

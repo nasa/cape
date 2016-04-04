@@ -1,9 +1,15 @@
 """
-Interface to FUN3D run control options
+Interface to basic run control options
 ======================================
 
-This module provides a class to mirror the Fortran namelist capability.  For
-now, nonunique section names are not allowed.
+This module provides a class to access (or set) options pertaining to the basic
+execution of the code.  For example, it specifies how many iterations to run,
+whether or not to use an MPI version of a solver, and whether or not to submit
+the job to a PBS queue.
+
+It also contains command-line options that are given to each binary that is
+utilized for a a solver, and it also contains archiving options.  This entire
+section is written to the file ``case.json`` within each run folder.
 """
 
 # Ipmort options-specific utilities
@@ -14,7 +20,19 @@ import ulimit
 
 # Environment class
 class Environ(odict):
-    """Class for environment variables"""
+    """Class for environment variables
+    
+    :Call:
+        >>> opts = Environ(**kw)
+    :Inputs:
+        *kw*: :class:`dict`
+            Dictionary of environment variables
+    :Outputs:
+        *opts*: :class:`cape.options.runControl.Environ`
+            System environment variable options interface
+    :Versions:
+        * 2015-11-10 ``@ddalle``: First version
+    """
     
     # Get an environment variable by name
     def get_Environ(self, key, i=0):
@@ -71,7 +89,19 @@ class Environ(odict):
 
 # Class for iteration & mode control settings and command-line inputs
 class RunControl(odict):
-    """Dictionary-based interface for generic code run control"""
+    """Dictionary-based interface for generic code run control
+    
+    :Call:
+        >>> opts = RunControl(**kw)
+    :Inputs:
+        *kw*: :class:`dict`
+            Dictionary of run control options
+    :Outputs:
+        *opts*: :class:`cape.options.runControl.RunControl`
+            Basic control options interface
+    :Versions:
+        * 2014-12-01 ``@ddalle``: First version
+    """
     
     # Initialization method
     def __init__(self, fname=None, **kw):

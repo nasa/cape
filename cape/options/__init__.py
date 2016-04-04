@@ -1,24 +1,47 @@
 """
-CAPE generic settings module: :mod:`cape.options`
-=================================================
+Cape options module
+===================
 
 This module provides tools to read, access, modify, and write settings for
 :mod:`cape`.  The class is based off of the built-int :class:`dict` class, so
-its default behavior, such as ``opts['InputCntl']`` or 
-``opts.get('InputCntl')`` are also present.  In addition, many convenience
-methods, such as ``opts.set_it_fc(n)``, which sets the number of
-:file:`flowCart` iterations,  are provided.
+its default behavior, such as ``opts['RunControl']`` or 
+``opts.get('RunControl')`` are also present.  In addition, many convenience
+methods, such as ``opts.set_PhaseIters(n)``, which sets the number of
+iterations to run, are provided.
 
 In addition, this module controls default values of each pyCart
 parameter in a two-step process.  The precedence used to determine what the
 value of a given parameter should be is below.
 
-    *. Values directly specified in the input file, :file:`cape.json`
+    * Values directly specified in the input file, :file:`cape.json`
     
-    *. Values specified in the default control file,
+    * Values specified in the default control file,
        :file:`$CAPE/settings/cape.default.json`
     
-    *. Hard-coded defaults from this module
+    * Hard-coded defaults from this module
+
+The strategy for the :class:`cape.options.Options` class, or the derived
+:class:`pyCart.options.Options`, :class:`pyFun.options.Options`, or
+:class:`pyOver.options.Options` classes, is that the user may get the options
+either from the parent options class or the subclass.  For example, both of the
+following commands get the option of whether or not to submit PBS jobs.
+
+    .. code-block:: python
+    
+        opts.get_qsub()
+        opts['RunControl'].get_qsub()
+
+Furthermore, there is a control to get options specifically for phase *j*.  Each
+option can be called either with or without the phase number, for instance
+``opts.get_qsub()`` or ``opts.get_qsub(j)``.  If the option has different
+settings for each phase, this will return entry number *j* (0-based indexing) of
+the option (if *j* is greater than the length of the list, the last entry in the
+list is returned); but if the entry is a scalar, that scalar is returned
+regardless of the value of *j*.
+
+Finally, this module is very closely tied with 
+:ref:`the JSON section <cape-json>`, which often contains more useful
+descriptions.
 """
 
 # Import options-specific utilities (loads :mod:`os`, too)
@@ -644,7 +667,7 @@ class Options(odict):
     # =============
     # Configuration
     # =============
-   #<
+   # <
     
     # Get components
     def get_ConfigComponents(self, i=None):

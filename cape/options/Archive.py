@@ -3,7 +3,11 @@ Interface to case archiving options
 ===================================
 
 This module provides a class to access options relating to archiving folders
-that were used to run CFD analysis
+that were used to run CFD analysis.
+
+The class provided in this module, :class:`cape.options.Archive.Archive`, is
+loaded in the ``"RunControl"`` section of the JSON file and the
+:class:`cape.options.runControl.RunControl` class.
 """
 
 # Ipmort options-specific utilities
@@ -50,8 +54,19 @@ def auto_Archive(opts):
 
 # Class for folder management and archiving
 class Archive(odict):
-    """Dictionary-based interfaced for options specific to folder management"""
+    """Dictionary-based interfaced for options specific to folder management
     
+    :Call:
+        >>> opts = cape.options.Archive.Archive(**kw)
+    :Inputs:
+        *kw*: :class:`dict`
+            Dictionary of archive options
+    :Outputs:
+        *opts*: :class:`cape.options.Archive.Archive`
+            Archive options interface
+    :Versions:
+        * 2016-30-02 ``@ddalle``: First version
+    """
    
     # -------------
     # Basic Options

@@ -2,8 +2,13 @@
 Interface to system resource options
 ====================================
 
-This module provides a class to access options relating to archiving folders
-that were used to run CFD analysis
+This module provides a class to access options relating to system resources.
+Specifically, this pertains to options usually set by ``ulimit`` from the
+command line.
+
+The class provided in this module, :class:`cape.options.ulimit.ulimit`, is
+loaded in the ``"RunControl"`` section of the JSON file and the
+:class:`cape.options.runControl.RunControl` class.
 """
 
 # Ipmort options-specific utilities
@@ -12,7 +17,19 @@ from util import rc0, odict, getel
 
 # Resource limits class
 class ulimit(odict):
-    """Class for resource limits"""
+    """Class for resource limits
+    
+    :Call:
+        >>> opts = ulimit(**kw)
+    :Inputs:
+        *kw*: :class:`dict`
+            Dictionary of system resource options
+    :Outputs:
+        *opts*: :class:`cape.options.ulimit.ulimit`
+            System resource options interface
+    :Versions:
+        * 2015-11-10 ``@ddalle``: First version
+    """
     
     # Get a ulimit setting
     def get_ulimit(self, u, i=0):

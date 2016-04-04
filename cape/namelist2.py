@@ -75,7 +75,7 @@ class Namelist2(FileCntl):
             >>> nml.UpdateNamelist()
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
-                Old-style namelist interface
+                Interface to namelist with repeated lists
         :Versions:
             * 2016-01-29 ``@ddalle``: First version
         """
@@ -131,7 +131,7 @@ class Namelist2(FileCntl):
             >>> nml.InsertGroup(igrp, grp)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
-                Old-style namelist interface
+                Interface to namelist with repeated lists
             *igrp*: :class:`int`
                 Index of location at which to insert group
             *grp*: :class:`str`
@@ -165,7 +165,7 @@ class Namelist2(FileCntl):
             >>> i = nml.GetGroupByName(grp, igrp=0)
         :Inputs:
             *nml*: :class:`cape.name.ist2.Namelist2`
-                Old-style namelist interface
+                Interface to namelist with repeated lists
             *grp*: :class:`str`
                 Name of namelist group
             *igrp*: :class:`int`
@@ -208,7 +208,7 @@ class Namelist2(FileCntl):
             >>> d = nml.ReadGroupIndex(igrp)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
-                Old-style namelist interface
+                Interface to namelist with repeated lists
             *igrp*: :class:`int`
                 Group index to read
         :Outputs:
@@ -259,7 +259,7 @@ class Namelist2(FileCntl):
             >>> v = nml.GetKeyFromGroupIndex(igrp, key)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
-                Old-style namelist interface
+                Interface to namelist with repeated lists
             *key*: :class:`str`
                 Name of the key to search for
         :Outputs:
@@ -322,7 +322,7 @@ class Namelist2(FileCntl):
             >>> d = nml.ReadKeysFromLine(line)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
-                Old-style namelist interface
+                Interface to namelist with repeated lists
             *line*: :class:`str`
                 One line from a namelist file
         :Outputs:
@@ -352,7 +352,7 @@ class Namelist2(FileCntl):
             >>> q, val = nml.GetKeyFromLine(line, key)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
-                Old-style namelist interface
+                Interface to namelist with repeated lists
             *line*: :class:`str`
                 A line of text that may or may not contain the value of *key*
             *key*: :class:`str`
@@ -463,7 +463,7 @@ class Namelist2(FileCntl):
             >>> q, line = nml.SetKeyInLine(line, key, val)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
-                Old-style namelist interface
+                Interface to namelist with repeated lists
             *line*: :class:`str`
                 A line of text that may or may not contain the value of *key*
             *key*: :class:`str`
@@ -521,7 +521,7 @@ class Namelist2(FileCntl):
             >>> txt, key, val = nml.PopLine(line)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
-                Old-style namelist interface
+                Interface to namelist with repeated lists
             *line*: :class:`str`
                 One line of namelist text
         :Outputs:

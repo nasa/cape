@@ -1,5 +1,5 @@
 """
-Module for Semiautomatic Folder Archiving: :mod:`cape.tar`
+Module for semiautomatic folder archiving: :mod:`cape.tar`
 ==========================================================
 
 This is a module for tarring and untarring folders automatically in combination

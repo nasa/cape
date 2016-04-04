@@ -20,3 +20,11 @@
     manage
     namelist
     namelist2
+    pointSensor
+    queue
+    report
+    tar
+    tex
+    trajectory
+    tri
+    options/index
