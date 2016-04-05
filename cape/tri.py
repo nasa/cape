@@ -1211,32 +1211,45 @@ class TriBase(object):
         tri.Nodes  = self.Nodes.copy()
         tri.Tris   = self.Tris.copy()
         tri.CompID = self.CompID.copy()
+        # Copy BL parameters
+        try:
+            tri.blds = self.blds.copy()
+            tri.bldel = self.bldel.copy()
+        except Exception:
+            pass
+        # Other Tri info
+        try:
+            self.BCs = self.BCs.copy()
+        except Exception:
+            pass
+        # Copy Quad info
+        try:
+            self.nQuad = self.nQuad
+            self.Quads = self.Quads.copy()
+            self.CompIDQuad = self.CompIDQuad.copy()
+            self.BCsQuad = self.BCsQuad.copy()
+        except Exception:
+            pass
         # Try to copy the configuration list.
-        try:
-            tri.Conf = self.Conf.copy()
-        except Exception:
-            pass
+        try: tri.Conf = self.Conf.copy()
+        except Exception: pass
         # Try to copy the configuration.
-        try:
-            tri.config = self.config.Copy()
-        except Exception:
-            pass
+        try: tri.config = self.config.Copy()
+        except Exception: pass
         # Try to copy the original barriers.
-        try:
-            tri.iTri = self.iTri
-        except Exception:
-            pass
+        try: tri.iTri = self.iTri
+        except Exception: pass
         # Try to copy the state
         try:
             tri.q = self.q.copy()
             tri.nq = tri.shape[1]
-        except AttributeError:
+        except Exception:
             pass
         # Try to copy the state length
         try:
             tri.n = self.n
-        except AttributeError:
-            pass
+        except Exception:
+            tri.n = 1
         # Output the new triangulation.
         return tri
         
@@ -2357,25 +2370,23 @@ class Tri(TriBase):
     
     :Call:
         >>> tri = cape.Tri(fname=fname, c=None)
+        >>> tri = cape.Tri(surf=surf, c=None)
         >>> tri = cape.Tri(uh3d=uh3d, c=None)
-        >>> tri = cape.Tri(Nodes=Nodes, Tris=Tris, CompID=CompID)
+        >>> tri = cape.Tri(unv=unv, c=None)
+        >>> tri = cape.Tri(nNode=nNode, Nodes=Nodes, **kw)
     :Inputs:
         *fname*: :class:`str`
             Name of triangulation file to read (Cart3D format)
+        *surf*: :class:`str`
+            Name of AFLR3 surface file
         *uh3d*: :class:`str`
             Name of triangulation file (UH3D format)
+        *unv*: :class:`str`
+            Name of IDEAS surface triangulation file
         *c*: :class:`str`
             Name of configuration file (usually ``Config.xml``)
-        *nNode*: :class:`int`
-            Number of nodes in triangulation
-        *Nodes*: :class:`np.ndarray` (:class:`float`), (*nNode*, 3)
-            Matrix of *x,y,z*-coordinates of each node
-        *nTri*: :class:`int`
-            Number of triangles in triangulation
-        *Tris*: :class:`np.ndarray` (:class:`int`), (*nTri*, 3)
-            Indices of triangle vertex nodes
-        *CompID*: :class:`np.ndarray` (:class:`int`), (*nTri*)
-            Component number for each triangle
+    :Keyword arguments:
+        Data members can be defined directly using keyword arguments
     :Data members:
         *tri.nNode*: :class:`int`
             Number of nodes in triangulation
@@ -2385,53 +2396,77 @@ class Tri(TriBase):
             Number of triangles in triangulation
         *tri.Tris*: :class:`np.ndarray` (:class:`int`), (*nTri*, 3)
             Indices of triangle vertex nodes
-        *tri.CompID*: :class:`np.ndarray` (:class:`int`), (*nTri*)
+        *tri.CompID*: :class:`np.ndarray` (:class:`int`), (*nTri*,)
             Component number for each triangle
+        *tri.BCs*: :class:`np.ndarray` (:class:`int`), (*nTri*,)
+            Boundary condition flag for each triangle
+        *tri.nQuad*: :class:`int`
+            Number of quads in surface
+        *tri.Quads*: :class:`np.ndarray` (:class:`int`), (*nQuad*, 4)
+            Indices of quad vertex nodes
+        *tri.CompIDQuad*: :class:`np.ndarray` (:class:`int`), (*nQuad*,)
+            Component number for each quad
+        *tri.BCsQuad*: :class:`np.ndarray` (:class:`int`), (*nQuad*,)
+            Boundary condition flag for each quad
+        *tri.blds*: :class:`np.ndaray` (:class:`float`), (*nNode*,)
+            Boundary layer initial spacing for each node
+        *tri.bldel*: :class:`np.ndarray` (:class:`float`), (*nNode*,)
+            Boundary layer thicknesses for each node
+    :Versions:
+        * 2014-05-23 ``@ddalle``: First version
+        * 2016-04-05 ``@ddalle``: Many input formats
     """
     
-    def __init__(self, fname=None, uh3d=None, c=None,
-        nNode=None, Nodes=None, nTri=None, Tris=None, CompID=None):
+    def __init__(self, fname=None, c=None, **kw):
         """Initialization method
         
         :Versions:
             * 2014-05-23 ``@ddalle``: First version
             * 2014-06-02 ``@ddalle``: Added UH3D reading capability
+            * 2016-04-05 ``@ddalle``: Added AFLR3 and cleaned up inputs
         """
         # Check if file is specified.
         if fname is not None:
             # Read from file.
             self.Read(fname)
-        
-        elif uh3d is not None:
+        elif 'surf' in kw:
+            # Read from AFLR3 surface
+            self.ReadSurf(kw['surf'])
+        elif 'uh3d' in kw:
             # Read from the other format.
-            self.ReadUH3D(uh3d)
-            
+            self.ReadUH3D(kw['uh3d'])
         else:
-            # Process inputs.
-            # Check counts.
-            if nNode is None:
-                # Get dimensions if possible.
-                if Nodes is not None:
-                    # Use the shape.
-                    nNode = Nodes.shape[0]
-                else:
-                    # No nodes
-                    nNode = 0
-            # Check counts.
-            if nTri is None:
-                # Get dimensions if possible.
-                if Tris is not None:
-                    # Use the shape.
-                    nTri = Tris.shape[0]
-                else:
-                    # No nodes
-                    nTri = 0
-            # Save the components.
+            # Process raw inputs.
+            # Nodes, tris, and quads
+            Nodes = kw.get('Nodes', np.zeros((0,3)))
+            Tris  = kw.get('Tris',  np.zeros((0,3), dtype=int))
+            Quads = kw.get('Quads', np.zeros((0,4), dtype=int))
+            # Ensure arrays
+            Nodes = np.array(Nodes)
+            Tris  = np.array(Tris)
+            Quads = np.array(Quads)
+            # Number of nodes
+            nNode = kw.get('nNode', Nodes.shape[0])
+            nTri  = kw.get('nTri',  Tris.shape[0])
+            nQuad = kw.get('nQuad', Quads.shape[0])
+            # Component IDs
+            self.CompID = kw.get('CompID')
+            self.CompIDQuad = kw.get('CompIDQuad')
+            # Boundary condition flags
+            self.BCs = kw.get('BCs')
+            self.BCsQuad = kw.get('BCsQuad')
+            # BL growth parameters
+            self.blds  = kw.get('blds',  np.zeros(nNode))
+            self.bldel = kw.get('bldel', np.zeros(nNode))
+            # Save the nodes
             self.nNode = nNode
             self.Nodes = Nodes
+            # Save the triangle definitions
             self.nTri = nTri
             self.Tris = Tris
-            self.CompID = CompID
+            # Save the quad definitions
+            self.nQuad = nQuad
+            self.Quads = Quads
             
         # Check for configuration
         if c is not None:

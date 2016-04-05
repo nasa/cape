@@ -73,3 +73,105 @@ def aflr3(opts=None, j=0, **kw):
     if angblisimx: cmdi += ['angblisimx=%s' % angblisimx]
     # Output
     return cmdi
+    
+# Function to call verify
+def intersect(opts=None, **kw):
+    """Interface to Cart3D binary ``intersect``
+    
+    :Call:
+        >>> cmd = cape.cmd.intesect(opts=None, **kw)
+    :Inputs:
+        *opts*: :class:`cape.options.Options`
+            Options interface
+        *i*: :class:`str`
+            Name of input ``tri`` file
+        *o*: :class:`str`
+            Name of output ``tri`` file
+        *
+    :Outputs:
+        *cmd*: :class:`list` (:class:`str`)
+            Command split into a list of strings
+    :Versions:
+        * 2015-02-13 ``@ddalle``: First version
+    """
+    # Check input type
+    if opts is not None:
+        # Check for "RunControl"
+        opts = opts.get("RunControl", opts)
+        opts = opts.get("itnersect",  opts)
+        # Get settings
+        fin    = opts.get('i', 'Components.tri')
+        fout   = opts.get('o', 'Components.i.tri')
+        cutout = opts.get('cutout')
+        ascii  = opts.get('ascii', True)
+        v      = opts.get('v', False)
+        T      = opts.get('T', False)
+        iout   = opts.get('intersect', False)
+    else:
+        # Get settings from inputs
+        fin    = kw.get('i', 'Components.tri')
+        fout   = kw.get('o', 'Components.i.tri')
+        cutout = kw.get('cutout')
+        ascii  = kw.get('ascii', True)
+        v      = kw.get('v', False)
+        T      = kw.get('T', False)
+        iout   = kw.get('intersect', False)
+    # Build the command.
+    cmdi = ['intersect', '-i', fin, '-o', fout]
+    # Type option
+    if cutout: cmdi += ['-cutout', str(cutout)]
+    if ascii:  cmdi.append('-ascii')
+    if v:      cmdi.append('-v')
+    if T:      cmdi.append('-T')
+    if iout:   cmdi.append('-intersections')
+    # Output
+    return cmdi
+    
+# Function to call verify
+def verify(opts=None, **kw):
+    """Interface to Cart3D binary ``verify``
+    
+    :Call:
+        >>> cmd = cape.cmd.verify(opts=None, i='Components.i.tri', **kw)
+    :Inputs:
+        *opts*: :class:`cape.options.Options`
+            Options interface
+        *i*: {``"Components.i.tri"`` | :class:`str`
+            Name of *tri* file to test
+        *ascii*: {``True``} | ``False``
+            Flag to consider input file ASCII
+        *binary*: ``True`` | {``False``}
+            Flag to consider input file binary
+    :Outputs:
+        *cmd*: :class:`list` (:class:`str`)
+            Command split into a list of strings
+    :Versions:
+        * 2015-02-13 ``@ddalle``: First version
+    """
+    # Check input type
+    if opts is not None:
+        # Check for "RunControl"
+        opts = opts.get("RunControl", opts)
+        opts = opts.get("verify", opts)
+        # Get settings
+        ftri  = opts.get('i', 'Components.i.tri')
+        binry = opts.get('binary', False)
+        ascii = opts.get('ascii', not binry)
+    else:
+        # Get settings from inputs
+        ftri  = kw.get('i', 'Components.i.tri')
+        binry = kw.get('binry', False)
+        ascii = kw.get('ascii', not binry) 
+    # Build the command.
+    cmdi = ['verify', ftri]
+    # Type
+    if binry:
+        # Binary triangulation
+        cmdi.append('-binary')
+    elif ascii:
+        # ASCII triangulation
+        cmdi.append('-ascii')
+    # Output
+    return cmd
+# def verify
+

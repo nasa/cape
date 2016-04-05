@@ -275,6 +275,8 @@ def aflr3(opts=None, j=0, **kw):
             Phase number
         *kw*: :class:`dict`
             Raw dictionary of command-line arguments
+    :See also:
+        * :func:`cape.cmd.aflr3`
     :Versions:
         * 2016-04-04 ``@ddalle``: First version
     """
@@ -282,6 +284,72 @@ def aflr3(opts=None, j=0, **kw):
     cmdi = cmd.aflr3(opts=opts, j=j, **kw)
     # Call the script
     callf(cmdi, f='aflr3.out')
+
+# Function to call verify
+def verify(opts=None, **kw):
+    """Run Cart3D binary ``verify`` to test a triangulation
     
-# def aflr3
+    :Call:
+        >>> verify(opts=None, **kw)
+    :Inputs:
+        *opts*: :class:`cape.options.Options`
+            Options interface with access to ``verify`` options
+        *kw*: :class:`dict`
+            Raw dictionary of command-line arguments
+    :See also:
+        * :func:`cape.cmd.verify`
+    :Versions:
+        * 2016-04-05 ``@ddalle``: First version
+    """
+    # If there is currently a 'tecplot.bad' file, move it.
+    if os.path.isfile('tecplot.bad'):
+        os.rename('tecplot.bad', 'tecplot.old.bad')
+    # Get command
+    cmdi = cmd.verify(opts=opts, **kw)
+    # Required file
+    _assertfile(cmdi[1])
+    # Run the command.
+    ierr = calli(cmdi, f='verify.out')
+    # Check status.
+    if ierr or os.path.isfile('tecplot.bad'):
+        # Create a failure file.
+        f = open('FAIL', 'a+')
+        # Write the reason
+        f.write('verify\n')
+        f.close()
+        # Exit.
+        raise SystemError('Triangulation contains errors!')
+
+# Function to call intersect
+def intersect(opts=None, **kw):
+    """Run Cart3D binary ``intersect`` to combine overlapping triangulations
+    
+    :Call:
+        >>> intersect(opts=None, **kw)
+    :Inputs:
+        *opts*: :class:`cape.options.Options`
+            Options interface with access to ``verify`` options
+        *kw*: :class:`dict`
+            Raw dictionary of command-line arguments
+    :See also:
+        * :func:`cape.cmd.intersect`
+    :Versions:
+        * 2016-04-05 ``@ddalle``: First version
+    """
+    # Get command.
+    cmdi = cmd.intersect(opts=opts, **kw)
+    # Required file
+    _assertfile(cmdi[2])
+    # Run the command.
+    ierr = calli(cmdi, f='intersect.out')
+    # Check status.
+    if ierr or not os.path.isfile(fout):
+        # Create a failure file.
+        f = open('FAIL', 'a+')
+        # Write the reason
+        f.write('intersect\n')
+        f.close()
+        # Exit.
+        raise SystemError('Intersection failed!')
+# def intersect
 

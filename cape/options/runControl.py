@@ -18,6 +18,7 @@ from util import rc0, odict, getel
 import Archive
 import ulimit
 import aflr3
+import intersect
 
 # Environment class
 class Environ(odict):
@@ -114,6 +115,8 @@ class RunControl(odict):
         self._ulimit()
         self._Archive()
         self._aflr3()
+        self._intersect()
+        self._verify()
     
     # ===========
     # Environment
@@ -389,15 +392,59 @@ class RunControl(odict):
     # =====
    # <
    
-    # Environment variable interface
+    # AFLR3 variable interface
     def _aflr3(self):
         """Initialize AFLR3 settings if necessary"""
-        if 'aflr3' not in self:
+        # Get the value and type
+        v = self.get('aflr3')
+        t = type(v).__name__
+        # Check inputs
+        if t == 'aflr3':
+            # Already initialized
+            return
+        elif v is None:
             # Empty/default
             self['aflr3'] = aflr3.aflr3()
-        elif type(self['aflr3']).__name__ == 'dict':
+        elif t == 'dict':
             # Convert to special class
-            self['aflr3'] = aflr3.aflr3(**self['aflr3'])
+            self['aflr3'] = aflr3.aflr3(**v)
+        else:
+            # Initialize
+            self['aflr3'] = aflr3.aflr3()
+            # Set a flag
+            if v:
+                self['aflr3']['run'] = True
+            else:
+                self['aflr3']['run'] = False
+            
+    # Whether or not to use AFLR3
+    def get_aflr3(self):
+        """Return whether or not to run AFLR3 to create mesh
+        
+        :Call:
+            >>> q = opts.get_aflr3()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *q*: ``True`` | {``False``}
+                Whether or not there are nontrivial AFLR3 settings
+        :Versions:
+            * 2016-04-05 ``@ddalle``: First version
+        """
+        # Initialize if necessary
+        self._aflr3()
+        # Get the value and type
+        v = self.get('aflr3')
+        # Get the flag
+        q = v.get('run')
+        # Check.
+        if q is None:
+            # Check for nontrivial entries
+            return len(v.keys()) > 0
+        else:
+            # Return the 'run' flag
+            return q == True
     
     # Get AFLR3 input file
     def get_aflr3_i(self, j=0):
@@ -418,6 +465,16 @@ class RunControl(odict):
     def set_aflr3_o(self, fname, j=0):
         self._aflr3()
         self['aflr3'].set_aflr3_o(fname, j)
+    
+    # Get AFLR3 boundary condition file
+    def get_aflr3_BCFile(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_aflr3_BCFile(j)
+        
+    # Set AFLR3 boundary condition file
+    def set_aflr3_BCFile(self, fname, j=0):
+        self._aflr3()
+        self['aflr3'].set_aflr3_BCFile(fname, j)
     
     # Get stretching ratio
     def get_blr(self, j=0):
@@ -460,11 +517,173 @@ class RunControl(odict):
         self['aflr3'].set_angblisimx(angbli, j)
         
     # Copy documentation
-    for k in ['aflr3_i', 'aflr3_o',
+    for k in ['aflr3_i', 'aflr3_o', 'aflr3_BCFile',
         'blc', 'blr', 'blds', 'angblisimx']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(aflr3.aflr3,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(aflr3.aflr3,'set_'+k).__doc__
+   # >
+    
+    # =========
+    # intersect
+    # =========
+   # <
+   
+    # ``itnersect`` variable interface
+    def _intersect(self):
+        """Initialize ``intersect`` settings if necessary"""
+        # Get the value and type
+        v = self.get('intersect')
+        t = type(v).__name__
+        # Check inputs
+        if t == 'intersect':
+            # Already initialized
+            return
+        elif v is None:
+            # Empty/default
+            self['intersect'] = intersect.intersect()
+        elif t == 'dict':
+            # Convert to special class
+            self['intersect'] = intersect.intersect(**v)
+        else:
+            # Initialize
+            self['intersect'] = intersect.intersect()
+            # Set a flag
+            if v:
+                self['intersect']['run'] = True
+            else:
+                self['intersect']['run'] = False
+            
+    # Whether or not to use intersect
+    def get_intersect(self):
+        """Return whether or not to run ``intersect`` on triangulations
+        
+        :Call:
+            >>> q = opts.get_intersect()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *q*: ``True`` | {``False``}
+                Whether or not there are nontrivial ``intersect`` settings
+        :Versions:
+            * 2016-04-05 ``@ddalle``: First version
+        """
+        # Initialize if necessary
+        self._intersect()
+        # Get the value and type
+        v = self.get('intersect')
+        # Get the flag
+        q = v.get('run')
+        # Check.
+        if q is None:
+            # Check for nontrivial entries
+            return len(v.keys()) > 0
+        else:
+            # Return the 'run' flag
+            return q == True
+    
+    # Get intersect input file
+    def get_intersect_i(self, j=0):
+        self._intersect()
+        return self['intersect'].get_intersect_i(j)
+        
+    # Set intersect input file
+    def set_intersect_i(self, fname, j=0):
+        self._intersect()
+        self['intersect'].set_intersect_i(fname, j)
+    
+    # Get intersect output file
+    def get_intersect_o(self, j=0):
+        self._intersect()
+        return self['intersect'].get_intersect_o(j)
+        
+    # Set intersect output file
+    def set_intersect_o(self, fname, j=0):
+        self._intersect()
+        self['intersect'].set_intersect_o(fname, j)
+        
+    # Copy documentation
+    for k in ['intersect_i', 'intersect_o']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(intersect.intersect,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(intersect.intersect,'set_'+k).__doc__
+   # >
+   
+    # ======
+    # verify
+    # ======
+   # <
+   
+    # ``verify`` interface
+    def _verify(self):
+        """Initialize ``verify`` settings if necessary"""
+        # Get the value and type
+        v = self.get('verify')
+        t = type(v).__name__
+        # Check inputs
+        if t == 'verify':
+            # Already initialized
+            return
+        elif v is None:
+            # Empty/default
+            self['verify'] = intersect.verify()
+        elif t == 'dict':
+            # Convert to special class
+            self['verify'] = intersect.verify(**v)
+        else:
+            # Initialize
+            self['verify'] = intersect.verify()
+            # Set a flag
+            if v:
+                self['verify']['run'] = True
+            else:
+                self['verify']['run'] = False
+            
+    # Whether or not to use verify
+    def get_verify(self):
+        """Return whether or not to run ``verify`` on triangulations
+        
+        :Call:
+            >>> q = opts.get_verify()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *q*: ``True`` | {``False``}
+                Whether or not there are nontrivial ``intersect`` settings
+        :Versions:
+            * 2016-04-05 ``@ddalle``: First version
+        """
+        # Initialize if necessary
+        self._verify()
+        # Get the value and type
+        v = self.get('verify')
+        # Get the flag
+        q = v.get('run')
+        # Check.
+        if q is None:
+            # Check for nontrivial entries
+            return len(v.keys()) > 0
+        else:
+            # Return the 'run' flag
+            return q == True
+    
+    # Get intersect input file
+    def get_verify_i(self, j=0):
+        self._verify()
+        return self['verify'].get_verify_i(j)
+        
+    # Set intersect input file
+    def set_verify_i(self, fname, j=0):
+        self._verify()
+        self['verify'].set_verify_i(fname, j)
+        
+    # Copy documentation
+    for k in ['verify_i']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(intersect.verify,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(intersect.verify,'set_'+k).__doc__
    # >
    
     # =================

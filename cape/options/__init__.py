@@ -547,6 +547,16 @@ class Options(odict):
     # AFLR3
     # =====
    # <
+   
+    # Get AFLR3 flag
+    def get_aflr3(self):
+        self._RunControl()
+        return self['RunControl'].get_aflr3()
+    
+    # Copy documentation
+    for k in ['aflr3']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__
     
     # Get AFLR3 input file
     def get_aflr3_i(self, j=0):
@@ -567,6 +577,16 @@ class Options(odict):
     def set_aflr3_o(self, fname, j=0):
         self._RunControl()
         self['RunControl'].set_aflr3_o(fname, j)
+    
+    # Get AFLR3 boundary condition file
+    def get_aflr3_BCFile(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_aflr3_BCFile(j)
+        
+    # Set AFLR3 boundary condition file
+    def set_aflr3_BCFile(self, fname, j=0):
+        self._RunControl()
+        self['RunControl'].set_aflr3_BCFile(fname, j)
     
     # Get stretching ratio
     def get_blr(self, j=0):
@@ -609,8 +629,82 @@ class Options(odict):
         self['RunControl'].set_angblisimx(angbli, j)
         
     # Copy documentation
-    for k in ['aflr3_i', 'aflr3_o',
+    for k in ['aflr3_i', 'aflr3_o', 'aflr3_BCFile',
         'blc', 'blr', 'blds', 'angblisimx']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(runControl.RunControl,'set_'+k).__doc__
+   # >
+    
+    # =========
+    # intersect
+    # =========
+   # <
+   
+    # Get intersect flag
+    def get_intersect(self):
+        self._RunControl()
+        return self['RunControl'].get_intersect()
+    
+    # Copy documentation
+    for k in ['intersect']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__
+    
+    # Get intersect input file
+    def get_intersect_i(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_intersect_i(j)
+        
+    # Set intersect input file
+    def set_intersect_i(self, fname, j=0):
+        self._RunControl()
+        self['RunControl'].set_intersect_i(fname, j)
+    
+    # Get intersect output file
+    def get_intersect_o(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_intersect_o(j)
+        
+    # Set intersect output file
+    def set_intersect_o(self, fname, j=0):
+        self._RunControl()
+        self['RunControl'].set_intersect_o(fname, j)
+        
+    # Copy documentation
+    for k in ['intersect_i', 'intersect_o']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(runControl.RunControl,'set_'+k).__doc__
+   # >
+   
+    # ======
+    # verify
+    # ======
+   # <
+   
+    # Get verify flag
+    def get_verify(self):
+        self._RunControl()
+        return self['RunControl'].get_verify()
+    
+    # Copy documentation
+    for k in ['verify']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__
+    
+    # Get intersect input file
+    def get_verify_i(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_verify_i(j)
+        
+    # Set intersect input file
+    def set_verify_i(self, fname, j=0):
+        self._RunControl()
+        self['RunControl'].set_verify_i(fname, j)
+        
+    # Copy documentation
+    for k in ['verify_i']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(runControl.RunControl,'set_'+k).__doc__

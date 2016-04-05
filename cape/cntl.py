@@ -184,23 +184,37 @@ class Cntl(object):
         # Go to root folder safely.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
-        # Read them.
-        if type(ftri).__name__ == 'list':
-            # Read the initial triangulation.
-            tri = Tri(ftri[0])
-            # Save the number of nodes to this point.
-            tri.iTri = [tri.nTri]
-            # Loop through the remaining tri files.
-            for f in ftri[1:]:
-                # Append the file.
+        # Ensure list
+        if type(ftri).__name__ not in ['list', 'ndarray']: ftri = [ftri]
+        # Initialize number nodes in each file
+        tri.iTri = []
+        tri.iQuad = []
+        # Loop through files
+        for f in ftri:
+            # Get the extension
+            fext = f.split('.')[-1]
+            # Read appropriate format
+            if fext.lower() == 'surf':
+                # AFLR3 surface file
+                tri.Add(Tri(surf=f))
+            elif fext.lower() == 'uh3d':
+                # UH3D surface file
+                tri.Add(Tri(uh3d=f))
+            elif fext.lower() == 'unv':
+                # Weird IDEAS triangulation thing
+                tri.Add(Tri(unv=f))
+            else:
+                # Assume Cart3D triangulation file
                 tri.Add(Tri(f))
-                # Save the node number.
-                tri.iTri.append(tri.nTri)
-        else:
-            # Just read the triangulation file.
-            tri = Tri(ftri)
-            # Save the one break point.
-            tri.iTri = [tri.nTri]
+            # Save the node number
+            tri.iTri.append(tri.nTri)
+            tri.iQuad.append(tri.nQuad)
+        # Check for AFLR3 bcs
+        fbc = self.opts.get_aflr3_BCFile()
+        # If present, map it.
+        if fbc:
+            # Map boundary conditions
+            tri.ReadBCs_AFLR3(fbc)
         # Save it.
         self.tri = tri
         # Check for a config file.

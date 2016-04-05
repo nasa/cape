@@ -71,6 +71,9 @@ class RunControl(cape.options.runControl.RunControl):
         # Upgrade important groups to their own classes.
         self._Environ()
         self._ulimit()
+        self._aflr3()
+        self._intersect()
+        self._verify()
         self._Archive()
         self._nodet()
         
