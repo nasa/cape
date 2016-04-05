@@ -483,13 +483,13 @@ class Fun3d(Cntl):
         # ---------
         # Case info
         # ---------
+        # Check the mesh.
+        if self.CheckMesh(i):
+            return None
         # Get the case name.
         frun = self.x.GetFullFolderNames(i)
         # Get the name of the group.
         fgrp = self.x.GetGroupFolderNames(i)
-        # Check the mesh.
-        if self.CheckMesh(i):
-            return None
         # ------------------
         # Folder preparation
         # ------------------
@@ -530,6 +530,34 @@ class Fun3d(Cntl):
             # Copy fhe file.
             if os.path.isfile(f0):
                 shutil.copyfile(f0, f1)
+        # ------------------
+        # Triangulation prep
+        # ------------------
+        # Triangulation file
+        ftrii = self.opts.get_TriFile()
+        # AFLR3 input file
+        faflr3i = self.opts.get_aflr3_i()
+        # Check for triangulation
+        if ftrii and faflr3i:
+            # Status update
+            print("  Preparing surface triangulation...")
+            # Read the mesh.
+            self.ReadTri()
+            # Revert to initial surface.
+            self.tri = self.tri0.Copy()
+            # Apply rotations, translations, etc.
+            self.PrepareTri(i)
+            # Output file names
+            
+            # Check intersection status.
+            if self.opts.get_intersect():
+                # Write the tri file as non-intersected; each volume is one CompID
+                self.tri.WriteVolTri('Components.tri')
+                # Write the existing triangulation with existing CompIDs.
+                self.tri.Write('Components.c.tri')
+            else:
+                # Write the tri file.
+                self.tri.Write('Components.i.tri')
         # -------
         # Cleanup
         # -------
@@ -1104,7 +1132,6 @@ class Fun3d(Cntl):
             * 2015-10-14 ``@ddalle``: First version
         """
         return case.StartCase()
-        
         
         
 # class Fun3d

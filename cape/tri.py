@@ -123,7 +123,8 @@ class TriBase(object):
     """
     # Initialization method
     def __init__(self, fname=None, uh3d=None, c=None,
-        nNode=None, Nodes=None, nTri=None, Tris=None, CompID=None):
+        nNode=None, Nodes=None, nTri=None, Tris=None,
+        nQuad=None, Quads=None, CompID=None):
         """Initialization method"""
         # Versions:
         #  2014-05-23 @ddalle: First version
@@ -159,11 +160,22 @@ class TriBase(object):
                 else:
                     # No nodes
                     nTri = 0
+            # Check counts.
+            if nQuad is None:
+                # Get dimensions if possible.
+                if Quads is not None:
+                    # Use the shape.
+                    nQuad = Quads.shape[0]
+                else:
+                    # No nodes
+                    nQuad = 0
             # Save the components.
             self.nNode = nNode
             self.Nodes = Nodes
             self.nTri = nTri
             self.Tris = Tris
+            self.nQuad = nQuad
+            self.Quads = Quad
             self.CompID = CompID
         
         # Check for configuration
@@ -187,7 +199,7 @@ class TriBase(object):
     # String representation is the same
     __str__ = __repr__
         
-    # Function to read node coordinates from .triq+ file
+    # Function to read node coordinates from .tri file
     def ReadNodes(self, f, nNode):
         """Read node coordinates from a .tri file.
         
@@ -201,7 +213,14 @@ class TriBase(object):
             *nNode*: :class:`int`
                 Number of nodes to read
         :Effects:
-            Reads and creates *tri.Nodes*; file remains open.
+            *tri.Nodes*: :class:`np.ndarray` (:class:`float`) (*nNode*, 3)
+                Matrix of nodal coordinates
+            *tri.blds*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
+                Vector of initial boundary layer spacings
+            *tri.bldel*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
+                Vector of boundary layer thicknesses
+            *f*: :class:`file`
+                File remains open
         :Versions:
             * 2014-06-16 ``@ddalle``: First version
         """
@@ -211,6 +230,44 @@ class TriBase(object):
         Nodes = np.fromfile(f, dtype=float, count=nNode*3, sep=" ")
         # Reshape into a matrix.
         self.Nodes = Nodes.reshape((nNode,3))
+        
+    # Function to read node coordinates from .triq+ file
+    def ReadNodesSurf(self, f, nNode):
+        """Read node coordinates from an AFLR3 ``.surf`` file
+        
+        :Call:
+            >>> tri.ReadNodesSurf(f, nNode)
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase` or derivative
+                Triangulation instance
+            *f*: :class:`file`
+                Open file handle
+            *nNode*: :class:`int`
+                Number of tris to read
+        :Effects:
+            *tri.Nodes*: :class:`np.ndarray` (:class:`float`) (*nNode*, 3)
+                Matrix of nodal coordinates
+            *tri.blds*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
+                Vector of initial boundary layer spacings
+            *tri.bldel*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
+                Vector of boundary layer thicknesses
+            *f*: :class:`file`
+                File remains open
+        :Versions:
+            * 2016-04-05 ``@ddalle``: First version
+        """
+        # Save the node count.
+        self.nNode = nNode
+        # Read the nodes.
+        Nodes = np.fromfile(f, dtype=float, count=nNode*5, sep=" ")
+        # Reshape into a matrix.
+        Nodes = Nodes.reshape((nNode,5))
+        # Save nodes
+        self.Nodes = Nodes[:,:3]
+        # Save boundary layer spacings
+        self.blds = Nodes[:,3]
+        # Save boundary layer thicknesses
+        self.bldel = Nodes[:,4]
         
     # Function to read triangle indices from .triq+ files
     def ReadTris(self, f, nTri):
@@ -236,6 +293,94 @@ class TriBase(object):
         Tris = np.fromfile(f, dtype=int, count=nTri*3, sep=" ")
         # Reshape into a matrix.
         self.Tris = Tris.reshape((nTri,3))
+    
+    # Function to read triangles from .surf file
+    def ReadTrisSurf(self, f, nTri):
+        """Read triangle node indices, comp IDs, and BCs from AFLR3 file
+        
+        :Call:
+            >>> tri.ReadTrisSurf(f, nTri)
+        :Inputs:
+            *tri*: :clas:`cape.tri.TriBase` or derivative
+                Triangulation instance
+            *f*: :class:`file`
+                Open file handle
+            *nTri*: :class:`int`
+                Number of tris to read
+        :Effects:
+            *tri.Tris*: :class:`np.ndarray` (:class:`int`) (*nTri*, 3)
+                Matrix of nodal coordinates
+            *tri.CompID*: :class:`np.ndarray` (:class:`int`) (*nTri*,)
+                Vector of component IDs for each triangle
+            *tri.BCs*: :class:`np.ndarray` (:class:`int`) (*nTri*,)
+                Vector of boundary condition flags
+            *f*: :class:`file`
+                File remains open
+        :Versions:
+            * 2016-04-05 ``@ddalle``: First version
+        """
+        # Save the tri count
+        self.nTri = nTri
+        # Exit if no tris
+        if nTri == 0:
+            self.Tris = np.zeros((0,3))
+            self.CompID = np.zeros(0, dtype=int)
+            self.BCs = np.zeros(0, dtype=int)
+            return
+        # Read the tris
+        Tris = np.fromfile(f, dtype=int, count=nTri*6, sep=" ")
+        # Reshape into a matrix
+        Tris = Tris.reshape((nTri,6))
+        # Save the triangles
+        self.Tris = Tris[:,:3]
+        # Save the component IDs.
+        self.CompID = Tris[:,3]
+        # Save the boundary conditions.
+        self.BCs = Tris[:,5]
+        
+    # Function to read quads from .surf file
+    def ReadQuadsSurf(self, f, nQuad):
+        """Read quad node indices, compIDs, and BCs from AFLR3 file
+        
+        :Call:
+            >>> tri.ReadQuadsSurf(f, nQuad)
+        :Inputs:
+            *tri*: :clas:`cape.tri.TriBase` or derivative
+                Triangulation instance
+            *f*: :class:`file`
+                Open file handle
+            *nTri*: :class:`int`
+                Number of tris to read
+        :Effects:
+            *tri.Quads*: :class:`np.ndarray` (:class:`int`) (*nQuad*, 4)
+                Matrix of nodal coordinates
+            *tri.CompIDQuad*: :class:`np.ndarray` (:class:`int`) (*nQuad*,)
+                Vector of component IDs for each quad
+            *tri.BCsQuad*: :class:`np.ndarray` (:class:`int`) (*nQuad*,)
+                Vector of boundary condition flags
+            *f*: :class:`file`
+                File remains open
+        :Versions:
+            * 2016-04-05 ``@ddalle``: First version
+        """
+        # Save the tri count
+        self.nQuad = nQuad
+        # Exit if no tris
+        if nQuad == 0:
+            self.Quads = np.zeros((0,3))
+            self.CompIDQuad = np.zeros(0, dtype=int)
+            self.BCsQuad = np.zeros(0, dtype=int)
+            return
+        # Read the tris
+        Quads = np.fromfile(f, dtype=int, count=nQuad*7, sep=" ")
+        # Reshape into a matrix
+        Quads = Tris.reshape((nQuad,6))
+        # Save the triangles
+        self.Quads = Quads[:,:4]
+        # Save the component IDs.
+        self.CompIDQuad = Quads[:,4]
+        # Save the boundary conditions.
+        self.BCsQuad = Quads[:,6]
         
     # Function to read the component identifiers
     def ReadCompID(self, f):
@@ -863,6 +1008,20 @@ class TriBase(object):
         """
         # Status update
         print("    Writing ALFR3 surface: '%s'" % fname)
+        # Make sure we have BL parameters
+        try:
+            self.blds
+        except AttributeError:
+            self.blds = np.zeros(self.nNode)
+        try:
+            self.bldel
+        except AttributeError:
+            self.bldel = np.zeros(self.nNode)
+        # Make sure we have quads
+        try:
+            self.nQuad
+        except AttributeError:
+            self.nQuad = 0
         # Write the file.
         self.WriteSurfSlow(fname)
     
@@ -871,7 +1030,7 @@ class TriBase(object):
         """Write an AFLR3 ``surf`` surface mesh file
         
         :Call:
-            >>> tri.WriteSurfSlow(fname='Components.surf'
+            >>> tri.WriteSurfSlow(fname='Components.surf')
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance to be translated
@@ -879,46 +1038,92 @@ class TriBase(object):
                 Name of triangulation file to create
         :Versions:
             * 2015-11-19 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Added quads, *blds*, and *bldel*
         """
         # Open the file for creation.
         fid = open(fname, 'w')
         # Write the number of tris, quads, points
-        fid.write('%i 0 %i\n' % (self.nTri, self.nNode))
+        fid.write('%i %i %i\n' % (self.nTri, self.nQuad, self.nNode))
         # Loop through the nodes.
         for i in np.arange(self.nNode):
             # Write the line (with 1-based node index).
-            fid.write('%.12f %.12f %.12f 0 0\n' %
-                (self.Nodes[i,0], self.Nodes[i,1], self.Nodes[i,2]))
+            fid.write('%.12f %.12f %.12f %s %s\n' % (
+                self.Nodes[i,0], self.Nodes[i,1], self.Nodes[i,2],
+                self.blds[i], self.bldel[i]))
         # Loop through the triangles.
         for k in np.arange(self.nTri):
             # Write the line (with 1-based triangle index and CompID).
             fid.write('%i %i %i %i 0 %i\n' % (self.Tris[k,0], 
                 self.Tris[k,1], self.Tris[k,2], self.CompID[k], self.BCs[k]))
+        # Loop through the quads.
+        for k in np.arange(self.nQuad):
+            # Write the line (with 1-based quad indx and CompID)
+            fid.write('%i %i %i %i %i 0 %i\n' % (self.Quads[k,0],
+                self.Quads[k,1], self.Quads[k,2], self.Quads[k,3],
+                self.CompIDQuad[k], self.BCsQuad[k]))
         # Close the file.
         fid.close()
         
     # Map boundary condition tags
-    def MapBCs_AFLR3(self, BCs={}):
+    def MapBCs_AFLR3(self, BCs={}, blds={}, bldel={}):
         """Initialize and map boundary condition indices for AFLR3
         
         :Call:
-            >>> tri.MapBCs_AFLR3(BCs)
+            >>> tri.MapBCs_AFLR3(BCs, blds={}, bldel={})
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
             *BCs*: :class:`dict` (:class:`str` | :class:`int`)
-                Dictionary of boundary conditions for CompIDs or component names
+                Dictionary of BC flags for CompIDs or component names
+            *blds*: :class:`dict` (:class:`str` | :class:`int`)
+                Dictionary of BL spacings for CompIDs or component names
+            *bldel*: :class:`dict` (:class:`str` | :class:`int`)
+                Dictionary of BL thicknesses for CompIDs or component names
         :Versions:
             * 2015-11-19 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Added BL spacing and thickness
         """
         # Initialize the BCs to -1 (grow boundary layer)
         self.BCs = -1 * np.ones_like(self.CompID)
+        # Initialize quad BCs
+        try:
+            self.BCsQuad = -1 * np.ones(self.nQuad, dtype=int)
+        except AttributeError:
+            self.BCsQuad = np.ones(0, dtype=int)
+        # Initialize the boundary layer spacings
+        self.blds = np.zeros(self.nNode)
+        self.bldel = np.zeros(self.nNode)
         # Loop through BCs
         for comp in BCs:
             # Get the tris matching the component ID
-            I = self.GetTrisFromCompID(self.GetCompID(comp))
+            I = self.GetTrisFromCompID(comp)
             # Modify those BCs
-            self.BCs[I] = BCs[comp]
+            if len(I) > 0:
+                self.BCs[I] = BCs[comp]
+            # Get the quads from the matching component ID
+            I = self.GetQuadsFromCompID(comp)
+            # Modify those BCs.
+            if len(I) > 0:
+                self.BCsQuad[I] = BCs[comp]
+        # Loop through boundary layer spacings
+        for comp in blds:
+            # Get the nodes
+            I = self.GetNodesFromCompID(comp)
+            if len(I) > 0: continue
+            # Modify those BL spacings
+            self.blds[I] = blds[comp]
+            # Check for BL thicknesses
+            if comp in bldel:
+                self.bldel[I] = bldel[comp]
+        # Loop through boundary layer thicknesses
+        for comp in bldel:
+            # Make sure not already processed
+            if comp in blds: continue
+            # Get the nodes
+            I = self.GetNodesFromCompID(comp)
+            if len(I) > 0: continue
+            # Modify those BL thicknesses
+            self.bldel[I] = bldel[comp]
             
     # Read boundary condition map
     def ReadBCs_AFLR3(self, fname):
@@ -933,11 +1138,14 @@ class TriBase(object):
                 Name of boundary condition map file
         :Versions:
             * 2015-11-19 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Added BL spacing and thickness
         """
         # Read the boundary condition file
         f = open(fname, 'r')
         # Initialize boundary condition map
         BCs = {}
+        blds = {}
+        bldel = {}
         # Loop through lines
         line = "start"
         while line != '':
@@ -945,15 +1153,28 @@ class TriBase(object):
             line = _readline(f)
             # Exit at end of file
             if line == '': break
-            # Get the component name and then the BC index
+            # Get the component name
             comp = line.split()[0]
-            bc   = int(line.split()[1])
+            # Get the boundary condition flag
+            bc = int(line.split()[1])
             # Save the boundary condtion
             BCs[comp] = bc
+            # Check length
+            if len(line) < 3: continue
+            # Get the boundary layer spacing
+            bldsi = float(line.split()[2])
+            # Save BL spacing
+            blds[comp] = bldsi
+            # Check length
+            if len(line) < 4: continue
+            # Get the boundary layer thickness
+            bldeli = float(line.split()[3])
+            # Save the BL thickness
+            bldel[comp] = bldel
         # Close the file.
         f.close()
         # Apply the boundary conditions
-        self.MapBCs_AFLR3(BCs)
+        self.MapBCs_AFLR3(BCs, blds=blds, bldel=bldel)
             
         
     # Function to copy a triangulation and unlink it.
@@ -1098,6 +1319,41 @@ class TriBase(object):
         self.Conf = Conf
         # Close the file.
         fid.close()
+        
+    # Read surface file
+    def ReadSurf(self, fname):
+        """Read an AFLR3 surface file
+        
+        :Call:
+            >>> tri.ReadUH3D(fname)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *fname*: :class:`str`
+                Name of triangulation file to read
+        :Versions:
+            * 2014-06-02 ``@ddalle``: First version
+            * 2014-10-27 ``@ddalle``: Added draft of reading component names
+        """
+        # Open the file
+        fid = open(fname, 'r')
+        # Read the first line.
+        line = fid.readline().strip()
+        # Process the first line.
+        nTri, nQuad, nNode = (int(v) for v in line.split())
+        
+        # Read the nodes.
+        self.ReadNodesSurf(fid, nNode)
+        # Read the Tris.
+        self.ReadTrisSurf(fid, nTri)
+        # Read the Quads.
+        self.ReadQuadsSurf(fid, nQuad)
+        
+        # Close the file.
+        fid.close()
+        
+        # Weight: number of files included in file
+        self.n = n
     
     # Function to read IDEAS UNV files
     def ReadUnv(self, fname):
@@ -1406,25 +1662,27 @@ class TriBase(object):
             * 2014-09-27 ``@ddalle``: First version
         """
         # Process inputs.
-        if i is None:
-            # Well, this is kind of pointless.
-            j = np.arange(self.nNode)
-        elif np.isscalar(i):
-            # Get a single component.
-            J = self.Tris[self.CompID == i]
-            # Convert to unique list.
-            j = np.unique(J) - 1
-        else:
-            # List of components.
-            J = self.Tris[self.CompID == i[0]]
-            # Loop through remaining components.
-            for ii in range(1,len(i)):
-                # Stack the nodes from the new component.
-                J = np.vstack((J, self.Tris[self.CompID==i[ii]]))
-            # Convert to a unique list.
-            j = np.unique(J) - 1
+        if compID is None:
+            # Return all the tris.
+            return np.arange(self.nNode)
+        elif compID == 'entire':
+            # Return all the tris.
+            return np.arange(self.nNode)
+        # Get matches from tris and quads
+        kTri  = self.GetTrisFromCompID(compID)
+        kQuad = self.GetQuadsFromCompID(compID)
+        # Initialize with all false
+        I = np.arange(self.nNode) < 0
+        # Check for triangular matches
+        if len(kTri) > 0:
+            # Mark matches
+            I[self.Tris[kTri]] = True
+        # Check for quadrangle matches
+        if len(kQuqd) > 0:
+            # Mark matches
+            I[self.Quads[kQuad]] = True
         # Output
-        return j
+        return np.where(I)[0]
         
     # Function to get tri indices from component ID(s)
     def GetTrisFromCompID(self, compID=None):
@@ -1471,7 +1729,58 @@ class TriBase(object):
                 K = np.logical_or(K, self.CompID==comp)
         # Turn boolean vector into vector of indices]
         return np.where(K)[0]
+    
+    # Function to get tri indices from component ID(s)
+    def GetQuadsFromCompID(self, compID=None):
+        """Find indices of triangles with specified component ID(s)
         
+        :Call:
+            >>> k = tri.GetQuadsFromCompID(comp)
+            >>> k = tri.GetQuadsFromCompID(comps)
+            >>> k = tri.GetQuadsFromCompID(compID)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *comp*: :class:`str`
+                Name of component
+            *comps*: :class:`list` (:class:`int` | :class:`str`)
+                List of component IDs or names
+            *compID*: :class:`int`
+                Component number
+        :Outputs:
+            *k*: :class:`numpy.ndarray` (:class:`int`, shape=(N,))
+                List of quad indices in requested component(s)
+        :Versions:
+            * 2016-04-05 ``@ddalle``: First version
+        """
+        # Be careful because not everyone has quads
+        try:
+            # Process inputs.
+            if compID is None:
+                # Return all the tris.
+                return np.arange(self.nQuad)
+            elif compID == 'entire':
+                # Return all the tris.
+                return np.arange(self.nQuad)
+            # Get list of components
+            comps = self.GetCompID(compID)
+            # Check for single match
+            if len(comps) == 1:
+                # Get a single component.
+                K = self.CompIDQuad == comps[0]
+            else:
+                # Initialize with all False (same size as number of tris)
+                K = self.CompIDQuad < 0
+                # List of components.
+                for comp in comps:
+                    # Add matches for component *ii*.
+                    K = np.logical_or(K, self.CompIDQuad==comp)
+            # Turn boolean vector into vector of indices]
+            return np.where(K)[0]
+        except AttributeError:
+            # No quads
+            return np.zeros(0, dtype=int)
+    
     # Get subtriangulation from CompID list
     def GetSubTri(self, i=None):
         """
@@ -2171,6 +2480,10 @@ class Tri(TriBase):
         self.ReadTris(fid, nTri)
         # Read or assign component IDs.
         self.ReadCompID(fid)
+        
+        # No quads
+        self.nQuad = 0
+        self.Quads = np.zeros((0,4))
         
         # Close the file.
         fid.close()

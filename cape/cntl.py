@@ -690,6 +690,7 @@ class Cntl(object):
         """
         return False
     
+    
     # Get CPU hours (actually core hours)
     def GetCPUTimeFromFile(self, i, fname='cape_time.dat'):
         """Read a Cape-style core-hour file
@@ -1067,6 +1068,187 @@ class Cntl(object):
         
         # Return to original location.
         os.chdir(fpwd)
+    
+        
+    # Function to apply special triangulation modification keys
+    def PrepareTri(self, i):
+        """Rotate/translate/etc. triangulation for given case
+        
+        :Call:
+            >>> cntl.PrepareTri(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2014-12-01 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Moved from pyCart -> cape
+        """
+        # Get function for rotations, etc.
+        keys = self.x.GetKeysByType(['translation', 'rotation', 'TriFunction'])
+        # Loop through keys.
+        for key in keys:
+            # Type
+            kt = self.x.defns[key]['Type']
+            # Filter on which type of triangulation modification it is.
+            if kt == "TriFunction":
+                # Special triangulation function
+                self.PrepareTriFunction(key, i)
+            elif kt.lower() == "translation":
+                # Component(s) translation
+                self.PrepareTriTranslation(key, i)
+            elif kt.lower() == "rotation":
+                # Component(s) rotation
+                self.PrepareTriRotation(key, i)
+            
+    # Apply a special triangulation function
+    def PrepareTriFunction(self, key, i):
+        """Apply special triangulation modification function for a case
+        
+        :Call:
+            >>> cntl.PrepareTriFunction(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2015-09-11 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Moved from pyCart -> cape
+        """
+        # Get the function for this *TriFunction*
+        func = self.x.defns[key]['Function']
+        # Apply it.
+        exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+        
+    # Apply a triangulation translation
+    def PrepareTriTranslation(self, key, i):
+        """Apply a translation to a component or components
+        
+        :Call:
+            >>> cntl.PrepareTriTranslation(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2015-09-11 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Moved from pyCart -> cape
+        """
+        # Get the options for this key.
+        kopts = self.x.defns[key]
+        # Get the components to translate.
+        compID  = self.tri.GetCompID(kopts.get('CompID'))
+        # Components to translate in opposite direction
+        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []))
+        # Check for a direction
+        if 'Vector' not in kopts:
+            raise IOError(
+                "Rotation key '%s' does not have a 'Vector'." % key)
+        # Get the direction and its type
+        vec = kopts['Vector']
+        tvec = type(vec).__name__
+        # Get points to translate along with it.
+        pts  = kopts.get('Points', [])
+        ptsR = kopts.get('PointsSymmetric', [])
+        # Make sure these are lists.
+        if type(pts).__name__  != 'list': pts  = list(pts)
+        if type(ptsR).__name__ != 'list': ptsR = list(ptsR)
+        # Check the type
+        if tvec in ['list', 'ndarray']:
+            # Specified directly.
+            u = np.array(vec)
+        else:
+            # Named vector
+            u = np.array(self.opts.get_Point(vec))
+        # Form the translation vector
+        v = u * getattr(self.x,key)[i]
+        # Translate the triangulation
+        self.tri.Translate(v, i=compID)
+        self.tri.Translate(-v, i=compIDR)
+        # Loop through translation points.
+        for pt in pts:
+            # Get point
+            x = self.opts.get_Point(pt)
+            # Apply transformation.
+            self.opts.set_Point(x+v, pt)
+        # Loop through translation points.
+        for pt in ptsR:
+            # Get point
+            x = self.opts.get_Point(pt)
+            # Apply transformation.
+            self.opts.set_Point(x-v, pt)
+            
+    # Apply a triangulation rotation
+    def PrepareTriRotation(self, key, i):
+        """Apply a rotation to a component or components
+        
+        :Call:
+            >>> cntl.PrepareTriRotation(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2015-09-11 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Moved from pyCart -> cape
+        """
+        # Get the options for this key.
+        kopts = self.x.defns[key]
+        # Get the components to translate.
+        compID = self.tri.GetCompID(kopts.get('CompID'))
+        # Components to translate in opposite direction
+        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []))
+        # Symmetry applied to rotation vector.
+        kv = kopts.get('VectorSymmetry', [1.0, 1.0, 1.0])
+        ka = kopts.get('AngleSymmetry', -1.0)
+        # Convert list -> numpy.ndarray
+        if type(kv).__name__ == "list": kv = np.array(kv)
+        # Check for a direction
+        if 'Vector' not in kopts:
+            raise KeyError(
+                "Rotation key '%s' does not have a 'Vector'." % key)
+        # Get the direction and its type.
+        vec = kopts['Vector']
+        # Check type
+        if len(vec) != 2:
+            raise KeyError(
+                "Rotation key '%s' vector must be exactly two points." % key)
+        # Get start and end points of rotation vector.
+        v0 = np.array(self.opts.get_Point(kopts['Vector'][0]))
+        v1 = np.array(self.opts.get_Point(kopts['Vector'][1]))
+        # Symmetry rotation vectors.
+        v0R = kv*v0
+        v1R = kv*v1
+        # Get points to translate along with it.
+        pts  = kopts.get('Points', [])
+        ptsR = kopts.get('PointsSymmetric', [])
+        # Make sure these are lists.
+        if type(pts).__name__  != 'list': pts  = list(pts)
+        if type(ptsR).__name__ != 'list': ptsR = list(ptsR)
+        # Rotation angle
+        theta = getattr(self.x,key)[i]
+        # Rotate the triangulation.
+        self.tri.Rotate(v0,  v1,  theta,  i=compID)
+        self.tri.Rotate(v0R, v1R, ka*theta, i=compIDR)
+        # Points to be rotated
+        X  = np.array([self.opts.get_Point(pt) for pt in pts])
+        XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
+        # Apply transformation
+        Y  = RotatePoints(X,  v0,  v1,  theta)
+        YR = RotatePoints(XR, v0R, v1R, ka*theta)
+        # Save the points.
+        for j in range(len(pts)):
+            # Set the new value.
+            self.opts.set_Point(Y[j], pts[j])
+        # Save the symmetric points.
+        for j in range(len(ptsR)):
+            # Set the new value.
+            self.opts.set_Point(YR[j], ptsR[j])
+    
     
     # Write flowCart options to JSON file
     def WriteCaseJSON(self, i):
