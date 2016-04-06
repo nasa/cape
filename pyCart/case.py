@@ -99,7 +99,21 @@ def WriteUserTime(tic, rc, i, fname="pycart_time.dat"):
     """
     # Call the function from :mode:`cape.case`
     WriteUserTimeProg(tic, rc, i, fname, 'run_flowCart.py')
-            
+
+# Run cubes if necessary
+def CaseCubes(rc):
+    """Run ``cubes`` to create volume mesh
+    
+    :Call:
+        >>> CaseCubes(rc)
+    :Inputs:
+        *rc*: :class:`cape.options.runControl.RunControl`
+            Case options interface from ``case.json``
+    :Versions:
+        * 2016-04-05 ``@ddalle``: First version
+    """
+    # Run cubes, I guess
+    bin.cubes(opts=rc)
     
 # Prepare the files of the case
 def PrepareFiles(rc, i=None):
