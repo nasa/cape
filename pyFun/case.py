@@ -24,6 +24,7 @@ def run_fun3d():
         >>> pyFun.case.run_fun3d()
     :Versions:
         * 2015-10-19 ``@ddalle``: First version
+        * 2016-04-05 ``@ddalle``: Added AFLR3 to this function
     """
     # Check for RUNNING file.
     if os.path.isfile('RUNNING'):
@@ -35,10 +36,19 @@ def run_fun3d():
     tic = datetime.now()
     # Get the run control settings
     rc = ReadCaseJSON()
-    # Get the project name
-    fproj = GetProjectRootname()
     # Determine the run index.
     i = GetPhaseNumber(rc)
+    # Read namelist
+    nml = GetNamelist(rc, i)
+    # Get the project name
+    fproj = GetProjectRootname(nml=nml)
+    # Mesh generation and verification actions
+    if i == 0:
+        # Run intersect and verify
+        CaseIntersect(rc, fproj)
+        CaseVerify(rc, fproj)
+        # Create volume mesh if necessary
+        CaseAFLR3(rc, proj=fproj, fmt=nml.GetGridFormat())
     # Delete any input file.
     if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
         os.remove('fun3d.nml')
@@ -275,7 +285,7 @@ def GetNamelist(rc=None, i=None):
 
 
 # Get the project rootname
-def GetProjectRootname(rc=None, i=None):
+def GetProjectRootname(rc=None, i=None, nml=None):
     """Read namelist and return project namelist
     
     :Call:
@@ -293,7 +303,7 @@ def GetProjectRootname(rc=None, i=None):
         * 2015-10-19 ``@ddalle``: First version
     """
     # Read a namelist.
-    nml = GetNamelist(rc=rc, i=i)
+    if nml is None: nml = GetNamelist(rc=rc, i=i)
     # Read the project root name
     return nml.GetRootname()
     

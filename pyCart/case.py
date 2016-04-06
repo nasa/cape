@@ -54,8 +54,8 @@ def run_flowCart(verify=False, isect=False):
     # Get the settings.
     rc = ReadCaseJSON()
     # Run intersect and verify
-    IntersectCase(isect=isect)
-    VerifyCase(verify=verify)
+    CaseIntersect(rc)
+    CaseVerify(rc)
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Prepare all files
@@ -100,59 +100,6 @@ def WriteUserTime(tic, rc, i, fname="pycart_time.dat"):
     # Call the function from :mode:`cape.case`
     WriteUserTimeProg(tic, rc, i, fname, 'run_flowCart.py')
             
-
-# Function to intersect geometry if appropriate
-def IntersectCase(isect=False):
-    """Run `intersect` to combine geometries if appropriate
-    
-    :Call:
-        >>> IntersectCase(isect=False)
-    :Inputs:
-        *isect*: :class:`bool`
-            Whether or not to run `intersect` before running `flowCart`
-    :Versions:
-        * 2015-09-07 ``@ddalle``: Split from :func:`run_flowCart`
-    """
-    # Check for intersect status.
-    if not isect: return
-    # Check for initial run
-    if GetRestartIter() != 0: return
-    # Check for triangulation file.
-    if os.path.isfile('Components.i.tri'):
-        # Note this.
-        print("File 'Components.i.tri' already exists; aborting intersect.")
-        return
-    # Run intersect.
-    bin.intersect('Components.tri', 'Components.o.tri')
-    # Read the original triangulation.
-    tric = Tri('Components.c.tri')
-    # Read the intersected triangulation.
-    trii = Tri('Components.o.tri')
-    # Read the pre-intersection triangulation.
-    tri0 = Tri('Components.tri')
-    # Map the Component IDs.
-    trii.MapCompID(tric, tri0)
-    # Write the triangulation.
-    trii.Write('Components.i.tri')
-    
-# Function to verify if requested
-def VerifyCase(verify=False):
-    """Run `verify` to check triangulation if appropriate
-    
-    :Call:
-        >>> VerifyCase(verify=False)
-    :Inputs:
-        *verify*: :class:`bool``
-            Whether or not to run `verify` before running `flowCart`
-    :Versions:
-        * 2015-09-07 ``@ddalle``: Split from :func:`run_flowCart`
-    """
-    # Check for verify
-    if not verify: return
-    # Check for initial run
-    if GetRestartIter() != 0: return
-    # Run it.
-    bin.verify('Components.i.tri')
     
 # Prepare the files of the case
 def PrepareFiles(rc, i=None):

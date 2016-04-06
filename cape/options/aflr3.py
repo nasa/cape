@@ -28,6 +28,39 @@ class aflr3(odict):
     :Versions:
         * 2016-04-04 ``@ddalle``: First version
     """
+    # Boundary condition file
+    def get_aflr3_BCFile(self, j=0):
+        """Get the AFLR3 boundary condition file
+        
+        :Call:
+            >>> fname = opts.get_aflr3_BCFile()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *fname*: :class:`str`
+                Name of file used to map BCs to AFLR3 surface file
+        :Versions:
+            * 2016-04-05 ``@ddalle``: First version
+        """
+        return getel(self.get('BCFile'), j)
+    
+    # Boundary condition file
+    def set_aflr3_BCFile(self, fname, j=0):
+        """Set the AFLR3 boundary condition file
+        
+        :Call:
+            >>> opts.set_aflr3_BCFile(fname)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *fname*: :class:`str`
+                Name of file used to map BCs to AFLR3 surface file
+        :Versions:
+            * 2016-04-05 ``@ddalle``: First version
+        """
+        self.set_key('BCFile', fname, j)
+        
     # Get a AFLR3 input file
     def get_aflr3_i(self, j=0):
         """Get the input file for AFLR3

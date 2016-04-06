@@ -27,6 +27,7 @@ Several of the key methods for this API module are described below.
 from options.runControl import RunControl
 # Interface for writing commands
 from . import queue
+from . import bin
 
 # Need triangulations for cases with `intersect`
 from .tri import Tri, Triq
@@ -40,6 +41,131 @@ import os, resource, glob, shutil
 # Basic numerics
 from numpy import nan, isnan
 
+
+# Function to intersect geometry if appropriate
+def CaseIntersect(rc, proj='Components'):
+    """Run ``intersect`` to combine geometries if appropriate
+    
+    This is a multistep process in order to preserve all the component IDs of
+    the input triangulations.  Normally ``intersect`` requires each intersecting
+    component to have a single component ID, and each component must be a
+    water-tight surface.
+    
+    Cape utilizes two input files, ``Components.c.tri``, which is the original
+    triangulation file with intersections and the original component IDs, and
+    ``Components.tri``, which maps each individual original ``tri`` file to a
+    single component.  The files involved are tabulated below.
+    
+        * ``Components.tri``: Intersecting components, each with own compID
+        * ``Components.c.tri``: Intersecting triangulation with original compIDs
+        * ``Components.o.tri``: Output of ``intersect``, only a few compIDs
+        * ``Components.i.tri``: Original compIDs mapped onto intersected tris
+    
+    :Call:
+        >>> CaseIntersect(rc, proj='Components')
+    :Inputs:
+        *rc*: :class:`cape.options.runControl.RunControl`
+            Case options interface from ``case.json``
+        *proj*: {``'Components'``} | :class:`str`
+            Project root name
+    :Versions:
+        * 2015-09-07 ``@ddalle``: Split from :func:`run_flowCart`
+        * 2016-04-05 ``@ddalle``: Generalized to :mod:`cape`
+    """
+    # Check for intersect status.
+    if not rc.get_intersect(): return
+    # Check for initial run
+    if GetRestartIter() != 0: return
+    # Check for triangulation file.
+    if os.path.isfile('%s.i.tri' % proj):
+        # Note this.
+        print("File '%s.i.tri' already exists; aborting intersect."%proj)
+        return
+    # Set file names
+    rc.set_intersect_i('%s.tri' % proj)
+    rc.set_intersect_o('%s.o.tri' % proj) 
+    # Run intersect.
+    bin.intersect(opts=rc)
+    # Read the original triangulation.
+    tric = Tri('%s.c.tri' % proj)
+    # Read the intersected triangulation.
+    trii = Tri('%s.o.tri' % proj)
+    # Read the pre-intersection triangulation.
+    tri0 = Tri('%s.tri' % proj)
+    # Map the Component IDs.
+    trii.MapCompID(tric, tri0)
+    # Write the triangulation.
+    trii.Write('%s.i.tri' % proj)
+    
+# Function to verify if requested
+def CaseVerify(rc, proj='Components'):
+    """Run ``verify`` to check triangulation if appropriate
+    
+    :Call:
+        >>> CaseVerify(rc, proj='Components')
+    :Inputs:
+        *rc*: :class:`cape.options.runControl.RunControl`
+            Case options interface from ``case.json``
+        *proj*: {``'Components'``} | :class:`str`
+            Project root name
+    :Versions:
+        * 2015-09-07 ``@ddalle``: Split from :func:`run_flowCart`
+        * 2016-04-05 ``@ddalle``: Generalized to :mod:`cape`
+    """
+    # Check for verify
+    if not rc.get_verify(): return
+    # Check for initial run
+    if GetRestartIter() != 0: return
+    # Set file name
+    rc.set_verify_i('%s.i.tri' % proj)
+    # Run it.
+    bin.verify(opts=rc)
+    
+# Mesh generation
+def CaseAFLR3(rc, proj='Components', fmt='b8.ugrid'):
+    """Create volume mesh using ``aflr3``
+    
+    :Call:
+        >>> CaseAFLR3(rc, proj="Components", fmt='b8.ugrid')
+    :Inputs:
+        *rc*: :class:`cape.options.runControl.RunControl`
+            Case options interface from ``case.json``
+        *proj*: {``"Components"``} | :class:`str`
+            Project root name
+        *fmt*: {``"b8.ugrid"``} | :class:`str`
+            AFLR3 volume mesh format
+    :Versions:
+        * 2016-04-05 ``@ddalle``: First version
+    """
+    # Check for option to run AFLR3
+    if not rc.get_aflr(): return
+    # Check for initial run
+    if GetRestartIter() != 0: return
+    # File names
+    ftri  = '%s.i.tri'   % proj
+    fsurf = '%s.surf'    % proj
+    fbc   = '%s.aflr3bc' % proj
+    fvol  = '%s.%s'      % (proj, fmt)
+    # Check for file availability
+    if not os.path.isfile(fsurf):
+        # Check for the triangulation to provide a nice error message if app.
+        if not os.path.isfile(ftri):
+            raise ValueError("User has requested AFLR3 volume mesh.\n" +
+                ("But found neither Cart3D tri file '%s' " % ftri) +
+                ("nor AFLR3 surf file '%s'" % fsurf))
+        # Read the triangulation
+        tri = Tri(ftri)
+        # Check for boundary condition flags
+        if os.path.isfile(fbc):
+            tri.ReadBCs_AFLR3(fbc)
+        # Write the surface file
+        tri.WriteSurf(fsurf)
+    # Set file names
+    rc.set_aflr3_i(fsurf)
+    rc.set_aflr3_o(fvol)
+    # Run AFLR3
+    bin.aflr3(opts=rc)
+    
 
 # Function to call script or submit.
 def StartCase():
