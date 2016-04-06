@@ -1,7 +1,7 @@
 .. Documentation for the main cart3d submodule
 
 .. automodule:: pyCart.cart3d
-    :members: stripComments
+    :members: 
     
     Cart3D setup class: :class:`pyCart.cart3d.Cart3d`
     -------------------------------------------------

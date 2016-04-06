@@ -24,7 +24,7 @@ def cubes(cart3d=None, opts=None, **kwargs):
 cubes.__doc__ = _upgradeDocString(cmd.cubes.__doc__)
     
 # Function to call mgPrep
-def mgPrep(cart3d=None, opts=opts, **kwargs):
+def mgPrep(cart3d=None, opts=None, **kwargs):
     # Required file
     _assertfile('Mesh.R.c3d')
     # Get the command.
@@ -35,7 +35,7 @@ def mgPrep(cart3d=None, opts=opts, **kwargs):
 mgPrep.__doc__ = _upgradeDocString(cmd.mgPrep.__doc__)
     
 # Function to call mgPrep
-def autoInputs(cart3d=None, opts=opts, **kwargs):
+def autoInputs(cart3d=None, opts=None, **kwargs):
     # Get command.
     cmdi = cmd.autoInputs(cart3d, opts=opts, **kwargs)
     # Run the command.

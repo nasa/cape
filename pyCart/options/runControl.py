@@ -1964,25 +1964,53 @@ class RunControl(cape.options.runControl.RunControl):
     
     # Initialization and confirmation for autoInputs options
     def _autoInputs(self):
-        """Initialize `autoInputs` options if necessary"""
-        # Check for missing entirely.
-        if 'autoInputs' not in self:
+        """Initialize ``autoInputs`` options if necessary"""
+        # Get the value and type
+        v = self.get('autoInputs')
+        t = type(v).__name__
+        # Check inputs
+        if t == 'autoInputs':
+            # Already initialized
+            return
+        elif v is None:
             # Empty/default
             self['autoInputs'] = autoInputs()
-        elif type(self['autoInputs']).__name__ == 'dict':
-            # Convert to special class.
-            self['autoInputs'] = autoInputs(**self['autoInputs'])
+        elif t == 'dict':
+            # Convert to special class
+            self['autoInputs'] = autoInputs(**v)
+        else:
+            # Initialize
+            self['autoInputs'] = autoInputs()
+            # Set a flag
+            if v:
+                self['autoInputs']['run'] = True
+            else:
+                self['autoInputs']['run'] = False
     
     # Initialization and confirmation for cubes options
     def _cubes(self):
-        """Initialize `cubes` options if necessary"""
-        # Check for missing entirely.
-        if 'cubes' not in self:
+        """Initialize ``cubes`` options if necessary"""
+        # Get the value and type
+        v = self.get('cubes')
+        t = type(v).__name__
+        # Check inputs
+        if t == 'cubes':
+            # Already initialized
+            return
+        elif v is None:
             # Empty/default
             self['cubes'] = cubes()
-        elif type(self['cubes']).__name__ == 'dict':
-            # Convert to special class.
-            self['cubes'] = cubes(**self['cubes'])
+        elif t == 'dict':
+            # Convert to special class
+            self['cubes'] = cubes(**v)
+        else:
+            # Initialize
+            self['cubes'] = cubes()
+            # Set a flag
+            if v:
+                self['cubes']['run'] = True
+            else:
+                self['cubes']['run'] = False
             
     # Environment variable interface
     def _Environ(self):
