@@ -44,6 +44,36 @@ from config     import Config
 # Import triangulation
 from tri import Tri, RotatePoints
 
+# Function to read a single triangulation file
+def ReadTriFile(fname):
+    """Read a single triangulation file
+    
+    :Call:
+        >>> tri = ReadTriFile(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of Cart3D tri, IDEAS unv, UH3D, or AFLR3 surf file
+    :Outputs:
+        *tri*: :class:`cape.tri.Tri`
+            Triangulation
+    :Versions:
+        * 2016-04-06 ``@ddalle``: First version
+    """
+    # Get the extension
+    fext = fname.split('.')[-1]
+    # Read using the appropriate format
+    if fext.lower() == 'surf':
+        # AFLR3 surface file
+        return Tri(surf=fname)
+    elif fext.lower() == 'uh3d':
+        # UH3D surface file
+        return Tri(uh3d=fname)
+    elif fext.lower() == 'unv':
+        # Weird IDEAS triangulation thing
+        return Tri(unv=fname)
+    else:
+        # Assume Cart3D triangulation file
+        return Tri(fname)
 
 # Class to read input files
 class Cntl(object):
@@ -186,32 +216,18 @@ class Cntl(object):
         os.chdir(self.RootDir)
         # Ensure list
         if type(ftri).__name__ not in ['list', 'ndarray']: ftri = [ftri]
+        # Read first file
+        tri = ReadTriFile(ftri[0])
+        # Initialize number of nodes in each file
+        tri.iTri = [tri.nTri]
+        tri.iQuad = [tri.nQuad]
         # Loop through files
-        for f in ftri:
-            # Get the extension
-            fext = f.split('.')[-1]
-            # Read appropriate format
-            if fext.lower() == 'surf':
-                # AFLR3 surface file
-                tri.Add(Tri(surf=f))
-            elif fext.lower() == 'uh3d':
-                # UH3D surface file
-                tri.Add(Tri(uh3d=f))
-            elif fext.lower() == 'unv':
-                # Weird IDEAS triangulation thing
-                tri.Add(Tri(unv=f))
-            else:
-                # Assume Cart3D triangulation file
-                tri.Add(Tri(f))
-            # Update node counts
-            try:
-                # Save the node number
-                tri.iTri.append(tri.nTri)
-                tri.iQuad.append(tri.nQuad)
-            except AttributeError:
-                # Initialize number nodes in each file
-                tri.iTri = [tri.nTri]
-                tri.iQuad = [tri.nQuad]
+        for f in ftri[1:]:
+            # Append the triangulation
+            tri.Add(ReadTriFile(f))
+            # Save the face counts
+            tri.iTri.append(tri.nTri)
+            tri.iQuad.append(tri.nQuad)
         # Check for AFLR3 bcs
         fbc = self.opts.get_aflr3_BCFile()
         # If present, map it.
@@ -227,7 +243,7 @@ class Cntl(object):
         self.tri0 = self.tri.Copy()
         # Return to original location.
         os.chdir(fpwd)
-            
+        
     # Make a directory
     def mkdir(self, fdir):
         """Make a directory with the correct permissions
