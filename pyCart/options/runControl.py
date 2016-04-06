@@ -2524,7 +2524,7 @@ class RunControl(cape.options.runControl.RunControl):
             * 2016-04-06 ``@ddalle``: First version
         """
         # Initialize if necessary
-        sefl._autoInputs()
+        self._autoInputs()
         # Get the value
         v = self.get('autoInputs')
         # Get the flag
@@ -2587,7 +2587,7 @@ class RunControl(cape.options.runControl.RunControl):
             * 2016-04-06 ``@ddalle``: First version
         """
         # Initialize if necessary
-        sefl._cubes()
+        self._cubes()
         # Get the value
         v = self.get('cubes')
         # Get the flag

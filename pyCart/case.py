@@ -120,7 +120,7 @@ def CaseCubes(rc, j=0):
     # Check for mesh file
     if os.path.isfile('Mesh.mg.c3d'): return
     # Check for cubes option
-    if not self.get_cubes(): return
+    if not rc.get_cubes(): return
     # If adaptive, check for jumpstart
     if rc.get_Adaptive(j) and not rc.get_jumpstart(j): return
     # Run cubes
@@ -144,10 +144,11 @@ def CaseAutoInputs(rc, j=0):
     """
     # Check for previous iterations
     if GetRestartIter() > 0: return
-    # Check for output file
-    if os.path.isfile('input.c3d'): return
+    # Check for output files
+    if os.path.isfile('input.c3d') and os.path.isfile('preSpec.c3d.cntl'):
+        return
     # Check for cubes option
-    if not self.get_autoInputs(): return
+    if not rc.get_autoInputs(): return
     # Run autoInputs
     bin.autoInputs(opts=rc, j=j)
     

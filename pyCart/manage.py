@@ -42,11 +42,11 @@ def ManageFilesProgress(opts=None):
     # Convert options
     opts = Archive.auto_Archive(opts)
     # Perform actions
-    ProgressDeleteFiles(opts, fsub=fsub)
-    ProgressUpdateFiles(opts, fsub=fsub)
-    ProgressDeleteDirs(opts)
-    ProgressTarGroups(opts)
-    ProgressTarDirs(opts)
+    cape.manage.ProgressDeleteFiles(opts, fsub=fsub)
+    cape.manage.ProgressUpdateFiles(opts, fsub=fsub)
+    cape.manage.ProgressDeleteDirs(opts)
+    cape.manage.ProgressTarGroups(opts)
+    cape.manage.ProgressTarDirs(opts)
 # def ManageFilesProgress
     
 # Perform pre-archive management
@@ -64,11 +64,11 @@ def ManageFilesPre(opts=None):
     # Convert options
     opts = Archive.auto_Archive(opts)
     # Perform actions
-    PreDeleteFiles(opts, fsub=fsub)
-    PreUpdateFiles(opts, fsub=fsub)
-    PreDeleteDirs(opts)
-    PreTarGroups(opts)
-    PreTarDirs(opts)
+    cape.manage.PreDeleteFiles(opts, fsub=fsub)
+    cape.manage.PreUpdateFiles(opts, fsub=fsub)
+    cape.manage.PreDeleteDirs(opts)
+    cape.manage.PreTarGroups(opts)
+    cape.manage.PreTarDirs(opts)
 # def ManageFilesPre
     
 # Perform post-archive management
@@ -86,11 +86,11 @@ def ManageFilesPost(opts=None):
     # Convert options
     opts = Archive.auto_Archive(opts)
     # Perform actions
-    PostDeleteFiles(opts, fsub=fsub)
-    PostUpdateFiles(opts, fsub=fsub)
-    PostDeleteDirs(opts)
-    PostTarGroups(opts)
-    PostTarDirs(opts)
+    cape.manage.PostDeleteFiles(opts, fsub=fsub)
+    cape.manage.PostUpdateFiles(opts, fsub=fsub)
+    cape.manage.PostDeleteDirs(opts)
+    cape.manage.PostTarGroups(opts)
+    cape.manage.PostTarDirs(opts)
 # def ManageFilesPost
     
 # Function to compress extra folders
@@ -485,14 +485,14 @@ def ArchiveFolder(opts):
         # Archive end-of-run files
         cape.manage.ProgressArchiveFiles(opts, fsub=fsub)
         # Create tar balls as appropriate before archiving
-        PostTarGroups(opts, frun=frun)
-        PostTarDirs(opts, frun=frun)
+        cape.manage.PostTarGroups(opts, frun=frun)
+        cape.manage.PostTarDirs(opts, frun=frun)
         # Archive existing tar balls
         cape.manage.ArchiveFiles(opts, ['*.%s'%ext, '*.tar', '*.zip'])
         # After archiving, perform clean-up
-        PostDeleteFiles(opts, fsub=fsub)
-        PostUpdateFiles(opts, fsub=fsub)
-        PostDeleteDirs(opts)
+        cape.manage.PostDeleteFiles(opts, fsub=fsub)
+        cape.manage.PostUpdateFiles(opts, fsub=fsub)
+        cape.manage.PostDeleteDirs(opts)
         
 # def ArchiveFolder
         

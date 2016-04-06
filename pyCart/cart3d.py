@@ -508,7 +508,7 @@ class Cart3d(Cntl):
         # RunControl options (for consistency)
         rc = self.opts['RunControl']
         # Run autoInputs if necessary.
-        if self.opts.get_PreMesh(0):
+        if self.opts.get_PreMesh(0) or not os.path.isfile('preSpec.c3d.cntl'):
             # Run autoInputs (tests opts.get_autoInputs() internally)
             case.CaseAutoInputs(rc, j=0)
         # Read the resulting preSpec.c3d.cntl file
@@ -516,7 +516,7 @@ class Cart3d(Cntl):
         # Bounding box control...
         self.PreparePreSpecCntl()
         # Check for jumpstart.
-        if self.opts.get_PreMesh(0):
+        if self.opts.get_PreMesh(0) or self.opts.get_GroupMesh():
             # Run ``intersect`` if appropriate
             case.CaseIntersect(rc)
             # Run ``verify`` if appropriate

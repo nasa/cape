@@ -411,7 +411,7 @@ def GetLinkMatches(fname, fsub=None, n=0):
     return fglob
                 
 # Get folder matches
-def GetDirMatches(fname, fsub=None, fkeep=None):
+def GetDirMatches(fname, fsub=None, n=0):
     """Get list of all folders matching a list of patterns
     
     :Call:
@@ -927,7 +927,7 @@ def PreTarDirs(opts, fsub=None, aa=None):
     # Get options
     fopt = opts.get_ArchivePreTarDirs()
     # Exit if necessary
-    if fgrps is None: return
+    if fopt is None: return
     # Get format, command, and extension
     cmdu = opts.get_ArchiveCmd()
     ext  = opts.get_ArchiveExtension()
@@ -1097,7 +1097,7 @@ def PostTarDirs(opts, fsub=None, aa=None, frun=None):
     # Get options
     fopt = opts.get_ArchivePostTarDirs()
     # Exit if necessary
-    if fgrps is None: return
+    if fopt is None: return
     # Get format, command, and extension
     cmdu = opts.get_ArchiveCmd()
     ext  = opts.get_ArchiveExtension()
@@ -1290,7 +1290,7 @@ def ProgressTarDirs(opts, fsub=None, aa=None):
     # Get options
     fopt = opts.get_ArchiveProgressTarDirs()
     # Exit if necessary
-    if fgrps is None: return
+    if fopt is None: return
     # Get format, command, and extension
     cmdu = opts.get_ArchiveCmd()
     ext  = opts.get_ArchiveExtension()
