@@ -474,18 +474,20 @@ class Cntl(object):
         :Versions:
             * 2014-10-06 ``@ddalle``: First version
         """
+        # Get case name
+        frun = self.x.GetFullFolderNames(i)
         # Check status.
         if self.CheckCase(i) is None:
             # Case not ready
+            print("    Attempted to start case '%s'." % frun)
+            print("    However, case failed initial checks.")
             return
         elif self.CheckRunning(i):
             # Case already running!
             return
-        # Safely go to root directory.
+        # Safely go to the folder.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
-        # Get case name and go to the folder.
-        frun = self.x.GetFullFolderNames(i)
         os.chdir(frun)
         # Print status.
         print("     Starting case '%s'." % frun)

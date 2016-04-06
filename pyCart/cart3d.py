@@ -386,16 +386,18 @@ class Cart3d(Cntl):
         # Go to working folder. ('.' or 'adapt??/')
         os.chdir(case.GetWorkingFolder())
         # Check for a mesh file?
-        if not opts.get_Adaptive(0) or opts.get_jumpstart(0):
+        if opts.get_GroupMesh() or opts.get_PreMesh(0):
             # Intersected mesh file.
             if not os.path.isfile('Components.i.tri'): q = False
-            # Mesh file.
-            if q and opts.get_mg() > 0:
-                # Look for multigrid mesh
-                if not os.path.isfile('Mesh.mg.c3d'): q = False
-            elif q:
-                # Look for original mesh
-                if not os.path.isfile('Mesh.c3d'): q = False
+            # Check for jumpstart exception
+            if not opts.get_Adaptive(0) or opts.get_jumpstart(0):
+                # Mesh file.
+                if q and opts.get_mg() > 0:
+                    # Look for multigrid mesh
+                    if not os.path.isfile('Mesh.mg.c3d'): q = False
+                elif q:
+                    # Look for original mesh
+                    if not os.path.isfile('Mesh.c3d'): q = False
         elif opts.get_intersect():
             # Pre-intersect surface files.
             if not os.path.isfile('Components.c.tri'): q = False
@@ -548,10 +550,13 @@ class Cart3d(Cntl):
         # Settings file.
         if not os.path.isfile('case.json'): return True
         # Read the settings.
-        fc = case.ReadCaseJSON()
+        rc = case.ReadCaseJSON()
         # Check for which mesh file to look for.
-        if fc.get_Adaptive(0):
+        if rc.get_Adaptive(0):
             # Mesh file is gone or will be created during aero.csh
+            pass
+        elif not rc.get_PreMesh(0):
+            # Mesh may be generated later.
             pass
         elif self.opts.get_mg() > 0:
             # Look for the multigrid mesh
