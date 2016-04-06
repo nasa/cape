@@ -371,16 +371,6 @@ class Options(cape.options.Options):
     # Mesh settings
     # =============
    # <
-    
-    # File names
-    def get_MeshFile(self, i=None):
-        self._Mesh()
-        return self['Mesh'].get_MeshFile(i)
-        
-    # Tri file
-    def get_TriFile(self, i=None):
-        self._Mesh()
-        return self['Mesh'].get_TriFile(i)
         
     # BCfile
     def get_MapBCFile(self, i=None):
@@ -388,7 +378,7 @@ class Options(cape.options.Options):
         return self['Mesh'].get_MapBCFile(i)
         
     # Copy documentation
-    for k in ['MeshFile', 'TriFile', 'MapBCFile']:
+    for k in ['MapBCFile']:
         eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
    # >
     

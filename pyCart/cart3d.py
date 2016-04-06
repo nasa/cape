@@ -505,46 +505,24 @@ class Cart3d(Cntl):
             func = self.x.defns[key]['Function']
             # Apply it.
             exec("%s(self.%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+        # RunControl options (for consistency)
+        rc = self.opts['RunControl']
         # Run autoInputs if necessary.
-        if self.opts.get_r():
-            # Run autoInputs
-            bin.autoInputs(self)
-            # Fix the name of the triangulation in the 'input.c3d' file
-            if self.opts.get_intersect():
-                # Read the intersect file.
-                lines = open('input.c3d').readlines()
-                # Change the triangulation file
-                lines[7] = '  Components.i.tri\n'
-                # Write the corrected file.
-                open('input.c3d', 'w').writelines(lines)
+        if self.opts.get_PreMesh(0):
+            # Run autoInputs (tests opts.get_autoInputs() internally)
+            case.CaseAutoInputs(rc, j=0)
         # Read the resulting preSpec.c3d.cntl file
         self.PreSpecCntl = PreSpecCntl('preSpec.c3d.cntl')
         # Bounding box control...
         self.PreparePreSpecCntl()
         # Check for jumpstart.
-        if not self.opts.get_Adaptive(0) or self.opts.get_jumpstart(0):
-            # Check for intersect step.
-            if self.opts.get_intersect():
-                # Run intersect.
-                bin.intersect('Components.tri', 'Components.o.tri')
-                # Read the original triangulation.
-                tric = Tri('Components.c.tri')
-                # Read the intersected triangulation.
-                trii = Tri('Components.o.tri')
-                # Read the pre-intersection triangulation.
-                tri0 = Tri('Components.tri')
-                # Map the Component IDs.
-                trii.MapCompID(tric, tri0)
-                # Write the triangulation.
-                trii.Write('Components.i.tri')
-            # Check for verify step.
-            if self.opts.get_verify():
-                # Run verify.
-                bin.verify('Components.i.tri')
-            # Run cubes.
-            bin.cubes(self)
-            # Run mgPrep
-            bin.mgPrep(self)
+        if self.opts.get_PreMesh(0):
+            # Run ``intersect`` if appropriate
+            case.CaseIntersect(rc)
+            # Run ``verify`` if appropriate
+            case.CaseVerify(rc)
+            # Create the mesh if appropriate
+            case.CaseCubes(rc, j=0)
         # Return to original folder.
         os.chdir(fpwd)
     

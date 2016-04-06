@@ -2,7 +2,7 @@
 
 
 # Import options-specific utilities
-from util import rc0, odict, isArray
+from util import rc0, odict, isArray, getel
 # Run control class
 import cape.options.runControl
 import cape.options.ulimit
@@ -2506,6 +2506,37 @@ class RunControl(cape.options.runControl.RunControl):
     # ==========
    # <
     
+    # Get flag for autoInputs use
+    def get_autoInputs(self, j=0):
+        """Return whether or not to run ``autoInputs``
+        
+        :Call:
+            >>> q = opts.get_autoInputs(j=0)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *j*: :class:`int`
+                Phase number
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not there are nontrivial ``autoInputs`` settings
+        :Versions:
+            * 2016-04-06 ``@ddalle``: First version
+        """
+        # Initialize if necessary
+        sefl._autoInputs()
+        # Get the value
+        v = self.get('autoInputs')
+        # Get the flag
+        q = v.get('run')
+        # Check.
+        if q is None:
+            # Check for nontrivial entries
+            return len(v.keys()) > 0
+        else:
+            # Return the 'run' flag
+            return getel(q,j) == True
+        
     # Get the nominal mesh radius
     def get_r(self, i=None):
         self._autoInputs()
@@ -2537,6 +2568,37 @@ class RunControl(cape.options.runControl.RunControl):
     # cubes
     # =====
    # <
+    
+    # Get flag for autoInputs use
+    def get_cubes(self, j=0):
+        """Return whether or not to run ``cubes``
+        
+        :Call:
+            >>> q = opts.get_cubes(j=0)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *j*: :class:`int`
+                Phase number
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not there are nontrivial ``cubes`` settings
+        :Versions:
+            * 2016-04-06 ``@ddalle``: First version
+        """
+        # Initialize if necessary
+        sefl._cubes()
+        # Get the value
+        v = self.get('cubes')
+        # Get the flag
+        q = v.get('run')
+        # Check.
+        if q is None:
+            # Check for nontrivial entries
+            return len(v.keys()) > 0
+        else:
+            # Return the 'run' flag
+            return getel(q,j) == True
     
     # Get the number of refinements
     def get_maxR(self, i=None):

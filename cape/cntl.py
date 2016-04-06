@@ -186,9 +186,6 @@ class Cntl(object):
         os.chdir(self.RootDir)
         # Ensure list
         if type(ftri).__name__ not in ['list', 'ndarray']: ftri = [ftri]
-        # Initialize number nodes in each file
-        tri.iTri = []
-        tri.iQuad = []
         # Loop through files
         for f in ftri:
             # Get the extension
@@ -206,9 +203,15 @@ class Cntl(object):
             else:
                 # Assume Cart3D triangulation file
                 tri.Add(Tri(f))
-            # Save the node number
-            tri.iTri.append(tri.nTri)
-            tri.iQuad.append(tri.nQuad)
+            # Update node counts
+            try:
+                # Save the node number
+                tri.iTri.append(tri.nTri)
+                tri.iQuad.append(tri.nQuad)
+            except AttributeError:
+                # Initialize number nodes in each file
+                tri.iTri = [tri.nTri]
+                tri.iQuad = [tri.nQuad]
         # Check for AFLR3 bcs
         fbc = self.opts.get_aflr3_BCFile()
         # If present, map it.

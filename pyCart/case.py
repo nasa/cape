@@ -101,19 +101,55 @@ def WriteUserTime(tic, rc, i, fname="pycart_time.dat"):
     WriteUserTimeProg(tic, rc, i, fname, 'run_flowCart.py')
 
 # Run cubes if necessary
-def CaseCubes(rc):
-    """Run ``cubes`` to create volume mesh
+def CaseCubes(rc, j=0):
+    """Run ``cubes`` and ``mgPrep`` to create multigrid volume mesh
     
     :Call:
-        >>> CaseCubes(rc)
+        >>> CaseCubes(rc, j=0)
     :Inputs:
         *rc*: :class:`cape.options.runControl.RunControl`
             Case options interface from ``case.json``
+        *j*: {``0``} | :class:`int`
+            Phase number
     :Versions:
-        * 2016-04-05 ``@ddalle``: First version
+        * 2016-04-06 ``@ddalle``: First version
     """
-    # Run cubes, I guess
-    bin.cubes(opts=rc)
+    # Check for previous iterations
+    # TODO: This will need an edit for 'remesh'
+    if GetRestartIter() > 0: return
+    # Check for mesh file
+    if os.path.isfile('Mesh.mg.c3d'): return
+    # Check for cubes option
+    if not self.get_cubes(): return
+    # If adaptive, check for jumpstart
+    if rc.get_Adaptive(j) and not rc.get_jumpstart(j): return
+    # Run cubes
+    bin.cubes(opts=rc, j=j)
+    # Run mgPrep
+    bin.mgPrep(opts=rc, j=j)
+    
+# Run autoInputs if appropriate
+def CaseAutoInputs(rc, j=0):
+    """Run ``autoInputs`` if necessary
+    
+    :Call:
+        >>> CaseAutoInputs(rc)
+    :Inputs:
+        *rc*: :class:`cape.options.runControl.RunControl`
+            Case options interface from ``cape.json``
+        *j*: {``0``} | :class:`int`
+            Phase number
+    :Versions:
+        * 2016-04-06 ``@ddalle``: First version
+    """
+    # Check for previous iterations
+    if GetRestartIter() > 0: return
+    # Check for output file
+    if os.path.isfile('input.c3d'): return
+    # Check for cubes option
+    if not self.get_autoInputs(): return
+    # Run autoInputs
+    bin.autoInputs(opts=rc, j=j)
     
 # Prepare the files of the case
 def PrepareFiles(rc, i=None):
@@ -188,8 +224,10 @@ def RunPhase(rc, i):
             Phase number
     :Versions:
         * 2016-03-04 ``@ddalle``: First version
-    
     """
+    # Mesh generation
+    CaseAutoInputs(rc, i)
+    CaseCubes(rc, i)
     # Check for flowCart vs. mpi_flowCart
     if not rc.get_MPI(i):
         # Get the number of threads, which may be irrelevant.

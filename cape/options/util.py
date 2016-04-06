@@ -44,6 +44,7 @@ rc = {
     "qsub": True,
     "Resubmit": False,
     "Continue": True,
+    "PreMesh": False,
     "y_is_spanwise": True,
     "db_stats": 0,
     "db_min": 0,

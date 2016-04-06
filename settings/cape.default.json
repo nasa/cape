@@ -61,68 +61,11 @@
 	    // Command to use for MPI
 	    "mpicmd": "mpiexec"
 	},
-	
-	// This section sets the parameters for adjointCart.
-	"adjointCart": {
-	    // Number of iterations
-	    "it_ad": 120,
-	    // Multigrid levels
-	    "mg_ad": 3,
-        // First-order adjoints
-        "adj_first_order": false
-	},
-	
-	// Parameters for adaptation
-	"Adaptation": {
-	    // Number of adaptation cycles
-	    "n_adapt_cycles": 0,
-	    // Functional error tolerance
-	    "etol": 0.000001,
-	    // Stop adapting when this number of cells is reached
-        "max_nCells": 25000000,
-	    
-	    // Number of flowCart iters on each new mesh
-	    //  cycle  1   2   3   4   5   6   7   8   9  10   11+  
-	    "ws_it": [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 100],
-	    
-	    // Growth in the number of cells
-	    //       cycle   1    2    3    4    5    6    7+  
-	    "mesh_growth": [1.5 ,1.5, 2.0, 2.0, 2.0, 2.0, 2.5],
-	    
-	    // Adaptation type, see `aero.csh` for more info
-	    // cycle 1    2+
-	    "apc": ["p", "a"],
-        
-        // Number of buffer layers
-        "buf": 1,
-        // Number of extra refinements on final error map
-        "final_mesh_xref": 0
-	},
 
 	// Parameters for creating the mesh
     "Mesh": {
         // This can be a list of .tri files.
-        "TriFile": "Components.i.tri",
-        // Setting for 2D meshes
-        "mesh2d": false,
-        
-        // Parameters for autoInputs
-        "autoInputs": {
-            // Nominal mesh radius (set to [], "", or 0 to turn off)
-            "r": 8
-        },
-        
-        // Parameters for cubes
-        "cubes": {
-            // Number of refinements
-            "maxR": 11,
-            // Prespecified bounding boxes (set to [] or "" to turn off)
-            "pre": "preSpec.c3d.cntl",
-            // Internal parameters
-            "cubes_a": 10,
-            "cubes_b": 2,
-            "reorder": true
-        }
+        "TriFile": "Components.i.tri"
     },
     
     // Describe the reference values and config.

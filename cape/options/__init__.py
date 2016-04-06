@@ -535,9 +535,20 @@ class Options(odict):
         self._RunControl()
         self['RunControl'].set_Continue(cont, i)
         
+    # Get the pre-submit mesh generation setting
+    def get_PreMesh(self, i=0):
+        self._RunControl()
+        return self['RunControl'].get_PreMesh(i)
+        
+    # Set the pre-submit mesh generation setting
+    def set_PreMesh(self, preMesh=rc0('PreMesh'), i=0):
+        self._RunControl()
+        self['RunControl'].set_PreMesh(preMesh, i)
+        
     # Copy over the documentation.
     for k in ['nIter', 'PhaseSequence', 'PhaseIters', 'Environ', 'ulimit',
-            'MPI', 'nProc', 'mpicmd', 'qsub', 'Resubmit', 'Continue']:
+            'MPI', 'nProc', 'mpicmd', 'qsub',
+            'Resubmit', 'Continue', 'PreMesh']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
@@ -907,6 +918,28 @@ class Options(odict):
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Config,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Config,'set_'+k).__doc__
+   # >
+    
+    
+    # ========================
+    # mesh creation parameters
+    # ========================
+   # <
+        
+    # Get triangulation file(s)
+    def get_TriFile(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_TriFile(i)
+        
+    # Get mesh file(s)
+    def get_MeshFile(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_MeshFile(i)
+        
+    # Copy over the documentation.
+    for k in ['TriFile', 'MeshFile']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
    # >
    
     

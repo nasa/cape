@@ -1366,6 +1366,43 @@ class RunControl(odict):
             * 2015-11-08 ``@ddalle``: First version
         """
         self.set_key('Continue', cont, i)
+        
+    # Whether or not to generate mesh before submitting
+    def get_PreMesh(self, i=0):
+        """Determine whether or not to generate volume mesh before submitting
+        
+        :Call:
+            >>> preMesh = opts.get_PreMesh(i=0)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *i*: {``0``} | :class:`int`
+                Phase number
+        :Outputs:
+            *preMesh*: :class:`bool`
+                Whether or not to create mesh before submitting PBS job
+        :Versions:
+            * 2016-04-06 ``@ddalle``: First version
+        """
+        return self.get_key('PreMesh', i)
+    
+    # Set the pre-submit mesh generation option
+    def set_PreMesh(self, preMesh=rc0('PreMesh'), i=None):
+        """Set the setting regarding pre-submit mesh generation
+        
+        :Call:
+            >>> opts.set_PreMesh(preMesh=False, i=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *preMesh*: :class:`bool`
+                Whether or not to create mesh before submitting PBS job
+            *i*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            * 2016-04-06 ``@ddalle``: First version
+        """
+        self.set_key('PreMesh', preMesh, i)
    # >
    
 # class RunControl

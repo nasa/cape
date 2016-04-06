@@ -13,33 +13,40 @@ from cape.bin import _assertfile, _upgradeDocString
 import cmd
 
 # Function to call cubes.
-def cubes(cart3d=None, opts=None, **kwargs):
+def cubes(cart3d=None, opts=None, j=0, **kwargs):
     # Required file
     _assertfile('input.c3d')
     # Get command
-    cmdi = cmd.cubes(cart3d=cart3d, opts=opts, **kwargs)
+    cmdi = cmd.cubes(cart3d=cart3d, opts=opts, j=j, **kwargs)
     # Run the command.
     callf(cmdi, f='cubes.out')
 # Docstring
 cubes.__doc__ = _upgradeDocString(cmd.cubes.__doc__)
     
 # Function to call mgPrep
-def mgPrep(cart3d=None, opts=None, **kwargs):
+def mgPrep(cart3d=None, opts=None, j=0, **kwargs):
     # Required file
     _assertfile('Mesh.R.c3d')
     # Get the command.
-    cmdi = cmd.mgPrep(cart3d=cart3d, opts=opts, **kwargs)
+    cmdi = cmd.mgPrep(cart3d=cart3d, opts=opts, j=j, **kwargs)
     # Run the command.
     callf(cmdi, f='mgPrep.out')
 # Docstring
 mgPrep.__doc__ = _upgradeDocString(cmd.mgPrep.__doc__)
     
 # Function to call mgPrep
-def autoInputs(cart3d=None, opts=None, **kwargs):
+def autoInputs(cart3d=None, opts=None, j=0, **kwargs):
     # Get command.
-    cmdi = cmd.autoInputs(cart3d, opts=opts, **kwargs)
+    cmdi = cmd.autoInputs(cart3d, opts=opts, j=j, **kwargs)
     # Run the command.
     callf(cmdi, f='autoInputs.out')
+    # Fix the name of the triangulation in the 'input.c3d' file
+    # Read the intersect file.
+    lines = open('input.c3d').readlines()
+    # Change the triangulation file
+    lines[7] = '  Components.i.tri\n'
+    # Write the corrected file.
+    open('input.c3d', 'w').writelines(lines)
 # Docstring
 autoInputs.__doc__ = _upgradeDocString(cmd.autoInputs.__doc__)
     

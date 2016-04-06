@@ -621,6 +621,21 @@ class Options(cape.options.Options):
     # ====================
    # <
    
+    # Get intersect flag
+    def get_autoInputs(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_autoInputs(j)
+   
+    # Get intersect flag
+    def get_cubes(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_cubes(j)
+    
+    # Copy documentation
+    for k in ['autoInputs', 'cubes']:
+        # Get the documentation for the "get"
+        eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__
+   
     # Get the nominal mesh radius
     def get_r(self, i=None):
         self._RunControl()
@@ -906,36 +921,6 @@ class Options(cape.options.Options):
     # ========================
    # <
     
-    # Get verify status
-    def get_verify(self):
-        self._Mesh()
-        return self['Mesh'].get_verify()
-        
-    # Set verify status
-    def set_verify(self, q):
-        self._Mesh()
-        self['Mesh'].set_verify(q)
-    
-    # Get intersect status
-    def get_intersect(self):
-        self._Mesh()
-        return self['Mesh'].get_intersect()
-        
-    # Set intersect status
-    def set_intersect(self, q):
-        self._Mesh()
-        self['Mesh'].set_intersect(q)
-        
-    # Get triangulation file(s)
-    def get_TriFile(self, i=None):
-        self._Mesh()
-        return self['Mesh'].get_TriFile(i)
-        
-    # Set triangulation file(s)
-    def set_TriFile(self, TriFile=rc0('TriFile'), i=None):
-        self._Mesh()
-        self['Mesh'].set_TriFile(TriFile, i)
-    
     # Get BBoxes
     def get_BBox(self):
         self._Mesh()
@@ -977,8 +962,7 @@ class Options(cape.options.Options):
         self['Mesh'].set_inputC3d(fc3d)
         
     # Copy over the documentation.
-    for k in ['verify', 'intersect', 'TriFile', 'BBox', 'XLev', 'mesh2d',
-            'inputC3d']:
+    for k in ['BBox', 'XLev', 'mesh2d', 'inputC3d']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Mesh,'set_'+k).__doc__
