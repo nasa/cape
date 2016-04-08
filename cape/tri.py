@@ -180,10 +180,12 @@ class TriBase(object):
         
         # Check for configuration
         if c is not None:
+            # Read the configuration
             self.config = Config(c)
-            
-        # End
-        return None
+            # Check if we should apply it
+            print(uh3d)
+            if uh3d is not None:
+                self.ApplyConfig(self.config)
         
     # Method that shows the representation of a triangulation
     def __repr__(self):
@@ -668,6 +670,9 @@ class TriBase(object):
         # Close the file.
         fid.close()
         
+        # Weight: number of files included in file
+        self.n = n
+        
     # Fall-through function to write the triangulation to file.
     def Write(self, fname='Components.i.tri', v=True):
         """Write triangulation to file using fastest method available
@@ -782,7 +787,7 @@ class TriBase(object):
         """Write a triangulation to an STL file
         
         :Call:
-            >>> tri.WriteSTLSlow(fname='Components.i.tri')
+            >>> tri.WriteSTLSlow(fname='Components.i.stl')
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance to be translated
@@ -821,6 +826,27 @@ class TriBase(object):
         f.write('endsolid\n')
         # Close the file.
         f.close()
+    
+    # Function to write a triangulation to file as fast as possible.
+    def WriteSTLFast(self, fname='Components.i.stl'):
+        """Try using a compiled function to write to file
+        
+        :Call:
+            >>> tri.WriteFast(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Versions:
+            * 2016-04-08 ``@ddalle``: First version
+        """
+        # Write the nodes.
+        pc.WriteTriSTL(self.Nodes, self.Tris)
+        # Check the file name.
+        if fname != "Components.pyCart.stl":
+            # Move the file.
+            os.rename("Components.pyCart.stl", fname)
         
     # Fall-through function to write the triangulation to file.
     def WriteTriq(self, fname='Components.i.triq', v=True):
@@ -1098,6 +1124,7 @@ class TriBase(object):
             # Get the tris matching the component ID
             I = self.GetTrisFromCompID(comp)
             # Modify those BCs
+            # Check node count
             if len(I) > 0:
                 self.BCs[I] = BCs[comp]
             # Get the quads from the matching component ID
@@ -1109,7 +1136,10 @@ class TriBase(object):
         for comp in blds:
             # Get the nodes
             I = self.GetNodesFromCompID(comp)
-            if len(I) > 0: continue
+            # Check node count
+            if len(I) == 0:
+                print("Warning: No nodes mapped for component '%s'" % comp)
+                continue
             # Modify those BL spacings
             self.blds[I] = blds[comp]
             # Check for BL thicknesses
@@ -1121,7 +1151,10 @@ class TriBase(object):
             if comp in blds: continue
             # Get the nodes
             I = self.GetNodesFromCompID(comp)
-            if len(I) > 0: continue
+            # Check node count
+            if len(I) == 0:
+                print("Warning: No nodes mapped for component '%s'" % comp)
+                continue
             # Modify those BL thicknesses
             self.bldel[I] = bldel[comp]
             
@@ -1153,22 +1186,24 @@ class TriBase(object):
             line = _readline(f)
             # Exit at end of file
             if line == '': break
+            # Split line
+            V = line.split()
             # Get the component name
-            comp = line.split()[0]
+            comp = V[0]
             # Get the boundary condition flag
-            bc = int(line.split()[1])
+            bc = int(V[1])
             # Save the boundary condtion
             BCs[comp] = bc
             # Check length
-            if len(line) < 3: continue
+            if len(V) < 3: continue
             # Get the boundary layer spacing
-            bldsi = float(line.split()[2])
+            bldsi = float(V[2])
             # Save BL spacing
             blds[comp] = bldsi
             # Check length
-            if len(line) < 4: continue
+            if len(V) < 4: continue
             # Get the boundary layer thickness
-            bldeli = float(line.split()[3])
+            bldeli = float(V[3])
             # Save the BL thickness
             bldel[comp] = bldel
         # Close the file.
@@ -1364,9 +1399,6 @@ class TriBase(object):
         
         # Close the file.
         fid.close()
-        
-        # Weight: number of files included in file
-        self.n = n
     
     # Function to read IDEAS UNV files
     def ReadUnv(self, fname):
@@ -1658,18 +1690,24 @@ class TriBase(object):
        
        
     # Function to get node indices from component ID(s)
-    def GetNodesFromCompID(self, i=None):
+    def GetNodesFromCompID(self, compID=None):
         """Find node indices from face component ID(s)
         
         :Call:
-            >>> j = tri.GetNodesFromCompID(i)
+            >>> i = tri.GetNodesFromCompID(comp)
+            >>> i = tri.GetNodesFromCompID(comps)
+            >>> i = tri.GetNodesFromCompID(compID)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
-            *i*: :class:`int` or :class:`list` (:class:`int`)
-                Component ID or list of component IDs
+            *comp*: :class:`str`
+                Name of component
+            *comps*: :class:`list` (:class:`int` | :class:`str`)
+                List of component IDs or names
+            *compID*: :class:`int`
+                Component number
         :Outputs:
-            *j*: :class:`numpy.array` (:class:`int`)
+            *i*: :class:`numpy.array` (:class:`int`)
                 Node indices, 0-based
         :Versions:
             * 2014-09-27 ``@ddalle``: First version
@@ -1689,9 +1727,9 @@ class TriBase(object):
         # Check for triangular matches
         if len(kTri) > 0:
             # Mark matches
-            I[self.Tris[kTri]] = True
+            I[self.Tris[kTri]-1] = True
         # Check for quadrangle matches
-        if len(kQuqd) > 0:
+        if len(kQuad) > 0:
             # Mark matches
             I[self.Quads[kQuad]] = True
         # Output
@@ -1973,16 +2011,16 @@ class TriBase(object):
         
     
     # Function to translate the triangulation
-    def Translate(self, dx=None, dy=None, dz=None, i=None):
+    def Translate(self, *a, **kw):
         """Translate the nodes of a triangulation object
             
         The offset coordinates may be specified as individual inputs or a
         single vector of three coordinates.
         
         :Call:
-            >>> tri.Translate(dR, i=None)
-            >>> tri.Translate(dx, dy, dz, i=None)
-            >>> tri.Translate(dy=dy, i=None)
+            >>> tri.Translate(dR, compID)
+            >>> tri.Translate(dx, dy, dz, compID=None)
+            >>> tri.Translate(dy=dy, compID=None)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance to be translated
@@ -1994,40 +2032,69 @@ class TriBase(object):
                 *y*-coordinate offset
             *dz*: :class:`float`
                 *z*-coordinate offset
-            *i*: :class:`int` or :class:`list` (:class:`int`)
+            *compID*: :class:`int` | :class:`str` | :class:`list`
                 Component ID(s) to which to apply translation
         :Versions:
             * 2014-05-23 ``@ddalle``: First version
             * 2014-10-08 ``@ddalle``: Exported functionality to function
+            * 2016-04-08 ``@ddalle``: Redid inputs
         """
-        # Check for abort.
-        if (i is None) or (i == []): return
-        # Check the first input type.
-        if type(dx).__name__ in ['list', 'ndarray']:
+        # Get component ID
+        compID = kw.get('compID')
+        # Check regular arguments
+        if len(a) == 1:
+            # Get first input
+            dR = a[0]
             # Vector
-            dy = dx[1]
-            dz = dx[2]
-            dx = dx[0]
+            dx, dy, dz = tuple(dR)
+            # No component ID
+            compID = None
+        elif len(a) == 2:
+            # Vector
+            R = a[0]
+            # Components
+            compID = a[1]
+        elif len(a) == 3:
+            # Get the values
+            dR = a
+            # No component ID
+            compID = None
+        elif len(a) == 4:
+            # Vector
+            dR = a[:3]
+            # Components
+            compID = a[3]
+        elif len(a) == 0:
+            # Defaults
+            dR = [0.0, 0.0, 0.0]
+            compID = None
         else:
-            # Check for unspecified inputs.
-            if dx is None: dx = 0.0
-            if dy is None: dy = 0.0
-            if dz is None: dz = 0.0
-        # Check for an array.
-        if hasattr(dx, '__len__'):
-            # Extract components
-            dx, dy, dz = tuple(dx)
+            # Bad input count
+            raise ValueError("Must use exactly 0 to 4 non-keyword inputs")
+        # Check length and type of displacements
+        if type(dR).__name__ not in ['list', 'ndarray']:
+            # Not a vector
+            raise TypeError("Single input must be a vector")
+        elif len(dR) != 3:
+            # Not a 3-vector
+            raise ValueError("Single input vector must have three values")
+        # Get the keyword-values
+        dx = kw.get('dx', dR[0])
+        dy = kw.get('dy', dR[1])
+        dz = kw.get('dz', dR[2])
+        # Process components
+        compID = kw.get('compID', compID)
         # Process the node indices to be rotated.
-        j = self.GetNodesFromCompID(i)
+        i = self.GetNodesFromCompID(compID)
         # Extract the points.
-        X = self.Nodes[j,:]
+        X = self.Nodes[i,:]
         # Apply the translation.
         Y = TranslatePoints(X, [dx, dy, dz])
         # Save the translated points.
-        self.Nodes[j,:] = Y
+        self.Nodes[i,:] = Y
         
     # Function to rotate a triangulation about an arbitrary vector
-    def Rotate(self, v1, v2, theta, i=None):
+    def Rotate(self, v1, v2, theta, compID=None):
         """Rotate the nodes of a triangulation object.
         
         :Call:
@@ -2041,22 +2108,20 @@ class TriBase(object):
                 End point of rotation vector
             *theta*: :class:`float`
                 Rotation angle in degrees
-            *i*: :class:`int` or :class:`list` (:class:`int`)
-                Component ID(s) to which to apply rotation
+            *compID*: :class:`int` | :class:`str` | :class:`list`
+                Component ID(s) to which to apply translation
         :Versions:
             * 2014-05-27 ``@ddalle``: First version
             * 2014-10-07 ``@ddalle``: Exported functionality to function
         """
-        # Check for abort.
-        if (i is None) or (i == []): return
         # Get the node indices.
-        j = self.GetNodesFromCompID(i)
+        i = self.GetNodesFromCompID(compID)
         # Extract the points.
-        X = self.Nodes[j,:]
+        X = self.Nodes[i,:]
         # Apply the rotation.
         Y = RotatePoints(X, v1, v2, theta)
         # Save the rotated points.
-        self.Nodes[j,:] = Y
+        self.Nodes[i,:] = Y
         
     # Add a second triangulation without destroying component numbers.
     def Add(self, tri):
@@ -2467,10 +2532,14 @@ class Tri(TriBase):
             # Save the quad definitions
             self.nQuad = nQuad
             self.Quads = Quads
-            
+        
         # Check for configuration
         if c is not None:
+            # Read the configuration
             self.config = Config(c)
+            # Check if we should apply it
+            if 'uh3d' in kw:
+                self.ApplyConfig(self.config)
         
         # End
         return None

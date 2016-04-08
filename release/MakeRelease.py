@@ -36,9 +36,9 @@ def MakeRelease(ver):
     CopyTree('pyFun',  fdir, modignore, depth=2)
     
     # Other settings
-    CopyTree('scriptlib', fdir, modignore, depth=2)
-    CopyTree('settings',  fdir, modignore, depth=2)
-    CopyTree('modules',   fdir, modignore, depth=2)
+    CopyTree('bin',         fdir, modignore, depth=2)
+    CopyTree('settings',    fdir, modignore, depth=2)
+    CopyTree('modulefiles', fdir, modignore, depth=2)
     
     # Installation files
     shutil.copy('Makefile',   fdir)
