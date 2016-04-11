@@ -1813,6 +1813,9 @@ class TriBase(object):
             elif compID == 'entire':
                 # Return all the tris.
                 return np.arange(self.nQuad)
+            elif self.nQuad == 0:
+                # No quads to check for
+                return np.array([], dtype=int)
             # Get list of components
             comps = self.GetCompID(compID)
             # Check for single match
@@ -1827,7 +1830,7 @@ class TriBase(object):
                     # Add matches for component *ii*.
                     K = np.logical_or(K, self.CompIDQuad==comp)
             # Turn boolean vector into vector of indices]
-            return np.where(K)[0]
+            I =  np.where(K)[0]
         except AttributeError:
             # No quads
             return np.zeros(0, dtype=int)

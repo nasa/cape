@@ -231,13 +231,13 @@ class DataBook(dict):
             * 2015-05-22 ``@ddalle``: First version
         """
         # Get the first component.
-        DBP = self[self.pts[0]]
+        DBc = self[self.Components[0]]
         # Loop through the fields.
         for k in self.x.keys:
             # Copy the data.
-            setattr(self.x, k, DBP[k])
+            setattr(self.x, k, DBc[k])
             # Set the text.
-            self.x.text[k] = [str(xk) for xk in DBP[k]]
+            self.x.text[k] = [str(xk) for xk in DBc[k]]
         # Set the number of cases.
         self.x.nCase = DBc.n
                     
@@ -744,6 +744,7 @@ class DBBase(dict):
         self.x = x
         self.opts = opts
         self.comp = comp
+        self.name = comp
         
         # Get the directory.
         fdir = opts.get_DataBookDir()
@@ -1109,7 +1110,7 @@ class DBBase(dict):
         f = open(fname, 'w')
         # Write the header
         f.write("# Point sensor statistics for '%s' extracted on %s\n" %
-            (self.pt, datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')))
+            (self.name, datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')))
         # Empty line.
         f.write('#\n#')
         # Variable list
@@ -2033,6 +2034,7 @@ class DBComp(DBBase):
         self.x = x
         self.opts = opts
         self.comp = comp
+        self.name = comp
         
         # Get the directory.
         fdir = opts.get_DataBookDir()

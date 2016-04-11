@@ -1201,8 +1201,8 @@ class Cntl(object):
         # Form the translation vector
         v = u * getattr(self.x,key)[i]
         # Translate the triangulation
-        self.tri.Translate(v, i=compID)
-        self.tri.Translate(-v, i=compIDR)
+        self.tri.Translate(v, compID=compID)
+        self.tri.Translate(-v, compID=compIDR)
         # Loop through translation points.
         for pt in pts:
             # Get point
@@ -1267,8 +1267,8 @@ class Cntl(object):
         # Rotation angle
         theta = getattr(self.x,key)[i]
         # Rotate the triangulation.
-        self.tri.Rotate(v0,  v1,  theta,  i=compID)
-        self.tri.Rotate(v0R, v1R, ka*theta, i=compIDR)
+        self.tri.Rotate(v0,  v1,  theta,  compID=compID)
+        self.tri.Rotate(v0R, v1R, ka*theta, compID=compIDR)
         # Points to be rotated
         X  = np.array([self.opts.get_Point(pt) for pt in pts])
         XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
