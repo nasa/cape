@@ -1254,15 +1254,15 @@ class TriBase(object):
             pass
         # Other Tri info
         try:
-            self.BCs = self.BCs.copy()
+            tri.BCs = self.BCs.copy()
         except Exception:
             pass
         # Copy Quad info
         try:
-            self.nQuad = self.nQuad
-            self.Quads = self.Quads.copy()
-            self.CompIDQuad = self.CompIDQuad.copy()
-            self.BCsQuad = self.BCsQuad.copy()
+            tri.nQuad = self.nQuad
+            tri.Quads = self.Quads.copy()
+            tri.CompIDQuad = self.CompIDQuad.copy()
+            tri.BCsQuad = self.BCsQuad.copy()
         except Exception:
             pass
         # Try to copy the configuration list.

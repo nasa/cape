@@ -228,17 +228,17 @@ class Cntl(object):
             # Save the face counts
             tri.iTri.append(tri.nTri)
             tri.iQuad.append(tri.nQuad)
-        # Check for AFLR3 bcs
-        fbc = self.opts.get_aflr3_BCFile()
-        # If present, map it.
-        if fbc:
-            # Map boundary conditions
-            tri.ReadBCs_AFLR3(fbc)
         # Save it.
         self.tri = tri
         # Check for a config file.
         os.chdir(self.RootDir)
         self.tri.config = Config(self.opts.get_ConfigFile())
+        # Check for AFLR3 bcs
+        fbc = self.opts.get_aflr3_BCFile()
+        # If present, map it.
+        if fbc:
+            # Map boundary conditions
+            self.tri.ReadBCs_AFLR3(fbc)
         # Make a copy of the original to revert to after rotations, etc.
         self.tri0 = self.tri.Copy()
         # Return to original location.
@@ -725,7 +725,6 @@ class Cntl(object):
         """
         return False
     
-    
     # Get CPU hours (actually core hours)
     def GetCPUTimeFromFile(self, i, fname='cape_time.dat'):
         """Read a Cape-style core-hour file
@@ -1124,6 +1123,7 @@ class Cntl(object):
         keys = self.x.GetKeysByType(['translation', 'rotation', 'TriFunction'])
         # Loop through keys.
         for key in keys:
+            print("Rotation key: %s..." % key)
             # Type
             kt = self.x.defns[key]['Type']
             # Filter on which type of triangulation modification it is.

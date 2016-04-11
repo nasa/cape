@@ -138,7 +138,7 @@ def CaseAFLR3(rc, proj='Components', fmt='b8.ugrid'):
         * 2016-04-05 ``@ddalle``: First version
     """
     # Check for option to run AFLR3
-    if not rc.get_aflr(): return
+    if not rc.get_aflr3(): return
     # Check for initial run
     if GetRestartIter() != 0: return
     # File names

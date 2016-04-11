@@ -7,7 +7,7 @@
     .. autoclass:: cape.tri.TriBase
         :members:
         
-    Plane surface triangulation
+    Plain surface triangulation
     ---------------------------
     
     .. autoclass:: cape.tri.Tri

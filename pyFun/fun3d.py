@@ -451,8 +451,6 @@ class Fun3d(Cntl):
         # Get the group name.
         fgrp = self.x.GetGroupFolderNames(i)
         frun = self.x.GetFolderNames(i)
-        # Initialize with a "pass" location
-        q = True
         # Go safely to root folder.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
@@ -473,14 +471,63 @@ class Fun3d(Cntl):
                 return False
             # Enter the folder.
             os.chdir(frun)
+        # Check for mesh files
+        q = self.CheckMeshFiles()
+        # Return to original folder.
+        os.chdir(fpwd)
+        # Output
+        return q
+        
+    # Check mesh files
+    def CheckMeshFiles(self):
+        """Check for the mesh files in the present folder
+        
+        :Call:
+            >>> q = fun3d.CheckMeshFiles()
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not the present folder has the required mesh files
+        :Versions:
+            * 2016-04-11 ``@ddalle``: First version
+        """
+        # Initialize status
+        q = True
         # Get list of mesh file names
         fmesh = self.GetProcessedMeshFileNames()
         # Check for presence
         for f in fmesh:
             # Check for the file
             q = q and os.path.isfile(f)
-        # Return to original folder.
-        os.chdir(fpwd)
+        # If running AFLR3, check for tri file
+        if q and self.opts.get_aflr3():
+            # Project name
+            fproj = self.GetProjectRootName()
+            # Check for mesh files
+            if os.path.isfile('%s.ugrid' % fproj):
+                # Have a volume mesh
+                q = True
+            elif os.path.isfile('%s.b8.ugrid' % fproj):
+                # Have a binary volume mesh
+                q = True
+            elif os.path.isfile('%s.lb8.ugrid' % fproj):
+                # Have a little-endian volume mesh
+                q = True
+            elif os.path.isfile('%s.r8.ugrid' % fproj):
+                # Fortran unformatted
+                q = True
+            elif os.path.isfile('%s.surf' % fproj):
+                # AFLR3 input file
+                q = True
+            elif self.opts.get_intersect():
+                # Check for both required inputs
+                q = os.path.isfile('%s.tri' % fproj)
+                q = q and os.path.isfile('%s.c.tri' % fproj)
+            else:
+                # No surface or mesh files
+                q = False
         # Output
         return q
         
@@ -603,6 +650,7 @@ class Fun3d(Cntl):
                 Instance of control class containing relevant parameters
         :Versions:
             * 2015-10-19 ``@ddalle``: First version
+            * 2016-04-11 ``@ddalle``: Checking for AFLR3 input files, too
         """
         # Check for the surface file.
         if not (os.path.isfile('Components.i.tri')
@@ -612,13 +660,8 @@ class Fun3d(Cntl):
         if not os.path.isfile('fun3d.00.nml'): return True
         # Settings file.
         if not os.path.isfile('case.json'): return True
-        # Get mesh file names
-        fmsh = self.GetProcessedMeshFileNames()
-        # Check for them.
-        for f in fmsh:
-            if not os.path.isfile(f): return True
-        # Apparently no issues.
-        return False
+        # Check mesh files
+        return not self.CheckMeshFiles()
             
     # Get total CPU hours (actually core hours)
     def GetCPUTime(self, i):

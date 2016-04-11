@@ -1,5 +1,5 @@
 """
-Generic CAPE Geometry Module: :mod:`cape.geom`
+Generic Cape Geometry Module: :mod:`cape.geom`
 ==============================================
 
 This module provides several methods for modifying points or performing other

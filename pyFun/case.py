@@ -47,6 +47,7 @@ def run_fun3d():
         # Run intersect and verify
         CaseIntersect(rc, fproj)
         CaseVerify(rc, fproj)
+        print("Ready to run AFLR3...")
         # Create volume mesh if necessary
         CaseAFLR3(rc, proj=fproj, fmt=nml.GetGridFormat())
     # Delete any input file.
