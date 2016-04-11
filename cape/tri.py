@@ -303,7 +303,7 @@ class TriBase(object):
         :Call:
             >>> tri.ReadTrisSurf(f, nTri)
         :Inputs:
-            *tri*: :clas:`cape.tri.TriBase` or derivative
+            *tri*: :class:`cape.tri.TriBase` or derivative
                 Triangulation instance
             *f*: :class:`file`
                 Open file handle
@@ -347,7 +347,7 @@ class TriBase(object):
         :Call:
             >>> tri.ReadQuadsSurf(f, nQuad)
         :Inputs:
-            *tri*: :clas:`cape.tri.TriBase` or derivative
+            *tri*: :class:`cape.tri.TriBase` or derivative
                 Triangulation instance
             *f*: :class:`file`
                 Open file handle

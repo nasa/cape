@@ -1,12 +1,16 @@
 .. Documentation for the overall cape module.
 
+**********************
+The :mod:`cape` module
+**********************
+
 
 .. automodule:: cape
     :members: ReadCaseJSON, AlphaBeta2AlphaTPhi, AlphaTPhi2AlphaBeta
     
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
     
     argread
     bin

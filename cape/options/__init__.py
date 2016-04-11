@@ -1,13 +1,10 @@
 """
-Cape options module
-===================
-
-This module provides tools to read, access, modify, and write settings for
-:mod:`cape`.  The class is based off of the built-int :class:`dict` class, so
-its default behavior, such as ``opts['RunControl']`` or 
-``opts.get('RunControl')`` are also present.  In addition, many convenience
-methods, such as ``opts.set_PhaseIters(n)``, which sets the number of
-iterations to run, are provided.
+The :mod:`cape.options` provides tools to read, access, modify, and write
+settings for :mod:`cape`. The class is based off of the built-int :class:`dict`
+class, so its default behavior, such as ``opts['RunControl']`` or
+``opts.get('RunControl')`` are also present. In addition, many convenience
+methods, such as ``opts.set_PhaseIters(n)``, which sets the number of iterations
+to run, are provided.
 
 In addition, this module controls default values of each pyCart
 parameter in a two-step process.  The precedence used to determine what the

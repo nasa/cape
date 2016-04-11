@@ -1,5 +1,8 @@
 .. Documentation for the overall cape module.
 
+===================================
+Options Module: :mod:`cape.options`
+===================================
 
 .. automodule:: cape.options
     
@@ -9,7 +12,7 @@
     
 
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
     
     runControl
     ulimit

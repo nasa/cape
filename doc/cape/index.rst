@@ -1,5 +1,6 @@
 
-CAPE Module Documentation
+=========================
+Cape Module Documentation
 =========================
 
 The basic module on which the CFD interfaces are built is :mod:`cape`.  It
