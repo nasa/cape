@@ -7,8 +7,17 @@ This includes various methods for reading files, splitting it into sections,
 and replacing lines based on patterns or regular expressions.
 
 File manipulation classes for specific files (such as
-:class:`pyCart.InputCntl.InputCntl` for ``input.cntl`` files) are built off of
-this module and its main class.
+:class:`pyCart.inputCntl.InputCntl` for ``input.cntl`` files) are built off of
+this module and its main class.  A possibly incomplete list of class built on
+this class is given below.
+
+    * :class:`pyCart.inputCntl.InputCntl`
+    * :class:`cape.namelist.Namelist`
+    * :class:`cape.namelist2.Namelist2`
+    * :class:`cape.tex.Tex`
+    * :class:`pyFun.namelist.Namelist`
+    * :class:`pyFun.mapbc.MapBC`
+    * :class:`pyOver.overNamelist.OverNamelist`
 """
 
 # Advanced text processing
@@ -159,8 +168,7 @@ class FileCntl:
     
     # Display method
     def __repr__(self):
-        """
-        Display method for file control class
+        """Display method for file control class
         """
         # Versions:
         #  2014.06.03 @ddalle  : First version
@@ -179,13 +187,12 @@ class FileCntl:
     
     # Read the file.
     def Read(self, fname):
-        """
-        Read text from file
+        """Read text from file
         
         :Call:
             >>> FC.Read(fname)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *fname*: :class:`str`
                 Name of file to read from
@@ -215,7 +222,7 @@ class FileCntl:
             >>> FC.SplitToSections()
             >>> FC.SplitToSections(reg="\$__([\w_]+)", ngr=1)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *reg*: :class:`str`
                 Regular expression for recognizing the start of a new section.
@@ -267,7 +274,7 @@ class FileCntl:
         :Call:
             >>> FC.UpdateLines()
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
         :Effects:
             *FC.lines*: :class:`list`
@@ -300,7 +307,7 @@ class FileCntl:
         :Call:
             >>> FC.UpdateSections()
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
         :Versions:
             * 2014-06-03 ``@ddalle``: First version
@@ -322,7 +329,7 @@ class FileCntl:
         :Call:
             >>> FC.AssertSection(sec)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance, defaults to *FC.fname*
             *sec*: :class:`str`
                 Name of section to check for
@@ -346,7 +353,7 @@ class FileCntl:
             >>> FC._Write()
             >>> FC._Write(fname)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance, defaults to *FC.fname*
             *fname*: :class:`str`
                 Name of file to write to
@@ -372,7 +379,7 @@ class FileCntl:
             >>> FC.Write()
             >>> FC.Write(fname)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance, defaults to *FC.fname*
             *fname*: :class:`str`
                 Name of file to write to
@@ -391,7 +398,7 @@ class FileCntl:
             >>> FC.WriteEx()
             >>> FC.WriteEx(fname)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance, defaults to *FC.fname*
             *fname*: :class:`str`
                 Name of file to write to
@@ -425,7 +432,7 @@ class FileCntl:
             >>> n = FC.ReplaceLineStartsWith(start, lines)
         
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *start*: :class:`str`
                 String to test as literal match for beginning of each line
@@ -503,7 +510,7 @@ class FileCntl:
             >>> n = FC.ReplaceLineInSectionStartsWith(sec, start, line)
             >>> n = FC.ReplaceLineInSectionStartsWith(sec, start, lines)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *sec*: :class:`str`
                 Name of section to search in
@@ -562,7 +569,7 @@ class FileCntl:
         :Call:
             >>> FC.InsertLine(i, line)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *i*: :class:`int`
                 Index to which to insert the line
@@ -584,7 +591,7 @@ class FileCntl:
         :Call:
             >>> FC.AppendLine(line)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *line*: :class:`str`
                 String to add
@@ -604,7 +611,7 @@ class FileCntl:
         :Call:
             >>> FC.PrependLine(line)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *line*: :class:`str`
                 String to add
@@ -626,7 +633,7 @@ class FileCntl:
         :Call:
             >>> FC.InsertLineToSection(sec, i, line)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *sec*: :class:`str`
                 Name of section to update
@@ -680,7 +687,7 @@ class FileCntl:
         :Call:
             >>> FC.PrependLineToSection(sec, line)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *sec*: :class:`str`
                 Name of section to update
@@ -707,6 +714,8 @@ class FileCntl:
             >>> n = FC.DeleteLineStartsWith(start)
             >>> n = FC.DeleteLineStartsWith(start, count)
         :Inputs:
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
+                File control instance
             *start*: :class:`str`
                 Line-starting string to search for
             *count*: :class:`int`
@@ -754,6 +763,8 @@ class FileCntl:
             >>> n = FC.DeleteLineInSectionStartsWith(sec, start)
             >>> n = FC.DeleteLineInSectionStartsWith(sec, start, count)
         :Inputs:
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
+                File control instance
             *sec*: :class:`str`
                 Name of section to search
             *start*: :class:`str`
@@ -808,7 +819,7 @@ class FileCntl:
             >>> FC.ReplaceOrAddLineStartsWith(start, line)
             >>> FC.ReplaceOrAddLineStartsWith(start, line, i)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *start*: :class:`str`
                 String to test as literal match for beginning of each line
@@ -845,7 +856,7 @@ class FileCntl:
             >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, start, line)
             >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, start, line, i)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *sec*: :class:`str`
                 Name of section to search in
@@ -891,7 +902,7 @@ class FileCntl:
             >>> n = FC.ReplaceLineSearch(reg, lines)
         
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *reg*: :class:`str`
                 A regular expression to search for at the beginning of lines
@@ -969,7 +980,7 @@ class FileCntl:
             >>> n = FC.ReplaceLineInSectionSearch(sec, reg, line)
             >>> n = FC.ReplaceLineInSectionSearch(sec, reg, lines)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *sec*: :class:`str`
                 Name of section to search in
@@ -1068,7 +1079,7 @@ class FileCntl:
             >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, reg, line)
             >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, reg, line, i)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *sec*: :class:`str`
                 Name of section to search in
@@ -1108,7 +1119,7 @@ class FileCntl:
             >>> lines = FC.GetLineStartsWith(start)
             >>> lines = FC.GetLineStartsWith(start, n)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *start*: :class:`str`
                 String to test as literal match for beginning of each line
@@ -1148,7 +1159,7 @@ class FileCntl:
             >>> lines = FC.GetLineSearch(reg)
             >>> lines = FC.GetLineSearch(reg, n)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *reg*: :class:`str`
                 Regular expression to match beginning of line
@@ -1188,7 +1199,7 @@ class FileCntl:
             >>> lines = FC.GetLineInSectionStartsWith(sec, start)
             >>> lines = FC.GetLineInSectionStartsWith(sec, start, n)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *sec*: :class:`str`
                 Name of section to search in
@@ -1275,7 +1286,7 @@ class FileCntl:
             >>> i = FC.GetIndexStartsWith(start)
             >>> i = FC.GetIndexStartsWith(start, n)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *start*: :class:`str`
                 String to test as literal match for beginning of each line
@@ -1314,7 +1325,7 @@ class FileCntl:
             >>> i = FC.GetIndexSearch(reg)
             >>> i = FC.GetIndexSearch(reg, n)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *reg*: :class:`str`
                 Regular expression to match beginning of line
@@ -1355,7 +1366,7 @@ class FileCntl:
             >>> i = FC.GetIndexInSectionStartsWith(sec, start)
             >>> i = FC.GetIndexInSectionStartsWith(sec, start, n)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *sec*: :class:`str`
                 Name of section to search in
@@ -1400,7 +1411,7 @@ class FileCntl:
             >>> i = FC.GetIndexInSectionSearch(sec, reg)
             >>> i = FC.GetIndexInSectionSearch(sec, reg, n)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl` or derivative
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
                 File control instance
             *sec*: :class:`str`
                 Name of section to search in
@@ -1434,5 +1445,5 @@ class FileCntl:
                 m += 1
         # Done
         return i
-        
+# class FileCntl    
     

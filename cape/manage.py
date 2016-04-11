@@ -15,8 +15,16 @@ recent *n* files of a certain glob.  For example, if there are solution files
 *PostUpdateFiles* parameter to ``{"flow.??": 2}`` will delete only ``flow.01``
 and ``flow.02``.
 
-:Versions:
-    * 2016-03-01 ``@ddalle``: First version
+The module provides methods to perform deletions, conditional deletions, and
+grouping files into tar or zip archives at multiple stages.  For example,
+:func:`PreDeleteFiles` deletes files after a case has been completed and before
+generating the archive of the case.  On the other hand, :func:`PostDeleteFiles`
+deletes files after creating the archive; the difference is whether or not the
+file in question is included in the archive before it is deleted.
+
+Functions such as :func:`ProgressDeleteFiles` deletes files between phases, and
+as such it is much more dangerous.  Other methods will only delete or archive
+once the case has been marked as PASS by the user.
 """
 
 # File management modules
@@ -403,7 +411,7 @@ def GetLinkMatches(fname, fsub=None, n=0):
     return fglob
                 
 # Get folder matches
-def GetDirMatches(fname, fsub=None, fkeep=None):
+def GetDirMatches(fname, fsub=None, n=0):
     """Get list of all folders matching a list of patterns
     
     :Call:
@@ -919,7 +927,7 @@ def PreTarDirs(opts, fsub=None, aa=None):
     # Get options
     fopt = opts.get_ArchivePreTarDirs()
     # Exit if necessary
-    if fgrps is None: return
+    if fopt is None: return
     # Get format, command, and extension
     cmdu = opts.get_ArchiveCmd()
     ext  = opts.get_ArchiveExtension()
@@ -1089,7 +1097,7 @@ def PostTarDirs(opts, fsub=None, aa=None, frun=None):
     # Get options
     fopt = opts.get_ArchivePostTarDirs()
     # Exit if necessary
-    if fgrps is None: return
+    if fopt is None: return
     # Get format, command, and extension
     cmdu = opts.get_ArchiveCmd()
     ext  = opts.get_ArchiveExtension()
@@ -1282,7 +1290,7 @@ def ProgressTarDirs(opts, fsub=None, aa=None):
     # Get options
     fopt = opts.get_ArchiveProgressTarDirs()
     # Exit if necessary
-    if fgrps is None: return
+    if fopt is None: return
     # Get format, command, and extension
     cmdu = opts.get_ArchiveCmd()
     ext  = opts.get_ArchiveExtension()

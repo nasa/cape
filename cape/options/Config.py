@@ -1,6 +1,6 @@
 """
-Template Module for Geometry Configuration Options 
-==================================================
+Geometry configuration options 
+==============================
 
 This module interfaces options for geometric configurations.  It defines
 quantities such as reference area, moment reference points, and other points to
@@ -13,7 +13,23 @@ from util import rc0, odict
 
 # Class for PBS settings
 class Config(odict):
-    """Dictionary-based interfaced for options specific to ``flowCart``"""
+    """Dictionary-based interfaced for surface configuration
+    
+    It is primarily used for naming surface components, grouping them, defining
+    moment reference points, defining other points, and requesting components of
+    interest.
+    
+    :Call:
+        >>> opts = Config(**kw)
+    :Inputs:
+        *kw*: :class:`dict`
+            Dictionary of configuration
+    :Outputs:
+        *opts*: :class:`cape.options.Config.Config`
+            Surface configuration options interface
+    :Versions:
+        * 2014-09-29 ``@ddalle``: First version
+    """
     
     # Get configuration file name
     def get_ConfigFile(self):
@@ -56,7 +72,7 @@ class Config(odict):
             >>> comps = opts.get_ConfigComponents()
             >>> comp = opts.get_ConfigComponents(i)
         :Inputs:
-            *opts*: :class:`cape.options.Options
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int`
                 List index
@@ -78,7 +94,7 @@ class Config(odict):
             >>> opts.set_ConfigComponents(comps)
             >>> opts.set_ConfigComponents(comp, i)
         :Inputs:
-            *opts*: :class:`cape.options.Options
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *i*: :class:`int`
                 List index

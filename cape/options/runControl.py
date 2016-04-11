@@ -1,9 +1,15 @@
 """
-Interface to FUN3D run control options
+Interface to basic run control options
 ======================================
 
-This module provides a class to mirror the Fortran namelist capability.  For
-now, nonunique section names are not allowed.
+This module provides a class to access (or set) options pertaining to the basic
+execution of the code.  For example, it specifies how many iterations to run,
+whether or not to use an MPI version of a solver, and whether or not to submit
+the job to a PBS queue.
+
+It also contains command-line options that are given to each binary that is
+utilized for a a solver, and it also contains archiving options.  This entire
+section is written to the file ``case.json`` within each run folder.
 """
 
 # Ipmort options-specific utilities
@@ -11,10 +17,24 @@ from util import rc0, odict, getel
 # Required submodules
 import Archive
 import ulimit
+import aflr3
+import intersect
 
 # Environment class
 class Environ(odict):
-    """Class for environment variables"""
+    """Class for environment variables
+    
+    :Call:
+        >>> opts = Environ(**kw)
+    :Inputs:
+        *kw*: :class:`dict`
+            Dictionary of environment variables
+    :Outputs:
+        *opts*: :class:`cape.options.runControl.Environ`
+            System environment variable options interface
+    :Versions:
+        * 2015-11-10 ``@ddalle``: First version
+    """
     
     # Get an environment variable by name
     def get_Environ(self, key, i=0):
@@ -71,7 +91,19 @@ class Environ(odict):
 
 # Class for iteration & mode control settings and command-line inputs
 class RunControl(odict):
-    """Dictionary-based interface for generic code run control"""
+    """Dictionary-based interface for generic code run control
+    
+    :Call:
+        >>> opts = RunControl(**kw)
+    :Inputs:
+        *kw*: :class:`dict`
+            Dictionary of run control options
+    :Outputs:
+        *opts*: :class:`cape.options.runControl.RunControl`
+            Basic control options interface
+    :Versions:
+        * 2014-12-01 ``@ddalle``: First version
+    """
     
     # Initialization method
     def __init__(self, fname=None, **kw):
@@ -82,6 +114,9 @@ class RunControl(odict):
         self._Environ()
         self._ulimit()
         self._Archive()
+        self._aflr3()
+        self._intersect()
+        self._verify()
     
     # ===========
     # Environment
@@ -350,6 +385,305 @@ class RunControl(odict):
     set_max_processes        = set_ulimit_u
     set_virtual_memory_limit = set_ulimit_v
     set_file_locks_limit     = set_ulimit_x
+   # >
+   
+    # =====
+    # AFLR3
+    # =====
+   # <
+   
+    # AFLR3 variable interface
+    def _aflr3(self):
+        """Initialize AFLR3 settings if necessary"""
+        # Get the value and type
+        v = self.get('aflr3')
+        t = type(v).__name__
+        # Check inputs
+        if t == 'aflr3':
+            # Already initialized
+            return
+        elif v is None:
+            # Empty/default
+            self['aflr3'] = aflr3.aflr3()
+        elif t == 'dict':
+            # Convert to special class
+            self['aflr3'] = aflr3.aflr3(**v)
+        else:
+            # Initialize
+            self['aflr3'] = aflr3.aflr3()
+            # Set a flag
+            if v:
+                self['aflr3']['run'] = True
+            else:
+                self['aflr3']['run'] = False
+            
+    # Whether or not to use AFLR3
+    def get_aflr3(self):
+        """Return whether or not to run AFLR3 to create mesh
+        
+        :Call:
+            >>> q = opts.get_aflr3()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *q*: ``True`` | {``False``}
+                Whether or not there are nontrivial AFLR3 settings
+        :Versions:
+            * 2016-04-05 ``@ddalle``: First version
+        """
+        # Initialize if necessary
+        self._aflr3()
+        # Get the value and type
+        v = self.get('aflr3')
+        # Get the flag
+        q = v.get('run')
+        # Check.
+        if q is None:
+            # Check for nontrivial entries
+            return len(v.keys()) > 0
+        else:
+            # Return the 'run' flag
+            return q == True
+    
+    # Get AFLR3 input file
+    def get_aflr3_i(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_aflr3_i(j)
+        
+    # Set AFLR3 input file
+    def set_aflr3_i(self, fname, j=0):
+        self._aflr3()
+        self['aflr3'].set_aflr3_i(fname, j)
+    
+    # Get AFLR3 output file
+    def get_aflr3_o(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_aflr3_o(j)
+        
+    # Set AFLR3 output file
+    def set_aflr3_o(self, fname, j=0):
+        self._aflr3()
+        self['aflr3'].set_aflr3_o(fname, j)
+    
+    # Get AFLR3 boundary condition file
+    def get_aflr3_BCFile(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_aflr3_BCFile(j)
+        
+    # Set AFLR3 boundary condition file
+    def set_aflr3_BCFile(self, fname, j=0):
+        self._aflr3()
+        self['aflr3'].set_aflr3_BCFile(fname, j)
+    
+    # Get stretching ratio
+    def get_blr(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_blr(j)
+        
+    # Set stretching ratio
+    def set_blr(self, blr, j=0):
+        self._aflr3()
+        self['aflr3'].set_blr(blr, j)
+    
+    # Get BL prism layer option
+    def get_blc(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_blc(j)
+        
+    # Set BL prism layer option
+    def set_blc(self, blr, j=0):
+        self._aflr3()
+        self['aflr3'].set_blr(blc, j)
+    
+    # Get wall spacing
+    def get_blds(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_blds(j)
+        
+    # Set wall spacing
+    def set_blds(self, blds, j=0):
+        self._aflr3()
+        self['aflr3'].set_blds(blds, j)
+    
+    # Get max wall angle setting
+    def get_angblisimx(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_angblisimx(j)
+        
+    # Set max wall angle setting
+    def set_angblisimx(self, angbli, j=0):
+        self._aflr3()
+        self['aflr3'].set_angblisimx(angbli, j)
+        
+    # Copy documentation
+    for k in ['aflr3_i', 'aflr3_o', 'aflr3_BCFile',
+        'blc', 'blr', 'blds', 'angblisimx']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(aflr3.aflr3,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(aflr3.aflr3,'set_'+k).__doc__
+   # >
+    
+    # =========
+    # intersect
+    # =========
+   # <
+   
+    # ``itnersect`` variable interface
+    def _intersect(self):
+        """Initialize ``intersect`` settings if necessary"""
+        # Get the value and type
+        v = self.get('intersect')
+        t = type(v).__name__
+        # Check inputs
+        if t == 'intersect':
+            # Already initialized
+            return
+        elif v is None:
+            # Empty/default
+            self['intersect'] = intersect.intersect()
+        elif t == 'dict':
+            # Convert to special class
+            self['intersect'] = intersect.intersect(**v)
+        else:
+            # Initialize
+            self['intersect'] = intersect.intersect()
+            # Set a flag
+            if v:
+                self['intersect']['run'] = True
+            else:
+                self['intersect']['run'] = False
+            
+    # Whether or not to use intersect
+    def get_intersect(self):
+        """Return whether or not to run ``intersect`` on triangulations
+        
+        :Call:
+            >>> q = opts.get_intersect()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *q*: ``True`` | {``False``}
+                Whether or not there are nontrivial ``intersect`` settings
+        :Versions:
+            * 2016-04-05 ``@ddalle``: First version
+        """
+        # Initialize if necessary
+        self._intersect()
+        # Get the value and type
+        v = self.get('intersect')
+        # Get the flag
+        q = v.get('run')
+        # Check.
+        if q is None:
+            # Check for nontrivial entries
+            return len(v.keys()) > 0
+        else:
+            # Return the 'run' flag
+            return q == True
+    
+    # Get intersect input file
+    def get_intersect_i(self, j=0):
+        self._intersect()
+        return self['intersect'].get_intersect_i(j)
+        
+    # Set intersect input file
+    def set_intersect_i(self, fname, j=0):
+        self._intersect()
+        self['intersect'].set_intersect_i(fname, j)
+    
+    # Get intersect output file
+    def get_intersect_o(self, j=0):
+        self._intersect()
+        return self['intersect'].get_intersect_o(j)
+        
+    # Set intersect output file
+    def set_intersect_o(self, fname, j=0):
+        self._intersect()
+        self['intersect'].set_intersect_o(fname, j)
+        
+    # Copy documentation
+    for k in ['intersect_i', 'intersect_o']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(intersect.intersect,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(intersect.intersect,'set_'+k).__doc__
+   # >
+   
+    # ======
+    # verify
+    # ======
+   # <
+   
+    # ``verify`` interface
+    def _verify(self):
+        """Initialize ``verify`` settings if necessary"""
+        # Get the value and type
+        v = self.get('verify')
+        t = type(v).__name__
+        # Check inputs
+        if t == 'verify':
+            # Already initialized
+            return
+        elif v is None:
+            # Empty/default
+            self['verify'] = intersect.verify()
+        elif t == 'dict':
+            # Convert to special class
+            self['verify'] = intersect.verify(**v)
+        else:
+            # Initialize
+            self['verify'] = intersect.verify()
+            # Set a flag
+            if v:
+                self['verify']['run'] = True
+            else:
+                self['verify']['run'] = False
+            
+    # Whether or not to use verify
+    def get_verify(self):
+        """Return whether or not to run ``verify`` on triangulations
+        
+        :Call:
+            >>> q = opts.get_verify()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *q*: ``True`` | {``False``}
+                Whether or not there are nontrivial ``intersect`` settings
+        :Versions:
+            * 2016-04-05 ``@ddalle``: First version
+        """
+        # Initialize if necessary
+        self._verify()
+        # Get the value and type
+        v = self.get('verify')
+        # Get the flag
+        q = v.get('run')
+        # Check.
+        if q is None:
+            # Check for nontrivial entries
+            return len(v.keys()) > 0
+        else:
+            # Return the 'run' flag
+            return q == True
+    
+    # Get intersect input file
+    def get_verify_i(self, j=0):
+        self._verify()
+        return self['verify'].get_verify_i(j)
+        
+    # Set intersect input file
+    def set_verify_i(self, fname, j=0):
+        self._verify()
+        self['verify'].set_verify_i(fname, j)
+        
+    # Copy documentation
+    for k in ['verify_i']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(intersect.verify,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(intersect.verify,'set_'+k).__doc__
    # >
    
     # =================
@@ -1032,6 +1366,43 @@ class RunControl(odict):
             * 2015-11-08 ``@ddalle``: First version
         """
         self.set_key('Continue', cont, i)
+        
+    # Whether or not to generate mesh before submitting
+    def get_PreMesh(self, i=0):
+        """Determine whether or not to generate volume mesh before submitting
+        
+        :Call:
+            >>> preMesh = opts.get_PreMesh(i=0)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *i*: {``0``} | :class:`int`
+                Phase number
+        :Outputs:
+            *preMesh*: :class:`bool`
+                Whether or not to create mesh before submitting PBS job
+        :Versions:
+            * 2016-04-06 ``@ddalle``: First version
+        """
+        return self.get_key('PreMesh', i)
+    
+    # Set the pre-submit mesh generation option
+    def set_PreMesh(self, preMesh=rc0('PreMesh'), i=None):
+        """Set the setting regarding pre-submit mesh generation
+        
+        :Call:
+            >>> opts.set_PreMesh(preMesh=False, i=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *preMesh*: :class:`bool`
+                Whether or not to create mesh before submitting PBS job
+            *i*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            * 2016-04-06 ``@ddalle``: First version
+        """
+        self.set_key('PreMesh', preMesh, i)
    # >
    
 # class RunControl

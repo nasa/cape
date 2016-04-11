@@ -1,10 +1,13 @@
 """
-Template Module for Automated Report Options 
-============================================
+Automated report options 
+========================
 
 This module interfaces options for generating reports.  Since many of the report
 options are common to different solvers, much of the report generation content
 is controlled here.
+
+Please see :ref:`the page on report JSON settings <cape-json-Report>` for more
+information.
 """
 
 # Import options-specific utilities
@@ -12,7 +15,19 @@ from .util import rc0, odict, getel, isArray
 
 # Class for flowCart settings
 class Report(odict):
-    """Dictionary-based interface for options specific to plotting"""
+    """Dictionary-based interface for options specific to plotting and reports
+    
+    :Call:
+        >>> opts = cape.options.Report.Report(**kw)
+    :Inputs:
+        *kw*: :class:`dict`
+            Dictionary of archive options
+    :Outputs:
+        *opts*: :class:`cape.options.Report.Report`
+            Automated report options interface
+    :Versions:
+        * 2016-30-02 ``@ddalle``: First version
+    """
     
     # Initialization method
     def __init__(self, **kw):

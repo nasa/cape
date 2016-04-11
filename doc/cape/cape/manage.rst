@@ -1,0 +1,3 @@
+
+.. automodule:: cape.manage
+    :members:

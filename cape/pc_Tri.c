@@ -393,7 +393,7 @@ pc_WriteTriQ(PyObject *self, PyObject *args)
 
 // Function to write Components.pyCart.stl file
 PyObject *
-pc_WriteSTL(PyObject *self, PyObject *args)
+pc_WriteTriSTL(PyObject *self, PyObject *args)
 {
     int i, ierr;
     int i0, i1, i2;
@@ -405,7 +405,7 @@ pc_WriteSTL(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "OOO", &P, &T, &N)) {
         // Check for failure.
         PyErr_SetString(PyExc_RuntimeError, \
-            "Could not process inputs to :func:`pc.WriteSTL`");
+            "Could not process inputs to :func:`pc.WriteTriSTL`");
         return NULL;
     }
     
@@ -467,7 +467,7 @@ pc_WriteSTL(PyObject *self, PyObject *args)
     if (ierr) {
         // Failure on close?
         PyErr_SetString(PyExc_IOError, \
-            "Failure on closing file 'Components.pyCart.tri'");
+            "Failure on closing file 'Components.pyCart.stl'");
         return NULL;
     }
     

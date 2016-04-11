@@ -387,28 +387,46 @@ class Fun3d(Cntl):
         :Versions:
             * 2015-10-19 ``@ddalle``: First version
         """
-        # Get the input file names.
-        fin = self.GetInputMeshFileNames()
         # Initialize output
         fname = []
+        # Loop through input files.
+        for f in self.GetInputMeshFileNames():
+            # Get processed name
+            fname.append(self.ProcesseshFileName(f))
+        # Output
+        return fname
+        
+    # Process a mesh file name to use the project root name
+    def ProcessMeshFileName(self, fname):
+        """Return a mesh file name using the project root name
+        
+        :Call:
+            >>> fout = fun3d.ProcessMeshFileName(fname)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+            *fname*: :class:`str`
+                Raw file name to be converted to case-folder file name
+        :Outputs:
+            *fout*: :class:`str`
+                Name of file name using project name as prefix
+        :Versions:
+            * 2016-04-05 ``@ddalle``: First version
+        """
         # Get project name
         fproj = self.GetProjectRootName()
         # Special name extensions
         ffmt = ["b8", "lb8", "b4", "lb4", "r8", "lr8", "r4", "lr4"]
-        # Loop through input files.
-        for f in fin:
-            # Get extension
-            fsplt = f.split('.')
-            fext = fsplt[-1]
-            # Use project name plus the same extension.
-            if len(f) > 1 and fsplt[-2] in ffmt:
-                # Copy second-to-last extension
-                fname.append('%s.%s.%s' % (fproj, fsplt[-2], fext))
-            else:
-                # Just the extension
-                fname.append("%s.%s" % (fproj, fext))
-        # Output
-        return fname
+        # Get extension
+        fsplt = fname.split('.')
+        fext = fsplt[-1]
+        # Use project name plus the same extension.
+        if len(fsplt) > 1 and fsplt[-2] in ffmt:
+            # Copy second-to-last extension
+            return "%s.%s.%s" % (fproj, fsplt[-2], fext)
+        else:
+            # Just the extension
+            return "%s.%s" % (fproj, fext)
         
     # Function to check if the mesh for case *i* is prepared
     def CheckMesh(self, i):
@@ -483,13 +501,13 @@ class Fun3d(Cntl):
         # ---------
         # Case info
         # ---------
+        # Check the mesh.
+        if self.CheckMesh(i):
+            return None
         # Get the case name.
         frun = self.x.GetFullFolderNames(i)
         # Get the name of the group.
         fgrp = self.x.GetGroupFolderNames(i)
-        # Check the mesh.
-        if self.CheckMesh(i):
-            return None
         # ------------------
         # Folder preparation
         # ------------------
@@ -522,6 +540,8 @@ class Fun3d(Cntl):
         # Get the names of the raw input files and target files
         finp = self.GetInputMeshFileNames()
         fmsh = self.GetProcessedMeshFileNames()
+        # Project name
+        fproj = self.GetProjectRootName(0)
         # Loop through those files
         for j in range(len(finp)):
             # Original and final file names
@@ -530,6 +550,41 @@ class Fun3d(Cntl):
             # Copy fhe file.
             if os.path.isfile(f0):
                 shutil.copyfile(f0, f1)
+        # ------------------
+        # Triangulation prep
+        # ------------------
+        # Check for triangulation
+        if self.opts.get_aflr3():
+            # Status update
+            print("  Preparing surface triangulation...")
+            # Read the mesh.
+            self.ReadTri()
+            # Revert to initial surface.
+            self.tri = self.tri0.Copy()
+            # Apply rotations, translations, etc.
+            self.PrepareTri(i)
+            # AFLR3 boundary conditions file
+            fbc = self.opts.get_aflr3_BCFile()
+            # Check for those AFLR3 boundary conditions
+            if fbc:
+                # Absolute file name
+                fbc = os.path.join(self.RootDir, fbc)
+                # Copy the file
+                shutil.copyfile(fbc, '%s.aflr3bc' % fproj)
+            # Check intersection status.
+            if self.opts.get_intersect():
+                # Write tri file as non-intersected; each volume is one CompID
+                self.tri.WriteVolTri('%s.tri' % fproj)
+                # Write the existing triangulation with existing CompIDs.
+                self.tri.Write('%s.c.tri' % fproj)
+            elif self.opts.get_verify():
+                # Write the tri file
+                self.tri.Write('%s.i.tri' % fproj)
+                # Write the AFLR3 surface file
+                self.tri.WriteSurf('%s.surf' % fproj)
+            else:
+                # Write the AFLR3 surface file only
+                self.tri.WriteSurf('%s.surf' % fproj)
         # -------
         # Cleanup
         # -------
@@ -1104,7 +1159,6 @@ class Fun3d(Cntl):
             * 2015-10-14 ``@ddalle``: First version
         """
         return case.StartCase()
-        
         
         
 # class Fun3d

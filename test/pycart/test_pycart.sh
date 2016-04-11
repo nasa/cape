@@ -24,4 +24,6 @@ module load cart3d
 
 # Run the test
 test bullet
+test uh3d
+test fins
 

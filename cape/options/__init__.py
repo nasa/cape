@@ -1,24 +1,47 @@
 """
-CAPE generic settings module: :mod:`cape.options`
-=================================================
+Cape options module
+===================
 
 This module provides tools to read, access, modify, and write settings for
 :mod:`cape`.  The class is based off of the built-int :class:`dict` class, so
-its default behavior, such as ``opts['InputCntl']`` or 
-``opts.get('InputCntl')`` are also present.  In addition, many convenience
-methods, such as ``opts.set_it_fc(n)``, which sets the number of
-:file:`flowCart` iterations,  are provided.
+its default behavior, such as ``opts['RunControl']`` or 
+``opts.get('RunControl')`` are also present.  In addition, many convenience
+methods, such as ``opts.set_PhaseIters(n)``, which sets the number of
+iterations to run, are provided.
 
 In addition, this module controls default values of each pyCart
 parameter in a two-step process.  The precedence used to determine what the
 value of a given parameter should be is below.
 
-    *. Values directly specified in the input file, :file:`cape.json`
+    * Values directly specified in the input file, :file:`cape.json`
     
-    *. Values specified in the default control file,
+    * Values specified in the default control file,
        :file:`$CAPE/settings/cape.default.json`
     
-    *. Hard-coded defaults from this module
+    * Hard-coded defaults from this module
+
+The strategy for the :class:`cape.options.Options` class, or the derived
+:class:`pyCart.options.Options`, :class:`pyFun.options.Options`, or
+:class:`pyOver.options.Options` classes, is that the user may get the options
+either from the parent options class or the subclass.  For example, both of the
+following commands get the option of whether or not to submit PBS jobs.
+
+    .. code-block:: python
+    
+        opts.get_qsub()
+        opts['RunControl'].get_qsub()
+
+Furthermore, there is a control to get options specifically for phase *j*.  Each
+option can be called either with or without the phase number, for instance
+``opts.get_qsub()`` or ``opts.get_qsub(j)``.  If the option has different
+settings for each phase, this will return entry number *j* (0-based indexing) of
+the option (if *j* is greater than the length of the list, the last entry in the
+list is returned); but if the entry is a scalar, that scalar is returned
+regardless of the value of *j*.
+
+Finally, this module is very closely tied with 
+:ref:`the JSON section <cape-json>`, which often contains more useful
+descriptions.
 """
 
 # Import options-specific utilities (loads :mod:`os`, too)
@@ -512,14 +535,191 @@ class Options(odict):
         self._RunControl()
         self['RunControl'].set_Continue(cont, i)
         
+    # Get the pre-submit mesh generation setting
+    def get_PreMesh(self, i=0):
+        self._RunControl()
+        return self['RunControl'].get_PreMesh(i)
+        
+    # Set the pre-submit mesh generation setting
+    def set_PreMesh(self, preMesh=rc0('PreMesh'), i=0):
+        self._RunControl()
+        self['RunControl'].set_PreMesh(preMesh, i)
+        
     # Copy over the documentation.
     for k in ['nIter', 'PhaseSequence', 'PhaseIters', 'Environ', 'ulimit',
-            'MPI', 'nProc', 'mpicmd', 'qsub', 'Resubmit', 'Continue']:
+            'MPI', 'nProc', 'mpicmd', 'qsub',
+            'Resubmit', 'Continue', 'PreMesh']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
    # >
+    
+    # =====
+    # AFLR3
+    # =====
+   # <
    
+    # Get AFLR3 flag
+    def get_aflr3(self):
+        self._RunControl()
+        return self['RunControl'].get_aflr3()
+    
+    # Copy documentation
+    for k in ['aflr3']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__
+    
+    # Get AFLR3 input file
+    def get_aflr3_i(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_aflr3_i(j)
+        
+    # Set AFLR3 input file
+    def set_aflr3_i(self, fname, j=0):
+        self._RunControl()
+        self['RunControl'].set_aflr3_i(fname, j)
+    
+    # Get AFLR3 output file
+    def get_aflr3_o(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_aflr3_o(j)
+        
+    # Set AFLR3 output file
+    def set_aflr3_o(self, fname, j=0):
+        self._RunControl()
+        self['RunControl'].set_aflr3_o(fname, j)
+    
+    # Get AFLR3 boundary condition file
+    def get_aflr3_BCFile(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_aflr3_BCFile(j)
+        
+    # Set AFLR3 boundary condition file
+    def set_aflr3_BCFile(self, fname, j=0):
+        self._RunControl()
+        self['RunControl'].set_aflr3_BCFile(fname, j)
+    
+    # Get stretching ratio
+    def get_blr(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_blr(j)
+        
+    # Set stretching ratio
+    def set_blr(self, blr, j=0):
+        self._RunControl()
+        self['RunControl'].set_blr(blr, j)
+    
+    # Get BL prism layer option
+    def get_blc(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_blc(j)
+        
+    # Set BL prism layer option
+    def set_blc(self, blr, j=0):
+        self._RunControl()
+        self['RunControl'].set_blr(blc, j)
+    
+    # Get wall spacing
+    def get_blds(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_blds(j)
+        
+    # Set wall spacing
+    def set_blds(self, blds, j=0):
+        self._RunControl()
+        self['RunControl'].set_blds(blds, j)
+    
+    # Get max wall angle setting
+    def get_angblisimx(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_angblisimx(j)
+        
+    # Set max wall angle setting
+    def set_angblisimx(self, angbli, j=0):
+        self._RunControl()
+        self['RunControl'].set_angblisimx(angbli, j)
+        
+    # Copy documentation
+    for k in ['aflr3_i', 'aflr3_o', 'aflr3_BCFile',
+        'blc', 'blr', 'blds', 'angblisimx']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(runControl.RunControl,'set_'+k).__doc__
+   # >
+    
+    # =========
+    # intersect
+    # =========
+   # <
+   
+    # Get intersect flag
+    def get_intersect(self):
+        self._RunControl()
+        return self['RunControl'].get_intersect()
+    
+    # Copy documentation
+    for k in ['intersect']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__
+    
+    # Get intersect input file
+    def get_intersect_i(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_intersect_i(j)
+        
+    # Set intersect input file
+    def set_intersect_i(self, fname, j=0):
+        self._RunControl()
+        self['RunControl'].set_intersect_i(fname, j)
+    
+    # Get intersect output file
+    def get_intersect_o(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_intersect_o(j)
+        
+    # Set intersect output file
+    def set_intersect_o(self, fname, j=0):
+        self._RunControl()
+        self['RunControl'].set_intersect_o(fname, j)
+        
+    # Copy documentation
+    for k in ['intersect_i', 'intersect_o']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(runControl.RunControl,'set_'+k).__doc__
+   # >
+   
+    # ======
+    # verify
+    # ======
+   # <
+   
+    # Get verify flag
+    def get_verify(self):
+        self._RunControl()
+        return self['RunControl'].get_verify()
+    
+    # Copy documentation
+    for k in ['verify']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__
+    
+    # Get intersect input file
+    def get_verify_i(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_verify_i(j)
+        
+    # Set intersect input file
+    def set_verify_i(self, fname, j=0):
+        self._RunControl()
+        self['RunControl'].set_verify_i(fname, j)
+        
+    # Copy documentation
+    for k in ['verify_i']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__
+        eval('set_'+k).__doc__ = getattr(runControl.RunControl,'set_'+k).__doc__
+   # >
         
     # ============
     # PBS settings
@@ -644,7 +844,7 @@ class Options(odict):
     # =============
     # Configuration
     # =============
-   #<
+   # <
     
     # Get components
     def get_ConfigComponents(self, i=None):
@@ -718,6 +918,28 @@ class Options(odict):
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Config,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Config,'set_'+k).__doc__
+   # >
+    
+    
+    # ========================
+    # mesh creation parameters
+    # ========================
+   # <
+        
+    # Get triangulation file(s)
+    def get_TriFile(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_TriFile(i)
+        
+    # Get mesh file(s)
+    def get_MeshFile(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_MeshFile(i)
+        
+    # Copy over the documentation.
+    for k in ['TriFile', 'MeshFile']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
    # >
    
     

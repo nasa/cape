@@ -241,6 +241,47 @@ class Namelist(cape.namelist.Namelist):
             * 2015-12-31 ``@ddalle``: First version
         """
         self.SetVar('project', 'project_rootname', name)
+        
+    # Get the grid format
+    def GetGridFormat(self):
+        """Get the mesh file extention
+        
+        :Call:
+            >>> fext = nml.GetGridFormat()
+        :Inputs:
+            *nml*: :class:`pyFun.namelist.Namelist`
+                File control instance for :file:`fun3d.nml`
+        :Outputs:
+            *fext*: {``"b8.ugrid"``} | :class:`str`
+                Mesh file extension
+        :Versions:
+            * 2016-04-05 ``@ddalle``: First version
+        """
+        # Format
+        fmt = self.GetVar('raw_grid', 'grid_format')
+        typ = self.GetVar('raw_grid', 'data_format')
+        # Defaults
+        if fmt is None: fmt = 'aflr3'
+        if typ is None: typ = 'stream'
+        # Create the extension
+        if fmt == 'aflr3':
+            # Check the type
+            if typ == 'ascii':
+                # ASCII AFLR3 mesh
+                return 'ugrid'
+            elif typ == 'unformatted':
+                # Unformatted Fortran file
+                return 'r8.ugrid'
+            else:
+                # C-type AFLR3 mesh
+                return 'b8.ugrid' 
+        elif fmt == 'fast':
+            # FAST
+            return 'fgrid'
+        else:
+            # Use the raw format
+            return fmt
+        
     
     # Get the adapt project root name
     def GetAdaptRootname(self):

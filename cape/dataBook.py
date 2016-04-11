@@ -1,13 +1,40 @@
 """
-Data Book Module: :mod:`pyCart.dataBook`
-========================================
+Data book Module: :mod:`cape.dataBook`
+======================================
 
 This module contains functions for reading and processing forces, moments, and
 other statistics from cases in a trajectory.
 
-:Versions:
-    * 2014-12-20 ``@ddalle``: Started
-    * 2015-01-01 ``@ddalle``: First version
+It contains a parent class :class:`cape.dataBook.DataBook` that provides a
+common interface to all of the requested force, moment, point sensor, etc.
+quantities that have been saved in the data book. Informing :mod:`cape` which
+quantities to track, and how to statistically process them, is done using the
+``"DataBook"`` section of the JSON file, and the various data book options are
+handled within the API using the :mod:`cape.options.dataBook` module.
+
+The master data book class :class:`cape.dataBook.DataBook` is based on the
+built-in :class:`dict` class with keys pointing to force and moment data books
+for individual components.  For example, if the JSON file tells Cape to track
+the forces and/or moments on a component called ``"body"``, and the data book is
+the variable *DB*, then the forces and moment data book is ``DB["body"]``.  This
+force and moment data book contains statistically averaged forces and moments
+and other statistical quantities for every case in the run matrix.  The class of
+the force and moment data book is :class:`cape.dataBook.DBComp`.
+
+The data book also has the capability to store "target" data books so that the
+user can compare results of the current CFD solutions to previous results or
+experimental data. These are stored in ``DB["Targets"]`` and use the
+:class:`cape.dataBook.DBTarget` class. Other types of data books can also be
+created, such as the :class:`cape.pointSensor.DBPointSensor` class for tracking
+statistical properties at individual points in the solution field. Data books
+for tracking results of groups of cases are built off of the
+:class:`cape.dataBook.DBBase` class, which contains many common tools such as
+plotting.
+
+The :mod:`cape.dataBook` module also contains modules for processing results
+within individual case folders.  This includes the :class:`cape.dataBook.CaseFM`
+module for reading iterative force/moment histories and the
+:class:`cape.dataBook.CaseResid` for iterative histories of residuals.
 """
 
 # File interface
@@ -24,19 +51,6 @@ from .options import odict
 # Utilities or advanced statistics
 from . import util
 
-#<!--
-# ---------------------------------
-# I consider this portion temporary
-
-# Get the umask value.
-umask = 0027
-# Get the folder permissions.
-fmask = 0777 - umask
-dmask = 0777 - umask
-
-# ---------------------------------
-#-->
-
 # Placeholder variables for plotting functions.
 plt = 0
 
@@ -45,7 +59,7 @@ deg = np.pi / 180.0
 
 # Dedicated function to load Matplotlib only when needed.
 def ImportPyPlot():
-    """Import :mod:`matplotlib.pyplot` if not loaded
+    """Import :mod:`matplotlib.pyplot` if not already loaded
     
     :Call:
         >>> pyCart.dataBook.ImportPyPlot()
@@ -72,19 +86,28 @@ class DataBook(dict):
     matrix.
     
     :Call:
-        >>> DB = pyCart.dataBook.DataBook(x, opts, RootDir=None)
+        >>> DB = cape.dataBook.DataBook(x, opts, RootDir=None)
     :Inputs:
-        *x*: :class:`pyCart.trajectory.Trajectory`
-            The current pyCart trajectory (i.e. run matrix)
-        *opts*: :class:`pyCart.options.Options`
-            Global pyCart options instance
+        *x*: :class:`cape.trajectory.Trajectory`
+            The current Cape trajectory (i.e. run matrix)
+        *opts*: :class:`cape.options.Options`
+            Global Cape options instance
         *RootDir*: :class:`str`
             Root directory, defaults to ``os.getcwd()``
     :Outputs:
-        *DB*: :class:`pyCart.dataBook.DataBook`
-            Instance of the pyCart data book class
+        *DB*: :class:`cape.dataBook.DataBook`
+            Instance of the Cape data book class
+        *DB.x*: :class:`cape.trajectory.Trajectory`
+            Run matrix of rows saved in the data book (differs from input *x*)
+        *DB[comp]*: :class:`cape.dataBook.DBComp`
+            Component data book for component *comp*
+        *DB.Components*: :class:`list` (:class:`str`)
+            List of force/moment components
+        *DB.Targets*: :class:`dict`
+            Dictionary of :class:`cape.dataBook.DBTarget` target data books
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
+        * 2015-01-10 ``@ddalle``: First version
     """
     # Initialization method
     def __init__(self, x, opts, RootDir=None):
@@ -176,7 +199,7 @@ class DataBook(dict):
             >>> DB.ReadTarget(targ)
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
-                Instance of the CAPE data book class
+                Instance of the Cape data book class
             *targ*: :class:`str`
                 Target name
         :Versions:
@@ -203,7 +226,7 @@ class DataBook(dict):
             >>> DB.UpdateTrajectory()
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
-                Instance of the CAPE data book class
+                Instance of the Cape data book class
         :Versions:
             * 2015-05-22 ``@ddalle``: First version
         """
@@ -257,7 +280,7 @@ class DataBook(dict):
             >>> DB.MatchTrajectory()
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
-                Instance of the CAPE data book class
+                Instance of the Cape data book class
         :Versions:
             * 2015-05-28 ``@ddalle``: First version
         """
@@ -294,7 +317,7 @@ class DataBook(dict):
             >>> DB.Write()
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
-                Instance of the CAPE data book class
+                Instance of the Cape data book class
         :Versions:
             * 2014-12-22 ``@ddalle``: First version
             * 2015-06-19 ``@ddalle``: New multi-key sort
@@ -325,8 +348,8 @@ class DataBook(dict):
             >>> DB.Sort(I=None)
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
-                Instance of the CAPE data book class
-            *key*: :class:`str` or :class:`list` (:class:`str`)
+                Instance of the Cape data book class
+            *key*: :class:`str` | :class:`list` (:class:`str`)
                 Name of trajectory key or list of keys on which to sort
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of indices; must have same size as data book
@@ -350,46 +373,6 @@ class DataBook(dict):
             
     
     
-    # Get index of target to use based on coefficient name
-    def GetTargetIndex(self, ftarg):
-        """Get the index of the target to use based on a name
-        
-        For example, if "UPWT/CAFC" will use the target "UPWT" and the column
-        named "CAFC".  If there is no "/" character in the name, the first
-        available target is used.
-        
-        :Call:
-            >>> i, c = self.GetTargetIndex(ftarg)
-        :Inputs:
-            *DB*: :class:`pyCart.dataBook.DataBook`
-                Instance of the pyCart data book class
-            *ftarg*: :class:`str`
-                Name of the target and column
-        :Outputs:
-            *i*: :class:`int`
-                Index of the target to use
-            *c*: :class:`str`
-                Name of the column to use from that target
-        :Versions:
-            * 2014-12-22 ``@ddalle``: First version
-        """
-        # Check if there's a slash
-        if "/" in ftarg:
-            # List of target names.
-            TNames = [DBT.Name for DBT in self.Targets]
-            # Split.
-            ctarg = ftarg.split("/")
-            # Find the name,
-            i = TNames.index(ctarg[0])
-            # Column name
-            c = ctarg[1]
-        else:
-            # Use the first target.
-            i = 0
-            c = ftarg
-        # Output
-        return i, c
-        
     # Get lists of indices of matches
     def GetTargetMatches(self, ftarg, tol=0.0, tols={}):
         """Get vectors of indices matching targets
@@ -397,8 +380,8 @@ class DataBook(dict):
         :Call:
             >>> I, J = DB.GetTargetMatches(ftarg, tol=0.0, tols={})
         :Inputs:
-            *DB*: :class:`pyCart.dataBook.DataBook`
-                Instance of the pyCart data book class
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of data book class
             *ftarg*: :class:`str`
                 Name of the target and column
             *tol*: :class:`float`
@@ -440,8 +423,8 @@ class DataBook(dict):
         :Call:
             >>> j = DB.GetTargetMatch(i, ftarg, tol=0.0, tols={})
         :Inputs:
-            *DB*: :class:`pyCart.dataBook.DataBook`
-                Instance of the pyCart data book class
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of data book class
             *i*: :class:`int`
                 Data book index
             *ftarg*: :class:`str`
@@ -506,8 +489,8 @@ class DataBook(dict):
         :Call:
             >>> i = DB.GetDBMatch(j, ftarg, tol=0.0, tols={})
         :Inputs:
-            *DB*: :class:`pyCart.dataBook.DataBook`
-                Instance of the pyCart data book class
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of a data book class
             *j*: :class:`int` or ``np.nan``
                 Data book target index
             *ftarg*: :class:`str`
@@ -573,8 +556,8 @@ class DataBook(dict):
         :Call:
             >>> h = DB.PlotCoeff(comp, coeff, I, **kw)
         :Inputs:
-            *DB*: :class:`pyCart.dataBook.DataBook`
-                Instance of the pyCart data book class
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the data book class
             *comp*: :class:`str`
                 Component whose coefficient is being plotted
             *coeff*: :class:`str`
@@ -615,228 +598,17 @@ class DataBook(dict):
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of plot handles
+        :See also:
+            * :func:`cape.dataBook.DBBase.PlotCoeff`
         :Versions:
             * 2015-05-30 ``@ddalle``: First version
             * 2015-12-14 ``@ddalle``: Added error bars
         """
-        # Make sure the plotting modules are present.
-        ImportPyPlot()
-        # Extract the component.
-        DBc = self[comp]
-        # Get horizontal key.
-        xk = kw.get('x')
-        # Figure dimensions
-        fw = kw.get('FigWidth', 6)
-        fh = kw.get('FigHeight', 4.5)
-        # Iterative uncertainty options
-        qmmx = kw.get('MinMax', False)
-        qerr = kw.get('Uncertainty', False)
-        ksig = kw.get('StDev')
-        # Get plot types
-        tmmx = kw.get('PlotTypeMinMax', 'FillBetween')
-        terr = kw.get('PlotTypeUncertainty', 'ErrorBar')
-        tsig = kw.get('PlotTypeStDev', 'FillBetween')
-        # Initialize output
-        h = {}
-        # Extract the values for the x-axis.
-        if xk is None or xk == 'Index':
-            # Use the indices as the x-axis
-            xv = I
-            # Label
-            xk = 'Index'
-        else:
-            # Extract the values.
-            xv = DBc[xk][I]
-        # Extract the mean values.
-        yv = DBc[coeff][I]
-        # Initialize label.
-        lbl = kw.get('Label', comp)
-        # -----------------------
-        # Standard Deviation Plot
-        # -----------------------
-        # Standard deviation fields
-        cstd = coeff + "_std"
-        # Show iterative standard deviation.
-        if ksig and (cstd in DBc):
-            # Initialize plot options for standard deviation
-            if tsig == "ErrorBar":
-                # Error bars
-                kw_s = odict(color='b', fmt=None, zorder=1)
-            else:
-                # Filled region
-                kw_s = odict(color='b', lw=0.0,
-                    facecolor='b', alpha=0.35, zorder=1)
-            # Add standard deviation to label.
-            lbl = u'%s (\u00B1%s\u03C3)' % (lbl, ksig)
-            # Extract plot options from keyword arguments.
-            for k in util.denone(kw.get("StDevOptions")):
-                # Option.
-                o_k = kw["StDevOptions"][k]
-                # Override the default option.
-                if o_k is not None: kw_s[k] = o_k
-            # Get the standard deviation value.
-            sv = DBc[cstd][I]
-            # Check plot type
-            if tsig == "ErrorBar":
-                # Error bars
-                h['std'] = plt.errorbar(xv, yv, yerr=ksig*sv, **kw_s)
-            else:
-                # Filled region
-                h['std'] = plt.fill_between(xv, yv-ksig*sv, yv+ksig*sv, **kw_s)
-        # ------------
-        # Min/Max Plot
-        # ------------
-        # Min/max fields
-        cmin = coeff + "_min"
-        cmax = coeff + "_max"
-        # Show min/max options
-        if qmmx and (cmin in DBc) and (cmax in DBc):
-            # Initialize plot options for min/max
-            if tmmx == "ErrorBar":
-                # Default error bar options
-                kw_m = odict(color='g', fmt=None, zorder=2)
-            else:
-                # Default filled region options
-                kw_m = odict(color='g', lw=0.0,
-                    facecolor='g', alpha=0.35, zorder=2)
-            # Add min/max to label.
-            lbl = u'%s (min/max)' % (lbl)
-            # Extract plot options from keyword arguments.
-            for k in util.denone(kw.get("MinMaxOptions")):
-                # Option
-                o_k = kw["MinMaxOptions"][k]
-                # Override the default option.
-                if o_k is not None: kw_m[k] = o_k
-            # Get the min and max values.
-            ymin = DBc[cmin][I]
-            ymax = DBc[cmax][I]
-            # Plot it.
-            if tmmx == "ErrorBar":
-                # Form +\- error bounds
-                yerr = np.vstack((yv-ymin, ymax-yv))
-                # Plot error bars
-                h['max'] = plt.errorbar(xv, yv, yerr=yerr, **kw_m)
-            else:
-                # Filled region
-                h['max'] = plt.fill_between(xv, ymin, ymax, **kw_m)
-        # ----------------
-        # Uncertainty Plot
-        # ----------------
-        # Uncertainty databook files
-        cu = coeff + "_u"
-        cuP = coeff + "_uP"
-        cuM = coeff + "_uM"
-        # Show uncertainty option
-        if qerr and (cu in DBc) or (cuP in DBc and cuM in DBc):
-            # Initialize plot options for uncertainty
-            if terr == "FillBetween":
-                # Default filled region options
-                kw_u = odict(color='c', lw=0.0,
-                    facecolor='c', alpha=0.35, zorder=3)
-            else:
-                # Default error bar options
-                kw_u = odict(color='c', fmt=None, zorder=3)
-            # Add uncertainty to label
-            lbl = u'%s UQ bounds' % (lbl)
-            # Extract plot options from keyword arguments.
-            for k in util.denone(kw.get("UncertaintyOptions")):
-                # Option
-                o_k = kw["UncertaintyOptions"][k]
-                # Override the default option.
-                if o_k is not None: kw_u[k] = o_k
-            # Get the uncertainty values.
-            if cuP in DBc:
-                # Plus and minus coefficients are given
-                yuP = DBc[cuP]
-                yuM = DBc[cuM]
-            else:
-                # Single uncertainty
-                yuP = DBc[cu]
-                yuM = yuP
-            # Plot
-            if terr == "FillBetween":
-                # Form min and max
-                ymin = yv - yuM
-                ymax = yv + yuP
-                # Filled region
-                h['err'] = plt.fill_between(xv, ymin, ymax, **kw_u)
-            else:
-                # Form +/- error bounds
-                yerr = np.vstack((yuM, yuP))
-                # Plot error bars
-                h['err'] = plt.fill_between(xv, yv, yerr, **kw_u)
-        # ------------
-        # Primary Plot
-        # ------------
-        # Initialize plot options for primary plot
-        kw_p = odict(color='k', marker='^', zorder=9, ls='-')
-        # Plot options
-        for k in util.denone(kw.get("LineOptions")):
-            # Option
-            o_k = kw["LineOptions"][k]
-            # Override the default option.
-            if o_k is not None: kw_p[k] = o_k
-        # Label
-        kw_p.setdefault('label', lbl)
-        # Plot it.
-        h['line'] = plt.plot(xv, yv, **kw_p)
-        # ----------
-        # Formatting
-        # ----------
-        # Get the figure and axes.
-        h['fig'] = plt.gcf()
-        h['ax'] = plt.gca()
-        # Check for an existing ylabel
-        ly = h['ax'].get_ylabel()
-        # Compare to requested ylabel
-        if ly and ly != coeff:
-            # Combine labels.
-            ly = ly + '/' + coeff
-        else:
-            # Use the coefficient.
-            ly = coeff
-        # Labels.
-        h['x'] = plt.xlabel(xk)
-        h['y'] = plt.ylabel(ly)
-        # Get limits that include all data (and not extra).
-        xmin, xmax = get_xlim(h['ax'], pad=0.05)
-        ymin, ymax = get_ylim(h['ax'], pad=0.05)
-        # Make sure data is included.
-        h['ax'].set_xlim(xmin, xmax)
-        h['ax'].set_ylim(ymin, ymax)
-        # Legend.
-        if kw.get('Legend', True):
-            # Get current limits.
-            ymin, ymax = get_ylim(h['ax'], pad=0.05)
-            # Add extra room for the legend.
-            h['ax'].set_ylim((ymin, 1.2*ymax-0.2*ymin))
-            # Font size checks.
-            if len(h['ax'].get_lines()) > 5:
-                # Very small
-                fsize = 7
-            else:
-                # Just small
-                fsize = 9
-            # Activate the legend.
-            try:
-                # Use a font that has the proper symbols.
-                h['legend'] = h['ax'].legend(loc='upper center',
-                    prop=dict(size=fsize, family="DejaVu Sans"),
-                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
-            except Exception:
-                # Default font.
-                h['legend'] = h['ax'].legend(loc='upper center',
-                    prop=dict(size=fsize),
-                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
-        # Figure dimensions.
-        if fh: h['fig'].set_figheight(fh)
-        if fw: h['fig'].set_figwidth(fw)
-        # Attempt to apply tight axes.
-        try: plt.tight_layout()
-        except Exception: pass
-        # Output
-        return h
-        
+        # Check for the component
+        if comp not in self:
+            raise KeyError("Data book does not contain a component '%s'" % comp)
+        # Defer to the component's plot capabilities
+        return self[comp].PlotCoeff(coeff, I, **kw)
         
 # class DataBook
         
@@ -972,6 +744,7 @@ class DBBase(dict):
         self.x = x
         self.opts = opts
         self.comp = comp
+        self.name = comp
         
         # Get the directory.
         fdir = opts.get_DataBookDir()
@@ -1337,7 +1110,7 @@ class DBBase(dict):
         f = open(fname, 'w')
         # Write the header
         f.write("# Point sensor statistics for '%s' extracted on %s\n" %
-            (self.pt, datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')))
+            (self.name, datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')))
         # Empty line.
         f.write('#\n#')
         # Variable list
@@ -1534,22 +1307,714 @@ class DBBase(dict):
         except Exception:
             # Return no match.
             return np.nan
+            
+    # Plot a sweep of one or more coefficients
+    def PlotCoeffBase(self, coeff, I, **kw):
+        """Plot a sweep of one coefficient or quantity over several cases
+        
+        This is the base method upon which data book sweep plotting is built.
+        Other methods may call this one with modifications to the default
+        settings.  For example :func:`cape.dataBook.DBTarget.PlotCoeff` changes
+        the default *LineOptions* to show a red line instead of the standard
+        black line.  All settings can still be overruled by explicit inputs to
+        either this function or any of its children.
+        
+        :Call:
+            >>> h = DBi.PlotCoeffBase(coeff, I, **kw)
+        :Inputs:
+            *DBi*: :class:`cape.dataBook.DBBase`
+                An individual item data book
+            *coeff*: :class:`str`
+                Coefficient being plotted
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indexes of cases to include in sweep
+        :Keyword Arguments:
+            *x*: [ {None} | :class:`str` ]
+                Trajectory key for *x* axis (or plot against index if ``None``)
+            *Label*: [ {*comp*} | :class:`str` ]
+                Manually specified label
+            *Legend*: [ {True} | False ]
+                Whether or not to use a legend
+            *StDev*: [ {None} | :class:`float` ]
+                Multiple of iterative history standard deviation to plot
+            *MinMax*: [ {False} | True ]
+                Whether to plot minimum and maximum over iterative history
+            *Uncertainty*: [ {False} | True ]
+                Whether to plot direct uncertainty
+            *LineOptions*: :class:`dict`
+                Plot options for the primary line(s)
+            *StDevOptions*: :class:`dict`
+                Dictionary of plot options for the standard deviation plot
+            *MinMaxOptions*: :class:`dict`
+                Dictionary of plot options for the min/max plot
+            *UncertaintyOptions*: :class:`dict`
+                Dictionary of plot options for the uncertainty plot
+            *FigWidth*: :class:`float`
+                Width of figure in inches
+            *FigHeight*: :class:`float`
+                Height of figure in inches
+            *PlotTypeStDev*: [ {'FillBetween'} | 'ErrorBar' ]
+                Plot function to use for standard deviation plot
+            *PlotTypeMinMax*: [ {'FillBetween'} | 'ErrorBar' ]
+                Plot function to use for min/max plot
+            *PlotTypeUncertainty*: [ 'FillBetween' | {'ErrorBar'} ]
+                Plot function to use for uncertainty plot
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of plot handles
+        :Versions:
+            * 2015-05-30 ``@ddalle``: First version
+            * 2015-12-14 ``@ddalle``: Added error bars
+        """
+        # Make sure the plotting modules are present.
+        ImportPyPlot()
+        # Get horizontal key.
+        xk = kw.get('x')
+        # Figure dimensions
+        fw = kw.get('FigWidth', 6)
+        fh = kw.get('FigHeight', 4.5)
+        # Iterative uncertainty options
+        qmmx = kw.get('MinMax', False)
+        qerr = kw.get('Uncertainty', False)
+        ksig = kw.get('StDev')
+        # Get plot types
+        tmmx = kw.get('PlotTypeMinMax', 'FillBetween')
+        terr = kw.get('PlotTypeUncertainty', 'ErrorBar')
+        tsig = kw.get('PlotTypeStDev', 'FillBetween')
+        # Initialize output
+        h = {}
+        # Extract the values for the x-axis.
+        if xk is None or xk == 'Index':
+            # Use the indices as the x-axis
+            xv = I
+            # Label
+            xk = 'Index'
+        else:
+            # Extract the values.
+            xv = self[xk][I]
+        # Extract the mean values.
+        yv = self[coeff][I]
+        # Initialize label.
+        lbl = kw.get('Label', comp)
+        # -----------------------
+        # Standard Deviation Plot
+        # -----------------------
+        # Standard deviation fields
+        cstd = coeff + "_std"
+        # Show iterative standard deviation.
+        if ksig and (cstd in self):
+            # Initialize plot options for standard deviation
+            if tsig == "ErrorBar":
+                # Error bars
+                kw_s = odict(color='b', fmt=None, zorder=1)
+            else:
+                # Filled region
+                kw_s = odict(color='b', lw=0.0,
+                    facecolor='b', alpha=0.35, zorder=1)
+            # Add standard deviation to label.
+            lbl = u'%s (\u00B1%s\u03C3)' % (lbl, ksig)
+            # Extract plot options from keyword arguments.
+            for k in util.denone(kw.get("StDevOptions")):
+                # Option.
+                o_k = kw["StDevOptions"][k]
+                # Override the default option.
+                if o_k is not None: kw_s[k] = o_k
+            # Get the standard deviation value.
+            sv = self[cstd][I]
+            # Check plot type
+            if tsig == "ErrorBar":
+                # Error bars
+                h['std'] = plt.errorbar(xv, yv, yerr=ksig*sv, **kw_s)
+            else:
+                # Filled region
+                h['std'] = plt.fill_between(xv, yv-ksig*sv, yv+ksig*sv, **kw_s)
+        # ------------
+        # Min/Max Plot
+        # ------------
+        # Min/max fields
+        cmin = coeff + "_min"
+        cmax = coeff + "_max"
+        # Show min/max options
+        if qmmx and (cmin in self) and (cmax in self):
+            # Initialize plot options for min/max
+            if tmmx == "ErrorBar":
+                # Default error bar options
+                kw_m = odict(color='g', fmt=None, zorder=2)
+            else:
+                # Default filled region options
+                kw_m = odict(color='g', lw=0.0,
+                    facecolor='g', alpha=0.35, zorder=2)
+            # Add min/max to label.
+            lbl = u'%s (min/max)' % (lbl)
+            # Extract plot options from keyword arguments.
+            for k in util.denone(kw.get("MinMaxOptions")):
+                # Option
+                o_k = kw["MinMaxOptions"][k]
+                # Override the default option.
+                if o_k is not None: kw_m[k] = o_k
+            # Get the min and max values.
+            ymin = self[cmin][I]
+            ymax = self[cmax][I]
+            # Plot it.
+            if tmmx == "ErrorBar":
+                # Form +\- error bounds
+                yerr = np.vstack((yv-ymin, ymax-yv))
+                # Plot error bars
+                h['max'] = plt.errorbar(xv, yv, yerr=yerr, **kw_m)
+            else:
+                # Filled region
+                h['max'] = plt.fill_between(xv, ymin, ymax, **kw_m)
+        # ----------------
+        # Uncertainty Plot
+        # ----------------
+        # Uncertainty databook files
+        cu = coeff + "_u"
+        cuP = coeff + "_uP"
+        cuM = coeff + "_uM"
+        # Show uncertainty option
+        if qerr and (cu in self) or (cuP in self and cuM in self):
+            # Initialize plot options for uncertainty
+            if terr == "FillBetween":
+                # Default filled region options
+                kw_u = odict(color='c', lw=0.0,
+                    facecolor='c', alpha=0.35, zorder=3)
+            else:
+                # Default error bar options
+                kw_u = odict(color='c', fmt=None, zorder=3)
+            # Add uncertainty to label
+            lbl = u'%s UQ bounds' % (lbl)
+            # Extract plot options from keyword arguments.
+            for k in util.denone(kw.get("UncertaintyOptions")):
+                # Option
+                o_k = kw["UncertaintyOptions"][k]
+                # Override the default option.
+                if o_k is not None: kw_u[k] = o_k
+            # Get the uncertainty values.
+            if cuP in self:
+                # Plus and minus coefficients are given
+                yuP = self[cuP]
+                yuM = self[cuM]
+            else:
+                # Single uncertainty
+                yuP = self[cu]
+                yuM = yuP
+            # Plot
+            if terr == "FillBetween":
+                # Form min and max
+                ymin = yv - yuM
+                ymax = yv + yuP
+                # Filled region
+                h['err'] = plt.fill_between(xv, ymin, ymax, **kw_u)
+            else:
+                # Form +/- error bounds
+                yerr = np.vstack((yuM, yuP))
+                # Plot error bars
+                h['err'] = plt.fill_between(xv, yv, yerr, **kw_u)
+        # ------------
+        # Primary Plot
+        # ------------
+        # Initialize plot options for primary plot
+        kw_p = odict(color='k', marker='^', zorder=9, ls='-')
+        # Plot options
+        for k in util.denone(kw.get("LineOptions")):
+            # Option
+            o_k = kw["LineOptions"][k]
+            # Override the default option.
+            if o_k is not None: kw_p[k] = o_k
+        # Label
+        kw_p.setdefault('label', lbl)
+        # Plot it.
+        h['line'] = plt.plot(xv, yv, **kw_p)
+        # ----------
+        # Formatting
+        # ----------
+        # Get the figure and axes.
+        h['fig'] = plt.gcf()
+        h['ax'] = plt.gca()
+        # Check for an existing ylabel
+        ly = h['ax'].get_ylabel()
+        # Compare to requested ylabel
+        if ly and ly != coeff:
+            # Combine labels.
+            ly = ly + '/' + coeff
+        else:
+            # Use the coefficient.
+            ly = coeff
+        # Labels.
+        h['x'] = plt.xlabel(xk)
+        h['y'] = plt.ylabel(ly)
+        # Get limits that include all data (and not extra).
+        xmin, xmax = get_xlim(h['ax'], pad=0.05)
+        ymin, ymax = get_ylim(h['ax'], pad=0.05)
+        # Make sure data is included.
+        h['ax'].set_xlim(xmin, xmax)
+        h['ax'].set_ylim(ymin, ymax)
+        # Legend.
+        if kw.get('Legend', True):
+            # Get current limits.
+            ymin, ymax = get_ylim(h['ax'], pad=0.05)
+            # Add extra room for the legend.
+            h['ax'].set_ylim((ymin, 1.2*ymax-0.2*ymin))
+            # Font size checks.
+            if len(h['ax'].get_lines()) > 5:
+                # Very small
+                fsize = 7
+            else:
+                # Just small
+                fsize = 9
+            # Activate the legend.
+            try:
+                # Use a font that has the proper symbols.
+                h['legend'] = h['ax'].legend(loc='upper center',
+                    prop=dict(size=fsize, family="DejaVu Sans"),
+                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
+            except Exception:
+                # Default font.
+                h['legend'] = h['ax'].legend(loc='upper center',
+                    prop=dict(size=fsize),
+                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
+        # Figure dimensions.
+        if fh: h['fig'].set_figheight(fh)
+        if fw: h['fig'].set_figwidth(fw)
+        # Attempt to apply tight axes.
+        try: plt.tight_layout()
+        except Exception: pass
+        # Output
+        return h
+        
+    # Plot a sweep of one or more coefficients
+    def PlotCoeff(self, coeff, I, **kw):
+        """Plot a sweep of one coefficient over several cases
+        
+        :Call:
+            >>> h = DBi.PlotCoeff(coeff, I, **kw)
+        :Inputs:
+            *DBi*: :class:`cape.dataBook.DBBase`
+                An individual item data book
+            *coeff*: :class:`str`
+                Coefficient being plotted
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indexes of cases to include in sweep
+        :Keyword Arguments:
+            * See :func:`cape.dataBook.DBBase.PlotCoeffBase`
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of plot handles
+        :Versions:
+            * 2015-05-30 ``@ddalle``: First version
+            * 2015-12-14 ``@ddalle``: Added error bars
+        """
+        # Call base function with no modifications to defaults
+        return self.PlotCoeffBase(coeff, I, **kw)
+        
+    # Plot a sweep of one or more coefficients
+    def PlotHistBase(self, coeff, I, **kw):
+        """Plot a histogram of one coefficient over several cases
+        
+        :Call:
+            >>> h = DBi.PlotHistBase(coeff, I, **kw)
+        :Inputs:
+            *DBi*: :class:`cape.dataBook.DBBase`
+                An individual item data book
+            *coeff*: :class:`str`
+                Coefficient being plotted
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indexes of cases to include in sweep
+        :Keyword Arguments:
+            *FigWidth*: :class:`float`
+                Figure width
+            *FigHeight*: :class:`float`
+                Figure height
+            *Label*: [ {*comp*} | :class:`str` ]
+                Manually specified label
+            *TargetValue*: :class:`float` | :class:`list` (:class:`float`)
+                Target or list of target values
+            *TargetLabel*: :class:`str` | :class:`list` (:class:`str`)
+                Legend label(s) for target(s)
+            *StDev*: [ {None} | :class:`float` ]
+                Multiple of iterative history standard deviation to plot
+            *HistOptions*: :class:`dict`
+                Plot options for the primary histogram
+            *StDevOptions*: :class:`dict`
+                Dictionary of plot options for the standard deviation plot
+            *DeltaOptions*: :class:`dict`
+                Options passed to :func:`plt.plot` for reference range plot
+            *MeanOptions*: :class:`dict`
+                Options passed to :func:`plt.plot` for mean line
+            *TargetOptions*: :class:`dict`
+                Options passed to :func:`plt.plot` for target value lines
+            *OutlierSigma*: {``7.0``} | :class:`float`
+                Standard deviation multiplier for determining outliers
+            *ShowMu*: :class:`bool`
+                Option to print value of mean
+            *ShowSigma*: :class:`bool`
+                Option to print value of standard deviation
+            *ShowEpsilon*: :class:`bool`
+                Option to print value of sampling error
+            *ShowDelta*: :class:`bool`
+                Option to print reference value
+            *ShowTarget*: :class:`bool`
+                Option to show target value
+            *MuFormat*: {``"%.4f"``} | :class:`str`
+                Format for text label of the mean value
+            *DeltaFormat*: {``"%.4f"``} | :class:`str`
+                Format for text label of the reference value *d*
+            *SigmaFormat*: {``"%.4f"``} | :class:`str`
+                Format for text label of the iterative standard deviation
+            *TargetFormat*: {``"%.4f"``} | :class:`str`
+                Format for text label of the target value
+            *XLabel*: :class:`str`
+                Specified label for *x*-axis, default is ``Iteration Number``
+            *YLabel*: :class:`str`
+                Specified label for *y*-axis, default is *c*
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of plot handles
+        :Versions:
+            * 2015-05-30 ``@ddalle``: First version
+            * 2015-12-14 ``@ddalle``: Added error bars
+            * 2016-04-04 ``@ddalle``: Moved from point sensor to data book
+        """
+        # -----------
+        # Preparation
+        # -----------
+        # Make sure the plotting modules are present.
+        ImportPyPlot()
+        # Figure dimensions
+        fw = kw.get('FigWidth', 6)
+        fh = kw.get('FigHeight', 4.5)
+        # Extract the values
+        V = self[coeff][I]
+        # Calculate basic statistics
+        vmu = np.mean(V)
+        vstd = np.std(V)
+        # Check for outliers ...
+        ostd = kw.get('OutlierSigma', 7.0)
+        # Apply outlier tolerance
+        if ostd:
+            # Find indices of cases that are within outlier range
+            J = np.abs(V-vmu)/vstd <= ostd
+            # Downselect
+            V = V[J]
+            # Recompute statistics
+            vmu = np.mean(V)
+            vstd = np.std(V)
+        # Uncertainty options
+        ksig = kw.get('StDev')
+        # Reference delta
+        dc = kw.get('Delta', 0.0)
+        # Target values and labels
+        vtarg = kw.get('TargetValue')
+        ltarg = kw.get('TargetLabel')
+        # Convert target values to list
+        if vtarg in [None, False]:
+            vtarg = []
+        elif type(vtarg).__name__ not in ['list', 'tuple', 'ndarray']:
+            vtarg = [vtarg]
+        # Create appropriate target list for 
+        if type(ltarg).__name__ not in ['list', 'tuple', 'ndarray']:
+            ltarg = [ltarg]
+        # --------
+        # Plotting
+        # --------
+        # Initialize dictionary of handles.
+        h = {}
+        # --------------
+        # Histogram Plot
+        # --------------
+        # Initialize plot options for histogram.
+        kw_h = odict(facecolor='c', zorder=2, bins=20)
+        # Extract options from kwargs
+        for k in util.denone(kw.get("HistOptions", {})):
+            # Override the default option.
+            if kw["HistOptions"][k] is not None:
+                kw_h[k] = kw["HistOptions"][k]
+        # Check for range based on standard deviation
+        if kw.get("Range"):
+            # Use this number of pair of numbers as multiples of *vstd*
+            r = kw["Range"]
+            # Check for single number or list
+            if type(r).__name__ in ['ndarray', 'list', 'tuple']:
+                # Separate lower and upper limits
+                vmin = vmu - r[0]*vstd
+                vmax = vmu + r[1]*vstd
+            else:
+                # Use as a single number
+                vmin = vmu - r*vstd
+                vmax = vmu + r*vstd
+            # Overwrite any range option in *kw_h*
+            kw_h['range'] = (vmin, vmax)
+        # Plot the historgram.
+        h['hist'] = plt.hist(V, **kw_h)
+        # Get the figure and axes.
+        h['fig'] = plt.gcf()
+        h['ax'] = plt.gca()
+        # Get current axis limits
+        pmin, pmax = h['ax'].get_ylim()
+        # Determine whether or not the distribution is normed
+        q_normed = kw_h.get("normed", True)
+        # Determine whether or not the bars are vertical
+        q_vert = kw_h.get("orientation", "vertical") == "vertical"
+        # ---------
+        # Mean Plot
+        # ---------
+        # Option whether or not to plot mean as vertical line.
+        if kw.get("PlotMean", True):
+            # Initialize options for mean plot
+            kw_m = odict(color='k', lw=2, zorder=6)
+            kw_m["label"] = "Mean value"
+            # Extract options from kwargs
+            for k in util.denone(kw.get("MeanOptions", {})):
+                # Override the default option.
+                if kw["MeanOptions"][k] is not None:
+                    kw_m[k] = kw["MeanOptions"][k]
+            # Check orientation
+            if q_vert:
+                # Plot a vertical line for the mean.
+                h['mean'] = plt.plot([vmu,vmu], [pmin,pmax], **kw_m)
+            else:
+                # Plot a horizontal line for th emean.
+                h['mean'] = plt.plot([pmin,pmax], [vmu,vmu], **kw_m)
+        # -----------
+        # Target Plot
+        # -----------
+        # Option whether or not to plot targets
+        if vtarg is not None and len(vtarg)>0:
+            # Initialize options for target plot
+            kw_t = odict(color='k', lw=2, ls='--', zorder=8)
+            # Set label
+            if ltarg is not None:
+                # User-specified list of labels
+                kw_t["label"] = ltarg
+            else:
+                # Default label
+                kw_t["label"] = "Target"
+            # Extract options for target plot
+            for k in util.denone(kw.get("TargetOptions", {})):
+                # Override the default option.
+                if kw["TargetOptions"][k] is not None:
+                    kw_t[k] = kw["TargetOptions"][k]
+            # Loop through target values
+            for i in range(len(vtarg)):
+                # Select the value
+                vt = vtarg[i]
+                # Check for NaN or None
+                if np.isnan(vt) or vt in [None, False]: continue
+                # Downselect options
+                kw_ti = {}
+                for k in kw_t:
+                    kw_ti[k] = kw_t.get_key(k, i)
+                # Initialize handles
+                h['target'] = []
+                # Check orientation
+                if q_vert:
+                    # Plot a vertical line for the target.
+                    h['target'].append(
+                        plt.plot([vt,vt], [pmin,pmax], **kw_ti))
+                else:
+                    # Plot a horizontal line for the target.
+                    h['target'].append(
+                        plt.plot([pmin,pmax], [vt,vt], **kw_ti))
+        # -----------------------
+        # Standard Deviation Plot
+        # -----------------------
+        # Check whether or not to plot it
+        if ksig and len(I)>2:
+            # Check for single number or list
+            if type(ksig).__name__ in ['ndarray', 'list', 'tuple']:
+                # Separate lower and upper limits
+                vmin = vmu - ksig[0]*vstd
+                vmax = vmu + ksig[1]*vstd
+            else:
+                # Use as a single number
+                vmin = vmu - ksig*vstd
+                vmax = vmu + ksig*vstd
+            # Initialize options for std plot
+            kw_s = odict(color='b', lw=2, zorder=5)
+            # Extract options from kwargs
+            for k in util.denone(kw.get("StDevOptions", {})):
+                # Override the default option.
+                if kw["StDevOptions"][k] is not None:
+                    kw_s[k] = kw["StDevOptions"][k]
+            # Check orientation
+            if q_vert:
+                # Plot a vertical line for the min and max
+                h['std'] = (
+                    plt.plot([vmin,vmin], [pmin,pmax], **kw_s) +
+                    plt.plot([vmax,vmax], [pmin,pmax], **kw_s))
+            else:
+                # Plot a horizontal line for the min and max
+                h['std'] = (
+                    plt.plot([pmin,pmax], [vmin,vmin], **kw_s) +
+                    plt.plot([pmin,pmax], [vmax,vmax], **kw_s))
+        # ----------
+        # Delta Plot
+        # ----------
+        # Check whether or not to plot it
+        if dc:
+            # Initialize options for delta plot
+            kw_d = odict(color="r", ls="--", lw=1.0, zorder=3)
+            # Extract options from kwargs
+            for k in util.denone(kw.get("DeltaOptions", {})):
+                # Override the default option.
+                if kw["DeltaOptions"][k] is not None:
+                    kw_d[k] = kw["DeltaOptions"][k]
+                # Check for single number or list
+            if type(dc).__name__ in ['ndarray', 'list', 'tuple']:
+                # Separate lower and upper limits
+                cmin = vmu - dc[0]
+                cmax = vmu + dc[1]
+            else:
+                # Use as a single number
+                cmin = vmu - dc
+                cmax = vmu + dc
+            # Check orientation
+            if q_vert:
+                # Plot vertical lines for the reference length
+                h['delta'] = (
+                    plt.plot([cmin,cmin], [pmin,pmax], **kw_d) +
+                    plt.plot([cmax,cmax], [pmin,pmax], **kw_d))
+            else:
+                # Plot horizontal lines for reference length
+                h['delta'] = (
+                    plt.plot([pmin,pmax], [cmin,cmin], **kw_d) +
+                    plt.plot([pmin,pmax], [cmax,cmax], **kw_d))
+        # ----------
+        # Formatting
+        # ----------
+        # Default value-axis label
+        lx = coeff
+        # Default probability-axis label
+        if q_normed:
+            # Size of bars is probability
+            ly = "Probability Density"
+        else:
+            # Size of bars is count
+            ly = "Count"
+        # Process axis labels
+        xlbl = kw.get('XLabel')
+        ylbl = kw.get('YLabel')
+        # Apply defaults
+        if xlbl is None: xlbl = lx
+        if ylbl is None: ylbl = ly
+        # Check for flipping
+        if not q_vert:
+            xlbl, ylbl = ylbl, xlbl
+        # Labels.
+        h['x'] = plt.xlabel(xlbl)
+        h['y'] = plt.ylabel(ylbl)
+        # Set figure dimensions
+        if fh: h['fig'].set_figheight(fh)
+        if fw: h['fig'].set_figwidth(fw)
+        # Attempt to apply tight axes.
+        try: plt.tight_layout()
+        except Exception: pass
+        # ------
+        # Labels
+        # ------
+        # y-coordinates of the current axes w.r.t. figure scale
+        ya = h['ax'].get_position().get_points()
+        ha = ya[1,1] - ya[0,1]
+        # y-coordinates above and below the box
+        yf = 2.5 / ha / h['fig'].get_figheight()
+        yu = 1.0 + 0.065*yf
+        yl = 1.0 - 0.04*yf
+        # Make a label for the mean value.
+        if kw.get("ShowMu", True):
+            # printf-style format flag
+            flbl = kw.get("MuFormat", "%.4f")
+            # Form: CA = 0.0204
+            lbl = (u'%s = %s' % (coeff, flbl)) % vmu
+            # Create the handle.
+            h['mu'] = plt.text(0.99, yu, lbl, color=kw_m['color'],
+                horizontalalignment='right', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['mu'].set_family("DejaVu Sans")
+            except Exception: pass
+        # Make a label for the deviation.
+        if dc and kw.get("ShowDelta", True):
+            # printf-style flag
+            flbl = kw.get("DeltaFormat", "%.4f")
+            # Form: \DeltaCA = 0.0050
+            lbl = (u'\u0394%s = %s' % (coeff, flbl)) % dc
+            # Create the handle.
+            h['d'] = plt.text(0.01, yl, lbl, color=kw_d.get_key('color',1),
+                horizontalalignment='left', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['d'].set_family("DejaVu Sans")
+            except Exception: pass
+        # Make a label for the standard deviation.
+        if len(I)>2 and ((ksig and kw.get("ShowSigma", True)) 
+                or kw.get("ShowSigma", False)):
+            # Printf-style flag
+            flbl = kw.get("SigmaFormat", "%.4f")
+            # Form \sigma(CA) = 0.0032
+            lbl = (u'\u03C3(%s) = %s' % (coeff, flbl)) % vstd
+            # Create the handle.
+            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_key('color',1),
+                horizontalalignment='left', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['sig'].set_family("DejaVu Sans")
+            except Exception: pass
+        # Make a label for the iterative uncertainty.
+        if len(vtarg)>0 and kw.get("ShowTarget", True):
+            # printf-style format flag
+            flbl = kw.get("TargetFormat", "%.4f")
+            # Form Target = 0.0032
+            lbl = (u'%s = %s' % (ltarg[0], flbl)) % vtarg[0]
+            # Create the handle.
+            h['t'] = plt.text(0.99, yl, lbl, color=kw_t.get_key('color',0),
+                horizontalalignment='right', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['t'].set_family("DejaVu Sans")
+            except Exception: pass
+        # Output.
+        return h
+    
+    # Plot a sweep of one or more coefficients
+    def PlotHist(self, coeff, I, **kw):
+        """Plot a histogram over several cases
+        
+        :Call:
+            >>> h = DBi.PlotValueHist(coeff, I, **kw)
+        :Inputs:
+            *DBi*: :class:`cape.dataBook.DBBase`
+                An individual item data book
+            *coeff*: :class:`str`
+                Coefficient being plotted
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indexes of cases to include in sweep
+        :Keyword Arguments:
+            * See :func:`cape.dataBook.DBBase.PlotHistBase`
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of plot handles
+        :Versions:
+            * 2016-04-04 ``@ddalle``: First version
+        """
+        # Call base function with no modifications to defaults
+        return self.PlotHistBase(coeff, I, **kw)
 # class DBBase
 
 
 # Data book for an individual component
 class DBComp(DBBase):
-    """
-    Individual component data book
+    """Individual component data book
+    
+    This class is derived from :class:`cape.dataBook.DBBase`. 
     
     :Call:
         >>> DBi = DBComp(comp, x, opts)
     :Inputs:
         *comp*: :class:`str`
             Name of the component
-        *x*: :class:`pyCart.trajectory.Trajectory`
+        *x*: :class:`cape.trajectory.Trajectory`
             Trajectory for processing variable types
-        *opts*: :class:`pyCart.options.Options`
+        *opts*: :class:`cape.options.Options`
             Global pyCart options instance
     :Outputs:
         *DBi*: :class:`pyCart.dataBook.DBComp`
@@ -1569,6 +2034,7 @@ class DBComp(DBBase):
         self.x = x
         self.opts = opts
         self.comp = comp
+        self.name = comp
         
         # Get the directory.
         fdir = opts.get_DataBookDir()
@@ -1610,360 +2076,30 @@ class DBComp(DBBase):
         return lbl
     # String conversion
     __str__ = __repr__
-    
-    '''
-    # Function to read data book files
-    def Read(self, fname=None):
-        """Read a single data book file or initialize empty arrays
-        
-        :Call:
-            >>> DBc.Read()
-            >>> DBc.Read(fname)
-        :Inputs:
-            *DBi*: :class:`pyCart.dataBook.DBComp`
-                An individual component data book
-            *fname*: :class:`str`
-                Name of file to read (default: ``'aero_%s.csv' % self.comp``)
-        :Versions:
-            * 2014-12-21 ``@ddalle``: First version
-        """
-        # Check for default file name
-        if fname is None: fname = self.fname
-        # Try to read the file.
-        try:
-            # DataBook delimiter
-            delim = self.opts.get_Delimiter()
-            # Initialize column number
-            nCol = 0
-            # Loop through trajectory keys.
-            for k in self.x.keys:
-                # Get the type.
-                t = self.x.defns[k].get('Value', 'float')
-                # Convert type.
-                if t in ['hex', 'oct', 'octal', 'bin']: t = 'int'
-                # Read the column
-                self[k] = np.loadtxt(fname,
-                    delimiter=delim, dtype=str(t), usecols=[nCol])
-                # Fix single-entry values.
-                if self[k].ndim == 0: self[k] = np.array([self[k]])
-                # Increase the column number
-                nCol += 1
-            # Loop through the data book columns.
-            for c in self.cols:
-                # Add the column.
-                self[c] = np.loadtxt(fname, delimiter=delim, usecols=[nCol])
-                # Fix single-entry values.
-                if self[c].ndim == 0: self[c] = np.array([self[c]])
-                # Increase column number.
-                nCol += 1
-            # Number of orders of magnitude or residual drop.
-            self['nOrders'] = np.loadtxt(fname, 
-                delimiter=delim, dtype=float, usecols=[nCol])
-            # Last iteration number
-            self['nIter'] = np.loadtxt(fname, 
-                delimiter=delim, dtype=int, usecols=[nCol+1])
-            # Number of iterations used for averaging.
-            self['nStats'] = np.loadtxt(fname, 
-                delimiter=delim, dtype=int, usecols=[nCol+2])
-            # Fix singletons.
-            for k in ['nOrders', 'nIter', 'nStats']:
-                if self[k].ndim == 0: self[k] = np.array([self[k]])
-        except Exception:
-            # Initialize empty trajectory arrays.
-            for k in self.x.keys:
-                # Get the type.
-                t = self.x.defns[k].get('Value', 'float')
-                # Convert type.
-                if t in ['hex', 'oct', 'octal', 'bin']: t = 'int'
-                # Initialize an empty array.
-                self[k] = np.array([], dtype=str(t))
-            # Initialize the data columns.
-            for c in self.cols:
-                self[c] = np.array([])
-            # Number of orders of magnitude of residual drop
-            self['nOrders'] = np.array([], dtype=float)
-            # Last iteration number
-            self['nIter'] = np.array([], dtype=int)
-            # Number of iterations used for averaging.
-            self['nStats'] = np.array([], dtype=int)
-        # Set the number of points.
-        self.n = len(self[c])
-        
-    # Function to write data book files
-    def Write(self, fname=None):
-        """Write a single data book file
-        
-        :Call:
-            >>> DBc.Write()
-            >>> DBc.Write(fname)
-        :Inputs:
-            *DBc*: :class:`cape.dataBook.DBComp`
-                An individual component data book
-            *fname*: :class:`str`
-                Name of file to read (default: ``'aero_%s.csv' % self.comp``)
-        :Versions:
-            * 2014-12-21 ``@ddalle``: First version
-        """
-        # Check for default file name
-        if fname is None: fname = self.fname
-        # Check for a previous old file.
-        if os.path.isfile(fname+'.old'):
-            # Remove it.
-            os.remove(fname+'.old')
-        # Check for an existing data file.
-        if os.path.isfile(fname):
-            # Move it to ".old"
-            os.rename(fname, fname+'.old')
-        # DataBook delimiter
-        delim = self.opts.get_Delimiter()
-        # Open the file.
-        f = open(fname, 'w')
-        # Write the header.
-        f.write("# aero data for '%s' extracted on %s\n" %
-            (self.comp, datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')))
-        # Empty line.
-        f.write('#\n')
-        # Reference quantities
-        f.write('# Reference Area = %.6E\n' %
-            self.opts.get_RefArea(self.comp))
-        f.write('# Reference Length = %.6E\n' %
-            self.opts.get_RefLength(self.comp))
-        # Get the nominal MRP.
-        xMRP = self.opts.get_RefPoint(self.comp)
-        # Write it.
-        f.write('# Nominal moment reference point:\n')
-        f.write('# XMRP = %.6E\n' % xMRP[0])
-        f.write('# YMRP = %.6E\n' % xMRP[1])
-        # Check for 3D.
-        if len(xMRP) > 2:
-            f.write('# ZMRP = %.6E\n' % xMRP[2])
-        # Empty line and start of variable list.
-        f.write('#\n# ')
-        # Loop through trajectory keys.
-        for k in self.x.keys:
-            # Just write the name.
-            f.write(k + delim)
-        # Loop through coefficients.
-        for c in self.cols:
-            # Write the name. (represents the means)
-            f.write(c + delim)
-        # Write the number of iterations and num used for stats.
-        f.write('nOrders%snIter%snStats\n' % (delim, delim))
-        # Loop through the database entries.
-        for i in np.arange(self.n):
-            # Write the trajectory points.
-            for k in self.x.keys:
-                f.write('%s%s' % (self[k][i], delim))
-            # Write values.
-            for c in self.cols:
-                f.write('%.8E%s' % (self[c][i], delim))
-            # Write the residual
-            f.write('%.4f%s' % (self['nOrders'][i], delim))
-            # Write number of iterations.
-            f.write('%i%s%i\n' % (self['nIter'][i], delim, self['nStats'][i]))
-        # Close the file.
-        f.close()
-    
-    # Function to get sorting indices.
-    def ArgSort(self, key=None):
-        """Return indices that would sort a data book by a trajectory key
-        
-        :Call:
-            >>> I = DBc.ArgSort(key=None)
-        :Inputs:
-            *DBc*: :class:`cape.dataBook.DBComp`
-                Instance of the data book component
-            *key*: :class:`str`
-                Name of trajectory key to use for sorting; default is first key
-        :Outputs:
-            *I*: :class:`numpy.ndarray` (:class:`int`)
-                List of indices; must have same size as data book
-        :Versions:
-            * 2014-12-30 ``@ddalle``: First version
-        """
-        # Process the key.
-        if key is None: key = self.x.keys[0]
-        # Check for multiple keys.
-        if type(key).__name__ in ['list', 'ndarray', 'tuple']:
-            # Init pre-array list of ordered n-lets like [(0,1,0), ..., ]
-            Z = zip(*[self[k] for k in key])
-            # Init list of key definitions
-            dt = []
-            # Loop through keys to get data types (dtype)
-            for k in key:
-                # Get the type.
-                dtk = self.x.defns[k]['Value']
-                # Convert it to numpy jargon.
-                if dtk in ['float']:
-                    # Numeric value
-                    dt.append((str(k), 'f'))
-                elif dtk in ['int', 'hex', 'oct', 'octal']:
-                    # Stored as an integer
-                    dt.append((str(k), 'i'))
-                else:
-                    # String is default.
-                    dt.append((str(k), 'S32'))
-            # Create the array to be used for multicolumn sort.
-            A = np.array(Z, dtype=dt)
-            # Get the sorting order
-            I = np.argsort(A, order=[str(k) for k in key])
-        else:
-            # Indirect sort on a single key.
-            I = np.argsort(self[key])
-        # Output.
-        return I
-            
-    # Function to sort data book
-    def Sort(self, key=None, I=None):
-        """Sort a data book according to either a key or an index
-        
-        :Call:
-            >>> DBc.Sort()
-            >>> DBc.Sort(key)
-            >>> DBc.Sort(I=None)
-        :Inputs:
-            *DBc*: :class:`cape.dataBook.DBComp`
-                Instance of the pyCart data book component
-            *key*: :class:`str`
-                Name of trajectory key to use for sorting; default is first key
-            *I*: :class:`numpy.ndarray` (:class:`int`)
-                List of indices; must have same size as data book
-        :Versions:
-            * 2014-12-30 ``@ddalle``: First version
-        """
-        # Process inputs.
-        if I is not None:
-            # Index array specified; check its quality.
-            if type(I).__name__ not in ["ndarray", "list"]:
-                # Not a suitable list.
-                raise TypeError("Index list is unusable type.")
-            elif len(I) != self.n:
-                # Incompatible length.
-                raise IndexError(("Index list length (%i) " % len(I)) +
-                    ("is not equal to data book size (%i)." % self.n))
-        else:
-            # Default key if necessary
-            if key is None: key = self.x.keys[0]
-            # Use ArgSort to get indices that sort on that key.
-            I = self.ArgSort(key)
-        # Sort all fields.
-        for k in self:
-            # Sort it.
-            self[k] = self[k][I]
-            
-    # Find the index of the point in the trajectory.
-    def GetTrajectoryIndex(self, j):
-        """Find an entry in the run matrix (trajectory)
-        
-        :Call:
-            >>> i = DBc.GetTrajectoryIndex(self, j)
-        :Inputs:
-            *DBc*: :class:`cape.dataBook.DBComp`
-                Instance of the pyCart data book component
-            *j*: :class:`int`
-                Index of the case from the databook to try match
-        :Outputs:
-            *i*: :class:`int`
-                Trajectory index or ``None``
-        :Versions:
-            * 2015-05-28 ``@ddalle``: First version
-        """
-        # Initialize indices (assume all trajectory points match to start).
-        i = np.arange(self.x.nCase)
-        # Loop through keys requested for matches.
-        for k in self.x.keys:
-            # Get the target value from the data book.
-            v = self[k][j]
-            # Search for matches.
-            try:
-                # Filter test criterion.
-                ik = np.where(getattr(self.x,k) == v)[0]
-                # Check if the last element should pass but doesn't.
-                if (v == getattr(self.x,k)[-1]):
-                    # Add the last element.
-                    ik = np.union1d(ik, [self.x.nCase-1])
-                # Restrict to rows that match above.
-                i = np.intersect1d(i, ik)
-            except Exception:
-                return None
-        # Output
-        try:
-            # There should be one match.
-            return i[0]
-        except Exception:
-            # No matches.
-            return None
-        
-    # Find an entry by trajectory variables.
-    def FindMatch(self, i):
-        """Find an entry by run matrix (trajectory) variables
-        
-        It is assumed that exact matches can be found.
-        
-        :Call:
-            >>> j = DBc.FindMatch(i)
-        :Inputs:
-            *DBc*: :class:`cape.dataBook.DBComp`
-                Instance of the CAPE data book component
-            *i*: :class:`int`
-                Index of the case from the trajectory to try match
-        :Outputs:
-            *j*: :class:`numpy.ndarray` (:class:`int`)
-                Array of index that matches the trajectory case or ``NaN``
-        :Versions:
-            * 2014-12-22 ``@ddalle``: First version
-        """
-        # Initialize indices (assume all are matches)
-        j = np.arange(self.n)
-        # Loop through keys requested for matches.
-        for k in self.x.keys:
-            # Get the target value (from the trajectory)
-            v = getattr(self.x,k)[i]
-            # Search for matches.
-            try:
-                # Filter test criterion.
-                jk = np.where(self[k] == v)[0]
-                # Check if the last element should pass but doesn't.
-                if (v == self[k][-1]):
-                    # Add the last element.
-                    jk = np.union1d(jk, [len(self[k])-1])
-                # Restrict to rows that match the above.
-                j = np.intersect1d(j, jk)
-            except Exception:
-                # No match found.
-                return np.nan
-        # Output
-        try:
-            # There should be exactly one match.
-            return j[0]
-        except Exception:
-            # Return no match.
-            return np.nan
-    '''
 # class DBComp
 
 
 # Data book target instance
-class DBTarget(dict):
+class DBTarget(DBBase):
     """
     Class to handle data from data book target files.  There are more
     constraints on target files than the files that data book creates, and raw
     data books created by pyCart are not valid target files.
     
     :Call:
-        >>> DBT = pyCart.dataBook.DBTarget(targ, x, opts, RootDir=None)
+        >>> DBT = DBTarget(targ, x, opts, RootDir=None)
     :Inputs:
-        *targ*: :class:`pyCart.options.DataBook.DBTarget`
+        *targ*: :class:`cape.options.DataBook.DBTarget`
             Instance of a target source options interface
         *x*: :class:`pyCart.trajectory.Trajectory`
             Run matrix interface
-        *opts*: :class:`pyCart.options.Options`
-            Global pyCart options instance to determine which fields are useful
+        *opts*: :class:`cape.options.Options`
+            Options interface
         *RootDir*: :class:`str`
             Root directory, defaults to ``os.getcwd()``
     :Outputs:
         *DBT*: :class:`cape.dataBook.DBTarget`
-            Instance of the CAPE data book target class
+            Instance of the Cape data book target class
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
         * 2015-01-10 ``@ddalle``: First version
@@ -2014,7 +2150,7 @@ class DBTarget(dict):
         :Call:
             >>> DBT.ReadData()
         :Inputs:
-            *DBT*: :class:`pyCart.dataBook.DBTarget`
+            *DBT*: :class:`cape.dataBook.DBTarget`
                 Instance of the data book target class
         :Versions:
             * 2015-06-03 ``@ddalle``: Copied from :func:`__init__` method
@@ -2072,7 +2208,7 @@ class DBTarget(dict):
             >>> DBT.ReadAllData(fname, delimiter=",", skiprows=0)
         :Inputs:
             *DBT*: :class:`cape.dataBook.DBTarget`
-                Instance of the CAPE data book target class
+                Instance of the Cape data book target class
             *fname*: :class:`str`
                 Name of file to read
             *delimiter*: :class:`str`
@@ -2096,7 +2232,7 @@ class DBTarget(dict):
             >>> DBT.ReadDataByColumn(fname, delimiter=",", skiprows=0)
         :Inputs:
             *DBT*: :class:`cape.dataBook.DBTarget`
-                Instance of the CAPE data book target class
+                Instance of the Cape data book target class
             *fname*: :class:`str`
                 Name of file to read
             *delimiter*: :class:`str`
@@ -2210,6 +2346,8 @@ class DBTarget(dict):
         :Call:
             >>> fi = DBT.CheckColumn(ctargs, pt, c)
         :Inputs:
+            *DBT*: :class:`cape.dataBook.DBTarget`
+                Instance of the data book target class
             *ctargs*: :class:`dict`
                 Dictionary of target column names for each coefficient
             *pt*: :class:`str`
@@ -2318,7 +2456,7 @@ class DBTarget(dict):
             >>> h = DBT.PlotCoeff(comp, coeff, I, **kw)
         :Inputs:
             *DBT*: :class:`cape.dataBook.DBTarget`
-                Instance of the CAPE data book target class
+                Instance of the Cape data book target class
             *comp*: :class:`str`
                 Component whose coefficient is being plotted
             *coeff*: :class:`str`
@@ -2363,244 +2501,56 @@ class DBTarget(dict):
             * 2015-05-30 ``@ddalle``: First version
             * 2015-12-14 ``@ddalle``: Added uncertainties
         """
-        # Make sure the plotting modules are present.
-        ImportPyPlot()
-        # Get horizontal key.
-        xk = kw.get('x')
-        # Figure dimensions
-        fw = kw.get('FigWidth', 6)
-        fh = kw.get('FigHeight', 4.5)
-        # Iterative uncertainty options
-        qmmx = kw.get('MinMax', False)
-        qerr = kw.get('Unvertainty', False)
-        ksig = kw.get('StDev', 0)
-        # Get plot types
-        tmmx = kw.get('PlotTypeMinMax', 'FillBetween')
-        terr = kw.get('PlotTypeUncertainty', 'ErrorBar')
-        tsig = kw.get('PlotTypeStDev', 'FillBetween')
-        # Initialize output
-        h = {}
-        # Extract the values for the x-axis.
-        if xk is None or xk == 'Index':
-            # Use the indices as the x-axis
-            xv = I
-            # Label
-            xk = 'Index'
-        else:
-            # Check if the value is present.
-            if xk not in self.xkeys: return
-            # Extract the values.
-            xv = self[self.xkeys[xk]][I]
         # List of keys available for this component
         ckeys = self.ckeys.get(comp)
-        # Check for missing component or missing coefficient
+        # Check availability
         if (ckeys is None) or (coeff not in ckeys): return
-        # Extract the mean values.
-        yv = self[ckeys[coeff]][I]
-        # Initialize label.
-        lbl = kw.get('Label', '%s/%s' % (self.Name, comp))
-        # -----------------------
-        # Standard Deviation Plot
-        # -----------------------
-        # Standard deviation fields
-        cstd = coeff + "_std"
-        # Show iterative standard deviation.
-        if ksig and (cstd in ckeys):
-            # Initialize plot options for standard deviation
-            if tsig == "ErrorBar":
-                # Error bars
-                kw_s = odict(color='b', fmt=None, zorder=1)
-            else:
-                # Filled region
-                kw_s = odict(color='b', lw=0.0,
-                    facecolor='b', alpha=0.35, zorder=1)
-            # Add standard deviation to label.
-            lbl = u'%s (\u00B1%s\u03C3)' % (lbl, ksig)
-            # Extract plot options from keyword arguments.
-            for k in util.denone(kw.get("StDevOptions")):
-                # Option.
-                o_k = kw["StDevOptions"][k]
-                # Override the default option.
-                if o_k is not None: kw_s[k] = o_k
-            # Get the standard deviation value.
-            sv = self[ckeys[cstd]][I]
-            # Check plot type
-            if tsig == "ErrorBar":
-                # Error bars
-                h['std'] = plt.errorbar(xv, yv, yerr=ksig*sv, **kw_s)
-            else:
-                # Filled region
-                h['std'] = plt.fill_between(xv, yv-ksig*sv, yv+ksig*sv, **kw_s)
-        # ------------
-        # Min/Max Plot
-        # ------------
-        # Min/max fields
-        cmin = coeff + "_min"
-        cmax = coeff + "_max"
-        # Show min/max options
-        if qmmx and (cmin in ckeys) and (cmax in ckeys):
-            # Initialize plot options for min/max
-            if tmmx == "ErrorBar":
-                # Default error bar options
-                kw_m = odict(color='g', fmt=None, zorder=2)
-            else:
-                # Default filled region options
-                kw_m = odict(color='g', lw=0.0,
-                    facecolor='g', alpha=0.35, zorder=2)
-            # Add min/max to label.
-            lbl = u'%s (min/max)' % (lbl)
-            # Extract plot options from keyword arguments.
-            for k in util.denone(kw.get("MinMaxOptions")):
-                # Option
-                o_k = kw["MinMaxOptions"][k]
-                # Override the default option.
-                if o_k is not None: kw_m[k] = o_k
-            # Get the min and max values.
-            ymin = self[ckeys[cmin]][I]
-            ymax = self[ckeys[cmax]][I]
-            # Plot it.
-            if tmmx == "ErrorBar":
-                # Form +\- error bounds
-                yerr = np.vstack((yv-ymin, ymax-yv))
-                # Plot error bars
-                h['max'] = plt.errorbar(xv, yv, yerr=yerr, **kw_m)
-            else:
-                # Filled region
-                h['max'] = plt.fill_between(xv, ymin, ymax, **kw_m)
-        # ----------------
-        # Uncertainty Plot
-        # ----------------
-        # Uncertainty databook files
-        cu = coeff + "_u"
-        cuP = coeff + "_uP"
-        cuM = coeff + "_uM"
-        # Show uncertainty option
-        if qerr and (cu in ckeys) or (cuP in ckeys and cuM in ckeys):
-            # Initialize plot options for uncertainty
-            if terr == "FillBetween":
-                # Default filled region options
-                kw_u = odict(color='c', lw=0.0,
-                    facecolor='c', alpha=0.35, zorder=3)
-            else:
-                # Default error bar options
-                kw_u = odict(color='c', fmt=None, zorder=3)
-            # Add uncertainty to label
-            lbl = u'%s UQ bounds' % (lbl)
-            # Extract plot options from keyword arguments.
-            for k in util.denone(kw.get("UncertaintyOptions")):
-                # Option
-                o_k = kw["UncertaintyOptions"][k]
-                # Override the default option.
-                if o_k is not None: kw_u[k] = o_k
-            # Get the uncertainty values.
-            if cuP in ckeys and cuM in ckeys:
-                # Plus and minus coefficients are given
-                yuP = self[ckeys[cuP]]
-                yuM = self[ckeys[cuM]]
-            else:
-                # Single uncertainty
-                yuP = self[ckeys[cu]]
-                yuM = yuP
-            # Plot
-            if terr == "FillBetween":
-                # Form min and max
-                ymin = yv - yuM
-                ymax = yv + yuP
-                # Filled region
-                h['err'] = plt.fill_between(xv, ymin, ymax, **kw_u)
-            else:
-                # Form +/- error bounds
-                yerr = np.vstack((yuM, yuP))
-                # Plot error bars
-                h['err'] = plt.fill_between(xv, yv, yerr, **kw_u)
-        # ------------
-        # Primary Plot
-        # ------------
-        # Initialize plot options for primary plot
-        kw_p = odict(color='r', marker='^', zorder=7, ls='-')
-        # Plot options
-        for k in util.denone(kw.get("LineOptions")):
-            # Option
-            o_k = kw["LineOptions"][k]
-            # Override the default option.
-            if o_k is not None: kw_p[k] = o_k
-        # Label
-        kw_p.setdefault('label', lbl)
-        # Plot it.
-        h['line'] = plt.plot(xv, yv, **kw_p)
-        # ----------
-        # Formatting
-        # ----------
-        # Get the figure and axes.
-        h['fig'] = plt.gcf()
-        h['ax'] = plt.gca()
-        # Check for an existing ylabel
-        ly = h['ax'].get_ylabel()
-        # Compare to requested ylabel
-        if ly and ly != coeff:
-            # Combine labels.
-            ly = ly + '/' + coeff
+        # Get the key
+        ckey = ckeys[coeff]
+        # Get horizontal key.
+        xk = kw.get('x')
+        # Process this key to turn it into a trajectory column
+        if xk is None or xk == 'Index':
+            # This is fine
+            pass
+        elif xk not in self.xkeys:
+            # No translation for this key
+            raise ValueError(
+                "No trajectory key translation known for key '%s'" % xk)
         else:
-            # Use the coefficient.
-            ly = coeff
-        # Labels.
-        h['x'] = plt.xlabel(xk)
-        h['y'] = plt.ylabel(ly)
-        # Get limits to include all data.
-        xmin, xmax = get_xlim(h['ax'], pad=0.05)
-        ymin, ymax = get_ylim(h['ax'], pad=0.05)
-        # Make sure data is included.
-        h['ax'].set_xlim(xmin, xmax)
-        h['ax'].set_ylim(ymin, ymax)
-        # Legend.
-        if kw.get('Legend', True):
-            # Add extra room for the legend.
-            h['ax'].set_ylim((ymin, 1.2*ymax-0.2*ymin))
-            # Font size checks.
-            if len(h['ax'].get_lines()) > 5:
-                # Very small
-                fsize = 7
-            else:
-                # Just small
-                fsize = 9
-            # Activate the legend.
-            try:
-                # Use a font that has the proper symbols.
-                h['legend'] = h['ax'].legend(loc='upper center',
-                    prop=dict(size=fsize, family="DejaVu Sans"),
-                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
-            except Exception:
-                # Default font.
-                h['legend'] = h['ax'].legend(loc='upper center',
-                    prop=dict(size=fsize),
-                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
-        # Figure dimensions.
-        if fh: h['fig'].set_figheight(fh)
-        if fw: h['fig'].set_figwidth(fw)
-        # Attempt to apply tight axes.
-        try: plt.tight_layout()
-        except Exception: pass
-        # Output
-        return h
+            # Set the key to the translated value (which may be the same).
+            kw['x'] = self.xkeys[xk]
+        # Flip the error bar default plot types
+        kw.setdefault('PlotTypeMinMax',      'ErrorBar')
+        kw.setdefault('PlotTypeUncertainty', 'FillBetween')
+        kw.setdefault('PlotTypeStDev',       'ErrorBar')
+        # Prep keyword inputs for default settings
+        kw.setdefault('LineOptions', {})
+        # Alter the default settings for the line
+        kw['LineOptions'].setdefault('color', 'r')
+        kw['LineOptions'].setdefault('zorder', 7)
+        # Call the base plot method
+        return self.PlotCoeffBase(ckey, I, **kw)
         
     # Find an entry by trajectory variables.
     def FindMatch(self, x, i):
         """Find an entry by run matrix (trajectory) variables
         
         Cases will be considered matches by comparing variables specified in 
-        the *DataBook* section of :file:`pyCart.json` as cases to compare
+        the *DataBook* section of :file:`cape.json` as cases to compare
         against.  Suppose that the control file contains the following.
         
         .. code-block:: python
         
             "DataBook": {
                 "Targets": {
-                    "Name": "Experiment",
-                    "File": "WT.dat",
-                    "Trajectory": {"alpha": "ALPHA", "Mach": "MACH"}
-                    "Tolerances": {
-                        "alpha": 0.05,
-                        "Mach": 0.01
+                    "Experiment": {
+                        "File": "WT.dat",
+                        "Trajectory": {"alpha": "ALPHA", "Mach": "MACH"}
+                        "Tolerances": {
+                            "alpha": 0.05,
+                            "Mach": 0.01
+                        }
                     }
                 }
             }
@@ -2614,7 +2564,7 @@ class DBTarget(dict):
             >>> j = DBT.FindMatch(x, i)
         :Inputs:
             *DBT*: :class:`cape.dataBook.DBTarget`
-                Instance of the CAPE data book target data carrier
+                Instance of the Cape data book target data carrier
             *x*: :class:`pyCart.trajectory.Trajectory`
                 The current pyCart trajectory (i.e. run matrix)
             *i*: :class:`int`
@@ -2661,6 +2611,9 @@ class CaseData(object):
     
     :Call:
         >>> FM = CaseData()
+    :Outputs:
+        *FM*: :class:`cape.dataBook.CaseData`
+            Base iterative history class
     :Versions:
         * 2015-12-07 ``@ddalle``: First version
     """
@@ -2731,7 +2684,7 @@ class CaseData(object):
             
     # Basic plotting function
     def PlotValue(self, c, col=None, n=None, nAvg=100, **kw):
-        """Plot a single coefficient history
+        """Plot an iterative history of some value named *c*
         
         :Call:
             >>> h = FM.PlotValue(c, n=None, nAvg=100, **kw)
@@ -3060,6 +3013,409 @@ class CaseData(object):
             except Exception: pass
         # Output.
         return h
+    
+    # Plot coefficient histogram
+    def PlotValueHist(self, c, nAvg=100, nLast=None, **kw):
+        """Plot a histogram of the iterative history of some value *c*
+        
+        :Call:
+            >>> h = FM.PlotValueHist(comp, c, n=1000, nAvg=100, **kw)
+        :Inputs:
+            *FM*: :class:`cape.dataBook.CaseData`
+                Instance of the component force history class
+            *comp*: :class:`str`
+                Name of component to plot
+            *c*: :class:`str`
+                Name of coefficient to plot, e.g. ``'CA'``
+            *nAvg*: :class:`int`
+                Use the last *nAvg* iterations to compute an average
+            *nBins*: {``20``} | :class:`int`
+                Number of bins in histogram, also can be set in *HistOptions*
+            *nLast*: :class:`int`
+                Last iteration to use (defaults to last iteration available)
+        :Keyword Arguments:
+            *FigWidth*: :class:`float`
+                Figure width
+            *FigHeight*: :class:`float`
+                Figure height
+            *Label*: [ {*comp*} | :class:`str` ]
+                Manually specified label
+            *TargetValue*: :class:`float` | :class:`list` (:class:`float`)
+                Target or list of target values
+            *TargetLabel*: :class:`str` | :class:`list` (:class:`str`)
+                Legend label(s) for target(s)
+            *StDev*: [ {None} | :class:`float` ]
+                Multiple of iterative history standard deviation to plot
+            *HistOptions*: :class:`dict`
+                Plot options for the primary histogram
+            *StDevOptions*: :class:`dict`
+                Dictionary of plot options for the standard deviation plot
+            *DeltaOptions*: :class:`dict`
+                Options passed to :func:`plt.plot` for reference range plot
+            *MeanOptions*: :class:`dict`
+                Options passed to :func:`plt.plot` for mean line
+            *TargetOptions*: :class:`dict`
+                Options passed to :func:`plt.plot` for target value lines
+            *OutlierSigma*: {``7.0``} | :class:`float`
+                Standard deviation multiplier for determining outliers
+            *ShowMu*: :class:`bool`
+                Option to print value of mean
+            *ShowSigma*: :class:`bool`
+                Option to print value of standard deviation
+            *ShowEpsilon*: :class:`bool`
+                Option to print value of sampling error
+            *ShowDelta*: :class:`bool`
+                Option to print reference value
+            *ShowTarget*: :class:`bool`
+                Option to show target value
+            *MuFormat*: {``"%.4f"``} | :class:`str`
+                Format for text label of the mean value
+            *DeltaFormat*: {``"%.4f"``} | :class:`str`
+                Format for text label of the reference value *d*
+            *SigmaFormat*: {``"%.4f"``} | :class:`str`
+                Format for text label of the iterative standard deviation
+            *TargetFormat*: {``"%.4f"``} | :class:`str`
+                Format for text label of the target value
+            *XLabel*: :class:`str`
+                Specified label for *x*-axis, default is ``Iteration Number``
+            *YLabel*: :class:`str`
+                Specified label for *y*-axis, default is *c*
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of figure/plot handles
+        :Versions:
+            * 2015-02-15 ``@ddalle``: First version
+            * 2015-03-06 ``@ddalle``: Added *nLast* and fixed documentation
+            * 2015-03-06 ``@ddalle``: Copied to :class:`CaseFM`
+        """
+        # -----------
+        # Preparation
+        # -----------
+        # Make sure the plotting modules are present.
+        ImportPyPlot()
+        # Initialize dictionary of handles.
+        h = {}
+        # Figure dimensions
+        fw = kw.get('FigWidth', 6)
+        fh = kw.get('FigHeight', 4.5)
+        # ---------
+        # Last Iter 
+        # ---------
+        # Most likely last iteration
+        iB = self.i[-1]
+        # Check for an input last iter
+        if nLast is not None:
+            # Attempt to use requested iter.
+            if nLast < iB:
+                # Using an earlier iter; make sure to use one in the hist.
+                # Find the iterations that are less than i.
+                jB = self.GetIterationIndex(nLast)
+                iB = self.i[jB]
+        # Get the index of *iB* in *FM.i*.
+        jB = self.GetIterationIndex(iB)
+        # --------------
+        # Averaging Iter
+        # --------------
+        # Get the first iteration to use in averaging.
+        iA = max(0, iB-nAvg) + 1
+        # Make sure *iV* is in *FM.i* and get the index.
+        jA = self.GetIterationIndex(iA)
+        # Reselect *iV* in case initial value was not in *FM.i*.
+        iA = self.i[jA]
+        # -----
+        # Stats
+        # -----
+        # Calculate # of independent samples
+        # Number of available samples
+        nStat = jB - jA + 1
+        # Extract the values
+        V = getattr(self,coeff)[jA:jB+1]
+        # Calculate basic statistics
+        vmu = np.mean(V)
+        vstd = np.std(V)
+        verr = util.SigmaMean(V)
+        # Check for outliers ...
+        ostd = kw.get('OutlierSigma', 7.0)
+        # Apply outlier tolerance
+        if ostd:
+            # Find indices of cases that are within outlier range
+            J = np.abs(V-vmu)/vstd <= ostd
+            # Downselect
+            V = V[J]
+            # Recompute statistics
+            vmu = np.mean(V)
+            vstd = np.std(V)
+            verr = util.SigmaMean(V)
+        # Uncertainty options
+        ksig = kw.get('StDev')
+        # Reference delta
+        dc = kw.get('Delta', 0.0)
+        # Target values and labels
+        vtarg = kw.get('TargetValue')
+        ltarg = kw.get('TargetLabel')
+        # Convert target values to list
+        if vtarg in [None, False]:
+            vtarg = []
+        elif type(vtarg).__name__ not in ['list', 'tuple', 'ndarray']:
+            vtarg = [vtarg]
+        # Create appropriate target list for 
+        if type(ltarg).__name__ not in ['list', 'tuple', 'ndarray']:
+            ltarg = [ltarg]
+        # --------------
+        # Histogram Plot
+        # --------------
+        # Initialize plot options for histogram.
+        kw_h = odict(facecolor='c', zorder=2, bins=kw.get('nBins',20))
+        # Extract options from kwargs
+        for k in util.denone(kw.get("HistOptions", {})):
+            # Override the default option.
+            if kw["HistOptions"][k] is not None:
+                kw_h[k] = kw["HistOptions"][k]
+        # Check for range based on standard deviation
+        if kw.get("Range"):
+            # Use this number of pair of numbers as multiples of *vstd*
+            r = kw["Range"]
+            # Check for single number or list
+            if type(r).__name__ in ['ndarray', 'list', 'tuple']:
+                # Separate lower and upper limits
+                vmin = vmu - r[0]*vstd
+                vmax = vmu + r[1]*vstd
+            else:
+                # Use as a single number
+                vmin = vmu - r*vstd
+                vmax = vmu + r*vstd
+            # Overwrite any range option in *kw_h*
+            kw_h['range'] = (vmin, vmax)
+        # Plot the historgram.
+        h['hist'] = plt.hist(V, **kw_h)
+        # Get the figure and axes.
+        h['fig'] = plt.gcf()
+        h['ax'] = plt.gca()
+        # Get current axis limits
+        pmin, pmax = h['ax'].get_ylim()
+        # Determine whether or not the distribution is normed
+        q_normed = kw_h.get("normed", True)
+        # Determine whether or not the bars are vertical
+        q_vert = kw_h.get("orientation", "vertical") == "vertical"
+        # ---------
+        # Mean Plot
+        # ---------
+        # Option whether or not to plot mean as vertical line.
+        if kw.get("PlotMean", True):
+            # Initialize options for mean plot
+            kw_m = odict(color='k', lw=2, zorder=6)
+            kw_m["label"] = "Mean value"
+            # Extract options from kwargs
+            for k in util.denone(kw.get("MeanOptions", {})):
+                # Override the default option.
+                if kw["MeanOptions"][k] is not None:
+                    kw_m[k] = kw["MeanOptions"][k]
+            # Check orientation
+            if q_vert:
+                # Plot a vertical line for the mean.
+                h['mean'] = plt.plot([vmu,vmu], [pmin,pmax], **kw_m)
+            else:
+                # Plot a horizontal line for th emean.
+                h['mean'] = plt.plot([pmin,pmax], [vmu,vmu], **kw_m)
+        # -----------
+        # Target Plot
+        # -----------
+        # Option whether or not to plot targets
+        if vtarg is not None and len(vtarg)>0:
+            # Initialize options for target plot
+            kw_t = odict(color='k', lw=2, ls='--', zorder=8)
+            # Set label
+            if ltarg is not None:
+                # User-specified list of labels
+                kw_t["label"] = ltarg
+            else:
+                # Default label
+                kw_t["label"] = "Target"
+            # Extract options for target plot
+            for k in util.denone(kw.get("TargetOptions", {})):
+                # Override the default option.
+                if kw["TargetOptions"][k] is not None:
+                    kw_t[k] = kw["TargetOptions"][k]
+            # Loop through target values
+            for i in range(len(vtarg)):
+                # Select the value
+                vt = vtarg[i]
+                # Check for NaN or None
+                if np.isnan(vt) or vt in [None, False]: continue
+                # Downselect options
+                kw_ti = {}
+                for k in kw_t:
+                    kw_ti[k] = kw_t.get_key(k, i)
+                # Initialize handles
+                h['target'] = []
+                # Check orientation
+                if q_vert:
+                    # Plot a vertical line for the target.
+                    h['target'].append(
+                        plt.plot([vt,vt], [pmin,pmax], **kw_ti))
+                else:
+                    # Plot a horizontal line for the target.
+                    h['target'].append(
+                        plt.plot([pmin,pmax], [vt,vt], **kw_ti))
+        # -----------------------
+        # Standard Deviation Plot
+        # -----------------------
+        # Check whether or not to plot it
+        if ksig and len(I)>2:
+            # Check for single number or list
+            if type(ksig).__name__ in ['ndarray', 'list', 'tuple']:
+                # Separate lower and upper limits
+                vmin = vmu - ksig[0]*vstd
+                vmax = vmu + ksig[1]*vstd
+            else:
+                # Use as a single number
+                vmin = vmu - ksig*vstd
+                vmax = vmu + ksig*vstd
+            # Initialize options for std plot
+            kw_s = odict(color='b', lw=2, zorder=5)
+            # Extract options from kwargs
+            for k in util.denone(kw.get("StDevOptions", {})):
+                # Override the default option.
+                if kw["StDevOptions"][k] is not None:
+                    kw_s[k] = kw["StDevOptions"][k]
+            # Check orientation
+            if q_vert:
+                # Plot a vertical line for the min and max
+                h['std'] = (
+                    plt.plot([vmin,vmin], [pmin,pmax], **kw_s) +
+                    plt.plot([vmax,vmax], [pmin,pmax], **kw_s))
+            else:
+                # Plot a horizontal line for the min and max
+                h['std'] = (
+                    plt.plot([pmin,pmax], [vmin,vmin], **kw_s) +
+                    plt.plot([pmin,pmax], [vmax,vmax], **kw_s))
+        # ----------
+        # Delta Plot
+        # ----------
+        # Check whether or not to plot it
+        if dc:
+            # Initialize options for delta plot
+            kw_d = odict(color="r", ls="--", lw=1.0, zorder=3)
+            # Extract options from kwargs
+            for k in util.denone(kw.get("DeltaOptions", {})):
+                # Override the default option.
+                if kw["DeltaOptions"][k] is not None:
+                    kw_d[k] = kw["DeltaOptions"][k]
+                # Check for single number or list
+            if type(dc).__name__ in ['ndarray', 'list', 'tuple']:
+                # Separate lower and upper limits
+                cmin = vmu - dc[0]
+                cmax = vmu + dc[1]
+            else:
+                # Use as a single number
+                cmin = vmu - dc
+                cmax = vmu + dc
+            # Check orientation
+            if q_vert:
+                # Plot vertical lines for the reference length
+                h['delta'] = (
+                    plt.plot([cmin,cmin], [pmin,pmax], **kw_d) +
+                    plt.plot([cmax,cmax], [pmin,pmax], **kw_d))
+            else:
+                # Plot horizontal lines for reference length
+                h['delta'] = (
+                    plt.plot([pmin,pmax], [cmin,cmin], **kw_d) +
+                    plt.plot([pmin,pmax], [cmax,cmax], **kw_d))
+        # ----------
+        # Formatting
+        # ----------
+        # Default value-axis label
+        lx = coeff
+        # Default probability-axis label
+        if q_normed:
+            # Size of bars is probability
+            ly = "Probability Density"
+        else:
+            # Size of bars is count
+            ly = "Count"
+        # Process axis labels
+        xlbl = kw.get('XLabel')
+        ylbl = kw.get('YLabel')
+        # Apply defaults
+        if xlbl is None: xlbl = lx
+        if ylbl is None: ylbl = ly
+        # Check for flipping
+        if not q_vert:
+            xlbl, ylbl = ylbl, xlbl
+        # Labels.
+        h['x'] = plt.xlabel(xlbl)
+        h['y'] = plt.ylabel(ylbl)
+        # Set figure dimensions
+        if fh: h['fig'].set_figheight(fh)
+        if fw: h['fig'].set_figwidth(fw)
+        # Attempt to apply tight axes.
+        try: plt.tight_layout()
+        except Exception: pass
+        # ------
+        # Labels
+        # ------
+        # y-coordinates of the current axes w.r.t. figure scale
+        ya = h['ax'].get_position().get_points()
+        ha = ya[1,1] - ya[0,1]
+        # y-coordinates above and below the box
+        yf = 2.5 / ha / h['fig'].get_figheight()
+        yu = 1.0 + 0.065*yf
+        yl = 1.0 - 0.04*yf
+        # Make a label for the mean value.
+        if kw.get("ShowMu", True):
+            # printf-style format flag
+            flbl = kw.get("MuFormat", "%.4f")
+            # Form: CA = 0.0204
+            lbl = (u'%s = %s' % (coeff, flbl)) % vmu
+            # Create the handle.
+            h['mu'] = plt.text(0.99, yu, lbl, color=kw_m['color'],
+                horizontalalignment='right', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['mu'].set_family("DejaVu Sans")
+            except Exception: pass
+        # Make a label for the deviation.
+        if dc and kw.get("ShowDelta", True):
+            # printf-style flag
+            flbl = kw.get("DeltaFormat", "%.4f")
+            # Form: \DeltaCA = 0.0050
+            lbl = (u'\u0394%s = %s' % (coeff, flbl)) % dc
+            # Create the handle.
+            h['d'] = plt.text(0.01, yl, lbl, color=kw_d.get_key('color',1),
+                horizontalalignment='left', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['d'].set_family("DejaVu Sans")
+            except Exception: pass
+        # Make a label for the standard deviation.
+        if len(I)>2 and ((ksig and kw.get("ShowSigma", True)) 
+                or kw.get("ShowSigma", False)):
+            # Printf-style flag
+            flbl = kw.get("SigmaFormat", "%.4f")
+            # Form \sigma(CA) = 0.0032
+            lbl = (u'\u03C3(%s) = %s' % (coeff, flbl)) % vstd
+            # Create the handle.
+            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_key('color',1),
+                horizontalalignment='left', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['sig'].set_family("DejaVu Sans")
+            except Exception: pass
+        # Make a label for the iterative uncertainty.
+        if len(vtarg)>0 and kw.get("ShowTarget", True):
+            # printf-style format flag
+            flbl = kw.get("TargetFormat", "%.4f")
+            # Form Target = 0.0032
+            lbl = (u'%s = %s' % (ltarg[0], flbl)) % vtarg[0]
+            # Create the handle.
+            h['t'] = plt.text(0.99, yl, lbl, color=kw_t.get_key('color',0),
+                horizontalalignment='right', verticalalignment='top',
+                transform=h['ax'].transAxes)
+            # Correct the font.
+            try: h['t'].set_family("DejaVu Sans")
+            except Exception: pass
+        # Output.
+        return h
 # class CaseData
         
 
@@ -3158,10 +3514,10 @@ class CaseFM(CaseData):
     def TransformFM(self, topts, x, i):
         """Transform a force and moment history
         
-        Available transformations and their required parameters are listed
-        below.
+        Available transformations and their parameters are listed below.
         
             * "Euler321": "psi", "theta", "phi"
+            * "ScaleCoeffs": "CA", "CY", "CN", "CLL", "CLM", "CLN"
             
         Trajectory variables are used to specify values to use for the
         transformation variables.  For example,
@@ -3174,6 +3530,15 @@ class CaseFM(CaseData):
         will cause this function to perform a reverse Euler 3-2-1 transformation
         using *x.Psi[i]*, *x.Theta[i]*, and *x.Phi[i]* as the angles.
         
+        Coefficient scaling can be used to fix incorrect reference areas or flip
+        axes.  The default is actually to flip *CLL* and *CLN* due to the
+        transformation from CFD axes to standard flight dynamics axes.
+        
+            .. code-block:: python
+            
+                tops = {"Type": "ScaleCoeffs",
+                    "CLL": -1.0, "CLN": -1.0}
+        
         :Call:
             >>> FM.TransformFM(topts, x, i)
         :Inputs:
@@ -3181,7 +3546,7 @@ class CaseFM(CaseData):
                 Instance of the force and moment class
             *topts*: :class:`dict`
                 Dictionary of options for the transformation
-            *x*: :class:`pyCart.trajectory.Trajectory`
+            *x*: :class:`cape.trajectory.Trajectory`
                 The run matrix used for this analysis
             *i*: :class:`int`
                 The index of the case to transform in the current run matrix
@@ -3286,7 +3651,6 @@ class CaseFM(CaseData):
                     k = -1.0
                 # Scale.
                 setattr(self,c, k*getattr(self,c))
-            
         else:
             raise IOError(
                 "Transformation type '%s' is not recognized." % ttype)
@@ -3457,8 +3821,6 @@ class CaseFM(CaseData):
         # Output.
         return s
     
-    
-    
     # Plot iterative force/moment history
     def PlotCoeff(self, c, n=None, nAvg=100, **kw):
         """Plot a single coefficient history
@@ -3520,6 +3882,8 @@ class CaseFM(CaseData):
                 Figure width
             *FigHeight*: :class:`float`
                 Figure height
+        :Keyword arguments:
+            * See :func:`cape.dataBook.CaseData.PlotValueHist`
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
@@ -3528,88 +3892,7 @@ class CaseFM(CaseData):
             * 2015-03-06 ``@ddalle``: Added *nLast* and fixed documentation
             * 2015-03-06 ``@ddalle``: Copied to :class:`CaseFM`
         """
-        # Make sure plotting modules are present.
-        ImportPyPlot()
-        # Extract the data.
-        C = getattr(self, c)
-        # Process other options
-        fw = kw.get('FigWidth')
-        fh = kw.get('FigHeight')
-        # ---------
-        # Last Iter 
-        # ---------
-        # Most likely last iteration
-        iB = self.i[-1]
-        # Check for an input last iter
-        if nLast is not None:
-            # Attempt to use requested iter.
-            if nLast < iB:
-                # Using an earlier iter; make sure to use one in the hist.
-                # Find the iterations that are less than i.
-                jB = self.GetIterationIndex(nLast)
-                iB = self.i[jB]
-        # Get the index of *iB* in *FM.i*.
-        jB = self.GetIterationIndex(iB)
-        # --------------
-        # Averaging Iter
-        # --------------
-        # Get the first iteration to use in averaging.
-        iA = max(0, iB-nAvg) + 1
-        # Make sure *iV* is in *FM.i* and get the index.
-        jA = self.GetIterationIndex(iA)
-        # Reselect *iV* in case initial value was not in *FM.i*.
-        iA = self.i[jA]
-        # --------
-        # Plotting
-        # --------
-        # Calculate statistics.
-        cAvg = np.mean(C[jA:jB+1])
-        cStd = np.std(C[jA:jB+1])
-        cErr = util.SigmaMean(C[jA:jB+1])
-        # Calculate # of independent samples
-        # Number of available samples
-        nStat = jB - jA + 1
-        # Initialize dictionary of handles.
-        h = {}
-        # Plot the histogram.
-        h[c] = plt.hist(C[jA:jB+1], nBin,
-            normed=1, histtype='bar', rwidth=0.85, color='#2020ff')
-        # Labels.
-        h['x'] = plt.xlabel(c)
-        h['y'] = plt.ylabel('PDF')
-        # Get the figure and axes.
-        h['fig'] = plt.gcf()
-        h['ax'] = plt.gca()
-        # Set figure dimensions
-        if fh: h['fig'].set_figheight(fh)
-        if fw: h['fig'].set_figwidth(fw)
-        # Attempt to apply tight axes.
-        try:
-            plt.tight_layout()
-        except Exception:
-            pass
-        # Make a label for the mean value.
-        lbl = u'\u03BC(%s) = %.4f' % (c, cAvg)
-        h['mu'] = plt.text(1.0, 1.06, lbl, horizontalalignment='right',
-            verticalalignment='top', transform=h['ax'].transAxes)
-        # Make a label for the standard deviation.
-        lbl = u'\u03C3(%s) = %.4f' % (c, cStd)
-        h['sigma'] = plt.text(0.02, 1.06, lbl, horizontalalignment='left',
-            verticalalignment='top', transform=h['ax'].transAxes)
-        # Make a label for the uncertainty.
-        lbl = u'\u03C3(\u03BC) = %.4f' % cErr
-        h['err'] = plt.text(0.02, 0.98, lbl, horizontalalignment='left',
-            verticalalignment='top', transform=h['ax'].transAxes)
-        # Attempt to set font to one with Greek symbols.
-        try:
-            # Set the fonts.
-            h['mu'].set_family("DejaVu Sans")
-            h['sigma'].set_family("DejaVu Sans")
-            h['err'].set_family("DejaVu Sans")
-        except Exception:
-            pass
-        # Output.
-        return h
+        return self.PlotValueHist(c, nAvg=nAvg, nBin=nBin, nLast=None, **kw)
 # class CaseFM
 
 

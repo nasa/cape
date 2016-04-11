@@ -1,16 +1,28 @@
 """
-CAPE base module for CFD control: :mod:`cape.cape`
+Cape base module for CFD control: :mod:`cape.cntl`
 ==================================================
 
 This module provides tools and templates for tools to interact with various CFD
 codes and their input files.  The base class is :class:`cape.cntl.Cntl`, and the
-derivative classes include :class:`pyCart.cart3d.Cart3d`.
+derivative classes include :class:`pyCart.cart3d.Cart3d`.  This module creates
+folders for cases, copies files, and can be used as an interface to perform most
+of the tasks that Cape can accomplish except for running individual cases.
+
+The control module is set up as a Python interface for the master JSON file,
+which contains the settings to be used for a given CFD project.
 
 The derivative classes are used to read input files, set up cases, submit and/or
-run cases, and be an interface for the various CAPE options
+run cases, and be an interface for the various Cape options as they are
+customized for the various CFD solvers.  The individualized modules are below.
 
-:Versions:
-    * 2015-09-20 ``@ddalle``: Started
+    * :mod:`pyCart.cart3d.Cart3d`
+    * :mod:`pyFun.fun3d.Fun3d`
+    * :mod:`pyOver.overflow.Overflow`
+    
+:See also:
+    * :mod:`cape.case`
+    * :mod:`cape.options`
+    * :mod:`cape.trajectory`
 """
 
 # Numerics
@@ -32,7 +44,36 @@ from config     import Config
 # Import triangulation
 from tri import Tri, RotatePoints
 
-
+# Function to read a single triangulation file
+def ReadTriFile(fname):
+    """Read a single triangulation file
+    
+    :Call:
+        >>> tri = ReadTriFile(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of Cart3D tri, IDEAS unv, UH3D, or AFLR3 surf file
+    :Outputs:
+        *tri*: :class:`cape.tri.Tri`
+            Triangulation
+    :Versions:
+        * 2016-04-06 ``@ddalle``: First version
+    """
+    # Get the extension
+    fext = fname.split('.')[-1]
+    # Read using the appropriate format
+    if fext.lower() == 'surf':
+        # AFLR3 surface file
+        return Tri(surf=fname)
+    elif fext.lower() == 'uh3d':
+        # UH3D surface file
+        return Tri(uh3d=fname)
+    elif fext.lower() == 'unv':
+        # Weird IDEAS triangulation thing
+        return Tri(unv=fname)
+    else:
+        # Assume Cart3D triangulation file
+        return Tri(fname)
 
 # Class to read input files
 class Cntl(object):
@@ -46,9 +87,16 @@ class Cntl(object):
             Name of JSON settings file from which to read options
     :Outputs:
         *cntl*: :class:`cape.cntl.Cntl`
-            Instance of CAPE control interface
+            Instance of Cape control interface
+        *cntl.opts*: :class:`cape.options.Options`
+            Options interface
+        *cntl.x*: :class:`cape.trajectory.Trajectory`
+            Run matrix interface
+        *cntl.RootDir*: :class:`str`
+            Working directory from which the class was generated
     :Versions:
         * 2015-09-20 ``@ddalle``: Started
+        * 2016-04-01 ``@ddalle``: Declared version 1.0
     """
     # Initialization method
     def __init__(self, fname="cape.json"):
@@ -85,13 +133,31 @@ class Cntl(object):
         
     # Function to import user-specified modules
     def ImportModules(self):
-        """Import user-defined modules, if any
+        """Import user-defined modules, if any specified in the options
+        
+        All modules from the ``"Modules"`` global option of the JSON file
+        (``cntl.opts['Modules']``) will be imported and saved as attributes of
+        *cntl*.  For example, if the user wants to use a module called
+        :mod:`dac3`, it will be imported as *cntl.dac3*.  A list of disallowed
+        module names is below.
+        
+            *DataBook*, *RootDir*, *jobs*, *opts*, *tri*, *x*
+            
+        The name of any method of this class is also disallowed.  However, if
+        the user wishes to import a module whose name is disallowed, he/she can
+        use a dictionary to specify a different name to import the module as.
+        For example, the user may import a module called :mod:`tri` as
+        :mod:`mytri` using the following JSON syntax.
+        
+            .. code-block:: javascript
+            
+                "Modules": [{"tri": "mytri"}]
         
         :Call:
             >>> cntl.ImportModules()
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of CAPE control interface
+                Instance of Cape control interface
         :Versions:
             * 2014-10-08 ``@ddalle``: First version (pyCart)
             * 2015-09-20 ``@ddalle``: Moved to parent class
@@ -107,10 +173,21 @@ class Cntl(object):
             lmod = [lmod]
         # Loop through modules.
         for imod in lmod:
-            # Status update
-            print("Importing module '%s'." % imod)
+            # Check for dictionary
+            if type(imod).__name__ in ['dict', 'odict']:
+                # Get the file name and import name separately
+                fmod = imod.keys()[0]
+                nmod = imod[fmod]
+                # Status update
+                print("Importing module '%s' as '%s'" % (fmod, imod))
+            else:
+                # Import as the default name
+                fmod = imod
+                nmod = imod
+                # Status update
+                print("Importing module '%s'" % imod)
             # Load the module by its name
-            exec('self.%s = __import__("%s")' % (imod, imod))
+            exec('self.%s = __import__("%s")' % (fmod, nmod))
         
     # Function to prepare the triangulation for each grid folder
     def ReadTri(self):
@@ -137,23 +214,26 @@ class Cntl(object):
         # Go to root folder safely.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
-        # Read them.
-        if type(ftri).__name__ == 'list':
-            # Read the initial triangulation.
-            tri = Tri(ftri[0])
-            # Save the number of nodes to this point.
-            tri.iTri = [tri.nTri]
-            # Loop through the remaining tri files.
-            for f in ftri[1:]:
-                # Append the file.
-                tri.Add(Tri(f))
-                # Save the node number.
-                tri.iTri.append(tri.nTri)
-        else:
-            # Just read the triangulation file.
-            tri = Tri(ftri)
-            # Save the one break point.
-            tri.iTri = [tri.nTri]
+        # Ensure list
+        if type(ftri).__name__ not in ['list', 'ndarray']: ftri = [ftri]
+        # Read first file
+        tri = ReadTriFile(ftri[0])
+        # Initialize number of nodes in each file
+        tri.iTri = [tri.nTri]
+        tri.iQuad = [tri.nQuad]
+        # Loop through files
+        for f in ftri[1:]:
+            # Append the triangulation
+            tri.Add(ReadTriFile(f))
+            # Save the face counts
+            tri.iTri.append(tri.nTri)
+            tri.iQuad.append(tri.nQuad)
+        # Check for AFLR3 bcs
+        fbc = self.opts.get_aflr3_BCFile()
+        # If present, map it.
+        if fbc:
+            # Map boundary conditions
+            tri.ReadBCs_AFLR3(fbc)
         # Save it.
         self.tri = tri
         # Check for a config file.
@@ -163,7 +243,7 @@ class Cntl(object):
         self.tri0 = self.tri.Copy()
         # Return to original location.
         os.chdir(fpwd)
-            
+        
     # Make a directory
     def mkdir(self, fdir):
         """Make a directory with the correct permissions
@@ -189,7 +269,9 @@ class Cntl(object):
     def DisplayStatus(self, **kw):
         """Display current status for all cases
         
-        This prints case names, current iteration numbers, and so on.
+        This prints case names, current iteration numbers, and so on.  This is
+        the function that is called when the user issues a system command like
+        ``cape -c``.
         
         :Call:
             >>> cntl.DisplayStatus(j=False)
@@ -392,18 +474,20 @@ class Cntl(object):
         :Versions:
             * 2014-10-06 ``@ddalle``: First version
         """
+        # Get case name
+        frun = self.x.GetFullFolderNames(i)
         # Check status.
         if self.CheckCase(i) is None:
             # Case not ready
+            print("    Attempted to start case '%s'." % frun)
+            print("    However, case failed initial checks.")
             return
         elif self.CheckRunning(i):
             # Case already running!
             return
-        # Safely go to root directory.
+        # Safely go to the folder.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
-        # Get case name and go to the folder.
-        frun = self.x.GetFullFolderNames(i)
         os.chdir(frun)
         # Print status.
         print("     Starting case '%s'." % frun)
@@ -425,10 +509,10 @@ class Cntl(object):
         the correct solver only in that it calls the correct *case* module.
         
         :Call:
-            >>> pbs = cart3d.CaseStartCase()
+            >>> pbs = cntl.CaseStartCase()
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                CAPE control interface
+                Cape control interface
         :Outputs:
             *pbs*: :class:`int` or ``None``
                 PBS job ID if submitted successfully
@@ -623,22 +707,34 @@ class Cntl(object):
         
     # Check if cases with zero iterations are not yet setup to run
     def CheckNone(self):
-        """Check if case *i* has the necessary files to run
+        """Check if the present working directory has the necessary files to run
         
+        This function needs to be customized for each CFD solver so that it
+        checks for the appropriate files.
+        
+        :Call:
+            >>> q = cntl.CheckNone()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Cape control interface
+        :Outputs:
+            *q*: ``False``
+                Whether or not case is missing files
         :Versions:
             * 2015-09-27 ``@ddalle``: First version
         """
         return False
     
+    
     # Get CPU hours (actually core hours)
     def GetCPUTimeFromFile(self, i, fname='cape_time.dat'):
-        """Read a CAPE-style core-hour file
+        """Read a Cape-style core-hour file
         
         :Call:
             >>> CPUt = cntl.GetCPUTimeFromFile(i, fname)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                CAPE control interface
+                Cape control interface
             *i*: :class:`int`
                 Case index
             *fname*: :class:`str`
@@ -679,13 +775,19 @@ class Cntl(object):
             
     # Get total CPU hours (actually core hours)
     def GetCPUTime(self, i):
-        """Read a CAPE-style core-hour file from a case
+        """Read a Cape-style core-hour file from a case
+        
+        This function needs to be customized for each solver because it needs to
+        know the name of the file in which timing data is saved.  It defaults to
+        :file:`cape_time.dat`.  Modifying this command is a one-line fix with a
+        call to :func:`cape.cntl.Cntl.GetCPUTimeFromFile` with the correct file
+        name.
         
         :Call:
             >>> CPUt = cntl.GetCPUTime(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                CAPE control interface
+                Cape control interface
             *i*: :class:`int`
                 Case index
         :Outputs:
@@ -818,9 +920,9 @@ class Cntl(object):
         """Check if a case is currently running
         
         :Call:
-            >>> q = cart3d.CheckRunning(i)
+            >>> q = cntl.CheckRunning(i)
         :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+            *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Run index
@@ -963,8 +1065,13 @@ class Cntl(object):
     def PrepareCase(self, i):
         """Prepare case for running if necessary
         
+        This function creates the folder, copies mesh files, and saves settings
+        and input files.  All of these tasks are completed only if they have not
+        already been completed, and it needs to be customized for each CFD
+        solver.
+        
         :Call:
-            >>> n = cntl.PrepareCase(i)
+            >>> cntl.PrepareCase(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class containing relevant parameters
@@ -997,14 +1104,198 @@ class Cntl(object):
         # Return to original location.
         os.chdir(fpwd)
     
-    # Write flowCart options to JSON file
-    def WriteCaseJSON(self, i):
-        """Write JSON file with `flowCart` and related settings for case *i*
+        
+    # Function to apply special triangulation modification keys
+    def PrepareTri(self, i):
+        """Rotate/translate/etc. triangulation for given case
         
         :Call:
-            >>> cart3d.WriteCaseJSON(i)
+            >>> cntl.PrepareTri(i)
         :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2014-12-01 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Moved from pyCart -> cape
+        """
+        # Get function for rotations, etc.
+        keys = self.x.GetKeysByType(['translation', 'rotation', 'TriFunction'])
+        # Loop through keys.
+        for key in keys:
+            # Type
+            kt = self.x.defns[key]['Type']
+            # Filter on which type of triangulation modification it is.
+            if kt == "TriFunction":
+                # Special triangulation function
+                self.PrepareTriFunction(key, i)
+            elif kt.lower() == "translation":
+                # Component(s) translation
+                self.PrepareTriTranslation(key, i)
+            elif kt.lower() == "rotation":
+                # Component(s) rotation
+                self.PrepareTriRotation(key, i)
+            
+    # Apply a special triangulation function
+    def PrepareTriFunction(self, key, i):
+        """Apply special triangulation modification function for a case
+        
+        :Call:
+            >>> cntl.PrepareTriFunction(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2015-09-11 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Moved from pyCart -> cape
+        """
+        # Get the function for this *TriFunction*
+        func = self.x.defns[key]['Function']
+        # Apply it.
+        exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+        
+    # Apply a triangulation translation
+    def PrepareTriTranslation(self, key, i):
+        """Apply a translation to a component or components
+        
+        :Call:
+            >>> cntl.PrepareTriTranslation(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2015-09-11 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Moved from pyCart -> cape
+        """
+        # Get the options for this key.
+        kopts = self.x.defns[key]
+        # Get the components to translate.
+        compID  = self.tri.GetCompID(kopts.get('CompID'))
+        # Components to translate in opposite direction
+        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []))
+        # Check for a direction
+        if 'Vector' not in kopts:
+            raise IOError(
+                "Rotation key '%s' does not have a 'Vector'." % key)
+        # Get the direction and its type
+        vec = kopts['Vector']
+        tvec = type(vec).__name__
+        # Get points to translate along with it.
+        pts  = kopts.get('Points', [])
+        ptsR = kopts.get('PointsSymmetric', [])
+        # Make sure these are lists.
+        if type(pts).__name__  != 'list': pts  = list(pts)
+        if type(ptsR).__name__ != 'list': ptsR = list(ptsR)
+        # Check the type
+        if tvec in ['list', 'ndarray']:
+            # Specified directly.
+            u = np.array(vec)
+        else:
+            # Named vector
+            u = np.array(self.opts.get_Point(vec))
+        # Form the translation vector
+        v = u * getattr(self.x,key)[i]
+        # Translate the triangulation
+        self.tri.Translate(v, compID=compID)
+        self.tri.Translate(-v, compID=compIDR)
+        # Loop through translation points.
+        for pt in pts:
+            # Get point
+            x = self.opts.get_Point(pt)
+            # Apply transformation.
+            self.opts.set_Point(x+v, pt)
+        # Loop through translation points.
+        for pt in ptsR:
+            # Get point
+            x = self.opts.get_Point(pt)
+            # Apply transformation.
+            self.opts.set_Point(x-v, pt)
+            
+    # Apply a triangulation rotation
+    def PrepareTriRotation(self, key, i):
+        """Apply a rotation to a component or components
+        
+        :Call:
+            >>> cntl.PrepareTriRotation(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2015-09-11 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Moved from pyCart -> cape
+        """
+        # Get the options for this key.
+        kopts = self.x.defns[key]
+        # Get the components to translate.
+        compID = self.tri.GetCompID(kopts.get('CompID'))
+        # Components to translate in opposite direction
+        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []))
+        # Symmetry applied to rotation vector.
+        kv = kopts.get('VectorSymmetry', [1.0, 1.0, 1.0])
+        ka = kopts.get('AngleSymmetry', -1.0)
+        # Convert list -> numpy.ndarray
+        if type(kv).__name__ == "list": kv = np.array(kv)
+        # Check for a direction
+        if 'Vector' not in kopts:
+            raise KeyError(
+                "Rotation key '%s' does not have a 'Vector'." % key)
+        # Get the direction and its type.
+        vec = kopts['Vector']
+        # Check type
+        if len(vec) != 2:
+            raise KeyError(
+                "Rotation key '%s' vector must be exactly two points." % key)
+        # Get start and end points of rotation vector.
+        v0 = np.array(self.opts.get_Point(kopts['Vector'][0]))
+        v1 = np.array(self.opts.get_Point(kopts['Vector'][1]))
+        # Symmetry rotation vectors.
+        v0R = kv*v0
+        v1R = kv*v1
+        # Get points to translate along with it.
+        pts  = kopts.get('Points', [])
+        ptsR = kopts.get('PointsSymmetric', [])
+        # Make sure these are lists.
+        if type(pts).__name__  != 'list': pts  = list(pts)
+        if type(ptsR).__name__ != 'list': ptsR = list(ptsR)
+        # Rotation angle
+        theta = getattr(self.x,key)[i]
+        # Rotate the triangulation.
+        self.tri.Rotate(v0,  v1,  theta,  compID=compID)
+        self.tri.Rotate(v0R, v1R, ka*theta, compID=compIDR)
+        # Points to be rotated
+        X  = np.array([self.opts.get_Point(pt) for pt in pts])
+        XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
+        # Apply transformation
+        Y  = RotatePoints(X,  v0,  v1,  theta)
+        YR = RotatePoints(XR, v0R, v1R, ka*theta)
+        # Save the points.
+        for j in range(len(pts)):
+            # Set the new value.
+            self.opts.set_Point(Y[j], pts[j])
+        # Save the symmetric points.
+        for j in range(len(ptsR)):
+            # Set the new value.
+            self.opts.set_Point(YR[j], ptsR[j])
+    
+    
+    # Write flowCart options to JSON file
+    def WriteCaseJSON(self, i):
+        """Write JSON file with the ``"RunControl"`` options for case *i*
+        
+        Settings are written to the file :file:`case.json` within the run folder
+        for case *i*.  If the folder does not yet exist, no action is taken.
+        
+        :Call:
+            >>> cntl.WriteCaseJSON(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Run index
@@ -1031,5 +1322,5 @@ class Cntl(object):
         f.close()
         # Return to original location
         os.chdir(fpwd)
-        
+# class Cntl
     

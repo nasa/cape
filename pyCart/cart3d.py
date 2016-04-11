@@ -386,16 +386,18 @@ class Cart3d(Cntl):
         # Go to working folder. ('.' or 'adapt??/')
         os.chdir(case.GetWorkingFolder())
         # Check for a mesh file?
-        if not opts.get_Adaptive(0) or opts.get_jumpstart(0):
+        if opts.get_GroupMesh() or opts.get_PreMesh(0):
             # Intersected mesh file.
             if not os.path.isfile('Components.i.tri'): q = False
-            # Mesh file.
-            if q and opts.get_mg() > 0:
-                # Look for multigrid mesh
-                if not os.path.isfile('Mesh.mg.c3d'): q = False
-            elif q:
-                # Look for original mesh
-                if not os.path.isfile('Mesh.c3d'): q = False
+            # Check for jumpstart exception
+            if not opts.get_Adaptive(0) or opts.get_jumpstart(0):
+                # Mesh file.
+                if q and opts.get_mg() > 0:
+                    # Look for multigrid mesh
+                    if not os.path.isfile('Mesh.mg.c3d'): q = False
+                elif q:
+                    # Look for original mesh
+                    if not os.path.isfile('Mesh.c3d'): q = False
         elif opts.get_intersect():
             # Pre-intersect surface files.
             if not os.path.isfile('Components.c.tri'): q = False
@@ -505,224 +507,26 @@ class Cart3d(Cntl):
             func = self.x.defns[key]['Function']
             # Apply it.
             exec("%s(self.%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+        # RunControl options (for consistency)
+        rc = self.opts['RunControl']
         # Run autoInputs if necessary.
-        if self.opts.get_r():
-            # Run autoInputs
-            bin.autoInputs(self)
-            # Fix the name of the triangulation in the 'input.c3d' file
-            if self.opts.get_intersect():
-                # Read the intersect file.
-                lines = open('input.c3d').readlines()
-                # Change the triangulation file
-                lines[7] = '  Components.i.tri\n'
-                # Write the corrected file.
-                open('input.c3d', 'w').writelines(lines)
+        if self.opts.get_PreMesh(0) or not os.path.isfile('preSpec.c3d.cntl'):
+            # Run autoInputs (tests opts.get_autoInputs() internally)
+            case.CaseAutoInputs(rc, j=0)
         # Read the resulting preSpec.c3d.cntl file
         self.PreSpecCntl = PreSpecCntl('preSpec.c3d.cntl')
         # Bounding box control...
         self.PreparePreSpecCntl()
         # Check for jumpstart.
-        if not self.opts.get_Adaptive(0) or self.opts.get_jumpstart(0):
-            # Check for intersect step.
-            if self.opts.get_intersect():
-                # Run intersect.
-                bin.intersect('Components.tri', 'Components.o.tri')
-                # Read the original triangulation.
-                tric = Tri('Components.c.tri')
-                # Read the intersected triangulation.
-                trii = Tri('Components.o.tri')
-                # Read the pre-intersection triangulation.
-                tri0 = Tri('Components.tri')
-                # Map the Component IDs.
-                trii.MapCompID(tric, tri0)
-                # Write the triangulation.
-                trii.Write('Components.i.tri')
-            # Check for verify step.
-            if self.opts.get_verify():
-                # Run verify.
-                bin.verify('Components.i.tri')
-            # Run cubes.
-            bin.cubes(self)
-            # Run mgPrep
-            bin.mgPrep(self)
+        if self.opts.get_PreMesh(0) or self.opts.get_GroupMesh():
+            # Run ``intersect`` if appropriate
+            case.CaseIntersect(rc)
+            # Run ``verify`` if appropriate
+            case.CaseVerify(rc)
+            # Create the mesh if appropriate
+            case.CaseCubes(rc, j=0)
         # Return to original folder.
         os.chdir(fpwd)
-        
-    # Function to apply special triangulation modification keys
-    def PrepareTri(self, i):
-        """Rotate/translate/etc. triangulation for given case
-        
-        :Call:
-            >>> cart3d.PrepareTri(i)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Versions:
-            * 2014-12-01 ``@ddalle``: First version
-        """
-        # Get function for rotations, etc.
-        keys = self.x.GetKeysByType(['translation', 'rotation', 'TriFunction'])
-        # Loop through keys.
-        for key in keys:
-            # Type
-            kt = self.x.defns[key]['Type']
-            # Filter on which type of triangulation modification it is.
-            if kt == "TriFunction":
-                # Special triangulation function
-                self.PrepareTriFunction(key, i)
-            elif kt.lower() == "translation":
-                # Component(s) translation
-                self.PrepareTriTranslation(key, i)
-            elif kt.lower() == "rotation":
-                # Component(s) rotation
-                self.PrepareTriRotation(key, i)
-            
-    # Apply a special triangulation function
-    def PrepareTriFunction(self, key, i):
-        """Apply special triangulation modification function for a case
-        
-        :Call:
-            >>> cart3d.PrepareTriFunction(key, i)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Versions:
-            * 2015-09-11 ``@ddalle``: First version
-        """
-        # Get the function for this *TriFunction*
-        func = self.x.defns[key]['Function']
-        # Apply it.
-        exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
-        
-    # Apply a triangulation translation
-    def PrepareTriTranslation(self, key, i):
-        """Apply a translation to a component or components
-        
-        :Call:
-            >>> cart3d.PrepareTriTranslation(key, i)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Versions:
-            * 2015-09-11 ``@ddalle``: First version
-        """
-        # Get the options for this key.
-        kopts = self.x.defns[key]
-        # Get the components to translate.
-        compID  = self.tri.GetCompID(kopts.get('CompID'))
-        # Components to translate in opposite direction
-        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []))
-        # Check for a direction
-        if 'Vector' not in kopts:
-            raise IOError(
-                "Rotation key '%s' does not have a 'Vector'." % key)
-        # Get the direction and its type
-        vec = kopts['Vector']
-        tvec = type(vec).__name__
-        # Get points to translate along with it.
-        pts  = kopts.get('Points', [])
-        ptsR = kopts.get('PointsSymmetric', [])
-        # Make sure these are lists.
-        if type(pts).__name__  != 'list': pts  = list(pts)
-        if type(ptsR).__name__ != 'list': ptsR = list(ptsR)
-        # Check the type
-        if tvec in ['list', 'ndarray']:
-            # Specified directly.
-            u = np.array(vec)
-        else:
-            # Named vector
-            u = np.array(self.opts.get_Point(vec))
-        # Form the translation vector
-        v = u * getattr(self.x,key)[i]
-        # Translate the triangulation
-        self.tri.Translate(v, i=compID)
-        self.tri.Translate(-v, i=compIDR)
-        # Loop through translation points.
-        for pt in pts:
-            # Get point
-            x = self.opts.get_Point(pt)
-            # Apply transformation.
-            self.opts.set_Point(x+v, pt)
-        # Loop through translation points.
-        for pt in ptsR:
-            # Get point
-            x = self.opts.get_Point(pt)
-            # Apply transformation.
-            self.opts.set_Point(x-v, pt)
-            
-    # Apply a triangulation rotation
-    def PrepareTriRotation(self, key, i):
-        """Apply a rotation to a component or components
-        
-        :Call:
-            >>> cart3d.PrepareTriRotation(key, i)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Versions:
-            * 2015-09-11 ``@ddalle``: First version
-        """
-        # Get the options for this key.
-        kopts = self.x.defns[key]
-        # Get the components to translate.
-        compID = self.tri.GetCompID(kopts.get('CompID'))
-        # Components to translate in opposite direction
-        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []))
-        # Symmetry applied to rotation vector.
-        kv = kopts.get('VectorSymmetry', [1.0, 1.0, 1.0])
-        ka = kopts.get('AngleSymmetry', -1.0)
-        # Convert list -> numpy.ndarray
-        if type(kv).__name__ == "list": kv = np.array(kv)
-        # Check for a direction
-        if 'Vector' not in kopts:
-            raise KeyError(
-                "Rotation key '%s' does not have a 'Vector'." % key)
-        # Get the direction and its type.
-        vec = kopts['Vector']
-        # Check type
-        if len(vec) != 2:
-            raise KeyError(
-                "Rotation key '%s' vector must be exactly two points." % key)
-        # Get start and end points of rotation vector.
-        v0 = np.array(self.opts.get_Point(kopts['Vector'][0]))
-        v1 = np.array(self.opts.get_Point(kopts['Vector'][1]))
-        # Symmetry rotation vectors.
-        v0R = kv*v0
-        v1R = kv*v1
-        # Get points to translate along with it.
-        pts  = kopts.get('Points', [])
-        ptsR = kopts.get('PointsSymmetric', [])
-        # Make sure these are lists.
-        if type(pts).__name__  != 'list': pts  = list(pts)
-        if type(ptsR).__name__ != 'list': ptsR = list(ptsR)
-        # Rotation angle
-        theta = getattr(self.x,key)[i]
-        # Rotate the triangulation.
-        self.tri.Rotate(v0,  v1,  theta,  i=compID)
-        self.tri.Rotate(v0R, v1R, ka*theta, i=compIDR)
-        # Points to be rotated
-        X  = np.array([self.opts.get_Point(pt) for pt in pts])
-        XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
-        # Apply transformation
-        Y  = RotatePoints(X,  v0,  v1,  theta)
-        YR = RotatePoints(XR, v0R, v1R, ka*theta)
-        # Save the points.
-        for j in range(len(pts)):
-            # Set the new value.
-            self.opts.set_Point(Y[j], pts[j])
-        # Save the symmetric points.
-        for j in range(len(ptsR)):
-            # Set the new value.
-            self.opts.set_Point(YR[j], ptsR[j])
-    
     
         
     # Check if cases with zero iterations are not yet setup to run
@@ -746,10 +550,13 @@ class Cart3d(Cntl):
         # Settings file.
         if not os.path.isfile('case.json'): return True
         # Read the settings.
-        fc = case.ReadCaseJSON()
+        rc = case.ReadCaseJSON()
         # Check for which mesh file to look for.
-        if fc.get_Adaptive(0):
+        if rc.get_Adaptive(0):
             # Mesh file is gone or will be created during aero.csh
+            pass
+        elif not rc.get_PreMesh(0):
+            # Mesh may be generated later.
             pass
         elif self.opts.get_mg() > 0:
             # Look for the multigrid mesh

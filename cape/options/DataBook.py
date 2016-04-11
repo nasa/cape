@@ -1,6 +1,6 @@
 """
-Data Book Options Module: :mod:`cape.options.DataBook`
-======================================================
+Data book options module
+========================
 
 This module contains the basic interface for data book options generic to all
 solvers.  Some options are not generic, and so the derivative options classes
@@ -11,9 +11,21 @@ such as :class:`cape.options.DataBook.DataBook` have additional methods.
 from util import rc0, odict, getel
 
 
-# Class for autoInputs
+# Class for data book
 class DataBook(odict):
-    """Dictionary-based interface for DataBook specifications"""
+    """Dictionary-based interface for DataBook specifications
+    
+    :Call:
+        >>> opts = DataBook(**kw)
+    :Inputs:
+        *kw*: :class:`dict`
+            Dictionary of options
+    :Outputs:
+        *opts*: :class:`cape.options.DataBook.DataBook`
+            Data book options interface
+    :Versions:
+        * 2014-12-20 ``@ddalle``: First version
+    """
     
     # Initialization method
     def __init__(self, fname=None, **kw):
@@ -1293,7 +1305,19 @@ class DataBook(odict):
             
 # Class for target data
 class DBTarget(odict):
-    """Dictionary-based interface for databook targets"""
+    """Dictionary-based interface for data book targets
+    
+    :Call:
+        >>> opts = DBTarget(**kw)
+    :Inputs:
+        *kw*: :class:`dict`
+            Dictionary of PBS options
+    :Outputs:
+        *opts*: :class:`cape.options.DataBook.DBTarget`
+            Data book target options interface
+    :Versions:
+        * 2014-12-01 ``@ddalle``: First version
+    """
     
     # Get the maximum number of refinements
     def get_TargetName(self):

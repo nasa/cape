@@ -3,119 +3,12 @@
 
 # Import options-specific utilities
 from util import rc0, odict
-        
+# Import Cape template
+import cape.options.Mesh
 
 # Class for Cart3D mesh settings
-class Mesh(odict):
+class Mesh(cape.options.Mesh):
     """Dictionary-based interface for options for Cart3D meshing"""
-            
-    
-    # Get verify status
-    def get_verify(self):
-        """Determine whether or not to call `verify` before running `cubes`.
-        
-        :Call:
-            >>> q = opts.get_verify()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *q*: :class:`bool`
-                Whether or not to run `verify`
-        :Versions:
-            * 2015-02-13 ``@ddalle``: First version
-        """
-        return self.get_key('verify')
-        
-    # Set verify status
-    def set_verify(self, q=rc0('verify')):
-        """Set whether or not to call `verify` before running `cubes`.
-        
-        :Call:
-            >>> opts.get_verify(q)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *q*: :class:`bool`
-                Whether or not to run `verify`
-        :Versions:
-            * 2015-02-13 ``@ddalle``: First version
-        """
-        return self.get_key('verify')
-            
-    
-    # Get intersect status
-    def get_intersect(self):
-        """Determine whether or not to call `intersect` before running `cubes`.
-        
-        :Call:
-            >>> q = opts.get_intersect()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *q*: :class:`bool`
-                Whether or not to run `intersect`
-        :Versions:
-            * 2015-02-13 ``@ddalle``: First version
-        """
-        return self.get_key('intersect')
-        
-    # Set verify status
-    def set_intersect(self, q=rc0('intersect')):
-        """Set whether or not to call `intersect` before running `cubes`.
-        
-        :Call:
-            >>> opts.set_intersect(q)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *q*: :class:`bool`
-                Whether or not to run `intersect`
-        :Versions:
-            * 2015-02-13 ``@ddalle``: First version
-        """
-        return self.get_key('intersect')
-        
-        
-    # Get the triangulation file(s)
-    def get_TriFile(self, i=None):
-        """Return the surface triangulation file
-        
-        :Call:
-            >>> TriFile = opts.get_TriFile(i=None)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Run index
-        :Outputs:
-            *TriFile*: :class:`str` or :class:`list`(:class:`str`)
-                Surface triangulation file
-        :Versions:
-            * 2014-08-03 ``@ddalle``: First version
-        """
-        return self.get_key('TriFile', i)
-        
-    # Set the triangulation file(s)
-    def set_TriFile(self, TriFile=rc0('TriFile'), i=None):
-        """Set the surface triangulation file(s)
-        
-        :Call:
-            >>> opts.set_n_adaptation_cycles(nAdapt, i=None)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *TriFile*: :class:`str` or :class:`list`(:class:`str`)
-                Surface triangulation file
-            *i*: :class:`int` or ``None``
-                Run index
-        :Versions:
-            * 2014-08-03 ``@ddalle``: First version
-        """
-        self.set_key('TriFile', TriFile, i)
         
         
     # Return the list of bounding boxes.

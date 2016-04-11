@@ -13,74 +13,40 @@ from cape.bin import _assertfile, _upgradeDocString
 import cmd
 
 # Function to call cubes.
-def cubes(cart3d=None, **kwargs):
+def cubes(cart3d=None, opts=None, j=0, **kwargs):
     # Required file
     _assertfile('input.c3d')
     # Get command
-    cmdi = cmd.cubes(cart3d=cart3d, **kwargs)
+    cmdi = cmd.cubes(cart3d=cart3d, opts=opts, j=j, **kwargs)
     # Run the command.
     callf(cmdi, f='cubes.out')
 # Docstring
 cubes.__doc__ = _upgradeDocString(cmd.cubes.__doc__)
-
-# Function to call verify
-def verify(ftri='Components.i.tri'):
-    # Required file
-    _assertfile(ftri)
-    # If there is currently a 'tecplot.bad' file, move it.
-    if os.path.isfile('tecplot.bad'):
-        os.rename('tecplot.bad', 'tecplot.old.bad')
-    # Get command
-    cmdi = cmd.verify(ftri)
-    # Run the command.
-    ierr = calli(cmdi, f='verify.out')
-    # Check status.
-    if ierr or os.path.isfile('tecplot.bad'):
-        # Create a failure file.
-        f = open('FAIL', 'a+')
-        # Write the reason
-        f.write('verify\n')
-        f.close()
-        # Exit.
-        raise SystemError('Triangulation contains errors!')
-# Docstring
-verify.__doc__ = _upgradeDocString(cmd.verify.__doc__)
-
-# Function to call intersect
-def intersect(fin='Components.tri', fout='Components.i.tri'):
-    # Required file
-    _assertfile(fin)
-    # Get command.
-    cmdi = cmd.intersect(fin=fin, fout=fout)
-    # Run the command.
-    ierr = calli(cmdi, f='intersect.out')
-    # Check status.
-    if ierr or not os.path.isfile(fout):
-        # Create a failure file.
-        f = open('FAIL', 'a+')
-        # Write the reason
-        f.write('intersect\n')
-        f.close()
-        # Exit.
-        raise SystemError('Intersection failed!')
     
 # Function to call mgPrep
-def mgPrep(cart3d=None, **kwargs):
+def mgPrep(cart3d=None, opts=None, j=0, **kwargs):
     # Required file
     _assertfile('Mesh.R.c3d')
     # Get the command.
-    cmdi = cmd.mgPrep(cart3d=cart3d, **kwargs)
+    cmdi = cmd.mgPrep(cart3d=cart3d, opts=opts, j=j, **kwargs)
     # Run the command.
     callf(cmdi, f='mgPrep.out')
 # Docstring
 mgPrep.__doc__ = _upgradeDocString(cmd.mgPrep.__doc__)
     
 # Function to call mgPrep
-def autoInputs(cart3d=None, **kwargs):
+def autoInputs(cart3d=None, opts=None, j=0, **kwargs):
     # Get command.
-    cmdi = cmd.autoInputs(cart3d, **kwargs)
+    cmdi = cmd.autoInputs(cart3d, opts=opts, j=j, **kwargs)
     # Run the command.
     callf(cmdi, f='autoInputs.out')
+    # Fix the name of the triangulation in the 'input.c3d' file
+    # Read the intersect file.
+    lines = open('input.c3d').readlines()
+    # Change the triangulation file
+    lines[7] = '  Components.i.tri\n'
+    # Write the corrected file.
+    open('input.c3d', 'w').writelines(lines)
 # Docstring
 autoInputs.__doc__ = _upgradeDocString(cmd.autoInputs.__doc__)
     

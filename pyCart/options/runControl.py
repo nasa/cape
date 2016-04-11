@@ -2,7 +2,7 @@
 
 
 # Import options-specific utilities
-from util import rc0, odict, isArray
+from util import rc0, odict, isArray, getel
 # Run control class
 import cape.options.runControl
 import cape.options.ulimit
@@ -1964,25 +1964,53 @@ class RunControl(cape.options.runControl.RunControl):
     
     # Initialization and confirmation for autoInputs options
     def _autoInputs(self):
-        """Initialize `autoInputs` options if necessary"""
-        # Check for missing entirely.
-        if 'autoInputs' not in self:
+        """Initialize ``autoInputs`` options if necessary"""
+        # Get the value and type
+        v = self.get('autoInputs')
+        t = type(v).__name__
+        # Check inputs
+        if t == 'autoInputs':
+            # Already initialized
+            return
+        elif v is None:
             # Empty/default
             self['autoInputs'] = autoInputs()
-        elif type(self['autoInputs']).__name__ == 'dict':
-            # Convert to special class.
-            self['autoInputs'] = autoInputs(**self['autoInputs'])
+        elif t == 'dict':
+            # Convert to special class
+            self['autoInputs'] = autoInputs(**v)
+        else:
+            # Initialize
+            self['autoInputs'] = autoInputs()
+            # Set a flag
+            if v:
+                self['autoInputs']['run'] = True
+            else:
+                self['autoInputs']['run'] = False
     
     # Initialization and confirmation for cubes options
     def _cubes(self):
-        """Initialize `cubes` options if necessary"""
-        # Check for missing entirely.
-        if 'cubes' not in self:
+        """Initialize ``cubes`` options if necessary"""
+        # Get the value and type
+        v = self.get('cubes')
+        t = type(v).__name__
+        # Check inputs
+        if t == 'cubes':
+            # Already initialized
+            return
+        elif v is None:
             # Empty/default
             self['cubes'] = cubes()
-        elif type(self['cubes']).__name__ == 'dict':
-            # Convert to special class.
-            self['cubes'] = cubes(**self['cubes'])
+        elif t == 'dict':
+            # Convert to special class
+            self['cubes'] = cubes(**v)
+        else:
+            # Initialize
+            self['cubes'] = cubes()
+            # Set a flag
+            if v:
+                self['cubes']['run'] = True
+            else:
+                self['cubes']['run'] = False
             
     # Environment variable interface
     def _Environ(self):
@@ -2478,6 +2506,37 @@ class RunControl(cape.options.runControl.RunControl):
     # ==========
    # <
     
+    # Get flag for autoInputs use
+    def get_autoInputs(self, j=0):
+        """Return whether or not to run ``autoInputs``
+        
+        :Call:
+            >>> q = opts.get_autoInputs(j=0)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *j*: :class:`int`
+                Phase number
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not there are nontrivial ``autoInputs`` settings
+        :Versions:
+            * 2016-04-06 ``@ddalle``: First version
+        """
+        # Initialize if necessary
+        self._autoInputs()
+        # Get the value
+        v = self.get('autoInputs')
+        # Get the flag
+        q = v.get('run')
+        # Check.
+        if q is None:
+            # Check for nontrivial entries
+            return len(v.keys()) > 0
+        else:
+            # Return the 'run' flag
+            return getel(q,j) == True
+        
     # Get the nominal mesh radius
     def get_r(self, i=None):
         self._autoInputs()
@@ -2509,6 +2568,37 @@ class RunControl(cape.options.runControl.RunControl):
     # cubes
     # =====
    # <
+    
+    # Get flag for autoInputs use
+    def get_cubes(self, j=0):
+        """Return whether or not to run ``cubes``
+        
+        :Call:
+            >>> q = opts.get_cubes(j=0)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *j*: :class:`int`
+                Phase number
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not there are nontrivial ``cubes`` settings
+        :Versions:
+            * 2016-04-06 ``@ddalle``: First version
+        """
+        # Initialize if necessary
+        self._cubes()
+        # Get the value
+        v = self.get('cubes')
+        # Get the flag
+        q = v.get('run')
+        # Check.
+        if q is None:
+            # Check for nontrivial entries
+            return len(v.keys()) > 0
+        else:
+            # Return the 'run' flag
+            return getel(q,j) == True
     
     # Get the number of refinements
     def get_maxR(self, i=None):

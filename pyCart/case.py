@@ -54,8 +54,8 @@ def run_flowCart(verify=False, isect=False):
     # Get the settings.
     rc = ReadCaseJSON()
     # Run intersect and verify
-    IntersectCase(isect=isect)
-    VerifyCase(verify=verify)
+    CaseIntersect(rc)
+    CaseVerify(rc)
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Prepare all files
@@ -99,60 +99,58 @@ def WriteUserTime(tic, rc, i, fname="pycart_time.dat"):
     """
     # Call the function from :mode:`cape.case`
     WriteUserTimeProg(tic, rc, i, fname, 'run_flowCart.py')
-            
 
-# Function to intersect geometry if appropriate
-def IntersectCase(isect=False):
-    """Run `intersect` to combine geometries if appropriate
+# Run cubes if necessary
+def CaseCubes(rc, j=0):
+    """Run ``cubes`` and ``mgPrep`` to create multigrid volume mesh
     
     :Call:
-        >>> IntersectCase(isect=False)
+        >>> CaseCubes(rc, j=0)
     :Inputs:
-        *isect*: :class:`bool`
-            Whether or not to run `intersect` before running `flowCart`
+        *rc*: :class:`cape.options.runControl.RunControl`
+            Case options interface from ``case.json``
+        *j*: {``0``} | :class:`int`
+            Phase number
     :Versions:
-        * 2015-09-07 ``@ddalle``: Split from :func:`run_flowCart`
+        * 2016-04-06 ``@ddalle``: First version
     """
-    # Check for intersect status.
-    if not isect: return
-    # Check for initial run
-    if GetRestartIter() != 0: return
-    # Check for triangulation file.
-    if os.path.isfile('Components.i.tri'):
-        # Note this.
-        print("File 'Components.i.tri' already exists; aborting intersect.")
+    # Check for previous iterations
+    # TODO: This will need an edit for 'remesh'
+    if GetRestartIter() > 0: return
+    # Check for mesh file
+    if os.path.isfile('Mesh.mg.c3d'): return
+    # Check for cubes option
+    if not rc.get_cubes(): return
+    # If adaptive, check for jumpstart
+    if rc.get_Adaptive(j) and not rc.get_jumpstart(j): return
+    # Run cubes
+    bin.cubes(opts=rc, j=j)
+    # Run mgPrep
+    bin.mgPrep(opts=rc, j=j)
+    
+# Run autoInputs if appropriate
+def CaseAutoInputs(rc, j=0):
+    """Run ``autoInputs`` if necessary
+    
+    :Call:
+        >>> CaseAutoInputs(rc)
+    :Inputs:
+        *rc*: :class:`cape.options.runControl.RunControl`
+            Case options interface from ``cape.json``
+        *j*: {``0``} | :class:`int`
+            Phase number
+    :Versions:
+        * 2016-04-06 ``@ddalle``: First version
+    """
+    # Check for previous iterations
+    if GetRestartIter() > 0: return
+    # Check for output files
+    if os.path.isfile('input.c3d') and os.path.isfile('preSpec.c3d.cntl'):
         return
-    # Run intersect.
-    bin.intersect('Components.tri', 'Components.o.tri')
-    # Read the original triangulation.
-    tric = Tri('Components.c.tri')
-    # Read the intersected triangulation.
-    trii = Tri('Components.o.tri')
-    # Read the pre-intersection triangulation.
-    tri0 = Tri('Components.tri')
-    # Map the Component IDs.
-    trii.MapCompID(tric, tri0)
-    # Write the triangulation.
-    trii.Write('Components.i.tri')
-    
-# Function to verify if requested
-def VerifyCase(verify=False):
-    """Run `verify` to check triangulation if appropriate
-    
-    :Call:
-        >>> VerifyCase(verify=False)
-    :Inputs:
-        *verify*: :class:`bool``
-            Whether or not to run `verify` before running `flowCart`
-    :Versions:
-        * 2015-09-07 ``@ddalle``: Split from :func:`run_flowCart`
-    """
-    # Check for verify
-    if not verify: return
-    # Check for initial run
-    if GetRestartIter() != 0: return
-    # Run it.
-    bin.verify('Components.i.tri')
+    # Check for cubes option
+    if not rc.get_autoInputs(): return
+    # Run autoInputs
+    bin.autoInputs(opts=rc, j=j)
     
 # Prepare the files of the case
 def PrepareFiles(rc, i=None):
@@ -227,8 +225,10 @@ def RunPhase(rc, i):
             Phase number
     :Versions:
         * 2016-03-04 ``@ddalle``: First version
-    
     """
+    # Mesh generation
+    CaseAutoInputs(rc, i)
+    CaseCubes(rc, i)
     # Check for flowCart vs. mpi_flowCart
     if not rc.get_MPI(i):
         # Get the number of threads, which may be irrelevant.

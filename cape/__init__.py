@@ -1,7 +1,7 @@
 """
-***************
-The Cape module
-***************
+**********************
+The :mod:`cape` module
+**********************
 
 The :mod:`cape` module contains the top-level interface setup of various
 solvers. It loads the most important methods from the various submodules so that
@@ -46,8 +46,7 @@ Some of the other modules available to the API are listed below.
     * :mod:`cape.dataBook`
     * :mod:`cape.fileCntl`
     * :mod:`cape.geom`
-    * :mod:`cape.mesh`
-    * :mod:`cape.nameelist`
+    * :mod:`cape.namelist`
     * :mod:`cape.namelist2`
     * :mod:`cape.plot3d`
     * :mod:`cape.pointSensor`
@@ -58,6 +57,7 @@ Some of the other modules available to the API are listed below.
     * :mod:`cape.trajectory`
     * :mod:`cape.tri`
     * :mod:`cape.util`
+    * :mod:`cape.options`
 
 :Versions:
     * Version 0.6: 2016-03-30

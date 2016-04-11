@@ -1,8 +1,56 @@
 """
-Module to interface with TRI configuration files: :mod:`cape.Config`
-====================================================================
+Surface configuration module: :mod:`cape.config`
+================================================
 
-This is a module to interact with :file:`Config.xml` files.
+This is a module to interact with :file:`Config.xml` files.  In general, it can
+be used to create groups of surfaces using an XML file format.  This comes from
+the Cart3D/OVERFLOW convention, but it can be used with other modules as well.
+
+It is typical for a surface definition, whether a triangulation, system of
+overset structured grids, or mixed quads and triangles, to have each surface
+polygon to have a numbered component ID.  This allows a user to group
+triangles and quads or other polygons together in some relevant way.  For
+example, the user may tag each polygon on the left wing with the component ID of
+``12``, and the entire surface is broken out in a similar fashion.
+
+The :mod:`cape.config` module allows the user to do two main things: give
+meaningful names to these component IDs and group component IDs together.  For
+example, it is usually much more convenient to refer to ``"left_wing"`` than
+remember to put ``"12"`` in all the data books, reports, etc.  In addition, a
+user usually wants to know the integrated force on the entire airplane (or
+whatever other type of configuration is under investigation), so it is useful to
+make another component called ``"vehicle"`` that contains ``"left_wing"``,
+``"right_wing"``, and ``"fuselage"``.  The user specifies this in the XML file
+using the following syntax.
+
+    .. code-block:: xml
+    
+        <?xml version="1.0" encoding="ISO-8859-1"?>
+        <Configuration Name="airplane" Source="Components.i.tri">
+        
+        <Component Name="vehicle" Type="container">
+        </Component>
+        
+        <Component Name="fuselage" Type="tri">
+        <Data> Face Label=1 </Data> </Component>
+        
+        <Component Name="right_wing" Type="tri">
+        <Data> Face Label=11 </Data> </Component>
+        
+        <Component Name="left_wing" Type="tri">
+        <Data> Face Label=12 </Data> </Component>
+        
+        </Configuration>
+        
+The *Source* attribute of the first tag is not that important; it's placed there
+based on a Cart3D template.  The choice of encoding is probably also
+unimportant, but having something there may prevent problems.
+
+The major limitation of this capability at present is that a component may not
+have multiple parents.  A parent may have parent, allowing the user to subdivide
+groups into smaller groups, but the user may not, for example, split the vehicle
+into left half and right half and also create components for forward half and
+aft half.
 """
 
 # File checker.
@@ -66,12 +114,11 @@ class Config:
         *fname*: :class:`str`
             Name of configuration file to read
     :Outputs:
-        *cfg*: :class:`pyCart.config.Config`
+        *cfg*: :class:`cape.config.Config`
             Instance of configuration class
     :Versions:
         * 2014-10-12 ``@ddalle``: First version
     """
-    
     # Initialization method
     def __init__(self, fname="Config.xml"):
         """Initialization method"""
@@ -146,10 +193,10 @@ class Config:
         :Inputs:
             *cfg*: :class:`cape.config.Config`
                 Instance of configuration class
-            *face*: :class:`str` or :class:`int` or :class:`list`
+            *face*: :class:`str` | :class:`int` | :class:`list`
                 Component number, name, or list of component numbers and names
         :Outputs:
-            *compID*: :class:`list`(:class:`int`)
+            *compID*: :class:`list` (:class:`int`)
                 List of component IDs
         :Versions:
             * 2014-10-12 ``@ddalle``: First version

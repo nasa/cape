@@ -37,6 +37,7 @@
 	    "qsub": false,
 	    "Resubmit": false,
 	    "Continue": true,
+	    "PreMesh": false,
 	    // System interface
 	    "mpicmd": "mpiexec",
         "Environ": {},

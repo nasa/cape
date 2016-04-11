@@ -1,9 +1,11 @@
 """
-Interface for PBS script options: :mod:`cape.options.pbs`
-=========================================================
+Interface for PBS script options
+================================
 
 This portion of the options is universal, and so it is only encoded in the
-:mod:`cape` module.  The :mod:`pyCart` module does not have a modified version.
+:mod:`cape` module.  The :mod:`pyCart` module, for example, does not have a 
+modified version.  It contains options for specifying which architecture to use,
+how many nodes to request, etc.
 """
 
 
@@ -12,7 +14,19 @@ from util import rc0, odict
 
 # Class for PBS settings
 class PBS(odict):
-    """Dictionary-based interfaced for options specific to ``flowCart``"""
+    """Dictionary-based options for PBS jobs
+    
+    :Call:
+        >>> opts = PBS(**kw)
+    :Inputs:
+        *kw*: :class:`dict`
+            Dictionary of PBS options
+    :Outputs:
+        *opts*: :class:`cape.options.pbs.PBS`
+            PBS options interface
+    :Versions:
+        * 2014-12-01 ``@ddalle``: First version
+    """
     
     # Get the number of unique PBS jobs.
     def get_nPBS(self):

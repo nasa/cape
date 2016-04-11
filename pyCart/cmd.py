@@ -5,13 +5,15 @@ Create command strings for Cart3D binaries: :mod:`pyCart.cmd`
 This module contains direct interfaces to Cart3D binaries so that they can be
 called from Python.  Settings for the binaries that are usually specified as
 command-line options are either specified as keyword arguments or inherited from
-a :class:`pyCart.cart3d.Cart3d` instance.
+a :class:`pyCart.cart3d.Cart3d` instance..
 """
 
 # File checking.
 import os.path
 # Get command to run tecplot
 from .util import GetTecplotCommand
+# Import the Cape binaries
+from cape.cmd import *
 
 # Function to run tecplot
 def tecmcr(mcr="export-lay.mcr", **kw):
@@ -37,16 +39,24 @@ def tecmcr(mcr="export-lay.mcr", **kw):
     return cmd
 
 # Function to call cubes.
-def cubes(cart3d=None, **kw):
+def cubes(cart3d=None, opts=None, j=0, **kw):
     """
     Interface to Cart3D script `cubes`
     
     :Call:
-        >>> cmd = pyCart.cmd.cubes(cart3d)
+        >>> cmd = pyCart.cmd.cubes(cart3d, j=0)
+        >>> cmd = pyCart.cmd.cubes(opts=opts, j=0)
+        >>> cmd = pyCart.cmd.cubes(opts=rc, j=0)
         >>> cmd = pyCart.cmd.cubes(maxR=11, reorder=True, **kwargs)
     :Inputs:
         *cart3d*: :class:`pyCart.cart3d.Cart3d`
             Global pyCart settings instance
+        *j*: {``0``} | :class:`int`
+            Phase number
+        *opts*: :class:`pyCart.options.Options`
+            Options interface
+        *rc*: :class:`pyCart.options.runControl.RunControl`
+            Options interface
         *maxR*: :class:`int`
             Number of refinements to make
         *reorder*: :class:`bool`
@@ -66,14 +76,18 @@ def cubes(cart3d=None, **kw):
         * 2014-09-10 ``@ddalle``: Split into cmd and bin
         * 2014-12-02 ``@ddalle``: Moved to keyword arguments and added *sf*
     """
-    # Check cart3d input.
+    # Check cart3d input
     if cart3d is not None:
+        # Extract options
+        opts = cart3d.opts
+    # Check input method
+    if opts is not None:
         # Apply values
-        maxR    = cart3d.opts.get_maxR(0)
-        reorder = cart3d.opts.get_reorder(0)
-        cubes_a = cart3d.opts.get_cubes_a(0)
-        cubes_b = cart3d.opts.get_cubes_b(0)
-        sf      = cart3d.opts.get_sf(0)
+        maxR    = opts.get_maxR(j)
+        reorder = opts.get_reorder(j)
+        cubes_a = opts.get_cubes_a(j)
+        cubes_b = opts.get_cubes_b(j)
+        sf      = opts.get_sf(j)
     else:
         # Get keyword arguments
         maxR    = kw.get('maxR', 11)
@@ -93,16 +107,24 @@ def cubes(cart3d=None, **kw):
     return cmd
     
 # Function to call mgPrep
-def mgPrep(cart3d=None, **kw):
+def mgPrep(cart3d=None, opts=None, j=0, **kw):
     """
     Interface to Cart3D script `mgPrep`
     
     :Call:
-        >>> cmd = pyCart.cmd.mgPrep(cart3d)
+        >>> cmd = pyCart.cmd.mgPrep(cart3d, j=0)
+        >>> cmd = pyCart.cmd.mgPrep(opts=opts, j=0)
+        >>> cmd = pyCart.cmd.mgPrep(opts=rc, j=0)
         >>> cmd = pyCart.cmd.mgPrep(**kw)
     :Inputs:
         *cart3d*: :class:`pyCart.cart3d.Cart3d`
             Global pyCart settings instance
+        *j*: {``0``} | :class:`int`
+            Phase number
+        *opts*: :class:`pyCart.options.Options`
+            Options interface
+        *rc*: :class:`pyCart.options.runControl.RunControl`
+            Options interface
         *mg_fc*: :class:`int`
             Number of multigrid levels to prepare
     :Outputs:
@@ -113,9 +135,13 @@ def mgPrep(cart3d=None, **kw):
     """
     # Check cart3d input.
     if cart3d is not None:
+        # Extract the options
+        opts = cart3d.opts
+    # Check input type
+    if opts is not None:
         # Apply values
-        mg_fc = cart3d.opts.get_mg_fc(0)
-        pmg   = cart3d.opts.get_pmg(0)
+        mg_fc = opts.get_mg_fc(j)
+        pmg   = opts.get_pmg(j)
     else:
         # Get values
         mg_fc = kw.get('mg_fc', 3)
@@ -129,16 +155,23 @@ def mgPrep(cart3d=None, **kw):
     return cmd
     
 # Function to call mgPrep
-def autoInputs(cart3d=None, r=8, ftri='Components.i.tri', **kw):
-    """
-    Interface to Cart3D script `mgPrep`
+def autoInputs(cart3d=None, opts=None, ftri='Components.i.tri', j=0, **kw):
+    """Interface to Cart3D script ``autoInputs``
     
     :Call:
-        >>> cmd = pyCart.cmd.autoInputs(cart3d)
-        >>> cmd = pyCart.cmd.autoInputs(r=8, ftri='components.i.tri', **kw)
+        >>> cmd = pyCart.cmd.autoInputs(cart3d, j=0)
+        >>> cmd = pyCart.cmd.autoInputs(opts=opts, j=0)
+        >>> cmd = pyCart.cmd.autoInputs(opts=rc, j=0)
+        >>> cmd = pyCart.cmd.autoInputs(ftri='Components.i.tri', **kw)
     :Inputs:
         *cart3d*: :class:`pyCart.cart3d.Cart3d`
             Global pyCart settings instance
+        *j*: {``0``} | :class:`int`
+            Phase number
+        *opts*: :class:`pyCart.options.Options`
+            Options interface
+        *rc*: :class:`pyCart.options.runControl.RunControl`
+            Options interface
         *r*: :class:`int`
             Mesh radius
         *ftri*: :class:`str`
@@ -153,10 +186,14 @@ def autoInputs(cart3d=None, r=8, ftri='Components.i.tri', **kw):
     """
     # Check cart3d input.
     if cart3d is not None:
+        # Extract options
+        opts = cart3d.opts
+    # Check input type
+    if opts is not None:
         # Apply values
-        r     = cart3d.opts.get_r(0)
-        maxR  = cart3d.opts.get_maxR(0)
-        nDiv  = cart3d.opts.get_nDiv(0)
+        r     = opts.get_r(j)
+        maxR  = opts.get_maxR(j)
+        nDiv  = opts.get_nDiv(j)
         # Check for the appropriate tri file type.
         if os.path.isfile('Components.i.tri'):
             # Intersected surface
@@ -166,6 +203,7 @@ def autoInputs(cart3d=None, r=8, ftri='Components.i.tri', **kw):
             ftri = 'Components.tri'
     else:
         # Get values from keyword arguments
+        r     = kwagrs.get('r',    8)
         maxR  = kwargs.get('maxR', 10)
         nDiv  = kwargs.get('nDiv', 4)
     # Initialize command.
@@ -178,47 +216,6 @@ def autoInputs(cart3d=None, r=8, ftri='Components.i.tri', **kw):
     # Return the command.
     return cmd
     
-# Function to call verify
-def verify(ftri='Components.i.tri'):
-    """Interface to Cart3D binary `verify`
-    
-    :Call:
-        >>> cmd = pyCart.cmd.verify(ftri='Components.i.tri')
-    :Inputs:
-        *ftri*: :class:`str`
-            Name of *tri* file to test
-    :Outputs:
-        *cmd*: :class:`list` (:class:`str`)
-            Command split into a list of strings
-    :Versions:
-        * 2015-02-13 ``@ddalle``: First version
-    """
-    # Build the command.
-    cmd = ['verify', ftri]
-    # Output
-    return cmd
-    
-# Function to call intersect
-def intersect(fin='Components.tri', fout='Components.i.tri'):
-    """Interface to Cart3D binary `intersect`
-    
-    :Call:
-        >>> cmdi = cmd.intersect(fin='Components.tri', fout='Components.i.tri')
-    :Inputs:
-        *fin*: :class:`str`
-            Name of input *tri* file
-        *fout*: :class:`str`
-            Name of output *tri* file (intersected)
-    :Outputs:
-        *cmdi*: :class:`list` (:class:`str`)
-            Command split into a list of strings
-    :Versions:
-        * 2015-02-13 ``@ddalle``: First version
-    """
-    # Build the command
-    cmd = ['intersect', '-i', fin, '-o', fout]
-    # Output
-    return cmd
 
 # Function to create flowCart command
 def flowCart(cart3d=None, fc=None, i=0, **kwargs):
@@ -404,5 +401,5 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         cmd += ['-tm', '0']
     # Output
     return cmd
-
+# def flowCart
 

@@ -1,9 +1,12 @@
 """
-CAPE queue interface module: :mod:`cape.queue`
-==============================================
+Cape PBS queue interface module: :mod:`cape.queue`
+==================================================
 
-Contains direct interface for functions like `qsub` and `qstat`.
-
+This module contains direct interface for functions like `qsub` and `qstat`.
+These methods provide an easy interface to command-line PBS utilities and also
+provide some access to the PBS information.  For example, the method
+:func:`cape.queue.pqsub` writes a file ``"jobID.dat"`` with the PBS job number
+of the submitted job.
 """
 # OS interface
 import subprocess as sp
@@ -177,5 +180,5 @@ def qstat(u=None, J=None):
     except Exception:
         # Failed or no qstat command
         return {}
-        
-    
+# def qstat
+

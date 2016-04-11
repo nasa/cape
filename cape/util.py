@@ -1,7 +1,11 @@
 """
-CAPE Utilities: :mod:`cape.util`
+Cape utilities: :mod:`cape.util`
 ================================
 
+This module provides several utilities used throughout the Cape system,
+including :func:`SigmaMean` to compute statistical sampling error for iterative
+histories and :func:`readline` to process special space-or-comma-separated lines
+for run matrix files.
 """
 
 # Numerics
