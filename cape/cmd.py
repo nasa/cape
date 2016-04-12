@@ -132,7 +132,7 @@ def verify(opts=None, **kw):
     """Interface to Cart3D binary ``verify``
     
     :Call:
-        >>> cmd = cape.cmd.verify(opts=None, i='Components.i.tri', **kw)
+        >>> cmdi = cape.cmd.verify(opts=None, i='Components.i.tri', **kw)
     :Inputs:
         *opts*: :class:`cape.options.Options`
             Options interface
@@ -143,7 +143,7 @@ def verify(opts=None, **kw):
         *binary*: ``True`` | {``False``}
             Flag to consider input file binary
     :Outputs:
-        *cmd*: :class:`list` (:class:`str`)
+        *cmdi*: :class:`list` (:class:`str`)
             Command split into a list of strings
     :Versions:
         * 2015-02-13 ``@ddalle``: First version
@@ -154,9 +154,9 @@ def verify(opts=None, **kw):
         opts = opts.get("RunControl", opts)
         opts = opts.get("verify", opts)
         # Get settings
-        ftri  = opts.get('i', 'Components.i.tri')
-        binry = opts.get('binary', False)
-        ascii = opts.get('ascii', not binry)
+        ftri  = getel(opts.get('i', 'Components.i.tri'), 0)
+        binry = getel(opts.get('binary', False), 0)
+        ascii = getel(opts.get('ascii', not binry), 0)
     else:
         # Get settings from inputs
         ftri  = kw.get('i', 'Components.i.tri')
@@ -172,6 +172,6 @@ def verify(opts=None, **kw):
         # ASCII triangulation
         cmdi.append('-ascii')
     # Output
-    return cmd
+    return cmdi
 # def verify
 

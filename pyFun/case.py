@@ -38,6 +38,8 @@ def run_fun3d():
     rc = ReadCaseJSON()
     # Determine the run index.
     i = GetPhaseNumber(rc)
+    # Get the last iteration number
+    n = GetCurrentIter()
     # Read namelist
     nml = GetNamelist(rc, i)
     # Get the project name
@@ -45,11 +47,11 @@ def run_fun3d():
     # Mesh generation and verification actions
     if i == 0:
         # Run intersect and verify
-        CaseIntersect(rc, fproj)
-        CaseVerify(rc, fproj)
+        CaseIntersect(rc, fproj, n)
+        CaseVerify(rc, fproj, n)
         print("Ready to run AFLR3...")
         # Create volume mesh if necessary
-        CaseAFLR3(rc, proj=fproj, fmt=nml.GetGridFormat())
+        CaseAFLR3(rc, proj=fproj, fmt=nml.GetGridFormat(), n=n)
     # Delete any input file.
     if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
         os.remove('fun3d.nml')
@@ -488,4 +490,5 @@ def SetRestartIter(rc, n=None):
         nml.SetRestart(False)
     # Write the namelist.
     nml.Write()
+# def SetRestartIter
 

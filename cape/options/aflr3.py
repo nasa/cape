@@ -81,7 +81,7 @@ class aflr3(odict):
         return self.get_key('i', j)
     
     # Set the AFLR3 input file
-    def set_aflr3_i(self, fname, j=0):
+    def set_aflr3_i(self, fname, j=None):
         """Set the input file for AFLR3
         
         :Call:
@@ -118,7 +118,7 @@ class aflr3(odict):
         return self.get_key('o', j)
     
     # Set the AFLR3 output file
-    def set_aflr3_o(self, fname, j=0):
+    def set_aflr3_o(self, fname, j=None):
         """Set the output file for AFLR3
         
         :Call:

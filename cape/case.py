@@ -43,7 +43,7 @@ from numpy import nan, isnan
 
 
 # Function to intersect geometry if appropriate
-def CaseIntersect(rc, proj='Components'):
+def CaseIntersect(rc, proj='Components', n=0):
     """Run ``intersect`` to combine geometries if appropriate
     
     This is a multistep process in order to preserve all the component IDs of
@@ -62,12 +62,14 @@ def CaseIntersect(rc, proj='Components'):
         * ``Components.i.tri``: Original compIDs mapped onto intersected tris
     
     :Call:
-        >>> CaseIntersect(rc, proj='Components')
+        >>> CaseIntersect(rc, proj='Components', n=0)
     :Inputs:
         *rc*: :class:`cape.options.runControl.RunControl`
             Case options interface from ``case.json``
         *proj*: {``'Components'``} | :class:`str`
             Project root name
+        *n*: :class:`int`
+            Iteration number
     :Versions:
         * 2015-09-07 ``@ddalle``: Split from :func:`run_flowCart`
         * 2016-04-05 ``@ddalle``: Generalized to :mod:`cape`
@@ -75,7 +77,7 @@ def CaseIntersect(rc, proj='Components'):
     # Check for intersect status.
     if not rc.get_intersect(): return
     # Check for initial run
-    if GetRestartIter() != 0: return
+    if n > 0: return
     # Check for triangulation file.
     if os.path.isfile('%s.i.tri' % proj):
         # Note this.
@@ -98,16 +100,18 @@ def CaseIntersect(rc, proj='Components'):
     trii.Write('%s.i.tri' % proj)
     
 # Function to verify if requested
-def CaseVerify(rc, proj='Components'):
+def CaseVerify(rc, proj='Components', n=0):
     """Run ``verify`` to check triangulation if appropriate
     
     :Call:
-        >>> CaseVerify(rc, proj='Components')
+        >>> CaseVerify(rc, proj='Components', n=0)
     :Inputs:
         *rc*: :class:`cape.options.runControl.RunControl`
             Case options interface from ``case.json``
         *proj*: {``'Components'``} | :class:`str`
             Project root name
+        *n*: :class:`int`
+            Iteration number
     :Versions:
         * 2015-09-07 ``@ddalle``: Split from :func:`run_flowCart`
         * 2016-04-05 ``@ddalle``: Generalized to :mod:`cape`
@@ -115,18 +119,18 @@ def CaseVerify(rc, proj='Components'):
     # Check for verify
     if not rc.get_verify(): return
     # Check for initial run
-    if GetRestartIter() != 0: return
+    if n > 0: return
     # Set file name
     rc.set_verify_i('%s.i.tri' % proj)
     # Run it.
     bin.verify(opts=rc)
     
 # Mesh generation
-def CaseAFLR3(rc, proj='Components', fmt='b8.ugrid'):
+def CaseAFLR3(rc, proj='Components', fmt='b8.ugrid', n=0):
     """Create volume mesh using ``aflr3``
     
     :Call:
-        >>> CaseAFLR3(rc, proj="Components", fmt='b8.ugrid')
+        >>> CaseAFLR3(rc, proj="Components", fmt='b8.ugrid', n=0)
     :Inputs:
         *rc*: :class:`cape.options.runControl.RunControl`
             Case options interface from ``case.json``
@@ -134,13 +138,15 @@ def CaseAFLR3(rc, proj='Components', fmt='b8.ugrid'):
             Project root name
         *fmt*: {``"b8.ugrid"``} | :class:`str`
             AFLR3 volume mesh format
+        *n*: :class:`int`
+            Iteration number
     :Versions:
         * 2016-04-05 ``@ddalle``: First version
     """
     # Check for option to run AFLR3
     if not rc.get_aflr3(): return
     # Check for initial run
-    if GetRestartIter() != 0: return
+    if n > 0: return
     # File names
     ftri  = '%s.i.tri'   % proj
     fsurf = '%s.surf'    % proj
@@ -165,6 +171,10 @@ def CaseAFLR3(rc, proj='Components', fmt='b8.ugrid'):
     rc.set_aflr3_o(fvol)
     # Run AFLR3
     bin.aflr3(opts=rc)
+    
+def GetRestartIter():
+    print("poop!")
+    raise IOError()
     
 
 # Function to call script or submit.

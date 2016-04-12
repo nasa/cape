@@ -1073,7 +1073,7 @@ class TriBase(object):
         # Loop through the nodes.
         for i in np.arange(self.nNode):
             # Write the line (with 1-based node index).
-            fid.write('%.12f %.12f %.12f %s %s\n' % (
+            fid.write('%15.8e %15.8e %15.8e %s %s\n' % (
                 self.Nodes[i,0], self.Nodes[i,1], self.Nodes[i,2],
                 self.blds[i], self.bldel[i]))
         # Loop through the triangles.
@@ -1091,14 +1091,15 @@ class TriBase(object):
         fid.close()
         
     # Map boundary condition tags
-    def MapBCs_AFLR3(self, BCs={}, blds={}, bldel={}):
+    def MapBCs_AFLR3(self, compID=None, BCs={}, blds={}, bldel={}):
         """Initialize and map boundary condition indices for AFLR3
         
         :Call:
-            >>> tri.MapBCs_AFLR3(BCs, blds={}, bldel={})
+            >>> tri.MapBCs_AFLR3(compID=[], BCs={}, blds={}, bldel={})
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
+            *compID*: 
             *BCs*: :class:`dict` (:class:`str` | :class:`int`)
                 Dictionary of BC flags for CompIDs or component names
             *blds*: :class:`dict` (:class:`str` | :class:`int`)
@@ -1119,8 +1120,11 @@ class TriBase(object):
         # Initialize the boundary layer spacings
         self.blds = np.zeros(self.nNode)
         self.bldel = np.zeros(self.nNode)
+        # Default keys
+        if compID is None:
+            compID = BCs.keys()
         # Loop through BCs
-        for comp in BCs:
+        for comp in compID:
             # Get the tris matching the component ID
             I = self.GetTrisFromCompID(comp)
             # Modify those BCs
@@ -1176,6 +1180,7 @@ class TriBase(object):
         # Read the boundary condition file
         f = open(fname, 'r')
         # Initialize boundary condition map
+        compID = []
         BCs = {}
         blds = {}
         bldel = {}
@@ -1192,7 +1197,9 @@ class TriBase(object):
             comp = V[0]
             # Get the boundary condition flag
             bc = int(V[1])
-            # Save the boundary condtion
+            # Append to the list (ordered)
+            compID.append(comp)
+            # Save the boundary condition
             BCs[comp] = bc
             # Check length
             if len(V) < 3: continue
@@ -1209,7 +1216,7 @@ class TriBase(object):
         # Close the file.
         f.close()
         # Apply the boundary conditions
-        self.MapBCs_AFLR3(BCs, blds=blds, bldel=bldel)
+        self.MapBCs_AFLR3(compID, BCs, blds=blds, bldel=bldel)
             
         
     # Function to copy a triangulation and unlink it.

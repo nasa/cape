@@ -632,7 +632,7 @@ class odict(dict):
             # Get the default, but ensure a scalar.
             v = rc0(rck)
         # Get the current full setting.
-        V = self.get(k, rc[rck])
+        V = self.get(k, rc.get(rck))
         # Assign the input value .
         self[k] = setel(V, i, v)
         

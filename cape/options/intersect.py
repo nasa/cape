@@ -63,7 +63,7 @@ class intersect(odict):
         return self.get_key('i', j)
     
     # Set the intersect input file
-    def set_intersect_i(self, fname, j=0):
+    def set_intersect_i(self, fname, j=None):
         """Set the input file for ``intersect``
         
         :Call:
@@ -100,7 +100,7 @@ class intersect(odict):
         return self.get_key('o', j)
     
     # Set the intersect output file
-    def set_intersect_o(self, fname, j=0):
+    def set_intersect_o(self, fname, j=None):
         """Set the output file for ``intersect``
         
         :Call:
@@ -137,7 +137,7 @@ class intersect(odict):
         return self.get_key('ascii', j)
     
     # ASCII setting
-    def set_ascii(self, ascii, j=0):
+    def set_ascii(self, ascii, j=None):
         """Set the ASCII setting for the input file
         
         :Call:
@@ -174,7 +174,7 @@ class intersect(odict):
         return self.get_key('cutout', j)
         
     # Subtraction option
-    def set_cutout(self, cutout, j=0):
+    def set_cutout(self, cutout, j=None):
         """Set the component ID to subtract (cut out)
         
         :Call:
@@ -229,7 +229,7 @@ class verify(odict):
         return self.get_key('i', j)
     
     # Set the intersect input file
-    def set_verify_i(self, fname, j=0):
+    def set_verify_i(self, fname, j=None):
         """Set the input file for ``verify``
         
         :Call:
@@ -266,7 +266,7 @@ class verify(odict):
         return self.get_key('ascii', j)
     
     # ASCII setting
-    def set_ascii(self, ascii, j=0):
+    def set_ascii(self, ascii, j=None):
         """Set the ASCII setting for the input file
         
         :Call:
