@@ -493,6 +493,22 @@ class Trajectory:
                     "TotalTemperature": "T0",
                     "CompID": []
                 }
+            elif key.startswith('CT'):
+                # Thrust coefficient
+                defkey = {
+                    "Group": False,
+                    "Type": "SurfCT",
+                    "Value": "float",
+                    "Format": "%s",
+                    "Label": True,
+                    "Abbreviation": "CT",
+                    "RefDynamicPressure": None,
+                    "RefArea": None,
+                    "AreaRatio": 4.0,
+                    "MachNumber": 1.0,
+                    "TotalTemperature": "T0",
+                    "CompID": []
+                }
             elif key.lower() in ['t0', 't_total']:
                 # Surface stagnation temperature ratio
                 defkey = {
@@ -1921,6 +1937,407 @@ class Trajectory:
         # If we reach here, missing info.
         return None
         
+    # Get thrust for SurfCT input
+    def GetSurfCT_Thrust(self, i, key=None):
+        """Get thrust input for surface *CT* key
+        
+        :Call:
+            >>> CT = x.GetSurfCT_Thrust(i, key=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfCT`` key
+        :Outputs:
+            *CT*: :class:`float`
+                Thrust parameter, either thrust or coefficient
+        :Versions:
+            * 2016-04-11 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key
+            if 'SurfCT' not in KeyTypes: return
+            # Get first key
+            key = sefl.GetKeysByType('SurfCT')[0]
+        # Get the thrust parameter
+        ot = self.defns[key].get('Thrust')
+        # Type
+        tt = tpye(ot).__name__
+        # Process the option
+        if ot is None:
+            # Use the value of this key
+            return getattr(self,key)[i]
+        elif tt in ['str', 'unicode']:
+            # Use this as a key
+            kT = ot
+            # Use the value of that key
+            return getattr(self,kT)[i]
+        else:
+            # Return the fixed value
+            return ot
+            
+    # Get reference dynamic pressure
+    def GetSurfCT_RefDynamicPressure(self, k, key=None):
+        """Get reference dynamic pressure for surface *CT* key
+        
+        :Call:
+            >>> qinf = x.GetSurfCT_RefDynamicPressure(i, key=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfBC`` key
+        :Outputs:
+            *qinf*: :class:`float`
+                Reference dynamic pressure to use, this divides the *CT* value
+        :Versions:
+            * 2016-04-11 ``@ddalle``: First version
+        """
+        # Process the key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if 'SurfCT' not in KeyTypes: return
+            # Get first key
+            key = self.GetKeysByType('SurfCT')[0]
+        # Get the pressure parameter
+        op = self.defns[key].get('RefDynamicPressure', 1.0)
+        # Type
+        tp = type(op).__name__
+        # Process the option
+        if op is None:
+            # Use the freestream value
+            return self.GetDynamicPressure(i)
+        elif tp in ['str', 'unicode']:
+            # Use this as a key
+            kP = op
+            # Use the value of that key
+            return getattr(self,kP)[i]
+        else:
+            # Use the fixed value
+            return op
+            
+    # Get pressure calibration factor
+    def GetSurfCT_PressureCalibration(self, i, key=None):
+        """Get pressure calibration factor for *CT* key
+        
+        :Call:
+            >>> fp = x.GetSurfCT_PressureCalibration(i, key=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfCT`` key
+        :Outputs:
+            *fp*: {``1.0``} | :class:`float`
+                Pressure calibration factor
+        :Versions:
+            * 2016-04-11 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if 'SurfCT' not in KeyTypes: return
+            # Get first key
+            key = self.GetKeysByType('SurfCT')[0]
+        # Call the SurfBC equivalent
+        return self.GetSurfBC_PressureCalibration(i, key)
+            
+    # Get total temperature
+    def GetSurfCT_TotalTemperature(self, i, key=None):
+        """Get total temperature input for surface *CT* key
+        
+        :Call:
+            >>> T0 = x.GetSurfCT_TotalTemperature(i, key=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfCT`` key
+        :Outputs:
+            *T0*: :class:`float`
+                Total temperature of thrust conditions
+        :Versions:
+            * 2016-04-11 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if 'SurfCT' not in KeyTypes: return
+            # Get first key
+            key = self.GetKeysByType('SurfCT')[0]
+        # Call the SurfBC equivalent
+        return self.GetSurfBC_TotalTemperature(i, key)
+            
+    # Get total temperature
+    def GetSurfCT_RefTemperature(self, i, key=None):
+        """Get reference temperature input for surface *CT* total temperature
+        
+        :Call:
+            >>> Tref = x.GetSurfCT_RefTemperature(i, key=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfCT`` key
+        :Outputs:
+            *Tref*: :class:`float`
+                Reference temperature for normalizing *T0*
+        :Versions:
+            * 2016-04-11 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if 'SurfCT' not in KeyTypes: return
+            # Get first key
+            key = self.GetKeysByType('SurfCT')[0]
+        # Call the SurfBC equivalent
+        return self.GetSurfBC_RefTemperature(i, key)
+    
+    # Get Mach number
+    def GetSurfCT_Mach(self, i, key=None):
+        """Get Mach number input for surface *CT* key
+        
+        :Call:
+            >>> M = x.GetSurfCT_TotalTemperature(i, key=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfCT`` key
+        :Outputs:
+            *T0*: :class:`float`
+                Total temperature of thrust conditions
+        :Versions:
+            * 2016-04-11 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if 'SurfCT' not in KeyTypes: return
+            # Get first key
+            key = self.GetKeysByType('SurfCT')[0]
+        # Call the SurfBC equivalent
+        return self.GetSurfBC_Mach(i, key)
+    
+    # Get exit Mach number input for SurfCT input
+    def GetSurfCT_ExitMach(self, i, key=None):
+        """Get Mach number input for surface *CT* key
+        
+        :Call:
+            >>> M2 = x.GetSurfCT_ExitMach(i, key=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfBC`` key
+        :Outputs:
+            *M2*: :class:`float`
+                Nozzle exit Mach number
+        :Versions:
+            * 2016-04-11 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if 'SurfBC' not in KeyTypes: return
+            # Get first key
+            key = self.GetKeysByType('SurfCT')[0]
+        # Get the pressure parameter
+        om = self.defns[key].get('ExitMach')
+        # Type
+        tm = type(om).__name__
+        # Process the option
+        if om is None:
+            # Not using this key
+            return None
+        elif tm in ['str', 'unicode']:
+            # Use the value of that key
+            return getattr(self,om)[i]
+        else:
+            # Use the fixed value
+            return om
+    
+    # Get area ratio
+    def GetSurfCT_AreaRatio(self, i, key=None):
+        """Get area ratio for surface *CT* key
+        
+        :Call:
+            >>> AR = x.GetSurfCT_AreaRatio(i, key=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfCT`` key
+        :Outputs:
+            *AR*: :class:`float`
+                Area ratio
+        :Versions:
+            * 2016-04-11 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if 'SurfCT' not in KeyTypes: return
+            # Get first key
+            key = self.GetKeysByType('SurfCT')[0]
+        # Get the area ratio parameter
+        oa = self.defns[key].get('AreaRatio')
+        # Type
+        ta = type(oa).__name__
+        # Process the option
+        if oa is None:
+            # Use the value of this
+            return None
+        elif ta in ['str', 'unicode']:
+            # Use this value as a key
+            ka = oa
+            # Use the value of that key.
+            return getattr(self,ka)[i]
+        else:
+            # Use the fixed value
+            return oa
+            
+    # Get reference area
+    def GetSurfCT_RefArea(self, i, key=None):
+        """Get reference area for surface *CT* key, this divides *CT* value
+        
+        If this is ``None``, it defaults to the vehicle reference area
+        
+        :Call:
+            >>> Aref = x.GetSurfCT_RefArea(i, key=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfCT`` key
+        :Outputs:
+            *ARef*: {``None``} | :class:`float`
+                Reference area; if ``None``, use the vehicle area 
+        :Versions:
+            * 2016-04-11 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if 'SurfCT' not in KeyTypes: return
+            # Get first key
+            key = self.GetKeysByType('SurfCT')[0]
+        # Get the area ratio parameter
+        oa = self.defns[key].get('RefArea')
+        # Type
+        ta = type(oa).__name__
+        # Process the option
+        if oa is None:
+            # Flag to use the vehicle value from *cntl.opts*
+            return None
+        elif ta in ['str', 'unicode']:
+            # Use this value as a key
+            ka = oa
+            # Use the value of that key.
+            return getattr(self,ka)[i]
+        else:
+            # Use the fixed value
+            return oa
+        
+    
+    # Get component ID(s) for input SurfCT key
+    def GetSurfCT_CompID(self, i, key=None):
+        """Get component ID input for surface *CT* key
+        
+        :Call:
+            >>> compID = x.GetSurfCT_CompID(i, key=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfCT`` key
+        :Outputs:
+            *compID*: :class:`list` (:class:`int` | :class:`str`)
+                Surface boundary condition Mach number
+        :Versions:
+            * 2016-04-11 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if 'SurfCT' not in KeyTypes: return
+            # Get first key
+            key = self.GetKeysByType('SurfCT')[0]
+        # Call the SurfBC equivalent
+        return self.GetSurfBC_CompID(i, key)
+        
+    # Get ratio of specific heats for SurfCT key
+    def GetSurfCT_Gamma(self, i, key=None):
+        """Get ratio of specific heats input for surface *CT* key
+        
+        :Call:
+            >>> gam = x.GetSurfCT_Gamma(i, key=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfCT`` key
+        :Outputs:
+            *gam*: {``1.4``} | :class:`float`
+                Ratio of specific heats
+        :Versions:
+            * 2016-04-11 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if 'SurfCT' not in KeyTypes: return
+            # Get first key
+            key = self.GetKeysByType('SurfCT')[0]
+        # Call the SurfBC equivalent
+        return self.GetSurfBC_Gamma(i, key)
+        
     # Get stagnation pressure input for SurfBC input
     def GetSurfBC_TotalPressure(self, i, key=None):
         """Get stagnation pressure input for surface BC key
@@ -2000,6 +2417,50 @@ class Trajectory:
         if op is None:
             # Use the value of this key
             return self.GetPressure(i)
+        elif tp in ['str', 'unicode']:
+            # Use this as a key
+            kP = op
+            # Use the value of that key
+            return getattr(self,kP)[i]
+        else:
+            # Use the fixed value
+            return op
+            
+    # Get pressure scaling
+    def GetSurfBC_PressureCalibration(self, i, key=None):
+        """Get total pressure scaling factor used for calibration
+        
+        :Call:
+            >>> fp = x.GetSurfBC_PressureCalibration(i, key=None)
+        :Inputs:
+            *x*: :Class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defautls to first ``SurfBC`` key
+        :Outputs:
+            *fp*: {``1.0``} | :class:`float`
+                Pressure calibration factor
+        :Versions:
+            * 2016-04-12 ``@ddalle``: First version
+        """
+        # Process the key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if 'SurfBC' not in KeyTypes: return 1.0
+            # Get first key
+            key = self.GetKeysByType('SurfBC')[0]
+        # Get the pressure parameter
+        op = self.defns[key].get('PressureCalibration', 1.0)
+        # Type
+        tp = type(op).__name__
+        # Process the option
+        if op is None:
+            # Use the value of this key
+            return 1.0
         elif tp in ['str', 'unicode']:
             # Use this as a key
             kP = op

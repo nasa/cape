@@ -932,11 +932,13 @@ class Fun3d(Cntl):
         # Get the inputs
         p0 = self.x.GetSurfBC_TotalPressure(i, key)
         T0 = self.x.GetSurfBC_TotalTemperature(i, key)
+        # Calibration
+        fp = self.x.GetSurfBC_PressureCalibration(i, key)
         # Reference pressure/temp
         pinf = self.x.GetSurfBC_RefPressure(i, key)
         Tinf = self.x.GetSurfBC_RefTemperature(i, key)
         # Output
-        return p0/pinf, T0/Tinf
+        return fp*p0/pinf, T0/Tinf
         
     # Get startup volume for a surface BC input
     def GetSurfBCVolume(self, key, compID):
