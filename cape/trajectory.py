@@ -1900,7 +1900,7 @@ class Trajectory:
         # Check for dynamic pressure
         if 'q' in KeyTypes:
             # Find the key.
-            k = self.GetKeysByType('p')[0]
+            k = self.GetKeysByType('q')[0]
             # Output
             return getattr(self,k)[i]
         # If we reach this point, we need at least Mach and temperature
