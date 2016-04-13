@@ -940,6 +940,28 @@ class Fun3d(Cntl):
         # Output
         return fp*p0/pinf, T0/Tinf
         
+    # Get surface CT state inputs
+    def GetSurfCTState(self, key, i):
+        """Get stagnation pressure and temperature ratios for *SurfCT* key
+        
+        :Call:
+            >>> p0, T0 = fun3d.GetSurfCTState(key, i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of global pyFun settings object
+            *key*: :class:`str`
+                Name of key to process
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *p0*: :class:`float`
+                Ratio of BC stagnation pressure to freestream static pressure
+            *T0*: :class:`float`
+                Ratio of BC stagnation temperature to freestream static temp
+        :Versions:
+            * 2016-04-13 ``@ddalle``: First version
+        """
+        
     # Get startup volume for a surface BC input
     def GetSurfBCVolume(self, key, compID):
         """Get coordinates for flow initialization box

@@ -36,6 +36,7 @@ import os
 from . import options
 from . import queue
 from . import case
+from . import convert
 
 # Functions and classes from other modules
 from trajectory import Trajectory
@@ -1284,7 +1285,150 @@ class Cntl(object):
             # Set the new value.
             self.opts.set_Point(YR[j], ptsR[j])
     
-    
+    # Get exit area for SurfCT boundary condition
+    def GetSurfCT_ExitArea(self, key, i):
+        """Get exit area for a *CT* trajectory key
+        
+        This can use either the area ratio (if available) or calculate from the
+        exit Mach number.  The input area is determined from the component ID.
+        If using the exit Mach number *M2*, the input Mach number *M1* is also
+        needed.  The relationship between area ratio and exit Mach is given
+        below.
+        
+            .. math::
+                
+                \\frac{A_2}{A_1} = \\frac{M_1}{M_2}\\left(
+                    \\frac{1+\\frac{\\gamma-1}{2}M_2^2}{
+                    1+\\frac{\\gamma-1}{2}M_1^2}
+                \right) ^ {\\frac{1}{2}\\frac{\\gamma+1}{\\gamma-1}}
+        
+        :Call:
+            >>> A2 = cntl.GetSurfCT_ExitArea(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *key*: :class:`str`
+                Name of trajectory key to check
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *A2*: :class:`list` (:class:`float`)
+                Exit area for each component referenced by this key
+        :Versions:
+            * 2016-04-13 ``@ddalle``: First version
+        """
+        # Get component(s)
+        compIDs = self.x.GetSurfCT_CompID(i, key)
+        # Ensure list
+        if type(compIDs).__name__ not in ['list', 'ndarray']:
+            compIDs = [compIDs]
+        # Input area(s)
+        A1 = [self.tri.GetCompArea(comp) for comp in compIDs]
+        # Check for area ratio
+        AR = self.x.GetSurfCT_AreaRatio(i, key)
+        # Check if we need to use Mach number
+        if AR is None:
+            # Get input and exit Mach numbers
+            M1 = self.x.GetSurfCT_Mach(i, key)
+            M2 = self.x.GetSurfCT_ExitMach(i, key)
+            # Gas constants
+            gam = self.GetSurfCT_Gamma(i, key)
+            g1 = 0.5 * (gam+1) / (gam-1)
+            g2 = 0.5 * (gam-1)
+            # Ratio
+            AR = M1/M2 * ((1+g2*M2*M2) / (1+g2*M1*M1))**g1
+        # Return exit areas
+        return [A*AR for A in A1]
+        
+    # Get exit Mach number for SurfCT boundary condition
+    def GetSurfCT_ExitMach(self, key, i):
+        """Get exit Mach number for a *CT* trajectory key
+        
+        This can use either the ``"ExitMach"`` parameter (if available) or
+        calculate from the area ratio.  If using the area ratio, the input Mach
+        number is also needed.  The relationship between area ratio and exit
+        Mach is given below.
+        
+            .. math::
+                
+                \\frac{A_2}{A_1} = \\frac{M_1}{M_2}\\left(
+                    \\frac{1+\\frac{\\gamma-1}{2}M_2^2}{
+                    1+\\frac{\\gamma-1}{2}M_1^2}
+                \right) ^ {\\frac{1}{2}\\frac{\\gamma+1}{\\gamma-1}}
+        
+        :Call:
+            >>> M2 = cntl.GetSurfCT_ExitMach(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *key*: :class:`str`
+                Name of trajectory key to check
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *M2*: :class:`float`
+                Exit Mach number
+        :Versions:
+            * 2016-04-13 ``@ddalle``: First version
+        """
+        # Get exit Mach number
+        M2 = self.x.GetSurfCT_ExitMach(i, key)
+        # Check if we need to use area ratio
+        if M2 is None:
+            # Get input Mach number
+            M1 = self.x.GetSurfCT_Mach(i, key)
+            # Get area ratio
+            AR = self.x.GetSurfCT_AreaRatio(i, key)
+            # Ratio of specific heats
+            gam = self.x.GetSurfCT_Gamma(i, key)
+            # Calculate exit Mach number
+            M2 = convert.ExitMachFromAreaRatio(AR, M1, gam)
+        # Output
+        return M2
+        
+    # Reference area
+    def GetSurfCT_RefArea(self, key, i):
+        """Get reference area for surface *CT* trajectory key
+        
+        This references the ``"RefArea"`` parameter of the definition for the
+        run matrix variable *key*.  The user should set this parameter to
+        ``1.0`` if thrust inputs are given as dimensional values.
+        
+        If this is ``None``, it returns the global reference area; if it is a
+        string the reference area comes from the reference area for that
+        component using ``cntl.opts.get_RefArea(comp)``.
+        
+        :Call:
+            >>> Aref = cntl.GetSurfCT_RefArea(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *key*: :class:`str`
+                Name of trajectory key to check
+            *i*: :class:`int`
+                Case number
+        :Outputs:
+            *Aref*: :class:`float`
+                Reference area for normalizing thrust coefficients
+        :Versions:
+            * 2016-04-13 ``@ddalle``: First version
+        """
+        # Get *Aref* option
+        Aref = self.x.GetSurfCT_RefArea(i, key)
+        # Type
+        t = type(Aref).__name__
+        # Check type
+        if Aref is None:
+            # Use the default
+            return self.opts.get_RefArea()
+        elif t in ['str', 'unicode']:
+            # Use the input as a component ID name
+            return self.opts.get_RefArea(Aref)
+        else:
+            # Assume it's already given as the correct type
+            return Aref
+        
+        
     # Write flowCart options to JSON file
     def WriteCaseJSON(self, i):
         """Write JSON file with the ``"RunControl"`` options for case *i*

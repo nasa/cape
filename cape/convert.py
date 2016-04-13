@@ -86,6 +86,90 @@ def AlphaBeta2AlphaTPhi(alpha, beta):
     # Output
     return alpha_t, phi
     
+# Get exit Mach number from area ratio
+def ExitMachFromAreaRatio(AR, M1, gamma=1.4, subsonic=False):
+    """Calculate 1D nozzle Mach number from input Mach number and area ratio
+    
+    :Call:
+        >>> M2 = ExitMachFromAreaRatio(AR, M1, gamma=1.4, subsonic=False)
+    :Inputs:
+        *AR*: :class:`float`
+            Nozzle area ratio
+        *M1*: :class:`float`
+            Input Mach number
+        *gamma*: {``1.4``} | :class:`float`
+            Ratio of specific heats
+        *subsonic*: ``True`` | {``False``}
+            Whether or not *M2* should be less than 1.0
+    :Outputs:
+        *M2*: :class:`float`
+            Exit Mach number
+    :Versions:
+        * 2016-04-13 ``@ddalle``: First version
+    """
+    # Initial guesses
+    if subsonic:
+        Ma = 0.35*min(M1,1.0)/AR
+        Mb = 1.0
+    else:
+        Ma = 1.0
+        Mb = max(1.0, M1*AR) + M1*AR
+    # Gas constants
+    g = gamma
+    g2 = 0.5 * (g-1)
+    g3 = 0.5 * (g+1) / (g-1)
+    # Mach parameters
+    chi1 = 1 + g2*M1**2
+    chia = 1 + g2*Ma**2
+    chib = 1 + g2*Mb**2
+    Ra = (chia/chi1)**g3
+    Rb = (chib/chi1)**g3
+    # Calculate residual
+    fa = AR - (M1/Ma)*Ra
+    fb = AR - (M1/Mb)*Rb
+    # Pick best side
+    if abs(fa) < abs(fb):
+        f = fa; M2 = Ma
+    else:
+        f = fb; M2 = Mb
+    # Iteration count
+    k = 0
+    # Loop
+    while abs(f) > 1e-8 and Mb-Ma > 1e-8 and k < 30:
+        # Residual ratio
+        r = abs(fb) / abs(fa)
+        # Check for bisect step
+        if r > 1e2:
+            # Close to *Ma*
+            Mc = 0.9*Ma + 0.1*Mb
+        elif r < 1e-2:
+            # Close to *Mb*
+            Mc = 0.1*Ma + 0.9*Mb
+        else:
+            # Secant step
+            Mc = Ma - fa * (Mb-Ma) / (fb-fa)
+        # Update Mach parameters
+        chic = 1 + g2*Mc**2
+        Rc = (chic/chi1)**g3
+        # Calculate residual
+        fc = AR - (M1/Mc)*Rc
+        # Check signs
+        if fa * fc <= 0:
+            # New upper bound
+            fb, Mb = [fc, Mc]
+        else:
+            # New lower bound
+            fa, Ma = [fc, Mc]
+        # Pick best side
+        if abs(fa) < abs(fb):
+            f = fa; M2 = Ma
+        else:
+            f = fb; M2 = Mb
+        # Iteration count
+        k += 1
+    # Output
+    return M2
+    
 
 # Sutherland's law (FPS)
 def SutherlandFPS(T, mu0=None, T0=None, C=None):

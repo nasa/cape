@@ -1998,7 +1998,7 @@ class Trajectory:
             *qinf*: :class:`float`
                 Reference dynamic pressure to use, this divides the *CT* value
         :Versions:
-            * 2016-04-11 ``@ddalle``: First version
+            * 2016-04-12 ``@ddalle``: First version
         """
         # Process the key
         if key is None:
@@ -2009,21 +2009,56 @@ class Trajectory:
             # Get first key
             key = self.GetKeysByType('SurfCT')[0]
         # Get the pressure parameter
-        op = self.defns[key].get('RefDynamicPressure', 1.0)
+        op = self.defns[key].get('RefDynamicPressure')
         # Type
         tp = type(op).__name__
         # Process the option
         if op is None:
             # Use the freestream value
-            return self.GetDynamicPressure(i)
+            return 0.5*self.GetGamma(i)*self.GetMach(i)**2
         elif tp in ['str', 'unicode']:
-            # Use this as a key
-            kP = op
-            # Use the value of that key
-            return getattr(self,kP)[i]
+            # Check for special names
+            if op.lower() in ['freestream', 'inf']:
+                # Use the freestream value
+                return self.GetDynamicPressure(i)
+            else:
+                # Use this as a key
+                kP = op
+                # Use the value of that key
+                return getattr(self,kP)[i]
         else:
             # Use the fixed value
             return op
+            
+    # Get total temperature
+    def GetSurfCT_RefPressure(self, i, key=None):
+        """Get reference pressure input for surface *CT* total pressure
+        
+        :Call:
+            >>> Tref = x.GetSurfCT_RefPressure(i, key=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfCT`` key
+        :Outputs:
+            *pref*: :class:`float`
+                Reference pressure for normalizing *T0*
+        :Versions:
+            * 2016-04-13 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if 'SurfCT' not in KeyTypes: return
+            # Get first key
+            key = self.GetKeysByType('SurfCT')[0]
+        # Call the SurfBC equivalent
+        return self.GetSurfBC_RefTemperature(i, key)
             
     # Get pressure calibration factor
     def GetSurfCT_PressureCalibration(self, i, key=None):
@@ -2410,18 +2445,23 @@ class Trajectory:
             # Get first key
             key = self.GetKeysByType('SurfBC')[0]
         # Get the pressure parameter
-        op = self.defns[key].get('RefPressure', 1.0)
+        op = self.defns[key].get('RefPressure')
         # Type
         tp = type(op).__name__
         # Process the option
         if op is None:
             # Use the value of this key
-            return self.GetPressure(i)
+            return 1.0
         elif tp in ['str', 'unicode']:
-            # Use this as a key
-            kP = op
-            # Use the value of that key
-            return getattr(self,kP)[i]
+            # Check for special keys
+            if op.lower() in ['freestream', 'inf']:
+                # Use the freestream value
+                return self.GetPressure(i)
+            else:
+                # Use this as a key
+                kP = op
+                # Use the value of that key
+                return getattr(self,kP)[i]
         else:
             # Use the fixed value
             return op
@@ -2540,16 +2580,21 @@ class Trajectory:
             # Get first key
             key = self.GetKeysByType('SurfBC')[0]
         # Get the pressure parameter
-        ot = self.defns[key].get('RefTemperature', 1.0)
+        ot = self.defns[key].get('RefTemperature')
         # Type
         tt = type(ot).__name__
         # Process the option
         if ot is None:
             # Use the freestream value
-            return self.GetTemperature(i)
+            return 1.0
         elif tt in ['str', 'unicode']:
-            # Use this as a key
-            return getattr(self,ot)[i]
+            # Check for special keys
+            if ot.lower() in ['freestream', 'inf']:
+                # Use frestream value
+                return self.GetTemperature(i)
+            else:
+                # Use this as a key
+                return getattr(self,ot)[i]
         else:
             # Use the fixed value
             return ot
