@@ -801,6 +801,12 @@ class Fun3d(Cntl):
             self.ReadTri()
             # Apply the appropriate methods
             self.SetSurfBC(k, i)
+        # Set the surface BCs that use thrust as input
+        for k in self.x.GetKeysByType('SurfCT'):
+            # Ensure the presence of the triangulation
+            self.ReadTri()
+            # Apply the appropriate methods
+            self.SetSurfBC(k, i, CT=True)
         # File name
         fout = os.path.join(frun, '%s.mapbc'%self.GetProjectRootName(0))
         # Write the BC file
@@ -838,7 +844,7 @@ class Fun3d(Cntl):
         os.chdir(fpwd)
     
     # Prepare surface BC
-    def SetSurfBC(self, key, i):
+    def SetSurfBC(self, key, i, CT=False):
         """Set all surface BCs and flow initialization volumes for one key
         
         This uses the 7011 boundary condition and sets the values of BC
@@ -847,7 +853,7 @@ class Fun3d(Cntl):
         to help with solution startup
         
         :Call:
-            >>> fun3d.SetSurfBC(key, i)
+            >>> fun3d.SetSurfBC(key, i, CT=False)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of global pyFun settings object
@@ -855,13 +861,21 @@ class Fun3d(Cntl):
                 Name of SurfBC key to process
             *i*: :class:`int`
                 Case index
+            *CT*: ``True`` | {``False``}
+                Whether this key has thrust as input (else *p0*, *T0* directly)
         :Versions:
             * 2016-03-29 ``@ddalle``: First version
+            * 2016-04-13 ``@ddalle``: Added SurfCT compatibility
         """
         # Get the BC inputs
-        p0, T0 = self.GetSurfBCState(key, i)
+        if CT:
+            # Use thrust as input variable
+            p0, T0 = self.GetSurfCTState(key, i)
+        else:
+            # Use *p0* and *T0* directly as inputs
+            p0, T0 = self.GetSurfBCState(key, i)
         # Get the flow initialization volume state
-        rho, U, a = self.GetSurfBCFlowInitState(key, i)
+        rho, U, a = self.GetSurfBCFlowInitState(key, i, CT=CT)
         # Get the namelist
         nml = self.Namelist
         # Get the components
@@ -961,6 +975,32 @@ class Fun3d(Cntl):
         :Versions:
             * 2016-04-13 ``@ddalle``: First version
         """
+        # Get the thrust value
+        CT = self.x.GetSurfCT_Thrust(i, key)
+        # Get the exit parameters
+        M2 = self.GetSurfCT_ExitMach(key, i)
+        A2 = self.GetSurfCT_ExitArea(key, i)
+        # Ratio of specific heats
+        gam = self.x.GetSurfCT_Gamma(i, key)
+        # Derivative gas constants
+        g2 = 0.5 * (gam-1)
+        g3 = gam / (gam-1)
+        # Get reference dynamic pressure
+        qref = self.x.GetSurfCT_RefDynamicPressure(i, key)
+        # Get reference area
+        Aref = self.GetSurfCT_RefArea(key, i)
+        # Calculate total pressure
+        p0 = CT*qref*Aref/(pref*A2) * (1+g2*M2*M2)**g3 / (1+gam*M2*M2)
+        # Temperature inputs
+        T0 = self.x.GetSurfCT_TotalTemperature(i, key)
+        # Calibration
+        fp = self.x.getSurfCT_PressureCalibration(i, key)
+        # Reference values
+        pinf = self.x.GetSurfCT_RefPressure(i, key)
+        Tinf = self.x.GetSurfCT_RefTemperature(i, key)
+        qinf = self.x.GetSurfCT_RefDynamicPressure(i, key)
+        # Output
+        return fp*p0/pinf, T0/Tinf
         
     # Get startup volume for a surface BC input
     def GetSurfBCVolume(self, key, compID):
@@ -1005,11 +1045,11 @@ class Fun3d(Cntl):
         return x1, x2, r
         
     # Get startup conditions for surface BC input
-    def GetSurfBCFlowInitState(self, key, i):
+    def GetSurfBCFlowInitState(self, key, i, CT=False):
         """Get nondimensional state for flow initialization volumes
         
         :Call:
-            >>> rho, U, c = fun3d.GetSurfBCFlowInitState(key, i)
+            >>> rho, U, c = fun3d.GetSurfBCFlowInitState(key, i, CT=False)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of global pyFun settings object
@@ -1017,6 +1057,8 @@ class Fun3d(Cntl):
                 Name of SurfBC key to process
             *i*: :class:`int`
                 Case index
+            *CT*: ``True`` | {``False``}
+                Whether this key has thrust as input (else *p0*, *T0* directly)
         :Outputs:
             *rho*: :class:`float`
                 Normalized static density, *rho/rhoinf*
@@ -1026,13 +1068,15 @@ class Fun3d(Cntl):
                 Normalized sound speed, *a/ainf*
         :Versions:
             * 2016-03-29 ``@ddalle``: First version
+            * 2016-04-13 ``@ddalle``: Added *CT*/BC capability
         """
-        # Get the input states
-        p0 = self.x.GetSurfBC_TotalPressure(i, key)
-        T0 = self.x.GetSurfBC_TotalTemperature(i, key)
-        # Reference pressure/temp
-        pinf = self.x.GetSurfBC_RefPressure(i, key)
-        Tinf = self.x.GetSurfBC_RefTemperature(i, key)
+        # Get the boundary condition states
+        if CT == True:
+            # Use *SurfCT* thrust definition
+            p0, T0 = self.GetSurfCTState(key, i)
+        else:
+            # Use *SurfBC* direct definitions of *p0*, *T0*
+            p0, T0 = self.GetSurfBCState(key, i)
         # Get the Mach number and blending fraction
         M = self.x.defns[key].get('Mach', 0.2)
         f = self.x.defns[key].get('Blend', 0.9)
@@ -1044,8 +1088,8 @@ class Fun3d(Cntl):
         rr = rT ** (1/(gam-1))
         rp = rT ** (gam/(gam-1))
         # Reference values
-        rho = f*(p0/pinf)/(T0/Tinf) / rr
-        c   = f*np.sqrt((T0/Tinf) / rT)
+        rho = f*(p0)/(T0) / rr
+        c   = f*np.sqrt((T0) / rT)
         U   = M * c
         # Output
         return rho, U, c
