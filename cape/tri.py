@@ -1099,7 +1099,8 @@ class TriBase(object):
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
-            *compID*: 
+            *compID*: :class:`list` (:class:`str` | :class:`int`) | ``None``
+                List of components to preserve order; defaults to ``BCs.keys()``
             *BCs*: :class:`dict` (:class:`str` | :class:`int`)
                 Dictionary of BC flags for CompIDs or component names
             *blds*: :class:`dict` (:class:`str` | :class:`int`)
@@ -1212,7 +1213,7 @@ class TriBase(object):
             # Get the boundary layer thickness
             bldeli = float(V[3])
             # Save the BL thickness
-            bldel[comp] = bldel
+            bldel[comp] = bldeli
         # Close the file.
         f.close()
         # Apply the boundary conditions

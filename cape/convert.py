@@ -107,6 +107,11 @@ def ExitMachFromAreaRatio(AR, M1, gamma=1.4, subsonic=False):
     :Versions:
         * 2016-04-13 ``@ddalle``: First version
     """
+    # Get critical quantities
+    AR_star = CriticalAreaRatio(M1, gamma)
+    # Restart from critical section
+    AR = AR * AR_star
+    M1 = 1.0
     # Initial guesses
     if subsonic:
         Ma = 0.35*min(M1,1.0)/AR
@@ -116,6 +121,7 @@ def ExitMachFromAreaRatio(AR, M1, gamma=1.4, subsonic=False):
         Mb = max(1.0, M1*AR) + M1*AR
     # Gas constants
     g = gamma
+    g1 = 0.5 * (g+1)
     g2 = 0.5 * (g-1)
     g3 = 0.5 * (g+1) / (g-1)
     # Mach parameters
@@ -169,6 +175,31 @@ def ExitMachFromAreaRatio(AR, M1, gamma=1.4, subsonic=False):
         k += 1
     # Output
     return M2
+    
+# Critical area ratio
+def CriticalAreaRatio(M, gamma=1.4):
+    """Get the area ratio to a Mach 1 area
+    
+    :Call:
+        >>> AR = CriticalAreaRatio(M, gamma=1.4)
+    :Inputs:
+        *M*: :class:`float`
+            Mach number
+        *gamma*: {``1.4``} | :class:`float`
+            Ratio of specific heats
+    :Outputs:
+        *AR*: :class:`float`
+            Nozzle area ratio
+    :Versions:
+        * 2016-04-13 ``@ddalle``: First version
+    """
+    # Gas constants
+    g1 = 0.5 * (gamma+1)
+    g2 = 0.5 * (gamma-1)
+    g3 = 0.5 * g1/g2
+    # Area ratio
+    return 1/M * ((1+g2*M*M)/g1) ** g3
+    
     
 
 # Sutherland's law (FPS)
