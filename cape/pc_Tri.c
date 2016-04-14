@@ -21,7 +21,7 @@ pc_WriteTriNodes(FILE *fid, PyArrayObject *P)
     n = 0;
     
     // Check for two-dimensional Mx3 array.
-    if (PyArray_NDIM(P) != 2 || PyArray_DIM(P, 1) != 3) {
+    if (PyArray_NDIM(P) != 2) {
         PyErr_SetString(PyExc_ValueError, \
             "Nodal coordinates must be two-dimensional array.");
         return 2;
@@ -60,6 +60,73 @@ pc_WriteTriNodes(FILE *fid, PyArrayObject *P)
     // Good output
     return 0;
 }
+
+
+// Function to write SURF file nodes
+int
+pc_WriteSurfNodes(File *fid, PyArrayObject *P,
+    PyArrayObject *blds, PyArrayObject *bldel)
+{
+    int i;
+    int n, nNode, nd;
+    
+    // Number of values written
+    n = 0;
+    
+    // Check for two-dimensional nNode x 3 array
+    if (PyArray_NDIM(P) != 2) {
+        PyErr_SetString(PyExc_ValueError, \
+            "Nodal coordinates must be two-dimensional array.");
+        return 2;
+    }
+    // Read number of nodes 
+    nNode = (int) PyArray_DIM(P, 0);
+    nd = (int) PyArray_DIM(P, 1);
+    // Check the other inputs
+    if (PyArray_NDIM(bldel) != 1 || PyArray_DIM(bldel,0) != nNode) {
+        PyErr_SetString(PyExc_ValueError, \
+            "BL depths must be 1D array with one value per node.");
+        return 2;
+    }
+    if (PyArray_NDIM(blds) != 1 || PyArray_DIM(blds,0) != nNode) {
+        PyErr_SetString(PyExc_ValueError, \
+            "BL spacing must be 1D array with one value per node.");
+        return 2;
+    }
+    
+    // Loop through nodal indices
+    if (nd == 2) {
+        // Two-dimensional nodes
+        for (i=0; i<nNode; i++) {
+            // Write a single node
+            fprintf(fid, "%+15.8E %+15.8E %.4E %.4E\n", \
+                np2d(P,i,0), np2d(P,i,1),
+                np1d(blds,i), np1d(bldel,i))
+            // Increase the count.
+            n += 1;
+        }
+    }
+    else {
+        // Three-dimensional nodes
+        for (i=0; i<nNode; i++) {
+            // Write a single node
+            fprintf(fid, "%+15.8E %+15.8E %+15.8E %.4E %.4E\n", \
+                np2d(P,i,0), np2d(P,i,1), np2d(P,i,2),
+                np1d(blds,i), np1d(bldel,i))
+            // Increase the count.
+            n += 1;
+        }
+    }
+    
+    // Check count.
+    if (n != nNode) {
+        return 1;
+    }
+    
+    // Good output
+    return 0;
+}
+            
 
 // Function to write triangles
 int
@@ -127,6 +194,109 @@ pc_WriteTriCompID(FILE *fid, PyArrayObject *C)
     
     // Check count.
     if (n != nTri) {
+        return 1;
+    }
+    
+    // Good output
+    return 0;
+}
+
+// Function to write AFLR3 SURF triangles, component IDs, and BCs
+int
+pc_WriteSurfTris(FILE *fid, PyArrayObject *T,
+    PyArrayObject *C, PyArrayObject *BC)
+{
+    int i
+    int n, nTri;
+    
+    // Number of values written.
+    n = 0;
+    
+    // Check for two-dimensional Nx3 array.
+    if (PyArray_NDIM(T) != 2 || PyArray_DIM(T, 1) != 3) {
+        PyErr_SetString(PyExc_ValueError, \
+            "Triangle nodes must be Nx3 array.");
+        return 2;
+    }
+    // Read number of triangles.
+    nTri = (int) PyArray_DIM(T, 0);
+    // Check for one-dimensional Mx1 array.
+    if (PyArray_NDIM(C) != 1 || PyArray_DIM(C,0) != nTri) {
+        PyErr_SetString(PyExc_ValueError, \
+            "Face labels must be 1D array with one per tri.");
+        return 2;
+    }
+    // Check for one-dimensional Mx1 array.
+    if (PyArray_NDIM(BC) != 1 || PyArray_DIM(BC,0) != nTri) {
+        PyErr_SetString(PyExc_ValueError, \
+            "Boundary condition tags must be 1D array with one per tri.");
+        return 2;
+    }
+    
+    // Loop through triangles
+    for (i=0; i<nTri; i++) {
+        // Write triangle nodes
+        fprint(fid, "%i %i %i ", np2i(T,i,0), np2i(T,i,1), np2i(T,i,2));
+        // Write component ID, reconnect flag (0), and BC
+        fprintf(fid, "%i 0 %i\n", np1i(C,i), np1i(BC,i));
+        // Increase count.
+        n += 1;
+    }
+    
+    // Check count.
+    if (n != nTri) {
+        return 1;
+    }
+    
+    // Good output
+    return 0;
+}
+
+// Function to write AFLR3 SURF triangles, component IDs, and BCs
+int
+pc_WriteSurfQuads(FILE *fid, PyArrayObject *Q,
+    PyArrayObject *C, PyArrayObject *BC)
+{
+    int i
+    int n, nQuad;
+    
+    // Number of values written.
+    n = 0;
+    
+    // Check for two-dimensional Nx3 array.
+    if (PyArray_NDIM(Q) != 2 || PyArray_DIM(Q, 1) != 4) {
+        PyErr_SetString(PyExc_ValueError, \
+            "Quad nodes must be Nx4 array.");
+        return 2;
+    }
+    // Read number of triangles.
+    nQuad = (int) PyArray_DIM(Q, 0);
+    // Check for one-dimensional Mx1 array.
+    if (PyArray_NDIM(C) != 1 || PyArray_DIM(C,0) != nQuad) {
+        PyErr_SetString(PyExc_ValueError, \
+            "Face labels must be 1D array with one per tri.");
+        return 2;
+    }
+    // Check for one-dimensional Mx1 array.
+    if (PyArray_NDIM(BC) != 1 || PyArray_DIM(BC,0) != nQuad) {
+        PyErr_SetString(PyExc_ValueError, \
+            "Boundary condition tags must be 1D array with one per tri.");
+        return 2;
+    }
+    
+    // Loop through triangles
+    for (i=0; i<nQuad; i++) {
+        // Write triangle nodes
+        fprint(fid, "%i %i %i %i ",
+            np2i(Q,i,0), np2i(Q,i,1), np2i(Q,i,2), np2i(Q,i,3));
+        // Write component ID, reconnect flag (0), and BC
+        fprintf(fid, "%i 0 %i\n", np1i(C,i), np1i(BC,i));
+        // Increase count.
+        n += 1;
+    }
+    
+    // Check count.
+    if (n != nQuad) {
         return 1;
     }
     
@@ -247,6 +417,103 @@ pc_WriteTri(PyObject *self, PyObject *args)
     Py_INCREF(Py_None);
     return Py_None;
 }
+
+
+// Function to write AFLR3 surface file
+PyObject *
+pc_WriteSurf(PyObject *self, PyObject *args)
+{
+    int i, ierr;
+    int nNode; nTri; nQuad;
+    FILE *fid;
+    PyArrayObject *P;
+    PyArrayObject *T;
+    PyArrayObject *CT;
+    PyArrayObject *BCT;
+    PyArrayObject *Q;
+    PyArrayObject *CQ;
+    PyArrayObject *BCQ;
+    PyArrayObject *blds;
+    PyArrayObject *bldel;
+    
+    // Process the inputs
+    if (!PyArg_ParseTuple(args, "OOOOOOOOO", &P, &blds, &bldel,
+        &T, &CT, &BCT, &Q, &CQ, &BCQ)){
+        // Check for failure.
+        PyErr_SetString(PyExc_RuntimeError, \
+            "Could not process inputs to :func:`pc.WriteSurf`");
+        return NULL;
+    }
+    // Check for two-dimensional node array.
+    if (PyArray_NDIM(P) != 2) {
+        PyErr_SetString(PyExc_ValueError, \
+            "Nodal coordinates must be Nx3 or Nx2 array.");
+        return NULL;
+    }
+    // Read number of nodes.
+    nNode = (int) PyArray_DIM(P, 0);
+    
+    // Check for two-dimensional Nx3 array.
+    if (PyArray_NDIM(T) != 2) {
+        PyErr_SetString(PyExc_ValueError, \
+            "Triangle nodes must be Nx3 array.");
+        return NULL;
+    }
+    // Read number of triangles.
+    nTri = (int) PyArray_DIM(T, 0);
+    
+    // Check for two-dimensional Nx3 array.
+    if (PyArray_NDIM(Q) != 2) {
+        PyErr_SetString(PyExc_ValueError, \
+            "Quad nodes must be Nx4 array.");
+        return NULL;
+    }
+    // Read number of triangles.
+    nQuad = (int) PyArray_DIM(Q, 0);
+    
+    // Open output file for writing (wipe out if it exists.)
+    fid = fopen("Components.pyCart.surf", "w");
+    
+    // Write the number of nodes and tris.
+    fprintf(fid, "%12i%12i%12i\n", nTri, nQuad, nNode);
+    
+    // Write the nodes.
+    ierr = pc_WriteSurfNodes(fid, P, blds, bldel);
+    if (ierr) {
+        PyErr_SetString(PyExc_IOError, \
+            "Failure writing nodes to `Components.pyCart.surf'");
+    }
+    // Write the tris.
+    if (nTri > 0) {
+        ierr = pc_WriteSurfTris(fid, T, CT, BCT);
+        if (ierr) {
+            PyErr_SetString(PyExc_IOError, \
+                "Failure writing tris to `Components.pyCart.surf'");
+        }
+    }
+    // Write the quads.
+    if (nQuad > 0) {
+        ierr = pc_WriteSurfQuads(fid, Q, CQ, BCQ);
+        if (ierr) {
+            PyErr_SetString(PyExc_IOError, \
+                "Failure writing quads to `Components.pyCart.surf'");
+        }
+    }
+    
+    // Close the file.
+    ierr = fclose(fid);
+    if (ierr) {
+        // Failure on close?
+        PyErr_SetString(PyExc_IOError, \
+            "Failure on closing file 'Components.pyCart.tri'");
+        return NULL;
+    }
+    
+    // Return None.
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+    
 
 
 // Function to write the component IDs

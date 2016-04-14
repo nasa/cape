@@ -1049,7 +1049,12 @@ class TriBase(object):
         except AttributeError:
             self.nQuad = 0
         # Write the file.
-        self.WriteSurfSlow(fname)
+        try:
+            # Try compiled versoin
+            self.WriteSurfFast(fname)
+        except Exception:
+            # Fall back to slow version
+            self.WriteSurfSlow(fname)
     
     # Function to write a SURF file the old-fashioned way.
     def WriteSurfSlow(self, fname="Components.surf"):
@@ -1089,6 +1094,30 @@ class TriBase(object):
                 self.CompIDQuad[k], self.BCsQuad[k]))
         # Close the file.
         fid.close()
+    
+    # Function to write a triangulation to file as fast as possible.
+    def WriteSurfFast(self, fname='Components.i.surf'):
+        """Try using a compiled function to write to AFLR3 ``surf`` file
+        
+        :Call:
+            >>> tri.WriteSurfFast(fname='Components.i.surf')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Versions:
+            * 2015-01-03 ``@ddalle``: First version
+        """
+        # Write the nodes.
+        pc.WriteSurf(
+            self.Nodes, self.blds,       self.bldel,
+            self.Tris,  self.CompID,     self.BCs,
+            self.Quads, self.CompIDQuad, self.BCsQuad)
+        # Check the file name.
+        if fname != "Components.pyCart.surf":
+            # Move the file.
+            os.rename("Components.pyCart.surf", fname)
         
     # Map boundary condition tags
     def MapBCs_AFLR3(self, compID=None, BCs={}, blds={}, bldel={}):
