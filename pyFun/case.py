@@ -92,7 +92,9 @@ def RunPhase(rc, i):
         * 2016-04-13 ``@ddalle``: First version
     """
     # Get the project name
-    fproj = GetProjectRootname(nml=nml)
+    fproj = GetProjectRootname()
+    # Read namelist
+    nml = GetNamelist(rc, i)
     # Get the last iteration number
     n = GetCurrentIter()
     # Mesh generation and verification actions
@@ -104,7 +106,7 @@ def RunPhase(rc, i):
         # Create volume mesh if necessary
         CaseAFLR3(rc, proj=fproj, fmt=nml.GetGridFormat(), n=n)
         # Check for mesh-only phase
-        if rc.get_PhaseIters(i) <= 0:
+        if rc.get_PhaseIters(i) is None:
             # Create an output file to make phase number programs work
             os.system('touch run.%02i.%i' % (i, n))
             return

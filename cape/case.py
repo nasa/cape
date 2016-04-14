@@ -77,7 +77,7 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
         * 2016-04-05 ``@ddalle``: Generalized to :mod:`cape`
     """
     # Check for phase number
-    j = GetPhaseNumber(rc, fpre=fpre)
+    j = GetPhaseNumber(rc, n, fpre=fpre)
     # Exit if not phase zero
     if j > 0: return
     # Check for intersect status.
@@ -125,7 +125,7 @@ def CaseVerify(rc, proj='Components', n=0, fpre='run'):
         * 2016-04-05 ``@ddalle``: Generalized to :mod:`cape`
     """
     # Check for phase number
-    j = GetPhaseNumber(rc, fpre=fpre)
+    j = GetPhaseNumber(rc, n, fpre=fpre)
     # Exit if not phase zero
     if j > 0: return
     # Check for verify
@@ -185,9 +185,19 @@ def CaseAFLR3(rc, proj='Components', fmt='b8.ugrid', n=0):
     bin.aflr3(opts=rc)
     
 def GetRestartIter():
-    print("poop!")
-    raise IOError()
-    
+    """Get the restart iteration
+
+    This is a placeholder function and is only called in error
+
+    :Call:
+        >>> cape.case.GetRestartIter()
+    :Raises:
+        *RuntimeError*: :class:`Exception`
+            Error regarding where this was called
+    :Versions:
+        * 2016-04-14 ``@ddalle``: First version
+    """
+    raise IOError("Called cape.GetRestartIter()")
 
 # Function to call script or submit.
 def StartCase():
@@ -340,14 +350,16 @@ def SetResourceLimit(r, ulim, u, i=0, unit=1024):
         resource.setrlimit(r, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
 # Function to chose the correct input to use from the sequence.
-def GetPhaseNumber(rc, fpre='run'):
+def GetPhaseNumber(rc, n=None, fpre='run'):
     """Determine the appropriate input number based on results available
     
     :Call:
-        >>> i = cape.case.GetPhaseNumber(rc, fpre='run')
+        >>> i = cape.case.GetPhaseNumber(rc, n=None, fpre='run')
     :Inputs:
         *rc*: :class:`cape.options.runControl.RunControl`
             Options interface for run control
+        *n*: :class:`int`
+            Iteration number
         *fpre*: {``"run"``} | :class:`str`
             Prefix for output files
     :Outputs:
@@ -358,8 +370,6 @@ def GetPhaseNumber(rc, fpre='run'):
         * 2015-10-19 ``@ddalle``: FUN3D version
         * 2016-04-14 ``@ddalle``: Capoe version
     """
-    # Get the run index.
-    n = GetRestartIter()
     # Loop through possible input numbers.
     for j in range(rc.get_nSeq()):
         # Get the actual run number
