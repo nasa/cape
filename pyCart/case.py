@@ -159,7 +159,7 @@ def PrepareFiles(rc, i=None):
     :Call:
         >>> PrepareFiles(rc, i=None)
     :Inputs:
-        *rc*: :Class:`pyCart.options.runContro.RunControl`
+        *rc*: :class:`pyCart.options.runControl.RunControl`
             Options interface from ``case.json``
         *i*: :class:`int`
             Phase number
@@ -219,7 +219,7 @@ def RunPhase(rc, i):
     :Call:
         >>> RunPhase(rc, i)
     :Inputs:
-        *rc*: :Class:`pyCart.options.runContro.RunControl`
+        *rc*: :class:`pyCart.options.runControl.RunControl`
             Options interface from ``case.json``
         *i*: :class:`int`
             Phase number
@@ -452,7 +452,7 @@ def FinalizeFiles(rc, i=None):
     :Call:
         >>> FinalizeFiles(rc, i=None)
     :Inputs:
-        *rc*: :Class:`pyCart.options.runContro.RunControl`
+        *rc*: :class:`pyCart.options.runControl.RunControl`
             Options interface from ``case.json``
         *i*: :class:`int`
             Phase number

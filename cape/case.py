@@ -43,7 +43,7 @@ from numpy import nan, isnan
 
 
 # Function to intersect geometry if appropriate
-def CaseIntersect(rc, proj='Components', n=0):
+def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
     """Run ``intersect`` to combine geometries if appropriate
     
     This is a multistep process in order to preserve all the component IDs of
@@ -62,7 +62,7 @@ def CaseIntersect(rc, proj='Components', n=0):
         * ``Components.i.tri``: Original compIDs mapped onto intersected tris
     
     :Call:
-        >>> CaseIntersect(rc, proj='Components', n=0)
+        >>> CaseIntersect(rc, proj='Components', n=0, fpre='run')
     :Inputs:
         *rc*: :class:`cape.options.runControl.RunControl`
             Case options interface from ``case.json``
@@ -70,10 +70,16 @@ def CaseIntersect(rc, proj='Components', n=0):
             Project root name
         *n*: :class:`int`
             Iteration number
+        *fpre*: {``'run'``} | :class:`str`
+            Standard output file name prefix
     :Versions:
         * 2015-09-07 ``@ddalle``: Split from :func:`run_flowCart`
         * 2016-04-05 ``@ddalle``: Generalized to :mod:`cape`
     """
+    # Check for phase number
+    j = GetPhaseNumber(rc, fpre=fpre)
+    # Exit if not phase zero
+    if j > 0: return
     # Check for intersect status.
     if not rc.get_intersect(): return
     # Check for initial run
@@ -100,11 +106,11 @@ def CaseIntersect(rc, proj='Components', n=0):
     trii.Write('%s.i.tri' % proj)
     
 # Function to verify if requested
-def CaseVerify(rc, proj='Components', n=0):
+def CaseVerify(rc, proj='Components', n=0, fpre='run'):
     """Run ``verify`` to check triangulation if appropriate
     
     :Call:
-        >>> CaseVerify(rc, proj='Components', n=0)
+        >>> CaseVerify(rc, proj='Components', n=0, fpre='run')
     :Inputs:
         *rc*: :class:`cape.options.runControl.RunControl`
             Case options interface from ``case.json``
@@ -112,10 +118,16 @@ def CaseVerify(rc, proj='Components', n=0):
             Project root name
         *n*: :class:`int`
             Iteration number
+        *fpre*: {``'run'``} | :class:`str`
+            Standard output file name prefix
     :Versions:
         * 2015-09-07 ``@ddalle``: Split from :func:`run_flowCart`
         * 2016-04-05 ``@ddalle``: Generalized to :mod:`cape`
     """
+    # Check for phase number
+    j = GetPhaseNumber(rc, fpre=fpre)
+    # Exit if not phase zero
+    if j > 0: return
     # Check for verify
     if not rc.get_verify(): return
     # Check for initial run
@@ -326,6 +338,42 @@ def SetResourceLimit(r, ulim, u, i=0, unit=1024):
     else:
         # Set unlimited
         resource.setrlimit(r, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+
+# Function to chose the correct input to use from the sequence.
+def GetPhaseNumber(rc, fpre='run'):
+    """Determine the appropriate input number based on results available
+    
+    :Call:
+        >>> i = cape.case.GetPhaseNumber(rc, fpre='run')
+    :Inputs:
+        *rc*: :class:`cape.options.runControl.RunControl`
+            Options interface for run control
+        *fpre*: {``"run"``} | :class:`str`
+            Prefix for output files
+    :Outputs:
+        *i*: :class:`int`
+            Most appropriate phase number for a restart
+    :Versions:
+        * 2014-10-02 ``@ddalle``: First version
+        * 2015-10-19 ``@ddalle``: FUN3D version
+        * 2016-04-14 ``@ddalle``: Capoe version
+    """
+    # Get the run index.
+    n = GetRestartIter()
+    # Loop through possible input numbers.
+    for j in range(rc.get_nSeq()):
+        # Get the actual run number
+        i = rc.get_PhaseSequence(j)
+        # Check for output files.
+        if len(glob.glob('%s.%02i.*' % (fpre, i))) == 0:
+            # This run has not been completed yet.
+            return i
+        # Check the iteration number.
+        if n < rc.get_PhaseIters(j):
+            # This case has been run, but hasn't reached the min iter cutoff
+            return i
+    # Case completed; just return the last value.
+    return i
     
 # Function to get most recent L1 residual
 def GetCurrentIter():

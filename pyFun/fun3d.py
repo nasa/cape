@@ -990,11 +990,11 @@ class Fun3d(Cntl):
         # Get reference area
         Aref = self.GetSurfCT_RefArea(key, i)
         # Calculate total pressure
-        p0 = CT*qref*Aref/(pref*A2) * (1+g2*M2*M2)**g3 / (1+gam*M2*M2)
+        p0 = CT*qref*Aref/A2 * (1+g2*M2*M2)**g3 / (1+gam*M2*M2)
         # Temperature inputs
         T0 = self.x.GetSurfCT_TotalTemperature(i, key)
         # Calibration
-        fp = self.x.getSurfCT_PressureCalibration(i, key)
+        fp = self.x.GetSurfCT_PressureCalibration(i, key)
         # Reference values
         pinf = self.x.GetSurfCT_RefPressure(i, key)
         Tinf = self.x.GetSurfCT_RefTemperature(i, key)

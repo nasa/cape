@@ -38,12 +38,63 @@ def run_fun3d():
     rc = ReadCaseJSON()
     # Determine the run index.
     i = GetPhaseNumber(rc)
-    # Get the last iteration number
-    n = GetCurrentIter()
-    # Read namelist
-    nml = GetNamelist(rc, i)
+    # Prepare files
+    PrepareFiles(rc, i)
+    # Prepare environment variables (other than OMP_NUM_THREADS)
+    PrepareEnvironment(rc, i)
+    # Run the appropriate commands
+    RunPhase(rc, i)
+    # Clean up files
+    FinalizeFiles(rc, i)
+    # Remove the RUNNING file.
+    if os.path.isfile('RUNNING'): os.remove('RUNNING')
+    # Save time usage
+    WriteUserTime(tic, rc, i)
+    # Resubmit/restart if this point is reached.
+    RestartCase(i)
+
+# Prepare the files of the case
+def PrepareFiles(rc, i=None):
+    """Prepare file names appropriate to run phase *i* of FUN3D
+    
+    :Call:
+        >>> PrepareFiles(rc, i=None)
+    :Inputs:
+        *rc*: :class:`pyFun.options.runControl.RunControl`
+            Options interface from ``case.json``
+        *i*: :class:`int`
+            Phase number
+    :Versions:
+        * 2016-04-14 ``@ddalle``: First version
+    """
+    # Get the phase number if necessary
+    if i is None:
+        # Get the phase number
+        i = GetPhaseNumber(rc)
+    # Delete any input file.
+    if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
+        os.remove('fun3d.nml')
+    # Create the correct namelist.
+    os.symlink('fun3d.%02i.nml' % i, 'fun3d.nml')
+
+# Run one phase appropriately
+def RunPhase(rc, i):
+    """Run one phase using appropriate commands
+    
+    :Call:
+        >>> RunPhase(rc, i)
+    :Inputs:
+        *rc*: :class:`pyFun.options.runControl.RunControl`
+            Options interface from ``case.json``
+        *i*: :class:`int`
+            Phase number
+    :Versions:
+        * 2016-04-13 ``@ddalle``: First version
+    """
     # Get the project name
     fproj = GetProjectRootname(nml=nml)
+    # Get the last iteration number
+    n = GetCurrentIter()
     # Mesh generation and verification actions
     if i == 0:
         # Run intersect and verify
@@ -52,30 +103,17 @@ def run_fun3d():
         print("Ready to run AFLR3...")
         # Create volume mesh if necessary
         CaseAFLR3(rc, proj=fproj, fmt=nml.GetGridFormat(), n=n)
-    # Delete any input file.
-    if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
-        os.remove('fun3d.nml')
-    # Create the correct namelist.
-    os.symlink('fun3d.%02i.nml'%i, 'fun3d.nml')
-    # Prepare environment variables (other than OMP_NUM_THREADS)
-    PrepareEnvironment(rc, i)
+        # Check for mesh-only phase
+        if rc.get_PhaseIters(i) <= 0:
+            # Create an output file to make phase number programs work
+            os.system('touch run.%02i.%i' % (i, n))
+            return
     # Prepare for restart if that's appropriate.
     SetRestartIter(rc)
     # Get the `nodet` or `nodet_mpi` command
     cmdi = cmd.nodet(rc)
     # Call the command.
     bin.callf(cmdi, f='fun3d.out')
-    # Remove the RUNNING file.
-    if os.path.isfile('RUNNING'): os.remove('RUNNING')
-    # Save time usage
-    WriteUserTime(tic, rc, i)
-    # Get the last iteration number
-    n = GetCurrentIter()
-    # Assuming that worked, move the temp output file.
-    os.rename('fun3d.out', 'run.%02i.%i' % (i, n))
-    # Rename the flow file, too.
-    if rc.get_KeepRestarts(i):
-        shutil.copy('%s.flow' % fproj, '%s.%i.flow' % (fproj,n))
     # Check current iteration count.
     if (i>=rc.get_PhaseSequence(-1)) and (n>=rc.get_LastIter()):
         return
@@ -91,9 +129,39 @@ def run_fun3d():
             cmdi = cmd.nodet(rc, adapt=True)
             # Call the command.
             bin.callf(cmdi, f='fun3d.out')
-    # Resubmit/restart if this point is reached.
-    RestartCase(i)
-
+        
+# Clean up immediately after running
+def FinalizeFiles(rc, i=None):
+    """Clean up files after running one cycle of phase *i*
+    
+    :Call:
+        >>> FinalizeFiles(rc, i=None)
+    :Inputs:
+        *rc*: :class:`pyFun.options.runControl.RunControl`
+            Options interface from ``case.json``
+        *i*: :class:`int`
+            Phase number
+    :Versions:
+        * 2016-04-14 ``@ddalle``: First version
+    """
+    # Get phase number if necessary.
+    if i is None:
+        # Get locally.
+        i = GetPhaseNumber(rc)
+    # Read namelist
+    nml = GetNamelist(rc, i)
+    # Get the project name
+    fproj = GetProjectRootname(nml=nml)
+    # Clean up the folder as appropriate.
+    manage.ManageFilesProgress(rc)
+    # Get the last iteration number
+    n = GetCurrentIter()
+    # Assuming that worked, move the temp output file.
+    os.rename('fun3d.out', 'run.%02i.%i' % (i, n))
+    # Rename the flow file, too.
+    if rc.get_KeepRestarts(i):
+        shutil.copy('%s.flow' % fproj, '%s.%i.flow' % (fproj,n))
+        
 # Function to call script or submit.
 def StartCase():
     """Start a case by either submitting it or calling with a system command

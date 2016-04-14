@@ -1317,13 +1317,18 @@ class Cntl(object):
         :Versions:
             * 2016-04-13 ``@ddalle``: First version
         """
+        # Check for exit area
+        A2 = self.x.GetSurfCT_ExitArea(i, key)
+        # Check for a results
+        if A2 is not None: return A2
+        # Ensure triangulation if necessary
+        self.ReadTri()
         # Get component(s)
-        compIDs = self.x.GetSurfCT_CompID(i, key)
+        compID = self.x.GetSurfCT_CompID(i, key)
         # Ensure list
-        if type(compIDs).__name__ not in ['list', 'ndarray']:
-            compIDs = [compIDs]
+        if type(compID).__name__ in ['list', 'ndarray']: compID = compID[0]
         # Input area(s)
-        A1 = [self.tri.GetCompArea(comp) for comp in compIDs]
+        A1 = self.tri.GetCompArea(compID)
         # Check for area ratio
         AR = self.x.GetSurfCT_AreaRatio(i, key)
         # Check if we need to use Mach number
@@ -1338,7 +1343,7 @@ class Cntl(object):
             # Ratio
             AR = M1/M2 * ((1+g2*M2*M2) / (1+g2*M1*M1))**g1
         # Return exit areas
-        return [A*AR for A in A1]
+        return A1*AR
         
     # Get exit Mach number for SurfCT boundary condition
     def GetSurfCT_ExitMach(self, key, i):

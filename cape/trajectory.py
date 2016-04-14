@@ -1967,7 +1967,7 @@ class Trajectory:
         # Get the thrust parameter
         ot = self.defns[key].get('Thrust')
         # Type
-        tt = tpye(ot).__name__
+        tt = type(ot).__name__
         # Process the option
         if ot is None:
             # Use the value of this key
@@ -2251,6 +2251,50 @@ class Trajectory:
             key = self.GetKeysByType('SurfCT')[0]
         # Get the area ratio parameter
         oa = self.defns[key].get('AreaRatio')
+        # Type
+        ta = type(oa).__name__
+        # Process the option
+        if oa is None:
+            # Use the value of this
+            return None
+        elif ta in ['str', 'unicode']:
+            # Use this value as a key
+            ka = oa
+            # Use the value of that key.
+            return getattr(self,ka)[i]
+        else:
+            # Use the fixed value
+            return oa
+    
+    # Get area ratio
+    def GetSurfCT_ExitArea(self, i, key=None):
+        """Get exit area for surface *CT* key
+        
+        :Call:
+            >>> A2 = x.GetSurfCT_ExitArea(i, key=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfCT`` key
+        :Outputs:
+            *A2*: :class:`float`
+                Exit area
+        :Versions:
+            * 2016-04-11 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if 'SurfCT' not in KeyTypes: return
+            # Get first key
+            key = self.GetKeysByType('SurfCT')[0]
+        # Get the area ratio parameter
+        oa = self.defns[key].get('ExitArea')
         # Type
         ta = type(oa).__name__
         # Process the option
