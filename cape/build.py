@@ -11,7 +11,7 @@ config.read("../config.cfg")
 pythonexec = config.get("python", "exec")
 
 # Status update.
-print("Building Cart3D tools for CAPE and pyCart")
+print("Building compiled functions for Cape")
 
 # Clean-up the existing build directory
 if os.path.isdir("build"):

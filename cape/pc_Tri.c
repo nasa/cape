@@ -8,6 +8,7 @@
 // Functions to extract data from a NumPy array
 #define np2d(X, i, j) *((double *) PyArray_GETPTR2(X, i, j))
 #define np2i(X, i, j) *((int *)    PyArray_GETPTR2(X, i, j))
+#define np1d(X, i)    *((double *) PyArray_GETPTR1(X, i))
 #define np1i(X, i)    *((int *)    PyArray_GETPTR1(X, i))
 
 // Function to write nodes
@@ -64,7 +65,7 @@ pc_WriteTriNodes(FILE *fid, PyArrayObject *P)
 
 // Function to write SURF file nodes
 int
-pc_WriteSurfNodes(File *fid, PyArrayObject *P,
+pc_WriteSurfNodes(FILE *fid, PyArrayObject *P, \
     PyArrayObject *blds, PyArrayObject *bldel)
 {
     int i;
@@ -100,8 +101,8 @@ pc_WriteSurfNodes(File *fid, PyArrayObject *P,
         for (i=0; i<nNode; i++) {
             // Write a single node
             fprintf(fid, "%+15.8E %+15.8E %.4E %.4E\n", \
-                np2d(P,i,0), np2d(P,i,1),
-                np1d(blds,i), np1d(bldel,i))
+                np2d(P,i,0), np2d(P,i,1), \
+                np1d(blds,i), np1d(bldel,i));
             // Increase the count.
             n += 1;
         }
@@ -111,8 +112,8 @@ pc_WriteSurfNodes(File *fid, PyArrayObject *P,
         for (i=0; i<nNode; i++) {
             // Write a single node
             fprintf(fid, "%+15.8E %+15.8E %+15.8E %.4E %.4E\n", \
-                np2d(P,i,0), np2d(P,i,1), np2d(P,i,2),
-                np1d(blds,i), np1d(bldel,i))
+                np2d(P,i,0), np2d(P,i,1), np2d(P,i,2), \
+                np1d(blds,i), np1d(bldel,i));
             // Increase the count.
             n += 1;
         }
@@ -206,7 +207,7 @@ int
 pc_WriteSurfTris(FILE *fid, PyArrayObject *T,
     PyArrayObject *C, PyArrayObject *BC)
 {
-    int i
+    int i;
     int n, nTri;
     
     // Number of values written.
@@ -236,7 +237,7 @@ pc_WriteSurfTris(FILE *fid, PyArrayObject *T,
     // Loop through triangles
     for (i=0; i<nTri; i++) {
         // Write triangle nodes
-        fprint(fid, "%i %i %i ", np2i(T,i,0), np2i(T,i,1), np2i(T,i,2));
+        fprintf(fid, "%i %i %i ", np2i(T,i,0), np2i(T,i,1), np2i(T,i,2));
         // Write component ID, reconnect flag (0), and BC
         fprintf(fid, "%i 0 %i\n", np1i(C,i), np1i(BC,i));
         // Increase count.
@@ -257,7 +258,7 @@ int
 pc_WriteSurfQuads(FILE *fid, PyArrayObject *Q,
     PyArrayObject *C, PyArrayObject *BC)
 {
-    int i
+    int i;
     int n, nQuad;
     
     // Number of values written.
@@ -287,7 +288,7 @@ pc_WriteSurfQuads(FILE *fid, PyArrayObject *Q,
     // Loop through triangles
     for (i=0; i<nQuad; i++) {
         // Write triangle nodes
-        fprint(fid, "%i %i %i %i ",
+        fprintf(fid, "%i %i %i %i ",
             np2i(Q,i,0), np2i(Q,i,1), np2i(Q,i,2), np2i(Q,i,3));
         // Write component ID, reconnect flag (0), and BC
         fprintf(fid, "%i 0 %i\n", np1i(C,i), np1i(BC,i));
@@ -424,7 +425,7 @@ PyObject *
 pc_WriteSurf(PyObject *self, PyObject *args)
 {
     int i, ierr;
-    int nNode; nTri; nQuad;
+    int nNode, nTri, nQuad;
     FILE *fid;
     PyArrayObject *P;
     PyArrayObject *T;
