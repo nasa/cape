@@ -2059,7 +2059,7 @@ class Trajectory:
             # Get first key
             key = self.GetKeysByType('SurfCT')[0]
         # Call the SurfBC equivalent
-        return self.GetSurfBC_RefTemperature(i, key)
+        return self.GetSurfBC_RefPressure(i, key)
             
     # Get pressure calibration factor
     def GetSurfCT_PressureCalibration(self, i, key=None):

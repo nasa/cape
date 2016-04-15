@@ -8,6 +8,7 @@ case folders.
 
 # Import cape stuff
 from cape.case import *
+import cape.manage as manage
 # Import options class
 from options.runControl import RunControl
 # Import the namelist
@@ -105,8 +106,12 @@ def RunPhase(rc, i):
         print("Ready to run AFLR3...")
         # Create volume mesh if necessary
         CaseAFLR3(rc, proj=fproj, fmt=nml.GetGridFormat(), n=n)
+        # Number of iters
+        ni = rc.get_PhaseIters(i)
         # Check for mesh-only phase
-        if rc.get_PhaseIters(i) is None:
+        if ni is None or ni < 0:
+            # Make sure *n* is not ``None``
+            if n is None: n = 0
             # Create an output file to make phase number programs work
             os.system('touch run.%02i.%i' % (i, n))
             return
@@ -155,9 +160,11 @@ def FinalizeFiles(rc, i=None):
     # Get the project name
     fproj = GetProjectRootname(nml=nml)
     # Clean up the folder as appropriate.
-    manage.ManageFilesProgress(rc)
+    #manage.ManageFilesProgress(rc)
     # Get the last iteration number
     n = GetCurrentIter()
+    # Don't use ``None`` for this
+    if n is None: n = 0
     # Assuming that worked, move the temp output file.
     os.rename('fun3d.out', 'run.%02i.%i' % (i, n))
     # Rename the flow file, too.
