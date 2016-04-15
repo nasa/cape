@@ -668,6 +668,128 @@ Velocity roll angle; affects angle of attack and sideslip angle
             "Abbreviation": "r"
         }
         
+[*Re*, *Rey*, *Reynolds*, *Reynolds_number*]:
+Reynolds number per grid unit
+
+    .. code-block:: javascript
+    
+        {
+            "Group": false,
+            "Type": "Re",
+            "Value": "float",
+            "Label": false,
+            "Abbreviation": "Re"
+        }
+        
+[*T*, *Tinf*, *temperature*]:
+Freestream static temperature
+    
+    .. code-block:: javascript
+    
+        {
+            "Group": false,
+            "Type": "T",
+            "Value": "float",
+            "Label": false,
+            "Abbreviation": "T"
+        }
+        
+[*p*, *P*, *pinf*, *pressure*]:
+Freestream static pressure
+
+    .. code-block:: javascript
+    
+        {
+            "Group": false,
+            "Type": "p",
+            "Value": "float",
+            "Label": false,
+            "Abbreviation": "p"
+        }
+        
+[*q*, *qinf*, *qbar*]:
+Freestream dynamic pressure
+
+    .. code-block:: javascript
+    
+        {
+            "Group": false,
+            "Type": "q",
+            "Value": "float",
+            "Label": false,
+            "Abbreviation": "q"
+        }
+        
+[*gamma*]:
+Freestream ratio of specific heats
+
+    .. code-block:: javascript
+    
+        {
+            "Group": false,
+            "Type": "gamma",
+            "Value": "float",
+            "Label": false,
+            "Abbreviation": "g"
+        }
+        
+[*p0*, *p_total*, *total_pressure*]:
+Thrust boundary condition total pressure setting
+
+    .. code-block:: javascript
+    
+        {
+            "Group": false,
+            "Type": "SurfBC",
+            "Value": "float",
+            "Label": false,
+            "Abbreviation": "p0",
+            "TotalPressure": null,
+            "TotalTemperature": "T0",
+            "RefPressure": 1.0,
+            "RefTemperature": 1.0,
+            "CompID": [],
+            "Mach": 0.2,
+            "Blend": 0.9
+        }
+        
+[*T0*, *T_total*, *total_temperature*]:
+Thrust boundary condition total temperature setting
+
+    .. code-block:: javascript
+    
+        {
+            "Group": false,
+            "Type": "value",
+            "Value": "float",
+            "Label": false,
+            "Abbreviation": "T0"
+        }
+
+[*CT*]:
+Thrust coefficient or dimensional thrust
+
+    .. code-block:: javascript
+    
+        {
+            "Group": false,
+            "Type": "SurfCT",
+            "Value": "float",
+            "Label": true,
+            "Abbreviation": "CT",
+            "TotalTemperature": "T0",
+            "RefDynamicPressure": null,
+            "RefPressure": null,
+            "RefTemperature": null,
+            "RefArea": null,
+            "Mach": 1.0,
+            "AreaRatio": 4.0,
+            "ExitArea": null,
+            "ExitMach": null,
+            "CompID": [],
+            "Blend": 0.9
+        }
+        
 [*Label*, *label*, *suffix*]:
 Label a case with otherwise similar name
 

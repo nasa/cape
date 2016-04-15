@@ -449,7 +449,7 @@ class Trajectory:
                     "Label": False,
                     "Abbreviation": "T"
                 }
-            elif key in ['p', 'P', 'pinf']:
+            elif key in ['p', 'P', 'pinf', 'pressure']:
                 # Static freestream pressure
                 defkey = {
                     "Group": False,
@@ -478,7 +478,8 @@ class Trajectory:
                     "Format": "%s",
                     "Abbreviation": "g"
                 }
-            elif key.lower() in ['p0', 'p_total'] or key.startswith('p0'):
+            elif key.lower() in ['p0', 'p_total', 'total_pressure'
+                    ] or key.startswith('p0'):
                 # Surface stagnation pressure ratio
                 defkey = {
                     "Group": False,
@@ -509,7 +510,7 @@ class Trajectory:
                     "TotalTemperature": "T0",
                     "CompID": []
                 }
-            elif key.lower() in ['t0', 't_total']:
+            elif key.lower() in ['t0', 't_total', 'total_temperature']:
                 # Surface stagnation temperature ratio
                 defkey = {
                     "Group": False,

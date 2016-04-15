@@ -12,4 +12,5 @@ multiple interfaces including :mod:`pyCart`, :mod:`pyOver`, and :mod:`pyFun`.
     :maxdepth: 2
 
     json/index
+    freestream
     cape/index
