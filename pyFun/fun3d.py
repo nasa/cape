@@ -1035,9 +1035,9 @@ class Fun3d(Cntl):
         # Default radius
         r0 = np.sqrt(A/np.pi)
         # Process the length and radius
-        r = self.x.defns[key].get("Radius", r0)
-        L = self.x.defns[key].get("Length", 2*r0)
-        I = self.x.defns[key].get("Inset", 0.1*r0)
+        r = self.x.defns[key].get("Radius", 1.1*r0)
+        L = self.x.defns[key].get("Length", 4*r0)
+        I = self.x.defns[key].get("Inset", 0.25*r0)
         # Set end points
         x1 = x0 - I*N
         x2 = x0 + L*N
