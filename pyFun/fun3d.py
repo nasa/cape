@@ -1117,7 +1117,7 @@ class Fun3d(Cntl):
         # Extract namelist
         nml = self.Namelist
         # Loop through specified components.
-        for k in range(n,0,-1):
+        for k in range(n):
             # Get component.
             comp = comps[k-1]
             # Get input definitions.
