@@ -253,7 +253,7 @@ def RunAdaptive(rc, i):
     :Call:
         >>> RunAdaptive(rc, i)
     :Inputs:
-        *rc*: :Class:`pyCart.options.runContro.RunControl`
+        *rc*: :Class:`pyCart.options.runControl.RunControl`
             Options interface from ``case.json``
         *i*: :class:`int`
             Phase number
@@ -290,7 +290,7 @@ def RunWithRestarts(rc, i):
     :Call:
         >>> RunWithRestarts(rc, i)
     :Inputs:
-        *rc*: :Class:`pyCart.options.runContro.RunControl`
+        *rc*: :Class:`pyCart.options.runControl.RunControl`
             Options interface from ``case.json``
         *i*: :class:`int`
             Phase number
@@ -367,7 +367,7 @@ def RunFixed(rc, i):
     :Call:
         >>> RunFixed(rc, i)
     :Inputs:
-        *rc*: :Class:`pyCart.options.runContro.RunControl`
+        *rc*: :Class:`pyCart.options.runControl.RunControl`
             Options interface from ``case.json``
         *i*: :class:`int`
             Phase number
@@ -397,15 +397,12 @@ def CheckSuccess(rc=None, i=None):
     """Check iteration counts and residual change for most recent run
     
     :Call:
-        >>> q = CheckSuccess(rc=None, i=None)
+        >>> CheckSuccess(rc=None, i=None)
     :Inputs:
-        *rc*: :Class:`pyCart.options.runContro.RunControl`
+        *rc*: :class:`pyCart.options.runControl.RunControl`
             Options interface from ``case.json``
         *i*: :class:`int`
             Phase number
-    :Outputs:
-        *q*: :class:`bool`
-            Whether or not the case ran successfully, according to these tests
     :Versions:
         * 2016-03-04 ``@ddalle``: First version
     """
@@ -443,7 +440,7 @@ def CheckSuccess(rc=None, i=None):
         f.write('# %s' % bin.tail('flowCart.out'))
         # Quit
         f.close()
-        raise SystemError("flowcart failed to exit properly")
+        raise SystemError("flowCart failed to exit properly")
     
 # Clean up immediately after running
 def FinalizeFiles(rc, i=None):

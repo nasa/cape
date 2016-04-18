@@ -841,8 +841,17 @@ class FileCntl:
                 # Append.
                 self.lines.append(line)
             else:
-                # Insert at specified location.
-                self.lines.insert(i, line)
+                # Get the section
+                lines = self.lines
+                # Correct for empty lines
+                if i < 0:
+                    # Count empty lines at the end
+                    j = self.CountEmptyEnd(lines)
+                    # Insert at specified location
+                    lines.insert(i-j, line)
+                else:
+                    # Insert at specified location.
+                    lines.insert(i, line)
         # Done
         return None
         
@@ -882,8 +891,17 @@ class FileCntl:
                 # Append.
                 self.Section[sec].append(line)
             else:
-                # Insert at specified location.
-                self.Section[sec].insert(i, line)
+                # Get the section
+                lines = self.Section[sec]
+                # Correct for empty lines
+                if i < 0:
+                    # Count empty lines at the end
+                    j = self.CountEmptyEnd(lines)
+                    # Insert at specified location
+                    lines.insert(i-j, line)
+                else:
+                    # Insert at specified location.
+                    lines.insert(i, line)
         # Done
         return None
         
@@ -1064,10 +1082,76 @@ class FileCntl:
                 # Append.
                 self.lines.append(line)
             else:
-                # Insert at specified location.
-                self.lines.insert(i, line)
+                # Get the section
+                lines = self.lines
+                # Correct for empty lines
+                if i < 0:
+                    # Count empty lines at the end
+                    j = self.CountEmptyEnd(lines)
+                    # Insert at specified location
+                    lines.insert(i-j, line)
+                else:
+                    # Insert at specified location.
+                    lines.insert(i, line)
         # Done
         return None
+        
+    # Count empty lines at the end of a section
+    def CountEmptyEnd(self, lines):
+        """Count empty lines at the end of a list of lines
+        
+        :Call:
+            >>> n = FC.CountEmptyEnd(lines)
+        :Inputs:
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
+                File control instance
+            *lines*: :class:`list` (:class:`str`)
+                List of lines in section or file
+        :Outputs:
+            *n*: :class:`int`
+                Number of trailing empty lines
+        :Versions:
+            * 2016-04-18 ``@ddalle``: First version
+        """
+        # Initialize count
+        n = 0
+        # Loop through lines
+        for line in lines[-1::-1]:
+            # Check if it's empty
+            if len(line.strip()) != 0: break
+            # Count the line
+            n += 1
+        # Output
+        return n
+        
+    # Count empty lines at the end of a section
+    def CountEmptyStart(self, lines):
+        """Count empty lines at the start of a list of lines
+        
+        :Call:
+            >>> n = FC.CountEmptyStart(lines)
+        :Inputs:
+            *FC*: :class:`cape.fileCntl.FileCntl` or derivative
+                File control instance
+            *lines*: :class:`list` (:class:`str`)
+                List of lines in section or file
+        :Outputs:
+            *n*: :class:`int`
+                Number of trailing empty lines
+        :Versions:
+            * 2016-04-18 ``@ddalle``: First version
+        """
+        # Initialize count
+        n = 0
+        # Loop through lines
+        for line in lines:
+            # Check if it's empty
+            if len(line.strip()) != 0: break
+            # Count the line
+            n += 1
+        # Output
+        return n
+            
         
     # Replace a line or add (from one section) if not found
     def ReplaceOrAddLineToSectionSearch(self, sec, reg, line, i=None):
@@ -1105,8 +1189,17 @@ class FileCntl:
                 # Append.
                 self.Section[sec].append(line)
             else:
-                # Insert at specified location.
-                self.Section[sec].insert(i, line)
+                # Get the section
+                lines = self.Section[sec]
+                # Correct for empty lines
+                if i < 0:
+                    # Count empty lines at the end
+                    j = self.CountEmptyEnd(lines)
+                    # Insert at specified location
+                    lines.insert(i-j, line)
+                else:
+                    # Insert at specified location.
+                    lines.insert(i, line)
         # Done
         return None
         

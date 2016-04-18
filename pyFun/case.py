@@ -51,6 +51,8 @@ def run_fun3d():
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
     # Save time usage
     WriteUserTime(tic, rc, i)
+    # Check for errors
+    CheckSuccess(rc, i)
     # Resubmit/restart if this point is reached.
     RestartCase(i)
 
@@ -137,6 +139,45 @@ def RunPhase(rc, i):
             # Call the command.
             bin.callf(cmdi, f='fun3d.out')
         
+# Check success
+def CheckSuccess(rc=None, i=None):
+    """Check for errors before continuing
+    
+    Currently the following checks are performed.
+    
+        * Check for NaN residual in the output file
+        
+    :Call:
+        >>> CheckSuccess(rc=None, i=None)
+    :Inputs:
+        *rc*: :class:`pyFun.options.runControl.RunControl`
+            Options interface from ``case.json``
+        *i*: :class:`int`
+            Phase number
+    :Outputs:
+        *q*: :class:`bool`
+            Whether or not the case ran successfully
+    :Versions:
+        * 2016-04-18 ``@ddalle``: First version
+    """
+    # Get phase number if necessary.
+    if i is None:
+        # Get locally.
+        i = GetPhaseNumber(rc)
+    # Get the last iteration number
+    n = GetCurrentIter()
+    # Don't use ``None`` for this
+    if n is None: n = 0
+    # Output file name
+    fname = 'run.%02i.%i' % (i, n)
+    # Check for the file
+    if os.path.isfile(fname):
+        # Get the last line from nodet output file
+        line = bin.tail(fname)
+        # Check if NaN is in there
+        if 'NaN' in line:
+            raise RuntimeError("Found NaN locations!")
+
 # Clean up immediately after running
 def FinalizeFiles(rc, i=None):
     """Clean up files after running one cycle of phase *i*

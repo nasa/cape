@@ -139,7 +139,7 @@ class Namelist(FileCntl):
             # Form the output line.
             line = '    %s(%s) = %s\n' % (name, sk, self.ConvertToText(val))
         # Replace the line; prepend it if missing
-        self.ReplaceOrAddLineToSectionSearch(sec, reg, line, 1)
+        self.ReplaceOrAddLineToSectionSearch(sec, reg, line, -1)
         
     # Function to get the value of a variable
     def GetVar(self, sec, name, k=None):
