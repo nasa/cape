@@ -842,6 +842,12 @@ class Options(odict):
     # Configuration
     # =============
    # <
+   
+    # Reset points
+    def reset_Points(self):
+        self._Config()
+        self['Config'].reset_Points()
+    reset_Points.__doc__ = Config.reset_Points.__doc__
     
     # Get components
     def get_ConfigComponents(self, i=None):

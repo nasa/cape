@@ -1122,6 +1122,8 @@ class Cntl(object):
         """
         # Get function for rotations, etc.
         keys = self.x.GetKeysByType(['translation', 'rotation', 'TriFunction'])
+        # Reset reference points
+        self.opts.reset_Points()
         # Loop through keys.
         for key in keys:
             print("Rotation key: %s..." % key)

@@ -31,6 +31,33 @@ class Config(odict):
         * 2014-09-29 ``@ddalle``: First version
     """
     
+    # Initialization method
+    def __init__(self, fname=None, **kw):
+        """Initialization method
+        
+        :Versions:
+            * 2016-04-18 ``@ddalle``: First unique version
+        """
+        # Store the data in *this* instance
+        for k in kw:
+            self[k] = kw[k]
+        # Set default points
+        self._Points = self.get('Points', {}).copy()
+        
+    # Reset the points
+    def reset_Points(self):
+        """Reset all points to original locations
+        
+        :Call:
+            >>> opts.reset_Points()
+        :Inptus:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Versions:
+            * 2016-04-18 ``@ddalle``: First version
+        """
+        self['Points'] = self._Points.copy()
+    
     # Get configuration file name
     def get_ConfigFile(self):
         """Return the configuration file name
