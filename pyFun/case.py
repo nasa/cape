@@ -535,13 +535,19 @@ def GetRunningIter():
         # No restart iterations
         nr = None
     # Get the last few lines of :file:`fun3d.out`
-    lines = bin.tail('fun3d.out', 7).strip().split('\n')
+    lines = bin.tail('fun3d.out', 20).strip().split('\n')
     lines.reverse()
     # Initialize output
     n = None
     # Try each line.
     for line in lines:
         try:
+            # Check for direct specification
+            if 'current history iterations' in line:
+                # Direct specification
+                n = int(line.split()[-1])
+                nr = None
+                break
             # Try to use an integer for the first entry.
             n = int(line.split()[0])
             break
@@ -558,6 +564,17 @@ def GetRunningIter():
 # Function to get total iteration number
 def GetRestartIter():
     """Get total iteration number of most recent flow file
+
+    This function works by checking FUN3D output files for particular lines of
+    text.  If the ``fun3d.out`` file exists, only that file is checked.
+    Otherwise, all files matching ``run.[0-9]*.[0-9]*`` are checked.
+
+    The lines in the FUN3D output file that report each new restart file have
+    the following format.
+
+        .. code-block:: none
+
+            inserting previous and current history iterations 3300 + 800 = 4100
     
     :Call:
         >>> n = pyFun.case.GetRestartIter()
@@ -566,17 +583,29 @@ def GetRestartIter():
             Index of most recent check file
     :Versions:
         * 2015-10-19 ``@ddalle``: First version
+        * 2016-04-19 ``@ddalle``: Checks STDIO file for iteration number
     """
-    # List the *.*.flow files
-    fflow = glob.glob('run.[0-9]*.[0-9]*')
+    # List the output files
+    if os.path.isfile('fun3d.out'):
+        # Only use the current file
+        fflow = ['fun3d.out']
+    else:
+        # Use the run output files
+        fflow = glob.glob('run.[0-9]*.[0-9]*')
     # Initialize iteration number until informed otherwise.
     n = 0
     # Loop through the matches.
     for fname in fflow:
-        # Get the integer for this file.
-        i = int(fname.split('.')[-1])
-        # Use the running maximum.
-        n = max(i, n)
+        # Get the output report lines
+        lines = bin.grep('current history iterations', fname)
+        # Be safe
+        try:
+            # Get the last write iteration number
+            i = int(lines[-2].split()[-1])
+            # Update iteration number
+            n = max(i, n)
+        except Exception:
+            pass
     # Output
     return n
     
