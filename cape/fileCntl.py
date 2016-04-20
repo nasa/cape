@@ -656,8 +656,7 @@ class FileCntl:
         
     # Method to append a line somewhere
     def AppendLineToSection(self, sec, line):
-        """
-        Append a line of text to a section
+        """Append a line of text to a section
         
         :Call:
             >>> FC.AppendLineToSection(sec, line)
@@ -681,8 +680,7 @@ class FileCntl:
         
     # Method to prepend a line somewhere
     def PrependLineToSection(self, sec, line):
-        """
-        Prepend a line of text to a section
+        """Prepend a line of text to a section
         
         :Call:
             >>> FC.PrependLineToSection(sec, line)
