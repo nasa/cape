@@ -256,6 +256,11 @@ def RestartCase(i0=None):
     rc = ReadCaseJSON()
     # Determine the run index.
     i = GetPhaseNumber(rc)
+    # Get restart iteration
+    n = GetRestartIter()
+    # Check for exit
+    if n >= rc.get_LastIter():
+        return
     # Check qsub status.
     if not rc.get_qsub(i):
         # Run the case.
