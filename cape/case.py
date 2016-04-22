@@ -82,6 +82,8 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
     if j > 0: return
     # Check for intersect status.
     if not rc.get_intersect(): return
+    # Check for premesh
+    if not rc.get_PreMesh(): return
     # Check for initial run
     if n > 0: return
     # Check for triangulation file.
@@ -130,6 +132,8 @@ def CaseVerify(rc, proj='Components', n=0, fpre='run'):
     if j > 0: return
     # Check for verify
     if not rc.get_verify(): return
+    # Check for premesh
+    if not rc.get_PreMesh(): return
     # Check for initial run
     if n > 0: return
     # Set file name
@@ -157,6 +161,8 @@ def CaseAFLR3(rc, proj='Components', fmt='b8.ugrid', n=0):
     """
     # Check for option to run AFLR3
     if not rc.get_aflr3(): return
+    # Check for premesh
+    if not rc.get_PreMesh(): return
     # Check for initial run
     if n > 0: return
     # File names

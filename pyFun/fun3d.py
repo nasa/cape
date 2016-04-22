@@ -392,7 +392,7 @@ class Fun3d(Cntl):
         # Loop through input files.
         for f in self.GetInputMeshFileNames():
             # Get processed name
-            fname.append(self.ProcesseshFileName(f))
+            fname.append(self.ProcessMeshFileName(f))
         # Output
         return fname
         
@@ -581,6 +581,12 @@ class Fun3d(Cntl):
             print("  Case name: '%s' (index %i)" % (frun,i))
             # Enter the case folder.
             os.chdir(frun)
+            # Do we need "Adapt" and "Flow" folders?
+            if self.opts.get_Dual():
+                # Create folder for the primal solution
+                if not os.path.isdir('Flow'): self.mkdir('Flow')
+                # Enter
+                os.chdir('Flow')
         # ----------
         # Copy files
         # ----------
@@ -632,6 +638,25 @@ class Fun3d(Cntl):
             else:
                 # Write the AFLR3 surface file only
                 self.tri.WriteSurf('%s.surf' % fproj)
+        # --------------------
+        # Volume mesh creation
+        # --------------------
+        # Get functions for mesh functions.
+        keys = self.x.GetKeysByType('MeshFunction')
+        # Loop through the mesh functions
+        for key in keys:
+            # Get the function for this *MeshFunction*
+            func = self.x.defns[key]['Function']
+            # Apply it.
+            exec("%s(self.%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+        # Check for jumpstart.
+        if self.opts.get_PreMesh(0) and opts.get_aflr3(0):
+            # Run ``intersect`` if appropriate
+            case.CaseIntersect(rc, fproj, 0)
+            # Run ``verify`` if appropriate
+            case.CaseVerify(rc, fproj, 0)
+            # Create the mesh if appropriate
+            case.CaseAFLR3(rc, proj=fproj, fmt=self.nml.GetGridFormat(), n=0)
         # -------
         # Cleanup
         # -------
@@ -1117,7 +1142,7 @@ class Fun3d(Cntl):
         # Extract namelist
         nml = self.Namelist
         # Loop through specified components.
-        for k in range(n):
+        for k in range(1,n+1):
             # Get component.
             comp = comps[k-1]
             # Get input definitions.
@@ -1169,8 +1194,7 @@ class Fun3d(Cntl):
             *i*: :class:`int`
                 Run index
         :Versions:
-            * 2015-10-19
-            ``@ddalle``: First version
+            * 2015-10-19 ``@ddalle``: First version
         """
         # Safely go to root directory.
         fpwd = os.getcwd()

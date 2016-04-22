@@ -1,0 +1,40 @@
+################################################################################
+########################### Design Variable Information ########################
+################################################################################
+Global design variables (Mach number, AOA, Yaw, Noninertial rates)
+  Var Active         Value               Lower Bound            Upper Bound
+ Mach    0   0.100000000000000E+01  0.000000000000000E+00  0.500000000000000E+01
+  AOA    0   0.100000000000000E+01  0.000000000000000E+00  0.500000000000000E+01
+  Yaw    0   0.000000000000000E+00  0.000000000000000E+00  0.000000000000000E+00
+xrate    0   0.000000000000000E+00  0.000000000000000E+00  0.000000000000000E+00
+yrate    0   0.000000000000000E+00  0.000000000000000E+00  0.000000000000000E+00
+zrate    0   0.000000000000000E+00  0.000000000000000E+00  0.000000000000000E+00
+Number of bodies
+    0
+#########################################################################
+############################ Function Information #######################
+#########################################################################
+Number of composite functions for design problem statement
+    1
+#########################################################################
+Cost function (1) or constraint (2)
+    1
+If constraint, lower and upper bounds
+              0.100000000000000              0.500000000000000
+Number of components for function   1
+    1
+Physical timestep interval where function is defined
+    1     1
+Composite function weight, target, and power
+1.0 0.0 1.0
+Components of function   1: boundary id (0=all)/name/value/weight/target/power
+    0 cd                     -0.0           1.000    0.00000  1.00
+Current value of function   1
+            -0.000000000000000
+Current derivatives of function wrt global design variables
+             0.000000000000000
+             0.000000000000000
+             0.000000000000000
+             0.000000000000000
+             0.000000000000000
+             0.000000000000000

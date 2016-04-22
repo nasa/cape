@@ -111,7 +111,8 @@ class Namelist(FileCntl):
         """
         # Check sections
         if sec not in self.SectionNames:
-            raise KeyError("Section '%s' not found." % sec)
+            # Add the section
+            self.AddSection(sec)
         # Check format
         if k is None:
             # Format: '   component = "something"'
@@ -250,20 +251,33 @@ class Namelist(FileCntl):
         """
         # Loop through major keys.
         for sec in opts.keys():
-            # Check it it's a section
-            if sec not in self.SectionNames:
-                # Initialize the section.
-                self.SectionNames.append(sec)
-                # Add the lines
-                self.Section[sec] = [
-                    ' &%s\n' % sec,
-                    ' /\n', '\n'
-                ]
             # Loop through the keys in this subnamelist/section
             for k in opts[sec].keys():
                 # Set the value.
                 self.SetVar(sec, k, opts[sec][k])
-    
+                
+    # Add a section
+    def AddSection(self, sec):
+        """Add a section to the namelist interface
+        
+        :Call:
+            >>> nml.AddSection(sec)
+        :Inputs:
+            *sec*: :class:`str`
+                Name of section
+        :Versions:
+            * 2016-04-22 ``@ddalle``: First version
+        """
+        # Escape if already present
+        if sec in self.SectionNames: return
+        # Append the section
+        self.SectionNames.append(sec)
+        # Add the lines
+        self.Section[sec] = [
+            ' &%s\n' % sec,
+            ' /\n',
+            '\n'
+        ]
     
     # Conversion
     def ConvertToVal(self, val):

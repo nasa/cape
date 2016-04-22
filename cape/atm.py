@@ -5,6 +5,8 @@
 import numpy as np
 # Radius of earth [km]
 RE = 6371.
+# Acceleration
+g0 = 9.8065
 
 # Unit conversions
 inch = 0.0254
@@ -14,7 +16,7 @@ km   = 1000.0
 s    = 1.0
 lbf  = 4.44822
 lbm  = 0.453592
-slug = (lbf*s^2/ft)
+slug = (lbf*s**2/ft)
 psf  = lbf / (ft*ft)
 Btu  = 1055.0
 
@@ -276,10 +278,10 @@ class State(object):
             * 2016-04-22 ``@ddalle``: First version
         """
         # Conversions
-        self.rho *= (slug/ft^3)
-        self.p   *= (psf)
+        self.rho /= (slug/ft**3)
+        self.p   /= (psf)
         self.T   *= (1.8)
-        self.a   *= (ft/s)
-        self.V   *= (ft/s)
+        self.a   /= (ft/s)
+        self.V   /= (ft/s)
 # class State
 
