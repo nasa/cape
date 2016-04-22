@@ -477,13 +477,20 @@ class InputCntl(FileCntl):
             * 2015-05-06 ``@ddalle``: First version
         """
         # Check input length.
-        if len(X) < 6:
-            raise IOError(
-                "Line sensor '%s' needs start x,y,z and end x,y,z" % X)
+        if len(X) == 6:
+            # Points already split
+            R = X
+        elif len(X) != 2:
+            # Not interpretable line sensor
+            raise ValueError(
+                "Line sensor '%s' needs start [x,y,z] and end [x,y,z]" % X)
+        else:
+            # Convert points
+            R = list(X[0]) + list(X[1])
         # Initialize the output line.
         line = "lineSensor %s " % name
         # Add the start and end coordinates.
-        for x in X[:6]:
+        for x in R[:6]:
             line += (" %s" % x)
         # Regular expression of existing line sensor to search for
         reg = 'lineSensor\s*%s' % name

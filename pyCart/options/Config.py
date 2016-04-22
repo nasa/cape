@@ -344,11 +344,29 @@ class Config(cape.options.Config):
         LS = self.get('LineSensors', {})
         # Check for an individual name.
         if name is not None:
-            # Return individual line
-            return self.expand_Point(LS.get(name))
+            # Get individual line
+            LS = LS.get(name)
         else:
-            # Return the whole list.
-            return self.expand_Point(LS)
+            # Expand all
+            LSE = {}
+            # Loop through keys
+            for k in LS:
+                # Expand that line sensor
+                LSE[k] = self.get_LineSensors(k)
+            # Output
+            return LSE
+        # Length of LineSensor definition
+        n = len(LS)
+        # Check for special case where all coordinates are specified
+        if n == 6:
+            # Split points
+            return [LS[:3], LS[3:]]
+        elif n == 0:
+            # No points
+            return LS
+        # Expand points
+        return [self.expand_Point(LS[0]), self.expand_Point(LS[1])]
+            
             
     # Set line sensors
     def set_LineSensors(self, LS={}, name=None, X=[]):
