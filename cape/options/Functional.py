@@ -118,6 +118,35 @@ class Functional(odict):
                 fns.append(fn)
         # Output
         return fns
+    
+    # Get constraint function
+    def get_ConstraintFuncs(self):
+        """Get list of adaptation functions
+        
+        :Call:
+            >>> fns = opts.get_ConstraintFuncs()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *fns*: :class:`list` (:class:`str`)
+                List of adaptive output functions
+        :Versions:
+            * 2016-04-27 ``@ddalle``: First version
+        """
+        # Initialize
+        fns = []
+        # Get the functions
+        fopts = self.get('Functions', {})
+        # loop through keys
+        for fn in fopts.keys():
+            # Get the type
+            typ = fopts.get('type', 'adapt')
+            # Check
+            if typ in ['con', 'constraint']:
+                fns.append(fn)
+        # Output
+        return fns
             
     
     # Function to get weight for a certain functional term
@@ -212,7 +241,7 @@ class Functional(odict):
             * 2016-04-25 ``@ddalle``: First version
         """
         # Get the term
-        fopts = self.opts.get(coeff, {})
+        fopts = self.get(coeff, {})
         # Get the exponent
         return getel(fopts.get('compID', []), j)
         

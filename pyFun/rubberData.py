@@ -23,22 +23,27 @@ class RubberData(FileCntl):
         self.fname = fname
         
     # Get the next line
-    def GetNextLineIndex(self, i):
+    def GetNextLineIndex(self, i, n=1):
         """Get index of the next non-comment line after a specified line number
         
         :Call:
             >>> j = R.GetNextLineIndex(i)
+            >>> j = R.GetNextLineIndex(i, n=1)
         :Inputs:
             *R*: :class:`pyFun.rubberData.RubberData`
                 Interface to FUN3D function definition file
             *i*: :class:`int`
                 Line number
+            *n*: :class:`int`
+                Number of lines to read
         :Outputs:
             *j*: :class:`int` | ``None``
                 Index of next non-comment line; if ``None``, no such line
         :Versions:
             * 2016-04-22 ``@ddalle``: First version
         """
+        # Initialize count
+        m = 0
         # Loop through remaining lines
         for j in range(i+1, len(self.lines)):
             # Get the line
@@ -46,12 +51,15 @@ class RubberData(FileCntl):
             # Check it
             if not line.startswith('#'):
                 # Not a comment; good
-                return j
+                m += 1
+                # Check if it's time to exit.
+                if m >= n:
+                    return j
         # If reaching this point, no following line
         return None
         
     # Get the contents of that line
-    def GetNextLine(self, i):
+    def GetNextLine(self, i, n=1):
         """Get index of the next non-comment line after a specified line number
         
         :Call:
@@ -61,6 +69,8 @@ class RubberData(FileCntl):
                 Interface to FUN3D function definition file
             *i*: :class:`int`
                 Line number
+            *n*: :class:`int`
+                Number of lines to read
         :Outputs:
             *line*: :class:`str`
                 Contents of next non-comment line, may be empty
@@ -68,7 +78,7 @@ class RubberData(FileCntl):
             * 2016-04-22 ``@ddalle``: First version
         """
         # Get the index
-        j = self.GetNextLineIndex(i)
+        j = self.GetNextLineIndex(i, n)
         # Get the contents if applicable
         if j is None:
             # Return *fully* empty line, no newline character
@@ -93,7 +103,7 @@ class RubberData(FileCntl):
             * 2016-04-22 ``@ddalle``: First version
         """
         # Get the line
-        i = self.GetLineStartsWith('Number of composite')
+        i = self.GetIndexStartsWith('Number of composite')
         # If no match, assume zero.
         if len(i) == 0: return 0
         # Try the next line
@@ -121,7 +131,7 @@ class RubberData(FileCntl):
             * 2016-04-22 ``@ddalle``: First version
         """
         # Get the line
-        i = self.GetLineStartsWith('Number of composite')
+        i = self.GetIndexStartsWith('Number of composite')
         # Must have a match
         if len(i) == 0:
             raise ValueError(
@@ -133,6 +143,99 @@ class RubberData(FileCntl):
         j = self.GetNextLine(i[0])
         # Set it.
         self.lines[j] = "    %i" % n
+        
+    # Get number of components for a function
+    def GetNComp(self, k=1):
+        """Get number of components for function *k*
+        
+        :Call:
+            >>> m = R.GetNComp(k)
+        :Inputs:
+            *R*: :class:`pyFun.rubberData.RubberData`
+                Interface to FUN3D function definition file
+            *k*: :class:`int`
+                Composite function number (almost always ``1``)
+        :Outputs:
+            *m*: :class:`int`
+                Number of components for function *k*
+        :Versions:
+            * 2016-04-27 ``@ddalle``: First version
+        """
+        # Get the line
+        i = self.GetIndexStartsWith('Number of components', k)
+        # Line count
+        if len(i) < k:
+            raise ValueError("No component definitions for function %i" % k)
+        # Get the next line
+        line = self.GetNextLine(i[k])
+        # Try to interpret this line
+        try:
+            # This should be a single-entry integer
+            return int(line)
+        except Exception:
+            # Unknown
+            return None
+            
+    # Set number of components for a function
+    def SetNComp(self, k=1, m=1):
+        """Set number of components for function *k*
+        
+        :Call:
+            >>> R.SetNComp(k, m=1)
+        :Inputs:
+            *R*: :class:`pyFun.rubberData.RubberData`
+                Interface to FUN3D function definition file
+            *k*: :class:`int`
+                Composite function number (almost always ``1``)
+            *m*: :class:`int`
+                Number of components for function *k*
+        :Versions:
+            * 2016-04-27 ``@ddalle``: First version
+        """
+        # Get the line
+        i = self.GetIndexStartsWith('Number of components', k)
+        # Line count
+        if len(i) < k:
+            raise ValueError("No component definitions for function %i" % k)
+        # Get the next line
+        j = self.GetNextLineIndex(i[k-1])
+        # Set the line.
+        self.lines[j] = "    %i" % m
+    
+    # Add another component if necessry
+    def AddComp(self, k=1, m=None):
+        """Add one or more components to a function definition
+        
+        :Call:
+            >>> R.AddComp(k)
+            >>> R.AddComp(k, m)
+        :Inputs:
+            *R*: :class:`pyFun.rubberData.RubberData`
+                Interface to FUN3D function definition file
+            *k*: :class:`int`
+                Composite function number (almost always ``1``)
+            *m*: {``None``} | :class:`int`
+                Number of components; if ``None``, add one more component
+        :Versions:
+            * 2016-04-27 ``@ddalle``: First version
+        """
+        # Get the number of components
+        n = self.GetNComp(k)
+        # Default count
+        if m is None: m = n+1
+        # Do not add if not necessary.
+        if m <= n: return
+        # Get the start of the component definition
+        I = self.GetIndexStartsWith('Current value of function', k)
+        # Get last line
+        i = I[k-1]
+        # Default line
+        linedef = '   0 cd   0.00000   1.000   0.000   1.000'
+        # Set of lines to add
+        linesnew = [linedef] * (m-n)
+        # Alter line set
+        self.lines = self.lines[:i] + linesnew + self.lines[i:]
+        
     
     # Add a new section
     def AddFunction(self):
@@ -153,12 +256,13 @@ class RubberData(FileCntl):
         # Append the lines
         self.lines.append('Cost function (1) or constraint (2)\n')
         self.lines.append('    1\n')
-        self.lines.append('If constraint, lowr and upper bounds\n')
+        self.lines.append('If constraint, lower and upper bounds\n')
         self.lines.append('    %.15f    %.15f\n' % (0.1,0.5))
         self.lines.append('Number of components for function %3i\n' % (n+1))
+        self.lines.append('    1\n')
         self.lines.append('Physical timestep interval where ')
         self.lines.append('function is defined\n')
-        self.lines.append('    1\n')
+        self.lines.append('    1     1\n')
         self.lines.append('Composite function weight, target, and power\n')
         self.lines.append('1.0 0.0 1.0\n')
         self.lines.append('Components of function %3i: ' % (n+1))
@@ -182,7 +286,7 @@ class RubberData(FileCntl):
             *R*: :class:`pyFun.rubberData.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
-                Function number (0-based)
+                Function number
         :Outputs:
             *typ*: ``1`` | ``2``
                 Function type index; ``1`` for function and ``2`` for constraint
@@ -197,7 +301,7 @@ class RubberData(FileCntl):
             raise ValueError("Cannot process function %i; only %i functions"
                 % (k+1, len(I)))
         # Get the next line
-        line = self.GetNextLine(I[k])
+        line = self.GetNextLine(I[k-1])
         # Get the value
         try:
             return int(line)
@@ -214,7 +318,7 @@ class RubberData(FileCntl):
             *R*: :class:`pyFun.rubberData.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
-                Function number (0-based)
+                Function number
             *typ*: ``1`` | ``2``
                 Function type index; ``1`` for function and ``2`` for constraint
         :Versions:
@@ -226,29 +330,37 @@ class RubberData(FileCntl):
         # Get the lines marking this content
         I = self.GetLineStartsWith('Cost function')
         # Set the contents
-        self.lines[I[k]] = '    %i\n' % typ
+        self.lines[I[k-1]] = '    %i\n' % typ
         
     # Get the function component
-    def GetFunctionComp(self, k):
-        """Get the component for function *k*
+    def GetCoeffComp(self, k, j=1):
+        """Get the component for function *k* component *j*
         
         :Call:
-            >>> comp = R.GetFunctionComp(k)
+            >>> comp = R.GetFunctionComp(k, j=1)
         :Inputs:
             *R*: :class:`pyFun.rubberData.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
-                Function number (0-based)
+                Function number (1-based)
+            *j*: :class:`int`
+                Component number (1-based)
         :Outputs:
             *comp*: :class:`int`
                 Face ID; ``0`` for all components
         :Versions:
             * 2016-04-22 ``@ddalle``: First version
+            * 2016-04-27 ``@ddalle``: Added multiple components
         """
         # Get the lines
         I = self.GetLineStartsWith('Components of function')
-        # Get the next line
-        line = self.GetNextLine(I[k])
+        # Check number of components
+        if self.GetNComp(k) < j:
+            raise ValueError(
+                ("Requested value from component %i of function %i\n" % (k,j))
+                + ("Only %i components defined" % self.GetNComp(k)))
+        # Get *j* comps later
+        line = self.GetNextLine(I[k], j)
         # Get the value
         try:
             return int(line.split()[0])
@@ -256,11 +368,11 @@ class RubberData(FileCntl):
             return 0
     
     # Set the function component
-    def SetFunctionComp(self, k, comp):
+    def SetCoeffComp(self, k, comp, j=1):
         """Set the component for function *k*
         
         :Call:
-            >>> R.SetFunctionComp(k, comp)
+            >>> R.SetCoeffComp(k, comp)
         :Inputs:
             *R*: :class:`pyFun.rubberData.RubberData`
                 Interface to FUN3D function definition file
@@ -268,15 +380,20 @@ class RubberData(FileCntl):
                 Function number (0-based)
             *comp*: :class:`int`
                 Face ID; ``0`` for all components
+            *j*: :class:`int`
+                Component number (1-based)
         :Versions:
             * 2016-04-22 ``@ddalle``: First version
+            * 2016-04-27 ``@ddalle``: Added multiple components
         """
+        # Add component if necessary.
+        self.AddCoeffComp(k, j)
         # Get the lines
         I = self.GetLineStartsWith('Components of function')
         # Get the next line
-        j = self.GetNextLine(I[k])
+        i = self.GetNextLineIndex(I[k], j)
         # Get the line.
-        line = self.lines[j]
+        line = self.lines[i]
         # Check contents
         V = line.split()
         # Alter the first.
@@ -286,7 +403,7 @@ class RubberData(FileCntl):
         else:
             V[0] = str(comp)
         # Save the line
-        self.lines[j] = (' '.join(V) + '\n')
+        self.lines[i] = (' '.join(V) + '\n')
         
     # Get the function tag
     def GetFunctionName(self, k):

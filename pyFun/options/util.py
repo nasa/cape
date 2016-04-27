@@ -38,6 +38,8 @@ rc["nodet_animation_freq"] = -1
 rc["KeepRestarts"] = False
 # Mesh settings
 rc["BCFile"] = "pyfun.mapbc"
+# Other files
+rc["RubberData"] = "rubber.data"
 # Adaptation settings
 rc["Adaptive"]   = False
 rc["Dual"]       = False
@@ -63,6 +65,26 @@ def rc0(p):
     """
     # Use the `getel` function to do this.
     return getel(rc[p], 0)
+    
+# Function to get a template file name
+def getFun3DTemplate(fname):
+    """Get full path to template with file name *fname*
+    
+    :Call:
+        >>> fabs = getFun3DTemplate(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file, such as :file:`input.cntl`
+    :Outputs:
+        *fabs*: :class:`str`
+            Full path to the file, :file:`$PYCART/templates/cart3d/$fname`
+    :Versions:
+        * 2016-04-27 ``@ddalle``: Copied from pyCart
+    """
+    # Construct the path relative to the Cape template folder
+    ff3d = os.path.join('fun3d', fname)
+    # Get the full path
+    return getTemplateFile(ff3d)
 
 
 # Function to get the defautl settings.

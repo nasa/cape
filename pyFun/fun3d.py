@@ -19,7 +19,8 @@ import subprocess as sp
 from cape.cntl import Cntl
 
 # Local classes
-from namelist  import Namelist
+from namelist   import Namelist
+from rubberData import RubberData
 
 # Other pyFun modules
 from . import options
@@ -94,6 +95,10 @@ class Fun3d(Cntl):
         # Read the namelist.
         self.ReadNamelist()
         
+        # Check for dual
+        if self.opts.get_Dual():
+            self.ReadRubberData()
+        
         # Read the boundary conditions
         self.ReadMapBC()
         
@@ -165,6 +170,48 @@ class Fun3d(Cntl):
         else:
             # Template for reading original parameters
             self.Namelist0 = nml
+        # Go back to original location
+        os.chdir(fpwd)
+        
+    # Read the ``rubber.data`` file
+    def ReadRubberData(self, j=0, q=True):
+        """Read the :file:`rubber.data` file
+        
+        :Call:
+            >>> fun3d.ReadRubberData(j=0, q=True)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of the pyFun control class
+            *j*: :class:`int`
+                Phase number
+            *q*: :class:`bool`
+                Whether or not read *RubberData*, else *RubberData0*
+        :Versions:
+            * 2016-04-27 ``@ddalle``: First version
+        """
+        # Change to root safely
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get the file
+        fname = self.opts.get_RubberDataFile(j)
+        # Check for the file.
+        if os.path.isfile(fname):
+            # Read the rubber data file
+            RD = RubberData(fname)
+        else:
+            # Use the template
+            print("Using template for 'rubber.data' file")
+            # Path to template file
+            fname = options.getFun3dTemplate('rubber.data')
+            # Read the template
+            RD = RubberData(fname)
+        # Save the object
+        if q:
+            # Read the main slot
+            self.RubberData = RD
+        else:
+            # Template for reading original parameters
+            self.RubberData0 = RD
         # Go back to original location
         os.chdir(fpwd)
         
@@ -471,6 +518,14 @@ class Fun3d(Cntl):
                 return False
             # Enter the folder.
             os.chdir(frun)
+            # Check for the Flow folder
+            if self.opts.get_Dual():
+                # Check for 'Flow' folder
+                if not os.path.isdir('Flow'):
+                    os.chdir(fpwd)
+                    return False
+                # Enter the folder.
+                os.chdir('Flow')
         # Check for mesh files
         q = self.CheckMeshFiles()
         # Return to original folder.
@@ -584,7 +639,8 @@ class Fun3d(Cntl):
             # Do we need "Adapt" and "Flow" folders?
             if self.opts.get_Dual():
                 # Create folder for the primal solution
-                if not os.path.isdir('Flow'): self.mkdir('Flow')
+                if not os.path.isdir('Flow'):    self.mkdir('Flow')
+                if not os.paht.isdir('Adjoint'): self.mkdir('Adjoint')
                 # Enter
                 os.chdir('Flow')
         # ----------
@@ -729,6 +785,8 @@ class Fun3d(Cntl):
         if n is not None: return
         # Prepare the mesh (and create folders if necessary).
         self.PrepareMesh(i)
+        # Check for dual
+        qdual = self.opts.get_Dual()
         # Get the run name.
         frun = self.x.GetFullFolderNames(i)
         # Go to root folder safely.
@@ -745,20 +803,28 @@ class Fun3d(Cntl):
             fmsh = self.GetProcessedMeshFileNames()
             # Copy the required files.
             for fname in fmsh:
+                # Check for dual case
+                if qdual:
+                    # Link to the 'Flow/' folder
+                    fto = os.path.join('Flow', fname)
+                else:
+                    # Link to the present folder
+                    fto = fname
                 # Source path
                 fsrc = os.path.join(os.path.abspath('..'), fname)
                 # Check for the file
-                if os.path.isfile(fname):
-                    os.remove(fname)
+                if os.path.isfile(fto): os.remove(fto)
                 # Create the link.
                 if os.path.isfile(fsrc):
-                    os.symlink(fsrc, fname)
+                    os.symlink(fsrc, fto)
         # Get function for setting boundary conditions, etc.
         keys = self.x.GetKeysByType('CaseFunction')
         # Get the list of functions.
         funcs = [self.x.defns[key]['Function'] for key in keys]
         # Reread namelist
         self.ReadNamelist()
+        # Reread rubber.data
+        if qdual: self.ReadRubberData()
         # Loop through the functions.
         for (key, func) in zip(keys, funcs):
             # Apply it.
@@ -783,7 +849,7 @@ class Fun3d(Cntl):
             >>> fun3d.PrepareNamelist(i)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of global pyCart settings object
+                Instance of FUN3D control class
             *i*: :class:`int`
                 Run index
         :Versions:
@@ -867,6 +933,64 @@ class Fun3d(Cntl):
             self.Namelist.Write(fout)
         # Return to original path.
         os.chdir(fpwd)
+    
+    # Prepare ``rubber.data`` file
+    def PrepareRubberData(self, i):
+        """Prepare ``rubber.data`` file if appropriate
+        
+        :Call:
+            >>> fun3d.PrepareRubberData(i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of FUN3D control class
+            *i*: :class:`int`
+                Run index
+        :Versions:
+            * 2016-04-27 ``@ddalle``: First version
+        """
+        # Get list of adaptive coefficients.
+        coeffs = self.opts.get_AdaptCoeffs()
+        # Create dictionary of compIDs that we've created
+        surfs = {}
+        # Loop through the coefficients.
+        
+        
+    # Get surface ID numbers
+    def CompID2SurfID(self, compID):
+        """Convert triangulation component ID to surface index
+        
+        This relies on an XML configuration file and a FUN3D ``mapbc`` file
+        
+        :Call:
+            >>> surfID = fun3d.CompID2SurfID(compID)
+            >>> surfID = fun3d.CompID2SurfID(face)
+            >>> surfID = fun3d.CompID2SurfID(comps)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of FUN3D control class
+            *compID*: :class:`int`
+                Surface boundary ID as used in surface mesh
+            *face*: :class:`str`
+                Name of face
+            *comps*: :class:`list` (:class:`int` | :class:`str`)
+                List of component IDs or face names
+        :Outputs:
+            *surfID*: :class:`list` (:class:`int`)
+                List of corresponding indices of surface in MapBC
+        :Versions:
+            * 2016-04-27 ``@ddalle``: First version
+        """
+        # Get list from tri Config
+        compIDs = self.tri.config.GetCompID(compID)
+        # Initialize output list
+        surfID = []
+        # Loop through components
+        for comp in compIDs:
+            # Get the surface ID
+            surfID.append(self.MapBC.GetSurfID(comp))
+        # Output
+        return surfID
+        
     
     # Prepare surface BC
     def SetSurfBC(self, key, i, CT=False):

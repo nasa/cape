@@ -8,7 +8,7 @@ import cape.options.Functional
 
 
 # Class for output functional settings
-class Functional(cape.options.Functional):
+class Functional(cape.options.Functional.Functional):
     """Dictionary-based interface for output/objective functions"""
     
     # Get adaptive function coefficients

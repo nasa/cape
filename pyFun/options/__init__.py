@@ -35,6 +35,7 @@ from .runControl  import RunControl
 from .fun3dnml    import Fun3DNml
 from .Mesh        import Mesh
 from .Config      import Config
+from .Functional  import Functional
 
 # Class definition
 class Options(cape.options.Options):
@@ -77,6 +78,7 @@ class Options(cape.options.Options):
         self._RunControl()
         self._Mesh()
         self._Config()
+        self._Functional()
         # Add extra folders to path.
         self.AddPythonPath()
     
@@ -132,6 +134,17 @@ class Options(cape.options.Options):
         elif type(self['Mesh']).__name__ == 'dict':
             # Convert to special class
             self['Mesh'] = Mesh(**self['Mesh'])
+            
+    # Initialization method for adaptive function definition
+    def _Functional(self):
+        """Initialize report options if necessary"""
+        # Check status.
+        if 'Functional' not in self:
+            # Missing entirely.
+            self['Functional'] = Functional()
+        elif type(self['Functional']).__name__ == 'dict':
+            # Convert to special class
+            self['Functional'] = Functional(**self['Functional'])
     
     # Initialization method for databook
     def _DataBook(self):
@@ -216,6 +229,25 @@ class Options(cape.options.Options):
             * 2015-10-16 ``@ddalle``: First version
         """
         self['Namelist'] = fname
+    
+    # Get template file
+    def get_RubberDataFile(self, j=None):
+        """Get the ``rubber.data`` file name
+        
+        :Call:
+            >>> fname = opts.get_RubberFile(j=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *fname*: :class:`str`
+                Name of file template
+        :Versions:
+            * 2016-04-27 ``@ddalle``: First version
+        """
+        return self.get_key('RubberData', j)
     
     # Method to determine if groups have common meshes.
     def get_GroupMesh(self):
@@ -443,7 +475,75 @@ class Options(cape.options.Options):
    # >
    
     
+    # =========
+    # Functions
+    # =========
+   # <
     
+    # Function to get adaptive coefficients
+    def get_AdaptCoeffs(self):
+        self._Functional()
+        return self['Functional'].get_AdaptCoeffs()
+        
+    # Function to get objective functions
+    def get_AdaptFuncs(self):
+        self._Functional()
+        return self['Functional'].get_AdaptFuncs()
+        
+    # Function to get objective functions
+    def get_OptFuncs(self):
+        self._Functional()
+        return self['Functional'].get_OptFuncs()
+    
+    # Function to get constraint functions
+    def get_ConstraintFuncs(self):
+        self._Functional()
+        return self['Functional'].get_ConstraintFuncs()
+        
+    # Get coefficients for a function
+    def get_FuncCoeffs(self, fn):
+        self._Functional()
+        return self['Functional'].get_FuncCoeffs(fn)
+        
+    # Get function type
+    def get_FuncType(self, fn):
+        self._Functional()
+        return self['Functional'].get_FuncType(fn)
+    
+    # Function to get functional coeff type
+    def get_FuncCoeffType(self, coeff):
+        self._Functional()
+        return self['Functional'].get_FuncCoeffType(coeff)
+    
+    # Weight
+    def get_FuncCoeffWeight(self, coeff):
+        self._Functional()
+        return self['Functional'].get_FuncCoeffWeight(coeff)
+    
+    # Target value
+    def get_FuncCoeffTarget(self, coeff):
+        self._Functional()
+        return self['Functional'].get_FuncCoeffTarget(coeff)
+    
+    # Exponent
+    def get_FuncCoeffPower(self, coeff):
+        self._Functional()
+        return self['Functional'].get_FuncCoeffPower(coeff)
+    
+    # Component
+    def get_FuncCoeffCompID(self, coeff):
+        self._Functional()
+        return self['Functional'].get_FuncCoeffCompID(coeff)
+        
+    # Copy documentation
+    for k in ['AdaptCoeffs', 'AdaptFuncs', 'OptFuncs', 'ConstraintFuncs',
+        'FuncCoeffs', 'FuncType',
+        'FuncCoeffWeight', 'FuncCoeffTarget', 'FuncCoeffPower',
+        'FuncCoeffCompID'
+    ]:
+        eval('get_'+k).__doc__ = getattr(Functional,'get_'+k).__doc__
+        
+   # >
     
     # =========
     # Data book
