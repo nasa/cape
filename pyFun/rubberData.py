@@ -413,7 +413,7 @@ class RubberData(FileCntl):
         """Get the keyword for coefficient *j* of function *k*
         
         :Call:
-            >>> kw = R.GetCoeffType(k, j=1)
+            >>> name = R.GetCoeffType(k, j=1)
         :Inputs:
             *R*: :class:`pyFun.rubberData.RubberData`
                 Interface to FUN3D function definition file
@@ -478,6 +478,36 @@ class RubberData(FileCntl):
         # Save the line.
         self.lines[i] = (' '.join(V) + '\n')
         
+    # Get the function weight
+    def GetCoeffWeight(self, k, j=1):
+        """Get the component weight for coefficient *j* of function *k*
+        
+        :Call:
+            >>> w = R.GetCoeffWeight(k, j=1)
+        :Inputs:
+            *R*: :class:`pyFun.rubberData.RubberData`
+                Interface to FUN3D function definition file
+            *k*: :class:`int`
+                Function number (1-based)
+            *j*: :class:`int`
+                Component number (1-based)
+        :Outputs:
+            *w*: {``1.0``} | :class:`float`
+                Function keyword
+        :Versions:
+            * 2016-04-22 ``@ddalle``: First version
+            * 2016-04-28 ``@ddalle``: Added multiple components
+        """
+        # Get the lines
+        I = self.GetLineStartsWith('Components of function')
+        # Get the next line
+        line = self.GetNextLine(I[k-1], j)
+        # Get the value
+        try:
+            return float(line.spit()[3])
+        except Exception:
+            return 1.0
+        
     # Set the weight
     def SetCoeffWeight(self, k, w=1.0, j=1):
         """Set the weight for function *k*
@@ -517,7 +547,37 @@ class RubberData(FileCntl):
             V[3] = '%f'%w
         # Save the line.
         self.lines[i] = (' '.join(V) + '\n')
+    
+    # Get the function weight
+    def GetCoeffTarget(self, k, j=1):
+        """Get the target value for coefficient *j* of function *k*
         
+        :Call:
+            >>> t = R.GetCoeffTarget(k, j=1)
+        :Inputs:
+            *R*: :class:`pyFun.rubberData.RubberData`
+                Interface to FUN3D function definition file
+            *k*: :class:`int`
+                Function number (1-based)
+            *j*: :class:`int`
+                Component number (1-based)
+        :Outputs:
+            *t*: {``0.0``} | :class:`float`
+                Function target
+        :Versions:
+            * 2016-04-22 ``@ddalle``: First version
+            * 2016-04-28 ``@ddalle``: Added multiple components
+        """
+        # Get the lines
+        I = self.GetLineStartsWith('Components of function')
+        # Get the next line
+        line = self.GetNextLine(I[k-1], j)
+        # Get the value
+        try:
+            return float(line.spit()[4])
+        except Exception:
+            return 0.0
+    
     # Set the weight
     def SetCoeffTarget(self, k, t=0.0, j=1):
         """Set the weight for function *k*
@@ -557,6 +617,36 @@ class RubberData(FileCntl):
             V[4] = '%f' % t
         # Save the line.
         self.lines[i] = (' '.join(V) + '\n')
+    
+    # Get the function power
+    def GetCoeffPower(self, k, j=1):
+        """Get the target value for coefficient *j* of function *k*
+        
+        :Call:
+            >>> p = R.GetCoeffPower(k, j=1)
+        :Inputs:
+            *R*: :class:`pyFun.rubberData.RubberData`
+                Interface to FUN3D function definition file
+            *k*: :class:`int`
+                Function number (1-based)
+            *j*: :class:`int`
+                Component number (1-based)
+        :Outputs:
+            *p*: {``1.0``} | :class:`float`
+                Function power
+        :Versions:
+            * 2016-04-22 ``@ddalle``: First version
+            * 2016-04-28 ``@ddalle``: Added multiple components
+        """
+        # Get the lines
+        I = self.GetLineStartsWith('Components of function')
+        # Get the next line
+        line = self.GetNextLine(I[k-1], j)
+        # Get the value
+        try:
+            return float(line.spit()[5])
+        except Exception:
+            return 1.0
         
     # Set the power/exponent
     def SetCoeffPower(self, k, p=1.0, j=1):
