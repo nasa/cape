@@ -142,7 +142,7 @@ class RubberData(FileCntl):
         # Get the index of the next line
         j = self.GetNextLineIndex(i[0])
         # Set it.
-        self.lines[j] = "    %i" % n
+        self.lines[j] = "    %i\n" % n
         
     # Get number of components for a function
     def GetNComp(self, k=1):
@@ -200,15 +200,15 @@ class RubberData(FileCntl):
         # Get the next line
         j = self.GetNextLineIndex(i[k-1])
         # Set the line.
-        self.lines[j] = "    %i" % m
+        self.lines[j] = "    %i\n" % m
     
     # Add another component if necessry
-    def AddComp(self, k=1, m=None):
+    def AddCoeff(self, k=1, m=None):
         """Add one or more components to a function definition
         
         :Call:
-            >>> R.AddComp(k)
-            >>> R.AddComp(k, m)
+            >>> R.AddCoeff(k)
+            >>> R.AddCoeff(k, m)
         :Inputs:
             *R*: :class:`pyFun.rubberData.RubberData`
                 Interface to FUN3D function definition file
@@ -220,7 +220,7 @@ class RubberData(FileCntl):
             * 2016-04-27 ``@ddalle``: First version
         """
         # Add sections if necessary
-        for n in range(self.GetNFunction(),k+1):
+        for n in range(self.GetNFunction(),k):
             self.AddFunction()
         # Get the number of components
         n = self.GetNComp(k)
@@ -228,12 +228,14 @@ class RubberData(FileCntl):
         if m is None: m = n+1
         # Do not add if not necessary.
         if m <= n: return
+        # Set component count
+        self.SetNComp(k, m)
         # Get the start of the component definition
         I = self.GetIndexStartsWith('Current value of function', k)
         # Get last line
         i = I[k-1]
         # Default line
-        linedef = '   0 cd   0.00000   1.000   0.000   1.000'
+        linedef = '   0 cd   0.00000   1.000   0.000   1.000\n'
         # Set of lines to add
         linesnew = [linedef] * (m-n)
         # Alter line set
@@ -389,7 +391,7 @@ class RubberData(FileCntl):
             * 2016-04-27 ``@ddalle``: Added multiple components
         """
         # Add component if necessary.
-        self.AddComp(k, j)
+        self.AddCoeff(k, j)
         # Get the lines
         I = self.GetIndexStartsWith('Components of function')
         # Get the next line
@@ -401,9 +403,9 @@ class RubberData(FileCntl):
         # Alter the first.
         if len(V) < 1:
             # Initialize line and set component
-            V = str(comp)
+            V = '%8s' % comp
         else:
-            V[0] = str(comp)
+            V[0] = '%8s' % comp
         # Save the line
         self.lines[i] = (' '.join(V) + '\n')
         
@@ -457,7 +459,7 @@ class RubberData(FileCntl):
             * 2016-04-28 ``@ddalle``: Added multiple components
         """
         # Add component if necessary.
-        self.AddComp(k, j)
+        self.AddCoeff(k, j)
         # Get the lines
         I = self.GetIndexStartsWith('Components of function')
         # Get the next line
@@ -474,6 +476,8 @@ class RubberData(FileCntl):
         else:
             # Edit second entry
             V[1] = str(name)
+        # Use 8 chars for first entry
+        V[0] = '%8s' % V[0]
         # Save the line.
         self.lines[i] = (' '.join(V) + '\n')
         
@@ -527,7 +531,7 @@ class RubberData(FileCntl):
             * 2016-04-28 ``@ddalle``: Added multiple components
         """
         # Add component if necessary.
-        self.AddComp(k, j)
+        self.AddCoeff(k, j)
         # Get the lines
         I = self.GetIndexStartsWith('Components of function')
         # Get the next line
@@ -544,6 +548,8 @@ class RubberData(FileCntl):
         else:
             # Edit second entry
             V[3] = '%f'%w
+        # Use 8 chars for first entry
+        V[0] = '%8s' % V[0]
         # Save the line.
         self.lines[i] = (' '.join(V) + '\n')
     
@@ -597,7 +603,7 @@ class RubberData(FileCntl):
             * 2016-04-28 ``@ddalle``: Added multiple components
         """
         # Add component if necessary.
-        self.AddComp(k, j)
+        self.AddCoeff(k, j)
         # Get the lines
         I = self.GetIndexStartsWith('Components of function')
         # Get the next line
@@ -614,6 +620,8 @@ class RubberData(FileCntl):
         else:
             # Edit second entry
             V[4] = '%f' % t
+        # Use 8 chars for first entry
+        V[0] = '%8s' % V[0]
         # Save the line.
         self.lines[i] = (' '.join(V) + '\n')
     
@@ -667,7 +675,7 @@ class RubberData(FileCntl):
             * 2016-04-28 ``@ddalle``: Added multiple components
         """
         # Add component if necessary.
-        self.AddComp(k, j)
+        self.AddCoeff(k, j)
         # Get the lines
         I = self.GetIndexStartsWith('Components of function')
         # Get the next line
@@ -684,6 +692,8 @@ class RubberData(FileCntl):
         else:
             # Edit second entry
             V[5] = '%f' % p
+        # Use 8 chars for first entry
+        V[0] = '%8s' % V[0]
         # Save the line.
         self.lines[i] = (' '.join(V) + '\n')
     

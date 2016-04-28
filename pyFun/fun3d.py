@@ -901,7 +901,13 @@ class Fun3d(Cntl):
             # Apply the appropriate methods
             self.SetSurfBC(k, i, CT=True)
         # File name
-        fout = os.path.join(frun, '%s.mapbc'%self.GetProjectRootName(0))
+        if self.opts.get_Dual():
+            # Write in the 'Flow/' folder
+            fout = os.path.join(frun, 'Flow', 
+                '%s.mapbc' % self.GetProjectRootName(0))
+        else:
+            # Main folder
+            fout = os.path.join(frun, '%s.mapbc'%self.GetProjectRootName(0))
         # Write the BC file
         self.MapBC.Write(fout)
         

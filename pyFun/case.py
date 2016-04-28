@@ -141,13 +141,13 @@ def RunPhase(rc, i):
     cmdi = cmd.nodet(rc)
     # Call the command.
     bin.callf(cmdi, f='fun3d.out')
+    # Go back up a folder if we're in the "Flow" folder
+    if rc.get_Dual(): os.chdir('..')
     # Check current iteration count.
     if (i>=rc.get_PhaseSequence(-1)) and (n>=rc.get_LastIter()):
         return
     # Check for next phase
     i1 = GetPhaseNumber(rc)
-    # Go back up a folder if we're in the "Flow" folder
-    if rc.get_Dual(): os.chdir('..')
     # Check for adaptive solves
     if i1>i:
         # Check for adjoint solver
@@ -416,25 +416,35 @@ def GetNamelist(rc=None, i=None):
     :Versions:
         * 2015-10-19 ``@ddalle``: First version
     """
+    # Read ``case.json`` if necessary
+    if rc is None:
+        try:
+            rc = ReadCaseJSON()
+        except Exception:
+            pass
+    # Create prefix
+    if rc.get_Dual():
+        # Use 'Flow/' folder
+        fpre = os.path.join('Flow', 'fun3d')
     # Check for detailed inputs
     if i is not None:
         # Get the specified namelist
-        return Namelist('fun3d.%02i.nml' % i)
+        return Namelist('%s.%02i.nml' % (fpre, i))
     if rc is None:
         # Check for simplest namelist file
-        if os.path.isfile('fun3d.nml'):
+        if os.path.isfile('%s.nml' % fpre):
             # Read the currently linked namelist.
-            return Namelist('fun3d.nml')
+            return Namelist('%s.nml' % fpre)
         else:
             # Look for namelist files
-            fglob = glob.glob('fun3d.??.nml')
+            fglob = glob.glob('%s.??.nml' % fpre)
             # Read one of them.
             return Namelist(fglob[0])
     else:
         # Get run index.
         i = GetPhaseNumber(rc)
         # Read the namelist file.
-        return Namelist('fun3d.%02i.nml' % i)
+        return Namelist('%s.%02i.nml' % (fpre, i))
 
 
 # Get the project rootname
@@ -497,10 +507,22 @@ def GetCurrentIter():
             Last iteration number
     :Versions:
         * 2015-10-19 ``@ddalle``: First version
+        * 2016-04-28 ``@ddalle``: Accounting for ``Flow/`` folder
     """
+    # Check for flow folder
+    if os.path.isdir('Flow'):
+        # Dual setup
+        qdual = True
+        os.chdir('Flow')
+    else:
+        # No dual setup
+        qdual = False
     # Read the two sources
     nh = GetHistoryIter()
     nr = GetRunningIter()
+    # Go back if appropriate
+    if qdual:
+        os.chdir('..')
     # Process
     if nr is None:
         # No running iterations; check history
@@ -520,27 +542,44 @@ def GetHistoryIter():
             Most recent iteration number
     :Versions:
         * 2015-10-20 ``@ddalle``: First version
+        * 2016-04-28 ``@ddalle``: Accounting for ``Flow/`` folder
     """
+    # Check for flow folder
+    if os.path.isdir('Flow'):
+        # Dual setup
+        qdual = True
+        os.chdir('Flow')
+    else:
+        # No dual setup
+        qdual = False
     # Read the project rootname
     try:
         rname = GetProjectRootname()
     except Exception:
         # No iterations
+        if qdual: os.path.chdir('..')
         return None
     # Assemble file name.
     fname = "%s_hist.dat" % rname
     # Check for the file.
     if not os.path.isfile(fname):
         # No history to read.
+        if qdual: os.path.chdir('..')
         return None
     # Check the file.
     try:
         # Tail the file
         txt = bin.tail(fname)
-        # Get the iteration number.
-        return int(txt.split()[0])
     except Exception:
         # Failure; return no-iteration result.
+        if qdual: os.path.chdir('..')
+        return None
+    # Go up
+    if qdual: os.path.chdir('..')
+    # Get the iteration number.
+    try:
+        return int(txt.split()[0])
+    except Exception:
         return None
         
 # Get the last line (or two) from a running output file
@@ -554,7 +593,15 @@ def GetRunningIter():
             Most recent iteration number
     :Versions:
         * 2015-10-19 ``@ddalle``: First version
+        * 2016-04-28 ``@ddalle``: Now handles ``Flow/`` folder
     """
+    # Check for 'Flow/' folder
+    if os.path.isdir('Flow'):
+        # Enter the dual folder
+        qdual = True
+        os.chdir('Flow')
+    else:
+        qdual = False
     # Check for the file.
     if not os.path.isfile('fun3d.out'): return None
     # Get the restart iteration line
@@ -565,10 +612,13 @@ def GetRunningIter():
         nr = int(lines[0].split('=')[-1])
     except Exception:
         # No restart iterations
+        if qdual: os.chdir('..')
         nr = None
     # Get the last few lines of :file:`fun3d.out`
     lines = bin.tail('fun3d.out', 20).strip().split('\n')
     lines.reverse()
+    # Go back to original folder if dual setup
+    if qdual: os.chdir('..')
     # Initialize output
     n = None
     # Try each line.
@@ -617,6 +667,14 @@ def GetRestartIter():
         * 2015-10-19 ``@ddalle``: First version
         * 2016-04-19 ``@ddalle``: Checks STDIO file for iteration number
     """
+    # Check for "Flow/" folder
+    if os.path.isdir('Flow'):
+        # Enter the dual flow folder
+        qdual = True
+        os.chdir('Flow')
+    else:
+        # No dual folder
+        qdual = False
     # List the output files
     if os.path.isfile('fun3d.out'):
         # Only use the current file
@@ -638,6 +696,8 @@ def GetRestartIter():
             n = max(i, n)
         except Exception:
             pass
+    # Go back home if in dual folder
+    if qdual: os.path.isdir('..')
     # Output
     return n
     

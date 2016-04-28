@@ -1116,7 +1116,7 @@ class RunControl(odict):
         # Check if it's a list.
         if type(PhaseSeq).__name__ == "list":
             # Use the length.
-            return max(PhaseSeq)
+            return max(PhaseSeq) + 1
         else:
             # Something is messed up.
             return 1
