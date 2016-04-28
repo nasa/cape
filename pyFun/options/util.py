@@ -45,6 +45,7 @@ rc["Adaptive"]   = False
 rc["Dual"]       = False
 rc["AdaptPhase"] = True
 rc["DualPhase"]  = True
+rc["nIterAdjoint"] = 200
     
 
 # Function to ensure scalar from above

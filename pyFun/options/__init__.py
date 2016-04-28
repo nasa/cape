@@ -340,8 +340,18 @@ class Options(cape.options.Options):
         self._RunControl()
         self['RunControl'].set_DualPhase(qd, i)
         
+    # Iterations for adjoint
+    def get_nIterAdjoint(self, j=None):
+        self._RunControl()
+        return self['RunControl']
+        
+    # Iterations for adjoint
+    def set_nIterAdjoint(self, n=rc0('nIterAdjoint'), j=None):
+        self._RunControl()
+        self['RunControl'].set_nIterAdjoint(n, j)
+        
     # Copy documentation     
-    for k in ['Adaptive', 'Dual', 'AdaptPhase', 'DualPhase']:
+    for k in ['Adaptive', 'Dual', 'AdaptPhase', 'DualPhase', 'nIterAdjoint']:
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
    

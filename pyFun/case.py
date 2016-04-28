@@ -74,11 +74,26 @@ def PrepareFiles(rc, i=None):
     if i is None:
         # Get the phase number
         i = GetPhaseNumber(rc)
+    # Check for dual phase
+    if rc.get_Dual(): os.chdir('Flow')
     # Delete any input file.
     if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
         os.remove('fun3d.nml')
     # Create the correct namelist.
     os.symlink('fun3d.%02i.nml' % i, 'fun3d.nml')
+    # Return to original folder
+    if rc.get_Dual(): os.chdir('..')
+    # Check for dual phase
+    if rc.get_DualPhase(i):
+        # Enter the 'Adjoint' folder
+        os.chdir('Adjoint')
+        # Delete any input file.
+        if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
+            os.remove('fun3d.nml')
+        # Create the correct namelist.
+        os.symlink('fun3d.%02i.nml' % i, 'fun3d.nml')
+        # Return
+        os.chdir('..')
 
 # Run one phase appropriately
 def RunPhase(rc, i):
@@ -94,6 +109,9 @@ def RunPhase(rc, i):
     :Versions:
         * 2016-04-13 ``@ddalle``: First version
     """
+    # Check for dual
+    if rc.get_Dual():
+        os.chdir('Flow')
     # Get the project name
     fproj = GetProjectRootname()
     # Read namelist
@@ -128,12 +146,18 @@ def RunPhase(rc, i):
         return
     # Check for next phase
     i1 = GetPhaseNumber(rc)
+    # Go back up a folder if we're in the "Flow" folder
+    if rc.get_Dual(): os.chdir('..')
     # Check for adaptive solves
-    if i1>i and rc.get_Adaptive() and rc.get_AdaptPhase(i):
+    if i1>i:
         # Check for adjoint solver
-        if rc.get_Dual(i):
-            pass
-        else:
+        if rc.get_Dual() and rc.get_DualPhase(i):
+            # Enter the 'Adjoint/' folder
+            os.chdir('Adjoint')
+            
+            # Return
+            os.chdir('..')
+        elif rc.get_Adaptive() and rc.get_AdaptPhase(i):
             # Run the feature-based adaptive mesher
             cmdi = cmd.nodet(rc, adapt=True)
             # Call the command.

@@ -288,6 +288,43 @@ class RunControl(cape.options.runControl.RunControl):
         """
         self.set_key('DualPhase', qa, i)
         
+    # Get number of iterations for adjoint solver
+    def get_nIterAdjoint(self, j=None):
+        """Get number of iterations for ``dual``, the adjoint solver
+        
+        :Call:
+            >>> n = opts.get_nIterAdjoint(j=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *n*: :class:`int`
+                Number of iterations for ``dual``
+        :Versions:
+            * 2016-04-28 ``@ddalle``: First version
+        """
+        return self.get_key('nIterAdjoint', j)
+        
+    # Set number of iterations for adjoint solver
+    def set_nIterAdjoint(self, n=rc0('nIterAdjoint'), j=None):
+        """Set number of iterations for ``dual``, the adjoint solver
+        
+        :Call:
+            >>> n = opts.get_nIterAdjoint(n=200, j=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *n*: :class:`int`
+                Number of iterations for ``dual``
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2016-04-28 ``@ddalle``: First version
+        """
+        self.set_key('nIterAdjoint', n, j)
+        
         
     # Get current adaptation number
     def get_AdaptationNumber(self, i):

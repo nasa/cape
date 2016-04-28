@@ -829,6 +829,8 @@ class Fun3d(Cntl):
         for (key, func) in zip(keys, funcs):
             # Apply it.
             exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+        # Prepare the rubber.data file
+        self.PrepareRubberData(i)
         # Write the fun3d.nml file(s).
         self.PrepareNamelist(i)
         # Write a JSON file with
@@ -928,9 +930,22 @@ class Fun3d(Cntl):
                 # Set the project rootname of the next phase
                 self.Namelist.SetAdaptRootname(self.GetProjectRootName(j+1))
             # Name of output file.
-            fout = os.path.join(frun, 'fun3d.%02i.nml' % j)
+            if self.opts.get_Dual():
+                # Write in the "Flow/" folder
+                fout = os.path.join(frun, 'Flow', 'fun3d.%02i.nml' % j)
+            else:
+                # Write in the case folder
+                fout = os.path.join(frun, 'fun3d.%02i.nml' % j)
             # Write the input file.
             self.Namelist.Write(fout)
+            # Check for dual phase
+            if self.opts.get_DualPhase(j):
+                # Write in the "Adjoint/" folder as well
+                fout = os.path.join(frun, 'Adjoint', 'fun3d.%02i.nml' % j)
+                # Set the iteration count
+                self.Namelist.SetnIter(self.opts.get_nIterAdjoint(j))
+                # Write the adjoint namelist
+                self.Namelist.Write(fout)
         # Return to original path.
         os.chdir(fpwd)
     
@@ -948,11 +963,45 @@ class Fun3d(Cntl):
         :Versions:
             * 2016-04-27 ``@ddalle``: First version
         """
+        # Check options
+        if not self.opts.get_Dual(): return
         # Get list of adaptive coefficients.
         coeffs = self.opts.get_AdaptCoeffs()
-        # Create dictionary of compIDs that we've created
-        surfs = {}
+        # Create list of compIDs that we've created
+        comps = {}
+        # Number of components in the composite adaptive function
+        n = 0
+        # Reread the rubber.data file
+        self.ReadRubberData()
+        # Save the handle
+        R = self.RubberData
         # Loop through the coefficients.
+        for coeff in coeffs:
+            # Get the component
+            comp = self.opts.get_FuncCoeffCompID(coeff)
+            # Check if already in the list
+            if comp not in comps: 
+                # Get the surface IDs
+                comps[comp] = self.CompID2SurfID(comp)
+            # Get component ID list
+            surfs = comps[comp]
+            # Get the option values for this coefficient
+            typ = self.opts.get_FuncCoeffType(coeff)
+            w   = self.opts.get_FuncCoeffWeight(coeff)
+            t   = self.opts.get_FuncCoeffTarget(coeff)
+            p   = self.opts.get_FuncCoeffPower(coeff)
+            # Loop through the components
+            for surf in surfs:
+                # Increase the component count
+                n += 1
+                # Set the component values
+                R.SetCoeffComp(1, surf, n)
+                R.SetCoeffType(1, typ,  n)
+                R.SetCoeffWeight(1, w, n)
+                R.SetCoeffTarget(1, t, n)
+                R.SetCoeffPower(1, p, n)
+        # Write the file
+        self.Write('rubber.data')
         
         
     # Get surface ID numbers
