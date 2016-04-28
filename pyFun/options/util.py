@@ -45,7 +45,11 @@ rc["Adaptive"]   = False
 rc["Dual"]       = False
 rc["AdaptPhase"] = True
 rc["DualPhase"]  = True
+# Settings for ``dual``
 rc["nIterAdjoint"] = 200
+rc["dual_outer_loop_krylov"] = True
+rc["dual_rad"] = True
+rc["dual_adapt"] = True
     
 
 # Function to ensure scalar from above

@@ -12,7 +12,7 @@ from .util import rc0, getel, odict
 # Import template module
 import cape.options.runControl
 
-# Class for `nodet` imputs
+# Class for `nodet` inputs
 class nodet(odict):
     """Class for ``nodet`` command-line inputs"""
     
@@ -33,7 +33,7 @@ class nodet(odict):
         :Versions:
             * 2015-11-24 ``@ddalle``: First version
         """
-        return self.get_key('nodet_animation_freq', i)
+        return self.get_key('animation_freq', i, rck='nodet_animation_freq')
         
     # Set animation frequency
     def set_nodet_animation_freq(self, f=rc0('nodet_animation_freq'), i=None):
@@ -51,7 +51,126 @@ class nodet(odict):
         :Versions:
             * 2015-11-24 ``@ddalle``: First version
         """
-        self.set_key('nodet_animation_freq', f, i)
+        self.set_key('animation_freq', f, i)
+# class nodet
+
+# Class for ``dual`` inputs
+class dual(odict):
+    """Class for ``dual`` command-line inputs"""
+    
+    # Helpful convergence flag
+    def get_dual_outer_loop_krylov(self, j=None):
+        """Get ``--outer_loop_krylov`` setting for ``dual``
+        
+        :Call:
+            >>> f = opts.get_dual_outer_loop_krylov(j=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *f*: {``True``} | ``False``
+                Whether or not to use this flag
+        :Versions:
+            * 2016-04-28 ``@ddalle``: First version
+        """
+        return self.get_key('outer_loop_krylov', j,
+            rck='dual_outer_loop_krylov')
+    
+    # Helpful convergence flag
+    def set_dual_outer_loop_krylov(self,f=rc0('dual_outer_loop_krylov'),j=None):
+        """Set ``--outer_loop_krylov`` setting for ``dual``
+        
+        :Call:
+            >>> opts.set_dual_outer_loop_krylov(f=True, j=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *f*: {``True``} | ``False``
+                Whether or not to use this flag
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2016-04-28 ``@ddalle``: First version
+        """
+        self.set_key('outer_loop_krylov', f, j)
+        
+    # Residual adjoint dot-product
+    def get_dual_rad(self, j=None):
+        """Get command-line setting for residual adjoint dot product
+        
+        :Call:
+            >>> rad = opts.get_dual_rad(j=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *rad*: {``True``} | ``False``
+                Whether or not to use residual adjoint dot product
+        :Versions:
+            * 2016-04-28 ``@ddalle``: First version
+        """
+        return self.get_key('rad', j, rck='dual_rad')
+        
+    # Residual adjoint dot-product
+    def set_dual_rad(self, rad=rc0('dual_rad'), j=None):
+        """Set command-line setting for residual adjoint dot product
+        
+        :Call:
+            >>> opts.set_dual_rad(rad=True, j=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *rad*: {``True``} | ``False``
+                Whether or not to use residual adjoint dot product
+        :Versions:
+            * 2016-04-28 ``@ddalle``: First version
+        """
+        self.set_key('rad', rad, j)
+        
+    # Adapt setting
+    def get_dual_adapt(self, j=None):
+        """Get command-line setting for adapting when running ``dual``
+        
+        :Call:
+            >>> adapt = opts.get_dual_adapt(j=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *adapt*: {``True``} | ``False``
+                Whether or not to adapt after running ``dual``
+        :Versions:
+            * 2016-04-28 ``@ddalle``: First version
+        """
+        return self.get_key('adapt', j, rck=rc0('dual_adapt'))
+        
+    # Adapt setting
+    def set_dual_adapt(self, adapt=rc0('dual_adapt'), j=None):
+        """Set command-line setting for adapting when running ``dual``
+        
+        :Call:
+            >>> opts.set_dual_adapt(adapt=True, j=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *adapt*: {``True``} | ``False``
+                Whether or not to adapt after running ``dual``
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2016-04-28 ``@ddalle``: First version
+        """
+        self.set_key('adapt', adapt, j)
+# class dual
 
 # Class for Report settings
 class RunControl(cape.options.runControl.RunControl):
@@ -76,21 +195,32 @@ class RunControl(cape.options.runControl.RunControl):
         self._verify()
         self._Archive()
         self._nodet()
+        self._dual()
         
     # ============ 
     # Initializers
     # ============
    # <
    
-    # Initialization and confirmation for nodet options
+    # Initialization and confirmation for ``nodet`` options
     def _nodet(self):
-        """Initialize `nodet` options if necessary"""
+        """Initialize ``nodet`` options if necessary"""
         if 'nodet' not in self:
             # Empty/default
             self['nodet'] = nodet()
         elif type(self['nodet']).__name__ == 'dict':
             # Convert to special class
             self['nodet'] = nodet(**self['nodet'])
+   
+    # Initialization and confirmation for ``dual`` options
+    def _dual(self):
+        """Initialize ``dual`` options if necessary"""
+        if 'dual' not in self:
+            # Empty/default
+            self['dual'] = dual()
+        elif type(self['dual']).__name__ == 'dict':
+            # Convert to special class
+            self['dual'] = dual(**self['dual'])
             
    # >
    
