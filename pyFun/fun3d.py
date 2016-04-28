@@ -640,7 +640,7 @@ class Fun3d(Cntl):
             if self.opts.get_Dual():
                 # Create folder for the primal solution
                 if not os.path.isdir('Flow'):    self.mkdir('Flow')
-                if not os.paht.isdir('Adjoint'): self.mkdir('Adjoint')
+                if not os.path.isdir('Adjoint'): self.mkdir('Adjoint')
                 # Enter
                 os.chdir('Flow')
         # ----------
@@ -944,6 +944,9 @@ class Fun3d(Cntl):
                 fout = os.path.join(frun, 'Adjoint', 'fun3d.%02i.nml' % j)
                 # Set the iteration count
                 self.Namelist.SetnIter(self.opts.get_nIterAdjoint(j))
+                # Set the adapt phase
+                self.Namelist.SetVar('adapt_mechanics', 'adapt_project',
+                    self.GetProjectRootName(j+1))
                 # Write the adjoint namelist
                 self.Namelist.Write(fout)
         # Return to original path.
@@ -1001,7 +1004,7 @@ class Fun3d(Cntl):
                 R.SetCoeffTarget(1, t, n)
                 R.SetCoeffPower(1, p, n)
         # Write the file
-        self.Write('rubber.data')
+        R.Write('rubber.data')
         
         
     # Get surface ID numbers
@@ -1029,6 +1032,11 @@ class Fun3d(Cntl):
         :Versions:
             * 2016-04-27 ``@ddalle``: First version
         """
+        # Make sure the triangulation is present.
+        try:
+            self.tri
+        except Exception:
+            self.ReadTri()
         # Get list from tri Config
         compIDs = self.tri.config.GetCompID(compID)
         # Initialize output list

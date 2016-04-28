@@ -140,7 +140,7 @@ class RubberData(FileCntl):
                 ("Line must have following format:\n") +
                 ("Number of composite functions for design problem statement"))
         # Get the index of the next line
-        j = self.GetNextLine(i[0])
+        j = self.GetNextLineIndex(i[0])
         # Set it.
         self.lines[j] = "    %i" % n
         
@@ -162,12 +162,12 @@ class RubberData(FileCntl):
             * 2016-04-27 ``@ddalle``: First version
         """
         # Get the line
-        i = self.GetIndexStartsWith('Number of components', k)
+        I = self.GetIndexStartsWith('Number of components', k)
         # Line count
-        if len(i) < k:
+        if len(I) < k:
             raise ValueError("No component definitions for function %i" % k)
         # Get the next line
-        line = self.GetNextLine(i[k])
+        line = self.GetNextLine(I[k-1])
         # Try to interpret this line
         try:
             # This should be a single-entry integer
@@ -238,7 +238,6 @@ class RubberData(FileCntl):
         linesnew = [linedef] * (m-n)
         # Alter line set
         self.lines = self.lines[:i] + linesnew + self.lines[i:]
-        
     
     # Add a new section
     def AddFunction(self):
@@ -297,7 +296,7 @@ class RubberData(FileCntl):
             * 2016-04-22 ``@ddalle``: First version
         """
         # Get the lines marking this content
-        I = self.GetLineStartsWith('Cost function')
+        I = self.GetIndexStartsWith('Cost function')
         # Check section count
         if k >= len(I):
             # Not enough sections
@@ -331,7 +330,7 @@ class RubberData(FileCntl):
         for n in range(k,self.GetNFunction()+1):
             self.AddFunction()
         # Get the lines marking this content
-        I = self.GetLineStartsWith('Cost function')
+        I = self.GetIndexStartsWith('Cost function')
         # Set the contents
         self.lines[I[k-1]] = '    %i\n' % typ
         
@@ -356,7 +355,7 @@ class RubberData(FileCntl):
             * 2016-04-27 ``@ddalle``: Added multiple components
         """
         # Get the lines
-        I = self.GetLineStartsWith('Components of function')
+        I = self.GetIndexStartsWith('Components of function')
         # Check number of components
         if self.GetNComp(k) < j:
             raise ValueError(
@@ -390,9 +389,9 @@ class RubberData(FileCntl):
             * 2016-04-27 ``@ddalle``: Added multiple components
         """
         # Add component if necessary.
-        self.AddCoeffComp(k, j)
+        self.AddComp(k, j)
         # Get the lines
-        I = self.GetLineStartsWith('Components of function')
+        I = self.GetIndexStartsWith('Components of function')
         # Get the next line
         i = self.GetNextLineIndex(I[k-1], j)
         # Get the line.
@@ -429,7 +428,7 @@ class RubberData(FileCntl):
             * 2016-04-28 ``@ddalle``: Added multiple components
         """
         # Get the lines
-        I = self.GetLineStartsWith('Components of function')
+        I = self.GetIndexStartsWith('Components of function')
         # Get the next line
         line = self.GetNextLine(I[k-1], j)
         # Get the value
@@ -458,9 +457,9 @@ class RubberData(FileCntl):
             * 2016-04-28 ``@ddalle``: Added multiple components
         """
         # Add component if necessary.
-        self.AddCoeffComp(k, j)
+        self.AddComp(k, j)
         # Get the lines
-        I = self.GetLineStartsWith('Components of function')
+        I = self.GetIndexStartsWith('Components of function')
         # Get the next line
         i = self.GetNextLineIndex(I[k-1], j)
         # Get the line
@@ -470,11 +469,11 @@ class RubberData(FileCntl):
         # Edit second entry
         if len(V) < 2:
             # Initialize list
-            V0 = ['0', str(kw)]
+            V0 = ['0', str(name)]
             V = V + V0[len(V):]
         else:
             # Edit second entry
-            V[1] = str(kw)
+            V[1] = str(name)
         # Save the line.
         self.lines[i] = (' '.join(V) + '\n')
         
@@ -499,7 +498,7 @@ class RubberData(FileCntl):
             * 2016-04-28 ``@ddalle``: Added multiple components
         """
         # Get the lines
-        I = self.GetLineStartsWith('Components of function')
+        I = self.GetIndexStartsWith('Components of function')
         # Get the next line
         line = self.GetNextLine(I[k-1], j)
         # Get the value
@@ -528,9 +527,9 @@ class RubberData(FileCntl):
             * 2016-04-28 ``@ddalle``: Added multiple components
         """
         # Add component if necessary.
-        self.AddCoeffComp(k, j)
+        self.AddComp(k, j)
         # Get the lines
-        I = self.GetLineStartsWith('Components of function')
+        I = self.GetIndexStartsWith('Components of function')
         # Get the next line
         i = self.GetNextLineIndex(I[k-1], j)
         # Get the line
@@ -569,7 +568,7 @@ class RubberData(FileCntl):
             * 2016-04-28 ``@ddalle``: Added multiple components
         """
         # Get the lines
-        I = self.GetLineStartsWith('Components of function')
+        I = self.GetIndexStartsWith('Components of function')
         # Get the next line
         line = self.GetNextLine(I[k-1], j)
         # Get the value
@@ -598,9 +597,9 @@ class RubberData(FileCntl):
             * 2016-04-28 ``@ddalle``: Added multiple components
         """
         # Add component if necessary.
-        self.AddCoeffComp(k, j)
+        self.AddComp(k, j)
         # Get the lines
-        I = self.GetLineStartsWith('Components of function')
+        I = self.GetIndexStartsWith('Components of function')
         # Get the next line
         i = self.GetNextLineIndex(I[k-1],j)
         # Get the line
@@ -639,7 +638,7 @@ class RubberData(FileCntl):
             * 2016-04-28 ``@ddalle``: Added multiple components
         """
         # Get the lines
-        I = self.GetLineStartsWith('Components of function')
+        I = self.GetIndexStartsWith('Components of function')
         # Get the next line
         line = self.GetNextLine(I[k-1], j)
         # Get the value
@@ -668,11 +667,11 @@ class RubberData(FileCntl):
             * 2016-04-28 ``@ddalle``: Added multiple components
         """
         # Add component if necessary.
-        self.AddCoeffComp(k, j)
+        self.AddComp(k, j)
         # Get the lines
-        I = self.GetLineStartsWith('Components of function')
+        I = self.GetIndexStartsWith('Components of function')
         # Get the next line
-        i = self.GetNextLine(I[k-1], j)
+        i = self.GetNextLineIndex(I[k-1], j)
         # Get the line
         line = self.lines[i]
         # Split into parts

@@ -154,7 +154,10 @@ def RunPhase(rc, i):
         if rc.get_Dual() and rc.get_DualPhase(i):
             # Enter the 'Adjoint/' folder
             os.chdir('Adjoint')
-            
+            # Create the command
+            cmid = cmd.dual(rc, i=i)
+            # Call the command
+            bin.callf(cmdi, f='dual.%02i.out'%i)
             # Return
             os.chdir('..')
         elif rc.get_Adaptive() and rc.get_AdaptPhase(i):
