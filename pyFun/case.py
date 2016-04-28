@@ -112,10 +112,10 @@ def RunPhase(rc, i):
     # Check for dual
     if rc.get_Dual():
         os.chdir('Flow')
-    # Get the project name
-    fproj = GetProjectRootname()
     # Read namelist
     nml = GetNamelist(rc, i)
+    # Get the project name
+    fproj = GetProjectRootname(rc=rc, i=i, nml=nml)
     # Get the last iteration number
     n = GetCurrentIter()
     # Mesh generation and verification actions
@@ -422,29 +422,37 @@ def GetNamelist(rc=None, i=None):
             rc = ReadCaseJSON()
         except Exception:
             pass
-    # Create prefix
-    if rc.get_Dual():
-        # Use 'Flow/' folder
-        fpre = os.path.join('Flow', 'fun3d')
+    # Check for `Flow` folder
+    if os.path.isdir('Flow'):
+        # Enter the folder
+        qdual = True
+        os.chdir('Flow')
+    else:
+        # No `Flow/` folder
+        qdual = False
     # Check for detailed inputs
     if i is not None:
         # Get the specified namelist
-        return Namelist('%s.%02i.nml' % (fpre, i))
+        nml = Namelist('fun3d.%02i.nml' % i)
     if rc is None:
         # Check for simplest namelist file
-        if os.path.isfile('%s.nml' % fpre):
+        if os.path.isfile('fun3d.nml'):
             # Read the currently linked namelist.
-            return Namelist('%s.nml' % fpre)
+            nml = Namelist('fun3d.nml')
         else:
             # Look for namelist files
-            fglob = glob.glob('%s.??.nml' % fpre)
+            fglob = glob.glob('fun3d.??.nml')
             # Read one of them.
-            return Namelist(fglob[0])
+            nml = Namelist(fglob[0])
     else:
         # Get run index.
         i = GetPhaseNumber(rc)
         # Read the namelist file.
-        return Namelist('%s.%02i.nml' % (fpre, i))
+        nml = Namelist('fun3d.%02i.nml' % i)
+    # Exit `Flow/` folder if necessary
+    if qdual: os.chdir('..')
+    # Output
+    return nml
 
 
 # Get the project rootname
@@ -557,14 +565,14 @@ def GetHistoryIter():
         rname = GetProjectRootname()
     except Exception:
         # No iterations
-        if qdual: os.path.chdir('..')
+        if qdual: os.chdir('..')
         return None
     # Assemble file name.
     fname = "%s_hist.dat" % rname
     # Check for the file.
     if not os.path.isfile(fname):
         # No history to read.
-        if qdual: os.path.chdir('..')
+        if qdual: os.chdir('..')
         return None
     # Check the file.
     try:
@@ -572,10 +580,10 @@ def GetHistoryIter():
         txt = bin.tail(fname)
     except Exception:
         # Failure; return no-iteration result.
-        if qdual: os.path.chdir('..')
+        if qdual: os.chdir('..')
         return None
     # Go up
-    if qdual: os.path.chdir('..')
+    if qdual: os.chdir('..')
     # Get the iteration number.
     try:
         return int(txt.split()[0])
@@ -697,7 +705,7 @@ def GetRestartIter():
         except Exception:
             pass
     # Go back home if in dual folder
-    if qdual: os.path.isdir('..')
+    if qdual: os.chdir('..')
     # Output
     return n
     
