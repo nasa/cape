@@ -219,6 +219,9 @@ class RubberData(FileCntl):
         :Versions:
             * 2016-04-27 ``@ddalle``: First version
         """
+        # Add sections if necessary
+        for n in range(self.GetNFunction(),k+1):
+            self.AddFunction()
         # Get the number of components
         n = self.GetNComp(k)
         # Default count
@@ -360,7 +363,7 @@ class RubberData(FileCntl):
                 ("Requested value from component %i of function %i\n" % (k,j))
                 + ("Only %i components defined" % self.GetNComp(k)))
         # Get *j* comps later
-        line = self.GetNextLine(I[k], j)
+        line = self.GetNextLine(I[k-1], j)
         # Get the value
         try:
             return int(line.split()[0])
@@ -391,7 +394,7 @@ class RubberData(FileCntl):
         # Get the lines
         I = self.GetLineStartsWith('Components of function')
         # Get the next line
-        i = self.GetNextLineIndex(I[k], j)
+        i = self.GetNextLineIndex(I[k-1], j)
         # Get the line.
         line = self.lines[i]
         # Check contents
@@ -406,26 +409,29 @@ class RubberData(FileCntl):
         self.lines[i] = (' '.join(V) + '\n')
         
     # Get the function tag
-    def GetFunctionName(self, k):
-        """Get the keyword for function *k*
+    def GetCoeffType(self, k, j=1):
+        """Get the keyword for coefficient *j* of function *k*
         
         :Call:
-            >>> kw = R.GetFunctionName(k)
+            >>> kw = R.GetCoeffType(k, j=1)
         :Inputs:
             *R*: :class:`pyFun.rubberData.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
-                Function number (0-based)
+                Function number (1-based)
+            *j*: :class:`int`
+                Component number (1-based)
         :Outputs:
             *name*: {``cd``} | :class:`int`
                 Function keyword
         :Versions:
             * 2016-04-22 ``@ddalle``: First version
+            * 2016-04-28 ``@ddalle``: Added multiple components
         """
         # Get the lines
         I = self.GetLineStartsWith('Components of function')
         # Get the next line
-        line = self.GetNextLine(I[k])
+        line = self.GetNextLine(I[k-1], j)
         # Get the value
         try:
             return line.spit()[1]
@@ -433,30 +439,32 @@ class RubberData(FileCntl):
             return 'cd'
         
     # Set the function type
-    def SetFunctionName(self, k, name):
+    def SetCoeffType(self, k, name, j=1):
         """Set the keyword for function *k*
         
         :Call:
-            >>> R.SetFunctionName(k, name)
+            >>> R.SetCoeffType(k, name, j=1)
         :Inputs:
             *R*: :class:`pyFun.rubberData.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
-                Function number (0-based)
+                Function number (1-based)
             *name*: {``cd``} | :class:`int`
                 Function keyword
+            *j*: :class:`int`
+                Component number (1-based)
         :Versions:
             * 2016-04-22 ``@ddalle``: First version
+            * 2016-04-28 ``@ddalle``: Added multiple components
         """
-        # Add sections if necessary
-        for n in range(k,self.GetNFunction()+1):
-            self.AddFunction()
+        # Add component if necessary.
+        self.AddCoeffComp(k, j)
         # Get the lines
         I = self.GetLineStartsWith('Components of function')
         # Get the next line
-        j = self.GetNextLine(I[k])
+        i = self.GetNextLineIndex(I[k-1], j)
         # Get the line
-        line = self.lines[j]
+        line = self.lines[i]
         # Split into parts
         V = line.split()
         # Edit second entry
@@ -468,14 +476,14 @@ class RubberData(FileCntl):
             # Edit second entry
             V[1] = str(kw)
         # Save the line.
-        self.lines[j] = (' '.join(V) + '\n')
+        self.lines[i] = (' '.join(V) + '\n')
         
     # Set the weight
-    def SetFunctionWeight(self, k, w=1.0):
+    def SetCoeffWeight(self, k, w=1.0, j=1):
         """Set the weight for function *k*
         
         :Call:
-            >>> R.SetFunctionWeight(k, w)
+            >>> R.SetCoeffWeight(k, w, j=1)
         :Inputs:
             *R*: :class:`pyFun.rubberData.RubberData`
                 Interface to FUN3D function definition file
@@ -483,18 +491,20 @@ class RubberData(FileCntl):
                 Function number (0-based)
             *w*: {``1.0``} | :class:`float`
                 Function weight
+            *j*: :class:`int`
+                Component number (1-based)
         :Versions:
             * 2016-04-22 ``@ddalle``: First version
+            * 2016-04-28 ``@ddalle``: Added multiple components
         """
-        # Add sections if necessary
-        for n in range(k,self.GetNFunction()+1):
-            self.AddFunction()
+        # Add component if necessary.
+        self.AddCoeffComp(k, j)
         # Get the lines
         I = self.GetLineStartsWith('Components of function')
         # Get the next line
-        j = self.GetNextLine(I[k])
+        i = self.GetNextLineIndex(I[k-1], j)
         # Get the line
-        line = self.lines[j]
+        line = self.lines[i]
         # Split into parts
         V = line.split()
         # Edit second entry
@@ -506,14 +516,14 @@ class RubberData(FileCntl):
             # Edit second entry
             V[3] = '%f'%w
         # Save the line.
-        self.lines[j] = (' '.join(V) + '\n')
+        self.lines[i] = (' '.join(V) + '\n')
         
     # Set the weight
-    def SetFunctionTarget(self, k, t=0.0):
+    def SetCoeffTarget(self, k, t=0.0, j=1):
         """Set the weight for function *k*
         
         :Call:
-            >>> R.SetFunctionTarget(k, t)
+            >>> R.SetCoeffTarget(k, t, j=1)
         :Inputs:
             *R*: :class:`pyFun.rubberData.RubberData`
                 Interface to FUN3D function definition file
@@ -521,18 +531,20 @@ class RubberData(FileCntl):
                 Function number (0-based)
             *t*: {``0.0``} | :class:`float`
                 Function target
+            *j*: :class:`int`
+                Component number (1-based)
         :Versions:
             * 2016-04-22 ``@ddalle``: First version
+            * 2016-04-28 ``@ddalle``: Added multiple components
         """
-        # Add sections if necessary
-        for n in range(k,self.GetNFunction()+1):
-            self.AddFunction()
+        # Add component if necessary.
+        self.AddCoeffComp(k, j)
         # Get the lines
         I = self.GetLineStartsWith('Components of function')
         # Get the next line
-        j = self.GetNextLine(I[k])
+        i = self.GetNextLineIndex(I[k-1],j)
         # Get the line
-        line = self.lines[j]
+        line = self.lines[i]
         # Split into parts
         V = line.split()
         # Edit second entry
@@ -544,14 +556,14 @@ class RubberData(FileCntl):
             # Edit second entry
             V[4] = '%f' % t
         # Save the line.
-        self.lines[j] = (' '.join(V) + '\n')
+        self.lines[i] = (' '.join(V) + '\n')
         
     # Set the power/exponent
-    def SetFunctionPower(self, k, p=1.0):
+    def SetCoeffPower(self, k, p=1.0, j=1):
         """Set the exponent for function *k*
         
         :Call:
-            >>> R.SetFunctionPower(k, p)
+            >>> R.SetCoeffPower(k, p, j=1)
         :Inputs:
             *R*: :class:`pyFun.rubberData.RubberData`
                 Interface to FUN3D function definition file
@@ -559,18 +571,20 @@ class RubberData(FileCntl):
                 Function number (0-based)
             *p*: {``1.0``} | :class:`float`
                 Function exponent: ``w*(v-t)**p``
+            *j*: :class:`int`
+                Component number (1-based)
         :Versions:
             * 2016-04-22 ``@ddalle``: First version
+            * 2016-04-28 ``@ddalle``: Added multiple components
         """
-        # Add sections if necessary
-        for n in range(k,self.GetNFunction()+1):
-            self.AddFunction()
+        # Add component if necessary.
+        self.AddCoeffComp(k, j)
         # Get the lines
         I = self.GetLineStartsWith('Components of function')
         # Get the next line
-        j = self.GetNextLine(I[k])
+        i = self.GetNextLine(I[k-1], j)
         # Get the line
-        line = self.lines[j]
+        line = self.lines[i]
         # Split into parts
         V = line.split()
         # Edit second entry
@@ -582,5 +596,6 @@ class RubberData(FileCntl):
             # Edit second entry
             V[5] = '%f' % p
         # Save the line.
-        self.lines[j] = (' '.join(V) + '\n')
+        self.lines[i] = (' '.join(V) + '\n')
+    
 # class RubberData
