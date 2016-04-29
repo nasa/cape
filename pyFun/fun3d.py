@@ -559,7 +559,7 @@ class Fun3d(Cntl):
         # If running AFLR3, check for tri file
         if q and self.opts.get_aflr3():
             # Project name
-            fproj = self.GetProjectRootName()
+            fproj = self.GetProjectRootName(0)
             # Check for mesh files
             if os.path.isfile('%s.ugrid' % fproj):
                 # Have a volume mesh
@@ -732,17 +732,37 @@ class Fun3d(Cntl):
         :Versions:
             * 2015-10-19 ``@ddalle``: First version
             * 2016-04-11 ``@ddalle``: Checking for AFLR3 input files, too
+            * 2016-04-29 ``@ddalle``: Simpler version that handles ``Flow/``
         """
-        # Check for the surface file.
-        if not (os.path.isfile('Components.i.tri')
-                or os.path.isfile('Components.tri')):
-            n = None
-        # Input file.
-        if not os.path.isfile('fun3d.00.nml'): return True
         # Settings file.
         if not os.path.isfile('case.json'): return True
+        # If there's a ``Flow/`` folder, enter it
+        if os.path.isdir('Flow'):
+            # Dual setup
+            qdual = True
+            os.chdir('Flow')
+        else:
+            # No dual setup
+            qdual = False
+        # Check for history file
+        for j in self.opts.get_PhaseSequence():
+            # Get project name
+            fproj = self.GetProjectRootName(j)
+            # Check for history file
+            if os.path.isfile('%s_hist.dat' % fproj):
+                # Return if necessary
+                if qdual: os.path.chdir('..')
+                return False
+        # Namelist file
+        if not os.path.isfile('fun3d.00.nml'):
+            if qdual: os.chdir('..')
+            return True
         # Check mesh files
-        return not self.CheckMeshFiles()
+        q = self.CheckMeshFiles()
+        # Go back if appropriate
+        if qdual: os.chdir('..')
+        # Output
+        return not q
             
     # Get total CPU hours (actually core hours)
     def GetCPUTime(self, i):
