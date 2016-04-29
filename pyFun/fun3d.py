@@ -945,9 +945,9 @@ class Fun3d(Cntl):
             # Write the input file.
             self.Namelist.Write(fout)
             # Check for dual phase
-            if self.opts.get_DualPhase(j):
+            if self.opts.get_Dual() and self.opts.get_DualPhase(j):
                 # Write in the "Adjoint/" folder as well
-                fout = os.path.join(frun, 'Adjoint', 'fun3d.%02i.nml' % j)
+                fout = os.path.join(frun, 'Flow', 'fun3d.dual.%02i.nml' % j)
                 # Set the iteration count
                 self.Namelist.SetnIter(self.opts.get_nIterAdjoint(j))
                 # Set the adapt phase

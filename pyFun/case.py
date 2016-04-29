@@ -109,6 +109,8 @@ def RunPhase(rc, i):
     :Versions:
         * 2016-04-13 ``@ddalle``: First version
     """
+    # Count number of times this phase has been run previously.
+    nprev = len(glob.glob('run.%02i.*' % i))
     # Check for dual
     if rc.get_Dual():
         os.chdir('Flow')
@@ -118,53 +120,73 @@ def RunPhase(rc, i):
     fproj = GetProjectRootname(rc=rc, i=i, nml=nml)
     # Get the last iteration number
     n = GetCurrentIter()
+    # Number of requested iters for the end of this phase
+    ni = rc.get_PhaseIters(i)
     # Mesh generation and verification actions
-    if i == 0:
+    if i == 0 and n is None:
         # Run intersect and verify
         CaseIntersect(rc, fproj, n)
         CaseVerify(rc, fproj, n)
         print("Ready to run AFLR3...")
         # Create volume mesh if necessary
         CaseAFLR3(rc, proj=fproj, fmt=nml.GetGridFormat(), n=n)
-        # Number of iters
-        ni = rc.get_PhaseIters(i)
         # Check for mesh-only phase
         if ni is None or ni < 0:
             # Make sure *n* is not ``None``
             if n is None: n = 0
             # Create an output file to make phase number programs work
             os.system('touch run.%02i.%i' % (i, n))
+            # Exit appropriately
+            if rc.get_Dual(): os.chdir('..')
             return
     # Prepare for restart if that's appropriate.
     SetRestartIter(rc)
-    # Get the `nodet` or `nodet_mpi` command
-    cmdi = cmd.nodet(rc)
-    # Call the command.
-    bin.callf(cmdi, f='fun3d.out')
+    # Check if the primal solution has already been run
+    if n < ni or nprev == 0:
+        # Get the `nodet` or `nodet_mpi` command
+        cmdi = cmd.nodet(rc)
+        # Call the command.
+        bin.callf(cmdi, f='fun3d.out')
     # Go back up a folder if we're in the "Flow" folder
     if rc.get_Dual(): os.chdir('..')
     # Check current iteration count.
     if (i>=rc.get_PhaseSequence(-1)) and (n>=rc.get_LastIter()):
         return
-    # Check for next phase
-    i1 = GetPhaseNumber(rc)
+    # Get new iteration number
+    n1 = GetCurrentIter()
     # Check for adaptive solves
-    if i1>i:
+    if n1 >= rc.get_PhaseIters(i):
         # Check for adjoint solver
         if rc.get_Dual() and rc.get_DualPhase(i):
+            # Copy the correct namelist
+            os.chdir('Flow')
+            # Delete ``fun3d.nml`` if appropriate
+            if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
+                os.remove('fun3d.nml')
+            # Copy the correct one into place
+            os.symlink('fun3d.dual.%02i.nml'%i, 'fun3d.nml')
             # Enter the 'Adjoint/' folder
+            os.chdir('..')
             os.chdir('Adjoint')
             # Create the command
-            cmid = cmd.dual(rc, i=i)
+            cmdi = cmd.dual(rc, i=i)
             # Call the command
-            bin.callf(cmdi, f='dual.%02i.out'%i)
+            bin.callf(cmdi, f='dual.out')
+            # Rename output file after completing that command
+            os.rename('dual.out', 'dual.%02i.out' % i)
             # Return
             os.chdir('..')
         elif rc.get_Adaptive() and rc.get_AdaptPhase(i):
+            # Check if this is a weird mixed case with Dual and Adaptive
+            if rc.get_Dual(): os.chdir('Flow')
             # Run the feature-based adaptive mesher
             cmdi = cmd.nodet(rc, adapt=True)
             # Call the command.
-            bin.callf(cmdi, f='fun3d.out')
+            bin.callf(cmdi, f='adapt.out')
+            # Rename output file after completing that command
+            os.rename('adapt.out', 'adapt.%02i.out' % i)
+            # Return home if appropriate
+            if rc.get_Dual(): os.chdir('..')
         
 # Check success
 def CheckSuccess(rc=None, i=None):
@@ -233,11 +255,26 @@ def FinalizeFiles(rc, i=None):
     n = GetCurrentIter()
     # Don't use ``None`` for this
     if n is None: n = 0
+    # Check for dual folder setup
+    if os.path.isdir('Flow'):
+        # Enter the flow folder
+        os.chdir('Flow')
+        qdual = True
+    else:
+        # Single folder
+        qdual = False
     # Assuming that worked, move the temp output file.
-    os.rename('fun3d.out', 'run.%02i.%i' % (i, n))
+    if os.path.isfile('fun3d.out'):
+        # Move the file
+        os.rename('fun3d.out', 'run.%02i.%i' % (i, n))
+    else:
+        # Create an empty file
+        os.system('touch run.%02i.%s' % (i, n))
     # Rename the flow file, too.
     if rc.get_KeepRestarts(i):
         shutil.copy('%s.flow' % fproj, '%s.%i.flow' % (fproj,n))
+    # Move back to parent folder if appropriate
+    if qdual: os.chdir('..')
         
 # Function to call script or submit.
 def StartCase():
@@ -384,6 +421,9 @@ def GetPhaseNumber(rc):
     """
     # Get the run index.
     n = GetRestartIter()
+    # Global options
+    qdual = rc.get_Dual()
+    qadpt = rc.get_Adaptive()
     # Loop through possible input numbers.
     for j in range(rc.get_nSeq()):
         # Get the actual run number
@@ -396,6 +436,23 @@ def GetPhaseNumber(rc):
         if n < rc.get_PhaseIters(j):
             # This case has been run, but hasn't reached the min iter cutoff
             return i
+        # Check for dual
+        if qdual and rc.get_DualPhase(i):
+            # Check for the dual output file
+            if not os.path.isfile(os.path.join('Adapt', 'dual.%02i.out'%i)):
+                return i
+        # Check for dual
+        if qadpt and rc.get_AdaptPhase(i):
+            # Check for weird hybrid setting
+            if qdual:
+                # It's in the ``Flow/`` folder; other phases may be dual phases
+                fadpt = os.path.join('Flow', 'dual.%02i.out' % i)
+            else:
+                # Purely adaptive; located in this folder
+                fadpt = 'dual.%02i.out' % i
+            # Check for the dual output file
+            if not os.path.isfile(fadpt):
+                return i
     # Case completed; just return the last value.
     return i
 
@@ -517,20 +574,9 @@ def GetCurrentIter():
         * 2015-10-19 ``@ddalle``: First version
         * 2016-04-28 ``@ddalle``: Accounting for ``Flow/`` folder
     """
-    # Check for flow folder
-    if os.path.isdir('Flow'):
-        # Dual setup
-        qdual = True
-        os.chdir('Flow')
-    else:
-        # No dual setup
-        qdual = False
     # Read the two sources
     nh = GetHistoryIter()
     nr = GetRunningIter()
-    # Go back if appropriate
-    if qdual:
-        os.chdir('..')
     # Process
     if nr is None:
         # No running iterations; check history
@@ -603,30 +649,28 @@ def GetRunningIter():
         * 2015-10-19 ``@ddalle``: First version
         * 2016-04-28 ``@ddalle``: Now handles ``Flow/`` folder
     """
-    # Check for 'Flow/' folder
-    if os.path.isdir('Flow'):
-        # Enter the dual folder
-        qdual = True
-        os.chdir('Flow')
-    else:
-        qdual = False
     # Check for the file.
-    if not os.path.isfile('fun3d.out'): return None
+    if os.path.isfile('fun3d.out'):
+        # Use the current folder
+        fflow = 'fun3d.out'
+    elif os.path.isfile(os.path.join('Flow', 'fun3d.out')):
+        # Use the ``Flow/`` folder
+        fflow = os.path.join('Flow', 'fun3d.out')
+    else:
+        # No current file
+        return None
     # Get the restart iteration line
     try:
         # Search for particular text
-        lines = bin.grep('the restart files contains', 'fun3d.out')
+        lines = bin.grep('the restart files contains', fflow)
         # Process iteration count from the RHS of the last such line
         nr = int(lines[0].split('=')[-1])
     except Exception:
         # No restart iterations
-        if qdual: os.chdir('..')
         nr = None
     # Get the last few lines of :file:`fun3d.out`
-    lines = bin.tail('fun3d.out', 20).strip().split('\n')
+    lines = bin.tail(fflow, 20).strip().split('\n')
     lines.reverse()
-    # Go back to original folder if dual setup
-    if qdual: os.chdir('..')
     # Initialize output
     n = None
     # Try each line.
@@ -675,18 +719,13 @@ def GetRestartIter():
         * 2015-10-19 ``@ddalle``: First version
         * 2016-04-19 ``@ddalle``: Checks STDIO file for iteration number
     """
-    # Check for "Flow/" folder
-    if os.path.isdir('Flow'):
-        # Enter the dual flow folder
-        qdual = True
-        os.chdir('Flow')
-    else:
-        # No dual folder
-        qdual = False
     # List the output files
     if os.path.isfile('fun3d.out'):
         # Only use the current file
         fflow = ['fun3d.out']
+    elif os.path.isfile(os.path.join('Flow', 'fun3d.out')):
+        # Use the current file from the ``Flow/`` folder
+        fflow = os.path.join('Flow', 'fun3d.out')
     else:
         # Use the run output files
         fflow = glob.glob('run.[0-9]*.[0-9]*')
@@ -704,8 +743,6 @@ def GetRestartIter():
             n = max(i, n)
         except Exception:
             pass
-    # Go back home if in dual folder
-    if qdual: os.chdir('..')
     # Output
     return n
     

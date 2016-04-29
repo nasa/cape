@@ -124,14 +124,24 @@ def dual(opts=None, i=0, **kw):
             opts = opts["RunControl"]
         # Downselect to "dual" section if necessary
         if "dual" in opts:
+            # Get values for run configuration
+            n_mpi  = opts.get_MPI(i)
+            nProc  = opts.get_nProc(i)
+            mpicmd = opts.get_mpicmd(i)
+            # Downselect
             opts = opts["dual"]
+        else:
+            # Use defaults
+            n_mpi  = runControl.rc0('MPI')
+            nProc  = runControl.rc0('nProc')
+            mpicmd = runControl.rc0('mpicmd')
     else:
+        # Use defaults
+        n_mpi  = runControl.rc0('MPI')
+        nProc  = runControl.rc0('nProc')
+        mpicmd = runControl.rc0('mpicmd')
         # Default
         opts = runControl.dual()
-    # Get values for run configuration
-    n_mpi  = opts.get_MPI(i)
-    nProc  = opts.get_nProc(i)
-    mpicmd = opts.get_mpicmd(i)
     # Process keyword overrides
     n_mpi  = kw.get('MPI',    n_mpi)
     nProc  = kw.get('nProc',  nProc)
@@ -149,7 +159,7 @@ def dual(opts=None, i=0, **kw):
     # Known flags
     flags = ['MPI', 'nProc', 'mpicmd', 'outer_loop_krylov', 'rad', 'adapt']
     # Remove known flags
-    for k in cli_dual:
+    for k in cli_dual.keys():
         # Remove it
         if k in flags: del cli_dual[k]
     # Append *kw* flags

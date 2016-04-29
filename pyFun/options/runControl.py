@@ -474,7 +474,7 @@ class RunControl(cape.options.runControl.RunControl):
             * 2015-12-31 ``@ddalle``: First version
         """
         # Check for adaptive case
-        if not self.get_Adaptive():
+        if not (self.get_Adaptive() or self.get_Dual()):
             return None
         # Initialize adaptation number
         j = 0
