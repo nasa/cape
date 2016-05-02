@@ -947,6 +947,7 @@ class Fun3d(Cntl):
             self.Namelist.SetnIter(self.opts.get_nIter(j))
             # Get the reduced namelist for sequence *j*
             nopts = self.opts.select_namelist(j)
+            dopts = self.opts.select_dual_namelist(j)
             # Apply them to this namelist
             self.Namelist.ApplyDict(nopts)
             # Ensure correct *project_rootname*
@@ -966,8 +967,19 @@ class Fun3d(Cntl):
             self.Namelist.Write(fout)
             # Check for dual phase
             if self.opts.get_Dual() and self.opts.get_DualPhase(j):
+                # Apply dual options
+                self.Namelist.ApplyDict(dopts)
                 # Write in the "Adjoint/" folder as well
                 fout = os.path.join(frun, 'Flow', 'fun3d.dual.%02i.nml' % j)
+                # Set restart flag appropriately
+                if self.opts.get_AdaptationNumber(j) == 0:
+                    # No restart read (of adjoint file)
+                    self.Namelist.SetVar(
+                        'code_run_control', 'restart_read', 'off')
+                else:
+                    # Restart read of adjoint
+                    self.Namelist.SetVar(
+                        'code_run_control', 'restart_read', 'on')
                 # Set the iteration count
                 self.Namelist.SetnIter(self.opts.get_nIterAdjoint(j))
                 # Set the adapt phase

@@ -123,6 +123,17 @@ class Options(cape.options.Options):
         elif type(self['Fun3D']).__name__ == 'dict':
             # Convert to special class
             self['Fun3D'] = Fun3DNml(**self['Fun3D'])
+            
+    # Initialization for dual namelist variables
+    def _DualFun3D(self):
+        """Initialize ``dual`` namelist options"""
+        # Check status
+        if 'DualFun3D' not in self:
+            # Missing entirely
+            self['DualFun3D'] = Fun3DNml()
+        elif type(self['DualFun3D']).__name__ == 'dict':
+            # Convert to special class
+            self['DualFun3D'] = Fun3DNml(**self['DualFun3D'])
     
     # Initialization method for mesh settings
     def _Mesh(self):
@@ -343,7 +354,7 @@ class Options(cape.options.Options):
     # Iterations for adjoint
     def get_nIterAdjoint(self, j=None):
         self._RunControl()
-        return self['RunControl']
+        return self['RunControl'].get_nIterAdjoint(j)
         
     # Iterations for adjoint
     def set_nIterAdjoint(self, n=rc0('nIterAdjoint'), j=None):
@@ -401,11 +412,50 @@ class Options(cape.options.Options):
     'namelist_var']:
         eval('get_'+k).__doc__ = getattr(Fun3DNml,'get_'+k).__doc__
         
+    
     # Downselect
     def select_namelist(self, i=None):
         self._Fun3D()
         return self['Fun3D'].select_namelist(i)
     select_namelist.__doc__ = Fun3DNml.select_namelist.__doc__
+    # Downselect dual namelist
+    def select_dual_namelist(self, i=None):
+        self._DualFun3D()
+        return self['DualFun3D'].select_namelist(i)
+    select_dual_namelist.__doc__ = Fun3DNml.select_namelist.__doc__
+    
+    # Get value from dual namelist
+    def get_dual_namelist_var(self, sec, key, i=None):
+        """Get namelist variable from ``"DualFun3D"`` section
+        
+        :Call:
+            >>> v = opts.get_dual_namelist_var(sec, key, i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *sec*: :class:`str`
+                Name of namelist section
+            *key*: :class:`str`
+                Name of variable in namelist section
+            *i*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *v*: :class:`any`
+                Value of variable for phase *i*
+        :Versions:
+            * 2016-05-02 ``@ddalle``: First version
+        """
+        # Initialize sections as appropriate
+        self._DualFun3D()
+        # Options for dual namelist
+        dopts = self['DualFun3D']
+        # Get the value from the dual section if appropriate
+        if sec not in dopts or key not in dopts[sec]:
+            # Fall back to the main value
+            return self.get_namelist_var(sec, key, i)
+        else:
+            # Return the main value
+            return dopts.get_namelist_var(sec, key, i)
    # >
    
     

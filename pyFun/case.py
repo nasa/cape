@@ -83,17 +83,6 @@ def PrepareFiles(rc, i=None):
     os.symlink('fun3d.%02i.nml' % i, 'fun3d.nml')
     # Return to original folder
     if rc.get_Dual(): os.chdir('..')
-    # Check for dual phase
-    if rc.get_DualPhase(i):
-        # Enter the 'Adjoint' folder
-        os.chdir('Adjoint')
-        # Delete any input file.
-        if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
-            os.remove('fun3d.nml')
-        # Create the correct namelist.
-        os.symlink('fun3d.%02i.nml' % i, 'fun3d.nml')
-        # Return
-        os.chdir('..')
 
 # Run one phase appropriately
 def RunPhase(rc, i):
@@ -127,7 +116,6 @@ def RunPhase(rc, i):
         # Run intersect and verify
         CaseIntersect(rc, fproj, n)
         CaseVerify(rc, fproj, n)
-        print("Ready to run AFLR3...")
         # Create volume mesh if necessary
         CaseAFLR3(rc, proj=fproj, fmt=nml.GetGridFormat(), n=n)
         # Check for mesh-only phase
@@ -155,38 +143,43 @@ def RunPhase(rc, i):
     # Get new iteration number
     n1 = GetCurrentIter()
     # Check for adaptive solves
-    if n1 >= rc.get_PhaseIters(i):
-        # Check for adjoint solver
-        if rc.get_Dual() and rc.get_DualPhase(i):
-            # Copy the correct namelist
-            os.chdir('Flow')
-            # Delete ``fun3d.nml`` if appropriate
-            if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
-                os.remove('fun3d.nml')
-            # Copy the correct one into place
-            os.symlink('fun3d.dual.%02i.nml'%i, 'fun3d.nml')
-            # Enter the 'Adjoint/' folder
-            os.chdir('..')
-            os.chdir('Adjoint')
-            # Create the command
-            cmdi = cmd.dual(rc, i=i)
-            # Call the command
-            bin.callf(cmdi, f='dual.out')
-            # Rename output file after completing that command
-            os.rename('dual.out', 'dual.%02i.out' % i)
-            # Return
-            os.chdir('..')
-        elif rc.get_Adaptive() and rc.get_AdaptPhase(i):
-            # Check if this is a weird mixed case with Dual and Adaptive
-            if rc.get_Dual(): os.chdir('Flow')
-            # Run the feature-based adaptive mesher
-            cmdi = cmd.nodet(rc, adapt=True)
-            # Call the command.
-            bin.callf(cmdi, f='adapt.out')
-            # Rename output file after completing that command
-            os.rename('adapt.out', 'adapt.%02i.out' % i)
-            # Return home if appropriate
-            if rc.get_Dual(): os.chdir('..')
+    if n1 < rc.get_PhaseIters(i):
+        return
+    # Check for adjoint solver
+    if rc.get_Dual() and rc.get_DualPhase(i):
+        # Copy the correct namelist
+        os.chdir('Flow')
+        # Delete ``fun3d.nml`` if appropriate
+        if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
+            os.remove('fun3d.nml')
+        # Copy the correct one into place
+        os.symlink('fun3d.dual.%02i.nml'%i, 'fun3d.nml')
+        # Enter the 'Adjoint/' folder
+        os.chdir('..')
+        os.chdir('Adjoint')
+        # Create the command to calculate the adjoint
+        cmdi = cmd.dual(rc, i=i, rad=False, adapt=False)
+        # Run the adjoint analysis
+        bin.callf(cmdi, f='dual.out')
+        # Create the command to adapt
+        cmdi = cmd.dual(rc, i=i, adapt=True)
+        # Estimate error and adapt
+        bin.callf(cmdi, f='dual.out')
+        # Rename output file after completing that command
+        os.rename('dual.out', 'dual.%02i.out' % i)
+        # Return
+        os.chdir('..')
+    elif rc.get_Adaptive() and rc.get_AdaptPhase(i):
+        # Check if this is a weird mixed case with Dual and Adaptive
+        if rc.get_Dual(): os.chdir('Flow')
+        # Run the feature-based adaptive mesher
+        cmdi = cmd.nodet(rc, adapt=True)
+        # Call the command.
+        bin.callf(cmdi, f='adapt.out')
+        # Rename output file after completing that command
+        os.rename('adapt.out', 'adapt.%02i.out' % i)
+        # Return home if appropriate
+        if rc.get_Dual(): os.chdir('..')
         
 # Check success
 def CheckSuccess(rc=None, i=None):
