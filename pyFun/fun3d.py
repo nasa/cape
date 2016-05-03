@@ -202,7 +202,7 @@ class Fun3d(Cntl):
             # Use the template
             print("Using template for 'rubber.data' file")
             # Path to template file
-            fname = options.getFun3dTemplate('rubber.data')
+            fname = options.getFun3DTemplate('rubber.data')
             # Read the template
             RD = RubberData(fname)
         # Save the object

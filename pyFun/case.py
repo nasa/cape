@@ -718,7 +718,7 @@ def GetRestartIter():
         fflow = ['fun3d.out']
     elif os.path.isfile(os.path.join('Flow', 'fun3d.out')):
         # Use the current file from the ``Flow/`` folder
-        fflow = os.path.join('Flow', 'fun3d.out')
+        fflow = [os.path.join('Flow', 'fun3d.out')]
     else:
         # Use the run output files
         fflow = glob.glob('run.[0-9]*.[0-9]*')
