@@ -63,7 +63,7 @@ class Functional(cape.options.Functional.Functional):
                 Phase number
         :Outputs:
             *typ*: {cd} | cl | ca | cy | cn | cll | clm | cln | cx | cy | cz
-                Value type, 
+                Value type, class of coefficient
         :Versions:
             * 2016-04-24 ``@ddalle``: First version
         """
