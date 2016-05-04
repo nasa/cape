@@ -263,16 +263,20 @@ def FinalizeFiles(rc, i=None):
         # Enter the flow folder
         os.chdir('Flow')
         qdual = True
+        # History gets moved to parent
+        fhist = os.path.join('..', 'run.%02i.%i' % (i,n))
     else:
         # Single folder
         qdual = False
+        # History remains in present folder
+        fhist = 'run.%02i.%i' % (i,n)
     # Assuming that worked, move the temp output file.
     if os.path.isfile('fun3d.out'):
         # Move the file
-        os.rename('fun3d.out', 'run.%02i.%i' % (i, n))
+        os.rename('fun3d.out', fhist)
     else:
         # Create an empty file
-        os.system('touch run.%02i.%s' % (i, n))
+        os.system('touch %s' % fhist)
     # Rename the flow file, too.
     if rc.get_KeepRestarts(i):
         shutil.copy('%s.flow' % fproj, '%s.%i.flow' % (fproj,n))
@@ -442,7 +446,7 @@ def GetPhaseNumber(rc):
         # Check for dual
         if qdual and rc.get_DualPhase(i):
             # Check for the dual output file
-            if not os.path.isfile(os.path.join('Adapt', 'dual.%02i.out'%i)):
+            if not os.path.isfile(os.path.join('Adjoint', 'dual.%02i.out'%i)):
                 return i
         # Check for dual
         if qadpt and rc.get_AdaptPhase(i):
