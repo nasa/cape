@@ -110,7 +110,9 @@ def RunPhase(rc, i):
     # Get the last iteration number
     n = GetCurrentIter()
     # Number of requested iters for the end of this phase
-    ni = rc.get_PhaseIters(i)
+    np = rc.get_PhaseIters(i)
+    # Number of iterations to run this phase
+    ni = rc.get_nIter(i)
     # Mesh generation and verification actions
     if i == 0 and n is None:
         # Run intersect and verify
@@ -119,18 +121,26 @@ def RunPhase(rc, i):
         # Create volume mesh if necessary
         CaseAFLR3(rc, proj=fproj, fmt=nml.GetGridFormat(), n=n)
         # Check for mesh-only phase
-        if ni is None or ni < 0:
+        if np is None or ni is None or ni <= 0 or np < 0:
+            # Name of next phase
+            fproj_adapt = GetProjectRootname(rc, i=i+1, nml=nml)
+            # AFLR3 output format
+            fmt = nml.GetGridFormat()
+            # Check for renamed file
+            if fproj_adapt != fproj:
+                # Copy mesh
+                os.symlink('%s.%s' % (fproj,fmt), '%s.%s' % (fproj_adapt,fmt))
             # Make sure *n* is not ``None``
             if n is None: n = 0
-            # Create an output file to make phase number programs work
-            os.system('touch run.%02i.%i' % (i, n))
             # Exit appropriately
             if rc.get_Dual(): os.chdir('..')
+            # Create an output file to make phase number programs work
+            os.system('touch run.%02i.%i' % (i, n))
             return
     # Prepare for restart if that's appropriate.
     SetRestartIter(rc)
     # Check if the primal solution has already been run
-    if n < ni or nprev == 0:
+    if n < np or nprev == 0:
         # Get the `nodet` or `nodet_mpi` command
         cmdi = cmd.nodet(rc)
         # Call the command.
@@ -675,6 +685,8 @@ def GetRunningIter():
                 n = int(line.split()[-1])
                 nr = None
                 break
+            # Make sure there are iterations
+            if len(line.split()) < 2: continue
             # Try to use an integer for the first entry.
             n = int(line.split()[0])
             break

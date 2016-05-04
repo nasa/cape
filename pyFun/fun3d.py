@@ -706,7 +706,7 @@ class Fun3d(Cntl):
             # Apply it.
             exec("%s(self.%s,i=%i)" % (func, getattr(self.x,key)[i], i))
         # Check for jumpstart.
-        if self.opts.get_PreMesh(0) and opts.get_aflr3(0):
+        if self.opts.get_PreMesh(0) and self.opts.get_aflr3():
             # Run ``intersect`` if appropriate
             case.CaseIntersect(rc, fproj, 0)
             # Run ``verify`` if appropriate
@@ -956,6 +956,11 @@ class Fun3d(Cntl):
             if self.opts.get_Adaptive() and self.opts.get_AdaptPhase(j):
                 # Set the project rootname of the next phase
                 self.Namelist.SetAdaptRootname(self.GetProjectRootName(j+1))
+                # Check for adaptive grid
+                if self.opts.get_AdaptationNumber(j) > 0:
+                    # Always AFLR3/stream
+                    self.Namelist.SetVar('raw_grid', 'grid_format', 'aflr3')
+                    self.Namelist.SetVar('raw_grid', 'data_format', 'stream')
             # Name of output file.
             if self.opts.get_Dual():
                 # Write in the "Flow/" folder
@@ -980,6 +985,9 @@ class Fun3d(Cntl):
                     # Restart read of adjoint
                     self.Namelist.SetVar(
                         'code_run_control', 'restart_read', 'on')
+                    # Always AFLR3/stream
+                    self.Namelist.SetVar('raw_grid', 'grid_format', 'aflr3')
+                    self.Namelist.SetVar('raw_grid', 'data_format', 'stream')
                 # Set the iteration count
                 self.Namelist.SetnIter(self.opts.get_nIterAdjoint(j))
                 # Set the adapt phase

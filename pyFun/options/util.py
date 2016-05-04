@@ -45,7 +45,7 @@ rc["Adaptive"]   = False
 rc["Dual"]       = False
 rc["AdaptPhase"] = True
 rc["DualPhase"]  = True
-rc["PreMesh"]    = True
+rc["PreMesh"]    = False
 # Settings for ``dual``
 rc["nIterAdjoint"] = 200
 rc["dual_outer_loop_krylov"] = True
