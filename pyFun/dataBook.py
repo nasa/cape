@@ -11,7 +11,7 @@ other statistics from cases in a trajectory.
 """
 
 # File interface
-import os
+import os, glob
 # Basic numerics
 import numpy as np
 # Advanced text (regular expressions)
@@ -118,6 +118,7 @@ class CaseFM(cape.dataBook.CaseFM):
         * 2014-11-12 ``@ddalle``: Starter version
         * 2014-12-21 ``@ddalle``: Copied from previous `aero.FM`
         * 2015-10-16 ``@ddalle``: Self-contained version
+        * 2016-05-05 ``@ddalle``: Handles adaptive; ``pyfun00,pyfun01,...``
     """
     # Initialization method
     def __init__(self, proj, comp):
@@ -126,25 +127,37 @@ class CaseFM(cape.dataBook.CaseFM):
         self.comp = comp
         # Get the project rootname
         self.proj = proj
-        # Expected name of the component history file
+        # Check for ``Flow`` folder
+        if os.path.isdir('Flow'):
+            # Dual setup
+            qdual = True
+            os.chdir('Flow')
+        else:
+            # Single folder
+            qdual = False
+        # Expected name of the component history file(s)
         self.fname = '%s_fm_%s.dat' % (proj.lower(), comp.lower())
-        # Check if it exists.
-        if not os.path.isfile(self.fname):
+        self.fglob = glob.glob('%s[0-9][0-9]_fm_%s.dat' % 
+            (proj.lower(), comp.lower()))
+        # Check for available files.
+        if os.path.isfile(self.fname):
+            # Read the single file
+            self.ReadFileInit(self.fname)
+        elif len(self.fglob) > 0:
+            # Sort the glob
+            self.fglob.sort()
+            # Read the first file
+            self.ReadFileInit(self.fglob[0])
+            # Loop through other files
+            for fname in self.fglob[1:]:
+                # Append the data
+                self.ReadFileAppend(fname)
+        else:
             # Make an empty CaseFM
             self.MakeEmpty()
-            return
-        # Process the column indices
-        self.ProcessColumnNames()
-        # Read the data.
-        A = np.loadtxt(self.fname,
-            skiprows=self._hdr, usecols=tuple(self.inds))
-        # Number of columns.
-        n = len(self.cols)
-        # Save the values.
-        for k in range(n):
-            # Set the values from column *k* of *A*
-            setattr(self,self.cols[k], A[:,k])
-        
+        # Return if necessary
+        if qdual:
+            os.chdir('..')
             
     # Function to make empty one.
     def MakeEmpty(self):
@@ -170,33 +183,113 @@ class CaseFM(cape.dataBook.CaseFM):
         self.coeffs = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
         self.cols = ['i'] + self.coeffs
         
-    # Process the column names
-    def ProcessColumnNames(self):
-        """Determine column names
+    # Read data from an initial file
+    def ReadFileInit(self, fname=None):
+        """Read data from a file and initialize columns
         
         :Call:
-            >>> FM.ProcessColumnNames(fname)
+            >>> FM.ReadFileInit(fname=None)
         :Inputs:
             *FM*: :class:`pyFun.dataBook.CaseFM`
                 Case force/moment history
+            *fname*: {``None``} | :class:`str`
+                Name of file to process (defaults to *FM.fname*)
+        :Versions:
+            * 2016-05-05 ``@ddalle``: First version
+        """
+        # Default file name
+        if fname is None: fname = self.fname
+        # Process the column names
+        nhdr, cols, coeffs, inds = self.ProcessColumnNames(fname)
+        # Save entries
+        self._hdr   = nhdr
+        self.cols   = cols
+        self.coeffs = coeffs
+        self.inds   = inds
+        # Read the data.
+        A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
+        # Number of columns.
+        n = len(self.cols)
+        # Save the values.
+        for k in range(n):
+            # Set the values from column *k* of *A*
+            setattr(self,cols[k], A[:,k])
+            
+    # Read data from a second or later file
+    def ReadFileAppend(self, fname):
+        """Read data from a file and append it to current history
+        
+        :Call:
+            >>> FM.ReadFileAppend(fname)
+        :Inputs:
+            *FM*: :class:`pyFun.dataBook.CaseFM`
+                Case force/moment history
+            *fname*: :class:`str`   
+                Name of file to read
+        :Versions:
+            * 2016-05-05 ``@ddalle``: First version
+        """
+        # Process the column names
+        nhdr, cols, coeffs, inds = self.ProcessColumnNames(fname)
+        # Check entries
+        for col in cols:
+            # Check if there's something to append to
+            if col not in self.cols:
+                # This column was not there before
+                raise KeyError("Cannot append column '%s' from file '%s'" %
+                    (col, fname))
+        # Read the data.
+        A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
+        # Number of columns.
+        n = len(self.cols)
+        # Append the values.
+        for k in range(n):
+            # Column name
+            col = cols[k]
+            # Append
+            setattr(self,col, np.hstack((getattr(self,col), A[:,k])))
+        
+    # Process the column names
+    def ProcessColumnNames(self, fname=None):
+        """Determine column names
+        
+        :Call:
+            >>> nhdr, cols, coeffs, inds = FM.ProcessColumnNames(fname=None)
+        :Inputs:
+            *FM*: :class:`pyFun.dataBook.CaseFM`
+                Case force/moment history
+            *fname*: {``None``} | :class:`str`
+                Name of file to process, defaults to *FM.fname*
+        :Outputs:
+            *nhdr*: :class:`int`
+                Number of header rows to skip
+            *cols*: :class:`list` (:class:`str`)
+                List of column names
+            *coeffs*: :class:`list` (:class:`str`)
+                List of coefficient names
+            *inds*: :class:`list` (:class:`int`)
+                List of column indices for each entry of *cols*
         :Versions:
             * 2015-10-20 ``@ddalle``: First version
+            * 2016-05-05 ``@ddalle``: Using outputs instead of saving to *FM*
         """
         # Initialize variables and read flag
         keys = []
         flag = 0
+        # Default file name
+        if fname is None: fname = self.fname
         # Number of header lines
-        self._hdr = 0
+        nhdr = 0
         # Open the file
-        f = open(self.fname)
+        f = open(fname)
         # Loop through lines
-        while self._hdr < 100:
+        while nhdr < 100:
             # Strip whitespace from the line.
             l = f.readline().strip()
             # Check the line
             if flag == 0:
                 # Count line
-                self._hdr += 1
+                nhdr += 1
                 # Check for "variables"
                 if not l.lower().startswith('variables'): continue
                 # Set the flag.
@@ -211,7 +304,7 @@ class CaseFM(cape.dataBook.CaseFM):
                 keys += [v.strip('"') for v in vals]
             elif flag == 1:
                 # Count line
-                self._hdr += 1
+                nhdr += 1
                 # Reading more lines of variables
                 if not l.startswith('"'):
                     # Done with variables; read extra headers
@@ -229,138 +322,140 @@ class CaseFM(cape.dataBook.CaseFM):
                     break
                 except Exception:
                     # Line starts with something else; continue
-                    self._hdr += 1
+                    nhdr += 1
                     continue
         # Close the file
         f.close()
         # Initialize column indices and their meanings.
-        self.inds = []
-        self.cols = []
-        self.coeffs = []
+        inds = []
+        cols = []
+        coeffs = []
         # Check for iteration column.
         if "Iteration" in keys:
-            self.inds.append(keys.index("Iteration"))
-            self.cols.append('i')
+            inds.append(keys.index("Iteration"))
+            cols.append('i')
         # Check for CA (axial force)
         if "C_x" in keys:
-            self.inds.append(keys.index("C_x"))
-            self.cols.append('CA')
-            self.coeffs.append('CA')
+            inds.append(keys.index("C_x"))
+            cols.append('CA')
+            coeffs.append('CA')
         # Check for CY (body side force)
         if "C_y" in keys:
-            self.inds.append(keys.index("C_y"))
-            self.cols.append('CY')
-            self.coeffs.append('CY')
+            inds.append(keys.index("C_y"))
+            cols.append('CY')
+            coeffs.append('CY')
         # Check for CN (normal force)
         if "C_z" in keys:
-            self.inds.append(keys.index("C_z"))
-            self.cols.append('CN')
-            self.coeffs.append('CN')
+            inds.append(keys.index("C_z"))
+            cols.append('CN')
+            coeffs.append('CN')
         # Check for CLL (rolling moment)
         if "C_M_x" in keys:
-            self.inds.append(keys.index("C_M_x"))
-            self.cols.append('CLL')
-            self.coeffs.append('CLL')
+            inds.append(keys.index("C_M_x"))
+            cols.append('CLL')
+            coeffs.append('CLL')
         # Check for CLM (pitching moment)
         if "C_M_y" in keys:
-            self.inds.append(keys.index("C_M_y"))
-            self.cols.append('CLM')
-            self.coeffs.append('CLM')
+            inds.append(keys.index("C_M_y"))
+            cols.append('CLM')
+            coeffs.append('CLM')
         # Check for CLN (yawing moment)
         if "C_M_z" in keys:
-            self.inds.append(keys.index("C_M_z"))
-            self.cols.append('CLN')
-            self.coeffs.append('CLN')
+            inds.append(keys.index("C_M_z"))
+            cols.append('CLN')
+            coeffs.append('CLN')
         # Check for CL
         if "C_L" in keys:
-            self.inds.append(keys.index("C_L"))
-            self.cols.append('CL')
-            self.coeffs.append('CL')
+            inds.append(keys.index("C_L"))
+            cols.append('CL')
+            coeffs.append('CL')
         # Check for CD
         if "C_D" in keys:
-            self.inds.append(keys.index("C_D"))
-            self.cols.append('CD')
-            self.coeffs.append('CD')
+            inds.append(keys.index("C_D"))
+            cols.append('CD')
+            coeffs.append('CD')
         # Check for CA (axial force)
         if "C_xp" in keys:
-            self.inds.append(keys.index("C_xp"))
-            self.cols.append('CAp')
-            self.coeffs.append('CAp')
+            inds.append(keys.index("C_xp"))
+            cols.append('CAp')
+            coeffs.append('CAp')
         # Check for CY (body side force)
         if "C_yp" in keys:
-            self.inds.append(keys.index("C_yp"))
-            self.cols.append('CYp')
-            self.coeffs.append('CYp')
+            inds.append(keys.index("C_yp"))
+            cols.append('CYp')
+            coeffs.append('CYp')
         # Check for CN (normal force)
         if "C_zp" in keys:
-            self.inds.append(keys.index("C_zp"))
-            self.cols.append('CNp')
-            self.coeffs.append('CNp')
+            inds.append(keys.index("C_zp"))
+            cols.append('CNp')
+            coeffs.append('CNp')
         # Check for CLL (rolling moment)
         if "C_M_xp" in keys:
-            self.inds.append(keys.index("C_M_xp"))
-            self.cols.append('CLLp')
-            self.coeffs.append('CLLp')
+            inds.append(keys.index("C_M_xp"))
+            cols.append('CLLp')
+            coeffs.append('CLLp')
         # Check for CLM (pitching moment)
         if "C_M_yp" in keys:
-            self.inds.append(keys.index("C_M_yp"))
-            self.cols.append('CLMp')
-            self.coeffs.append('CLMp')
+            inds.append(keys.index("C_M_yp"))
+            cols.append('CLMp')
+            coeffs.append('CLMp')
         # Check for CLN (yawing moment)
         if "C_M_zp" in keys:
-            self.inds.append(keys.index("C_M_zp"))
-            self.cols.append('CLNp')
-            self.coeffs.append('CLNp')
+            inds.append(keys.index("C_M_zp"))
+            cols.append('CLNp')
+            coeffs.append('CLNp')
         # Check for CL
         if "C_Lp" in keys:
-            self.inds.append(keys.index("C_Lp"))
-            self.cols.append('CLp')
-            self.coeffs.append('CLp')
+            inds.append(keys.index("C_Lp"))
+            cols.append('CLp')
+            coeffs.append('CLp')
         # Check for CD
         if "C_Dp" in keys:
-            self.inds.append(keys.index("C_Dp"))
-            self.cols.append('CDp')
-            self.coeffs.append('CDp')
+            inds.append(keys.index("C_Dp"))
+            cols.append('CDp')
+            coeffs.append('CDp')
         # Check for CA (axial force)
         if "C_xv" in keys:
-            self.inds.append(keys.index("C_xv"))
-            self.cols.append('CAv')
-            self.coeffs.append('CAv')
+            inds.append(keys.index("C_xv"))
+            cols.append('CAv')
+            coeffs.append('CAv')
         # Check for CY (body side force)
         if "C_yv" in keys:
-            self.inds.append(keys.index("C_yv"))
-            self.cols.append('CYv')
-            self.coeffs.append('CYv')
+            inds.append(keys.index("C_yv"))
+            cols.append('CYv')
+            coeffs.append('CYv')
         # Check for CN (normal force)
         if "C_zv" in keys:
-            self.inds.append(keys.index("C_zv"))
-            self.cols.append('CNv')
-            self.coeffs.append('CNv')
+            inds.append(keys.index("C_zv"))
+            cols.append('CNv')
+            coeffs.append('CNv')
         # Check for CLL (rolling moment)
         if "C_M_xv" in keys:
-            self.inds.append(keys.index("C_M_xv"))
-            self.cols.append('CLLv')
-            self.coeffs.append('CLLv')
+            inds.append(keys.index("C_M_xv"))
+            cols.append('CLLv')
+            coeffs.append('CLLv')
         # Check for CLM (pitching moment)
         if "C_M_yv" in keys:
-            self.inds.append(keys.index("C_M_yv"))
-            self.cols.append('CLMv')
-            self.coeffs.append('CLMv')
+            inds.append(keys.index("C_M_yv"))
+            cols.append('CLMv')
+            coeffs.append('CLMv')
         # Check for CLN (yawing moment)
         if "C_M_zv" in keys:
-            self.inds.append(keys.index("C_M_zv"))
-            self.cols.append('CLNv')
-            self.coeffs.append('CLNv')
+            inds.append(keys.index("C_M_zv"))
+            cols.append('CLNv')
+            coeffs.append('CLNv')
         # Check for CL
         if "C_Lv" in keys:
-            self.inds.append(keys.index("C_Lv"))
-            self.cols.append('CLv')
-            self.coeffs.append('CLv')
+            inds.append(keys.index("C_Lv"))
+            cols.append('CLv')
+            coeffs.append('CLv')
         # Check for CD
         if "C_Dv" in keys:
-            self.inds.append(keys.index("C_Dv"))
-            self.cols.append('CDv')
-            self.coeffs.append('CDv')
+            inds.append(keys.index("C_Dv"))
+            cols.append('CDv')
+            coeffs.append('CDv')
+        # Output
+        return nhdr, cols, coeffs, inds
         
 # class CaseFM
 
@@ -393,26 +488,31 @@ class CaseResid(cape.dataBook.CaseResid):
         """
         # Save the project root name
         self.proj = proj
+        # Check for ``Flow`` folder
+        if os.path.isdir('Flow'):
+            # Dual setup
+            qdual = True
+            os.chdir('Flow')
+        else:
+            # Single folder
+            qdual = False
         # Expected name of the history file
         self.fname = "%s_hist.dat" % proj.lower()
-        # Check if it esists.
-        if not os.path.isfile(self.fname):
+        self.fglob = glob.glob("%s[0-9][0-9]_hist.dat" % proj.lower())
+        # Check for which file(s) to use
+        if os.path.isfile(self.fname):
+            # Read the file
+            self.ReadFileInit(self.fname)
+        elif len(self.fglob) > 0:
+            # Sort the glob
+            self.fglob.sort()
+            # Read the last file
+            self.ReadFileInit(self.fglob[-1])
+        else:
             # Make an empty history
             self.MakeEmpty()
-            return
-        # Process the column indices
-        self.ProcessColumnNames()
-        # Read the data.
-        A = np.loadtxt(self.fname,
-            skiprows=self._hdr, usecols=tuple(self.inds))
-        # Number of columns.
-        n = len(self.cols)
-        # Save the values.
-        for k in range(n):
-            # Set the values from column *k* of *A*
-            setattr(self,self.cols[k], A[:,k])
         # Save number of iterations
-        self.nIter = A.shape[0]
+        self.nIter = len(self.i)
         # Initialize residuals
         L2 = np.zeros(self.nIter)
         # Check residuals
@@ -423,6 +523,8 @@ class CaseResid(cape.dataBook.CaseResid):
         if 'R_5' in self.cols: L2 += (self.R_5**2)
         # Save residuals
         self.L2Resid = np.sqrt(L2)
+        # Return if appropriate
+        if qdual: os.chdir('..')
         
     # Plot R_1
     def PlotR1(self, **kw):
@@ -509,32 +611,44 @@ class CaseResid(cape.dataBook.CaseResid):
         self.cols = ['i', 'R_1', 'R_2', 'R_3', 'R_4', 'R_5', 'R_6']
         
     # Process the column names
-    def ProcessColumnNames(self):
+    def ProcessColumnNames(self, fname=None):
         """Determine column names
         
         :Call:
-            >>> hist.ProcessColumnNames()
+            >>> nhdr, cols, inds = hist.ProcessColumnNames(fname=None)
         :Inputs:
             *hist*: :class:`pyFun.dataBook.CaseResid`
                 Case force/moment history
+            *fname*: {``None``} | :class:`str`
+                File name to process, defaults to *FM.fname*
+        :Outputs:
+            *nhdr* :class:`int`
+                Number of header rows
+            *cols*: :class:`list` (:class:`str`)
+                List of columns
+            *inds*: :class:`list` (:class:`int`)
+                List of indices in columns
         :Versions:
             * 2015-10-20 ``@ddalle``: First version
+            * 2016-05-05 ``@ddalle``: Use output instead of saving to *FM*
         """
+        # Default file name
+        if fname is None: fname = self.fname
         # Initialize variables and read flag
         keys = []
         flag = 0
         # Number of header lines
-        self._hdr = 0
+        nhdr = 0
         # Open the file
-        f = open(self.fname)
+        f = open(fname)
         # Loop through lines
-        while self._hdr < 100:
+        while nhdr < 100:
             # Strip whitespace from the line.
             l = f.readline().strip()
             # Check the line
             if flag == 0:
                 # Count line
-                self._hdr += 1
+                nhdr += 1
                 # Check for "variables"
                 if not l.lower().startswith('variables'): continue
                 # Set the flag.
@@ -549,7 +663,7 @@ class CaseResid(cape.dataBook.CaseResid):
                 keys += [v.strip('"') for v in vals]
             elif flag == 1:
                 # Count line
-                self._hdr += 1
+                nhdr += 1
                 # Reading more lines of variables
                 if not l.startswith('"'):
                     # Done with variables; read extra headers
@@ -567,45 +681,86 @@ class CaseResid(cape.dataBook.CaseResid):
                     break
                 except Exception:
                     # Line starts with something else; continue
-                    self._hdr += 1
+                    nhdr += 1
                     continue
         # Close the file
         f.close()
         # Initialize column indices and their meanings.
-        self.inds = []
-        self.cols = []
+        inds = []
+        cols = []
         # Check for iteration column.
         if "Iteration" in keys:
-            self.inds.append(keys.index("Iteration"))
-            self.cols.append('i')
+            inds.append(keys.index("Iteration"))
+            cols.append('i')
         if "Wall Time" in keys:
-            self.inds.append(keys.index("Wall Time"))
-            self.cols.append('CPUtime')
+            inds.append(keys.index("Wall Time"))
+            cols.append('CPUtime')
         # Check for CA (axial force)
         if "R_1" in keys:
-            self.inds.append(keys.index("R_1"))
-            self.cols.append('R_1')
+            inds.append(keys.index("R_1"))
+            cols.append('R_1')
         # Check for CA (axial force)
         if "R_2" in keys:
-            self.inds.append(keys.index("R_2"))
-            self.cols.append('R_2')
+            inds.append(keys.index("R_2"))
+            cols.append('R_2')
         # Check for CA (axial force)
         if "R_3" in keys:
-            self.inds.append(keys.index("R_3"))
-            self.cols.append('R_3')
+            inds.append(keys.index("R_3"))
+            cols.append('R_3')
         # Check for CA (axial force)
         if "R_4" in keys:
-            self.inds.append(keys.index("R_4"))
-            self.cols.append('R_4')
+            inds.append(keys.index("R_4"))
+            cols.append('R_4')
         # Check for CA (axial force)
         if "R_5" in keys:
-            self.inds.append(keys.index("R_5"))
-            self.cols.append('R_5')
+            inds.append(keys.index("R_5"))
+            cols.append('R_5')
         # Check for CA (axial force)
         if "R_6" in keys:
-            self.inds.append(keys.index("R_6"))
-            self.cols.append('R_6')
-
+            inds.append(keys.index("R_6"))
+            cols.append('R_6')
+        # Output
+        return nhdr, cols, inds
+    
+    # Read initial data
+    def ReadFileInit(self, fname=None):
+        """Initialize history by reading a file
+        
+        :Call:
+            >>> hist.ReadFileInit(fname=None)
+        :Inputs:
+            *hist*: :class:`pyFun.dataBook.CaseResid`
+                Case force/moment history
+            *fname*: {``None``} | :class:`str`
+                File name to process, defaults to *FM.fname*
+        :Outputs:
+            *nhdr* :class:`int`
+                Number of header rows
+            *cols*: :class:`list` (:class:`str`)
+                List of columns
+            *inds*: :class:`list` (:class:`int`)
+                List of indices in columns
+        :Versions:
+            * 2015-10-20 ``@ddalle``: First version
+            * 2016-05-05 ``@ddalle``: Now an output
+        """
+        # Default file name
+        if fname is None: fname = self.fname
+        # Process the column names
+        nhdr, cols, inds = self.ProcessColumnNames(fname)
+        # Save entries
+        self._hdr = nhdr
+        self.cols = cols
+        self.inds = inds
+        # Read the data.
+        A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
+        # Number of columns.
+        n = len(self.cols)
+        # Save the values.
+        for k in range(n):
+            # Set the values from column *k* of *A*
+            setattr(self,cols[k], A[:,k])
+        
     # Number of orders of magintude of residual drop
     def GetNOrders(self, nStats=1):
         """Get the number of orders of magnitude of residual drop

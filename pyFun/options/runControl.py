@@ -476,6 +476,9 @@ class RunControl(cape.options.runControl.RunControl):
         # Check for adaptive case
         if not (self.get_Adaptive() or self.get_Dual()):
             return None
+        elif i is None:
+            # No phases 
+            return None
         # Initialize adaptation number
         j = 0
         # Loop through prior phases
