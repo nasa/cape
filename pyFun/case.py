@@ -486,6 +486,10 @@ def GetNamelist(rc=None, i=None):
             rc = ReadCaseJSON()
         except Exception:
             pass
+    # Process phase number
+    if i is None and rc is not None:
+        # Default to most recent phase number
+        i = GetPhaseNumber(rc)
     # Check for `Flow` folder
     if os.path.isdir('Flow'):
         # Enter the folder
@@ -494,10 +498,7 @@ def GetNamelist(rc=None, i=None):
     else:
         # No `Flow/` folder
         qdual = False
-    # Check for detailed inputs
-    if i is not None:
-        # Get the specified namelist
-        nml = Namelist('fun3d.%02i.nml' % i)
+    # Check for folder with no working ``case.json``
     if rc is None:
         # Check for simplest namelist file
         if os.path.isfile('fun3d.nml'):
@@ -506,13 +507,15 @@ def GetNamelist(rc=None, i=None):
         else:
             # Look for namelist files
             fglob = glob.glob('fun3d.??.nml')
+            # Sort it
+            fglob.sort()
             # Read one of them.
-            nml = Namelist(fglob[0])
-    else:
-        # Get run index.
-        i = GetPhaseNumber(rc)
-        # Read the namelist file.
-        nml = Namelist('fun3d.%02i.nml' % i)
+            nml = Namelist(fglob[-1])
+        # Return home if appropriate
+        if qdual: os.chdir('..')
+        return nml
+    # Get the specified namelist
+    nml = Namelist('fun3d.%02i.nml' % i)
     # Exit `Flow/` folder if necessary
     if qdual: os.chdir('..')
     # Output
@@ -622,10 +625,44 @@ def GetHistoryIter():
         return None
     # Assemble file name.
     fname = "%s_hist.dat" % rname
+    # Check for "pyfun00", "pyfun01", etc.
+    if qdual:
+        # Check for sequence of file names
+        fnames = glob.glob(rname[:-2] + '??_hist.dat')
+        # Sort descending
+        fnames.sort()
+        fnames.reverse()
+    else:
+        # Single history file name
+        fnames = ["%s_hist.dat" % rname]
+    # Loop through possible file(s)
+    for fname in fnames:
+        # Process the file
+        n = GetHistoryIterFile(fname)
+        # Exit if found something
+        if n is not None: break
+    # No history to read.
+    if qdual: os.chdir('..')
+    # Output
+    return n
+        
+# Get the number of iterations from a single iterative history file
+def GetHistoryIterFile(fname):
+    """Get the most recent iteration number from a history file
+    
+    :Call:
+        >>> n = pyFun.case.GetHistoryIterFile(fname)
+    :Inputs:
+        *fname*: {``"pyfun_hist.dat"``} | :class:`str`
+            Name of file to read
+    :Outputs:
+        *n*: :class:`int` | ``None``
+            Most recent iteration number
+    :Versions:
+        * 2016-05-04 ``@ddalle``: Extracted from :func:`GetHistoryIter`
+    """
     # Check for the file.
     if not os.path.isfile(fname):
-        # No history to read.
-        if qdual: os.chdir('..')
         return None
     # Check the file.
     try:
@@ -635,8 +672,6 @@ def GetHistoryIter():
         # Failure; return no-iteration result.
         if qdual: os.chdir('..')
         return None
-    # Go up
-    if qdual: os.chdir('..')
     # Get the iteration number.
     try:
         return int(txt.split()[0])

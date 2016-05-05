@@ -751,7 +751,7 @@ class Fun3d(Cntl):
             # Check for history file
             if os.path.isfile('%s_hist.dat' % fproj):
                 # Return if necessary
-                if qdual: os.path.chdir('..')
+                if qdual: os.chdir('..')
                 return False
         # Namelist file
         if not os.path.isfile('fun3d.00.nml'):
