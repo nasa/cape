@@ -484,7 +484,7 @@ class RunControl(cape.options.runControl.RunControl):
         # Loop through prior phases
         for k in range(i):
             # Check if it's an adaptation phase
-            if self.get_AdaptPhase(k):
+            if self.get_nIter(k)>0 and self.get_AdaptPhase(k):
                 j += 1
         # Output
         return j
