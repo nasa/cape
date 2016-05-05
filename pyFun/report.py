@@ -66,7 +66,7 @@ class Report(cape.report.Report):
             * 2015-10-16 ``@ddalle``: First version
         """
         # Project rootname
-        proj = self.cntl.GetProjectRootName()
+        proj = self.cntl.GetProjectRootName(None)
         # Read the history for that component
         return CaseFM(proj, comp)
         
@@ -91,7 +91,7 @@ class Report(cape.report.Report):
             * 2016-02-04 ``@ddalle``: Added argument
         """
         # Project rootname
-        proj = self.cntl.GetProjectRootName()
+        proj = self.cntl.GetProjectRootName(None)
         # Read the residual history
         return CaseResid(proj)
         
