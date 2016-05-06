@@ -28,6 +28,8 @@ def aflr3(opts=None, j=0, **kw):
             Boundary layer stretching option
         *blds*: :class:`float`
             Initial surface stretching
+        *cdfr*: :class:`float`
+            Maximum geometric stretching
         *angblisimx*: :class:`float`
             Max BL intersection angle
     :Outputs:
@@ -44,6 +46,7 @@ def aflr3(opts=None, j=0, **kw):
         blc        = opts.get_blc(j)
         blr        = opts.get_blr(j)
         blds       = opts.get_blds(j)
+        cdfr       = opts.get_cdfr(j)
         angblisimx = opts.get_angblisimx(j)
     else:
         fi         = getel(kw.get('i'), j)
@@ -51,6 +54,7 @@ def aflr3(opts=None, j=0, **kw):
         blc        = getel(kw.get('blc'), j)
         blr        = getel(kw.get('blr'), j)
         blds       = getel(kw.get('blds'), j)
+        cdfr       = getel(kw.get('cdfr'), j)
         angblisimx = getel(kw.get('angblisimx'), j)
     # Initialize command
     cmdi = ['aflr3']
@@ -69,6 +73,7 @@ def aflr3(opts=None, j=0, **kw):
     # Process flag/value options
     if blr:    cmdi += ['-blr',  str(blr)]
     if blds:   cmdi += ['-blds', str(blds)]
+    if cdfr:   cmdi += ['cdfr=%s' % cdfr]
     # Process options that come with an equal sign
     if angblisimx: cmdi += ['angblisimx=%s' % angblisimx]
     # Output
@@ -87,7 +92,6 @@ def intersect(opts=None, **kw):
             Name of input ``tri`` file
         *o*: :class:`str`
             Name of output ``tri`` file
-        *
     :Outputs:
         *cmd*: :class:`list` (:class:`str`)
             Command split into a list of strings

@@ -246,6 +246,43 @@ class aflr3(odict):
         """
         self.set_key('blds', blds, j)
         
+    # Get the volume grid stretching
+    def get_cdfr(self, j=None):
+        """Get the maximum geometric growth rate in the volume region
+        
+        :Call:
+            >>> cdfr = opts.get_cdfr(j=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *cdfr*: {``1.1``} | :class:`float`; 1 < *cdfr* <= 3
+                Max geometric growth rate
+        :Versions:
+            * 2016-05-06 ``@ddalle``: First version
+        """
+        return self.get_key('cdfr', j, rck='aflr3_cdfr')
+        
+    # Set the max geometric growth rate
+    def set_cdfr(self, cdfr, j=None):
+        """Set the maximum geometric growth rate in the volume region
+        
+        :Call:
+            >>> opts.set_cdfr(cdfr, j=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *cdfr*: :class:`float`; 1 < *cdfr* <= 3
+                Max geometric growth rate
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2016-05-06 ``@ddalle``: First version
+        """
+        self.set_key('cdfr', cdfr, j)
+        
     # Maximum angle between BL intersecting faces
     def get_angblisimx(self, j=None):
         """Get the maximum angle between BL intersecting faces
