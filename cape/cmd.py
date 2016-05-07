@@ -47,6 +47,7 @@ def aflr3(opts=None, j=0, **kw):
         blr        = opts.get_blr(j)
         blds       = opts.get_blds(j)
         cdfr       = opts.get_cdfr(j)
+        nqual      = opts.get_nqual(j)
         angblisimx = opts.get_angblisimx(j)
     else:
         fi         = getel(kw.get('i'), j)
@@ -55,6 +56,7 @@ def aflr3(opts=None, j=0, **kw):
         blr        = getel(kw.get('blr'), j)
         blds       = getel(kw.get('blds'), j)
         cdfr       = getel(kw.get('cdfr'), j)
+        nqual      = getel(kw.get('nqual'), j)
         angblisimx = getel(kw.get('angblisimx'), j)
     # Initialize command
     cmdi = ['aflr3']
@@ -73,9 +75,11 @@ def aflr3(opts=None, j=0, **kw):
     # Process flag/value options
     if blr:    cmdi += ['-blr',  str(blr)]
     if blds:   cmdi += ['-blds', str(blds)]
-    if cdfr:   cmdi += ['cdfr=%s' % cdfr]
     # Process options that come with an equal sign
+    if cdfr:       cmdi += ['cdfr=%s' % cdfr]
     if angblisimx: cmdi += ['angblisimx=%s' % angblisimx]
+    # Options that can be None
+    if nqual is not None: cmdi += ['nqual=%i' % nqual]
     # Output
     return cmdi
     
