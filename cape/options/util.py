@@ -122,7 +122,8 @@ rc = {
 }
 
 # AFLR3 settings
-rc['aflr3_cdfr'] = 1.1
+rc['aflr3_cdfr']  = 1.1
+rc['aflr3_nqual'] = 2
 
 # Utility function to get elements sanely
 def getel(x, i=None):

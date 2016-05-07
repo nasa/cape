@@ -283,6 +283,43 @@ class aflr3(odict):
         """
         self.set_key('cdfr', cdfr, j)
         
+    # Get the number of quality improvement passes
+    def get_nqual(self, j=None):
+        """Get the number of mesh quality improvement passes
+        
+        :Call:
+            >>> nqual = opts.get_nqual(j=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *nqual*: {``2``} | :class:`int` 0 <= *nqual* <= 10
+                Number of mesh quality improvement passes
+        :Versions:
+            * 2016-05-07 ``@ddalle``: First version
+        """
+        return self.get_key('nqual', j, rck='aflr3_nqual')
+        
+    # Set the number of quality improvement passes
+    def set_nqual(self, nqual, j=None):
+        """Set the number of mesh quality improvement passes
+        
+        :Call:
+            >>> opts.set_nqual(nqual, j=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *nqual*: :class:`int` 0 <= *nqual* <= 10
+                Number of mesh quality improvement passes
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2016-05-07 ``@ddalle``: First version
+        """
+        self.set_key('nqual', nqual, j)
+        
     # Maximum angle between BL intersecting faces
     def get_angblisimx(self, j=None):
         """Get the maximum angle between BL intersecting faces

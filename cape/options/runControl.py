@@ -515,6 +515,16 @@ class RunControl(odict):
     def set_cdfr(self, cdfr, j=0):
         self._aflr3()
         self['aflr3'].set_cdfr(cdfr, j)
+        
+    # Number of quality improvement passes
+    def get_nqual(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_nqual(j)
+        
+    # Number of quality improvement passes
+    def set_nqual(self, nqual, j=0):
+        self._aflr3()
+        self['aflr3'].set_nqual(nqual, j)
     
     # Get max wall angle setting
     def get_angblisimx(self, j=0):
@@ -528,7 +538,7 @@ class RunControl(odict):
         
     # Copy documentation
     for k in ['aflr3_i', 'aflr3_o', 'aflr3_BCFile',
-        'blc', 'blr', 'blds', 'cdfr', 'angblisimx']:
+        'blc', 'blr', 'blds', 'cdfr', 'nqual', 'angblisimx']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(aflr3.aflr3,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(aflr3.aflr3,'set_'+k).__doc__
