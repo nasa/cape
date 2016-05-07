@@ -67,7 +67,11 @@ def auto_Archive(opts):
         return opts["Archive"]
     elif t == "Options":
         # Get the sub-sub-object
-        return opts["RunControl"]["Archive"]
+        aopts = opts["RunControl"]["Archive"]
+        # Set the umask
+        aopts.set_umask(opts.get_umask())
+        # Output
+        return aopts
     elif t in ["dict", "odict"]:
         # Downselect if given parent class
         opts = opts.get("RunControl", opts)
