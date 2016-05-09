@@ -636,6 +636,7 @@ def GetHistoryIter():
         # Single history file name
         fnames = ["%s_hist.dat" % rname]
     # Loop through possible file(s)
+    n = None
     for fname in fnames:
         # Process the file
         n = GetHistoryIterFile(fname)
