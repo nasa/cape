@@ -12,6 +12,8 @@ loaded in the ``"RunControl"`` section of the JSON file and the
 
 # Ipmort options-specific utilities
 from util import rc0, odict, getel
+# OS
+import os
 
 # Turn dictionary into Archive options
 def auto_Archive(opts):
@@ -315,6 +317,123 @@ class Archive(odict):
             * 2015-01-10 ``@ddalle``: First version
         """
         self.set_key('TarPBS', fmt)
+   # >
+    
+    # ------------
+    # Directory/OS
+    # ------------
+   # <
+        
+    # Get the umask
+    def get_umask(self):
+        """Get the current file permissions mask
+        
+        The default value is the read from the system
+        
+        :Call:
+            >>> umask = opts.get_umask(umask=None)
+        :Inputs:
+            *opts* :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *umask*: :class:`oct`
+                File permissions mask
+        :Versions:
+            * 2015-09-27 ``@ddalle``: First version
+        """
+        # Read the option.
+        umask = self.get('umask')
+        # Check if we need to use the default.
+        if umask is None:
+            # Get the value.
+            umask = os.popen('umask', 'r', 1).read()
+            # Convert to value.
+            umask = eval('0o' + umask.strip())
+        else:
+            # Convert to octal
+            umask = eval('0o' + str(umask))
+        # Output
+        return umask
+        
+    # Set the umask
+    def set_umask(self, umask):
+        """Set the current file permissions mask
+        
+        :Call:
+            >>> umask = opts.get_umask(umask=None)
+        :Inputs:
+            *opts* :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *umask*: :class:`oct`
+                File permissions mask
+        :Versions:
+            * 2015-09-27 ``@ddalle``: First version
+        """
+        # Default
+        if umask is None:
+            # Get the value.
+            umask = os.popen('umask', 'r', 1).read()
+            # Convert to value.
+            umask = eval('0o' + umask.strip())
+        # Set the value as an octal number
+        self['umask'] = eval('0o' + str(umask))
+        
+    # Get the directory permissions to use
+    def get_dmask(self):
+        """Get the permissions to assign to new folders
+        
+        :Call:
+            >>> dmask = opts.get_dmask()
+        :Inputs:
+            *opts* :class:`pyCart.options.Options`
+                Options interface
+        :Outputs:
+            *umask*: :class:`int`
+                File permissions mask
+        :Versions:
+            * 2015-09-27 ``@ddalle``: First version
+        """
+        # Get the umask
+        umask = self.get_umask()
+        # Subtract UMASK from full open permissions
+        return 0o0777 - umask
+        
+    # Apply the umask
+    def apply_umask(self):
+        """Apply the permissions filter
+        
+        :Call:
+            >>> opts.apply_umask()
+        :Inputs:
+            *opts* :class:`pyCart.options.Options`
+                Options interface
+        :Versions:
+            * 2015-09-27 ``@ddalle``: First version
+        """
+        os.umask(self.get_umask())
+            
+    # Make a directory
+    def mkdir(self, fdir):
+        """Make a directory with the correct permissions
+        
+        :Call:
+            >>> opts.mkdir(fdir)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *fdir*: :class:`str`
+                Directory to create
+        :Versions:
+            * 2015-09-27 ``@ddalle``: First version
+        """
+        # Get umask
+        umask = self.get_umask()
+        # Apply umask
+        dmask = 0777 - umask
+        # Make the directory.
+        os.mkdir(fdir, dmask)
+    
    # >
    
     # -----
