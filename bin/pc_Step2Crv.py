@@ -73,19 +73,27 @@ import cape.argread as argr
 # Main function
 def Step2Crv(*a, **kw):
     """
-    Convert a UH3D triangulation file to Cart3D tri format
+    Read the curves from a STEP file and write to a Plot3D multiple curve file
     
     :Call:
-        >>> Step2Crv(uh3d, tri, c=None)
-        >>> Step2Crv(i=uh3d, o=tri, c=None)
+        >>> Step2Crv(fstp, fcrv, **kw)
+        >>> Step2Crv(i=fstp, o=fcrv, **kw)
     :Inputs:
-        *uh3d*: :class:`str`
+        *fstp*: :class:`str`
             Name of input file
-        *tri*: :class:`str`
-            Name of output file (defaults to value of uh3d but with ``.tri`` as
-            the extension in the place of ``.uh3d``
-        *c*: :class:`str`
-            (Optional) name of configuration file to apply
+        *fcrv*: :class:`str`
+            Name of output file (defaults to value of *fstp* but with ``.crv``
+            as the extension in the place of ``.stp`` or ``.step``)
+        *n*: :class:`int`
+            Number of intervals to use
+        *ds*: :class:`float`
+            Upper bound of uniform spacing
+        *dth*: :class:`float` | {``None``}
+            Maximum allowed turning angle in degrees
+        *da*: :class:`float` | {``None``}
+            Maximum allowed length-weighted turning angle
+        *link*: {``True``} | ``False`` | ``"x"`` | ``"-x"``
+            Whether or not to link curves and if so using which axis to sort
         *xtol*: :class:`float` | :class:`str`
             Tolerance for *x*-coordinates to be truncated to zero
         *ytol*: :class:`float` | :class:`str`
@@ -93,8 +101,7 @@ def Step2Crv(*a, **kw):
         *ztol*: :class:`float` | :class:`str`
             Tolerance for *z*-coordinates to be truncated to zero
     :Versions:
-        * 2014-06-12 ``@ddalle``: First documented version
-        * 2015-10-09 ``@ddalle``: Added ``Config.xml`` and *ytol*
+        * 2016-05-10 ``@ddalle``: First version
     """
     # Get the file pyCart settings file name.
     if len(a) == 0:
@@ -144,10 +151,10 @@ def Step2Crv(*a, **kw):
     nlnk = kw.get('no-link') 
     axis = kw.get('link', 'x')
     # Link/sort as requested
-    if nlnk != True and axis == True:
+    if nlnk != True and axis == True and axis != False:
         # Default sorting
         stp.LinkCurves()
-    elif nlnk != True:
+    elif nlnk != True and axis != False:
         # Specialized sorting
         stp.LinkCurves(axis=axis)
     
