@@ -54,7 +54,7 @@ The following classes are imported in this module, so that code like
 import os
 
 # Save version number
-version = "0.4c"
+version = "0.6"
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)

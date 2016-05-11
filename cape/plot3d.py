@@ -140,3 +140,4 @@ class Plot3D(object):
         # Read data
         return np.fromfile(self.f, count=count, dtype=self.ftype)
 # class Plot3D
+
