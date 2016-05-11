@@ -265,7 +265,7 @@ class STEP(object):
         self.crvs[j] = self.EvaluateCurve(j, w)
         # Loop until turning angle criterion is met
         kth = 0
-        while dth is not None and kth < 20:
+        while dth is not None and kth < 5:
             # Evaluation counter
             kth += 1
             # Get current turning angles
@@ -283,7 +283,7 @@ class STEP(object):
             self.crvs[j] = self.EvaluateCurve(j, w)
         # Loop until weighted turning angle criterion is met
         kth = 0
-        while da is not None and kth < 20:
+        while da is not None and kth < 5:
             # Evaluation counter
             kth += 1
             # Reevaluate.
@@ -296,10 +296,14 @@ class STEP(object):
             ith = np.where(th > da)[0]
             # Exit if no exceedances
             if len(ith) == 0: break
+            # Finer points
+            w2 = (w[:-1] + w[1:]) / 2
             # Loop through the exceedances in reverse order
             for i in ith[::-1]:
+                # Check if the following segment has already been refined.
+                if i+1 not in ith:
+                    w = np.insert(w, i+2, (w[i+1]+w[i+2])/2)
                 # Add a point before and after the angle
-                w = np.insert(w, i+2, (w[i+1]+w[i+2])/2)
                 w = np.insert(w, i+1, (w[i]+w[i+1])/2)
             # Reevaluate.
             self.crvs[j] = self.EvaluateCurve(j, w)
