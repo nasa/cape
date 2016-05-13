@@ -408,71 +408,17 @@ class CaseLL(object):
         * 2015-09-16 ``@ddalle``: First version
     """
     # Initialization method
-    def __init__(self, cart3d, i, comp):
+    def __init__(self, proj='ll', comp=None):
         """Initialization method"""
         # Save options
-        self.cart3d = cart3d
-        self.i = i
+        self.proj = proj
         self.comp = comp
-        # Number of cuts
-        self.nCut = cart3d.opts.get_LineLoad_nCut(comp)
-        # Ensure triangulation is present
-        cart3d.ReadTri()
-        # Lead component
-        o_comp = cart3d.opts.get_LineLoadComponents(comp)
-        # Components
-        self.CompID = cart3d.tri.config.GetCompID(o_comp)
-        # Get Mach number and Reynolds number options
-        o_mach = cart3d.opts.get_ComponentMach(comp)
-        o_gam  = cart3d.opts.get_ComponentGamma(comp)
-        o_re   = cart3d.opts.get_ComponentReynoldsNumber(comp)
-        # Process "primary" component
-        if type(o_comp).__name__ == 'list':
-            # Use the first component
-            self.RefComp = o_comp[0]
-        else:
-            # Use as is
-            self.RefComp = o_comp
-        # Process Mach number
-        if type(o_mach).__name__ in ['str', 'unicode']:
-            # Trajectory key
-            self.Mach = getattr(cart3d.x,o_mach)[i]
-        elif o_mach is None:
-            # Default
-            self.Mach = 1.0
-        else:
-            # Specified value
-            self.Mach = o_mach
-        # Process Reynolds number per inch
-        if type(o_gam).__name__ in ['str', 'unicode']:
-            # Trajectory key
-            self.Gamma = getattr(cart3d.x,o_gam)[i]
-        elif o_gam is None:
-            # Default
-            self.Gamma = 1.4
-        else:
-            # Specified value
-            self.Gamma = o_gam
-        # Process Reynolds number per inch
-        if type(o_re).__name__ in ['str', 'unicode']:
-            # Trajectory key
-            self.Re = getattr(cart3d.x,o_re)[i]
-        elif o_re is None:
-            # Default
-            self.Re = 1.0
-        else:
-            # Specified value
-            self.Re = o_re
-        # Reference areas
-        self.RefA = cart3d.opts.get_RefArea(self.RefComp)
-        self.RefL = cart3d.opts.get_RefLength(self.RefComp)
-        # Moment reference point
-        self.MRP = np.array(cart3d.opts.get_RefPoint(self.RefComp))
-        # Containing BBox
-        self.BBox = cart3d.tri.GetCompBBox(self.CompID)
-        ## Min and max *x*-coordinates
-        self.xmin = self.BBox[0]
-        self.xmax = self.BBox[1]
+        # File prefix
+        self.pre = '%s_%s' % (proj, comp)
+        # Loads file
+        self.fdlds = '%s.dlds' % self.pre
+        # Read files
+        self.ReadLDS(self.fdlds)
     
     # Function to display contents
     def __repr__(self):
@@ -485,125 +431,7 @@ class CaseLL(object):
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
         """
-        return "<CaseLL nCut=%i>" % self.nCut
-    
-    # Write line loads file
-    def WriteTriloadInput(self):
-        """Write :file:`triload.i` input file to `triloadCmd`
-        
-        :Call:
-            >>> LL.WriteTriloadInput()
-        :Inputs:
-            *LL*: :class:`pyCart.lineLoad.CaseLL`
-                Instance of data book line load interface
-        :Versions:
-            * 2015-09-16 ``@ddalle``: First version
-        """
-        # Open the file.
-        f = open('triload.i', 'w')
-        # Write the name of the triq file
-        f.write('Components.i.triq\n')
-        f.write('LineLoad\n')
-        # Write Mach number, Reynolds number, 
-        f.write('%s %s %s\n' % (self.Mach, self.Re, self.Gamma))
-        # Write moment reference point
-        f.write('%s %s %s\n' % tuple(self.MRP))
-        # Settings about units
-        f.write('0 0\n')
-        # Reference length and area
-        f.write('%s %s\n' % (self.RefL, self.RefA))
-        # Do not include momentum in line loads
-        f.write('n\n')
-        # Name and component IDs
-        f.write('%s %s\n' % (self.comp, ",".join([str(c) for c in self.CompID])))
-        # Number of cuts
-        f.write('%i\n' % self.nCut)
-        # Min and max coordinates
-        f.write('%f, %f\n' % (self.xmin, self.xmax))
-        # Type and cleanup
-        f.write('const x\n')
-        f.write('n\n')
-        # Close the file.
-        f.close()
-        
-    # Execute triload system command
-    def RunTriload(self):
-        """Run `triloadCmd` using the appropriate input file
-        
-        :Call:
-            >>> LL.RunTriload()
-        :Inputs:
-            *LL*: :class:`pyCart.lineLoad.CaseLL`
-                Instance of data book line load interface
-        :Versions:
-            * 2015-09-16 ``@ddalle``: First version
-        """
-        # Write the input file.
-        self.WriteTriloadInput()
-        # Run triload without some of the interface
-        ierr = os.system('triloadCmd < triload.i > triload.out')
-        # Check status
-        if ierr:
-            raise SystemError("Running 'triloadCmd' failed.")
-            
-    # Calculate triloads
-    def CalculateLineLoads(self):
-        """Set up inputs for a sectional loads case and compute them
-        
-        :Call:
-            >>> LL.CalculateLineLoads()
-        :Inputs:
-            *LL*: :class:`pyCart.lineLoad.CaseLL`
-                Instance of data book line load interface
-        :Versions:
-            * 2015-09-16 ``@ddalle``: First version
-        """
-        # Change to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.cart3d.RootDir)
-        # Name of triload folder
-        ftri = 'fomo-lineload'
-        # Name of output files.
-        flds = 'LineLoad_%s.dlds' % self.comp
-        # Get working directory
-        fdir = self.cart3d.x.GetFullFolderNames(i)
-        # Check folder.
-        if not os.path.isdir(fdir):
-            os.chdir(fpwd)
-            return
-        # Enter
-        os.chdir(frun)
-        # Check for lineload folder.
-        if not os.path.isdir(ftri): os.mkdir(ftri, 0027)
-        # Get working folder.
-        fwrk = os.path.abspath(case.GetWorkingFolder())
-        # Get triangulation file
-        ftrq, nStats, i0, i1 = GetTriqFile()
-        # Full path to triangulation
-        ftriq = os.path.join(fwrk, ftrq)
-        # Check for ``triq`` file
-        if not os.path.isfile(ftriq):
-            # Save non iteration numbers
-            self.nIter = np.nan
-            self.nStats = np.nan
-            # Exit
-            os.chdir(fpwd)
-            return
-        # Enter the lineload folder.
-        os.chdir(ftri)
-        # Create symbolic link
-        os.symlink(ftriq, 'Components.i.triq')
-        # Execute triload
-        self.RunTriload()
-        # Read the data.
-        self.ReadLDS(flds)
-        # Statistics
-        self.nIter = i1
-        self.nStats = nStats
-        self.i0 = i0
-        # Clean up.
-        tar.chdir_up()
-        os.chdir(fpwd)
+        return "<CaseLL '%s' nCut=%i>" % (self,pre, self.nCut)
         
     # Read the seam curves
     def ReadSeamCurves(self):
@@ -655,7 +483,7 @@ class CaseLL(object):
         f = open(fname, 'r')
         # Read lines until it is not a comment.
         line = '#'
-        while (not line.lstrip().startswith('#')) and (len(line)>0):
+        while (line.lstrip().startswith('#')) and (len(line)>0):
             # Read the next line.
             line = f.readline()
         # Exit if empty.
