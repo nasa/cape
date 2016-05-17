@@ -73,6 +73,46 @@ def _readline(f, comment='#'):
     return line
 
 
+
+# Function to read a single triangulation file
+def ReadTriFile(fname):
+    """Read a single triangulation file
+    
+    :Call:
+        >>> tri = ReadTriFile(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of Cart3D tri, IDEAS unv, UH3D, or AFLR3 surf file
+    :Outputs:
+        *tri*: :class:`cape.tri.Tri`
+            Triangulation
+    :Versions:
+        * 2016-04-06 ``@ddalle``: First version
+    """
+    # Split based on '.'
+    fext = fname.split('.')
+    # Get the extension
+    if len(fext) < 2:
+        # Odd case, no extension given
+        fext = 'tri'
+    else:
+        # Get the extension
+        fext = fext[-1]
+    # Read using the appropriate format
+    if fext.lower() == 'surf':
+        # AFLR3 surface file
+        return Tri(surf=fname)
+    elif fext.lower() == 'uh3d':
+        # UH3D surface file
+        return Tri(uh3d=fname)
+    elif fext.lower() == 'unv':
+        # Weird IDEAS triangulation thing
+        return Tri(unv=fname)
+    else:
+        # Assume Cart3D triangulation file
+        return Tri(fname)
+
+
 # Triangulation class
 class TriBase(object):
     """Cape base triangulation class

@@ -43,38 +43,7 @@ from trajectory import Trajectory
 from config     import Config
 
 # Import triangulation
-from tri import Tri, RotatePoints
-
-# Function to read a single triangulation file
-def ReadTriFile(fname):
-    """Read a single triangulation file
-    
-    :Call:
-        >>> tri = ReadTriFile(fname)
-    :Inputs:
-        *fname*: :class:`str`
-            Name of Cart3D tri, IDEAS unv, UH3D, or AFLR3 surf file
-    :Outputs:
-        *tri*: :class:`cape.tri.Tri`
-            Triangulation
-    :Versions:
-        * 2016-04-06 ``@ddalle``: First version
-    """
-    # Get the extension
-    fext = fname.split('.')[-1]
-    # Read using the appropriate format
-    if fext.lower() == 'surf':
-        # AFLR3 surface file
-        return Tri(surf=fname)
-    elif fext.lower() == 'uh3d':
-        # UH3D surface file
-        return Tri(uh3d=fname)
-    elif fext.lower() == 'unv':
-        # Weird IDEAS triangulation thing
-        return Tri(unv=fname)
-    else:
-        # Assume Cart3D triangulation file
-        return Tri(fname)
+from tri import Tri, RotatePoints, ReadTriFile
 
 # Class to read input files
 class Cntl(object):
