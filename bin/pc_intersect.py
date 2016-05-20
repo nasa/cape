@@ -36,7 +36,7 @@ for example ``.i.tri``.
 """
 
 # Get the pyCart module.
-from cape.tri import ReadTriFile
+from cape.tri import ReadTriFile, Tri
 # CAPE binaries
 import cape.bin
 # Module to handle inputs and os interface
@@ -102,7 +102,10 @@ def Intersect(*a, **kw):
     tri.Write('%s.c.tri' % proj)
     
     # Run intersect.
-    cape.bin.intersect(i='%s.tri', o='%s.o.tri')
+    cape.bin.intersect(i='%s.tri' % proj, o='%s.o.tri' % proj)
+    
+    # Remap the components
+    print("    Remapping component ID numbers")
     # Read the original triangulation.
     tric = Tri('%s.c.tri' % proj)
     # Read the intersected triangulation.
@@ -113,9 +116,6 @@ def Intersect(*a, **kw):
     trii.MapCompID(tric, tri0)
     # Write the triangulation.
     trii.Write('%s.i.tri' % proj)
-    
-    # Write it.
-    tri.Write(ftri)
     
 
 # Only process inputs if called as a script!

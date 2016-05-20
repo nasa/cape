@@ -343,7 +343,7 @@ def intersect(opts=None, **kw):
     # Run the command.
     ierr = calli(cmdi, f='intersect.out')
     # Check status.
-    if ierr or not os.path.isfile(fout):
+    if ierr or not os.path.isfile(cmdi[4]):
         # Create a failure file.
         f = open('FAIL', 'a+')
         # Write the reason
