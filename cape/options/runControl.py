@@ -609,7 +609,7 @@ class RunControl(odict):
         return self['intersect'].get_intersect_i(j)
         
     # Set intersect input file
-    def set_intersect_i(self, fname, j=0):
+    def set_intersect_i(self, fname, j=None):
         self._intersect()
         self['intersect'].set_intersect_i(fname, j)
     
@@ -619,7 +619,7 @@ class RunControl(odict):
         return self['intersect'].get_intersect_o(j)
         
     # Set intersect output file
-    def set_intersect_o(self, fname, j=0):
+    def set_intersect_o(self, fname, j=None):
         self._intersect()
         self['intersect'].set_intersect_o(fname, j)
         

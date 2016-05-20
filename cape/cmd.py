@@ -84,7 +84,7 @@ def aflr3(opts=None, j=0, **kw):
     return cmdi
     
 # Function to call verify
-def intersect(opts=None, **kw):
+def intersect(opts=None, j=0, **kw):
     """Interface to Cart3D binary ``intersect``
     
     :Call:
@@ -106,15 +106,23 @@ def intersect(opts=None, **kw):
     if opts is not None:
         # Check for "RunControl"
         opts = opts.get("RunControl", opts)
-        opts = opts.get("itnersect",  opts)
+        opts = opts.get("intersect",  opts)
         # Get settings
-        fin    = opts.get('i', 'Components.tri')
-        fout   = opts.get('o', 'Components.i.tri')
-        cutout = opts.get('cutout')
-        ascii  = opts.get('ascii', True)
-        v      = opts.get('v', False)
-        T      = opts.get('T', False)
-        iout   = opts.get('intersect', False)
+        fin    = opts.get_key('i', j)
+        fout   = opts.get_key('o', j)
+        cutout = opts.get_key('cutout', j)
+        ascii  = opts.get_key('ascii', j)
+        v      = opts.get_key('v', j)
+        T      = opts.get_key('T', j)
+        iout   = opts.get_key('intersect', j)
+        # Defaults
+        if fin    is None: fin    = 'Components.tri'
+        if fout   is None: fout   = 'Components.i.tri'
+        if cutout is None: cutout = None
+        if ascii  is None: ascii  = True
+        if v      is None: v      = False
+        if T      is None: T      = False
+        if iout   is None: iout   = False
     else:
         # Get settings from inputs
         fin    = kw.get('i', 'Components.tri')

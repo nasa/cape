@@ -741,14 +741,6 @@ class Cart3d(Cntl):
             # Check for potential need of preprocessing.
             qflg = j==0 and (self.opts.get_Adaptive(0) 
                 and not self.opts.get_jumpstart(0))
-            # Check for `verify` call.
-            if qflg and self.opts.get_verify():
-                # Call `verify`
-                flgs += ' --verify'
-            # Check for `intersect` call.
-            if qflg and self.opts.get_intersect():
-                # Call `intersect`
-                flgs += ' --intersect'
 
             # Simply call the advanced interface.
             f.write('\n# Call the flowCart/mpix_flowCart/aero.csh interface.\n')
