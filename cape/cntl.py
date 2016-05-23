@@ -184,6 +184,15 @@ class Cntl(object):
         # Go to root folder safely.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
+        # Name of config file
+        fxml = self.opts.get_ConfigFile()
+        # Check for a config file.
+        if fxml is None:
+            # Nothing to read
+            cfg = None
+        else:
+            # Read config file
+            cfg = Config(self.opts.get_ConfigFile())
         # Ensure list
         if type(ftri).__name__ not in ['list', 'ndarray']: ftri = [ftri]
         # Read first file
@@ -193,16 +202,19 @@ class Cntl(object):
         tri.iQuad = [tri.nQuad]
         # Loop through files
         for f in ftri[1:]:
+            # Read the next triangulation
+            trii = ReadTriFile(f)
+            # Apply configuration
+            if cfg is not None:
+                trii.ApplyConfig(cfg)
             # Append the triangulation
-            tri.Add(ReadTriFile(f))
+            tri.Add(trii)
             # Save the face counts
             tri.iTri.append(tri.nTri)
             tri.iQuad.append(tri.nQuad)
-        # Save it.
+        # Save the triangulation and config.
         self.tri = tri
-        # Check for a config file.
-        os.chdir(self.RootDir)
-        self.tri.config = Config(self.opts.get_ConfigFile())
+        self.tri.config = cfg
         # Check for AFLR3 bcs
         fbc = self.opts.get_aflr3_BCFile()
         # If present, map it.

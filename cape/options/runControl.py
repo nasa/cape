@@ -1156,7 +1156,7 @@ class RunControl(odict):
         :Versions:
             * 2014-10-02 ``@ddalle``: First version
         """
-        return self.get_PhaseIters(self.get_nSeq())
+        return self.get_PhaseIters(self.get_PhaseSequence(-1))
         
     # Get MPI status
     def get_MPI(self, i):
