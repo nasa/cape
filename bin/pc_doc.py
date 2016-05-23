@@ -70,6 +70,9 @@ relatively simple commands.
         
     --glob WC
          Restrict to cases whose name matches the glob/wildcard *WC*
+
+    --kill, --qdel
+         Remove jobs from the queue and stop them abruptly
         
     --report REP
          Update report named *REP* or first report if *REP* is not specified

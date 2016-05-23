@@ -301,7 +301,7 @@ class Cntl(object):
         # Get flag to show job IDs
         qJobID = kw.get('j', False)
         # Check whether or not to kill PBS jobs
-        qKill = kw.get('qdel', False)
+        qKill = kw.get('qdel', kw.get('kill', False))
         # No submissions if we're just deleting.
         if qKill: qCheck = True
         # Maximum number of jobs
