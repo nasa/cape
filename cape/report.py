@@ -2314,43 +2314,66 @@ class Report(object):
                 if fs == 'mu':
                     # Mean
                     lines.append('\\textit{%s} mean, $\\mu(%s)$\n' % (c, fc))
+                    # Format
+                    ff = self.cntl.opts.get_SubfigOpt(sfig, 'MuFormat')
                 elif fs == 'std':
                     # Standard deviation
                     lines.append(
                         '\\textit{%s} standard deviation, $\\sigma(%s)$\n'
                         % (c, fc))
+                    # Format
+                    ff = self.cntl.opts.get_SubfigOpt(sfig, 'SigmaFormat')
                 elif fs == 'err':
                     # Uncertainty
                     lines.append('\\textit{%s} iterative uncertainty, ' % c 
                         + '$\\varepsilon(%s)$\n' % fc)
+                    # Format
+                    ff = self.cntl.opts.get_SubfigOpt(sfig, 'EpsFormat')
                 elif fs == 'min':
                     # Min value
                     lines.append(
                         '\\textit{%s} minimum, $\\min(%s)$\n' % (c, fc))
+                    # Format
+                    ff = self.cntl.opts.get_SubfigOpt(sfig, 'MuFormat')
                 elif fs == 'max':
                     # Min value
                     lines.append(
                         '\\textit{%s} maximum, $\\max(%s)$\n' % (c, fc))
+                    # Format
+                    ff = self.cntl.opts.get_SubfigOpt(sfig, 'MuFormat')
                 elif fs == "t":
                     # Target value
                     lines.append(
                         '\\textit{%s} target, $t(%s)$\n' % (c, fc))
+                    # Format
+                    ff = self.cntl.opts.get_SubfigOpt(sfig, 'MuFormat')
+                # Downselect format flag specific to *c* if appropriate
+                if type(ff).__name__ == 'dict':
+                    # Check for coefficient
+                    if c in ff: ff = ff[c]
                 # Initialize line
                 line = ''
                 # Loop through components.
                 for comp in comps:
+                    # Downselect format flag to *comp* if appropriate
+                    if type(ff).__name__ == 'dict':
+                        # Select component
+                        ffc = ff[comp]
+                    else:
+                        # Use non-dictionary value
+                        ffc = ff
                     # Check for iterations.
                     if nCur <= 0 or comp not in S:
                         # No iterations
                         line += '& $-$ '
                     elif fs == 'mu':
                         # Process value.
-                        line += ('& $%.4f$ ' % S[comp][c])
+                        line += (('& $%s$ ' % ffc) % S[comp][c])
                     elif (fs in ['min', 'max']) or (S[comp]['nStats'] > 1):
                         # Present?
                         if (c+'_'+fs) in S[comp]:
                             # Process min/max or statistical value
-                            line += ('& $%.4f$ ' % S[comp][c+'_'+fs])
+                            line += (('& $%.4f$ ' % ffc) % S[comp][c+'_'+fs])
                         else:
                             # Missing
                             line += '& $-$ '

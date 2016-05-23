@@ -149,15 +149,15 @@ def TarAdapt(opts):
     if fmt in ['gzip', 'tgz']:
         # GZip format
         # Tar command
-        cmdu = ['tar', '-czf']
+        cmdu = ['tar', '-uf']
         # Untar command
-        cmdx = ['tar', '-xzf']
+        cmdx = ['tar', '-xf']
         # File extension
         ext = '.tgz'
     elif fmt in ['bz2', 'bz', 'bzip', 'bzip2', 'tbz']:
         # BZip2 format
-        cmdu = ['tar', '-cJf']
-        cmdx = ['tar', '-xJf']
+        cmdu = ['tar', '-uf']
+        cmdx = ['tar', '-xf']
         ext = '.tbz'
     else:
         # Just use tar
@@ -197,6 +197,9 @@ def TarAdapt(opts):
         if ierr: continue
         # Remove the folder.
         shutil.rmtree(fdir)
+    # Special file used for statistics
+    if not os.path.isfile('adapt00/Mesh.c3d.Info'):
+        sp.call(['tar', '-xf', 'adapt00.tar', 'adapt00/Mesh.c3d.Info'])
 # def TarAdapt
         
 # Function to undo the above
