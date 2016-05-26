@@ -2373,7 +2373,7 @@ class Report(object):
                         # Present?
                         if (c+'_'+fs) in S[comp]:
                             # Process min/max or statistical value
-                            line += (('& $%.4f$ ' % ffc) % S[comp][c+'_'+fs])
+                            line += (('& $%s$ ' % ffc) % S[comp][c+'_'+fs])
                         else:
                             # Missing
                             line += '& $-$ '

@@ -152,6 +152,9 @@ def RunPhase(rc, i):
         return
     # Get new iteration number
     n1 = GetCurrentIter()
+    # Check for lack of progress
+    if n1 <= n:
+        raise SystemError("Running phase did not advance iteration count.")
     # Check for adaptive solves
     if n1 < rc.get_PhaseIters(i):
         return
