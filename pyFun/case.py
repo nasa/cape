@@ -145,19 +145,26 @@ def RunPhase(rc, i):
         cmdi = cmd.nodet(rc)
         # Call the command.
         bin.callf(cmdi, f='fun3d.out')
+        # Get new iteration number
+        n1 = GetCurrentIter()
+        # Check for lack of progress
+        if n1 
+    # Get new iteration number
+    n1 = GetCurrentIter()
+    # Check for lack of progress
+    if n1 <= n:
+        raise SystemError("Running phase did not advance iteration count.")<= n:
+            raise SystemError("Running phase did not advance iteration count.")
+    else:
+        # No new iteratoins
+        n1 = n
     # Go back up a folder if we're in the "Flow" folder
     if rc.get_Dual(): os.chdir('..')
     # Check current iteration count.
     if (i>=rc.get_PhaseSequence(-1)) and (n>=rc.get_LastIter()):
         return
-    # Get new iteration number
-    n1 = GetCurrentIter()
-    # Check for lack of progress
-    if n1 <= n:
-        raise SystemError("Running phase did not advance iteration count.")
     # Check for adaptive solves
-    if n1 < rc.get_PhaseIters(i):
-        return
+    if n1 < np: return
     # Check for adjoint solver
     if rc.get_Dual() and rc.get_DualPhase(i):
         # Copy the correct namelist
@@ -767,16 +774,21 @@ def GetRestartIter():
         * 2015-10-19 ``@ddalle``: First version
         * 2016-04-19 ``@ddalle``: Checks STDIO file for iteration number
     """
+    # List of saved run files
+    frun = glob.glob('run.[0-9]*.[0-9]*')
+    # Sort descending
+    frun.sort()
+    frun.reverse()
     # List the output files
     if os.path.isfile('fun3d.out'):
         # Only use the current file
-        fflow = ['fun3d.out']
+        fflow = ['fun3d.out'] + frun
     elif os.path.isfile(os.path.join('Flow', 'fun3d.out')):
         # Use the current file from the ``Flow/`` folder
-        fflow = [os.path.join('Flow', 'fun3d.out')]
+        fflow = [os.path.join('Flow', 'fun3d.out')] + frun
     else:
         # Use the run output files
-        fflow = glob.glob('run.[0-9]*.[0-9]*')
+        fflow = frun
     # Initialize iteration number until informed otherwise.
     n = 0
     # Loop through the matches.
