@@ -78,7 +78,7 @@ class DataBook(cape.dataBook.DataBook):
         self[comp] = DBComp(comp, x, opts)
     
     # Read line load
-    def ReadLineLoad(self, comp):
+    def ReadLineLoad(self, comp, conf=None):
         """Read a line load data book target if it is not already present
         
         :Call:
@@ -88,16 +88,28 @@ class DataBook(cape.dataBook.DataBook):
                 Instance of the pycart data book class
             *comp*: :class:`str`
                 Line load component group
+            *conf*: {``"None"``} | :class:`cape.config.Config`
+                Surface configuration interface
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
         """
+        # Initialize if necessary
+        try:
+            self.LineLoads
+        except Exception:
+            self.LineLoads = {}
         # Try to access the line load
         try:
             self.LineLoads[comp]
         except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
             # Read the file.
-            self.LineLoads.append(
-                lineLoad.DBLineLoad(self.x, self.opts, comp))
+            self.LineLoads[comp] = lineLoad.DBLineLoad(
+                self.x, self.opts, comp, conf=conf, RootDir=self.RootDir)
+            # Return to starting location
+            os.chdir(fpwd)
             
     # Read point sensor (group)
     def ReadPointSensor(self, name, pts=None):
@@ -141,7 +153,7 @@ class DataBook(cape.dataBook.DataBook):
             # Read the point sensor.
             self.PointSensors[name] = self._DBPointSensorGroup(
                 self.x, self.opts, name, pts=pts, RootDir=self.RootDir)
-            # Return to starting locaiton
+            # Return to starting location
             os.chdir(fpwd)
     
     # Read point sensor (point to correct class)
@@ -518,7 +530,7 @@ class DataBook(cape.dataBook.DataBook):
             
             # Save the data.
             if np.isnan(j):
-                # Add the the number of cases.
+                # Add to the number of cases.
                 DBc.n += 1
                 # Append trajectory values.
                 for k in self.x.keys:

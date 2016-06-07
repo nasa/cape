@@ -1303,10 +1303,10 @@ class Options(odict):
         self._DataBook()
         return self['DataBook'].get_DataBookComponents()
         
-    # Get list of line load components.
-    def get_DataBookLineLoads(self):
+    # Get list of components by type
+    def get_DataBookByType(self, typ):
         self._DataBook()
-        return self['DataBook'].get_DataBookLineLoads()
+        return self['DataBook'].get_DataBookByType(typ)
         
     # Get component type
     def get_DataBookType(self, comp):
@@ -1373,15 +1373,35 @@ class Options(odict):
         self._DataBook()
         return self['DataBook'].get_DataBookTargetByName(targ)
         
-    # Get components for a line load
-    def get_LineLoadComponents(self, comp):
+    # Get components for a line load or other such component
+    def get_DataBookCompID(self, comp):
         self._DataBook()
-        return self['DataBook'].get_LineLoadComponents(comp)
+        return self['DataBook'].get_DataBookCompID(comp)
         
     # Get number of cuts for a line load group
-    def get_LineLoad_nCut(self, comp):
+    def get_DataBook_nCut(self, comp):
         self._DataBook()
-        return self['DataBook'].get_LineLoad_nCut(comp)
+        return self['DataBook'].get_DataBook_nCut(comp)
+        
+    # Get prefix for component, e.g. line loads
+    def get_DataBookPrefix(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookPrefix(comp)
+        
+    # Get momentum setting
+    def get_DataBookMomentum(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookMomentum(comp)
+    
+    # Trim setting
+    def get_DataBookTrim(self, name):
+        self._DataBook()
+        return self['DataBook'].get_DBGroupTrim(name)
+        
+    # Get file extension
+    def get_DataBookExtension(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookExtension(comp)
     
     # Group/points
     def get_DBGroupPoints(self, name):
@@ -1389,13 +1409,14 @@ class Options(odict):
         return self['DataBook'].get_DBGroupPoints(name)
     
     # Copy over the documentation.
-    for k in ['DataBookComponents', 'DataBookLineLoads',
+    for k in ['DataBookComponents', 'DataBookByType',
             'DataBookType', 'DataBookPoints', 'DBGroupPoints',
             'DataBookCoeffs', 'DataBookTargets', 'DataBookCoeffStats',
             'DataBookFloatCols', 'DataBookIntCols',
             'DataBookCols', 'CompTargets', 'DataBookTransformations',
             'DataBookDataCols', 'DataBookTargetCols', 'DataBookTargetByName',
-            'LineLoadComponents', 'LineLoad_nCut',
+            'DataBookCompID',   'DataBook_nCut',      'DataBookMomentum',
+            'DataBookTrim',     'DataBookPrefix',     'DataBookExtension'
     ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__

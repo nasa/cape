@@ -229,7 +229,7 @@ class Cart3d(Cntl):
         """Update point sensor group(s) data book
         
         :Call:
-            >>> cart3d.UPdatePointSensor(pt=None, cons=[], **kw)
+            >>> cart3d.UpdatePointSensor(pt=None, cons=[], **kw)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
@@ -272,6 +272,29 @@ class Cart3d(Cntl):
             self.DataBook.PointSensors[pt].Write()
         # Return to original location.
         os.chdir(fpwd)
+        
+    # Update line loads
+    def UpdateLineLoads(self, **kw):
+        """Update one or more line load data books
+        
+        :Call:
+            >>> cart3d.UpdateLineLoads(ll=None, **kw)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *ll*: :class:`str`
+                Optional name of line load component to update
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints like ``'Mach<=0.5'``
+        :Versions:
+            * 2016-06-07 ``@ddalle``: First version
+        """
+        # Save current location
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Apply all constraints
         
     # Call the correct :mod:`case` module
     def CaseStartCase(self):

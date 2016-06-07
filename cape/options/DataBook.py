@@ -494,6 +494,34 @@ class DataBook(odict):
         # Output
         return DBTs[targ]
         
+    # Get data book components by type
+    def get_DataBookByType(self, typ):
+        """Get the list of data book components with a given type
+        
+        :Call:
+            >>> comps = opts.get_DataBookByType(typ)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *typ*: ``"Force"`` | ``"FM"`` | ``"LineLoad"`` | :class:`str`
+                Data book type
+        :Outputs:
+            *comps*: :class:`list` (:class:`str`)
+                List of data book components with ``"Type"`` matching *typ*
+        :Versions:
+            * 2016-06-07 ``@ddalle``: First version
+        """
+        # Initialize components
+        comps = []
+        # Get list of types
+        for comp in self.get_DataBookComponents():
+            # Check the type
+            if typ == self.get_DataBookType(comp):
+                # Append the component to the list
+                comps.append(comp)
+        # Output
+        return comps
+            
     # Get the data type of a specific component
     def get_DataBookType(self, comp):
         """Get the type of data book entry for one component
@@ -506,7 +534,7 @@ class DataBook(odict):
             *comp*: :class:`str`
                 Name of component
         :Outputs:
-            *ctype*: {Force} | Moment | FM | PointSensor
+            *ctype*: {Force} | Moment | FM | PointSensor | LineLoad
                 Data book entry type
         :Versions:
             * 2015-12-14 ``@ddalle``: First version
@@ -515,6 +543,28 @@ class DataBook(odict):
         copts = self.get(comp, {})
         # Return the type
         return copts.get("Type", "Force")
+        
+    # Get list of components in a component
+    def get_DataBookCompID(self, comp):
+        """Get list of components in a data book component
+        
+        :Call:
+            >>> compID = opts.get_DataBookCompID(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of data book component/field
+        :Outputs:
+            *compID*: :class:`str` | :class:`int` | :class:`list`
+                Component or list of components to which this DB applies
+        :Versions:
+            * 2016-06-07 ``@ddalle``: First version
+        """
+        # Get the options for that component
+        copts = self.get(comp, {})
+        # Get the componetns
+        return copts.get('CompID', comp)
         
     # Get the coefficients for a specific component
     def get_DataBookCoeffs(self, comp):
@@ -866,36 +916,13 @@ class DataBook(odict):
         # Output
         return cols
         
-    # Get list of components in a lineload group
-    def get_LineLoadComponents(self, comp):
-        """Get the list of components for a sectional load group
-        
-        :Call:
-            >>> comps = opts.get_LineLoadComponents(comp)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of line load group
-        :Outputs:
-            *comps*: :class:`list` | :class:`str` | :class:`int`
-                List of components to be included in sectional loads
-        :Versions:
-            * 2015-09-15 ``@ddalle``: First version
-        """
-        # Get component options
-        copts = self.get(comp, {})
-        # Get the component
-        comps = copts.get("Component", "entire")
-        # Output
-        return comps
         
     # Get the number of cuts
-    def get_LineLoad_nCut(self, comp):
+    def get_DataBook_nCut(self, comp):
         """Get the number of cuts to make for a sectional load group
         
         :Call:
-            >>> nCut = opts.get_LineLoad_nCut(comp)
+            >>> nCut = opts.get_DataBook_nCut(comp)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -907,12 +934,108 @@ class DataBook(odict):
         :Versions:
             * 2015-09-15 ``@ddalle``: First version
         """
+        # Global data book setting
+        db_nCut = self.get('nCut', rc0("db_nCut"))
         # Get component options
         copts = self.get(comp, {})
-        # Get the number of cuts
-        return copts.get("nCut", rc0("db_nCut"))
+        # Get the extension
+        return copts.get("nCut", db_nCut)
         
-    
+    # Get prefix
+    def get_DataBookPrefix(self, comp):
+        """Get the prefix to use for a data book component
+        
+        :Call:
+            >>> fpre = opts.get_DataBookPrefix(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *fpre*: :class:`str`
+                Name of prefix
+        :Versions:
+            * 2016-06-07 ``@ddalle``: First version
+        """
+        # Global data book setting
+        db_pre = self.get('Prefix')
+        # Get component options
+        copts = self.get(comp, {})
+        # Get the extension
+        return copts.get("Prefix", db_pre)
+        
+    # Get extension
+    def get_DataBookExtension(self, comp):
+        """Get the file extension for a data book component
+        
+        :Call:
+            >>> ext = opts.get_DataBookExtension(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *ext*: :class:`str`
+                File extension
+        :Versions:
+            * 2016-06-07 ``@ddalle``: First version
+        """
+        # Global data book setting
+        db_ext = self.get('Extension', "dlds")
+        # Get component options
+        copts = self.get(comp, {})
+        # Get the extension
+        return copts.get("Extension", db_ext)
+        
+    # Get momentum setting
+    def get_DataBookMomentum(self, comp):
+        """Get 'Momentum' flag for a data book component
+        
+        :Call:
+            >>> qm = opts.get_DataBookMomentum(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *qm*: ``True`` | {``False``}
+                File extension
+        :Versions:
+            * 2016-06-07 ``@ddalle``: First version
+        """
+        # Global data book setting
+        db_qm = self.get("Momentum", False)
+        # Get component options
+        copts = self.get(comp, {})
+        # Get the local setting
+        return copts.get("Momentum", db_qm)
+        
+    # Get trim setting
+    def get_DataBookTrim(self, comp):
+        """Get 'Trim' flag for a data book component
+        
+        :Call:
+            >>> iTrim = opts.get_DataBookTrim(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *iTrim*: ``0`` | {``1``}
+                Trim setting; no output if ``None``
+        :Versions:
+            * 2016-06-07 ``@ddalle``: First version
+        """
+        # Global data book setting
+        db_trim = self.get("Trim", 1)
+        # Get component options
+        copts = self.get(comp, {})
+        # Get the local setting
+        return copts.get("Trim", db_trim)
     
     # List of components to plot
     def get_PlotComponents(self):

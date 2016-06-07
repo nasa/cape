@@ -19,163 +19,27 @@ from datetime import datetime
 # Utilities or advanced statistics
 from . import util
 from . import case
+from . import dataBook
 from cape import tar
 
-# Data book for group of line loads
-class DBLineLoadGroup(dict):
-    """Line load group data book
-    
-    :Call:
-        >>> DBL = DBLineLoadGroup(x, opts, name, **kw)
-    :Inputs:
-        *x*: :class:`cape.trajectory.Trajectory`
-            Trajectory/run matrix interface
-        *opts*: :class:`cape.options.Options`
-            Options interface
-        *name*: :class:`str` | ``None``
-            Name of data book group
-        *comps*: :class:`list` (:class:`str`) | ``None``
-            List of components in the group
-        *RootDir*: :class:`str` | ``None``
-            Project root directory absolute path, default is *PWD*
-    :Outputs:
-        *DBLG* :class:`cape.lineLoad.DBLineLoadGroup`
-            A line load group data book
-    :Versions:
-        * 2016-05-11 ``@ddalle``: First version
-    """
-    # Initialization method
-    def __init__(self, x, opts, name, **kw):
-        """Initialization method
-        
-        :Versions:
-            * 2016-05-11 ``@ddalle``: First version
-        """
-        # Save root directory
-        self.RootDir = kw.get('RootDir', os.getcwd())
-        # Save the interface
-        self.x = x
-        self.opts = opts
-        self.name = name
-        # Get the list of components
-        self.comps = kw.get('comps', opts.get_DataBookComponents())
-        # Loop through the components.
-        for comp in self.comps:
-            self[comp] = DBLineLoad(x, opts, comp, name, RootDir=self.RootDir)
-            
-    # Representation method
-    def __repr__(self):
-        """Representation method
-        
-        :Versions:
-            * 2016-05-11 ``@ddalle``: First version
-        """
-        # Initialize string
-        lbl = "<DBLineLoadGroup %s, " % self.name
-        # List components
-        lbl += "comps=%s>" % self.comps
-        # Output
-        return lbl
-    __str__ = __repr__
-    
-    # Sorting method
-    def Sort(self):
-        """Sort line load group
-        
-        :Call:
-            >>> DBLG.Sort()
-        :Inputs:
-            *DBLG*: :class:`cape.lineLoad.DBLineLoadGroup`
-                A line load group data book
-        :Versions:
-            * 2016-05-11 ``@ddalle``: Copied from :class:`DBPointSensorGroup`
-        """
-        # Loop through components.
-        for comp in self.comps:
-            self[comp].Sort()
-            
-    # Output method
-    def Write(self):
-        """Write to file each line load data book in a group
-        
-        :Call:
-            >>> DBLG.Write()
-        :Inputs:
-            *DBLG*: :Class:`cape.lineLoad.DBLineLoadGroup`
-                A line load group data book
-        :Versions:
-            * 2016-05-11 ``@ddalle``: First version
-        """
-        # Loop through points
-        for comp in self.comps:
-            # Sort it.
-            self[comp].Sort()
-            # Write it.
-            self[comp].Write()
-            
-    # Match the data bookk copy of the trajectory
-    def UpdateTrajectory(self):
-        """Match the trajectory to the cases in the data book
-        
-        :Call:
-            >>> DBLG.UpdateTrajectory()
-        :Inputs:
-            *DBLG*: :class:`cape.lineLoad.DBLineLoadGroup`
-                A line load group data book
-        :Versions:
-            * 2016-05-11 ``@ddalle``: First version
-        """
-        # Get the first component
-        DBL = self[self.comps[0]]
-        # Loop through the fields.
-        for k in self.x.keys:
-            # Copy the data.
-            setattr(self,x, k, DBL[k])
-            # Set the text.
-            self.x.text[k] = [str(xk) for xk in DBL[k]]
-        # Reset the number of cases
-        self.x.nCase = DBL.n
-        
-    # Process a case
-    def UpdateCase(self, i):
-        """Prepare to update one point sensor case if necessary
-        
-        :Call:
-            >>> DBLG.UpdateCase(i)
-        :Inputs:
-            *DBLG*: :class:`cape.lineLoad.DBLineLoadGroup`
-                A line load group data book
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2016-05-11 ``@ddalle``: First version
-        """
-        # Reference component
-        comp = self.comps[0]
-        DBL = self[comp]
-        
-        
-    
-    
-# class DBLineLoadGroup
 
 # Data book of line loads
 class DBLineLoad(dataBook.DBBase):
     """Line load (sectional load) data book for one group
     
     :Call:
-        >>> DBL = DBLineLoad(x, opts, comp, name=None)
+        >>> DBL = DBLineLoad(x, opts, comp, conf=None, RootDir=None)
     :Inputs:
         *x*: :class:`cape.trajectory.Trajectory`
             Trajectory/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
-        *name*: :class:`str` | ``None``
-            Name of data book group
-        *comps*: :class:`list` (:class:`str`) | ``None``
-            List of components in the group
         *comp*: :class:`str`
             Name of line load component
+        *conf*: {``"None"``} | :class:`cape.config.Config`
+            Surface configuration interface
+        *RootDir*: {``"None"``} | :class:`str`
+            Root directory for the configuration
     :Outputs:
         *DBL*: :class:`cape.lineLoad.DBLineLoad`
             Instance of line load data book
@@ -193,31 +57,73 @@ class DBLineLoad(dataBook.DBBase):
         * 2015-09-16 ``@ddalle``: First version
         * 2016-05-11 ``@ddalle``: Moved to :mod:`cape`
     """
-    def __init__(self, cart3d, comp):
+    def __init__(self, x, opts, comp, proj='LineLoad', conf=None, RootDir=None):
         """Initialization method
         
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
+            * 2016-06-07 ``@ddalle``: Updated slightly
         """
         # Save root directory
-        self.RootDir = kw.get('RootDir', os.getcwd())
+        if RootDir is None:
+            # Use the current folder
+            self.RootDir = os.getcwd()
+        else:
+            self.RootDir = RootDir
         
         # Get the data book directory.
         fdir = opts.get_DataBookDir()
         # Compatibility
         fdir = fdir.replace("/", os.sep)
+        self.fdir = fdir
         
         # Construct the file name.
         fcomp = 'll_%s.csv' % comp
         # Full file name
         fname = os.apth.join(fdir, fcomp)
         
-        # Save the Cart3D run info
+        # Safely change to root directory
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Create directories if necessary
+        if not os.path.isdir(fdir):
+            # Create data book folder (should not occur)
+            opts.mkdir(fdir)
+        # Check for lineload folder
+        if not os.path.isdir(os.path.join(fdir, 'lineload')):
+            # Create line load folder
+            os.mkdir(os.path.join(fdir, 'lineload'))
+        # Return to original location
+        os.chdir(fpwd)
+        
+        # Save the CFD run info
         self.x = x
         self.opts = opts
+        self.conf = conf
+        # Specific options for this component
+        self.copts = opts['DataBook'][comp]
+        # Save component name
+        self.proj = self.copts.get('Prefix', 'LineLoad')
+        self.comp = comp
+        self.ext  = self.copts.get("Extension", "dlds")
         # Save the file name.
         self.fname = fname
         
+        # Figure out reference component
+        self.CompID = opts.get_DataBookCompID(comp)
+        # Make sure it's not a list
+        if type(self.CompID).__name__ == 'list':
+            # Take the first component
+            self.RefComp = self.RefComp[0]
+        else:
+            # One component listed; use it
+            self.RefComp = self.CompID
+        # Try to get all components
+        try:
+            # Use the configuration interface
+            self.CompID = self.conf.GetCompID(self.CompID)
+        except Exception:
+            pass
         # Reference areas
         self.RefA = opts.get_RefArea(self.RefComp)
         self.RefL = opts.get_RefLength(self.RefComp)
@@ -276,11 +182,6 @@ class DBLineLoad(dataBook.DBBase):
                     delimiter=delim, dtype=str(t), usecols=[nCol])
                 # Increase the column number.
                 nCol += 1
-            # Mach number and Reynolds number
-            self['Mach'] = np.loadtxt(fname,
-                delimiter=delim, dtype=float, usecols=[nCol])
-            self['Re'] = np.loadtxt(fname,
-                delimiter=delim, dtype=float, usecols=[nCol+1])
             # MRP
             nCol += 2
             self['XMRP'] = np.loadtxt(fname,
@@ -299,16 +200,14 @@ class DBLineLoad(dataBook.DBBase):
                 delimiter=delim, dtype=int, usecols=[nCol])
         except Exception:
             # Initialize empty trajectory arrays
-            for k in self.cart3d.x.keys:
+            for k in self.x.keys:
                 # get the type.
-                t = self.cart3d.x.defns[k].get('Value', 'float')
+                t = self.x.defns[k].get('Value', 'float')
                 # convert type
                 if t in ['hex', 'oct', 'octal', 'bin']: t = 'int'
                 # Initialize an empty array.
                 self[k] = np.array([], dtype=str(t))
             # Initialize Other parameters.
-            self['Mach'] = np.array([], dtype=float)
-            self['Re']   = np.array([], dtype=float)
             self['XMRP'] = np.array([], dtype=float)
             self['YRMP'] = np.array([], dtype=float)
             self['ZMRP'] = np.array([], dtype=float)
@@ -343,7 +242,7 @@ class DBLineLoad(dataBook.DBBase):
             # Move it to ".old"
             os.rename(fname, fname+".old")
         # DataBook delimiter
-        delim = self.cart3d.opts.get_Delimiter()
+        delim = self.opts.get_Delimiter()
         # Open the file.
         f = open(fname, 'w')
         # Write the header
@@ -362,7 +261,7 @@ class DBLineLoad(dataBook.DBBase):
         # Empty line and start of variable list
         f.write('#\n# ')
         # Write the name of each trajectory key.
-        for k in self.cart3d.x.keys:
+        for k in self.x.keys:
             f.write(k + delim)
         # Write the extra column titles.
         f.write('Mach%sRe%sXMRP%sYMRP%sZMRP%snIter%snStats\n' %
@@ -370,11 +269,9 @@ class DBLineLoad(dataBook.DBBase):
         # Loop through database entries.
         for i in np.arange(self.n):
             # Write the trajectory values.
-            for k in self.cart3d.x.keys:
+            for k in self.x.keys:
                 f.write('%s%s' % (self[k][i], delim))
             # Write data values
-            f.write('%s%s' % (self['Mach'][i], delim))
-            f.write('%s%s' % (self['Re'][i], delim))
             f.write('%s%s' % (self['XMRP'][i], delim))
             f.write('%s%s' % (self['YMRP'][i], delim))
             f.write('%s%s' % (self['ZMRP'][i], delim))
@@ -384,241 +281,203 @@ class DBLineLoad(dataBook.DBBase):
         # Close the file.
         f.close()
         
-    # Function to sort the data book
-    def ArgSort(self, key=None):
-        """Return indices that would sort a a data book by a trajectory key
+    # Read a case from the data book
+    def ReadCase(self, i):
+        """Read data from a case from the data book archive
         
         :Call:
-            >>> I = DBL.ArgSort(key=None)
+            >>> DBL.ReadCase(i)
         :Inputs:
-            *DBL*: :class;`pyCart.lineLoad.DBLineLoad`
-                Instance of line load group data book
-            *key*: :class:`str`
-                Name of trajectory key to use for sorting; default is first key
-        :Outputs:
-            *I*: :class:`numpy.ndarray` (:class:`int`)
-                List of indices; must have same size as data book
-        :Versions:
-            * 2015-09-15 ``@ddalle``: First version
-        """
-        # Process the key.
-        if key is None: key = self.x.keys[0]
-        # Check for multiple keys.
-        if type(key).__name__ in ['list', 'ndarray', 'tuple']:
-            # Init pre-array list of ordered n-lets like [(0,1,0), ..., ]
-            Z = zip(*[self[k] for k in key])
-            # Init list of key definitions
-            dt = []
-            # Loop through keys to get data types (dtype)
-            for k in key:
-                # Get the type.
-                dtk = self.cart3d.x.defns[k]['Value']
-                # Convert it to numpy jargon.
-                if dtk in ['float']:
-                    # Numeric value
-                    dt.append((str(k), 'f'))
-                elif dtk in ['int', 'hex', 'oct', 'octal']:
-                    # Stored as an integer
-                    dt.append((str(k), 'i'))
-                else:
-                    # String is default.
-                    dt.append((str(k), 'S32'))
-            # Create the array to be used for multicolumn sort.
-            A = np.array(Z, dtype=dt)
-            # Get the sorting order
-            I = np.argsort(A, order=[str(k) for k in key])
-        else:
-            # Indirect sort on a single key.
-            I = np.argsort(self[key])
-        # Output.
-        return I
-        
-    # Function to sort data book
-    def Sort(self, key=None, I=None):
-        """Sort a data book according to either a key or an index
-        
-        :Call:
-            >>> DBL.Sort()
-            >>> DBL.Sort(key)
-            >>> DBL.Sort(I=None)
-        :Inputs:
-            *DBL*: :class:`pyCart.lineLoad.DBLineLoad`
-                Instance of the pyCart data book line load group
-            *key*: :class:`str`
-                Name of trajectory key to use for sorting; default is first key
-            *I*: :class:`numpy.ndarray` (:class:`int`)
-                List of indices; must have same size as data book
-        :Versions:
-            * 2014-12-30 ``@ddalle``: First version
-        """
-        # Process inputs.
-        if I is not None:
-            # Index array specified; check its quality.
-            if type(I).__name__ not in ["ndarray", "list"]:
-                # Not a suitable list.
-                raise TypeError("Index list is unusable type.")
-            elif len(I) != self.n:
-                # Incompatible length.
-                raise IndexError(("Index list length (%i) " % len(I)) +
-                    ("is not equal to data book size (%i)." % self.n))
-        else:
-            # Default key if necessary
-            if key is None: key = self.x.keys[0]
-            # Use ArgSort to get indices that sort on that key.
-            I = self.ArgSort(key)
-        # Sort all fields.
-        for k in self:
-            # Sort it.
-            self[k] = self[k][I]
-        
-    # Find an entry by trajectory variables.
-    def FindMatch(self, i):
-        """Find an entry by run matrix (trajectory) variables
-        
-        It is assumed that exact matches can be found.
-        
-        :Call:
-            >>> j = DBL.FindMatch(i)
-        :Inputs:
-            *DBL*: :class:`pyCart.lineLoad.DBLineLoad`
-                Instance of the pyCart line load data book
+            *DBL*: :class:`cape.lineLoad.DBLineLoad`
+                Line load data book
             *i*: :class:`int`
-                Index of the case from the trajectory to try match
-        :Outputs:
-            *j*: :class:`numpy.ndarray` (:class:`int`)
-                Array of index that matches the trajectory case or ``NaN``
+                Case number
         :Versions:
-            * 2014-12-22 ``@ddalle``: First version
-            * 2015-09-16 ``@ddalle``: Copied from :class:`dataBook.DBComp`
+            * 2016-06-07 ``@ddalle``: First version
         """
-        # Initialize indices (assume all are matches)
-        j = np.arange(self.n)
-        # Loop through keys requested for matches.
-        for k in self.cart3d.x.keys:
-            # Get the target value (from the trajectory)
-            v = getattr(self.x,k)[i]
-            # Search for matches.
-            try:
-                # Filter test criterion.
-                jk = np.where(self[k] == v)[0]
-                # Check if the last element should pass but doesn't.
-                if (v == self[k][-1]):
-                    # Add the last element.
-                    jk = np.union1d(jk, [len(self[k])-1])
-                # Restrict to rows that match the above.
-                j = np.intersect1d(j, jk)
-            except Exception:
-                # No match found.
-                return np.nan
-        # Output
-        try:
-            # There should be exactly one match.
-            return j[0]
-        except Exception:
-            # Return no match.
-            return np.nan
+        # Search for match of this case in the data book
+        j = self.FindMatch(i)
+        # Check if current case is in the data book
+        if np.isnan(j): return
+        # Check if already up to date
+        if i in self: return
+        # Path to lineload folder
+        fll = os.path.join(self.RootDir, self.fdir, 'lineload')
+        # Get name of case
+        frun = os.path.join(fll, self.x.GetFullFolderNames(i))
+        # Check if the case is present
+        if not os.path.isdir(frun): return
+        # File name
+        fname = os.path.join(frun, '%s_%s.csv' % (self.proj, self.comp))
+        # Check for the file
+        if not os.path.isfile(fname): return
+        # Read the file
+        self[i] = CaseLL(self.comp, proj=self.proj, ext='csv', fdir=frun)
+        
+    # Write triload.i input file
+    def WriteTriloadInput(self, ftriq, i, **kw):
+        """Write ``triload.i`` input file to ``triloadCmd``
+        
+        :Call:
+            >>> DBL.WriteTriloadInput(ftriq, i, **kw)
+        :Inputs:
+            *DBL*: :class:`cape.lineLoad.DBLineLoad`
+                Line load data book
+            *ftriq*: :class:`str`
+                Name of the ``triq`` file to analyze
+            *i*: :class:`int`
+                Case number
+        :Keyword arguments:
+            *mach*: :class:`float`
+                Override Mach number
+            *Re*: :class:`float`
+                Override Reynolds number input
+            *gamma*: :class:`float`
+                Override ratio of specific heats
+            *MRP*: :class:`float`
+                Override the moment reference point from the JSON input file
+        :Versions:
+            * 2016-06-07 ``@ddalle``: First version
+        """
+        # Setting for output triq file
+        trimOut = self.opts.get_DataBookTrim(self.comp)
+        # Momentum setting
+        qm = self.opts.get_DataBookMomentum(self.comp)
+        # Number of cuts
+        nCut = self.opts.get_DataBook_nCut(self.comp)
+        # Get components
+        compID = self.CompID
+        # File name
+        fcmd = 'triload.%s.i' % self.comp
+        # Open the file anew
+        f = open(fcmd, 'w')
+        # Write the triq file name
+        f.write(ftriq + '\n')
+        # Write the prefix na me
+        f.write(self.proj + '\n')
+        # Get Mach number, Reynolds number, and ratio of specific heats
+        mach = kw.get('mach',  self.x.GetMach(i))
+        Re   = kw.get('Re',    self.x.GetReynoldsNumber(i))
+        gam  = kw.get('gamma', self.x.GetGamma(i))
+        # Check for NaNs
+        if mach is None: mach = 1.0
+        if Re   is None: Re   = 1.0
+        if gam  is None: gam  = 1.4
+        # Moment reference point
+        MRP = kw.get('MRP', self.MRP)
+        # Write the Mach number, reference Reynolds number, and ratio of heats
+        f.write('%s %s %s\n' % (mach, Re, gam))
+        # Moment center
+        f.write('%s %s %s\n' % (self.MRP[0], self.MRP[1], self.MRP[2]))
+        # Setting for gauge pressure and non-dimensional output
+        f.write('0 0\n')
+        # Reference length and area
+        f.write('%s %s\n' % (self.RefL, self.RefA))
+        # Whether or not to include momentum
+        if qm:
+            # Include momentum
+            f.write('y\n')
+        else:
+            # Do not include momentum
+            f.write('n\n')
+        # Group name
+        self.write(self.comp + ' ')
+        # Write components if any (otherwise, triLoad will use all tris)
+        if type(compID).__name__ in ['list', 'ndarray']:
+            # Write list of component IDs
+            f.write(','.join(compID) + '\n')
+        # Number of cuts
+        if trimOut:
+            # Only write tris included in at least one component
+            f.write('%s 1\n' % nCut)
+        else:
+            # Write all tris trimmed
+            f.write('%s 0\n' % nCut)
+        # Write the cut type
+        f.write('const x\n')
+        # Write coordinate transform
+        f.write('n\n')
+        # Close the input file
+        f.close()
+        
+    # Run triload
+    def RunTriload(self):
+        """Run ``triload`` for a case
+        
+        :Call:
+            >>> DBL.RunTriload()
+        :Inputs:
+            *DBL*: :class:`cape.lineLoad.DBLineLoad`
+                Line load data book
+        :Versions:
+            * 2016-06-07 ``@ddalle``: First version
+        """
+        # Run triload
+        ierr = os.system('triloadCmd < triload.%s.i > triload.out')
+        # Check for errors
+        if ierr:
+            return SystemError("Failure while running ``triloadCmd``")
+    
 # class DBLineLoad
     
-
-# Line loads
+# Line load from one case
 class CaseLL(object):
-    """Individual class line load class
+    """Interface to individual sectional load
     
     :Call:
-        >>> LL = CaseLL(cart3d, i, comp)
+        >>> LL = CaseLL(comp, proj='LineLoad', ext='slds')
     :Inputs:
-        *cart3d*: :class:`pyCart.cart3d.Cart3d`
-            Master pyCart interface
-        *i*: :class:`int`
-            Case index
         *comp*: :class:`str`
-            Name of line load group
+            Name of component
+        *proj*: :class:`str`
+            Prefix for sectional load output files
+        *ext*: ``"slds"`` | ``"clds"`` | {``"dlds"``}
+            File extension for section, cumulative, or derivative loads
     :Outputs:
-        *LL*: :class:`pyCart.lineLoad.CaseLL`
-            Instance of individual case line load interface
-        *LL.nCut*: :class:`int`
-            Number of *x*-cuts to make, based on options in *cart3d*
-        *LL.nIter*: :class:`int`
-            Last iteration in line load file
-        *LL.nStats*: :class:`int`
-            Number of iterations in line load file
-        *LL.RefL*: :class:`float`
-            Reference length
-        *LL.MRP*: :class:`numpy.ndarray` shape=(3,)
-            Moment reference center
-        *LL.x*: :class:`numpy.ndarray` shape=(*nCut*,)
-            Locations of *x*-cuts
-        *LL.CA*: :class:`numpy.ndarray` shape=(*nCut*,)
-            Axial force sectional load, d(CA)/d(x/RefL))
+        *LL*: :class:`cape.lineLoad.CaseLL`
+            Individual line load for one component from one case
     :Versions:
         * 2015-09-16 ``@ddalle``: First version
+        * 2016-06-07 ``@ddalle``: Second version, universal
     """
     # Initialization method
-    def __init__(self, cart3d, i, comp):
-        """Initialization method"""
-        # Save options
-        self.cart3d = cart3d
-        self.i = i
+    def __init__(self, comp, proj='LineLoad', ext='dlds', fdir='lineload'):
+        """Initialization method
+        
+        :Versions:
+            * 2016-06-07 ``@ddalle``: First universal version
+        """
+        # Save input options
         self.comp = comp
-        # Number of cuts
-        self.nCut = cart3d.opts.get_LineLoad_nCut(comp)
-        # Ensure triangulation is present
-        cart3d.ReadTri()
-        # Lead component
-        o_comp = cart3d.opts.get_LineLoadComponents(comp)
-        # Components
-        self.CompID = cart3d.tri.config.GetCompID(o_comp)
-        # Get Mach number and Reynolds number options
-        o_mach = cart3d.opts.get_ComponentMach(comp)
-        o_gam  = cart3d.opts.get_ComponentGamma(comp)
-        o_re   = cart3d.opts.get_ComponentReynoldsNumber(comp)
-        # Process "primary" component
-        if type(o_comp).__name__ == 'list':
-            # Use the first component
-            self.RefComp = o_comp[0]
+        self.proj = proj
+        self.ext  = ext
+        self.fdir = fdir
+        # File name
+        if fdir is None:
+            # Use the working folder
+            self.fname = '%s_%s.%s' % (proj, comp, ext)
         else:
-            # Use as is
-            self.RefComp = o_comp
-        # Process Mach number
-        if type(o_mach).__name__ in ['str', 'unicode']:
-            # Trajectory key
-            self.Mach = getattr(cart3d.x,o_mach)[i]
-        elif o_mach is None:
-            # Default
-            self.Mach = 1.0
-        else:
-            # Specified value
-            self.Mach = o_mach
-        # Process Reynolds number per inch
-        if type(o_gam).__name__ in ['str', 'unicode']:
-            # Trajectory key
-            self.Gamma = getattr(cart3d.x,o_gam)[i]
-        elif o_gam is None:
-            # Default
-            self.Gamma = 1.4
-        else:
-            # Specified value
-            self.Gamma = o_gam
-        # Process Reynolds number per inch
-        if type(o_re).__name__ in ['str', 'unicode']:
-            # Trajectory key
-            self.Re = getattr(cart3d.x,o_re)[i]
-        elif o_re is None:
-            # Default
-            self.Re = 1.0
-        else:
-            # Specified value
-            self.Re = o_re
-        # Reference areas
-        self.RefA = cart3d.opts.get_RefArea(self.RefComp)
-        self.RefL = cart3d.opts.get_RefLength(self.RefComp)
-        # Moment reference point
-        self.MRP = np.array(cart3d.opts.get_RefPoint(self.RefComp))
-        # Containing BBox
-        self.BBox = cart3d.tri.GetCompBBox(self.CompID)
-        ## Min and max *x*-coordinates
-        self.xmin = self.BBox[0]
-        self.xmax = self.BBox[1]
+            # Corral line load files in separate folder
+            self.fname = os.path.join(fdir, '%s_%s.%s' % (proj, comp, ext))
+        # Read the file
+        try:
+            # Check if we are reading triload output file or data book file
+            if ext.lower() == "csv":
+                # Read csv file
+                self.ReadCSV(self.fname)
+            else:
+                # Read triload output file
+                self.ReadLDS(self.fname)
+        except Exception:
+            # Create empty line loads
+            self.x   = np.zeros(0)
+            self.CA  = np.zeros(0)
+            self.CY  = np.zeros(0)
+            self.CN  = np.zeros(0)
+            self.CLL = np.zeros(0)
+            self.CLM = np.zeros(0)
+            self.CLN = np.zeros(0)
+        # Read the seams
     
     # Function to display contents
     def __repr__(self):
@@ -631,173 +490,24 @@ class CaseLL(object):
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
         """
-        return "<CaseLL nCut=%i>" % self.nCut
-    
-    # Write line loads file
-    def WriteTriloadInput(self):
-        """Write :file:`triload.i` input file to `triloadCmd`
-        
-        :Call:
-            >>> LL.WriteTriloadInput()
-        :Inputs:
-            *LL*: :class:`pyCart.lineLoad.CaseLL`
-                Instance of data book line load interface
-        :Versions:
-            * 2015-09-16 ``@ddalle``: First version
-        """
-        # Open the file.
-        f = open('triload.i', 'w')
-        # Write the name of the triq file
-        f.write('Components.i.triq\n')
-        f.write('LineLoad\n')
-        # Write Mach number, Reynolds number, 
-        f.write('%s %s %s\n' % (self.Mach, self.Re, self.Gamma))
-        # Write moment reference point
-        f.write('%s %s %s\n' % tuple(self.MRP))
-        # Settings about units
-        f.write('0 0\n')
-        # Reference length and area
-        f.write('%s %s\n' % (self.RefL, self.RefA))
-        # Do not include momentum in line loads
-        f.write('n\n')
-        # Name and component IDs
-        f.write('%s %s\n'
-            % (self.comp, ",".join([str(c) for c in self.CompID])))
-        # Number of cuts
-        f.write('%i\n' % self.nCut)
-        # Min and max coordinates
-        f.write('%f, %f\n' % (self.xmin, self.xmax))
-        # Type and cleanup
-        f.write('const x\n')
-        f.write('n\n')
-        # Close the file.
-        f.close()
-        
-    # Execute triload system command
-    def RunTriload(self):
-        """Run `triloadCmd` using the appropriate input file
-        
-        :Call:
-            >>> LL.RunTriload()
-        :Inputs:
-            *LL*: :class:`pyCart.lineLoad.CaseLL`
-                Instance of data book line load interface
-        :Versions:
-            * 2015-09-16 ``@ddalle``: First version
-        """
-        # Write the input file.
-        self.WriteTriloadInput()
-        # Run triload without some of the interface
-        ierr = os.system('triloadCmd < triload.i > triload.out')
-        # Check status
-        if ierr:
-            raise SystemError("Running 'triloadCmd' failed.")
-            
-    # Calculate triloads
-    def CalculateLineLoads(self):
-        """Set up inputs for a sectional loads case and compute them
-        
-        :Call:
-            >>> LL.CalculateLineLoads()
-        :Inputs:
-            *LL*: :class:`pyCart.lineLoad.CaseLL`
-                Instance of data book line load interface
-        :Versions:
-            * 2015-09-16 ``@ddalle``: First version
-        """
-        # Change to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.cart3d.RootDir)
-        # Name of triload folder
-        ftri = 'fomo-lineload'
-        # Name of output files.
-        flds = 'LineLoad_%s.dlds' % self.comp
-        # Get working directory
-        fdir = self.cart3d.x.GetFullFolderNames(i)
-        # Check folder.
-        if not os.path.isdir(fdir):
-            os.chdir(fpwd)
-            return
-        # Enter
-        os.chdir(frun)
-        # Check for lineload folder.
-        if not os.path.isdir(ftri): os.mkdir(ftri, 0027)
-        # Get working folder.
-        fwrk = os.path.abspath(case.GetWorkingFolder())
-        # Get triangulation file
-        ftrq, nStats, i0, i1 = GetTriqFile()
-        # Full path to triangulation
-        ftriq = os.path.join(fwrk, ftrq)
-        # Check for ``triq`` file
-        if not os.path.isfile(ftriq):
-            # Save non iteration numbers
-            self.nIter = np.nan
-            self.nStats = np.nan
-            # Exit
-            os.chdir(fpwd)
-            return
-        # Enter the lineload folder.
-        os.chdir(ftri)
-        # Create symbolic link
-        os.symlink(ftriq, 'Components.i.triq')
-        # Execute triload
-        self.RunTriload()
-        # Read the data.
-        self.ReadLDS(flds)
-        # Statistics
-        self.nIter = i1
-        self.nStats = nStats
-        self.i0 = i0
-        # Clean up.
-        tar.chdir_up()
-        os.chdir(fpwd)
-        
-    # Read the seam curves
-    def ReadSeamCurves(self):
-        """Read seam curves from a line load directory
-        
-        :Call:
-            >>> LL.ReadSeamCurves()
-        :Inputs:
-            *LL*: :class:`pyCart.lineLoad.CaseLL`
-                Instance of data book line load interface
-        :Versions:
-            * 2015-09-17 ``@ddalle``: First version
-        """# Change to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.cart3d.RootDir)
-        # Name of triload folder
-        ftri = 'fomo-lineload'
-        # Name of output files.
-        fsmy = 'LineLoad_%s.smy' % self.comp
-        fsmz = 'LineLoad_%s.smz' % self.comp
-        # Get working directory
-        fdir = self.cart3d.x.GetFullFolderNames(i)
-        # Enter
-        os.chdir(frun)
-        # Enter the lineload folder and untar if necessary.
-        tar.chdir_in(ftri)
-        # Read the seam curves.
-        self.smy = ReadSeam(fsmy)
-        self.smz = ReadSeam(fsmz)
-        # Clean up.
-        tar.chdir_up()
-        os.chdir(fpwd)
+        return "<CaseLL comp='%s' (%s)>" % (self.comp, self.ext)
     
     # Function to read a file
-    def ReadLDS(self, fname):
-        """Read a sectional loads ``*.?lds`` from `triloadCmd`
+    def ReadLDS(self, fname=None):
+        """Read a sectional loads ``*.?lds`` file from `triloadCmd`
         
         :Call:
             >>> LL.ReadLDS(fname)
         :Inputs:
-            *LL*: :class:`pyCart.lineLoad.CaseLL`
-                Single-case line load interface
+            *LL*: :class:`cape.lineLoad.CaseLL`
+                Single-case, single component, line load interface
             *fname*: :class:`str`
                 Name of file to read
         :Versions:
             * 2015-09-15 ``@ddalle``: First version
         """
+        # Default file name
+        if fname is None: fname = self.fname
         # Open the file.
         f = open(fname, 'r')
         # Read lines until it is not a comment.
@@ -825,12 +535,116 @@ class CaseLL(object):
         self.CLM = D[:,5]
         self.CLN = D[:,6]
         
-    # Plot a line load
-    def PlotLDS(self, coeff):
-        pass
+    # Function to read a databook file
+    def ReadCSV(self, fname=None, delim=','):
+        """Read a sectional loads ``csv`` file from the data book
+        
+        :Call:
+            >>> LL.ReadCSV(fname, delim=',')
+        :Inputs:
+            *LL*: :class:`cape.lineLoad.CaseLL`
+                Single-case, single component, line load interface
+            *fname*: :class:`str`
+                Name of file to read
+            *delim*: {``','``} | ``' '`` | :class:`str`
+                Text delimiter
+        :Versions:
+            * 2016-06-07 ``@ddalle``: First version
+        """
+        # Default file name
+        if fname is None:
+            # Replace base extension with csv
+            fname = self.fname.rstrip(self.ext) + 'csv'
+        # Open the file.
+        f = open(fname, 'r')
+        # Read lines until it is not a comment.
+        line = '#'
+        while (not line.lstrip().startswith('#')) and (len(line)>0):
+            # Read the next line.
+            line = f.readline()
+        # Exit if empty.
+        if len(line) == 0:
+            return {}
+        # Number of columns
+        nCol = len(line.split())
+        # Go backwards one line from current position.
+        f.seek(-len(line), 1)
+        # Read the rest of the file.
+        D = np.fromfile(f, count=-1, sep=delim)
+        # Reshape to a matrix
+        D = D.reshape((D.size/nCol, nCol))
+        # Save the keys.
+        self.x   = D[:,0]
+        self.CA  = D[:,1]
+        self.CY  = D[:,2]
+        self.CN  = D[:,3]
+        self.CLL = D[:,4]
+        self.CLM = D[:,5]
+        self.CLN = D[:,6]
+        
+    # Write CSV file
+    def WriteCSV(self, fname=None, delim=','):
+        """Write a sectional loads ``csv`` file
+        
+        :Call:
+            >>> LL.WriteCSV(fname, delim=',')
+        :Inputs:
+            *LL*: :class:`cape.lineLoad.CaseLL`
+                Single-case, single component, line load interface
+            *fname*: :class:`str`
+                Name of file to write
+            *delim*: {``','``} | ``' '`` | :class:`str`
+                Text delimiter
+        :Versions:
+            * 2016-06-07 ``@ddalle``: First version
+        """
+        # Default file name
+        if fname is None:
+            # Replace base extension with csv
+            fname = self.fname.rstrip(self.ext) + 'csv'
+        # Open the file to write
+        f = open(fname, 'w')
+        # Write the header line
+        f.write('# ')
+        f.write(delim.join(['x', 'CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']))
+        f.write('\n')
+        # Generate write flag
+        ffmt = delim.join(['%13.6E'] * 7) + '\n'
+        # Loop through the values
+        for i in range(len(self.x)):
+            # Write data
+            f.write(ffmt % (self.x[i], self.CA[i], self.CY[i], self.CN[i],
+                self.CLL[i], self.CLM[i], self.CLN[i]))
+        # Close the file
+        f.close()
+        
+    # Read the seam curves
+    def ReadSeamCurves(self):
+        """Read seam curves from a line load directory
+        
+        :Call:
+            >>> LL.ReadSeamCurves()
+        :Inputs:
+            *LL*: :class:`pyCart.lineLoad.CaseLL`
+                Instance of data book line load interface
+        :Versions:
+            * 2015-09-17 ``@ddalle``: First version
+        """
+        # Seam file names
+        if self.fdir is None:
+            # Folder
+            fpre = '%s_%s' % (self.proj, self.comp)
+        else:
+            # Include subfolder
+            fpre = os.path.join(self.fdir, '%s_%s' % (self.proj, self.comp))
+        # Name of output files.
+        fsmy = '%s.smy' % fpre
+        fsmz = '%s.smz' % fpre
+        # Read the seam curves.
+        self.smy = ReadSeam(fsmy)
+        self.smz = ReadSeam(fsmz)
     
 # class CaseLL
-
         
 # Function to read a seam file
 def ReadSeam(fname):
@@ -855,6 +669,8 @@ def ReadSeam(fname):
     """
     # Initialize data.
     s = {'x':[], 'y':[], 'z':[]}
+    # Check for the file
+    if not os.path.isfile(fname): return s
     # Open the file.
     f = open(fname, 'r')
     # Read first line.
