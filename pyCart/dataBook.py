@@ -214,12 +214,12 @@ class DataBook(cape.dataBook.DataBook):
             self.UpdateCase(i)
             
     # Update line load data book
-    def UpdateLineLoadDataBook(self, comp, I=None):
+    def UpdateLineLoad(self, comp, conf=None, I=None):
         """Update a line load data book for a list of cases
         
         :Call:
-            >>> DB.UpdateLineLoadDataBook(comp)
-            >>> DB.UpdateLineLoadDataBook(comp, I)
+            >>> DB.UpdateLineLoad(comp, conf=None)
+            >>> DB.UpdateLineLoad(comp, conf=None, I)
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pyCart data book class
@@ -232,9 +232,11 @@ class DataBook(cape.dataBook.DataBook):
         if I is None:
             # Use all trajectory points
             I = range(self.x.nCase)
+        # Read the line load data book if necessary
+        self.ReadLineLoad(comp, conf=None)
         # Loop through indices.
         for i in I:
-            self.UpdateLineLoadCase(comp, i)
+            self.LineLoads[comp].UpdateCase(i)
             
     # Update point sensor group
     def UpdatePointSensor(self, name, I=None):

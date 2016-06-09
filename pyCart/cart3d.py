@@ -295,6 +295,29 @@ class Cart3d(Cntl):
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
         # Apply all constraints
+        I = self.x.GetIndices(**kw)
+        # Read the existing data book.
+        self.ReadDataBook()
+        # CHeck for single line load
+        if ll in [None, True]:
+            # Use all components
+            comps = self.opts.get_DataBookByType('LineLoad')
+        else:
+            # Use the component given
+            comps = [ll]
+        # Loop through the points
+        for comp in comps:
+            # Print name of line load
+            print("Updating line load data book '%s' ..." % comp)
+            # Read the line load data book
+            self.DataBook.ReadLineLoad(comp, conf=self.tri.config)
+            # Update it
+            self.DataBook.UpdateLineLoad(comp, conf=self.tri.config, I=I)
+            # Write the updated results
+            self.DataBook.LineLoad[comp].Write()
+        # Return to original location
+        os.chdir(fpwd)
+        
         
     # Call the correct :mod:`case` module
     def CaseStartCase(self):
