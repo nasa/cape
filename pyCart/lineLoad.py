@@ -140,12 +140,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             # No input file
             otriq = ''
         # Check whether or not to compute
-        print("otriq: '%s'" % otriq)
-        print("ftriq: '%s'" % ftriq)
-        print("flds:  '%s'" % flds)
-        print("?flds: %s" % os.path.isfile(flds))
-        print("PWD=%s"  % os.getcwd())
-        if not otriq != ftriq:
+        if otriq != ftriq:
             # Not using the most recent triq file
             q = True
         elif not os.path.isfile(flds):
@@ -164,7 +159,6 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             # Run the command
             self.RunTriload()
         # Read the loads file
-        print(os.listdir())
         self[i] = CaseLL(self.comp, self.proj, self.ext, fdir=None)
         # CSV folder names
         fll  = os.path.join(self.RootDir, self.fdir, 'lineload')

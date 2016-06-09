@@ -522,12 +522,12 @@ class CaseLL(object):
         f = open(fname, 'r')
         # Read lines until it is not a comment.
         line = '#'
-        while (not line.lstrip().startswith('#')) and (len(line)>0):
+        while (line.lstrip().startswith('#')) and (len(line)>0):
             # Read the next line.
             line = f.readline()
         # Exit if empty.
         if len(line) == 0:
-            return {}
+            raise ValueError("Empty triload file '%s'" % fname)
         # Number of columns
         nCol = len(line.split())
         # Go backwards one line from current position.
@@ -544,6 +544,8 @@ class CaseLL(object):
         self.CLL = D[:,4]
         self.CLM = D[:,5]
         self.CLN = D[:,6]
+        # Cloe the file
+        f.close()
         
     # Function to read a databook file
     def ReadCSV(self, fname=None, delim=','):
