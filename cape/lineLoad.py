@@ -80,7 +80,7 @@ class DBLineLoad(dataBook.DBBase):
         # Construct the file name.
         fcomp = 'll_%s.csv' % comp
         # Full file name
-        fname = os.apth.join(fdir, fcomp)
+        fname = os.path.join(fdir, fcomp)
         
         # Safely change to root directory
         fpwd = os.getcwd()
@@ -186,7 +186,7 @@ class DBLineLoad(dataBook.DBBase):
             nCol += 2
             self['XMRP'] = np.loadtxt(fname,
                 delimiter=delim, dtype=float, usecols=[nCol])
-            self['YRMP'] = np.loadtxt(fname,
+            self['YMRP'] = np.loadtxt(fname,
                 delimiter=delim, dtype=float, usecols=[nCol+1])
             self['ZMRP'] = np.loadtxt(fname,
                 delimiter=delim, dtype=float, usecols=[nCol+2])
@@ -209,7 +209,7 @@ class DBLineLoad(dataBook.DBBase):
                 self[k] = np.array([], dtype=str(t))
             # Initialize Other parameters.
             self['XMRP'] = np.array([], dtype=float)
-            self['YRMP'] = np.array([], dtype=float)
+            self['YMRP'] = np.array([], dtype=float)
             self['ZMRP'] = np.array([], dtype=float)
             self['nIter'] = np.array([], dtype=int)
             self['nStats'] = np.array([], dtype=int)
@@ -345,8 +345,12 @@ class DBLineLoad(dataBook.DBBase):
         qm = self.opts.get_DataBookMomentum(self.comp)
         # Number of cuts
         nCut = self.opts.get_DataBook_nCut(self.comp)
-        # Get components
+        # Get components and type of the input
         compID = self.CompID
+        tcomp  = type(compID).__name__
+        # Convert to string if appropriate
+        if tcomp in ['list', 'ndarray']:
+            compID = [str(comp) for comp in compID]
         # File name
         fcmd = 'triload.%s.i' % self.comp
         # Open the file anew
@@ -381,7 +385,7 @@ class DBLineLoad(dataBook.DBBase):
             # Do not include momentum
             f.write('n\n')
         # Group name
-        self.write(self.comp + ' ')
+        f.write(self.comp + ' ')
         # Write components if any (otherwise, triLoad will use all tris)
         if type(compID).__name__ in ['list', 'ndarray']:
             # Write list of component IDs
@@ -393,6 +397,8 @@ class DBLineLoad(dataBook.DBBase):
         else:
             # Write all tris trimmed
             f.write('%s 0\n' % nCut)
+        # Write min and max; use '1 1' to make it automatically detect
+        f.write('1 1\n')
         # Write the cut type
         f.write('const x\n')
         # Write coordinate transform
@@ -413,7 +419,11 @@ class DBLineLoad(dataBook.DBBase):
             * 2016-06-07 ``@ddalle``: First version
         """
         # Run triload
-        ierr = os.system('triloadCmd < triload.%s.i > triload.out')
+        cmd = 'triloadCmd < triload.%s.i > triload.o' % self.comp
+        # Status update
+        print("    %s" % cmd)
+        # Run triload
+        ierr = os.system(cmd)
         # Check for errors
         if ierr:
             return SystemError("Failure while running ``triloadCmd``")

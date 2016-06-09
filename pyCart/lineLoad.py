@@ -160,9 +160,17 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             self.RunTriload()
         # Read the loads file
         self[i] = CaseLL(self.comp, self.proj, self.ext, fdir=None)
+        # CSV folder names
+        fll  = os.path.join(self.RootDir, self.fdir, 'lineload')
+        fgrp = os.path.join(fll,  frun.split(os.sep)[0])
+        fcas = os.path.join(fll,  frun)
+        # Create folders as necessary
+        if not os.path.isdir(fll):  self.opts.mkdir(fll)
+        if not os.path.isdir(fgrp): self.opts.mkdir(fgrp)
+        if not os.path.isdir(fcas): self.opts.mkdir(fcas)
         # CSV file name
-        fcsv = os.path.join(self.RootDir,
-            self.fdir, 'lineload', frun, '%s_%s.csv' % (self.proj, self.comp))
+        fcsv = os.path.join(fcas, '%s_%s.csv' % (self.proj, self.comp))
+        # Create directories
         # Write the CSV file
         self[i].WriteCSV(fcsv)
         # Save the stats

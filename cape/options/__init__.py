@@ -1396,7 +1396,7 @@ class Options(odict):
     # Trim setting
     def get_DataBookTrim(self, name):
         self._DataBook()
-        return self['DataBook'].get_DBGroupTrim(name)
+        return self['DataBook'].get_DataBookTrim(name)
         
     # Get file extension
     def get_DataBookExtension(self, comp):
