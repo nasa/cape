@@ -808,6 +808,8 @@ class CaseLL(object):
                 Figure width
             *FigHeight*: :class:`float`
                 Figure height
+            *SubplotMargin*: {``0.015``} | :class:`float`
+                Margin between subplots
         :Versions:
             * 2016-06-09 ``@ddalle``: First version
         """
@@ -836,6 +838,15 @@ class CaseLL(object):
             sm_loc = [sm_loc] * nsm
         # Convert seams and seam locations to proper formats
         for i in range(nsm):
+            # Get the location
+            loc_i = sm_loc[i]
+            # Check default
+            if loc_i is None and q_vert:
+                # Default is to plot seams below
+                sm_loc[i] = 'bottom'
+            elif loc_i is None:
+                # Default is to plot on the left
+                sm_loc[i] = 'left'
             # Get the seam
             sm = sms[i]
             # Seam type
@@ -853,26 +864,21 @@ class CaseLL(object):
             else:
                 # Get the z-cut seam handle
                 sms[i] = self.smz
-            # Get the location
-            loc_i = sm_loc[i]
-            # Check default
-            if loc_i is None and q_vert:
-                # Default is to plot on the left
-                sm_loc[i] = 'left'
-            elif loc_i is None:
-                # Default is to plot seams below
-                sm_loc[i] = 'bottom'
         # Initialize handles
         h = {}
         # Check for seam plots
         if nsm > 0:
             # Call subplot command first to avoid deleting plots
             if q_vert:
+                # Number of seams above
+                sfigll = 1 + sm_loc.count('top')
                 # Plot seams above and below
-                plt.subplot(nsm+1, 1, 1+sm_loc.count('top'))
+                plt.subplot(nsm+1, 1, sfigll)
             else:
+                # Number of seams to the left
+                sfigll = 1 + sm_loc.count('left')
                 # Plot seams to the left or right
-                plt.subplot(1, nsm+1, 1+sm_loc.count('left'))
+                plt.subplot(1, nsm+1, sfigll)
         # ------------
         # Primary plot
         # ------------
@@ -921,36 +927,18 @@ class CaseLL(object):
             xlbl = kw.get('XLabel', lx0)
             ylbl = kw.get('YLabel', ly)
         else:
-            # Get flipped label inputs
+            # Get label inputs with flipped defaults
             xlbl = kw.get('XLabel', ly)
             ylbl = kw.get('YLabel', kx0)
         # Label handles
         h['x'] = plt.xlabel(xlbl)
         h['y'] = plt.ylabel(ylbl)
-        # Get bounding boxes
-        if q_vert:
-            # Regular plot
-            xmin = min(x)
-            xmax = max(x)
-            ymin = min(y)
-            ymax = max(y)
-        else:
-            # Flipped plot
-            xmin = min(y)
-            xmax = max(y)
-            ymin = min(x)
-            ymax = max(x)
-        # Pads
-        xpad = kw.get('xpad', 0.03)
-        ypad = kw.get('ypad', 0.03)
-        # Plus and minus limits
-        xp = kw.get('xp', xpad) * (xmax - xmin)
-        xm = kw.get('xm', xpad) * (xmax - xmin)
-        yp = kw.get('yp', ypad) * (ymax - ymin)
-        ym = kw.get('ym', ypad) * (ymax - ymin)
+        # Get actual limits
+        xmin, xmax = util.get_xlim(h['ax'], **kw)
+        ymin, ymax = util.get_ylim(h['ax'], **kw)
         # Set the axis limits
-        h['ax'].set_xlim((xmin - xp, xmax + xp))
-        h['ax'].set_ylim((ymin - yp, ymax + yp))
+        h['ax'].set_xlim((xmin, xmax))
+        h['ax'].set_ylim((ymin, ymax))
         # Set figure dimensions
         if fh: h['fig'].set_figheight(fh)
         if fw: h['fig'].set_figwidth(fw)
@@ -962,20 +950,154 @@ class CaseLL(object):
         adj_r = kw.get('AdjustRight')
         adj_t = kw.get('AdjustTop')
         adj_b = kw.get('AdjustBottom')
+        # Subplot margin
+        w_sfig = kw.get('SubplotMargin', 0.015)
         # Make adjustments
         if adj_l: plt.subplots_adjust(left=adj_l)
         if adj_r: plt.subplots_adjust(right=adj_r)
         if adj_t: plt.subplots_adjust(top=adj_t)
         if adj_b: plt.subplots_adjust(bottom=adj_b)
         # Report the actual limits
-        h['xmin'] = xmin - xm
-        h['xmax'] = xmax + xp
-        h['ymin'] = ymin - ym
-        h['ymax'] = ymax + yp
+        h['xmin'] = xmin
+        h['xmax'] = xmax
+        h['ymin'] = ymin
+        h['ymax'] = ymax
         # ----------
         # Seam plots
         # ----------
-        
+        # Exit if no seams
+        if nsm < 1: return h
+        # Initialize seam handles
+        H = [None for i in range(nsm+1)]
+        # Save main plot axis limits
+        xlim = h['ax'].get_xlim()
+        ylim = h['ax'].get_ylim()
+        # Save the main plot handles
+        H[sfigll-1] = h
+        # Initialize aspect ratios
+        AR = np.zeros(nsm+1)
+        # Relevant position info from primary plot
+        pax = h['ax'].get_position().get_points()
+        # Save all the positions; some will be overwritten
+        xax_min, yax_min = pax[0]
+        xax_max, yax_max = pax[1]
+        # Loop through seams
+        for i in range(nsm):
+            # Get subfig number
+            if q_vert:
+                # Check numbers of top/bottom seam plots
+                if sm_loc[i] == 'top':
+                    # Count previous top figures
+                    sfigi = 1 + sm_loc[:i].count('top')
+                else:
+                    # Count previous seam figures and all other figs above
+                    sfigi = i + 2 + sm_loc[i:].count('top')
+                # Select the plot
+                plt.subplot(nsm+1, 1, sfigi)
+            else:
+                # Check numbers of left/right seam plots
+                if sm_loc[i] == 'left':
+                    # Count previous left figures
+                    sfigi = 1 + sm_loc[:i].count('left')
+                else:
+                    # Count previous seam figures and all other left figs
+                    sfigi = i + 2 + sm_loc[i:].count('left')
+                # Select the plot
+                plt.subplot(1, nsm+1, sfigi)
+            # Plot the seam
+            hi = sms[i].Plot(**kw)
+            # Save the handles
+            H[sfigi-1] = hi
+            # Copy axes handle
+            axi = hi['ax']
+            # Save aspect ratio
+            AR[sfigi-1] = (hi['ymax']-hi['ymin']) / (hi['xmax']-hi['xmin'])
+            # Get axes position
+            pi = axi.get_position().get_points()
+            # Follow up for each type
+            if q_vert:
+                # Copy xlims from line load plot
+                axi.set_xlim(xlim)
+                # Check for top/bottom plot for absolute limits
+                if sfigi == nsm+1:
+                    # Bottom figure
+                    yax_min = pi[0,1]
+                elif sfigi == 1:
+                    # Top figure
+                    yax_max = pi[1,1]
+            else:
+                # Copy ylims from line load plot
+                axi.set_ylim(ylim)
+                # Cehck for left/right plot for absolute limits
+                if sfigi == 1:
+                    # Left figure
+                    xax_min = pi[0,0]
+                elif sfigi == nsm+1:
+                    # Right figure
+                    xax_max = pi[1,0]
+        # Nominal width/height of axes position
+        wax = xax_max - xax_min
+        hax = yax_max - yax_min
+        # Loop through subplots to set aspect ratios, etc.
+        for i in range(nsm+1):
+            # Get axis handle
+            ax = H[i]['ax']
+            # Only use ticks on first subplot
+            if q_vert and i < nsm:
+                # Turn off xticks
+                ax.set_xticklabels([])
+                # Turn off x label
+                ax.set_xlabel('')
+            elif not q_vert and i > 0:
+                # Turn off yticks
+                ax.set_yticklabels([])
+                # Turn off y label
+                ax.set_ylabel('')
+            # Handle main plot last
+            if i+1 == sfigll:
+                continue
+            # Set margins
+            if q_vert:
+                # Automatic axis height based on aspect ratio
+                haxi = AR[i] * wax
+                # Modify top/bottom margins
+                if i+1 < sfigll:
+                    # Work from the top
+                    ax.set_position([xax_min, yax_max-haxi, wax, haxi])
+                    # Update top position
+                    yax_max = yax_max - haxi - w_sfig
+                else:
+                    # Work from the bottom
+                    ax.set_position([xax_min, yax_min, wax, haxi])
+                    # Update the bottom position
+                    yax_min = yax_min + haxi + w_sfig
+                # Copy the limits again
+                ax.set_xlim(xlim)
+                print("position: [%s, %s, %s, %s]" %
+                    (xax_min, yax_min, xax_max, yax_max))
+            else:
+                # Automatic axis width based on aspect ratio
+                waxi = hax / AR[i]
+                # Modify left/right margins
+                if i > sfigll:
+                    # Work from the right
+                    ax.set_position([xax_max-waxi, yax_min, waxi, hax])
+                    # Update right position
+                    xax_max = xax_max - waxi - w_sfig
+                else:
+                    # Work from the left
+                    ax.set_position([wax_min, yax_min, waxi, hax])
+                    # Update left position
+                    xax_min = xax_min + waxi + w_sfig
+                # Reset axis limits
+                ax.set_ylim(ylim)
+        # Finally, set the position for the position for the main figure
+        h['ax'].set_position([xax_min,yax_min,xax_max-xax_min,yax_max-yax_min])
+        # REset limits
+        h['ax'].set_xlim(xlim)
+        h['ax'].set_ylim(ylim)
+        # Modify output
+        h['sm'] = H[:sfigll-1] + H[sfigll:]
         # Output
         return h
         
@@ -1247,7 +1369,7 @@ class CaseSeam(object):
         else:
             # Z-cuts
             x0 = 'x'
-            y0 = 'z'
+            y0 = 'y'
         # Get axes
         kx = kw.get('x', x0)
         ky = kw.get('y', y0)
@@ -1267,9 +1389,6 @@ class CaseSeam(object):
         kw_p.setdefault('label', kw.get('Label', self.comp))
         # Initialize handles
         h = {ksm: []}
-        # Initialize limits
-        xmin = 1e99; xmax = -1e99
-        ymin = 1e99; ymax = -1e99
         # Loop through curves
         for i in range(self.n):
             # Turn off labels after first plot
@@ -1279,11 +1398,6 @@ class CaseSeam(object):
             y = getattr(self, ky)[i]
             # Plot
             h[ksm].append(plt.plot(x, y, **kw_p))
-            # Update limits
-            xmin = min(xmin, min(x))
-            xmax = max(xmax, max(x))
-            ymin = min(ymin, min(y))
-            ymax = max(ymax, max(y))
         # --------------
         # Figure margins
         # --------------
@@ -1296,22 +1410,14 @@ class CaseSeam(object):
         # Label handles
         h['x'] = plt.xlabel(xlbl)
         h['y'] = plt.ylabel(ylbl)
-        # Pads
-        xpad = kw.get('xpad', 0.03)
-        ypad = kw.get('ypad', 0.03)
-        # Plus and minus limits
-        xp = kw.get('xp', xpad) * (xmax - xmin)
-        xm = kw.get('xm', xpad) * (xmax - xmin)
-        yp = kw.get('yp', ypad) * (ymax - ymin)
-        ym = kw.get('ym', ypad) * (ymax - ymin)
+        # Get actual limits
+        xmin, xmax = util.get_xlim_ax(h['ax'], **kw)
+        ymin, ymax = util.get_ylim_ax(h['ax'], **kw)
         # Ensure proper aspect ratio
         plt.axis('equal')
         # Set the axis limits
-        h['ax'].set_ylim((ymin - ym, ymax + yp))
-        h['ax'].set_xlim((xmin - xm, xmax + xp))
-        # Set figure dimensions
-        if fh: h['fig'].set_figheight(fh)
-        if fw: h['fig'].set_figwidth(fw)
+        h['ax'].set_xlim((xmin, xmax))
+        h['ax'].set_ylim((ymin, ymax))
         # Attempt to apply tight axes.
         try: plt.tight_layout()
         except Exception: pass
@@ -1326,10 +1432,10 @@ class CaseSeam(object):
         if adj_t: plt.subplots_adjust(top=adj_t)
         if adj_b: plt.subplots_adjust(bottom=adj_b)
         # Report the actual limits
-        h['xmin'] = xmin - xm
-        h['xmax'] = xmax + xp
-        h['ymin'] = ymin - ym
-        h['ymax'] = ymax + yp
+        h['xmin'] = xmin
+        h['xmax'] = xmax
+        h['ymin'] = ymin
+        h['ymax'] = ymax
         # Output
         return h
         

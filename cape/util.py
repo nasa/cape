@@ -157,4 +157,254 @@ def islist(x):
         * 2015-06-01 ``@ddalle``: First version
     """
     return type(x).__name__ in ['list', 'ndarray']
+
+# Function to automatically get inclusive data limits.
+def get_ylim(ha, ypad=0.05, **kw):
+    """Calculate appropriate *y*-limits to include all lines in a plot
     
+    Plotted objects in the classes :class:`matplotlib.lines.Lines2D` and
+    :class:`matplotlib.collections.PolyCollection` are checked.
+    
+    :Call:
+        >>> ymin, ymax = get_ylim(ha, ypad=0.05, ym=None, yp=None)
+    :Inputs:
+        *ha*: :class:`matplotlib.axes.AxesSubplot`
+            Axis handle
+        *ypad*: {``0.05``} | :class:`float`
+            Extra padding to min and max values to plot
+        *ym*: :class:`float`
+            Padding on minimum side
+        *yp*: :class:`float`
+            Padding on maximum side
+    :Outputs:
+        *ymin*: :class:`float`
+            Minimum *y* coordinate including padding
+        *ymax*: :class:`float`
+            Maximum *y* coordinate including padding
+    :Versions:
+        * 2015-07-06 ``@ddalle``: First version
+        * 2016-06-10 ``@ddalle``: Moved to :mod:`cape.util`
+    """
+    # Initialize limits.
+    ymin = np.inf
+    ymax = -np.inf
+    # Loop through all children of the input axes.
+    for h in ha.get_children():
+        # Get the type.
+        t = type(h).__name__
+        # Check the class.
+        if t == 'Line2D':
+            # Check the min and max data
+            ymin = min(ymin, min(h.get_ydata()))
+            ymax = max(ymax, max(h.get_ydata()))
+        elif t == 'PolyCollection':
+            # Get the path.
+            P = h.get_paths()[0]
+            # Get the coordinates.
+            ymin = min(ymin, min(P.vertices[:,1]))
+            ymax = max(ymax, max(P.vertices[:,1]))
+    # Process margins
+    ym = kw.get('ym', ypad)
+    yp = kw.get('yp', ypad)
+    # Check for identical values
+    if ymax - ymin <= 0.05*(ym+yp):
+        # Expand by manual amount.
+        ymax += yp*ymax
+        ymin -= ym*ymin
+    # Add padding.
+    yminv = (1+ym)*ymin - ym*ymax
+    ymaxv = (1+yp)*ymax - yp*ymin
+    # Output
+    return yminv, ymaxv
+    
+# Function to automatically get inclusive data limits.
+def get_xlim(ha, xpad=0.05, **kw):
+    """Calculate appropriate *x*-limits to include all lines in a plot
+    
+    Plotted objects in the classes :class:`matplotlib.lines.Lines2D` are
+    checked.
+    
+    :Call:
+        >>> xmin, xmax = get_xlim(ha, pad=0.05)
+    :Inputs:
+        *ha*: :class:`matplotlib.axes.AxesSubplot`
+            Axis handle
+        *xpad*: :class:`float`
+            Extra padding to min and max values to plot.
+        *xm*: :class:`float`
+            Padding on minimum side
+        *xp*: :class:`float`
+            Padding on maximum side
+    :Outputs:
+        *xmin*: :class:`float`
+            Minimum *x* coordinate including padding
+        *xmax*: :class:`float`
+            Maximum *x* coordinate including padding
+    :Versions:
+        * 2015-07-06 ``@ddalle``: First version
+    """
+    # Initialize limits.
+    xmin = np.inf
+    xmax = -np.inf
+    # Loop through all children of the input axes.
+    for h in ha.get_children():
+        # Get the type.
+        t = type(h).__name__
+        # Check the class.
+        if t == 'Line2D':
+            # Check the min and max data
+            xmin = min(xmin, min(h.get_xdata()))
+            xmax = max(xmax, max(h.get_xdata()))
+        elif t == 'PolyCollection':
+            # Get the path.
+            P = h.get_paths()[0]
+            # Get the coordinates.
+            xmin = min(xmin, min(P.vertices[:,0]))
+            xmax = max(xmax, max(P.vertices[:,0]))
+    # Process margins
+    xm = kw.get('xm', xpad)
+    xp = kw.get('xp', xpad)
+    # Check for identical values
+    if xmax - xmin <= 0.05*(xm+xp):
+        # Expand by manual amount.
+        xmax += xp*xmax
+        xmin -= xm*xmin
+    # Add padding.
+    xminv = (1+xm)*xmin - xm*xmax
+    xmaxv = (1+xp)*xmax - xp*xmin
+    # Output
+    return xminv, xmaxv
+    
+# Function to automatically get inclusive data limits.
+def get_ylim_ax(ha, ypad=0.05, **kw):
+    """Calculate appropriate *y*-limits to include all lines in a plot
+    
+    Plotted objects in the classes :class:`matplotlib.lines.Lines2D` and
+    :class:`matplotlib.collections.PolyCollection` are checked.
+    
+    This version is specialized for equal-aspect ratio axes.
+    
+    :Call:
+        >>> ymin, ymax = get_ylim_ax(ha, ypad=0.05, ym=None, yp=None)
+    :Inputs:
+        *ha*: :class:`matplotlib.axes.AxesSubplot`
+            Axis handle
+        *ypad*: {``0.05``} | :class:`float`
+            Extra padding to min and max values to plot
+        *ym*: :class:`float`
+            Padding on minimum side
+        *yp*: :class:`float`
+            Padding on maximum side
+    :Outputs:
+        *ymin*: :class:`float`
+            Minimum *y* coordinate including padding
+        *ymax*: :class:`float`
+            Maximum *y* coordinate including padding
+    :Versions:
+        * 2015-07-06 ``@ddalle``: First version
+        * 2016-06-10 ``@ddalle``: Moved to :mod:`cape.util`
+    """
+    # Initialize limits.
+    xmin = np.inf
+    xmax = -np.inf
+    ymin = np.inf
+    ymax = -np.inf
+    # Loop through all children of the input axes.
+    for h in ha.get_children():
+        # Get the type.
+        t = type(h).__name__
+        # Check the class.
+        if t == 'Line2D':
+            # Check the min and max data
+            xmin = min(xmin, min(h.get_xdata()))
+            xmax = max(xmax, max(h.get_xdata()))
+            ymin = min(ymin, min(h.get_ydata()))
+            ymax = max(ymax, max(h.get_ydata()))
+        elif t == 'PolyCollection':
+            # Get the path.
+            P = h.get_paths()[0]
+            # Get the coordinates.
+            xmin = min(xmin, min(P.vertices[:,0]))
+            xmax = max(xmax, max(P.vertices[:,0]))
+            ymin = min(ymin, min(P.vertices[:,1]))
+            ymax = max(ymax, max(P.vertices[:,1]))
+    # Process margins
+    ym = kw.get('ym', ypad)
+    yp = kw.get('yp', ypad)
+    # Check for identical values
+    if ymax - ymin <= 0.05*(ym+yp):
+        # Expand by manual amount.
+        ymax += yp*ymax
+        ymin -= ym*ymin
+    # Add padding.
+    yminv = ymin - ym*max(xmax-xmin, ymax-ymin)
+    ymaxv = ymax + yp*max(xmax-xmin, ymax-ymin)
+    # Output
+    return yminv, ymaxv
+    
+# Function to automatically get inclusive data limits.
+def get_xlim_ax(ha, xpad=0.05, **kw):
+    """Calculate appropriate *x*-limits to include all lines in a plot
+    
+    Plotted objects in the classes :class:`matplotlib.lines.Lines2D` are
+    checked.
+    
+    This version is specialized for equal-aspect ratio axes.
+    
+    :Call:
+        >>> xmin, xmax = get_xlim_ax(ha, pad=0.05)
+    :Inputs:
+        *ha*: :class:`matplotlib.axes.AxesSubplot`
+            Axis handle
+        *xpad*: :class:`float`
+            Extra padding to min and max values to plot.
+        *xm*: :class:`float`
+            Padding on minimum side
+        *xp*: :class:`float`
+            Padding on maximum side
+    :Outputs:
+        *xmin*: :class:`float`
+            Minimum *x* coordinate including padding
+        *xmax*: :class:`float`
+            Maximum *x* coordinate including padding
+    :Versions:
+        * 2015-07-06 ``@ddalle``: First version
+    """
+    # Initialize limits.
+    xmin = np.inf
+    xmax = -np.inf
+    ymin = np.inf
+    ymax = -np.inf
+    # Loop through all children of the input axes.
+    for h in ha.get_children():
+        # Get the type.
+        t = type(h).__name__
+        # Check the class.
+        if t == 'Line2D':
+            # Check the min and max data
+            xmin = min(xmin, min(h.get_xdata()))
+            xmax = max(xmax, max(h.get_xdata()))
+            ymin = min(ymin, min(h.get_ydata()))
+            ymax = max(ymax, max(h.get_ydata()))
+        elif t == 'PolyCollection':
+            # Get the path.
+            P = h.get_paths()[0]
+            # Get the coordinates.
+            xmin = min(xmin, min(P.vertices[:,0]))
+            xmax = max(xmax, max(P.vertices[:,0]))
+            ymin = min(ymin, min(P.vertices[:,1]))
+            ymax = max(ymax, max(P.vertices[:,1]))
+    # Process margins
+    xm = kw.get('xm', xpad)
+    xp = kw.get('xp', xpad)
+    # Check for identical values
+    if xmax - xmin <= 0.05*(xm+xp):
+        # Expand by manual amount.
+        xmax += xp*xmax
+        xmin -= xm*xmin
+    # Add padding.
+    xminv = xmin - xm*max(xmax-xmin, ymax-ymin)
+    xmaxv = xmax + xp*max(xmax-xmin, ymax-ymin)
+    # Output
+    return xminv, xmaxv
+
