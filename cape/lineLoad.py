@@ -197,6 +197,8 @@ class DBLineLoad(dataBook.DBBase):
         """
         # Check for default file name
         if fname is None: fname = self.fname
+        # Save column names
+        self.cols = self.x.keys + ['XMRP','YMRP','ZMRP','nIter','nStats']
         # Try to read the file.
         try:
             # Data book delimiter
@@ -215,21 +217,31 @@ class DBLineLoad(dataBook.DBBase):
                 # Increase the column number.
                 nCol += 1
             # MRP
-            nCol += 2
             self['XMRP'] = np.loadtxt(fname,
                 delimiter=delim, dtype=float, usecols=[nCol])
             self['YMRP'] = np.loadtxt(fname,
                 delimiter=delim, dtype=float, usecols=[nCol+1])
             self['ZMRP'] = np.loadtxt(fname,
                 delimiter=delim, dtype=float, usecols=[nCol+2])
+            k = 'ZMRP'
             # Iteration number
             nCol += 3
             self['nIter'] = np.loadtxt(fname,
                 delimiter=delim, dtype=int, usecols=[nCol])
+            k = 'nIter'
             # Stats
             nCol += 1
+            k = 'nStats'
             self['nStats'] = np.loadtxt(fname,
                 delimiter=delim, dtype=int, usecols=[nCol])
+            # Number of cases
+            self.n = self[k].size
+            # Check for singletons
+            if self[k].ndim == 0:
+                # Loop through all keys
+                for k in self.cols:
+                    # Convert to array
+                    self[k] = np.array([self[k]])
         except Exception:
             # Initialize empty trajectory arrays
             for k in self.x.keys:
@@ -245,8 +257,8 @@ class DBLineLoad(dataBook.DBBase):
             self['ZMRP'] = np.array([], dtype=float)
             self['nIter'] = np.array([], dtype=int)
             self['nStats'] = np.array([], dtype=int)
-        # Save the number of cases analyzed.
-        self.n = len(self[k])
+            # No cases
+            self.n = 0
     
     # Function to write line load data book summary file
     def Write(self, fname=None):
