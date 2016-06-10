@@ -158,8 +158,27 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             self.WriteTriloadInput(ftriq, i)
             # Run the command
             self.RunTriload()
+        # Check number of seams
+        try:
+            # Get seam counts
+            nsmx = self.smx['n']
+            nsmy = self.smy['n']
+            nsmz = self.smz['n']
+            # Check if at least some seam segments
+            nsm = max(nsmx, nsmy, nsmz)
+        except:
+            # No seams yet
+            nsm = 0
         # Read the loads file
-        self[i] = CaseLL(self.comp, self.proj, self.ext, fdir=None)
+        self[i] = CaseLL(self.comp, self.proj, self.ext, fdir=None, seam=False)
+        # Check whether or not to read seams
+        if nsm == 0:
+            # Read the seam curves from this output
+            self[i].ReadSeamCurves()
+            # Copy the seams
+            self.smx = self[i].smx
+            self.smy = self[i].smy
+            self.smz = self[i].smz
         # CSV folder names
         fll  = os.path.join(self.RootDir, self.fdir, 'lineload')
         fgrp = os.path.join(fll, frun.split(os.sep)[0])
@@ -235,111 +254,34 @@ class CaseLL(cape.lineLoad.CaseLL):
     pass
 # class CaseLL
 
-        
-# Function to read a seam file
-def ReadSeam(fname):
-    """Read a seam  ``*.sm[yz]`` file
+# Class for seam curves
+class CaseSeam(cape.lineLoad.CaseSeam):
+    """Seam curve interface
     
     :Call:
-        >>> s = ReadSeam(fname)
+        >>> S = CaseSeam(fname, comp='entire', proj='LineLoad')
     :Inputs:
         *fname*: :class:`str`
             Name of file to read
+        *comp*: :class:`str`
+            Name of the component
     :Outputs:
-        *s*: :class:`dict`
-            Dictionary of seem curves
-        *s['x']*: :class:`list` (:class:`numpy.ndarray`)
-            List of *x* coordinates of seam curves
-        *s['y']*: :class:`float` or :class:`list` (:class:`numpy.ndarray`)
-            Fixed *y* coordinate or list of seam curve *y* coordinates
-        *s['z']*: :class:`float` or :class:`list` (:class:`numpy.ndarray`)
-            Fixed *z* coordinate or list of seam curve *z* coordinates
+        *S* :class:`cape.lineLoad.CaseSeam`
+            Seam curve interface
+        *S.ax*: ``"x"`` | ``"y"`` | ``"z"``
+            Name of coordinate being held constant
+        *S.x*: :class:`float` | {:class:`list` (:class:`np.ndarray`)}
+            x-coordinate or list of seam x-coordinate vectors
+        *S.y*: :class:`float` | {:class:`list` (:class:`np.ndarray`)}
+            y-coordinate or list of seam y-coordinate vectors
+        *S.z*: {:class:`float`} | :class:`list` (:class:`np.ndarray`)
+            z-coordinate or list of seam z-coordinate vectors
     :Versions:
-        * 2015-09-17 ``@ddalle``: First version
+        * 2016-06-09 ``@ddalle``: First version
     """
-    # Initialize data.
-    s = {'x':[], 'y':[], 'z':[]}
-    # Open the file.
-    f = open(fname, 'r')
-    # Read first line.
-    line = f.readline()
-    # Get the axis and value
-    txt = line.split()[-2]
-    ax  = txt.split('=')[0]
-    val = float(txt.split('=')[1])
-    # Save it.
-    s[ax] = val
-    # Read two lines.
-    f.readline()
-    f.readline()
-    # Loop through curves.
-    while line != '':
-        # Get data
-        D = np.fromfile(f, count=-1, sep=" ")
-        # Check size.
-        m = np.floor(D.size/2) * 2
-        # Save the data.
-        if ax == 'y':
-            # y-cut
-            s['x'].append(D[0:m:2])
-            s['z'].append(D[1:m:2])
-        else:
-            # z-cut
-            s['x'].append(D[0:m:2])
-            s['y'].append(D[1:m:2])
-        # Read two lines.
-        f.readline()
-        f.readline()
-    # Cleanup
-    f.close()
-    # Output
-    return s
-        
-# Function to write a seam file
-def WriteSeam(fname, s):
-    """Write a seam curve file
-    
-    :Call:
-        >>> WriteSeam(fname, s)
-    :Inputs:
-        *fname*: :class:`str`
-            Name of file to read
-        *s*: :class:`dict`
-            Dictionary of seem curves
-        *s['x']*: :class:`list` (:class:`numpy.ndarray`)
-            List of *x* coordinates of seam curves
-        *s['y']*: :class:`float` or :class:`list` (:class:`numpy.ndarray`)
-            Fixed *y* coordinate or list of seam curve *y* coordinates
-        *s['z']*: :class:`float` or :class:`list` (:class:`numpy.ndarray`)
-            Fixed *z* coordinate or list of seam curve *z* coordinates
-    :Versions:
-        * 2015-09-17 ``@ddalle``: First version
-    """
-    # Check axis
-    if type(s['y']).__name__ in ['list', 'ndarray']:
-        # z-cuts
-        ax = 'z'
-        ct = 'y'
-    else:
-        # y-cuts
-        ax = 'y'
-        ct = 'z'
-    # Open the file.
-    f = open(fname)
-    # Write the header line.
-    f.write(' #Seam curves for %s=%s plane\n' % (ax, s[ax]))
-    # Loop through seems
-    for i in range(len(s['x'])):
-        # Header
-        f.write(' #Seam curve %11i\n' % i)
-        # Extract coordinates
-        x = s['x'][i]
-        y = s[ct][i]
-        # Write contents
-        for j in np.arange(len(x)):
-            f.write(" %11.6f %11.6f\n" % (x[j], y[j]))
-    # Cleanup
-    f.close()
+    pass
+# class CaseSeam
+
 
 # Function to determine newest triangulation file
 def GetTriqFile():

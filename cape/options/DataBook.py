@@ -1036,6 +1036,43 @@ class DataBook(odict):
         copts = self.get(comp, {})
         # Get the local setting
         return copts.get("Trim", db_trim)
+        
+    # Get line load type
+    def get_DataBookSectionType(self, comp):
+        """Get line load section type
+        
+        :Call:
+            >>> typ = opts.get_DataBookSectionType(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *typ*: {``"dlds"``} | ``"slds"`` | ``"clds"`` | :class:`str`
+                Value of the ``"SectionType"`` option
+        :Versions:
+            * 2016-06-09 ``@ddalle``: First version
+        """
+        # Global data book setting
+        db_o = self.get("SectionType", 'dlds')
+        # Get component options
+        copts = self.get(comp, {})
+        # Get the local setting
+        c_o = copts.get("SectionType", db_o).lower()
+        # Convert if necessary
+        if c_o == 'sectional':
+            # Sectional
+            return 'slds'
+        elif c_o == 'cumulative':
+            # Cumulative
+            return 'clds'
+        elif c_o == 'derivative':
+            # Derivative
+            return 'dlds'
+        else:
+            # Don't mess with the option
+            return c_o
     
     # List of components to plot
     def get_PlotComponents(self):

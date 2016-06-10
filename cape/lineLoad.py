@@ -22,6 +22,37 @@ from . import case
 from . import dataBook
 from cape import tar
 
+# Finer control of dicts
+from .options import odict
+
+# Placeholder variables for plotting functions.
+plt = 0
+
+# Radian -> degree conversion
+deg = np.pi / 180.0
+
+# Dedicated function to load Matplotlib only when needed.
+def ImportPyPlot():
+    """Import :mod:`matplotlib.pyplot` if not already loaded
+    
+    :Call:
+        >>> pyCart.dataBook.ImportPyPlot()
+    :Versions:
+        * 2014-12-27 ``@ddalle``: First version
+    """
+    # Make global variables
+    global plt
+    global tform
+    global Text
+    # Check for PyPlot.
+    try:
+        plt.gcf
+    except AttributeError:
+        # Load the modules.
+        import matplotlib.pyplot as plt
+        import matplotlib.transforms as tform
+        from matplotlib.text import Text
+
 
 # Data book of line loads
 class DBLineLoad(dataBook.DBBase):
@@ -103,9 +134,9 @@ class DBLineLoad(dataBook.DBBase):
         # Specific options for this component
         self.copts = opts['DataBook'][comp]
         # Save component name
-        self.proj = self.copts.get('Prefix', 'LineLoad')
+        self.proj = self.opts.get_DataBookPrefix(comp)
         self.comp = comp
-        self.ext  = self.copts.get("Extension", "dlds")
+        self.sec  = self.opts.get_DataBookSectionType(comp)
         # Save the file name.
         self.fname = fname
         
@@ -129,9 +160,10 @@ class DBLineLoad(dataBook.DBBase):
         self.RefL = opts.get_RefLength(self.RefComp)
         # Moment reference point
         self.MRP = np.array(opts.get_RefPoint(self.RefComp))
-        
         # Read the file or initialize empty arrays.
         self.Read(fname)
+        # Try to read the seams
+        self.ReadSeamCurves()
         
     # Representation method
     def __repr__(self):
@@ -280,6 +312,75 @@ class DBLineLoad(dataBook.DBBase):
             f.write('%i\n' % (self['nStats'][i]))
         # Close the file.
         f.close()
+        # Try to write the seam curves
+        self.WriteSeamCurves()
+    
+    # Read the seam curves
+    def ReadSeamCurves(self):
+        """Read seam curves from a data book directory
+        
+        :Call:
+            >>> DBL.ReadSeamCurves()
+        :Inputs:
+            *DBL*: :class:`cape.lineLoad.DBLineLoad`
+                Line load data book
+        :Versions:
+            * 2015-09-17 ``@ddalle``: First version (:class:`CaseLL`)
+            * 2016-06-09 ``@ddalle``: Adapted for :class:`DBLineLoad`
+        """
+        # Expected folder
+        fll = os.path.join(self.RootDir, self.fdir, 'lineload')
+        # Seam file name prefix
+        fpre = os.path.join(fll, '%s_%s' % (self.proj, self.comp))
+        # Name of output files.
+        fsmx = '%s.smx' % fpre
+        fsmy = '%s.smy' % fpre
+        fsmz = '%s.smz' % fpre
+        # Read the seam curves.
+        self.smx = CaseSeam(fsmx)
+        self.smy = CaseSeam(fsmy)
+        self.smz = CaseSeam(fsmz)
+    
+    # Write (i.e. save) seam curves
+    def WriteSeamCurves(self):
+        """Write seam curves to a common data book directory
+        
+        :Call:
+            >>> DBL.WriteSeamCurves()
+        :Inputs:
+            *DBL*: :class:`cape.lineLoad.DBLineLoad`
+                Line load data book
+        :Versions:
+            * 2016-06-09 ``@ddalle``: First version
+        """
+        # Expected folder
+        fll = os.path.join(self.RootDir, self.fdir, 'lineload')
+        # Check for folder
+        if not os.path.isdir(fll): self.opts.mkdir(fll)
+        # Seam file name prefix
+        fpre = os.path.join(fll, '%s_%s' % (self.proj, self.comp))
+        # Name of seam files
+        fsmx = '%s.smx' % fpre
+        fsmy = '%s.smy' % fpre
+        fsmz = '%s.smz' % fpre
+        # Write the x-cuts if necessary and possible
+        if not os.path.isfile(fsmx):
+            try:
+                self.smx.Write(fsmx)
+            except Exception:
+                pass
+        # Write the x-cuts if necessary and possible
+        if not os.path.isfile(fsmy):
+            try:
+                self.smy.Write(fsmx)
+            except Exception:
+                pass
+        # Write the x-cuts if necessary and possible
+        if not os.path.isfile(fsmz):
+            try:
+                self.smz.Write(fsmx)
+            except Exception:
+                pass
         
     # Read a case from the data book
     def ReadCase(self, i):
@@ -312,7 +413,8 @@ class DBLineLoad(dataBook.DBBase):
         # Check for the file
         if not os.path.isfile(fname): return
         # Read the file
-        self[i] = CaseLL(self.comp, proj=self.proj, ext='csv', fdir=frun)
+        self[i] = CaseLL(self.comp, 
+            proj=self.proj, typ=self.sec, ext='csv', fdir=frun)
         
     # Write triload.i input file
     def WriteTriloadInput(self, ftriq, i, **kw):
@@ -435,14 +537,18 @@ class CaseLL(object):
     """Interface to individual sectional load
     
     :Call:
-        >>> LL = CaseLL(comp, proj='LineLoad', ext='slds')
+        >>> LL = CaseLL(comp, proj='LineLoad', sec='slds')
     :Inputs:
         *comp*: :class:`str`
             Name of component
         *proj*: :class:`str`
             Prefix for sectional load output files
-        *ext*: ``"slds"`` | ``"clds"`` | {``"dlds"``}
-            File extension for section, cumulative, or derivative loads
+        *sec*: ``"clds"`` | {``"dlds"``} | ``"slds"``
+            Cut type, cumulative, derivative, or sectional
+        *ext*: ``"clds"`` | {``"dlds"``} | ``"slds"`` | ``"csv"``
+            File extension 
+        *fdir* {``None``} | :class:`str`
+            Name of sub folder to use
     :Outputs:
         *LL*: :class:`cape.lineLoad.CaseLL`
             Individual line load for one component from one case
@@ -451,7 +557,7 @@ class CaseLL(object):
         * 2016-06-07 ``@ddalle``: Second version, universal
     """
     # Initialization method
-    def __init__(self, comp, proj='LineLoad', ext='dlds', fdir='lineload'):
+    def __init__(self, comp, proj='LineLoad', sec='dlds', **kw):
         """Initialization method
         
         :Versions:
@@ -460,19 +566,30 @@ class CaseLL(object):
         # Save input options
         self.comp = comp
         self.proj = proj
-        self.ext  = ext
-        self.fdir = fdir
-        # File name
-        if fdir is None:
-            # Use the working folder
-            self.fname = '%s_%s.%s' % (proj, comp, ext)
+        self.sec  = sec
+        # Default extension
+        if self.sec == 'slds':
+            # Sectional
+            ext0 = 'slds'
+        elif self.sec == 'clds':
+            # Cumulative
+            ext0 = 'clds'
         else:
-            # Corral line load files in separate folder
-            self.fname = os.path.join(fdir, '%s_%s.%s' % (proj, comp, ext))
+            # Derivative
+            ext0 = 'dlds'
+        # Keyword inputs
+        self.ext  = kw.get('ext', ext0)
+        self.fdir = kw.get('fdir', None)
+        self.seam = kw.get('seam', True)
+        # File name
+        self.fname = '%s_%s.%s' % (proj, comp, self.ext)
+        if self.fdir is not None:
+            # Prepend folder name
+            self.fname = os.path.join(self.fdir, self.fname)
         # Read the file
         try:
             # Check if we are reading triload output file or data book file
-            if ext.lower() == "csv":
+            if self.ext.lower() == "csv":
                 # Read csv file
                 self.ReadCSV(self.fname)
             else:
@@ -488,6 +605,8 @@ class CaseLL(object):
             self.CLM = np.zeros(0)
             self.CLN = np.zeros(0)
         # Read the seams
+        if self.seam:
+            self.ReadSeamCurves()
     
     # Function to display contents
     def __repr__(self):
@@ -632,7 +751,7 @@ class CaseLL(object):
         
     # Read the seam curves
     def ReadSeamCurves(self):
-        """Read seam curves from a line load directory
+        """Read seam curves from a data book directory
         
         :Call:
             >>> LL.ReadSeamCurves()
@@ -650,127 +769,581 @@ class CaseLL(object):
             # Include subfolder
             fpre = os.path.join(self.fdir, '%s_%s' % (self.proj, self.comp))
         # Name of output files.
+        fsmx = '%s.smx' % fpre
         fsmy = '%s.smy' % fpre
         fsmz = '%s.smz' % fpre
         # Read the seam curves.
-        self.smy = ReadSeam(fsmy)
-        self.smz = ReadSeam(fsmz)
-    
-# class CaseLL
+        self.smx = CaseSeam(fsmx)
+        self.smy = CaseSeam(fsmy)
+        self.smz = CaseSeam(fsmz)
         
-# Function to read a seam file
-def ReadSeam(fname):
-    """Read a seam  ``*.sm[yz]`` file
+    # Plot a line load
+    def Plot(self, coeff, **kw):
+        """Plot a single line load
+        
+        :Call:
+            >>> LL.Plot(coeff, **kw)
+        :Inputs:
+            *LL*: :class:`pyCart.lineLoad.CaseLL`
+                Instance of data book line load interface
+            *coeff*: :class:`str`
+                Name of coefficient to plot
+            *x*: {``"x"``} | ``"y"`` | ``"z"``
+                Axis to use for independent axis
+            *Seams*: {``[]``} | :class:`list` (:class:`str` | :class:`CaseSeam`)
+                List of seams to plot
+            *SeamLocation*: {``"bottom"``} | ``"left"`` | ``"right"`` | ``"top"``
+                Location on which to plot seams
+            *Orientation*: {``"vertical"``} | ``"horizontal"``
+                If not 'vertical', flip *x* and *y* axes
+            *LineOptions*: {``{}``} | :class:`dict`
+                Dictionary of plot options
+            *Label*: {*LL.comp*} | :class:`str`
+                Plot label, ``LineOptions['label']`` supersedes this variable
+            *XLabel*: {``"x/Lref"``} | :class:`str`
+                Label for x-axis
+            *YLabel*: {*coeff*} | :class:`str`
+                Label for y-axis
+            *FigWidth*: :class:`float`
+                Figure width
+            *FigHeight*: :class:`float`
+                Figure height
+        :Versions:
+            * 2016-06-09 ``@ddalle``: First version
+        """
+        # Ensure plot modules are necessary
+        ImportPyPlot()
+        # Get x-axis values
+        kx = kw.get('x', 'x')
+        # Get values
+        x = getattr(self, kx)
+        y = getattr(self, coeff)
+        # Axis flip setting
+        q_vert = kw.get('Orientation', 'vertical') == 'vertical'
+        # Other plot options
+        fw = kw.get('FigWidth')
+        fh = kw.get('FigHeight')
+        # Process seams
+        sms = kw.get('Seams', [])
+        # Seam location
+        sm_loc = kw.get('SeamLocation')
+        # Check for single seam
+        if type(sms).__name__ not in ['list', 'ndarray']: sms = [sms]
+        # Number of seams
+        nsm = len(sms)
+        # Ensure seam location is also a list
+        if type(sm_loc).__name__ not in ['list', 'ndarray']:
+            sm_loc = [sm_loc] * nsm
+        # Convert seams and seam locations to proper formats
+        for i in range(nsm):
+            # Get the seam
+            sm = sms[i]
+            # Seam type
+            tsm = type(sm).__name__
+            # Check for labeled axes
+            if tsm not in ['str', 'unicode']:
+                # Already a seam
+                continue
+            elif sm.lower() in ['x', 'smx']:
+                # Get the seam handle
+                sms[i] = self.smx
+            elif sm.lower() in ['y', 'smy']:
+                # Get the y-cut seam handle
+                sms[i] = self.smy
+            else:
+                # Get the z-cut seam handle
+                sms[i] = self.smz
+            # Get the location
+            loc_i = sm_loc[i]
+            # Check default
+            if loc_i is None and q_vert:
+                # Default is to plot on the left
+                sm_loc[i] = 'left'
+            elif loc_i is None:
+                # Default is to plot seams below
+                sm_loc[i] = 'bottom'
+        # Initialize handles
+        h = {}
+        # Check for seam plots
+        if nsm > 0:
+            # Call subplot command first to avoid deleting plots
+            if q_vert:
+                # Plot seams above and below
+                plt.subplot(nsm+1, 1, 1+sm_loc.count('top'))
+            else:
+                # Plot seams to the left or right
+                plt.subplot(1, nsm+1, 1+sm_loc.count('left'))
+        # ------------
+        # Primary plot
+        # ------------
+        # Initialize primary plot options
+        kw_p = odict(color=kw.get("color","k"), ls="-", lw=1.5, zorder=7)
+        # Extract plot optiosn from kwargs
+        for k in util.denone(kw.get("LineOptions", {})):
+            # Override the default option
+            if kw["LineOptions"][k] is not None:
+                kw_p[k] = kw["LineOptions"][k]
+        # Apply label
+        kw_p.setdefault('label', kw.get('Label', self.comp))
+        # Plot
+        if q_vert:
+            # Regular orientation
+            h[coeff] = plt.plot(x, y, **kw_p)
+        else:
+            # Flip axes
+            h[coeff] = plt.plot(y, x, **kw_p)
+        # -----------------
+        # Margin adjustment
+        # -----------------
+        # Get the figure and axes handles
+        h['fig'] = plt.gcf()
+        h['ax']  = plt.gca()
+        # Check for existing label
+        ly = h['ax'].get_ylabel()
+        # Default labels
+        if self.sec == 'slds':
+            # Sectional loads
+            ly0 = coeff
+            lx0 = '%s/Lref' % kx
+        elif self.sec == 'clds':
+            # Cumulative loads
+            ly0 = coeff
+            lx0 = '%s/Lref' % kx
+        else:
+            # Derivative label
+            ly0 = 'd%s/d(%s/Lref)' % (coeff, kx)
+            lx0 = '%s/Lref' % kx
+        # Compare to the requested ylabel
+        if not ly: ly = ly0
+        # Check orientation
+        if q_vert:
+            # Get label inputs
+            xlbl = kw.get('XLabel', lx0)
+            ylbl = kw.get('YLabel', ly)
+        else:
+            # Get flipped label inputs
+            xlbl = kw.get('XLabel', ly)
+            ylbl = kw.get('YLabel', kx0)
+        # Label handles
+        h['x'] = plt.xlabel(xlbl)
+        h['y'] = plt.ylabel(ylbl)
+        # Get bounding boxes
+        if q_vert:
+            # Regular plot
+            xmin = min(x)
+            xmax = max(x)
+            ymin = min(y)
+            ymax = max(y)
+        else:
+            # Flipped plot
+            xmin = min(y)
+            xmax = max(y)
+            ymin = min(x)
+            ymax = max(x)
+        # Pads
+        xpad = kw.get('xpad', 0.03)
+        ypad = kw.get('ypad', 0.03)
+        # Plus and minus limits
+        xp = kw.get('xp', xpad) * (xmax - xmin)
+        xm = kw.get('xm', xpad) * (xmax - xmin)
+        yp = kw.get('yp', ypad) * (ymax - ymin)
+        ym = kw.get('ym', ypad) * (ymax - ymin)
+        # Set the axis limits
+        h['ax'].set_xlim((xmin - xp, xmax + xp))
+        h['ax'].set_ylim((ymin - yp, ymax + yp))
+        # Set figure dimensions
+        if fh: h['fig'].set_figheight(fh)
+        if fw: h['fig'].set_figwidth(fw)
+        # Attempt to apply tight axes.
+        try: plt.tight_layout()
+        except Exception: pass
+        # Margins
+        adj_l = kw.get('AdjustLeft')
+        adj_r = kw.get('AdjustRight')
+        adj_t = kw.get('AdjustTop')
+        adj_b = kw.get('AdjustBottom')
+        # Make adjustments
+        if adj_l: plt.subplots_adjust(left=adj_l)
+        if adj_r: plt.subplots_adjust(right=adj_r)
+        if adj_t: plt.subplots_adjust(top=adj_t)
+        if adj_b: plt.subplots_adjust(bottom=adj_b)
+        # Report the actual limits
+        h['xmin'] = xmin - xm
+        h['xmax'] = xmax + xp
+        h['ymin'] = ymin - ym
+        h['ymax'] = ymax + yp
+        # ----------
+        # Seam plots
+        # ----------
+        
+        # Output
+        return h
+        
+    # Plot a seam
+    def PlotSeam(self, s='z', **kw):
+        """Plot a set of seam curves
+        
+        :Call:
+            >>> h = LL.PlotSeam(s='z', **kw)
+        :Inputs:
+            *LL*: :class:`pyCart.lineLoad.CaseLL`
+                Instance of data book line load interface
+            *s*: ``"x"`` | ``"y"`` | {``"z"``}
+                Type of slice to plot
+            *x*: {``"x"``} | ``"y"`` | ``"z"``
+                Axis to plot on x-axis
+            *y*: ``"x"`` | {``"y"``} | ``"z"``
+                Axis to plot on y-axis
+            *LineOptions*: {``{}``} | :class:`dict`
+                Dictionary of plot options
+            *Label*: {*LL.comp*} | :class:`str`
+                Plot label, ``LineOptions['label']`` supersedes this variable
+            *XLabel*: {``"x/Lref"``} | :class:`str`
+                Label for x-axis
+            *XLabel*: {*coeff*} | :class:`str`
+                Label for y-axis
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of plot handles
+        :Versions:
+            * 2016-06-09 ``@ddalle``: First version
+        """
+        # Get name of plot
+        ksm = 'sm' + s
+        # Get handle
+        sm = getattr(self, ksm)
+        # Plot
+        h = sm.Plot(**kw)
+        # Output
+        return h
+        
+# class CaseLL
+
+# Class for seam curves
+class CaseSeam(object):
+    """Seam curve interface
     
     :Call:
-        >>> s = ReadSeam(fname)
+        >>> S = CaseSeam(fname, comp='entire', proj='LineLoad')
     :Inputs:
         *fname*: :class:`str`
             Name of file to read
+        *comp*: :class:`str`
+            Name of the component
     :Outputs:
-        *s*: :class:`dict`
-            Dictionary of seem curves
-        *s['x']*: :class:`list` (:class:`numpy.ndarray`)
-            List of *x* coordinates of seam curves
-        *s['y']*: :class:`float` or :class:`list` (:class:`numpy.ndarray`)
-            Fixed *y* coordinate or list of seam curve *y* coordinates
-        *s['z']*: :class:`float` or :class:`list` (:class:`numpy.ndarray`)
-            Fixed *z* coordinate or list of seam curve *z* coordinates
+        *S* :class:`cape.lineLoad.CaseSeam`
+            Seam curve interface
+        *S.ax*: ``"x"`` | ``"y"`` | ``"z"``
+            Name of coordinate being held constant
+        *S.x*: :class:`float` | {:class:`list` (:class:`np.ndarray`)}
+            x-coordinate or list of seam x-coordinate vectors
+        *S.y*: :class:`float` | {:class:`list` (:class:`np.ndarray`)}
+            y-coordinate or list of seam y-coordinate vectors
+        *S.z*: {:class:`float`} | :class:`list` (:class:`np.ndarray`)
+            z-coordinate or list of seam z-coordinate vectors
     :Versions:
-        * 2015-09-17 ``@ddalle``: First version
+        * 2016-06-09 ``@ddalle``: First version
     """
-    # Initialize data.
-    s = {'x':[], 'y':[], 'z':[]}
-    # Check for the file
-    if not os.path.isfile(fname): return s
-    # Open the file.
-    f = open(fname, 'r')
-    # Read first line.
-    line = f.readline()
-    # Get the axis and value
-    txt = line.split()[-2]
-    ax  = txt.split('=')[0]
-    val = float(txt.split('=')[1])
-    # Save it.
-    s[ax] = val
-    # Read two lines.
-    f.readline()
-    f.readline()
-    # Loop through curves.
-    while line != '':
-        # Get data
-        D = np.fromfile(f, count=-1, sep=" ")
-        # Check size.
-        m = np.floor(D.size/2) * 2
-        # Save the data.
-        if ax == 'y':
-            # y-cut
-            s['x'].append(D[0:m:2])
-            s['z'].append(D[1:m:2])
-        else:
-            # z-cut
-            s['x'].append(D[0:m:2])
-            s['y'].append(D[1:m:2])
+    # Initialization method
+    def __init__(self, fname, comp='entire', proj='LineLoad'):
+        """Initialization method
+        
+        :Versions:
+            * 2016-06-09 ``@ddalle``: First version
+        """
+        # Save file
+        self.fname = fname
+        # Save prefix and component name
+        self.proj = proj
+        self.comp = comp
+        # Read file
+        self.Read()
+        
+    # Representation method
+    def __repr__(self):
+        """Representation method
+        
+        :Versions:
+            * 2016-06-09 ``@ddalle``: First version
+        """
+        return "<CaseSeam '%s', n=%s>" % (self.fname, self.n)
+        
+    # Function to read a seam file
+    def Read(self, fname=None):
+        """Read a seam  ``*.sm[yz]`` file
+        
+        :Call:
+            >>> S.Read(fname=None)
+        :Inputs:
+            *S* :class:`cape.lineLoad.CaseSeam`
+                Seam curve interface
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *S.n*: :class:`int`
+                Number of points in vector entries
+            *S.x*: :class:`list` (:class:`numpy.ndarray`)
+                List of *x* coordinates of seam curves
+            *S.y*: :class:`float` or :class:`list` (:class:`numpy.ndarray`)
+                Fixed *y* coordinate or list of seam curve *y* coordinates
+            *S.z*: :class:`float` or :class:`list` (:class:`numpy.ndarray`)
+                Fixed *z* coordinate or list of seam curve *z* coordinates
+        :Versions:
+            * 2015-09-17 ``@ddalle``: First version
+            * 2016-06-09 ``@ddalle``: Added possibility of x-cuts
+        """
+        # Default file name
+        if fname is None: fname = self.fname
+        # Initialize seam count
+        self.n = 0
+        # Initialize seams
+        self.x = []
+        self.y = []
+        self.z = []
+        # Check for the file
+        if not os.path.isfile(fname): return
+        # Open the file.
+        f = open(fname, 'r')
+        # Read first line.
+        line = f.readline()
+        # Get the axis and value
+        txt = line.split()[-2]
+        ax  = txt.split('=')[0]
+        val = float(txt.split('=')[1])
+        # Name of cut axis
+        self.ax = ax
+        # Save the value
+        setattr(self, ax, val)
         # Read two lines.
         f.readline()
         f.readline()
-    # Cleanup
-    f.close()
-    # Output
-    return s
+        # Loop through curves.
+        while line != '':
+            # Get data
+            D = np.fromfile(f, count=-1, sep=" ")
+            # Check size.
+            m = np.floor(D.size/2) * 2
+            # Save the data.
+            if ax == 'x':
+                # x-cut
+                self.y.append(D[0:m:2])
+                self.z.append(D[1:m:2])
+            elif ax == 'y':
+                # y-cut
+                self.x.append(D[0:m:2])
+                self.z.append(D[1:m:2])
+            else:
+                # z-cut
+                self.x.append(D[0:m:2])
+                self.y.append(D[1:m:2])
+            # Segment count
+            self.n += 1
+            # Read two lines.
+            line = f.readline()
+            line = f.readline()
+        # Cleanup
+        f.close()
+            
+    # Function to write a seam file
+    def Write(self, fname=None):
+        """Write a seam curve file
         
-# Function to write a seam file
-def WriteSeam(fname, s):
-    """Write a seam curve file
-    
-    :Call:
-        >>> WriteSeam(fname, s)
-    :Inputs:
-        *fname*: :class:`str`
-            Name of file to read
-        *s*: :class:`dict`
-            Dictionary of seem curves
-        *s['x']*: :class:`list` (:class:`numpy.ndarray`)
-            List of *x* coordinates of seam curves
-        *s['y']*: :class:`float` or :class:`list` (:class:`numpy.ndarray`)
-            Fixed *y* coordinate or list of seam curve *y* coordinates
-        *s['z']*: :class:`float` or :class:`list` (:class:`numpy.ndarray`)
-            Fixed *z* coordinate or list of seam curve *z* coordinates
-    :Versions:
-        * 2015-09-17 ``@ddalle``: First version
-    """
-    # Check axis
-    if type(s['y']).__name__ in ['list', 'ndarray']:
-        # z-cuts
-        ax = 'z'
-        ct = 'y'
-    else:
-        # y-cuts
-        ax = 'y'
-        ct = 'z'
-    # Open the file.
-    f = open(fname)
-    # Write the header line.
-    f.write(' #Seam curves for %s=%s plane\n' % (ax, s[ax]))
-    # Loop through seems
-    for i in range(len(s['x'])):
-        # Header
-        f.write(' #Seam curve %11i\n' % i)
-        # Extract coordinates
-        x = s['x'][i]
-        y = s[ct][i]
-        # Write contents
-        for j in np.arange(len(x)):
-            f.write(" %11.6f %11.6f\n" % (x[j], y[j]))
-    # Cleanup
-    f.close()
+        :Call:
+            >>> S.Write(fname)
+        :Inputs:
+            *S* :class:`cape.lineLoad.CaseSeam`
+                Seam curve interface
+            *fname*: :class:`str`
+                Name of file to read
+        :Versions:
+            * 2015-09-17 ``@ddalle``: First version
+            * 2016-06-09 ``@ddalle``: Added possibility of x-cuts
+            * 2016-06-09 ``@ddalle``: Moved to seam class
+        """
+        # Default file name
+        if fname is None:
+            fname = '%s_%s.sm%s' % (self.proj, self.comp, self.ax)
+        # Check if there's anything to write.
+        if self.n < 1: return
+        # Axis types
+        vx = type(self.x).__name__ in ['list', 'ndarray']
+        vy = type(self.y).__name__ in ['list', 'ndarray']
+        vz = type(self.z).__name__ in ['list', 'ndarray']
+        # Check axis
+        if self.ax == 'x':
+            # x-cuts
+            x1 = 'y'
+            x2 = 'z'
+        elif self.ax == 'z':
+            # z-cuts
+            x1 = 'x'
+            x2 = 'y'
+        else:
+            # y-cuts
+            x1 = 'x'
+            x2 = 'z'
+        # Open the file.
+        f = open(fname)
+        # Write the header line.
+        f.write(' #Seam curves for %s=%s plane\n' % (self.ax, getattr(self,ax)))
+        # Loop through seems
+        for i in range(self.n):
+            # Header
+            f.write(' #Seam curve %11i\n' % i)
+            # Extract coordinates
+            x = getattr(self,x1)[i]
+            y = getattr(self,x2)[i]
+            # Write contents
+            for j in np.arange(len(x)):
+                f.write(" %11.6f %11.6f\n" % (x[j], y[j]))
+        # Cleanup
+        f.close()
+        
+    # Function to plot a set of seam curves
+    def Plot(self, **kw):
+        """Plot a set of seam curves
+        
+        :Call:
+            >>> h = S.Plot(**kw)
+        :Inputs:
+            *S* :class:`cape.lineLoad.CaseSeam`
+                Seam curve interface
+            *x*: {``"x"``} | ``"y"`` | ``"z"``
+                Axis to plot on x-axis
+            *y*: ``"x"`` | {``"y"``} | ``"z"``
+                Axis to plot on y-axis
+            *LineOptions*: {``{}``} | :class:`dict`
+                Dictionary of plot options
+            *Label*: :class:`str`
+                Plot label, ``LineOptions['label']`` supersedes this variable
+            *XLabel*: {``"x/Lref"``} | :class:`str`
+                Label for x-axis
+            *XLabel*: {*coeff*} | :class:`str`
+                Label for y-axis
+            *xpad*: {``0.03``} | :class:`float`
+                Relative margin to pad x-axis limits
+            *ypad*: {``0.03``} | :class:`float`
+                Relative margin to pad y-axis limits
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of plot handles
+        :Versions:
+            * 2016-06-09 ``@ddalle``: First version
+        """
+        # Ensure plotting modules
+        ImportPyPlot()
+        # Other plot options
+        fw = kw.get('FigWidth')
+        fh = kw.get('FigHeight')
+        # Get default axes
+        if self.ax == 'x':
+            # X-cuts
+            x0 = 'y'
+            y0 = 'z'
+        elif self.ax == 'y':
+            # Y-cuts
+            x0 = 'x'
+            y0 = 'z'
+        else:
+            # Z-cuts
+            x0 = 'x'
+            y0 = 'z'
+        # Get axes
+        kx = kw.get('x', x0)
+        ky = kw.get('y', y0)
+        # Name for plot handles
+        ksm = 'sm' + self.ax
+        # ------------
+        # Primary plot
+        # ------------
+        # Initialize primary plot options
+        kw_p = odict(color=kw.get("color","k"), ls="-", lw=1.5, zorder=7)
+        # Extract plot optiosn from kwargs
+        for k in util.denone(kw.get("LineOptions", {})):
+            # Override the default option
+            if kw["LineOptions"][k] is not None:
+                kw_p[k] = kw["LineOptions"][k]
+        # Apply label
+        kw_p.setdefault('label', kw.get('Label', self.comp))
+        # Initialize handles
+        h = {ksm: []}
+        # Initialize limits
+        xmin = 1e99; xmax = -1e99
+        ymin = 1e99; ymax = -1e99
+        # Loop through curves
+        for i in range(self.n):
+            # Turn off labels after first plot
+            if i == 1: del kw_p['label']
+            # Get coordinates
+            x = getattr(self, kx)[i]
+            y = getattr(self, ky)[i]
+            # Plot
+            h[ksm].append(plt.plot(x, y, **kw_p))
+            # Update limits
+            xmin = min(xmin, min(x))
+            xmax = max(xmax, max(x))
+            ymin = min(ymin, min(y))
+            ymax = max(ymax, max(y))
+        # --------------
+        # Figure margins
+        # --------------
+        # Get the figure and axes.
+        h['fig'] = plt.gcf()
+        h['ax'] = plt.gca()
+        # Process axis labels
+        xlbl = kw.get('XLabel', kx + '/Lref')
+        ylbl = kw.get('YLabel', ky + '/Lref')
+        # Label handles
+        h['x'] = plt.xlabel(xlbl)
+        h['y'] = plt.ylabel(ylbl)
+        # Pads
+        xpad = kw.get('xpad', 0.03)
+        ypad = kw.get('ypad', 0.03)
+        # Plus and minus limits
+        xp = kw.get('xp', xpad) * (xmax - xmin)
+        xm = kw.get('xm', xpad) * (xmax - xmin)
+        yp = kw.get('yp', ypad) * (ymax - ymin)
+        ym = kw.get('ym', ypad) * (ymax - ymin)
+        # Ensure proper aspect ratio
+        plt.axis('equal')
+        # Set the axis limits
+        h['ax'].set_ylim((ymin - ym, ymax + yp))
+        h['ax'].set_xlim((xmin - xm, xmax + xp))
+        # Set figure dimensions
+        if fh: h['fig'].set_figheight(fh)
+        if fw: h['fig'].set_figwidth(fw)
+        # Attempt to apply tight axes.
+        try: plt.tight_layout()
+        except Exception: pass
+        # Margins
+        adj_l = kw.get('AdjustLeft')
+        adj_r = kw.get('AdjustRight')
+        adj_t = kw.get('AdjustTop')
+        adj_b = kw.get('AdjustBottom')
+        # Make adjustments
+        if adj_l: plt.subplots_adjust(left=adj_l)
+        if adj_r: plt.subplots_adjust(right=adj_r)
+        if adj_t: plt.subplots_adjust(top=adj_t)
+        if adj_b: plt.subplots_adjust(bottom=adj_b)
+        # Report the actual limits
+        h['xmin'] = xmin - xm
+        h['xmax'] = xmax + xp
+        h['ymin'] = ymin - ym
+        h['ymax'] = ymax + yp
+        # Output
+        return h
+        
+# class CaseSeam
 
 # Function to determine newest triangulation file
-def GetTriqFile():
+def GetTriqFile(proj='Components'):
     """Get most recent ``triq`` file and its associated iterations
     
     :Call:
-        >>> ftriq, n, i0, i1 = GetTriqFile()
+        >>> ftriq, n, i0, i1 = GetTriqFile(proj='Components')
+    :Inputs:
+        *proj*: {``"Components"``} | :class:`str`
+            File root name
     :Outputs:
         *ftriq*: :class:`str`
             Name of ``triq`` file
@@ -789,9 +1362,9 @@ def GetTriqFile():
     fpwd = os.getcwd()
     os.chdir(fwrk)
     # Get the glob of numbered files.
-    fglob3 = glob.glob('Components.*.*.*.triq')
-    fglob2 = glob.glob('Components.*.*.triq')
-    fglob1 = glob.glob('Components.[0-9]*.triq')
+    fglob3 = glob.glob('%s.*.*.*.triq'  % proj)
+    fglob2 = glob.glob('%s.*.*.triq'    % proj)
+    fglob1 = glob.glob('%s.[0-9]*.triq' % proj)
     # Check it.
     if len(fglob3) > 0:
         # Get last iterations
@@ -829,14 +1402,14 @@ def GetTriqFile():
         # File name
         ftriq = fglob1[j]
     # Plain file
-    elif os.path.isfile('Components.i.triq'):
+    elif os.path.isfile('%s.i.triq' % proj):
         # Iteration counts: assume it's most recent iteration
         i1 = self.cart3d.CheckCase(self.i)
         i0 = i1
         # Count
         n = 1
         # file name
-        ftriq = 'Components.i.triq'
+        ftriq = '%s.i.triq' % proj
     else:
         # No iterations
         i1 = None

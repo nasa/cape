@@ -1402,6 +1402,11 @@ class Options(odict):
     def get_DataBookExtension(self, comp):
         self._DataBook()
         return self['DataBook'].get_DataBookExtension(comp)
+        
+    # Get line load section type
+    def get_DataBookSectionType(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookSectionType(comp)
     
     # Group/points
     def get_DBGroupPoints(self, name):
@@ -1416,7 +1421,8 @@ class Options(odict):
             'DataBookCols', 'CompTargets', 'DataBookTransformations',
             'DataBookDataCols', 'DataBookTargetCols', 'DataBookTargetByName',
             'DataBookCompID',   'DataBook_nCut',      'DataBookMomentum',
-            'DataBookTrim',     'DataBookPrefix',     'DataBookExtension'
+            'DataBookTrim',     'DataBookPrefix',     'DataBookSectionType',
+            'DataBookExtension'
     ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
