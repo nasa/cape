@@ -148,16 +148,20 @@ class Report(cape.report.Report):
         return pointSensor.CasePointSensor()
         
     # Read line loads
-    def ReadLineLoad(self, comp):
+    def ReadLineLoad(self, comp, i, update=False):
         """Read line load for a case
         
         :Call:
-            >>> LL = R.ReadLineLoad(comp)
+            >>> LL = R.ReadLineLoad(comp, i, update=False)
         :Inputs:
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
             *comp*: :class:`str`
                 Name of line load component
+            *i*: :class:`int`
+                Case number
+            *update*: ``True`` | {``False``}
+                Whether or not to attempt an update if case not in data book
         :Outputs:
             *LL*: :class:`pyCart.lineLoad.CaseLL`
                 Individual case line load interface
@@ -171,8 +175,18 @@ class Report(cape.report.Report):
         # Read the data book and line load data book
         self.cntl.ReadDataBook()
         self.cntl.ReadLineLoad(comp, conf=self.cntl.config)
-        # Read line load
-        return lineLoad.CaseLL()
+        # Get the line load data book
+        DBL = self.cntl.DataBook.LineLoads[comp]
+        # Read the case
+        DBL.ReadCase(i)
+        # Check auto-update flag
+        if update and i not in DBL:
+            # Update the case
+            DBL.UpdateCase(i)
+            # Read the case
+            DBL.ReadCase(i)
+        # Output the data book
+        return DBL
         
     # Update subfig for case
     def UpdateCaseSubfigs(self, fig, i):
@@ -214,8 +228,11 @@ class Report(cape.report.Report):
             elif btyp == 'PlotCoeff':
                 # Get the force or moment history plot
                 lines += self.SubfigPlotCoeff(sfig, i)
+            elif btyp == 'PlotLineLoad':
+                # Get the sectional loads plot
+                lines += self.SubfigPlotLineLoad(sfig, i)
             elif btyp == 'PlotPoint':
-                # Get the poitn sensor history plot
+                # Get the point sensor history plot
                 lines += self.SubfigPlotPoint(sfig, i)
             elif btyp == 'PlotL1':
                 # Get the residual plot

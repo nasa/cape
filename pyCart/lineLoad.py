@@ -112,7 +112,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             q = True
         else:
             # Up-to-date
-            print("  Databook up to date.")
+            print("  Databook '%s' up to date." % self.comp)
             q = False
         # Check for update
         if not q:

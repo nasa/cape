@@ -810,6 +810,8 @@ class CaseLL(object):
                 If not 'vertical', flip *x* and *y* axes
             *LineOptions*: {``{}``} | :class:`dict`
                 Dictionary of plot options
+            *SeamOptions*: {``{}``} | :class:`dict`
+                Dictionary of plot options
             *Label*: {*LL.comp*} | :class:`str`
                 Plot label, ``LineOptions['label']`` supersedes this variable
             *XLabel*: {``"x/Lref"``} | :class:`str`
@@ -993,6 +995,13 @@ class CaseLL(object):
         # Save all the positions; some will be overwritten
         xax_min, yax_min = pax[0]
         xax_max, yax_max = pax[1]
+        # Seam plot options
+        kw_S = kw.copy()
+        # Transfer options
+        kw_S['LineOptions'] = kw.get('SeamOptions')
+        # Default to last line options
+        if kw_S['LineOptions'] in [{}, None]:
+            kw_S['LineOptions'] = kw_p
         # Loop through seams
         for i in range(nsm):
             # Get subfig number
@@ -1017,7 +1026,7 @@ class CaseLL(object):
                 # Select the plot
                 plt.subplot(1, nsm+1, sfigi)
             # Plot the seam
-            hi = sms[i].Plot(**kw)
+            hi = sms[i].Plot(**kw_S)
             # Save the handles
             H[sfigi-1] = hi
             # Copy axes handle
@@ -1085,8 +1094,6 @@ class CaseLL(object):
                     yax_min = yax_min + haxi + w_sfig
                 # Copy the limits again
                 ax.set_xlim(xlim)
-                print("position: [%s, %s, %s, %s]" %
-                    (xax_min, yax_min, xax_max, yax_max))
             else:
                 # Automatic axis width based on aspect ratio
                 waxi = hax / AR[i]
@@ -1200,7 +1207,8 @@ class CaseSeam(object):
         :Versions:
             * 2016-06-09 ``@ddalle``: First version
         """
-        return "<CaseSeam '%s', n=%s>" % (self.fname, self.n)
+        return "<CaseSeam '%s', n=%s>" % (
+            os.path.split(self.fname)[-1], self.n)
         
     # Function to read a seam file
     def Read(self, fname=None):

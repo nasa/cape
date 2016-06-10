@@ -160,6 +160,30 @@ class Report(odict):
                 "facecolor": "g", "alpha": 0.4, "ls": "none"},
             "DeltaOptions": {"color": None}
         }
+        # Line load plot
+        self.defs['PlotLineLoad'] = {
+            "Header": "",
+            "Position": "b",
+            "Alignment": "center",
+            "Width": 0.5,
+            "FigWidth": 6,
+            "FigHeight": 4.5,
+            "Component": "entire",
+            "Coefficient": "CN",
+            "Format": "pdf",
+            "DPI": 150,
+            "LineOptions": {"color": ["k","g","c","m","b","r"]},
+            "SeamOptions": None,
+            "SeamCurves": "smy",
+            "SeamLocations": None,
+            "Orientation": "vertical",
+            "AutoUpdate": True,
+            "AdjustLeft": 0.12,
+            "AdjustRight": 0.97,
+            "AdjustBottom": 0.1,
+            "AdjustTop": 0.97,
+            "SubplotMargin": 0.015
+        }
         # Point sensor history
         self.defs['PlotPoint'] = {
             "Header": "",

@@ -982,6 +982,9 @@ class Report(object):
             elif btyp == 'PlotCoeff':
                 # Get the force or moment history plot
                 lines += self.SubfigPlotCoeff(sfig, i)
+            elif btyp == 'PlotLineLoad':
+                # Plot a sectional loads plot
+                lines += self.SubfigPlotLineLoad(sfig, i)
             elif btyp == 'PlotL1':
                 # Get the residual plot
                 lines += self.SubfigPlotL1(sfig, i)
@@ -1382,7 +1385,7 @@ class Report(object):
             *i*: :class:`int`
                 Case index
         :Versions:
-            * 2014-03-09 ``@ddalle``: First version
+            * 2015-03-09 ``@ddalle``: First version
         """
         # Save current folder.
         fpwd = os.getcwd()
@@ -1513,6 +1516,172 @@ class Report(object):
                 ShowSigma=sh_s, SigmaFormat=fmt_s,
                 ShowEspsilon=sh_e, EpsilonFormat=fmt_e,
                 FigWidth=figw, FigHeight=figh)
+        # Change back to report folder.
+        os.chdir(fpwd)
+        # Check for a figure to write.
+        if nIter >= 2:
+            # Get the file formatting
+            fmt = opts.get_SubfigOpt(sfig, "Format")
+            dpi = opts.get_SubfigOpt(sfig, "DPI")
+            # Figure name
+            fimg = '%s.%s' % (sfig, fmt)
+            fpdf = '%s.pdf' % sfig
+            # Save the figure.
+            if fmt.lower() in ['pdf']:
+                # Save as vector-based image.
+                h['fig'].savefig(fimg)
+            elif fmt.lower() in ['svg']:
+                # Save as PDF and SVG
+                h['fig'].savefig(fimg)
+                h['fig'].savefig(fpdf)
+            else:
+                # Save with resolution.
+                h['fig'].savefig(fimg, dpi=dpi)
+                h['fig'].savefig(fpdf)
+            # Close the figure.
+            h['fig'].clf()
+            # Include the graphics.
+            lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                % (frun, fpdf))
+        # Set the caption.
+        lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
+        # Close the subfigure.
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
+        
+    # Function to create coefficient plot and write figure
+    def SubfigPlotLineLoad(self, sfig, i):
+        """Create plot for a sectional loads profile
+        
+        :Call:
+            >>> lines = R.SubfigPlotLineLoad(sfig, i)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure to update
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2016-06-10 ``@ddalle``: First version
+        """
+        # Save current folder.
+        fpwd = os.getcwd()
+        # Case folder
+        frun = self.cntl.x.GetFullFolderNames(i)
+        # Extract options
+        opts = self.cntl.opts
+        # Get the component.
+        comp = opts.get_SubfigOpt(sfig, "Component")
+        # Get the coefficient
+        coeff = opts.get_SubfigOpt(sfig, "Coefficient")
+        # List of coefficients
+        if type(coeff).__name__ in ['list', 'ndarray']:
+            # List of coefficients
+            nCoeff = len(coeff)
+        else:
+            # One entry
+            nCoeff = 1
+        # Check for list of components
+        if type(comp).__name__ in ['list', 'ndarray']:
+            # List of components
+            nCoeff = max(nCoeff, len(comp))
+        # Current status
+        nIter  = self.cntl.CheckCase(i)
+        # Get caption.
+        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        # Process default caption. 
+        if fcpt is None:
+            # Check for a list.
+            if type(comp).__name__ in ['list']:
+                # Join them, e.g. "[RSRB,LSRB]/CA"
+                fcpt = "[" + ",".join(comp) + "]"
+            else:
+                # Use the coefficient.
+                fcpt = comp
+            # Defaut: Wing/CY
+            fcpt = ("%s/%s" % (fcpt, coeff))
+            # Ensure there are no underscores.
+            fcpt = fcpt.replace('_', '\_')
+        # Get the vertical alignment.
+        hv = opts.get_SubfigOpt(sfig, "Position")
+        # Get subfigure width
+        wsfig = opts.get_SubfigOpt(sfig, "Width")
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = opts.get_SubfigOpt(sfig, "Header")
+        # Alignment
+        algn = opts.get_SubfigOpt(sfig, "Alignment")
+        # Set alignment.
+        if algn.lower() == "center":
+            lines.append('\\centering\n')
+        # Write the header.
+        if fhdr:
+            # Save the line
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+            lines.append('\\vskip-6pt\n')
+        # Loop through plots.
+        for k in range(nCoeff):
+            # Get the component and coefficient.
+            comp = opts.get_SubfigOpt(sfig, "Component", k)
+            coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
+            # Go to the run directory.
+            os.chdir(self.cntl.RootDir)
+            os.chdir(frun)
+            # Read the line load data book and read case *i* if possible
+            DBL = self.ReadLineLoad(comp, i)
+            # Check for case
+            if i not in DBL: continue
+            # Select line load
+            LL = DBL[i]
+            # Loop through the transformations.
+            for topts in opts.get_DataBookTransformations(comp):
+                pass
+                # Apply the transformation.
+                # LL.TransformFM(topts, self.cntl.x, i)
+            # Get figure dimensions.
+            figw = opts.get_SubfigOpt(sfig, "FigWidth", k)
+            figh = opts.get_SubfigOpt(sfig, "FigHeight", k)
+            # Rotate this figure?
+            orient = opts.get_SubfigOpt(sfig, "Orientation", k)
+            # Plot options
+            kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",   k)
+            kw_s = opts.get_SubfigPlotOpt(sfig, "SeamOptions",   k)
+            # Seam curve options
+            sm_ax  = opts.get_SubfigOpt(sfig, "SeamCurves", k)
+            sm_loc = opts.get_SubfigOpt(sfig, "SeamLocations", k)
+            # Margins
+            adj_l = opts.get_SubfigOpt('AdjustLeft',   k)
+            adj_r = opts.get_SubfigOpt('AdjustRight',  k)
+            adj_t = opts.get_SubfigOpt('AdjustTop',    k)
+            adj_b = opts.get_SubfigOpt('AdjustBottom', k)
+            # Subplot margin
+            w_sfig = opts.get_SubfigOpt(sfig, 'SubplotMargin', k)
+            # Axes padding options
+            kw_pad = {
+                'xpad': opts.get_SubfigOpt('XPad', k),
+                'ypad': opts.get_SubfigOpt('YPad', k)
+            }
+            # Asymmetric padding
+            xp = opts.get_SubfigOpt('XPlus', k)
+            yp = opts.get_SubfigOpt('YPlus', k)
+            xm = opts.get_SubfigOpt('XMinus', k)
+            ym = opts.get_SubfigOpt('YMinus', k)
+            # Apply asymmetric padding
+            if xm is not None: kw_pad['xm'] = xm
+            if xp is not None: kw_pad['xp'] = xp
+            if ym is not None: kw_pad['ym'] = ym
+            if yp is not None: kw_pad['yp'] = yp
+            # Draw the plot.
+            h = LL.Plot(coeff, 
+                Seams=sm_ax, SeamLocation=sm_loc,
+                LineOptions=kw_p, SeamOptions=kw_s,
+                FigWidth=figw, FigHeight=figh,
+                AdjustLeft=adj_l, AdjustRight=adj_r,
+                AdjustTop=adj_t, Adjust_Bottom=adj_b,
+                SubplotMargin=w_sfig, **kw_pad)
         # Change back to report folder.
         os.chdir(fpwd)
         # Check for a figure to write.
