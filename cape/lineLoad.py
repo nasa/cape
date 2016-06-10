@@ -88,7 +88,7 @@ class DBLineLoad(dataBook.DBBase):
         * 2015-09-16 ``@ddalle``: First version
         * 2016-05-11 ``@ddalle``: Moved to :mod:`cape`
     """
-    def __init__(self, x, opts, comp, proj='LineLoad', conf=None, RootDir=None):
+    def __init__(self, x, opts, comp, conf=None, RootDir=None):
         """Initialization method
         
         :Versions:
@@ -137,6 +137,9 @@ class DBLineLoad(dataBook.DBBase):
         self.proj = self.opts.get_DataBookPrefix(comp)
         self.comp = comp
         self.sec  = self.opts.get_DataBookSectionType(comp)
+        # Defaults
+        if self.proj is None: self.proj = 'LineLoad'
+        if self.sec  is None: self.sec  = 'dlds'
         # Save the file name.
         self.fname = fname
         
@@ -223,15 +226,12 @@ class DBLineLoad(dataBook.DBBase):
                 delimiter=delim, dtype=float, usecols=[nCol+1])
             self['ZMRP'] = np.loadtxt(fname,
                 delimiter=delim, dtype=float, usecols=[nCol+2])
-            k = 'ZMRP'
             # Iteration number
             nCol += 3
             self['nIter'] = np.loadtxt(fname,
                 delimiter=delim, dtype=int, usecols=[nCol])
-            k = 'nIter'
             # Stats
             nCol += 1
-            k = 'nStats'
             self['nStats'] = np.loadtxt(fname,
                 delimiter=delim, dtype=int, usecols=[nCol])
             # Number of cases
