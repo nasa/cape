@@ -37,6 +37,24 @@ def ImportPointSensor():
         # Load the modules.
         import pointSensor
 
+# Dedicated function to load lineLoad only when needed.
+def ImportLineLoad():
+    """Import :mod:`pyCart.lineLoad` if not loaded
+    
+    :Call:
+        >>> pyCart.report.ImportLineLoad()
+    :Versions:
+        * 2016-06-10 ``@ddalle``: First version
+    """
+    # Make global variables
+    global lineLoad
+    # Check for PyPlot.
+    try:
+        lineLoad
+    except Exception:
+        # Load the modules
+        import lineLoad
+
 
 # Class to interface with report generation and updating.
 class Report(cape.report.Report):
@@ -109,7 +127,7 @@ class Report(cape.report.Report):
         """
         return CaseResid()
         
-    # Read point sensor history]
+    # Read point sensor history
     def ReadPointSensor(self):
         """Read iterative history for a case
         
@@ -128,6 +146,33 @@ class Report(cape.report.Report):
         ImportPointSensor()
         # Read point sensors history
         return pointSensor.CasePointSensor()
+        
+    # Read line loads
+    def ReadLineLoad(self, comp):
+        """Read line load for a case
+        
+        :Call:
+            >>> LL = R.ReadLineLoad(comp)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *comp*: :class:`str`
+                Name of line load component
+        :Outputs:
+            *LL*: :class:`pyCart.lineLoad.CaseLL`
+                Individual case line load interface
+        :Versions:
+            * 2016-06-10 ``@ddalle``: First version
+        """
+        # Make sure the modules are present.
+        ImportLineLoad()
+        # Ensure configuration is present
+        self.cntl.ReadConfig()
+        # Read the data book and line load data book
+        self.cntl.ReadDataBook()
+        self.cntl.ReadLineLoad(comp, conf=self.cntl.config)
+        # Read line load
+        return lineLoad.CaseLL()
         
     # Update subfig for case
     def UpdateCaseSubfigs(self, fig, i):

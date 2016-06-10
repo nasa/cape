@@ -192,7 +192,7 @@ class Cntl(object):
             cfg = None
         else:
             # Read config file
-            cfg = Config(self.opts.get_ConfigFile())
+            cfg = Config(fxml)
         # Ensure list
         if type(ftri).__name__ not in ['list', 'ndarray']: ftri = [ftri]
         # Read first file
@@ -224,6 +224,45 @@ class Cntl(object):
         # Make a copy of the original to revert to after rotations, etc.
         self.tri0 = self.tri.Copy()
         # Return to original location.
+        os.chdir(fpwd)
+        
+    # Read configuration (without tri file if necessary)
+    def ReadConfig(self):
+        """Read ``Config.xml`` file if not already present
+        
+        :Call:
+            >>> cntl.ReadConfig()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+        :Versions:
+            * 2016-06-10 ``@ddalle``: First version
+        """
+        # Check for config
+        try:
+            self.config
+            return
+        except AttributeError:
+            pass
+        # Try to read from the triangulation
+        try:
+            self.config = self.tri.config
+            return
+        except AttributeError:
+            pass
+        # Name of config file
+        fxml = self.opts.get_ConfigFile()
+        # Change to root directory
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Read the configuration if it can be found
+        if fxml is None or not os.path.isfile(fxml):
+            # Nothing to read
+            self.config = None
+        else:
+            # Read config file
+            self.config = Config(fxml)
+        # Return to original location
         os.chdir(fpwd)
         
     # Make a directory
@@ -278,9 +317,9 @@ class Cntl(object):
         """Check jobs and prepare or submit jobs if necessary
         
         :Call:
-            >>> cart3d.SubmitJobs(**kw)
+            >>> cntl.SubmitJobs(**kw)
         :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+            *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *c*: :class:`bool`
                 If ``True``, only display status; do not submit new jobs
