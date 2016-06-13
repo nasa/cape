@@ -298,6 +298,8 @@ class Cart3d(Cntl):
         I = self.x.GetIndices(**kw)
         # Read the existing data book.
         self.ReadDataBook()
+        # Get lineload option
+        ll = kw.get('ll')
         # CHeck for single line load
         if ll in [None, True]:
             # Use all components
