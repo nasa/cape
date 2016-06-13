@@ -274,11 +274,11 @@ class Cart3d(Cntl):
         os.chdir(fpwd)
         
     # Update line loads
-    def UpdateLineLoads(self, **kw):
+    def UpdateLineLoad(self, **kw):
         """Update one or more line load data books
         
         :Call:
-            >>> cart3d.UpdateLineLoads(ll=None, **kw)
+            >>> cart3d.UpdateLineLoad(ll=None, **kw)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
