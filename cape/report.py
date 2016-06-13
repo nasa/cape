@@ -1425,24 +1425,8 @@ class Report(object):
             fcpt = ("%s/%s" % (fcpt, coeff))
             # Ensure there are no underscores.
             fcpt = fcpt.replace('_', '\_')
-        # Get the vertical alignment.
-        hv = opts.get_SubfigOpt(sfig, "Position")
-        # Get subfigure width
-        wsfig = opts.get_SubfigOpt(sfig, "Width")
-        # First line.
-        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
-        # Check for a header.
-        fhdr = opts.get_SubfigOpt(sfig, "Header")
-        # Alignment
-        algn = opts.get_SubfigOpt(sfig, "Alignment")
-        # Set alignment.
-        if algn.lower() == "center":
-            lines.append('\\centering\n')
-        # Write the header.
-        if fhdr:
-            # Save the line
-            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
-            lines.append('\\vskip-6pt\n')
+        # First lines.
+        lines = self.SubfigInit(sfig)
         # Loop through plots.
         for k in range(nCoeff):
             # Get the component and coefficient.
@@ -1604,24 +1588,8 @@ class Report(object):
             fcpt = ("%s/%s" % (fcpt, coeff))
             # Ensure there are no underscores.
             fcpt = fcpt.replace('_', '\_')
-        # Get the vertical alignment.
-        hv = opts.get_SubfigOpt(sfig, "Position")
-        # Get subfigure width
-        wsfig = opts.get_SubfigOpt(sfig, "Width")
-        # First line.
-        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
-        # Check for a header.
-        fhdr = opts.get_SubfigOpt(sfig, "Header")
-        # Alignment
-        algn = opts.get_SubfigOpt(sfig, "Alignment")
-        # Set alignment.
-        if algn.lower() == "center":
-            lines.append('\\centering\n')
-        # Write the header.
-        if fhdr:
-            # Save the line
-            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
-            lines.append('\\vskip-6pt\n')
+        # First lines.
+        lines = self.SubfigInit(sfig)
         # Loop through plots.
         for k in range(nCoeff):
             # Get the component and coefficient.
@@ -1630,8 +1598,10 @@ class Report(object):
             # Go to the run directory.
             os.chdir(self.cntl.RootDir)
             os.chdir(frun)
+            # Auto-update flag
+            q_auto = opts.get_SubfigOpt(sfig, "AutoUpdate", k)
             # Read the line load data book and read case *i* if possible
-            DBL = self.ReadLineLoad(comp, i)
+            DBL = self.ReadLineLoad(comp, i, update=q_auto)
             # Check for case
             if i not in DBL: continue
             # Select line load
@@ -2146,24 +2116,8 @@ class Report(object):
         if nPlotLast  is None: nPlotLast  = opts.get_nPlotLast(comp)
         # Get caption.
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
-        # Get the vertical alignment.
-        hv = opts.get_SubfigOpt(sfig, "Position")
-        # Get subfigure width
-        wsfig = opts.get_SubfigOpt(sfig, "Width")
-        # First line.
-        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
-        # Check for a header.
-        fhdr = opts.get_SubfigOpt(sfig, "Header")
-        # Alignment
-        algn = opts.get_SubfigOpt(sfig, "Alignment")
-        # Set alignment.
-        if algn.lower() == "center":
-            lines.append('\\centering\n')
-        # Write the header.
-        if fhdr:
-            # Save the line
-            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
-            lines.append('\\vskip-6pt\n')
+        # First lines.
+        lines = self.SubfigInit(sfig)
         # Create plot if possible
         if nIter >= 2:
             # Go to the run directory.
@@ -2534,21 +2488,33 @@ class Report(object):
                     # Check for iterations.
                     if nCur <= 0 or comp not in S:
                         # No iterations
-                        line += '& $-$ '
+                        word = '& $-$ '
                     elif fs == 'mu':
                         # Process value.
-                        line += (('& $%s$ ' % ffc) % S[comp][c])
+                        word = (('& $%s$ ' % ffc) % S[comp][c])
                     elif (fs in ['min', 'max']) or (S[comp]['nStats'] > 1):
                         # Present?
                         if (c+'_'+fs) in S[comp]:
                             # Process min/max or statistical value
-                            line += (('& $%s$ ' % ffc) % S[comp][c+'_'+fs])
+                            word = (('& $%s$ ' % ffc) % S[comp][c+'_'+fs])
                         else:
                             # Missing
-                            line += '& $-$ '
+                            word = '& $-$ '
                     else:
                         # No statistics
-                        line += '& $-$ '
+                        word = '& $-$ '
+                    # Process exponential notation
+                    m = re.search('[edED]([+-][0-9]+)', word)
+                    # Check for a match to 'e+09', etc.
+                    if m is not None:
+                        # Existing text from exponent, e.g. 'e+09', 'D-13'
+                        txt = m.group(1)
+                        # Process the actual exponent text; strip '+' and '0'
+                        exp = txt[0].lstrip('+') + txt[1:].lstrip('0')
+                        # Replace text
+                        word = word.replace(m.group(0), '\\times10^{exp}')
+                    # Add this value to the line
+                    line += word
                 # Finish the line and append it.
                 line += '\\\\\n'
                 lines.append(line)
