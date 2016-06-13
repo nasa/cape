@@ -2514,7 +2514,7 @@ class Report(object):
                         # Process the actual exponent text; strip '+' and '0'
                         exp = txt[0].lstrip('+') + txt[1:].lstrip('0')
                         # Replace text
-                        word = word.replace(m.group(0), '\\times10^{exp}')
+                        word = word.replace(m.group(0), '\\times10^{%s}' % exp)
                     # Add this value to the line
                     line += word
                 # Finish the line and append it.
