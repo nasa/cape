@@ -298,6 +298,7 @@ class Cart3d(Cntl):
         I = self.x.GetIndices(**kw)
         # Read the existing data book.
         self.ReadDataBook()
+        self.ReadConfig()
         # Get lineload option
         ll = kw.get('ll')
         # CHeck for single line load
@@ -312,11 +313,11 @@ class Cart3d(Cntl):
             # Print name of line load
             print("Updating line load data book '%s' ..." % comp)
             # Read the line load data book
-            self.DataBook.ReadLineLoad(comp, conf=self.tri.config)
+            self.DataBook.ReadLineLoad(comp, conf=self.config)
             # Update it
-            self.DataBook.UpdateLineLoad(comp, conf=self.tri.config, I=I)
+            self.DataBook.UpdateLineLoad(comp, conf=self.config, I=I)
             # Write the updated results
-            self.DataBook.LineLoad[comp].Write()
+            self.DataBook.LineLoads[comp].Write()
         # Return to original location
         os.chdir(fpwd)
         

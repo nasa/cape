@@ -125,7 +125,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         # Append to triq file
         ftriq = os.path.join('..', ftriq)
         # Name of loads file
-        flds = '%s_%s.%s' % (self.proj, self.comp, self.ext)
+        flds = '%s_%s.%s' % (self.proj, self.comp, self.sec)
         # Name of triload input file
         fcmd = 'triload.%s.i' % self.comp
         # Process existing input file
@@ -170,7 +170,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             # No seams yet
             nsm = 0
         # Read the loads file
-        self[i] = CaseLL(self.comp, self.proj, self.ext, fdir=None, seam=False)
+        self[i] = CaseLL(self.comp, self.proj, self.sec, fdir=None, seam=False)
         # Check whether or not to read seams
         if nsm == 0:
             # Read the seam curves from this output
