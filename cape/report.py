@@ -51,6 +51,8 @@ example :func:`cape.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
 
 # File system inreface
 import os, json, shutil, glob
+# Text processing
+import re
 # Numerics
 import numpy as np
 # Paraview Python script
