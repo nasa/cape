@@ -384,13 +384,13 @@ class DBLineLoad(dataBook.DBBase):
         # Write the x-cuts if necessary and possible
         if not os.path.isfile(fsmy):
             try:
-                self.smy.Write(fsmx)
+                self.smy.Write(fsmy)
             except Exception:
                 pass
         # Write the x-cuts if necessary and possible
         if not os.path.isfile(fsmz):
             try:
-                self.smz.Write(fsmx)
+                self.smz.Write(fsmz)
             except Exception:
                 pass
         
@@ -1536,4 +1536,5 @@ def GetTriqFile(proj='Components'):
     # Output
     os.chdir(fpwd)
     return ftriq, n, i0, i1
-            
+# def GetTriqFile
+
