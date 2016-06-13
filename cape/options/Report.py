@@ -182,7 +182,9 @@ class Report(odict):
             "AdjustRight": 0.97,
             "AdjustBottom": 0.1,
             "AdjustTop": 0.97,
-            "SubplotMargin": 0.015
+            "SubplotMargin": 0.015,
+            "XPad": 0.03,
+            "YPad": 0.03
         }
         # Point sensor history
         self.defs['PlotPoint'] = {

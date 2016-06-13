@@ -427,6 +427,10 @@ class DBLineLoad(dataBook.DBBase):
         # Read the file
         self[i] = CaseLL(self.comp, 
             proj=self.proj, typ=self.sec, ext='csv', fdir=frun)
+        # Copy the seam curves
+        self[i].smx = self.smx
+        self[i].smy = self.smy
+        self[i].smz = self.smz
         
     # Write triload.i input file
     def WriteTriloadInput(self, ftriq, i, **kw):
@@ -698,24 +702,11 @@ class CaseLL(object):
         if fname is None:
             # Replace base extension with csv
             fname = self.fname.rstrip(self.ext) + 'csv'
-        # Open the file.
-        f = open(fname, 'r')
-        # Read lines until it is not a comment.
-        line = '#'
-        while (not line.lstrip().startswith('#')) and (len(line)>0):
-            # Read the next line.
-            line = f.readline()
-        # Exit if empty.
-        if len(line) == 0:
-            return {}
-        # Number of columns
-        nCol = len(line.split())
-        # Go backwards one line from current position.
-        f.seek(-len(line), 1)
         # Read the rest of the file.
-        D = np.fromfile(f, count=-1, sep=delim)
-        # Reshape to a matrix
-        D = D.reshape((D.size/nCol, nCol))
+        D = np.loadtxt(fname, delimiter=delim)
+        # Ensure array
+        if D.ndim == 0:
+            D = np.array([D])
         # Save the keys.
         self.x   = D[:,0]
         self.CA  = D[:,1]

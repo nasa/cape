@@ -1653,22 +1653,22 @@ class Report(object):
             sm_ax  = opts.get_SubfigOpt(sfig, "SeamCurves", k)
             sm_loc = opts.get_SubfigOpt(sfig, "SeamLocations", k)
             # Margins
-            adj_l = opts.get_SubfigOpt('AdjustLeft',   k)
-            adj_r = opts.get_SubfigOpt('AdjustRight',  k)
-            adj_t = opts.get_SubfigOpt('AdjustTop',    k)
-            adj_b = opts.get_SubfigOpt('AdjustBottom', k)
+            adj_l = opts.get_SubfigOpt(sfig, 'AdjustLeft',   k)
+            adj_r = opts.get_SubfigOpt(sfig, 'AdjustRight',  k)
+            adj_t = opts.get_SubfigOpt(sfig, 'AdjustTop',    k)
+            adj_b = opts.get_SubfigOpt(sfig, 'AdjustBottom', k)
             # Subplot margin
             w_sfig = opts.get_SubfigOpt(sfig, 'SubplotMargin', k)
             # Axes padding options
             kw_pad = {
-                'xpad': opts.get_SubfigOpt('XPad', k),
-                'ypad': opts.get_SubfigOpt('YPad', k)
+                'xpad': opts.get_SubfigOpt(sfig, 'XPad', k),
+                'ypad': opts.get_SubfigOpt(sfig, 'YPad', k)
             }
             # Asymmetric padding
-            xp = opts.get_SubfigOpt('XPlus', k)
-            yp = opts.get_SubfigOpt('YPlus', k)
-            xm = opts.get_SubfigOpt('XMinus', k)
-            ym = opts.get_SubfigOpt('YMinus', k)
+            xp = opts.get_SubfigOpt(sfig, 'XPlus', k)
+            yp = opts.get_SubfigOpt(sfig, 'YPlus', k)
+            xm = opts.get_SubfigOpt(sfig, 'XMinus', k)
+            ym = opts.get_SubfigOpt(sfig, 'YMinus', k)
             # Apply asymmetric padding
             if xm is not None: kw_pad['xm'] = xm
             if xp is not None: kw_pad['xp'] = xp

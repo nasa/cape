@@ -194,6 +194,8 @@ def get_ylim(ha, ypad=0.05, **kw):
         t = type(h).__name__
         # Check the class.
         if t == 'Line2D':
+            # Check for empty
+            if len(h.get_xdata()) == 0: continue
             # Check the min and max data
             ymin = min(ymin, min(h.get_ydata()))
             ymax = max(ymax, max(h.get_ydata()))
@@ -252,6 +254,8 @@ def get_xlim(ha, xpad=0.05, **kw):
         t = type(h).__name__
         # Check the class.
         if t == 'Line2D':
+            # Check for empty
+            if len(h.get_xdata()) == 0: continue
             # Check the min and max data
             xmin = min(xmin, min(h.get_xdata()))
             xmax = max(xmax, max(h.get_xdata()))
@@ -315,6 +319,8 @@ def get_ylim_ax(ha, ypad=0.05, **kw):
         t = type(h).__name__
         # Check the class.
         if t == 'Line2D':
+            # Check for empty
+            if len(h.get_xdata()) == 0: continue
             # Check the min and max data
             xmin = min(xmin, min(h.get_xdata()))
             xmax = max(xmax, max(h.get_xdata()))
@@ -381,6 +387,8 @@ def get_xlim_ax(ha, xpad=0.05, **kw):
         t = type(h).__name__
         # Check the class.
         if t == 'Line2D':
+            # Check for empty
+            if len(h.get_xdata()) == 0: continue
             # Check the min and max data
             xmin = min(xmin, min(h.get_xdata()))
             xmax = max(xmax, max(h.get_xdata()))

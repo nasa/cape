@@ -174,7 +174,7 @@ class Report(cape.report.Report):
         self.cntl.ReadConfig()
         # Read the data book and line load data book
         self.cntl.ReadDataBook()
-        self.cntl.ReadLineLoad(comp, conf=self.cntl.config)
+        self.cntl.DataBook.ReadLineLoad(comp, conf=self.cntl.config)
         # Get the line load data book
         DBL = self.cntl.DataBook.LineLoads[comp]
         # Read the case
