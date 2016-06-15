@@ -1233,6 +1233,7 @@ class CaseSeam(object):
         self.x = []
         self.y = []
         self.z = []
+        self.ax = 'y'
         # Check for the file
         if not os.path.isfile(fname): return
         # Open the file.
@@ -1298,10 +1299,6 @@ class CaseSeam(object):
             fname = '%s_%s.sm%s' % (self.proj, self.comp, self.ax)
         # Check if there's anything to write.
         if self.n < 1: return
-        # Axis types
-        vx = type(self.x).__name__ in ['list', 'ndarray']
-        vy = type(self.y).__name__ in ['list', 'ndarray']
-        vz = type(self.z).__name__ in ['list', 'ndarray']
         # Check axis
         if self.ax == 'x':
             # x-cuts
@@ -1315,8 +1312,10 @@ class CaseSeam(object):
             # y-cuts
             x1 = 'x'
             x2 = 'z'
+        # Save axis
+        ax = self.ax
         # Open the file.
-        f = open(fname)
+        f = open(fname, 'w')
         # Write the header line.
         f.write(' #Seam curves for %s=%s plane\n' % (self.ax, getattr(self,ax)))
         # Loop through seems
