@@ -462,6 +462,8 @@ def ArchiveFolder(opts):
     fgrp = os.path.split(os.getcwd())[-1]
     # Get the case folder
     frun = os.path.join(fgrp, fdir)
+    # Reenter case folder
+    os.chdir(fdir)
     
     # Ensure folder exists.
     cape.manage.CreateArchiveFolder(opts)

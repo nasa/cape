@@ -602,7 +602,19 @@ class CasePointSensor(cape.dataBook.CaseData):
         f = open(fname, 'r')
         # Read the first line, which contains identifiers.
         line = readline(f)
+        # Split the line
+        V = line.split()
         # Get the values
+        if len(V) < 4:
+            # Null history
+            self.nPoint = 0
+            self.nIter = 0
+            self.nd = 3
+            self.iSteady = 0
+            # Null data
+            self.data = np.zeros((0, 0, 12))
+            return
+        # Read the values from the file
         nPoint, nIter, nd, iSteady = [int(v) for v in line.split()]
         # Save
         self.nPoint  = nPoint

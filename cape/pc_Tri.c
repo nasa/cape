@@ -712,7 +712,7 @@ pc_WriteTriSTL(PyObject *self, PyObject *args)
     for (i=1; i<=nTri; i++) {
         // Write a single triangle.
         fprintf(fid, "   facet normal   %5.2f %5.2f %5.2f\n", \
-            np2i(N,i,0), np2i(N,i,1), np2i(N,i,2));
+            np2d(N,i,0), np2d(N,i,1), np2d(N,i,2));
         // Extract node numbers
         i0 = np2i(T,i,0);
         i1 = np2i(T,i,1);
@@ -720,11 +720,11 @@ pc_WriteTriSTL(PyObject *self, PyObject *args)
         // Write the vertices
         fprintf(fid, "      outer loop\n");
         fprintf(fid, "         vertex   %5.2f %5.2f %5.2f\n", \
-            np2i(P,i0,0), np2i(P,i0,1), np2i(P,i0,2));
+            np2d(P,i0,0), np2d(P,i0,1), np2d(P,i0,2));
         fprintf(fid, "         vertex   %5.2f %5.2f %5.2f\n", \
-            np2i(P,i1,0), np2i(P,i1,1), np2i(P,i1,2));
+            np2d(P,i1,0), np2d(P,i1,1), np2d(P,i1,2));
         fprintf(fid, "         vertex   %5.2f %5.2f %5.2f\n", \
-            np2i(P,i2,0), np2i(P,i2,1), np2i(P,i2,2));
+            np2d(P,i2,0), np2d(P,i2,1), np2d(P,i2,2));
         // Triangle footer
         fprintf(fid, "      endloop\n");
         fprintf(fid, "   endfacet\n");

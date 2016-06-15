@@ -351,7 +351,7 @@ class Archive(odict):
             umask = eval('0o' + umask.strip())
         else:
             # Convert to octal
-            umask = eval('0o' + str(umask))
+            umask = eval('0o' + str(umask).lstrip('0o'))
         # Output
         return umask
         
@@ -377,7 +377,7 @@ class Archive(odict):
             # Convert to value.
             umask = eval('0o' + umask.strip())
         # Set the value as an octal number
-        self['umask'] = eval('0o' + str(umask))
+        self['umask'] = '0o' + str(umask)
         
     # Get the directory permissions to use
     def get_dmask(self):
@@ -549,7 +549,7 @@ class Archive(odict):
             return ['tar', '-cjf']
         else:
             # Default: tar
-            return ['tar', '-uf']
+            return ['tar', '-cf']
             
     # Unarchive command
     def get_UnarchiveCmd(self):
