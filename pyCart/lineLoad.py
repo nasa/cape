@@ -171,6 +171,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             nsm = 0
         # Read the loads file
         self[i] = CaseLL(self.comp, self.proj, self.sec, fdir=None, seam=False)
+        print("Label 040: nsm=%s" % nsm)
         # Check whether or not to read seams
         if nsm == 0:
             # Read the seam curves from this output
@@ -179,6 +180,8 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             self.smx = self[i].smx
             self.smy = self[i].smy
             self.smz = self[i].smz
+            print("Label 050: %s" % self[i].smy)
+            print("Label 052: %s" % self.smy)
         # CSV folder names
         fll  = os.path.join(self.RootDir, self.fdir, 'lineload')
         fgrp = os.path.join(fll, frun.split(os.sep)[0])

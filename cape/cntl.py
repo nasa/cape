@@ -197,6 +197,9 @@ class Cntl(object):
         if type(ftri).__name__ not in ['list', 'ndarray']: ftri = [ftri]
         # Read first file
         tri = ReadTriFile(ftri[0])
+        # Apply configuration
+        if cfg is not None:
+            tri.ApplyConfig(cfg)
         # Initialize number of nodes in each file
         tri.iTri = [tri.nTri]
         tri.iQuad = [tri.nQuad]
