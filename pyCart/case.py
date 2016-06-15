@@ -357,7 +357,9 @@ def RunWithRestarts(rc, i):
     if rc.get_clic(i):
         triq.Write('Components.%i.%i.%i.triq' % (j+1, n0+1, n))
     # Write the point sensor history file.
-    try: PS.WriteHist()
+    try:
+        if PS.nIter > 0:
+            PS.WriteHist()
     except Exception: pass
 
 # Run the nominal mode

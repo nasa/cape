@@ -770,16 +770,19 @@ class TriBase(object):
             
     
     # Function to write a triangulation to file the old-fashioned way.
-    def WriteSlow(self, fname='Components.i.tri'):
+    def WriteSlow(self, fname='Components.i.tri', nq=None):
         """Write a triangulation to file
         
         :Call:
             >>> tri.WriteSlow(fname='Components.i.tri')
+            >>> tri.WriteSlow(fname='Components.i.tri', nq=None)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance to be translated
             *fname*: :class:`str`
                 Name of triangulation file to create
+            *nq*: {``None``} | :class:`int`
+                Number of states, override the value of *tri.nq*
         :Examples:
             >>> tri = cape.ReadTri('bJet.i.tri')
             >>> tri.Write('bjet2.tri')
@@ -788,8 +791,20 @@ class TriBase(object):
         """
         # Open the file for creation.
         fid = open(fname, 'w')
-        # Write the number of nodes and triangles.
-        fid.write('%i  %i\n' % (self.nNode, self.nTri))
+        # Get number of state vars
+        if nq is None:
+            try:
+                nq = self.nq
+            except AttributeError:
+                # No attribute for number of states
+                nq = 0
+        # Check for extra header info
+        if nq == 0 or nq is None:
+            # Write the number of nodes and triangles.
+            fid.write('%i  %i\n' % (self.nNode, self.nTri))
+        else:
+            # Write the number of states as well
+            fid.write('%i %i %i\n' % (self.nNode, self.nTri, nq))
         # Write the nodal coordinates, tris, and component ids.
         np.savetxt(fid, self.Nodes, fmt="%+15.8e", delimiter=' ')
         np.savetxt(fid, self.Tris,  fmt="%i",      delimiter=' ')
@@ -938,6 +953,7 @@ class TriBase(object):
         :Versions:
             * 2015-09-14 ``@ddalle``: First version
         """
+        print("Label 110: Failed")
         # Write the Common portion of the triangulation
         self.WriteSlow(fname=fname)
         # Open the file to append.
@@ -970,8 +986,10 @@ class TriBase(object):
         :Versions:
             * 2015-09-14 ``@ddalle``: First version
         """
+        print("Label 010: Starting")
         # Write the nodes.
         pc.WriteTriQ(self.Nodes, self.Tris, self.CompID, self.q)
+        print("Label 050: Finished")
         # Check the file name.
         if fname != "Components.pyCart.tri":
             # Move the file.

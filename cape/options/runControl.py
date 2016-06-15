@@ -902,7 +902,7 @@ class RunControl(odict):
     # Get the list of folders to tar a priori
     def get_ArchivePreTarDirs(self):
         self._Archive()
-        return self['Archive'].get_PreTarDirs()
+        return self['Archive'].get_ArchivePreTarDirs()
         
     # Add to list of folders to tar apriori
     def add_ArchivePreTarDirs(self, fpre):

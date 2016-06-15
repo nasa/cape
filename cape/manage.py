@@ -31,6 +31,8 @@ once the case has been marked as PASS by the user.
 import os, shutil, glob
 # Command-line interface
 import subprocess as sp
+# Numerics
+import numpy as np
 # Options module
 from .options import Archive
 
@@ -84,7 +86,7 @@ def sortfiles(fglob):
         * 2016-03-14 ``@ddalle``: First version
     """
     # Time function
-    ft = os.path.getmtime(f) if os.path.exists(f) else 0.0
+    ft = lambda f: os.path.getmtime(f) if os.path.exists(f) else 0.0
     # Initialize times
     t = np.array([ft(f) for f in fglob])
     # Get the order
@@ -177,7 +179,7 @@ def process_ArchiveFile(f, n=1):
 
 
 # Get list of folders in which to search
-def GetSearchDirs(fsub=None):
+def GetSearchDirs(fsub=None, fsort=None):
     """Get list of current folder and folders matching pattern
     
     :Call:
@@ -189,6 +191,8 @@ def GetSearchDirs(fsub=None):
             Folder name of folder name pattern
         *fsubs*: :class:`list` (:class:`str`)
             List of folder names or folder name patterns
+        *fsort*: :class:`function`
+            Non-default sorting function
     :Versions:
         * 2016-03-01 ``@ddalle``: First version
     """
@@ -254,7 +258,7 @@ def GetMatches(fname, fsub=None, fkeep=None, ftest=None, n=0, fsort=None):
     # Process the input
     fname, nkeep = process_ArchiveFile(fname, n=n)
     # Get folders
-    fdirs = GetSearchDirs(fsub)
+    fdirs = GetSearchDirs(fsub, fsort=fsort)
     # Initialize result
     fglob = []
     # Loop through folders
@@ -279,8 +283,11 @@ def GetMatches(fname, fsub=None, fkeep=None, ftest=None, n=0, fsort=None):
         if len(fglobn) <= nkeep:
             # Nothing to delete (yet)
             continue
+        # Strip last *nkeep* matches
+        if nkeep > 0:
+            fglobn = fglobn[:-nkeep]
         # Loop through the matches
-        for fgn in fglobn[:-nkeep]:
+        for fgn in fglobn:
             # Test if file, folder, etc.
             if ftest is not None and not ftest(fgn):
                 # Failed test, e.g. a directory and not a file
@@ -543,7 +550,6 @@ def ArchiveCaseWhole(opts):
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
     """
-    
     # Get the archive root directory.
     flfe = opts.get_ArchiveFolder()
     # Archive type
@@ -608,7 +614,7 @@ def ArchiveCaseWhole(opts):
         if ierr: raise SystemError("Archiving failed.")
         
     # Return to folder
-    os.chdir(frun)
+    os.chdir(fdir)
 
     
 # Function to delete folders according to full descriptor
@@ -1170,7 +1176,7 @@ def ProgressArchiveFiles(opts, fsub=None, aa=None):
     # Exit if necessary
     if fglob is None: return
     # Copy
-    ArchiveFiles(fdel, fsub=fsub, n=0)
+    ArchiveFiles(opts, fglob, fsub=fsub, n=0)
     
 # Function for in-progress folder deletion
 def ProgressDeleteDirs(opts, fsub=None, aa=None):
@@ -1367,6 +1373,7 @@ def CreateArchiveCaseFolder(opts):
     fgrp = os.path.split(os.getcwd())[-1]
     # Get the case folder
     frun = os.path.join(fgrp, fdir)
+    # Return to the folder
     
     # Ensure group folder exists.
     if ':' in flfe:
@@ -1390,11 +1397,11 @@ def CreateArchiveCaseFolder(opts):
         # Test locally.
         if not os.path.isdir(flgrp):
             # Create it.
-            os.mkdir(flgrp, 0750)
+            opts.mkdir(flgrp)
         # Test for run folder
         if (ftyp!="full") and not os.path.isdir(flrun):
             # Create it.
-            os.mkdir(flrun, 0750)
+            opts.mkdir(flrun)
 
 # Create archive group folders
 def CreateArchiveGroupFolder(opts):
@@ -1422,8 +1429,8 @@ def CreateArchiveGroupFolder(opts):
     os.chdir('..')
     # Get the group folder
     fgrp = os.path.split(os.getcwd())[-1]
-    # Get the case folder
-    frun = os.path.join(fgrp, fdir)
+    # Return to current folder
+    os.chdir(fdir)
     
     # Ensure group folder exists.
     if ':' in flfe:
@@ -1437,11 +1444,11 @@ def CreateArchiveGroupFolder(opts):
             sp.call(['ssh', fhost, 'mkdir', flgrp])
     else:
         # Remote group and case addresses
-        flgrp = os.path.join(fldir, fgrp)
+        flgrp = os.path.join(flfe, fgrp)
         # Test locally.
         if not os.path.isdir(flgrp):
             # Create it.
-            os.mkdir(flgrp, 0750)
+            opts.mkdir(flgrp)
     
 # -------------
 
