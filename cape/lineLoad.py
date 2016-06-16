@@ -993,6 +993,8 @@ class CaseLL(object):
         # Default to last line options
         if kw_S['LineOptions'] in [{}, None]:
             kw_S['LineOptions'] = kw_p
+        # Dictionary of subplot indices for each seam plot
+        sfigs = {}
         # Loop through seams
         for i in range(nsm):
             # Get subfig number
@@ -1016,6 +1018,8 @@ class CaseLL(object):
                     sfigi = i + 2 + sm_loc[i:].count('left')
                 # Select the plot
                 plt.subplot(1, nsm+1, sfigi)
+            # Save subfigs
+            sfigs[i] = sfigi
             # Plot the seam
             hi = sms[i].Plot(**kw_S)
             # Save the handles
@@ -1068,10 +1072,14 @@ class CaseLL(object):
             # Handle main plot last
             if i+1 == sfigll:
                 continue
+            # Get seam number
+            sfigi = sfigs[i - (i>=sfigll)]
             # Set margins
             if q_vert:
                 # Automatic axis height based on aspect ratio
                 haxi = AR[i] * wax
+                # Select subplot
+                plt.subplot(1+nsm, 1, sfigi)
                 # Modify top/bottom margins
                 if i+1 < sfigll:
                     # Work from the top
@@ -1085,9 +1093,13 @@ class CaseLL(object):
                     yax_min = yax_min + haxi + w_sfig
                 # Copy the limits again
                 ax.set_xlim(xlim)
+                # Minimal ticks on y-axis
+                plt.locator_params(axis='y', nbins=4)
             else:
                 # Automatic axis width based on aspect ratio
                 waxi = hax / AR[i]
+                # Select subplot
+                plt.subplot(1+nsm, sfigi, 1)
                 # Modify left/right margins
                 if i > sfigll:
                     # Work from the right
@@ -1101,6 +1113,8 @@ class CaseLL(object):
                     xax_min = xax_min + waxi + w_sfig
                 # Reset axis limits
                 ax.set_ylim(ylim)
+                # Minimal ticks on y-axis
+                plt.locator_params(axis='x', nbins=3)
         # Finally, set the position for the position for the main figure
         h['ax'].set_position([xax_min,yax_min,xax_max-xax_min,yax_max-yax_min])
         # REset limits
