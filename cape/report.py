@@ -1592,6 +1592,8 @@ class Report(object):
             fcpt = fcpt.replace('_', '\_')
         # First lines.
         lines = self.SubfigInit(sfig)
+        # Initialize plot count
+        nPlot = 0
         # Loop through plots.
         for k in range(nCoeff):
             # Get the component and coefficient.
@@ -1608,6 +1610,8 @@ class Report(object):
             if i not in DBL: continue
             # Select line load
             LL = DBL[i]
+            # Add to plot count
+            nPlot += 1
             # Loop through the transformations.
             for topts in opts.get_DataBookTransformations(comp):
                 pass
@@ -1657,7 +1661,7 @@ class Report(object):
         # Change back to report folder.
         os.chdir(fpwd)
         # Check for a figure to write.
-        if nIter >= 2:
+        if nPlot > 0:
             # Get the file formatting
             fmt = opts.get_SubfigOpt(sfig, "Format")
             dpi = opts.get_SubfigOpt(sfig, "DPI")
