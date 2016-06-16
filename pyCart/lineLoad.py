@@ -171,7 +171,6 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             nsm = 0
         # Read the loads file
         self[i] = CaseLL(self.comp, self.proj, self.sec, fdir=None, seam=False)
-        print("Label 040: nsm=%s" % nsm)
         # Check whether or not to read seams
         if nsm == 0:
             # Read the seam curves from this output
@@ -180,8 +179,6 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             self.smx = self[i].smx
             self.smy = self[i].smy
             self.smz = self[i].smz
-            print("Label 050: %s" % self[i].smy)
-            print("Label 052: %s" % self.smy)
         # CSV folder names
         fll  = os.path.join(self.RootDir, self.fdir, 'lineload')
         fgrp = os.path.join(fll, frun.split(os.sep)[0])
@@ -352,7 +349,7 @@ def GetTriqFile():
     # Plain file
     elif os.path.isfile('Components.i.triq'):
         # Iteration counts: assume it's most recent iteration
-        i1 = self.cart3d.CheckCase(self.i)
+        i1 = case.GetCurrentIter()
         i0 = i1
         # Count
         n = 1
@@ -364,7 +361,10 @@ def GetTriqFile():
         i0 = None
         n = None
         ftriq = None
-    # Output
+    # Return to original location
     os.chdir(fpwd)
+    # Prepend name of folder if appropriate
+    if fwrk != '.': ftriq = os.path.join(fwrk, ftriq)
+    # Output
     return ftriq, n, i0, i1
             
