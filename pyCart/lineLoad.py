@@ -323,7 +323,7 @@ def GetTriqFile():
         n = int(fglob3[j].split('.')[1])
         # File name
         ftriq = fglob3[j]
-    if len(fglob2) > 0:
+    elif len(fglob2) > 0:
         # Get last iterations
         I0 = [int(f.split('.')[2]) for f in fglob2]
         # Index of best iteration
