@@ -957,9 +957,6 @@ class CaseLL(object):
         # Set figure dimensions
         if fh: h['fig'].set_figheight(fh)
         if fw: h['fig'].set_figwidth(fw)
-        # Attempt to apply tight axes.
-        try: plt.tight_layout()
-        except Exception: pass
         # Margins
         adj_l = kw.get('AdjustLeft')
         adj_r = kw.get('AdjustRight')
@@ -1150,10 +1147,10 @@ class CaseLL(object):
                 # Minimal ticks on y-axis
                 plt.locator_params(axis='x', nbins=3)
         # Make sure to give handle back to primary plot
-        if nsm > 0 and q_vert:
+        if q_vert:
             # Seams are above and below
             plt.subplot(nsm+1, 1, sfigll)
-        elif nsm > 0:
+        else:
             # Plot seams to the left or right
             plt.subplot(1, nsm+1, sfigll)
         # Finally, set the position for the position for the main figure

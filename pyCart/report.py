@@ -176,6 +176,8 @@ class Report(cape.report.Report):
         self.cntl.ReadConfig()
         # Read the data book and line load data book
         self.cntl.ReadDataBook()
+        print("Label 029: targ='%s'" % targ)
+        print("Label 030: %s" % os.getcwd())
         # Get data book handle.
         if targ is None:
             # General data book
@@ -187,12 +189,14 @@ class Report(cape.report.Report):
             DB = self.cntl.DataBook
             # Read the target as appropriate
             DB.ReadTarget(targ)
+            print("Label 033: %s" % os.getcwd())
             # Target data book
             DBT = DB.Targets[targ]
             # Target options
             topts = self.cntl.opts.get_DataBookTargetByName(targ)
             # Find a match
             J = DB.FindTargetMatch(DB.x, i, topts)
+            print("Label 036: %s" % os.getcwd())
             # Check for a match
             if len(J) == 0: return None
             # Get the first match
@@ -205,14 +209,13 @@ class Report(cape.report.Report):
         DBL = DB.LineLoads[comp]
         # Read the case
         DBL.ReadCase(j)
-        print("Label 017: j=%s" % j)
-        print("Label 018: DBL.keys() = %s" % DBL.keys())
         # Check auto-update flag
         if update and j not in DBL:
             # Update the case
             DBL.UpdateCase(j)
             # Read the case
             DBL.ReadCase(j)
+        print("Label 040: %s" % os.getcwd())
         # Output the case line load
         return DBL.get(j)
         
