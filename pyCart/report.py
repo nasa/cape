@@ -176,6 +176,7 @@ class Report(cape.report.Report):
         self.cntl.ReadConfig()
         # Read the data book and line load data book
         self.cntl.ReadDataBook()
+        print("Label 026")
         # Get data book handle.
         if targ is None:
             # General data book
@@ -185,12 +186,19 @@ class Report(cape.report.Report):
         else:
             # Pointer to the data book
             DB = self.cntl.DataBook
+            print("Label 027: targ='%s'" % targ)
+            # Read the target as appropriate
+            DB.ReadTarget(targ)
+            print("Label 028")
             # Target data book
             DBT = DB.Targets[targ]
+            print("Label 029: DBT=%s" % DBT)
             # Target options
-            topts = self.opts.get_DataBookTargetByName(targ)
+            topts = self.cntl.opts.get_DataBookTargetByName(targ)
+            print("Label 030: topts=%s" % topts)
             # Find a match
             j = DB.FindTargetMatch(DB.x, i, topts)
+            print("Label 033: j=%s" % j)
             # Move the handle.
             DB = DBT
         # Read the line load data book

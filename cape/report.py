@@ -1564,20 +1564,23 @@ class Report(object):
         coeff = opts.get_SubfigOpt(sfig, "Coefficient")
         # Get list of targets
         targs = self.SubfigTargets(sfig)
+        print("Label 015: targs=%s" % targs)
         # And their types
         targ_types = {}
         # Loop through targets.
         for targ in targs:
-            # Read the target if not present.
-            self.cntl.DataBook.ReadTarget(targ)
+            print("Label 020: targ='%s'" % targ)
             # Try to read the line loads
             try:
                 # Read line loads
+                print("Label 025")
                 self.ReadLineLoad(comp, i, targ=targ, update=False)
+                print("Label 045")
                 # If read successfully, duplicate data book target
                 targ_types[targ] = 'cape'
             except Exception:
                 # Read failed
+                raise IOError
                 targ_types[targ] = 'generic'
         # List of coefficients
         if type(coeff).__name__ in ['list', 'ndarray']:
