@@ -238,7 +238,6 @@ class DataBook(dict):
                 self.Targets[targ] = DBTarget(
                     targ, self.x, self.opts, self.RootDir)
     
-    # Find a match
     # Find an entry by trajectory variables.
     def FindMatch(self, i):
         """Find an entry by run matrix (trajectory) variables
@@ -1442,7 +1441,7 @@ class DBBase(dict):
         to use is determined by the *keylist* input.
         
         :Call:
-            >>> j = DBT.FindMatch(x, i, topts, keylist='x')
+            >>> j = DB.FindTargetMatch(x, i, topts, keylist='x')
         :Inputs:
             *DBT*: :class:`cape.dataBook.DBTarget`
                 Instance of the Cape data book target data carrier
@@ -1464,7 +1463,7 @@ class DBBase(dict):
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
         """
         # Initialize indices (assume all are matches)
-        j = np.arange(self.nCase)
+        j = np.arange(x.nCase)
         # Get the trajectory key translations.   This determines which keys to
         # filter and what those keys are called in the source file.
         tkeys = topts.get('Trajectory', {})

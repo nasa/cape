@@ -197,7 +197,11 @@ class Report(cape.report.Report):
             topts = self.cntl.opts.get_DataBookTargetByName(targ)
             print("Label 030: topts=%s" % topts)
             # Find a match
-            j = DB.FindTargetMatch(DB.x, i, topts)
+            J = DB.FindTargetMatch(DB.x, i, topts)
+            # Check for a match
+            if len(J) == 0: return None
+            # Get the first match
+            j = J[0]
             print("Label 033: j=%s" % j)
             # Move the handle.
             DB = DBT
