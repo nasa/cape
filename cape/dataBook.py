@@ -129,6 +129,8 @@ class DataBook(dict):
         else:
             # Read data book as a target that duplicates the root
             self.Dir = opts.get_DataBookTargetDir(targ)
+            # Save target options
+            self.topts = opts.get_DataBookTargetByName(targ)
         # Save the trajectory.
         self.x = x.Copy()
         # Save the options.

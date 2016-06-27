@@ -1564,24 +1564,25 @@ class Report(object):
         coeff = opts.get_SubfigOpt(sfig, "Coefficient")
         # Get list of targets
         targs = self.SubfigTargets(sfig)
-        print("Label 015: targs=%s" % targs)
         # And their types
         targ_types = {}
+        print("Label 004")
+        LL = self.ReadLineLoad(comp, i, update=False)
+        print("Label 005: LL=%s" % LL)
         # Loop through targets.
         for targ in targs:
-            print("Label 020: targ='%s'" % targ)
             # Try to read the line loads
             try:
+                print("Label 015: targ='%s'" % targ)
+                os.system('ls /nobackup/ddalle/sls/10008/c3_geom/report/rsrb-ring/m0.50a0.0_M')
                 # Read line loads
-                print("Label 025")
                 self.ReadLineLoad(comp, i, targ=targ, update=False)
-                print("Label 045")
                 # If read successfully, duplicate data book target
                 targ_types[targ] = 'cape'
             except Exception:
                 # Read failed
-                raise IOError
                 targ_types[targ] = 'generic'
+        print("Label 019")
         # List of coefficients
         if type(coeff).__name__ in ['list', 'ndarray']:
             # List of coefficients
@@ -1682,13 +1683,17 @@ class Report(object):
             # Loop through targets
             for targ in targs:
                 # Check for generic target
+                print("Label 030: targ='%s'" % targ)
+                os.system('ls /nobackup/ddalle/sls/10008/c3_geom/report/rsrb-ring/m0.50a0.0_M')
                 if targ_types[targ] != 'cape': continue
                 # Read the line load data book and read case *i* if possible
                 LLT = self.ReadLineLoad(comp, i, targ=targ, update=False)
+                print("Label 040")
+                os.system('ls /nobackup/ddalle/sls/10008/c3_geom/report/rsrb-ring/m0.50a0.0_M')
                 # Check for a find.
                 if LLT is None: continue
                 # Get target plot label.
-                tlbl = self.SubfigTargetPlotLabel(sfig, k, targ) + clbl
+                tlbl = self.SubfigTargetPlotLabel(sfig, k, targ)
                 # Don't start with comma.
                 tlbl = tlbl.lstrip(", ")
                 # Specified target plot options
@@ -1699,7 +1704,7 @@ class Report(object):
                 # Apply non-default options
                 for k_i in kw_t: kw_l[k_i] = kw_t[k_i]
                 # Draw the plot
-                LLT.PlotCoeff(coeff, LineOptions=kw_l,
+                LLT.Plot(coeff, LineOptions=kw_l,
                     Label=tlbl, Legend=True,
                     FigWidth=figw, FigHeight=figh)
         # Change back to report folder.
