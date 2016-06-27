@@ -148,11 +148,11 @@ class Report(cape.report.Report):
         return pointSensor.CasePointSensor()
         
     # Read line loads
-    def ReadLineLoad(self, comp, i, update=False):
+    def ReadLineLoad(self, comp, i, targ=None, update=False):
         """Read line load for a case
         
         :Call:
-            >>> LL = R.ReadLineLoad(comp, i, update=False)
+            >>> LL = R.ReadLineLoad(comp, i, targ=None, update=False)
         :Inputs:
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
@@ -160,6 +160,8 @@ class Report(cape.report.Report):
                 Name of line load component
             *i*: :class:`int`
                 Case number
+            *targ*: {``None``} | :class:`str`
+                Name of target data book to read, if not ``None``
             *update*: ``True`` | {``False``}
                 Whether or not to attempt an update if case not in data book
         :Outputs:
@@ -174,19 +176,37 @@ class Report(cape.report.Report):
         self.cntl.ReadConfig()
         # Read the data book and line load data book
         self.cntl.ReadDataBook()
-        self.cntl.DataBook.ReadLineLoad(comp, conf=self.cntl.config)
+        # Get data book handle.
+        if targ is None:
+            # General data book
+            DB = self.cntl.DataBook
+            # Use the index directly
+            j = i
+        else:
+            # Pointer to the data book
+            DB = self.cntl.DataBook
+            # Target data book
+            DBT = DB.Targets[targ]
+            # Target options
+            topts = self.opts.get_DataBookTargetByName(targ)
+            # Find a match
+            j = DB.FindTargetMatch(DB.x, i, topts)
+            # Move the handle.
+            DB = DBT
+        # Read the line load data book
+        DB.ReadLineLoad(comp, conf=self.cntl.config)
         # Get the line load data book
-        DBL = self.cntl.DataBook.LineLoads[comp]
+        DBL = DB.LineLoads[comp]
         # Read the case
-        DBL.ReadCase(i)
+        DBL.ReadCase(j)
         # Check auto-update flag
-        if update and i not in DBL:
+        if update and j not in DBL:
             # Update the case
-            DBL.UpdateCase(i)
+            DBL.UpdateCase(j)
             # Read the case
-            DBL.ReadCase(i)
-        # Output the data book
-        return DBL
+            DBL.ReadCase(j)
+        # Output the case line load
+        return DBL.get(j)
         
     # Update subfig for case
     def UpdateCaseSubfigs(self, fig, i):

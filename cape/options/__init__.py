@@ -1373,6 +1373,16 @@ class Options(odict):
         self._DataBook()
         return self['DataBook'].get_DataBookTargetByName(targ)
         
+    # Get target type
+    def get_DataBookTargetType(self, targ):
+        self._DataBook()
+        return self['DataBook'].get_DataBookTargetType(targ)
+        
+    # Get target folder
+    def get_DataBookTargetDir(self, targ):
+        self._DataBook()
+        return self['DataBook'].get_DataBookTargetDir(targ)
+        
     # Get components for a line load or other such component
     def get_DataBookCompID(self, comp):
         self._DataBook()
@@ -1422,7 +1432,7 @@ class Options(odict):
             'DataBookDataCols', 'DataBookTargetCols', 'DataBookTargetByName',
             'DataBookCompID',   'DataBook_nCut',      'DataBookMomentum',
             'DataBookTrim',     'DataBookPrefix',     'DataBookSectionType',
-            'DataBookExtension'
+            'DataBookExtension', 'DataBookTargetType'
     ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__

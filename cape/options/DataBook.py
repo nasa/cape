@@ -46,23 +46,20 @@ class DataBook(odict):
         # Check for missing entirely.
         if 'Targets' not in self:
             # Empty/default
-            self['Targets'] = []
+            self['Targets'] = {}
             return None
         # Read the targets
         targs = self['Targets']
         # Check the type.
-        if type(targs).__name__ == 'dict':
-            # Convert it to a list of dictionaries
-            targs = [targs]
-        elif type(targs).__name__ not in ['list', 'ndarray']:
-            # Invalid
-            raise IOError('Data book targets must be a list')
+        if type(targs).__name__ not in 'dict':
+            # Invalid type
+            raise TypeError('Data book targets must be a dictionary')
         # Initialize final state.
-        self['Targets'] = []
+        self['Targets'] = {}
         # Loop through targets
         for targ in targs:
             # Convert to special class.
-            self['Targets'].append(DBTarget(**targ))
+            self['Targets'][targ] = DBTarget(**targs[targ])
             
     # Get the list of components.
     def get_DataBookComponents(self):
@@ -441,36 +438,8 @@ class DataBook(odict):
         :Versions:
             * 2014-12-20 ``@ddalle``: First version
         """
-        # Get the value from the dictionary.
-        targets = self.get('Targets', [])
-        # Type
-        tt = type(targets).__name__
-        # Check for list or dict
-        if tt in ['dict', 'odict']:
-            # Check if it's a single target
-            if "Name" in tt:
-                # Convert to list with one target
-                DBTs = {targets["Name"]: targets}
-            else:
-                # Must be correct format
-                DBTs = targets
-        elif tt in ['list']:
-            # Convert to dict
-            DBTs = {}
-            for DBT in targets:
-                DBTs[DBT.get('Name')] = DBT
-        else:
-            # Unrecognized
-            raise TypeError("Targets are type '%s'; expecting list or dict"%tt)
-        # Check contents.
-        for targ in DBTs:
-            # Extract object
-            DBT = DBTs[targ]
-            # Check type
-            if (type(DBT).__name__ not in ['DBTarget']):
-                raise TypeError("Target '%s' is not a DBTarget." % targ)
         # Output
-        return DBTs
+        return self.get('Targets', {})
         
     # Get a target by name
     def get_DataBookTargetByName(self, targ):
@@ -493,6 +462,59 @@ class DataBook(odict):
             raise KeyError("There is no DBTarget called '%s'" % targ)
         # Output
         return DBTs[targ]
+    
+    # Get type for a given target
+    def get_DataBookTargetType(self, targ):
+        """Get the target data book type
+        
+        This can be either a generic target specified in a single file or a Cape
+        data book that has the same description as the present data book
+        
+        :Call:
+            >>> typ = opts.get_DataBookTargetType(targ)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *targ*: :class:`str`
+                Name of the data book target
+        :Outputs:
+            *typ*: {``"generic"``} | ``"cape"``
+                Target type, generic CSV file or duplicate data book
+        :Versions:
+            * 2016-06-27 ``@ddalle``: First version
+        """
+        # Get the set of targets
+        DBTs = self.get_DataBookTargets()
+        # Check if it's present
+        if targ not in DBTs:
+            raise KeyError("There is not DBTarget called '%s'" % targ)
+        # Get the type
+        return DBTs[targ].get('Type', 'generic')
+        
+    # Get data book target directory
+    def get_DataBookTargetDir(self, targ):
+        """Get the folder for a data book duplicate target
+        
+        :Call:
+            >>> fdir = opts.get_DataBookTargetDir(targ)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *targ*: :class:`str`
+                Name of the data book target
+        :Outputs:
+            *typ*: {``"generic"``} | ``"cape"``
+                Target type, generic CSV file or duplicate data book
+        :Versions:
+            * 2016-06-27 ``@ddalle``: First version
+        """
+        # Get the set of targets
+        DBTs = self.get_DataBookTargets()
+        # Check if it's present
+        if targ not in DBTs:
+            raise KeyError("There is not DBTarget called '%s'" % targ)
+        # Get the type
+        return DBTs[targ].get('Folder', 'data')
         
     # Get data book components by type
     def get_DataBookByType(self, typ):
@@ -1541,7 +1563,7 @@ class DBTarget(odict):
             # List, ``None``, or nonsense
             return comps
         
-    # Get the fie name
+    # Get the file name
     def get_TargetFile(self):
         """Get the file name for the target
         
@@ -1557,6 +1579,40 @@ class DBTarget(odict):
             * 2014-12-20 ``@ddalle``: First version
         """
         return self.get('File', 'Target.dat')
+        
+    # Get the directory name
+    def get_TargetDir(self):
+        """Get the directory for the duplicate target data book
+        
+        :Call:
+            >>> fdir = opts.get_TargetDir()
+        :Inputs:
+            *opts*: :class:`cape.options.DataBook.DBTarget`
+                Options interface
+        :Outputs:
+            *fdir*: :class:`str`
+                Name of the directory (relative to root directory)
+        :Versions:
+            * 2016-06-27 ``@ddalle``: First version
+        """
+        return self.get('Folder', 'data')
+        
+    # Get the target type
+    def get_TargetType(self):
+        """Get the target type for a target data book
+        
+        :Call:
+            >>> typ = opts.get_TargetType()
+        :Inputs:
+            *opts*: :class:`cape.otpions.DataBook.DBTarget`
+                Options interface
+        :Outputs:
+            *typ*: {``"generic"``} | ``"cape"``
+                Target type, generic CSV file or duplicate data book
+        :Versions:
+            * 2016-06-27 ``@ddalle``: First version
+        """
+        return self.get('Type', 'generic')
         
     # Get tolerance
     def get_Tol(self, xk):

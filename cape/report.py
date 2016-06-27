@@ -1562,6 +1562,23 @@ class Report(object):
         comp = opts.get_SubfigOpt(sfig, "Component")
         # Get the coefficient
         coeff = opts.get_SubfigOpt(sfig, "Coefficient")
+        # Get list of targets
+        targs = self.SubfigTargets(sfig)
+        # And their types
+        targ_types = {}
+        # Loop through targets.
+        for targ in targs:
+            # Read the target if not present.
+            self.cntl.DataBook.ReadTarget(targ)
+            # Try to read the line loads
+            try:
+                # Read line loads
+                self.ReadLineLoad(comp, i, targ=targ, update=False)
+                # If read successfully, duplicate data book target
+                targ_types[targ] = 'cape'
+            except Exception:
+                # Read failed
+                targ_types[targ] = 'generic'
         # List of coefficients
         if type(coeff).__name__ in ['list', 'ndarray']:
             # List of coefficients
@@ -1605,11 +1622,9 @@ class Report(object):
             # Auto-update flag
             q_auto = opts.get_SubfigOpt(sfig, "AutoUpdate", k)
             # Read the line load data book and read case *i* if possible
-            DBL = self.ReadLineLoad(comp, i, update=q_auto)
+            LL = self.ReadLineLoad(comp, i, update=q_auto)
             # Check for case
-            if i not in DBL: continue
-            # Select line load
-            LL = DBL[i]
+            if LL is None: continue
             # Add to plot count
             nPlot += 1
             # Loop through the transformations.
@@ -1622,6 +1637,8 @@ class Report(object):
             figh = opts.get_SubfigOpt(sfig, "FigHeight", k)
             # Rotate this figure?
             orient = opts.get_SubfigOpt(sfig, "Orientation", k)
+            # Plot label
+            lbl = opts.get_SubfigOpt("Label", k)
             # Plot options
             kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",   k)
             kw_s = opts.get_SubfigPlotOpt(sfig, "SeamOptions",   k)
@@ -1654,10 +1671,34 @@ class Report(object):
             h = LL.Plot(coeff, 
                 Seams=sm_ax, SeamLocation=sm_loc,
                 LineOptions=kw_p, SeamOptions=kw_s,
+                Label=lbl,
                 FigWidth=figw, FigHeight=figh,
                 AdjustLeft=adj_l, AdjustRight=adj_r,
                 AdjustTop=adj_t, Adjust_Bottom=adj_b,
                 SubplotMargin=w_sfig, **kw_pad)
+            # Loop through targets
+            for targ in targs:
+                # Check for generic target
+                if targ_types[targ] != 'cape': continue
+                # Read the line load data book and read case *i* if possible
+                LLT = self.ReadLineLoad(comp, i, targ=targ, update=False)
+                # Check for a find.
+                if LLT is None: continue
+                # Get target plot label.
+                tlbl = self.SubfigTargetPlotLabel(sfig, k, targ) + clbl
+                # Don't start with comma.
+                tlbl = tlbl.lstrip(", ")
+                # Specified target plot options
+                kw_t = opts.get_SubfigPlotOpt(sfig, "TargetOptions",
+                    targs.index(targ))
+                # Initialize target plot options.
+                kw_l = kw_p
+                # Apply non-default options
+                for k_i in kw_t: kw_l[k_i] = kw_t[k_i]
+                # Draw the plot
+                LLT.PlotCoeff(coeff,
+                    Label=tlbl, LineOptions=kw_l,
+                    FigWidth=figw, FigHeight=figh)
         # Change back to report folder.
         os.chdir(fpwd)
         # Check for a figure to write.

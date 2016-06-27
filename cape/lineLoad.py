@@ -59,7 +59,7 @@ class DBLineLoad(dataBook.DBBase):
     """Line load (sectional load) data book for one group
     
     :Call:
-        >>> DBL = DBLineLoad(x, opts, comp, conf=None, RootDir=None)
+        >>> DBL = DBLineLoad(x, opts, comp, conf=None, RootDir=None, targ=None)
     :Inputs:
         *x*: :class:`cape.trajectory.Trajectory`
             Trajectory/run matrix interface
@@ -67,10 +67,12 @@ class DBLineLoad(dataBook.DBBase):
             Options interface
         *comp*: :class:`str`
             Name of line load component
-        *conf*: {``"None"``} | :class:`cape.config.Config`
+        *conf*: {``None``} | :class:`cape.config.Config`
             Surface configuration interface
-        *RootDir*: {``"None"``} | :class:`str`
+        *RootDir*: {``None``} | :class:`str`
             Root directory for the configuration
+        *targ*: {``None``} | :class:`str`
+            If used, read target data book's folder
     :Outputs:
         *DBL*: :class:`cape.lineLoad.DBLineLoad`
             Instance of line load data book
@@ -88,7 +90,7 @@ class DBLineLoad(dataBook.DBBase):
         * 2015-09-16 ``@ddalle``: First version
         * 2016-05-11 ``@ddalle``: Moved to :mod:`cape`
     """
-    def __init__(self, x, opts, comp, conf=None, RootDir=None):
+    def __init__(self, x, opts, comp, conf=None, RootDir=None, targ=None):
         """Initialization method
         
         :Versions:
@@ -103,9 +105,15 @@ class DBLineLoad(dataBook.DBBase):
             self.RootDir = RootDir
         
         # Get the data book directory.
-        fdir = opts.get_DataBookDir()
+        if targ is None:
+            # Read from base directory
+            fdir = opts.get_DataBookDir()
+        else:
+            # Read from target directory
+            fdir = opts.get_DataBookTargetDir(targ)
         # Compatibility
         fdir = fdir.replace("/", os.sep)
+        # Save folder
         self.fdir = fdir
         
         # Construct the file name.
@@ -178,7 +186,7 @@ class DBLineLoad(dataBook.DBBase):
         # Initialize string
         lbl = "<DBLineLoad %s, " % self.comp
         # Number of cases in book
-        lbl += "nCase=%i>" % self.n
+        lbl += "nCase=%i>" % self.nCase
         # Output
         return lbl
     __str__ = __repr__
@@ -235,7 +243,7 @@ class DBLineLoad(dataBook.DBBase):
             self['nStats'] = np.loadtxt(fname,
                 delimiter=delim, dtype=int, usecols=[nCol])
             # Number of cases
-            self.n = self[k].size
+            self.nCase = self[k].size
             # Check for singletons
             if self[k].ndim == 0:
                 # Loop through all keys
@@ -258,7 +266,7 @@ class DBLineLoad(dataBook.DBBase):
             self['nIter'] = np.array([], dtype=int)
             self['nStats'] = np.array([], dtype=int)
             # No cases
-            self.n = 0
+            self.nCase = 0
     
     # Function to write line load data book summary file
     def Write(self, fname=None):

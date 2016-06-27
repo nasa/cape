@@ -57,8 +57,45 @@ class DataBook(cape.dataBook.DataBook):
         * 2015-10-16 ``@ddalle``: Subclassed to :mod:`cape.dataBook.DataBook`
     """
         
+    # Function to read targets if necessary
+    def ReadTarget(self, targ):
+        """Read a data book target if it is not already present
+        
+        :Call:
+            >>> DB.ReadTarget(targ)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the Cape data book class
+            *targ*: :class:`str`
+                Target name
+        :Versions:
+            * 2015-09-16 ``@ddalle``: First version
+        """
+        # Initialize targets if necessary
+        try:
+            self.Targets
+        except AttributeError:
+            self.Targets = {}
+        # Try to access the target.
+        try:
+            self.Targets[targ]
+        except Exception:
+            # Get the target type
+            typ = self.opts.get_DataBookTargetType(targ).lower()
+            # Check the type
+            if typ in ['duplicate', 'cape', 'pycart', 'pyfun', 'pyover']:
+                # Read a duplicate data book
+                self.Targets[targ] = DataBook(
+                    self.x, self.opts, self.RootDir, targ=targ)
+                # Update the trajectory
+                self.Targets[targ].UpdateTrajectory()
+            else:
+                # Read the file.
+                self.Targets[targ] = DBTarget(
+                    targ, self.x, self.opts, self.RootDir)
+        
     # Initialize a DBComp object
-    def InitDBComp(self, comp, x, opts):
+    def InitDBComp(self, comp, x, opts, targ=None):
         """Initialize data book for one component
         
         :Call:
@@ -72,13 +109,16 @@ class DataBook(cape.dataBook.DataBook):
                 The current pyCart trajectory (i.e. run matrix)
             *opts*: :class:`pyCart.options.Options`
                 Global pyCart options instance
+            *targ*: {``None``} | :class:`str`
+                If used, read a duplicate data book as a target named *targ*
         :Versions:
             * 2015-11-10 ``@ddalle``: First version
+            * 2016-06-27 ``@ddalle``: Added *targ* keyword
         """
-        self[comp] = DBComp(comp, x, opts)
+        self[comp] = DBComp(comp, x, opts, targ=targ)
     
     # Read line load
-    def ReadLineLoad(self, comp, conf=None):
+    def ReadLineLoad(self, comp, conf=None, targ=None):
         """Read a line load data book target if it is not already present
         
         :Call:
@@ -90,8 +130,11 @@ class DataBook(cape.dataBook.DataBook):
                 Line load component group
             *conf*: {``"None"``} | :class:`cape.config.Config`
                 Surface configuration interface
+            *targ*: {``"None"``} | :class:`str`
+                Sets alternate directory to read from, defaults to *DB.targ*
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
+            * 2016-06-27 ``@ddalle``: Added *targ*
         """
         # Initialize if necessary
         try:
@@ -105,9 +148,17 @@ class DataBook(cape.dataBook.DataBook):
             # Safely go to root directory
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
-            # Read the file.
-            self.LineLoads[comp] = lineLoad.DBLineLoad(
-                self.x, self.opts, comp, conf=conf, RootDir=self.RootDir)
+            # Default target name
+            if targ is None:
+                # Read the file.
+                self.LineLoads[comp] = lineLoad.DBLineLoad(self.x, self.opts,
+                    comp, conf=conf, RootDir=self.RootDir, targ=self.targ)
+            else:
+                # Read as a specified target.
+                ttl = '%s\\%s' % (targ, comp)
+                # Read the file.
+                self.LineLoads[ttl] = lineLoad.DBLineLoad(self.x, self.opts,
+                    comp, conf=conf, RootDir=self.RootDir, targ=targ)
             # Return to starting location
             os.chdir(fpwd)
             
@@ -616,7 +667,7 @@ class DBComp(cape.dataBook.DBComp):
     Individual component data book
     
     :Call:
-        >>> DBi = DBComp(comp, x, opts)
+        >>> DBi = DBComp(comp, x, opts, targ=None)
     :Inputs:
         *comp*: :class:`str`
             Name of the component
@@ -624,13 +675,14 @@ class DBComp(cape.dataBook.DBComp):
             Trajectory for processing variable types
         *opts*: :class:`pyCart.options.Options`
             Global pyCart options instance
+        *targ*: {``None``} | :class:`str`
+            If used, read a duplicate data book as a target named *targ*
     :Outputs:
         *DBi*: :class:`pyCart.dataBook.DBComp`
             An individual component data book
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
     """
-        
     pass
 # class DBComp
         

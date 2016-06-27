@@ -86,7 +86,7 @@ class DataBook(dict):
     matrix.
     
     :Call:
-        >>> DB = cape.dataBook.DataBook(x, opts, RootDir=None)
+        >>> DB = cape.dataBook.DataBook(x, opts, RootDir=None, targ=None)
     :Inputs:
         *x*: :class:`cape.trajectory.Trajectory`
             The current Cape trajectory (i.e. run matrix)
@@ -94,6 +94,8 @@ class DataBook(dict):
             Global Cape options instance
         *RootDir*: :class:`str`
             Root directory, defaults to ``os.getcwd()``
+        *targ*: {``None``} | :class:`str`
+            If used, read a duplicate data book as a target named *targ*
     :Outputs:
         *DB*: :class:`cape.dataBook.DataBook`
             Instance of the Cape data book class
@@ -110,7 +112,7 @@ class DataBook(dict):
         * 2015-01-10 ``@ddalle``: First version
     """
     # Initialization method
-    def __init__(self, x, opts, RootDir=None):
+    def __init__(self, x, opts, RootDir=None, targ=None):
         """Initialization method
         
         :Versions:
@@ -121,11 +123,17 @@ class DataBook(dict):
         # Save the components
         self.Components = opts.get_DataBookComponents()
         # Save the folder
-        self.Dir = opts.get_DataBookDir()
+        if targ is None:
+            # Root data book
+            self.Dir = opts.get_DataBookDir()
+        else:
+            # Read data book as a target that duplicates the root
+            self.Dir = opts.get_DataBookTargetDir(targ)
         # Save the trajectory.
         self.x = x.Copy()
         # Save the options.
         self.opts = opts
+        self.targ = targ
         # Root directory
         if RootDir is None:
             # Default
@@ -149,7 +157,7 @@ class DataBook(dict):
             # Check if it's an aero-type component
             if tcomp not in ['FM', 'Force', 'Moment']: continue
             # Initialize the data book.
-            self.InitDBComp(comp, x, opts)
+            self.InitDBComp(comp, x, opts, targ=targ)
         # Initialize targets.
         self.Targets = {}
         
@@ -172,11 +180,11 @@ class DataBook(dict):
     __str__ = __repr__
         
     # Initialize a DBComp object
-    def InitDBComp(self, comp, x, opts):
+    def InitDBComp(self, comp, x, opts, targ=None):
         """Initialize data book for one component
         
         :Call:
-            >>> DB.InitDBComp(comp, x, opts)
+            >>> DB.InitDBComp(comp, x, opts, targ=None)
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pyCart data book class
@@ -186,10 +194,12 @@ class DataBook(dict):
                 The current pyCart trajectory (i.e. run matrix)
             *opts*: :class:`pyCart.options.Options`
                 Global pyCart options instance
+            *targ*: {``None``} | :class:`str`
+                If used, read a duplicate data book as a target named *targ*
         :Versions:
             * 2015-11-10 ``@ddalle``: First version
         """
-        self[comp] = DBComp(comp, x, opts)
+        self[comp] = DBComp(comp, x, opts, targ=targ)
         
     # Function to read targets if necessary
     def ReadTarget(self, targ):
@@ -214,10 +224,103 @@ class DataBook(dict):
         try:
             self.Targets[targ]
         except Exception:
-            # Read the file.
-            self.Targets[targ] = DBTarget(
-                targ, self.x, self.opts, self.RootDir)
+            # Get the target type
+            typ = self.opts.get_DataBookTargetType(targ).lower()
+            # Check the type
+            if typ in ['duplicate', 'cape', 'pycart', 'pyfun', 'pyover']:
+                # Read a duplicate data book
+                self.Targets[targ] = DataBook(
+                    self.x, self.opts, self.RootDir, targ=targ)
+                # Update the trajectory
+                self.Targets[targ].UpdateTrajectory()
+            else:
+                # Read the file.
+                self.Targets[targ] = DBTarget(
+                    targ, self.x, self.opts, self.RootDir)
+    
+    # Find a match
+    # Find an entry by trajectory variables.
+    def FindMatch(self, i):
+        """Find an entry by run matrix (trajectory) variables
+        
+        It is assumed that exact matches can be found.
+        
+        :Call:
+            >>> j = DB.FindMatch(i)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the Cape data book class
+            *i*: :class:`int`
+                Index of the case from the trajectory to try match
+        :Outputs:
+            *j*: :class:`numpy.ndarray` (:class:`int`)
+                Array of index that matches the trajectory case or ``NaN``
+        :Versions:
+            * 2016-02-27 ``@ddalle``: Added as a pointer to first component
+        """
+        # Get first component
+        DBc = self[self.Components[0]]
+        # Use its finder
+        return DBc.FindMatch(i)
             
+    # Find an entry using specified tolerance options
+    def FindTargetMatch(self, x, i, topts, keylist='x'):
+        """Find a target entry by run matrix (trajectory) variables
+        
+        Cases will be considered matches by comparing variables specified in the
+        *topts* variable, which shares some of the options from the
+        ``"Targets"`` subsection of the ``"DataBook"`` section of
+        :file:`cape.json`.  Suppose that *topts* contains the following
+        
+        .. code-block:: python
+        
+            {
+                "Trajectory": {"alpha": "ALPHA", "Mach": "MACH"}
+                "Tolerances": {
+                    "alpha": 0.05,
+                    "Mach": 0.01
+                },
+                "Keys": ["alpha", "Mach", "beta"]
+            }
+        
+        Then any entry in the data book target that matches the Mach number
+        within 0.01 (using a column labeled ``"MACH"``) and alpha to within 0.05
+        is considered a match.  Because the *Keys* parameter contains
+        ``"beta"``, the search will also look for exact matches in ``"beta"``.
+        
+        If the *Keys* parameter is not set, the search will use either all the
+        keys in the trajectory, *x.keys*, or just the keys specified in the
+        ``"Tolerances"`` section of *topts*.  Which of these two default lists
+        to use is determined by the *keylist* input.
+        
+        :Call:
+            >>> j = DB.FindMatch(x, i, topts, keylist='x')
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the Cape data book class
+            *x*: :class:`cape.trajectory.Trajectory`
+                The current pyCart trajectory (i.e. run matrix)
+            *i*: :class:`int`
+                Index of the case from the trajectory to try match
+            *topts*: :class:`dict` | :class:`cape.options.DataBook.DBTarget`
+                Criteria used to determine a match
+            *keylist*: {``"x"``} | ``"tol"``
+        :Outputs:
+            *j*: :class:`numpy.ndarray` (:class:`int`)
+                Array of indices that match the trajectory within tolerances
+        :See also:
+            * :func:`cape.dataBook.DBTarget.FindMatch`
+            * :func:`cape.dataBook.DBBase.FindMatch`
+        :Versions:
+            * 2016-02-27 ``@ddalle``: Added as a pointer to first component
+        """
+        # Get first component
+        DBc = self[self.Components[0]]
+        # Use its finder
+        return DBc.FindTargetMatch(x, i, topts, keylist=keylist)
+            
+    
+        
     # Match the databook copy of the trajectory
     def UpdateTrajectory(self):
         """Match the trajectory to the cases in the data book
@@ -1308,6 +1411,98 @@ class DBBase(dict):
             # Return no match.
             return np.nan
             
+    # Find an entry using specified tolerance options
+    def FindTargetMatch(self, x, i, topts, keylist='x'):
+        """Find a target entry by run matrix (trajectory) variables
+        
+        Cases will be considered matches by comparing variables specified in the
+        *topts* variable, which shares some of the options from the
+        ``"Targets"`` subsection of the ``"DataBook"`` section of
+        :file:`cape.json`.  Suppose that *topts* contains the following
+        
+        .. code-block:: python
+        
+            {
+                "Trajectory": {"alpha": "ALPHA", "Mach": "MACH"}
+                "Tolerances": {
+                    "alpha": 0.05,
+                    "Mach": 0.01
+                },
+                "Keys": ["alpha", "Mach", "beta"]
+            }
+        
+        Then any entry in the data book target that matches the Mach number
+        within 0.01 (using a column labeled ``"MACH"``) and alpha to within 0.05
+        is considered a match.  Because the *Keys* parameter contains
+        ``"beta"``, the search will also look for exact matches in ``"beta"``.
+        
+        If the *Keys* parameter is not set, the search will use either all the
+        keys in the trajectory, *x.keys*, or just the keys specified in the
+        ``"Tolerances"`` section of *topts*.  Which of these two default lists
+        to use is determined by the *keylist* input.
+        
+        :Call:
+            >>> j = DBT.FindMatch(x, i, topts, keylist='x')
+        :Inputs:
+            *DBT*: :class:`cape.dataBook.DBTarget`
+                Instance of the Cape data book target data carrier
+            *x*: :class:`cape.trajectory.Trajectory`
+                The current pyCart trajectory (i.e. run matrix)
+            *i*: :class:`int`
+                Index of the case from the trajectory to try match
+            *topts*: :class:`dict` | :class:`cape.options.DataBook.DBTarget`
+                Criteria used to determine a match
+            *keylist*: {``"x"``} | ``"tol"``
+        :Outputs:
+            *j*: :class:`numpy.ndarray` (:class:`int`)
+                Array of indices that match the trajectory within tolerances
+        :See also:
+            * :func:`cape.dataBook.DBTarget.FindMatch`
+            * :func:`cape.dataBook.DBBase.FindMatch`
+        :Versions:
+            * 2014-12-21 ``@ddalle``: First version
+            * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
+        """
+        # Initialize indices (assume all are matches)
+        j = np.arange(self.nCase)
+        # Get the trajectory key translations.   This determines which keys to
+        # filter and what those keys are called in the source file.
+        tkeys = topts.get('Trajectory', {})
+        # Tolerance options
+        tolopts = topts.get('Tolerances', {})
+        # Get list of keys to match
+        if keylist.lower() == 'x':
+            # Use all trajectory keys as default
+            keys = topts.get('Keys', x.keys)
+        else:
+            # Use the tolerance keys
+            keys = topts.get('Keys', tolopts.keys())
+        # Loop through keys requested for matches.
+        for k in keys:
+            # Get the name of the column according to the source file.
+            c = tkeys.get(k, k)
+            # Skip it if key not recognized
+            if c is None: continue
+            # Get the tolerance.
+            tol = tolopts.get(k)
+            # Get the target value (from the trajectory)
+            v = getattr(x,k)[i]
+            # Safe matching in case of complications
+            try:
+                # Check tolerance type
+                if tol is None:
+                    # Search for exact match
+                    jk = np.where(self[c] == v)[0]
+                else:
+                    # Search for match within tolerance (can be zero)
+                    jk = np.where(np.abs(self[c] - v) <= tol)[0]
+                # Restrict to rows that match the above.
+                j = np.intersect1d(j, jk)
+            except Exception:
+                pass
+        # Output
+        return j
+            
     # Plot a sweep of one or more coefficients
     def PlotCoeffBase(self, coeff, I, **kw):
         """Plot a sweep of one coefficient or quantity over several cases
@@ -2016,15 +2211,18 @@ class DBComp(DBBase):
             Trajectory for processing variable types
         *opts*: :class:`cape.options.Options`
             Global pyCart options instance
+        *targ*: {``None``} | :class:`str`
+            If used, read a duplicate data book as a target named *targ*
     :Outputs:
         *DBi*: :class:`pyCart.dataBook.DBComp`
             An individual component data book
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
         * 2014-12-22 ``@ddalle``: First version
+        * 2016-06-27 ``@ddalle``: Added target option for using other folders
     """
     # Initialization method
-    def __init__(self, comp, x, opts):
+    def __init__(self, comp, x, opts, targ=None):
         """Initialization method
         
         :Versions:
@@ -2037,7 +2235,12 @@ class DBComp(DBBase):
         self.name = comp
         
         # Get the directory.
-        fdir = opts.get_DataBookDir()
+        if targ is None:
+            # Primary data book directory
+            fdir = opts.get_DataBookDir()
+        else:
+            # Secondary data book directory
+            fdir = opts.get_DataBookTargetDir(targ)
         
         # Construct the file name.
         fcomp = 'aero_%s.csv' % comp
@@ -2540,7 +2743,7 @@ class DBTarget(DBBase):
         the *DataBook* section of :file:`cape.json` as cases to compare
         against.  Suppose that the control file contains the following.
         
-        .. code-block:: python
+        .. code-block:: javascript
         
             "DataBook": {
                 "Targets": {
@@ -2565,43 +2768,22 @@ class DBTarget(DBBase):
         :Inputs:
             *DBT*: :class:`cape.dataBook.DBTarget`
                 Instance of the Cape data book target data carrier
-            *x*: :class:`pyCart.trajectory.Trajectory`
+            *x*: :class:`cape.trajectory.Trajectory`
                 The current pyCart trajectory (i.e. run matrix)
             *i*: :class:`int`
                 Index of the case from the trajectory to try match
         :Outputs:
             *j*: :class:`numpy.ndarray` (:class:`int`)
                 Array of indices that match the trajectory within tolerances
+        :See also:
+            * :func:`cape.dataBook.DBBase.FindTargetMatch`
+            * :func:`cape.dataBook.DBBase.FindMatch`
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
+            * 2016-06-27 ``@ddalle``: Moved guts to :class:`DBBase`
         """
-        # Initialize indices (assume all are matches)
-        j = np.arange(self.nCase)
-        # Get the trajectory key translations.   This determines which keys to
-        # filter and what those keys are called in the source file.
-        tkeys = self.topts.get_Trajectory()
-        # Loop through keys requested for matches.
-        for k in tkeys:
-            # Get the name of the column according to the source file.
-            c = tkeys[k]
-            # Skip it if key not recognized
-            if c is None: continue
-            # Get the tolerance.
-            tol = self.topts.get_Tol(k)
-            # Skip if no tolerance
-            if tol is None: continue
-            # Get the target value (from the trajectory)
-            v = getattr(x,k)[i]
-            # Search for matches.
-            try:
-                # Filter test criterion.
-                jk = np.where(np.abs(self[c] - v) <= tol)[0]
-                # Restrict to rows that match the above.
-                j = np.intersect1d(j, jk)
-            except Exception:
-                pass
-        # Output
-        return j
+        # Use the target-oriented method
+        return self.FindTargetMatch(x, i, self.topts, keylist='tol')
 # class DBTarget
 
 
