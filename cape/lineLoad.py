@@ -1125,7 +1125,8 @@ class CaseLL(object):
                 # Copy the limits again
                 ax.set_xlim(xlim)
                 # Minimal ticks on y-axis
-                plt.locator_params(axis='y', nbins=4)
+                try: plt.locator_params(axis='y', nbins=4)
+                except Exception: pass
             else:
                 # Automatic axis width based on aspect ratio
                 waxi = hax / AR[i]
@@ -1145,7 +1146,8 @@ class CaseLL(object):
                 # Reset axis limits
                 ax.set_ylim(ylim)
                 # Minimal ticks on y-axis
-                plt.locator_params(axis='x', nbins=3)
+                try: plt.locator_params(axis='x', nbins=3)
+                except Exception: pass
         # Make sure to give handle back to primary plot
         if q_vert:
             # Seams are above and below

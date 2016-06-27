@@ -1617,9 +1617,6 @@ class Report(object):
             # Get the component and coefficient.
             comp = opts.get_SubfigOpt(sfig, "Component", k)
             coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
-            # Go to the run directory.
-            os.chdir(self.cntl.RootDir)
-            os.chdir(frun)
             # Auto-update flag
             q_auto = opts.get_SubfigOpt(sfig, "AutoUpdate", k)
             # Read the line load data book and read case *i* if possible
