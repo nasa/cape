@@ -1149,6 +1149,13 @@ class CaseLL(object):
                 ax.set_ylim(ylim)
                 # Minimal ticks on y-axis
                 plt.locator_params(axis='x', nbins=3)
+        # Make sure to give handle back to primary plot
+        if nsm > 0 and q_vert:
+            # Seams are above and below
+            plt.subplot(nsm+1, 1, sfigll)
+        elif nsm > 0:
+            # Plot seams to the left or right
+            plt.subplot(1, nsm+1, sfigll)
         # Finally, set the position for the position for the main figure
         h['ax'].set_position([xax_min,yax_min,xax_max-xax_min,yax_max-yax_min])
         # REset limits
