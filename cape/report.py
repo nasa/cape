@@ -1888,7 +1888,7 @@ class Report(object):
                 for k_i in kw_t: kw_l[k_i] = kw_t[k_i]
                 # Draw the plot
                 DBT.PlotCoeff(comp, coeff, JT[targ][j], x=xk,
-                    Label=tlbl, LineOptions=kw_l,
+                    Label=tlbl, Legend=True, LineOptions=kw_l,
                     FigWidth=figw, FigHeight=figh)
         # Check for manually specified axes labels.
         xlbl = opts.get_SubfigOpt(sfig, "XLabel")

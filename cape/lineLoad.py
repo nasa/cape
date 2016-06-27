@@ -186,7 +186,7 @@ class DBLineLoad(dataBook.DBBase):
         # Initialize string
         lbl = "<DBLineLoad %s, " % self.comp
         # Number of cases in book
-        lbl += "nCase=%i>" % self.nCase
+        lbl += "nCase=%i>" % self.n
         # Output
         return lbl
     __str__ = __repr__
@@ -243,7 +243,7 @@ class DBLineLoad(dataBook.DBBase):
             self['nStats'] = np.loadtxt(fname,
                 delimiter=delim, dtype=int, usecols=[nCol])
             # Number of cases
-            self.nCase = self[k].size
+            self.n = self[k].size
             # Check for singletons
             if self[k].ndim == 0:
                 # Loop through all keys
@@ -266,7 +266,7 @@ class DBLineLoad(dataBook.DBBase):
             self['nIter'] = np.array([], dtype=int)
             self['nStats'] = np.array([], dtype=int)
             # No cases
-            self.nCase = 0
+            self.n = 0
     
     # Function to write line load data book summary file
     def Write(self, fname=None):
@@ -817,6 +817,8 @@ class CaseLL(object):
                 Label for x-axis
             *YLabel*: {*coeff*} | :class:`str`
                 Label for y-axis
+            *Legend*: [ {True} | False ]
+                Whether or not to use a legend
             *FigWidth*: :class:`float`
                 Figure width
             *FigHeight*: :class:`float`
@@ -1003,6 +1005,30 @@ class CaseLL(object):
             kw_S['LineOptions'] = kw_p
         # Dictionary of subplot indices for each seam plot
         sfigs = {}
+        # Legend.
+        if kw.get('Legend', False):
+            # Get current limits.
+            ymin, ymax = util.get_ylim(h['ax'], pad=0.05)
+            # Add extra room for the legend.
+            h['ax'].set_ylim((ymin, 1.2*ymax-0.2*ymin))
+            # Font size checks.
+            if len(h['ax'].get_lines()) > 5:
+                # Very small
+                fsize = 7
+            else:
+                # Just small
+                fsize = 9
+            # Activate the legend.
+            try:
+                # Use a font that has the proper symbols.
+                h['legend'] = h['ax'].legend(loc='upper center',
+                    prop=dict(size=fsize, family="DejaVu Sans"),
+                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
+            except Exception:
+                # Default font.
+                h['legend'] = h['ax'].legend(loc='upper center',
+                    prop=dict(size=fsize),
+                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
         # Loop through seams
         for i in range(nsm):
             # Get subfig number
