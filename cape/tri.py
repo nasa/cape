@@ -75,7 +75,7 @@ def _readline(f, comment='#'):
 
 
 # Function to read a single triangulation file
-def ReadTriFile(fname):
+def ReadTriFile(fname, fmt=None):
     """Read a single triangulation file
     
     :Call:
@@ -83,6 +83,8 @@ def ReadTriFile(fname):
     :Inputs:
         *fname*: :class:`str`
             Name of Cart3D tri, IDEAS unv, UH3D, or AFLR3 surf file
+        *fmt*: {``None``} | ``"tri"`` | ``"uh3d"`` | ``"unv"`` | ``"surf"``
+            Format to use; by default determine from the file extension
     :Outputs:
         *tri*: :class:`cape.tri.Tri`
             Triangulation
@@ -98,16 +100,21 @@ def ReadTriFile(fname):
     else:
         # Get the extension
         fext = fext[-1]
+    # Determine whether or not to use *fmt* override of format
+    if fmt is None: fmt = fext.lower()
     # Read using the appropriate format
-    if fext.lower() == 'surf':
+    if fmt == 'surf':
         # AFLR3 surface file
         return Tri(surf=fname)
-    elif fext.lower() == 'uh3d':
+    elif fmt == 'uh3d':
         # UH3D surface file
         return Tri(uh3d=fname)
-    elif fext.lower() == 'unv':
+    elif fmt == 'unv':
         # Weird IDEAS triangulation thing
         return Tri(unv=fname)
+    elif fmt == 'triq':
+        # Read triq file
+        return Triq(fname)
     else:
         # Assume Cart3D triangulation file
         return Tri(fname)
@@ -1012,6 +1019,16 @@ class TriBase(object):
         """
         # Initialize labels
         lbls = {}
+        # If read from a UH3D file, there is a tri.Conf attribute
+        try:
+            # Loop through the named components
+            for gID in self.Conf:
+                # Get the value
+                cID = self.Conf[gID]
+                # Add it to the list
+                lbls[cID] = gID
+        except Exception:
+            pass
         # Try to invert the configuration.
         try:
             # Loop through named components.
@@ -1062,13 +1079,13 @@ class TriBase(object):
         for k in np.arange(self.nTri):
             # Write the line (with 1-based triangle index and CompID).
             fid.write('%i, %i, %i, %i, %i\n' % (k+1, self.Tris[k,0], 
-                self.Tris[k,1], self.Tris[k,0], self.CompID[k]))
+                self.Tris[k,1], self.Tris[k,2], self.CompID[k]))
         # Loop through the component names.
-        for k in range(nID):
+        for k in range(1,nID+1):
             # Get the name that will be written.
             lbl = lbls.get(k, str(k))
             # Write the label.
-            fid.write("%i, '%s'\n" % (k+1, lbl))
+            fid.write("%i, '%s'\n" % (k, lbl))
         # Write termination line.
         fid.write('99,99,99,99,99\n')
         # Close the file.
