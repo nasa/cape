@@ -471,7 +471,7 @@ def DeleteFiles(fdel, fsub=None, n=1):
         # Triple-check for existence
         if not isfile(fn): continue
         # Delete it.
-        print("       Label 0100: rm %s" % fn)
+        print("      Label 0100: rm %s" % fn)
         os.remove(fn)
         
 # Function to delete files according to full descriptor
