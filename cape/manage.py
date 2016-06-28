@@ -227,7 +227,6 @@ def GetSearchDirs(fsub=None, fsort=None):
         fdirs = fsort(fdirs)
     # Append working directory (and make sure it's last)
     fdirs.append('.')
-    print("  Label 050: fdirs = %s" % fdirs)
     # Output
     return fdirs
     
@@ -301,7 +300,6 @@ def GetMatches(fname, fsub=None, fkeep=None, ftest=None, n=0, fsort=None):
                 continue
             # Append to the list of matches
             fglob.append(fgn)
-    print("     Label 055: fglob = %s" % fglob)
     # Output
     return fglob
     
@@ -724,7 +722,6 @@ def TarLinks(cmd, ext, clean=True):
     ftar = 'links.' + ext
     # Remove *ftar* from this list to avoid recursions
     fglob = [f for f in fglob if f != ftar]
-    print("    Label 070: TarLinks %s" % fglob)
     # Create command
     cmdc = cmd + [ftar] + flink
     # Run command

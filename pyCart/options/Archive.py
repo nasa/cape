@@ -166,7 +166,7 @@ class Archive(cape.options.Archive.Archive):
             self.add_ArchivePreUpdateFiles(CheckDict)
             # Files/folders to delete after archiving
             self.add_ArchivePostDeleteFiles([
-                'adapt??.'+ext, 'checkDT*', 'Components.i.triq',
+                'adapt??.'+ext, 'checkDT*',
                 'Components.i.tri', '*.lay', '*.out'
             ])
             self.add_ArchivePostDeleteFiles(RunFiles)
@@ -184,7 +184,7 @@ class Archive(cape.options.Archive.Archive):
             # Files/folders to delete after archiving
             self.add_ArchivePostDeleteFiles([
                 'adapt??.'+ext, 'checkDT*', 'check*', 
-                'Components.i.triq', 'Components.*.tri', '*.lay', '*.out'
+                'Components.*.tri', '*.lay', '*.out'
             ])
             self.add_ArchivePostDeleteFiles(RunFiles)
             # Files to keep only *n*
