@@ -199,7 +199,13 @@ def TarAdapt(opts):
         shutil.rmtree(fdir)
     # Special file used for statistics
     if not os.path.isfile('adapt00/Mesh.c3d.Info'):
+        # Revive the old files
         sp.call(['tar', '-xf', 'adapt00.tar', 'adapt00/Mesh.c3d.Info'])
+        # Apparent latest directory
+        fuse = 'adapt%02i' % imax
+        # Make sure the newest folder has the most recent date.
+        if os.path.isdir(fuse): sp.call(['touch', fuse])
+    
 # def TarAdapt
         
 # Function to undo the above
