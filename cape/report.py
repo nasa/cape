@@ -1865,12 +1865,20 @@ class Report(object):
             for targ in targs:
                 # Get the target handle.
                 DBT = self.cntl.DataBook.GetTargetByName(targ)
+                # Target type
+                typt = self.cntl.opts.get_DataBookTargetType(targ).lower()
                 # Check for results to plot.
                 if len(JT[targ][j]) == 0:
                     continue
                 # Check if the *comp*/*coeff* combination is available.
-                if (comp not in DBT.ckeys) or (coeff not in DBT.ckeys[comp]):
-                    continue
+                if typt in ['duplicate', 'cape', 'pycart']:
+                    # Check with *DBT* as a full data book
+                    if (comp not in DBT) or (coeff not in DBT[comp]):
+                        continue
+                else:
+                    # Check *DBT* as a DBTarget
+                    if comp not in DBT.ckeys or coeff not in DBT.ckeys[comp]:
+                        continue
                 # Get target plot label.
                 tlbl = self.SubfigTargetPlotLabel(sfig, k, targ) + clbl
                 # Don't start with comma.
