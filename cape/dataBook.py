@@ -1594,7 +1594,7 @@ class DBBase(dict):
         # Extract the mean values.
         yv = self[coeff][I]
         # Initialize label.
-        lbl = kw.get('Label', comp)
+        lbl = kw.get('Label', self.comp)
         # -----------------------
         # Standard Deviation Plot
         # -----------------------
