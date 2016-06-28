@@ -763,6 +763,7 @@ def TarDir(cmd, ftar, fdir, clean=True):
     if not clean: return
     # Delete the folder
     if os.path.isdir(fdir):
+        print("     Label 0102: rm -r %s" % fdir)
         shutil.rmtree(fdir)
         
 # Untar a folder
