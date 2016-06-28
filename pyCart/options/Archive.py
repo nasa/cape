@@ -214,6 +214,7 @@ class Archive(cape.options.Archive.Archive):
             self.add_ArchivePreTarDirs(AdaptDict)
             self.add_ArchivePostDeleteFiles(['checkDT*', '*.lay', '*.out'])
             self.add_ArchivePostUpdateFiles(CheckDict)
+        print(self)
         
         
     # Get number of check points to keep around
