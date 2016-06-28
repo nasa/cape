@@ -974,6 +974,33 @@ class CaseLL(object):
         h['xmax'] = xmax
         h['ymin'] = ymin
         h['ymax'] = ymax
+        # ------
+        # Legend
+        # ------
+        # Check for legend setting
+        if kw.get('Legend', False):
+            # Get current limits.
+            ymin, ymax = util.get_ylim(h['ax'], pad=0.05)
+            # Add extra room for the legend.
+            h['ax'].set_ylim((ymin, 1.2*ymax-0.2*ymin))
+            # Font size checks.
+            if len(h['ax'].get_lines()) > 5:
+                # Very small
+                fsize = 7
+            else:
+                # Just small
+                fsize = 9
+            # Activate the legend.
+            try:
+                # Use a font that has the proper symbols.
+                h['legend'] = h['ax'].legend(loc='upper center',
+                    prop=dict(size=fsize, family="DejaVu Sans"),
+                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
+            except Exception:
+                # Default font.
+                h['legend'] = h['ax'].legend(loc='upper center',
+                    prop=dict(size=fsize),
+                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
         # ----------
         # Seam plots
         # ----------
@@ -1002,30 +1029,6 @@ class CaseLL(object):
             kw_S['LineOptions'] = kw_p
         # Dictionary of subplot indices for each seam plot
         sfigs = {}
-        # Legend.
-        if kw.get('Legend', False):
-            # Get current limits.
-            ymin, ymax = util.get_ylim(h['ax'], pad=0.05)
-            # Add extra room for the legend.
-            h['ax'].set_ylim((ymin, 1.2*ymax-0.2*ymin))
-            # Font size checks.
-            if len(h['ax'].get_lines()) > 5:
-                # Very small
-                fsize = 7
-            else:
-                # Just small
-                fsize = 9
-            # Activate the legend.
-            try:
-                # Use a font that has the proper symbols.
-                h['legend'] = h['ax'].legend(loc='upper center',
-                    prop=dict(size=fsize, family="DejaVu Sans"),
-                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
-            except Exception:
-                # Default font.
-                h['legend'] = h['ax'].legend(loc='upper center',
-                    prop=dict(size=fsize),
-                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
         # Loop through seams
         for i in range(nsm):
             # Get subfig number

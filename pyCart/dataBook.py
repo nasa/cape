@@ -86,7 +86,7 @@ class DataBook(cape.dataBook.DataBook):
             if typ in ['duplicate', 'cape', 'pycart', 'pyfun', 'pyover']:
                 # Read a duplicate data book
                 self.Targets[targ] = DataBook(
-                    self.x, self.opts, self.RootDir, targ=targ)
+                    self.x, self.opts, RootDir=self.RootDir, targ=targ)
                 # Update the trajectory
                 self.Targets[targ].UpdateTrajectory()
             else:

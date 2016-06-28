@@ -1556,8 +1556,6 @@ class Report(object):
         fpwd = os.getcwd()
         # Case folder
         frun = self.cntl.x.GetFullFolderNames(i)
-        print("Label 010: frun = %s" % frun)
-        print("Label 011: %s" % fpwd)
         # Extract options
         opts = self.cntl.opts
         # Get the component.
@@ -2007,7 +2005,7 @@ class Report(object):
         # Get the target handle.
         DBT = self.cntl.DataBook.GetTargetByName(targ)
         # Get the nominal label of the target
-        tlbl = DBT.topts.get_TargetLabel()
+        tlbl = DBT.topts.get('Label', targ)
         # Number of coefficients.
         if type(coeffs).__name__ in ['list']:
             # Coefficient name

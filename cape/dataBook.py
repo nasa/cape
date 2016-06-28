@@ -118,8 +118,16 @@ class DataBook(dict):
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
         """
-        # Save the root directory.
-        self.RootDir = os.getcwd()
+        # Root directory
+        if RootDir is None:
+            # Default
+            self.RootDir = os.getcwd()
+        else:
+            # Specified option
+            self.RootDir = RootDir
+        # Change safely to the root folder
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
         # Save the components
         self.Components = opts.get_DataBookComponents()
         # Save the folder
@@ -136,13 +144,6 @@ class DataBook(dict):
         # Save the options.
         self.opts = opts
         self.targ = targ
-        # Root directory
-        if RootDir is None:
-            # Default
-            self.RootDir = os.getcwd()
-        else:
-            # Specified option
-            self.RootDir = RootDir
         # Make sure the destination folder exists.
         for fdir in self.Dir.split('/'):
             # Check if the folder exists.
@@ -162,6 +163,8 @@ class DataBook(dict):
             self.InitDBComp(comp, x, opts, targ=targ)
         # Initialize targets.
         self.Targets = {}
+        # Return to original location
+        os.chdir(fpwd)
         
     # Command-line representation
     def __repr__(self):
@@ -232,7 +235,7 @@ class DataBook(dict):
             if typ in ['duplicate', 'cape', 'pycart', 'pyfun', 'pyover']:
                 # Read a duplicate data book
                 self.Targets[targ] = DataBook(
-                    self.x, self.opts, self.RootDir, targ=targ)
+                    self.x, self.opts, RootDir=self.RootDir, targ=targ)
                 # Update the trajectory
                 self.Targets[targ].UpdateTrajectory()
             else:

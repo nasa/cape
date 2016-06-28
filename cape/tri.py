@@ -986,10 +986,8 @@ class TriBase(object):
         :Versions:
             * 2015-09-14 ``@ddalle``: First version
         """
-        print("Label 010: Starting")
         # Write the nodes.
         pc.WriteTriQ(self.Nodes, self.Tris, self.CompID, self.q)
-        print("Label 050: Finished")
         # Check the file name.
         if fname != "Components.pyCart.tri":
             # Move the file.

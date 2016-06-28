@@ -245,13 +245,13 @@ class Trajectory:
         # Initialize an empty trajectory.
         y = Trajectory(Empty=True)
         # Copy the fields.
-        y.defns  = self.defns
-        y.abbrv  = self.abbrv
+        y.defns  = self.defns.copy()
+        y.abbrv  = self.abbrv.copy()
         y.keys   = self.keys
-        y.text   = self.text
+        y.text   = self.text.copy()
         y.prefix = self.prefix
-        y.PASS   = self.PASS
-        y.ERROR  = self.ERROR
+        y.PASS   = self.PASS.copy()
+        y.ERROR  = self.ERROR.copy()
         y.nCase  = self.nCase
         # Group-related info
         y.GroupPrefix  = self.GroupPrefix

@@ -173,7 +173,7 @@ class Report(odict):
             "Format": "pdf",
             "DPI": 150,
             "LineOptions": {"color": ["k","g","c","m","b","r"]},
-            "TargetOptions": {"color": ["r", "g", "b"], "ls": "--"},
+            "TargetOptions": {"color": ["r", "b", "g"], "zorder": 2},
             "SeamOptions": None,
             "SeamCurves": "smy",
             "SeamLocations": None,
