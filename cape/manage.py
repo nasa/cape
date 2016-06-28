@@ -763,7 +763,7 @@ def TarDir(cmd, ftar, fdir, clean=True):
     if not clean: return
     # Delete the folder
     if os.path.isdir(fdir):
-        print("     Label 0102: rm -r %s" % fdir)
+        print("      Label 0102: rm -r %s" % fdir)
         shutil.rmtree(fdir)
         
 # Untar a folder
@@ -942,6 +942,7 @@ def PreTarDirs(opts, fsub=None, aa=None):
     ext  = opts.get_ArchiveExtension()
     # Get list of matching directories
     fdirs = GetDirMatches(fopt, fsub=fsub, n=1)
+    print("    Label 0024: fdirs %s" % fdirs)
     # Loop through directories
     for fdir in fdirs:
         # Archive file name
