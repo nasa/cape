@@ -227,6 +227,7 @@ def GetSearchDirs(fsub=None, fsort=None):
         fdirs = fsort(fdirs)
     # Append working directory (and make sure it's last)
     fdirs.append('.')
+    print("  Label 050: fdirs = %s" % fdirs)
     # Output
     return fdirs
     
@@ -300,6 +301,7 @@ def GetMatches(fname, fsub=None, fkeep=None, ftest=None, n=0, fsort=None):
                 continue
             # Append to the list of matches
             fglob.append(fgn)
+    print("     Label 055: fglob = %s" % fglob)
     # Output
     return fglob
     
@@ -471,7 +473,8 @@ def DeleteFiles(fdel, fsub=None, n=1):
         # Triple-check for existence
         if not isfile(fn): continue
         # Delete it.
-        os.remove(fn)
+        print("       Label 0100: rm %s" % fn)
+        #os.remove(fn)
         
 # Function to delete files according to full descriptor
 def ArchiveFiles(opts, fname, fsub=None, n=0):
@@ -643,7 +646,8 @@ def DeleteDirs(fdel, fsub=None, n=1):
         # Triple-check for existence
         if not os.path.isdir(fn): continue
         # Delete it
-        shutil.rmtree(fn)
+        print("      Label 0101: rm -r %s" % fn)
+        #shutil.rmtree(fn)
         
 # Archive groups
 def TarGroup(cmd, ftar, fname, n=0, clean=False):
@@ -720,6 +724,7 @@ def TarLinks(cmd, ext, clean=True):
     ftar = 'links.' + ext
     # Remove *ftar* from this list to avoid recursions
     fglob = [f for f in fglob if f != ftar]
+    print("    Label 070: TarLinks %s" % fglob)
     # Create command
     cmdc = cmd + [ftar] + flink
     # Run command

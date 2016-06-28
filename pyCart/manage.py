@@ -41,6 +41,7 @@ def ManageFilesProgress(opts=None):
     """
     # Convert options
     opts = Archive.auto_Archive(opts)
+    print("Label 001: MangeFilesProgress")
     # Perform actions
     cape.manage.ProgressDeleteFiles(opts, fsub=fsub)
     cape.manage.ProgressUpdateFiles(opts, fsub=fsub)
@@ -63,6 +64,7 @@ def ManageFilesPre(opts=None):
     """
     # Convert options
     opts = Archive.auto_Archive(opts)
+    print("Label 002: MangeFilesPre")
     # Perform actions
     cape.manage.PreDeleteFiles(opts, fsub=fsub)
     cape.manage.PreUpdateFiles(opts, fsub=fsub)
@@ -85,6 +87,7 @@ def ManageFilesPost(opts=None):
     """
     # Convert options
     opts = Archive.auto_Archive(opts)
+    print("Label 003: MangeFilesPost")
     # Perform actions
     cape.manage.PostDeleteFiles(opts, fsub=fsub)
     cape.manage.PostUpdateFiles(opts, fsub=fsub)
