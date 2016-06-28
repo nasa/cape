@@ -474,7 +474,7 @@ def DeleteFiles(fdel, fsub=None, n=1):
         if not isfile(fn): continue
         # Delete it.
         print("       Label 0100: rm %s" % fn)
-        #os.remove(fn)
+        os.remove(fn)
         
 # Function to delete files according to full descriptor
 def ArchiveFiles(opts, fname, fsub=None, n=0):
@@ -647,7 +647,7 @@ def DeleteDirs(fdel, fsub=None, n=1):
         if not os.path.isdir(fn): continue
         # Delete it
         print("      Label 0101: rm -r %s" % fn)
-        #shutil.rmtree(fn)
+        shutil.rmtree(fn)
         
 # Archive groups
 def TarGroup(cmd, ftar, fname, n=0, clean=False):
