@@ -1426,6 +1426,7 @@ class TriBase(object):
         # Save the statistics.
         self.nNode = nNode
         self.nTri = nTri
+        self.nQuad = 0
         
         # Initialize the nodes.
         Nodes = np.zeros((nNode, 3))
