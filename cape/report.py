@@ -2427,6 +2427,7 @@ class Report(object):
             os.chdir(self.cntl.x.GetFullFolderNames(i))
             # Loop through components
             for comp in comps:
+                # Component label
                 # Read the Aero history.
                 FM = self.ReadCaseFM(comp)
                 # Loop through the transformations.

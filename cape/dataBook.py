@@ -3749,21 +3749,30 @@ class CaseFM(CaseData):
             kth = topts.get('theta', 'theta')
             kps = topts.get('psi', 'psi')
             # Extract roll
-            if kph.startswith('-'):
+            if type(kph).__name__ not in ['str', 'unicode']:
+                # Fixed value
+                phi = kph*deg
+            elif kph.startswith('-'):
                 # Negative roll angle.
                 phi = -getattr(x,kph[1:])[i]*deg
             else:
                 # Positive roll
                 phi = getattr(x,kph)[i]*deg
             # Extract pitch
-            if kth.startswith('-'):
+            if type(kth).__name__ not in ['str', 'unicode']:
+                # Fixed value
+                theta = kth*deg
+            elif kth.startswith('-'):
                 # Negative pitch
                 theta = -getattr(x,kth[1:])[i]*deg
             else:
                 # Positive pitch
                 theta = getattr(x,kth)[i]*deg
             # Extract yaw
-            if kps.startswith('-'):
+            if type(kps).__name__ not in ['str', 'unicode']:
+                # Fixed value
+                psi = kps*deg
+            elif kps.startswith('-'):
                 # Negative yaw
                 psi = -getattr(x,kps[1:])[i]*deg
             else:

@@ -33,8 +33,49 @@ import os, shutil, glob
 import subprocess as sp
 # Numerics
 import numpy as np
+# Date string
+from datetime import datetime
 # Options module
 from .options import Archive
+
+# Write date to archive
+def write_log_date(fname='archive.log'):
+    """Write the date to the archive log
+
+    :Call:
+        >>> cape.manage.write_log_date(fname='archive.log')
+    :Inputs:
+        *fname*: {``"archive.log"``} | :class:`str`
+            Name of acrhive log file
+    :Versions:
+        * 2016-07-08 ``@ddalle``: First version
+    """
+    # Open the file
+    f = open(fname, 'a')
+    # Write the date
+    f.write("# --- %s ---\n" %
+        datetime.now().strftime('%Y-%m-%d %H: %M:%S %Z'))
+    # Close the file
+    f.close()
+
+# Write an action to log
+def write_log(txt, fname='archive.log'):
+    """Write the date to the archive log
+
+    :Call:
+        >>> cape.manage.write_log(txt, fname='archive.log')
+    :Inputs:
+        *fname*: {``"archive.log"``} | :class:`str`
+            Name of acrhive log file
+    :Versions:
+        * 2016-07-08 ``@ddalle``: First version
+    """
+    # Open the file
+    f = open(fname, 'a')
+    # Write the line
+    f.write('%s\n' % txt.rstrip())
+    # Close the file
+    f.close()
 
 # File tests
 def isfile(fname):
@@ -470,8 +511,9 @@ def DeleteFiles(fdel, fsub=None, n=1):
     for fn in fglob:
         # Triple-check for existence
         if not isfile(fn): continue
+        # Write to log
+        write_log('  rm %s' % fn)
         # Delete it.
-        print("      Label 0100: rm %s" % fn)
         os.remove(fn)
         
 # Function to delete files according to full descriptor
@@ -644,7 +686,7 @@ def DeleteDirs(fdel, fsub=None, n=1):
         # Triple-check for existence
         if not os.path.isdir(fn): continue
         # Delete it
-        print("      Label 0101: rm -r %s" % fn)
+        write_log('  rm -r %s' % fn)
         shutil.rmtree(fn)
         
 # Archive groups
@@ -681,6 +723,8 @@ def TarGroup(cmd, ftar, fname, n=0, clean=False):
     if len(fglob) < 2: return
     # Create command
     cmdc = cmd + [ftar] + fglob
+    # Write to the log
+    write_log('  ' + ' '.join(cmdc))
     # Run the command
     ierr = sp.call(cmdc)
     # Exit if unsuccessful
@@ -690,6 +734,7 @@ def TarGroup(cmd, ftar, fname, n=0, clean=False):
     # Delete matches
     for fn in fglob:
         if isfile(fn):
+            write_log('  rm %s' % fn)
             os.remove(fn)
         
 # Tar all links
@@ -724,6 +769,8 @@ def TarLinks(cmd, ext, clean=True):
     fglob = [f for f in fglob if f != ftar]
     # Create command
     cmdc = cmd + [ftar] + flink
+    # Write command to log
+    write_log('  ' + ' '.join(cmdc))
     # Run command
     ierr = sp.call(cmdc)
     # Exit if unsuccessful
@@ -731,6 +778,7 @@ def TarLinks(cmd, ext, clean=True):
     # Delete links
     for fn in flink:
         if os.path.islink(fn):
+            write_log('  rm %s' % fn)
             os.remove(fn)
     
 # Tar a folder
@@ -763,7 +811,7 @@ def TarDir(cmd, ftar, fdir, clean=True):
     if not clean: return
     # Delete the folder
     if os.path.isdir(fdir):
-        print("      Label 0102: rm -r %s" % fdir)
+        write_log('  rm -r %s' % fdir)
         shutil.rmtree(fdir)
         
 # Untar a folder
@@ -784,12 +832,15 @@ def Untar(cmd, ftar):
     """
     # Create command
     cmdc = cmd + [ftar]
+    # Log
+    write_log('  ' + ' '.join(cmdc))
     # Run the command
     ierr = sp.call(cmdc)
     # Exit if unsuccessful
     if ierr: return
     # Delete the folder
     if os.path.isfile(ftar):
+        write_log('  rm %s' % ftar)
         os.remove(ftar)
     
 # ----------------------------
@@ -820,6 +871,8 @@ def PreDeleteFiles(opts, fsub=None, aa=None):
     fdel = opts.get_ArchivePreDeleteFiles()
     # Exit if necessary
     if fdel is None: return
+    # Write flag
+    write_log('<PreDeleteFiles>')
     # Delete
     DeleteFiles(fdel, fsub=fsub, n=0)
     
@@ -846,6 +899,8 @@ def PreDeleteDirs(opts, fsub=None, aa=None):
     fdel = opts.get_ArchivePreDeleteDirs()
     # Exit if necessary
     if fdel is None: return
+    # Write flag
+    write_log('<PreDeleteDirs>')
     # Delete
     DeleteDirs(fdel, fsub=fsub, n=0)
 
@@ -872,6 +927,8 @@ def PreUpdateFiles(opts, fsub=None, aa=None):
     fdel = opts.get_ArchivePreUpdateFiles()
     # Exit if necessary
     if fdel is None: return
+    # Write flag
+    write_log('<PreUpdateFiles>')
     # Delete
     DeleteFiles(fdel, fsub=fsub, n=1)
     
@@ -900,6 +957,8 @@ def PreTarGroups(opts, fsub=None, aa=None):
     fgrps = opts.get_ArchivePreTarGroups()
     # Exit if necessary
     if fgrps is None: return
+    # Write flag
+    write_log('<PreTarGroups>')
     # Get format, command, and extension
     cmdu = opts.get_ArchiveCmd()
     ext  = opts.get_ArchiveExtension()
@@ -937,12 +996,13 @@ def PreTarDirs(opts, fsub=None, aa=None):
     fopt = opts.get_ArchivePreTarDirs()
     # Exit if necessary
     if fopt is None: return
+    # Write flag
+    write_log('<PreTarDirs>')
     # Get format, command, and extension
     cmdu = opts.get_ArchiveCmd()
     ext  = opts.get_ArchiveExtension()
     # Get list of matching directories
     fdirs = GetDirMatches(fopt, fsub=fsub, n=1)
-    print("    Label 0024: fdirs %s" % fdirs)
     # Loop through directories
     for fdir in fdirs:
         # Archive file name
@@ -978,6 +1038,8 @@ def PostDeleteFiles(opts, fsub=None, aa=None):
     fdel = opts.get_ArchivePostDeleteFiles()
     # Exit if necessary
     if fdel is None: return
+    # Write flag
+    write_log('<PostDeleteFiles>')
     # Delete
     DeleteFiles(fdel, fsub=fsub, n=0)
     
@@ -1004,6 +1066,8 @@ def PostDeleteDirs(opts, fsub=None, aa=None):
     fdel = opts.get_ArchivePostDeleteDirs()
     # Exit if necessary
     if fdel is None: return
+    # Write flag
+    write_log('<PostDeleteDirs>')
     # Delete
     DeleteDirs(fdel, fsub=fsub, n=0)
 
@@ -1030,6 +1094,8 @@ def PostUpdateFiles(opts, fsub=None, aa=None):
     fdel = opts.get_ArchivePostUpdateFiles()
     # Exit if necessary
     if fdel is None: return
+    # Write flag
+    write_log('<PostUpdateFiles>')
     # Delete
     DeleteFiles(fdel, fsub=fsub, n=1)
     
@@ -1060,6 +1126,8 @@ def PostTarGroups(opts, fsub=None, aa=None, frun=None):
     fgrps = opts.get_ArchivePostTarGroups()
     # Exit if necessary
     if fgrps is None: return
+    # Write flag
+    write_log('<PostTarGroups>')
     # Get format, command, and extension
     cmdu = opts.get_ArchiveCmd()
     ext  = opts.get_ArchiveExtension()
@@ -1108,6 +1176,8 @@ def PostTarDirs(opts, fsub=None, aa=None, frun=None):
     fopt = opts.get_ArchivePostTarDirs()
     # Exit if necessary
     if fopt is None: return
+    # Write flag
+    write_log('<PostTarGroups>')
     # Get format, command, and extension
     cmdu = opts.get_ArchiveCmd()
     ext  = opts.get_ArchiveExtension()
@@ -1153,6 +1223,8 @@ def ProgressDeleteFiles(opts, fsub=None, aa=None):
     fdel = opts.get_ArchiveProgressDeleteFiles()
     # Exit if necessary
     if fdel is None: return
+    # Write flag
+    write_log('<ProgressDeleteFiles>')
     # Delete
     DeleteFiles(fdel, fsub=fsub, n=0)
     
@@ -1179,6 +1251,8 @@ def ProgressArchiveFiles(opts, fsub=None, aa=None):
     fglob = opts.get_ArchiveProgressArchiveFiles()
     # Exit if necessary
     if fglob is None: return
+    # Write flag
+    write_log('<ProgressArchiveFiles>')
     # Copy
     ArchiveFiles(opts, fglob, fsub=fsub, n=0)
     
@@ -1205,6 +1279,8 @@ def ProgressDeleteDirs(opts, fsub=None, aa=None):
     fdel = opts.get_ArchiveProgressDeleteDirs()
     # Exit if necessary
     if fdel is None: return
+    # Write flag
+    write_log('<ProgressDeleteDirs>')
     # Delete
     DeleteDirs(fdel, fsub=fsub, n=0)
 
@@ -1231,6 +1307,8 @@ def ProgressUpdateFiles(opts, fsub=None, aa=None):
     fdel = opts.get_ArchiveProgressUpdateFiles()
     # Exit if necessary
     if fdel is None: return
+    # Write flag
+    write_log('<ProgressUpdateFiles>')
     # Delete
     DeleteFiles(fdel, fsub=fsub, n=1)
     
@@ -1259,6 +1337,8 @@ def ProgressTarGroups(opts, fsub=None, aa=None):
     fgrps = opts.get_ArchiveProgressTarGroups()
     # Exit if necessary
     if fgrps is None: return
+    # Write flag
+    write_log('<ProgressTarGroups>')
     # Get format, command, and extension
     cmdu = opts.get_ArchiveCmd()
     ext  = opts.get_ArchiveExtension()
@@ -1301,6 +1381,8 @@ def ProgressTarDirs(opts, fsub=None, aa=None):
     fopt = opts.get_ArchiveProgressTarDirs()
     # Exit if necessary
     if fopt is None: return
+    # Write flag
+    write_log('<ProgressTarDirs>')
     # Get format, command, and extension
     cmdu = opts.get_ArchiveCmd()
     ext  = opts.get_ArchiveExtension()

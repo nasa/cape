@@ -481,6 +481,8 @@ def ArchiveFolder(opts):
     ext  = "." + opts.get_ArchiveExtension()
     # Go to the folder.
     os.chdir(fdir)
+    # Write date
+    cape.manage.write_log_date()
     # Pre-archiving file management
     ManageFilesPre(opts)
     # Perform remote copy
