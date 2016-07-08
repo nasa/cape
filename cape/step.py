@@ -487,9 +487,12 @@ class STEP(object):
             dxej = min(dxe)
             # Check
             if min(dxsj, dxej) > ds:
+                for k in K:
+                    print("%2i: [%.4f, %.4f]" % (k, xs[k,ia], xe[k,ia]))
                 raise ValueError(
-                    ("Distance between end of curve %i " % js) +
-                    ("to next curve exceeds tolerance %s" % ds))
+                    ("Distance between curve %i " % js) +
+                    ("to next curve exceeds tolerance %s\n" % ds) +
+                    ("Current coordinate is %s" % (xj[ia])))
             # Check for min/max
             if dxsj <= dxej:
                 # Found match at start of next curve
