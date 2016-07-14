@@ -197,14 +197,19 @@ def TarAdapt(opts):
         if ierr: continue
         # Remove the folder.
         shutil.rmtree(fdir)
+    # Do not process further without adapt00.tar
+    if not os.path.isfile('adapt00.tar'): return
     # Special file used for statistics
     if not os.path.isfile('adapt00/Mesh.c3d.Info'):
+        # Folder we actually want to keep
+        fuse = 'adapt%02i' % imax
+        # Time to use for adapt00
+        t = os.path.getmtime(fuse) - 10.0
         # Revive the old files
         sp.call(['tar', '-xf', 'adapt00.tar', 'adapt00/Mesh.c3d.Info'])
-        # Apparent latest directory
-        fuse = 'adapt%02i' % imax
-        # Make sure the newest folder has the most recent date.
-        if os.path.isdir(fuse): sp.call(['touch', fuse])
+        # Set the time to something old
+        os.utime('adapt00', (t, t))
+        os.utime('adapt00.tar', (t,t))
     
 # def TarAdapt
         
