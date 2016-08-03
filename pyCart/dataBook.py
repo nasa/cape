@@ -143,7 +143,14 @@ class DataBook(cape.dataBook.DataBook):
             self.LineLoads = {}
         # Try to access the line load
         try:
-            self.LineLoads[comp]
+            if targ is None:
+                # Check for the line load data book as is
+                self.LineLoads[comp]
+            else:
+                # Check for the target
+                self.ReadTarget(targ)
+                # Check for the target line load
+                self.Targets[targ].LineLoads[comp]
         except Exception:
             # Safely go to root directory
             fpwd = os.getcwd()

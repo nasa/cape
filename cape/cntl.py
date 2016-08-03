@@ -930,6 +930,13 @@ class Cntl(object):
         # Go to the working directory.
         f.write('# Go to the working directory.\n')
         f.write('cd %s\n\n' % os.getcwd())
+
+        # Get umask option
+        umask = self.opts.get_umask()
+        # Write the umask
+        if umask > 0:
+            f.write('# Set umask.\n')
+            f.write('umask %04o\n\n' % umask)
         
         # Write a header for the shell commands.
         f.write('# Additional shell commands\n')
