@@ -334,6 +334,28 @@ class DBLineLoad(dataBook.DBBase):
         f.close()
         # Try to write the seam curves
         self.WriteSeamCurves()
+        
+    # Match the databook copy of the trajectory
+    def UpdateTrajectory(self):
+        """Match the trajectory to the cases in the data book
+        
+        :Call:
+            >>> DBL.UpdateTrajectory()
+        :Inputs:
+            *DBL*: :class:`cape.lineLoad.DBLineLoad`
+                Line load data book
+        :Versions:
+            * 2015-05-22 ``@ddalle``: First version
+            * 2016-08-12 ``@ddalle``: Copied from data book
+        """
+        # Loop through the fields.
+        for k in self.x.keys:
+            # Copy the data.
+            setattr(self.x, k, self[k])
+            # Set the text.
+            self.x.text[k] = [str(xk) for xk in self[k]]
+        # Set the number of cases.
+        self.x.nCase = self.n
     
     # Read the seam curves
     def ReadSeamCurves(self):
