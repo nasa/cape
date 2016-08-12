@@ -1573,10 +1573,12 @@ class Report(object):
             try:
                 # Read line loads
                 self.ReadLineLoad(comp, i, targ=targ, update=False)
+                print("Label 040: ReadLineLoad %s" % self.DataBook.Targets[targ].LineLoad[comp])
                 # If read successfully, duplicate data book target
                 targ_types[targ] = 'cape'
             except Exception:
                 # Read failed
+                print("Label 041: WTF?")
                 targ_types[targ] = 'generic'
         # List of coefficients
         if type(coeff).__name__ in ['list', 'ndarray']:
