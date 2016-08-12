@@ -195,22 +195,20 @@ class Report(cape.report.Report):
             # Read Line load
             DBT.ReadLineLoad(comp, conf=self.cntl.config)
             DBL = DBT.LineLoads[comp]
+            # Update the trajectory
+            DBL.UpdateTrajectory()
             # Target options
             topts = self.cntl.opts.get_DataBookTargetByName(targ)
             # Find a match
             J = DBL.FindTargetMatch(DB.x, i, topts)
-            print("Label 028: i=%s" % i)
-            print("Label 029: J=%s" % J)
             # Check for a match
             if len(J) == 0: return None
             # Get the first match
             j = J[0]
             # Move the handle.
             DB = DBT
-            print("Label 034 j=%s" % j)
         # Read the case
         DBL.ReadCase(j)
-        print("Label 035")
         # Check auto-update flag
         if update and j not in DBL:
             # Update the case
