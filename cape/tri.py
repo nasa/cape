@@ -819,6 +819,71 @@ class TriBase(object):
         # Close the file.
         fid.close()
         
+    # Write TRI file as a binary file
+    def WriteTriBinSlow(self, fname='Components.i.tri', nq=None):
+        """Write a triangulation file as an unformatted binary file
+        
+        :Call:
+            >>> tri.WriteBinSlow(fname='Comonents.i.tri', nq=None)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+            *nq*: {``None``} | :class:`int`
+                Number of states for first line
+        :Versions:
+            * 2016-08-17 ``@ddalle``: First version
+        """
+        # Open the file for creation
+        fid = open(fname, 'wb')
+        # Byte counts
+        ni = 4; fi='i%i'%ni
+        nf = 4; ff='f%i'%nf
+        # Get number of state vars
+        if nq is None:
+            try:
+                nq = self.nq
+            except AttributeError:
+                # No attribute for number of states
+                nq = 0
+        # Check for extra header info
+        if nq == 0 or nq is None:
+            # Array for geometry only header line
+            A = np.array([2*ni, self.nNode, self.nTri, 2*ni], dtype=fi)
+        else:
+            # Array for header line
+            A = np.array([3*ni, self.nNode, self.nTri, nq, 3*ni], dtype=fi)
+        # Write the matrix as the header line
+        A.tofile(fid)
+        # Matrix for the node coordinate record markers
+        R = np.array([self.nNode*3*nf], dtype=fi)
+        # Matrix for the nodal coordinates
+        P = np.array(self.Nodes, dtype=ff).flatten()
+        # Write the nodal coordinates
+        R.tofile(fid)
+        P.tofile(fid)
+        R.tofile(fid)
+        # Matrix for the tri node index record markers
+        R = np.array([self.nTri*3*ni], dtype=fi)
+        # Matrix for the nodal indices
+        T = np.array(self.Tris, dtype=fi).flatten()
+        # Write the tri coordinates
+        R.tofile(fid)
+        T.tofile(fid)
+        R.tofile(fid)
+        # Matrix for the CompID record makresr
+        R = np.array([self.nTri*ni], dtype=fi)
+        # Matrix for the nodal indices
+        C = np.array(self.CompID, dtype=fi)
+        # Write the tri coordinates
+        R.tofile(fid)
+        C.tofile(fid)
+        R.tofile(fid)
+        # Close the file
+        fid.close()
+        
+        
     # Write STL using python language
     def WriteSTL(self, fname='Components.i.stl', v=True):
         """Write a triangulation to an STL file
