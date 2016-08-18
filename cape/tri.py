@@ -1198,7 +1198,6 @@ class TriBase(object):
             A = np.array([3*ni, self.nNode, self.nTri, nq, 3*ni], dtype=fi)
         # Swap bytes if appropriate
         A.byteswap(qswap)
-        print("Label 025: A=%s" % A)
         # Write the matrix as the header line
         A.tofile(fid)
         # Matrix for the node coordinate record markers

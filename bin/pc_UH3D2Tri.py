@@ -32,6 +32,18 @@ Convert a '.uh3d' file to a Cart3D triangulation format.
     -c XML
         Use file *XML* to map component ID numbers
         
+    -ascii
+        Write *TRI* as an ASCII file (default)
+        
+    -binary
+        Write *TRI* as an unformatted Fortran binary file
+        
+    -byteorder BO
+        Override system byte order using either 'big' or 'little'
+        
+    -bytecount PREC
+        Use a *PREC* of 4 for single-precision or 8 for double-precision 
+        
     -xtol XTOL
         Truncate nodal coordinates within *XTOL* of x=0 plane to zero
         
@@ -72,6 +84,14 @@ def UH3D2Tri(*a, **kw):
             the extension in the place of ``.uh3d``
         *c*: :class:`str`
             (Optional) name of configuration file to apply
+        *ascii*: {``True``} | ``False``
+            Write *tri* as an ASCII file (default)
+        *binary*: ``True`` | {``False``}
+            Write *tri* as an unformatted Fortran binary file
+        *byteorder*: {``None``} | ``"big"`` | ``"little"``
+            Override system byte order using either 'big' or 'little'
+        *bytecount*: {``4``} | ``8``
+            Use a *PREC* of 4 for single-precision or 8 for double-precision 
         *xtol*: :class:`float` | :class:`str`
             Tolerance for *x*-coordinates to be truncated to zero
         *ytol*: :class:`float` | :class:`str`
@@ -81,6 +101,7 @@ def UH3D2Tri(*a, **kw):
     :Versions:
         * 2014-06-12 ``@ddalle``: First documented version
         * 2015-10-09 ``@ddalle``: Added ``Config.xml`` and *ytol*
+        * 2016-08-18 ``@ddalle``: Added binary output
     """
     # Get the file pyCart settings file name.
     if len(a) == 0:
@@ -141,8 +162,15 @@ def UH3D2Tri(*a, **kw):
     if dy is not None: tri.Nodes[:,1] += float(dy)
     if dz is not None: tri.Nodes[:,2] += float(dz)
     
-    # Write it.
-    tri.Write(ftri)
+    # Get write options
+    if kw.get('binary', False):
+        # Write binary version
+        tri.WriteTriBin(ftri, 
+            byteorder=kw.get('byteorder'),
+            bytecount=kw.get('bytecount', 4))
+    else:
+        # Write it.
+        tri.Write(ftri)
     
 
 # Only process inputs if called as a script!
