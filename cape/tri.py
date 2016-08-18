@@ -478,6 +478,8 @@ class TriBase(object):
         """
         # Save the state count.
         self.nq = nq
+        # Check for null case
+        if nq is None: return
         # Read the nodes.
         q = np.fromfile(f, dtype=float, count=nNode*nq, sep=" ")
         # Reshape into a matrix.
@@ -682,11 +684,18 @@ class TriBase(object):
             else:
                 # Make a singleton list
                 return [face]
-        
-        
+    
     # Function to read a .tri file
-    def Read(self, fname):
-        """Read a triangulation file (from ``*.tri``)
+    def Read(self, fname, n=1):
+        """Read a triangulation file (from ``.tri`` or ``.triq`` file)
+        
+        File type is automatically detected and may be any one of the following
+        
+            * ASCII
+            * Double-precision little-endian Fortran unformatted
+            * Single-precision little-endian Fortran unformatted
+            * Double-precision big-endian Fortran unformatted
+            * Single-precision big-endian Fortran unformatted
         
         :Call:
             >>> tri.Read(fname)
@@ -695,17 +704,50 @@ class TriBase(object):
                 Triangulation instance
             *fname*: :class:`str`
                 Name of triangulation file to read
-        :Outputs:
-            ``None``
         :Versions:
             * 2014-06-02 ``@ddalle``: First version
+        """
+        # Get the file type
+        self.get_filetype(fname)
+        # Check if ASCII
+        if self.filetype == 'ascii':
+            # Read the ASCII file
+            self.ReadASCII(fname, n=n)
+        else:
+            # Read the binary file
+            self.ReadTriBin(fname)
+            # Save number of iterations included in average
+            self.n = n
+        
+    # Function to read a .tri file
+    def ReadASCII(self, fname, n=1):
+        """Read a triangulation file from an ASCII file
+        
+        :Call:
+            >>> tri.ReadASCII(fname)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *fname*: :class:`str`
+                Name of triangulation file to read
+            *n*: {``1``} | :class:`int` > 0
+                Number of iterations included in average (for ``triq`` files)
+        :Versions:
+            * 2014-06-02 ``@ddalle``: First version
+            * 2016-08-18 ``@ddalle``: Moved from :func:`Read` to enable binary
         """
         # Open the file
         fid = open(fname, 'r')
         # Read the first line.
         line = fid.readline().strip()
+        V = line.split()
         # Process the line into two integers.
-        nNode, nTri = (int(v) for v in line.split()[0:2])
+        nNode, nTri = (int(v) for v in V[0:2])
+        # Check for number of states
+        if len(V) == 3:
+            nq = int(V[2])
+        else:
+            nq = 0
         
         # Read the nodes.
         self.ReadNodes(fid, nNode)
@@ -713,13 +755,228 @@ class TriBase(object):
         self.ReadTris(fid, nTri)
         # Read or assign component IDs.
         self.ReadCompID(fid)
+        # Read the sate.
+        self.ReadQ(fid, nNode, nq)
         
         # Close the file.
         fid.close()
         
+        # No quads
+        self.nQuad = 0
+        self.Quads = np.zeros((0,4))
+        
         # Weight: number of files included in file
         self.n = n
         
+    # Get byte order
+    def get_filetype(self, fname):
+        """Get the byte order and precision for a TRI file
+        
+        The function works by setting attributes of the triangulation
+        
+        :Call:
+            >>> tri.get_bytetype(fid)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: :class:`str`
+                Name of file to write
+        :Attributes:
+            *tri.filetype*: {``'ascii'``} | ``'binary'``
+                File type
+            *tri.byteorder*: ``'big'`` | ``'little'``
+                Endianness
+            *tri.precision*: ``4`` | ``8``
+                Number of bytes in one entry
+        :Versions:
+            * 2016-08-18 ``@ddalle``: First version
+        """
+        # Open the file; attempt a binary read
+        fid = open(fname, 'rb')
+        # Read the first entry as a double-precision little-endian int
+        r = np.fromfile(fid, count=1, dtype='<i8')
+        # Check for success
+        if r >= 16 and r <= 32:
+            # Success
+            self.filetype  = 'binary'
+            self.byteorder = 'little'
+            self.bytecount = 8
+            # Finished
+            fid.close()
+            return
+        # Go to beginning of file again
+        fid.seek(0)
+        # Read the first bit as a single-precision little-endian int
+        r = np.fromfile(fid, count=1, dtype='<i4')
+        # Check for success
+        if r >= 8 and r <= 16:
+            # Success
+            self.filetype  = 'binary'
+            self.byteorder = 'little'
+            self.bytecount = 4
+            # Finished
+            fid.close()
+            return
+        # Go to beginning of file again
+        fid.seek(0)
+        # Read the first bit as a double-precision big-endian int
+        r = np.fromfile(fid, count=1, dtype='>i8')
+        # Check for success
+        if r >= 16 and r <= 32:
+            # Success
+            self.filetype  = 'binary'
+            self.byteorder = 'big'
+            self.bytecount = 8
+            # Finished
+            fid.close()
+            return
+        # Go to beginning of file again
+        fid.seek(0)
+        # Read the first bit as a double-precision big-endian int
+        r = np.fromfile(fid, count=1, dtype='>i4')
+        # Check for success
+        if r >= 8 and r <= 16:
+            # Success
+            self.filetype  = 'binary'
+            self.byteorder = 'big'
+            self.bytecount = 4
+            # Finished
+            fid.close()
+            return
+        # Close the file
+        fid.close()
+        # Attempt to read as an ASCII file
+        fid = open(fname, 'r')
+        # Read the first line
+        line = fid.readline()
+        # Close the file
+        fid.close()
+        # Check if it makes sense
+        try:
+            # See if each entry can be converted to an integer
+            [int(v) for v in line.split()]
+            # Set file type
+            self.filetype = 'ascii'
+        except Exception:
+            # No valid interpretation
+            raise ValueError("File did not match any of the following types:\n"
+                + "  Double-precision little-endian Fortran unformatted\n"
+                + "  Single-precision little-endian Fortran unformatted\n"
+                + "  Double-precision big-endian Fortran unformatted\n"
+                + "  Single-precision big-endian Fortran unformatted\n"
+                + "  ASCII")
+            
+    # Read TRI file as a binary file
+    def ReadTriBin(self, fname, ni=4, nf=4):
+        """Read binary unformatted triangulation file
+        
+        :Call:
+            >>> tri.ReadTriBin(fname)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-08-18 ``@ddalle``: First version
+        """
+        # Open the file for binary reading
+        fid = open(fname, 'rb')
+        # Get the byte order and precision
+        try:
+            bo = self.byteorder
+            ni = self.bytecount
+        except AttributeError:
+            bo = os.sys.byteorder
+            ni = 4
+        # Read flags
+        if bo == 'big':
+            # Big-endian integer and float
+            fi = '>i%i' % ni
+            ff = '>f%i' % ni
+        else:
+            # Little-endian integer and float
+            fi = '<i%i' % ni
+            ff = '<f%i' % ni
+        # Read the first record marker
+        R = np.fromfile(fid, count=1, dtype=fi)
+        # Number of integers in first line
+        r = R[0] / ni
+        # Read header line; also read 
+        H = np.fromfile(fid, count=r+2, dtype=fi)
+        # Set number of nodes and tris
+        self.nNode = H[0]
+        self.nTri = H[1]
+        # Set *nq* if possible
+        if r > 2:
+            # Some state variables are included
+            self.nq = H[2]
+        else:
+            # No state variables
+            self.nq = 0
+        # Number of nodes calculated from nodal coord block record marker
+        nNode2 = H[-1] / ni / 3
+        # Check for doubles
+        if nNode2 / self.nNode == 2:
+            # Boost to double-precision floats
+            nf = 2*ni
+            ff[-1] = str(nf)
+        elif nNode2 == self.nNode:
+            # Number of bytes per float equals that of ints
+            nf = ni
+        else:
+            # Inconsistent
+            raise ValueError(
+                "Expecting %i nodes but %i indicated by record marker" %
+                (self.nNode, nNode2))
+        # Read the nodal coordinates
+        P = np.fromfile(fid, count=3*self.nNode, dtype=ff)
+        # Reshape to nNode x 3 matrix
+        self.Nodes = P.reshape((self.nNode, 3))
+        # Read end-of-record for nodes and start-of-record for tris
+        R = np.fromfile(fid, count=2, dtype=fi)
+        # Number of tris reported by record marker
+        nTri2 = R[1] / ni / 3
+        # Check consistency
+        if nTri2 != self.nTri:
+            # Inconsistent
+            raise ValueError(
+                "Expecting %i tris but %i indicated by record marker" %
+                (self.nTri, nTri2))
+        # Read the node indices for each tri
+        T = np.fromfile(fid, count=3*self.nTri, dtype=fi)
+        # Reshape to nTri x 3
+        self.Tris = T.reshape((self.nTri, 3))
+        # End-of-record
+        R = np.fromfile(fid, count=1, dtype=fi)
+        # Start-of-record for compIDs
+        R = np.fromfile(fid, count=1, dtype=fi)
+        # Check for end of file
+        if R.size == 0:
+            # Quit
+            fid.close()
+            return
+        # Read the Component IDs
+        self.CompID = np.fromfile(fid, count=self.nTri, dtype=fi)
+        # End-of-record
+        R = np.fromfile(fid, count=1, dtype=fi)
+        # Start-of-record for states
+        R = np.fromfile(fid, count=1, dtype=fi)
+        # Check end-of-file and then consistency
+        if R.size == 0:
+            # Quit
+            fid.close()
+            return
+        elif R[0] != self.nNode*nf*self.nq:
+            # Inconsistent
+            raise ValueError(
+                "Expecting %i states but %s indicated by record marker" %
+                (self.nNode, float(R[0])/nf/self.nq))
+        # Read the states
+        self.q = np.fromfile(fid, count=self.nNode*self.nq, dtype=ff)
+        # Close the file
+        fid.close()
+    
     # Fall-through function to write the triangulation to file.
     def Write(self, fname='Components.i.tri', v=True):
         """Write triangulation to file using fastest method available
@@ -777,12 +1034,12 @@ class TriBase(object):
             
     
     # Function to write a triangulation to file the old-fashioned way.
-    def WriteSlow(self, fname='Components.i.tri', nq=None):
+    def WriteASCIISlow(self, fname='Components.i.tri', nq=None):
         """Write a triangulation to file
         
         :Call:
-            >>> tri.WriteSlow(fname='Components.i.tri')
-            >>> tri.WriteSlow(fname='Components.i.tri', nq=None)
+            >>> tri.WriteASCIISlow(fname='Components.i.tri')
+            >>> tri.WriteASCIISlow(fname='Components.i.tri', nq=None)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance to be translated
@@ -820,26 +1077,111 @@ class TriBase(object):
         fid.close()
         
     # Write TRI file as a binary file
-    def WriteTriBinSlow(self, fname='Components.i.tri', nq=None):
+    def WriteTriBin(self, fname='Components.i.tri', **kw):
         """Write a triangulation file as an unformatted binary file
         
         :Call:
-            >>> tri.WriteBinSlow(fname='Comonents.i.tri', nq=None)
+            >>> tri.WriteBinSlow(fname='Comonents.i.tri', **kw)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangultion instance to be translated
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
+            *byteorder*: {``None``} | ``"big"`` | ``"little"``
+                Byte order of outputfile; defaults to system byte order
+            *bytecount*: {``4``} | ``8``
+                Number of bytes per value; single- or double-precision
             *nq*: {``None``} | :class:`int`
                 Number of states for first line
         :Versions:
-            * 2016-08-17 ``@ddalle``: First version
+            * 2016-08-18 ``@ddalle``: First version
         """
+        # Call the fast-writer, which probably doesn't exist
+        try:
+            # Compiled (C) version
+            self.WriteTriBinFast(fname, **kw)
+        except Exception:
+            # Python version
+            self.WriteTriBinSlow(fname, **kw)
+        
+    # Get default byte order
+    def get_default_byteorder(self):
+        """Get the system byte order, overwritten by environment variables
+        
+        :Call:
+            >>> sbo = tri.get_default_byteorder()
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+        :Outputs:
+            *sbo*: ``"big"`` | ``"little"``
+                Current byte order
+        :Versions:
+            * 2016-08-18 ``@ddalle``: First version
+        """
+        # System byte order
+        sbo = os.sys.byteorder
+        # Get relevant environment variables
+        env_ifort = os.environ.get('F_UFMTENDIAN')
+        env_gfort = os.environ.get('GFORTRAN_CONVERT_UNIT')
+        # Check for valid environment variables
+        if env_ifort == 'big':
+            # IFORT environment variable set to big-endian
+            sbo = 'big'
+        elif env_ifort == 'little':
+            # IFORT environment variable set to little-endian
+            sbo = 'little'
+        elif env_gfort == 'big_endian':
+            # gfortran environment variable set to big-endian
+            sbo = 'big'
+        elif eng_gfort == 'little_endian':
+            # gfortran environment variable set to little-endian
+            sbo = 'little'
+        # Output
+        return sbo
+        
+        
+    # Write TRI file as a binary file
+    def WriteTriBinSlow(self, fname='Components.i.tri',
+            byteorder=None, bytecount=4, nq=None):
+        """Write a triangulation file as an unformatted binary file
+        
+        Uses Python code
+        
+        :Call:
+            >>> tri.WriteBinSlow(fname='Comonents.i.tri', **kw)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+            *byteorder*: {``None``} | ``"big"`` | ``"little"``
+                Byte order of outputfile; defaults to system byte order
+            *bytecount*: {``4``} | ``8``
+                Number of bytes per value; single- or double-precision
+            *nq*: {``None``} | :class:`int`
+                Number of states for first line
+        :Versions:
+            * 2016-08-18 ``@ddalle``: First version
+        """
+        # Process default byte order
+        if byteorder is None: byteorder = self.get_default_byteorder()
+        # Set byte count
+        ni = bytecount
+        # Get system byte order
+        sbo = os.sys.byteorder
+        # Determine whether or not we need to swap bytes.
+        if byteorder is None or byteorder.lower() == sbo:
+            # No swapping
+            qswap = False
+        else:
+            # Apparently we have to swap
+            qswap = True
         # Open the file for creation
         fid = open(fname, 'wb')
-        # Byte counts
-        ni = 4; fi='i%i'%ni
-        nf = 4; ff='f%i'%nf
+        # Write flags
+        fi = 'i%i' % ni
+        ff = 'f%i' % ni
         # Get number of state vars
         if nq is None:
             try:
@@ -854,28 +1196,31 @@ class TriBase(object):
         else:
             # Array for header line
             A = np.array([3*ni, self.nNode, self.nTri, nq, 3*ni], dtype=fi)
+        # Swap bytes if appropriate
+        A.byteswap(qswap)
+        print("Label 025: A=%s" % A)
         # Write the matrix as the header line
         A.tofile(fid)
         # Matrix for the node coordinate record markers
-        R = np.array([self.nNode*3*nf], dtype=fi)
+        R = np.array([self.nNode*3*ni], dtype=fi).byteswap(qswap)
         # Matrix for the nodal coordinates
-        P = np.array(self.Nodes, dtype=ff).flatten()
+        P = np.array(self.Nodes, dtype=ff).flatten().byteswap(qswap)
         # Write the nodal coordinates
         R.tofile(fid)
         P.tofile(fid)
         R.tofile(fid)
         # Matrix for the tri node index record markers
-        R = np.array([self.nTri*3*ni], dtype=fi)
+        R = np.array([self.nTri*3*ni], dtype=fi).byteswap(qswap)
         # Matrix for the nodal indices
-        T = np.array(self.Tris, dtype=fi).flatten()
+        T = np.array(self.Tris, dtype=fi).flatten().byteswap(qswap)
         # Write the tri coordinates
         R.tofile(fid)
         T.tofile(fid)
         R.tofile(fid)
         # Matrix for the CompID record makresr
-        R = np.array([self.nTri*ni], dtype=fi)
+        R = np.array([self.nTri*ni], dtype=fi).byteswap(qswap)
         # Matrix for the nodal indices
-        C = np.array(self.CompID, dtype=fi)
+        C = np.array(self.CompID, dtype=fi).byteswap(qswap)
         # Write the tri coordinates
         R.tofile(fid)
         C.tofile(fid)
@@ -2733,43 +3078,7 @@ class Tri(TriBase):
             * 2014-05-27 ``@ddalle``: First version
         """
         return '<cape.tri.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
-        
-        
-        
-    # Function to read a .tri file
-    def Read(self, fname):
-        """Read a triangulation file (from ``*.tri``)
-        
-        :Call:
-            >>> tri.Read(fname)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance
-            *fname*: :class:`str`
-                Name of triangulation file to read
-        :Versions:
-            * 2014-06-02 ``@ddalle``: split from initialization method
-        """
-        # Open the file
-        fid = open(fname, 'r')
-        # Read the first line.
-        line = fid.readline().strip()
-        # Process the line into two integers.
-        nNode, nTri = (int(v) for v in line.split()[0:2])
-        
-        # Read the nodes.
-        self.ReadNodes(fid, nNode)
-        # Read the Tris.
-        self.ReadTris(fid, nTri)
-        # Read or assign component IDs.
-        self.ReadCompID(fid)
-        
-        # No quads
-        self.nQuad = 0
-        self.Quads = np.zeros((0,4))
-        
-        # Close the file.
-        fid.close()
+    
 # class Tri
 
 
