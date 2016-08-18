@@ -117,8 +117,7 @@ def UH3D2Tri(*a, **kw):
         # Required input.
         print __doc__
         raise IOError("At least one input required.")
-        sys.exit(1)
-    
+        
     # Get the file pyCart settings file name.
     if len(a) <= 2:
         # Defaults
