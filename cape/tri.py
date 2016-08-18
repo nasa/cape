@@ -1124,8 +1124,6 @@ class TriBase(object):
         # Get relevant environment variables
         env_ifort = os.environ.get('F_UFMTENDIAN')
         env_gfort = os.environ.get('GFORTRAN_CONVERT_UNIT')
-        print("Label 020: F_UFMTENDIAN=%s" % env_ifort)
-        print("Label 020: GFORTRAN_CONVERT_UNIT=%s" % env_gfort)
         # Check for valid environment variables
         if env_ifort == 'big':
             # IFORT environment variable set to big-endian
