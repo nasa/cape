@@ -557,7 +557,50 @@ class Config:
         # Default file name
         if fname is None:
             fname = self.fname
+        # Open the file for writing
+        f = open(fname, 'w')
+        # Write the header.
+        f.write("<?xml version='1.0' encoding='utf-8'?>\n")
+        # Get the Configuration properties
+        conf = self.XML.getroot().attrib
+        # Write the configuration tag
+        f.write("<Configuration")
+        # Loop through the keys
+        for k in conf:
+            # Write the key and the value
+            f.write(' %s="%s"' % (k, conf[k]))
+        # Close the opening configuration tag
+        f.write(">\n")
+        # Loop through components
+        for comp in self.Names:
+            # Write the component element
+            self.WriteComponent(f, comp)
+        # Close the root element
+        f.write("</Configuration>\n")
+        # Close the file.
+        f.close()
         
+    # Function to write a component
+    def WriteComponent(self, f, comp):
+        """Write a Component element to file
+        
+        """
+        # Get the component index
+        i = self.Names.index(comp)
+        # Get the component interface
+        c = self.Comps[i]
+        # Begin the tag.
+        f.write("  <Component")
+        # Loop through the attributes
+        for k in c.attrib:
+            f.write(' %s="%s"' % (k, c.attrib[k]))
+        # Close the component opening tag
+        f.write(">\n")
+        
+        
+        
+        # Close the component element.
+        f.write("  </Component>\n")
         
     # Method to get CompIDs from generic input
     def GetCompID(self, face):
