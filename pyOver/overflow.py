@@ -97,6 +97,9 @@ class Overflow(Cntl):
         # Read the namelist
         self.ReadNamelist()
         
+        # Read the Config.xml file
+        self.ReadConfig()
+        
         # Set umask
         os.umask(self.opts.get_umask())
         
@@ -605,10 +608,14 @@ class Overflow(Cntl):
         for (key, func) in zip(keys, funcs):
             # Apply it.
             exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+        # Prepare the Config.xml translations and rotations
+        self.PrepareConfig(i)
         # Write the over.namelist file(s).
         self.PrepareNamelist(i)
         # Write a JSON file with
         self.WriteCaseJSON(i)
+        # Write the configuration file
+        self.WriteConfig(i)
         # Write the PBS script.
         self.WritePBS(i)
         # Return to original location
@@ -695,66 +702,39 @@ class Overflow(Cntl):
         # Return to original path.
         os.chdir(fpwd)
         
-    # Set up a namelist config
-    def PrepareNamelistConfig(self):
-        """Write the lines for the force/moment output in a namelist file
+    # Write configuration file
+    def WriteConfig(self, i):
+        """Write configuration file
         
         :Call:
-            >>> fun3d.PrepareNamelistConfig()
+            >>> oflow.WriteConfig(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of control class containing relevant parameters
+            *oflow*: :class:`pyOver.overflow.Overflow`
+                Overflow control interface
+            *i*: :class:`int`
+                Case index
         :Versions:
-            * 2015-10-20 ``@ddalle``: First version
+            * 2016-08-24 ``@ddalle``: First version
         """
-        # Get the components
-        comps = self.opts.get_ConfigComponents()
-        # Number
-        n = len(comps)
-        # Quit if nothing to do
-        if n == 0: return
-        # Extract namelist
-        nml = self.Namelist
-        # Loop through specified components.
-        for k in range(n,0,-1):
-            # Get component.
-            comp = comps[k-1]
-            # Get input definitions.
-            inp = self.opts.get_ConfigInput(comp)
-            # Set input definitions.
-            if inp is not None:
-                nml.SetVar('component_parameters', 'component_input', inp, k)
-            # Reference area
-            if 'RefArea' in self.opts['Config']:
-                # Get reference area.
-                RefA = self.opts.get_RefArea(comp)
-                # Set it
-                nml.SetVar('component_parameters', 'component_sref', RefA, k)
-            # Moment reference center
-            if 'RefPoint' in self.opts['Config']:
-                # Get MRP
-                RefP = self.opts.get_RefPoint(comp)
-                # Set the x- and y-coordinates
-                nml.SetVar('component_parameters', 'component_xmc', RefP[0], k)
-                nml.SetVar('component_parameters', 'component_ymc', RefP[1], k)
-                # Check for z-coordinate
-                if len(RefP) > 2:
-                    nml.SetVar(
-                        'component_parameters', 'component_zmc', RefP[2], k)
-            # Reference length
-            if 'RefLength' in self.opts['Config']:
-                # Get reference length
-                RefL = self.opts.get_RefLength(comp)
-                # Set both reference lengths
-                nml.SetVar('component_parameters', 'component_cref', RefL, k)
-                nml.SetVar('component_parameters', 'component_bref', RefL, k)
-            # Set the component name
-            nml.SetVar('component_parameters', 'component_name', comp, k)
-            # Tell FUN3D to determine the number of components on its own.
-            nml.SetVar('component_parameters', 'component_count', -1, k)
-        # Set the number of components
-        nml.SetVar('component_parameters', 'number_of_components', n)
-        
+        # Safely go to root.
+        fpwd = os.getcwd()
+        oc.chdir(self.RootDir)
+        # Get the case name.
+        frun = self.x.GetFullFolderNames(i)
+        # Check for existence.
+        if not os.path.isdir(frun):
+            # Go back and quit
+            os.chdir(fpwd)
+            return
+        # Go to the run folder
+        os.chdir(frun)
+        # Write the file if possible
+        try:
+            self.config.Write('Config.xml')
+        except Exception:
+            pass
+        # Return to original location
+        os.chdir(fpwd)
         
     # Write run control options to JSON file
     def WriteCaseJSON(self, i):

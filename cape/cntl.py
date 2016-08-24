@@ -1323,6 +1323,17 @@ class Cntl(object):
         comps  = kopts.get("CompID")
         # Components to translate in opposite direction
         compsR = kopts.get("CompIDSymmetric")
+        # Get index of transformation (which order in Config.xml)
+        I = kopts.get('TransformationIndex')
+        # Process the transformation indices
+        if type(I).__name__ != 'dict':
+            # Initialize index dictionary.
+            J = {}
+            # Loop through all components
+            for comp in (comps+compsR):
+                J[comp] = I
+            # Transfer values
+            I = J
         # Check for a direction
         if 'Vector' not in kopts:
             raise KeyError(
@@ -1347,10 +1358,10 @@ class Cntl(object):
         v = u * getattr(self.x,key)[i]
         # Set the displacement for the positive translations
         for comp in comps:
-            self.config.SetTranslation(comp, Displacement=v)
+            self.config.SetTranslation(comp, i=I.get(comp), Displacement=v)
         # Set the displacement for the negative translations
         for comp in comps:
-            self.config.SetTranslation(comp, Displacement=-v)
+            self.config.SetTranslation(comp, i=I.get(comp), Displacement=-v)
         # Loop through translation points.
         for pt in pts:
             # Get point
@@ -1379,47 +1390,112 @@ class Cntl(object):
             * 2015-09-11 ``@ddalle``: First version
             * 2016-04-05 ``@ddalle``: Moved from pyCart -> cape
         """
+        # ---------------
+        # Read the inputs
+        # ---------------
         # Get the options for this key.
         kopts = self.x.defns[key]
+        # Rotation angle
+        theta = getattr(self.x,key)[i]
         # Get the components to translate.
         compID = self.tri.GetCompID(kopts.get('CompID'))
         # Components to translate in opposite direction
         compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []))
+        # Get the components to translate based on a lever armg
+        compsT  = kopts.get('CompIDTranslate', [])
+        compsTR = kopts.get('CompIDTranslateSymmetric', [])
         # Symmetry applied to rotation vector.
         kv = kopts.get('VectorSymmetry', [1.0, 1.0, 1.0])
+        kx = kopts.get('AxisSymmetry',   kv)
+        kc = kopts.get('CenterSymmetry', kx)
         ka = kopts.get('AngleSymmetry', -1.0)
-        # Convert list -> numpy.ndarray
+        # Convert symmetries: list -> numpy.ndarray
         if type(kv).__name__ == "list": kv = np.array(kv)
-        # Check for a direction
-        if 'Vector' not in kopts:
-            raise KeyError(
-                "Rotation key '%s' does not have a 'Vector'." % key)
-        # Get the direction and its type.
-        vec = kopts['Vector']
-        # Check type
-        if len(vec) != 2:
-            raise KeyError(
-                "Rotation key '%s' vector must be exactly two points." % key)
-        # Get start and end points of rotation vector.
-        v0 = np.array(self.opts.get_Point(kopts['Vector'][0]))
-        v1 = np.array(self.opts.get_Point(kopts['Vector'][1]))
-        # Symmetry rotation vectors.
-        v0R = kv*v0
-        v1R = kv*v1
+        if type(kx).__name__ == "list": kx = np.array(kx)
+        if type(kc).__name__ == "list": kc = np.array(kc)
+        # Get the reference points for translations based on this rotation
+        xT  = kopts.get('TranslateRefPoint', [0.0, 0.0, 0.0])
+        # Get vector
+        vec = kopts.get('Vector')
+        ax  = kopts.get('Axis')
+        cen = kopts.get('Center')
+        frm = kopts.get('Frame')
         # Get points to translate along with it.
         pts  = kopts.get('Points', [])
         ptsR = kopts.get('PointsSymmetric', [])
         # Make sure these are lists.
         if type(pts).__name__  != 'list': pts  = list(pts)
         if type(ptsR).__name__ != 'list': ptsR = list(ptsR)
-        # Rotation angle
-        theta = getattr(self.x,key)[i]
+        # ---------------------------
+        # Process the rotation vector
+        # ---------------------------
+        # Check for an axis and center
+        if vec is not None:
+            # Check type
+            if len(vec) != 2:
+                raise KeyError(
+                    "Rotation key '%s' vector must be exactly two points."
+                    % key)
+            # Get start and end points of rotation vector.
+            v0 = np.array(self.opts.get_Point(vec[0]))
+            v1 = np.array(self.opts.get_Point(vec[1]))
+            # Convert to axis and center
+            cen = v0
+            ax  = v1 - v0
+        else:
+            # Get default axis if necessary
+            if ax is None:
+                ax = [0.0, 1.0, 0.0]
+            # Get default center if necessary
+            if cen is None:
+                cen = [0.0, 0.0, 0.0]
+            # Convert points
+            cen = np.array(self.opts.get_Point(cen))
+            ax  = np.array(self.opts.get_Point(ax))
+        # Symmetry rotation vectors.
+        axR  = kx*ax
+        cenR = kc*cen
+        # Form vectors
+        v0  = ax;  v1  = ax + cen
+        v0R = axR; v1R = axR + cenR
+        # Ensure a dictionary for reference points
+        if type(xT).__name__ != 'dict':
+            # Initialize dict (can't use an iterator to do this in old Python)
+            yT = {}
+            # Loop through components affected by this translation
+            for comp in compsT+compsTR:
+                yT[comp] = xT
+            # Move the variable name
+            xT = yT
+        # Create full dictionary
+        for comp in compsT+compsTR:
+            # Get ref point for this component
+            pt = xT.get(comp, xT.get('def', [0.0, 0.0, 0.0]))
+            # Save it as a dimensionalized point
+            xT[comp] = np.array(self.opts.get_Point(pt))
+        # ---------------------
+        # Apply transformations
+        # ---------------------
         # Rotate the triangulation.
         self.tri.Rotate(v0,  v1,  theta,  compID=compID)
         self.tri.Rotate(v0R, v1R, ka*theta, compID=compIDR)
         # Points to be rotated
         X  = np.array([self.opts.get_Point(pt) for pt in pts])
         XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
+        # Reference points to be rotated
+        XT  = np.array([xT[comp] for comp in compsT])
+        XTR = np.array([xT[comp] for comp in compsTR]) 
+        # Apply transformation
+        Y   = RotatePoints(X,   v0,  v1,  theta)
+        YT  = RotatePoints(XT,  v0,  v1,  theta)
+        YR  = RotatePoints(XR,  v0R, v1R, ka*theta)
+        YTR = RotatePoints(XTR, v0R, v1R, ka*theta)
+        # Process translations caused by this rotation
+        for j in range(len(compsT)):
+            self.tri.Translate(YT[j]-XT[j], compID=compsT[j])
+        # Process translations caused by symmetric rotation
+        for j in range(len(compsTR)):
+            self.tri.Translate(YTR[j]-XTR[j], compID=compsTR[j])
         # Apply transformation
         Y  = RotatePoints(X,  v0,  v1,  theta)
         YR = RotatePoints(XR, v0R, v1R, ka*theta)
@@ -1449,22 +1525,50 @@ class Cntl(object):
         :Versions:
             * 2016-08-23 ``@ddalle``: First version
         """
+        # ---------------
+        # Read the inputs
+        # ---------------
         # Get the options for this key.
         kopts = self.x.defns[key]
-        # Get the components to translate.
-        comps = kopts.get('CompID')
-        # Components to translate in opposite direction
+        # Rotation angle
+        theta = getattr(self.x,key)[i]
+        # Get the components to rotate.
+        comps = kopts.get('CompID', [])
+        # Components to rotate in opposite direction
         compsR = kopts.get('CompIDSymmetric', [])
+        # Get the components to translate based on a lever armg
+        compsT  = kopts.get('CompIDTranslate', [])
+        compsTR = kopts.get('CompIDTranslateSymmetric', [])
+        # Ensure list
+        if type(compsT).__name__  != 'list': compsT = [compsT]
+        if type(compsTR).__name__ != 'list': compsTR = [compsTR]
+        # Get index of transformation (which order in Config.xml)
+        I = kopts.get('TransformationIndex')
         # Symmetry applied to rotation vector.
         kv = kopts.get('VectorSymmetry', [1.0, 1.0, 1.0])
+        kx = kopts.get('AxisSymmetry',   kv)
+        kc = kopts.get('CenterSymmetry', kx)
         ka = kopts.get('AngleSymmetry', -1.0)
-        # Convert list -> numpy.ndarray
+        # Convert symmetries: list -> numpy.ndarray
         if type(kv).__name__ == "list": kv = np.array(kv)
+        if type(kx).__name__ == "list": kx = np.array(kx)
+        if type(kc).__name__ == "list": kc = np.array(kc)
+        # Get the reference points for translations based on this rotation
+        xT  = kopts.get('TranslateRefPoint', [0.0, 0.0, 0.0])
         # Get vector
         vec = kopts.get('Vector')
         ax  = kopts.get('Axis')
         cen = kopts.get('Center')
         frm = kopts.get('Frame')
+        # Get points to translate along with it.
+        pts  = kopts.get('Points', [])
+        ptsR = kopts.get('PointsSymmetric', [])
+        # Make sure these are lists.
+        if type(pts).__name__  != 'list': pts  = list(pts)
+        if type(ptsR).__name__ != 'list': ptsR = list(ptsR)
+        # ---------------------------
+        # Process the rotation vector
+        # ---------------------------
         # Check for an axis and center
         if vec is not None:
             # Check type
@@ -1489,30 +1593,71 @@ class Cntl(object):
             cen = np.array(self.opts.get_Point(cen))
             ax  = np.array(self.opts.get_Point(ax))
         # Symmetry rotation vectors.
-        axR  = kv*ax
-        cenR = kv*cen
-        # Get points to translate along with it.
-        pts  = kopts.get('Points', [])
-        ptsR = kopts.get('PointsSymmetric', [])
-        # Make sure these are lists.
-        if type(pts).__name__  != 'list': pts  = list(pts)
-        if type(ptsR).__name__ != 'list': ptsR = list(ptsR)
-        # Rotation angle
-        theta = getattr(self.x,key)[i]
+        axR  = kx*ax
+        cenR = kc*cen
+        # Form vectors
+        v0  = ax;  v1  = ax + cen
+        v0R = axR; v1R = axR + cenR
+        # Ensure a dictionary for reference points
+        if type(xT).__name__ != 'dict':
+            # Initialize dict (can't use an iterator to do this in old Python)
+            yT = {}
+            # Loop through components affected by this translation
+            for comp in compsT+compsTR:
+                yT[comp] = xT
+            # Move the variable name
+            xT = yT
+        # Create full dictionary
+        for comp in compsT+compsTR:
+            # Get ref point for this component
+            pt = xT.get(comp, xT.get('def', [0.0, 0.0, 0.0]))
+            # Save it as a dimensionalized point
+            xT[comp] = np.array(self.opts.get_Point(pt))
+        # Process the transformation indices
+        if type(I).__name__ != 'dict':
+            # Initialize index dictionary.
+            J = {}
+            # Loop through all components
+            for comp in (comps+compsR+compsT+compsTR):
+                J[comp] = I
+            # Transfer values
+            I = J
+        # ---------------------
+        # Apply transformations
+        # ---------------------
         # Set the positive rotations.
         for comp in comps:
-            self.config.SetRotation(comp,
+            self.config.SetRotation(comp,, i=I.get(comp),
                 Angle=theta, Center=cen, Axis=ax, Frame=frm)
         # Set the negative rotations.
         for comp in compsR:
-            self.config.SetRotation(comp,
+            self.config.SetRotation(comp, i=I.get(comp),
                 Angle=ka*theta, Center=cenR, Axis=axR, Frame=frm)
         # Points to be rotated
         X  = np.array([self.opts.get_Point(pt) for pt in pts])
         XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
+        # Reference points to be rotated
+        XT  = np.array([xT[comp] for comp in compsT])
+        XTR = np.array([xT[comp] for comp in compsTR]) 
         # Apply transformation
-        Y  = RotatePoints(X,  v0,  v1,  theta)
-        YR = RotatePoints(XR, v0R, v1R, ka*theta)
+        Y   = RotatePoints(X,   v0,  v1,  theta)
+        YT  = RotatePoints(XT,  v0,  v1,  theta)
+        YR  = RotatePoints(XR,  v0R, v1R, ka*theta)
+        YTR = RotatePoints(XTR, v0R, v1R, ka*theta)
+        # Process translations caused by this rotation
+        for j in range(len(compsT)):
+            # Get component
+            comp = compsT[j]
+            # Apply translation
+            self.config.SetTranslation(comp, i=I.get(comp),
+                Displacement=YT[j]-XT[j])
+        # Process translations caused by symmetric rotation
+        for j in range(len(compsTR)):
+            # Get component
+            comp = compsTR[j]
+            # Apply translation
+            self.config.SetTranslation(comp, i=I.get(comp),
+                Displacement=YTR[j]-XTR[j])
         # Save the points.
         for j in range(len(pts)):
             # Set the new value.
