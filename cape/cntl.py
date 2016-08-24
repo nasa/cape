@@ -1156,7 +1156,6 @@ class Cntl(object):
         self.opts.reset_Points()
         # Loop through keys.
         for key in keys:
-            print("Rotation key: %s..." % key)
             # Type
             kt = self.x.defns[key]['Type']
             # Filter on which type of triangulation modification it is.
@@ -1170,6 +1169,36 @@ class Cntl(object):
                 # Component(s) rotation
                 self.PrepareTriRotation(key, i)
             
+    # Function to apply transformations to config
+    def PrepareConfig(self, i):
+        """Apply rotations, translations, or other features to ``Config.xml``
+        
+        :Call:
+            >>> cntl.PrepareConfig(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2016-08-23 ``@ddalle``: First version
+        """
+        # Get function for rotations, etc.
+        keys = self.x.GetKeysByType(['Translate', 'Rotate', 'ConfigFunction'])
+        # Reset reference points
+        self.opts.reset_Points()
+        # Loop through keys.
+        for key in keys:
+            # Type
+            kt = self.x.defns[key]['Type']
+            # Filter on which type of configuration modification it is
+            if kt == "ConfigFunction":
+                # Special config.xml function
+                self.PrepareConfigFunction(key, i)
+            elif kt.lower() == "translate":
+                # Component(s) translation
+                self.PrepareConfigTranslation(key, i)
+    
     # Apply a special triangulation function
     def PrepareTriFunction(self, key, i):
         """Apply special triangulation modification function for a case
@@ -1179,11 +1208,34 @@ class Cntl(object):
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class containing relevant parameters
+            *key*: :class:`str`
+                Name of key
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Versions:
             * 2015-09-11 ``@ddalle``: First version
             * 2016-04-05 ``@ddalle``: Moved from pyCart -> cape
+        """
+        # Get the function for this *TriFunction*
+        func = self.x.defns[key]['Function']
+        # Apply it.
+        exec("%s(self,%s,i=%i)" % (func, getattr(self.x,key)[i], i))
+    
+    # Apply a special configuration function
+    def PrepareConfigFunction(self, key, i):
+        """Apply special configuration modification function for a case
+        
+        :Call:
+            >>> cntl.PrepareConfigFunction(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *key*: :class:`str`
+                Name of key
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2016-08-23 ``@ddalle``: Copied from :func:`PrepareTriFunction`
         """
         # Get the function for this *TriFunction*
         func = self.x.defns[key]['Function']
@@ -1236,6 +1288,69 @@ class Cntl(object):
         # Translate the triangulation
         self.tri.Translate(v, compID=compID)
         self.tri.Translate(-v, compID=compIDR)
+        # Loop through translation points.
+        for pt in pts:
+            # Get point
+            x = self.opts.get_Point(pt)
+            # Apply transformation.
+            self.opts.set_Point(x+v, pt)
+        # Loop through translation points.
+        for pt in ptsR:
+            # Get point
+            x = self.opts.get_Point(pt)
+            # Apply transformation.
+            self.opts.set_Point(x-v, pt)
+            
+    # Apply a triangulation translation
+    def PrepareConfigTranslation(self, key, i):
+        """Apply a translation to a component or components
+        
+        :Call:
+            >>> cntl.PrepareConfigTranslation(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *key*: :class:`str`
+                Name of variable from which to get value
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2016-08-23 ``@ddalle``: First version
+        """
+        # Get the options for this key.
+        kopts = self.x.defns[key]
+        # Get the components to translate.
+        comps  = kopts.get("CompID")
+        # Components to translate in opposite direction
+        compsR = kopts.get("CompIDSymmetric")
+        # Check for a direction
+        if 'Vector' not in kopts:
+            raise KeyError(
+                "Translation key '%s' does not have a 'Vector'." % key)
+        # Get the direction and its type
+        vec = kopts['Vector']
+        tvec = type(vec).__name__
+        # Get points to translate along with it.
+        pts  = kopts.get('Points', [])
+        ptsR = kopts.get('PointsSymmetric', [])
+        # Make sure these are lists.
+        if type(pts).__name__  != 'list': pts  = list(pts)
+        if type(ptsR).__name__ != 'list': ptsR = list(ptsR)
+        # Check the type
+        if tvec in ['list', 'ndarray']:
+            # Specified directly.
+            u = np.array(vec)
+        else:
+            # Named vector
+            u = np.array(self.opts.get_Point(vec))
+        # Form the translation vector
+        v = u * getattr(self.x,key)[i]
+        # Set the displacement for the positive translations
+        for comp in comps:
+            self.config.SetTranslation(comp, Displacement=v)
+        # Set the displacement for the negative translations
+        for comp in comps:
+            self.config.SetTranslation(comp, Displacement=-v)
         # Loop through translation points.
         for pt in pts:
             # Get point
@@ -1302,6 +1417,96 @@ class Cntl(object):
         # Rotate the triangulation.
         self.tri.Rotate(v0,  v1,  theta,  compID=compID)
         self.tri.Rotate(v0R, v1R, ka*theta, compID=compIDR)
+        # Points to be rotated
+        X  = np.array([self.opts.get_Point(pt) for pt in pts])
+        XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
+        # Apply transformation
+        Y  = RotatePoints(X,  v0,  v1,  theta)
+        YR = RotatePoints(XR, v0R, v1R, ka*theta)
+        # Save the points.
+        for j in range(len(pts)):
+            # Set the new value.
+            self.opts.set_Point(Y[j], pts[j])
+        # Save the symmetric points.
+        for j in range(len(ptsR)):
+            # Set the new value.
+            self.opts.set_Point(YR[j], ptsR[j])
+    
+            
+    # Apply a configuration rotation
+    def PrepareConfigRotation(self, key, i):
+        """Apply a rotation to a component or components
+        
+        :Call:
+            >>> cntl.PrepareTriRotation(key, i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *key*: :class:`str`
+                Name of the trajectory key
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2016-08-23 ``@ddalle``: First version
+        """
+        # Get the options for this key.
+        kopts = self.x.defns[key]
+        # Get the components to translate.
+        comps = kopts.get('CompID')
+        # Components to translate in opposite direction
+        compsR = kopts.get('CompIDSymmetric', [])
+        # Symmetry applied to rotation vector.
+        kv = kopts.get('VectorSymmetry', [1.0, 1.0, 1.0])
+        ka = kopts.get('AngleSymmetry', -1.0)
+        # Convert list -> numpy.ndarray
+        if type(kv).__name__ == "list": kv = np.array(kv)
+        # Get vector
+        vec = kopts.get('Vector')
+        ax  = kopts.get('Axis')
+        cen = kopts.get('Center')
+        frm = kopts.get('Frame')
+        # Check for an axis and center
+        if vec is not None:
+            # Check type
+            if len(vec) != 2:
+                raise KeyError(
+                    "Rotation key '%s' vector must be exactly two points."
+                    % key)
+            # Get start and end points of rotation vector.
+            v0 = np.array(self.opts.get_Point(vec[0]))
+            v1 = np.array(self.opts.get_Point(vec[1]))
+            # Convert to axis and center
+            cen = v0
+            ax  = v1 - v0
+        else:
+            # Get default axis if necessary
+            if ax is None:
+                ax = [0.0, 1.0, 0.0]
+            # Get default center if necessary
+            if cen is None:
+                cen = [0.0, 0.0, 0.0]
+            # Convert points
+            cen = np.array(self.opts.get_Point(cen))
+            ax  = np.array(self.opts.get_Point(ax))
+        # Symmetry rotation vectors.
+        axR  = kv*ax
+        cenR = kv*cen
+        # Get points to translate along with it.
+        pts  = kopts.get('Points', [])
+        ptsR = kopts.get('PointsSymmetric', [])
+        # Make sure these are lists.
+        if type(pts).__name__  != 'list': pts  = list(pts)
+        if type(ptsR).__name__ != 'list': ptsR = list(ptsR)
+        # Rotation angle
+        theta = getattr(self.x,key)[i]
+        # Set the positive rotations.
+        for comp in comps:
+            self.config.SetRotation(comp,
+                Angle=theta, Center=cen, Axis=ax, Frame=frm)
+        # Set the negative rotations.
+        for comp in compsR:
+            self.config.SetRotation(comp,
+                Angle=ka*theta, Center=cenR, Axis=axR, Frame=frm)
         # Points to be rotated
         X  = np.array([self.opts.get_Point(pt) for pt in pts])
         XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
