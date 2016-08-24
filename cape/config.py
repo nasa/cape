@@ -58,8 +58,7 @@ import os
 # Import xml parser
 import xml.etree.ElementTree as ET
 # Process unique lists.
-from numpy import unique
-
+import numpy as np
 
 # Configuration class
 class Config:
@@ -287,7 +286,7 @@ class Config:
                     # Start, end range
                     compID += range(int(v[0]), int(v[1])+1)
             # Convert to array
-            compID = np.array(compID)
+            compID = list(np.unique(compID))
         except Exception:
             # Just set the text; may be useful
             compID = V[1]
@@ -415,7 +414,7 @@ class Config:
             # Single component
             self.faces[parent].append(compID)
         # Eliminate doubles.
-        self.faces[parent] = list(unique(self.faces[parent]))
+        self.faces[parent] = list(np.unique(self.faces[parent]))
         # Get the parent's index
         k0 = self.Names.index(parent)
         # Get the parent's element
@@ -424,15 +423,15 @@ class Config:
         self.AppendParent(p, compID)
         
     # Set transformation
-    def SetRotation(self, comp, i=0, **kw):
+    def SetRotation(self, comp, i=None, **kw):
         """Modify or add a rotation for component *comp*
         
         :Call:
-            >>> cfg.SetRotation(comp, i=0, **kw)
+            >>> cfg.SetRotation(comp, i=None, **kw)
         :Inputs:
             *cfg*: :class:`cape.config.Config`
                 Instance of configuration class
-            *i*: {``0``} | :class:`int`
+            *i*: {``None``} | :class:`int`
                 Index of the rotation
             *Center*: {``[0.0, 0.0, 0.0]``} | :class:`list` | :class:`str`
                 Point about which to rotate
@@ -451,6 +450,8 @@ class Config:
         T = self.transform[comp]
         # Number of transformations currently defined
         n = len(T)
+        # Default index
+        if i is None: i = n
         # Check if transformation *i* exists
         if i < n:
             # Transformation exists; check type
@@ -487,7 +488,7 @@ class Config:
                 if k in kw: T[i][k] = R[k]
         
     # Set transformation
-    def SetTranslation(self, comp, i=0, **kw):
+    def SetTranslation(self, comp, i=None, **kw):
         """Modify or add a translation for component *comp*
         
         :Call:
@@ -508,6 +509,8 @@ class Config:
         T = self.transform[comp]
         # Number of transformations currently defined
         n = len(T)
+        # Default index
+        if i is None: i = n
         # Check if transformation *i* exists
         if i < n:
             # Transformation exists; check type
@@ -570,7 +573,7 @@ class Config:
             # Write the key and the value
             f.write(' %s="%s"' % (k, conf[k]))
         # Close the opening configuration tag
-        f.write(">\n")
+        f.write(">\n\n")
         # Loop through components
         for comp in self.Names:
             # Write the component element
@@ -582,8 +585,22 @@ class Config:
         
     # Function to write a component
     def WriteComponent(self, f, comp):
-        """Write a Component element to file
+        """Write a "Component" element to file
         
+        Data (either "Face Label" or "Grid List") is written, and any
+        transformations are also written.
+        
+        :Call:
+            >>> cfg.WriteComponent(f, comp)
+        :Inputs:
+            *cfg*: :class:`cape.config.Config`
+                Instance of configuration class
+            *f*: :class:`file`
+                File handle open for writing
+            *comp*: :class:`str`
+                Name of component to write
+        :Versions:
+            * 2016-08-23 ``@ddalle``: First version
         """
         # Get the component index
         i = self.Names.index(comp)
@@ -596,11 +613,156 @@ class Config:
             f.write(' %s="%s"' % (k, c.attrib[k]))
         # Close the component opening tag
         f.write(">\n")
-        
-        
-        
+        # Check type
+        if c.get("Type", "tri") == "tri":
+            # Write the data element with "Face Label"
+            self.WriteComponentData(f, comp, label="Face Label")
+        else:
+            # Write the data element with "Grid List"
+            self.WriteComponentData(f, comp, label="Grid List")
+        # Write transformation
+        if comp in self.transform:
+            # Write the transformation
+            self.WriteComponentTransform(f, comp)
         # Close the component element.
-        f.write("  </Component>\n")
+        f.write("  </Component>\n\n")
+        
+    # Method to write data
+    def WriteComponentData(self, f, comp, label=None):
+        """Write a "Data" element to file
+        
+        :Call:
+            >>> cfg.WriteComponentData(f, comp, label=None)
+        :Inputs:
+            *cfg*: :class:`cape.config.Config`
+                Instance of configuration class
+            *comp*: :class:`str`
+                Name of component to write
+            *label*: {``None``} | ``"Face Label"`` | ``"Grid List"``
+                Label used to specify data
+        :Versions:
+            * 2016-08-23 ``@ddalle``: First version
+        """
+        # Write the data tag
+        f.write("    <Data>")
+        # Get the list of components in the component.
+        compID = self.GetCompID(comp)
+        # Type (int, list, or str)
+        typ = type(compID).__name__
+        # Determine default label
+        if label is None:
+            if typ.startswith('int'):
+                # Assuming we have a single face
+                label = "Face Label"
+            else:
+                # Guessing it's a grid list
+                label = "Grid List"
+        # Write the label
+        f.write(" %s=" % label)
+        # Check for easy stuff
+        if typ in ['int', 'str']:
+            # Write a string
+            f.write("%s </Data>\n" % compID)
+            return
+        # Number of components
+        n = len(compID)
+        # Exit if appropriate
+        if n == 0:
+            f.write("</Data>\n")
+            return
+        # Initialize the string and indices
+        txt = []
+        ibeg = compID[0]
+        iend = compID[0]
+        # Loop through the grid numbers, which are ascending and unique.
+        for i in range(1,n):
+            # Get the compID
+            icur = compID[i]
+            # Check if this is one greater than the previous one
+            if icur == iend + 1:
+                # Add to the current list
+                iend += 1
+            # Write if appropriate
+            if i == n or icur > iend+1:
+                # Check if single element or list
+                if ibeg == iend:
+                    # Write single
+                    txt.append("%s" % ibeg)
+                else:
+                    # Write list
+                    txt.append("%s-%s" % (ibeg, iend))
+                # Reset.
+                ibeg = icur
+                iend = icur
+        # Write the list
+        f.write(",".join(txt))
+        # Close the element.
+        f.write(" </Data>\n")
+            
+    # Method to write transformation(s)
+    def WriteComponentTransform(self, f, comp):
+        """Write a "Transform" element to file
+        
+        :Call:
+            >>> cfg.WriteComponentData(f, comp, label=None)
+        :Inputs:
+            *cfg*: :class:`cape.config.Config`
+                Instance of configuration class
+            *comp*: :class:`str`
+                Name of component to write
+            *label*: {``None``} | ``"Face Label"`` | ``"Grid List"``
+                Label used to specify data
+        :Versions:
+            * 2016-08-23 ``@ddalle``: First version
+        """
+        # Check if component has one or more transformations
+        if comp not in self.transform: return
+        # Write the transform tag
+        f.write("    <Transform>\n")
+        # Loop through transformations
+        for R in self.transform[comp]:
+            # Get the type
+            typ = R.get("Type", "Translate")
+            # Rotation or translation
+            if typ == "Rotate":
+                # Open the rotation tag
+                f.write("%6s<Rotate" % "")
+                # Get the properties
+                cent  = R.get("Center", [0.0, 0.0, 0.0])
+                ax    = R.get("Axis",   [0.0, 1.0, 0.0])
+                ang   = R.get("Angle",  0.0)
+                frame = R.get("Frame")
+                # Convert center to string 
+                if type(cent).__name__ in ['list', 'ndarray']:
+                    # Ensure doubles
+                    cent = ", ".join(['%.12e'%v for v in cent])
+                # Convert axis to string
+                if type(ax).__name__ in ['list', 'ndarray']:
+                    # Convert to float and then string
+                    ax = ", ".join([str(float(v)) for v in ax])
+                # Write values
+                f.write(' Center="%s"' % cent)
+                f.write(' Axis="%s"'   % ax)
+                f.write(' Angle="%s"'  % ang)
+                # Only write frame if it exists
+                if frame is not None:
+                    f.write(' Frame="%s"' % frame)
+            elif typ == "Translate":
+                # Open the rotation tag
+                f.write("%6s<Translate" % "")
+                # Get the properties
+                dx = R.get("Displacement", [0.0, 0.0, 0.0])
+                # Convert center to string 
+                if type(dx).__name__ in ['list', 'ndarray']:
+                    # Ensure doubles
+                    dx = ", ".join(['%.12e'%v for v in dx])
+                # Write values
+                f.write(' Displacement="%s"' % dx)
+            # Close the element
+            f.write(" />\n")
+        # Close the element
+        f.write("    </Transform>\n")
+        
         
     # Method to get CompIDs from generic input
     def GetCompID(self, face):
@@ -663,8 +825,9 @@ class Config:
         """
         # Initialize object.
         cfg = Config()
-        # Copy the dictionary.
+        # Copy the dictionaries.
         cfg.faces = self.faces.copy()
+        cfg.transform = self.transform.copy()
         # Output
         return cfg
         
