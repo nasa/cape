@@ -1198,6 +1198,9 @@ class Cntl(object):
             elif kt.lower() == "translate":
                 # Component(s) translation
                 self.PrepareConfigTranslation(key, i)
+            elif kt.lower() == "rotate":
+                # Component(s) translation
+                self.PrepareConfigRotation(key, i)
     
     # Apply a special triangulation function
     def PrepareTriFunction(self, key, i):
