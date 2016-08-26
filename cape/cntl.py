@@ -1184,7 +1184,7 @@ class Cntl(object):
             * 2016-08-23 ``@ddalle``: First version
         """
         # Get function for rotations, etc.
-        keys = self.x.GetKeysByType(['Translate', 'Rotate', 'ConfigFunction'])
+        keys = self.x.GetKeysByType(['translate', 'rotate', 'ConfigFunction'])
         # Exit if no keys
         if len(keys) == 0: return
         # Reset reference points
@@ -1547,8 +1547,11 @@ class Cntl(object):
         compsT  = kopts.get('CompIDTranslate', [])
         compsTR = kopts.get('CompIDTranslateSymmetric', [])
         # Ensure list
+        if type(comps).__name__   != 'list': comps = [comps]
+        if type(compsR).__name__  != 'list': compsR = [compsR]
         if type(compsT).__name__  != 'list': compsT = [compsT]
         if type(compsTR).__name__ != 'list': compsTR = [compsTR]
+        print("Label 020: key=%s, compsT=%s" % (key, compsT))
         # Get index of transformation (which order in Config.xml)
         I = kopts.get('TransformationIndex')
         # Symmetry applied to rotation vector.
@@ -1655,6 +1658,8 @@ class Cntl(object):
         for j in range(len(compsT)):
             # Get component
             comp = compsT[j]
+            print(" Label 060: (%s) comp=%s, v=%s" % 
+                (key, comp, YT[j]-XT[j]))
             # Apply translation
             self.config.SetTranslation(comp, i=I.get(comp),
                 Displacement=YT[j]-XT[j])

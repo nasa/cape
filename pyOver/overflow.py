@@ -727,7 +727,7 @@ class Overflow(Cntl):
         """
         # Safely go to root.
         fpwd = os.getcwd()
-        oc.chdir(self.RootDir)
+        os.chdir(self.RootDir)
         # Get the case name.
         frun = self.x.GetFullFolderNames(i)
         # Check for existence.
