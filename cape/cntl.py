@@ -1327,9 +1327,9 @@ class Cntl(object):
         # Get the options for this key.
         kopts = self.x.defns[key]
         # Get the components to translate.
-        comps  = kopts.get("CompID")
+        comps  = kopts.get("CompID", [])
         # Components to translate in opposite direction
-        compsR = kopts.get("CompIDSymmetric")
+        compsR = kopts.get("CompIDSymmetric", [])
         # Get index of transformation (which order in Config.xml)
         I = kopts.get('TransformationIndex')
         # Process the transformation indices
@@ -1367,7 +1367,7 @@ class Cntl(object):
         for comp in comps:
             self.config.SetTranslation(comp, i=I.get(comp), Displacement=v)
         # Set the displacement for the negative translations
-        for comp in comps:
+        for comp in compsR:
             self.config.SetTranslation(comp, i=I.get(comp), Displacement=-v)
         # Loop through translation points.
         for pt in pts:
@@ -1557,7 +1557,6 @@ class Cntl(object):
         if type(compsR).__name__  != 'list': compsR = [compsR]
         if type(compsT).__name__  != 'list': compsT = [compsT]
         if type(compsTR).__name__ != 'list': compsTR = [compsTR]
-        print("Label 020: key=%s, compsT=%s" % (key, compsT))
         # Get index of transformation (which order in Config.xml)
         I = kopts.get('TransformationIndex')
         # Symmetry applied to rotation vector.
@@ -1571,6 +1570,12 @@ class Cntl(object):
         if type(kc).__name__ == "list": kc = np.array(kc)
         # Get the reference points for translations based on this rotation
         xT  = kopts.get('TranslateRefPoint', [0.0, 0.0, 0.0])
+        # Get scale for translated points
+        kt = kopts.get('TranslateScale', np.ones(3))
+        # Ensure vector
+        if type(kt).__name__ == 'list':
+            # Ensure vector so that we can multiply it by another vector
+            kt = np.array(kt)
         # Get vector
         vec = kopts.get('Vector')
         ax  = kopts.get('Axis')
@@ -1612,8 +1617,8 @@ class Cntl(object):
         axR  = kx*ax
         cenR = kc*cen
         # Form vectors
-        v0  = ax;  v1  = ax + cen
-        v0R = axR; v1R = axR + cenR
+        v0  = cen;  v1  = ax + cen
+        v0R = cenR; v1R = axR + cenR
         # Ensure a dictionary for reference points
         if type(xT).__name__ != 'dict':
             # Initialize dict (can't use an iterator to do this in old Python)
@@ -1664,18 +1669,16 @@ class Cntl(object):
         for j in range(len(compsT)):
             # Get component
             comp = compsT[j]
-            print(" Label 060: (%s) comp=%s, v=%s" % 
-                (key, comp, YT[j]-XT[j]))
             # Apply translation
             self.config.SetTranslation(comp, i=I.get(comp),
-                Displacement=YT[j]-XT[j])
+                Displacement=kt*(YT[j]-XT[j]))
         # Process translations caused by symmetric rotation
         for j in range(len(compsTR)):
             # Get component
             comp = compsTR[j]
             # Apply translation
             self.config.SetTranslation(comp, i=I.get(comp),
-                Displacement=YTR[j]-XTR[j])
+                Displacement=kt*(YTR[j]-XTR[j]))
         # Save the points.
         for j in range(len(pts)):
             # Set the new value.
