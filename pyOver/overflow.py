@@ -473,6 +473,13 @@ class Overflow(Cntl):
         print("  Case name: '%s' (index %i)" % (frun,i))
         # Enter the case folder.
         os.chdir(frun)
+        # ---------------
+        # Config.xml prep
+        # ---------------
+        # Process configuration
+        self.PrepareConfig(i)
+        # Write the file if possible
+        self.WriteConfig(i)
         # ----------
         # Copy files
         # ----------
@@ -510,8 +517,7 @@ class Overflow(Cntl):
             # Skip if full file
             if os.path.isfile(f1): continue
             # Link the file.
-            if os.path.isfile(f0):
-                os.symlink(f0, f1)
+            if os.path.isfile(f0): os.symlink(f0, f1)
         # -------
         # Cleanup
         # -------
@@ -703,18 +709,21 @@ class Overflow(Cntl):
         os.chdir(fpwd)
         
     # Write configuration file
-    def WriteConfig(self, i):
+    def WriteConfig(self, i, fname='Config.xml'):
         """Write configuration file
         
         :Call:
-            >>> oflow.WriteConfig(i)
+            >>> oflow.WriteConfig(i, fname='Config.xml')
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Overflow control interface
             *i*: :class:`int`
                 Case index
+            *fname*: {``'Config.xml'``} | :class:`str`
+                Name of file to write within run folder
         :Versions:
             * 2016-08-24 ``@ddalle``: First version
+            * 2016-08-26 ``@ddalle``: 
         """
         # Safely go to root.
         fpwd = os.getcwd()
@@ -730,9 +739,14 @@ class Overflow(Cntl):
         os.chdir(frun)
         # Write the file if possible
         try:
-            self.config.Write('Config.xml')
-        except Exception:
+            # Test if the Config is present
+            self.config
+        except AttributeError:
+            # No config; ok not to write
             pass
+        else:
+            # Write the file if the above does not fail
+            self.config.Write(fname)
         # Return to original location
         os.chdir(fpwd)
         
