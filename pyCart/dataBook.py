@@ -512,9 +512,9 @@ class DataBook(cape.dataBook.DataBook):
             * 2014-12-22 ``@ddalle``: First version
         """
         # Get the first data book component.
-        c0 = self.Components[0]
+        DBc = self.GetRefComponent()
         # Try to find a match existing in the data book.
-        j = self[c0].FindMatch(i)
+        j = DBc.FindMatch(i)
         # Get the name of the folder.
         frun = self.x.GetFullFolderNames(i)
         # Status update.
@@ -542,12 +542,12 @@ class DataBook(cape.dataBook.DataBook):
             # No current entry.
             print("  Adding new databook entry at iteration %i." % nIter)
             q = True
-        elif self[c0]['nIter'][j] < nIter:
+        elif DBc['nIter'][j] < nIter:
             # Update
             print("  Updating from iteration %i to %i."
                 % (self[c0]['nIter'][j], nIter))
             q = True
-        elif self[c0]['nStats'][j] < nStats:
+        elif DBc['nStats'][j] < nStats:
             # Change statistics
             print("  Recomputing statistics using %i iterations." % nStats)
             q = True

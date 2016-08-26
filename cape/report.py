@@ -693,7 +693,7 @@ class Report(object):
         # Read the status file.
         fdirr, Ir, nIterr = self.ReadSweepJSONIter()
         # Extract first component.
-        DBc = self.cntl.DataBook[self.cntl.DataBook.Components[0]]
+        DBc = self.cntl.DataBook.GetRefComponent()
         # Get current iteration numbers.
         nIters = list(DBc['nIter'][I])
         # Check if there's anything to do.
@@ -2724,7 +2724,7 @@ class Report(object):
         # Get case names.
         fruns = self.cntl.DataBook.x.GetFullFolderNames(I)
         # Get first component
-        DBc = self.cntl.DataBook[self.cntl.DataBook.Components[0]]
+        DBc = self.cntl.DataBook.GetRefComponent()
         # Get current iteration numbers.
         nIter = list(DBc['nIter'][I])
         # Loop through the cases in the sweep.

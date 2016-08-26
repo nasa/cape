@@ -178,7 +178,7 @@ class DataBook(dict):
         # Add the number of components.
         lbl += "nComp=%i, " % len(self.Components)
         # Add the number of conditions.
-        lbl += "nCase=%i>" % self[self.Components[0]].n
+        lbl += "nCase=%i>" % self[self.GetRefComponent()].n
         # Output
         return lbl
     # String conversion
@@ -205,6 +205,30 @@ class DataBook(dict):
             * 2015-11-10 ``@ddalle``: First version
         """
         self[comp] = DBComp(comp, x, opts, targ=targ)
+
+    # Find first force/moment component
+    def GetRefComponent(self):
+        """Get the first component with type 'FM', 'Force', or 'Moment'
+
+        :Call:
+            >>> DBc = DB.GetRefComponent()
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Data book instance
+        :Outputs:
+            *DBc*: :class:`cape.dataBook.DBComp`
+                Data book for one component
+        :Versions:
+            * 2016-08-18 ``@ddalle``: First version
+        """
+        # Loop through components
+        for comp in self.Components:
+            # Get the component type
+            typ = self.opts.get_DataBookType(comp)
+            # Check if it's in the desirable range
+            if typ in ['FM', 'Force', 'Moment']:
+                # Use this component
+                return self[comp]
         
     # Function to read targets if necessary
     def ReadTarget(self, targ):
@@ -263,7 +287,7 @@ class DataBook(dict):
             * 2016-02-27 ``@ddalle``: Added as a pointer to first component
         """
         # Get first component
-        DBc = self[self.Components[0]]
+        DBc = self.GetRefComponent()
         # Use its finder
         return DBc.FindMatch(i)
             
@@ -319,7 +343,7 @@ class DataBook(dict):
             * 2016-02-27 ``@ddalle``: Added as a pointer to first component
         """
         # Get first component
-        DBc = self[self.Components[0]]
+        DBc = self.GetRefComponent()
         # Use its finder
         return DBc.FindTargetMatch(x, i, topts, keylist=keylist)
             
@@ -338,7 +362,7 @@ class DataBook(dict):
             * 2015-05-22 ``@ddalle``: First version
         """
         # Get the first component.
-        DBc = self[self.Components[0]]
+        DBc = self.GetRefComponent()
         # Loop through the fields.
         for k in self.x.keys:
             # Copy the data.
@@ -392,7 +416,7 @@ class DataBook(dict):
             * 2015-05-28 ``@ddalle``: First version
         """
         # Get the first component.
-        DBc = self[self.Components[0]]
+        DBc = self.GetRefComponent()
         # Initialize indices of points to keep.
         I = []
         J = []
@@ -467,8 +491,10 @@ class DataBook(dict):
         """
         # Process inputs.
         if I is None:
+            # Get first force-like component
+            DBc = self.GetRefComponent()
             # Use indirect sort on the first component.
-            I = self[self.Components[0]].ArgSort(key)
+            I = DBc.ArgSort(key)
         # Loop through components.
         for comp in self.Components:
             # Check for component
@@ -504,7 +530,7 @@ class DataBook(dict):
             * 2015-08-30 ``@ddalle``: First version
         """
         # First component.
-        DBC = self[self.Components[0]]
+        DBC = self.GetRefComponent()
         # Initialize indices of targets *J*
         I = []
         J = []
@@ -551,7 +577,7 @@ class DataBook(dict):
             raise IOError("Keyword argument *tols* to " +
                 ":func:`GetTargetMatches` must be a :class:`dict`.") 
         # First component.
-        DBC = self[self.Components[0]]
+        DBC = self.GetRefComponent()
         # Get the target.
         DBT = self.GetTargetByName(ftarg)
         # Get trajectory keys.
@@ -617,7 +643,7 @@ class DataBook(dict):
             raise IOError("Keyword argument *tols* to " +
                 ":func:`GetTargetMatches` must be a :class:`dict`.") 
         # First component.
-        DBC = self[self.Components[0]]
+        DBC = self.GetRefComponent()
         # Get the target.
         DBT = self.GetTargetByName(ftarg)
         # Get trajectory keys.

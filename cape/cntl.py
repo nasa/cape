@@ -1634,7 +1634,7 @@ class Cntl(object):
         # ---------------------
         # Set the positive rotations.
         for comp in comps:
-            self.config.SetRotation(comp,, i=I.get(comp),
+            self.config.SetRotation(comp, i=I.get(comp),
                 Angle=theta, Center=cen, Axis=ax, Frame=frm)
         # Set the negative rotations.
         for comp in compsR:
