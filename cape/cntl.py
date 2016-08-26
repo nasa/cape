@@ -344,8 +344,11 @@ class Cntl(object):
         qJobID = kw.get('j', False)
         # Check whether or not to kill PBS jobs
         qKill = kw.get('qdel', kw.get('kill', False))
+        # Check whether to execute scripts
+        ecmd = kw.get('exec', kw.get('e', False))
+        qExec = (ecmd is None)
         # No submissions if we're just deleting.
-        if qKill: qCheck = True
+        if qKill or qExec: qCheck = True
         # Maximum number of jobs
         nSubMax = int(kw.get('n', 10))
         # Get list of indices.
@@ -434,10 +437,6 @@ class Cntl(object):
                 else:
                     # Not found by qstat (or not a jobID at all)
                     que = "."
-                # Check for queue killing
-                if qKill and (jobID in jobs):
-                    # Delete it.
-                    self.StopCase(i)
             # Print info
             if qJobID and jobID in jobs:
                 # Print job number.
@@ -448,6 +447,14 @@ class Cntl(object):
             else:
                 # No job number.
                 print(stncl % (j, frun, sts, itr, que, CPUt))
+            # Check for queue killing
+            if qKill and (n is not None) and (jobID in jobs):
+                # Delete it.
+                self.StopCase(i)
+            # Check for script
+            if qExec and (n is not None):
+                # Execute script
+                self.ExecScript(self, i, ecmd)
             # Check status.
             if qCheck: continue
             # If submitting is allowed, check the job status.
@@ -474,6 +481,52 @@ class Cntl(object):
                 fline += ("%s=%i, " % (key,total[key]))
         # Print the line.
         if fline: print(fline)
+        
+    # Execute script
+    def ExecScript(self, i, cmd):
+        """Execute a script in a given case folder
+        
+        :Call:
+            >>> ierr = cntl.ExecScript(i, cmd)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Case index (0-based)
+        :Outputs:
+            *ierr*: ``None`` | :class:`int`
+                Exit status from the command
+        :Versions:
+            * 2016-08-26 ``@ddalle``: First version
+        """
+        # Get the case folder name
+        frun = self.x.GetFullFolderNames(i)
+        # Go safely to root directory
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Check for the folder
+        if not os.path.isdir(frun):
+            os.chdir(fpwd)
+            return
+        # Enter the folder
+        os.chdir(frun)
+        # Status update
+        print("Executing system command:")
+        print("  %s" % cmd)
+        # Check the input type
+        typ = type(cmd).__name__
+        # Execute based on type
+        if typ == 'list':
+            # Pass to safer subprocess command
+            ierr = sp.call(typ)
+        else:
+            # Pass to dangerous system command
+            ierr = os.system(cmd)
+        # Return to original location
+        os.chdir(fpwd)
+        # Output
+        print("exit(%s)" % ierr)
+        return ierr
         
     # Function to start a case: submit or run
     def StartCase(self, i):
