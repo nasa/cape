@@ -1421,7 +1421,13 @@ class Cntl(object):
         if type(kx).__name__ == "list": kx = np.array(kx)
         if type(kc).__name__ == "list": kc = np.array(kc)
         # Get the reference points for translations based on this rotation
-        xT  = kopts.get('TranslateRefPoint', [0.0, 0.0, 0.0])
+        xT = kopts.get('TranslateRefPoint', [0.0, 0.0, 0.0])
+        # Get scale for translated points
+        kt = kopts.get('TranslateScale', np.ones(3))
+        # Ensure vector
+        if type(kt).__name__ == 'list':
+            # Ensure vector so that we can multiply it by another vector
+            kt = np.array(kt)
         # Get vector
         vec = kopts.get('Vector')
         ax  = kopts.get('Axis')
@@ -1499,10 +1505,10 @@ class Cntl(object):
         YTR = RotatePoints(XTR, v0R, v1R, ka*theta)
         # Process translations caused by this rotation
         for j in range(len(compsT)):
-            self.tri.Translate(YT[j]-XT[j], compID=compsT[j])
+            self.tri.Translate(kt*(YT[j]-XT[j]), compID=compsT[j])
         # Process translations caused by symmetric rotation
         for j in range(len(compsTR)):
-            self.tri.Translate(YTR[j]-XTR[j], compID=compsTR[j])
+            self.tri.Translate(kt*(YTR[j]-XTR[j]), compID=compsTR[j])
         # Apply transformation
         Y  = RotatePoints(X,  v0,  v1,  theta)
         YR = RotatePoints(XR, v0R, v1R, ka*theta)
