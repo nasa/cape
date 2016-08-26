@@ -1185,6 +1185,8 @@ class Cntl(object):
         """
         # Get function for rotations, etc.
         keys = self.x.GetKeysByType(['Translate', 'Rotate', 'ConfigFunction'])
+        # Exit if no keys
+        if len(keys) == 0: return
         # Reset reference points
         self.opts.reset_Points()
         # Loop through keys.
@@ -1201,6 +1203,8 @@ class Cntl(object):
             elif kt.lower() == "rotate":
                 # Component(s) translation
                 self.PrepareConfigRotation(key, i)
+        # Write the configuration file
+        self.WriteConfig(i)
     
     # Apply a special triangulation function
     def PrepareTriFunction(self, key, i):
