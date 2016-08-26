@@ -512,14 +512,28 @@ class Cntl(object):
         os.chdir(frun)
         # Status update
         print("Executing system command:")
-        print("  %s" % cmd)
         # Check the input type
         typ = type(cmd).__name__
         # Execute based on type
         if typ == 'list':
             # Pass to safer subprocess command
-            ierr = sp.call(typ)
+            print("  %s" % cmd)
+            ierr = sp.call(cmd)
         else:
+            # Check if it's a file.
+            if not cmd.startswith(os.sep):
+                # First command could be a script name
+                fcmd = cmd.split()[0]
+                # Check for the file.
+                if os.path.exists(fcmd):
+                    # Copy the file here
+                    shutil.copy(fcmd, '.')
+                    # Name of the script
+                    fexec = os.path.split(fcmd)[1]
+                    # Strip folder names from command
+                    cmd = "./%s %s" % (fexec, ' '.join(cmd.split()[1:]))
+            # Status update
+            print("  %s" % cmd)
             # Pass to dangerous system command
             ierr = os.system(cmd)
         # Return to original location
