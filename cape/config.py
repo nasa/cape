@@ -683,7 +683,7 @@ class Config:
                 # Add to the current list
                 iend += 1
             # Write if appropriate
-            if i == n or icur > iend+1:
+            if i == n-1 or icur > iend+1:
                 # Check if single element or list
                 if ibeg == iend:
                     # Write single

@@ -30,7 +30,7 @@ import numpy as np
 # Configuration file processor
 import json
 # File system
-import os
+import os, shutil
 
 # Local modules
 from . import options
@@ -345,8 +345,8 @@ class Cntl(object):
         # Check whether or not to kill PBS jobs
         qKill = kw.get('qdel', kw.get('kill', False))
         # Check whether to execute scripts
-        ecmd = kw.get('exec', kw.get('e', False))
-        qExec = (ecmd is None)
+        ecmd = kw.get('exec', kw.get('e'))
+        qExec = (ecmd is not None)
         # No submissions if we're just deleting.
         if qKill or qExec: qCheck = True
         # Maximum number of jobs
@@ -393,7 +393,7 @@ class Cntl(object):
                 "Iterations", "Que", "CPU Time"))
             # Print "---- --------" etc.
             print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3 + s + f*8)
-        # Initialize dictionary of statuses.
+        # Initialize dictionary of statuses.3
         total = {'PASS':0, 'PASS*':0, '---':0, 'INCOMP':0,
             'RUN':0, 'DONE':0, 'QUEUE':0, 'ERROR':0}
         # Loop through the runs.
@@ -451,10 +451,12 @@ class Cntl(object):
             if qKill and (n is not None) and (jobID in jobs):
                 # Delete it.
                 self.StopCase(i)
+                continue
             # Check for script
             if qExec and (n is not None):
                 # Execute script
-                self.ExecScript(self, i, ecmd)
+                self.ExecScript(i, ecmd)
+                continue
             # Check status.
             if qCheck: continue
             # If submitting is allowed, check the job status.
@@ -511,7 +513,7 @@ class Cntl(object):
         # Enter the folder
         os.chdir(frun)
         # Status update
-        print("Executing system command:")
+        print("  Executing system command:")
         # Check the input type
         typ = type(cmd).__name__
         # Execute based on type
@@ -524,6 +526,8 @@ class Cntl(object):
             if not cmd.startswith(os.sep):
                 # First command could be a script name
                 fcmd = cmd.split()[0]
+                # Get file name relative to Cntl root directory
+                fcmd = os.path.join(self.RootDir, fcmd)
                 # Check for the file.
                 if os.path.exists(fcmd):
                     # Copy the file here
@@ -533,13 +537,13 @@ class Cntl(object):
                     # Strip folder names from command
                     cmd = "./%s %s" % (fexec, ' '.join(cmd.split()[1:]))
             # Status update
-            print("  %s" % cmd)
+            print("    %s" % cmd)
             # Pass to dangerous system command
             ierr = os.system(cmd)
         # Return to original location
         os.chdir(fpwd)
         # Output
-        print("exit(%s)" % ierr)
+        print("    exit(%s)" % ierr)
         return ierr
         
     # Function to start a case: submit or run
