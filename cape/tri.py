@@ -1103,6 +1103,8 @@ class TriBase(object):
         except Exception:
             # Python version
             self.WriteTriBinSlow(fname, **kw)
+            
+    
         
     # Get default byte order
     def get_default_byteorder(self):
@@ -1134,7 +1136,7 @@ class TriBase(object):
         elif env_gfort == 'big_endian':
             # gfortran environment variable set to big-endian
             sbo = 'big'
-        elif eng_gfort == 'little_endian':
+        elif env_gfort == 'little_endian':
             # gfortran environment variable set to little-endian
             sbo = 'little'
         # Output
@@ -1226,6 +1228,55 @@ class TriBase(object):
         R.tofile(fid)
         # Close the file
         fid.close()
+        
+    # Write binary tri file, compiled
+    def WriteTriBinFast(self, fname='Components.i.tri',
+            byteorder=None, bytecount=4, nq=None):
+        """Write binary triangulation file using compiled functions
+        
+        :Call:
+            >>> tri.WriteTriBinFast
+    :Call:
+            >>> tri.WriteBinSlow(fname='Comonents.i.tri', **kw)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+            *byteorder*: {``None``} | ``"big"`` | ``"little"``
+                Byte order of outputfile; defaults to system byte order
+            *bytecount*: {``4``} | ``8``
+                Number of bytes per value; single- or double-precision
+            *nq*: {``None``} | :class:`int`
+                Number of states for first line
+        :Versions:
+            * 2016-08-18 ``@ddalle``: First version
+        """
+        # Process default byte order
+        if byteorder is None: byteorder = self.get_default_byteorder()
+        # Get system byte order
+        sbo = os.sys.byteorder
+        # Determine whether or not we need to swap bytes.
+        if byteorder is None or byteorder.lower() == sbo:
+            # Native endian
+            if bytecount == 8:
+                raise NotImplementedError(
+                    "Double-precision native-endian output not implemented.")
+            else:
+                # Byte-swapped, single precision
+                pc.WriteTriSingleNative(self.Nodes, self.Tris, self.CompID)
+        else:
+            # Apparently we have to swap
+            if bytecount == 8:
+                raise NotImplementedError(
+                    "Double-precision byte-swapped output not implemented.")
+            else:
+                # Byte-swapped, single precision
+                pc.WriteTriSingleByteswap(self.Nodes, self.Tris, self.CompID)
+        # Check the file name.
+        if fname != "Components.pyCart.tri":
+            # Move the file.
+            os.rename("Components.pyCart.tri", fname)
         
         
     # Write STL using python language

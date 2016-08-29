@@ -16,6 +16,46 @@ char doc_WriteTri[] =
 ":Versions:\n"
 "   * 2014-01-02 ``@ddalle``: First version\n";
 
+PyObject *
+pc_WriteTriSingleByteswap(PyObject *self, PyObject *args);
+char doc_WriteTriSingleByteswap[] =
+"Write a single-precision byte-swapped Fortran-style triangulation file\n"
+"\n"
+"The file written is :file:`Components.pyCart.tri`.  It is the reverse of\n"
+"whatever the native byte order is.  Fortran record markers are included.\n"
+"\n"
+":Call:\n"
+"    >>> pc.WriteTriSingleByteSwap(P, T, C)\n"
+":Inputs:\n"
+"    *P*: :class:`numpy.ndarray` (:class:`float`) (*nNode*, 3)\n"
+"        Matrix of nodal coordinates\n"
+"    *C*: :class:`numpy.ndarray` (:class:`int`) (*nTri*)\n"
+"        Vector of component IDs\n"
+"    *T*: :class:`numpy.ndarray` (:class:`int`) (*nTri*, 3)\n"
+"        Matrix of of nodal indices for each triangle\n"
+":Versions:\n"
+"    * 2016-08-28 ``@ddalle``: First version\n";
+
+PyObject *
+pc_WriteTriSingleNative(PyObject *self, PyObject *args);
+char doc_WriteTriSingleNative[] =
+"Write a single-precision native-endian Fortran-style triangulation file\n"
+"\n"
+"The file written is :file:`Components.pyCart.tri`.  It is the reverse of\n"
+"whatever the native byte order is.  Fortran record markers are included.\n"
+"\n"
+":Call:\n"
+"    >>> pc.WriteTriSingleNative(P, T, C)\n"
+":Inputs:\n"
+"    *P*: :class:`numpy.ndarray` (:class:`float`) (*nNode*, 3)\n"
+"        Matrix of nodal coordinates\n"
+"    *C*: :class:`numpy.ndarray` (:class:`int`) (*nTri*)\n"
+"        Vector of component IDs\n"
+"    *T*: :class:`numpy.ndarray` (:class:`int`) (*nTri*, 3)\n"
+"        Matrix of of nodal indices for each triangle\n"
+":Versions:\n"
+"    * 2016-08-28 ``@ddalle``: First version\n";
+
 
 PyObject *
 pc_WriteCompID(PyObject *self, PyObject *args);
