@@ -18,8 +18,14 @@ static PyMethodDef Methods[] = {
     {"WriteTriSingleByteswap",
         pc_WriteTriSingleByteswap, METH_VARARGS, doc_WriteTriSingleByteswap
     },
+    {"WriteTriDoubleByteswap",
+        pc_WriteTriDoubleByteswap, METH_VARARGS, doc_WriteTriDoubleByteswap
+    },
     {"WriteTriSingleNative",
         pc_WriteTriSingleNative, METH_VARARGS, doc_WriteTriSingleNative
+    },
+    {"WriteTriDoubleNative",
+        pc_WriteTriDoubleNative, METH_VARARGS, doc_WriteTriDoubleNative
     },
     {NULL, NULL, 0, NULL}
 };

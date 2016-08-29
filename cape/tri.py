@@ -1260,16 +1260,16 @@ class TriBase(object):
         if byteorder is None or byteorder.lower() == sbo:
             # Native endian
             if bytecount == 8:
-                raise NotImplementedError(
-                    "Double-precision native-endian output not implemented.")
+                # Byte-swapped, single precision
+                pc.WriteTriDoubleNative(self.Nodes, self.Tris, self.CompID)
             else:
                 # Byte-swapped, single precision
                 pc.WriteTriSingleNative(self.Nodes, self.Tris, self.CompID)
         else:
             # Apparently we have to swap
             if bytecount == 8:
-                raise NotImplementedError(
-                    "Double-precision byte-swapped output not implemented.")
+                # Byte-swapped, single precision
+                pc.WriteTriDoubleByteswap(self.Nodes, self.Tris, self.CompID)
             else:
                 # Byte-swapped, single precision
                 pc.WriteTriSingleByteswap(self.Nodes, self.Tris, self.CompID)
