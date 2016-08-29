@@ -809,6 +809,18 @@ class Overflow(Cntl):
             f.write("%s\n" % comp)
             # Write the time history (writing just 1 causes Overflow to ignore)
             f.write("1\n")
+            # Get the BC number parameter
+            IBTYP = nml.GetKeyFromGrid(grid, 'BCINP', 'IBTYP')
+            # Check for at least *bci* columns
+            if len(IBTYP) > bci:
+                raise ValueError(
+                    ("While specifying IBTYP for key '%s':\n" % key) +
+                    ("Received column index %s for grid '%s' " % (bci, grid)) +
+                    ("but BCINP/IBTYP namelist has %s columns" % len(IBTYP)))
+            # Set IBTYP to 153
+            IBTYP[bci-1] = 153
+            # Reset IBTYP
+            nml.SetKeyForGrid(grid, 'BCINP', 'IBTYP', IBTYP)
             # Set the parameters in the namelist
             nml.SetKeyForGrid(grid, 'BCINP', 'BCPAR1', p0,    i=bci)
             nml.SetKeyForGrid(grid, 'BCINP', 'BCPAR2', T0,    i=bci)
@@ -893,6 +905,8 @@ class Overflow(Cntl):
         else:
             # Single component; make uniform dictionary
             bcinds = {}
+            # Do not use ``None``
+            if bcind is None: bcind = 0
             # Loop through grids
             for grid in grids:
                 bcinds[grid] = bcind
