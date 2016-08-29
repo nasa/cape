@@ -750,15 +750,243 @@ class Overflow(Cntl):
         # Return to original location
         os.chdir(fpwd)
         
+    # Prepare surface BC
+    def SetSurfBC(self, key, i, CT=False):
+        """Set a surface BC for one key using *IBTYP* 153
+        
+        :Call:
+            >>> ofl.SetSurfBC(key, i, CT=False)
+        :Inputs:
+            *ofl*: :class:`pyOver.overflow.Overflow`
+                Instance of pyOver control class
+            *key*: :class:`str`
+                Name of SurfBC key to process
+            *i*: :class:`int`
+                Case index
+            *CT*: ``True`` | {``False``}
+                Whether this key has thrust as input (else *p0*, *T0* directly)
+        :Versions:
+            * 2016-08-29 ``@ddalle``: First version
+        """
+        # Get the BC inputs
+        if CT:
+            # Use thrust as input variable
+            p0, T0 = self.GetSurfCTState(key, i)
+        else:
+            # Use *p0* and *T0* directly as inputs
+            p0, T0 = self.GetSurfBCState(key, i)
+        # Get the current namelist
+        nml = self.Namelist
+        # Get the component name and list of grids
+        grids, comps, bcinds = self.GetSurfBC_Grids(key, i)
+        # Get species
+        Y = self.x.GetSurfBC_Species(i, key)
+        # Safely go to the folder
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        os.chdir(self.x.GetFullFolderNames(i))
+        # Loop through the grids
+        for grid in grids:
+            # Check for presence
+            if grid not in comps:
+                raise KeyError(
+                    ("No component specification for key ") +
+                    ("'%s', grid '%s'" % (key, grid)))
+            # Get component name
+            comp = comps[grid]
+            # Get column index
+            bci = bcinds[grid]
+            # File name
+            fname = 'SurfBC-%s-%s.dat' % (comp, grid)
+            # Open the file
+            f = open(fname, 'w')
+            # Write the state
+            f.write("%.12f %.12f\n" % (p0, T0))
+            # Write the species info
+            f.write(" ".join([str(y) for y in Y]))
+            f.write("\n")
+            # Write the component name
+            f.write("%s\n" % comp)
+            # Write the time history (writing just 1 causes Overflow to ignore)
+            f.write("1\n")
+            # Set the parameters in the namelist
+            nml.SetKeyForGrid(grid, 'BCINP', 'BCPAR1', p0,    i=bci)
+            nml.SetKeyForGrid(grid, 'BCINP', 'BCPAR2', T0,    i=bci)
+            nml.SetKeyForGrid(grid, 'BCINP', 'BCFILE', fname, i=bci)
+        # Return to original location
+        os.chdir(fpwd)
+            
+        
+            
+    # Get surface BC grid list
+    def GetSurfBC_Grids(self, key, i):
+        """Get dictionary of grids and and components for a surface BC key
+        
+        :Call:
+            >>> grids, comps, bcinds = ofl.GetSurfBC_Grids(key, i)
+        :Inputs:
+            *ofl*: :class:`pyOver.overflow.Overflow`
+                Instance of pyOver control class
+            *key*: :class:`str`
+                Name of SurfBC key to process
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *grids*: :class:`list` (:class:`str` | :class:`int`)
+                List of grids for which BC applies
+            *comps*: :class:`dict` (:class:`str`)
+                Dictionary of component for each grid
+            *bcinds*: :class:`dict` (``None`` | :class:`int`)
+                List of BC column index
+        :Versions:
+            * 2016-08-29 ``@ddalle``: First version
+        """
+        # Get the component name and list of grids
+        compID = self.x.GetSurfBC_CompID(i, key)
+        grids  = self.x.GetSurfBC_Grids(i, key)
+        bcind  = self.x.GetSurfBC_BCIndex(i, key)
+        # Number of grids
+        ng = len(grids)
+        # Ensure list
+        if type(grids).__name__ not in ['list', 'ndarray']:
+            grids = [grids]
+        # Consistency for components
+        typ = type(compID).__name__
+        if typ == 'dict':
+            # Dictionary; already set
+            comps = compID
+        elif typ in ['list', 'ndarray']:
+            # List of components; check for consistency
+            nc = len(compID)
+            if ng != nc:
+                raise ValueError(
+                    ("Received %i grids and %i components " % (ng, nc)) +
+                    ("for SurfBC key '%s'" % key))
+            # Create dictionary
+            comps = {}
+            # Loop through grids
+            for i in range(ng):
+                comps[grids[i]] = compID[i]
+        else:
+            # Single component; make uniform dictionary
+            comps = {}
+            # Loop through grids
+            for grid in grids:
+                comps[grid] = compID
+        # Consistency for bc indices
+        typ = type(bcind).__name__
+        if typ == 'dict':
+            # Dictionary; already set
+            bcinds = bcind
+        elif typ in ['list', 'ndarray']:
+            # List of components; check for consistency
+            nc = len(bcind)
+            if ng != nc:
+                raise ValueError(
+                    ("Received %i grids and %i BC indices " % (ng, nc)) +
+                    ("for SurfBC key '%s'" % key))
+            # Create dictionary
+            bcinds = {}
+            # Loop through grids
+            for i in range(ng):
+                bcinds[grids[i]] = bcind[i]
+        else:
+            # Single component; make uniform dictionary
+            bcinds = {}
+            # Loop through grids
+            for grid in grids:
+                bcinds[grid] = bcind
+        # Output
+        return grids, comps, bcinds
+            
+            
+    # Get surface BC inputs
+    def GetSurfBCState(self, key, i):
+        """Get stagnation pressure and temperature ratios
+        :Call:
+            >>> p0, T0 = ofl.GetSurfBC(key, i)
+        :Inputs:
+            *ofl*: :class:`pyOver.overflow.Overflow`
+                Instance of pyOver control class
+            *key*: :class:`str`
+                Name of SurfBC key to process
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *p0*: :class:`float`
+                Ratio of BC total pressure to freestream total pressure
+            *T0*: :class:`float`
+                Ratio of BC total temperature to freestream total temperature
+        :Versions:
+            * 2016-08-29 ``@ddalle``: First version
+        """
+        # Get the inputs
+        p0 = self.x.GetSurfBC_TotalPressure(i, key)
+        T0 = self.x.GetSurfBC_TotalTemperature(i, key)
+        # Calibration
+        fp = self.x.GetSurfBC_PressureCalibration(i, key)
+        # Reference pressure/tomp
+        p0inf = self.x.GetSurfBC_TotalPressure(i, key)
+        T0inf = self.x.GetSurfBC_TotalTemperature(i, key)
+        # Output
+        return fp*p0/p0inf, T0/T0inf
+        
+    # Get surface *CT* state inputs
+    def GetSurfCTState(self, key, i):
+        """Get stagnation pressure and temperature ratios for *SurfCT* key
+        
+        :Call:
+            >>> p0, T0 = ofl.GetSurfCTState(key, i)
+        :Inputs:
+            *ofl*: :class:`pyOver.overflow.Overflow`
+                Instance of pyOver control class
+            *key*: :class:`str`
+                Name of SurfBC key to process
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *p0*: :class:`float`
+                Ratio of BC total pressure to freestream total pressure
+            *T0*: :class:`float`
+                Ratio of BC total temperature to freestream total temperature
+        :Versions:
+            * 2016-08-29 ``@ddalle``: First version
+        """
+        # Get the trhust value
+        CT = self.x.GetSurfCT_Thrust(i, key)
+        # Get the exit parameters
+        M2 = self.GetSurfCT_ExitMach(key, i)
+        A2 = self.GetSurfCT_ExitArea(key, i)
+        # Ratio of specific heats
+        gam = self.x.GetSurfCT_Gamma(i, key)
+        # Derivative gas constants
+        g2 = 0.5 * (gam-1)
+        g3 = gam / (gam-1)
+        # Get reference dynamice pressure
+        qref = self.GetSurfCT_RefDynamicPressure(i, key)
+        # Get reference area
+        Aref = self.GetSurfCT_RefArea(key, i)
+        # Calculate total pressure
+        p0 = CT*qref*aref/A2 *  (1+g2*M2*M2)**g3 / (1+gam*M2*M2)
+        # Temperature inputs
+        T0 = self.x.GetSurfCT_TotalTemperature(i, key)
+        # Calibration
+        fp = self.x.GetSurfCT_PressureCalibration(i, key)
+        # Reference values
+        p0inf = self.x.GetSurfCT_TotalPressure(i, key)
+        T0inf = self.x.GetSurfCT_TotalTemperature(i, key)
+        # Output
+        return fp*p0/p0inf, T0/T0inf
+        
     # Write run control options to JSON file
     def WriteCaseJSON(self, i):
         """Write JSON file with run control and related settings for case *i*
         
         :Call:
-            >>> fun3d.WriteCaseJSON(i)
+            >>> ofl.WriteCaseJSON(i)
         :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of control class containing relevant parameters
+            *ofl*: :class:`pyOver.overflow.Overflow`
+                Instance of pyOver control class
             *i*: :class:`int`
                 Run index
         :Versions:

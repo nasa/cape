@@ -2728,6 +2728,131 @@ class Trajectory:
             # Use the fixed value
             return og
             
+    # Get species
+    def GetSurfBC_Species(self, i, key=None):
+        """Get species information for a surface BC key
+        
+        The species can be specified using several different manners.
+        
+        The first and most common approach is to simply set a fixed list, for
+        example setting ``"Species"`` to ``[0.0, 1.0, 0.0]`` to specify use of
+        the second species, or ``[0.2, 0.8, 0.1]`` to specify a mix of three
+        difference species.
+        
+        A second method is to specify an integer.  For example, if ``"Species"``
+        is set to ``2`` and ``"nSpecies"`` is set to ``4``, the output will be
+        ``[0.0, 1.0, 0.0, 0.0]``.
+        
+        The third method is a generalization of the first.  An alternative to
+        simply setting a fixed list of numeric species mass fractions, the
+        entries in the list can depend on the values of other trajectory keys.
+        For example, setting ``"Species"`` to ``['YH2', 'YO2']`` will translate
+        the mass fractions according to the values of trajectory keys ``"YH2"``
+        and ``"YO2"``.
+        
+        :Call:
+            >>> Y = x.GetSurfBC_Species(i, key=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfBC`` key
+        :Outputs:
+            *Y*: :class:`list` (:class:`float`)
+                List of species mass fractions for boundary condition
+        :Versions:
+            * 2016-08-29 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key
+            if 'SurfBC' not in KeyTypes: return
+            # Get first key
+            key = self.GetKeysBytype('SurfBC')[0]
+        # Get the species parameter
+        oY = self.defns[key].get('Species', [1.0])
+        # Type
+        tY = type(oY).__name__
+        # Process the option
+        if oY is None:
+            # Use the value of this key
+            Y = getattr(self,key)[i]
+        elif tY in ['str', 'unicode']:
+            # Use the value of another key
+            Y = getattr(self, oY)[i]
+        else:
+            # Use the direct value
+            Y = oY
+        # Type of list
+        tY = type(Y).__name__
+        # Check for integer
+        if tY == 'int':
+            # Get number of species
+            nY = self.GetSurfBC_nSpecies(i, key)
+            # Make list with one nonzero component
+            Y = [float(i+1==Y) for i in range(nY)]
+        elif tY != 'list':
+            # Must be list or int
+            raise TypeError("Species specification must be int or list")
+        # Loop through components
+        for i in range(len(Y)):
+            # Get the value and type
+            y = Y[i]
+            ty = type(y).__name__
+            # Convert if string
+            if ty in ['str', 'unicode']:
+                # Get the value of a different key
+                Y[i] = getattr(self,y)[i]
+        # Output
+        return Y
+            
+    # Get number of species
+    def GetSurfBC_nSpecies(self, i, key=None):
+        """Get number of species for a surface BC key
+        
+        :Call:
+            >> nY = x.GetSurfBC_nSpecies(i, key=None)
+        :Inptus:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfBC`` key
+        :Outputs:
+            *nY*: {``1``} | :class:`int`
+                Number of species
+        :Versions:
+            * 2016-08-29 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if 'SurfBC' not in KeyTypes: return
+            # Get first key
+            key = self.GetKeysByType('SurfBC')[0]
+        # Get the pressure parameter
+        oY = self.defns[key].get('nSpecies', 1)
+        # Type
+        tY = type(oY).__name__
+        # Process the option
+        if oY is None:
+            # This is ridiculous
+            raise ValueError("Cannot use key to set number of species.")
+        elif tg in ['str', 'unicode']:
+            # Use the value of another key
+            return getattr(self,oY)[i]
+        else:
+            # Use the fixed value
+            return oY
+        
+            
     # Get component ID(s) input for SurfBC key
     def GetSurfBC_CompID(self, i, key=None):
         """Get component ID input for surface BC key
@@ -2742,8 +2867,8 @@ class Trajectory:
             *key*: ``None`` | :class:`str`
                 Name of key to use; defaults to first ``SurfBC`` key
         :Outputs:
-            *compID*: :class:`list` (:class:`int` | :class:`str`)
-                Surface boundary condition Mach number
+            *compID*: :class:`list` | :class:`str` | :class:`dict`
+                Surface boundary condition component ID(s)
         :Versions:
             * 2016-03-28 ``@ddalle``: First version
         """
@@ -2757,6 +2882,90 @@ class Trajectory:
             key = self.GetKeysByType('SurfBC')[0]
         # Get the pressure parameter
         oc = self.defns[key].get('CompID')
+        # Type
+        tc = type(oc).__name__
+        # Process the option
+        if oc is None:
+            # Use the value of this key
+            return getattr(self,key)[i]
+        elif tc in ['str', 'unicode']:
+            # Use the value of that key
+            return getattr(self,oc)[i]
+        else:
+            # Use the fixed value
+            return oc
+            
+    # Get column index input for SurfBC key
+    def GetSurfBC_BCIndex(self, i, key=None):
+        """Get namelist/column/etc. index for a surface BC key
+        
+        :Call:
+            >>> inds = x.GetSurfBC_BCIndex(i, key=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfBC`` key
+        :Outputs:
+            *inds*: :class:`list` | :class:`str` | :class:`dict`
+                Column index for each grid or component
+        :Versions:
+            * 2016-08-29 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if 'SurfBC' not in KeyTypes: return
+            # Get first key
+            key = self.GetKeysByType('SurfBC')[0]
+        # Get the BCIndex
+        oi = self.defns[key].get('BCIndex')
+        # Type
+        ti = type(oi).__name__
+        # Process the option
+        if oi is None:
+            # Don't need this because there's only one column
+            return None
+        elif ti in ['str', 'unicode']:
+            # Use the value of that key
+            return getattr(self,oi)[i]
+        else:
+            # Use the fixed value
+            return oi
+            
+    # Get component ID(s) input for SurfBC key
+    def GetSurfBC_Grids(self, i, key=None):
+        """Get list of grids for surface BC key
+        
+        :Call:
+            >>> grids = x.GetSurfBC_Grids(i, key=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfBC`` key
+        :Outputs:
+            *grids*: :class:`list` (:class:`int` | :class:`str`)
+                Surface boundary condition grids
+        :Versions:
+            * 2016-08-29 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if 'SurfBC' not in KeyTypes: return
+            # Get first key
+            key = self.GetKeysByType('SurfBC')[0]
+        # Get the grid parameter
+        oc = self.defns[key].get('Grids')
         # Type
         tc = type(oc).__name__
         # Process the option

@@ -151,7 +151,7 @@ class OverNamelist(cape.namelist2.Namelist2):
             self.ApplyDictToGrid(igrd, opts)
         
     # Get a quantity from a grid (with fallthrough)
-    def GetKeyFromGrid(self, grdnam, grp, key):
+    def GetKeyFromGrid(self, grdnam, grp, key, i=None):
         """Get the value of a key for a grid with a specific name
         
         This function uses fall-through, so if a setting is not explicitly
@@ -159,7 +159,7 @@ class OverNamelist(cape.namelist2.Namelist2):
         grid before that, etc.
         
         :Call:
-            >>> val = nml.GetKeyFromGrid(grdnam, grp, key)
+            >>> val = nml.GetKeyFromGrid(grdnam, grp, key, i=None)
         :Inputs:
             *nml*: :class:`pyOver.overNamelist.OverNamelist`
                 Interface to OVERFLOW input namelist
@@ -169,11 +169,14 @@ class OverNamelist(cape.namelist2.Namelist2):
                 Name of the namelist group of key to query
             *key*: :class:`str`
                 Name of the key to query
+            *i*: {``None``} | ``':'`` | :class:`int`
+                Index to use in the namelist, e.g. "BCPAR(*i*)"
         :Outputs:
             *val*: :class:`str` | :class:`int` | :class:`float` | :class:`bool`
                 Value from the namelist
         :Versions:
             * 2016-02-01 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Added namelist indices
         """
         # Use lower case for Fortran consistency
         grpl = grp.lower()
@@ -207,14 +210,14 @@ class OverNamelist(cape.namelist2.Namelist2):
                     jgrp = jbeg + grps.index(grpl)
                     break
         # Get the key from this group.
-        return self.GetKeyFromGroupIndex(jgrp, key)
+        return self.GetKeyFromGroupIndex(jgrp, key, i=i)
         
     # Set a quantity for a specific grid
-    def SetKeyForGrid(self, grdnam, grp, key, val):
+    def SetKeyForGrid(self, grdnam, grp, key, val, i=None):
         """Set the value of a key for a grid with a specific name
         
         :Call:
-            >>> nml.SetKeyForGrid(grdnam, grp, key, val)
+            >>> nml.SetKeyForGrid(grdnam, grp, key, val, i=None)
         :Inputs:
             *nml*: :class:`pyOver.overNamelist.OverNamelist`
                 Interface to OVERFLOW input namelist
@@ -226,8 +229,11 @@ class OverNamelist(cape.namelist2.Namelist2):
                 Name of the key to set
             *val*: :class:`str` | :class:`float` | :class:`bool` | ...
                 Value to set the key to
+            *i*: {``None``} | ``':'`` | :class:`int`
+                Index to use in the namelist, e.g. "BCPAR(*i*)"
         :Versions:
             * 2016-02-01 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Added namelist indices
         """
         # Use lower-case group name for Fortran consistency
         grpl = grp.lower()
@@ -245,7 +251,7 @@ class OverNamelist(cape.namelist2.Namelist2):
             # Use the new group
             jgrp = jend
         # Set the key in that group
-        self.SetKeyInGroupIndex(jgrp, key, val)
+        self.SetKeyInGroupIndex(jgrp, key, val, i)
         
     # Get list of lists in a grid
     def GetGroupNamesByGridName(self, grdnam):

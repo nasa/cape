@@ -203,6 +203,11 @@ class Namelist2(FileCntl):
         The output is a :class:`dict` such as the following
         
             ``{'FSMACH': '0.8', 'ALPHA': '2.0'}``
+            
+        If a parameter has an index specification, such as ``"PAR(2) = 1.0"``,
+        the dictionary will have the following format for such keys.
+        
+            ``{'PAR': {2: 1.0}}``
         
         :Call:
             >>> d = nml.ReadGroupIndex(igrp)
@@ -252,21 +257,24 @@ class Namelist2(FileCntl):
         return d
         
     # Search for a specific key in a numbered section
-    def GetKeyFromGroupIndex(self, igrp, key):
+    def GetKeyFromGroupIndex(self, igrp, key, i=None):
         """Get the value of a key from a specific section
         
         :Call:
-            >>> v = nml.GetKeyFromGroupIndex(igrp, key)
+            >>> v = nml.GetKeyFromGroupIndex(igrp, key, i=i)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
                 Interface to namelist with repeated lists
             *key*: :class:`str`
                 Name of the key to search for
+            *i*: {``None``} | ``":"`` | :class:`int`
+                Index to use in the namelist, e.g. "BCPAR(*i*)"
         :Outputs:
             *v*: :class:`str` | :class:`int` | :class:`float` | :class:`list`
                 Evaluated value of the text for this key
         :Versions:
             * 2016-01-29 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Added parameter index
         """
         # Get index of starting line
         ibeg = self.ibeg[igrp]
@@ -282,18 +290,18 @@ class Namelist2(FileCntl):
         # Loop through the lines
         for line in self.lines[ibeg:iend]:
             # Try to read the key from the line
-            q, v = self.GetKeyFromLine(line, key)
+            q, v = self.GetKeyFromLine(line, key, i=i)
             # Break if we found it.
             if q: break
         # Output
         return v
         
     # Search for a specific key by name
-    def GetKeyFromGroupName(self, grp, key, igrp=0):
+    def GetKeyFromGroupName(self, grp, key, igrp=0, i=None):
         """Get the value of a key from a section by group name
         
         :Call:
-            >>> v = nml.GetKeyFromGroupName(grp, key, igrp=0)
+            >>> v = nml.GetKeyFromGroupName(grp, key, igrp=0, i=None)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
                 Old-style Fortran namelist interface
@@ -303,16 +311,19 @@ class Namelist2(FileCntl):
                 Name of key to search for
             *igrp*: :class:`int`
                 If multiple sections have same name, use match number *igrp*
+            *i*: {``None``} | ``":"`` | :class:`int`
+                Index to use in the namelist, e.g. "BCPAR(*i*)"
         :Outputs:
             *v*: :class:`any`
                 Converted value
         :Versions:
             * 2016-01-31 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Added parameter index
         """
         # Find matches
-        i = self.GetGroupByName(grp, igrp)
+        j = self.GetGroupByName(grp, igrp)
         # Get the key from that list
-        return self.GetKeyFromGroupIndex(i, key)
+        return self.GetKeyFromGroupIndex(j, key, i=i)
         
     # Function to process a single line
     def ReadKeysFromLine(self, line):
@@ -338,18 +349,26 @@ class Namelist2(FileCntl):
         # Loop until line is over
         while txt != '':
             # Read the keys
-            txt, key, val = self.PopLine(txt)
+            txt, key, val, i = self.PopLine(txt)
             # Check for relevant key
-            if key is not None: d[key] = val
+            if key is not None:
+                # Check for index
+                if i is None:
+                    # Set the value of the dictionary.
+                    d[key] = val
+                else:
+                    # Set the value for that parameter
+                    d.setdefault(key, {})
+                    d[key][i] = val
         # Output
         return d
     
     # Try to read a key from a line
-    def GetKeyFromLine(self, line, key):
+    def GetKeyFromLine(self, line, key, i=None):
         """Read the value of a key from a line
         
         :Call:
-            >>> q, val = nml.GetKeyFromLine(line, key)
+            >>> q, val = nml.GetKeyFromLine(line, key, i=None)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
                 Interface to namelist with repeated lists
@@ -357,6 +376,8 @@ class Namelist2(FileCntl):
                 A line of text that may or may not contain the value of *key*
             *key*: :class:`str`
                 Name of key
+            *i*: {``None``} | ``":"`` | :class:`int`
+                Index to use in the namelist, e.g. "BCPAR(*i*)"
         :Outputs:
             *q*: :class:`bool`
                 Whether or not the key was found in the line
@@ -365,6 +386,7 @@ class Namelist2(FileCntl):
         :Versions:
             * 2016-01-29 ``@ddalle``: First version
             * 2016-01-30 ``@ddalle``: Case-insensitive
+            * 2016-08-29 ``@ddalle``: Added index capability
         """
         # Check for the line
         if key.lower() not in line.lower():
@@ -376,20 +398,20 @@ class Namelist2(FileCntl):
         q = False
         while tend != "":
             # Read the first key in the remaining text.
-            tend, ki, vi = self.PopLine(tend)
+            tend, ki, vi, ii = self.PopLine(tend)
             # Check for a match.
-            if ki.lower() == key.lower():
+            if ki.lower() == key.lower() and ii == i:
                 # Use the value from this key.
                 return True, self.ConvertToVal(vi)
         # If this point is reached, the key name is hiding in a comment or str
         return False, None
         
     # Set a key
-    def SetKeyInGroupName(self, grp, key, val, igrp=0):
+    def SetKeyInGroupName(self, grp, key, val, igrp=0, i=None):
         """Set the value of a key from a group by name
         
         :Call:
-            >>> nml.SetKeyInGroupName(grp, key, val, igrp=0)
+            >>> nml.SetKeyInGroupName(grp, key, val, igrp=0, i=None)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
                 Old-style Fortran namelist interface
@@ -401,16 +423,19 @@ class Namelist2(FileCntl):
                 Converted value
             *igrp*: :class:`int`
                 If multiple sections have same name, use match number *igrp*
+            *i*: {``None``} | ``":"`` | :class:`int`
+                Index to use in the namelist, e.g. "BCPAR(*i*)"
         :Versions:
-            * 2016-01-31 ``@ddalle``: First version
+            * 2015-01-31 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Added index capability
         """
         # Find matches
-        i = self.GetGroupByName(grp, igrp)
+        j = self.GetGroupByName(grp, igrp)
         # Get the key from that list
-        return self.SetKeyInGroupIndex(i, key, val)
+        return self.SetKeyInGroupIndex(j, key, val, i=i)
         
     # Set a key
-    def SetKeyInGroupIndex(self, igrp, key, val):
+    def SetKeyInGroupIndex(self, igrp, key, val, i=None):
         """Set the value of a key in a group by index
         
         If the key is not set in the present text, add it as a new line.  The
@@ -418,7 +443,7 @@ class Namelist2(FileCntl):
         the list indices will be updated if a line is added.
         
         :Call:
-            >>> nml.SetKeyInGroupIndex(igrp, key, val)
+            >>> nml.SetKeyInGroupIndex(igrp, key, val, i=None)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
                 File control instance for old-style Fortran namelist
@@ -428,8 +453,11 @@ class Namelist2(FileCntl):
                 Name of key to alter or set
             *val*: :class:`any`
                 Value to use for *key*
+            *i*: {``None``} | ``":"`` | :class:`int`
+                Index to use in the namelist, e.g. "BCPAR(*i*)"
         :Versions:
             * 2015-01-30 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Added index capability
         """
         # Get index of starting and end lines
         ibeg = self.ibeg[igrp]
@@ -437,18 +465,23 @@ class Namelist2(FileCntl):
         # Initialize the boolean indicator of a match in existing text
         q = False
         # Loop through the lines
-        for i in range(ibeg, iend):
+        for j in range(ibeg, iend):
             # Get the line.
-            line = self.lines[i]
+            line = self.lines[j]
             # Try to set the key in this line
-            q, line = self.SetKeyInLine(line, key, val)
+            q, line = self.SetKeyInLine(line, key, val, i=i)
             # Check for match.
             if q:
                 # Set this line in the FC's text and exit
-                self.lines[i] = line
+                self.lines[j] = line
                 return
         # If no match found in existing text, add a line.
-        line = '     %s = %s,\n' % (key, self.ConvertToText(val))
+        if i is None:
+            # No index
+            line = '     %s = %s,\n' % (key, self.ConvertToText(val))
+        else:
+            # Specify line with an index
+            line = '     %s(%s) = %s\n' % (key, i, self.ConvertToText(val))
         # Insert the line.
         self.lines = self.lines[:iend] + [line] + self.lines[iend:]
         # Update the namelist indices.
@@ -456,11 +489,11 @@ class Namelist2(FileCntl):
         self.iend[igrp+1:] = self.iend[igrp+1:] + 1
     
     # Set a key
-    def SetKeyInLine(self, line, key, val):
+    def SetKeyInLine(self, line, key, val, i=None):
         """Set the value of a key in a line if the key is already in the line
         
         :Call:
-            >>> q, line = nml.SetKeyInLine(line, key, val)
+            >>> q, line = nml.SetKeyInLine(line, key, val, i=None)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
                 Interface to namelist with repeated lists
@@ -470,6 +503,8 @@ class Namelist2(FileCntl):
                 Name of key
             *val*: :class:`str` | :class:`float` | :class:`int` | :class:`bool`
                 Value of the key, if found
+            *i*: {``None``} | ``":"`` | :class:`int`
+                Index to use in the namelist, e.g. "BCPAR(*i*)"
         :Outputs:
             *q*: :class:`bool`
                 Whether or not the key was found in the line
@@ -477,6 +512,7 @@ class Namelist2(FileCntl):
                 New version of the line with *key* reset to *val*
         :Versions:
             * 2016-01-29 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Added index capability
         """
         # Check if the key is present in the line of the text.
         if key not in line:
@@ -487,9 +523,9 @@ class Namelist2(FileCntl):
         # Loop through keys in this line
         while True:
             # Read the first key in the remaining line.
-            txt, ki, vi = self.PopLine(tend)
+            txt, ki, vi, ii = self.PopLine(tend)
             # Check if the key matches the target.
-            if ki.lower() == key.lower():
+            if ki.lower() == key.lower() and ii==i:
                 # Match found; exit and remember remaining text
                 tbeg += tend[:tend.index(ki)]
                 tend = txt
@@ -509,7 +545,13 @@ class Namelist2(FileCntl):
         else:
             # Convert value to text
             sval = self.ConvertToText(val)
-            line = "%s%s = %s,%s\n" % (tbeg, key, sval, tend)
+            # Check for index
+            if i is None:
+                # No index
+                line = "%s%s = %s,%s\n" % (tbeg, key, sval, tend)
+            else:
+                # Set an index as well
+                line = "%s%s(%s) = %s,%s\n" % (tbeg, key, i, sval, tend)
         return True, line
     
             
@@ -518,7 +560,7 @@ class Namelist2(FileCntl):
         """Read the left-most key from a namelist line and return rest of line
         
         :Call:
-            >>> txt, key, val = nml.PopLine(line)
+            >>> txt, key, val, i = nml.PopLine(line)
         :Inputs:
             *nml*: :class:`cape.namelist2.Namelist2`
                 Interface to namelist with repeated lists
@@ -531,8 +573,11 @@ class Namelist2(FileCntl):
                 Name of first key read from *line*
             *val*: ``None`` | :class:`str`
                 Raw (unconverted) value of *key*
+            *i*: {``None``} | ``':"`` | :class:`int`
+                Vector index if specified
         :Versions:
-            * 201-01-29 ``@ddalle``: First version
+            * 2016-01-29 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Added indices, e.g. BCPAR(2)
         """
         # Strip line
         txt = line.strip()
@@ -552,13 +597,26 @@ class Namelist2(FileCntl):
                 txt = ''
         # Check for empty key
         if txt == "":
-            return txt, None, None
+            return txt, None, None, None
         # Split on the equals signs
         vals = txt.split("=")
         # Remaining text
         txt = '='.join(vals[1:])
         # Get the name of the key.
         key = vals[0].strip()
+        # Attempt to split for index
+        K = key.split('(')
+        # Check for successful split
+        if len(K) > 1:
+            # Split by key and index
+            key = K[0]
+            # Template: "PAR(3) =" or "PAR(:) ="
+            i = K[1].rstrip(')')
+            # Check for ':'
+            if i != ':': i = int(i)
+        else:
+            # No index
+            i = None
         # Deal with quotes or no quotes
         if len(vals) == 1:
             # No value, last key in the line
@@ -575,8 +633,7 @@ class Namelist2(FileCntl):
             if '"' not in txt[1:]:
                 # Unterminated string
                 raise ValueError(
-                    "Namelist line '%s' could not be interpreted" 
-                    % line)
+                    "Namelist line '%s' could not be interpreted" % line)
             # Split of at this point
             val = txt[:iq+1]
             # Remaining text (?)
@@ -589,8 +646,7 @@ class Namelist2(FileCntl):
             if "'" not in txt[1:]:
                 # Unterminated string
                 raise ValueError(
-                    "Namelist line '%s' could not be interpreted" 
-                    % line)
+                    "Namelist line '%s' could not be interpreted" % line)
             # Split of at this point
             val = txt[:iq+1]
             # Remaining text (?)
@@ -606,7 +662,7 @@ class Namelist2(FileCntl):
             # Remaining text
             txt = subvals[-1] + '=' + '='.join(vals[2:])
         # Ouptut
-        return txt, key, val
+        return txt, key, val, i
         
             
         

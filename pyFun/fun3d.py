@@ -1250,7 +1250,6 @@ class Fun3d(Cntl):
         # Reference values
         pinf = self.x.GetSurfCT_RefPressure(i, key)
         Tinf = self.x.GetSurfCT_RefTemperature(i, key)
-        qinf = self.x.GetSurfCT_RefDynamicPressure(i, key)
         # Output
         return fp*p0/pinf, T0/Tinf
         
