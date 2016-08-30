@@ -1320,7 +1320,7 @@ pc_WriteTriSingleNative(PyObject *self, PyObject *args)
 
 // Function to write binary tri, byteswap, single
 PyObject *
-pc_WriteTriSingleNative(PyObject *self, PyObject *args)
+pc_WriteTriDoubleNative(PyObject *self, PyObject *args)
 {
     long i, ierr;
     long nNode, nTri, nb, mNode, mTri;
