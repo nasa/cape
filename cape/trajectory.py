@@ -1938,12 +1938,54 @@ class Trajectory:
         # If we reach here, missing info.
         return None
         
+    # Get name of key
+    def GetKeyName(self, typ, key=None):
+        """Get name of key by specified type; defaulting to first key with type
+        
+        A ValueError exception is raised if input key has incorrect type or if
+        no keys have that type.
+        
+        :Call:
+            >>> k = x.GetKeyName(typ, key=None)
+        :Inputs:
+            *typ*: :class:`str`
+                Name of key type, for instance 'alpha_t'
+            *key*: {``None``} | :class:`str`
+                Name of trajectory key
+        :Outputs:
+            *k*: :class:`str`
+                Key meeting those requirements
+        :Versions:
+            * 2016-08-29 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if typ not in KeyTypes:
+                raise ValueError("No trajectory keys of type '%s'" % typ)
+            # Get first key
+            return self.GetKeysByType(typ)[0]
+        else:
+            # Check the key
+            if key not in self.keys:
+                # Undefined key
+                raise KeyError("No trajectory key '%s'" % key)
+            elif self.defns[k]['Type'] != typ:
+                # Incorrect type
+                raise ValueError(
+                    ("Requested key '%s' of type '%s', but " % (key, typ)) +
+                    ("actual type is '%s'" % self.denfs[k]['Type']))
+            # Output the key
+            return k
+    
     # Get thrust for SurfCT input
-    def GetSurfCT_Thrust(self, i, key=None):
+    def GetSurfCT_Thrust(self, i, key=None, comp=None):
         """Get thrust input for surface *CT* key
         
         :Call:
-            >>> CT = x.GetSurfCT_Thrust(i, key=None)
+            >>> CT = x.GetSurfCT_Thrust(i, key=None, comp=None)
         :Inputs:
             *x*: :class:`cape.trajectory.Trajectory`
                 Run matrix interface
@@ -1951,20 +1993,17 @@ class Trajectory:
                 Case index
             *key*: ``None`` | :class:`str`
                 Name of key to use; defaults to first ``SurfCT`` key
+            *comp*: ``None`` | :class:`str`
+                Name of component to access if *CT* is a :class:`dict`
         :Outputs:
             *CT*: :class:`float`
                 Thrust parameter, either thrust or coefficient
         :Versions:
             * 2016-04-11 ``@ddalle``: First version
+            * 2016-08-29 ``@ddalle``: Added component capability
         """
-        # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key
-            if 'SurfCT' not in KeyTypes: return
-            # Get first key
-            key = sefl.GetKeysByType('SurfCT')[0]
+        # Process key name
+        key = self.GetKeyName('SurfCT', key)
         # Get the thrust parameter
         ot = self.defns[key].get('Thrust')
         # Type
@@ -1978,6 +2017,9 @@ class Trajectory:
             kT = ot
             # Use the value of that key
             return getattr(self,kT)[i]
+        elif tt == 'dict' and comp is not None:
+            # Get value for one component.
+            return ot.get(comp)
         else:
             # Return the fixed value
             return ot
@@ -2002,13 +2044,7 @@ class Trajectory:
             * 2016-04-12 ``@ddalle``: First version
         """
         # Process the key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfCT' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfCT')[0]
+        key = self.GetKeyName('SurfCT', key)
         # Get the pressure parameter
         op = self.defns[key].get('RefDynamicPressure')
         # Type
@@ -2027,6 +2063,9 @@ class Trajectory:
                 kP = op
                 # Use the value of that key
                 return getattr(self,kP)[i]
+        elif tp == 'dict' and comp is not None:
+            # Get value for one component.
+            return op.get(comp)
         else:
             # Use the fixed value
             return op
@@ -2051,13 +2090,7 @@ class Trajectory:
             * 2016-04-13 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfCT' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfCT')[0]
+        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
         return self.GetSurfBC_RefPressure(i, key)
             
@@ -2081,13 +2114,7 @@ class Trajectory:
             * 2016-04-11 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfCT' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfCT')[0]
+        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
         return self.GetSurfBC_PressureCalibration(i, key)
             
@@ -2111,13 +2138,7 @@ class Trajectory:
             * 2016-04-11 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfCT' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfCT')[0]
+        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
         return self.GetSurfBC_TotalTemperature(i, key)
             
@@ -2141,13 +2162,7 @@ class Trajectory:
             * 2016-04-11 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfCT' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfCT')[0]
+        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
         return self.GetSurfBC_RefTemperature(i, key)
     
@@ -2171,13 +2186,7 @@ class Trajectory:
             * 2016-04-11 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfCT' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfCT')[0]
+        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
         return self.GetSurfBC_Mach(i, key)
     
@@ -2201,13 +2210,7 @@ class Trajectory:
             * 2016-04-11 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfBC' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfCT')[0]
+        key = self.GetKeyName('SurfCT', key)
         # Get the pressure parameter
         om = self.defns[key].get('ExitMach')
         # Type
@@ -2243,13 +2246,7 @@ class Trajectory:
             * 2016-04-11 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfCT' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfCT')[0]
+        key = self.GetKeyName('SurfCT', key)
         # Get the area ratio parameter
         oa = self.defns[key].get('AreaRatio')
         # Type
@@ -2287,29 +2284,11 @@ class Trajectory:
             * 2016-04-11 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfCT' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfCT')[0]
-        # Get the area ratio parameter
-        oa = self.defns[key].get('ExitArea')
-        # Type
-        ta = type(oa).__name__
-        # Process the option
-        if oa is None:
-            # Use the value of this
-            return None
-        elif ta in ['str', 'unicode']:
-            # Use this value as a key
-            ka = oa
-            # Use the value of that key.
-            return getattr(self,ka)[i]
-        else:
-            # Use the fixed value
-            return oa
+        key = self.GetKeyName('SurfCT', key)
+        # Get the parameter and value
+        v, t = self.GetSurfBC_ParamType(key, 'ExitArea', comp=None)
+        # Process
+        return self.GetSurfBC_Val(i, key, v, t)
             
     # Get reference area
     def GetSurfCT_RefArea(self, i, key=None):
@@ -2333,13 +2312,7 @@ class Trajectory:
             * 2016-04-11 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfCT' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfCT')[0]
+        key = self.GetKeyName('SurfCT', key)
         # Get the area ratio parameter
         oa = self.defns[key].get('RefArea')
         # Type
@@ -2378,13 +2351,7 @@ class Trajectory:
             * 2016-04-11 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfCT' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfCT')[0]
+        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
         return self.GetSurfBC_CompID(i, key)
         
@@ -2408,13 +2375,7 @@ class Trajectory:
             * 2016-04-11 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfCT' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfCT')[0]
+        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
         return self.GetSurfBC_Gamma(i, key)
         
@@ -2438,13 +2399,7 @@ class Trajectory:
             * 2016-03-28 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfBC' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfBC')[0]
+        key = self.GetKeyName('SurfBC', key)
         # Get the pressure parameter
         op0 = self.defns[key].get('TotalPressure')
         # Type
@@ -2481,14 +2436,8 @@ class Trajectory:
         :Versions:
             * 2016-03-28 ``@ddalle``: First version
         """
-        # Process the key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfBC' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfBC')[0]
+        # Process key
+        key = self.GetKeyName('SurfBC', key)
         # Get the pressure parameter
         op = self.defns[key].get('RefPressure')
         # Type
@@ -2530,14 +2479,8 @@ class Trajectory:
         :Versions:
             * 2016-04-12 ``@ddalle``: First version
         """
-        # Process the key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfBC' not in KeyTypes: return 1.0
-            # Get first key
-            key = self.GetKeysByType('SurfBC')[0]
+        # Process key
+        key = self.GetKeyName('SurfBC', key)
         # Get the pressure parameter
         op = self.defns[key].get('PressureCalibration', 1.0)
         # Type
@@ -2575,13 +2518,7 @@ class Trajectory:
             * 2016-03-28 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfBC' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfBC')[0]
+        key = self.GetKeyName('SurfBC', key)
         # Get the pressure parameter
         ot0 = self.defns[key].get('TotalTemperature')
         # Type
@@ -2616,14 +2553,8 @@ class Trajectory:
         :Versions:
             * 2016-03-28 ``@ddalle``: First version
         """
-        # Process the key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfBC' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfBC')[0]
+        # Process key
+        key = self.GetKeyName('SurfBC', key)
         # Get the pressure parameter
         ot = self.defns[key].get('RefTemperature')
         # Type
@@ -2664,13 +2595,7 @@ class Trajectory:
             * 2016-03-28 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfBC' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfBC')[0]
+        key = self.GetKeyName('SurfBC', key)
         # Get the pressure parameter
         om = self.defns[key].get('Mach', 1.0)
         # Type
@@ -2706,13 +2631,7 @@ class Trajectory:
             * 2016-03-29 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfBC' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfBC')[0]
+        key = self.GetKeyName('SurfBC', key)
         # Get the pressure parameter
         og = self.defns[key].get('Gamma', 1.4)
         # Type
@@ -2766,13 +2685,7 @@ class Trajectory:
             * 2016-08-29 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key
-            if 'SurfBC' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysBytype('SurfBC')[0]
+        key = self.GetKeyName('SurfBC', key)
         # Get the species parameter
         oY = self.defns[key].get('Species', [1.0])
         # Type
@@ -2830,13 +2743,7 @@ class Trajectory:
             * 2016-08-29 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfBC' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfBC')[0]
+        key = self.GetKeyName('SurfBC', key)
         # Get the pressure parameter
         oY = self.defns[key].get('nSpecies', 1)
         # Type
@@ -2873,13 +2780,7 @@ class Trajectory:
             * 2016-03-28 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfBC' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfBC')[0]
+        key = self.GetKeyName('SurfBC', key)
         # Get the pressure parameter
         oc = self.defns[key].get('CompID')
         # Type
@@ -2915,13 +2816,7 @@ class Trajectory:
             * 2016-08-29 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfBC' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfBC')[0]
+        key = self.GetKeyName('SurfBC', key)
         # Get the BCIndex
         oi = self.defns[key].get('BCIndex')
         # Type
@@ -2957,27 +2852,81 @@ class Trajectory:
             * 2016-08-29 ``@ddalle``: First version
         """
         # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if 'SurfBC' not in KeyTypes: return
-            # Get first key
-            key = self.GetKeysByType('SurfBC')[0]
-        # Get the grid parameter
-        oc = self.defns[key].get('Grids')
+        key = self.GetKeyName('SurfBC', key)
+        # Get the parameter and value
+        v, t = self.GetSurfBC_ParamType(key, 'Grids', comp=None)
+        # Process
+        return self.GetSurfBC_Val(i, key, v, t)
+            
+    # Get generic input for SurfBC key
+    def GetSurfBC_ParamType(self, key, k, comp=None):
+        """Get generic parameter value and type for a surface BC key
+        
+        :Call:
+            >>> v, t = x.GetSurfBC_ParamType(key, k, comp=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *k*: :class:`str`
+                Name of input parameter to find
+            *key*: :class:`str`
+                Name of trajectory key to use
+            *comp*: ``None`` | :class:`str`
+                If *v* is a dict, use *v[comp]* if *comp* is nontrivial
+            *typ*: ``"SurfBC"`` | :class:`str`
+                Trajectory key type to process
+        :Outputs:
+            *v*: ``None`` | :class:`any`
+                Value of the parameter
+            *t*: :class:`str`
+                Name of the type of *v* (``type(v).__name__``)
+        :Versions:
+            * 2016-08-29 ``@ddalle``: First version
+        """
+        # Get the raw parameter
+        v = self.defns[key].get(k)
         # Type
-        tc = type(oc).__name__
-        # Process the option
-        if oc is None:
-            # Use the value of this key
-            return getattr(self,key)[i]
-        elif tc in ['str', 'unicode']:
-            # Use the value of that key
-            return getattr(self,oc)[i]
+        t = type(v).__name__
+        # Check for dictionary
+        if (t == 'dict') and (comp is not None):
+            # Reprocess for this component.
+            v = v.get(comp)
+            t = type(v).__name__
+        # Output
+        return v, t
+        
+    # Process input for generic type
+    def GetSurfBC_Val(self, i, key, v, t):
+        """Default processing for processing a key by value
+        
+        :Call:
+            >>> V = x.GetSurfBC_Val(i, key, t, v)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *key*: :class:`str`
+                Name of trajectory key to use
+            *v*: ``None`` | :class:`any`
+                Value of the parameter
+            *t*: :class:`str`
+                Name of the type of *v* (``type(v).__name__``)
+        :Outputs:
+            *V*: :class:`any`
+                Processed key, for example ``getattr(x,key)[i]``
+        :Versions:
+            * 2016-08-29 ``@ddalle``: First version
+        """
+        # Process the type and value
+        if v is None:
+            # Use the value directly from the trajectory key
+            return getattr(self, key)[i]
+        elif t in ['str', 'unicode']:
+            # Use the value of a different key.
+            return getattr(self, v)[i]
         else:
-            # Use the fixed value
-            return oc
+            # Use the value directly.
+            return v
+            
     
     # Function to assemble a folder name based on a list of keys and an index
     def _AssembleName(self, keys, prefix, i):
