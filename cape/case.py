@@ -185,7 +185,8 @@ def CaseAFLR3(rc, proj='Components', fmt='b8.ugrid', n=0):
     rc.set_aflr3_o(fvol)
     # Run AFLR3
     bin.aflr3(opts=rc)
-    
+   
+# Function for the most recent available restart iteration
 def GetRestartIter():
     """Get the restart iteration
 
@@ -460,3 +461,91 @@ def WriteUserTimeProg(tic, rc, i, fname, prog):
     # Cleanup
     f.close()
     
+# Write current time use
+    """Write the time of start to file
+    
+    :Call:
+        >>> WriteStartTimeProg(tic, rc, i, fname, prog)
+    :Inputs:
+        *tic*: :class:`datetime.datetime`
+            Time from which timer will be measured
+        *rc*: :class:`pyCart.options.runControl.RunControl`
+            Options interface
+        *i*: :class:`int`
+            Phase number
+        *fname*: :class:`str`
+            Name of file containing CPU usage history
+        *prog*: :class:`str`
+            Name of program to write in history
+    :Versions:
+        * 2016-08-30 ``@ddalle``: First version
+    """
+    # Check if the file exists
+    if not os.path.isfile(fname):
+        # Create it.
+        f = open(fname, 'w')
+        # Write header line
+        f.write("# nProc, program, date, PBS job ID\n")
+    else:
+        # Append to file
+        f = open(fname, 'a')
+    # Check for job ID
+    if rc.get_qsub(i):
+        try:
+            # Try to read it and convert to integer
+            jobID = open('jobID.dat').readline().split()[0]
+        except Exception:
+            jobID = ''
+    else:
+        # No job ID
+        jobID = ''
+    # Number of processors
+    nProc = rc.get_nProc(i)
+    # Write the data.
+    f.write('%4i, %-20s, %s, %s\n' % (nProc, prog,
+        tic.strftime('%Y-%m-%d %H:%M:%S %Z'), jobID))
+    # Cleanup
+    f.close()
+    
+# Read most recent start time from file
+def ReadStartTimeProg(fname):
+    """Read the most recent start time to file
+    
+    :Call:
+        >>> nProc, tic = ReadStartTimeProg(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file containing CPU usage history
+    :Outputs:
+        *nProc*: :class:`int`
+            Number of cores
+        *tic*: :class:`datetime.datetime`
+            Time at which most recent run was started
+    :Versions:
+        * 2016-08-30 ``@ddalle``: First version
+    """
+    # Check for the file
+    if not os.path.isfile(fname):
+        # No time of start
+        return None, None
+    # Avoid failures
+    try:
+        # Read the last line and split on commas
+        V = bin.tail(fname).split(',')
+        # Get the number of processors
+        nProc = int(V[0])
+        # Split date and time
+        dtxt, ttxt = V[2].strip().split()
+        # Get year, month, day
+        year, month, day = [int(v) for v in dtxt.split('-')]
+        # Get hour, minute, second
+        hour, minute, sec = [int(v) for v in ttxt.split(':')]
+        # Construct date
+        tic = datetime(year, month, day, hour, minute, second)
+        # Output
+        return nProc, tic
+    except Exception:
+        # Fail softly
+        return None, None
+
+# WriteStartTimeProg

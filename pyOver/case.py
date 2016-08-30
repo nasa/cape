@@ -148,7 +148,7 @@ def WriteUserTime(tic, rc, i, fname="pyover_time.dat"):
         * 2015-12-29 ``@ddalle``: First version
     """
     # Call the function from :mode:`cape.case`
-    WriteUserTimeProg(tic, rc, i, fname, 'run_fun3d.py')
+    WriteUserTimeProg(tic, rc, i, fname, 'run_overflow.py')
 
 # Function to determine which PBS script to call
 def GetPBSScript(i=None):
