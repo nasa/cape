@@ -894,7 +894,7 @@ class Cntl(object):
         # Check if the folder exists.
         if (not os.path.isdir(frun)):
             os.chdir(fpwd)
-            return None
+            return 0.0
         # Go to the case folder.
         os.chdir(frun)
         # Try to read the file
@@ -904,7 +904,7 @@ class Cntl(object):
         # Check for empty
         if tic is None:
             # Could not read or nothing to read
-            return None
+            return 0.0
         # Safety
         try:
             # Get current time
@@ -916,7 +916,7 @@ class Cntl(object):
             # Output
             return CPUt
         except Exception:
-            return None
+            return 0.0
             
     # Get total CPU hours (actually core hours)
     def GetCPUTime(self, i, running=False):

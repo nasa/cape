@@ -542,7 +542,7 @@ def ReadStartTimeProg(fname):
         # Get hour, minute, second
         hour, minute, sec = [int(v) for v in ttxt.split(':')]
         # Construct date
-        tic = datetime(year, month, day, hour, minute, second)
+        tic = datetime(year, month, day, hour, minute, sec)
         # Output
         return nProc, tic
     except Exception:
