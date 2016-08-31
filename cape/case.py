@@ -462,6 +462,7 @@ def WriteUserTimeProg(tic, rc, i, fname, prog):
     f.close()
     
 # Write current time use
+def WriteStartTimeProg(tic, rc, i, fname, prog):
     """Write the time of start to file
     
     :Call:

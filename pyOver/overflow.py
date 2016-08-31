@@ -554,25 +554,36 @@ class Overflow(Cntl):
         return False
             
     # Get total CPU hours (actually core hours)
-    def GetCPUTime(self, i):
+    def GetCPUTime(self, i, running=False):
         """Read a CAPE-style core-hour file from a case
         
         :Call:
-            >>> CPUt = oflow.GetCPUTime(i)
+            >>> CPUt = oflow.GetCPUTime(i, running=False)
         :Inputs:
             *oflow*: :class:`pyFun.fun3d.Fun3d`
                 OVERFLOW control interface
             *i*: :class:`int`
                 Case index
+            *running*: ``True`` | {``False``}
+                Whether or not the case is running
         :Outputs:
             *CPUt*: :class:`float` | ``None``
                 Total core hours used in this job
         :Versions:
             * 2015-12-22 ``@ddalle``: First version
+            * 2016-08-31 ``@ddalle``: Added start times
         """
         # Call the general function using hard-coded file name
-        return self.GetCPUTimeFromFile(i, fname='pyover_time.dat')
-
+        CPUf = self.GetCPUTimeFromFile(i, fname='pyover_time.dat')
+        # Check for currently running case request
+        if running:
+            # Get time since last start
+            CPUr = self.GetCPUTimeFromStartFile(i, fname='pyover_start.dat')
+            # Return the sum
+            return CPUf + CPUr
+        else:
+            # Just the time of finished jobs
+            return CPUf
     
     # Prepare a case.
     def PrepareCase(self, i):

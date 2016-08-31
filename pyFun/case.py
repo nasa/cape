@@ -39,6 +39,8 @@ def run_fun3d():
     rc = ReadCaseJSON()
     # Determine the run index.
     i = GetPhaseNumber(rc)
+    # Write the start time
+    WriteStartTime(tic, rc, i)
     # Prepare files
     PrepareFiles(rc, i)
     # Prepare environment variables (other than OMP_NUM_THREADS)
@@ -356,6 +358,26 @@ def RestartCase(i0=None):
         # Simply run the case. Don't reset modules either.
         run_fun3d()
     
+# Write start time
+def WriteStartTime(tic, rc, i, fname="pyfun_start.dat"):
+    """Write the start time in *tic*
+    
+    :Call:
+        >>> WriteStartTime(tic, rc, i, fname="pyfun_start.dat")
+    :Inputs:
+        *tic*: :class:`datetime.datetime`
+            Time to write into data file
+        *rc*: :class:`pyOver.options.runControl.RunControl`
+            Options interface
+        *i*: :class:`int`
+            Phase number
+        *fname*: {``"pyfun_start.dat"``} | :class:`str`
+            Name of file containing run start times
+    :Versions:
+        * 2016-08-31 ``@ddalle``: First version
+    """
+    # Call the function from :mod:`cape.case`
+    WriteStartTimeProg(tic, rc, i, fname, 'run_fun3d.py')
     
 # Write time used
 def WriteUserTime(tic, rc, i, fname="pyfun_time.dat"):

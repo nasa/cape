@@ -344,24 +344,36 @@ class Cart3d(Cntl):
         
             
     # Get total CPU hours (actually core hours)
-    def GetCPUTime(self, i):
+    def GetCPUTime(self, i, running=False):
         """Read a CAPE-style core-hour file from a case
         
         :Call:
-            >>> CPUt = cart3d.GetCPUTime(i)
+            >>> CPUt = cart3d.GetCPUTime(i, running=False)
         :Inputs:
             *cntl*: :class:`pyCart.cart3d.Cart3d`
                 Cart3D control interface
             *i*: :class:`int`
                 Case index
+            *running*: ``True`` | {``False``}
+                Whether or not to check for time since last start
         :Outputs:
             *CPUt*: :class:`float` | ``None``
                 Total core hours used in this job
         :Versions:
             * 2015-12-22 ``@ddalle``: First version
+            * 2016-08-31 ``@ddalle``: Checking time since most recent start
         """
         # Call the general function using hard-coded file name
         return self.GetCPUTimeFromFile(i, fname='pycart_time.dat')
+        # Check for currently running case request
+        if running:
+            # Get time since last start
+            CPUr = self.GetCPUTimeFromStartFile(i, fname='pycart_start.dat')
+            # Return the sum
+            return CPUf + CPUr
+        else:
+            # Just the time of finished jobs
+            return CPUf
         
     # Get the current iteration number from :mod:`case`
     def CaseGetCurrentIter(self):

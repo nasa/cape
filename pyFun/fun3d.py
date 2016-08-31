@@ -765,24 +765,36 @@ class Fun3d(Cntl):
         return not q
             
     # Get total CPU hours (actually core hours)
-    def GetCPUTime(self, i):
+    def GetCPUTime(self, i, running=False):
         """Read a CAPE-style core-hour file from a case
         
         :Call:
-            >>> CPUt = fun3d.GetCPUTime(i)
+            >>> CPUt = fun3d.GetCPUTime(i, running=False)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 FUN3D control interface
             *i*: :class:`int`
                 Case index
+            *runing*: ``True`` | {``False``}
+                Whether or not to check for time since last start
         :Outputs:
             *CPUt*: :class:`float` | ``None``
                 Total core hours used in this job
         :Versions:
             * 2015-12-22 ``@ddalle``: First version
+            * 2016-08-31 ``@ddalle``: Checking time since last start
         """
         # Call the general function using hard-coded file name
         return self.GetCPUTimeFromFile(i, fname='pyfun_time.dat')
+        # Check for currently running case request
+        if running:
+            # Get time since last start
+            CPUr = self.GetCPUTimeFromStartFile(i, fname='pyfun_start.dat')
+            # Return the sum
+            return CPUf + CPUr
+        else:
+            # Just the time of finished jobs
+            return CPUf
 
     
     # Prepare a case.
