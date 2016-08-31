@@ -573,17 +573,11 @@ class Overflow(Cntl):
             * 2015-12-22 ``@ddalle``: First version
             * 2016-08-31 ``@ddalle``: Added start times
         """
+        # File names
+        fname = 'pyover_time.dat'
+        fstrt = 'pyover_start.dat'
         # Call the general function using hard-coded file name
-        CPUf = self.GetCPUTimeFromFile(i, fname='pyover_time.dat')
-        # Check for currently running case request
-        if running:
-            # Get time since last start
-            CPUr = self.GetCPUTimeFromStartFile(i, fname='pyover_start.dat')
-            # Return the sum
-            return CPUf + CPUr
-        else:
-            # Just the time of finished jobs
-            return CPUf
+        return self.GetCPUTimeBoth(i, fname, fstrt, running=running)
     
     # Prepare a case.
     def PrepareCase(self, i):

@@ -918,6 +918,50 @@ class Cntl(object):
         except Exception:
             return 0.0
             
+    # Get total CPU hours (core hours) with file names as inputs
+    def GetCPUTimeBoth(self, i, fname, fstart, running=False):
+        """Read Cape-style core-hour files from a case
+        
+        This function needs to be customized for each solver because it needs to
+        know the name of the file in which timing data is saved.  It defaults to
+        :file:`cape_time.dat`.  Modifying this command is a one-line fix with a
+        call to :func:`cape.cntl.Cntl.GetCPUTimeFromFile` with the correct file
+        name.
+        
+        :Call:
+            >>> CPUt = cntl.GetCPUTimeBoth(i, fname, fstart, running=False)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Cape control interface
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *CPUt*: :class:`float` | ``None``
+                Total core hours used in this job
+        :Versions:
+            * 2015-12-22 ``@ddalle``: First version
+            * 2016-08-30 ``@ddalle``: Checking for currently running cases
+        """
+        # Call the time from finished cases
+        CPUf = self.GetCPUTimeFromFile(i, fname=fname)
+        # Check for currently running case request
+        if running:
+            # Get time since last start
+            CPUr = self.GetCPUTimeFromStartFile(i, fname=fstart)
+            # Return the sum
+            if CPUf is None:
+                # No finished jobs
+                return CPUr
+            elif CPUr is None:
+                # No running time
+                return CPUf
+            else:
+                # Add them together
+                return CPUf + CPUr
+        else:
+            # Just the time of finished jobs
+            return CPUf
+            
     # Get total CPU hours (actually core hours)
     def GetCPUTime(self, i, running=False):
         """Read a Cape-style core-hour file from a case
@@ -941,18 +985,13 @@ class Cntl(object):
         :Versions:
             * 2015-12-22 ``@ddalle``: First version
             * 2016-08-30 ``@ddalle``: Checking for currently running cases
+            * 2016-08-31 ``@ddalle``: Moved parts to :func:`GetCPUTimeBoth`
         """
-        # Call the general function using hard-coded file name
-        CPUf = self.GetCPUTimeFromFile(i, fname='cape_time.dat')
-        # Check for currently running case request
-        if running:
-            # Get time since last start
-            CPUr = self.GetCPUTimeFromStartFile(i, fname='cape_start.dat')
-            # Return the sum
-            return CPUf + CPUr
-        else:
-            # Just the time of finished jobs
-            return CPUf
+        # File names
+        fname = 'cape_time.dat'
+        fstrt = 'cape_start.dat'
+        # Call with base file names
+        return self.GetCPUTimeBoth(i, fname, fstr, running=running)
         
     # Get PBS job ID if possible
     def GetPBSJobID(self, i):

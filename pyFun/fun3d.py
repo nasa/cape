@@ -784,17 +784,11 @@ class Fun3d(Cntl):
             * 2015-12-22 ``@ddalle``: First version
             * 2016-08-31 ``@ddalle``: Checking time since last start
         """
+        # File names
+        fname = 'pyfun_time.dat'
+        fstrt = 'pyfun_start.dat'
         # Call the general function using hard-coded file name
-        return self.GetCPUTimeFromFile(i, fname='pyfun_time.dat')
-        # Check for currently running case request
-        if running:
-            # Get time since last start
-            CPUr = self.GetCPUTimeFromStartFile(i, fname='pyfun_start.dat')
-            # Return the sum
-            return CPUf + CPUr
-        else:
-            # Just the time of finished jobs
-            return CPUf
+        return self.GetCPUTimeBoth(i, fname, fstrt, running=running)
 
     
     # Prepare a case.
