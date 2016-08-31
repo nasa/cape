@@ -808,11 +808,20 @@ class Overflow(Cntl):
             if CT:
                 # Get *p0*, *T0* from thrust
                 p0, T0 = self.GetSurfCTState(key, i, grid)
+                # Key type
+                typ = 'SurfCT'
             else:
                 # Use *p0* and *T0* directly as inputs
                 p0, T0 = self.GetSurfBCState(key, i, grid)
+                # Key type
+                typ = 'SurfBC'
             # Species
             Y = self.x.GetSurfBC_Species(i, key, comp=grid)
+            # Other parameters
+            BCPAR1 = self.x.GetSurfBC_Param(i, key, 'BCPAR1', 
+                comp=grid, typ=typ, vdef=1)
+            BCPAR2 = self.x.GetSurfBC_Param(i, key, 'BCPAR2',
+                comp=grid, typ=typ, vdef=500)
             # File name
             fname = 'SurfBC-%s-%s.dat' % (comp, grid)
             # Open the file
@@ -825,8 +834,11 @@ class Overflow(Cntl):
                 f.write("\n")
             # Write the component name
             f.write("%s\n" % comp)
-            # Write the time history (writing just 1 causes Overflow to ignore)
+            # Write the time history
+            # Writing just 1 causes Overflow to ignore, but there still needs
+            # to be one row of time value and thrust value (as a percentage)
             f.write("1\n")
+            f.write("%.12f %.12f\n" % (1.0, 1.0))
             f.close()
             # Get the BC number parameter
             IBTYP = nml.GetKeyFromGrid(grid, 'BCINP', 'IBTYP')
@@ -852,9 +864,9 @@ class Overflow(Cntl):
             # Reset IBTYP
             nml.SetKeyForGrid(grid, 'BCINP', 'IBTYP', IBTYP)
             # Set the parameters in the namelist
-            nml.SetKeyForGrid(grid, 'BCINP', 'BCPAR1', p0,    i=bci)
-            nml.SetKeyForGrid(grid, 'BCINP', 'BCPAR2', T0,    i=bci)
-            nml.SetKeyForGrid(grid, 'BCINP', 'BCFILE', fname, i=bci)
+            nml.SetKeyForGrid(grid, 'BCINP', 'BCPAR1', BCPAR1, i=bci)
+            nml.SetKeyForGrid(grid, 'BCINP', 'BCPAR2', BCPAR2, i=bci)
+            nml.SetKeyForGrid(grid, 'BCINP', 'BCFILE', fname,  i=bci)
         # Return to original location
         os.chdir(fpwd)            
             

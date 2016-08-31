@@ -2031,6 +2031,125 @@ class Trajectory:
             # Output the key
             return key
     
+    # Get generic input for SurfBC key
+    def GetSurfBC_ParamType(self, key, k, comp=None):
+        """Get generic parameter value and type for a surface BC key
+        
+        :Call:
+            >>> v, t = x.GetSurfBC_ParamType(key, k, comp=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *k*: :class:`str`
+                Name of input parameter to find
+            *key*: :class:`str`
+                Name of trajectory key to use
+            *comp*: ``None`` | :class:`str`
+                If *v* is a dict, use *v[comp]* if *comp* is nontrivial
+            *typ*: ``"SurfBC"`` | :class:`str`
+                Trajectory key type to process
+        :Outputs:
+            *v*: ``None`` | :class:`any`
+                Value of the parameter
+            *t*: :class:`str`
+                Name of the type of *v* (``type(v).__name__``)
+        :Versions:
+            * 2016-08-29 ``@ddalle``: First version
+        """
+        # Get the raw parameter
+        v = self.defns[key].get(k)
+        # Type
+        t = type(v).__name__
+        # Check for dictionary
+        if (t == 'dict') and (comp is not None):
+            # Reprocess for this component.
+            v = v.get(comp)
+            t = type(v).__name__
+        # Output
+        return v, t
+        
+    # Process input for generic type
+    def GetSurfBC_Val(self, i, key, v, t, vdef=None, **kw):
+        """Default processing for processing a key by value
+        
+        :Call:
+            >>> V = x.GetSurfBC_Val(i, key, v, t, vdef=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *key*: :class:`str`
+                Name of trajectory key to use
+            *v*: ``None`` | :class:`any`
+                Value of the parameter
+            *t*: :class:`str`
+                Name of the type of *v* (``type(v).__name__``)
+            *vdef*: ``None``  | :class:`any`
+                Default value for *v* if *v* is ``None``
+        :Outputs:
+            *V*: :class:`any`
+                Processed key, for example ``getattr(x,key)[i]``
+        :Versions:
+            * 2016-08-29 ``@ddalle``: First version
+        """
+        # Process the type and value
+        if v is None:
+            # Check for default value
+            if vdef is None:
+                # Use the value directly from the trajectory key
+                return getattr(self, key)[i]
+            else:
+                # Use the default value
+                return vdef
+        elif t in ['str', 'unicode']:
+            # Check for specially-named keys
+            if v in kw:
+                # Use another function
+                return getattr(self, kw[v])(i)
+            else:
+                # Use the value of a different key.
+                return getattr(self, v)[i]
+        else:
+            # Use the value directly.
+            return v
+            
+    # Process input for generic SurfBC key/param
+    def GetSurfBC_Param(self, i, key, k,
+            comp=None, vdef=None, typ='SurfBC', **kw):
+        """Process a single parameter of a SurfBC key
+        
+        :Call:
+            >>> v = x.GetSurfBC_Param(i, key, k, comp=None, vdef=None, **kw)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: :class:`str`
+                Name of trajectory key to use
+            *k*: :class:`str`
+                Name of input parameter to find
+            *comp*: ``None`` | :class:`str`
+                If *v* is a dict, use *v[comp]* if *comp* is nontrivial
+            *vdef*: ``None`` | :class:`any`
+                Default value for *v* if *v* is ``None``
+            *typ*: {``"SurfBC"``} | :class:`str`
+                Trajectory key type to process
+        :Keyword arguments:
+            *j*: :class:`str`
+                Name of function to use if parameter is a string
+        :Outputs:
+            *v*: ``None`` | :class:`any`
+                Value of the parameter
+        :Versions:
+            * 2016-08-31 ``@ddalle``: First version
+        """
+        # Process key
+        key = self.GetKeyName(typ, key)
+        # Get the parameter and value
+        v, t = self.GetSurfBC_ParamType(key, k, comp=comp)
+        # Get value
+        return self.GetSurfBC_Val(i, key, v, t, vdef=vdef, **kw)
+    
     # Get thrust for SurfCT input
     def GetSurfCT_Thrust(self, i, key=None, comp=None):
         """Get thrust input for surface *CT* key
@@ -2055,12 +2174,8 @@ class Trajectory:
             * 2016-04-11 ``@ddalle``: First version
             * 2016-08-29 ``@ddalle``: Added component capability
         """
-        # Process key name
-        key = self.GetKeyName('SurfCT', key)
-        # Get the parameter and value
-        v, t = self.GetSurfBC_ParamType(key, 'Thrust', comp=comp)
-        # Default process
-        return self.GetSurfBC_Val(i, key, v, t)
+        # Process as SurfCT key
+        return self.GetSurfBC_Param(i, key, 'Thrust', comp=comp, typ='SurfCT')
             
     # Get reference dynamic pressure
     def GetSurfCT_RefDynamicPressure(self, k, key=None, comp=None):
@@ -2084,25 +2199,15 @@ class Trajectory:
             * 2016-04-12 ``@ddalle``: First version
             * 2016-08-29 ``@ddalle``: Added component capability
         """
+        # Special translations
+        kw = {
+            "freestream": "GetDynamicPressure",
+            "inf":        "GetDynamicPressure",
+        }
+        # Name of parameter
+        k = 'RefDynamicPressure'
         # Process the key
-        key = self.GetKeyName('SurfCT', key)
-        # Get the parameter and value
-        v, t = self.GetSurfBC_ParamType(key, 'RefDynamicPressure', comp=comp)
-        # Process the option
-        if v is None:
-            # Use the dimensional thrust
-            return 1.0
-        elif t in ['str', 'unicode']:
-            # Check for special names
-            if v.lower() in ['freestream', 'inf']:
-                # Use the freestream value
-                return self.GetDynamicPressure(i)
-            else:
-                # Use the value of that key
-                return getattr(self,v)[i]
-        else:
-            # Use the fixed value
-            return v
+        return self.GetSurfBC_Param(i, key, k, comp=comp, typ='SurfCT', **kw)
             
     # Get total temperature
     def GetSurfCT_RefPressure(self, i, key=None, comp=None):
@@ -2895,25 +3000,15 @@ class Trajectory:
         key = self.GetKeyName('SurfBC', key)
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'TemperatureOffset', comp=comp)
-        # Process the option
-        if v is None:
-            # Use dimensional temperature
-            return 1.0
-        elif t in ['str', 'unicode']:
-            # Check for special keys
-            if v.lower() in ['freestream', 'inf']:
-                # Use frestream value
-                return self.GetTemperature(i)
-            elif v.lower() in ['total', 'stagnation']:
-                # Use freestream stagnation value
-                return self.GetTotalTemperature(i)
-            else:
-                # Use this as a key
-                return getattr(self,v)[i]
-        else:
-            # Use the fixed value
-            return v
-            
+        # Special key names
+        kw_funcs = {
+            "freestream": "GetTemperature",
+            "inf":        "GetTemperature",
+            "total":      "GetTotalTemperature",
+            "stagnation": "GetTotalTemperature",
+        }
+        # Get the value
+        return self.GetSurfBC_Param(i, key, 'TemperatureOffset', vdef=0.0, **kw_funcs)
             
     # Get Mach number input for SurfBC input
     def GetSurfBC_Mach(self, i, key=None, comp=None):
@@ -2952,8 +3047,6 @@ class Trajectory:
         :Inputs:
             *x*: :class:`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case index
             *key*: ``None`` | :class:`str`
                 Name of key to use; defaults to first ``SurfBC`` key
             *comp*: {``None``} | :class:`str`
@@ -2971,7 +3064,7 @@ class Trajectory:
         v, t = self.GetSurfBC_ParamType(key, 'Gamma', comp=comp)
         # Default process
         return self.GetSurfBC_Val(i, key, v, t, vdef=1.4)
-            
+        
     # Get species
     def GetSurfBC_Species(self, i, key=None, comp=None):
         """Get species information for a surface BC key
@@ -3152,82 +3245,6 @@ class Trajectory:
         v, t = self.GetSurfBC_ParamType(key, 'Grids', comp=comp)
         # Process
         return self.GetSurfBC_Val(i, key, v, t)
-            
-    # Get generic input for SurfBC key
-    def GetSurfBC_ParamType(self, key, k, comp=None):
-        """Get generic parameter value and type for a surface BC key
-        
-        :Call:
-            >>> v, t = x.GetSurfBC_ParamType(key, k, comp=None)
-        :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
-                Run matrix interface
-            *k*: :class:`str`
-                Name of input parameter to find
-            *key*: :class:`str`
-                Name of trajectory key to use
-            *comp*: ``None`` | :class:`str`
-                If *v* is a dict, use *v[comp]* if *comp* is nontrivial
-            *typ*: ``"SurfBC"`` | :class:`str`
-                Trajectory key type to process
-        :Outputs:
-            *v*: ``None`` | :class:`any`
-                Value of the parameter
-            *t*: :class:`str`
-                Name of the type of *v* (``type(v).__name__``)
-        :Versions:
-            * 2016-08-29 ``@ddalle``: First version
-        """
-        # Get the raw parameter
-        v = self.defns[key].get(k)
-        # Type
-        t = type(v).__name__
-        # Check for dictionary
-        if (t == 'dict') and (comp is not None):
-            # Reprocess for this component.
-            v = v.get(comp)
-            t = type(v).__name__
-        # Output
-        return v, t
-        
-    # Process input for generic type
-    def GetSurfBC_Val(self, i, key, v, t, vdef=None):
-        """Default processing for processing a key by value
-        
-        :Call:
-            >>> V = x.GetSurfBC_Val(i, key, v, t, vdef=None)
-        :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
-                Run matrix interface
-            *key*: :class:`str`
-                Name of trajectory key to use
-            *v*: ``None`` | :class:`any`
-                Value of the parameter
-            *t*: :class:`str`
-                Name of the type of *v* (``type(v).__name__``)
-            *vdef*: ``None``  | :class:`any`
-                Default value for *v* if *v* is ``None``
-        :Outputs:
-            *V*: :class:`any`
-                Processed key, for example ``getattr(x,key)[i]``
-        :Versions:
-            * 2016-08-29 ``@ddalle``: First version
-        """
-        # Process the type and value
-        if v is None:
-            # Check for default value
-            if vdef is None:
-                # Use the value directly from the trajectory key
-                return getattr(self, key)[i]
-            else:
-                # Use the default value
-                return vdef
-        elif t in ['str', 'unicode']:
-            # Use the value of a different key.
-            return getattr(self, v)[i]
-        else:
-            # Use the value directly.
-            return v
             
     
     # Function to assemble a folder name based on a list of keys and an index
