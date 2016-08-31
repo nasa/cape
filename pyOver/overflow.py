@@ -820,8 +820,9 @@ class Overflow(Cntl):
             # Write the state
             f.write("%.12f %.12f\n" % (p0, T0))
             # Write the species info
-            f.write(" ".join([str(y) for y in Y]))
-            f.write("\n")
+            if Y is not None and len(Y) > 1:
+                f.write(" ".join([str(y) for y in Y]))
+                f.write("\n")
             # Write the component name
             f.write("%s\n" % comp)
             # Write the time history (writing just 1 causes Overflow to ignore)
