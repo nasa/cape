@@ -15,49 +15,9 @@ import os
 import cape.plot3d
 
 
-# OVERFLOW q class
-class Q(cape.plot3d.Plot3D):
-    """
-    General OVERFLOW ``q`` file interface
+# OVERFLOW Plot3D template
+class P3D(cape.plot3d.Plot3d):
     
-    :Call:
-        >>> q = pyOver.plot3d.Q(fname, endian=None)
-    :Inputs:
-        *fname*: :class:`str`
-            Name of file to read
-        *endian*: {``None``} | "big" | "little"
-            Manually-specified byte order
-    :Outputs:
-        *q*: :class:`pyOver.plot3d.Q`
-            General OVERFLOW q-file interface
-    :Versions:
-        * 2016-02-26 ``@ddalle``: First version
-    """
-    # Initialization method
-    def __init__(self, fname, endian=None):
-        """Initialization method
-        
-        :Versions:
-            * 2016-02-26 ``@ddalle``: First version
-        """
-        # Save the file name
-        self.fname = fname
-        # File handle
-        self.f = None
-        # Save required states
-        # Reference viscosity
-        self.mu0  = 2.2696e-8
-        # Sutherland's law reference temperature [R]
-        self.TREF = 198.6
-        # Gas constant [unitus ridiculous]
-        self.R = 1716.0 
-        # Determine endianness
-        self.get_byteorder(endian)
-        # Get flags
-        self.get_dtypes()
-        # Read the file
-        self.Read()  
-        
         
     # Determine byte order
     def get_byteorder(self, endian=None):
@@ -115,6 +75,127 @@ class Q(cape.plot3d.Plot3D):
             # Big-endian 64-bit flags
             self.itype = ">i4"
             self.ftype = ">f8"
+    
+    # Get grid indices
+    def expand_grid_indices(self, IG, **kw):
+        """Expand grid indices using a variety of input methods
+        
+        Portions of a grid can be extracted either by using a list of indices
+        using the *J*, *K*, *L* keyword arguments, individual indices using the
+        *J*, *K*, *L* keyword arguments, or start-end subsets using *JS*, *JE*,
+        etc.  The *J* keyword takes precedence over *JS*, *JE* if bot hare
+        specified.
+        
+        :Call:
+            >>> J, K, L = q.expand_grid_indices(IG, **kw)
+        :Inputs:
+            *q*: :class:`pyOver.plot3d.Q`
+                General OVERFLOW q-file interface
+            *IG*: :class:`int`
+                Grid number (one-based index)
+        :Keyword arguments:
+            *J*: :class:`int` | :class:`list` (:class:`int`) 
+                Single grid index, *j* direction
+            *JS*: :class:`int`
+                Start index, *j* direction
+            *JE*: :class:`int`
+                End index, *j* direction
+            *K*: :class:`int` | :class:`list` (:class:`int`)
+                Single grid index, *k* direction
+            *KS*: :class:`int`
+                Start index, *k* direction
+            *KE*: :class:`int`
+                End index, *k* direction
+            *L*: :class:`int` | :class:`list` (:class:`int`)
+                Single grid index, *l* direction
+            *LS*: :class:`int`
+                Start index, *l* direction
+            *LE*: :class:`int`
+                End index, *l* direction
+        :Outputs:
+            *J*: :class:`np.ndarray` (:class:`int`) 
+                Array of grid indices in *j* direction
+            *K*: :class:`np.ndarray` (:class:`int`) 
+                Array of grid indices in *k* direction
+            *L*: :class:`np.ndarray` (:class:`int`) 
+                Array of grid indices in *l* direction
+        :Versions:
+            * 2016-03-07 ``@ddalle``: First version
+        """
+        # Grid sizes
+        JD = self.JD[IG-1]
+        KD = self.KD[IG-1]
+        LD = self.LD[IG-1]
+        # Process index start indices
+        JS = kw.get("JS", 1)
+        KS = kw.get("KS", 1)
+        LS = kw.get("LS", 1)
+        # Process index end indices
+        JE = kw.get("JE", JD)
+        KE = kw.get("KE", KD)            
+        LE = kw.get("LE", LD)
+        # Check for negative indices
+        if JS < 0: JS += JD
+        if KS < 0: KS += KD
+        if LS < 0: LS += LD
+        if JE < 0: JE += JD
+        if KE < 0: KE += KD
+        if LE < 0: LE += LD
+        # Default indices
+        JDEF = JS if JS==JE else np.arange(JS,JE+1)
+        KDEF = KS if KS==KE else np.arange(KS,KE+1)
+        LDEF = LS if LS==LE else np.arange(LS,LE+1)
+        # Process direct indices
+        J = kw.get("J", JDEF) - 1
+        K = kw.get("K", KDEF) - 1
+        L = kw.get("L", LDEF) - 1
+        # Output
+        return J, K, L
+# class P3D
+    
+
+# OVERFLOW q class
+class Q(P3D):
+    """
+    General OVERFLOW ``q`` file interface
+    
+    :Call:
+        >>> q = pyOver.plot3d.Q(fname, endian=None)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to read
+        *endian*: {``None``} | "big" | "little"
+            Manually-specified byte order
+    :Outputs:
+        *q*: :class:`pyOver.plot3d.Q`
+            General OVERFLOW q-file interface
+    :Versions:
+        * 2016-02-26 ``@ddalle``: First version
+    """
+    # Initialization method
+    def __init__(self, fname, endian=None):
+        """Initialization method
+        
+        :Versions:
+            * 2016-02-26 ``@ddalle``: First version
+        """
+        # Save the file name
+        self.fname = fname
+        # File handle
+        self.f = None
+        # Save required states
+        # Reference viscosity
+        self.mu0  = 2.2696e-8
+        # Sutherland's law reference temperature [R]
+        self.TREF = 198.6
+        # Gas constant [unitus ridiculous]
+        self.R = 1716.0 
+        # Determine endianness
+        self.get_byteorder(endian)
+        # Get flags
+        self.get_dtypes()
+        # Read the file
+        self.Read()
     
     # Read the file
     def Read(self):
@@ -293,7 +374,8 @@ class Q(cape.plot3d.Plot3D):
         :Inputs:
             *q*: :class:`pyOver.plot3d.Q`
                 Generic OVERFLOW module
-            *IG*: :class:`
+            *IG*: :class:`int`
+                Grid number to read, defaults to ``len(q.Q)+1``
         :Versions:
             * 2016-02-26 ``@ddalle``: First version
         """
@@ -410,82 +492,6 @@ class Q(cape.plot3d.Plot3D):
         # Read end-of-record
         self.read_int()
         
-    # Get grid indices
-    def expand_grid_indices(self, IG, **kw):
-        """Expand grid indices using a variety of input methods
-        
-        Portions of a grid can be extracted either by using a list of indices
-        using the *J*, *K*, *L* keyword arguments, individual indices using the
-        *J*, *K*, *L* keyword arguments, or start-end subsets using *JS*, *JE*,
-        etc.  The *J* keyword takes precedence over *JS*, *JE* if bot hare
-        specified.
-        
-        :Call:
-            >>> J, K, L = q.expand_grid_indices(IG, **kw)
-        :Inputs:
-            *q*: :class:`pyOver.plot3d.Q`
-                General OVERFLOW q-file interface
-            *IG*: :class:`int`
-                Grid number (one-based index)
-        :Keyword arguments:
-            *J*: :class:`int` | :class:`list` (:class:`int`) 
-                Single grid index, *j* direction
-            *JS*: :class:`int`
-                Start index, *j* direction
-            *JE*: :class:`int`
-                End index, *j* direction
-            *K*: :class:`int` | :class:`list` (:class:`int`)
-                Single grid index, *k* direction
-            *KS*: :class:`int`
-                Start index, *k* direction
-            *KE*: :class:`int`
-                End index, *k* direction
-            *L*: :class:`int` | :class:`list` (:class:`int`)
-                Single grid index, *l* direction
-            *LS*: :class:`int`
-                Start index, *l* direction
-            *LE*: :class:`int`
-                End index, *l* direction
-        :Outputs:
-            *J*: :class:`np.ndarray` (:class:`int`) 
-                Array of grid indices in *j* direction
-            *K*: :class:`np.ndarray` (:class:`int`) 
-                Array of grid indices in *k* direction
-            *L*: :class:`np.ndarray` (:class:`int`) 
-                Array of grid indices in *l* direction
-        :Versions:
-            * 2016-03-07 ``@ddalle``: First version
-        """
-        # Grid sizes
-        JD = self.JD[IG-1]
-        KD = self.KD[IG-1]
-        LD = self.LD[IG-1]
-        # Process index start indices
-        JS = kw.get("JS", 1)
-        KS = kw.get("KS", 1)
-        LS = kw.get("LS", 1)
-        # Process index end indices
-        JE = kw.get("JE", JD)
-        KE = kw.get("KE", KD)            
-        LE = kw.get("LE", LD)
-        # Check for negative indices
-        if JS < 0: JS += JD
-        if KS < 0: KS += KD
-        if LS < 0: LS += LD
-        if JE < 0: JE += JD
-        if KE < 0: KE += KD
-        if LE < 0: LE += LD
-        # Default indices
-        JDEF = JS if JS==JE else np.arange(JS,JE+1)
-        KDEF = KS if KS==KE else np.arange(KS,KE+1)
-        LDEF = LS if LS==LE else np.arange(LS,LE+1)
-        # Process direct indices
-        J = kw.get("J", JDEF) - 1
-        K = kw.get("K", KDEF) - 1
-        L = kw.get("L", LDEF) - 1
-        # Output
-        return J, K, L
-    
     # Extract CP
     def get_Cp(self, IG, **kw):
         """Get pressure coefficients from a grid
@@ -762,3 +768,42 @@ class Q(cape.plot3d.Plot3D):
         
 # class Q
 
+# OVERFLOW x class
+class X(P3D):
+    """
+    General OVERFLOW ``x`` file interface
+    
+    :Call:
+        >>> x = pyOver.plot3d.X(fname, endian=None)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to read
+        *endian*: {``None``} | "big" | "little"
+            Manually-specified byte order
+    :Outputs:
+        *x*: :class:`pyOver.plot3d.X`
+            General OVERFLOW x-file interface
+    :Versions:
+        * 2016-08-31 ``@ddalle``: First version
+    """
+    # Initialization method
+    def __init__(self, fname, endian=None):
+        """Initialization method
+        
+        :Versions:
+            * 2016-02-26 ``@ddalle``: First version
+        """
+        # Save the file name
+        self.fname = fname
+        # File handle
+        self.f = None
+        # Determine endianness
+        self.get_byteorder(endian)
+        # Get flags
+        self.get_dtypes()
+        
+        
+        
+        
+        
+# CLASS x
