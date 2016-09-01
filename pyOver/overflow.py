@@ -554,25 +554,30 @@ class Overflow(Cntl):
         return False
             
     # Get total CPU hours (actually core hours)
-    def GetCPUTime(self, i):
+    def GetCPUTime(self, i, running=False):
         """Read a CAPE-style core-hour file from a case
         
         :Call:
-            >>> CPUt = oflow.GetCPUTime(i)
+            >>> CPUt = oflow.GetCPUTime(i, running=False)
         :Inputs:
             *oflow*: :class:`pyFun.fun3d.Fun3d`
                 OVERFLOW control interface
             *i*: :class:`int`
                 Case index
+            *running*: ``True`` | {``False``}
+                Whether or not the case is running
         :Outputs:
             *CPUt*: :class:`float` | ``None``
                 Total core hours used in this job
         :Versions:
             * 2015-12-22 ``@ddalle``: First version
+            * 2016-08-31 ``@ddalle``: Added start times
         """
+        # File names
+        fname = 'pyover_time.dat'
+        fstrt = 'pyover_start.dat'
         # Call the general function using hard-coded file name
-        return self.GetCPUTimeFromFile(i, fname='pyover_time.dat')
-
+        return self.GetCPUTimeBoth(i, fname, fstrt, running=running)
     
     # Prepare a case.
     def PrepareCase(self, i):
@@ -673,6 +678,16 @@ class Overflow(Cntl):
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
         if not os.path.isdir(frun): self.mkdir(frun)
+        
+        # Set the surface BCs
+        for k in self.x.GetKeysByType('SurfBC'):
+            # Apply the appropriate methods
+            self.SetSurfBC(k, i)
+        # Set the surface BCs that use thrust as input
+        for k in self.x.GetKeysByType('SurfCT'):
+            # Apply the appropriate methods
+            self.SetSurfBC(k, i, CT=True)
+            
         # Loop through input sequence
         for j in range(self.opts.get_nSeq()):
             # Set the "restart_read" property appropriately
@@ -768,34 +783,39 @@ class Overflow(Cntl):
         :Versions:
             * 2016-08-29 ``@ddalle``: First version
         """
-        # Get the BC inputs
-        if CT:
-            # Use thrust as input variable
-            p0, T0 = self.GetSurfCTState(key, i)
-        else:
-            # Use *p0* and *T0* directly as inputs
-            p0, T0 = self.GetSurfBCState(key, i)
+        # Get list of grids
+        grids = self.x.GetSurfBC_Grids(i, key)
         # Get the current namelist
         nml = self.Namelist
-        # Get the component name and list of grids
-        grids, comps, bcinds = self.GetSurfBC_Grids(key, i)
-        # Get species
-        Y = self.x.GetSurfBC_Species(i, key)
+        # Case folder
+        frun = os.path.join(self.RootDir, self.x.GetFullFolderNames(i))
         # Safely go to the folder
         fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        os.chdir(self.x.GetFullFolderNames(i))
+        if os.path.isdir(frun): os.chdir(frun)
         # Loop through the grids
         for grid in grids:
-            # Check for presence
-            if grid not in comps:
-                raise KeyError(
-                    ("No component specification for key ") +
-                    ("'%s', grid '%s'" % (key, grid)))
-            # Get component name
-            comp = comps[grid]
-            # Get column index
-            bci = bcinds[grid]
+            # Get component
+            comp = self.x.GetSurfBC_CompID(i, key, comp=grid)
+            # BC index
+            bci = self.x.GetSurfBC_BCIndex(i, key, comp=grid)
+            # Boundary conditions
+            if CT:
+                # Get *p0*, *T0* from thrust
+                p0, T0 = self.GetSurfCTState(key, i, grid)
+                # Key type
+                typ = 'SurfCT'
+            else:
+                # Use *p0* and *T0* directly as inputs
+                p0, T0 = self.GetSurfBCState(key, i, grid)
+                # Key type
+                typ = 'SurfBC'
+            # Species
+            Y = self.x.GetSurfBC_Species(i, key, comp=grid)
+            # Other parameters
+            BCPAR1 = self.x.GetSurfBC_Param(i, key, 'BCPAR1', 
+                comp=grid, typ=typ, vdef=1)
+            BCPAR2 = self.x.GetSurfBC_Param(i, key, 'BCPAR2',
+                comp=grid, typ=typ, vdef=500)
             # File name
             fname = 'SurfBC-%s-%s.dat' % (comp, grid)
             # Open the file
@@ -803,122 +823,52 @@ class Overflow(Cntl):
             # Write the state
             f.write("%.12f %.12f\n" % (p0, T0))
             # Write the species info
-            f.write(" ".join([str(y) for y in Y]))
-            f.write("\n")
+            if Y is not None and len(Y) > 1:
+                f.write(" ".join([str(y) for y in Y]))
+                f.write("\n")
             # Write the component name
             f.write("%s\n" % comp)
-            # Write the time history (writing just 1 causes Overflow to ignore)
+            # Write the time history
+            # Writing just 1 causes Overflow to ignore, but there still needs
+            # to be one row of time value and thrust value (as a percentage)
             f.write("1\n")
+            f.write("%.12f %.12f\n" % (1.0, 1.0))
+            f.close()
             # Get the BC number parameter
             IBTYP = nml.GetKeyFromGrid(grid, 'BCINP', 'IBTYP')
-            # Check for at least *bci* columns
-            if len(IBTYP) > bci:
-                raise ValueError(
-                    ("While specifying IBTYP for key '%s':\n" % key) +
-                    ("Received column index %s for grid '%s' " % (bci, grid)) +
-                    ("but BCINP/IBTYP namelist has %s columns" % len(IBTYP)))
-            # Set IBTYP to 153
-            IBTYP[bci-1] = 153
+            # Check for list
+            if type(IBTYP).__name__ in ['list', 'ndarray']:
+                # Check for at least *bci* columns
+                if bci > len(IBTYP):
+                    raise ValueError(
+                        ("While specifying IBTYP for key '%s':\n" % key) +
+                        ("Received column index %s for grid '%s' " % (bci, grid)) +
+                        ("but BCINP/IBTYP namelist has %s columns" % len(IBTYP)))
+                # Set IBTYP to 153
+                IBTYP[bci-1] = 153
+            else:
+                # Make sure *bci* is 1
+                if bci != 1:
+                    raise ValueError(
+                        ("While specifying IBTYP for key '%s':\n" % key) +
+                        ("Received column index %s for grid '%s' " % (bci, grid)) +
+                        ("but BCINP/IBTYP namelist has 1 column" % len(IBTYP)))
+                # Set IBTYP to 153
+                IBTYP = 153
             # Reset IBTYP
             nml.SetKeyForGrid(grid, 'BCINP', 'IBTYP', IBTYP)
             # Set the parameters in the namelist
-            nml.SetKeyForGrid(grid, 'BCINP', 'BCPAR1', p0,    i=bci)
-            nml.SetKeyForGrid(grid, 'BCINP', 'BCPAR2', T0,    i=bci)
-            nml.SetKeyForGrid(grid, 'BCINP', 'BCFILE', fname, i=bci)
+            nml.SetKeyForGrid(grid, 'BCINP', 'BCPAR1', BCPAR1, i=bci)
+            nml.SetKeyForGrid(grid, 'BCINP', 'BCPAR2', BCPAR2, i=bci)
+            nml.SetKeyForGrid(grid, 'BCINP', 'BCFILE', fname,  i=bci)
         # Return to original location
-        os.chdir(fpwd)
-            
-        
-            
-    # Get surface BC grid list
-    def GetSurfBC_Grids(self, key, i):
-        """Get dictionary of grids and and components for a surface BC key
-        
-        :Call:
-            >>> grids, comps, bcinds = ofl.GetSurfBC_Grids(key, i)
-        :Inputs:
-            *ofl*: :class:`pyOver.overflow.Overflow`
-                Instance of pyOver control class
-            *key*: :class:`str`
-                Name of SurfBC key to process
-            *i*: :class:`int`
-                Case index
-        :Outputs:
-            *grids*: :class:`list` (:class:`str` | :class:`int`)
-                List of grids for which BC applies
-            *comps*: :class:`dict` (:class:`str`)
-                Dictionary of component for each grid
-            *bcinds*: :class:`dict` (``None`` | :class:`int`)
-                List of BC column index
-        :Versions:
-            * 2016-08-29 ``@ddalle``: First version
-        """
-        # Get the component name and list of grids
-        compID = self.x.GetSurfBC_CompID(i, key)
-        grids  = self.x.GetSurfBC_Grids(i, key)
-        bcind  = self.x.GetSurfBC_BCIndex(i, key)
-        # Number of grids
-        ng = len(grids)
-        # Ensure list
-        if type(grids).__name__ not in ['list', 'ndarray']:
-            grids = [grids]
-        # Consistency for components
-        typ = type(compID).__name__
-        if typ == 'dict':
-            # Dictionary; already set
-            comps = compID
-        elif typ in ['list', 'ndarray']:
-            # List of components; check for consistency
-            nc = len(compID)
-            if ng != nc:
-                raise ValueError(
-                    ("Received %i grids and %i components " % (ng, nc)) +
-                    ("for SurfBC key '%s'" % key))
-            # Create dictionary
-            comps = {}
-            # Loop through grids
-            for i in range(ng):
-                comps[grids[i]] = compID[i]
-        else:
-            # Single component; make uniform dictionary
-            comps = {}
-            # Loop through grids
-            for grid in grids:
-                comps[grid] = compID
-        # Consistency for bc indices
-        typ = type(bcind).__name__
-        if typ == 'dict':
-            # Dictionary; already set
-            bcinds = bcind
-        elif typ in ['list', 'ndarray']:
-            # List of components; check for consistency
-            nc = len(bcind)
-            if ng != nc:
-                raise ValueError(
-                    ("Received %i grids and %i BC indices " % (ng, nc)) +
-                    ("for SurfBC key '%s'" % key))
-            # Create dictionary
-            bcinds = {}
-            # Loop through grids
-            for i in range(ng):
-                bcinds[grids[i]] = bcind[i]
-        else:
-            # Single component; make uniform dictionary
-            bcinds = {}
-            # Do not use ``None``
-            if bcind is None: bcind = 0
-            # Loop through grids
-            for grid in grids:
-                bcinds[grid] = bcind
-        # Output
-        return grids, comps, bcinds
-            
+        os.chdir(fpwd)            
             
     # Get surface BC inputs
-    def GetSurfBCState(self, key, i):
+    def GetSurfBCState(self, key, i, grid=None):
         """Get stagnation pressure and temperature ratios
         :Call:
-            >>> p0, T0 = ofl.GetSurfBC(key, i)
+            >>> p0, T0 = ofl.GetSurfBC(key, i, grid=None)
         :Inputs:
             *ofl*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control class
@@ -926,6 +876,8 @@ class Overflow(Cntl):
                 Name of SurfBC key to process
             *i*: :class:`int`
                 Case index
+            *grid*: {``None``} | :class:`str`
+                Name of grid for which to extract settings
         :Outputs:
             *p0*: :class:`float`
                 Ratio of BC total pressure to freestream total pressure
@@ -935,22 +887,25 @@ class Overflow(Cntl):
             * 2016-08-29 ``@ddalle``: First version
         """
         # Get the inputs
-        p0 = self.x.GetSurfBC_TotalPressure(i, key)
-        T0 = self.x.GetSurfBC_TotalTemperature(i, key)
+        p0 = self.x.GetSurfBC_TotalPressure(i, key, comp=grid)
+        T0 = self.x.GetSurfBC_TotalTemperature(i, key, comp=grid)
         # Calibration
-        fp = self.x.GetSurfBC_PressureCalibration(i, key)
+        bp = self.x.GetSurfBC_PressureOffset(i, key, comp=grid)
+        ap = self.x.GetSurfBC_PressureCalibration(i, key, comp=grid)
+        bT = self.x.GetSurfBC_TemperatureOffset(i, key, comp=grid)
+        aT = self.x.GetSurfBC_TemperatureCalibration(i, key, comp=grid)
         # Reference pressure/tomp
-        p0inf = self.x.GetSurfBC_TotalPressure(i, key)
-        T0inf = self.x.GetSurfBC_TotalTemperature(i, key)
+        p0inf = self.x.GetSurfBC_RefPressure(i, key, comp=grid)
+        T0inf = self.x.GetSurfBC_RefTemperature(i, key, comp=grid)
         # Output
-        return fp*p0/p0inf, T0/T0inf
+        return (ap*p0+bp)/p0inf, (aT*T0+bT)/T0inf
         
     # Get surface *CT* state inputs
-    def GetSurfCTState(self, key, i):
+    def GetSurfCTState(self, key, i, grid=None):
         """Get stagnation pressure and temperature ratios for *SurfCT* key
         
         :Call:
-            >>> p0, T0 = ofl.GetSurfCTState(key, i)
+            >>> p0, T0 = ofl.GetSurfCTState(key, i, grid=None)
         :Inputs:
             *ofl*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control class
@@ -958,6 +913,8 @@ class Overflow(Cntl):
                 Name of SurfBC key to process
             *i*: :class:`int`
                 Case index
+            *grid*: {``None``} | :class:`str`
+                Name of grid for which to extract settings
         :Outputs:
             *p0*: :class:`float`
                 Ratio of BC total pressure to freestream total pressure
@@ -967,30 +924,33 @@ class Overflow(Cntl):
             * 2016-08-29 ``@ddalle``: First version
         """
         # Get the trhust value
-        CT = self.x.GetSurfCT_Thrust(i, key)
+        CT = self.x.GetSurfCT_Thrust(i, key, comp=grid)
         # Get the exit parameters
-        M2 = self.GetSurfCT_ExitMach(key, i)
-        A2 = self.GetSurfCT_ExitArea(key, i)
+        M2 = self.x,GetSurfCT_ExitMach(i, key, comp=grid)
+        A2 = self.x,GetSurfCT_ExitArea(i, key, comp=grid)
         # Ratio of specific heats
-        gam = self.x.GetSurfCT_Gamma(i, key)
+        gam = self.x.GetSurfCT_Gamma(i, key, comp=grid)
         # Derivative gas constants
         g2 = 0.5 * (gam-1)
         g3 = gam / (gam-1)
         # Get reference dynamice pressure
-        qref = self.GetSurfCT_RefDynamicPressure(i, key)
+        qref = self.GetSurfCT_RefDynamicPressure(i, key, comp=grid)
         # Get reference area
         Aref = self.GetSurfCT_RefArea(key, i)
         # Calculate total pressure
         p0 = CT*qref*aref/A2 *  (1+g2*M2*M2)**g3 / (1+gam*M2*M2)
         # Temperature inputs
-        T0 = self.x.GetSurfCT_TotalTemperature(i, key)
+        T0 = self.x.GetSurfCT_TotalTemperature(i, key, comp=grid)
         # Calibration
-        fp = self.x.GetSurfCT_PressureCalibration(i, key)
+        ap = self.x.GetSurfCT_PressureCalibration(i, key, comp=grid)
+        bp = self.x.GetSurfCT_PressureOffset(i, key, comp=grid)
+        aT = self.x.GetSurfCT_TemperatureCalibration(i, key, comp=grid)
+        bT = self.x.GetSurfCT_TemperatureOffset(i, key, comp=grid)
         # Reference values
-        p0inf = self.x.GetSurfCT_TotalPressure(i, key)
-        T0inf = self.x.GetSurfCT_TotalTemperature(i, key)
+        p0inf = self.x.GetSurfCT_TotalPressure(i, key, comp=grid)
+        T0inf = self.x.GetSurfCT_TotalTemperature(i, key, comp=grid)
         # Output
-        return fp*p0/p0inf, T0/T0inf
+        return (ap*p0+bp)/p0inf, (aT*T0+bT)/T0inf
         
     # Write run control options to JSON file
     def WriteCaseJSON(self, i):
@@ -1021,7 +981,7 @@ class Overflow(Cntl):
         os.chdir(frun)
         # Write folder.
         f = open('case.json', 'w')
-        # Dump the flowCart settings.
+        # Dump the Overflow and other run settings.
         json.dump(self.opts['RunControl'], f, indent=1)
         # Close the file.
         f.close()

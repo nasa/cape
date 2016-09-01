@@ -37,6 +37,8 @@ def run_overflow():
     fproj = GetPrefix()
     # Determine the run index.
     i = GetPhaseNumber(rc)
+    # Write start time
+    WriteStartTime(tic, rc, i)
     # Delete any input file.
     if os.path.isfile('over.namelist') or os.path.islink('over.namelist'):
         os.remove('over.namelist')
@@ -135,7 +137,7 @@ def WriteUserTime(tic, rc, i, fname="pyover_time.dat"):
     :Inputs:
         *tic*: :class:`datetime.datetime`
             Time from which timer will be measured
-        *rc*: :class:`pyCart.options.runControl.RunControl
+        *rc*: :class:`pyOver.options.runControl.RunControl`
             Options interface
         *i*: :class:`int`
             Phase number
@@ -147,9 +149,30 @@ def WriteUserTime(tic, rc, i, fname="pyover_time.dat"):
     :Versions:
         * 2015-12-29 ``@ddalle``: First version
     """
-    # Call the function from :mode:`cape.case`
-    WriteUserTimeProg(tic, rc, i, fname, 'run_fun3d.py')
+    # Call the function from :mod:`cape.case`
+    WriteUserTimeProg(tic, rc, i, fname, 'run_overflow.py')
 
+# Write start time
+def WriteStartTime(tic, rc, i, fname="pyover_start.dat"):
+    """Write the start time in *tic*
+    
+    :Call:
+        >>> WriteStartTime(tic, rc, i, fname="pyover_start.dat")
+    :Inputs:
+        *tic*: :class:`datetime.datetime`
+            Time to write into data file
+        *rc*: :class:`pyOver.options.runControl.RunControl`
+            Options interface
+        *i*: :class:`int`
+            Phase number
+        *fname*: {``"pyover_start.dat"``} | :class:`str`
+            Name of file containing run start times
+    :Versions:
+        * 2016-08-31 ``@ddalle``: First version
+    """
+    # Call the function from :mod:`cape.case`
+    WriteStartTimeProg(tic, rc, i, fname, 'run_overflow.py')
+    
 # Function to determine which PBS script to call
 def GetPBSScript(i=None):
     """Determine the file name of the PBS script to call

@@ -58,6 +58,8 @@ def run_flowCart(verify=False, isect=False):
     CaseVerify(rc)
     # Determine the run index.
     i = GetPhaseNumber(rc)
+    # Write start time
+    WriteStartTime(tic, rc, i)
     # Prepare all files
     PrepareFiles(rc, i)
     # Prepare environment variables (other than OMP_NUM_THREADS)
@@ -99,6 +101,27 @@ def WriteUserTime(tic, rc, i, fname="pycart_time.dat"):
     """
     # Call the function from :mode:`cape.case`
     WriteUserTimeProg(tic, rc, i, fname, 'run_flowCart.py')
+    
+# Write start time
+def WriteStartTime(tic, rc, i, fname="pycart_start.dat"):
+    """Write the start time in *tic*
+    
+    :Call:
+        >>> WriteStartTime(tic, rc, i, fname="pycart_start.dat")
+    :Inputs:
+        *tic*: :class:`datetime.datetime`
+            Time to write into data file
+        *rc*: :class:`pyOver.options.runControl.RunControl`
+            Options interface
+        *i*: :class:`int`
+            Phase number
+        *fname*: {``"pycart_start.dat"``} | :class:`str`
+            Name of file containing run start times
+    :Versions:
+        * 2016-08-31 ``@ddalle``: First version
+    """
+    # Call the function from :mod:`cape.case`
+    WriteStartTimeProg(tic, rc, i, fname, 'run_flowCart.py')
 
 # Run cubes if necessary
 def CaseCubes(rc, j=0):
