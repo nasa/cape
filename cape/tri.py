@@ -1203,25 +1203,31 @@ class TriBase(object):
         # Write the matrix as the header line
         A.tofile(fid)
         # Matrix for the node coordinate record markers
-        R = np.array([self.nNode*3*ni], dtype=fi).byteswap(qswap)
+        R = np.array([self.nNode*3*ni], dtype=fi)
+        R.byteswap(qswap)
         # Matrix for the nodal coordinates
-        P = np.array(self.Nodes, dtype=ff).flatten().byteswap(qswap)
+        P = np.array(self.Nodes, dtype=ff).flatten()
+        P.byteswap(qswap)
         # Write the nodal coordinates
         R.tofile(fid)
         P.tofile(fid)
         R.tofile(fid)
         # Matrix for the tri node index record markers
-        R = np.array([self.nTri*3*ni], dtype=fi).byteswap(qswap)
+        R = np.array([self.nTri*3*ni], dtype=fi)
+        R.byteswap(qswap)
         # Matrix for the nodal indices
-        T = np.array(self.Tris, dtype=fi).flatten().byteswap(qswap)
+        T = np.array(self.Tris, dtype=fi).flatten()
+        T.byteswap(qswap)
         # Write the tri coordinates
         R.tofile(fid)
         T.tofile(fid)
         R.tofile(fid)
         # Matrix for the CompID record makresr
-        R = np.array([self.nTri*ni], dtype=fi).byteswap(qswap)
+        R = np.array([self.nTri*ni], dtype=fi)
+        R.byteswap(qswap)
         # Matrix for the nodal indices
-        C = np.array(self.CompID, dtype=fi).byteswap(qswap)
+        C = np.array(self.CompID, dtype=fi)
+        C.byteswap(qswap)
         # Write the tri coordinates
         R.tofile(fid)
         C.tofile(fid)
