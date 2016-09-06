@@ -1,8 +1,8 @@
 """
-Module to interface with Tecplot scripts: :mod:`pyCart.tecplot`
+Module to interface with Tecplot scripts: :mod:`pyOver.tecplot`
 ===============================================================
 
-This is a module built off of the :mod:`pyCart.fileCntl` module customized for
+This is a module built off of the :mod:`pyOver.fileCntl` module customized for
 manipulating Tecplot layout files and macros.
 """
 
@@ -36,13 +36,13 @@ class Tecscript(cape.tecplot.Tecscript):
     File control class for Tecplot script files
     
     :Call:
-        >>> tec = pyCart.tecplot.Tecscript()
-        >>> tec = pyCart.tecplot.Tecscript(fname="layout.lay")
+        >>> tec = pyOver.tecplot.Tecscript()
+        >>> tec = pyOver.tecplot.Tecscript(fname="layout.lay")
     :Inputs:
         *fname*: :class:`str`
             Name of Tecplot script to read
     :Outputs:
-        *tec*: :class:`pyCart.tecplot.Tecscript` or derivative
+        *tec*: :class:`pyOver.tecplot.Tecscript` or derivative
             Instance of Tecplot script base class
     :Versions:
         * 2015-02-26 ``@ddalle``: Started
@@ -59,13 +59,13 @@ class TecMacro(cape.tecplot.TecMacro):
     File control class for Tecplot macr files
     
     :Call:
-        >>> tec = pyCart.tecplot.TecMacro()
-        >>> tec = pyCart.tecplot.TecMacro(fname="export.mcr")
+        >>> tec = pyOver.tecplot.TecMacro()
+        >>> tec = pyOver.tecplot.TecMacro(fname="export.mcr")
     :Inputs:
         *fname*: :class:`str`
             Name of Tecplot script to read
     :Outputs:
-        *tec*: :class:`pyCart.tecplot.TecMacro`
+        *tec*: :class:`pyOver.tecplot.TecMacro`
             Instance of Tecplot macro interface
     :Versions:
         * 2015-03-10 ``@ddalle``: First version
