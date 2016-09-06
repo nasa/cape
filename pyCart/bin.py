@@ -71,14 +71,3 @@ def flowCart(cart3d=None, i=0, **kwargs):
 # Docstring
 flowCart.__doc__ = _upgradeDocString(cmd.flowCart.__doc__)
 
-# Function to call Tecplot on a macro
-def tecmcr(mcr="export-lay.mcr", **kwargs):
-    # Get command.
-    cmdi = cmd.tecmcr(mcr, **kwargs)
-    # Run the command.
-    callf(cmdi, f="tecmcr.out")
-    # Remove the log file; it's useless
-    os.remove("tecmcr.out")
-# Docstring
-tecmcr.__doc__ = _upgradeDocString(cmd.tecmcr.__doc__)
-

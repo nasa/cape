@@ -237,6 +237,17 @@ def _upgradeDocString(doccmd):
         if kflag: docbin += (line + "\n")
     # Output
     return docbin
+
+# Function to call Tecplot on a macro
+def tecmcr(mcr="export-lay.mcr", **kwargs):
+    # Get command.
+    cmdi = cmd.tecmcr(mcr, **kwargs)
+    # Run the command.
+    callf(cmdi, f="tecmcr.out")
+    # Remove the log file; it's useless
+    os.remove("tecmcr.out")
+# Docstring
+tecmcr.__doc__ = _upgradeDocString(cmd.tecmcr.__doc__)
     
 # Stand-alone function to run a Paraview script
 def pvpython(lay, *args, **kw):
