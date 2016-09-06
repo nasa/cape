@@ -2108,6 +2108,24 @@ class Report(object):
         """
         return self.SubfigPlotResid(sfig, i, c='L2')
         
+    # Function to create L-infinity plot and write figure
+    def SubfigPlotLInf(self, sfig, i):
+        """Create plot for L2 residual
+        
+        :Call:
+            >>> lines = R.SubfigPlotL2(sfig, i)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2015-11-25 ``@ddalle``: First version
+        """
+        return self.SubfigPlotResid(sfig, i, c='LInf')
+        
     # Function to create L2 plot and write figure
     def SubfigPlotTurbResid(self, sfig, i):
         """Create plot for turbulence residual
@@ -2189,6 +2207,9 @@ class Report(object):
             elif c == "L2":
                 # Plot global L2 residual
                 h = H.PlotL2(n=nPlotIter, **kw_p)
+            elif c == "LInf":
+                # Plot global L-infinity residual
+                h = H.PlotLInf(n=nPlotIter, **kw_p)
             elif c == "TurbResid":
                 # Plot turbulence residual
                 h = H.PlotTurbResid(n=nPlotIter, **kw_p)

@@ -116,6 +116,12 @@ class Report(cape.report.Report):
             elif btyp == 'PlotPoint':
                 # Get the point sensor history plot
                 lines += self.SubfigPlotPoint(sfig, i)
+            elif btyp == 'PlotL2':
+                # Get the residual plot
+                lines += self.SubfigPlotL2(sfig, i)
+            elif btyp == 'PlotInf':
+                # Get the residual plot
+                lines += self.SubfigPlotLInf(sfig, i)
             elif btyp == 'PlotResid':
                 # Plot generic residual
                 lines += self.SubfigPlotResid(sfig, i)
