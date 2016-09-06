@@ -549,9 +549,9 @@ def LinkQ():
     # Get modification times from the files
     tq = [os.path.getmtime(fq) for fq in qglob]
     # Get index of most recent file
-    iq = np.argmax(tq)
+    iq = argmax(tq)
     # Link file
-    os.path.symlink(qglob[iq], fname)
+    os.symlink(qglob[iq], fname)
     
 # Link best X file
 def LinkX():
@@ -570,11 +570,11 @@ def LinkX():
     xglob = (glob.glob('x.save') + glob.glob('x.restart') +
         glob.glob('x.[0-9]*') + glob.glob('grid.in'))
     # Exit if no files
-    if len(qglob) == 0: return
+    if len(xglob) == 0: return
     # Get modification times from the files
     tx = [os.path.getmtime(fx) for fx in xglob]
     # Get index of most recent file
-    ix = np.argmax(tx)
+    ix = argmax(tx)
     # Link file
-    os.path.symlink(xglob[ix], fname)
+    os.symlink(xglob[ix], fname)
     

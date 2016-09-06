@@ -39,7 +39,7 @@ from datetime import datetime
 # File control
 import os, resource, glob, shutil
 # Basic numerics
-from numpy import nan, isnan
+from numpy import nan, isnan, argmax
 
 
 # Function to intersect geometry if appropriate

@@ -13,7 +13,7 @@ from cape import tex, tar
 # Data book and plotting
 from .dataBook import CaseFM, CaseResid
 # Folder and Tecplot management
-from .case    import LinkQ
+from .case    import LinkQ, LinkX
 
 
 # Class to interface with report generation and updating.
