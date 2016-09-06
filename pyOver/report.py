@@ -14,6 +14,7 @@ from cape import tex, tar
 from .dataBook import CaseFM, CaseResid
 # Folder and Tecplot management
 from .case    import LinkQ, LinkX
+from .tecplot import ExportLayout, Tecscript
 
 
 # Class to interface with report generation and updating.
