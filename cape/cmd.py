@@ -11,6 +11,29 @@ that require multiple command-line options.  It is closely tied to
 # Import getel feature
 from cape.options.util import getel
 
+# Function to run tecplot
+def tecmcr(mcr="export-lay.mcr", **kw):
+    """
+    Run a Tecplot macro
+    
+    :Call:
+        >>> cmd = pyCart.cmd.tecmcr(mcr="export-lay.mcr")
+    :Inputs:
+        *mcr*: :class:`str`
+            File name of Tecplot macro
+    :Outputs:
+        *cmd*: :class:`list` (:class:`str`)
+            Command split into a list of strings
+    :Versions:
+        * 2015-03-10 ``@ddalle``: First version
+    """
+    # Get tecplot command
+    t360 = GetTecplotCommand()
+    # Form the command
+    cmd = [t360, '-b', '-p', mcr]
+    # Output
+    return cmd
+
 # Function get aflr3 commands
 def aflr3(opts=None, j=0, **kw):
     """Create AFLR3 system command as a list of strings

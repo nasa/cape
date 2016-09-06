@@ -15,29 +15,6 @@ from .util import GetTecplotCommand
 # Import the Cape binaries
 from cape.cmd import *
 
-# Function to run tecplot
-def tecmcr(mcr="export-lay.mcr", **kw):
-    """
-    Run a Tecplot macro
-    
-    :Call:
-        >>> cmd = pyCart.cmd.tecmcr(mcr="export-lay.mcr")
-    :Inputs:
-        *mcr*: :class:`str`
-            File name of Tecplot macro
-    :Outputs:
-        *cmd*: :class:`list` (:class:`str`)
-            Command split into a list of strings
-    :Versions:
-        * 2015-03-10 ``@ddalle``: First version
-    """
-    # Get tecplot command
-    t360 = GetTecplotCommand()
-    # Form the command
-    cmd = [t360, '-b', '-p', mcr]
-    # Output
-    return cmd
-
 # Function to call cubes.
 def cubes(cart3d=None, opts=None, j=0, **kw):
     """
