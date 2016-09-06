@@ -563,7 +563,7 @@ def LinkX():
         * 2016-09-06 ``@ddalle``: First version
     """
     # File name to create
-    fname = 'q.pyover.p3d'
+    fname = 'x.pyover.p3d'
     # Check for file
     if os.path.islink(fname): os.remove(fname)
     # Get the list of q files

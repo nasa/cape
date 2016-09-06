@@ -10,6 +10,8 @@ that require multiple command-line options.  It is closely tied to
 
 # Import getel feature
 from cape.options.util import getel
+# Functions to get system command names
+from .util import GetTecplotCommand
 
 # Function to run tecplot
 def tecmcr(mcr="export-lay.mcr", **kw):
