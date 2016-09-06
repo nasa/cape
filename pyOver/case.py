@@ -529,3 +529,52 @@ def SetRestartIter(rc, n=None):
         # Create the appropriate link.
         os.symlink(fsrc, fname)
 
+# Link best Q file
+def LinkQ():
+    """Link the most recent ``q.*`` file to a fixed file name
+    
+    :Call:
+        >>> pyOver.case.LinkQ()
+    :Versions:
+        * 2016-09-06 ``@ddalle``: First version
+    """
+    # File name to create
+    fname = 'q.pyover.p3d'
+    # Check for file
+    if os.path.islink(fname): os.remove(fname)
+    # Get the list of q files
+    qglob = glob.glob('q.save') + glob.glob('q.restart') + glob.glob('q.[0-9]*')
+    # Exit if no files
+    if len(qglob) == 0: return
+    # Get modification times from the files
+    tq = [os.path.getmtime(fq) for fq in qglob]
+    # Get index of most recent file
+    iq = np.argmax(tq)
+    # Link file
+    os.path.symlink(qglob[iq], fname)
+    
+# Link best X file
+def LinkX():
+    """Link the most recent ``x.*`` file to a fixed file name
+    
+    :Call:
+        >>> pyOver.case.LinkX()
+    :Versions:
+        * 2016-09-06 ``@ddalle``: First version
+    """
+    # File name to create
+    fname = 'q.pyover.p3d'
+    # Check for file
+    if os.path.islink(fname): os.remove(fname)
+    # Get the list of q files
+    xglob = (glob.glob('x.save') + glob.glob('x.restart') +
+        glob.glob('x.[0-9]*') + glob.glob('grid.in'))
+    # Exit if no files
+    if len(qglob) == 0: return
+    # Get modification times from the files
+    tx = [os.path.getmtime(fx) for fx in xglob]
+    # Get index of most recent file
+    ix = np.argmax(tx)
+    # Link file
+    os.path.symlink(xglob[ix], fname)
+    
