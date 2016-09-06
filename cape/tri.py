@@ -32,6 +32,9 @@ from .util import GetTecplotCommand, TecFolder, ParaviewFolder
 from .geom import TranslatePoints, RotatePoints
 from .config import Config
 
+# Input/output module
+from . import io
+
 # Attempt to load the compiled helper module.
 try:
     from . import _cape as pc
@@ -1141,6 +1144,158 @@ class TriBase(object):
             sbo = 'little'
         # Output
         return sbo
+        
+    # Write TRI file as little-endian single-precision
+    def WriteSlow_lb4(self, fname='Components.i.tri'):
+        """Write triangulation as single-precision little-endian
+        
+        :Call:
+            >>> tri.WriteSlow_lb4(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-09-05 ``@ddalle``: First version
+        """
+        # Check for state vars
+        try:
+            qq = self.nq > 0
+        except AttributeError:
+            # No attribute for number of states
+            qq = False
+        # Open the file
+        fid = open(fname, 'wb')
+        # Write the header
+        if qq:
+            # Write with *q*
+            io.write_record_lb4_i(fid, [self.nNode, self.nItri, self.nq])
+        else:
+            # No q values
+            io.write_record_lb4_i(fid, [self.nNode, self.nTri])
+        # Write the nodes, tris, and compIDs
+        io.write_record_lb4_f(fid, self.Nodes)
+        io.write_record_lb4_i(fid, self.Tris)
+        io.write_record_lb4_i(fid, self.CompID)
+        # Write states if appropriate
+        if qq: io.write_record_lb4_f(fid, self.q)
+        # Close the file
+        fid.close()
+        
+    # Write TRI file as little-endian double-precision
+    def WriteSlow_lb8(self, fname='Components.i.tri'):
+        """Write triangulation as double-precision little-endian
+        
+        :Call:
+            >>> tri.WriteSlow_lb8(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-09-05 ``@ddalle``: First version
+        """
+        # Check for state vars
+        try:
+            qq = self.nq > 0
+        except AttributeError:
+            # No attribute for number of states
+            qq = False
+        # Open the file
+        fid = open(fname, 'wb')
+        # Write the header
+        if qq:
+            # Write with *q*
+            io.write_record_lb8_i(fid, [self.nNode, self.nItri, self.nq])
+        else:
+            # No q values
+            io.write_record_lb8_i(fid, [self.nNode, self.nTri])
+        # Write the nodes, tris, and compIDs
+        io.write_record_lb8_f(fid, self.Nodes)
+        io.write_record_lb8_i(fid, self.Tris)
+        io.write_record_lb8_i(fid, self.CompID)
+        # Write states if appropriate
+        if qq: io.write_record_lb8_f(fid, self.q)
+        # Close the file
+        fid.close()
+        
+    # Write TRI file as big-endian single-precision
+    def WriteSlow_b4(self, fname='Components.i.tri'):
+        """Write triangulation as single-precision big-endian
+        
+        :Call:
+            >>> tri.WriteSlow_b4(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-09-05 ``@ddalle``: First version
+        """
+        # Check for state vars
+        try:
+            qq = self.nq > 0
+        except AttributeError:
+            # No attribute for number of states
+            qq = False
+        # Open the file
+        fid = open(fname, 'wb')
+        # Write the header
+        if qq:
+            # Write with *q*
+            io.write_record_b4_i(fid, [self.nNode, self.nItri, self.nq])
+        else:
+            # No q values
+            io.write_record_b4_i(fid, [self.nNode, self.nTri])
+        # Write the nodes, tris, and compIDs
+        io.write_record_b4_f(fid, self.Nodes)
+        io.write_record_b4_i(fid, self.Tris)
+        io.write_record_b4_i(fid, self.CompID)
+        # Write states if appropriate
+        if qq: io.write_record_b4_f(fid, self.q)
+        # Close the file
+        fid.close()
+        
+    # Write TRI file as big-endian double-precision
+    def WriteSlow_b8(self, fname='Components.i.tri'):
+        """Write triangulation as double-precision big-endian
+        
+        :Call:
+            >>> tri.WriteSlow_b8(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-09-05 ``@ddalle``: First version
+        """
+        # Check for state vars
+        try:
+            qq = self.nq > 0
+        except AttributeError:
+            # No attribute for number of states
+            qq = False
+        # Open the file
+        fid = open(fname, 'wb')
+        # Write the header
+        if qq:
+            # Write with *q*
+            io.write_record_b8_i(fid, [self.nNode, self.nItri, self.nq])
+        else:
+            # No q values
+            io.write_record_b8_i(fid, [self.nNode, self.nTri])
+        # Write the nodes, tris, and compIDs
+        io.write_record_b8_f(fid, self.Nodes)
+        io.write_record_b8_i(fid, self.Tris)
+        io.write_record_b8_i(fid, self.CompID)
+        # Write states if appropriate
+        if qq: io.write_record_b8_f(fid, self.q)
+        # Close the file
+        fid.close()
         
         
     # Write TRI file as a binary file
