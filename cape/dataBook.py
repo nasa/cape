@@ -2894,7 +2894,7 @@ class CaseData(object):
             # Version of "PS.(c)* in Matlab
             X = getattr(self,c)
             # Check for column index
-            if cols is None:
+            if col is None:
                 # No column
                 return X
             else:
