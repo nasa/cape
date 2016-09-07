@@ -1066,7 +1066,7 @@ class CaseResid(cape.dataBook.CaseResid):
         # Read the file
         A = np.loadtxt(fname, skiprows=nSkip, usecols=cols)
         # Reshape the data
-        B = np.reshape(A[:nc*nIterRead*nGrid,:], (nIterRead, nGrid, nc))
+        B = np.reshape(A[:nIterRead*nGrid,:], (nIterRead, nGrid, nc))
         # Get iterations
         i = B[:,0,0]
         # Get global residuals
