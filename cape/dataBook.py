@@ -2868,31 +2868,53 @@ class CaseData(object):
         return j
         
     # Extract one value/coefficient/state
-    def ExtractValue(self, c):
+    def ExtractValue(self, c, col=None):
         """Extract the iterative history for one coefficient/state
         
-        This is a placeholder function
+        This function may be customized for some modules
         
         :Call:
-            >>> C = FM.ExtractValue(c)
+            >>> C = FM.Extractvalue(c)
+            >>> C = FM.ExtractValue(c, col=None)
         :Inputs:
             *FM*: :class:`cape.dataBook.CaseData`
                 Case component history class
             *c*: :class:`str` 
                 Name of state
+            *col*: {``None``} | :class:`int`
+                Column number
         :Outputs:
             *C*: :class:`np.ndarray`
-                Array of values for *c* at each sample
+                Array of values for *c* at each iteration or sample interval
         :Versions:
             * 2015-12-07 ``@ddalle``: First version
         """
         # Direct reference
         try:
-            # Version of "PS.(c)*
-            return getattr(self,c)
+            # Version of "PS.(c)* in Matlab
+            X = getattr(self,c)
+            # Check for column index
+            if cols is None:
+                # No column
+                return X
+            else:
+                # Attempt column reference
+                return X[:,col]
         except AttributeError:
+            # Check for derived attributes
+            if c in ['CF', 'CT']:
+                # Force magnitude
+                CA = self.ExtractValue('CA', col=col)
+                CY = self.ExtractValue('CY', col=col)
+                CN = self.ExtractValue('CN', col=col)
+                # Add them up
+                return np.sqrt(CA*CA + CY*CY + CN*CN)
+            # The coefficient is not present at all
             raise AttributeError("Value '%s' is unknown for component '%s'."
                 % (c, self.comp))
+        except IndexError:
+            raise IndexError(("Value '%s', component '%s', " % (c, self.comp))
+                + ("does not have at least %s columns" % col))
             
     # Basic plotting function
     def PlotValue(self, c, col=None, n=None, nAvg=100, **kw):
