@@ -481,12 +481,12 @@ class Namelist2(FileCntl):
             line = '     %s = %s,\n' % (key, self.ConvertToText(val))
         else:
             # Specify line with an index
-            line = '     %s(%s) = %s\n' % (key, i, self.ConvertToText(val))
+            line = '     %s(%s) = %s,\n' % (key, i, self.ConvertToText(val))
         # Insert the line.
         self.lines = self.lines[:iend] + [line] + self.lines[iend:]
         # Update the namelist indices.
-        self.ibeg[igrp+1:] = self.ibeg[igrp+1:] + 1
-        self.iend[igrp+1:] = self.iend[igrp+1:] + 1
+        self.ibeg[igrp+1:] += 1
+        self.iend[igrp:]   += 1
     
     # Set a key
     def SetKeyInLine(self, line, key, val, i=None):
