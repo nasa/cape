@@ -487,7 +487,7 @@ class DataBook(odict):
         DBTs = self.get_DataBookTargets()
         # Check if it's present
         if targ not in DBTs:
-            raise KeyError("There is not DBTarget called '%s'" % targ)
+            raise KeyError("There is no DBTarget called '%s'" % targ)
         # Get the type
         return DBTs[targ].get('Type', 'generic')
         
@@ -512,7 +512,7 @@ class DataBook(odict):
         DBTs = self.get_DataBookTargets()
         # Check if it's present
         if targ not in DBTs:
-            raise KeyError("There is not DBTarget called '%s'" % targ)
+            raise KeyError("There is no DBTarget called '%s'" % targ)
         # Get the type
         return DBTs[targ].get('Folder', 'data')
         

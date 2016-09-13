@@ -436,6 +436,10 @@ class CaseFM(cape.dataBook.CaseFM):
         self.ReadFomocoData(frun, i_r, nc_r, ni_r, 0)
         self.ReadFomocoData(fout, i_o, nc_o, ni_o, ni_r)
         self.ReadFomocoData(ftmp, i_t, nc_t, ni_t, ni_r+ni_o)
+        # Find non-NaN rows
+        I = np.logical_not(np.isnan(self.i))
+        # Downselect
+        self.data = self.data[I,:]
         # Save data as attributes
         self.SaveAttributes()
         
@@ -583,10 +587,18 @@ class CaseFM(cape.dataBook.CaseFM):
         f = open(fname)
         # Skip to start of first iteration
         f.seek(650*ic+81)
+        # Number of iterations stored
+        j = 0
         # Loop through iterations
         for i in range(ni):
             # Read data
-            self.data[n0+i] = np.fromfile(f, sep=" ", count=38)
+            A = np.fromfile(f, sep=" ", count=38)
+            # Check for iteration
+            if n0 == 0 or A[0] > self.data[n0-1,0]:
+                # Save the data
+                self.data[n0+j] = A
+                # Increase count
+                j += 1
             # Skip to next iteration
             f.seek(650*(nc-1)+81, 1)
         # Close the file

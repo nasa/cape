@@ -2349,6 +2349,7 @@ class DBTarget(DBBase):
         # Save the target options
         self.opts = opts
         self.topts = opts.get_DataBookTargetByName(targ)
+        self.Name = targ
         # Save the trajectory.
         self.x = x.Copy()
         # Root directory
@@ -2393,14 +2394,10 @@ class DBTarget(DBBase):
         os.chdir(self.RootDir)
         # Source file
         fname = self.topts.get_TargetFile()
-        # Name of this target.
-        tname = self.topts.get_TargetName()
         # Check for the file.
         if not os.path.isfile(fname):
             raise IOError(
                 "Target source file '%s' could not be found." % fname)
-        # Save the name.
-        self.Name = tname
         # Delimiter
         delim = self.topts.get_Delimiter()
         # Comment character
@@ -2419,7 +2416,9 @@ class DBTarget(DBBase):
         # Close the file.
         f.close()
         # Translate into headers
-        self.headers = headers.lstrip('#').strip().split(delim)
+        cols = headers.lstrip('#').strip().split(delim)
+        # Strip
+        self.headers = [col.strip() for col in cols]
         # Save number of points.
         self.nCol = len(self.headers)
 
