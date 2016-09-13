@@ -437,7 +437,7 @@ class CaseFM(cape.dataBook.CaseFM):
         self.ReadFomocoData(fout, i_o, nc_o, ni_o, ni_r)
         self.ReadFomocoData(ftmp, i_t, nc_t, ni_t, ni_r+ni_o)
         # Find non-NaN rows
-        I = np.logical_not(np.isnan(self.i))
+        I = np.logical_not(np.isnan(self.data[:,0]))
         # Downselect
         self.data = self.data[I,:]
         # Save data as attributes
