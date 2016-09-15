@@ -97,6 +97,29 @@ class DataBook(cape.dataBook.DataBook):
             * 2016-06-27 ``@ddalle``: Added *targ* keyword
         """
         self[comp] = DBComp(comp, x, opts, targ=targ)
+        
+    # Update data book
+    def UpdateDataBook(self, I=None):
+        """Update the data book for a list of cases from the run matrix
+        
+        :Call:
+            >>> DB.UpdateDataBook()
+            >>> DB.UpdateDataBook(I)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *I*: :class:`list` (:class:`int`) or ``None``
+                List of trajectory indices or update all cases in trajectory
+        :Versions:
+            * 2014-12-22 ``@ddalle``: First version
+        """
+        # Default.
+        if I is None:
+            # Use all trajectory points.
+            I = range(self.x.nCase)
+        # Loop through indices.
+        for i in I:
+            self.UpdateCase(i)    
 
     # Update or add an entry.
     def UpdateCase(self, i):
