@@ -545,6 +545,45 @@ class Cntl(object):
         # Output
         print("    exit(%s)" % ierr)
         return ierr
+    
+    # Function to collect statistics
+    def Aero(self, **kw):
+        """Collect force and moment data
+        
+        :Call:
+            >>> cart3d.Aero(cons=[], **kw)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints like ``'Mach<=0.5'``
+        :Outputs:
+            *d*: :class:`dict` (:class:`numpy.ndarray` (:class:`float`))
+                Dictionary of mean, min, max, std for each coefficient
+        :Versions:
+            * 2014-12-12 ``@ddalle``: First version
+            * 2014-12-22 ``@ddalle``: Completely rewrote with DataBook class
+        """
+        # Save current location.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Apply constraints
+        I = self.x.GetIndices(**kw)
+        # Read the existing data book.
+        self.ReadDataBook()
+        # Check if we are deleting or adding.
+        if kw.get('delete', False):
+            # Delete cases.
+            self.DataBook.Delete(I)
+        else:
+            # Read the results and update as necessary.
+            self.DataBook.UpdateDataBook(I)
+        # Write the data book to file.
+        self.DataBook.Write()
+        # Return to original location.
+        os.chdir(fpwd)
         
     # Function to start a case: submit or run
     def StartCase(self, i):
