@@ -26,6 +26,7 @@ from rubberData import RubberData
 from . import options
 from . import case
 from . import mapbc
+from . import dataBook
 # Unmodified CAPE modules
 from cape import convert
 
@@ -135,6 +136,8 @@ class Fun3d(Cntl):
         os.chdir(self.RootDir)
         # Read the data book.
         self.DataBook = dataBook.DataBook(self.x, self.opts)
+        # Save project name
+        self.DataBook.proj = self.GetProjectRootName()
         # Return to original folder.
         os.chdir(fpwd)
         
