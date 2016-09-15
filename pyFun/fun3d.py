@@ -112,6 +112,32 @@ class Fun3d(Cntl):
         return "<pyFun.Fun3d(nCase=%i)>" % (
             self.x.nCase)
         
+    # Function to read the databook.
+    def ReadDataBook(self):
+        """Read the current data book
+        
+        :Call:
+            >>> fun3d.ReadDataBook()
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+        :Versions:
+            * 2016-09-15 ``@ddalle``: First version
+        """
+        # Test for an existing data book.
+        try:
+            self.DataBook
+            return
+        except AttributeError:
+            pass
+        # Go to root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Read the data book.
+        self.DataBook = dataBook.DataBook(self.x, self.opts)
+        # Return to original folder.
+        os.chdir(fpwd)
+        
     # Read the boundary condition map
     def ReadMapBC(self, j=0, q=True):
         """Read the FUN3D boundary condition map

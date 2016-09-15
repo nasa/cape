@@ -75,9 +75,211 @@ class DataBook(cape.dataBook.DataBook):
     :Versions:
         * 2015-10-20 ``@ddalle``: Started
     """
-    pass
+    # Initialize a DBComp object
+    def InitDBComp(self, comp, x, opts, targ=None):
+        """Initialize data book for one component
+        
+        :Call:
+            >>> DB.InitDBComp(comp, x, opts)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *comp*: :class:`str`
+                Name of component
+            *x*: :class:`pyCart.trajectory.Trajectory`
+                The current pyCart trajectory (i.e. run matrix)
+            *opts*: :class:`pyCart.options.Options`
+                Global pyCart options instance
+            *targ*: {``None``} | :class:`str`
+                If used, read a duplicate data book as a target named *targ*
+        :Versions:
+            * 2015-11-10 ``@ddalle``: First version
+            * 2016-06-27 ``@ddalle``: Added *targ* keyword
+        """
+        self[comp] = DBComp(comp, x, opts, targ=targ)
 
+    # Update or add an entry.
+    def UpdateCase(self, i):
+        """Update or add a case to a data book
+        
+        The history of a run directory is processed if either one of three
+        criteria are met.
+        
+            1. The case is not already in the data book
+            2. The most recent iteration is greater than the data book value
+            3. The number of iterations used to create statistics has changed
+        
+        :Call:
+            >>> DB.UpdateCase(i)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *i*: :class:`int`
+                Trajectory index
+        :Versions:
+            * 2014-12-22 ``@ddalle``: First version
+        """
+        # Get the first data book component.
+        DBc = self.GetRefComponent()
+        # Try to find a match existing in the data book.
+        j = DBc.FindMatch(i)
+        # Get the name of the folder.
+        frun = self.x.GetFullFolderNames(i)
+        # Status update.
+        print(frun)
+        # Go home.
+        os.chdir(self.RootDir)
+        # Check if the folder exists.
+        if not os.path.isdir(frun):
+            # Nothing to do.
+            return
+        # Go to the folder.
+        os.chdir(frun)
+        # Get the current iteration number.
+        nIter = GetCurrentIter()
+        # Get the number of iterations used for stats.
+        nStats = self.opts.get_nStats()
+        # Get the iteration at which statistics can begin.
+        nMin = self.opts.get_nMin()
+        # Process whether or not to update.
+        if (not nIter) or (nIter < nMin + nStats):
+            # Not enough iterations (or zero iterations)
+            print("  Not enough iterations (%s) for analysis." % nIter)
+            q = False
+        elif np.isnan(j):
+            # No current entry.
+            print("  Adding new databook entry at iteration %i." % nIter)
+            q = True
+        elif DBc['nIter'][j] < nIter:
+            # Update
+            print("  Updating from iteration %i to %i."
+                % (self[c0]['nIter'][j], nIter))
+            q = True
+        elif DBc['nStats'][j] < nStats:
+            # Change statistics
+            print("  Recomputing statistics using %i iterations." % nStats)
+            q = True
+        else:
+            # Up-to-date
+            print("  Databook up to date.")
+            q = False
+        # Check for an update
+        if (not q): return
+        # Maximum number of iterations allowed.
+        nMax = min(nIter-nMin, self.opts.get_nMaxStats())
+        # Project name
+        proj = self.cntl.GetProjectRootName()
+        # Read residual
+        H = CaseResid(proj)
+        # Loop through components.
+        for comp in self.Components:
+            # Ensure proper type
+            tcomp = self.opts.get_DataBookType(comp)
+            if tcomp not in ['Force', 'Moment', 'FM']: continue
+            # Read the iterative history for that component.
+            FM = CaseFM(proj, comp)
+            # Extract the component databook.
+            DBc = self[comp]
+            # List of transformations
+            tcomp = self.opts.get_DataBookTransformations(comp)
+            # Special transformation to reverse *CLL* and *CLN*
+            tflight = {"Type": "ScaleCoeffs", "CLL": -1.0, "CLN": -1.0}
+            # Check for ScaleCoeffs
+            if tflight not in tcomp:
+                # Append a transformation to reverse *CLL* and *CLN*
+                tcomp.append(tflight)
+            # Loop through the transformations.
+            for topts in tcomp:
+                # Apply the transformation.
+                FM.TransformFM(topts, self.x, i)
+                
+            # Process the statistics.
+            s = FM.GetStats(nStats, nMax)
+            # Get the corresponding residual drop
+            nOrders = H.GetNOrders(s['nStats'])
+            
+            # Save the data.
+            if np.isnan(j):
+                # Add to the number of cases.
+                DBc.n += 1
+                # Append trajectory values.
+                for k in self.x.keys:
+                    # I hate the way NumPy does appending.
+                    DBc[k] = np.append(DBc[k], getattr(self.x,k)[i])
+                # Append values.
+                for c in DBc.DataCols:
+                    DBc[c] = np.hstack((DBc[c], [s[c]]))
+                # Append residual drop.
+                DBc['nOrders'] = np.hstack((DBc['nOrders'], [nOrders]))
+                # Append iteration counts.
+                DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
+                DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
+            else:
+                # No need to update trajectory values.
+                # Update data values.
+                for c in DBc.DataCols:
+                    DBc[c][j] = s[c]
+                # Update the other statistics.
+                DBc['nOrders'][j] = nOrders
+                DBc['nIter'][j]   = nIter
+                DBc['nStats'][j]  = s['nStats']
+        # Go back.
+        os.chdir(self.RootDir)
 # class DataBook
+
+# Component data book
+class DBComp(cape.dataBook.DBComp):
+    """Individual component data book
+    
+    This class is derived from :class:`cape.dataBook.DBBase`. 
+    
+    :Call:
+        >>> DBc = DBComp(comp, x, opts)
+    :Inputs:
+        *comp*: :class:`str`
+            Name of the component
+        *x*: :class:`cape.trajectory.Trajectory`
+            Trajectory for processing variable types
+        *opts*: :class:`cape.options.Options`
+            Global pyCart options instance
+        *targ*: {``None``} | :class:`str`
+            If used, read a duplicate data book as a target named *targ*
+    :Outputs:
+        *DBc*: :class:`pyFun.dataBook.DBComp`
+            An individual component data book
+    :Versions:
+        * 2016-09-15 ``@ddalle``: First version
+ case   """
+    pass
+# class DBComp
+
+
+# Data book target instance
+class DBTarget(cape.dataBook.DBTarget):
+    """
+    Class to handle data from data book target files.  There are more
+    constraints on target files than the files that data book creates, and raw
+    data books created by pyCart are not valid target files.
+    
+    :Call:
+        >>> DBT = pyCart.dataBook.DBTarget(targ, x, opts)
+    :Inputs:
+        *targ*: :class:`pyCart.options.DataBook.DBTarget`
+            Instance of a target source options interface
+        *x*: :class:`pyCart.trajectory.Trajectory`
+            Run matrix interface
+        *opts*: :class:`pyCart.options.Options`
+            Global pyCart options instance to determine which fields are useful
+    :Outputs:
+        *DBT*: :class:`pyCart.dataBook.DBTarget`
+            Instance of the pyCart data book target data carrier
+    :Versions:
+        * 2014-12-20 ``@ddalle``: Started
+    """
+    
+    pass
+# class DBTarget
+    
 
 # Force/moment history
 class CaseFM(cape.dataBook.CaseFM):
