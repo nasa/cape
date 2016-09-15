@@ -190,17 +190,15 @@ class DataBook(cape.dataBook.DataBook):
         if (not q): return
         # Maximum number of iterations allowed.
         nMax = min(nIter-nMin, self.opts.get_nMaxStats())
-        # Project name
-        proj = self.cntl.GetProjectRootName()
         # Read residual
-        H = CaseResid(proj)
+        H = CaseResid(self.proj)
         # Loop through components.
         for comp in self.Components:
             # Ensure proper type
             tcomp = self.opts.get_DataBookType(comp)
             if tcomp not in ['Force', 'Moment', 'FM']: continue
             # Read the iterative history for that component.
-            FM = CaseFM(proj, comp)
+            FM = CaseFM(self.proj, comp)
             # Extract the component databook.
             DBc = self[comp]
             # List of transformations
