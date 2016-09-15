@@ -1619,8 +1619,20 @@ class DBBase(dict):
             xv = self[xk][I]
         # Extract the mean values.
         yv = self[coeff][I]
+        # Default label starter
+        try:
+            # Name of component
+            dlbl = self.comp
+        except AttributeError:
+            # Backup default
+            try:
+                # Name of object
+                dlbl = self.Name
+            except AttributeError:
+                # No default
+                dlbl = ''
         # Initialize label.
-        lbl = kw.get('Label', self.comp)
+        lbl = kw.get('Label', dlbl)
         # -----------------------
         # Standard Deviation Plot
         # -----------------------
