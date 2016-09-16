@@ -270,7 +270,7 @@ class DBComp(cape.dataBook.DBComp):
             An individual component data book
     :Versions:
         * 2016-09-15 ``@ddalle``: First version
- case   """
+    """
     pass
 # class DBComp
 
