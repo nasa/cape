@@ -127,6 +127,42 @@ def RestartCase(i0=None):
         # Simply run the case. Don't reset modules either.
         run_overflow()
     
+# Extend case
+def ExtendCase(m=1, run=True):
+    """Extend the maximum number of iterations and restart/resubmit
+    
+    :Call:
+        >>> ExtendCase(m=1, run=True)
+    :Inputs:
+        *m*: {``1``} | :class:`int`
+            Number of additional sets to add
+        *run*: {``True``} | ``False``
+            Whether or not to actually run the case
+    :Versions:
+        * 2016-09-19 ``@ddalle``: First version
+    """
+    # Check for "RUNNING"
+    if os.path.isfile('RUNNING'): return
+    # Get the current inputs
+    rc = ReadCaseJSON()
+    # Get current number of iterations
+    n = GetCurrentIter()
+    # Check if we have run at least as many iterations as requested
+    if n < rc.get_LastIter(): return
+    # Get phase number
+    j = GetPhaseNumber(rc)
+    # Read the namelist
+    nml = GetNamelist(rc)
+    # Get the number of steps in a phase subrun
+    NSTEPS = nml.GetKeyFromGroupName('GLOBAL', 'NSTEPS')
+    # Add this count (*m* times) to the last iteration setting
+    rc.set_PhaseIters(n+m*NSTEPS, j)
+    # Rewrite the settings
+    WritCaseJSON(rc)
+    # Start the case if appropriate
+    if run:
+        StartCase()
+    
     
 # Write time used
 def WriteUserTime(tic, rc, i, fname="pyover_time.dat"):
@@ -324,6 +360,25 @@ def ReadCaseJSON():
     rc = RunControl(**opts)
     # Output
     return rc
+    
+# (Re)write the local settings file.
+def WriteCaseJSON(rc):
+    """Write or rewrite ``RunControl`` settings to ``case.json``
+    
+    :Call:
+        >>> pyOver.case.WriteCaseJSON(rc)
+    :Inputs:
+        *rc*: :class:`pyFun.options.runControl.RunControl`
+            Options interface for run control settings
+    :Versions:
+        * 2016-09-19 ``@ddalle``: First version
+    """
+    # Open the file for rewrite
+    f = open('case.json', 'w')
+    # Dump the Overflow and other run settings.
+    json.dump(rc, f, indent=1)
+    # Close the file
+    f.close()
     
 
 # Get last line of 'history.dat'
@@ -577,4 +632,5 @@ def LinkX():
     ix = argmax(tx)
     # Link file
     os.symlink(xglob[ix], fname)
+# def LinkX
     
