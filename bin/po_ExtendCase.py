@@ -36,12 +36,12 @@ for the last phase and reading *NSTEPS* from the *GLOBAL* section.
 # Import tools from pyOver
 import pyOver.case
 # Input parsing
-from cape.argread
+import cape.argread
 
 # Check if run as script
 if __name__ == "__main__":
     # Read input flags
-    a, kw = cape.argread.argread(pyOver.case.os.sys.argv)
+    a, kw = cape.argread.readkeys(pyOver.case.os.sys.argv)
     # Check for help flag
     if kw.get('h') or kw.get('help'):
         print(__doc__)

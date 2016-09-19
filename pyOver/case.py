@@ -158,7 +158,7 @@ def ExtendCase(m=1, run=True):
     # Add this count (*m* times) to the last iteration setting
     rc.set_PhaseIters(n+m*NSTEPS, j)
     # Rewrite the settings
-    WritCaseJSON(rc)
+    WriteCaseJSON(rc)
     # Start the case if appropriate
     if run:
         StartCase()
