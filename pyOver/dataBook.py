@@ -1081,19 +1081,24 @@ class CaseResid(cape.dataBook.CaseResid):
         B = np.reshape(A[:nIterRead*nGrid,:], (nIterRead, nGrid, nc))
         # Get iterations
         i = B[:,0,0]
+        # Filter iterations greater than *n*
+        I = i > n
+        i = i[I]
+        # Exit if no iterations
+        if len(i) == 0: return
         # Get global residuals
         if c == "L2":
             # Get weighted sum
-            L = np.sum(B[:,:,1]*B[:,:,2]**2, axis=1)
+            L = np.sum(B[I,:,1]*B[I,:,2]**2, axis=1)
             # Total grid points in each iteration
-            N = np.sum(B[:,:,2], axis=1)
+            N = np.sum(B[I,:,2], axis=1)
             # Divide by number of grid points, and take square root
             L = np.sqrt(L/N)
             # Append to data
             self.L2 = np.hstack((self.L2, L))
         else:
             # Get the maximum value
-            L = np.max(B[:,:,1], axis=1)
+            L = np.max(B[I,:,1], axis=1)
             # Append to data
             self.LInf = np.hstack((self.LInf, L))
         # Check for issues

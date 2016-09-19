@@ -4294,6 +4294,13 @@ class CaseResid(object):
         # --------
         # Extract iteration numbers and residuals.
         i  = self.i[i0:]
+        # Handling for multiple residuals at same iteration
+        di = np.diff(i) != 0
+        # First residual at each iteration and last residual at each iteration
+        I0 = np.hstack(([True], di))
+        I1 = np.hstack((di, [True]))
+        # Exclude all *I1* iterations from *I0*
+        I0 = np.logical_and(I0, np.logical_not(I1))
         # Nominal residual
         try:
             L1 = getattr(self,c)[i0:]
@@ -4309,10 +4316,17 @@ class CaseResid(object):
             # Trim it.
             L0 = L0[:len(i)]
         # Plot the initial residual if there are any unsteady iterations.
+        # (Using specific attribute like "L2Resid0")
         if L0[-1] > L1[-1]:
             h['L0'] = plt.semilogy(i, L0, 'b-', lw=1.2)
         # Plot the residual.
-        h['L1'] = plt.semilogy(i, L1, 'k-', lw=1.5)
+        if np.all(I1):
+            # Plot all residuals (no subiterations detected)
+            h['L1'] = plt.semilogy(i, L1, 'k-', lw=1.5)
+        else:
+            # Plot first and last subiteration separately
+            h['L0'] = plt.semilogy(i[I0], L1[I0], 'b-', lw=1.2)
+            h['L1'] = plt.semilogy(i[I1], L1[I1], 'k-', lw=1.5)
         # Labels
         h['x'] = plt.xlabel('Iteration Number')
         h['y'] = plt.ylabel(kw.get('YLabel', c))
