@@ -95,6 +95,8 @@ class Options(odict):
         self._DataBook()
         self._Config()
         self._RunControl()
+        # Pre/post-processing PBS jobs
+        self._PrePBS()
         # Add extra folders to path.
         self.AddPythonPath()
         
@@ -184,6 +186,24 @@ class Options(odict):
                 tmp["PBS_"+k] = self['PBS'][k]
             # Convert to special class.
             self['PBS'] = PBS(**tmp)
+            
+    # Initialize pre-processing PBS options
+    def _PrePBS(self):
+        """Initialize preprocessing PBS options if necessary"""
+        # Check status
+        if 'PrePBS' not in self:
+            # Missing entirely; copy from 'PBS'
+            self['PrePBS'] = self['PBS']
+        elif type(self['PrePBS']).__name__ == 'dict':
+            # Add prefix to all the keys.
+            tmp = {}
+            for k in self['PrePBS']:
+                tmp["PBS_"+k] = self['PrePBS'][k]
+            # Convert to special class
+            self['PrePBS'] = PBS(**tmp)
+            # Copy any non-explicit settings from main "PBS" section
+            for k in self['PBS']:
+                self['PrePBS'].setdefault(k, self['PBS'][k])
             
     # Initialization method for databook
     def _DataBook(self):
