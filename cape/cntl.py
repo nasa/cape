@@ -440,13 +440,13 @@ class Cntl(object):
             # Print info
             if qJobID and jobID in jobs:
                 # Print job number.
-                print(stncl % (j, frun, sts, itr, que, CPUt, jobID))
+                print(stncl % (i, frun, sts, itr, que, CPUt, jobID))
             elif qJobID:
                 # Print blank job number.
-                print(stncl % (j, frun, sts, itr, que, CPUt, ""))
+                print(stncl % (i, frun, sts, itr, que, CPUt, ""))
             else:
                 # No job number.
-                print(stncl % (j, frun, sts, itr, que, CPUt))
+                print(stncl % (i, frun, sts, itr, que, CPUt))
             # Check for queue killing
             if qKill and (n is not None) and (jobID in jobs):
                 # Delete it.
