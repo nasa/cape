@@ -79,6 +79,9 @@ class Options(cape.options.Options):
         self._Functional()
         self._DataBook()
         self._Report()
+        # Pre/post-processing PBS settings
+        self._BatchPBS()
+        self._PostPBS()
         # Add extra folders to path.
         self.AddPythonPath()
     

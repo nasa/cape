@@ -1078,11 +1078,11 @@ class Cntl(object):
         return pbs
         
     # Write a PBS header
-    def WritePBSHeader(self, f, i, j):
+    def WritePBSHeader(self, f, i, j, typ=None):
         """Write common part of PBS script
         
         :Call:
-            >>> cntl.WritePBSHeader(f, i, j)
+            >>> cntl.WritePBSHeader(f, i, j, typ=None)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class containing relevant parameters
@@ -1092,11 +1092,14 @@ class Cntl(object):
                 Case index
             *j*: :class:`int`
                 Run index
+            *typ*: {``None``} | ``"batch"`` | ``"post"``
+                Group of PBS options to use
         :Versions:
             * 2015-09-30 ``@ddalle``: Separated from WritePBS
+            * 2016-09-25 ``@ddalle``: Supporting "BatchPBS" and "PostPBS"
         """
         # Get the shell path (must be bash)
-        sh = self.opts.get_PBS_S(j)
+        sh = self.opts.get_PBS_S(j, typ=typ)
         # Write to script both ways.
         f.write('#!%s\n' % sh)
         f.write('#PBS -S %s\n' % sh)
@@ -1105,18 +1108,18 @@ class Cntl(object):
         # Write it to the script
         f.write('#PBS -N %s\n' % lbl)
         # Get the rerun status.
-        PBS_r = self.opts.get_PBS_r(j)
+        PBS_r = self.opts.get_PBS_r(j, typ=typ)
         # Write if specified.
         if PBS_r: f.write('#PBS -r %s\n' % PBS_r)
         # Get the option for combining STDIO/STDOUT
-        PBS_j = self.opts.get_PBS_j(j)
+        PBS_j = self.opts.get_PBS_j(j, typ=typ)
         # Write if specified.
         if PBS_j: f.write('#PBS -j %s\n' % PBS_j)
         # Get the number of nodes, etc.
-        nnode = self.opts.get_PBS_select(j)
-        ncpus = self.opts.get_PBS_ncpus(j)
-        nmpis = self.opts.get_PBS_mpiprocs(j)
-        smodl = self.opts.get_PBS_model(j)
+        nnode = self.opts.get_PBS_select(j, typ=typ)
+        ncpus = self.opts.get_PBS_ncpus(j, typ=typ)
+        nmpis = self.opts.get_PBS_mpiprocs(j, typ=typ)
+        smodl = self.opts.get_PBS_model(j, typ=typ)
         # Form the -l line.
         line = '#PBS -l select=%i:ncpus=%i' % (nnode, ncpus)
         # Add other settings
@@ -1125,15 +1128,15 @@ class Cntl(object):
         # Write the line.
         f.write(line + '\n')
         # Get the walltime.
-        t = self.opts.get_PBS_walltime(j)
+        t = self.opts.get_PBS_walltime(j, typ=typ)
         # Write it.
         f.write('#PBS -l walltime=%s\n' % t)
         # Check for a group list.
-        PBS_W = self.opts.get_PBS_W(j)
+        PBS_W = self.opts.get_PBS_W(j, typ=typ)
         # Write if specified.
         if PBS_W: f.write('#PBS -W %s\n' % PBS_W)
         # Get the queue.
-        PBS_q = self.opts.get_PBS_q(j)
+        PBS_q = self.opts.get_PBS_q(j, typ=typ)
         # Write it.
         if PBS_q: f.write('#PBS -q %s\n\n' % PBS_q)
         
