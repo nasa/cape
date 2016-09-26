@@ -159,17 +159,10 @@ def UH3D2Tri(*a, **kw):
     dx = kw.get('dx')
     dy = kw.get('dy')
     dz = kw.get('dz')
-    print("dx = %s" % dx)
-    K = np.unique(tri.Tris[tri.CompID==6])
-    print("xmin(FlangeC) = %s" % min(tri.Nodes[K-1,0]))
     # Apply nudges
     if dx is not None: tri.Nodes[:,0] += float(dx)
     if dy is not None: tri.Nodes[:,1] += float(dy)
     if dz is not None: tri.Nodes[:,2] += float(dz)
-
-
-    K = np.unique(tri.Tris[tri.CompID==6])
-    print("xmin(FlangeC) = %s" % min(tri.Nodes[K-1,0]))
     
     # Get write options
     if kw.get('binary', False):
