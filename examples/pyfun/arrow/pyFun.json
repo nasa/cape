@@ -1,0 +1,246 @@
+{
+
+    "Namelist": "fun3d.nml",
+
+    "RunControl": {
+        // Iteration control
+        "nIter": [500, 500],
+        "PhaseIters": [0, 1000],
+        "PhaseSequence": [0,1],
+        // Mode control
+        "qsub": false,
+        "MPI": false,
+        // FUN3D command-line options
+        "nodet": {
+            "animation_freq": 500
+        }
+    },
+
+    "Fun3D": {
+        "nonlinear_solver_parameters": {
+            "schedule_cfl": [[0.1, 10.0], [10.0, 10.0]],
+            "schedule_cflturb": [[0.1, 2.0], [2.0, 2.0]]
+        },
+        "global": {
+            "volume_animation_freq": -1
+        },
+        "code_run_control": {
+            "restart_read": ["off", "on"]
+        },
+        "inviscid_flux_method": {
+            "first_order_iterations": [0, 250, 0],
+            "flux_construction": "vanleer",
+            "flux_construction_lhs": "vanleer",
+            "flux_limiter": "hvanalbada",
+            "freeze_limiter_iteration": [750, 500]
+        },
+        "special_parameters": {
+            "large_angle_fix": "on"
+        },
+        "boundary_output_variables": {
+            "boundary_list": "7-13",
+            "cp": true,
+            "ptot": true
+        }
+    },
+
+    "Mesh": {
+        "MeshFile": ["arrow-far.ugrid"],
+        "BCFile":    "arrow-far.mapbc",
+        "TriFile":   "arrow-far.tri"
+    },
+
+    "Config": {
+        // Name configuration file
+        "File": "arrow-far.xml",
+        // Reference quantities
+        "RefArea": 3.14159,
+        "RefLength": 1.0,
+        "RefPoint": {
+            "entire":          "MRP",
+            "bullet_no_base":  "MRP",
+            "body":            "MRP"
+        },
+        // Points
+        "Points": {
+            "nose": [0.0, 0.0, 0.0],
+            "MRP":  [1.75, 0.0, 0.0]
+        },
+        // List of components
+        "Components": [
+            "bullet_no_base", "bullet_total",
+            "cap", "body", "fuselage", "base",
+            "fins", "fin1", "fin2", "fin3", "fin4"
+        ],
+        // Faces in each component
+        "Inputs": {
+            "bullet_no_base": "7-8,10-13",
+            "bullet_total":   "7-13",
+            "cap":            "7",
+            "body":           "8",
+            "fuselage":       "7-8",
+            "base":           "3",
+            "fin1":           "10",
+            "fin2":           "11",
+            "fin3":           "12",
+            "fin4":           "13",
+            "fins":           "10-13"
+        }
+    },
+    "DataBook": {
+        "Components": [
+            "bullet_no_base", "bullet_total",
+            "cap", "body", "fuselage", "base",
+            "fins", "fin1", "fin2", "fin3", "fin4"
+        ],
+        "nStats": 300,
+        "nMin": 1500,
+        "Folder": "data/arrow"
+    },
+    "Report": {
+        "Reports": "case",
+        "Archive": true,
+        "case": {
+            "Figures": ["Summary", "QuickHistory"],
+            "Title": "FUN3D Force, Moment, \\& Residual Report",
+            "Subtitle": "pyFun example problem: arrow",
+            "Author": "Derek J.~Dalle",
+            "Affiliation": "NASA ARC/TNA",
+            "Logo": "NASA_logo.pdf",
+            "Frontispiece": "NASA_logo.pdf",
+            "Restriction": "Distribution Unlimited"
+        },
+        // Definitions for each figure
+        "Figures": {
+            // Conditions and coefficients table
+            "Summary": {
+                "Subfigures": ["CaseConds", "CoeffTable"],
+                "Alignment": "left"
+            },
+            // Basic iterative history plots
+            "QuickHistory": {
+                "Subfigures": [
+                    "bullet_CA", "body_CA", "fin_CA",
+                    "bullet_CN", "body_CN", "fin_CN",
+                    "L2", "R1Resid", "R6Resid"
+                ],
+                "Header": "Iterative histories",
+                "Alignment": "center"
+            }
+        },
+        // Definitions for each subfigure
+        "Subfigures": {
+            // List of conditions
+            "CaseConds": {
+                "Type": "Conditions",
+                "Header": "Conditions",
+                "Position": "t",
+                "Width": 0.28,
+                "SkipVars": []
+            },
+            // Table of force and moment coefficients
+            "CoeffTable": {
+                "Type": "Summary",
+                "Header": "Force \\& moment summary",
+                "Position": "t",
+                "Width": 0.72,
+                "Iteration": 0,
+                "Components": ["bullet_no_base", "fuselage", "fins"],
+                "Coefficients": ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
+            },
+            // Total forces and moments (except base)
+            "bullet": {
+                "Type": "PlotCoeff",
+                "Width": 0.33,
+                "FigureWidth": 5.5,
+                "FigureHeight": 4.2,
+                "nAverage": 200,
+                "nPlotFirst": 1,
+                "Component": "bullet_no_base",
+                "StandardDeviation": 1.0,
+                "Delta": 0.05
+            },
+            "bullet_CA": {"Type":  "bullet", "Coefficient": "CA"},
+            "bullet_CY": {"Type":  "bullet", "Coefficient": "CY"},
+            "bullet_CN": {"Type":  "bullet", "Coefficient": "CN"},
+            "bullet_CLL": {"Type": "bullet", "Coefficient": "CLL"},
+            "bullet_CLM": {"Type": "bullet", "Coefficient": "CLM"},
+            "bullet_CLN": {"Type": "bullet", "Coefficient": "CLN"},
+            // Fuselage figures
+            "body": {
+                "Type": "bullet",
+                "Component": "body"
+            },
+            "body_CA":  {"Type": "body", "Coefficient": "CA"},
+            "body_CY":  {"Type": "body", "Coefficient": "CY"},
+            "body_CN":  {"Type": "body", "Coefficient": "CN"},
+            "body_CLL": {"Type": "body", "Coefficient": "CLL"},
+            "body_CLM": {"Type": "body", "Coefficient": "CLM"},
+            "body_CLN": {"Type": "body", "Coefficient": "CLN"},
+            // Fin figures
+            "fin": {
+                "Type": "bullet",
+                "Component": ["fin1", "fin2", "fin3", "fin4"]
+            },
+            "fin_CA":  {"Type": "fin", "Coefficient": "CA"},
+            "fin_CY":  {"Type": "fin", "Coefficient": "CY"},
+            "fin_CN":  {"Type": "fin", "Coefficient": "CN"},
+            "fin_CLL": {"Type": "fin", "Coefficient": "CLL"},
+            "fin_CLM": {"Type": "fin", "Coefficient": "CLM"},
+            "fin_CLN": {"Type": "fin", "Coefficient": "CLN"},
+            // Residuals
+            "L2": {
+                "Type": "PlotL2",
+                "Width": 0.33,
+                "Caption": "Global $L_2$ residual",
+                "nPlotFirst": 1,
+                "FigureWidth": 5.5,
+                "FigureHeight": 4.2
+            },
+            "CaseResid": {
+                "Type": "PlotResid",
+                "Width": 0.33,
+                "nPlotFirst": 1,
+                "FigureWidth": 5.5,
+                "FigureHeight": 4.2
+            },
+            "R1Resid": {
+                "Type": "CaseResid",
+                "Residual": "R_1",
+                "Caption": "Density $L_2$ residual",
+                "YLabel": "Density residual"
+            },
+            "R6Resid": {
+                "Type": "CaseResid",
+                "Residual": "R_6",
+                "Caption": "Turbulence $L_2$ residual",
+                "YLabel": "Turbulence residual"
+            }
+        }
+    },
+    
+    // Run matrix description
+    "Trajectory": {
+        // File and variable list
+        "File": "",
+        "Keys": [
+            "mach", "alpha", "beta", "Re", "T", "config", "Label"
+        ],
+        // Modify one definition
+        "Definitions": {
+            "mach": {"Format": "%.2f"}
+        },
+        // Group settings
+        "GroupPrefix": "poweroff",
+        "GroupMesh": false,
+        // Label universal
+        "Label": "",
+        "config": "arrow",
+        // Local values
+        "mach":  [0.8, 0.8, 0.84, 1.2],
+        "alpha": [0.0, 2.0, 0.0,  0.0],
+        "beta":  [0.0, 0.0, 0.0,  0.0],
+        "Re":    [1e3, 1e3, 1e4,  1e4],
+        "T":     [478, 478, 478,  478]
+    }
+}
