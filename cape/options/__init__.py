@@ -96,7 +96,8 @@ class Options(odict):
         self._Config()
         self._RunControl()
         # Pre/post-processing PBS jobs
-        self._PrePBS()
+        self._BatchPBS()
+        self._PostPBS()
         # Add extra folders to path.
         self.AddPythonPath()
         
@@ -188,22 +189,40 @@ class Options(odict):
             self['PBS'] = PBS(**tmp)
             
     # Initialize pre-processing PBS options
-    def _PrePBS(self):
-        """Initialize preprocessing PBS options if necessary"""
+    def _BatchPBS(self):
+        """Initialize preprocessing/batch PBS options if necessary"""
         # Check status
-        if 'PrePBS' not in self:
+        if 'BatchPBS' not in self:
             # Missing entirely; copy from 'PBS'
-            self['PrePBS'] = self['PBS']
-        elif type(self['PrePBS']).__name__ == 'dict':
+            self['BatchPBS'] = self['PBS']
+        elif type(self['BatchPBS']).__name__ == 'dict':
             # Add prefix to all the keys.
             tmp = {}
-            for k in self['PrePBS']:
-                tmp["PBS_"+k] = self['PrePBS'][k]
+            for k in self['BatchPBS']:
+                tmp["PBS_"+k] = self['BatchPBS'][k]
             # Convert to special class
-            self['PrePBS'] = PBS(**tmp)
+            self['BatchPBS'] = PBS(**tmp)
             # Copy any non-explicit settings from main "PBS" section
             for k in self['PBS']:
-                self['PrePBS'].setdefault(k, self['PBS'][k])
+                self['BatchPBS'].setdefault(k, self['PBS'][k])
+                
+    # Initialize post-processing PBS options
+    def _PostPBS(self):
+        """Initialize post-processing PBS options if necessary"""
+        # Check status
+        if 'PostPBS' not in self:
+            # Missing entirely; copy from 'PBS'
+            self['PostPBS'] = self['PBS']
+        elif type(self['PostPBS']).__name__ == 'dict':
+            # Add prefix to all the keys
+            tmp = {}
+            for k in self['PostPBS']:
+                tmp["PBS_"+k] = self['PostPBS'][k]
+            # Convert to special class
+            self['PostPBS'] = PBS(**tmp)
+            # Copy any implicit settings from main "PBS" section
+            for k in self['PBS']:
+                self['PostPBS'].setdefault(k, self['PBS'][k])
             
     # Initialization method for databook
     def _DataBook(self):
@@ -764,110 +783,341 @@ class Options(odict):
    # <
     
     # Get number of unique PBS scripts
-    def get_nPBS(self):
-        self._PBS()
-        return self['PBS'].get_nPBS()
+    def get_nPBS(self, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            return self['BatchPBS'].get_nPBS()
+        elif typ == 'post':
+            self._PostPBS()
+            return self['PostPBS'].get_nPBS()
+        else:
+            self._PBS()
+            return self['PBS'].get_nPBS()
     get_nPBS.__doc__ = PBS.get_nPBS.__doc__
     
     # Get PBS *join* setting
-    def get_PBS_j(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_j(i)
+    def get_PBS_j(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            return self['BatchPBS'].get_PBS_j(i)
+        elif typ == 'post':
+            self._PostPBS()
+            return self['PostPBS'].get_PBS_j(i)
+        else:
+            self._PBS()
+            return self['PBS'].get_PBS_j(i)
         
     # Set PBS *join* setting
-    def set_PBS_j(self, j=rc0('PBS_j'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_j(j, i)
+    def set_PBS_j(self, j=rc0('PBS_j'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            self['BatchPBS'].set_PBS_j(j, i)
+        elif typ == 'post':
+            self._PostPBS()
+            self['PostPBS'].set_PBS_j(j, i)
+        else:
+            self._PBS()
+            self['PBS'].set_PBS_j(j, i)
     
     # Get PBS *rerun* setting
-    def get_PBS_r(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_r(i)
+    def get_PBS_r(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            return self['BatchPBS'].get_PBS_r(i)
+        elif typ == 'post':
+            self._PostPBS()
+            return self['PostPBS'].get_PBS_r(i)
+        else:
+            self._PBS()
+            return self['PBS'].get_PBS_r(i)
         
     # Set PBS *rerun* setting
-    def set_PBS_r(self, r=rc0('PBS_r'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_r(r, i)
+    def set_PBS_r(self, r=rc0('PBS_r'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            self['BatchPBS'].set_PBS_r(r, i)
+        elif typ == 'post':
+            self._PostPBS()
+            self['PostPBS'].set_PBS_r(r, i)
+        else:
+            self._PBS()
+            self['PBS'].set_PBS_r(r, i)
     
     # Get PBS shell setting
-    def get_PBS_S(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_S(i)
+    def get_PBS_S(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            return self['BatchPBS'].get_PBS_S(i)
+        elif typ == 'post':
+            self._PostPBS()
+            return self['PostPBS'].get_PBS_S(i)
+        else:
+            self._PBS()
+            return self['PBS'].get_PBS_S(i)
         
     # Set PBS shell setting
-    def set_PBS_S(self, S=rc0('PBS_S'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_S(S, i)
+    def set_PBS_S(self, S=rc0('PBS_S'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            self['BatchPBS'].set_PBS_S(S, i)
+        elif typ == 'post':
+            self._PostPBS()
+            self['PostPBS'].set_PBS_S(S, i)
+        else:
+            self._PBS()
+            self['PBS'].set_PBS_S(S, i)
     
     # Get PBS nNodes setting
-    def get_PBS_select(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_select(i)
+    def get_PBS_select(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            return self['BatchPBS'].get_PBS_select(i)
+        elif typ == 'post':
+            self._PostPBS()
+            self['PostPBS'].get_PBS_select(i)
+        else:
+            self._PBS()
+            return self['PBS'].get_PBS_select(i)
         
     # Set PBS nNodes setting
-    def set_PBS_select(self, n=rc0('PBS_select'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_select(n, i)
+    def set_PBS_select(self, n=rc0('PBS_select'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            self['BatchPBS'].set_PBS_select(n, i)
+        elif typ == 'post':
+            self._PostPBS()
+            self['PostPBS'].set_PBS_select(n, i)
+        else:
+            self._PBS()
+            self['PBS'].set_PBS_select(n, i)
     
-    # Get PBS CPUS/node setting
-    def get_PBS_ncpus(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_ncpus(i)
+    # Get PBS CPUs/node setting
+    def get_PBS_ncpus(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            return self['BatchPBS'].get_PBS_ncpus(i)
+        elif typ == 'post':
+            self._PostPBS()
+            return self['PostPBS'].get_PBS_ncpus(i)
+        else:
+            self._PBS()
+            return self['PBS'].get_PBS_ncpus(i)
         
     # Set PBS CPUs/node setting
-    def set_PBS_ncpus(self, n=rc0('PBS_ncpus'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_ncpus(n, i)
+    def set_PBS_ncpus(self, n=rc0('PBS_ncpus'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            self['BatchPBS'].set_PBS_ncpus(n, i)
+        elif typ == 'post':
+            self._PostPBS()
+            self['PostPBS'].set_PBS_ncpus(n, i)
+        else:
+            self._PBS()
+            self['PBS'].set_PBS_ncpus(n, i)
     
     # Get PBS MPI procs/node setting
-    def get_PBS_mpiprocs(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_mpiprocs(i)
+    def get_PBS_mpiprocs(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            return self['BatchPBS'].get_PBS_mpiprocs(i)
+        elif typ == 'post':
+            self._PostPBS()
+            return self['PostPBS'].get_PBS_mpiprocs(i)
+        else:
+            self._PBS()
+            return self['PBS'].get_PBS_mpiprocs(i)
         
     # Set PBS *rerun* setting
-    def set_PBS_mpiprocs(self, n=rc0('PBS_mpiprocs'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_mpiprocs(n, i)
+    def set_PBS_mpiprocs(self, n=rc0('PBS_mpiprocs'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            self['BatchPBS'].set_PBS_mpiprocs(n, i)
+        elif typ == 'post':
+            self._PostPBS()
+            self['PostPBS'].set_PBS_mpiprocs(n, i)
+        else:
+            self._PBS()
+            self['PBS'].set_PBS_mpiprocs(n, i)
     
     # Get PBS model or arch setting
-    def get_PBS_model(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_model(i)
+    def get_PBS_model(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            return self['BatchPBS'].get_PBS_model(i)
+        elif typ == 'post':
+            self._PostPBS()
+            return self['PostPBS'].get_PBS_model(i)
+        else:
+            self._PBS()
+            return self['PBS'].get_PBS_model(i)
         
     # Set PBS model or arch setting
-    def set_PBS_model(self, s=rc0('PBS_model'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_model(s, i)
+    def set_PBS_model(self, s=rc0('PBS_model'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            self['BatchPBS'].set_PBS_model(s, i)
+        elif typ == 'post':
+            self._PostPBS()
+            self['PostPBS'].set_PBS_model(s, i)
+        else:
+            self._PBS()
+            self['PBS'].set_PBS_model(s, i)
     
     # Get PBS group setting
-    def get_PBS_W(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_W(i)
+    def get_PBS_W(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            return self['BatchPBS'].get_PBS_W(i)
+        elif typ == 'post':
+            self._PostPBS()
+            return self['PostPBS'].get_PBS_W(i)
+        else:
+            self._PBS()
+            return self['PBS'].get_PBS_W(i)
         
     # Set PBS group setting
-    def set_PBS_W(self, W=rc0('PBS_W'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_W(W, i)
+    def set_PBS_W(self, W=rc0('PBS_W'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            self['BatchPBS'].set_PBS_W(W, i)
+        elif typ == 'post':
+            self._PostPBS()
+            self['PostPBS'].set_PBS_W(W, i)
+        else:
+            self._PBS()
+            self['PBS'].set_PBS_W(W, i)
     
     # Get PBS queue setting
-    def get_PBS_q(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_q(i)
+    def get_PBS_q(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            return self['BatchPBS'].get_PBS_q(i)
+        elif typ == 'post':
+            self._PostPBS()
+            return self['PostPBS'].get_PBS_q(i)
+        else:
+            self._PBS()
+            return self['PBS'].get_PBS_q(i)
         
     # Set PBS queue setting
-    def set_PBS_q(self, q=rc0('PBS_q'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_q(q, i)
+    def set_PBS_q(self, q=rc0('PBS_q'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            self['BatchPBS'].set_PBS_q(q, i)
+        elif typ == 'post':
+            self._PostPBS()
+            self['PostPBS'].set_PBS_q(q, i)
+        else:
+            self._PBS()
+            self['PBS'].set_PBS_q(q, i)
     
     # Get PBS walltime setting
-    def get_PBS_walltime(self, i=None):
-        self._PBS()
-        return self['PBS'].get_PBS_walltime(i)
+    def get_PBS_walltime(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            return self['BatchPBS'].get_PBS_walltime(i)
+        elif typ == 'post':
+            self._PostPBS()
+            return self['PostPBS'].get_PBS_walltime(i)
+        else:
+            self._PBS()
+            return self['PBS'].get_PBS_walltime(i)
         
     # Set PBS walltime setting
-    def set_PBS_walltime(self, t=rc0('PBS_walltime'), i=None):
-        self._PBS()
-        self['PBS'].set_PBS_walltime(t, i)
+    def set_PBS_walltime(self, t=rc0('PBS_walltime'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            self['BatchPBS'].set_PBS_walltime(t, i)
+        elif typ == 'post':
+            self._PostPBS()
+            self['PostPBS'].set_PBS_walltime(t, i)
+        else:
+            self._PBS()
+            self['PBS'].set_PBS_walltime(t, i)
         
     # Copy over the documentation.
     for k in ['PBS_j', 'PBS_r', 'PBS_S', 'PBS_select', 'PBS_mpiprocs',

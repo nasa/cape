@@ -79,6 +79,9 @@ class Options(cape.options.Options):
         self._Mesh()
         self._Config()
         self._Functional()
+        # Pre/post-processings PBS settings
+        self._BatchPBS()
+        self._PostPBS()
         # Add extra folders to path.
         self.AddPythonPath()
     

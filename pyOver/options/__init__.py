@@ -75,8 +75,9 @@ class Options(cape.options.Options):
         self._Grids()
         self._Mesh()
         self._Config()
-        # Pre/post-processing PBS options
-        self._PrePBS()
+        # Pre/post-processings PBS settings
+        self._BatchPBS()
+        self._PostPBS()
         # Add extra folders to path.
         self.AddPythonPath()
     
