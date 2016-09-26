@@ -858,7 +858,7 @@ class Options(odict):
             self['BatchPBS'].set_PBS_r(r, i)
         elif typ == 'post':
             self._PostPBS()
-            self.['PostPBS'].set_PBS_r(r, i)
+            self['PostPBS'].set_PBS_r(r, i)
         else:
             self._PBS()
             self['PBS'].set_PBS_r(r, i)

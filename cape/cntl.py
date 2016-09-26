@@ -30,13 +30,16 @@ import numpy as np
 # Configuration file processor
 import json
 # File system
-import os, shutil
+import os, shutil, glob
+# Timing
+from datetime import datetime
 
 # Local modules
 from . import options
 from . import queue
 from . import case
 from . import convert
+from . import argread
 
 # Functions and classes from other modules
 from trajectory import Trajectory
@@ -1078,22 +1081,24 @@ class Cntl(object):
         return pbs
         
     # Write a PBS header
-    def WritePBSHeader(self, f, i, j, typ=None):
+    def WritePBSHeader(self, f, i=None, j=0, typ=None, wd=None):
         """Write common part of PBS script
         
         :Call:
-            >>> cntl.WritePBSHeader(f, i, j, typ=None)
+            >>> cntl.WritePBSHeader(f, i=None, j=0, typ=None, wd=None)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *f*: :class:`file`
                 Open file handle
-            *i*: :class:`int`
-                Case index
+            *i*: {``None``} | ``:class:`int`
+                Case index (ignore if ``None``); used for PBS job name
             *j*: :class:`int`
                 Run index
             *typ*: {``None``} | ``"batch"`` | ``"post"``
                 Group of PBS options to use
+            *wd*: {``None``} | :class:`str`
+                Folder to enter when starting the job
         :Versions:
             * 2015-09-30 ``@ddalle``: Separated from WritePBS
             * 2016-09-25 ``@ddalle``: Supporting "BatchPBS" and "PostPBS"
@@ -1104,7 +1109,14 @@ class Cntl(object):
         f.write('#!%s\n' % sh)
         f.write('#PBS -S %s\n' % sh)
         # Get the shell name.
-        lbl = self.GetPBSName(i)
+        if i is None:
+            # Batch job
+            lbl = '%s-batch' % self.__module__.split('.')[0].lower()
+            # Ensure length
+            if len(lbl) > 15: lbl = lbl[:15]
+        else:
+            # Case PBS job name
+            lbl = self.GetPBSName(i)
         # Write it to the script
         f.write('#PBS -N %s\n' % lbl)
         # Get the rerun status.
@@ -1140,9 +1152,16 @@ class Cntl(object):
         # Write it.
         if PBS_q: f.write('#PBS -q %s\n\n' % PBS_q)
         
+        # Process working directory
+        if wd is None:
+            # Default to current directory
+            pbsdir = os.getcwd()
+        else:
+            # Use the input
+            pbsdir = wd
         # Go to the working directory.
         f.write('# Go to the working directory.\n')
-        f.write('cd %s\n\n' % os.getcwd())
+        f.write('cd %s\n\n' % pbsdir)
 
         # Get umask option
         umask = self.opts.get_umask()
@@ -1157,6 +1176,100 @@ class Cntl(object):
         for line in self.opts.get_ShellCmds():
             # Write it.
             f.write('%s\n' % line)
+            
+    # Write batch PBS job
+    def SubmitBatchPBS(self, argv):
+        """Write a PBS script for a batch run
+        
+        :Call:
+            >>> cntl.SubmitBatchPBS(argv)
+        :Inputs:
+            *argv*: :class:`list` (:class:`str`)
+                List of command-line inputs
+        :Versions:
+            * 2016-09-25 ``@ddalle``: First version
+        """
+        # -------------------
+        # Command preparation
+        # -------------------
+        # Process keys as keys
+        a, kw = argread.readkeys(argv)
+        # Check for alternate input method
+        if kw.get('keys', False):
+            # Do nothing
+            pass
+        elif kw.get('flags', False):
+            # Reprorcess as flags
+            a, kw = argread.readflags(argv)
+        else:
+            # Default: process like tar
+            a, kw = argread.readflagstar(argv)
+        # Initialize the command
+        if 'prog' in kw:
+            # Initialize command with specific program
+            cmdi = [kw['prog']]
+        else:
+            # Initialize command with same program as argv
+            cmdi = [argv[0]]
+        # Loop through non-keyword arguments
+        for ai in a: cmdi.append(a)
+        # Loop through keyword arguments
+        for k in kw:
+            # Check for skipped keys
+            if k in ['batch', 'flags', 'keys', 'prog']:
+                continue
+            # Otherwise process the keyword argument
+            v = kw[k]
+            # Check the value
+            if v == False:
+                # Skip
+                continue
+            elif v == True:
+                # No extra value
+                cmdi.append('-%s' % k)
+            else:
+                # Append the key and value
+                cmdi.append('--%s' % k)
+                cmdi.append('%s' % v)
+        # ------------------
+        # Folder preparation
+        # ------------------
+        # Go to the root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Create the folder if necessary
+        if not os.path.isdir('batch-pbs'): os.mkdir('batch-pbs')
+        # Enter the batch pbs folder
+        os.chdir('batch-pbs')
+        # ----------------
+        # File preparation
+        # ----------------
+        # File name header
+        prog = self.__module__.split('.')[0].lower()
+        # Current time
+        fnow = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        # File name
+        fpbs = '%s-%s.pbs' % (prog, fnow)
+        # Write the file
+        f = open(fpbs, 'w')
+        # Write header
+        self.WritePBSHeader(f, typ='batch', wd=self.RootDir)
+        # Write the command
+        f.write('%s\n' % (" ".join(cmdi)))
+        # Close the file
+        f.close()
+        # ------------------
+        # Submit and Cleanup
+        # ------------------
+        # Submit the job
+        pbs = queue.pqsub(fpbs)
+        # Write the job number
+        f = open('jobID.dat', 'a')
+        f.write('%s\n' % pbs)
+        f.close()
+        # Return to original location
+        os.chdir(fpwd)
+            
         
     # Check if a case is running.
     def CheckRunning(self, i):
