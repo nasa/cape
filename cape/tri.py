@@ -1010,7 +1010,7 @@ class TriBase(object):
             self.WriteFast(fname)
         except Exception:
             # Slow method using Python code.
-            self.WriteSlow(fname)
+            self.WriteSlow_ASCII(fname)
     
     # Function to write a triangulation to file as fast as possible.
     def WriteFast(self, fname='Components.i.tri'):
@@ -1037,7 +1037,7 @@ class TriBase(object):
             
     
     # Function to write a triangulation to file the old-fashioned way.
-    def WriteASCIISlow(self, fname='Components.i.tri', nq=None):
+    def WriteSlow_ASCII(self, fname='Components.i.tri', nq=None):
         """Write a triangulation to file
         
         :Call:
