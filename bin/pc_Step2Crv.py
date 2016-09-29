@@ -161,7 +161,7 @@ def Step2Crv(*a, **kw):
     stp.WritePlot3DCurves(fcrv, bin=False)
     
 
-# Only process inputs if called as a script!
+# Only process inputs if called as a script
 if __name__ == "__main__":
     # Process the command-line interface inputs.
     (a, kw) = argr.readkeys(sys.argv)

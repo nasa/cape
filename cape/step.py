@@ -647,4 +647,5 @@ class STEP(object):
             zj.astype(df).tofile(f, sep=" ")
         # Close the file
         f.close()
+    
 # class STEP

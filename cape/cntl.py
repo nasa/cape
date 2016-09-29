@@ -46,7 +46,8 @@ from trajectory import Trajectory
 from config     import Config
 
 # Import triangulation
-from tri import Tri, RotatePoints, ReadTriFile
+from .tri  import Tri, ReadTriFile
+from .geom import RotatePoints
 
 # Class to read input files
 class Cntl(object):

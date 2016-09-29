@@ -2412,7 +2412,7 @@ class TriBase(object):
         """
         
         :Call:
-            >>> I = tri.TraceCurve(Y, **kw)
+            >>> X = tri.TraceCurve(Y, **kw)
         :Versions:
             * 2016-09-29 ``@ddalle``: First version
         """
@@ -2433,6 +2433,8 @@ class TriBase(object):
         # Loop through the curve until no matching node on curve is found
         jcur = 0
         while icur is not None:
+            # Set previous tolerance
+            
             # Find the next node that lies on or near the curve
             icur, jcur = self.TraceCurve_NextNode(icur, Y, jcur, **kw)
             # Check for match
@@ -2444,7 +2446,7 @@ class TriBase(object):
         if ni == 1:
             return np.array([], dtype='int')
         # Return all indices
-        return I[:ni]
+        return self.Nodes[I[:ni]-1,:]
         
         
     # Get next point on a curve
@@ -2455,7 +2457,7 @@ class TriBase(object):
             >>> inew, jnew = tri.TraceCurve_NextNode(icur, Y, jcur, **kw)
         """
         # Direction tolerance
-        atol = kw.get('atol', -0.1)
+        atol = np.cos(kw.get('atol', 60.0) * np.pi/180)
         # Distance tolerance
         dtol = kw.get('dtol', 0.05)
         # Get the indices of neighboring nodes (leave zero-based)
@@ -2519,9 +2521,6 @@ class TriBase(object):
         else:
             # No match
             return None, None
-                
-        # Distances
-        #dx = X[:,0] -
         
     # Get distance from curve and arc length
     def TraceCurve_GetDistance(self, Y, x, **kw):
