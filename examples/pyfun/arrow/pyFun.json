@@ -1,4 +1,26 @@
 {
+    "PBS": {
+        "j": "oe",
+        "r": "n",
+        "S": "/bin/bash",
+        "select": 1,
+        "ncpus": 24,
+        "mpiprocs": 24,
+        "model": "has",
+        "W": "group_list=e0847",
+        "q": "devel",
+        "walltime": "2:00:00"
+    },
+
+    "ShellCmds": [
+        ". $MODULESHOME/init/bash",
+        "module use -a /home5/ddalle/share/modulefiles",
+        "module use -a /home3/mpark/shared/n1337/modulefiles",
+        "module load fun3d",
+        "module load pycart",
+        "module load mpi-sgi/mpt.2.12r16",
+        "module load python/2.7.10"
+    ],
 
     "Namelist": "fun3d.nml",
 

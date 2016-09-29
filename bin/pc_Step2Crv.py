@@ -117,7 +117,6 @@ def Step2Crv(*a, **kw):
         # Required input.
         print __doc__
         raise IOError("Input file not specified.")
-        sys.exit(1)
     
     # Get the file pyCart settings file name.
     if len(a) <= 2:

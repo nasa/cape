@@ -29,11 +29,11 @@ import subprocess as sp
 from shutil import copy
 # Utilities
 from .util import GetTecplotCommand, TecFolder, ParaviewFolder
-from .geom import TranslatePoints, RotatePoints
 from .config import Config
 
 # Input/output module
 from . import io
+from . import geom
 
 # Attempt to load the compiled helper module.
 try:
@@ -1396,9 +1396,7 @@ class TriBase(object):
         """Write binary triangulation file using compiled functions
         
         :Call:
-            >>> tri.WriteTriBinFast
-    :Call:
-            >>> tri.WriteBinSlow(fname='Comonents.i.tri', **kw)
+            >>> tri.WriteTriBinFast(fname='Comonents.i.tri', **kw)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangultion instance to be translated
@@ -2347,6 +2345,213 @@ class TriBase(object):
             np.sqrt(np.sum(x01**2, 0)),
             np.sqrt(np.sum(x12**2, 0)),
             np.sqrt(np.sum(x20**2, 0)))).transpose()
+            
+    # Get edges
+    def GetEdges(self):
+        """Get the list of edges
+        
+        :Call:
+            >>> tri.GetEdges()
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase`
+                Triangulation instance
+        :Effects:
+            *tri.Edges*: :class:`np.ndarray`, shape=(3*nTri, 2)
+                Array of node indices defining each edge
+        :Versions:
+            * 2016-09-29 ``@ddalle``: First version
+        """
+        # Check for edges
+        try:
+            self.Edges
+            return
+        except Exception:
+            pass
+        # Edges from 0->1, 1->2, 2->0 edges of each tri
+        E = np.vstack((
+            self.Tris[:,[0,1]],
+            self.Tris[:,[1,2]],
+            self.Tris[:,[2,0]]))
+        # Sort by end node then start node
+        I = np.lexsort((E[:,1], E[:,0]))
+        # Save sorted edges
+        self.Edges = E[I,:]
+        
+    # Get the closest node to a point
+    def GetClosestNode(self, x):
+        """Get the index of a node closest to a 3D point
+        
+        :Call:
+            >>> i, L = tri.GetClosestNode(x)
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase`
+                Triangulation instance
+            *x*: :class:`np.ndarray` shape=(3,)
+                Coordinates of a point
+        :Outputs:
+            *i*: :class:`int`
+                Index of closest node (1-based) to point *x*
+            *L*: :class:`float`
+                Value of the distance
+        :Versions:
+            * 2016-09-29 ``@ddalle``: First version
+        """
+        # Get deltas in each axis
+        dx = self.Nodes[:,0] - x[0]
+        dy = self.Nodes[:,1] - x[1]
+        dz = self.Nodes[:,2] - x[2]
+        # Get distances
+        L = np.sqrt(dx*dx + dy*dy + dz*dz)
+        # Find minimum
+        i = np.argmin(L)
+        # Output
+        return i + 1, L[i]
+        
+    # Trace a curve
+    def TraceCurve(self, Y, **kw):
+        """
+        
+        :Call:
+            >>> I = tri.TraceCurve(Y, **kw)
+        :Versions:
+            * 2016-09-29 ``@ddalle``: First version
+        """
+        # Spatial tolerance
+        dtol = kw.get('dtol', 0.05)
+        # Find the node closest to the start of the curve
+        icur, d0 = self.GetClosestNode(Y[0])
+        # Characteristic length of the curve
+        dy = np.max(np.max(Y, axis=0) - np.min(Y, axis=0))
+        # Check for acceptable tolreance
+        if d0/dy > dtol:
+            return np.array([], dtype='int')
+        # Initialize nodes
+        I = np.zeros(5000, dtype='int')
+        # Save first node
+        ni = 1
+        I[ni-1] = icur
+        # Loop through the curve until no matching node on curve is found
+        jcur = 0
+        while icur is not None:
+            # Find the next node that lies on or near the curve
+            icur, jcur = self.TraceCurve_NextNode(icur, Y, jcur, **kw)
+            # Check for match
+            if icur is None: break
+            # Save the node and increase the count
+            I[ni] = icur
+            ni += 1
+        # Check for trivial curves
+        if ni == 1:
+            return np.array([], dtype='int')
+        # Return all indices
+        return I[:ni]
+        
+        
+    # Get next point on a curve
+    def TraceCurve_NextNode(self, icur, Y, jcur, **kw):
+        """
+        
+        :Call:
+            >>> inew, jnew = tri.TraceCurve_NextNode(icur, Y, jcur, **kw)
+        """
+        # Direction tolerance
+        atol = kw.get('atol', -0.1)
+        # Distance tolerance
+        dtol = kw.get('dtol', 0.05)
+        # Get the indices of neighboring nodes (leave zero-based)
+        I = self.Edges[self.Edges[:,0]==icur, 1]
+        # Get coordinates of neighboring nodes
+        X = self.Nodes[I-1,:]
+        # Current node
+        x = self.Nodes[icur-1]
+        # Initialize best find
+        ds = 1e16
+        d = 1e16
+        # Number of points in curve
+        nY = Y.shape[0] - 1
+        # Check for last node
+        if jcur >= nY:
+            return None, None
+        # Get vector of the first available segment of the curve
+        dy0 = Y[jcur+1,:] - Y[jcur,:]
+        Ly0 = np.sqrt(dy0[0]**2 + dy0[1]**2 + dy0[2]**2)
+        # Loop through nodes
+        for i in range(len(X)):
+            # Get new point
+            xi = X[i]
+            # Vector from *x* to current point
+            dxi = xi - x
+            Lxi = np.sqrt(dxi[0]**2 + dxi[1]**2 + dxi[2]**2)
+            # Check if we are going in the right direction
+            if np.sum(dxi*dy0) / (Lxi*Ly0) < atol:
+                # Do not check
+                continue
+            # Get distance from *xi* to the remaining curve poitns
+            di, dsi, ji = self.TraceCurve_GetDistance(Y[jcur:,:], xi)
+            # Length of edge (from *tri*)
+            Li = np.sqrt(np.sum((xi-x)**2))
+            # Normalized distance from curve to point
+            di /= Li
+            # Compare distance to tolerance
+            if di > dtol:
+                # Not close enough
+                continue
+            elif ji == 0:
+                # Distance from *x* to *xi*
+                dsi += np.sqrt(np.sum((xi-x)**2))
+            else:
+                # Distance from *x* to *Y[jcur]*
+                dsi += np.sqrt(np.sum((Y[jcur+1]-x)**2))
+                # Distance from *Y[jcur+ji]* to *xi*
+                dsi += np.sqrt(np.sum((xi-Y[jcur+ji])**2))
+            # Check distance
+            if dsi < ds:
+                # Update
+                jnew = jcur + ji
+                inew = I[i]
+                # Save distances
+                ds = dsi
+                d = di
+        # Check for a match
+        if d < dtol:
+            # Found new point
+            return inew, jnew
+        else:
+            # No match
+            return None, None
+                
+        # Distances
+        #dx = X[:,0] -
+        
+    # Get distance from curve and arc length
+    def TraceCurve_GetDistance(self, Y, x, **kw):
+        """
+        
+        :Call:
+            >>> d, ds, j = tri.TraceCurve_GetDistance(Y, x)
+        """
+        # Get distance from point to curve and length of each curve segment
+        D = geom.DistancePointToCurve(x, Y)
+        # Find minimum
+        j = np.argmin(D)
+        d = D[j]
+        # Cumulative arc length of first *j* segments
+        if j == 0:
+            # No segments cut
+            return d, 0.0, j
+        elif j == 1:
+            # One segment cut; no total segments cut
+            ds = 0.0
+        else:
+            # Intervals
+            dX = Y[2:j+1,:] - Y[1:j,:]
+            # Lengths
+            ds = np.sum(np.sqrt(np.sum(dX**2, axis=1)))
+        # Add the distance from *Y[j]* to *x*
+        ds += np.sqrt(np.sum((Y[j]-x)**2))
+        # Output
+        return d, ds, j
+        
         
     # Function to read and apply Config.xml
     def ReadConfig(self, c):
@@ -2824,7 +3029,7 @@ class TriBase(object):
         # Extract the points.
         X = self.Nodes[i,:]
         # Apply the translation.
-        Y = TranslatePoints(X, [dx, dy, dz])
+        Y = geom.TranslatePoints(X, [dx, dy, dz])
         # Save the translated points.
         self.Nodes[i,:] = Y
         
@@ -2854,7 +3059,7 @@ class TriBase(object):
         # Extract the points.
         X = self.Nodes[i,:]
         # Apply the rotation.
-        Y = RotatePoints(X, v1, v2, theta)
+        Y = geom.RotatePoints(X, v1, v2, theta)
         # Save the rotated points.
         self.Nodes[i,:] = Y
         

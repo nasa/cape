@@ -38,16 +38,14 @@ command-line interface is invoked with the commands ``pycart`` and ``pyfun``.
 In addition, there are several scripts matching the glob ``pc_*.py`` for
 isolated tasks such as converting grid formats.
 
-Cape Inputs and JSON Files
---------------------------
+**Cape Inputs and JSON Files**
 Inputs to Cape can be given as either command-line arguments, input files
 associated with the CFD solver, or JSON files.  `JSON <http:www.json.org>`_ is a
 simple but extensible format similar to XML.  There are interpreters for many
 languages.
 
 
-Common CAPE Capabilities
-------------------------
+**Common CAPE Capabilities**
 The following bullet list of capabilities is common to all interfaces including
 any that will be added in the future.
 
@@ -66,8 +64,7 @@ any that will be added in the future.
     * Automated reports using LaTeX (usually supports Tecplot and ParaView
       images)
 
-pyCart Capabilities
--------------------
+**pyCart Capabilities**
 The Cart3D interface, pyCart, has quite a few capabilities.  Some highlights
 and critical aspects are listed below.
 
@@ -98,8 +95,7 @@ possible to use other file names when setting up configurations.
     * Run matrix, either specified within :file:`pyCart.json` or a file
 
 
-pyFun Capabilities
-------------------
+**pyFun Capabilities**
 The FUN3D interface, pyFun, is newer and has somewhat fewer capabilities,
 although most of the database and reporting capabilities are inherited from
 pyCart.  Some capabilities are highlighted below.
@@ -118,8 +114,7 @@ below.
     * Boundary condition file, :file:`*.mapbc`
     * Run matrix, either specified within :file:`pyFun.json` or a file
     
-pyOver Capabilities
--------------------
+**pyOver Capabilities**
 The OVERFLOW interface, pyOver, is also new but will have a rapidly expanding
 set of capabilities.  Much of the database and report capabilities are inherited
 from pyCart.  Some highlights are below.
