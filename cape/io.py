@@ -13,6 +13,26 @@ import os
 le = (os.sys.byteorder == 'little')
 be = (os.sys.byteorder == 'big')
 
+# System byte order
+sbo = os.sys.byteorder
+# Get relevant environment variables
+env_ifort = os.environ.get('F_UFMTENDIAN')
+env_gfort = os.environ.get('GFORTRAN_CONVERT_UNIT')
+# Check for valid environment variables
+if env_ifort == 'big':
+    # IFORT environment variable set to big-endian
+    sbo = 'big'
+elif env_ifort == 'little':
+    # IFORT environment variable set to little-endian
+    sbo = 'little'
+elif env_gfort == 'big_endian':
+    # gfortran environment variable set to big-endian
+    sbo = 'big'
+elif env_gfort == 'little_endian':
+    # gfortran environment variable set to little-endian
+    sbo = 'little'
+        
+
 # Try to read first record
 def get_filetype(fname):
     """Get the file type by trying to read first line using various methods
@@ -349,8 +369,37 @@ def write_record_lb8_i(f, x):
 def write_record_lb8_f(f, x):
     """Write record of floats to Fortran double-precision little-endian file
     
+    Record markers are written as single
+    
     :Call:
         >>> write_record_lb8_f(f, x)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'wb' or similar
+        *x*: :class:`float` | :class:`np.ndarray`
+            float or array to write to file
+    :Versions:
+        * 2016-09-05 ``@ddalle``: First version
+    """
+    # Ensure array
+    X = np.array(x, dtype='f8')
+    # Byte counts
+    I = np.array(X.size*8, dtype='i4')
+    # Check byte order
+    if be:
+        X.byteswap(True)
+        I.byteswap(True)
+    # Write
+    I.tofile(f)
+    X.tofile(f)
+    I.tofile(f)
+    
+# Write record of double-precision little-endian floats
+def write_record_lb8_f2(f, x):
+    """Write record of floats to Fortran double-precision little-endian file
+    
+    :Call:
+        >>> write_record_lb8_f2(f, x)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -457,8 +506,37 @@ def write_record_b8_i(f, x):
 def write_record_b8_f(f, x):
     """Write record of floats to Fortran double-precision big-endian file
     
+    Record markers written as single
+    
     :Call:
         >>> write_record_b8_f(f, x)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'wb' or similar
+        *x*: :class:`float` | :class:`np.ndarray`
+            float or array to write to file
+    :Versions:
+        * 2016-09-05 ``@ddalle``: First version
+    """
+    # Ensure array
+    X = np.array(x, dtype='f8')
+    # Byte counts
+    I = np.array(X.size*8, dtype='i4')
+    # Check byte order
+    if le:
+        X.byteswap(True)
+        I.byteswap(True)
+    # Write
+    I.tofile(f)
+    X.tofile(f)
+    I.tofile(f)
+    
+# Write record of double-precision big-endian floats
+def write_record_b8_f2(f, x):
+    """Write record of floats to Fortran double-precision big-endian file
+    
+    :Call:
+        >>> write_record_b8_f2(f, x)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -746,8 +824,43 @@ def read_record_lb8_i(f):
 def read_record_lb8_f(f):
     """Read next record from double-precision little-endian file as floats
     
+    Record marker read as a single
+    
     :Call:
         >>> x = read_record_lb8_f(f)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'wb' or similar
+    :Outputs:
+        *x*: :class:`np.ndarray` (:class:`float`)
+            Array of floats
+    :Version:
+        * 2016-09-05 ``@ddalle``: First version
+    """
+    # Read start-of-record marker
+    I = np.fromfile(f, count=1, dtype="<i4")
+    # Process count
+    if len(I) == 0 or I[0] == 0:
+        return np.array([], dtype='f8')
+    # Get count
+    n = I[0] / 8
+    # Read that many ints
+    x = np.fromfile(f, count=n, dtype="<f8")
+    # Read the end-of-record
+    J = np.fromfile(f, count=1, dtype="<i4")
+    # Check for errors
+    if len(J)==0 or I[0]!=J[0]:
+        # Consistency
+        raise IOError("End-of-record marker does not match start")
+    # Output
+    return x
+    
+# Read record of double-precision little-endian integers
+def read_record_lb8_f2(f):
+    """Read next record from double-precision little-endian file as floats
+    
+    :Call:
+        >>> x = read_record_lb8_f2(f)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -880,6 +993,39 @@ def read_record_b8_f(f):
     
     :Call:
         >>> x = read_record_b8_f(f)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'wb' or similar
+    :Outputs:
+        *x*: :class:`np.ndarray` (:class:`float`)
+            Array of floats
+    :Version:
+        * 2016-09-05 ``@ddalle``: First version
+    """
+    # Read start-of-record marker
+    I = np.fromfile(f, count=1, dtype=">i4")
+    # Process count
+    if len(I) == 0 or I[0] == 0:
+        return np.array([], dtype='f8')
+    # Get count
+    n = I[0] / 8
+    # Read that many ints
+    x = np.fromfile(f, count=n, dtype=">f8")
+    # Read the end-of-record
+    J = np.fromfile(f, count=1, dtype=">i4")
+    # Check for errors
+    if len(J)==0 or I[0]!=J[0]:
+        # Consistency
+        raise IOError("End-of-record marker does not match start")
+    # Output
+    return x
+    
+# Read record of double-precision big-endian integers
+def read_record_b8_f2(f):
+    """Read next record from double-precision big-endian file as floats
+    
+    :Call:
+        >>> x = read_record_b8_f2(f)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar

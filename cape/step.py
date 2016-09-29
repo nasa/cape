@@ -19,6 +19,9 @@ from scipy.interpolate import splev
 # Detailed string processing
 import re
 
+# CAPE input/output module
+from . import io
+
 # Class for step files
 class STEP(object):
     """Interface for STEP files
@@ -578,7 +581,7 @@ class STEP(object):
             f.write('%8i%8i%8i\n' % (self.crvs[j].shape[0],1,1))
         # Loop through curves to write coordinates
         for j in J:
-            # Extract coordiantes
+            # Extract coordinates
             xj, yj, zj = tuple(self.crvs[j].transpose())
             # Write the coordinates.
             xj.tofile(f, sep=" ", format="%14.7E")
@@ -591,11 +594,11 @@ class STEP(object):
         f.close()
     
     # Write curves to Plot3D file
-    def WritePlot3DCurvesBinary(self, fname, J=None, endian=None):
+    def WritePlot3DCurvesBin(self, fname, J=None, **kw):
         """Write list of curves to ASCII Plot3D format
         
         :Call:
-            >>> stp.WritePlot3DCurvesASCII(fname, J=None)
+            >>> stp.WritePlot3DCurvesBin(fname, J=None, endian=None, **kw)
         :Inputs:
             *stp*: :class:`cape.step.STEP`
                 STEP file interface
@@ -603,24 +606,13 @@ class STEP(object):
                 Name of Plot3D file to create
             *J*: {``None``} | :class:`list` (:class:`int`)
                 List of curve indices to write (default is all)
+            *endian*: {``None``} | ``"big"`` | ``"little"``
+                Byte order; use system default if not specified
+            *single*: ``True`` | {``False``}
+                Whether or not to write single-precision
         :Versions:
             * 2016-05-10 ``@ddalle``: First version
         """
-        # Process data types
-        if endian is None:
-            # Native
-            di = 'i4'
-            df = 'f8'
-        elif endian == "big":
-            # Big-endian
-            di = ">i4"
-            df = ">f8"
-        else:
-            # Little-endian
-            di = "<i4"
-            df = "<f8"
-        # Open the file
-        f = open(fname, 'wb')
         # Default list of curves
         if J is None:
             J = range(self.ncrv)
@@ -629,22 +621,158 @@ class STEP(object):
             if self.crvs[j] is None:
                 raise ValueError(("Curve %i (and possibly others) " % j) +
                     "has not been sampled")
+        # Default byte order
+        bo = kw.get('endian')
+        if bo is None:
+            # This checks system byte order and environment variable flags
+            bo = io.sbo
+        # Check which version to write
+        if bo == 'big':
+            # Big-endian
+            if kw.get('single', False):
+                # Single precision
+                self.WritePlot3DCurves_b4(fname, J)
+            else:
+                # Double precision
+                self.WritePlot3DCurves_b8(fname, J)
+        else:
+            # Little-endian
+            if kw.get('single', False):
+                # Single precision
+                self.WritePlot3DCurves_lb4(fname, J)
+            else:
+                # Double precision
+                self.WritePlot3DCurves_lb8(fname, J)
+        
+    # Write curves to Plot3D file, big-endian double
+    def WritePlot3DCurves_b4(self, fname, J):
+        """Write list of curves to double-precision big-endian file
+        
+        :Call:
+            >>> stp.WritePlot3DCurves_b4(fname)
+        :Inputs:
+            *stp*: :class:`cape.step.STEP`
+                STEP file interface
+            *fname*: :class:`str`
+                Name of Plot3D file to create
+            *J*: {``None``} | :class:`list` (:class:`int`)
+                List of curve indices to write (default is all)
+        :Versions:
+            * 2016-09-29 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'wb')
         # Number of curves
-        ncrv = np.array([len(J)])
-        # Write the number of curves
-        ncrv.astype(di).tofile(f)
-        # Array of dimensions
-        cdims = np.array([[self.crvs[j].shape[0], 1, 1] for j in J])
-        # Write array of dimensions
-        cdims.astype(di).tofile(f)
+        io.write_record_b4_i(f, len(J))
+        # Assemble curve dimensions
+        gdims = np.array([[self.crvs[j].shape[0],1,1] for j in J])
+        # Write grid dimensions: JE, KE, LE
+        io.write_record_b4_i(f, gdims.flatten())
         # Loop through curves to write coordinates
         for j in J:
-            # Extract coordiantes
-            xj, yj, zj = tuple(self.crvs[j].transpose())
-            # Write the coordinates.
-            xj.astype(df).tofile(f, sep=" ")
-            yj.astype(df).tofile(f, sep=" ")
-            zj.astype(df).tofile(f, sep=" ")
+            # Get the curve
+            X = self.crvs[j]
+            # Write coordinates
+            io.write_record_b4_f(f, X.transpose())
+        # Close the file
+        f.close()
+        
+    # Write curves to Plot3D file, big-endian double
+    def WritePlot3DCurves_b8(self, fname, J):
+        """Write list of curves to double-precision big-endian file
+        
+        :Call:
+            >>> stp.WritePlot3DCurves_b8(fname)
+        :Inputs:
+            *stp*: :class:`cape.step.STEP`
+                STEP file interface
+            *fname*: :class:`str`
+                Name of Plot3D file to create
+            *J*: {``None``} | :class:`list` (:class:`int`)
+                List of curve indices to write (default is all)
+        :Versions:
+            * 2016-09-29 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'wb')
+        # Number of curves
+        io.write_record_b4_i(f, len(J))
+        # Assemble curve dimensions
+        gdims = np.array([[self.crvs[j].shape[0],1,1] for j in J])
+        # Write grid dimensions: JE, KE, LE
+        io.write_record_b4_i(f, gdims.flatten())
+        # Loop through curves to write coordinates
+        for j in J:
+            # Get the curve
+            X = self.crvs[j]
+            # Write coordinates
+            io.write_record_b8_f(f, X.transpose())
+        # Close the file
+        f.close()
+        
+    # Write curves to Plot3D file, little-endian double
+    def WritePlot3DCurves_lb8(self, fname, J):
+        """Write list of curves to single-precision little-endian file
+        
+        :Call:
+            >>> stp.WritePlot3DCurves_lb4(fname)
+        :Inputs:
+            *stp*: :class:`cape.step.STEP`
+                STEP file interface
+            *fname*: :class:`str`
+                Name of Plot3D file to create
+            *J*: {``None``} | :class:`list` (:class:`int`)
+                List of curve indices to write (default is all)
+        :Versions:
+            * 2016-09-29 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'wb')
+        # Number of curves
+        io.write_record_lb4_i(f, len(J))
+        # Assemble curve dimensions
+        gdims = np.array([[self.crvs[j].shape[0],1,1] for j in J])
+        # Write grid dimensions: JE, KE, LE
+        io.write_record_lb4_i(f, gdims.flatten())
+        # Loop through curves to write coordinates
+        for j in J:
+            # Get the curve
+            X = self.crvs[j]
+            # Write coordinates
+            io.write_record_lb8_f(f, X.transpose())
+        # Close the file
+        f.close()
+        
+    # Write curves to Plot3D file, little-endian double
+    def WritePlot3DCurves_lb4(self, fname, J):
+        """Write list of curves to single-precision little-endian file
+        
+        :Call:
+            >>> stp.WritePlot3DCurves_lb4(fname)
+        :Inputs:
+            *stp*: :class:`cape.step.STEP`
+                STEP file interface
+            *fname*: :class:`str`
+                Name of Plot3D file to create
+            *J*: {``None``} | :class:`list` (:class:`int`)
+                List of curve indices to write (default is all)
+        :Versions:
+            * 2016-09-29 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'wb')
+        # Number of curves
+        io.write_record_lb4_i(f, len(J))
+        # Assemble curve dimensions
+        gdims = np.array([[self.crvs[j].shape[0],1,1] for j in J])
+        # Write grid dimensions: JE, KE, LE
+        io.write_record_lb4_i(f, gdims.flatten())
+        # Loop through curves to write coordinates
+        for j in J:
+            # Get the curve
+            X = self.crvs[j]
+            # Write coordinates
+            io.write_record_lb4_f(f, X.transpose())
         # Close the file
         f.close()
     
