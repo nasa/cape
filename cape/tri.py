@@ -2409,10 +2409,22 @@ class TriBase(object):
         
     # Trace a curve
     def TraceCurve(self, Y, **kw):
-        """
+        """Extract nodes along a piecewise linear curve
         
         :Call:
             >>> X = tri.TraceCurve(Y, **kw)
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase`
+                Triangulation instance
+            *Y*: :class:`np.ndarray` shape=(n,3)
+                List of points defining piecewise linear curve
+            *dtol*: {``0.05``} | :class:`float`
+                Maximum distance from curve as fraction of reference length
+            *atol*: {``60.0``} | :class:`float`
+                Maximum dot product between triangle edge and curve segment
+        :Outputs:
+            *X*: :class:`np.ndarray` shape=(m,3)
+                Sequential list of nodes that trace a curve
         :Versions:
             * 2016-09-29 ``@ddalle``: First version
         """
@@ -2451,10 +2463,30 @@ class TriBase(object):
         
     # Get next point on a curve
     def TraceCurve_NextNode(self, icur, Y, jcur, **kw):
-        """
+        """Find the next node of the triangulation by following a curve
         
         :Call:
             >>> inew, jnew = tri.TraceCurve_NextNode(icur, Y, jcur, **kw)
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase`
+                Triangulation instance
+            *icur*: :class:`int`
+                Index (1-based) of current node
+            *Y*: :class:`np.ndarray` shape=(n,3)
+                List of points defining piecewise linear curve
+            *jcur*: :class:`int`
+                Number of curve segments to discount from search
+            *dtol*: {``0.05``} | :class:`float`
+                Maximum distance from curve as fraction of reference length
+            *atol*: {``60.0``} | :class:`float`
+                Maximum dot product between triangle edge and curve segment
+        :Outputs:
+            *inew*: :class:`int`
+                Index (1-based) of next node along curve
+            *jnew*: :class:`int`
+                Number of curve segments to discount from next search
+        :Versions:
+            * 2016-09-29 ``@ddalle``: First version
         """
         # Direction tolerance
         atol = np.cos(kw.get('atol', 60.0) * np.pi/180)
@@ -2524,10 +2556,30 @@ class TriBase(object):
         
     # Get distance from curve and arc length
     def TraceCurve_GetDistance(self, Y, x, **kw):
-        """
+        """Find distance between a generic curve and a point
         
         :Call:
-            >>> d, ds, j = tri.TraceCurve_GetDistance(Y, x)
+            >>> d, ds, j = tri.TraceCurve_GetDistance(Y, x, **kw)
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase`
+                Triangulation instance
+            *Y*: :class:`np.ndarray` shape=(n,3)
+                List of points defining piecewise linear curve
+            *x*: :class:`np.ndarray` shape=(3,)
+                Test point
+            *dtol*: {``0.05``} | :class:`float`
+                Maximum distance from curve as fraction of reference length
+            *atol*: {``60.0``} | :class:`float`
+                Maximum dot product between triangle edge and curve segment
+        :Outputs:
+            *d*: :class:`float`
+                Minimum distance from curve to *x*
+            *ds*: :class:`float`
+                Total arc length of curve segments before the closest point
+            *j*: :class:`int`
+                Index of segment in which closest point is located
+        :Versions:
+            * 2016-09-29 ``@ddalle``: First version
         """
         # Get distance from point to curve and length of each curve segment
         D = geom.DistancePointToCurve(x, Y)
