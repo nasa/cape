@@ -41,6 +41,9 @@ if __name__ == "__main__":
     if kw.get('c'):
         # Display status.
         fun3d.DisplayStatus(**kw)
+    elif kw.get('batch'):
+        # Process a batch job
+        fun3d.SubmitBatchPBS(pyFun.os.sys.argv)
     elif kw.get('aero'):
         # Check for component.
         if kw['aero'] != True:

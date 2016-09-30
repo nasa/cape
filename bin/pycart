@@ -42,6 +42,9 @@ if __name__ == "__main__":
     if kw.get('c'):
         # Display status.
         cart3d.DisplayStatus(**kw)
+    elif kw.get('batch'):
+        # Process a batch job
+        cart3d.SubmitBatchPBS(pyCart.os.sys.argv)
     elif kw.get('aero'):
         # Check for component.
         if kw['aero'] != True:
