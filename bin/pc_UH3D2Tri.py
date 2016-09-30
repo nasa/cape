@@ -35,10 +35,10 @@ Convert a '.uh3d' file to a Cart3D triangulation format.
     -ascii
         Write *TRI* as an ASCII file (default)
         
-    -binary
+    -binary, -bin
         Write *TRI* as an unformatted Fortran binary file
         
-    -byteorder BO
+    -byteorder BO, -endian BO
         Override system byte order using either 'big' or 'little'
         
     -bytecount PREC
@@ -121,10 +121,21 @@ def UH3D2Tri(*a, **kw):
         print __doc__
         raise IOError("At least one input required.")
         
+    # Get binary option
+    qbin = kw.get('binary', kw.get('bin', False))
+    # Check for -ascii override
+    if kw.get('ascii') == True:
+        qbin = False
+        
     # Get the file pyCart settings file name.
     if len(a) <= 2:
         # Defaults
-        ftri = fuh3d.rstrip('uh3d') + 'tri'
+        if qbin:
+            # Binary file: use ".i.tri"
+            ftri = fuh3d.rstrip('uh3d') + 'i.tri'
+        else:
+            # ASCII file: use ".tri"
+            ftri = fuh3d.rstrip('uh3d') + 'tri'
     else:
         # Use the first general input.
         ftri = a[1]
@@ -165,10 +176,10 @@ def UH3D2Tri(*a, **kw):
     if dz is not None: tri.Nodes[:,2] += float(dz)
     
     # Get write options
-    if kw.get('binary', False):
+    if qbin:
         # Write binary version
         tri.WriteTriBin(ftri, 
-            byteorder=kw.get('byteorder'),
+            byteorder=kw.get('byteorder', kw.get('endian')),
             bytecount=kw.get('bytecount', 4))
     else:
         # Write it.

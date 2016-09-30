@@ -1084,7 +1084,7 @@ class TriBase(object):
         """Write a triangulation file as an unformatted binary file
         
         :Call:
-            >>> tri.WriteBinSlow(fname='Comonents.i.tri', **kw)
+            >>> tri.WriteBin(fname='Comonents.i.tri', **kw)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangultion instance to be translated
@@ -1107,8 +1107,6 @@ class TriBase(object):
             # Python version
             self.WriteTriBinSlow(fname, **kw)
             
-    
-        
     # Get default byte order
     def get_default_byteorder(self):
         """Get the system byte order, overwritten by environment variables
@@ -1123,27 +1121,9 @@ class TriBase(object):
                 Current byte order
         :Versions:
             * 2016-08-18 ``@ddalle``: First version
+            * 2016-09-30 ``@ddalle``: Now points to *io.sbo*
         """
-        # System byte order
-        sbo = os.sys.byteorder
-        # Get relevant environment variables
-        env_ifort = os.environ.get('F_UFMTENDIAN')
-        env_gfort = os.environ.get('GFORTRAN_CONVERT_UNIT')
-        # Check for valid environment variables
-        if env_ifort == 'big':
-            # IFORT environment variable set to big-endian
-            sbo = 'big'
-        elif env_ifort == 'little':
-            # IFORT environment variable set to little-endian
-            sbo = 'little'
-        elif env_gfort == 'big_endian':
-            # gfortran environment variable set to big-endian
-            sbo = 'big'
-        elif env_gfort == 'little_endian':
-            # gfortran environment variable set to little-endian
-            sbo = 'little'
-        # Output
-        return sbo
+        return io.sbo
         
     # Write TRI file as little-endian single-precision
     def WriteSlow_lb4(self, fname='Components.i.tri'):
