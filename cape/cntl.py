@@ -72,6 +72,10 @@ class Cntl(object):
         * 2015-09-20 ``@ddalle``: Started
         * 2016-04-01 ``@ddalle``: Declared version 1.0
     """
+    # =============
+    # Configuration
+    # =============
+   # <
     # Initialization method
     def __init__(self, fname="cape.json"):
         """Initialization method for :mod:`cape.cntl.Cntl`"""
@@ -163,6 +167,33 @@ class Cntl(object):
             # Load the module by its name
             exec('self.%s = __import__("%s")' % (fmod, nmod))
         
+    # Make a directory
+    def mkdir(self, fdir):
+        """Make a directory with the correct permissions
+        
+        :Call:
+            >>> cntl.mkdir(fdir)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *fdir*: :class:`str`
+                Directory to create
+        :Versions:
+            * 2015-09-27 ``@ddalle``: First version
+        """
+        # Get umask
+        umask = self.opts.get_umask()
+        # Apply mask
+        dmask = 0777 - umask
+        # Make the directory.
+        os.mkdir(fdir, dmask)
+        
+   # >
+    
+    # =============
+    # Input Readers
+    # =============
+   # <
     # Function to prepare the triangulation for each grid folder
     def ReadTri(self):
         """Read initial triangulation file(s)
@@ -271,28 +302,12 @@ class Cntl(object):
             self.config = Config(fxml)
         # Return to original location
         os.chdir(fpwd)
-        
-    # Make a directory
-    def mkdir(self, fdir):
-        """Make a directory with the correct permissions
-        
-        :Call:
-            >>> cntl.mkdir(fdir)
-        :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *fdir*: :class:`str`
-                Directory to create
-        :Versions:
-            * 2015-09-27 ``@ddalle``: First version
-        """
-        # Get umask
-        umask = self.opts.get_umask()
-        # Apply mask
-        dmask = 0777 - umask
-        # Make the directory.
-        os.mkdir(fdir, dmask)
-        
+   # >
+    
+    # ======================
+    # Command-Line Interface
+    # ======================
+   # <
     # Function to display current status
     def DisplayStatus(self, **kw):
         """Display current status for all cases
@@ -588,7 +603,12 @@ class Cntl(object):
         self.DataBook.Write()
         # Return to original location.
         os.chdir(fpwd)
-        
+   # >
+    
+    # =============
+    # Run Interface
+    # =============
+   # <
     # Function to start a case: submit or run
     def StartCase(self, i):
         """Start a case by either submitting it 
@@ -638,6 +658,7 @@ class Cntl(object):
         os.chdir(fpwd)
         # Output
         return pbs
+    
     
     # Call the correct module to start the case
     def CaseStartCase(self):
