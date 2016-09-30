@@ -94,13 +94,19 @@ class STEP(object):
         # Check it.
         if not line.startswith('ISO-10'):
             raise IOError("File is not a recognized STEP file.")
-        # Initialize coordinates.
+        # Initialize point coordinates and numbers
         R = []
-        # Initialize point numbers.
         I = []
+        # Initialize directions and numbers
+        D = []
+        ID = []
+        # Initialize vectors and numbers
+        V = []
+        IV = []
         # Initialize curves
         oC = []
         iC = []
+        J = []
         # Set location.
         ftell = 0
         # Loop through contents
@@ -138,6 +144,46 @@ class STEP(object):
                 # Append the list of coordinates.
                 oC.append(nx)
                 iC.append(np.array([int(j) for j in jx]))
+                # Save curve numbers
+                J.append(int(v[0][1:]))
+            elif (len(v) == 2) and (v[1].startswith('DIRECTION')):
+                # Get the string containing the coordinates.
+                g = re.search("\([-+0-9Ee., ]+\)", v[1])
+                # Check for a match.
+                if not g: continue
+                # Read the coordinates.
+                coord = re.findall("[-+0-9Ee.]+", g.group(0))
+                # Check for a list of three coordinates.
+                if len(coord) != 3: continue
+                # Convert to floats and append to list of coordinates.
+                D.append([float(xi) for xi in coord])
+                # Save the index.
+                ID.append(int(v[0][1:]))
+            elif (len(v) == 2) and (v[1].startswith('VECTOR')):
+                # Get the numeric strings from the definition
+                jv = re.findall('[-0-9][-+0-9Ee.]*', v[1])
+                # Get the length and direction
+                di = D[ID.index(int(jv[0]))]
+                li = float(jv[1])
+                # Append the vector
+                V.append([dij*li for dij in di])
+                # Save the number
+                IV.append(int(v[0][1:]))
+            elif (len(v) == 2) and (v[1].startswith('LINE')):
+                # Get the start point and vector indices
+                jl = re.findall('[0-9]+', v[1].split("'")[-1])
+                # Get the vector and start point
+                vj = V[IV.index(int(jl[1]))]
+                xj = R[ I.index(int(jl[0]))]
+                # Create a point for the end point
+                ij = int(v[0][1:])
+                R.append([vj[k]+xj[k] for k in range(len(xj))])
+                I.append(ij)
+                # Create a curve
+                oC.append(1)
+                iC.append(np.array([int(jl[0]), ij]))
+                # Save curve number
+                J.append(ij)
         # Close file.
         f.close()
         # Convert to NumPy.
@@ -149,6 +195,7 @@ class STEP(object):
         # Save the curves
         self.ocrv = oC
         self.icrv = iC
+        self.jcrv = J
         # Initialize sampled curves
         self.crvs = [None for j in range(self.ncrv)]
         
