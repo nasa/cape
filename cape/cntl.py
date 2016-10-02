@@ -711,8 +711,46 @@ class Cntl(object):
         # Go back.
         os.chdir(fpwd)
         
-    
+    # ===========
+    # Case status
+    # ===========
+   # <
+    # Get last iter
+    def GetLastIter(self, i):
+        """Get minimum required iteration for a given run to be completed
         
+        :Call:
+            >>> nIter = cntl.GetLastIter(i)
+        :Inputs:
+            *cart3d*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *nIter*: :class:`int`
+                Number of iterations required for case *i*
+        :Versions:
+            * 2014-10-03 ``@ddalle``: First version
+        """
+        # Check the case
+        if self.CheckCase(i) is None:
+            return None
+        # Safely go to root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get the case name.
+        frun = self.x.GetFullFolderNames(i)
+        # Go there.
+        os.chdir(frun)
+        # Read the local case.json file.
+        fc = case.ReadCaseJSON()
+        # Option for desired iterations
+        N = fc.get('PhaseIters', 0)
+        # Return to original location.
+        os.chdir(fpwd)
+        # Output the last entry (if list)
+        return options.getel(N, -1)
+    
     # Function to determine if case is PASS, ---, INCOMP, etc.
     def CheckCaseStatus(self, i, jobs=None, auto=False, u=None):
         """Determine the current status of a case
@@ -882,8 +920,72 @@ class Cntl(object):
         :Versions:
             * 2015-09-27 ``@ddalle``: First version
         """
-        return False
+        return False 
     
+    # Check if a case is running.
+    def CheckRunning(self, i):
+        """Check if a case is currently running
+        
+        :Call:
+            >>> q = cntl.CheckRunning(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *q*: :class:`bool`
+                If ``True``, case has :file:`RUNNING` file in it
+        :Versions:
+            * 2014-10-03 ``@ddalle``: First version
+        """
+        # Safely go to root.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get run name
+        frun = self.x.GetFullFolderNames(i)
+        # Check for the RUNNING file.
+        q = os.path.isfile(os.path.join(frun, 'RUNNING'))
+        # Go home.
+        os.chdir(fpwd)
+        # Output
+        return q
+            
+    # Check for a failure.
+    def CheckError(self, i):
+        """Check if a case has a failure
+        
+        :Call:
+            >>> q = cntl.CheckError(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *q*: :class:`bool`
+                If ``True``, case has :file:`FAIL` file in it
+        :Versions:
+            * 2015-01-02 ``@ddalle``: First version
+        """
+        # Safely go to root.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get run name
+        frun = self.x.GetFullFolderNames(i)
+        # Check for the RUNNING file.
+        q = os.path.isfile(os.path.join(frun, 'FAIL'))
+        # Go home.
+        os.chdir(fpwd)
+        # Output
+        return q
+        
+   # >
+    
+    # =========
+    # CPU Stats
+    # =========
+   # <
     # Get CPU hours (actually core hours)
     def GetCPUTimeFromFile(self, i, fname='cape_time.dat'):
         """Read a Cape-style core-hour file
@@ -1056,7 +1158,65 @@ class Cntl(object):
         fstrt = 'cape_start.dat'
         # Call with base file names
         return self.GetCPUTimeBoth(i, fname, fstr, running=running)
+    
+   # >
+    
+    # ========
+    # PBS Jobs
+    # ========
+   # <
+    # Get PBS name
+    def GetPBSName(self, i):
+        """Get PBS name for a given case
         
+        :Call:
+            >>> lbl = cntl.GetPBSName(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl` or derivative
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *lbl*: :class:`str`
+                Short name for the PBS job, visible via `qstat`
+        :Versions:
+            * 2014-09-30 ``@ddalle``: First version
+        """
+        # Extract the trajectory.
+        x = self.x
+        # Initialize label.
+        lbl = ''
+        # Loop through keys.
+        for k in x.keys[0:]:
+            # Skip it if not part of the label.
+            if not x.defns[k].get('Label', True):
+                continue
+            # Default print flag
+            if x.defns[k]['Value'] == 'float':
+                # Float: get two decimals if nonzero
+                sfmt = '%.2f'
+            else:
+                # Simply use string
+                sfmt = '%s'
+            # Non-default strings
+            slbl = x.defns[k].get('PBSLabel', x.abbrv[k])
+            sfmt = x.defns[k].get('PBSFormat', sfmt)
+            # Apply values
+            slbl = slbl + (sfmt % getattr(x,k)[i])
+            # Strip underscores
+            slbl = slbl.replace('_', '')
+            # Strop trailing zeros and decimals if float
+            if x.defns[k]['Value'] == 'float':
+                slbl = slbl.rstrip('0').rstrip('.')
+            # Append to the label.
+            lbl += slbl
+        # Check length.
+        if len(lbl) > 15:
+            # 16-char limit (or is it 15?)
+            lbl = lbl[:15]
+        # Output
+        return lbl
+    
     # Get PBS job ID if possible
     def GetPBSJobID(self, i):
         """Get PBS job number if one exists
@@ -1291,154 +1451,12 @@ class Cntl(object):
         f.close()
         # Return to original location
         os.chdir(fpwd)
-            
-        
-    # Check if a case is running.
-    def CheckRunning(self, i):
-        """Check if a case is currently running
-        
-        :Call:
-            >>> q = cntl.CheckRunning(i)
-        :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *q*: :class:`bool`
-                If ``True``, case has :file:`RUNNING` file in it
-        :Versions:
-            * 2014-10-03 ``@ddalle``: First version
-        """
-        # Safely go to root.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get run name
-        frun = self.x.GetFullFolderNames(i)
-        # Check for the RUNNING file.
-        q = os.path.isfile(os.path.join(frun, 'RUNNING'))
-        # Go home.
-        os.chdir(fpwd)
-        # Output
-        return q
-            
-    # Check for a failure.
-    def CheckError(self, i):
-        """Check if a case has a failure
-        
-        :Call:
-            >>> q = cntl.CheckError(i)
-        :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *q*: :class:`bool`
-                If ``True``, case has :file:`FAIL` file in it
-        :Versions:
-            * 2015-01-02 ``@ddalle``: First version
-        """
-        # Safely go to root.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get run name
-        frun = self.x.GetFullFolderNames(i)
-        # Check for the RUNNING file.
-        q = os.path.isfile(os.path.join(frun, 'FAIL'))
-        # Go home.
-        os.chdir(fpwd)
-        # Output
-        return q
-        
-    # Get last iter
-    def GetLastIter(self, i):
-        """Get minimum required iteration for a given run to be completed
-        
-        :Call:
-            >>> nIter = cntl.GetLastIter(i)
-        :Inputs:
-            *cart3d*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *nIter*: :class:`int`
-                Number of iterations required for case *i*
-        :Versions:
-            * 2014-10-03 ``@ddalle``: First version
-        """
-        # Check the case
-        if self.CheckCase(i) is None:
-            return None
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Go there.
-        os.chdir(frun)
-        # Read the local case.json file.
-        fc = case.ReadCaseJSON()
-        # Option for desired iterations
-        N = fc.get('PhaseIters', 0)
-        # Return to original location.
-        os.chdir(fpwd)
-        # Output the last entry (if list)
-        return options.getel(N, -1)
-        
-    # Get PBS name
-    def GetPBSName(self, i):
-        """Get PBS name for a given case
-        
-        :Call:
-            >>> lbl = cntl.GetPBSName(i)
-        :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl` or derivative
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *lbl*: :class:`str`
-                Short name for the PBS job, visible via `qstat`
-        :Versions:
-            * 2014-09-30 ``@ddalle``: First version
-        """
-        # Extract the trajectory.
-        x = self.x
-        # Initialize label.
-        lbl = ''
-        # Loop through keys.
-        for k in x.keys[0:]:
-            # Skip it if not part of the label.
-            if not x.defns[k].get('Label', True):
-                continue
-            # Default print flag
-            if x.defns[k]['Value'] == 'float':
-                # Float: get two decimals if nonzero
-                sfmt = '%.2f'
-            else:
-                # Simply use string
-                sfmt = '%s'
-            # Non-default strings
-            slbl = x.defns[k].get('PBSLabel', x.abbrv[k])
-            sfmt = x.defns[k].get('PBSFormat', sfmt)
-            # Apply values
-            slbl = slbl + (sfmt % getattr(x,k)[i])
-            # Strip underscores
-            slbl = slbl.replace('_', '')
-            # Strop trailing zeros and decimals if float
-            if x.defns[k]['Value'] == 'float':
-                slbl = slbl.rstrip('0').rstrip('.')
-            # Append to the label.
-            lbl += slbl
-        # Check length.
-        if len(lbl) > 15:
-            # 16-char limit (or is it 15?)
-            lbl = lbl[:15]
-        # Output
-        return lbl
-        
+   # >
+    
+    # ================
+    # Case Preparation
+    # ================
+   # <
     # Prepare a case.
     def PrepareCase(self, i):
         """Prepare case for running if necessary
@@ -1481,41 +1499,6 @@ class Cntl(object):
         
         # Return to original location.
         os.chdir(fpwd)
-    
-        
-    # Function to apply special triangulation modification keys
-    def PrepareTri(self, i):
-        """Rotate/translate/etc. triangulation for given case
-        
-        :Call:
-            >>> cntl.PrepareTri(i)
-        :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Versions:
-            * 2014-12-01 ``@ddalle``: First version
-            * 2016-04-05 ``@ddalle``: Moved from pyCart -> cape
-        """
-        # Get function for rotations, etc.
-        keys = self.x.GetKeysByType(['translation', 'rotation', 'TriFunction'])
-        # Reset reference points
-        self.opts.reset_Points()
-        # Loop through keys.
-        for key in keys:
-            # Type
-            kt = self.x.defns[key]['Type']
-            # Filter on which type of triangulation modification it is.
-            if kt == "TriFunction":
-                # Special triangulation function
-                self.PrepareTriFunction(key, i)
-            elif kt.lower() == "translation":
-                # Component(s) translation
-                self.PrepareTriTranslation(key, i)
-            elif kt.lower() == "rotation":
-                # Component(s) rotation
-                self.PrepareTriRotation(key, i)
             
     # Function to apply transformations to config
     def PrepareConfig(self, i):
@@ -1553,6 +1536,84 @@ class Cntl(object):
                 self.PrepareConfigRotation(key, i)
         # Write the configuration file
         self.WriteConfig(i)
+        
+    # Write "RunControl" options to JSON file
+    def WriteCaseJSON(self, i):
+        """Write JSON file with the ``"RunControl"`` options for case *i*
+        
+        Settings are written to the file :file:`case.json` within the run folder
+        for case *i*.  If the folder does not yet exist, no action is taken.
+        
+        :Call:
+            >>> cntl.WriteCaseJSON(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Run index
+        :Versions:
+            * 2014-12-08 ``@ddalle``: First version
+        """
+        # Safely go to root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get the case name.
+        frun = self.x.GetFullFolderNames(i)
+        # Check if it exists.
+        if not os.path.isdir(frun):
+            # Go back and quit.
+            os.chdir(fpwd)
+            return
+        # Go to the folder.
+        os.chdir(frun)
+        # Write folder.
+        f = open('case.json', 'w')
+        # Dump the flowCart settings.
+        json.dump(self.opts['RunControl'], f, indent=1)
+        # Close the file.
+        f.close()
+        # Return to original location
+        os.chdir(fpwd)
+        
+   # >
+    
+    # =============
+    # Geometry Prep
+    # =============
+   # <
+    # Function to apply special triangulation modification keys
+    def PrepareTri(self, i):
+        """Rotate/translate/etc. triangulation for given case
+        
+        :Call:
+            >>> cntl.PrepareTri(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Versions:
+            * 2014-12-01 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Moved from pyCart -> cape
+        """
+        # Get function for rotations, etc.
+        keys = self.x.GetKeysByType(['translation', 'rotation', 'TriFunction'])
+        # Reset reference points
+        self.opts.reset_Points()
+        # Loop through keys.
+        for key in keys:
+            # Type
+            kt = self.x.defns[key]['Type']
+            # Filter on which type of triangulation modification it is.
+            if kt == "TriFunction":
+                # Special triangulation function
+                self.PrepareTriFunction(key, i)
+            elif kt.lower() == "translation":
+                # Component(s) translation
+                self.PrepareTriTranslation(key, i)
+            elif kt.lower() == "rotation":
+                # Component(s) rotation
+                self.PrepareTriRotation(key, i)
     
     # Apply a special triangulation function
     def PrepareTriFunction(self, key, i):
@@ -2036,6 +2097,12 @@ class Cntl(object):
             # Set the new value.
             self.opts.set_Point(YR[j], ptsR[j])
     
+   # >
+    
+    # ==================
+    # Thrust Preparation
+    # ==================
+   # <
     # Get exit area for SurfCT boundary condition
     def GetSurfCT_ExitArea(self, key, i):
         """Get exit area for a *CT* trajectory key
@@ -2184,43 +2251,5 @@ class Cntl(object):
             # Assume it's already given as the correct type
             return Aref
         
-        
-    # Write flowCart options to JSON file
-    def WriteCaseJSON(self, i):
-        """Write JSON file with the ``"RunControl"`` options for case *i*
-        
-        Settings are written to the file :file:`case.json` within the run folder
-        for case *i*.  If the folder does not yet exist, no action is taken.
-        
-        :Call:
-            >>> cntl.WriteCaseJSON(i)
-        :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Run index
-        :Versions:
-            * 2014-12-08 ``@ddalle``: First version
-        """
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists.
-        if not os.path.isdir(frun):
-            # Go back and quit.
-            os.chdir(fpwd)
-            return
-        # Go to the folder.
-        os.chdir(frun)
-        # Write folder.
-        f = open('case.json', 'w')
-        # Dump the flowCart settings.
-        json.dump(self.opts['RunControl'], f, indent=1)
-        # Close the file.
-        f.close()
-        # Return to original location
-        os.chdir(fpwd)
 # class Cntl
     

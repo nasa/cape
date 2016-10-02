@@ -128,7 +128,10 @@ class Trajectory:
         2014-05-28 ``@ddalle``: First version
         2014-06-05 ``@ddalle``: Generalized for user-defined keys
     """
-    
+    # =============
+    # Configuration
+    # =============
+   # <
     # Initialization method
     def __init__(self, **kwargs):
         """Initialization method"""
@@ -265,7 +268,13 @@ class Trajectory:
         self.ProcessGroups()
         # Output
         return y
-        
+    
+   # >
+    
+    # ========
+    # File I/O
+    # ========
+   # <
     # Function to read a file
     def ReadTrajectoryFile(self, fname):
         """Read trajectory variable values from file
@@ -342,6 +351,60 @@ class Trajectory:
         # Close the file.
         f.close()
         
+    # Function to write a JSON file with the trajectory variables.
+    def WriteConditionsJSON(self, i, fname="conditions.json"):
+        """Write a simple JSON file with exact trajectory variables
+        
+        :Call:
+            >>> x.WriteConditionsJSON(i, fname="conditions.json")
+        :Inputs:
+            *i*: :class:`int`
+                Index of the run case to print
+            *fname*: :class:`str`
+                Name of file to create
+        :Versions:
+            * 2014-11-18 ``@ddalle``: First version
+        """
+        # Open the file.
+        f = open(fname, 'w')
+        # Create the header.
+        f.write('{\n')
+        # Number of keys
+        n = len(self.keys)
+        # Loop through the keys.
+        for j in range(n):
+            # Name of the key.
+            k = self.keys[j]
+            # If it's a string, add quotes.
+            if self.defns[k]["Value"] in ['str', 'char']:
+                # Use quotes.
+                q = '"'
+            else:
+                # No quotes.
+                q = ''
+            # Test if a comma is needed.
+            if j >= n-1:
+                # No comma for last line.
+                c = ''
+            else:
+                # Yes, a comma is needed.
+                c = ','
+            # Get the value.
+            v = getattr(self,k)[i]
+            # Initial portion of line.
+            line = ' "%s": %s%s%s%s\n' % (k, q, v, q, c)
+            # Write the line.
+            f.write(line)
+        # Close out the JSON object.
+        f.write('}\n')
+        # Close the file.
+        f.close()
+   # >
+    
+    # ===============
+    # Key Definitions
+    # ===============
+   # <
     # Function to process the role that each key name plays.
     def ProcessKeyDefinitions(self, defns):
         """
@@ -624,6 +687,269 @@ class Trajectory:
         self.GroupID = np.array(gID)
         return None
         
+    # Get all keys by type
+    def GetKeysByType(self, KeyType):
+        """Get all keys by type
+        
+        :Call:
+            >>> keys = x.GetKeysByType(KeyType)
+            >>> keys = x.GetKeysByType(KeyTypes)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Instance of pyCart trajectory class
+            *KeyType*: :class:`str`
+                Key type to search for
+            *KeyTypes*: :class:`list` (:class:`str`)
+                List of key types to search for
+        :Outputs:
+            *keys*: :class:`numpy.ndarray` (:class:`str`)
+                List of keys such that ``x[key]['Type']`` matches *KeyType*
+        :Versions:
+            * 2014-10-07 ``@ddalle``: First version
+        """
+        # List of key types
+        KT = np.array([self.defns[k]['Type'] for k in self.keys])
+        # Class of input
+        kt = type(KeyType).__name__
+        # Depends on the type of what we are searching for
+        if kt.startswith('str') or kt=='unicode':
+            # Return matches
+            return np.array(self.keys)[KT == KeyType]
+        elif kt not in ['list', 'ndarray']:
+            # Not usable
+            raise TypeError("Cannot search for keys of type '%s'" % KeyType)
+        # Initialize list of matches to all ``False``
+        U = np.arange(len(self.keys)) < 0
+        # Loop through types given as input.
+        for k in KeyType:
+            # Search for this kind of key.
+            U = np.logical_or(U, KT == k)
+        # Output.
+        return np.array(self.keys)[np.where(U)[0]]
+        
+    # Get keys by type of its value
+    def GetKeysByValue(self, val):
+        """Get all keys with specified type of value
+        
+        :Call:
+            >>> keys = x.GetKeysByValue(val)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Instance of pyCart trajectory class
+            *val*: :class:`str`
+                Key value class to search for
+        :Outputs:
+            *keys*: :class:`numpy.ndarray` (:class:`str`)
+                List of keys such that ``x[key]['Value']`` matches *val*
+        :Versions:
+            * 2014-10-07 ``@ddalle``: First version
+        """
+        # List of key types
+        KV = np.array([self.defns[k]['Value'] for k in self.keys])
+        # Return matches
+        return np.array(self.keys)[KV == val]
+        
+    # Function to get the group index from the case index
+    def GetGroupIndex(self, i):
+        """Get group index from case index
+        
+        :Call:
+            k = x.GetGroupIndex(i)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Instance of the pyCart trajectory class
+            *i*: :class:`int`
+                Index of case
+        :Outputs:
+            *j*: :class:`int`
+                Index of group that contains case *i*
+        :Versions:
+            * 2014-09-27 ``@ddalle``: First versoin
+        """
+        # Check inputs.
+        if not type(i).__name__.startswith('int'):
+            raise TypeError("Input to :func:`Trajectory.GetGroupIndex` must"
+                + " be :class:`int`.")
+        # Get name of group for case *i*.
+        grp = self.GetGroupFolderNames(i)
+        # Get the list of all unique groups.
+        grps = self.GetUniqueGroupFolderNames()
+        # Find the index.
+        j = np.where(grps == grp)[0][0]
+        # Output
+        return j
+        
+    # Get name of key based on type
+    def GetKeyName(self, typ, key=None):
+        """Get name of key by specified type; defaulting to first key with type
+        
+        A ValueError exception is raised if input key has incorrect type or if
+        no keys have that type.
+        
+        :Call:
+            >>> k = x.GetKeyName(typ, key=None)
+        :Inputs:
+            *typ*: :class:`str`
+                Name of key type, for instance 'alpha_t'
+            *key*: {``None``} | :class:`str`
+                Name of trajectory key
+        :Outputs:
+            *k*: :class:`str`
+                Key meeting those requirements
+        :Versions:
+            * 2016-08-29 ``@ddalle``: First version
+        """
+        # Process key
+        if key is None:
+            # Key types
+            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+            # Check for key.
+            if typ not in KeyTypes:
+                raise ValueError("No trajectory keys of type '%s'" % typ)
+            # Get first key
+            return self.GetKeysByType(typ)[0]
+        else:
+            # Check the key
+            if key not in self.keys:
+                # Undefined key
+                raise KeyError("No trajectory key '%s'" % key)
+            elif self.defns[key]['Type'] != typ:
+                # Wrong type
+                raise ValueError(
+                    ("Requested key '%s' with type '%s', but " % (key,typ)) +
+                    ("actual type is '%s'" % (typ, self.defns[k]['Type'])))
+            # Output the key
+            return key
+    
+   # >
+    
+    # ============
+    # Folder Names
+    # ============
+   # <
+    # Function to assemble a folder name based on a list of keys and an index
+    def _AssembleName(self, keys, prefix, i):
+        """
+        Assemble names using common code.
+        
+        :Call:
+            >>> dname = x._AssembleName(keys, prefix, i)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Instance of the pyCart trajectory class
+            *keys*: :type:`list` (:class:`str`)
+                List of keys to use for this folder name
+            *prefix*: :class:`str`
+                Header for name of each case folder
+            *i*: :class:`int`
+                Index of case to process
+        :Outputs:
+            *dname*: :class:`str` or :class:`list`
+                Name containing value for each key in *keys*
+        :Versions:
+            * 2014-06-05 ``@ddalle``: First version
+            * 2014-10-03 ``@ddalle``: Added suffixes
+        """
+        # Process the key types.
+        types = [self.defns[k].get("Type","") for k in keys]
+        # Check for a prefix.
+        if "Config" in types:
+            # Figure out which key it is
+            j = types.index("Config")
+            # Get the specified prefix.
+            fpre = getattr(self,keys[j])[i]
+            # Initialize the name.
+            if fpre:
+                # Use the specified prefix/config
+                dname = str(fpre)
+            else:
+                # Use the input/default prefix/config
+                dname = str(prefix)
+            # Add underscore if more keys remaining.
+            if len(types) > 1: dname += "_"
+        elif prefix:
+            # The prefix is likely to be the whole name.
+            dname = str(prefix)
+            # Add underscore if there are keys.
+            if (keys is not None) and (len(keys)>0): dname += "_"
+        else:
+            # Initialize an empty string.
+            dname = ""
+        # Append based on the keys.
+        for k in keys:
+            # Skip text
+            if self.defns[k]["Value"] == "str": continue
+            # Check for unlabeled values
+            if (not self.defns[k].get("Label", True)): continue
+            # Skip unentered values
+            if (i>=len(self.text[k])) or (not self.text[k][i]): continue
+            # Check for "SkipZero" flag
+            if self.defns[k].get("SkipIfZero", False): continue
+            # Make the string of what's going to be printed.
+            # This is something like ``'%.2f' % x.alpha[i]``.
+            lbl = self.defns[k]["Format"] % getattr(self,k)[i]
+            # Append the text in the trajectory file.
+            dname += self.abbrv[k] + lbl 
+        # Check for suffix keys.
+        for k in keys:
+            # Only look for labels.
+            if self.defns[k].get("Type") != "Label": continue
+            # Check the value.
+            if (i < len(self.text[k])) and self.text[k][i].strip():
+                # Add underscore if necessary.
+                if dname: dname += "_"
+                # Add the label itself
+                dname += (self.abbrv[k] + self.text[k][i])
+        # Return the result.
+        return dname
+    
+    # Function to return the full folder names.
+    def GetFullFolderNames(self, i=None, prefix=None):
+        """
+        List full folder names for each of the cases in a trajectory.
+        
+        The folder names will be of the form
+    
+            ``Grid/F_m2.0a0.0b-0.5/``
+            
+        if there are no trajectory keys that require separate grids or
+        
+            ``Grid_d1.0/F_m2.0a0.0b-0.5/``
+            
+        if there is a key called ``"delta"`` with abbreviation ``'d'`` that
+        requires a separate mesh each time the value of that key changes.  All
+        keys in the trajectory file are included in the folder name at one of
+        the two levels.  The number of digits used will match the number of
+        digits in the trajectory file.
+        
+        :Call:
+            >>> dname = x.GetFullFolderNames()
+            >>> dname = x.GetFullFolderNames(i=None, prefix="F")
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Instance of the pyCart trajectory class
+            *i*: :class:`int` or :class:`list`
+                Index of cases to process or list of cases.  If this is
+                ``None``, all cases will be processed.
+            *prefix*: :class:`str`
+                Header for name of each case folder
+        :Outputs:
+            *dname*: :class:`str` or :class:`list`
+                Folder name or list of folder names
+        :Versions:
+            * 2014-06-05 ``@ddalle``: First version
+        """
+        # Get the two components.
+        glist = self.GetGroupFolderNames(i)
+        flist = self.GetFolderNames(i, prefix)
+        # Check for list or not.
+        if type(glist) is list:
+            # Return the list of combined strings.
+            return [os.path.join(glist[i],flist[i]) for i in range(len(glist))]
+        else:
+            # Just join the one.
+            return os.path.join(glist, flist)
+    
     # Function to list directory names
     def GetFolderNames(self, i=None, prefix=None):
         """
@@ -758,6 +1084,12 @@ class Trajectory:
             # Return the whole list
             return dlist
     
+   # >
+    
+    # =======
+    # Filters
+    # =======
+   # <
     # Function to filter cases
     def Filter(self, cons, I=None):
         """Filter cases according to a set of constraints
@@ -1050,7 +1382,13 @@ class Trajectory:
             I = self.FilterString(kw.get('filter'), I)
         # Output
         return I
-            
+    
+   # >
+    
+    # ==================
+    # Trajectory Subsets
+    # ==================
+   # <
     # Function to get sweep based on constraints
     def GetSweep(self, M, **kw):
         """
@@ -1340,147 +1678,13 @@ class Trajectory:
             M[I] = False
         # Output
         return J
-        
-        
-    # Function to return the full folder names.
-    def GetFullFolderNames(self, i=None, prefix=None):
-        """
-        List full folder names for each of the cases in a trajectory.
-        
-        The folder names will be of the form
     
-            ``Grid/F_m2.0a0.0b-0.5/``
-            
-        if there are no trajectory keys that require separate grids or
-        
-            ``Grid_d1.0/F_m2.0a0.0b-0.5/``
-            
-        if there is a key called ``"delta"`` with abbreviation ``'d'`` that
-        requires a separate mesh each time the value of that key changes.  All
-        keys in the trajectory file are included in the folder name at one of
-        the two levels.  The number of digits used will match the number of
-        digits in the trajectory file.
-        
-        :Call:
-            >>> dname = x.GetFullFolderNames()
-            >>> dname = x.GetFullFolderNames(i=None, prefix="F")
-        :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
-                Instance of the pyCart trajectory class
-            *i*: :class:`int` or :class:`list`
-                Index of cases to process or list of cases.  If this is
-                ``None``, all cases will be processed.
-            *prefix*: :class:`str`
-                Header for name of each case folder
-        :Outputs:
-            *dname*: :class:`str` or :class:`list`
-                Folder name or list of folder names
-        :Versions:
-            * 2014-06-05 ``@ddalle``: First version
-        """
-        # Get the two components.
-        glist = self.GetGroupFolderNames(i)
-        flist = self.GetFolderNames(i, prefix)
-        # Check for list or not.
-        if type(glist) is list:
-            # Return the list of combined strings.
-            return [os.path.join(glist[i],flist[i]) for i in range(len(glist))]
-        else:
-            # Just join the one.
-            return os.path.join(glist, flist)
-            
-    # Function to get the group index from the case index
-    def GetGroupIndex(self, i):
-        """Get group index from case index
-        
-        :Call:
-            k = x.GetGroupIndex(i)
-        :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
-                Instance of the pyCart trajectory class
-            *i*: :class:`int`
-                Index of case
-        :Outputs:
-            *j*: :class:`int`
-                Index of group that contains case *i*
-        :Versions:
-            * 2014-09-27 ``@ddalle``: First versoin
-        """
-        # Check inputs.
-        if not type(i).__name__.startswith('int'):
-            raise TypeError("Input to :func:`Trajectory.GetGroupIndex` must"
-                + " be :class:`int`.")
-        # Get name of group for case *i*.
-        grp = self.GetGroupFolderNames(i)
-        # Get the list of all unique groups.
-        grps = self.GetUniqueGroupFolderNames()
-        # Find the index.
-        j = np.where(grps == grp)[0][0]
-        # Output
-        return j
-        
-    # Get all keys by type
-    def GetKeysByType(self, KeyType):
-        """Get all keys by type
-        
-        :Call:
-            >>> keys = x.GetKeysByType(KeyType)
-            >>> keys = x.GetKeysByType(KeyTypes)
-        :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
-                Instance of pyCart trajectory class
-            *KeyType*: :class:`str`
-                Key type to search for
-            *KeyTypes*: :class:`list` (:class:`str`)
-                List of key types to search for
-        :Outputs:
-            *keys*: :class:`numpy.ndarray` (:class:`str`)
-                List of keys such that ``x[key]['Type']`` matches *KeyType*
-        :Versions:
-            * 2014-10-07 ``@ddalle``: First version
-        """
-        # List of key types
-        KT = np.array([self.defns[k]['Type'] for k in self.keys])
-        # Class of input
-        kt = type(KeyType).__name__
-        # Depends on the type of what we are searching for
-        if kt.startswith('str') or kt=='unicode':
-            # Return matches
-            return np.array(self.keys)[KT == KeyType]
-        elif kt not in ['list', 'ndarray']:
-            # Not usable
-            raise TypeError("Cannot search for keys of type '%s'" % KeyType)
-        # Initialize list of matches to all ``False``
-        U = np.arange(len(self.keys)) < 0
-        # Loop through types given as input.
-        for k in KeyType:
-            # Search for this kind of key.
-            U = np.logical_or(U, KT == k)
-        # Output.
-        return np.array(self.keys)[np.where(U)[0]]
-        
-    # Get keys by type of its value
-    def GetKeysByValue(self, val):
-        """Get all keys with specified type of value
-        
-        :Call:
-            >>> keys = x.GetKeysByValue(val)
-        :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
-                Instance of pyCart trajectory class
-            *val*: :class:`str`
-                Key value class to search for
-        :Outputs:
-            *keys*: :class:`numpy.ndarray` (:class:`str`)
-                List of keys such that ``x[key]['Value']`` matches *val*
-        :Versions:
-            * 2014-10-07 ``@ddalle``: First version
-        """
-        # List of key types
-        KV = np.array([self.defns[k]['Value'] for k in self.keys])
-        # Return matches
-        return np.array(self.keys)[KV == val]
+   # >
     
+    # =================
+    # Flight Conditions
+    # =================
+   # <
     # Get Reynolds number
     def GetReynoldsNumber(self, i):
         """Get Reynolds number (per foot)
@@ -1873,35 +2077,6 @@ class Trajectory:
             return q / (0.7*M*M)
         # If we reach here, missing info.
         return None
-        
-    # Get ratio of specific heats
-    def GetGamma(self, i):
-        """Get freestream ratio of specific heats
-        
-        :Call:
-            >>> gam = x.GetGamma(i)
-        :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
-                Run matrix interface
-            *i*: :class:`int`
-                Case number
-        :Outputs:
-            *gam*: :class:`float`
-                Ratio of specific heats
-        :Versions:
-            * 2016-03-29 ``@ddalle``: First version
-        """
-        # Process the key types
-        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-        # Check for ratio of specific heats
-        if 'gamma' in KeyTypes:
-            # Find the key
-            k = self.GetKeysByType('gamma')[0]
-            # Use the value of that key
-            return getattr(self,k)[i]
-        else:
-            # Default value
-            return 1.4
     
     # Get freestream pressure
     def GetDynamicPressure(self, i):
@@ -1989,48 +2164,41 @@ class Trajectory:
         # Calculate stagnation pressure
         return p * (1+g2*M*M)**g3
         
-    # Get name of key
-    def GetKeyName(self, typ, key=None):
-        """Get name of key by specified type; defaulting to first key with type
-        
-        A ValueError exception is raised if input key has incorrect type or if
-        no keys have that type.
+    # Get ratio of specific heats
+    def GetGamma(self, i):
+        """Get freestream ratio of specific heats
         
         :Call:
-            >>> k = x.GetKeyName(typ, key=None)
+            >>> gam = x.GetGamma(i)
         :Inputs:
-            *typ*: :class:`str`
-                Name of key type, for instance 'alpha_t'
-            *key*: {``None``} | :class:`str`
-                Name of trajectory key
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case number
         :Outputs:
-            *k*: :class:`str`
-                Key meeting those requirements
+            *gam*: :class:`float`
+                Ratio of specific heats
         :Versions:
-            * 2016-08-29 ``@ddalle``: First version
+            * 2016-03-29 ``@ddalle``: First version
         """
-        # Process key
-        if key is None:
-            # Key types
-            KeyTypes = [self.defns[k]['Type'] for k in self.keys]
-            # Check for key.
-            if typ not in KeyTypes:
-                raise ValueError("No trajectory keys of type '%s'" % typ)
-            # Get first key
-            return self.GetKeysByType(typ)[0]
+        # Process the key types
+        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+        # Check for ratio of specific heats
+        if 'gamma' in KeyTypes:
+            # Find the key
+            k = self.GetKeysByType('gamma')[0]
+            # Use the value of that key
+            return getattr(self,k)[i]
         else:
-            # Check the key
-            if key not in self.keys:
-                # Undefined key
-                raise KeyError("No trajectory key '%s'" % key)
-            elif self.defns[key]['Type'] != typ:
-                # Wrong type
-                raise ValueError(
-                    ("Requested key '%s' with type '%s', but " % (key,typ)) +
-                    ("actual type is '%s'" % (typ, self.defns[k]['Type'])))
-            # Output the key
-            return key
+            # Default value
+            return 1.4
     
+   # >
+    
+    # ===========
+    # SurfBC Keys
+    # ===========
+   # <
     # Get generic input for SurfBC key
     def GetSurfBC_ParamType(self, key, k, comp=None):
         """Get generic parameter value and type for a surface BC key
@@ -2113,8 +2281,7 @@ class Trajectory:
             return v
             
     # Process input for generic SurfBC key/param
-    def GetSurfBC_Param(self, i, key, k,
-            comp=None, vdef=None, typ='SurfBC', **kw):
+    def GetSurfBC_Param(self, i, key, k, comp=None, vdef=None, **kw):
         """Process a single parameter of a SurfBC key
         
         :Call:
@@ -2143,6 +2310,8 @@ class Trajectory:
         :Versions:
             * 2016-08-31 ``@ddalle``: First version
         """
+        # Process keywords
+        typ = kw.get('typ', 'SurfBC')
         # Process key
         key = self.GetKeyName(typ, key)
         # Get the parameter and value
@@ -3245,131 +3414,6 @@ class Trajectory:
         v, t = self.GetSurfBC_ParamType(key, 'Grids', comp=comp)
         # Process
         return self.GetSurfBC_Val(i, key, v, t)
-            
     
-    # Function to assemble a folder name based on a list of keys and an index
-    def _AssembleName(self, keys, prefix, i):
-        """
-        Assemble names using common code.
-        
-        :Call:
-            >>> dname = x._AssembleName(keys, prefix, i)
-        :Inputs:
-            *x*: :class:`cape.trajectory.Trajectory`
-                Instance of the pyCart trajectory class
-            *keys*: :type:`list` (:class:`str`)
-                List of keys to use for this folder name
-            *prefix*: :class:`str`
-                Header for name of each case folder
-            *i*: :class:`int`
-                Index of case to process
-        :Outputs:
-            *dname*: :class:`str` or :class:`list`
-                Name containing value for each key in *keys*
-        :Versions:
-            * 2014-06-05 ``@ddalle``: First version
-            * 2014-10-03 ``@ddalle``: Added suffixes
-        """
-        # Process the key types.
-        types = [self.defns[k].get("Type","") for k in keys]
-        # Check for a prefix.
-        if "Config" in types:
-            # Figure out which key it is
-            j = types.index("Config")
-            # Get the specified prefix.
-            fpre = getattr(self,keys[j])[i]
-            # Initialize the name.
-            if fpre:
-                # Use the specified prefix/config
-                dname = str(fpre)
-            else:
-                # Use the input/default prefix/config
-                dname = str(prefix)
-            # Add underscore if more keys remaining.
-            if len(types) > 1: dname += "_"
-        elif prefix:
-            # The prefix is likely to be the whole name.
-            dname = str(prefix)
-            # Add underscore if there are keys.
-            if (keys is not None) and (len(keys)>0): dname += "_"
-        else:
-            # Initialize an empty string.
-            dname = ""
-        # Append based on the keys.
-        for k in keys:
-            # Skip text
-            if self.defns[k]["Value"] == "str": continue
-            # Check for unlabeled values
-            if (not self.defns[k].get("Label", True)): continue
-            # Skip unentered values
-            if (i>=len(self.text[k])) or (not self.text[k][i]): continue
-            # Check for "SkipZero" flag
-            if self.defns[k].get("SkipIfZero", False): continue
-            # Make the string of what's going to be printed.
-            # This is something like ``'%.2f' % x.alpha[i]``.
-            lbl = self.defns[k]["Format"] % getattr(self,k)[i]
-            # Append the text in the trajectory file.
-            dname += self.abbrv[k] + lbl 
-        # Check for suffix keys.
-        for k in keys:
-            # Only look for labels.
-            if self.defns[k].get("Type") != "Label": continue
-            # Check the value.
-            if (i < len(self.text[k])) and self.text[k][i].strip():
-                # Add underscore if necessary.
-                if dname: dname += "_"
-                # Add the label itself
-                dname += (self.abbrv[k] + self.text[k][i])
-        # Return the result.
-        return dname
-        
-    # Function to write a JSON file with the trajectory variables.
-    def WriteConditionsJSON(self, i, fname="conditions.json"):
-        """Write a simple JSON file with exact trajectory variables
-        
-        :Call:
-            >>> x.WriteConditionsJSON(i, fname="conditions.json")
-        :Inputs:
-            *i*: :class:`int`
-                Index of the run case to print
-            *fname*: :class:`str`
-                Name of file to create
-        :Versions:
-            * 2014-11-18 ``@ddalle``: First version
-        """
-        # Open the file.
-        f = open(fname, 'w')
-        # Create the header.
-        f.write('{\n')
-        # Number of keys
-        n = len(self.keys)
-        # Loop through the keys.
-        for j in range(n):
-            # Name of the key.
-            k = self.keys[j]
-            # If it's a string, add quotes.
-            if self.defns[k]["Value"] in ['str', 'char']:
-                # Use quotes.
-                q = '"'
-            else:
-                # No quotes.
-                q = ''
-            # Test if a comma is needed.
-            if j >= n-1:
-                # No comma for last line.
-                c = ''
-            else:
-                # Yes, a comma is needed.
-                c = ','
-            # Get the value.
-            v = getattr(self,k)[i]
-            # Initial portion of line.
-            line = ' "%s": %s%s%s%s\n' % (k, q, v, q, c)
-            # Write the line.
-            f.write(line)
-        # Close out the JSON object.
-        f.write('}\n')
-        # Close the file.
-        f.close()
+   # >
 # class Trajectory
-
