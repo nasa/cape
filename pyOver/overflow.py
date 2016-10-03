@@ -761,7 +761,8 @@ class Overflow(Cntl):
             pass
         else:
             # Write the file if the above does not fail
-            self.config.Write(fname)
+            if self.config is not None:
+                self.config.Write(fname)
         # Return to original location
         os.chdir(fpwd)
         
