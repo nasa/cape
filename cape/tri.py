@@ -424,7 +424,7 @@ class TriBase(object):
         self.Quads = np.zeros((0,4))
         
         # Save extension
-        self.ext == 'ascii'
+        self.ext = 'ascii'
         
         # Weight: number of files included in file
         self.n = n
