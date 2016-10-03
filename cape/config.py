@@ -517,7 +517,7 @@ class Config:
             typ = T[i].get("Type", "Translate")
             # Check type
             if typ != "Translate":
-                raise ValueError("Transform %s for '%s' is not a rotation"
+                raise ValueError("Transform %s for '%s' is not a translation"
                     % (i, comp))
         elif i > n:
             # Cannot add this rotation

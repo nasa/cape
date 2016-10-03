@@ -545,7 +545,7 @@ class DataBook(cape.dataBook.DataBook):
         elif DBc['nIter'][j] < nIter:
             # Update
             print("  Updating from iteration %i to %i."
-                % (self[c0]['nIter'][j], nIter))
+                % (DBc['nIter'][j], nIter))
             q = True
         elif DBc['nStats'][j] < nStats:
             # Change statistics
