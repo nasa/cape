@@ -74,7 +74,7 @@ def _readline(f, comment='#'):
         lstrp = line.strip()
     # Return the line.
     return line
-
+# end _readline
 
 
 # Function to read a single triangulation file
@@ -121,6 +121,7 @@ def ReadTriFile(fname, fmt=None):
     else:
         # Assume Cart3D triangulation file
         return Tri(fname)
+# end ReadTriFile
 
 
 # Triangulation class
@@ -171,6 +172,10 @@ class TriBase(object):
         * 2014-06-02 ``@ddalle``: Added UH3D reading capability
         * 2015-11-19 ``@ddalle``: Added AFLR3 surface capability
     """
+    # ======
+    # Config
+    # ======
+  # <
     # Initialization method
     def __init__(self, fname=None, uh3d=None, c=None,
         nNode=None, Nodes=None, nTri=None, Tris=None,
@@ -251,443 +256,93 @@ class TriBase(object):
     # String representation is the same
     __str__ = __repr__
         
-    # Function to read node coordinates from .tri file
-    def ReadNodes(self, f, nNode):
-        """Read node coordinates from a .tri file.
+    # Function to copy a triangulation and unlink it.
+    def Copy(self):
+        """Copy a triangulation and unlink it
         
         :Call:
-            >>> tri.ReadNodes(f, nNode)
-        :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
-                Triangulation instance
-            *f*: :class:`file`
-                Open file handle
-            *nNode*: :class:`int`
-                Number of nodes to read
-        :Effects:
-            *tri.Nodes*: :class:`np.ndarray` (:class:`float`) (*nNode*, 3)
-                Matrix of nodal coordinates
-            *tri.blds*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
-                Vector of initial boundary layer spacings
-            *tri.bldel*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
-                Vector of boundary layer thicknesses
-            *f*: :class:`file`
-                File remains open
-        :Versions:
-            * 2014-06-16 ``@ddalle``: First version
-        """
-        # Save the node count.
-        self.nNode = nNode
-        # Read the nodes.
-        Nodes = np.fromfile(f, dtype=float, count=nNode*3, sep=" ")
-        # Reshape into a matrix.
-        self.Nodes = Nodes.reshape((nNode,3))
-        
-    # Function to read node coordinates from .triq+ file
-    def ReadNodesSurf(self, f, nNode):
-        """Read node coordinates from an AFLR3 ``.surf`` file
-        
-        :Call:
-            >>> tri.ReadNodesSurf(f, nNode)
-        :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
-                Triangulation instance
-            *f*: :class:`file`
-                Open file handle
-            *nNode*: :class:`int`
-                Number of tris to read
-        :Effects:
-            *tri.Nodes*: :class:`np.ndarray` (:class:`float`) (*nNode*, 3)
-                Matrix of nodal coordinates
-            *tri.blds*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
-                Vector of initial boundary layer spacings
-            *tri.bldel*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
-                Vector of boundary layer thicknesses
-            *f*: :class:`file`
-                File remains open
-        :Versions:
-            * 2016-04-05 ``@ddalle``: First version
-        """
-        # Save the node count.
-        self.nNode = nNode
-        # Read the nodes.
-        Nodes = np.fromfile(f, dtype=float, count=nNode*5, sep=" ")
-        # Reshape into a matrix.
-        Nodes = Nodes.reshape((nNode,5))
-        # Save nodes
-        self.Nodes = Nodes[:,:3]
-        # Save boundary layer spacings
-        self.blds = Nodes[:,3]
-        # Save boundary layer thicknesses
-        self.bldel = Nodes[:,4]
-        
-    # Function to read triangle indices from .triq+ files
-    def ReadTris(self, f, nTri):
-        """Read triangle node indices from a .tri file.
-        
-        :Call:
-            >>> tri.ReadTris(f, nTri)
-        :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
-                Triangulation instance
-            *f*: :class:`file`
-                Open file handle
-            *nTri*: :class:`int`
-                Number of tris to read
-        :Effects:
-            Reads and creates *tri.Tris*; file remains open.
-        :Versions:
-            * 2014-06-16 ``@ddalle``: First version
-        """
-        # Save the tri count.
-        self.nTri = nTri
-        # Read the Tris
-        Tris = np.fromfile(f, dtype=int, count=nTri*3, sep=" ")
-        # Reshape into a matrix.
-        self.Tris = Tris.reshape((nTri,3))
-    
-    # Function to read triangles from .surf file
-    def ReadTrisSurf(self, f, nTri):
-        """Read triangle node indices, comp IDs, and BCs from AFLR3 file
-        
-        :Call:
-            >>> tri.ReadTrisSurf(f, nTri)
-        :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
-                Triangulation instance
-            *f*: :class:`file`
-                Open file handle
-            *nTri*: :class:`int`
-                Number of tris to read
-        :Effects:
-            *tri.Tris*: :class:`np.ndarray` (:class:`int`) (*nTri*, 3)
-                Matrix of nodal coordinates
-            *tri.CompID*: :class:`np.ndarray` (:class:`int`) (*nTri*,)
-                Vector of component IDs for each triangle
-            *tri.BCs*: :class:`np.ndarray` (:class:`int`) (*nTri*,)
-                Vector of boundary condition flags
-            *f*: :class:`file`
-                File remains open
-        :Versions:
-            * 2016-04-05 ``@ddalle``: First version
-        """
-        # Save the tri count
-        self.nTri = nTri
-        # Exit if no tris
-        if nTri == 0:
-            self.Tris = np.zeros((0,3))
-            self.CompID = np.zeros(0, dtype=int)
-            self.BCs = np.zeros(0, dtype=int)
-            return
-        # Read the tris
-        Tris = np.fromfile(f, dtype=int, count=nTri*6, sep=" ")
-        # Reshape into a matrix
-        Tris = Tris.reshape((nTri,6))
-        # Save the triangles
-        self.Tris = Tris[:,:3]
-        # Save the component IDs.
-        self.CompID = Tris[:,3]
-        # Save the boundary conditions.
-        self.BCs = Tris[:,5]
-        
-    # Function to read quads from .surf file
-    def ReadQuadsSurf(self, f, nQuad):
-        """Read quad node indices, compIDs, and BCs from AFLR3 file
-        
-        :Call:
-            >>> tri.ReadQuadsSurf(f, nQuad)
-        :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
-                Triangulation instance
-            *f*: :class:`file`
-                Open file handle
-            *nTri*: :class:`int`
-                Number of tris to read
-        :Effects:
-            *tri.Quads*: :class:`np.ndarray` (:class:`int`) (*nQuad*, 4)
-                Matrix of nodal coordinates
-            *tri.CompIDQuad*: :class:`np.ndarray` (:class:`int`) (*nQuad*,)
-                Vector of component IDs for each quad
-            *tri.BCsQuad*: :class:`np.ndarray` (:class:`int`) (*nQuad*,)
-                Vector of boundary condition flags
-            *f*: :class:`file`
-                File remains open
-        :Versions:
-            * 2016-04-05 ``@ddalle``: First version
-        """
-        # Save the tri count
-        self.nQuad = nQuad
-        # Exit if no tris
-        if nQuad == 0:
-            self.Quads = np.zeros((0,3))
-            self.CompIDQuad = np.zeros(0, dtype=int)
-            self.BCsQuad = np.zeros(0, dtype=int)
-            return
-        # Read the tris
-        Quads = np.fromfile(f, dtype=int, count=nQuad*7, sep=" ")
-        # Reshape into a matrix
-        Quads = Tris.reshape((nQuad,6))
-        # Save the triangles
-        self.Quads = Quads[:,:4]
-        # Save the component IDs.
-        self.CompIDQuad = Quads[:,4]
-        # Save the boundary conditions.
-        self.BCsQuad = Quads[:,6]
-        
-    # Function to read the component identifiers
-    def ReadCompID(self, f):
-        """Read component IDs from a .tri file.
-        
-        :Call:
-            >>> tri.ReadCompID(f)
-        :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
-                Triangulation instance
-            *f*: :class:`str`
-                Open file handle
-        :Effects:
-            Reads and creates *tri.CompID* if not at end of file.  Otherwise all
-            components are labeled ``1``.
-        :Versions:
-            * 2014-06-16 ``@ddalle``: First version
-        """
-        # Check for end of file.
-        if f.tell() == os.fstat(f.fileno()).st_size:
-            # Use default component ids.
-            self.CompID = np.ones(self.nTri)
-        else:
-            # Read from file.
-            self.CompID = np.fromfile(f, dtype=int, count=self.nTri, sep=" ")
-        
-    # Function to read node coordinates from .triq+ file
-    def ReadQ(self, f, nNode, nq):
-        """Read node states from a ``.triq`` file.
-        
-        :Call:
-            >>> triq.ReadQ(f, nNode, nq)
-        :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
-                Triangulation instance
-            *f*: :class:`file`
-                Open file handle
-            *nNode*: :class:`int`
-                Number of nodes to read
-            *nq*: :class:`int`
-                Number of state variables at each node
-        :Effects:
-            Reads and creates *tri.Nodes*; file remains open.
-        :Versions:
-            * 2015-09-14 ``@ddalle``: First version
-        """
-        # Save the state count.
-        self.nq = nq
-        # Check for null case
-        if nq is None: return
-        # Read the nodes.
-        q = np.fromfile(f, dtype=float, count=nNode*nq, sep=" ")
-        # Reshape into a matrix.
-        self.q = q.reshape((nNode,nq))
-            
-    # Function to write .tri file with one CompID per break
-    def WriteVolTri(self, fname='Components.tri'):
-        """Write a .tri file with one CompID per break in *tri.iTri*
-        
-        This is a necessary step of running `intersect` because each polyhedron
-        (i.e. water-tight volume) must have a single uniform component ID before
-        running `intersect`.
-        
-        :Call:
-            >>> tri.WriteCompIDTri(fname='Components.c.tri')
-        :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
-                Triangulation instance
-            *fname*: :class:`str`
-                Name of .tri file for use as input to `intersect`
-        :Versions:
-            * 2015-02-24 ``@ddalle``: First version
-        """
-        # Copy the triangulation.
-        tri = self.Copy()
-        # Current maximum CompID
-        comp0 = np.max(self.CompID)
-        # Set first volume.
-        tri.CompID[:self.iTri[0]] = comp0 + 1
-        # Loop through volumes as marked in *tri.iTri*
-        for k in range(len(self.iTri)-1):
-            # Set the CompID for each tri in that volume.
-            tri.CompID[self.iTri[k]:self.iTri[k+1]] = comp0 + k + 2
-        # Write the triangulation to file.
-        tri.Write(fname)
-        
-    # Function to map each face's CompID to the closest match from another tri
-    def MapSubCompID(self, tric, compID, kc=None):
-        """
-        Map CompID of each face to the CompID of the nearest face in another
-        triangulation.  This is a common step after running `intersect`.
-        
-        :Call:
-            >>> tri.MapSubCompID(tric, compID, iA=0, iB=-1)
-        :Inputs:
-            *tri*: :class:`cape.tri.TriBase` or derivative
-                Triangulation instance
-            *tric*: :class:`cape.tri.TriBase` or derivative
-                Triangulation with more desirable CompIDs to be copied
-            *compID*: :class:`int`
-                Component ID to map from *tric*
-            *k1*: :class:`numpy.ndarray` (:class:`int`)
-                Indices of faces in *tric* to considerider
-        :Versions:
-            * 2015-02-24 ``@ddalle``: First version
-        """
-        # Default last index.
-        if kc is None: kc = np.arange(tric.nTri)
-        # Indices of tris to map.
-        K1 = np.where(self.CompID == compID)[0]
-        # Check for a single component to map (volume really is one CompID).
-        if len(np.unique(tric.CompID[kc])) == 1:
-            # Map that component to each face in *k*.
-            self.CompID[K1] = tric.CompID[kc[0]]
-            # That's it.
-            return
-        # Make copy of the target indices.
-        K0 = np.array(kc).copy()
-        # Extract target triangle vertices
-        x0 = tric.Nodes[tric.Tris[K0]-1,0]
-        y0 = tric.Nodes[tric.Tris[K0]-1,1]
-        z0 = tric.Nodes[tric.Tris[K0]-1,2]
-        # Current vertices
-        x1 = self.Nodes[self.Tris[K1]-1,0]
-        y1 = self.Nodes[self.Tris[K1]-1,1]
-        z1 = self.Nodes[self.Tris[K1]-1,2]
-        # Length scale
-        tol = 1e-6 * np.sqrt(np.sum(
-            (np.max(self.Nodes,0)-np.min(self.Nodes,0))**2))
-        # Start with the first tri.
-        k0 = 0
-        k1 = 0
-        # Loop until one of the two sets of faces is exhausted.
-        while (k0<len(K0)-1) and (k1<len(K1)-1):
-            # Current point from intersected geometry.
-            xk = x1[k1]; yk = y1[k1]; zk = z1[k1]
-            # Distance to current intersected triangle.
-            d0 = np.sqrt(
-                (x0[k0:,0]-xk[0])**2 + (x0[k0:,1]-xk[1])**2 +
-                (x0[k0:,2]-xk[2])**2 + (y0[k0:,0]-yk[0])**2 +
-                (y0[k0:,1]-yk[1])**2 + (y0[k0:,2]-yk[2])**2 +
-                (z0[k0:,0]-zk[0])**2 + (z0[k0:,1]-zk[1])**2 +
-                (z0[k0:,2]-zk[2])**2)
-            # Find the index of this tri in the target set.
-            i0 = np.where(d0 <= tol)[0]
-            # Check for match.
-            if len(i0) == 0:
-                # No match.
-                k1 += 1
-            else:
-                # Take the first point.
-                k0 += i0[0]
-            # Try to match all the remaining points.
-            n = min(len(K0)-k0, len(K1)-k1)
-            # Calculate total of distances between vertices.
-            dk = np.sqrt(np.sum((x1[k1:k1+n]-x0[k0:k0+n])**2 +
-                (y1[k1:k1+n]-y0[k0:k0+n])**2 +
-                (z1[k1:k1+n]-z0[k0:k0+n])**2, 1))
-            # Check for a match.
-            if not np.any(dk<=tol): continue
-            # Find the first tri that does _not_ match.
-            j = np.where(dk<=tol)[0][-1] + 1
-            # Copy these *j* CompIDs.
-            self.CompID[K1[k1:k1+j]] = tric.CompID[K0[k0:k0+j]]
-            # Move to next tri in intersected surface.
-            k1 += j; k0 += j
-        
-        # Find the triangles that are _still_ the old CompID
-        K = np.where(self.CompID == compID)[0]
-        
-        # Calculate the centroids of the target components.
-        x0 = np.mean(tric.Nodes[tric.Tris[K0]-1, 0], 1)
-        y0 = np.mean(tric.Nodes[tric.Tris[K0]-1, 1], 1)
-        z0 = np.mean(tric.Nodes[tric.Tris[K0]-1, 2], 1)
-        # Calculate centroids of current tris.
-        x1 = np.mean(self.Nodes[self.Tris-1,0], 1)
-        y1 = np.mean(self.Nodes[self.Tris-1,1], 1)
-        z1 = np.mean(self.Nodes[self.Tris-1,2], 1)
-        # Loop through components.
-        for i in K:
-            # Find the closest centroid from *tric*.
-            j = np.argmin((x0-x1[i])**2 + (y0-y1[i])**2 + (z0-z1[i])**2)
-            # Map it.
-            self.CompID[i] = tric.CompID[K0[j]]
-            
-    # Function to fully map component IDs
-    def MapCompID(self, tric, tri0):
-        """
-        Map CompIDs from pre-intersected triangulation to an intersected
-        triangulation.  In standard cape terminology, this is a transformation
-        from :file:`Components.o.tri` to :file:`Components.i.tri`
-        
-        :Call:
-            >>> tri.MapCompID(tric, tri0)
+            >>> tri2 = tri.Copy()
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
-                Triangulation interface
-            *tric*: :class:`cape.tri.Tri`
-                Full CompID breakdown prior to intersection
-            *tri0*: :class:`cape.tri.Tri`
-                Input triangulation to `intersect`
-        :Versions:
-            * 2015-02-25 ``@ddalle``: First version
-        """
-        # Get the components from the pre-intersected triangulation.
-        comps = np.unique(tri0.CompID)
-        # Loop through comps.
-        for compID in comps:
-            # Get the faces with that comp ID (before intersection)
-            kc = np.where(tri0.CompID == compID)[0]
-            # Map the compIDs for that component.
-            self.MapSubCompID(tric, compID, kc)
-        
-        
-    # Function to get compIDs by name
-    def GetCompID(self, face=None):
-        """Get components by name
-        
-        :Call:
-            >>> compID = tri.GetCompID()
-            >>> compID = tri.GetCompID(face)
-            >>> compID = tri.GetCompID(comp)
-            >>> compID = tri.GetCompID(comps)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation interface
-            *face*: :class:`str`
-                Component name
-            *comp*: :class:`int`
-                Component ID
-            *comps*: :class:`list` (:class:`int` | :class:`str`)
-                List of component names or IDs
+                Triangulation instance
         :Outputs:
-            *compID*: :class:`list` (:class:`int`)
-                List of component IDs
+            *tri2*: :class:`cape.tri.Tri`
+                Triangulation with same values as *tri* but not linked
         :Versions:
-            * 2014-10-12 ``@ddalle``: First version
-            * 2016-03-29 ``@ddalle``: Edited docstring
+            * 2014-06-12 ``@ddalle``: First version
         """
-        # Process input into a list of component IDs.
+        # Make a new triangulation with no information.
+        typ = type(self).__name__
+        # Initialize the correct type.
+        if typ == 'Triq':
+            # Initialize with state
+            tri = Triq()
+        elif type == 'TriBase':
+            # Initialize base object
+            tri = TriBase()
+        else:
+            # Default to surface geometry definition
+            tri = Tri()
+        # Copy over the scalars.
+        tri.nNode = self.nNode
+        tri.nTri  = self.nTri
+        # Make new copies of the arrays.
+        tri.Nodes  = self.Nodes.copy()
+        tri.Tris   = self.Tris.copy()
+        tri.CompID = self.CompID.copy()
+        # Copy BL parameters
         try:
-            # Best option is to use the Config.xml file
-            return self.config.GetCompID(face)
+            tri.blds = self.blds.copy()
+            tri.bldel = self.bldel.copy()
         except Exception:
-            # Check for scalar
-            if face is None:
-                # No contents; this might break otherwise
-                return list(np.unique(self.CompID))
-            elif type(face).__name__  in ['list', 'ndarray']:
-                # Return the list
-                return face
-            else:
-                # Make a singleton list
-                return [face]
+            pass
+        # Other Tri info
+        try:
+            tri.BCs = self.BCs.copy()
+        except Exception:
+            pass
+        # Copy Quad info
+        try:
+            tri.nQuad = self.nQuad
+            tri.Quads = self.Quads.copy()
+            tri.CompIDQuad = self.CompIDQuad.copy()
+            tri.BCsQuad = self.BCsQuad.copy()
+        except Exception:
+            pass
+        # Try to copy the configuration list.
+        try: tri.Conf = self.Conf.copy()
+        except Exception: pass
+        # Try to copy the configuration.
+        try: tri.config = self.config.Copy()
+        except Exception: pass
+        # Try to copy the original barriers.
+        try: tri.iTri = self.iTri
+        except Exception: pass
+        # Try to copy the state
+        try:
+            tri.q = self.q.copy()
+            tri.nq = tri.shape[1]
+        except Exception:
+            pass
+        # Try to copy the state length
+        try:
+            tri.n = self.n
+        except Exception:
+            tri.n = 1
+        # Output the new triangulation.
+        return tri
     
+  # >
+    
+    # ===========
+    # TRI Readers
+    # ===========
+  # <
+  
+    # ++++++++++++++++
+    # Full TRI Readers
+    # ++++++++++++++++
+   # {
     # Function to read a .tri file
     def Read(self, fname, n=1):
         """Read a triangulation file (from ``.tri`` or ``.triq`` file)
@@ -711,7 +366,7 @@ class TriBase(object):
             * 2014-06-02 ``@ddalle``: First version
         """
         # Get the file type
-        self.get_filetype(fname)
+        self.GetTriFileType(fname)
         # Check if ASCII
         if self.filetype == 'ascii':
             # Read the ASCII file
@@ -768,106 +423,11 @@ class TriBase(object):
         self.nQuad = 0
         self.Quads = np.zeros((0,4))
         
+        # Save extension
+        self.ext == 'ascii'
+        
         # Weight: number of files included in file
         self.n = n
-        
-    # Get byte order
-    def get_filetype(self, fname):
-        """Get the byte order and precision for a TRI file
-        
-        The function works by setting attributes of the triangulation
-        
-        :Call:
-            >>> tri.get_bytetype(fid)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangultion instance to be translated
-            *fname*: :class:`str`
-                Name of file to write
-        :Attributes:
-            *tri.filetype*: {``'ascii'``} | ``'binary'``
-                File type
-            *tri.byteorder*: ``'big'`` | ``'little'``
-                Endianness
-            *tri.precision*: ``4`` | ``8``
-                Number of bytes in one entry
-        :Versions:
-            * 2016-08-18 ``@ddalle``: First version
-        """
-        # Open the file; attempt a binary read
-        fid = open(fname, 'rb')
-        # Read the first entry as a double-precision little-endian int
-        r = np.fromfile(fid, count=1, dtype='<i8')
-        # Check for success
-        if r >= 16 and r <= 32:
-            # Success
-            self.filetype  = 'binary'
-            self.byteorder = 'little'
-            self.bytecount = 8
-            # Finished
-            fid.close()
-            return
-        # Go to beginning of file again
-        fid.seek(0)
-        # Read the first bit as a single-precision little-endian int
-        r = np.fromfile(fid, count=1, dtype='<i4')
-        # Check for success
-        if r >= 8 and r <= 16:
-            # Success
-            self.filetype  = 'binary'
-            self.byteorder = 'little'
-            self.bytecount = 4
-            # Finished
-            fid.close()
-            return
-        # Go to beginning of file again
-        fid.seek(0)
-        # Read the first bit as a double-precision big-endian int
-        r = np.fromfile(fid, count=1, dtype='>i8')
-        # Check for success
-        if r >= 16 and r <= 32:
-            # Success
-            self.filetype  = 'binary'
-            self.byteorder = 'big'
-            self.bytecount = 8
-            # Finished
-            fid.close()
-            return
-        # Go to beginning of file again
-        fid.seek(0)
-        # Read the first bit as a double-precision big-endian int
-        r = np.fromfile(fid, count=1, dtype='>i4')
-        # Check for success
-        if r >= 8 and r <= 16:
-            # Success
-            self.filetype  = 'binary'
-            self.byteorder = 'big'
-            self.bytecount = 4
-            # Finished
-            fid.close()
-            return
-        # Close the file
-        fid.close()
-        # Attempt to read as an ASCII file
-        fid = open(fname, 'r')
-        # Read the first line
-        line = fid.readline()
-        # Close the file
-        fid.close()
-        # Check if it makes sense
-        try:
-            # See if each entry can be converted to an integer
-            [int(v) for v in line.split()]
-            # Set file type
-            self.filetype = 'ascii'
-        except Exception:
-            # No valid interpretation
-            raise ValueError("File did not match any of the following types:\n"
-                + "  Double-precision little-endian Fortran unformatted\n"
-                + "  Single-precision little-endian Fortran unformatted\n"
-                + "  Double-precision big-endian Fortran unformatted\n"
-                + "  Single-precision big-endian Fortran unformatted\n"
-                + "  ASCII")
             
     # Read TRI file as a binary file
     def ReadTriBin(self, fname, ni=4, nf=4):
@@ -979,9 +539,587 @@ class TriBase(object):
         self.q = np.fromfile(fid, count=self.nNode*self.nq, dtype=ff)
         # Close the file
         fid.close()
+        # Count (used for averaging triq files)
+        self.n = 1
+   # }
+   
+    # +++++++++++++
+    # TRI File Type
+    # +++++++++++++
+   # {
+    # Get byte order
+    def GetTriFileType(self, fname):
+        """Get the byte order and precision for a TRI file
+        
+        The function works by setting attributes of the triangulation
+        
+        :Call:
+            >>> tri.GetTriFileType(fname)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: :class:`str`
+                Name of file to write
+        :Attributes:
+            *tri.filetype*: {``'ascii'``} | ``'binary'``
+                File type
+            *tri.byteorder*: ``'big'`` | ``'little'``
+                Endianness
+            *tri.precision*: ``4`` | ``8``
+                Number of bytes in one entry
+        :Versions:
+            * 2016-08-18 ``@ddalle``: First version
+        """
+        # Open the file; attempt a binary read
+        fid = open(fname, 'rb')
+        # Read the first entry as a double-precision little-endian int
+        r = np.fromfile(fid, count=1, dtype='<i8')
+        # Check for success
+        if r >= 16 and r <= 32:
+            # Success
+            self.filetype  = 'binary'
+            self.byteorder = 'little'
+            self.bytecount = 8
+            self.ext = 'lb8'
+            # Finished
+            fid.close()
+            return
+        # Go to beginning of file again
+        fid.seek(0)
+        # Read the first bit as a single-precision little-endian int
+        r = np.fromfile(fid, count=1, dtype='<i4')
+        # Check for success
+        if r >= 8 and r <= 16:
+            # Success
+            self.filetype  = 'binary'
+            self.byteorder = 'little'
+            self.bytecount = 4
+            self.ext = 'lb4'
+            # Finished
+            fid.close()
+            return
+        # Go to beginning of file again
+        fid.seek(0)
+        # Read the first bit as a double-precision big-endian int
+        r = np.fromfile(fid, count=1, dtype='>i8')
+        # Check for success
+        if r >= 16 and r <= 32:
+            # Success
+            self.filetype  = 'binary'
+            self.byteorder = 'big'
+            self.bytecount = 8
+            self.ext = 'b8'
+            # Finished
+            fid.close()
+            return
+        # Go to beginning of file again
+        fid.seek(0)
+        # Read the first bit as a double-precision big-endian int
+        r = np.fromfile(fid, count=1, dtype='>i4')
+        # Check for success
+        if r >= 8 and r <= 16:
+            # Success
+            self.filetype  = 'binary'
+            self.byteorder = 'big'
+            self.bytecount = 4
+            self.ext = 'b4'
+            # Finished
+            fid.close()
+            return
+        # Close the file
+        fid.close()
+        # Attempt to read as an ASCII file
+        fid = open(fname, 'r')
+        # Read the first line
+        line = fid.readline()
+        # Close the file
+        fid.close()
+        # Check if it makes sense
+        try:
+            # See if each entry can be converted to an integer
+            [int(v) for v in line.split()]
+            # Set file type
+            self.filetype = 'ascii'
+        except Exception:
+            # No valid interpretation
+            raise ValueError("File did not match any of the following types:\n"
+                + "  Double-precision little-endian Fortran unformatted\n"
+                + "  Single-precision little-endian Fortran unformatted\n"
+                + "  Double-precision big-endian Fortran unformatted\n"
+                + "  Single-precision big-endian Fortran unformatted\n"
+                + "  ASCII")
+   # }
+   
+    # ++++++++++++
+    # Nodes (Slow)
+    # ++++++++++++
+   # {
+    # Function to read node coordinates from .tri file
+    def ReadNodes(self, f, nNode):
+        """Read node coordinates from a .tri file.
+        
+        :Call:
+            >>> tri.ReadNodes(f, nNode)
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase` or derivative
+                Triangulation instance
+            *f*: :class:`file`
+                Open file handle
+            *nNode*: :class:`int`
+                Number of nodes to read
+        :Effects:
+            *tri.Nodes*: :class:`np.ndarray` (:class:`float`) (*nNode*, 3)
+                Matrix of nodal coordinates
+            *tri.blds*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
+                Vector of initial boundary layer spacings
+            *tri.bldel*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
+                Vector of boundary layer thicknesses
+            *f*: :class:`file`
+                File remains open
+        :Versions:
+            * 2014-06-16 ``@ddalle``: First version
+        """
+        # Save the node count.
+        self.nNode = nNode
+        # Read the nodes.
+        Nodes = np.fromfile(f, dtype=float, count=nNode*3, sep=" ")
+        # Reshape into a matrix.
+        self.Nodes = Nodes.reshape((nNode,3))
+        
+    # Function to read node coordinates from .triq+ file
+    def ReadNodesSurf(self, f, nNode):
+        """Read node coordinates from an AFLR3 ``.surf`` file
+        
+        :Call:
+            >>> tri.ReadNodesSurf(f, nNode)
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase` or derivative
+                Triangulation instance
+            *f*: :class:`file`
+                Open file handle
+            *nNode*: :class:`int`
+                Number of tris to read
+        :Effects:
+            *tri.Nodes*: :class:`np.ndarray` (:class:`float`) (*nNode*, 3)
+                Matrix of nodal coordinates
+            *tri.blds*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
+                Vector of initial boundary layer spacings
+            *tri.bldel*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
+                Vector of boundary layer thicknesses
+            *f*: :class:`file`
+                File remains open
+        :Versions:
+            * 2016-04-05 ``@ddalle``: First version
+        """
+        # Save the node count.
+        self.nNode = nNode
+        # Read the nodes.
+        Nodes = np.fromfile(f, dtype=float, count=nNode*5, sep=" ")
+        # Reshape into a matrix.
+        Nodes = Nodes.reshape((nNode,5))
+        # Save nodes
+        self.Nodes = Nodes[:,:3]
+        # Save boundary layer spacings
+        self.blds = Nodes[:,3]
+        # Save boundary layer thicknesses
+        self.bldel = Nodes[:,4]
+   # }
     
+    # +++++++++++
+    # Tris (Slow)
+    # +++++++++++
+   # {
+    # Function to read triangle indices from .triq+ files
+    def ReadTris(self, f, nTri):
+        """Read triangle node indices from a .tri file.
+        
+        :Call:
+            >>> tri.ReadTris(f, nTri)
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase` or derivative
+                Triangulation instance
+            *f*: :class:`file`
+                Open file handle
+            *nTri*: :class:`int`
+                Number of tris to read
+        :Effects:
+            Reads and creates *tri.Tris*; file remains open.
+        :Versions:
+            * 2014-06-16 ``@ddalle``: First version
+        """
+        # Save the tri count.
+        self.nTri = nTri
+        # Read the Tris
+        Tris = np.fromfile(f, dtype=int, count=nTri*3, sep=" ")
+        # Reshape into a matrix.
+        self.Tris = Tris.reshape((nTri,3))
+    
+    # Function to read triangles from .surf file
+    def ReadTrisSurf(self, f, nTri):
+        """Read triangle node indices, comp IDs, and BCs from AFLR3 file
+        
+        :Call:
+            >>> tri.ReadTrisSurf(f, nTri)
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase` or derivative
+                Triangulation instance
+            *f*: :class:`file`
+                Open file handle
+            *nTri*: :class:`int`
+                Number of tris to read
+        :Effects:
+            *tri.Tris*: :class:`np.ndarray` (:class:`int`) (*nTri*, 3)
+                Matrix of nodal coordinates
+            *tri.CompID*: :class:`np.ndarray` (:class:`int`) (*nTri*,)
+                Vector of component IDs for each triangle
+            *tri.BCs*: :class:`np.ndarray` (:class:`int`) (*nTri*,)
+                Vector of boundary condition flags
+            *f*: :class:`file`
+                File remains open
+        :Versions:
+            * 2016-04-05 ``@ddalle``: First version
+        """
+        # Save the tri count
+        self.nTri = nTri
+        # Exit if no tris
+        if nTri == 0:
+            self.Tris = np.zeros((0,3))
+            self.CompID = np.zeros(0, dtype=int)
+            self.BCs = np.zeros(0, dtype=int)
+            return
+        # Read the tris
+        Tris = np.fromfile(f, dtype=int, count=nTri*6, sep=" ")
+        # Reshape into a matrix
+        Tris = Tris.reshape((nTri,6))
+        # Save the triangles
+        self.Tris = Tris[:,:3]
+        # Save the component IDs.
+        self.CompID = Tris[:,3]
+        # Save the boundary conditions.
+        self.BCs = Tris[:,5]
+        
+   # }
+    
+    # ++++++++++++
+    # Quads (Slow)
+    # ++++++++++++
+   # {
+    # Function to read quads from .surf file
+    def ReadQuadsSurf(self, f, nQuad):
+        """Read quad node indices, compIDs, and BCs from AFLR3 file
+        
+        :Call:
+            >>> tri.ReadQuadsSurf(f, nQuad)
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase` or derivative
+                Triangulation instance
+            *f*: :class:`file`
+                Open file handle
+            *nTri*: :class:`int`
+                Number of tris to read
+        :Effects:
+            *tri.Quads*: :class:`np.ndarray` (:class:`int`) (*nQuad*, 4)
+                Matrix of nodal coordinates
+            *tri.CompIDQuad*: :class:`np.ndarray` (:class:`int`) (*nQuad*,)
+                Vector of component IDs for each quad
+            *tri.BCsQuad*: :class:`np.ndarray` (:class:`int`) (*nQuad*,)
+                Vector of boundary condition flags
+            *f*: :class:`file`
+                File remains open
+        :Versions:
+            * 2016-04-05 ``@ddalle``: First version
+        """
+        # Save the tri count
+        self.nQuad = nQuad
+        # Exit if no tris
+        if nQuad == 0:
+            self.Quads = np.zeros((0,3))
+            self.CompIDQuad = np.zeros(0, dtype=int)
+            self.BCsQuad = np.zeros(0, dtype=int)
+            return
+        # Read the tris
+        Quads = np.fromfile(f, dtype=int, count=nQuad*7, sep=" ")
+        # Reshape into a matrix
+        Quads = Tris.reshape((nQuad,6))
+        # Save the triangles
+        self.Quads = Quads[:,:4]
+        # Save the component IDs.
+        self.CompIDQuad = Quads[:,4]
+        # Save the boundary conditions.
+        self.BCsQuad = Quads[:,6]
+   # }
+   
+    # ++++++++
+    # Comp IDs
+    # ++++++++
+   # {
+    # Function to read the component identifiers
+    def ReadCompID(self, f):
+        """Read component IDs from a .tri file.
+        
+        :Call:
+            >>> tri.ReadCompID(f)
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase` or derivative
+                Triangulation instance
+            *f*: :class:`str`
+                Open file handle
+        :Effects:
+            Reads and creates *tri.CompID* if not at end of file.  Otherwise all
+            components are labeled ``1``.
+        :Versions:
+            * 2014-06-16 ``@ddalle``: First version
+        """
+        # Check for end of file.
+        if f.tell() == os.fstat(f.fileno()).st_size:
+            # Use default component ids.
+            self.CompID = np.ones(self.nTri)
+        else:
+            # Read from file.
+            self.CompID = np.fromfile(f, dtype=int, count=self.nTri, sep=" ")
+   # }
+    
+    # +++++++++
+    # State (Q)
+    # +++++++++
+   # {
+    # Function to read node coordinates from .triq+ file
+    def ReadQ(self, f, nNode, nq):
+        """Read node states from a ``.triq`` file.
+        
+        :Call:
+            >>> triq.ReadQ(f, nNode, nq)
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase` or derivative
+                Triangulation instance
+            *f*: :class:`file`
+                Open file handle
+            *nNode*: :class:`int`
+                Number of nodes to read
+            *nq*: :class:`int`
+                Number of state variables at each node
+        :Effects:
+            Reads and creates *tri.Nodes*; file remains open.
+        :Versions:
+            * 2015-09-14 ``@ddalle``: First version
+        """
+        # Save the state count.
+        self.nq = nq
+        # Check for null case
+        if nq is None: return
+        # Read the nodes.
+        q = np.fromfile(f, dtype=float, count=nNode*nq, sep=" ")
+        # Reshape into a matrix.
+        self.q = q.reshape((nNode,nq))
+   # }
+    
+  # >
+    
+    # ===========
+    # TRI Writers
+    # ===========
+  # <
+    
+    # ++++++++++++++++
+    # Full TRI Writers
+    # ++++++++++++++++
+   # {
     # Fall-through function to write the triangulation to file.
-    def Write(self, fname='Components.i.tri', v=True):
+    def Write(self, fname='Components.i.tri', **kw):
+        """Write triangulation to file using fastest method available
+        
+        :Call:
+            >>> tri.WriteSlow(fname='Components.i.tri', v=True, **kw)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+            *v*: :class:`bool`
+                Whether or not
+            *ascii*: ``True`` | {``False``}
+                Whether or not to use ASCII (text file)
+            *b4*: ``True`` | {``False``}
+                Whether or not to use single-precision big-endian
+            *lb4*: ``True`` | {``False``}
+                Whether or not to use single-precision little-endian
+            *b8*: ``True`` | {``False``}
+                Whether or not to use double-precision big-endian
+            *lb8*: ``True`` | {``False``}
+                Whether or not to use double-precision little-endian
+            *byteorder*: ``"big"`` | ``"little"`` | {``None``}
+                Byte order
+            *endian*: ``"big"`` | ``"little"`` | {``None``}
+                Byte order
+            *bytecount*: ``4`` | ``8`` | {``None``}
+                Byte count, ``4`` for single precision is default
+            *byteswap*: ``True`` | ``False`` | {``None``}
+                Use byte order opposite to *os.sys.byteorder*
+            *bin*: ``True`` | ``False`` | {``None``}
+                Force binary output; can be used to get default binary format
+            *dp*: ``True`` | {``False``}
+                Use double-precision (default is single-precision)
+            *sp*: ``True`` | {``False``}
+                Use single-precision (no effect since default is single)
+        :Examples:
+            >>> tri = cape.ReadTri('bJet.i.tri')
+            >>> tri.Write('bjet2.tri')
+        :Versions:
+            * 2014-05-23 ``@ddalle``: First version
+            * 2015-01-03 ``@ddalle``: Added C capability
+            * 2015-02-25 ``@ddalle``: Added status update
+            * 2016-10-02 ``@ddalle``: Now checking for binary/ASCII
+        """
+        # Status update.
+        if kw.get('v', False):
+            print("    Writing triangulation: '%s'" % fname)
+        # Get the extension
+        ext = self.GetOutputFileType(**kw)
+        # Check text vs. binary
+        if ext == 'ascii':
+            # Try the ASCII writers
+            self.WriteASCII(fname)
+        else:
+            # Use the best binary writer
+            self.WriteTriBin(fname, **kw)
+            
+    # Process file type by options
+    def GetOutputFileType(self, **kw):
+        """Determine output file type from keyword inputs
+        
+        Many of the possible inputs are in conflict.  For example, it is
+        possible to use ``endian="big"`` and ``byteorder="little"``.  In the
+        input table below, any value that evaluates as ``True`` supersedes all
+        inputs listed below it.  For example, if ``ascii==True``, no other
+        inputs have any effect.
+        
+        If none of the inputs is specified, the function will try to access
+        *tri.ext*.  If that does not exist, the default output is ``"ascii"``.
+        
+        The default byte order is determined from *os.sys.byteorder*, but this
+        is overridden if the environment variable $F_UFMTENDIAN is ``"big"`` or
+        $GFORTRAN_CONVERT_UNIT is ``"big_endian"``.
+        
+        The five possible outputs are described below.
+        
+            =================  =======================================
+            *ext*              *Description*
+            =================  =======================================
+            ``"ascii"``        Text file
+            ``"b4"``           Big-endian, single-precision
+            ``"lb4"``          Little-endian, single-precision
+            ``"b8"``           Big-endian, double-precision
+            ``"lb8"``          Little-endian, double-precision
+            =================  =======================================
+        
+        :Call:
+            >>> ext = tri.GetOutputFileType(**kw)
+        :Inputs:
+            *ascii*: ``True`` | {``False``}
+                Whether or not to use ASCII (text file)
+            *b4*: ``True`` | {``False``}
+                Whether or not to use single-precision big-endian
+            *lb4*: ``True`` | {``False``}
+                Whether or not to use single-precision little-endian
+            *b8*: ``True`` | {``False``}
+                Whether or not to use double-precision big-endian
+            *lb8*: ``True`` | {``False``}
+                Whether or not to use double-precision little-endian
+            *byteorder*: ``"big"`` | ``"little"`` | {``None``}
+                Byte order
+            *endian*: ``"big"`` | ``"little"`` | {``None``}
+                Byte order
+            *bytecount*: ``4`` | ``8`` | {``None``}
+                Byte count, ``4`` for single precision is default
+            *byteswap*: ``True`` | ``False`` | {``None``}
+                Use byte order opposite to *os.sys.byteorder*
+            *bin*: ``True`` | ``False`` | {``None``}
+                Force binary output; can be used to get default binary format
+            *dp*: ``True`` | {``False``}
+                Use double-precision (default is single-precision)
+            *sp*: ``True`` | {``False``}
+                Use single-precision (no effect since default is single)
+        :Outputs:
+            *ext*: {``ascii``} | ``b4`` | ``b8`` | ``lb4`` | ``lb8``
+                File type
+        :Outputs:
+            * 2016-10-02 ``@ddalle``: First version
+        """
+        # Check for easy cases
+        if kw.get('ascii'):
+            # ASCII file
+            return 'ascii'
+        elif kw.get('b4'):
+            # Big-endian single-precision
+            return 'b4'
+        elif kw.get('lb4'):
+            # Little-endian single precision
+            return 'lb4'
+        elif kw.get('b8'):
+            # Big-endian double-precision
+            return 'b8'
+        elif kw.get('lb8'):
+            # Little-endian double precision
+            return 'lb8'
+        # Get non-specific keyword arguments
+        bo = kw.get('byteorder', kw.get('endian'))
+        bs = kw.get('byteswap')
+        bc = kw.get('bytecount')
+        # Check for at least one binary flag
+        if (not kw.get('bin')) and bo==None and bs==None and bc==None:
+            # Get the existing extension
+            try:
+                return self.ext
+            except AttributeError:
+                # Default to ASCII
+                return 'ascii'
+        # Default byte order
+        if bo is None:
+            # Check for byteswap flag
+            if bs:
+                # Reverse default byte order (ignore env variables)
+                if os.sys.byteorder == "big":
+                    bs = "little"
+                else:
+                    bs = "big"
+            else:
+                # Use the default
+                bs = io.sbo
+        # Default byte count
+        if bc is None:
+            # Check for single-precision and double-precision flags
+            if kw.get('dp'):
+                # Double precision flag
+                bc = 8
+            else:
+                # Single precision flag or default
+                bc = 4
+        # Process output
+        if bo == "big":
+            if bc == 8:
+                return 'b8'
+            elif bc == 4:
+                return 'b4'
+            else:
+                raise ValueError("Could not interpret bytecount '%s'" % bc)
+        elif bo == "little":
+            if bc == 8:
+                return 'lb8'
+            elif bc == 4:
+                return 'lb4'
+            else:
+                raise ValueError("Could not interpret bytecount '%s'" % bc)
+        else:
+            raise ValueError("Could not interpret byte order '%s'" % bo)
+            
+   # }
+    
+    # +++++++++++++++++
+    # ASCII TRI Writers
+    # +++++++++++++++++
+   # {
+    # Write ASCII with fall-through to Python method
+    def WriteASCII(self, fname='Components.i.tri'):
         """Write triangulation to file using fastest method available
         
         :Call:
@@ -1000,10 +1138,8 @@ class TriBase(object):
             * 2014-05-23 ``@ddalle``: First version
             * 2015-01-03 ``@ddalle``: Added C capability
             * 2015-02-25 ``@ddalle``: Added status update
+            * 2016-10-02 ``@ddalle``: Moved from :func:`tri.Write`
         """
-        # Status update.
-        if v:
-            print("    Writing triangulation: '%s'" % fname)
         # Try the fast way.
         try:
             # Fast method using compiled C.
@@ -1034,7 +1170,6 @@ class TriBase(object):
         if fname != "Components.pyCart.tri":
             # Move the file.
             os.rename("Components.pyCart.tri", fname)
-            
     
     # Function to write a triangulation to file the old-fashioned way.
     def WriteSlow_ASCII(self, fname='Components.i.tri', nq=None):
@@ -1079,6 +1214,12 @@ class TriBase(object):
         # Close the file.
         fid.close()
         
+   # }
+    
+    # ++++++++++++++
+    # Binary Writers
+    # ++++++++++++++
+   # {
     # Write TRI file as a binary file
     def WriteTriBin(self, fname='Components.i.tri', **kw):
         """Write a triangulation file as an unformatted binary file
@@ -1106,25 +1247,107 @@ class TriBase(object):
         except Exception:
             # Python version
             self.WriteTriBinSlow(fname, **kw)
-            
-    # Get default byte order
-    def get_default_byteorder(self):
-        """Get the system byte order, overwritten by environment variables
+        
+    # Write TRI file as a binary file
+    def WriteTriBinSlow(self, fname='Components.i.tri', **kw):
+        """Write a triangulation file as an unformatted binary file
+        
+        Uses Python code
         
         :Call:
-            >>> sbo = tri.get_default_byteorder()
+            >>> tri.WriteBinSlow(fname='Comonents.i.tri', **kw)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangultion instance to be translated
-        :Outputs:
-            *sbo*: ``"big"`` | ``"little"``
-                Current byte order
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+            *byteorder*: {``None``} | ``"big"`` | ``"little"``
+                Byte order of outputfile; defaults to system byte order
+            *bytecount*: {``4``} | ``8``
+                Number of bytes per value; single- or double-precision
+            *nq*: {``None``} | :class:`int`
+                Number of states for first line
         :Versions:
             * 2016-08-18 ``@ddalle``: First version
-            * 2016-09-30 ``@ddalle``: Now points to *io.sbo*
         """
-        return io.sbo
+        # Disable ASCII flags
+        kw['ascii'] = False
+        kw['bin'] = True
+        # Get output type
+        ext = self.GetOutputFileType(**kw)
+        # Check the type
+        if ext == 'b4':
+            # Write single-precision big-endian
+            self.WriteSlow_b4(fname)
+        elif ext == 'lb4':
+            # Write single-precision little-endian
+            self.WriteSlow_lb4(fname)
+        elif ext == 'b8':
+            # Write double-precision big-endian
+            self.WriteSlow_b8(fname)
+        elif ext == 'lb8':
+            # Write double-precision little-endian
+            self.WriteSlow_lb8(fname)
         
+    # Write binary tri file, compiled
+    def WriteTriBinFast(self, fname='Components.i.tri', **kw):
+        """Write binary triangulation file using compiled functions
+        
+        :Call:
+            >>> tri.WriteTriBinFast(fname='Comonents.i.tri', **kw)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+            *byteorder*: {``None``} | ``"big"`` | ``"little"``
+                Byte order of outputfile; defaults to system byte order
+            *bytecount*: {``4``} | ``8``
+                Number of bytes per value; single- or double-precision
+            *nq*: {``None``} | :class:`int`
+                Number of states for first line
+        :Versions:
+            * 2016-08-18 ``@ddalle``: First version
+        """
+        # Disable ASCII flags
+        kw['ascii'] = False
+        kw['bin'] = True
+        # Get output type
+        ext = self.GetOutputFileType(**kw)
+        # Check system byte order (need to know whether to swap)
+        if os.sys.byteorder == "little":
+            # Check which output writer to use
+            if ext == 'b4':
+                # Byte-swapped (big-endian), single-precision
+                pc.WriteTriSingleByteswap(self.Nodes, self.Tris, self.CompID)
+            elif ext == 'b8':
+                # Byte-swapped (big-endian), double-precision
+                pc.WriteTriDoubleByteswap(self.Nodes, self.Tris, self.CompID)
+            elif ext == 'lb4':
+                # Native (little-endian), single-precision
+                pc.WriteTriSingleNative(self.Nodes, self.Tris, self.CompID)
+            else:
+                # Native (little-endian), double-precision
+                pc.WriteTriDoubleNative(self.Nodes, self.Tris, self.CompID)
+        else:
+            # Check which output writer to use
+            if ext == 'lb4':
+                # Byte-swapped (little-endian), single-precision
+                pc.WriteTriSingleByteswap(self.Nodes, self.Tris, self.CompID)
+            elif ext == 'lb8':
+                # Byte-swapped (little-endian), double-precision
+                pc.WriteTriDoubleByteswap(self.Nodes, self.Tris, self.CompID)
+            elif ext == 'b4':
+                # Native (big-endian), single-precision
+                pc.WriteTriSingleNative(self.Nodes, self.Tris, self.CompID)
+            else:
+                # Native (big-endian), double-precision
+                pc.WriteTriDoubleNative(self.Nodes, self.Tris, self.CompID)
+        # Check the file name.
+        if fname != "Components.pyCart.tri":
+            # Move the file.
+            os.rename("Components.pyCart.tri", fname)
+    
     # Write TRI file as little-endian single-precision
     def WriteSlow_lb4(self, fname='Components.i.tri'):
         """Write triangulation as single-precision little-endian
@@ -1264,740 +1487,26 @@ class TriBase(object):
         # Write the header
         if qq:
             # Write with *q*
-            io.write_record_b8_i(fid, [self.nNode, self.nItri, self.nq])
+            io.write_record_b4_i(fid, [self.nNode, self.nItri, self.nq])
         else:
             # No q values
-            io.write_record_b8_i(fid, [self.nNode, self.nTri])
+            io.write_record_b4_i(fid, [self.nNode, self.nTri])
         # Write the nodes, tris, and compIDs
         io.write_record_b8_f(fid, self.Nodes)
-        io.write_record_b8_i(fid, self.Tris)
-        io.write_record_b8_i(fid, self.CompID)
+        io.write_record_b4_i(fid, self.Tris)
+        io.write_record_b4_i(fid, self.CompID)
         # Write states if appropriate
         if qq: io.write_record_b8_f(fid, self.q)
         # Close the file
         fid.close()
-        
-        
-    # Write TRI file as a binary file
-    def WriteTriBinSlow(self, fname='Components.i.tri',
-            byteorder=None, bytecount=4, nq=None):
-        """Write a triangulation file as an unformatted binary file
-        
-        Uses Python code
-        
-        :Call:
-            >>> tri.WriteBinSlow(fname='Comonents.i.tri', **kw)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangultion instance to be translated
-            *fname*: {``'Components.i.tri'``} | :class:`str`
-                Name of file to write
-            *byteorder*: {``None``} | ``"big"`` | ``"little"``
-                Byte order of outputfile; defaults to system byte order
-            *bytecount*: {``4``} | ``8``
-                Number of bytes per value; single- or double-precision
-            *nq*: {``None``} | :class:`int`
-                Number of states for first line
-        :Versions:
-            * 2016-08-18 ``@ddalle``: First version
-        """
-        # Process default byte order
-        if byteorder is None: byteorder = self.get_default_byteorder()
-        # Set byte count
-        ni = bytecount
-        # Get system byte order
-        sbo = os.sys.byteorder
-        # Determine whether or not we need to swap bytes.
-        if byteorder is None or byteorder.lower() == sbo:
-            # No swapping
-            qswap = False
-        else:
-            # Apparently we have to swap
-            qswap = True
-        # Open the file for creation
-        fid = open(fname, 'wb')
-        # Write flags
-        fi = 'i%i' % ni
-        ff = 'f%i' % ni
-        # Get number of state vars
-        if nq is None:
-            try:
-                nq = self.nq
-            except AttributeError:
-                # No attribute for number of states
-                nq = 0
-        # Check for extra header info
-        if nq == 0 or nq is None:
-            # Array for geometry only header line
-            A = np.array([2*ni, self.nNode, self.nTri, 2*ni], dtype=fi)
-        else:
-            # Array for header line
-            A = np.array([3*ni, self.nNode, self.nTri, nq, 3*ni], dtype=fi)
-        # Swap bytes if appropriate
-        A.byteswap(qswap)
-        # Write the matrix as the header line
-        A.tofile(fid)
-        # Matrix for the node coordinate record markers
-        R = np.array([self.nNode*3*ni], dtype=fi)
-        R.byteswap(qswap)
-        # Matrix for the nodal coordinates
-        P = np.array(self.Nodes, dtype=ff).flatten()
-        P.byteswap(qswap)
-        # Write the nodal coordinates
-        R.tofile(fid)
-        P.tofile(fid)
-        R.tofile(fid)
-        # Matrix for the tri node index record markers
-        R = np.array([self.nTri*3*ni], dtype=fi)
-        R.byteswap(qswap)
-        # Matrix for the nodal indices
-        T = np.array(self.Tris, dtype=fi).flatten()
-        T.byteswap(qswap)
-        # Write the tri coordinates
-        R.tofile(fid)
-        T.tofile(fid)
-        R.tofile(fid)
-        # Matrix for the CompID record makresr
-        R = np.array([self.nTri*ni], dtype=fi)
-        R.byteswap(qswap)
-        # Matrix for the nodal indices
-        C = np.array(self.CompID, dtype=fi)
-        C.byteswap(qswap)
-        # Write the tri coordinates
-        R.tofile(fid)
-        C.tofile(fid)
-        R.tofile(fid)
-        # Close the file
-        fid.close()
-        
-    # Write binary tri file, compiled
-    def WriteTriBinFast(self, fname='Components.i.tri',
-            byteorder=None, bytecount=4, nq=None):
-        """Write binary triangulation file using compiled functions
-        
-        :Call:
-            >>> tri.WriteTriBinFast(fname='Comonents.i.tri', **kw)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangultion instance to be translated
-            *fname*: {``'Components.i.tri'``} | :class:`str`
-                Name of file to write
-            *byteorder*: {``None``} | ``"big"`` | ``"little"``
-                Byte order of outputfile; defaults to system byte order
-            *bytecount*: {``4``} | ``8``
-                Number of bytes per value; single- or double-precision
-            *nq*: {``None``} | :class:`int`
-                Number of states for first line
-        :Versions:
-            * 2016-08-18 ``@ddalle``: First version
-        """
-        # Process default byte order
-        if byteorder is None: byteorder = self.get_default_byteorder()
-        # Get system byte order
-        sbo = os.sys.byteorder
-        # Determine whether or not we need to swap bytes.
-        if byteorder is None or byteorder.lower() == sbo:
-            # Native endian
-            if bytecount == 8:
-                # Byte-swapped, single precision
-                pc.WriteTriDoubleNative(self.Nodes, self.Tris, self.CompID)
-            else:
-                # Byte-swapped, single precision
-                pc.WriteTriSingleNative(self.Nodes, self.Tris, self.CompID)
-        else:
-            # Apparently we have to swap
-            if bytecount == 8:
-                # Byte-swapped, single precision
-                pc.WriteTriDoubleByteswap(self.Nodes, self.Tris, self.CompID)
-            else:
-                # Byte-swapped, single precision
-                pc.WriteTriSingleByteswap(self.Nodes, self.Tris, self.CompID)
-        # Check the file name.
-        if fname != "Components.pyCart.tri":
-            # Move the file.
-            os.rename("Components.pyCart.tri", fname)
-        
-        
-    # Write STL using python language
-    def WriteSTL(self, fname='Components.i.stl', v=True):
-        """Write a triangulation to an STL file
-        
-        :Call:
-            >>> tri.WriteSTL(fname='Components.i.tri')
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance to be translated
-            *fname*: :class:`str`
-                Name of triangulation file to create
-        :Versions:
-            * 2015-11-22 ``@ddalle``: First version
-        """
-        # Status update.
-        if v:
-            print("    Writing triangulation: '%s'" % fname)
-        # Try the fast way.
-        try:
-            # Fast method using compiled C.
-            self.WriteSTLFast(fname)
-        except Exception:
-            # Slow method using Python code.
-            self.WriteSTLSlow(fname)
-        
-    # Write STL using python language
-    def WriteSTLSlow(self, fname='Components.i.stl'):
-        """Write a triangulation to an STL file
-        
-        :Call:
-            >>> tri.WriteSTLSlow(fname='Components.i.stl')
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance to be translated
-            *fname*: :class:`str`
-                Name of triangulation file to create
-        :Versions:
-            * 2015-11-22 ``@ddalle``: First version
-        """
-        # Ensure that normals have been calculated
-        self.GetNormals()
-        # Open the file for creation.
-        f = open(fname, 'w')
-        # Header
-        f.write('solid\n')
-        # Loop through triangles
-        for i in np.arange(self.nTri):
-            # Triangle
-            ti = self.Tris[i]
-            # Normal
-            ni = self.Normals[i]
-            # Vertices
-            x0 = self.Nodes[ti[0]]
-            x1 = self.Nodes[ti[1]]
-            x2 = self.Nodes[ti[2]]
-            # Write header and normal vector
-            f.write('   facet normal   %12.5e %12.5e %12.5e\n' % tuple(ni))
-            # Write vertices
-            f.write('      outer loop\n')
-            f.write('         vertex   %12.5e %12.5e %12.5e\n' % tuple(x0))
-            f.write('         vertex   %12.5e %12.5e %12.5e\n' % tuple(x1))
-            f.write('         vertex   %12.5e %12.5e %12.5e\n' % tuple(x2))
-            # Close the loop
-            f.write('      endloop\n')
-            f.write('   endfacet\n')
-        # End header
-        f.write('endsolid\n')
-        # Close the file.
-        f.close()
     
-    # Function to write a triangulation to file as fast as possible.
-    def WriteSTLFast(self, fname='Components.i.stl'):
-        """Try using a compiled function to write to file
-        
-        :Call:
-            >>> tri.WriteFast(fname='Components.i.tri')
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance to be translated
-            *fname*: :class:`str`
-                Name of triangulation file to create
-        :Versions:
-            * 2016-04-08 ``@ddalle``: First version
-        """
-        # Write the nodes.
-        pc.WriteTriSTL(self.Nodes, self.Tris)
-        # Check the file name.
-        if fname != "Components.pyCart.stl":
-            # Move the file.
-            os.rename("Components.pyCart.stl", fname)
-        
-    # Fall-through function to write the triangulation to file.
-    def WriteTriq(self, fname='Components.i.triq', v=True):
-        """Write q-triangulation to file using fastest method available
-        
-        :Call:
-            >>> triq.WriteTriq(fname='Components.i.triq', v=True)
-        :Inputs:
-            *triq*: :class:`cape.tri.Triq`
-                Triangulation instance to be written
-            *fname*: :class:`str`
-                Name of triangulation file to create
-            *v*: :class:`bool`
-                Whether or not
-        :Examples:
-            >>> triq = cape.ReadTriq('bJet.i.triq')
-            >>> triq.Write('bjet2.triq')
-        :Versions:
-            * 2014-05-23 ``@ddalle``: First version
-            * 2015-01-03 ``@ddalle``: Added C capability
-            * 2015-02-25 ``@ddalle``: Added status update
-            * 2015-09-14 ``@ddalle``: Copied from :func:`TriBase.WriteTri`
-        """
-        # Status update.
-        if v:
-            print("     Writing triangulation: '%s'" % fname)
-        # Try the fast way.
-        try:
-            # Fast method using compiled C.
-            self.WriteTriqFast(fname)
-        except Exception:
-            # Slow method using Python code.
-            self.WriteTriqSlow(fname)
-        
-    # Function to write a triq file the old-fashioned way.
-    def WriteTriqSlow(self, fname='Components.i.triq'):
-        """Write a triangulation file with state to file
-        
-        :Call:
-            >>> triq.WriteTriqSlow(fname='Components.i.triq')
-        :Inputs:
-            *triq*: :class:`cape.tri.Triq`
-                Triangulation instance to be written
-            *fname*: :class:`str`
-                Name of triangulation file to create
-        :Examples:
-            >>> triq = cape.ReadTriQ('bJet.i.triq')
-            >>> triq.Write('bjet2.triq')
-        :Versions:
-            * 2015-09-14 ``@ddalle``: First version
-        """
-        print("Label 110: Failed")
-        # Write the Common portion of the triangulation
-        self.WriteSlow(fname=fname)
-        # Open the file to append.
-        fid = open(fname, 'a')
-        # Loop through states.
-        for qi in self.q:
-            # Write the pressure coefficient.
-            fid.write('%.6f\n' % qi[0])
-            # Line of text for the remaining state variables.
-            line = ' ' + ' '.join(['%.6f' % qij for qij in qi[1:]]) + '\n'
-            # Write it
-            fid.write(line)
-        # Close the flie.
-        fid.close()
-        
-    # Function to write a triq file via C function
-    def WriteTriqFast(self, fname='Components.i.triq'):
-        """Write a triangulation file with state to file via Python/C
-        
-        :Call:
-            >>> triq.WriteTriqFast(fname='Components.i.triq')
-        :Inputs:
-            *triq*: :class:`cape.tri.Triq`
-                Triangulation instance to be written
-            *fname*: :class:`str`
-                Name of triangulation file to create
-        :Examples:
-            >>> triq = cape.ReadTriQ('bJet.i.triq')
-            >>> triq.Write('bjet2.triq')
-        :Versions:
-            * 2015-09-14 ``@ddalle``: First version
-        """
-        # Write the nodes.
-        pc.WriteTriQ(self.Nodes, self.Tris, self.CompID, self.q)
-        # Check the file name.
-        if fname != "Components.pyCart.tri":
-            # Move the file.
-            os.rename("Components.pyCart.tri", fname)
-        
-    # Function to write a UH3D file
-    def WriteUH3D(self, fname='Components.i.uh3d'):
-        """Write a triangulation to a UH3D file
-        
-        :Call:
-            >>> tri.WriteUH3D(fname='Components.i.uh3d')
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance to be translated
-            *fname*: :class:`str`
-                Name of triangulation file to create
-        :Examples:
-            >>> tri = cape.ReadTri('bJet.i.tri')
-            >>> tri.WriteUH3D('bjet2.uh3d')
-        :Versions:
-            * 2015-04-17 ``@ddalle``: First version
-        """
-        # Initialize labels
-        lbls = {}
-        # If read from a UH3D file, there is a tri.Conf attribute
-        try:
-            # Loop through the named components
-            for gID in self.Conf:
-                # Get the value
-                cID = self.Conf[gID]
-                # Add it to the list
-                lbls[cID] = gID
-        except Exception:
-            pass
-        # Try to invert the configuration.
-        try:
-            # Loop through named components.
-            for gID in self.config.faces:
-                # Get the value.
-                cID = self.config.GetCompID(gID)
-                # Check the length.
-                if len(cID) != 1: continue
-                # Add it to the list.
-                lbls[cID[0]] = gID
-        except Exception:
-            pass
-        # Write the file.
-        self.WriteUH3DSlow(fname, lbls)
-        
-        
-    # Function to write a UH3D file the old-fashioned way.
-    def WriteUH3DSlow(self, fname='Components.i.uh3d', lbls={}):
-        """Write a triangulation to a UH3D file
-        
-        :Call:
-            >>> tri.WriteUH3DSlow(fname='Components.i.uh3d', lbls={})
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance to be translated
-            *fname*: :class:`str`
-                Name of triangulation file to create
-            *lbls*: :class:`dict`
-                Optioan dict of names for component IDs, e.g. ``{1: "body"}`` 
-        :Versions:
-            * 2015-04-17 ``@ddalle``: First version
-        """
-        # Number of component IDs
-        nID = len(np.unique(self.CompID))
-        # Open the file for creation.
-        fid = open(fname, 'w')
-        # Write the author line.
-        fid.write(' file created by cape\n')
-        # Write the information line.
-        fid.write('%i, %i, %i, %i, %i, %i\n' %
-            (self.nNode, self.nNode, self.nTri, self.nTri, nID, nID))
-        # Loop through the nodes.
-        for i in np.arange(self.nNode):
-            # Write the line (with 1-based node index).
-            fid.write('%i, %.12f, %.12f, %.12f\n' %
-                (i+1, self.Nodes[i,0], self.Nodes[i,1], self.Nodes[i,2]))
-        # Loop through the triangles.
-        for k in np.arange(self.nTri):
-            # Write the line (with 1-based triangle index and CompID).
-            fid.write('%i, %i, %i, %i, %i\n' % (k+1, self.Tris[k,0], 
-                self.Tris[k,1], self.Tris[k,2], self.CompID[k]))
-        # Loop through the component names.
-        for k in range(1,nID+1):
-            # Get the name that will be written.
-            lbl = lbls.get(k, str(k))
-            # Write the label.
-            fid.write("%i, '%s'\n" % (k, lbl))
-        # Write termination line.
-        fid.write('99,99,99,99,99\n')
-        # Close the file.
-        fid.close()
-        
-    # Function to write a UH3D file
-    def WriteSurf(self, fname='Components.i.surf'):
-        """Write a triangulation to a AFLR3 surface file
-        
-        :Call:
-            >>> tri.WriteSurf(fname='Components.i.surf')
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance to be translated
-            *fname*: :class:`str`
-                Name of triangulation file to create
-        :Versions:
-            * 2015-11-19 ``@ddalle``: First version
-        """
-        # Status update
-        print("    Writing ALFR3 surface: '%s'" % fname)
-        # Make sure we have BL parameters
-        try:
-            self.blds
-        except AttributeError:
-            self.blds = np.zeros(self.nNode)
-        try:
-            self.bldel
-        except AttributeError:
-            self.bldel = np.zeros(self.nNode)
-        # Make sure we have quads
-        try:
-            self.nQuad
-        except AttributeError:
-            self.nQuad = 0
-        # Write the file.
-        try:
-            # Try compiled versoin
-            self.WriteSurfFast(fname)
-        except Exception:
-            # Fall back to slow version
-            self.WriteSurfSlow(fname)
+   # }
+  # >
     
-    # Function to write a SURF file the old-fashioned way.
-    def WriteSurfSlow(self, fname="Components.surf"):
-        """Write an AFLR3 ``surf`` surface mesh file
-        
-        :Call:
-            >>> tri.WriteSurfSlow(fname='Components.surf')
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance to be translated
-            *fname*: :class:`str`
-                Name of triangulation file to create
-        :Versions:
-            * 2015-11-19 ``@ddalle``: First version
-            * 2016-04-05 ``@ddalle``: Added quads, *blds*, and *bldel*
-        """
-        # Open the file for creation.
-        fid = open(fname, 'w')
-        # Write the number of tris, quads, points
-        fid.write('%i %i %i\n' % (self.nTri, self.nQuad, self.nNode))
-        # Loop through the nodes.
-        for i in np.arange(self.nNode):
-            # Write the line (with 1-based node index).
-            fid.write('%15.8e %15.8e %15.8e %s %s\n' % (
-                self.Nodes[i,0], self.Nodes[i,1], self.Nodes[i,2],
-                self.blds[i], self.bldel[i]))
-        # Loop through the triangles.
-        for k in np.arange(self.nTri):
-            # Write the line (with 1-based triangle index and CompID).
-            fid.write('%i %i %i %i 0 %i\n' % (self.Tris[k,0], 
-                self.Tris[k,1], self.Tris[k,2], self.CompID[k], self.BCs[k]))
-        # Loop through the quads.
-        for k in np.arange(self.nQuad):
-            # Write the line (with 1-based quad indx and CompID)
-            fid.write('%i %i %i %i %i 0 %i\n' % (self.Quads[k,0],
-                self.Quads[k,1], self.Quads[k,2], self.Quads[k,3],
-                self.CompIDQuad[k], self.BCsQuad[k]))
-        # Close the file.
-        fid.close()
-    
-    # Function to write a triangulation to file as fast as possible.
-    def WriteSurfFast(self, fname='Components.i.surf'):
-        """Try using a compiled function to write to AFLR3 ``surf`` file
-        
-        :Call:
-            >>> tri.WriteSurfFast(fname='Components.i.surf')
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance to be translated
-            *fname*: :class:`str`
-                Name of triangulation file to create
-        :Versions:
-            * 2015-01-03 ``@ddalle``: First version
-        """
-        # Write the nodes.
-        pc.WriteSurf(
-            self.Nodes, self.blds,       self.bldel,
-            self.Tris,  self.CompID,     self.BCs,
-            self.Quads, self.CompIDQuad, self.BCsQuad)
-        # Check the file name.
-        if fname != "Components.pyCart.surf":
-            # Move the file.
-            os.rename("Components.pyCart.surf", fname)
-        
-    # Map boundary condition tags
-    def MapBCs_AFLR3(self, compID=None, BCs={}, blds={}, bldel={}):
-        """Initialize and map boundary condition indices for AFLR3
-        
-        :Call:
-            >>> tri.MapBCs_AFLR3(compID=[], BCs={}, blds={}, bldel={})
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance
-            *compID*: :class:`list` (:class:`str` | :class:`int`) | ``None``
-                List of components to preserve order; defaults to ``BCs.keys()``
-            *BCs*: :class:`dict` (:class:`str` | :class:`int`)
-                Dictionary of BC flags for CompIDs or component names
-            *blds*: :class:`dict` (:class:`str` | :class:`int`)
-                Dictionary of BL spacings for CompIDs or component names
-            *bldel*: :class:`dict` (:class:`str` | :class:`int`)
-                Dictionary of BL thicknesses for CompIDs or component names
-        :Versions:
-            * 2015-11-19 ``@ddalle``: First version
-            * 2016-04-05 ``@ddalle``: Added BL spacing and thickness
-        """
-        # Initialize the BCs to -1 (grow boundary layer)
-        self.BCs = -1 * np.ones_like(self.CompID)
-        # Initialize quad BCs
-        try:
-            self.BCsQuad = -1 * np.ones(self.nQuad, dtype=int)
-        except AttributeError:
-            self.BCsQuad = np.ones(0, dtype=int)
-        # Initialize the boundary layer spacings
-        self.blds = np.zeros(self.nNode)
-        self.bldel = np.zeros(self.nNode)
-        # Default keys
-        if compID is None:
-            compID = BCs.keys()
-        # Loop through BCs
-        for comp in compID:
-            # Get the tris matching the component ID
-            I = self.GetTrisFromCompID(comp)
-            # Modify those BCs
-            # Check node count
-            if len(I) > 0:
-                self.BCs[I] = BCs[comp]
-            # Get the quads from the matching component ID
-            I = self.GetQuadsFromCompID(comp)
-            # Modify those BCs.
-            if len(I) > 0:
-                self.BCsQuad[I] = BCs[comp]
-        # Loop through boundary layer spacings
-        for comp in blds:
-            # Get the nodes
-            I = self.GetNodesFromCompID(comp)
-            # Check node count
-            if len(I) == 0:
-                print("Warning: No nodes mapped for component '%s'" % comp)
-                continue
-            # Modify those BL spacings
-            self.blds[I] = blds[comp]
-            # Check for BL thicknesses
-            if comp in bldel:
-                self.bldel[I] = bldel[comp]
-        # Loop through boundary layer thicknesses
-        for comp in bldel:
-            # Make sure not already processed
-            if comp in blds: continue
-            # Get the nodes
-            I = self.GetNodesFromCompID(comp)
-            # Check node count
-            if len(I) == 0:
-                print("Warning: No nodes mapped for component '%s'" % comp)
-                continue
-            # Modify those BL thicknesses
-            self.bldel[I] = bldel[comp]
-            
-    # Read boundary condition map
-    def ReadBCs_AFLR3(self, fname):
-        """Initialize and map boundary condition indices for AFLR3 from file
-        
-        :Call:
-            >>> tri.ReadBCs_AFLR3(fname)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance
-            *fname*: :class:`str`
-                Name of boundary condition map file
-        :Versions:
-            * 2015-11-19 ``@ddalle``: First version
-            * 2016-04-05 ``@ddalle``: Added BL spacing and thickness
-        """
-        # Read the boundary condition file
-        f = open(fname, 'r')
-        # Initialize boundary condition map
-        compID = []
-        BCs = {}
-        blds = {}
-        bldel = {}
-        # Loop through lines
-        line = "start"
-        while line != '':
-            # Read the line.
-            line = _readline(f)
-            # Exit at end of file
-            if line == '': break
-            # Split line
-            V = line.split()
-            # Get the component name
-            comp = V[0]
-            # Get the boundary condition flag
-            bc = int(V[1])
-            # Append to the list (ordered)
-            compID.append(comp)
-            # Save the boundary condition
-            BCs[comp] = bc
-            # Check length
-            if len(V) < 3: continue
-            # Get the boundary layer spacing
-            bldsi = float(V[2])
-            # Save BL spacing
-            blds[comp] = bldsi
-            # Check length
-            if len(V) < 4: continue
-            # Get the boundary layer thickness
-            bldeli = float(V[3])
-            # Save the BL thickness
-            bldel[comp] = bldeli
-        # Close the file.
-        f.close()
-        # Apply the boundary conditions
-        self.MapBCs_AFLR3(compID, BCs, blds=blds, bldel=bldel)
-            
-        
-    # Function to copy a triangulation and unlink it.
-    def Copy(self):
-        """Copy a triangulation and unlink it
-        
-        :Call:
-            >>> tri2 = tri.Copy()
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance
-        :Outputs:
-            *tri2*: :class:`cape.tri.Tri`
-                Triangulation with same values as *tri* but not linked
-        :Versions:
-            * 2014-06-12 ``@ddalle``: First version
-        """
-        # Make a new triangulation with no information.
-        typ = type(self).__name__
-        # Initialize the correct type.
-        if typ == 'Triq':
-            # Initialize with state
-            tri = Triq()
-        elif type == 'TriBase':
-            # Initialize base object
-            tri = TriBase()
-        else:
-            # Default to surface geometry definition
-            tri = Tri()
-        # Copy over the scalars.
-        tri.nNode = self.nNode
-        tri.nTri  = self.nTri
-        # Make new copies of the arrays.
-        tri.Nodes  = self.Nodes.copy()
-        tri.Tris   = self.Tris.copy()
-        tri.CompID = self.CompID.copy()
-        # Copy BL parameters
-        try:
-            tri.blds = self.blds.copy()
-            tri.bldel = self.bldel.copy()
-        except Exception:
-            pass
-        # Other Tri info
-        try:
-            tri.BCs = self.BCs.copy()
-        except Exception:
-            pass
-        # Copy Quad info
-        try:
-            tri.nQuad = self.nQuad
-            tri.Quads = self.Quads.copy()
-            tri.CompIDQuad = self.CompIDQuad.copy()
-            tri.BCsQuad = self.BCsQuad.copy()
-        except Exception:
-            pass
-        # Try to copy the configuration list.
-        try: tri.Conf = self.Conf.copy()
-        except Exception: pass
-        # Try to copy the configuration.
-        try: tri.config = self.config.Copy()
-        except Exception: pass
-        # Try to copy the original barriers.
-        try: tri.iTri = self.iTri
-        except Exception: pass
-        # Try to copy the state
-        try:
-            tri.q = self.q.copy()
-            tri.nq = tri.shape[1]
-        except Exception:
-            pass
-        # Try to copy the state length
-        try:
-            tri.n = self.n
-        except Exception:
-            tri.n = 1
-        # Output the new triangulation.
-        return tri
-        
-        
+    # =============
+    # Other Readers
+    # =============
+  # <
     # Read from a .uh3d file.
     def ReadUH3D(self, fname):
         """Read a triangulation file (from ``*.uh3d``)
@@ -2220,8 +1729,1097 @@ class TriBase(object):
             self.CompID[KTri[1::4]-nEdge-1] = iComp
         # Close the file.
         f.close()
+  # >
+    
+    # =============
+    # Other Writers
+    # =============
+  # <
+    
+    # ++++
+    # TRIQ
+    # ++++
+   # <
+    # Fall-through function to write the triangulation to file.
+    def WriteTriq(self, fname='Components.i.triq', v=True):
+        """Write q-triangulation to file using fastest method available
         
+        :Call:
+            >>> triq.WriteTriq(fname='Components.i.triq', v=True)
+        :Inputs:
+            *triq*: :class:`cape.tri.Triq`
+                Triangulation instance to be written
+            *fname*: :class:`str`
+                Name of triangulation file to create
+            *v*: :class:`bool`
+                Whether or not
+        :Examples:
+            >>> triq = cape.ReadTriq('bJet.i.triq')
+            >>> triq.Write('bjet2.triq')
+        :Versions:
+            * 2014-05-23 ``@ddalle``: First version
+            * 2015-01-03 ``@ddalle``: Added C capability
+            * 2015-02-25 ``@ddalle``: Added status update
+            * 2015-09-14 ``@ddalle``: Copied from :func:`TriBase.WriteTri`
+        """
+        # Status update.
+        if v:
+            print("     Writing triangulation: '%s'" % fname)
+        # Try the fast way.
+        try:
+            # Fast method using compiled C.
+            self.WriteTriqFast(fname)
+        except Exception:
+            # Slow method using Python code.
+            self.WriteTriqSlow(fname)
         
+    # Function to write a triq file the old-fashioned way.
+    def WriteTriqSlow(self, fname='Components.i.triq'):
+        """Write a triangulation file with state to file
+        
+        :Call:
+            >>> triq.WriteTriqSlow(fname='Components.i.triq')
+        :Inputs:
+            *triq*: :class:`cape.tri.Triq`
+                Triangulation instance to be written
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Examples:
+            >>> triq = cape.ReadTriQ('bJet.i.triq')
+            >>> triq.Write('bjet2.triq')
+        :Versions:
+            * 2015-09-14 ``@ddalle``: First version
+        """
+        print("Label 110: Failed")
+        # Write the Common portion of the triangulation
+        self.WriteSlow(fname=fname)
+        # Open the file to append.
+        fid = open(fname, 'a')
+        # Loop through states.
+        for qi in self.q:
+            # Write the pressure coefficient.
+            fid.write('%.6f\n' % qi[0])
+            # Line of text for the remaining state variables.
+            line = ' ' + ' '.join(['%.6f' % qij for qij in qi[1:]]) + '\n'
+            # Write it
+            fid.write(line)
+        # Close the flie.
+        fid.close()
+        
+    # Function to write a triq file via C function
+    def WriteTriqFast(self, fname='Components.i.triq'):
+        """Write a triangulation file with state to file via Python/C
+        
+        :Call:
+            >>> triq.WriteTriqFast(fname='Components.i.triq')
+        :Inputs:
+            *triq*: :class:`cape.tri.Triq`
+                Triangulation instance to be written
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Examples:
+            >>> triq = cape.ReadTriQ('bJet.i.triq')
+            >>> triq.Write('bjet2.triq')
+        :Versions:
+            * 2015-09-14 ``@ddalle``: First version
+        """
+        # Write the nodes.
+        pc.WriteTriQ(self.Nodes, self.Tris, self.CompID, self.q)
+        # Check the file name.
+        if fname != "Components.pyCart.tri":
+            # Move the file.
+            os.rename("Components.pyCart.tri", fname)
+   # >
+    
+    # ++++++++++++
+    # UH3D Writers
+    # ++++++++++++
+   # {
+    # Function to write a UH3D file
+    def WriteUH3D(self, fname='Components.i.uh3d'):
+        """Write a triangulation to a UH3D file
+        
+        :Call:
+            >>> tri.WriteUH3D(fname='Components.i.uh3d')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Examples:
+            >>> tri = cape.ReadTri('bJet.i.tri')
+            >>> tri.WriteUH3D('bjet2.uh3d')
+        :Versions:
+            * 2015-04-17 ``@ddalle``: First version
+        """
+        # Initialize labels
+        lbls = {}
+        # If read from a UH3D file, there is a tri.Conf attribute
+        try:
+            # Loop through the named components
+            for gID in self.Conf:
+                # Get the value
+                cID = self.Conf[gID]
+                # Add it to the list
+                lbls[cID] = gID
+        except Exception:
+            pass
+        # Try to invert the configuration.
+        try:
+            # Loop through named components.
+            for gID in self.config.faces:
+                # Get the value.
+                cID = self.config.GetCompID(gID)
+                # Check the length.
+                if len(cID) != 1: continue
+                # Add it to the list.
+                lbls[cID[0]] = gID
+        except Exception:
+            pass
+        # Write the file.
+        self.WriteUH3DSlow(fname, lbls)
+    
+    # Function to write a UH3D file the old-fashioned way.
+    def WriteUH3DSlow(self, fname='Components.i.uh3d', lbls={}):
+        """Write a triangulation to a UH3D file
+        
+        :Call:
+            >>> tri.WriteUH3DSlow(fname='Components.i.uh3d', lbls={})
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+            *lbls*: :class:`dict`
+                Optioan dict of names for component IDs, e.g. ``{1: "body"}`` 
+        :Versions:
+            * 2015-04-17 ``@ddalle``: First version
+        """
+        # Number of component IDs
+        nID = len(np.unique(self.CompID))
+        # Open the file for creation.
+        fid = open(fname, 'w')
+        # Write the author line.
+        fid.write(' file created by cape\n')
+        # Write the information line.
+        fid.write('%i, %i, %i, %i, %i, %i\n' %
+            (self.nNode, self.nNode, self.nTri, self.nTri, nID, nID))
+        # Loop through the nodes.
+        for i in np.arange(self.nNode):
+            # Write the line (with 1-based node index).
+            fid.write('%i, %.12f, %.12f, %.12f\n' %
+                (i+1, self.Nodes[i,0], self.Nodes[i,1], self.Nodes[i,2]))
+        # Loop through the triangles.
+        for k in np.arange(self.nTri):
+            # Write the line (with 1-based triangle index and CompID).
+            fid.write('%i, %i, %i, %i, %i\n' % (k+1, self.Tris[k,0], 
+                self.Tris[k,1], self.Tris[k,2], self.CompID[k]))
+        # Loop through the component names.
+        for k in range(1,nID+1):
+            # Get the name that will be written.
+            lbl = lbls.get(k, str(k))
+            # Write the label.
+            fid.write("%i, '%s'\n" % (k, lbl))
+        # Write termination line.
+        fid.write('99,99,99,99,99\n')
+        # Close the file.
+        fid.close()
+        
+   # }
+    
+    # +++++++++++
+    # STL Writers
+    # +++++++++++
+   # {
+    # Write STL using python language
+    def WriteSTL(self, fname='Components.i.stl', v=False):
+        """Write a triangulation to an STL file
+        
+        :Call:
+            >>> tri.WriteSTL(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Versions:
+            * 2015-11-22 ``@ddalle``: First version
+        """
+        # Status update.
+        if v:
+            print("    Writing triangulation: '%s'" % fname)
+        # Try the fast way.
+        try:
+            # Fast method using compiled C.
+            self.WriteSTLFast(fname)
+        except Exception:
+            # Slow method using Python code.
+            self.WriteSTLSlow(fname)
+        
+    # Write STL using python language
+    def WriteSTLSlow(self, fname='Components.i.stl'):
+        """Write a triangulation to an STL file
+        
+        :Call:
+            >>> tri.WriteSTLSlow(fname='Components.i.stl')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Versions:
+            * 2015-11-22 ``@ddalle``: First version
+        """
+        # Ensure that normals have been calculated
+        self.GetNormals()
+        # Open the file for creation.
+        f = open(fname, 'w')
+        # Header
+        f.write('solid\n')
+        # Loop through triangles
+        for i in np.arange(self.nTri):
+            # Triangle
+            ti = self.Tris[i]
+            # Normal
+            ni = self.Normals[i]
+            # Vertices
+            x0 = self.Nodes[ti[0]]
+            x1 = self.Nodes[ti[1]]
+            x2 = self.Nodes[ti[2]]
+            # Write header and normal vector
+            f.write('   facet normal   %12.5e %12.5e %12.5e\n' % tuple(ni))
+            # Write vertices
+            f.write('      outer loop\n')
+            f.write('         vertex   %12.5e %12.5e %12.5e\n' % tuple(x0))
+            f.write('         vertex   %12.5e %12.5e %12.5e\n' % tuple(x1))
+            f.write('         vertex   %12.5e %12.5e %12.5e\n' % tuple(x2))
+            # Close the loop
+            f.write('      endloop\n')
+            f.write('   endfacet\n')
+        # End header
+        f.write('endsolid\n')
+        # Close the file.
+        f.close()
+    
+    # Function to write a triangulation to file as fast as possible.
+    def WriteSTLFast(self, fname='Components.i.stl'):
+        """Try using a compiled function to write to file
+        
+        :Call:
+            >>> tri.WriteFast(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Versions:
+            * 2016-04-08 ``@ddalle``: First version
+        """
+        # Write the nodes.
+        pc.WriteTriSTL(self.Nodes, self.Tris)
+        # Check the file name.
+        if fname != "Components.pyCart.stl":
+            # Move the file.
+            os.rename("Components.pyCart.stl", fname)
+   # }
+        
+    # ++++++++++
+    # AFLR3 Surf
+    # ++++++++++
+   # {
+    # Function to write a UH3D file
+    def WriteSurf(self, fname='Components.i.surf'):
+        """Write a triangulation to a AFLR3 surface file
+        
+        :Call:
+            >>> tri.WriteSurf(fname='Components.i.surf')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Versions:
+            * 2015-11-19 ``@ddalle``: First version
+        """
+        # Status update
+        print("    Writing ALFR3 surface: '%s'" % fname)
+        # Make sure we have BL parameters
+        try:
+            self.blds
+        except AttributeError:
+            self.blds = np.zeros(self.nNode)
+        try:
+            self.bldel
+        except AttributeError:
+            self.bldel = np.zeros(self.nNode)
+        # Make sure we have quads
+        try:
+            self.nQuad
+        except AttributeError:
+            self.nQuad = 0
+        # Write the file.
+        try:
+            # Try compiled versoin
+            self.WriteSurfFast(fname)
+        except Exception:
+            # Fall back to slow version
+            self.WriteSurfSlow(fname)
+    
+    # Function to write a SURF file the old-fashioned way.
+    def WriteSurfSlow(self, fname="Components.surf"):
+        """Write an AFLR3 ``surf`` surface mesh file
+        
+        :Call:
+            >>> tri.WriteSurfSlow(fname='Components.surf')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Versions:
+            * 2015-11-19 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Added quads, *blds*, and *bldel*
+        """
+        # Open the file for creation.
+        fid = open(fname, 'w')
+        # Write the number of tris, quads, points
+        fid.write('%i %i %i\n' % (self.nTri, self.nQuad, self.nNode))
+        # Loop through the nodes.
+        for i in np.arange(self.nNode):
+            # Write the line (with 1-based node index).
+            fid.write('%15.8e %15.8e %15.8e %s %s\n' % (
+                self.Nodes[i,0], self.Nodes[i,1], self.Nodes[i,2],
+                self.blds[i], self.bldel[i]))
+        # Loop through the triangles.
+        for k in np.arange(self.nTri):
+            # Write the line (with 1-based triangle index and CompID).
+            fid.write('%i %i %i %i 0 %i\n' % (self.Tris[k,0], 
+                self.Tris[k,1], self.Tris[k,2], self.CompID[k], self.BCs[k]))
+        # Loop through the quads.
+        for k in np.arange(self.nQuad):
+            # Write the line (with 1-based quad indx and CompID)
+            fid.write('%i %i %i %i %i 0 %i\n' % (self.Quads[k,0],
+                self.Quads[k,1], self.Quads[k,2], self.Quads[k,3],
+                self.CompIDQuad[k], self.BCsQuad[k]))
+        # Close the file.
+        fid.close()
+    
+    # Function to write a triangulation to file as fast as possible.
+    def WriteSurfFast(self, fname='Components.i.surf'):
+        """Try using a compiled function to write to AFLR3 ``surf`` file
+        
+        :Call:
+            >>> tri.WriteSurfFast(fname='Components.i.surf')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance to be translated
+            *fname*: :class:`str`
+                Name of triangulation file to create
+        :Versions:
+            * 2015-01-03 ``@ddalle``: First version
+        """
+        # Write the nodes.
+        pc.WriteSurf(
+            self.Nodes, self.blds,       self.bldel,
+            self.Tris,  self.CompID,     self.BCs,
+            self.Quads, self.CompIDQuad, self.BCsQuad)
+        # Check the file name.
+        if fname != "Components.pyCart.surf":
+            # Move the file.
+            os.rename("Components.pyCart.surf", fname)
+   
+   # }
+  # >
+    
+    # =====================
+    # Multiple File Reading
+    # =====================
+  # <
+    # Add a second triangulation without destroying component numbers.
+    def Add(self, tri):
+        """Add a second triangulation file.
+        
+        If the new triangulation begins with a component ID less than the
+        maximum component ID of the existing triangulation, the components of
+        the second triangulation are offset.  For example, if both
+        triangulations have components 1, 2, and 3; the IDs of the second
+        triangulation, *tri2*, will be changed to 4, 5, and 6.
+        
+        No checks are performed, and intersections are not analyzed.
+        
+        :Call:
+            >>> tri.Add(tri2)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance to be altered
+            *tri2*: :class:`cape.tri.Tri`
+                Triangulation instance to be added to the first
+        :Effects:
+            All nodes and triangles from *tri2* are added to *tri*.  As a
+            result, the number of nodes, number of tris, and number of
+            components in *tri* will all increase.
+        :Versions:
+            * 2014-06-12 ``@ddalle``: First version
+            * 2014-10-03 ``@ddalle``: Auto detect CompID overlap
+        """
+        # Concatenate the node matrix.
+        self.Nodes = np.vstack((self.Nodes, tri.Nodes))
+        # Concatenate the triangle node index matrix.
+        self.Tris = np.vstack((self.Tris, tri.Tris + self.nNode))
+        # Get the current component ID lists from both tries.
+        CompID0 = np.unique(self.CompID)
+        CompID1 = np.unique(tri.CompID)
+        # Concatenate the component vector.
+        if np.any(np.intersect1d(CompID0, CompID1)):
+            # Number of components in the original triangulation
+            nC = np.max(self.CompID)
+            # Adjust CompIDs to avoid overlap.
+            self.CompID = np.hstack((self.CompID, tri.CompID + nC))
+        else:
+            # Add the components raw (don't offset CompID.
+            self.CompID = np.hstack((self.CompID, tri.CompID))
+        # Update the statistics.
+        self.nNode += tri.nNode
+        self.nTri  += tri.nTri
+        
+    # Add a second triangulation without altering component numbers.
+    def AddRawCompID(self, tri):
+        """
+        Add a second triangulation to the current one without changing 
+        component numbers of either triangulation.  No checks are performed,
+        and intersections are not analyzed.
+        
+        :Call:
+            >>> tri.AddRawCompID(tri2)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance to be altered
+            *tri2*: :class:`cape.tri.Tri`
+                Triangulation instance to be added to the first
+        :Effects:
+            All nodes and triangles from *tri2* are added to *tri*.  As a
+            result, the number of nodes, number of tris, and number of
+            components in *tri* will all increase.
+        :Versions:
+            * 2014-06-12 ``@ddalle``: First version
+        """
+        # Concatenate the node matrix.
+        self.Nodes = np.vstack((self.Nodes, tri.Nodes))
+        # Concatenate the triangle node index matrix.
+        self.Tris = np.vstack((self.Tris, tri.Tris + self.nNode))
+        # Concatenate the component vector.
+        self.CompID = np.hstack((self.CompID, tri.CompID))
+        # Update the statistics.
+        self.nNode += tri.nNode
+        self.nTri  += tri.nTri
+        # Done
+        return None
+        
+  # >
+    
+    # ===============
+    # Intersect Tools
+    # ===============
+  # <
+    # Function to write .tri file with one CompID per break
+    def WriteVolTri(self, fname='Components.tri'):
+        """Write a .tri file with one CompID per break in *tri.iTri*
+        
+        This is a necessary step of running `intersect` because each polyhedron
+        (i.e. water-tight volume) must have a single uniform component ID before
+        running `intersect`.
+        
+        :Call:
+            >>> tri.WriteCompIDTri(fname='Components.c.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase` or derivative
+                Triangulation instance
+            *fname*: :class:`str`
+                Name of .tri file for use as input to `intersect`
+        :Versions:
+            * 2015-02-24 ``@ddalle``: First version
+        """
+        # Copy the triangulation.
+        tri = self.Copy()
+        # Current maximum CompID
+        comp0 = np.max(self.CompID)
+        # Set first volume.
+        tri.CompID[:self.iTri[0]] = comp0 + 1
+        # Loop through volumes as marked in *tri.iTri*
+        for k in range(len(self.iTri)-1):
+            # Set the CompID for each tri in that volume.
+            tri.CompID[self.iTri[k]:self.iTri[k+1]] = comp0 + k + 2
+        # Write the triangulation to file.
+        tri.Write(fname)
+        
+    # Function to map each face's CompID to the closest match from another tri
+    def MapSubCompID(self, tric, compID, kc=None):
+        """
+        Map CompID of each face to the CompID of the nearest face in another
+        triangulation.  This is a common step after running `intersect`.
+        
+        :Call:
+            >>> tri.MapSubCompID(tric, compID, iA=0, iB=-1)
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase` or derivative
+                Triangulation instance
+            *tric*: :class:`cape.tri.TriBase` or derivative
+                Triangulation with more desirable CompIDs to be copied
+            *compID*: :class:`int`
+                Component ID to map from *tric*
+            *k1*: :class:`numpy.ndarray` (:class:`int`)
+                Indices of faces in *tric* to considerider
+        :Versions:
+            * 2015-02-24 ``@ddalle``: First version
+        """
+        # Default last index.
+        if kc is None: kc = np.arange(tric.nTri)
+        # Indices of tris to map.
+        K1 = np.where(self.CompID == compID)[0]
+        # Check for a single component to map (volume really is one CompID).
+        if len(np.unique(tric.CompID[kc])) == 1:
+            # Map that component to each face in *k*.
+            self.CompID[K1] = tric.CompID[kc[0]]
+            # That's it.
+            return
+        # Make copy of the target indices.
+        K0 = np.array(kc).copy()
+        # Extract target triangle vertices
+        x0 = tric.Nodes[tric.Tris[K0]-1,0]
+        y0 = tric.Nodes[tric.Tris[K0]-1,1]
+        z0 = tric.Nodes[tric.Tris[K0]-1,2]
+        # Current vertices
+        x1 = self.Nodes[self.Tris[K1]-1,0]
+        y1 = self.Nodes[self.Tris[K1]-1,1]
+        z1 = self.Nodes[self.Tris[K1]-1,2]
+        # Length scale
+        tol = 1e-6 * np.sqrt(np.sum(
+            (np.max(self.Nodes,0)-np.min(self.Nodes,0))**2))
+        # Start with the first tri.
+        k0 = 0
+        k1 = 0
+        # Loop until one of the two sets of faces is exhausted.
+        while (k0<len(K0)-1) and (k1<len(K1)-1):
+            # Current point from intersected geometry.
+            xk = x1[k1]; yk = y1[k1]; zk = z1[k1]
+            # Distance to current intersected triangle.
+            d0 = np.sqrt(
+                (x0[k0:,0]-xk[0])**2 + (x0[k0:,1]-xk[1])**2 +
+                (x0[k0:,2]-xk[2])**2 + (y0[k0:,0]-yk[0])**2 +
+                (y0[k0:,1]-yk[1])**2 + (y0[k0:,2]-yk[2])**2 +
+                (z0[k0:,0]-zk[0])**2 + (z0[k0:,1]-zk[1])**2 +
+                (z0[k0:,2]-zk[2])**2)
+            # Find the index of this tri in the target set.
+            i0 = np.where(d0 <= tol)[0]
+            # Check for match.
+            if len(i0) == 0:
+                # No match.
+                k1 += 1
+            else:
+                # Take the first point.
+                k0 += i0[0]
+            # Try to match all the remaining points.
+            n = min(len(K0)-k0, len(K1)-k1)
+            # Calculate total of distances between vertices.
+            dk = np.sqrt(np.sum((x1[k1:k1+n]-x0[k0:k0+n])**2 +
+                (y1[k1:k1+n]-y0[k0:k0+n])**2 +
+                (z1[k1:k1+n]-z0[k0:k0+n])**2, 1))
+            # Check for a match.
+            if not np.any(dk<=tol): continue
+            # Find the first tri that does _not_ match.
+            j = np.where(dk<=tol)[0][-1] + 1
+            # Copy these *j* CompIDs.
+            self.CompID[K1[k1:k1+j]] = tric.CompID[K0[k0:k0+j]]
+            # Move to next tri in intersected surface.
+            k1 += j; k0 += j
+        
+        # Find the triangles that are _still_ the old CompID
+        K = np.where(self.CompID == compID)[0]
+        
+        # Calculate the centroids of the target components.
+        x0 = np.mean(tric.Nodes[tric.Tris[K0]-1, 0], 1)
+        y0 = np.mean(tric.Nodes[tric.Tris[K0]-1, 1], 1)
+        z0 = np.mean(tric.Nodes[tric.Tris[K0]-1, 2], 1)
+        # Calculate centroids of current tris.
+        x1 = np.mean(self.Nodes[self.Tris-1,0], 1)
+        y1 = np.mean(self.Nodes[self.Tris-1,1], 1)
+        z1 = np.mean(self.Nodes[self.Tris-1,2], 1)
+        # Loop through components.
+        for i in K:
+            # Find the closest centroid from *tric*.
+            j = np.argmin((x0-x1[i])**2 + (y0-y1[i])**2 + (z0-z1[i])**2)
+            # Map it.
+            self.CompID[i] = tric.CompID[K0[j]]
+            
+    # Function to fully map component IDs
+    def MapCompID(self, tric, tri0):
+        """
+        Map CompIDs from pre-intersected triangulation to an intersected
+        triangulation.  In standard cape terminology, this is a transformation
+        from :file:`Components.o.tri` to :file:`Components.i.tri`
+        
+        :Call:
+            >>> tri.MapCompID(tric, tri0)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation interface
+            *tric*: :class:`cape.tri.Tri`
+                Full CompID breakdown prior to intersection
+            *tri0*: :class:`cape.tri.Tri`
+                Input triangulation to `intersect`
+        :Versions:
+            * 2015-02-25 ``@ddalle``: First version
+        """
+        # Get the components from the pre-intersected triangulation.
+        comps = np.unique(tri0.CompID)
+        # Loop through comps.
+        for compID in comps:
+            # Get the faces with that comp ID (before intersection)
+            kc = np.where(tri0.CompID == compID)[0]
+            # Map the compIDs for that component.
+            self.MapSubCompID(tric, compID, kc)
+  # >
+    
+    # ================
+    # CompID Interface
+    # ================
+  # <
+    # Function to read and apply Config.xml
+    def ReadConfig(self, c):
+        """Read a ``Config.xml`` labeling and grouping of component IDs
+        
+        :Call:
+            >>> tri.ReadConfig(c)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *c*: :class:`str`
+                Configuration file name
+        :Versions:
+            * 2015-11-19 ``@ddalle``: First version
+        """
+        # Read the configuration and save it.
+        self.config = Config(c)
+        
+    # Function to map component ID numbers to those in a Config.
+    def ApplyConfig(self, cfg):
+        """Change component IDs to match a configuration file
+        
+        Any component that is named in *tri.Conf* and *cfg.faces* has its
+        component ID changed to match its intended value in *cfg*, which is an
+        interface to :file:`Config.xml` files.  Note that *tri.Conf* is only
+        created if the triangulation is read from a UH3D file.
+        
+        For example, if *tri* has a component ``'Body'`` that initially has
+        component ID of 4, but the user wants that component ID to instead be
+        104, then ``tri.Conf['Body']`` will be ``4``, and ``cfg.faces['Body']``
+        will be ``104``.  The result of applying this method is that all faces
+        in *tri.compID* that are labeled with a ``4`` will get changed to
+        ``104``.
+        
+        This process uses a working copy of *tri* to avoid problems with the
+        order of changing the component numbers.
+        
+        :Call:
+            >>> tri.ApplyConfig(cfg)
+            >>> tri.ApplyConfig(fcfg)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *cfg*: :class:`cape.config.Config`
+                Configuration instance
+            *fcfg*: :class:`str`
+                Name of XML config file
+        :Versions:
+            * 2014-11-10 ``@ddalle``: First version
+        """
+        # Check for Conf in the triangulation.
+        try:
+            self.Conf
+        except AttributeError:
+            return
+        # Check for string input
+        if type(cfg).__name__ in ['str', 'unicode']:
+            # Read the config
+            cfg = Config(cfg)
+        # Make a copy of the component IDs.
+        compID = self.CompID.copy()
+        # Check for components.
+        for k in self.Conf:
+            # Check if the component is in the cfg.
+            cID = cfg.faces.get(k)
+            # Check for empty or list.
+            if cID and (type(cID).__name__ == "int"):
+                # Assign the new value.
+                self.CompID[compID==self.Conf[k]] = cID
+                # Save it in the Conf, too.
+                self.Conf[k] = cID
+       
+   
+    # Function to get compIDs by name
+    def GetCompID(self, face=None):
+        """Get components by name
+        
+        :Call:
+            >>> compID = tri.GetCompID()
+            >>> compID = tri.GetCompID(face)
+            >>> compID = tri.GetCompID(comp)
+            >>> compID = tri.GetCompID(comps)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation interface
+            *face*: :class:`str`
+                Component name
+            *comp*: :class:`int`
+                Component ID
+            *comps*: :class:`list` (:class:`int` | :class:`str`)
+                List of component names or IDs
+        :Outputs:
+            *compID*: :class:`list` (:class:`int`)
+                List of component IDs
+        :Versions:
+            * 2014-10-12 ``@ddalle``: First version
+            * 2016-03-29 ``@ddalle``: Edited docstring
+        """
+        # Process input into a list of component IDs.
+        try:
+            # Best option is to use the Config.xml file
+            return self.config.GetCompID(face)
+        except Exception:
+            # Check for scalar
+            if face is None:
+                # No contents; this might break otherwise
+                return list(np.unique(self.CompID))
+            elif type(face).__name__  in ['list', 'ndarray']:
+                # Return the list
+                return face
+            else:
+                # Make a singleton list
+                return [face]
+       
+    # Function to get node indices from component ID(s)
+    def GetNodesFromCompID(self, compID=None):
+        """Find node indices from face component ID(s)
+        
+        :Call:
+            >>> i = tri.GetNodesFromCompID(comp)
+            >>> i = tri.GetNodesFromCompID(comps)
+            >>> i = tri.GetNodesFromCompID(compID)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *comp*: :class:`str`
+                Name of component
+            *comps*: :class:`list` (:class:`int` | :class:`str`)
+                List of component IDs or names
+            *compID*: :class:`int`
+                Component number
+        :Outputs:
+            *i*: :class:`numpy.array` (:class:`int`)
+                Node indices, 0-based
+        :Versions:
+            * 2014-09-27 ``@ddalle``: First version
+        """
+        # Process inputs.
+        if compID is None:
+            # Return all the tris.
+            return np.arange(self.nNode)
+        elif compID == 'entire':
+            # Return all the tris.
+            return np.arange(self.nNode)
+        # Get matches from tris and quads
+        kTri  = self.GetTrisFromCompID(compID)
+        kQuad = self.GetQuadsFromCompID(compID)
+        # Initialize with all false
+        I = np.arange(self.nNode) < 0
+        # Check for triangular matches
+        if len(kTri) > 0:
+            # Mark matches
+            I[self.Tris[kTri]-1] = True
+        # Check for quadrangle matches
+        if len(kQuad) > 0:
+            # Mark matches
+            I[self.Quads[kQuad]] = True
+        # Output
+        return np.where(I)[0]
+        
+    # Function to get tri indices from component ID(s)
+    def GetTrisFromCompID(self, compID=None):
+        """Find indices of triangles with specified component ID(s)
+        
+        :Call:
+            >>> k = tri.GetTrisFromCompID(comp)
+            >>> k = tri.GetTrisFromCompID(comps)
+            >>> k = tri.GetTrisFromCompID(compID)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *comp*: :class:`str`
+                Name of component
+            *comps*: :class:`list` (:class:`int` | :class:`str`)
+                List of component IDs or names
+            *compID*: :class:`int`
+                Component number
+        :Outputs:
+            *k*: :class:`numpy.ndarray` (:class:`int`, shape=(N,))
+                List of triangle indices in requested component(s)
+        :Versions:
+            * 2015-01-23 ``@ddalle``: First version
+        """
+        # Process inputs.
+        if compID is None:
+            # Return all the tris.
+            return np.arange(self.nTri)
+        elif compID == 'entire':
+            # Return all the tris.
+            return np.arange(self.nTri)
+        # Get list of components
+        comps = self.GetCompID(compID)
+        # Check for single match
+        if len(comps) == 1:
+            # Get a single component.
+            K = self.CompID == comps[0]
+        else:
+            # Initialize with all False (same size as number of tris)
+            K = self.CompID < 0
+            # List of components.
+            for comp in comps:
+                # Add matches for component *ii*.
+                K = np.logical_or(K, self.CompID==comp)
+        # Turn boolean vector into vector of indices]
+        return np.where(K)[0]
+    
+    # Function to get tri indices from component ID(s)
+    def GetQuadsFromCompID(self, compID=None):
+        """Find indices of triangles with specified component ID(s)
+        
+        :Call:
+            >>> k = tri.GetQuadsFromCompID(comp)
+            >>> k = tri.GetQuadsFromCompID(comps)
+            >>> k = tri.GetQuadsFromCompID(compID)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *comp*: :class:`str`
+                Name of component
+            *comps*: :class:`list` (:class:`int` | :class:`str`)
+                List of component IDs or names
+            *compID*: :class:`int`
+                Component number
+        :Outputs:
+            *k*: :class:`numpy.ndarray` (:class:`int`, shape=(N,))
+                List of quad indices in requested component(s)
+        :Versions:
+            * 2016-04-05 ``@ddalle``: First version
+        """
+        # Be careful because not everyone has quads
+        try:
+            # Process inputs.
+            if compID is None:
+                # Return all the tris.
+                return np.arange(self.nQuad)
+            elif compID == 'entire':
+                # Return all the tris.
+                return np.arange(self.nQuad)
+            elif self.nQuad == 0:
+                # No quads to check for
+                return np.array([], dtype=int)
+            # Get list of components
+            comps = self.GetCompID(compID)
+            # Check for single match
+            if len(comps) == 1:
+                # Get a single component.
+                K = self.CompIDQuad == comps[0]
+            else:
+                # Initialize with all False (same size as number of tris)
+                K = self.CompIDQuad < 0
+                # List of components.
+                for comp in comps:
+                    # Add matches for component *ii*.
+                    K = np.logical_or(K, self.CompIDQuad==comp)
+            # Turn boolean vector into vector of indices]
+            I =  np.where(K)[0]
+        except AttributeError:
+            # No quads
+            return np.zeros(0, dtype=int)
+    
+    # Get subtriangulation from CompID list
+    def GetSubTri(self, i=None):
+        """
+        Get the portion of the triangulation that contains specified component
+        ID(s).
+        
+        :Call:
+            >>> tri0 = tri.GetSubTri(i=None)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *i*: :class:`int` or :class:`list` (:class:`int`)
+                Component ID or list of component IDs
+        :Outputs:
+            *tri0*: :class:`cape.tri.Tri`
+                Copied triangulation containing only faces with CompID in *i*
+        :Versions:
+            * 2015-01-23 ``@ddalle``: First version
+        """
+        # Get the triangle indices.
+        k = self.GetTrisFromCompID(i)
+        # Make a copy of the triangulation.
+        tri0 = self.Copy()
+        # Restrict *tri0* to the matching faces.
+        tri0.Tris = tri0.Tris[k]
+        tri0.CompID = tri0.CompID[k]
+        # Save the reduced number of tris.
+        tri0.nTri = k.size
+        # Output
+        return tri0
+                
+  # >
+    
+    # =========================
+    # AFLR3 Boundary Conditions
+    # =========================
+  # <
+    # Map boundary condition tags
+    def MapBCs_AFLR3(self, compID=None, BCs={}, blds={}, bldel={}):
+        """Initialize and map boundary condition indices for AFLR3
+        
+        :Call:
+            >>> tri.MapBCs_AFLR3(compID=[], BCs={}, blds={}, bldel={})
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *compID*: :class:`list` (:class:`str` | :class:`int`) | ``None``
+                List of components to preserve order; defaults to ``BCs.keys()``
+            *BCs*: :class:`dict` (:class:`str` | :class:`int`)
+                Dictionary of BC flags for CompIDs or component names
+            *blds*: :class:`dict` (:class:`str` | :class:`int`)
+                Dictionary of BL spacings for CompIDs or component names
+            *bldel*: :class:`dict` (:class:`str` | :class:`int`)
+                Dictionary of BL thicknesses for CompIDs or component names
+        :Versions:
+            * 2015-11-19 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Added BL spacing and thickness
+        """
+        # Initialize the BCs to -1 (grow boundary layer)
+        self.BCs = -1 * np.ones_like(self.CompID)
+        # Initialize quad BCs
+        try:
+            self.BCsQuad = -1 * np.ones(self.nQuad, dtype=int)
+        except AttributeError:
+            self.BCsQuad = np.ones(0, dtype=int)
+        # Initialize the boundary layer spacings
+        self.blds = np.zeros(self.nNode)
+        self.bldel = np.zeros(self.nNode)
+        # Default keys
+        if compID is None:
+            compID = BCs.keys()
+        # Loop through BCs
+        for comp in compID:
+            # Get the tris matching the component ID
+            I = self.GetTrisFromCompID(comp)
+            # Modify those BCs
+            # Check node count
+            if len(I) > 0:
+                self.BCs[I] = BCs[comp]
+            # Get the quads from the matching component ID
+            I = self.GetQuadsFromCompID(comp)
+            # Modify those BCs.
+            if len(I) > 0:
+                self.BCsQuad[I] = BCs[comp]
+        # Loop through boundary layer spacings
+        for comp in blds:
+            # Get the nodes
+            I = self.GetNodesFromCompID(comp)
+            # Check node count
+            if len(I) == 0:
+                print("Warning: No nodes mapped for component '%s'" % comp)
+                continue
+            # Modify those BL spacings
+            self.blds[I] = blds[comp]
+            # Check for BL thicknesses
+            if comp in bldel:
+                self.bldel[I] = bldel[comp]
+        # Loop through boundary layer thicknesses
+        for comp in bldel:
+            # Make sure not already processed
+            if comp in blds: continue
+            # Get the nodes
+            I = self.GetNodesFromCompID(comp)
+            # Check node count
+            if len(I) == 0:
+                print("Warning: No nodes mapped for component '%s'" % comp)
+                continue
+            # Modify those BL thicknesses
+            self.bldel[I] = bldel[comp]
+            
+    # Read boundary condition map
+    def ReadBCs_AFLR3(self, fname):
+        """Initialize and map boundary condition indices for AFLR3 from file
+        
+        :Call:
+            >>> tri.ReadBCs_AFLR3(fname)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *fname*: :class:`str`
+                Name of boundary condition map file
+        :Versions:
+            * 2015-11-19 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: Added BL spacing and thickness
+        """
+        # Read the boundary condition file
+        f = open(fname, 'r')
+        # Initialize boundary condition map
+        compID = []
+        BCs = {}
+        blds = {}
+        bldel = {}
+        # Loop through lines
+        line = "start"
+        while line != '':
+            # Read the line.
+            line = _readline(f)
+            # Exit at end of file
+            if line == '': break
+            # Split line
+            V = line.split()
+            # Get the component name
+            comp = V[0]
+            # Get the boundary condition flag
+            bc = int(V[1])
+            # Append to the list (ordered)
+            compID.append(comp)
+            # Save the boundary condition
+            BCs[comp] = bc
+            # Check length
+            if len(V) < 3: continue
+            # Get the boundary layer spacing
+            bldsi = float(V[2])
+            # Save BL spacing
+            blds[comp] = bldsi
+            # Check length
+            if len(V) < 4: continue
+            # Get the boundary layer thickness
+            bldeli = float(V[3])
+            # Save the BL thickness
+            bldel[comp] = bldeli
+        # Close the file.
+        f.close()
+        # Apply the boundary conditions
+        self.MapBCs_AFLR3(compID, BCs, blds=blds, bldel=bldel)
+    
+  # >
+        
+    # =============
+    # Geometry Info
+    # =============
+  # <
+    
+    # ++++
+    # Tris
+    # ++++
+   # {
     # Get normals and areas
     def GetNormals(self):
         """Get the normals and areas of each triangle
@@ -2262,6 +2860,41 @@ class TriBase(object):
         # Save the unit normals.
         self.Normals = n
         
+        
+    # Get edge lengths
+    def GetLengths(self):
+        """Get the lengths of edges
+        
+        :Call:
+            >>> tri.GetLengths()
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+        :Effects:
+            *tri.Lengths*: :class:`numpy.ndarray`, shape=(tri.nTri,3)
+                Length of edge of each triangle
+        :Versions:
+            * 2015-02-21 ``@ddalle``: First version
+        """
+        # Extract the vertices of each tri.
+        x = self.Nodes[self.Tris-1, 0]
+        y = self.Nodes[self.Tris-1, 1]
+        z = self.Nodes[self.Tris-1, 2]
+        # Get the deltas from node 0->1, 1->2, 2->1
+        x01 = np.vstack((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
+        x12 = np.vstack((x[:,2]-x[:,1], y[:,2]-y[:,1], z[:,2]-z[:,1]))
+        x20 = np.vstack((x[:,0]-x[:,2], y[:,0]-y[:,2], z[:,0]-z[:,2]))
+        # Calculate lengths.
+        self.Lengths = np.vstack((
+            np.sqrt(np.sum(x01**2, 0)),
+            np.sqrt(np.sum(x12**2, 0)),
+            np.sqrt(np.sum(x20**2, 0)))).transpose()
+   # }
+    
+    # +++++
+    # Nodes
+    # +++++
+   # {
     # Get averaged normals at nodes
     def GetNodeNormals(self):
         """Get the area-averaged normals at each node
@@ -2295,37 +2928,12 @@ class TriBase(object):
         NN[:,2] /= L
         # Save it.
         self.NodeNormals = NN
-        
-        
-    # Get edge lengths
-    def GetLengths(self):
-        """Get the lengths of edges
-        
-        :Call:
-            >>> tri.GetLengths()
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance
-        :Effects:
-            *tri.Lengths*: :class:`numpy.ndarray`, shape=(tri.nTri,3)
-                Length of edge of each triangle
-        :Versions:
-            * 2015-02-21 ``@ddalle``: First version
-        """
-        # Extract the vertices of each tri.
-        x = self.Nodes[self.Tris-1, 0]
-        y = self.Nodes[self.Tris-1, 1]
-        z = self.Nodes[self.Tris-1, 2]
-        # Get the deltas from node 0->1, 1->2, 2->1
-        x01 = np.vstack((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
-        x12 = np.vstack((x[:,2]-x[:,1], y[:,2]-y[:,1], z[:,2]-z[:,1]))
-        x20 = np.vstack((x[:,0]-x[:,2], y[:,0]-y[:,2], z[:,0]-z[:,2]))
-        # Calculate lengths.
-        self.Lengths = np.vstack((
-            np.sqrt(np.sum(x01**2, 0)),
-            np.sqrt(np.sum(x12**2, 0)),
-            np.sqrt(np.sum(x20**2, 0)))).transpose()
-            
+   # }
+   
+    # +++++
+    # Edges
+    # +++++
+   # {
     # Get edges
     def GetEdges(self):
         """Get the list of edges
@@ -2356,7 +2964,237 @@ class TriBase(object):
         I = np.lexsort((E[:,1], E[:,0]))
         # Save sorted edges
         self.Edges = E[I,:]
+   # }
+    
+    # ++++++++++
+    # Components
+    # ++++++++++
+   # {
+    # Get normals and areas
+    def GetCompArea(self, compID, n=None):
+        """
+        Get the total area of a component, or get the total area of a component
+        projected to a plane with a given normal vector.
         
+        :Call:
+            >>> A = tri.GetCompArea(compID)
+            >>> A = tri.GetCompArea(compID, n)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *compID*: :class:`int`
+                Index of the component of which to find the area
+            *n*: :class:`numpy.ndarray`
+                Unit normal vector to use for projection
+        :Outputs:
+            *A*: :class:`float`
+                Area of the component
+        :Versions:
+            * 2014-06-13 ``@ddalle``: First version
+        """
+        # Check for areas.
+        try:
+            self.Areas
+        except AttributeError:
+            self.GetNormals()
+        # Find the indices of tris in the component.
+        k = self.GetTrisFromCompID(compID)
+        # Check for direction projection.
+        if n is None:
+            # No projection
+            return np.sum(self.Areas[k])
+        else:
+            # Extract the normals and copy to new matrix.
+            N = self.Normals[k].copy()
+            # Dot those normals with the requested vector.
+            N[:,0] *= n[0]
+            N[:,1] *= n[1]
+            N[:,2] *= n[2]
+            # Sum to get the dot product.
+            d = np.sum(N, 1)
+            # Multiply this dot product by the area of each tri
+            return np.sum(self.Areas[k] * d)
+    
+    # Get normals and areas
+    def GetCompNormal(self, compID):
+        """Get the area-averaged unit normal of a component
+        
+        :Call:
+            >>> n = tri.GetCompNormal(compID)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *compID*: :class:`int`
+                Index of the component of which to find the normal
+        :Outputs:
+            *n*: :class:`numpy.ndarray` shape=(3,)
+                Area-averaged unit normal
+        :Versions:
+            * 2014-06-13 ``@ddalle``: First version
+        """
+        # Check for areas.
+        try:
+            self.Areas
+        except AttributeError:
+            self.GetNormals()
+        # Find the indices of tris in the component.
+        i = self.CompID == compID
+        # Extract those normals and areas.
+        N = self.Normals[i].copy()
+        A = self.Areas[i].copy()
+        # Weight the normals.
+        N[:,0] *= A
+        N[:,1] *= A
+        N[:,2] *= A
+        # Compute the mean.
+        n = np.mean(N, 0)
+        # Unitize.
+        return n / np.sqrt(np.sum(n**2))
+    
+    # Get centroid of component
+    def GetCompCentroid(self, compID):
+        """Get the centroid of a component
+        
+        :Call:
+            >>> [x, y] = tri.GetCompCentroid(compID)
+            >>> [x, y, z] = tri.GetCompCentroid(compID)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *compID*: :class:`int`
+                Index of the component of which to find the normal
+        :Outputs:
+            *x*: :class:`float`
+                Coordinate of the centroid
+            *y*: :class:`float`
+                Coordinate of the centroid
+            *z*: :class:`float`
+                Coordinate of the centroid
+        :Versions:
+            * 2016-03-29 ``@ddalle``: First version
+        """
+        # Check for areas.
+        try:
+            self.Areas
+        except AttributeError:
+            self.GetNormals()
+        # Get tris
+        k = self.GetTrisFromCompID(compID)
+        # Get corresponding nodes
+        i = self.Tris[k,:] - 1
+        # Get areas of those components
+        A = self.Areas[k]
+        # Total area
+        AT = np.sum(A)
+        # Dimensions
+        nd = self.Nodes.shape[1]
+        # Get coordinates
+        if nd == 2:
+            # 2D coordinates
+            x = np.mean(self.Nodes[i,0], axis=1)
+            y = np.mean(self.Nodes[i,1], axis=1)
+            # Weighting
+            xc = np.sum(x*A) / AT
+            yc = np.sum(y*A) / AT
+            # Output
+            return np.array([xc, yc])
+        else:
+            # 3D coordinates
+            x = np.mean(self.Nodes[i,0], axis=1)
+            y = np.mean(self.Nodes[i,1], axis=1)
+            z = np.mean(self.Nodes[i,2], axis=1)
+            # Weighted averages
+            xc = np.sum(x*A) / AT
+            yc = np.sum(y*A) / AT
+            zc = np.sum(z*A) / AT
+            # Output
+            return np.array([xc, yc, zc])
+    
+    # Function to add a bounding box based on a component and buffer
+    def GetCompBBox(self, compID=[], **kwargs):
+        """
+        Find a bounding box based on the coordinates of a specified component
+        or list of components, with an optional buffer or buffers in each
+        direction
+        
+        :Call:
+            >>> xlim = tri.GetCompBBox(compID, **kwargs)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *compID*: :class:`int` or :class:`str` or :class:`list`
+                Component or list of components to use for bounding box
+            *pad*: :class:`float`
+                Buffer to add in each dimension to min and max coordinates
+            *xpad*: :class:`float`
+                Buffer to minimum and maximum *x*-coordinates
+            *ypad*: :class:`float`
+                Buffer to minimum and maximum *y*-coordinates
+            *zpad*: :class:`float`
+                Buffer to minimum and maximum *z*-coordinates
+            *xp*: :class:`float`
+                Buffer for the maximum *x*-coordinate
+            *xm*: :class:`float`
+                Buffer for the minimum *x*-coordinate
+            *yp*: :class:`float`
+                Buffer for the maximum *y*-coordinate
+            *ym*: :class:`float`
+                Buffer for the minimum *y*-coordinate
+            *zp*: :class:`float`
+                Buffer for the maximum *z*-coordinate
+            *zm*: :class:`float`
+                Buffer for the minimum *z*-coordinate
+        :Outputs:
+            *xlim*: :class:`numpy.ndarray` (:class:`float`), shape=(6,)
+                List of *xmin*, *xmax*, *ymin*, *ymax*, *zmin*, *zmax*
+        :Versions:
+            * 2014-06-16 ``@ddalle``: First version
+            * 2014-08-03 ``@ddalle``: Changed "buff" --> "pad"
+        """
+        # Process it into a list of component IDs.
+        compID = self.GetCompID(compID)
+        # Quit if none specified.
+        if not compID: return None
+        # Get the overall buffer.
+        pad = kwargs.get('pad', 0.0)
+        # Get the other buffers.
+        xpad = kwargs.get('xpad', pad)
+        ypad = kwargs.get('ypad', pad)
+        zpad = kwargs.get('zpad', pad)
+        # Get the directional buffers.
+        xp = kwargs.get('xp', xpad)
+        xm = kwargs.get('xm', xpad)
+        yp = kwargs.get('yp', ypad)
+        ym = kwargs.get('ym', ypad)
+        zp = kwargs.get('zp', zpad)
+        zm = kwargs.get('zm', zpad)
+        # List of components; initialize with first.
+        i = self.CompID == compID[0]
+        # Loop through remaining components.
+        for k in compID[1:]:
+            i = np.logical_or(i, self.CompID == k)
+        # Get the coordinates of each vertex of included tris.
+        x = self.Nodes[self.Tris[i,:]-1, 0]
+        y = self.Nodes[self.Tris[i,:]-1, 1]
+        z = self.Nodes[self.Tris[i,:]-1, 2]
+        # Get the extrema
+        xmin = np.min(x) - xm
+        xmax = np.max(x) + xp
+        ymin = np.min(y) - ym
+        ymax = np.max(y) + yp
+        zmin = np.min(z) - zm
+        zmax = np.max(z) + zp
+        # Return the list.
+        return np.array([xmin, xmax, ymin, ymax, zmin, zmax])
+   
+   # }
+    
+  # >
+    
+    # ==================
+    # Edge/Curve Tracing
+    # ==================
+  # <
     # Get the closest node to a point
     def GetClosestNode(self, x):
         """Get the index of a node closest to a 3D point
@@ -2582,258 +3420,12 @@ class TriBase(object):
         ds += np.sqrt(np.sum((Y[j]-x)**2))
         # Output
         return d, ds, j
-        
-        
-    # Function to read and apply Config.xml
-    def ReadConfig(self, c):
-        """Read a ``Config.xml`` labeling and grouping of component IDs
-        
-        :Call:
-            >>> tri.ReadConfig(c)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance
-            *c*: :class:`str`
-                Configuration file name
-        :Versions:
-            * 2015-11-19 ``@ddalle``: First version
-        """
-        # Read the configuration and save it.
-        self.config = Config(c)
-        
-        
-    # Function to map component ID numbers to those in a Config.
-    def ApplyConfig(self, cfg):
-        """Change component IDs to match a configuration file
-        
-        Any component that is named in *tri.Conf* and *cfg.faces* has its
-        component ID changed to match its intended value in *cfg*, which is an
-        interface to :file:`Config.xml` files.  Note that *tri.Conf* is only
-        created if the triangulation is read from a UH3D file.
-        
-        For example, if *tri* has a component ``'Body'`` that initially has
-        component ID of 4, but the user wants that component ID to instead be
-        104, then ``tri.Conf['Body']`` will be ``4``, and ``cfg.faces['Body']``
-        will be ``104``.  The result of applying this method is that all faces
-        in *tri.compID* that are labeled with a ``4`` will get changed to
-        ``104``.
-        
-        This process uses a working copy of *tri* to avoid problems with the
-        order of changing the component numbers.
-        
-        :Call:
-            >>> tri.ApplyConfig(cfg)
-            >>> tri.ApplyConfig(fcfg)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance
-            *cfg*: :class:`cape.config.Config`
-                Configuration instance
-            *fcfg*: :class:`str`
-                Name of XML config file
-        :Versions:
-            * 2014-11-10 ``@ddalle``: First version
-        """
-        # Check for Conf in the triangulation.
-        try:
-            self.Conf
-        except AttributeError:
-            return
-        # Check for string input
-        if type(cfg).__name__ in ['str', 'unicode']:
-            # Read the config
-            cfg = Config(cfg)
-        # Make a copy of the component IDs.
-        compID = self.CompID.copy()
-        # Check for components.
-        for k in self.Conf:
-            # Check if the component is in the cfg.
-            cID = cfg.faces.get(k)
-            # Check for empty or list.
-            if cID and (type(cID).__name__ == "int"):
-                # Assign the new value.
-                self.CompID[compID==self.Conf[k]] = cID
-                # Save it in the Conf, too.
-                self.Conf[k] = cID
-       
-       
-    # Function to get node indices from component ID(s)
-    def GetNodesFromCompID(self, compID=None):
-        """Find node indices from face component ID(s)
-        
-        :Call:
-            >>> i = tri.GetNodesFromCompID(comp)
-            >>> i = tri.GetNodesFromCompID(comps)
-            >>> i = tri.GetNodesFromCompID(compID)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance
-            *comp*: :class:`str`
-                Name of component
-            *comps*: :class:`list` (:class:`int` | :class:`str`)
-                List of component IDs or names
-            *compID*: :class:`int`
-                Component number
-        :Outputs:
-            *i*: :class:`numpy.array` (:class:`int`)
-                Node indices, 0-based
-        :Versions:
-            * 2014-09-27 ``@ddalle``: First version
-        """
-        # Process inputs.
-        if compID is None:
-            # Return all the tris.
-            return np.arange(self.nNode)
-        elif compID == 'entire':
-            # Return all the tris.
-            return np.arange(self.nNode)
-        # Get matches from tris and quads
-        kTri  = self.GetTrisFromCompID(compID)
-        kQuad = self.GetQuadsFromCompID(compID)
-        # Initialize with all false
-        I = np.arange(self.nNode) < 0
-        # Check for triangular matches
-        if len(kTri) > 0:
-            # Mark matches
-            I[self.Tris[kTri]-1] = True
-        # Check for quadrangle matches
-        if len(kQuad) > 0:
-            # Mark matches
-            I[self.Quads[kQuad]] = True
-        # Output
-        return np.where(I)[0]
-        
-    # Function to get tri indices from component ID(s)
-    def GetTrisFromCompID(self, compID=None):
-        """Find indices of triangles with specified component ID(s)
-        
-        :Call:
-            >>> k = tri.GetTrisFromCompID(comp)
-            >>> k = tri.GetTrisFromCompID(comps)
-            >>> k = tri.GetTrisFromCompID(compID)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance
-            *comp*: :class:`str`
-                Name of component
-            *comps*: :class:`list` (:class:`int` | :class:`str`)
-                List of component IDs or names
-            *compID*: :class:`int`
-                Component number
-        :Outputs:
-            *k*: :class:`numpy.ndarray` (:class:`int`, shape=(N,))
-                List of triangle indices in requested component(s)
-        :Versions:
-            * 2015-01-23 ``@ddalle``: First version
-        """
-        # Process inputs.
-        if compID is None:
-            # Return all the tris.
-            return np.arange(self.nTri)
-        elif compID == 'entire':
-            # Return all the tris.
-            return np.arange(self.nTri)
-        # Get list of components
-        comps = self.GetCompID(compID)
-        # Check for single match
-        if len(comps) == 1:
-            # Get a single component.
-            K = self.CompID == comps[0]
-        else:
-            # Initialize with all False (same size as number of tris)
-            K = self.CompID < 0
-            # List of components.
-            for comp in comps:
-                # Add matches for component *ii*.
-                K = np.logical_or(K, self.CompID==comp)
-        # Turn boolean vector into vector of indices]
-        return np.where(K)[0]
+  # >
     
-    # Function to get tri indices from component ID(s)
-    def GetQuadsFromCompID(self, compID=None):
-        """Find indices of triangles with specified component ID(s)
-        
-        :Call:
-            >>> k = tri.GetQuadsFromCompID(comp)
-            >>> k = tri.GetQuadsFromCompID(comps)
-            >>> k = tri.GetQuadsFromCompID(compID)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance
-            *comp*: :class:`str`
-                Name of component
-            *comps*: :class:`list` (:class:`int` | :class:`str`)
-                List of component IDs or names
-            *compID*: :class:`int`
-                Component number
-        :Outputs:
-            *k*: :class:`numpy.ndarray` (:class:`int`, shape=(N,))
-                List of quad indices in requested component(s)
-        :Versions:
-            * 2016-04-05 ``@ddalle``: First version
-        """
-        # Be careful because not everyone has quads
-        try:
-            # Process inputs.
-            if compID is None:
-                # Return all the tris.
-                return np.arange(self.nQuad)
-            elif compID == 'entire':
-                # Return all the tris.
-                return np.arange(self.nQuad)
-            elif self.nQuad == 0:
-                # No quads to check for
-                return np.array([], dtype=int)
-            # Get list of components
-            comps = self.GetCompID(compID)
-            # Check for single match
-            if len(comps) == 1:
-                # Get a single component.
-                K = self.CompIDQuad == comps[0]
-            else:
-                # Initialize with all False (same size as number of tris)
-                K = self.CompIDQuad < 0
-                # List of components.
-                for comp in comps:
-                    # Add matches for component *ii*.
-                    K = np.logical_or(K, self.CompIDQuad==comp)
-            # Turn boolean vector into vector of indices]
-            I =  np.where(K)[0]
-        except AttributeError:
-            # No quads
-            return np.zeros(0, dtype=int)
-    
-    # Get subtriangulation from CompID list
-    def GetSubTri(self, i=None):
-        """
-        Get the portion of the triangulation that contains specified component
-        ID(s).
-        
-        :Call:
-            >>> tri0 = tri.GetSubTri(i=None)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance
-            *i*: :class:`int` or :class:`list` (:class:`int`)
-                Component ID or list of component IDs
-        :Outputs:
-            *tri0*: :class:`cape.tri.Tri`
-                Copied triangulation containing only faces with CompID in *i*
-        :Versions:
-            * 2015-01-23 ``@ddalle``: First version
-        """
-        # Get the triangle indices.
-        k = self.GetTrisFromCompID(i)
-        # Make a copy of the triangulation.
-        tri0 = self.Copy()
-        # Restrict *tri0* to the matching faces.
-        tri0.Tris = tri0.Tris[k]
-        tri0.CompID = tri0.CompID[k]
-        # Save the reduced number of tris.
-        tri0.nTri = k.size
-        # Output
-        return tri0
-        
+    # ========
+    # Plotting
+    # ========
+  # <
     # Create a 3-view of a component (or list of) using TecPlot
     def Tecplot3View(self, fname, i=None):
         """Create a 3-view PNG of a component(s) using TecPlot
@@ -2980,7 +3572,12 @@ class TriBase(object):
                 # Delete it.
                 os.remove(f)
         
+  # >
     
+    # =====================
+    # Geometry Manipulation
+    # =====================
+  # <
     # Function to translate the triangulation
     def Translate(self, *a, **kw):
         """Translate the nodes of a triangulation object
@@ -3093,303 +3690,8 @@ class TriBase(object):
         Y = geom.RotatePoints(X, v1, v2, theta)
         # Save the rotated points.
         self.Nodes[i,:] = Y
-        
-    # Add a second triangulation without destroying component numbers.
-    def Add(self, tri):
-        """Add a second triangulation file.
-        
-        If the new triangulation begins with a component ID less than the
-        maximum component ID of the existing triangulation, the components of
-        the second triangulation are offset.  For example, if both
-        triangulations have components 1, 2, and 3; the IDs of the second
-        triangulation, *tri2*, will be changed to 4, 5, and 6.
-        
-        No checks are performed, and intersections are not analyzed.
-        
-        :Call:
-            >>> tri.Add(tri2)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance to be altered
-            *tri2*: :class:`cape.tri.Tri`
-                Triangulation instance to be added to the first
-        :Effects:
-            All nodes and triangles from *tri2* are added to *tri*.  As a
-            result, the number of nodes, number of tris, and number of
-            components in *tri* will all increase.
-        :Versions:
-            * 2014-06-12 ``@ddalle``: First version
-            * 2014-10-03 ``@ddalle``: Auto detect CompID overlap
-        """
-        # Concatenate the node matrix.
-        self.Nodes = np.vstack((self.Nodes, tri.Nodes))
-        # Concatenate the triangle node index matrix.
-        self.Tris = np.vstack((self.Tris, tri.Tris + self.nNode))
-        # Get the current component ID lists from both tries.
-        CompID0 = np.unique(self.CompID)
-        CompID1 = np.unique(tri.CompID)
-        # Concatenate the component vector.
-        if np.any(np.intersect1d(CompID0, CompID1)):
-            # Number of components in the original triangulation
-            nC = np.max(self.CompID)
-            # Adjust CompIDs to avoid overlap.
-            self.CompID = np.hstack((self.CompID, tri.CompID + nC))
-        else:
-            # Add the components raw (don't offset CompID.
-            self.CompID = np.hstack((self.CompID, tri.CompID))
-        # Update the statistics.
-        self.nNode += tri.nNode
-        self.nTri  += tri.nTri
-        
-    # Add a second triangulation without altering component numbers.
-    def AddRawCompID(self, tri):
-        """
-        Add a second triangulation to the current one without changing 
-        component numbers of either triangulation.  No checks are performed,
-        and intersections are not analyzed.
-        
-        :Call:
-            >>> tri.AddRawCompID(tri2)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance to be altered
-            *tri2*: :class:`cape.tri.Tri`
-                Triangulation instance to be added to the first
-        :Effects:
-            All nodes and triangles from *tri2* are added to *tri*.  As a
-            result, the number of nodes, number of tris, and number of
-            components in *tri* will all increase.
-        :Versions:
-            * 2014-06-12 ``@ddalle``: First version
-        """
-        # Concatenate the node matrix.
-        self.Nodes = np.vstack((self.Nodes, tri.Nodes))
-        # Concatenate the triangle node index matrix.
-        self.Tris = np.vstack((self.Tris, tri.Tris + self.nNode))
-        # Concatenate the component vector.
-        self.CompID = np.hstack((self.CompID, tri.CompID))
-        # Update the statistics.
-        self.nNode += tri.nNode
-        self.nTri  += tri.nTri
-        # Done
-        return None
+  # >
     
-    # Get normals and areas
-    def GetCompArea(self, compID, n=None):
-        """
-        Get the total area of a component, or get the total area of a component
-        projected to a plane with a given normal vector.
-        
-        :Call:
-            >>> A = tri.GetCompArea(compID)
-            >>> A = tri.GetCompArea(compID, n)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance
-            *compID*: :class:`int`
-                Index of the component of which to find the area
-            *n*: :class:`numpy.ndarray`
-                Unit normal vector to use for projection
-        :Outputs:
-            *A*: :class:`float`
-                Area of the component
-        :Versions:
-            * 2014-06-13 ``@ddalle``: First version
-        """
-        # Check for areas.
-        try:
-            self.Areas
-        except AttributeError:
-            self.GetNormals()
-        # Find the indices of tris in the component.
-        k = self.GetTrisFromCompID(compID)
-        # Check for direction projection.
-        if n is None:
-            # No projection
-            return np.sum(self.Areas[k])
-        else:
-            # Extract the normals and copy to new matrix.
-            N = self.Normals[k].copy()
-            # Dot those normals with the requested vector.
-            N[:,0] *= n[0]
-            N[:,1] *= n[1]
-            N[:,2] *= n[2]
-            # Sum to get the dot product.
-            d = np.sum(N, 1)
-            # Multiply this dot product by the area of each tri
-            return np.sum(self.Areas[k] * d)
-    
-    # Get normals and areas
-    def GetCompNormal(self, compID):
-        """Get the area-averaged unit normal of a component
-        
-        :Call:
-            >>> n = tri.GetCompNormal(compID)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance
-            *compID*: :class:`int`
-                Index of the component of which to find the normal
-        :Outputs:
-            *n*: :class:`numpy.ndarray` shape=(3,)
-                Area-averaged unit normal
-        :Versions:
-            * 2014-06-13 ``@ddalle``: First version
-        """
-        # Check for areas.
-        try:
-            self.Areas
-        except AttributeError:
-            self.GetNormals()
-        # Find the indices of tris in the component.
-        i = self.CompID == compID
-        # Extract those normals and areas.
-        N = self.Normals[i].copy()
-        A = self.Areas[i].copy()
-        # Weight the normals.
-        N[:,0] *= A
-        N[:,1] *= A
-        N[:,2] *= A
-        # Compute the mean.
-        n = np.mean(N, 0)
-        # Unitize.
-        return n / np.sqrt(np.sum(n**2))
-    
-    # Get centroid of component
-    def GetCompCentroid(self, compID):
-        """Get the centroid of a component
-        
-        :Call:
-            >>> [x, y] = tri.GetCompCentroid(compID)
-            >>> [x, y, z] = tri.GetCompCentroid(compID)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance
-            *compID*: :class:`int`
-                Index of the component of which to find the normal
-        :Outputs:
-            *x*: :class:`float`
-                Coordinate of the centroid
-            *y*: :class:`float`
-                Coordinate of the centroid
-            *z*: :class:`float`
-                Coordinate of the centroid
-        :Versions:
-            * 2016-03-29 ``@ddalle``: First version
-        """
-        # Check for areas.
-        try:
-            self.Areas
-        except AttributeError:
-            self.GetNormals()
-        # Get tris
-        k = self.GetTrisFromCompID(compID)
-        # Get corresponding nodes
-        i = self.Tris[k,:] - 1
-        # Get areas of those components
-        A = self.Areas[k]
-        # Total area
-        AT = np.sum(A)
-        # Dimensions
-        nd = self.Nodes.shape[1]
-        # Get coordinates
-        if nd == 2:
-            # 2D coordinates
-            x = np.mean(self.Nodes[i,0], axis=1)
-            y = np.mean(self.Nodes[i,1], axis=1)
-            # Weighting
-            xc = np.sum(x*A) / AT
-            yc = np.sum(y*A) / AT
-            # Output
-            return np.array([xc, yc])
-        else:
-            # 3D coordinates
-            x = np.mean(self.Nodes[i,0], axis=1)
-            y = np.mean(self.Nodes[i,1], axis=1)
-            z = np.mean(self.Nodes[i,2], axis=1)
-            # Weighted averages
-            xc = np.sum(x*A) / AT
-            yc = np.sum(y*A) / AT
-            zc = np.sum(z*A) / AT
-            # Output
-            return np.array([xc, yc, zc])
-    
-    # Function to add a bounding box based on a component and buffer
-    def GetCompBBox(self, compID=[], **kwargs):
-        """
-        Find a bounding box based on the coordinates of a specified component
-        or list of components, with an optional buffer or buffers in each
-        direction
-        
-        :Call:
-            >>> xlim = tri.GetCompBBox(compID, **kwargs)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangulation instance
-            *compID*: :class:`int` or :class:`str` or :class:`list`
-                Component or list of components to use for bounding box
-            *pad*: :class:`float`
-                Buffer to add in each dimension to min and max coordinates
-            *xpad*: :class:`float`
-                Buffer to minimum and maximum *x*-coordinates
-            *ypad*: :class:`float`
-                Buffer to minimum and maximum *y*-coordinates
-            *zpad*: :class:`float`
-                Buffer to minimum and maximum *z*-coordinates
-            *xp*: :class:`float`
-                Buffer for the maximum *x*-coordinate
-            *xm*: :class:`float`
-                Buffer for the minimum *x*-coordinate
-            *yp*: :class:`float`
-                Buffer for the maximum *y*-coordinate
-            *ym*: :class:`float`
-                Buffer for the minimum *y*-coordinate
-            *zp*: :class:`float`
-                Buffer for the maximum *z*-coordinate
-            *zm*: :class:`float`
-                Buffer for the minimum *z*-coordinate
-        :Outputs:
-            *xlim*: :class:`numpy.ndarray` (:class:`float`), shape=(6,)
-                List of *xmin*, *xmax*, *ymin*, *ymax*, *zmin*, *zmax*
-        :Versions:
-            * 2014-06-16 ``@ddalle``: First version
-            * 2014-08-03 ``@ddalle``: Changed "buff" --> "pad"
-        """
-        # Process it into a list of component IDs.
-        compID = self.GetCompID(compID)
-        # Quit if none specified.
-        if not compID: return None
-        # Get the overall buffer.
-        pad = kwargs.get('pad', 0.0)
-        # Get the other buffers.
-        xpad = kwargs.get('xpad', pad)
-        ypad = kwargs.get('ypad', pad)
-        zpad = kwargs.get('zpad', pad)
-        # Get the directional buffers.
-        xp = kwargs.get('xp', xpad)
-        xm = kwargs.get('xm', xpad)
-        yp = kwargs.get('yp', ypad)
-        ym = kwargs.get('ym', ypad)
-        zp = kwargs.get('zp', zpad)
-        zm = kwargs.get('zm', zpad)
-        # List of components; initialize with first.
-        i = self.CompID == compID[0]
-        # Loop through remaining components.
-        for k in compID[1:]:
-            i = np.logical_or(i, self.CompID == k)
-        # Get the coordinates of each vertex of included tris.
-        x = self.Nodes[self.Tris[i,:]-1, 0]
-        y = self.Nodes[self.Tris[i,:]-1, 1]
-        z = self.Nodes[self.Tris[i,:]-1, 2]
-        # Get the extrema
-        xmin = np.min(x) - xm
-        xmax = np.max(x) + xp
-        ymin = np.min(y) - ym
-        ymax = np.max(y) + yp
-        zmin = np.min(z) - zm
-        zmax = np.max(z) + zp
-        # Return the list.
-        return np.array([xmin, xmax, ymin, ymax, zmin, zmax])
 # class TriBase
 
 

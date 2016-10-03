@@ -302,6 +302,7 @@ class Cntl(object):
             self.config = Config(fxml)
         # Return to original location
         os.chdir(fpwd)
+    
    # >
     
     # ======================
@@ -712,7 +713,7 @@ class Cntl(object):
         os.chdir(fpwd)
         
     # ===========
-    # Case status
+    # Case Status
     # ===========
    # <
     # Get last iter

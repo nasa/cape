@@ -1179,8 +1179,8 @@ pc_WriteTriSingleByteswap(PyObject *self, PyObject *args)
 PyObject *
 pc_WriteTriDoubleByteswap(PyObject *self, PyObject *args)
 {
-    long i, ierr;
-    long nNode, nTri, nb, mNode, mTri;
+    int i, ierr;
+    int nNode, nTri, nb, mNode, mTri;
     FILE *fid;
     PyArrayObject *P;
     PyArrayObject *T;
@@ -1195,9 +1195,9 @@ pc_WriteTriDoubleByteswap(PyObject *self, PyObject *args)
     }
     
     // Read number of nodes.
-    nNode = (long) PyArray_DIM(P, 0);
+    nNode = (int) PyArray_DIM(P, 0);
     // Read number of triangles.
-    nTri = (long) PyArray_DIM(T, 0);
+    nTri = (int) PyArray_DIM(T, 0);
     
     // Open output file for writing (wipe out if it exists.)
     fid = fopen("Components.pyCart.tri", "wb");
@@ -1208,10 +1208,10 @@ pc_WriteTriDoubleByteswap(PyObject *self, PyObject *args)
     mNode = __bswap_64(nNode);
     mTri  = __bswap_64(nTri);
     // Write header line
-    fwrite(&nb,    sizeof(long), 1, fid);
-    fwrite(&mNode, sizeof(long), 1, fid);
-    fwrite(&mTri,  sizeof(long), 1, fid);
-    fwrite(&nb,    sizeof(long), 1, fid);
+    fwrite(&nb,    sizeof(int), 1, fid);
+    fwrite(&mNode, sizeof(int), 1, fid);
+    fwrite(&mTri,  sizeof(int), 1, fid);
+    fwrite(&nb,    sizeof(int), 1, fid);
     
     // Write the nodes
     ierr = pc_WriteTriNodesDoubleByteswap(fid, P);
@@ -1221,14 +1221,14 @@ pc_WriteTriDoubleByteswap(PyObject *self, PyObject *args)
     }
     
     // Write the tris
-    ierr = pc_WriteTriTrisDoubleByteswap(fid, T);
+    ierr = pc_WriteTriTrisSingleByteswap(fid, T);
     if (ierr) {
         PyErr_SetString(PyExc_IOError, "Failure while writing tris");
         return NULL;
     }
     
     // Write the nodes
-    ierr = pc_WriteTriCompIDDoubleByteswap(fid, C);
+    ierr = pc_WriteTriCompIDSingleByteswap(fid, C);
     if (ierr) {
         PyErr_SetString(PyExc_IOError, "Failure while writing CompIDs");
         return NULL;
@@ -1322,8 +1322,8 @@ pc_WriteTriSingleNative(PyObject *self, PyObject *args)
 PyObject *
 pc_WriteTriDoubleNative(PyObject *self, PyObject *args)
 {
-    long i, ierr;
-    long nNode, nTri, nb, mNode, mTri;
+    int i, ierr;
+    int nNode, nTri, nb, mNode, mTri;
     FILE *fid;
     PyArrayObject *P;
     PyArrayObject *T;
@@ -1338,20 +1338,20 @@ pc_WriteTriDoubleNative(PyObject *self, PyObject *args)
     }
     
     // Read number of nodes.
-    nNode = (long) PyArray_DIM(P, 0);
+    nNode = (int) PyArray_DIM(P, 0);
     // Read number of triangles.
-    nTri = (long) PyArray_DIM(T, 0);
+    nTri = (int) PyArray_DIM(T, 0);
     
     // Open output file for writing (wipe out if it exists.)
     fid = fopen("Components.pyCart.tri", "wb");
     
     // Fortran record marker
-    nb = 2*sizeof(long);
+    nb = 2*sizeof(int);
     // Write header line
-    fwrite(&nb,    sizeof(long), 1, fid);
-    fwrite(&nNode, sizeof(long), 1, fid);
-    fwrite(&nTri,  sizeof(long), 1, fid);
-    fwrite(&nb,    sizeof(long), 1, fid);
+    fwrite(&nb,    sizeof(int), 1, fid);
+    fwrite(&nNode, sizeof(int), 1, fid);
+    fwrite(&nTri,  sizeof(int), 1, fid);
+    fwrite(&nb,    sizeof(int), 1, fid);
     
     // Write the nodes
     ierr = pc_WriteTriNodesDoubleNative(fid, P);
@@ -1361,14 +1361,14 @@ pc_WriteTriDoubleNative(PyObject *self, PyObject *args)
     }
     
     // Write the tris
-    ierr = pc_WriteTriTrisDoubleNative(fid, T);
+    ierr = pc_WriteTriTrisSingleNative(fid, T);
     if (ierr) {
         PyErr_SetString(PyExc_IOError, "Failure while writing tris");
         return NULL;
     }
     
     // Write the nodes
-    ierr = pc_WriteTriCompIDDoubleNative(fid, C);
+    ierr = pc_WriteTriCompIDSingleNative(fid, C);
     if (ierr) {
         PyErr_SetString(PyExc_IOError, "Failure while writing CompIDs");
         return NULL;
