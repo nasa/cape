@@ -1579,7 +1579,17 @@ class TriBase(object):
                 # Get the component name.
                 cname = v[1].strip().strip('\'')
                 # Save it.
-                Conf[cname] = cid
+                if cname in Conf:
+                    # Append this compID to the list for this component
+                    if type(Conf[cname]).__name__ == 'list':
+                        # Append to the list
+                        Conf[cname].append(cid)
+                    else:
+                        # Create a list with the two entries
+                        Conf[cname] = [Conf[cname], cid]
+                else:
+                    # Start a hash for this *cname*
+                    Conf[cname] = cid
             except Exception:
                 break
         # Save the named components.
@@ -2450,6 +2460,16 @@ class TriBase(object):
             cID = cfg.faces.get(k)
             # Check for empty or list.
             if cID and (type(cID).__name__ == "int"):
+                # Get the number or list of numbers from *Conf*
+                kID = self.Conf[k]
+                # Process type
+                if type(kID).__name__ != 'list': kID = [kID]
+                # Initialize indices of tris with matching compIDs
+                I = np.ones_like(cID, dtype=bool)
+                # Loop through additional entries
+                for kj in kID:
+                    # Use *or* operation to search for other matches
+                    I = np.logical_or(I, compID==kj)
                 # Assign the new value.
                 self.CompID[compID==self.Conf[k]] = cID
                 # Save it in the Conf, too.
