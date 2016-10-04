@@ -11,9 +11,6 @@
 # Cart3D huge files.
 *.c3d
 
-# Example definitions
-examples/cad
-
 # pyCart Python/C binaries
 pyCart/build/
 *.o

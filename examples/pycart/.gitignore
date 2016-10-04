@@ -1,4 +1,7 @@
 
+# Temporary hides
+bullet_avg/
+
 # Ignore folders containing example results
 */poweron
 */poweroff*/

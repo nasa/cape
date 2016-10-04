@@ -1,0 +1,26 @@
+
+# Temporary hides
+arrow/
+fins/
+
+# ANSA files
+*.ansa
+*.ansa.gz
+*.log
+
+
+# Backup files
+*.bak
+
+# Ignore most things
+*.pdf
+*.tri
+*.ugrid
+*.surf
+*.def
+*.crv
+*.srf
+*.surf
+*.vol
+*.cgns
+*.arg
