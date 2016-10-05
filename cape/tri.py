@@ -27,6 +27,9 @@ import os, shutil
 import subprocess as sp
 # Specific commands to copy files and call commands.
 from shutil import copy
+# Ordered dictionaries
+from collections import OrderedDict
+
 # Utilities
 from .util import GetTecplotCommand, TecFolder, ParaviewFolder
 from .config import Config
@@ -2792,9 +2795,9 @@ class TriBase(object):
         f = open(fname, 'r')
         # Initialize boundary condition map
         compID = []
-        BCs = {}
-        blds = {}
-        bldel = {}
+        BCs = OrderedDict()
+        blds = OrderedDict()
+        bldel = OrderedDict()
         # Loop through lines
         line = "start"
         while line != '':
