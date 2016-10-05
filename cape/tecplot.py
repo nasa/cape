@@ -185,7 +185,8 @@ class Tecscript(FileCntl):
             # Check for null group
             if gmin > gmax:
                 # Delete the command
-                self.DeleteCommand('FIELDMAP', i)
+                self.DeleteCommandN('FIELDMAP', i)
+                continue
             # Set value
             self.SetPar('FIELDMAP', "[%s-%s]" % (gmin, gmax), i)
         # Set the total number of maps
@@ -284,6 +285,42 @@ class Tecscript(FileCntl):
         self.UpdateCommands()
         # Report
         return kcmd
+    
+    # Function to delete a command.
+    def DeleteCommandN(self, cmd, n=0):
+        """Delete the *n*th instance of a command
+        
+        :Call:
+            >>> kcmd = tec.DeleteCommandN(cmd, n=0)
+        :Inputs:
+            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+                Instance of Tecplot script base class
+            *cmd*: :class:`str`
+                Title of the command to delete
+            *n*: {``0``} | :class:`int` >= 0
+                Instance of command to delete
+        :Outputs:
+            *kcmd*: :class:`int`
+                Index of deleted command or ``None`` if no deletions
+        :Versions:
+            * 2016-10-05 ``@ddalle``: First version
+        """
+        # Find instances of command
+        Kcmd = np.where(np.array(self.cmds) == cmd)[0]
+        # Check for possible match
+        if n >= len(Kcmd):
+            return
+        # Get global index of the command to delete
+        k = Kcmd[n]
+        # Delete the lines.
+        if k == len(self.cmds):
+            # Delete to the end
+            del self.lines[self.icmd[k]:]
+        else:
+            # Delete until the next command starts(ed).
+            del self.lines[self.icmd[k]:self.icmd[k+1]]
+        # Report
+        return k
     
     # Function to insert a command at a certain location
     def InsertLines(self, i, lines):
