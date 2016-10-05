@@ -162,7 +162,7 @@ class Tecscript(FileCntl):
         """Set active zones for a Tecplot layout, mostly for Overflow
         
         :Call:
-            >>> tec.SetFieldMaps(grps)
+            >>> tec.SetFieldMap(grps)
         :Inputs:
             *tec*: :class:`cape.tecplot.Tecscript`
                 Instance of Tecplot script interface
@@ -174,16 +174,20 @@ class Tecscript(FileCntl):
         # Number of groups of field maps
         n = len(grps)
         # Loop through groups
-        for i in range(n-):
+        for i in range(n-1,-1,-1):
             # Construct entry: [1-171], [172-340], etc.
             if i == 0:
                 gmin = 1
             else:
-                gmin = grps[i-1]
+                gmin = grps[i-1]+1
             # End index
             gmax = grps[i]
+            # Check for null group
+            if gmin > gmax:
+                # Delete the command
+                self.DeleteCommand('FIELDMAP', i)
             # Set value
-            self.SetPar('FIELDMAP', "[%s-%s]" % (gmin, gmax))
+            self.SetPar('FIELDMAP', "[%s-%s]" % (gmin, gmax), i)
         # Set the total number of maps
         self.SetPar('ACTIVEFIELDMAPS', "[1-%s]" % gmax, 0)
         
