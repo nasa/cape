@@ -85,6 +85,36 @@ class Tecscript(FileCntl):
         # Get the command list
         self.UpdateCommands()
         
+    # Set parameter on header line
+    def SetPar(self, cmd, val, i):
+        """Set a parameter value on the header line of a command
+        
+        :Call:
+            >>> tec.SetPar(key, val, i)
+        :Inputs:
+            *tec*: :class:`cape.tecplot.Tecsript` or derivative
+                Instance of Tecplot script
+            *cmd*: :class:`str`
+                Name of command
+            *val*: :class:`str`
+                String to set on the header line
+            *i*: :class:`int`
+                Alter the instdance *i* of this command
+        :Versions:
+            * 2016-10-04 ``@ddalle``: First version
+        """
+        # Get the indices of this command
+        I = self.GetIndexStartsWith('$!'+cmd)
+        # Make sure there are at least *i* matches
+        if len(I) > i:
+            raise ValueError(
+                ("Requested to alter instance %s of command '%s'" % (i,cmd)) +
+                ("but layout only contains %i instances" % len(I)))
+        # Get the line number
+        j = I[i]
+        # Set the line
+        self.lines[j] = "$!%s %s" % (cmd, val)
+        
     # Set variable
     def SetVar(self, key, val):
         """Set a variable to a particular value
@@ -126,6 +156,29 @@ class Tecscript(FileCntl):
         """
         # Set the variable
         self.SetVar('Minf', mach)
+        
+    # Set group stuff
+    def SetFieldMap(self, grps):
+        """
+        
+        :Versions:
+            * 2016-10-04 ``@ddalle``: First version
+        """
+        # Number of groups of field maps
+        n = len(grps)
+        # Loop through groups
+        for i in range(n-):
+            # Construct entry: [1-171], [172-340], etc.
+            if i == 0:
+                gmin = 1
+            else:
+                gmin = grps[i-1]
+            # End index
+            gmax = grps[i]
+            # Set value
+            self.SetPar('FIELDMAP', "[%s-%s]" % (gmin, gmax))
+        # Set the total number of maps
+        self.SetPar('ACTIVEFIELDMAPS', "[1-%s]" % gmax, 0)
         
     # Function to get command names and line indices
     def UpdateCommands(self):
