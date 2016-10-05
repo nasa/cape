@@ -62,8 +62,8 @@ class Tecscript(FileCntl):
     File control class for Tecplot script files
     
     :Call:
-        >>> tec = pyCart.tecplot.Tecscript()
-        >>> tec = pyCart.tecplot.Tecscript(fname="layout.lay")
+        >>> tec = cape.tecplot.Tecscript()
+        >>> tec = cape.tecplot.Tecscript(fname="layout.lay")
     :Inputs:
         *fname*: :class:`str`
             Name of Tecplot script to read
@@ -122,7 +122,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.SetVar(key, val)
         :Inputs:
-            *tec*: :class:`pyCart.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript` or derivative
                 Instance of Tecplot script base class
             *key*: :class:`str`
                 Name of variable
@@ -147,7 +147,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.SetMach(mach)
         :Inputs:
-            *tec*: :class:`pyCart.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript` or derivative
                 Instance of Tecplot script base class
             *mach*: :class:`float`
                 Freestream Mach number
@@ -159,8 +159,15 @@ class Tecscript(FileCntl):
         
     # Set group stuff
     def SetFieldMap(self, grps):
-        """
+        """Set active zones for a Tecplot layout, mostly for Overflow
         
+        :Call:
+            >>> tec.SetFieldMaps(grps)
+        :Inputs:
+            *tec*: :class:`cape.tecplot.Tecscript`
+                Instance of Tecplot script interface
+            *grps*: :class:`list` (:class:`int`)
+                List of last zone number in each ``FIELDMAP`` section
         :Versions:
             * 2016-10-04 ``@ddalle``: First version
         """
@@ -187,7 +194,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.UpdateCommands()
         :Inputs:
-            *tec*: :class:`pyCart.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript` or derivative
                 Instance of Tecplot script base class
         :Effects:
             *tec.icmd*: :class:`list` (:class:`int`)
@@ -211,7 +218,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> kcmd = tec.DeleteCommand(cmd, txt=None, lines=None)
         :Inputs:
-            *tec*: :class:`pyCart.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript` or derivative
                 Instance of Tecplot script base class
             *cmd*: :class:`str`
                 Title of the command to delete
@@ -281,7 +288,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.InsertLines(i, lines)
         :Inputs:
-            *tec*: :class:`pyCart.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript` or derivative
                 Instance of Tecplot script base class
             *i*: :class:`int`
                 Index at which to insert the first line
@@ -351,7 +358,7 @@ class Tecscript(FileCntl):
         :Call:
             >>> tec.ReplaceCommand(cmd,txt="",lines=[],k=1,reg=None,regs=None)
         :Inputs:
-            *tec*: :class:`pyCart.tecplot.Tecscript` or derivative
+            *tec*: :class:`cape.tecplot.Tecscript` or derivative
                 Instance of Tecplot script base class
             *cmd*: :class:`str`
                 Title of the command to replace
@@ -388,7 +395,7 @@ class TecMacro(Tecscript):
         *fname*: :class:`str`
             Name of Tecplot script to read
     :Outputs:
-        *tec*: :class:`pyCart.tecplot.TecMacro`
+        *tec*: :class:`cape.tecplot.TecMacro`
             Instance of Tecplot macro interface
     :Versions:
         * 2015-03-10 ``@ddalle``: First version
@@ -411,7 +418,7 @@ class TecMacro(Tecscript):
         :Call:
             >>> tec.SetExportFormat(fmt="PNG")
         :Inputs:
-            *tec*: :class:`pyCart.tecplot.TecMacro`
+            *tec*: :class:`cape.tecplot.TecMacro`
                 Instance of Tecplot macro interface
             *fmt*: :class:`str`
                 Export format
@@ -430,7 +437,7 @@ class TecMacro(Tecscript):
         :Call:
             >>> tec.SetLayout(lay="layout.lay")
         :Inputs:
-            *tec*: :class:`pyCart.tecplot.TecMacro`
+            *tec*: :class:`cape.tecplot.TecMacro`
                 Instance of Tecplot macro interface
             *lay*: :class:`str`
                 Tecplot layout file name
@@ -449,7 +456,7 @@ class TecMacro(Tecscript):
         :Call:
             >>> tec.SetExportFileName(fname="export.png")
         :Inputs:
-            *tec*: :class:`pyCart.tecplot.TecMacro`
+            *tec*: :class:`cape.tecplot.TecMacro`
                 Instance of Tecplot macro interface
             *fname*: :class:`str`
                 Export image file name
@@ -468,7 +475,7 @@ class TecMacro(Tecscript):
         Call:
             >>> tec.SetImageWidth(w=1024)
         :Inputs:
-            *tec*: :class:`pyCart.tecplot.TecMacro`
+            *tec*: :class:`cape.tecplot.TecMacro`
                 Instance of Tecplot macro interface
             *w*: :class:`int`
                 Image width in pixels

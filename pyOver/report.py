@@ -138,7 +138,7 @@ class Report(cape.report.Report):
         :Call:
             >>> lines = R.SubfigTecplotLayout(sfig, i)
         :Inputs:
-            *R*: :class:`pyCart.report.Report`
+            *R*: :class:`pyOver.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of sfigure to update
@@ -146,6 +146,7 @@ class Report(cape.report.Report):
                 Case index
         :Versions:
             * 2016-09-06 ``@ddalle``: First version
+            * 2016-10-05 ``@ddalle``: Added "FieldMap" option
         """
         # Save current folder.
         fpwd = os.getcwd()
@@ -192,6 +193,8 @@ class Report(cape.report.Report):
             flay = os.path.split(flay)[-1]
             # Read the Mach number option
             omach = opts.get_SubfigOpt(sfig, "Mach")
+            # Read the zone numbers for each FIELDMAP command
+            grps = opts.get_SubfigOpt(sfig, "FieldMap")
             # Read the Tecplot layout
             tec = Tecscript(fsrc)
             # Set the Mach number
@@ -199,6 +202,12 @@ class Report(cape.report.Report):
                 tec.SetMach(getattr(self.cntl.x,omach)[i])
             except Exception:
                 pass
+            # Set the field map
+            if grps is not None:
+                try:
+                    tec.SetFieldMap(grps)
+                except Exception:
+                    pass
             # Figure width in pixels (can be ``None``).
             wfig = opts.get_SubfigOpt(sfig, "FigWidth")
             # Width in the report
