@@ -79,7 +79,6 @@ def _readline(f, comment='#'):
     return line
 # end _readline
 
-
 # Function to read a single triangulation file
 def ReadTriFile(fname, fmt=None):
     """Read a single triangulation file

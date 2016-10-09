@@ -1,12 +1,12 @@
 #include <Python.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#define PY_ARRAY_UNIQUE_SYMBOL _pyxflow_ARRAY_API
+#define PY_ARRAY_UNIQUE_SYMBOL _pycart_ARRAY_API
 #define NO_IMPORT_ARRAY
 #include <numpy/arrayobject.h>
 #include <stdio.h>
 #include <byteswap.h>
 
-// Functions to extract data from a NumPy array
+// Macros to extract data from a NumPy array
 #define np2d(X, i, j) *((double *) PyArray_GETPTR2(X, i, j))
 #define np2f(X, i, j) *((float *)  PyArray_GETPTR2(X, i, j))
 #define np2i(X, i, j) *((int *)    PyArray_GETPTR2(X, i, j))
@@ -52,12 +52,31 @@ double swap_double(const double f)
     return v;
 }
 
+// Function get size of array (PyArray_SIZE has some issues)
+int np_size(PyArrayObject *P)
+{
+    int j, m, nj;
+    int n = 1;
+    
+    // Get number of dimensions
+    m = (int) PyArray_NDIM(P);
+    // Loop through dimensions
+    for (j=0; j<m; j++) {
+        // Multiply the total size
+        n *= (int) PyArray_DIM(P, j);
+    }
+    
+    // Output
+    return n;
+}
+
 // Function to write nodes with byteswap
 int
 pc_WriteTriNodesSingleByteswap(FILE *fid, PyArrayObject *P)
 {
     int i;
     int n, nNode, nd, nb;
+    int m1, m2;
     float x, y, z;
     
     // Number of values written
