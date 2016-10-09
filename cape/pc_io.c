@@ -6,13 +6,7 @@
 #include <stdio.h>
 #include <byteswap.h>
 
-// Macros to extract data from a NumPy array
-#define np2d(X, i, j) *((double *) PyArray_GETPTR2(X, i, j))
-#define np2f(X, i, j) *((float *)  PyArray_GETPTR2(X, i, j))
-#define np2i(X, i, j) *((int *)    PyArray_GETPTR2(X, i, j))
-#define np1d(X, i)    *((double *) PyArray_GETPTR1(X, i))
-#define np1f(X, i)    *((float *)  PyArray_GETPTR1(X, i))
-#define np1i(X, i)    *((int *)    PyArray_GETPTR1(X, i))
+#include "pc_NumPy.h"
 
 // Function to test if system is little-endian
 int is_le(void)
@@ -77,7 +71,7 @@ double swap_double(const double f)
     return v;
 }
 
-// Write record of single-precision big-endian integers
+// Write record of big-endian, single-precision integers
 int write_record_b4_1i(FILE *fid, PyArrayObject *P)
 {
     int i, j;
