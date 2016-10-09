@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <byteswap.h>
 
+#include "pc_io.h"
+
 // Macros to extract data from a NumPy array
 #define np2d(X, i, j) *((double *) PyArray_GETPTR2(X, i, j))
 #define np2f(X, i, j) *((float *)  PyArray_GETPTR2(X, i, j))
@@ -14,69 +16,12 @@
 #define np1f(X, i)    *((float *)  PyArray_GETPTR1(X, i))
 #define np1i(X, i)    *((int *)    PyArray_GETPTR1(X, i))
 
-// Function to swap a single
-float swap_single(const float f)
-{
-    float v;
-    char *F = ( char* ) & f;
-    char *V = ( char* ) & v;
-    
-    // swap the bytes
-    V[0] = F[3];
-    V[1] = F[2];
-    V[2] = F[1];
-    V[3] = F[0];
-    
-    // Output
-    return v;
-}
-
-// Function to swap a single
-double swap_double(const double f)
-{
-    float v;
-    char *F = ( char* ) & f;
-    char *V = ( char* ) & v;
-    
-    // swap the bytes
-    V[0] = F[7];
-    V[1] = F[6];
-    V[2] = F[5];
-    V[3] = F[4];
-    V[4] = F[3];
-    V[5] = F[2];
-    V[6] = F[1];
-    V[7] = F[0];
-    
-    // Output
-    return v;
-}
-
-// Function get size of array (PyArray_SIZE has some issues)
-int np_size(PyArrayObject *P)
-{
-    int j, m, nj;
-    int n = 1;
-    
-    // Get number of dimensions
-    m = (int) PyArray_NDIM(P);
-    // Loop through dimensions
-    for (j=0; j<m; j++) {
-        // Multiply the total size
-        n *= (int) PyArray_DIM(P, j);
-    }
-    
-    // Output
-    return n;
-}
-
 // Function to write nodes with byteswap
 int
 pc_WriteTriNodesSingleByteswap(FILE *fid, PyArrayObject *P)
 {
     int i;
     int n, nNode, nd, nb;
-    int m1, m2;
     float x, y, z;
     
     // Number of values written
@@ -722,9 +667,12 @@ pc_WriteTriCompID(FILE *fid, PyArrayObject *C)
 int
 pc_WriteTriCompIDSingleByteswap(FILE *fid, PyArrayObject *C)
 {
-    int i;
+    int i, ierr;
     int n, nTri, nb;
     int compID;
+    
+    ierr = write_record_b4_1i(fid, C);
+    /*
     
     // Number of values written.
     n = 0;
@@ -758,10 +706,10 @@ pc_WriteTriCompIDSingleByteswap(FILE *fid, PyArrayObject *C)
     // Check count.
     if (n != nTri) {
         return 1;
-    }
+    }*/
     
     // Good output
-    return 0;
+    return ierr;
 }
 
 // Function to component IDs

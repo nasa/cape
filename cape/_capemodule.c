@@ -1,5 +1,4 @@
 #include <Python.h>
-#include "pc_Tri.h"
 
 // Need this to start NumPy C-API
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -7,6 +6,9 @@
 #include <numpy/arrayobject.h>
 
 #include "pc_NumPy.h"
+
+#include "pc_io.h"
+#include "pc_Tri.h"
 
 static PyMethodDef Methods[] = {
     // pc_Tri methods

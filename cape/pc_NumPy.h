@@ -6,4 +6,4 @@
 #define NO_IMPORT_ARRAY
 #include <numpy/arrayobject.h>
 
-#endif // _PX_NUMPY_H
+#endif // _PC_NUMPY_H

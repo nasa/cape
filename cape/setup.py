@@ -29,6 +29,7 @@ _pycart = Extension("_cape",
     extra_link_args = ldflags,
     sources = [
         "_capemodule.c",
+        "pc_io.c",
         "pc_Tri.c"])
 
 
