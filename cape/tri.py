@@ -1316,35 +1316,19 @@ class TriBase(object):
         kw['bin'] = True
         # Get output type
         ext = self.GetOutputFileType(**kw)
-        # Check system byte order (need to know whether to swap)
-        if os.sys.byteorder == "little":
-            # Check which output writer to use
-            if ext == 'b4':
-                # Byte-swapped (big-endian), single-precision
-                pc.WriteTri_b4(self.Nodes, self.Tris, self.CompID)
-            elif ext == 'b8':
-                # Byte-swapped (big-endian), double-precision
-                pc.WriteTriDoubleByteswap(self.Nodes, self.Tris, self.CompID)
-            elif ext == 'lb4':
-                # Native (little-endian), single-precision
-                pc.WriteTriSingleNative(self.Nodes, self.Tris, self.CompID)
-            else:
-                # Native (little-endian), double-precision
-                pc.WriteTriDoubleNative(self.Nodes, self.Tris, self.CompID)
-        else:
-            # Check which output writer to use
-            if ext == 'lb4':
-                # Byte-swapped (little-endian), single-precision
-                pc.WriteTriSingleByteswap(self.Nodes, self.Tris, self.CompID)
-            elif ext == 'lb8':
-                # Byte-swapped (little-endian), double-precision
-                pc.WriteTriDoubleByteswap(self.Nodes, self.Tris, self.CompID)
-            elif ext == 'b4':
-                # Native (big-endian), single-precision
-                pc.WriteTriSingleNative(self.Nodes, self.Tris, self.CompID)
-            else:
-                # Native (big-endian), double-precision
-                pc.WriteTriDoubleNative(self.Nodes, self.Tris, self.CompID)
+        # Check which output writer to use
+        if ext == 'b4':
+            # Big-endian, single-precision
+            pc.WriteTri_b4(self.Nodes, self.Tris, self.CompID)
+        elif ext == 'lb4':
+            # Little-endian, single-precision
+            pc.WriteTri_lb4(self.Nodes, self.Tris, self.CompID)
+        elif ext == 'b8':
+            # Big-endian, single-precision
+            pc.WriteTri_b8(self.Nodes, self.Tris, self.CompID)
+        elif ext == 'lb8':
+            # Little-endian, single-precision
+            pc.WriteTri_lb8(self.Nodes, self.Tris, self.CompID)
         # Check the file name.
         if fname != "Components.pyCart.tri":
             # Move the file.

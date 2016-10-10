@@ -12,24 +12,15 @@
 
 static PyMethodDef Methods[] = {
     // pc_Tri methods
-    {"WriteTri",    pc_WriteTri,    METH_VARARGS, doc_WriteTri},
-    {"WriteCompID", pc_WriteCompID, METH_VARARGS, doc_WriteCompID},
-    {"WriteTriQ",   pc_WriteTriQ,   METH_VARARGS, doc_WriteTriQ},
-    {"WriteSurf",   pc_WriteSurf,   METH_VARARGS, doc_WriteSurf},
-    {"WriteTriSTL", pc_WriteTriSTL, METH_VARARGS, doc_WriteTriSTL},
-    {"WriteTri_b4", pc_WriteTri_b4, METH_VARARGS, doc_WriteTri_b4},
-    {"WriteTriSingleByteswap",
-        pc_WriteTriSingleByteswap, METH_VARARGS, doc_WriteTriSingleByteswap
-    },
-    {"WriteTriDoubleByteswap",
-        pc_WriteTriDoubleByteswap, METH_VARARGS, doc_WriteTriDoubleByteswap
-    },
-    {"WriteTriSingleNative",
-        pc_WriteTriSingleNative, METH_VARARGS, doc_WriteTriSingleNative
-    },
-    {"WriteTriDoubleNative",
-        pc_WriteTriDoubleNative, METH_VARARGS, doc_WriteTriDoubleNative
-    },
+    {"WriteTri",     pc_WriteTri,     METH_VARARGS, doc_WriteTri},
+    {"WriteCompID",  pc_WriteCompID,  METH_VARARGS, doc_WriteCompID},
+    {"WriteTriQ",    pc_WriteTriQ,    METH_VARARGS, doc_WriteTriQ},
+    {"WriteSurf",    pc_WriteSurf,    METH_VARARGS, doc_WriteSurf},
+    {"WriteTriSTL",  pc_WriteTriSTL,  METH_VARARGS, doc_WriteTriSTL},
+    {"WriteTri_b4",  pc_WriteTri_b4,  METH_VARARGS, doc_WriteTri_b4},
+    {"WriteTri_lb4", pc_WriteTri_lb4, METH_VARARGS, doc_WriteTri_lb4},
+    {"WriteTri_b8",  pc_WriteTri_b8,  METH_VARARGS, doc_WriteTri_b8},
+    {"WriteTri_lb8", pc_WriteTri_lb8, METH_VARARGS, doc_WriteTri_lb8},
     {NULL, NULL, 0, NULL}
 };
 

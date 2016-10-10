@@ -125,7 +125,7 @@ int pc_Write_lb4_i(FILE *fid, int v)
 // ======================================================================
 
 // Write native, single-precision integer record from 1D array
-int pc_WriteRecord_ne_i1(FILE *fid, PyArrayObject *P)
+int pc_WriteRecord_ne4_i1(FILE *fid, PyArrayObject *P)
 {
     int i;
     int v;
@@ -157,7 +157,7 @@ int pc_WriteRecord_ne_i1(FILE *fid, PyArrayObject *P)
 }
 
 // Write byte-swapped, single-precision integer record from 1D array
-int pc_WriteRecord_bs_i1(FILE *fid, PyArrayObject *P)
+int pc_WriteRecord_bs4_i1(FILE *fid, PyArrayObject *P)
 {
     int i;
     int v;
@@ -192,9 +192,9 @@ int pc_WriteRecord_bs_i1(FILE *fid, PyArrayObject *P)
 int pc_WriteRecord_b4_i1(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_bs_i1(fid, P);
+        return pc_WriteRecord_bs4_i1(fid, P);
     } else {
-        return pc_WriteRecord_ne_i1(fid, P);
+        return pc_WriteRecord_ne4_i1(fid, P);
     }
 }
 
@@ -202,9 +202,9 @@ int pc_WriteRecord_b4_i1(FILE *fid, PyArrayObject *P)
 int pc_WriteRecord_lb4_i1(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_ne_i1(fid, P);
+        return pc_WriteRecord_ne4_i1(fid, P);
     } else {
-        return pc_WriteRecord_bs_i1(fid, P);
+        return pc_WriteRecord_bs4_i1(fid, P);
     }
 }
 
@@ -214,7 +214,7 @@ int pc_WriteRecord_lb4_i1(FILE *fid, PyArrayObject *P)
 // ======================================================================
 
 // Write native, single-precision integer record from 2D array
-int pc_WriteRecord_ne_i2(FILE *fid, PyArrayObject *P)
+int pc_WriteRecord_ne4_i2(FILE *fid, PyArrayObject *P)
 {
     int i, j;
     int v;
@@ -250,7 +250,7 @@ int pc_WriteRecord_ne_i2(FILE *fid, PyArrayObject *P)
 }
 
 // Write byte-swapped, single-precision integer record from 2D array
-int pc_WriteRecord_bs_i2(FILE *fid, PyArrayObject *P)
+int pc_WriteRecord_bs4_i2(FILE *fid, PyArrayObject *P)
 {
     int i, j;
     int v;
@@ -289,9 +289,9 @@ int pc_WriteRecord_bs_i2(FILE *fid, PyArrayObject *P)
 int pc_WriteRecord_b4_i2(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_bs_i2(fid, P);
+        return pc_WriteRecord_bs4_i2(fid, P);
     } else {
-        return pc_WriteRecord_ne_i2(fid, P);
+        return pc_WriteRecord_ne4_i2(fid, P);
     }
 }
 
@@ -299,9 +299,9 @@ int pc_WriteRecord_b4_i2(FILE *fid, PyArrayObject *P)
 int pc_WriteRecord_lb4_i2(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_ne_i2(fid, P);
+        return pc_WriteRecord_ne4_i2(fid, P);
     } else {
-        return pc_WriteRecord_bs_i2(fid, P);
+        return pc_WriteRecord_bs4_i2(fid, P);
     }
 }
 
@@ -311,7 +311,7 @@ int pc_WriteRecord_lb4_i2(FILE *fid, PyArrayObject *P)
 // ======================================================================
 
 // Write native, single-precision float record from 1D array
-int pc_WriteRecord_ne_f1(FILE *fid, PyArrayObject *P)
+int pc_WriteRecord_ne4_f1(FILE *fid, PyArrayObject *P)
 {
     int i;
     float v;
@@ -343,7 +343,7 @@ int pc_WriteRecord_ne_f1(FILE *fid, PyArrayObject *P)
 }
 
 // Write byte-swapped, single-precision float record from 1D array
-int pc_WriteRecord_bs_f1(FILE *fid, PyArrayObject *P)
+int pc_WriteRecord_bs4_f1(FILE *fid, PyArrayObject *P)
 {
     int i;
     float v;
@@ -360,7 +360,7 @@ int pc_WriteRecord_bs_f1(FILE *fid, PyArrayObject *P)
     // Number of bytes for record marker
     nb = __bswap_32(n * sizeof(float));
     // Record marker
-    fwrite(&nb, sizeof(float), 1, fid);
+    fwrite(&nb, sizeof(int), 1, fid);
     
     // Loop through elements
     for (i=0; i<n; i++) {
@@ -378,9 +378,9 @@ int pc_WriteRecord_bs_f1(FILE *fid, PyArrayObject *P)
 int pc_WriteRecord_b4_f1(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_bs_f1(fid, P);
+        return pc_WriteRecord_bs4_f1(fid, P);
     } else {
-        return pc_WriteRecord_ne_f1(fid, P);
+        return pc_WriteRecord_ne4_f1(fid, P);
     }
 }
 
@@ -388,9 +388,9 @@ int pc_WriteRecord_b4_f1(FILE *fid, PyArrayObject *P)
 int pc_WriteRecord_lb4_f1(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_ne_f1(fid, P);
+        return pc_WriteRecord_ne4_f1(fid, P);
     } else {
-        return pc_WriteRecord_bs_f1(fid, P);
+        return pc_WriteRecord_bs4_f1(fid, P);
     }
 }
 
@@ -400,7 +400,7 @@ int pc_WriteRecord_lb4_f1(FILE *fid, PyArrayObject *P)
 // ======================================================================
 
 // Write native, single-precision float record from 2D array
-int pc_WriteRecord_ne_f2(FILE *fid, PyArrayObject *P)
+int pc_WriteRecord_ne4_f2(FILE *fid, PyArrayObject *P)
 {
     int i, j;
     float v;
@@ -425,7 +425,7 @@ int pc_WriteRecord_ne_f2(FILE *fid, PyArrayObject *P)
         // Loop through columns as inner loop
         for (j=0; j<n; j++) {
             // Get value
-            v = np2f(P,i,j);
+            v = np2d(P,i,j);
             fwrite(&v, sizeof(int), 1, fid);
         }
     }
@@ -436,7 +436,7 @@ int pc_WriteRecord_ne_f2(FILE *fid, PyArrayObject *P)
 }
 
 // Write byte-swapped, single-precision float record from 2D array
-int pc_WriteRecord_bs_f2(FILE *fid, PyArrayObject *P)
+int pc_WriteRecord_bs4_f2(FILE *fid, PyArrayObject *P)
 {
     int i, j;
     float v;
@@ -475,9 +475,9 @@ int pc_WriteRecord_bs_f2(FILE *fid, PyArrayObject *P)
 int pc_WriteRecord_b4_f2(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_bs_f2(fid, P);
+        return pc_WriteRecord_bs4_f2(fid, P);
     } else {
-        return pc_WriteRecord_ne_f2(fid, P);
+        return pc_WriteRecord_ne4_f2(fid, P);
     }
 }
 
@@ -485,9 +485,195 @@ int pc_WriteRecord_b4_f2(FILE *fid, PyArrayObject *P)
 int pc_WriteRecord_lb4_f2(FILE *fid, PyArrayObject *P)
 {
     if (is_le()) {
-        return pc_WriteRecord_ne_f2(fid, P);
+        return pc_WriteRecord_ne4_f2(fid, P);
     } else {
-        return pc_WriteRecord_bs_f2(fid, P);
+        return pc_WriteRecord_bs4_f2(fid, P);
+    }
+}
+
+
+// ======================================================================
+// 1D DOUBLE RECORDS
+// ======================================================================
+
+// Write native, single-precision float record from 1D array
+int pc_WriteRecord_ne8_f1(FILE *fid, PyArrayObject *P)
+{
+    int i;
+    double v;
+    int n, nb;
+    
+    // Check dims
+    if (PyArray_NDIM(P) != 1) {
+        PyErr_SetString(PyExc_ValueError, "Object must be a 1-D array.");
+        return 2;
+    }
+    // Number of points
+    n = (int) PyArray_DIM(P, 0);
+    
+    // Number of bytes for record marker
+    nb = n * sizeof(double);
+    // Record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    
+    // Loop through elements
+    for (i=0; i<n; i++) {
+        // Get value
+        v = np1d(P,i);
+        fwrite(&v, sizeof(double), 1, fid);
+    }
+    // End-of-record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    // Success
+    return 0;
+}
+
+// Write byte-swapped, single-precision float record from 1D array
+int pc_WriteRecord_bs8_f1(FILE *fid, PyArrayObject *P)
+{
+    int i;
+    double v;
+    int n, nb;
+    
+    // Check dims
+    if (PyArray_NDIM(P) != 1) {
+        PyErr_SetString(PyExc_ValueError, "Object must be a 1-D array.");
+        return 2;
+    }
+    // Number of points
+    n = (int) PyArray_DIM(P, 0);
+    
+    // Number of bytes for record marker
+    nb = __bswap_32(n * sizeof(double));
+    // Record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    
+    // Loop through elements
+    for (i=0; i<n; i++) {
+        // Get value
+        v = swap_double(np1d(P,i));
+        fwrite(&v, sizeof(double), 1, fid);
+    }
+    // End-of-record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    // Success
+    return 0;
+}
+
+// Write big-endian, single-precision float record from 1D array
+int pc_WriteRecord_b8_f1(FILE *fid, PyArrayObject *P)
+{
+    if (is_le()) {
+        return pc_WriteRecord_bs8_f1(fid, P);
+    } else {
+        return pc_WriteRecord_ne8_f1(fid, P);
+    }
+}
+
+// Write little-endian, single-precision float record from 1D array
+int pc_WriteRecord_lb8_f1(FILE *fid, PyArrayObject *P)
+{
+    if (is_le()) {
+        return pc_WriteRecord_ne8_f1(fid, P);
+    } else {
+        return pc_WriteRecord_bs8_f1(fid, P);
+    }
+}
+
+
+// ======================================================================
+// 2D DOUBLE RECORDS
+// ======================================================================
+
+// Write native, double-precision float record from 2D array
+int pc_WriteRecord_ne8_f2(FILE *fid, PyArrayObject *P)
+{
+    int i, j;
+    double v;
+    int m, n, nb;
+    
+    // Check dims
+    if (PyArray_NDIM(P) != 2) {
+        PyErr_SetString(PyExc_ValueError, "Object must be a 2-D array.");
+        return 2;
+    }
+    // Number of points
+    m = (int) PyArray_DIM(P, 0);
+    n = (int) PyArray_DIM(P, 1);
+    
+    // Number of bytes for record marker
+    nb = m * n * sizeof(double);
+    // Record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    
+    // Loop through rows as outer loop
+    for (i=0; i<m; i++) {
+        // Loop through columns as inner loop
+        for (j=0; j<n; j++) {
+            // Get value
+            v = np2d(P,i,j);
+            fwrite(&v, sizeof(double), 1, fid);
+        }
+    }
+    // End-of-record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    // Success
+    return 0;
+}
+
+// Write byte-swapped, double-precision float record from 2D array
+int pc_WriteRecord_bs8_f2(FILE *fid, PyArrayObject *P)
+{
+    int i, j;
+    double v;
+    int m, n, nb;
+    
+    // Check dims
+    if (PyArray_NDIM(P) != 2) {
+        PyErr_SetString(PyExc_ValueError, "Object must be a 2-D array.");
+        return 2;
+    }
+    // Number of points
+    m = (int) PyArray_DIM(P, 0);
+    n = (int) PyArray_DIM(P, 1);
+    
+    // Number of bytes for record marker
+    nb = __bswap_32(m * n * sizeof(double));
+    // Record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    
+    // Loop through rows as outer loop
+    for (i=0; i<m; i++) {
+        // Loop through columns as inner loop
+        for (j=0; j<n; j++) {
+            // Get value
+            v = swap_double(np2d(P,i,j));
+            fwrite(&v, sizeof(double), 1, fid);
+        }
+    }
+    // End-of-record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    // Success
+    return 0;
+}
+
+// Write big-endian, double-precision float record from 2D array
+int pc_WriteRecord_b8_f2(FILE *fid, PyArrayObject *P)
+{
+    if (is_le()) {
+        return pc_WriteRecord_bs8_f2(fid, P);
+    } else {
+        return pc_WriteRecord_ne8_f2(fid, P);
+    }
+}
+
+// Write little-endian, double-precision float record from 2D array
+int pc_WriteRecord_lb8_f2(FILE *fid, PyArrayObject *P)
+{
+    if (is_le()) {
+        return pc_WriteRecord_ne8_f2(fid, P);
+    } else {
+        return pc_WriteRecord_bs8_f2(fid, P);
     }
 }
 

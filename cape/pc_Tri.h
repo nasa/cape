@@ -17,26 +17,6 @@ char doc_WriteTri[] =
 "   * 2014-01-02 ``@ddalle``: First version\n";
 
 PyObject *
-pc_WriteTriSingleByteswap(PyObject *self, PyObject *args);
-char doc_WriteTriSingleByteswap[] =
-"Write a single-precision byte-swapped Fortran-style triangulation file\n"
-"\n"
-"The file written is :file:`Components.pyCart.tri`.  It is the reverse of\n"
-"whatever the native byte order is.  Fortran record markers are included.\n"
-"\n"
-":Call:\n"
-"    >>> pc.WriteTriSingleByteSwap(P, T, C)\n"
-":Inputs:\n"
-"    *P*: :class:`numpy.ndarray` (:class:`float`) (*nNode*, 3)\n"
-"        Matrix of nodal coordinates\n"
-"    *C*: :class:`numpy.ndarray` (:class:`int`) (*nTri*)\n"
-"        Vector of component IDs\n"
-"    *T*: :class:`numpy.ndarray` (:class:`int`) (*nTri*, 3)\n"
-"        Matrix of of nodal indices for each triangle\n"
-":Versions:\n"
-"    * 2016-08-28 ``@ddalle``: First version\n";
-
-PyObject *
 pc_WriteTri_b4(PyObject *self, PyObject *args);
 char doc_WriteTri_b4[] =
 "Write a single-precision big-endian Fortran-style triangulation file\n"
@@ -54,18 +34,18 @@ char doc_WriteTri_b4[] =
 "    *T*: :class:`numpy.ndarray` (:class:`int`) (*nTri*, 3)\n"
 "        Matrix of of nodal indices for each triangle\n"
 ":Versions:\n"
-"    * 2016-08-28 ``@ddalle``: First version\n";
+"    * 2016-10-10 ``@ddalle``: First version\n";
 
 PyObject *
-pc_WriteTriDoubleByteswap(PyObject *self, PyObject *args);
-char doc_WriteTriDoubleByteswap[] =
-"Write a double-precision byte-swapped Fortran-style triangulation file\n"
+pc_WriteTri_lb4(PyObject *self, PyObject *args);
+char doc_WriteTri_lb4[] =
+"Write a single-precision little-endian Fortran-style triangulation file\n"
 "\n"
 "The file written is :file:`Components.pyCart.tri`.  It is the reverse of\n"
 "whatever the native byte order is.  Fortran record markers are included.\n"
 "\n"
 ":Call:\n"
-"    >>> pc.WriteTriSingleByteSwap(P, T, C)\n"
+"    >>> pc.WriteTri_lb4(P, T, C)\n"
 ":Inputs:\n"
 "    *P*: :class:`numpy.ndarray` (:class:`float`) (*nNode*, 3)\n"
 "        Matrix of nodal coordinates\n"
@@ -74,18 +54,18 @@ char doc_WriteTriDoubleByteswap[] =
 "    *T*: :class:`numpy.ndarray` (:class:`int`) (*nTri*, 3)\n"
 "        Matrix of of nodal indices for each triangle\n"
 ":Versions:\n"
-"    * 2016-08-28 ``@ddalle``: First version\n";
+"    * 2016-10-10 ``@ddalle``: First version\n";
 
 PyObject *
-pc_WriteTriSingleNative(PyObject *self, PyObject *args);
-char doc_WriteTriSingleNative[] =
-"Write a single-precision native-endian Fortran-style triangulation file\n"
+pc_WriteTri_b8(PyObject *self, PyObject *args);
+char doc_WriteTri_b8[] =
+"Write a double-precision big-endian Fortran-style triangulation file\n"
 "\n"
 "The file written is :file:`Components.pyCart.tri`.  It is the reverse of\n"
 "whatever the native byte order is.  Fortran record markers are included.\n"
 "\n"
 ":Call:\n"
-"    >>> pc.WriteTriSingleNative(P, T, C)\n"
+"    >>> pc.WriteTri_b8(P, T, C)\n"
 ":Inputs:\n"
 "    *P*: :class:`numpy.ndarray` (:class:`float`) (*nNode*, 3)\n"
 "        Matrix of nodal coordinates\n"
@@ -94,18 +74,18 @@ char doc_WriteTriSingleNative[] =
 "    *T*: :class:`numpy.ndarray` (:class:`int`) (*nTri*, 3)\n"
 "        Matrix of of nodal indices for each triangle\n"
 ":Versions:\n"
-"    * 2016-08-28 ``@ddalle``: First version\n";
+"    * 2016-10-10 ``@ddalle``: First version\n";
 
 PyObject *
-pc_WriteTriDoubleNative(PyObject *self, PyObject *args);
-char doc_WriteTriDoubleNative[] =
-"Write a double-precision native-endian Fortran-style triangulation file\n"
+pc_WriteTri_lb8(PyObject *self, PyObject *args);
+char doc_WriteTri_lb8[] =
+"Write a double-precision little-endian Fortran-style triangulation file\n"
 "\n"
 "The file written is :file:`Components.pyCart.tri`.  It is the reverse of\n"
 "whatever the native byte order is.  Fortran record markers are included.\n"
 "\n"
 ":Call:\n"
-"    >>> pc.WriteTriSingleNative(P, T, C)\n"
+"    >>> pc.WriteTri_lb8(P, T, C)\n"
 ":Inputs:\n"
 "    *P*: :class:`numpy.ndarray` (:class:`float`) (*nNode*, 3)\n"
 "        Matrix of nodal coordinates\n"
@@ -114,7 +94,7 @@ char doc_WriteTriDoubleNative[] =
 "    *T*: :class:`numpy.ndarray` (:class:`int`) (*nTri*, 3)\n"
 "        Matrix of of nodal indices for each triangle\n"
 ":Versions:\n"
-"    * 2016-08-28 ``@ddalle``: First version\n";
+"    * 2016-10-10 ``@ddalle``: First version\n";
 
 
 PyObject *
