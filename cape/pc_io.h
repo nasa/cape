@@ -18,8 +18,12 @@ float  swap_single(const float f);
 double swap_double(const double f);      
 
 // Individual integers
-int pc_Write_b4_i(FILE *fid, int v);
-int pc_Write_lb4_i(FILE *fid, int v);
+int pc_Write_b4_i(FILE *fid, int    v);
+int pc_Write_b4_f(FILE *fid, float  v);
+int pc_Write_b4_d(FILE *fid, double v);
+int pc_Write_lb4_i(FILE *fid, int    v);
+int pc_Write_lb4_f(FILE *fid, float  v);
+int pc_Write_lb4_d(FILE *fid, double v);
 
 // Big-endian single-precision writers
 int pc_WriteRecord_b4_f1(FILE *fid, PyArrayObject *P);
@@ -27,9 +31,11 @@ int pc_WriteRecord_b4_f2(FILE *fid, PyArrayObject *P);
 int pc_WriteRecord_b4_f3(FILE *fid, PyArrayObject *P);
 int pc_WriteRecord_b4_i1(FILE *fid, PyArrayObject *P);
 int pc_WriteRecord_b4_i2(FILE *fid, PyArrayObject *P);
+int pc_WriteRecord_b4_i3(FILE *fid, PyArrayObject *P);
 // Big-endian double-precision writers
 int pc_WriteRecord_b8_f1(FILE *fid, PyArrayObject *P);
 int pc_WriteRecord_b8_f2(FILE *fid, PyArrayObject *P);
+int pc_WriteRecord_b8_f3(FILE *fid, PyArrayObject *P);
 
 // Little-endian single-precision writers
 int pc_WriteRecord_lb4_f1(FILE *fid, PyArrayObject *P);
@@ -37,9 +43,11 @@ int pc_WriteRecord_lb4_f2(FILE *fid, PyArrayObject *P);
 int pc_WriteRecord_lb4_f3(FILE *fid, PyArrayObject *P);
 int pc_WriteRecord_lb4_i1(FILE *fid, PyArrayObject *P);
 int pc_WriteRecord_lb4_i2(FILE *fid, PyArrayObject *P);
+int pc_WriteRecord_lb4_i3(FILE *fid, PyArrayObject *P);
 // Little-endian double-precision writers
 int pc_WriteRecord_lb8_f1(FILE *fid, PyArrayObject *P);
 int pc_WriteRecord_lb8_f2(FILE *fid, PyArrayObject *P);
+int pc_WriteRecord_lb8_f3(FILE *fid, PyArrayObject *P);
 
 
 
