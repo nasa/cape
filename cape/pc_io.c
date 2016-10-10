@@ -8,6 +8,10 @@
 
 #include "pc_NumPy.h"
 
+// Byteswap macros
+#define bs32(x) (*(unsigned *)&(x) = __bswap_32(*(unsigned *)&(x)))
+#define bs64(x) (*(unsigned long *)&(x) = __bswap_64(*(unsigned long *)&(x)))
+
 // Function to test if system is little-endian
 int is_le(void)
 {
@@ -365,7 +369,7 @@ int pc_WriteRecord_bs4_f1(FILE *fid, PyArrayObject *P)
     // Loop through elements
     for (i=0; i<n; i++) {
         // Get value
-        v = swap_single(np1d(P,i));
+        v = (float) np1d(P,i); bs32(v);
         fwrite(&v, sizeof(float), 1, fid);
     }
     // End-of-record marker
@@ -461,7 +465,8 @@ int pc_WriteRecord_bs4_f2(FILE *fid, PyArrayObject *P)
         // Loop through columns as inner loop
         for (j=0; j<n; j++) {
             // Get value
-            v = swap_single(np2d(P,i,j));
+            v = (float) np2d(P,i,j);
+            bs32(v);
             fwrite(&v, sizeof(float), 1, fid);
         }
     }
@@ -488,6 +493,111 @@ int pc_WriteRecord_lb4_f2(FILE *fid, PyArrayObject *P)
         return pc_WriteRecord_ne4_f2(fid, P);
     } else {
         return pc_WriteRecord_bs4_f2(fid, P);
+    }
+}
+
+
+// ======================================================================
+// 3D FLOAT RECORDS
+// ======================================================================
+
+// Write native, single-precision float record from 3D array
+int pc_WriteRecord_ne4_f3(FILE *fid, PyArrayObject *P)
+{
+    int j, k, l;
+    float v;
+    int nj, nk, nl, nb;
+    
+    // Check dims
+    if (PyArray_NDIM(P) != 3) {
+        PyErr_SetString(PyExc_ValueError, "Object must be a 3-D array.");
+        return 2;
+    }
+    // Number of points
+    nj = (int) PyArray_DIM(P, 0);
+    nk = (int) PyArray_DIM(P, 1);
+    nl = (int) PyArray_DIM(P, 1);
+    
+    // Number of bytes for record marker
+    nb = nj * nk * nl * sizeof(float);
+    // Record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    
+    // Loop through rows as outer loop
+    for (j=0; j<nj; j++) {
+        // Loop through columns as inner loop
+        for (k=0; k<nk; k++) {
+            // Loop through third dimension
+            for (l=0; l<nl; l++) {
+                // Get value
+                v = np3d(P,j,k,l);
+                fwrite(&v, sizeof(float), 1, fid);
+            }
+        }
+    }
+    // End-of-record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    // Success
+    return 0;
+}
+
+// Write byte-swapped, single-precision float record from 3D array
+int pc_WriteRecord_bs4_f3(FILE *fid, PyArrayObject *P)
+{
+    int j, k, l;
+    float v;
+    int nj, nk, nl, nb;
+    
+    // Check dims
+    if (PyArray_NDIM(P) != 3) {
+        PyErr_SetString(PyExc_ValueError, "Object must be a 3-D array.");
+        return 2;
+    }
+    // Number of points
+    nj = (int) PyArray_DIM(P, 0);
+    nk = (int) PyArray_DIM(P, 1);
+    nl = (int) PyArray_DIM(P, 1);
+    
+    // Number of bytes for record marker
+    nb = __bswap_32(nj*nk*nl * sizeof(float));
+    // Record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    
+    // Loop through rows as outer loop
+    for (j=0; j<nj; j++) {
+        // Loop through columns as inner loop
+        for (k=0; k<nk; k++) {
+            // Loop through third dimension
+            for (l=0; l<nl; l++) {
+                // Get value
+                v = (float) np3d(P,j,k,l); bs32(v);
+                fwrite(&v, sizeof(float), 1, fid);
+            }
+        }
+    }
+    // End-of-record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    // Success
+    return 0;
+}
+
+// Write big-endian, single-precision float record from 3D array
+int pc_WriteRecord_b4_f3(FILE *fid, PyArrayObject *P)
+{
+    if (is_le()) {
+        return pc_WriteRecord_bs4_f3(fid, P);
+    } else {
+        return pc_WriteRecord_ne4_f3(fid, P);
+    }
+}
+
+// Write little-endian, single-precision float record from 3D array
+int pc_WriteRecord_lb4_f3(FILE *fid, PyArrayObject *P)
+{
+    if (is_le()) {
+        return pc_WriteRecord_ne4_f3(fid, P);
+    } else {
+        return pc_WriteRecord_bs4_f3(fid, P);
     }
 }
 
