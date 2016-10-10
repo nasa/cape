@@ -981,9 +981,18 @@ class TriBase(object):
         if ext == 'ascii':
             # Try the ASCII writers
             self.WriteASCII(fname)
-        else:
-            # Use the best binary writer
-            self.WriteTriBin(fname, **kw)
+        elif ext == 'lb4':
+            # Little-endian single
+            self.WriteTri_lb4(fname)
+        elif ext == 'b4':
+            # Big-endian single
+            self.WriteTri_b4(fname)
+        elif ext == 'lb8':
+            # Little-endian double
+            self.WriteTri_lb8(fname)
+        elif ext == 'b8':
+            # Big-endian double
+            self.WriteTri_b8(fname)
             
     # Process file type by options
     def GetOutputFileType(self, **kw):
@@ -1222,121 +1231,50 @@ class TriBase(object):
     # Binary Writers
     # ++++++++++++++
    # {
-    # Write TRI file as a binary file
-    def WriteTriBin(self, fname='Components.i.tri', **kw):
-        """Write a triangulation file as an unformatted binary file
+    # Write TRI file as lb4 file
+    def WriteTri_lb4(self, fname):
+        """Write a triangulation as a little-endian single-precision file
         
         :Call:
-            >>> tri.WriteBin(fname='Comonents.i.tri', **kw)
+            >>> tri.WriteTri_lb4(fname)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
-                Triangultion instance to be translated
+                Triangulation instance
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
-            *byteorder*: {``None``} | ``"big"`` | ``"little"``
-                Byte order of outputfile; defaults to system byte order
-            *bytecount*: {``4``} | ``8``
-                Number of bytes per value; single- or double-precision
-            *nq*: {``None``} | :class:`int`
-                Number of states for first line
         :Versions:
-            * 2016-08-18 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: First version
         """
-        # Call the fast-writer, which probably doesn't exist
         try:
             # Compiled (C) version
-            self.WriteTriBinFast(fname, **kw)
+            self.WriteFast_lb4(fname)
         except Exception:
-            # Python version
-            self.WriteTriBinSlow(fname, **kw)
-        
-    # Write TRI file as a binary file
-    def WriteTriBinSlow(self, fname='Components.i.tri', **kw):
-        """Write a triangulation file as an unformatted binary file
-        
-        Uses Python code
-        
-        :Call:
-            >>> tri.WriteBinSlow(fname='Comonents.i.tri', **kw)
-        :Inputs:
-            *tri*: :class:`cape.tri.Tri`
-                Triangultion instance to be translated
-            *fname*: {``'Components.i.tri'``} | :class:`str`
-                Name of file to write
-            *byteorder*: {``None``} | ``"big"`` | ``"little"``
-                Byte order of outputfile; defaults to system byte order
-            *bytecount*: {``4``} | ``8``
-                Number of bytes per value; single- or double-precision
-            *nq*: {``None``} | :class:`int`
-                Number of states for first line
-        :Versions:
-            * 2016-08-18 ``@ddalle``: First version
-        """
-        # Disable ASCII flags
-        kw['ascii'] = False
-        kw['bin'] = True
-        # Get output type
-        ext = self.GetOutputFileType(**kw)
-        # Check the type
-        if ext == 'b4':
-            # Write single-precision big-endian
-            self.WriteSlow_b4(fname)
-        elif ext == 'lb4':
-            # Write single-precision little-endian
+            # Python fall-back function
             self.WriteSlow_lb4(fname)
-        elif ext == 'b8':
-            # Write double-precision big-endian
-            self.WriteSlow_b8(fname)
-        elif ext == 'lb8':
-            # Write double-precision little-endian
-            self.WriteSlow_lb8(fname)
-        
-    # Write binary tri file, compiled
-    def WriteTriBinFast(self, fname='Components.i.tri', **kw):
-        """Write binary triangulation file using compiled functions
+            
+    # Write TRI file as little-endian single-precision
+    def WriteFast_lb4(self, fname='Components.i.tri'):
+        """Use compiled C code to write single-precision little-endian tri
         
         :Call:
-            >>> tri.WriteTriBinFast(fname='Comonents.i.tri', **kw)
+            >>> tri.WriteFast_lb4(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangultion instance to be translated
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
-            *byteorder*: {``None``} | ``"big"`` | ``"little"``
-                Byte order of outputfile; defaults to system byte order
-            *bytecount*: {``4``} | ``8``
-                Number of bytes per value; single- or double-precision
-            *nq*: {``None``} | :class:`int`
-                Number of states for first line
         :Versions:
-            * 2016-08-18 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: First version
         """
-        # Disable ASCII flags
-        kw['ascii'] = False
-        kw['bin'] = True
-        # Get output type
-        ext = self.GetOutputFileType(**kw)
-        # Check which output writer to use
-        if ext == 'b4':
-            # Big-endian, single-precision
-            pc.WriteTri_b4(self.Nodes, self.Tris, self.CompID)
-        elif ext == 'lb4':
-            # Little-endian, single-precision
-            pc.WriteTri_lb4(self.Nodes, self.Tris, self.CompID)
-        elif ext == 'b8':
-            # Big-endian, single-precision
-            pc.WriteTri_b8(self.Nodes, self.Tris, self.CompID)
-        elif ext == 'lb8':
-            # Little-endian, single-precision
-            pc.WriteTri_lb8(self.Nodes, self.Tris, self.CompID)
-        # Check the file name.
+        # 
+        pc.WriteTri_lb4(self.Nodes, self.Tris, self.CompID)
+        # Check the file name and rename if necessary
         if fname != "Components.pyCart.tri":
-            # Move the file.
             os.rename("Components.pyCart.tri", fname)
     
     # Write TRI file as little-endian single-precision
     def WriteSlow_lb4(self, fname='Components.i.tri'):
-        """Write triangulation as single-precision little-endian
+        """Use Python code to write single-precision little-endian tri
         
         :Call:
             >>> tri.WriteSlow_lb4(fname='Components.i.tri')
@@ -1371,48 +1309,51 @@ class TriBase(object):
         if qq: io.write_record_lb4_f(fid, self.q)
         # Close the file
         fid.close()
-        
-    # Write TRI file as little-endian double-precision
-    def WriteSlow_lb8(self, fname='Components.i.tri'):
-        """Write triangulation as double-precision little-endian
+            
+    # Write TRI file as b4 file
+    def WriteTri_b4(self, fname):
+        """Write a triangulation as a big-endian single-precision file
         
         :Call:
-            >>> tri.WriteSlow_lb8(fname='Components.i.tri')
+            >>> tri.WriteTri_b4(fname)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-10-10 ``@ddalle``: First version
+        """
+        try:
+            # Compiled (C) version
+            self.WriteFast_b4(fname)
+        except Exception:
+            # Python fall-back function
+            self.WriteSlow_b4(fname)
+            
+    # Write TRI file as big-endian single-precision
+    def WriteFast_b4(self, fname='Components.i.tri'):
+        """Use compiled C code to write single-precision big-endian tri
+        
+        :Call:
+            >>> tri.WriteFast_lb4(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangultion instance to be translated
             *fname*: {``'Components.i.tri'``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-09-05 ``@ddalle``: First version
+            * 2016-10-10 ``@ddalle``: First version
         """
-        # Check for state vars
-        try:
-            qq = self.nq > 0
-        except AttributeError:
-            # No attribute for number of states
-            qq = False
-        # Open the file
-        fid = open(fname, 'wb')
-        # Write the header
-        if qq:
-            # Write with *q*
-            io.write_record_lb8_i(fid, [self.nNode, self.nItri, self.nq])
-        else:
-            # No q values
-            io.write_record_lb8_i(fid, [self.nNode, self.nTri])
-        # Write the nodes, tris, and compIDs
-        io.write_record_lb8_f(fid, self.Nodes)
-        io.write_record_lb8_i(fid, self.Tris)
-        io.write_record_lb8_i(fid, self.CompID)
-        # Write states if appropriate
-        if qq: io.write_record_lb8_f(fid, self.q)
-        # Close the file
-        fid.close()
+        # 
+        pc.WriteTri_b4(self.Nodes, self.Tris, self.CompID)
+        # Check the file name and rename if necessary
+        if fname != "Components.pyCart.tri":
+            os.rename("Components.pyCart.tri", fname)
         
     # Write TRI file as big-endian single-precision
     def WriteSlow_b4(self, fname='Components.i.tri'):
-        """Write triangulation as single-precision big-endian
+        """Use compiled code to write single-precision big-endian tri
         
         :Call:
             >>> tri.WriteSlow_b4(fname='Components.i.tri')
@@ -1447,10 +1388,130 @@ class TriBase(object):
         if qq: io.write_record_b4_f(fid, self.q)
         # Close the file
         fid.close()
+    
+    # Write TRI file as lb8 file
+    def WriteTri_lb8(self, fname):
+        """Write a triangulation as a little-endian double-precision file
+        
+        :Call:
+            >>> tri.WriteTri_lb4(fname)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-10-10 ``@ddalle``: First version
+        """
+        try:
+            # Compiled (C) version
+            self.WriteFast_lb8(fname)
+        except Exception:
+            # Python fall-back function
+            self.WriteSlow_lb8(fname)
+            
+    # Write TRI file as little-endian double-precision
+    def WriteFast_lb8(self, fname='Components.i.tri'):
+        """Use compiled C code to write double-precision little-endian tri
+        
+        :Call:
+            >>> tri.WriteFast_lb4(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-10-10 ``@ddalle``: First version
+        """
+        # 
+        pc.WriteTri_lb4(self.Nodes, self.Tris, self.CompID)
+        # Check the file name and rename if necessary
+        if fname != "Components.pyCart.tri":
+            os.rename("Components.pyCart.tri", fname)
+        
+    # Write TRI file as little-endian double-precision
+    def WriteSlow_lb8(self, fname='Components.i.tri'):
+        """Use Python code to write double-precision little-endian tri
+        
+        :Call:
+            >>> tri.WriteSlow_lb8(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-09-05 ``@ddalle``: First version
+        """
+        # Check for state vars
+        try:
+            qq = self.nq > 0
+        except AttributeError:
+            # No attribute for number of states
+            qq = False
+        # Open the file
+        fid = open(fname, 'wb')
+        # Write the header
+        if qq:
+            # Write with *q*
+            io.write_record_lb8_i(fid, [self.nNode, self.nItri, self.nq])
+        else:
+            # No q values
+            io.write_record_lb8_i(fid, [self.nNode, self.nTri])
+        # Write the nodes, tris, and compIDs
+        io.write_record_lb8_f(fid, self.Nodes)
+        io.write_record_lb8_i(fid, self.Tris)
+        io.write_record_lb8_i(fid, self.CompID)
+        # Write states if appropriate
+        if qq: io.write_record_lb8_f(fid, self.q)
+        # Close the file
+        fid.close()
+            
+    # Write TRI file as b8 file
+    def WriteTri_b8(self, fname):
+        """Write a triangulation as a big-endian double-precision file
+        
+        :Call:
+            >>> tri.WriteTri_b8(fname)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-10-10 ``@ddalle``: First version
+        """
+        try:
+            # Compiled (C) version
+            self.WriteFast_b8(fname)
+        except Exception:
+            # Python fall-back function
+            self.WriteSlow_b8(fname)
+            
+    # Write TRI file as big-endian single-precision
+    def WriteFast_b8(self, fname='Components.i.tri'):
+        """Use compiled C code to write double-precision big-endian tri
+        
+        :Call:
+            >>> tri.WriteFast_b8(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-10-10 ``@ddalle``: First version
+        """
+        # 
+        pc.WriteTri_b8(self.Nodes, self.Tris, self.CompID)
+        # Check the file name and rename if necessary
+        if fname != "Components.pyCart.tri":
+            os.rename("Components.pyCart.tri", fname)
         
     # Write TRI file as big-endian double-precision
     def WriteSlow_b8(self, fname='Components.i.tri'):
-        """Write triangulation as double-precision big-endian
+        """Use Python code to write double-precision big-endian tri
         
         :Call:
             >>> tri.WriteSlow_b8(fname='Components.i.tri')
