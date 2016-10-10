@@ -17,6 +17,7 @@ static PyMethodDef Methods[] = {
     {"WriteTriQ",   pc_WriteTriQ,   METH_VARARGS, doc_WriteTriQ},
     {"WriteSurf",   pc_WriteSurf,   METH_VARARGS, doc_WriteSurf},
     {"WriteTriSTL", pc_WriteTriSTL, METH_VARARGS, doc_WriteTriSTL},
+    {"WriteTri_b4", pc_WriteTri_b4, METH_VARARGS, doc_WriteTri_b4},
     {"WriteTriSingleByteswap",
         pc_WriteTriSingleByteswap, METH_VARARGS, doc_WriteTriSingleByteswap
     },

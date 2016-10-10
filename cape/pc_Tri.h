@@ -37,6 +37,26 @@ char doc_WriteTriSingleByteswap[] =
 "    * 2016-08-28 ``@ddalle``: First version\n";
 
 PyObject *
+pc_WriteTri_b4(PyObject *self, PyObject *args);
+char doc_WriteTri_b4[] =
+"Write a single-precision big-endian Fortran-style triangulation file\n"
+"\n"
+"The file written is :file:`Components.pyCart.tri`.  It is the reverse of\n"
+"whatever the native byte order is.  Fortran record markers are included.\n"
+"\n"
+":Call:\n"
+"    >>> pc.WriteTri_b4(P, T, C)\n"
+":Inputs:\n"
+"    *P*: :class:`numpy.ndarray` (:class:`float`) (*nNode*, 3)\n"
+"        Matrix of nodal coordinates\n"
+"    *C*: :class:`numpy.ndarray` (:class:`int`) (*nTri*)\n"
+"        Vector of component IDs\n"
+"    *T*: :class:`numpy.ndarray` (:class:`int`) (*nTri*, 3)\n"
+"        Matrix of of nodal indices for each triangle\n"
+":Versions:\n"
+"    * 2016-08-28 ``@ddalle``: First version\n";
+
+PyObject *
 pc_WriteTriDoubleByteswap(PyObject *self, PyObject *args);
 char doc_WriteTriDoubleByteswap[] =
 "Write a double-precision byte-swapped Fortran-style triangulation file\n"

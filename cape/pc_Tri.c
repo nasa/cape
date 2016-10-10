@@ -13,7 +13,7 @@
 int
 pc_WriteTriNodesSingleByteswap(FILE *fid, PyArrayObject *P)
 {
-    int i;
+    /*int i;
     int n, nNode, nd, nb;
     float x, y, z;
     
@@ -70,7 +70,8 @@ pc_WriteTriNodesSingleByteswap(FILE *fid, PyArrayObject *P)
     }
     
     // Good output
-    return 0;
+    return 0;*/
+    return pc_WriteRecord_b4_f2(fid, P);
 }
 
 // Function to write nodes with byteswap
@@ -358,50 +359,7 @@ pc_WriteTriTris(FILE *fid, PyArrayObject *T)
 int
 pc_WriteTriTrisSingleByteswap(FILE *fid, PyArrayObject *T)
 {
-    int i;
-    int n, nTri, nb;
-    int i1, i2, i3;
-    
-    // Number of values written.
-    n = 0;
-    
-    // Check for two-dimensional Nx3 array.
-    if (PyArray_NDIM(T) != 2 || PyArray_DIM(T, 1) != 3) {
-        PyErr_SetString(PyExc_ValueError, \
-            "Nodal indices must be Nx3 array.");
-        return 2;
-    }
-    // Read number of triangles.
-    nTri = (int) PyArray_DIM(T, 0);
-    
-    // Number of bytes for record marker
-    nb = __bswap_32(nTri*sizeof(int)*3);
-    fwrite(&nb, sizeof(int), 1, fid);
-    
-    // Loop through triangles.
-    for (i=0; i<nTri; i++) {
-        // Get nodes
-        i1 = __bswap_32(np2i(T,i,0));
-        i2 = __bswap_32(np2i(T,i,1));
-        i3 = __bswap_32(np2i(T,i,2));
-        // Write a single triangle.
-        fwrite(&i1, sizeof(int), 1, fid);
-        fwrite(&i2, sizeof(int), 1, fid);
-        fwrite(&i3, sizeof(int), 1, fid);
-        // Increase the count.
-        n += 1;
-    }
-    
-    // End record marker
-    fwrite(&nb, sizeof(int), 1, fid);
-    
-    // Check count.
-    if (n != nTri) {
-        return 1;
-    }
-    
-    // Good output
-    return 0;
+    return pc_WriteRecord_b4_i2(fid, T);
 }
           
 // Function to write triangles as byte-swapped singles
@@ -660,47 +618,9 @@ pc_WriteTriCompID(FILE *fid, PyArrayObject *C)
 int
 pc_WriteTriCompIDSingleByteswap(FILE *fid, PyArrayObject *C)
 {
-    int i, ierr;
-    int n, nTri, nb;
-    int compID;
+    int ierr;
     
-    ierr = write_record_b4_1i(fid, C);
-    /*
-    
-    // Number of values written.
-    n = 0;
-    
-    // Check for two-dimensional Mx1 array.
-    if (PyArray_NDIM(C) != 1) {
-        PyErr_SetString(PyExc_ValueError, \
-            "Nodal coordinates must be one-dimensional array.");
-        return 2;
-    }
-    // Read number of triangles.
-    nTri = (int) PyArray_DIM(C, 0);
-    
-    // Write the number of bytes
-    nb = __bswap_32(sizeof(int)*nTri);
-    fwrite(&nb, sizeof(int), 1, fid);
-    
-    // Loop through triangles.
-    for (i=0; i<nTri; i++) {
-        // Get component index
-        compID = __bswap_32(np1i(C,i));
-        // Write a single triangle.
-        fwrite(&compID, sizeof(int), 1, fid);
-        // Increase count.
-        n += 1;
-    }
-    
-    // Write the number of bytes
-    fwrite(&nb, sizeof(int), 1, fid);
-    
-    // Check count.
-    if (n != nTri) {
-        return 1;
-    }*/
-    
+    ierr = pc_WriteRecord_b4_i1(fid, C);
     // Good output
     return ierr;
 }
@@ -1056,6 +976,50 @@ pc_WriteTri(PyObject *self, PyObject *args)
             "Failure on closing file 'Components.pyCart.tri'");
         return NULL;
     }
+    
+    // Return None.
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+// Function to write binary tri, single-precision big-endian
+PyObject *
+pc_WriteTri_b4(PyObject *self, PyObject *args)
+{
+    int i, ierr;
+    int nNode, nTri, nb;
+    FILE *fid;
+    PyArrayObject *P;
+    PyArrayObject *T;
+    PyArrayObject *C;
+    
+    // Process the inputs.
+    if (!PyArg_ParseTuple(args, "OOO", &P, &T, &C)) {
+        // Check for failure.
+        PyErr_SetString(PyExc_RuntimeError, \
+            "Could not process inputs to :func:`pc.WriteTriSingleByteswap`");
+        return NULL;
+    }
+    
+    // Read number of nodes and triangles
+    nNode = (int) PyArray_DIM(P, 0);
+    nTri  = (int) PyArray_DIM(T, 0);
+    // Number of bytes in header record
+    nb = 2*sizeof(int);
+    
+    // Open Output file for writing
+    fid = fopen("Components.pyCart.tri", "wb");
+    
+    // Write header record
+    pc_Write_b4_i(fid, nb);
+    pc_Write_b4_i(fid, nNode);
+    pc_Write_b4_i(fid, nTri);
+    pc_Write_b4_i(fid, nb);
+    
+    // Write the nodes
+    pc_WriteRecord_b4_f2(fid, P);
+    pc_WriteRecord_b4_i2(fid, T);
+    pc_WriteRecord_b4_i1(fid, C);
     
     // Return None.
     Py_INCREF(Py_None);

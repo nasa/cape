@@ -7,11 +7,14 @@
 #include <numpy/arrayobject.h>
 
 // Macros to extract data from a NumPy array
+#define np3d(X, i, j, k) *((double *) PyArray_GETPTR3(X, i, j, k))
+#define np3f(X, i, j, k) *((float *)  PyArray_GETPTR3(X, i, j, k))
+#define np3i(X, i, j, k) *((int *)    PyArray_GETPTR3(X, i, j, k))
 #define np2d(X, i, j) *((double *) PyArray_GETPTR2(X, i, j))
 #define np2f(X, i, j) *((float *)  PyArray_GETPTR2(X, i, j))
 #define np2i(X, i, j) *((int *)    PyArray_GETPTR2(X, i, j))
-#define np1d(X, i)    *((double *) PyArray_GETPTR1(X, i))
-#define np1f(X, i)    *((float *)  PyArray_GETPTR1(X, i))
-#define np1i(X, i)    *((int *)    PyArray_GETPTR1(X, i))
+#define np1d(X, i) *((double *) PyArray_GETPTR1(X, i))
+#define np1f(X, i) *((float *)  PyArray_GETPTR1(X, i))
+#define np1i(X, i) *((int *)    PyArray_GETPTR1(X, i))
 
 #endif // _PC_NUMPY_H

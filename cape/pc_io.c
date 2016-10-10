@@ -71,21 +71,69 @@ double swap_double(const double f)
     return v;
 }
 
-// Write record of big-endian, single-precision integers
-int write_record_b4_1i(FILE *fid, PyArrayObject *P)
+// ======================================================================
+// INDIVIDUAL INTEGERS
+// ======================================================================
+
+// Write big-endian, single-precision integer
+int pc_Write_b4_i(FILE *fid, int v)
 {
-    int i, j;
-    int n, nd, nb;
+    int n;
+    int u;
     
-    // Check for little-endian system
-    int le = is_le();
+    if (is_le()) {
+        // Swap the byte-order
+        u = __bswap_32(v);
+        // Write
+        n = fwrite(&u, sizeof(int), 1, fid);
+    } else {
+        // Write native
+        n = fwrite(&v, sizeof(int), 1, fid);
+    }
+    if (n == 1) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+// Write little-endian, single-precision integer
+int pc_Write_lb4_i(FILE *fid, int v)
+{
+    int n;
+    int u;
     
-    // Number of dimensions
-    nd = (int) PyArray_NDIM(P);
+    if (is_le()) {
+        // Write native
+        n = fwrite(&v, sizeof(int), 1, fid);
+    } else {
+        // Swap the byte-order
+        u = __bswap_32(v);
+        // Write
+        n = fwrite(&u, sizeof(int), 1, fid);
+    }
+    if (n == 1) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+
+// ======================================================================
+// 1D INTEGER RECORDS
+// ======================================================================
+
+// Write native, single-precision integer record from 1D array
+int pc_WriteRecord_ne_i1(FILE *fid, PyArrayObject *P)
+{
+    int i;
+    int v;
+    int n, nb;
+    
     // Check dims
-    if (nd != 1) {
-        PyErr_SetString(PyExc_ValueError, \
-            "Object must be a 1-dimensional array.");
+    if (PyArray_NDIM(P) != 1) {
+        PyErr_SetString(PyExc_ValueError, "Object must be a 1-D array.");
         return 2;
     }
     // Number of points
@@ -93,25 +141,354 @@ int write_record_b4_1i(FILE *fid, PyArrayObject *P)
     
     // Number of bytes for record marker
     nb = n * sizeof(int);
-    // Check for little-endian system
-    if (le) {nb = __bswap_32(nb); }
-    
     // Record marker
     fwrite(&nb, sizeof(int), 1, fid);
+    
     // Loop through elements
     for (i=0; i<n; i++) {
         // Get value
-        if (le) {
-            j = __bswap_32(np1i(P,i));
-        } else {
-            j = np1i(P,i);
-        }
-        // Write it
-        fwrite(&j, sizeof(int), 1, fid);
+        v = np1i(P,i);
+        fwrite(&v, sizeof(int), 1, fid);
     }
     // End-of-record marker
     fwrite(&nb, sizeof(int), 1, fid);
-    
+    // Success
     return 0;
 }
+
+// Write byte-swapped, single-precision integer record from 1D array
+int pc_WriteRecord_bs_i1(FILE *fid, PyArrayObject *P)
+{
+    int i;
+    int v;
+    int n, nb;
+    
+    // Check dims
+    if (PyArray_NDIM(P) != 1) {
+        PyErr_SetString(PyExc_ValueError, "Object must be a 1-D array.");
+        return 2;
+    }
+    // Number of points
+    n = (int) PyArray_DIM(P, 0);
+    
+    // Number of bytes for record marker
+    nb = __bswap_32(n * sizeof(int));
+    // Record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    
+    // Loop through elements
+    for (i=0; i<n; i++) {
+        // Get value
+        v = __bswap_32(np1i(P,i));
+        fwrite(&v, sizeof(int), 1, fid);
+    }
+    // End-of-record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    // Success
+    return 0;
+}
+
+// Write big-endian, single-precision integer record from 1D array
+int pc_WriteRecord_b4_i1(FILE *fid, PyArrayObject *P)
+{
+    if (is_le()) {
+        return pc_WriteRecord_bs_i1(fid, P);
+    } else {
+        return pc_WriteRecord_ne_i1(fid, P);
+    }
+}
+
+// Write little-endian, single-precision integer record from 1D array
+int pc_WriteRecord_lb4_i1(FILE *fid, PyArrayObject *P)
+{
+    if (is_le()) {
+        return pc_WriteRecord_ne_i1(fid, P);
+    } else {
+        return pc_WriteRecord_bs_i1(fid, P);
+    }
+}
+
+
+// ======================================================================
+// 2D INTEGER RECORDS
+// ======================================================================
+
+// Write native, single-precision integer record from 2D array
+int pc_WriteRecord_ne_i2(FILE *fid, PyArrayObject *P)
+{
+    int i, j;
+    int v;
+    int m, n, nb;
+    
+    // Check dims
+    if (PyArray_NDIM(P) != 2) {
+        PyErr_SetString(PyExc_ValueError, "Object must be a 2-D array.");
+        return 2;
+    }
+    // Number of points
+    m = (int) PyArray_DIM(P, 0);
+    n = (int) PyArray_DIM(P, 1);
+    
+    // Number of bytes for record marker
+    nb = m * n * sizeof(int);
+    // Record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    
+    // Loop through rows as outer loop
+    for (i=0; i<m; i++) {
+        // Loop through columns as inner loop
+        for (j=0; j<n; j++) {
+            // Get value
+            v = np2i(P,i,j);
+            fwrite(&v, sizeof(int), 1, fid);
+        }
+    }
+    // End-of-record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    // Success
+    return 0;
+}
+
+// Write byte-swapped, single-precision integer record from 2D array
+int pc_WriteRecord_bs_i2(FILE *fid, PyArrayObject *P)
+{
+    int i, j;
+    int v;
+    int m, n, nb;
+    
+    // Check dims
+    if (PyArray_NDIM(P) != 2) {
+        PyErr_SetString(PyExc_ValueError, "Object must be a 2-D array.");
+        return 2;
+    }
+    // Number of points
+    m = (int) PyArray_DIM(P, 0);
+    n = (int) PyArray_DIM(P, 1);
+    
+    // Number of bytes for record marker
+    nb = __bswap_32(m * n * sizeof(int));
+    // Record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    
+    // Loop through rows as outer loop
+    for (i=0; i<m; i++) {
+        // Loop through columns as inner loop
+        for (j=0; j<n; j++) {
+            // Get value
+            v = __bswap_32(np2i(P,i,j));
+            fwrite(&v, sizeof(int), 1, fid);
+        }
+    }
+    // End-of-record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    // Success
+    return 0;
+}
+
+// Write big-endian, single-precision integer record from 2D array
+int pc_WriteRecord_b4_i2(FILE *fid, PyArrayObject *P)
+{
+    if (is_le()) {
+        return pc_WriteRecord_bs_i2(fid, P);
+    } else {
+        return pc_WriteRecord_ne_i2(fid, P);
+    }
+}
+
+// Write little-endian, single-precision integer record from 2D array
+int pc_WriteRecord_lb4_i2(FILE *fid, PyArrayObject *P)
+{
+    if (is_le()) {
+        return pc_WriteRecord_ne_i2(fid, P);
+    } else {
+        return pc_WriteRecord_bs_i2(fid, P);
+    }
+}
+
+
+// ======================================================================
+// 1D FLOAT RECORDS
+// ======================================================================
+
+// Write native, single-precision float record from 1D array
+int pc_WriteRecord_ne_f1(FILE *fid, PyArrayObject *P)
+{
+    int i;
+    float v;
+    int n, nb;
+    
+    // Check dims
+    if (PyArray_NDIM(P) != 1) {
+        PyErr_SetString(PyExc_ValueError, "Object must be a 1-D array.");
+        return 2;
+    }
+    // Number of points
+    n = (int) PyArray_DIM(P, 0);
+    
+    // Number of bytes for record marker
+    nb = n * sizeof(float);
+    // Record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    
+    // Loop through elements
+    for (i=0; i<n; i++) {
+        // Get value
+        v = np1d(P,i);
+        fwrite(&v, sizeof(float), 1, fid);
+    }
+    // End-of-record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    // Success
+    return 0;
+}
+
+// Write byte-swapped, single-precision float record from 1D array
+int pc_WriteRecord_bs_f1(FILE *fid, PyArrayObject *P)
+{
+    int i;
+    float v;
+    int n, nb;
+    
+    // Check dims
+    if (PyArray_NDIM(P) != 1) {
+        PyErr_SetString(PyExc_ValueError, "Object must be a 1-D array.");
+        return 2;
+    }
+    // Number of points
+    n = (int) PyArray_DIM(P, 0);
+    
+    // Number of bytes for record marker
+    nb = __bswap_32(n * sizeof(float));
+    // Record marker
+    fwrite(&nb, sizeof(float), 1, fid);
+    
+    // Loop through elements
+    for (i=0; i<n; i++) {
+        // Get value
+        v = swap_single(np1d(P,i));
+        fwrite(&v, sizeof(float), 1, fid);
+    }
+    // End-of-record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    // Success
+    return 0;
+}
+
+// Write big-endian, single-precision float record from 1D array
+int pc_WriteRecord_b4_f1(FILE *fid, PyArrayObject *P)
+{
+    if (is_le()) {
+        return pc_WriteRecord_bs_f1(fid, P);
+    } else {
+        return pc_WriteRecord_ne_f1(fid, P);
+    }
+}
+
+// Write little-endian, single-precision float record from 1D array
+int pc_WriteRecord_lb4_f1(FILE *fid, PyArrayObject *P)
+{
+    if (is_le()) {
+        return pc_WriteRecord_ne_f1(fid, P);
+    } else {
+        return pc_WriteRecord_bs_f1(fid, P);
+    }
+}
+
+
+// ======================================================================
+// 2D FLOAT RECORDS
+// ======================================================================
+
+// Write native, single-precision float record from 2D array
+int pc_WriteRecord_ne_f2(FILE *fid, PyArrayObject *P)
+{
+    int i, j;
+    float v;
+    int m, n, nb;
+    
+    // Check dims
+    if (PyArray_NDIM(P) != 2) {
+        PyErr_SetString(PyExc_ValueError, "Object must be a 2-D array.");
+        return 2;
+    }
+    // Number of points
+    m = (int) PyArray_DIM(P, 0);
+    n = (int) PyArray_DIM(P, 1);
+    
+    // Number of bytes for record marker
+    nb = m * n * sizeof(float);
+    // Record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    
+    // Loop through rows as outer loop
+    for (i=0; i<m; i++) {
+        // Loop through columns as inner loop
+        for (j=0; j<n; j++) {
+            // Get value
+            v = np2f(P,i,j);
+            fwrite(&v, sizeof(int), 1, fid);
+        }
+    }
+    // End-of-record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    // Success
+    return 0;
+}
+
+// Write byte-swapped, single-precision float record from 2D array
+int pc_WriteRecord_bs_f2(FILE *fid, PyArrayObject *P)
+{
+    int i, j;
+    float v;
+    int m, n, nb;
+    
+    // Check dims
+    if (PyArray_NDIM(P) != 2) {
+        PyErr_SetString(PyExc_ValueError, "Object must be a 2-D array.");
+        return 2;
+    }
+    // Number of points
+    m = (int) PyArray_DIM(P, 0);
+    n = (int) PyArray_DIM(P, 1);
+    
+    // Number of bytes for record marker
+    nb = __bswap_32(m * n * sizeof(float));
+    // Record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    
+    // Loop through rows as outer loop
+    for (i=0; i<m; i++) {
+        // Loop through columns as inner loop
+        for (j=0; j<n; j++) {
+            // Get value
+            v = swap_single(np2d(P,i,j));
+            fwrite(&v, sizeof(float), 1, fid);
+        }
+    }
+    // End-of-record marker
+    fwrite(&nb, sizeof(int), 1, fid);
+    // Success
+    return 0;
+}
+
+// Write big-endian, single-precision float record from 2D array
+int pc_WriteRecord_b4_f2(FILE *fid, PyArrayObject *P)
+{
+    if (is_le()) {
+        return pc_WriteRecord_bs_f2(fid, P);
+    } else {
+        return pc_WriteRecord_ne_f2(fid, P);
+    }
+}
+
+// Write little-endian, single-precision float record from 2D array
+int pc_WriteRecord_lb4_f2(FILE *fid, PyArrayObject *P)
+{
+    if (is_le()) {
+        return pc_WriteRecord_ne_f2(fid, P);
+    } else {
+        return pc_WriteRecord_bs_f2(fid, P);
+    }
+}
+
     

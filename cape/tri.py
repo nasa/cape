@@ -1321,7 +1321,7 @@ class TriBase(object):
             # Check which output writer to use
             if ext == 'b4':
                 # Byte-swapped (big-endian), single-precision
-                pc.WriteTriSingleByteswap(self.Nodes, self.Tris, self.CompID)
+                pc.WriteTri_b4(self.Nodes, self.Tris, self.CompID)
             elif ext == 'b8':
                 # Byte-swapped (big-endian), double-precision
                 pc.WriteTriDoubleByteswap(self.Nodes, self.Tris, self.CompID)
