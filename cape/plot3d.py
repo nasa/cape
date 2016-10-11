@@ -141,3 +141,7 @@ class Plot3D(object):
         return np.fromfile(self.f, count=count, dtype=self.ftype)
 # class Plot3D
 
+# Plot3D Multiple-Grid file
+class X(object):
+    pass
+

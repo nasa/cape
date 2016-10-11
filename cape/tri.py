@@ -575,42 +575,27 @@ class TriBase(object):
         # Open the file; attempt a binary read
         fid = open(fname, 'rb')
         # Read the first entry as a double-precision little-endian int
-        r = np.fromfile(fid, count=1, dtype='<i8')
-        # Check for success
-        if r >= 16 and r <= 32:
-            # Success
-            self.filetype  = 'binary'
-            self.byteorder = 'little'
-            self.bytecount = 8
-            self.ext = 'lb8'
-            # Finished
-            fid.close()
-            return
-        # Go to beginning of file again
-        fid.seek(0)
-        # Read the first bit as a single-precision little-endian int
         r = np.fromfile(fid, count=1, dtype='<i4')
         # Check for success
-        if r >= 8 and r <= 16:
-            # Success
+        if r >= 8 and r <= 12:
+            # Little-endian success
             self.filetype  = 'binary'
             self.byteorder = 'little'
-            self.bytecount = 4
-            self.ext = 'lb4'
-            # Finished
-            fid.close()
-            return
-        # Go to beginning of file again
-        fid.seek(0)
-        # Read the first bit as a double-precision big-endian int
-        r = np.fromfile(fid, count=1, dtype='>i8')
-        # Check for success
-        if r >= 16 and r <= 32:
-            # Success
-            self.filetype  = 'binary'
-            self.byteorder = 'big'
-            self.bytecount = 8
-            self.ext = 'b8'
+            # Read the number of nodes (comma unpacks the 1-element array)
+            nNode, = np.fromfile(fid, count=1, dtype='<i4')
+            # Finish the record
+            np.fromfile(fid, count=r/4, dtype='<i4')
+            # Read the record marker for the nodes
+            nb, = np.fromfile(fid, count=1, dtype='<i4')
+            # Check how many bytes are there
+            if nb/12 == nNode:
+                # Single-precision
+                self.bytecount = 4
+                self.ext = 'lb4'
+            else:
+                # Double-precision
+                self.bytecount = 8
+                self.ext = 'lb8'
             # Finished
             fid.close()
             return
@@ -619,12 +604,25 @@ class TriBase(object):
         # Read the first bit as a double-precision big-endian int
         r = np.fromfile(fid, count=1, dtype='>i4')
         # Check for success
-        if r >= 8 and r <= 16:
+        if r >= 8 and r <= 12:
             # Success
             self.filetype  = 'binary'
             self.byteorder = 'big'
-            self.bytecount = 4
-            self.ext = 'b4'
+            # Read the number of nodes (comma unpacks the 1-element array)
+            nNode, = np.fromfile(fid, count=1, dtype='>i4')
+            # Finish the record
+            np.fromfile(fid, count=r/4, dtype='>i4')
+            # Read the record marker for the nodes
+            nb, = np.fromfile(fid, count=1, dtype='>i4')
+            # Check how many bytes are there
+            if nb/12 == nNode:
+                # Single-precision
+                self.bytecount = 4
+                self.ext = 'b4'
+            else:
+                # Double-precision
+                self.bytecount = 8
+                self.ext = 'b8'
             # Finished
             fid.close()
             return
