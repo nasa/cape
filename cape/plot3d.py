@@ -7,10 +7,13 @@ Python interface to Plot3D files
     * 2016-02-26 ``@ddalle``: First version
 """
 
-# Numerics
-import numpy as np
 # System interface
 import os
+# Numerics
+import numpy as np
+
+# Input/output module
+from . import io
 
 # General Plot3D class...
 class Plot3D(object):
@@ -143,5 +146,57 @@ class Plot3D(object):
 
 # Plot3D Multiple-Grid file
 class X(object):
-    pass
+    
+    def __init__(self, fname=None, X=None):
+        """Initialization method
+        
+        :Versions:
+            * 2016-10-11 ``@ddalle``: First version
+        """
+        # Check for a file to read
+        if fname is not None:
+            self.Read(fname)
+            return
+            
+    def Read(self, fname):
+        """Read a Plot3D grid file of any format
+        
+        :Call:
+            >>> X.Read(fname)
+        :Inputs:
+            *X*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+        :Versions:
+            * 2016-10-11 ``@ddalle``: First version
+        """
+        pass
+    
+    def GetFileType(self, fname):
+        """
+        
+        """
+        # Open file
+        f = open(fname, 'rb');
+        # Read first record marker as little-endian
+        r, = np.fromfile(f, count=1, dtype='<i4')
+        ## Skip to end of record
+        #f.seek(r, 1)
+        ## Read end-of-record marker
+        # Check for success (or coherence)
+        if r == 4:
+            # Success; multiple zone
+            self.byteorder = 'little'
+            self.filetype = 'binary'
+            self.p3dtype = 'multi'
+        else:
+            # Try to read of single zone
+            f.seek(r, 1)
+            # Try to read end-of-record
+            R = np.fromfile(fid, count=1, dtype='<i4')
+            # Check it
+            if len(R) == 1 and R[0] == r:
+                # Little-endian single-zone
+                self.byteorder = 'little'
+                self.filetye = 'binary'
+                self.p3dtype = 'single'
 
