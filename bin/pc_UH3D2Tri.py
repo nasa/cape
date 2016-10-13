@@ -127,23 +127,21 @@ def UH3D2Tri(*a, **kw):
     if kw.get('ascii') == True:
         qbin = False
         
-    # Get the file pyCart settings file name.
-    if len(a) <= 2:
-        # Defaults
-        if qbin:
-            # Binary file: use ".i.tri"
-            ftri = fuh3d.rstrip('uh3d') + 'i.tri'
-        else:
-            # ASCII file: use ".tri"
-            ftri = fuh3d.rstrip('uh3d') + 'tri'
-    else:
-        # Use the first general input.
-        ftri = a[1]
-    # Prioritize a "-i" input.
-    ftri = kw.get('o', ftri)
-        
     # Read in the UH3D file.
     tri = pyCart.Tri(uh3d=fuh3d)
+    # Get file extension
+    ext = tri.GetOutputFileType(**kw)
+    # Default file name
+    if ext == 'ascii':
+        # ASCII file: use ".tri"
+        ftri = fuh3d.rstrip('uh3d') + 'tri'
+    else:
+        # Binary file: use ".i.tri"
+        ftri = fuh3d.rstrip('uh3d') + 'i.tri'
+    # Get the file pyCart settings file name.
+    if len(a) >= 2: ftri = a[1]
+    # Prioritize a "-i" input.
+    ftri = kw.get('o', ftri)
     
     # Configuration
     fxml = kw.get('c')
@@ -176,14 +174,7 @@ def UH3D2Tri(*a, **kw):
     if dz is not None: tri.Nodes[:,2] += float(dz)
     
     # Get write options
-    if qbin:
-        # Write binary version
-        tri.WriteTriBin(ftri, 
-            byteorder=kw.get('byteorder', kw.get('endian')),
-            bytecount=kw.get('bytecount', 4))
-    else:
-        # Write it.
-        tri.Write(ftri)
+    tri.Write(ftri, **kw)
     
 
 # Only process inputs if called as a script!
