@@ -2510,7 +2510,7 @@ class TriBase(object):
                 # Process type
                 if type(kID).__name__ != 'list': kID = [kID]
                 # Initialize indices of tris with matching compIDs
-                I = np.ones_like(cID, dtype=bool)
+                I = np.ones_like(cID)
                 # Loop through additional entries
                 for kj in kID:
                     # Use *or* operation to search for other matches
