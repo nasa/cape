@@ -60,6 +60,11 @@ import xml.etree.ElementTree as ET
 # Process unique lists.
 import numpy as np
 
+# Utility function to convert list to nice string
+from .util import RangeString
+# Options class
+from options.util import odict
+
 # Configuration class
 class Config:
     """Configuration class for interfacing :file:`Config.xml` files
@@ -670,32 +675,8 @@ class Config:
         if n == 0:
             f.write("</Data>\n")
             return
-        # Initialize the string and indices
-        txt = []
-        ibeg = compID[0]
-        iend = compID[0]
-        # Loop through the grid numbers, which are ascending and unique.
-        for i in range(1,n):
-            # Get the compID
-            icur = compID[i]
-            # Check if this is one greater than the previous one
-            if icur == iend + 1:
-                # Add to the current list
-                iend += 1
-            # Write if appropriate
-            if i == n-1 or icur > iend+1:
-                # Check if single element or list
-                if ibeg == iend:
-                    # Write single
-                    txt.append("%s" % ibeg)
-                else:
-                    # Write list
-                    txt.append("%s-%s" % (ibeg, iend))
-                # Reset.
-                ibeg = icur
-                iend = icur
         # Write the list
-        f.write(",".join(txt))
+        f.write(RangeString(compID))
         # Close the element.
         f.write(" </Data>\n")
             
@@ -830,5 +811,15 @@ class Config:
         cfg.transform = self.transform.copy()
         # Output
         return cfg
-        
-        
+# class Config
+
+# Alternate configuration
+class ConfigJSON(object):
+    """Configuration 
+    
+    """
+    
+    pass
+
+# class ConfigJSON
+

@@ -25,6 +25,51 @@ TecFolder = os.path.join(rootFolder, "templates", "tecplot")
 # Folder containing Paraview templates
 ParaviewFolder = os.path.join(rootFolder, "templates", "paraview")
 
+
+def RangeString(rng):
+    """Convert a list of ascending integers to a string like "1-10,12,14-15"
+    
+    :Call:
+        >>> txt = RangeString(rng)
+    :Inputs:
+        *rng*: :class:`list` (:class:`int`)
+            Range of integers
+    :Outputs:
+        *txt*: :class:`str`
+            Nicely formatted string combining contiguous ranges with ``"-"``
+    :Versions:
+        * 2016-10-20 ``@ddalle``: First version
+    """
+    # Number of components
+    n = len(rng)
+    # Initialize the string and indices
+    txt = []
+    ibeg = rng[0]
+    iend = rng[0]
+    # Loop through the grid numbers, which are ascending and unique.
+    for i in range(1,n):
+        # Get the compID
+        icur = rng[i]
+        # Check if this is one greater than the previous one
+        if icur == iend + 1:
+            # Add to the current list
+            iend += 1
+        # Write if appropriate
+        if i == n-1 or icur > iend+1:
+            # Check if single element or list
+            if ibeg == iend:
+                # Write single
+                txt.append("%s" % ibeg)
+            else:
+                # Write list
+                txt.append("%s-%s" % (ibeg, iend))
+            # Reset.
+            ibeg = icur
+            iend = icur
+    # Output
+    return ",".join(txt)
+
+
 # Function to get uncertainty in the mean
 def SigmaMean(x):
     """Calculate standard deviation of mean of an array of values

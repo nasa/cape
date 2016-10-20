@@ -33,7 +33,7 @@ class Plot3D(object):
         * 2016-02-26 ``@ddalle``: First version
     """
     # Initialization method
-    def __init__(self, fname, endian=None):
+    def __init__(self, fname=None, X=None):
         """Initialization method
         
         :Versions:
@@ -410,21 +410,17 @@ class X(object):
         self.NJ = self.dims[:,0]
         self.NK = self.dims[:,1]
         self.NL = self.dims[:,2]
-        # Initialize grids
-        self.X = []
-        self.Y = []
-        self.Z = []
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
+        # Initialize coordinates
+        self.X = np.zeros((3,mpt[-1]))
         # Loop through the grids
         for i in range(self.NG):
             # Read record
             R = io.read_record_b8_f(f)
-            # Get do,emsopms
-            nj, nk, nl = self.dims[i]
-            npt = nj*nk*nl
             # Save coordinates
-            self.X.append(np.reshape(R[:npt],      (nj, nk, nl)))
-            self.Y.append(np.reshape(R[npt:2*npt], (nj, nk, nl)))
-            self.Z.append(np.reshape(R[2*npt:],    (nj, nk, nl)))
+            self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,npt[i]))
         # Close the file
         f.close()
     
@@ -460,21 +456,17 @@ class X(object):
         self.NJ = self.dims[:,0]
         self.NK = self.dims[:,1]
         self.NL = self.dims[:,2]
-        # Initialize grids
-        self.X = []
-        self.Y = []
-        self.Z = []
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
+        # Initialize coordinates
+        self.X = np.zeros((3,mpt[-1]))
         # Loop through the grids
         for i in range(self.NG):
             # Read record
             R = io.read_record_b4_f(f)
-            # Get do,emsopms
-            nj, nk, nl = self.dims[i]
-            npt = nj*nk*nl
             # Save coordinates
-            self.X.append(np.reshape(R[:npt],      (nj, nk, nl)))
-            self.Y.append(np.reshape(R[npt:2*npt], (nj, nk, nl)))
-            self.Z.append(np.reshape(R[2*npt:],    (nj, nk, nl)))
+            self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,npt[i]))
         # Close the file
         f.close()
     
@@ -510,21 +502,17 @@ class X(object):
         self.NJ = self.dims[:,0]
         self.NK = self.dims[:,1]
         self.NL = self.dims[:,2]
-        # Initialize grids
-        self.X = []
-        self.Y = []
-        self.Z = []
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
+        # Initialize coordinates
+        self.X = np.zeros((3,mpt[-1]))
         # Loop through the grids
         for i in range(self.NG):
             # Read record
             R = io.read_record_lb8_f(f)
-            # Get do,emsopms
-            nj, nk, nl = self.dims[i]
-            npt = nj*nk*nl
             # Save coordinates
-            self.X.append(np.reshape(R[:npt],      (nj, nk, nl)))
-            self.Y.append(np.reshape(R[npt:2*npt], (nj, nk, nl)))
-            self.Z.append(np.reshape(R[2*npt:],    (nj, nk, nl)))
+            self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,npt[i]))
         # Close the file
         f.close()
     
@@ -560,21 +548,17 @@ class X(object):
         self.NJ = self.dims[:,0]
         self.NK = self.dims[:,1]
         self.NL = self.dims[:,2]
-        # Initialize grids
-        self.X = []
-        self.Y = []
-        self.Z = []
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
+        # Initialize coordinates
+        self.X = np.zeros((3,mpt[-1]))
         # Loop through the grids
         for i in range(self.NG):
             # Read record
-            R = io.read_record_lb4_f(f)
-            # Get do,emsopms
-            nj, nk, nl = self.dims[i]
-            npt = nj*nk*nl
+            R = io.read_record_lb8_f(f)
             # Save coordinates
-            self.X.append(np.reshape(R[:npt],      (nj, nk, nl)))
-            self.Y.append(np.reshape(R[npt:2*npt], (nj, nk, nl)))
-            self.Z.append(np.reshape(R[2*npt:],    (nj, nk, nl)))
+            self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,npt[i]))
         # Close the file
         f.close()
     
@@ -616,23 +600,21 @@ class X(object):
         self.NJ = self.dims[:,0]
         self.NK = self.dims[:,1]
         self.NL = self.dims[:,2]
-        # Initialize grids
-        self.X = []
-        self.Y = []
-        self.Z = []
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
+        # Initialize coordinates
+        self.X = np.zeros((3,mpt[-1]))
         # Read the grids
         for i in range(self.NG):
-            # Dimensions
-            nj, nk, nl = self.dims[i]
-            npt = nj*nk*nl
-            # Read
-            x = np.fromfile(f, sep=" ", count=npt, dtype='float')
-            y = np.fromfile(f, sep=" ", count=npt, dtype='float')
-            z = np.fromfile(f, sep=" ", count=npt, dtype='float')
-            # Save
-            self.X.append(np.reshape(x, (nj,nk,nl)))
-            self.Y.append(np.reshape(y, (nj,nk,nl)))
-            self.Z.append(np.reshape(z, (nj,nk,nl)))
+            # Global point indices
+            ia = mpt[i]
+            ib = mpt[i+1]
+            ni = npt[i]
+            # Read x,y,z coordinates
+            self.X[0,ia:ib] = np.fromfile(f, sep=" ", count=ni, dtype='float')
+            self.X[1,ia:ib] = np.fromfile(f, sep=" ", count=ni, dtype='float')
+            self.X[2,ia:ib] = np.fromfile(f, sep=" ", count=ni, dtype='float')
         # Close the file
         f.close()
     
@@ -663,12 +645,21 @@ class X(object):
             # Write NJ, NK, NL
             self.dims[i].tofile(f, sep=' ')
             f.write('\n')
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
         # Loop through the grids to write the nodes
         for i in range(self.NG):
+            # Point indices
+            ia = mpt[i]
+            ib = mpt[i+1]
             # Write the coordinates of grid *i*
-            self.X[i].tofile(f, sep='\n')
-            self.Y[i].tofile(f, sep='\n')
-            self.Z[i].tofile(f, sep='\n')
+            self.X[0,ia:ib].tofile(f, sep=' ')
+            f.write('\n')
+            self.X[1,ia:ib].tofile(f, sep=' ')
+            f.write('\n')
+            self.X[2,ia:ib].tofile(f, sep=' ')
+            f.write('\n')
         # Close the file.
         f.close()
             
@@ -693,24 +684,28 @@ class X(object):
         # Check for single grid
         if not(single and self.NG == 1):
             # Write the number of zones
-            io.write_record_lb4_i(self.NG)
+            io.write_record_lb4_i(f, self.NG)
         # Write the dimensions
-        io.write_record_lb4_i(self.dims)
+        io.write_record_lb4_i(f, self.dims)
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
         # Write the coordinates
         for i in range(self.NG):
+            # Point indices
+            ia = mpt[i]
+            ib = mpt[i+1]
             # Put all three coordinates 
-            io.write_record_lb8_f(self.X[i])
-            io.write_record_lb8_f(self.Y[i])
-            io.write_record_lb8_f(self.Z[i])
+            io.write_record_lb8_f(f, self.X[:,ia:ib])
         # Close the file
         f.close()
             
-    # Write as a little-endian double-precision file
+    # Write as a little-endian single-precision file
     def Write_lb4(self, fname, single=False):
-        """Write a multiple-zone little-endian, double-precision Plot3D file
+        """Write a multiple-zone little-endian, single-precision Plot3D file
         
         :Call:
-            >>> x.Write_lb8(fname)
+            >>> x.Write_lb4(fname)
         :Inputs:
             *x*: :class:`cape.plot3d.X`
                 Plot3D grid interface
@@ -726,14 +721,93 @@ class X(object):
         # Check for single grid
         if not(single and self.NG == 1):
             # Write the number of zones
-            io.write_record_lb4_i(self.NG)
+            io.write_record_lb4_i(f, self.NG)
         # Write the dimensions
-        io.write_record_lb4_i(self.dims)
+        io.write_record_lb4_i(f, self.dims)
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
         # Write the coordinates
         for i in range(self.NG):
-            io.write_record_lb4_f(self.X[i])
-            io.write_record_lb4_f(self.Y[i])
-            io.write_record_lb4_f(self.Z[i])
+            # Point indices
+            ia = mpt[i]
+            ib = mpt[i+1]
+            # Put all three coordinates 
+            io.write_record_lb8_f(f, self.X[:,ia:ib])
+        # Close the file
+        f.close()
+            
+    # Write as a big-endian double-precision file
+    def Write_b8(self, fname, single=False):
+        """Write a multiple-zone little-endian, double-precision Plot3D file
+        
+        :Call:
+            >>> x.Write_b8(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+            *single*: ``True`` | {``False``}
+                If ``True``, write a single-zone file
+        :Versions:
+            * 2016-10-16 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'wb')
+        # Check for single grid
+        if not(single and self.NG == 1):
+            # Write the number of zones
+            io.write_record_b4_i(f, self.NG)
+        # Write the dimensions
+        io.write_record_b4_i(f, self.dims)
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
+        # Write the coordinates
+        for i in range(self.NG):
+            # Point indices
+            ia = mpt[i]
+            ib = mpt[i+1]
+            # Put all three coordinates 
+            io.write_record_b8_f(f, self.X[:,ia:ib])
+        # Close the file
+        f.close()
+            
+    # Write as a big-endian single-precision file
+    def Write_b4(self, fname, single=False):
+        """Write a multiple-zone little-endian, single-precision Plot3D file
+        
+        :Call:
+            >>> x.Write_b4(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+            *single*: ``True`` | {``False``}
+                If ``True``, write a single-zone file
+        :Versions:
+            * 2016-10-16 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'wb')
+        # Check for single grid
+        if not(single and self.NG == 1):
+            # Write the number of zones
+            io.write_record_b4_i(f, self.NG)
+        # Write the dimensions
+        io.write_record_b4_i(f, self.dims)
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
+        # Write the coordinates
+        for i in range(self.NG):
+            # Point indices
+            ia = mpt[i]
+            ib = mpt[i+1]
+            # Put all three coordinates 
+            io.write_record_b8_f(f, self.X[:,ia:ib])
         # Close the file
         f.close()
     
