@@ -60,10 +60,9 @@ import xml.etree.ElementTree as ET
 # Process unique lists.
 import numpy as np
 
-# Utility function to convert list to nice string
-from .util import RangeString
-# Options class
-from options.util import odict
+# Utility functions and classes from CAPE
+from .util    import RangeString
+from .options import util
 
 # Configuration class
 class Config:
@@ -818,8 +817,73 @@ class ConfigJSON(object):
     """Configuration 
     
     """
+    # Initialization method
+    def __init__(self, fname="Config.json"):
+        # Read the settings from an expanded and decommented JSON file
+        opts = util.loadJSONFile(fname)
+        # Convert to special options class
+        opts = util.odict(**opts)
+        # Major sections
+        self.props = opts.get("Properties", {})
+        self.tree  = opts.get("Tree", {})
+        # Save
+        self.opts = opts
+        # Initialize component list
+        self.comps = []
+        self.faces = {}
+        ## Loop through properties to get CompIDs
+        #for c in props:
+        #    # Get the property
+        #    prop = props[c]
+        #    # Get the compID
+        #    compID = prop.get("CompID", None)
+        #    # Assign it
+        #    if compID is not None and compID not in self.comps:
+        #        self.faces[c] = compID
+        # Loop through the tree
+        for c in self.opts["Tree"]:
+            # Check if already processed
+            if c in self.faces:
+                continue
+            # Process the first component
+            self.AppendChild(c)
+            
     
-    pass
+    # Process children
+    def AppendChild(self, c):
+        # Initialize component
+        compID = []
+        # Get the children
+        C = self.tree.get(c, [])
+        # Loop through children
+        for child in C:
+            # Check if it has been processed
+            if child in self.faces:
+                # Get the components to add from that child
+                compID += self.faces[child]
+                continue
+            # Otherwise, check if this is also a parent
+            if child in self.tree:
+                # Nest
+                compID += self.ProcessChild(child)
+                continue
+            # Get the component ID from the "Properties" section
+            prop = self.props.get(child, {})
+            # Check for component
+            if "CompID" not in prop:
+                raise ValueError(("Component '%s' is not a parent " % child) +
+                    'and has no "CompID"')
+            # Get the component
+            cID = prop["CompID"]
+            # Set the component for *child*
+            self.faces[child] = cID
+            # Append to the current component's list
+            compID.append(cID)
+        # Save the results
+        self.faces[c] = compID
+        # Output
+        return compID
+                
 
 # class ConfigJSON
 
