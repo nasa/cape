@@ -32,7 +32,7 @@ from collections import OrderedDict
 
 # Utilities
 from .util import GetTecplotCommand, TecFolder, ParaviewFolder
-from .config import Config
+from .config import Config, ConfigJSON
 
 # Input/output module
 from . import io
@@ -143,7 +143,9 @@ class TriBase(object):
         >>> tri = cape.tri.TriBase(Nodes=Nodes, Tris=Tris, CompID=CompID)
     :Inputs:
         *fname*: :class:`str`
-            Name of triangulation file to read (Cart3D format)
+            Name of triangulation file to read (format based on extension)
+        *tri*: :class:`str`
+            Name of triangulation file (Cart3D TRI format)
         *uh3d*: :class:`str`
             Name of triangulation file (UH3D format)
         *c*: :class:`str`
@@ -179,7 +181,9 @@ class TriBase(object):
     # ======
   # <
     # Initialization method
-    def __init__(self, fname=None, uh3d=None, c=None,
+    def __init__(self, fname=None, c=None,
+        tri=None, uh3d=None, surf=None, unv=None,
+        xml=None, json=None,
         nNode=None, Nodes=None, nTri=None, Tris=None,
         nQuad=None, Quads=None, CompID=None):
         """Initialization method"""
@@ -189,13 +193,21 @@ class TriBase(object):
         #  2015-11-19 @ddalle: Added XML reading and AFLR3 surfs
         
         # Check if file is specified.
-        if fname is not None:
+        if tri is not None:
             # Read from file.
             self.Read(fname)
-        
         elif uh3d is not None:
             # Read from the other format.
             self.ReadUH3D(uh3d)
+        elif unv is not None:
+            # Read bogus format
+            self.ReadUnv(unv)
+        elif surf is not None:
+            # Read AFLR3 surface format
+            self.ReadSurf(surf)
+        elif fname is not None:
+            # Guess type from file extensions
+            self.ReadBest(fname)
             
         else:
             # Process inputs.
@@ -236,13 +248,24 @@ class TriBase(object):
             self.CompID = CompID
         
         # Check for configuration
-        if c is not None:
+        if xml is not None:
+            # Read a Config.xml type of file
+            self.ReadConfigXML(c)
+        elif json is not None:
+            # Read a Config.json type of file
+            self.ReadConfigJSON(c)
+        elif c is not None:
             # Read the configuration
-            self.config = Config(c)
-            # Check if we should apply it
-            print(uh3d)
-            if uh3d is not None:
-                self.ApplyConfig(self.config)
+            self.ReadConfig(c)
+        # Check if we should apply it
+        try:
+            # Check for two opinions about how tris should be numbered
+            self.Conf
+            self.config
+            # Use the explicity one
+            self.ApplyConfig(self.config)
+        except AttributeError:
+            pass
         
     # Method that shows the representation of a triangulation
     def __repr__(self):
@@ -257,6 +280,47 @@ class TriBase(object):
         
     # String representation is the same
     __str__ = __repr__
+    
+    # Function to read using the best guess at format
+    def ReadBest(self, fname):
+        """Read a file using the extension to guess format
+        
+        :Call:
+            >>> tri.ReadBest(fname)
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase`
+                Triangulation or unstructured surface mesh interface
+            *fname*: :class:`str`
+                Name of file, use the extension to guess format
+        :Versions:
+            * 2016-10-21 ``@ddalle``: First version
+        """ 
+        # Split based on '.'
+        fext = fname.split('.')
+        # Get the extension
+        if len(fext) < 2:
+            # Odd case, no extension given
+            fext = 'tri'
+        else:
+            # Get the extension
+            fext = fext[-1].lower()
+        # Guess the format
+        if fext == 'surf':
+            # AFLR3 surface file
+            self.ReadSurf(fname)
+        elif fext == 'uh3d':
+            # UH3D surface file
+            self.ReadUH3D(fname)
+        elif fext == 'unv':
+            # Weird IDEAS triangulation thing
+            self.ReadUnv(fname)
+        elif fext == 'triq':
+            # Read triq file
+            self.ReadTriQ(fname)
+        else:
+            # Assume Cart3D triangulation file
+            self.Read(fname)
+        
         
     # Function to copy a triangulation and unlink it.
     def Copy(self):
@@ -2439,12 +2503,43 @@ class TriBase(object):
     # CompID Interface
     # ================
   # <
-    # Function to read and apply Config.xml
+    # Function to read configuration file based on file extension
     def ReadConfig(self, c):
-        """Read a ``Config.xml`` labeling and grouping of component IDs
+        """Read a configuration file using extension to guess type
         
         :Call:
             >>> tri.ReadConfig(c)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *c*: :class:`str`
+                Configuration file name
+        :Versions:
+            * 2016-10-21 ``@ddalle``: First version
+        """
+        # Split based on '.'
+        fext = c.split('.')
+        # Get the extension
+        if len(fext) < 2:
+            # Odd case, no extension given
+            fext = 'json'
+        else:
+            # Get the extension
+            fext = fext[-1].lower()
+        # Read configuration
+        if fext == "xml":
+            # Read an XML file
+            self.ReadConfigXML(c)
+        else:
+            # Read a JSON file
+            self.ReadConfigJSON(c)
+        
+    # Function to read Config.xml
+    def ReadConfigXML(self, c):
+        """Read a ``Config.xml`` file labeling and grouping of component IDs
+        
+        :Call:
+            >>> tri.ReadConfigXML(c)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
@@ -2455,6 +2550,23 @@ class TriBase(object):
         """
         # Read the configuration and save it.
         self.config = Config(c)
+        
+    # Function to read Config.json
+    def ReadConfigJSON(self, c):
+        """Read a ``Config.json`` file labeling and grouping of component IDs
+        
+        :Call:
+            >>> tri.ReadConfigJSON(c)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *c*: :class:`str`
+                Configuration file name
+        :Versions:
+            * 2016-10-21 ``@ddalle``: First version
+        """
+        # Read the configuration and save it
+        self.config = ConfigJSON(c)
         
     # Function to map component ID numbers to those in a Config.
     def ApplyConfig(self, cfg):
@@ -2745,6 +2857,65 @@ class TriBase(object):
     # AFLR3 Boundary Conditions
     # =========================
   # <
+    # Map boundary condition tags from config
+    def MapBCs_ConfigAFLR3(self):
+        """Map boundary conditions from ``"Config.json"`` file format
+        
+        :Call:
+            >>> tri.MapBCs_ConfigAFLR3()
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+        :Versions:
+            * 2016-10-21 ``@ddalle``: First version
+        """
+        # Check for configuration
+        self.config
+        self.config.comps
+        # Initialize the BCs to -1 (grow boundary layer)
+        self.BCs = -1 * np.ones_like(self.CompID)
+        # Initialize quad BCs
+        try:
+            self.BCsQuad = -1 * np.ones(self.nQuad, dtype=int)
+        except AttributeError:
+            self.BCsQuad = np.ones(0, dtype=int)
+        # Initialize the boundary layer spacings
+        self.blds = np.zeros(self.nNode)
+        self.bldel = np.zeros(self.nNode)
+        # Default keys
+        if compID is None:
+            compID = self.config.comps
+        # Loop through BCs
+        for comp in compID:
+            # Get the tris, quads, and nodes matching the component ID
+            IT = self.GetTrisFromCompID(comp)
+            IQ = self.GetQuadsFromCompID(comp)
+            IN = self.GetNodesFromCompID(comp)
+            # Get the boundary condition for this comp
+            BC = self.config.GetProperty(comp, 'aflr3_bc')
+            # Fallback
+            if BC is None:
+                BC = self.config.GetProperty(comp, 'BC')
+            # Check for a BC find
+            if BC is None:
+                print("  Component '%s' had no 'BC' or 'aflr3_bc' property"
+                    % comp)
+            # Apply to the appropriate tris and quads
+            if len(IT) > 0:
+                self.BCs[IT] = BC
+            if len(IQ) > 0:
+                self.BCsQuad[IQ] = BC
+                
+            # Get the boundary layer growth parameters
+            blds = self.config.GetProperty(comp, 'blds')
+            bldel = self.config.GetProperty(comp, 'bldel')
+            # Check for nodes in this component
+            if len(IN) > 0:
+                # Check for the property
+                if blds  is not None: self.blds[IN]  = blds
+                if bldel is not None: self.bldel[IN] = bldel
+            
+        
     # Map boundary condition tags
     def MapBCs_AFLR3(self, compID=None, BCs={}, blds={}, bldel={}):
         """Initialize and map boundary condition indices for AFLR3
@@ -3819,7 +3990,7 @@ class Tri(TriBase):
         * 2014-05-23 ``@ddalle``: First version
         * 2016-04-05 ``@ddalle``: Many input formats
     """
-    
+    # Initialization method
     def __init__(self, fname=None, c=None, **kw):
         """Initialization method
         
@@ -3828,16 +3999,23 @@ class Tri(TriBase):
             * 2014-06-02 ``@ddalle``: Added UH3D reading capability
             * 2016-04-05 ``@ddalle``: Added AFLR3 and cleaned up inputs
         """
+        
         # Check if file is specified.
-        if fname is not None:
+        if 'tri' in kw:
             # Read from file.
-            self.Read(fname)
+            self.Read(kw['tri'])
+        elif 'uh3d' in kw:
+            # Read from the UH3D format
+            self.ReadUH3D(kw['uh3d'])
         elif 'surf' in kw:
             # Read from AFLR3 surface
             self.ReadSurf(kw['surf'])
-        elif 'uh3d' in kw:
-            # Read from the other format.
-            self.ReadUH3D(kw['uh3d'])
+        elif 'unv' in kw:
+            # I don't know what's up with this format
+            self.ReadUnv(kw['unv'])
+        elif fname is not None:
+            # Guess type from file extensions
+            self.ReadBest(fname)
         else:
             # Process raw inputs.
             # Nodes, tris, and quads
@@ -3872,15 +4050,24 @@ class Tri(TriBase):
             self.Quads = Quads
         
         # Check for configuration
-        if c is not None:
+        if 'xml' in kw:
+            # Read a Config.xml type of file
+            self.ReadConfigXML(kw['xml'])
+        elif 'json' in kw:
+            # Read a Config.json type of file
+            self.ReadConfigJSON(kw['json'])
+        elif c is not None:
             # Read the configuration
-            self.config = Config(c)
-            # Check if we should apply it
-            if 'uh3d' in kw:
-                self.ApplyConfig(self.config)
-        
-        # End
-        return None
+            self.ReadConfig(c)
+        # Check if we should apply it
+        try:
+            # Check for two opinions about how tris should be numbered
+            self.Conf
+            self.config
+            # Use the explicity one
+            self.ApplyConfig(self.config)
+        except AttributeError:
+            pass
         
     # Method that shows the representation of a triangulation
     def __repr__(self):

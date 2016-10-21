@@ -845,9 +845,13 @@ class ConfigJSON(object):
         opts = util.loadJSONFile(fname)
         # Convert to special options class
         opts = util.odict(**opts)
-        # Major sections
-        self.props = opts.get("Properties", {})
-        self.tree  = opts.get("Tree", {})
+        # Get major sections
+        self.props = opts.get("Properties")
+        self.tree  = opts.get("Tree")
+        self.order = opts.get("Order")
+        # Save the major sections
+        if self.props is None: self.props = opts
+        if self.tree  is None: self.tree = opts
         # Save
         self.opts = opts
         # Initialize component list
@@ -881,13 +885,21 @@ class ConfigJSON(object):
         :Versions:
             * 2016-10-21 ``@ddalle``: First version
         """
+        # Check for compID
+        cID = self.GetPropCompID(c)
         # Initialize component
-        compID = []
+        if cID is None:
+            # Initialize with no compID (pure container)
+            compID = []
+        else:
+            # Initialize with one compID (container + fall back single comp)
+            compID = [cID]
+        # Initialize parents list if necessary
         self.parents.setdefault(c, [])
-        # Check for parent
+        # Check for parent and append it if not already present
         if parent is not None and parent not in self.parents[c]:
             self.parents[c].append(parent)
-        # Get the children
+        # Get the children of this component
         C = self.tree.get(c, [])
         # Loop through children
         for child in C:
@@ -905,18 +917,12 @@ class ConfigJSON(object):
                 compID += self.AppendChild(child, parent=c)
                 continue
             # Get the component ID from the "Properties" section
-            prop = self.props.get(child, {})
+            cID = self.GetPropCompID(child)
             # Check for component
-            if type(prop).__name__.startswith('int'):
-                # Directly specified CompID (no other properties)
-                cID = prop
-            elif "CompID" not in prop:
+            if cID is None:
                 # Missing property
                 raise ValueError(("Component '%s' is not a parent " % child) +
                     'and has no "CompID"')
-            else:
-                # Get the component ID number from the property dict
-                cID = prop["CompID"]
             # Set the component for *child*
             self.faces[child] = cID
             self.parents[child] = [c]
@@ -927,6 +933,45 @@ class ConfigJSON(object):
         self.faces[c] = compID
         # Output
         return compID
+    
+    # Get a defining component ID from the *Properties* section
+    def GetPropCompID(self, comp):
+        """Get a *CompID* from the "Properties" section without recursion
+        
+        :Call:
+            >>> compID = cfg.GetPropCompID(comp)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration interface
+            *c*: :class:`str`
+                Name of component in "Tree" section
+        :Outputs:
+            *compID*: :class:`int`
+                Full list of component IDs in *c* and its children
+        :Versions:
+            * 2016-10-21 ``@ddalle``: First version
+        """
+        # Get the properties for the component
+        prop = self.props.get(comp, {})
+        # Type
+        t = type(prop).__name__
+        # Check for component
+        if t.startswith('int'):
+            # Directly specified CompID (no other properties)
+            return prop
+        elif t.startswith('float'):
+            # Convert to integer
+            return int(prop)
+        elif t not in ['dict', 'odict']:
+            # Not a valid type
+            raise TypeError(("Properties for component '%s' " % comp) +
+                "must be either a 'dict' or 'int'")
+        elif "CompID" not in prop:
+            # Missing property
+            return None
+        else:
+            # Get the component ID number from the property dict
+            return prop["CompID"]
     
     # Get a property
     def GetProperty(self, comp, k):
