@@ -43,7 +43,7 @@ from . import argread
 
 # Functions and classes from other modules
 from trajectory import Trajectory
-from config     import Config
+from config     import Config, ConfigJSON
 
 # Import triangulation
 from .tri  import Tri, ReadTriFile
@@ -266,7 +266,7 @@ class Cntl(object):
         
     # Read configuration (without tri file if necessary)
     def ReadConfig(self):
-        """Read ``Config.xml`` file if not already present
+        """Read ``Config.xml`` or ``Config.json`` file if not already present
         
         :Call:
             >>> cntl.ReadConfig()
@@ -275,6 +275,7 @@ class Cntl(object):
                 Instance of control class containing relevant parameters
         :Versions:
             * 2016-06-10 ``@ddalle``: First version
+            * 2016-10-21 ``@ddalle``: Added ``Config.json``
         """
         # Check for config
         try:
@@ -290,6 +291,15 @@ class Cntl(object):
             pass
         # Name of config file
         fxml = self.opts.get_ConfigFile()
+        # Split based on '.'
+        fext = fxml.split('.')
+        # Get the extension
+        if len(fext) < 2:
+            # Odd case, no extension given
+            fext = 'json'
+        else:
+            # Get the extension
+            fext = fext[-1].lower()
         # Change to root directory
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
@@ -297,9 +307,12 @@ class Cntl(object):
         if fxml is None or not os.path.isfile(fxml):
             # Nothing to read
             self.config = None
-        else:
-            # Read config file
+        elif fext == "xml":
+            # Read XML config file
             self.config = Config(fxml)
+        else:
+            # Read JSON config file
+            self.config = ConfigJSON(fxml)
         # Return to original location
         os.chdir(fpwd)
     

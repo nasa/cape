@@ -103,6 +103,9 @@ class Fun3d(Cntl):
         # Read the boundary conditions
         self.ReadMapBC()
         
+        # Read the configuration
+        self.ReadConfig()
+        
         # Set umask
         os.umask(self.opts.get_umask())
         
@@ -1408,6 +1411,9 @@ class Fun3d(Cntl):
             comp = comps[k-1]
             # Get input definitions.
             inp = self.opts.get_ConfigInput(comp)
+            # Determine from MapBC probably
+            if inp is not None:
+                pass
             # Set input definitions.
             if inp is not None:
                 nml.SetVar('component_parameters', 'component_input', inp, k)
