@@ -106,14 +106,14 @@ class Tecscript(FileCntl):
         # Get the indices of this command
         I = self.GetIndexStartsWith('$!'+cmd)
         # Make sure there are at least *i* matches
-        if len(I) > i:
+        if i >= len(I):
             raise ValueError(
-                ("Requested to alter instance %s of command '%s'" % (i,cmd)) +
+                ("Requested to alter instance %s of command '%s'"%(i+1,cmd)) +
                 ("but layout only contains %i instances" % len(I)))
         # Get the line number
         j = I[i]
         # Set the line
-        self.lines[j] = "$!%s %s" % (cmd, val)
+        self.lines[j] = "$!%s %s\n" % (cmd, val)
         
     # Set variable
     def SetVar(self, key, val):
@@ -190,7 +190,7 @@ class Tecscript(FileCntl):
             # Set value
             self.SetPar('FIELDMAP', "[%s-%s]" % (gmin, gmax), i)
         # Set the total number of maps
-        self.SetPar('ACTIVEFIELDMAPS', "[1-%s]" % gmax, 0)
+        self.SetPar('ACTIVEFIELDMAPS', "= [1-%s]" % grps[-1], 0)
         
     # Function to get command names and line indices
     def UpdateCommands(self):

@@ -138,7 +138,14 @@ class MapBC(object):
         :Versions:
             * 2016-03-30 ``@ddalle``: First version
         """
-        return self.GetSurfIndex(compID, check=check) + 1
+        # Get the index of the entry
+        surfID = self.GetSurfIndex(compID, check=check)
+        # Check for a find
+        if surfID is None:
+            return None
+        else:
+            # Add one to deal with zero-based indexing
+            return surfID + 1
         
     # Get surface index
     def GetSurfIndex(self, compID, check=True, warn=False):
@@ -176,16 +183,22 @@ class MapBC(object):
                     raise ValueError(msg)
                 elif warn:
                     print("  Warning: " + msg)
+                    return
+                else:
+                    return
             # Get index
             return np.where(self.CompID == compID)[0][0]
         elif t in ['str', 'unicode']:
             # Check if component name is there
             if compID not in self.Names:
-                msg = "No surface found for component named '%s'" % compID)
+                msg = "No surface found for component named '%s'" % compID
                 if check:
                     raise ValueError(msg)
                 elif warn:
                     print("  Warning: " + msg)
+                    return
+                else:
+                    return
             # Get index
             return self.Names.index(compID)
         elif check or warn:
