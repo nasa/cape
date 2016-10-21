@@ -814,11 +814,33 @@ class Config:
 
 # Alternate configuration
 class ConfigJSON(object):
-    """Configuration 
+    """JSON-based surface configuration interface
     
+    :Call:
+        >>> cfg = ConfigJSON(fname="Config.json")
+    :Inputs:
+        *fname*: {``"Config.json"``} | :class:`str`
+            Name of JSON file from which to read configuration tree and props
+    :Outputs:
+        *cfg*: :class:`cape.config.ConfigJSON`
+            JSON-based configuration interface
+    :Attributes:
+        *cfg.faces*: :class:`dict` (:class:`list` | :class:`int`)
+            Dict of the component ID or IDs in each named face
+        *cfg.comps*: :class:`list` (:class:`str`)
+            List of components with no children
+        *cfg.parents*: :class:`dict` (:class:`list` (:class:`str`))
+            List of parent(s) by name for each component
+    :Versions:
+        * 2016-10-21 ``@ddalle``: First version
     """
     # Initialization method
     def __init__(self, fname="Config.json"):
+        """Initialization method
+        
+        :Versions:
+            * 2016-10-21 ``@ddalle``: First version
+        """
         # Read the settings from an expanded and decommented JSON file
         opts = util.loadJSONFile(fname)
         # Convert to special options class
@@ -831,15 +853,7 @@ class ConfigJSON(object):
         # Initialize component list
         self.comps = []
         self.faces = {}
-        ## Loop through properties to get CompIDs
-        #for c in props:
-        #    # Get the property
-        #    prop = props[c]
-        #    # Get the compID
-        #    compID = prop.get("CompID", None)
-        #    # Assign it
-        #    if compID is not None and compID not in self.comps:
-        #        self.faces[c] = compID
+        self.parents = {}
         # Loop through the tree
         for c in self.opts["Tree"]:
             # Check if already processed
@@ -847,12 +861,32 @@ class ConfigJSON(object):
                 continue
             # Process the first component
             self.AppendChild(c)
-            
     
     # Process children
-    def AppendChild(self, c):
+    def AppendChild(self, c, parent=None):
+        """Process one component of the tree and recurse into any children
+        
+        :Call:
+            >>> compID = cfg.AppendChild(c, parent=None)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration interface
+            *c*: :class:`str`
+                Name of component in "Tree" section
+            *parent*: {``None``} | :class:`str`
+                Name of parent component when called recursively
+        :Outputs:
+            *compID*: :class:`list` (:class:`int`)
+                Full list of component IDs in *c* and its children
+        :Versions:
+            * 2016-10-21 ``@ddalle``: First version
+        """
         # Initialize component
         compID = []
+        self.parents.setdefault(c, [])
+        # Check for parent
+        if parent is not None and parent not in self.parents[c]:
+            self.parents[c].append(parent)
         # Get the children
         C = self.tree.get(c, [])
         # Loop through children
@@ -861,29 +895,75 @@ class ConfigJSON(object):
             if child in self.faces:
                 # Get the components to add from that child
                 compID += self.faces[child]
+                # Update parent list
+                if c not in self.parents[child]:
+                    self.parents[child].append(c)
                 continue
             # Otherwise, check if this is also a parent
             if child in self.tree:
                 # Nest
-                compID += self.ProcessChild(child)
+                compID += self.AppendChild(child, parent=c)
                 continue
             # Get the component ID from the "Properties" section
             prop = self.props.get(child, {})
             # Check for component
-            if "CompID" not in prop:
+            if type(prop).__name__.startswith('int'):
+                # Directly specified CompID (no other properties)
+                cID = prop
+            elif "CompID" not in prop:
+                # Missing property
                 raise ValueError(("Component '%s' is not a parent " % child) +
                     'and has no "CompID"')
-            # Get the component
-            cID = prop["CompID"]
+            else:
+                # Get the component ID number from the property dict
+                cID = prop["CompID"]
             # Set the component for *child*
             self.faces[child] = cID
+            self.parents[child] = [c]
+            self.comps.append(child)
             # Append to the current component's list
             compID.append(cID)
         # Save the results
         self.faces[c] = compID
         # Output
         return compID
-                
-
+    
+    # Get a property
+    def GetProperty(self, comp, k):
+        """Get a cascading property from a component or its parents
+        
+        :Call:
+            >>> v = cfg.GetProperty(comp, k)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration interface
+            *comp*: :class:`str`
+                Name of component to query
+            *k*: :class:`str`
+                Name of property to query
+        :Outputs:
+            *v*: ``None`` | :class:`any`
+                Value of *k* from *comp* with fallback to parents
+        :Versions:
+            * 2016-10-21 ``@ddalle``: First version
+        """
+        # Get component properties
+        opts = self.props.get(comp, {})
+        # Check type
+        if type(opts).__name__ not in ['dict', 'odcit']:
+            opts = {}
+        # Check for the property
+        if k in opts:
+            return opts[k]
+        # Loop through parents
+        for parent in self.parents[comp]:
+            # Get the value from that parent (note: this may recurse)
+            v = self.GetProperty(parent, k)
+            # Check for success (otherwise try next parent if there is one)
+            if v is not None:
+                return v
+        # If this point is reached, could not find property in any parent
+        return None
+    
 # class ConfigJSON
 
