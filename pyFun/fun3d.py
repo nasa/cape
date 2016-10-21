@@ -1492,6 +1492,8 @@ class Fun3d(Cntl):
             # If one was found, append it
             if surfID is not None:
                 surf.append(surfID)
+        # Sort the surface IDs to prepare RangeString 
+        surf.sort()
         # Convert to string
         if len(surf) > 0: inp = RangeString(surf)
         # Output
