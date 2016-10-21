@@ -1447,7 +1447,7 @@ class Fun3d(Cntl):
         nml.SetVar('component_parameters', 'number_of_components', n)
         
     # Get string describing which components are in config
-    def GetConfigInput(self, comp):
+    def GetConfigInput(self, comp, warn=False):
         """
         Determine which component indices are in a named component based on the
         MapBC file, which is always numbered 1,2,...,N.  Output the format as a
@@ -1458,12 +1458,14 @@ class Fun3d(Cntl):
         from the ``"mapbc"`` and configuration files.
         
         :Call:
-            >>> fun3d.GetConfigInput(comp)
+            >>> fun3d.GetConfigInput(comp, warn=False)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of control class containing relevant parameters
             *comp*: :class:`str`
                 Name of component to process
+            *warn*: ``True`` | {``False``}
+                Whether or not to print warnings if not raising errors
         :Outputs:
             *inp*: :class:`str`
                 String describing list of integers included
@@ -1486,7 +1488,7 @@ class Fun3d(Cntl):
         # Loop through components
         for compID in self.config.GetCompID(comp):
             # Get the surf from MapBC
-            surfID = self.MapBC.GetSurfID(compID)
+            surfID = self.MapBC.GetSurfID(compID, check=False, warn=warn)
             # If one was found, append it
             if surfID is not None:
                 surf.append(surfID)

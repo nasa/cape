@@ -115,12 +115,12 @@ class MapBC(object):
         f.close()
     
     # Get surface ID
-    def GetSurfID(self, compID):
+    def GetSurfID(self, compID, check=True, warn=False):
         """Get surface ID number from input component ID or name
         
         :Call:
-            >>> surfID = BC.GetSurfID(compID)
-            >>> surfID = BC.GetSurfID(face)
+            >>> surfID = BC.GetSurfID(compID, check=True, warn=False)
+            >>> surfID = BC.GetSurfID(face, check=True, warn=False)
         :Inputs:
             *BC*: :class:`pyFun.mapbc.MapBC`
                 FUN3D boundary condition interface
@@ -128,21 +128,25 @@ class MapBC(object):
                 Face triangulation index
             *face*: :class:`str`
                 Name of face
+            *check*: {``True``} | ``False``
+                Whether or not to return an error if component is not found
+            *warn*: ``True`` | {``False``}
+                Whether or not to print warnings if not raising errors
         :Outputs:
             *surfID*: :class:`int`
                 Index of the FUN3D surface, surfaces numbered 1 to *n*
         :Versions:
             * 2016-03-30 ``@ddalle``: First version
         """
-        return self.GetSurfIndex(compID) + 1
+        return self.GetSurfIndex(compID, check=check) + 1
         
     # Get surface index
-    def GetSurfIndex(self, compID):
+    def GetSurfIndex(self, compID, check=True, warn=False):
         """Get surface ID number from input component ID or name
         
         :Call:
-            >>> i = BC.GetSurfID(compID)
-            >>> i = BC.GetSurfID(face)
+            >>> i = BC.GetSurfID(compID, check=True, warn=False)
+            >>> i = BC.GetSurfID(face, check=True, warn=False)
         :Inputs:
             *BC*: :class:`pyFun.mapbc.MapBC`
                 FUN3D boundary condition interface
@@ -150,6 +154,10 @@ class MapBC(object):
                 Face triangulation index
             *face*: :class:`str`
                 Name of face
+            *check*: {``True``} | ``False``
+                Whether or not to return an error if component is not found
+            *warn*: ``True`` | {``False``}
+                Whether or not to print warnings if not raising errors
         :Outputs:
             *i*: :class:`int`
                 Index of the FUN3D surface, 0-based
@@ -162,18 +170,25 @@ class MapBC(object):
         if t.startswith('int'):
             # Check if the *compID* is present
             if compID not in self.CompID:
-                raise ValueError(
-                    "No surface with component ID of %s" % compID)
+                # Form the error/warning message
+                msg = "No surface with component ID of %s" % compID
+                if check:
+                    raise ValueError(msg)
+                elif warn:
+                    print("  Warning: " + msg)
             # Get index
             return np.where(self.CompID == compID)[0][0]
         elif t in ['str', 'unicode']:
             # Check if component name is there
             if compID not in self.Names:
-                raise ValueError(
-                    "No surface found for name '%s'" % compID)
+                msg = "No surface found for component named '%s'" % compID)
+                if check:
+                    raise ValueError(msg)
+                elif warn:
+                    print("  Warning: " + msg)
             # Get index
             return self.Names.index(compID)
-        else:
+        elif check or warn:
             # Unknown type
             raise TypeError("Cannot get surface ID for inputs of type '%s'"%t)
         
