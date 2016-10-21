@@ -29,6 +29,7 @@ from . import mapbc
 from . import dataBook
 # Unmodified CAPE modules
 from cape import convert
+from cape.util import RangeString
 
 # Functions and classes from other modules
 from trajectory import Trajectory
@@ -1410,10 +1411,7 @@ class Fun3d(Cntl):
             # Get component.
             comp = comps[k-1]
             # Get input definitions.
-            inp = self.opts.get_ConfigInput(comp)
-            # Determine from MapBC probably
-            if inp is not None:
-                pass
+            inp = self.GetConfigInput(comp)
             # Set input definitions.
             if inp is not None:
                 nml.SetVar('component_parameters', 'component_input', inp, k)
@@ -1448,7 +1446,55 @@ class Fun3d(Cntl):
         # Set the number of components
         nml.SetVar('component_parameters', 'number_of_components', n)
         
+    # Get string describing which components are in config
+    def GetConfigInput(self, comp):
+        """
+        Determine which component indices are in a named component based on the
+        MapBC file, which is always numbered 1,2,...,N.  Output the format as a
+        nice string, such as ``"4-10,13,15-18"``.
         
+        If possible, this is read from the ``"Inputs"`` subsection of the
+        ``"Config"`` section of the master JSON file.  Otherwise, it is read
+        from the ``"mapbc"`` and configuration files.
+        
+        :Call:
+            >>> fun3d.GetConfigInput(comp)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+            *comp*: :class:`str`
+                Name of component to process
+        :Outputs:
+            *inp*: :class:`str`
+                String describing list of integers included
+        :Versions:
+            * 2016-10-21 ``@ddalle``: First version
+        """
+        # Get input definitions.
+        inp = self.opts.get_ConfigInput(comp)
+        # Determine from MapBC probably
+        if inp is not None:
+            return inp
+        # Otherwise, read from the MapBC interface
+        try:
+            self.MapBC
+            self.config
+        except Exception:
+            return
+        # Initialize
+        surf = []
+        # Loop through components
+        for compID in self.config.GetCompID(comp):
+            # Get the surf from MapBC
+            surfID = self.MapBC.GetSurfID(compID)
+            # If one was found, append it
+            if surfID is not None:
+                surf.append(surfID)
+        # Convert to string
+        if len(surf) > 0: inp = RangeString(surf)
+        # Output
+        return inp
+    
     # Write run control options to JSON file
     def WriteCaseJSON(self, i):
         """Write JSON file with run control and related settings for case *i*

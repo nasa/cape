@@ -866,6 +866,88 @@ class ConfigJSON(object):
             # Process the first component
             self.AppendChild(c)
     
+    # Function to display things
+    def __repr__(self):
+        """
+        Return the string representation of a :file:`Config.xml` file.
+        
+        This looks like ``<cape.Config(nComp=N, faces=['Core', ...])>``
+        """
+        # Return a string.
+        return '<cape.ConfigJSON(nComp=%i, faces=%s)>' % (
+            len(self.faces), self.faces.keys())
+    
+    # Method to get CompIDs from generic input
+    def GetCompID(self, face):
+        """Return a list of component IDs from generic input
+        
+        :Call:
+            >>> compID = cfg.GetCompID(face)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                Instance of configuration class
+            *face*: :class:`str` | :class:`int` | :class:`list`
+                Component number, name, or list of component numbers and names
+        :Outputs:
+            *compID*: :class:`list` (:class:`int`)
+                List of component IDs
+        :Versions:
+            * 2014-10-12 ``@ddalle``: First version
+            * 2016-10-21 ``@ddalle``: Copied from ``Config.xml``
+        """
+        # Initialize the list.
+        compID = []
+        # Process the type.
+        if type(face).__name__ in ['list', 'numpy.ndarray']:
+            # Loop through the inputs.
+            for f in face:
+                # Call this function so it passes to the non-array portion.
+                compID += self.GetCompID(f)
+        elif face in self.faces:
+            # Process the face
+            cID = self.faces[face]
+            # Check if it's a list.
+            if type(cID).__name__ == 'list':
+                # Add the list.
+                compID += cID
+            else:
+                # Single component.
+                compID.append(cID)
+        else:
+            # Just append it (as an integer).
+            try:
+                compID.append(int(face))
+            except Exception:
+                pass
+        # Output
+        return compID
+    
+    # Method to copy a configuration
+    def Copy(self):
+        """Copy a configuration interface
+        
+        :Call:
+            >>> cfg2 = cfg.Copy()
+        :Inputs:
+            *cfg*: :class:`cape.config.Config`
+                Instance of configuration class
+        :Outputs:
+            *cfg2*: :class:`cape.config.Config`
+                Copy of input
+        :Versions:
+            * 2014-11-24 ``@ddalle``: First version
+        """
+        # Initialize object.
+        cfg = Config()
+        # Copy the dictionaries.
+        cfg.faces = self.faces.copy()
+        cfg.comps = self.comps
+        cfg.props = self.props.copy()
+        cfg.tree  = self.tree.copy()
+        cfg.parents = self.parents.copy()
+        # Output
+        return cfg
+    
     # Process children
     def AppendChild(self, c, parent=None):
         """Process one component of the tree and recurse into any children
