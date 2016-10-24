@@ -45,6 +45,67 @@ class Report(cape.report.Report):
         return '<pyFun.Report("%s")>' % self.rep
     # Copy the function
     __str__ = __repr__
+            
+    # Update subfig for case
+    def UpdateCaseSubfigs(self, fig, i):
+        """Update subfigures for a case figure *fig*
+        
+        :Call:
+            >>> lines = R.UpdateCaseSubfigs(fig, i)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *fig*: :class:`str`
+                Name of figure to update
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *lines*: :class:`list` (:class:`str`)
+                List of lines for LaTeX file
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # Get list of subfigures.
+        sfigs = self.cntl.opts.get_FigSubfigList(fig)
+        # Initialize lines
+        lines = []
+        # Loop through subfigs.
+        for sfig in sfigs:
+            # Get the base type.
+            btyp = self.cntl.opts.get_SubfigBaseType(sfig)
+            # Process it.
+            if btyp == 'Conditions':
+                # Get the content.
+                lines += self.SubfigConditions(sfig, i)
+            elif btyp == 'Summary':
+                # Get the force and/or moment summary
+                lines += self.SubfigSummary(sfig, i)
+            elif btyp == 'PointSensorTable':
+                # Get the point sensor table summary
+                lines += self.SubfigPointSensorTable(sfig, i)
+            elif btyp == 'PlotCoeff':
+                # Get the force or moment history plot
+                lines += self.SubfigPlotCoeff(sfig, i)
+            elif btyp == 'PlotLineLoad':
+                # Get the sectional loads plot
+                lines += self.SubfigPlotLineLoad(sfig, i)
+            elif btyp == 'PlotPoint':
+                # Get the point sensor history plot
+                lines += self.SubfigPlotPoint(sfig, i)
+            elif btyp == 'PlotL2':
+                # Get the residual plot
+                lines += self.SubfigPlotL2(sfig, i)
+            elif btyp == 'PlotInf':
+                # Get the residual plot
+                lines += self.SubfigPlotLInf(sfig, i)
+            elif btyp == 'PlotResid':
+                # Plot generic residual
+                lines += self.SubfigPlotResid(sfig, i)
+            elif btyp == 'Tecplot':
+                # Get the Tecplot layout view
+                lines += self.SubfigTecplotLayout(sfig, i)
+        # Output
+        return lines
         
     # Function to create coefficient plot and write figure
     def SubfigTecplotLayout(self, sfig, i):
