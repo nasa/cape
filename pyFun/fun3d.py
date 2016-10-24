@@ -1412,6 +1412,7 @@ class Fun3d(Cntl):
             comp = comps[k-1]
             # Get input definitions.
             inp = self.GetConfigInput(comp)
+            print("Label 020: inp=%s" % inp)
             # Set input definitions.
             if inp is not None:
                 nml.SetVar('component_parameters', 'component_input', inp, k)
@@ -1445,6 +1446,7 @@ class Fun3d(Cntl):
             nml.SetVar('component_parameters', 'component_count', -1, k)
         # Set the number of components
         nml.SetVar('component_parameters', 'number_of_components', n)
+        raise ValueError
         
     # Get string describing which components are in config
     def GetConfigInput(self, comp, warn=False):
