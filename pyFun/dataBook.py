@@ -82,13 +82,13 @@ class DataBook(cape.dataBook.DataBook):
         :Call:
             >>> DB.InitDBComp(comp, x, opts)
         :Inputs:
-            *DB*: :class:`pyCart.dataBook.DataBook`
+            *DB*: :class:`pyFun.dataBook.DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
-            *x*: :class:`pyCart.trajectory.Trajectory`
+            *x*: :class:`pyFun.trajectory.Trajectory`
                 The current pyCart trajectory (i.e. run matrix)
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`pyFun.options.Options`
                 Global pyCart options instance
             *targ*: {``None``} | :class:`str`
                 If used, read a duplicate data book as a target named *targ*
@@ -106,7 +106,7 @@ class DataBook(cape.dataBook.DataBook):
             >>> DB.UpdateDataBook()
             >>> DB.UpdateDataBook(I)
         :Inputs:
-            *DB*: :class:`pyCart.dataBook.DataBook`
+            *DB*: :class:`pyFun.dataBook.DataBook`
                 Instance of the pyCart data book class
             *I*: :class:`list` (:class:`int`) or ``None``
                 List of trajectory indices or update all cases in trajectory
@@ -119,7 +119,7 @@ class DataBook(cape.dataBook.DataBook):
             I = range(self.x.nCase)
         # Loop through indices.
         for i in I:
-            self.UpdateCase(i)    
+            self.UpdateCase(i)
 
     # Update or add an entry.
     def UpdateCase(self, i):
@@ -135,7 +135,7 @@ class DataBook(cape.dataBook.DataBook):
         :Call:
             >>> DB.UpdateCase(i)
         :Inputs:
-            *DB*: :class:`pyCart.dataBook.DataBook`
+            *DB*: :class:`pyFun.dataBook.DataBook`
                 Instance of the pyCart data book class
             *i*: :class:`int`
                 Trajectory index
@@ -266,7 +266,7 @@ class DBComp(cape.dataBook.DBComp):
         *targ*: {``None``} | :class:`str`
             If used, read a duplicate data book as a target named *targ*
     :Outputs:
-        *DBc*: :class:`pyFun.dataBook.DBComp`
+        *DBc*: :class:`pyOver.dataBook.DBComp`
             An individual component data book
     :Versions:
         * 2016-09-15 ``@ddalle``: First version
@@ -283,16 +283,16 @@ class DBTarget(cape.dataBook.DBTarget):
     data books created by pyCart are not valid target files.
     
     :Call:
-        >>> DBT = pyCart.dataBook.DBTarget(targ, x, opts)
+        >>> DBT = DBTarget(targ, x, opts)
     :Inputs:
-        *targ*: :class:`pyCart.options.DataBook.DBTarget`
+        *targ*: :class:`pyFun.options.DataBook.DBTarget`
             Instance of a target source options interface
-        *x*: :class:`pyCart.trajectory.Trajectory`
+        *x*: :class:`pyFun.trajectory.Trajectory`
             Run matrix interface
-        *opts*: :class:`pyCart.options.Options`
+        *opts*: :class:`pyFun.options.Options`
             Global pyCart options instance to determine which fields are useful
     :Outputs:
-        *DBT*: :class:`pyCart.dataBook.DBTarget`
+        *DBT*: :class:`pyFun.dataBook.DBTarget`
             Instance of the pyCart data book target data carrier
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
