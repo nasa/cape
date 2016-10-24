@@ -851,5 +851,94 @@ def SetRestartIter(rc, n=None):
         nml.SetRestart(False)
     # Write the namelist.
     nml.Write()
+    
+# Link best file based on name and glob
+def LinkFromGlob(fname, fglb):
+    """Link the most recent file to a generic Tecplot file name
+    
+    :Call:
+        >>> pyFun.case.LinkFromGlob(fname, fglb)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of unmarked file, like ``Components.i.plt``
+        *fglb*: :class:`str`
+            Glob for marked file names
+    :Versions:
+        * 2016-10-24 ``@ddalle``: First version
+    """
+    # Check for already-existing regular file
+    if os.path.isfile(fname) and not os.path.islink(fname): return
+    # Remove the link if necessary
+    if os.path.isfile(fname) or os.path.islink(fname):
+        os.remove(fname)
+    # List of files matching the requested glob
+    fglob = glob.glob(fglb)
+    # File extension
+    fext = '.' + fglb.split('.')[-1]
+    # Check for empty glob
+    if len(fglob) == 0: return
+    # Get indices
+    n = [int(f.rstrip(fext).split('timestep')[-1]) for f in fglob]
+    # Extract file with maximum index
+    fsrc = fglob[n.index(max(n))]
+    # Create the link if possible
+    if os.path.isfile(fsrc): os.symlink(fsrc, fname)
+    
+# Link best Tecplot files
+def LinkPLT():
+    """Link the most recent Tecplot files to fixed file names
+    
+    :Call:
+        >>> pyFun.case.LinkPLT()
+    :Versions:
+        * 2016-10-24 ``@ddalle``: First version
+    """
+    # Read the options
+    rc = ReadCaseJSON()
+    j = GetPhaseNumber(rc)
+    # Need the namelist to figure out planes, etc.
+    nml = GetNamelist(rc=rc, j=j)
+    # Get the project root name
+    proj = nml.GetVar('project', 'project_rootname')
+    # Strip suffix
+    if rc.get_Dual(j):
+        # Strip adaptive section
+        proj0 = proj[:-2]
+    else:
+        # Use the full project name if no adaptations
+        proj0 = proj
+    # Get the list of output surfaces
+    fsrf = []
+    i = 1
+    flbl = nml.GetVar('sampling_parameters', 'label', i)
+    # Loop until there's no output surface name
+    while flbl is not None:
+        # Append
+        fsrf.append(flbl)
+        # Move to sampling output *i*
+        i += 1
+        # Get the name
+        flbl = nml.GetVar('sampling_parameters', 'label', i)
+    # Initialize file names
+    fname = [
+        '%s_tec_boundary' % proj0,
+        '%s_tec_volume' % proj0,
+    ]
+    # Initialize globs
+    fglob = [
+        '%s_tec_boundary_timestep*' % proj,
+        '%s_tec_volume_timestep*' % proj
+    ]
+    # Add special ones
+    for fi in fsrf:
+        fname.append('%s_%s' % (proj0, fi))
+        fglob.append('%s_%s_timestep*' % (proj0, fi))
+    # Link the globs
+    for i in range(len(fname)):
+        # Process the glob as well as possible
+        LinkFromGlob(fname[i]+".dat", fglob[i]+".dat")
+        LinkFromGlob(fname[i]+".plt", fglob[i]+".plt")
+    
+    
 # def SetRestartIter
 
