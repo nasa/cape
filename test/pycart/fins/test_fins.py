@@ -52,7 +52,7 @@ try:
     i = DBc.FindMatch(8)
     CN = DBc['CN'][i]
     # Check it
-    if abs(CN - 0.0985) > 0.02:
+    if abs(CN - 0.0055) > 0.02:
         f = open('FAIL', 'w')
         f.write('Data book value did not match expected result.')
         f.close()

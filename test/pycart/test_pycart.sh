@@ -21,6 +21,7 @@ function test {
 . $MODULESHOME/init/bash
 module load pycart
 module load cart3d
+module load cgt
 
 # Run the test
 test bullet
