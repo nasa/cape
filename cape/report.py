@@ -2200,52 +2200,54 @@ class Report(object):
             # Options dictionary
             kw_p = {"nFirst": nPlotFirst, "nLast": nPlotLast,
                 "FigWidth": figw, "FigHeight": figh}
-            # Determine which function to call
-            if c == "L1":
-                # Draw the "L1" plot
-                h = H.PlotL1(n=nPlotIter, **kw_p)
-            elif c == "L2":
-                # Plot global L2 residual
-                h = H.PlotL2(n=nPlotIter, **kw_p)
-            elif c == "LInf":
-                # Plot global L-infinity residual
-                h = H.PlotLInf(n=nPlotIter, **kw_p)
-            elif c == "TurbResid":
-                # Plot turbulence residual
-                h = H.PlotTurbResid(n=nPlotIter, **kw_p)
-            else:
-                # Plot named residual
-                # Get y-axis label
-                kw_p["YLabel"] = opts.get_SubfigOpt(sfig, 'YLabel')
-                # Get coefficient
-                cr = opts.get_SubfigOpt(sfig, "Residual")
-                # Plot it
-                h = H.PlotResid(c=cr, n=nPlotIter, **kw_p)
-            # Change back to report folder.
-            os.chdir(fpwd)
-            # Get the file formatting
-            fmt = opts.get_SubfigOpt(sfig, "Format")
-            dpi = opts.get_SubfigOpt(sfig, "DPI")
-            # Figure name
-            fimg = '%s.%s' % (sfig, fmt)
-            fpdf = '%s.pdf' % sfig
-            # Save the figure.
-            if fmt.lower() in ['pdf']:
-                # Save as vector-based image.
-                h['fig'].savefig(fimg)
-            elif fmt.lower() in ['svg']:
-                # Save as PDF and SVG
-                h['fig'].savefig(fimg)
-                h['fig'].savefig(fpdf)
-            else:
-                # Save with resolution.
-                h['fig'].savefig(fimg, dpi=dpi)
-                h['fig'].savefig(fpdf)
-            # Close the figure.
-            h['fig'].clf()
-            # Include the graphics.
-            lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                % (frun, fpdf))
+            # Check for any iterations to report
+            if len(H.i) > 0:
+                # Determine which function to call
+                if c == "L1":
+                    # Draw the "L1" plot
+                    h = H.PlotL1(n=nPlotIter, **kw_p)
+                elif c == "L2":
+                    # Plot global L2 residual
+                    h = H.PlotL2(n=nPlotIter, **kw_p)
+                elif c == "LInf":
+                    # Plot global L-infinity residual
+                    h = H.PlotLInf(n=nPlotIter, **kw_p)
+                elif c == "TurbResid":
+                    # Plot turbulence residual
+                    h = H.PlotTurbResid(n=nPlotIter, **kw_p)
+                else:
+                    # Plot named residual
+                    # Get y-axis label
+                    kw_p["YLabel"] = opts.get_SubfigOpt(sfig, 'YLabel')
+                    # Get coefficient
+                    cr = opts.get_SubfigOpt(sfig, "Residual")
+                    # Plot it
+                    h = H.PlotResid(c=cr, n=nPlotIter, **kw_p)
+                # Change back to report folder.
+                os.chdir(fpwd)
+                # Get the file formatting
+                fmt = opts.get_SubfigOpt(sfig, "Format")
+                dpi = opts.get_SubfigOpt(sfig, "DPI")
+                # Figure name
+                fimg = '%s.%s' % (sfig, fmt)
+                fpdf = '%s.pdf' % sfig
+                # Save the figure.
+                if fmt.lower() in ['pdf']:
+                    # Save as vector-based image.
+                    h['fig'].savefig(fimg)
+                elif fmt.lower() in ['svg']:
+                    # Save as PDF and SVG
+                    h['fig'].savefig(fimg)
+                    h['fig'].savefig(fpdf)
+                else:
+                    # Save with resolution.
+                    h['fig'].savefig(fimg, dpi=dpi)
+                    h['fig'].savefig(fpdf)
+                # Close the figure.
+                h['fig'].clf()
+                # Include the graphics.
+                lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                    % (frun, fpdf))
         # Set the caption.
         if fcpt: lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
