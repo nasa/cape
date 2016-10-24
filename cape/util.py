@@ -42,6 +42,9 @@ def RangeString(rng):
     """
     # Number of components
     n = len(rng)
+    # Check for single component
+    if n == 1:
+        return ("%s" % rng[0])
     # Initialize the string and indices
     txt = []
     ibeg = rng[0]
