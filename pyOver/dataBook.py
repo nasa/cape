@@ -19,7 +19,7 @@ import re
 from datetime import datetime
 
 # Use this to only update entries with newer iterations.
-from .case import GetCurrentIter, GetPrefix
+from .case import GetCurrentIter, GetPrefix, ReadCaseJSON, GetPhaseNumber
 # Utilities or advanced statistics
 from . import util
 from . import bin
@@ -448,17 +448,22 @@ class DataBook(cape.dataBook.DataBook):
             q = False
         # Check for an update
         if (not q): return
+        # Get the phase number
+        rc = ReadCaseJSON()
+        k = GetPhaseNumber(rc)
+        # Appropriate prefix
+        proj = self.opts.get_Prefix(k)
         # Maximum number of iterations allowed.
         nMax = min(nIter-nMin, self.opts.get_nMaxStats())
         # Read residual
-        H = CaseResid(self.proj)
+        H = CaseResid(proj)
         # Loop through components.
         for comp in self.Components:
             # Ensure proper type
             tcomp = self.opts.get_DataBookType(comp)
             if tcomp not in ['Force', 'Moment', 'FM']: continue
             # Read the iterative history for that component.
-            FM = CaseFM(self.proj, comp)
+            FM = CaseFM(proj, comp)
             # Extract the component databook.
             DBc = self[comp]
             # List of transformations
