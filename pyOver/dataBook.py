@@ -967,9 +967,9 @@ class CaseResid(cape.dataBook.CaseResid):
         # Process the number of usable iterations available.
         i = max(self.nIter-nStats, 0)
         # Get the maximum residual.
-        L2Max = np.log10(np.max(self.L2Resid))
+        L2Max = np.log10(np.max(self.L2))
         # Get the average terminal residual.
-        L2End = np.log10(np.mean(self.L2Resid[i:]))
+        L2End = np.log10(np.mean(self.L2[i:]))
         # Return the drop
         return L1Max - L1End
     
