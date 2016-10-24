@@ -897,7 +897,7 @@ def LinkPLT():
     rc = ReadCaseJSON()
     j = GetPhaseNumber(rc)
     # Need the namelist to figure out planes, etc.
-    nml = GetNamelist(rc=rc, j=j)
+    nml = GetNamelist(rc=rc, i=j)
     # Get the project root name
     proj = nml.GetVar('project', 'project_rootname')
     # Strip suffix
