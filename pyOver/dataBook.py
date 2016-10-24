@@ -457,6 +457,7 @@ class DataBook(cape.dataBook.DataBook):
         nMax = min(nIter-nMin, self.opts.get_nMaxStats())
         # Read residual
         H = CaseResid(proj)
+        H.ReadGlobalL2()
         # Loop through components.
         for comp in self.Components:
             # Ensure proper type
