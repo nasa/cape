@@ -24,7 +24,5 @@ module load cart3d
 module load cgt
 
 # Run the test
-test bullet
-test uh3d
-test fins
+test endian
 

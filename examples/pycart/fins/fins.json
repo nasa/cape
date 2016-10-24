@@ -13,6 +13,8 @@
             "mg_fc": 3,
             "y_is_spanwise": true
 	    },
+        // Intersect
+        "intersect": true,
         // Defines the flow domain automatically
         "autoInputs": {
             "r": 8,
@@ -30,8 +32,6 @@
 
 	// Mesh settings
     "Mesh": {
-        // Intersect
-        "intersect": true,
         // Surface triangulation
         "TriFile": [
             "inputs/bullet.tri",

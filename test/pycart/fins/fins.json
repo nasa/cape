@@ -18,6 +18,8 @@
             "r": 8,
             "nDiv": 4
         },
+        // Intersect options
+        "intersect": true,
         // Volume mesh options
         "cubes": {
             "maxR": 6,
@@ -30,8 +32,6 @@
 
 	// Mesh settings
     "Mesh": {
-        // Intersect
-        "intersect": true,
         // Surface triangulation
         "TriFile": [
             "inputs/bullet.tri",
