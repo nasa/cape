@@ -947,7 +947,32 @@ class CaseResid(cape.dataBook.CaseResid):
     # Copy the function
     __str__ = __repr__
         
+    # Number of orders of magnitude of residual drop
+    def GetNOrders(self, nStats=1):
+        """Get the number of orders of magnitude of residual drop
         
+        :Call:
+            >>> nOrders = hist.GetNOrders(nStats=1)
+        :Inputs:
+            *hist*: :class:`pyCart.dataBook.CaseResid`
+                Instance of the DataBook residual history
+            *nStats*: :class:`int`
+                Number of iterations to use for averaging the final residual
+        :Outputs:
+            *nOrders*: :class:`float`
+                Number of orders of magnitude of residual drop
+        :Versions:
+            * 2015-01-01 ``@ddalle``: First versoin
+        """
+        # Process the number of usable iterations available.
+        i = max(self.nIter-nStats, 0)
+        # Get the maximum residual.
+        L2Max = np.log10(np.max(self.L2Resid))
+        # Get the average terminal residual.
+        L2End = np.log10(np.mean(self.L2Resid[i:]))
+        # Return the drop
+        return L1Max - L1End
+    
     # Read entire global residual history
     def ReadGlobalL2(self):
         """Read entire global L2 history
