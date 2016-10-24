@@ -455,9 +455,6 @@ class DataBook(cape.dataBook.DataBook):
         proj = self.opts.get_Prefix(k)
         # Maximum number of iterations allowed.
         nMax = min(nIter-nMin, self.opts.get_nMaxStats())
-        # Read residual
-        H = CaseResid(proj)
-        H.ReadGlobalL2()
         # Loop through components.
         for comp in self.Components:
             # Ensure proper type
@@ -482,8 +479,6 @@ class DataBook(cape.dataBook.DataBook):
                 
             # Process the statistics.
             s = FM.GetStats(nStats, nMax)
-            # Get the corresponding residual drop
-            nOrders = H.GetNOrders(s['nStats'])
             
             # Save the data.
             if np.isnan(j):
@@ -496,8 +491,6 @@ class DataBook(cape.dataBook.DataBook):
                 # Append values.
                 for c in DBc.DataCols:
                     DBc[c] = np.hstack((DBc[c], [s[c]]))
-                # Append residual drop.
-                DBc['nOrders'] = np.hstack((DBc['nOrders'], [nOrders]))
                 # Append iteration counts.
                 DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
                 DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
@@ -507,7 +500,6 @@ class DataBook(cape.dataBook.DataBook):
                 for c in DBc.DataCols:
                     DBc[c][j] = s[c]
                 # Update the other statistics.
-                DBc['nOrders'][j] = nOrders
                 DBc['nIter'][j]   = nIter
                 DBc['nStats'][j]  = s['nStats']
         # Go back.
