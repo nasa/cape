@@ -1487,7 +1487,7 @@ class TriBase(object):
             * 2016-10-10 ``@ddalle``: First version
         """
         # 
-        pc.WriteTri_lb4(self.Nodes, self.Tris, self.CompID)
+        pc.WriteTri_lb8(self.Nodes, self.Tris, self.CompID)
         # Check the file name and rename if necessary
         if fname != "Components.pyCart.tri":
             os.rename("Components.pyCart.tri", fname)
@@ -1517,14 +1517,14 @@ class TriBase(object):
         # Write the header
         if qq:
             # Write with *q*
-            io.write_record_lb8_i(fid, [self.nNode, self.nItri, self.nq])
+            io.write_record_lb4_i(fid, [self.nNode, self.nItri, self.nq])
         else:
             # No q values
-            io.write_record_lb8_i(fid, [self.nNode, self.nTri])
+            io.write_record_lb4_i(fid, [self.nNode, self.nTri])
         # Write the nodes, tris, and compIDs
         io.write_record_lb8_f(fid, self.Nodes)
-        io.write_record_lb8_i(fid, self.Tris)
-        io.write_record_lb8_i(fid, self.CompID)
+        io.write_record_lb4_i(fid, self.Tris)
+        io.write_record_lb4_i(fid, self.CompID)
         # Write states if appropriate
         if qq: io.write_record_lb8_f(fid, self.q)
         # Close the file
