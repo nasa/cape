@@ -1270,6 +1270,7 @@ class CaseResid(cape.dataBook.CaseResid):
         i0 = ReadResidFirstIter(fname)
         # Number of iterations
         nIter = ReadResidNIter(fname)
+        self.nIter = nIter
         # Number of grids
         nGrid = ReadResidNGrids(fname)
         # Process current iteration number
