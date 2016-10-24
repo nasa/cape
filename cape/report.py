@@ -999,6 +999,9 @@ class Report(object):
             elif btyp == 'Paraview':
                 # Get the Paraview layout view
                 lines += self.SubfigParaviewLayout(sfig, i)
+            elif btyp == 'Tecplot':
+                # Use a Tecplot layout
+                lines += self.SubfigTecplotLayout(sfig, i)
         # Output
         return lines
         
