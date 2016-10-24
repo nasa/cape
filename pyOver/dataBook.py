@@ -971,7 +971,7 @@ class CaseResid(cape.dataBook.CaseResid):
         # Get the average terminal residual.
         L2End = np.log10(np.mean(self.L2[i:]))
         # Return the drop
-        return L1Max - L1End
+        return L2Max - L2End
     
     # Read entire global residual history
     def ReadGlobalL2(self):
