@@ -2845,6 +2845,7 @@ class Report(object):
             grps = opts.get_SubfigOpt(sfig, "FieldMap")
             # Read the Tecplot layout
             tec = self.ReadTecscript(fsrc)
+            print("Label 040: tec=%s" % tec)
             # Set the Mach number if appropriate
             if omach:
                 try:
@@ -2867,8 +2868,11 @@ class Report(object):
             try:
                 # Copy the file into the current folder.
                 tec.Write(flay)
+                print("Label 050: flay='%s'" % flay)
+                print("Label 051: PWD=%s" % os.getcwd())
                 # Run the layout.
                 ExportLayout(flay, fname=fname, w=wfig)
+                print("Label 060: good?")
                 # Move the file.
                 os.rename(fname, os.path.join(fpwd,fname))
                 # Form the line
@@ -2880,6 +2884,7 @@ class Report(object):
                 # Remove the layout file.
                 os.remove(flay)
             except Exception:
+                print("Label 080: BAD")
                 pass
         # Go to the report case folder
         os.chdir(fpwd)
