@@ -1206,6 +1206,9 @@ class Report(object):
         elif btyp == 'SweepCoeff':
             # Plot a coefficient sweep
             lines += self.SubfigSweepCoeff(sfig, fswp, I)
+        else:
+            # No figure found
+            print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
         # Output
         return lines
         
