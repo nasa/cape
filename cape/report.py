@@ -2821,6 +2821,38 @@ class Report(object):
     # Status Tools
     # ============
   # <
+    # Read the ``report.json`` file
+    def ReadCaseJSON(self):
+        """Read the JSON file which contains the current statuses
+        
+        :Call:
+            >>> rc = R.ReadCaseJSON()
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+        :Outputs:
+            *rc*: :class:`dict`
+                Dictionary of subfigure definitions and status
+        :Versions:
+            * 2016-10-25 ``@ddalle``: First version
+        """
+        # Check for the file
+        if not os.path.isfile('report.json'): return {}
+        # Open the file
+        f = open('report.json')
+        # Read the settings.
+        try:
+            # Read from file
+            rc = json.load(f)
+        except Exception:
+            # No settings read
+            f.close()
+            return {}
+        # Close the file.
+        f.close()
+        # Return the settings
+        return rc
+        
     # Read the iteration to which the figures for this report have been updated
     def ReadCaseJSONIter(self):
         """Read JSON file to determine the current iteration for the report
@@ -2935,7 +2967,28 @@ class Report(object):
         # Write the contents.
         json.dump(opts, f)
         # Close file.
-        f.close()   
+        f.close()
+    
+    # Write all settings
+    def WriteCaseJSON(self, rc):
+        """Write the current status to ``report.json``
+        
+        :Call:
+            >>> R.WriteCaseJSON(rc)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *rc*: :class:`dict`
+                Dictionary of subfigure definitions and status
+        :Versions:
+            * 2016-10-25 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open('report.json', 'w')
+        # Write the contents.
+        json.dump(rc, f, indent=1)
+        # Close the file.
+        f.close()
         
     # Set the iteration numbers for a sweep
     def SetSweepJSONIter(self, I):
