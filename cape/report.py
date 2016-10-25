@@ -863,21 +863,6 @@ class Report(object):
             '\\input{%s/%s/%s}\n' % (fgrp, fdir, self.fname))
         # Status update
         print('%s/%s' % (fgrp, fdir))
-        # Check if there's anything to do.
-        if not ((nr is None) or (n>0 and nr!=n) or (stsr != sts)):
-            # Go home and quit.
-            os.chdir(fpwd)
-            return
-        # Status update
-        if n != nr:
-            # More iterations
-            print("  Updating from iteration %s --> %s" % (nr, n))
-        elif sts != stsr:
-            # Changing status
-            print("  Updating status %s --> %s" % (stsr, sts))
-        else:
-            # New case
-            print("  New report at iteration %s" % n)
         # -------------
         # Initial setup
         # -------------
@@ -892,18 +877,14 @@ class Report(object):
         # -------
         # Figures
         # -------
-        # Check if figures need updating.
-        if not ((n==nr) and (stsr=='DONE') and (sts=='PASS')):
-            # Loop through figures.
-            for fig in figs:
-                self.UpdateFigure(fig, i)
+        # Loop through figures.
+        for fig in figs:
+            self.UpdateFigure(fig, i, n)
         # -----
         # Write
         # -----
         # Write the updated lines.
         self.cases[i].Write()
-        # Mark the case status.
-        self.SetCaseJSONIter(n, sts)
         # Go home.
         os.chdir(fpwd)
    # ]
@@ -928,11 +909,14 @@ class Report(object):
                 Case index
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of case indices
+            *n*: :class:`int` | ``None``
+                Current iteration number from :func:`R.cntl.CheckCase`
             *fswp*: :class:`str`
                 Name of sweep
         :Versions:
             * 2014-03-08 ``@ddalle``: First version
             * 2015-05-29 ``@ddalle``: Extended to include sweeps
+            * 2016-10-25 ``@ddalle``: Checking
         """
         # -----
         # Setup
@@ -1032,40 +1016,130 @@ class Report(object):
         sfigs = self.cntl.opts.get_FigSubfigList(fig)
         # Initialize lines
         lines = []
+        # Get status
+        n = self.cntl.CheckCase()
+        # Read settings
+        rc = self.ReadCaseJSON()
         # Loop through subfigs.
         for sfig in sfigs:
-            # Get the base type.
-            btyp = self.cntl.opts.get_SubfigBaseType(sfig)
-            # Process it.
-            if btyp == 'Conditions':
-                # Get the content.
-                lines += self.SubfigConditions(sfig, i)
-            elif btyp == 'Summary':
-                # Get the force and/or moment summary
-                lines += self.SubfigSummary(sfig, i)
-            elif btyp == 'PlotCoeff':
-                # Get the force or moment history plot
-                lines += self.SubfigPlotCoeff(sfig, i)
-            elif btyp == 'PlotLineLoad':
-                # Plot a sectional loads plot
-                lines += self.SubfigPlotLineLoad(sfig, i)
-            elif btyp == 'PlotL1':
-                # Get the residual plot
-                lines += self.SubfigPlotL1(sfig, i)
-            elif btyp == 'PlotL2':
-                # Get the global residual plot
-                lines += self.SubfigPlotL2(sfig, i)
-            elif btyp == ['PlotResid', 'PlotTurbResid', 'PlotSpeciesResid']:
-                # Plot generic residual
-                lines += self.SubfigPlotResid(sfig, i)
-            elif btyp == 'Paraview':
-                # Get the Paraview layout view
-                lines += self.SubfigParaviewLayout(sfig, i)
-            elif btyp == 'Tecplot':
-                # Use a Tecplot layout
-                lines += self.SubfigTecplotLayout(sfig, i)
+            # Check the status (also prints status update)
+            if not self.CheckSubfigStatus(sfig, rc, n):
+                continue
+            # Use a separate function to find the right updater
+            lines = self.SubfigSwitch(sfig, i, lines)
+            # Update the settings
+            rc["Status"][sfig] = n
+            rc["Subfigures"][sfig] = self.cntl.opts.get_Subfigure(sfig)
+        # Write the new settings
+        self.WriteCaseJSON(rc)
         # Output
         return lines
+        
+    # Check status of a subfigure and give status update
+    def CheckSubfigStatus(self, sfig, rc, n):
+        """Check whether or not to update a subfigure and print status
+        
+        :Call:
+            >>> q = R.CheckSubfigStatus(sfig, rc, n)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure to check
+            *rc*: :class:`dict`
+                Dictionary from ``report.json``
+            *n*: :class:`int` | ``None``
+                Current iteration number
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether or not to update the subfigure
+        :Versions:
+            * 2016-10-25 ``@ddalle``: First version
+        """
+        # Get the status options
+        stsr = rc.get("Status", {})
+        # Check if the subfigure has been handled at all
+        if sfig not in stsr:
+            # New subfigure
+            print("  %s: New subfig at iteration %s" % (sfig, n))
+            return True
+        # Get the iteration status
+        nr = stsr.get(sfig)
+        # Check the iteration
+        if n != nr:
+            # Iteration update
+            print("  %s: Update %s --> %s" % (sfig, nr, n))
+            return True
+        # Get the definition last used to generate this subfig
+        defr = rc.get("Subfigures", {}).get(sfig, {})
+        # Get the present definition
+        defo = self.cntl.opts.get_Subfigure(sfig)
+        # Compare the subfig definitions
+        if defr != defo:
+            # Definition changed
+            print("  %s: Definition updated" % sfig)
+            return True
+        # If reached this point, no update
+        return False
+        
+    # Point to the correct subfigure updater
+    def SubfigSwitch(self, sfig, i, lines):
+        """Switch function to find the correct subfigure function
+        
+        This function may need to be defined for each CFD solver
+        
+        :Call:
+            >>> lines = R.SubfigSwitch(sfig, i, lines)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure to update
+            *i*: :class:`int`
+                Case index
+            *lines*: :class:`list` (:class:`str`)
+                List of lines already in LaTeX file
+        :Outputs:
+            *lines*: :class:`list` (:class:`str`)
+                Updated list of lines for LaTeX file
+        :Versions:
+            * 2016-10-25 ``@ddalle``: First version, from :func:`UpdateSubfig`
+        """
+        # Get the base type.
+        btyp = self.cntl.opts.get_SubfigBaseType(sfig)
+        # Process it.
+        if btyp == 'Conditions':
+            # Get the content.
+            lines += self.SubfigConditions(sfig, i)
+        elif btyp == 'Summary':
+            # Get the force and/or moment summary
+            lines += self.SubfigSummary(sfig, i)
+        elif btyp == 'PlotCoeff':
+            # Get the force or moment history plot
+            lines += self.SubfigPlotCoeff(sfig, i)
+        elif btyp == 'PlotLineLoad':
+            # Plot a sectional loads plot
+            lines += self.SubfigPlotLineLoad(sfig, i)
+        elif btyp == 'PlotL1':
+            # Get the residual plot
+            lines += self.SubfigPlotL1(sfig, i)
+        elif btyp == 'PlotL2':
+            # Get the global residual plot
+            lines += self.SubfigPlotL2(sfig, i)
+        elif btyp == ['PlotResid', 'PlotTurbResid', 'PlotSpeciesResid']:
+            # Plot generic residual
+            lines += self.SubfigPlotResid(sfig, i)
+        elif btyp == 'Paraview':
+            # Get the Paraview layout view
+            lines += self.SubfigParaviewLayout(sfig, i)
+        elif btyp == 'Tecplot':
+            # Use a Tecplot layout
+            lines += self.SubfigTecplotLayout(sfig, i)
+        else:
+            print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
+        # Output
+        return lines
+    
         
     # Update subfig for a sweep
     def UpdateSweepSubfigs(self, fig, fswp, I):
@@ -2850,6 +2924,9 @@ class Report(object):
             return {}
         # Close the file.
         f.close()
+        # Ensure the existence of main sections
+        rc.setdefault("Status", {})
+        rc.setdefault("Subfigures", {})
         # Return the settings
         return rc
         
@@ -2968,6 +3045,27 @@ class Report(object):
         json.dump(opts, f)
         # Close file.
         f.close()
+        
+    # Set the iteration for each subfigure.
+    def SetCaseJSONSubfigIter(self, rep, n):
+        """Set or update the iteration status for each subfig in report *rep*
+        
+        :Call:
+            >>> R.SetCaseJSONSubfigIter(rep, n)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *rep*: :class:`str`
+                Name of the report in question
+            *n*: :class:`int` | ``None``
+                Current iteration number
+        :Outputs:
+            * 2016-10-25 ``@ddalle``: First version
+        """
+        # Read the statuses
+        rc = self.ReadCaseJSON()
+        # Get the list of subfigures
+        
     
     # Write all settings
     def WriteCaseJSON(self, rc):

@@ -219,66 +219,67 @@ class Report(cape.report.Report):
         return DBL.get(j)
         
     # Update subfig for case
-    def UpdateCaseSubfigs(self, fig, i):
-        """Update subfigures for a case figure *fig*
+    def SubfigSwitch(self, sfig, i, lines):
+        """Switch function to find the correct subfigure function
+        
+        This function may need to be defined for each CFD solver
         
         :Call:
-            >>> lines = R.UpdateCaseSubfigs(fig, i)
+            >>> lines = R.SubfigSwitch(sfig, i, lines)
         :Inputs:
-            *R*: :class:`cape.report.Report`
+            *R*: :class:`pyCart.report.Report`
                 Automated report interface
-            *fig*: :class:`str`
-                Name of figure to update
+            *sfig*: :class:`str`
+                Name of subfigure to update
             *i*: :class:`int`
                 Case index
+            *lines*: :class:`list` (:class:`str`)
+                List of lines already in LaTeX file
         :Outputs:
             *lines*: :class:`list` (:class:`str`)
-                List of lines for LaTeX file
+                Updated list of lines for LaTeX file
         :Versions:
             * 2015-05-29 ``@ddalle``: First version
+            * 2016-10-25 ``@ddalle``: *UpdateFigure* -> *SubfigSwitch*
         """
-        # Get list of subfigures.
-        sfigs = self.cntl.opts.get_FigSubfigList(fig)
-        # Initialize lines
-        lines = []
-        # Loop through subfigs.
-        for sfig in sfigs:
-            # Get the base type.
-            btyp = self.cntl.opts.get_SubfigBaseType(sfig)
-            # Process it.
-            if btyp == 'Conditions':
-                # Get the content.
-                lines += self.SubfigConditions(sfig, i)
-            elif btyp == 'Summary':
-                # Get the force and/or moment summary
-                lines += self.SubfigSummary(sfig, i)
-            elif btyp == 'PointSensorTable':
-                # Get the point sensor table summary
-                lines += self.SubfigPointSensorTable(sfig, i)
-            elif btyp == 'PlotCoeff':
-                # Get the force or moment history plot
-                lines += self.SubfigPlotCoeff(sfig, i)
-            elif btyp == 'PlotLineLoad':
-                # Get the sectional loads plot
-                lines += self.SubfigPlotLineLoad(sfig, i)
-            elif btyp == 'PlotPoint':
-                # Get the point sensor history plot
-                lines += self.SubfigPlotPoint(sfig, i)
-            elif btyp == 'PlotL1':
-                # Get the residual plot
-                lines += self.SubfigPlotL1(sfig, i)
-            elif btyp == 'PlotResid':
-                # Plot generic residual
-                lines += self.SubfigPlotResid(sfig, i)
-            elif btyp == 'Tecplot3View':
-                # Get the Tecplot component view
-                lines += self.SubfigTecplot3View(sfig, i)
-            elif btyp == 'Tecplot':
-                # Get the Tecplot layout view
-                lines += self.SubfigTecplotLayout(sfig, i)
-            elif btyp == 'Paraview':
-                # Get the Paraview layout view
-                lines += self.SubfigParaviewLayout(sfig, i)
+        # Get the base type.
+        btyp = self.cntl.opts.get_SubfigBaseType(sfig)
+        # Process it.
+        if btyp == 'Conditions':
+            # Get the content.
+            lines += self.SubfigConditions(sfig, i)
+        elif btyp == 'Summary':
+            # Get the force and/or moment summary
+            lines += self.SubfigSummary(sfig, i)
+        elif btyp == 'PointSensorTable':
+            # Get the point sensor table summary
+            lines += self.SubfigPointSensorTable(sfig, i)
+        elif btyp == 'PlotCoeff':
+            # Get the force or moment history plot
+            lines += self.SubfigPlotCoeff(sfig, i)
+        elif btyp == 'PlotLineLoad':
+            # Get the sectional loads plot
+            lines += self.SubfigPlotLineLoad(sfig, i)
+        elif btyp == 'PlotPoint':
+            # Get the point sensor history plot
+            lines += self.SubfigPlotPoint(sfig, i)
+        elif btyp == 'PlotL1':
+            # Get the residual plot
+            lines += self.SubfigPlotL1(sfig, i)
+        elif btyp == 'PlotResid':
+            # Plot generic residual
+            lines += self.SubfigPlotResid(sfig, i)
+        elif btyp == 'Tecplot3View':
+            # Get the Tecplot component view
+            lines += self.SubfigTecplot3View(sfig, i)
+        elif btyp == 'Tecplot':
+            # Get the Tecplot layout view
+            lines += self.SubfigTecplotLayout(sfig, i)
+        elif btyp == 'Paraview':
+            # Get the Paraview layout view
+            lines += self.SubfigParaviewLayout(sfig, i)
+        else:
+            print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
         # Output
         return lines
         
