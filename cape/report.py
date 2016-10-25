@@ -55,8 +55,9 @@ import os, json, shutil, glob
 import re
 # Numerics
 import numpy as np
-# Paraview Python script
-from .bin import pvpython
+# Paraview/Tecplot interfaces
+from .bin     import pvpython
+from .tecplot import ExportLayout, Tecscript
 
 # Local modules needed
 import tex, tar
@@ -3204,6 +3205,22 @@ class Report(object):
             self.cntl.DataBook.UpdateTrajectory()
             # Save the data book source.
             self.cntl.DataBook.source = "data"
+    
+    # Read a Tecplot script
+    def ReadTecscript(self, fsrc):
+        """Read a Tecplot script interface
+        
+        :Call:
+            >>> R.ReadTecscript(fsrc)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *fscr*: :class:`str`
+                Name of file to read
+        :Versions:
+            * 2016-10-25 ``@ddalle``: First version
+        """
+        return Tecscript(fsrc)
   # >
     
     # ============
