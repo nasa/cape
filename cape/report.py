@@ -93,6 +93,10 @@ class Report(object):
         * 2015-03-10 ``@ddalle``: First version
         * 2015-10-15 ``@ddalle``: Basis version
     """
+    # ==================
+    # Standard Functions
+    # ==================
+  # <
     # Initialization method
     def __init__(self, cntl, rep):
         """Initialization method"""
@@ -132,8 +136,12 @@ class Report(object):
         return '<cape.Report("%s")>' % self.rep
     # Copy the function
     __str__ = __repr__
-        
+  # >
     
+    # ================
+    # Folder Functions
+    # ================
+  # <
     # Make a folder
     def mkdir(self, fdir):
         """Create a folder with the correct umask
@@ -153,7 +161,47 @@ class Report(object):
         # Make the directory.
         self.cntl.mkdir(fdir)
         
+    # Function to go into a folder, respecting archive option
+    def cd(self, fdir):
+        """Interface to :func:`os.chdir`, respecting "Archive" option
         
+        This function can only change one directory at a time.
+        
+        :Call:
+            >>> R.cd(fdir)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *fdir*: :class:`str`
+                Name of directory to change to
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # Get archive option.
+        q = self.cntl.opts.get_ReportArchive()
+        # Check direction.
+        if fdir.startswith('..'):
+            # Check archive option.
+            if q:
+                # Tar and clean up if necessary.
+                tar.chdir_up()
+            else:
+                # Go up a folder.
+                os.chdir('..')
+        else:
+            # Untar if necessary
+            tar.chdir_in(fdir)
+  # >
+    
+    # ===========
+    # LaTeX Files
+    # ===========
+  # <
+    
+    # --------------
+    # Main .tex File
+    # --------------
+   # [
     # Function to open the master latex file for this report.
     def OpenMain(self):
         """Open the primary LaTeX file or write skeleton if necessary
@@ -325,7 +373,12 @@ class Report(object):
         
         # Return
         os.chdir(fpwd)
-        
+   # ]
+    
+    # -----------------
+    # Folder .tex Files
+    # -----------------
+   # [
     # Function to write skeleton for a case.
     def WriteCaseSkeleton(self, i):
         """Initialize LaTeX file for case *i*
@@ -403,8 +456,66 @@ class Report(object):
         
         # Close the file.
         f.close()
+        
+    # Function to set the upper-right header
+    def SetHeaderStatus(self, i):
+        """Set header to state iteration progress and summary status
+        
+        :Call:
+            >>> R.SetHeaderStatus(i)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2014-03-08 ``@ddalle``: First version
+        """
+        # Get case current iteration
+        n = self.cntl.CheckCase(i)
+        # Get case number of required iterations
+        nMax = self.cntl.GetLastIter(i)
+        # Get status
+        sts = self.cntl.CheckCaseStatus(i)
+        # Form iteration string
+        if n is None:
+            # Unknown.
+            fitr = '-/%s' % self.cntl.opts.get_PhaseIters(-1)
+        elif int(n) == n:
+            # Use an integer iteration number
+            fitr = '%i/%s' % (int(n), nMax)
+        else:
+            # Use the values.
+            fitr = '%s/%s' % (n, nMax)
+        # Form string for the status type
+        if sts == "PASS":
+            # Set green
+            fsts = '\\color{green}\\textbf{PASS}'
+        elif sts == "ERROR":
+            # Set red
+            fsts = '\\color{red}\\textbf{ERROR}'
+        else:
+            # No color (black)
+            fsts = '\\textbf{%s}' % sts
+        # Form the line.
+        line = '\\fancyhead[R]{\\textsf{%s, \large%s}}\n' % (fitr, fsts)
+        # Put the line into the text.
+        self.cases[i].ReplaceOrAddLineToSectionStartsWith(
+            '_header', '\\fancyhead[R]', line, -1)
+        # Update sections.
+        self.cases[i].UpdateLines()
+   # ]
+  # >
     
+    # ================
+    # Update Functions
+    # ================
+  # <
     
+    # ---------------
+    # General Updates
+    # ---------------
+   # [
     # Function to update report
     def UpdateReport(self, I=None, cons=[], **kw):
         """Update a report based on the list of figures
@@ -450,6 +561,28 @@ class Report(object):
             if f[-3:] in ['tex', 'pdf']: continue
             # Else remove it.
             os.remove(f)
+            
+    # Check for any case figures
+    def HasCaseFigures(self):
+        """Check if there are any case figures for this report
+        
+        :Call:
+            >>> q = R.HasCaseFigures()
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not any of report figure lists has nonzero length
+        :Versions:
+            * 2015-06-03 ``@ddalle``: First version
+        """
+        # Get the three sets of lists.
+        cfigs = self.cntl.opts.get_ReportFigList(self.rep)
+        efigs = self.cntl.opts.get_ReportErrorFigList(self.rep)
+        zfigs = self.cntl.opts.get_ReportZeroFigList(self.rep)
+        # Check if any of them have nozero length.
+        return (len(cfigs)>0) or (len(efigs)>0) or (len(zfigs)>0)
     
     # Function to update sweeps
     def UpdateSweeps(self, I=None, cons=[], **kw):
@@ -517,88 +650,12 @@ class Report(object):
         # Master file location
         os.chdir(self.cntl.RootDir)
         os.chdir('report')
-        
-    # Clean up cases
-    def CleanUpCases(self, I=None, cons=[]):
-        """Clean up case folders
-        
-        :Call:
-            >>> R.CleanUpCases(I=None, cons=[])
-        :Inputs:
-            *R*: :class:`cape.report.Report`
-                Automated report interface
-            *I*: :class:`list` (:class:`int`)
-                List of case indices
-            *cons*: :class:`list` (:class:`str`)
-                List of constraints to define what cases to update
-        :Versions:
-            * 2015-05-29 ``@ddalle``: First version
-        """
-        # Check for use of constraints instead of direct list.
-        I = self.cntl.x.GetIndices(cons=cons, I=I)
-        # Check for folder archiving
-        if self.cntl.opts.get_ReportArchive():
-            # Loop through folders.
-            for frun in self.cntl.x.GetFullFolderNames(I):
-                # Check for the folder (has trouble if a case is repeated)
-                if not os.path.isdir(frun): continue
-                # Go to the folder.
-                os.chdir(frun)
-                # Go up one, archiving if necessary.
-                self.cd('..')
-                # Go back to root directory.
-                os.chdir('..')
-        
-    # Clean up sweeps
-    def CleanUpSweeps(self, I=None, cons=[]):
-        """Clean up the folders for all sweeps
-        
-        :Call:
-            >>> R.CleanUpSweeps(I=None, cons=[])
-        :Inputs:
-            *R*: :class:`cape.report.Report`
-                Automated report interface
-            *I*: :class:`list` (:class:`int`)
-                List of case indices
-            *cons*: :class:`list` (:class:`str`)
-                List of constraints to define what cases to update
-        :Versions:
-            * 2015-05-29 ``@ddalle``: First version
-        """
-        # Check for folder archiving
-        if not self.cntl.opts.get_ReportArchive(): return
-        # Get sweep list
-        fswps = self.opts.get('Sweeps', [])
-        # Check type.
-        if type(fswps).__name__ not in ['list', 'ndarray']: fswps = [fswps]
-        # Loop through the sweeps.
-        for fswp in fswps:
-            # Check if only restricting to point currently in the trajectory.
-            if self.cntl.opts.get_SweepOpt(fswp, 'TrajectoryOnly'):
-                # Read the data book with the trajectory as the source.
-                self.ReadDataBook("trajectory")
-            else:
-                # Read the data book with the data book as the source.
-                self.ReadDataBook("data")
-            # Go to the sweep folder.
-            os.chdir('sweep-%s' % fswp)
-            # Get the sweeps themselves (i.e. lists of indices)
-            J = self.GetSweepIndices(fswp, I, cons)
-            # Loop through the subsweeps.
-            for j in J:
-                # Skip empty sweeps
-                if len(j) == 0: continue
-                # Get the first folder name.
-                frun = self.cntl.DataBook.x.GetFullFolderNames(j[0])
-                # Go to the folder.
-                os.chdir(frun)
-                # Go up one, archiving if necessary.
-                self.cd('..')
-                # Go back up to the sweep folder.
-                os.chdir('..')
-            # Go back up to report folder.
-            os.chdir('..')
-        
+   # ]
+    
+    # -------------------
+    # Case/Sweep Updaters
+    # -------------------
+   # [
     # Function to update a sweep
     def UpdateSweep(self, fswp, I=None, cons=[]):
         """Update the pages of a sweep
@@ -849,7 +906,12 @@ class Report(object):
         self.SetCaseJSONIter(n, sts)
         # Go home.
         os.chdir(fpwd)
-        
+   # ]
+    
+    # -------------------------
+    # Figure/Subfigure Updaters
+    # -------------------------
+   # [
     # Function to write a figure.
     def UpdateFigure(self, fig, i, fswp=None):
         """Write the figure and update the contents as necessary for *fig*
@@ -1049,7 +1111,100 @@ class Report(object):
                 lines += self.SubfigSweepCoeff(sfig, fswp, I)
         # Output
         return lines
+   # ]
+  # >
+    
+    # =======
+    # Cleanup
+    # =======
+  # <
+    # Clean up cases
+    def CleanUpCases(self, I=None, cons=[]):
+        """Clean up case folders
         
+        :Call:
+            >>> R.CleanUpCases(I=None, cons=[])
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *I*: :class:`list` (:class:`int`)
+                List of case indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints to define what cases to update
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # Check for use of constraints instead of direct list.
+        I = self.cntl.x.GetIndices(cons=cons, I=I)
+        # Check for folder archiving
+        if self.cntl.opts.get_ReportArchive():
+            # Loop through folders.
+            for frun in self.cntl.x.GetFullFolderNames(I):
+                # Check for the folder (has trouble if a case is repeated)
+                if not os.path.isdir(frun): continue
+                # Go to the folder.
+                os.chdir(frun)
+                # Go up one, archiving if necessary.
+                self.cd('..')
+                # Go back to root directory.
+                os.chdir('..')
+        
+    # Clean up sweeps
+    def CleanUpSweeps(self, I=None, cons=[]):
+        """Clean up the folders for all sweeps
+        
+        :Call:
+            >>> R.CleanUpSweeps(I=None, cons=[])
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *I*: :class:`list` (:class:`int`)
+                List of case indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints to define what cases to update
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # Check for folder archiving
+        if not self.cntl.opts.get_ReportArchive(): return
+        # Get sweep list
+        fswps = self.opts.get('Sweeps', [])
+        # Check type.
+        if type(fswps).__name__ not in ['list', 'ndarray']: fswps = [fswps]
+        # Loop through the sweeps.
+        for fswp in fswps:
+            # Check if only restricting to point currently in the trajectory.
+            if self.cntl.opts.get_SweepOpt(fswp, 'TrajectoryOnly'):
+                # Read the data book with the trajectory as the source.
+                self.ReadDataBook("trajectory")
+            else:
+                # Read the data book with the data book as the source.
+                self.ReadDataBook("data")
+            # Go to the sweep folder.
+            os.chdir('sweep-%s' % fswp)
+            # Get the sweeps themselves (i.e. lists of indices)
+            J = self.GetSweepIndices(fswp, I, cons)
+            # Loop through the subsweeps.
+            for j in J:
+                # Skip empty sweeps
+                if len(j) == 0: continue
+                # Get the first folder name.
+                frun = self.cntl.DataBook.x.GetFullFolderNames(j[0])
+                # Go to the folder.
+                os.chdir(frun)
+                # Go up one, archiving if necessary.
+                self.cd('..')
+                # Go back up to the sweep folder.
+                os.chdir('..')
+            # Go back up to report folder.
+            os.chdir('..')
+  # >
+    
+    
+    # ==========
+    # Subfigures
+    # ==========
+  # <
     # Function to initialize a subfigure
     def SubfigInit(self, sfig):
         """Create the initial lines of a subfigure
@@ -2257,47 +2412,7 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-        
-    # Read iterative history
-    def ReadCaseFM(self, comp):
-        """Read iterative history for a component
-        
-        This function needs to be customized for each solver
-        
-        :Call:
-            >>> FM = R.ReadCaseFM(comp)
-        :Inputs:
-            *R*: :class:`cape.report.Report`
-                Automated report interface
-            *comp*: :class:`str`
-                Name of component to read
-        :Outputs:
-            *FM*: ``None`` or :class:`cape.dataBook.CaseFM` derivative
-                Case iterative force & moment history for one component
-        :Versions:
-            * 2015-10-16 ``@ddalle``: First version
-        """
-        return None
-        
-    # Read residual history
-    def ReadCaseResid(self, sfig=None):
-        """Read iterative residual history for a component
-        
-        This function needs to be customized for each solver
-        
-        :Call:
-            >>> hist = R.ReadCaseResid()
-        :Inputs:
-            *R*: :class:`cape.report.Report`
-                Automated report interface
-        :Outputs:
-            *hist*: ``None`` or :class:`cape.dataBook.CaseResid` derivative
-                Case iterative residual history for one case
-        :Versions:
-            * 2015-10-16 ``@ddalle``: First version
-        """
-        return None
-        
+    
     # Function to create coefficient plot and write figure
     def SubfigParaviewLayout(self, sfig, i):
         """Create image based on a Paraview Python script
@@ -2602,7 +2717,110 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
+  # >
+    
+    # ============
+    # Data Loaders
+    # ============
+  # <
+    # Read iterative history
+    def ReadCaseFM(self, comp):
+        """Read iterative history for a component
         
+        This function needs to be customized for each solver
+        
+        :Call:
+            >>> FM = R.ReadCaseFM(comp)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *comp*: :class:`str`
+                Name of component to read
+        :Outputs:
+            *FM*: ``None`` or :class:`cape.dataBook.CaseFM` derivative
+                Case iterative force & moment history for one component
+        :Versions:
+            * 2015-10-16 ``@ddalle``: First version
+        """
+        return None
+        
+    # Read residual history
+    def ReadCaseResid(self, sfig=None):
+        """Read iterative residual history for a component
+        
+        This function needs to be customized for each solver
+        
+        :Call:
+            >>> hist = R.ReadCaseResid()
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+        :Outputs:
+            *hist*: ``None`` or :class:`cape.dataBook.CaseResid` derivative
+                Case iterative residual history for one case
+        :Versions:
+            * 2015-10-16 ``@ddalle``: First version
+        """
+        return None
+        
+    # Function to read the data book and reread it if necessary
+    def ReadDataBook(self, fsrc="data"):
+        """Read the data book if necessary for a specific sweep
+        
+        :Call:
+            >>> R.ReadDataBook(fsrc="data")
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *fsrc*: :class:`str` [{data} | trajectory]
+                Data book source
+        :Versions:
+            * 2015-05-29 ``@ddalle``: First version
+        """
+        # Check if there's a data book at all.
+        try:
+            # Reference the data book
+            self.cntl.DataBook
+            # Set source to "data"
+            try: 
+                # Check data book source
+                self.cntl.DataBook.source
+            except Exception:
+                # Set source to none.
+                self.cntl.DataBook.source = 'none'
+        except Exception:
+            # Read the data book.
+            self.cntl.ReadDataBook()
+            # Set the source to "inconsistent".
+            self.cntl.DataBook.source = 'none'
+        # Check the existing source.
+        if fsrc == self.cntl.DataBook.source:
+            # Everything is good.
+            return
+        elif self.cntl.DataBook.source != 'none':
+            # Delete the data book.
+            del self.cntl.DataBook
+            # Reread
+            self.cntl.ReadDataBook()
+            # Set the source to "inconsistent".
+            self.cntl.DataBook.source = 'none'
+        # Check the requested source.
+        if fsrc == "trajectory":
+            # Match the data book to the trajectory
+            self.cntl.DataBook.MatchTrajectory()
+            # Save the data book source.
+            self.cntl.DataBook.source = "trajectory"
+        else:
+            # Match the trajectory to the data book.
+            self.cntl.DataBook.UpdateTrajectory()
+            # Save the data book source.
+            self.cntl.DataBook.source = "data"
+  # >
+    
+    # ============
+    # Status Tools
+    # ============
+  # <
     # Read the iteration to which the figures for this report have been updated
     def ReadCaseJSONIter(self):
         """Read JSON file to determine the current iteration for the report
@@ -2765,77 +2983,12 @@ class Report(object):
         json.dump(opts, f, indent=1)
         # Close file.
         f.close()
-        
-    # Function to set the upper-right header
-    def SetHeaderStatus(self, i):
-        """Set header to state iteration progress and summary status
-        
-        :Call:
-            >>> R.WriteCaseSkeleton(i)
-        :Inputs:
-            *R*: :class:`cape.report.Report`
-                Automated report interface
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2014-03-08 ``@ddalle``: First version
-        """
-        # Get case current iteration
-        n = self.cntl.CheckCase(i)
-        # Get case number of required iterations
-        nMax = self.cntl.GetLastIter(i)
-        # Get status
-        sts = self.cntl.CheckCaseStatus(i)
-        # Form iteration string
-        if n is None:
-            # Unknown.
-            fitr = '-/%s' % self.cntl.opts.get_PhaseIters(-1)
-        elif int(n) == n:
-            # Use an integer iteration number
-            fitr = '%i/%s' % (int(n), nMax)
-        else:
-            # Use the values.
-            fitr = '%s/%s' % (n, nMax)
-        # Form string for the status type
-        if sts == "PASS":
-            # Set green
-            fsts = '\\color{green}\\textbf{PASS}'
-        elif sts == "ERROR":
-            # Set red
-            fsts = '\\color{red}\\textbf{ERROR}'
-        else:
-            # No color (black)
-            fsts = '\\textbf{%s}' % sts
-        # Form the line.
-        line = '\\fancyhead[R]{\\textsf{%s, \large%s}}\n' % (fitr, fsts)
-        # Put the line into the text.
-        self.cases[i].ReplaceOrAddLineToSectionStartsWith(
-            '_header', '\\fancyhead[R]', line, -1)
-        # Update sections.
-        self.cases[i].UpdateLines()
-            
-    # Check for any case figures
-    def HasCaseFigures(self):
-        """Check if there are any case figures for this report
-        
-        :Call:
-            >>> q = R.HasCaseFigures()
-        :Inputs:
-            *R*: :class:`cape.report.Report`
-                Automated report interface
-        :Outputs:
-            *q*: :class:`bool`
-                Whether or not any of report figure lists has nonzero length
-        :Versions:
-            * 2015-06-03 ``@ddalle``: First version
-        """
-        # Get the three sets of lists.
-        cfigs = self.cntl.opts.get_ReportFigList(self.rep)
-        efigs = self.cntl.opts.get_ReportErrorFigList(self.rep)
-        zfigs = self.cntl.opts.get_ReportZeroFigList(self.rep)
-        # Check if any of them have nozero length.
-        return (len(cfigs)>0) or (len(efigs)>0) or (len(zfigs)>0)
+  # >
     
+    # =============
+    # Sweep Indices
+    # =============
+  # <
     # Function to get update sweeps
     def GetSweepIndices(self, fswp, I=None, cons=[]):
         """Divide cases into individual sweeps
@@ -2936,60 +3089,12 @@ class Report(object):
             SortVar=xk, EqCons=EqCons, TolCons=TolCons, I=I)
         # Output
         return I
-        
-    # Function to read the data book and reread it if necessary
-    def ReadDataBook(self, fsrc="data"):
-        """Read the data book if necessary for a specific sweep
-        
-        :Call:
-            >>> R.ReadDataBook(fsrc="data")
-        :Inputs:
-            *R*: :class:`cape.report.Report`
-                Automated report interface
-            *fsrc*: :class:`str` [{data} | trajectory]
-                Data book source
-        :Versions:
-            * 2015-05-29 ``@ddalle``: First version
-        """
-        # Check if there's a data book at all.
-        try:
-            # Reference the data book
-            self.cntl.DataBook
-            # Set source to "data"
-            try: 
-                # Check data book source
-                self.cntl.DataBook.source
-            except Exception:
-                # Set source to none.
-                self.cntl.DataBook.source = 'none'
-        except Exception:
-            # Read the data book.
-            self.cntl.ReadDataBook()
-            # Set the source to "inconsistent".
-            self.cntl.DataBook.source = 'none'
-        # Check the existing source.
-        if fsrc == self.cntl.DataBook.source:
-            # Everything is good.
-            return
-        elif self.cntl.DataBook.source != 'none':
-            # Delete the data book.
-            del self.cntl.DataBook
-            # Reread
-            self.cntl.ReadDataBook()
-            # Set the source to "inconsistent".
-            self.cntl.DataBook.source = 'none'
-        # Check the requested source.
-        if fsrc == "trajectory":
-            # Match the data book to the trajectory
-            self.cntl.DataBook.MatchTrajectory()
-            # Save the data book source.
-            self.cntl.DataBook.source = "trajectory"
-        else:
-            # Match the trajectory to the data book.
-            self.cntl.DataBook.UpdateTrajectory()
-            # Save the data book source.
-            self.cntl.DataBook.source = "data"
-            
+  # >
+    
+    # ================
+    # Run Folder Tools
+    # ================
+  # <
     # Function to link appropriate visualization files
     def LinkVizFiles(self):
         """Create links to appropriate visualization files
@@ -3003,37 +3108,7 @@ class Report(object):
             * 2016-02-06 ``@ddalle``: First version
         """
         pass
-        
-    # Function to go into a folder, respecting archive option
-    def cd(self, fdir):
-        """Interface to :func:`os.chdir`, respecting "Archive" option
-        
-        This function can only change one directory at a time.
-        
-        :Call:
-            >>> R.cd(fdir)
-        :Inputs:
-            *R*: :class:`cape.report.Report`
-                Automated report interface
-            *fdir*: :class:`str`
-                Name of directory to change to
-        :Versions:
-            * 2015-03-08 ``@ddalle``: First version
-        """
-        # Get archive option.
-        q = self.cntl.opts.get_ReportArchive()
-        # Check direction.
-        if fdir.startswith('..'):
-            # Check archive option.
-            if q:
-                # Tar and clean up if necessary.
-                tar.chdir_up()
-            else:
-                # Go up a folder.
-                os.chdir('..')
-        else:
-            # Untar if necessary
-            tar.chdir_in(fdir)
+  # >
 # class Report
 
 
