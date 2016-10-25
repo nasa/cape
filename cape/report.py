@@ -940,7 +940,6 @@ class Report(object):
         # Subfigs
         # -------
         # Update the subfigures.
-        print("Label 004: fswp=%s" % fswp)
         if fswp is None:
             # Update case subfigures
             lines += self.UpdateCaseSubfigs(fig, i)
@@ -1140,13 +1139,12 @@ class Report(object):
         lines = []
         # Read settings
         rc = self.ReadCaseJSON()
-        print("label 008: rc=%s" % rc)
         # Get the list of cases and current iterations
         fruns = self.cntl.DataBook.x.GetFullFolderNames(I)
         # Extract first component.
         DBc = self.cntl.DataBook.GetRefComponent()
         # Get current iteration numbers.
-        nIters = list(DBc['nIter'][I])
+        nIter = list(DBc['nIter'][I])
         # Loop through subfigs.
         for sfig in sfigs:
             # Check the status (also prints status update)
@@ -1250,10 +1248,6 @@ class Report(object):
         # Get the list of cases and current iterations
         frunsr = stsf.get("Cases", [])
         nIterr = stsf.get("nIter", [])
-        print("Label 040: fruns= %s" % fruns)
-        print("Label 041: frunsr=%s" % furnsr)
-        print("Label 042: nIter= %s" % nIter)
-        print("Label 043: nIterr=%s" % nIterr)
         # Check the data book status
         if fruns != frunsr:
             # Case list update
