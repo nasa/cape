@@ -285,49 +285,51 @@ class Report(cape.report.Report):
         
     # Update subfig for a sweep
     def UpdateSweepSubfigs(self, fig, fswp, I):
-        """Update subfigures for a sweep figure *fig*
+        """Switch function to find the correct subfigure function
+        
+        This function may need to be defined for each CFD solver
         
         :Call:
-            >>> lines = R.UpdateSweepSubfigs(fig, fswp, I)
+            >>> lines = R.SubfigSwitch(sfig, fswp, I, lines)
         :Inputs:
-            *R*: :class:`pyCart.report.Report`
+            *R*: :class:`cape.report.Report`
                 Automated report interface
-            *fig*: :class:`str`
-                Name of figure to update
+            *sfig*: :class:`str`
+                Name of subfigure to update
             *fswp*: :class:`str`
                 Name of sweep
             *I*: :class:`numpy.ndarray` (:class:`list`)
                 List of case indices in the subsweep
+            *lines*: :class:`list` (:class:`str`)
+                List of lines already in LaTeX file
         :Outputs:
             *lines*: :class:`list` (:class:`str`)
-                List of lines for LaTeX file
+                Updated list of lines for LaTeX file
         :Versions:
             * 2015-05-29 ``@ddalle``: First version
+            * 2016-10-25 ``@ddalle``: First version, from :func:`UpdateSubfig`
         """
-        # Get list of subfigures.
-        sfigs = self.cntl.opts.get_FigSubfigList(fig)
-        # Initialize lines
-        lines = []
-        # Loop through subfigs.
-        for sfig in sfigs:
-            # Get the base type.
-            btyp = self.cntl.opts.get_SubfigBaseType(sfig)
-            # Process it.
-            if btyp == 'Conditions':
-                # Get the content.
-                lines += self.SubfigConditions(sfig, I)
-            elif btyp == 'SweepConditions':
-                # Get the variables constant in the sweep
-                lines += self.SubfigSweepConditions(sfig, fswp, I[0])
-            elif btyp == 'SweepCases':
-                # Get the list of cases.
-                lines += self.SubfigSweepCases(sfig, fswp, I)
-            elif btyp == 'SweepCoeff':
-                # Plot a coefficient sweep
-                lines += self.SubfigSweepCoeff(sfig, fswp, I)
-            elif btyp == 'SweepPointHist':
-                # Plot a point sensor histogram
-                lines += self.SubfigSweepPointHist(sfig, fswp, I)
+        # Get the base type.
+        btyp = self.cntl.opts.get_SubfigBaseType(sfig)
+        # Process it.
+        if btyp == 'Conditions':
+            # Get the content.
+            lines += self.SubfigConditions(sfig, I)
+        elif btyp == 'SweepConditions':
+            # Get the variables constant in the sweep
+            lines += self.SubfigSweepConditions(sfig, fswp, I[0])
+        elif btyp == 'SweepCases':
+            # Get the list of cases.
+            lines += self.SubfigSweepCases(sfig, fswp, I)
+        elif btyp == 'SweepCoeff':
+            # Plot a coefficient sweep
+            lines += self.SubfigSweepCoeff(sfig, fswp, I)
+        elif btyp == 'SweepPointHist':
+            # Plot a point sensor histogram
+            lines += self.SubfigSweepPointHist(sfig, fswp, I)
+        else:
+            # No figure found
+            print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
         # Output
         return lines
         
