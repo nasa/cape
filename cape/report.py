@@ -1149,10 +1149,9 @@ class Report(object):
         # Loop through subfigs.
         for sfig in sfigs:
             # Check the status (also prints status update)
-            if not self.CheckSweepSubfigStatus(sfig, rc, fruns, nIter):
-                continue
+            q = self.CheckSweepSubfigStatus(sfig, rc, fruns, nIter)
             # Process the subfigure
-            lines = self.SweepSubfigSwitch(sfig, fswp, I, lines)
+            lines = self.SweepSubfigSwitch(sfig, fswp, I, lines, q)
             # Save the status
             rc["Status"][sfig] = {
                 "Cases": fruns,
