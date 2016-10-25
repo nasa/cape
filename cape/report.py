@@ -879,7 +879,7 @@ class Report(object):
         # -------
         # Loop through figures.
         for fig in figs:
-            self.UpdateFigure(fig, i, n)
+            self.UpdateFigure(fig, i)
         # -----
         # Write
         # -----
