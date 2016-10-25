@@ -219,7 +219,7 @@ class Report(cape.report.Report):
         return DBL.get(j)
         
     # Update subfig for case
-    def SubfigSwitch(self, sfig, i, lines):
+    def SubfigSwitch(self, sfig, i, lines, q):
         """Switch function to find the correct subfigure function
         
         This function may need to be defined for each CFD solver
@@ -235,6 +235,8 @@ class Report(cape.report.Report):
                 Case index
             *lines*: :class:`list` (:class:`str`)
                 List of lines already in LaTeX file
+            *q*: ``True`` | ``False``
+                Whether or not to redraw images
         :Outputs:
             *lines*: :class:`list` (:class:`str`)
                 Updated list of lines for LaTeX file
@@ -247,50 +249,50 @@ class Report(cape.report.Report):
         # Process it.
         if btyp == 'Conditions':
             # Get the content.
-            lines += self.SubfigConditions(sfig, i)
+            lines += self.SubfigConditions(sfig, i, q)
         elif btyp == 'Summary':
             # Get the force and/or moment summary
-            lines += self.SubfigSummary(sfig, i)
+            lines += self.SubfigSummary(sfig, i, q)
         elif btyp == 'PointSensorTable':
             # Get the point sensor table summary
-            lines += self.SubfigPointSensorTable(sfig, i)
+            lines += self.SubfigPointSensorTable(sfig, i, q)
         elif btyp == 'PlotCoeff':
             # Get the force or moment history plot
-            lines += self.SubfigPlotCoeff(sfig, i)
+            lines += self.SubfigPlotCoeff(sfig, i, q)
         elif btyp == 'PlotLineLoad':
             # Get the sectional loads plot
-            lines += self.SubfigPlotLineLoad(sfig, i)
+            lines += self.SubfigPlotLineLoad(sfig, i, q)
         elif btyp == 'PlotPoint':
             # Get the point sensor history plot
-            lines += self.SubfigPlotPoint(sfig, i)
+            lines += self.SubfigPlotPoint(sfig, i, q)
         elif btyp == 'PlotL1':
             # Get the residual plot
-            lines += self.SubfigPlotL1(sfig, i)
+            lines += self.SubfigPlotL1(sfig, i, q)
         elif btyp == 'PlotResid':
             # Plot generic residual
-            lines += self.SubfigPlotResid(sfig, i)
+            lines += self.SubfigPlotResid(sfig, i, q)
         elif btyp == 'Tecplot3View':
             # Get the Tecplot component view
-            lines += self.SubfigTecplot3View(sfig, i)
+            lines += self.SubfigTecplot3View(sfig, i, q)
         elif btyp == 'Tecplot':
             # Get the Tecplot layout view
-            lines += self.SubfigTecplotLayout(sfig, i)
+            lines += self.SubfigTecplotLayout(sfig, i, q)
         elif btyp == 'Paraview':
             # Get the Paraview layout view
-            lines += self.SubfigParaviewLayout(sfig, i)
+            lines += self.SubfigParaviewLayout(sfig, i, q)
         else:
             print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
         # Output
         return lines
         
     # Update subfig for a sweep
-    def SubfigSwitch(self, sfig, fswp, I, lines):
+    def SubfigSwitch(self, sfig, fswp, I, lines, q):
         """Switch function to find the correct subfigure function
         
         This function may need to be defined for each CFD solver
         
         :Call:
-            >>> lines = R.SubfigSwitch(sfig, fswp, I, lines)
+            >>> lines = R.SubfigSwitch(sfig, fswp, I, lines, q)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
@@ -302,6 +304,8 @@ class Report(cape.report.Report):
                 List of case indices in the subsweep
             *lines*: :class:`list` (:class:`str`)
                 List of lines already in LaTeX file
+            *q*: ``True`` | ``False``
+                Whether or not to redraw images
         :Outputs:
             *lines*: :class:`list` (:class:`str`)
                 Updated list of lines for LaTeX file
@@ -314,19 +318,19 @@ class Report(cape.report.Report):
         # Process it.
         if btyp == 'Conditions':
             # Get the content.
-            lines += self.SubfigConditions(sfig, I)
+            lines += self.SubfigConditions(sfig, I, q)
         elif btyp == 'SweepConditions':
             # Get the variables constant in the sweep
-            lines += self.SubfigSweepConditions(sfig, fswp, I[0])
+            lines += self.SubfigSweepConditions(sfig, fswp, I[0], q)
         elif btyp == 'SweepCases':
             # Get the list of cases.
-            lines += self.SubfigSweepCases(sfig, fswp, I)
+            lines += self.SubfigSweepCases(sfig, fswp, I, q)
         elif btyp == 'SweepCoeff':
             # Plot a coefficient sweep
-            lines += self.SubfigSweepCoeff(sfig, fswp, I)
+            lines += self.SubfigSweepCoeff(sfig, fswp, I, q)
         elif btyp == 'SweepPointHist':
             # Plot a point sensor histogram
-            lines += self.SubfigSweepPointHist(sfig, fswp, I)
+            lines += self.SubfigSweepPointHist(sfig, fswp, I, q)
         else:
             # No figure found
             print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
@@ -335,7 +339,7 @@ class Report(cape.report.Report):
         
         
     # Function to create coefficient plot and write figure
-    def SubfigTecplot3View(self, sfig, i):
+    def SubfigTecplot3View(self, sfig, i, q):
         """Create image of surface for one component using Tecplot
         
         :Call:
@@ -347,6 +351,8 @@ class Report(cape.report.Report):
                 Name of sfigure to update
             *i*: :class:`int`
                 Case index
+            *q*: ``True`` | ``False``
+                Whether or not to redraw images
         :Versions:
             * 2014-03-10 ``@ddalle``: First version
         """
@@ -358,6 +364,41 @@ class Report(cape.report.Report):
         opts = self.cntl.opts
         # Get the component.
         comp = opts.get_SubfigOpt(sfig, "Component")
+        # Get caption.
+        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        # Get the vertical alignment.
+        hv = opts.get_SubfigOpt(sfig, "Position")
+        # Get subfigure width
+        wsfig = opts.get_SubfigOpt(sfig, "Width")
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = opts.get_SubfigOpt(sfig, "Header")
+        # Alignment
+        algn = opts.get_SubfigOpt(sfig, "Alignment")
+        # Set alignment.
+        if algn.lower() == "center":
+            lines.append('\\centering\n')
+        # Write the header.
+        if fhdr:
+            # Save the line
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+            lines.append('\\vskip-6pt\n')
+        # File name
+        fname = "%s-%s" % (sfig, comp)
+        # Check for update status
+        if not q:
+            # Check for the file
+            if os.path.isfile('%s.png' % fname):
+                # Include the graphics.
+                lines.append('\\includegraphics[width=\\textwidth]{%s/%s.png}\n'
+                    % (frun, fname))
+            # Set the caption.
+            if fcpt: lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
+            # Close the subfigure.
+            lines.append('\\end{subfigure}\n')
+            # Output
+            return lines
         # Go to the Cart3D folder
         os.chdir(self.cntl.RootDir)
         # Path to the triangulation
@@ -383,34 +424,12 @@ class Report(cape.report.Report):
             self.cntl.PrepareTri(i)
             # Extract the triangulation
             tri = self.cntl.tri
-        # Get caption.
-        fcpt = opts.get_SubfigOpt(sfig, "Caption")
-        # Get the vertical alignment.
-        hv = opts.get_SubfigOpt(sfig, "Position")
-        # Get subfigure width
-        wsfig = opts.get_SubfigOpt(sfig, "Width")
-        # First line.
-        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
-        # Check for a header.
-        fhdr = opts.get_SubfigOpt(sfig, "Header")
-        # Alignment
-        algn = opts.get_SubfigOpt(sfig, "Alignment")
-        # Set alignment.
-        if algn.lower() == "center":
-            lines.append('\\centering\n')
-        # Write the header.
-        if fhdr:
-            # Save the line
-            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
-            lines.append('\\vskip-6pt\n')
-        # Go to the report case folder
-        os.chdir(fpwd)
-        # File name
-        fname = "%s-%s" % (sfig, comp)
         # Create the image.
         tri.Tecplot3View(fname, comp)
         # Remove the triangulation
         os.remove('%s.tri' % fname)
+        # Go to the report case folder
+        os.chdir(fpwd)
         # Include the graphics.
         lines.append('\\includegraphics[width=\\textwidth]{%s/%s.png}\n'
             % (frun, fname))
@@ -422,11 +441,11 @@ class Report(cape.report.Report):
         return lines
         
     # Function to plot point sensor history
-    def SubfigPlotPoint(self, sfig, i):
+    def SubfigPlotPoint(self, sfig, i, q):
         """Plot iterative history of a point sensor state
         
         :Call:
-            >>> lines = R.SubfigTecplotLayout(sfig, i)
+            >>> lines = R.SubfigPlotPoint(sfig, i, q)
         :Inputs:
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
@@ -434,6 +453,8 @@ class Report(cape.report.Report):
                 Name of sfigure to update
             *i*: :class:`int`
                 Case index
+            *q*: ``True`` | ``False``
+                Whether or not to redraw images
         :Versions:
             * 2015-12-07 ``@ddalle``: First version
         """
@@ -494,6 +515,21 @@ class Report(cape.report.Report):
         if fhdr:
             lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
             lines.append('\\vskip-6pt\n')
+        # Check for image update
+        if not q:
+            # File name to check for
+            fpdf = '%s.pdf' % sfig
+            # Check for the file
+            if os.path.isfile(fpdf):
+                # Include the graphics.
+                lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                    % (frun, fpdf))
+            # Set the caption.
+            lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
+            # Close the subfigure.
+            lines.append('\\end{subfigure}\n')
+            # Output
+            return lines
         # Go to the run directory.
         os.chdir(self.cntl.RootDir)
         os.chdir(frun)
@@ -590,120 +626,13 @@ class Report(cape.report.Report):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-            
-        
-    # Function to create coefficient plot and write figure
-    def SubfigTecplotLayout(self, sfig, i):
-        """Create image based on a Tecplot layout file
-        
-        :Call:
-            >>> lines = R.SubfigTecplotLayout(sfig, i)
-        :Inputs:
-            *R*: :class:`pyCart.report.Report`
-                Automated report interface
-            *sfig*: :class:`str`
-                Name of sfigure to update
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2014-03-10 ``@ddalle``: First version
-        """
-        # Save current folder.
-        fpwd = os.getcwd()
-        # Case folder
-        frun = self.cntl.x.GetFullFolderNames(i)
-        # Extract options
-        opts = self.cntl.opts
-        # Get the component.
-        comp = opts.get_SubfigOpt(sfig, "Component")
-        # Get caption.
-        fcpt = opts.get_SubfigOpt(sfig, "Caption")
-        # Get the vertical alignment.
-        hv = opts.get_SubfigOpt(sfig, "Position")
-        # Get subfigure width
-        wsfig = opts.get_SubfigOpt(sfig, "Width")
-        # First line.
-        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
-        # Check for a header.
-        fhdr = opts.get_SubfigOpt(sfig, "Header")
-        # Alignment
-        algn = opts.get_SubfigOpt(sfig, "Alignment")
-        # Set alignment.
-        if algn.lower() == "center":
-            lines.append('\\centering\n')
-        # Write the header.
-        if fhdr:
-            # Save the line
-            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
-            lines.append('\\vskip-6pt\n')
-        # Go to the Cart3D folder
-        os.chdir(self.cntl.RootDir)
-        # Check if the run directory exists.
-        if os.path.isdir(frun):
-            # Go there.
-            os.chdir(frun)
-            # Get the most recent PLT files.
-            LinkPLT()
-            # Layout file
-            flay = opts.get_SubfigOpt(sfig, "Layout")
-            # Full path to layout file
-            fsrc = os.path.join(self.cntl.RootDir, flay)
-            # Get just the file name
-            flay = os.path.split(flay)[-1]
-            # Read the Mach number option
-            omach = opts.get_SubfigOpt(sfig, "Mach")
-            # Read the Tecplot layout
-            tec = Tecscript(fsrc)
-            # Set the Mach number
-            try:
-                tec.SetMach(getattr(self.cntl.x,omach)[i])
-            except Exception:
-                pass
-            # Figure width in pixels (can be ``None``).
-            wfig = opts.get_SubfigOpt(sfig, "FigWidth")
-            # Width in the report
-            wplt = opts.get_SubfigOpt(sfig, "Width")
-            # Layout file without extension
-            fname = ".".join(flay.split(".")[:-1])
-            # Figure file name.
-            fname = "%s.png" % (sfig)
-            # Check for the files.
-            if (os.path.isfile('Components.i.plt') and 
-                    os.path.isfile('cutPlanes.plt')):
-                # Run Tecplot
-                try:
-                    # Copy the file into the current folder.
-                    tec.Write(flay)
-                    # Run the layout.
-                    ExportLayout(flay, fname=fname, w=wfig)
-                    # Move the file.
-                    os.rename(fname, os.path.join(fpwd,fname))
-                    # Form the line
-                    line = (
-                        '\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                        % (frun, fname))
-                    # Include the graphics.
-                    lines.append(line)
-                    # Remove the layout file.
-                    os.remove(flay)
-                except Exception:
-                    pass
-        # Go to the report case folder
-        os.chdir(fpwd)
-        # Set the caption.
-        if fcpt:
-            lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
-        # Close the subfigure.
-        lines.append('\\end{subfigure}\n')
-        # Output
-        return lines
         
     # Function to write pressure coefficient table
-    def SubfigPointSensorTable(self, sfig, i):
+    def SubfigPointSensorTable(self, sfig, i, q):
         """Create lines for a "PointSensorTable" subfigure
         
         :Call:
-            >>> lines = R.SubfigPointTable(sfig, i)
+            >>> lines = R.SubfigPointTable(sfig, i, q)
         :Inputs:
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
@@ -711,6 +640,8 @@ class Report(cape.report.Report):
                 Name of subfigure to update
             *i*: :class:`int`
                 Case index
+            *q*: ``True`` | ``False``
+                Whether or not to redraw images
         :Versions:
             * 2015-12-07 ``@ddalle``: First version
         """
@@ -945,7 +876,7 @@ class Report(cape.report.Report):
         return lines
         
     # Function to plot mean coefficient for a sweep
-    def SubfigSweepPointHist(self, sfig, fswp, I):
+    def SubfigSweepPointHist(self, sfig, fswp, I, q):
         """Plot a histogram of a point sensor coefficient over several cases
         
         :Call:
@@ -959,6 +890,8 @@ class Report(cape.report.Report):
                 Name of sweep
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of indices in the sweep
+            *q*: ``True`` | ``False``
+                Whether or not to redraw images
         :Versions:
             * 2016-01-16 ``@ddalle``: First version
         """
@@ -975,6 +908,31 @@ class Report(cape.report.Report):
         pt = opts.get_SubfigOpt(sfig, "Point")
         # Get the coefficient
         coeff = opts.get_SubfigOpt(sfig, "Coefficient")
+        # Get caption
+        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        # Process default caption
+        if fcpt is None:
+            # Use the point name and the coefficient
+            fcpt = "%s/%s" % (pt, coeff)
+        # Ensure that there are not underscores.
+        fcpt = fcpt.replace("_", "\_")
+        # Initialize subfigure
+        lines = self.SubfigInit(sfig)
+        # Check for image update
+        if not q:
+            # File name to check for
+            fpdf = '%s.pdf' % sfig
+            # Check for the file
+            if os.path.isfile(fpdf):
+                # Include the graphics.
+                lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                    % (frun, fpdf))
+            # Set the caption.
+            lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
+            # Close the subfigure.
+            lines.append('\\end{subfigure}\n')
+            # Output
+            return lines
         # Get list of targets
         targs = self.SubfigTargets(sfig)
         # Read the point sensor group data book
@@ -1022,16 +980,6 @@ class Report(cape.report.Report):
                 ltarg[i] = targ
         # Distribution variable
         xk = opts.get_SweepOpt(fswp, "XAxis")
-        # Get caption
-        fcpt = opts.get_SubfigOpt(sfig, "Caption")
-        # Process default caption
-        if fcpt is None:
-            # Use the point name and the coefficient
-            fcpt = "%s/%s" % (pt, coeff)
-        # Ensure that there are not underscores.
-        fcpt = fcpt.replace("_", "\_")
-        # Initialize subfigure
-        lines = self.SubfigInit(sfig)
         # Form options for point sensor histogram
         kw_h = {
             # Reference values
@@ -1164,6 +1112,22 @@ class Report(cape.report.Report):
             sym = '$%s$' % lbl
         # Output
         return sym
+        
+    # Read a Tecplot script
+    def ReadTecscript(self, fsrc):
+        """Read a Tecplot script interface
+        
+        :Call:
+            >>> R.ReadTecscript(fsrc)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *fscr*: :class:`str`
+                Name of file to read
+        :Versions:
+            * 2016-10-25 ``@ddalle``: First version
+        """
+        return Tecscript(fsrc)
             
     # Function to link appropriate visualization files
     def LinkVizFiles(self):

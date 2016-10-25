@@ -993,10 +993,9 @@ class Report(object):
         # Loop through subfigs.
         for sfig in sfigs:
             # Check the status (also prints status update)
-            if not self.CheckSubfigStatus(sfig, rc, n):
-                continue
+            q = self.CheckSubfigStatus(sfig, rc, n)
             # Use a separate function to find the right updater
-            lines = self.SubfigSwitch(sfig, i, lines)
+            lines = self.SubfigSwitch(sfig, i, lines, q)
             # Update the settings
             rc["Status"][sfig] = n
             rc["Subfigures"][sfig] = self.cntl.opts.get_Subfigure(sfig)
@@ -1053,13 +1052,13 @@ class Report(object):
         return False
         
     # Point to the correct subfigure updater
-    def SubfigSwitch(self, sfig, i, lines):
+    def SubfigSwitch(self, sfig, i, lines, q):
         """Switch function to find the correct subfigure function
         
         This function may need to be defined for each CFD solver
         
         :Call:
-            >>> lines = R.SubfigSwitch(sfig, i, lines)
+            >>> lines = R.SubfigSwitch(sfig, i, lines, q)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
@@ -1069,6 +1068,8 @@ class Report(object):
                 Case index
             *lines*: :class:`list` (:class:`str`)
                 List of lines already in LaTeX file
+            *q*: ``True`` | ``False``
+                Whether or not to regenerate subfigure
         :Outputs:
             *lines*: :class:`list` (:class:`str`)
                 Updated list of lines for LaTeX file
@@ -1080,31 +1081,31 @@ class Report(object):
         # Process it.
         if btyp == 'Conditions':
             # Get the content.
-            lines += self.SubfigConditions(sfig, i)
+            lines += self.SubfigConditions(sfig, i, q)
         elif btyp == 'Summary':
             # Get the force and/or moment summary
-            lines += self.SubfigSummary(sfig, i)
+            lines += self.SubfigSummary(sfig, i, q)
         elif btyp == 'PlotCoeff':
             # Get the force or moment history plot
-            lines += self.SubfigPlotCoeff(sfig, i)
+            lines += self.SubfigPlotCoeff(sfig, i, q)
         elif btyp == 'PlotLineLoad':
             # Plot a sectional loads plot
-            lines += self.SubfigPlotLineLoad(sfig, i)
+            lines += self.SubfigPlotLineLoad(sfig, i, q)
         elif btyp == 'PlotL1':
             # Get the residual plot
-            lines += self.SubfigPlotL1(sfig, i)
+            lines += self.SubfigPlotL1(sfig, i, q)
         elif btyp == 'PlotL2':
             # Get the global residual plot
-            lines += self.SubfigPlotL2(sfig, i)
+            lines += self.SubfigPlotL2(sfig, i, q)
         elif btyp == ['PlotResid', 'PlotTurbResid', 'PlotSpeciesResid']:
             # Plot generic residual
-            lines += self.SubfigPlotResid(sfig, i)
+            lines += self.SubfigPlotResid(sfig, i, q)
         elif btyp == 'Paraview':
             # Get the Paraview layout view
-            lines += self.SubfigParaviewLayout(sfig, i)
+            lines += self.SubfigParaviewLayout(sfig, i, q)
         elif btyp == 'Tecplot':
             # Use a Tecplot layout
-            lines += self.SubfigTecplotLayout(sfig, i)
+            lines += self.SubfigTecplotLayout(sfig, i, q)
         else:
             print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
         # Output
@@ -1165,7 +1166,7 @@ class Report(object):
         return lines
     
     # Point to the correct subfigure updater
-    def SweepSubfigSwitch(self, sfig, fswp, I, lines):
+    def SweepSubfigSwitch(self, sfig, fswp, I, lines, q):
         """Switch function to find the correct subfigure function
         
         This function may need to be defined for each CFD solver
@@ -1183,6 +1184,8 @@ class Report(object):
                 List of case indices in the subsweep
             *lines*: :class:`list` (:class:`str`)
                 List of lines already in LaTeX file
+            *q*: ``True`` | ``False``
+                Whether or not to regenerate subfigure
         :Outputs:
             *lines*: :class:`list` (:class:`str`)
                 Updated list of lines for LaTeX file
@@ -1194,16 +1197,16 @@ class Report(object):
         # Process it.
         if btyp == 'Conditions':
             # Get the content.
-            lines += self.SubfigConditions(sfig, I)
+            lines += self.SubfigConditions(sfig, I, q)
         elif btyp == 'SweepConditions':
             # Get the variables constant in the sweep
-            lines += self.SubfigSweepConditions(sfig, fswp, I[0])
+            lines += self.SubfigSweepConditions(sfig, fswp, I[0], q)
         elif btyp == 'SweepCases':
             # Get the list of cases.
-            lines += self.SubfigSweepCases(sfig, fswp, I)
+            lines += self.SubfigSweepCases(sfig, fswp, I, q)
         elif btyp == 'SweepCoeff':
             # Plot a coefficient sweep
-            lines += self.SubfigSweepCoeff(sfig, fswp, I)
+            lines += self.SubfigSweepCoeff(sfig, fswp, I, q)
         else:
             # No figure found
             print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
@@ -1404,12 +1407,12 @@ class Report(object):
         return lines
     
     # Function to write conditions table
-    def SubfigConditions(self, sfig, I):
+    def SubfigConditions(self, sfig, I, q=True):
         """Create lines for a "Conditions" subfigure
         
         :Call:
-            >>> lines = R.SubfigConditions(sfig, i)
-            >>> lines = R.SubfigConditions(sfig, I)
+            >>> lines = R.SubfigConditions(sfig, i, q=True)
+            >>> lines = R.SubfigConditions(sfig, I, q=True)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
@@ -1419,6 +1422,8 @@ class Report(object):
                 Case index
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of case indices
+            *q*: ``True`` | ``False``
+                Whether or not to update images
         :Versions:
             * 2014-03-08 ``@ddalle``: First version
             * 2014-06-02 ``@ddalle``: Added range capability
@@ -1515,11 +1520,11 @@ class Report(object):
         return lines
     
     # Function to write sweep conditions table
-    def SubfigSweepConditions(self, sfig, fswp, i):
+    def SubfigSweepConditions(self, sfig, fswp, i, q=True):
         """Create lines for a "SweepConditions" subfigure
         
         :Call:
-            >>> lines = R.SubfigSweepConditions(sfig, fswp, I)
+            >>> lines = R.SubfigSweepConditions(sfig, fswp, I, q)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
@@ -1529,6 +1534,8 @@ class Report(object):
                 Name of sweep
             *i*: :class:`int`
                 Case index
+            *q*: ``True`` | ``False``
+                Whether or not to update images
         :Outputs:
             *lines*: :class:`str`
                 List of lines in the subfigure
@@ -1624,7 +1631,7 @@ class Report(object):
         return lines
         
     # Function to write sweep conditions table
-    def SubfigSweepCases(self, sfig, fswp, I):
+    def SubfigSweepCases(self, sfig, fswp, I, q=True):
         """Create lines for a "SweepConditions" subfigure
         
         :Call:
@@ -1638,6 +1645,8 @@ class Report(object):
                 Name of sweep
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 Case indices
+            *q*: ``True`` | ``False``
+                Whether or not to update images
         :Outputs:
             *lines*: :class:`str`
                 List of lines in the subfigure
@@ -1690,11 +1699,11 @@ class Report(object):
         return lines
         
     # Function to create coefficient plot and write figure
-    def SubfigPlotCoeff(self, sfig, i):
+    def SubfigPlotCoeff(self, sfig, i, q):
         """Create plot for a coefficient and input lines int LaTeX file
         
         :Call:
-            >>> lines = R.SubfigPlotCoeff(sfig, i)
+            >>> lines = R.SubfigPlotCoeff(sfig, i, q)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
@@ -1702,6 +1711,8 @@ class Report(object):
                 Name of subfigure to update
             *i*: :class:`int`
                 Case index
+            *q*: ``True`` | ``False``
+                Whether or not to update images
         :Versions:
             * 2015-03-09 ``@ddalle``: First version
         """
@@ -1745,6 +1756,21 @@ class Report(object):
             fcpt = fcpt.replace('_', '\_')
         # First lines.
         lines = self.SubfigInit(sfig)
+        # Check for image update
+        if not q:
+            # File name to check for
+            fpdf = '%s.pdf' % sfig
+            # Check for the file
+            if os.path.isfile(fpdf):
+                # Include the graphics.
+                lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                    % (frun, fpdf))
+            # Set the caption.
+            lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
+            # Close the subfigure.
+            lines.append('\\end{subfigure}\n')
+            # Output
+            return lines
         # Loop through plots.
         for k in range(nCoeff):
             # Get the component and coefficient.
@@ -1853,11 +1879,11 @@ class Report(object):
         return lines
         
     # Function to create coefficient plot and write figure
-    def SubfigPlotLineLoad(self, sfig, i):
+    def SubfigPlotLineLoad(self, sfig, i, q):
         """Create plot for a sectional loads profile
         
         :Call:
-            >>> lines = R.SubfigPlotLineLoad(sfig, i)
+            >>> lines = R.SubfigPlotLineLoad(sfig, i, q)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
@@ -1865,6 +1891,8 @@ class Report(object):
                 Name of subfigure to update
             *i*: :class:`int`
                 Case index
+            *q*: ``True`` | ``False``
+                Whether or not to update images
         :Versions:
             * 2016-06-10 ``@ddalle``: First version
         """
@@ -1924,6 +1952,21 @@ class Report(object):
             fcpt = fcpt.replace('_', '\_')
         # First lines.
         lines = self.SubfigInit(sfig)
+        # Check for image update
+        if not q:
+            # File name to check for
+            fpdf = '%s.pdf' % sfig
+            # Check for the file
+            if os.path.isfile(fpdf):
+                # Include the graphics.
+                lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                    % (frun, fpdf))
+            # Set the caption.
+            lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
+            # Close the subfigure.
+            lines.append('\\end{subfigure}\n')
+            # Output
+            return lines
         # Initialize plot count
         nPlot = 0
         # Loop through plots.
@@ -2046,11 +2089,11 @@ class Report(object):
         return lines
     
     # Function to plot mean coefficient for a sweep
-    def SubfigSweepCoeff(self, sfig, fswp, I):
+    def SubfigSweepCoeff(self, sfig, fswp, I, q):
         """Plot a sweep of a coefficient over several cases
         
         :Call:
-            >>> R.SubfigSweepCoeff(sfig, fswp, I)
+            >>> R.SubfigSweepCoeff(sfig, fswp, I, q)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
@@ -2060,6 +2103,8 @@ class Report(object):
                 Name of sweep
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of indices in the sweep
+            *q*: ``True`` | ``False``
+                Whether or not to update images
         :Versions:
             * 2015-05-28 ``@ddalle``: First version
         """
@@ -2132,6 +2177,22 @@ class Report(object):
         fcpt = fcpt.replace("_", "\_")
         # Initialize subfigure
         lines = self.SubfigInit(sfig)
+        # Check for image update
+        if not q:
+            # File name to check for
+            fpdf = '%s.pdf' % sfig
+            # Check for the file
+            if os.path.isfile(fpdf):
+                # Include the graphics.
+                lines.append(
+                    '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
+                    % (fswp, frun, fpdf))
+            # Set the caption.
+            lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
+            # Close the subfigure.
+            lines.append('\\end{subfigure}\n')
+            # Output
+            return lines
         # Loop through plots.
         for i in range(nSweep*nCoeff):
             # Coefficient index
@@ -2265,6 +2326,8 @@ class Report(object):
                 Name of sfigure to update
             *k*: :class:`int`
                 Plot index
+            *q*: ``True`` | ``False``
+                Whether or not to update images
         :Outputs:
             *lbl*: :class:`str`
                 Plot label
@@ -2388,11 +2451,11 @@ class Report(object):
         return targs
         
     # Function to create coefficient plot and write figure
-    def SubfigPlotL1(self, sfig, i):
+    def SubfigPlotL1(self, sfig, i, q):
         """Create plot for L1 residual
         
         :Call:
-            >>> lines = R.SubfigPlotL1(sfig, i)
+            >>> lines = R.SubfigPlotL1(sfig, i, q)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
@@ -2400,18 +2463,20 @@ class Report(object):
                 Name of sfigure to update
             *i*: :class:`int`
                 Case index
+            *q*: ``True`` | ``False``
+                Whether or not to update images
         :Versions:
             * 2014-03-09 ``@ddalle``: First version
             * 2015-11-25 ``@ddalle``: Moved contents to :func:`SubfigPlotResid`
         """
-        return self.SubfigPlotResid(sfig, i, c='L1')
+        return self.SubfigPlotResid(sfig, i, q, c='L1')
         
     # Function to create L2 plot and write figure
-    def SubfigPlotL2(self, sfig, i):
+    def SubfigPlotL2(self, sfig, i, q):
         """Create plot for L2 residual
         
         :Call:
-            >>> lines = R.SubfigPlotL2(sfig, i)
+            >>> lines = R.SubfigPlotL2(sfig, i, q)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
@@ -2419,17 +2484,19 @@ class Report(object):
                 Name of sfigure to update
             *i*: :class:`int`
                 Case index
+            *q*: ``True`` | ``False``
+                Whether or not to update images
         :Versions:
             * 2015-11-25 ``@ddalle``: First version
         """
-        return self.SubfigPlotResid(sfig, i, c='L2')
+        return self.SubfigPlotResid(sfig, i, q, c='L2')
         
     # Function to create L-infinity plot and write figure
-    def SubfigPlotLInf(self, sfig, i):
+    def SubfigPlotLInf(self, sfig, i, q):
         """Create plot for L2 residual
         
         :Call:
-            >>> lines = R.SubfigPlotL2(sfig, i)
+            >>> lines = R.SubfigPlotL2(sfig, i, q)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
@@ -2437,17 +2504,19 @@ class Report(object):
                 Name of sfigure to update
             *i*: :class:`int`
                 Case index
+            *q*: ``True`` | ``False``
+                Whether or not to update images
         :Versions:
             * 2015-11-25 ``@ddalle``: First version
         """
-        return self.SubfigPlotResid(sfig, i, c='LInf')
+        return self.SubfigPlotResid(sfig, i, q, c='LInf')
         
     # Function to create L2 plot and write figure
-    def SubfigPlotTurbResid(self, sfig, i):
+    def SubfigPlotTurbResid(self, sfig, i, q):
         """Create plot for turbulence residual
         
         :Call:
-            >>> lines = R.SubfigPlotTurbResid(sfig, i)
+            >>> lines = R.SubfigPlotTurbResid(sfig, i, q)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
@@ -2455,17 +2524,19 @@ class Report(object):
                 Name of sfigure to update
             *i*: :class:`int`
                 Case index
+            *q*: ``True`` | ``False``
+                Whether or not to update images
         :Versions:
             * 2015-11-25 ``@ddalle``: First version
         """
-        return self.SubfigPlotResid(sfig, i, c='TurbResid')
+        return self.SubfigPlotResid(sfig, i, q, c='TurbResid')
     
     # Function to create coefficient plot and write figure
-    def SubfigPlotResid(self, sfig, i, c=None):
+    def SubfigPlotResid(self, sfig, i, q, c=None):
         """Create plot for named residual
         
         :Call:
-            >>> lines = R.SubfigPlotResid(sfig, i, r=None)
+            >>> lines = R.SubfigPlotResid(sfig, i, c=None)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
@@ -2473,7 +2544,9 @@ class Report(object):
                 Name of sfigure to update
             *i*: :class:`int`
                 Case index
-            *r*: :class:`str`
+            *q*: ``True`` | ``False``
+                Whether or not to update images
+            *c*: :class:`str`
                 Name of residual to plot (defaults to option from JSON)
         :Versions:
             * 2014-03-09 ``@ddalle``: First version
@@ -2503,6 +2576,21 @@ class Report(object):
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
         # First lines.
         lines = self.SubfigInit(sfig)
+        # Check for image update
+        if not q:
+            # File name to check for
+            fpdf = '%s.pdf' % sfig
+            # Check for the file
+            if os.path.isfile(fpdf):
+                # Include the graphics.
+                lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                    % (frun, fpdf))
+            # Set the caption.
+            lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
+            # Close the subfigure.
+            lines.append('\\end{subfigure}\n')
+            # Output
+            return lines
         # Create plot if possible
         if nIter >= 2:
             # Go to the run directory.
@@ -2572,11 +2660,11 @@ class Report(object):
         return lines
     
     # Function to create coefficient plot and write figure
-    def SubfigParaviewLayout(self, sfig, i):
+    def SubfigParaviewLayout(self, sfig, i, q):
         """Create image based on a Paraview Python script
         
         :Call:
-            >>> lines = R.SubfigParaviewLayout(sfig, i)
+            >>> lines = R.SubfigParaviewLayout(sfig, i, q)
         :Inputs:
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
@@ -2584,6 +2672,8 @@ class Report(object):
                 Name of sfigure to update
             *i*: :class:`int`
                 Case index
+            *q*: ``True`` | ``False``
+                Whether or not to update images
         :Versions:
             * 2015-11-22 ``@ddalle``: First version
         """
@@ -2641,20 +2731,155 @@ class Report(object):
             fout = opts.get_SubfigOpt(sfig, "ImageFile")
             # Name of executable
             fcmd = opts.get_SubfigOpt(sfig, "Command")
-            # Run Paraview
-            try:
-                # Copy the file into the current folder.
-                shutil.copy(fsrc, '.')
-                # Run the layout.
-                pvpython(flay, cmd=fcmd)
-                # Move the file to the location this subfig was built in
-                os.rename(fout, os.path.join(fpwd,fname))
+            # Check for update
+            if q:
+                # Run Paraview
+                try:
+                    # Copy the file into the current folder.
+                    shutil.copy(fsrc, '.')
+                    # Run the layout.
+                    pvpython(flay, cmd=fcmd)
+                    # Move the file to the location this subfig was built in
+                    os.rename(fout, os.path.join(fpwd,fname))
+                except Exception:
+                    pass
+            # Check for file
+            if os.path.isfile(os.path.join(fpwd,fname)):
+                # Form the line to include the image in LaTeX
+                line = (
+                    '\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                    % (frun, fname))
+                # Include the graphics.
+                lines.append(line)
+        # Go to the report case folder
+        os.chdir(fpwd)
+        # Set the caption.
+        if fcpt:
+            lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
+        # Close the subfigure.
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
+        
+    # Function to create coefficient plot and write figure
+    def SubfigTecplotLayout(self, sfig, i, q):
+        """Create image based on a Tecplot layout file
+        
+        :Call:
+            >>> lines = R.SubfigTecplotLayout(sfig, i)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2016-09-06 ``@ddalle``: First version
+            * 2016-10-05 ``@ddalle``: Added "FieldMap" option
+            * 2016-10-25 ``@ddalle``: First :mod:`cape` version
+        """
+        # Save current folder.
+        fpwd = os.getcwd()
+        # Case folder
+        frun = self.cntl.x.GetFullFolderNames(i)
+        # Extract options
+        opts = self.cntl.opts
+        # Get the component.
+        comp = opts.get_SubfigOpt(sfig, "Component")
+        # Get caption.
+        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        # Get the vertical alignment.
+        hv = opts.get_SubfigOpt(sfig, "Position")
+        # Get subfigure width
+        wsfig = opts.get_SubfigOpt(sfig, "Width")
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = opts.get_SubfigOpt(sfig, "Header")
+        # Alignment
+        algn = opts.get_SubfigOpt(sfig, "Alignment")
+        # Set alignment.
+        if algn.lower() == "center":
+            lines.append('\\centering\n')
+        # Write the header.
+        if fhdr:
+            # Save the line
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+            lines.append('\\vskip-6pt\n')
+        # Check for an update
+        if not q:
+            # Figure file name.
+            fname = "%s.png" % (sfig)
+            # Check if the file exists
+            if os.path.isfile(fname):
                 # Form the line
                 line = (
                     '\\includegraphics[width=\\textwidth]{%s/%s}\n'
                     % (frun, fname))
                 # Include the graphics.
                 lines.append(line)
+            # Set the caption.
+            if fcpt:
+                lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
+            # Close the subfigure.
+            lines.append('\\end{subfigure}\n')
+            # Output
+            return lines
+        # Go to the Cart3D folder
+        os.chdir(self.cntl.RootDir)
+        # Check if the run directory exists.
+        if os.path.isdir(frun):
+            # Go there.
+            os.chdir(frun)
+            # Get the most recent PLT files.
+            self.LinkVizFiles()
+            # Layout file
+            flay = opts.get_SubfigOpt(sfig, "Layout")
+            # Full path to layout file
+            fsrc = os.path.join(self.cntl.RootDir, flay)
+            # Get just the file name
+            flay = os.path.split(flay)[-1]
+            # Read the Mach number option
+            omach = opts.get_SubfigOpt(sfig, "Mach")
+            # Read the zone numbers for each FIELDMAP command
+            grps = opts.get_SubfigOpt(sfig, "FieldMap")
+            # Read the Tecplot layout
+            tec = self.ReadTecscript(fsrc)
+            # Set the Mach number if appropriate
+            if omach:
+                try:
+                    tec.SetMach(getattr(self.cntl.x,omach)[i])
+                except Exception:
+                    pass
+            # Set the field map
+            if grps is not None:
+                try:
+                    tec.SetFieldMap(grps)
+                except Exception:
+                    pass
+            # Figure width in pixels (can be ``None``).
+            wfig = opts.get_SubfigOpt(sfig, "FigWidth")
+            # Width in the report
+            wplt = opts.get_SubfigOpt(sfig, "Width")
+            # Figure file name.
+            fname = "%s.png" % (sfig)
+            # Run Tecplot
+            try:
+                # Copy the file into the current folder.
+                tec.Write(flay)
+                # Run the layout.
+                ExportLayout(flay, fname=fname, w=wfig)
+                # Move the file.
+                os.rename(fname, os.path.join(fpwd,fname))
+                # Form the line
+                line = (
+                    '\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                    % (frun, fname))
+                # Include the graphics.
+                lines.append(line)
+                # Remove the layout file.
+                os.remove(flay)
             except Exception:
                 pass
         # Go to the report case folder
@@ -2668,11 +2893,11 @@ class Report(object):
         return lines
         
     # Function to write summary table
-    def SubfigSummary(self, sfig, i):
+    def SubfigSummary(self, sfig, i, q=True):
         """Create lines for a "Summary" subfigure
         
         :Call:
-            >>> lines = R.SubfigSummary(sfig, i)
+            >>> lines = R.SubfigSummary(sfig, i, q=True)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
@@ -2680,6 +2905,8 @@ class Report(object):
                 Name of sfigure to update
             *i*: :class:`int`
                 Case index
+            *q*: ``True`` | ``False``
+                Whether or not to update images
         :Versions:
             * 2014-03-09 ``@ddalle``: First version
         """

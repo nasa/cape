@@ -48,7 +48,7 @@ class Report(cape.report.Report):
     __str__ = __repr__
             
     # Update subfig for case
-    def SubfigSwitch(self, sfig, i, lines):
+    def SubfigSwitch(self, sfig, i, lines, q):
         """Switch function to find the correct subfigure function
         
         This function may need to be defined for each CFD solver
@@ -64,6 +64,8 @@ class Report(cape.report.Report):
                 Case index
             *lines*: :class:`list` (:class:`str`)
                 List of lines already in LaTeX file
+            *q*: ``True`` | ``False``
+                Whether or not to regenerate subfigure
         :Outputs:
             *lines*: :class:`list` (:class:`str`)
                 Updated list of lines for LaTeX file
@@ -76,143 +78,36 @@ class Report(cape.report.Report):
         # Process it.
         if btyp == 'Conditions':
             # Get the content.
-            lines += self.SubfigConditions(sfig, i)
+            lines += self.SubfigConditions(sfig, i, q)
         elif btyp == 'Summary':
             # Get the force and/or moment summary
-            lines += self.SubfigSummary(sfig, i)
+            lines += self.SubfigSummary(sfig, i, q)
         elif btyp == 'PointSensorTable':
             # Get the point sensor table summary
-            lines += self.SubfigPointSensorTable(sfig, i)
+            lines += self.SubfigPointSensorTable(sfig, i, q)
         elif btyp == 'PlotCoeff':
             # Get the force or moment history plot
-            lines += self.SubfigPlotCoeff(sfig, i)
+            lines += self.SubfigPlotCoeff(sfig, i, q)
         elif btyp == 'PlotLineLoad':
             # Get the sectional loads plot
-            lines += self.SubfigPlotLineLoad(sfig, i)
+            lines += self.SubfigPlotLineLoad(sfig, i, q)
         elif btyp == 'PlotPoint':
             # Get the point sensor history plot
-            lines += self.SubfigPlotPoint(sfig, i)
+            lines += self.SubfigPlotPoint(sfig, i, q)
         elif btyp == 'PlotL2':
             # Get the residual plot
-            lines += self.SubfigPlotL2(sfig, i)
+            lines += self.SubfigPlotL2(sfig, i, q)
         elif btyp == 'PlotInf':
             # Get the residual plot
-            lines += self.SubfigPlotLInf(sfig, i)
+            lines += self.SubfigPlotLInf(sfig, i, q)
         elif btyp == 'PlotResid':
             # Plot generic residual
-            lines += self.SubfigPlotResid(sfig, i)
+            lines += self.SubfigPlotResid(sfig, i, q)
         elif btyp == 'Tecplot':
             # Get the Tecplot layout view
-            lines += self.SubfigTecplotLayout(sfig, i)
+            lines += self.SubfigTecplotLayout(sfig, i, q)
         else:
             print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
-        # Output
-        return lines
-        
-    # Function to create coefficient plot and write figure
-    def SubfigTecplotLayout(self, sfig, i):
-        """Create image based on a Tecplot layout file
-        
-        :Call:
-            >>> lines = R.SubfigTecplotLayout(sfig, i)
-        :Inputs:
-            *R*: :class:`pyFun.report.Report`
-                Automated report interface
-            *sfig*: :class:`str`
-                Name of sfigure to update
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2016-09-06 ``@ddalle``: First version
-            * 2016-10-05 ``@ddalle``: Added "FieldMap" option
-        """
-        # Save current folder.
-        fpwd = os.getcwd()
-        # Case folder
-        frun = self.cntl.x.GetFullFolderNames(i)
-        # Extract options
-        opts = self.cntl.opts
-        # Get the component.
-        comp = opts.get_SubfigOpt(sfig, "Component")
-        # Get caption.
-        fcpt = opts.get_SubfigOpt(sfig, "Caption")
-        # Get the vertical alignment.
-        hv = opts.get_SubfigOpt(sfig, "Position")
-        # Get subfigure width
-        wsfig = opts.get_SubfigOpt(sfig, "Width")
-        # First line.
-        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
-        # Check for a header.
-        fhdr = opts.get_SubfigOpt(sfig, "Header")
-        # Alignment
-        algn = opts.get_SubfigOpt(sfig, "Alignment")
-        # Set alignment.
-        if algn.lower() == "center":
-            lines.append('\\centering\n')
-        # Write the header.
-        if fhdr:
-            # Save the line
-            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
-            lines.append('\\vskip-6pt\n')
-        # Go to the Cart3D folder
-        os.chdir(self.cntl.RootDir)
-        # Check if the run directory exists.
-        if os.path.isdir(frun):
-            # Go there.
-            os.chdir(frun)
-            # Get the most recent PLT files.
-            LinkPLT()
-            # Layout file
-            flay = opts.get_SubfigOpt(sfig, "Layout")
-            # Full path to layout file
-            fsrc = os.path.join(self.cntl.RootDir, flay)
-            # Get just the file name
-            flay = os.path.split(flay)[-1]
-            # Read the Mach number option
-            omach = opts.get_SubfigOpt(sfig, "Mach")
-            # Read the zone numbers for each FIELDMAP command
-            grps = opts.get_SubfigOpt(sfig, "FieldMap")
-            # Read the Tecplot layout
-            tec = Tecscript(fsrc)
-            # Set the field map
-            if grps is not None:
-                try:
-                    tec.SetFieldMap(grps)
-                except Exception:
-                    pass
-            # Figure width in pixels (can be ``None``).
-            wfig = opts.get_SubfigOpt(sfig, "FigWidth")
-            # Width in the report
-            wplt = opts.get_SubfigOpt(sfig, "Width")
-            # Layout file without extension
-            fname = ".".join(flay.split(".")[:-1])
-            # Figure file name.
-            fname = "%s.png" % (sfig)
-            # Run Tecplot
-            try:
-                # Copy the file into the current folder.
-                tec.Write(flay)
-                # Run the layout.
-                ExportLayout(flay, fname=fname, w=wfig)
-                # Move the file.
-                os.rename(fname, os.path.join(fpwd,fname))
-                # Form the line
-                line = (
-                    '\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                    % (frun, fname))
-                # Include the graphics.
-                lines.append(line)
-                # Remove the layout file.
-                os.remove(flay)
-            except Exception:
-                pass
-        # Go to the report case folder
-        os.chdir(fpwd)
-        # Set the caption.
-        if fcpt:
-            lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
-        # Close the subfigure.
-        lines.append('\\end{subfigure}\n')
         # Output
         return lines
         
@@ -264,6 +159,42 @@ class Report(cape.report.Report):
         proj = self.cntl.GetProjectRootName(None)
         # Read the residual history
         return CaseResid(proj)
+        
+    # Read a Tecplot script
+    def ReadTecscript(self, fsrc):
+        """Read a Tecplot script interface
+        
+        :Call:
+            >>> R.ReadTecscript(fsrc)
+        :Inputs:
+            *R*: :class:`pyFun.report.Report`
+                Automated report interface
+            *fscr*: :class:`str`
+                Name of file to read
+        :Versions:
+            * 2016-10-25 ``@ddalle``: First version
+        """
+        return Tecscript(fsrc)
+            
+    # Function to link appropriate visualization files
+    def LinkVizFiles(self):
+        """Create links to appropriate visualization files
+        
+        Specifically, ``Components.i.plt`` and ``cutPlanes.plt`` or
+        ``Components.i.dat`` and ``cutPlanes.dat`` are created.
+        
+        :Call:
+            >>> R.LinkVizFiles()
+        :Inputs:
+            *R*: :class:`pyFun.report.Report`
+                Automated report interface
+        :See Also:
+            :func:`pyCart.case.LinkPLT`
+        :Versions:
+            * 2016-02-06 ``@ddalle``: First version
+        """
+        # Defer to function from :func:`pyFun.case`
+        LinkPLT()
         
         
 # class Report
