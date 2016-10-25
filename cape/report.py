@@ -807,8 +807,6 @@ class Report(object):
         # ------------
         # Status check
         # ------------
-        # Read the status file.
-        nr, stsr = self.ReadCaseJSONIter()
         # Get the actual iteration number.
         n = self.cntl.CheckCase(i)
         # Check status.
@@ -942,6 +940,7 @@ class Report(object):
         # Subfigs
         # -------
         # Update the subfigures.
+        print("Label 004: fswp=%s" % fswp)
         if fswp is None:
             # Update case subfigures
             lines += self.UpdateCaseSubfigs(fig, i)
@@ -1141,6 +1140,7 @@ class Report(object):
         lines = []
         # Read settings
         rc = self.ReadCaseJSON()
+        print("label 008: rc=%s" % rc)
         # Get the list of cases and current iterations
         fruns = self.cntl.DataBook.x.GetFullFolderNames(I)
         # Extract first component.
@@ -1247,6 +1247,10 @@ class Report(object):
         # Get the list of cases and current iterations
         frunsr = stsf.get("Cases", [])
         nIterr = stsf.get("nIter", [])
+        print("Label 040: fruns= %s" % fruns)
+        print("Label 041: frunsr=%s" % furnsr)
+        print("Label 042: nIter= %s" % nIter)
+        print("Label 043: nIterr=%s" % nIterr)
         # Check the data book status
         if fruns != frunsr:
             # Case list update
@@ -2994,7 +2998,12 @@ class Report(object):
             * 2016-10-25 ``@ddalle``: First version
         """
         # Check for the file
-        if not os.path.isfile('report.json'): return {}
+        if not os.path.isfile('report.json'):
+            # Default output
+            return {
+                "Status": {},
+                "Subfigures": {}
+            }
         # Open the file
         f = open('report.json')
         # Read the settings.
@@ -3003,8 +3012,7 @@ class Report(object):
             rc = json.load(f)
         except Exception:
             # No settings read
-            f.close()
-            return {}
+            rc = {}
         # Close the file.
         f.close()
         # Ensure the existence of main sections
