@@ -747,33 +747,9 @@ class Report(object):
         # Add a line to the master document.
         self.tex.Section['Sweeps'].insert(-1,
             '\\input{sweep-%s/%s/%s}\n' % (fswp, frun, self.fname))
-        # Read the status file.
-        fdirr, Ir, nIterr = self.ReadSweepJSONIter()
-        # Extract first component.
-        DBc = self.cntl.DataBook.GetRefComponent()
-        # Get current iteration numbers.
-        nIters = list(DBc['nIter'][I])
-        # Check if there's anything to do.
-        if (Ir == list(I)) and (fdirr == fdirs) and (nIters == nIterr):
-            # Return and quit.
-            os.chdir(fpwd)
-            return
         # -------------
         # Initial setup
         # -------------
-        # Status update
-        if fdirr is None:
-            # New report
-            print("  New report page")
-        elif fdirr != fdirs:
-            # Changing status
-            print("  Updating list of cases")
-        elif nIters != nIterr:
-            # More iterations
-            print("  Updating at least one case")
-        else:
-            # New case
-            print("  Modifying index numbers")
         # Create the tex file.
         self.WriteSweepSkeleton(fswp, I[0])
         # Create the TeX handle.
@@ -792,8 +768,6 @@ class Report(object):
         # -----
         # Write the updated lines.
         self.sweeps[fswp][I[0]].Write()
-        # Mark the case status.
-        self.SetSweepJSONIter(I)
         # Go home.
         os.chdir(fpwd)
     
@@ -909,8 +883,6 @@ class Report(object):
                 Case index
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of case indices
-            *n*: :class:`int` | ``None``
-                Current iteration number from :func:`R.cntl.CheckCase`
             *fswp*: :class:`str`
                 Name of sweep
         :Versions:
@@ -1154,37 +1126,148 @@ class Report(object):
                 Name of figure to update
             *fswp*: :class:`str`
                 Name of sweep
-            *I*: :class:`numpy.ndarray` (:class:`list`)
+            *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of case indices in the subsweep
         :Outputs:
             *lines*: :class:`list` (:class:`str`)
                 List of lines for LaTeX file
         :Versions:
             * 2015-05-29 ``@ddalle``: First version
+            * 2016-10-25 ``@ddalle``: Passed handling to *SweepSubfigSwitch*
         """
         # Get list of subfigures.
         sfigs = self.cntl.opts.get_FigSubfigList(fig)
         # Initialize lines
         lines = []
+        # Read settings
+        rc = self.ReadCaseJSON()
+        # Get the list of cases and current iterations
+        fruns = self.cntl.DataBook.x.GetFullFolderNames(I)
+        # Extract first component.
+        DBc = self.cntl.DataBook.GetRefComponent()
+        # Get current iteration numbers.
+        nIters = list(DBc['nIter'][I])
         # Loop through subfigs.
         for sfig in sfigs:
-            # Get the base type.
-            btyp = self.cntl.opts.get_SubfigBaseType(sfig)
-            # Process it.
-            if btyp == 'Conditions':
-                # Get the content.
-                lines += self.SubfigConditions(sfig, I)
-            elif btyp == 'SweepConditions':
-                # Get the variables constant in the sweep
-                lines += self.SubfigSweepConditions(sfig, fswp, I[0])
-            elif btyp == 'SweepCases':
-                # Get the list of cases.
-                lines += self.SubfigSweepCases(sfig, fswp, I)
-            elif btyp == 'SweepCoeff':
-                # Plot a coefficient sweep
-                lines += self.SubfigSweepCoeff(sfig, fswp, I)
+            # Check the status (also prints status update)
+            if not self.CheckSweepSubfigStatus(sfig, rc, fruns, nIter):
+                continue
+            # Process the subfigure
+            lines = self.SweepSubfigSwitch(sfig, fswp, I, lines)
+            # Save the status
+            rc["Status"][sfig] = {
+                "Cases": fruns,
+                "nIter": nIter
+            }
+            # Save the definition
+            rc["Subfigures"][sfig] = self.cntl.opts.get_Subfigure(sfig)
+        # Write the new settings
+        self.WriteCaseJSON(rc)
         # Output
         return lines
+    
+    # Point to the correct subfigure updater
+    def SweepSubfigSwitch(self, sfig, fswp, I, lines):
+        """Switch function to find the correct subfigure function
+        
+        This function may need to be defined for each CFD solver
+        
+        :Call:
+            >>> lines = R.SubfigSwitch(sfig, fswp, I, lines)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure to update
+            *fswp*: :class:`str`
+                Name of sweep
+            *I*: :class:`numpy.ndarray` (:class:`list`)
+                List of case indices in the subsweep
+            *lines*: :class:`list` (:class:`str`)
+                List of lines already in LaTeX file
+        :Outputs:
+            *lines*: :class:`list` (:class:`str`)
+                Updated list of lines for LaTeX file
+        :Versions:
+            * 2016-10-25 ``@ddalle``: First version, from :func:`UpdateSubfig`
+        """
+        # Get the base type.
+        btyp = self.cntl.opts.get_SubfigBaseType(sfig)
+        # Process it.
+        if btyp == 'Conditions':
+            # Get the content.
+            lines += self.SubfigConditions(sfig, I)
+        elif btyp == 'SweepConditions':
+            # Get the variables constant in the sweep
+            lines += self.SubfigSweepConditions(sfig, fswp, I[0])
+        elif btyp == 'SweepCases':
+            # Get the list of cases.
+            lines += self.SubfigSweepCases(sfig, fswp, I)
+        elif btyp == 'SweepCoeff':
+            # Plot a coefficient sweep
+            lines += self.SubfigSweepCoeff(sfig, fswp, I)
+        # Output
+        return lines
+        
+        
+    # Check status of a subfigure and give status update
+    def CheckSweepSubfigStatus(self, sfig, rc, fruns, nIter):
+        """Check whether or not to update a subfigure and print status
+        
+        :Call:
+            >>> q = R.CheckSweepSubfigStatus(sfig, I, rc, fruns, nIter)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *I*: :class:`list` (:class:`int`)
+                List of case indices
+            *sfig*: :class:`str`
+                Name of subfigure to check
+            *rc*: :class:`dict`
+                Dictionary from ``report.json``
+            *fruns*: :class:`list` (:class:`str`)
+                List of cases in the sweep
+            *nIter*: :class:`list` (:class:`int`)
+                List of iterations for each case
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether or not to update the subfigure
+        :Versions:
+            * 2016-10-25 ``@ddalle``: First version
+        """
+        # Get the status options
+        stsr = rc.get("Status", {})
+        # Check if the subfigure has been handled at all
+        if sfig not in stsr:
+            # New subfigure
+            print("  %s: New subfig" % sfig)
+            return True
+        # Get the iteration status
+        stsf = stsr.get(sfig)
+        # Get the list of cases and current iterations
+        frunsr = stsf.get("Cases", [])
+        nIterr = stsf.get("nIter", [])
+        # Check the data book status
+        if fruns != frunsr:
+            # Case list update
+            print("  %s: Updating list of cases" % sfig)
+            return True
+        # Check iterations for data book
+        if nIterr != nIter:
+            # Iteration update
+            print("  %s: Data book update to at least one case" % sfig)
+            return True
+        # Get the definition last used to generate this subfig
+        defr = rc.get("Subfigures", {}).get(sfig, {})
+        # Get the present definition
+        defo = self.cntl.opts.get_Subfigure(sfig)
+        # Compare the subfig definitions
+        if defr != defo:
+            # Definition changed
+            print("  %s: Definition updated" % sfig)
+            return True
+        # If reached this point, no update
+        return False
    # ]
   # >
     
@@ -2930,143 +3013,6 @@ class Report(object):
         # Return the settings
         return rc
         
-    # Read the iteration to which the figures for this report have been updated
-    def ReadCaseJSONIter(self):
-        """Read JSON file to determine the current iteration for the report
-        
-        The status is read from the present working directory
-        
-        :Call:
-            >>> n, sts = R.ReadCaseJSONIter()
-        :Inputs:
-            *R*: :class:`cape.report.Report`
-                Automated report interface
-        :Outputs:
-            *n*: :class:`int` or :class:`float`
-                Iteration at which the figure has been created
-            *sts*: :class:`str`
-                Status for the case
-        :Versions:
-            * 2014-10-02 ``@ddalle``: First version
-        """
-        # Check for the file.
-        if not os.path.isfile('report.json'): return [None, None]
-        # Open the file
-        f = open('report.json')
-        # Read the settings.
-        try:
-            # Read from file
-            opts = json.load(f)
-        except Exception:
-            # Problem with the file.
-            f.close()
-            return [None, None]
-        # Close the file.
-        f.close()
-        # Read the status for this iteration
-        return tuple(opts.get(self.rep, [None, None]))
-        
-    # Read the iteration numbers and cases in a sweep
-    def ReadSweepJSONIter(self):
-        """
-        Read JSON file to determine the current iteration and list of cases for
-        a sweep report
-        
-        :Call:
-            >>> fruns, I, nIter = R.ReadSweepJSONIter()
-        :Inputs:
-            *R*: :class:`cape.report.Report`
-                Automated report interface
-        :Outputs:
-            *fruns*: :class:`list` (:class:`str`)
-                List of case names
-            *I*: :class:`list` (:class:`int`)
-                List of case indices
-            *nIter*: :class:`list` (:class:`int`)
-                Number of iterations for each case
-        :Versions:
-            * 2015-05-29 ``@ddalle``: First version
-        """
-        # Check for the file.
-        if not os.path.isfile('report.json'): return (None, None, None)
-        # Open the file
-        f = open('report.json')
-        # Read the settings.
-        try:
-            # Rread from file
-            opts = json.load(f)
-        except Exception:
-            # Problem with the file
-            f.close()
-            return (None, None, None)
-        # Close the file.
-        f.close()
-        # Read the status for this iteration.
-        return (opts.get("Cases"), opts.get("I"), opts.get("nIter"))
-        
-    # Set the iteration of the JSON file.
-    def SetCaseJSONIter(self, n, sts):
-        """Mark the JSON file to say that the figure is up to date
-        
-        :Call:
-            >>> R.SetCaseJSONIter(n, sts)
-        :Inputs:
-            *R*: :class:`cape.report.Report`
-                Automated report interface
-            *n*: :class:`int` or :class:`float`
-                Iteration at which the figure has been created
-            *sts*: :class:`str`
-                Status for the case
-        :Versions:
-            * 2015-03-08 ``@ddalle``: First version
-        """
-        # Check for the file.
-        if os.path.isfile('report.json'):
-            # Open the file.
-            f = open('report.json')
-            # Read the settings.
-            try:
-                opts = json.load(f)
-            except Exception:
-                # Problem with the file.
-                opts = {}
-            # Close the file.
-            f.close()
-        else:
-            # Create empty settings.
-            opts = {}
-        # Write 0 instead of null
-        if n is None: n = 0
-        # Set the iteration number.
-        opts[self.rep] = [n, sts]
-        # Create the updated JSON file
-        f = open('report.json', 'w')
-        # Write the contents.
-        json.dump(opts, f)
-        # Close file.
-        f.close()
-        
-    # Set the iteration for each subfigure.
-    def SetCaseJSONSubfigIter(self, rep, n):
-        """Set or update the iteration status for each subfig in report *rep*
-        
-        :Call:
-            >>> R.SetCaseJSONSubfigIter(rep, n)
-        :Inputs:
-            *R*: :class:`cape.report.Report`
-                Automated report interface
-            *rep*: :class:`str`
-                Name of the report in question
-            *n*: :class:`int` | ``None``
-                Current iteration number
-        :Outputs:
-            * 2016-10-25 ``@ddalle``: First version
-        """
-        # Read the statuses
-        rc = self.ReadCaseJSON()
-        # Get the list of subfigures
-        
-    
     # Write all settings
     def WriteCaseJSON(self, rc):
         """Write the current status to ``report.json``
@@ -3086,53 +3032,6 @@ class Report(object):
         # Write the contents.
         json.dump(rc, f, indent=1)
         # Close the file.
-        f.close()
-        
-    # Set the iteration numbers for a sweep
-    def SetSweepJSONIter(self, I):
-        """Mark the JSON file to state what iteration each case is at
-        
-        :Call:
-            >>> R.SetSweepJSONIter
-        :Inputs:
-            *R*: :class:`cape.report.Report`
-                Automated report interface
-            *I*: :class:`list` (:class:`int`)
-                List of case indices in a sweep
-        :Versions:
-            * 2015-05-29 ``@ddalle``: First version
-        """
-        # Check for the file.
-        if os.path.isfile('report.json'):
-            # Open the file.
-            f = open('report.json')
-            # Read the settings.
-            try:
-                opts = json.load(f)
-            except Exception:
-                opts = {}
-            # Close the file.
-            f.close()
-        else:
-            # Create empty settings.
-            opts = {}
-        # Get case names.
-        fruns = self.cntl.DataBook.x.GetFullFolderNames(I)
-        # Get first component
-        DBc = self.cntl.DataBook.GetRefComponent()
-        # Get current iteration numbers.
-        nIter = list(DBc['nIter'][I])
-        # Loop through the cases in the sweep.
-        opts = {
-            "Cases": fruns,
-            "I": list(I),
-            "nIter": nIter
-        }
-        # Create the updated JSON file
-        f = open('report.json', 'w')
-        # Write the contents.
-        json.dump(opts, f, indent=1)
-        # Close file.
         f.close()
   # >
     
