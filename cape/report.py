@@ -1017,7 +1017,7 @@ class Report(object):
         # Initialize lines
         lines = []
         # Get status
-        n = self.cntl.CheckCase()
+        n = self.cntl.CheckCase(i)
         # Read settings
         rc = self.ReadCaseJSON()
         # Loop through subfigs.
