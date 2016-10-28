@@ -844,8 +844,26 @@ def SetRestartIter(rc, n=None):
     nml = GetNamelist(rc)
     # Set restart flag
     if n > 0:
+        # Get the phase
+        i = GetPhaseNumber(rc)
+        # Check if this is a phase restart
+        nohist = True
+        if os.path.isfile('run.%02i.%i' % (i, n)):
+            # Nominal restart
+            nohist = False
+        elif i == 0:
+            # Not sure how we could still be in phase 0
+            nohist = False
+        else:
+            # Read the previous namelist
+            nml0 = GetNamelist(rc, i-1)
+            # Get 'time_accuracy' parameter
+            ta0 = nml0.GetVar('nonlinear_solver_parameters', 'time_accuracy')
+            ta1 = nml.GetVar( 'nonlinear_solver_parameters', 'time_accuracy')
+            # Check for a match
+            nohist = ta0 != ta1
         # Set the restart flag on.
-        nml.SetRestart()
+        nml.SetRestart(nohist=nohist)
     else:
         # Set the restart flag off.
         nml.SetRestart(False)

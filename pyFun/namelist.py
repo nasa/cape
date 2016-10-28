@@ -47,23 +47,31 @@ class Namelist(cape.namelist.Namelist):
         self.SplitToSections(reg="\&([\w_]+)")
         
     # Set restart on
-    def SetRestart(self, q=True):
+    def SetRestart(self, q=True, nohist=False):
         """Set the FUN3D restart flag on or off
         
         :Call:
-            >>> nml.SetRestart(q=True)
+            >>> nml.SetRestart(q=True, nohist=False)
         :Inputs:
             *nml*: :class:`pyFun.namelist.Namelist`
                 File control instance for :file:`fun3d.nml`
-            *q*: :class:`bool` | ``"on"`` | ``"off"`` | ``None``
+            *q*: {``True``} | ``False`` | ``None``
                 Restart option, ``None`` turns flag to ``"on"``
+            *nohist*: ``True`` | {``False``}
+                If true, use 'on_nohistorykept' for 'restart_read'
         :Versions:
             * 2015-11-03 ``@ddalle``: First version
         """
         # Check status
         if (q is None) or (q and (q != "off")):
             # Turn restart on.
-            self.SetVar('code_run_control', 'restart_read', 'on')
+            if nohist:
+                # Changing time solver
+                self.SetVar('code_run_control', 'restart_read',
+                    'on_nohistorykept')
+            else:
+                # Consistent phases
+                self.SetVar('code_run_control', 'restart_read', 'on')
         else:
             # Turn restart off.
             self.SetVar('code_run_control', 'restart_read', 'off')
