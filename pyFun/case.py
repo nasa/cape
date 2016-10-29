@@ -612,28 +612,31 @@ def GetCurrentIter():
         * 2016-04-28 ``@ddalle``: Accounting for ``Flow/`` folder
     """
     # Read the two sources
-    nh = GetHistoryIter()
+    nh, ns = GetHistoryIter()
     nr = GetRunningIter()
     # Process
     if nr is None:
         # No running iterations; check history
-        return nh
+        return ns
     else:
         # Some iterations saved and some running
-        return nr
+        return nh + nr
         
 # Get the number of finished iterations
 def GetHistoryIter():
     """Get the most recent iteration number for a history file
     
     :Call:
-        >>> n = pyFun.case.GetHistoryIter()
+        >>> nh, n = pyFun.case.GetHistoryIter()
     :Outputs:
+        *nh*: :class:`int`
+            Iterations from previous cases before Fun3D deleted history
         *n*: :class:`int` | ``None``
             Most recent iteration number
     :Versions:
         * 2015-10-20 ``@ddalle``: First version
         * 2016-04-28 ``@ddalle``: Accounting for ``Flow/`` folder
+        * 2016-10-29 ``@ddalle``: Handling Fun3D's iteration reset
     """
     # Check for flow folder
     if os.path.isdir('Flow'):
@@ -667,6 +670,7 @@ def GetHistoryIter():
         fnames.append("%s_hist.dat" % rname)
     # Loop through possible file(s)
     n = None
+    nh = 0
     for fname in fnames:
         # Process the file
         ni = GetHistoryIterFile(fname)
@@ -678,11 +682,12 @@ def GetHistoryIter():
                 n = ni
             else:
                 # Add this history to previous history
+                nh = n
                 n += ni
     # No history to read.
     if qdual: os.chdir('..')
     # Output
-    return n
+    return nh, n
         
 # Get the number of iterations from a single iterative history file
 def GetHistoryIterFile(fname):
