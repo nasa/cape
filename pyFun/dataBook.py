@@ -367,7 +367,7 @@ class CaseFM(cape.dataBook.CaseFM):
         # Full list
         if os.path.isfile(self.fname):
             # Single project; check for history resets
-            fglob1 = glob.glob('%s_fm_%s.[0-9]0-9].dat' % (projl, compl))
+            fglob1 = glob.glob('%s_fm_%s.[0-9][0-9].dat' % (projl, compl))
             fglob1.sort()
             # Add in main file name
             self.fglob = fglob1 + [self.fname]
@@ -745,11 +745,10 @@ class CaseResid(cape.dataBook.CaseResid):
             qdual = False
         # Expected name of the history file
         self.fname = "%s_hist.dat" % proj.lower()
-        self.fglob = glob.glob("%s[0-9][0-9]_hist.dat" % proj.lower())
         # Full list
         if os.path.isfile(self.fname):
             # Single project; check for history resets
-            fglob1 = glob.glob('%s_hist.[0-9]0-9].dat' % projl)
+            fglob1 = glob.glob('%s_hist.[0-9][0-9].dat' % projl)
             fglob1.sort()
             # Add in main file name
             self.fglob = fglob1 + [self.fname]
@@ -760,6 +759,7 @@ class CaseResid(cape.dataBook.CaseResid):
             # Combine them
             self.fglob = fglob2 + fglob3
             self.fglob.sort()
+        print("Label 040: fglob=%s" % self.fglob)
         # Check for which file(s) to use
         if len(self.fglob) > 0:
             # Read the first file
@@ -1037,7 +1037,7 @@ class CaseResid(cape.dataBook.CaseResid):
             * 2016-10-28 ``@ddalle``: Catching iteration resets
         """
         # Process the column names
-        nhdr, cols, coeffs, inds = self.ProcessColumnNames(fname)
+        nhdr, cols, inds = self.ProcessColumnNames(fname)
         # Check entries
         for col in cols:
             # Check for existing column
