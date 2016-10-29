@@ -862,6 +862,9 @@ def SetRestartIter(rc, n=None):
             ta1 = nml.GetVar( 'nonlinear_solver_parameters', 'time_accuracy')
             # Check for a match
             nohist = ta0 != ta1
+            # If we are moving to a new mode, prevent Fun3D from deleting history
+            if nohist:
+                CopyHist(nml0, i-1)
         # Set the restart flag on.
         nml.SetRestart(nohist=nohist)
     else:
@@ -869,6 +872,47 @@ def SetRestartIter(rc, n=None):
         nml.SetRestart(False)
     # Write the namelist.
     nml.Write()
+    
+# Copy the histories
+def CopyHist(nml, i):
+    """Copy all force and moment histories along with residual history
+    
+    :Call:
+        >>> CopyHist(nml, i)
+    :Inputs:
+        *nml*: :class:`pyFun.namelist.Namelist`
+            Fun3D namelist interface for phase *i*
+        *i*: :class:`int`
+            Phase number to use for storing histories
+    :Versions:
+        * 2016-10-28 ``@ddalle``: First version
+    """
+    # Project name
+    proj = nml.GetRootname(i)
+    # Get the list of FM files
+    fmglob = glob.glob('%s_fm_%s.dat' % (proj, i))
+    # Loop through FM files
+    for f in fmglob:
+        # Split words
+        F = f.split('.')
+        # Copy-to name
+        fcopy = '.'.join(F[:-1]) + ('.%02i.dat' % i)
+        # Copy the file
+        shutil.copy(f, fcopy)
+    # Copy the history file
+    if os.path.isfile('%s_hist.dat' % proj):
+        # Copy the file
+        shutil.copy(
+            '%s_hist.dat' % proj,
+            '%s_hist.%02i.dat' % (proj, i))
+    # Copy the history file
+    if os.path.isfile('%s_subhist.dat' % proj):
+        # Copy the file
+        shutil.copy(
+            '%s_subhist.dat' % proj,
+            '%s_subhist.%02i.dat' % (proj, i))
+    
+    
     
 # Link best file based on name and glob
 def LinkFromGlob(fname, fglb):

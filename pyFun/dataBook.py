@@ -342,6 +342,7 @@ class CaseFM(cape.dataBook.CaseFM):
         * 2014-12-21 ``@ddalle``: Copied from previous `aero.FM`
         * 2015-10-16 ``@ddalle``: Self-contained version
         * 2016-05-05 ``@ddalle``: Handles adaptive; ``pyfun00,pyfun01,...``
+        * 2016-10-28 ``@ddalle``: Catching iteration resets
     """
     # Initialization method
     def __init__(self, proj, comp):
@@ -350,6 +351,9 @@ class CaseFM(cape.dataBook.CaseFM):
         self.comp = comp
         # Get the project rootname
         self.proj = proj
+        # File names use lower case here
+        projl = proj.lower()
+        compl = comp.lower()
         # Check for ``Flow`` folder
         if os.path.isdir('Flow'):
             # Dual setup
@@ -359,16 +363,24 @@ class CaseFM(cape.dataBook.CaseFM):
             # Single folder
             qdual = False
         # Expected name of the component history file(s)
-        self.fname = '%s_fm_%s.dat' % (proj.lower(), comp.lower())
-        self.fglob = glob.glob('%s[0-9][0-9]_fm_%s.dat' % 
-            (proj.lower(), comp.lower()))
-        # Check for available files.
+        self.fname = '%s_fm_%s.dat' % (projl, compl)
+        # Full list
         if os.path.isfile(self.fname):
-            # Read the single file
-            self.ReadFileInit(self.fname)
-        elif len(self.fglob) > 0:
-            # Sort the glob
+            # Single project; check for history resets
+            fglob1 = glob.glob('%s_fm_%s.[0-9]0-9].dat' % (projl, compl))
+            fglob1.sort()
+            # Add in main file name
+            self.fglob = fglob1 + [self.fname]
+        else:
+            # Multiple projects
+            fglob2 = glob.glob('%s[0-9][0-9]_fm_%s.dat' % (projl, compl))
+            fglob3 = glob.glob('%s[0-9][0-9]_fm_%s.[0-9][0-9].dat' \
+                % (projl, compl))
+            # Combine them
+            self.fglob = fglob2 + fglob3
             self.fglob.sort()
+        # Check for available files.
+        if len(self.fglob) > 0:
             # Read the first file
             self.ReadFileInit(self.fglob[0])
             # Loop through other files
@@ -451,26 +463,35 @@ class CaseFM(cape.dataBook.CaseFM):
                 Name of file to read
         :Versions:
             * 2016-05-05 ``@ddalle``: First version
+            * 2016-10-28 ``@ddalle``: Catching iteration resets
         """
         # Process the column names
         nhdr, cols, coeffs, inds = self.ProcessColumnNames(fname)
         # Check entries
         for col in cols:
-            # Check if there's something to append to
-            if col not in self.cols:
-                # This column was not there before
-                raise KeyError("Cannot append column '%s' from file '%s'" %
-                    (col, fname))
+            # Check for existing column
+            if col in self.cols: continue
+            # Initialize the column
+            setattr(self,col, np.zeros_like(self.i, dtype=float))
+            # Append to the end of the list
+            self.cols.append(col)
         # Read the data.
         A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
         # Number of columns.
-        n = len(self.cols)
+        n = len(cols)
         # Append the values.
         for k in range(n):
             # Column name
             col = cols[k]
+            # Value to use
+            V = A[:,k]
+            # Check for iteration number reset
+            if col == 'i' and V[0] < self.i[-1]:
+                # Keep counting iterations from the end of the previous one.
+                V += (self.i[-1] - V[0] + 1)
             # Append
-            setattr(self,col, np.hstack((getattr(self,col), A[:,k])))
+            setattr(self,col, np.hstack((getattr(self,col), V)))
+                
         
     # Process the column names
     def ProcessColumnNames(self, fname=None):
@@ -700,6 +721,7 @@ class CaseResid(cape.dataBook.CaseResid):
             Instance of the run history class
     :Versions:
         * 2015-10-21 ``@ddalle``: First version
+        * 2016-10-28 ``@ddalle``: Catching iteration resets
     """
     
     # Initialization method
@@ -711,6 +733,8 @@ class CaseResid(cape.dataBook.CaseResid):
         """
         # Save the project root name
         self.proj = proj
+        # Use lower case for Fortran code
+        projl = proj.lower()
         # Check for ``Flow`` folder
         if os.path.isdir('Flow'):
             # Dual setup
@@ -722,15 +746,28 @@ class CaseResid(cape.dataBook.CaseResid):
         # Expected name of the history file
         self.fname = "%s_hist.dat" % proj.lower()
         self.fglob = glob.glob("%s[0-9][0-9]_hist.dat" % proj.lower())
-        # Check for which file(s) to use
+        # Full list
         if os.path.isfile(self.fname):
-            # Read the file
-            self.ReadFileInit(self.fname)
-        elif len(self.fglob) > 0:
-            # Sort the glob
+            # Single project; check for history resets
+            fglob1 = glob.glob('%s_hist.[0-9]0-9].dat' % projl)
+            fglob1.sort()
+            # Add in main file name
+            self.fglob = fglob1 + [self.fname]
+        else:
+            # Multiple projects
+            fglob2 = glob.glob('%s[0-9][0-9]_hist.dat' % projl)
+            fglob3 = glob.glob('%s[0-9][0-9]_hist.[0-9][0-9].dat' % projl)
+            # Combine them
+            self.fglob = fglob2 + fglob3
             self.fglob.sort()
-            # Read the last file
-            self.ReadFileInit(self.fglob[-1])
+        # Check for which file(s) to use
+        if len(self.fglob) > 0:
+            # Read the first file
+            self.ReadFileInit(self.fglob[0])
+            # Loop through other files
+            for fname in self.fglob[1:]:
+                # Append the data
+                self.ReadFileAppend(fname)
         else:
             # Make an empty history
             self.MakeEmpty()
@@ -983,6 +1020,48 @@ class CaseResid(cape.dataBook.CaseResid):
         for k in range(n):
             # Set the values from column *k* of *A*
             setattr(self,cols[k], A[:,k])
+    
+    # Read data from a second or later file
+    def ReadFileAppend(self, fname):
+        """Read data from a file and append it to current history
+        
+        :Call:
+            >>> hist.ReadFileAppend(fname)
+        :Inputs:
+            *hist*: :class:`pyFun.dataBook.CaseResid`
+                Case force/moment history
+            *fname*: :class:`str`   
+                Name of file to read
+        :Versions:
+            * 2016-05-05 ``@ddalle``: First version
+            * 2016-10-28 ``@ddalle``: Catching iteration resets
+        """
+        # Process the column names
+        nhdr, cols, coeffs, inds = self.ProcessColumnNames(fname)
+        # Check entries
+        for col in cols:
+            # Check for existing column
+            if col in self.cols: continue
+            # Initialize the column
+            setattr(self,col, np.zeros_like(self.i, dtype=float))
+            # Append to the end of the list
+            self.cols.append(col)
+        # Read the data.
+        A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
+        # Number of columns.
+        n = len(cols)
+        # Append the values.
+        for k in range(n):
+            # Column name
+            col = cols[k]
+            # Value to use
+            V = A[:,k]
+            # Check for iteration number reset
+            if col == 'i' and V[0] < self.i[-1]:
+                # Keep counting iterations from the end of the previous one.
+                V += (self.i[-1] - V[0] + 1)
+            # Append
+            setattr(self,col, np.hstack((getattr(self,col), V)))
         
     # Number of orders of magintude of residual drop
     def GetNOrders(self, nStats=1):
