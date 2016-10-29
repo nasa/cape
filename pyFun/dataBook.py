@@ -759,7 +759,6 @@ class CaseResid(cape.dataBook.CaseResid):
             # Combine them
             self.fglob = fglob2 + fglob3
             self.fglob.sort()
-        print("Label 040: fglob=%s" % self.fglob)
         # Check for which file(s) to use
         if len(self.fglob) > 0:
             # Read the first file
@@ -865,6 +864,7 @@ class CaseResid(cape.dataBook.CaseResid):
         self.R_6 = np.array([])
         # Residuals
         self.L2Resid = np.array([])
+        self.L2Resid0 = np.array([])
         # Number of iterations
         self.nIter = 0
         # Save a default list of columns
@@ -952,6 +952,9 @@ class CaseResid(cape.dataBook.CaseResid):
         if "Iteration" in keys:
             inds.append(keys.index("Iteration"))
             cols.append('i')
+        if "Fractional_Time_Step" in keys:
+            inds.append(keys.index("Fractional_Time_Step"))
+            cols.append('j')
         if "Wall Time" in keys:
             inds.append(keys.index("Wall Time"))
             cols.append('CPUtime')
@@ -1020,6 +1023,37 @@ class CaseResid(cape.dataBook.CaseResid):
         for k in range(n):
             # Set the values from column *k* of *A*
             setattr(self,cols[k], A[:,k])
+        # Check for subiteration history
+        Vsub = fname.split('.')
+        fsub = Vsub[0][:-40 ]+ "subhist." + (".".join(Vsub[1:]))
+        # Check for the file
+        if not os.path.isfile(fsub):
+            # Initialize residuals
+            for col in cols:
+                # Check for special commands
+                if not (col == 'i' or col.startswith('R')): continue
+                # Copy the shape of the residual
+                setattr(self,col+'0', np.nan*np.ones_like(getattr(self,col)))
+                # Append column list
+                self.cols.append(col+'0')
+            # Exit
+            return
+        # Process column names
+        nhdr0, cols0, inds0 = self.ProcessColumnNames(fsub)
+        # Add to list of columns
+        self.cols += cols0
+        # Read the data.
+        A = np.loadtxt(fname, skiprows=nhdr0, usecols=tuple(inds0))
+        # Number of columns
+        n = len(self.cols)
+        # Loop through residuals
+        for k in range(n):
+            # Check for special commands
+            if not (col == 'i' or col.startswith('R')): continue
+            # Set the values
+            setattr(self,cols[k]+'0', A[:,k])
+            
+        
     
     # Read data from a second or later file
     def ReadFileAppend(self, fname):
@@ -1062,6 +1096,44 @@ class CaseResid(cape.dataBook.CaseResid):
                 V += (self.i[-1] - V[0] + 1)
             # Append
             setattr(self,col, np.hstack((getattr(self,col), V)))
+        # Check for subiteration history
+        Vsub = fname.split('.')
+        fsub = Vsub[0][:-40 ]+ "subhist." + (".".join(Vsub[1:]))
+        # Check for the file
+        if not os.path.isfile(fsub):
+            # Initialize residuals
+            for col in cols:
+                # Check for special commands
+                if not (col == 'i' or col.startswith('R')): continue
+                # Name of column
+                c0 = col + '0'
+                # Copy the shape of the residual
+                setattr(self,c0, np.hstack(
+                    (getattr(self,c0), np.nan*np.ones_like(V))))
+            # Exit
+            return
+        # Process column names
+        nhdr0, cols0, inds0 = self.ProcessColumnNames(fsub)
+        # Check entries
+        for col in cols0:
+            # Check for existing column
+            if col in self.cols: continue
+            # Initialize the column
+            setattr(self,col, np.zeros_like(self.i, dtype=float))
+            # Append to the end of the list
+            self.cols.append(col)
+        # Read the data.
+        A = np.loadtxt(fname, skiprows=nhdr0, usecols=tuple(inds0))
+        # Number of columns
+        n = len(self.cols0)
+        # Loop through residuals
+        for k in range(n):
+            # Check for special commands
+            if not (col == 'i' or col.startswith('R')): continue
+            # Name of column
+            c0 = cols0[k] + '0'
+            # Set the values
+            setattr(self,c0, np.hstack((getattr(self,c0), A[:,k])))
         
     # Number of orders of magintude of residual drop
     def GetNOrders(self, nStats=1):
