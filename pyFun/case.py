@@ -660,15 +660,25 @@ def GetHistoryIter():
         fnames.sort()
         fnames.reverse()
     else:
+        # Check for historical files
+        fnames = glob.glob("%s_hist.[0-9][0-9].dat" % rname)
+        fnames.sort()
         # Single history file name
-        fnames = ["%s_hist.dat" % rname]
+        fnames.append("%s_hist.dat" % rname)
     # Loop through possible file(s)
     n = None
     for fname in fnames:
         # Process the file
-        n = GetHistoryIterFile(fname)
-        # Exit if found something
-        if n is not None: break
+        ni = GetHistoryIterFile(fname)
+        # Add to history
+        if ni is not None:
+            # Check if any iterations have been found
+            if n is None:
+                # First find
+                n = ni
+            else:
+                # Add this history to previous history
+                n += ni
     # No history to read.
     if qdual: os.chdir('..')
     # Output
