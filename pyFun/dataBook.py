@@ -774,14 +774,22 @@ class CaseResid(cape.dataBook.CaseResid):
         self.nIter = len(self.i)
         # Initialize residuals
         L2 = np.zeros(self.nIter)
+        L0 = np.zeros(self.nIter)
         # Check residuals
         if 'R_1' in self.cols: L2 += (self.R_1**2)
         if 'R_2' in self.cols: L2 += (self.R_2**2)
         if 'R_3' in self.cols: L2 += (self.R_3**2)
         if 'R_4' in self.cols: L2 += (self.R_4**2)
         if 'R_5' in self.cols: L2 += (self.R_5**2)
+        # Check initial subiteration residuals
+        if 'R_10' in self.cols: L0 += (self.R_10**2)
+        if 'R_20' in self.cols: L0 += (self.R_20**2)
+        if 'R_30' in self.cols: L0 += (self.R_30**2)
+        if 'R_40' in self.cols: L0 += (self.R_40**2)
+        if 'R_50' in self.cols: L0 += (self.R_50**2)
         # Save residuals
         self.L2Resid = np.sqrt(L2)
+        self.L2Resid0 = np.sqrt(L0)
         # Return if appropriate
         if qdual: os.chdir('..')
         
@@ -1032,14 +1040,16 @@ class CaseResid(cape.dataBook.CaseResid):
             self.ReadSubhist(fsub)
             return
         # Initialize residuals
-        for col in cols:
+        for k in range(n):
+            # get column name
+            col = cols[k]
+            c0 = col + '0'
             # Check for special commands
-            if not (col == 'i' or col.startswith('R')): continue
+            if not col.startswith('R'): continue
             # Copy the shape of the residual
-            setattr(self,col+'0', np.nan*np.ones_like(getattr(self,col)))
+            setattr(self,c0, np.nan*np.ones_like(getattr(self,col)))
             # Append column list
-            self.cols.append(col+'0')
-        
+            self.cols.append(c0)
     
     # Read data from a second or later file
     def ReadFileAppend(self, fname):
@@ -1070,6 +1080,8 @@ class CaseResid(cape.dataBook.CaseResid):
         A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
         # Number of columns.
         n = len(cols)
+        # Save current last iteration
+        i1 = self.i[-1]
         # Append the values.
         for k in range(n):
             # Column name
@@ -1079,29 +1091,30 @@ class CaseResid(cape.dataBook.CaseResid):
             # Check for iteration number reset
             if col == 'i' and V[0] < self.i[-1]:
                 # Keep counting iterations from the end of the previous one.
-                V += (self.i[-1] - V[0] + 1)
+                V += (i1 - V[0] + 1)
             # Append
             setattr(self,col, np.hstack((getattr(self,col), V)))
         # Check for subiteration history
         Vsub = fname.split('.')
-        fsub = Vsub[0][:-40 ]+ "subhist." + (".".join(Vsub[1:]))
+        fsub = Vsub[0][:-4] + "subhist." + (".".join(Vsub[1:]))
         # Check for the file
         if os.path.isfile(fsub):
             # Read the subiteration history
-            self.ReadSubhist(fsub)
+            self.ReadSubhist(fsub, iend=i1)
             return
         # Initialize residuals
-        for col in cols:
-            # Check for special commands
-            if not (col == 'i' or col.startswith('R')): continue
-            # Name of column
+        for k in range(n):
+            # Get column name
+            col = cols[k]
             c0 = col + '0'
+            # Check for special commands
+            if not col.startswith('R'): continue
             # Copy the shape of the residual
             setattr(self,c0, np.hstack(
                 (getattr(self,c0), np.nan*np.ones_like(V))))
             
     # Read subiteration history
-    def ReadSubhist(self, fname):
+    def ReadSubhist(self, fname, iend=0):
         """Read subiteration history
         
         :Call:
@@ -1111,6 +1124,8 @@ class CaseResid(cape.dataBook.CaseResid):
                 Fun3D residual history interface
             *fname*: :class:`str`
                 Name of subiteration history file
+            *iend*: {``0``} | positive :class:`int`
+                Last iteration number before reading this file
         :Versions:
             * 2016-10-29 ``@ddalle``: First version
         """
@@ -1202,12 +1217,16 @@ class CaseResid(cape.dataBook.CaseResid):
             v = d[col][I]
             # Check integers
             if col == 'i':
-                # Compare to existing iteration numbers
+                # Get expected iteration numbers
                 ni = len(v)
-                if np.any(v != self.i[-ni:]):
+                ip = self.i[-ni:]
+                # Offset current iteration numbers by reset iter
+                iv = v + iend
+                # Compare to existing iteration numbers
+                if np.any(ip != iv):
                     raise ValueError("Mismatch between nominal history " +
                         ("(%i-%i) and subiteration history (%i-%i)" %
-                        (self.i[-ni], self.i[-1], v[0], v[-1])))
+                        (ip[0], ip[-1], iv[0], iv[-1])))
             # Check to append
             try:
                 # Check if the attribute is present
