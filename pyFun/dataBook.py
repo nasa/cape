@@ -1023,35 +1023,121 @@ class CaseResid(cape.dataBook.CaseResid):
         for k in range(n):
             # Set the values from column *k* of *A*
             setattr(self,cols[k], A[:,k])
-        # Check for subiteration history
-        Vsub = fname.split('.')
-        fsub = Vsub[0][:-40 ]+ "subhist." + (".".join(Vsub[1:]))
-        # Check for the file
-        if not os.path.isfile(fsub):
-            # Initialize residuals
-            for col in cols:
-                # Check for special commands
-                if not (col == 'i' or col.startswith('R')): continue
-                # Copy the shape of the residual
-                setattr(self,col+'0', np.nan*np.ones_like(getattr(self,col)))
-                # Append column list
-                self.cols.append(col+'0')
-            # Exit
-            return
-        # Process column names
-        nhdr0, cols0, inds0 = self.ProcessColumnNames(fsub)
-        # Add to list of columns
-        self.cols += cols0
-        # Read the data.
-        A = np.loadtxt(fname, skiprows=nhdr0, usecols=tuple(inds0))
-        # Number of columns
-        n = len(self.cols)
-        # Loop through residuals
+        ## Check for subiteration history
+        #Vsub = fname.split('.')
+        #fsub = Vsub[0][:-40 ]+ "subhist." + (".".join(Vsub[1:]))
+        ## Check for the file
+        #if not os.path.isfile(fsub):
+        #    # Initialize residuals
+        #    for col in cols:
+        #        # Check for special commands
+        #        if not (col == 'i' or col.startswith('R')): continue
+        #        # Copy the shape of the residual
+        #        setattr(self,col+'0', np.nan*np.ones_like(getattr(self,col)))
+        #        # Append column list
+        #        self.cols.append(col+'0')
+        #    # Exit
+        #    return
+        ## Process column names
+        #nhdr0, cols0, inds0 = self.ProcessColumnNames(fsub)
+        ## Add to list of columns
+        #self.cols += cols0
+        ## Read the data.
+        #A = np.loadtxt(fname, skiprows=nhdr0, usecols=tuple(inds0))
+        ## Number of columns
+        #n = len(self.cols)
+        ## Loop through residuals
+        #for k in range(n):
+        #    # Check for special commands
+        #    if not (col == 'i' or col.startswith('R')): continue
+        #    # Set the values
+        #    setattr(self,cols[k]+'0', A[:,k])
+            
+    # Read subiteration history
+    def ReadSubhist(self, fname):
+        """Read subiteration history
+        
+        :Versions:
+            * 2016-10-29 ``@ddalle``: First version
+        """
+        
+        # Initialize variables and read flag
+        keys = []
+        flag = 0
+        # Number of header lines
+        nhdr = 0
+        # Open the file
+        f = open(fname)
+        # Loop through lines
+        while nhdr < 100:
+            # Strip whitespace from the line.
+            l = f.readline().strip()
+            # Count line
+            nhdr += 1
+            # Check for "variables"
+            if not l.lower().startswith('variables'): continue
+            # Split on '=' sign.
+            L = l.split('=')
+            # Check for first variable.
+            if len(L) < 2: break
+            # Split variables on as things between quotes
+            vals = re.findall('"[\w ]+"', L[1])
+            # Append to the list.
+            keys += [v.strip('"') for v in vals]
+            break
+        # Number of keys
+        nkey = len(keys)
+        # Read the data
+        B = np.fromfile(f, sep=' ')
+        # Get number of complete records
+        nA = int(len(A) / nkey)
+        # Reshape
+        A = np.reshape(B[:nA*nkey], (nA, nkey))
+        # Close the file
+        f.close()
+        # Initialize the output
+        d = {}
+        # Initialize column indices and their meanings.
+        inds = []
+        cols = []
+        # Check for iteration column.
+        if "Fractional_Time_Step" in keys:
+            inds.append(keys.index("Fractional_Time_Step"))
+            cols.append('i')
+        # Check for residual of state 1
+        if "R_1" in keys:
+            inds.append(keys.index("R_1"))
+            cols.append('R_1')
+        # Check for residual of state 2
+        if "R_2" in keys:
+            inds.append(keys.index("R_2"))
+            cols.append('R_2')
+        # Check for residual of state 3
+        if "R_3" in keys:
+            inds.append(keys.index("R_3"))
+            cols.append('R_3')
+        # Check for residual of state 4
+        if "R_4" in keys:
+            inds.append(keys.index("R_4"))
+            cols.append('R_4')
+        # Check for residual of state 5
+        if "R_5" in keys:
+            inds.append(keys.index("R_5"))
+            cols.append('R_5')
+        # Check for turbulent residual
+        if "R_6" in keys:
+            inds.append(keys.index("R_6"))
+            cols.append('R_6')
+        # Loop through columns
+        n = len(cols)
         for k in range(n):
-            # Check for special commands
-            if not (col == 'i' or col.startswith('R')): continue
-            # Set the values
-            setattr(self,cols[k]+'0', A[:,k])
+            # Column name
+            col = cols[k]
+            # Save it
+            d[col] = A[:,inds[k]]
+        # Output
+        return d
+        
             
         
     
@@ -1096,44 +1182,44 @@ class CaseResid(cape.dataBook.CaseResid):
                 V += (self.i[-1] - V[0] + 1)
             # Append
             setattr(self,col, np.hstack((getattr(self,col), V)))
-        # Check for subiteration history
-        Vsub = fname.split('.')
-        fsub = Vsub[0][:-40 ]+ "subhist." + (".".join(Vsub[1:]))
-        # Check for the file
-        if not os.path.isfile(fsub):
-            # Initialize residuals
-            for col in cols:
-                # Check for special commands
-                if not (col == 'i' or col.startswith('R')): continue
-                # Name of column
-                c0 = col + '0'
-                # Copy the shape of the residual
-                setattr(self,c0, np.hstack(
-                    (getattr(self,c0), np.nan*np.ones_like(V))))
-            # Exit
-            return
-        # Process column names
-        nhdr0, cols0, inds0 = self.ProcessColumnNames(fsub)
-        # Check entries
-        for col in cols0:
-            # Check for existing column
-            if col in self.cols: continue
-            # Initialize the column
-            setattr(self,col, np.zeros_like(self.i, dtype=float))
-            # Append to the end of the list
-            self.cols.append(col)
-        # Read the data.
-        A = np.loadtxt(fname, skiprows=nhdr0, usecols=tuple(inds0))
-        # Number of columns
-        n = len(self.cols0)
-        # Loop through residuals
-        for k in range(n):
-            # Check for special commands
-            if not (col == 'i' or col.startswith('R')): continue
-            # Name of column
-            c0 = cols0[k] + '0'
-            # Set the values
-            setattr(self,c0, np.hstack((getattr(self,c0), A[:,k])))
+        ## Check for subiteration history
+        #Vsub = fname.split('.')
+        #fsub = Vsub[0][:-40 ]+ "subhist." + (".".join(Vsub[1:]))
+        ## Check for the file
+        #if not os.path.isfile(fsub):
+        #    # Initialize residuals
+        #    for col in cols:
+        #        # Check for special commands
+        #        if not (col == 'i' or col.startswith('R')): continue
+        #        # Name of column
+        #        c0 = col + '0'
+        #        # Copy the shape of the residual
+        #        setattr(self,c0, np.hstack(
+        #            (getattr(self,c0), np.nan*np.ones_like(V))))
+        #    # Exit
+        #    return
+        ## Process column names
+        #nhdr0, cols0, inds0 = self.ProcessColumnNames(fsub)
+        ## Check entries
+        #for col in cols0:
+        #    # Check for existing column
+        #    if col in self.cols: continue
+        #    # Initialize the column
+        #    setattr(self,col, np.zeros_like(self.i, dtype=float))
+        #    # Append to the end of the list
+        #    self.cols.append(col)
+        ## Read the data.
+        #A = np.loadtxt(fname, skiprows=nhdr0, usecols=tuple(inds0))
+        ## Number of columns
+        #n = len(self.cols0)
+        ## Loop through residuals
+        #for k in range(n):
+        #    # Check for special commands
+        #    if not (col == 'i' or col.startswith('R')): continue
+        #    # Name of column
+        #    c0 = cols0[k] + '0'
+        #    # Set the values
+        #    setattr(self,c0, np.hstack((getattr(self,c0), A[:,k])))
         
     # Number of orders of magintude of residual drop
     def GetNOrders(self, nStats=1):
