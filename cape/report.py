@@ -999,7 +999,7 @@ class Report(object):
             lines = self.SubfigSwitch(sfig, i, lines, q)
             # Update the settings
             rc["Status"][sfig] = n
-            rc["Subfigures"][sfig] = self.cntl.opts.get_Subfigure(sfig)
+            rc["Subfigures"][sfig] = self.cntl.opts.get_SubfigCascade(sfig)
         # Write the new settings
         self.WriteCaseJSON(rc)
         # Output
@@ -1043,7 +1043,7 @@ class Report(object):
         # Get the definition last used to generate this subfig
         defr = rc.get("Subfigures", {}).get(sfig, {})
         # Get the present definition
-        defo = self.cntl.opts.get_Subfigure(sfig)
+        defo = self.cntl.opts.get_SubfigCascade(sfig)
         # Compare the subfig definitions
         if defr != defo:
             # Definition changed
@@ -1159,7 +1159,7 @@ class Report(object):
                 "nIter": nIter
             }
             # Save the definition
-            rc["Subfigures"][sfig] = self.cntl.opts.get_Subfigure(sfig)
+            rc["Subfigures"][sfig] = self.cntl.opts.get_SubfigCascade(sfig)
         # Write the new settings
         self.WriteCaseJSON(rc)
         # Output
@@ -1264,7 +1264,7 @@ class Report(object):
         # Get the definition last used to generate this subfig
         defr = rc.get("Subfigures", {}).get(sfig, {})
         # Get the present definition
-        defo = self.cntl.opts.get_Subfigure(sfig)
+        defo = self.cntl.opts.get_SubfigCascade(sfig)
         # Compare the subfig definitions
         if defr != defo:
             # Definition changed

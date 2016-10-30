@@ -538,6 +538,37 @@ class Report(odict):
             # Return empty figure.
             return {}
             
+    # Return all non-default options for a subfigure
+    def get_SubfigCascade(self, sfig):
+        """Return all options for a subfigure including ones set in a template
+        
+        :Call:
+            >>> S = opts.get_SubfigCasecasde(sfig)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *sfig*: :class:`str`
+                Name of subfigure
+        :Outputs:
+            *S*: :class:`dict`
+                Options for subfigure *sfig*
+        :Versions:
+            * 2015-03-08 ``@ddalle``: First version
+        """
+        # get the subfigure options
+        S = self.get_Subfigure(sfig)
+        # Get the type
+        typ = S.get("Type")
+        # Check if that type is a template
+        if typ in self:
+            # Get the options from that subfigure; recurse
+            T = self.get_SubfigCascade(typ)
+            # Apply template options but do not overwrite
+            for k in T.keys():
+                S.setdefault(k, T[k])
+        # Output
+        return S
+            
     # Get the sweep
     def get_Sweep(self, fswp):
         """Return a sweep and its options
