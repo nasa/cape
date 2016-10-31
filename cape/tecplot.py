@@ -157,6 +157,79 @@ class Tecscript(FileCntl):
         # Set the variable
         self.SetVar('Minf', mach)
         
+    # Create contour map
+    def CreateColorMap(self, name, cmap, k=2):
+        """Create a new color map
+        
+        :Call:
+            >>> tec.CreateColorMap(name, cmap, k=2)
+            >>> tec.CreateColorMap(name, {f0: c0, f1:f1}, k=2
+        :Inputs:
+            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+                Instance of Tecplot script
+            *cmap*
+        :Versions:
+            * 2016-10-31 ``@ddalle``: First version
+        """
+        # Initialize command
+        cmd = 'CREATECOLORMAP'
+        lines = ["  NAME = '%s'\n" % name]
+        # Get cmap fraction keys
+        V = cmap.keys()
+        # Make sure all are floats
+        for v in V:
+            # Get control point type and check it
+            t = type(v).__name__
+            if t not in ['float', 'int']:
+                raise TypeError(("COLORMAPFRACTION value '%s' " % v) +
+                    ("must be a float or int (found: '%s')" % t))
+        # Sort
+        V.sort()
+        # Number of control points
+        n = len(V)
+        lines.append("  NUMCONTROLPOINTS = %i\n" % n)
+        # Loop through control points
+        for i in range(n):
+            # Get the color value
+            c = cmap[V[i]]
+            t = type(c).__name__
+            # Unpack if two colors
+            if t in ['list', 'ndarray']:
+                # Separate lead and trail RGB values
+                cL = c[0]
+                cR = c[0]
+            else:
+                # One color
+                cL = c
+                cR = c
+            # Lead, trail RGB types
+            tL = type(cL).__name__
+            tR = type(cR).__name__
+            # Process the type
+            if (t not in ['list','ndarray']):
+                raise TypeError("Color '%s' does not have valid type" % V[i])
+            elif len(V) != 3:
+                raise ValueError("Color '%s' must have three values" % V[i])
+            # Append the color
+            lines.append("  CONTROLPOINT %i\n" % i)
+            lines.append("    {\n")
+            lines.append("    LEADRGB\n")
+            lines.append("      {\n")
+            lines.append("      R = %i\n" % cL[0])
+            lines.append("      G = %i\n" % cL[1])
+            lines.append("      B = %i\n" % cL[2])
+            lines.append("      }\n")
+            lines.append("    TRAILRGB\n")
+            lines.append("      {\n")
+            lines.append("      R = %i\n" % cR[0])
+            lines.append("      G = %i\n" % cR[1])
+            lines.append("      B = %i\n" % cR[2])
+            lines.append("      }\n")
+            lines.append("    }\n")
+        # Insert the command
+        self.InsertCommand(k, cmd, lines=lines)
+        
+        
     # Set group stuff
     def SetFieldMap(self, grps):
         """Set active zones for a Tecplot layout, mostly for Overflow
@@ -358,21 +431,21 @@ class Tecscript(FileCntl):
         :Inputs:
             *tec*: :class:`pyCart.tecplot.Tecscript` or derivative
                 Instance of Tecplot script base class
+            *k*: :class:`int`
+                Default command index at which to insert command
             *cmd*: :class:`str`
                 Title of the command to insert
             *txt*: :class:`str`
                 Text to add after the command on the same line
             *lines*: :class:`list` (:class:`str`)
                 Additional lines to add to the command
-            *k*: :class:`int`
-                Default command index at which to insert command
         :Versions:
             * 2015-03-10 ``@ddalle``: First version
         """
         # Create the lines to add.
         if txt is None:
             # Create simple command title
-            L = ["$! %s\n" % cmd]
+            L = ["$!%s\n" % cmd]
         else:
             # Merge the command and additional text
             L = ["$!%s %s\n" % (cmd, txt)]

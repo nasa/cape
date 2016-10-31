@@ -324,6 +324,8 @@ class Report(odict):
             "Position": "b",
             "Alignment": "center",
             "Width": 0.5,
+            "VarSet": {},
+            "ColorMaps": [],
             "FigWidth": 1024,
             "Layout": "layout.lay"
         }

@@ -2858,6 +2858,8 @@ class Report(object):
                     tec.SetFieldMap(grps)
                 except Exception:
                     pass
+            # Layout
+            self.PrepTecplotLayoutVars(tec, sfig, i)
             # Figure width in pixels (can be ``None``).
             wfig = opts.get_SubfigOpt(sfig, "FigWidth")
             # Width in the report
@@ -2891,6 +2893,49 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
+        
+    # Function to prepare variables in Tecplot layout
+    def PrepTecplotLayoutVars(self, tec, sfig, i):
+        """Set any variables for Tecplot layout
+        
+        :Call:
+            >>> R.TecplotLayoutVars(tec, sfig, i)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *tec*: :class:`cape.tecplot.Tecscript`
+                Tecplot layout interface (modified in place)
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2016-10-31 ``@ddalle``: First version
+        """
+        # Get list of variables
+        setv = opts.get_SubfigOpt(sfig, "VarSet")
+        # Loop through variables to set
+        for k in setv:
+            # Get the value and type
+            v = setv[k]
+            t = type(v).__name__
+            # Check for non-numeric definition
+            if t in ['str', 'unicode']:
+                # Check for trajectory key
+                if k in self.cntl.x.keys:
+                    # Get the value from the trajectory
+                    v = getattr(self.cntl.x,k)[i]
+                else:
+                    # Expand any $vars marked with '$'
+                    flgs = re.findall('\$[\w]+', v)
+                    # Replace values
+                    for ki in flgs:
+                        # Replace $mach with x.mach[i] (for example)
+                        vi = str(getattr(self.cntl.x, ki)[i])
+                        v = v.replace(ki, vi)
+            # Set the variable value
+            tec.SetVar(k, v)
+        
         
     # Function to write summary table
     def SubfigSummary(self, sfig, i, q=True):
