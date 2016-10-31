@@ -956,8 +956,10 @@ def LinkFromGlob(fname, fglb):
     if len(fglob) == 0: return
     # Get indices
     n = [int(f.rstrip(fext).split('timestep')[-1]) for f in fglob]
+    # Get modification times
+    t = [os.path.getmtime(f) for f in fglob]
     # Extract file with maximum index
-    fsrc = fglob[n.index(max(n))]
+    fsrc = fglob[t.index(max(t))]
     # Create the link if possible
     if os.path.isfile(fsrc): os.symlink(fsrc, fname)
     
