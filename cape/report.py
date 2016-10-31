@@ -2894,6 +2894,47 @@ class Report(object):
         # Output
         return lines
         
+    # Evaluate a variable, expanding trajectory values
+    def EvalVar(self, v, i):
+        """Evaluate a variable, expanding ``$mach`` to ``x.mach[i]``, etc.
+        
+        :Call:
+            >>> v = R.EvalVar(v, i)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *txt*: :class:`str`
+                String, with ``$`` as sigil for variables to expand
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *v*: :class:`str`
+                Input string with sigils expanded and evaluated
+        :Versions:
+            * 2016-10-31 ``@ddalle``: First version
+        """
+        # Get type
+        t = type(v).__name__
+        # Check numeric
+        if t in ['float', 'int', 'NoneType']:
+            # Do not convert
+            return str(t)
+        # Check for trajectory key
+        if txt in self.cntl.x.keys:
+            # Get the value from the trajectory
+            return str(getattr(self.cntl.x, v)[i])
+        # Get all sigils
+        flgs = re.findall('\$[\w]+', v)
+        # Loop through matches
+        for fi in flgs:
+            # Replace $mach with x.mach[i] (for example)
+            if fi in self.cntl.x.keys:
+                vi = str(getattr(self.cntl.x, fi)[i])
+            # Do the string replacement
+            v = v.replace(fi, vi)
+        # Output
+        return v
+        
     # Function to prepare variables in Tecplot layout
     def PrepTecplotLayoutVars(self, tec, sfig, i):
         """Set any variables for Tecplot layout
@@ -2916,23 +2957,8 @@ class Report(object):
         setv = opts.get_SubfigOpt(sfig, "VarSet")
         # Loop through variables to set
         for k in setv:
-            # Get the value and type
-            v = setv[k]
-            t = type(v).__name__
-            # Check for non-numeric definition
-            if t in ['str', 'unicode']:
-                # Check for trajectory key
-                if k in self.cntl.x.keys:
-                    # Get the value from the trajectory
-                    v = getattr(self.cntl.x,k)[i]
-                else:
-                    # Expand any $vars marked with '$'
-                    flgs = re.findall('\$[\w]+', v)
-                    # Replace values
-                    for ki in flgs:
-                        # Replace $mach with x.mach[i] (for example)
-                        vi = str(getattr(self.cntl.x, ki)[i])
-                        v = v.replace(ki, vi)
+            # Perform replacement while expanding trajectory vals
+            v = self.EvalVar(setv[k], i)
             # Set the variable value
             tec.SetVar(k, v)
         
