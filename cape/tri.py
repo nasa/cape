@@ -3500,7 +3500,6 @@ class TriBase(object):
         jcur = 0
         while icur is not None:
             # Set previous tolerance
-            
             # Find the next node that lies on or near the curve
             icur, jcur = self.TraceCurve_NextNode(icur, Y, jcur, **kw)
             # Check for match
@@ -3574,7 +3573,7 @@ class TriBase(object):
             if np.sum(dxi*dy0) / (Lxi*Ly0) < atol:
                 # Do not check
                 continue
-            # Get distance from *xi* to the remaining curve poitns
+            # Get distance from *xi* to the remaining curve points
             di, dsi, ji = self.TraceCurve_GetDistance(Y[jcur:,:], xi)
             # Length of edge (from *tri*)
             Li = np.sqrt(np.sum((xi-x)**2))

@@ -135,6 +135,15 @@ def StepTri2Crv(*a, **kw):
         if len(Xi) > 1:
             # Valid curve
             X.append(Xi)
+            continue
+        # If reached here, tracing failed; try reverse curve
+        Yi = cape.tri.np.flipud(Yi)
+        # Get the nodes for this curve
+        Xi = tri.TraceCurve(Yi, **kw)
+        # Check for valid curve
+        if len(Xi) > 1:
+            # Valid curve
+            X.append(Xi)
     # Trick the STEP object into using these curves
     stp.ncrv = len(X)
     stp.crvs = X
@@ -143,6 +152,18 @@ def StepTri2Crv(*a, **kw):
     if kw.get('ascii', False):
         # Write ASCII file
         stp.WritePlot3DCurvesASCII(fcrv)
+    elif kw.get('lb8', False):
+        # Write little-endian double
+        stp.WritePlot3DCurvesBin(fcrv, endian='little', single=False)
+    elif kw.get('b8', False):
+        # Write big-endian double
+        stp.WritePlot3DCurvesBin(fcrv, endian='big', single=False)
+    elif kw.get('lb4', False):
+        # Write little-endian single
+        stp.WritePlot3DCurvesBin(fcrv, endian='little', single=True)
+    elif kw.get('b4', False):
+        # Write big-endian single
+        stp.WritePlot3DCurvesBin(fcrv, endian='big', single=True)
     else:
         # Process endianness
         bo = kw.get('endian')
