@@ -286,7 +286,7 @@ class Report(cape.report.Report):
         return lines
         
     # Update subfig for a sweep
-    def SubfigSwitch(self, sfig, fswp, I, lines, q):
+    def SweepSubfigSwitch(self, sfig, fswp, I, lines, q):
         """Switch function to find the correct subfigure function
         
         This function may need to be defined for each CFD solver

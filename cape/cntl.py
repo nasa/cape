@@ -1894,8 +1894,8 @@ class Cntl(object):
         axR  = kx*ax
         cenR = kc*cen
         # Form vectors
-        v0  = ax;  v1  = ax + cen
-        v0R = axR; v1R = axR + cenR
+        v0  = cen;  v1  = ax + cen
+        v0R = cenR; v1R = axR + cenR
         # Ensure a dictionary for reference points
         if type(xT).__name__ != 'dict':
             # Initialize dict (can't use an iterator to do this in old Python)

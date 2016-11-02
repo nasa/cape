@@ -1825,6 +1825,11 @@ class Options(odict):
         self._Report()
         return self['Report'].get_Subfigure(sfig)
         
+    # Same as above but expand options defined in template
+    def get_SubfigCascade(self, sfig):
+        self._Report()
+        return self['Report'].get_SubfigCascade(sfig)
+        
     # Get options for a single sweep
     def get_Sweep(self, fswp):
         self._Report()
@@ -1938,6 +1943,7 @@ class Options(odict):
     # Copy over the documentation
     for k in ['ReportList', 'SweepList', 'FigList', 'SubfigList',
             'Figure', 'Subfigure', 'Report', 'Sweep',
+            'SubfigCascade', 
             'ReportFigList', 'ReportErrorFigList', 'ReportZeroFigList', 
             'ReportSweepList', 'SweepFigList',
             'ReportTitle', 'ReportSubtitle', 'ReportAuthor',
