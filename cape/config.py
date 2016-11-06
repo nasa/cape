@@ -988,7 +988,12 @@ class ConfigJSON(object):
             # Check if it has been processed
             if child in self.faces:
                 # Get the components to add from that child
-                compID += self.faces[child]
+                f = self.faces[child]
+                # Check the type
+                if type(f).__name__.startswith('int'):
+                    compID.append(f)
+                else:
+                    compID += f
                 # Update parent list
                 if c not in self.parents[child]:
                     self.parents[child].append(c)
@@ -1003,7 +1008,7 @@ class ConfigJSON(object):
             # Check for component
             if cID is None:
                 # Missing property
-                raise ValueError(("Component '%s' is not a parent " % child) +
+                print(("Skipping component '%s'; not a parent " % child) +
                     'and has no "CompID"')
             # Set the component for *child*
             self.faces[child] = cID
