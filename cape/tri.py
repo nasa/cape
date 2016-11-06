@@ -2614,9 +2614,9 @@ class TriBase(object):
         # Check for components.
         for k in self.Conf:
             # Check if the component is in the cfg.
-            cID = cfg.faces.get(k)
-            # Check for empty or list.
-            if cID and (type(cID).__name__ == "int"):
+            cID = cfg.GetPropCompID(k)
+            # Check for valid result (above only returns int or None)
+            if cID:
                 # Get the number or list of numbers from *Conf*
                 kID = self.Conf[k]
                 # Process type
@@ -2631,6 +2631,29 @@ class TriBase(object):
                 self.CompID[compID==self.Conf[k]] = cID
                 # Save it in the Conf, too.
                 self.Conf[k] = cID
+        # Restrict
+        self.RestrictConfigCompID()
+                
+    # Restrict component IDs to those actually used in this triangulation
+    def RestrictConfigCompID(self):
+        """Restrict the component IDs in the *config* to those in *tri.CompID*
+        
+        :Call:
+            >>> tri.RestrictConfigCompID()
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+        :Versions:
+            * 2016-11-05 ``@ddalle``: First version
+        """
+        # Get list of component IDs
+        compIDs = np.unique(self.CompID)
+        # Call the method from the *config* handle
+        try:
+            self.config.RestrictCompID(compIDs)
+        except Exception:
+            # Print a warning
+            print("WARNING: Attempt to restrict *config* component IDs failed")
        
    
     # Function to get compIDs by name
@@ -3086,7 +3109,7 @@ class TriBase(object):
         # Calculate the dimensioned normals
         n = np.cross(np.transpose(x01), np.transpose(x02))
         # Calculate the area of each triangle.
-        A = np.sqrt(np.sum(n**2, 1))
+        A = np.fmax(1e-10, np.sqrt(np.sum(n**2, 1)))
         # Normalize each component.
         n[:,0] /= A
         n[:,1] /= A
@@ -3157,7 +3180,7 @@ class TriBase(object):
         NN[self.Tris[:,1]-1,:] += (self.Normals*TA)
         NN[self.Tris[:,2]-1,:] += (self.Normals*TA)
         # Calculate the length of each of these vectors
-        L = np.sqrt(np.sum(NN**2, 1))
+        L = np.fmax(1e-10, np.sqrt(np.sum(NN**2, 1)))
         # Normalize.
         NN[:,0] /= L
         NN[:,1] /= L
