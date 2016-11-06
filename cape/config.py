@@ -426,6 +426,58 @@ class Config:
         # Append *compID* to parent's parent, if any
         self.AppendParent(p, compID)
         
+    # Eliminate all CompID numbers not actually used
+    def RestrictCompID(self, compIDs):
+        """Restrict component IDs in *cfg.faces* to those in a specified list
+        
+        :Call:
+            >>> cfg.RestrictCompID(compIDs)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration interface
+            *compIDs*: :class:`list` (:class:`int`)
+                List of relevant component IDs
+        :Versions:
+            * 2016-11-05 ``@ddalle``: First version
+        """
+        # Check inputs
+        t = type(compIDs).__name__
+        if t not in ['list', 'ndarray']:
+            raise TypeError(
+                ("List of relevant component ID numbers must have type ") + 
+                ("'int' or 'ndarray'; received '%s'" % t))
+        # Check length
+        if len(compIDs) < 1:
+            raise ValueError("Invalid request to restrict to an empty list")
+        # Check first element
+        t = type(compIDs[0]).__name__
+        if not t.startswith('int'):
+            raise TypeError(
+                ("List of relevant component ID numbers must be made ") +
+                ("up of integers; received type '%s'" % t))
+        # Loop through all keys
+        for face in self.faces.keys():
+            # Get the current parameters
+            c = self.faces[face]
+            t = type(c).__name__
+            # Check the type
+            if t.startswith('int'):
+                # Check for the compID at all
+                if c not in compIDs:
+                    # Delete the face
+                    del self.faces[face]
+            else:
+                # Intersect the current value with the target list
+                F = np.intersect1d(c, compIDs)
+                # Check for intersections
+                if len(F) == 0:
+                    # Delete the face
+                    del self.faces[face]
+                else:
+                    # Use the restricted subset
+                    self.faces[face] = F
+                
+        
     # Set transformation
     def SetRotation(self, comp, i=None, **kw):
         """Modify or add a rotation for component *comp*
@@ -787,6 +839,36 @@ class Config:
                 pass
         # Output
         return compID
+            
+    
+    # Get a defining component ID from the *Properties* section
+    def GetPropCompID(self, comp):
+        """Get a *CompID* from the "Properties" section without recursion
+        
+        :Call:
+            >>> compID = cfg.GetPropCompID(comp)
+        :Inputs:
+            *cfg*: :class:`cape.config.Config`
+                XML-based configuration interface
+            *c*: :class:`str`
+                Name of component in "Tree" section
+        :Outputs:
+            *compID*: :class:`int`
+                Full list of component IDs in *c* and its children
+        :Versions:
+            * 2016-10-21 ``@ddalle``: First version
+        """
+        # Get the properties for the component
+        compID = self.GetCompID(comp)
+        # Type
+        t = type(prop).__name__
+        # Check if it's an integer
+        if t.startswith('int'):
+            # Valid single-component ID
+            return compID
+        else:
+            # Missing or multiple components
+            return None
     
     # Method to copy a configuration
     def Copy(self):
@@ -1015,6 +1097,58 @@ class ConfigJSON(object):
         self.faces[c] = compID
         # Output
         return compID
+        
+    # Eliminate all CompID numbers not actually used
+    def RestrictCompID(self, compIDs):
+        """Restrict component IDs in *cfg.faces* to those in a specified list
+        
+        :Call:
+            >>> cfg.RestrictCompID(compIDs)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration interface
+            *compIDs*: :class:`list` (:class:`int`)
+                List of relevant component IDs
+        :Versions:
+            * 2016-11-05 ``@ddalle``: First version
+        """
+        # Check inputs
+        t = type(compIDs).__name__
+        if t not in ['list', 'ndarray']:
+            raise TypeError(
+                ("List of relevant component ID numbers must have type ") + 
+                ("'int' or 'ndarray'; received '%s'" % t))
+        # Check length
+        if len(compIDs) < 1:
+            raise ValueError("Invalid request to restrict to an empty list")
+        # Check first element
+        t = type(compIDs[0]).__name__
+        if not t.startswith('int'):
+            raise TypeError(
+                ("List of relevant component ID numbers must be made ") +
+                ("up of integers; received type '%s'" % t))
+        # Loop through all keys
+        for face in self.faces.keys():
+            # Get the current parameters
+            c = self.faces[face]
+            t = type(c).__name__
+            # Check the type
+            if t.startswith('int'):
+                # Check for the compID at all
+                if c not in compIDs:
+                    # Delete the face
+                    del self.faces[face]
+            else:
+                # Intersect the current value with the target list
+                F = np.intersect1d(c, compIDs)
+                # Check for intersections
+                if len(F) == 0:
+                    # Delete the face
+                    del self.faces[face]
+                else:
+                    # Use the restricted subset
+                    self.faces[face] = F
+            
     
     # Get a defining component ID from the *Properties* section
     def GetPropCompID(self, comp):
