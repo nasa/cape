@@ -433,8 +433,8 @@ class Config:
         :Call:
             >>> cfg.RestrictCompID(compIDs)
         :Inputs:
-            *cfg*: :class:`cape.config.ConfigJSON`
-                JSON-based configuration interface
+            *cfg*: :class:`cape.config.Config`
+                XML-based configuration interface
             *compIDs*: :class:`list` (:class:`int`)
                 List of relevant component IDs
         :Versions:
@@ -638,6 +638,22 @@ class Config:
         f.write("</Configuration>\n")
         # Close the file.
         f.close()
+        
+    # Copy the handle
+    def WriteXML(self, fname=None):
+        """Write the configuration to file
+        
+        :Call:
+            >>> cfg.WriteXML(fname=None)
+        :Inputs:
+            *cfg*: :class:`cape.config.Config`
+                Instance of configuration class
+            *fname*: {``None``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-08-23 ``@ddalle``: First version
+        """
+        self.Write(fname)
         
     # Function to write a component
     def WriteComponent(self, f, comp):
@@ -1154,6 +1170,97 @@ class ConfigJSON(object):
                     # Use the restricted subset
                     self.faces[face] = F
             
+    # Write configuration
+    def WriteXML(self, fname="Config.xml", Name=None, Source=None):
+        """Write a GMP-type ``Config.xml`` file
+        
+        :Call:
+            >>> cfg.WriteXML(fname="Config.xml", Name=None, Source=None)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-base configuration instance
+            *fname*: {``"Config.xml"``} | :class:`str`
+                Name of file to write
+            *Name*: {``None``} | :class:`str`
+                Name of the configuration, defaults to *fname*
+            *Source*: {``"Components.i.tri"``} | :class:`str`
+                Name of the "source" triangulation file, has no effect
+        :Versions:
+            * 2016-11-06 ``@ddalle``: First version
+        """
+        # Open the file.
+        f = open(fname, 'w')
+        # Write opening handle
+        f.write('<?xml version="1.0" encoding="utf-8"?>\n\n')
+        # Get the name and source
+        if Name   is None: Name = fname
+        if Source is None: Source = "Components.i.tri"
+        # Write the "configuration" element
+        f.write('<Configuration Name="%s" Source="%s">\n\n' % (Name,Source))
+        # Loop through the elements
+        for face in self.faces:
+            # Get the compID
+            compID = self.faces[face]
+            # Don't mess around with ``None``
+            if compID is None: continue
+            # Type
+            t = type(compID).__name__
+            # Check if it's a basic face or a container
+            if t.startswith('int'):
+                # Integers are already faces
+                q = True
+            else:
+                # Get the compID from properties
+                c = self.GetPropCompID(face)
+                # Check for length one
+                if len(compID) > 1:
+                    # Multiple faces
+                    q = False
+                elif compID[0] == c:
+                    # One face, matching "Properties" section
+                    q = True
+                    compID = compID[0]
+                else:
+                    # One component, but from a single child
+                    q = False
+            # Get parent
+            parent = self.parents[face]
+            # Type
+            t = type(parent).__name__
+            # Check for list
+            if t in ['list', 'ndarray']:
+                # Check for multiple components
+                if len(t) == 0:
+                    # No parents
+                    parent = None
+                if len(t) > 1:
+                    # Let's warn for now, verbose
+                    print(
+                        ("  WARNING: Component '%s' has multiple " % face) +
+                        ("parents (%s); using first entry" % parent))
+                    parent = parent[0]
+                else:
+                    # Take first entry
+                    parent = parent[0]
+            # Common portion of face label
+            f.write('  <Component Name="%s" ' % face)
+            # Check for parent
+            if parent is not None:
+                f.write('Parent="%s" ' % parent)
+            # Write the right type of component
+            if q:
+                # Write single-face
+                f.write('Type="tri">\n')
+                f.write('    <Data>Face Label=%i</Data>\n' % compID)
+                f.write('  </Component>\n')
+            else:
+                # Write container
+                f.write('Type="container">\n')
+                f.write('  </Component>\n')
+        # Close the "Configuration" element
+        f.write("</Configuration>\n")
+        # Close the file
+        f.close()
     
     # Get a defining component ID from the *Properties* section
     def GetPropCompID(self, comp):
