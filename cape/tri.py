@@ -2550,6 +2550,8 @@ class TriBase(object):
         """
         # Read the configuration and save it.
         self.config = Config(c)
+        # Restrict to a subset
+        self.RestrictConfigCompID()
         
     # Function to read Config.json
     def ReadConfigJSON(self, c):
@@ -2631,9 +2633,35 @@ class TriBase(object):
                 self.CompID[compID==self.Conf[k]] = cID
                 # Save it in the Conf, too.
                 self.Conf[k] = cID
+                # Save the compID as an int in the *config* just for clarity
+                #self.config.faces[k] = cID
         # Restrict
         self.RestrictConfigCompID()
-                
+        
+    # Write a new Config.xml file
+    def WriteConfigXML(self, fname="Config.xml"):
+        """Write a ``Config.xml`` file specific to this triangulation
+        
+        :Call:
+            >>> tri.WriteConfigXML(fname="Config.xml")
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase`
+                Triangulation interface
+            *fname*: {``"Config.xml"``} | :class:`str`
+                Name of GMP configuration file to write
+        :Versions:
+            * 2016-11-06 ``@ddalle``: First version
+        """
+        # Check for a configuration
+        try:
+            self.config
+        except AttributeError:
+            raise AttributeError(
+                ("Cannot write GMP file '%s' " % fname) +
+                ("because tri instance does not have a config interface"))
+        # Write the XML
+        self.WriteXML(fname)
+    
     # Restrict component IDs to those actually used in this triangulation
     def RestrictConfigCompID(self):
         """Restrict the component IDs in the *config* to those in *tri.CompID*
