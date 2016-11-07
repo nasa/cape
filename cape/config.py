@@ -1169,6 +1169,53 @@ class ConfigJSON(object):
                 else:
                     # Use the restricted subset
                     self.faces[face] = F
+    
+    # Get list of components that are not parents
+    def GetTriFaces(self):
+        """Get the names of faces that are of type "tri" (not containers)
+        
+        :Call:
+            >>> comps = cfg.GetTriFaces()
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration instance
+        :Outputs:
+            *comps*: :class:`list` (:class:`str`)
+                List of lowest-level component names
+        :Versions:
+            * 2016-11-07 ``@ddalle``: First version
+        """
+        # Initialize
+        comps = []
+        # Loop through all faces
+        for face in self.faces:
+            # Get the compID information for this face
+            compID = self.faces[face]
+            # Type
+            t = type(compID).__name__
+            # Check
+            if compID is None:
+                # Empty instruction
+                continue
+            if t.startswith('int'):
+                # Valid face (non-list integer instruction)
+                comps.append(face)
+            else:
+                # Get the compID from the "Properties" section
+                c = self.GetPropCompID(face)
+                # Check for length one
+                if len(compID) != 1:
+                    # Multiple faces
+                    continue
+                elif compID[0] == c:
+                    # One face, matching "Properties" section
+                    comps.append(face)
+                else:
+                    # One face, not matching "Properties" section
+                    continue
+        # Output
+        return comps
+                
             
     # Write configuration
     def WriteXML(self, fname="Config.xml", Name=None, Source=None):
@@ -1178,7 +1225,7 @@ class ConfigJSON(object):
             >>> cfg.WriteXML(fname="Config.xml", Name=None, Source=None)
         :Inputs:
             *cfg*: :class:`cape.config.ConfigJSON`
-                JSON-base configuration instance
+                JSON-based configuration instance
             *fname*: {``"Config.xml"``} | :class:`str`
                 Name of file to write
             *Name*: {``None``} | :class:`str`
@@ -1259,6 +1306,93 @@ class ConfigJSON(object):
                 f.write('  </Component>\n')
         # Close the "Configuration" element
         f.write("</Configuration>\n")
+        # Close the file
+        f.close()
+        
+    # Write .mapbc file
+    def WriteFun3DMapBC(self, fname):
+        """Write a Fun3D ".mapbc" file
+        
+        :Call:
+            >>> cfg.WriteFun3DMapBC(fname)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration instance
+            *fname*: :class:`str`
+                Name of mapbc file to write
+        :Versions:
+            * 2016-11-07 ``@ddalle``: First version
+        """
+        # Get the list of tri faces
+        faces = self.GetTriFaces()
+        # Initialize final list and dictionary of BCs
+        comps0 = []
+        bcs = {}
+        compIDs = {}
+        # List used for sorting tri faces
+        inds = []
+        # Get the manually-set "Order" paremter
+        compOrder = self.opts.get("Order", [])
+        # Loop through *faces*
+        for face in faces:
+            # Get the BCs from the "Properties" section
+            bc      = self.GetProperty(face, 'bc')
+            fun3dbc = self.GetProperty(face, 'fun3d_bc')
+            aflr3bc = self.getProperty(face, 'aflr3_bc')
+            # Turn into a single bc
+            if fun3dbc is None:
+                # No explicit Fun3D boundary condition; check overall 'bc'
+                if bc is None:
+                    # No boundary condition: default (viscous wall=4000)
+                    fun3dbc = 4000
+                elif aflr3bc is None:
+                    # The 'bc' parameter prefers to affect AFLR3
+                    fun3dbc = 4000
+                    aflr3bc = bc
+                else:
+                    # Otherwise, use the *bc* parameter to set Fun3D BC
+                    fun3dbc = bc
+            elif aflr3bc is None:
+                # No explicit Fun3D bc
+                if bc is None:
+                    # No AFLR3 setting; use default
+                    aflr3bc = -1
+                else:
+                    # Copy from *bc*
+                    aflr3bc = bc
+            # Check for valid wall boundary condition
+            if (aflr3bc == 3) or (fun3dbc == False):
+                # This is a source; do not add it to the Fun3D BCs
+                continue
+            # Otherwise, add the component
+            comps0.append(face)
+            bcs[face] = fun3dbc
+            # Set the component ID
+            compID = self.GetPropCompID(face)
+            compIDs[face] = compID
+            # Get the sorting parameter
+            if face in compOrder:
+                # Use the index in the "Order" section as a sort key
+                inds.append(compOrder.index(face))
+            else:
+                # Use the CompID to sort
+                inds.append(compID)
+        # Sort the components
+        I = np.argsort(inds)
+        # Start final component list
+        comps = []
+        # Use this sorting order to reorder *comps*
+        for i in I:
+            comps.append(comps0[i])
+        
+        # Open the .mapbc file
+        f = open(fname, 'w')
+        # Write the number of components
+        f.write("%9s %i\n" % (" ", len(comps)))
+        # Loop through components
+        for comp in comps:
+            # Write compID, BC, and name
+            f.write("%7i   %4i   %s\n" % (compIDs[comp], bcs[comp], comp))
         # Close the file
         f.close()
     
