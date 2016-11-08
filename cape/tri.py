@@ -2660,7 +2660,7 @@ class TriBase(object):
                 ("Cannot write GMP file '%s' " % fname) +
                 ("because tri instance does not have a config interface"))
         # Write the XML
-        self.WriteXML(fname)
+        self.config.WriteXML(fname)
     
     # Restrict component IDs to those actually used in this triangulation
     def RestrictConfigCompID(self):

@@ -1277,10 +1277,11 @@ class ConfigJSON(object):
             # Check for list
             if t in ['list', 'ndarray']:
                 # Check for multiple components
-                if len(t) == 0:
+                if len(parent) == 0:
                     # No parents
+                    print("  No parent for component '%s'" % face)
                     parent = None
-                if len(t) > 1:
+                elif len(parent) > 1:
                     # Let's warn for now, verbose
                     print(
                         ("  WARNING: Component '%s' has multiple " % face) +
@@ -1299,11 +1300,11 @@ class ConfigJSON(object):
                 # Write single-face
                 f.write('Type="tri">\n')
                 f.write('    <Data>Face Label=%i</Data>\n' % compID)
-                f.write('  </Component>\n')
+                f.write('  </Component>\n\n')
             else:
                 # Write container
                 f.write('Type="container">\n')
-                f.write('  </Component>\n')
+                f.write('  </Component>\n\n')
         # Close the "Configuration" element
         f.write("</Configuration>\n")
         # Close the file
