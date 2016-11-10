@@ -2954,7 +2954,7 @@ class Report(object):
             * 2016-10-31 ``@ddalle``: First version
         """
         # Get list of variables
-        setv = opts.get_SubfigOpt(sfig, "VarSet")
+        setv = self.cntl.opts.get_SubfigOpt(sfig, "VarSet")
         # Loop through variables to set
         for k in setv:
             # Perform replacement while expanding trajectory vals
