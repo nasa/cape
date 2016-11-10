@@ -1339,7 +1339,7 @@ class ConfigJSON(object):
             # Get the BCs from the "Properties" section
             bc      = self.GetProperty(face, 'bc')
             fun3dbc = self.GetProperty(face, 'fun3d_bc')
-            aflr3bc = self.getProperty(face, 'aflr3_bc')
+            aflr3bc = self.GetProperty(face, 'aflr3_bc')
             # Turn into a single bc
             if fun3dbc is None:
                 # No explicit Fun3D boundary condition; check overall 'bc'
@@ -1396,6 +1396,156 @@ class ConfigJSON(object):
             f.write("%7i   %4i   %s\n" % (compIDs[comp], bcs[comp], comp))
         # Close the file
         f.close()
+        
+    # Renumber a component
+    def RenumberCompID(self, face, compID):
+        # Get the current component number
+        compi = self.faces[face]
+        t = type(compo).__name__
+        # Reset it
+        if t in ['list', 'ndarray']:
+            # Extract the original component ID from singleton list
+            compi = compi[0]
+            # Reset it (list)
+            self.faces[face] = [compID]
+        else:
+            # Reset it (number)
+            self.faces[face] = compID
+        # Get the component ID from "Properties"
+        compp = self.props[face]
+        t = type(compp).__name__
+        # Check for single number
+        if t == 'dict':
+            # Set the CompID property
+            self.props[face]["CompID"] = compID
+        else:
+            # Single number
+            self.props[face] = compID
+        # Loop through the parents
+        self.RenumberCompIDParent(face, compi, compID)
+        
+        
+    # Renumber the parents of one component.
+    def RenumberCompIDParent(face, compi, compo):
+        # Get the component number list
+        comp = self.faces[face]
+        # Check for list
+        if type(comp).__name__ != 'list':
+            return
+        # Reset the value.
+        if compi not in comp: return
+        # Get parent
+        parents = self.parents[face]
+        # Check None
+        if parents is None: return
+        # Loop through parents
+        for parent in parents:
+            # Get the parent's face data
+            comp = self.faces[parent]
+            # Replace the parent value
+            comp[comp.index(compi)] = compo
+            # Recurse
+            self.RenumberCompIDParent(parent, compi, compo)
+            
+    # Reset component IDs
+    def ResetCompIDs(self):
+        """Renumber component IDs 1 to *n*
+        
+        :Call:
+            >>> comps = cfg.ResetCompIDs()
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration instance
+        :Versions:
+            * 2016-11-09 ``@ddalle``: First version
+        """
+        # Get the list of tri faces
+        comps = self.SortCompIDs()
+        # Loop through faces in order
+        for i in range(len(comps)):
+            # Get the face
+            face = comps[i]
+            # Renumber
+            self.RenumberCompID(face, i)
+        
+    # Renumber Component IDs 1 to *n*
+    def SortCompIDs(self):
+        """Get ordered list of components
+        
+        :Call:
+            >>> comps = cfg.SortCompIDs()
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration instance
+        :Outputs:
+            *comps*: :class:`list` (:class:`str`)
+                List of components
+        :Versions:
+            * 2016-11-09 ``@ddalle``: First version
+        """
+        # Get the list of tri faces
+        faces = self.GetTriFaces()
+        # Initialize final list and dictionary of BCs
+        comps0 = []
+        bcs = {}
+        compIDs = {}
+        # List used for sorting tri faces
+        inds = []
+        # Get the manually-set "Order" paremter
+        compOrder = self.opts.get("Order", [])
+        # Loop through *faces*
+        for face in faces:
+            # Get the BCs from the "Properties" section
+            bc      = self.GetProperty(face, 'bc')
+            fun3dbc = self.GetProperty(face, 'fun3d_bc')
+            aflr3bc = self.GetProperty(face, 'aflr3_bc')
+            # Turn into a single bc
+            if fun3dbc is None:
+                # No explicit Fun3D boundary condition; check overall 'bc'
+                if bc is None:
+                    # No boundary condition: default (viscous wall=4000)
+                    fun3dbc = 4000
+                elif aflr3bc is None:
+                    # The 'bc' parameter prefers to affect AFLR3
+                    fun3dbc = 4000
+                    aflr3bc = bc
+                else:
+                    # Otherwise, use the *bc* parameter to set Fun3D BC
+                    fun3dbc = bc
+            elif aflr3bc is None:
+                # No explicit Fun3D bc
+                if bc is None:
+                    # No AFLR3 setting; use default
+                    aflr3bc = -1
+                else:
+                    # Copy from *bc*
+                    aflr3bc = bc
+            # Check for valid wall boundary condition
+            if (aflr3bc == 3) or (fun3dbc == False):
+                # This is a source; do not add it to the Fun3D BCs
+                continue
+            # Otherwise, add the component
+            comps0.append(face)
+            bcs[face] = fun3dbc
+            # Set the component ID
+            compID = self.GetPropCompID(face)
+            compIDs[face] = compID
+            # Get the sorting parameter
+            if face in compOrder:
+                # Use the index in the "Order" section as a sort key
+                inds.append(compOrder.index(face))
+            else:
+                # Use the CompID to sort
+                inds.append(compID)
+        # Sort the components
+        I = np.argsort(inds)
+        # Start final component list
+        comps = []
+        # Use this sorting order to reorder *comps*
+        for i in I:
+            comps.append(comps0[i])
+        # Output
+        return comps
     
     # Get a defining component ID from the *Properties* section
     def GetPropCompID(self, comp):

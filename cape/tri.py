@@ -2300,6 +2300,24 @@ class TriBase(object):
         # Update the statistics.
         self.nNode += tri.nNode
         self.nTri  += tri.nTri
+        # Check for config
+        try:
+            # Check for a configuration in both triangulations
+            self.config
+            tri.config
+            # Loop through the faces in the added configuration
+            for face in tri.config.faces:
+                # Check if the face is also in the current configuration
+                if face in self.config.faces:
+                    # Union the two faces
+                    self.config.faces[face] = np.union1d(
+                        self.config.faces[face], tri.config.faces[face])
+                else:
+                    # Add the face
+                    self.config.faces[face] = tri.config.faces[face]
+        except AttributeError:
+            # No configurations to merge
+            pass
         
     # Add a second triangulation without altering component numbers.
     def AddRawCompID(self, tri):
@@ -2682,6 +2700,51 @@ class TriBase(object):
         except Exception:
             # Print a warning
             print("WARNING: Attempt to restrict *config* component IDs failed")
+            
+    # Renumber component IDs 1 to *n*
+    def RenumberCompIDs(self):
+        """Renumber component ID numbers 1 to *n*
+        
+        :Call:
+            >>> tri.RenumberCompIDs()
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase`
+                Triangulation interface
+        :Versions:
+            * 2016-11-09 ``@ddalle``: First version
+        """
+        # Check for a configuration
+        try:
+            self.config
+        except AttributeError:
+            raise AttributeError(
+                ("Cannot reorder component IDs without a ConfigJSON object"))
+        # Get list of component IDs in ascending order
+        faces = self.config.SortCompIDs()
+        # List of component IDs in current list
+        compIDs = np.unique(self.CompID)
+        # Initialize new list
+        CompID = np.zeros_like(self.CompID)
+        # Initial component number
+        ncomp = 0
+        # Loop through sorted faces
+        for face in faces:
+            # Get the component number
+            compi = self.config.faces[face]
+            # Make sure it's an integer
+            if type(compi).__name__ in ['list', 'ndarray']:
+                # Extract element from singleton
+                compi = compi[0]
+            # Check if that compID is present
+            if compi not in compIDs: continue
+            # Otherwise, reset it.
+            ncomp += 1
+            CompID[self.CompID==compi] = ncomp
+        # Check for zero
+        if np.any(CompID == 0):
+            print("  WARNING: At least one tri has unset component ID")
+        # Reset component IDs
+        self.CompID = CompID
        
    
     # Function to get compIDs by name
@@ -2939,11 +3002,8 @@ class TriBase(object):
         # Initialize the boundary layer spacings
         self.blds = np.zeros(self.nNode)
         self.bldel = np.zeros(self.nNode)
-        # Default keys
-        if compID is None:
-            compID = self.config.comps
         # Loop through BCs
-        for comp in compID:
+        for comp in self.config.comps:
             # Get the tris, quads, and nodes matching the component ID
             IT = self.GetTrisFromCompID(comp)
             IQ = self.GetQuadsFromCompID(comp)
@@ -2959,7 +3019,10 @@ class TriBase(object):
                     % comp)
             # Apply to the appropriate tris and quads
             if len(IT) > 0:
-                self.BCs[IT] = BC
+                try:
+                    self.BCs[IT] = BC
+                except Exception:
+                    print("BC=%s" % BC)
             if len(IQ) > 0:
                 self.BCsQuad[IQ] = BC
                 
