@@ -2300,6 +2300,24 @@ class TriBase(object):
         # Update the statistics.
         self.nNode += tri.nNode
         self.nTri  += tri.nTri
+        # Check for config
+        try:
+            # Check for a configuration in both triangulations
+            self.config
+            tri.config
+            # Loop through the faces in the added configuration
+            for face in tri.config.faces:
+                # Check if the face is also in the current configuration
+                if face in self.config.faces:
+                    # Union the two faces
+                    self.config.faces[face] = np.union1d(
+                        self.config.faces[face], tri.config.faces[face])
+                else:
+                    # Add the face
+                    self.config.faces[face] = tri.config.faces[face]
+        except AttributeError:
+            # No configurations to merge
+            pass
         
     # Add a second triangulation without altering component numbers.
     def AddRawCompID(self, tri):
@@ -2550,6 +2568,8 @@ class TriBase(object):
         """
         # Read the configuration and save it.
         self.config = Config(c)
+        # Restrict to a subset
+        self.RestrictConfigCompID()
         
     # Function to read Config.json
     def ReadConfigJSON(self, c):
@@ -2614,9 +2634,9 @@ class TriBase(object):
         # Check for components.
         for k in self.Conf:
             # Check if the component is in the cfg.
-            cID = cfg.faces.get(k)
-            # Check for empty or list.
-            if cID and (type(cID).__name__ == "int"):
+            cID = cfg.GetPropCompID(k)
+            # Check for valid result (above only returns int or None)
+            if cID:
                 # Get the number or list of numbers from *Conf*
                 kID = self.Conf[k]
                 # Process type
@@ -2631,6 +2651,103 @@ class TriBase(object):
                 self.CompID[compID==self.Conf[k]] = cID
                 # Save it in the Conf, too.
                 self.Conf[k] = cID
+                # Save the compID as an int in the *config* just for clarity
+                #self.config.faces[k] = cID
+        # Restrict
+        self.RestrictConfigCompID()
+        
+    # Write a new Config.xml file
+    def WriteConfigXML(self, fname="Config.xml"):
+        """Write a ``Config.xml`` file specific to this triangulation
+        
+        :Call:
+            >>> tri.WriteConfigXML(fname="Config.xml")
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase`
+                Triangulation interface
+            *fname*: {``"Config.xml"``} | :class:`str`
+                Name of GMP configuration file to write
+        :Versions:
+            * 2016-11-06 ``@ddalle``: First version
+        """
+        # Check for a configuration
+        try:
+            self.config
+        except AttributeError:
+            raise AttributeError(
+                ("Cannot write GMP file '%s' " % fname) +
+                ("because tri instance does not have a config interface"))
+        # Write the XML
+        self.config.WriteXML(fname)
+    
+    # Restrict component IDs to those actually used in this triangulation
+    def RestrictConfigCompID(self):
+        """Restrict the component IDs in the *config* to those in *tri.CompID*
+        
+        :Call:
+            >>> tri.RestrictConfigCompID()
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+        :Versions:
+            * 2016-11-05 ``@ddalle``: First version
+        """
+        # Get list of component IDs
+        compIDs = np.unique(self.CompID)
+        # Call the method from the *config* handle
+        try:
+            self.config.RestrictCompID(compIDs)
+        except Exception:
+            # Print a warning
+            print("WARNING: Attempt to restrict *config* component IDs failed")
+            
+    # Renumber component IDs 1 to *n*
+    def RenumberCompIDs(self):
+        """Renumber component ID numbers 1 to *n*
+        
+        :Call:
+            >>> tri.RenumberCompIDs()
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase`
+                Triangulation interface
+        :Versions:
+            * 2016-11-09 ``@ddalle``: First version
+        """
+        # Check for a configuration
+        try:
+            self.config
+        except AttributeError:
+            raise AttributeError(
+                ("Cannot reorder component IDs without a ConfigJSON object"))
+        # Get list of component IDs in ascending order
+        faces = self.config.SortCompIDs()
+        # List of component IDs in current list
+        compIDs = np.unique(self.CompID)
+        # Initialize new list
+        CompID = np.zeros_like(self.CompID)
+        # Initial component number
+        ncomp = 0
+        # Loop through sorted faces
+        for face in faces:
+            # Get the component number
+            compi = self.config.faces[face]
+            # Make sure it's an integer
+            if type(compi).__name__ in ['list', 'ndarray']:
+                # Extract element from singleton
+                compi = compi[0]
+            # Check if that compID is present
+            if compi not in compIDs: continue
+            # Otherwise, reset it.
+            I = np.where(self.CompID==compi)[0]
+            ncomp += 1
+            CompID[I] = ncomp
+            # Renumber the components in the *config*
+            self.config.RenumberCompID(face, ncomp)
+        # Check for zero
+        if np.any(CompID == 0):
+            print("  WARNING: At least one tri has unset component ID")
+        # Reset component IDs
+        self.CompID = CompID
        
    
     # Function to get compIDs by name
@@ -2852,6 +2969,12 @@ class TriBase(object):
         return tri0
                 
   # >
+  
+    # ===============
+    # FUN3D Interface
+    # ===============
+  # <
+  # >
     
     # =========================
     # AFLR3 Boundary Conditions
@@ -2882,11 +3005,8 @@ class TriBase(object):
         # Initialize the boundary layer spacings
         self.blds = np.zeros(self.nNode)
         self.bldel = np.zeros(self.nNode)
-        # Default keys
-        if compID is None:
-            compID = self.config.comps
         # Loop through BCs
-        for comp in compID:
+        for comp in self.config.comps:
             # Get the tris, quads, and nodes matching the component ID
             IT = self.GetTrisFromCompID(comp)
             IQ = self.GetQuadsFromCompID(comp)
@@ -2902,7 +3022,10 @@ class TriBase(object):
                     % comp)
             # Apply to the appropriate tris and quads
             if len(IT) > 0:
-                self.BCs[IT] = BC
+                try:
+                    self.BCs[IT] = BC
+                except Exception:
+                    print("BC=%s" % BC)
             if len(IQ) > 0:
                 self.BCsQuad[IQ] = BC
                 
@@ -3086,7 +3209,7 @@ class TriBase(object):
         # Calculate the dimensioned normals
         n = np.cross(np.transpose(x01), np.transpose(x02))
         # Calculate the area of each triangle.
-        A = np.sqrt(np.sum(n**2, 1))
+        A = np.fmax(1e-10, np.sqrt(np.sum(n**2, 1)))
         # Normalize each component.
         n[:,0] /= A
         n[:,1] /= A
@@ -3157,7 +3280,7 @@ class TriBase(object):
         NN[self.Tris[:,1]-1,:] += (self.Normals*TA)
         NN[self.Tris[:,2]-1,:] += (self.Normals*TA)
         # Calculate the length of each of these vectors
-        L = np.sqrt(np.sum(NN**2, 1))
+        L = np.fmax(1e-10, np.sqrt(np.sum(NN**2, 1)))
         # Normalize.
         NN[:,0] /= L
         NN[:,1] /= L

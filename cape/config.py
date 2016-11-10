@@ -426,6 +426,58 @@ class Config:
         # Append *compID* to parent's parent, if any
         self.AppendParent(p, compID)
         
+    # Eliminate all CompID numbers not actually used
+    def RestrictCompID(self, compIDs):
+        """Restrict component IDs in *cfg.faces* to those in a specified list
+        
+        :Call:
+            >>> cfg.RestrictCompID(compIDs)
+        :Inputs:
+            *cfg*: :class:`cape.config.Config`
+                XML-based configuration interface
+            *compIDs*: :class:`list` (:class:`int`)
+                List of relevant component IDs
+        :Versions:
+            * 2016-11-05 ``@ddalle``: First version
+        """
+        # Check inputs
+        t = type(compIDs).__name__
+        if t not in ['list', 'ndarray']:
+            raise TypeError(
+                ("List of relevant component ID numbers must have type ") + 
+                ("'int' or 'ndarray'; received '%s'" % t))
+        # Check length
+        if len(compIDs) < 1:
+            raise ValueError("Invalid request to restrict to an empty list")
+        # Check first element
+        t = type(compIDs[0]).__name__
+        if not t.startswith('int'):
+            raise TypeError(
+                ("List of relevant component ID numbers must be made ") +
+                ("up of integers; received type '%s'" % t))
+        # Loop through all keys
+        for face in self.faces.keys():
+            # Get the current parameters
+            c = self.faces[face]
+            t = type(c).__name__
+            # Check the type
+            if t.startswith('int'):
+                # Check for the compID at all
+                if c not in compIDs:
+                    # Delete the face
+                    del self.faces[face]
+            else:
+                # Intersect the current value with the target list
+                F = np.intersect1d(c, compIDs)
+                # Check for intersections
+                if len(F) == 0:
+                    # Delete the face
+                    del self.faces[face]
+                else:
+                    # Use the restricted subset
+                    self.faces[face] = F
+                
+        
     # Set transformation
     def SetRotation(self, comp, i=None, **kw):
         """Modify or add a rotation for component *comp*
@@ -586,6 +638,22 @@ class Config:
         f.write("</Configuration>\n")
         # Close the file.
         f.close()
+        
+    # Copy the handle
+    def WriteXML(self, fname=None):
+        """Write the configuration to file
+        
+        :Call:
+            >>> cfg.WriteXML(fname=None)
+        :Inputs:
+            *cfg*: :class:`cape.config.Config`
+                Instance of configuration class
+            *fname*: {``None``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-08-23 ``@ddalle``: First version
+        """
+        self.Write(fname)
         
     # Function to write a component
     def WriteComponent(self, f, comp):
@@ -787,6 +855,36 @@ class Config:
                 pass
         # Output
         return compID
+            
+    
+    # Get a defining component ID from the *Properties* section
+    def GetPropCompID(self, comp):
+        """Get a *CompID* from the "Properties" section without recursion
+        
+        :Call:
+            >>> compID = cfg.GetPropCompID(comp)
+        :Inputs:
+            *cfg*: :class:`cape.config.Config`
+                XML-based configuration interface
+            *c*: :class:`str`
+                Name of component in "Tree" section
+        :Outputs:
+            *compID*: :class:`int`
+                Full list of component IDs in *c* and its children
+        :Versions:
+            * 2016-10-21 ``@ddalle``: First version
+        """
+        # Get the properties for the component
+        compID = self.GetCompID(comp)
+        # Type
+        t = type(prop).__name__
+        # Check if it's an integer
+        if t.startswith('int'):
+            # Valid single-component ID
+            return compID
+        else:
+            # Missing or multiple components
+            return None
     
     # Method to copy a configuration
     def Copy(self):
@@ -988,7 +1086,12 @@ class ConfigJSON(object):
             # Check if it has been processed
             if child in self.faces:
                 # Get the components to add from that child
-                compID += self.faces[child]
+                f = self.faces[child]
+                # Check the type
+                if type(f).__name__.startswith('int'):
+                    compID.append(f)
+                else:
+                    compID += f
                 # Update parent list
                 if c not in self.parents[child]:
                     self.parents[child].append(c)
@@ -1003,7 +1106,7 @@ class ConfigJSON(object):
             # Check for component
             if cID is None:
                 # Missing property
-                raise ValueError(("Component '%s' is not a parent " % child) +
+                print(("Skipping component '%s'; not a parent " % child) +
                     'and has no "CompID"')
             # Set the component for *child*
             self.faces[child] = cID
@@ -1015,6 +1118,474 @@ class ConfigJSON(object):
         self.faces[c] = compID
         # Output
         return compID
+        
+    # Eliminate all CompID numbers not actually used
+    def RestrictCompID(self, compIDs):
+        """Restrict component IDs in *cfg.faces* to those in a specified list
+        
+        :Call:
+            >>> cfg.RestrictCompID(compIDs)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration interface
+            *compIDs*: :class:`list` (:class:`int`)
+                List of relevant component IDs
+        :Versions:
+            * 2016-11-05 ``@ddalle``: First version
+        """
+        # Check inputs
+        t = type(compIDs).__name__
+        if t not in ['list', 'ndarray']:
+            raise TypeError(
+                ("List of relevant component ID numbers must have type ") + 
+                ("'int' or 'ndarray'; received '%s'" % t))
+        # Check length
+        if len(compIDs) < 1:
+            raise ValueError("Invalid request to restrict to an empty list")
+        # Check first element
+        t = type(compIDs[0]).__name__
+        if not t.startswith('int'):
+            raise TypeError(
+                ("List of relevant component ID numbers must be made ") +
+                ("up of integers; received type '%s'" % t))
+        # Loop through all keys
+        for face in self.faces.keys():
+            # Get the current parameters
+            c = self.faces[face]
+            t = type(c).__name__
+            # Check the type
+            if t.startswith('int'):
+                # Check for the compID at all
+                if c not in compIDs:
+                    # Delete the face
+                    del self.faces[face]
+            else:
+                # Intersect the current value with the target list
+                F = np.intersect1d(c, compIDs)
+                # Check for intersections
+                if len(F) == 0:
+                    # Delete the face
+                    del self.faces[face]
+                else:
+                    # Use the restricted subset
+                    self.faces[face] = F
+    
+    # Get list of components that are not parents
+    def GetTriFaces(self):
+        """Get the names of faces that are of type "tri" (not containers)
+        
+        :Call:
+            >>> comps = cfg.GetTriFaces()
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration instance
+        :Outputs:
+            *comps*: :class:`list` (:class:`str`)
+                List of lowest-level component names
+        :Versions:
+            * 2016-11-07 ``@ddalle``: First version
+        """
+        # Initialize
+        comps = []
+        # Loop through all faces
+        for face in self.faces:
+            # Get the compID information for this face
+            compID = self.faces[face]
+            # Type
+            t = type(compID).__name__
+            # Check
+            if compID is None:
+                # Empty instruction
+                continue
+            if t.startswith('int'):
+                # Valid face (non-list integer instruction)
+                comps.append(face)
+            else:
+                # Get the compID from the "Properties" section
+                c = self.GetPropCompID(face)
+                # Check for length one
+                if len(compID) != 1:
+                    # Multiple faces
+                    continue
+                elif compID[0] == c:
+                    # One face, matching "Properties" section
+                    comps.append(face)
+                else:
+                    # One face, not matching "Properties" section
+                    continue
+        # Output
+        return comps
+                
+            
+    # Write configuration
+    def WriteXML(self, fname="Config.xml", Name=None, Source=None):
+        """Write a GMP-type ``Config.xml`` file
+        
+        :Call:
+            >>> cfg.WriteXML(fname="Config.xml", Name=None, Source=None)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration instance
+            *fname*: {``"Config.xml"``} | :class:`str`
+                Name of file to write
+            *Name*: {``None``} | :class:`str`
+                Name of the configuration, defaults to *fname*
+            *Source*: {``"Components.i.tri"``} | :class:`str`
+                Name of the "source" triangulation file, has no effect
+        :Versions:
+            * 2016-11-06 ``@ddalle``: First version
+        """
+        # Open the file.
+        f = open(fname, 'w')
+        # Write opening handle
+        f.write('<?xml version="1.0" encoding="utf-8"?>\n\n')
+        # Get the name and source
+        if Name   is None: Name = fname
+        if Source is None: Source = "Components.i.tri"
+        # Write the "configuration" element
+        f.write('<Configuration Name="%s" Source="%s">\n\n' % (Name,Source))
+        # Get sorted faces
+        faces = self.SortCompIDs()
+        # Loop through the elements
+        for face in faces:
+            # Get the compID
+            compID = self.faces[face]
+            # Don't mess around with ``None``
+            if compID is None: continue
+            # Type
+            t = type(compID).__name__
+            # Check if it's a basic face or a container
+            if t.startswith('int'):
+                # Integers are already faces
+                q = True
+            else:
+                # Get the compID from properties
+                c = self.GetPropCompID(face)
+                # Check for length one
+                if len(compID) > 1:
+                    # Multiple faces
+                    q = False
+                elif compID[0] == c:
+                    # One face, matching "Properties" section
+                    q = True
+                    compID = compID[0]
+                else:
+                    # One component, but from a single child
+                    q = False
+            # Get parent
+            parent = self.parents[face]
+            # Type
+            t = type(parent).__name__
+            # Check for list
+            if t in ['list', 'ndarray']:
+                # Check for multiple components
+                if len(parent) == 0:
+                    # No parents
+                    print("  No parent for component '%s'" % face)
+                    parent = None
+                elif len(parent) > 1:
+                    # Let's warn for now, verbose
+                    print(
+                        ("  WARNING: Component '%s' has multiple " % face) +
+                        ("parents (%s); using first entry" % parent))
+                    parent = parent[0]
+                else:
+                    # Take first entry
+                    parent = parent[0]
+            # Common portion of face label
+            f.write('  <Component Name="%s" ' % face)
+            # Check for parent
+            if parent is not None:
+                f.write('Parent="%s" ' % parent)
+                # Append the parent to the list
+                if parent not in faces:
+                    faces.append(parent)
+            # Write the right type of component
+            if q:
+                # Write single-face
+                f.write('Type="tri">\n')
+                f.write('    <Data>Face Label=%i</Data>\n' % compID)
+                f.write('  </Component>\n\n')
+            else:
+                # Write container
+                f.write('Type="container">\n')
+                f.write('  </Component>\n\n')
+        # Close the "Configuration" element
+        f.write("</Configuration>\n")
+        # Close the file
+        f.close()
+        
+    # Write .mapbc file
+    def WriteFun3DMapBC(self, fname):
+        """Write a Fun3D ".mapbc" file
+        
+        :Call:
+            >>> cfg.WriteFun3DMapBC(fname)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration instance
+            *fname*: :class:`str`
+                Name of mapbc file to write
+        :Versions:
+            * 2016-11-07 ``@ddalle``: First version
+        """
+        # Get the list of tri faces
+        faces = self.GetTriFaces()
+        # Initialize final list and dictionary of BCs
+        comps0 = []
+        bcs = {}
+        compIDs = {}
+        # List used for sorting tri faces
+        inds = []
+        # Get the manually-set "Order" paremter
+        compOrder = self.opts.get("Order", [])
+        # Loop through *faces*
+        for face in faces:
+            # Get the BCs from the "Properties" section
+            bc      = self.GetProperty(face, 'bc')
+            fun3dbc = self.GetProperty(face, 'fun3d_bc')
+            aflr3bc = self.GetProperty(face, 'aflr3_bc')
+            # Turn into a single bc
+            if fun3dbc is None:
+                # No explicit Fun3D boundary condition; check overall 'bc'
+                if bc is None:
+                    # No boundary condition: default (viscous wall=4000)
+                    fun3dbc = 4000
+                elif aflr3bc is None:
+                    # The 'bc' parameter prefers to affect AFLR3
+                    fun3dbc = 4000
+                    aflr3bc = bc
+                else:
+                    # Otherwise, use the *bc* parameter to set Fun3D BC
+                    fun3dbc = bc
+            elif aflr3bc is None:
+                # No explicit Fun3D bc
+                if bc is None:
+                    # No AFLR3 setting; use default
+                    aflr3bc = -1
+                else:
+                    # Copy from *bc*
+                    aflr3bc = bc
+            # Check for valid wall boundary condition
+            if (aflr3bc == 3) or (fun3dbc == False):
+                # This is a source; do not add it to the Fun3D BCs
+                continue
+            # Otherwise, add the component
+            comps0.append(face)
+            bcs[face] = fun3dbc
+            # Set the component ID
+            compID = self.GetPropCompID(face)
+            compIDs[face] = compID
+            # Get the sorting parameter
+            if face in compOrder:
+                # Use the index in the "Order" section as a sort key
+                inds.append(compOrder.index(face))
+            else:
+                # Use the CompID to sort
+                inds.append(compID)
+        # Sort the components
+        I = np.argsort(inds)
+        # Start final component list
+        comps = []
+        # Use this sorting order to reorder *comps*
+        for i in I:
+            comps.append(comps0[i])
+        
+        # Open the .mapbc file
+        f = open(fname, 'w')
+        # Write the number of components
+        f.write("%9s %i\n" % (" ", len(comps)))
+        # Loop through components
+        for comp in comps:
+            # Write compID, BC, and name
+            f.write("%7i   %4i   %s\n" % (compIDs[comp], bcs[comp], comp))
+        # Close the file
+        f.close()
+        
+    # Renumber a component
+    def RenumberCompID(self, face, compID):
+        """Renumber the component ID number
+        
+        This affects *cfg.faces* for *face* and each of its parents, and it
+        also resets the component ID number in *cfg.props*.
+        
+        :Call:
+            >>> cfg.RenumberCompID(face, compID)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration
+            *face*: :class:`str`
+                Name of component to rename
+        :Versions:
+            * 2016-11-09 ``@ddalle``: First version
+        """
+        # Get the current component number
+        compi = self.faces[face]
+        t = type(compi).__name__
+        # Reset it
+        if t in ['list', 'ndarray']:
+            # Extract the original component ID from singleton list
+            compi = compi[0]
+            # Reset it (list)
+            self.faces[face] = [compID]
+        else:
+            # Reset it (number)
+            self.faces[face] = compID
+        # Get the component ID from "Properties"
+        compp = self.props[face]
+        t = type(compp).__name__
+        # Check for single number
+        if t == 'dict':
+            # Set the CompID property
+            self.props[face]["CompID"] = compID
+        else:
+            # Single number
+            self.props[face] = compID
+        # Loop through the parents
+        self.RenumberCompIDParent(face, compi, compID)
+        
+        
+    # Renumber the parents of one component.
+    def RenumberCompIDParent(self, face, compi, compo):
+        """Recursively renumber the component ID numbers for parents of *face* 
+        
+        :Call:
+            >>> cfg.RenumberCompIDParent(face, compi, compo)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration
+            *face*: :class:`str`
+                Name of component for which parents should be renumbered
+            *compi*: :class:`int`
+                Incoming component ID number
+            *compo*: :class:`int`
+                Outgoing component ID number
+        :Versions:
+            * 2016-11-09 ``@ddalle``: First version
+        """
+        # Get parent
+        parents = self.parents[face]
+        # Check None
+        if parents is None: return
+        # Loop through parents
+        for parent in parents:
+            # Get the parent's face data
+            comp = self.faces[parent]
+            t = type(comp).__name__
+            # Replace the parent value
+            if t == 'list':
+                # Check for membership
+                if compi not in comp: continue
+                # Make the replacement
+                comp[comp.index(compi)] = compo
+            else:
+                # Check for membership
+                I = np.where(comp==compi)[0]
+                if len(I) == 0: continue
+                # Make the replacement
+                comp[I[0]] = compo
+            # Recurse
+            self.RenumberCompIDParent(parent, compi, compo)
+            
+    # Reset component IDs
+    def ResetCompIDs(self):
+        """Renumber component IDs 1 to *n*
+        
+        :Call:
+            >>> comps = cfg.ResetCompIDs()
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration instance
+        :Versions:
+            * 2016-11-09 ``@ddalle``: First version
+        """
+        # Get the list of tri faces
+        comps = self.SortCompIDs()
+        # Loop through faces in order
+        for i in range(len(comps)):
+            # Get the face
+            face = comps[i]
+            # Renumber
+            self.RenumberCompID(face, i)
+        
+    # Renumber Component IDs 1 to *n*
+    def SortCompIDs(self):
+        """Get ordered list of components
+        
+        :Call:
+            >>> comps = cfg.SortCompIDs()
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration instance
+        :Outputs:
+            *comps*: :class:`list` (:class:`str`)
+                List of components
+        :Versions:
+            * 2016-11-09 ``@ddalle``: First version
+        """
+        # Get the list of tri faces
+        faces = self.GetTriFaces()
+        # Initialize final list and dictionary of BCs
+        comps0 = []
+        bcs = {}
+        compIDs = {}
+        # List used for sorting tri faces
+        inds = []
+        # Get the manually-set "Order" paremter
+        compOrder = self.opts.get("Order", [])
+        # Loop through *faces*
+        for face in faces:
+            # Get the BCs from the "Properties" section
+            bc      = self.GetProperty(face, 'bc')
+            fun3dbc = self.GetProperty(face, 'fun3d_bc')
+            aflr3bc = self.GetProperty(face, 'aflr3_bc')
+            # Turn into a single bc
+            if fun3dbc is None:
+                # No explicit Fun3D boundary condition; check overall 'bc'
+                if bc is None:
+                    # No boundary condition: default (viscous wall=4000)
+                    fun3dbc = 4000
+                elif aflr3bc is None:
+                    # The 'bc' parameter prefers to affect AFLR3
+                    fun3dbc = 4000
+                    aflr3bc = bc
+                else:
+                    # Otherwise, use the *bc* parameter to set Fun3D BC
+                    fun3dbc = bc
+            elif aflr3bc is None:
+                # No explicit Fun3D bc
+                if bc is None:
+                    # No AFLR3 setting; use default
+                    aflr3bc = -1
+                else:
+                    # Copy from *bc*
+                    aflr3bc = bc
+            # Check for valid wall boundary condition
+            if (aflr3bc == 3) or (fun3dbc == False):
+                # This is a source; do not add it to the Fun3D BCs
+                continue
+            # Otherwise, add the component
+            comps0.append(face)
+            bcs[face] = fun3dbc
+            # Set the component ID
+            compID = self.GetPropCompID(face)
+            compIDs[face] = compID
+            # Get the sorting parameter
+            if face in compOrder:
+                # Use the index in the "Order" section as a sort key
+                inds.append(compOrder.index(face))
+            else:
+                # Use the CompID to sort
+                inds.append(compID)
+        # Sort the components
+        I = np.argsort(inds)
+        # Start final component list
+        comps = []
+        # Use this sorting order to reorder *comps*
+        for i in I:
+            comps.append(comps0[i])
+        # Output
+        return comps
     
     # Get a defining component ID from the *Properties* section
     def GetPropCompID(self, comp):
