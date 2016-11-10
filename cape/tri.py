@@ -2738,8 +2738,11 @@ class TriBase(object):
             # Check if that compID is present
             if compi not in compIDs: continue
             # Otherwise, reset it.
+            I = np.where(self.CompID==compi)[0]
             ncomp += 1
-            CompID[self.CompID==compi] = ncomp
+            CompID[I] = ncomp
+            # Renumber the components in the *config*
+            self.config.RenumberCompID(face, ncomp)
         # Check for zero
         if np.any(CompID == 0):
             print("  WARNING: At least one tri has unset component ID")

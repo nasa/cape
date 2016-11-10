@@ -1244,8 +1244,10 @@ class ConfigJSON(object):
         if Source is None: Source = "Components.i.tri"
         # Write the "configuration" element
         f.write('<Configuration Name="%s" Source="%s">\n\n' % (Name,Source))
+        # Get sorted faces
+        faces = self.SortCompIDs()
         # Loop through the elements
-        for face in self.faces:
+        for face in faces:
             # Get the compID
             compID = self.faces[face]
             # Don't mess around with ``None``
@@ -1295,6 +1297,9 @@ class ConfigJSON(object):
             # Check for parent
             if parent is not None:
                 f.write('Parent="%s" ' % parent)
+                # Append the parent to the list
+                if parent not in faces:
+                    faces.append(parent)
             # Write the right type of component
             if q:
                 # Write single-face
@@ -1399,9 +1404,24 @@ class ConfigJSON(object):
         
     # Renumber a component
     def RenumberCompID(self, face, compID):
+        """Renumber the component ID number
+        
+        This affects *cfg.faces* for *face* and each of its parents, and it
+        also resets the component ID number in *cfg.props*.
+        
+        :Call:
+            >>> cfg.RenumberCompID(face, compID)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration
+            *face*: :class:`str`
+                Name of component to rename
+        :Versions:
+            * 2016-11-09 ``@ddalle``: First version
+        """
         # Get the current component number
         compi = self.faces[face]
-        t = type(compo).__name__
+        t = type(compi).__name__
         # Reset it
         if t in ['list', 'ndarray']:
             # Extract the original component ID from singleton list
@@ -1426,14 +1446,23 @@ class ConfigJSON(object):
         
         
     # Renumber the parents of one component.
-    def RenumberCompIDParent(face, compi, compo):
-        # Get the component number list
-        comp = self.faces[face]
-        # Check for list
-        if type(comp).__name__ != 'list':
-            return
-        # Reset the value.
-        if compi not in comp: return
+    def RenumberCompIDParent(self, face, compi, compo):
+        """Recursively renumber the component ID numbers for parents of *face* 
+        
+        :Call:
+            >>> cfg.RenumberCompIDParent(face, compi, compo)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration
+            *face*: :class:`str`
+                Name of component for which parents should be renumbered
+            *compi*: :class:`int`
+                Incoming component ID number
+            *compo*: :class:`int`
+                Outgoing component ID number
+        :Versions:
+            * 2016-11-09 ``@ddalle``: First version
+        """
         # Get parent
         parents = self.parents[face]
         # Check None
@@ -1442,8 +1471,19 @@ class ConfigJSON(object):
         for parent in parents:
             # Get the parent's face data
             comp = self.faces[parent]
+            t = type(comp).__name__
             # Replace the parent value
-            comp[comp.index(compi)] = compo
+            if t == 'list':
+                # Check for membership
+                if compi not in comp: continue
+                # Make the replacement
+                comp[comp.index(compi)] = compo
+            else:
+                # Check for membership
+                I = np.where(comp==compi)[0]
+                if len(I) == 0: continue
+                # Make the replacement
+                comp[I[0]] = compo
             # Recurse
             self.RenumberCompIDParent(parent, compi, compo)
             
