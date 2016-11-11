@@ -1560,10 +1560,6 @@ class ConfigJSON(object):
                 else:
                     # Copy from *bc*
                     aflr3bc = bc
-            # Check for valid wall boundary condition
-            if (aflr3bc == 3) or (fun3dbc == False):
-                # This is a source; do not add it to the Fun3D BCs
-                continue
             # Otherwise, add the component
             comps0.append(face)
             bcs[face] = fun3dbc
