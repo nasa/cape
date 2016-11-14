@@ -116,13 +116,13 @@ def get_filetype(fname):
 # def get_filetype
 
 # Read string
-def read_cstr(f, nmax=1000):
+def read_c_str(f, nmax=1000):
     """Read a C-style string from a binary file
     
     String is terminated with a null ``\0`` character
     
     :Call:
-        >>> s = read_cstr(f, nmax=1000)
+        >>> s = read_c_str(f, nmax=1000)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -152,6 +152,25 @@ def read_cstr(f, nmax=1000):
     # If this point is reached, we had an overflow
     print("WARNING: More than nmax=%i characters in buffer" % nmax)
     return str(buf)
+    
+# Read byte string
+def read_lb4_s(f):
+    # Initialize array
+    buf = ''
+    # Loop until termination ofund
+    while True:
+        # Read the next character
+        b = np.fromfile(f, count=1, dtype="<i4")
+        # Check the value
+        if (b.size == 0) or (b[0] == 0):
+            # End of string
+            return buf
+        else:
+            # Convert to a character and append it
+            buf += chr(b[0])
+    # If we reach here, we had overflow
+    return buf
+    
 
 # Write integer as little-endian single-precision
 def tofile_lb4_i(f, x):
