@@ -2745,7 +2745,13 @@ class TriBase(object):
             self.config.RenumberCompID(face, ncomp)
         # Check for zero
         if np.any(CompID == 0):
+            # General warning
             print("  WARNING: At least one tri has unset component ID")
+            # Get the locations of missed triangles
+            I = np.where(CompID == 0)[0]
+            # Print the list of original component IDs from here
+            print("           List of original component IDs that were missed")
+            print("              %s" % np.unique(self.CompID[I]))
         # Reset component IDs
         self.CompID = CompID
        

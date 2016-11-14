@@ -115,6 +115,44 @@ def get_filetype(fname):
         raise ValueError("Could not process file '%s'" % fname)
 # def get_filetype
 
+# Read string
+def read_cstr(f, nmax=1000):
+    """Read a C-style string from a binary file
+    
+    String is terminated with a null ``\0`` character
+    
+    :Call:
+        >>> s = read_cstr(f, nmax=1000)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'wb' or similar
+        *nmax*: :class:`int`
+            Maximum number of characters, to avoid infinite loops
+    :Outputs:
+        *s*: :class:`str`
+            String read from file until ``\0`` character
+    :Versions:
+        * 2016-11-14 ``@ddalle``: First version
+    """
+    # Initialize array
+    buf = bytearray()
+    # Loop until termination found
+    n = 0
+    while n < nmax:
+        # Read the next character
+        b = f.read(1)
+        n += 1
+        # Check for termination
+        if (b == '\0') or (b is None):
+            # Output
+            return str(buf)
+        else:
+            # Append the character to the buffer
+            buf.append(b)
+    # If this point is reached, we had an overflow
+    print("WARNING: More than nmax=%i characters in buffer" % nmax)
+    return str(buf)
+
 # Write integer as little-endian single-precision
 def tofile_lb4_i(f, x):
     """Write an integer or array to single-precision little-endian file
