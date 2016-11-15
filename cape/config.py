@@ -929,6 +929,8 @@ class ConfigJSON(object):
             List of components with no children
         *cfg.parents*: :class:`dict` (:class:`list` (:class:`str`))
             List of parent(s) by name for each component
+        *cfg.IDs*: :class:`list` (:class:`int`)
+            List of unique component ID numbers
     :Versions:
         * 2016-10-21 ``@ddalle``: First version
     """
@@ -954,6 +956,7 @@ class ConfigJSON(object):
         self.opts = opts
         # Initialize component list
         self.comps = []
+        self.IDs = []
         self.faces = {}
         self.parents = {}
         # Loop through the tree
@@ -1039,10 +1042,11 @@ class ConfigJSON(object):
         cfg = Config()
         # Copy the dictionaries.
         cfg.faces = self.faces.copy()
-        cfg.comps = self.comps
         cfg.props = self.props.copy()
         cfg.tree  = self.tree.copy()
         cfg.parents = self.parents.copy()
+        cfg.comps = list(self.comps)
+        cfg.IDs = list(self.IDs)
         # Output
         return cfg
     
@@ -1108,6 +1112,11 @@ class ConfigJSON(object):
                 # Missing property
                 print(("Skipping component '%s'; not a parent " % child) +
                     'and has no "CompID"')
+            elif cID in self.IDs:
+                # Duplicate entry
+                raise ValueError(
+                    ("Face '%s' uses component ID number " % face) +
+                    ("%s, which was already in use" % cID))
             # Set the component for *child*
             self.faces[child] = cID
             self.parents[child] = [c]
