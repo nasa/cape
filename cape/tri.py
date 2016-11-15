@@ -3534,10 +3534,7 @@ class TriBase(object):
         zp = kwargs.get('zp', zpad)
         zm = kwargs.get('zm', zpad)
         # List of components; initialize with first.
-        i = self.CompID == compID[0]
-        # Loop through remaining components.
-        for k in compID[1:]:
-            i = np.logical_or(i, self.CompID == k)
+        i = self.GetNodesFromCompID(compID)
         # Get the coordinates of each vertex of included tris.
         x = self.Nodes[self.Tris[i,:]-1, 0]
         y = self.Nodes[self.Tris[i,:]-1, 1]
