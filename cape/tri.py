@@ -3721,7 +3721,7 @@ class TriBase(object):
                 # Distance from *Y[jcur+ji]* to *xi*
                 dsi += np.sqrt(np.sum((xi-Y[jcur+ji])**2))
             # Check distance
-            if dsi < ds:
+            if (dsi < ds) and (di < 1.5*d or di < 1e-5):
                 # Update
                 jnew = jcur + ji
                 inew = I[i]

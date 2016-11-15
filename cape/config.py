@@ -1284,11 +1284,18 @@ class ConfigJSON(object):
                     print("  No parent for component '%s'" % face)
                     parent = None
                 elif len(parent) > 1:
-                    # Let's warn for now, verbose
-                    print(
-                        ("  WARNING: Component '%s' has multiple " % face) +
-                        ("parents (%s); using first entry" % parent))
-                    parent = parent[0]
+                    # Get primary parent
+                    ppar = self.GetProperty(face, 'Parent')
+                    # Check for primary parent.
+                    if ppar is None:
+                        # Let's warn for now, verbose
+                        print(
+                            ("  WARNING: Component '%s' has multiple " % face) +
+                            ("parents (%s); using first entry" % parent))
+                        parent = parent[0]
+                    else:
+                        # Use the "Parent" from the "Properties" section
+                        parent = ppar
                 else:
                     # Take first entry
                     parent = parent[0]
