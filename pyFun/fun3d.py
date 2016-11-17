@@ -1488,7 +1488,7 @@ class Fun3d(Cntl):
         # Loop through components
         for compID in self.config.GetCompID(comp):
             # Get the surf from MapBC
-            surfID = self.MapBC.GetSurfID(compID, check=False, warn=warn)
+            surfID = self.MapBC.GetSurfID(compID, check=True, warn=warn)
             # If one was found, append it
             if surfID is not None:
                 surf.append(surfID)
