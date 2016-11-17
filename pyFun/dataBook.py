@@ -379,7 +379,6 @@ class CaseFM(cape.dataBook.CaseFM):
             # Combine them
             self.fglob = fglob2 + fglob3
             self.fglob.sort()
-        print("Label 010: fglob=%s" % self.fglob)
         # Check for available files.
         if len(self.fglob) > 0:
             # Read the first file
@@ -1083,6 +1082,7 @@ class CaseResid(cape.dataBook.CaseResid):
         n = len(cols)
         # Save current last iteration
         i1 = self.i[-1]
+        print("Label 038: i1=%s" % i1)
         # Append the values.
         for k in range(n):
             # Column name
@@ -1092,12 +1092,15 @@ class CaseResid(cape.dataBook.CaseResid):
             # Check for iteration number reset
             if col == 'i' and V[0] < self.i[-1]:
                 # Keep counting iterations from the end of the previous one.
+                print("Label 042: V[0]=%i" % V[0])
                 V += (i1 - V[0] + 1)
             # Append
             setattr(self,col, np.hstack((getattr(self,col), V)))
         # Check for subiteration history
         Vsub = fname.split('.')
         fsub = Vsub[0][:-4] + "subhist." + (".".join(Vsub[1:]))
+        I = np.hstack((self.i[:-1]>self.i[1:], [True]))
+        print("Label 045: i=%s" % self.i[I])
         # Check for the file
         if os.path.isfile(fsub):
             # Read the subiteration history
@@ -1209,6 +1212,8 @@ class CaseResid(cape.dataBook.CaseResid):
             return
         # Indices of matching integers
         I = d['i'] == np.array(d['i'], dtype='int')
+        # Don't read past the last write of '*_hist.dat'
+        I = np.logical_and(I, d['i']+iend<=self.i[-1])
         # Loop through the columns again to save them
         for k in range(n):
             # Column name

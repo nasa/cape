@@ -744,14 +744,21 @@ def GetRunningIter():
     else:
         # No current file
         return None
-    # Get the restart iteration line
-    try:
-        # Search for particular text
-        lines = bin.grep('the restart files contains', fflow)
-        # Process iteration count from the RHS of the last such line
-        nr = int(lines[0].split('=')[-1])
-    except Exception:
-        # No restart iterations
+    # Check for flag to ignore restart history
+    lines = bin.grep('on_nohistorykept', fflow)
+    # Check whether or not to add restart iterations
+    if len(lines) < 2:
+        # Get the restart iteration line
+        try:
+            # Search for particular text
+            lines = bin.grep('the restart files contains', fflow)
+            # Process iteration count from the RHS of the last such line
+            nr = int(lines[0].split('=')[-1])
+        except Exception:
+            # No restart iterations
+            nr = None
+    else:
+        # Do not use restart iterations
         nr = None
     # Get the last few lines of :file:`fun3d.out`
     lines = bin.tail(fflow, 100).strip().split('\n')
