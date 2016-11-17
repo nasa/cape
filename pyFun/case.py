@@ -905,7 +905,7 @@ def CopyHist(nml, i):
     # Project name
     proj = nml.GetRootname()
     # Get the list of FM files
-    fmglob = glob.glob('%s_fm_%s.dat' % (proj, i))
+    fmglob = glob.glob('%s_fm_*.dat' % proj)
     # Loop through FM files
     for f in fmglob:
         # Split words
@@ -913,7 +913,7 @@ def CopyHist(nml, i):
         # Copy-to name
         fcopy = '.'.join(F[:-1]) + ('.%02i.dat' % i)
         # Copy the file
-        shutil.copy(f, fcopy)
+        os.rename(f, fcopy)
     # Copy the history file
     if os.path.isfile('%s_hist.dat' % proj):
         # Copy the file
