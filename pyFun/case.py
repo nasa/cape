@@ -863,7 +863,7 @@ def SetRestartIter(rc, n=None):
         i = GetPhaseNumber(rc)
         # Check if this is a phase restart
         nohist = True
-        if os.path.isfile('run.%02i.%i' % (i, n)):
+        if os.path.isfile('run.%02i.%i' % (i-1, n)):
             # Nominal restart
             nohist = False
         elif i == 0:
@@ -877,7 +877,7 @@ def SetRestartIter(rc, n=None):
             ta1 = nml.GetVar( 'nonlinear_solver_parameters', 'time_accuracy')
             # Check for a match
             nohist = ta0 != ta1
-            # If we are moving to a new mode, prevent Fun3D from deleting history
+            # If we are moving to a new mode, prevent Fun3D deleting history
             if nohist:
                 CopyHist(nml0, i-1)
         # Set the restart flag on.
