@@ -379,6 +379,7 @@ class CaseFM(cape.dataBook.CaseFM):
             # Combine them
             self.fglob = fglob2 + fglob3
             self.fglob.sort()
+        print("Label 010: fglob=%s" % self.fglob)
         # Check for available files.
         if len(self.fglob) > 0:
             # Read the first file
