@@ -754,7 +754,7 @@ def GetRunningIter():
         # No restart iterations
         nr = None
     # Get the last few lines of :file:`fun3d.out`
-    lines = bin.tail(fflow, 20).strip().split('\n')
+    lines = bin.tail(fflow, 100).strip().split('\n')
     lines.reverse()
     # Initialize output
     n = None
@@ -863,7 +863,7 @@ def SetRestartIter(rc, n=None):
         i = GetPhaseNumber(rc)
         # Check if this is a phase restart
         nohist = True
-        if os.path.isfile('run.%02i.%i' % (i-1, n)):
+        if os.path.isfile('run.%02i.%i' % (i, n)):
             # Nominal restart
             nohist = False
         elif i == 0:
@@ -903,7 +903,7 @@ def CopyHist(nml, i):
         * 2016-10-28 ``@ddalle``: First version
     """
     # Project name
-    proj = nml.GetRootname(i)
+    proj = nml.GetRootname()
     # Get the list of FM files
     fmglob = glob.glob('%s_fm_%s.dat' % (proj, i))
     # Loop through FM files
@@ -917,13 +917,13 @@ def CopyHist(nml, i):
     # Copy the history file
     if os.path.isfile('%s_hist.dat' % proj):
         # Copy the file
-        shutil.copy(
+        os.rename(
             '%s_hist.dat' % proj,
             '%s_hist.%02i.dat' % (proj, i))
     # Copy the history file
     if os.path.isfile('%s_subhist.dat' % proj):
         # Copy the file
-        shutil.copy(
+        os.rename(
             '%s_subhist.dat' % proj,
             '%s_subhist.%02i.dat' % (proj, i))
     
