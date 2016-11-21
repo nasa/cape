@@ -2399,10 +2399,8 @@ class Trajectory:
         :Versions:
             * 2016-04-13 ``@ddalle``: First version
         """
-        # Process key
-        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
-        return self.GetSurfBC_RefPressure(i, key, comp=comp)
+        return self.GetSurfBC_RefPressure(i, key, comp=comp, typ="SurfCT")
             
     # Get pressure calibration factor
     def GetSurfCT_PressureCalibration(self, i, key=None, comp=None):
@@ -2425,10 +2423,9 @@ class Trajectory:
         :Versions:
             * 2016-04-11 ``@ddalle``: First version
         """
-        # Process key
-        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
-        return self.GetSurfBC_PressureCalibration(i, key, comp=comp)
+        return self.GetSurfBC_PressureCalibration(i, key,
+            comp=comp, typ="SurfCT")
             
     # Get pressure additive calibration
     def GetSurfCT_PressureOffset(self, i, key=None, comp=None):
@@ -2467,10 +2464,8 @@ class Trajectory:
         :Versions:
             * 2016-08-29 ``@ddalle``: First version
         """
-        # Process key
-        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
-        return self.GetSurfBC_PressureOffset(i, key, comp=comp)
+        return self.GetSurfBC_PressureOffset(i, key, comp=comp, typ="SurfCT")
             
     # Get total temperature
     def GetSurfCT_TotalTemperature(self, i, key=None, comp=None):
@@ -2493,10 +2488,9 @@ class Trajectory:
         :Versions:
             * 2016-04-11 ``@ddalle``: First version
         """
-        # Process key
-        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
-        return self.GetSurfBC_TotalTemperature(i, key, comp=comp)
+        return self.GetSurfBC_TotalTemperature(i, key,
+            comp=comp, typ="SurfCT")
         
     # Get pressure calibration factor
     def GetSurfCT_TemperatureCalibration(self, i, key=None, comp=None):
@@ -2519,10 +2513,9 @@ class Trajectory:
         :Versions:
             * 2016-08-30 ``@ddalle``: First version
         """
-        # Process key
-        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
-        return self.GetSurfBC_TemperatureCalibration(i, key, comp=comp)
+        return self.GetSurfBC_TemperatureCalibration(i, key,
+            comp=comp, typ="SurfCT")
     
     # Get pressure additive calibration
     def GetSurfCT_TemperatureOffset(self, i, key=None, comp=None):
@@ -2561,10 +2554,9 @@ class Trajectory:
         :Versions:
             * 2016-08-29 ``@ddalle``: First version
         """
-        # Process key
-        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
-        return self.GetSurfBC_TemperatureOffset(i, key, comp=comp)
+        return self.GetSurfBC_TemperatureOffset(i, key,
+            comp=comp, typ="SurfCT")
             
     # Get total temperature
     def GetSurfCT_RefTemperature(self, i, key=None, comp=None):
@@ -2587,10 +2579,8 @@ class Trajectory:
         :Versions:
             * 2016-04-11 ``@ddalle``: First version
         """
-        # Process key
-        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
-        return self.GetSurfBC_RefTemperature(i, key, comp=comp)
+        return self.GetSurfBC_RefTemperature(i, key, comp=comp, typ="SurfCT")
     
     # Get Mach number
     def GetSurfCT_Mach(self, i, key=None, comp=None):
@@ -2613,10 +2603,8 @@ class Trajectory:
         :Versions:
             * 2016-04-11 ``@ddalle``: First version
         """
-        # Process key
-        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
-        return self.GetSurfBC_Mach(i, key, comp=comp)
+        return self.GetSurfBC_Mach(i, key, comp=comp, typ="SurfCT")
     
     # Get exit Mach number input for SurfCT input
     def GetSurfCT_ExitMach(self, i, key=None, comp=None):
@@ -2639,10 +2627,9 @@ class Trajectory:
         :Versions:
             * 2016-04-11 ``@ddalle``: First version
         """
-        # Process key
-        key = self.GetKeyName('SurfCT', key)
         # Get the parameter and value
-        v, t = self.GetSurfBC_ParamType(key, 'ExitMach', comp=comp)
+        v, t = self.GetSurfBC_ParamType(key, 'ExitMach',
+            comp=comp, typ="SurfCT")
         # Process the option
         if v is None:
             # Flag to use the vehicle value from *cntl.opts*
@@ -2675,10 +2662,9 @@ class Trajectory:
         :Versions:
             * 2016-04-11 ``@ddalle``: First version
         """
-        # Process key
-        key = self.GetKeyName('SurfCT', key)
         # Get the parameter and value
-        v, t = self.GetSurfBC_ParamType(key, 'AreaRatio', comp=comp)
+        v, t = self.GetSurfBC_ParamType(key, 'AreaRatio',
+            comp=comp, typ="SurfCT")
         # Process the option
         if v is None:
             # Flag to use the vehicle value from *cntl.opts*
@@ -2711,10 +2697,9 @@ class Trajectory:
         :Versions:
             * 2016-04-11 ``@ddalle``: First version
         """
-        # Process key
-        key = self.GetKeyName('SurfCT', key)
         # Get the parameter and value
-        v, t = self.GetSurfBC_ParamType(key, 'ExitArea', comp=comp)
+        v, t = self.GetSurfBC_ParamType(key, 'ExitArea',
+            comp=comp, typ="SurfCT")
         # Process the option
         if v is None:
             # Flag to use the vehicle value from *cntl.opts*
@@ -2749,10 +2734,9 @@ class Trajectory:
         :Versions:
             * 2016-04-11 ``@ddalle``: First version
         """
-        # Process key
-        key = self.GetKeyName('SurfCT', key)
         # Get the parameter and value
-        v, t = self.GetSurfBC_ParamType(key, 'RefArea', comp=comp)
+        v, t = self.GetSurfBC_ParamType(key, 'RefArea',
+            comp=comp, typ="SurfCT")
         # Process the option
         if v is None:
             # Flag to use the vehicle value from *cntl.opts*
@@ -2785,10 +2769,8 @@ class Trajectory:
         :Versions:
             * 2016-04-11 ``@ddalle``: First version
         """
-        # Process key
-        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
-        return self.GetSurfBC_CompID(i, key, comp=comp)
+        return self.GetSurfBC_CompID(i, key, comp=comp, typ="SurfCT")
     
     # Get mass species
     def GetSurfCT_Species(self, i, key=None, comp=None):
@@ -2811,10 +2793,8 @@ class Trajectory:
         :Versions:
             * 2016-08-30 ``@ddalle``: First version
         """
-        # Process key
-        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
-        return self.GetSurfBC_Species(i, key, comp=comp)
+        return self.GetSurfBC_Species(i, key, comp=comp, typ="SurfCT")
     
     # Get grid name(s)/number(s) for input SurfCT key
     def GetSurfCT_Grids(self, i, key=None, comp=None):
@@ -2837,10 +2817,8 @@ class Trajectory:
         :Versions:
             * 2016-08-29 ``@ddalle``: First version
         """
-        # Process key
-        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
-        return self.GetSurfBC_Grids(i, key, comp=comp)
+        return self.GetSurfBC_Grids(i, key, comp=comp, typ="SurfCT")
         
     # Get ratio of specific heats for SurfCT key
     def GetSurfCT_Gamma(self, i, key=None, comp=None):
@@ -2863,10 +2841,8 @@ class Trajectory:
         :Versions:
             * 2016-04-11 ``@ddalle``: First version
         """
-        # Process key
-        key = self.GetKeyName('SurfCT', key)
         # Call the SurfBC equivalent
-        return self.GetSurfBC_Gamma(i, key, comp=comp)
+        return self.GetSurfBC_Gamma(i, key, comp=comp, typ="SurfCT")
         
     # Get stagnation pressure input for SurfBC input
     def GetSurfBC_TotalPressure(self, i, key=None, comp=None, **kw):
@@ -2883,19 +2859,18 @@ class Trajectory:
                 Name of key to use; defaults to first ``SurfBC`` key
             *comp*: {``None``} | :class:`str`
                 Name of component
-            *SurfCT*: ``True`` | {``False``}
-                Whether or not to check for "SurfCT" type
+            *typ*: {``"SurfBC"``} | ``"SurfCT"`` | 
+                Type to use for checking properties of *key*
         :Outputs:
             *p0*: :class:`float`
                 Stagnation pressure parameter, usually *p0/pinf*
         :Versions:
             * 2016-03-28 ``@ddalle``: First version
         """
+        # Type
+        typ = kw.get('typ', 'SurfBC')
         # Process key
-        if kw.get('SurfCT', False):
-            key = self.GetKeyName('SurfCT', key)
-        else:
-            key = self.GetKeyName('SurfBC', key)
+        key = self.GetKeyName(typ, key)
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'TotalPressure', comp=comp)
         # Default process
@@ -2916,19 +2891,18 @@ class Trajectory:
                 Name of key to use; defaults to first ``SurfBC`` key
             *comp*: {``None``} | :class:`str`
                 Name of component
-            *SurfCT*: ``True`` | {``False``}
-                Check for "SurfCT" type (``True``) or "SurfBC" type
+            *typ*: {``"SurfBC"``} | :class:`str`
+                Trajectory key type to process
         :Outputs:
             *pinf*: :class:`float`
                 Reference pressure to use, this divides the *p0* value
         :Versions:
             * 2016-03-28 ``@ddalle``: First version
         """
+        # Type
+        typ = kw.get('typ', 'SurfBC')
         # Process key
-        if kw.get('SurfCT', False):
-            key = self.GetKeyName('SurfCT', key)
-        else:
-            key = self.GetKeyName('SurfBC', key)
+        key = self.GetKeyName(typ, key)
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'RefPressure', comp=comp)
         # Process the option
@@ -2965,19 +2939,18 @@ class Trajectory:
                 Name of key to use; defaults to first ``SurfBC`` key
             *comp*: {``None``} | :class:`str`
                 Name of component
-            *SurfCT*: ``True`` | {``False``}
-                Check for type "SurfCT" (``True``) or "SurfBC" (``False``)
+            *typ*: {``"SurfBC"``} | :class:`str`
+                Trajectory key type to process
         :Outputs:
             *fp*: {``1.0``} | :class:`float`
                 Pressure calibration factor
         :Versions:
             * 2016-04-12 ``@ddalle``: First version
         """
+        # Type
+        typ = kw.get('typ', 'SurfBC')
         # Process key
-        if kw.get("SurfCT", False):
-            key = self.GetKeyName('SurfCT', key)
-        else:
-            key = self.GetKeyName('SurfBC', key)
+        key = self.GetKeyName(typ, key)
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'PressureCalibration', comp=comp)
         # Default process
@@ -3014,19 +2987,18 @@ class Trajectory:
                 Name of key to use; defaults to first ``SurfBC`` key
             *comp*: {``None``} | :class:`str`
                 Name of component
-            *SurfCT*: ``True`` | {``False``}
-                Check for type "SurfCT" (``True``) or "SurfBC" (``False``)
+            *typ*: {``"SurfBC"``} | :class:`str`
+                Trajectory key type to process
         :Outputs:
             *bp*: {``0.0``} | :class:`float`
                 Stagnation or static pressure offset
         :Versions:
             * 2016-08-29 ``@ddalle``: First version
         """
+        # Type
+        typ = kw.get('typ', 'SurfBC')
         # Process key
-        if kw.get('SurfCT', False):
-            key = self.GetKeyName('SurfCT', key)
-        else:
-            key = self.GetKeyName('SurfBC', key)
+        key = self.GetKeyName(typ, key)
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'PressureOffset', comp=comp)
         # Process the option
@@ -3063,19 +3035,18 @@ class Trajectory:
                 Name of key to use; defaults to first ``SurfBC`` key
             *comp*: {``None``} | :class:`str`
                 Name of component
-            *SurfCT*: ``True`` | {``False``}
-                Check for type "SurfCT" (``True``) or "SurfBC" (``False``)
+            *typ*: {``"SurfBC"``} | :class:`str`
+                Trajectory key type to process
         :Outputs:
             *T0*: :class:`float`
                 Stagnation temperature parameter, usually *T0/Tinf*
         :Versions:
             * 2016-03-28 ``@ddalle``: First version
         """
+        # Type
+        typ = kw.get('typ', 'SurfBC')
         # Process key
-        if kw.get('SurfCT', False):
-            key = self.GetKeyName('SurfCT', key)
-        else:
-            key = self.GetKeyName('SurfBC', key)
+        key = self.GetKeyName(typ, key)
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'TotalTemperature', comp=comp)
         # Default process
@@ -3096,19 +3067,18 @@ class Trajectory:
                 Name of key to use; defaults to first ``SurfBC`` key
             *comp*: {``None``} | :class:`str`
                 Name of component
-            *SurfCT*: ``True`` | {``False``}
-                Check for type "SurfCT" (``True``) or "SurfBC" (``False``)
+            *typ*: {``"SurfBC"``} | :class:`str`
+                Trajectory key type to process
         :Outputs:
             *Tinf*: :class:`float`
                 Reference temperature to use, this divides the *T0* value
         :Versions:
             * 2016-03-28 ``@ddalle``: First version
         """
+        # Type
+        typ = kw.get('typ', 'SurfBC')
         # Process key
-        if kw.get('SurfCT', False):
-            key = self.GetKeyName('SurfCT', key)
-        else:
-            key = self.GetKeyName('SurfBC', key)
+        key = self.GetKeyName(typ, key)
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'RefTemperature', comp=comp)
         # Process the option
@@ -3145,19 +3115,18 @@ class Trajectory:
                 Name of key to use; defaults to first ``SurfBC`` key
             *comp*: {``None``} | :class:`str`
                 Name of component
-            *SurfCT*: ``True`` | {``False``}
-                Check for type "SurfCT" (``True``) or "SurfBC" (``False``)
+            *typ*: {``"SurfBC"``} | :class:`str`
+                Trajectory key type to process
         :Outputs:
             *fp*: {``1.0``} | :class:`float`
                 Pressure calibration factor
         :Versions:
             * 2016-08-30 ``@ddalle``: First version
         """
+        # Type
+        typ = kw.get('typ', 'SurfBC')
         # Process key
-        if kw.get('SurfCT', False):
-            key = self.GetKeyName('SurfCT', key)
-        else:
-            key = self.GetKeyName('SurfBC', key)
+        key = self.GetKeyName(typ, key)
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key,'TemperatureCalibration',comp=comp)
         # Default process
@@ -3194,19 +3163,18 @@ class Trajectory:
                 Name of key to use; defaults to first ``SurfBC`` key
             *comp*: {``None``} | :class:`str`
                 Name of component
-            *SurfCT*: ``True`` | {``False``}
-                Check for type "SurfCT" (``True``) or "SurfBC" (``False``)
+            *typ*: {``"SurfBC"``} | :class:`str`
+                Trajectory key type to process
         :Outputs:
             *bt*: {``0.0``} | :class:`float`
                 Stagnation or static temperature offset
         :Versions:
             * 2016-08-29 ``@ddalle``: First version
         """
+        # Type
+        typ = kw.get('typ', 'SurfBC')
         # Process key
-        if kw.get('SurfCT', False):
-            key = self.GetKeyName('SurfCT', key)
-        else:
-            key = self.GetKeyName('SurfBC', key)
+        key = self.GetKeyName(typ, key)
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'TemperatureOffset', comp=comp)
         # Special key names
@@ -3220,11 +3188,11 @@ class Trajectory:
         return self.GetSurfBC_Param(i, key, 'TemperatureOffset', vdef=0.0, **kw_funcs)
             
     # Get Mach number input for SurfBC input
-    def GetSurfBC_Mach(self, i, key=None, comp=None):
+    def GetSurfBC_Mach(self, i, key=None, comp=None, **kw):
         """Get Mach number input for surface BC key
         
         :Call:
-            >>> M = x.GetSurfBC_Mach(i, key=None, comp=None)
+            >>> M = x.GetSurfBC_Mach(i, key=None, comp=None, **kw)
         :Inputs:
             *x*: :class:`cape.trajectory.Trajectory`
                 Run matrix interface
@@ -3234,14 +3202,18 @@ class Trajectory:
                 Name of key to use; defaults to first ``SurfBC`` key
             *comp*: {``None``} | :class:`str`
                 Name of component
+            *typ*: {``"SurfBC"``} | :class:`str`
+                Trajectory key type to process
         :Outputs:
             *M*: :class:`float`
                 Surface boundary condition Mach number
         :Versions:
             * 2016-03-28 ``@ddalle``: First version
         """
+        # Type
+        typ = kw.get('typ', 'SurfBC')
         # Process key
-        key = self.GetKeyName('SurfBC', key)
+        key = self.GetKeyName(typ, key)
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'Mach', comp=comp)
         # Default process
@@ -3260,8 +3232,8 @@ class Trajectory:
                 Name of key to use; defaults to first ``SurfBC`` key
             *comp*: {``None``} | :class:`str`
                 Name of component
-            *SurfCT*: ``True`` | {``False``}
-                Check for type "SurfCT" (``True``) or "SurfBC" (``False``)
+            *typ*: {``"SurfBC"``} | :class:`str`
+                Trajectory key type to process
         :Outputs:
             *gam*: :class:`float`
                 Surface boundary condition ratio of specific heats
@@ -3269,11 +3241,10 @@ class Trajectory:
             * 2016-03-29 ``@ddalle``: First version
             * 2016-08-29 ``@ddalle``: Added *comp*
         """
+        # Type
+        typ = kw.get('typ', 'SurfBC')
         # Process key
-        if kw.get('SurfCT', False):
-            key = self.GetKeyName('SurfCT', key)
-        else:
-            key = self.GetKeyName('SurfBC', key)
+        key = self.GetKeyName(typ, key)
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'Gamma', comp=comp)
         # Default process
@@ -3312,19 +3283,18 @@ class Trajectory:
                 Name of key to use; defaults to first ``SurfBC`` key
             *comp*: {``None``} | :class:`str`
                 Name of component
-            *SurfCT*: ``True`` | {``False``}
-                Check for type "SurfCT" (``True``) or "SurfBC" (``False``)
+            *typ*: {``"SurfBC"``} | :class:`str`
+                Trajectory key type to process
         :Outputs:
             *Y*: :class:`list` (:class:`float`)
                 List of species mass fractions for boundary condition
         :Versions:
             * 2016-08-29 ``@ddalle``: First version
         """
+        # Type
+        typ = kw.get('typ', 'SurfBC')
         # Process key
-        if kw.get('SurfCT', False):
-            key = self.GetKeyName('SurfCT', key)
-        else:
-            key = self.GetKeyName('SurfBC', key)
+        key = self.GetKeyName(typ, key)
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'Species', comp=comp)
         # Default process
@@ -3367,19 +3337,18 @@ class Trajectory:
                 Name of key to use; defaults to first ``SurfBC`` key
             *comp*: {``None``} | :class:`str`
                 Name of component
-            *SurfCT*: ``True`` | {``False``}
-                Check for type "SurfCT" (``True``) or "SurfBC" (``False``)
+            *typ*: {``"SurfBC"``} | :class:`str`
+                Trajectory key type to process
         :Outputs:
             *nY*: {``1``} | :class:`int`
                 Number of species
         :Versions:
             * 2016-08-29 ``@ddalle``: First version
         """
+        # Type
+        typ = kw.get('typ', 'SurfBC')
         # Process key
-        if kw.get('SurfCT', False):
-            key = self.GetKeyName('SurfCT', key)
-        else:
-            key = self.GetKeyName('SurfBC', key)
+        key = self.GetKeyName(typ, key)
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'nSpecies', comp=comp)
         # Default process
@@ -3401,17 +3370,18 @@ class Trajectory:
                 Name of key to use; defaults to first ``SurfBC`` key
             *comp*: {``None``} | :class:`str`
                 Name of component
-            *SurfCT*: ``True`` | {``False``}
-                Check for type "SurfCT" (``True``) or "SurfBC" (``False``)
+            *typ*: {``"SurfBC"``} | :class:`str`
+                Trajectory key type to process
         :Outputs:
             *compID*: :class:`list` | :class:`str` | :class:`dict`
                 Surface boundary condition component ID(s)
         :Versions:
             * 2016-03-28 ``@ddalle``: First version
         """
+        # Type
+        typ = kw.get('typ', 'SurfBC')
         # Process key
-        if kw.get('SurfCT', 
-        key = self.GetKeyName('SurfBC', key)
+        key = self.GetKeyName(typ, key)
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'CompID', comp=comp)
         # Do not process this one
@@ -3432,14 +3402,18 @@ class Trajectory:
                 Name of key to use; defaults to first ``SurfBC`` key
             *comp*: {``None``} | :class:`str`
                 Name of component
+            *typ*: {``"SurfBC"``} | :class:`str`
+                Trajectory key type to process
         :Outputs:
             *inds*: :class:`list` | :class:`str` | :class:`dict`
                 Column index for each grid or component
         :Versions:
             * 2016-08-29 ``@ddalle``: First version
         """
+        # Type
+        typ = kw.get('typ', 'SurfBC')
         # Process key
-        key = self.GetKeyName('SurfBC', key)
+        key = self.GetKeyName(typ, key)
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'BCIndex', comp=comp)
         # Default process
@@ -3460,14 +3434,18 @@ class Trajectory:
                 Name of key to use; defaults to first ``SurfBC`` key
             *comp*: {``None``} | :class:`str`
                 Name of component
+            *typ*: {``"SurfBC"``} | :class:`str`
+                Trajectory key type to process
         :Outputs:
             *grids*: :class:`list` (:class:`int` | :class:`str`)
                 Surface boundary condition grids
         :Versions:
             * 2016-08-29 ``@ddalle``: First version
         """
+        # Type
+        typ = kw.get('typ', 'SurfBC')
         # Process key
-        key = self.GetKeyName('SurfBC', key)
+        key = self.GetKeyName(typ, key)
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'Grids', comp=comp)
         # Process
