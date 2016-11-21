@@ -1271,6 +1271,9 @@ class Fun3d(Cntl):
         # Get the exit parameters
         M2 = self.GetSurfCT_ExitMach(key, i)
         A2 = self.GetSurfCT_ExitArea(key, i)
+        # Reference values
+        pinf = self.x.GetSurfCT_RefPressure(i, key)
+        Tinf = self.x.GetSurfCT_RefTemperature(i, key)
         # Ratio of specific heats
         gam = self.x.GetSurfCT_Gamma(i, key)
         # Derivative gas constants
@@ -1280,15 +1283,21 @@ class Fun3d(Cntl):
         qref = self.x.GetSurfCT_RefDynamicPressure(i, key)
         # Get reference area
         Aref = self.GetSurfCT_RefArea(key, i)
+        # Get option to include pinf
+        qraw = self.x.defns[key].get("RawThrust", False)
         # Calculate total pressure
-        p0 = CT*qref*Aref/A2 * (1+g2*M2*M2)**g3 / (1+gam*M2*M2)
+        if qraw:
+            # Do not account for freestream pressure
+            p2 = CT*qref*Aref/A2 / (1+gam*M2*M2)
+        else:
+            # Account for freestream pressure
+            p2 = (CT*qref*Aref + pinf*A2)/A2 / (1+gam*M2*M2)
+        # Adiabatic relationship
+        p0 = p2 * (1+g2*M2*M2)**g3
         # Temperature inputs
         T0 = self.x.GetSurfCT_TotalTemperature(i, key)
         # Calibration
         fp = self.x.GetSurfCT_PressureCalibration(i, key)
-        # Reference values
-        pinf = self.x.GetSurfCT_RefPressure(i, key)
-        Tinf = self.x.GetSurfCT_RefTemperature(i, key)
         # Output
         return fp*p0/pinf, T0/Tinf
         

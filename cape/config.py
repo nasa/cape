@@ -1115,10 +1115,11 @@ class ConfigJSON(object):
             elif cID in self.IDs:
                 # Duplicate entry
                 raise ValueError(
-                    ("Face '%s' uses component ID number " % face) +
+                    ("Face '%s' uses component ID number " % c) +
                     ("%s, which was already in use" % cID))
             # Set the component for *child*
             self.faces[child] = cID
+            self.IDs.append(cID)
             self.parents[child] = [c]
             self.comps.append(child)
             # Append to the current component's list
