@@ -2628,8 +2628,7 @@ class Trajectory:
             * 2016-04-11 ``@ddalle``: First version
         """
         # Get the parameter and value
-        v, t = self.GetSurfBC_ParamType(key, 'ExitMach',
-            comp=comp, typ="SurfCT")
+        v, t = self.GetSurfBC_ParamType(key, 'ExitMach', comp=comp)
         # Process the option
         if v is None:
             # Flag to use the vehicle value from *cntl.opts*
@@ -2698,8 +2697,7 @@ class Trajectory:
             * 2016-04-11 ``@ddalle``: First version
         """
         # Get the parameter and value
-        v, t = self.GetSurfBC_ParamType(key, 'ExitArea',
-            comp=comp, typ="SurfCT")
+        v, t = self.GetSurfBC_ParamType(key, 'ExitArea', comp=comp)
         # Process the option
         if v is None:
             # Flag to use the vehicle value from *cntl.opts*
