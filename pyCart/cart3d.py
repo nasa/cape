@@ -805,7 +805,11 @@ class Cart3d(Cntl):
         # SurfBC keys
         for k in self.x.GetKeysByType('SurfBC'):
             # Apply the method
-            self.SetSurfBC(k, i)
+            self.SetSurfBC(k, i, CT=False)
+        # SurfCT keys
+        for k in self.x.GetKeysByType('SurfCT'):
+            # Apply the method with the *CT* flag
+            self.SetSurfCT(k, i, CT=True)
         
         # Loop through the phases.
         for j in range(self.opts.get_nSeq()):
