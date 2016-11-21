@@ -809,7 +809,7 @@ class Cart3d(Cntl):
         # SurfCT keys
         for k in self.x.GetKeysByType('SurfCT'):
             # Apply the method with the *CT* flag
-            self.SetSurfCT(k, i, CT=True)
+            self.SetSurfBC(k, i, CT=True)
         
         # Loop through the phases.
         for j in range(self.opts.get_nSeq()):
