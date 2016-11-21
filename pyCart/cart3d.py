@@ -979,11 +979,13 @@ class Cart3d(Cntl):
         if CT:
             # Use thrust as input variable
             rho, U, p = self.GetSurfCTState(key, i)
+            # Get the components
+            compIDs = self.x.GetSurfCT_CompID(i, key)
         else:
             # Use *p0* and *T0* as inputs
             rho, U, p = self.GetSurfBCState(key, i)
-        # Get the components
-        compIDs = self.x.GetSurfBC_CompID(i, key)
+            # Get the components
+            compIDs = self.x.GetSurfBC_CompID(i, key)
         # Ensure list
         if type(compIDs).__name__ not in ['list', 'ndarray']:
             compIDs = [compIDs]
@@ -996,6 +998,9 @@ class Cart3d(Cntl):
             except AttributeError:
                 # Use a singleton
                 compID = [comp]
+            # Warn if no components
+            if compID == []:
+                print("  WARNING: Found no components for face '%s'" % comp)
             # Loop through the IDs
             for ci in compID:
                 # Get the normal
