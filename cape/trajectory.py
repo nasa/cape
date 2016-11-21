@@ -2347,7 +2347,7 @@ class Trajectory:
         return self.GetSurfBC_Param(i, key, 'Thrust', comp=comp, typ='SurfCT')
             
     # Get reference dynamic pressure
-    def GetSurfCT_RefDynamicPressure(self, k, key=None, comp=None):
+    def GetSurfCT_RefDynamicPressure(self, i, key=None, comp=None):
         """Get reference dynamic pressure for surface *CT* key
         
         :Call:
@@ -2662,8 +2662,7 @@ class Trajectory:
             * 2016-04-11 ``@ddalle``: First version
         """
         # Get the parameter and value
-        v, t = self.GetSurfBC_ParamType(key, 'AreaRatio',
-            comp=comp, typ="SurfCT")
+        v, t = self.GetSurfBC_ParamType(key, 'AreaRatio', comp=comp)
         # Process the option
         if v is None:
             # Flag to use the vehicle value from *cntl.opts*
@@ -2733,8 +2732,7 @@ class Trajectory:
             * 2016-04-11 ``@ddalle``: First version
         """
         # Get the parameter and value
-        v, t = self.GetSurfBC_ParamType(key, 'RefArea',
-            comp=comp, typ="SurfCT")
+        v, t = self.GetSurfBC_ParamType(key, 'RefArea', comp=comp)
         # Process the option
         if v is None:
             # Flag to use the vehicle value from *cntl.opts*
