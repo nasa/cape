@@ -805,7 +805,11 @@ class Cart3d(Cntl):
         # SurfBC keys
         for k in self.x.GetKeysByType('SurfBC'):
             # Apply the method
-            self.SetSurfBC(k, i)
+            self.SetSurfBC(k, i, CT=False)
+        # SurfCT keys
+        for k in self.x.GetKeysByType('SurfCT'):
+            # Apply the method with the *CT* flag
+            self.SetSurfCT(k, i, CT=True)
         
         # Loop through the phases.
         for j in range(self.opts.get_nSeq()):
@@ -869,6 +873,8 @@ class Cart3d(Cntl):
         Tinf = self.x.GetSurfBC_RefTemperature(i, key)
         # Freestream ratio of specific heats (Cart3D is single-species)
         gam = self.x.GetSurfBC_Gamma(i, key)
+        # Calibration
+        fp = self.x.GetSurfCT_PressureCalibration(i, key)
         # Calculate stagnation temperature ratio
         rT = 1 + (gam-1)/2*M*M
         # Stagnation-to-static ratios
@@ -876,17 +882,17 @@ class Cart3d(Cntl):
         rp = rT ** (gam/(gam-1))
         # Reference values
         rho = (p0/pinf)/(T0/Tinf) / rr
-        p   = (p0/pinf/gam) / rp
+        p   = fp*(p0/pinf/gam) / rp
         U   = M * np.sqrt((T0/Tinf) / rT)
         # Output
         return rho, U, p
         
-    # Function to set surface BC for all components from one key
-    def SetSurfBC(self, key, i):
-        """Set all SurfBCs for a particular thrust trajectory key
+    # Function to get surface BC state from *CT*
+    def GetSurfCTState(self, key, i):
+        """Get surface boundary state from thrust coefficient
         
         :Call:
-            >>> cart3d.SetSurfBC(key, i)
+            >>> rho, U, p = cart3d.GetSurfCTState(key, i)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
@@ -894,11 +900,86 @@ class Cart3d(Cntl):
                 Name of key to process
             *i*: :class:`int`
                 Run index
+        :Outputs:
+            *rho*: :class:`float`
+                Non-dimensional static density, *rho/rhoinf*
+            *U*: :class:`float`
+                Non-dimensional velocity, *U/ainf*
+            *p*: :class:`float`
+                Non-dimensional static pressure, *p/pinf*
+        :Versions:
+            * 2016-11-21 ``@ddalle``: First version
+        """
+        CT = self.x.GetSurfCT_Thrust(i, key)
+        # Get the exit parameters
+        M2 = self.GetSurfCT_ExitMach(key, i)
+        A2 = self.GetSurfCT_ExitArea(key, i)
+        # Reference values
+        pinf = self.x.GetSurfCT_RefPressure(i, key)
+        Tinf = self.x.GetSurfCT_RefTemperature(i, key)
+        # Ratio of specific heats
+        gam = self.x.GetSurfCT_Gamma(i, key)
+        # Derivative gas constants
+        g2 = 0.5 * (gam-1)
+        g3 = gam / (gam-1)
+        # Get reference dynamic pressure
+        qref = self.x.GetSurfCT_RefDynamicPressure(i, key)
+        # Get reference area
+        Aref = self.GetSurfCT_RefArea(key, i)
+        # Get option to include pinf
+        qraw = self.x.defns[key].get("RawThrust", False)
+        # Calculate total pressure
+        if qraw:
+            # Do not account for freestream pressure
+            p2 = CT*qref*Aref/A2 / (1+gam*M2*M2)
+        else:
+            # Account for freestream pressure
+            p2 = (CT*qref*Aref + pinf*A2)/A2 / (1+gam*M2*M2)
+        # Adiabatic relationship
+        p0 = p2 * (1+g2*M2*M2)**g3
+        # Temperature inputs
+        T0 = self.x.GetSurfCT_TotalTemperature(i, key)
+        # Calibration
+        fp = self.x.GetSurfCT_PressureCalibration(i, key)
+        # Calculate stagnation temperature ratio
+        rT = 1 + (gam-1)/2*M*M
+        # Stagnation-to-static ratios
+        rr = rT ** (1/(gam-1))
+        rp = rT ** (gam/(gam-1))
+        # Reference values
+        rho = (p0/pinf)/(T0/Tinf) / rr
+        p   = fp*(p0/pinf/gam) / rp
+        U   = M * np.sqrt((T0/Tinf) / rT)
+        # Output
+        return rho, U, p
+        
+        
+    # Function to set surface BC for all components from one key
+    def SetSurfBC(self, key, i, CT=False):
+        """Set all SurfBCs for a particular thrust trajectory key
+        
+        :Call:
+            >>> cart3d.SetSurfBC(key, i, CT=False)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of global pyCart settings object
+            *key*: :class:`str`
+                Name of key to process
+            *i*: :class:`int`
+                Run index
+            *CT*: ``True`` | {``False``}
+                Inputs of thrust (``True``) or pressure (``False``)
         :Versions:
             * 2016-03-28 ``@ddalle``: First version
+            * 2016-11-21 ``@ddalle``: Added *CT* input key
         """
         # Get the states
-        rho, U, p = self.GetSurfBCState(key, i)
+        if CT:
+            # Use thrust as input variable
+            rho, U, p = self.GetSurfCTState(key, i)
+        else:
+            # Use *p0* and *T0* as inputs
+            rho, U, p = self.GetSurfBCState(key, i)
         # Get the components
         compIDs = self.x.GetSurfBC_CompID(i, key)
         # Ensure list
