@@ -874,7 +874,7 @@ class Cart3d(Cntl):
         # Freestream ratio of specific heats (Cart3D is single-species)
         gam = self.x.GetSurfBC_Gamma(i, key)
         # Calibration
-        fp = self.x.GetSurfCT_PressureCalibration(i, key)
+        fp = self.x.GetSurfBC_PressureCalibration(i, key)
         # Calculate stagnation temperature ratio
         rT = 1 + (gam-1)/2*M*M
         # Stagnation-to-static ratios
@@ -917,6 +917,8 @@ class Cart3d(Cntl):
         # Reference values
         pinf = self.x.GetSurfCT_RefPressure(i, key)
         Tinf = self.x.GetSurfCT_RefTemperature(i, key)
+        # Mach number at boundary condition (usually 1.0)
+        M  = self.x.GetSurfCT_Mach(i, key)
         # Ratio of specific heats
         gam = self.x.GetSurfCT_Gamma(i, key)
         # Derivative gas constants
