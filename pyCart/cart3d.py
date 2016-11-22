@@ -918,7 +918,7 @@ class Cart3d(Cntl):
         pinf = self.x.GetSurfCT_RefPressure(i, key)
         Tinf = self.x.GetSurfCT_RefTemperature(i, key)
         # Mach number at boundary condition (usually 1.0)
-        M  = self.x.GetSurfCT_Mach(i, key)
+        M = self.x.GetSurfCT_Mach(i, key)
         # Ratio of specific heats
         gam = self.x.GetSurfCT_Gamma(i, key)
         # Derivative gas constants
