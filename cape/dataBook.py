@@ -3037,6 +3037,8 @@ class CaseData(object):
         # ----------
         # First Iter
         # ----------
+        # Don't cut off the entire history
+        if nFirst >= iB: nFirst = 1
         # Default number of iterations: all
         if n is None: n = len(self.i)
         j0 = max(0, jB-n)
