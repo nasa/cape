@@ -803,7 +803,7 @@ class InputCntl(FileCntl):
         """
         # Line starts with "SurfBC", has some amount of white space, and then
         # has the component number.
-        reg = 'SurfBC\s+' + str(compID)
+        reg = 'SurfBC\s+' + str(compID) + '\s'
         # Create the output line.
         if u is None:
             # Turn off the BC; make it a commented line
