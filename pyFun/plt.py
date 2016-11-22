@@ -52,6 +52,8 @@ class plt(object):
         marker, = np.fromfile(f, dtype='f4', count=1)
         # Read until no more zones
         while marker == 299.0:
+            # Increase zone count
+            self.nZone += 1
             # Read zone name
             zone = cape.io.read_lb4_s(f).strip('"')
             # Save it
@@ -78,8 +80,9 @@ class plt(object):
             self.nElem.append(nElem)
             # Read three zeros at the end.
             np.fromfile(f, count=4, dtype='i4')
-        
+        #
         
         # Close the file
-        f.close()
+        #f.close()
+        return f
     
