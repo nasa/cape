@@ -155,6 +155,19 @@ def read_c_str(f, nmax=1000):
     
 # Read byte string
 def read_lb4_s(f):
+    """Read C-style string assuming four little-endian bytes per char
+    
+    :Call:
+        >>> s = read_lb4_s(f)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'wb' or similar
+    :Outputs:
+        *s*: :class:`str`
+            String read from file
+    :Versions:
+        * 2016-11-14 ``@ddalle``: First version
+    """
     # Initialize array
     buf = ''
     # Loop until termination ofund
@@ -171,6 +184,36 @@ def read_lb4_s(f):
     # If we reach here, we had overflow
     return buf
     
+# Read byte string
+def read_b4_s(f):
+    """Read C-style string assuming four big-endian bytes per char
+    
+    :Call:
+        >>> s = read_b4_s(f)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'wb' or similar
+    :Outputs:
+        *s*: :class:`str`
+            String read from file
+    :Versions:
+        * 2016-11-14 ``@ddalle``: First version
+    """
+    # Initialize array
+    buf = ''
+    # Loop until termination ofund
+    while True:
+        # Read the next character
+        b = np.fromfile(f, count=1, dtype=">i4")
+        # Check the value
+        if (b.size == 0) or (b[0] == 0):
+            # End of string
+            return buf
+        else:
+            # Convert to a character and append it
+            buf += chr(b[0])
+    # If we reach here, we had overflow
+    return buf
 
 # Write integer as little-endian single-precision
 def tofile_lb4_i(f, x):

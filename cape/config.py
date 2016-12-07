@@ -1523,7 +1523,7 @@ class ConfigJSON(object):
             # Get the face
             face = comps[i]
             # Renumber
-            self.RenumberCompID(face, i)
+            self.RenumberCompID(face, i+1)
         
     # Renumber Component IDs 1 to *n*
     def SortCompIDs(self):

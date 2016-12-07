@@ -2,6 +2,8 @@
 
 # Function to run a test and check its status
 function test {
+    # Clean the folder
+    /bin/rm -f $1/FAIL
     # Run the test
     echo "Testing '$1'..."
     python $1/test_$1.py > $1/test.out
@@ -25,4 +27,5 @@ module load cgt
 
 # Run the test
 test endian
+test config
 
