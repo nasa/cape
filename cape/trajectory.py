@@ -3384,7 +3384,7 @@ class Trajectory:
         return v
             
     # Get column index input for SurfBC key
-    def GetSurfBC_BCIndex(self, i, key=None, comp=None):
+    def GetSurfBC_BCIndex(self, i, key=None, comp=None, **kw):
         """Get namelist/column/etc. index for a surface BC key
         
         :Call:
@@ -3416,7 +3416,7 @@ class Trajectory:
         return self.GetSurfBC_Val(i, key, v, t)
             
     # Get component ID(s) input for SurfBC key
-    def GetSurfBC_Grids(self, i, key=None, comp=None):
+    def GetSurfBC_Grids(self, i, key=None, comp=None, **kw):
         """Get list of grids for surface BC key
         
         :Call:

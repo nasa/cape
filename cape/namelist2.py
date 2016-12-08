@@ -475,6 +475,9 @@ class Namelist2(FileCntl):
                 # Set this line in the FC's text and exit
                 self.lines[j] = line
                 return
+        # If no match found, nothing to delete
+        if val is None:
+            return
         # If no match found in existing text, add a line.
         if i is None:
             # No index
