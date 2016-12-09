@@ -52,12 +52,9 @@ if __name__ == "__main__":
             kw['comp'] = kw['aero']
         # Collect force and moment data.
         ofl.Aero(**kw)
-    #elif kw.get('archive'):
-    #    # Archive cases
-    #    ofl.ArchiveCases(**kw)
-    #elif kw.get('apply'):
-    #    # Apply JSON settings
-    #    ofl.ApplyFlowCartSettings(**kw)
+    elif kw.get('archive'):
+        # Archive cases
+        ofl.ArchiveCases(**kw)
     elif kw.get('report'):
         # Get the report(s) to create.
         if kw['report'] == True:

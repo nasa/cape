@@ -145,43 +145,5 @@ class Archive(cape.options.Archive.Archive):
         # Post-archiving
         self.add_ArchivePostTarGroups([])
         self.add_ArchivePostTarDirs([])
-        
-        
-    # Get number of check points to keep around
-    def get_nCheckPoint(self, i=None):
-        """Return the number of check point files to keep
-        
-        :Call:
-            >>> nchk = opts.get_nCheckPoint(i=None)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *i*: :class:`int`
-                Phase number
-        :Outputs:
-            *nchk*: :class:`int`
-                Number of check files to keep (all if ``0``)
-        :Versions:
-            * 2015-01-10 ``@ddalle``: First version
-        """
-        return self.get_key('nCheckPoint', i)
-        
-    # Set the number of check point files to keep around
-    def set_nCheckPoint(self, nchk=rc0('nCheckPoint'), i=None):
-        """Set the number of check point files to keep
-        
-        :Call:
-            >>> opts.set_nCheckPoint(nchk)
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-            *nchk*: :class:`int`
-                Number of check files to keep (all if ``0``)
-            *i*: :class:`int`
-                Phase number
-        :Versions:
-            * 2015-01-10 ``@ddalle``: First version
-        """
-        self.set_key('nCheckPoint', nchk, i)
 # class Archive
 
