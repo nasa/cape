@@ -483,9 +483,7 @@ def ArchiveFolder(opts):
     # Get the archive format, extension, and command
     fmt  = opts.get_ArchiveFormat()
     cmdu = opts.get_ArchiveCmd()
-    ext  = "." + opts.get_ArchiveExtension()
-    # Go to the folder.
-    os.chdir(fdir)
+    ext  = opts.get_ArchiveExtension()
     # Write date
     cape.manage.write_log_date()
     # Pre-archiving file management

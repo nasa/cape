@@ -3011,6 +3011,10 @@ class TriBase(object):
         # Initialize the boundary layer spacings
         self.blds = np.zeros(self.nNode)
         self.bldel = np.zeros(self.nNode)
+        # Initialize array of nodes touched
+        ntouch = np.ones(self.nNode, dtype=bool)
+        ttouch = np.ones(self.nTri,  dtype=bool)
+        qtouch = np.ones(self.nQuad, dtype=bool)
         # Loop through BCs
         for comp in self.config.comps:
             # Get the tris, quads, and nodes matching the component ID
@@ -3028,21 +3032,46 @@ class TriBase(object):
                     % comp)
             # Apply to the appropriate tris and quads
             if len(IT) > 0:
-                try:
-                    self.BCs[IT] = BC
-                except Exception:
-                    print("BC=%s" % BC)
+                # Set BCs
+                self.BCs[IT] = BC
+                # Note touched BCs
+                ttouch[IT] = False
             if len(IQ) > 0:
+                # Set BCs
                 self.BCsQuad[IQ] = BC
+                # Note touched BCs
+                qtouch[IQ] = False
                 
             # Get the boundary layer growth parameters
             blds = self.config.GetProperty(comp, 'blds')
             bldel = self.config.GetProperty(comp, 'bldel')
             # Check for nodes in this component
             if len(IN) > 0:
+                # Check for viscous BL with no spacing
+                if (BC < 0) and ((blds is None) or (blds <= 0.0)):
+                    raise ValueError(
+                        ("  Component '%s' has viscous BL " % comp) +
+                        ("(aflr_bc=-1) but no blds=%s" % blds))
+                # Nodes touched
+                ntouch[IN] = False
                 # Check for the property
                 if blds  is not None: self.blds[IN]  = blds
                 if bldel is not None: self.bldel[IN] = bldel
+            else:
+                # Status message for ignored component
+                print("  Component '%s' has no nodes" % comp)
+        # Check for untouched nodes
+        if np.any(ntouch):
+            # Get nodes that were not touched
+            X = self.Nodes[ntouch,:]
+            # Get bounding box
+            xmin = np.min(X[:,0]); xmax = np.max(X[:,0])
+            ymin = np.min(X[:,1]); ymax = np.max(X[:,1])
+            zmin = np.min(X[:,2]); zmax = np.max(X[:,2])
+            # Warning
+            print("  There were %i nodes with no BC information" % X.shape[0])
+            print("  Bounding box ([%s,%s], [%s,%s], [%s,%s]" %
+                (xmin, xmax, ymin, ymax, zmin, zmax))
             
         
     # Map boundary condition tags

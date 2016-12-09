@@ -938,6 +938,47 @@ class Archive(odict):
         self.add_to_key("PreUpdateFiles", fpre)
    # >
     
+    # ---------
+    # Archiving
+    # ---------
+   # <
+    # List of files to archive
+    def get_ArchiveArchiveFiles(self):
+        """Get list of files to copy to archive, in addition to tar balls
+        
+        :Call:
+            >>> fglob = opts.get_ArchiveArchiveFiles()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *fglob*: :class:`list` (:class:`str`)
+                List of file wild cards to delete after archiving
+        :Versions:
+            * 2016-12-09 ``@ddalle``: First version
+        """
+        return self.get_key("ArchiveFiles")
+        
+    # Add to list of files to archive
+    def add_ArchiveArchiveFiles(self, farch):
+        """Add to the list of files to copy to archive
+        
+        :Call:
+            >>> opts.add_ArchiveArchiveFiles(farch)
+            >>> opts.add_ArchiveArchiveFiles(larch)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *farch*: :class:`str`
+                File or file glob to archive
+            *larch*: :class:`list` (:class:`str`)
+                List of file or file globs to add to list
+        :Versions:
+            * 2016-12-09 ``@ddalle``: First version
+        """
+        self.add_to_key("ArchiveFiles", farch)
+   # >
+    
     # -------------------------
     # Post-Archiving Processing
     # -------------------------

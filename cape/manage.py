@@ -287,7 +287,8 @@ def GetMatches(fname, fsub=None, fkeep=None, ftest=None, n=0, fsort=None):
         *ftest*: :class:`func`
             Function to test file type, e.g. :func:`os.path.isdir`
         *n*: :class:`int`
-            Default number of files to ignore from the end of the glob
+            Default number of files to ignore from the end of the glob or
+            number of files to ignore from beginning of glob if negative
         *fsort*: :class:`function`
             Non-default sorting function
     :Outputs:
@@ -326,7 +327,11 @@ def GetMatches(fname, fsub=None, fkeep=None, ftest=None, n=0, fsort=None):
             continue
         # Strip last *nkeep* matches
         if nkeep > 0:
+            # Keep the last *nkeep* files
             fglobn = fglobn[:-nkeep]
+        elif nkeep < 0:
+            # Keep the first *nkeep* files
+            fglobn = fglobn[:nkeep]
         # Loop through the matches
         for fgn in fglobn:
             # Test if file, folder, etc.
@@ -358,7 +363,8 @@ def GetMatchesList(flist, fsub=None, ftest=None, n=0):
         *ftest*: :class:`func`
             Function to test file type, e.g. :func:`os.path.isdir`
         *n*: :class:`int`
-            Default number of files to ignore from the end of the glob
+            Default number of files to ignore from the end of the glob or
+            number of files to ignore from beginning of glob if negative
     :Outputs:
         *fglob*: :class:`list` (:class:`str`)
             List of files matching input pattern
@@ -516,8 +522,165 @@ def DeleteFiles(fdel, fsub=None, n=1):
         # Delete it.
         os.remove(fn)
         
-# Function to delete files according to full descriptor
-def ArchiveFiles(opts, fname, fsub=None, n=0):
+
+# -----------------------------------------------------
+# PHASE ACTIONS
+
+# Perform in-progress file management after each run
+def ManageFilesProgress(opts=None, fsub=None):
+    """Delete or group files and folders at end of each run
+    
+    :Call:
+        >>> cape.manage.ManageFilesProgress(opts=None, fsub=None)
+    :Inputs:
+        *opts*: :class:`cape.options.Options` | :class:`dict`
+            Options interface for archiving
+        *fsub*: :class:`list` (:class:`str`)
+            List of globs of subdirectories that are adaptive run folders
+    :Versions:
+        * 2016-03-14 ``@ddalle``: First version
+    """
+    # Convert options
+    opts = Archive.auto_Archive(opts)
+    # Perform actions
+    ProgressDeleteFiles(opts, fsub=fsub)
+    ProgressUpdateFiles(opts, fsub=fsub)
+    ProgressDeleteDirs(opts)
+    ProgressTarGroups(opts)
+    ProgressTarDirs(opts)
+# def ManageFilesProgress
+    
+# Perform pre-archive management
+def ManageFilesPre(opts=None, fsub=None):
+    """Delete or group files and folders before creating archive
+    
+    :Call:
+        >>> cape.manage.ManageFilesPre(opts=None, fsub=None)
+    :Inputs:
+        *opts*: :class:`cape.options.Options` | :class:`dict`
+            Options interface for archiving
+        *fsub*: :class:`list` (:class:`str`)
+            List of globs of subdirectories that are adaptive run folders
+    :Versions:
+        * 2016-03-14 ``@ddalle``: First version
+    """
+    # Convert options
+    opts = Archive.auto_Archive(opts)
+    # Perform actions
+    PreDeleteFiles(opts, fsub=fsub)
+    PreUpdateFiles(opts, fsub=fsub)
+    PreDeleteDirs(opts)
+    PreTarGroups(opts)
+    PreTarDirs(opts)
+# def ManageFilesPre
+    
+# Perform post-archive management
+def ManageFilesPost(opts=None, fsub=None):
+    """Delete or group files and folders after creating archive
+    
+    :Call:
+        >>> cape.manage.ManageFilesPost(opts=None, fsub=None)
+    :Inputs:
+        *opts*: :class:`cape.options.Options` | :class:`dict`
+            Options interface for archiving
+        *fsub*: :class:`list` (:class:`str`)
+            List of globs of subdirectories that are adaptive run folders
+    :Versions:
+        * 2016-03-14 ``@ddalle``: First version
+    """
+    # Convert options
+    opts = Archive.auto_Archive(opts)
+    # Perform actions
+    PostDeleteFiles(opts, fsub=fsub)
+    PostUpdateFiles(opts, fsub=fsub)
+    PostDeleteDirs(opts)
+    PostTarGroups(opts)
+    PostTarDirs(opts)
+# def ManageFilesPost
+
+# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# MAIN FUNCTION
+# ----------------------------------------------------------------------------
+
+# Archive folder
+def ArchiveFolder(opts, fsub=[]):
+    """Archive a folder to a backup location and clean up nonessential files
+    
+    :Call:
+        >>> cape.manage.ArchiveFolder(opts, fsub=[])
+    :Inputs:
+        *opts*: :class:`cape.options.Options`
+            Options interface including management/archive interface
+        *fsub*: :class:`list` (:class:`str`)
+            List of globs of subdirectories that are adaptive run folders
+    :Versions:
+        * 2016-12-09 ``@ddalle``: First version
+    """
+    # Restrict options to correct class
+    opts = Archive.auto_Archive(opts)
+    # Get archive type
+    ftyp = opts.get_ArchiveType()
+    # Get the archive root directory
+    flfe = opts.get_ArchiveFolder()
+    # Get the remote copy command
+    fscp = opts.get_RemoteCopy()
+    # If no actiona, do nothing
+    if not ftyp or not flfe: return
+    
+    # Get the current folder
+    fdir = os.path.split(os.getcwd())[-1]
+    # Go up to one folder to the group directory
+    os.chdir('..')
+    # Get the group folder
+    fgrp = os.path.split(os.getcwd())[-1]
+    # Get the combined case folder name
+    frun = os.path.join(fgrp, fdir)
+    # Reenter case folder
+    os.chdir(fdir)
+    
+    # Ensure folder exists
+    CreateArchiveFolder(opts)
+    CreateArchiveCaseFolder(opts)
+    
+    # Get the archive format, extension, and command
+    fmt  = opts.get_ArchiveFormat()
+    cmdu = opts.get_ArchiveCmd()
+    ext  = opts.get_ArchiveExtension()
+    # Write the data
+    write_log_date()
+    # Pre-archiving file management
+    ManageFilesPre(opts, fsub=fsub)
+    # Check for single tar ball or finer-grain archiving
+    if ftyp.lower() == "full":
+        # Archive entire folder
+        ArchiveCaseWhole(opts)
+        # Post-archiving file management
+        MangeFilesPost(opts, fsub=fsub)
+    else:
+        # Partial archive; create folder containing several files
+        # Form destination folder name
+        ftar = os.path.join(flfe, fgrp, fdir)
+        # Archive end-of-run files
+        ProgressArchiveFiles(opts, fsub=fsub)
+        # Create tar balls before archiving
+        PostTarGroups(opts, frun=frun)
+        PostTarDirs(opts, frun=frun)
+        # Archive any tar balls that exist
+        ArchiveFiles(opts, fsub=fsub)
+        # After archiving, perform clean-up
+        PostDeleteFiles(opts, fsub=fsub)
+        PostUpdateFiles(opts, fsub=fsub)
+        PostDeleteDirs(opts)
+    
+# def ArchiveFolder
+# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# SECOND-LEVEL FUNCTIONS
+# ----------------------------------------------------------------------------
+
+# Function to copy files to archive for one glob
+def ArchiveFiles(opts, fsub=None):
     """Delete files that match a list of glob
     
     The function also searches in any folder matching the directory glob or list
@@ -533,12 +696,17 @@ def ArchiveFiles(opts, fname, fsub=None, n=0):
         *fsub*: :class:`str` | :class:`list` (:class:`str`)
             Folder, list of folders, or glob of folders to also search
         *n*: :class:`int`
-            Number of files to keep
+            Default number of files to archive
     :Versions:
         * 2016-03-01 ``@ddalle``: First version
+        * 2016-12-09 ``@ddalle``: Now depends on ``"ArchiveFiles"`` option
     """
+    # Archive all tar balls
+    opts.add_ArchiveArchiveFiles(["*.tar", "*.gz", "*.zip", "*.bz"])
+    # Archive list
+    farch = opts.get_ArchiveArchiveFiles()
     # Get list of matches
-    fglob = GetFileMatches(fname, fsub=fsub, n=n)
+    fglob = GetFileMatches(farch, fsub=fsub, n=0)
     
     # Get the archive root directory.
     flfe = opts.get_ArchiveFolder()
@@ -551,6 +719,9 @@ def ArchiveFiles(opts, fname, fsub=None, n=0):
     # If not full, do not continue
     if ftyp.lower() == "full": return
     
+    # Write flag
+    write_log('<ArchiveFiles>')
+    
     # Get the current folder.
     fdir = os.path.split(os.getcwd())[-1]
     # Go up a folder.
@@ -559,10 +730,8 @@ def ArchiveFiles(opts, fname, fsub=None, n=0):
     fgrp = os.path.split(os.getcwd())[-1]
     # Get the case folder
     frun = os.path.join(fgrp, fdir)
-    
-    # Setup archive
-    CreateArchiveFolder(opts)
-    CreateArchiveCaseFolder(opts)
+    # Reenter case folder
+    os.chdir(fdir)
     
     # Loop through matches
     for fsrc in fglob:
@@ -658,6 +827,8 @@ def ArchiveCaseWhole(opts):
         
     # Return to folder
     os.chdir(fdir)
+    
+    
 
     
 # Function to delete folders according to full descriptor
@@ -1459,8 +1630,6 @@ def CreateArchiveCaseFolder(opts):
     fgrp = os.path.split(os.getcwd())[-1]
     # Get the case folder
     frun = os.path.join(fgrp, fdir)
-    # Return to the folder
-    
     # Ensure group folder exists.
     if ':' in flfe:
         # Split off host name
@@ -1488,6 +1657,8 @@ def CreateArchiveCaseFolder(opts):
         if (ftyp!="full") and not os.path.isdir(flrun):
             # Create it.
             opts.mkdir(flrun)
+    # Return to the folder
+    os.chdir(fdir)
 
 # Create archive group folders
 def CreateArchiveGroupFolder(opts):

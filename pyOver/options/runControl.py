@@ -11,6 +11,8 @@ from .util import rc0, getel, odict
 
 # Import template module
 import cape.options.runControl
+# Submodules
+from .Archive import Archive
 
 # Class for OVERFLOW command-line interface
 class overrun(odict):
@@ -160,6 +162,23 @@ class RunControl(cape.options.runControl.RunControl):
         """
         return self.get_key("Prefix", i, "project_rootname")
         
+   # >
+    
+    # =================
+    # Folder management
+    # =================
+   # <
+    # Initialization method for folder management options
+    def _Archive(self):
+        """Initialize folder management options if necessary"""
+        # Check status
+        if 'Archive' not in self:
+            # Missing entirely.
+            self['Archive'] = Archive()
+        elif type(self['Archive']).__name__ == 'dict':
+            # Convert to special class
+            self['Archive'] = Archive(**self['Archive'])
+    
    # >
 # class RunControl
 

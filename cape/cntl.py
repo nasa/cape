@@ -999,6 +999,71 @@ class Cntl(object):
    # >
     
     # =========
+    # Archiving
+    # =========
+   # <
+    # Function to archive results and remove files
+    def ArchiveCases(self, **kw):
+        """Archive completed cases and clean them up if specified
+        
+        :Call:
+            >>> cntl.ArchiveCases()
+            >>> cntl.ArchiveCases(cons=[], **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of overall control interface
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+        :Versions:
+            * 2016-12-09 ``@ddalle``: First version
+        """
+        # Get the format
+        fmt = self.opts.get_ArchiveAction()
+        # Check for directive not to archive
+        if not fmt or not self.opts.get_ArchiveFolder(): return
+        # Save current path.
+        fpwd = os.getcwd()
+        # Loop through folders
+        for i in self.x.GetIndices(**kw):
+            # Go to root folder
+            os.chdir(self.RootDir)
+            # Get folder name
+            frun = self.x.GetFullFolderNames(i)
+            # Status update
+            print(frun)
+            # Check if the case is ready to archive
+            if not os.path.isdir(frun):
+                print("  Folder does not exist.")
+                continue
+            elif self.CheckCaseStatus(i) != 'PASS':
+                print("  Case is not marked PASS.")
+                continue
+            # Go to the folder
+            os.chdir(frun)
+            # Archive
+            self.ArchivePWD()
+        # Got back to original location
+        os.chdir(fpwd)
+    
+    # Individual case archive function
+    def ArchivePWD(self):
+        """Archive a single case in the current folder ($PWD)
+        
+        :Call:
+            >>> cntl.ArchivePWD()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of overall control interface
+        :Versions:
+            * 2016-12-09 ``@ddalle``: First version
+        """
+        # Archive using the local module
+        manage.ArchiveFolder(self.opts)
+   # >
+    
+    # =========
     # CPU Stats
     # =========
    # <

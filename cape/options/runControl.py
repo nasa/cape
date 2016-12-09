@@ -969,6 +969,16 @@ class RunControl(odict):
         self._Archive()
         self['Archive'].add_ArchivePreUpdateFiles(fpost)
         
+    # Files to copy to archive
+    def get_ArchiveArchiveFiles(self):
+        self._Archive()
+        return self['Archive'].get_ArchiveArchiveFiles()
+    
+    # Files to copy to archive
+    def add_ArchiveArchiveFiles(self, farch):
+        self._Archive()
+        self['Archive'].add_ArchiveArchiveFiles(farch)
+        
     # Copy over the documentation.
     for k in [
             'ArchiveProgressDeleteFiles', 'ArchiveProgressDeleteDirs',
@@ -976,7 +986,8 @@ class RunControl(odict):
             'ArchiveProgressUpdateFiles', 'ArchiveProgressArchiveFiles',
             'ArchivePreDeleteFiles',      'ArchivePreDeleteDirs',
             'ArchivePreTarGroups',        'ArchivePreTarDirs',
-            'ArchivePreUpdateFiles',         
+            'ArchivePreUpdateFiles',
+            'ArchiveArchiveFiles',
             'ArchivePostDeleteFiles',     'ArchivePostDeleteDirs',
             'ArchivePostTarGroups',       'ArchivePostTarDirs',
             'ArchivePostUpdateFiles'

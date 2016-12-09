@@ -1455,6 +1455,14 @@ class Options(odict):
     # Files to keep only *n*
     def add_ArchivePostUpdateFiles(self, fpost):
         self['RunControl'].add_ArchivePreUpdateFiles(fpost)
+    
+    # Files to copy to archive
+    def get_ArchiveArchiveFiles(self):
+        return self['RunControl'].get_ArchiveArchiveFiles()
+        
+    # Files to copy to archive
+    def add_ArchiveArchiveFiles(self, farch):
+        self['RunControl'].add_ArchiveArchiveFiles(farch)
         
     # Copy over the documentation.
     for k in [
@@ -1463,7 +1471,8 @@ class Options(odict):
             'ArchiveProgressUpdateFiles', 'ArchiveProgressArchiveFiles',
             'ArchivePreDeleteFiles',      'ArchivePreDeleteDirs',
             'ArchivePreTarGroups',        'ArchivePreTarDirs',
-            'ArchivePreUpdateFiles',         
+            'ArchivePreUpdateFiles',
+            'ArchiveArchiveFiles',
             'ArchivePostDeleteFiles',     'ArchivePostDeleteDirs',
             'ArchivePostTarGroups',       'ArchivePostTarDirs',
             'ArchivePostUpdateFiles'

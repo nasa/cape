@@ -25,6 +25,7 @@ from overNamelist import OverNamelist
 from . import options
 from . import case
 from . import dataBook
+from . import manage
 # Unmodified CAPE modules
 from cape import convert
 
@@ -1067,6 +1068,21 @@ class Overflow(Cntl):
         """
         return case.StartCase()
         
+    
+    # Individual case archive function
+    def ArchivePWD(self):
+        """Archive a single case in the current folder ($PWD)
+        
+        :Call:
+            >>> oflow.ArchivePWD()
+        :Inputs:
+            *cntl*: :class:`pyOver.overflow.Overflow`
+                Instance of pyOver control interface
+        :Versions:
+            * 2016-12-09 ``@ddalle``: First version
+        """
+        # Archive using the local module
+        manage.ArchiveFolder(self.opts)
         
 # class Overflow
 
