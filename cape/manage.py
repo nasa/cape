@@ -662,7 +662,7 @@ def ArchiveFolder(opts, fsub=[]):
         # Form destination folder name
         ftar = os.path.join(flfe, fgrp, fdir)
         # Archive end-of-run files
-        ProgressArchiveFiles(opts, fsub=fsub)
+        # ProgressArchiveFiles(opts, fsub=fsub)
         # Create tar balls before archiving
         PostTarGroups(opts, frun=frun)
         PostTarDirs(opts, frun=frun)
@@ -1302,14 +1302,16 @@ def PostTarGroups(opts, fsub=None, aa=None, frun=None):
     # Get format, command, and extension
     cmdu = opts.get_ArchiveCmd()
     ext  = opts.get_ArchiveExtension()
+    # Get remote copy destination
+    flfe = opts.get_ArchiveFolder()
     # Loop through groups
     for grp in fgrps:
         # Process the group dictionary
         fgrp, fname = process_ArchiveGroup(grp)
         # Archive file name
-        if (ftype.lower() != "full") and (':' not in flfe):
+        if (':' not in flfe):
             # Local tar command; create Tar in place rather than copying it
-            ftar = os.path.join(flfe, frun, '%s.%s' * (fgrp,ext))
+            ftar = os.path.join(flfe, frun, '%s.%s' % (fgrp,ext))
         else:
             # Otherwise, create the tar ball in this folder
             ftar = '%s.%s' % (fgrp, ext)

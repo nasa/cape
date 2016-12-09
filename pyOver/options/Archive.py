@@ -26,25 +26,10 @@ Plot3DDict = [
     {"q.[0-9]*":      1},
     {"x.[0-9]*":      1}
 ]
-# Visualization files; keep only recent
-VizDict = [
-    {"Components.i.*.plt": 1},
-    {"Components.i.*.dat": 1},
-    {"cutPlanes.*.plt"   : 1},
-    {"cutPlanes.*.dat"   : 1}
-]
-# Run files
+# Run output files
 RunDict = [
-    {"run_cart3d.??.pbs": 1},
-    {"run.[0-9]*.*"     : 1},
-    {"input.??.cntl"    : 1},
-    {"aero.??.csh"      : 1}
-]
-# One-off files
-RunFiles = [
-    'input.c3d', 'Config.xml', 'jobID.dat',
-    'results.dat', 'user_time.dat', 'forces.dat', 'moments.dat',
-    'functional.dat', 'loadsCC.dat', 'loadsTRI.dat'
+    {"run":     "run.[0-9]*"},
+    {"out":     "*.out"}
 ]
 
 # Turn dictionary into Archive options
@@ -134,16 +119,18 @@ class Archive(cape.options.Archive.Archive):
         self.add_ArchivePreDeleteFiles("*.bomb")
         self.add_ArchivePreDeleteFiles("core.*")
         # Pre-archiving
-        self.add_ArchivePreTarGroups(["run.[0-9][0-9]*"])
-        self.add_ArchivePreTarGroups(["*.out"])
-        self.add_ArchivePreTarDirs(["fomo", "lineload", "aero"])
+        self.add_ArchivePreTarGroups([])
+        self.add_ArchivePreTarDirs([])
         # Files to delete before saving
         self.add_ArchivePreUpdateFiles([])
+        # Post-archiving
+        self.add_ArchivePostTarGroups({"run": "run.[0-9][0-9]*"})
+        self.add_ArchivePostTarGroups({"out": "*.out"})
+        self.add_ArchivePostTarDirs(["fomo", "lineload", "aero"])
+        # Individual archive files
+        self.add_ArchiveArchiveFiles(["x.save", "q.*", "brkset.save"])
         # Files/folders to delete after archiving
         self.add_ArchivePostDeleteFiles([])
         self.add_ArchivePostDeleteDirs([])
-        # Post-archiving
-        self.add_ArchivePostTarGroups([])
-        self.add_ArchivePostTarDirs([])
 # class Archive
 
