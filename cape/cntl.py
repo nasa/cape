@@ -1028,14 +1028,28 @@ class Cntl(object):
             * 2016-12-12 ``@ddalle``: First version
         """
         # Process inputs
-        j = kw.get(j)
-        n = kw.get(extend, 1)
+        j = kw.get('j')
+        n = kw.get('extend', 1)
+        imax = kw.get('imax')
+        # Restart inputs
+        qsub = kw.get("restart", kw.get("qsub", False))
+        nsub = kw.get("n", 10)
+        jsub = 0
         # Loop through folders
         for i in self.x.GetIndices(**kw):
             # Status update
-            print(frun)
+            print(self.x.GetFullFolderNames(i))
             # Extend case
-            self.ExtendCase(i, n=n, j=j)
+            self.ExtendCase(i, n=n, j=j, imax=imax)
+            # Start/submit the case?
+            if kw.get("restart", False):
+                # Try to start the case
+                pbs = self.StartCase(i)
+                # Check for a submission
+                if pbs:
+                    jsub += 1
+                # Check submission limit
+                if jsub >= nsub: return
     
     # =========
     # Archiving
