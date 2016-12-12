@@ -280,20 +280,23 @@ def GetPhaseNumber(rc):
     return i
 
 # Get the namelist
-def GetNamelist(rc=None):
+def GetNamelist(rc=None, i=None):
     """Read case namelist file
     
     :Call:
-        >>> nml = pyOver.case.GetNamelist(rc=None)
+        >>> nml = pyOver.case.GetNamelist(rc=None, i=None)
     :Inputs:
         *rc*: :class:`pyFun.options.runControl.RunControl`
             Run control options
+        *i*: {``None``} | nonnegative :class:`int`
+            Phase number (0-based)
     :Outputs:
         *nml*: :class:`pyOver.overNamelist.OverNamelist`
             Namelist interface
     :Versions:
         * 2015-12-29 ``@ddalle``: First version
         * 2015-02-02 ``@ddalle``: Copied from :mod:`pyFun.case`
+        * 2016-12-12 ``@ddalle``: Added phase as optional input
     """
     # Check for detailed inputs
     if rc is None:
@@ -307,8 +310,9 @@ def GetNamelist(rc=None):
             # Read one of them.
             return OverNamelist(fglob[0])
     else:
-        # Get run index.
-        i = GetPhaseNumber(rc)
+        # Get phase number
+        if i is None:
+            i = GetPhaseNumber(rc)
         # Read the namelist file.
         return OverNamelist('%s.%02i.inp' % (rc.get_Prefix(i), i+1))
 

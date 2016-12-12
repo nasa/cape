@@ -1031,11 +1031,11 @@ class Overflow(Cntl):
         return rc
         
     # Read a namelist from a case folder
-    def ReadCaseNamelist(self, i, rc=None):
-        """Read namelist from case *i* if possible
+    def ReadCaseNamelist(self, i, rc=None, j=None):
+        """Read namelist from case *i*, phase *j* if possible
         
         :Call:
-            >>> nml = ofl.ReadCaseNamelist(i, rc=None)
+            >>> nml = ofl.ReadCaseNamelist(i, rc=None, j=None)
         :Inputs:
             *ofl*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control class
@@ -1043,18 +1043,22 @@ class Overflow(Cntl):
                 Run index
             *rc*: ``None`` | :class:`pyOver.options.runControl.RunControl`
                 Run control interface read from ``case.json`` file
+            *j*: {``None``} | nonnegative :class:`int`
+                Phase number
         :Outputs:
             *nml*: ``None`` | :class:`pyOver.overNamelist.OverNamelist`
                 Namelist interface is possible
         :Versions:
             * 2016-12-12 ``@ddalle``: First version
         """
-        # Read *rc* if necessary
+        # Read the *rc* if necessary
         if rc is None:
             rc = self.ReadCaseJSON(i)
-        # If still no `case.json` file; exit
+        # If still None, exit
         if rc is None: return
-        
+        # Get phase number
+        if j is None:
+            j = rc.get_PhaseSequence(-1)
         # Safely go to root directory.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
@@ -1068,7 +1072,7 @@ class Overflow(Cntl):
         # Go to the folder.
         os.chdir(frun)
         # Read the namelist
-        nml = case.ReadNamelist(rc)
+        nml = case.GetNamelist(rc, j)
         # Return to original location
         os.chdir(fpwd)
         # Output
@@ -1095,7 +1099,7 @@ class Overflow(Cntl):
         # Exit if none
         if rc is None: return
         # Read the namelist
-        nml = self.ReadCaeNamelist(i, rc)
+        nml = self.ReadCaseNamelist(i, rc)
         # Exit if that's None
         if nml is None: return
         # Get the case name.
@@ -1111,7 +1115,7 @@ class Overflow(Cntl):
         # Get the current cutoff for phase *j*
         N = rc.get_PhaseIters(j)
         # Reset the number of steps
-        rc.set_PhaseIters(j, N+n*NSTEPS)
+        rc.set_PhaseIters(N+n*NSTEPS, j)
         # Write folder.
         f = open('case.json', 'w')
         # Dump the Overflow and other run settings.
