@@ -45,6 +45,9 @@ if __name__ == "__main__":
     elif kw.get('batch'):
         # Process a batch job
         ofl.SubmitBatchPBS(pyOver.os.sys.argv)
+    elif kw.get('extend'):
+        # Extend the number of iterations in a phase
+        ofl.ExtendCases(**kw)
     elif kw.get('aero'):
         # Check for component.
         if kw['aero'] != True:

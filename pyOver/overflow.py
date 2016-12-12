@@ -1079,11 +1079,11 @@ class Overflow(Cntl):
         return nml
         
     # Extend a case
-    def ExtendCase(self, i, n=1):
+    def ExtendCase(self, i, n=1, j=None):
         """Add *NSTEPS* iterations to case *i* using the last phase's namelist
         
         :Call:
-            >>> ofl.ExtendCase(i, n=1)
+            >>> ofl.ExtendCase(i, n=1, j=None)
         :Inputs:
             *ofl*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control class
@@ -1091,6 +1091,8 @@ class Overflow(Cntl):
                 Run index
             *n*: {``1``} | positive :class:`int`
                 Add *n* times *NSTEPS* to the total iteration count
+            *j*: {``None``} | nonnegative :class:`int`
+                Apply to phase *j*, by default use the last phase
         :Versions:
             * 2016-12-12 ``@ddalle``: First version
         """
@@ -1099,7 +1101,7 @@ class Overflow(Cntl):
         # Exit if none
         if rc is None: return
         # Read the namelist
-        nml = self.ReadCaseNamelist(i, rc)
+        nml = self.ReadCaseNamelist(i, rc, j=j)
         # Exit if that's None
         if nml is None: return
         # Get the case name.
@@ -1116,6 +1118,8 @@ class Overflow(Cntl):
         N = rc.get_PhaseIters(j)
         # Reset the number of steps
         rc.set_PhaseIters(N+n*NSTEPS, j)
+        # Status update
+        print("  Phase %i: %s --> %s" % (j, N, N+n*NSTEPS))
         # Write folder.
         f = open('case.json', 'w')
         # Dump the Overflow and other run settings.
