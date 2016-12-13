@@ -25,7 +25,7 @@ use a template file without any problems.
     * ``bullet.tri``: Surface triangulation
     * ``Config.xml``: Names for surface components
     
-To get started, make sure that the ``$PYCART/scriptlib`` folder is part of your
+To get started, make sure that the ``$PYCART/bin`` folder is part of your
 path and ``$PYCART`` is listed in the environment variable *PYTHONPATH*.  It is
 a good idea to put these in your startup file or create a module.  For a BASH
 environment, the following commands set up the environment for using pyCart
@@ -33,14 +33,14 @@ assuming that ``$HOME/pycart`` is where pyCart was installed.
 
     .. code-block:: bash
     
-        export PATH="$PATH:$HOME/pycart/scriptlib"
+        export PATH="$PATH:$HOME/pycart/bin"
         export PYTHONPATH="$PYTHONPATH:$HOME/pycart"
         
 For a C-shell environment, use the following.
 
     .. code-block:: csh
     
-        setenv PATH "$PATH:$HOME/pycart/scriptlib"
+        setenv PATH "$PATH:$HOME/pycart/bin"
         setenv PYTHONPATH "$PYTHONPATH:$HOME/pycart"
         
 Assuming the present working directory is in this demo folder, i.e.

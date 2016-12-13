@@ -3,28 +3,34 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
    
-CAPE Documentation
-==================
+pyCart Documentation
+====================
 
-Welcome to Cape, a computational aerodynamics processing environment for
-efficient interaction with several high-fidelity aerodynamics codes.  This
+Welcome to pyCart, a computational aerodynamics processing environment for
+efficient interaction with several high-fidelity aerodynamics codes. This
 includes tools for pre-processing, executing the codes, and performing
-post-processing tasks.  The approach of Cape is to provide tools that make users
-more efficient at some or all of the modeling and analysis process.  It may be
+post-processing tasks. The approach of Cape is to provide tools that make users
+more efficient at some or all of the modeling and analysis process. It may be
 useful to use Cape for just one step of a particular user's project, or it may
 be useful to use it for the entire process.
 
-Currently, Cape has interfaces for 
-`Cart3D <http://people.nas.nasa.gov/~aftosmis/cart3d/>`_,
-`OVERFLOW <http://overflow.arc.nasa.gov>`_, and 
-`FUN3D <http://fun3d.larc.nasa.gov/>`_.  The Cart3D interface, :mod:`pyCart` has
-been used for several NASA projects.  One example was the creation of an
-aerodynamic database for booster separation for the Space Launch System, which
-included over 10,000 different adaptive Cart3D runs in a 12-dimensional run
-matrix.
+Most users really would rather evaluate new tools by seeing some examples, so
+here are the links to the example pages for the main solvers:
+
+    * :ref:`Cart3D Examples Using pyCart <pycart-examples>`
+    * :ref:`FUN3D Examples Using pyFun <pyfun-examples>`
+    * OVERFLOW Examples Using pyOver
+
+Currently, pyCart has interfaces for `Cart3D
+<http://people.nas.nasa.gov/~aftosmis/cart3d/>`_, `OVERFLOW
+<http://overflow.arc.nasa.gov>`_, and `FUN3D <http://fun3d.larc.nasa.gov/>`_.
+The Cart3D interface, :mod:`pyCart` has been used for several NASA projects.
+One example was the creation of an aerodynamic database for booster separation
+for the Space Launch System, which included over 10,000 different adaptive
+Cart3D runs in a 12-dimensional run matrix.
 
 The FUN3D interface, :mod:`pyFun`, is relatively new but reuses most of the
-code used to build :mod:`pyCart`.  Both modules are built off of common tools in
+code used to build :mod:`pyCart`. Both modules are built off of common tools in
 the :mod:`cape` module, and so much of the usage is common between the two
 interfaces.
 
@@ -33,15 +39,18 @@ uses much of the underlying code of :mod:`cape`.  It can be used to run
 OVERFLOW, interact with databases, and there is a Python interface to solution
 files including easy dimensionalization of state variables.
 
-Each interface is a portmanteau of "Python" and the name of the solver.  The
-command-line interface is invoked with the commands ``pycart`` and ``pyfun``.
-In addition, there are several scripts matching the glob ``pc_*.py`` for
-isolated tasks such as converting grid formats.
+The central Python module that contains most of the code for each module is
+called :mod:`cape`, which may be mentioned from time to time.
+
+Each interface is a portmanteau of "Python" and the name of the solver. The
+command-line interface is invoked with the commands ``pycart``, ``pyfun``, and
+``pyover``. In addition, there are several scripts matching the glob
+``pc_*.py`` for isolated tasks such as converting grid formats.
 
 **Cape Inputs and JSON Files**
 Inputs to Cape can be given as either command-line arguments, input files
-associated with the CFD solver, or JSON files.  `JSON <http:www.json.org>`_ is a
-simple but extensible format similar to XML.  There are interpreters for many
+associated with the CFD solver, or JSON files. `JSON <http:www.json.org>`_ is a
+simple but extensible format similar to XML. There are interpreters for many
 languages.
 
 
@@ -79,8 +88,8 @@ and critical aspects are listed below.
     
     * Automated reports of iterative histories and Tecplot layouts
     
-    * Interface for custom functions for more advanced run matrix variables such
-      as thrust settings
+    * Interface for custom functions for more advanced run matrix variables
+      such as thrust settings
 
 The basic usage for this module is to create a file called :file:`pyCart.json`
 and use the script ``pycart``.  In addition to this control file for pyCart,
@@ -103,7 +112,11 @@ pyCart.  Some capabilities are highlighted below.
     * Copy FUN3D input files to run files and edit them according to run matrix
       variables and global input settings
       
-    * Automated reports of iterative histories and Tecplot layouts
+    * Interface with AFLR3 for volume mesh generation, which can be used to
+      have multiple bodies in different relative positions for each case in a
+      run matrix
+      
+    * Interface to Chimera Grid Tools ``triload`` to calculate sectional loads
     
 The basic usage for this module is to create a file called :file:`pyFun.json`
 and use the script ``pyfun``.  The required FUN3D input files are described
@@ -116,11 +129,14 @@ below.
     
 **pyOver Capabilities**
 The OVERFLOW interface, pyOver, is also new but will have a rapidly expanding
-set of capabilities.  Much of the database and report capabilities are inherited
-from pyCart.  Some highlights are below.
+set of capabilities.  Much of the database and report capabilities are
+inherited from pyCart.  Some highlights are below.
 
     * Copy OVERFLOW input namelists and edit them according to run matrix
       variables and multiple phases of input settings
+      
+    * Highly generalized interface to OVERFLOW namelists that doesn't need
+      great amounts of user preparation
     
     * Built-in interface to OVERFLOW *q* files with simple access to
       coefficients and dimensional states

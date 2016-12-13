@@ -2435,7 +2435,7 @@ class Trajectory:
         
         .. math::
             
-            \\tilde{p} = \\frac{b + a*p}{p_\\mathit{ref}
+            \\tilde{p} = \\frac{b + ap}{p_\\mathit{ref}}
             
         where :math:`\\tilde{p}` is the value used in the namelist, *b* is the
         value from this function, *a* is the result of
@@ -2525,7 +2525,7 @@ class Trajectory:
         
         .. math::
             
-            \\tilde{T} = \\frac{b + a*T}{T_\\mathit{ref}
+            \\tilde{T} = \\frac{b + aT}{T_\\mathit{ref}}
             
         where :math:`\\tilde{T}` is the value used in the namelist, *b* is the
         value from this function, *a* is the result of
@@ -2960,7 +2960,7 @@ class Trajectory:
         
         .. math::
             
-            \\tilde{p} = \\frac{b + a*p}{p_\\mathit{ref}
+            \\tilde{p} = \\frac{b + ap}{p_\\mathit{ref}}
             
         where :math:`\\tilde{p}` is the value used in the namelist, *b* is the
         value from this function, *a* is the result of
@@ -3136,7 +3136,7 @@ class Trajectory:
         
         .. math::
             
-            \\tilde{T} = \\frac{b + a*T}{T_\\mathit{ref}
+            \\tilde{T} = \\frac{b + aT}{T_\\mathit{ref}}
             
         where :math:`\\tilde{T}` is the value used in the namelist, *b* is the
         value from this function, *a* is the result of
@@ -3323,7 +3323,7 @@ class Trajectory:
         """Get number of species for a surface BC key
         
         :Call:
-            >> nY = x.GetSurfBC_nSpecies(i, key=None, comp=None, **kw)
+            >>> nY = x.GetSurfBC_nSpecies(i, key=None, comp=None, **kw)
         :Inptus:
             *x*: :class:`cape.trajectory.Trajectory`
                 Run matrix interface

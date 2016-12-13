@@ -1,4 +1,5 @@
 
+.. _pycart-examples:
 
 Examples Using pyCart
 =====================
