@@ -757,13 +757,24 @@ class Overflow(Cntl):
         """
         # Apply filter.
         I = self.x.GetIndices(**kw)
-        # Check for nPhase greater than that in *PhaseSequence*
-        if nPhase and nPhase > self.opts.get_nSeq():
-            # Append the new phase(s)
-            for j in range(self.opts.get_nSeq(), nPhase):
-                self.opts["RunControl"]["PhaseSequence"].append(j)
+        # Current phase number
+        nSeq = self.opts.get_nSeq()
+        # Phase number
+        if nPhase is None:
+            # Use the current phase number
+            nPhase = nSeq
+        else:
+            # Make sure it's an integer
+            nPhase = int(nPhase)
         # Loop through cases.
         for i in I:
+            # Read the case json
+
+            # Check for nPhase greater than that in *PhaseSequence*
+            if nPhase > nSeq:
+                # Append the new phase(s)
+                for j in range(nSeq, nPhase):
+                    self.opts["RunControl"]["PhaseSequence"].append(j)
             # Write the JSON file.
             self.WriteCaseJSON(i)
             # Write namelist
