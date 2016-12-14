@@ -733,52 +733,71 @@ class Overflow(Cntl):
             self.Namelist.Write(fout)
         # Return to original path.
         os.chdir(fpwd)
-        
-    # Function to apply settings from a specific JSON file
-    def ApplyNamelistSettings(self, nPhase=None, **kw):
+            
+    # Function to apply namelist settings to a case
+    def ApplyCase(self, i, nPhase=None, **kw):
         """Apply settings from *oflow.opts* to a set of cases
         
         This rewrites each run namelist file and the :file:`case.json` file in
         the specified directories.  It can also be used to 
         
         :Call:
-            >>> oflow.ApplyNamelistSettings(cons=[], **kw)
+            >>> oflow.ApplySettingsCase(i, nPhase=None)
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Overflow control interface
+            *i*: :class:`int`
+                Case number
             *nPhase*: {``None``} | positive :class:`int`
                 Last phase number (default determined by *PhaseSequence*)
-            *I*: :class:`list` (:class:`int`)
-                List of indices
-            *cons*: :class:`list` (:class:`str`)
-                List of constraints
         :Versions:
-            * 2014-12-11 ``@ddalle``: First version
+            * 2014-12-13 ``@ddalle``: First version
         """
-        # Apply filter.
-        I = self.x.GetIndices(**kw)
-        # Current phase number
-        nSeq = self.opts.get_nSeq()
-        # Phase number
+        # Read ``case.json``.
+        rc = self.ReadCaseJSON()
+        # Get present options
+        rco = self.opts["RunControl"]
+        # Exit if none
+        if rc is None: return
+        # Get the number of phases in ``case.json``
+        nSeqC = rc.get_nSeq()
+        # Get number of phases from present options
+        nSeqO = self.opts.get_nSeq()
+        # Check for input
         if nPhase is None:
-            # Use the current phase number
-            nPhase = nSeq
+            # Default: inherit from pyOver.json
+            nPhase = nSeqO
         else:
-            # Make sure it's an integer
-            nPhase = int(nPhase)
-        # Loop through cases.
-        for i in I:
-            # Read the case json
-
-            # Check for nPhase greater than that in *PhaseSequence*
-            if nPhase > nSeq:
-                # Append the new phase(s)
-                for j in range(nSeq, nPhase):
-                    self.opts["RunControl"]["PhaseSequence"].append(j)
-            # Write the JSON file.
-            self.WriteCaseJSON(i)
-            # Write namelist
-            self.PrepareNamelist(i, nPhase)
+            # Use maximum
+            nPhase = max(nSeqC, int(nPhase))
+        # Present number of iterations
+        nIter = rc.get_PhaseIters(nSeqC)
+        # Loop through the additional phases
+        for j in range(nSeqC, nPhase):
+            # Append the new phase
+            rc["PhaseSequence"].append(j)
+            # Get iterations for this phase
+            nj = self.opts.get_PhaseIters(j)
+            # Status update
+            print("  Adding phase %s (to %s iterations)" % (j, nIter+nj))
+            # Set the iteration count
+            nIter += nj
+            rc.set_PhaseIters(nIter, j)
+            # Copy other sections
+            for k in rco:
+                # Don't copy phase and iterations
+                if k in ["PhaseIters", "PhaseSequence"]: continue
+                # Otherwise, overwrite
+                rc[k] = rco[k]
+            # Write it.
+            self.WriteCaseJSON(i, rc=rc)
+        # Rewriting phases
+        print("  Writing input namelists 1 to %s" % (nPhase))
+        self.PrepareNamelist(i, nPhase)
+        # Write PBS scripts
+        print("  Writing PBS scripts 1 to %s" % (nPhase))
+        self.WritePBS(i, nPhase)
+        
         
     # Write configuration file
     def WriteConfig(self, i, fname='Config.xml'):
@@ -1011,19 +1030,22 @@ class Overflow(Cntl):
         return (ap*p0+bp)/p0inf, (aT*T0+bT)/T0inf
         
     # Write run control options to JSON file
-    def WriteCaseJSON(self, i):
+    def WriteCaseJSON(self, i, rc=None):
         """Write JSON file with run control and related settings for case *i*
         
         :Call:
-            >>> ofl.WriteCaseJSON(i)
+            >>> ofl.WriteCaseJSON(i, rc=None)
         :Inputs:
             *ofl*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control class
+            *rc*: {``None``} | :class:`pyOver.options.runControl.RunControl`
+                If specified, write specified "RunControl" options
             *i*: :class:`int`
                 Run index
         :Versions:
             * 2015-10-19 ``@ddalle``: First version
             * 2016-02-01 ``@ddalle``: Copied from :mod:`pyFun`
+            * 2016-12-14 ``@ddalle``: Can now write other options
         """
         # Safely go to root directory.
         fpwd = os.getcwd()
@@ -1040,7 +1062,12 @@ class Overflow(Cntl):
         # Write folder.
         f = open('case.json', 'w')
         # Dump the Overflow and other run settings.
-        json.dump(self.opts['RunControl'], f, indent=1)
+        if rc is None:
+            # Write settings from the present options
+            json.dump(self.opts['RunControl'], f, indent=1)
+        else:
+            # Write the settings given as input
+            json.dump(rc, f, indent=1)
         # Close the file.
         f.close()
         # Return to original location
@@ -1163,12 +1190,6 @@ class Overflow(Cntl):
         nml = self.ReadCaseNamelist(i, rc, j=j)
         # Exit if that's None
         if nml is None: return
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Safely go to the run directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        os.chdir(frun)
         # Get the phase number
         j = rc.get_PhaseSequence(-1)
         # Get the number of steps
@@ -1186,29 +1207,26 @@ class Overflow(Cntl):
         rc.set_PhaseIters(N1, j)
         # Status update
         print("  Phase %i: %s --> %s" % (j, N, N1))
-        # Write folder.
-        f = open('case.json', 'w')
-        # Dump the Overflow and other run settings.
-        json.dump(rc, f, indent=1)
-        # Close the file.
-        f.close()
-        # Return to original location
-        os.chdir(fpwd)
+        # Write new options
+        self.WriteCaseJSON(i, rc=rc)
         
         
     # Write the PBS script.
-    def WritePBS(self, i):
+    def WritePBS(self, i, nPhase=None):
         """Write the PBS script(s) for a given case
         
         :Call:
-            >>> oflow.WritePBS(i)
+            >>> oflow.WritePBS(i, nPhase=None)
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control class
             *i*: :class:`int`
                 Run index
+            *nPhase*: {``None``} | :class:`int`
+                Optional maximum phase number
         :Versions:
             * 2014-10-19 ``@ddalle``: First version
+            * 2016-12-14 ``@ddalle``: Added *nPhase* input
         """
         # Get the case name.
         frun = self.x.GetFullFolderNames(i)
@@ -1223,7 +1241,7 @@ class Overflow(Cntl):
         # Determine number of unique PBS scripts.
         if self.opts.get_nPBS() > 1:
             # If more than one, use unique PBS script for each run.
-            nPBS = self.opts.get_nSeq()
+            nPBS = max(self.opts.get_nSeq(), nPhase)
         else:
             # Otherwise use a single PBS script.
             nPBS = 1

@@ -1042,7 +1042,62 @@ class Cntl(object):
             # Extend case
             self.ExtendCase(i, n=n, j=j, imax=imax)
             # Start/submit the case?
-            if kw.get("restart", False):
+            if qsub:
+                # Try to start the case
+                pbs = self.StartCase(i)
+                # Check for a submission
+                if pbs:
+                    jsub += 1
+                # Check submission limit
+                if jsub >= nsub: return
+    
+    # Function to extend one or more cases
+    def ApplyCases(self, **kw):
+        """Extend one or more case by a number of iterations
+        
+        By default, this applies to the final phase, but the phase number *j*
+        can also be specified as input. The number of additional iterations is
+        generally the nominal number of iterations that phase *j* would
+        normally run.
+        
+        :Call:
+            >>> cntl.ExtendCase(cons=[], j=None, extend=1, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of overall control interface
+            *extend*: {``True``} | positive :class:`int`
+                Extend phase *j* by *extend* nominal runs
+            *j*: {``None``} | nonnegative :class:`int`
+                Phase number
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+        :Versions:
+            * 2016-12-12 ``@ddalle``: First version
+        """
+        # Process inputs
+        j = kw.get('j')
+        n = kw.get('apply')
+        # Handle raw ``-apply`` inputs vs. ``--apply $n``
+        if n == True:
+            # Use ``None`` to inherit phase count from *cntl*
+            n = None
+        else:
+            # Convert input string to integer
+            n = int(n)
+        # Restart inputs
+        qsub = kw.get("restart", kw.get("qsub", False))
+        nsub = kw.get("n", 10)
+        jsub = 0
+        # Loop through folders
+        for i in self.x.GetIndices(**kw):
+            # Status update
+            print(self.x.GetFullFolderNames(i))
+            # Extend case
+            self.ApplyCase(i, nPhase=n)
+            # Start/submit the case?
+            if qsub:
                 # Try to start the case
                 pbs = self.StartCase(i)
                 # Check for a submission
