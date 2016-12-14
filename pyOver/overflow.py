@@ -688,7 +688,7 @@ class Overflow(Cntl):
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
-        if not os.path.isdir(frun): self.mkdir(frun)
+        if not os.path.isdir(frun): return
         
         # Set the surface BCs
         for k in self.x.GetKeysByType('SurfBC'):
