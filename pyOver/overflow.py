@@ -634,21 +634,32 @@ class Overflow(Cntl):
         
         
     # Function to prepare "input.cntl" files
-    def PrepareNamelist(self, i):
+    def PrepareNamelist(self, i, nPhase=None):
         """
         Write :file:`over.namelist` for run case *i* in the appropriate folder
         and with the appropriate settings.
         
+        The optional input *nPhase* can be used to right additional phases that
+        are not part of the default *PhaseSequence*, which can be useful when
+        only a subset of cases in the run matrix will require additional
+        phases.
+        
         :Call:
-            >>> oflow.PrepareNamelist(i)
+            >>> oflow.PrepareNamelist(i, nPhase=None)
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Instance of OVERFLOW control class
             *i*: :class:`int`
                 Run index
+            *nPhase*: {``None``} | positive :class:`int`
+                Last phase number (default determined by *PhaseSequence*)
         :Versions:
             * 2016-02-01 ``@ddalle``: First version
+            * 2016-12-13 ``@ddalle``: Added second input variable
         """
+        # Phase number
+        if nPhase is None:
+            nPhase = self.opt.get_nSeq()
         # Read namelist file
         self.ReadNamelist()
         # Extract trajectory.
@@ -689,7 +700,7 @@ class Overflow(Cntl):
             self.SetSurfBC(k, i, CT=True)
             
         # Loop through input sequence
-        for j in range(self.opts.get_nSeq()):
+        for j in range(nPhase):
             # Set the "restart_read" property appropriately
             # This setting is overridden by *nopts* if appropriate
             if j == 0:
@@ -722,6 +733,41 @@ class Overflow(Cntl):
             self.Namelist.Write(fout)
         # Return to original path.
         os.chdir(fpwd)
+        
+    # Function to apply settings from a specific JSON file
+    def ApplyNamelistSettings(self, nPhase=None, **kw):
+        """Apply settings from *oflow.opts* to a set of cases
+        
+        This rewrites each run namelist file and the :file:`case.json` file in
+        the specified directories.  It can also be used to 
+        
+        :Call:
+            >>> oflow.ApplyNamelistSettings(cons=[], **kw)
+        :Inputs:
+            *oflow*: :class:`pyOver.overflow.Overflow`
+                Overflow control interface
+            *nPhase*: {``None``} | positive :class:`int`
+                Last phase number (default determined by *PhaseSequence*)
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints
+        :Versions:
+            * 2014-12-11 ``@ddalle``: First version
+        """
+        # Apply filter.
+        I = self.x.GetIndices(**kw)
+        # Check for nPhase greater than that in *PhaseSequence*
+        if nPhase and nPhase > self.opts.get_nSeq():
+            # Append the new phase(s)
+            for j in range(self.opts.get_nSeq(), nPhase):
+                self.opts["RunControl"]["PhaseSequence"].append(j)
+        # Loop through cases.
+        for i in I:
+            # Write the JSON file.
+            self.WriteCaseJSON(i)
+            # Write namelist
+            self.PrepareNamelist(i, nPhase)
         
     # Write configuration file
     def WriteConfig(self, i, fname='Config.xml'):
