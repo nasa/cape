@@ -127,7 +127,7 @@ class OverNml(odict):
         # Check for namelist
         if sec not in self: return None
         # Select the namelist
-        d = getel(self, sec, i)
+        d = getel(self.get(sec), i)
         # Select the value.
         return getel(d.get(key), i)
         
