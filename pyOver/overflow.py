@@ -798,7 +798,6 @@ class Overflow(Cntl):
         print("  Writing PBS scripts 1 to %s" % (nPhase))
         self.WritePBS(i, nPhase)
         
-        
     # Write configuration file
     def WriteConfig(self, i, fname='Config.xml'):
         """Write configuration file
