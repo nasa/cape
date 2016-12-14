@@ -757,11 +757,21 @@ class Overflow(Cntl):
         """
         # Apply filter.
         I = self.x.GetIndices(**kw)
+        # Current last phase
+        nSeq = self.opts.get_nSeq()
         # Check for nPhase greater than that in *PhaseSequence*
-        if nPhase and nPhase > self.opts.get_nSeq():
-            # Append the new phase(s)
-            for j in range(self.opts.get_nSeq(), nPhase):
+        if nPhase and nPhase > nSeq:
+            # Get last iter
+            nIter = self.opts.get_PhaseIters(nSeq)
+            # Loop through new phases
+            for j in range(nSeq, nPhase):
+                # Append the phase instruction
                 self.opts["RunControl"]["PhaseSequence"].append(j)
+                # Iterations for this phase
+                jIter = self.opts.get_PhaseIters(j)
+                nIter += jIter
+                # Save the iteration request
+                self.opts.set_PhaseIters(nIter, j)
         # Loop through cases.
         for i in I:
             # Write the JSON file.
