@@ -9,6 +9,7 @@ Tecplot PLT File Interface for Fun3D
 import numpy as np
 # Useful tool for more complex binary I/O methods
 import cape.io
+import cape.tri
 
 # Tecplot class
 class Plt(object):
@@ -179,7 +180,179 @@ class Plt(object):
                 marker = i[0]
             else:
                 break
-        
         # Close the file
         f.close()
+        
+    # Create a triq file
+    def CreateTriq(self, triload=True):
+        """Create a Cart3D annotated triangulation (``triq``) interface
+        
+        The primary purpose is creating a properly-formatted triangulation for
+        calculating line loads with the Chimera Grid Tools function
+        ``triloadCmd``, which requires the five fundamental states plus the
+        pressure coefficient for inviscid sectional loads.  For complete
+        sectional loads including viscous contributions, the Tecplot interface
+        must also have the skin friction coefficients.
+        
+        The *triq* interface will have either 6 or 9 states, depending on
+        whether or not the viscous coefficients are present.
+        
+        Alternatively, if the optional input *triload* is ``False``, the *triq*
+        output will have whatever states are present in *plt*.
+        
+        :Call:
+            >>> triq = plt.CreateTriq(triload=True)
+        :Inputs:
+            *plt*: :class:`pyFun.plt.Plt`
+                Tecplot PLT interface
+            *triload*: {``True``} | ``False``
+                Whether or not to write a triq tailored for ``triloadCmd``
+        :Outputs:
+            *triq*: :class:`cape.tri.Triq`
+                Annotated Cart3D triangulation interface
+        :Versions:
+            * 2016-12-19 ``@ddalle``: First version
+        """
+        # Total number of points
+        nNode = np.sum(self.nPt)
+        # Rough number of tris
+        nElem = np.sum(self.nElem)
+        # Initialize
+        Nodes = np.zeros((nNode, 3))
+        Tris  = np.zeros((nElem, 3), dtype=int)
+        # Initialize component IDs
+        CompID = np.zeros(nElem, dtype=int)
+        # Counters
+        iNode = 0
+        iTri  = 0
+        # Error message for coordinates
+        msgx = ("  Warning: triq file conversion requires '%s'; " +
+            "not found in this PLT file")
+        # Check required states
+        for v in ['x', 'y', 'z']:
+            # Check for the state
+            if v not in self.Vars:
+                raise ValueError(msgx % v)
+        # Process the states
+        if triload:
+            # Select states appropriate for ``triload``
+            qtype = 2
+            # Error message for required states
+            msgr = ("  Warning: triq file for line loads requires '%s'; " +
+                "not found in this PLT file")
+            msgv = ("  Warning: Viscous line loads require '%s'; " +
+                "not found in this PLT file")
+            # Check required states
+            for v in ['rho', 'u', 'v', 'w', 'p', 'cp']:
+                # Check for the state
+                if v not in self.Vars:
+                    # Print warning
+                    print(msgr % v)
+                    # Fall back to type 0
+                    qtype = 0
+            # Check viscous states
+            for v in ['cf_x', 'cf_y', 'cf_z']:
+                # Check for the state
+                if v not in self.Vars:
+                    # Print warning
+                    print(msgv % v)
+                    # Fall back to type 0 or 1
+                    qtype = min(qtype, 1)
+        else:
+            # Use the states that are present
+            qtype = 0
+        # Find the states in the variable list
+        jx = self.Vars.index('x')
+        jy = self.Vars.index('y')
+        jz = self.Vars.index('z')
+        # Initialize the states
+        if qtype == 0:
+            # Use all the states from the PLT file
+            nq = self.nVar - 3
+            # List of states to save (exclude 'x', 'y', 'z')
+            J = [i for i in range(self.nVar)
+                if self.Vars[i] not in ['x','y','z']
+            ]
+        elif qtype == 1:
+            # States adequate for pressure and momentum
+            nq = 6
+            # Indices of vars to use
+            jcp  = self.Vars.index('cp')
+            jrho = self.Vars.index('rho')
+            ju   = self.Vars.index('u')
+            jv   = self.Vars.index('v')
+            jw   = self.Vars.index('w')
+            jp   = self.Vars.index('p')
+        elif qtype == 2:
+            # Full set of states including viscous
+            nq = 9
+            # Indices of vars to use
+            jcp  = self.Vars.index('cp')
+            jrho = self.Vars.index('rho')
+            ju   = self.Vars.index('u')
+            jv   = self.Vars.index('v')
+            jw   = self.Vars.index('w')
+            jp   = self.Vars.index('p')
+            jcfx = self.Vars.index('cf_x')
+            jcfy = self.Vars.index('cf_y')
+            jcfz = self.Vars.index('cf_z')
+        # Initialize state
+        q = np.zeros((nNode, nq))
+        # Loop through the components
+        for k in range(self.nZone):
+            # Number of points and elements
+            kNode = self.nPt[k]
+            kTri  = self.nElem[k]
+            # Check for quads
+            if np.any(self.Tris[k][:,-1] != self.Tris[k][:,-2]):
+                raise ValueError("Detected a quad face; not yet supported " +
+                    "for converting PLT files for line loads")
+            # Save the nodes
+            Nodes[iNode:iNode+kNode,0] = self.q[k][:,jx]
+            Nodes[iNode:iNode+kNode,1] = self.q[k][:,jy]
+            Nodes[iNode:iNode+kNode,2] = self.q[k][:,jz]
+            # Save the states
+            if qtype == 0:
+                # Save all states appropriately
+                for j in range(len(J)):
+                    q[iNode:iNode+kNode,j] = self.q[k][:,J[j]]
+            elif qtype == 1:
+                # Save the primary states appropriately
+                q[iNode:iNode+kNode,0] = self.q[k][:,jcp]
+                q[iNode:iNode+kNode,1] = self.q[k][:,jrho]
+                q[iNode:iNode+kNode,2] = self.q[k][:,ju]/self.q[k][:,jrho]
+                q[iNode:iNode+kNode,3] = self.q[k][:,jv]/self.q[k][:,jrho]
+                q[iNode:iNode+kNode,4] = self.q[k][:,jw]/self.q[k][:,jrho]
+                q[iNode:iNode+kNode,5] = self.q[k][:,jp]
+            elif qtype == 2:
+                # Save the primary states appropriately
+                q[iNode:iNode+kNode,0] = self.q[k][:,jcp]
+                q[iNode:iNode+kNode,1] = self.q[k][:,jrho]
+                q[iNode:iNode+kNode,2] = self.q[k][:,ju]/self.q[k][:,jrho]
+                q[iNode:iNode+kNode,3] = self.q[k][:,jv]/self.q[k][:,jrho]
+                q[iNode:iNode+kNode,4] = self.q[k][:,jw]/self.q[k][:,jrho]
+                q[iNode:iNode+kNode,5] = self.q[k][:,jp]
+                q[iNode:iNode+kNode,6] = self.q[k][:,jcfx]
+                q[iNode:iNode+kNode,7] = self.q[k][:,jcfy]
+                q[iNode:iNode+kNode,8] = self.q[k][:,jcfz]
+            # Save the node numbers
+            Tris[iTri:iTri+kTri,:] = (self.Tris[k][:,:3] + iNode + 1)
+            # Increase the running node count
+            iNode += kNode
+            # Try to read the component ID
+            try:
+                # The name of the zone should be 'boundary 9 CORE_Body' or sim
+                comp = int(self.Zones[k].split()[1])
+            except Exception:
+                # Otherwise just number 1 to *n*
+                comp = np.max(CompID) + 1
+            # Save the component IDs
+            CompID[iTri:iTri+kTri] = comp
+            # Increase the running tri count
+            iTri += kTri
+        # Create the triangulation
+        triq = cape.tri.Triq(Nodes=Nodes, Tris=Tris, q=q, CompID=CompID)
+        # Output
+        return triq
+        
     
