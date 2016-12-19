@@ -1321,7 +1321,7 @@ class Cart3d(Cntl):
         self.ReadConfig()
         # Get lineload option
         ll = kw.get('ll')
-        # CHeck for single line load
+        # Check for single line load
         if ll in [None, True]:
             # Use all components
             comps = self.opts.get_DataBookByType('LineLoad')

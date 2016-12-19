@@ -11,6 +11,33 @@ import numpy as np
 import cape.io
 import cape.tri
 
+# Get an object from a list
+def getind(V, k, j=None):
+    """Get an index of a variable in a list if possible
+    
+    :Call:
+        >>> i = getind(V, k, j=None)
+    :Inputs:
+        *V*: :class:`list` (:class:`str`)
+            List of headers
+        *k*: :class:`str`
+            Header name
+        *j*: :class:`int` | {``None``}
+            Default index if *k* not in *V*
+    :Outputs:
+        *i*: :class:`int` | ``None``
+            Index of *k* in *V* if possible
+    :Versions:
+        * 2016-12-19 ``@ddalle``: First version
+    """
+    # Check if *k* is in *V*
+    if k in V:
+        # Return the index
+        return V.index(k)
+    else:
+        # Return ``None``
+        return j
+
 # Tecplot class
 class Plt(object):
     """Interface for Tecplot PLT files
@@ -184,7 +211,7 @@ class Plt(object):
         f.close()
         
     # Create a triq file
-    def CreateTriq(self, triload=True):
+    def CreateTriq(self, triload=True, avg=True, rms=False):
         """Create a Cart3D annotated triangulation (``triq``) interface
         
         The primary purpose is creating a properly-formatted triangulation for
@@ -201,12 +228,16 @@ class Plt(object):
         output will have whatever states are present in *plt*.
         
         :Call:
-            >>> triq = plt.CreateTriq(triload=True)
+            >>> triq = plt.CreateTriq(triload=True, avg=True, rms=False)
         :Inputs:
             *plt*: :class:`pyFun.plt.Plt`
                 Tecplot PLT interface
             *triload*: {``True``} | ``False``
                 Whether or not to write a triq tailored for ``triloadCmd``
+            *avg*: {``True``} | ``False``
+                Use time-averaged states if available
+            *rms*: ``True`` | {``False``}
+                Use root-mean-square variation instead of nominal value
         :Outputs:
             *triq*: :class:`cape.tri.Triq`
                 Annotated Cart3D triangulation interface
@@ -265,6 +296,38 @@ class Plt(object):
         jx = self.Vars.index('x')
         jy = self.Vars.index('y')
         jz = self.Vars.index('z')
+        # Check for nominal states
+        jcp  = getind(self.Vars, 'cp')
+        jrho = getind(self.Vars, 'rho')
+        ju   = getind(self.Vars, 'u')
+        jv   = getind(self.Vars, 'v')
+        jw   = getind(self.Vars, 'w')
+        jp   = getind(self.Vars, 'p')
+        jcfx = getind(self.Vars, 'cf_x')
+        jcfy = getind(self.Vars, 'cf_y')
+        jcfz = getind(self.Vars, 'cf_z')
+        # Check for time average
+        if avg:
+            jcp  = getind(self.Vars, 'cp_tavg',   jcp)
+            jrho = getind(self.Vars, 'rho_tavg',  jrho)
+            ju   = getind(self.Vars, 'u_tavg',    ju)
+            jv   = getind(self.Vars, 'v_tavg',    jv)
+            jw   = getind(self.Vars, 'w_tavg',    jw)
+            jp   = getind(self.Vars, 'p_tavg',    jp)
+            jcfx = getind(self.Vars, 'cf_x_tavg', jcfx)
+            jcfy = getind(self.Vars, 'cf_y_tavg', jcfy)
+            jcfz = getind(self.Vars, 'cf_z_tavg', jcfz)
+        # Check for RMS variation
+        if rms:
+            jcpr  = getind(self.Vars, 'cp_trms',   jcp)
+            jrhor = getind(self.Vars, 'rho_trms',  jrho)
+            jur   = getind(self.Vars, 'u_trms',    ju)
+            jvr   = getind(self.Vars, 'v_trms',    jv)
+            jwr   = getind(self.Vars, 'w_trms',    jw)
+            jpr   = getind(self.Vars, 'p_trms',    jp)
+            jcfxr = getind(self.Vars, 'cf_x_trms', jcfx)
+            jcfyr = getind(self.Vars, 'cf_y_trms', jcfy)
+            jcfzr = getind(self.Vars, 'cf_z_trms', jcfz)
         # Initialize the states
         if qtype == 0:
             # Use all the states from the PLT file
@@ -276,26 +339,9 @@ class Plt(object):
         elif qtype == 1:
             # States adequate for pressure and momentum
             nq = 6
-            # Indices of vars to use
-            jcp  = self.Vars.index('cp')
-            jrho = self.Vars.index('rho')
-            ju   = self.Vars.index('u')
-            jv   = self.Vars.index('v')
-            jw   = self.Vars.index('w')
-            jp   = self.Vars.index('p')
         elif qtype == 2:
             # Full set of states including viscous
             nq = 9
-            # Indices of vars to use
-            jcp  = self.Vars.index('cp')
-            jrho = self.Vars.index('rho')
-            ju   = self.Vars.index('u')
-            jv   = self.Vars.index('v')
-            jw   = self.Vars.index('w')
-            jp   = self.Vars.index('p')
-            jcfx = self.Vars.index('cf_x')
-            jcfy = self.Vars.index('cf_y')
-            jcfz = self.Vars.index('cf_z')
         # Initialize state
         q = np.zeros((nNode, nq))
         # Loop through the components
@@ -317,24 +363,66 @@ class Plt(object):
                 for j in range(len(J)):
                     q[iNode:iNode+kNode,j] = self.q[k][:,J[j]]
             elif qtype == 1:
-                # Save the primary states appropriately
-                q[iNode:iNode+kNode,0] = self.q[k][:,jcp]
-                q[iNode:iNode+kNode,1] = self.q[k][:,jrho]
-                q[iNode:iNode+kNode,2] = self.q[k][:,ju]/self.q[k][:,jrho]
-                q[iNode:iNode+kNode,3] = self.q[k][:,jv]/self.q[k][:,jrho]
-                q[iNode:iNode+kNode,4] = self.q[k][:,jw]/self.q[k][:,jrho]
-                q[iNode:iNode+kNode,5] = self.q[k][:,jp]
+                # Get the appropriate states, primary only
+                if rms:
+                    # Variation
+                    cp   = self.q[k][:,jcpr]
+                    rhoa = self.q[k][:,jrho]
+                    rho  = self.q[k][:,jrhor]
+                    u    = self.q[k][:,jur] / rhoa
+                    v    = self.q[k][:,jvr] / rhoa
+                    w    = self.q[k][:,jwr] / rhoa
+                    p    = self.q[k][:,jpr]
+                else:
+                    # Nominal states
+                    cp  = self.q[k][:,jcp]
+                    rho = self.q[k][:,jrho]
+                    u   = self.q[k][:,ju] / rho
+                    v   = self.q[k][:,jv] / rho
+                    w   = self.q[k][:,jw] / rho
+                    p   = self.q[k][:,jp]
+                # Save the states
+                q[iNode:iNode+kNode,0] = cp
+                q[iNode:iNode+kNode,1] = rho
+                q[iNode:iNode+kNode,2] = u
+                q[iNode:iNode+kNode,3] = v
+                q[iNode:iNode+kNode,4] = w
+                q[iNode:iNode+kNode,5] = p
             elif qtype == 2:
-                # Save the primary states appropriately
-                q[iNode:iNode+kNode,0] = self.q[k][:,jcp]
-                q[iNode:iNode+kNode,1] = self.q[k][:,jrho]
-                q[iNode:iNode+kNode,2] = self.q[k][:,ju]/self.q[k][:,jrho]
-                q[iNode:iNode+kNode,3] = self.q[k][:,jv]/self.q[k][:,jrho]
-                q[iNode:iNode+kNode,4] = self.q[k][:,jw]/self.q[k][:,jrho]
-                q[iNode:iNode+kNode,5] = self.q[k][:,jp]
-                q[iNode:iNode+kNode,6] = self.q[k][:,jcfx]
-                q[iNode:iNode+kNode,7] = self.q[k][:,jcfy]
-                q[iNode:iNode+kNode,8] = self.q[k][:,jcfz]
+                # Get the appropriate states, including viscous
+                if rms:
+                    # Variation
+                    cp   = self.q[k][:,jcpr]
+                    rhoa = self.q[k][:,jrho]
+                    rho  = self.q[k][:,jrhor]
+                    u    = self.q[k][:,jur] / rhoa
+                    v    = self.q[k][:,jvr] / rhoa
+                    w    = self.q[k][:,jwr] / rhoa
+                    p    = self.q[k][:,jpr]
+                    cfx  = self.q[k][:,jcfxr]
+                    cfy  = self.q[k][:,jcfyr]
+                    cfz  = self.q[k][:,jcfzr]
+                else:
+                    # Nominal states
+                    cp  = self.q[k][:,jcp]
+                    rho = self.q[k][:,jrho]
+                    u   = self.q[k][:,ju] / rho
+                    v   = self.q[k][:,jv] / rho
+                    w   = self.q[k][:,jw] / rho
+                    p   = self.q[k][:,jp]
+                    cfx = self.q[k][:,jcfx]
+                    cfy = self.q[k][:,jcfy]
+                    cfz = self.q[k][:,jcfz]
+                # Save the states
+                q[iNode:iNode+kNode,0] = cp
+                q[iNode:iNode+kNode,1] = rho
+                q[iNode:iNode+kNode,2] = u
+                q[iNode:iNode+kNode,3] = v
+                q[iNode:iNode+kNode,4] = w
+                q[iNode:iNode+kNode,5] = p
+                q[iNode:iNode+kNode,6] = jcfx
+                q[iNode:iNode+kNode,7] = jcfy
+                q[iNode:iNode+kNode,8] = jcfz
             # Save the node numbers
             Tris[iTri:iTri+kTri,:] = (self.Tris[k][:,:3] + iNode + 1)
             # Increase the running node count
