@@ -49,14 +49,8 @@ if __name__ == "__main__":
         # Extend the number of iterations in a phase
         ofl.ExtendCases(**kw)
     elif kw.get('apply'):
-        # Get phase number
-        nPhase = kw['apply']
-        # Apply namelist and case.json settings
-        if nPhase > 1:
-            ofl.ApplyNamelistSettings(nPhase=nPhase, **kw)
-        else:
-            # Don't restrict to phase 1
-            ofl.ApplyNamelistSettings(**kw)
+        # Rewrite namelists and possibly add phases
+        ofl.ApplyCases(**kw)
     elif kw.get('aero'):
         # Check for component.
         if kw['aero'] != True:

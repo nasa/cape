@@ -754,7 +754,7 @@ class Overflow(Cntl):
             * 2014-12-13 ``@ddalle``: First version
         """
         # Read ``case.json``.
-        rc = self.ReadCaseJSON()
+        rc = self.ReadCaseJSON(i)
         # Get present options
         rco = self.opts["RunControl"]
         # Exit if none
@@ -777,7 +777,7 @@ class Overflow(Cntl):
             # Append the new phase
             rc["PhaseSequence"].append(j)
             # Get iterations for this phase
-            nj = self.opts.get_PhaseIters(j)
+            nj = self.opts.get_namelist_var('GLOBAL', 'NSTEPS', j)
             # Status update
             print("  Adding phase %s (to %s iterations)" % (j, nIter+nj))
             # Set the iteration count
