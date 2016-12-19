@@ -462,6 +462,163 @@ class DBLineLoad(dataBook.DBBase):
         self[i].smy = self.smy
         self[i].smz = self.smz
         
+    # Update a case
+    def UpdateCase(self, i):
+        """Update one line load entry if necessary
+        
+        :Call:
+            >>> DBL.UpdateLineLoadCase(i)
+        :Inputs:
+            *DBL*: :class:`cape.lineLoad.DBLineLoad`
+                Line load data book
+            *i*: :class:`int`
+                Case number
+        :Versions:
+            * 2016-06-07 ``@ddalle``: First version
+        """
+        # Try to find a match in the data book
+        j = self.FindMatch(i)
+        # Get the name of the folder
+        frun = self.x.GetFullFolderNames(i)
+        # Status update
+        print(frun)
+        # Go to root directory safely
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Check if the folder exits
+        if not os.path.isdir(frun):
+            os.chdir(fpwd)
+            return
+        # Go to the folder.
+        os.chdir(frun)
+        # Determine minimum number of iterations required
+        nAvg = self.opts.get_nStats(self.comp)
+        nMin = self.opts.get_nMin(self.comp)
+        # Get the number of iterations
+        ftriq, nStats, n0, nIter = GetTriqFile()
+        # Process whether or not to update.
+        if (not nIter) or (nIter < nMin + nStats):
+            # Not enough iterations (or zero)
+            print("  Not enough iterations (%s) for analysis." % nIter)
+            q = False
+        elif np.isnan(j):
+            # No current entry
+            print("  Adding new databook entry at iteration %i." % nIter)
+            q = True
+        elif self['nIter'][j] < nIter:
+            # Update
+            print("  Updating from iteration %i to %i." %
+                (self['nIter'][j], nIter))
+            q = True
+        elif self['nStats'][j] < nStats:
+            # Change statistics
+            print("  Recomputing statistics using %i iterations." % nStats)
+            q = True
+        else:
+            # Up-to-date
+            print("  Databook '%s' up to date." % self.comp)
+            q = False
+        # Check for update
+        if not q:
+            os.chdir(fpwd)
+            return
+        # Create lineload folder if necessary
+        if not os.path.isdir('lineload'): self.opts.mkdir('lineload')
+        # Enter lineload folder
+        os.chdir('lineload')
+        # Append to triq file
+        ftriq = os.path.join('..', ftriq)
+        # Name of loads file
+        flds = '%s_%s.%s' % (self.proj, self.comp, self.sec)
+        # Name of triload input file
+        fcmd = 'triload.%s.i' % self.comp
+        # Process existing input file
+        if os.path.isfile(fcmd):
+            # Open input file
+            f = open(fcmd)
+            # Read first line
+            otriq = f.readline().strip()
+            # Close file
+            f.close()
+        else:
+            # No input file
+            otriq = ''
+        # Check whether or not to compute
+        if otriq != ftriq:
+            # Not using the most recent triq file
+            q = True
+        elif not os.path.isfile(flds):
+            # No loads yet
+            q = True
+        elif os.path.getmtime(flds) < os.path.getmtime(ftriq):
+            # Loads files are older than surface file
+            q = True
+        else:
+            # Loads up to date
+            q = False
+        # Run triload if necessary
+        if q:
+            # Write triloadCmd input file
+            self.WriteTriloadInput(ftriq, i)
+            # Run the command
+            self.RunTriload()
+        # Check number of seams
+        try:
+            # Get seam counts
+            nsmx = self.smx['n']
+            nsmy = self.smy['n']
+            nsmz = self.smz['n']
+            # Check if at least some seam segments
+            nsm = max(nsmx, nsmy, nsmz)
+        except:
+            # No seams yet
+            nsm = 0
+        # Read the loads file
+        self[i] = CaseLL(self.comp, self.proj, self.sec, fdir=None, seam=False)
+        # Check whether or not to read seams
+        if nsm == 0:
+            # Read the seam curves from this output
+            self[i].ReadSeamCurves()
+            # Copy the seams
+            self.smx = self[i].smx
+            self.smy = self[i].smy
+            self.smz = self[i].smz
+        # CSV folder names
+        fll  = os.path.join(self.RootDir, self.fdir, 'lineload')
+        fgrp = os.path.join(fll, frun.split(os.sep)[0])
+        fcas = os.path.join(fll, frun)
+        # Create folders as necessary
+        if not os.path.isdir(fll):  self.opts.mkdir(fll)
+        if not os.path.isdir(fgrp): self.opts.mkdir(fgrp)
+        if not os.path.isdir(fcas): self.opts.mkdir(fcas)
+        # CSV file name
+        fcsv = os.path.join(fcas, '%s_%s.csv' % (self.proj, self.comp))
+        # Write the CSV file
+        self[i].WriteCSV(fcsv)
+        # Save the stats
+        if np.isnan(j):
+            # Add to the number of cases
+            self.n += 1
+            # Append trajectory values.
+            for k in self.x.keys:
+                # Append to numpy array
+                self[k] = np.hstack((self[k], [getattr(self.x,k)[i]]))
+            # Append relevant values
+            self['XMRP'] = np.hstack((self['XMRP'], [self.MRP[0]]))
+            self['YMRP'] = np.hstack((self['YMRP'], [self.MRP[1]]))
+            self['ZMRP'] = np.hstack((self['ZMRP'], [self.MRP[2]]))
+            self['nIter']  = np.hstack((self['nIter'],  [nIter]))
+            self['nStats'] = np.hstack((self['nStats'], [nStats]))
+        else:
+            # Update the relevant values
+            self['XMRP'][j] = self.MRP[0]
+            self['YMRP'][j] = self.MRP[1]
+            self['ZMRP'][j] = self.MRP[2]
+            self['nIter'][j] = nIter
+            self['nStats'][j] = nStats
+        # Return to original directory
+        os.chdir(fpwd)
+        
     # Write triload.i input file
     def WriteTriloadInput(self, ftriq, i, **kw):
         """Write ``triload.i`` input file to ``triloadCmd``
