@@ -475,6 +475,7 @@ class DBLineLoad(dataBook.DBBase):
                 Case number
         :Versions:
             * 2016-06-07 ``@ddalle``: First version
+            * 2016-12-19 ``@ddalle``: Modified for generic module
         """
         # Try to find a match in the data book
         j = self.FindMatch(i)
@@ -495,9 +496,9 @@ class DBLineLoad(dataBook.DBBase):
         nAvg = self.opts.get_nStats(self.comp)
         nMin = self.opts.get_nMin(self.comp)
         # Get the number of iterations
-        ftriq, nStats, n0, nIter = GetTriqFile()
+        qtriq, ftriq, nStats, n0, nIter = self.GetTriqFile()
         # Process whether or not to update.
-        if (not nIter) or (nIter < nMin + nStats):
+        if (not nIter) or (nIter < nMin + nAvg):
             # Not enough iterations (or zero)
             print("  Not enough iterations (%s) for analysis." % nIter)
             q = False
@@ -561,7 +562,7 @@ class DBLineLoad(dataBook.DBBase):
             # Write triloadCmd input file
             self.WriteTriloadInput(ftriq, i)
             # Run the command
-            self.RunTriload()
+            self.RunTriload(qtriq, ftriq)
         # Check number of seams
         try:
             # Get seam counts
@@ -618,6 +619,34 @@ class DBLineLoad(dataBook.DBBase):
             self['nStats'][j] = nStats
         # Return to original directory
         os.chdir(fpwd)
+    
+    # Get file
+    def GetTriqFile(self):
+        """Get most recent ``triq`` file and its associated iterations
+        
+        :Call:
+            >>> qtriq, ftriq, n, i0, i1 = DBL.GetTriqFile()
+        :Inputs:
+            *DBL*: :class:`pyCart.lineLoad.DBLineLoad`
+                Instance of line load data book
+        :Outputs:
+            *qtriq*: {``False``}
+                Whether or not to convert file from other format
+            *ftriq*: :class:`str`
+                Name of ``triq`` file
+            *n*: :class:`int`
+                Number of iterations included
+            *i0*: :class:`int`
+                First iteration in the averaging
+            *i1*: :class:`int`
+                Last iteration in the averaging
+        :Versions:
+            * 2016-12-19 ``@ddalle``: Added to the module
+        """
+        # Get properties of triq file
+        ftriq, n, i0, i1 = GetTriqFile()
+        # Output
+        return False, ftriq, n, i0, i1
         
     # Write triload.i input file
     def WriteTriloadInput(self, ftriq, i, **kw):
@@ -712,7 +741,7 @@ class DBLineLoad(dataBook.DBBase):
         f.close()
         
     # Run triload
-    def RunTriload(self):
+    def RunTriload(self, qtriq=False, ftriq=None):
         """Run ``triload`` for a case
         
         :Call:
@@ -723,6 +752,9 @@ class DBLineLoad(dataBook.DBBase):
         :Versions:
             * 2016-06-07 ``@ddalle``: First version
         """
+        # Convert
+        if qtriq:
+            self.PreprocessTriq()
         # Run triload
         cmd = 'triloadCmd < triload.%s.i > triload.o' % self.comp
         # Status update
@@ -733,6 +765,15 @@ class DBLineLoad(dataBook.DBBase):
         if ierr:
             return SystemError("Failure while running ``triloadCmd``")
     
+    # Convert
+    def PreprocessTriq(self, ftriq):
+        """Perform any necessary preprocessing to create ``triq`` file
+        
+        :Versions:
+            * 2016-12-19 ``@ddalle``: First version
+        """
+        pass
+
 # class DBLineLoad
     
 # Line load from one case
@@ -1698,78 +1739,28 @@ def GetTriqFile(proj='Components'):
             File root name
     :Outputs:
         *ftriq*: :class:`str`
-            Name of ``triq`` file
-        *n*: :class:`int`
+            Name of most recently modified ``triq`` file
+        *n*: {``None``}
             Number of iterations included
-        *i0*: :class:`int`
+        *i0*: {``None``}
             First iteration in the averaging
-        *i1*: :class:`int`
+        *i1*: {``None``}
             Last iteration in the averaging
     :Versions:
-        * 2015-09-16 ``@ddalle``: First version
+        * 2016-12-19 ``@ddalle``: First version
     """
-    # Get the working directory.
-    fwrk = case.GetWorkingFolder()
-    # Go there.
-    fpwd = os.getcwd()
-    os.chdir(fwrk)
     # Get the glob of numbered files.
-    fglob3 = glob.glob('%s.*.*.*.triq'  % proj)
-    fglob2 = glob.glob('%s.*.*.triq'    % proj)
-    fglob1 = glob.glob('%s.[0-9]*.triq' % proj)
+    fglob = glob.glob('*.triq')
     # Check it.
-    if len(fglob3) > 0:
-        # Get last iterations
-        I0 = [int(f.split('.')[3]) for f in fglob3]
-        # Index of best iteration
-        j = np.argmax(I0)
-        # Iterations there.
-        i1 = I0[j]
-        i0 = int(fglob3[j].split('.')[2])
-        # Count
-        n = int(fglob3[j].split('.')[1])
-        # File name
-        ftriq = fglob3[j]
-    if len(fglob2) > 0:
-        # Get last iterations
-        I0 = [int(f.split('.')[2]) for f in fglob2]
-        # Index of best iteration
-        j = np.argmax(I0)
-        # Iterations there.
-        i1 = I0[j]
-        i0 = int(fglob2[j].split('.')[1])
-        # File name
-        ftriq = fglob2[j]
-    # Check it.
-    elif len(fglob1) > 0:
-        # Get last iterations
-        I0 = [int(f.split('.')[1]) for f in fglob1]
-        # Index of best iteration
-        j = np.argmax(I0)
-        # Iterations there.
-        i1 = I0[j]
-        i0 = I0[j]
-        # Count
-        n = i1 - i0 + 1
-        # File name
-        ftriq = fglob1[j]
-    # Plain file
-    elif os.path.isfile('%s.i.triq' % proj):
-        # Iteration counts: assume it's most recent iteration
-        i1 = self.cart3d.CheckCase(self.i)
-        i0 = i1
-        # Count
-        n = 1
-        # file name
-        ftriq = '%s.i.triq' % proj
+    if len(fglob) > 0:
+        # Get modification times
+        t = [os.path.getmtime(f) for f in fglob]
+        # Extract file with maximum index
+        ftriq = fglob[t.index(max(t))]
+        # Output
+        return ftriq, None, None, None
     else:
-        # No iterations
-        i1 = None
-        i0 = None
-        n = None
-        ftriq = None
-    # Output
-    os.chdir(fpwd)
-    return ftriq, n, i0, i1
+        # No TRIQ files
+        return None, None, None, None
 # def GetTriqFile
 

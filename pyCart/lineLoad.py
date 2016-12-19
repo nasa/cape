@@ -57,7 +57,34 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
     :Versions:
         * 2015-09-16 ``@ddalle``: First version
     """
-    pass
+    # Get file
+    def GetTriqFile(self):
+        """Get most recent ``triq`` file and its associated iterations
+        
+        :Call:
+            >>> qtriq, ftriq, n, i0, i1 = DBL.GetTriqFile()
+        :Inputs:
+            *DBL*: :class:`pyCart.lineLoad.DBLineLoad`
+                Instance of line load data book
+        :Outputs:
+            *qtriq*: {``False``}
+                Whether or not to convert file from other format
+            *ftriq*: :class:`str`
+                Name of ``triq`` file
+            *n*: :class:`int`
+                Number of iterations included
+            *i0*: :class:`int`
+                First iteration in the averaging
+            *i1*: :class:`int`
+                Last iteration in the averaging
+        :Versions:
+            * 2016-12-19 ``@ddalle``: Added to the module
+        """
+        # Get properties of triq file
+        ftriq, n, i0, i1 = GetTriqFile()
+        # Output
+        return False, ftriq, n, i0, i1
+    
 # class DBLineLoad
     
 
