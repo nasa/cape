@@ -111,6 +111,10 @@ class DataBook(dict):
         * 2014-12-20 ``@ddalle``: Started
         * 2015-01-10 ``@ddalle``: First version
     """
+    # ======
+    # Config
+    # ======
+   # <
     # Initialization method
     def __init__(self, x, opts, RootDir=None, targ=None):
         """Initialization method
@@ -183,7 +187,41 @@ class DataBook(dict):
         return lbl
     # String conversion
     __str__ = __repr__
+   # >
         
+    # ===
+    # I/O
+    # ===
+   # <
+    # Write the data book
+    def Write(self):
+        """Write the current data book in Python memory to file
+        
+        :Call:
+            >>> DB.Write()
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the Cape data book class
+        :Versions:
+            * 2014-12-22 ``@ddalle``: First version
+            * 2015-06-19 ``@ddalle``: New multi-key sort
+        """
+        # Start from root directory.
+        os.chdir(self.RootDir)
+        # Get the sort key.
+        skey = self.opts.get_SortKey()
+        # Sort the data book if there is a key.
+        if skey is not None:
+            # Sort on either a single key or multiple keys.
+            self.Sort(skey)
+        # Loop through the components.
+        for comp in self.Components:
+            # Check the component type.
+            tcomp = self.opts.get_DataBookType(comp)
+            if tcomp not in ['Force', 'Moment', 'FM']: continue
+            # Write individual component.
+            self[comp].Write()
+    
     # Initialize a DBComp object
     def InitDBComp(self, comp, x, opts, targ=None):
         """Initialize data book for one component
@@ -266,7 +304,45 @@ class DataBook(dict):
                 # Read the file.
                 self.Targets[targ] = DBTarget(
                     targ, self.x, self.opts, self.RootDir)
+   # >
     
+    # ========
+    # Updaters
+    # ========
+   # <
+            
+    # Update line load data book
+    def UpdateLineLoad(self, comp, conf=None, I=None):
+        """Update a line load data book for a list of cases
+        
+        :Call:
+            >>> DB.UpdateLineLoad(comp, conf=None)
+            >>> DB.UpdateLineLoad(comp, conf=None, I)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of data book class
+            *I*: :class:`list` (:class:`int`) or ``None``
+                List of trajectory indices or update all cases in trajectory
+        :Versions:
+            * 2015-09-17 ``@ddalle``: First version
+            * 2016-12-20 ``@ddalle``: Copied to :mod:`cape`
+        """
+        # Default case list
+        if I is None:
+            # Use all trajectory points
+            I = range(self.x.nCase)
+        # Read the line load data book if necessary
+        self.ReadLineLoad(comp, conf=None)
+        # Loop through indices.
+        for i in I:
+            self.LineLoads[comp].UpdateCase(i)
+    
+   # >
+    
+    # ==========
+    # Trajectory
+    # ==========
+   # <
     # Find an entry by trajectory variables.
     def FindMatch(self, i):
         """Find an entry by run matrix (trajectory) variables
@@ -371,37 +447,6 @@ class DataBook(dict):
             self.x.text[k] = [str(xk) for xk in DBc[k]]
         # Set the number of cases.
         self.x.nCase = DBc.n
-                    
-    # Get target to use based on target name
-    def GetTargetByName(self, targ):
-        """Get a target handle by name of the target
-        
-        :Call:
-            >>> DBT = DB.GetTargetByName(targ)
-        :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
-                Instance of the pyCart data book class
-            *targ*: :class:`str`
-                Name of target to find
-        :Outputs:
-            *DBT*: :class:`cape.dataBook.DBTarget`
-                Instance of the pyCart data book target class
-        :Versions:
-            * 2015-06-04 ``@ddalle``: First version
-        """
-        # Get target list
-        try:
-            # Get the current dict
-            targs = self.Targets
-        except AttributeError:
-            # Not initialized
-            targs = {}
-        # Check for the target.
-        if targ not in targs:
-            # Target not found.
-            raise ValueError("Target named '%s' not in data book." % targ)
-        # Return the target handle.
-        return targs[targ]
         
     # Restrict the data book object to points in the trajectory.
     def MatchTrajectory(self):
@@ -439,72 +484,6 @@ class DataBook(dict):
             for k in DBc.keys():
                 # Restrict to matched cases.
                 self[comp][k] = self[comp][k][J]
-            
-    # Write the data book
-    def Write(self):
-        """Write the current data book in Python memory to file
-        
-        :Call:
-            >>> DB.Write()
-        :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
-                Instance of the Cape data book class
-        :Versions:
-            * 2014-12-22 ``@ddalle``: First version
-            * 2015-06-19 ``@ddalle``: New multi-key sort
-        """
-        # Start from root directory.
-        os.chdir(self.RootDir)
-        # Get the sort key.
-        skey = self.opts.get_SortKey()
-        # Sort the data book if there is a key.
-        if skey is not None:
-            # Sort on either a single key or multiple keys.
-            self.Sort(skey)
-        # Loop through the components.
-        for comp in self.Components:
-            # Check the component type.
-            tcomp = self.opts.get_DataBookType(comp)
-            if tcomp not in ['Force', 'Moment', 'FM']: continue
-            # Write individual component.
-            self[comp].Write()
-            
-    # Function to sort data book
-    def Sort(self, key=None, I=None):
-        """Sort a data book according to either a key or an index
-        
-        :Call:
-            >>> DB.Sort()
-            >>> DB.Sort(key)
-            >>> DB.Sort(I=None)
-        :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
-                Instance of the Cape data book class
-            *key*: :class:`str` | :class:`list` (:class:`str`)
-                Name of trajectory key or list of keys on which to sort
-            *I*: :class:`numpy.ndarray` (:class:`int`)
-                List of indices; must have same size as data book
-        :Versions:
-            * 2014-12-30 ``@ddalle``: First version
-            * 2015-06-19 ``@ddalle``: New multi-key sort
-            * 2016-01-13 ``@ddalle``: Added checks to allow incomplete comps
-        """
-        # Process inputs.
-        if I is None:
-            # Get first force-like component
-            DBc = self.GetRefComponent()
-            # Use indirect sort on the first component.
-            I = DBc.ArgSort(key)
-        # Loop through components.
-        for comp in self.Components:
-            # Check for component
-            if comp not in self: continue
-            # Check for populated component
-            if self[comp].n != len(I): continue
-            # Apply the DBComp.Sort() method.
-            self[comp].Sort(I=I)
-            
-    
     
     # Get lists of indices of matches
     def GetTargetMatches(self, ftarg, tol=0.0, tols={}):
@@ -680,8 +659,83 @@ class DataBook(dict):
             if len(m) == 0: return np.nan
         # Return the first match.
         return m[0]
-            
+   # >
+    
+    # ============
+    # Organization
+    # ============
+   # <
+    # Get target to use based on target name
+    def GetTargetByName(self, targ):
+        """Get a target handle by name of the target
         
+        :Call:
+            >>> DBT = DB.GetTargetByName(targ)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *targ*: :class:`str`
+                Name of target to find
+        :Outputs:
+            *DBT*: :class:`cape.dataBook.DBTarget`
+                Instance of the pyCart data book target class
+        :Versions:
+            * 2015-06-04 ``@ddalle``: First version
+        """
+        # Get target list
+        try:
+            # Get the current dict
+            targs = self.Targets
+        except AttributeError:
+            # Not initialized
+            targs = {}
+        # Check for the target.
+        if targ not in targs:
+            # Target not found.
+            raise ValueError("Target named '%s' not in data book." % targ)
+        # Return the target handle.
+        return targs[targ]
+            
+    # Function to sort data book
+    def Sort(self, key=None, I=None):
+        """Sort a data book according to either a key or an index
+        
+        :Call:
+            >>> DB.Sort()
+            >>> DB.Sort(key)
+            >>> DB.Sort(I=None)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the Cape data book class
+            *key*: :class:`str` | :class:`list` (:class:`str`)
+                Name of trajectory key or list of keys on which to sort
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices; must have same size as data book
+        :Versions:
+            * 2014-12-30 ``@ddalle``: First version
+            * 2015-06-19 ``@ddalle``: New multi-key sort
+            * 2016-01-13 ``@ddalle``: Added checks to allow incomplete comps
+        """
+        # Process inputs.
+        if I is None:
+            # Get first force-like component
+            DBc = self.GetRefComponent()
+            # Use indirect sort on the first component.
+            I = DBc.ArgSort(key)
+        # Loop through components.
+        for comp in self.Components:
+            # Check for component
+            if comp not in self: continue
+            # Check for populated component
+            if self[comp].n != len(I): continue
+            # Apply the DBComp.Sort() method.
+            self[comp].Sort(I=I)
+   # >
+            
+    # ========
+    # Plotting
+    # ========
+   # <
     # Plot a sweep of one or more coefficients
     def PlotCoeff(self, comp, coeff, I, **kw):
         """Plot a sweep of one coefficients over several cases
@@ -742,7 +796,7 @@ class DataBook(dict):
             raise KeyError("Data book does not contain a component '%s'" % comp)
         # Defer to the component's plot capabilities
         return self[comp].PlotCoeff(coeff, I, **kw)
-        
+   # >
 # class DataBook
         
             
