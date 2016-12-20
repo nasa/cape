@@ -495,7 +495,7 @@ def GetNamelist(rc=None, i=None):
     """Read case namelist file
     
     :Call:
-        >>> nml = pyFun.case.GetNamelist(rc=None)
+        >>> nml = pyFun.case.GetNamelist(rc=None, i=None)
     :Inputs:
         *rc*: :class:`pyFun.options.runControl.RunControl`
             Run control options
@@ -555,12 +555,14 @@ def GetProjectRootname(rc=None, i=None, nml=None):
     
     :Call:
         >>> rname = pyFun.case.GetProjectRootname()
-        >>> rname = pyFun.case.GetProjectRootname(rc=None, i=None)
+        >>> rname = pyFun.case.GetProjectRootname(rc=None, i=None, nml=None)
     :Inputs:
         *rc*: :class:`pyFun.options.runControl.RunControl`
             Run control options
         *i*: :class:`int`
             Phase number
+        *nml*: :class:`pyFun.namelist.Namelist`
+            Namelist interface; overrides *rc* and *i* if used
     :Outputs:
         *rname*: :class:`str`
             Project rootname
@@ -983,16 +985,8 @@ def LinkFromGlob(fname, fglb):
     # Remove the link if necessary
     if os.path.isfile(fname) or os.path.islink(fname):
         os.remove(fname)
-    # List of files matching the requested glob
-    fglob = glob.glob(fglb)
-    # File extension
-    fext = '.' + fglb.split('.')[-1]
-    # Check for empty glob
-    if len(fglob) == 0: return
-    # Get modification times
-    t = [os.path.getmtime(f) for f in fglob]
     # Extract file with maximum index
-    fsrc = fglob[t.index(max(t))]
+    fsrc = GetFromGlob(fglb)
     # Create the link if possible
     if os.path.isfile(fsrc): os.symlink(fsrc, fname)
     

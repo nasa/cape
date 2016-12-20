@@ -167,7 +167,7 @@ class Namelist(FileCntl):
         """
         # Check sections
         if sec not in self.SectionNames:
-            raise KeyError("Section '%s' not found." % sec)
+            return None
         # Check for index
         if k is None:
             # Line regular expression: "XXXX=" but with white spaces

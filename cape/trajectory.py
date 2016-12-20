@@ -902,6 +902,65 @@ class Trajectory:
                 dname += (self.abbrv[k] + self.text[k][i])
         # Return the result.
         return dname
+        
+        
+    # Get PBS name
+    def GetPBSName(self, i, pre=None):
+        """Get PBS name for a given case
+        
+        :Call:
+            >>> lbl = x.GetPBSName(i, pre=None)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Instance of the pyCart trajectory class
+            *i*: :class:`int`
+                Run index
+            *pre*: {``None``} | :class:`str`
+                Prefix to be added to a PBS job name
+        :Outputs:
+            *lbl*: :class:`str`
+                Short name for the PBS job, visible via `qstat`
+        :Versions:
+            * 2014-09-30 ``@ddalle``: First version
+            * 2016-12-20 ``@ddalle``: Moved to *x* and added prefix
+        """
+        # Initialize label.
+        if pre:
+            # Initialize job name with prefix
+            lbl = '%s_' % pre
+        else:
+            # No prefix
+            lbl = ''
+        # Loop through keys.
+        for k in self.keys[0:]:
+            # Skip it if not part of the label.
+            if not self.defns[k].get('Label', True):
+                continue
+            # Default print flag
+            if self.defns[k]['Value'] == 'float':
+                # Float: get two decimals if nonzero
+                sfmt = '%.2f'
+            else:
+                # Simply use string
+                sfmt = '%s'
+            # Non-default strings
+            slbl = self.defns[k].get('PBSLabel', self.abbrv[k])
+            sfmt = self.defns[k].get('PBSFormat', sfmt)
+            # Apply values
+            slbl = slbl + (sfmt % getattr(self,k)[i])
+            # Strip underscores
+            slbl = slbl.replace('_', '')
+            # Strop trailing zeros and decimals if float
+            if self.defns[k]['Value'] == 'float':
+                slbl = slbl.rstrip('0').rstrip('.')
+            # Append to the label.
+            lbl += slbl
+        # Check length.
+        if len(lbl) > 15:
+            # 16-char limit (or is it 15?)
+            lbl = lbl[:15]
+        # Output
+        return lbl
     
     # Function to return the full folder names.
     def GetFullFolderNames(self, i=None, prefix=None):

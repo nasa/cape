@@ -11,6 +11,43 @@ import numpy as np
 import cape.io
 import cape.tri
 
+# Convert a PLT to TRIQ
+def Plt2Triq(fplt, ftriq=None, **kw):
+    """Convert a Tecplot PLT file to a Cart3D annotated triangulation (TRIQ)
+    
+    :Call:
+        >>> Plt2Triq(fplt, ftriq=None, **kw)
+    :Inputs:
+        *fplt*: :class:`str`
+            Name of Tecplot PLT file
+        *ftriq*: {``None``} | :class:`str`
+            Name of output file (default: replace extension with ``.triq``)
+        *triload*: {``True``} | ``False``
+            Whether or not to write a triq tailored for ``triloadCmd``
+        *avg*: {``True``} | ``False``
+            Use time-averaged states if available
+        *rms*: ``True`` | {``False``}
+            Use root-mean-square variation instead of nominal value
+    :Versions:
+        * 2016-12-20 ``@ddalle``: First version
+    """
+    # Output file name
+    if ftriq is None:
+        # Default: strip .plt and add .triq
+        ftriq = fplt.rstrip('plt').rstrip('dat') + 'triq'
+    # TRIQ settings
+    ll  = kw.get('triload', False)
+    avg = kw.get('avg', True)
+    rms = kw.get('rms', False)
+    # Read the PLT file
+    plt = Plt(fplt)
+    # Create the TRIQ interface
+    triq = plt.CreateTriq(triload=ll, avg=avg, rms=rms)
+    # Get output file extension
+    ext = triq.GetOutputFileType(**kw)
+    # Write triangulation
+    triq.Write(ftriq, **kw)
+
 # Get an object from a list
 def getind(V, k, j=None):
     """Get an index of a variable in a list if possible

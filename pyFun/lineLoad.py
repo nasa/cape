@@ -19,6 +19,7 @@ from datetime import datetime
 # Utilities or advanced statistics
 from . import util
 from . import case
+from . import plt
 from cape import tar
 # Line load template
 import cape.lineLoad
@@ -57,6 +58,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
     :Versions:
         * 2015-09-16 ``@ddalle``: First version
     """
+    
     # Get file
     def GetTriqFile(self):
         """Get most recent ``triq`` file and its associated iterations
@@ -81,10 +83,38 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             * 2016-12-19 ``@ddalle``: Added to the module
         """
         # Get properties of triq file
-        ftriq, n, i0, i1 = GetTriqFile()
+        fplt, n, i0, i1 = GetPltFile()
+        # Get the corresponding .triq file name
+        ftriq = fplt.rstrip('.plt') + '.triq'
+        # Check if the TRIQ file exists
+        if os.path.isfile(ftriq):
+            # No conversion needed
+            qtriq = False
+        else:
+            # Need to convert PLT file to TRIQ
+            qtriq = True
         # Output
-        return False, ftriq, n, i0, i1
+        return qtriq, ftriq, n, i0, i1
     
+    # Preprocess triq file (convert from PLT)
+    def PreprocessTriq(self, ftriq):
+        """Perform any necessary preprocessing to create ``triq`` file
+        
+        :Call:
+            >>> ftriq = DBL.PreprocessTriq(ftriq)
+        :Inputs:
+            *DBL*: :class:`pyFun.lineLoad.DBLineLoad`
+                Line load data book
+            *ftriq*: :class:`str`
+                Name of triq file
+        :Versions:
+            * 2016-12-20 ``@ddalle``: First version
+        """
+        # Get name of plt file
+        fplt = ftriq.rstrip('triq') + 'plt'
+        # Read the plt information
+        plt.Plt2Triq(fplt, ftriq)
+        
 # class DBLineLoad
     
 
@@ -155,14 +185,14 @@ class CaseSeam(cape.lineLoad.CaseSeam):
 
 
 # Function to determine newest triangulation file
-def GetTriqFile():
-    """Get most recent ``triq`` file and its associated iterations
+def GetPltFile():
+    """Get most recent boundary ``plt`` file and its associated iterations
     
     :Call:
-        >>> ftriq, n, i0, i1 = GetTriqFile()
+        >>> fplt, n, i0, i1 = GetPltFile()
     :Outputs:
-        *ftriq*: :class:`str`
-            Name of ``triq`` file
+        *fplt*: :class:`str`
+            Name of ``plt`` file
         *n*: :class:`int`
             Number of iterations included
         *i0*: :class:`int`
@@ -170,72 +200,93 @@ def GetTriqFile():
         *i1*: :class:`int`
             Last iteration in the averaging
     :Versions:
-        * 2015-09-16 ``@ddalle``: First version
+        * 2016-12-20 ``@ddalle``: First version
     """
-    # Get the working directory.
-    fwrk = case.GetWorkingFolder()
-    # Go there.
-    fpwd = os.getcwd()
-    os.chdir(fwrk)
-    # Get the glob of numbered files.
-    fglob3 = glob.glob('Components.*.*.*.triq')
-    fglob2 = glob.glob('Components.*.*.triq')
-    fglob1 = glob.glob('Components.[0-9]*.triq')
-    # Check it.
-    if len(fglob3) > 0:
-        # Get last iterations
-        I0 = [int(f.split('.')[3]) for f in fglob3]
-        # Index of best iteration
-        j = np.argmax(I0)
-        # Iterations there.
-        i1 = I0[j]
-        i0 = int(fglob3[j].split('.')[2])
-        # Count
-        n = int(fglob3[j].split('.')[1])
-        # File name
-        ftriq = fglob3[j]
-    elif len(fglob2) > 0:
-        # Get last iterations
-        I0 = [int(f.split('.')[2]) for f in fglob2]
-        # Index of best iteration
-        j = np.argmax(I0)
-        # Iterations there.
-        i1 = I0[j]
-        i0 = int(fglob2[j].split('.')[1])
-        # File name
-        ftriq = fglob2[j]
-    # Check it.
-    elif len(fglob1) > 0:
-        # Get last iterations
-        I0 = [int(f.split('.')[1]) for f in fglob1]
-        # Index of best iteration
-        j = np.argmax(I0)
-        # Iterations there.
-        i1 = I0[j]
-        i0 = I0[j]
-        # Count
-        n = i1 - i0 + 1
-        # File name
-        ftriq = fglob1[j]
-    # Plain file
-    elif os.path.isfile('Components.i.triq'):
-        # Iteration counts: assume it's most recent iteration
-        i1 = case.GetCurrentIter()
-        i0 = i1
-        # Count
-        n = 1
-        # file name
-        ftriq = 'Components.i.triq'
+    # Read *rc* options to figure out iteration values
+    rc = case.ReadCaseJSON()
+    # Get current phase number
+    j = case.GetPhaseNumber(rc)
+    # Read the namelist to get prefix and iteration options
+    nml = case.GetNamelist(rc, j)
+    # =============
+    # Best PLT File
+    # =============
+    # Prefix
+    proj = case.GetProjectRootname(nml=nml)
+    # Create glob to search for
+    fglb = '%s_tec_boundary_timestep[1-9]*.plt' % proj
+    # Check in working directory?
+    if rc.get_Dual():
+        # Look in the 'Flow/' folder
+        fglb = os.path.join('Flow', fglb)
+    # Get file
+    fplt = case.GetFromGlob(fglb)
+    # Get the iteration number
+    nplt = int(fplt.rstrip('.plt').split('timestep')[-1])
+    # ============================
+    # Actual Iterations after Runs
+    # ============================
+    # Glob of ``run.%02i.%i`` files
+    fgrun = case.glob.glob('run.[0-9][0-9].[1-9]*')
+    # Form dictionary of iterations
+    nrun = []
+    drun = {}
+    # Loop through files
+    for frun in fgrun:
+        # Get iteration number
+        ni = int(frun.split('.')[2])
+        # Get phase number
+        ji = int(frun.split('.')[1])
+        # Save
+        nrun.append(ni)
+        drun[ni] = ji
+    # Sort on iteration number
+    nrun.sort()
+    nrun = np.array(nrun)
+    # Determine the last run that terminated before this PLT file was created
+    krun = np.where(nplt > nrun)[0]
+    # If no 'run.%02i.%i' before *nplt*, then use 0
+    if len(krun) == 0:
+        # Use current phase as reported
+        nprev = 0
+        nstrt = 1
+        jstrt = j
     else:
-        # No iterations
-        i1 = None
-        i0 = None
-        n = None
-        ftriq = None
-    # Return to original location
-    os.chdir(fpwd)
-    # Prepend name of folder if appropriate
-    if fwrk != '.': ftriq = os.path.join(fwrk, ftriq)
+        # Get the phase from the last run that finished before *nplt*
+        kprev = krun[-1]
+        nprev = nrun[kprev]
+        jprev = drun[nprev]
+        # Have we moved to the next phase?
+        if nprev >= rc.get_PhaseIters(jprev):
+            # We have *nplt* from the next phase
+            mprev = rc.get_PhaseSequence().index(jprev)
+            jstrt = rc.get_PhaseSequence(mprev+1)
+        else:
+            # Still running phase *jprev* to create *fplt*
+            jstrt = jprev
+        # First iteration included in PLT file
+        nstrt = nprev + 1
+    # Make sure we have the right namelist
+    if j != jstrt:
+        # Read the new namelist
+        j = jstrt
+        nml = case.GetNamelist(rc, j)
+    # ====================
+    # Iteration Statistics
+    # ====================
+    # Check for averaging
+    qavg = nml.GetVar('time_avg_params', 'itime_avg')
+    # Number of iterations
+    if qavg:
+        # Time averaging included
+        nStats = nplt - nprev
+    else:
+        # One iteration
+        nStats = 1
+        nstrt = nplt
+    # ======
     # Output
-    return ftriq, n, i0, i1
+    # ======
+    return fplt, nStats, nstrt, nplt
+# def GetPltFile
             

@@ -1371,41 +1371,10 @@ class Cntl(object):
                 Short name for the PBS job, visible via `qstat`
         :Versions:
             * 2014-09-30 ``@ddalle``: First version
+            * 2016-12-20 ``@ddalle``: Moved to *x* and added prefix
         """
-        # Extract the trajectory.
-        x = self.x
-        # Initialize label.
-        lbl = ''
-        # Loop through keys.
-        for k in x.keys[0:]:
-            # Skip it if not part of the label.
-            if not x.defns[k].get('Label', True):
-                continue
-            # Default print flag
-            if x.defns[k]['Value'] == 'float':
-                # Float: get two decimals if nonzero
-                sfmt = '%.2f'
-            else:
-                # Simply use string
-                sfmt = '%s'
-            # Non-default strings
-            slbl = x.defns[k].get('PBSLabel', x.abbrv[k])
-            sfmt = x.defns[k].get('PBSFormat', sfmt)
-            # Apply values
-            slbl = slbl + (sfmt % getattr(x,k)[i])
-            # Strip underscores
-            slbl = slbl.replace('_', '')
-            # Strop trailing zeros and decimals if float
-            if x.defns[k]['Value'] == 'float':
-                slbl = slbl.rstrip('0').rstrip('.')
-            # Append to the label.
-            lbl += slbl
-        # Check length.
-        if len(lbl) > 15:
-            # 16-char limit (or is it 15?)
-            lbl = lbl[:15]
-        # Output
-        return lbl
+        # Call from trajectory
+        return self.x.GetPBSName(i, pre=pre)
     
     # Get PBS job ID if possible
     def GetPBSJobID(self, i):
@@ -1453,7 +1422,7 @@ class Cntl(object):
         return pbs
         
     # Write a PBS header
-    def WritePBSHeader(self, f, i=None, j=0, typ=None, wd=None):
+    def WritePBSHeader(self, f, i=None, j=0, typ=None, wd=None, pre=None):
         """Write common part of PBS script
         
         :Call:
@@ -1466,20 +1435,18 @@ class Cntl(object):
             *i*: {``None``} | ``:class:`int`
                 Case index (ignore if ``None``); used for PBS job name
             *j*: :class:`int`
-                Run index
+                Phase number
             *typ*: {``None``} | ``"batch"`` | ``"post"``
                 Group of PBS options to use
             *wd*: {``None``} | :class:`str`
                 Folder to enter when starting the job
+            *pre*: {``None``} | :class:`str`
+                PBS job name prefix, used for postprocessing
         :Versions:
             * 2015-09-30 ``@ddalle``: Separated from WritePBS
             * 2016-09-25 ``@ddalle``: Supporting "BatchPBS" and "PostPBS"
+            * 2016-12-20 ``@ddalle``: Consolidated to *opts*, added prefix
         """
-        # Get the shell path (must be bash)
-        sh = self.opts.get_PBS_S(j, typ=typ)
-        # Write to script both ways.
-        f.write('#!%s\n' % sh)
-        f.write('#PBS -S %s\n' % sh)
         # Get the shell name.
         if i is None:
             # Batch job
@@ -1488,66 +1455,9 @@ class Cntl(object):
             if len(lbl) > 15: lbl = lbl[:15]
         else:
             # Case PBS job name
-            lbl = self.GetPBSName(i)
-        # Write it to the script
-        f.write('#PBS -N %s\n' % lbl)
-        # Get the rerun status.
-        PBS_r = self.opts.get_PBS_r(j, typ=typ)
-        # Write if specified.
-        if PBS_r: f.write('#PBS -r %s\n' % PBS_r)
-        # Get the option for combining STDIO/STDOUT
-        PBS_j = self.opts.get_PBS_j(j, typ=typ)
-        # Write if specified.
-        if PBS_j: f.write('#PBS -j %s\n' % PBS_j)
-        # Get the number of nodes, etc.
-        nnode = self.opts.get_PBS_select(j, typ=typ)
-        ncpus = self.opts.get_PBS_ncpus(j, typ=typ)
-        nmpis = self.opts.get_PBS_mpiprocs(j, typ=typ)
-        smodl = self.opts.get_PBS_model(j, typ=typ)
-        # Form the -l line.
-        line = '#PBS -l select=%i:ncpus=%i' % (nnode, ncpus)
-        # Add other settings
-        if nmpis: line += (':mpiprocs=%i' % nmpis)
-        if smodl: line += (':model=%s' % smodl)
-        # Write the line.
-        f.write(line + '\n')
-        # Get the walltime.
-        t = self.opts.get_PBS_walltime(j, typ=typ)
-        # Write it.
-        f.write('#PBS -l walltime=%s\n' % t)
-        # Check for a group list.
-        PBS_W = self.opts.get_PBS_W(j, typ=typ)
-        # Write if specified.
-        if PBS_W: f.write('#PBS -W %s\n' % PBS_W)
-        # Get the queue.
-        PBS_q = self.opts.get_PBS_q(j, typ=typ)
-        # Write it.
-        if PBS_q: f.write('#PBS -q %s\n\n' % PBS_q)
-        
-        # Process working directory
-        if wd is None:
-            # Default to current directory
-            pbsdir = os.getcwd()
-        else:
-            # Use the input
-            pbsdir = wd
-        # Go to the working directory.
-        f.write('# Go to the working directory.\n')
-        f.write('cd %s\n\n' % pbsdir)
-
-        # Get umask option
-        umask = self.opts.get_umask()
-        # Write the umask
-        if umask > 0:
-            f.write('# Set umask.\n')
-            f.write('umask %04o\n\n' % umask)
-        
-        # Write a header for the shell commands.
-        f.write('# Additional shell commands\n')
-        # Loop through the shell commands.
-        for line in self.opts.get_ShellCmds():
-            # Write it.
-            f.write('%s\n' % line)
+            lbl = self.GetPBSName(i, pre=pre)
+        # Call the function from *opts*
+        self.opts.WritePBSHeader(f, lbl, j=j, typ=typ, wd=wd)
             
     # Write batch PBS job
     def SubmitBatchPBS(self, argv):

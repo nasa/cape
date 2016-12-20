@@ -754,7 +754,7 @@ class DBLineLoad(dataBook.DBBase):
         """
         # Convert
         if qtriq:
-            self.PreprocessTriq()
+            self.PreprocessTriq(ftriq)
         # Run triload
         cmd = 'triloadCmd < triload.%s.i > triload.o' % self.comp
         # Status update
@@ -769,6 +769,13 @@ class DBLineLoad(dataBook.DBBase):
     def PreprocessTriq(self, ftriq):
         """Perform any necessary preprocessing to create ``triq`` file
         
+        :Call:
+            >>> ftriq = DBL.PreprocessTriq(ftriq)
+        :Inputs:
+            *DBL*: :class:`cape.lineLoad.DBLineLoad`
+                Line load data book
+            *ftriq*: :class:`str`
+                Name of triq file
         :Versions:
             * 2016-12-19 ``@ddalle``: First version
         """

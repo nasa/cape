@@ -53,12 +53,11 @@ import pyFun.plt
 
 # Main function
 def Plt2Triq(*a, **kw):
-    """
-    Convert a UH3D triangulation file to Cart3D tri format
+    """Convert a Tecplot PLT file to a Cart3D annotated triangulation (TRIQ)
     
     :Call:
-        >>> Plt2Triq(plt, triq, **kw)
-        >>> UH3D2Tri(i=fplt, o=ftriq, **kw)
+        >>> Plt2Triq(fplt, ftriq, **kw)
+        >>> Plt2Triq(i=fplt, o=ftriq, **kw)
     :Inputs:
         *fplt*: :class:`str`
             Name of input file
@@ -96,12 +95,7 @@ def Plt2Triq(*a, **kw):
     # Get file extension
     ext = triq.GetOutputFileType(**kw)
     # Default file name
-    if ext == 'ascii':
-        # ASCII file: use ".tri"
-        ftriq = fplt.rstrip('plt').rstrip('dat') + 'triq'
-    else:
-        # Binary file: use ".i.tri"
-        ftriq = fplt.rstrip('plt').rstrip('dat') + 'i.triq'
+    ftriq = fplt.rstrip('plt').rstrip('dat') + 'triq'
     # Get the output file name if given as second input
     if len(a) >= 2: ftriq = a[1]
     # Prioritize a "-i" input.

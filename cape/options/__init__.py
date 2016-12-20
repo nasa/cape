@@ -70,7 +70,10 @@ class Options(odict):
     :Versions:
         * 2014-07-28 ``@ddalle``: First version
     """
-    
+    # =============
+    # Configuration
+    # =============
+   # <
     # Initialization method
     def __init__(self, fname=None, **kw):
         """Initialization method with optional JSON input"""
@@ -145,6 +148,103 @@ class Options(odict):
         dmask = 0777 - umask
         # Make the directory.
         os.mkdir(fdir, dmask)
+        
+   # >
+    
+    # =====
+    # Tools
+    # =====
+   # <
+    # Write a PBS header
+    def WritePBSHeader(self, f, lbl, j=0, typ=None, wd=None):
+        """Write common part of PBS script
+        
+        :Call:
+            >>> opts.WritePBSHeader(f, i=None, j=0, typ=None, wd=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *f*: :class:`file`
+                Open file handle
+            *lbl*: :class:`str`
+                Name of the PBS job
+            *j*: :class:`int`
+                Phase number
+            *typ*: {``None``} | ``"batch"`` | ``"post"``
+                Group of PBS options to use
+            *wd*: {``None``} | :class:`str`
+                Folder to enter when starting the job
+        :Versions:
+            * 2015-09-30 ``@ddalle``: Separated from WritePBS
+            * 2016-09-25 ``@ddalle``: Supporting "BatchPBS" and "PostPBS"
+            * 2016-12-20 ``@ddalle``: Created version in options interface
+        """
+        # Get the shell path (must be bash)
+        sh = self.get_PBS_S(j, typ=typ)
+        # Write to script both ways.
+        f.write('#!%s\n' % sh)
+        f.write('#PBS -S %s\n' % sh)
+        # Write it to the script
+        f.write('#PBS -N %s\n' % lbl)
+        # Get the rerun status.
+        PBS_r = self.get_PBS_r(j, typ=typ)
+        # Write if specified.
+        if PBS_r: f.write('#PBS -r %s\n' % PBS_r)
+        # Get the option for combining STDIO/STDOUT
+        PBS_j = self.get_PBS_j(j, typ=typ)
+        # Write if specified.
+        if PBS_j: f.write('#PBS -j %s\n' % PBS_j)
+        # Get the number of nodes, etc.
+        nnode = self.get_PBS_select(j, typ=typ)
+        ncpus = self.get_PBS_ncpus(j, typ=typ)
+        nmpis = self.get_PBS_mpiprocs(j, typ=typ)
+        smodl = self.get_PBS_model(j, typ=typ)
+        # Form the -l line.
+        line = '#PBS -l select=%i:ncpus=%i' % (nnode, ncpus)
+        # Add other settings
+        if nmpis: line += (':mpiprocs=%i' % nmpis)
+        if smodl: line += (':model=%s' % smodl)
+        # Write the line.
+        f.write(line + '\n')
+        # Get the walltime.
+        t = self.get_PBS_walltime(j, typ=typ)
+        # Write it.
+        f.write('#PBS -l walltime=%s\n' % t)
+        # Check for a group list.
+        PBS_W = self.get_PBS_W(j, typ=typ)
+        # Write if specified.
+        if PBS_W: f.write('#PBS -W %s\n' % PBS_W)
+        # Get the queue.
+        PBS_q = self.get_PBS_q(j, typ=typ)
+        # Write it.
+        if PBS_q: f.write('#PBS -q %s\n\n' % PBS_q)
+        
+        # Process working directory
+        if wd is None:
+            # Default to current directory
+            pbsdir = os.getcwd()
+        else:
+            # Use the input
+            pbsdir = wd
+        # Go to the working directory.
+        f.write('# Go to the working directory.\n')
+        f.write('cd %s\n\n' % pbsdir)
+
+        # Get umask option
+        umask = self.get_umask()
+        # Write the umask
+        if umask > 0:
+            f.write('# Set umask.\n')
+            f.write('umask %04o\n\n' % umask)
+        
+        # Write a header for the shell commands.
+        f.write('# Additional shell commands\n')
+        # Loop through the shell commands.
+        for line in self.get_ShellCmds():
+            # Write it.
+            f.write('%s\n' % line)
+            
+   # >
     
     # ============
     # Initializers
