@@ -51,18 +51,12 @@ if __name__ == "__main__":
             kw['comp'] = kw['aero']
         # Collect force and moment data.
         fun3d.Aero(**kw)
-    #elif kw.get('expand'):
-    #    # Archive folders
-    #    fun3d.UntarAdapt(**kw)
-    #elif kw.get('archive'):
-    #    # Archive cases
-    #    fun3d.ArchiveCases(**kw)
-    #elif kw.get('apply'):
-    #    # Apply JSON settings
-    #    fun3d.ApplyFlowCartSettings(**kw)
-    #elif kw.get('explode'):
-    #    # Break out each named component.
-    #    fun3d.ExplodeTri()
+    elif kw.get('ll'):
+        # Update line load data book
+        cart3d.UpdateLineLoad(**kw)
+    elif kw.get('archive'):
+        # Archive cases
+        fun3d.ArchiveCases(**kw)
     elif kw.get('report'):
         # Get the report(s) to create.
         if kw['report'] == True:
