@@ -659,7 +659,7 @@ class Overflow(Cntl):
         """
         # Phase number
         if nPhase is None:
-            nPhase = self.opt.get_nSeq()
+            nPhase = self.opts.get_nSeq()
         # Read namelist file
         self.ReadNamelist()
         # Extract trajectory.

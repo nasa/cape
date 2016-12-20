@@ -53,7 +53,7 @@ if __name__ == "__main__":
         fun3d.Aero(**kw)
     elif kw.get('ll'):
         # Update line load data book
-        cart3d.UpdateLineLoad(**kw)
+        fun3d.UpdateLineLoad(**kw)
     elif kw.get('archive'):
         # Archive cases
         fun3d.ArchiveCases(**kw)
