@@ -936,6 +936,34 @@ def CopyHist(nml, i):
     
     
     
+# Get best file based on glob
+def GetFromGlob(fglb):
+    """Find the most recently edited file matching a glob
+    
+    :Call:
+        >>> fname = pyFun.case.GetFromGlob(fglb)
+    :Inputs:
+        *fglb*: :class:`str`
+            Glob for targeted file names
+    :Outputs:
+        *fname*: :class:`str`
+            Name of file matching glob that was most recently edited
+    :Versions:
+        * 2016-12-19 ``@ddalle``: First version
+    """
+    # List of files matching requested glob
+    fglob = glob.glob(fglb)
+    # File extension
+    fext = '.' + fglb.split('.')[-1]
+    # Check for empty glob
+    if len(fglob) == 0: return
+    # Get modification times
+    t = [os.path.getmtime(f) for f in fglob]
+    # Extract file with maximum index
+    fname = fglob[t.index(max(t))]
+    # Output
+    return fname
+    
 # Link best file based on name and glob
 def LinkFromGlob(fname, fglb):
     """Link the most recent file to a generic Tecplot file name
@@ -961,8 +989,6 @@ def LinkFromGlob(fname, fglb):
     fext = '.' + fglb.split('.')[-1]
     # Check for empty glob
     if len(fglob) == 0: return
-    # Get indices
-    n = [int(f.rstrip(fext).split('timestep')[-1]) for f in fglob]
     # Get modification times
     t = [os.path.getmtime(f) for f in fglob]
     # Extract file with maximum index
@@ -1026,5 +1052,5 @@ def LinkPLT():
         LinkFromGlob(fname[i]+".plt", fglob[i]+".plt")
     
     
-# def SetRestartIter
+# def LinkPLT
 
