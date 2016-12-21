@@ -26,7 +26,7 @@ Convert a Tecplot ``.plt`` file from FUN3D
     -o TRIQ
         Use *TRIQ* as name of created output files
         
-    -q
+    --triload 0
         Use all state variables in order instead of extracting best state
         variables for ``triloadCmd``
         
@@ -82,18 +82,6 @@ def Plt2Triq(*a, **kw):
         # Required input.
         print __doc__
         raise IOError("At least one input required.")
-    # Options
-    triload = not kw.get('q', False)
-    tavg    = kw.get('avg', True)
-    trms    = kw.get('rms', False)
-        
-    # Read in the plt file.
-    plt = pyFun.plt.Plt(fplt)
-    # Create the triq interface
-    triq = plt.CreateTriq(triload=triload, avg=tavg, rms=trms)
-    
-    # Get file extension
-    ext = triq.GetOutputFileType(**kw)
     # Default file name
     ftriq = fplt.rstrip('plt').rstrip('dat') + 'triq'
     # Get the output file name if given as second input
@@ -101,8 +89,8 @@ def Plt2Triq(*a, **kw):
     # Prioritize a "-i" input.
     ftriq = kw.get('o', ftriq)
     
-    # Write triangulation
-    triq.Write(ftriq, **kw)
+    # Convert
+    pyFun.plt.Plt2Triq(fplt, ftriq=ftriq, **kw)
     
 
 # Only process inputs if called as a script!
