@@ -36,7 +36,7 @@ def Plt2Triq(fplt, ftriq=None, **kw):
         # Default: strip .plt and add .triq
         ftriq = fplt.rstrip('plt').rstrip('dat') + 'triq'
     # TRIQ settings
-    ll  = kw.get('triload', False)
+    ll  = kw.get('triload', True)
     avg = kw.get('avg', True)
     rms = kw.get('rms', False)
     # Read the PLT file
@@ -457,9 +457,9 @@ class Plt(object):
                 q[iNode:iNode+kNode,3] = v
                 q[iNode:iNode+kNode,4] = w
                 q[iNode:iNode+kNode,5] = p
-                q[iNode:iNode+kNode,6] = jcfx
-                q[iNode:iNode+kNode,7] = jcfy
-                q[iNode:iNode+kNode,8] = jcfz
+                q[iNode:iNode+kNode,6] = cfx
+                q[iNode:iNode+kNode,7] = cfy
+                q[iNode:iNode+kNode,8] = cfz
             # Save the node numbers
             Tris[iTri:iTri+kTri,:] = (self.Tris[k][:,:3] + iNode + 1)
             # Increase the running node count
