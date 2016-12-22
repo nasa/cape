@@ -406,17 +406,17 @@ class Plt(object):
                     cp   = self.q[k][:,jcpr]
                     rhoa = self.q[k][:,jrho]
                     rho  = self.q[k][:,jrhor]
-                    u    = self.q[k][:,jur] / rhoa
-                    v    = self.q[k][:,jvr] / rhoa
-                    w    = self.q[k][:,jwr] / rhoa
+                    u    = self.q[k][:,jur] * rhoa
+                    v    = self.q[k][:,jvr] * rhoa
+                    w    = self.q[k][:,jwr] * rhoa
                     p    = self.q[k][:,jpr]
                 else:
                     # Nominal states
                     cp  = self.q[k][:,jcp]
                     rho = self.q[k][:,jrho]
-                    u   = self.q[k][:,ju] / rho
-                    v   = self.q[k][:,jv] / rho
-                    w   = self.q[k][:,jw] / rho
+                    u   = self.q[k][:,ju] * rho
+                    v   = self.q[k][:,jv] * rho
+                    w   = self.q[k][:,jw] * rho
                     p   = self.q[k][:,jp]
                 # Save the states
                 q[iNode:iNode+kNode,0] = cp
@@ -432,9 +432,9 @@ class Plt(object):
                     cp   = self.q[k][:,jcpr]
                     rhoa = self.q[k][:,jrho]
                     rho  = self.q[k][:,jrhor]
-                    u    = self.q[k][:,jur] / rhoa
-                    v    = self.q[k][:,jvr] / rhoa
-                    w    = self.q[k][:,jwr] / rhoa
+                    u    = self.q[k][:,jur] * rhoa
+                    v    = self.q[k][:,jvr] * rhoa
+                    w    = self.q[k][:,jwr] * rhoa
                     p    = self.q[k][:,jpr]
                     cfx  = self.q[k][:,jcfxr]
                     cfy  = self.q[k][:,jcfyr]
@@ -443,9 +443,9 @@ class Plt(object):
                     # Nominal states
                     cp  = self.q[k][:,jcp]
                     rho = self.q[k][:,jrho]
-                    u   = self.q[k][:,ju] / rho
-                    v   = self.q[k][:,jv] / rho
-                    w   = self.q[k][:,jw] / rho
+                    u   = self.q[k][:,ju] * rho
+                    v   = self.q[k][:,jv] * rho
+                    w   = self.q[k][:,jw] * rho
                     p   = self.q[k][:,jp]
                     cfx = self.q[k][:,jcfx]
                     cfy = self.q[k][:,jcfy]
