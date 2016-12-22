@@ -1356,16 +1356,18 @@ class Cntl(object):
     # ========
    # <
     # Get PBS name
-    def GetPBSName(self, i):
+    def GetPBSName(self, i, pre=None):
         """Get PBS name for a given case
         
         :Call:
-            >>> lbl = cntl.GetPBSName(i)
+            >>> lbl = cntl.GetPBSName(i, pre=None)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl` or derivative
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Run index
+            *pre*: {``None``} | :class:`str`
+                Prefix for PBS job name
         :Outputs:
             *lbl*: :class:`str`
                 Short name for the PBS job, visible via `qstat`
