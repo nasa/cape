@@ -740,9 +740,6 @@ class DBLineLoad(dataBook.DBBase):
         # Get components and type of the input
         compID = self.CompID
         tcomp  = type(compID).__name__
-        # Convert to string if appropriate
-        if tcomp in ['list', 'ndarray']:
-            compID = [str(comp) for comp in compID]
         # File name
         fcmd = 'triload.%s.i' % self.comp
         # Open the file anew
@@ -783,6 +780,7 @@ class DBLineLoad(dataBook.DBBase):
             # Write list of component IDs as a convenient range string
             # i.e. "3-10,12-15,17,19,21-24"
             f.write(RangeString(compID))
+            f.write('\n')
         # Number of cuts
         if trimOut:
             # Only write tris included in at least one component
