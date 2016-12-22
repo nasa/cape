@@ -904,6 +904,10 @@ class CaseLL(object):
         * 2015-09-16 ``@ddalle``: First version
         * 2016-06-07 ``@ddalle``: Second version, universal
     """
+    # =============
+    # Configuration
+    # =============
+  # <
     # Initialization method
     def __init__(self, comp, proj='LineLoad', sec='dlds', **kw):
         """Initialization method
@@ -968,7 +972,12 @@ class CaseLL(object):
             * 2015-09-16 ``@ddalle``: First version
         """
         return "<CaseLL comp='%s' (%s)>" % (self.comp, self.ext)
+  # >
     
+    # ====
+    # I/O
+    # ====
+  # <
     # Function to read a file
     def ReadLDS(self, fname=None):
         """Read a sectional loads ``*.?lds`` file from `triloadCmd`
@@ -1111,7 +1120,12 @@ class CaseLL(object):
         self.smx = CaseSeam(fsmx)
         self.smy = CaseSeam(fsmy)
         self.smz = CaseSeam(fsmz)
-        
+  # >
+    
+    # =========
+    # Plotting
+    # =========
+  # <
     # Plot a line load
     def Plot(self, coeff, **kw):
         """Plot a single line load
@@ -1499,7 +1513,7 @@ class CaseLL(object):
         :Call:
             >>> h = LL.PlotSeam(s='z', **kw)
         :Inputs:
-            *LL*: :class:`pyCart.lineLoad.CaseLL`
+            *LL*: :class:`cape.lineLoad.CaseLL`
                 Instance of data book line load interface
             *s*: ``"x"`` | ``"y"`` | {``"z"``}
                 Type of slice to plot
@@ -1529,7 +1543,62 @@ class CaseLL(object):
         h = sm.Plot(**kw)
         # Output
         return h
+   # >
+     
+     # ===========
+     # Corrections
+     # ===========
+   # <
+     # Correct *CN* and *CLM* given two functions
+     def CorrectCN(self, CN, CLM, CN1, CN2, xMRP=0.0):
+        """Correct *CN* and *CLM* given two unnormalized functions
         
+        This function takes two functions with the same dimensions as *LL.CN*
+        and adds a linear combination of them so that the integrated normal
+        force coefficient (*CN*) and pitching moment coefficient (*CLM*) match
+        target integrated values given by the user.
+        
+        The user must specify two basis functions for correcting the *CN*
+        sectional loads, and they must be linearly independent.  The
+        corrections to *CLM* will be selected automatically to ensure
+        consistency between the *CN* and *CLM*.
+        
+        :Call:
+            >>> LL.CorrectCN(CN, CLM, CN1, CN2)
+        :Inputs:
+            *LL*: :class:`cape.lineLoad.CaseLL`
+                Instance of single-case line load interface
+            *CN*: :class:`float`
+                Target integrated value of *CN*
+            *CLM*: :class:`float`
+                Target integrated value of *CLM*
+            *CN1*: :class:`np.ndarray` (*LL.x.size*)
+                First *CN* sectional load correction basis function
+        :Versions:
+            * 2016-12-22 ``@ddalle``: First version
+        """
+        # Get the current loads
+        CN0  = np.trapz(self.CN,  self.x)
+        CLM0 = np.trapz(self.CLM, self.x)
+        # Correction values
+        dCN  = CN - CN0
+        dCLM = CLM - CLM0
+        # Exit if close
+        if np.abs(dCN) <= 1e-4 and np.abs(dCLM) <= 1e-4: return
+        # Integrated values from the input functions
+        dCN1 = np.trapz(CN1, self.x)
+        dCN2 = np.trapz(CN2, self.x)
+        # Normalize
+        if np.abs(dCN1)>1e-4: CN1 /= dCN1
+        if np.abs(dCN2)>1e-4: CN2 /= dCN2
+        # Get moment correction functions
+        CLM1 = (xMRP - self.x) * CN1
+        CLM2 = (xMRP - self.x) * CN2
+        # Integrated values of $\Delta C_{LM}$
+        dCLM1 = np.trapz(CLM1, self.x)
+        dCLM2 = np.trapz(CLM2, self.x)
+        
+   # >
 # class CaseLL
 
 # Class for seam curves
