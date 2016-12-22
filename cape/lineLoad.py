@@ -25,6 +25,8 @@ from cape import tar
 
 # Finer control of dicts
 from .options import odict
+# Other tools
+from cape.util import RangeString
 
 # Placeholder variables for plotting functions.
 plt = 0
@@ -778,8 +780,9 @@ class DBLineLoad(dataBook.DBBase):
         f.write(self.comp + ' ')
         # Write components if any (otherwise, triLoad will use all tris)
         if type(compID).__name__ in ['list', 'ndarray']:
-            # Write list of component IDs
-            f.write(','.join(compID) + '\n')
+            # Write list of component IDs as a convenient range string
+            # i.e. "3-10,12-15,17,19,21-24"
+            f.write(RangeString(compID))
         # Number of cuts
         if trimOut:
             # Only write tris included in at least one component
