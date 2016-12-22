@@ -1860,7 +1860,7 @@ class TriBase(object):
     # ++++
    # <
     # Fall-through function to write the triangulation to file.
-    def WriteTriq(self, fname='Components.i.triq', v=True):
+    def WriteTriq(self, fname='Components.i.triq', v=True, **kw):
         """Write q-triangulation to file using fastest method available
         
         :Call:
@@ -4403,7 +4403,7 @@ class Triq(TriBase):
         self.n = n
         
     # Function to write a .triq file
-    def Write(self, fname):
+    def Write(self, fname, **kw):
         """Write a q-triangulation ``.triq`` file
         
         :Call:
