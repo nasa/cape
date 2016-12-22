@@ -197,7 +197,7 @@ class DBLineLoad(dataBook.DBBase):
             * 2016-12-22 ``@ddalle``: First version, extracted from __init__
         """
         # Figure out reference component
-        self.CompID = opts.get_DataBookCompID(comp)
+        self.CompID = self.opts.get_DataBookCompID(self.comp)
         # Make sure it's not a list
         if type(self.CompID).__name__ == 'list':
             # Take the first component

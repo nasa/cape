@@ -73,13 +73,15 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             * 2016-12-22 ``@ddalle``: First version, extracted from __init__
         """
         # Figure out reference component
-        self.CompID = opts.get_DataBookCompID(comp)
+        self.CompID = self.opts.get_DataBookCompID(self.comp)
         # Read MapBC
         try:
             # Name of the MapBC file (from the input, not a case)
             fmapbc = os.path.join(self.RootDir, self.opts.get_MapBCFile())
             # Read the MapBC
             self.MapBC = mapbc.MapBC(fmapbc)
+        except Exception:
+            pass
         # Make sure it's not a list
         if type(self.CompID).__name__ == 'list':
             # Take the first component
