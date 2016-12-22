@@ -312,17 +312,18 @@ class DataBook(dict):
    # <
             
     # Update line load data book
-    def UpdateLineLoad(self, comp, conf=None, I=None):
+    def UpdateLineLoad(self, comp, conf=None, I=None, qpbs=False):
         """Update a line load data book for a list of cases
         
         :Call:
-            >>> DB.UpdateLineLoad(comp, conf=None)
-            >>> DB.UpdateLineLoad(comp, conf=None, I)
+            >>> DB.UpdateLineLoad(comp, conf=None, I=None, qpbs=False)
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
                 Instance of data book class
             *I*: :class:`list` (:class:`int`) or ``None``
                 List of trajectory indices or update all cases in trajectory
+            *qpbs*: ``True`` | {``False``}
+                Whether or not to submit as a script
         :Versions:
             * 2015-09-17 ``@ddalle``: First version
             * 2016-12-20 ``@ddalle``: Copied to :mod:`cape`
@@ -335,7 +336,7 @@ class DataBook(dict):
         self.ReadLineLoad(comp, conf=None)
         # Loop through indices.
         for i in I:
-            self.LineLoads[comp].UpdateCase(i)
+            self.LineLoads[comp].UpdateCase(i, qpbs=qpbs)
     
    # >
     

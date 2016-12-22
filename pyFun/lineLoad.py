@@ -97,23 +97,38 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         return qtriq, ftriq, n, i0, i1
     
     # Preprocess triq file (convert from PLT)
-    def PreprocessTriq(self, ftriq):
+    def PreprocessTriq(self, ftriq, qpbs=False, f=None):
         """Perform any necessary preprocessing to create ``triq`` file
         
         :Call:
-            >>> ftriq = DBL.PreprocessTriq(ftriq)
+            >>> ftriq = DBL.PreprocessTriq(ftriq, qpbs=False, f=None)
         :Inputs:
             *DBL*: :class:`pyFun.lineLoad.DBLineLoad`
                 Line load data book
             *ftriq*: :class:`str`
                 Name of triq file
+            *qpbs*: ``True`` | {``False``}
+                Whether or not to create a script and submit it
+            *f*: {``None``} | :class:`file`
+                File handle if writing PBS script
         :Versions:
             * 2016-12-20 ``@ddalle``: First version
+            * 2016-12-21 ``@ddalle``: Added PBS
         """
         # Get name of plt file
         fplt = ftriq.rstrip('triq') + 'plt'
-        # Read the plt information
-        plt.Plt2Triq(fplt, ftriq)
+        # Check for PBS script
+        if qpbs:
+            # Check for open file
+            if f is None:
+                raise ValueError(
+                    "No open file handle for preprocessing TRIQ file")
+            # Run a script
+            f.write("\n# Convert PLT file to TRIQ\n")
+            f.write("pf_Plt2Triq.py %s\n" % fplt)
+        else:
+            # Read the plt information
+            plt.Plt2Triq(fplt, ftriq)
         
 # class DBLineLoad
     

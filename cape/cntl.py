@@ -2374,8 +2374,11 @@ class Cntl(object):
                 List of indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints like ``'Mach<=0.5'``
+            *pbs*: ``True`` | {``False``}
+                Whether or not to calculate line loads with PBS scripts
         :Versions:
             * 2016-06-07 ``@ddalle``: First version
+            * 2016-12-21 ``@ddalle``: Added *pbs* flag, may be temporary
         """
         # Save current location
         fpwd = os.getcwd()
@@ -2387,6 +2390,8 @@ class Cntl(object):
         self.ReadConfig()
         # Get lineload option
         ll = kw.get('ll')
+        # Get pbs option
+        pbs = kw.get('pbs', False)
         # Check for single line load
         if ll in [None, True]:
             # Use all components
@@ -2401,7 +2406,7 @@ class Cntl(object):
             # Read the line load data book
             self.DataBook.ReadLineLoad(comp, conf=self.config)
             # Update it
-            self.DataBook.UpdateLineLoad(comp, conf=self.config, I=I)
+            self.DataBook.UpdateLineLoad(comp, conf=self.config, I=I, qpbs=pbs)
             # Write the updated results
             self.DataBook.LineLoads[comp].Write()
         # Return to original location

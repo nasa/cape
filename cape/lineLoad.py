@@ -20,6 +20,7 @@ from datetime import datetime
 from . import util
 from . import case
 from . import dataBook
+from . import queue
 from cape import tar
 
 # Finer control of dicts
@@ -90,6 +91,11 @@ class DBLineLoad(dataBook.DBBase):
         * 2015-09-16 ``@ddalle``: First version
         * 2016-05-11 ``@ddalle``: Moved to :mod:`cape`
     """
+    # ======
+    # Config
+    # ======
+  # <
+    # Initialization method
     def __init__(self, x, opts, comp, conf=None, RootDir=None, targ=None):
         """Initialization method
         
@@ -190,7 +196,16 @@ class DBLineLoad(dataBook.DBBase):
         # Output
         return lbl
     __str__ = __repr__
-        
+  # >
+    
+    # ====
+    # I/O
+    # ====
+  # <
+    # --------
+    # Main I/O
+    # --------
+   # [
     # function to read line load data book summary
     def Read(self, fname=None):
         """Read a data book summary file for a single line load group
@@ -334,29 +349,12 @@ class DBLineLoad(dataBook.DBBase):
         f.close()
         # Try to write the seam curves
         self.WriteSeamCurves()
-        
-    # Match the databook copy of the trajectory
-    def UpdateTrajectory(self):
-        """Match the trajectory to the cases in the data book
-        
-        :Call:
-            >>> DBL.UpdateTrajectory()
-        :Inputs:
-            *DBL*: :class:`cape.lineLoad.DBLineLoad`
-                Line load data book
-        :Versions:
-            * 2015-05-22 ``@ddalle``: First version
-            * 2016-08-12 ``@ddalle``: Copied from data book
-        """
-        # Loop through the fields.
-        for k in self.x.keys:
-            # Copy the data.
-            setattr(self.x, k, self[k])
-            # Set the text.
-            self.x.text[k] = [str(xk) for xk in self[k]]
-        # Set the number of cases.
-        self.x.nCase = self.n
+   # ]
     
+    # --------
+    # Seam I/O
+    # --------
+   # [
     # Read the seam curves
     def ReadSeamCurves(self):
         """Read seam curves from a data book directory
@@ -423,7 +421,12 @@ class DBLineLoad(dataBook.DBBase):
                 self.smz.Write(fsmz)
             except Exception:
                 pass
-        
+   # ]
+    
+    # ---------
+    # Case I/O
+    # ---------
+   # [
     # Read a case from the data book
     def ReadCase(self, i):
         """Read data from a case from the data book archive
@@ -461,21 +464,58 @@ class DBLineLoad(dataBook.DBBase):
         self[i].smx = self.smx
         self[i].smy = self.smy
         self[i].smz = self.smz
+   # ]
+   
+  # >
+    
+    # ============
+    # Organization
+    # ============
+  # <
+    # Match the databook copy of the trajectory
+    def UpdateTrajectory(self):
+        """Match the trajectory to the cases in the data book
         
+        :Call:
+            >>> DBL.UpdateTrajectory()
+        :Inputs:
+            *DBL*: :class:`cape.lineLoad.DBLineLoad`
+                Line load data book
+        :Versions:
+            * 2015-05-22 ``@ddalle``: First version
+            * 2016-08-12 ``@ddalle``: Copied from data book
+        """
+        # Loop through the fields.
+        for k in self.x.keys:
+            # Copy the data.
+            setattr(self.x, k, self[k])
+            # Set the text.
+            self.x.text[k] = [str(xk) for xk in self[k]]
+        # Set the number of cases.
+        self.x.nCase = self.n
+  # >
+    
+    # ===========
+    # Calculation
+    # ===========
+  # <
     # Update a case
-    def UpdateCase(self, i):
+    def UpdateCase(self, i, qpbs=False):
         """Update one line load entry if necessary
         
         :Call:
-            >>> DBL.UpdateLineLoadCase(i)
+            >>> DBL.UpdateLineLoadCase(i, qpbs=False)
         :Inputs:
             *DBL*: :class:`cape.lineLoad.DBLineLoad`
                 Line load data book
             *i*: :class:`int`
                 Case number
+            *qpbs*: ``True`` | {``False``}
+                Whether or not to submit as a script
         :Versions:
             * 2016-06-07 ``@ddalle``: First version
             * 2016-12-19 ``@ddalle``: Modified for generic module
+            * 2016-12-21 ``@ddalle``: Added PBS
         """
         # Try to find a match in the data book
         j = self.FindMatch(i)
@@ -562,7 +602,7 @@ class DBLineLoad(dataBook.DBBase):
             # Write triloadCmd input file
             self.WriteTriloadInput(ftriq, i)
             # Run the command
-            self.RunTriload(qtriq, ftriq)
+            self.RunTriload(qtriq, ftriq, qpbs=qpbs)
         # Check number of seams
         try:
             # Get seam counts
@@ -741,45 +781,78 @@ class DBLineLoad(dataBook.DBBase):
         f.close()
         
     # Run triload
-    def RunTriload(self, qtriq=False, ftriq=None):
+    def RunTriload(self, qtriq=False, ftriq=None, qpbs=False, i=None):
         """Run ``triload`` for a case
         
         :Call:
-            >>> DBL.RunTriload()
+            >>> DBL.RunTriload(**kw)
         :Inputs:
             *DBL*: :class:`cape.lineLoad.DBLineLoad`
                 Line load data book
+            *qtriq*: ``True`` | {``False``}
+                Whether or not preprocessing is needed to create TRIQ file
+            *ftriq*: {``None``} | :class:`str`
+                Name of TRIQ file (if needed)
+            *qpbs*: ``True`` | {``False``}
+                Whether or not to create a script and submit it
         :Versions:
             * 2016-06-07 ``@ddalle``: First version
+            * 2016-12-21 ``@ddalle``: PBS added
         """
+        # Create header
+        if qpbs:
+            # PBS file name
+            fpbs = 'run_lineload.pbs'
+            # Initialize PBS file
+            f = open('run_lineload.pbs', 'w')
+            # Get case number
+            lbl = self.x.GetPBSName(i, pre='ll')\
+            # Write PBS header
+            self.opts.WritePBSHeader(f, lbl, typ='post')
         # Convert
         if qtriq:
-            self.PreprocessTriq(ftriq)
-        # Run triload
-        cmd = 'triloadCmd < triload.%s.i > triload.o' % self.comp
-        # Status update
-        print("    %s" % cmd)
-        # Run triload
-        ierr = os.system(cmd)
-        # Check for errors
-        if ierr:
-            return SystemError("Failure while running ``triloadCmd``")
+            self.PreprocessTriq(ftriq, qpbs=qpbs)
+        # Check for PBS
+        if qpbs:
+            # Write to file
+            f.write("\n# Run triload\n")
+            f.write("%s\n" % cmd)
+            # Close the file
+            f.close()
+            # Submit the script
+            queue.qsub(fname)
+        else:
+            # Run triload
+            cmd = 'triloadCmd < triload.%s.i > triload.o' % self.comp
+            # Status update
+            print("    %s" % cmd)
+            # Run triload
+            ierr = os.system(cmd)
+            # Check for errors
+            if ierr:
+                return SystemError("Failure while running ``triloadCmd``")
     
     # Convert
-    def PreprocessTriq(self, ftriq):
+    def PreprocessTriq(self, ftriq, qpbs=False, f=None):
         """Perform any necessary preprocessing to create ``triq`` file
         
         :Call:
-            >>> ftriq = DBL.PreprocessTriq(ftriq)
+            >>> ftriq = DBL.PreprocessTriq(ftriq, qpbs=False, f=None)
         :Inputs:
             *DBL*: :class:`cape.lineLoad.DBLineLoad`
                 Line load data book
             *ftriq*: :class:`str`
                 Name of triq file
+            *qpbs*: ``True`` | {``False``}
+                Whether or not to create a script and submit it
+            *f*: {``None``} | :class:`file`
+                File handle if writing PBS script
         :Versions:
             * 2016-12-19 ``@ddalle``: First version
+            * 2016-12-21 ``@ddalle``: Added PBS
         """
         pass
+  # >
 
 # class DBLineLoad
     
