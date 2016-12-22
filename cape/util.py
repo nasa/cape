@@ -42,7 +42,9 @@ def RangeString(rng):
     """
     # Number of components
     n = len(rng)
-    # Check for single component
+    # Check for single component or no components
+    if n == 0:
+        return ""
     if n == 1:
         return ("%s" % rng[0])
     # Initialize the string and indices
