@@ -157,21 +157,8 @@ class DBLineLoad(dataBook.DBBase):
         # Save the file name.
         self.fname = fname
         
-        # Figure out reference component
-        self.CompID = opts.get_DataBookCompID(comp)
-        # Make sure it's not a list
-        if type(self.CompID).__name__ == 'list':
-            # Take the first component
-            self.RefComp = self.RefComp[0]
-        else:
-            # One component listed; use it
-            self.RefComp = self.CompID
-        # Try to get all components
-        try:
-            # Use the configuration interface
-            self.CompID = self.conf.GetCompID(self.CompID)
-        except Exception:
-            pass
+        # Figure out reference component and list of CompIDs
+        self.GetCompID()
         # Reference areas
         self.RefA = opts.get_RefArea(self.RefComp)
         self.RefL = opts.get_RefLength(self.RefComp)
@@ -196,6 +183,35 @@ class DBLineLoad(dataBook.DBBase):
         # Output
         return lbl
     __str__ = __repr__
+    
+    # Get component ID numbers
+    def GetCompID(self):
+        """Create list of component IDs
+        
+        :Call:
+            >>> DBL.GetCompID()
+        :Inputs:
+            *DBL*: :class:`cape.lineLoad.DBLineLoad`
+                Instance of line load data book
+        :Versions:
+            * 2016-12-22 ``@ddalle``: First version, extracted from __init__
+        """
+        # Figure out reference component
+        self.CompID = opts.get_DataBookCompID(comp)
+        # Make sure it's not a list
+        if type(self.CompID).__name__ == 'list':
+            # Take the first component
+            self.RefComp = self.RefComp[0]
+        else:
+            # One component listed; use it
+            self.RefComp = self.CompID
+        # Try to get all components
+        try:
+            # Use the configuration interface
+            self.CompID = self.conf.GetCompID(self.CompID)
+        except Exception:
+            pass
+            
   # >
     
     # ====

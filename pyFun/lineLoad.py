@@ -20,6 +20,7 @@ from datetime import datetime
 from . import util
 from . import case
 from . import plt
+from . import mapbc
 from cape import tar
 # Line load template
 import cape.lineLoad
@@ -58,6 +59,48 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
     :Versions:
         * 2015-09-16 ``@ddalle``: First version
     """
+    
+    # Get component ID numbers
+    def GetCompID(self):
+        """Create list of component IDs
+        
+        :Call:
+            >>> DBL.GetCompID()
+        :Inputs:
+            *DBL*: :class:`cape.lineLoad.DBLineLoad`
+                Instance of line load data book
+        :Versions:
+            * 2016-12-22 ``@ddalle``: First version, extracted from __init__
+        """
+        # Figure out reference component
+        self.CompID = opts.get_DataBookCompID(comp)
+        # Read MapBC
+        try:
+            # Name of the MapBC file (from the input, not a case)
+            fmapbc = os.path.join(self.RootDir, self.opts.get_MapBCFile())
+            # Read the MapBC
+            self.MapBC = mapbc.MapBC(fmapbc)
+        # Make sure it's not a list
+        if type(self.CompID).__name__ == 'list':
+            # Take the first component
+            self.RefComp = self.RefComp[0]
+        else:
+            # One component listed; use it
+            self.RefComp = self.CompID
+        # Try to get all components
+        try:
+            # Use the configuration interface
+            self.CompID = self.conf.GetCompID(self.CompID)
+        except Exception:
+            pass
+        # Convert to MapBC numbers, since that's how the PLT file numbers them
+        try:
+            # Convert component IDs to surface IDs
+            self.CompID = [
+                self.MapBC.GetSurfID(compID) for compID in self.CompID
+            ]
+        except Exception:
+            pass
     
     # Get file
     def GetTriqFile(self):
