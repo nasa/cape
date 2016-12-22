@@ -26,6 +26,9 @@ Convert a Tecplot ``.plt`` file from FUN3D
     -o TRIQ
         Use *TRIQ* as name of created output files
         
+    --mach, -m MINF
+        Use *MINF* to scale skin friction coefficients
+        
     --triload 0
         Use all state variables in order instead of extracting best state
         variables for ``triloadCmd``

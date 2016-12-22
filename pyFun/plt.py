@@ -22,6 +22,8 @@ def Plt2Triq(fplt, ftriq=None, **kw):
             Name of Tecplot PLT file
         *ftriq*: {``None``} | :class:`str`
             Name of output file (default: replace extension with ``.triq``)
+        *mach*: {``1.0``} | positive :class:`float`
+            Freestream Mach number for skin friction coeff conversion
         *triload*: {``True``} | ``False``
             Whether or not to write a triq tailored for ``triloadCmd``
         *avg*: {``True``} | ``False``
@@ -42,7 +44,7 @@ def Plt2Triq(fplt, ftriq=None, **kw):
     # Read the PLT file
     plt = Plt(fplt)
     # Create the TRIQ interface
-    triq = plt.CreateTriq(triload=ll, avg=avg, rms=rms)
+    triq = plt.CreateTriq(**kw)
     # Get output file extension
     ext = triq.GetOutputFileType(**kw)
     # Write triangulation
@@ -248,7 +250,7 @@ class Plt(object):
         f.close()
         
     # Create a triq file
-    def CreateTriq(self, triload=True, avg=True, rms=False):
+    def CreateTriq(self, **kw):
         """Create a Cart3D annotated triangulation (``triq``) interface
         
         The primary purpose is creating a properly-formatted triangulation for
@@ -265,10 +267,12 @@ class Plt(object):
         output will have whatever states are present in *plt*.
         
         :Call:
-            >>> triq = plt.CreateTriq(triload=True, avg=True, rms=False)
+            >>> triq = plt.CreateTriq(mach=1.0, triload=True, avg=True, rms=False)
         :Inputs:
             *plt*: :class:`pyFun.plt.Plt`
                 Tecplot PLT interface
+            *mach*: {``1.0``} | positive :class:`float`
+                Freestream Mach number for skin friction coeff conversion
             *triload*: {``True``} | ``False``
                 Whether or not to write a triq tailored for ``triloadCmd``
             *avg*: {``True``} | ``False``
@@ -281,6 +285,14 @@ class Plt(object):
         :Versions:
             * 2016-12-19 ``@ddalle``: First version
         """
+        # Inputs
+        triload = kw.get('triload', True)
+        # Averaging?
+        avg = kw.get('avg', True)
+        # Write RMS values?
+        rms = kw.get('rms', False)
+        # Freestream Mach number; FUN3D writes cf/1.4*pinf instead of cf/qinf
+        mach = kw.get('mach', kw.get('m', kw.get('minf', 1.0)))
         # Total number of points
         nNode = np.sum(self.nPt)
         # Rough number of tris
@@ -426,6 +438,8 @@ class Plt(object):
                 q[iNode:iNode+kNode,4] = w
                 q[iNode:iNode+kNode,5] = p
             elif qtype == 2:
+                # Scaling 
+                cf = mach*mach/2
                 # Get the appropriate states, including viscous
                 if rms:
                     # Variation
@@ -436,9 +450,9 @@ class Plt(object):
                     v    = self.q[k][:,jvr] * rhoa
                     w    = self.q[k][:,jwr] * rhoa
                     p    = self.q[k][:,jpr]
-                    cfx  = self.q[k][:,jcfxr]
-                    cfy  = self.q[k][:,jcfyr]
-                    cfz  = self.q[k][:,jcfzr]
+                    cfx  = self.q[k][:,jcfxr] * cf
+                    cfy  = self.q[k][:,jcfyr] * cf
+                    cfz  = self.q[k][:,jcfzr] * cf
                 else:
                     # Nominal states
                     cp  = self.q[k][:,jcp]
@@ -447,9 +461,9 @@ class Plt(object):
                     v   = self.q[k][:,jv] * rho
                     w   = self.q[k][:,jw] * rho
                     p   = self.q[k][:,jp]
-                    cfx = self.q[k][:,jcfx]
-                    cfy = self.q[k][:,jcfy]
-                    cfz = self.q[k][:,jcfz]
+                    cfx = self.q[k][:,jcfx] * cf
+                    cfy = self.q[k][:,jcfy] * cf
+                    cfz = self.q[k][:,jcfz] * cf
                 # Save the states
                 q[iNode:iNode+kNode,0] = cp
                 q[iNode:iNode+kNode,1] = rho
@@ -480,4 +494,5 @@ class Plt(object):
         # Output
         return triq
         
-    
+# class Plt
+

@@ -756,6 +756,10 @@ class DBLineLoad(dataBook.DBBase):
         if mach is None: mach = 1.0
         if Re   is None: Re   = 1.0
         if gam  is None: gam  = 1.4
+        # Let's save these parameters
+        self.mach = mach
+        self.Re   = Re
+        self.gam  = gam
         # Moment reference point
         MRP = kw.get('MRP', self.MRP)
         # Write the Mach number, reference Reynolds number, and ratio of heats
@@ -828,16 +832,17 @@ class DBLineLoad(dataBook.DBBase):
             self.opts.WritePBSHeader(f, lbl, typ='post')
         # Convert
         if qtriq:
-            self.PreprocessTriq(ftriq, qpbs=qpbs)
+            self.PreprocessTriq(ftriq, qpbs=qpbs, i=i)
         # Check for PBS
         if qpbs:
+            # Enter the 
             # Write to file
             f.write("\n# Run triload\n")
             f.write("%s\n" % cmd)
             # Close the file
             f.close()
             # Submit the script
-            queue.qsub(fname)
+            queue.qsub(fpbs)
         else:
             # Run triload
             cmd = 'triloadCmd < triload.%s.i > triload.o' % self.comp
@@ -850,7 +855,7 @@ class DBLineLoad(dataBook.DBBase):
                 return SystemError("Failure while running ``triloadCmd``")
     
     # Convert
-    def PreprocessTriq(self, ftriq, qpbs=False, f=None):
+    def PreprocessTriq(self, ftriq, **kw):
         """Perform any necessary preprocessing to create ``triq`` file
         
         :Call:
@@ -864,6 +869,8 @@ class DBLineLoad(dataBook.DBBase):
                 Whether or not to create a script and submit it
             *f*: {``None``} | :class:`file`
                 File handle if writing PBS script
+            *i*: {``None``} | :class:`int`
+                Case index
         :Versions:
             * 2016-12-19 ``@ddalle``: First version
             * 2016-12-21 ``@ddalle``: Added PBS
