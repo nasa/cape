@@ -161,6 +161,8 @@ class DBLineLoad(dataBook.DBBase):
         
         # Figure out reference component and list of CompIDs
         self.GetCompID()
+        # Number of cuts
+        self.nCut = self.opts.get_DataBook_nCut(self.comp)
         # Reference areas
         self.RefA = opts.get_RefArea(self.RefComp)
         self.RefL = opts.get_RefLength(self.RefComp)
@@ -737,6 +739,7 @@ class DBLineLoad(dataBook.DBBase):
         qm = self.opts.get_DataBookMomentum(self.comp)
         # Number of cuts
         nCut = self.opts.get_DataBook_nCut(self.comp)
+        self.nCut = nCut
         # Get components and type of the input
         compID = self.CompID
         tcomp  = type(compID).__name__
@@ -877,6 +880,76 @@ class DBLineLoad(dataBook.DBBase):
         """
         pass
   # >
+    
+    # ========
+    # Database
+    # ========
+  # <
+    # Get a proper orthogonal decomposition
+    def GetCoeffPOD(self, coeff, n=2, f=None, **kw):
+        """Create a Proper Orthogonal Decomposition of lineloads for one coeff
+        
+        :Call:
+            >>> u, s = DBL.GetPOD(coeff, n=None, f=None, **kw)
+        :Inputs:
+            *DBL*: :class:`cape.lineLoad.DBLineLoad`
+                Line load data book
+            *n*: {``2``} | positive :class:`int`
+                Number of modes to keep
+            *f*: {``None``} | 0 < :class:`float` <= 1
+                Keep enough modes so that this fraction of energy is kept
+            *cons*: {``None``} | :class:`list` (:class:`str`)
+                Constraints for which cases to include in basis
+            *I*: {``None``} | :class:`list` (:class:`int`)
+                List of cases to include in basis
+        :Versions:
+            * 2016-12-27 ``@ddalle``: First version
+        """
+        # Get list of cases to include
+        I = self.x.GetIndices(**kw)
+        # Make sure all cases are present
+        for i in I:
+            self.ReadCase(i)
+        # Initialize basis
+        C = np.zeros((self.nCut+1,len(I)))
+        j = 0
+        # Loop through cases
+        for i in I:
+            # Check if this case is present in the database
+            if i not in self: continue
+            print("Label 018: i=%s, j=%s, C: (%s,%s)" % 
+                (i,j,C.shape[0], C.shape[1]))
+            # Append to the database
+            C[:,j] = getattr(self[i], coeff)
+            # Increase the count
+            j += 1
+        print("Label 020: j=%s, C: (%s,%s)" % (j,C.shape[0], C.shape[1]))
+        # Downsize *C* as appropriate
+        C = C[:,:j]
+        # Check for null database
+        if j == 0:
+            return np.zeros((self.nCut,0)), np.zeros(0)
+        # Calculate singular value decomposition
+        u, s, v = np.linalg.svd(C, full_matrices=False)
+        # Normalize singular values
+        s = np.cumsum(s) / np.sum(s)
+        # Figure out how many components needed to meet *f*
+        if f is None:
+            # Default: keep nothing for *f*
+            nf = 0
+        elif f > 1:
+            # Bad value
+            raise ValueError(("Received POD fraction of %s; " % f) +
+                "cannot keep more than 100% of modes")
+        else:
+            # Calculate the fraction using cumulative sum of singular values
+            nf = np.where(s >= f)[0][0] + 1
+        # Keep the maximum of *n* and *nf* modes
+        ns = np.max(n, nf)
+        # Output
+        return u[:,:ns], s[:ns]
+        
+  # >
 
 # class DBLineLoad
     
@@ -966,12 +1039,42 @@ class CaseLL(object):
         
         Returns the following format:
         
-            * ``<CaseLL nCut=200>``
+            * ``<CaseLL comp='CORE' (csv)>``
         
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
         """
         return "<CaseLL comp='%s' (%s)>" % (self.comp, self.ext)
+        
+    # Copy
+    def Copy(self):
+        """Create a copy of a case line load object
+        
+        :Call:
+            >>> LL2 = LL.Copy()
+        :Inputs:
+            *LL*: :class:`cape.lineLoad.CaseLL`
+                Single-case, single-component line load interface
+        :Outputs:
+            *LL2*: :class:`cape.lineLoad.CaseLL`
+                Copy of the line load interface
+        :Versions:
+            * 2016-12-27 ``@ddalle``: First version
+        """
+        # Initialize (empty) object
+        LL = CaseLL(self.comp, proj=self.proj, sec=self.sec,
+            ext=self.ext, fdir=self.fdir, seam=self.seam)
+        # Copy the data
+        LL.x   = self.x.copy()
+        LL.CA  = self.CA.copy()
+        LL.CY  = self.CY.copy()
+        LL.CN  = self.CN.copy()
+        LL.CLL = self.CLL.copy()
+        LL.CLM = self.CLM.copy()
+        LL.CLN = self.CLN.copy()
+        # Output
+        return LL
+    
   # >
     
     # ====
@@ -1543,14 +1646,43 @@ class CaseLL(object):
         h = sm.Plot(**kw)
         # Output
         return h
-   # >
-     
-     # ===========
-     # Corrections
-     # ===========
-   # <
-     # Correct *CN* and *CLM* given two functions
-     def CorrectCN(self, CN, CLM, CN1, CN2, xMRP=0.0):
+  # >
+    
+    # ===========
+    # Corrections
+    # ===========
+  # <
+    # Correct line loads using linear basis functions
+    def CorrectLinear(self, CN, CLM, xMRP=0.0):
+        """Correct line loads to match target integrated values using lines
+        
+        :Call:
+            >>> LL2 = LL.CorrectLinear(CN, CLM, xMRP=0.0)
+        :Inputs:
+            *LL*: :class:`cape.lineLoad.CaseLL`
+                Instance of single-case line load interface
+            *CN*: :class:`float`
+                Target integrated value of *CN*
+            *CLM*: :class:`float`
+                Target integrated value of *CLM*
+            *xMRP*: {``0.0``} | :class:`float`
+                *x*-coordinate of MRP divided by reference length
+        :Outputs:
+            *LL2*: :class:`cape.lineLoad.CaseLL`
+                Line loads with integrated loads matching *CN* and *CLM*
+        :Versions:
+            * 2016-12-27 ``@ddalle``: First version
+        """
+        # Create basis functions
+        CN1 = np.ones_like(self.x)
+        CN2 = np.linspace(0, 1, len(self.x))
+        # Correct *CN* and *CLM*
+        LL = self.CorrectCN(CN, CLM, CN1, CN2, xMRP=xMRP)
+        # Output
+        return LL
+    
+    # Correct *CN* and *CLM* given two functions
+    def CorrectCN(self, CN, CLM, CN1, CN2, xMRP=0.0):
         """Correct *CN* and *CLM* given two unnormalized functions
         
         This function takes two functions with the same dimensions as *LL.CN*
@@ -1564,7 +1696,7 @@ class CaseLL(object):
         consistency between the *CN* and *CLM*.
         
         :Call:
-            >>> LL.CorrectCN(CN, CLM, CN1, CN2)
+            >>> LL2 = LL.CorrectCN(CN, CLM, CN1, CN2)
         :Inputs:
             *LL*: :class:`cape.lineLoad.CaseLL`
                 Instance of single-case line load interface
@@ -1574,8 +1706,15 @@ class CaseLL(object):
                 Target integrated value of *CLM*
             *CN1*: :class:`np.ndarray` (*LL.x.size*)
                 First *CN* sectional load correction basis function
+            *CN2*: :class:`np.ndarray` (*LL.x.size*)
+                Second *CN* sectional load correction basis function
+            *xMRP*: {``0.0``} | :class:`float`
+                *x*-coordinate of MRP divided by reference length
+        :Outputs:
+            *LL2*: :class:`cape.lineLoad.CaseLL`
+                Line loads with integrated loads matching *CN* and *CLM*
         :Versions:
-            * 2016-12-22 ``@ddalle``: First version
+            * 2016-12-27 ``@ddalle``: First version
         """
         # Get the current loads
         CN0  = np.trapz(self.CN,  self.x)
@@ -1597,8 +1736,25 @@ class CaseLL(object):
         # Integrated values of $\Delta C_{LM}$
         dCLM1 = np.trapz(CLM1, self.x)
         dCLM2 = np.trapz(CLM2, self.x)
+        # Form matrix
+        A = np.array([[dCN1, dCN2], [dCLM1, dCLM2]])
+        # Check for error
+        if np.linalg.det(A) < 1e-8:
+            # Not linearly independent
+            print("WARNING: Two functions are not linearly independent; " +
+                "Cannot correct both *CN* and *CLM*")
+            return
+        # Solve for the weights
+        x = np.linalg.solve(A, [dCN, dCLM])
+        # Create a new output
+        LL = self.Copy()
+        # Modify the loads
+        LL.CN  = self.CN  + x[0]*CN1  + x[1]*CN2
+        LL.CLM = self.CLM + x[0]*CLM1 + x[1]*CLM2
+        # Output
+        return LL
         
-   # >
+  # >
 # class CaseLL
 
 # Class for seam curves
