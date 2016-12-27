@@ -917,13 +917,10 @@ class DBLineLoad(dataBook.DBBase):
         for i in I:
             # Check if this case is present in the database
             if i not in self: continue
-            print("Label 018: i=%s, j=%s, C: (%s,%s)" % 
-                (i,j,C.shape[0], C.shape[1]))
             # Append to the database
             C[:,j] = getattr(self[i], coeff)
             # Increase the count
             j += 1
-        print("Label 020: j=%s, C: (%s,%s)" % (j,C.shape[0], C.shape[1]))
         # Downsize *C* as appropriate
         C = C[:,:j]
         # Check for null database
@@ -1653,7 +1650,7 @@ class CaseLL(object):
     # ===========
   # <
     # Correct line loads using linear basis functions
-    def CorrectLinear(self, CN, CLM, xMRP=0.0):
+    def CorrectLinear(self, CN, CLM, CY, CLN xMRP=0.0):
         """Correct line loads to match target integrated values using lines
         
         :Call:
@@ -1665,6 +1662,10 @@ class CaseLL(object):
                 Target integrated value of *CN*
             *CLM*: :class:`float`
                 Target integrated value of *CLM*
+            *CY*: :class:`float`
+                Target integrated value of *CY*
+            *CLN*: :class:`float`
+                Target integrated value of *CLN*
             *xMRP*: {``0.0``} | :class:`float`
                 *x*-coordinate of MRP divided by reference length
         :Outputs:
@@ -1676,8 +1677,11 @@ class CaseLL(object):
         # Create basis functions
         CN1 = np.ones_like(self.x)
         CN2 = np.linspace(0, 1, len(self.x))
+        # Create a copy
+        LL = self.Copy()
         # Correct *CN* and *CLM*
-        LL = self.CorrectCN(CN, CLM, CN1, CN2, xMRP=xMRP)
+        LL.CorrectCN(CN, CLM, CN1, CN2, xMRP=xMRP)
+        LL.CorrectCY(CY, CLN, CN1, CN2, xMRP=xMRP)
         # Output
         return LL
     
@@ -1696,7 +1700,7 @@ class CaseLL(object):
         consistency between the *CN* and *CLM*.
         
         :Call:
-            >>> LL2 = LL.CorrectCN(CN, CLM, CN1, CN2)
+            >>> LL.CorrectCN(CN, CLM, CN1, CN2)
         :Inputs:
             *LL*: :class:`cape.lineLoad.CaseLL`
                 Instance of single-case line load interface
@@ -1710,9 +1714,6 @@ class CaseLL(object):
                 Second *CN* sectional load correction basis function
             *xMRP*: {``0.0``} | :class:`float`
                 *x*-coordinate of MRP divided by reference length
-        :Outputs:
-            *LL2*: :class:`cape.lineLoad.CaseLL`
-                Line loads with integrated loads matching *CN* and *CLM*
         :Versions:
             * 2016-12-27 ``@ddalle``: First version
         """
@@ -1746,13 +1747,75 @@ class CaseLL(object):
             return
         # Solve for the weights
         x = np.linalg.solve(A, [dCN, dCLM])
-        # Create a new output
-        LL = self.Copy()
         # Modify the loads
-        LL.CN  = self.CN  + x[0]*CN1  + x[1]*CN2
-        LL.CLM = self.CLM + x[0]*CLM1 + x[1]*CLM2
-        # Output
-        return LL
+        self.CN  = self.CN  + x[0]*CN1  + x[1]*CN2
+        self.CLM = self.CLM + x[0]*CLM1 + x[1]*CLM2
+    
+    # Correct *CY* and *CLN* given two functions
+    def CorrectCY(self, CY, CLN, CY1, CY2, xMRP=0.0):
+        """Correct *CY* and *CLN* given two unnormalized functions
+        
+        This function takes two functions with the same dimensions as *LL.CY*
+        and adds a linear combination of them so that the integrated normal
+        force coefficient (*CY*) and pitching moment coefficient (*CLN*) match
+        target integrated values given by the user.
+        
+        The user must specify two basis functions for correcting the *CY*
+        sectional loads, and they must be linearly independent.  The
+        corrections to *CLN* will be selected automatically to ensure
+        consistency between the *CY* and *CLN*.
+        
+        :Call:
+            >>> LL.CorrectCY(CY, CLN, CY1, CY2)
+        :Inputs:
+            *LL*: :class:`cape.lineLoad.CaseLL`
+                Instance of single-case line load interface
+            *CY*: :class:`float`
+                Target integrated value of *CY*
+            *CLN*: :class:`float`
+                Target integrated value of *CLN*
+            *CY1*: :class:`np.ndarray` (*LL.x.size*)
+                First *CY* sectional load correction basis function
+            *CY2*: :class:`np.ndarray` (*LL.x.size*)
+                Second *CY* sectional load correction basis function
+            *xMRP*: {``0.0``} | :class:`float`
+                *x*-coordinate of MRP divided by reference length
+        :Versions:
+            * 2016-12-27 ``@ddalle``: First version
+        """
+        # Get the current loads
+        CY0  = np.trapz(self.CY,  self.x)
+        CLN0 = np.trapz(self.CLN, self.x)
+        # Correction values
+        dCY  = CY - CY0
+        dCLN = CLN - CLN0
+        # Exit if close
+        if np.abs(dCY) <= 1e-4 and np.abs(dCLN) <= 1e-4: return
+        # Integrated values from the input functions
+        dCY1 = np.trapz(CY1, self.x)
+        dCY2 = np.trapz(CY2, self.x)
+        # Normalize
+        if np.abs(dCY1)>1e-4: CY1 /= dCY1
+        if np.abs(dCY2)>1e-4: CY2 /= dCY2
+        # Get moment correction functions
+        CLN1 = (xMRP - self.x) * CY1
+        CLN2 = (xMRP - self.x) * CY2
+        # Integrated values of $\Delta C_{LM}$
+        dCLN1 = np.trapz(CLN1, self.x)
+        dCLN2 = np.trapz(CLN2, self.x)
+        # Form matrix
+        A = np.array([[dCY1, dCY2], [dCLN1, dCLN2]])
+        # Check for error
+        if np.linalg.det(A) < 1e-8:
+            # Not linearly independent
+            print("WARNING: Two functions are not linearly independent; " +
+                "Cannot correct both *CN* and *CLM*")
+            return
+        # Solve for the weights
+        x = np.linalg.solve(A, [dCY, dCLN])
+        # Modify the loads
+        self.CY  = self.CY  + x[0]*CY1  + x[1]*CY2
+        self.CLN = self.CLN + x[0]*CLN1 + x[1]*CLN2
         
   # >
 # class CaseLL
