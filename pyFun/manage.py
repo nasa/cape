@@ -1,5 +1,5 @@
 """
-Manage Run Directory Folders: :mod:`pyOver.manage`
+Manage Run Directory Folders: :mod:`pyFun.manage`
 ==================================================
 
 This module contains functions to manage files and folders by archiving them to
@@ -12,7 +12,7 @@ The tar balls that are created during archiving can also be deleted after being
 copied to the archive.
 
 :Versions:
-    * 2016-12-09 ``@ddalle``: First version
+    * 2016-12-27 ``@ddalle``: First version
 """
 
 # Options module

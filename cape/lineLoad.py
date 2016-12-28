@@ -1756,8 +1756,8 @@ class CaseLL(object):
         """Correct *CY* and *CLN* given two unnormalized functions
         
         This function takes two functions with the same dimensions as *LL.CY*
-        and adds a linear combination of them so that the integrated normal
-        force coefficient (*CY*) and pitching moment coefficient (*CLN*) match
+        and adds a linear combination of them so that the integrated side
+        force coefficient (*CY*) and yawing moment coefficient (*CLN*) match
         target integrated values given by the user.
         
         The user must specify two basis functions for correcting the *CY*
@@ -1816,6 +1816,88 @@ class CaseLL(object):
         # Modify the loads
         self.CY  = self.CY  + x[0]*CY1  + x[1]*CY2
         self.CLN = self.CLN + x[0]*CLN1 + x[1]*CLN2
+    
+    
+    # Correct *CA* using a correction function
+    def CorrectCA(self, CA, CA1):
+        """Correct *CA* using an unnormalized function
+        
+        This function takes a function with the same dimensions as *LL.CA* and
+        adds a multiple of it so that the integrated axial force coefficient
+        (*CA*) matches a target integrated value given by the user.
+        
+        :Call:
+            >>> LL.CorrectCA(CA, CA1)
+        :Inputs:
+            *LL*: :class:`cape.lineLoad.CaseLL`
+                Instance of single-case line load interface
+            *CA*: :class:`float`
+                Target integrated value of *CA*
+            *CA1*: :class:`np.ndarray` (*LL.x.size*)
+                Basis function to correct *CA*
+        :Versions:
+            * 2016-12-27 ``@ddalle``: First version
+        """
+        # Get the current loads
+        CA0  = np.trapz(self.CA,  self.x)
+        # Correction values
+        dCA = CA - CA0
+        # Exit if close
+        if np.abs(dCA) <= 1e-4: return
+        # Integrated values from the input functions
+        dCA1 = np.trapz(CA1, self.x)
+        # Normalize
+        if np.abs(dCA1)>1e-4: CA1 /= dCA1
+        # Check for error
+        if np.abs(dCA1) < 1e-8:
+            # Not linearly independent
+            print("WARNING: Basis function does not change *CA*")
+            return
+        # Solve for the weights
+        x = dCA / dCA1
+        # Modify the loads
+        self.CA = self.CA + x*CA1
+    
+    
+    # Correct *CLL* using a correction function
+    def CorrectCLL(self, CLL, CLL1):
+        """Correct *CLL* using an unnormalized function
+        
+        This function takes a function with the same dimensions as *LL.CLL* and
+        adds a multiple of it so that the integrated rolling moment coefficient
+        (*CLL*) matches a target integrated value given by the user.
+        
+        :Call:
+            >>> LL.CorrectCLL(CLL, CLL1)
+        :Inputs:
+            *LL*: :class:`cape.lineLoad.CaseLL`
+                Instance of single-case line load interface
+            *CLL*: :class:`float`
+                Target integrated value of *CLL*
+            *CLL1*: :class:`np.ndarray` (*LL.x.size*)
+                Basis function to correct *CLL*
+        :Versions:
+            * 2016-12-27 ``@ddalle``: First version
+        """
+        # Get the current loads
+        CLL0 = np.trapz(self.CLL, self.x)
+        # Correction values
+        dCLL = CLL - CLL0
+        # Exit if close
+        if np.abs(dCLL) <= 1e-4: return
+        # Integrated values from the input functions
+        dCLL1 = np.trapz(CLL1, self.x)
+        # Normalize
+        if np.abs(dCLL1)>1e-4: CLL1 /= dCLL1
+        # Check for error
+        if np.abs(dCLL1) < 1e-8:
+            # Not linearly independent
+            print("WARNING: Basis function does not change *CLL*")
+            return
+        # Solve for the weights
+        x = dCLL / dCLL1
+        # Modify the loads
+        self.CLL= self.CLL + x*CLL1
         
   # >
 # class CaseLL

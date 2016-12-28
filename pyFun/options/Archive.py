@@ -10,6 +10,10 @@ PltDict = [
     {"pyfun_tec": ["*.plt", "*_tec_*.dat"]}
 ]
 
+# Base files
+pyfunDict = {"pyfun": ["case.json", "conditions.json"]}
+fun3dDict = {"fun3d": ["fun3d.*"]}
+
 # Turn dictionary into Archive options
 def auto_Archive(opts):
     """Automatically convert dict to :mod:`pyCart.options.Archive.Archive`
@@ -83,7 +87,7 @@ class Archive(cape.options.Archive.Archive):
         :Call:
             >>> opts.apply_ArchiveTemplate()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`pyFun.options.Options`
                 Options interface
         :Versions:
             * 2016-02-29 ``@ddalle``: First version
@@ -93,7 +97,6 @@ class Archive(cape.options.Archive.Archive):
         # Extension
         ext = self.get_ArchiveExtension()
         # Files/folders to delete prior to archiving
-        self.add_ArchivePreDeleteFiles(Plot3DDict)
         self.add_ArchivePreDeleteFiles("*.bomb")
         self.add_ArchivePreDeleteFiles("core.*")
         self.add_ArchivePreDeleteFiles("nan_locations*")
@@ -103,9 +106,12 @@ class Archive(cape.options.Archive.Archive):
         # Files to delete before saving
         self.add_ArchivePreUpdateFiles([])
         # Post-archiving
-        self.add_ArchivePostTarGroups({"run": "run.[0-9][0-9]*"})
-        self.add_ArchivePostTarGroups({"out": "*.out"})
+        self.add_ArchivePostTarGroups({"fm": "*_fm_*.dat"})
+        self.add_ArchivePostTarGroups({"run": ["run.*", "*hist.dat"]})
         self.add_ArchivePostTarDirs(["fomo", "lineload", "aero"])
+        self.add_ArchivePostTarDirs(PltDict)
+        self.add_ArchivePostTarDirs(pyfunDict)
+        self.add_ArchivePostTarDirs(fun3dDict)
         # Individual archive files
         self.add_ArchiveArchiveFiles(["*.flow"])
         # Files/folders to delete after archiving
