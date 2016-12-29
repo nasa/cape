@@ -113,7 +113,7 @@ class Archive(cape.options.Archive.Archive):
         self.add_ArchivePostTarDirs(pyfunDict)
         self.add_ArchivePostTarDirs(fun3dDict)
         # Individual archive files
-        self.add_ArchiveArchiveFiles(["*.flow"])
+        self.add_ArchiveArchiveFiles(["*.flow", "*.ugrid"])
         # Files/folders to delete after archiving
         self.add_ArchivePostDeleteFiles([])
         self.add_ArchivePostDeleteDirs([])
