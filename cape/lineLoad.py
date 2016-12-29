@@ -205,7 +205,7 @@ class DBLineLoad(dataBook.DBBase):
         # Make sure it's not a list
         if type(self.CompID).__name__ == 'list':
             # Take the first component
-            self.RefComp = self.RefComp[0]
+            self.RefComp = self.CompID[0]
         else:
             # One component listed; use it
             self.RefComp = self.CompID

@@ -61,7 +61,7 @@ import xml.etree.ElementTree as ET
 import numpy as np
 
 # Utility functions and classes from CAPE
-from .util    import RangeString
+from .util    import RangeString, SplitLineGeneral
 from .options import util
 
 # Configuration class
@@ -909,6 +909,308 @@ class Config:
         # Output
         return cfg
 # class Config
+
+# Config based on MIXSUR
+class ConfigMIXSUR(object):
+    """Class to build a triangulation configuration from a ``mixsur`` file
+    
+    :Call:
+        >>> cfg = ConfigMIXSUR(fname="mixsur.i")
+    :Inptus:
+        *fname*: {``"mixsur.i"``} | :class:`str`
+            Name of ``mixsur`` input file
+    :Outputs:
+        *cfg*: :class:`cape.config.ConfigMIXSUR`
+            ``mixsur``-based configuration interface
+    :Attributes:
+        *cfg.faces*: :class:`dict` (:class:`list` | :class:`int`)
+            Dict of component ID or IDs in each named face
+        *cfg.comps*: :class:`list` (:class:`str`)
+            List of components with no children
+        *cfg.parents*: :Class:`dict` (:class:`list` (:class:`str`))
+            List of parent(s) by name for each component
+        *cfg.IDs*: :class:`list` (:class:`int`)
+            List of unique component ID numbers
+    :Versions:
+        * 2016-12-29 ``@ddalle``: First version
+    """
+    # Initialization method
+    def __init__(self, fname="mixsur.i"):
+        """Initialization method
+        
+        :Versions:
+            * 2016-12-29 ``@ddalle``: First version
+        """
+        # Initialize the data products
+        self.faces = {}
+        self.comps = []
+        self.parents = {}
+        # Grid list, for inputs
+        self.grids = []
+        # Open the file
+        f = open(fname)
+        # Read the first line
+        V = self.readline(f)
+        # Save the Mach number, angle of attack, and other conditions
+        try:
+            self.FSMACH = float(V[0])
+            self.ALPHA  = float(V[1])
+            self.BETA   = float(V[2])
+            self.REY    = float(V[3])
+            self.GAMINF = float(V[4])
+            self.TINF   = float(V[5])
+        except Exception:
+            pass
+        # Skip the next line
+        V = self.readline(f)
+        # Read reverence quantities
+        V = self.readline(f)
+        # Save reference quantities
+        try:
+            self.Lref = float(V[0])
+            self.Aref = float(V[1])
+            self.XMRP = float(V[2])
+            self.YMRP = float(V[3])
+            self.ZMRP = float(V[4])
+        except Exception:
+            pass
+        # Number of components
+        V = self.readline(f)
+        self.NSURF = int(V[0])
+        # Initialize components
+        self.IDs = range(self.NSURF)
+        # Loop through the actual inputs, which we don't really need for cfg
+        for k in range(self.NSURF):
+            # Read the number of grids
+            V = self.readline(f)
+            # Number of subsets
+            nsub = int(V[0])
+            # Initialize component grid information
+            comp = {}
+            # Save number of subsets
+            comp["NSUBS"] = nsub
+            # Initialize grids
+            subs = np.zeros((nsub,8))
+            # Loop through subsets
+            for j in range(nsub):
+                # Read the subset input
+                V = self.readline(f)
+                # Save the information
+                for i in range(8): subs[j,i] = int(V[i])
+            # Save the subsets
+            comp["SUBS"] = subs
+            # Read the number of PRIS
+            V = self.readline(f)
+            # Number of PRIs
+            npri = int(V[0])
+            # Initialize PRIs
+            pris = np.zeros((npri,2))
+            # Loop through PRIs
+            for j in range(npri):
+                # Read the subset input
+                V = self.readline(f)
+                # Save the information
+                for i in range(2): pris[j,i] = int(V[i])
+            # Save PRIs
+            comp["PRIS"] = pris
+            # Append component
+            self.grids.append(comp)
+        # Read the number of components
+        V = self.readline(f)
+        ncomp = int(V[0])
+        # Loop through number of components (including groups)
+        for k in range(ncomp):
+            # Read the name of the component
+            V = self.readline(f)
+            face = V[0]
+            # Read the number of component IDs 
+            V = self.readline(f)
+            ni = int(V[0])
+            # Read the components
+            V = self.readline(f)
+            # Determine if this is a single component or group
+            if ni == 1:
+                # Convert component to integer
+                compID = int(V[0])
+                # Add to list of components
+                self.comps.append(face)
+            else:
+                # Convert list of component numbers to integers
+                compID = [int(v) for v in V[:ni]]
+            # Save components
+            self.faces[face] = compID
+            # Initialize parents
+            self.parents[face] = []
+        # Close the file
+        f.close()
+        # Process parents
+        for face in self.faces:
+            # Get parents
+            self.FindParents(face)
+    
+    # Check parent
+    def FindParents(self, face):
+        """Find the parents of a single face
+        
+        :Call:
+            >>> cfg.FindParents(face)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigMIXSUR`
+                Configuration interface for ``mixsur`` triangulations
+            *face*: :class:`str`
+                Name of face to check
+        :Versions:
+            * 2016-12-29 ``@ddalle``: First version
+        """
+        # Component
+        comp = self.faces[face]
+        # Initialize parents
+        parents = []
+        # Check type
+        if face in self.comps:
+            # Single face
+            for par in self.faces:
+                # Do not process single comps
+                if par in self.comps: continue
+                # Check if this comp is in there
+                if comp in self.faces[par]:
+                    parents.append(par)
+        else:
+            # *face* is a group
+            for par in self.faces:
+                # Do not process single comps
+                if par in self.comps: continue
+                # Do not process self
+                if par == face: continue
+                # Get components in *par*
+                comppar = self.faces[par]
+                # Initialize parent test
+                qpar = True
+                # Loop through components in *face*
+                for c in comp:
+                    # Check if *c* is not in *par*
+                    if c not in comppar:
+                        qpar = False
+                        break
+                # Append to list if *qpar* is ``True``
+                if qpar:
+                    parents.append(par)
+        # Save the parent list
+        self.parents[face] = parents
+            
+    
+    # Method to copy a configuration
+    def Copy(self):
+        """Copy a configuration interface
+        
+        :Call:
+            >>> cfg2 = cfg.Copy()
+        :Inputs:
+            *cfg*: :class:`cape.config.Config`
+                Instance of configuration class
+        :Outputs:
+            *cfg2*: :class:`cape.config.Config`
+                Copy of input
+        :Versions:
+            * 2014-11-24 ``@ddalle``: First version
+        """
+        # Initialize object.
+        cfg = Config()
+        # Copy the dictionaries.
+        cfg.faces = self.faces.copy()
+        cfg.parents = self.parents.copy()
+        cfg.comps = list(self.comps)
+        cfg.IDs = list(self.IDs)
+        # Output
+        return cfg
+            
+    # Read a line of text
+    def readline(self, f=None, n=100):
+        """Read a non-blank line from a CGT-like input file
+        
+        :Call:
+            >>> V = cfg.readline(f=None, n=100)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigMIXSUR`
+                Configuration interface for ``mixsur``
+            *f*: {``None``} | :class:`file`
+                File handle; defaults to *cfg.f*
+            *n*: {``100``} | positive :class:`int`
+                Maximum number of lines to check
+        :Outputs:
+            *V*: :class:`list` (:class:`str`)
+                List of substrings split by commas or spaces
+        :Versions:
+            * 2016-12-29 ``@ddalle``: First version
+        """
+        # Default file handle
+        if f is None:
+            try:
+                # See if one is stored in *self*
+                f = self.f
+            except AttributeError:
+                # Nothing to read!
+                return
+        # Initialize null output
+        V = []
+        # Line counter
+        nline = 0
+        # Loop until nonempty line is read
+        while (len(V) == 0) and (nline < n):
+            # Read the next line
+            line = f.readline()
+            # Check for end-of-file (EOF)
+            if line == "": return
+            # Split it
+            V = SplitLineGeneral(line)
+        # Output
+        return V
+    
+    # Method to get CompIDs from generic input
+    def GetCompID(self, face):
+        """Return a list of component IDs from generic input
+        
+        :Call:
+            >>> compID = cfg.GetCompID(face)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigMIXSUR`
+                Instance of configuration class
+            *face*: :class:`str` | :class:`int` | :class:`list`
+                Component number, name, or list of component numbers and names
+        :Outputs:
+            *compID*: :class:`list` (:class:`int`)
+                List of component IDs
+        :Versions:
+            * 2014-10-12 ``@ddalle``: First version
+            * 2016-12-29 ``@ddalle``: Copied from ``Config.xml``
+        """
+        # Initialize the list.
+        compID = []
+        # Process the type.
+        if type(face).__name__ in ['list', 'numpy.ndarray']:
+            # Loop through the inputs.
+            for f in face:
+                # Call this function so it passes to the non-array portion.
+                compID += self.GetCompID(f)
+        elif face in self.faces:
+            # Process the face
+            cID = self.faces[face]
+            # Check if it's a list.
+            if type(cID).__name__ == 'list':
+                # Add the list.
+                compID += cID
+            else:
+                # Single component.
+                compID.append(cID)
+        else:
+            # Just append it (as an integer).
+            try:
+                compID.append(int(face))
+            except Exception:
+                pass
+        # Output
+        return compID
+        
 
 # Alternate configuration
 class ConfigJSON(object):

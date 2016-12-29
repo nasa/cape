@@ -14,6 +14,8 @@ import numpy as np
 import subprocess as sp
 # Import path utilities
 import os.path, sys
+# Text
+import re
 
 
 
@@ -25,7 +27,32 @@ TecFolder = os.path.join(rootFolder, "templates", "tecplot")
 # Folder containing Paraview templates
 ParaviewFolder = os.path.join(rootFolder, "templates", "paraview")
 
+# Split text by either comma or space
+def SplitLineGeneral(line):
+    """Split a string in which uses a mix of commas and spaces as delimiters
+    
+    :Call:
+        >>> V = SplitLineGeneral(line)
+    :Inputs:
+        *line*: :class:`str`
+            Text with commas, spaces, or a combination as delimiters
+    :Outputs:
+        *V*: :class:`list` (:class:`str`)
+            List of values split by delimiters
+    :Versions:
+        * 2016-12-29 ``@ddalle``: First version
+    """
+    # Split using regular expressions (after stripping white space)
+    V = re.split("[\s\,]+", line.strip())
+    # Check for empty
+    if (len(V) == 1) and (V[0] == ""):
+        # Return an empty state instead
+        return []
+    else:
+        # Return the list
+        return V
 
+# Convert a list of numbers to a compact string
 def RangeString(rng):
     """Convert a list of ascending integers to a string like "1-10,12,14-15"
     

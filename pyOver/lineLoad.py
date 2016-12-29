@@ -1,6 +1,6 @@
 """
-FUN3D Sectional Loads Module: :mod:`pyFun.lineLoad`
-===================================================
+OVERFLOW Sectional Loads Module: :mod:`pyOver.lineLoad`
+========================================================
 
 This module contains functions for reading and processing sectional loads.  It
 is a submodule of :mod:`pyFun.dataBook`.
@@ -10,7 +10,7 @@ is a submodule of :mod:`pyFun.dataBook`.
 """
 
 # File interface
-import os, glob
+import os, glob, shutil
 # Basic numerics
 import numpy as np
 # Date processing
@@ -19,8 +19,7 @@ from datetime import datetime
 # Utilities or advanced statistics
 from . import util
 from . import case
-from . import plt
-from . import mapbc
+from . import config
 from cape import tar
 # Line load template
 import cape.lineLoad
@@ -44,7 +43,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         *RootDir*: {``"None"``} | :class:`str`
             Root directory for the configuration
     :Outputs:
-        *DBL*: :class:`pyCart.lineLoad.DBLineLoad`
+        *DBL*: :class:`pyOver.lineLoad.DBLineLoad`
             Instance of line load data book
         *DBL.nCut*: :class:`int`
             Number of *x*-cuts to make, based on options in *cart3d*
@@ -74,6 +73,12 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         """
         # Figure out reference component
         self.CompID = self.opts.get_DataBookCompID(self.comp)
+        # Get input files
+        fmixsur  = self.opts.get_DataBook_mixsur(self.comp)
+        fsplitmq = self.opts.get_DataBook_splitmq(self.comp)
+        # Get absolute file paths
+        self.mixsur  = os.path.join(self.RootDir, fmixsur)
+        self.splitmq = os.path.join(self.RootDir, fsplitmq)
         # Read MapBC
         try:
             # Name of the MapBC file (from the input, not a case)
@@ -85,22 +90,20 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         # Make sure it's not a list
         if type(self.CompID).__name__ == 'list':
             # Take the first component
-            self.RefComp = self.RefComp[0]
+            self.RefComp = self.CompID[0]
         else:
             # One component listed; use it
             self.RefComp = self.CompID
+        # Try to read the configuration
+        try:
+            # Read the MIXSUR.I file
+            self.conf = config.ConfigMIXSUR(self.mixsur)
+        except Exception:
+            pass
         # Try to get all components
         try:
             # Use the configuration interface
             self.CompID = self.conf.GetCompID(self.CompID)
-        except Exception:
-            pass
-        # Convert to MapBC numbers, since that's how the PLT file numbers them
-        try:
-            # Convert component IDs to surface IDs
-            self.CompID = [
-                self.MapBC.GetSurfID(compID) for compID in self.CompID
-            ]
         except Exception:
             pass
     
@@ -160,8 +163,15 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             * 2016-12-20 ``@ddalle``: First version
             * 2016-12-21 ``@ddalle``: Added PBS
         """
-        # Get name of plt file
-        fplt = ftriq.rstrip('triq') + 'plt'
+        # Do the SPLITMQ and MIXSUR files exist?
+        qsplitq = os.path.isfile(self.splitmq)
+        qmixsur = os.path.isfile(self.mixsur)
+        # Local names for input files
+        fsplitmq = 'splitmq.%s.i' % self.comp
+        fmixsur  = 'mixsur.%s.i' % self.comp
+        # If these files exist, copy to this folder
+        if qsplitq: shutil.copy(self.splitmq, ftplitmq)
+        if qmixsur: shutil.copy(self.mixsur,  fmixsur)
         # Check for PBS script
         if kw.get('qpbs', False):
             # Get the file handle
@@ -170,6 +180,15 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             if f is None:
                 raise ValueError(
                     "No open file handle for preprocessing TRIQ file")
+            # Check for ``splitmq``
+            if qsplitq:
+                f.write("\n# Extract surface and L=2 from solution\n")
+                f.write("splitmq < %s > splitmq.%s.o\n" %
+                    (fsplitmq, self.comp))
+            # Check for ``mixsur``
+            if qmixsur:
+                f.write("\n# Use mixsur to create triangulation\n")
+                f.write("mixsur < %s > mixsur.%s.o\n" % (fmixsur, self.comp))
             # Run a script
             f.write("\n# Convert PLT file to TRIQ\n")
             f.write("pf_Plt2Triq.py %s --mach %s\n" % (fplt, self.mach))

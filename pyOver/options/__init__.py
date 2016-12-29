@@ -432,9 +432,19 @@ class Options(cape.options.Options):
     # Data book
     # =========
    # <
+   
+    # Input file for ``mixsur``
+    def get_DataBook_mixsur(self, comp):
+        self._DataBook()
+        return self["DataBook"].get_DataBook_mixsur(comp)
+        
+    # Input file for ``splitmq``
+    def get_DataBook_splitmq(self, comp):
+        self._DataBook()
+        return self["DataBook"].get_DataBook_splitmq(comp)
     
     # Copy over the documentation.
-    for k in []:
+    for k in ["DataBook_mixsur", "DataBook_splitmq"]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
    # >
