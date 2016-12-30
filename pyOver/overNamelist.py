@@ -9,6 +9,190 @@ manipulating OVERFLOW namelists.
 # Import the base file control class.
 import cape.namelist2
 
+# Function to compare boundary indices
+def gti(a, b):
+    """Altered greater-than test for Fortran array indices
+    
+    Negative indices are always considered to be greater than positive ones,
+    and negative indices closer to zero are the largest.  The general pattern
+    is ``1 < 2 < 20 < -20 < -1``, and ``-1`` is the maximum possible value.
+    
+    :Call:
+        >>> q = gti(a, b)
+    :Inputs:
+        *a*: :class:`int` | :class:`float`
+            First test value
+        *b*: :class:`int` | :class:`float`
+            Second test value
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether or not *a* > *b*
+    :Versions:
+        * 2016-12-30 ``@ddalle``: First version
+    """
+    # Check signs
+    if a*b > 0:
+        # Both negative of both positive; use normal test
+        return a > b
+    elif a < 0:
+        # *a* is negative and *b* is positive
+        return True
+    elif b < 0:
+        # *b* is negative and *a* is positive
+        return False
+    else:
+        # Can't process ``0``
+        raise ValueError("Index of ``0`` is not valid for Fortran")
+
+# Function to compare boundary indices
+def gteqi(a, b):
+    """Altered greater-than-or-equal-to test for Fortran array indices
+    
+    Negative indices are always considered to be greater than positive ones,
+    and negative indices closer to zero are the largest.  The general pattern
+    is ``1 < 2 < 20 < -20 < -1``, and ``-1`` is the maximum possible value.
+    
+    :Call:
+        >>> q = gteqi(a, b)
+    :Inputs:
+        *a*: :class:`int` | :class:`float`
+            First test value
+        *b*: :class:`int` | :class:`float`
+            Second test value
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether or not *a* > *b*
+    :Versions:
+        * 2016-12-30 ``@ddalle``: First version
+    """
+    # Check if the two values are equal
+    if a == b:
+        # Equal
+        return True
+    else:
+        # Go to altered gt test
+        return gti(a, b)
+
+# Function to compare boundary indices
+def lti(a, b):
+    """Altered less-than test for Fortran array indices
+    
+    Negative indices are always considered to be greater than positive ones,
+    and negative indices closer to zero are the largest.  The general pattern
+    is ``1 < 2 < 20 < -20 < -1``, and ``-1`` is the maximum possible value.
+    
+    :Call:
+        >>> q = lti(a, b)
+    :Inputs:
+        *a*: :class:`int` | :class:`float`
+            First test value
+        *b*: :class:`int` | :class:`float`
+            Second test value
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether or not *a* > *b*
+    :Versions:
+        * 2016-12-30 ``@ddalle``: First version
+    """
+    # Check signs
+    if a*b > 0:
+        # Both negative of both positive; use normal test
+        return a < b
+    elif a < 0:
+        # *a* is negative and *b* is positive
+        return False
+    elif b < 0:
+        # *b* is negative and *a* is positive
+        return True
+    else:
+        # Can't process ``0``
+        raise ValueError("Index of ``0`` is not valid for Fortran")
+
+# Function to compare boundary indices
+def lteqi(a, b):
+    """Altered less-than-or-equal-to test for Fortran array indices
+    
+    Negative indices are always considered to be greater than positive ones,
+    and negative indices closer to zero are the largest.  The general pattern
+    is ``1 < 2 < 20 < -20 < -1``, and ``-1`` is the maximum possible value.
+    
+    :Call:
+        >>> q = lteqi(a, b)
+    :Inputs:
+        *a*: :class:`int` | :class:`float`
+            First test value
+        *b*: :class:`int` | :class:`float`
+            Second test value
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether or not *a* > *b*
+    :Versions:
+        * 2016-12-30 ``@ddalle``: First version
+    """
+    # Check if the two values are equal
+    if a == b:
+        # Equal
+        return True
+    else:
+        # Go to altered gt test
+        return lti(a, b)
+
+# Altered maximum function
+def maxi(a, b):
+    """Altered maximum function for array indices
+    
+    Negative indices are always considered to be greater than positive ones,
+    and negative indices closer to zero are the largest.  The general pattern
+    is ``1 < 2 < 20 < -20 < -1``, and ``-1`` is the maximum possible value.
+    
+    :Call:
+        >>> c = maxi(a, b)
+    :Inputs:
+        *a*: :class:`int` | :class:`float`
+            First test value
+        *b*: :class:`int` | :class:`float`
+            Second test value
+    :Outputs:
+        *c*: :class:`int` | :class:`float`
+            Either *a* or *b* depending on which is greater
+    :Versions:
+        * 2016-12-30 ``@ddalle``: First version
+    """
+    # Test a,b
+    if gti(a, b):
+        return a
+    else:
+        return b
+
+# Altered minimum function
+def mini(a, b):
+    """Altered minimum function for array indices
+    
+    Negative indices are always considered to be greater than positive ones,
+    and negative indices closer to zero are the largest.  The general pattern
+    is ``1 < 2 < 20 < -20 < -1``, and ``-1`` is the maximum possible value.
+    
+    :Call:
+        >>> c = maxi(a, b)
+    :Inputs:
+        *a*: :class:`int` | :class:`float`
+            First test value
+        *b*: :class:`int` | :class:`float`
+            Second test value
+    :Outputs:
+        *c*: :class:`int` | :class:`float`
+            Either *a* or *b* depending on which is greater
+    :Versions:
+        * 2016-12-30 ``@ddalle``: First version
+    """
+    # Use altered test
+    if lti(a, b):
+        return a
+    else:
+        return b
+# def mini
+
+
 # Base this class off of the main file control class.
 class OverNamelist(cape.namelist2.Namelist2):
     """
@@ -91,6 +275,90 @@ class OverNamelist(cape.namelist2.Namelist2):
     
     # Get grid number (alias)
     GetGridNumber = GetGridNumberByName
+    
+    # Write SPLITMQ.I file
+    def WriteSplitmqI(self, fname="splitmq.i", wall=True):
+        """Write a ``splitmq.i`` file to extract surface and second layer
+        
+        :Call:
+            >>> nml.WriteSplitmqI(fname="splitmq.i", wall=True)
+        :Inputs:
+            *nml*: :clas:`pyOver.overNamelist.OverNamelist`
+                Interface to OVERFLOW input namelist
+            *fname*: {``"splitmq.i"``} | :class:`str`
+                Name of ``splitmq`` input file to write
+            *wall*: {``True``} | ``False``
+                Only include walls if ``True``; else include thrust BCs
+        :Versions:
+            * 2016-12-30 ``@ddalle``: First version
+        """
+        # Open the output file
+        f = open(fname, 'w')
+        # Write header
+        f.write('q.p3d\n')
+        f.write('q.save\n')
+        # Valid boundary condition types
+        wtyp = range(1,10)
+        # Check for other surface BCs such as thrust BCs
+        if wall == False:
+            wtyp += [42, 153]
+        # Loop through grids
+        gn = 0
+        for grid in self.GridNames:
+            # Increase grid number
+            gn += 1
+            # Get boundary conditions and directions
+            ibtyp = self.GetKeyFromGrid(grid, 'BCINP', 'IBTYP')
+            ibdir = self.GetKeyFromGrid(grid, 'BCINP', 'IBDIR')
+            # Check for off-body grid
+            if ibtyp is None: continue
+            # Check for other non-boundary grid
+            J = np.intersect1d(ibtyp, [1,2,3,4,5,6,7,8,9])
+            # If no walls, skip this grid
+            if len(J) == 0: continue
+            # Get range of indices
+            jbcs = self.GetKeyFromGrid(grid, 'BCINP', 'JBCS')
+            jbce = self.GetKeyFromGrid(grid, 'BCINP', 'JBCE')
+            kbcs = self.GetKeyFromGrid(grid, 'BCINP', 'KBCS')
+            kbce = self.GetKeyFromGrid(grid, 'BCINP', 'KBCE')
+            lbcs = self.GetKeyFromGrid(grid, 'BCINP', 'LBCS')
+            lbce = self.GetKeyFromGrid(grid, 'BCINP', 'LBCE')
+            # Loop through the three directions
+            for k in [1, 2, 3]:
+                # Initialize range
+                ja = -1; jb = 1
+                ka = -1; kb = 1
+                la = -1; lb = 1
+                # Loop through boundary conditions, looking only for walls
+                for i in range(len(ibtyp)):
+                    # Check for valid BC type
+                    if ibtyp[i] not in wtyp: continue
+                    # Check direction
+                    if ibdir[i] != k: continue
+                    # Compare boundaries
+                    ja = mini(ja, jbcs[i]); jb = maxi(jb, jbcs[i])
+                    ka = mini(ka, kbcs[i]); kb = maxi(kb, kbcs[i])
+                    la = mini(la, lbcs[i]); lb = maxi(lb, lbcs[i])
+                # Check for valid range
+                if (k==3) and lteqi(ja,jb) and lteqi(ka,kb):
+                    # Write L=1,2
+                    la = 1; lb = 2
+                elif (k==1) and lteqi(ka,kb) and lteqi(la,lb):
+                    # Write J=1,2
+                    ja = 1; jb = 2
+                elif (k==2) and lteqi(la,lb) and lteqi(ja,jb):
+                    # Write k=1,2
+                    ka = 1; kb = 2
+                else:
+                    continue
+                # Write the range
+                f.write("%5i," % gn)
+                f.write("%9i,%6i,%6i," % (ja, jb, 1))
+                f.write("%9i,%6i,%6i," % (ka, kb, 1))
+                f.write("%9i,%6i,%6i," % (la, lb, 1))
+                f.write("\n")
+        # Close the file
+        f.close()
     
     # Apply dictionary of options to a grid
     def ApplyDictToGrid(self, grdnam, opts):

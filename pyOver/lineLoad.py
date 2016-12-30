@@ -112,14 +112,14 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         """Get most recent ``triq`` file and its associated iterations
         
         :Call:
-            >>> qtriq, ftriq, n, i0, i1 = DBL.GetTriqFile()
+            >>> qpre, fq, n, i0, i1 = DBL.GetTriqFile()
         :Inputs:
             *DBL*: :class:`pyCart.lineLoad.DBLineLoad`
                 Instance of line load data book
         :Outputs:
-            *qtriq*: {``False``}
+            *qpre*: {``False``}
                 Whether or not to convert file from other format
-            *ftriq*: :class:`str`
+            *fq*: :class:`str`
                 Name of ``triq`` file
             *n*: :class:`int`
                 Number of iterations included
@@ -131,30 +131,40 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             * 2016-12-19 ``@ddalle``: Added to the module
         """
         # Get properties of triq file
-        fplt, n, i0, i1 = GetPltFile()
+        fq, n, i0, i1 = GetQFile()
         # Get the corresponding .triq file name
-        ftriq = fplt.rstrip('.plt') + '.triq'
-        # Check if the TRIQ file exists
-        if os.path.isfile(ftriq):
-            # No conversion needed
-            qtriq = False
+        ftriq = 'grid.i.triq'
+        # Check for 'q.strt'
+        if os.path.isfile('q.p3d'):
+            # Get the source to 'q.p3d'
+            fsrc = os.path.split(os.path.realname('q.p3d'))[-1]
+        elif os.path.isfile('q.save'):
+            # Get the source to 'q.save'
+            fsrc = os.path.split(os.path.realname('q.save'))[-1]
         else:
-            # Need to convert PLT file to TRIQ
-            qtriq = True
+            # No source just yet
+            fsrc = None
+        # Check if the TRIQ file exists
+        if os.path.isfile(ftriq) and (fq == fsrc):
+            # No conversion needed
+            qpre = False
+        else:
+            # Need to run ``overint`` to get triq file
+            qpre = True
         # Output
-        return qtriq, ftriq, n, i0, i1
+        return qpre, fq, n, i0, i1
     
     # Preprocess triq file (convert from PLT)
-    def PreprocessTriq(self, ftriq, **kw):
+    def PreprocessTriq(self, fq, **kw):
         """Perform any necessary preprocessing to create ``triq`` file
         
         :Call:
-            >>> ftriq = DBL.PreprocessTriq(ftriq, qpbs=False, f=None)
+            >>> ftriq = DBL.PreprocessTriq(fq, qpbs=False, f=None)
         :Inputs:
             *DBL*: :class:`pyFun.lineLoad.DBLineLoad`
                 Line load data book
             *ftriq*: :class:`str`
-                Name of triq file
+                Name of q file
             *qpbs*: ``True`` | {``False``}
                 Whether or not to create a script and submit it
             *f*: {``None``} | :class:`file`
@@ -200,7 +210,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
                 ierr = os.system(cmd)
                 # Check for errors
                 if ierr:
-                    return SystemError("Failure while running ``splitmq``")
+                    raise SystemError("Failure while running ``splitmq``")
             # Check for ``mixsur``
             if qmixsur:
                 # Command to mixsur
@@ -211,7 +221,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
                 ierr = os.system(cmd)
                 # Check for errors
                 if ierr:
-                    return SystemError("Failure while running ``mixsur``")
+                    raise SystemError("Failure while running ``mixsur``")
         
 # class DBLineLoad
     
@@ -283,14 +293,16 @@ class CaseSeam(cape.lineLoad.CaseSeam):
 
 
 # Function to determine newest triangulation file
-def GetPltFile():
-    """Get most recent boundary ``plt`` file and its associated iterations
+def GetQFile():
+    """Get most recent OVERFLOW ``q`` file and its associated iterations
+    
+    Averaged solution files, such as ``q.avg`` take precedence.
     
     :Call:
-        >>> fplt, n, i0, i1 = GetPltFile()
+        >>> fq, n, i0, i1 = GetQFile()
     :Outputs:
-        *fplt*: :class:`str`
-            Name of ``plt`` file
+        *fq*: :class:`str`
+            Name of ``q`` file
         *n*: :class:`int`
             Number of iterations included
         *i0*: :class:`int`
@@ -298,93 +310,22 @@ def GetPltFile():
         *i1*: :class:`int`
             Last iteration in the averaging
     :Versions:
-        * 2016-12-20 ``@ddalle``: First version
+        * 2016-12-30 ``@ddalle``: First version
     """
-    # Read *rc* options to figure out iteration values
-    rc = case.ReadCaseJSON()
-    # Get current phase number
-    j = case.GetPhaseNumber(rc)
-    # Read the namelist to get prefix and iteration options
-    nml = case.GetNamelist(rc, j)
-    # =============
-    # Best PLT File
-    # =============
-    # Prefix
-    proj = case.GetProjectRootname(nml=nml)
-    # Create glob to search for
-    fglb = '%s_tec_boundary_timestep[1-9]*.plt' % proj
-    # Check in working directory?
-    if rc.get_Dual():
-        # Look in the 'Flow/' folder
-        fglb = os.path.join('Flow', fglb)
-    # Get file
-    fplt = case.GetFromGlob(fglb)
-    # Get the iteration number
-    nplt = int(fplt.rstrip('.plt').split('timestep')[-1])
-    # ============================
-    # Actual Iterations after Runs
-    # ============================
-    # Glob of ``run.%02i.%i`` files
-    fgrun = case.glob.glob('run.[0-9][0-9].[1-9]*')
-    # Form dictionary of iterations
-    nrun = []
-    drun = {}
-    # Loop through files
-    for frun in fgrun:
-        # Get iteration number
-        ni = int(frun.split('.')[2])
-        # Get phase number
-        ji = int(frun.split('.')[1])
-        # Save
-        nrun.append(ni)
-        drun[ni] = ji
-    # Sort on iteration number
-    nrun.sort()
-    nrun = np.array(nrun)
-    # Determine the last run that terminated before this PLT file was created
-    krun = np.where(nplt > nrun)[0]
-    # If no 'run.%02i.%i' before *nplt*, then use 0
-    if len(krun) == 0:
-        # Use current phase as reported
-        nprev = 0
-        nstrt = 1
-        jstrt = j
+    # Best Q File
+    fq = case.GetQ()
+    # Check for q.avg iteration count
+    n = case.checkqavg(fq)
+    # Read the current "time" parameter
+    i1 = case.checkqt(fq)
+    # Get start parameter
+    if (n is not None) and (i1 is not None):
+        # Calculate start iteration
+        i0 = i1 - n + 1
     else:
-        # Get the phase from the last run that finished before *nplt*
-        kprev = krun[-1]
-        nprev = nrun[kprev]
-        jprev = drun[nprev]
-        # Have we moved to the next phase?
-        if nprev >= rc.get_PhaseIters(jprev):
-            # We have *nplt* from the next phase
-            mprev = rc.get_PhaseSequence().index(jprev)
-            jstrt = rc.get_PhaseSequence(mprev+1)
-        else:
-            # Still running phase *jprev* to create *fplt*
-            jstrt = jprev
-        # First iteration included in PLT file
-        nstrt = nprev + 1
-    # Make sure we have the right namelist
-    if j != jstrt:
-        # Read the new namelist
-        j = jstrt
-        nml = case.GetNamelist(rc, j)
-    # ====================
-    # Iteration Statistics
-    # ====================
-    # Check for averaging
-    qavg = nml.GetVar('time_avg_params', 'itime_avg')
-    # Number of iterations
-    if qavg:
-        # Time averaging included
-        nStats = nplt - nprev
-    else:
-        # One iteration
-        nStats = 1
-        nstrt = nplt
-    # ======
+        # Cannot determine start iteration
+        i0 = None
     # Output
-    # ======
-    return fplt, nStats, nstrt, nplt
-# def GetPltFile
+    return fplt, n, i0, i1
+# def GetQFile
             

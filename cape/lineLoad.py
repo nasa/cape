@@ -623,6 +623,10 @@ class DBLineLoad(dataBook.DBBase):
             self.WriteTriloadInput(ftriq, i)
             # Run the command
             self.RunTriload(qtriq, ftriq, qpbs=qpbs)
+            # Don't try to read results from PBS job that we *just* submitted
+            if qpbs:
+                print("  Submitted PBS job")
+                return
         # Check number of seams
         try:
             # Get seam counts
