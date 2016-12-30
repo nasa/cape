@@ -588,6 +588,50 @@ def SetRestartIter(rc, n=None):
         # Create the appropriate link.
         os.symlink(fsrc, fname)
         
+# Check the number of iterations in an average
+def checkqavg(fname):
+    """Check the number of iterations in a ``q.avg`` file
+    
+    This function works by attempting to read a Fortran record at the very end
+    of the file with exactly one (single-precision) integer. The function tries
+    both little- and big-endian interpretations. If both methods fail, it
+    returns ``1`` to indicate that the ``q`` file is a single-iteration
+    solution.
+    
+    :Call:
+        >>> nq = checkqavg(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of OVERFLOW ``q`` file
+    :Outputs:
+        *nq*: :class:`int`
+            Number of iterations included in average
+    :Versions:
+        * 2016-12-29 ``@ddalle``: First version
+    """
+    # Open the file
+    f = open(fname, 'rb')
+    # Head to the end of the file, minus 12 bytes
+    f.seek(-12, 2)
+    # Try to read as a little-endian record at the end 
+    I = np.fromfile(f, count=3, dtype="<i4")
+    # If that failed to read 3 ints, file has < 12 bits
+    if len(I) < 3:
+        return 1
+    # Check if the little-endian read came up with something
+    if (I[0] == 4) and (I[2] == 4):
+        return I[1]
+    # Try a big-endian read
+    f.seek(-12, 2)
+    I = np.fromfile(f, count=3, dtype=">i4")
+    # Check for success
+    if (I[0] == 4) and (I[2] == 4):
+        # This record makes sense
+        return I[1]
+    else:
+        # Could not interpret record; assume one-iteration q-file
+        return 1
+        
 # Get best Q file
 def GetQ():
     """Get the most recent ``q.*`` file, with ``q.avg`` taking precedence
