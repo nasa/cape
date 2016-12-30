@@ -266,14 +266,14 @@ class CaseSeam(cape.lineLoad.CaseSeam):
 
 
 # Function to determine newest triangulation file
-def GetPltFile():
-    """Get most recent boundary ``plt`` file and its associated iterations
+def GetQFile():
+    """Get most ``q.*`` solution file and its associated iterations
     
     :Call:
-        >>> fplt, n, i0, i1 = GetPltFile()
+        >>> fq, n, i0, i1 = GetQFile()
     :Outputs:
-        *fplt*: :class:`str`
-            Name of ``plt`` file
+        *fq*: :class:`str`
+            Name of ``q`` file
         *n*: :class:`int`
             Number of iterations included
         *i0*: :class:`int`

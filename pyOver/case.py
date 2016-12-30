@@ -617,13 +617,16 @@ def checkqavg(fname):
     I = np.fromfile(f, count=3, dtype="<i4")
     # If that failed to read 3 ints, file has < 12 bits
     if len(I) < 3:
+        f.close()
         return 1
     # Check if the little-endian read came up with something
     if (I[0] == 4) and (I[2] == 4):
+        f.close()
         return I[1]
     # Try a big-endian read
     f.seek(-12, 2)
     I = np.fromfile(f, count=3, dtype=">i4")
+    f.close()
     # Check for success
     if (I[0] == 4) and (I[2] == 4):
         # This record makes sense
@@ -631,6 +634,54 @@ def checkqavg(fname):
     else:
         # Could not interpret record; assume one-iteration q-file
         return 1
+        
+# Check the iteration number 
+def checkqt(fname):
+    """Check the iteration number or time in a ``q`` file
+    
+    :Call:
+        >>> t = checkqt(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of OVERFLOW ``q`` file
+    :Outputs:
+        *t*: ``None`` | :class:`float`
+            Iteration number or time value
+    :Versions:
+        * 2016-12-29 ``@ddalle``: First version
+    """
+    # Open the file
+    f = open(fname, 'rb')
+    # Try to read the first record
+    I = np.fromfile(f, count=1, dtype="<i4")
+    # Check for valid read
+    if len(I) == 0:
+        f.close()
+        return None
+    # Check endianness
+    if I[0] == 4:
+        # Little endian
+        ti = "<i4"
+        tf = "<f8"
+    else:
+        ti = ">i4"
+        tf = ">f8"
+    # Read number of grids
+    ng, i = np.fromfile(f, count=2, dtype=ti)
+    # Check consistency
+    if i != 4:
+        f.close()
+        return None
+    # Read grid dimensions
+    f.seek((3*ng+2)*4)
+    # Read the header record marker and first six headers
+    f.seek(4 + 6*8)
+    # Read the time
+    t, = np.fromfile(f, count=1, dtype=tf)
+    # Close the file
+    f.close()
+    # Output
+    return t
         
 # Get best Q file
 def GetQ():
