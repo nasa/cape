@@ -189,12 +189,29 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             if qmixsur:
                 f.write("\n# Use mixsur to create triangulation\n")
                 f.write("mixsur < %s > mixsur.%s.o\n" % (fmixsur, self.comp))
-            # Run a script
-            f.write("\n# Convert PLT file to TRIQ\n")
-            f.write("pf_Plt2Triq.py %s --mach %s\n" % (fplt, self.mach))
         else:
-            # Read the plt information
-            plt.Plt2Triq(fplt, ftriq, mach=self.mach)
+            # Check for ``splitmq``
+            if qsplitq:
+                # Command to run splitmq
+                cmd = "splitmq < %s > spltimq.%s.o" % (fsplitmq, self.comp)
+                # Status update
+                print("    %s" % cmd)
+                # Run ``splitmq``
+                ierr = os.system(cmd)
+                # Check for errors
+                if ierr:
+                    return SystemError("Failure while running ``splitmq``")
+            # Check for ``mixsur``
+            if qmixsur:
+                # Command to mixsur
+                cmd = "mixsur < %s > mixsur.%s.o" % (fmixsur, self.comp)
+                # Status update
+                print("    %s" % cmd)
+                # Run ``mixsur``
+                ierr = os.system(cmd)
+                # Check for errors
+                if ierr:
+                    return SystemError("Failure while running ``mixsur``")
         
 # class DBLineLoad
     
@@ -266,14 +283,14 @@ class CaseSeam(cape.lineLoad.CaseSeam):
 
 
 # Function to determine newest triangulation file
-def GetQFile():
-    """Get most ``q.*`` solution file and its associated iterations
+def GetPltFile():
+    """Get most recent boundary ``plt`` file and its associated iterations
     
     :Call:
-        >>> fq, n, i0, i1 = GetQFile()
+        >>> fplt, n, i0, i1 = GetPltFile()
     :Outputs:
-        *fq*: :class:`str`
-            Name of ``q`` file
+        *fplt*: :class:`str`
+            Name of ``plt`` file
         *n*: :class:`int`
             Number of iterations included
         *i0*: :class:`int`
