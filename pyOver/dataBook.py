@@ -815,7 +815,7 @@ class CaseFM(cape.dataBook.CaseFM):
             # Read data
             A = np.fromfile(f, sep=" ", count=38)
             # Check for iteration
-            if n0 == 0 or A[0] > self.data[n0-1,0]:
+            if len(A)==38 and (n0 == 0 or A[0] > self.data[n0-1,0]):
                 # Save the data
                 self.data[n0+j] = A
                 # Increase count
