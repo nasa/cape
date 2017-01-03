@@ -5,9 +5,16 @@ from util import rc0
 # Base module
 import cape.options.Archive
 
-# Tecplot files
-PltDict = [
-    {"pyfun_tec": ["*.plt", "*_tec_*.dat"]}
+# Plot3D files
+Plot3DDict = [
+    {"brkset.[0-9]*": 1},
+    {"q.[0-9]*":      1},
+    {"x.[0-9]*":      1}
+]
+# Run output files
+RunDict = [
+    {"run":     "run.[0-9]*"},
+    {"out":     "*.out"}
 ]
 
 # Turn dictionary into Archive options
@@ -96,7 +103,6 @@ class Archive(cape.options.Archive.Archive):
         self.add_ArchivePreDeleteFiles(Plot3DDict)
         self.add_ArchivePreDeleteFiles("*.bomb")
         self.add_ArchivePreDeleteFiles("core.*")
-        self.add_ArchivePreDeleteFiles("nan_locations*")
         # Pre-archiving
         self.add_ArchivePreTarGroups([])
         self.add_ArchivePreTarDirs([])
