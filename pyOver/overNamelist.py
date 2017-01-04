@@ -322,7 +322,7 @@ class OverNamelist(cape.namelist2.Namelist2):
                 ibtyp = [ibtyp]
                 ibdir = [ibdir]
             # Check for other non-boundary grid
-            J = np.intersect1d(ibtyp, [1,2,3,4,5,6,7,8,9])
+            J = np.intersect1d(ibtyp, wtyp)
             # If no walls, skip this grid
             if len(J) == 0: continue
             # Get range of indices
@@ -350,9 +350,9 @@ class OverNamelist(cape.namelist2.Namelist2):
                     # Check direction
                     if ibdir[i] != k: continue
                     # Compare boundaries
-                    ja = mini(ja, jbcs[i]); jb = maxi(jb, jbcs[i])
-                    ka = mini(ka, kbcs[i]); kb = maxi(kb, kbcs[i])
-                    la = mini(la, lbcs[i]); lb = maxi(lb, lbcs[i])
+                    ja = mini(ja, jbcs[i]); jb = maxi(jb, jbce[i])
+                    ka = mini(ka, kbcs[i]); kb = maxi(kb, kbce[i])
+                    la = mini(la, lbcs[i]); lb = maxi(lb, lbce[i])
                 # Check for valid range
                 if (k==3) and lteqi(ja,jb) and lteqi(ka,kb):
                     # Write L=1,2
