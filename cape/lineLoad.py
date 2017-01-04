@@ -1654,7 +1654,7 @@ class CaseLL(object):
     # ===========
   # <
     # Correct line loads using linear basis functions
-    def CorrectLinear(self, CN, CLM, CY, CLN xMRP=0.0):
+    def CorrectLinear(self, CN, CLM, CY, CLN, xMRP=0.0):
         """Correct line loads to match target integrated values using lines
         
         :Call:
