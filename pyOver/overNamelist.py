@@ -6,6 +6,9 @@ This is a module built off of the :mod:`cape.fileCntl` module customized for
 manipulating OVERFLOW namelists.
 """
 
+# Numerics
+import numpy as np
+
 # Import the base file control class.
 import cape.namelist2
 
@@ -311,7 +314,13 @@ class OverNamelist(cape.namelist2.Namelist2):
             ibtyp = self.GetKeyFromGrid(grid, 'BCINP', 'IBTYP')
             ibdir = self.GetKeyFromGrid(grid, 'BCINP', 'IBDIR')
             # Check for off-body grid
-            if ibtyp is None: continue
+            if ibtyp is None:
+                # Off-body grid
+                continue
+            elif type(ibtyp).__name__ == "int":
+                # Integer; create list
+                ibtyp = [ibtyp]
+                ibdir = [ibdir]
             # Check for other non-boundary grid
             J = np.intersect1d(ibtyp, [1,2,3,4,5,6,7,8,9])
             # If no walls, skip this grid
@@ -323,6 +332,11 @@ class OverNamelist(cape.namelist2.Namelist2):
             kbce = self.GetKeyFromGrid(grid, 'BCINP', 'KBCE')
             lbcs = self.GetKeyFromGrid(grid, 'BCINP', 'LBCS')
             lbce = self.GetKeyFromGrid(grid, 'BCINP', 'LBCE')
+            # Enlist
+            if type(jbcs).__name__ == "int":
+                jbcs = [jbcs]; jbce = [jbce]
+                kbcs = [kbcs]; kbce = [kbce]
+                lbcs = [lbcs]; lbce = [lbce]
             # Loop through the three directions
             for k in [1, 2, 3]:
                 # Initialize range
