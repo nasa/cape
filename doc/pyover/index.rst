@@ -67,4 +67,5 @@ This file is divided into sections, some of which are mandatory.
 .. toctree::
     :maxdepth: 2
 
+    examples/index
     json/index

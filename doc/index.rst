@@ -19,7 +19,7 @@ here are the links to the example pages for the main solvers:
 
     * :ref:`Cart3D Examples Using pyCart <pycart-examples>`
     * :ref:`FUN3D Examples Using pyFun <pyfun-examples>`
-    * OVERFLOW Examples Using pyOver
+    * :ref:`OVERFLOW Examples Using pyOver <pyover-examples>`
 
 Currently, pyCart has interfaces for `Cart3D
 <http://people.nas.nasa.gov/~aftosmis/cart3d/>`_, `OVERFLOW
@@ -157,7 +157,8 @@ defined.  In general the required files are the following.
     
     install
     json/index
-    usage/index
+    moreinfo/index
+    moreinfo/syntax
     cape/index
     pycart/index
     pyfun/index

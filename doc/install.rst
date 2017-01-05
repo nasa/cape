@@ -2,9 +2,9 @@
 Requirements and Installation
 =============================
 
-CAPE does not have strict system requirements.  The idea is that any hardware
-that can run Cart3D can also run this software.  It is only officially supported
-on Linux, but this may change in response to demand.
+pyCart does not have strict system requirements. The idea is that any hardware
+that can run Cart3D (or FUN3D or OVERFLOW) can also run this software. It is
+only officially supported on Linux, but this may change in response to demand.
 
 Software Dependencies
 ---------------------
@@ -13,9 +13,9 @@ The following software is required to execute any of the CAPE functions.
     * Python version 2.6-2.7
     * `NumPy <http://www.numpy.org>`_ version 1.4.1 or newer
     
-To test Python on your system, launch a Python shell by typing ``python`` into a
-shell.  A more accurate test would be to use the command
-``/usr/bin/env python``, which may point to a different version of Python.  
+To test Python on your system, launch a Python shell by typing ``python`` into
+a shell. A more accurate test would be to use the command ``/usr/bin/env
+python``, which may point to a different version of Python.
 
     .. code-block:: none
     
@@ -95,23 +95,24 @@ required, although ParaView support is in development.
 .. |tecplot| unicode:: Tecplot 0xAE
 
 Finally, the `IPython <http://ipython.org/>`_ interactive shell is recommended
-for advanced users.
+for advanced users and users of the API.
 
 Optional Compiling
 ------------------
-All features of CAPE have at least a Python implementation, but some more
-intensive functions are also written in C.  To activate the faster versions of
+All features of pyCart have at least a Python implementation, but some more
+intensive functions are also written in C. To activate the faster versions of
 these features (writing ``tri`` files is a key example), you will need a C
-compiler and the NumPy libraries.  In many distributions, the NumPy libraries
+compiler and the NumPy libraries. In many distributions, the NumPy libraries
 are already added to the path for any system with NumPy installed, but this is
-not always true.  The file :file:`$CAPE/config.cfg` contains settings that can
+not always true. The file :file:`$PYCART/config.cfg` contains settings that can
 be edited if the compiler needs to be told where to find the NumPy libraries.
 
-Installation is simple if the dependencies are present.  In the ``$CAPE``
-folder, run the command ``make``.  If compilation is successful, it will create
-the files ``$CAPE/pyCart/_pycart.so`` and ``$CAPE/cape/_cape.so``.  Otherwise,
-the compiler probably needs some help finding the file ``numpy/arrayobject.h``.
-For example, on *Pleiades*, I use the following :file:`config.cfg` file.
+Installation is simple if the dependencies are present. In the ``$PYCART``
+folder, run the command ``make``. If compilation is successful, it will create
+the files ``$PYCART/pyCart/_pycart.so`` and ``$PYCART/cape/_cape.so``.
+Otherwise, the compiler probably needs some help finding the file
+``numpy/arrayobject.h``. For example, on *Pleiades*, I use the following
+:file:`config.cfg` file.
 
     .. code-block:: cfg
     
@@ -125,14 +126,14 @@ For example, on *Pleiades*, I use the following :file:`config.cfg` file.
         extra_ldflags = 
         extra_include_dirs = /nasa/python/2.7.3/lib/python2.7/site-packages/numpy/core/include/
 
-These settings differ slightly from those in the :file:`config.cfg` file that is
-distributed with CAPE, which is set up to work with a typical Red Hat Enterprise
-Linux 6 build.
+These settings differ slightly from those in the :file:`config.cfg` file that
+is distributed with pyCart, which is set up to work with a typical Red Hat
+Enterprise Linux 6 build.
 
 Setup and Typical Usage
 -----------------------
 The software is distributed as a tar archive, for example
-:file:`cape_0.5.tar.gz`.  Installation is a matter of untarring this archive in
+:file:`pycart0.8.tar.gz`.  Installation is a matter of untarring this archive in
 your desired location, changing two environment variables, and optionally
 compiling the C versions of some features as described in the previous section.
 
@@ -140,26 +141,26 @@ The following commands give an example of the first step.
 
     .. code-block:: bash
     
-        $ tar -xzf cape_0.5.tar.gz
+        $ tar -xzf pycart0.8.tar.gz
         
-We are using ``$CAPE`` as a variable to store the location of the folder that
+We are using ``$PYCART`` as a variable to store the location of the folder that
 gets created.  If this is unclear, run the following two commands in a BASH
 environment.
 
     .. code-block:: bash
     
-        $ CAPE=$PWD/cape_0.5
-        $ echo $CAPE
+        $ PYCART=$PWD/pycart0.8
+        $ echo $PYCART
         
 Or, in a csh environment, the following will work.
 
     .. code-block:: csh
     
-        $ setenv CAPE $PWD/cape_0.5
-        $ echo $CAPE
+        $ setenv PYCART $PWD/pycart0.8
+        $ echo $PYCART
 
 The second part of the installation procedure is to edit two environment
-variables.  The first is to add ``$CAPE/scriptlib``, which contains the
+variables.  The first is to add ``$PYCART/bin``, which contains the
 executables, to the *PATH* variable.  Second, we add the Python source
 directories to *PYTHONPATH* so that the pyCart/pyFun modules can be loaded by
 any Python script.  The recommended way to do this is to use 
@@ -168,22 +169,24 @@ commands to the startup ``.bashrc`` or ``.cshrc`` file is also acceptable.
 
 Using Startup Scripts
 ^^^^^^^^^^^^^^^^^^^^^
-The following commands prepare your environment for using CAPE in a BASH system.
+The following commands prepare your environment for using PYCART in a BASH
+system.
 
     .. code-block:: bash
     
-        export PATH=$PATH:$CAPE/scriptlib
-        export PYTHONPATH=$CAPE:$PYTHONPATH
+        export PATH=$PATH:$PYCART/scriptlib
+        export PYTHONPATH=$PYCART:$PYTHONPATH
         
-The following is appropriate for csh.
+The following is appropriate for ``csh``.
 
     .. code-block:: csh
     
-        setenv PATH $PATH:$CAPE/scriptlib
-        setenv PYTHONPATH $CAPE:$PYTHONPATH
+        setenv PATH $PATH:$PYCART/scriptlib
+        setenv PYTHONPATH $PYCART:$PYTHONPATH
         
-Add the appropriate set of commands to the appropriate ``rc`` file, and pyCart
-and pyFun will be available for use in any new shell.
+Add the appropriate set of commands to the appropriate ``.bashrc`` or
+``.cshrc`` file, and pyCart, pyFun, and pyOver will be available for use in any
+new shell.
 
 Using Environment Modules
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -191,31 +194,32 @@ Environment modules are preferred because they reduce interference with other
 software packages and because ``rc`` files are not automatically sourced in PBS
 scripts (i.e. when running in a supercomputing environment).
 
-A template module file is provided in :file:`$CAPE/modules/cape`.  This file
-contains a line
+A template module file is provided in :file:`$PYCART/modulefiles/pycart`. This
+file contains a line
 
     .. code-block:: csh
     
-        set  CAPE   $HOME/cape_0.5
+        set  PYCART   $HOME/pycart0.8
         
-Just edit this line so that it points to the appropriate location, and the
-module is ready for use.  Then to load the module, use
+Just edit this line so that it points to the appropriate location (i.e.
+wherever you untarred the original file), and the module is ready for use. Then
+to load the module, use
 
     .. code-block:: bash
     
-        $ module load $CAPE/modules/cape
+        $ module load $PYCART/modulefiles/pycart
         
 If the module file is in one of the folders listed in *MODULEPATH*, this can be
-shortened to just ``module load cape``.  Rather than explain this fully,
+shortened to just ``module load pycart``.  Rather than explain this fully,
 consider the following example that shows how to do this on Pleiades.
 
     .. code-block:: bash
     
         $ mkdir -p ~/share
         $ mkdir -p ~/share/modulefiles
-        $ cp $CAPE/modules/cape ~/share/modulefiles
+        $ cp $PYCART/modulefiles/pycart ~/share/modulefiles
         $ module use -a ~/share/modulefiles
-        $ module load cape
+        $ module load pycart
         
 It's a good idea to add the second command to ``.bashrc`` and/or ``.cshrc``.
 Then the ``$HOME/share/modulefiles`` folder can be used as a home for local

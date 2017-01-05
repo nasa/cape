@@ -1,0 +1,40 @@
+#%Module1.0############################################################
+##
+## xflow modulefile
+##
+proc ModulesHelp { } {
+	global version modroot
+
+	puts stderr"\n\tThis module configures PYCART\n"
+}
+
+# Explain the file.
+module-whatis "loads PYCART"
+
+# Module parameters
+set     app        pycart
+set     version    current
+
+# Local variables
+set  CAPE   $HOME/pycart0.8
+
+# Set environment variables
+setenv  CAPE              $PYCART
+setenv  PYCART            $PYCART
+setenv  PYFUN             $PYCART
+setenv  PYOVER            $PYCART
+setenv  CAPE_SCRIPTLIB    $PYCART/bin
+setenv  PYCART_SCRIPTLIB  $PYCART/bin
+setenv  PYFUN_SCRIPTLIB   $PYCART/bin
+setenv  PYOVER_SCRIPTLIB  $PYCART/bin
+
+# Modules in conflict
+conflict pycart
+conflict cape
+conflict pyfun
+conflict pyover
+
+# Folders to add to path
+prepend-path PYTHONPATH       $PYCART
+prepend-path PATH             $PYCART/bin
+
