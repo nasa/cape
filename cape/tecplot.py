@@ -358,6 +358,221 @@ class Tecscript(FileCntl):
         self.UpdateCommands()
         # Report
         return kcmd
+        
+    # Function to get lines of a command
+    def GetCommand(self, cmd, n=0):
+        """Get the start and end line numbers in the *n*th instance of *cmd*
+        
+        This allows the user to get the lines of text in the command to be
+        ``tec.lines[ibeg:iend]``.
+        
+        :Call:
+            >>> ibeg, iend = tec.GetCommand(cmd, n=0)
+        :Inputs:
+            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+                Instance of Tecplot script base class
+            *cmd*: :class:`str`
+                Title of the command to find
+            *n*: {``0``} | :class:`int` >= 0
+                Instance of command to find
+        :Outputs:
+            *ibeg*: ``None`` | :class:`int`
+                Index of start of command (or ``None`` if less than *n*
+                instances of commands named *cmd*)
+            *iend*: ``None`` | :class:`int`
+                Index of start of next command
+        :Versions:
+            * 2017-10-05 ``@ddalle``: First version
+        """
+        # Find instances of command
+        Kcmd = np.where(np.array(self.cmds) == cmd)[0]
+        # Check for possible patch
+        if n >= len(Kcmd):
+            return None, None
+        # Get the global index of the command
+        k = Kcmd[n]
+        # Get the line indices
+        if k == len(self.cmds):
+            # Last command; use number of lines for the end
+            iend = len(self.lines) + 1
+        else:
+            # Use the start of the next command as the end of this one
+            iend = self.icmd[k+1]
+        # Start line
+        ibeg = self.icmd[k]
+        # Output
+        return ibeg, iend
+        
+    # Function to get key from a command
+    def GetKey(self, cmd, key, n=0):
+        """Get the value of a key from the *n*th instance of a command
+        
+        :Call:
+            >>> val = tec.GetKey(cmd, key, n=0)
+        :Inputs:
+            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+                Instance of Tecplot script base class
+            *cmd*: :class:`str`
+                Title of the command to find
+            *n*: {``0``} | :class:`int` >= 0
+                Instance of command to find
+        :Outputs:
+            *ibeg*: ``None`` | :class:`int`
+                Index of start of command (or ``None`` if less than *n*
+                instances of commands named *cmd*)
+            *iend*: ``None`` | :class:`int`
+                Index of start of next command
+        :Versions:
+            * 2017-10-05 ``@ddalle``: First version
+        """
+        # Get the lines in the command
+        ibeg, iend = self.GetCmd(cmd, n=n)
+        # Loop through lines
+        i = ibeg + 1
+        while i < iend:
+            # Try the next line
+            line = self.lines[i]
+            # Get the key for this line
+            k = line.split()[0]
+            # Test for a match
+            
+            
+    # Convert text to value
+    def ConvertToVal(self, val):
+        """Convert a text string to a scalar Python value
+        
+        :Call:
+            >>> v = tec.ConvertToval(val)
+        :Inputs:
+            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+                Instance of Tecplot script interface
+            *val*: :class:`str` | :class:`unicode`
+                Text of the value from file
+        :Outputs:
+            *v*: :class:`str` | :class:`int` | :class:`float`
+                Evaluated value of the text
+        :Versions:
+            * 2017-01-05 ``@ddalle``: First version
+        """
+        # Check inputs
+        if type(val).__name__ not in ['str', 'unicode']:
+            # Not a string; return as is
+            return val
+        # Be safe; some of these conversions may fail
+        try:
+            # Check the contents
+            if ('"' in val) or ("'" in val):
+                # It's a string; For Tecplot we do not remove the quotes
+                return val
+            elif len(val.strip()) == 0:
+                # Nothing here
+                return None
+            else:
+                # Convert to float/integer
+                return eval(val)
+        except Exception:
+            # Give back the string
+            return val
+            
+    # Read a value into a key
+    def ReadKey(self, i):
+        """Read a key by converting text to a value
+        
+        :Call:
+            >>> key, val, m = tec.ReadKey(i)
+        :Inputs:
+            *tec*: :class:`cape.tecplot.Tecscript` or derivative
+                Instance of Tecplot script base class
+            *i*: :class:`int`
+                Line number on which to start
+        :Outputs:
+            *key*: :class:`str`
+                Name of the key whose definition starts on this line
+            *val*: :class:`int` | :class:`float` | :class:`str` | :class:`dict`
+                    | :class:`np.ndarray` (:class:`float`)
+                Value for that line
+            *m*: :class:`int`
+                Number of lines used for definition of this key
+        :Versions:
+            * 2016-01-05 ``@ddalle``: First version
+        """
+        # Get the line
+        line = self.lines[i]
+        # Split by '='
+        V = [v.strip() for v in line.split('=')]
+        # Check for valid line
+        if len(V) == 0:
+            return None, None, 0
+        # Initialize line count
+        m = 1
+        # Number of lines
+        nline = len(self.lines)
+        # Read the name of the key
+        key = V[0]
+        # Check if there is an '=' sign
+        if len(V) > 1:
+            # We have a scalar value
+            t = 's'
+            val = self.ConvertToVal(V[1])
+        else:
+            # Initialize value
+            val = []
+            t = 'l'
+            # Loop through lines
+            while True:
+                # We must go to a new line
+                if i+m >= nline:
+                    # No more lines
+                    break
+                # Read the next line
+                line = self.lines[i+m].strip()
+                # Check what kind of marker we have
+                if line == "{":
+                    # Start of a dictionary
+                    m += 1
+                    val = {}
+                    t = 'd'
+                elif line == "}":
+                    # End of the dictionary
+                    m += 1
+                    break
+                elif line.startswith('!'):
+                    # Comment
+                    m += 1
+                    continue
+                elif line.startswith('$!'):
+                    # Start of next command
+                    break
+                elif t == 'l':
+                    # New entry to a list
+                    m += 1
+                    # Check if it's the number of entries (ignore)
+                    if m == 2: continue
+                    # Read the value
+                    try:
+                        # Should be a scalar
+                        v = self.ConvertToVal(line)
+                        # Add to the list
+                        val.append(v)
+                    except Exception:
+                        # Failed
+                        continue
+                else:
+                    # Read a dictionary key
+                    ki, vi, mi = self.ReadKey(i+m)
+                    # Save the dictionary key
+                    val[ki] = vi
+                    # Move *mi* lines
+                    m += mi
+        # Output
+        if t == 'l':
+            # Convert to array
+            return key, np.array(val), m
+        else:
+            # Return dictionary
+            return key, val, m
+        
+        
     
     # Function to delete a command.
     def DeleteCommandN(self, cmd, n=0):
