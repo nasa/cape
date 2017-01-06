@@ -65,10 +65,10 @@ def ExportLayout(*a, **kw):
         # Read the first input
         flay = a[0]
     # Get extension
-    ext = kw.get('ext', 'png')
+    fmt = kw.get('fmt', 'png')
     # Form default file name
     fpng = '.'.join(flay.split('.')[:-1])
-    fpng = '%s.%s' % (fpng, ext)
+    fpng = '%s.%s' % (fpng, fmt)
     # Check for second input
     if len(a) > 1: fpng = a[1]
     # Override with '-o' flag
@@ -80,7 +80,7 @@ def ExportLayout(*a, **kw):
     if w is not None: w = int(w)
     
     # Run the functions
-    cape.tecplot.ExportLayout(flay, png=fpng, ext=ext.upper(), w=w)
+    cape.tecplot.ExportLayout(flay, fname=fpng, fmt=fmt.upper(), w=w)
     
     
     
@@ -95,4 +95,4 @@ if __name__ == "__main__":
         os.sys.exit()
         
     # Run the main function
-    main(*a, **kw)
+    ExportLayout(*a, **kw)
