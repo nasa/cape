@@ -987,6 +987,8 @@ def LinkFromGlob(fname, fglb):
         os.remove(fname)
     # Extract file with maximum index
     fsrc = GetFromGlob(fglb)
+    # Exit if no matches
+    if fsrc is None: return
     # Create the link if possible
     if os.path.isfile(fsrc): os.symlink(fsrc, fname)
     
@@ -1044,7 +1046,6 @@ def LinkPLT():
         # Process the glob as well as possible
         LinkFromGlob(fname[i]+".dat", fglob[i]+".dat")
         LinkFromGlob(fname[i]+".plt", fglob[i]+".plt")
-    
     
 # def LinkPLT
 
