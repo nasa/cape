@@ -2862,7 +2862,7 @@ class Report(object):
             self.PrepTecplotLayoutVars(tec, sfig, i)
             # Color maps
             self.PrepTecplotContourLevels(tec, sfig, i)
-            self.PrepTecplotColorMap(tec, sfig, i)
+            self.PrepTecplotColorMaps(tec, sfig, i)
             # Figure width in pixels (can be ``None``).
             wfig = opts.get_SubfigOpt(sfig, "FigWidth")
             # Width in the report
@@ -2884,7 +2884,7 @@ class Report(object):
                 # Include the graphics.
                 lines.append(line)
                 # Remove the layout file.
-                os.remove(flay)
+                #os.remove(flay)
             except Exception:
                 pass
         # Go to the report case folder
@@ -2902,7 +2902,7 @@ class Report(object):
         """Evaluate a variable, expanding ``$mach`` to ``x.mach[i]``, etc.
         
         :Call:
-            >>> v = R.EvalVar(v, i)
+            >>> v = R.EvalVar(txt, i)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
@@ -2921,20 +2921,23 @@ class Report(object):
         # Check numeric
         if t in ['float', 'int', 'NoneType']:
             # Do not convert
-            return str(t)
+            return str(v)
         # Check for trajectory key
-        if txt in self.cntl.x.keys:
+        if v in self.cntl.x.keys:
             # Get the value from the trajectory
             return str(getattr(self.cntl.x, v)[i])
         # Get all sigils
         flgs = re.findall('\$[\w]+', v)
         # Loop through matches
         for fi in flgs:
-            # Replace $mach with x.mach[i] (for example)
-            if fi in self.cntl.x.keys:
-                vi = str(getattr(self.cntl.x, fi)[i])
-            # Do the string replacement
-            v = v.replace(fi, vi)
+            # Apparent name of key (remove sigil)
+            ki = fi.lstrip('$')
+            # Replace $mach --> x.mach[i] (for example)
+            if ki in self.cntl.x.keys:
+                # Find the value of the trajectory key
+                vi = str(getattr(self.cntl.x, ki)[i])
+                # Do the string replacement
+                v = v.replace(fi, vi)
         # Output
         return v
         
@@ -2999,11 +3002,11 @@ class Report(object):
                     "Problematic specification:\n" +
                     ("%s" % cl))
             # Get constraints
-            cons = cm.get("Constraints")
-            icmp = cm.get("Indices")
-            fltr = cm.get("Filter")
-            regx = cm.get("RegEx")
-            fglb = cm.get("Glob")
+            cons = cl.get("Constraints")
+            icmp = cl.get("Indices")
+            fltr = cl.get("Filter")
+            regx = cl.get("RegEx")
+            fglb = cl.get("Glob")
             # Find indices for which these instructions should apply
             I = self.cntl.x.GetIndices(cons=cons, I=icmp,
                 filter=fltr, re=regx, glob=fglb)
@@ -3028,6 +3031,8 @@ class Report(object):
                 # Override the number of levels using delta
                 nv = int(np.ceil((vmax-vmin)/dv)) + 1
             # Use the number of levels
+            print("Label 050: ncont=%s, vmin=%s, vmax=%s" % (
+                ncontour, vmin, vmax))
             V = np.linspace(vmin, vmax, nv)
             # Apply the change
             tec.SetContourLevels(ncontour, V)
@@ -3097,6 +3102,7 @@ class Report(object):
                 le = eval(self.EvalVar(lk, i))
                 # Save
                 cme[le] = col
+            print("Label 070: cme=%s" % cme)
             # Edit the color map
             tec.EditColorMap(cname, cme, nContour=ncont, nColorMap=ncmap)
     

@@ -1026,7 +1026,7 @@ class Tecscript(FileCntl):
             # Convert value to level
             v = (V[i] - vmin) / (vmax - vmin)
             # Append the color
-            lines.append("  CONTROLPOINT %i\n" % i)
+            lines.append("  CONTROLPOINT %i\n" % (i+1))
             lines.append("    {\n")
             lines.append("    COLORMAPFRACTION = %s\n" % v)
             lines.append("    LEADRGB\n")
