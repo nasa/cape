@@ -1079,7 +1079,8 @@ class Tecscript(FileCntl):
         # Edit the text
         if ibeg is None:
             # Create a new color map
-            self.InsertCommand(2, cmd, lines=lines)
+            k = kw.get('k', 5)
+            self.InsertCommand(5, cmd, lines=lines)
         else:
             # Prepend the command name to lines
             lines.insert(0, '$!%s\n' % cmd)
