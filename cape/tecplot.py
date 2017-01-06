@@ -857,7 +857,7 @@ class Tecscript(FileCntl):
         if k is not None:
             # Search by key name
             ibeg, iend = self.GetCommandByKey(cmd, k, v)
-        if par is not None:
+        elif par is not None:
             # Search for command by parameter
             ibeg, iend = self.GetCommandByPar(cmd, par)
         else:
@@ -909,7 +909,7 @@ class Tecscript(FileCntl):
         if k is not None:
             # Search by key name
             ibeg, iend = self.GetCommandByKey(cmd, k, v)
-        if par is not None:
+        elif par is not None:
             # Search for command by parameter
             ibeg, iend = self.GetCommandByPar(cmd, par)
         else:

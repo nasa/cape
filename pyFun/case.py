@@ -654,7 +654,7 @@ def GetHistoryIter():
     except Exception:
         # No iterations
         if qdual: os.chdir('..')
-        return None
+        return None, None
     # Assemble file name.
     fname = "%s_hist.dat" % rname
     # Check for "pyfun00", "pyfun01", etc.

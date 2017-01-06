@@ -55,6 +55,7 @@ import os, json, shutil, glob
 import re
 # Numerics
 import numpy as np
+from numpy import sqrt, sin, cos, tan, exp
 # Paraview/Tecplot interfaces
 from .bin     import pvpython
 from .tecplot import ExportLayout, Tecscript
