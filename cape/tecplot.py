@@ -1086,7 +1086,6 @@ class Tecscript(FileCntl):
             # Replace those lines
             self.lines = self.lines[:ibeg] + lines + self.lines[iend:]
         
-        
     # Set group stuff
     def SetFieldMap(self, grps):
         """Set active zones for a Tecplot layout, mostly for Overflow

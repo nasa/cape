@@ -2860,6 +2860,9 @@ class Report(object):
                     pass
             # Layout
             self.PrepTecplotLayoutVars(tec, sfig, i)
+            # Color maps
+            self.PrepTecplotContourLevels(tec, sfig, i)
+            self.PrepTecplotColorMap(tec, sfig, i)
             # Figure width in pixels (can be ``None``).
             wfig = opts.get_SubfigOpt(sfig, "FigWidth")
             # Width in the report
@@ -2940,14 +2943,14 @@ class Report(object):
         """Set any variables for Tecplot layout
         
         :Call:
-            >>> R.TecplotLayoutVars(tec, sfig, i)
+            >>> R.PrepTecplotLayoutVars(tec, sfig, i)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
             *tec*: :class:`cape.tecplot.Tecscript`
                 Tecplot layout interface (modified in place)
             *sfig*: :class:`str`
-                Name of sfigure to update
+                Name of subfigure for accessing options
             *i*: :class:`int`
                 Case index
         :Versions:
@@ -2961,8 +2964,142 @@ class Report(object):
             v = self.EvalVar(setv[k], i)
             # Set the variable value
             tec.SetVar(k, v)
+            
+    # Function to prepare color maps and contours in Tecplot layout
+    def PrepTecplotContourLevels(self, tec, sfig, i):
+        """Customize contour levels for a Tecplot layout
         
+        :Call:
+            >>> R.PrepTecplotContourLevels(tec, sfig, i)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *tec*: :class:`cape.tecplot.Tecscript`
+                Tecplot layout interface (modified in place)
+            *sfig*: :class:`str`
+                Name of subfigure for accessing options
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2017-01-05 ``@ddalle``: First version
+        """
+        # Get list of contour levels to alter
+        clev = self.cntl.opts.get_SubfigOpt(sfig, "ContourLevels")
+        # Check if dictionary
+        if type(clev).__name__ == "dict":
+            # Create a singleton list
+            clev = [clev]
+        # Loop through color maps
+        for k in range(len(clev)):
+            # Get the options
+            cl = clev[k]
+            # Check type
+            if type(cl).__name__ != "dict":
+                raise TypeError("ContourLevels specification must be dict\n" +
+                    "Problematic specification:\n" +
+                    ("%s" % cl))
+            # Get constraints
+            cons = cm.get("Constraints")
+            icmp = cm.get("Indices")
+            fltr = cm.get("Filter")
+            regx = cm.get("RegEx")
+            fglb = cm.get("Glob")
+            # Find indices for which these instructions should apply
+            I = self.cntl.x.GetIndices(cons=cons, I=icmp,
+                filter=fltr, re=regx, glob=fglb)
+            # Check if this instruction is supposed to apply to this case
+            if i not in I: continue
+            # Get the number
+            ncontour = cl.get("NContour", k)
+            # Get the min/max values
+            vmin = cl.get("MinLevel", 0.0)
+            vmax = cl.get("MaxLevel", 1.0)
+            # Evaluate the variables
+            vmin = eval(self.EvalVar(vmin, i))
+            vmax = eval(self.EvalVar(vmax, i))
+            # Get the interval
+            dv = cl.get("Delta")
+            nv = cl.get("NLevel", 11)
+            # Form the list
+            if dv is not None:
+                # Make sure min/max are divisible by *dv*
+                vmin = dv * np.floor(vmin/dv)
+                vmax = dv * np.floor(vmax/dv)
+                # Override the number of levels using delta
+                nv = int(np.ceil((vmax-vmin)/dv)) + 1
+            # Use the number of levels
+            V = np.linspace(vmin, vmax, nv)
+            # Apply the change
+            tec.SetContourLevels(ncontour, V)
+            
+    # Function to prepare color maps and contours in Tecplot layout
+    def PrepTecplotColorMaps(self, tec, sfig, i):
+        """Customize color maps for a Tecplot layout
         
+        :Call:
+            >>> R.PrepTecplotColorMaps(tec, sfig, i)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *tec*: :class:`cape.tecplot.Tecscript`
+                Tecplot layout interface (modified in place)
+            *sfig*: :class:`str`
+                Name of subfigure for accessing options
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2017-01-05 ``@ddalle``: First version
+        """
+        # Get list of color maps to alter
+        cmaps = self.cntl.opts.get_SubfigOpt(sfig, "ColorMaps")
+        # Check if dictionary
+        if type(cmaps).__name__ == "dict":
+            # Create a singleton list
+            cmaps = [cmaps]
+        # Loop through color maps
+        for k in range(len(cmaps)):
+            # Get the options
+            cm = cmaps[k]
+            # Check type
+            if type(cm).__name__ != "dict":
+                raise TypeError("ColorMaps specification must be dict\n" +
+                    "Problematic specification:\n" +
+                    ("%s" % cm))
+            # Get the number
+            ncont = cm.get("NContour", k)
+            ncmap = cm.get("NColorMap", k)
+            # Get the name
+            cname = cm.get("Name")
+            # Get constraints
+            cons = cm.get("Constraints")
+            icmp = cm.get("Indices")
+            fltr = cm.get("Filter")
+            regx = cm.get("RegEx")
+            fglb = cm.get("Glob")
+            # Find indices for which these instructions should apply
+            I = self.cntl.x.GetIndices(cons=cons, I=icmp,
+                filter=fltr, re=regx, glob=fglb)
+            # Check if this instruction is supposed to apply to this case
+            if i not in I: continue
+            # Color map
+            cmk = cm.get("ColorMap")
+            # Skip if no map
+            if type(cmk).__name__ != "dict":
+                print("  WARNING: Color map edit specification with no " +
+                    '"ColorMap" key')
+            # Initialize evaluated map (e.g. "2*$mach" -> 1.9)
+            cme = {}
+            # Evaluate the keys
+            for lk in cmk:
+                # Get the value (i.e. color)
+                col = cmk[lk]
+                # Evaluate the level
+                le = eval(self.EvalVar(lk, i))
+                # Save
+                cme[le] = col
+            # Edit the color map
+            tec.EditColorMap(cname, cme, nContour=ncont, nColorMap=ncmap)
+    
     # Function to write summary table
     def SubfigSummary(self, sfig, i, q=True):
         """Create lines for a "Summary" subfigure
