@@ -2885,7 +2885,7 @@ class Report(object):
                 # Include the graphics.
                 lines.append(line)
                 # Remove the layout file.
-                #os.remove(flay)
+                os.remove(flay)
             except Exception:
                 pass
         # Go to the report case folder
@@ -3032,8 +3032,6 @@ class Report(object):
                 # Override the number of levels using delta
                 nv = int(np.ceil((vmax-vmin)/dv)) + 1
             # Use the number of levels
-            print("Label 050: ncont=%s, vmin=%s, vmax=%s" % (
-                ncontour, vmin, vmax))
             V = np.linspace(vmin, vmax, nv)
             # Apply the change
             tec.SetContourLevels(ncontour, V)
@@ -3103,7 +3101,6 @@ class Report(object):
                 le = eval(self.EvalVar(lk, i))
                 # Save
                 cme[le] = col
-            print("Label 070: cme=%s" % cme)
             # Edit the color map
             tec.EditColorMap(cname, cme, nContour=ncont, nColorMap=ncmap)
     
