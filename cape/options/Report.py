@@ -561,8 +561,10 @@ class Report(odict):
         S = self.get_Subfigure(sfig)
         # Get the type
         typ = S.get("Type")
+        # Get list of subfigures
+        sfigs = self.get_SubfigList()
         # Check if that type is a template
-        if typ in self:
+        if typ in sfigs:
             # Get the options from that subfigure; recurse
             T = self.get_SubfigCascade(typ)
             # Apply template options but do not overwrite
