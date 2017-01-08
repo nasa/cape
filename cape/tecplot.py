@@ -989,7 +989,7 @@ class Tecscript(FileCntl):
             * 2017-01-05 ``@ddalle``: First version
         """
         # Initialize command
-        cmd ="CREATECOLORMAP",
+        cmd ="CREATECOLORMAP"
         # Get cmap fraction keys
         V = cmap.keys()
         # Make sure all are floats
@@ -1080,7 +1080,7 @@ class Tecscript(FileCntl):
         if ibeg is None:
             # Create a new color map
             k = kw.get('k', 5)
-            self.InsertCommand(5, cmd, lines=lines)
+            self.InsertCommand(k, cmd, lines=lines)
         else:
             # Prepend the command name to lines
             lines.insert(0, '$!%s\n' % cmd)

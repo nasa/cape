@@ -3071,7 +3071,7 @@ class Report(object):
                     ("%s" % cm))
             # Get the number
             ncont = cm.get("NContour", k)
-            ncmap = cm.get("NColorMap", k)
+            ncmap = cm.get("NColorMap")
             # Get the name
             cname = cm.get("Name")
             # Get constraints
