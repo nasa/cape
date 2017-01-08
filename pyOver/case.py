@@ -744,6 +744,73 @@ def GetQ():
     iq = argmax(tq)
     # Return that file
     return qglob[iq]
+    
+# Get best q file
+def GetLatest(glb):
+    """Get the most recent file matching a glob or list of globs
+    
+    :Call:
+        >>> fq = pyOver.case.GetLatest(glb)
+        >>> fq = pyOver.case.GetLatest(lglb)
+    :Inputs:
+        *glb*: :class:`str`
+            File name glob
+        *lblb*: :class:`list` (:class:`str`)
+            List of file name globs
+    :Outputs:
+        *fq*: ``None`` | :class:`str`
+            Name of most recent file matching glob(s)
+    :Versions:
+        * 2017-01-08 ``@ddalle``: First version
+    """
+    # Check type
+    if type(glb).__name__ in ['list', 'ndarray']:
+        # Initialize from list of globs
+        fglb = []
+        # Loop through globs
+        for g in glb:
+            # Add the matches to this glob (don't worry about duplicates)
+            fglb += glob.glob(g)
+    else:
+        # Single glob
+        fglb = glob.glob(glb)
+    # Get modification times from the files
+    tg = [os.path.getmtime(fg) for fg in fglob]
+    # Get index of most cecent file
+    ig = argmax(tg)
+    # return that file
+    return fglb[ig]
+    
+# Generic link command that cleans out existing links before making a mess
+def LinkLatest(fsrc, fname):
+    """Create a symbolic link, but clean up existing links
+    
+    This prevents odd behavior when using :func:`os.symlink` when the link
+    already exists.  It performs no action (rather than raising an error) when
+    the source file does not exist or is ``None``.  Finally, if *fname* is
+    already a full file, no action is taken.
+    
+    :Call:
+        >>> pyOver.case.LinkLatest(fsrc, fname)
+    :Inputs:
+        *fsrc*: ``None`` | :class:`str`
+            Name of file to act as source for the link
+        *fname*: :class:`str`
+            Name of the link to create
+    :Versions:
+        * 2017-01-08 ``@ddalle``: First version
+    """
+    # Check for file
+    if os.path.islink(fname):
+        # Delete old links
+        os.remove(fname)
+    elif os.path.isfile(fname):
+        # Do nothing if full file exists with this name
+        return
+    # Check if the source file exists
+    if (fsrc is None) or (not os.path.isfile(fsrc)): return
+    # Create link
+    os.symlink(fsrc, fname)
 
 # Link best Q file
 def LinkQ():
@@ -755,15 +822,15 @@ def LinkQ():
         * 2016-09-06 ``@ddalle``: First version
         * 2016-12-29 ``@ddalle``: Moved file search to :func:`GetQ`
     """
-    # File name to create
-    fname = 'q.pyover.p3d'
-    # Check for file
-    if os.path.islink(fname): os.remove(fname)
-    # Get the file name
+    # Get the general best ``q`` file name
     fq = GetQ()
-    # Link file
-    if fq is not None:
-        os.symlink(fq, fname)
+    # Get the best ``q.avg`` and ``q.srf`` files
+    fqa = GetLatest(["q.[0-9]*.avg", "q.avg*")
+    fqs = GetLatest(["q.[0-9]*.srf", "q.srf*", "q.[0-9]*.surf", "q.surf*"])
+    # Create links (safely)
+    LinkLatest(fq,  'q.pyover.p3d')
+    LinkLatest(fqa, 'q.pyover.avg')
+    LinkLatest(fas, 'q.pyover.srf')
         
 # Get best Q file
 def GetX():
@@ -798,14 +865,12 @@ def LinkX():
     :Versions:
         * 2016-09-06 ``@ddalle``: First version
     """
-    # File name to create
-    fname = 'x.pyover.p3d'
-    # Check for file
-    if os.path.islink(fname): os.remove(fname)
     # Get the best file
     fx = GetX()
-    # Link file
-    if fx is not None:
-        os.symlink(fx, fname)
+    # Get the best surf grid if available
+    fxs = GetLatest(["q.[0-9]*.srf", "q.srf*", "q.[0-9]*.surf", "q.surf*"])
+    # Create links (safely)
+    LinkLatest(fx,  'x.pyover.p3d')
+    LinkLatest(fxs, 'x.pyover.srf')
 # def LinkX
     

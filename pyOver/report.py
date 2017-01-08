@@ -337,7 +337,9 @@ class Report(cape.report.Report):
         # Edit the splitmq files
         case.EditSplitmqI(fname, fspq, fqi, fqo)
         # Split the solution
-        ierr = os.system('splitmq < %s > %s' % (fspq, fspqo))
+        cmd = 'splitmq < %s > %s' % (fspq, fspqo)
+        print("    %s" % cmd)
+        ierr = os.system(cmd)
         # Check for errors
         if ierr: return
         # Delete files
@@ -349,7 +351,9 @@ class Report(cape.report.Report):
         # Edit the splitmx file
         case.EditSplitmxI(fname, fspx, fxi, fxo)
         # Split the surface grid
-        ierr = os.system('splitmx < %s > %s' % (fspx, fxpxo))
+        cmd = 'splitmx < %s > %s' % (fspx, fxpxo)
+        print("    %s" % cmd)
+        ierr = os.system(cmd)
         # Check for errors
         if ierr: return
         # Delete files
