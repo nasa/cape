@@ -280,16 +280,20 @@ class OverNamelist(cape.namelist2.Namelist2):
     GetGridNumber = GetGridNumberByName
     
     # Write SPLITMQ.I file
-    def WriteSplitmqI(self, fname="splitmq.i", wall=True):
+    def WriteSplitmqI(self, fname="splitmq.i", **kw):
         """Write a ``splitmq.i`` file to extract surface and second layer
         
         :Call:
-            >>> nml.WriteSplitmqI(fname="splitmq.i", wall=True)
+            >>> nml.WriteSplitmqI(fname="splitmq.i", **kw)
         :Inputs:
             *nml*: :clas:`pyOver.overNamelist.OverNamelist`
                 Interface to OVERFLOW input namelist
             *fname*: {``"splitmq.i"``} | :class:`str`
                 Name of ``splitmq`` input file to write
+            *qin*, *i*: {``"q.p3d"``} | :class:`str`
+                Name of the input OVERFLOW solution file
+            *qout*, *o*: {``"q.save"``} | :class:`str`
+                
             *wall*: {``True``} | ``False``
                 Only include walls if ``True``; else include thrust BCs
         :Versions:
@@ -297,9 +301,12 @@ class OverNamelist(cape.namelist2.Namelist2):
         """
         # Open the output file
         f = open(fname, 'w')
+        # Get input and output solution file names
+        qin  = kw.get('qin',  kw.get('i', "q.p3d"))
+        qout = kw.get('qout', kw.get('o', "q.save"))
         # Write header
-        f.write('q.p3d\n')
-        f.write('q.save\n')
+        f.write('%s\n' % qin)
+        f.write('%s\n' % qout)
         # Valid boundary condition types
         wtyp = range(1,10)
         # Check for other surface BCs such as thrust BCs

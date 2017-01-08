@@ -682,6 +682,42 @@ def checkqt(fname):
     f.close()
     # Output
     return t
+    
+# Edit lines of a ``splitmq`` or ``splitmx`` input file
+def EditSplitmqI(fin, fout, qin, qout):
+    """Edit the I/O file names in a ``splitmq``/``splitmx`` input file
+    
+    :Call:
+        >>> EditSplitmqI(fin, fout, qin, qout)
+    :Inputs:
+        *fin*: :class:`str`
+            Name of template ``splitmq`` input file
+        *fout*: :class:`str`
+            Name of altered ``splitmq`` input file
+        *qin*: :class:`str`
+            Name of input solution or grid file
+        *qout*: :class:`str`
+            Name of output solution or grid file
+    :Versions:
+        * 2017-01-07 ``@ddalle``: First version
+    """
+    # Check for input file
+    if not os.path.isfile(fin):
+        raise ValueError("No template ``splitmq`` file '%s'" % fin)
+    # Open the template and output files
+    fi = open(fin, 'r')
+    fo = open(fout, 'w')
+    # Write the input and output solution/grid files
+    fo.write('%s\n' % fin)
+    fo.write('%s\n' % fout)
+    # Ignore first two lines of input file
+    fi.readline()
+    fi.readline()
+    # Copy the rest of the file
+    fo.write(fi.read())
+    # Close files
+    fi.close()
+    fo.close()
         
 # Get best Q file
 def GetQ():

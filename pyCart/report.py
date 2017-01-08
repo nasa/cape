@@ -1130,17 +1130,21 @@ class Report(cape.report.Report):
         return Tecscript(fsrc)
             
     # Function to link appropriate visualization files
-    def LinkVizFiles(self):
+    def LinkVizFiles(self, sfig=None, i=None):
         """Create links to appropriate visualization files
         
         Specifically, ``Components.i.plt`` and ``cutPlanes.plt`` or
         ``Components.i.dat`` and ``cutPlanes.dat`` are created.
         
         :Call:
-            >>> R.LinkVizFiles()
+            >>> R.LinkVizFiles(sfig, i)
         :Inputs:
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
+            *sfig*: :class:`str`
+                Name of the subfigure
+            *i*: :class:`int`
+                Case index
         :See Also:
             :func:`pyCart.case.LinkPLT`
         :Versions:
