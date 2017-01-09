@@ -2989,6 +2989,8 @@ class Report(object):
         """
         # Get list of contour levels to alter
         clev = self.cntl.opts.get_SubfigOpt(sfig, "ContourLevels")
+        # Exit if None
+        if clev is None: return
         # Check if dictionary
         if type(clev).__name__ == "dict":
             # Create a singleton list
@@ -3056,6 +3058,8 @@ class Report(object):
         """
         # Get list of color maps to alter
         cmaps = self.cntl.opts.get_SubfigOpt(sfig, "ColorMaps")
+        # Return if nothing to do
+        if cmaps is None: return
         # Check if dictionary
         if type(cmaps).__name__ == "dict":
             # Create a singleton list
