@@ -1493,9 +1493,10 @@ class Cntl(object):
             # Initialize command with specific program
             cmdi = [kw['prog']]
         else:
+            # Get the name of the command (clear out full path)
+            cmdj = os.path.split(argv[0])[-1]
             # Initialize command with same program as argv
-            cmdi = [argv[0]]
-            print("Label 020: cmdi=%s" % cmdi)
+            cmdi = [cmdj]
         # Loop through non-keyword arguments
         for ai in a: cmdi.append(a)
         # Loop through keyword arguments
