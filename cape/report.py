@@ -3610,16 +3610,21 @@ class Report(object):
     # ================
   # <
     # Function to link appropriate visualization files
-    def LinkVizFiles(self):
+    def LinkVizFiles(self, sfig=None, i=None):
         """Create links to appropriate visualization files
         
         :Call:
-            >>> R.LinkVizFiles()
+            >>> R.LinkVizFiles(sfig, i)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure
+            *i*: :class:`int`
+                Case index
         :Versions:
             * 2016-02-06 ``@ddalle``: First version
+            * 2017-01-07 ``@ddalle``: Added *sfig* and *i* inputs
         """
         pass
   # >

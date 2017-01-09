@@ -10,11 +10,11 @@ import cape.report
 
 # Local modules needed
 from cape import tex, tar
-# Data book and plotting
+# Folder/run management
+from . import case
+# DataBook and Tecplot management
 from .dataBook import CaseFM, CaseResid
-# Folder and Tecplot management
-from .case    import LinkQ, LinkX
-from .tecplot import ExportLayout, Tecscript
+from .tecplot  import ExportLayout, Tecscript
 
 
 # Class to interface with report generation and updating.
@@ -271,7 +271,7 @@ class Report(cape.report.Report):
         return Tecscript(fsrc)
             
     # Function to link appropriate visualization files
-    def LinkVizFiles(self):
+    def LinkVizFiles(self, sfig=None, i=None):
         """Create links to appropriate visualization files
         
         Specifically, ``Components.i.plt`` and ``cutPlanes.plt`` or
@@ -288,8 +288,81 @@ class Report(cape.report.Report):
             * 2016-02-06 ``@ddalle``: First version
         """
         # Defer to function from :func:`pyOver.case`
-        LinkX()
-        LinkQ()
+        case.LinkX()
+        case.LinkQ()
+        # Check for splitmq options
+        fsplitmq = self.opts.get_SubfigOpt(sfig, "SplitmqI")
+        # Exit if None
+        if fsplitmq is None:
+            # Try another name
+            fsplitmq = self.opts.get_SubfigOpt(sfig, "splitmq")
+        # Exit if none
+        if splitmq is None:
+            return
+        # Path to the file
+        frun = self.cntl.x.GetFullFolderNames(i)
+        # Assemble absolute path
+        fdir = os.path.join(self.cnt.RootDir, frun)
+        fabs = os.path.join(fdir, fsplitmq)
+        # Get the file name alone
+        fname = os.path.split(fabs)[-1]
+        # Check if the file exists
+        if not os.path.isfile(fname): return
+        # Check which ``q`` and ``x`` files to use as input and output
+        fqi = self.opts.get_SubfigOpt(sfig, "QIn")
+        fqo = self.opts.get_SubfigOpt(sfig, "QOut")
+        fxi = self.opts.get_SubfigOpt(sfig, "Xin")
+        fxo = self.opts.get_SubfigOpt(sfig, "XOut")
+        # Defaults
+        if fqi is None: fqi = "q.pyover.p3d"
+        if fqo is None: fqo = "q.pyover.srf"
+        if fxi is None: fxi = "x.pyover.p3d"
+        if fxo is None: fxo = "x.pyover.srf"
+        # Check if the surf file exists
+        if not (os.path.isfile(fqo) and os.path.isfile(fqi)):
+            # Nothing to do
+            return
+        # Otherwise, check iteration nubers
+        nqi = case.checkqt(fqi)
+        nqo = case.checkqt(fqo)
+        # Check if we need to create *q* file
+        if nqi <= nqo: return
+        # Name for the file here
+        fspq = 'splitmq.%s.i' % sfig
+        fspx = 'splitmx.%s.i' % sfig
+        fspqo = 'splitmq.%s.o' % sfig
+        fspxo = 'splitmx.%s.o' % sfig
+        # Copy the file to this directory
+        shutil.copy(fabs, fname)
+        # Edit the splitmq files
+        case.EditSplitmqI(fname, fspq, fqi, fqo)
+        # Split the solution
+        cmd = 'splitmq < %s > %s' % (fspq, fspqo)
+        print("    %s" % cmd)
+        ierr = os.system(cmd)
+        # Check for errors
+        if ierr: return
+        # Delete files
+        os.remove(fspq)
+        os.remove(fspqo)
+        # Check if the surf grid file exists
+        if not (os.path.isfile(fxi) and os.path.isfile(fxo)):
+            return
+        # Edit the splitmx file
+        case.EditSplitmxI(fname, fspx, fxi, fxo)
+        # Split the surface grid
+        cmd = 'splitmx < %s > %s' % (fspx, fxpxo)
+        print("    %s" % cmd)
+        ierr = os.system(cmd)
+        # Check for errors
+        if ierr: return
+        # Delete files
+        os.remove(fspx)
+        os.remove(fxpxo)
+        os.remove(fname)
+        
+        
+        
         
 # class Report
 
