@@ -1495,6 +1495,7 @@ class Cntl(object):
         else:
             # Initialize command with same program as argv
             cmdi = [argv[0]]
+            print("Label 020: cmdi=%s" % cmdi)
         # Loop through non-keyword arguments
         for ai in a: cmdi.append(a)
         # Loop through keyword arguments
@@ -1539,6 +1540,7 @@ class Cntl(object):
         # Write header
         self.WritePBSHeader(f, typ='batch', wd=self.RootDir)
         # Write the command
+        f.write('\n# Run the command\n')
         f.write('%s\n' % (" ".join(cmdi)))
         # Close the file
         f.close()

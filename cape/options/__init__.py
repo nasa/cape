@@ -381,7 +381,7 @@ class Options(odict):
         :Call:
             >>> cmds = opts.get_ShellCmds()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *cmds*: :class:`list` (:class:`str`)
