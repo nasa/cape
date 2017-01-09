@@ -2713,7 +2713,7 @@ class Report(object):
             # Go there.
             os.chdir(frun)
             # Get the most recent PLT files.
-            self.LinkVizFiles()
+            self.LinkVizFiles(sfig=sfig, i=i)
             # Layout file
             flay = opts.get_SubfigOpt(sfig, "Layout")
             # Full path to layout file
@@ -2834,7 +2834,7 @@ class Report(object):
             # Go there.
             os.chdir(frun)
             # Get the most recent PLT files.
-            self.LinkVizFiles()
+            self.LinkVizFiles(sfig=sfig, i=i)
             # Layout file
             flay = opts.get_SubfigOpt(sfig, "Layout")
             # Full path to layout file

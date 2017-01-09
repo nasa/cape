@@ -775,7 +775,7 @@ def GetLatest(glb):
         # Single glob
         fglb = glob.glob(glb)
     # Get modification times from the files
-    tg = [os.path.getmtime(fg) for fg in fglob]
+    tg = [os.path.getmtime(fg) for fg in fglb]
     # Get index of most cecent file
     ig = argmax(tg)
     # return that file
@@ -825,12 +825,12 @@ def LinkQ():
     # Get the general best ``q`` file name
     fq = GetQ()
     # Get the best ``q.avg`` and ``q.srf`` files
-    fqa = GetLatest(["q.[0-9]*.avg", "q.avg*")
+    fqa = GetLatest(["q.[0-9]*.avg", "q.avg*"])
     fqs = GetLatest(["q.[0-9]*.srf", "q.srf*", "q.[0-9]*.surf", "q.surf*"])
     # Create links (safely)
     LinkLatest(fq,  'q.pyover.p3d')
     LinkLatest(fqa, 'q.pyover.avg')
-    LinkLatest(fas, 'q.pyover.srf')
+    LinkLatest(fqs, 'q.pyover.srf')
         
 # Get best Q file
 def GetX():

@@ -290,14 +290,16 @@ class Report(cape.report.Report):
         # Defer to function from :func:`pyOver.case`
         case.LinkX()
         case.LinkQ()
+        # Extract Options
+        opts = self.cntl.opts
         # Check for splitmq options
-        fsplitmq = self.opts.get_SubfigOpt(sfig, "SplitmqI")
+        fsplitmq = opts.get_SubfigOpt(sfig, "SplitmqI")
         # Exit if None
         if fsplitmq is None:
             # Try another name
-            fsplitmq = self.opts.get_SubfigOpt(sfig, "splitmq")
+            fsplitmq = opts.get_SubfigOpt(sfig, "splitmq")
         # Exit if none
-        if splitmq is None:
+        if fsplitmq is None:
             return
         # Path to the file
         frun = self.cntl.x.GetFullFolderNames(i)
@@ -309,10 +311,10 @@ class Report(cape.report.Report):
         # Check if the file exists
         if not os.path.isfile(fname): return
         # Check which ``q`` and ``x`` files to use as input and output
-        fqi = self.opts.get_SubfigOpt(sfig, "QIn")
-        fqo = self.opts.get_SubfigOpt(sfig, "QOut")
-        fxi = self.opts.get_SubfigOpt(sfig, "Xin")
-        fxo = self.opts.get_SubfigOpt(sfig, "XOut")
+        fqi = opts.get_SubfigOpt(sfig, "QIn")
+        fqo = opts.get_SubfigOpt(sfig, "QOut")
+        fxi = opts.get_SubfigOpt(sfig, "Xin")
+        fxo = opts.get_SubfigOpt(sfig, "XOut")
         # Defaults
         if fqi is None: fqi = "q.pyover.p3d"
         if fqo is None: fqo = "q.pyover.srf"
