@@ -1512,11 +1512,18 @@ class Cntl(object):
                 continue
             elif v == True:
                 # No extra value
-                cmdi.append('-%s' % k)
+                if len(k) == 1:
+                    cmdi.append('-%s' % k)
+                else:
+                    cmdi.append('--%s' % k)
             else:
                 # Append the key and value
-                cmdi.append('--%s' % k)
-                cmdi.append('%s' % v)
+                if len(k) == 1:
+                    cmdi.append('-%s' % k)
+                    cmdi.append('%s' % v)
+                else:
+                    cmdi.append('--%s' % k)
+                    cmdi.append('%s' % v)
         # ------------------
         # Folder preparation
         # ------------------
