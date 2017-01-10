@@ -239,6 +239,9 @@ class Options(odict):
         
         # Write a header for the shell commands.
         f.write('# Additional shell commands\n')
+        # Get list of commands
+        cmds = self.get_ShellCmds()
+        # 
         # Loop through the shell commands.
         for line in self.get_ShellCmds():
             # Write it.
@@ -375,14 +378,16 @@ class Options(odict):
    # <
    
     # Function to get the shell commands
-    def get_ShellCmds(self):
+    def get_ShellCmds(self, typ=None):
         """Get shell commands, if any
         
         :Call:
-            >>> cmds = opts.get_ShellCmds()
+            >>> cmds = opts.get_ShellCmds(typ=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
+            *typ*: {``None``} | ``"batch"`` | ``"post"``
+                Add additional commands for batch or post-processing jobs
         :Outputs:
             *cmds*: :class:`list` (:class:`str`)
                 List of initialization commands
@@ -393,9 +398,22 @@ class Options(odict):
         cmds = self.get('ShellCmds', [])
         # Turn to a list if not.
         if type(cmds).__name__ != 'list':
-            cmds = [cmds]
+            cmds = cmds.split(';')
+        # Check type
+        if typ.lower() in ["batch"]:
+            # Get commands for batch jobs
+            cmds_a = self.get('BatchShellCmds', [])
+        elif typ.lower() in ["post"]:
+            # Get commands for post-processing
+            cmds_a = self.get('PostShellCmds', [])
+        else:
+            # No additional commands
+            cmds_a = []
+        # Turn to a list if necessary
+        if type(cmds_a).__name__ != 'list':
+            cmds_a = cmds_a.split(';')
         # Output
-        return cmds
+        return cmds + cmds_a
         
     # Function to set the shell commands
     def set_ShellCmds(self, cmds):
@@ -413,6 +431,29 @@ class Options(odict):
         """
         # Set them.
         self['ShellCmds'] = cmds
+    
+    # Get shell commands for batch jobs
+    def get_BatchShellCmds(self):
+        """Get additional shell commands for batch jobs
+        
+        :Call:
+            >>> cmds = opts.get_BatchShellCmds()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *cmds*: :class:`list` (:class:`str`)
+                List of initialization commands
+        :Versions:
+            * 2017-01-10 ``@ddalle``: First version
+        """
+        # Get the commands
+        cmds = self.get('BatchShellCmds', [])
+        # Turn to a list if not
+        if type(cmds).__name__ != 'list':
+            cmds = cmds.split(';')
+        # Output
+        return cmds
     
     # Method to get the max number of jobs to submit.
     def get_nSubmit(self):

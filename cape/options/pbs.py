@@ -460,4 +460,5 @@ class PBS(odict):
             * 2014-12-01 ``@ddalle``: Added index
         """
         self.set_key('PBS_S', S, i)
-        
+# class PBS
+
