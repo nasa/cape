@@ -6,6 +6,9 @@ This module contains functions to execute FUN3D and interact with individual
 case folders.
 """
 
+# Numerics
+import numpy as np
+
 # Import cape stuff
 from cape.case import *
 # Import options class
@@ -774,6 +777,8 @@ def GetLatest(glb):
     else:
         # Single glob
         fglb = glob.glob(glb)
+    # Exit if none
+    if len(fglb) == 0: return None
     # Get modification times from the files
     tg = [os.path.getmtime(fg) for fg in fglb]
     # Get index of most cecent file
@@ -868,7 +873,7 @@ def LinkX():
     # Get the best file
     fx = GetX()
     # Get the best surf grid if available
-    fxs = GetLatest(["q.[0-9]*.srf", "q.srf*", "q.[0-9]*.surf", "q.surf*"])
+    fxs = GetLatest(["x.[0-9]*.srf", "x.srf*", "x.[0-9]*.surf", "x.surf*"])
     # Create links (safely)
     LinkLatest(fx,  'x.pyover.p3d')
     LinkLatest(fxs, 'x.pyover.srf')

@@ -304,7 +304,7 @@ class Report(cape.report.Report):
         # Path to the file
         frun = self.cntl.x.GetFullFolderNames(i)
         # Assemble absolute path
-        fdir = os.path.join(self.cnt.RootDir, frun)
+        fdir = os.path.join(self.cntl.RootDir, frun)
         fabs = os.path.join(fdir, fsplitmq)
         # Get the file name alone
         fname = os.path.split(fabs)[-1]
