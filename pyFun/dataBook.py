@@ -1136,7 +1136,6 @@ class CaseResid(cape.dataBook.CaseResid):
         n = len(cols)
         # Save current last iteration
         i1 = self.i[-1]
-        print("Label 038: i1=%s" % i1)
         # Append the values.
         for k in range(n):
             # Column name
@@ -1146,7 +1145,6 @@ class CaseResid(cape.dataBook.CaseResid):
             # Check for iteration number reset
             if col == 'i' and V[0] < self.i[-1]:
                 # Keep counting iterations from the end of the previous one.
-                print("Label 042: V[0]=%i" % V[0])
                 V += (i1 - V[0] + 1)
             # Append
             setattr(self,col, np.hstack((getattr(self,col), V)))
@@ -1154,7 +1152,6 @@ class CaseResid(cape.dataBook.CaseResid):
         Vsub = fname.split('.')
         fsub = Vsub[0][:-4] + "subhist." + (".".join(Vsub[1:]))
         I = np.hstack((self.i[:-1]>self.i[1:], [True]))
-        print("Label 045: i=%s" % self.i[I])
         # Check for the file
         if os.path.isfile(fsub):
             # Read the subiteration history

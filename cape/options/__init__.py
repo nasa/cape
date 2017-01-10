@@ -239,11 +239,8 @@ class Options(odict):
         
         # Write a header for the shell commands.
         f.write('# Additional shell commands\n')
-        # Get list of commands
-        cmds = self.get_ShellCmds()
-        # 
         # Loop through the shell commands.
-        for line in self.get_ShellCmds():
+        for line in self.get_ShellCmds(typ=typ):
             # Write it.
             f.write('%s\n' % line)
             
@@ -400,10 +397,10 @@ class Options(odict):
         if type(cmds).__name__ != 'list':
             cmds = cmds.split(';')
         # Check type
-        if typ.lower() in ["batch"]:
+        if typ in ["batch"]:
             # Get commands for batch jobs
             cmds_a = self.get('BatchShellCmds', [])
-        elif typ.lower() in ["post"]:
+        elif typ in ["post"]:
             # Get commands for post-processing
             cmds_a = self.get('PostShellCmds', [])
         else:

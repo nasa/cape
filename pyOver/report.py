@@ -304,12 +304,16 @@ class Report(cape.report.Report):
         # Path to the file
         frun = self.cntl.x.GetFullFolderNames(i)
         # Assemble absolute path
-        fdir = os.path.join(self.cntl.RootDir, frun)
-        fabs = os.path.join(fdir, fsplitmq)
+        if os.path.isabs(fsplitmq):
+            # Already absolute path
+            fabs = fsplitmq
+        else:
+            # Append root directory
+            fabs = os.path.join(self.cntl.RootDir, fsplitmq)
         # Get the file name alone
         fname = os.path.split(fabs)[-1]
         # Check if the file exists
-        if not os.path.isfile(fname): return
+        if not os.path.isfile(fabs): return
         # Check which ``q`` and ``x`` files to use as input and output
         fqi = opts.get_SubfigOpt(sfig, "QIn")
         fqo = opts.get_SubfigOpt(sfig, "QOut")
@@ -321,14 +325,45 @@ class Report(cape.report.Report):
         if fxi is None: fxi = "x.pyover.p3d"
         if fxo is None: fxo = "x.pyover.srf"
         # Check if the surf file exists
-        if not (os.path.isfile(fqo) and os.path.isfile(fqi)):
-            # Nothing to do
-            return
-        # Otherwise, check iteration nubers
-        nqi = case.checkqt(fqi)
-        nqo = case.checkqt(fqo)
-        # Check if we need to create *q* file
-        if nqi <= nqo: return
+        if not os.path.isfile(fqi):
+            # No input file to use
+            qq = False
+        elif os.path.isfile(fqo):
+            # If both files exist, check iteration nubers
+            nqi = case.checkqt(fqi)
+            try:
+                nqo = case.checkqt(fqo)
+            except Exception:
+                nqo = 0
+            # Check if surface file is already up-to-date
+            if nqi <= nqo:
+                # Up-to-date
+                qq = False
+            else:
+                # Old q.srf file
+                os.remove(fqo)
+                qq = True
+        else:
+            # No q.srf file
+            qq = True
+        # Check if the surf grid file exists
+        if not os.path.isfile(fxi):
+            # No input file
+            qx = False
+        elif os.path.isfile(fxo):
+            # Update *x.srf* only if updating *q.srf*
+            if qq:
+                # Delete the link
+                os.remove(fxo)
+                qx = True
+            else:
+                # Up-to-date files
+                qx = False
+        else:
+            # No x.srf file
+            qx = True
+        # Exit if nothing to do
+        if not (qx or qq): return
         # Name for the file here
         fspq = 'splitmq.%s.i' % sfig
         fspx = 'splitmx.%s.i' % sfig
@@ -336,35 +371,34 @@ class Report(cape.report.Report):
         fspxo = 'splitmx.%s.o' % sfig
         # Copy the file to this directory
         shutil.copy(fabs, fname)
-        # Edit the splitmq files
-        case.EditSplitmqI(fname, fspq, fqi, fqo)
-        # Split the solution
-        cmd = 'splitmq < %s > %s' % (fspq, fspqo)
-        print("    %s" % cmd)
-        ierr = os.system(cmd)
-        # Check for errors
-        if ierr: return
-        # Delete files
-        os.remove(fspq)
-        os.remove(fspqo)
-        # Check if the surf grid file exists
-        if not (os.path.isfile(fxi) and os.path.isfile(fxo)):
-            return
-        # Edit the splitmx file
-        case.EditSplitmxI(fname, fspx, fxi, fxo)
-        # Split the surface grid
-        cmd = 'splitmx < %s > %s' % (fspx, fxpxo)
-        print("    %s" % cmd)
-        ierr = os.system(cmd)
-        # Check for errors
-        if ierr: return
-        # Delete files
-        os.remove(fspx)
-        os.remove(fxpxo)
+        # Update or create q.srf if necessary
+        if qq:
+            # Edit the splitmq files
+            case.EditSplitmqI(fname, fspq, fqi, fqo)
+            # Split the solution
+            cmd = 'splitmq < %s > %s' % (fspq, fspqo)
+            print("    %s" % cmd)
+            ierr = os.system(cmd)
+            # Check for errors
+            if ierr: return
+            # Delete files
+            os.remove(fspq)
+            os.remove(fspqo)
+        # Update or create x.srf if necessary
+        if qx:
+            # Edit the splitmx file
+            case.EditSplitmqI(fname, fspx, fxi, fxo)
+            # Split the surface grid
+            cmd = 'splitmx < %s > %s' % (fspx, fspxo)
+            print("    %s" % cmd)
+            ierr = os.system(cmd)
+            # Check for errors
+            if ierr: return
+            # Delete files
+            os.remove(fspx)
+            os.remove(fspxo)
+        # Delete the template
         os.remove(fname)
-        
-        
-        
         
 # class Report
 
