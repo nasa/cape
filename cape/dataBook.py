@@ -75,7 +75,16 @@ def ImportPyPlot():
         plt.gcf
     except AttributeError:
         # Load the modules.
-        import matplotlib.pyplot as plt
+        import matplotlib
+        # Import pyplot with a working backend
+        try:
+            # Import with default backend
+            import matplotlib.pyplot as plt
+        except Exception:
+            # Use a non-Xwindows backend
+            matplotlib.use('Agg')
+            import matplotlib.pyplot as plt
+        # Other modules
         import matplotlib.transforms as tform
         from matplotlib.text import Text
         
