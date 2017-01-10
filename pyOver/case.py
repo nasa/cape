@@ -665,20 +665,33 @@ def checkqt(fname):
     if I[0] == 4:
         # Little endian
         ti = "<i4"
-        tf = "<f8"
+        tf = "<f"
     else:
         ti = ">i4"
-        tf = ">f8"
+        tf = ">f"
     # Read number of grids
     ng, i = np.fromfile(f, count=2, dtype=ti)
     # Check consistency
     if i != 4:
         f.close()
         return None
-    # Read grid dimensions
-    f.seek((3*ng+2)*4)
-    # Read the header record marker and first six headers
-    f.seek(4 + 6*8)
+    # Read past the grid dimensions
+    f.seek(4 + 12*ng, 1)
+    # Read the number of states, num species, and end-of-record
+    nq, nqc, i = np.fromfile(f, count=3, dtype=ti)
+    # Read the header start-of-record marker to determine sp/dp
+    i, = np.fromfile(f, count=1, dtype=ti)
+    # Check for single precision
+    if i == (13+max(2,nqc))*8 + 4:
+        # Double-precision (usual)
+        nf = 8
+        tf = tf + "8"
+    else:
+        # Single-precision
+        nf = 4
+        tf = tf + "4"
+    # Skip the first three entries of the header (REFMACH, ALPHA, REY)
+    f.seek(3*nf, 1)
     # Read the time
     t, = np.fromfile(f, count=1, dtype=tf)
     # Close the file
@@ -711,8 +724,8 @@ def EditSplitmqI(fin, fout, qin, qout):
     fi = open(fin, 'r')
     fo = open(fout, 'w')
     # Write the input and output solution/grid files
-    fo.write('%s\n' % fin)
-    fo.write('%s\n' % fout)
+    fo.write('%s\n' % qin)
+    fo.write('%s\n' % qout)
     # Ignore first two lines of input file
     fi.readline()
     fi.readline()
