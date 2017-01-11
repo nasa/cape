@@ -51,8 +51,14 @@ def ImportPyPlot():
     try:
         plt.gcf
     except AttributeError:
+        # Check compatibility of the environment
+        if case.os.environ.get('DISPLAY') is None:
+            # Use a special MPL backend to avoid need for DISPLAY
+            import matplotlib
+            matplotlib.use('Agg')
         # Load the modules.
         import matplotlib.pyplot as plt
+        # Other modules
         import matplotlib.transforms as tform
         from matplotlib.text import Text
 

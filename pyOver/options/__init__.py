@@ -453,6 +453,11 @@ class Options(cape.options.Options):
         self._DataBook()
         return self["DataBook"].get_DataBook_QOut(comp)
         
+    # Surface *q* file
+    def get_DataBook_QSurf(self, comp):
+        self._DataBook()
+        return self["DataBook"].get_DataBook_QSurf(comp)
+        
     # Input *x* file
     def get_DataBook_XIn(self, comp):
         self._DataBook()
@@ -463,11 +468,16 @@ class Options(cape.options.Options):
         self._DataBook()
         return self["DataBook"].get_DataBook_XOut(comp)
     
+    # Output *x* file
+    def get_DataBook_XSurf(self, comp):
+        self._DataBook()
+        return self["DataBook"].get_DataBook_XSurf(comp)
+    
     # Copy over the documentation.
     for k in [
         "DataBook_mixsur", "DataBook_splitmq",
-        "DataBook_QIn", "DataBook_QOut",
-        "DataBook_XIn", "DataBook_XOut"
+        "DataBook_QIn", "DataBook_QOut", "DataBook_QSurf",
+        "DataBook_XIn", "DataBook_XOut", "DataBook_XSurf"
     ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__

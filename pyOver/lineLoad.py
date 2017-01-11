@@ -19,8 +19,7 @@ from datetime import datetime
 # Utilities or advanced statistics
 from . import util
 from . import case
-from . import config
-from cape import tar
+from cape import config
 # Line load template
 import cape.lineLoad
 
@@ -192,88 +191,84 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         fsplitmq = 'splitmq.%s.i' % self.comp
         fsplitmx = 'splitmx.%s.i' % self.comp
         fmixsur  = 'mixsur.%s.i' % self.comp
-        # Source q file is in parent folder
-        fsrc = os.path.join('..', fq)
-        # Iteration number from volume and surface files
-        tvol = case.checkqt(fsrc)
+        # Source *q* file is in parent folder
+        fqvol = os.path.join('..', fq)
+        # Source *x* file if needed
+        fxvol = os.path.join('..', "x.pyover.p3d")
         # If this file does not exist, nothing is going to work.
-        # Cannot have x.save file if we need to create triq file
-        if os.path.isfile("x.save"): os.remove("x.save")
-        if os.path.isfile("q.save"): os.remove("q.save")
-        # ----------------------------
-        # Prepare SPLITMQ if necessary
-        # ----------------------------
-        if not qsplitm: splitmq = False
+        if not os.path.isfile(fsrc):
+            return
+        # If we're in PreprocessTriq, all x/q files are out-of-date
+        for f in ["x.save", "x.srf", "x.vol", "q.save", "q.srf", "q.vol"]:
+            # Check if file esists
+            if os.path.isfile(f): os.remove(f)
+        # ------------------------
+        # Determine SPLITMQ status
+        # ------------------------
         # Use this while loop as a method to use ``break``
-        while qsplitm:
+        if qsplitm:
+            # Source file option(s)
+            fqo = self.opts.get_DataBook_QSurf(comp)
+            fxo = self.opts.get_DataBook_XSurf(comp)
+            # Get absolute path
+            if fqo is None:
+                # No source file
+                fqsrf = None
+            else:
+                # Get path to parent folder
+                fqsrf = os.path.join('..', fqo)
             # Check for "q.srf" file
-            if os.path.isfile("q.srf"):
+            if os.path.isfile(fqo):
                 # Get iteration number
-                tsrf = case.checkqt(tsrf)
+                tvol = case.checkqt(fqvol)
+                tsrf = case.checkqt(fqsrf)
                 # Check if it's up to date
                 if tsrf < tvol:
                     # Exists but out-of-date
-                    os.remove("q.srf")
-                else:
-                    # Up-to-date; get out of here
-                    qspltimq = False
-                    break
-            # Name of parent "q.srf" file from parent directory
-            fqo = self.fqo
-            # Expand "q.srf" file
-            if fqo is None:
-                # No target "q.srf" file to link
-                fqsrc = None
-            else:
-                # Expand to parent folder
-                fqsrc = os.path.join('..', fqo)
-            break
-            # Expand "x.srf" file
-            if fxo is None:
-                # No target "x.srf" file to link
-                fxsrc = None
-            else:
-                # Expand to parent folder
-                fxsrc = os.path.join('..', fxo)
-            # If "q.srf" file exists, get iteration number
-            if fqo and os.path.isfile(fqsrf):
-                # Get actual iteration number
-                tsrf = case.checkqt(fqsrc)
-            else:
-                # No iteration number
-                tsrf = 0
-            # Check for existing SRF file
-            if fqo is None:
-                # No q.srf file to link
-                qsplitmq = True
-            elif tsrf < tvol:
-                # q.srf file may exist, but it is out of date
-                qsplitmq = False
-            else:
-                # Link target surface solution so OVERINT uses it
-                os.symlink(fqsrc, "q.save")
-                qsplitmq = False
-            # Check for existing x.srf file
-            if fxo is None:
-                # No x.srf target
-                qsplitmx = True
-            elif 
-                # Path to target x.srf file in parent
-                fxsrc = os.path.join('..', fxo)
-                # Check if file exists in parent folder
-                if os.path.isfile(fxsrc):
-                    # Link it to "x.save" so OVERINT uses it
-                    os.symlink(fxsrc, "x.save")
+                    qsplitmq = True
+                    qsplitmx = True
+                elif os.path.isfile(fxo):
+                    # Up-to-date, and surface grid good too
+                    qsplitmq = False
                     qsplitmx = False
                 else:
-                    # Still need to run SPLITMX because target did not exist
+                    # Up-to-date; but need to create 'x.srf'
+                    qspltimq = False
                     qsplitmx = True
+            else:
+                # No candidate "q.srf" file from parent directory
+                qsplitmq = True
+                qsplitmx = True
         else:
-            # Copy the source file to this folder
-            os.symlink(fsrc, 'x.save')
+            # Do not run splitmq
+            qsplitmq = False
+            qsplitmx = False
+        # ---------------------
+        # Prepare SPLITMQ files
+        # ---------------------
+        # Whether or not to split
+        qsplitq = qsplitmq or splitmx
         # If these files exist, copy to this folder
-        if qsplitq: shutil.copy(self.splitmq, fsplitmq)
+        if qsplitq: shutil.copy(self.splitmq, "splitmq.i")
         if qmixsur: shutil.copy(self.mixsur,  fmixsur)
+        # Prepare files for ``splitmq``
+        if qsplitmq:
+            # Link parent Q volume
+            os.symlink(fqvol, "q.vol")
+            # Edit the SPLITMQ input file
+            case.EditSplitmqI("splitmq.i", fsplitmq, "q.vol", "q.save")
+        else:
+            # Link parent *q.srf* to "q.save" so OVERINT uses it
+            os.symlink(fqsrf, "q.save")
+        # Prepare files for ``splitmx``
+        if qsplitmx:
+            # Link parent X volume
+            os.symlink(fxvol, "x.vol")
+            # Edit the SPLITMX input file
+            case.EditSplitmxI("splitmq.i", fsplitmx, "x.vol", "x.save")
+        else:
+            # Link parent *x.srf* to "x.save" so OVERINT uses it
+            os.symlink(fxsrf, "s.xave")
         # Check for PBS script
         if kw.get('qpbs', False):
             # Get the file handle
@@ -283,32 +278,48 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
                 raise ValueError(
                     "No open file handle for preprocessing TRIQ file")
             # Check for ``splitmq``
-            if qsplitq:
+            if qsplitmq:
                 f.write("\n# Extract surface and L=2 from solution\n")
                 f.write("splitmq < %s > splitmq.%s.o\n" %
                     (fsplitmq, self.comp))
+            # Check for ``splitmx``
+            if qsplitmx:
+                f.write("\n# Extract surface and L=2 grid\n")
+                f.write("splitmx < %s > splitmx.%s.o\n" %
+                    (fsplitmx, self.comp))
             # Check for ``mixsur``
             if qmixsur:
                 f.write("\n# Use mixsur to create triangulation\n")
                 f.write("mixsur < %s > mixsur.%s.o\n" % (fmixsur, self.comp))
         else:
             # Check for ``splitmq``
-            if qsplitq:
+            if qsplitmq:
                 # Command to run splitmq
-                cmd = "splitmq < %s > spltimq.%s.o" % (fsplitmq, self.comp)
+                cmd = "splitmq < %s > splitmq.%s.o" % (fsplitmq, self.comp)
                 # Status update
-                print("    %s" % cmd)
+                print("    > %s" % cmd)
                 # Run ``splitmq``
                 ierr = os.system(cmd)
                 # Check for errors
                 if ierr:
                     raise SystemError("Failure while running ``splitmq``")
+            # Check for ``splitmx``
+            if qsplitmx:
+                # Command to run splitmx
+                cmd = "splitmx < %s > splitmq.%s.o" % (fsplitmx, self.comp)
+                # Status update
+                print("    > %s" % cmd)
+                # Run ``splitmx``
+                ierr = os.system(cmd)
+                # Check for errors
+                if ierr:
+                    raise SystemError("Failure while running ``splitmx``")
             # Check for ``mixsur``
             if qmixsur:
                 # Command to mixsur
                 cmd = "mixsur < %s > mixsur.%s.o" % (fmixsur, self.comp)
                 # Status update
-                print("    %s" % cmd)
+                print("    > %s" % cmd)
                 # Run ``mixsur``
                 ierr = os.system(cmd)
                 # Check for errors

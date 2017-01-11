@@ -97,7 +97,7 @@ class DataBook(cape.options.DataBook):
         """Get the preprocessed ``q`` file for a databook component
         
         :Call:
-            >>> fq = opts.get_DataBook_QIn(comp)
+            >>> fq = opts.get_DataBook_QOut(comp)
         :Inputs:
             *opts*: :class:`pyOver.options.Options`
                 Options interface
@@ -115,6 +115,30 @@ class DataBook(cape.options.DataBook):
         copts = self.get(comp, {})
         # Get the component-specific value
         return copts.get("QOut", db_fqi)
+        
+    # Get *q* surface file for line loads
+    def get_DataBook_QSurf(self, comp):
+        """Get the preprocessed ``q.srf`` file name for a databook component
+        
+        :Call:
+            >>> fq = opts.get_DataBook_QSurf(comp)
+        :Inputs:
+            *opts*: :class:`pyOver.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of line load data book component
+        :Outputs:
+            *fq*: ``None`` | {``"q.pyover.srf"``} | :class:`str`
+                Name of output Overflow surface solution file
+        :Versions:
+            * 2017-01-10 ``@ddalle``: First version
+        """
+        # Global data book setting
+        db_fq = self.get("QSurf", "q.pyover.srf")
+        # Get component options
+        copts = self.get(comp, {})
+        # Get the component-specific value
+        return copts.get("QSurf", db_fq)
         
     # Get *x* file for line loads
     def get_DataBook_XIn(self, comp):
@@ -163,6 +187,30 @@ class DataBook(cape.options.DataBook):
         copts = self.get(comp, {})
         # Get the component-specific value
         return copts.get("XOut", db_fxo)
+        
+    # Get *x.srf* file for line loads
+    def get_DataBook_XSurf(self, comp):
+        """Get the input ``x.srf`` file for a databook component
+        
+        :Call:
+            >>> fx = opts.get_DataBook_XSurf(comp)
+        :Inputs:
+            *opts*: :class:`pyOver.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of line load data book component
+        :Outputs:
+            *fx*: ``None`` | {``"x.pyover.srf"``} | :class:`str`
+                Name of output Overflow grid file
+        :Versions:
+            * 2017-01-10 ``@ddalle``: First version
+        """
+        # Global data book setting
+        db_fx = self.get("XSurf", "x.pyover.srf")
+        # Get component options
+        copts = self.get(comp, {})
+        # Get the component-specific value
+        return copts.get("XSurf", db_fx)
 # class DataBook
 
         
