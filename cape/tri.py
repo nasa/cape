@@ -442,6 +442,34 @@ class TriBase(object):
             self.ReadTriBin(fname)
             # Save number of iterations included in average
             self.n = n
+            
+    # Function to read a .triq file
+    def ReadTriQ(self, fname, n=1):
+        """Read an annotated triangulation file (``.triq``)
+        
+        File type is automatically detected and may be any one of the following
+        
+            * ASCII
+            * Double-precision little-endian Fortran unformatted
+            * Single-precision little-endian Fortran unformatted
+            * Double-precision big-endian Fortran unformatted
+            * Single-precision big-endian Fortran unformatted
+        
+        :Call:
+            >>> tri.Read(fname)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *fname*: :class:`str`
+                Name of triangulation file to read
+            *n*: {``1``} | positive :class:`int`
+                Number of snapshots averaged into ``triq`` file
+        :Versions:
+            * 2017-01-11 ``@ddalle``: Points to :func:`ReadTri`
+        """
+        # Use previous function
+        self.Read(fname, n=n)
+        
         
     # Function to read a .tri file
     def ReadASCII(self, fname, n=1):
@@ -4355,52 +4383,6 @@ class Triq(TriBase):
         """
         return '<cape.tri.Triq(nNode=%i, nTri=%i, nq=%i)>' % (
             self.nNode, self.nTri, self.nq)
-        
-    # Function to read a .triq file
-    def Read(self, fname, n=1):
-        """Read a q-triangulation file (from ``*.triq``)
-        
-        :Call:
-            >>> triq.Read(fname)
-            >>> triq.Read(fname, n=1)
-        :Inputs:
-            *triq*: :class:`cape.tri.Triq`
-                Triangulation instance
-            *fname*: :class:`str`
-                Name of triangulation file to read
-            *n*: :class:`int`
-                Number of iterations used for weighted averaging
-        :Versions:
-            * 2015-09-14 ``@ddalle``: First version
-        """
-        # Open the file
-        fid = open(fname, 'r')
-        # Read the first line.
-        line = fid.readline().strip()
-        # Process the first line.
-        try:
-            # Three entries
-            nNode, nTri, nq = (int(v) for v in line.split()[0:3])
-        except Exception:
-            # Not a TriQ file.
-            nNode, nTri = (int(v) for v in line.split()[0:2])
-            # No state
-            nq = 0
-        
-        # Read the nodes.
-        self.ReadNodes(fid, nNode)
-        # Read the Tris.
-        self.ReadTris(fid, nTri)
-        # Read or assign component IDs.
-        self.ReadCompID(fid)
-        # Read the sate.
-        self.ReadQ(fid, nNode, nq)
-        
-        # Close the file.
-        fid.close()
-        
-        # Weight: number of files included in file
-        self.n = n
         
     # Function to write a .triq file
     def Write(self, fname, **kw):
