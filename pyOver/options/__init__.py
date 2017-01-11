@@ -443,6 +443,11 @@ class Options(cape.options.Options):
         self._DataBook()
         return self["DataBook"].get_DataBook_splitmq(comp)
         
+    # MIXSUR output file folder
+    def get_DataBook_fomo(self, comp):
+        self._DataBook()
+        return self["DataBook"].get_DataBook_fomo(comp)
+        
     # Input *q* file
     def get_DataBook_QIn(self, comp):
         self._DataBook()
@@ -475,7 +480,7 @@ class Options(cape.options.Options):
     
     # Copy over the documentation.
     for k in [
-        "DataBook_mixsur", "DataBook_splitmq",
+        "DataBook_mixsur", "DataBook_splitmq", "DataBook_fomo",
         "DataBook_QIn", "DataBook_QOut", "DataBook_QSurf",
         "DataBook_XIn", "DataBook_XOut", "DataBook_XSurf"
     ]:

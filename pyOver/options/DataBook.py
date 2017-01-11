@@ -22,7 +22,7 @@ class DataBook(cape.options.DataBook):
     
     # Get MIXSUR file
     def get_DataBook_mixsur(self, comp):
-        """Get the ``mixsur`` input file for a databook component
+        """Get the ``mixsur`` or ``overint`` input file for a databook component
         
         :Call:
             >>> fname = opts.get_DataBook_mixsur(comp)
@@ -38,11 +38,11 @@ class DataBook(cape.options.DataBook):
             * 2016-12-29 ``@ddalle``: First version
         """
         # Global data book setting
-        db_mixsuri = self.get("mixsur", "mixsur.i")
+        db_mixsuri = self.get("mixsur", self.get("overint", "mixsur.i"))
         # Get component options
         copts = self.get(comp, {})
         # Get the component-specific value
-        return copts.get("mixsur", db_mixsuri)
+        return copts.get("mixsur", copts.get("overint", db_mixsuri))
         
     # Get SPLITMQ file
     def get_DataBook_splitmq(self, comp):
@@ -67,6 +67,43 @@ class DataBook(cape.options.DataBook):
         copts = self.get(comp, {})
         # Get the component-specific value
         return copts.get("splitmq", db_splitmqi)
+        
+    # Get path to FOMO files, to avoid running ``mixsur``
+    def get_DataBook_fomo(self, comp):
+        """Get path to ``mixsur`` output files
+        
+        If each of the following files is found, there is no need to run
+        ``mixsur``, and files are linked instead.
+        
+            * ``grid.i.tri``
+            * ``grid.bnd``
+            * ``grid.ib``
+            * ``grid.ibi``
+            * ``grid.map``
+            * ``grid.nsf``
+            * ``grid.ptv``
+            * ``mixsur.fmp``
+            
+        :Call:
+            >>> fdir = opts.get_DataBook_fomo(comp)
+        :Inputs:
+            *opts*: :class:`pyOver.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of line load data book component
+        :Outputs:
+            *fdir*: {``None``} | :class:`str`
+                Path to ``mixsur`` output files
+        :Versions:
+            * 2017-01-11 ``@ddalle``: First version
+        """
+        # Global data book setting
+        db_fdir = self.get("fomo", None)
+        # Get component options
+        copts = self.get(comp, {})
+        # Get the component-specific value
+        return copts.get("fomo", db_fdir)
+        
         
     # Get *q* file for line loads
     def get_DataBook_QIn(self, comp):

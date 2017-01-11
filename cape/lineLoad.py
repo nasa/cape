@@ -597,24 +597,8 @@ class DBLineLoad(dataBook.DBBase):
         ftriq = os.path.join('..', ftriq)
         # Name of loads file
         flds = '%s_%s.%s' % (self.proj, self.comp, self.sec)
-        # Name of triload input file
-        fcmd = 'triload.%s.i' % self.comp
-        # Process existing input file
-        if os.path.isfile(fcmd):
-            # Open input file
-            f = open(fcmd)
-            # Read first line
-            otriq = f.readline().strip()
-            # Close file
-            f.close()
-        else:
-            # No input file
-            otriq = ''
         # Check whether or not to compute
-        if otriq != ftriq:
-            # Not using the most recent triq file
-            q = True
-        elif not os.path.isfile(flds):
+        if not os.path.isfile(flds):
             # No loads yet
             q = True
         elif os.path.getmtime(flds) < os.path.getmtime(ftriq):
@@ -723,6 +707,34 @@ class DBLineLoad(dataBook.DBBase):
         
     # Write triload.i input file
     def WriteTriloadInput(self, ftriq, i, **kw):
+        """Write ``triload.i`` input file to ``triloadCmd``
+        
+        :Call:
+            >>> DBL.WriteTriloadInput(ftriq, i, **kw)
+        :Inputs:
+            *DBL*: :class:`cape.lineLoad.DBLineLoad`
+                Line load data book
+            *ftriq*: :class:`str`
+                Name of the ``triq`` file to analyze
+            *i*: :class:`int`
+                Case number
+        :Keyword arguments:
+            *mach*: :class:`float`
+                Override Mach number
+            *Re*: :class:`float`
+                Override Reynolds number input
+            *gamma*: :class:`float`
+                Override ratio of specific heats
+            *MRP*: :class:`float`
+                Override the moment reference point from the JSON input file
+        :Versions:
+            * 2016-06-07 ``@ddalle``: First version
+            * 2017-01-11 ``@ddalle``: Moved code to WriteTriloadInputBase
+        """
+        self.WriteTriloadInputBase(ftriq, i, **kw)
+        
+    # Write triload.i input file
+    def WriteTriloadInputBase(self, ftriq, i, **kw):
         """Write ``triload.i`` input file to ``triloadCmd``
         
         :Call:

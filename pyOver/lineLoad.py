@@ -75,14 +75,18 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         # Get input files
         fmixsur  = self.opts.get_DataBook_mixsur(self.comp)
         fsplitmq = self.opts.get_DataBook_splitmq(self.comp)
+        ffomo    = self.opts.get_DataBook_fomo(self.comp)
         # Get absolute file paths
-        if not os.path.isabs(fmixsur):
+        if (fmixsur) and (not os.path.isabs(fmixsur)):
             fmixsur = os.path.join(self.RootDir, fmixsur)
-        if not os.path.isabs(fsplitmq):
+        if (fsplitmq) and (not os.path.isabs(fsplitmq)):
             fsplitmq = os.path.join(self.RootDir, fsplitmq)
+        if (ffomo) and (not os.path.isabs(ffomo)):
+            ffomo = os.path.join(self.RootDir, ffomo)
         # Save files
         self.mixsur  = fmixsur
         self.splitmq = fsplitmq
+        self.ffomo   = ffomo
         # Get Q/X files
         self.fqi = self.opts.get_DataBook_QIn(self.comp)
         self.fxi = self.opts.get_DataBook_XIn(self.comp)
@@ -164,6 +168,36 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             qpre = True
         # Output
         return qpre, fq, n, i0, i1
+        
+    # Write triload.i input file
+    def WriteTriloadInput(self, ftriq, i, **kw):
+        """Write ``triload.i`` input file for ``triloadCmd``
+        
+        This versions uses a fixed input solution/grid file, ``"grid.i.triq"``
+        
+        :Call:
+            >>> DBL.WriteTriloadInput(ftriq, i, **kw)
+        :Inputs:
+            *DBL*: :class:`pyOver.lineLoad.DBLineLoad`
+                Line load data book
+            *ftriq*: :class:`str`
+                Name of the ``triq`` file to analyze
+            *i*: :class:`int`
+                Case number
+        :Keyword arguments:
+            *mach*: :class:`float`
+                Override Mach number
+            *Re*: :class:`float`
+                Override Reynolds number input
+            *gamma*: :class:`float`
+                Override ratio of specific heats
+            *MRP*: :class:`float`
+                Override the moment reference point from the JSON input file
+        :Versions:
+            * 2017-01-11 ``@ddalle``: First separate version
+        """
+        # Point to a fixed "grid.i.triq" file
+        self.WriteTriloadInputBase("grid.i.triq", i, **kw)
     
     # Preprocess triq file (convert from PLT)
     def PreprocessTriq(self, fq, **kw):
@@ -188,6 +222,11 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         # Do the SPLITMQ and MIXSUR files exist?
         qsplitm = os.path.isfile(self.splitmq)
         qmixsur = os.path.isfile(self.mixsur)
+        # If there's no mixsur file, there's nothing we can do
+        if not qmixsur:
+            raise RuntimeError(
+                ("No 'mixsur' or 'overint' input file found ") +
+                ("for lineload component '%s'" % self.comp))
         # Local names for input files
         fsplitmq = 'splitmq.%s.i' % self.comp
         fsplitmx = 'splitmx.%s.i' % self.comp
@@ -205,6 +244,33 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         for f in ["x.save", "x.srf", "x.vol", "q.save", "q.srf", "q.vol"]:
             # Check if file esists
             if os.path.isfile(f): os.remove(f)
+        # -------------------------------------
+        # Determine MIXSUR output folder status
+        # -------------------------------------
+        # Check status of self.fomo folder
+        if self.fomo and os.path.isdir(self.fomo):
+            # List of required mixsur files
+            fmo = [
+                "grid.i.tri", "grid.bnd", "grid.ib",  "grid.ibi",
+                "mixsur.fmp", "grid.map", "grid.nsf", "grid.ptv"
+            ]
+            # Initialize a flag that all these files exist
+            qmixsur = False
+            # Loop through files
+            for f in fmo:
+                # Check if the file exists
+                if not os.path.isfile(os.path.join(self.fomo, f)):
+                    # Missing file
+                    qmixsur = True
+                    break
+        # Copy files if ``mixsur`` not needed
+        if not qmixsur:
+            # Loop through files
+            for f in fmo:
+                # If file exists in `lineload/` folder, delete it
+                if os.path.isfile(f): os.remove(f)
+                # Link file
+                os.symlink(os.path.join(self.fomo,f), f)
         # ------------------------
         # Determine SPLITMQ status
         # ------------------------
@@ -259,9 +325,11 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         # ---------------------
         # Whether or not to split
         qsplitq = qsplitmq or qsplitmx
-        # If these files exist, copy to this folder
+        # Copy "splitmq"/"splitmx" input template
         if qsplitq: shutil.copy(self.splitmq, "splitmq.i")
-        if qmixsur: shutil.copy(self.mixsur,  fmixsur)
+        # Copy "mixsur"/"overint" input file
+        shutil.copy(self.mixsur, fmixsur)
+        shutil.copy(self.mixsur, "mixsur.i")
         print("Label 050: qsplitmq=%s" % qsplitmq)
         print("Label 051: qsplitmx=%s" % qsplitmx)
         print("Label 052: qmixsur=%s" % qmixsur)
@@ -305,6 +373,9 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             if qmixsur:
                 f.write("\n# Use mixsur to create triangulation\n")
                 f.write("mixsur < %s > mixsur.%s.o\n" % (fmixsur, self.comp))
+            # Write ``overint`` description
+            f.write("\n# Use overint to extract quantities\n")
+            f.write("overint < %s > overint.%.o\n" % (fmixsur, self.comp))
         else:
             # Check for ``splitmq``
             if qsplitmq:
@@ -339,15 +410,15 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
                 # Check for errors
                 if ierr:
                     raise SystemError("Failure while running ``mixsur``")
-                # Command to overint
-                cmd = "overint < %s > overint.%s.o" % (fmixsur, self.comp)
-                # Status update
-                print("    %s" % cmd)
-                # Run ``overint``
-                ierr = os.system(cmd)
-                # Check for errors
-                if ierr:
-                    raise SystemError("Failure while running ``overint``")
+            # Command to overint
+            cmd = "overint < %s > overint.%s.o" % (fmixsur, self.comp)
+            # Status update
+            print("    %s" % cmd)
+            # Run ``overint``
+            ierr = os.system(cmd)
+            # Check for errors
+            if ierr:
+                raise SystemError("Failure while running ``overint``")
         
 # class DBLineLoad
     
