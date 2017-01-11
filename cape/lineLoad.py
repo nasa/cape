@@ -646,6 +646,9 @@ class DBLineLoad(dataBook.DBBase):
             nsm = 0
         # Read the loads file
         self[i] = CaseLL(self.comp, self.proj, self.sec, fdir=None, seam=False)
+        # Check for null loads
+        if self[i].x.size == 0:
+            return
         # Check whether or not to read seams
         if nsm == 0:
             # Read the seam curves from this output
