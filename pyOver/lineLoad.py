@@ -166,6 +166,21 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         else:
             # Need to run ``overint`` to get triq file
             qpre = True
+        # If "grid.i.triq" file is up-to-date, check if it has the component
+        if not qpre:
+            # Read the existing "mixsur.i" file
+            fmixsur = os.path.join("lineload", "mixsur.i")
+            # Open the file
+            if os.path.isfile(fmixsur):
+                # Read that file
+                cfg = config.ConfigMIXSUR(fmixsur)
+                # Check if the component is present
+                if self.comp not in cfg.faces:
+                    # The "grid.i.triq" does not include the component we need
+                    qpre = True
+            else:
+                # No knowledge of components; must run overint 
+                qpre = True
         # Output
         return qpre, fq, n, i0, i1
         
