@@ -1256,9 +1256,74 @@ class Options(odict):
         else:
             self._PBS()
             self['PBS'].set_PBS_walltime(t, i)
+    
+    # Get PBS *stdout* file
+    def get_PBS_o(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            return self['BatchPBS'].get_PBS_o(i)
+        elif typ == 'post':
+            self._PostPBS()
+            return self['PostPBS'].get_PBS_o(i)
+        else:
+            self._PBS()
+            return self['PBS'].get_PBS_o(i)
+        
+    # Set PBS *stdout* setting
+    def set_PBS_o(self, j=rc0('PBS_o'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            self['BatchPBS'].set_PBS_o(j, i)
+        elif typ == 'post':
+            self._PostPBS()
+            self['PostPBS'].set_PBS_o(j, i)
+        else:
+            self._PBS()
+            self['PBS'].set_PBS_o(j, i)
+    
+    # Get PBS *stderr* file
+    def get_PBS_e(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            return self['BatchPBS'].get_PBS_e(i)
+        elif typ == 'post':
+            self._PostPBS()
+            return self['PostPBS'].get_PBS_e(i)
+        else:
+            self._PBS()
+            return self['PBS'].get_PBS_e(i)
+        
+    # Set PBS *stderr* setting
+    def set_PBS_e(self, j=rc0('PBS_o'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            self['BatchPBS'].set_PBS_e(j, i)
+        elif typ == 'post':
+            self._PostPBS()
+            self['PostPBS'].set_PBS_e(j, i)
+        else:
+            self._PBS()
+            self['PBS'].set_PBS_e(j, i)
         
     # Copy over the documentation.
     for k in ['PBS_j', 'PBS_r', 'PBS_S', 'PBS_select', 'PBS_mpiprocs',
+            'PBS_o', 'PBS_e',
             'PBS_ncpus', 'PBS_model', 'PBS_W', 'PBS_q', 'PBS_walltime']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(PBS,'get_'+k).__doc__

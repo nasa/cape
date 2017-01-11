@@ -381,6 +381,82 @@ class PBS(odict):
         """
         self.set_key('PBS_j', j, i)
         
+        
+    # Get "stdout" setting
+    def get_PBS_o(self, i=None):
+        """Return the explicit STDOUT file
+        
+        :Call:
+            >>> o = opts.get_PBS_o(i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Index to select
+        :Outputs:
+            *o*: :class:`str`
+                PBS *o* setting; explicit STDOUT file
+        :Versions:
+            * 2017-01-11 ``@ddalle``: First version
+        """
+        return self.get_key('PBS_o', i)
+        
+    # Set "stdout" setting
+    def set_PBS_o(self, o=rc0('PBS_o'), i=None):
+        """Set PBS file for STDOUT
+        
+        :Call:
+            >>> opts.set_PBS_o(o, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *o*: :class:`str`
+                PBS *o* setting; explicit STDOUT file
+            *i*: :class:`int` or ``None``
+                Index to select
+        :Versions:
+            * 2017-01-11 ``@ddalle``: First version
+        """
+        self.set_key('PBS_o', o, i)
+        
+        
+    # Get "stderr" setting
+    def get_PBS_e(self, i=None):
+        """Return the explicit STDERR file
+        
+        :Call:
+            >>> e = opts.get_PBS_o(i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Index to select
+        :Outputs:
+            *e*: :class:`str`
+                PBS *e* setting; explicit STDERR file
+        :Versions:
+            * 2017-01-11 ``@ddalle``: First version
+        """
+        return self.get_key('PBS_e', i)
+        
+    # Set "stderr" setting
+    def set_PBS_e(self, e=rc0('PBS_e'), i=None):
+        """Set PBS file for STDERR
+        
+        :Call:
+            >>> opts.set_PBS_e(e, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *e*: :class:`str`
+                PBS *o* setting; explicit STDERR file
+            *i*: :class:`int` or ``None``
+                Index to select
+        :Versions:
+            * 2017-01-11 ``@ddalle``: First version
+        """
+        self.set_key('PBS_e', e, i)
+        
     
     # Get "rerun" setting
     def get_PBS_r(self, i=None):

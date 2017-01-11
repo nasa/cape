@@ -67,6 +67,8 @@ rc = {
     "FigWidth": 8,
     "FigHeight": 6,
     "PBS_j": "oe",
+    "PBS_o": None,
+    "PBS_e": None,
     "PBS_r": "n",
     "PBS_S": "/bin/bash",
     "PBS_select": 1,
