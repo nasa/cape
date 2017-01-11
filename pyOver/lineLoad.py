@@ -86,7 +86,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         # Save files
         self.mixsur  = fmixsur
         self.splitmq = fsplitmq
-        self.ffomo   = ffomo
+        self.fomodir = ffomo
         # Get Q/X files
         self.fqi = self.opts.get_DataBook_QIn(self.comp)
         self.fxi = self.opts.get_DataBook_XIn(self.comp)
@@ -218,7 +218,6 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             * 2016-12-20 ``@ddalle``: First version
             * 2016-12-21 ``@ddalle``: Added PBS
         """
-        print("Label 030: fq=%s" % fq)
         # Do the SPLITMQ and MIXSUR files exist?
         qsplitm = os.path.isfile(self.splitmq)
         qmixsur = os.path.isfile(self.mixsur)
@@ -235,8 +234,6 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         fqvol = fq
         # Source *x* file if needed
         fxvol = os.path.join('..', "x.pyover.p3d")
-        print("Label 035: PWD=%s" % os.getcwd())
-        print("Label 036: fqvol=%s (isfile=%s)"%(fqvol, os.path.isfile(fqvol)))
         # If this file does not exist, nothing is going to work.
         if not os.path.isfile(fqvol):
             return
@@ -247,8 +244,8 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         # -------------------------------------
         # Determine MIXSUR output folder status
         # -------------------------------------
-        # Check status of self.fomo folder
-        if self.fomo and os.path.isdir(self.fomo):
+        # Check status of self.fomodir folder
+        if self.fomodir and os.path.isdir(self.fomodir):
             # List of required mixsur files
             fmo = [
                 "grid.i.tri", "grid.bnd", "grid.ib",  "grid.ibi",
@@ -259,7 +256,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             # Loop through files
             for f in fmo:
                 # Check if the file exists
-                if not os.path.isfile(os.path.join(self.fomo, f)):
+                if not os.path.isfile(os.path.join(self.fomodir, f)):
                     # Missing file
                     qmixsur = True
                     break
@@ -270,7 +267,8 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
                 # If file exists in `lineload/` folder, delete it
                 if os.path.isfile(f): os.remove(f)
                 # Link file
-                os.symlink(os.path.join(self.fomo,f), f)
+                fsrc = os.path.join(self.fomodir, f)
+                os.symlink(fsrc, f)
         # ------------------------
         # Determine SPLITMQ status
         # ------------------------
@@ -279,8 +277,6 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             # Source file option(s)
             fqo = self.opts.get_DataBook_QSurf(self.comp)
             fxo = self.opts.get_DataBook_XSurf(self.comp)
-            print("Label 040: fqo='%s'" % fqo)
-            print("Label 041: fxo='%s'" % fxo)
             # Get absolute path
             if fqo is None:
                 # No source file
@@ -330,9 +326,6 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         # Copy "mixsur"/"overint" input file
         shutil.copy(self.mixsur, fmixsur)
         shutil.copy(self.mixsur, "mixsur.i")
-        print("Label 050: qsplitmq=%s" % qsplitmq)
-        print("Label 051: qsplitmx=%s" % qsplitmx)
-        print("Label 052: qmixsur=%s" % qmixsur)
         # Prepare files for ``splitmq``
         if qsplitmq:
             # Link parent Q volume

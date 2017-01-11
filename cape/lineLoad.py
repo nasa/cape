@@ -862,7 +862,7 @@ class DBLineLoad(dataBook.DBBase):
         if qtriq:
             self.PreprocessTriq(ftriq, qpbs=qpbs, i=i)
         # Triload command
-        cmd = 'triloadCmd < triload.%s.i > triload.o' % self.comp
+        cmd = 'triloadCmd < triload.%s.i > triload.%s.o'%(self.comp,self.comp)
         # Check for PBS
         if qpbs:
             # Write to file
