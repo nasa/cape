@@ -184,6 +184,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             * 2016-12-20 ``@ddalle``: First version
             * 2016-12-21 ``@ddalle``: Added PBS
         """
+        print("Label 030: fq=%s" % fq)
         # Do the SPLITMQ and MIXSUR files exist?
         qsplitm = os.path.isfile(self.splitmq)
         qmixsur = os.path.isfile(self.mixsur)
@@ -192,11 +193,13 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         fsplitmx = 'splitmx.%s.i' % self.comp
         fmixsur  = 'mixsur.%s.i' % self.comp
         # Source *q* file is in parent folder
-        fqvol = os.path.join('..', fq)
+        fqvol = fq
         # Source *x* file if needed
         fxvol = os.path.join('..', "x.pyover.p3d")
+        print("Label 035: PWD=%s" % os.getcwd())
+        print("Label 036: fqvol=%s (isfile=%s)"%(fqvol, os.path.isfile(fqvol)))
         # If this file does not exist, nothing is going to work.
-        if not os.path.isfile(fsrc):
+        if not os.path.isfile(fqvol):
             return
         # If we're in PreprocessTriq, all x/q files are out-of-date
         for f in ["x.save", "x.srf", "x.vol", "q.save", "q.srf", "q.vol"]:
@@ -208,8 +211,10 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         # Use this while loop as a method to use ``break``
         if qsplitm:
             # Source file option(s)
-            fqo = self.opts.get_DataBook_QSurf(comp)
-            fxo = self.opts.get_DataBook_XSurf(comp)
+            fqo = self.opts.get_DataBook_QSurf(self.comp)
+            fxo = self.opts.get_DataBook_XSurf(self.comp)
+            print("Label 040: fqo='%s'" % fqo)
+            print("Label 041: fxo='%s'" % fxo)
             # Get absolute path
             if fqo is None:
                 # No source file
@@ -217,8 +222,14 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             else:
                 # Get path to parent folder
                 fqsrf = os.path.join('..', fqo)
+            if fxo is None:
+                # No target file
+                fxsrf = None
+            else:
+                # Get path to parent folder
+                fxsrf = os.path.join('..', fxo)
             # Check for "q.srf" file
-            if os.path.isfile(fqo):
+            if os.path.isfile(fqsrf):
                 # Get iteration number
                 tvol = case.checkqt(fqvol)
                 tsrf = case.checkqt(fqsrf)
@@ -227,7 +238,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
                     # Exists but out-of-date
                     qsplitmq = True
                     qsplitmx = True
-                elif os.path.isfile(fxo):
+                elif os.path.isfile(fxsrf):
                     # Up-to-date, and surface grid good too
                     qsplitmq = False
                     qsplitmx = False
@@ -247,10 +258,13 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         # Prepare SPLITMQ files
         # ---------------------
         # Whether or not to split
-        qsplitq = qsplitmq or splitmx
+        qsplitq = qsplitmq or qsplitmx
         # If these files exist, copy to this folder
         if qsplitq: shutil.copy(self.splitmq, "splitmq.i")
         if qmixsur: shutil.copy(self.mixsur,  fmixsur)
+        print("Label 050: qsplitmq=%s" % qsplitmq)
+        print("Label 051: qsplitmx=%s" % qsplitmx)
+        print("Label 052: qmixsur=%s" % qmixsur)
         # Prepare files for ``splitmq``
         if qsplitmq:
             # Link parent Q volume
@@ -265,10 +279,10 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             # Link parent X volume
             os.symlink(fxvol, "x.vol")
             # Edit the SPLITMX input file
-            case.EditSplitmxI("splitmq.i", fsplitmx, "x.vol", "x.save")
+            case.EditSplitmqI("splitmq.i", fsplitmx, "x.vol", "x.save")
         else:
             # Link parent *x.srf* to "x.save" so OVERINT uses it
-            os.symlink(fxsrf, "s.xave")
+            os.symlink(fxsrf, "x.save")
         # Check for PBS script
         if kw.get('qpbs', False):
             # Get the file handle
@@ -297,7 +311,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
                 # Command to run splitmq
                 cmd = "splitmq < %s > splitmq.%s.o" % (fsplitmq, self.comp)
                 # Status update
-                print("    > %s" % cmd)
+                print("    %s" % cmd)
                 # Run ``splitmq``
                 ierr = os.system(cmd)
                 # Check for errors
@@ -308,23 +322,32 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
                 # Command to run splitmx
                 cmd = "splitmx < %s > splitmq.%s.o" % (fsplitmx, self.comp)
                 # Status update
-                print("    > %s" % cmd)
+                print("    %s" % cmd)
                 # Run ``splitmx``
                 ierr = os.system(cmd)
                 # Check for errors
                 if ierr:
                     raise SystemError("Failure while running ``splitmx``")
-            # Check for ``mixsur``
+            # Check for ``overint``
             if qmixsur:
                 # Command to mixsur
                 cmd = "mixsur < %s > mixsur.%s.o" % (fmixsur, self.comp)
                 # Status update
-                print("    > %s" % cmd)
+                print("    %s" % cmd)
                 # Run ``mixsur``
                 ierr = os.system(cmd)
                 # Check for errors
                 if ierr:
                     raise SystemError("Failure while running ``mixsur``")
+                # Command to overint
+                cmd = "overint < %s > overint.%s.o" % (fmixsur, self.comp)
+                # Status update
+                print("    %s" % cmd)
+                # Run ``overint``
+                ierr = os.system(cmd)
+                # Check for errors
+                if ierr:
+                    raise SystemError("Failure while running ``overint``")
         
 # class DBLineLoad
     
