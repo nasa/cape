@@ -25,6 +25,7 @@ from . import util
 from . import bin
 # Data modules
 from . import pointSensor
+from . import lineLoad
 
 # Template module
 import cape.dataBook
@@ -53,6 +54,11 @@ def ImportPyPlot():
     try:
         plt.gcf
     except AttributeError:
+        # Check compatibility of the environment
+        if os.environ.get('DISPLAY') is None:
+            # Use a special MPL backend to avoid need for DISPLAY
+            import matplotlib
+            matplotlib.use('Agg')
         # Load the modules.
         import matplotlib.pyplot as plt
         import matplotlib.transforms as tform
@@ -357,6 +363,59 @@ class DataBook(cape.dataBook.DataBook):
             * 2016-06-27 ``@ddalle``: Added *targ* keyword
         """
         self[comp] = DBComp(comp, x, opts, targ=targ)
+        
+    # Read line load
+    def ReadLineLoad(self, comp, conf=None, targ=None):
+        """Read a line load data book target if it is not already present
+        
+        :Call:
+            >>> DB.ReadLineLoad(comp)
+        :Inputs:
+            *DB*: :class:`pyOver.dataBook.DataBook`
+                Instance of the pyOver data book class
+            *comp*: :class:`str`
+                Line load component group
+            *conf*: {``"None"``} | :class:`cape.config.Config`
+                Surface configuration interface
+            *targ*: {``"None"``} | :class:`str`
+                Sets alternate directory to read from, defaults to *DB.targ*
+        :Versions:
+            * 2015-09-16 ``@ddalle``: First version
+            * 2016-06-27 ``@ddalle``: Added *targ*
+            * 2017-01-11 ``@ddalle``: Copied from :mod:`pyFun`
+        """
+        # Initialize if necessary
+        try:
+            self.LineLoads
+        except Exception:
+            self.LineLoads = {}
+        # Try to access the line load
+        try:
+            if targ is None:
+                # Check for the line load data book as is
+                self.LineLoads[comp]
+            else:
+                # Check for the target
+                self.ReadTarget(targ)
+                # Check for the target line load
+                self.Targets[targ].LineLoads[comp]
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Default target name
+            if targ is None:
+                # Read the file.
+                self.LineLoads[comp] = lineLoad.DBLineLoad(self.x, self.opts,
+                    comp, conf=conf, RootDir=self.RootDir, targ=self.targ)
+            else:
+                # Read as a specified target.
+                ttl = '%s\\%s' % (targ, comp)
+                # Read the file.
+                self.LineLoads[ttl] = lineLoad.DBLineLoad(self.x, self.opts,
+                    comp, conf=conf, RootDir=self.RootDir, targ=targ)
+            # Return to starting location
+            os.chdir(fpwd)
         
     # Update data book
     def UpdateDataBook(self, I=None):

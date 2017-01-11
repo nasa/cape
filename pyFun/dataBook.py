@@ -52,6 +52,11 @@ def ImportPyPlot():
     try:
         plt.gcf
     except AttributeError:
+        # Check compatibility of the environment
+        if os.environ.get('DISPLAY') is None:
+            # Use a special MPL backend to avoid need for DISPLAY
+            import matplotlib
+            matplotlib.use('Agg')
         # Load the modules.
         import matplotlib.pyplot as plt
         import matplotlib.transforms as tform
@@ -107,8 +112,8 @@ class DataBook(cape.dataBook.DataBook):
         :Call:
             >>> DB.ReadLineLoad(comp)
         :Inputs:
-            *DB*: :class:`pycart.dataBook.DataBook`
-                Instance of the pycart data book class
+            *DB*: :class:`pyFun.dataBook.DataBook`
+                Instance of the pyFun data book class
             *comp*: :class:`str`
                 Line load component group
             *conf*: {``"None"``} | :class:`cape.config.Config`
