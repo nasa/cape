@@ -840,9 +840,10 @@ class DBLineLoad(dataBook.DBBase):
         # Convert
         if qtriq:
             self.PreprocessTriq(ftriq, qpbs=qpbs, i=i)
+        # Triload command
+        cmd = 'triloadCmd < triload.%s.i > triload.o' % self.comp
         # Check for PBS
         if qpbs:
-            # Enter the 
             # Write to file
             f.write("\n# Run triload\n")
             f.write("%s\n" % cmd)
@@ -851,8 +852,6 @@ class DBLineLoad(dataBook.DBBase):
             # Submit the script
             queue.qsub(fpbs)
         else:
-            # Run triload
-            cmd = 'triloadCmd < triload.%s.i > triload.o' % self.comp
             # Status update
             print("    %s" % cmd)
             # Run triload

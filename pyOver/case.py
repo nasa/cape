@@ -842,11 +842,13 @@ def LinkQ():
     """
     # Get the general best ``q`` file name
     fq = GetQ()
-    # Get the best ``q.avg`` and ``q.srf`` files
+    # Get the best single-iter, ``q.avg``, and ``q.srf`` files
+    fqv = GetLatest(["q.[0-9]*[0-9]", "q.save", "q.restart"])
     fqa = GetLatest(["q.[0-9]*.avg", "q.avg*"])
     fqs = GetLatest(["q.[0-9]*.srf", "q.srf*", "q.[0-9]*.surf", "q.surf*"])
     # Create links (safely)
     LinkLatest(fq,  'q.pyover.p3d')
+    LinkLatest(fqv, 'q.pyover.vol')
     LinkLatest(fqa, 'q.pyover.avg')
     LinkLatest(fqs, 'q.pyover.srf')
         

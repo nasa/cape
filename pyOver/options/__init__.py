@@ -442,9 +442,33 @@ class Options(cape.options.Options):
     def get_DataBook_splitmq(self, comp):
         self._DataBook()
         return self["DataBook"].get_DataBook_splitmq(comp)
+        
+    # Input *q* file
+    def get_DataBook_QIn(self, comp):
+        self._DataBook()
+        return self["DataBook"].get_DataBook_QIn(comp)
+        
+    # Output *q* file
+    def get_DataBook_QOut(self, comp):
+        self._DataBook()
+        return self["DataBook"].get_DataBook_QOut(comp)
+        
+    # Input *x* file
+    def get_DataBook_XIn(self, comp):
+        self._DataBook()
+        return self["DataBook"].get_DataBook_XIn(comp)
+    
+    # Output *x* file
+    def get_DataBook_XOut(self, comp):
+        self._DataBook()
+        return self["DataBook"].get_DataBook_XOut(comp)
     
     # Copy over the documentation.
-    for k in ["DataBook_mixsur", "DataBook_splitmq"]:
+    for k in [
+        "DataBook_mixsur", "DataBook_splitmq",
+        "DataBook_QIn", "DataBook_QOut",
+        "DataBook_XIn", "DataBook_XOut"
+    ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
    # >

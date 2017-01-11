@@ -77,8 +77,18 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         fmixsur  = self.opts.get_DataBook_mixsur(self.comp)
         fsplitmq = self.opts.get_DataBook_splitmq(self.comp)
         # Get absolute file paths
-        self.mixsur  = os.path.join(self.RootDir, fmixsur)
-        self.splitmq = os.path.join(self.RootDir, fsplitmq)
+        if not os.path.isabs(fmixsur):
+            fmixsur = os.path.join(self.RootDir, fmixsur)
+        if not os.path.isabs(fsplitmq):
+            fsplitmq = os.path.join(self.RootDir, fsplitmq)
+        # Save files
+        self.mixsur  = fmixsur
+        self.splitmq = fsplitmq
+        # Get Q/X files
+        self.fqi = self.opts.get_DataBook_QIn(self.comp)
+        self.fxi = self.opts.get_DataBook_XIn(self.comp)
+        self.fqo = self.opts.get_DataBook_QOut(self.comp)
+        self.fxo = self.opts.get_DataBook_XOut(self.comp)
         # Read MapBC
         try:
             # Name of the MapBC file (from the input, not a case)
@@ -131,23 +141,25 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             * 2016-12-19 ``@ddalle``: Added to the module
         """
         # Get properties of triq file
-        fq, n, i0, i1 = GetQFile()
+        fq, n, i0, i1 = GetQFile(self.fqi)
         # Get the corresponding .triq file name
-        ftriq = 'grid.i.triq'
+        ftriq = os.path.join('lineload', 'grid.i.triq')
         # Check for 'q.strt'
-        if os.path.isfile('q.p3d'):
-            # Get the source to 'q.p3d'
-            fsrc = os.path.split(os.path.realname('q.p3d'))[-1]
-        elif os.path.isfile('q.save'):
-            # Get the source to 'q.save'
-            fsrc = os.path.split(os.path.realname('q.save'))[-1]
+        if os.path.isfile(fq):
+            # Source file exists
+            fsrc = os.path.realpath(fq)
         else:
             # No source just yet
             fsrc = None
         # Check if the TRIQ file exists
-        if os.path.isfile(ftriq) and (fq == fsrc):
-            # No conversion needed
-            qpre = False
+        if os.path.isfile(ftriq) and os.path.isfile(fsrc):
+            # Check modification dates
+            if os.path.getmtime(ftriq) > os.path.getmtime(fsrc):
+                # 'grid.i.triq' exists, but Q file is newer
+                qpre = True
+            else:
+                # Triq file exists and is up-to-date
+                qpre = False
         else:
             # Need to run ``overint`` to get triq file
             qpre = True
@@ -174,13 +186,93 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             * 2016-12-21 ``@ddalle``: Added PBS
         """
         # Do the SPLITMQ and MIXSUR files exist?
-        qsplitq = os.path.isfile(self.splitmq)
+        qsplitm = os.path.isfile(self.splitmq)
         qmixsur = os.path.isfile(self.mixsur)
         # Local names for input files
         fsplitmq = 'splitmq.%s.i' % self.comp
+        fsplitmx = 'splitmx.%s.i' % self.comp
         fmixsur  = 'mixsur.%s.i' % self.comp
+        # Source q file is in parent folder
+        fsrc = os.path.join('..', fq)
+        # Iteration number from volume and surface files
+        tvol = case.checkqt(fsrc)
+        # If this file does not exist, nothing is going to work.
+        # Cannot have x.save file if we need to create triq file
+        if os.path.isfile("x.save"): os.remove("x.save")
+        if os.path.isfile("q.save"): os.remove("q.save")
+        # ----------------------------
+        # Prepare SPLITMQ if necessary
+        # ----------------------------
+        if not qsplitm: splitmq = False
+        # Use this while loop as a method to use ``break``
+        while qsplitm:
+            # Check for "q.srf" file
+            if os.path.isfile("q.srf"):
+                # Get iteration number
+                tsrf = case.checkqt(tsrf)
+                # Check if it's up to date
+                if tsrf < tvol:
+                    # Exists but out-of-date
+                    os.remove("q.srf")
+                else:
+                    # Up-to-date; get out of here
+                    qspltimq = False
+                    break
+            # Name of parent "q.srf" file from parent directory
+            fqo = self.fqo
+            # Expand "q.srf" file
+            if fqo is None:
+                # No target "q.srf" file to link
+                fqsrc = None
+            else:
+                # Expand to parent folder
+                fqsrc = os.path.join('..', fqo)
+            break
+            # Expand "x.srf" file
+            if fxo is None:
+                # No target "x.srf" file to link
+                fxsrc = None
+            else:
+                # Expand to parent folder
+                fxsrc = os.path.join('..', fxo)
+            # If "q.srf" file exists, get iteration number
+            if fqo and os.path.isfile(fqsrf):
+                # Get actual iteration number
+                tsrf = case.checkqt(fqsrc)
+            else:
+                # No iteration number
+                tsrf = 0
+            # Check for existing SRF file
+            if fqo is None:
+                # No q.srf file to link
+                qsplitmq = True
+            elif tsrf < tvol:
+                # q.srf file may exist, but it is out of date
+                qsplitmq = False
+            else:
+                # Link target surface solution so OVERINT uses it
+                os.symlink(fqsrc, "q.save")
+                qsplitmq = False
+            # Check for existing x.srf file
+            if fxo is None:
+                # No x.srf target
+                qsplitmx = True
+            elif 
+                # Path to target x.srf file in parent
+                fxsrc = os.path.join('..', fxo)
+                # Check if file exists in parent folder
+                if os.path.isfile(fxsrc):
+                    # Link it to "x.save" so OVERINT uses it
+                    os.symlink(fxsrc, "x.save")
+                    qsplitmx = False
+                else:
+                    # Still need to run SPLITMX because target did not exist
+                    qsplitmx = True
+        else:
+            # Copy the source file to this folder
+            os.symlink(fsrc, 'x.save')
         # If these files exist, copy to this folder
-        if qsplitq: shutil.copy(self.splitmq, ftplitmq)
+        if qsplitq: shutil.copy(self.splitmq, fsplitmq)
         if qmixsur: shutil.copy(self.mixsur,  fmixsur)
         # Check for PBS script
         if kw.get('qpbs', False):
@@ -293,13 +385,16 @@ class CaseSeam(cape.lineLoad.CaseSeam):
 
 
 # Function to determine newest triangulation file
-def GetQFile():
+def GetQFile(fqi="q.pyover.p3d"):
     """Get most recent OVERFLOW ``q`` file and its associated iterations
     
     Averaged solution files, such as ``q.avg`` take precedence.
     
     :Call:
-        >>> fq, n, i0, i1 = GetQFile()
+        >>> fq, n, i0, i1 = GetQFile(fqi="q.pyover.p3d")
+    :Inputs:
+        *fqi*: {q.pyover.p3d} | q.pyover.avg | q.pyover.vol | :class:`str`
+            Target Overflow solution file after linking most recent files
     :Outputs:
         *fq*: :class:`str`
             Name of ``q`` file
@@ -312,8 +407,16 @@ def GetQFile():
     :Versions:
         * 2016-12-30 ``@ddalle``: First version
     """
-    # Best Q File
-    fq = case.GetQ()
+    # Link grid and solution files
+    case.LinkQ()
+    case.LinkX()
+    # Check for the input file
+    if os.path.isfile(fqi):
+        # Use the file (may be a link, in fact it usually is)
+        fq = fqi
+    else:
+        # Best Q file available (usually "q.avg" or "q.save")
+        fq = case.GetQ()
     # Check for q.avg iteration count
     n = case.checkqavg(fq)
     # Read the current "time" parameter
@@ -326,6 +429,6 @@ def GetQFile():
         # Cannot determine start iteration
         i0 = None
     # Output
-    return fplt, n, i0, i1
+    return fq, n, i0, i1
 # def GetQFile
             

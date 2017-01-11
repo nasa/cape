@@ -58,6 +58,9 @@ if __name__ == "__main__":
             kw['comp'] = kw['aero']
         # Collect force and moment data.
         ofl.Aero(**kw)
+    elif kw.get('ll'):
+        # Update line load data book
+        ofl.UpdateLineLoad(**kw)
     elif kw.get('archive'):
         # Archive cases
         ofl.ArchiveCases(**kw)
