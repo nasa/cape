@@ -62,22 +62,29 @@ class DataBook(odict):
             self['Targets'][targ] = DBTarget(**targs[targ])
             
     # Get the list of components.
-    def get_DataBookComponents(self):
+    def get_DataBookComponents(self, targ=None):
         """Get the list of components to be used for the data book
         
         :Call:
-            >>> comps = opts.get_DataBookComponents()
+            >>> comps = opts.get_DataBookComponents(targ=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
+            *targ*: {``None``} | :class:`str`
+                Name of target to use non-global component list
         :Outputs:
             *comps*: :class:`list`
                 List of components
         :Versions:
             * 2014-12-20 ``@ddalle``: First version
+            * 2017-01-17 ``@ddalle``: Added *targ* input
         """
         # Get the value from the dictionary.
         comps = self.get('Components', ['entire'])
+        # Check for target
+        if (targ is not None) and targ in self.get("Targets",[]):
+            # Get component list from "Targets" specification
+            comps = self["Targets"][targ].get("Components", comps)
         # Make sure it's a list.
         if type(comps).__name__ not in ['list']:
             comps = [comps]

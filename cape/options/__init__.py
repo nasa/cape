@@ -1781,9 +1781,9 @@ class Options(odict):
    # <
     
     # Get list of components.
-    def get_DataBookComponents(self):
+    def get_DataBookComponents(self, targ=None):
         self._DataBook()
-        return self['DataBook'].get_DataBookComponents()
+        return self['DataBook'].get_DataBookComponents(targ=targ)
         
     # Get list of components by type
     def get_DataBookByType(self, typ):

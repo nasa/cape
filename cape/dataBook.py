@@ -139,7 +139,7 @@ class DataBook(dict):
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
         # Save the components
-        self.Components = opts.get_DataBookComponents()
+        self.Components = opts.get_DataBookComponents(targ=targ)
         # Save the folder
         if targ is None:
             # Root data book
@@ -188,7 +188,7 @@ class DataBook(dict):
         # Add the number of components.
         lbl += "nComp=%i, " % len(self.Components)
         # Add the number of conditions.
-        lbl += "nCase=%i>" % self[self.GetRefComponent()].n
+        lbl += "nCase=%i>" % self.GetRefComponent().n
         # Output
         return lbl
     # String conversion
