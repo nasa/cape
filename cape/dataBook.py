@@ -1039,7 +1039,7 @@ class DBBase(dict):
     
     # Read point sensor data
     def Read(self, fname=None):
-        """Read a data book statistics file for a single point sensor
+        """Read a data book statistics file
         
         :Call:
             >>> DBP.Read()
@@ -1114,40 +1114,61 @@ class DBBase(dict):
         # Open the file
         f = open(fname)
         # Go to first data position
-        f.seek(pos)
+        #f.seek(pos)
         # Warning counter
         nWarn = 0
         # Initialize count
         n = 0
-        # Read next line
+        # Read first line
         line = f.readline()
+        # Initialize headers
+        headers = []
+        nh = 0
         # Loop through file
         while line != '' and n < nRow:
             # Strip line
             line = line.strip()
             # Check for comment
-            if line.startswith('#'): continue
+            if line.startswith('#'):
+                # Attempt to read headers
+                hi = line.lstrip('#').split(delim)
+                hi = [h.strip() for h in hi]
+                # Get line with most headers, and check first entry
+                if len(hi) > nh and hi[0] == cols[0]:
+                    # These are the headers
+                    headers = hi
+                    nh = len(headers)
+                # Regardless of whether or not this is the header row, move on
+                line = f.readline()
+                continue
             # Check for empty line
             if len(line) == 0: continue
             # Split into values
             V = line.split(delim)
             # Check count
-            if len(V) != nCol:
+            if len(V) != nh:
                 # Increase count
                 nWarn += 1
                 # If too many warnings, exit
                 if nWarn > 50:
-                    raise IOError("Too many warnings")
+                    raise RuntimeError("Too many warnings")
                 print("  Warning #%i in file '%s'" % (nWarn, fname))
                 print("    Error in data line %i" % n)
-                print("    Expected %i values but found %i" % (nCol,len(V)))
+                print("    Expected %i values but found %i" % (nh,len(V)))
                 continue
             # Process data
-            for i in range(nCol):
-                # Get key
-                k = cols[i]
+            for j in range(nh):
+                # Get header
+                k = headers[j]
+                # Get index...
+                if k in cols:
+                    # Find the data book column number
+                    i = cols.index(k)
+                else:
+                    # Extra column not present in data book
+                    continue
                 # Save value
-                self[k][n] = self.rconv[i](V[i])
+                self[k][n] = self.rconv[i](V[j])
             # Increase count
             n += 1
             # Read next line
