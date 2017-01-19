@@ -262,9 +262,14 @@ def GetPhaseNumber(rc):
         * 2014-10-02 ``@ddalle``: First version
         * 2015-12-29 ``@ddalle``: FUN3D version
         * 2016-02-03 ``@ddalle``: OVERFLOW version
+        * 2017-01-13 ``@ddalle``: Removed req't to have full ``run.%02.*`` seq
     """
     # Get the run index.
     n = GetRestartIter(rc)
+    # Initialize list of phases with adequate iters
+    JIter = []
+    # Initialize list of phases with detected STDOUT files
+    JRun = []
     # Loop through possible input numbers.
     for j in range(rc.get_nSeq()):
         # Get the actual run number
@@ -272,15 +277,26 @@ def GetPhaseNumber(rc):
         # Output file glob
         fglob = '%s.%02i.[0-9]*' % (rc.get_Prefix(i), i+1)
         # Check for output files.
-        if len(glob.glob(fglob)) == 0:
-            # This run has not been completed yet.
-            return i
+        if len(glob.glob(fglob)) >= 0:
+            # This run has an output file
+            JRun.append(j)
         # Check the iteration number.
-        if n < rc.get_PhaseIters(j):
-            # This case has been run, but hasn't reached the min iter cutoff
-            return i
-    # Case completed; just return the last value.
-    return i
+        if n >= rc.get_PhaseIters(j):
+            # The iterations are adequate for this phase
+            JIter.append(j)
+    # Get phase numbers from the two types
+    if len(JIter) > 0:
+        jIter = max(JIter)
+    else:
+        jIter = 0
+    if len(JRun) > 0:
+        jRun = max(JRun)
+    else:
+        jRun = 0
+    # Look for latest phase with both criteria
+    j = min(jIter, jRun)
+    # Convert to phase number
+    return rc.get_PhaseSequence(j)
 
 # Get the namelist
 def GetNamelist(rc=None, i=None):
