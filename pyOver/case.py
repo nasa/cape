@@ -286,11 +286,11 @@ def GetPhaseNumber(rc):
             JIter.append(j)
     # Get phase numbers from the two types
     if len(JIter) > 0:
-        jIter = max(JIter)
+        jIter = max(JIter) + 1
     else:
         jIter = 0
     if len(JRun) > 0:
-        jRun = max(JRun)
+        jRun = max(JRun) + 1
     else:
         jRun = 0
     # Look for latest phase with both criteria
@@ -427,9 +427,12 @@ def GetCurrentIter():
     elif nr is None:
         # Intermediate step
         return no
+    elif nh is None:
+        # Only iterations are in running
+        return nr
     else:
         # Some iterations saved and some running
-        return nr
+        return max(nr, nh) 
         
 # Get the number of finished iterations
 def GetHistoryIter():

@@ -2261,9 +2261,10 @@ class Report(object):
                 tlbl = self.SubfigTargetPlotLabel(sfig, k, targ) + clbl
                 # Don't start with comma.
                 tlbl = tlbl.lstrip(", ")
+                # Target options index
+                j_t = k*nCoeff + targs.index(targ)
                 # Specified target plot options
-                kw_t = opts.get_SubfigPlotOpt(sfig, "TargetOptions",
-                    targs.index(targ))
+                kw_t = opts.get_SubfigPlotOpt(sfig, "TargetOptions", j_t)
                 # Initialize target plot options.
                 kw_l = kw_p
                 # Apply non-default options
