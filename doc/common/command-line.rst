@@ -76,6 +76,10 @@ taken, and that order of precedence is demonstrated in the table below.
     +--------------------------+------------------------------------------+
     | ``pycart --kill``        | Kill PBS jobs                            |
     +--------------------------+------------------------------------------+
+    | ``pycart -e $CMD``       | Run command *CMD* in each case folder    |
+    +--------------------------+------------------------------------------+
+    | ``pycart --exec $CMD``   | Run command *CMD* in each case folder    |
+    +--------------------------+------------------------------------------+
     | ``pycart -n $N``         | Submit or run up to *N* jobs             |
     +--------------------------+------------------------------------------+
     | ``pycart``               | Running with no command is equivalent to |
@@ -174,8 +178,8 @@ require much work, and so they can not be submitted as batch jobs.
 
 .. _cli-aero:
 
-Data Book Update
-****************
+Data Book Updates
+*****************
 The ``--aero`` flag creates or updates the force and moment database.  The list
 of components included in the database, along with other defining options, are
 specified in the ``"DataBook"`` section of the input JSON file.  When a user 
@@ -196,7 +200,26 @@ action of this update.
         poweroff/m0.88a4.0b0.0
           Databook up to date.
 
+The point sensor data book (``--pt``) and line load data book (``--ll``) work
+in the same way.  The exception is that these two extended data book examples
+can be commanded to update only one component of the data book.  Suppose there
+is a setup with a center, left, and right component.  Then
 
+    .. code-block:: bash
+    
+        $ pycart --ll LL_C
+        
+only updates the data book for line loads on the center component (assuming
+there is a line load component called ``LL_C`` for the center body defined in
+the ``"DataBook"`` section of the JSON file).  Meanwhile, the command ``pycart
+--ll`` will update the data book for all three components.
+
+Also, these commands will both run the necessary post-processing and collect
+the results into the data book.  For instance, it will run ``triloadCmd`` to
+compute line loads unless they already exist.
+
+
+          
 .. _cli-subset:
 
 Run Matrix Subsetting
