@@ -72,7 +72,7 @@ strings, and it provides a useful shorthand when discussing features of the
 code.  A table of how various syntaxes are used is below.
 
 ========================   ===================   ==============================
-Syntax                     Formatted             Description
+Syntax                     Formatted             Description/Purpose
 ========================   ===================   ==============================
 \``f(a)``                  ``f(a)``              Raw text or source code
 \``$PYCART``               ``$PYCART``           Environment variable

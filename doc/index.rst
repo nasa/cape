@@ -156,9 +156,8 @@ defined.  In general the required files are the following.
     :numbered:
     
     install
-    json/index
     moreinfo/index
-    moreinfo/syntax
+    json/index
     cape/index
     pycart/index
     pyfun/index
