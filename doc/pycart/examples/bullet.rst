@@ -1,4 +1,6 @@
 
+.. _pycart-ex-bullet:
+
 Demo 1: Basic Usage on a Bullet Shape
 =====================================
 

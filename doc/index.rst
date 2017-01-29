@@ -157,7 +157,7 @@ defined.  In general the required files are the following.
     
     install
     moreinfo/index
-    json/index
+    common/index
     cape/index
     pycart/index
     pyfun/index
