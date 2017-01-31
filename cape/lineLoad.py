@@ -1523,13 +1523,27 @@ class CaseLL(object):
             # Copy axes handle
             axi = hi['ax']
             # Save aspect ratio
-            AR[sfigi-1] = (hi['ymax']-hi['ymin']) / (hi['xmax']-hi['xmin'])
+            AR[sfigi-1] = (hi['ymax'] - hi['ymin']) / (hi['xmax'] - hi['xmin'])
+            # Plot offsets
+            dxi = kw.get('XSeamOffset', 0.0)
+            dyi = kw.get('YSeamOffset', 0.0)
+            # Middle coordinates
+            xi = 0.5*(hi['xmin'] + hi['xmax']) + dxi
+            yi = 0.5*(hi['ymin'] + hi['ymax']) + dyi
+            # Scaled axis widths
+            wxi = (ylim[1] - ylim[0]) / AR[sfigi-1]
+            wyi = (xlim[1] - xlim[0]) * AR[sfigi-1]
+            # Scaled axis limits after copying from main plot
+            xlimi = [xi - 0.5*wxi, xi + 0.5*wxi]
+            ylimi = [yi - 0.5*wyi, yi + 0.5*wyi]
             # Get axes position
             pi = axi.get_position().get_points()
             # Follow up for each type
             if q_vert:
                 # Copy xlims from line load plot
                 axi.set_xlim(xlim)
+                axi.set_ylim(ylimi)
+                plt.draw()
                 # Check for top/bottom plot for absolute limits
                 if sfigi == nsm+1:
                     # Bottom figure
@@ -1540,6 +1554,7 @@ class CaseLL(object):
             else:
                 # Copy ylims from line load plot
                 axi.set_ylim(ylim)
+                axi.set_xlim(xlimi)
                 # Cehck for left/right plot for absolute limits
                 if sfigi == 1:
                     # Left figure
@@ -1588,7 +1603,9 @@ class CaseLL(object):
                     # Update the bottom position
                     yax_min = yax_min + haxi + w_sfig
                 # Copy the limits again
-                ax.set_xlim(xlim)
+                axi.set_xlim(xlim)
+                axi.set_ylim(ylimi)
+                #plt.draw()
                 # Minimal ticks on y-axis
                 try: plt.locator_params(axis='y', nbins=4)
                 except Exception: pass
@@ -1609,7 +1626,8 @@ class CaseLL(object):
                     # Update left position
                     xax_min = xax_min + waxi + w_sfig
                 # Reset axis limits
-                ax.set_ylim(ylim)
+                axi.set_ylim(ylim)
+                axi.set_xlim(xlimi)
                 # Minimal ticks on y-axis
                 try: plt.locator_params(axis='x', nbins=3)
                 except Exception: pass
@@ -1622,7 +1640,7 @@ class CaseLL(object):
             plt.subplot(1, nsm+1, sfigll)
         # Finally, set the position for the position for the main figure
         h['ax'].set_position([xax_min,yax_min,xax_max-xax_min,yax_max-yax_min])
-        # REset limits
+        # Reset limits
         h['ax'].set_xlim(xlim)
         h['ax'].set_ylim(ylim)
         # Modify output
@@ -1764,10 +1782,10 @@ class CaseLL(object):
         # Form matrix
         A = np.array([[dCN1, dCN2], [dCLM1, dCLM2]])
         # Check for error
-        if np.linalg.det(A) < 1e-8:
+        if abs(np.linalg.det(A)) < 1e-8:
             # Not linearly independent
-            print("WARNING: Two functions are not linearly independent; " +
-                "Cannot correct both *CN* and *CLM*")
+            print("  WARNING: Two functions are not linearly independent; " +
+                "Cannot correct both *CN* and *CLM* (%s)" % np.linalg.det(A))
             return
         # Solve for the weights
         x = np.linalg.solve(A, [dCN, dCLM])
@@ -1830,10 +1848,10 @@ class CaseLL(object):
         # Form matrix
         A = np.array([[dCY1, dCY2], [dCLN1, dCLN2]])
         # Check for error
-        if np.linalg.det(A) < 1e-8:
+        if abs(np.linalg.det(A)) < 1e-8:
             # Not linearly independent
-            print("WARNING: Two functions are not linearly independent; " +
-                "Cannot correct both *CN* and *CLM*")
+            print("  WARNING: Two functions are not linearly independent; " +
+                ("Cannot correct both *CY* and *CLN* (%s)" % np.linalg.det(A)))
             return
         # Solve for the weights
         x = np.linalg.solve(A, [dCY, dCLN])
