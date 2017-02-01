@@ -1585,6 +1585,11 @@ class CaseLL(object):
                 continue
             # Get seam number
             sfigi = sfigs[i - (i>=sfigll)]
+            # Get current axis limits
+            xlimj = axi.get_xlim()
+            ylimj = axi.get_ylim()
+            # Aspect ratio of the existing figure
+            ARi = (ylimj[1]-ylimj[0]) / (xlimj[1]-xlimj[0])
             # Set margins
             if q_vert:
                 # Automatic axis height based on aspect ratio
@@ -1602,10 +1607,13 @@ class CaseLL(object):
                     ax.set_position([xax_min, yax_min, wax, haxi])
                     # Update the bottom position
                     yax_min = yax_min + haxi + w_sfig
+                # Target *x* limits
+                wxi = xlim[1] - xlim[0]
+                # Set the *y* limits appropriately
+                ylimi = [yi-0.5*ARi*wxi, yi+0.5*ARi*wxi]
                 # Copy the limits again
                 axi.set_xlim(xlim)
                 axi.set_ylim(ylimi)
-                #plt.draw()
                 # Minimal ticks on y-axis
                 try: plt.locator_params(axis='y', nbins=4)
                 except Exception: pass
@@ -1625,6 +1633,10 @@ class CaseLL(object):
                     ax.set_position([wax_min, yax_min, waxi, hax])
                     # Update left position
                     xax_min = xax_min + waxi + w_sfig
+                # Target *y* limits
+                wyi = ylim[1] - ylim[0]
+                # Set the *x* limits appropriately
+                xlimi = [xi-0.5*wyi/ARi, xi+0.5*wyi/ARi]
                 # Reset axis limits
                 axi.set_ylim(ylim)
                 axi.set_xlim(xlimi)
@@ -1770,9 +1782,13 @@ class CaseLL(object):
         # Integrated values from the input functions
         dCN1 = np.trapz(CN1, self.x)
         dCN2 = np.trapz(CN2, self.x)
-        # Normalize
-        if np.abs(dCN1)>1e-4: CN1 /= dCN1
-        if np.abs(dCN2)>1e-4: CN2 /= dCN2
+        # Normalize so that dCN == 1.0 unless this would cause an issue
+        if np.abs(dCN1)>1e-4:
+            CN1 = CN1/dCN1
+            dCN1 = 1.0
+        if np.abs(dCN2)>1e-4:
+            CN2 = CN2/dCN2
+            dCN2 = 1.0
         # Get moment correction functions
         CLM1 = (xMRP - self.x) * CN1
         CLM2 = (xMRP - self.x) * CN2
@@ -1827,7 +1843,7 @@ class CaseLL(object):
         """
         # Get the current loads
         CY0  = np.trapz(self.CY,  self.x)
-        CLN0 = np.trapz(self.CLN, self.x)
+        CLN0 = np.trapz(-self.CLN, self.x)
         # Correction values
         dCY  = CY - CY0
         dCLN = CLN - CLN0
@@ -1836,15 +1852,19 @@ class CaseLL(object):
         # Integrated values from the input functions
         dCY1 = np.trapz(CY1, self.x)
         dCY2 = np.trapz(CY2, self.x)
-        # Normalize
-        if np.abs(dCY1)>1e-4: CY1 /= dCY1
-        if np.abs(dCY2)>1e-4: CY2 /= dCY2
+        # Normalize so that dCN == 1.0 unless this would cause an issue
+        if np.abs(dCY1)>1e-4:
+            CY1 = CY1/dCY1
+            dCY1 = 1.0
+        if np.abs(dCY2)>1e-4:
+            CY2 = CY2/dCY2
+            dCY2 = 1.0
         # Get moment correction functions
         CLN1 = (xMRP - self.x) * CY1
         CLN2 = (xMRP - self.x) * CY2
         # Integrated values of $\Delta C_{LM}$
-        dCLN1 = np.trapz(CLN1, self.x)
-        dCLN2 = np.trapz(CLN2, self.x)
+        dCLN1 = np.trapz(-CLN1, self.x)
+        dCLN2 = np.trapz(-CLN2, self.x)
         # Form matrix
         A = np.array([[dCY1, dCY2], [dCLN1, dCLN2]])
         # Check for error
