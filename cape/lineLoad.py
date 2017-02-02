@@ -1738,6 +1738,44 @@ class CaseLL(object):
         LL.CorrectCY(CY, CLN, CN1, CN2, xMRP=xMRP)
         # Output
         return LL
+        
+    # Correct *CN* and *CLM* using *n* functions
+    def CorrectCN(self, CN, CLM, UCN, sig=None, xMRP=0.0):
+        """Correct *CN* and *CLM* given *n* unnormalized functions
+        
+        This function takes an *m* by *n* matrix where *m* is the size of
+        *LL.CN*. It then calculates an increment to *LL.CN* that is a linear
+        combination of the columns of that matrix *UCN* such that the
+        integrated normal force coefficient (*CN*) and pitching moment
+        coefficient (*CLM*) match target values provided by the user.  The
+        increment is
+        
+            .. math::
+                
+                \Delta C_N = \sum_{i=1}^n k_i\\phi_i
+                
+        where :math:`\\phi_i`` is the *i*th column of *UCN* scaled so that it
+        has an L2 norm of 1.
+        
+        The weights of the linear coefficient are chosen in order to minimize
+        the sum of an objective function subject to the integration constraints
+        mentioned above.  This objective function is
+        
+            .. math::
+            
+                \\sum_{i=1}^n a_i k_i^2 / \\sigma_i
+                
+        where :math:`a_i` is the maximum absolute value of column *i* of *UCN*
+        and :math:`\\sigma_i` is the associated singular value.
+        
+        :Versions:
+            * 2017-02-02 ``@ddalle``: First version
+        """
+        # Get the current loads
+        CN0  = np.trapz(self.CN,  self.x)
+        CLM0 = np.trapz(self.CLM, self.x)
+        
+        
     
     # Correct *CN* and *CLM* given two functions
     def CorrectCN(self, CN, CLM, CN1, CN2, xMRP=0.0):
