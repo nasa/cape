@@ -1,18 +1,17 @@
 
 .. _json-syntax:
 
-JSON Files for CAPE
-===================
+JSON Files for pyCart
+=====================
 
-The various CAPE utilities and modules extensively utilize the 
-`JSON <http://www.json.org>`_ format, which is a simple file type that is easily
-read into Python and many other languages (a 
+The various pyCart utilities and modules extensively utilize the 
+`JSON <http://www.json.org>`_ format, which is a simple file type that is
+easily read into Python and many other languages (a 
 `list of interpreters <http://www.json.org>`_ can be found on the official
-website).  In CAPE, these files are used to store many types of information.  In
-fact, using pyCart and the other CAPE-associated programs mostly boils down to
-three tasks:
+website).  In CAPE, these files are used to store many types of information.
+In fact, using pyCart mostly boils down to three tasks:
 
-    * preparation of input files for the CFD solver, including mesh generatio,
+    * preparation of input files for the CFD solver, including mesh generation,
     * interacting with JSON files, and
     * issuing the appropriate command-line commands
     
@@ -111,8 +110,8 @@ Going back to the example contents used above, suppose we have two JSON files.
             
 The various CAPE modules will then automatically replace
 ``JSONFile("Config.json")`` with the contents of :file:`Config.json`.  This can
-be very useful when conducting sensitivity studies in which most of the contents
-of the input file remain constant.
+be very useful when conducting sensitivity studies in which most of the
+contents of the input file remain constant.
 
 A downside of this approach is that most CAPE input files end up being invalid
 JSON files.  A script is provided that replaces comments with empty lines and
@@ -129,13 +128,13 @@ The file resulting from this command, :file:`expand.json`, is shown below.
         {
         
             "RunControl": {
-                    "PhaseSequence": [0, 1],
-                    "PhaseIters": [200, 400],
-                    "nProc": 8,
-                    "MPI": true,
-                },
-                
-                "Config": {
+                "PhaseSequence": [0, 1],
+                "PhaseIters": [200, 400],
+                "nProc": 8,
+                "MPI": true,
+            },
+            
+            "Config": {
                 "File": "Config.xml",
                 "RefArea": 3.141593,
                 "RefLength": 2.0,
@@ -143,7 +142,8 @@ The file resulting from this command, :file:`expand.json`, is shown below.
             }
         }
 
-Finally, CAPE provides helpful error messages when typos are present in the JSON
-file.  This is usually a missing ``:``, extra ``,``, or something similar.  They
-can be very difficult to track down, but such syntax errors are accompanied with
-the line containing the problem and the line above and below.
+Finally, CAPE provides helpful error messages when typos are present in the
+JSON file. This is usually a missing ``:``, extra ``,``, or something similar.
+They can be very difficult to track down, but such syntax errors are
+accompanied with the line containing the problem and the line above and below.
+

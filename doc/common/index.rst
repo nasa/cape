@@ -31,3 +31,4 @@ that serve more specific purposes such as converting file formats.
     
     command-line
     file/json
+    report/index

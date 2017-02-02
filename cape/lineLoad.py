@@ -1768,17 +1768,46 @@ class CaseLL(object):
         where :math:`a_i` is the maximum absolute value of column *i* of *UCN*
         and :math:`\\sigma_i` is the associated singular value.
         
+        :Call:
+            >>> LL.CorrectCN(CN, CLM, UCN, sig=None, xMRP=0.0)
+        :Inputs:
+            *LL*: :class:`cape.lineLoad.CaseLL`
+                Instance of single-case line load interface
+            *CN*: :class:`float`
+                Target integrated value of *CN*
+            *CLM*: :class:`float`
+                Target integrated value of *CLM*
+            *UCN*: :class:`np.ndarray` (*LL.x.size*,*n*)
+                Matrix of *CN* adjustment basis functions
+            *sig*: {``None``} | :class:`np.ndarray` (*n*,)
+                Array of singular values
+            *xMRP*: {``0.0``} | :class:`float`
+                *x*-coordinate of MRP divided by reference length
         :Versions:
             * 2017-02-02 ``@ddalle``: First version
         """
         # Get the current loads
         CN0  = np.trapz(self.CN,  self.x)
         CLM0 = np.trapz(self.CLM, self.x)
+        # Dimensionality of line load vector
+        nx = len(self.x)
+        # Check dimension count of the dispersions matrix
+        if UCN.ndims != 2:
+            raise ValueError(
+                "Adjustment basis function *UCN* must be 2D array")
+        # Dimensions of the dispersion matrix
+        m, n = UCN.shape
+        # Check dims
+        if m != nx:
+            raise ValueError(
+                ("Adjustment basis functions have %i entries " % m) +
+                ("but line load has %i" % nx))
+        # Normalize
         
         
     
     # Correct *CN* and *CLM* given two functions
-    def CorrectCN(self, CN, CLM, CN1, CN2, xMRP=0.0):
+    def CorrectCN2(self, CN, CLM, CN1, CN2, xMRP=0.0):
         """Correct *CN* and *CLM* given two unnormalized functions
         
         This function takes two functions with the same dimensions as *LL.CN*
@@ -1792,7 +1821,7 @@ class CaseLL(object):
         consistency between the *CN* and *CLM*.
         
         :Call:
-            >>> LL.CorrectCN(CN, CLM, CN1, CN2)
+            >>> LL.CorrectCN2(CN, CLM, CN1, CN2)
         :Inputs:
             *LL*: :class:`cape.lineLoad.CaseLL`
                 Instance of single-case line load interface
