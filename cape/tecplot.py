@@ -1122,6 +1122,46 @@ class Tecscript(FileCntl):
         # Set the total number of maps
         self.SetPar('ACTIVEFIELDMAPS', "= [1-%s]" % grps[-1], 0)
         
+    # Set slice locations
+    def SetSliceLocation(self, n=1, **kw):
+        """Set slice location
+        
+        :Call:
+            >>> tec.SetSlice(n=1, **kw)
+        :Inputs:
+            *tec*: :class:`cape.tecplot.Tecscript`
+                Instance of Tecplot script interface
+            *n*: {``1``} | positive :class:`int`
+                Slice number to edit
+            *x*: {``None``} | :class:`float`
+                *x*-coordinate of slice
+            *y*: {``None``} | :class:`float`
+                *y*-coordinate of slice
+            *z*: {``None``} | :class:`float`
+                *z*-coordinate of slice
+            *i*: {``None``} | :class:`int`
+                Index of *I* slice to plot
+            *j*: {``None``} | :class:`int`
+                Index of *J* slice to plot
+            *k*: {``None``} | :class:`int`
+                Index of *K* slice to plot
+        :Versions:
+            * 2017-02-03 ``@ddalle``: First version
+        """
+        # Get the existing coordinate
+        pos = self.GetKey('SLICEATTRIBUTES', 'PRIMARYPOSITION', par=n)
+        # Default POSITION if none found
+        if pos is None:
+            pos = {"X":0, "Y":0, "Z":0, "Z":0, "I":1, "J":1, "K":1}
+        # Set parameters given as inputs
+        if "x" in kw: pos["X"] = kw["x"]
+        if "y" in kw: pos["Y"] = kw["y"]
+        if "z" in kw: pos["Z"] = kw["z"]
+        if "i" in kw: pos["I"] = kw["i"]
+        if "j" in kw: pos["J"] = kw["j"]
+        if "k" in kw: pos["K"] = kw["k"]
+        # Set parameter
+        self.SetKey('SLICEATTRIBUTES', 'PRIMARYPOSITION', pos, par=n)
    # >
     
 # class Tecscript

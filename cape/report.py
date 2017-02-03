@@ -2862,6 +2862,7 @@ class Report(object):
                     pass
             # Layout
             self.PrepTecplotLayoutVars(tec, sfig, i)
+            self.PrepTecplotSlicePosition(tec, sfig, i)
             # Color maps
             self.PrepTecplotContourLevels(tec, sfig, i)
             self.PrepTecplotColorMaps(tec, sfig, i)
@@ -2969,6 +2970,41 @@ class Report(object):
             v = self.EvalVar(setv[k], i)
             # Set the variable value
             tec.SetVar(k, v)
+            
+    # Function to prepare slice locations
+    def PrepTecplotSlicePosition(self, tec, sfig, i):
+        """Set slice position for Tecplot layout
+        
+        :Call:
+            >>> R.PrepTecplotSlicePosition(tec, sfig, i)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *tec*: :class:`cape.tecplot.Tecscript`
+                Tecplot layout interface (modified in place)
+            *sfig*: :class:`str`
+                Name of subfigure for accessing options
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2016-10-31 ``@ddalle``: First version
+        """
+        # Get slice definition
+        sopts = self.cntl.opts.get_SubfigOpt(sfig, "SlicePosition")
+        # Exit if no slice instructions
+        if type(sopts).__name__ != "dict": return
+        # Initialize slice inputs
+        pos = {}
+        # Loop through variables to set
+        for k in sopts:
+            # Evaluate variable; expand trajectory keys, etc
+            v = self.EvalVar(sopts[k], i)
+            # Set value
+            pos[K.lower()] = v
+        # Default slice number
+        pos.setdefault("n", 1)
+        # Set the variable value
+        tec.SetSliceLocation(**pos)
             
     # Function to prepare color maps and contours in Tecplot layout
     def PrepTecplotContourLevels(self, tec, sfig, i):
