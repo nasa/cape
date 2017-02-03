@@ -290,8 +290,8 @@ def ToRGB(col):
         raise ValueError("Color does not have three components")
     # Already RGB if reached this point; check for int
     r = col[0]; tr = type(r).__name__
-    g = col[0]; tg = type(g).__name__
-    b = col[0]; tb = type(b).__name__
+    g = col[1]; tg = type(g).__name__
+    b = col[2]; tb = type(b).__name__
     # Check type
     if tr.startswith('float'): r = int(255*r)
     if tg.startswith('float'): g = int(255*g)
