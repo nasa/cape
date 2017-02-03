@@ -1030,12 +1030,12 @@ def LinkPLT():
     # Initialize file names
     fname = [
         '%s_tec_boundary' % proj0,
-        '%s_tec_volume' % proj0,
+        '%s_volume' % proj0,
     ]
     # Initialize globs
     fglob = [
         '%s_tec_boundary_timestep*' % proj,
-        '%s_tec_volume_timestep*' % proj
+        '%s_volume_timestep*' % proj
     ]
     # Add special ones
     for fi in fsrf:
@@ -1044,6 +1044,7 @@ def LinkPLT():
     # Link the globs
     for i in range(len(fname)):
         # Process the glob as well as possible
+        LinkFromGlob(fname[i]+".tec", fglob[i]+".tec")
         LinkFromGlob(fname[i]+".dat", fglob[i]+".dat")
         LinkFromGlob(fname[i]+".plt", fglob[i]+".plt")
     
