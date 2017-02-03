@@ -1734,8 +1734,8 @@ class CaseLL(object):
         # Create a copy
         LL = self.Copy()
         # Correct *CN* and *CLM*
-        LL.CorrectCN(CN, CLM, CN1, CN2, xMRP=xMRP)
-        LL.CorrectCY(CY, CLN, CN1, CN2, xMRP=xMRP)
+        LL.CorrectCN2(CN, CLM, CN1, CN2, xMRP=xMRP)
+        LL.CorrectCY2(CY, CLN, CN1, CN2, xMRP=xMRP)
         # Output
         return LL
         
@@ -1802,8 +1802,150 @@ class CaseLL(object):
             raise ValueError(
                 ("Adjustment basis functions have %i entries " % m) +
                 ("but line load has %i" % nx))
-        # Normalize
+        # L2-norm of each basis vector
+        L = np.sqrt(np.sum(UCN**2, axis=0))
+        # Initialize normalized basis functions
+        VCN = nnp.zeros(m, n)
+        # Loop through basis vectors
+        for i in range(n):
+            # Normalize
+            VCN[:,i] = UCN[:,i]/L[i]
+        # Max values
+        mxCN = np.max(np.abs(VCN), axis=0)
+        # Default singular values
+        if sig is None:
+            sig = np.ones(n)
+        # Weights
+        w = mxCN / sig
+        # Calculate the increment from each mode
+        dCN = np.zeros(n)
+        dCLM = np.zeros(n)
+        # Loop through modes
+        for i in range(n):
+            dCN[i]  = np.trapz(UCN[:,i], self.x)
+            dCLM[i] = np.trapz(UCN[:,i]*(xMRP-self.x), self.x)
+        # Form matrix for linear system
+        dC = np.array([dCN, dCLM])
+        # First two equations: equality constraints on *CN* and *CLM*
+        A1 = np.hstack((dC, np.zeros((2,2))))
+        # Last *n* equations: derivatives of the Lagrangian
+        A2 = np.hstack((np.diag(2*w), -np.transpose(dC)))
+        # Assemble matrices
+        A = np.vstack((A1, A2))
+        # Right-hand sides of equations
+        b = np.hstack(([CN-CN0, CLM-CLM0], np.zeros(n)))
+        # Solve the linear system (and optimization problem)
+        x = np.linalg.solve(A, b)
+        # Calculate linear combination (discard Lagrange multipliers)
+        phi = np.dot(UCN, x[:n])
+        # Apply increment
+        self.CN  = self.CN + phi
+        self.CLM = self.CLM + (self.x-xMRP)*phi
         
+    
+        
+    # Correct *CY* and *CLN* using *n* functions
+    def CorrectCY(self, CY, CLN, UCY, sig=None, xMRP=0.0):
+        """Correct *CY* and *CLN* given *n* unnormalized functions
+        
+        This function takes an *m* by *n* matrix where *m* is the size of
+        *LL.CY*. It then calculates an increment to *LL.CY* that is a linear
+        combination of the columns of that matrix *UCY* such that the
+        integrated normal force coefficient (*CY*) and pitching moment
+        coefficient (*CLN*) match target values provided by the user.  The
+        increment is
+        
+            .. math::
+                
+                \Delta C_Y = \sum_{i=1}^n k_i\\phi_i
+                
+        where :math:`\\phi_i`` is the *i*th column of *UCY* scaled so that it
+        has an L2 norm of 1.
+        
+        The weights of the linear coefficient are chosen in order to minimize
+        the sum of an objective function subject to the integration constraints
+        mentioned above.  This objective function is
+        
+            .. math::
+            
+                \\sum_{i=1}^n a_i k_i^2 / \\sigma_i
+                
+        where :math:`a_i` is the maximum absolute value of column *i* of *UCY*
+        and :math:`\\sigma_i` is the associated singular value.
+        
+        :Call:
+            >>> LL.CorrectCY(CY, CLN, UCY, sig=None, xMRP=0.0)
+        :Inputs:
+            *LL*: :class:`cape.lineLoad.CaseLL`
+                Instance of single-case line load interface
+            *CY*: :class:`float`
+                Target integrated value of *CY*
+            *CLN*: :class:`float`
+                Target integrated value of *CLN*
+            *UCY*: :class:`np.ndarray` (*LL.x.size*,*n*)
+                Matrix of *CY* adjustment basis functions
+            *sig*: {``None``} | :class:`np.ndarray` (*n*,)
+                Array of singular values
+            *xMRP*: {``0.0``} | :class:`float`
+                *x*-coordinate of MRP divided by reference length
+        :Versions:
+            * 2017-02-02 ``@ddalle``: First version
+        """
+        # Get the current loads
+        CY0  = np.trapz(self.CY,  self.x)
+        CLN0 = np.trapz(-self.CLN, self.x)
+        # Dimensionality of line load vector
+        nx = len(self.x)
+        # Check dimension count of the dispersions matrix
+        if UCY.ndims != 2:
+            raise ValueError(
+                "Adjustment basis function *UCN* must be 2D array")
+        # Dimensions of the dispersion matrix
+        m, n = UCY.shape
+        # Check dims
+        if m != nx:
+            raise ValueError(
+                ("Adjustment basis functions have %i entries " % m) +
+                ("but line load has %i" % nx))
+        # L2-norm of each basis vector
+        L = np.sqrt(np.sum(UCY**2, axis=0))
+        # Initialize normalized basis functions
+        VCY = nnp.zeros(m, n)
+        # Loop through basis vectors
+        for i in range(n):
+            # Normalize
+            VCY[:,i] = UCY[:,i]/L[i]
+        # Max values
+        mxCY = np.max(np.abs(VCY), axis=0)
+        # Default singular values
+        if sig is None:
+            sig = np.ones(n)
+        # Weights
+        w = mxCY / sig
+        # Calculate the increment from each mode
+        dCY = np.zeros(n)
+        dCLN = np.zeros(n)
+        # Loop through modes
+        for i in range(n):
+            dCY[i]  = np.trapz(UCY[:,i], self.x)
+            dCLN[i] = np.trapz(UCY[:,i]*(self.x-xMRP), self.x)
+        # Form matrix for linear system
+        dC = np.array([dCY, dCLN])
+        # First two equations: equality constraints on *CN* and *CLM*
+        A1 = np.hstack((dC, np.zeros((2,2))))
+        # Last *n* equations: derivatives of the Lagrangian
+        A2 = np.hstack((np.diag(2*w), -np.transpose(dC)))
+        # Assemble matrices
+        A = np.vstack((A1, A2))
+        # Right-hand sides of equations
+        b = np.hstack(([CY-CY0, CLN-CLN0], np.zeros(n)))
+        # Solve the linear system (and optimization problem)
+        x = np.linalg.solve(A, b)
+        # Calculate linear combination (discard Lagrange multipliers)
+        phi = np.dot(UCY, x[:n])
+        # Apply increment
+        self.CY  = self.CY + phi
+        self.CLN = self.CLN - (self.x-xMRP)*phi
         
     
     # Correct *CN* and *CLM* given two functions
@@ -1877,7 +2019,7 @@ class CaseLL(object):
         self.CLM = self.CLM + x[0]*CLM1 + x[1]*CLM2
     
     # Correct *CY* and *CLN* given two functions
-    def CorrectCY(self, CY, CLN, CY1, CY2, xMRP=0.0):
+    def CorrectCY2(self, CY, CLN, CY1, CY2, xMRP=0.0):
         """Correct *CY* and *CLN* given two unnormalized functions
         
         This function takes two functions with the same dimensions as *LL.CY*
@@ -1891,7 +2033,7 @@ class CaseLL(object):
         consistency between the *CY* and *CLN*.
         
         :Call:
-            >>> LL.CorrectCY(CY, CLN, CY1, CY2)
+            >>> LL.CorrectCY2(CY, CLN, CY1, CY2)
         :Inputs:
             *LL*: :class:`cape.lineLoad.CaseLL`
                 Instance of single-case line load interface
