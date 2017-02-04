@@ -1086,6 +1086,8 @@ class Tecscript(FileCntl):
             lines.insert(0, '$!%s\n' % cmd)
             # Replace those lines
             self.lines = self.lines[:ibeg] + lines + self.lines[iend:]
+        # Update line numbers of commands
+        self.UpdateCommands()
         
     # Set group stuff
     def SetFieldMap(self, grps):
