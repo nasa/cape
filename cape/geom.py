@@ -189,6 +189,208 @@ def DistancePointToCurve(x, X):
     # Output
     return D
     
-        
-        
+
+# Check for intersection between lines
+def lines_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw):
+    """Check if a set of line segments intersects another line segment
+    
+    :Call:
+        >>> Q = lines_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw)
+    :Inputs:
+        *X1*: :class:`np.ndarray` (:class:`float`, any shape)
+            Matrix of *x*-coordinates of start points of several line segments
+        *Y1*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
+            Matrix of *y*-coordinates of start poitns of several line segments
+        *X2*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
+            Matrix of *x*-coordinates of end points of several line segments
+        *Y2*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
+            Matrix of *y*-coordinates of end points of several line segments
+        *x1*: :class:`float`
+            Start point *x*-coordinate of test segment
+        *y1*: :class:`float`
+            Start point *y*-coordinate of test segment
+        *x2*: :class:`float`
+            End point *x*-coordinate of test segment
+        *y2*: :class:`float`
+            End point *y*-coordinate of test segment
+    :Outputs:
+        *Q*: :class:`np.ndarray` (:class:`bool`, shape=*X1.shape*)
+            Matrix of whether or not each segment intersects test segment
+    :Versions:
+        * 2017-02-06 ``@ddalle``: First version
+    """
+    # Length of test segment
+    L = np.sqrt((x2-x1)**2 + (y2-y1)**2)
+    # No intersections with null segments
+    if L < 1e-8: return np.zeros_like(X1)
+    # Tangent vector
+    tx = (x2 - x1) / L
+    ty = (y2 - y1) / L
+    # Convert the list of segments into coordinates 
+    XI1 = (X1-x1)*tx + (Y1-y1)*ty
+    XI2 = (X2-x1)*tx + (Y2-y1)*ty
+    YI1 = (Y1-y1)*tx - (X1-x1)*ty
+    YI2 = (Y2-y1)*tx - (X2-x1)*ty
+    # Initial test: crosses y=0 line?
+    Q = (YI1*YI2 <= 0)
+    # Special filter for segments parallel to test segment
+    I0 = np.logical_and(YI1==0, YI2==0)
+    Q[I0] = False
+    # For segments that cross y==0, find coordinate
+    X0 = XI1[Q] - YI1[Q]*(XI2[Q]-XI1[Q]) / (YI2[Q]-YI1[Q])
+    # Test those segments
+    Q[Q] = np.logical_and(X0>=0, X0<=L)
+    # Come back for the segments that are parallel to the test segment
+    Q[I0] = np.logical_or(
+        # Check if *x1* inside [0,L]
+        (XI1[I0]-L)*XI1[I0] <= 0,
+        # Check if *x2* inside [0,L]
+        (XI2[I0]-L)*XI2[I0] <= 0,
+        # Check if [x1,x2] or [x2,x1] contains [0,L]
+        XI2[I0]*XI1[I0] <=0)
+    # Output
+    return Q
+
+# Check for intersection between lines
+def edges_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw):
+    """Check if a set of edges intersects another line segment
+    
+    Intersections between the test segment and the start point of any edge are
+    not counted as an intersection.
+    
+    :Call:
+        >>> Q = edges_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw)
+    :Inputs:
+        *X1*: :class:`np.ndarray` (:class:`float`, any shape)
+            Matrix of *x*-coordinates of start points of several line segments
+        *Y1*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
+            Matrix of *y*-coordinates of start poitns of several line segments
+        *X2*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
+            Matrix of *x*-coordinates of end points of several line segments
+        *Y2*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
+            Matrix of *y*-coordinates of end points of several line segments
+        *x1*: :class:`float`
+            Start point *x*-coordinate of test segment
+        *y1*: :class:`float`
+            Start point *y*-coordinate of test segment
+        *x2*: :class:`float`
+            End point *x*-coordinate of test segment
+        *y2*: :class:`float`
+            End point *y*-coordinate of test segment
+    :Outputs:
+        *Q*: :class:`np.ndarray` (:class:`bool`, shape=*X1.shape*)
+            Matrix of whether or not each segment intersects test segment
+    :Versions:
+        * 2017-02-06 ``@ddalle``: First version
+    """
+    # Length of test segment
+    L = np.sqrt((x2-x1)**2 + (y2-y1)**2)
+    # No intersections with null segments
+    if L < 1e-8: return np.zeros_like(X1)
+    # Tangent vector
+    tx = (x2 - x1) / L
+    ty = (y2 - y1) / L
+    # Convert the list of segments into coordinates 
+    XI1 = (X1-x1)*tx + (Y1-y1)*ty
+    XI2 = (X2-x1)*tx + (Y2-y1)*ty
+    YI1 = (Y1-y1)*tx - (X1-x1)*ty
+    YI2 = (Y2-y1)*tx - (X2-x1)*ty
+    # Initial test: crosses y=0 line?
+    Q = (YI1*YI2 <= 0)
+    # Special filter for segments parallel to test segment
+    I0 = np.logical_and(YI1==0, YI2==0)
+    Q[I0] = False
+    # For segments that cross y==0, find coordinate
+    X0 = XI1[Q] - YI1[Q]*(XI2[Q]-XI1[Q]) / (YI2[Q]-YI1[Q])
+    # Test those segments
+    Q[Q] = np.logical_and(X0>=0, X0<=L)
+    # Filter *OUT* intersections with (XI1, YI1)
+    Q[YI1==0] = False
+    # Come back for the segments that are parallel to the test segment
+    Q[I0] = np.logical_or(
+        # Check if *x1* strictly inside (0,L)
+        (XI1[I0]-L)*XI1[I0] < 0,
+        # Check if *x2* inside [0,L]
+        (XI2[I0]-L)*XI2[I0] <= 0,
+        # Check if [x1,x2] or [x2,x1] contains [0,L]
+        XI2[I0]*XI1[I0] <=0)
+    # Output
+    return Q
+    
+# Check if a triangle contains a point
+def tris_have_pt(X, Y, x, y, **kw):
+    """Check if each triangle in a list contains a specified point
+    
+    :Call:
+        >>> Q = tris_have_pt(X, Y, x, y, **kw)
+    :Inputs:
+        *X*: :class:`np.ndarray` (:class:`float`, shape=(n,3))
+            *x*-coordinates of vertices of *n* triangles
+        *Y*: :class:`np.ndarray` (:class:`float`, shape=(n,3))
+            *y*-coordinates of vertices of *n* triangles
+        *x*: :class:`float`
+            *x*-coordinate of test point
+        *y*: :class:`float`
+            *y*-coordinate of test point
+    :Outputs:
+        *Q*: :class:`np.ndarray` (:class:`bool`, shape=(n,))
+            Whether or not each triangle contains the test point
+    :Versions:
+        * 2017-02-06 ``@ddalle``: First version
+    """
+    # Get types
+    tX = type(X).__name__
+    tY = type(Y).__name__
+    # Check input type
+    if tX == "list":
+        # Convert to array
+        X = np.array(X)
+    elif tX != "ndarray":
+        # Convert to array
+        raise TypeError("Triangles must be arrays")
+    if tY == "list":
+        # Convert to array
+        Y = np.array(Y)
+    elif tY != "ndarray":
+        # Convert to array
+        raise TypeError("Triangles must be arrays")
+    # Test for single triangle
+    if X.ndim == 1:
+        X = np.array([X])
+    if Y.ndim == 1:
+        Y = np.array([Y])
+    # Check dimensions
+    if X.shape[1] != 3:
+        raise IndexError("Triangle arrays must have three columns")
+    # Construct test point to the left of all triangles
+    x0 = np.min(X) - 1.0
+    y0 = y
+    # Construct test point below all the triangles
+    x1 = x
+    y1 = np.min(Y) - 1.0
+    # Construct test point above all the triangles
+    x2 = x
+    y2 = np.max(Y) + 1.0
+    # Construct list of segments that consists of each triangle edge
+    # Use the inputs as the start points; rotate vertices to get end points
+    X2 = np.transpose([X[:,1], X[:,2], X[:,0]])
+    Y2 = np.transpose([Y[:,1], Y[:,2], Y[:,0]])
+    # Draw three lines starting with (x,y)
+    #   Line 0: (x,y) to a point directly left of and outside tris
+    #   Line 1: (x,y) to a point directly below and outside tris
+    #   Line 2: (x,y) to a point directly above and outside tris
+    Q0 = edges_int_line(X, Y, X2, Y2, x, y, x0, y0)
+    Q1 = edges_int_line(X, Y, X2, Y2, x, y, x1, y1)
+    Q2 = edges_int_line(X, Y, X2, Y2, x, y, x2, y2)
+    # Count up intersections; each line must intersect odd # of edges
+    n0 = np.sum(Q0, axis=1)
+    n1 = np.sum(Q1, axis=1)
+    n2 = np.sum(Q2, axis=1)
+    # Check for odd number of intersections with all three test lines
+    Q = np.logical_and(n0%2==1, np.logical_and(n1%2==1, n2%2==1))
+    # Output
+    return Q
+    
+    
+    
 
