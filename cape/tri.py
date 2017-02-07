@@ -3317,21 +3317,34 @@ class TriBase(object):
         """Get the triangle that is nearest to a point, and the distance
         
         :Call:
-            >>> k, d, n = tri.GetNearestTri(x)
+            >>> T = tri.GetNearestTri(x)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
             *x*: :class:`np.ndarray` (:class:`float`, shape=(3,))
                 Array of *x*, *y*, and *z* coordinates of test point
         :Outputs:
-            *k*: :class:`int`
+            *T*: :class:`dict`
+                Dictionary of match parameters
+            *T["k1"]*: :class:`int`
                 Index of triangle nearest to test point
-            *d*: :class:`float`
-                Distance from triangle *k* to test point
-            *n*: :class:`float`
-                Projection distance of point to triangke *k*
+            *T["c1"]*: :class:`int`
+                Component ID of triangle *k1*
+            *T["d1"]*: :class:`float`
+                Distance from triangle *k1* to test point
+            *T["z1"]*: :class:`float`
+                Projection distance of point to triangle *k1*
+            *T["k2"]*: ``None`` | :class:`int`
+                Index of nearest triangle outside component *c1*
+            *T["c2"]*: :class:`int`
+                Component ID of triangle *k2*
+            *T["d2"]*: :class:`float`
+                Distance from triangle *k2* to test point
+            *T["z2"]*: :class:`float`
+                Projection distance of point to triangle *k2*
         :Versions:
             * 2017-02-06 ``@ddalle``: First version
+            * 2017-02-07 ``@ddalle``: Added search for second point
         """
         # Extract the vertices of each tri.
         X = self.Nodes[self.Tris-1, 0]
@@ -3386,9 +3399,28 @@ class TriBase(object):
         # Get total distance from point to each triangle
         D = np.sqrt(zi**2 + DI**2)
         # Get index of minimum distance
-        k = np.argmin(D)
-        # output...
-        return k, D[k], zi[k]
+        k1 = np.argmin(D)
+        # Find the component ID
+        c1 = self.CompID[k1]
+        # Initialize output
+        T = {"k1": k1, "c1": c1, "d1": D[k1], "z1": zi[k1]}
+        # Find the triangles not in that component
+        I = (self.CompID != c1)
+        # Downselect triangle indices
+        K = np.arange(self.nTri)[I]
+        # Check for single-component
+        if len(K) == 0:
+            # No second match.
+            return T
+        # Find nearest match from components outside this component
+        k2 = K[np.argmin(D[I])]
+        # Save parameters for second match
+        T["k2"] = k2
+        T["c2"] = self.CompID[k2]
+        T["d2"] = D[k2]
+        T["z2"] = zi[k2]
+        # Output
+        return T
         
         
    # }

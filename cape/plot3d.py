@@ -150,6 +150,8 @@ class X(object):
     def __init__(self, fname=None, X=None):
         """Initialization method
         
+        :Call:
+            >>> x = X(fname
         :Versions:
             * 2016-10-11 ``@ddalle``: First version
         """
@@ -167,14 +169,19 @@ class X(object):
             *x*: :class:`cape.plot3d.X`
                 Plot3D grid interface
         :Attributes:
-            *x.x*: :class:`list` (:class:`np.ndarray`)
-                List of x-coordinate arrays
-            *x.y*: :class:`list` (:class:`np.ndarray`)
-                List of y-coordinate arrays
-            *x.z*: :class:`list` (:class:`np.ndarray`)
-                List of z-coordinate arrays
+            *x.X*: :class:`np.ndarray` (:class:`float` shape=(N,3))
+                Array of coordinates of all points in the grid
+            *x.NG*: :class:`int`
+                Number of grids in the file
+            *x.NJ*: :class:`np.ndarray` (:class:`int`, shape=(*x.NG*,))
+                *J*-dimension of each grid
+            *x.NK*: :class:`np.ndarray` (:class:`int`, shape=(*x.NG*,))
+                *K*-dimension of each grid
+            *x.NL*: :class:`np.ndarray` (:class:`int`, shape=(*x.NG*,))
+                *L*-dimension of each grid
         :Versions:
             * 2016-10-15 ``@ddalle``: First version
+            * 2017-02-07 ``@ddalle``: Updated documentation
         """
         # Check for keywords
         if kw.get('lb8'):
