@@ -156,7 +156,7 @@ class X(object):
         # Check for a file to read
         if fname is not None:
             self.Read(fname)
-            return
+            
             
     def Read(self, fname, **kw):
         """Read a Plot3D grid file of any format

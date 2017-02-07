@@ -3313,20 +3313,16 @@ class TriBase(object):
             np.sqrt(np.sum(x20**2, 0)))).transpose()
             
     # Get nearest triangle to a point
-    def GetNearestTri(self, x, y, z):
+    def GetNearestTri(self, x):
         """Get the triangle that is nearest to a point, and the distance
         
         :Call:
-            >>> k, d, n = tri.GetNearestTri(x, y, z)
+            >>> k, d, n = tri.GetNearestTri(x)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
-            *x*: :class:`float`
-                *x* coordinate of test point
-            *y*: :class:`float`
-                *y* coordinate of test point
-            *z*: :class:`float`
-                *z* coordinate of test point
+            *x*: :class:`np.ndarray` (:class:`float`, shape=(3,))
+                Array of *x*, *y*, and *z* coordinates of test point
         :Outputs:
             *k*: :class:`int`
                 Index of triangle nearest to test point
@@ -3365,6 +3361,10 @@ class TriBase(object):
         e1[:,2] /= L
         # Get final axis to complete right-handed system
         e2 = np.cross(e3, e1)
+        # Extract test point coordinates
+        y = x[1]
+        z = x[2]
+        x = x[0]
         # Convert the test point into coordinates aligned with 
         xi = (x-X[:,0])*e1[:,0] + (y-Y[:,0])*e1[:,1] + (z-Z[:,0])*e1[:,2]
         yi = (x-X[:,0])*e2[:,0] + (y-Y[:,0])*e2[:,1] + (z-Z[:,0])*e2[:,2]
