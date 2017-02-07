@@ -205,13 +205,13 @@ def lines_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw):
             Matrix of *x*-coordinates of end points of several line segments
         *Y2*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
             Matrix of *y*-coordinates of end points of several line segments
-        *x1*: :class:`float`
+        *x1*: :class:`float` | :class:`np.ndarray`
             Start point *x*-coordinate of test segment
-        *y1*: :class:`float`
+        *y1*: :class:`float` | :class:`np.ndarray`
             Start point *y*-coordinate of test segment
-        *x2*: :class:`float`
+        *x2*: :class:`float` | :class:`np.ndarray`
             End point *x*-coordinate of test segment
-        *y2*: :class:`float`
+        *y2*: :class:`float` | :class:`np.ndarray`
             End point *y*-coordinate of test segment
     :Outputs:
         *Q*: :class:`np.ndarray` (:class:`bool`, shape=*X1.shape*)
@@ -221,8 +221,6 @@ def lines_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw):
     """
     # Length of test segment
     L = np.sqrt((x2-x1)**2 + (y2-y1)**2)
-    # No intersections with null segments
-    if L < 1e-8: return np.zeros_like(X1)
     # Tangent vector
     tx = (x2 - x1) / L
     ty = (y2 - y1) / L
@@ -256,7 +254,9 @@ def edges_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw):
     """Check if a set of edges intersects another line segment
     
     Intersections between the test segment and the start point of any edge are
-    not counted as an intersection.
+    not counted as an intersection.  The test point can either be a single
+    point or a collection of points with dimensions equal to the collection of
+    lines.
     
     :Call:
         >>> Q = edges_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw)
@@ -269,13 +269,13 @@ def edges_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw):
             Matrix of *x*-coordinates of end points of several line segments
         *Y2*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
             Matrix of *y*-coordinates of end points of several line segments
-        *x1*: :class:`float`
+        *x1*: :class:`float` | :class:`np.ndarray`
             Start point *x*-coordinate of test segment
-        *y1*: :class:`float`
+        *y1*: :class:`float` | :class:`np.ndarray`
             Start point *y*-coordinate of test segment
-        *x2*: :class:`float`
+        *x2*: :class:`float` | :class:`np.ndarray`
             End point *x*-coordinate of test segment
-        *y2*: :class:`float`
+        *y2*: :class:`float` | :class:`np.ndarray`
             End point *y*-coordinate of test segment
     :Outputs:
         *Q*: :class:`np.ndarray` (:class:`bool`, shape=*X1.shape*)
@@ -285,8 +285,6 @@ def edges_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw):
     """
     # Length of test segment
     L = np.sqrt((x2-x1)**2 + (y2-y1)**2)
-    # No intersections with null segments
-    if L < 1e-8: return np.zeros_like(X1)
     # Tangent vector
     tx = (x2 - x1) / L
     ty = (y2 - y1) / L
@@ -295,6 +293,9 @@ def edges_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw):
     XI2 = (X2-x1)*tx + (Y2-y1)*ty
     YI1 = (Y1-y1)*tx - (X1-x1)*ty
     YI2 = (Y2-y1)*tx - (X2-x1)*ty
+    # Check for single segment
+    if type(L) != "ndarray":
+        L = L*np.ones_like(XI1)
     # Initial test: crosses y=0 line?
     Q = (YI1*YI2 <= 0)
     # Special filter for segments parallel to test segment
@@ -303,15 +304,15 @@ def edges_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw):
     # For segments that cross y==0, find coordinate
     X0 = XI1[Q] - YI1[Q]*(XI2[Q]-XI1[Q]) / (YI2[Q]-YI1[Q])
     # Test those segments
-    Q[Q] = np.logical_and(X0>=0, X0<=L)
+    Q[Q] = np.logical_and(X0>=0, X0<=L[Q])
     # Filter *OUT* intersections with (XI1, YI1)
     Q[YI1==0] = False
     # Come back for the segments that are parallel to the test segment
     Q[I0] = np.logical_or(
         # Check if *x1* strictly inside (0,L)
-        (XI1[I0]-L)*XI1[I0] < 0,
+        (XI1[I0]-L[I0])*XI1[I0] < 0,
         # Check if *x2* inside [0,L]
-        (XI2[I0]-L)*XI2[I0] <= 0,
+        (XI2[I0]-L[I0])*XI2[I0] <= 0,
         # Check if [x1,x2] or [x2,x1] contains [0,L]
         XI2[I0]*XI1[I0] <=0)
     # Output
@@ -319,7 +320,9 @@ def edges_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw):
     
 # Check if a triangle contains a point
 def tris_have_pt(X, Y, x, y, **kw):
-    """Check if each triangle in a list contains a specified point
+    """Check if each triangle in a list contains a specified point(s)
+    
+    The test point may be either a 
     
     :Call:
         >>> Q = tris_have_pt(X, Y, x, y, **kw)
@@ -328,10 +331,10 @@ def tris_have_pt(X, Y, x, y, **kw):
             *x*-coordinates of vertices of *n* triangles
         *Y*: :class:`np.ndarray` (:class:`float`, shape=(n,3))
             *y*-coordinates of vertices of *n* triangles
-        *x*: :class:`float`
-            *x*-coordinate of test point
-        *y*: :class:`float`
-            *y*-coordinate of test point
+        *x*: :class:`float` | :class:`np.ndarray` (shape=(n,))
+            *x*-coordinate of test point(s)
+        *y*: :class:`float` | :class:`np.ndarray` (shape=(n,))
+            *y*-coordinate of test point(s)
     :Outputs:
         *Q*: :class:`np.ndarray` (:class:`bool`, shape=(n,))
             Whether or not each triangle contains the test point
@@ -361,7 +364,22 @@ def tris_have_pt(X, Y, x, y, **kw):
         Y = np.array([Y])
     # Check dimensions
     if X.shape[1] != 3:
+        # Not triangles
         raise IndexError("Triangle arrays must have three columns")
+    elif Y.shape[1] != 3:
+        # Not triangles (Y)
+        raise IndexError("Triangle arrays must have three columns")
+    elif X.shape[0] != Y.shape[0]:
+        # Not matching
+        raise ValueError(
+            "X and Y coordinate arrays have different number of triangles")
+    # Check inputs
+    if type(x).__name__ == "ndarray":
+        # Repeat test point *x* coordinate
+        x = np.transpose(np.vstack((x,x,x)))
+    if type(y).__name__ == "ndarray":
+        # Repeat test point *y* coordinate
+        y = np.transpose(np.vstack((y,y,y)))
     # Construct test point to the left of all triangles
     x0 = np.min(X) - 1.0
     y0 = y
@@ -391,6 +409,122 @@ def tris_have_pt(X, Y, x, y, **kw):
     # Output
     return Q
     
+# Get distance from point to a line segment
+def dist_lines_to_pt(X1, Y1, X2, Y2, x, y, **kw):
+    """Get distance from a point to a collection of line segments
     
+    The test point can either be a single point or a collection of points with
+    dimensions equal to the collection of lines.
     
+    :Call:
+        >>> D = dist_lines_to_pt(X1, Y1, X2, Y2, x, y, **kw)
+    :Inputs:
+        *X1*: :class:`np.ndarray` (:class:`float`, any shape)
+            Matrix of *x*-coordinates of start points of several line segments
+        *Y1*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
+            Matrix of *y*-coordinates of start poitns of several line segments
+        *X2*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
+            Matrix of *x*-coordinates of end points of several line segments
+        *Y2*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
+            Matrix of *y*-coordinates of end points of several line segments
+        *x*: :class:`float` | :class:`np.ndarray`
+            *x*-coordinate of test point(s)
+        *y*: :class:`float` | :class:`np.ndarray`
+            *y*-coordinate of test point(s)
+    :Outputs:
+        *D*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
+            Matrix of minimum distance from segments to point
+    :Versions:
+        * 2017-02-06 ``@ddalle``: First version
+    """
+    # Calculate lengths of each segment
+    L = np.sqrt((X2-X1)**2 + (Y2-Y1)**2)
+    # Check test point types
+    tx = type(x).__name__
+    ty = type(y).__name__
+    # Check for scalar points
+    if tx not in ['ndarray', 'list']:
+        x = x*np.ones_like(X1)
+    if ty not in ['ndarray', 'list']:
+        y = y*np.ones_like(Y1)
+    # Tangent/normal vector components
+    TX = (X2 - X1) / L
+    TY = (Y2 - Y1) / L
+    # Pick any old direction if L==0
+    TX[L==0] = 1.0
+    TY[L==0] = 0.0
+    # Translate the test point (x,y) into tangent/normal coords for each line
+    T = (x-X1)*TX + (y-Y1)*TY
+    N = (y-Y1)*TX - (x-X1)*TY
+    # If the normal going through the point intersects the segment, the
+    # shortest distance is the point-to-line distance.  Initialize distance as
+    # this smallest-possible-distance
+    D = np.abs(N)
+    # Check for segments where that nearest point is outside the segment
+    I = np.logical_or(T < 0, T > L)
+    # Distance from (x,y) to segment end points
+    W1 = np.sqrt((x[I]-X1[I])**2 + (y[I]-Y1[I])**2)
+    W2 = np.sqrt((x[I]-X2[I])**2 + (y[I]-Y2[I])**2)
+    # For such segments, use the distance to closest vertex
+    D[I] = np.fmin(W1, W2)
+    # Output
+    return D
+    
+# Get distance from a point 
+def dist_tris_to_pt(X, Y, x, y, **kw):
+    """Get distance from a point to a collection of triangles
+    
+    Points that are inside the triangle return a distance of 0.
+    
+    :Call:
+        >>> D = dist_tris_to_pt(X, Y, x, y)
+    :Inputs:
+        *X*: :class:`np.ndarray` (:class:`float`, shape=(n,3))
+            *x*-coordinates of vertices of *n* triangles
+        *Y*: :class:`np.ndarray` (:class:`float`, shape=(n,3))
+            *y*-coordinates of vertices of *n* triangles
+        *x*: :class:`float`
+            *x*-coordinate of test point
+        *y*: :class:`float`
+            *y*-coordinate of test point
+    :Outputs:
+        *D*: :class:`np.ndarray` (:class:`float`, shape=*X1.shape*)
+            Matrix of minimum distance from segments to point
+    :Versions:
+        * 2017-02-06 ``@ddalle``: First version
+    """
+    # Check for membership of each triangle
+    Q = tris_have_pt(X, Y, x, y, **kw)
+    # Get the complementary list
+    Q0 = np.logical_not(Q)
+    # Number of triangles
+    n = Q.size
+    # Initialize distance 
+    D = np.zeros(n)
+    # For triangles that do not contain (x,y), get distance to each segment
+    X1 = X[Q0,:]; X2 = X1[:,[1,2,0]]
+    Y1 = Y[Q0,:]; Y2 = Y1[:,[1,2,0]]
+    # Check for list of points
+    if type(x).__name__ == "ndarray":
+        # Repeat for each vertex of the triangle
+        x = np.transpose(np.vstack((x,x,x)))
+        # Deselect points inside triangles
+        x = x[Q0,:]
+    if type(y).__name__ == "ndarray":
+        # Repeat for each vertex of the triangle
+        y = np.transpose(np.vstack((y,y,y)))
+        # Deselect points inside triangles
+        y = y[Q0,:]
+    # Get distances to each segment of each tri that does not contain the pt
+    D0 = dist_lines_to_pt(X1, Y1, X2, Y2, x, y, **kw)
+    # Save the minimum pt-to-edge distance
+    D[Q0] = np.min(D0, axis=1)
+    # Output
+    return D
+    
+
+
+
+
+
 
