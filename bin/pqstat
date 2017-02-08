@@ -1,0 +1,128 @@
+#!/usr/bin/env python
+"""
+NASA Advanced Supercomputing `qstat` Statistics Interface
+=========================================================
+
+:Call:
+
+    .. code-block:: bash
+
+        $ pqstat [OPTIONS]
+
+:Versions:
+    * 2015-07-23 ``@ddalle``: First version
+"""
+# System interface modules
+import os
+import subprocess as sp
+import pyCart.argread
+
+# Primary function
+def main(**kw):
+    """Process and display queue statistics for a user
+
+    :Call:
+        >>> main(u=os.environ['USER'], q=None)
+    :Inputs:
+        *u*: :class:`str`
+            Name of user to query
+        *q*: :class:`str` or ``None``
+            Specific queue; if ``None``, list all queues
+    :Versions:
+        * 2015-07-23 ``@ddalle``: First version
+    """
+    # Get user name.
+    u = kw.get('u', os.environ['USER'])
+    # Get queue name
+    q = kw.get('q')
+    # Get the lines of qstat.
+    lines = sp.check_output(['qstat', '-u', u]).split('\n')
+    # Check for no jobs.
+    if len(lines) < 3: return
+    # Initiqalize stats.
+    d = {}
+    # Loop through lines.
+    for line in lines[3:-1]:
+        # Sepaparate out the properties for this script.
+        vals = line.split()
+        # Get the queue name for this job.
+        qj = vals[2]
+        # Check for a requested queue.
+        if (q is not None) and (qj != q): continue
+        # Initialize the queue statistics if necessary.
+        if qj not in d:
+            d[qj] = {
+                'R': {'jobs': 0, 'nodes': 0, 'cores': 0, 'eff': 0.0},
+                'Q': {'jobs': 0, 'nodes': 0, 'cores': 0}
+            }
+        # Number of nodes and cores
+        nnj = int(vals[5])
+        ncj = int(vals[4])
+        # Add the job to the statistics.
+        if vals[7] == 'R':
+            # Running job.
+            d[qj]['R']['jobs'] += 1
+            # Current number of processed nodes and cores
+            nci = d[qj]['R']['cores']
+            # Current cumulative efficiency and current job efficency
+            ei = d[qj]['R']['eff']
+            try:
+                ej = float(vals[9].rstrip('%'))
+            except Exception:
+                ej = 0.0
+            # Nodes and cores
+            d[qj]['R']['nodes'] += nnj
+            d[qj]['R']['cores'] += ncj
+            # Calculate efficiency
+            d[qj]['R']['eff'] = (ei*nci + ej*ncj) / (nci+ncj)
+        elif vals[7] == 'Q':
+            # Queued job.
+            d[qj]['Q']['jobs'] += 1
+            # Nodes and cores
+            d[qj]['Q']['nodes'] += nnj
+            d[qj]['Q']['cores'] += ncj
+    # Display the stats.
+    show_qstats(d)
+
+# Function to show queue statistics
+def show_qstats(d):
+    """Show queue statistics
+
+    :Call:
+        >>> show_qstats(d)
+    :Inputs:
+        *d*: :class:`dict`
+            Dictionary of queue statistics
+    :Versions:
+        * 2015-07-23 ``@ddalle``: First version
+    """
+    # Loop through the queues.
+    for q in d.keys():
+        # Display the queue name.
+        print("QUEUE: %s" % q)
+        # Extract running qnd queued statistics
+        R = d[q]['R']
+        Q = d[q]['Q']
+        # Display the running jobs statistics
+        print("  R: %3i jobs, %4i nodes, %5i cores, %.1f%% efficiency"
+            % (R['jobs'], R['nodes'], R['cores'], R['eff']))
+        # Display the queued jobs statistics
+        print("  Q: %3i jobs, %4i nodes, %5i cores"
+            % (Q['jobs'], Q['nodes'], Q['cores']))
+        # Totals.
+        print("  T: %3i jobs" % (R['jobs']+Q['jobs']))
+
+# Check for CLI call
+if __name__ == "__main__":
+    # Process inputs.
+    a, kw = pyCart.argread.readkeys(os.sys.argv)
+    # Check for help option.
+    if kw.get('h') or kw.get('help'):
+        print(__doc__)
+        os.sys.exit()
+    # Call the main function
+    main(**kw)
+
+
+
+    
