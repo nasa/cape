@@ -146,6 +146,20 @@ class Plot3D(object):
         return np.fromfile(self.f, count=count, dtype=self.ftype)
 # class Plot3D
 
+# Default tolerances for mapping triangulations
+atoldef = 3e-2
+rtoldef = 1e-4
+ctoldef = 1e-3
+antoldef = 2e-2
+rntoldef = 1e-4
+cntoldef = 1e-3
+aftoldef = 1e-3
+rftoldef = 1e-6
+cftoldef = 1e-3
+anftoldef = 1e-3
+rnftoldef = 1e-6
+cnftoldef = 1e-3
+
 # Plot3D Multiple-Grid file
 class X(object):
     
@@ -865,22 +879,22 @@ class X(object):
             raise TypeError(
                 "Triangulation for mapping must be 'Tri', or 'Triq'")
         # Process primary tolerances
-        atol  = kw.get("atol",  kw.get("AbsTol",  3e-2))
-        rtol  = kw.get("rtol",  kw.get("RelTol",  1e-4))
-        ctol  = kw.get("ctol",  kw.get("CompTol", 1e-3))
-        antol = kw.get("ntol",  kw.get("ProjTol", 2e-2))
+        atol  = kw.get("atol",  kw.get("AbsTol",  atoldef))
+        rtol  = kw.get("rtol",  kw.get("RelTol",  rtoldef))
+        ctol  = kw.get("ctol",  kw.get("CompTol", ctoldef))
+        antol = kw.get("ntol",  kw.get("ProjTol", antoldef))
         antol = kw.get("antol", kw.get("AbsProjTol",  antol))
-        rntol = kw.get("rntol", kw.get("RelProjTol",  1e-4))
-        cntol = kw.get("cntol", kw.get("CompProjTol", 1e-3))
+        rntol = kw.get("rntol", kw.get("RelProjTol",  rntoldef))
+        cntol = kw.get("cntol", kw.get("CompProjTol", cntoldef))
         # Process family tolerances
-        aftol = kw.get("aftol", kw.get("AbsFamilyTol",  1e-3))
-        rftol = kw.get("rftol", kw.get("RelFamilyTol",  1e-6))
-        cftol = kw.get("cftol", kw.get("CompFamilyTol", 1e-3))
+        aftol = kw.get("aftol", kw.get("AbsFamilyTol",  aftoldef))
+        rftol = kw.get("rftol", kw.get("RelFamilyTol",  rftoldef))
+        cftol = kw.get("cftol", kw.get("CompFamilyTol", cftoldef))
         # Family projection tolerances
-        anftol = kw.get("nftol",  kw.get("ProjFamilyTol", 1e-3))
+        anftol = kw.get("nftol",  kw.get("ProjFamilyTol", anftoldef))
         anftol = kw.get("anftol", kw.get("AbsProjFamilyTol", anftol))
-        rnftol = kw.get("rnftol", kw.get("RelProjFamilyTol", 1e-6))
-        cnftol = kw.get("cnftol", kw.get("CompProjFamilyTol", 1e-3))
+        rnftol = kw.get("rnftol", kw.get("RelProjFamilyTol", rnftoldef))
+        cnftol = kw.get("cnftol", kw.get("CompProjFamilyTol", cnftoldef))
         # Get scale of the entire triangulation
         L = tri.GetCompScale()
         # Initialize scales of components
@@ -1004,9 +1018,48 @@ class X(object):
                 Name of output OVFI file
             *tri*: :class:`caepe.tri.Tri`
                 Triangulation with named components
+        :Keyword Arguments:
+            *v*: ``True`` | {``False``}
+                Verbose
+            *atol*, *AbsTol*: {``_atol_``} | positive :class:`float`
+                Absolute tolerance for nearest-tri search
+            *rtol*, *RelTol*: {``_rtol_``} | nonnegative :class:`float`
+                Tolerance for nearest-tri relative to scale of triangulation
+            *ctol*, *CompTol*: {``_ctol_``} | nonnegative :class:`float`
+                Tolerance for nearest-tri relative to scale of component
+            *antol*, *AbsProjTol*: {``_antol_``} | positive :class:`float`
+                Absolute projection tolerance for near nearest-tri search
+            *rntol*, *RelProjTol*: {``_rntol_``} | nonnegative :class:`float`
+                Projection tolerance relative to scale of triangulation
+            *cntol*, *CompProjTol*: {``_cntol_``} | nonnegative :class:`float`
+                Projection tolerance relative to scale of component
+            *aftol*, *AbsFamilyTol*: {``_aftol_``} | positive :class:`float`
+                Absolute tolerance for secondary family search
+            *rftol*, *RelFamilyTol*: {``_rftol_``} | :class:`float`
+                Secondary family search tol relative to tri scale
+            *cftol*, *CompFamilyTol*: {``_cftol_``} | :class:`float`
+                Secondary family search tol relative to component scale
+            *nftol*, *ProjFamilyTol*: {``_anftol_``} | :class:`float`
+                Absolute projection tol for secondary family search
+            *anftol*, *AbsProjFamilyTol*: {*nftol*} | :class:`float`
+                Absolute projection tol for secondary family search
+            *rnftol*, *RelProjFamilyTol*: {``_rnftol_``} | :class:`float`
+                Secondary family search projection tol relative to tri scale
+            *cnftol*, *CompProjFamilyTol*: {``_cnftol_``} | :class:`float`
+                Secondary family search projection tol relative to comp scale
         :Versions:
             * 2017-02-09 ``@ddalle``: First version
         """
+        # Invert families (must be a UH3D for now)
+        try:
+            # Initialize family list
+            faces = {}
+            # Loop through faces
+            for face in tri.Conf:
+                faces[tri.Conf[face]] = face
+        except AttributeError:
+            raise ValueError("Triangulation must have *Conf* attribute\n" +
+                "In most cases, the triangulation must be from a UH3D file")
         # Process boundary conditions
         BCs = self.MapTriBCs(tri, n=1, **kw)
         # Read namelist
@@ -1025,8 +1078,8 @@ class X(object):
         # Number of actual BCs
         nBC = len(BCs)
         # Basic types
-        ibtyp = [5]*nBC
-        ibdir = [3]*nBC
+        ityp = [5]*nBC
+        idir = [3]*nBC
         # Indices
         ja = []; jb = []
         ka = []; kb = []
@@ -1034,19 +1087,54 @@ class X(object):
         lb = [1]*nBC
         # CompID
         compID = []
+        fams = []
         # Loop through BCs
         for i in range(nBC):
             # Append family
             compID.append(BCs[i][0])
+            fams.append(faces[BCs[i][0]])
             # Set BCs
-            ja.append(BCs[i][1])
+            ja.append(BCs[i][1]+1)
             jb.append(BCs[i][2])
-            ka.append(BCs[i][3])
+            ka.append(BCs[i][3]+1)
             kb.append(BCs[i][4])
-        # Append BC info to non-wall BCs...
-        
-        # Write the processed namelist...
+        # Append BC types to non-wall BCs
+        ibtyp = ityp + list(ibtyp[qnowall])
+        ibdir = idir + list(ibdir[qnowall])
+        # Append indices
+        jbcs = ja + list(jbcs[qnowall])
+        jbce = jb + list(jbce[qnowall])
+        kbcs = ka + list(kbcs[qnowall])
+        kbce = kb + list(kbce[qnowall])
+        lbcs = la + list(lbcs[qnowall])
+        lbce = lb + list(lbce[qnowall])
+        # Set parameters
+        ovfi.SetKeyInGroupName('BCINP', 'IBTYP', ibtyp)
+        ovfi.SetKeyInGroupName('BCINP', 'IBDIR', ibdir)
+        ovfi.SetKeyInGroupName('BCINP', 'JBCS', jbcs)
+        ovfi.SetKeyInGroupName('BCINP', 'JBCE', jbce)
+        ovfi.SetKeyInGroupName('BCINP', 'KBCS', kbcs)
+        ovfi.SetKeyInGroupName('BCINP', 'KBCE', kbce)
+        ovfi.SetKeyInGroupName('BCINP', 'LBCS', lbcs)
+        ovfi.SetKeyInGroupName('BCINP', 'LBCE', lbce)
+        # Create line for list of families
+        line = "C Family: %s\n" % (' '.join(fams))
+        # Set families
+        ovfi.ReplaceLineStartsWith('C Family', line)
+        # Write the processed namelist
         ovfi.Write(fo)
+    # Fill in docstring
+    MapOvfi.__doc__.replace('_atol_', str(atoldef))
+    MapOvfi.__doc__.replace('_rtol_', str(rtoldef))
+    MapOvfi.__doc__.replace('_ctol_', str(ctoldef))
+    MapOvfi.__doc__.replace('_antol_', str(antoldef))
+    MapOvfi.__doc__.replace('_rntol_', str(rntoldef))
+    MapOvfi.__doc__.replace('_cntol_', str(cntoldef))
+    MapOvfi.__doc__.replace('_aftol_', str(aftoldef))
+    MapOvfi.__doc__.replace('_rftol_', str(rftoldef))
+    MapOvfi.__doc__.replace('_anftol_', str(anftoldef))
+    MapOvfi.__doc__.replace('_cnftol_', str(cnftoldef))
+    MapOvfi.__doc__.replace('_rnftol_', str(rnftoldef))
   # >
   
     
