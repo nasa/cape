@@ -865,13 +865,13 @@ class X(object):
             raise TypeError(
                 "Triangulation for mapping must be 'Tri', or 'Triq'")
         # Process primary tolerances
-        atol  = kw.get("atol",  kw.get("AbsTol",  2e-2))
-        rtol  = kw.get("rtol",  kw.get("RelTol",  1e-6))
-        ctol  = kw.get("ctol",  kw.get("CompTol", 1e-4))
-        antol = kw.get("ntol",  kw.get("ProjTol", 1e-2))
+        atol  = kw.get("atol",  kw.get("AbsTol",  3e-2))
+        rtol  = kw.get("rtol",  kw.get("RelTol",  1e-4))
+        ctol  = kw.get("ctol",  kw.get("CompTol", 1e-3))
+        antol = kw.get("ntol",  kw.get("ProjTol", 2e-2))
         antol = kw.get("antol", kw.get("AbsProjTol",  antol))
-        rntol = kw.get("rntol", kw.get("RelProjTol",  1e-6))
-        cntol = kw.get("cntol", kw.get("CompProjTol", 1e-4))
+        rntol = kw.get("rntol", kw.get("RelProjTol",  1e-4))
+        cntol = kw.get("cntol", kw.get("CompProjTol", 1e-3))
         # Process family tolerances
         aftol = kw.get("aftol", kw.get("AbsFamilyTol",  1e-3))
         rftol = kw.get("rftol", kw.get("RelFamilyTol",  1e-6))
@@ -880,7 +880,7 @@ class X(object):
         anftol = kw.get("nftol",  kw.get("ProjFamilyTol", 1e-3))
         anftol = kw.get("anftol", kw.get("AbsProjFamilyTol", anftol))
         rnftol = kw.get("rnftol", kw.get("RelProjFamilyTol", 1e-6))
-        cnftol = kw.get("cnftol", kw.get("CompProjFamilyTol", 1e-4))
+        cnftol = kw.get("cnftol", kw.get("CompProjFamilyTol", 1e-3))
         # Get scale of the entire triangulation
         L = tri.GetCompScale()
         # Initialize scales of components
@@ -926,7 +926,12 @@ class X(object):
                 toli  = tol + ctol*LC[c1]
                 ntoli = ntol + cntol*LC[c1]
                 # Filter results
-                if (T["d1"] > toli) or (T["z1"] > ntoli): continue
+                if (T["d1"] > toli) or (T["z1"] > ntoli):
+                    # Status update
+                    if v:
+                        print("   j=%s, k=%s, d1=%.2e/%.2e, z1=%.2e/%.2e"
+                            % (j,k, T["d1"],toli, T["z1"],ntoli))
+                    continue
                 # Check proximity of secondary component
                 if (c2 is not None):
                      # Make sure secondary component scale is present
@@ -935,8 +940,8 @@ class X(object):
                     # Maximum component scale
                     Li = max(LC[c1], LC[c2])
                     # Get overall tolerances
-                    ftoli  = toli  + ftol  + cftol*Li
-                    nftoli = ntoli + nftol + cnftol*Li
+                    ftoli  = ftol  + cftol*Li
+                    nftoli = nftol + cnftol*Li
                     # Filter family matches
                     if (T["d2"] > ftoli) or (T["z2"] > nftoli):
                         c2 = None
@@ -981,28 +986,49 @@ class X(object):
         """
         # Get compIDs
         C = self.MapTriCompID(tri, n=n, **kw)
-        # Get list of component IDs included
-        comps = np.unique(C[C>0])
-        # Initialize blocks
-        BCs = []
-        # Maximum number of blocks
-        MaxBlocks = 5000
-        # Loop through them
-        for comp in comps:
-            # Get mask of grid points matching *comp*
-            I = np.any(C==comp, axis=2)
-            # Loop until we've emptied all the blocks
-            n = 0
-            while (n<MaxBlocks) and np.any(I):
-                # Get the indices of the block
-                ja, jb, ka, kb = cape.util.GetBCBlock2(I)
-                # Append those indices
-                BCs.append([comp, ja, jb, ka, kb])
-                # Blank out those grid points to look for next block
-                I[ja:jb,ka:kb] = False
-        # Output
-        return BCs
+        # Map them
+        return MapTriMatchBCs(C)
   # >
   
     
 # class X
+
+
+# Map surface grid points to TRI file components
+def MapTriMatchBCs(C):
+    """Create a ``.ovfi`` file using the family names from a triangulation
+    
+    :Call:
+        >>> BCs = MapTriMatchBCs(C)
+    :Inputs:
+        *x*: :class:`cape.plot3d.X`
+            Plot3D grid interface
+        *tri*: :class:`cape.tri.Tri`
+            Triangulation; likely with named components
+        *n*: {``1``} | positive :class:`int`
+            Grid number to process (1-based index)
+    :Versions:
+        * 2017-02-08 ``@ddalle``: First version
+    """
+    # Get list of component IDs included
+    comps = np.unique(C[C>0])
+    # Initialize blocks
+    BCs = []
+    # Maximum number of blocks
+    MaxBlocks = 5000
+    # Loop through them
+    for comp in comps:
+        # Get mask of grid points matching *comp*
+        I = np.any(C==comp, axis=2)
+        # Loop until we've emptied all the blocks
+        n = 0
+        while (n<MaxBlocks) and np.any(I):
+            # Get the indices of the block
+            ja, jb, ka, kb = cape.util.GetBCBlock2(I)
+            # Append those indices
+            BCs.append([comp, ja, jb, ka, kb])
+            # Blank out those grid points to look for next block
+            I[ja:jb,ka:kb] = False
+    # Output
+    return BCs
+# end MapTriBCs

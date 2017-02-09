@@ -3408,7 +3408,7 @@ class TriBase(object):
         # Find the component ID
         c1 = self.CompID[k1]
         # Initialize output
-        T = {"k1": k1, "c1": c1, "d1": D[k1], "z1": zi[k1]}
+        T = {"k1": k1, "c1": c1, "d1": D[k1], "z1": abs(zi[k1])}
         # Initialize mask for finding other components 
         I = np.arange(self.nTri)
         # Loop through until we find up to four components
@@ -3428,7 +3428,7 @@ class TriBase(object):
             T["k"+n] = k
             T["c"+n] = c
             T["d"+n] = D[k]
-            T["z"+n] = zi[k]
+            T["z"+n] = abs(zi[k])
         # Output (if 4 components)
         return T
         
