@@ -3042,10 +3042,8 @@ class TriBase(object):
         # Initialize scales of components
         LC = {}
         # Put together absolute and relative tols
-        tol   = atol   + rtol*L
-        ntol  = antol  + rntol*L
-        ftol  = aftol  + rftol*L
-        nftol = anftol + rnftol*L
+        tol  = atol   + rtol*L
+        ntol = antol  + rntol*L
         # Verbose flag
         v = kw.get("v", False)
         # Ensure the centers are present
@@ -3077,8 +3075,6 @@ class TriBase(object):
                     c = c1
                 # Save the component map
                 compmap[c1] = c
-                # Save the name
-                
             # Get overall tolerances
             toli  = tol + ctol*LC[c1]
             ntoli = ntol + cntol*LC[c1]
@@ -3093,43 +3089,58 @@ class TriBase(object):
             self.CompID[k] = compmap[c1]
         # Update *self.config* if applicable
         try:
-            # Initialize family list
-            faces = {}
             # Loop through faces in the target map
             for face in tri.config.faces:
-                # Get component ID
-                comp = tri.confi.faces[face]
-                # Skip if a group
-                if type(comp).__name__ == "list":
-                    # Skip if a group
-                    if len(comp) > 1: continue
-                    # Extract
-                    comp = comp[0]
-                # Skip if not used
-                if comp not in compmap: continue
-                # Save the component
-                self.config[face] = compmap[comp]
-        except Exception:
+                # Get component ID(s); guarantee list
+                comps = np.array(tri.config.faces[face]).flatten()
+                # Get mapped component numbers
+                cmapd = []
+                # Loop through comps
+                for comp in comps:
+                    # Skip if not used
+                    if comp not in compmap:
+                        # Use the existing component number
+                        cmapd.append(comp)
+                    else:
+                        # Save the component from the new guy
+                        cmapd.append(compmap[comp])
+                # Check length
+                if len(cmapd) == 0:
+                    # No matches
+                    continue
+                elif len(cmapd) == 1:
+                    # Save single match
+                    self.config.faces[face] = cmapd[0]
+                else:
+                    # Save list
+                    self.config.faces[face] = cmapd
+        except AttributeError:
             pass
         # Update *self.config* if applicable
         try:
-            # Initialize family list
-            faces = {}
             # Loop through faces in the target map
-            for face in tri.config.faces:
-                # Get component ID
-                comp = tri.confi.faces[face]
-                # Skip if a group
-                if type(comp).__name__ == "list":
-                    # Skip if a group
-                    if len(comp) > 1: continue
-                    # Extract
-                    comp = comp[0]
-                # Skip if not used
-                if comp not in compmap: continue
-                # Save the component
-                self.config[face] = compmap[comp]
-        except Exception:
+            for face in tri.Conf:
+                # Get component ID(s); guarantee list
+                comps = np.array(tri.Conf[face]).flatten()
+                # Get mapped component numbers
+                cmapd = []
+                # Loop through comps
+                for comp in comps:
+                    # Skip if not used
+                    if comp not in compmap: continue
+                    # Save the component
+                    cmapd.append(compmap[comp])
+                # Check length
+                if len(cmapd) == 0:
+                    # No matches
+                    continue
+                elif len(cmapd) == 1:
+                    # Save single match
+                    self.Conf[face] = cmapd[0]
+                else:
+                    # Save list
+                    self.Conf[face] = cmapd
+        except AttributeError:
             pass
   # >
   
