@@ -12,10 +12,10 @@ import os
 # Numerics
 import numpy as np
 
-# Input/output module
+# Local modules
 from . import io
-# Range string
-import cape.util
+from . import util
+from . import namelist2
 
 # General Plot3D class...
 class Plot3D(object):
@@ -970,7 +970,7 @@ class X(object):
         
     # Map surface grid points to TRI file components
     def MapTriBCs(self, tri, n=1, **kw):
-        """Create a ``.ovfi`` file using the family names from a triangulation
+        """Find the BC blocks by projecting a mesh to a triangulation
         
         :Call:
             >>> x.MapTriBCs(tri, n=1, **kw)
@@ -988,6 +988,65 @@ class X(object):
         C = self.MapTriCompID(tri, n=n, **kw)
         # Map them
         return MapTriMatchBCs(C)
+        
+    # Function to edit an OVFI file
+    def MapOvfi(self, fi, fo, tri, **kw):
+        """Edit a ``.ovfi`` file using a triangulation for family names
+        
+        :Call:
+            >>> x.MapOvfi(fi, fo, tri, **kw)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fi*: :class:`str`
+                Name of input OVFI file
+            *fo*: :class:`str`
+                Name of output OVFI file
+            *tri*: :class:`caepe.tri.Tri`
+                Triangulation with named components
+        :Versions:
+            * 2017-02-09 ``@ddalle``: First version
+        """
+        # Process boundary conditions
+        BCs = self.MapTriBCs(tri, n=1, **kw)
+        # Read namelist
+        ovfi = namelist2.Namelist2(fi)
+        # Read BCINP section
+        ibtyp = np.array(ovfi.GetKeyFromGroupName("BCINP", "IBTYP"))
+        ibdir = np.array(ovfi.GetKeyFromGroupName("BCINP", "IBDIR"))
+        jbcs = np.array(ovfi.GetKeyFromGroupName("BCINP", "JBCS"))
+        jbce = np.array(ovfi.GetKeyFromGroupName("BCINP", "JBCE"))
+        kbcs = np.array(ovfi.GetKeyFromGroupName("BCINP", "KBCS"))
+        kbce = np.array(ovfi.GetKeyFromGroupName("BCINP", "KBCE"))
+        lbcs = np.array(ovfi.GetKeyFromGroupName("BCINP", "LBCS"))
+        lbce = np.array(ovfi.GetKeyFromGroupName("BCINP", "LBCE"))
+        # Filter out non-wall BCs
+        qnowall = np.logical_or(ibtyp, ibdir)
+        # Number of actual BCs
+        nBC = len(BCs)
+        # Basic types
+        ibtyp = [5]*nBC
+        ibdir = [3]*nBC
+        # Indices
+        ja = []; jb = []
+        ka = []; kb = []
+        la = [1]*nBC
+        lb = [1]*nBC
+        # CompID
+        compID = []
+        # Loop through BCs
+        for i in range(nBC):
+            # Append family
+            compID.append(BCs[i][0])
+            # Set BCs
+            ja.append(BCs[i][1])
+            jb.append(BCs[i][2])
+            ka.append(BCs[i][3])
+            kb.append(BCs[i][4])
+        # Append BC info to non-wall BCs...
+        
+        # Write the processed namelist...
+        ovfi.Write(fo)
   # >
   
     
@@ -1024,7 +1083,7 @@ def MapTriMatchBCs(C):
         n = 0
         while (n<MaxBlocks) and np.any(I):
             # Get the indices of the block
-            ja, jb, ka, kb = cape.util.GetBCBlock2(I)
+            ja, jb, ka, kb = util.GetBCBlock2(I)
             # Append those indices
             BCs.append([comp, ja, jb, ka, kb])
             # Blank out those grid points to look for next block
