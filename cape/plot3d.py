@@ -1075,14 +1075,14 @@ class X(object):
         # Read namelist
         ovfi = namelist2.Namelist2(fi)
         # Read BCINP section
-        ibtyp = np.array(ovfi.GetKeyFromGroupName("BCINP", "IBTYP"))
-        ibdir = np.array(ovfi.GetKeyFromGroupName("BCINP", "IBDIR"))
-        jbcs = np.array(ovfi.GetKeyFromGroupName("BCINP", "JBCS"))
-        jbce = np.array(ovfi.GetKeyFromGroupName("BCINP", "JBCE"))
-        kbcs = np.array(ovfi.GetKeyFromGroupName("BCINP", "KBCS"))
-        kbce = np.array(ovfi.GetKeyFromGroupName("BCINP", "KBCE"))
-        lbcs = np.array(ovfi.GetKeyFromGroupName("BCINP", "LBCS"))
-        lbce = np.array(ovfi.GetKeyFromGroupName("BCINP", "LBCE"))
+        ibtyp = np.array(ovfi.GetKeyFromGroupName("BCINP","IBTYP")).flatten()
+        ibdir = np.array(ovfi.GetKeyFromGroupName("BCINP","IBDIR")).flatten()
+        jbcs  = np.array(ovfi.GetKeyFromGroupName("BCINP","JBCS" )).flatten()
+        jbce  = np.array(ovfi.GetKeyFromGroupName("BCINP","JBCE" )).flatten()
+        kbcs  = np.array(ovfi.GetKeyFromGroupName("BCINP","KBCS" )).flatten()
+        kbce  = np.array(ovfi.GetKeyFromGroupName("BCINP","KBCE" )).flatten()
+        lbcs  = np.array(ovfi.GetKeyFromGroupName("BCINP","LBCS" )).flatten()
+        lbce  = np.array(ovfi.GetKeyFromGroupName("BCINP","LBCE" )).flatten()
         # Filter out non-wall BCs
         qnowall = np.logical_or(ibtyp>9, ibdir!=3)
         # Number of actual BCs
