@@ -1056,7 +1056,16 @@ class X(object):
             faces = {}
             # Loop through faces
             for face in tri.Conf:
-                faces[tri.Conf[face]] = face
+                # Get compIDs
+                comps = tri.Conf[face]
+                # Check for a list
+                if type(comps).__name__ in ['list', 'ndarray']:
+                    # Loop through list
+                    for c in comps:
+                        faces[c] = face
+                else:
+                    # Single component
+                    faces[comps] = face
         except AttributeError:
             raise ValueError("Triangulation must have *Conf* attribute\n" +
                 "In most cases, the triangulation must be from a UH3D file")
