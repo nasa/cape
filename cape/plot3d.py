@@ -1060,6 +1060,7 @@ class X(object):
         except AttributeError:
             raise ValueError("Triangulation must have *Conf* attribute\n" +
                 "In most cases, the triangulation must be from a UH3D file")
+        # Default family name
         # Process boundary conditions
         BCs = self.MapTriBCs(tri, n=1, **kw)
         # Read namelist
@@ -1074,7 +1075,7 @@ class X(object):
         lbcs = np.array(ovfi.GetKeyFromGroupName("BCINP", "LBCS"))
         lbce = np.array(ovfi.GetKeyFromGroupName("BCINP", "LBCE"))
         # Filter out non-wall BCs
-        qnowall = np.logical_or(ibtyp, ibdir)
+        qnowall = np.logical_or(ibtyp>9, ibdir!=3)
         # Number of actual BCs
         nBC = len(BCs)
         # Basic types
