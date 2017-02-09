@@ -14,6 +14,8 @@ import numpy as np
 
 # Input/output module
 from . import io
+# Range string
+import cape.util
 
 # General Plot3D class...
 class Plot3D(object):
@@ -147,11 +149,14 @@ class Plot3D(object):
 # Plot3D Multiple-Grid file
 class X(object):
     
-    def __init__(self, fname=None, X=None):
+    def __init__(self, fname=None):
         """Initialization method
         
         :Call:
-            >>> x = X(fname
+            >>> x = X(fname=None)
+        :Inputs:
+            *fname*: :class:`str`
+                Name of Plot3D grid file to read
         :Versions:
             * 2016-10-11 ``@ddalle``: First version
         """
@@ -159,7 +164,10 @@ class X(object):
         if fname is not None:
             self.Read(fname)
             
-            
+  # =======
+  # Readers
+  # =======
+  # <
     def Read(self, fname, **kw):
         """Read a Plot3D grid file of any format
         
@@ -624,7 +632,12 @@ class X(object):
             self.X[2,ia:ib] = np.fromfile(f, sep=" ", count=ni, dtype='float')
         # Close the file
         f.close()
-    
+  # >
+  
+  # =======
+  # Writers
+  # =======
+  # <
     # Write as an ASCII file
     def Write_ASCII(self, fname, single=False):
         """Write a multiple-zone ASCII Plot3D file
@@ -817,6 +830,179 @@ class X(object):
             io.write_record_b8_f(f, self.X[:,ia:ib])
         # Close the file
         f.close()
-    
+  # >
+  
+  # ======
+  # MIXSUR
+  # ======
+  # <
+    # Map surface grid points to TRI file components
+    def MapTriCompID(self, tri, n=1, **kw):
+        """Create a ``.ovfi`` file using the family names from a triangulation
+        
+        :Call:
+            >>> C = x.MapTriOvfi(tri, n=1, **kw)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation; likely with named components
+            *n*: {``1``} | positive :class:`int`
+                Grid number to process (1-based index)
+        :Outputs:
+            *C*: :class:`np.ndarray` (:class:`int`, shape=(nj,nk,2))
+                Array of component IDs closest to each point in surf grid
+        :Versions:
+            * 2017-02-08 ``@ddalle``: First version
+        """
+        # Check grid number
+        if n > self.NG:
+            raise ValueError("Cannot process grid %i; only %s grids present"
+                % (n, self.NG))
+        # Check triangulation type
+        tt = type(tri).__name__
+        if not tt.startswith("Tri"):
+            raise TypeError(
+                "Triangulation for mapping must be 'Tri', or 'Triq'")
+        # Process primary tolerances
+        atol  = kw.get("atol",  kw.get("AbsTol",  2e-2))
+        rtol  = kw.get("rtol",  kw.get("RelTol",  1e-6))
+        ctol  = kw.get("ctol",  kw.get("CompTol", 1e-4))
+        antol = kw.get("ntol",  kw.get("ProjTol", 1e-2))
+        antol = kw.get("antol", kw.get("AbsProjTol",  antol))
+        rntol = kw.get("rntol", kw.get("RelProjTol",  1e-6))
+        cntol = kw.get("cntol", kw.get("CompProjTol", 1e-4))
+        # Process family tolerances
+        aftol = kw.get("aftol", kw.get("AbsFamilyTol",  1e-3))
+        rftol = kw.get("rftol", kw.get("RelFamilyTol",  1e-6))
+        cftol = kw.get("cftol", kw.get("CompFamilyTol", 1e-3))
+        # Family projection tolerances
+        anftol = kw.get("nftol",  kw.get("ProjFamilyTol", 1e-3))
+        anftol = kw.get("anftol", kw.get("AbsProjFamilyTol", anftol))
+        rnftol = kw.get("rnftol", kw.get("RelProjFamilyTol", 1e-6))
+        cnftol = kw.get("cnftol", kw.get("CompProjFamilyTol", 1e-4))
+        # Get scale of the entire triangulation
+        L = tri.GetCompScale()
+        # Initialize scales of components
+        LC = {}
+        # Put together absolute and relative tols
+        tol   = atol   + rtol*L
+        ntol  = antol  + rntol*L
+        ftol  = aftol  + rftol*L
+        nftol = anftol + rnftol*L
+        # Get number of points in prior grids
+        ia = np.prod(self.NJ[:n-1] * self.NK[:n-1] * self.NL[:n-1]) - 1
+        # Get number of points
+        nj = self.NJ[n-1]
+        nk = self.NK[n-1]
+        nl = self.NL[n-1]
+        # Verbose flag
+        v = kw.get("v", False)
+        # Initialize components for each surface grid
+        C = np.zeros((nj,nk,4), dtype=int)
+        # Loop through columns
+        for k in range(nk):
+            # Status update if verbose
+            if v:
+                print("  k = %i/%i" % (k+1,nk))
+            # Loop through rows of points
+            for j in range(nj):
+                # Get overall index
+                i = ia + k*nj + j
+                # Perform search
+                T = tri.GetNearestTri(self.X[:,i])
+                # Get components
+                c1 = T.get("c1")
+                c2 = T.get("c2")
+                c3 = T.get("c3")
+                c4 = T.get("c4")
+                # Make sure component scale is present
+                if c1 not in LC:
+                    LC[c1] = tri.GetCompScale(c1)
+                # Make sure secondary component scale is present
+                if (c2 is not None) and (c2 not in LC):
+                    LC[c2] = tri.GetCompScale(c2)
+                # Get overall tolerances
+                toli  = tol + ctol*LC[c1]
+                ntoli = ntol + cntol*LC[c1]
+                # Filter results
+                if (T["d1"] > toli) or (T["z1"] > ntoli): continue
+                # Check proximity of secondary component
+                if (c2 is not None):
+                     # Make sure secondary component scale is present
+                    if c2 not in LC:
+                        LC[c2] = tri.GetCompScale(c2)
+                    # Maximum component scale
+                    Li = max(LC[c1], LC[c2])
+                    # Get overall tolerances
+                    ftoli  = toli  + ftol  + cftol*Li
+                    nftoli = ntoli + nftol + cnftol*Li
+                    # Filter family matches
+                    if (T["d2"] > ftoli) or (T["z2"] > nftoli):
+                        c2 = None
+                # Filter tertiary family proximity
+                if (c3 is not None)and (T["d3"]>ftoli) or (T["z3"]>nftoli):
+                    c3 = None
+                # Filter fourth family proximity
+                if (c4 is not None)and (T["d4"]>ftoli) or (T["z4"]>nftoli):
+                    c4 = None
+                # Save components
+                if (c2 is None):
+                    # Save primary family only
+                    C[j,k,0] = c1
+                elif (c3 is None):
+                    # Sort primary and secondary families
+                    C[j,k,0] = min(c1,c2)
+                    C[j,k,1] = max(c1,c2)
+                elif (c4 is None):
+                    # Sort primary, secondary, tertiary families
+                    C[j,k,:3] = np.sort([c1,c2,c3])
+                else:
+                    # Sort maximum of four families
+                    C[j,k,:] = np.sort([c1,c2,c3,c4])
+        # Output
+        return C
+        
+    # Map surface grid points to TRI file components
+    def MapTriBCs(self, tri, n=1, **kw):
+        """Create a ``.ovfi`` file using the family names from a triangulation
+        
+        :Call:
+            >>> x.MapTriBCs(tri, n=1, **kw)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation; likely with named components
+            *n*: {``1``} | positive :class:`int`
+                Grid number to process (1-based index)
+        :Versions:
+            * 2017-02-08 ``@ddalle``: First version
+        """
+        # Get compIDs
+        C = self.MapTriCompID(tri, n=n, **kw)
+        # Get list of component IDs included
+        comps = np.unique(C[C>0])
+        # Initialize blocks
+        BCs = []
+        # Maximum number of blocks
+        MaxBlocks = 5000
+        # Loop through them
+        for comp in comps:
+            # Get mask of grid points matching *comp*
+            I = np.any(C==comp, axis=2)
+            # Loop until we've emptied all the blocks
+            n = 0
+            while (n<MaxBlocks) and np.any(I):
+                # Get the indices of the block
+                ja, jb, ka, kb = cape.util.GetBCBlock2(I)
+                # Append those indices
+                BCs.append([comp, ja, jb, ka, kb])
+                # Blank out those grid points to look for next block
+                I[ja:jb,ka:kb] = False
+        # Output
+        return BCs
+  # >
+  
     
 # class X

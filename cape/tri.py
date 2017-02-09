@@ -3342,9 +3342,14 @@ class TriBase(object):
                 Distance from triangle *k2* to test point
             *T["z2"]*: :class:`float`
                 Projection distance of point to triangle *k2*
+            *T["k3"]*: ``None`` | :class:`int`
+                Index of nearest triangle outside components *c1* and *c2*
+            *T["k4"]*: ``None`` | :class:`int`
+                Index of nearest triangle outside components *c1*, *c2*, *c3*
         :Versions:
             * 2017-02-06 ``@ddalle``: First version
             * 2017-02-07 ``@ddalle``: Added search for second point
+            * 2017-02-08 ``@ddalle``: Added third and fourth families
         """
         # Extract the vertices of each tri.
         X = self.Nodes[self.Tris-1, 0]
@@ -3404,22 +3409,27 @@ class TriBase(object):
         c1 = self.CompID[k1]
         # Initialize output
         T = {"k1": k1, "c1": c1, "d1": D[k1], "z1": zi[k1]}
-        # Find the triangles not in that component
-        I = (self.CompID != c1)
-        # Downselect triangle indices
-        K = np.arange(self.nTri)[I]
-        # Check for single-component
-        if len(K) == 0:
-            # No second match.
-            return T
-        # Find nearest match from components outside this component
-        k2 = K[np.argmin(D[I])]
-        # Save parameters for second match
-        T["k2"] = k2
-        T["c2"] = self.CompID[k2]
-        T["d2"] = D[k2]
-        T["z2"] = zi[k2]
-        # Output
+        # Initialize mask for finding other components 
+        I = np.arange(self.nTri)
+        # Loop through until we find up to four components
+        c = c1
+        for n in ['2', '3', '4']:
+            # Find the triangles that are not in any previous component
+            I = np.logical_and(I, self.CompID != c)
+            # Downselect available triangle indices
+            K = np.arange(self.nTri)[I]
+            # Check for no remaining triangles
+            if len(K) == 0:
+                return T
+            # Find nearest match from remaining triangles
+            k = K[np.argmin(D[I])]
+            c = self.CompID[k]
+            # Save parameters
+            T["k"+n] = k
+            T["c"+n] = c
+            T["d"+n] = D[k]
+            T["z"+n] = zi[k]
+        # Output (if 4 components)
         return T
         
         
@@ -3645,7 +3655,7 @@ class TriBase(object):
             return np.array([xc, yc, zc])
     
     # Function to add a bounding box based on a component and buffer
-    def GetCompBBox(self, compID=[], **kwargs):
+    def GetCompBBox(self, compID=None, **kwargs):
         """
         Find a bounding box based on the coordinates of a specified component
         or list of components, with an optional buffer or buffers in each
@@ -3656,8 +3666,9 @@ class TriBase(object):
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
-            *compID*: :class:`int` or :class:`str` or :class:`list`
-                Component or list of components to use for bounding box
+            *compID*: {``None``} | :class:`int` | :class:`str` | :class:`list`
+                Component or list of components to use for bounding box; if
+                ``None`` return bounding box for entire triangulation
             *pad*: :class:`float`
                 Buffer to add in each dimension to min and max coordinates
             *xpad*: :class:`float`
@@ -3684,11 +3695,16 @@ class TriBase(object):
         :Versions:
             * 2014-06-16 ``@ddalle``: First version
             * 2014-08-03 ``@ddalle``: Changed "buff" --> "pad"
+            * 2017-02-08 ``@ddalle``: CompID ``None`` gets BBox for full tri
         """
-        # Process it into a list of component IDs.
-        compID = self.GetCompID(compID)
-        # Quit if none specified.
-        if not compID: return None
+        # Check for ``None``
+        if compID is not None:
+            # Process it into a list of component IDs.
+            compID = self.GetCompID(compID)
+            # Quit if none specified.
+            if not compID: return None
+        # List of components; initialize with first.
+        i = self.GetNodesFromCompID(compID)
         # Get the overall buffer.
         pad = kwargs.get('pad', 0.0)
         # Get the other buffers.
@@ -3702,8 +3718,6 @@ class TriBase(object):
         ym = kwargs.get('ym', ypad)
         zp = kwargs.get('zp', zpad)
         zm = kwargs.get('zm', zpad)
-        # List of components; initialize with first.
-        i = self.GetNodesFromCompID(compID)
         # Get the coordinates of each vertex of included tris.
         x = self.Nodes[self.Tris[i,:]-1, 0]
         y = self.Nodes[self.Tris[i,:]-1, 1]
@@ -3718,6 +3732,37 @@ class TriBase(object):
         # Return the list.
         return np.array([xmin, xmax, ymin, ymax, zmin, zmax])
    
+    # Get length of diagonal of BBox
+    def GetCompScale(self, compID=None, **kw):
+        """Get diagonal length of bounding box of a component(s)
+        
+        :Call:
+            >>> L = tri.GetCompScale(compID, **kw)
+        :Inputs:
+            *compID*: {``None``} | :class:`int` | :class:`str` | :class:`list`
+                Component or list of components to use for bounding box; if
+                ``None`` return bounding box for entire triangulation
+            *pad*: :class:`float`
+                Buffer to add in each dimension to min and max coordinates
+            *kw*: :class:`dict`
+                Keyword arguments passed to :func:`GetCompBBox`
+        :Outputs:
+            *L*: nonnegative :class:`float`
+                Length of the diagonal of the bounding box
+        :Versions:
+            * 2017-02-08 ``@ddalle``: First version
+        """
+        # Get the bounding box
+        BBox = self.GetCompBBox(compID, **kw)
+        # Check for null result
+        if BBox is None: return 0.0
+        # Get the components
+        dx = BBox[1] - BBox[0]
+        dy = BBox[3] - BBox[2]
+        dz = BBox[5] - BBox[4]
+        # Get the length
+        return np.sqrt(dx*dx + dy*dy + dz*dz)
+            
    # }
     
   # >
