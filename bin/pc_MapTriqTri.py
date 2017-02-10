@@ -169,7 +169,7 @@ def MapTriqTri(*a, **kw):
     fuh3d = opts.get("uh3d", opts.get("tri", opts.get("TriFile")))
     fcfg  = opts.get("c",    opts.get("ConfigFile"))
     fout  = opts.get("o",    opts.get("OutputFile"))
-    comps = opts.get("comps", opts.get("Components", []))
+    comps = opts.get("comps", opts.get("Components"))
     join  = opts.get("join",  opts.get("Join", False))
     ext = opts.get("ext",   opts.get("Extension"))
     lbl = opts.get("label", opts.get("Label", opts.get("Infix")))
@@ -196,7 +196,7 @@ def MapTriqTri(*a, **kw):
     # Process command-line component list if necessary
     if kwcomps is not None:
         # Split by commas
-        comps = kwcomps.split(",")
+        comps = [comp.strip() for comp in kwcomps.split(",")]
     # Set components
     kw["comps"] = comps
     # --------------

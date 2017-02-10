@@ -3163,6 +3163,8 @@ class TriBase(object):
         if not tt.startswith("Tri"):
             raise TypeError(
                 "Triangulation for mapping must be 'Tri', or 'Triq'")
+        # Check for null operation
+        if tri.nTri == 0: return
         # Process primary tolerances
         atol  = kw.get("atol",  kw.get("AbsTol",  atoldef))
         rtol  = kw.get("rtol",  kw.get("RelTol",  rtoldef))
@@ -3279,7 +3281,7 @@ class TriBase(object):
                 self.Conf[face] = cmapd
         
     # Extract and write subtris after mapping
-    def ExtractMappedComps(self, tric, comps=[], **kw):
+    def ExtractMappedComps(self, tric, comps=None, **kw):
         """Map component names from a template *tri* and write component files
         
         :Call:
@@ -3306,8 +3308,22 @@ class TriBase(object):
         tris = {}
         # Verbose
         v = kw.get("v", False)
-        # Ensure list of components
-        comps = list(np.array(comps).flatten())
+        # Default component list: ALL
+        if comps is None:
+            # Get from *tric.config* or *tric.Conf*
+            try:
+                # Read from JSON-based config interface
+                comps = tric.config.comps
+            except AttributeError:
+                try:
+                    # Read from UH3D face dictionary
+                    comps = tric.Conf.keys()
+                except AttributeError:
+                    # No components
+                    comps = []
+        else:
+            # Ensure input components makes a list
+            comps = list(np.array(comps).flatten())
         # Extract requested components
         trik = tric.GetSubTri(comps)
         # Perform mapping
@@ -3334,7 +3350,6 @@ class TriBase(object):
             tris[comp] = trii
         # Output
         return tris
-            
         
   # >
   
