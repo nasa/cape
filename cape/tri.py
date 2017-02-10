@@ -42,6 +42,7 @@ from . import geom
 atoldef = 1e-2
 rtoldef = 1e-4
 ctoldef = 1e-3
+ztoldef = 5e-2
 antoldef = 2e-2
 rntoldef = 1e-4
 cntoldef = 1e-3
@@ -3550,7 +3551,7 @@ class TriBase(object):
             np.sqrt(np.sum(x20**2, 0)))).transpose()
             
     # Get nearest triangle to a point
-    def GetNearestTri(self, x):
+    def GetNearestTri(self, x, **kw):
         """Get the triangle that is nearest to a point, and the distance
         
         :Call:
@@ -3560,6 +3561,8 @@ class TriBase(object):
                 Triangulation instance
             *x*: :class:`np.ndarray` (:class:`float`, shape=(3,))
                 Array of *x*, *y*, and *z* coordinates of test point
+            *ztol*: {_ztol_} | positive :class:`float`
+                Maximum extra projection distance
         :Outputs:
             *T*: :class:`dict`
                 Dictionary of match parameters
@@ -3604,54 +3607,69 @@ class TriBase(object):
         x = x[0]
         # Get the projection distance
         zi = (x-X[:,0])*e3[:,0] + (y-Y[:,0])*e3[:,1] + (z-Z[:,0])*e3[:,2]
+        zi = np.abs(zi)
+        # Get minimum projection distance
+        kmin = np.argmin(zi)
+        zmin = zi[kmin]
+        # Process max tol
+        ztol = kw.get("ztol", ztoldef)
+        # Get indices of points within *zmin* and *ztol*
+        I = zi <= zmin + ztol
+        K = np.where(I)[0]
         # Convert the test point into coordinates aligned with first edge 
-        xi = (x-X[:,0])*e1[:,0] + (y-Y[:,0])*e1[:,1] + (z-Z[:,0])*e1[:,2]
-        yi = (x-X[:,0])*e2[:,0] + (y-Y[:,0])*e2[:,1] + (z-Z[:,0])*e2[:,2]
+        xi = (x-X[I,0])*e1[I,0] + (y-Y[I,0])*e1[I,1] + (z-Z[I,0])*e1[I,2]
+        yi = (x-X[I,0])*e2[I,0] + (y-Y[I,0])*e2[I,1] + (z-Z[I,0])*e2[I,2]
+        zi = zi[I]
         # Initialize transformed triangles
-        XI = np.zeros_like(X)
-        YI = np.zeros_like(Y)
+        XI = np.zeros_like(X[I,:])
+        YI = np.zeros_like(XI)
         # Convert the second and third vertices
-        XI[:,1] = ((X[:,1]-X[:,0])*e1[:,0]
-            + (Y[:,1]-Y[:,0])*e1[:,1] + (Z[:,1]-Z[:,0])*e1[:,2])
-        XI[:,2] = ((X[:,2]-X[:,0])*e1[:,0]
-            + (Y[:,2]-Y[:,0])*e1[:,1] + (Z[:,2]-Z[:,0])*e1[:,2])
-        YI[:,1] = ((X[:,1]-X[:,0])*e2[:,0]
-            + (Y[:,1]-Y[:,0])*e2[:,1] + (Z[:,1]-Z[:,0])*e2[:,2])
-        YI[:,2] = ((X[:,2]-X[:,0])*e2[:,0]
-            + (Y[:,2]-Y[:,0])*e2[:,1] + (Z[:,2]-Z[:,0])*e2[:,2])
+        XI[:,1] = ((X[I,1]-X[I,0])*e1[I,0]
+            + (Y[I,1]-Y[I,0])*e1[I,1] + (Z[I,1]-Z[I,0])*e1[I,2])
+        XI[:,2] = ((X[I,2]-X[I,0])*e1[I,0]
+            + (Y[I,2]-Y[I,0])*e1[I,1] + (Z[I,2]-Z[I,0])*e1[I,2])
+        YI[:,1] = ((X[I,1]-X[I,0])*e2[I,0]
+            + (Y[I,1]-Y[I,0])*e2[I,1] + (Z[I,1]-Z[I,0])*e2[I,2])
+        YI[:,2] = ((X[I,2]-X[I,0])*e2[I,0]
+            + (Y[I,2]-Y[I,0])*e2[I,1] + (Z[I,2]-Z[I,0])*e2[I,2])
         # Get distance to each triangle within the plane of each triangle
         DI = geom.dist_tris_to_pt(XI, YI, xi, yi)
         # Get total distance from point to each triangle
         D = np.sqrt(zi**2 + DI**2)
         # Get index of minimum distance
-        k1 = np.argmin(D)
+        i1 = np.argmin(D)
+        k1 = K[i1]
         # Find the component ID
         c1 = self.CompID[k1]
         # Initialize output
-        T = {"k1": k1, "c1": c1, "d1": D[k1], "z1": abs(zi[k1])}
-        # Initialize mask for finding other components 
-        I = np.arange(self.nTri)
+        T = {"k1": k1, "c1": c1, "d1": D[i1], "z1": abs(zi[i1])}
+        # Initialize submask
+        I1 = K > -1
+        C1 = self.CompID[I]
         # Loop through until we find up to four components
         c = c1
         for n in ['2', '3', '4']:
             # Find the triangles that are not in any previous component
-            I = np.logical_and(I, self.CompID != c)
+            I1 = np.logical_and(I1, C1 != c)
             # Downselect available triangle indices
-            K = np.arange(self.nTri)[I]
+            J = np.where(I1)[0]
             # Check for no remaining triangles
-            if len(K) == 0:
+            if len(J) == 0:
                 return T
             # Find nearest match from remaining triangles
-            k = K[np.argmin(D[I])]
+            i = np.argmin(D[J])
+            j = J[i]
+            k = K[j]
             c = self.CompID[k]
             # Save parameters
             T["k"+n] = k
             T["c"+n] = c
-            T["d"+n] = D[k]
-            T["z"+n] = abs(zi[k])
+            T["d"+n] = D[j]
+            T["z"+n] = zi[j]
         # Output (if 4 components)
         return T
-        
+    # Edit default tolerances
+    GetNearestTri.__doc__=GetNearestTri.__doc__.replace("_ztol_",str(ztoldef))
         
    # }
     
