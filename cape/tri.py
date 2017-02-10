@@ -3454,6 +3454,66 @@ class TriBase(object):
         # Save the unit normals.
         self.Normals = n
         
+    # Get right-handed coordinate system
+    def GetBasisVectors(self):
+        """Get a right-handed coordinate basis for all triangles
+        
+        :Call:
+            >>> tri.GetBasisVectors()
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+        :Effects:
+            *tri.e1*: :class:`np.ndarray` (:class:`float`, shape=(nTri,3))
+                Unit vector pointing from node 1 to node 3 of each tri
+            *tri.e2*: :class:`np.ndarray` (:class:`float`, shape=(nTri,3))
+                Unit vector completing right-handed coordinate system
+            *tri.e3*: :class:`np.ndarray` (:class:`float`, shape=(nTri,3))
+                Unit normal of each triangle
+        :Versions:
+            * 2017-02-09 ``@ddalle``: First version
+        """
+        # Check for all the requested attributes
+        try:
+            self.e1
+            self.e2
+            self.e3
+            return
+        except AttributeError:
+            pass
+        # Extract the vertices of each tri.
+        X = self.Nodes[self.Tris-1, 0]
+        Y = self.Nodes[self.Tris-1, 1]
+        Z = self.Nodes[self.Tris-1, 2]
+        # Get the deltas from node 0 to node 1 or node 2
+        X01 = np.vstack((X[:,1]-X[:,0], Y[:,1]-Y[:,0], Z[:,1]-Z[:,0]))
+        X02 = np.vstack((X[:,2]-X[:,0], Y[:,2]-Y[:,0], Z[:,2]-Z[:,0]))
+        # Transpose
+        X01 = np.transpose(X01)
+        X02 = np.transpose(X02)
+        # Calculate the dimensioned normals
+        n = np.cross(X01, X02)
+        # Calculate the area of each triangle.
+        A = np.sqrt(np.sum(n**2, 1))
+        # Calculate the length of each 0->1 segment
+        L = np.sqrt(np.sum(X01**2, 1))
+        # Normalize each component.
+        e3 = n.copy()
+        e3[:,0] /= A
+        e3[:,1] /= A
+        e3[:,2] /= A
+        # Normalize 0->1 segment as tangent
+        e1 = X01.copy()
+        e1[:,0] /= L
+        e1[:,1] /= L
+        e1[:,2] /= L
+        # Get final axis to complete right-handed system
+        e2 = np.cross(e3, e1)
+        # Save basis
+        self.e1 = e1
+        self.e2 = e2
+        self.e3 = e3
+        
         
     # Get edge lengths
     def GetLengths(self):
@@ -3528,42 +3588,25 @@ class TriBase(object):
             * 2017-02-07 ``@ddalle``: Added search for second point
             * 2017-02-08 ``@ddalle``: Added third and fourth families
         """
+        # Get coordinates
+        self.GetBasisVectors()
+        # Extract coordinate basis function
+        e1 = self.e1
+        e2 = self.e2
+        e3 = self.e3
         # Extract the vertices of each tri.
         X = self.Nodes[self.Tris-1, 0]
         Y = self.Nodes[self.Tris-1, 1]
         Z = self.Nodes[self.Tris-1, 2]
-        # Get the deltas from node 0 to node 1 or node 2
-        X01 = np.vstack((X[:,1]-X[:,0], Y[:,1]-Y[:,0], Z[:,1]-Z[:,0]))
-        X02 = np.vstack((X[:,2]-X[:,0], Y[:,2]-Y[:,0], Z[:,2]-Z[:,0]))
-        # Transpose
-        X01 = np.transpose(X01)
-        X02 = np.transpose(X02)
-        # Calculate the dimensioned normals
-        n = np.cross(X01, X02)
-        # Calculate the area of each triangle.
-        A = np.sqrt(np.sum(n**2, 1))
-        # Calculate the length of each 0->1 segment
-        L = np.sqrt(np.sum(X01**2, 1))
-        # Normalize each component.
-        e3 = n.copy()
-        e3[:,0] /= A
-        e3[:,1] /= A
-        e3[:,2] /= A
-        # Normalize 0->1 segment as tangent
-        e1 = X01.copy()
-        e1[:,0] /= L
-        e1[:,1] /= L
-        e1[:,2] /= L
-        # Get final axis to complete right-handed system
-        e2 = np.cross(e3, e1)
         # Extract test point coordinates
         y = x[1]
         z = x[2]
         x = x[0]
-        # Convert the test point into coordinates aligned with 
+        # Get the projection distance
+        zi = (x-X[:,0])*e3[:,0] + (y-Y[:,0])*e3[:,1] + (z-Z[:,0])*e3[:,2]
+        # Convert the test point into coordinates aligned with first edge 
         xi = (x-X[:,0])*e1[:,0] + (y-Y[:,0])*e1[:,1] + (z-Z[:,0])*e1[:,2]
         yi = (x-X[:,0])*e2[:,0] + (y-Y[:,0])*e2[:,1] + (z-Z[:,0])*e2[:,2]
-        zi = (x-X[:,0])*e3[:,0] + (y-Y[:,0])*e3[:,1] + (z-Z[:,0])*e3[:,2]
         # Initialize transformed triangles
         XI = np.zeros_like(X)
         YI = np.zeros_like(Y)

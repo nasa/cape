@@ -960,10 +960,10 @@ class X(object):
                     if (T["d2"] > ftoli) or (T["z2"] > nftoli):
                         c2 = None
                 # Filter tertiary family proximity
-                if (c3 is not None)and (T["d3"]>ftoli) or (T["z3"]>nftoli):
+                if (c3 is not None) and (T["d3"]>ftoli) or (T["z3"]>nftoli):
                     c3 = None
                 # Filter fourth family proximity
-                if (c4 is not None)and (T["d4"]>ftoli) or (T["z4"]>nftoli):
+                if (c4 is not None) and (T["d4"]>ftoli) or (T["z4"]>nftoli):
                     c4 = None
                 # Save components
                 if (c2 is None):
