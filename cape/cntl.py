@@ -72,9 +72,9 @@ class Cntl(object):
         * 2015-09-20 ``@ddalle``: Started
         * 2016-04-01 ``@ddalle``: Declared version 1.0
     """
-    # =============
-    # Configuration
-    # =============
+   # =============
+   # Configuration
+   # =============
    # <
     # Initialization method
     def __init__(self, fname="cape.json"):
@@ -190,9 +190,9 @@ class Cntl(object):
         
    # >
     
-    # =============
-    # Input Readers
-    # =============
+   # =============
+   # Input Readers
+   # =============
    # <
     # Function to prepare the triangulation for each grid folder
     def ReadTri(self):
@@ -318,9 +318,9 @@ class Cntl(object):
     
    # >
     
-    # ======================
-    # Command-Line Interface
-    # ======================
+   # ======================
+   # Command-Line Interface
+   # ======================
    # <
     # Function to display current status
     def DisplayStatus(self, **kw):
@@ -382,6 +382,13 @@ class Cntl(object):
         qExec = (ecmd is not None)
         # No submissions if we're just deleting.
         if qKill or qExec: qCheck = True
+        # Check if we should submit INCOMP jobs
+        if kw.get("norestart"):
+            # Do not submit jobs labeled "INCOMP"
+            stat_submit = ["---"]
+        else:
+            # Submit either new jobs or "INCOMP"
+            stat_submit = ["---", "INCOMP"]
         # Maximum number of jobs
         nSubMax = int(kw.get('n', 10))
         # Get list of indices.
@@ -493,7 +500,7 @@ class Cntl(object):
             # Check status.
             if qCheck: continue
             # If submitting is allowed, check the job status.
-            if sts in ['---', 'INCOMP']:
+            if sts in stat_submit:
                 # Prepare the job.
                 self.PrepareCase(i)
                 # Start (submit or run) case
@@ -619,9 +626,9 @@ class Cntl(object):
         os.chdir(fpwd)
    # >
     
-    # =============
-    # Run Interface
-    # =============
+   # =============
+   # Run Interface
+   # =============
    # <
     # Function to start a case: submit or run
     def StartCase(self, i):
@@ -727,9 +734,9 @@ class Cntl(object):
         
    # >
         
-    # ===========
-    # Case Status
-    # ===========
+   # ===========
+   # Case Status
+   # ===========
    # <
     # Get last iter
     def GetLastIter(self, i):
@@ -998,9 +1005,9 @@ class Cntl(object):
         
    # >
    
-    # =================
-    # Case Modification
-    # =================
+   # =================
+   # Case Modification
+   # =================
    # <
     # Function to extend one or more cases
     def ExtendCases(self, **kw):
@@ -1107,9 +1114,9 @@ class Cntl(object):
                 if jsub >= nsub: return
    # >
     
-    # =========
-    # Archiving
-    # =========
+   # =========
+   # Archiving
+   # =========
    # <
     # Function to archive results and remove files
     def ArchiveCases(self, **kw):
@@ -1172,9 +1179,9 @@ class Cntl(object):
         manage.ArchiveFolder(self.opts)
    # >
     
-    # =========
-    # CPU Stats
-    # =========
+   # =========
+   # CPU Stats
+   # =========
    # <
     # Get CPU hours (actually core hours)
     def GetCPUTimeFromFile(self, i, fname='cape_time.dat'):
@@ -1351,9 +1358,9 @@ class Cntl(object):
     
    # >
     
-    # ========
-    # PBS Jobs
-    # ========
+   # ========
+   # PBS Jobs
+   # ========
    # <
     # Get PBS name
     def GetPBSName(self, i, pre=None):
@@ -1565,9 +1572,9 @@ class Cntl(object):
         os.chdir(fpwd)
    # >
     
-    # ================
-    # Case Preparation
-    # ================
+   # ================
+   # Case Preparation
+   # ================
    # <
     # Prepare a case.
     def PrepareCase(self, i):
@@ -1689,9 +1696,9 @@ class Cntl(object):
         
    # >
     
-    # =============
-    # Geometry Prep
-    # =============
+   # =============
+   # Geometry Prep
+   # =============
    # <
     # Function to apply special triangulation modification keys
     def PrepareTri(self, i):
@@ -2211,9 +2218,9 @@ class Cntl(object):
     
    # >
     
-    # ==================
-    # Thrust Preparation
-    # ==================
+   # ==================
+   # Thrust Preparation
+   # ==================
    # <
     # Get exit area for SurfCT boundary condition
     def GetSurfCT_ExitArea(self, key, i):
@@ -2365,11 +2372,10 @@ class Cntl(object):
         
    # >
     
-    # =================
-    # DataBook Updaters
-    # =================
-  # <
-   
+   # =================
+   # DataBook Updaters
+   # =================
+   # <
         
     # Update line loads
     def UpdateLineLoad(self, **kw):
@@ -2424,6 +2430,6 @@ class Cntl(object):
         # Return to original location
         os.chdir(fpwd)
     
-  # >
+   # >
 # class Cntl
     
