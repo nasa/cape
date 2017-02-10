@@ -109,9 +109,6 @@ __doc__.replace("_anftol_", str(cape.plot3d.anftoldef))
 __doc__.replace("_rnftol_", str(cape.plot3d.rnftoldef))
 __doc__.replace("_cnftol_", str(cape.plot3d.cnftoldef))
 
-# Numerics
-import numpy as np
-
 # Main function
 def MapOvfiTri(*a, **kw):
     """Use a UH3D file to determine the family of each surface grid point

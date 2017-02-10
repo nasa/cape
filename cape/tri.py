@@ -200,6 +200,8 @@ class TriBase(object):
         #  2014-06-02 @ddalle: Added UH3D reading capability
         #  2015-11-19 @ddalle: Added XML reading and AFLR3 surfs
         
+        # Save file name
+        self.fname = fname
         # Check if file is specified.
         if tri is not None:
             # Read from file.
@@ -1039,6 +1041,8 @@ class TriBase(object):
                 Whether or not
             *ascii*: ``True`` | {``False``}
                 Whether or not to use ASCII (text file)
+            *fmt*: {``None``} | ``"ascii"`` | ``"b4"`` | ``"lb4"``
+                Format specified by text
             *b4*: ``True`` | {``False``}
                 Whether or not to use single-precision big-endian
             *lb4*: ``True`` | {``False``}
@@ -1124,6 +1128,8 @@ class TriBase(object):
         :Call:
             >>> ext = tri.GetOutputFileType(**kw)
         :Inputs:
+            *fmt*: {``None``} | ``"ascii"`` | ``"b4"`` | ``"lb4"``
+                Format specified by text
             *ascii*: ``True`` | {``False``}
                 Whether or not to use ASCII (text file)
             *b4*: ``True`` | {``False``}
@@ -1154,6 +1160,10 @@ class TriBase(object):
         :Outputs:
             * 2016-10-02 ``@ddalle``: First version
         """
+        # Check for format flag
+        if 'fmt' in kw:
+            # Return lower format
+            return kw["fmt"].lower()
         # Check for easy cases
         if kw.get('ascii'):
             # ASCII file
@@ -2794,7 +2804,7 @@ class TriBase(object):
    
     # Function to get compIDs by name
     def GetCompID(self, face=None):
-        """Get components by name
+        """Get components by name or number
         
         :Call:
             >>> compID = tri.GetCompID()
@@ -2816,22 +2826,107 @@ class TriBase(object):
         :Versions:
             * 2014-10-12 ``@ddalle``: First version
             * 2016-03-29 ``@ddalle``: Edited docstring
+            * 2017-02-10 ``@ddalle``: Added fallback to *tri.Conf*
         """
         # Process input into a list of component IDs.
         try:
             # Best option is to use the Config.xml file
             return self.config.GetCompID(face)
         except Exception:
-            # Check for scalar
-            if face is None:
-                # No contents; this might break otherwise
-                return list(np.unique(self.CompID))
-            elif type(face).__name__  in ['list', 'ndarray']:
-                # Return the list
-                return face
+            # Fall back to *tri.Conf* or just process raw numbers
+            return self.GetConfCompID(face)
+                
+    # Get compIDs by name or number from *tri.Conf*
+    def GetConfCompID(self, face=None):
+        """Get components by name or number from *tri.Conf* dictionary
+        
+        :Call:
+            >>> compID = tri.GetConfCompID()
+            >>> compID = tri.GetConfCompID(face)
+            >>> compID = tri.GetConfCompID(comp)
+            >>> compID = tri.GetConfCompID(comps)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation interface
+            *face*: :class:`str`
+                Component name
+            *comp*: :class:`int`
+                Component ID
+            *comps*: :class:`list` (:class:`int` | :class:`str`)
+                List of component names or IDs
+        :Outputs:
+            *compID*: :class:`list` (:class:`int`)
+                List of component IDs
+        :Versions:
+            * 2017-02-10 ``@ddalle``: First version
+        """
+        # Check for scalar
+        if face is None:
+            # No contents; this might break otherwise
+            return list(np.unique(self.CompID))
+        elif type(face).__name__  in ['list', 'ndarray']:
+            # Return the list
+            faces = face
+        else:
+            # Make a singleton list
+            faces = [face]
+        # Process the *tri.Conf* with default
+        try:
+            Conf = self.Conf
+        except AttributeError:
+            Conf = {}
+        # Check if present
+        compID = []
+        # Loop through faces
+        for face in faces:
+            # Check type
+            if type(face).__name__.startswith('int'):
+                # Append integer face
+                compID.append(face)
             else:
-                # Make a singleton list
-                return [face]
+                # Get comp from *tri.Conf*
+                comp = Conf.get(face)
+                # Check type
+                if comp is None:
+                    # This face is not present
+                    continue
+                elif type(comp).__name__ == "list":
+                    # List of components
+                    compID += comp
+                else:
+                    # Single component
+                    compID.append(comp)
+        # Sort the list
+        compID.sort()
+        # Use this list
+        return compID
+        
+    # Get *tri.Conf* dictionary
+    def GetConfFromConfig(self):
+        """Create *tri.Conf* dictionary using *tri.config* if appropriate
+        
+        :Call:
+            >>> tri.GetConfFromConfig()
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation interface
+        :Attributes:
+            *tri.Conf*: :class:`dict`
+                Dictionary of face names coped from *tri.config.faces*
+        :Versions:
+            * 2017-02-10 ``@ddalle``: First version
+        """
+        # Check for existing *Conf*
+        try:
+            self.Conf
+            return
+        except Exception:
+            pass
+        # Initialize dictionary
+        try:
+            self.Conf = self.config.faces.copy()
+        except Exception:
+            pass
        
     # Function to get node indices from component ID(s)
     def GetNodesFromCompID(self, compID=None):
@@ -3007,8 +3102,47 @@ class TriBase(object):
         tri0.CompID = tri0.CompID[k]
         # Save the reduced number of tris.
         tri0.nTri = k.size
+        # Downselect q if available
+        try:
+            tri0.q = tri0.q[k]
+        except Exception:
+            pass
+        # Trim unused nodes to save space
+        tri0.TrimUnusedNodes()
         # Output
         return tri0
+        
+    # Eliminate unused nodes
+    def TrimUnusedNodes(self):
+        """Remove any nodes that are not used in any triangles
+        
+        :Call:
+            >>> tri.TrimUnusedNodes()
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+        :Versions:
+            * 2017-02-10 ``@ddalle``: First version
+        """
+        # Get nodes that are used
+        N = np.unique(self.Tris)
+        # New number of nodes
+        nNode = len(N)
+        # Renumbered nodes
+        I = np.arange(1, nNode+1)
+        # Extract triangles
+        T = self.Tris
+        # Loop through the nodes that are used
+        for j in range(nNode):
+            # Get values
+            i = I[j]
+            n = N[j]
+            # Make replacement
+            T[T==n] = i
+        # Downselect nodes
+        self.nNode = nNode
+        self.Nodes = self.Nodes[N-1,:]
+        
     
     # Map triangles to components based on another file
     def MapTriCompID(self, tri, **kw):
@@ -3056,7 +3190,7 @@ class TriBase(object):
         # Loop through columns
         for k in range(self.nTri):
             # Status update if verbose
-            if v and (k % (100*v) == 0):
+            if v and (k % (1000*v) == 0):
                 print("  kTri = %i/%i" % (k+1,self.nTri))
             # Perform search
             T = tri.GetNearestTri(self.Centers[k,:])
@@ -3080,10 +3214,6 @@ class TriBase(object):
             ntoli = ntol + cntol*LC[c1]
             # Filter results
             if (T["d1"] > toli) or (T["z1"] > ntoli):
-                # Status update
-                if v:
-                    print("   k=%s, d1=%.2e/%.2e, z1=%.2e/%.2e"
-                        % (k, T["d1"],toli, T["z1"],ntoli))
                 continue
             # Save new component ID
             self.CompID[k] = compmap[c1]
@@ -3116,32 +3246,96 @@ class TriBase(object):
                     self.config.faces[face] = cmapd
         except AttributeError:
             pass
-        # Update *self.config* if applicable
+        # Set a *Conf* dictionary if necessary
+        self.GetConfFromConfig()
+        # Get Config from mapping try:
         try:
-            # Loop through faces in the target map
-            for face in tri.Conf:
-                # Get component ID(s); guarantee list
-                comps = np.array(tri.Conf[face]).flatten()
-                # Get mapped component numbers
-                cmapd = []
-                # Loop through comps
-                for comp in comps:
-                    # Skip if not used
-                    if comp not in compmap: continue
-                    # Save the component
-                    cmapd.append(compmap[comp])
-                # Check length
-                if len(cmapd) == 0:
-                    # No matches
-                    continue
-                elif len(cmapd) == 1:
-                    # Save single match
-                    self.Conf[face] = cmapd[0]
-                else:
-                    # Save list
-                    self.Conf[face] = cmapd
+            # Extract from the map
+            Conf = tri.Conf
         except AttributeError:
-            pass
+            # Create a default *Conf* dictionary
+            Conf = {}
+        # Loop through faces in the target map
+        for face in Conf:
+            # Get component ID(s); guarantee list
+            comps = np.array(Conf[face]).flatten()
+            # Get mapped component numbers
+            cmapd = []
+            # Loop through comps
+            for comp in comps:
+                # Skip if not used
+                if comp not in compmap: continue
+                # Save the component
+                cmapd.append(compmap[comp])
+            # Check length
+            if len(cmapd) == 0:
+                # No matches
+                continue
+            elif len(cmapd) == 1:
+                # Save single match
+                self.Conf[face] = cmapd[0]
+            else:
+                # Save list
+                self.Conf[face] = cmapd
+        
+    # Extract and write subtris after mapping
+    def ExtractMappedComps(self, tric, comps=[], **kw):
+        """Map component names from a template *tri* and write component files
+        
+        :Call:
+            >>> tris = tri.ExtractMappedComps(tric, comps=[], **kw)
+            >>> triu = tri.ExtractMappedComps(tric, comps=[], join=True, **kw)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri` | :class:`cape.tri.Triq`
+                Triangulation or annotated triangulation instance
+            *tric*: :class:`cape.tri.Tri`
+                Triangulation with alternative component labels
+            *comps*: :class:`list` (:class:`str`)
+                List of *tric* faces to write
+            *join*: ``True`` | {``False``}
+                Return a single triangulation with all *comps*
+        :Outputs:
+            *tris*: :class:`dict` (:class:`cape.tri.Tri`)
+                Dictionary of triangulations for each *comp* in *comps*
+            *triu*: :class:`cape.tri.Tri`
+                Single joined triangulation if *join* is ``True``
+        :Versions:
+            * 2016-02-10 ``@ddalle``: First version
+        """
+        # Initialize output
+        tris = {}
+        # Verbose
+        v = kw.get("v", False)
+        # Ensure list of components
+        comps = list(np.array(comps).flatten())
+        # Extract requested components
+        trik = tric.GetSubTri(comps)
+        # Perform mapping
+        tri = self.Copy()
+        tri.MapTriCompID(trik, **kw)
+        # Check for joined
+        if kw.get("join", False):
+            # Extract components
+            triu = tri.GetSubTri(comps)
+            # Output
+            return triu
+        # Loop through components
+        for comp in comps:
+            # Check type
+            if type(comp).__name__.startswith("int"):
+                raise TypeError(
+                    "Component '%s' is an integer; must be a string" % comp)
+            # Status update
+            if v:
+                print("Mapping and extracting component '%s'" % comp)
+            # Extract the component
+            trii = tri.GetSubTri(comp)
+            # Save it
+            tris[comp] = trii
+        # Output
+        return tris
+            
+        
   # >
   
   # ===============
@@ -4558,7 +4752,8 @@ class Tri(TriBase):
             * 2014-06-02 ``@ddalle``: Added UH3D reading capability
             * 2016-04-05 ``@ddalle``: Added AFLR3 and cleaned up inputs
         """
-        
+        # Save file name
+        self.fname = fname
         # Check if file is specified.
         if 'tri' in kw:
             # Read from file.
@@ -4698,6 +4893,8 @@ class Triq(TriBase):
             * 2014-05-23 ``@ddalle``: First version
             * 2014-06-02 ``@ddalle``: Added UH3D reading capability
         """
+        # Save file name
+        self.fname = fname
         # Check if file is specified.
         if fname is not None:
             # Read from file.
@@ -4745,9 +4942,6 @@ class Triq(TriBase):
         # Check for configuration
         if c is not None:
             self.config = Config(c)
-            
-        # End
-        return None
         
     # Method that shows the representation of a triangulation
     def __repr__(self):
