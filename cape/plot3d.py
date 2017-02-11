@@ -1136,17 +1136,17 @@ class X(object):
         # Write the processed namelist
         ovfi.Write(fo)
     # Fill in docstring
-    MapOvfi.__doc__.replace('_atol_', str(atoldef))
-    MapOvfi.__doc__.replace('_rtol_', str(rtoldef))
-    MapOvfi.__doc__.replace('_ctol_', str(ctoldef))
-    MapOvfi.__doc__.replace('_antol_', str(antoldef))
-    MapOvfi.__doc__.replace('_rntol_', str(rntoldef))
-    MapOvfi.__doc__.replace('_cntol_', str(cntoldef))
-    MapOvfi.__doc__.replace('_aftol_', str(aftoldef))
-    MapOvfi.__doc__.replace('_rftol_', str(rftoldef))
-    MapOvfi.__doc__.replace('_anftol_', str(anftoldef))
-    MapOvfi.__doc__.replace('_cnftol_', str(cnftoldef))
-    MapOvfi.__doc__.replace('_rnftol_', str(rnftoldef))
+    MapOvfi.__doc__ = MapOvfi.__doc__.replace('_atol_', str(atoldef))
+    MapOvfi.__doc__ = MapOvfi.__doc__.replace('_rtol_', str(rtoldef))
+    MapOvfi.__doc__ = MapOvfi.__doc__.replace('_ctol_', str(ctoldef))
+    MapOvfi.__doc__ = MapOvfi.__doc__.replace('_antol_', str(antoldef))
+    MapOvfi.__doc__ = MapOvfi.__doc__.replace('_rntol_', str(rntoldef))
+    MapOvfi.__doc__ = MapOvfi.__doc__.replace('_cntol_', str(cntoldef))
+    MapOvfi.__doc__ = MapOvfi.__doc__.replace('_aftol_', str(aftoldef))
+    MapOvfi.__doc__ = MapOvfi.__doc__.replace('_rftol_', str(rftoldef))
+    MapOvfi.__doc__ = MapOvfi.__doc__.replace('_anftol_', str(anftoldef))
+    MapOvfi.__doc__ = MapOvfi.__doc__.replace('_cnftol_', str(cnftoldef))
+    MapOvfi.__doc__ = MapOvfi.__doc__.replace('_rnftol_', str(rnftoldef))
   # >
   
     
