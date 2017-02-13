@@ -34,9 +34,10 @@ from collections import OrderedDict
 from .util import GetTecplotCommand, TecFolder, ParaviewFolder
 from .config import Config, ConfigJSON
 
-# Input/output module
+# Input/output and geometry modules
 from . import io
 from . import geom
+from . import volcomp
 
 # Default tolerances for mapping triangulations
 atoldef = 1e-2
@@ -201,7 +202,7 @@ class TriBase(object):
         #  2014-06-02 @ddalle: Added UH3D reading capability
         #  2015-11-19 @ddalle: Added XML reading and AFLR3 surfs
         
-        # Save file name
+        # Save file name         
         self.fname = fname
         # Check if file is specified.
         if tri is not None:
@@ -4917,6 +4918,10 @@ class Triq(TriBase):
         *triq.n*: :class:`int`
             Number of files averaged in this triangulation (used for weight)
     """
+  # ======
+  # Config
+  # ======
+  # <
     # Initialization method
     def __init__(self, fname=None, n=1, nNode=None, Nodes=None, c=None,
         nTri=None, Tris=None, CompID=None, nq=None, q=None):
@@ -4987,7 +4992,12 @@ class Triq(TriBase):
         """
         return '<cape.tri.Triq(nNode=%i, nTri=%i, nq=%i)>' % (
             self.nNode, self.nTri, self.nq)
-        
+  # >
+  
+  # ================
+  # Modified Writers
+  # ================
+  # <
     # Function to write a .triq file
     def Write(self, fname, **kw):
         """Write a q-triangulation ``.triq`` file
@@ -5003,7 +5013,12 @@ class Triq(TriBase):
             * 2015-09-14 ``@ddalle``: First version
         """
         self.WriteTriq(fname)
-        
+  # >
+    
+  # =========
+  # Averaging
+  # =========
+  # <
     # Function to calculate weighted average.
     def WeightedAverage(self, triq):
         """Calculate weighted average with a second triangulation
@@ -5035,7 +5050,194 @@ class Triq(TriBase):
         self.q = (self.n*self.q + triq.n*triq.q) / (self.n+triq.n)
         # Update count.
         self.n += triq.n
+  # >
+  
+  # ============
+  # Force/Moment
+  # ============
+  # <
+    # Calculate forces and moments
+    def GetTriForces(self, **kw):
+        """Calculate vectors of pressure, momentum, and viscous forces on tris
         
+        :Call:
+            >>> triq.GetTriForces(**kw)
+        :Inputs:
+            *triq*: :class:`cape.tri.Triq`
+                Annotated surface triangulation
+        :Utilized Attributes:
+            *triq.nNode*: :class:`int`
+                Number of nodes
+            *triq.q*: :class:`np.ndarray` (:class:`float` shape=(*nNode*,*nq*))
+                Vector of 5, 9, or 13 states on each node
+        :Output Attributes:
+            *triq.FP*: :class:`np.ndarray` shape=(*nTri*,3)
+                Vector of pressure forces on each triangle
+            *triq.FM*: :class:`np.ndarray` shape=(*nTri*,3)
+                Vector of momentum (flow-through) forces on each triangle
+            *triq.FV*: :class:`np.ndarray` shape=(*nTri*,3)
+                Vector of viscous forces on each triangle
+        :Versions:
+            * 2017-02-11 ``@ddalle``: Started
+        """
+        # ------
+        # Inputs
+        # ------
+        # Get Reynolds number per grid unit
+        REY = kw.get("Re", kw.get("Rey", 1.0))
+        # Freestream mach number
+        Minf = kw.get("mach", 1.0)
+        # Freestream pressure and gamma
+        gam  = kw.get("gamma", 1.4)
+        pinf = kw.get("p", 1.0/gam)
+        # Dynamic pressure
+        qinf = 0.5*gam*pinf*mach**2
+        # Reference length/area
+        Aref = kw.get("RefArea",   kw.get("Aref", 1.0))
+        Lref = kw.get("RefLength", kw.get("Lref", 1.0))
+        # Volume limiter
+        SMALLVOL = kw.get("SMALLVOL", 1e-20)
+        SMALLTRI = kw.get("SMALLTRI", 1e-12)
+        # --------
+        # Geometry
+        # --------
+        # Extract the vertices of each tri.
+        x = self.Nodes[self.Tris-1, 0]
+        y = self.Nodes[self.Tris-1, 1]
+        z = self.Nodes[self.Tris-1, 2]
+        # Get the deltas from node 0->1 and 0->2
+        x01 = np.vstack((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
+        x02 = np.vstack((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
+        # Calculate the dimensioned normals
+        N = np.cross(np.transpose(x01), np.transpose(x02))
+        # Scalar areas of each triangle
+        A = np.sqrt(np.sum(N**2, axis=1))
+        # Store node indices for each tri
+        T = self.Tris
+        v0 = T[:,0]
+        v1 = T[:,1]            
+        v2 = T[:,2]
+        # ---------------
+        # Pressure Forces
+        # ---------------
+        # State handle
+        Q = self.q
+        # Calculate average *Cp* (first state variable)
+        Cp = np.sum(Q[T,0], axis=1)/3
+        # ---------------
+        # Momentum Forces
+        # ---------------
+        # Check which type of state variables we have (if any)
+        if self.nq < 5:
+            # TRIQ file only contains pressure info
+            FM = np.zeros(self.nTri, 3)
+        elif self.nq == 6:
+            # Cart3D style: $\hat{u}=u/a_\infty$
+            # Average density
+            rho = np.mean(Q[T,1], axis=1)
+            # Velocities
+            U = np.mean(Q[T,2], axis=1)
+            V = np.mean(Q[T,3], axis=1)
+            W = np.mean(Q[T,4], axis=1)
+            # Mass flux [kg/s]
+            phi = -rho*(U*N[:,0] + V*N[:,1] + W*N[:,2])
+            # Force components
+            FM = phi*np.stack((U,V,W), axis=1)
+        else:
+            # Conventional: $\hat{u}=\frac{\rho u}{\rho_\infty a_\infty}$
+            # Average density
+            rho = np.mean(Q[T,1], axis=1)
+            # Average mass flux components
+            rhoU = np.mean(Q[T,2], axis=1)
+            rhoV = np.mean(Q[T,3], axis=1)
+            rhoW = np.mean(Q[T,4], axis=1)
+            # Average mass flux components
+            U = (Q[v0,2]/Q[v0,1] + Q[v1,2]/Q[v1,1] + Q[v2,2]/V[v2,1])/3
+            V = (Q[v0,3]/Q[v0,1] + Q[v1,3]/Q[v1,1] + Q[v2,3]/V[v2,1])/3
+            W = (Q[v0,4]/Q[v0,1] + Q[v1,4]/Q[v1,1] + Q[v2,4]/V[v2,1])/3
+            # Average mass flux, done wrongly for consistency with `triload`
+            phi = -(U*N[:,0] + V*N[:,1] + W*N[:,2])
+            # Force components
+            FM = phi*np.stack((rhoU,rhoV,rhoW), axis=1)
+        # --------------
+        # Viscous Forces
+        # --------------
+        if self.nq == 9:
+            # Viscous stresses given directly
+            FXV = np.mean(Q[T,6], axis=1) * A
+            FYV = np.mean(Q[T,7], axis=1) * A
+            FZV = np.mean(Q[T,8], axis=1) * A
+            # Force components
+            FV = np.stack((FXV, FYV, FZV), axis=1)
+        elif self.nq >= 13:
+            # Overset grid information
+            # Inverted Reynolds number [in]
+            REI = mach / Rey
+            # Extract coordinates
+            X1 = self.Nodes[v0,0]
+            Y1 = self.Nodes[v0,1]
+            Z1 = self.Nodes[v0,2]
+            X2 = self.Nodes[v1,0]
+            Y2 = self.Nodes[v1,1]
+            Z2 = self.Nodes[v1,2]
+            X3 = self.Nodes[v2,0]
+            Y3 = self.Nodes[v2,1]
+            Z3 = self.Nodes[v2,2]
+            # Calculate coordinates of L=2 points
+            xlp1 = X1 + Q[v0,10]
+            ylp1 = Y1 + Q[v0,11]
+            zlp1 = Z1 + Q[v0,12]
+            xlp2 = X2 + Q[v1,10]
+            ylp2 = Y2 + Q[v1,11]
+            zlp2 = Z2 + Q[v1,12]
+            xlp3 = X3 + Q[v2,10]
+            ylp3 = Y3 + Q[v2,11]
+            zlp3 = Z3 + Q[v2,12]
+            # Calculate volume of prisms
+            VOL = volcomp.VolTriPrism(X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3,
+                xlp1,ylp1,zlp1, xlp2,ylp2,zlp2, xlp3,ylp3,zlp3)
+            # Filter small prisms
+            IV = VOL > SMALLVOL
+            # Downselect areas
+            VAX = N[IV,0]
+            VAY = N[IV,1]
+            VAZ = N[IV,2]
+            # Average dynamic viscosity
+            mu = np.mean(Q[T[IV,:],6], axis=1)
+            # Velocity derivatives
+            UL = np.mean(Q[T[IV,:],7], axis=1)
+            VL = np.mean(Q[T[IV,:],8], axis=1)
+            WL = np.mean(Q[T[IV,:],9], axis=1)
+            # Sheer stress multiplier
+            FTMUJ = 2.0*mu*REI/VOL[IV]
+            # Stress flux
+            ZUVW = (1.0/3.0) * (VAX*UL + VAY*VL + VAZ*WL)
+            # Stress tensor
+            TXX = 2.0*FTMUJ * (UL*VAX - ZUVW)
+            TYY = 2.0*FTMUJ * (VL*VAY - ZUVW)
+            TZZ = 2.0*FTMUJ * (WL*VAX - ZUVW)
+            TXY = FTMUJ * (VL*VAX + UL*VAY)
+            TYZ = FTMUJ * (WL*VAY + VL*VAZ)
+            TXZ = FTMUJ * (UL*VAZ + WL*VAX)
+            # Initialize viscous forces
+            FV = np.zeros((self.nTri, 3))
+            # Save results from non-zero volumes
+            FV[IV,0] = (TXX*VAX + TXY*VAY + TXZ*VAZ)
+            FV[IV,1] = (TXY*VAX + TYY*VAY + TYZ*VAZ)
+            FV[IV,2] = (TXZ*VAX + TYZ*VAY + TZZ*VAZ)
+        else:
+            # TRIQ file only contains inadequate info for viscous forces
+            FV = np.zeros(self.nTri, 3)
+        # ------------
+        # Finalization
+        # ------------
+        # Get freesre
+        # Normalize
+        # Add up forces
+        F = FP + FM + FV
+        pass
+  
+  # >
     
 # class Triq
 

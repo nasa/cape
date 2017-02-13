@@ -188,7 +188,7 @@ def DistancePointToCurve(x, X):
     D[I] = np.sqrt(A0*A0 + A1*A1 + A2*A2) / ds
     # Output
     return D
-    
+
 
 # Check for intersection between lines
 def lines_int_line(X1, Y1, X2, Y2, x1, y1, x2, y2, **kw):
