@@ -5086,12 +5086,12 @@ class Triq(TriBase):
         # Get Reynolds number per grid unit
         REY = kw.get("Re", kw.get("Rey", 1.0))
         # Freestream mach number
-        Minf = kw.get("mach", 1.0)
+        mach = kw.get("RefMach", kw.get("mach", 1.0))
         # Freestream pressure and gamma
         gam  = kw.get("gamma", 1.4)
-        pinf = kw.get("p", 1.0/gam)
+        pref = kw.get("p", 1.0/gam)
         # Dynamic pressure
-        qinf = 0.5*gam*pinf*mach**2
+        qref = 0.5*gam*pref*mach**2
         # Reference length/area
         Aref = kw.get("RefArea",   kw.get("Aref", 1.0))
         Lref = kw.get("RefLength", kw.get("Lref", 1.0))
@@ -5231,11 +5231,19 @@ class Triq(TriBase):
         # ------------
         # Finalization
         # ------------
-        # Get freesre
         # Normalize
+        FP /= (Aref)
+        FM /= (qref*Aref)
+        FV /= (qref*Aref)
+        # Calculate moments
+        
         # Add up forces
         F = FP + FM + FV
-        pass
+        # Save information
+        self.F = F
+        self.FP = FP
+        self.FM = FM
+        self.FV = FV
   
   # >
     
