@@ -5061,10 +5061,20 @@ class Triq(TriBase):
         """Calculate vectors of pressure, momentum, and viscous forces on tris
         
         :Call:
-            >>> triq.GetTriForces(**kw)
+            >>> C = triq.GetTriForces(**kw)
         :Inputs:
             *triq*: :class:`cape.tri.Triq`
                 Annotated surface triangulation
+            *RefArea*, *Aref*: {``1.0``} | :class:`float`
+                Reference area
+            *RefLength*, *Lref*: {``1.0``} | :class:`float`
+                Reference length (longitudinal)
+            *RefSpan*, *bref*: {*Lref*} | :class:`float`
+                Reference span (for rolling and yawing moments)
+            *Re*, *Rey*: {``1.0``} | :class:`float`
+                Reynolds number per grid unit (units same as *triq.Nodes*)
+            *gam*, *gamma*: {``1.4``} | :class:`float` > 1
+                Freestream ratio of specific heats
         :Utilized Attributes:
             *triq.nNode*: :class:`int`
                 Number of nodes
@@ -5077,8 +5087,14 @@ class Triq(TriBase):
                 Vector of momentum (flow-through) forces on each triangle
             *triq.FV*: :class:`np.ndarray` shape=(*nTri*,3)
                 Vector of viscous forces on each triangle
+        :Outputs:
+            *C*: :class:`dict` (:class:`float`)
+                Dictionary of requested force/moment coefficients
+            *C["CA"]*: :class:`float`
+                Overall axial force coefficient
         :Versions:
             * 2017-02-11 ``@ddalle``: Started
+            * 2017-02-15 ``@ddalle``: First version
         """
         # ------
         # Inputs
@@ -5095,16 +5111,27 @@ class Triq(TriBase):
         # Reference length/area
         Aref = kw.get("RefArea",   kw.get("Aref", 1.0))
         Lref = kw.get("RefLength", kw.get("Lref", 1.0))
+        bref = kw.get("RefSpan",   kw.get("bref", Lref))
+        # Moment reference point
+        MRP = kw.get("MRP", np.array([0.0, 0.0, 0.0]))
+        xMRP = kw.get("xMRP", MRP[0])
+        yMRP = kw.get("yMRP", MRP[1])
+        zMRP = kw.get("zMRP", MRP[2])
         # Volume limiter
         SMALLVOL = kw.get("SMALLVOL", 1e-20)
         SMALLTRI = kw.get("SMALLTRI", 1e-12)
         # --------
         # Geometry
         # --------
+        # Store node indices for each tri
+        T = self.Tris
+        v0 = T[:,0]
+        v1 = T[:,1]        
+        v2 = T[:,2]
         # Extract the vertices of each tri.
-        x = self.Nodes[self.Tris-1, 0]
-        y = self.Nodes[self.Tris-1, 1]
-        z = self.Nodes[self.Tris-1, 2]
+        x = self.Nodes[T-1, 0]
+        y = self.Nodes[T-1, 1]
+        z = self.Nodes[T-1, 2]
         # Get the deltas from node 0->1 and 0->2
         x01 = np.vstack((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
         x02 = np.vstack((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
@@ -5112,11 +5139,6 @@ class Triq(TriBase):
         N = np.cross(np.transpose(x01), np.transpose(x02))
         # Scalar areas of each triangle
         A = np.sqrt(np.sum(N**2, axis=1))
-        # Store node indices for each tri
-        T = self.Tris
-        v0 = T[:,0]
-        v1 = T[:,1]            
-        v2 = T[:,2]
         # ---------------
         # Pressure Forces
         # ---------------
@@ -5235,15 +5257,51 @@ class Triq(TriBase):
         FP /= (Aref)
         FM /= (qref*Aref)
         FV /= (qref*Aref)
-        # Calculate moments
-        
+        # Centers of nodes
+        xc = np.mean(x, axis=1)
+        yc = np.mean(y, axis=1)
+        zc = np.mean(z, axis=1)
+        # Calculate pressure moments
+        MPx = ((yc-yMRP)*FP[:,2] - (zc-zMRP)*FP[:,1])/bref
+        MPy = ((zc-zMRP)*FP[:,0] - (xc-xMRP)*FP[:,2])/Lref
+        MPz = ((xz-xMRP)*FP[:,1] - (yc-yMRP)*FP[:,0])/bref
+        # Calculate momentum moments
+        MPx = ((yc-yMRP)*FM[:,2] - (zc-zMRP)*FM[:,1])/bref
+        MPy = ((zc-zMRP)*FM[:,0] - (xc-xMRP)*FM[:,2])/Lref
+        MPz = ((xz-xMRP)*FM[:,1] - (yc-yMRP)*FM[:,0])/bref
+        # Calculate viscous moments
+        MVx = ((yc-yMRP)*FV[:,2] - (zc-zMRP)*FV[:,1])/bref
+        MVy = ((zc-zMRP)*FV[:,0] - (xc-xMRP)*FV[:,2])/Lref
+        MVz = ((xz-xMRP)*FV[:,1] - (yc-yMRP)*FV[:,0])/bref
+        # Assemble
+        MP = np.stack((MPx,MPy,MPz), axis=1)
+        MM = np.stack((MMx,MMy,MMz), axis=1)
+        MV = np.stack((MVx,MVy,MVz), axis=1)
         # Add up forces
         F = FP + FM + FV
+        M = MP + MM + MV
         # Save information
-        self.F = F
-        self.FP = FP
-        self.FM = FM
-        self.FV = FV
+        kw.get("save", False):
+            self.F = F
+            self.FP = FP
+            self.FM = FM
+            self.FV = FV
+            self.M = M
+            self.MP = MP
+            self.MM = MM
+            self.MV = MV
+        # Dictionary of results
+        C = {}
+        # Total forces
+        C["CA"] = - np.sum(F[:,0])
+        C["CY"] =   np.sum(F[:,1])
+        C["CN"] =   np.sum(F[:,2])
+        C["CLL"] = np.sum(M[:,0])
+        C["CLM"] = np.sum(M[:,1])
+        C["CLN"] = np.sum(M[:,2])
+        # Output
+        return C
+        
   
   # >
     
