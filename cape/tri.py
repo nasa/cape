@@ -5207,7 +5207,7 @@ class Triq(TriBase):
             FYV = np.mean(Q[T,7], axis=1) * A
             FZV = np.mean(Q[T,8], axis=1) * A
             # Force components
-            FV = np.stack((FXV, FYV, FZV), axis=1)
+            Fv = np.stack((FXV, FYV, FZV), axis=1)
         elif self.nq >= 13:
             # Overset grid information
             # Inverted Reynolds number [in]
@@ -5259,14 +5259,14 @@ class Triq(TriBase):
             TYZ = FTMUJ * (WL*VAY + VL*VAZ)
             TXZ = FTMUJ * (UL*VAZ + WL*VAX)
             # Initialize viscous forces
-            FV = np.zeros((self.nTri, 3))
+            Fv = np.zeros((self.nTri, 3))
             # Save results from non-zero volumes
-            FV[IV,0] = (TXX*VAX + TXY*VAY + TXZ*VAZ)
-            FV[IV,1] = (TXY*VAX + TYY*VAY + TYZ*VAZ)
-            FV[IV,2] = (TXZ*VAX + TYZ*VAY + TZZ*VAZ)
+            Fv[IV,0] = (TXX*VAX + TXY*VAY + TXZ*VAZ)
+            Fv[IV,1] = (TXY*VAX + TYY*VAY + TYZ*VAZ)
+            Fv[IV,2] = (TXZ*VAX + TYZ*VAY + TZZ*VAZ)
         else:
             # TRIQ file only contains inadequate info for viscous forces
-            FV = np.zeros((nTri, 3))
+            Fv = np.zeros((nTri, 3))
        # ------------
        # Finalization
        # ------------
