@@ -1848,9 +1848,11 @@ class Cntl(object):
         # Get the options for this key.
         kopts = self.x.defns[key]
         # Get the components to translate.
-        comps  = kopts.get("CompID", [])
+        comps = kopts.get("CompID", [])
+        comps = list(np.array(comps).flatten())
         # Components to translate in opposite direction
         compsR = kopts.get("CompIDSymmetric", [])
+        compsR = list(np.array(compsR).flatten())
         # Get index of transformation (which order in Config.xml)
         I = kopts.get('TransformationIndex')
         # Process the transformation indices
