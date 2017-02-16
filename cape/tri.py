@@ -5057,14 +5057,16 @@ class Triq(TriBase):
   # ============
   # <
     # Calculate forces and moments
-    def GetTriForces(self, **kw):
+    def GetTriForces(self, comp=None, **kw):
         """Calculate vectors of pressure, momentum, and viscous forces on tris
         
         :Call:
-            >>> C = triq.GetTriForces(**kw)
+            >>> C = triq.GetTriForces(comp=None, **kw)
         :Inputs:
             *triq*: :class:`cape.tri.Triq`
                 Annotated surface triangulation
+            *comp*: {``None``} | :class:`str` | :class:`int` | :class:`list`
+                Subset
             *RefArea*, *Aref*: {``1.0``} | :class:`float`
                 Reference area
             *RefLength*, *Lref*: {``1.0``} | :class:`float`
@@ -5123,20 +5125,24 @@ class Triq(TriBase):
         # --------
         # Geometry
         # --------
+        # Component for subsetting
+        K = self.GetTrisFromCompID(comp)
+        # Number of tris
+        nTri = K.shape[0]
         # Store node indices for each tri
-        T = self.Tris
+        T = self.Tris[K,:] - 1
         v0 = T[:,0]
         v1 = T[:,1]        
         v2 = T[:,2]
         # Extract the vertices of each tri.
-        x = self.Nodes[T-1, 0]
-        y = self.Nodes[T-1, 1]
-        z = self.Nodes[T-1, 2]
+        x = self.Nodes[T, 0]
+        y = self.Nodes[T, 1]
+        z = self.Nodes[T, 2]
         # Get the deltas from node 0->1 and 0->2
-        x01 = np.vstack((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
-        x02 = np.vstack((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
+        x01 = np.stack((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]), axis=1)
+        x02 = np.stack((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]), axis=1)
         # Calculate the dimensioned normals
-        N = np.cross(np.transpose(x01), np.transpose(x02))
+        N = 0.5*np.cross(x01, x02)
         # Scalar areas of each triangle
         A = np.sqrt(np.sum(N**2, axis=1))
         # ---------------
@@ -5146,13 +5152,15 @@ class Triq(TriBase):
         Q = self.q
         # Calculate average *Cp* (first state variable)
         Cp = np.sum(Q[T,0], axis=1)/3
+        # Forces are inward normals
+        FP = -np.stack((Cp*N[:,0], Cp*N[:,1], Cp*N[:,2]), axis=1)
         # ---------------
         # Momentum Forces
         # ---------------
         # Check which type of state variables we have (if any)
         if self.nq < 5:
             # TRIQ file only contains pressure info
-            FM = np.zeros(self.nTri, 3)
+            FM = np.zeros((nTri, 3))
         elif self.nq == 6:
             # Cart3D style: $\hat{u}=u/a_\infty$
             # Average density
@@ -5164,7 +5172,7 @@ class Triq(TriBase):
             # Mass flux [kg/s]
             phi = -rho*(U*N[:,0] + V*N[:,1] + W*N[:,2])
             # Force components
-            FM = phi*np.stack((U,V,W), axis=1)
+            FM = np.stack((phi*U,phi*V,phi*W), axis=1)
         else:
             # Conventional: $\hat{u}=\frac{\rho u}{\rho_\infty a_\infty}$
             # Average density
@@ -5249,7 +5257,7 @@ class Triq(TriBase):
             FV[IV,2] = (TXZ*VAX + TYZ*VAY + TZZ*VAZ)
         else:
             # TRIQ file only contains inadequate info for viscous forces
-            FV = np.zeros(self.nTri, 3)
+            FV = np.zeros((nTri, 3))
         # ------------
         # Finalization
         # ------------
@@ -5264,15 +5272,15 @@ class Triq(TriBase):
         # Calculate pressure moments
         MPx = ((yc-yMRP)*FP[:,2] - (zc-zMRP)*FP[:,1])/bref
         MPy = ((zc-zMRP)*FP[:,0] - (xc-xMRP)*FP[:,2])/Lref
-        MPz = ((xz-xMRP)*FP[:,1] - (yc-yMRP)*FP[:,0])/bref
+        MPz = ((zc-xMRP)*FP[:,1] - (yc-yMRP)*FP[:,0])/bref
         # Calculate momentum moments
-        MPx = ((yc-yMRP)*FM[:,2] - (zc-zMRP)*FM[:,1])/bref
-        MPy = ((zc-zMRP)*FM[:,0] - (xc-xMRP)*FM[:,2])/Lref
-        MPz = ((xz-xMRP)*FM[:,1] - (yc-yMRP)*FM[:,0])/bref
+        MMx = ((yc-yMRP)*FM[:,2] - (zc-zMRP)*FM[:,1])/bref
+        MMy = ((zc-zMRP)*FM[:,0] - (xc-xMRP)*FM[:,2])/Lref
+        MMz = ((zc-xMRP)*FM[:,1] - (yc-yMRP)*FM[:,0])/bref
         # Calculate viscous moments
         MVx = ((yc-yMRP)*FV[:,2] - (zc-zMRP)*FV[:,1])/bref
         MVy = ((zc-zMRP)*FV[:,0] - (xc-xMRP)*FV[:,2])/Lref
-        MVz = ((xz-xMRP)*FV[:,1] - (yc-yMRP)*FV[:,0])/bref
+        MVz = ((zc-xMRP)*FV[:,1] - (yc-yMRP)*FV[:,0])/bref
         # Assemble
         MP = np.stack((MPx,MPy,MPz), axis=1)
         MM = np.stack((MMx,MMy,MMz), axis=1)
@@ -5281,7 +5289,7 @@ class Triq(TriBase):
         F = FP + FM + FV
         M = MP + MM + MV
         # Save information
-        kw.get("save", False):
+        if kw.get("save", False):
             self.F = F
             self.FP = FP
             self.FM = FM
@@ -5293,9 +5301,9 @@ class Triq(TriBase):
         # Dictionary of results
         C = {}
         # Total forces
-        C["CA"] = - np.sum(F[:,0])
-        C["CY"] =   np.sum(F[:,1])
-        C["CN"] =   np.sum(F[:,2])
+        C["CA"] =  np.sum(F[:,0])
+        C["CY"] =  np.sum(F[:,1])
+        C["CN"] =  np.sum(F[:,2])
         C["CLL"] = np.sum(M[:,0])
         C["CLM"] = np.sum(M[:,1])
         C["CLN"] = np.sum(M[:,2])
