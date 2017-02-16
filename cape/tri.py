@@ -5066,7 +5066,13 @@ class Triq(TriBase):
             *triq*: :class:`cape.tri.Triq`
                 Annotated surface triangulation
             *comp*: {``None``} | :class:`str` | :class:`int` | :class:`list`
-                Subset
+                Subset component ID or name or list thereof
+            *m*, *momentum*: ``True`` | {``False``}
+                Include momentum (flow-through) forces in total
+            *v*, *viscous*: {``True``} | ``False``
+                Include viscous forces in total
+            *save*: ``True`` | {``False``}
+                Store vectors of forces for each triangle as attributes
             *RefArea*, *Aref*: {``1.0``} | :class:`float`
                 Reference area
             *RefLength*, *Lref*: {``1.0``} | :class:`float`
@@ -5083,11 +5089,11 @@ class Triq(TriBase):
             *triq.q*: :class:`np.ndarray` (:class:`float` shape=(*nNode*,*nq*))
                 Vector of 5, 9, or 13 states on each node
         :Output Attributes:
-            *triq.FP*: :class:`np.ndarray` shape=(*nTri*,3)
+            *triq.Fp*: :class:`np.ndarray` shape=(*nTri*,3)
                 Vector of pressure forces on each triangle
-            *triq.FM*: :class:`np.ndarray` shape=(*nTri*,3)
+            *triq.Fm*: :class:`np.ndarray` shape=(*nTri*,3)
                 Vector of momentum (flow-through) forces on each triangle
-            *triq.FV*: :class:`np.ndarray` shape=(*nTri*,3)
+            *triq.Fv*: :class:`np.ndarray` shape=(*nTri*,3)
                 Vector of viscous forces on each triangle
         :Outputs:
             *C*: :class:`dict` (:class:`float`)
@@ -5098,9 +5104,12 @@ class Triq(TriBase):
             * 2017-02-11 ``@ddalle``: Started
             * 2017-02-15 ``@ddalle``: First version
         """
-        # ------
-        # Inputs
-        # ------
+       # ------
+       # Inputs
+       # ------
+        # Which things to calculate
+        incm = kw.get("m", kw.get("momentum", False))
+        incv = kw.get("v", kw.get("viscous", True))
         # Get Reynolds number per grid unit
         REY = kw.get("Re", kw.get("Rey", 1.0))
         # Freestream mach number
@@ -5122,9 +5131,9 @@ class Triq(TriBase):
         # Volume limiter
         SMALLVOL = kw.get("SMALLVOL", 1e-20)
         SMALLTRI = kw.get("SMALLTRI", 1e-12)
-        # --------
-        # Geometry
-        # --------
+       # --------
+       # Geometry
+       # --------
         # Component for subsetting
         K = self.GetTrisFromCompID(comp)
         # Number of tris
@@ -5145,18 +5154,18 @@ class Triq(TriBase):
         N = 0.5*np.cross(x01, x02)
         # Scalar areas of each triangle
         A = np.sqrt(np.sum(N**2, axis=1))
-        # ---------------
-        # Pressure Forces
-        # ---------------
+       # ---------------
+       # Pressure Forces
+       # ---------------
         # State handle
         Q = self.q
         # Calculate average *Cp* (first state variable)
         Cp = np.sum(Q[T,0], axis=1)/3
         # Forces are inward normals
         FP = -np.stack((Cp*N[:,0], Cp*N[:,1], Cp*N[:,2]), axis=1)
-        # ---------------
-        # Momentum Forces
-        # ---------------
+       # ---------------
+       # Momentum Forces
+       # ---------------
         # Check which type of state variables we have (if any)
         if self.nq < 5:
             # TRIQ file only contains pressure info
@@ -5189,9 +5198,9 @@ class Triq(TriBase):
             phi = -(U*N[:,0] + V*N[:,1] + W*N[:,2])
             # Force components
             FM = phi*np.stack((rhoU,rhoV,rhoW), axis=1)
-        # --------------
-        # Viscous Forces
-        # --------------
+       # --------------
+       # Viscous Forces
+       # --------------
         if self.nq == 9:
             # Viscous stresses given directly
             FXV = np.mean(Q[T,6], axis=1) * A
@@ -5258,46 +5267,52 @@ class Triq(TriBase):
         else:
             # TRIQ file only contains inadequate info for viscous forces
             FV = np.zeros((nTri, 3))
-        # ------------
-        # Finalization
-        # ------------
+       # ------------
+       # Finalization
+       # ------------
         # Normalize
-        FP /= (Aref)
-        FM /= (qref*Aref)
-        FV /= (qref*Aref)
+        Fp /= (Aref)
+        Fm /= (qref*Aref)
+        Fv /= (qref*Aref)
         # Centers of nodes
         xc = np.mean(x, axis=1)
         yc = np.mean(y, axis=1)
         zc = np.mean(z, axis=1)
         # Calculate pressure moments
-        MPx = ((yc-yMRP)*FP[:,2] - (zc-zMRP)*FP[:,1])/bref
-        MPy = ((zc-zMRP)*FP[:,0] - (xc-xMRP)*FP[:,2])/Lref
-        MPz = ((zc-xMRP)*FP[:,1] - (yc-yMRP)*FP[:,0])/bref
+        Mpx = ((yc-yMRP)*Fp[:,2] - (zc-zMRP)*Fp[:,1])/bref
+        Mpy = ((zc-zMRP)*Fp[:,0] - (xc-xMRP)*Fp[:,2])/Lref
+        Mpz = ((zc-xMRP)*Fp[:,1] - (yc-yMRP)*Fp[:,0])/bref
         # Calculate momentum moments
-        MMx = ((yc-yMRP)*FM[:,2] - (zc-zMRP)*FM[:,1])/bref
-        MMy = ((zc-zMRP)*FM[:,0] - (xc-xMRP)*FM[:,2])/Lref
-        MMz = ((zc-xMRP)*FM[:,1] - (yc-yMRP)*FM[:,0])/bref
+        Mmx = ((yc-yMRP)*Fm[:,2] - (zc-zMRP)*Fm[:,1])/bref
+        Mmy = ((zc-zMRP)*Fm[:,0] - (xc-xMRP)*Fm[:,2])/Lref
+        Mmz = ((zc-xMRP)*Fm[:,1] - (yc-yMRP)*Fm[:,0])/bref
         # Calculate viscous moments
-        MVx = ((yc-yMRP)*FV[:,2] - (zc-zMRP)*FV[:,1])/bref
-        MVy = ((zc-zMRP)*FV[:,0] - (xc-xMRP)*FV[:,2])/Lref
-        MVz = ((zc-xMRP)*FV[:,1] - (yc-yMRP)*FV[:,0])/bref
+        Mvx = ((yc-yMRP)*Fv[:,2] - (zc-zMRP)*Fv[:,1])/bref
+        Mvy = ((zc-zMRP)*Fv[:,0] - (xc-xMRP)*Fv[:,2])/Lref
+        Mvz = ((zc-xMRP)*Fv[:,1] - (yc-yMRP)*Fv[:,0])/bref
         # Assemble
-        MP = np.stack((MPx,MPy,MPz), axis=1)
-        MM = np.stack((MMx,MMy,MMz), axis=1)
-        MV = np.stack((MVx,MVy,MVz), axis=1)
-        # Add up forces
-        F = FP + FM + FV
-        M = MP + MM + MV
+        MP = np.stack((Mpx,Mpy,Mpz), axis=1)
+        MM = np.stack((Mmx,Mmy,Mmz), axis=1)
+        MV = np.stack((Mvx,Mvy,Mvz), axis=1)
+        # Add up forces 
+        if incm:
+            # Include all forces
+            F = Fp + Fm + Fv
+            M = Mp + Mm + Mv
+        else:
+            # Include viscous
+            F = Fp + Fv
+            F = Mp + Mv
         # Save information
         if kw.get("save", False):
             self.F = F
-            self.FP = FP
-            self.FM = FM
-            self.FV = FV
+            self.Fp = Fp
+            self.Fm = Fm
+            self.Fv = Fv
             self.M = M
-            self.MP = MP
-            self.MM = MM
-            self.MV = MV
+            self.Mp = Mp
+            self.Mm = Mm
+            self.Mv = Mv
         # Dictionary of results
         C = {}
         # Total forces
@@ -5307,6 +5322,27 @@ class Triq(TriBase):
         C["CLL"] = np.sum(M[:,0])
         C["CLM"] = np.sum(M[:,1])
         C["CLN"] = np.sum(M[:,2])
+        # Pressure contributions
+        C["CAp"] =  np.sum(Fp[:,0])
+        C["CYp"] =  np.sum(Fp[:,1])
+        C["CNp"] =  np.sum(Fp[:,2])
+        C["CLLp"] = np.sum(Mp[:,0])
+        C["CLMp"] = np.sum(Mp[:,1])
+        C["CLNp"] = np.sum(Mp[:,2])
+        # Flow-through contributions
+        C["CAm"] =  np.sum(Fm[:,0])
+        C["CYm"] =  np.sum(Fm[:,1])
+        C["CNm"] =  np.sum(Fm[:,2])
+        C["CLLm"] = np.sum(Mm[:,0])
+        C["CLMm"] = np.sum(Mm[:,1])
+        C["CLNm"] = np.sum(Mm[:,2])
+        # Viscous contributions
+        C["CAv"] =  np.sum(Fv[:,0])
+        C["CYv"] =  np.sum(Fv[:,1])
+        C["CNv"] =  np.sum(Fv[:,2])
+        C["CLLv"] = np.sum(Mv[:,0])
+        C["CLMv"] = np.sum(Mv[:,1])
+        C["CLNv"] = np.sum(Mv[:,2])
         # Output
         return C
         
