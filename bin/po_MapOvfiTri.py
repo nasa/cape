@@ -5,7 +5,7 @@ Edit OVFI Namelist Family Names: ``po_MapOvfiTri.py``
 
 Use the family names from a ``.uh3d`` file to determine which family
 
-:Call:
+:Usage:
 
     .. code-block:: console
     
@@ -26,61 +26,61 @@ Use the family names from a ``.uh3d`` file to determine which family
     -v
         Run verbose version
         
-    -grid $GRID, -pre $GRID
+    --grid GRID, --pre GRID
         Name of grid without extensions
         
-    -tri UH3D, -uh3d UH3D
+    --tri UH3D, --uh3d UH3D
         Use *UH3D* file as input triangulation
        
     -c XML
         Use file *XML* to map component ID numbers
         
-    -ext EXT
-        Infix to add to edited ``.ovfi`` file {ByPatch}
+    --ext EXT
+        Infix to add to edited ``.ovfi`` file {``ByPatch``}
         
     -i OVFI_IN
-        Use *OVFI_IN* as input ``.ovfi`` namelist {$GRID.ovfi}
+        Use *OVFI_IN* as input ``.ovfi`` namelist {``$GRID.ovfi``}
         
     -o OVFI_OUT
-        Use *OVFI_OUT* as edited ``.ovfi`` namelist {$GRID.$EXT.ovfi}
+        Use *OVFI_OUT* as edited ``.ovfi`` namelist {``$GRID.$EXT.ovfi``}
         
-    -srf SRF
+    --srf SRF
         Use *SRF* as the surface mesh
         
-    -atol *ATOL*, -AbsTol *ATOL*
+    --atol ATOL, --AbsTol ATOL
         Absolute tolerance for nearest-tri search {_atol_}
         
-    -rtol *RTOL*, -RelTol *RTOL*
+    --rtol RTOL, --RelTol RTOL
         Tolerance for nearest-tri search relative to scale of tri {_rtol_}
         
-    -ctol *CTOL*, -CompTol *CTOL*
+    --ctol CTOL, --CompTol CTOL
         Tolerance for nearest-tri search relative to scale of comp {_ctol_}
         
-    -antol *ANTOL*, -AbsProjTol *ANTOL*
+    --antol ANTOL, --AbsProjTol ANTOL
         Absolute projection tolerance for nearest-tri search {_antol_}
         
-    -rntol *RNTOL*, -RelProjTol *RNTOL*
+    --rntol RNTOL, --RelProjTol RNTOL
         Projection tolerance relative to tri scale {_rntol_}
         
-    -cntol *CNTOL*, -CompProjTol *CNTOL*
+    --cntol CNTOL, --CompProjTol CNTOL
         Projection tolerance relative to component scale {_cntol_}
         
-    -aftol *AFTOL*, -AbsFamilyTol *AFTOL*
+    --aftol AFTOL, --AbsFamilyTol AFTOL
         Absolute distance tol for secondary family {_aftol_}
         
-    -rftol *RFTOL*, -RelFamilyTol *RFTOL*
+    --rftol RFTOL, --RelFamilyTol RFTOL
         Distance tol for secondary family relative to tri scale {_rftol_}
     
-    -cftol *CFTOL*, -CompFamilyTol *CFTOL*
+    --cftol CFTOL, --CompFamilyTol CFTOL
         Distance tol for secondary family relative to comp scale {_cftol_}
         
-    -anftol *ANFTOL*, -nftol, -ProjFamilyTol, -AbsProjFamilyTol *ANFTOL*
+    --anftol ANFTOL, --nftol, --ProjFamilyTol, --AbsProjFamilyTol ANFTOL
         Absolute projection tol for secondary family {_anftol_}
         
-    -rnftol *RNFTOL*, -RelProjFamilyTol *RNFTOL*
+    --rnftol RNFTOL, --RelProjFamilyTol RNFTOL
         Projection tol for secondary family relative to tri scale {_rnftol_}
         
-    -cnftol *CNFTOL*, -CompProjFamilyTol *CNFTOL*
+    --cnftol CNFTOL, --CompProjFamilyTol CNFTOL
         Projection tol for secondary family relative to comp scale {_cnftol_}
 
 :Versions:
@@ -94,20 +94,23 @@ import cape.tri
 import cape.plot3d
 # Command-line input parser
 import cape.argread
+import cape.text
 
 # Edit docstring with actual default tolerances
-__doc__.replace("_atol_",   str(cape.plot3d.atoldef))
-__doc__.replace("_rtol_",   str(cape.plot3d.rtoldef))
-__doc__.replace("_ctol_",   str(cape.plot3d.ctoldef))
-__doc__.replace("_antol_",  str(cape.plot3d.antoldef))
-__doc__.replace("_rntol_",  str(cape.plot3d.rntoldef))
-__doc__.replace("_cntol_",  str(cape.plot3d.cntoldef))
-__doc__.replace("_aftol_",  str(cape.plot3d.aftoldef))
-__doc__.replace("_rftol_",  str(cape.plot3d.rftoldef))
-__doc__.replace("_cftol_",  str(cape.plot3d.cftoldef))
-__doc__.replace("_anftol_", str(cape.plot3d.anftoldef))
-__doc__.replace("_rnftol_", str(cape.plot3d.rnftoldef))
-__doc__.replace("_cnftol_", str(cape.plot3d.cnftoldef))
+__doc__ = cape.text.setdocvals(__doc__, {
+    "atol":   cape.plot3d.atoldef,
+    "rtol":   cape.plot3d.rtoldef,
+    "ctol":   cape.plot3d.ctoldef,
+    "antol":  cape.plot3d.antoldef,
+    "rntol":  cape.plot3d.rntoldef,
+    "cntol":  cape.plot3d.cntoldef,
+    "aftol":  cape.plot3d.aftoldef,
+    "rftol":  cape.plot3d.rftoldef,
+    "cftol":  cape.plot3d.cftoldef,
+    "anftol": cape.plot3d.anftoldef,
+    "rnftol": cape.plot3d.rnftoldef,
+    "cnftol": cape.plot3d.cnftoldef
+})
 
 # Main function
 def MapOvfiTri(*a, **kw):
@@ -196,7 +199,7 @@ if __name__ == "__main__":
     a, kw = cape.argread.readkeys(sys.argv)
     # Check for a help option.
     if kw.get('h',False) or kw.get('help',False):
-        print __doc__
+        print cape.text.markdown(__doc__)
         sys.exit()
     # Run the main function.
     MapOvfiTri(*a, **kw)

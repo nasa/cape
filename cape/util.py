@@ -564,21 +564,5 @@ def get_xlim_ax(ha, xpad=0.05, **kw):
     return xminv, xmaxv
 
 
-# Function to take out extensive markup for help messages
-def markdown(doc):
-    """Remove some extraneous markup for command-line help messages
-    
-    :Call:
-        >>> txt = markdown(doc)
-    :Inputs:
-        *doc*: :class:`str`
-            Docstring
-    :Outputs:
-        *txt*: :class:`str`
-            Help message with some of the RST features removed for readability
-    :Versions:
-        * 2017-02-17 ``@ddalle``: First version
-    """
-    # Split by lines
-    lines = doc.split('\n')
+            
     

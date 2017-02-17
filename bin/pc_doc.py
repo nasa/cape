@@ -46,13 +46,13 @@ simple commands.
          Show the PBS job numbers as well
         
     -f FNAME
-         Use pyCart input file *FNAME* (defaults to 'pyCart.json')
+         Use pyCart input file *FNAME* (defaults to ``'pyCart.json'``)
 
     -n NJOB
          Submit at most *NJOB* PBS scripts (defaults to unlimited)
         
     -q QUEUE
-         Submit to a specific queue (defaults to "sls_aero1")
+         Submit to a specific queue (defaults to ``"sls_aero1"``)
         
     --cons CONS
          Only consider cases that pass a list of inequalities separated by

@@ -8,7 +8,7 @@ Use the family names from a ``.uh3d`` file to extract components from a
 to file.  This can be used to extract a panel from a solution ``.triq`` file
 that does not have that panel labeled as a separate face.
 
-:Call:
+:Usage:
 
     .. code-block:: console
     
@@ -25,75 +25,72 @@ that does not have that panel labeled as a separate face.
     -v
         Run verbose version
         
-    -json $JSON
+    --json JSON
         Use commented JSON file called *JSON*
         
-    -triq $TRIQ
-        Use *TRIQ* as unmapped input file {"grid.i.triq"}
+    --triq TRIQ
+        Use *TRIQ* as unmapped input file {``grid.i.triq``}
         
-    -tri $UH3D, -uh3d $UH3D
+    --tri UH3D, --uh3d UH3D
         Use *UH3D* file as the triangulation for mapping
         
-    -join
+    --join
         Write single combined output file instead of one for each component
         
     -o $FOUT
         If using the ``-join`` flag, write output as *FOUT*
         
-    -ext $EXT
+    --ext EXT
         File extension, by default copied from *TRIQ*
         
-    -label $LBL
+    --label LBL
         Infix to use in file names create; files will be either
         ``"$COMP.$LBL.$EXT"`` or ``"$COMP.$EXT"`` {""}
         
-    -fmt $FMT
-        Output file format, {} | ascii | b4 | lb4; if not specified, copy
+    --fmt FMT
+        Output file format, ``{} | ascii | b4 | lb4``; if not specified, copy
         format from *TRIQ*
         
     -b4
-        Write single-precision big-endian output (equiv. to ``-ext b4``)
+        Write single-precision big-endian output (equiv. to ``--ext b4``)
         
     -lb4
-        Write single-precision little-endian output (equiv. to ``-ext lb4``)
+        Write single-precision little-endian output (equiv. to ``--ext lb4``)
         
-    -atol $ATOL, -AbsTol $ATOL
+    --atol ATOL, --AbsTol ATOL
         Absolute tolerance for nearest-tri search {_atol_}
         
-    -comps $COMPS
-        Comma-separated list of component names (must be present in *UH3D*)
-        
-    -rtol $RTOL, -RelTol $RTOL
+    --rtol RTOL, --RelTol RTOL
         Tolerance for nearest-tri search relative to scale of tri {_rtol_}
         
-    -ctol $CTOL, -CompTol $CTOL
+    --ctol CTOL, --CompTol CTOL
         Tolerance for nearest-tri search relative to scale of comp {_ctol_}
         
-    -antol $ANTOL, -AbsProjTol $ANTOL
+    --antol ANTOL, --AbsProjTol ANTOL
         Absolute projection tolerance for nearest-tri search {_antol_}
         
-    -rntol $RNTOL, -RelProjTol $RNTOL
+    --rntol RNTOL, --RelProjTol RNTOL
         Projection tolerance relative to tri scale {_rntol_}
         
-    -cntol $CNTOL, -CompProjTol $CNTOL
+    --cntol CNTOL, --CompProjTol CNTOL
         Projection tolerance relative to component scale {_cntol_}
         
-    -aftol $AFTOL, -AbsFamilyTol $AFTOL
+    --aftol AFTOL, --AbsFamilyTol AFTOL
         Absolute distance tol for secondary family {_aftol_}
         
-    -rftol $RFTOL, -RelFamilyTol $RFTOL
+    --rftol RFTOL, --RelFamilyTol RFTOL
         Distance tol for secondary family relative to tri scale {_rftol_}
     
-    -cftol $CFTOL, -CompFamilyTol $CFTOL
+    --cftol CFTOL, --CompFamilyTol CFTOL
         Distance tol for secondary family relative to comp scale {_cftol_}
         
-    -anftol $ANFTOL, -nftol, -ProjFamilyTol, -AbsProjFamilyTol $ANFTOL
+    --anftol ANFTOL, --nftol, --ProjFamilyTol, --AbsProjFamilyTol ANFTOL
         Absolute projection tol for secondary family {_anftol_}
         
-    -rnftol $RNFTOL, -RelProjFamilyTol $RNFTOL
+    --rnftol RNFTOL, --RelProjFamilyTol RNFTOL
         Projection tol for secondary family relative to tri scale {_rnftol_}
         
-    -cnftol $CNFTOL, -CompProjFamilyTol $CNFTOL
+    --cnftol CNFTOL, --CompProjFamilyTol CNFTOL
         Projection tol for secondary family relative to comp scale {_cnftol_}
 
 :Versions:
@@ -107,22 +104,25 @@ import cape.tri
 import cape.plot3d
 # Command-line input parser
 import cape.argread
+import cape.text
 # Read JSON file with comments
 from cape.options.util import loadJSONFile
 
 # Edit docstring with actual default tolerances
-__doc__.replace("_atol_",   str(cape.plot3d.atoldef))
-__doc__.replace("_rtol_",   str(cape.plot3d.rtoldef))
-__doc__.replace("_ctol_",   str(cape.plot3d.ctoldef))
-__doc__.replace("_antol_",  str(cape.plot3d.antoldef))
-__doc__.replace("_rntol_",  str(cape.plot3d.rntoldef))
-__doc__.replace("_cntol_",  str(cape.plot3d.cntoldef))
-__doc__.replace("_aftol_",  str(cape.plot3d.aftoldef))
-__doc__.replace("_rftol_",  str(cape.plot3d.rftoldef))
-__doc__.replace("_cftol_",  str(cape.plot3d.cftoldef))
-__doc__.replace("_anftol_", str(cape.plot3d.anftoldef))
-__doc__.replace("_rnftol_", str(cape.plot3d.rnftoldef))
-__doc__.replace("_cnftol_", str(cape.plot3d.cnftoldef))
+__doc__ = cape.text.setdocvals(__doc__, {
+    "atol":   cape.plot3d.atoldef,
+    "rtol":   cape.plot3d.rtoldef,
+    "ctol":   cape.plot3d.ctoldef,
+    "antol":  cape.plot3d.antoldef,
+    "rntol":  cape.plot3d.rntoldef,
+    "cntol":  cape.plot3d.cntoldef,
+    "aftol":  cape.plot3d.aftoldef,
+    "rftol":  cape.plot3d.rftoldef,
+    "cftol":  cape.plot3d.cftoldef,
+    "anftol": cape.plot3d.anftoldef,
+    "rnftol": cape.plot3d.rnftoldef,
+    "cnftol": cape.plot3d.cnftoldef
+})
 
 # Main function
 def MapTriqTri(*a, **kw):
@@ -259,7 +259,7 @@ if __name__ == "__main__":
     a, kw = cape.argread.readkeys(sys.argv)
     # Check for a help option.
     if kw.get('h',False) or kw.get('help',False):
-        print __doc__
+        print cape.text.markdown(__doc__)
         sys.exit()
     # Run the main function.
     MapTriqTri(*a, **kw)
