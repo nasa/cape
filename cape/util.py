@@ -27,6 +27,30 @@ TecFolder = os.path.join(rootFolder, "templates", "tecplot")
 # Folder containing Paraview templates
 ParaviewFolder = os.path.join(rootFolder, "templates", "paraview")
 
+# Stack vectors
+def stackcol(cols):
+    """Create a matrix out of vectors that are assumed to be columns
+    
+    :Call:
+        >>> A = stackcols(cols)
+    :Inputs:
+        *cols*: :class:`list` | :class:`tuple`
+            List of vectors
+        *cols[0]*: :class:`list` | :class:`np.ndarray`
+            First column vector
+    :Outputs:
+        *A*: :class:`np.ndarray`
+            Matrix with ``A[:,0]==cols[0]``, ``A[:,1]==cols[1]``, etc.
+    :Versions:
+        * 2017-02-17 ``@ddalle``: First version
+    """
+    # We have to do this stupid VSTACK thing for old versions of NUMPY
+    # First, create tuple of 1xN row vector matrices
+    V = ([c] for c in cols)
+    # Stack as row vectors and then transpose
+    return np.transpose(np.vstack(V))
+            
+
 # Split text by either comma or space
 def SplitLineGeneral(line):
     """Split a string in which uses a mix of commas and spaces as delimiters

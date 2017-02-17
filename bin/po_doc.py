@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """
-Python interface for OVERFLOW: :file:`pyover`
-=============================================
+Python interface for OVERFLOW: **pyover**
+=========================================
 
 This function provides a master interface for pyFun.  All of the functionality
-from this script is also accessible from the :mod:`pyFun` module using
+from this script is also accessible from the :mod:`pyOver` module using
 relatively simple commands.
 
 :Usage:

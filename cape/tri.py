@@ -31,7 +31,7 @@ from shutil import copy
 from collections import OrderedDict
 
 # Utilities
-from .util import GetTecplotCommand, TecFolder, ParaviewFolder
+from .util import GetTecplotCommand, TecFolder, ParaviewFolder, stackcol
 from .config import Config, ConfigJSON
 
 # Input/output and geometry modules
@@ -3619,7 +3619,7 @@ class TriBase(object):
         y = np.mean(self.Nodes[self.Tris-1, 1], axis=1)
         z = np.mean(self.Nodes[self.Tris-1, 2], axis=1)
         # Save the centers
-        self.Centers = np.transpose(np.vstack(([x],[y],[z])))
+        self.Centers = stackcol((x,y,z))
         
     # Get normals and areas
     def GetNormals(self):
@@ -3650,10 +3650,10 @@ class TriBase(object):
         y = self.Nodes[self.Tris-1, 1]
         z = self.Nodes[self.Tris-1, 2]
         # Get the deltas from node 0 to node 1 or node 2
-        x01 = np.vstack((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
-        x02 = np.vstack((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
+        x01 = stackcol((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
+        x02 = stackcol((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
         # Calculate the dimensioned normals
-        n = np.cross(np.transpose(x01), np.transpose(x02))
+        n = np.cross(x01, x02)
         # Calculate the area of each triangle.
         A = np.fmax(1e-10, np.sqrt(np.sum(n**2, 1)))
         # Normalize each component.
@@ -3697,11 +3697,8 @@ class TriBase(object):
         Y = self.Nodes[self.Tris-1, 1]
         Z = self.Nodes[self.Tris-1, 2]
         # Get the deltas from node 0 to node 1 or node 2
-        X01 = np.vstack((X[:,1]-X[:,0], Y[:,1]-Y[:,0], Z[:,1]-Z[:,0]))
-        X02 = np.vstack((X[:,2]-X[:,0], Y[:,2]-Y[:,0], Z[:,2]-Z[:,0]))
-        # Transpose
-        X01 = np.transpose(X01)
-        X02 = np.transpose(X02)
+        X01 = stackcol((X[:,1]-X[:,0], Y[:,1]-Y[:,0], Z[:,1]-Z[:,0]))
+        X02 = stackcol((X[:,2]-X[:,0], Y[:,2]-Y[:,0], Z[:,2]-Z[:,0]))
         # Calculate the dimensioned normals
         n = np.cross(X01, X02)
         # Calculate the area of each triangle.
@@ -3755,10 +3752,10 @@ class TriBase(object):
         x12 = np.vstack((x[:,2]-x[:,1], y[:,2]-y[:,1], z[:,2]-z[:,1]))
         x20 = np.vstack((x[:,0]-x[:,2], y[:,0]-y[:,2], z[:,0]-z[:,2]))
         # Calculate lengths.
-        self.Lengths = np.vstack((
+        self.Lengths = stackcol((
             np.sqrt(np.sum(x01**2, 0)),
             np.sqrt(np.sum(x12**2, 0)),
-            np.sqrt(np.sum(x20**2, 0)))).transpose()
+            np.sqrt(np.sum(x20**2, 0))))
             
     # Get nearest triangle to a point
     def GetNearestTri(self, x, **kw):
@@ -5148,8 +5145,8 @@ class Triq(TriBase):
         y = self.Nodes[T, 1]
         z = self.Nodes[T, 2]
         # Get the deltas from node 0->1 and 0->2
-        x01 = np.stack((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]), axis=1)
-        x02 = np.stack((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]), axis=1)
+        x01 = stackcol((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
+        x02 = stackcol((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
         # Calculate the dimensioned normals
         N = 0.5*np.cross(x01, x02)
         # Scalar areas of each triangle
@@ -5162,14 +5159,14 @@ class Triq(TriBase):
         # Calculate average *Cp* (first state variable)
         Cp = np.sum(Q[T,0], axis=1)/3
         # Forces are inward normals
-        FP = -np.stack((Cp*N[:,0], Cp*N[:,1], Cp*N[:,2]), axis=1)
+        Fp = -stackcol((Cp*N[:,0], Cp*N[:,1], Cp*N[:,2]))
        # ---------------
        # Momentum Forces
        # ---------------
         # Check which type of state variables we have (if any)
         if self.nq < 5:
             # TRIQ file only contains pressure info
-            FM = np.zeros((nTri, 3))
+            Fm = np.zeros((nTri, 3))
         elif self.nq == 6:
             # Cart3D style: $\hat{u}=u/a_\infty$
             # Average density
@@ -5181,7 +5178,7 @@ class Triq(TriBase):
             # Mass flux [kg/s]
             phi = -rho*(U*N[:,0] + V*N[:,1] + W*N[:,2])
             # Force components
-            FM = np.stack((phi*U,phi*V,phi*W), axis=1)
+            Fm = stackcol((phi*U,phi*V,phi*W))
         else:
             # Conventional: $\hat{u}=\frac{\rho u}{\rho_\infty a_\infty}$
             # Average density
@@ -5197,7 +5194,7 @@ class Triq(TriBase):
             # Average mass flux, done wrongly for consistency with `triload`
             phi = -(U*N[:,0] + V*N[:,1] + W*N[:,2])
             # Force components
-            FM = phi*np.stack((rhoU,rhoV,rhoW), axis=1)
+            Fm = phi*stackcol((rhoU,rhoV,rhoW))
        # --------------
        # Viscous Forces
        # --------------
@@ -5207,7 +5204,7 @@ class Triq(TriBase):
             FYV = np.mean(Q[T,7], axis=1) * A
             FZV = np.mean(Q[T,8], axis=1) * A
             # Force components
-            Fv = np.stack((FXV, FYV, FZV), axis=1)
+            Fv = stackcol((FXV, FYV, FZV))
         elif self.nq >= 13:
             # Overset grid information
             # Inverted Reynolds number [in]
@@ -5291,9 +5288,9 @@ class Triq(TriBase):
         Mvy = ((zc-zMRP)*Fv[:,0] - (xc-xMRP)*Fv[:,2])/Lref
         Mvz = ((zc-xMRP)*Fv[:,1] - (yc-yMRP)*Fv[:,0])/bref
         # Assemble
-        MP = np.stack((Mpx,Mpy,Mpz), axis=1)
-        MM = np.stack((Mmx,Mmy,Mmz), axis=1)
-        MV = np.stack((Mvx,Mvy,Mvz), axis=1)
+        Mp = stackcol((Mpx,Mpy,Mpz))
+        Mm = stackcol((Mmx,Mmy,Mmz))
+        Mv = stackcol((Mvx,Mvy,Mvz))
         # Add up forces 
         if incm:
             # Include all forces
@@ -5302,7 +5299,7 @@ class Triq(TriBase):
         else:
             # Include viscous
             F = Fp + Fv
-            F = Mp + Mv
+            M = Mp + Mv
         # Save information
         if kw.get("save", False):
             self.F = F
