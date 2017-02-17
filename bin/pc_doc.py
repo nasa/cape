@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """
-Python interface for Cart3D: :file:`pycart`
-===========================================
+Python interface for Cart3D: **pycart**
+=======================================
 
-This function provides a master interface for pyCart.  All of the functionality
-from this script is also accessible from the :mod:`pyCart` module using
-relatively simple commands.
+This function provides a master interface for pyCart. The functionality from
+this script is also accessible from the :mod:`pyCart` module using relatively
+simple commands.
 
 :Usage:
     .. code-block:: bash
