@@ -19,6 +19,16 @@ Calculate the integrated forces and moments on a triangulated surface
     * *COMP1*: Name or 1-based index of first component to analyze
     * *COMP2*: Name or 1-based index of second component to analyze
     
+:Examples:
+    
+    Calculate the forces and moments on the full geometry in ``"grid.i.triq"``,
+    which is a solution calculated at Mach 0.75.
+    
+        .. code-block:: bash
+        
+            $ triqfm grid.i.triq --mach 0.75
+            $ triqfm -m 0.75
+    
 :Options:
     -h, --help
         Display this help message and exit
@@ -37,27 +47,44 @@ Calculate the integrated forces and moments on a triangulated surface
         or other TRIQ format) as a map for which triangles to extract; if used,
         the component list *COMPS* and config file *CONFIG* apply to this file
         
-    -m, --momentum
+    --momentum
         Include momentum forces in total
         
-    --xMRP *XMRP*
+    -m MACH, --mach MACH
+        Use *MACH* as the freestream Mach number {1.0}
+        
+    --Re REY, --Rey REY
+        Reynolds number per grid unit {1.0}
+    
+    --Aref AREF, --RefArea AREF
+        Reference area for coefficient computation {1.0}
+        
+    --Lref LREF, --RefLength LREF
+        Reference length for coefficient computation {1.0}
+        
+    --bref BREF, --RefSpan BREF
+        Reference span for coefficient computation {*LREF*}
+        
+    --xMRP XMRP
         Set *x*-coordinate of moment reference point {0.0}
         
-    --yMRP *YMRP*
-        Set *x*-coordinate of moment reference point {0.0}
+    --yMRP YMRP
+        Set *y*-coordinate of moment reference point {0.0}
         
-    --zMRP *ZMRP*
-        Set *x*-coordinate of moment reference point {0.0}
+    --zMRP ZMRP
+        Set *z*-coordinate of moment reference point {0.0}
         
-    --MRP "*MRP*"
+    --MRP "MRP"
         Moment reference point {"*XMRP*, *YMRP*, *ZMRP*"} 
         
 :Versions:
-    * 2017-02-16 ``@ddalle``: First version
+    * 2017-02-17 ``@ddalle``: First version
 """
 
 # Module to handle inputs and os interface
 import sys
+# Settings interface
+import json
 # Get the modules for tri files and surface grids
 import cape.tri
 # Command-line input parser
@@ -83,8 +110,20 @@ def TriqFM(*a, **kw):
             Separate triangulation file to use for identifying *triq* subset
         *c*: {``None``} | :class:`str`
             Configuration (XML or JSON format) file to use
-        *m*, *momentum*: ``True`` | {``False``}
+        *incm*, *momentum*: ``True`` | {``False``}
             Include momentum (flow-through) forces in total
+        *m*, *mach*: {``1.0``} | :class:`float`
+            Freestream Mach number
+        *RefArea*, *Aref*: {``1.0``} | :class:`float`
+            Reference area
+        *RefLength*, *Lref*: {``1.0``} | :class:`float`
+            Reference length (longitudinal)
+        *RefSpan*, *bref*: {*Lref*} | :class:`float`
+            Reference span (for rolling and yawing moments)
+        *Re*, *Rey*: {``1.0``} | :class:`float`
+            Reynolds number per grid unit (units same as *triq.Nodes*)
+        *gam*, *gamma*: {``1.4``} | :class:`float` > 1
+            Freestream ratio of specific heats
         *xMRP*: {``0.0``} | :class:`float`
             *x*-coordinate of moment reference point
         *yMRP*: {``0.0``} | :class:`float`
@@ -129,21 +168,30 @@ def TriqFM(*a, **kw):
         # Read options from file
         opts = loadJSONFile(fjson)
     # Load settings from JSON file
-    ftriq = opts.get("triq", opts.get("TriqFile", ftriq))
-    ftri  = opts.get("tri",  opts.get("TriFile", opts.get("map")))
-    fcfg  = opts.get("c",    opts.get("ConfigFile"))
-    comps = opts.get("comps" opts.get("Components", opts.get("CompID",comps)))
-    qm    = opts.get("m",    opts.get("Momentum", False))
+    ftriq = opts.get("triq",  opts.get("TriqFile", ftriq))
+    ftri  = opts.get("tri",   opts.get("TriFile", opts.get("map")))
+    fcfg  = opts.get("c",     opts.get("ConfigFile"))
+    fo    = opts.get("o",     opts.get("OutputFile"))
+    comps = opts.get("comps", opts.get("Components", opts.get("CompID",comps)))
+    incm  = opts.get("incm",  opts.get("Momentum", False))
+    # Freestream conditions
+    mach = opts.get("m",    opts.get("mach",  opts.get("Mach",     1.0)))
+    Rey  = opts.get("Re",   opts.get("Rey",   opts.get("Reynolds", 1.0)))
+    gam  = opts.get("gam",  opts.get("gamma", opts.get("Gamma",    1.4)))
+    # Scale
+    Aref = opts.get("Aref", opts.get("RefArea",   1.0))
+    Lref = opts.get("Lref", opts.get("RefLength", 1.0))
+    bref = opts.get("bref", opts.get("RefSpan"))
     # Process moment reference point
-    xMRP = opts.get("xMRP", 0.0)
-    yMRP = opts.get("yMRP", 0.0)
-    zMRP = opts.get("zMRP", 0.0)
-    xMRP = kw.get("xMRP", xMRP)
-    yMRP = kw.get("yMRP", yMRP)
-    zMRP = kw.get("zMRP", zMRP)
+    xMRP = float(opts.get("xMRP", kw.get("xMRP", 0.0)))
+    yMRP = float(opts.get("yMRP", kw.get("yMRP", 0.0)))
+    zMRP = float(opts.get("zMRP", kw.get("zMRP", 0.0)))
     # Construct total MRP
     MRP = opts.get("MRP", [xMRP,yMRP,zMRP])
-    MRP = kw.get("MRP", MRP)
+    # If given as string input, we have to do some work
+    if "MRP" in kw:
+        # Split CLI text by comma
+        MRP = [float(x) for x in kw["MRP"].split(",")]
    # --------------
    # Keyword Inputs
    # --------------
@@ -152,8 +200,21 @@ def TriqFM(*a, **kw):
     ftri  = kw.get("tri",   ftri)
     ftri  = kw.get("map",   ftri)
     fcfg  = kw.get("c",     fcfg)
+    fo    = kw.get("o",     fo)
     comps = kw.get("comps", comps)
-    qm    = kw.get("m",     kw.get("momentum", False))
+    incm  = kw.get("incm",  kw.get("momentum", incm))
+    # Default output file name
+    if fo is None:
+        fo = "%s.json" % (ftriq.rstrip(".i.triq").rstrip(".triq"))
+    # Read conditions
+    mach = kw.get("m",   kw.get("mach",  mach))
+    Rey  = kw.get("Re",  kw.get("Rey",   Rey))
+    gam  = kw.get("gam", kw.get("gamma", gam))
+    # Read scales
+    Aref = kw.get("Aref", kw.get("RefArea",   Aref))
+    Lref = kw.get("Lref", kw.get("RefLength", Lref))
+    bref = kw.get("bref", kw.get("RefSpan",   bref))
+    if bref is None: bref = Lref
     # Ensure list of components
     if type(comps).__name__ != "list": comps = [comps]
    # ------
@@ -163,148 +224,64 @@ def TriqFM(*a, **kw):
     if ftri is None:
         # Read the input TRIQ file
         triq = cape.tri.Triq(ftriq, c=fcfg)
+        # No component map
     else:
-        # Read the TRIQ file
+        # Read the unmapped TRIQ file
         triq = cape.tri.Triq(ftriq)
         # Read the TRI file
         tri = cape.tri.Tri(ftri, c=fcfg)
+        # Map the component IDs
+        compmap = triq.MapTriCompID(tri, v=True)
     # Initialize output
     FM = {}
    # ----------
    # Processing
    # ----------
-   
-        
-    
-
-# Main function
-def MapTriqTri(*a, **kw):
-    """Use a UH3D file to determine the family of each surface grid point
-    
-    :Call:
-        >>> MapTriqTri(fjson, **kw)
-        >>> MapTriqTri(**kw)
-    :Sequential Inputs:
-        *fjson*: :class:`str`
-            Name of JSON file from which to read settings
-    :Keyword Inputs:
-        *triq*: {``"grid.i.triq"``} | :class:`str`
-            Name of TRI/TRIQ file to read as input
-        *uh3d*, *tri*: :class:`str`
-            Name of input TRI/UH3D file to use for mapping components
-        *ext*: {``None``} | i.triq | i.tri | triq | tri | uh3d
-            File extension for outputs; by default copy from *triq*
-        *label*: {``None``} | :class:`str`
-            Infix to add to output file names
-        *fmt*: {``None``} | ascii | b4 | b8 | lb4 | lb8
-            File format; by default copy from *triq*
-        *c*: :class:`str`
-            (Optional) name of configuration file for labeling *tri* faces
-        *v*: ``True`` | {``False``}
-            Verbosity option
-    :Versions:
-        * 2017-02-10 ``@ddalle``: First version
-    """
-    # -----------------
-    # Sequential Inputs
-    # -----------------
-    # Get the JSON file name
-    if len(a) < 1:
-        # No JSON file
-        opts = {}
-    else:
-        # JSON file given
-        fjson = a[0]
-        # Read options
-        opts = loadJSONFile(fjson)
-    # Load settings from JSON file
-    ftriq = opts.get("triq", opts.get("TriqFile", "grid.i.triq"))
-    fuh3d = opts.get("uh3d", opts.get("tri", opts.get("TriFile")))
-    fcfg  = opts.get("c",    opts.get("ConfigFile"))
-    fout  = opts.get("o",    opts.get("OutputFile"))
-    comps = opts.get("comps", opts.get("Components"))
-    join  = opts.get("join",  opts.get("Join", False))
-    ext = opts.get("ext",   opts.get("Extension"))
-    lbl = opts.get("label", opts.get("Label", opts.get("Infix")))
-    fmt = opts.get("fmt",   opts.get("Format"))
-    v   = opts.get("v",     opts.get("Verbose", False))
-    # --------------
-    # Keyword Inputs
-    # --------------
-    # Check inputs that override sequential inputs
-    ftriq = kw.get('triq', ftriq)
-    fuh3d = kw.get('uh3d', fuh3d)
-    fcfg  = kw.get('c',    fcfg)
-    ext   = kw.get('ext',   ext)
-    lbl   = kw.get('label', lbl)
-    fmt   = kw.get('fmt',   fmt)
-    ext   = kw.get('ext',   ext)
-    join  = kw.get('join',  join)
-    # Apply JSON settings passed through JSON
-    kw.setdefault('join', join)
-    kw.setdefault('ext', ext)
-    kw.setdefault('v', v)
-    # Process components
-    kwcomps = kw.get("comps")
-    # Process command-line component list if necessary
-    if kwcomps is not None:
-        # Split by commas
-        comps = [comp.strip() for comp in kwcomps.split(",")]
-    # Set components
-    kw["comps"] = comps
-    # --------------
-    # Read Tri Files
-    # --------------
-    # Check for UH3D file
-    if fuh3d is None:
-        raise ValueError("No mapping triangulation specified")
-    # Read the files
-    triq = cape.tri.Tri(ftriq)
-    tric = cape.tri.Tri(fuh3d, c=fcfg)
-    # Process extension
-    if ext is None:
-        # Get parts of *triq* file name split by '.'
-        prts = ftriq.split(".")
-        # Process
-        if prts[-1] not in ['triq', 'tri']:
-            # Unusual file; write tri
-            ext = "i.tri"
-        elif len(prts) == 1:
-            # I guess the file name is either "tri" or "triq" to get here
-            ext = prts[-1]
-        elif prts[-2] == "i":
-            # Use the ".i" infix
-            ext = '.'.join(prts[-2:])
+    # Set inputs for TriqForces
+    kwfm = {
+        "m":    float(mach),
+        "Re":   float(Rey),
+        "gam":  float(gam),
+        "Aref": float(Aref),
+        "Lref": float(Lref),
+        "bref": float(bref),
+        "incm": incm
+    }
+    # Loop through components
+    for comp in comps:
+        # Process component
+        if (comp is None):
+            # Name of component
+            cname = "entire"
+            # Which components to process
+            if ftri is not None:
+                # Get the list of components from the mapping tri
+                comp = compmap.values()
+        elif type(comp).__name__ in ["list", "ndarray"]:
+            # Make up a name
+            cname = str(comp[0])
+            # Translate component numbers if needed
+            comp = [compmap.get(k, k) for k in comp]
         else:
-            # Use either "tri" or "triq" without the "i"
-            ext = prts[-1]
-    # -------
-    # Mapping
-    # -------
-    # Check for --join flag
-    if join:
-        # Check for an output name
-        if fout is None:
-            return ValueError("No file name for combined output file")
-        # Extract all components
-        triu = triq.ExtractMappedComps(tric, **kw)
-        # Write file
-        triu.Write(fout, **kw)
-    else:
-        # Extract individual components
-        tris = triq.ExtractMappedComps(tric, **kw)
-        # Loop through files
-        for comp in tris:
-            # Get output file name
-            if lbl is None:
-                # No infix
-                fo = '%s.%s' % (comp, ext)
-            else:
-                # Add infix to output file name
-                fo = '%s.%s.%s' % (comp, lbl, ext)
-            # Write the file
-            tris[comp].Write(fo, **kw)
-    
+            # use the name directly
+            cname = str(comp)
+            # If the component is an integer, make sure we use the map
+            comp = compmap.get(comp, comp)
+        # Read the forces and moments right from the TRIQ file
+        FMc = triq.GetTriForces(comp, **kwfm)
+        # Save it
+        FM[cname] = FMc
+   # ------
+   # Output
+   # ------
+    # Open the output file
+    f = open(fo, 'w')
+    # Dump the results
+    json.dump(FM, f, indent=1)
+    # Close the file
+    f.close()
+# end TriqFM
+        
 
 # Only process inputs if called as a script!
 if __name__ == "__main__":
@@ -313,8 +290,8 @@ if __name__ == "__main__":
     # Check for a help option.
     if kw.get('h',False) or kw.get('help',False):
         import cape.text
-        print(cape.text.markdown(__doc__)
+        print(cape.text.markdown(__doc__))
         sys.exit()
     # Run the main function.
-    MapTriqTri(*a, **kw)
+    TriqFM(*a, **kw)
     

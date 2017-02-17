@@ -3148,10 +3148,10 @@ class TriBase(object):
     
     # Map triangles to components based on another file
     def MapTriCompID(self, tri, **kw):
-        """Create a ``.ovfi`` file using the family names from a triangulation
+        """Map component IDs of a separate triangulation
         
         :Call:
-            >>> tri.MapTriOvfi(tric, **kw)
+            >>> tri.MapTriCompID(tric, **kw)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
@@ -3259,6 +3259,12 @@ class TriBase(object):
         except AttributeError:
             # Create a default *Conf* dictionary
             Conf = {}
+        # Initialize conf
+        try:
+            self.Conf
+        except AttributeError:
+            # Create default *Conf* dictionary
+            self.Conf = {}
         # Loop through faces in the target map
         for face in Conf:
             # Get component ID(s); guarantee list
@@ -3281,6 +3287,8 @@ class TriBase(object):
             else:
                 # Save list
                 self.Conf[face] = cmapd
+        # Output compmap
+        return compmap
         
     # Extract and write subtris after mapping
     def ExtractMappedComps(self, tric, comps=None, **kw):
@@ -5064,12 +5072,12 @@ class Triq(TriBase):
                 Annotated surface triangulation
             *comp*: {``None``} | :class:`str` | :class:`int` | :class:`list`
                 Subset component ID or name or list thereof
-            *m*, *momentum*: ``True`` | {``False``}
+            *incm*, *momentum*: ``True`` | {``False``}
                 Include momentum (flow-through) forces in total
-            *v*, *viscous*: {``True``} | ``False``
-                Include viscous forces in total
             *save*: ``True`` | {``False``}
                 Store vectors of forces for each triangle as attributes
+            *m*, *mach*: {``1.0``} | :class:`float`
+                Freestream Mach number
             *RefArea*, *Aref*: {``1.0``} | :class:`float`
                 Reference area
             *RefLength*, *Lref*: {``1.0``} | :class:`float`
@@ -5105,12 +5113,11 @@ class Triq(TriBase):
        # Inputs
        # ------
         # Which things to calculate
-        incm = kw.get("m", kw.get("momentum", False))
-        incv = kw.get("v", kw.get("viscous", True))
+        incm = kw.get("incm", kw.get("momentum", False))
         # Get Reynolds number per grid unit
         REY = kw.get("Re", kw.get("Rey", 1.0))
         # Freestream mach number
-        mach = kw.get("RefMach", kw.get("mach", 1.0))
+        mach = kw.get("RefMach", kw.get("mach", kw.get("m", 1.0)))
         # Freestream pressure and gamma
         gam  = kw.get("gamma", 1.4)
         pref = kw.get("p", 1.0/gam)
