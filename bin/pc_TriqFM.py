@@ -201,8 +201,10 @@ def TriqFM(*a, **kw):
     ftri  = kw.get("map",   ftri)
     fcfg  = kw.get("c",     fcfg)
     fo    = kw.get("o",     fo)
-    comps = kw.get("comps", comps)
     incm  = kw.get("incm",  kw.get("momentum", incm))
+    # Check for components
+    kwcomps = kw.get("comps", kw.get("comps", "")).split(",")
+    if len(kwcomps) > 0: comps = kwcomps
     # Default output file name
     if fo is None:
         fo = "%s.json" % (ftriq.rstrip(".i.triq").rstrip(".triq"))
