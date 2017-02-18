@@ -3885,7 +3885,42 @@ class TriBase(object):
         return T
     # Edit default tolerances
     GetNearestTri.__doc__=GetNearestTri.__doc__.replace("_ztol_",str(ztoldef))
+    
+    # Get tris by bbox
+    def FilterTrisBBox(self, bbox):
+        """Get the list of Tris in a specified rectangular prism
         
+        :Call:
+            >>> K = tri.FilterTrisBBox(bbox)
+            >>> K = tri.FilterTrisBBox([xmin, xmax, ymin, ymax, zmin, zmax])
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *bbox*: :class:`list` | :class:`np.ndarray`
+                List of minimum and maximum coordinates
+        :Outputs:
+            *K*: :class:`np.ndarray` (:class:`int`)
+                List of 1-based tri numbers that intersect BBox
+        :Versions:
+            * 2017-02-17 ``@ddalle``: First version
+        """
+        # Compute vertices
+        x = self.Nodes[self.Tris-1,0]
+        y = self.Nodes[self.Tris-1,1]
+        z = self.Nodes[self.Tris-1,2]
+        # Unpack inputs
+        xmin, xmax, ymin, ymax, zmin, zmax = bbox
+        # Initialize array
+        K = (self.CompID > -1)
+        # Go through each coordinate
+        K = np.logical_and(K, np.min(x,axis=1) <= xmax)
+        K = np.logical_and(K, np.max(x,axis=1) >= xmin)
+        K = np.logical_and(K, np.min(y,axis=1) <= ymax)
+        K = np.logical_and(K, np.max(y,axis=1) >= ymin)
+        K = np.logical_and(K, np.min(z,axis=1) <= zmax)
+        K = np.logical_and(K, np.max(z,axis=1) >= zmin)
+        # Output
+        return 1 + np.where(K)[0]
    # }
     
    # +++++
