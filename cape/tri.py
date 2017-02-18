@@ -3182,6 +3182,10 @@ class TriBase(object):
         # Put together absolute and relative tols
         tol  = atol   + rtol*L
         ntol = antol  + rntol*L
+        # Bet bounding box from *tri*
+        bbox = tri.GetCompBBox(pad=tol)
+        # Filter the triangles that have a chance of intersecting
+        K = self.FilterTrisBBox(bbox)
         # Verbose flag
         v = kw.get("v", False)
         # Ensure the centers are present
@@ -3192,10 +3196,12 @@ class TriBase(object):
         compmap = {}
         facemap = {}
         # Loop through columns
-        for k in range(self.nTri):
+        for i in range(len(K)):
+            # Get triangle number
+            k = K[i]
             # Status update if verbose
-            if v and (k % (1000*v) == 0):
-                print("  kTri = %i/%i" % (k+1,self.nTri))
+            if v and ((i+1) % (1000*v) == 0):
+                print("  Mapping triangle %i/%i" % (i+1,len(K)))
             # Perform search
             T = tri.GetNearestTri(self.Centers[k,:])
             # Get components
