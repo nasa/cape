@@ -1441,7 +1441,7 @@ class Cntl(object):
                 Instance of control class containing relevant parameters
             *f*: :class:`file`
                 Open file handle
-            *i*: {``None``} | ``:class:`int`
+            *i*: {``None``} | :class:`int`
                 Case index (ignore if ``None``); used for PBS job name
             *j*: :class:`int`
                 Phase number
