@@ -103,3 +103,9 @@ solve this problem.
                 "XAxis": "mach"
             }
         }
+        
+The *XAxis* parameter is used to determine which variable is the independent
+variable of the sweep.  When plots of forces and moment sweeps are created,
+this will be the variable that's the *x*-axis.
+
+

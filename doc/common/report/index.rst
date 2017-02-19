@@ -36,5 +36,5 @@ case in the sweep.
     :maxdepth: 2
 
     main
-
+    figure
 

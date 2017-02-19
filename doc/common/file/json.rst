@@ -1,8 +1,8 @@
 
 .. _json-syntax:
 
-JSON Files for pyCart
-=====================
+Syntax for pyCart JSON Files
+============================
 
 The various pyCart utilities and modules extensively utilize the 
 `JSON <http://www.json.org>`_ format, which is a simple file type that is
@@ -43,7 +43,10 @@ file.
             }
         }
         
-This would be interpreted in Python as the following :class:`dict`.
+This would be interpreted in Python as the following :class:`dict`.  Actually
+the strings are interpreted as class :class:`unicode`, so for example the
+configuration file here would be ``u"Config.xml"``, but the ``u`` markers are
+omitted here.
 
     .. code-block:: python
     
@@ -64,8 +67,8 @@ This would be interpreted in Python as the following :class:`dict`.
 
 There are a few conversions between Python and JSON syntax:
 
-    * Boolean parameters are not capitalized; ``true`` -> ``True``, ``false`` ->
-      ``False``
+    * Boolean parameters are not capitalized; ``true`` -> ``True``,
+     ``false`` -> ``False``
     * None-type variable has a different name; ``null`` -> ``None``
     * Strings must use double quotes
     * The key names, i.e. the things to the left of the ``:``, must be strings
