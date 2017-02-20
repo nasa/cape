@@ -37,4 +37,5 @@ case in the sweep.
 
     main
     figure
+    tecplot
 
