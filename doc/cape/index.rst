@@ -11,5 +11,4 @@ multiple interfaces including :mod:`pyCart`, :mod:`pyOver`, and :mod:`pyFun`.
 .. toctree::
     :maxdepth: 2
 
-    freestream
     cape/index
