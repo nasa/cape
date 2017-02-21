@@ -1,7 +1,7 @@
 """
-*****************
-The pyCart module
-*****************
+*****************************
+:mod:`pyCart`: API for Cart3D
+*****************************
 
 The :mod:`pyCart` module contains the top-level interface for Cart3D setup.  It
 loads the most important methods from the various submodules so that they are
@@ -22,8 +22,8 @@ you intended.)
         import pyCart
         cart3d = pyCart.Cart3d()
         
-A simpler example is to simply read a `.tri` file, rotate it about the *x*-axis
-by 20 degrees, and write it to a new file.
+A simpler example is to simply read a ``.tri`` file, rotate it about the 
+*x*-axis by 20 degrees, and write it to a new file.
 
     .. code-block:: python
     
@@ -36,8 +36,13 @@ by 20 degrees, and write it to a new file.
         # Write it to a new file.
         tri.Write('bJet_rotated.i.tri')
         
-Most of the pyCart submodules essentially contain a single class definition, and
-that class is accessible directly from the :mod:`pyCart` module.
+Most of the pyCart submodules essentially contain a one or more class
+definitions, and some of these classes are accessible directly from
+:mod:`pyCart`.
+
+The module also contains the :mod:`pyCart.bin` module, which contains functions
+that run the main Cart3D binaries: ``autoInputs``, ``cubes``, ``mgPrep``, and
+``flowCart``.
 
 The following classes are imported in this module, so that code like
 ``pyCart.Tri`` will work (although ``pyCart.tri.Tri``) will also work.
@@ -48,6 +53,8 @@ The following classes are imported in this module, so that code like
     * :class:`pyCart.inputCntl.InputCntl`
     * :class:`pyCart.aeroCsh.AeroCsh`
     * :class:`pyCart.preSpecCntl.PreSpecCntl`
+    * :class:`pyCart.dataBook.CaseResid`
+    * :class:`pyCart.dataBook.CaseFM`
 """
 
 # System

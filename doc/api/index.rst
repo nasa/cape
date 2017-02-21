@@ -1,8 +1,8 @@
 .. Documentation for the various Python modules
 
-
+****************************************************
 Introduction to pyCart Application Program Interface
-====================================================
+****************************************************
 
 The various methods used by pyCart, pyFun, and pyOver are based on a set of
 Python modules with a few capabilities written in C (with a full Python/C
