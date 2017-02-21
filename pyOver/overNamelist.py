@@ -293,7 +293,7 @@ class OverNamelist(cape.namelist2.Namelist2):
             *qin*, *i*: {``"q.p3d"``} | :class:`str`
                 Name of the input OVERFLOW solution file
             *qout*, *o*: {``"q.save"``} | :class:`str`
-                
+                Name of output OVERFLOW file for second line of "splitmq.i"
             *wall*: {``True``} | ``False``
                 Only include walls if ``True``; else include thrust BCs
         :Versions:
@@ -310,7 +310,7 @@ class OverNamelist(cape.namelist2.Namelist2):
         # Valid boundary condition types
         wtyp = range(1,10)
         # Check for other surface BCs such as thrust BCs
-        if wall == False:
+        if kw.get('wall') == False:
             wtyp += [42, 153]
         # Loop through grids
         gn = 0

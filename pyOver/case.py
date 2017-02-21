@@ -277,7 +277,7 @@ def GetPhaseNumber(rc):
         # Output file glob
         fglob = '%s.%02i.[0-9]*' % (rc.get_Prefix(i), i+1)
         # Check for output files.
-        if len(glob.glob(fglob)) >= 0:
+        if len(glob.glob(fglob)) > 0:
             # This run has an output file
             JRun.append(j)
         # Check the iteration number.
