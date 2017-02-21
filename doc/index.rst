@@ -166,7 +166,7 @@ defined.  In general the required files are the following.
 
 .. only:: html
 
-   **API**
+   **API Documenattion**
 
     .. toctree::
         :maxdepth: 2

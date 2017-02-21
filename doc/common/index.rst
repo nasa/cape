@@ -31,6 +31,7 @@ that serve more specific purposes such as converting file formats.
     
     command-line
     file/json
+    file/matrix
     freestream
     report/index
     json/index
