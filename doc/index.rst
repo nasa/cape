@@ -158,11 +158,22 @@ defined.  In general the required files are the following.
     install
     moreinfo/index
     common/index
-    cape/index
     pycart/index
     pyfun/index
     pyover/index
     script/index
+
+
+.. only:: html
+
+   **API**
+
+    .. toctree::
+        :maxdepth: 2
+    
+        api/index
+        api/cape/index
+        api/pyCart/index
     
 
 Indices and tables
