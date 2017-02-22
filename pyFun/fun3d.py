@@ -567,19 +567,22 @@ class Fun3d(Cntl):
         return q
         
     # Check mesh files
-    def CheckMeshFiles(self):
+    def CheckMeshFiles(self, v=False):
         """Check for the mesh files in the present folder
         
         :Call:
-            >>> q = fun3d.CheckMeshFiles()
+            >>> q = fun3d.CheckMeshFiles(v=False)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of control class containing relevant parameters
+            *v*: ``True`` | {``False``}
+                Verbose flag
         :Outputs:
             *q*: :class:`bool`
                 Whether or not the present folder has the required mesh files
         :Versions:
             * 2016-04-11 ``@ddalle``: First version
+            * 2017-02-22 ``@ddalle``: Added verbose option
         """
         # Initialize status
         q = True
@@ -589,6 +592,8 @@ class Fun3d(Cntl):
         for f in fmesh:
             # Check for the file
             q = q and os.path.isfile(f)
+            # Verbose option
+            if v and not q: print("    Missing mesh file '%s'" % fmesh)
         # If running AFLR3, check for tri file
         if q and self.opts.get_aflr3():
             # Project name
@@ -613,9 +618,18 @@ class Fun3d(Cntl):
                 # Check for both required inputs
                 q = os.path.isfile('%s.tri' % fproj)
                 q = q and os.path.isfile('%s.c.tri' % fproj)
+                # Verbose flag
+                if v and not q:
+                    print("    Missing TRI file for INTERSECT: '%s' or '%s'"
+                        % ('%s.tri'%fproj, '%s.c.tri'%fproj))
             else:
                 # No surface or mesh files
                 q = False
+                # Verbosity option
+                if v:
+                    print("    Missing mesh file '%s.{%s,%s,%s,%s,%s}'"
+                        % (fproj,"ugrid","b8.ugrid","lb8.ugrid","r8.ugrid",
+                            "surf"))
         # Output
         return q
         
@@ -754,18 +768,23 @@ class Fun3d(Cntl):
         
         
     # Check if cases with zero iterations are not yet setup to run
-    def CheckNone(self):
+    def CheckNone(self, v=False):
         """Check if the current folder has the necessary files to run
         
         :Call:
-            >>> q = fun3d.CheckNone()
+            >>> q = fun3d.CheckNone(v=False)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of control class containing relevant parameters
+            *v*: ``True`` | {``False``}
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether or not the case is **not** set up to run
         :Versions:
             * 2015-10-19 ``@ddalle``: First version
             * 2016-04-11 ``@ddalle``: Checking for AFLR3 input files, too
             * 2016-04-29 ``@ddalle``: Simpler version that handles ``Flow/``
+            * 2017-02-22 ``@ddalle``: Added verbose option
         """
         # Settings file.
         if not os.path.isfile('case.json'): return True
@@ -789,9 +808,10 @@ class Fun3d(Cntl):
         # Namelist file
         if not os.path.isfile('fun3d.00.nml'):
             if qdual: os.chdir('..')
+            if v: print("    Missing namelist file 'fun3d.00.nml'")
             return True
         # Check mesh files
-        q = self.CheckMeshFiles()
+        q = self.CheckMeshFiles(v=v)
         # Go back if appropriate
         if qdual: os.chdir('..')
         # Output

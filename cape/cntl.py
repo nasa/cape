@@ -660,6 +660,8 @@ class Cntl(object):
             # Case not ready
             print("    Attempted to start case '%s'." % frun)
             print("    However, case failed initial checks.")
+            # Check again with verbose option
+            self.CheckCase(i, v=True)
             return
         elif self.CheckRunning(i):
             # Case already running!
@@ -852,7 +854,7 @@ class Cntl(object):
         return sts
         
     # Check a case.
-    def CheckCase(self, i):
+    def CheckCase(self, i, v=False):
         """Check current status of run *i*
         
         Because the file structure is different for each solver, some of this
@@ -861,19 +863,22 @@ class Cntl(object):
         :func:`cape.cntl.Cntl.CheckNone`.
         
         :Call:
-            >>> n = cntl.CheckCase(i)
+            >>> n = cntl.CheckCase(i, v=False)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Index of the case to check (0-based)
+            *v*: ``True`` | {``False``}
+                Verbose flag; prints messages if *n* is ``None``
         :Outputs:
-            *n*: :class:`int` or ``None``
+            *n*: :class:`int` | ``None``
                 Number of completed iterations or ``None`` if not set up
         :Versions:
             * 2014-09-27 ``@ddalle``: First version
             * 2015-09-27 ``@ddalle``: Generic version
             * 2015-10-14 ``@ddalle``: Removed dependence on :mod:`case`
+            * 2017-02-22 ``@ddalle``: Added verbose flag
         """
          # Check input.
         if type(i).__name__ not in ["int", "int64", "int32"]:
@@ -888,7 +893,10 @@ class Cntl(object):
         # Initialize iteration number.
         n = 0
         # Check if the folder exists.
-        if (not os.path.isdir(frun)): n = None
+        if (not os.path.isdir(frun)):
+            # Verbosity option
+            if v: print("    Folder '%s' does not exist" % frun)
+            n = None
         # Check that test.
         if n is not None:
             # Go to the group folder.
@@ -896,7 +904,7 @@ class Cntl(object):
             # Check the history iteration
             n = self.CaseGetCurrentIter()
         # If zero, check if the required files are set up.
-        if (n == 0) and self.CheckNone(): n = None
+        if (n == 0) and self.CheckNone(v): n = None
         # Return to original folder.
         os.chdir(fpwd)
         # Output.
@@ -926,22 +934,25 @@ class Cntl(object):
         
         
     # Check if cases with zero iterations are not yet setup to run
-    def CheckNone(self):
+    def CheckNone(self, v=False):
         """Check if the present working directory has the necessary files to run
         
         This function needs to be customized for each CFD solver so that it
         checks for the appropriate files.
         
         :Call:
-            >>> q = cntl.CheckNone()
+            >>> q = cntl.CheckNone(v=False)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Cape control interface
+            *v*: ``True`` | {``False``}
+                Verbose flag; prints message if *q* is ``True``
         :Outputs:
-            *q*: ``False``
+            *q*: ```True`` | `False``
                 Whether or not case is missing files
         :Versions:
             * 2015-09-27 ``@ddalle``: First version
+            * 2017-02-22 ``@ddalle``: Added verbose flag
         """
         return False 
     

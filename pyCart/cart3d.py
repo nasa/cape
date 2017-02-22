@@ -390,25 +390,33 @@ class Cart3d(Cntl):
         return q
         
     # Check if cases with zero iterations are not yet setup to run
-    def CheckNone(self):
+    def CheckNone(self, v=False):
         """Check if the current folder has the necessary files to run
         
         :Call:
-            >>> q = cart3d.CheckNone()
+            >>> q = cart3d.CheckNone(v=False)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
+            *v*: ``True`` | {``False``}
+                Verbose flag; prints message if *q* is ``True``
         :Versions:
             * 2015-09-27 ``@ddalle``: First version
+            * 2017-02-22 ``@ddalle``: Added verbose flag
         """
         # Check for the surface file.
         if not (os.path.isfile('Components.i.tri')
                 or os.path.isfile('Components.tri')):
-            n = None
+            if v: print("    Missing tri file")
+            return True
         # Input file.
-        if not os.path.isfile('input.00.cntl'): return True
+        if not os.path.isfile('input.00.cntl'):
+            if v: print("    Missing file 'input.00.cntl'")
+            return True
         # Settings file.
-        if not os.path.isfile('case.json'): return True
+        if not os.path.isfile('case.json'):
+            if v: print("    Missing file 'case.json'")
+            return True
         # Read the settings.
         rc = case.ReadCaseJSON()
         # Check for which mesh file to look for.
@@ -420,10 +428,16 @@ class Cart3d(Cntl):
             pass
         elif self.opts.get_mg() > 0:
             # Look for the multigrid mesh
-            if not os.path.isfile('Mesh.mg.c3d'): return True
+            if not os.path.isfile('Mesh.mg.c3d'):
+                # Check verbose flag
+                if v: print("    Missing file 'Mesh.mg.c3d'")
+                return True
         else:
             # Look for the original mesh
-            if not os.path.isfile('Mesh.c3d'): return True
+            if not os.path.isfile('Mesh.c3d'):
+                # Check verbose flag
+                if v: print("    Missing file 'Mesh.c3d'")
+                return True
         # Apparently no issues.
         return False
    
