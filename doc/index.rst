@@ -176,9 +176,6 @@ defined.  In general the required files are the following.
         api/pyCart/index
     
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
+    * :ref:`genindex`
+    * :ref:`modindex`
 

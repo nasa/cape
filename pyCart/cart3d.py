@@ -1,11 +1,44 @@
 """
-Cart3D setup module: :mod:`pyCart.cart3d`
-=========================================
+:mod:`pyCart.cart3d`: Cart3D Executive Module
+=============================================
 
 This module provides tools to quickly setup basic Cart3D runs from a small set
 of input files.  Alternatively, the methods and classes can be used to help
 setup a problem that is too complex or customized to conform to standardized
-script libraries.
+script libraries.  A collection of cases combined into a run matrix can be
+loaded using the following commands.
+
+    .. code-block:: pycon
+    
+        >>> import pyCart.cart3d
+        >>> cart3d = pyCart.cart3d.Cart3d("pyCart.json")
+        >>> cart3d
+        <pyCart.Cart3d(nCase=4, tri='bullet.tri')>
+        >>> cart3d.x.GetFullFolderNames(0)
+        'poweroff/m1.5a0.0b0.0'
+        
+        
+        
+An instance of this :class:`pyCart.cart3d.Cart3d` class has many methods,
+including those from attributes of the Cart3d class, which include the run
+matrix (``cart3d.x``), the options interface (``cart3d.opts``), and optionally
+the data book (``cart3d.DataBook``), the triangulation (``cart3d.tri``), and
+the appropriate input files (such as ``cart3d.InputCntl``).
+
+    ====================   =============================================
+    Attribute              Class
+    ====================   =============================================
+    *cart3d.x*             :class:`pyCart.trajectory.Trajectory`
+    *cart3d.opts*          :class:`pyCart.options.Options`
+    *cart3d.tri*           :class:`pyCart.tri.Tri`
+    *cart3d.DataBook*      :class:`pyCart.dataBook.DataBook`
+    *cart3d.InputCntl*     :class:`pyCart.inputCntl.InputCntl`
+    *cart3d.AeroCsh*       :class:`pyCart.aeroCsh.AeroCsh`
+    ====================   =============================================
+
+Finally, the :class:`pyCart.cart3d.Cart3d` class is subclassed from the
+:class:`cape.cntl.Cntl` class, so any methods available to the CAPE class are
+also available here.
 """
 
 # Basic numerics
@@ -128,9 +161,9 @@ class Cart3d(Cntl):
         * 2014-06-30 ``@ddalle``  : Reduced number of data members
         * 2014-07-27 ``@ddalle``  : `cart3d.Trajectory` --> `cart3d.x`
     """
-    # =============
-    # Configuration
-    # =============
+  # =============
+  # Configuration
+  # =============
   # <
     # Initialization method
     def __init__(self, fname="pyCart.json"):
@@ -164,9 +197,9 @@ class Cart3d(Cntl):
         
   # >
     
-    # ==========
-    # File Input
-    # ==========
+  # ==========
+  # File Input
+  # ==========
   # <
     # Function to read the databook.
     def ReadDataBook(self):
@@ -196,9 +229,9 @@ class Cart3d(Cntl):
         
   # >
     
-    # =============
-    # Run Interface
-    # =============
+  # =============
+  # Run Interface
+  # =============
   # <
     # Call the correct :mod:`case` module
     def CaseStartCase(self):
@@ -222,9 +255,9 @@ class Cart3d(Cntl):
         
   # >
     
-    # ===========
-    # Case Status
-    # ===========
+  # ===========
+  # Case Status
+  # ===========
   # <
     # Get last iter
     def GetLastIter(self, i):
@@ -396,9 +429,9 @@ class Cart3d(Cntl):
    
   # >
     
-    # =========
-    # CPU Stats
-    # =========
+  # =========
+  # CPU Stats
+  # =========
   # <
     # Get total CPU hours (actually core hours)
     def GetCPUTime(self, i, running=False):
@@ -428,15 +461,15 @@ class Cart3d(Cntl):
         
   # >
     
-    # ================
-    # Case Preparation
-    # ================
+  # ================
+  # Case Preparation
+  # ================
   # <
     
-    # +++++++
-    # General
-    # +++++++
-   # <
+   # +++++++
+   # General
+   # +++++++
+   # [
     # Prepare a case.
     def PrepareCase(self, i):
         """Prepare case for running if necessary
@@ -523,12 +556,12 @@ class Cart3d(Cntl):
         # Return to original location.
         os.chdir(fpwd)
   
-   # >
+   # ]
    
-    # ++++
-    # Mesh
-    # ++++
-   # <
+   # ++++
+   # Mesh
+   # ++++
+   # [
     # Prepare the mesh for case i (if necessary)
     def PrepareMesh(self, i):
         """Prepare the mesh for case *i* if necessary.
@@ -646,12 +679,12 @@ class Cart3d(Cntl):
             case.CaseCubes(rc, j=0)
         # Return to original folder.
         os.chdir(fpwd)
-   # >
+   # ]
     
-    # ++++++++++++++++
-    # preSpec.c3d.cntl
-    # ++++++++++++++++
-   # <
+   # ++++++++++++++++
+   # preSpec.c3d.cntl
+   # ++++++++++++++++
+   # [
     # Function to prepare "input.cntl" files
     def PreparePreSpecCntl(self):
         """
@@ -694,12 +727,12 @@ class Cart3d(Cntl):
             self.PreSpecCntl.AddXLev(n, compID)
         # Write the file.
         self.PreSpecCntl.Write('preSpec.c3d.cntl')
-   # >
+   # ]
     
-    # ++++++++++
-    # input.cntl
-    # ++++++++++
-   # <
+   # ++++++++++
+   # input.cntl
+   # ++++++++++
+   # [
     # Function to read the "input.cntl" file
     def ReadInputCntl(self):
         """Read the :file:`input.cntl` file
@@ -835,12 +868,12 @@ class Cart3d(Cntl):
             self.InputCntl.Write(fout)
         # Return to original path.
         os.chdir(fpwd)
-   # >
+   # ]
     
-    # ++++++
-    # Thrust
-    # ++++++
-   # <
+   # ++++++
+   # Thrust
+   # ++++++
+   # [
     # Function to get surface BC stuff
     def GetSurfBCState(self, key, i):
         """Get surface boundary condition state
@@ -1017,12 +1050,12 @@ class Cart3d(Cntl):
                 else:
                     # Two-dimensional grid
                     self.InputCntl.SetSurfBC(ci, [rho, u, v, p])
-   # >
+   # ]
     
-    # ++++++++
-    # aero.csh
-    # ++++++++
-   # <
+   # ++++++++
+   # aero.csh
+   # ++++++++
+   # [
     # Function re read "aero.csh" files
     def ReadAeroCsh(self):
         """Read the :file:`aero.csh` file
@@ -1065,7 +1098,7 @@ class Cart3d(Cntl):
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
             *i*: :class:`int`
-                Run idnex
+                Run index
         :Versions:
             * 2014-06-10 ``@ddalle``: First version
             * 2014-10-03 ``@ddalle``: Version 2.0
@@ -1096,13 +1129,13 @@ class Cart3d(Cntl):
         os.chdir(fpwd)
         # Done
         return None
-   # >
+   # ]
   # >
     
-    # ========
-    # PBS Jobs
-    # ========
-   # <
+  # ========
+  # PBS Jobs
+  # ========
+  # <
     # Write the PBS script.
     def WritePBS(self, i):
         """Write the PBS script for a given case
@@ -1164,11 +1197,11 @@ class Cart3d(Cntl):
         # Return.
         os.chdir(fpwd)
         
-   # >
+  # >
     
-    # ============
-    # Case Options
-    # ============
+  # ============
+  # Case Options
+  # ============
   # <
     # Function to apply settings from a specific JSON file
     def ApplyFlowCartSettings(self, **kw):
@@ -1197,10 +1230,10 @@ class Cart3d(Cntl):
     
   # >
     
-    # ========
-    # Geometry
-    # ========
-   # <
+  # ========
+  # Geometry
+  # ========
+  # <
     # Function to create a PNG for the 3-view of each component.
     def ExplodeTri(self):
         """Create a 3-view of each named or numbered component using TecPlot
@@ -1238,11 +1271,11 @@ class Cart3d(Cntl):
         # Go to original location.
         os.chdir(fpwd)
     
-   # >
+  # >
     
-    # =================
-    # DataBook Updaters
-    # =================
+  # =================
+  # DataBook Updaters
+  # =================
   # <
     # Function to update point sensor data book
     def UpdatePointSensor(self, **kw):
@@ -1343,9 +1376,9 @@ class Cart3d(Cntl):
     
   # >
         
-    # =========
-    # Archiving
-    # =========
+  # =========
+  # Archiving
+  # =========
   # <
     # Function to unarchive 'adaptXX/' folders (except for newest)
     def UntarAdapt(self, **kw):
@@ -1526,7 +1559,6 @@ class Cart3d(Cntl):
         os.chdir(fpwd)
     
   # >
-        
 # class Cart3D
 
 

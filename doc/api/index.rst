@@ -97,6 +97,7 @@ module.
         - :mod:`pyCart.case`
         - :mod:`pyFun.case`
         - :mod:`pyOver.case`
+    * :mod:`cape.argread`
     * :mod:`cape.util`
     * :mod:`cape.geom`
     * :mod:`cape.convert`
