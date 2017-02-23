@@ -483,7 +483,7 @@ def GetPhaseNumber(rc):
                 fadpt = os.path.join('Flow', 'dual.%02i.out' % i)
             else:
                 # Purely adaptive; located in this folder
-                fadpt = 'dual.%02i.out' % i
+                fadpt = 'adapt.%02i.out' % i
             # Check for the dual output file
             if not os.path.isfile(fadpt):
                 return i
