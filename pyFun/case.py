@@ -639,6 +639,7 @@ def GetHistoryIter():
         * 2015-10-20 ``@ddalle``: First version
         * 2016-04-28 ``@ddalle``: Accounting for ``Flow/`` folder
         * 2016-10-29 ``@ddalle``: Handling Fun3D's iteration reset
+        * 2017-02-23 ``@ddalle``: Handling for adaptive
     """
     # Read JSON settings
     rc = ReadCaseJSON()
@@ -659,10 +660,10 @@ def GetHistoryIter():
     # Check for "pyfun00", "pyfun01", etc.
     if qdual or qadpt:
         # Check for sequence of file names
-        fnames = glob.glob(rname[:-2] + '??_hist.dat')
-        # Sort descending
+        fnames = glob.glob(rname[:-2] + '??_hist.[0-9][0-9].dat')
         fnames.sort()
-        fnames.reverse()
+        # Single history file name
+        fnames.append("%s_hist.dat" % rname)
     else:
         # Check for historical files
         fnames = glob.glob("%s_hist.[0-9][0-9].dat" % rname)
@@ -681,10 +682,13 @@ def GetHistoryIter():
             if n is None:
                 # First find
                 n = ni
-            else:
-                # Add this history to previous history
+            elif len(fname.split('.')) == 3:
+                # Add this history to previous history [restarted iter count]
                 nh = n
                 n += ni
+            else:
+                # New file for adaptive but not cumulative
+                n = nh + ni
     # No history to read.
     if qdual: os.chdir('..')
     # Output
