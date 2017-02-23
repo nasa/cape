@@ -31,12 +31,22 @@ from shutil import copy
 from collections import OrderedDict
 
 # Utilities
-from .util import GetTecplotCommand, TecFolder, ParaviewFolder
+from .util import GetTecplotCommand, TecFolder, ParaviewFolder, stackcol
 from .config import Config, ConfigJSON
 
-# Input/output module
+# Input/output and geometry modules
 from . import io
 from . import geom
+from . import volcomp
+
+# Default tolerances for mapping triangulations
+atoldef = 1e-2
+rtoldef = 1e-4
+ctoldef = 1e-3
+ztoldef = 5e-2
+antoldef = 2e-2
+rntoldef = 1e-4
+cntoldef = 1e-3
 
 # Attempt to load the compiled helper module.
 try:
@@ -176,9 +186,9 @@ class TriBase(object):
         * 2014-06-02 ``@ddalle``: Added UH3D reading capability
         * 2015-11-19 ``@ddalle``: Added AFLR3 surface capability
     """
-    # ======
-    # Config
-    # ======
+  # ======
+  # Config
+  # ======
   # <
     # Initialization method
     def __init__(self, fname=None, c=None,
@@ -192,6 +202,8 @@ class TriBase(object):
         #  2014-06-02 @ddalle: Added UH3D reading capability
         #  2015-11-19 @ddalle: Added XML reading and AFLR3 surfs
         
+        # Save file name         
+        self.fname = fname
         # Check if file is specified.
         if tri is not None:
             # Read from file.
@@ -400,14 +412,14 @@ class TriBase(object):
     
   # >
     
-    # ===========
-    # TRI Readers
-    # ===========
+  # ===========
+  # TRI Readers
+  # ===========
   # <
   
-    # ++++++++++++++++
-    # Full TRI Readers
-    # ++++++++++++++++
+   # ++++++++++++++++
+   # Full TRI Readers
+   # ++++++++++++++++
    # {
     # Function to read a .tri file
     def Read(self, fname, n=1):
@@ -637,9 +649,9 @@ class TriBase(object):
         self.n = 1
    # }
    
-    # +++++++++++++
-    # TRI File Type
-    # +++++++++++++
+   # +++++++++++++
+   # TRI File Type
+   # +++++++++++++
    # {
     # Get byte order
     def GetTriFileType(self, fname):
@@ -742,9 +754,9 @@ class TriBase(object):
                 + "  ASCII")
    # }
    
-    # ++++++++++++
-    # Nodes (Slow)
-    # ++++++++++++
+   # ++++++++++++
+   # Nodes (Slow)
+   # ++++++++++++
    # {
     # Function to read node coordinates from .tri file
     def ReadNodes(self, f, nNode):
@@ -817,9 +829,9 @@ class TriBase(object):
         self.bldel = Nodes[:,4]
    # }
     
-    # +++++++++++
-    # Tris (Slow)
-    # +++++++++++
+   # +++++++++++
+   # Tris (Slow)
+   # +++++++++++
    # {
     # Function to read triangle indices from .triq+ files
     def ReadTris(self, f, nTri):
@@ -892,9 +904,9 @@ class TriBase(object):
         
    # }
     
-    # ++++++++++++
-    # Quads (Slow)
-    # ++++++++++++
+   # ++++++++++++
+   # Quads (Slow)
+   # ++++++++++++
    # {
     # Function to read quads from .surf file
     def ReadQuadsSurf(self, f, nQuad):
@@ -941,9 +953,9 @@ class TriBase(object):
         self.BCsQuad = Quads[:,6]
    # }
    
-    # ++++++++
-    # Comp IDs
-    # ++++++++
+   # ++++++++
+   # Comp IDs
+   # ++++++++
    # {
     # Function to read the component identifiers
     def ReadCompID(self, f):
@@ -971,9 +983,9 @@ class TriBase(object):
             self.CompID = np.fromfile(f, dtype=int, count=self.nTri, sep=" ")
    # }
     
-    # +++++++++
-    # State (Q)
-    # +++++++++
+   # +++++++++
+   # State (Q)
+   # +++++++++
    # {
     # Function to read node coordinates from .triq+ file
     def ReadQ(self, f, nNode, nq):
@@ -1007,14 +1019,14 @@ class TriBase(object):
     
   # >
     
-    # ===========
-    # TRI Writers
-    # ===========
+  # ===========
+  # TRI Writers
+  # ===========
   # <
     
-    # ++++++++++++++++
-    # Full TRI Writers
-    # ++++++++++++++++
+   # ++++++++++++++++
+   # Full TRI Writers
+   # ++++++++++++++++
    # {
     # Fall-through function to write the triangulation to file.
     def Write(self, fname='Components.i.tri', **kw):
@@ -1031,6 +1043,8 @@ class TriBase(object):
                 Whether or not
             *ascii*: ``True`` | {``False``}
                 Whether or not to use ASCII (text file)
+            *fmt*: {``None``} | ``"ascii"`` | ``"b4"`` | ``"lb4"``
+                Format specified by text
             *b4*: ``True`` | {``False``}
                 Whether or not to use single-precision big-endian
             *lb4*: ``True`` | {``False``}
@@ -1116,6 +1130,8 @@ class TriBase(object):
         :Call:
             >>> ext = tri.GetOutputFileType(**kw)
         :Inputs:
+            *fmt*: {``None``} | ``"ascii"`` | ``"b4"`` | ``"lb4"``
+                Format specified by text
             *ascii*: ``True`` | {``False``}
                 Whether or not to use ASCII (text file)
             *b4*: ``True`` | {``False``}
@@ -1146,6 +1162,10 @@ class TriBase(object):
         :Outputs:
             * 2016-10-02 ``@ddalle``: First version
         """
+        # Check for format flag
+        if 'fmt' in kw:
+            # Return lower format
+            return kw["fmt"].lower()
         # Check for easy cases
         if kw.get('ascii'):
             # ASCII file
@@ -1215,9 +1235,9 @@ class TriBase(object):
             
    # }
     
-    # +++++++++++++++++
-    # ASCII TRI Writers
-    # +++++++++++++++++
+   # +++++++++++++++++
+   # ASCII TRI Writers
+   # +++++++++++++++++
    # {
     # Write ASCII with fall-through to Python method
     def WriteASCII(self, fname='Components.i.tri'):
@@ -1317,9 +1337,9 @@ class TriBase(object):
         
    # }
     
-    # ++++++++++++++
-    # Binary Writers
-    # ++++++++++++++
+   # ++++++++++++++
+   # Binary Writers
+   # ++++++++++++++
    # {
     # Write TRI file as lb4 file
     def WriteTri_lb4(self, fname):
@@ -1640,9 +1660,9 @@ class TriBase(object):
    # }
   # >
     
-    # =============
-    # Other Readers
-    # =============
+  # =============
+  # Other Readers
+  # =============
   # <
     # Read from a .uh3d file.
     def ReadUH3D(self, fname):
@@ -1878,15 +1898,15 @@ class TriBase(object):
         f.close()
   # >
     
-    # =============
-    # Other Writers
-    # =============
+  # =============
+  # Other Writers
+  # =============
   # <
     
-    # ++++
-    # TRIQ
-    # ++++
-   # <
+   # ++++
+   # TRIQ
+   # ++++
+   # {
     # Fall-through function to write the triangulation to file.
     def WriteTriq(self, fname='Components.i.triq', v=True, **kw):
         """Write q-triangulation to file using fastest method available
@@ -1978,9 +1998,9 @@ class TriBase(object):
             os.rename("Components.pyCart.tri", fname)
    # >
     
-    # ++++++++++++
-    # UH3D Writers
-    # ++++++++++++
+   # ++++++++++++
+   # UH3D Writers
+   # ++++++++++++
    # {
     # Function to write a UH3D file
     def WriteUH3D(self, fname='Components.i.uh3d'):
@@ -2074,9 +2094,9 @@ class TriBase(object):
         
    # }
     
-    # +++++++++++
-    # STL Writers
-    # +++++++++++
+   # +++++++++++
+   # STL Writers
+   # +++++++++++
    # {
     # Write STL using python language
     def WriteSTL(self, fname='Components.i.stl', v=False):
@@ -2170,9 +2190,9 @@ class TriBase(object):
             os.rename("Components.pyCart.stl", fname)
    # }
         
-    # ++++++++++
-    # AFLR3 Surf
-    # ++++++++++
+   # ++++++++++
+   # AFLR3 Surf
+   # ++++++++++
    # {
     # Function to write a UH3D file
     def WriteSurf(self, fname='Components.i.surf'):
@@ -2278,9 +2298,9 @@ class TriBase(object):
    # }
   # >
     
-    # =====================
-    # Multiple File Reading
-    # =====================
+  # =====================
+  # Multiple File Reading
+  # =====================
   # <
     # Add a second triangulation without destroying component numbers.
     def Add(self, tri):
@@ -2382,9 +2402,9 @@ class TriBase(object):
         
   # >
     
-    # ===============
-    # Intersect Tools
-    # ===============
+  # ===============
+  # Intersect Tools
+  # ===============
   # <
     # Function to write .tri file with one CompID per break
     def WriteVolTri(self, fname='Components.tri'):
@@ -2545,9 +2565,9 @@ class TriBase(object):
             self.MapSubCompID(tric, compID, kc)
   # >
     
-    # ================
-    # CompID Interface
-    # ================
+  # ================
+  # CompID Interface
+  # ================
   # <
     # Function to read configuration file based on file extension
     def ReadConfig(self, c):
@@ -2786,7 +2806,7 @@ class TriBase(object):
    
     # Function to get compIDs by name
     def GetCompID(self, face=None):
-        """Get components by name
+        """Get components by name or number
         
         :Call:
             >>> compID = tri.GetCompID()
@@ -2808,22 +2828,107 @@ class TriBase(object):
         :Versions:
             * 2014-10-12 ``@ddalle``: First version
             * 2016-03-29 ``@ddalle``: Edited docstring
+            * 2017-02-10 ``@ddalle``: Added fallback to *tri.Conf*
         """
         # Process input into a list of component IDs.
         try:
             # Best option is to use the Config.xml file
             return self.config.GetCompID(face)
         except Exception:
-            # Check for scalar
-            if face is None:
-                # No contents; this might break otherwise
-                return list(np.unique(self.CompID))
-            elif type(face).__name__  in ['list', 'ndarray']:
-                # Return the list
-                return face
+            # Fall back to *tri.Conf* or just process raw numbers
+            return self.GetConfCompID(face)
+                
+    # Get compIDs by name or number from *tri.Conf*
+    def GetConfCompID(self, face=None):
+        """Get components by name or number from *tri.Conf* dictionary
+        
+        :Call:
+            >>> compID = tri.GetConfCompID()
+            >>> compID = tri.GetConfCompID(face)
+            >>> compID = tri.GetConfCompID(comp)
+            >>> compID = tri.GetConfCompID(comps)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation interface
+            *face*: :class:`str`
+                Component name
+            *comp*: :class:`int`
+                Component ID
+            *comps*: :class:`list` (:class:`int` | :class:`str`)
+                List of component names or IDs
+        :Outputs:
+            *compID*: :class:`list` (:class:`int`)
+                List of component IDs
+        :Versions:
+            * 2017-02-10 ``@ddalle``: First version
+        """
+        # Check for scalar
+        if face is None:
+            # No contents; this might break otherwise
+            return list(np.unique(self.CompID))
+        elif type(face).__name__  in ['list', 'ndarray']:
+            # Return the list
+            faces = face
+        else:
+            # Make a singleton list
+            faces = [face]
+        # Process the *tri.Conf* with default
+        try:
+            Conf = self.Conf
+        except AttributeError:
+            Conf = {}
+        # Check if present
+        compID = []
+        # Loop through faces
+        for face in faces:
+            # Check type
+            if type(face).__name__.startswith('int'):
+                # Append integer face
+                compID.append(face)
             else:
-                # Make a singleton list
-                return [face]
+                # Get comp from *tri.Conf*
+                comp = Conf.get(face)
+                # Check type
+                if comp is None:
+                    # This face is not present
+                    continue
+                elif type(comp).__name__ == "list":
+                    # List of components
+                    compID += comp
+                else:
+                    # Single component
+                    compID.append(comp)
+        # Sort the list
+        compID.sort()
+        # Use this list
+        return compID
+        
+    # Get *tri.Conf* dictionary
+    def GetConfFromConfig(self):
+        """Create *tri.Conf* dictionary using *tri.config* if appropriate
+        
+        :Call:
+            >>> tri.GetConfFromConfig()
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation interface
+        :Attributes:
+            *tri.Conf*: :class:`dict`
+                Dictionary of face names coped from *tri.config.faces*
+        :Versions:
+            * 2017-02-10 ``@ddalle``: First version
+        """
+        # Check for existing *Conf*
+        try:
+            self.Conf
+            return
+        except Exception:
+            pass
+        # Initialize dictionary
+        try:
+            self.Conf = self.config.faces.copy()
+        except Exception:
+            pass
        
     # Function to get node indices from component ID(s)
     def GetNodesFromCompID(self, compID=None):
@@ -2999,20 +3104,280 @@ class TriBase(object):
         tri0.CompID = tri0.CompID[k]
         # Save the reduced number of tris.
         tri0.nTri = k.size
+        # Downselect q if available
+        try:
+            tri0.q = tri0.q[k]
+        except Exception:
+            pass
+        # Trim unused nodes to save space
+        tri0.TrimUnusedNodes()
         # Output
         return tri0
-                
+        
+    # Eliminate unused nodes
+    def TrimUnusedNodes(self):
+        """Remove any nodes that are not used in any triangles
+        
+        :Call:
+            >>> tri.TrimUnusedNodes()
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+        :Versions:
+            * 2017-02-10 ``@ddalle``: First version
+        """
+        # Get nodes that are used
+        N = np.unique(self.Tris)
+        # New number of nodes
+        nNode = len(N)
+        # Renumbered nodes
+        I = np.arange(1, nNode+1)
+        # Extract triangles
+        T = self.Tris
+        # Loop through the nodes that are used
+        for j in range(nNode):
+            # Get values
+            i = I[j]
+            n = N[j]
+            # Make replacement
+            T[T==n] = i
+        # Downselect nodes
+        self.nNode = nNode
+        self.Nodes = self.Nodes[N-1,:]
+        
+    
+    # Map triangles to components based on another file
+    def MapTriCompID(self, tri, **kw):
+        """Map component IDs of a separate triangulation
+        
+        :Call:
+            >>> tri.MapTriCompID(tric, **kw)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *tric*: :class:`cape.tri.Tri`
+                Triangulation with alternative component labels
+        :Versions:
+            * 2017-02-09 ``@ddalle``: First version
+        """
+        # Check triangulation type
+        tt = type(tri).__name__
+        if not tt.startswith("Tri"):
+            raise TypeError(
+                "Triangulation for mapping must be 'Tri', or 'Triq'")
+        # Check for null operation
+        if tri.nTri == 0: return
+        # Process primary tolerances
+        atol  = kw.get("atol",  kw.get("AbsTol",  atoldef))
+        rtol  = kw.get("rtol",  kw.get("RelTol",  rtoldef))
+        ctol  = kw.get("ctol",  kw.get("CompTol", ctoldef))
+        antol = kw.get("ntol",  kw.get("ProjTol", antoldef))
+        antol = kw.get("antol", kw.get("AbsProjTol",  antol))
+        rntol = kw.get("rntol", kw.get("RelProjTol",  rntoldef))
+        cntol = kw.get("cntol", kw.get("CompProjTol", cntoldef))
+        # Get scale of the entire triangulation
+        L = tri.GetCompScale()
+        # Initialize scales of components
+        LC = {}
+        # Put together absolute and relative tols
+        tol  = atol   + rtol*L
+        ntol = antol  + rntol*L
+        # Bet bounding box from *tri*
+        bbox = tri.GetCompBBox(pad=tol)
+        # Filter the triangles that have a chance of intersecting
+        K = self.FilterTrisBBox(bbox)
+        # Verbose flag
+        v = kw.get("v", False)
+        # Ensure the centers are present
+        self.GetCenters()
+        # Get list of unique component IDs
+        comps = np.unique(self.CompID)
+        # Mapping *tri.CompID* to *self.CompID*
+        compmap = {}
+        facemap = {}
+        # Loop through columns
+        for i in range(len(K)):
+            # Get triangle number
+            k = K[i]
+            # Status update if verbose
+            if v and ((i+1) % (1000*v) == 0):
+                print("  Mapping triangle %i/%i" % (i+1,len(K)))
+            # Perform search
+            T = tri.GetNearestTri(self.Centers[k,:])
+            # Get components
+            c1 = T.get("c1")
+            # Make sure component scale is present
+            if c1 not in LC:
+                # Get the component scale
+                LC[c1] = tri.GetCompScale(c1)
+                # Check if the component is already used by *tri*
+                if c1 in comps:
+                    # Need to shift the component number
+                    c = c1 + max(comps)
+                else:
+                    # Already have the component
+                    c = c1
+                # Save the component map
+                compmap[c1] = c
+            # Get overall tolerances
+            toli  = tol + ctol*LC[c1]
+            ntoli = ntol + cntol*LC[c1]
+            # Filter results
+            if (T["d1"] > toli) or (T["z1"] > ntoli):
+                continue
+            # Save new component ID
+            self.CompID[k] = compmap[c1]
+        # Update *self.config* if applicable
+        try:
+            # Loop through faces in the target map
+            for face in tri.config.faces:
+                # Get component ID(s); guarantee list
+                comps = np.array(tri.config.faces[face]).flatten()
+                # Get mapped component numbers
+                cmapd = []
+                # Loop through comps
+                for comp in comps:
+                    # Skip if not used
+                    if comp not in compmap:
+                        # Use the existing component number
+                        cmapd.append(comp)
+                    else:
+                        # Save the component from the new guy
+                        cmapd.append(compmap[comp])
+                # Check length
+                if len(cmapd) == 0:
+                    # No matches
+                    continue
+                elif len(cmapd) == 1:
+                    # Save single match
+                    self.config.faces[face] = cmapd[0]
+                else:
+                    # Save list
+                    self.config.faces[face] = cmapd
+        except AttributeError:
+            pass
+        # Set a *Conf* dictionary if necessary
+        self.GetConfFromConfig()
+        # Get Config from mapping try:
+        try:
+            # Extract from the map
+            Conf = tri.Conf
+        except AttributeError:
+            # Create a default *Conf* dictionary
+            Conf = {}
+        # Initialize conf
+        try:
+            self.Conf
+        except AttributeError:
+            # Create default *Conf* dictionary
+            self.Conf = {}
+        # Loop through faces in the target map
+        for face in Conf:
+            # Get component ID(s); guarantee list
+            comps = np.array(Conf[face]).flatten()
+            # Get mapped component numbers
+            cmapd = []
+            # Loop through comps
+            for comp in comps:
+                # Skip if not used
+                if comp not in compmap: continue
+                # Save the component
+                cmapd.append(compmap[comp])
+            # Check length
+            if len(cmapd) == 0:
+                # No matches
+                continue
+            elif len(cmapd) == 1:
+                # Save single match
+                self.Conf[face] = cmapd[0]
+            else:
+                # Save list
+                self.Conf[face] = cmapd
+        # Output compmap
+        return compmap
+        
+    # Extract and write subtris after mapping
+    def ExtractMappedComps(self, tric, comps=None, **kw):
+        """Map component names from a template *tri* and write component files
+        
+        :Call:
+            >>> tris = tri.ExtractMappedComps(tric, comps=[], **kw)
+            >>> triu = tri.ExtractMappedComps(tric, comps=[], join=True, **kw)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri` | :class:`cape.tri.Triq`
+                Triangulation or annotated triangulation instance
+            *tric*: :class:`cape.tri.Tri`
+                Triangulation with alternative component labels
+            *comps*: :class:`list` (:class:`str`)
+                List of *tric* faces to write
+            *join*: ``True`` | {``False``}
+                Return a single triangulation with all *comps*
+        :Outputs:
+            *tris*: :class:`dict` (:class:`cape.tri.Tri`)
+                Dictionary of triangulations for each *comp* in *comps*
+            *triu*: :class:`cape.tri.Tri`
+                Single joined triangulation if *join* is ``True``
+        :Versions:
+            * 2016-02-10 ``@ddalle``: First version
+        """
+        # Initialize output
+        tris = {}
+        # Verbose
+        v = kw.get("v", False)
+        # Default component list: ALL
+        if comps is None:
+            # Get from *tric.config* or *tric.Conf*
+            try:
+                # Read from JSON-based config interface
+                comps = tric.config.comps
+            except AttributeError:
+                try:
+                    # Read from UH3D face dictionary
+                    comps = tric.Conf.keys()
+                except AttributeError:
+                    # No components
+                    comps = []
+        else:
+            # Ensure input components makes a list
+            comps = list(np.array(comps).flatten())
+        # Extract requested components
+        trik = tric.GetSubTri(comps)
+        # Perform mapping
+        tri = self.Copy()
+        tri.MapTriCompID(trik, **kw)
+        # Check for joined
+        if kw.get("join", False):
+            # Extract components
+            triu = tri.GetSubTri(comps)
+            # Output
+            return triu
+        # Loop through components
+        for comp in comps:
+            # Check type
+            if type(comp).__name__.startswith("int"):
+                raise TypeError(
+                    "Component '%s' is an integer; must be a string" % comp)
+            # Status update
+            if v:
+                print("Mapping and extracting component '%s'" % comp)
+            # Extract the component
+            trii = tri.GetSubTri(comp)
+            # Save it
+            tris[comp] = trii
+        # Output
+        return tris
+        
   # >
   
-    # ===============
-    # FUN3D Interface
-    # ===============
+  # ===============
+  # FUN3D Interface
+  # ===============
   # <
   # >
     
-    # =========================
-    # AFLR3 Boundary Conditions
-    # =========================
+  # =========================
+  # AFLR3 Boundary Conditions
+  # =========================
   # <
     # Map boundary condition tags from config
     def MapBCs_ConfigAFLR3(self):
@@ -3233,15 +3598,43 @@ class TriBase(object):
     
   # >
         
-    # =============
-    # Geometry Info
-    # =============
+  # =============
+  # Geometry Info
+  # =============
   # <
     
-    # ++++
-    # Tris
-    # ++++
+   # ++++
+   # Tris
+   # ++++
    # {
+    # Get centers of nodes
+    def GetCenters(self):
+        """Get the centroids of each triangle
+        
+        :Call:
+            >>> tri.GetCenters()
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+        :Attributes:
+            *tri.Centers*: :class:`np.ndarray` (:class:`float` shape=(nTri,3))
+                Center of each triangle
+        :Versions:
+            * 2017-02-09 ``@ddalle``: First version
+        """
+        # Check for centers
+        try:
+            self.Centers
+            return
+        except AttributeError:
+            pass
+        # Calculate the center of each tri, one coordinate at a time
+        x = np.mean(self.Nodes[self.Tris-1, 0], axis=1)
+        y = np.mean(self.Nodes[self.Tris-1, 1], axis=1)
+        z = np.mean(self.Nodes[self.Tris-1, 2], axis=1)
+        # Save the centers
+        self.Centers = stackcol((x,y,z))
+        
     # Get normals and areas
     def GetNormals(self):
         """Get the normals and areas of each triangle
@@ -3261,16 +3654,20 @@ class TriBase(object):
             * 2016-01-23 ``@ddalle``: Added a check before calculating
         """
         # Check for normals.
-        if hasattr(self, 'Normals'): return
+        try:
+            self.Normals
+            return
+        except AttributeError:
+            pass
         # Extract the vertices of each tri.
         x = self.Nodes[self.Tris-1, 0]
         y = self.Nodes[self.Tris-1, 1]
         z = self.Nodes[self.Tris-1, 2]
         # Get the deltas from node 0 to node 1 or node 2
-        x01 = np.vstack((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
-        x02 = np.vstack((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
+        x01 = stackcol((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
+        x02 = stackcol((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
         # Calculate the dimensioned normals
-        n = np.cross(np.transpose(x01), np.transpose(x02))
+        n = np.cross(x01, x02)
         # Calculate the area of each triangle.
         A = np.fmax(1e-10, np.sqrt(np.sum(n**2, 1)))
         # Normalize each component.
@@ -3281,6 +3678,63 @@ class TriBase(object):
         self.Areas = A/2
         # Save the unit normals.
         self.Normals = n
+        
+    # Get right-handed coordinate system
+    def GetBasisVectors(self):
+        """Get a right-handed coordinate basis for all triangles
+        
+        :Call:
+            >>> tri.GetBasisVectors()
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+        :Effects:
+            *tri.e1*: :class:`np.ndarray` (:class:`float`, shape=(nTri,3))
+                Unit vector pointing from node 1 to node 3 of each tri
+            *tri.e2*: :class:`np.ndarray` (:class:`float`, shape=(nTri,3))
+                Unit vector completing right-handed coordinate system
+            *tri.e3*: :class:`np.ndarray` (:class:`float`, shape=(nTri,3))
+                Unit normal of each triangle
+        :Versions:
+            * 2017-02-09 ``@ddalle``: First version
+        """
+        # Check for all the requested attributes
+        try:
+            self.e1
+            self.e2
+            self.e3
+            return
+        except AttributeError:
+            pass
+        # Extract the vertices of each tri.
+        X = self.Nodes[self.Tris-1, 0]
+        Y = self.Nodes[self.Tris-1, 1]
+        Z = self.Nodes[self.Tris-1, 2]
+        # Get the deltas from node 0 to node 1 or node 2
+        X01 = stackcol((X[:,1]-X[:,0], Y[:,1]-Y[:,0], Z[:,1]-Z[:,0]))
+        X02 = stackcol((X[:,2]-X[:,0], Y[:,2]-Y[:,0], Z[:,2]-Z[:,0]))
+        # Calculate the dimensioned normals
+        n = np.cross(X01, X02)
+        # Calculate the area of each triangle.
+        A = np.sqrt(np.sum(n**2, 1))
+        # Calculate the length of each 0->1 segment
+        L = np.sqrt(np.sum(X01**2, 1))
+        # Normalize each component.
+        e3 = n.copy()
+        e3[:,0] /= A
+        e3[:,1] /= A
+        e3[:,2] /= A
+        # Normalize 0->1 segment as tangent
+        e1 = X01.copy()
+        e1[:,0] /= L
+        e1[:,1] /= L
+        e1[:,2] /= L
+        # Get final axis to complete right-handed system
+        e2 = np.cross(e3, e1)
+        # Save basis
+        self.e1 = e1
+        self.e2 = e2
+        self.e3 = e3
         
         
     # Get edge lengths
@@ -3298,6 +3752,11 @@ class TriBase(object):
         :Versions:
             * 2015-02-21 ``@ddalle``: First version
         """
+        try:
+            self.Lengths
+            return
+        except AttributeError:
+            pass
         # Extract the vertices of each tri.
         x = self.Nodes[self.Tris-1, 0]
         y = self.Nodes[self.Tris-1, 1]
@@ -3307,15 +3766,172 @@ class TriBase(object):
         x12 = np.vstack((x[:,2]-x[:,1], y[:,2]-y[:,1], z[:,2]-z[:,1]))
         x20 = np.vstack((x[:,0]-x[:,2], y[:,0]-y[:,2], z[:,0]-z[:,2]))
         # Calculate lengths.
-        self.Lengths = np.vstack((
+        self.Lengths = stackcol((
             np.sqrt(np.sum(x01**2, 0)),
             np.sqrt(np.sum(x12**2, 0)),
-            np.sqrt(np.sum(x20**2, 0)))).transpose()
+            np.sqrt(np.sum(x20**2, 0))))
+            
+    # Get nearest triangle to a point
+    def GetNearestTri(self, x, **kw):
+        """Get the triangle that is nearest to a point, and the distance
+        
+        :Call:
+            >>> T = tri.GetNearestTri(x)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *x*: :class:`np.ndarray` (:class:`float`, shape=(3,))
+                Array of *x*, *y*, and *z* coordinates of test point
+            *ztol*: {_ztol_} | positive :class:`float`
+                Maximum extra projection distance
+        :Outputs:
+            *T*: :class:`dict`
+                Dictionary of match parameters
+            *T["k1"]*: :class:`int`
+                Index of triangle nearest to test point
+            *T["c1"]*: :class:`int`
+                Component ID of triangle *k1*
+            *T["d1"]*: :class:`float`
+                Distance from triangle *k1* to test point
+            *T["z1"]*: :class:`float`
+                Projection distance of point to triangle *k1*
+            *T["k2"]*: ``None`` | :class:`int`
+                Index of nearest triangle outside component *c1*
+            *T["c2"]*: :class:`int`
+                Component ID of triangle *k2*
+            *T["d2"]*: :class:`float`
+                Distance from triangle *k2* to test point
+            *T["z2"]*: :class:`float`
+                Projection distance of point to triangle *k2*
+            *T["k3"]*: ``None`` | :class:`int`
+                Index of nearest triangle outside components *c1* and *c2*
+            *T["k4"]*: ``None`` | :class:`int`
+                Index of nearest triangle outside components *c1*, *c2*, *c3*
+        :Versions:
+            * 2017-02-06 ``@ddalle``: First version
+            * 2017-02-07 ``@ddalle``: Added search for second point
+            * 2017-02-08 ``@ddalle``: Added third and fourth families
+        """
+        # Get coordinates
+        self.GetBasisVectors()
+        # Extract coordinate basis function
+        e1 = self.e1
+        e2 = self.e2
+        e3 = self.e3
+        # Extract the vertices of each tri.
+        X = self.Nodes[self.Tris-1, 0]
+        Y = self.Nodes[self.Tris-1, 1]
+        Z = self.Nodes[self.Tris-1, 2]
+        # Extract test point coordinates
+        y = x[1]
+        z = x[2]
+        x = x[0]
+        # Get the projection distance
+        zi = (x-X[:,0])*e3[:,0] + (y-Y[:,0])*e3[:,1] + (z-Z[:,0])*e3[:,2]
+        zi = np.abs(zi)
+        # Get minimum projection distance
+        kmin = np.argmin(zi)
+        zmin = zi[kmin]
+        # Process max tol
+        ztol = kw.get("ztol", ztoldef)
+        # Get indices of points within *zmin* and *ztol*
+        I = zi <= zmin + ztol
+        K = np.where(I)[0]
+        # Convert the test point into coordinates aligned with first edge 
+        xi = (x-X[I,0])*e1[I,0] + (y-Y[I,0])*e1[I,1] + (z-Z[I,0])*e1[I,2]
+        yi = (x-X[I,0])*e2[I,0] + (y-Y[I,0])*e2[I,1] + (z-Z[I,0])*e2[I,2]
+        zi = zi[I]
+        # Initialize transformed triangles
+        XI = np.zeros_like(X[I,:])
+        YI = np.zeros_like(XI)
+        # Convert the second and third vertices
+        XI[:,1] = ((X[I,1]-X[I,0])*e1[I,0]
+            + (Y[I,1]-Y[I,0])*e1[I,1] + (Z[I,1]-Z[I,0])*e1[I,2])
+        XI[:,2] = ((X[I,2]-X[I,0])*e1[I,0]
+            + (Y[I,2]-Y[I,0])*e1[I,1] + (Z[I,2]-Z[I,0])*e1[I,2])
+        YI[:,1] = ((X[I,1]-X[I,0])*e2[I,0]
+            + (Y[I,1]-Y[I,0])*e2[I,1] + (Z[I,1]-Z[I,0])*e2[I,2])
+        YI[:,2] = ((X[I,2]-X[I,0])*e2[I,0]
+            + (Y[I,2]-Y[I,0])*e2[I,1] + (Z[I,2]-Z[I,0])*e2[I,2])
+        # Get distance to each triangle within the plane of each triangle
+        DI = geom.dist_tris_to_pt(XI, YI, xi, yi)
+        # Get total distance from point to each triangle
+        D = np.sqrt(zi**2 + DI**2)
+        # Get index of minimum distance
+        i1 = np.argmin(D)
+        k1 = K[i1]
+        # Find the component ID
+        c1 = self.CompID[k1]
+        # Initialize output
+        T = {"k1": k1, "c1": c1, "d1": D[i1], "z1": abs(zi[i1])}
+        # Initialize submask
+        I1 = K > -1
+        C1 = self.CompID[I]
+        # Loop through until we find up to four components
+        c = c1
+        for n in ['2', '3', '4']:
+            # Find the triangles that are not in any previous component
+            I1 = np.logical_and(I1, C1 != c)
+            # Downselect available triangle indices
+            J = np.where(I1)[0]
+            # Check for no remaining triangles
+            if len(J) == 0:
+                return T
+            # Find nearest match from remaining triangles
+            i = np.argmin(D[J])
+            j = J[i]
+            k = K[j]
+            c = self.CompID[k]
+            # Save parameters
+            T["k"+n] = k
+            T["c"+n] = c
+            T["d"+n] = D[j]
+            T["z"+n] = zi[j]
+        # Output (if 4 components)
+        return T
+    # Edit default tolerances
+    GetNearestTri.__doc__=GetNearestTri.__doc__.replace("_ztol_",str(ztoldef))
+    
+    # Get tris by bbox
+    def FilterTrisBBox(self, bbox):
+        """Get the list of Tris in a specified rectangular prism
+        
+        :Call:
+            >>> K = tri.FilterTrisBBox(bbox)
+            >>> K = tri.FilterTrisBBox([xmin, xmax, ymin, ymax, zmin, zmax])
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *bbox*: :class:`list` | :class:`np.ndarray`
+                List of minimum and maximum coordinates
+        :Outputs:
+            *K*: :class:`np.ndarray` (:class:`int`)
+                List of 1-based tri numbers that intersect BBox
+        :Versions:
+            * 2017-02-17 ``@ddalle``: First version
+        """
+        # Compute vertices
+        x = self.Nodes[self.Tris-1,0]
+        y = self.Nodes[self.Tris-1,1]
+        z = self.Nodes[self.Tris-1,2]
+        # Unpack inputs
+        xmin, xmax, ymin, ymax, zmin, zmax = bbox
+        # Initialize array
+        K = (self.CompID > -1)
+        # Go through each coordinate
+        K = np.logical_and(K, np.min(x,axis=1) <= xmax)
+        K = np.logical_and(K, np.max(x,axis=1) >= xmin)
+        K = np.logical_and(K, np.min(y,axis=1) <= ymax)
+        K = np.logical_and(K, np.max(y,axis=1) >= ymin)
+        K = np.logical_and(K, np.min(z,axis=1) <= zmax)
+        K = np.logical_and(K, np.max(z,axis=1) >= zmin)
+        # Output
+        return 1 + np.where(K)[0]
    # }
     
-    # +++++
-    # Nodes
-    # +++++
+   # +++++
+   # Nodes
+   # +++++
    # {
     # Get averaged normals at nodes
     def GetNodeNormals(self):
@@ -3352,9 +3968,9 @@ class TriBase(object):
         self.NodeNormals = NN
    # }
    
-    # +++++
-    # Edges
-    # +++++
+   # +++++
+   # Edges
+   # +++++
    # {
     # Get edges
     def GetEdges(self):
@@ -3388,9 +4004,9 @@ class TriBase(object):
         self.Edges = E[I,:]
    # }
     
-    # ++++++++++
-    # Components
-    # ++++++++++
+   # ++++++++++
+   # Components
+   # ++++++++++
    # {
     # Get normals and areas
     def GetCompArea(self, compID, n=None):
@@ -3533,7 +4149,7 @@ class TriBase(object):
             return np.array([xc, yc, zc])
     
     # Function to add a bounding box based on a component and buffer
-    def GetCompBBox(self, compID=[], **kwargs):
+    def GetCompBBox(self, compID=None, **kwargs):
         """
         Find a bounding box based on the coordinates of a specified component
         or list of components, with an optional buffer or buffers in each
@@ -3544,8 +4160,9 @@ class TriBase(object):
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
-            *compID*: :class:`int` or :class:`str` or :class:`list`
-                Component or list of components to use for bounding box
+            *compID*: {``None``} | :class:`int` | :class:`str` | :class:`list`
+                Component or list of components to use for bounding box; if
+                ``None`` return bounding box for entire triangulation
             *pad*: :class:`float`
                 Buffer to add in each dimension to min and max coordinates
             *xpad*: :class:`float`
@@ -3572,11 +4189,16 @@ class TriBase(object):
         :Versions:
             * 2014-06-16 ``@ddalle``: First version
             * 2014-08-03 ``@ddalle``: Changed "buff" --> "pad"
+            * 2017-02-08 ``@ddalle``: CompID ``None`` gets BBox for full tri
         """
-        # Process it into a list of component IDs.
-        compID = self.GetCompID(compID)
-        # Quit if none specified.
-        if not compID: return None
+        # Check for ``None``
+        if compID is not None:
+            # Process it into a list of component IDs.
+            compID = self.GetCompID(compID)
+            # Quit if none specified.
+            if not compID: return None
+        # List of components; initialize with first.
+        i = self.GetNodesFromCompID(compID)
         # Get the overall buffer.
         pad = kwargs.get('pad', 0.0)
         # Get the other buffers.
@@ -3590,8 +4212,6 @@ class TriBase(object):
         ym = kwargs.get('ym', ypad)
         zp = kwargs.get('zp', zpad)
         zm = kwargs.get('zm', zpad)
-        # List of components; initialize with first.
-        i = self.GetNodesFromCompID(compID)
         # Get the coordinates of each vertex of included tris.
         x = self.Nodes[self.Tris[i,:]-1, 0]
         y = self.Nodes[self.Tris[i,:]-1, 1]
@@ -3606,13 +4226,44 @@ class TriBase(object):
         # Return the list.
         return np.array([xmin, xmax, ymin, ymax, zmin, zmax])
    
+    # Get length of diagonal of BBox
+    def GetCompScale(self, compID=None, **kw):
+        """Get diagonal length of bounding box of a component(s)
+        
+        :Call:
+            >>> L = tri.GetCompScale(compID, **kw)
+        :Inputs:
+            *compID*: {``None``} | :class:`int` | :class:`str` | :class:`list`
+                Component or list of components to use for bounding box; if
+                ``None`` return bounding box for entire triangulation
+            *pad*: :class:`float`
+                Buffer to add in each dimension to min and max coordinates
+            *kw*: :class:`dict`
+                Keyword arguments passed to :func:`GetCompBBox`
+        :Outputs:
+            *L*: nonnegative :class:`float`
+                Length of the diagonal of the bounding box
+        :Versions:
+            * 2017-02-08 ``@ddalle``: First version
+        """
+        # Get the bounding box
+        BBox = self.GetCompBBox(compID, **kw)
+        # Check for null result
+        if BBox is None: return 0.0
+        # Get the components
+        dx = BBox[1] - BBox[0]
+        dy = BBox[3] - BBox[2]
+        dz = BBox[5] - BBox[4]
+        # Get the length
+        return np.sqrt(dx*dx + dy*dy + dz*dz)
+            
    # }
     
   # >
     
-    # ==================
-    # Edge/Curve Tracing
-    # ==================
+  # ==================
+  # Edge/Curve Tracing
+  # ==================
   # <
     # Get the closest node to a point
     def GetClosestNode(self, x):
@@ -3840,9 +4491,9 @@ class TriBase(object):
         return d, ds, j
   # >
     
-    # ========
-    # Plotting
-    # ========
+  # ========
+  # Plotting
+  # ========
   # <
     # Create a 3-view of a component (or list of) using TecPlot
     def Tecplot3View(self, fname, i=None):
@@ -3992,9 +4643,9 @@ class TriBase(object):
         
   # >
     
-    # =====================
-    # Geometry Manipulation
-    # =====================
+  # =====================
+  # Geometry Manipulation
+  # =====================
   # <
     # Function to translate the triangulation
     def Translate(self, *a, **kw):
@@ -4181,7 +4832,8 @@ class Tri(TriBase):
             * 2014-06-02 ``@ddalle``: Added UH3D reading capability
             * 2016-04-05 ``@ddalle``: Added AFLR3 and cleaned up inputs
         """
-        
+        # Save file name
+        self.fname = fname
         # Check if file is specified.
         if 'tri' in kw:
             # Read from file.
@@ -4312,6 +4964,10 @@ class Triq(TriBase):
         *triq.n*: :class:`int`
             Number of files averaged in this triangulation (used for weight)
     """
+  # ======
+  # Config
+  # ======
+  # <
     # Initialization method
     def __init__(self, fname=None, n=1, nNode=None, Nodes=None, c=None,
         nTri=None, Tris=None, CompID=None, nq=None, q=None):
@@ -4321,6 +4977,8 @@ class Triq(TriBase):
             * 2014-05-23 ``@ddalle``: First version
             * 2014-06-02 ``@ddalle``: Added UH3D reading capability
         """
+        # Save file name
+        self.fname = fname
         # Check if file is specified.
         if fname is not None:
             # Read from file.
@@ -4368,9 +5026,6 @@ class Triq(TriBase):
         # Check for configuration
         if c is not None:
             self.config = Config(c)
-            
-        # End
-        return None
         
     # Method that shows the representation of a triangulation
     def __repr__(self):
@@ -4383,7 +5038,12 @@ class Triq(TriBase):
         """
         return '<cape.tri.Triq(nNode=%i, nTri=%i, nq=%i)>' % (
             self.nNode, self.nTri, self.nq)
-        
+  # >
+  
+  # ================
+  # Modified Writers
+  # ================
+  # <
     # Function to write a .triq file
     def Write(self, fname, **kw):
         """Write a q-triangulation ``.triq`` file
@@ -4399,7 +5059,12 @@ class Triq(TriBase):
             * 2015-09-14 ``@ddalle``: First version
         """
         self.WriteTriq(fname)
-        
+  # >
+    
+  # =========
+  # Averaging
+  # =========
+  # <
     # Function to calculate weighted average.
     def WeightedAverage(self, triq):
         """Calculate weighted average with a second triangulation
@@ -4431,7 +5096,303 @@ class Triq(TriBase):
         self.q = (self.n*self.q + triq.n*triq.q) / (self.n+triq.n)
         # Update count.
         self.n += triq.n
+  # >
+  
+  # ============
+  # Force/Moment
+  # ============
+  # <
+    # Calculate forces and moments
+    def GetTriForces(self, comp=None, **kw):
+        """Calculate vectors of pressure, momentum, and viscous forces on tris
         
+        :Call:
+            >>> C = triq.GetTriForces(comp=None, **kw)
+        :Inputs:
+            *triq*: :class:`cape.tri.Triq`
+                Annotated surface triangulation
+            *comp*: {``None``} | :class:`str` | :class:`int` | :class:`list`
+                Subset component ID or name or list thereof
+            *incm*, *momentum*: ``True`` | {``False``}
+                Include momentum (flow-through) forces in total
+            *save*: ``True`` | {``False``}
+                Store vectors of forces for each triangle as attributes
+            *m*, *mach*: {``1.0``} | :class:`float`
+                Freestream Mach number
+            *RefArea*, *Aref*: {``1.0``} | :class:`float`
+                Reference area
+            *RefLength*, *Lref*: {``1.0``} | :class:`float`
+                Reference length (longitudinal)
+            *RefSpan*, *bref*: {*Lref*} | :class:`float`
+                Reference span (for rolling and yawing moments)
+            *Re*, *Rey*: {``1.0``} | :class:`float`
+                Reynolds number per grid unit (units same as *triq.Nodes*)
+            *gam*, *gamma*: {``1.4``} | :class:`float` > 1
+                Freestream ratio of specific heats
+        :Utilized Attributes:
+            *triq.nNode*: :class:`int`
+                Number of nodes
+            *triq.q*: :class:`np.ndarray` (:class:`float` shape=(*nNode*,*nq*))
+                Vector of 5, 9, or 13 states on each node
+        :Output Attributes:
+            *triq.Fp*: :class:`np.ndarray` shape=(*nTri*,3)
+                Vector of pressure forces on each triangle
+            *triq.Fm*: :class:`np.ndarray` shape=(*nTri*,3)
+                Vector of momentum (flow-through) forces on each triangle
+            *triq.Fv*: :class:`np.ndarray` shape=(*nTri*,3)
+                Vector of viscous forces on each triangle
+        :Outputs:
+            *C*: :class:`dict` (:class:`float`)
+                Dictionary of requested force/moment coefficients
+            *C["CA"]*: :class:`float`
+                Overall axial force coefficient
+        :Versions:
+            * 2017-02-11 ``@ddalle``: Started
+            * 2017-02-15 ``@ddalle``: First version
+        """
+       # ------
+       # Inputs
+       # ------
+        # Which things to calculate
+        incm = kw.get("incm", kw.get("momentum", False))
+        # Get Reynolds number per grid unit
+        REY = kw.get("Re", kw.get("Rey", 1.0))
+        # Freestream mach number
+        mach = kw.get("RefMach", kw.get("mach", kw.get("m", 1.0)))
+        # Freestream pressure and gamma
+        gam  = kw.get("gamma", 1.4)
+        pref = kw.get("p", 1.0/gam)
+        # Dynamic pressure
+        qref = 0.5*gam*pref*mach**2
+        # Reference length/area
+        Aref = kw.get("RefArea",   kw.get("Aref", 1.0))
+        Lref = kw.get("RefLength", kw.get("Lref", 1.0))
+        bref = kw.get("RefSpan",   kw.get("bref", Lref))
+        # Moment reference point
+        MRP = kw.get("MRP", np.array([0.0, 0.0, 0.0]))
+        xMRP = kw.get("xMRP", MRP[0])
+        yMRP = kw.get("yMRP", MRP[1])
+        zMRP = kw.get("zMRP", MRP[2])
+        # Volume limiter
+        SMALLVOL = kw.get("SMALLVOL", 1e-20)
+        SMALLTRI = kw.get("SMALLTRI", 1e-12)
+       # --------
+       # Geometry
+       # --------
+        # Component for subsetting
+        K = self.GetTrisFromCompID(comp)
+        # Number of tris
+        nTri = K.shape[0]
+        # Store node indices for each tri
+        T = self.Tris[K,:] - 1
+        v0 = T[:,0]
+        v1 = T[:,1]        
+        v2 = T[:,2]
+        # Extract the vertices of each tri.
+        x = self.Nodes[T, 0]
+        y = self.Nodes[T, 1]
+        z = self.Nodes[T, 2]
+        # Get the deltas from node 0->1 and 0->2
+        x01 = stackcol((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
+        x02 = stackcol((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
+        # Calculate the dimensioned normals
+        N = 0.5*np.cross(x01, x02)
+        # Scalar areas of each triangle
+        A = np.sqrt(np.sum(N**2, axis=1))
+       # ---------------
+       # Pressure Forces
+       # ---------------
+        # State handle
+        Q = self.q
+        # Calculate average *Cp* (first state variable)
+        Cp = np.sum(Q[T,0], axis=1)/3
+        # Forces are inward normals
+        Fp = -stackcol((Cp*N[:,0], Cp*N[:,1], Cp*N[:,2]))
+       # ---------------
+       # Momentum Forces
+       # ---------------
+        # Check which type of state variables we have (if any)
+        if self.nq < 5:
+            # TRIQ file only contains pressure info
+            Fm = np.zeros((nTri, 3))
+        elif self.nq == 6:
+            # Cart3D style: $\hat{u}=u/a_\infty$
+            # Average density
+            rho = np.mean(Q[T,1], axis=1)
+            # Velocities
+            U = np.mean(Q[T,2], axis=1)
+            V = np.mean(Q[T,3], axis=1)
+            W = np.mean(Q[T,4], axis=1)
+            # Mass flux [kg/s]
+            phi = -rho*(U*N[:,0] + V*N[:,1] + W*N[:,2])
+            # Force components
+            Fm = stackcol((phi*U,phi*V,phi*W))
+        else:
+            # Conventional: $\hat{u}=\frac{\rho u}{\rho_\infty a_\infty}$
+            # Average density
+            rho = np.mean(Q[T,1], axis=1)
+            # Average mass flux components
+            rhoU = np.mean(Q[T,2], axis=1)
+            rhoV = np.mean(Q[T,3], axis=1)
+            rhoW = np.mean(Q[T,4], axis=1)
+            # Average mass flux components
+            U = (Q[v0,2]/Q[v0,1] + Q[v1,2]/Q[v1,1] + Q[v2,2]/V[v2,1])/3
+            V = (Q[v0,3]/Q[v0,1] + Q[v1,3]/Q[v1,1] + Q[v2,3]/V[v2,1])/3
+            W = (Q[v0,4]/Q[v0,1] + Q[v1,4]/Q[v1,1] + Q[v2,4]/V[v2,1])/3
+            # Average mass flux, done wrongly for consistency with `triload`
+            phi = -(U*N[:,0] + V*N[:,1] + W*N[:,2])
+            # Force components
+            Fm = phi*stackcol((rhoU,rhoV,rhoW))
+       # --------------
+       # Viscous Forces
+       # --------------
+        if self.nq == 9:
+            # Viscous stresses given directly
+            FXV = np.mean(Q[T,6], axis=1) * A
+            FYV = np.mean(Q[T,7], axis=1) * A
+            FZV = np.mean(Q[T,8], axis=1) * A
+            # Force components
+            Fv = stackcol((FXV, FYV, FZV))
+        elif self.nq >= 13:
+            # Overset grid information
+            # Inverted Reynolds number [in]
+            REI = mach / Rey
+            # Extract coordinates
+            X1 = self.Nodes[v0,0]
+            Y1 = self.Nodes[v0,1]
+            Z1 = self.Nodes[v0,2]
+            X2 = self.Nodes[v1,0]
+            Y2 = self.Nodes[v1,1]
+            Z2 = self.Nodes[v1,2]
+            X3 = self.Nodes[v2,0]
+            Y3 = self.Nodes[v2,1]
+            Z3 = self.Nodes[v2,2]
+            # Calculate coordinates of L=2 points
+            xlp1 = X1 + Q[v0,10]
+            ylp1 = Y1 + Q[v0,11]
+            zlp1 = Z1 + Q[v0,12]
+            xlp2 = X2 + Q[v1,10]
+            ylp2 = Y2 + Q[v1,11]
+            zlp2 = Z2 + Q[v1,12]
+            xlp3 = X3 + Q[v2,10]
+            ylp3 = Y3 + Q[v2,11]
+            zlp3 = Z3 + Q[v2,12]
+            # Calculate volume of prisms
+            VOL = volcomp.VolTriPrism(X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3,
+                xlp1,ylp1,zlp1, xlp2,ylp2,zlp2, xlp3,ylp3,zlp3)
+            # Filter small prisms
+            IV = VOL > SMALLVOL
+            # Downselect areas
+            VAX = N[IV,0]
+            VAY = N[IV,1]
+            VAZ = N[IV,2]
+            # Average dynamic viscosity
+            mu = np.mean(Q[T[IV,:],6], axis=1)
+            # Velocity derivatives
+            UL = np.mean(Q[T[IV,:],7], axis=1)
+            VL = np.mean(Q[T[IV,:],8], axis=1)
+            WL = np.mean(Q[T[IV,:],9], axis=1)
+            # Sheer stress multiplier
+            FTMUJ = 2.0*mu*REI/VOL[IV]
+            # Stress flux
+            ZUVW = (1.0/3.0) * (VAX*UL + VAY*VL + VAZ*WL)
+            # Stress tensor
+            TXX = 2.0*FTMUJ * (UL*VAX - ZUVW)
+            TYY = 2.0*FTMUJ * (VL*VAY - ZUVW)
+            TZZ = 2.0*FTMUJ * (WL*VAX - ZUVW)
+            TXY = FTMUJ * (VL*VAX + UL*VAY)
+            TYZ = FTMUJ * (WL*VAY + VL*VAZ)
+            TXZ = FTMUJ * (UL*VAZ + WL*VAX)
+            # Initialize viscous forces
+            Fv = np.zeros((self.nTri, 3))
+            # Save results from non-zero volumes
+            Fv[IV,0] = (TXX*VAX + TXY*VAY + TXZ*VAZ)
+            Fv[IV,1] = (TXY*VAX + TYY*VAY + TYZ*VAZ)
+            Fv[IV,2] = (TXZ*VAX + TYZ*VAY + TZZ*VAZ)
+        else:
+            # TRIQ file only contains inadequate info for viscous forces
+            Fv = np.zeros((nTri, 3))
+       # ------------
+       # Finalization
+       # ------------
+        # Normalize
+        Fp /= (Aref)
+        Fm /= (qref*Aref)
+        Fv /= (qref*Aref)
+        # Centers of nodes
+        xc = np.mean(x, axis=1)
+        yc = np.mean(y, axis=1)
+        zc = np.mean(z, axis=1)
+        # Calculate pressure moments
+        Mpx = ((yc-yMRP)*Fp[:,2] - (zc-zMRP)*Fp[:,1])/bref
+        Mpy = ((zc-zMRP)*Fp[:,0] - (xc-xMRP)*Fp[:,2])/Lref
+        Mpz = ((zc-xMRP)*Fp[:,1] - (yc-yMRP)*Fp[:,0])/bref
+        # Calculate momentum moments
+        Mmx = ((yc-yMRP)*Fm[:,2] - (zc-zMRP)*Fm[:,1])/bref
+        Mmy = ((zc-zMRP)*Fm[:,0] - (xc-xMRP)*Fm[:,2])/Lref
+        Mmz = ((zc-xMRP)*Fm[:,1] - (yc-yMRP)*Fm[:,0])/bref
+        # Calculate viscous moments
+        Mvx = ((yc-yMRP)*Fv[:,2] - (zc-zMRP)*Fv[:,1])/bref
+        Mvy = ((zc-zMRP)*Fv[:,0] - (xc-xMRP)*Fv[:,2])/Lref
+        Mvz = ((zc-xMRP)*Fv[:,1] - (yc-yMRP)*Fv[:,0])/bref
+        # Assemble
+        Mp = stackcol((Mpx,Mpy,Mpz))
+        Mm = stackcol((Mmx,Mmy,Mmz))
+        Mv = stackcol((Mvx,Mvy,Mvz))
+        # Add up forces 
+        if incm:
+            # Include all forces
+            F = Fp + Fm + Fv
+            M = Mp + Mm + Mv
+        else:
+            # Include viscous
+            F = Fp + Fv
+            M = Mp + Mv
+        # Save information
+        if kw.get("save", False):
+            self.F = F
+            self.Fp = Fp
+            self.Fm = Fm
+            self.Fv = Fv
+            self.M = M
+            self.Mp = Mp
+            self.Mm = Mm
+            self.Mv = Mv
+        # Dictionary of results
+        C = {}
+        # Total forces
+        C["CA"] =  np.sum(F[:,0])
+        C["CY"] =  np.sum(F[:,1])
+        C["CN"] =  np.sum(F[:,2])
+        C["CLL"] = np.sum(M[:,0])
+        C["CLM"] = np.sum(M[:,1])
+        C["CLN"] = np.sum(M[:,2])
+        # Pressure contributions
+        C["CAp"] =  np.sum(Fp[:,0])
+        C["CYp"] =  np.sum(Fp[:,1])
+        C["CNp"] =  np.sum(Fp[:,2])
+        C["CLLp"] = np.sum(Mp[:,0])
+        C["CLMp"] = np.sum(Mp[:,1])
+        C["CLNp"] = np.sum(Mp[:,2])
+        # Flow-through contributions
+        C["CAm"] =  np.sum(Fm[:,0])
+        C["CYm"] =  np.sum(Fm[:,1])
+        C["CNm"] =  np.sum(Fm[:,2])
+        C["CLLm"] = np.sum(Mm[:,0])
+        C["CLMm"] = np.sum(Mm[:,1])
+        C["CLNm"] = np.sum(Mm[:,2])
+        # Viscous contributions
+        C["CAv"] =  np.sum(Fv[:,0])
+        C["CYv"] =  np.sum(Fv[:,1])
+        C["CNv"] =  np.sum(Fv[:,2])
+        C["CLLv"] = np.sum(Mv[:,0])
+        C["CLMv"] = np.sum(Mv[:,1])
+        C["CLNv"] = np.sum(Mv[:,2])
+        # Output
+        return C
+        
+  
+  # >
     
 # class Triq
 

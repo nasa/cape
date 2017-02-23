@@ -123,16 +123,22 @@ within the same PBS job.
 The dictionary of options is explained below.
 
     *MPI*: ``true`` | {``false``} | :class:`list` (:class:`bool`)
-        Whether or not to use MPI version of solver
+        Whether or not to use MPI version of solver (if applicable)
         
     *qsub*: {``true``} | ``false`` | :class:`list` (:class:`bool`)
         Whether or not to submit job PBS queue
         
     *Resubmit*: ``true`` | {``false``} | :class:`list` (:class:`bool`)
-        Whether or not to terminate and resubmit jobs between phases
+        Whether or not to terminate a job and resubmit new one between phases
         
     *Continue*: {``true``} | ``false`` | :class:`list` (:class:`bool`)
-        Whether or not to continue a job when a phase needs to be run again
+        Whether or not to continue a job when rerunning a phase
+        
+    *PreMesh*: ``true`` | {``false``}
+        Whether or not to create mesh before submitting a job (e.g. ``cubes``)
+        
+    *mpicmd*: {``"mpiexec"``} | ``"mpirun"`` | :class:`str`
+        Name of shell command to invoke MPI
         
     *nProc*: {``12``} | :class:`int` | :class:`list` (:class:`int`)
         Number of processors (for each phase)
@@ -143,10 +149,10 @@ The dictionary of options is explained below.
 Environment Variables
 =====================
 
-The ``"Environ"`` section allows the user to specify a dictionary of environment
-variables and values with which to set them.  This is a simple section with
-very flexible syntax.  The following example is better than an options
-dictionary.
+The ``"Environ"`` section allows the user to specify a dictionary of
+environment variables and values with which to set them.  This is a simple
+section with very flexible syntax.  The following example is better than an
+options dictionary.
 
     .. code-block:: javascript
     
@@ -157,9 +163,9 @@ dictionary.
         }
 
 If the environment variable value starts with ``"+"``, the value is appended to
-the existing environment variable.  Also, numbers can be specified, but they are
-converted to strings before being applied.  The environment variables are set
-using the built-in ``os.environ``.
+the existing environment variable.  Also, numbers can be specified, but they
+are converted to strings before being applied.  The environment variables are
+set using the built-in ``os.environ``.
 
 
 .. _cape-json-ulimit:

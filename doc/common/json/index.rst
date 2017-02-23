@@ -1,25 +1,29 @@
 
 .. _cape-json:
 
-**************************************
-Baseline JSON Settings for :mod:`cape`
-**************************************
+********************
+Common JSON Settings
+********************
 
 The following JSON settings are available to the :mod:`cape` basis module and
-apply to each of the solvers.  Most of these settings will have the same meaning
-for :mod:`pyCart`, :mod:`pyFun`, and :mod:`pyOver`, although some of them are
-superseded by modified options in those derived modules.
+apply to each of the solvers.  Most of these settings will have the same
+meaning for :mod:`pyCart`, :mod:`pyFun`, and :mod:`pyOver`, although some of
+them are superseded by modified options in those derived modules.
 
-The template name for the CAPE baseline control file is :file:`cape.json`.  It
-can be invoked via the command-line function ``cape`` via either of the
-following two commands.
+The template name for the baseline control file is :file:`cape.json`.  It can
+be invoked via the command-line function ``cape`` via either of the following
+two commands.
 
     .. code-block:: console
     
         $ cape
         $ cape -f cape.json
+        
+Similarly, the default file for ``pycart`` is :file:`pyCart.json`; the default
+file for ``pyfun`` is :file:`pyFun.json`; and the default file for ``pyover``
+is :file:`pyOver.json`.
 
-A basic template is shown below.
+A basic template for such files is shown below.
 
     .. code-block:: javascript
     

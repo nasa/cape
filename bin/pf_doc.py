@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-Python interface for FUN3D: :file:`pyfun`
-=========================================
+Python interface for FUN3D: **pyfun**
+=====================================
 
 This function provides a master interface for pyFun.  All of the functionality
 from this script is also accessible from the :mod:`pyFun` module using
@@ -14,25 +14,25 @@ relatively simple commands.
         
 :Examples:
     
-    The basic call submits all jobs prescribed in the file :file:`pyCart.json`
+    The basic call submits all jobs prescribed in the file :file:`pyFun.json`
     
         .. code-block:: bash
             
-            $ pycart
+            $ pyfun
             
     This command uses the inputs from :file:`poweron.json` and only displays
     statuses.  No jobs are submitted.
     
         .. code-block:: bash
         
-            $ pycart -f poweron.json -c
+            $ pyfun -f poweron.json -c
             
     This command submits at most 5 jobs, but only cases with "Mach" greater
     than 1.5 and "alpha" equal to 0.0 are considered as candidates.
     
         .. code-block:: bash
         
-            $ pycart -n 5 --cons "Mach>0.5, alpha==0.0"
+            $ pyfun -n 5 --cons "Mach>0.5, alpha==0.0"
     
 :Options:
 
@@ -46,13 +46,13 @@ relatively simple commands.
         Show the PBS job numbers as well
         
     -f FNAME
-        Use pyCart input file *FNAME* (defaults to 'pyCart.json')
+        Use pyCart input file *FNAME* (defaults to ``'pyCart.json'``)
 
     -n NJOB
         Submit at most *NJOB* PBS scripts (defaults to unlimited)
         
     -q QUEUE
-        Submit to a specific queue (defaults to "sls_aero1")
+        Submit to a specific queue (overrides value in JSON file)
         
     --cons CNS
         Only consider cases that pass a list of inequalities separated by

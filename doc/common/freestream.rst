@@ -181,28 +181,31 @@ The second way to define the flow angles is using *alpha_t* and *phi*.
 Freestream State
 ----------------
 The rest of the freestream variables are Mach number, freestream temperature,
-and freestream pressure or something equivalent.  Cart3D is an inviscid solver,
-and only needs the Mach number, but even then defining a freestream state can be
-useful for post-processing or providing a reference for thrust values.
+and freestream pressure or something equivalent. Cart3D is an inviscid solver,
+and only needs the Mach number, but even then defining a freestream state can
+be useful for post-processing or providing a reference for thrust values
+(since thrust coefficient depends on dynamic pressure).
 
 OVERFLOW and FUN3D use freestream static temperature and Reynolds number per
-unit grid length as input variables.  Calculating this Reynolds number is not
-particularly challenging, but Cape makes it easy to just specify freestream
-static pressure or freestream dynamic pressure instead.  Cape will automatically
+unit grid length as input variables. Calculating this Reynolds number is not
+particularly challenging, but pyCart makes it easy to just specify freestream
+static pressure or freestream dynamic pressure instead. Cape will automatically
 calculate *Re* using the temperature and either static pressure or dynamic
-pressure when setting up a case.  Conversely, the user may define *Re* in the
+pressure when setting up a case. Conversely, the user may define *Re* in the
 standard manner, and it will automatically calculate the freestream static and
 dynamic pressures as reference variables using
 :func:`cape.trajectory.Trajectory.GetPressure` and
-:func:`cape.trajectory.Trajectory.GetDynamicPressure`.
+:func:`cape.trajectory.Trajectory.GetDynamicPressure`.  There are also methods
+to calculate freestream static temperature
+(:func:`cape.trajectory.Trajectory.GetTemperature`) and freestream stagnation
+temperature (:func:`cape.trajectory.Trajectory.GetStagnationTemperature`).
 
 Finally, most codes also allow the user to specify non-default values of the
 freestream ratio of specific heats, which can be done using the *gamma* run
 matrix variable type.
 
-Each of these trajectory key types are *mach*, *T*, *Re*, *gamma*, *p*, and *q*.
-Each of these variables and their aliases are listed in the 
-:ref:`JSON settings description <cape-json-TrajectoryGroups>`, and they have the
-same suboptions as the *alpha* and *beta* keys described in the previous
-section.
+Each of these trajectory key types are *mach*, *T*, *Re*, *gamma*, *p*, and
+*q*. Each of these variables and their aliases are listed in the :ref:`JSON
+settings description <cape-json-TrajectoryGroups>`, and they have the same
+suboptions as the *alpha* and *beta* keys described in the previous section.
 

@@ -27,6 +27,30 @@ TecFolder = os.path.join(rootFolder, "templates", "tecplot")
 # Folder containing Paraview templates
 ParaviewFolder = os.path.join(rootFolder, "templates", "paraview")
 
+# Stack vectors
+def stackcol(cols):
+    """Create a matrix out of vectors that are assumed to be columns
+    
+    :Call:
+        >>> A = stackcols(cols)
+    :Inputs:
+        *cols*: :class:`list` | :class:`tuple`
+            List of vectors
+        *cols[0]*: :class:`list` | :class:`np.ndarray`
+            First column vector
+    :Outputs:
+        *A*: :class:`np.ndarray`
+            Matrix with ``A[:,0]==cols[0]``, ``A[:,1]==cols[1]``, etc.
+    :Versions:
+        * 2017-02-17 ``@ddalle``: First version
+    """
+    # We have to do this stupid VSTACK thing for old versions of NUMPY
+    # First, create tuple of 1xN row vector matrices
+    V = ([c] for c in cols)
+    # Stack as row vectors and then transpose
+    return np.transpose(np.vstack(V))
+            
+
 # Split text by either comma or space
 def SplitLineGeneral(line):
     """Split a string in which uses a mix of commas and spaces as delimiters
@@ -101,6 +125,76 @@ def RangeString(rng):
     # Output
     return ",".join(txt)
 
+# Convert matrix of truth values to BC lists
+def GetBCBlock2(I):
+    """Get largest rectangle of boundary conditions
+    
+    :Call:
+        >>> js, je, ks, ke = GetBCBlock(I)
+    :Inputs:
+        *I*: :class:`np.ndarray` (:class:`bool`, shape=(NJ,NK))
+            Matrix of whether or not each grid point is in the family
+    :Outputs:
+        *js*: {``None``} | :class:`int`
+            Start *j*-index of block
+        *je*: {``None``} | :class:`int`
+            End *j*-index of block
+        *ks*: {``None``} | :class:`int`
+            Start *k*-index of block
+        *ke*: {``None``} | :class:`int`
+            End *k*-index of block
+    :Versions:
+        * 2017-02-08 ``@ddalle``: First version
+    """
+    # Initialize indices
+    js = None
+    je = None
+    ks = None
+    ke = None
+    # Check for NO MATCHES
+    if not np.any(I):
+        return js, je, ks, ke
+    # Get dimensions
+    nj, nk = I.shape
+    # Get first column with finds
+    ks = np.where(np.any(I, axis=0))[0][0]
+    # Loop through columns
+    for k in range(ks,nk):
+        # Get indices of matches
+        J = np.where(I[:,k])[0]
+        # Check for matches in this column
+        if len(J) == 0:
+            ke = k - 1
+            break
+        # Process start of matches
+        if k == ks:
+            # First column; found start index for the block
+            js = J[0]
+        elif js != J[0]:
+            # Mismatch for row start index: END OF BLOCK
+            ke = k - 1
+            break
+        # Find gaps
+        IE = np.where(np.diff(J) > 1)[0]
+        # Check for gaps
+        if len(IE) == 0:
+            # No gaps
+            jek = J[-1]
+        else:
+            # Get the end of the first continuous block
+            jek = J[IE[0]]
+        # Process end index
+        if k == ks:
+            # First column; found index for the block
+            je = jek
+        if jek != je:
+            # Mismatch for end row index: END OF BLOCK
+            ke = k - 1
+            break
+        # If reaching here; update value of *ke*
+        ke = k
+    # Return
+    return js, je+1, ks, ke+1
 
 # Function to get uncertainty in the mean
 def SigmaMean(x):
@@ -493,3 +587,6 @@ def get_xlim_ax(ha, xpad=0.05, **kw):
     # Output
     return xminv, xmaxv
 
+
+            
+    

@@ -214,7 +214,7 @@ class Config(odict):
                 self['RefArea'] = {}
             elif type(RefA).__name__ != 'dict':
                 # Use current value as default.
-                self['RefArea'] = {"default": RefA}
+                self['RefArea'] = {"default": A}
             # Assign the specified value.
             self['RefArea'][comp] = A
             
@@ -297,12 +297,102 @@ class Config(odict):
             if RefL is None:
                 # Initialize it.
                 self['RefLength'] = {}
-            elif type(RefA).__name__ != 'dict':
+            elif type(RefL).__name__ != 'dict':
                 # Use current value as default.
-                self['RefLength'] = {"default": RefL}
+                self['RefLength'] = {"default": L}
             # Assign the specified value.
             self['RefLength'][comp] = L
-            
+          
+    # Get reference length for a given component.
+    def get_RefSpan(self, comp=None):
+        """Return the global reference span or that of a component
+        
+        The component index can only be used if the 'RefLength' option is
+        defined as a :class:`list`.  Similarly, the component name can only be
+        used if the 'RefLength' option is a :class:`dict`.
+        
+        :Call:
+            >>> b = opts.get_RefSpan()
+            >>> b = opts.get_RefSpan(comp=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str` or :class:`int`
+                Name of component or component index
+        :Outputs:
+            *b*: :class:`float`                        
+                Global reference length or reference length for a component
+        :Versions:
+            * 2017-02-19 ``@ddalle``: Copied from :func:`get_RefLength`
+        """
+        # Get the specified value.
+        RefL = self.get('RefSpan')
+        # Check the type.
+        if type(RefL).__name__ == 'dict':
+            # Check the component input.
+            if (comp in RefL):
+                # Return the specific component.
+                b = RefL[comp]
+            elif 'default' in RefL:
+                # Get the default reference span
+                b = 1.0
+            else:
+                # Fall back to RefLength
+                b = self.get_RefLength(comp)
+        elif type(RefL).__name__ == 'list':
+            # Check the component input.
+            if comp and (comp < len(RefL)):
+                # Return the value by CompID.
+                b = RefL[comp]
+            else:
+                # Return the first entry.
+                b = RefL[0]
+        elif RefL is None:
+            # No reference span; fall back to RefLength
+            b = self.get_RefLength(comp)
+        else:
+            # It's just a number.
+            b = RefL
+        # Output
+        return b
+        
+    # Set the reference length for a given component.
+    def set_RefSpan(self, b, comp=None):
+        """Set the global reference span or that of a component
+        
+        :Call:
+            >>> opts.set_RefSpan(b)
+            >>> opts.set_RefSpan(b, comp=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *b*: :class:`float`
+                Global reference span or reference length for a component 
+            *comp*: :class:`str` or :class:`int`
+                Name of component or component index
+        :Versions:
+            * 2017-02-19 ``@ddalle``: Copied from :func:`set_RefLength`
+        """
+        # Check the component input.
+        if comp is None:
+            # Global assignment.
+            self['RefSpan'] = b   
+        elif type(comp).__name__ == "int":
+            # Set the index.
+            self.set_key('RefSpan', b, comp)
+        else:
+            # Get the current value.
+            RefL = self.get('RefSpan')
+            # Make sure that the value is a dict.
+            if RefL is None:
+                # Initialize it.
+                self['RefSpan'] = {}
+            elif type(RefL).__name__ != 'dict':
+                # Use current value as default.
+                self['RefSpan'] = {"default": b}
+            # Assign the specified value.
+            self['RefSpan'][comp] = b
+      
             
     # Get points
     def get_Point(self, name=None):
@@ -499,4 +589,5 @@ class Config(odict):
                 self['RefPoint'] = {"default": list(RefP)}
             # Assign the specified value.
             self['RefPoint'][comp] = list(x)
-            
+        
+# class Config            

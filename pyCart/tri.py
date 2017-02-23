@@ -1,14 +1,65 @@
 """
-Cart3D triangulation module: :mod:`pyCart.tri`
+:mod:`pyCart.tri`: Cart3D Triangulation Module
 ==============================================
 
 This module provides the utilities for interacting with Cart3D triangulations,
 including annotated triangulations (including ``.triq`` files).  Triangulations
-can also be read from the UH3D format.
+can also be read from the UH3D format (which is similar to the Cart3D ``.tri``
+format but with face names for component IDs).
+
+Triangulations can be read from a variety of formats, which are tabulated
+below.
+
+    +-------------+------------------------------------------+
+    | Extension   | Description                              |
+    +=============+==========================================+
+    | ``.tri``    | Cart3D tri format, can be ASCII, Fortran |
+    |             | unformatted (big- or little-endian), or  |
+    |             | C-style stream                           |
+    +-------------+------------------------------------------+
+    | ``.triq``   | Annotated Cart3D tri format, any format. |
+    |             | This format contains a number of state   |
+    |             | variables at each point in addition to   |
+    |             | the geometry information                 |
+    +-------------+------------------------------------------+
+    | ``.uh3d``   | UH3D format, similar to ``.tri`` but     |
+    |             | names for faces                          |
+    +-------------+------------------------------------------+
+    | ``.surf``   | AFLR3 surface mesh; can include quads    |
+    +-------------+------------------------------------------+
+    | ``.unv``    | IDEAS format; very strange               |
+    +-------------+------------------------------------------+
+    
+In addition to the main functions inherited from :class:`cape.tri.TriBase`, the
+:class:`pyCart.tri.Triq` class has a few methods that are particular to the
+state variables saved in Cart3D.
+
+Cart3D also utilizes the GMP format to associate names with the faces of
+component ID numbers.  This is an XML format (standard name for the file is
+:file:`Config.xml`) that associates a name for each of the component IDs in a
+triangulation.  In addition, groups of component IDs can be given a name by
+defining "Parent" components in the XML file.  Reading a triangulation with
+such a configuration can be done with the following commands.
+
+    .. code-block:: python
+    
+        import pyCart.tri
+        tri = pyCart.tri.Tri("Components.i.tri", c="Config.xml")
+        
+Note that Cart3D's interpretation of the XML file is very strict.  There cannot
+be any component IDs mentioned in the XML file that are not present in the TRI
+file.  In addition, there is no way for a component to have multiple parents.
+For example, it is not possible to have a group that contains fins 1 and 2
+while another group contains fins 1 and 3.
 
 The module consists of individual classes that are built off of a base
-triangulation class :class:`pyCart.tri.TriBase`.  Methods that are written for
+triangulation class :class:`cape.tri.TriBase`.  Methods that are written for
 the TriBase class apply to all other classes as well.
+
+:See Also:
+    * :mod:`cape.tri`
+    * :mod:`cape.config`
+    * :mod:`pyCart.config`
 """
 
 # Required modules

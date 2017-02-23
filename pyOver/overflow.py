@@ -526,16 +526,21 @@ class Overflow(Cntl):
         
         
     # Check if cases with zero iterations are not yet setup to run
-    def CheckNone(self):
+    def CheckNone(self, v=False):
         """Check if the current folder has the necessary files to run
         
         :Call:
-            >>> q = fun3d.CheckNone()
+            >>> q = fun3d.CheckNone(v=False)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of control class containing relevant parameters
+            *v*: ``True`` | {``False``}
+                Verbose flag
+        :Outputs:
+            *q*: ``True`` | ``False``
         :Versions:
             * 2015-10-19 ``@ddalle``: First version
+            * 2017-02-22 ``@ddalle``: Added verbose flag
         """
         # Input file.
         finp = '%s.01.inp' % self.GetPrefix()
@@ -549,7 +554,10 @@ class Overflow(Cntl):
             # Check for modified file name: 'save' -> 'restart'
             fo = fi.replace('save', 'restart')
             # Check for the file
-            if not os.path.isfile(fo): return True
+            if not (os.path.isfile(fo) or os.path.isfile(fi)):
+                # Verbose flag
+                if v: print("    Missing file '%s'" % fi)
+                return True
         # Apparently no issues.
         return False
             

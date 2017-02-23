@@ -915,9 +915,9 @@ class Options(odict):
         eval('set_'+k).__doc__ = getattr(runControl.RunControl,'set_'+k).__doc__
    # >
         
-    # ============
-    # PBS settings
-    # ============
+   # ============
+   # PBS settings
+   # ============
    # <
     
     # Get number of unique PBS scripts
@@ -1331,9 +1331,9 @@ class Options(odict):
    # > 
    
     
-    # =============
-    # Configuration
-    # =============
+   # =============
+   # Configuration
+   # =============
    # <
    
     # Reset points
@@ -1382,6 +1382,16 @@ class Options(odict):
         self._Config()
         self['Config'].set_RefLength(L, comp)
     
+    # Get reference span
+    def get_RefSpan(self, comp=None):
+        self._Config()
+        return self['Config'].get_RefSpan(comp)
+        
+    # Set reference span
+    def set_RefSpan(self, b=rc0('RefLength'), comp=None):
+        self._Config()
+        self['Config'].set_RefSpan(b, comp)
+    
     # Get moment reference point
     def get_RefPoint(self, comp=None):
         self._Config()
@@ -1410,7 +1420,7 @@ class Options(odict):
         
     # Copy over the documentation.
     for k in ['ConfigComponents', 'ConfigFile', 
-    'RefArea', 'RefLength', 'RefPoint', 'Point']:
+    'RefArea', 'RefLength', 'RefSpan', 'RefPoint', 'Point']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Config,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Config,'set_'+k).__doc__

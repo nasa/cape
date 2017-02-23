@@ -55,7 +55,9 @@ values are shown below.
             "W": "",
             "q": "normal",
             "walltime": "2:00:00"
-        }
+        },
+        "BatchPBS": { },
+        "PostPBS": { }
         
 These are standard PBS script option names that lead to lines being created at
 the top of :file:`run_cart3d.pbs`, unless the option is empty.  For example, if
@@ -72,9 +74,32 @@ the PBS options above are in :file:`pyCart.json`, the first few lines of
         #PBS -l select=1:ncpus=20:mpiprocs=20:model=ivy
         #PBS -l walltime=2:00:00
         #PBS -q normal
+        
+The *BatchPBS* dictionary provides options that override those of *PBS* for
+``pycart --batch`` commands.  Options not specified in *BatchPBS* fall back to
+those defined in the first phase of *PBS*.  However, it is common for batch
+jobs run on a single node.  Here is a typical example in which run jobs utilize
+10 Haswell nodes (``"has"``) for 12 hrs, but batch jobs select only one node
+for two hours and submit instead to the ``devel`` queue.
+
+    .. code-block:: javascript
+    
+        "PBS": {
+            "select": 10,
+            "ncpus": 24,
+            "mpiprocs": 24,
+            "model": "has",
+            "q": "normal",
+            "walltime": "12:00:00"
+        },
+        "BatchPBS": {
+            "select": 1,
+            "q": "devel",
+            "walltime": "2:00:00"
+        }
 
 The case label, shown as ``*casename*`` above, is a short label shown as the job
-name with `qstat` or similar commands.  The actual value of this label is
+name with ``qstat`` or similar commands.  The actual value of this label is
 determined elsewhere and is related to name of the run directory.
 
 Each of these options may also be lists, in which case each list entry will
@@ -112,8 +137,14 @@ suggested here may not be applicable to other systems.
     *S*: {``"/bin/bash"``} | ``"/bin/csh"`` | :class:`str`
         Specify the *full* path to the shell to use.
         
-    *r*: {``'"n"``} | ``"r"`` | :class:`str` 
+    *r*: {``"n"``} | ``"r"`` | :class:`str` 
         PBS job rerunable status
+        
+    *e*: {``null``} | :class:`str`
+        Explicity STDERR (standard error( file for PBS job
+        
+    *o*: {``null``} | :class:`str`
+        Explicit STDOUT (standard output) file for PBS job
         
     *select*: {``1``} | :class:`int`
         Number of *nodes* to request, i.e. the number of independent computing
@@ -125,7 +156,7 @@ suggested here may not be applicable to other systems.
     *mpiprocs*: {``20``} | :class:`int`
         Number of MPI processes *per* node
         
-    *model*: ``"has"`` | {``"ivy"``} | ``"san"`` | ``"wes"`` | :class:`str`
+    *model*: ``"bro"`` | ``"has"`` | {``"ivy"``} | :class:`str`
         Architecture, usually a three-letter code for a vendor-specific model.
         The options listed above are Intel's Haswell, Ivy Bridge, Sandy Bridge,
         and Westmere, which are common values.
@@ -135,7 +166,7 @@ suggested here may not be applicable to other systems.
         created.  On some systems, this is also used to determine the group to
         which a case is charged.
         
-    *walltime*: {``"2:00:00"``} | :class:`str`
+    *walltime*: {``"2:00:00"``} | :class:`str` | :class:`list` (:class:`str`)
         Maximum wall clock time to request
         
     *q*: {``"normal"``} | ``"devel"`` | ``"long"`` | :class:`str`

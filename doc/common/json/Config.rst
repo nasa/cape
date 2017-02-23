@@ -16,7 +16,7 @@ The JSON syntax with some nontrivial values is below.
     
         "Config": {
             "Components": ["total", "wing"],
-            "ConfigFile": "Config.xml",
+            "File": "Config.xml",
             "RefArea": 1.57,
             "RefLength": {
                 "total": 0.5,
@@ -61,15 +61,21 @@ The dictionary of options is given below.
     *Components*: {``[]``} | :class:`list` (:class:`str`)
         List of components for Cape to know about, usually surface subsets
         
-    *ConfigFile*: {``"Config.xml"``} | :class:`str`
+    *File*: {``"Config.xml"``} | :class:`str`
         Name of file defining surface and/or volume grid subsets
         
     *Points*: {``{}``} | :class:`dict` (:class:`list`)
         Dictionary of named points and their coordinates
         
     *RefArea*: {``3.14159``} | :class:`float` | :class:`dict` (:class:`float`)
-        Reference area or dictionary of reference areas
+        Reference area or dictionary of reference areas for each component
         
     *RefLength*: {``1.0``} | :class:`float` | :class:`dict` (:class:`float`)
-        Reference length or dictionary of reference lengths
+        Reference length or dictionary of reference lengths for each component
+        
+    *RefPoint*: {``null``} | :class:`dict` (:class:`list`) | :class:`list`
+        Moment reference point or dictionary of moment reference points
+        
+    *RefSpan*: {``null``} | :class:`float` | :class:`dict` (:class:`float`)
+        Reference span; falls back to *RefLength* if not specified
 
