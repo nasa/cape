@@ -867,8 +867,15 @@ class Overflow(Cntl):
         :Versions:
             * 2016-08-29 ``@ddalle``: First version
         """
+        # Set the trajectory key type to look for
+        if CT:
+            # Setting BCs by thrust
+            typ = "SurfCT"
+        else:
+            # Setting BCs by pressure/total pressure
+            typ = "SurfBC"
         # Get list of grids
-        grids = self.x.GetSurfBC_Grids(i, key)
+        grids = self.x.GetSurfBC_Grids(i, key, typ=typ)
         # Get the current namelist
         nml = self.Namelist
         # Case folder
@@ -879,22 +886,18 @@ class Overflow(Cntl):
         # Loop through the grids
         for grid in grids:
             # Get component
-            comp = self.x.GetSurfBC_CompID(i, key, comp=grid)
+            comp = self.x.GetSurfBC_CompID(i, key, comp=grid, typ=typ)
             # BC index
-            bci = self.x.GetSurfBC_BCIndex(i, key, comp=grid)
+            bci = self.x.GetSurfBC_BCIndex(i, key, comp=grid, typ=typ)
             # Boundary conditions
             if CT:
                 # Get *p0*, *T0* from thrust
                 p0, T0 = self.GetSurfCTState(key, i, grid)
-                # Key type
-                typ = 'SurfCT'
             else:
                 # Use *p0* and *T0* directly as inputs
                 p0, T0 = self.GetSurfBCState(key, i, grid)
-                # Key type
-                typ = 'SurfBC'
             # Species
-            Y = self.x.GetSurfBC_Species(i, key, comp=grid)
+            Y = self.x.GetSurfBC_Species(i, key, comp=grid, typ=typ)
             # Other parameters
             BCPAR1 = self.x.GetSurfBC_Param(i, key, 'BCPAR1', 
                 comp=grid, typ=typ, vdef=1)
@@ -935,7 +938,7 @@ class Overflow(Cntl):
                 if bci != 1:
                     raise ValueError(
                         ("While specifying IBTYP for key '%s':\n" % key) +
-                        ("Received column index %s for grid '%s' " % (bci, grid)) +
+                        ("Received column index %s for grid '%s' "%(bci,grid))+
                         ("but BCINP/IBTYP namelist has 1 column" % len(IBTYP)))
                 # Set IBTYP to 153
                 IBTYP = 153
@@ -1010,29 +1013,31 @@ class Overflow(Cntl):
         # Get the trhust value
         CT = self.x.GetSurfCT_Thrust(i, key, comp=grid)
         # Get the exit parameters
-        M2 = self.x,GetSurfCT_ExitMach(i, key, comp=grid)
-        A2 = self.x,GetSurfCT_ExitArea(i, key, comp=grid)
+        M2 = self.x.GetSurfCT_ExitMach(i, key, comp=grid)
+        A2 = self.x.GetSurfCT_ExitArea(i, key, comp=grid)
         # Ratio of specific heats
         gam = self.x.GetSurfCT_Gamma(i, key, comp=grid)
         # Derivative gas constants
         g2 = 0.5 * (gam-1)
         g3 = gam / (gam-1)
         # Get reference dynamice pressure
-        qref = self.GetSurfCT_RefDynamicPressure(i, key, comp=grid)
+        qref = self.x.GetSurfCT_RefDynamicPressure(i, key, comp=grid)
         # Get reference area
         Aref = self.GetSurfCT_RefArea(key, i)
         # Calculate total pressure
-        p0 = CT*qref*aref/A2 *  (1+g2*M2*M2)**g3 / (1+gam*M2*M2)
+        p0 = CT*qref*Aref/A2 *  (1+g2*M2*M2)**g3 / (1+gam*M2*M2)
+        # Idenfitifier options
+        kwg = {"comp": grid}
         # Temperature inputs
-        T0 = self.x.GetSurfCT_TotalTemperature(i, key, comp=grid)
+        T0 = self.x.GetSurfCT_TotalTemperature(i, key, **kwg)
         # Calibration
-        ap = self.x.GetSurfCT_PressureCalibration(i, key, comp=grid)
-        bp = self.x.GetSurfCT_PressureOffset(i, key, comp=grid)
-        aT = self.x.GetSurfCT_TemperatureCalibration(i, key, comp=grid)
-        bT = self.x.GetSurfCT_TemperatureOffset(i, key, comp=grid)
+        ap = self.x.GetSurfCT_PressureCalibration(i, key, **kwg)
+        bp = self.x.GetSurfCT_PressureOffset(i, key, **kwg)
+        aT = self.x.GetSurfCT_TemperatureCalibration(i, key, **kwg)
+        bT = self.x.GetSurfCT_TemperatureOffset(i, key, **kwg)
         # Reference values
-        p0inf = self.x.GetSurfCT_TotalPressure(i, key, comp=grid)
-        T0inf = self.x.GetSurfCT_TotalTemperature(i, key, comp=grid)
+        p0inf = self.x.GetSurfCT_TotalPressure(i, key, **kwg)
+        T0inf = self.x.GetSurfCT_TotalTemperature(i, key, **kwg)
         # Output
         return (ap*p0+bp)/p0inf, (aT*T0+bT)/T0inf
         

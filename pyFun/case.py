@@ -483,7 +483,7 @@ def GetPhaseNumber(rc):
                 fadpt = os.path.join('Flow', 'dual.%02i.out' % i)
             else:
                 # Purely adaptive; located in this folder
-                fadpt = 'dual.%02i.out' % i
+                fadpt = 'adapt.%02i.out' % i
             # Check for the dual output file
             if not os.path.isfile(fadpt):
                 return i
@@ -640,14 +640,13 @@ def GetHistoryIter():
         * 2016-04-28 ``@ddalle``: Accounting for ``Flow/`` folder
         * 2016-10-29 ``@ddalle``: Handling Fun3D's iteration reset
     """
+    # Read JSON settings
+    rc = ReadCaseJSON()
+    # Get adaptive settings
+    qdual = rc.get_Dual()
+    qadpt = rc.get_Adaptive()
     # Check for flow folder
-    if os.path.isdir('Flow'):
-        # Dual setup
-        qdual = True
-        os.chdir('Flow')
-    else:
-        # No dual setup
-        qdual = False
+    if qdual: os.chdir("Flow")
     # Read the project rootname
     try:
         rname = GetProjectRootname()
@@ -658,7 +657,7 @@ def GetHistoryIter():
     # Assemble file name.
     fname = "%s_hist.dat" % rname
     # Check for "pyfun00", "pyfun01", etc.
-    if qdual:
+    if qdual or qadpt:
         # Check for sequence of file names
         fnames = glob.glob(rname[:-2] + '??_hist.dat')
         # Sort descending

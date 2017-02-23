@@ -2525,6 +2525,32 @@ class Trajectory:
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_PressureOffset(i, key, comp=comp, typ="SurfCT")
+        
+    # Get stagnation pressure input for SurfBC input
+    def GetSurfCT_TotalPressure(self, i, key=None, comp=None):
+        """Get stagnation pressure input for surface *CT* key
+        
+        :Call:
+            >>> p0 = x.GetSurfCT_TotalPressure(i, key=None, comp=None, **kw)
+        :Inputs:
+            *x*: :class:`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: :class:`int`
+                Case index
+            *key*: ``None`` | :class:`str`
+                Name of key to use; defaults to first ``SurfBC`` key
+            *comp*: {``None``} | :class:`str`
+                Name of component
+            *typ*: {``"SurfBC"``} | ``"SurfCT"`` | 
+                Type to use for checking properties of *key*
+        :Outputs:
+            *p0*: :class:`float`
+                Stagnation pressure parameter, usually *p0/pinf*
+        :Versions:
+            * 2016-03-28 ``@ddalle``: First version
+        """
+        # Call the SurfBC equivalent
+        return self.GetSurfBC_TotalPressure(i, key, comp=comp, typ="SurfCT")
             
     # Get total temperature
     def GetSurfCT_TotalTemperature(self, i, key=None, comp=None):
@@ -3240,7 +3266,8 @@ class Trajectory:
             "stagnation": "GetTotalTemperature",
         }
         # Get the value
-        return self.GetSurfBC_Param(i, key, 'TemperatureOffset', vdef=0.0, **kw_funcs)
+        return self.GetSurfBC_Param(i, key, 'TemperatureOffset', 
+            typ=typ, vdef=0.0, **kw_funcs)
             
     # Get Mach number input for SurfBC input
     def GetSurfBC_Mach(self, i, key=None, comp=None, **kw):

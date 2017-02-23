@@ -2658,6 +2658,8 @@ class Report(object):
         if fcpt: lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
         lines.append('\\end{subfigure}\n')
+        # Ensure original directory
+        os.chdir(fpwd)
         # Output
         return lines
     
