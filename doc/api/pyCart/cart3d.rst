@@ -3,8 +3,8 @@
 .. automodule:: pyCart.cart3d
      
     
-    Cart3D Executive Class :class:`pyCart.cart3d.Cart3d`
-    ----------------------------------------------------
+    Cart3D Executive Class: :class:`pyCart.cart3d.Cart3d`
+    -----------------------------------------------------
 
     .. autoclass:: pyCart.cart3d.Cart3d
         :members:

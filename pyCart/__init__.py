@@ -61,7 +61,7 @@ The following classes are imported in this module, so that code like
 import os
 
 # Save version number
-version = "0.5"
+version = "0.8"
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -81,8 +81,6 @@ from aeroCsh     import AeroCsh
 from preSpecCntl import PreSpecCntl
 from dataBook    import CaseFM, CaseResid
 
-# Get the conversion tools directly.
-from convert import *
 
 # Wholesale modules
 import manage

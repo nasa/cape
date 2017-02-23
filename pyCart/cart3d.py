@@ -64,8 +64,6 @@ from . import bin
 from . import case
 # Run directory management
 from . import manage
-# Alpha-beta / alpha_t-phi business
-from . import convert
 # Data book and plotting
 from . import dataBook
 

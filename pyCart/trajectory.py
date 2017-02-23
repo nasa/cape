@@ -1,19 +1,59 @@
 """
-Cart3D run case list module: :mod:`pyCart.trajectory`
-=====================================================
+:mod:`pyCart.trajectory`: Cart3D Run Matrix Module 
+==================================================
 
 This module handles classes and methods that are specific to the list of run
-cases (i.e., the "trajectory").
+cases (i.e., the "trajectory").  It is defined in the ``"Trajectory"`` section
+of the master JSON file (e.g. :file:`pyCart.json`), and is usually read from a
+modified comma-separated or space-separated text file.
+
+The primary Cart3D state variables are Mach number, angle of attack, and
+sidelsip.  To this it is common practice to add a ``"config"`` variable (which
+sets the name of the group folder) and a ``"Label"`` which can be used to give
+an extension to the name of a case.  A run matrix using only these variables
+could be defined as follows.
+
+    .. code-block:: javascript
+    
+        "Trajectory": {
+            "Keys": ["mach", "alpha", "beta"],
+            "File": "inputs/matrix.csv"
+        }
+        
+Then the matrix file :file:`inputs/matrix.csv` could have contents such as the
+following.
+
+    .. code-block:: none
+    
+        # mach, alpha, beta
+        0.8, 0.0, 0.0, ascent,
+        1.2, 2.0, 0.0, ascent, maxq
+
+Then the following example API commands could be used to show the case names.
+In this case *cart3d* is the interface to a Cart3D run configuration read from
+a JSON file, and *cart3d.x* is the run matrix.
+
+    .. code-block:: pycon
+    
+        >>> import pyCart
+        >>> cart3d = pyCart.Cart3d("pyCart.json")
+        >>> cart3d.x.GetFullFolderNames()
+        ['ascent/m0.8a0.0b0.0', 'ascent/m1.2a2.0b0.0_maxq']
+        
+For this module, there are no methods that are particular to Cart3D.  All
+functionality is inherited from :class:`cape.trajectory.Trajectory`.
+
+:See Also:
+    * :mod:`cape.trajectory`
+    * :mod:`pyCart.cart3d`
 """
 
 # Import the cape module.
 import cape.trajectory
 
-
 # Trajectory class
 class Trajectory(cape.trajectory.Trajectory):
-    """
-    Read a simple list of configuration variables
+    """Read a run matrix
     
     :Call:
         >>> x = pyCart.Trajectory(**traj)
@@ -44,13 +84,13 @@ class Trajectory(cape.trajectory.Trajectory):
             Prefix to be used in folder names for each case in trajectory
         *x.GroupPrefix*: :class:`str`
             Prefix to be used for each grid folder name
-        *x.keys*: :class:`list`, *dtype=str*
+        *x.keys*: :class:`list` (:class:`str`)
             List of variable names used
-        *x.text*: :class:`dict`, *dtype=list*
+        *x.text*: :class:`dict` (:class:`float`)
             Lists of variable values taken from trajectory file
-        *x.Mach*: :class:`numpy.ndarray`, *dtype=float*
+        *x.Mach*: :class:`numpy.ndarray` (:class:`float`)
             Vector of Mach numbers in trajectory
-        ``getattr(x, key)``: :class:`numpy.ndarray`, *dtype=float*
+        ``getattr(x, key)``: :class:`numpy.ndarray` (:class:`float`)
             Vector of values of each variable specified in *keys*
     :Versions:
         2014-05-28 ``@ddalle``: First version
@@ -67,5 +107,6 @@ class Trajectory(cape.trajectory.Trajectory):
         # Return a string.
         return '<pyCart.Trajectory(nCase=%i, keys=%s)>' % (self.nCase,
             self.keys)
-        
+    
+# class Trajectory
     

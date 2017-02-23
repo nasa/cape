@@ -11,8 +11,6 @@
         cart3d
         tri
         trajectory
-        convert
-        fileCntl
         inputCntl
         aeroCsh
         preSpecCntl
