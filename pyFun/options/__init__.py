@@ -85,9 +85,9 @@ class Options(cape.options.Options):
         # Add extra folders to path.
         self.AddPythonPath()
     
-    # ============
-    # Initializers
-    # ============
+   # ============
+   # Initializers
+   # ============
    # <
     
     # Initialization and confirmation for PBS options
@@ -204,9 +204,9 @@ class Options(cape.options.Options):
             self['Config'] = Config(**tmp)
    # >
     
-    # ==============
-    # Global Options
-    # ==============
+   # ==============
+   # Global Options
+   # ==============
    # <
     
     # Method to get the namelist template
@@ -299,9 +299,9 @@ class Options(cape.options.Options):
         self['Trajectory']['GroupMesh'] = qGM
    # >
     
-    # ===================
-    # Overall run control
-    # ===================
+   # ===================
+   # Overall run control
+   # ===================
    # <
     
     # Keep restart files
@@ -380,9 +380,9 @@ class Options(cape.options.Options):
    
    # >
    
-    # =================
-    # Namelist settings
-    # =================
+   # =================
+   # Namelist settings
+   # =================
    # <
     
     # Project settings
@@ -462,9 +462,9 @@ class Options(cape.options.Options):
    # >
    
     
-    # =============
-    # Mesh settings
-    # =============
+   # =============
+   # Mesh settings
+   # =============
    # <
         
     # BCfile
@@ -472,16 +472,38 @@ class Options(cape.options.Options):
         self._Mesh()
         return self['Mesh'].get_MapBCFile(i)
         
+    # Freeze file
+    def get_FreezeFile(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_FreezeFile(i)
+        
+    # faux_input file
+    def get_FauxFile(self, i=None):
+        self._Mesh()
+        return self['Mesh'].get_FauxFile(i)
+        
+    # Freeze component list
+    def get_FreezeComponents(self):
+        self._Mesh()
+        return self['Mesh'].get_FreezeComponents()
+        
+    # Faux geometry
+    def get_Faux(self, comp=None):
+        self._Mesh()
+        return self['Mesh'].get_Faux(comp)
+        
     # Copy documentation
-    for k in ['MapBCFile']:
+    for k in ['MapBCFile', 'FreezeFile', 'FauxFile',
+        'FreezeComponents', 'Faux'
+    ]:
         eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
    # >
     
     
-    # =============
-    # Configuration
-    # =============
-   #<
+   # =============
+   # Configuration
+   # =============
+   # <
     
     # Get components
     def get_ConfigInput(self, comp):
@@ -500,16 +522,16 @@ class Options(cape.options.Options):
         eval('set_'+k).__doc__ = getattr(Config,'set_'+k).__doc__
    # >
     
-    # ============
-    # PBS settings
-    # ============
+   # ============
+   # PBS settings
+   # ============
    # <
    # >
     
     
-    # =================
-    # Folder management
-    # =================
+   # =================
+   # Folder management
+   # =================
    # <
         
         
@@ -521,9 +543,9 @@ class Options(cape.options.Options):
    # >
    
     
-    # =============
-    # Configuration
-    # =============
+   # =============
+   # Configuration
+   # =============
    # <
         
     
@@ -538,9 +560,9 @@ class Options(cape.options.Options):
    # >
    
     
-    # =========
-    # Functions
-    # =========
+   # =========
+   # Functions
+   # =========
    # <
     
     # Function to get adaptive coefficients
@@ -608,9 +630,9 @@ class Options(cape.options.Options):
         
    # >
     
-    # =========
-    # Data book
-    # =========
+   # =========
+   # Data book
+   # =========
    # <
     
     # Copy over the documentation.
@@ -620,9 +642,9 @@ class Options(cape.options.Options):
    # >
    
     
-    # =======
-    # Reports
-    # =======
+   # =======
+   # Reports
+   # =======
    # <
     
     # Copy over the documentation

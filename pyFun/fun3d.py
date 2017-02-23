@@ -26,6 +26,7 @@ from rubberData import RubberData
 from . import options
 from . import case
 from . import mapbc
+from . import faux
 from . import dataBook
 # Unmodified CAPE modules
 from cape import convert
@@ -74,7 +75,11 @@ class Fun3d(Cntl):
             Absolute path to the root directory
     :Versions:
         * 2015-10-16 ``@ddalle``: Started
-    """ 
+    """
+  # ======
+  # Config
+  # ======
+  # <
     # Initialization method
     def __init__(self, fname="pyFun.json"):
         """Initialization method for :mod:`cape.cntl.Cntl`"""
@@ -116,7 +121,12 @@ class Fun3d(Cntl):
         # Display basic information from all three areas.
         return "<pyFun.Fun3d(nCase=%i)>" % (
             self.x.nCase)
-        
+  # >
+  
+  # ========
+  # Readers
+  # ========
+  # <    
     # Function to read the databook.
     def ReadDataBook(self):
         """Read the current data book
@@ -145,35 +155,12 @@ class Fun3d(Cntl):
         # Return to original folder.
         os.chdir(fpwd)
         
-    # Read the boundary condition map
-    def ReadMapBC(self, j=0, q=True):
-        """Read the FUN3D boundary condition map
-        
-        :Call:
-            >>> fun3d.ReadMapBC(q=True)
-        :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of the pyFun control class
-            *q*: {``True``} | ``False``
-                Whether or not to read to *MapBC*, else *MapBC0*
-        :Versions:
-            * 2016-03-30 ``@ddalle``: First version
-        """
-        # Change to root safely
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Read the file
-        BC = mapbc.MapBC(self.opts.get_MapBCFile(j))
-        # Save it.
-        if q:
-            # Read to main slot.
-            self.MapBC = BC
-        else:
-            # Template
-            self.MapBC0 = BC
-        # Go back to original location
-        os.chdir(fpwd)
-        
+  # >
+  
+  # ========
+  # Namelist
+  # ========
+  # <
     # Read the namelist
     def ReadNamelist(self, j=0, q=True):
         """Read the :file:`fun3d.nml` file
@@ -205,49 +192,7 @@ class Fun3d(Cntl):
             self.Namelist0 = nml
         # Go back to original location
         os.chdir(fpwd)
-        
-    # Read the ``rubber.data`` file
-    def ReadRubberData(self, j=0, q=True):
-        """Read the :file:`rubber.data` file
-        
-        :Call:
-            >>> fun3d.ReadRubberData(j=0, q=True)
-        :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of the pyFun control class
-            *j*: :class:`int`
-                Phase number
-            *q*: :class:`bool`
-                Whether or not read *RubberData*, else *RubberData0*
-        :Versions:
-            * 2016-04-27 ``@ddalle``: First version
-        """
-        # Change to root safely
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the file
-        fname = self.opts.get_RubberDataFile(j)
-        # Check for the file.
-        if os.path.isfile(fname):
-            # Read the rubber data file
-            RD = RubberData(fname)
-        else:
-            # Use the template
-            print("Using template for 'rubber.data' file")
-            # Path to template file
-            fname = options.getFun3DTemplate('rubber.data')
-            # Read the template
-            RD = RubberData(fname)
-        # Save the object
-        if q:
-            # Read the main slot
-            self.RubberData = RD
-        else:
-            # Template for reading original parameters
-            self.RubberData0 = RD
-        # Go back to original location
-        os.chdir(fpwd)
-        
+    
     # Get namelist var
     def GetNamelistVar(self, sec, key, j=0):
         """Get a namelist variable's value
@@ -362,8 +307,93 @@ class Fun3d(Cntl):
             * 2015-10-18 ``@ddalle``: First version
         """
         return self.GetNamelistVar('raw_grid', 'grid_format', j)
-            
-
+        
+  # >
+  
+  # ===========
+  # Other Files
+  # ===========
+  # <
+  
+    # Read the boundary condition map
+    def ReadMapBC(self, j=0, q=True):
+        """Read the FUN3D boundary condition map
+        
+        :Call:
+            >>> fun3d.ReadMapBC(q=True)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of the pyFun control class
+            *q*: {``True``} | ``False``
+                Whether or not to read to *MapBC*, else *MapBC0*
+        :Versions:
+            * 2016-03-30 ``@ddalle``: First version
+        """
+        # Change to root safely
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Read the file
+        BC = mapbc.MapBC(self.opts.get_MapBCFile(j))
+        # Save it.
+        if q:
+            # Read to main slot.
+            self.MapBC = BC
+        else:
+            # Template
+            self.MapBC0 = BC
+        # Go back to original location
+        os.chdir(fpwd)
+        
+    # Read the ``rubber.data`` file
+    def ReadRubberData(self, j=0, q=True):
+        """Read the :file:`rubber.data` file
+        
+        :Call:
+            >>> fun3d.ReadRubberData(j=0, q=True)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of the pyFun control class
+            *j*: :class:`int`
+                Phase number
+            *q*: :class:`bool`
+                Whether or not read *RubberData*, else *RubberData0*
+        :Versions:
+            * 2016-04-27 ``@ddalle``: First version
+        """
+        # Change to root safely
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get the file
+        fname = self.opts.get_RubberDataFile(j)
+        # Check for the file.
+        if os.path.isfile(fname):
+            # Read the rubber data file
+            RD = RubberData(fname)
+        else:
+            # Use the template
+            print("Using template for 'rubber.data' file")
+            # Path to template file
+            fname = options.getFun3DTemplate('rubber.data')
+            # Read the template
+            RD = RubberData(fname)
+        # Save the object
+        if q:
+            # Read the main slot
+            self.RubberData = RD
+        else:
+            # Template for reading original parameters
+            self.RubberData0 = RD
+        # Go back to original location
+        os.chdir(fpwd)
+        
+    
+  # >
+  
+  # =====
+  # Case
+  # =====
+  # <
+                                                                 
     # Get the current iteration number from :mod:`case`
     def CaseGetCurrentIter(self):
         """Get the current iteration number from the appropriate module
@@ -427,6 +457,88 @@ class Fun3d(Cntl):
         return rc.get_LastIter()
         
         
+    # Check if cases with zero iterations are not yet setup to run
+    def CheckNone(self, v=False):
+        """Check if the current folder has the necessary files to run
+        
+        :Call:
+            >>> q = fun3d.CheckNone(v=False)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+            *v*: ``True`` | {``False``}
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether or not the case is **not** set up to run
+        :Versions:
+            * 2015-10-19 ``@ddalle``: First version
+            * 2016-04-11 ``@ddalle``: Checking for AFLR3 input files, too
+            * 2016-04-29 ``@ddalle``: Simpler version that handles ``Flow/``
+            * 2017-02-22 ``@ddalle``: Added verbose option
+        """
+        # Settings file.
+        if not os.path.isfile('case.json'): return True
+        # If there's a ``Flow/`` folder, enter it
+        if os.path.isdir('Flow'):
+            # Dual setup
+            qdual = True
+            os.chdir('Flow')
+        else:
+            # No dual setup
+            qdual = False
+        # Check for history file
+        for j in self.opts.get_PhaseSequence():
+            # Get project name
+            fproj = self.GetProjectRootName(j)
+            # Check for history file
+            if os.path.isfile('%s_hist.dat' % fproj):
+                # Return if necessary
+                if qdual: os.chdir('..')
+                return False
+        # Namelist file
+        if not os.path.isfile('fun3d.00.nml'):
+            if qdual: os.chdir('..')
+            if v: print("    Missing namelist file 'fun3d.00.nml'")
+            return True
+        # Check mesh files
+        q = self.CheckMeshFiles(v=v)
+        # Go back if appropriate
+        if qdual: os.chdir('..')
+        # Output
+        return not q
+            
+    # Get total CPU hours (actually core hours)
+    def GetCPUTime(self, i, running=False):
+        """Read a CAPE-style core-hour file from a case
+        
+        :Call:
+            >>> CPUt = fun3d.GetCPUTime(i, running=False)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                FUN3D control interface
+            *i*: :class:`int`
+                Case index
+            *runing*: ``True`` | {``False``}
+                Whether or not to check for time since last start
+        :Outputs:
+            *CPUt*: :class:`float` | ``None``
+                Total core hours used in this job
+        :Versions:
+            * 2015-12-22 ``@ddalle``: First version
+            * 2016-08-31 ``@ddalle``: Checking time since last start
+        """
+        # File names
+        fname = 'pyfun_time.dat'
+        fstrt = 'pyfun_start.dat'
+        # Call the general function using hard-coded file name
+        return self.GetCPUTimeBoth(i, fname, fstrt, running=running)
+        
+  # >
+  
+  # ======
+  # Mesh
+  # ======
+  # <    
     # Get list of raw file names
     def GetInputMeshFileNames(self):
         """Return the list of mesh files from file
@@ -633,6 +745,12 @@ class Fun3d(Cntl):
         # Output
         return q
         
+  # >
+  
+  # ===========
+  # Preparation
+  # ===========
+  # <
     # Prepare the mesh for case *i* (if necessary)
     def PrepareMesh(self, i):
         """Prepare the mesh for case *i* if necessary
@@ -765,83 +883,6 @@ class Fun3d(Cntl):
         # -------
         # Return to original folder
         os.chdir(fpwd)
-        
-        
-    # Check if cases with zero iterations are not yet setup to run
-    def CheckNone(self, v=False):
-        """Check if the current folder has the necessary files to run
-        
-        :Call:
-            >>> q = fun3d.CheckNone(v=False)
-        :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of control class containing relevant parameters
-            *v*: ``True`` | {``False``}
-        :Outputs:
-            *q*: ``True`` | ``False``
-                Whether or not the case is **not** set up to run
-        :Versions:
-            * 2015-10-19 ``@ddalle``: First version
-            * 2016-04-11 ``@ddalle``: Checking for AFLR3 input files, too
-            * 2016-04-29 ``@ddalle``: Simpler version that handles ``Flow/``
-            * 2017-02-22 ``@ddalle``: Added verbose option
-        """
-        # Settings file.
-        if not os.path.isfile('case.json'): return True
-        # If there's a ``Flow/`` folder, enter it
-        if os.path.isdir('Flow'):
-            # Dual setup
-            qdual = True
-            os.chdir('Flow')
-        else:
-            # No dual setup
-            qdual = False
-        # Check for history file
-        for j in self.opts.get_PhaseSequence():
-            # Get project name
-            fproj = self.GetProjectRootName(j)
-            # Check for history file
-            if os.path.isfile('%s_hist.dat' % fproj):
-                # Return if necessary
-                if qdual: os.chdir('..')
-                return False
-        # Namelist file
-        if not os.path.isfile('fun3d.00.nml'):
-            if qdual: os.chdir('..')
-            if v: print("    Missing namelist file 'fun3d.00.nml'")
-            return True
-        # Check mesh files
-        q = self.CheckMeshFiles(v=v)
-        # Go back if appropriate
-        if qdual: os.chdir('..')
-        # Output
-        return not q
-            
-    # Get total CPU hours (actually core hours)
-    def GetCPUTime(self, i, running=False):
-        """Read a CAPE-style core-hour file from a case
-        
-        :Call:
-            >>> CPUt = fun3d.GetCPUTime(i, running=False)
-        :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                FUN3D control interface
-            *i*: :class:`int`
-                Case index
-            *runing*: ``True`` | {``False``}
-                Whether or not to check for time since last start
-        :Outputs:
-            *CPUt*: :class:`float` | ``None``
-                Total core hours used in this job
-        :Versions:
-            * 2015-12-22 ``@ddalle``: First version
-            * 2016-08-31 ``@ddalle``: Checking time since last start
-        """
-        # File names
-        fname = 'pyfun_time.dat'
-        fstrt = 'pyfun_start.dat'
-        # Call the general function using hard-coded file name
-        return self.GetCPUTimeBoth(i, fname, fstrt, running=running)
 
     
     # Prepare a case.
@@ -912,6 +953,10 @@ class Fun3d(Cntl):
         self.PrepareRubberData(i)
         # Write the fun3d.nml file(s).
         self.PrepareNamelist(i)
+        # Write :file:`faux_input` if appropriate
+        self.PrepareFAUXGeom(i)
+        # Write list of surfaces to freeze if appropriate
+        self.PrepareFreezeSurfs(i)
         # Write a JSON file with
         self.WriteCaseJSON(i)
         # Write the PBS script.
@@ -1153,7 +1198,12 @@ class Fun3d(Cntl):
         # Output
         return surfID
         
-    
+  # >
+  
+  # =============
+  # SurfCT/SurfBC
+  # =============
+  # <
     # Prepare surface BC
     def SetSurfBC(self, key, i, CT=False):
         """Set all surface BCs and flow initialization volumes for one key
@@ -1412,6 +1462,7 @@ class Fun3d(Cntl):
         U   = M * c
         # Output
         return rho, U, c
+  # >
         
     # Set up a namelist config
     def PrepareNamelistConfig(self):
@@ -1474,6 +1525,249 @@ class Fun3d(Cntl):
             nml.SetVar('component_parameters', 'component_count', -1, k)
         # Set the number of components
         nml.SetVar('component_parameters', 'number_of_components', n)
+        
+    # Convert string to MapBC surfID
+    def EvalSurfID(self, comp):
+        """Convert a component name to a MapBC surface index (1-based)
+        
+        This function also works if the input, *comp*, is an integer (returns
+        the same integer) or an integer string such as ``"1"``.  Before looking
+        up an index by name, the function attempts to return ``int(comp)``.
+        
+        :Call:
+            >>> surfID = fun3d.EvalSurfID(comp)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class
+            *comp*: :class:`str` | :class:`int`
+                Component name or surface index (1-based)
+        :Outputs:
+            *surfID*: :class:`int`
+                Surface index (1-based) according to *fun3d.MapBC*
+        :Versions:
+            * 2017-02-23 ``@ddalle``: First version
+        """
+        # Try to convert input to an integer directly
+        try:
+            return int(comp)
+        except Exception:
+            pass
+        # Check for MapBC interface
+        try:
+            self.MapBC
+        except AttributeError:
+            raise AttributeError("Interface to FUN3D 'mapbc' file not found")
+        # Read from MapBC
+        return self.MapBC.GetSurfID(comp)
+        
+    # Read the FAUXGeom instruction
+    def ReadFAUXGeom(self):
+        """Read any FAUXGeom input file template
+        
+        :Call:
+            >>> fun3d.ReadFAUXGeom()
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class
+        :Versions:
+            * 2017-02-23 ``@ddalle``: First version
+        """
+        # Get options
+        ffaux = self.opts.get_FauxFile()
+        ofaux = self.opts.get_Faux()
+        # Get absolute path
+        if ffaux and (not os.path.isabs(ffaux)):
+            # Append root directory
+            ffaux = os.path.join(self.RootDir, ffaux)
+        # Read the file if appropriate
+        if (ffaux is None) and (ofaux is None):
+            # No FAUXGeom instructions
+            return
+        elif ffaux and os.path.isfile(ffaux):
+            # Read the file
+            self.FAUXGeom = faux.FAUXGeom(ffaux)
+        else:
+            # Initialize an empty set of instructions
+            self.FAUXGeom = faux.FAUXGeom()
+        # Set instructions
+        for comp in ofaux:
+            # Convert *comp* to a *MapBC*
+            surf = self.EvalSurfID(comp)
+            # Set the geometry
+            self.FAUXGeom.SetGeom(surf, ofaux[comp])
+        
+    # Prepare FAUXGeom file if appropriate
+    def PrepareFAUXGeom(self, i):
+        """Prepare/edit a FAUXGeom input file for a case
+        
+        :Call:
+            >>> fun3d.PrepareFAUXGeom(i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2017-02-23 ``@ddalle``: First version
+        """
+        # Read options
+        self.ReadFAUXGeom()
+        # Check for a FAUXGeom instance
+        try:
+            self.FAUXGeom
+        except Exception:
+            # No FAUXGeom to process
+            return
+        # Safely go to the home directory
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get run folder and check if it exists
+        frun = self.x.GetFullFolderNames(i)
+        # Enter the run directory.
+        if not os.path.isdir(frun): self.mkdir(frun)
+        os.chdir(frun)
+        # Write the file
+        self.FAUXGeom.Write("faux_input")
+        # Go back to original location
+        os.chdir(fpwd)
+        
+    # Prepare list of surfaces to freeze
+    def PrepareFreezeSurfs(self, i):
+        """Prepare adaption file for list of surfaces to freeze during adapts
+        
+        :Call:
+            >>> fun3d.PrepareFreezeSurfs(i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2017-02-23 ``@ddalle``: First version
+        """
+        # Read inputs
+        self.ReadFreezeSurfs()
+        # Check for something to do
+        if self.FreezeSurfs is None: return
+        # Initialize list of project root names (changes due to adapt)
+        fproj = []
+        # Loop through phases
+        for j in self.opts.get_PhaseSequence():
+            # Get the project root name for this phase
+            fj = self.GetProjectRootName(j)
+            # Append if not in the list
+            if fj not in fproj: fproj.append(fj)
+        # Get run folder name
+        frun = self.x.GetFullFolderNames(i)
+        # Go to home directory
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Enter the folder, creating if necessary
+        if not os.path.isdir(frun): self.mkdir(frun)
+        os.chdir(frun)
+        # Loop through list of project root names
+        for fj in fproj:
+            # Write the file
+            self.WriteFreezeSurfs('%s.freeze' % fj)
+        # Go back to original location
+        os.chdir(fpwd)
+        
+        
+    # Write FreezeSurfs
+    def WriteFreezeSurfs(self, fname):
+        """Write a ``pyfun.freeze`` file that lists surfaces to freeze
+        
+        This is about the simplest file format in history, which is simply a
+        list of surface indices.
+        
+        :Call:
+            >>> fun3d.WriteFreezeSurfs(fname)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Control interface
+            *fname*: :class:`str`
+                Name of file to write
+        :Versions:
+            * 2017-02-23 ``@ddalle``: First version
+        """
+        # Failure tolerance
+        self.ReadFreezeSurfs()
+        if self.FreezeSurfs is None: return
+        # Open the file
+        f = open(fname, 'w')
+        # Number of surfaces to freeze
+        nfrz = len(self.FreezeSurfs)
+        # Write the surfaces
+        for i in range(nfrz):
+            # Write the surface number
+            if i + 1 == nfrz:
+                # Do not write newline character
+                f.write("%s" % self.FreezeSurfs[i])
+            else:
+                f.write("%s\n" % self.FreezeSurfs[i])
+        # Close the file
+        f.close()
+    
+    
+    # Read FreezeSurfs
+    def ReadFreezeSurfs(self):
+        """Read list of surfaces to freeze
+        
+        :Call:
+            >>> fun3d.ReadFreezeSurfs()
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class
+        :Versions:
+            * 2017-02-23 ``@ddalle``: First version
+        """
+        # Check for existing list
+        try:
+            self.FreezeSurfs
+            return
+        except Exception:
+            pass
+        # Get the options relating to this
+        ffreeze = self.opts.get_FreezeFile()
+        ofreeze = self.opts.get_FreezeComponents()
+        # Get absolute path
+        if ffreeze and (not os.path.isabs(ffreeze)):
+            # Append root directory
+            ffreeze = os.path.join(self.RootDir, ffreeze)
+        # Read the file if appropriate
+        if (ffreeze is None) and (ofreeze is None):
+            # No surfaces to read
+            self.FreezeSurfs = None
+        # Initialize surfaces
+        surfs = []
+        # Check for a file to read
+        if ffreeze and os.path.isfile(ffreeze):
+            # Read the file in the simplest fashion possible
+            comps = open(ffreeze).read().split()
+        else:
+            # No list of components
+            comps = []
+        # Process *ofreeze*
+        if ofreeze is not None:
+            # Ensure list, and add it to the list from the file
+            comps += list(np.array(ofreeze).flatten())
+        # Loop through raw components
+        for comp in comps:
+            # Convert to surface
+            try:
+                surf = self.EvalSurfID(comp)
+            except Exception:
+                raise ValueError("No surface '%s' in MapBC file" % comp)
+            # Check for null surface
+            if surf is None:
+                raise ValueError("No surface '%s' in MapBC file" % comp)
+            # Check if already present
+            if surf in surfs: continue
+            # Append the surface
+            surfs.append(surf)
+        # Save
+        self.FreezeSurfs = surfs
+        
         
     # Get string describing which components are in config
     def GetConfigInput(self, comp, warn=False):
