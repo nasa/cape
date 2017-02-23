@@ -812,12 +812,19 @@ class CaseResid(cape.dataBook.CaseResid):
             # Add in main file name
             self.fglob = fglob1 + [self.fname]
         else:
-            # Multiple projects
+            # Multiple adaptations
             fglob2 = glob.glob('%s[0-9][0-9]_hist.dat' % projl)
-            fglob3 = glob.glob('%s[0-9][0-9]_hist.[0-9][0-9].dat' % projl)
-            # Combine them
-            self.fglob = fglob2 + fglob3
-            self.fglob.sort()
+            fglob2.sort()
+            # Check for history resets
+            fglob1 = glob.glob('%s[0-9][0-9]_hist.[0-9][0-9].dat' % projl)
+            fglob1.sort()
+            # Combine history resets
+            if len(fglob2) > 0:
+                # Combine history and **current** project
+                self.fglob = fglob1 + fglob2[-1:]
+            else:
+                # Only have historical iterations right now
+                self.fglob = fglob1
         # Check for which file(s) to use
         if len(self.fglob) > 0:
             # Read the first file
