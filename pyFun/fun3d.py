@@ -1162,15 +1162,17 @@ class Fun3d(Cntl):
         if CT:
             # Use thrust as input variable
             p0, T0 = self.GetSurfCTState(key, i)
+            typ = "SurfCT"
         else:
             # Use *p0* and *T0* directly as inputs
             p0, T0 = self.GetSurfBCState(key, i)
+            typ = "SurfBC"
         # Get the flow initialization volume state
         rho, U, a = self.GetSurfBCFlowInitState(key, i, CT=CT)
         # Get the namelist
         nml = self.Namelist
         # Get the components
-        compIDs = self.x.GetSurfBC_CompID(i, key)
+        compIDs = self.x.GetSurfBC_CompID(i, key, typ=typ)
         # Current number of flow initialization volumes
         n = nml.GetNFlowInitVolumes()
         # Ensure list
@@ -1373,14 +1375,16 @@ class Fun3d(Cntl):
         if CT == True:
             # Use *SurfCT* thrust definition
             p0, T0 = self.GetSurfCTState(key, i)
+            typ = "SurfCT"
         else:
             # Use *SurfBC* direct definitions of *p0*, *T0*
             p0, T0 = self.GetSurfBCState(key, i)
+            typ = "SurfBC"
         # Get the Mach number and blending fraction
         M = self.x.defns[key].get('Mach', 0.2)
         f = self.x.defns[key].get('Blend', 0.9)
         # Ratio of specific heats
-        gam = self.x.GetSurfBC_Gamma(i, key)
+        gam = self.x.GetSurfBC_Gamma(i, key, typ=typ)
         # Calculate stagnation temperature ratio
         rT = 1 + (gam-1)/2*M*M
         # Stagnation-to-static ratios
