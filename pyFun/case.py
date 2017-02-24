@@ -1012,9 +1012,11 @@ def LinkPLT():
     # Get the project root name
     proj = nml.GetVar('project', 'project_rootname')
     # Strip suffix
-    if rc.get_Dual(j):
+    if rc.get_Dual() or rc.get_Adaptive():
         # Strip adaptive section
         proj0 = proj[:-2]
+        # Search for 'pyfun00', 'pyfun01', ...
+        proj = proj0 + "??"
     else:
         # Use the full project name if no adaptations
         proj0 = proj
@@ -1034,16 +1036,18 @@ def LinkPLT():
     fname = [
         '%s_tec_boundary' % proj0,
         '%s_volume' % proj0,
+        '%s_volume' % proj0
     ]
     # Initialize globs
     fglob = [
         '%s_tec_boundary_timestep*' % proj,
-        '%s_volume_timestep*' % proj
+        '%s_volume_timestep*' % proj,
+        '%s_volume' % proj
     ]
     # Add special ones
     for fi in fsrf:
         fname.append('%s_%s' % (proj0, fi))
-        fglob.append('%s_%s_timestep*' % (proj0, fi))
+        fglob.append('%s_%s_timestep*' % (proj, fi))
     # Link the globs
     for i in range(len(fname)):
         # Process the glob as well as possible
