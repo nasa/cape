@@ -1036,8 +1036,8 @@ class Overflow(Cntl):
         aT = self.x.GetSurfCT_TemperatureCalibration(i, key, **kwg)
         bT = self.x.GetSurfCT_TemperatureOffset(i, key, **kwg)
         # Reference values
-        p0inf = self.x.GetSurfCT_TotalPressure(i, key, **kwg)
-        T0inf = self.x.GetSurfCT_TotalTemperature(i, key, **kwg)
+        p0inf = self.x.GetSurfCT_RefPressure(i, key, **kwg)
+        T0inf = self.x.GetSurfCT_RefTemperature(i, key, **kwg)
         # Output
         return (ap*p0+bp)/p0inf, (aT*T0+bT)/T0inf
         

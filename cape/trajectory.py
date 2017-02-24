@@ -3386,7 +3386,7 @@ class Trajectory:
         # Check for integer
         if tY == 'int':
             # Get number of species
-            nY = self.GetSurfBC_nSpecies(i, key, comp=comp)
+            nY = self.GetSurfBC_nSpecies(i, key, comp=comp, typ=typ)
             # Make list with one nonzero component
             Y = [float(i+1==Y) for i in range(nY)]
         elif tY != 'list':
