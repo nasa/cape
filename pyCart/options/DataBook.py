@@ -1,5 +1,47 @@
-"""Interface for Cart3D data book configuration"""
+"""
+:mod:`pyCart.options.DataBook`: pyCart DataBook Options
+=======================================================
 
+This module provides database options specific to pyCart/Cart3D.  The vast
+majority of database options are common to all solvers and are thus inherited
+from :class:`cape.options.DataBook.DataBook`.
+
+For force and/or moment components (``"Type": "FM"`` or ``"Type": "Force"``),
+each component requested in the databook must also be listed appropriately as a
+force and/or moment in the :file:`input.cntl`` file.  These can be written
+manually to the template :file:`input.cntl` file or controlled via the
+:class:`pyCart.options.Config.Config` class.
+
+The pyCart version of this module alters the default list of columns for
+inclusion in the data book.  For point sensors this includes a column called
+*RefLev* that specifies the number of refinements of the mesh at the location
+of that point sensor (which my vary from case to case depending on mesh
+adaptation options).  Point sensors also save the values of state variables at
+that point, which for Cart3D are the following columns.
+
+    ==============  ==============================================
+    Column          Description
+    ==============  ==============================================
+    *X*             *x*-coordinate of the point
+    *Y*             *y*-coordinate of the point
+    *Z*             *z*-coordinate of the point
+    *Cp*            Pressure coefficient
+    *dp*            :math:`(p-p_\\infty)/(\\gamma p_\\infty)`
+    *rho*           Density over freestream density
+    *u*             *x*-velocity over freestream sound speed
+    *v*             *y*-velocity over freestream sound speed
+    *w*             *z*-velocity over freestream sound speed
+    *P*             Pressure over gamma times freestream pressure
+    ==============  ==============================================
+    
+The full description of the JSON options can be found in a
+:ref:`CAPE section <cape-json-DataBook>` and a 
+:ref:`pyCart section <pycart-json-DataBook>`. 
+
+:See Also:
+    * :mod:`cape.options.DataBook`
+    * :mod:`pyCart.options.config.Config`
+"""
 
 # Import options-specific utilities
 from util import rc0, getel, odict
@@ -15,7 +57,8 @@ class DataBook(cape.options.DataBook):
     :Call:
         >>> opts = DataBook(**kw)
     :Outputs:
-        *opts*: :class:`pyCart.options.DataBook
+        *opts*: :class:`pyCart.options.DataBook.DataBook`
+            pyCart DataBook options interface
     :Versions:
         * 2015-09-28 ``@ddalle``: Subclassed from CAPE
     """

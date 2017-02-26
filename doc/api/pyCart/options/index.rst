@@ -8,6 +8,7 @@
         Mesh
         Config
         Functional
+        DataBook
     
     pyCart Options Class: :class:`pyCart.options.Options`
     =====================================================
