@@ -1,10 +1,10 @@
 """
-Cart3D and pyCart settings module: :mod:`pyCart.options`
-========================================================
+:mod:`pyCart.options`: Cart3D and pyCart Settings Module
+********************************************************
 
 This module provides tools to read, access, modify, and write settings for
-:mod:`pyCart`.  The class is based off of the built-int :class:`dict` class, so
-its default behavior, such as ``opts['InputCntl']`` or 
+:mod:`pyCart`.  The class is based off of the Python built-in :class:`dict`
+class, so its default behavior, such as ``opts['InputCntl']`` or 
 ``opts.get('InputCntl')`` are also present.  In addition, many convenience
 methods, such as ``opts.set_it_fc(n)``, which sets the number of
 :file:`flowCart` iterations,  are provided.
@@ -13,12 +13,38 @@ In addition, this module controls default values of each pyCart
 parameter in a two-step process.  The precedence used to determine what the
 value of a given parameter should be is below.
 
-    *. Values directly specified in the input file, :file:`pyCart.json`
+    #. Values directly specified in the input file, :file:`pyCart.json`
     
-    *. Values specified in the default control file,
+    #. Values specified in the default control file,
        :file:`$PYCART/settings/pyCart.default.json`
     
-    *. Hard-coded defaults from this module
+    #. Hard-coded defaults from this module
+    
+An instance of this options class is loaded as the attribute *opts* to any
+instance of :class:`pyCart.cart3d.Cart3d`.
+
+    .. code-block:: pycon
+    
+        >>> import pyCart
+        >>> cart3d = pyCart.Cart3d()
+        >>> cart3d.opts.get_InputCntl()
+        u'input.cntl'
+    
+This module and the classes it provides are based heavily on the generic
+version, :mod:`cape.options`.  In addition, the :class:`pyCart.options.Options`
+class inherits methods from the classes in its submodules, such as
+:mod:`pyCart.options.PBS` and :mod:`pyCart.options.RunControl`.
+
+:See Also:
+    * :mod:`cape.options`
+    * :mod:`cape.options.util`
+    * :mod:`pyCart.options.runControl`
+    * :mod:`pyCart.options.Mesh`
+    * :mod:`pyCart.options.pbs`
+    * :mod:`pyCart.options.Config`
+    * :mod:`pyCart.options.Functional`
+    * :mod:`pyCart.options.DataBook`
+    * :mod:`pyCart.options.Report`
 """
 
 # Import options-specific utilities (loads :mod:`os`, too)
@@ -39,8 +65,7 @@ from .Report      import Report
 
 # Class definition
 class Options(cape.options.Options):
-    """
-    Options structure, subclass of :class:`dict`
+    """Options class for pyCart, subclass of :class:`dict`
     
     :Call:
         >>> opts = Options(fname=None, **kw)
@@ -49,10 +74,16 @@ class Options(cape.options.Options):
             File to be read as a JSON file with comments
         *kw*: :class:`dict`
             Dictionary to be transformed into :class:`pyCart.options.Options`
+    :Outputs:
+        *opts*: :class:`pyCart.options.Options`
+            Options interface
     :Versions:
-        * 2014.07.28 ``@ddalle``: First version
+        * 2014-07-28 ``@ddalle``: First version
     """
-    
+   # ======
+   # Config
+   # ======
+   # <
     # Initialization method
     def __init__(self, fname=None, **kw):
         """Initialization method with optional JSON input"""
@@ -84,10 +115,11 @@ class Options(cape.options.Options):
         self._PostPBS()
         # Add extra folders to path.
         self.AddPythonPath()
+   # >
     
-    # ============
-    # Initializers
-    # ============
+   # ============
+   # Initializers
+   # ============
    # <
     
     # Initialization and confirmation for RunControl options
@@ -182,9 +214,9 @@ class Options(cape.options.Options):
             self['Functional'] = Functional(**self['Functional'])
    # >
     
-    # ==============
-    # Global Options
-    # ==============
+   # ==============
+   # Global Options
+   # ==============
    # <
     
     # Method to get the input file
@@ -289,9 +321,9 @@ class Options(cape.options.Options):
         self['Trajectory']['GroupMesh'] = qGM
    # >
     
-    # =====================
-    # RunControl parameters
-    # =====================
+   # =====================
+   # RunControl parameters
+   # =====================
    # <
         
     # Get aero.csh status
@@ -577,9 +609,9 @@ class Options(cape.options.Options):
    # >
     
     
-    # ====================
-    # adjointCart settings
-    # ====================
+   # ====================
+   # adjointCart settings
+   # ====================
    # <
     
     # Number of iterations
@@ -619,9 +651,9 @@ class Options(cape.options.Options):
         eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
    # >
     
-    # ====================
-    # autoInputs and cubes
-    # ====================
+   # ====================
+   # autoInputs and cubes
+   # ====================
    # <
    
     # Get intersect flag
@@ -727,9 +759,9 @@ class Options(cape.options.Options):
         eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
    # >
         
-    # ================
-    # multigrid levels
-    # ================
+   # ================
+   # multigrid levels
+   # ================
    # <
     
     # Method to get the number of multigrid levels
@@ -747,7 +779,7 @@ class Options(cape.options.Options):
             *mg*: :class:`int`
                 Maximum of *mg_fc* and *mg_ad*
         :Versions:
-            * 2014.08.01 ``@ddalle``: First version
+            * 2014-08-01 ``@ddalle``: First version
         """
         # Get the two values.
         mg_fc = self.get_mg_fc(i)
@@ -785,15 +817,15 @@ class Options(cape.options.Options):
             *i*: :class:`int`
                 Run index
         :Versions:
-            * 2014.08.01 ``@ddalle``: First version
+            * 2014-08-01 ``@ddalle``: First version
         """
         self.set_mg_fc(mg, i)
         self.set_mg_ad(mg, i)
    # >
         
-    # ===================
-    # Adaptation settings
-    # ===================
+   # ===================
+   # Adaptation settings
+   # ===================
    # <
     
     # Get number of adapt cycles
@@ -895,9 +927,9 @@ class Options(cape.options.Options):
    # >
    
         
-    # =================
-    # Output functional
-    # =================
+   # =================
+   # Output functional
+   # =================
    # <
     
     # Get the optForces
@@ -919,9 +951,9 @@ class Options(cape.options.Options):
     get_optMoments.__doc__ = Functional.get_optMoments.__doc__
    # >
     
-    # ========================
-    # mesh creation parameters
-    # ========================
+   # ========================
+   # mesh creation parameters
+   # ========================
    # <
     
     # Get BBoxes
@@ -972,16 +1004,16 @@ class Options(cape.options.Options):
    # >
    
         
-    # ============
-    # PBS settings
-    # ============
+   # ============
+   # PBS settings
+   # ============
    # <
    # >
     
     
-    # =================
-    # Folder management
-    # =================
+   # =================
+   # Folder management
+   # =================
    # <
         
     # Get the number of check point files to keep around
@@ -1022,9 +1054,9 @@ class Options(cape.options.Options):
    # >
    
     
-    # =============
-    # Configuration
-    # =============
+   # =============
+   # Configuration
+   # =============
    # <
         
     # Get list of components to request forces for
@@ -1127,16 +1159,16 @@ class Options(cape.options.Options):
    # >
    
     
-    # ========
-    # Plotting
-    # ========
+   # ========
+   # Plotting
+   # ========
    # <
    # >
    
     
-    # =========
-    # Data book
-    # =========
+   # =========
+   # Data book
+   # =========
    # <
         
     # Get Mach number option
@@ -1163,9 +1195,9 @@ class Options(cape.options.Options):
    # >
    
     
-    # =======
-    # Reports
-    # =======
+   # =======
+   # Reports
+   # =======
    # <
     
     # Copy over the documentation

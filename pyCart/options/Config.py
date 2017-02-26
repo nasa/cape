@@ -1,4 +1,61 @@
-"""Interface for configuration control: :mod:`pyCart.options.Config`"""
+"""
+:mod:`pyCart.options.Config`: pyCart Configuration Options
+==========================================================
+
+This module provides options for defining some aspects of the surface
+configuration for a Cart3D run.  In addition to specifying a template
+:file:`Config.xml` file for naming individual components or groups of
+components, the ``"Config"`` section also contains user-defined points and a
+set of parameters that are written to the Cart3D input file :file:`input.cntl`.
+
+This is the section in which the user specifies which components to track
+forces and/or moments on, and in addition it defines a moment reference point
+for each component.
+
+The reference area (``"RefArea"``) and reference length (``"RefLength"``)
+parameters are also defined in this section.  Cart3D does not have two separate
+reference lengths, so there is no ``"RefSpan"`` parameter.
+
+Most parameters are inherited from the :class:`cape.config.Config` class, so
+readers are referred to that module for defining points by name along with
+several other methods.
+
+The ``"Xslices"``, ``"Yslices"``, and ``"Zslices"`` parameters are used by
+Cart3D to define the coordinates at which Tecplot slices are extracted.  These
+are written to the output file :file:`cutPlanes.plt` or :file:`cutPlanes.dat`.
+Furthermore, these coordinates can be tied to user-defined points that may vary
+for each case in a run matrix.
+
+The following example has a user-defined coordinate for a point that is on a
+component called ``"Fin2"``.  Assuming there is a trajectory key that rotates
+``"Fin2"``, the *y*-slice and *z*-slice coordinates will automatically be
+updated according to the fin position.
+
+    .. code-block:: javascript
+    
+        "Config": {
+            // Define a point at the tip of a fin
+            "Points": {
+                "Fin2": [7.25, -0.53, 0.00]
+            },
+            // Write a *y* and *z* slice through the tip of the fin
+            "Yslices": ["Fin2"],
+            "Zslices": ["Fin2"]
+        }
+        
+Cart3D also contains the capability for point sensors, which record the state
+variables at a point, and line sensors, which provide the state at several
+points along a line.  The line sensors are particularly useful for extracting
+a sonic boom signature.  Both point sensors and line sensors can also be used
+as part of the definition of an objective function for mesh refinement.  In
+addition, the sensors can be used to extract not only the conditions at the
+final iteration but also the history of relevant conditions at each iteration.
+
+:See Also:
+    * :mod:`cape.options.Config`
+    * :mod:`cape.config`
+    * :mod:`pyCart.inputCntl`
+"""
 
 
 # Import options-specific utilities
@@ -9,15 +66,7 @@ import cape.options.Config
 
 # Class for PBS settings
 class Config(cape.options.Config):
-    """
-    Configuration options for Cart3D
-    
-    :Call:
-        >>> opts = Config(**kw)
-    :Versions:
-        * 2015-09-28 ``@ddalle``: Subclassed from CAPE
-    """
-        
+    """Component configuration options for Cart3D"""
     
     # Get the list of forces to report
     def get_ClicForces(self, i=None):
@@ -72,7 +121,8 @@ class Config(cape.options.Config):
         :Inputs:
             *opts*: :class:`pyCart.options.Options`
                 Options interface
-            *comp*: :class:`str` or :class:`int`
+            *comp*: :class:`str` | :class:`int`
+                Component or list of components
         :Versions:
             * 2014-12-08 ``@ddalle``: First version
         """

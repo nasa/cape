@@ -24,6 +24,10 @@ class DataBook(cape.options.DataBook):
     def get_DataBookFloatCols(self, comp):
         """Get additional numeric columns for component (other than coeffs)
         
+        This function differs from the standard
+        :func:`cape.options.DataBook.DataBook.get_DataBookFloatCols` only in
+        that it provides an extra column (*RefLev*) for point and line sensors.
+        
         :Call:
             >>> fcols = opts.get_DataBookFloatCols(comp)
         :Inputs:
@@ -52,7 +56,7 @@ class DataBook(cape.options.DataBook):
         elif fcols_db is not None:
             # Data book option
             return fcols_db
-        elif ctyp in ["PointSensor"]:
+        elif ctyp in ["PointSensor", "LineSensor"]:
             # Refinement levels for point sensors
             return ["RefLev"]
         elif ctyp in ['Force', 'Moment', 'FM']:
@@ -65,6 +69,9 @@ class DataBook(cape.options.DataBook):
     # Get the coefficients for a specific component
     def get_DataBookCoeffs(self, comp):
         """Get the list of data book coefficients for a specific component
+        
+        For Cart3D point sensors, this also provides the state variables *X*,
+        *Y*, *Z*, *Cp*, *dp*, *rho*, *U*, *V*, *W*, *P*.
         
         :Call:
             >>> coeffs = opts.get_DataBookCoeffs(comp)
@@ -102,7 +109,7 @@ class DataBook(cape.options.DataBook):
         elif ctype in ["FM", "full", "Full"]:
             # Force and moment
             coeffs = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
-        elif ctype in ["PointSensor"]:
+        elif ctype in ["PointSensor", "LineSensor"]:
             # Default to list of points for a point sensor
             coeffs = ["X", "Y", "Z", "Cp", "dp", "rho", "U", "V", "W", "P"]
         # Output

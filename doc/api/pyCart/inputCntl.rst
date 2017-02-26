@@ -1,4 +1,3 @@
-.. Documentation for the main cart3d submodule
 
 .. automodule:: pyCart.inputCntl
     

@@ -708,6 +708,12 @@ class Cart3d(Cntl):
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of global pyCart settings object
+        :See Also:
+            * :func:`pyCart.options.Mesh.Mesh.get_BBox`
+            * :func:`pyCart.options.Mesh.Mesh.get_XLev`
+            * :func:`cape.tri.TriBase.GetCompBBox`
+            * :func:`pyCart.preSpecCntl.PreSpecCntl.AddBBox`
+            * :func:`pyCart.preSpecCntl.PreSpecCntl.AddXLev`
         :Versions:
             * 2014-10-08 ``@ddalle``: First version
         """

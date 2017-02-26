@@ -9,6 +9,7 @@
     .. toctree::
         
         cart3d
+        options/index
         tri
         trajectory
         inputCntl

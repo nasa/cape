@@ -1,4 +1,41 @@
-"""Case archiving options for Cart3D solutions"""
+"""
+:mod:`pyCart.options.Archive`: pyCart Archiving Options
+=======================================================
+
+Options interface for archiving one or more Cart3D solutions that was managed
+by pyCart.  Archiving generally means two tasks:
+
+    #. Copy requested files to a backup location (such as a tape drive or other
+       external location), possibly in groups that have been put into tar balls
+       (usually ``.tar`` so that archives can be modified later).
+       
+    #. Clean up run folder after archiving by deleting files unnecessary for
+       post-processing
+       
+For the most part, cases can only be archived after it has the status ``PASS``.
+See :func:`cape.cntl.Cntl.DisplayStatus` and the 
+:ref:`run matrix file format <matrix-syntax>` for more information, but
+generally this requires the case running at least the requested number of
+iterations and marked with a ``p`` in the run matrix file.
+
+However, there are a few options that delete files as solutions complete
+phases.  These options are intended for automatically deleting previous
+check-point files as more become available.  For example, it is usually
+acceptable to keep only two solution files around, so deleting the third newest
+solution file is allowable.
+
+Archiving actions can be issued from the command line via the commands such as
+the :ref:`following <cli-archive>`.  :ref:`Subsetting options <cli-subset>`
+are all available to this command.
+
+    .. code-block:: bash
+    
+        $ pycart --archive [OPTIONS]
+
+:See Also:
+    * :mod:`cape.options.Archive`
+    * :mod:`pyCart.options.runControl`
+"""
 
 # Import options-specific utilities
 from util import rc0

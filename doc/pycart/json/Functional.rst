@@ -1,4 +1,6 @@
 
+.. _json-Functional:
+
 ----------------------------
 Output Functional Definition
 ----------------------------
@@ -62,16 +64,21 @@ below.
         *C*: :class:`dict`
             An individual output force description :class:`dict`
             
-            *type*: {``"optForce"``}
-                Output type; Cart3D supports other outputs, but these have not
-                been implemented in pyCart yet
+            *type*: {``"optForce"``} | ``"optMoment"`` | ``"optSensor"``
+                Output type; if ``"optSensor"``, the name of the key is the
+                name of the point/line sensor to reference
+                
+            *compID*: :class:`str` | :class:`int`
+                Name of component from which to calculate force/moment
                 
             *force*: {``0``} | ``1`` | ``2``
-                Component of force to use, i.e. ``0`` for x-axis, ``1`` for
-                y-axis, ``2`` for z-axis
+                Component of force to use, i.e. ``0`` for *x*-axis (*CA* or
+                *CLL*), ``1`` for *y*-axis, ``2`` for *z*-axis; does not apply
+                to ``"optSensor"``
                 
             *frame*: {``0``} | ``1``
-                Force frame; ``0`` for body axes and ``1`` for stability axes
+                Force frame; ``0`` for body axes and ``1`` for stability axes;
+                does not apply to ``"optSensor"``
                 
             *weight*: {``1.0``} | :class:`float`
                 Weight multiplier for force's contribution to total
