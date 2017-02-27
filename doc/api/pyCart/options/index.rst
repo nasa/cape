@@ -9,6 +9,10 @@
         Config
         Functional
         DataBook
+        Report
+        pbs
+        util
+        
     
     pyCart Options Class: :class:`pyCart.options.Options`
     =====================================================

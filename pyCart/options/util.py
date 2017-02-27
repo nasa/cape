@@ -1,24 +1,29 @@
 """
-Utilities for pyCart Options module: :mod:`pyCart.options.util`
+:mod:`pyCart.options.util`: Utilities for pyCart Options Module
 ===============================================================
 
 This module provides tools to read, access, modify, and write settings for
-:mod:`pyCart`.  The class is based off of the built-int :class:`dict` class, so
-its default behavior, such as ``opts['InputCntl']`` or 
+:mod:`pyCart`.  It is based off of the :mod:`cape.options.util` module and
+provides a special class :class:`cape.options.odict` that is subclassed from
+the Python built-in :class:`dict`.  Behavior, such as ``opts['InputCntl']`` or 
 ``opts.get('InputCntl')`` are also present.  In addition, many convenience
 methods, such as ``opts.set_it_fc(n)``, which sets the number of
 :file:`flowCart` iterations,  are provided.
 
-In addition, this module controls default values of each pyCart
-parameter in a two-step process.  The precedence used to determine what the
-value of a given parameter should be is below.
+In addition, this module controls default values of each pyCart parameter in a
+two-step process.  The precedence used to determine what the value of a given
+parameter should be is below.
 
-    *. Values directly specified in the input file, :file:`pyCart.json`
+    #. Values directly specified in the input file, :file:`pyCart.json`
     
-    *. Values specified in the default control file,
+    #. Values specified in the default control file,
        :file:`$PYCART/settings/pyCart.default.json`
     
-    *. Hard-coded defaults from this module
+    #. Hard-coded defaults from this module
+    
+:See Also:
+    * :mod:`cape.options.util`
+    * :mod:`pyCart.options`
 """
 
 # Import CAPE options utilities

@@ -1,4 +1,21 @@
-"""Interface for pyCart automated report generation"""
+"""
+:mod:`pyCart.options.Report`: pyCart Report Options
+===================================================
+
+This module provides options for creating automated reports for pyCart results.
+Although there are some subfigure types that are unique to pyCart, all of the
+methods in the :class:`pyCart.options.Report.Report` class are inherited from
+:mod:`cape` version.
+
+See the :ref:`JSON Report <cape-json-Report>` section (and its
+:ref:`pyCart page <pyCart-json-Report>`). for the list of available figures and
+subfigures (along with other options).
+
+:See Also:
+    * :mod:`cape.options.Report`
+    * :mod:`cape.report`
+    * :mod:`pyCart.report`
+"""
 
 
 # Import options-specific utilities
@@ -16,8 +33,8 @@ class Report(cape.options.Report):
     :Versions:
         * 2015-09-28 ``@ddalle``: Subclassed to CAPE
     """
-    
     pass
+
 # class Report
 
 
