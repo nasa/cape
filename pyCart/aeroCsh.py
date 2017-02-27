@@ -1,11 +1,24 @@
 """
-Module to interface with :file:`aero.csh` files: :mod:`pyCart.aeroCsh`
-======================================================================
+:mod:`pyCart.aeroCsh`: Cart3D *aero.csh* Interface
+==================================================
 
-This is a module built off of the :mod:`pyCart.fileCntl` module customized for
-manipulating :file:`aero.csh` files.  The main feature of this module is methods
-to set specific properties of the :file:`aero.csh` file, for example the
-CFL number or number of adaptation cycles.
+This is a module built off of the :mod:`cape.fileCntl` module customized for
+manipulating :file:`aero.csh` files.  Such files are actually C shell scripts
+copied into each run directory that operate adaptive runs of Cart3D.  The
+primary action of the :class:`pyCart.aeroCsh.AeroCsh` is to set the values of
+several variables within the script.
+
+Because this is a C shell script, the :func:`pyCart.aeroCsh.AeroCsh.Write`
+method creates an executable script.
+
+Parameters that are set in the header section of :file:`aero.csh` include
+inputs to ``cubes``, ``mgPrep``, ``flowCart``, and ``adjointCart``.  This is in
+addition to the overall mesh adaptation parameters set in
+:mod:`pyCart.options.runControl.Adaptation`.
+    
+:See Also:
+    * :mod:`cape.fileCntl`
+    * :mod:`pyCart.cart3d`
 """
 
 # Import the base file control class.
@@ -59,7 +72,7 @@ class AeroCsh(FileCntl):
         
     # Prepare case
     def Prepare(self, opts, j=0):
-        """Prepare an ``aero.csh`` file
+        """Prepare all the key parameters of an ``aero.csh`` file
         
         :Call:
             >>> AC.Prepare(opts, j)

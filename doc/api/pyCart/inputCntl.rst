@@ -1,9 +1,9 @@
 
 .. automodule:: pyCart.inputCntl
     
-    pyCart class for "input.cntl": :class:`pyCart.inputCntl.InputCntl`
-    ------------------------------------------------------------------------
+    pyCart Class for *input.cntl*: :class:`pyCart.inputCntl.InputCntl`
+    ------------------------------------------------------------------
 
-    .. autoclass:: pyCart.inputCntl.InputCntl(pyCart.fileCntl.FileCntl)
+    .. autoclass:: pyCart.inputCntl.InputCntl
         :members:
     

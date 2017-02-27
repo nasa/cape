@@ -1,13 +1,15 @@
 """
-Data Book Module: :mod:`pyCart.dataBook`
-========================================
+:mod:`pyCart.dataBook`: pyCart Data Book Module 
+===============================================
 
 This module contains functions for reading and processing forces, moments, and
 other statistics from cases in a trajectory.
 
-:Versions:
-    * 2014-12-20 ``@ddalle``: Started
-    * 2015-01-01 ``@ddalle``: First version
+:See Also:
+    * :mod:`cape.dataBook`
+    * :mod:`pyCart.lineLoad`
+    * :mod:`cape.options.DataBook`
+    * :mod:`pyCart.options.DataBook`
 """
 
 # File interface

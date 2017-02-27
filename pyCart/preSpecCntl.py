@@ -1,16 +1,21 @@
 """
-Module to interface with "preSpec.c3d.cntl" files: :mod:`pyCart.preSpecCntl`
-============================================================================
+:mod:`pyCart.preSpecCntl`: Cart3D *preSpec.c3d.cntl* Interface
+==============================================================
 
-This is a module built off of the :mod:`pyCart.fileCntl` module customized for
-manipulating :file:`preSpec.c3d.cntl` files.  Such files are split into section
-by lines of the format
+This is a module built off of the :class:`cape.fileCntl.FileCntl` class
+customized for manipulating :file:`preSpec.c3d.cntl` files.  Such files are
+split into section by lines of the format
 
     ``$__Prespecified_Adaptation_Regions``
     
 and this module is designed to recognize such sections, although this is the
 only section.  The main feature of this module is to add or remove additional
-refinement boxes.
+refinement boxes and additional *XLev* surface refinements.
+
+:See Also:
+    * :mod:`cape.fileCntl`
+    * :mod:`pyCart.cart3d`
+    * :mod:`pyCart.options.Mesh`
 """
 
 # Import the base file control class.
