@@ -3128,10 +3128,16 @@ class Trajectory:
         typ = kw.get('typ', 'SurfBC')
         # Process key
         key = self.GetKeyName(typ, key)
-        # Get the parameter and value
-        v, t = self.GetSurfBC_ParamType(key, 'TotalTemperature', comp=comp)
-        # Default process
-        return self.GetSurfBC_Val(i, key, v, t)
+        # Special key names
+        kw_funcs = {
+            "freestream": "GetTemperature",
+            "inf":        "GetTemperature",
+            "total":      "GetTotalTemperature",
+            "stagnation": "GetTotalTemperature",
+        }
+        # Get the value
+        return self.GetSurfBC_Param(i, key, 'TotalTemperature', 
+            comp=comp, typ=typ, vdef=0.0, **kw_funcs)
     
     # Get reference temperature
     def GetSurfBC_RefTemperature(self, i, key=None, comp=None, **kw):
@@ -3160,26 +3166,16 @@ class Trajectory:
         typ = kw.get('typ', 'SurfBC')
         # Process key
         key = self.GetKeyName(typ, key)
-        # Get the parameter and value
-        v, t = self.GetSurfBC_ParamType(key, 'RefTemperature', comp=comp)
-        # Process the option
-        if v is None:
-            # Use dimensional temperature
-            return 1.0
-        elif t in ['str', 'unicode']:
-            # Check for special keys
-            if v.lower() in ['freestream', 'inf']:
-                # Use frestream value
-                return self.GetTemperature(i)
-            elif v.lower() in ['total', 'stagnation']:
-                # Use freestream stagnation value
-                return self.GetTotalTemperature(i)
-            else:
-                # Use this as a key
-                return getattr(self,v)[i]
-        else:
-            # Use the fixed value
-            return v
+        # Special key names
+        kw_funcs = {
+            "freestream": "GetTemperature",
+            "inf":        "GetTemperature",
+            "total":      "GetTotalTemperature",
+            "stagnation": "GetTotalTemperature",
+        }
+        # Get the value
+        return self.GetSurfBC_Param(i, key, 'RefTemperature', 
+            comp=comp, typ=typ, vdef=0.0, **kw_funcs)
             
     # Get pressure scaling
     def GetSurfBC_TemperatureCalibration(self, i, key=None, comp=None, **kw):
