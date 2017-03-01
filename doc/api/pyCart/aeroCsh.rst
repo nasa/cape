@@ -2,7 +2,7 @@
 
 .. automodule:: pyCart.aeroCsh
     
-    pyCart class for "aero.csh": :class:`pyCart.aeroCsh.AeroCsh`
+    :class:`pyCart.aeroCsh.AeroCsh`: Cart3d *aero.csh* Interface
     ------------------------------------------------------------
 
     .. autoclass:: pyCart.aeroCsh.AeroCsh

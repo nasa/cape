@@ -1,16 +1,29 @@
 """
-Module to interface with "input.cntl" files: :mod:`pyCart.inputCntl`
-====================================================================
+:mod:`pyCart.inputCntl`: Cart3D *input.cntl* Interface
+======================================================
 
-This is a module built off of the :mod:`pyCart.fileCntl` module customized for
-manipulating :file:`input.cntl` files.  Such files are split into section by lines of
-the format
+This is a module built off of the :mod:`cape.fileCntl` module customized for
+manipulating :file:`input.cntl` files.  Such files are split into section by
+lines of the format
 
     ``$__Post_Processing``
     
 and this module is designed to recognize such sections.  The main feature of
 this module is methods to set specific properties of the :file:`input.cntl` 
 file, for example the Mach number or CFL number.
+
+The class for these files, :class:`pyCart.inputCntl.InputCntl`, has methods
+that can be divided into several categories:
+
+    * Methods to access or set flight conditions (such as Mach number)
+    * Methods to alter the Runge-Kutta or other aspects of Cart3D operation
+    * Methods to set boundary conditions
+    * Methods to specify post-processing options for Cart3D
+    * Tools inherited from the file control class
+    
+:See Also:
+    * :mod:`cape.fileCntl`
+    * :mod:`pyCart.cart3d`
 """
 
 # Import the base file control class.

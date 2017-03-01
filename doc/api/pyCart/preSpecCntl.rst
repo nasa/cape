@@ -2,8 +2,8 @@
 
 .. automodule:: pyCart.preSpecCntl
     
-    pyCart class for "preSpec.c3d.cntl": :class:`pyCart.preSpecCntl.PreSpecCntl`
-    ----------------------------------------------------------------------------
+    Cart3D *preSpec.c3d.cntl*: :class:`pyCart.preSpecCntl.PreSpecCntl`
+    ------------------------------------------------------------------
 
     .. autoclass:: pyCart.preSpecCntl.PreSpecCntl
         :members:

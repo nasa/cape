@@ -1,4 +1,15 @@
-"""Interface for PBS script options: :mod:`pyCart.options.pbs`"""
+"""
+:mod:`pyCart.options.pbs`: pyCart PBS Job Options
+=================================================
+
+This module provides options for PBS jobs in pyCart.  It is based on the
+:mod:`cape.options.pbs` module with no modifications.
+
+:See Also:
+    * :mod:`cape.options.pbs`
+    * :mod:`cape.options`
+    * :mod:`pyCart.options`
+"""
 
 
 # Import options-specific utilities
