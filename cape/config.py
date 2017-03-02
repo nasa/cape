@@ -877,11 +877,14 @@ class Config:
         # Get the properties for the component
         compID = self.GetCompID(comp)
         # Type
-        t = type(prop).__name__
+        t = type(compID).__name__
         # Check if it's an integer
         if t.startswith('int'):
             # Valid single-component ID
             return compID
+        elif (t in ['list', 'ndarray']) and (len(compID)==1):
+            # Valid singleton list
+            return compID[0]
         else:
             # Missing or multiple components
             return None
