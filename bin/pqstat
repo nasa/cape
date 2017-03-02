@@ -36,7 +36,12 @@ def main(**kw):
     # Get queue name
     q = kw.get('q')
     # Get the lines of qstat.
-    lines = sp.check_output(['qstat', '-u', u]).split('\n')
+    if ("u" not in kw) and type(q).__name__.startswith("str"):
+        # Get all the jobs for a queue (all users)
+        lines = sp.check_output(['qstat', '-e', q]).split('\n')
+    else:
+        # Get all jobs for a user (all queues)
+        lines = sp.check_output(['qstat', '-u', u]).split('\n')
     # Check for no jobs.
     if len(lines) < 3: return
     # Initiqalize stats.
@@ -48,7 +53,7 @@ def main(**kw):
         # Get the queue name for this job.
         qj = vals[2]
         # Check for a requested queue.
-        if (q is not None) and (qj != q): continue
+        if (q is not None) and (qj != q[:8]): continue
         # Initialize the queue statistics if necessary.
         if qj not in d:
             d[qj] = {
