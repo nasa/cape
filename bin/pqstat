@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-NASA Advanced Supercomputing `qstat` Statistics Interface
-=========================================================
+PBS `qstat` Statistics Interface
+================================
 
 :Call:
 
@@ -15,7 +15,7 @@ NASA Advanced Supercomputing `qstat` Statistics Interface
 # System interface modules
 import os
 import subprocess as sp
-import pyCart.argread
+import cape.argread
 
 # Primary function
 def main(**kw):
@@ -115,7 +115,7 @@ def show_qstats(d):
 # Check for CLI call
 if __name__ == "__main__":
     # Process inputs.
-    a, kw = pyCart.argread.readkeys(os.sys.argv)
+    a, kw = cape.argread.readkeys(os.sys.argv)
     # Check for help option.
     if kw.get('h') or kw.get('help'):
         print(__doc__)
