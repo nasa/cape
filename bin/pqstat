@@ -38,14 +38,24 @@ def main(**kw):
     # Get the lines of qstat.
     if ("u" not in kw) and type(q).__name__.startswith("str"):
         # Get all the jobs for a queue (all users)
-        lines = sp.check_output(['qstat', '-e', q]).split('\n')
+        try:
+            lines = sp.check_output(['qstat', '-e', q]).split('\n')
+        except Exception:
+            lines = []
     else:
         # Get all jobs for a user (all queues)
-        lines = sp.check_output(['qstat', '-u', u]).split('\n')
+        try:
+            lines = sp.check_output(['qstat', '-u', u]).split('\n')
+        except Exception:
+            lines = []
     # Check for no jobs.
     if len(lines) < 3: return
     # Initiqalize stats.
     d = {}
+    # Check for reasonable number of lines
+    if len(lines) < 4:
+        print("No jobs found.")
+        return
     # Loop through lines.
     for line in lines[3:-1]:
         # Sepaparate out the properties for this script.
