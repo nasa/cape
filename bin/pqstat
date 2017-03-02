@@ -9,8 +9,21 @@ PBS `qstat` Statistics Interface
 
         $ pqstat [OPTIONS]
 
+:Options:
+    
+    -h, --help
+        Display this help message and exit
+        
+    -u $UNAME
+        Display information for *UNAME*, otherwise use the current user
+        
+    -q $QUEUE
+        Restrict stats to a specific queue; if used without ``-u``, displays
+        grand total for all users on that queue
+        
 :Versions:
     * 2015-07-23 ``@ddalle``: First version
+    * 2017-03-02 ``@ddalle``: Added queue grand total capability
 """
 # System interface modules
 import os
@@ -24,9 +37,9 @@ def main(**kw):
     :Call:
         >>> main(u=os.environ['USER'], q=None)
     :Inputs:
-        *u*: :class:`str`
+        *u*: {``os.environ['USER']``} | :class:`str`
             Name of user to query
-        *q*: :class:`str` or ``None``
+        *q*: {``None``} | :class:`str`
             Specific queue; if ``None``, list all queues
     :Versions:
         * 2015-07-23 ``@ddalle``: First version
@@ -44,13 +57,13 @@ def main(**kw):
         lines = sp.check_output(['qstat', '-u', u]).split('\n')
     # Check for no jobs.
     if len(lines) < 3: return
-    # Initiqalize stats.
+    # Initialize stats.
     d = {}
     # Loop through lines.
     for line in lines[3:-1]:
         # Sepaparate out the properties for this script.
         vals = line.split()
-        # Get the queue name for this job.
+        # Get the user and queue name for this job.
         qj = vals[2]
         # Check for a requested queue.
         if (q is not None) and (qj != q[:8]): continue
