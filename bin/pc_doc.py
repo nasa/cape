@@ -52,7 +52,7 @@ simple commands.
          Submit at most *NJOB* PBS scripts (defaults to unlimited)
         
     -q QUEUE
-         Submit to a specific queue (defaults to ``"sls_aero1"``)
+         Submit to a specific queue (defaults to ``'normal'``)
         
     --cons CONS
          Only consider cases that pass a list of inequalities separated by
@@ -100,4 +100,5 @@ simple commands.
 
 # Print help if appropriate.
 if __name__ == "__main__":
-    print(__doc__)
+    import cape.text
+    print(cape.text.markdown(__doc__))

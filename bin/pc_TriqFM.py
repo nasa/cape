@@ -33,16 +33,16 @@ Calculate the integrated forces and moments on a triangulated surface
     -h, --help
         Display this help message and exit
         
-    --json *JSON*
+    --json JSON
         Read options from commented JSON file called *JSON*
         
-    --triq *TRIQ*
+    --triq TRIQ
         Use *TRIQ* as unmapped input file {"grid.i.triq"}
         
-    --comps *COMPS*
+    --comps COMPS
         List of components to analyze separated by commas
         
-    --tri *TRI*, --map *TRI*
+    --tri TRI, --map TRI
         Use a separate triangulation (Cart3D tri, UH3D, AFLR3 surf, IDEAS unv,
         or other TRIQ format) as a map for which triangles to extract; if used,
         the component list *COMPS* and config file *CONFIG* apply to this file
@@ -74,7 +74,7 @@ Calculate the integrated forces and moments on a triangulated surface
     --zMRP ZMRP
         Set *z*-coordinate of moment reference point {0.0}
         
-    --MRP "MRP"
+    --MRP MRP
         Moment reference point {"*XMRP*, *YMRP*, *ZMRP*"} 
         
 :Versions:
@@ -227,6 +227,7 @@ def TriqFM(*a, **kw):
         # Read the input TRIQ file
         triq = cape.tri.Triq(ftriq, c=fcfg)
         # No component map
+        compmap = {}
     else:
         # Read the unmapped TRIQ file
         triq = cape.tri.Triq(ftriq)
@@ -252,20 +253,21 @@ def TriqFM(*a, **kw):
     # Loop through components
     for comp in comps:
         # Process component
-        if (comp is None):
-            # Name of component
-            cname = "entire"
-            # Which components to process
-            if ftri is not None:
-                # Get the list of components from the mapping tri
-                comp = compmap.values()
-        elif type(comp).__name__ in ["list", "ndarray"]:
+        if type(comp).__name__ in ["list", "ndarray"]:
             # Make up a name
             cname = str(comp[0])
             # Translate component numbers if needed
             comp = [compmap.get(k, k) for k in comp]
+        elif (comp is None) or (comp == ""):
+            # Name of component
+            cname = "entire"
+            comp = None
+            # Which components to process
+            if ftri is not None:
+                # Get the list of components from the mapping tri
+                comp = compmap.values()
         else:
-            # use the name directly
+            # Use the name directly
             cname = str(comp)
             # If the component is an integer, make sure we use the map
             comp = compmap.get(comp, comp)
@@ -281,7 +283,9 @@ def TriqFM(*a, **kw):
     # Dump the results
     json.dump(FM, f, indent=1)
     # Close the file
+    f.write("\n")
     f.close()
+    return FM
 # end TriqFM
         
 
