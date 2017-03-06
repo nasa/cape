@@ -127,8 +127,9 @@ class Archive(cape.options.Archive.Archive):
         # Files to delete before saving
         self.add_ArchivePreUpdateFiles([])
         # Post-archiving
-        self.add_ArchivePostTarGroups({"run": "run.[0-9][0-9]*"})
-        self.add_ArchivePostTarGroups({"out": "*.out"})
+        for dopts in RunDict:
+            self.add_ArchivePostTarGroups(dopts)
+        # Folders to archive later
         self.add_ArchivePostTarDirs(["fomo", "lineload", "aero"])
         # Individual archive files
         self.add_ArchiveArchiveFiles(["*.flow"])
