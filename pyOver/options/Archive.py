@@ -11,8 +11,10 @@ CopyFiles = [
     "XINTOUT",
     "q.avg",
     "q.srf",
-    {"q.[sr][ae][vs][et]*": 1},
-    {"x.[sr][ae][vs][et]*": 1}
+    "x.srf",
+    {"q.[sr0-9][ae0-9][vs0-9][et0-9]*": 1},
+    {"x.[sr0-9][ae0-9][vs0-9][et0-9]*": 1},
+    {"brkset.[sr0-9][ae0-9][vs0-9][et0-9]*": 1}
 ]
 # Plot3D files
 Plot3DDict = [

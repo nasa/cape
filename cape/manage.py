@@ -308,7 +308,6 @@ def GetMatches(fname,
     fdirs = GetSearchDirs(fsub, fsort=fsort)
     # Initialize result
     fglob = []
-    print("Label 010: fdirs=%s" % fdirs)
     # Loop through folders
     for fdir in fdirs:
         # Construct relative file name glob for this folder
@@ -320,7 +319,6 @@ def GetMatches(fname,
             fn = os.path.join(fdir, fname)
         # Apply the glob
         fglobn = glob.glob(fn)
-        print("Label 012: fglobn=%s" % fglobn)
         # Sort it
         if fsort is None:
             # Default sorting function
@@ -333,7 +331,6 @@ def GetMatches(fname,
             # Nothing to delete (yet)
             continue
         # Strip last *nkeep* matches
-        print("Label 030: fglobn=%s, nkeep=%s" % (fglobn, nkeep))
         if qdel and (nkeep > 0):
             # Keep the last *nkeep* files
             fglobn = fglobn[:-nkeep]
@@ -345,8 +342,7 @@ def GetMatches(fname,
             fglobn = fglobn[-nkeep:]
         elif nkeep < 0:
             # Copy the first *nkeep* files (unusual)
-            fglobn = fglobn[:nkeep]
-        print("Label 040: fglobn=%s" % fglobn)
+            fglobn = fglobn[:-nkeep]
         # Loop through the matches
         for fgn in fglobn:
             # Test if file, folder, etc.
