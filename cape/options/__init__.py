@@ -1427,9 +1427,9 @@ class Options(odict):
    # >
     
     
-    # ========================
-    # mesh creation parameters
-    # ========================
+   # ========================
+   # mesh creation parameters
+   # ========================
    # <
         
     # Get triangulation file(s)
@@ -1449,9 +1449,9 @@ class Options(odict):
    # >
    
     
-    # =================
-    # Folder management
-    # =================
+   # =================
+   # Folder management
+   # =================
    # <
     
     # Get the archive folder
@@ -1696,9 +1696,9 @@ class Options(odict):
    # >
    
     
-    # ========
-    # Plotting
-    # ========
+   # ========
+   # Plotting
+   # ========
    # <
    
     # Get list of components to plot
@@ -1785,9 +1785,9 @@ class Options(odict):
    # >
     
     
-    # =========
-    # Data book
-    # =========
+   # =========
+   # Data book
+   # =========
    # <
     
     # Get list of components.
@@ -1910,6 +1910,16 @@ class Options(odict):
         self._DataBook()
         return self['DataBook'].get_DataBookSectionType(comp)
     
+    # TriqFM mapping tri
+    def get_DataBookMapTri(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookMapTri(comp)
+    
+    # TriqFM mapping XML
+    def get_DataBookMapConfig(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookMapConfig(comp)
+    
     # Group/points
     def get_DBGroupPoints(self, name):
         self._DataBook()
@@ -1917,6 +1927,7 @@ class Options(odict):
     
     # Copy over the documentation.
     for k in ['DataBookComponents', 'DataBookByType',
+            'DataBookMaptri', 'DataBookMapConfig',
             'DataBookType', 'DataBookPoints', 'DBGroupPoints',
             'DataBookCoeffs', 'DataBookTargets', 'DataBookCoeffStats',
             'DataBookFloatCols', 'DataBookIntCols',

@@ -970,32 +970,6 @@ class DataBook(odict):
   # Iterative Force/Moment
   # ======================
   # <
-    # Get the targets for a specific component
-    def get_CompTargets(self, comp):
-        """Get the list of targets for a specific data book component
-        
-        :Call:
-            >>> targs = opts.get_CompTargets(comp)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *targs*: :class:`list` (:class:`str`)
-                List of targets for that component
-        :Versions:
-            * 2014-12-21 ``@ddalle``: First version
-        """
-        # Get the component options.
-        copts = self.get(comp, {})
-        # Get the targets.
-        targs = copts.get('Targets', {})
-        # Make sure it's a dict.
-        if type(targs).__name__ not in ['dict']:
-            raise TypeError("Targets for component '%s' are not a dict" % comp)
-        # Output
-        return targs
         
     # Get the transformations for a specific component
     def get_DataBookTransformations(self, comp):
@@ -1026,6 +1000,65 @@ class DataBook(odict):
             tlist = [tlist]
         # Output
         return tlist
+        
+    # Get the tri file to use for mapping
+    def get_DataBookMapTri(self, comp):
+        """
+        Get the name of a triangulation file to use for remapping ``triq``
+        triangles to extract a component not defined in the ``triq`` file
+        
+        :Call:
+            >>> ftri = opts.get_DataBookMapTri(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component file
+        :Outputs:
+            *ftri*: {``None``} | :class:`str`
+                Name of tri file relative to root directory
+        :Versions:
+            * 2017-03-05 ``@ddalle``: First version
+        """
+        # Get the options for the component
+        copts = self.get(comp, {})
+        # Global option
+        ftri = self.get("MapTri")
+        # Get the component-specific option
+        ftri = copts.get("MapTri", ftri)
+        # Output
+        return ftri
+        
+    # Get the Config.xml file to use for mapping
+    def get_DataBookMapConfig(self, comp):
+        """
+        Get the GMP XML file for mapping component IDs to names or interpreting
+        the component names of a remapping TRI file
+        
+        :Call:
+            >>> fcfg = opts.get_DataBookMapConfig(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: ``None``
+                Name of component file
+        :Outputs:
+            *fcfg*: {``None``} | :class:`str`
+                Name of config XML or JSON file, if any
+        :Versions:
+            * 2017-03-05 ``@ddalle``: First version
+        """
+        # Get the options for the component
+        copts = self.get(comp, {})
+        # Global option
+        fcfg = self.get("MapConfig")
+        # Get the component-specific option
+        fcfg = copts.get("MapConfig", fcfg)
+        # Output
+        return fcfg
+        
+    # Get the name/number of the CompID
+    
   # >
       
   # ===========
