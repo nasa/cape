@@ -494,14 +494,14 @@ def GetDirMatches(fname, fsub=None, n=0):
     return fglob
 
 # Function to delete files according to full descriptor
-def DeleteFiles(fdel, fsub=None, n=1):
+def DeleteFiles(fdel, fsub=None, n=1, phantom=False):
     """Delete files that match a list of glob
     
-    The function also searches in any folder matching the directory glob or list
-    of directory globs *fsub*.
+    The function also searches in any folder matching the directory glob or
+    list of directory globs *fsub*.
     
     :Call:
-        >>> cape.manage.DeleteFiles_SubDir(fdel, n=1, fsub=None)
+        >>> cape.manage.DeleteFiles_SubDir(fdel, n=1, fsub=None, phantom=False)
     :Inputs:
         *fdel*: :class:`str`
             File name or glob of files to delete
@@ -509,8 +509,11 @@ def DeleteFiles(fdel, fsub=None, n=1):
             Folder, list of folders, or glob of folders to also search
         *n*: :class:`int`
             Number of files to keep
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
     :Versions:
         * 2016-03-01 ``@ddalle``: First version
+        * 2017-03-06 ``@ddalle``: Added *phantom* option
     """
     # Get list of matches
     fglob = GetFileMatches(fdel, fsub=fsub, n=n)
@@ -520,6 +523,8 @@ def DeleteFiles(fdel, fsub=None, n=1):
         if not isfile(fn): continue
         # Write to log
         write_log('  rm %s' % fn)
+        # Check if not actually deleting
+        if phantom: continue
         # Delete it.
         os.remove(fn)
         
@@ -528,31 +533,34 @@ def DeleteFiles(fdel, fsub=None, n=1):
 # PHASE ACTIONS
 
 # Perform in-progress file management after each run
-def ManageFilesProgress(opts=None, fsub=None):
+def ManageFilesProgress(opts=None, fsub=None, phantom=False):
     """Delete or group files and folders at end of each run
     
     :Call:
-        >>> cape.manage.ManageFilesProgress(opts=None, fsub=None)
+        >>> cape.manage.ManageFilesProgress(opts=None,fsub=None,phantom=False)
     :Inputs:
         *opts*: :class:`cape.options.Options` | :class:`dict`
             Options interface for archiving
         *fsub*: :class:`list` (:class:`str`)
             List of globs of subdirectories that are adaptive run folders
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
+        * 2017-03-06 ``@ddalle``: Added *phantom* option
     """
     # Convert options
     opts = Archive.auto_Archive(opts)
     # Perform actions
-    ProgressDeleteFiles(opts, fsub=fsub)
-    ProgressUpdateFiles(opts, fsub=fsub)
-    ProgressDeleteDirs(opts)
+    ProgressDeleteFiles(opts, fsub=fsub, phantom=phantom)
+    ProgressUpdateFiles(opts, fsub=fsub, phantom=phantom)
+    ProgressDeleteDirs(opts, phantom=phantom)
     ProgressTarGroups(opts)
     ProgressTarDirs(opts)
 # def ManageFilesProgress
     
 # Perform pre-archive management
-def ManageFilesPre(opts=None, fsub=None):
+def ManageFilesPre(opts=None, fsub=None, phantom=False):
     """Delete or group files and folders before creating archive
     
     :Call:
@@ -561,40 +569,46 @@ def ManageFilesPre(opts=None, fsub=None):
         *opts*: :class:`cape.options.Options` | :class:`dict`
             Options interface for archiving
         *fsub*: :class:`list` (:class:`str`)
-            List of globs of subdirectories that are adaptive run folders
+            Number of files to keep
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
+        * 2017-03-06 ``@ddalle``: Added *phantom* option
     """
     # Convert options
     opts = Archive.auto_Archive(opts)
     # Perform actions
-    PreDeleteFiles(opts, fsub=fsub)
-    PreUpdateFiles(opts, fsub=fsub)
-    PreDeleteDirs(opts)
+    PreDeleteFiles(opts, fsub=fsub, phantom=phantom)
+    PreUpdateFiles(opts, fsub=fsub, phantom=phantom)
+    PreDeleteDirs(opts, phantom=phantom)
     PreTarGroups(opts)
     PreTarDirs(opts)
 # def ManageFilesPre
     
 # Perform post-archive management
-def ManageFilesPost(opts=None, fsub=None):
+def ManageFilesPost(opts=None, fsub=None, phantom=False):
     """Delete or group files and folders after creating archive
     
     :Call:
-        >>> cape.manage.ManageFilesPost(opts=None, fsub=None)
+        >>> cape.manage.ManageFilesPost(opts=None, fsub=None, phantom=False)
     :Inputs:
         *opts*: :class:`cape.options.Options` | :class:`dict`
             Options interface for archiving
         *fsub*: :class:`list` (:class:`str`)
             List of globs of subdirectories that are adaptive run folders
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
+        * 2017-03-06 ``@ddalle``: Added *phantom* option
     """
     # Convert options
     opts = Archive.auto_Archive(opts)
     # Perform actions
-    PostDeleteFiles(opts, fsub=fsub)
-    PostUpdateFiles(opts, fsub=fsub)
-    PostDeleteDirs(opts)
+    PostDeleteFiles(opts, fsub=fsub, phantom=phantom)
+    PostUpdateFiles(opts, fsub=fsub, phantom=phantom)
+    PostDeleteDirs(opts, phantom=phantom)
     PostTarGroups(opts)
     PostTarDirs(opts)
 # def ManageFilesPost
@@ -681,14 +695,14 @@ def ArchiveFolder(opts, fsub=[]):
 # ----------------------------------------------------------------------------
 
 # Function to copy files to archive for one glob
-def ArchiveFiles(opts, fsub=None):
+def ArchiveFiles(opts, fsub=None, archive=False):
     """Delete files that match a list of glob
     
     The function also searches in any folder matching the directory glob or list
     of directory globs *fsub*.
     
     :Call:
-        >>> cape.manage.ArchiveFiles(opts, fname, fsub=None, n=1)
+        >>> manage.ArchiveFiles(opts, fname, fsub=None, n=1, archive=False)
     :Inputs:
         *opts*: :class:`cape.options.Options`
             Options interface
@@ -698,9 +712,12 @@ def ArchiveFiles(opts, fsub=None):
             Folder, list of folders, or glob of folders to also search
         *n*: :class:`int`
             Default number of files to archive
+        *phantom*: ``True`` | {``False``}
+            Only copy files if ``True``
     :Versions:
         * 2016-03-01 ``@ddalle``: First version
         * 2016-12-09 ``@ddalle``: Now depends on ``"ArchiveFiles"`` option
+        * 2017-03-06 ``@ddalle``: Added *phantom* option
     """
     # Archive all tar balls
     opts.add_ArchiveArchiveFiles(["*.tar", "*.gz", "*.zip", "*.bz"])
@@ -740,12 +757,20 @@ def ArchiveFiles(opts, fsub=None):
         fto = os.path.join(flfe, frun, fsrc)
         # Status update
         print("  %s --> %s" % (fsrc, fto))
+        # Check archive option
+        if phantom: continue
         # Check copy type
         if ':' in flfe:
+            # Status update
+            write_log("  %s %s %s" % (fscp, fsrc, fto))
+            if archive: continue
             # Remote copy the file
             ierr = sp.call([fscp, fsrc, fto])
             if ierr: raise SystemError("Remote copy failed.")
         else:
+            # Status update
+            write_log("  cp %s %s" % (fsrc, fto))
+            if archive: continue
             # Local copy
             shutil.copy(fsrc, fto)
             
@@ -833,14 +858,14 @@ def ArchiveCaseWhole(opts):
 
     
 # Function to delete folders according to full descriptor
-def DeleteDirs(fdel, fsub=None, n=1):
+def DeleteDirs(fdel, fsub=None, n=1, phantom=False):
     """Delete folders that match a glob
     
-    The function also searches in any folder matching the directory glob or list
-    of directory globs *fsub*.
+    The function also searches in any folder matching the directory glob or
+    list of directory globs *fsub*.
     
     :Call:
-        >>> cape.manage.DeleteDirs_SubDir(fdel, n=1, fsub=None)
+        >>> cape.manage.DeleteDirs_SubDir(fdel, n=1, fsub=None, phantom=False)
     :Inputs:
         *fdel*: :class:`str`
             File name or glob of files to delete
@@ -848,6 +873,8 @@ def DeleteDirs(fdel, fsub=None, n=1):
             Folder, list of folders, or glob of folders to also search
         *n*: :class:`int`
             Number of folders to keep at end of glob
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
     :Versions:
         * 2016-03-01 ``@ddalle``: First version
     """
@@ -859,6 +886,9 @@ def DeleteDirs(fdel, fsub=None, n=1):
         if not os.path.isdir(fn): continue
         # Delete it
         write_log('  rm -r %s' % fn)
+        # Check for phantom option
+        if phantom: continue
+        # Delete the folder
         shutil.rmtree(fn)
         
 # Archive groups
@@ -1021,7 +1051,7 @@ def Untar(cmd, ftar):
 # PRE-ARCHIVE ACTION FUNCTIONS
 # ----------------------------
 # Function to pre-delete files
-def PreDeleteFiles(opts, fsub=None, aa=None):
+def PreDeleteFiles(opts, fsub=None, aa=None, phantom=False):
     """Delete files that match a list of file name patterns
     
     :Call:
@@ -1033,6 +1063,8 @@ def PreDeleteFiles(opts, fsub=None, aa=None):
             List of sub-directory globs in which to search
         *aa*: :class:`function`
             Conversion function applied to *opts*
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
     """
@@ -1046,10 +1078,10 @@ def PreDeleteFiles(opts, fsub=None, aa=None):
     # Write flag
     write_log('<PreDeleteFiles>')
     # Delete
-    DeleteFiles(fdel, fsub=fsub, n=0)
+    DeleteFiles(fdel, fsub=fsub, n=0, phantom=phantom)
     
 # Function to pre-delete dirs
-def PreDeleteDirs(opts, fsub=None, aa=None):
+def PreDeleteDirs(opts, fsub=None, aa=None, phantom=False):
     """Delete folders that match a list of file name patterns before archiving
     
     :Call:
@@ -1061,6 +1093,8 @@ def PreDeleteDirs(opts, fsub=None, aa=None):
             List of sub-directory globs in which to search
         *aa*: :class:`function`
             Conversion function applied to *opts*
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
     """
@@ -1074,10 +1108,10 @@ def PreDeleteDirs(opts, fsub=None, aa=None):
     # Write flag
     write_log('<PreDeleteDirs>')
     # Delete
-    DeleteDirs(fdel, fsub=fsub, n=0)
+    DeleteDirs(fdel, fsub=fsub, n=0, phantom=phantom)
 
 # Function to pre-update files
-def PreUpdateFiles(opts, fsub=None, aa=None):
+def PreUpdateFiles(opts, fsub=None, aa=None, phantom=False):
     """Delete files that match a list, keeping the most recent file by default
     
     :Call:
@@ -1089,6 +1123,8 @@ def PreUpdateFiles(opts, fsub=None, aa=None):
             List of sub-directory globs in which to search
         *aa*: :class:`function`
             Conversion function applied to *opts*
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
     """
@@ -1102,7 +1138,7 @@ def PreUpdateFiles(opts, fsub=None, aa=None):
     # Write flag
     write_log('<PreUpdateFiles>')
     # Delete
-    DeleteFiles(fdel, fsub=fsub, n=1)
+    DeleteFiles(fdel, fsub=fsub, n=1, phantom=phantom)
     
 # Function to pre-tar files
 def PreTarGroups(opts, fsub=None, aa=None):
@@ -1188,11 +1224,11 @@ def PreTarDirs(opts, fsub=None, aa=None):
 # POST-ARCHIVE ACTION FUNCTIONS
 # -----------------------------
 # Function to post-delete files
-def PostDeleteFiles(opts, fsub=None, aa=None):
+def PostDeleteFiles(opts, fsub=None, aa=None, phantom=False):
     """Delete files that match a list of file name patterns
     
     :Call:
-        >>> PostDeleteFiles(opts, fsub=None, aa=None)
+        >>> PostDeleteFiles(opts, fsub=None, aa=None, phantom=False)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
@@ -1200,6 +1236,8 @@ def PostDeleteFiles(opts, fsub=None, aa=None):
             List of sub-directory globs in which to search
         *aa*: :class:`function`
             Conversion function applied to *opts*
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
     """
@@ -1213,14 +1251,14 @@ def PostDeleteFiles(opts, fsub=None, aa=None):
     # Write flag
     write_log('<PostDeleteFiles>')
     # Delete
-    DeleteFiles(fdel, fsub=fsub, n=0)
+    DeleteFiles(fdel, fsub=fsub, n=0, phantom=phantom)
     
 # Function to post-delete dirs
-def PostDeleteDirs(opts, fsub=None, aa=None):
+def PostDeleteDirs(opts, fsub=None, aa=None, phantom=False):
     """Delete folders that match a list of file name patterns before archiving
     
     :Call:
-        >>> PostDeleteDirs(opts, fsub=None, aa=None)
+        >>> PostDeleteDirs(opts, fsub=None, aa=None, phantom=False)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
@@ -1228,6 +1266,8 @@ def PostDeleteDirs(opts, fsub=None, aa=None):
             List of sub-directory globs in which to search
         *aa*: :class:`function`
             Conversion function applied to *opts*
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
     """
@@ -1241,14 +1281,14 @@ def PostDeleteDirs(opts, fsub=None, aa=None):
     # Write flag
     write_log('<PostDeleteDirs>')
     # Delete
-    DeleteDirs(fdel, fsub=fsub, n=0)
+    DeleteDirs(fdel, fsub=fsub, n=0, phantom=phantom)
 
 # Function to post-update files
-def PostUpdateFiles(opts, fsub=None, aa=None):
+def PostUpdateFiles(opts, fsub=None, aa=None, phantom=False):
     """Delete files that match a list, keeping the most recent file by default
     
     :Call:
-        >>> PreUpdateFiles(opts, fsub=None, aa=None)
+        >>> PreUpdateFiles(opts, fsub=None, aa=None, phantom=False)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
@@ -1256,6 +1296,8 @@ def PostUpdateFiles(opts, fsub=None, aa=None):
             List of sub-directory globs in which to search
         *aa*: :class:`function`
             Conversion function applied to *opts*
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
     """
@@ -1269,7 +1311,7 @@ def PostUpdateFiles(opts, fsub=None, aa=None):
     # Write flag
     write_log('<PostUpdateFiles>')
     # Delete
-    DeleteFiles(fdel, fsub=fsub, n=1)
+    DeleteFiles(fdel, fsub=fsub, n=1, phantom=phantom)
     
 # Function to post-tar files
 def PostTarGroups(opts, fsub=None, aa=None, frun=None):
@@ -1375,11 +1417,11 @@ def PostTarDirs(opts, fsub=None, aa=None, frun=None):
 # PROGRESS ACTION FUNCTIONS
 # -------------------------
 # Function for in-progress file deletion
-def ProgressDeleteFiles(opts, fsub=None, aa=None):
+def ProgressDeleteFiles(opts, fsub=None, aa=None, phantom=False):
     """Delete files that match a list of file name patterns
     
     :Call:
-        >>> ProgressDeleteFiles(opts, fsub=None, aa=None)
+        >>> ProgressDeleteFiles(opts, fsub=None, aa=None, phantom=False)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
@@ -1387,6 +1429,8 @@ def ProgressDeleteFiles(opts, fsub=None, aa=None):
             List of sub-directory globs in which to search
         *aa*: :class:`function`
             Conversion function applied to *opts*
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
     """
@@ -1400,14 +1444,14 @@ def ProgressDeleteFiles(opts, fsub=None, aa=None):
     # Write flag
     write_log('<ProgressDeleteFiles>')
     # Delete
-    DeleteFiles(fdel, fsub=fsub, n=0)
+    DeleteFiles(fdel, fsub=fsub, n=0, phantom=phantom)
     
 # Function for in-progress file archiving
-def ProgressArchiveFiles(opts, fsub=None, aa=None):
+def ProgressArchiveFiles(opts, fsub=None, aa=None, phantom=False):
     """Delete files that match a list of file name patterns
     
     :Call:
-        >>> ProgressDeleteFiles(opts, fsub=None, aa=None)
+        >>> ProgressDeleteFiles(opts, fsub=None, aa=None, phantom=False)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
@@ -1415,6 +1459,8 @@ def ProgressArchiveFiles(opts, fsub=None, aa=None):
             List of sub-directory globs in which to search
         *aa*: :class:`function`
             Conversion function applied to *opts*
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
     """
@@ -1428,14 +1474,14 @@ def ProgressArchiveFiles(opts, fsub=None, aa=None):
     # Write flag
     write_log('<ProgressArchiveFiles>')
     # Copy
-    ArchiveFiles(opts, fglob, fsub=fsub, n=0)
+    ArchiveFiles(opts, fglob, fsub=fsub, n=0, phantom=phantom)
     
 # Function for in-progress folder deletion
-def ProgressDeleteDirs(opts, fsub=None, aa=None):
+def ProgressDeleteDirs(opts, fsub=None, aa=None, phantom=False):
     """Delete folders that match a list of file name patterns before archiving
     
     :Call:
-        >>> ProgressDeleteDirs(opts, fsub=None, aa=None)
+        >>> ProgressDeleteDirs(opts, fsub=None, aa=None, phantom=False)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
@@ -1443,6 +1489,8 @@ def ProgressDeleteDirs(opts, fsub=None, aa=None):
             List of sub-directory globs in which to search
         *aa*: :class:`function`
             Conversion function applied to *opts*
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
     """
@@ -1456,10 +1504,10 @@ def ProgressDeleteDirs(opts, fsub=None, aa=None):
     # Write flag
     write_log('<ProgressDeleteDirs>')
     # Delete
-    DeleteDirs(fdel, fsub=fsub, n=0)
+    DeleteDirs(fdel, fsub=fsub, n=0, phantom=phantom)
 
 # Function for in-progress file updates
-def ProgressUpdateFiles(opts, fsub=None, aa=None):
+def ProgressUpdateFiles(opts, fsub=None, aa=None, phantom=False):
     """Delete files that match a list, keeping the most recent file by default
     
     :Call:
@@ -1471,6 +1519,8 @@ def ProgressUpdateFiles(opts, fsub=None, aa=None):
             List of sub-directory globs in which to search
         *aa*: :class:`function`
             Conversion function applied to *opts*
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
     """
@@ -1484,7 +1534,7 @@ def ProgressUpdateFiles(opts, fsub=None, aa=None):
     # Write flag
     write_log('<ProgressUpdateFiles>')
     # Delete
-    DeleteFiles(fdel, fsub=fsub, n=1)
+    DeleteFiles(fdel, fsub=fsub, n=1, phantom=phantom)
     
 # Function to tar groups in progress
 def ProgressTarGroups(opts, fsub=None, aa=None):

@@ -10,13 +10,15 @@ CopyFiles = [
     "INTOUT",
     "XINTOUT",
     "q.avg",
-    {"q.[sr][ae][vs][et]*": 1}
+    "q.srf",
+    {"q.[sr][ae][vs][et]*": 1},
+    {"x.[sr][ae][vs][et]*": 1}
 ]
 # Plot3D files
 Plot3DDict = [
-    {"brkset.[0-9]*": -1},
-    {"q.[0-9]*":      -1},
-    {"x.[0-9]*":      -1},
+    {"brkset.[0-9]*": 1},
+    {"q.[0-9]*":      1},
+    {"x.[0-9]*":      1},
 ]
 # Run output files
 RunDict = [
