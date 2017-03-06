@@ -724,7 +724,7 @@ def ArchiveFolder(opts, fsub=[]):
 # ----------------------------------------------------------------------------
 
 # Function to copy files to archive for one glob
-def ArchiveFiles(opts, fsub=None, archive=False):
+def ArchiveFiles(opts, fsub=None, archive=False, phantom=False):
     """Delete files that match a list of glob
     
     The function also searches in any folder matching the directory glob or list
@@ -1431,9 +1431,9 @@ def PostTarDirs(opts, fsub=None, aa=None, frun=None):
     # Loop through directories
     for fdir in fdirs:
         # Archive file name
-        if (ftype.lower() != "full") and (':' not in flfe):
+        if (':' not in flfe):
             # Local tar command; create Tar in place rather than copying it
-            ftar = os.path.join(flfe, frun, '%s.%s' * (fdir,ext))
+            ftar = os.path.join(flfe, frun, '%s.%s' % (fdir,ext))
         else:
             # Otherwise, create the tar ball in this folder
             ftar = '%s.%s' % (fdir, ext)

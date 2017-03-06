@@ -137,7 +137,8 @@ class Archive(cape.options.Archive.Archive):
         # Folders to archive later
         self.add_ArchivePostTarDirs(["fomo", "lineload", "aero"])
         # Individual archive files
-        self.add_ArchiveArchiveFiles(["*.flow"])
+        for dopts in CopyFiles:
+            self.add_ArchiveArchiveFiles(dopts)
         # Files/folders to delete after archiving
         self.add_ArchivePostDeleteFiles([])
         self.add_ArchivePostDeleteDirs([])
