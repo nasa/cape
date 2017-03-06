@@ -326,9 +326,10 @@ def GetMatches(fname, fsub=None, fkeep=None, ftest=None, n=0, fsort=None):
             # Nothing to delete (yet)
             continue
         # Strip last *nkeep* matches
+        print("Label 030: fglobn=%s, nkeep=%s" % (fglobn, nkeep))
         if nkeep > 0:
             # Keep the last *nkeep* files
-            fglobn = fglobn[:-nkeep]
+            fglobn = fglobn[-nkeep:]
         elif nkeep < 0:
             # Keep the first *nkeep* files
             fglobn = fglobn[:nkeep]

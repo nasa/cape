@@ -5,11 +5,18 @@ from util import rc0
 # Base module
 import cape.options.Archive
 
+# Files to archive
+CopyFiles = [
+    "INTOUT",
+    "XINTOUT",
+    "q.avg",
+    {"q.[sr][ae][vs][et]*": 1}
+]
 # Plot3D files
 Plot3DDict = [
-    {"brkset.[0-9]*": 1},
-    {"q.[0-9]*":      1},
-    {"x.[0-9]*":      1},
+    {"brkset.[0-9]*": -1},
+    {"q.[0-9]*":      -1},
+    {"x.[0-9]*":      -1},
 ]
 # Run output files
 RunDict = [
@@ -18,17 +25,11 @@ RunDict = [
     {"SurfBC":  "SurfBC*.dat"},
     {"pyover": [
         "pyover*",
-        "casie.json",
+        "case.json",
         "conditions.json"
     ]},
-    {"mesh": [
-        "brkset.restart",
+    {"meshinfo": [
         "Config.xml",
-        "INTOUT",
-        "XINTOUT"
-    ]},
-    {"save": [
-        "brkset.save",
         "grdwghts.save",
         "mixsur.save",
         "walldist.save"
