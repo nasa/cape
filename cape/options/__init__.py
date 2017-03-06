@@ -547,7 +547,7 @@ class Options(odict):
             umask = eval('0o' + umask.strip())
         else:
             # Convert to octal
-            umask = eval('0o' + str(umask))
+            umask = eval('0o' + str(umask).strip().lstrip('0o'))
         # Output
         return umask
         
