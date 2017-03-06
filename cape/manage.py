@@ -272,11 +272,12 @@ def GetSearchDirs(fsub=None, fsort=None):
     return fdirs
     
 # Get list of matches, generic
-def GetMatches(fname, fsub=None, fkeep=None, ftest=None, n=0, fsort=None):
+def GetMatches(fname,
+    fsub=None, fkeep=None, ftest=None, n=0, fsort=None, qdel=False):
     """Get matches based on arbitrary rules
     
     :Call:
-        >>> fglob = GetMatches(fname, fsub=None, fkeep=None, ftest=None, n=0)
+        >>> fglob = GetMatches(fname, **kw)
     :Inputs:
         *fname*: :class:`str`
             File name or file name pattern
@@ -291,11 +292,15 @@ def GetMatches(fname, fsub=None, fkeep=None, ftest=None, n=0, fsort=None):
             number of files to ignore from beginning of glob if negative
         *fsort*: :class:`function`
             Non-default sorting function
+        *qdel*: ``True`` | {``False``}
+            Interpret *n* as how many files to **keep** if ``True``; as how
+            many files to **copy** if ``False``
     :Outputs:
         *fglob*: :class:`list` (:class:`str`)
             List of files matching input pattern
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
+        * 2017-03-06 ``@ddalle``: Added *qdel* option for interpreting *n*
     """
     # Process the input
     fname, nkeep = process_ArchiveFile(fname, n=n)
@@ -324,17 +329,24 @@ def GetMatches(fname, fsub=None, fkeep=None, ftest=None, n=0, fsort=None):
             # Sort using input
             fglobn = fsort(fglobn)
         # Check how many files to keep
-        if len(fglobn) <= nkeep:
+        if qdel and (len(fglobn) <= nkeep):
             # Nothing to delete (yet)
             continue
         # Strip last *nkeep* matches
         print("Label 030: fglobn=%s, nkeep=%s" % (fglobn, nkeep))
-        if nkeep > 0:
+        if qdel and (nkeep > 0):
             # Keep the last *nkeep* files
+            fglobn = fglobn[:-nkeep]
+        elif qdel and (nkeep < 0):
+            # Keep the first *nkeep* files (unusual)
+            fglobn = fglobn[-nkeep:]
+        elif nkeep > 0:
+            # Copy the last *nkeep* files
             fglobn = fglobn[-nkeep:]
         elif nkeep < 0:
-            # Keep the first *nkeep* files
+            # Copy the first *nkeep* files (unusual)
             fglobn = fglobn[:nkeep]
+        print("Label 040: fglobn=%s" % fglobn)
         # Loop through the matches
         for fgn in fglobn:
             # Test if file, folder, etc.
@@ -353,11 +365,11 @@ def GetMatches(fname, fsub=None, fkeep=None, ftest=None, n=0, fsort=None):
     return fglob
     
 # Get list of matches to a list of globs, generic
-def GetMatchesList(flist, fsub=None, ftest=None, n=0):
+def GetMatchesList(flist, fsub=None, ftest=None, n=0, qdel=False):
     """Get matches from a list of file glob descriptors
     
     :Call:
-        >>> fglob = GetMatchesList(flist, fsub=None, ftest=None, n=0)
+        >>> fglob = GetMatchesList(flist,fsub=None,ftest=None,n=0,qdel=False)
     :Inputs:
         *flist*: :class:`list` (:class:`str` | :class:`dict`)
             List of file names or file name patterns
@@ -368,11 +380,15 @@ def GetMatchesList(flist, fsub=None, ftest=None, n=0):
         *n*: :class:`int`
             Default number of files to ignore from the end of the glob or
             number of files to ignore from beginning of glob if negative
+        *qdel*: ``True`` | {``False``}
+            Interpret *n* as how many files to **keep** if ``True``; as how
+            many files to **copy** if ``False``
     :Outputs:
         *fglob*: :class:`list` (:class:`str`)
             List of files matching input pattern
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
+        * 2017-03-06 ``@ddalle``: Added *qdel* option
     """
     # Ensure list
     if type(flist).__name__ not in ['list', 'ndarray']:
@@ -389,7 +405,7 @@ def GetMatchesList(flist, fsub=None, ftest=None, n=0):
             # Not a negative glob
             continue
         # Get matches for the negative of this pattern
-        fgn = GetMatches(fname[1:], fsub=fsub, ftest=ftest, n=0)
+        fgn = GetMatches(fname[1:], fsub=fsub, ftest=ftest, n=0, qdel=qdel)
         # Append to keep glob
         for fn in fgn:
             # Check if already present
@@ -401,7 +417,8 @@ def GetMatchesList(flist, fsub=None, ftest=None, n=0):
     # Loop through patterns
     for fname in flist:
         # Get matches for this pattern
-        fgn = GetMatches(fname, fsub=fsub, fkeep=fkeep, ftest=ftest, n=n)
+        fgn = GetMatches(fname,
+            fsub=fsub, fkeep=fkeep, ftest=ftest, n=n, qdel=qdel)
         # Append contents to output glob
         for fn in fgn:
             # Check if already present
@@ -412,11 +429,11 @@ def GetMatchesList(flist, fsub=None, ftest=None, n=0):
     return fglob
     
 # Get file/link matches
-def GetFileMatches(fname, fsub=None, n=0):
+def GetFileMatches(fname, fsub=None, n=0, qdel=False):
     """Get list of all files or links matching a list of patterns
     
     :Call:
-        >>> fglob = GetFileMatches(fname, fsub=None, n=0)
+        >>> fglob = GetFileMatches(fname, fsub=None, n=0, qdel=False)
         >>> fglob = GetFileMatches(fname, fsubs)
     :Inputs:
         *fname*: :class:`list` (:class:`dict` | :class:`str`)
@@ -425,6 +442,9 @@ def GetFileMatches(fname, fsub=None, n=0):
             Folder name of folder name pattern
         *n*: :class:`int`
             Default number of files to ignore at end of glob
+        *qdel*: ``True`` | {``False``}
+            Interpret *n* as how many files to **keep** if ``True``; as how
+            many files to **copy** if ``False``
     :Outputs:
         *fglob*: :class:`list` (:class:`str`)
             List of files matching input pattern
@@ -433,18 +453,19 @@ def GetFileMatches(fname, fsub=None, n=0):
         * :func:`cape.manage.GetMatchesList`
     :Versions:
         * 2016-03-01 ``@ddalle``: First version
+        * 2017-03-06 ``@ddalle``: Added *qdel* option
     """
     # Get matches from :func:`GetMatches`
-    fglob = GetMatchesList(fname, fsub=fsub, ftest=isfile, n=n)
+    fglob = GetMatchesList(fname, fsub=fsub, ftest=isfile, n=n, qdel=qdel)
     # Output
     return fglob
     
 # Get link matches
-def GetLinkMatches(fname, fsub=None, n=0):
+def GetLinkMatches(fname, fsub=None, n=0, qdel=False):
     """Get list of all links matching a list of patterns
     
     :Call:
-        >>> fglob = GetLinkMatches(fname, fsub=None, n=0)
+        >>> fglob = GetLinkMatches(fname, fsub=None, n=0, qdel=False)
         >>> fglob = GetLinkMatches(fname, fsubs)
     :Inputs:
         *fname*: :class:`list` (:class:`dict` | :class:`str`)
@@ -453,6 +474,9 @@ def GetLinkMatches(fname, fsub=None, n=0):
             Folder name of folder name pattern
         *n*: :class:`int`
             Default number of files to ignore at end of glob
+        *qdel*: ``True`` | {``False``}
+            Interpret *n* as how many files to **keep** if ``True``; as how
+            many files to **copy** if ``False``
     :Outputs:
         *fglob*: :class:`list` (:class:`str`)
             List of files matching input pattern
@@ -461,18 +485,20 @@ def GetLinkMatches(fname, fsub=None, n=0):
         * :func:`cape.manage.GetMatchesList`
     :Versions:
         * 2016-03-01 ``@ddalle``: First version
+        * 2017-03-06 ``@ddalle``: Added *qdel* option
     """
     # Get matches from :func:`GetMatches`
-    fglob = GetMatchesList(fname, fsub=fsub, ftest=os.path.islink, n=n)
+    fglob = GetMatchesList(fname,
+        fsub=fsub, ftest=os.path.islink, n=n, qdel=qdel)
     # Output
     return fglob
                 
 # Get folder matches
-def GetDirMatches(fname, fsub=None, n=0):
+def GetDirMatches(fname, fsub=None, n=0, qdel=False):
     """Get list of all folders matching a list of patterns
     
     :Call:
-        >>> fglob = GetDirMatches(fname, fsub=None, n=0)
+        >>> fglob = GetDirMatches(fname, fsub=None, n=0, qdel=False)
         >>> fglob = GetDirMatches(fname, fsubs)
     :Inputs:
         *fname*: :class:`list` (:class:`dict` | :class:`str`)
@@ -481,6 +507,9 @@ def GetDirMatches(fname, fsub=None, n=0):
             Folder name of folder name pattern
         *n*: :class:`int`
             Default number of files to ignore at end of glob
+        *qdel*: ``True`` | {``False``}
+            Interpret *n* as how many files to **keep** if ``True``; as how
+            many files to **copy** if ``False``
     :Outputs:
         *fglob*: :class:`list` (:class:`str`)
             List of files matching input pattern
@@ -489,9 +518,11 @@ def GetDirMatches(fname, fsub=None, n=0):
         * :func:`cape.manage.GetMatchesList`
     :Versions:
         * 2016-03-01 ``@ddalle``: First version
+        * 2017-03-06 ``@ddalle``: Added *qdel* option
     """
     # Get matches from :func:`GetMatches`
-    fglob = GetMatchesList(fname, fsub=fsub, ftest=os.path.isdir, n=n)
+    fglob = GetMatchesList(fname,
+        fsub=fsub, ftest=os.path.isdir, n=n, qdel=qdel)
     # Output
     return fglob
 
@@ -518,7 +549,7 @@ def DeleteFiles(fdel, fsub=None, n=1, phantom=False):
         * 2017-03-06 ``@ddalle``: Added *phantom* option
     """
     # Get list of matches
-    fglob = GetFileMatches(fdel, fsub=fsub, n=n)
+    fglob = GetFileMatches(fdel, fsub=fsub, n=n, qdel=True)
     # Loop through matches
     for fn in fglob:
         # Triple-check for existence
@@ -881,7 +912,7 @@ def DeleteDirs(fdel, fsub=None, n=1, phantom=False):
         * 2016-03-01 ``@ddalle``: First version
     """
     # Get list of matches
-    fglob = GetDirMatches(fdel, fsub=fsub, n=n)
+    fglob = GetDirMatches(fdel, fsub=fsub, n=n, qdel=True)
     # Loop through matches
     for fn in fglob:
         # Triple-check for existence
