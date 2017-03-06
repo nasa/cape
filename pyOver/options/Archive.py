@@ -9,12 +9,30 @@ import cape.options.Archive
 Plot3DDict = [
     {"brkset.[0-9]*": 1},
     {"q.[0-9]*":      1},
-    {"x.[0-9]*":      1}
+    {"x.[0-9]*":      1},
 ]
 # Run output files
 RunDict = [
     {"run":     "run.[0-9]*"},
-    {"out":     "*.out"}
+    {"out":     "*.out"},
+    {"SurfBC":  "SurfBC*.dat"},
+    {"pyover": [
+        "pyover*",
+        "casie.json",
+        "conditions.json"
+    ]},
+    {"mesh": [
+        "brkset.restart",
+        "Config.xml",
+        "INTOUT",
+        "XINTOUT"
+    ]},
+    {"save": [
+        "brkset.save",
+        "grdwghts.save",
+        "mixsur.save",
+        "walldist.save"
+    ]}
 ]
 
 # Turn dictionary into Archive options
