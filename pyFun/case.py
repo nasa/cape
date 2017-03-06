@@ -650,7 +650,7 @@ def GetHistoryIter():
     if qdual: os.chdir("Flow")
     # Read the project rootname
     try:
-        rname = GetProjectRootname()
+        rname = GetProjectRootname(rc=rc)
     except Exception:
         # No iterations
         if qdual: os.chdir('..')
@@ -662,8 +662,10 @@ def GetHistoryIter():
         # Check for sequence of file names
         fnames = glob.glob(rname[:-2] + '??_hist.[0-9][0-9].dat')
         fnames.sort()
-        # Single history file name
-        fnames += glob.glob("%s??_hist.dat" % rname[:-2])
+        # Single history file name(s)
+        fhist = glob.glob("%s??_hist.dat" % rname[:-2])
+        # Apppend the most recent one
+        fnames.append(fhist)
     else:
         # Check for historical files
         fnames = glob.glob("%s_hist.[0-9][0-9].dat" % rname)
