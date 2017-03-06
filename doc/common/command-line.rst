@@ -17,7 +17,7 @@ longer name.
 The master input file for one of these scripts is a JSON file that is usually
 identified with the ``-f`` flag.  For example
 
-    .. code-block:: bash
+    .. code-block:: console
     
         $ pycart -f run/poweroff.json
         
@@ -93,7 +93,7 @@ Help Message
 To see of the options from the command line, just run ``pycart
 -h`` or ``pycart --help``.
 
-    .. code-block:: bash
+    .. code-block:: console
     
         $ pycart -h
         
@@ -105,7 +105,7 @@ To see of the options from the command line, just run ``pycart
         relatively simple commands.
         
         :Usage:
-            .. code-block:: bash
+            .. code-block:: console
             
                 $ pycart [options]
         ...
@@ -125,7 +125,7 @@ The first command is the help command, which was discussed previously.  The
 second command is to check the status, which may show something like the
 following.
 
-    .. code-block:: none
+    .. code-block:: console
     
         $ pycart -c
         Case Config/Run Directory  Status  Iterations  Que CPU Time
@@ -192,7 +192,7 @@ runs this command, each case (:ref:`subsetting commands <cli-subset>` still
 apply) is shown along with a brief message of the status of the database and
 action of this update.
 
-    .. code-block:: bash
+    .. code-block:: console
     
         $ pycart --aero
         poweroff/m0.84a0.0b0.0
@@ -210,7 +210,7 @@ in the same way.  The exception is that these two extended data book examples
 can be commanded to update only one component of the data book.  Suppose there
 is a setup with a center, left, and right component.  Then
 
-    .. code-block:: bash
+    .. code-block:: console
     
         $ pycart --ll LL_C
         
@@ -275,7 +275,7 @@ can be defined.  A sample section of the JSON file looks like the following:
 
 In this case, the following commands are possible.
 
-    .. code-block:: bash
+    .. code-block:: console
     
         $ pycart --report
         $ pycart --report case
@@ -303,7 +303,7 @@ each job (using the ``qdel`` command, for instance), pyCart provides a command
 to delete PBS jobs for an arbitrarily-sized subset of the run matrix.  The
 following two commands are equivalent.
 
-    .. code-block:: bash
+    .. code-block:: console
     
         $ pycart --qdel
         $ pycart --kill
@@ -317,7 +317,7 @@ The command ``pycart -e $CMD`` can be used to execute a command in each folder
 in a run matrix.  This can be something simple, such as ``pycart -e ls`` to
 list the files in each folder.
 
-    .. code-block:: bash
+    .. code-block:: console
     
         $ pycart -e ls
         Case Config/Run Directory  Status  Iterations  Que CPU Time 
@@ -351,7 +351,7 @@ list the files in each folder.
     
 It can also be used to execute a specific script, for example
 
-    .. code-block:: bash
+    .. code-block:: console
     
         $ pycart -e tools/fixProblem.py
         
@@ -384,7 +384,7 @@ Several options are used to specify additional settings to some or all
 commands.  The most important of these is the ``-f`` flag, which tells
 ``pycart``, ``pyfun``, or ``pyover`` to use a specific JSON input file.
 
-    .. code-block:: bash
+    .. code-block:: console
     
         $ pycart -f run/poweroff.json -c
         
@@ -448,7 +448,7 @@ with individual cases.  In other words, it applies to all commands except
 subsetting options.  The subsections will use a :ref:`simple example
 <pycart-ex-bullet>` from ``$PYCART/examples/pycart/bullet``.
 
-    .. code-block:: none
+    .. code-block:: console
     
         $ pycart -c
         Case Config/Run Directory  Status  Iterations  Que CPU Time
@@ -469,7 +469,7 @@ Limiting to a specific index or list of indices is simple.  Consider the
 following examples using the ``pycart -I`` option.  The first version is to
 identify an individual case.
 
-    .. code-block:: none
+    .. code-block:: console
     
         $ pycart -c -I 1
         Case Config/Run Directory  Status  Iterations  Que CPU Time
@@ -480,7 +480,7 @@ identify an individual case.
 
 It is also possible to get a specific list of cases.
 
-    .. code-block:: none
+    .. code-block:: console
     
         $ pycart -c -I 0,2,3
         Case Config/Run Directory  Status  Iterations  Que CPU Time
@@ -495,7 +495,7 @@ Finally, a range of cases can be identified using a ``:`` character.  Note that
 this relies on Python's zero-based indexing, which is something of an acquired
 taste.
 
-    .. code-block:: none
+    .. code-block:: console
     
         $ pycart -cI 1:3
         Case Config/Run Directory  Status  Iterations  Que CPU Time
@@ -512,7 +512,7 @@ Using Constraints
 *****************
 Perhaps the most useful subsetting command is to give explicit constraints.
 
-    .. code-block:: none
+    .. code-block:: console
     
         $ pycart -c --cons "alpha==2"
         Case Config/Run Directory  Status  Iterations  Que CPU Time
@@ -524,7 +524,7 @@ Perhaps the most useful subsetting command is to give explicit constraints.
 
 Multiple constraints can be separated with commas.
 
-    .. code-block:: none
+    .. code-block:: console
     
         $ pycart -c --cons "alpha==2,beta==2"
         Case Config/Run Directory  Status  Iterations  Que CPU Time
@@ -542,7 +542,7 @@ Finally, the Python relational operators ``==``, ``<``, ``<=``, ``>``, and
 ``>=`` can be combined with other operations.  For example, the following
 command isolates cases with Mach number ending in 0.5.
 
-    .. code-block:: none
+    .. code-block:: console
     
         $ pycart -c --cons "Mach%1==0.5"
         Case Config/Run Directory  Status  Iterations  Que CPU Time
@@ -559,7 +559,7 @@ Filtering by Folder Name
 The ``--filter`` option allows a user to restrict the command to cases that
 include raw text in their full folder name.
 
-    .. code-block:: none
+    .. code-block:: console
     
         $ pycart -c --filter "a2"
         Case Config/Run Directory  Status  Iterations  Que CPU Time
@@ -580,7 +580,7 @@ of a very specific case.  However, the entire name of the case must match the
 glob, so the user may need to add ``'*'`` to the beginning and end of the
 command.
 
-    .. code-block:: none
+    .. code-block:: console
     
         $ pycart -c --glob "*a[1-3]*"
         Case Config/Run Directory  Status  Iterations  Que CPU Time
@@ -599,7 +599,7 @@ The ``--re`` option is basically a better version of ``--glob``.  It uses
 Python's standard :mod:`re` module and only reports cases that contain at least
 one match for the regular expression.
 
-    .. code-block:: none
+    .. code-block:: console
     
         $ pycart -c --re "a[1-3]"
         Case Config/Run Directory  Status  Iterations  Que CPU Time

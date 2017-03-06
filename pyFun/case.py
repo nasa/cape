@@ -663,7 +663,7 @@ def GetHistoryIter():
         fnames = glob.glob(rname[:-2] + '??_hist.[0-9][0-9].dat')
         fnames.sort()
         # Single history file name
-        fnames.append("%s_hist.dat" % rname)
+        fnames += glob.glob("%s??_hist.dat" % rname[:-2])
     else:
         # Check for historical files
         fnames = glob.glob("%s_hist.[0-9][0-9].dat" % rname)

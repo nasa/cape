@@ -382,13 +382,23 @@ class Cntl(object):
         qExec = (ecmd is not None)
         # No submissions if we're just deleting.
         if qKill or qExec: qCheck = True
+        # Check if we should start cases
+        if kw.get("nostart") or kw.get("no-start"):
+            # Set cases up but do not start them
+            q_strt = False
+        else:
+            # Set cases up and submit/start them
+            q_strt = True
         # Check if we should submit INCOMP jobs
-        if kw.get("norestart"):
+        if kw.get("norestart") or kw.get("no-restart"):
             # Do not submit jobs labeled "INCOMP"
             stat_submit = ["---"]
-        else:
+        elif q_strt:
             # Submit either new jobs or "INCOMP"
             stat_submit = ["---", "INCOMP"]
+        else:
+            # If not starting jobs, no reason for "INCOMP"
+            stat_submit = ["---"]
         # Maximum number of jobs
         nSubMax = int(kw.get('n', 10))
         # Get list of indices.
@@ -504,7 +514,8 @@ class Cntl(object):
                 # Prepare the job.
                 self.PrepareCase(i)
                 # Start (submit or run) case
-                self.StartCase(i)
+                if q_strt:
+                    self.StartCase(i)
                 # Increase job number
                 nSub += 1
             # Don't continue checking if maximum submissions reached.
@@ -513,7 +524,12 @@ class Cntl(object):
         print("")
         # State how many jobs submitted.
         if nSub:
-            print("Submitted or ran %i job(s).\n" % nSub)
+            # Submitted/started?
+            if q_strt:
+                print("Submitted or ran %i job(s).\n" % nSub)
+            else:
+                # We can still count cases set up
+                print("Set up %i job(s) but did not start.\n" % nSub)
         # Status summary
         fline = ""
         for key in total:
