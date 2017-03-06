@@ -303,6 +303,7 @@ def GetMatches(fname, fsub=None, fkeep=None, ftest=None, n=0, fsort=None):
     fdirs = GetSearchDirs(fsub, fsort=fsort)
     # Initialize result
     fglob = []
+    print("Label 010: fdirs=%s" % fdirs)
     # Loop through folders
     for fdir in fdirs:
         # Construct relative file name glob for this folder
@@ -314,6 +315,7 @@ def GetMatches(fname, fsub=None, fkeep=None, ftest=None, n=0, fsort=None):
             fn = os.path.join(fdir, fname)
         # Apply the glob
         fglobn = glob.glob(fn)
+        print("Label 012: fglobn=%s" % fglobn)
         # Sort it
         if fsort is None:
             # Default sorting function
