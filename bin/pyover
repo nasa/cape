@@ -8,8 +8,8 @@ import pyOver.report
 from cape.argread import readflagstar
 
 # Import docstring (makes the docstring available to module import)
-import pf_doc
-__doc__ = pf_doc.__doc__
+import po_doc
+__doc__ = po_doc.__doc__
     
 # Check if run as a script.
 if __name__ == "__main__":

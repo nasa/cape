@@ -46,7 +46,7 @@ relatively simple commands.
         Show the PBS job numbers as well
         
     -f FNAME
-        Use pyCart input file *FNAME* (defaults to ``'pyCart.json'``)
+        Use pyCart input file *FNAME* (defaults to ``'pyFun.json'``)
 
     -n NJOB
         Submit at most *NJOB* PBS scripts (defaults to unlimited)

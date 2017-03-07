@@ -52,7 +52,11 @@ relatively simple commands.
         Submit at most *NJOB* PBS scripts (defaults to unlimited)
         
     -q QUEUE
-        Submit to a specific queue (defaults to "sls_aero1")
+        Submit to a specific queue (defaults to ``normal``)
+    
+    --stop, --stop STOP
+        Stop one or more cases at iteration *STOP* (or immediately if *STOP* is
+        not specified)
         
     --cons CNS
         Only consider cases that pass a list of inequalities separated by
