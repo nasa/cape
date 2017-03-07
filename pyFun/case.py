@@ -665,7 +665,8 @@ def GetHistoryIter():
         # Single history file name(s)
         fhist = glob.glob("%s??_hist.dat" % rname[:-2])
         # Apppend the most recent one
-        fnames.append(max(fhist))
+        if len(fhist) > 0:
+            fnames.append(max(fhist))
     else:
         # Check for historical files
         fnames = glob.glob("%s_hist.[0-9][0-9].dat" % rname)
