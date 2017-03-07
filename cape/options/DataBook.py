@@ -103,6 +103,33 @@ class DataBook(odict):
         # Output
         return comps
         
+    # Get the targets for a specific component
+    def get_CompTargets(self, comp):
+        """Get the list of targets for a specific data book component
+        
+        :Call:
+            >>> targs = opts.get_CompTargets(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *targs*: :class:`list` (:class:`str`)
+                List of targets for that component
+        :Versions:
+            * 2014-12-21 ``@ddalle``: First version
+        """
+        # Get the component options.
+        copts = self.get(comp, {})
+        # Get the targets.
+        targs = copts.get('Targets', {})
+        # Make sure it's a dict.
+        if type(targs).__name__ not in ['dict']:
+            raise TypeError("Targets for component '%s' are not a dict." % comp)
+        # Output
+        return targs
+        
     # Get list of point in a point sensor group
     def get_DBGroupPoints(self, name):
         """Get the list of points in a group
