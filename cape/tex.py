@@ -72,16 +72,19 @@ class Tex(FileCntl):
         return s
         
     # Function to compile.
-    def Compile(self):
+    def Compile(self, check=True):
         """Compile the LaTeX file
         
         :Call:
-            >>> TX.Compile()
+            >>> TX.Compile(check=True)
         :Inputs:
             *TX*: :class:`cape.tex.Tex` or derivative
                 Instance of LaTeX report interface
+            *check*: {``True``} | ``False``
+                Whether or not to fail if there is a nonzero compile status
         :Versions:
             * 2015-03-07 ``@ddalle``: First version
+            * 2017-03-07 ``@ddalle``: Added *check*
         """
         # Save current location.
         fpwd = os.getcwd()
@@ -97,7 +100,12 @@ class Tex(FileCntl):
         # Go back to original location
         os.chdir(fpwd)
         # Check compile status.
-        if ierr:
+        if ierr and check:
+            # Create an error
             raise SystemError("Compiling '%s' failed with status %i."
+                % (self.fname, ierr))
+        elif ierr:
+            # Throw a warning
+            print("Compiling '%s' failed with status %i."
                 % (self.fname, ierr))
     

@@ -544,10 +544,10 @@ class Report(object):
         self.tex.Write()
         # Compmile it.
         print("Compiling...")
-        self.tex.Compile()
+        self.tex.Compile(False)
         # Need to compile twice for links
         print("Compiling...")
-        self.tex.Compile()
+        self.tex.Compile(False)
         # Clean up
         print("Cleaning up...")
         # Clean up sweeps
@@ -2247,15 +2247,32 @@ class Report(object):
                 typt = self.cntl.opts.get_DataBookTargetType(targ).lower()
                 # Check for results to plot.
                 if len(JT[targ][j]) == 0:
+                    print("    Skipping target '%s': no matching cases" % targ)
                     continue
                 # Check if the *comp*/*coeff* combination is available.
                 if typt in ['duplicate', 'cape', 'pycart']:
                     # Check with *DBT* as a full data book
-                    if (comp not in DBT) or (coeff not in DBT[comp]):
+                    if (comp not in DBT):
+                        print(
+                            ("    Skipping target '%s': " % targ) +
+                            ("comp '%s' not in target" % comp))
+                        continue
+                    elif (coeff not in DBT[comp]):
+                        print(
+                            ("    Skipping target '%s': " % targ) +
+                            ("coeff '%s' not in target" % coeff))
                         continue
                 else:
                     # Check *DBT* as a DBTarget
-                    if comp not in DBT.ckeys or coeff not in DBT.ckeys[comp]:
+                    if comp not in DBT.ckeys:
+                        print(
+                            ("    Skipping target '%s': " % targ) +
+                            ("comp '%s' not in target" % comp))
+                        continue
+                    elif coeff not in DBT.ckeys[comp]:
+                        print(
+                            ("    Skipping target '%s': " % targ) +
+                            ("coeff '%s' not in target" % coeff))
                         continue
                 # Get target plot label.
                 tlbl = self.SubfigTargetPlotLabel(sfig, k, targ) + clbl
