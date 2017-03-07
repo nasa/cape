@@ -46,6 +46,9 @@ if __name__ == "__main__":
     elif kw.get('batch'):
         # Process a batch job
         ofl.SubmitBatchPBS(pyOver.os.sys.argv)
+    elif kw.get('stop'):
+        # Stop one or more cases gently
+        ofl.StopCases(n=kw['stop'], **kw)
     elif kw.get('extend'):
         # Extend the number of iterations in a phase
         ofl.ExtendCases(**kw)

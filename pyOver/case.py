@@ -57,12 +57,18 @@ def run_overflow():
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
     # Save time usage
     WriteUserTime(tic, rc, i)
-    # Get the last iteration number
+    # Get the most recent iteration number
     n = GetCurrentIter()
+    # Get STOP iteration, if any
+    nstop = GetStopIter()
     # Assuming that worked, move the temp output file.
     os.rename('pyover.out', '%s.%02i.%i' % (fproj, i+1, n))
     # Check current iteration count and phase
     if (i>=rc.get_PhaseSequence(-1)) and (n>=rc.get_LastIter()):
+        # Case completed
+        return
+    elif (nstop is not None) and (n >= nstop):
+        # Stop requested externally
         return
     # Resubmit/restart if this point is reached.
     RestartCase(i)
@@ -91,6 +97,58 @@ def StartCase():
     else:
         # Simply run the case. Don't reset modules either.
         run_overflow()
+        
+# Get STOP iteration
+def GetStopIter():
+    """Get iteration at which to stop by reading ``STOP`` file
+    
+    If the file exists but is empty, returns ``0``; if file does not exist,
+    returns ``None``; and otherwise reads the iteration number from the file.
+    
+    :Call:
+        >>> n = pyOver.case.GetStopIter()
+    :Outputs:
+        *n*: ``None`` |  :class:`int`
+            Iteration at which to stop OVERFLOW
+    :Versions:
+        * 2017-03-07 ``@ddalle``: First version
+    """
+    # Check for the file
+    if not os.path.isfile("STOP"):
+        # No STOP requested
+        return
+    # Otherwise, attempt to read it
+    try:
+        # Open the file
+        f = open("STOP", "r")
+        # Read the first line
+        line = f.readline()
+        # Attempt to get an integer out of there
+        n = int(line.split()[0])
+        return n
+    except Exception:
+        # If empty file (or not readable), always stop
+        return 0
+        
+# Function to write STOP file
+def WriteStopIter(n=0):
+    """Create a ``STOP`` file and optionally set the iteration at which to stop
+    
+    :Call:
+        >>> pyOver.case.WriteStopIter(n)
+    :Inputs:
+        *n*: ``None`` | {``0``} | positive :class:`int`
+            Iteration at which to stop; empty file if ``0`` or ``None``
+    :Versions:
+        * 2017-03-07 ``@ddalle``: First version
+    """
+    # Create the STOP file
+    f = open("STOP", "w")
+    # Check if writing anything
+    if (n is not None) and (n > 1):
+        f.write("%i\n" % n)
+    # Close the file
+    f.close()
         
 # Function to call script or submit
 def RestartCase(i0=None):

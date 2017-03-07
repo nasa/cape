@@ -1304,6 +1304,42 @@ class Overflow(Cntl):
         """
         return case.StartCase()
         
+    # Stop a set of cases
+    def StopCases(self, n=0, **kw):
+        """Stop one or more cases by writing a ``STOP`` file in each run folder
+        
+        :Call:
+            >>> oflow.StopCases(n=0, cons=[], I=None, **kw)
+        :Inputs:
+            *n*: ``None`` | {``0``} | positive :class:`int`
+                Iteration at which to stop
+            *cons*: :class:`list` (:class:`str`)
+                List of trajectory constraints
+            *I*: :class:`list` (:class:`int`)
+                List of case indices
+        :See also:
+            * :func:`cape.trajectory.Trajectory.GetIndices`
+        :Versions:
+            * 2017-03-07 ``@ddalle``
+        """
+        # Get list of cases
+        I = self.x.GetIndices(**kw)
+        # Save current location
+        fpwd = os.getcwd()
+        # Loop through cases
+        for i in I:
+            # Run directory
+            frun = self.x.GetFullFolderNames(i)
+            # Go to rood directory
+            os.chdir(self.RootDir)
+            # Check if the folder exists
+            if not os.path.isdir(frun): continue
+            # Otherwise, enter the folder
+            os.chdir(frun)
+            # Write a STOP file
+            case.WriteStopIter(n)
+        # Return to original location
+        os.chdir(fpwd)
     
     # Individual case archive function
     def ArchivePWD(self):
