@@ -117,10 +117,10 @@ class DataBook(dict):
         * 2014-12-20 ``@ddalle``: Started
         * 2015-01-10 ``@ddalle``: First version
     """
-    # ======
-    # Config
-    # ======
-   # <
+  # ======
+  # Config
+  # ======
+  # <
     # Initialization method
     def __init__(self, x, opts, RootDir=None, targ=None):
         """Initialization method
@@ -193,12 +193,12 @@ class DataBook(dict):
         return lbl
     # String conversion
     __str__ = __repr__
-   # >
+  # >
         
-    # ===
-    # I/O
-    # ===
-   # <
+  # ===
+  # I/O
+  # ===
+  # <
     # Write the data book
     def Write(self):
         """Write the current data book in Python memory to file
@@ -310,12 +310,12 @@ class DataBook(dict):
                 # Read the file.
                 self.Targets[targ] = DBTarget(
                     targ, self.x, self.opts, self.RootDir)
-   # >
+  # >
     
-    # ========
-    # Updaters
-    # ========
-   # <
+  # ========
+  # Updaters
+  # ========
+  # <
             
     # Update line load data book
     def UpdateLineLoad(self, comp, conf=None, I=None, qpbs=False):
@@ -344,12 +344,12 @@ class DataBook(dict):
         for i in I:
             self.LineLoads[comp].UpdateCase(i, qpbs=qpbs)
     
-   # >
+  # >
     
-    # ==========
-    # Trajectory
-    # ==========
-   # <
+  # ==========
+  # Trajectory
+  # ==========
+  # <
     # Find an entry by trajectory variables.
     def FindMatch(self, i):
         """Find an entry by run matrix (trajectory) variables
@@ -666,12 +666,12 @@ class DataBook(dict):
             if len(m) == 0: return np.nan
         # Return the first match.
         return m[0]
-   # >
+  # >
     
-    # ============
-    # Organization
-    # ============
-   # <
+  # ============
+  # Organization
+  # ============
+  # <
     # Get target to use based on target name
     def GetTargetByName(self, targ):
         """Get a target handle by name of the target
@@ -737,12 +737,12 @@ class DataBook(dict):
             if self[comp].n != len(I): continue
             # Apply the DBComp.Sort() method.
             self[comp].Sort(I=I)
-   # >
+  # >
             
-    # ========
-    # Plotting
-    # ========
-   # <
+  # ========
+  # Plotting
+  # ========
+  # <
     # Plot a sweep of one or more coefficients
     def PlotCoeff(self, comp, coeff, I, **kw):
         """Plot a sweep of one coefficients over several cases
@@ -803,7 +803,7 @@ class DataBook(dict):
             raise KeyError("Data book does not contain a component '%s'" % comp)
         # Defer to the component's plot capabilities
         return self[comp].PlotCoeff(coeff, I, **kw)
-   # >
+  # >
 # class DataBook
         
             
@@ -926,6 +926,10 @@ class DBBase(dict):
         * 2014-12-22 ``@ddalle``: First version
         * 2015-12-04 ``@ddalle``: Forked from :class:`DBComp`
     """
+  # ======
+  # Config
+  # ======
+  # <
     # Initialization method
     def __init__(self, comp, x, opts):
         """Initialization method
@@ -971,7 +975,12 @@ class DBBase(dict):
         return "<DBBase, nCase=%i>" % self.n
     # String conversion
     __str__ = __repr__
-    
+  # >
+  
+  # ======
+  # Read
+  # ======
+  # <
     # Process columns
     def ProcessColumns(self):
         """Process column names
@@ -1293,7 +1302,12 @@ class DBBase(dict):
         for k in self.iCols:
             self.rconv.append(int)
             self.wflag.append('%.12g')
-        
+  # <
+  
+  # ========
+  # Write
+  # ========
+  # <
     # Output
     def Write(self, fname=None):
         """Write a single point sensor data book summary file
@@ -1346,7 +1360,12 @@ class DBBase(dict):
             f.write((self.wflag[-1] % self[k][-1]) + '\n')
         # Close the file.
         f.close()
-        
+  # >
+  
+  # ==============
+  # Organization
+  # ==============
+  # <
     # Function to get sorting indices.
     def ArgSort(self, key=None):
         """Return indices that would sort a data book by a trajectory key
@@ -1614,7 +1633,12 @@ class DBBase(dict):
                 pass
         # Output
         return j
-            
+  # >
+  
+  # =====
+  # Plot
+  # =====
+  # <
     # Plot a sweep of one or more coefficients
     def PlotCoeffBase(self, coeff, I, **kw):
         """Plot a sweep of one coefficient or quantity over several cases
@@ -1701,6 +1725,7 @@ class DBBase(dict):
             xv = self[xk][I]
         # Extract the mean values.
         yv = self[coeff][I]
+      
         # Default label starter
         try:
             # Name of component
@@ -2317,6 +2342,7 @@ class DBBase(dict):
         """
         # Call base function with no modifications to defaults
         return self.PlotHistBase(coeff, I, **kw)
+  # >
 # class DBBase
 
 
@@ -2345,6 +2371,10 @@ class DBComp(DBBase):
         * 2014-12-22 ``@ddalle``: First version
         * 2016-06-27 ``@ddalle``: Added target option for using other folders
     """
+  # ========
+  # Config
+  # ========
+  # <
     # Initialization method
     def __init__(self, comp, x, opts, targ=None):
         """Initialization method
@@ -2403,6 +2433,7 @@ class DBComp(DBBase):
         return lbl
     # String conversion
     __str__ = __repr__
+  # >
 # class DBComp
 
 
@@ -2432,6 +2463,10 @@ class DBTarget(DBBase):
         * 2015-01-10 ``@ddalle``: First version
         * 2015-12-14 ``@ddalle``: Added uncertainties
     """
+  # ========
+  # Config
+  # ========
+  # <
     # Initialization method
     def __init__(self, targ, x, opts, RootDir=None):
         """Initialization method
@@ -2470,7 +2505,12 @@ class DBTarget(DBBase):
         """
         return "<DBTarget '%s', n=%i>" % (self.Name, self.nCase)
     __str__ = __repr__
-    
+  # >
+  
+  # ========
+  # Readers
+  # ========
+  # <
     # Read the data
     def ReadData(self):
         """Read data file according to stored options
@@ -2737,7 +2777,12 @@ class DBTarget(DBBase):
                 "  column    '%s'\n" % fi)
         # Return the column name
         return fi
-        
+  # >
+  
+  # =============
+  # Organization
+  # =============
+  # <
     # Match the databook copy of the trajectory
     def UpdateTrajectory(self):
         """Match the trajectory to the cases in the data book
@@ -2774,6 +2819,61 @@ class DBTarget(DBBase):
         # Set the number of cases in the "trajectory."
         self.x.nCase = self.nCase
         
+    # Find an entry by trajectory variables.
+    def FindMatch(self, x, i):
+        """Find an entry by run matrix (trajectory) variables
+        
+        Cases will be considered matches by comparing variables specified in 
+        the *DataBook* section of :file:`cape.json` as cases to compare
+        against.  Suppose that the control file contains the following.
+        
+        .. code-block:: javascript
+        
+            "DataBook": {
+                "Targets": {
+                    "Experiment": {
+                        "File": "WT.dat",
+                        "Trajectory": {"alpha": "ALPHA", "Mach": "MACH"}
+                        "Tolerances": {
+                            "alpha": 0.05,
+                            "Mach": 0.01
+                        }
+                    }
+                }
+            }
+        
+        Then any entry in the data book target that matches the Mach number
+        within 0.01 (using a column labeled *MACH*) and alpha to within 0.05 is
+        considered a match.  If there are more trajectory variables, they are
+        not used for this filtering of matches.
+        
+        :Call:
+            >>> j = DBT.FindMatch(x, i)
+        :Inputs:
+            *DBT*: :class:`cape.dataBook.DBTarget`
+                Instance of the Cape data book target data carrier
+            *x*: :class:`cape.trajectory.Trajectory`
+                The current pyCart trajectory (i.e. run matrix)
+            *i*: :class:`int`
+                Index of the case from the trajectory to try match
+        :Outputs:
+            *j*: :class:`numpy.ndarray` (:class:`int`)
+                Array of indices that match the trajectory within tolerances
+        :See also:
+            * :func:`cape.dataBook.DBBase.FindTargetMatch`
+            * :func:`cape.dataBook.DBBase.FindMatch`
+        :Versions:
+            * 2014-12-21 ``@ddalle``: First version
+            * 2016-06-27 ``@ddalle``: Moved guts to :class:`DBBase`
+        """
+        # Use the target-oriented method
+        return self.FindTargetMatch(x, i, self.topts, keylist='tol')
+  # >
+  
+  # ======
+  # Plot
+  # ======
+  # <
     # Plot a sweep of one or more coefficients
     def PlotCoeff(self, comp, coeff, I, **kw):
         """Plot a sweep of one coefficient over several cases
@@ -2857,56 +2957,6 @@ class DBTarget(DBBase):
         kw['LineOptions'].setdefault('zorder', 7)
         # Call the base plot method
         return self.PlotCoeffBase(ckey, I, **kw)
-        
-    # Find an entry by trajectory variables.
-    def FindMatch(self, x, i):
-        """Find an entry by run matrix (trajectory) variables
-        
-        Cases will be considered matches by comparing variables specified in 
-        the *DataBook* section of :file:`cape.json` as cases to compare
-        against.  Suppose that the control file contains the following.
-        
-        .. code-block:: javascript
-        
-            "DataBook": {
-                "Targets": {
-                    "Experiment": {
-                        "File": "WT.dat",
-                        "Trajectory": {"alpha": "ALPHA", "Mach": "MACH"}
-                        "Tolerances": {
-                            "alpha": 0.05,
-                            "Mach": 0.01
-                        }
-                    }
-                }
-            }
-        
-        Then any entry in the data book target that matches the Mach number
-        within 0.01 (using a column labeled *MACH*) and alpha to within 0.05 is
-        considered a match.  If there are more trajectory variables, they are
-        not used for this filtering of matches.
-        
-        :Call:
-            >>> j = DBT.FindMatch(x, i)
-        :Inputs:
-            *DBT*: :class:`cape.dataBook.DBTarget`
-                Instance of the Cape data book target data carrier
-            *x*: :class:`cape.trajectory.Trajectory`
-                The current pyCart trajectory (i.e. run matrix)
-            *i*: :class:`int`
-                Index of the case from the trajectory to try match
-        :Outputs:
-            *j*: :class:`numpy.ndarray` (:class:`int`)
-                Array of indices that match the trajectory within tolerances
-        :See also:
-            * :func:`cape.dataBook.DBBase.FindTargetMatch`
-            * :func:`cape.dataBook.DBBase.FindMatch`
-        :Versions:
-            * 2014-12-21 ``@ddalle``: First version
-            * 2016-06-27 ``@ddalle``: Moved guts to :class:`DBBase`
-        """
-        # Use the target-oriented method
-        return self.FindTargetMatch(x, i, self.topts, keylist='tol')
 # class DBTarget
 
 
@@ -2922,6 +2972,10 @@ class CaseData(object):
     :Versions:
         * 2015-12-07 ``@ddalle``: First version
     """
+  # =======
+  # Config
+  # =======
+  # <
     # Initialization method
     def __init__(self):
         """Initialization method
@@ -2931,7 +2985,12 @@ class CaseData(object):
         """
         # Empty iterations
         self.i = np.array([])
-        
+  # >
+  
+  # =====================
+  # Iteration Handling
+  # =====================
+  # <
     # Function to get index of a certain iteration number
     def GetIterationIndex(self, i):
         """Return index of a particular iteration in *FM.i*
@@ -2959,7 +3018,12 @@ class CaseData(object):
         j = np.where(self.i <= i)[0][-1]
         # Output
         return j
-        
+  # >
+  
+  # ==============================
+  # Values and Name Processing
+  # ==============================
+  # <
     # Extract one value/coefficient/state
     def ExtractValue(self, c, col=None):
         """Extract the iterative history for one coefficient/state
@@ -3008,7 +3072,12 @@ class CaseData(object):
         except IndexError:
             raise IndexError(("Value '%s', component '%s', " % (c, self.comp))
                 + ("does not have at least %s columns" % col))
-            
+  # >
+  
+  # =========
+  # Plot
+  # =========
+  # <
     # Basic plotting function
     def PlotValue(self, c, col=None, n=None, nAvg=100, **kw):
         """Plot an iterative history of some value named *c*
@@ -3745,6 +3814,7 @@ class CaseData(object):
             except Exception: pass
         # Output.
         return h
+  # >
 # class CaseData
         
 

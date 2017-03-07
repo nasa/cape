@@ -1927,7 +1927,7 @@ class Options(odict):
     
     # Copy over the documentation.
     for k in ['DataBookComponents', 'DataBookByType',
-            'DataBookMaptri', 'DataBookMapConfig',
+            'DataBookMapTri', 'DataBookMapConfig',
             'DataBookType', 'DataBookPoints', 'DBGroupPoints',
             'DataBookCoeffs', 'DataBookTargets', 'DataBookCoeffStats',
             'DataBookFloatCols', 'DataBookIntCols',

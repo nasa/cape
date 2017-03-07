@@ -1057,7 +1057,6 @@ class DataBook(odict):
         # Output
         return fcfg
         
-    # Get the name/number of the CompID
     
   # >
       
