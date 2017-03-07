@@ -70,9 +70,9 @@ class Options(odict):
     :Versions:
         * 2014-07-28 ``@ddalle``: First version
     """
-    # =============
-    # Configuration
-    # =============
+   # =============
+   # Configuration
+   # =============
    # <
     # Initialization method
     def __init__(self, fname=None, **kw):
@@ -151,9 +151,9 @@ class Options(odict):
         
    # >
     
-    # =====
-    # Tools
-    # =====
+   # =====
+   # Tools
+   # =====
    # <
     # Write a PBS header
     def WritePBSHeader(self, f, lbl, j=0, typ=None, wd=None):
@@ -246,9 +246,9 @@ class Options(odict):
             
    # >
     
-    # ============
-    # Initializers
-    # ============
+   # ============
+   # Initializers
+   # ============
    # < 
    
     # Initialization method for folder management optoins
@@ -369,9 +369,9 @@ class Options(odict):
         
    # >
     
-    # ==============
-    # Global Options
-    # ==============
+   # ==============
+   # Global Options
+   # ==============
    # <
    
     # Function to get the shell commands
@@ -532,7 +532,7 @@ class Options(odict):
             *opts* :class:`pyCart.options.Options`
                 Options interface
         :Outputs:
-            *umask*: :class:`oct`
+            *umask*: :class:`oct`         
                 File permissions mask
         :Versions:
             * 2015-09-27 ``@ddalle``: First version
@@ -587,9 +587,9 @@ class Options(odict):
    # >
     
     
-    # ===================
-    # Overall run control
-    # ===================
+   # ===================
+   # Overall run control
+   # ===================
    # <
    
     # Get number of inputs
@@ -728,9 +728,9 @@ class Options(odict):
         eval('set_'+k).__doc__ = getattr(RunControl,'set_'+k).__doc__
    # >
     
-    # =====
-    # AFLR3
-    # =====
+   # =====
+   # AFLR3
+   # =====
    # <
    
     # Get AFLR3 flag
@@ -841,9 +841,9 @@ class Options(odict):
         eval('set_'+k).__doc__ = getattr(runControl.RunControl,'set_'+k).__doc__
    # >
     
-    # =========
-    # intersect
-    # =========
+   # =========
+   # intersect
+   # =========
    # <
    
     # Get intersect flag
@@ -883,9 +883,9 @@ class Options(odict):
         eval('set_'+k).__doc__ = getattr(runControl.RunControl,'set_'+k).__doc__
    # >
    
-    # ======
-    # verify
-    # ======
+   # ======
+   # verify
+   # ======
    # <
    
     # Get verify flag

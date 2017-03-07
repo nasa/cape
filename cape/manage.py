@@ -94,6 +94,51 @@ def isfile(fname):
     """
     return os.path.isfile(fname) or os.path.islink(fname)
     
+# Get modification time of a file
+def getmtime(fname):
+    """Get the modification time of a file, using ``ssh`` if necessary
+    
+    For local files, this function uses :func:`os.path.getmtime`.  If *fname*
+    contains a ``:``, this function issues an ``ssh`` command via
+    :func:`subprocess.Popen`.
+    
+    :Call:
+        >>> t = getmtime(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file
+    :Outputs:
+        *t*: :class:`float` | ``None``
+            Modification time; ``None`` if file does not exist
+    :Versions:
+        * 2017-03-17 ``@ddalle``: First version
+    """
+    # Check if the path is remote
+    if ':' in fname:
+        # Remote
+        try:
+            # Get the remote name
+            srv = fname.split(':')[0]
+            # Get the file name
+            floc = fname.lstrip(srv).lstrip(':')
+            # Form the command
+            cmd = ['ssh', srv, 'date', '+%s', '-r', floc]
+            # Call it
+            txt = sp.Popen(cmd, stdout=sp.PIPE).communicate()[0]
+            # Convert to integer
+            return float(txt.strip())
+        except Exception:
+            # Interpret all errors as nonexistant file
+            return None
+    else:
+        # Local
+        if os.path.isfile(fname):
+            # Local file
+            return os.path.getmtime(fname)
+        else:
+            # No file
+            return None
+    
 # File is broken link
 def isbrokenlink(fname):
     """Handle to test if a file is a broken link
@@ -784,8 +829,12 @@ def ArchiveFiles(opts, fsub=None, archive=False, phantom=False):
     for fsrc in fglob:
         # Destination file
         fto = os.path.join(flfe, frun, fsrc)
+        # Get mod time on target file if it exists
+        tto = getmtime(fto)
+        # Check mod time compared to local file
+        if (tto) and (tto >= os.path.getmtime(fsrc)): continue
         # Status update
-        print("  %s --> %s" % (fsrc, fto))
+        print("  %s --> ARCHIVE/%s" % (fsrc, fsrc))
         # Check archive option
         if phantom: continue
         # Check copy type
