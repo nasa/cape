@@ -2194,6 +2194,8 @@ class Report(object):
             lines.append('\\end{subfigure}\n')
             # Output
             return lines
+        # Number of targets plotted
+        j_t = 0
         # Loop through plots.
         for i in range(nSweep*nCoeff):
             # Coefficient index
@@ -2278,10 +2280,10 @@ class Report(object):
                 tlbl = self.SubfigTargetPlotLabel(sfig, k, targ) + clbl
                 # Don't start with comma.
                 tlbl = tlbl.lstrip(", ")
-                # Target options index
-                j_t = k*nCoeff + targs.index(targ)
                 # Specified target plot options
                 kw_t = opts.get_SubfigPlotOpt(sfig, "TargetOptions", j_t)
+                # Target options index
+                j_t += 1
                 # Initialize target plot options.
                 kw_l = kw_p
                 # Apply non-default options
