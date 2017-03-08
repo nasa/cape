@@ -1352,6 +1352,8 @@ class Report(object):
                 if len(j) == 0: continue
                 # Get the first folder name.
                 frun = self.cntl.DataBook.x.GetFullFolderNames(j[0])
+                # Check if the folder exists (may have been cleaned already)
+                if not os.path.isdir(frun): continue
                 # Go to the folder.
                 os.chdir(frun)
                 # Go up one, archiving if necessary.
