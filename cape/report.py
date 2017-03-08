@@ -1276,9 +1276,9 @@ class Report(object):
    # ]
   # >
     
-    # =======
-    # Cleanup
-    # =======
+  # =======
+  # Cleanup
+  # =======
   # <
     # Clean up cases
     def CleanUpCases(self, I=None, cons=[]):
@@ -1363,9 +1363,9 @@ class Report(object):
   # >
     
     
-    # ==========
-    # Subfigures
-    # ==========
+  # ==========
+  # Subfigures
+  # ==========
   # <
     # Function to initialize a subfigure
     def SubfigInit(self, sfig):
@@ -2141,9 +2141,9 @@ class Report(object):
             # Initialize target sweeps.
             jt = []
             # Loop through carpet subsweeps
-            for I in J:
+            for Ji in J:
                 # Get co-sweep
-                jt.append(self.GetTargetSweepIndices(fswp, I[0], targ))
+                jt.append(self.GetTargetSweepIndices(fswp, Ji[0], targ))
             # Save the sweeps.
             JT[targ] = jt
         # Horizontal axis variable
@@ -3376,9 +3376,9 @@ class Report(object):
         return lines
   # >
     
-    # ============
-    # Data Loaders
-    # ============
+  # ============
+  # Data Loaders
+  # ============
   # <
     # Read iterative history
     def ReadCaseFM(self, comp):
@@ -3490,9 +3490,9 @@ class Report(object):
         return Tecscript(fsrc)
   # >
     
-    # ============
-    # Status Tools
-    # ============
+  # ============
+  # Status Tools
+  # ============
   # <
     # Read the ``report.json`` file
     def ReadCaseJSON(self):
@@ -3555,9 +3555,9 @@ class Report(object):
         f.close()
   # >
     
-    # =============
-    # Sweep Indices
-    # =============
+  # =============
+  # Sweep Indices
+  # =============
   # <
     # Function to get update sweeps
     def GetSweepIndices(self, fswp, I=None, cons=[]):
@@ -3646,6 +3646,13 @@ class Report(object):
         # Sweep constraints
         EqCons = opts.get_SweepOpt(fswp, 'EqCons')
         TolCons = opts.get_SweepOpt(fswp, 'TolCons')
+        # Carpet constraints
+        CEqCons = opts.get_SweepOpt(fswp, 'CarpetEqCons')
+        CTolCons = opts.get_SweepOpt(fswp, 'CarpetTolCons')
+        # Append constraints
+        EqCons += CEqCons
+        for k in CTolCons:
+            TolCons[k] = CTolCons[k]
         # Global constraints
         GlobCons = opts.get_SweepOpt(fswp, 'GlobalCons')
         # Turn command-line constraints into indices.
@@ -3661,9 +3668,9 @@ class Report(object):
         return I
   # >
     
-    # ================
-    # Run Folder Tools
-    # ================
+  # ================
+  # Run Folder Tools
+  # ================
   # <
     # Function to link appropriate visualization files
     def LinkVizFiles(self, sfig=None, i=None):
