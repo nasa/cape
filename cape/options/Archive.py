@@ -70,9 +70,9 @@ class Archive(odict):
         * 2016-30-02 ``@ddalle``: First version
     """
    
-    # -------------
-    # Basic Options
-    # -------------
+   # -------------
+   # Basic Options
+   # -------------
    # <
     # Archive base folder
     def get_ArchiveFolder(self):
@@ -319,9 +319,9 @@ class Archive(odict):
         self.set_key('TarPBS', fmt)
    # >
     
-    # ------------
-    # Directory/OS
-    # ------------
+   # ------------
+   # Directory/OS
+   # ------------
    # <
         
     # Get the umask
@@ -349,7 +349,7 @@ class Archive(odict):
             umask = os.popen('umask', 'r', 1).read()
             # Convert to value.
             umask = eval('0o' + umask.strip())
-        else:
+        elif type(umask).__name__ in ['str', 'unicode']:
             # Convert to octal
             umask = eval('0o' + str(umask).strip().lstrip('0o'))
         # Output
@@ -375,9 +375,10 @@ class Archive(odict):
             # Get the value.
             umask = os.popen('umask', 'r', 1).read()
             # Convert to value.
-            umask = eval('0o' + umask.strip())
-        # Set the value as an octal number
-        self['umask'] = '0o' + str(umask)
+            self['umask'] = '0o' + umask.strip()
+        else:
+            # Set the value as an octal number
+            self['umask'] = '0o' + str(umask)
         
     # Get the directory permissions to use
     def get_dmask(self):
@@ -436,9 +437,9 @@ class Archive(odict):
     
    # >
    
-    # -----
-    # Tools
-    # -----
+   # -----
+   # Tools
+   # -----
    # <
     # Add to general key
     def add_to_key(self, key, fpre):
@@ -583,9 +584,9 @@ class Archive(odict):
             return ['tar', '-xf']
    # >
     
-    # ----------------------------
-    # Progress Archive Definitions
-    # ----------------------------
+   # ----------------------------
+   # Progress Archive Definitions
+   # ----------------------------
    # <
     # List of files to delete
     def get_ArchiveProgressDeleteFiles(self):
@@ -753,9 +754,9 @@ class Archive(odict):
         self.add_to_key("ProgressTarDirs", fpro)
    # >
    
-    # ------------------------
-    # Pre-Archiving Processing
-    # ------------------------
+   # ------------------------
+   # Pre-Archiving Processing
+   # ------------------------
    # <
     # List of files to delete
     def get_ArchivePreDeleteFiles(self):
@@ -938,9 +939,9 @@ class Archive(odict):
         self.add_to_key("PreUpdateFiles", fpre)
    # >
     
-    # ---------
-    # Archiving
-    # ---------
+   # ---------
+   # Archiving
+   # ---------
    # <
     # List of files to archive
     def get_ArchiveArchiveFiles(self):
@@ -979,9 +980,9 @@ class Archive(odict):
         self.add_to_key("ArchiveFiles", farch)
    # >
     
-    # -------------------------
-    # Post-Archiving Processing
-    # -------------------------
+   # -------------------------
+   # Post-Archiving Processing
+   # -------------------------
    # <
     # List of files to delete
     def get_ArchivePostDeleteFiles(self):
