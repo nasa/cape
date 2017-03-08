@@ -376,9 +376,12 @@ class Archive(odict):
             umask = os.popen('umask', 'r', 1).read()
             # Convert to value.
             self['umask'] = '0o' + umask.strip()
-        else:
+        elif type(umask).__name__ in ['str', 'unicode']:
             # Set the value as an octal number
             self['umask'] = '0o' + str(umask)
+        else:
+            # Convert to octal
+            self['umask'] = '0o' + oct(umask)
         
     # Get the directory permissions to use
     def get_dmask(self):
