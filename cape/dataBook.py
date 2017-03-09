@@ -156,6 +156,8 @@ class DataBook(dict):
         self.targ = targ
         # Make sure the destination folder exists.
         for fdir in self.Dir.split('/'):
+            # If folder ends in os.sep; go on
+            if not fdir: continue
             # Check if the folder exists.
             if not os.path.isdir(fdir):
                 opts.mkdir(fdir)

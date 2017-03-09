@@ -2278,7 +2278,7 @@ class CaseSeam(object):
             # Get data
             D = np.fromfile(f, count=-1, sep=" ")
             # Check size.
-            m = np.floor(D.size/2) * 2
+            m = int(np.floor(D.size/2) * 2)
             # Save the data.
             if ax == 'x':
                 # x-cut

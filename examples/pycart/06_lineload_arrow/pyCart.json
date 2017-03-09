@@ -1,0 +1,85 @@
+{
+    // Universal commands
+    "InputCntl": "input.cntl",
+
+	// Iteration control and command-line inputs
+	"RunControl": {
+        // Run sequence
+        "PhaseSequece": [0],
+        "PhaseIters": [200],
+        // System configuration
+	    "nProc": 4,
+        "MPI": 0,
+        "Adaptive": 0,
+	    // Options for ``flowCart``
+	    "flowCart": {
+            "it_fc": 200,
+            "it_avg": 10,
+            "it_start": 100,
+            "cfl": 1.1,
+            "mg_fc": 3,
+            "y_is_spanwise": true
+        },
+        // Defines the flow domain automatically
+        "autoInputs": {"r": 6},
+        // Volume mesh options
+        "cubes": {
+            "maxR": 8,
+            "pre": "preSpec.c3d.cntl",
+            "cubes_a": 8,
+            "cubes_b": 2,
+            "reorder": true
+        }
+	},
+
+	// Mesh settings
+    "Mesh": {
+        // Surface triangulation
+        "TriFile": "arrow.tri"
+    },
+    
+    // Describe the reference values and config.
+    "Config": {
+        // Defer to a file for most things.
+        "File": "arrow.xml",
+        // Declare forces and moments
+        "Force": ["cap", "body", "fins", "bullet_no_base", "bullet_total"],
+        "RefPoint": {"bullet_no_base": [0.0, 0.0, 0.0]},
+        // Reference quantities
+        "RefArea": 3.14159,
+        "RefLength": 1.0
+    },
+    
+    // Database info
+    "DataBook": {
+        // List of data book components
+        "Components": ["bullet_no_base", "ll_bullet"],
+        // Location of data book
+        "Folder": "data/",
+        // Parameters for collecting data
+        "nFirst": 100,
+        "nStats": 100,
+        // Basic component
+        "bullet_no_base": {
+            "Type": "FM"
+        },
+        // Line load
+        "ll_bullet": {
+            "Type": "LineLoad",
+            "CompID": "bullet_no_base"
+        }
+    },
+    
+    // Trajectory (i.e. run matrix) description
+    "Trajectory": {
+        "Keys": ["mach", "alpha", "config", "Label"],
+        "File": "matrix.csv",
+        "GroupMesh": true,
+        "GroupPrefix": "poweroff",
+        "Definitions": {
+            "mach": {
+                "Format": "%0.2f"
+            }
+        }
+    }
+}
