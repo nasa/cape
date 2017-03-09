@@ -29,22 +29,22 @@ Let's run a case to see how this works.
              Writing triangulation: 'Components.tri'
              Writing triangulation: 'Components.c.tri'
          > autoInputs -r 8 -t Components.tri -maxR 10
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/fins/poweroff_d2+05_d4-15')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/03_fins/poweroff_d2+05_d4-15')
              (STDOUT = 'autoInputs.out')
          > intersect -i Components.tri -o Components.o.tri
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/fins/poweroff_d2+05_d4-15')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/03_fins/poweroff_d2+05_d4-15')
              (STDOUT = 'intersect.out')
              Writing triangulation: 'Components.i.tri'
          > cubes -pre preSpec.c3d.cntl -maxR 10 -reorder -a 10 -b 2
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/fins/poweroff_d2+05_d4-15')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/03_fins/poweroff_d2+05_d4-15')
              (STDOUT = 'cubes.out')
          > mgPrep -n 3
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/fins/poweroff_d2+05_d4-15')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/03_fins/poweroff_d2+05_d4-15')
              (STDOUT = 'mgPrep.out')
         Using template for 'input.cntl' file
              Starting case 'poweroff_d2+05.0d4-15.0/m1.75a1.0r30.0'.
          > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -binaryIO -tm 0
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/fins/poweroff_d2+05_d4-15/m1.75a1.0r30.0')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/03_fins/poweroff_d2+05_d4-15/m1.75a1.0r30.0')
              (STDOUT = 'flowCart.out')
         
         Submitted or ran 1 job(s).
@@ -52,11 +52,11 @@ Let's run a case to see how this works.
         ---=1,
 
 The output is pretty similar to a case without the fin deflections, but there
-are a few differences that are helpful to explain.  The first is the name of the
+are a few differences that are helpful to explain. The first is the name of the
 case, ``poweroff_d2+05_d4-15/m1.75a1.0r30.0``, which is especially different in
-that the name of the folder contains the fin deflections.  That is all
+that the name of the folder contains the fin deflections. That is all
 controlled in the pyCart input file :file:`fins.json`, and we will discuss it
-shortly.  This example is configured with the fin deflections in the folder name
+shortly. This example is configured with the fin deflections in the folder name
 because each set of cases with same fin positions can use the same mesh.
 
 The next difference is that pyCart reports writing two triangulation files,
@@ -69,7 +69,7 @@ the nose cap, body, and base of the bullet shape into separate components).  So
 each fin) while :file:`Components.c.tri` has seven components.
 
 Then ``intersect`` is run with the command run above, which generates
-:file:`Components.o.tri`.  This file also has only five component IDs, and these
+:file:`Components.o.tri`. This file also has only five component IDs, and these
 are mapped back into the original component ID numbering by comparing to
 :file:`Components.c.tri` to generate the final triangulation
 :file:`Components.i.tri` with its seven component IDs.
@@ -94,12 +94,12 @@ pyCart input file :file:`fins.json` to explain how this was set up.
         },
         
 The ``"Mesh"`` section is relatively simple but contains a little bit more
-information than the default section.  The individual water-tight volumes are
+information than the default section. The individual water-tight volumes are
 split into separate ``tri`` files, which provides pyCart two layers of
-information about how to split up the surface.  Each ``tri`` file may contain
-multiple component IDs (in this case, only :file:`bullet.tri` contains more than
-one component ID), but each file should contain a single closed surface.  Then
-pyCart combines all these triangulations before intersecting them.  If 
+information about how to split up the surface. Each ``tri`` file may contain
+multiple component IDs (in this case, only :file:`bullet.tri` contains more
+than one component ID), but each file should contain a single closed surface.
+Then pyCart combines all these triangulations before intersecting them. If
 *intersect* is not set to ``true``, using multiple triangulation files has
 little effect.
 
@@ -136,9 +136,9 @@ little effect.
         }
         
 The ``"Trajectory"`` section, which defines the run matrix input variables, is
-more interesting, so let's go through the settings one-by-one.  The *Keys* input
-sets the list of input variables.  The first three are common variables for many
-configurations and as such are automatically recognized by pyCart.  The *File*
+more interesting, so let's go through the settings one-by-one. The *Keys* input
+sets the list of input variables. The first three are common variables for many
+configurations and as such are automatically recognized by pyCart. The *File*
 parameter simply points to a file that contains the values of each input
 variable at which to run the configuration.
 
@@ -153,12 +153,12 @@ definitions.  (Default trajectory key definitions can be altered by editing the
 file ``$PYCART/settings/pyCart.default.json``.)  The other two parameters are
 fin rotations, which require customization.
 
-The trajectory key *d2* is set up to rotate fin #2.  We set *Group* to ``true``
-because cases with the same fin deflections can use the same mesh.  The *Type*
+The trajectory key *d2* is set up to rotate fin #2. We set *Group* to ``true``
+because cases with the same fin deflections can use the same mesh. The *Type*
 is set to ``"rotation"``, which pyCart recognizes and reduces some of our work
-in defining it here.  We set *CompID* to ``"fin2"``, which tells pyCart to
+in defining it here. We set *CompID* to ``"fin2"``, which tells pyCart to
 rotate any triangles in the component defined as ``"fin2"`` in the
-:file:`Config.xml` file.  Then *Vector* gives a list of two points that define a
+:file:`Config.xml` file. Then *Vector* gives a list of two points that define a
 vector about which to rotate the points.
 
 Finally, *Format* sets a ``printf`` style format string for how the value is
