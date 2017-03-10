@@ -6,7 +6,7 @@ Demo 2: Closer Analysis of Simple Arrow Shape
 
 The second example is similar to the first pyCart demo except that four fins
 have been added and more details of the input files are explained.  The example
-is found in ``$PYCART/examples/pycart/arrow`` where ``$PYCART`` is the
+is found in ``$PYCART/examples/pycart/02_arrow`` where ``$PYCART`` is the
 installation folder.
 
 The geometry used for this shape is a capped cylinder with four fins and 9216
@@ -90,9 +90,9 @@ content.
 
 The first section (actually, the order does not matter, but it's the first
 section in the file provided) is the ``"RunControl"`` section, which has
-settings for the overall run procedure (such as number of iterations, whether or
-not to submit the job to a queue, etc.) and command-line inputs to the various
-Cart3D programs.
+settings for the overall run procedure (such as number of iterations, whether
+or not to submit the job to a queue, etc.) and command-line inputs to the
+various Cart3D programs.
 
     .. code-block:: javascript
     
@@ -128,7 +128,8 @@ The ``"flowCart"`` section contains command-line inputs for running
 which is the MPI version of the same. Many of the variable names, such as
 *it_fc*, are copied from Cart3D's template :file:`aero.csh` scripts or
 command-line inputs to Cart3D's ``flowCart``. The three main options (which are
-required for any pyCart project) are *PhaseSequence*, *PhaseIters*, and *it_fc*.
+required for any pyCart project) are *PhaseSequence*, *PhaseIters*, and
+*it_fc*.
 
     +-----------------+-------------------------------------------------------+
     | Variable        | Description                                           |
@@ -195,14 +196,14 @@ of the surface triangulation.
         },
         
 The *Config* section gives instructions about which components to track, what
-moment reference points to use, and similar definitions.  The XML file allows
+moment reference points to use, and similar definitions. The XML file allows
 Cart3D and pyCart to refer to define groups of components and refer to
-components by name instead of memorizing their numbers.  The *Force* option
+components by name instead of memorizing their numbers. The *Force* option
 specifies a list of components on which ``flowCart`` should track the force at
-each iteration.  This creates files :file:`cap.dat`, :file:`body.dat`,
-:file:`fins.dat`, etc.  Then *RefPoint* specifies the list of components for
+each iteration. This creates files :file:`cap.dat`, :file:`body.dat`,
+:file:`fins.dat`, etc. Then *RefPoint* specifies the list of components for
 which to also track the moments, and the moment reference point to use for each
-such component.  In this case, the moments will be reported alongside the forces
+such component. In this case, the moments will be reported alongside the forces
 in :file:`bullet_no_base.dat`.
 
 The *RefArea* and *RefLength* parameters are used here to specify global
@@ -219,10 +220,10 @@ for different components in the same run.
         }
 
 The final section (actually, the order is irrelevant, but it's the last section
-in this file) describes the run matrix, i.e. trajectory.  The *Keys* parameter
+in this file) describes the run matrix, i.e. trajectory. The *Keys* parameter
 lists the names of variables that will change in the run matrix, i.e. the
-independent variables.  In this case, we are using Mach number, total angle of
-attack, and velocity roll angle.  There is a set of predefined trajectory keys,
+independent variables. In this case, we are using Mach number, total angle of
+attack, and velocity roll angle. There is a set of predefined trajectory keys,
 and all three of these examples are in that set, but later examples will show
 how to define customized trajectory keys in this section.
 
@@ -361,18 +362,18 @@ Let's run one case, but not the first case.  We can do this by using the
           Reading tri file(s) from root directory.
              Writing triangulation: 'Components.i.tri'
          > autoInputs -r 8 -t Components.i.tri -maxR 10
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/arrow/poweroff')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/02_arrow/poweroff')
              (STDOUT = 'autoInputs.out')
          > cubes -pre preSpec.c3d.cntl -maxR 10 -reorder -a 10 -b 2
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/arrow/poweroff')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/02_arrow/poweroff')
              (STDOUT = 'cubes.out')
          > mgPrep -n 3
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/arrow/poweroff')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/02_arrow/poweroff')
              (STDOUT = 'mgPrep.out')
         Using template for 'input.cntl' file
              Starting case 'poweroff/m1.75a1.0r15.0'.
          > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -binaryIO -tm 0
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/arrow/poweroff/m1.75a1.0r15.0')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/02_arrow/poweroff/m1.75a1.0r15.0')
              (STDOUT = 'flowCart.out')
         
         Submitted or ran 1 job(s).
@@ -406,20 +407,20 @@ a constraint.  Let's run the remaining Mach 1.75 cases using that capability.
         Using template for 'input.cntl' file
              Starting case 'poweroff/m1.75a1.0r0.0'.
          > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -binaryIO -tm 0
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/arrow/poweroff/m1.75a1.0r0.0')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/02_arrow/poweroff/m1.75a1.0r0.0')
              (STDOUT = 'flowCart.out')
         1    poweroff/m1.75a1.0r15.0 DONE    200/200     .   0.0
         2    poweroff/m1.75a1.0r30.0 ---     /           .   
         Using template for 'input.cntl' file
              Starting case 'poweroff/m1.75a1.0r30.0'.
          > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -binaryIO -tm 0
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/arrow/poweroff/m1.75a1.0r30.0')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/02_arrow/poweroff/m1.75a1.0r30.0')
              (STDOUT = 'flowCart.out')
         3    poweroff/m1.75a1.0r45.0 ---     /           .   
         Using template for 'input.cntl' file
              Starting case 'poweroff/m1.75a1.0r45.0'.
          > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -binaryIO -tm 0
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/arrow/poweroff/m1.75a1.0r45.0')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/02_arrow/poweroff/m1.75a1.0r45.0')
              (STDOUT = 'flowCart.out')
         
         Submitted or ran 3 job(s).
@@ -427,7 +428,7 @@ a constraint.  Let's run the remaining Mach 1.75 cases using that capability.
         ---=3, DONE=1,
         
 It is also possible to select these cases using ``pycart --filter m1.75a1``,
-``pycart --glob "*m1.75a1*"``, or ``pycart --re "m1\.75a1"``.  The last of these
+``pycart --glob "*m1.75a1*"``, or ``pycart --re "m1\.75a1"``. The last of these
 checks for a regular expression, which allows more complex filters to be
 applied.
         
@@ -447,9 +448,9 @@ files that define the mesh in the ``poweroff/`` folder.
 
 The :file:`.out` files save STDIO printouts from the mesh-generation commands.
 The :file:`Mesh.mg.c3d` is the actual mesh file, including multigrid levels
-(i.e., coarsened grids).  Our surface triangulation, :file:`arrow.tri` is copied
+(i.e., coarsened grids). Our surface triangulation, :file:`arrow.tri` is copied
 to :file:`Components.i.tri` in this folder; and the configuration file
-:file:`arrow.xml` is copied to :file:`Config.xml`.  The single mesh without
+:file:`arrow.xml` is copied to :file:`Config.xml`. The single mesh without
 multigrid levels is :file:`Mesh.R.c3d`, and the remaining files are created by
 ``autoInputs``.
 
@@ -500,38 +501,38 @@ Now let's look at the files in a run folder.
         checkDT.00200         forces.dat           Mesh.mg.c3d    
         Components.00200.plt  functional.dat       Mesh.R.c3d     
 
-Obviously, there are quite a few files, although many of them are links.  For
-example, the files that are listed here and in the parent folder discussed above
-are either links or copies.  The :file:`input.c3d` and :file:`preSpec.c3d.cntl`
-files are copied because they are small.
+Obviously, there are quite a few files, although many of them are links. For
+example, the files that are listed here and in the parent folder discussed
+above are either links or copies. The :file:`input.c3d` and
+:file:`preSpec.c3d.cntl` files are copied because they are small.
 
-Most of the files ending with ``.dat`` are iterative history files.  Some of
+Most of the files ending with ``.dat`` are iterative history files. Some of
 these are standard results of running ``flowCart``, and others are specifically
-requested.  The most special of these is :file:`history.dat`, which contains the
-residual history.  In pyCart, this file is used to determine how many iterations
-have been run.  With the exception of some comment lines, each line reports one
+requested. The most special of these is :file:`history.dat`, which contains the
+residual history. In pyCart, this file is used to determine how many iterations
+have been run. With the exception of some comment lines, each line reports one
 iteration number and the residual at that iteration.
 
 The files :file:`forces.dat` and :file:`moments.dat` report the forces and
-moments on the ``entire`` component, i.e. the entire triangulation.  These files
+moments on the ``entire`` component, i.e. the entire triangulation. These files
 are always produced, report results before any axis changes, and are ignored by
-pyCart.  Four other files, :file:`body.dat`, :file:`bullet_no_base.dat`,
+pyCart. Four other files, :file:`body.dat`, :file:`bullet_no_base.dat`,
 :file:`bullet_total.dat`, and :file:`cap.dat`, are specifically requested.
 Cart3D produces them because the :file:`input.cntl` file contains lines ``Force
 body``, ``Force cap``, etc. in the ``$__Force_Moment_Processing:`` section.
-Although we did not request ``entire`` in our pyCart setup, it got produced here
-because the template ``input.cntl`` file contains the line ``Force entire``.
-These ``.dat`` files are used by pyCart to read the iterative history of forces
-and moments on parts of the vehicle.
+Although we did not request ``entire`` in our pyCart setup, it got produced
+here because the template ``input.cntl`` file contains the line ``Force
+entire``. These ``.dat`` files are used by pyCart to read the iterative history
+of forces and moments on parts of the vehicle.
 
 The volume and surfaceresults files are ``check.00200``,
 ``Components.00200.plt``, ``Components.i.triq``, and ``cutPlanes.00200.plt``.
 The ``check.00200`` file is a binary file used and created by Cart3D, and the
-``plt`` files are Tecplot files.  These Tecplot files are created by Cart3D, and
+``plt`` files are Tecplot files. These Tecplot files are created by Cart3D, and
 pyCart changes the file names by inserting the iteration numbers to which they
-correspond.  Finally, the ``Components.i.triq`` file is very similar to the
+correspond. Finally, the ``Components.i.triq`` file is very similar to the
 surface triangulation except with extra info describing the state solution at
-each vertex.  Noe that the ``Components.0200.plt`` and ``Components.i.triq``
+each vertex. Noe that the ``Components.0200.plt`` and ``Components.i.triq``
 files do not contain identical information because the Tecplot file references
 the Cartesian volume mesh projected onto the surface while the ``triq`` file
 only has solution data at the triangulation vertices.
@@ -551,7 +552,7 @@ run ``flowCart``.
         #PBS -q normal
         
         # Go to the working directory.
-        cd /u/wk/ddalle/usr/pycart/examples/pycart/arrow/poweroff/m1.75a1.0r0.0
+        cd /u/wk/ddalle/usr/pycart/examples/pycart/02_arrow/poweroff/m1.75a1.0r0.0
         
         # Additional shell commands
         

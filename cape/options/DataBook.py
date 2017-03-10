@@ -26,7 +26,10 @@ class DataBook(odict):
     :Versions:
         * 2014-12-20 ``@ddalle``: First version
     """
-    
+  # ======
+  # Config
+  # ======
+  # <
     # Initialization method
     def __init__(self, fname=None, **kw):
         """Data book options initialization method
@@ -60,7 +63,12 @@ class DataBook(odict):
         for targ in targs:
             # Convert to special class.
             self['Targets'][targ] = DBTarget(**targs[targ])
-            
+  # >
+  
+  # =================
+  # Global Components
+  # =================
+  # <
     # Get the list of components.
     def get_DataBookComponents(self, targ=None):
         """Get the list of components to be used for the data book
@@ -94,6 +102,33 @@ class DataBook(odict):
                 raise IOError("Component '%s' is not a str or int." % comp)
         # Output
         return comps
+        
+    # Get the targets for a specific component
+    def get_CompTargets(self, comp):
+        """Get the list of targets for a specific data book component
+        
+        :Call:
+            >>> targs = opts.get_CompTargets(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *targs*: :class:`list` (:class:`str`)
+                List of targets for that component
+        :Versions:
+            * 2014-12-21 ``@ddalle``: First version
+        """
+        # Get the component options.
+        copts = self.get(comp, {})
+        # Get the targets.
+        targs = copts.get('Targets', {})
+        # Make sure it's a dict.
+        if type(targs).__name__ not in ['dict']:
+            raise TypeError("Targets for component '%s' are not a dict." % comp)
+        # Output
+        return targs
         
     # Get list of point in a point sensor group
     def get_DBGroupPoints(self, name):
@@ -154,7 +189,12 @@ class DataBook(odict):
                 raise IOError("Component '%s' is not a str or int." % comp)
         # Output
         return comps
-        
+  # >
+  
+  # =================
+  # Common Properties
+  # =================
+  # <
     # Get the number of initial divisions
     def get_nStats(self, comp=None):
         """Get the number of iterations to be used for collecting statistics
@@ -429,7 +469,60 @@ class DataBook(odict):
             * 2014-12-30 ``@ddalle``: First version
         """
         self['Sort'] = key
-                                                
+        
+    # Get prefix
+    def get_DataBookPrefix(self, comp):
+        """Get the prefix to use for a data book component
+        
+        :Call:
+            >>> fpre = opts.get_DataBookPrefix(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *fpre*: :class:`str`
+                Name of prefix
+        :Versions:
+            * 2016-06-07 ``@ddalle``: First version
+        """
+        # Global data book setting
+        db_pre = self.get('Prefix')
+        # Get component options
+        copts = self.get(comp, {})
+        # Get the extension
+        return copts.get("Prefix", db_pre)
+        
+    # Get extension
+    def get_DataBookExtension(self, comp):
+        """Get the file extension for a data book component
+        
+        :Call:
+            >>> ext = opts.get_DataBookExtension(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *ext*: :class:`str`
+                File extension
+        :Versions:
+            * 2016-06-07 ``@ddalle``: First version
+        """
+        # Global data book setting
+        db_ext = self.get('Extension', "dlds")
+        # Get component options
+        copts = self.get(comp, {})
+        # Get the extension
+        return copts.get("Extension", db_ext)
+  # >
+  
+  # =======
+  # Targets
+  # =======
+  # <
     # Get the targets
     def get_DataBookTargets(self):
         """Get the list of targets to be used for the data book
@@ -522,7 +615,13 @@ class DataBook(odict):
             raise KeyError("There is no DBTarget called '%s'" % targ)
         # Get the type
         return DBTs[targ].get('Folder', 'data')
-        
+  # >
+  
+  
+  # ================
+  # Component Config
+  # ================
+  # <
     # Get data book components by type
     def get_DataBookByType(self, typ):
         """Get the list of data book components with a given type
@@ -767,95 +866,6 @@ class DataBook(odict):
             # Global default
             return ['nIter', 'nStats']
         
-        
-    # Get data book subcomponents
-    def get_DataBookPoints(self, comp):
-        """Get the data book subcomponent for one target
-        
-        For example, for "PointSensor" targets will return the list of points
-        
-        :Call:
-            >>> pts = opts.get_DataBookPoints(comp)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of data book component
-        :Outputs:
-            *pts*: :class:`list` (:class:`str`)
-                List of subcomponents
-        :Versions:
-            * 2015-12-14 ``@ddalle``: First version
-        """
-        # Get component
-        copts = self.get(comp, {})
-        # Get the type
-        ctype = copts.get("Type", "Force")
-        # Check the type
-        if ctype in ["PointSensor"]:
-            # Check the point
-            return copts.get("Points", [])
-        else:
-            # Otherwise, no subcomponents
-            return []
-        
-    # Get the targets for a specific component
-    def get_CompTargets(self, comp):
-        """Get the list of targets for a specific data book component
-        
-        :Call:
-            >>> targs = opts.get_CompTargets(comp)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *targs*: :class:`list` (:class:`str`)
-                List of targets for that component
-        :Versions:
-            * 2014-12-21 ``@ddalle``: First version
-        """
-        # Get the component options.
-        copts = self.get(comp, {})
-        # Get the targets.
-        targs = copts.get('Targets', {})
-        # Make sure it's a dict.
-        if type(targs).__name__ not in ['dict']:
-            raise TypeError("Targets for component '%s' are not a dict." % comp)
-        # Output
-        return targs
-        
-    # Get the transformations for a specific component
-    def get_DataBookTransformations(self, comp):
-        """
-        Get the transformations required to transform a component's data book
-        into the body frame of that component.
-        
-        :Call:
-            >>> tlist = opts.get_DataBookTransformations(comp)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *tlist*: :class:`list` (:class:`dict`)
-                List of targets for that component
-        :Versions:
-            * 2014-12-22 ``@ddalle``: First version
-        """
-        # Get the options for the component.
-        copts = self.get(comp, {})
-        # Get the value specified, defaulting to an empty list.
-        tlist = copts.get('Transformations', [])
-        # Make sure it's a list.
-        if type(tlist).__name__ not in ['list', 'ndarray']:
-            # Probably a single transformation; put it in a list
-            tlist = [tlist]
-        # Output
-        return tlist
-        
     # Get full list of columns for a specific component
     def get_DataBookCols(self, comp):
         """Get the full list of data book columns for a specific component
@@ -944,8 +954,143 @@ class DataBook(odict):
             cols.append(c+'_t')
         # Output
         return cols
+  # >
+  
+  
+  # =============
+  # Point Sensors
+  # =============
+  # <
+    # Get data book subcomponents
+    def get_DataBookPoints(self, comp):
+        """Get the data book subcomponent for one target
         
+        For example, for "PointSensor" targets will return the list of points
         
+        :Call:
+            >>> pts = opts.get_DataBookPoints(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of data book component
+        :Outputs:
+            *pts*: :class:`list` (:class:`str`)
+                List of subcomponents
+        :Versions:
+            * 2015-12-14 ``@ddalle``: First version
+        """
+        # Get component
+        copts = self.get(comp, {})
+        # Get the type
+        ctype = copts.get("Type", "Force")
+        # Check the type
+        if ctype in ["PointSensor"]:
+            # Check the point
+            return copts.get("Points", [])
+        else:
+            # Otherwise, no subcomponents
+            return []
+  # >
+  
+  # ======================
+  # Iterative Force/Moment
+  # ======================
+  # <
+        
+    # Get the transformations for a specific component
+    def get_DataBookTransformations(self, comp):
+        """
+        Get the transformations required to transform a component's data book
+        into the body frame of that component.
+        
+        :Call:
+            >>> tlist = opts.get_DataBookTransformations(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *tlist*: :class:`list` (:class:`dict`)
+                List of targets for that component
+        :Versions:
+            * 2014-12-22 ``@ddalle``: First version
+        """
+        # Get the options for the component.
+        copts = self.get(comp, {})
+        # Get the value specified, defaulting to an empty list.
+        tlist = copts.get('Transformations', [])
+        # Make sure it's a list.
+        if type(tlist).__name__ not in ['list', 'ndarray']:
+            # Probably a single transformation; put it in a list
+            tlist = [tlist]
+        # Output
+        return tlist
+        
+    # Get the tri file to use for mapping
+    def get_DataBookMapTri(self, comp):
+        """
+        Get the name of a triangulation file to use for remapping ``triq``
+        triangles to extract a component not defined in the ``triq`` file
+        
+        :Call:
+            >>> ftri = opts.get_DataBookMapTri(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component file
+        :Outputs:
+            *ftri*: {``None``} | :class:`str`
+                Name of tri file relative to root directory
+        :Versions:
+            * 2017-03-05 ``@ddalle``: First version
+        """
+        # Get the options for the component
+        copts = self.get(comp, {})
+        # Global option
+        ftri = self.get("MapTri")
+        # Get the component-specific option
+        ftri = copts.get("MapTri", ftri)
+        # Output
+        return ftri
+        
+    # Get the Config.xml file to use for mapping
+    def get_DataBookMapConfig(self, comp):
+        """
+        Get the GMP XML file for mapping component IDs to names or interpreting
+        the component names of a remapping TRI file
+        
+        :Call:
+            >>> fcfg = opts.get_DataBookMapConfig(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: ``None``
+                Name of component file
+        :Outputs:
+            *fcfg*: {``None``} | :class:`str`
+                Name of config XML or JSON file, if any
+        :Versions:
+            * 2017-03-05 ``@ddalle``: First version
+        """
+        # Get the options for the component
+        copts = self.get(comp, {})
+        # Global option
+        fcfg = self.get("MapConfig")
+        # Get the component-specific option
+        fcfg = copts.get("MapConfig", fcfg)
+        # Output
+        return fcfg
+        
+    
+  # >
+      
+  # ===========
+  # Line Loads
+  # ===========
+  # <
     # Get the number of cuts
     def get_DataBook_nCut(self, comp):
         """Get the number of cuts to make for a sectional load group
@@ -969,54 +1114,6 @@ class DataBook(odict):
         copts = self.get(comp, {})
         # Get the extension
         return copts.get("nCut", db_nCut)
-        
-    # Get prefix
-    def get_DataBookPrefix(self, comp):
-        """Get the prefix to use for a data book component
-        
-        :Call:
-            >>> fpre = opts.get_DataBookPrefix(comp)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *fpre*: :class:`str`
-                Name of prefix
-        :Versions:
-            * 2016-06-07 ``@ddalle``: First version
-        """
-        # Global data book setting
-        db_pre = self.get('Prefix')
-        # Get component options
-        copts = self.get(comp, {})
-        # Get the extension
-        return copts.get("Prefix", db_pre)
-        
-    # Get extension
-    def get_DataBookExtension(self, comp):
-        """Get the file extension for a data book component
-        
-        :Call:
-            >>> ext = opts.get_DataBookExtension(comp)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *ext*: :class:`str`
-                File extension
-        :Versions:
-            * 2016-06-07 ``@ddalle``: First version
-        """
-        # Global data book setting
-        db_ext = self.get('Extension', "dlds")
-        # Get component options
-        copts = self.get(comp, {})
-        # Get the extension
-        return copts.get("Extension", db_ext)
         
     # Get momentum setting
     def get_DataBookMomentum(self, comp):
@@ -1102,7 +1199,12 @@ class DataBook(odict):
         else:
             # Don't mess with the option
             return c_o
-    
+  # >
+  
+  # ==============================
+  # Plotting (Possibly Deprecated)
+  # ==============================
+  # <
     # List of components to plot
     def get_PlotComponents(self):
         """Return the list of components to plot
@@ -1488,7 +1590,7 @@ class DataBook(odict):
         """
         # Get the width.
         return self.get('FigHeight', rc0('FigHeight'))
-
+  # >
 # class DataBook        
             
             

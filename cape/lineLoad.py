@@ -998,9 +998,9 @@ class CaseLL(object):
         * 2015-09-16 ``@ddalle``: First version
         * 2016-06-07 ``@ddalle``: Second version, universal
     """
-    # =============
-    # Configuration
-    # =============
+  # =============
+  # Configuration
+  # =============
   # <
     # Initialization method
     def __init__(self, comp, proj='LineLoad', sec='dlds', **kw):
@@ -1098,9 +1098,9 @@ class CaseLL(object):
     
   # >
     
-    # ====
-    # I/O
-    # ====
+  # ====
+  # I/O
+  # ====
   # <
     # Function to read a file
     def ReadLDS(self, fname=None):
@@ -1246,9 +1246,9 @@ class CaseLL(object):
         self.smz = CaseSeam(fsmz)
   # >
     
-    # =========
-    # Plotting
-    # =========
+  # =========
+  # Plotting
+  # =========
   # <
     # Plot a line load
     def Plot(self, coeff, **kw):
@@ -1699,9 +1699,9 @@ class CaseLL(object):
         return h
   # >
     
-    # ===========
-    # Corrections
-    # ===========
+  # ===========
+  # Corrections
+  # ===========
   # <
     # Correct line loads using linear basis functions
     def CorrectLinear(self, CN, CLM, CY, CLN, xMRP=0.0):
@@ -2278,7 +2278,7 @@ class CaseSeam(object):
             # Get data
             D = np.fromfile(f, count=-1, sep=" ")
             # Check size.
-            m = np.floor(D.size/2) * 2
+            m = int(np.floor(D.size/2) * 2)
             # Save the data.
             if ax == 'x':
                 # x-cut

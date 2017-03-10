@@ -4,7 +4,7 @@ Demo 5: Mesh Adaptation on a Business Jet
 
 The following example uses a more complex geometry in combination with Cart3D's
 adaptive meshing capability.  It can be found in the
-``$PYCART/examples/pycart/adapt_bJet`` folder.  Let's run the first case.
+``$PYCART/examples/pycart/05_adapt_bJet`` folder.  Let's run the first case.
 
     .. code-block:: none
     
@@ -16,16 +16,16 @@ adaptive meshing capability.  It can be found in the
           Reading tri file(s) from root directory.
             Writing triangulation: 'Components.i.tri'
          > autoInputs -r 8 -t Components.i.tri -maxR 8 -nDiv 4
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/adapt_bJet/poweroff')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/05_adapt_bJet/poweroff')
              (STDOUT = 'autoInputs.out')
              Starting case 'poweroff/m0.82a0.0b0.0'.
          > ./aero.csh
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/adapt_bJet/poweroff/m0.82a0.0b0.0')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/05_adapt_bJet/poweroff/m0.82a0.0b0.0')
              (STDOUT = 'flowCart.out')
         adapt00 --> adapt00.tar
         adapt01 --> adapt01.tar
          > ./aero.csh restart
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/adapt_bJet/poweroff/m0.82a0.0b0.0')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/05_adapt_bJet/poweroff/m0.82a0.0b0.0')
              (STDOUT = 'flowCart.out')
         adapt03 --> adapt03.tar
         adapt02 --> adapt02.tar
@@ -126,17 +126,17 @@ settings.  Here is a skeleton of the contents of that file.
         }
         
 Note the very first two entries, ``"InputCntl"`` and ``"AeroCsh"``, specify
-files in the ``inputs/`` folder.  Although this is not the default, it is a good
-convention to keep all input template files in a separate folder.  This makes
-for a little less messy parent folder.
+files in the ``inputs/`` folder.  Although this is not the default, it is a
+good convention to keep all input template files in a separate folder.  This
+makes for a little less messy parent folder.
 
 Adaptation Mechanics
 --------------------
 Most of the settings that have been replaced by ``...`` in the preceding code
 snippet are fairly straightforward, and the reader may refer to previous
 examples.  The two new sections are ``"Adaptation"`` and ``"Functional"``.
-Let's first look at the ``"Adaptation"`` function, which specifies mechanics for
-mesh refinement.
+Let's first look at the ``"Adaptation"`` function, which specifies mechanics
+for mesh refinement.
 
     .. code-block:: javascript
     
@@ -161,14 +161,15 @@ mesh refinement.
         }
         
 The *n_adapt_cycles* setting informs pyCart to perform 2 adaptation cycles in
-phase 0 and a total of 4 (i.e., two additional cycles) in phase 1.  As indicated
-in the comments, *ws_it* specifies how many iterations to run on each adaptation
-cycle, which is independent of phase.  Similarly, *mesh_growth* specifies the
-ratio of the size of the new mesh to the old mesh.  Therefore, in the four
-adaptation cycles, the mesh will grow by a total factor of 1.5*1.5*2.0*2.0, or
-9.0.  Finally, *apc*, specifies the type of cycle.  An ``"a"`` cycle is the
-standard type of mesh adaptation in which any cell may be refined.  In a ``"p"``
-cycle, any cell which is the finest in the current mesh may not be refined.
+phase 0 and a total of 4 (i.e., two additional cycles) in phase 1. As indicated
+in the comments, *ws_it* specifies how many iterations to run on each
+adaptation cycle, which is independent of phase. Similarly, *mesh_growth*
+specifies the ratio of the size of the new mesh to the old mesh. Therefore, in
+the four adaptation cycles, the mesh will grow by a total factor of
+1.5*1.5*2.0*2.0, or 9.0. Finally, *apc*, specifies the type of cycle. An
+``"a"`` cycle is the standard type of mesh adaptation in which any cell may be
+refined. In a ``"p"`` cycle, any cell which is the finest in the current mesh
+may not be refined.
 
 These ``"Adaptaion"`` settings are propagated to the Cart3D package of software
 by editing lines of the :file:`aero.csh` file.
@@ -226,11 +227,12 @@ case, which is the first case in the run matrix.
     Plot of *L1* global density residual
     
 The residual plot very clearly shows how the residual converges to some degree
-on each mesh adaptation cycle and then resets to a much higher level immediately
-after each mesh refinement.  The results of the previous cycle are used as the
-initial conditions for the refined mesh (Cart3D refers to this as a "warm
-start"), but the coarser solution projected onto the finer mesh does result in a
-higher residual.  The axial force coefficient clearly marks the adaptation
-cycles as well.  In this example, the value of *CA* appears to be changing after
-each adaptation cycle, and so more mesh refinement would be appropriate.
+on each mesh adaptation cycle and then resets to a much higher level
+immediately after each mesh refinement. The results of the previous cycle are
+used as the initial conditions for the refined mesh (Cart3D refers to this as a
+"warm start"), but the coarser solution projected onto the finer mesh does
+result in a higher residual. The axial force coefficient clearly marks the
+adaptation cycles as well. In this example, the value of *CA* appears to be
+changing after each adaptation cycle, and so more mesh refinement would be
+appropriate.
     

@@ -6,7 +6,7 @@ Demo 4: Business Jet, Data Book, and Automated Reports
 
 The following example uses a more complex geometry to demonstrate Cart3D's
 capabilities and the ease with which complex geometries can be analyzed.  Let's
-run the first case in the ``$PYCART/examples/pycart/bJet`` folder.
+run the first case in the ``$PYCART/examples/pycart/04_bJet`` folder.
 
     .. code-block:: none
     
@@ -19,20 +19,20 @@ run the first case in the ``$PYCART/examples/pycart/bJet`` folder.
           Reading tri file(s) from root directory.
              Writing triangulation: 'Components.i.tri'
          > autoInputs -r 8 -t Components.i.tri -maxR 11 -nDiv 4
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/bJet/poweroff/m0.84a0.0b0.0')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/04_bJet/poweroff/m0.84a0.0b0.0')
              (STDOUT = 'autoInputs.out')
          > cubes -pre preSpec.c3d.cntl -maxR 11 -reorder -a 10 -b 2
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/bJet/poweroff/m0.84a0.0b0.0')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/04_bJet/poweroff/m0.84a0.0b0.0')
              (STDOUT = 'cubes.out')
          > mgPrep -n 3
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/bJet/poweroff/m0.84a0.0b0.0')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/04_bJet/poweroff/m0.84a0.0b0.0')
              (STDOUT = 'mgPrep.out')
              Starting case 'poweroff/m0.84a0.0b0.0'.
          > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -tm 0
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/bJet/poweroff/m0.84a0.0b0.0')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/04_bJet/poweroff/m0.84a0.0b0.0')
              (STDOUT = 'flowCart.out')
          > flowCart -his -clic -restart -N 300 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -tm 1
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/bJet/poweroff/m0.84a0.0b0.0')
+             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/04_bJet/poweroff/m0.84a0.0b0.0')
              (STDOUT = 'flowCart.out')
         
         Submitted or ran 1 job(s).
@@ -50,9 +50,9 @@ A sample graphic of the surface pressure made with ParaView is shown below.
 Phase Control
 -------------
 This is an example with more complex geometry, obviously, but it also is an
-example of a two-phase solution procedure. This can be seen in the sample output
-above because there are two ``flowCart`` commands. The following is a snippet
-from the :file:`pyCart.json` file.
+example of a two-phase solution procedure.  This can be seen in the sample
+output above because there are two ``flowCart`` commands. The following is a
+snippet from the :file:`pyCart.json` file.
 
     .. code-block:: javascript
     
@@ -92,9 +92,9 @@ from the :file:`pyCart.json` file.
             }
         },
         
-In this ``"RunControl"`` section is the option ``"PhaseSequence": [0, 1]``, which
-tells pyCart to run phase 0 followed by phase 1.  Phase 0 is run exactly once
-because *PhaseIters[0]* is ``0``, and phase 1 is repeated until at least
+In this ``"RunControl"`` section is the option ``"PhaseSequence": [0, 1]``,
+which tells pyCart to run phase 0 followed by phase 1.  Phase 0 is run exactly 
+once because *PhaseIters[0]* is ``0``, and phase 1 is repeated until at least
 *PhaseIters[1]* total (i.e., including previous phases) iterations have been
 completed.
 
@@ -105,8 +105,8 @@ above.  Since *it_fc[1]* is 100, phase 1 runs ``flowCart -restart -N 300``,
 where *N* is the **total** number of iterations at which ``flowCart`` exits.
 The dual nature of the *first_order* option means that phase 0 is run in
 first-order mode while subsequent phases will all be second-order.  All the
-other options in the ``"flowCart"`` section that are not specified as a list use
-the same option for all phases.
+other options in the ``"flowCart"`` section that are not specified as a list
+use the same option for all phases.
 
 Configuration
 -------------
@@ -134,13 +134,13 @@ Let's also look at the ``"Config"`` section of :file:`pyCart.json`.
             }
         },
 
-The *Force* section lists out the components for which iterative force histories
-are reported while running ``flowCart``.  Similarly, the *RefPoint* section
-specifies which components will also have aerodynamic moments reported.  An
-interesting feature demonstrated in this example is how the moment reference
-point is not defined directly for each component.  Instead, a common reference
+The *Force* section lists out the components for which iterative force
+histories are reported while running ``flowCart``. Similarly, the *RefPoint*
+section specifies which components will also have aerodynamic moments reported.
+An interesting feature demonstrated in this example is how the moment reference
+point is not defined directly for each component. Instead, a common reference
 point is defined in the *Points* variable, and pyCart automatically refers to
-this point when creating Cart3D's standard :file:`input.cntl` input file.  This
+this point when creating Cart3D's standard :file:`input.cntl` input file. This
 saves a little bit of effort if a reference point happens to move a little bit,
 but it is also useful in cases where reference points may shift from case to
 case---for example when studying a separation problem or moving fins.
@@ -176,17 +176,17 @@ components, and we are recording both the forces and moments for each.
         },
         
 The ``{"Type": "FM"}`` specifier just means that its a default force & moment
-component.  Another common value of *Type* is ``"Force"``, which just ignores
-any moment histories.  These are pretty vanilla data book component definitions;
+component. Another common value of *Type* is ``"Force"``, which just ignores
+any moment histories. These are pretty vanilla data book component definitions;
 it is also possible to specify a transformation if you want to resolve the
 forces and/or moments in a different coordinate system or scale some of the
 results.
 
-Two other important parameters are *nStats* and *nMin*.  The *nMin* parameter in
+Two other important parameters are *nStats* and *nMin*. The *nMin* parameter in
 this case means that only iterations after iteration 200 can be used to compute
-the mean value and standard deviation in the database.  Using this *nMin*
+the mean value and standard deviation in the database. Using this *nMin*
 parameter is a good error-prevention technique because it automatically leaves
-holes in the database for cases that have not run sufficiently far.  The
+holes in the database for cases that have not run sufficiently far. The
 *nStats* parameter means that pyCart will use the last 50 iterations available
 to compute the mean.
 
@@ -201,13 +201,13 @@ To create or update the data book, run the following command.
         poweroff/m0.88a0.0b0.0
         poweroff/m0.88a2.0b0.0
         
-In this case, ``pycart`` runs through the run matrix (it is possible to restrict
-this command to a subset of cases just like any ``pycart`` command) and checks
-if any case meets the criteria to be entered into the databook.  Every case must
-be run at least *nMin* + *nStats* iterations.  This creates a few files in the
-``data/`` folder.  Specifically, there is a ``aero_$COMP.csv`` file for each
-*COMP* in the ``"Components"`` field.  As an example, the contents of
-:file:`aero_fuselage.csv` are the following.
+In this case, ``pycart`` runs through the run matrix (it is possible to
+restrict this command to a subset of cases just like any ``pycart`` command)
+and checks if any case meets the criteria to be entered into the databook.
+Every case must be run at least *nMin* + *nStats* iterations. This creates a
+few files in the ``data/`` folder. Specifically, there is a ``aero_$COMP.csv``
+file for each *COMP* in the ``"Components"`` field. As an example, the contents
+of :file:`aero_fuselage.csv` are the following.
 
     .. code-block:: none
     
@@ -241,9 +241,10 @@ Automated Reports
 -----------------
 This business jet also contains a demo of pyCart's automated report capability.
 Calling ``pyCart --report`` results in a multi-page PDF created using LaTeX.
-There are two modes for these reports: one creates various figures for each case
-in the run matrix, and the other creates various plots for groups of cases.  The
-example below shows the set of plots for the one case we've run in this example.
+There are two modes for these reports: one creates various figures for each
+case in the run matrix, and the other creates various plots for groups of
+cases.  The example below shows the set of plots for the one case we've run in
+this example.
 
     .. figure:: report-case.*
         :width: 5.5in
@@ -261,8 +262,8 @@ files).
         $ pycart -I 0 --report
 
 It contains two tables; one of these summarizes the run conditions (i.e., the
-values of the run matrix input variables), and the other presents selected force
-and moment results.  Then there is a set of nine plots that show selected
+values of the run matrix input variables), and the other presents selected
+force and moment results.  Then there is a set of nine plots that show selected
 quantities at each iteration.  A higher-resolution view of the residual history
 plot is below.
 
@@ -271,8 +272,8 @@ plot is below.
     
     L1 density residual history for ``poweroff/m0.84a0.0b0.0``
     
-The settings for this automated report are specified in the ``"Report"`` section
-of :file:`pyCart.json`.
+The settings for this automated report are specified in the ``"Report"``
+section of :file:`pyCart.json`.
 
     .. code-block:: javascript
         
@@ -306,13 +307,13 @@ of :file:`pyCart.json`.
             }
         }
         
-The logic for this section is split into definitions for one or several types of
-report that contains at least a title and list of figures, a list of figure
-definitions, and a list of subfigure definitions.  Any key of the parent
+The logic for this section is split into definitions for one or several types
+of report that contains at least a title and list of figures, a list of figure
+definitions, and a list of subfigure definitions. Any key of the parent
 ``"Report"`` that is not either ``"Reports"``, ``"Figures"``, ``"Subfigures"``,
 ``"Sweeps"``, or ``"Archive"`` is interpreted as a definition for a type of
-report.  In this case, there is one report type called ``"case"`` (using report
-names that start with a lower-case letter is a good convention).  The ``"case"``
+report. In this case, there is one report type called ``"case"`` (using report
+names that start with a lower-case letter is a good convention). The ``"case"``
 report has two figures, titled ``"Summary"`` and ``"History"``.
 
 Then scrolling down to the ``"Figures"`` section, we see the list of subfigures

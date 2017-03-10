@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import pyCart
+import cape.test
 import numpy as np
 import os, shutil
 
@@ -13,19 +14,20 @@ if os.path.isfile('arrow.tri'): os.remove('arrow.tri')
 if os.path.isfile('FAIL'): os.remove('FAIL')
 if os.path.isfile('PASS'): os.remove('PASS')
 
-# Convert UH3D file to XML
-ierr = os.system('pc_UH3D2Tri.py -i arrow.uh3d -c arrow.xml')
-# Check failure
-if ierr:
-    f = open('FAIL', 'w')
-    f.write('Failed to convert UH3D file to Cart3D triangulation.')
-    f.close()
-    os.sys.exit(ierr)
+# Run a system command
+cape.test.callt("pc_UH3D2Tri.py -i arrow.uh3d -c arrow.xml",
+    'Failed to convert UH3D file to Cart3D triangulation.')
 
 # Test tri.WriteFast
 try:
+    # Status update
+    print("\n> tri = pyCart.Tri('arrow.tri')")
+    os.sys.stdout.flush()
     # Read the triangulation
     tri = pyCart.Tri('arrow.tri')
+    # Status update
+    print("> tri.WriteFast('arrow.i.tri')")
+    os.sys.stdyou.flush()
     # Write using "Fast" method (C compiled)
     tri.WriteFast('arrow.i.tri')
 except Exception:
@@ -35,6 +37,9 @@ except Exception:
     os.sys.exit(1)
 
 try:
+    # Status update
+    print("\n> (testing list of component IDs)")
+    os.sys.stdout.flush()
     # Get the comp IDs
     compID = np.unique(tri.CompID)
     # Check it

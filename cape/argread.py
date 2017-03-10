@@ -41,7 +41,7 @@ def readkeys(argv):
     an indicator of a keyword.
     
     :Call:
-        >>> (args, kwargs) = argread.readkeys(argv)
+        >>> args, kwargs = argread.readkeys(argv)
     :Inputs:
         *argv*: :class:`list` (:class:`str`)
             List of string inputs; first entry is ignored (from ``sys.argv``)
@@ -50,11 +50,12 @@ def readkeys(argv):
             List of general inputs with no keyword names
         *kwargs*: :class:`dict`
             Dictionary of inputs specified with option flags
-    
+        *kwargs['_old']*: :class:`list` (:class:`dict`)
+            List of single-argument dictionaries that were overwritten
     :Examples:
         The following shows an example with only general inputs and no options
         
-            >>> (a, kw) = readkeys(['ex.sh', 'a.1', '1'])
+            >>> a, kw = readkeys(['ex.sh', 'a.1', '1'])
             >>> a
             ['a.1', '1']
             >>> kw
@@ -63,7 +64,7 @@ def readkeys(argv):
         This example shows one general input followed by two options.  One of
         the options has an argument associated with it, and the other does not.
             
-            >>> (a, kw) = readkeys(['ex.sh', 'a.1', '-i', 'in.tri', '-v'])
+            >>> a, kw = readkeys(['ex.sh', 'a.1', '-i', 'in.tri', '-v'])
             >>> a
             ['a.1']
             >>> kw
@@ -71,7 +72,7 @@ def readkeys(argv):
             
         Double-hyphens are interpreted as hyphens.
         
-            >>> (a, kw) = readkeys(['ex.sh', '--h', '--i', 'in.tri', 'a.1'])
+            >>> a, kw = readkeys(['ex.sh', '--h', '--i', 'in.tri', 'a.1'])
             >>> a
             ['a.1']
             >>> kw
@@ -86,6 +87,7 @@ def readkeys(argv):
     # Initialize outputs.
     args = []
     kwargs = {}
+    old = []
     # Get the number of arguments.
     argc = len(argv)
     # Argument counter (don't process argv[0]).
@@ -105,6 +107,10 @@ def readkeys(argv):
         else:
             # Key name starts after '-'s
             k = a.lstrip('-')
+            # Check if already processed
+            if k in kwargs:
+                # Append the current value to the *old* list
+                old.append({k: kwargs[k]})
             # Increase the arg count.
             iarg += 1
             # Check for more arguments.
@@ -123,8 +129,10 @@ def readkeys(argv):
                     kwargs[k] = v
                     # Go to the next argument.
                     iarg += 1
+    # Set the *old* flag
+    kwargs["_old"] = old
     # Return the args and kwargs
-    return (args, kwargs)
+    return args, kwargs
     
     
 # Process options using any dash as keyword
