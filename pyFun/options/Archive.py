@@ -11,11 +11,11 @@ PltDict = [
 ]
 
 # Flow files
-flowDict = {
+flowDict = [
     {"*.flow": 1},
     {"*.ugrid": 1},
     {"*.cgns": 1}
-}
+]
 
 # Base files
 RunDict = [
@@ -132,6 +132,8 @@ class Archive(cape.options.Archive.Archive):
         self.add_ArchivePreUpdateFiles([])
         # Post-archiving
         for dopts in RunDict:
+            self.add_ArchivePostTarGroups(dopts)
+        for dopts in PltDict:
             self.add_ArchivePostTarGroups(dopts)
         # Folders to TAR
         self.add_ArchivePostTarDirs(["fomo", "lineload", "aero"])

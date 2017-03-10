@@ -24,6 +24,7 @@ from rubberData import RubberData
 
 # Other pyFun modules
 from . import options
+from . import manage
 from . import case
 from . import mapbc
 from . import faux
