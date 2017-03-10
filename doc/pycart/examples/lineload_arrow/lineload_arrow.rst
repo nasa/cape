@@ -12,7 +12,8 @@ command is used.  To acquire Chimera Grid Tools, free software from NASA, use
 the `NASA Software Catalog <https://software.nasa.gov/software/ARC-16025-1A>`_.
 
 Using the geometry from :ref:`Example 2 <pycart-ex-arrow>`, this cases
-continues the analysis and adds computation of sectional loads.
+continues the analysis and adds computation of sectional loads.  The example is
+located in ``$PYCART/examples/pycart/06_lineload_arrow``.
 
 The geometry used for this shape is a capped cylinder with four fins and 9216
 faces and seven components.  The surface triangulation, :file:`arrow.tri`, is
@@ -23,33 +24,61 @@ shown below.
         
         Simple bullet shape triangulation with four fins
         
-This example is set up with a larger run matrix in order to demonstrate more of
-the features of pyCart, including databook sweeps.
+This example is set up with a small run matrix to demonstrate line loads on a
+few related cases.
 
-    .. code-block:: none
+    .. code-block:: console
     
         $ pycart -c
-        Case Config/Run Directory  Status  Iterations  Que CPU Time 
-        ---- --------------------- ------- ----------- --- --------
-        0    poweroff/m1.25a0.0    ---     /           .            
-        1    poweroff/m1.25a1.0    ---     /           .            
-        2    poweroff/m1.25a2.0    ---     /           .            
-        3    poweroff/m1.25a5.0    ---     /           .            
-        4    poweroff/m1.50a0.0    ---     /           .            
-        5    poweroff/m1.50a1.0    ---     /           .            
-        6    poweroff/m1.50a2.0    ---     /           .            
-        7    poweroff/m1.50a5.0    ---     /           .            
-        8    poweroff/m1.75a0.0    ---     /           .            
-        9    poweroff/m1.75a1.0    ---     /           .            
-        10   poweroff/m1.75a2.0    ---     /           .            
-        11   poweroff/m1.75a5.0    ---     /           .            
-        12   poweroff/m2.00a0.0    ---     /           .            
-        13   poweroff/m2.00a1.0    ---     /           .            
-        14   poweroff/m2.00a2.0    ---     /           .            
-        15   poweroff/m2.00a5.0    ---     /           .            
-        16   poweroff/m2.50a0.0    ---     /           .            
-        17   poweroff/m2.50a1.0    ---     /           .            
-        18   poweroff/m2.50a2.0    ---     /           .            
-        19   poweroff/m2.50a5.0    ---     /           .            
+        Case Config/Run Directory   Status  Iterations  Que CPU Time 
+        ---- ---------------------- ------- ----------- --- --------
+        0    poweroff/m1.25a0.0b0.0 ---     /           .            
+        1    poweroff/m1.25a2.0b0.0 ---     /           .            
+        2    poweroff/m1.25a0.0b2.0 ---     /           .            
         
-        ---=20, 
+Running Cases
+-------------
+When doing post-processing of Cart3D results, it is often desirable to perform
+time-averaging or iteration-averaging before doing analysis.  When Cart3D exits
+(either ``flowCart`` or ``mpix_flowCart`` called with the ``-clic`` option), it
+writes a ``Components.i.triq`` file.  This is a surface triangulation with some
+results from the last iteration.  It contains the pressure coefficient and the
+five native Cart3D state variables at each node of the triangulation.
+
+To get a ``triq`` file with averaged results, we have to run ``flowCart`` a few
+iterations at a time and manually perform averaging.  The ``-stats`` option
+performs a similar task, but it is not quite consistent with what's needed for
+an averaged line load.  To get pyCart to perform this unusual task, we have the
+following ``"RunControl"`` section in :file:`pyCart.json`.
+
+    .. code-block:: javascript
+    
+        // Iteration control and command-line inputs
+        "RunControl": {
+            // Run sequence
+            "PhaseSequece": [0],
+            "PhaseIters": [200],
+            // System configuration
+            "nProc": 4,
+            "MPI": 0,
+            "Adaptive": 0,
+            // Options for ``flowCart``
+            "flowCart": {
+                "it_fc": 200,
+                "it_avg": 10,
+                "it_start": 100,
+                "cfl": 1.1,
+                "mg_fc": 3,
+                "y_is_spanwise": true
+            },
+            // Defines the flow domain automatically
+            "autoInputs": {"r": 6},
+            // Volume mesh options
+            "cubes": {
+                "maxR": 8,
+                "pre": "preSpec.c3d.cntl",
+                "cubes_a": 8,
+                "cubes_b": 2,
+                "reorder": true
+            }
+        }

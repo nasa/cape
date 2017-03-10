@@ -173,7 +173,7 @@
     
     // Trajectory (i.e. run matrix) description
     "Trajectory": {
-        "Keys": ["mach", "alpha", "config", "Label"],
+        "Keys": ["mach", "alpha", "beta", "config", "Label"],
         "File": "matrix.csv",
         "GroupMesh": true,
         "GroupPrefix": "poweroff",
