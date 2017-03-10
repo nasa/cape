@@ -7,12 +7,37 @@ import cape.options.Archive
 
 # Tecplot files
 PltDict = [
-    {"pyfun_tec": ["*.plt", "*_tec_*.dat"]}
+    {"pyfun_tec": ["*.plt", "*_tec_*.dat", "*.tec"]}
 ]
 
+# Flow files
+flowDict = {
+    {"*.flow": 1},
+    {"*.ugrid": 1},
+    {"*.cgns": 1}
+}
+
 # Base files
-pyfunDict = {"pyfun": ["case.json", "conditions.json"]}
-fun3dDict = {"fun3d": ["fun3d.*"]}
+RunDict = [
+    {"pyfun": [
+        "case.json",
+        "conditions.json",
+        "run.[0-9].*",
+        "run_fun3d.*pbs"
+    ]},
+    {"fun3d": [
+        "fun3d.*",
+        "*.freeze",
+        "*.mapbc",
+        "faux_input",
+        "rubber.data"
+    ]},
+    {"fm": [
+        "*_fm_*.dat",
+        "*hist.dat",
+        "*.hist.??.dat"
+    ]}
+]
 
 # Turn dictionary into Archive options
 def auto_Archive(opts):
@@ -106,14 +131,13 @@ class Archive(cape.options.Archive.Archive):
         # Files to delete before saving
         self.add_ArchivePreUpdateFiles([])
         # Post-archiving
-        self.add_ArchivePostTarGroups({"fm": "*_fm_*.dat"})
-        self.add_ArchivePostTarGroups({"run": ["run.*", "*hist.dat"]})
+        for dopts in RunDict:
+            self.add_ArchivePostTarGroups(dopts)
+        # Folders to TAR
         self.add_ArchivePostTarDirs(["fomo", "lineload", "aero"])
-        self.add_ArchivePostTarDirs(PltDict)
-        self.add_ArchivePostTarDirs(pyfunDict)
-        self.add_ArchivePostTarDirs(fun3dDict)
         # Individual archive files
-        self.add_ArchiveArchiveFiles(["*.flow", "*.ugrid"])
+        for dopts in CopyFiles:
+            self.add_ArchiveArchiveFiles(dopts)
         # Files/folders to delete after archiving
         self.add_ArchivePostDeleteFiles([])
         self.add_ArchivePostDeleteDirs([])
