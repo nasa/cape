@@ -1936,9 +1936,9 @@ class Fun3d(Cntl):
         the Cart3D solver only in that it calles the correct *case* module.
         
         :Call:
-            >>> pbs = cart3d.CaseStartCase()
+            >>> pbs = fun3d.CaseStartCase()
         :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of control class containing relevant parameters
         :Outputs:
             *pbs*: :class:`int` or ``None``
@@ -1947,6 +1947,21 @@ class Fun3d(Cntl):
             * 2015-10-14 ``@ddalle``: First version
         """
         return case.StartCase()
+    
+    # Individual case archive function
+    def ArchivePWD(self):
+        """Archive a single case in the current folder ($PWD)
+        
+        :Call:
+            >>> fun3d.ArchivePWD()
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+        :Versions:
+            * 2017-03-10 ``@ddalle``: First :mod:`pyFun` version
+        """
+        # Archive using the local module
+        manage.ArchiveFolder(self.opts)
         
         
 # class Fun3d
