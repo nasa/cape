@@ -3,25 +3,25 @@
 <Configuration Name="bullet sample" Source="bullet.tri">
 
  <!-- Containers -->
-  <Component Name="bullet_no_base" Type="container" Parent="bullet_total">
+  <Component Name="arrow_no_base" Type="container" Parent="arrow_total">
   </Component>
-  <Component Name="fins" Type="container" Parent="bullet_no_base">
+  <Component Name="fins" Type="container" Parent="arrow_no_base">
   </Component>
  
-  <Component Name="bullet_total"   Type="container">
+  <Component Name="arrow_total"   Type="container">
   </Component>
  <!-- Containers -->
 
  <!-- body -->
-  <Component Name="cap" Type="tri">
+  <Component Name="cap" Parent="arrow_no_base" Type="tri">
    <Data> Face Label=1 </Data>
   </Component>
  
-  <Component Name="body" Type="tri">
+  <Component Name="body" Parent="arrow_no_base" Type="tri">
    <Data> Face Label=2 </Data>
   </Component>
  
-  <Component Name="base" Parent="bullet_total" Type="tri">
+  <Component Name="base" Parent="arrow_total" Type="tri">
    <Data> Face Label=3 </Data>
   </Component>
  <!-- body -->

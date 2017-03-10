@@ -4444,7 +4444,7 @@ class CaseResid(object):
         # Make sure *iA* is in *FM.i* and get the index.
         j0 = self.GetIterationIndex(i0)
         # Reselect *iA* in case initial value was not in *FM.i*.
-        i0 = self.i[j0]
+        i0 = int(self.i[j0])
         # --------
         # Plotting
         # --------

@@ -25,3 +25,4 @@ are fairly independent.  One exception is the :ref:`business jet example
     fins
     bJet/bJet
     adapt_bJet/adapt_bJet
+    lineload_arrow/lineload_arrow

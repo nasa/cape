@@ -43,8 +43,18 @@
         // Defer to a file for most things.
         "File": "arrow.xml",
         // Declare forces and moments
-        "Force": ["cap", "body", "fins", "bullet_no_base", "bullet_total"],
-        "RefPoint": {"bullet_no_base": [0.0, 0.0, 0.0]},
+        "Force": [
+            "cap",
+            "body",
+            "fins",
+            "arrow_no_base",
+            "arrow_total"
+        ],
+        "RefPoint": {
+            "arrow_no_base": [0.0, 0.0, 0.0],
+            "arrow_total": [0.0, 0.0, 0.0],
+            "fins": [0.0, 0.0, 0.0]
+        },          
         // Reference quantities
         "RefArea": 3.14159,
         "RefLength": 1.0
@@ -53,20 +63,111 @@
     // Database info
     "DataBook": {
         // List of data book components
-        "Components": ["bullet_no_base", "ll_bullet"],
+        "Components": ["arrow_no_base", "ll_arrow"],
         // Location of data book
         "Folder": "data/",
         // Parameters for collecting data
-        "nFirst": 100,
+        "nFirst": 0,
         "nStats": 100,
+        "nMin": 100,
         // Basic component
         "bullet_no_base": {
             "Type": "FM"
         },
         // Line load
-        "ll_bullet": {
+        "ll_arrow": {
             "Type": "LineLoad",
-            "CompID": "bullet_no_base"
+            "CompID": "arrow_no_base"
+        }
+    },
+    
+    // Report info
+    "Report": {
+        // List of reports
+        "Reports": ["case"],
+        // Define the report
+        "case": {
+            "Title": "Automated Cart3D Report with Line Load Plots",
+            "Subtitle": "Example \\texttt{06\\_lineload\\_arrow}",
+            "Restriction": "pyCart Example - Distribution Unlimited",
+            "Figures": ["CaseTables", "CasePlots"]
+        },
+        // Define the figures
+        "Figures": {
+            "CaseTables": {
+                "Alignment": "left",
+                "Subfigures": ["CaseConds", "FMTable"]
+            },
+            "CasePlots": {
+                "Header": "Iterative analysis and sectional loads",
+                "Alignment": "center",
+                "Subfigures": [
+                    "arrow_CA",  "arrow_CY",  "arrow_CN",
+                    "arrow_CLL", "arrow_CLN", "arrow_CLM",
+                    "L1",        "LL_CY",     "LL_CN"
+                ]
+            }
+        },
+        // Definitions for subfigures
+        "Subfigures": {
+            // Table of trajectory variables
+            "CaseConds": {
+                "Type": "Conditions",
+                "Width": 0.28,
+                "Header": "Conditions"
+            },
+            // Table of force and moment averages
+            "FMTable": {
+                "Type": "Summary",
+                "Components": ["arrow_no_base", "arrow_total", "fins"],
+                "Width": 0.71,
+                "Header": "Force \\& Moment Summary",
+                "MuFormat": "%.3e",
+                "SigmaFormat": "%.3e"
+            },
+            // Iterative history
+            "arrow": {
+                "Type": "PlotCoeff",
+                "Component": "arrow_no_base",
+                "FigWidth": 5.5,
+                "FigHeight": 4.2,
+                "Width": 0.33
+            },
+            "arrow_CA": {"Type": "arrow", "Coefficient": "CA"},
+            "arrow_CY": {"Type": "arrow", "Coefficient": "CY"},
+            "arrow_CN": {"Type": "arrow", "Coefficient": "CN"},
+            "arrow_CLL": {"Type": "arrow", "Coefficient": "CLL"},
+            "arrow_CLM": {"Type": "arrow", "Coefficient": "CLM"},
+            "arrow_CLN": {"Type": "arrow", "Coefficient": "CLN"},
+            // Residual history
+            "L1": {
+                "Type": "PlotL1",
+                "FigWidth": 5.5,
+                "FigHeight": 6,
+                "Width": 0.33,
+                "Caption": "$L_1$ Density Residual"
+            },
+            // Line load plots
+            "LL_arrow": {
+                "Type": "PlotLineLoad",
+                "Component": "ll_arrow",
+                "FigWidth": 5.5,
+                "FigHeight": 6,
+                "Width": 0.33,
+                "SeamCurves": "smy",
+                "Caption": "Sectional loads, \\texttt{arrow\\_no\\_base}",
+                "SeamLocation": "bottom"
+            },
+            "LL_CY": {
+                "Type": "LL_arrow",
+                "Caption": "arrow\\_no\\_base/CY",
+                "Coefficient": "CY"
+            },
+            "LL_CN": {
+                "Type": "LL_arrow",
+                "Caption": "arrow\\_no\\_base/CN",
+                "Coefficient": "CN"
+            }
         }
     },
     

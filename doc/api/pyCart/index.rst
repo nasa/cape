@@ -15,4 +15,5 @@
         inputCntl
         aeroCsh
         preSpecCntl
+        dataBook
 
