@@ -21,7 +21,7 @@ from .options import Archive
 import cape.manage
 
 # Subdirectories
-fsub = []
+fsub = ["Flow"]
 
 # Archive folder
 def ArchiveFolder(opts):

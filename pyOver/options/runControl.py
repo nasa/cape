@@ -96,9 +96,9 @@ class RunControl(cape.options.runControl.RunControl):
         self._Archive()
         self._overrun()
     
-    # ============ 
-    # Initializers
-    # ============
+   # ============ 
+   # Initializers
+   # ============
    # <
    
     # Initialization and confirmation for nodet options
@@ -113,9 +113,9 @@ class RunControl(cape.options.runControl.RunControl):
             
    # >
     
-    # ===============
-    # OVERRUN options
-    # ===============
+   # ===============
+   # OVERRUN options
+   # ===============
    # <
     
     # Aux options
@@ -140,9 +140,9 @@ class RunControl(cape.options.runControl.RunControl):
     
    # >
    
-    # ============== 
-    # Local settings
-    # ==============
+   # ============== 
+   # Local settings
+   # ==============
    # <
    
     # Function to get prefix
@@ -164,9 +164,9 @@ class RunControl(cape.options.runControl.RunControl):
         
    # >
     
-    # =================
-    # Folder management
-    # =================
+   # =================
+   # Folder management
+   # =================
    # <
     # Initialization method for folder management options
     def _Archive(self):

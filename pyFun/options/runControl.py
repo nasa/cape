@@ -11,6 +11,8 @@ from .util import rc0, getel, odict
 
 # Import template module
 import cape.options.runControl
+# Submodules
+from .Archive import Archive
 
 # Class for `nodet` inputs
 class nodet(odict):
@@ -197,9 +199,9 @@ class RunControl(cape.options.runControl.RunControl):
         self._nodet()
         self._dual()
         
-    # ============ 
-    # Initializers
-    # ============
+   # ============ 
+   # Initializers
+   # ============
    # <
    
     # Initialization and confirmation for ``nodet`` options
@@ -224,9 +226,9 @@ class RunControl(cape.options.runControl.RunControl):
             
    # >
    
-    # ============== 
-    # Local settings
-    # ==============
+   # ============== 
+   # Local settings
+   # ==============
    # <
    
     # Keep Restart files?
@@ -491,6 +493,22 @@ class RunControl(cape.options.runControl.RunControl):
         
    # >
     
+   # =================
+   # Folder management
+   # =================
+   # <
+    # Initialization method for folder management options
+    def _Archive(self):
+        """Initialize folder management options if necessary"""
+        # Check status
+        if 'Archive' not in self:
+            # Missing entirely.
+            self['Archive'] = Archive()
+        elif type(self['Archive']).__name__ == 'dict':
+            # Convert to special class
+            self['Archive'] = Archive(**self['Archive'])
+    
+   # >
 # class RunControl
 
 
