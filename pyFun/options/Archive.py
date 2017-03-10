@@ -11,7 +11,7 @@ PltDict = [
 ]
 
 # Flow files
-flowDict = [
+CopyFiles = [
     {"*.flow": 1},
     {"*.ugrid": 1},
     {"*.cgns": 1}
