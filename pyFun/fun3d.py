@@ -1815,7 +1815,16 @@ class Fun3d(Cntl):
         # Loop through components
         for compID in self.config.GetCompID(comp):
             # Get the surf from MapBC
-            surfID = self.MapBC.GetSurfID(compID, check=True, warn=warn)
+            try:
+                surfID = self.MapBC.GetSurfID(compID, check=True, warn=False)
+            except Exception as e:
+                # Check for warnings
+                if warn:
+                    print("Warning: %s" % e.message)
+                    print("Warning: Failed to interpret compID '%s'" % comp)
+                else:
+                    raise ValueError(e.message + 
+                        ("\nFailed to interpret compID '%s'" % comp))
             # If one was found, append it
             if surfID is not None:
                 surf.append(surfID)
