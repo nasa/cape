@@ -1180,7 +1180,14 @@ class Cntl(object):
             if not os.path.isdir(frun):
                 print("  Folder does not exist.")
                 continue
-            elif self.CheckCaseStatus(i) != 'PASS':
+            # Get status
+            sts = self.CheckCaseStatus(i)
+            # Enter the case folder
+            os.chdir(frun)
+            # Perform cleanup
+            self.CleanPWD()
+            # Check status
+            if sts != 'PASS':
                 print("  Case is not marked PASS.")
                 continue
             # Go to the folder
@@ -1204,6 +1211,21 @@ class Cntl(object):
         """
         # Archive using the local module
         manage.ArchiveFolder(self.opts)
+    
+    # Individual case archive function
+    def CleanPWD(self):
+        """Archive a single case in the current folder ($PWD)
+        
+        :Call:
+            >>> cntl.CleanPWD()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control interface
+        :Versions:
+            * 2017-03-10 ``@ddalle``: First version
+        """
+        # Archive using the local module
+        manage.CleanFolder(self.opts)
    # >
     
    # =========

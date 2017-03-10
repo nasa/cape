@@ -1963,6 +1963,21 @@ class Fun3d(Cntl):
         """
         # Archive using the local module
         manage.ArchiveFolder(self.opts)
+    
+    # Individual case archive function
+    def CleanPWD(self):
+        """Archive a single case in the current folder ($PWD)
+        
+        :Call:
+            >>> fun3d.CleanPWD()
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control interface
+        :Versions:
+            * 2017-03-10 ``@ddalle``: First version
+        """
+        # Archive using the local module
+        manage.CleanFolder(self.opts)
         
         
 # class Fun3d

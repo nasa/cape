@@ -23,17 +23,32 @@ import cape.manage
 # Subdirectories
 fsub = []
 
+# Clear folder
+def CleanFolder(opts):
+    """Delete files before archiving and regardless of status
+    
+    :Call:
+        >>> pyOver.manage.CleanFolder(opts)
+    :Inputs:
+        *opts*: :class:`cape.options.Options`
+            Options interface including management/archive interface
+    :Versions:
+        * 2017-03-10 ``@ddalle``: First version
+    """
+    # Restrict options to correct class
+    opts = Archive.auto_Archive(opts)
+    # Call the :mod:`cape` version
+    cape.manage.CleanFolder(opts, fsub=fsub)
+
 # Archive folder
 def ArchiveFolder(opts):
     """Archive a folder to a backup location and clean up nonessential files
     
     :Call:
-        >>> pyOver.manage.ArchiveFolder(opts, fsub=[])
+        >>> pyOver.manage.ArchiveFolder(opts)
     :Inputs:
         *opts*: :class:`cape.options.Options`
             Options interface including management/archive interface
-        *fsub*: :class:`list` (:class:`str`)
-            List of globs of subdirectories that are adaptive run folders
     :Versions:
         * 2016-12-09 ``@ddalle``: First version
     """

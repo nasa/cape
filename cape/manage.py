@@ -692,6 +692,27 @@ def ManageFilesPost(opts=None, fsub=None, phantom=False):
 # MAIN FUNCTION
 # ----------------------------------------------------------------------------
 
+# Clear folder
+def CleanFolder(opts, fsub=[]):
+    """Delete files before archiving and regardless of status
+    
+    :Call:
+        >>> cape.manage.CleanFolder(opts, fsub=[])
+    :Inputs:
+        *opts*: :class:`cape.options.Options`
+            Options interface including management/archive interface
+        *fsub*: :class:`list` (:class:`str`)
+            List of globs of subdirectories that are adaptive run folders
+    :Versions:
+        * 2017-03-10 ``@ddalle``: First version
+    """
+    # Restrict options to correct class
+    opts = Archive.auto_Archive(opts)
+    # Perform deletions
+    ManageFilesProgress(opts)
+    
+        
+
 # Archive folder
 def ArchiveFolder(opts, fsub=[]):
     """Archive a folder to a backup location and clean up nonessential files
@@ -714,7 +735,7 @@ def ArchiveFolder(opts, fsub=[]):
     flfe = opts.get_ArchiveFolder()
     # Get the remote copy command
     fscp = opts.get_RemoteCopy()
-    # If no actiona, do nothing
+    # If no action, do nothing
     if not ftyp or not flfe: return
     
     # Get the current folder
