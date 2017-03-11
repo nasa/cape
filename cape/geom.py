@@ -171,17 +171,18 @@ def DistancePointToCurve(x, X):
     dy = x[1] - X[:,1]
     dz = x[2] - X[:,2]
     # Dot products of end-to-end and end-to-*x* vectors
-    c = dX[:,0]*dx[:-1] + dX[:,1]*dy[:-1] + dX[:,2]*dz[:-1]
+    c1 = dX[:,0]*dx[:-1] + dX[:,1]*dy[:-1] + dX[:,2]*dz[:-1]
+    c2 = dX[:,0]*dx[1:]  + dX[:,1]*dy[1:]  + dX[:,2]*dz[1:]
     # Distance from *x* to each vertex
     di = np.sqrt(dx*dx + dy*dy + dz*dz)
     # Initialize with distance to first point
     D = np.fmin(di[:-1], di[1:])
     # Test for interior points
-    I = np.logical_and(c[:-1]>0, c[1:]<0)
+    I = np.logical_and(c1>0, c2<0)
     # Compute cross products for those segments
-    A0 = dX[I,1]*dz[I] - dX[I,2]*dy[I]
-    A1 = dX[I,2]*dx[I] - dX[I,0]*dz[I]
-    A2 = dX[I,0]*dy[I] - dX[I,1]*dx[I]
+    A0 = dX[I,1]*dz[:-1][I] - dX[I,2]*dy[:-1][I]
+    A1 = dX[I,2]*dx[:-1][I] - dX[I,0]*dz[:-1][I]
+    A2 = dX[I,0]*dy[:-1][I] - dX[I,1]*dx[:-1][I]
     # Arc lengths
     ds = np.sqrt(np.sum(dX[I,:]**2, axis=1))
     # Apply interior distances
