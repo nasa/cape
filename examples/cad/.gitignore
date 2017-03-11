@@ -20,7 +20,9 @@ fins/
 *.def
 *.crv
 *.srf
+*.xry
 *.surf
 *.vol
+*.ovfi
 *.cgns
 *.arg

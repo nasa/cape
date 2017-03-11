@@ -18,6 +18,12 @@ mixsur.i
 # Settings
 .overgridrc
 
+# Other files created
+*.hypi
+*.ovfi
+*.mvlog
+*.bvinp
+
 # Various temporary files created by CGT
 surgrd.*
 triged.*
@@ -30,6 +36,7 @@ plane.dat
 plane.fmt
 stretch.i
 hypgen.*
+grided.jou
 BuildOveri.o
 
 # In practice, it seems that most temp grids will be caught by these

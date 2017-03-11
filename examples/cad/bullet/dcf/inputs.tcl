@@ -23,7 +23,7 @@ set Par(sr,slow) 1.1
 # ------
 # Main marching distance
 # ------
-set Par(md)              3.0
+set Par(md)              5.0
 set Par(md,protub)       2.0
 set Par(md,protub,small) 1.0
 # ------
