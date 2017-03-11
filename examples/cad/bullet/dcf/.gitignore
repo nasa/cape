@@ -1,0 +1,44 @@
+
+# Cutter files
+*cut.i.tri
+
+# Output files
+xrays.in
+Composite.*
+overflow.inp
+Config.xml
+mixsur.i
+*.old
+*.BAD
+*.com
+\ *
+1\ *
+
+
+# Settings
+.overgridrc
+
+# Various temporary files created by CGT
+surgrd.*
+triged.*
+srapi.dat
+srap.*
+surf.i
+*.i
+plot3d.dat
+plane.dat
+plane.fmt
+stretch.i
+hypgen.*
+BuildOveri.o
+
+# In practice, it seems that most temp grids will be caught by these
+# It's a convenience to keep `git status` cleaner while developing
+[a-z].*
+[a-z][a-z0-9].*
+tfi.*
+ref.*
+cur.*
+curs.*
+tmp.*
+
