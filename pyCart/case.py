@@ -297,8 +297,10 @@ def RunAdaptive(rc, i):
     else:
         # Initial case and create grid
         cmdi = ['./aero.csh']
+    # Verbosity option
+    v_fc = rc.get_Verbose()
     # Run the command.
-    bin.callf(cmdi, f='flowCart.out')
+    bin.callf(cmdi, f='flowCart.out', v=v_fc)
     # Check for point sensors
     if os.path.isfile(os.path.join('BEST', 'pointSensors.dat')):
         # Collect point sensor data
@@ -336,6 +338,8 @@ def RunWithRestarts(rc, i):
     # Start and end iterations
     n0 = n
     n1 = n + it_fc
+    # Get verbose option
+    v_fc = rc.get_Verbose()
     # Loop through iterations.
     for j in range(it_fc):
         # flowCart command automatically accepts *it_avg*; update *n*
@@ -354,7 +358,7 @@ def RunWithRestarts(rc, i):
             # Normal stops every *it_avg* iterations.
             cmdi = cmd.flowCart(fc=rc, i=i, n=n)
         # Run the command for *it_avg* iterations.
-        bin.callf(cmdi, f='flowCart.out')
+        bin.callf(cmdi, f='flowCart.out', v=v_fc)
         # Automatically determine the best check file to use.
         SetRestartIter()
         # Get new iteration count.
@@ -378,7 +382,7 @@ def RunWithRestarts(rc, i):
         manage.ClearCheck_iStart(nkeep=1, istart=n0)
     # Write the averaged triq file
     if rc.get_clic(i):
-        triq.Write('Components.%i.%i.%i.triq' % (j+1, n0+1, n))
+        triq.Write('Components.%i.%i.%i.triq' % (j+1, n0, n))
     # Write the point sensor history file.
     try:
         if PS.nIter > 0:
@@ -406,10 +410,12 @@ def RunFixed(rc, i):
     else:
         # Get the number of previous steady steps.
         n = GetSteadyIter()
+    # Get verbosity option
+    v_fc = rc.get_Verbose()
     # Call flowCart directly.
     cmdi = cmd.flowCart(fc=rc, i=i, n=n)
     # Run the command.
-    bin.callf(cmdi, f='flowCart.out')
+    bin.callf(cmdi, f='flowCart.out', v=v_fc)
     # Check for point sensors
     if os.path.isfile('pointSensors.dat'):
         # Collect point sensor data

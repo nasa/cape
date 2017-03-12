@@ -83,19 +83,11 @@ folder, create a case folder for the first set of conditions to run, and call
           Reading tri file(s) from root directory.
              Writing triangulation: 'Components.i.tri'
          > autoInputs -r 8 -t Components.i.tri -maxR 10
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/01_bullet/poweroff')
-             (STDOUT = 'autoInputs.out')
          > cubes -pre preSpec.c3d.cntl -maxR 10 -reorder -a 10 -b 2
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/01_bullet/poweroff')
-             (STDOUT = 'cubes.out')
          > mgPrep -n 3
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/01_bullet/poweroff')
-             (STDOUT = 'mgPrep.out')
         Using template for 'input.cntl' file
              Starting case 'poweroff/m1.5a0.0b0.0'.
          > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -binaryIO -tm 0
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/01_bullet/poweroff/m1.5a0.0b0.0')
-             (STDOUT = 'flowCart.out')
         
         Submitted or ran 1 job(s).
         
@@ -138,8 +130,6 @@ Let's run another case.
         Using template for 'input.cntl' file
              Starting case 'poweroff/m2.0a0.0b0.0'.
          > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -binaryIO -tm 0
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/01_bullet/poweroff/m2.0a0.0b0.0')
-             (STDOUT = 'flowCart.out')
         
         Submitted or ran 1 job(s).
         
@@ -181,14 +171,10 @@ the following results.
         Using template for 'input.cntl' file
              Starting case 'poweroff/m2.0a2.0b0.0'.
          > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -binaryIO -tm 0
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/01_bullet/poweroff/m2.0a2.0b0.0')
-             (STDOUT = 'flowCart.out')
         3    poweroff/m2.0a2.0b2.0 ---     /           .   
         Using template for 'input.cntl' file
              Starting case 'poweroff/m2.0a2.0b2.0'.
          > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -binaryIO -tm 0
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/01_bullet/poweroff/m2.0a2.0b2.0')
-             (STDOUT = 'flowCart.out')
         
         Submitted or ran 2 job(s).
         

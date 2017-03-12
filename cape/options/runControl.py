@@ -118,9 +118,9 @@ class RunControl(odict):
         self._intersect()
         self._verify()
     
-    # ===========
-    # Environment
-    # ===========
+   # ===========
+   # Environment
+   # ===========
    # <
     
     # Environment variable interface
@@ -150,9 +150,9 @@ class RunControl(odict):
         eval('set_'+k).__doc__ = getattr(Environ,'set_'+k).__doc__
    # >
    
-    # ===============
-    # Resource Limits
-    # ===============
+   # ===============
+   # Resource Limits
+   # ===============
    # <
    
     # Environment variable interface
@@ -387,9 +387,9 @@ class RunControl(odict):
     set_file_locks_limit     = set_ulimit_x
    # >
    
-    # =====
-    # AFLR3
-    # =====
+   # =====
+   # AFLR3
+   # =====
    # <
    
     # AFLR3 variable interface
@@ -544,9 +544,9 @@ class RunControl(odict):
         eval('set_'+k).__doc__ = getattr(aflr3.aflr3,'set_'+k).__doc__
    # >
     
-    # =========
-    # intersect
-    # =========
+   # =========
+   # intersect
+   # =========
    # <
    
     # ``itnersect`` variable interface
@@ -630,9 +630,9 @@ class RunControl(odict):
         eval('set_'+k).__doc__ = getattr(intersect.intersect,'set_'+k).__doc__
    # >
    
-    # ======
-    # verify
-    # ======
+   # ======
+   # verify
+   # ======
    # <
    
     # ``verify`` interface
@@ -706,9 +706,9 @@ class RunControl(odict):
         eval('set_'+k).__doc__ = getattr(intersect.verify,'set_'+k).__doc__
    # >
    
-    # =================
-    # Folder management
-    # =================
+   # =================
+   # Folder management
+   # =================
    # <
     
     # Initialization method for folder management optoins
@@ -997,9 +997,9 @@ class RunControl(odict):
         eval('add_'+k).__doc__ = getattr(Archive.Archive,'add_'+k).__doc__
    # >
     
-    # =============== 
-    # Local Functions
-    # ===============
+   # =============== 
+   # Local Functions
+   # ===============
    # <
     # Number of iterations
     def get_nIter(self, i=None):
@@ -1434,6 +1434,25 @@ class RunControl(odict):
             * 2016-04-06 ``@ddalle``: First version
         """
         self.set_key('PreMesh', preMesh, i)
+    
+    # Get verbosity
+    def get_Verbose(self, i=0):
+        """Get the verbosity flag from the "RunControl" section
+        
+        :Call:
+            >>> v = opts.get_Verbose(i=0)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *i*: {``0``} | :class:`int`
+                Phase number
+        :Outputs:
+            *v*: ``True`` | {``False``}
+                Verbosity
+        :Versions:
+            * 2017-03-12 ``@ddalle``: First version
+        """
+        return self.get_key("Verbose", i)
    # >
    
 # class RunControl

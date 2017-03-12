@@ -19,21 +19,11 @@ run the first case in the ``$PYCART/examples/pycart/04_bJet`` folder.
           Reading tri file(s) from root directory.
              Writing triangulation: 'Components.i.tri'
          > autoInputs -r 8 -t Components.i.tri -maxR 11 -nDiv 4
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/04_bJet/poweroff/m0.84a0.0b0.0')
-             (STDOUT = 'autoInputs.out')
          > cubes -pre preSpec.c3d.cntl -maxR 11 -reorder -a 10 -b 2
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/04_bJet/poweroff/m0.84a0.0b0.0')
-             (STDOUT = 'cubes.out')
          > mgPrep -n 3
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/04_bJet/poweroff/m0.84a0.0b0.0')
-             (STDOUT = 'mgPrep.out')
              Starting case 'poweroff/m0.84a0.0b0.0'.
          > flowCart -his -clic -N 200 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -tm 0
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/04_bJet/poweroff/m0.84a0.0b0.0')
-             (STDOUT = 'flowCart.out')
          > flowCart -his -clic -restart -N 300 -y_is_spanwise -limiter 2 -T -cfl 1.1 -mg 3 -tm 1
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/04_bJet/poweroff/m0.84a0.0b0.0')
-             (STDOUT = 'flowCart.out')
         
         Submitted or ran 1 job(s).
         

@@ -18,8 +18,15 @@ def cubes(cart3d=None, opts=None, j=0, **kwargs):
     _assertfile('input.c3d')
     # Get command
     cmdi = cmd.cubes(cart3d=cart3d, opts=opts, j=j, **kwargs)
+    # Get verbose option
+    if cart3d:
+        v = cart3d.opts.get_Verbose(j)
+    elif opts:
+        v = opts.get_Verbose(j)
+    else:
+        v = True
     # Run the command.
-    callf(cmdi, f='cubes.out')
+    callf(cmdi, f='cubes.out', v=v)
 # Docstring
 cubes.__doc__ = _upgradeDocString(cmd.cubes.__doc__)
     
@@ -29,8 +36,15 @@ def mgPrep(cart3d=None, opts=None, j=0, **kwargs):
     _assertfile('Mesh.R.c3d')
     # Get the command.
     cmdi = cmd.mgPrep(cart3d=cart3d, opts=opts, j=j, **kwargs)
+    # Get verbose option
+    if cart3d:
+        v = cart3d.opts.get_Verbose(j)
+    elif opts:
+        v = opts.get_Verbose(j)
+    else:
+        v = True
     # Run the command.
-    callf(cmdi, f='mgPrep.out')
+    callf(cmdi, f='mgPrep.out', v=v)
 # Docstring
 mgPrep.__doc__ = _upgradeDocString(cmd.mgPrep.__doc__)
     
@@ -38,8 +52,15 @@ mgPrep.__doc__ = _upgradeDocString(cmd.mgPrep.__doc__)
 def autoInputs(cart3d=None, opts=None, j=0, **kwargs):
     # Get command.
     cmdi = cmd.autoInputs(cart3d, opts=opts, j=j, **kwargs)
+    # Get verbose option
+    if cart3d:
+        v = cart3d.opts.get_Verbose(j)
+    elif opts:
+        v = opts.get_Verbose(j)
+    else:
+        v = True
     # Run the command.
-    callf(cmdi, f='autoInputs.out')
+    callf(cmdi, f='autoInputs.out', v=v)
     # Fix the name of the triangulation in the 'input.c3d' file
     # Read the intersect file.
     lines = open('input.c3d').readlines()
@@ -66,8 +87,15 @@ def flowCart(cart3d=None, i=0, **kwargs):
         os.environ['OMP_NUM_THREADS'] = str(nProc)
     # Get command.
     cmdi = cmd.flowCart(cart3d=cart3d, i=i, **kwargs)
+    # Get verbose option
+    if cart3d:
+        v = cart3d.opts.get_Verbose(j)
+    elif opts:
+        v = opts.get_Verbose(j)
+    else:
+        v = True
     # Run the command
-    callf(cmdi, f='flowCart.out')
+    callf(cmdi, f='flowCart.out', v=v)
 # Docstring
 flowCart.__doc__ = _upgradeDocString(cmd.flowCart.__doc__)
 

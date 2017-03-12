@@ -16,17 +16,11 @@ adaptive meshing capability.  It can be found in the
           Reading tri file(s) from root directory.
             Writing triangulation: 'Components.i.tri'
          > autoInputs -r 8 -t Components.i.tri -maxR 8 -nDiv 4
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/05_adapt_bJet/poweroff')
-             (STDOUT = 'autoInputs.out')
              Starting case 'poweroff/m0.82a0.0b0.0'.
          > ./aero.csh
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/05_adapt_bJet/poweroff/m0.82a0.0b0.0')
-             (STDOUT = 'flowCart.out')
         adapt00 --> adapt00.tar
         adapt01 --> adapt01.tar
          > ./aero.csh restart
-             (PWD = '/u/wk/ddalle/usr/pycart/examples/pycart/05_adapt_bJet/poweroff/m0.82a0.0b0.0')
-             (STDOUT = 'flowCart.out')
         adapt03 --> adapt03.tar
         adapt02 --> adapt02.tar
         

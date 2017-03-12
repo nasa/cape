@@ -82,3 +82,51 @@ following ``"RunControl"`` section in :file:`pyCart.json`.
                 "reorder": true
             }
         }
+
+As previously, the *RunControl* > *flowCart* > *it_fc* option controls how many
+iterations ``flowCart`` runs for.  The *it_avg* and *it_start* are new options.
+The idea is that Cart3D will be run for *it_avg* iterations at a time.  pyCart
+then calculates a cumulative average ``triq`` file that updates after each
+*it_avg* iterations.  However, it first runs *it_start* iterations before
+initiating this start-stop behavior.  This prevents initial iterations from
+corrupting the average.
+
+If we run one case, there is a lot of output printed to STDOUT, and it looks
+something like this.  **Note:** This is set up to run
+
+    .. code-block:: console
+    
+        $ pycart -I 0
+        Case Config/Run Directory   Status  Iterations  Que CPU Time 
+        ---- ---------------------- ------- ----------- --- --------
+        0    poweroff/m1.25a0.0b0.0 ---     /           .            
+          Group name: 'poweroff' (index 0)
+          Preparing surface triangulation...
+          Reading tri file(s) from root directory.
+         > autoInputs -r 6 -t Components.i.tri -maxR 8 -nDiv 4
+         > cubes -pre preSpec.c3d.cntl -maxR 8 -reorder -a 8 -b 2
+         > mgPrep -n 3
+             Starting case 'poweroff/m1.25a0.0b0.0'
+         > flowCart -his -clic -N 100 ...
+         > flowCart -his -clic -restart -N 110 ...
+         > flowCart -his -clic -restart -N 120 ...
+         > flowCart -his -clic -restart -N 130 ...
+         > flowCart -his -clic -restart -N 140 ...
+         > flowCart -his -clic -restart -N 150 ...
+         > flowCart -his -clic -restart -N 160 ...
+         > flowCart -his -clic -restart -N 170 ...
+         > flowCart -his -clic -restart -N 180 ...
+         > flowCart -his -clic -restart -N 190 ...
+         > flowCart -his -clic -restart -N 200 ...
+             Writing triangulation: 'Components.11.100.200.triq'
+        
+        Submitted or ran 1 job(s).
+        
+        ---=1, 
+        
+This lengthy output explains more clearly what is meant by running ``flowCart``
+10 iterations at a time.  The iteration-averaged surface file that gets created
+at the end, ``Components.11.100.200.triq``, explains the contents of the file. 
+Specifically, it says that the file contains input from 11 iterations between
+100 and 200.
+

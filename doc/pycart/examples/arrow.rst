@@ -97,31 +97,33 @@ various Cart3D programs.
     .. code-block:: javascript
     
         "RunControl": {
-        // Run sequence
-        "PhaseSequece": [0],
-        "PhaseIters": [200],
-        // System configuration
-	    "nProc": 4,
-	    // Options for ``flowCart``
-	    "flowCart": {
-            "it_fc": 200,
-            "mpi_fc": 0,
-            "use_aero_csh": 0,
-            "cfl": 1.1,
-            "mg_fc": 3,
-            "y_is_spanwise": true
+            // Run sequence
+            "PhaseSequece": [0],
+            "PhaseIters": [200],
+            // Verbosity
+            "Verbose": true,
+            // System configuration
+            "nProc": 4,
+            // Options for ``flowCart``
+            "flowCart": {
+                "it_fc": 200,
+                "mpi_fc": 0,
+                "use_aero_csh": 0,
+                "cfl": 1.1,
+                "mg_fc": 3,
+                "y_is_spanwise": true
+            },
+            // Defines the flow domain automatically
+            "autoInputs": {"r": 8},
+            // Volume mesh options
+            "cubes": {
+                "maxR": 10,
+                "pre": "preSpec.c3d.cntl",
+                "cubes_a": 10,
+                "cubes_b": 2,
+                "reorder": true
+            }
         },
-        // Defines the flow domain automatically
-        "autoInputs": {"r": 8},
-        // Volume mesh options
-        "cubes": {
-            "maxR": 10,
-            "pre": "preSpec.c3d.cntl",
-            "cubes_a": 10,
-            "cubes_b": 2,
-            "reorder": true
-        }
-	},
         
 The ``"flowCart"`` section contains command-line inputs for running
 ``flowCart``, which is the main flow solver of Cart3D, or ``mpix_flowCart``,
@@ -148,12 +150,18 @@ required for any pyCart project) are *PhaseSequence*, *PhaseIters*, and
     |                 | run's results as inputs to the second                 |
     +-----------------+-------------------------------------------------------+
     
-For a simple case, these parameters seem unnecessarily confusing.  Why not just
-tell ``flowCart`` how many iterations to run and be done with it?  For one
+The *Verbose* option is relatively self-explanatory in that more information is
+printed to either the terminal or the PBS output file.  In particular, each
+command that is issued to the top-level terminal also prints the name of the
+directory in which it is run and the name of the file storing its STDOUT
+output.
+    
+For a simple case, these parameters seem unnecessarily confusing. Why not just
+tell ``flowCart`` how many iterations to run and be done with it? For one
 thing, *IterSeq* specifies a required number of iterations whereas *it_fc* just
-suggests to ``flowCart`` or ``mpix_flowCart`` how many iterations to run.  If
-``flowCart`` exits early due to some kind of failure, this convention means that
-pyCart will clearly alert us.
+suggests to ``flowCart`` or ``mpix_flowCart`` how many iterations to run. If
+``flowCart`` exits early due to some kind of failure, this convention means
+that pyCart will clearly alert us.
 
 Secondly, some applications require more sophisticated approach. A common
 example is a hypersonic case that needs to be run in first-order mode for a few
@@ -162,10 +170,10 @@ iterations first. It might have something like ``"PhaseIters": [0, 400]`` and
 has run at least ``0`` iterations and then phase ``1`` until it has run at
 least ``400`` iterations.
 
-The remaining inputs are quite a bit simpler. For example *nProc* sets the total
-number of cores or threads to use. The next section allows pyCart to use the
-Cart3D binary ``autoInputs`` to create the flow domain and basic volume mesh
-parameters with the command ``autoInputs -r 8``, which sets the farfield
+The remaining inputs are quite a bit simpler. For example *nProc* sets the
+total number of cores or threads to use. The next section allows pyCart to use
+the Cart3D binary ``autoInputs`` to create the flow domain and basic volume
+mesh parameters with the command ``autoInputs -r 8``, which sets the farfield
 boundary at roughly 8 times the size of your surface triangulation.
 
 Running ``autoInputs`` creates files ``input.c3d`` and ``preSpec.c3d.cntl``,
@@ -179,8 +187,8 @@ which are given as inputs to the volume generator ``cubes``.
         },
         
 The *Mesh* section controls inputs to the Cart3D commands that produce the
-volume mesh.  The *TriFile* setting is relatively obvious and points to the name
-of the surface triangulation.  
+volume mesh. The *TriFile* setting is relatively obvious and points to the name
+of the surface triangulation.
 
     .. code-block:: javascript
     
@@ -207,8 +215,8 @@ such component. In this case, the moments will be reported alongside the forces
 in :file:`bullet_no_base.dat`.
 
 The *RefArea* and *RefLength* parameters are used here to specify global
-reference values, but it is possible to use different reference lengths or areas
-for different components in the same run.
+reference values, but it is possible to use different reference lengths or
+areas for different components in the same run.
 
     .. code-block:: javascript
     

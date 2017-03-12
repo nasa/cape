@@ -4,6 +4,8 @@
         // Run sequence
         "PhaseSequece": [0],
         "PhaseIters": [200],
+        // Verbose
+        "Verbose": true,
         // System configuration
 	    "nProc": 4,
 	    // Options for ``flowCart``

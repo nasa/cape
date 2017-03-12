@@ -599,6 +599,13 @@ class Options(odict):
     # Copy documentation
     get_nSeq.__doc__ = RunControl.get_nSeq.__doc__
     
+    # Verbose option
+    def get_Verbose(self, i=None):
+        self._RunControl()
+        return self['RunControl'].get_Verbose(i)
+    # Copy documentation
+    get_Verbose.__doc__ = RunControl.get_Verbose.__doc__
+    
     # Get number of iterations
     def get_nIter(self, i=None):
         self._RunControl()

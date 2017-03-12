@@ -26,11 +26,11 @@ import subprocess as sp
 from . import cmd
 
 # Function to call commands with a different STDOUT
-def calli(cmdi, f=None, shell=None):
+def calli(cmdi, f=None, shell=None, v=True):
     """Call a command with alternate STDOUT by filename
     
     :Call:
-        >>> calli(cmdi, f=None, shell=None)
+        >>> calli(cmdi, f=None, shell=None, v=True)
     :Inputs:
         *cmdi*: :class:`list` (:class:`str`)
             List of strings as for :func:`subprocess.call`
@@ -38,23 +38,28 @@ def calli(cmdi, f=None, shell=None):
             File name to which to store STDOUT
         *shell*: :class:`bool`
             Whether or not a shell is needed
+        *v*: {``True``} | :class:`False`
+            Verbose option; display *PWD* and *STDOUT* values
     :Outputs:
         *ierr*: :class:`int`
             Return code, ``0`` for successful execution
     :Versions:
         * 2014-08-30 ``@ddalle``: First version
         * 2015-02-13 ``@ddalle``: Split into part with return code
+        * 2017-03-12 ``@ddalle``: Added *v* option
     """
     # Process the shell option
     shell = bool(shell)
     # Print the command.
     print(" > " + " ".join(cmdi))
     # Print the current location.
-    print("     (PWD = '%s')" % os.getcwd())
+    if v:
+        print("     (PWD = '%s')" % os.getcwd())
     # Check for an output
     if f:
         # Print the location of STDOUT
-        print("     (STDOUT = '%s')" % str(f))
+        if v:
+            print("     (STDOUT = '%s')" % str(f))
         # Open the file.
         fid = open(f, 'w')
         # Call the command.
@@ -68,11 +73,11 @@ def calli(cmdi, f=None, shell=None):
     return ierr
         
 # Function to call commands with a different STDOUT
-def callf(cmdi, f=None, shell=None, t=None):
+def callf(cmdi, f=None, shell=None, v=True):
     """Call a command with alternate STDOUT by filename
     
     :Call:
-        >>> callf(cmdi, f=None, shell=None)
+        >>> callf(cmdi, f=None, shell=None, v=True)
     :Inputs:
         *cmdi*: :class:`list` (:class:`str`)
             List of strings as for :func:`subprocess.call`
@@ -80,12 +85,15 @@ def callf(cmdi, f=None, shell=None, t=None):
             File name to which to store STDOUT
         *shell*: :class:`bool`
             Whether or not a shell is needed
+        *v*: {``True``} | :class:`False`
+            Verbose option; display *PWD* and *STDOUT* values
     :Versions:
         * 2014-08-30 ``@ddalle``: First version
         * 2015-02-13 ``@ddalle``: Split most of code to :func:`cape.bin.calli`
+        * 2017-03-12 ``@ddalle``: Added *v* option
     """
     # Call the command with output status
-    ierr = calli(cmdi, f, shell)
+    ierr = calli(cmdi, f, shell, v=v)
     # Check the status.
     if ierr:
         # Remove RUNNING file.

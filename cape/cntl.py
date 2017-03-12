@@ -687,7 +687,7 @@ class Cntl(object):
         os.chdir(self.RootDir)
         os.chdir(frun)
         # Print status.
-        print("     Starting case '%s'." % frun)
+        print("     Starting case '%s'" % frun)
         # Start the case by either submitting or calling it.
         pbs = self.CaseStartCase()
         # Display the PBS job ID if that's appropriate.
