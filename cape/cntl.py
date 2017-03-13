@@ -1190,8 +1190,6 @@ class Cntl(object):
             if sts != 'PASS':
                 print("  Case is not marked PASS.")
                 continue
-            # Go to the folder
-            os.chdir(frun)
             # Archive
             self.ArchivePWD()
         # Got back to original location
