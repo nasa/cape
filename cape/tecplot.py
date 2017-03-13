@@ -1114,13 +1114,17 @@ class Tecscript(FileCntl):
                 gmin = grps[i-1]+1
             # End index
             gmax = grps[i]
-            # Check for null group
+            # Check for null group, single zone, or multiple zone
             if gmin > gmax:
-                # Delete the command
+                # Null group; delete the command
                 self.DeleteCommandN('FIELDMAP', i)
                 continue
-            # Set value
-            self.SetPar('FIELDMAP', "[%s-%s]" % (gmin, gmax), i)
+            elif gmin == gmax:
+                # Single group
+                self.SetPar('FIELDMAP', "[%s]" % gmin, i)
+            else:
+                # Range
+                self.SetPar('FIELDMAP', "[%s-%s]" % (gmin, gmax), i)
         # Set the total number of maps
         self.SetPar('ACTIVEFIELDMAPS', "= [1-%s]" % grps[-1], 0)
         
