@@ -2882,6 +2882,7 @@ class Report(object):
                 try:
                     tec.SetFieldMap(grps)
                 except Exception:
+                    print("  Warning: FieldMap update '%s' failed" % grps)
                     pass
             # Layout
             self.PrepTecplotLayoutVars(tec, sfig, i)
