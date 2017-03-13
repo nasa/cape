@@ -77,7 +77,8 @@
         // Line load
         "ll_arrow": {
             "Type": "LineLoad",
-            "CompID": "arrow_no_base"
+            "CompID": "arrow_no_base",
+            "nCut": 100
         }
     },
     
@@ -138,7 +139,12 @@
             "arrow_CN": {"Type": "arrow", "Coefficient": "CN"},
             "arrow_CLL": {"Type": "arrow", "Coefficient": "CLL"},
             "arrow_CLM": {"Type": "arrow", "Coefficient": "CLM"},
-            "arrow_CLN": {"Type": "arrow", "Coefficient": "CLN"},
+            "arrow_CLN": {
+                "Type": "arrow",
+                "Coefficient": "CLN",
+                "MuFormat": "%.2e",
+                "SigmaFormat": "%.2e"
+            },
             // Residual history
             "L1": {
                 "Type": "PlotL1",
@@ -155,7 +161,6 @@
                 "FigHeight": 6,
                 "Width": 0.33,
                 "SeamCurves": "smy",
-                "Caption": "Sectional loads, \\texttt{arrow\\_no\\_base}",
                 "SeamLocation": "bottom"
             },
             "LL_CY": {
