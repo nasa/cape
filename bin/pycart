@@ -72,6 +72,12 @@ if __name__ == "__main__":
     elif kw.get('archive'):
         # Archive cases
         cart3d.ArchiveCases(**kw)
+    elif kw.get('unarchive'):
+        # Unarchive cases
+        cart3d.UnarchiveCases(**kw)
+    elif kw.get('clean'):
+        # Clean up cases
+        cart3d.CleanCases(**kw)
     elif kw.get('apply'):
         # Apply JSON settings
         cart3d.ApplyFlowCartSettings(**kw)

@@ -58,6 +58,12 @@ if __name__ == "__main__":
     elif kw.get('archive'):
         # Archive cases
         fun3d.ArchiveCases(**kw)
+    elif kw.get('unarchive'):
+        # Unarchive cases
+        fu3nd.UnarchiveCases(**kw)
+    elif kw.get('clean'):
+        # Clean up cases
+        fun3d.CleanCases(**kw)
     elif kw.get('report'):
         # Get the report(s) to create.
         if kw['report'] == True:
