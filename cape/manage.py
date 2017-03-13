@@ -790,7 +790,7 @@ def ArchiveFolder(opts, fsub=[]):
 # ----------------------------------------------------------------------------
 
 # Function to copy files to archive for one glob
-def ArchiveFiles(opts, fsub=None, archive=False, phantom=False):
+def ArchiveFiles(opts, fsub=None, phantom=False):
     """Delete files that match a list of glob
     
     The function also searches in any folder matching the directory glob or list
@@ -862,14 +862,14 @@ def ArchiveFiles(opts, fsub=None, archive=False, phantom=False):
         if ':' in flfe:
             # Status update
             write_log("  %s %s %s" % (fscp, fsrc, fto))
-            if archive: continue
+            if phantom: continue
             # Remote copy the file
             ierr = sp.call([fscp, fsrc, fto])
             if ierr: raise SystemError("Remote copy failed.")
         else:
             # Status update
             write_log("  cp %s %s" % (fsrc, fto))
-            if archive: continue
+            if phantom: continue
             # Local copy
             shutil.copy(fsrc, fto)
             
