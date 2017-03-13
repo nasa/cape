@@ -138,6 +138,36 @@ def getmtime(fname):
         else:
             # No file
             return None
+
+# Get latest modification time of a glob
+def getmtime_glob(fglob):
+    """Get the modification time of a glob, using ``ssh`` if necessary
+    
+    :Call:
+        >>> t = getmtime_glob(fglob)
+    :Inputs:
+        *fglob*: :class:`list` (:class:`str`)
+            List if names of files
+    :Outputs:
+        *t*: :class:`float` | ``None``
+            Modification time of most recently modified file
+    :Versions:
+        * 2017-03-13 ``@ddalle``: First version
+    """
+    # Initialize output
+    t = 0
+    # Loop through files
+    for fname in fglob:
+        # Get modification time of the file
+        ti = getmtime(fname)
+        # Check if ``None``
+        if ti:
+            t = max(t, ti)
+    # Filter ``0``
+    if t == 0:
+        t = None
+    # Output
+    return t
     
 # File is broken link
 def isbrokenlink(fname):
@@ -1022,6 +1052,16 @@ def TarGroup(cmd, ftar, fname, n=0, clean=False):
     fglob = [f for f in fglob if not f.endswith(ext)]
     # Exit if not matches
     if len(fglob) < 2: return
+    # Get modification times
+    tsrc = getmtime_glob(fglob)
+    tto = getmtime(ftar)
+    # Check if archive needs to be created/updated
+    if (tsrc is None):
+        # No files to copy
+        return
+    elif (tto is not None) and (tto >= tsrc):
+        # Archive is up-to-date
+        return
     # Create command
     cmdc = cmd + [ftar] + fglob
     # Write to the log
