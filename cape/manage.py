@@ -37,6 +37,8 @@ import numpy as np
 from datetime import datetime
 # Options module
 from .options import Archive
+# Local STDOUT catcher
+from .bin import check_output
 
 # Write date to archive
 def write_log_date(fname='archive.log'):
@@ -138,6 +140,36 @@ def getmtime(fname):
         else:
             # No file
             return None
+
+# Get latest modification time of a glob
+def getmtime_glob(fglob):
+    """Get the modification time of a glob, using ``ssh`` if necessary
+    
+    :Call:
+        >>> t = getmtime_glob(fglob)
+    :Inputs:
+        *fglob*: :class:`list` (:class:`str`)
+            List if names of files
+    :Outputs:
+        *t*: :class:`float` | ``None``
+            Modification time of most recently modified file
+    :Versions:
+        * 2017-03-13 ``@ddalle``: First version
+    """
+    # Initialize output
+    t = 0
+    # Loop through files
+    for fname in fglob:
+        # Get modification time of the file
+        ti = getmtime(fname)
+        # Check if ``None``
+        if ti:
+            t = max(t, ti)
+    # Filter ``0``
+    if t == 0:
+        t = None
+    # Output
+    return t
     
 # File is broken link
 def isbrokenlink(fname):
@@ -710,7 +742,6 @@ def CleanFolder(opts, fsub=[]):
     opts = Archive.auto_Archive(opts)
     # Perform deletions
     ManageFilesProgress(opts)
-    
         
 
 # Archive folder
@@ -782,15 +813,135 @@ def ArchiveFolder(opts, fsub=[]):
         PostDeleteFiles(opts, fsub=fsub)
         PostUpdateFiles(opts, fsub=fsub)
         PostDeleteDirs(opts)
-    
 # def ArchiveFolder
+
+# Unarchive folder
+def UnarchiveFolder(opts):
+    """Unarchive a case archived as a single tar ball or multiple files
+    
+    :Call:
+        >>> cape.manage.UnarchiveFolder(opts)
+    :Inputs:
+        *opts*: :class:`cape.options.Options`
+            Options interface
+    :Versions:
+        * 2017-03-13 ``@ddalle``: First version
+    """
+    # Restrict options to correct (sub)class
+    opts = Archive.auto_Archive(opts)
+    # Get archive type
+    ftyp = opts.get_ArchiveType()
+    # Get the archive root directory
+    flfe = opts.get_ArchiveFolder()
+    # Get the remote copy command
+    fscp = opts.get_RemoteCopy()
+    # If not action, do nothing
+    if not ftyp or not flfle: return
+    
+    # Get the current fodler
+    fdir = os.path.split(os.getcwd())[-1]
+    # Go up one folder to the group directory
+    os.chdir('..')
+    # Get the group folder
+    fgrp = os.path.split(os.getcwd())[-1]
+    # Get the combined case fodler name
+    frun = os.path.join(fgrp, fdir)
+    # Reenter case folder
+    os.chdir(fdir)
+    
+    # Get the archive format, extension, and command
+    fmt  = opts.get_ArchiveFormat()
+    cmdu = opts.get_UnarchiveCmd()
+    ext  = opts.get_ArchiveExtension()
+    # Check for a single tar ball
+    if ftyp.lower() == "full":
+        # Unarchive single tar ball
+        UnarchiveCaseWhole(opts)
+        return
+    elif ':' in flfe:
+        # Remote
+        fremote = True
+        # Split host name
+        fhost, fldir = flfe.split(':')
+        # Full remote source name
+        frdir = os.path.join(fldir, frun)
+        fdir = os.path.join(flfe, frun)
+        # Check if the remote archive exists
+        if sp.call(['ssh', fhost, 'test', '-d', frdir]) == 1:
+            # Archive does not exist
+            print("  No remote archive '%s'" % fdir)
+            return
+        # Use SSH to get files in directory
+        cmd = ['ssh', fhost, 'ls', frdir]
+        # Get list of remote files
+        fglob = check_output(cmd).strip().split('\n')
+        # Loop through files
+        for fname in fglob:
+            # Remote file name
+            fsrc = os.path.join(fdir, fname)
+            # Check if file is a tar ball
+            if fname.endswith(ext):
+                # Status update
+                print("  ARCHIVE/%s --> %s" % (fname, fname))
+                # Copy the file (too much work to check dates)
+                ierr = sp.call([fscp, fsrc, fname])
+                if ierr: raise SystemError("Remote copy failed.")
+                # Status update
+                print("  %s %s" % (' '.join(cmdu), fname))
+                # Untar
+                ierr = sp.call([cmdu, fname])
+                if ierr: raise SystemError("Untar command failed.")
+            else:
+                # Single file
+                # Check dates
+                if os.path.isfile(fname) and getmtime(fname) > getmtime(fsrc):
+                    # Up-to-date
+                    continue
+                # Status update
+                print("  ARCHIVE/%s --> %s" % (fname, fname))
+                # Copy the file
+                ierr = sp.call([fscp, fsrc, fname])
+                if ierr: raise SystemError("Remote copy failed.")
+    else:
+        # Local
+        fremote = False
+        # Name of source archive
+        fdir = os.path.join(flfe, frun)
+        # Check if file exists
+        if not os.path.isdir(fdir):
+            # Archive does not exist
+            print("  No archive '%s'" % fdir)
+            return
+        # Get list of archive files
+        fglob = os.listdir(fdir)
+        # Loop through files
+        for fname in fglob:
+            # Remote file name
+            fsrc = os.path.join(fdir, fname)
+            # Check if file is a tar ball
+            if fname.endswith(ext):
+                # Status pdate
+                print("  %s ARCHIVE/%s" % (' '.join(cmdu), fname))
+                # Untar without copying
+                ierr = sp.call([cmdu, fsrc])
+                if ierr: raise SystemError("Untar command failed.")
+            else:
+                # Single file
+                if os.path.isfile(fname) and getmtime(fname) > getmtime(fsrc):
+                    # Up-to-date
+                    continue
+                # Status update
+                print("  ARCHIVE/%s --> %s" % (fname, fname))
+                # Copy the file
+                shutil.copy(fsrc, fname)
+    
 # ----------------------------------------------------------------------------
 # ----------------------------------------------------------------------------
 # SECOND-LEVEL FUNCTIONS
 # ----------------------------------------------------------------------------
 
 # Function to copy files to archive for one glob
-def ArchiveFiles(opts, fsub=None, archive=False, phantom=False):
+def ArchiveFiles(opts, fsub=None, phantom=False):
     """Delete files that match a list of glob
     
     The function also searches in any folder matching the directory glob or list
@@ -862,14 +1013,14 @@ def ArchiveFiles(opts, fsub=None, archive=False, phantom=False):
         if ':' in flfe:
             # Status update
             write_log("  %s %s %s" % (fscp, fsrc, fto))
-            if archive: continue
+            if phantom: continue
             # Remote copy the file
             ierr = sp.call([fscp, fsrc, fto])
             if ierr: raise SystemError("Remote copy failed.")
         else:
             # Status update
             write_log("  cp %s %s" % (fsrc, fto))
-            if archive: continue
+            if phantom: continue
             # Local copy
             shutil.copy(fsrc, fto)
             
@@ -920,9 +1071,9 @@ def ArchiveCaseWhole(opts):
         # Split host name
         fhost, fldir = flfe.split(':')
         # Full local destination name (on remote host)
-        fltar = os.path.join(fldir, ftar)
+        fltar = os.path.join(fldir, fgrp, ftar)
         # Full global destination name
-        frtar = os.path.join(flfe, ftar)
+        frtar = os.path.join(flfe, fgrp, ftar)
         # Check if the archive exists
         if sp.call(['ssh', fhost, 'test', '-f', fltar]) == 0:
             print("  Archive exists: %s" % frtar)
@@ -930,7 +1081,7 @@ def ArchiveCaseWhole(opts):
         # Status update
         print("  %s --> %s" % (fdir, ftar))
         # Tar the folder locally.
-        ierr = sp.call(cmdu, [ftar, fdir])
+        ierr = sp.call(cmdu + [ftar, fdir])
         if ierr: raise SystemError("Archiving failed.")
         # Status update
         print("  %s --> %s" % (ftar, frtar))
@@ -953,8 +1104,78 @@ def ArchiveCaseWhole(opts):
     # Return to folder
     os.chdir(fdir)
     
+# Restore an archive
+def UnarchiveCaseWhole(opts):
+    """Unarchive a tar ball that stores results for an entire folder
     
-
+    :Call:
+        >>> UnarchiveCaseWhole(opts)
+    :Inputs:
+        *opts*: :class:`cape.options.Options`
+            Options interface
+    :Versions:
+        * 2017-03-13 ``@ddalle``: First version
+    """
+    # Get the archive root directory
+    flfe = opts.get_ArchiveFolder()
+    # Archive type
+    ftyp = opts.get_ArchiveType()
+    # Get the remote copy command
+    fscp = opts.get_RemoteCopy()
+    # Get the archive format, extension, and command
+    fmt  = opts.get_ArchiveFormat()
+    cmdu = opts.get_UnarchiveCmd()
+    ext  = opts.get_ArchiveExtension()
+    # If no action, do not unarchive
+    if not flfe: return
+    # If not a full archive, do not continue
+    if ftyp.lower() != "full": return
+    
+    # Get the current folder
+    fdir = os.path.split(os.getcwd())[-1]
+    # Go up a folder.
+    os.chdir('..')
+    # Get the group folder
+    fgrp = os.path.split(os.getcwd())[-1]
+    
+    # Check if the archive is remote
+    if ':' in flfe:
+        # Name of tar file
+        ftar = '%s.%s' % (fdir, ext)
+        # Split host name
+        fhost, fldir = flfe.split(':')
+        # Full remote source name
+        frtar = os.path.join(flfe, fgrp, ftar)
+        # Check if the archive exists
+        if getmtime(frtar) is None:
+            print("  No archive %s" % frtar)
+            return
+        # Status update
+        print("  %s --> %s" % (frtar, ftar))
+        # Copy the archive locally
+        ierr = sp.call([fscp, frtar, ftar])
+        if ierr: raise SystemError("Remote copy failed.")
+        # Status update
+        print("  %s --> %s" % (ftar, fdir))
+        # Unarchive
+        ierr = sp.call(cmdu + [ftar])
+        if ierr: raise SystemError("Unarchiving failed.")
+    else:
+        # Name of archive
+        ftar = os.path.join(flfe, fgrp, '%s.%s'%(fdir, ext))
+        # Check if archive exists
+        if getmtime(ftar) is None:
+            print("  No archive %s" % ftar)
+            return
+        # Status update
+        print("  %s --> %s" % (ftar, fdir))
+        # Untar the folder
+        ierr = sp.call(cmdu + [ftar])
+        if ierr: raise SystemError("Unarchiving failed.")
+        
+    # Return to folder
+    os.chdir(fdir)
+        
     
 # Function to delete folders according to full descriptor
 def DeleteDirs(fdel, fsub=None, n=1, phantom=False):
@@ -1022,6 +1243,16 @@ def TarGroup(cmd, ftar, fname, n=0, clean=False):
     fglob = [f for f in fglob if not f.endswith(ext)]
     # Exit if not matches
     if len(fglob) < 2: return
+    # Get modification times
+    tsrc = getmtime_glob(fglob)
+    tto = getmtime(ftar)
+    # Check if archive needs to be created/updated
+    if (tsrc is None):
+        # No files to copy
+        return
+    elif (tto is not None) and (tto >= tsrc):
+        # Archive is up-to-date
+        return
     # Create command
     cmdc = cmd + [ftar] + fglob
     # Write to the log

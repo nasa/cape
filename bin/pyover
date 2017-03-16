@@ -68,6 +68,12 @@ if __name__ == "__main__":
     elif kw.get('archive'):
         # Archive cases
         ofl.ArchiveCases(**kw)
+    elif kw.get('unarchive'):
+        # Unarchive cases
+        ofl.UnarchiveCases(**kw)
+    elif kw.get('clean'):
+        # Clean up cases
+        ofl.CleanCases(**kw)
     elif kw.get('report'):
         # Get the report(s) to create.
         if kw['report'] == True:

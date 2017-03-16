@@ -1190,8 +1190,6 @@ class Cntl(object):
             if sts != 'PASS':
                 print("  Case is not marked PASS.")
                 continue
-            # Go to the folder
-            os.chdir(frun)
             # Archive
             self.ArchivePWD()
         # Got back to original location
@@ -1211,6 +1209,37 @@ class Cntl(object):
         """
         # Archive using the local module
         manage.ArchiveFolder(self.opts)
+        
+    # Clean a set of cases
+    def CleanCases(self, **kw):
+        """Clean a list of cases using *Progress* archive options only
+        
+        :Call:
+            >>> cntl.CleanCases(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control interface
+        :Versions:
+            * 2017-03-13 ``@ddalle``: First version
+        """
+        # Save current folder
+        fpwd = os.getcwd()
+        # Loop through the folders
+        for i in self.x.GetIndices(**kw):
+            # Go to root folder
+            os.chdir(self.RootDir)
+            # Get folder name
+            frun = self.x.GetFullFolderNames(i)
+            # Status update
+            print(frun)
+            # Check if the case is ready to archive
+            if not os.path.isdir(frun):
+                print("  Folder does not exist.")
+                continue
+            # Perform cleanup
+            self.CleanPWD()
+        # Go back to original location
+        os.chdir(fpwd)
     
     # Individual case archive function
     def CleanPWD(self):
@@ -1226,6 +1255,48 @@ class Cntl(object):
         """
         # Archive using the local module
         manage.CleanFolder(self.opts)
+        
+    # Unarchive cases
+    def UnarchiveCases(self, **kw):
+        """Unarchive a list of cases
+        
+        :Call:
+            >>> cntl.UnarchiveCases(**kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control interface
+        :Versions:
+            * 2017-03-13 ``@ddalle``: First version
+        """
+        # Save current folder
+        fpwd = os.getcwd()
+        # Loop through the folders
+        for i in self.x.GetIndices(**kw):
+            # Go to root folder
+            os.chdir(self.RootDir)
+            # Get folder name
+            frun = self.x.GetFullFolderNames(i)
+            fdir = self.x.GetFolderNames(i)
+            # Status update
+            print(frun)
+            # Check if the case is ready to archive
+            if not os.path.isdir(frun):
+                # Create folder temporarily
+                self.mkdir(frun)
+            # Enter the folder
+            os.chdir(frun)
+            # Run the unarchive command
+            manage.UnarchiveFolder(self.opts)
+            # Check if there were any files created
+            fls = os.listdir('.')
+            # If no files, delete the folder
+            if len(fls) == 0:
+                # Go up one level
+                os.chdir('..')
+                # Delete the folder
+                os.rmdir(fdir)
+        # Return to original location
+        os.chdir(fpwd)
    # >
     
    # =========

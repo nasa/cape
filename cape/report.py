@@ -2851,7 +2851,7 @@ class Report(object):
             lines.append('\\end{subfigure}\n')
             # Output
             return lines
-        # Go to the Cart3D folder
+        # Go to the case folder
         os.chdir(self.cntl.RootDir)
         # Check if the run directory exists.
         if os.path.isdir(frun):
@@ -2882,6 +2882,7 @@ class Report(object):
                 try:
                     tec.SetFieldMap(grps)
                 except Exception:
+                    print("  Warning: FieldMap update '%s' failed" % grps)
                     pass
             # Layout
             self.PrepTecplotLayoutVars(tec, sfig, i)
@@ -2910,7 +2911,7 @@ class Report(object):
                 # Include the graphics.
                 lines.append(line)
                 # Remove the layout file.
-                os.remove(flay)
+                #os.remove(flay)
             except Exception:
                 pass
         # Go to the report case folder

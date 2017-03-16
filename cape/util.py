@@ -119,6 +119,9 @@ def RangeString(rng):
             else:
                 # Write list
                 txt.append("%s-%s" % (ibeg, iend))
+            # Check if last entry is single
+            if i == n-1:
+                txt.append("%s" % icur)
             # Reset.
             ibeg = icur
             iend = icur

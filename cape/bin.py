@@ -25,6 +25,26 @@ import subprocess as sp
 # Import local command-generating module for complex commands
 from . import cmd
 
+# Imitate sp.check_output() for older versions
+def check_output(cmdi):
+    """Imitate the behavior of :func:`sp.check_output` using :func:`sp.Popen`
+    
+    :Call:
+        >>> txt = check_output(cmdi)
+    :Inputs:
+        *cmdi*: :class:`list` (:class:`str`)
+            List of strings as for :func:`subprocess.call`
+    :Outputs:
+        *txt*: :class:`str`
+            Contents of STDOUT while executing *cmdi*
+    :Versions:
+        * 2017-03-13 ``@ddalle``: First version
+    """
+    # Call sp.Popen
+    out = sp.Popen(cmdi, stdout=sp.PIPE).communicate()
+    # Output
+    return out[0]
+
 # Function to call commands with a different STDOUT
 def calli(cmdi, f=None, shell=None, v=True):
     """Call a command with alternate STDOUT by filename
