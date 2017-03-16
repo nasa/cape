@@ -137,13 +137,18 @@
             "arrow_CA": {"Type": "arrow", "Coefficient": "CA"},
             "arrow_CY": {"Type": "arrow", "Coefficient": "CY"},
             "arrow_CN": {"Type": "arrow", "Coefficient": "CN"},
-            "arrow_CLL": {"Type": "arrow", "Coefficient": "CLL"},
+            "arrow_CLL": {
+                "Type": "arrow",
+                "Coefficient": "CLL",
+                "MuFormat": "%.2e",
+                "ShowSigma": false
+            },
             "arrow_CLM": {"Type": "arrow", "Coefficient": "CLM"},
             "arrow_CLN": {
                 "Type": "arrow",
                 "Coefficient": "CLN",
                 "MuFormat": "%.2e",
-                "SigmaFormat": "%.2e"
+                "ShowSigma": false
             },
             // Residual history
             "L1": {

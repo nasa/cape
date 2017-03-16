@@ -455,3 +455,89 @@ geometrical features.  The *SeamLocation* plot sets where to put this slice;
 **Waring**: The seam curve plots have automatically adjusted aspect ratio to
 avoid distorting the seam curve. As a result, geometry with inconvenient actual
 aspect ratios will lead to problematic seam curve plots.
+
+    .. figure:: LL_CN.*
+        :width: 4in
+        
+        Normal sectional loads at 2 degrees angle of attack
+
+Residual History Subfigure
+---------------------------
+Cart3D residual plots almost always have the same JSON inputs.  The version for
+this plot uses a different *FigHeight* in order to match the aspect ratio of
+the neighboring line load plots.
+
+    .. code-block:: javascript
+    
+        "Subfigures": {
+            ...
+            "L1": {
+                "Type": "PlotL1",
+                "FigWidth": 5.5,
+                "FigHeight": 6,
+                "Width": 0.33,
+                "Caption": "$L_1$ Density Residual"
+            },
+            ...
+        }
+        
+Force & Moment Plots
+--------------------
+The iterative history plots are relatively simple for this case since we are
+only plotting one component.
+
+    .. code-block:: javascript
+    
+        "Subfigures": {
+            ...
+            "arrow": {
+                "Type": "PlotCoeff",
+                "Component": "arrow_no_base",
+                "FigWidth": 5.5,
+                "FigHeight": 4.2,
+                "Width": 0.33
+            },
+            "arrow_CA": {"Type": "arrow", "Coefficient": "CA"},
+            "arrow_CY": {"Type": "arrow", "Coefficient": "CY"},
+            "arrow_CN": {"Type": "arrow", "Coefficient": "CN"},
+            "arrow_CLL": {"Type": "arrow", "Coefficient": "CLL"},
+            "arrow_CLM": {"Type": "arrow", "Coefficient": "CLM"},
+            "arrow_CLN": {"Type": "arrow", "Coefficient": "CLN"},
+            ...
+        }
+        
+As we saw above, this simulation results in very poor results for *CLL* and
+*CLN* due to the symmetry of the configuration (among other things).  We can at
+least make the figures look readable by using scientific notation for the mean
+value and removing the standard deviation.
+
+    .. code-block:: javascript
+    
+        "Subfigures": {
+            ...
+            "arrow_CLL": {
+                "Type": "arrow",
+                "Coefficient": "CLL",
+                "MuFormat": "%.2e",
+                "ShowSigma": false
+            },
+            "arrow_CLN": {
+                "Type": "arrow",
+                "Coefficient": "CLN",
+                "MuFormat": "%.2e",
+                "ShowSigma": false
+            },
+            ...
+        }
+        
+The updated *CLN* plot is shown below.
+
+    .. figure:: arrow_CLN.*
+        :width: 3.5 in
+        
+        Problematic yawing moment coefficient with slightly improved formatting
+
+There are also many different options for each of these plots, and it is also
+possible to plot line loads from other databases on top of those of the most
+recent case for comparison.  See the :ref:`JSON page <pycart-json-Report>` for
+a thorough description of options.
