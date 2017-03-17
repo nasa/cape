@@ -139,9 +139,15 @@ class Namelist2(FileCntl):
         :Versions:
             * 2016-02-01 ``@ddalle``: First version
         """
-        # Get the index of the group
-        ibeg = self.ibeg[igrp]
-        iend = self.iend[igrp]
+        # Test for "append"
+        if igrp >= len(self.ibeg) or igrp == -1:
+            # Making a new group
+            ibeg = self.iend[-1]+1
+            iend = self.iend[-1]
+        else:
+            # Get the index of the group that we insert before
+            ibeg = self.ibeg[igrp]
+            iend = self.iend[igrp]
         # Query the current starting character
         gchar = self.lines[ibeg].lstrip()[0]
         # Check end line type
