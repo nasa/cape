@@ -1230,12 +1230,13 @@ class Cntl(object):
             os.chdir(self.RootDir)
             # Get folder name
             frun = self.x.GetFullFolderNames(i)
-            # Status update
-            print(frun)
             # Check if the case is ready to archive
             if not os.path.isdir(frun):
-                print("  Folder does not exist.")
                 continue
+            # Status update
+            print(frun)
+            # Enter the case folder
+            os.chdir(frun)
             # Perform cleanup
             self.CleanPWD()
         # Go back to original location

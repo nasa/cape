@@ -1778,10 +1778,10 @@ def ProgressDeleteFiles(opts, fsub=None, aa=None, phantom=False):
     
 # Function for in-progress file archiving
 def ProgressArchiveFiles(opts, fsub=None, aa=None, phantom=False):
-    """Delete files that match a list of file name patterns
+    """Archive files that match a list of file name patterns in progress
     
     :Call:
-        >>> ProgressDeleteFiles(opts, fsub=None, aa=None, phantom=False)
+        >>> ProgressArchiveFiles(opts, fsub=None, aa=None, phantom=False)
     :Inputs:
         *opts*: ``None`` | :class:`Archive` | :class:`dict`
             Options dictionary or options interface
