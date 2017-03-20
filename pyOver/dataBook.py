@@ -519,8 +519,19 @@ class DataBook(cape.dataBook.DataBook):
             # Ensure proper type
             tcomp = self.opts.get_DataBookType(comp)
             if tcomp not in ['Force', 'Moment', 'FM']: continue
-            # Read the iterative history for that component.
-            FM = CaseFM(proj, comp)
+            # Get component (note this automatically defaults to *comp*)
+            compID = self.opts.get_DataBookCompID(comp)
+            # Check for multiple components
+            if type(compID).__name__ in ['list', 'ndarray']:
+                # Read the first component
+                FM = CaseFM(proj, compID[0])
+                # Loop through remaining components
+                for compi in compID[1:]:
+                    # Add in the component
+                    FM += CaseFM(proj, compi)
+            else:
+                # Read the iterative history for single component
+                FM = CaseFM(proj, compID)
             # Extract the component databook.
             DBc = self[comp]
             # List of transformations

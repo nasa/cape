@@ -3891,13 +3891,72 @@ class CaseFM(CaseData):
     # String method
     __str__ = __repr__
     
+    # Copy
+    def Copy(self):
+        """Copy an iterative force & moment history
+        
+        :Call:
+            >>> FM2 = FM1.Copy()
+        :Inputs:
+            *FM1*: :class:`cape.dataBook.CaseFM`
+                Force and moment history
+        :Outputs:
+            *FM2*: :class:`cape.dataBook.CaseFM`
+                Copy of *FM1*
+        :Versions:
+            * 2017-03-20 ``@ddalle``: First version
+        """
+        # Initialize output
+        FM = CaseFM(self.comp)
+        # Copy the columns
+        for col in self.cols:
+            # Copy it
+            setattr(FM,col, getattr(self,col).copy())
+        # Output
+        return FM
+    
     # Add components
     def __add__(self, FM):
         """Add two iterative histories
         
         :Call:
-            >>> FM1.__add__(FM2)
-            >>> FM1 + FM2
+            >>> FM3 = FM1.__add__(FM2)
+            >>> FM3 = FM1 + FM2
+        :Inputs:
+            *FM1*: :class:`cape.dataBook.CaseFM`
+                Initial force and moment iterative history
+            *FM2*: :class:`cape.dataBook.CaseFM`
+                Second force and moment iterative history
+        :Outputs:
+            *FM1*: :class:`cape.dataBook.CaseFM`
+                Iterative history attributes other than iter numbers are added
+        :Versions:
+            * 2017-03-20 ``@ddalle``: First version
+        """
+        # Check dimensions
+        if self.i.size != FM.i.size:
+            raise ValueError("Cannot add iterative F&M histories:" +
+                " inconsistent size")
+        # Create a copy
+        FM3 = self.Copy()
+        # Loop through columns
+        for col in self.cols:
+            # Check for iterations not to update
+            if col in ['i']:
+                # Do not update
+                continue
+            # Update the field
+            setattr(FM3,col, getattr(self,col) + getattr(FM,col))
+        # Output
+        return FM3
+            
+    # Add in place
+    def __iadd__(self, FM):
+        """Add a second iterative history in place
+        
+        :Call:
+            >>> FM1 = FM1.__iadd__(FM2)
+            >>> FM1 += FM2
         :Inputs:
             *FM1*: :class:`cape.dataBook.CaseFM`
                 Initial force and moment iterative history
@@ -3914,13 +3973,81 @@ class CaseFM(CaseData):
             raise ValueError("Cannot add iterative F&M histories:" +
                 " inconsistent size")
         # Loop through columns
-        for col in cols:
+        for col in self.cols:
+            # Check for columns not to update
+            if col in ['i']:
+                continue
+            # Update the field
+            setattr(self,col, getattr(self,col) + getattr(FM,col))
+        # Apparently you need to output
+        return self
+    
+    # Subtract components
+    def __sub__(self, FM):
+        """Add two iterative histories
+        
+        :Call:
+            >>> FM3 = FM1.__sub__(FM2)
+            >>> FM3 = FM1 - FM2
+        :Inputs:
+            *FM1*: :class:`cape.dataBook.CaseFM`
+                Initial force and moment iterative history
+            *FM2*: :class:`cape.dataBook.CaseFM`
+                Second force and moment iterative history
+        :Outputs:
+            *FM1*: :class:`cape.dataBook.CaseFM`
+                Iterative history attributes other than iter numbers are added
+        :Versions:
+            * 2017-03-20 ``@ddalle``: First version
+        """
+        # Check dimensions
+        if self.i.size != FM.i.size:
+            raise ValueError("Cannot add iterative F&M histories:" +
+                " inconsistent size")
+        # Create a copy
+        FM3 = self.Copy()
+        # Loop through columns
+        for col in self.cols:
             # Check for iterations not to update
             if col in ['i']:
                 # Do not update
                 continue
             # Update the field
-            setattr(self,col, getattr(self,col) + getattr(FM,col))
+            setattr(FM3,col, getattr(self,col) - getattr(FM,col))
+        # Output
+        return FM3
+    
+    # Add in place
+    def __isub__(self, FM):
+        """Add a second iterative history in place
+        
+        :Call:
+            >>> FM1 = FM1.__isub__(FM2)
+            >>> FM1 -= FM2
+        :Inputs:
+            *FM1*: :class:`cape.dataBook.CaseFM`
+                Initial force and moment iterative history
+            *FM2*: :class:`cape.dataBook.CaseFM`
+                Second force and moment iterative history
+        :Outputs:
+            *FM1*: :class:`cape.dataBook.CaseFM`
+                Iterative history attributes other than iter numbers are added
+        :Versions:
+            * 2017-03-20 ``@ddalle``: First version
+        """
+        # Check dimensions
+        if self.i.size != FM.i.size:
+            raise ValueError("Cannot add iterative F&M histories:" +
+                " inconsistent size")
+        # Loop through columns
+        for col in self.cols:
+            # Check for columns not to update
+            if col in ['i']:
+                continue
+            # Update the field
+            setattr(self,col, getattr(self,col) - getattr(FM,col))
+        # Apparently you need to output
+        return self
     
     # Method to add data to instance
     def AddData(self, A):
