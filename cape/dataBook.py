@@ -3891,6 +3891,37 @@ class CaseFM(CaseData):
     # String method
     __str__ = __repr__
     
+    # Add components
+    def __add__(self, FM):
+        """Add two iterative histories
+        
+        :Call:
+            >>> FM1.__add__(FM2)
+            >>> FM1 + FM2
+        :Inputs:
+            *FM1*: :class:`cape.dataBook.CaseFM`
+                Initial force and moment iterative history
+            *FM2*: :class:`cape.dataBook.CaseFM`
+                Second force and moment iterative history
+        :Outputs:
+            *FM1*: :class:`cape.dataBook.CaseFM`
+                Iterative history attributes other than iter numbers are added
+        :Versions:
+            * 2017-03-20 ``@ddalle``: First version
+        """
+        # Check dimensions
+        if self.i.size != FM.i.size:
+            raise ValueError("Cannot add iterative F&M histories:" +
+                " inconsistent size")
+        # Loop through columns
+        for col in cols:
+            # Check for iterations not to update
+            if col in ['i']:
+                # Do not update
+                continue
+            # Update the field
+            setattr(self,col, getattr(self,col) + getattr(FM,col))
+    
     # Method to add data to instance
     def AddData(self, A):
         """Add iterative force and/or moment history for a component
