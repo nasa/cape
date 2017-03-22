@@ -38,7 +38,7 @@
     
     // Describe the reference values and config.
     "Config": {
-        // Defer to a file for most things.
+        // File to name each integer CompID and group them into families
         "File": "arrow.xml",
         // Declare forces and moments
         "Force": [
