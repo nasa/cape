@@ -11,7 +11,7 @@ calculate sectional loads.  Specifically, the `triload
 command is used.  To acquire Chimera Grid Tools, free software from NASA, use
 the `NASA Software Catalog <https://software.nasa.gov/software/ARC-16025-1A>`_.
 
-Using the geometry from :ref:`Example 2 <pycart-ex-arrow>`, this cases
+Using the geometry from :ref:`Example 2 <pycart-ex-arrow>`, this case
 continues the analysis and adds computation of sectional loads.  The example is
 located in ``$PYCART/examples/pycart/06_lineload_arrow``.
 
