@@ -264,8 +264,13 @@ class DataBook(cape.dataBook.DataBook):
                 FM = CaseFM(proj, compID[0])
                 # Loop through remaining components
                 for compi in compID[1:]:
-                    # Add in the component
-                    FM += CaseFM(proj, compi)
+                    # Check for minus sign
+                    if compi.startswith('-1'):
+                        # Subtract the component
+                        FM -= CaseFM(proj, compi.lstrip('-'))
+                    else:
+                        # Add in the component
+                        FM += CaseFM(proj, compi)
             else:
                 # Read the iterative history for single component
                 FM = CaseFM(proj, compID)

@@ -1312,7 +1312,7 @@ class DBBase(dict):
   # <
     # Output
     def Write(self, fname=None):
-        """Write a single point sensor data book summary file
+        """Write a single data book summary file
         
         :Call:
             >>> DBi.Write()
@@ -1340,7 +1340,7 @@ class DBBase(dict):
         # Open the file.
         f = open(fname, 'w')
         # Write the header
-        f.write("# Point sensor statistics for '%s' extracted on %s\n" %
+        f.write("# Database statistics for '%s' extracted on %s\n" %
             (self.name, datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')))
         # Empty line.
         f.write('#\n#')

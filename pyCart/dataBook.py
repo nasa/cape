@@ -573,14 +573,19 @@ class DataBook(cape.dataBook.DataBook):
             # Check for multiple components
             if type(compID).__name__ in ['list', 'ndarray']:
                 # Read the first component
-                FM = CaseFM(proj, compID[0])
+                FM = CaseFM(compID[0])
                 # Loop through remaining components
                 for compi in compID[1:]:
-                    # Add in the component
-                    FM += CaseFM(proj, compi)
+                    # Check for leading minus sign
+                    if compi.startswith('-'):
+                        # Subtract the component
+                        FM -= CaseFM(compi.lstrip('-'))
+                    else:
+                        # Add in the component
+                        FM += CaseFM(compi)
             else:
                 # Read the iterative history for single component
-                FM = CaseFM(proj, compID)
+                FM = CaseFM(compID)
             # Extract the component databook.
             DBc = self[comp]
             # List of transformations
