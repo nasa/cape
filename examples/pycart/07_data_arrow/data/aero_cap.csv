@@ -1,4 +1,4 @@
-# Database statistics for 'cap' extracted on 2017-03-21 20:52:58 
+# Database statistics for 'cap' extracted on 2017-03-21 21:20:36 
 #
 #mach,alpha,config,Label,CA,CY,CN,CA_min,CA_max,CA_std,CA_err,CY_min,CY_max,CY_std,CY_err,CN_min,CN_max,CN_std,CN_err,nOrders,nIter,nStats
 0.5,0,poweroff,,0.170450534653,-9.44731306931e-05,0.00659785742574,0.17045,0.170453,7.90592664463e-07,2.40955194882e-07,-9.44838e-05,-9.44597e-05,6.94832044061e-09,2.09459429187e-09,0.00659732,0.00659793,1.01665861803e-07,2.80643708444e-08,5.02382008426,200,100

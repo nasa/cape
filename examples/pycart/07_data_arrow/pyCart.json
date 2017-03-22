@@ -79,6 +79,7 @@
             "fins",
             "arrow_no_base",
             "arrow_total",
+            "fuselage",
             "fin1",
             "fin2",
             "fin3",
@@ -97,7 +98,11 @@
         "fin1": {"Type": "FM"},
         "fin2": {"Type": "FM"},
         "fin3": {"Type": "FM"},
-        "fin4": {"Type": "FM"}
+        "fin4": {"Type": "FM"},
+        "fuselage": {
+            "Type": "FM",
+            "CompID": ["arrow_no_base", "-fins"]
+        }
     },
     
     // Report info

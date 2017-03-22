@@ -1,4 +1,4 @@
-# Database statistics for 'body' extracted on 2017-03-21 20:52:58 
+# Database statistics for 'body' extracted on 2017-03-21 21:20:36 
 #
 #mach,alpha,config,Label,CA,CY,CN,CA_min,CA_max,CA_std,CA_err,CY_min,CY_max,CY_std,CY_err,CN_min,CN_max,CN_std,CN_err,nOrders,nIter,nStats
 0.5,0,poweroff,,0.00110591009901,-9.21800960396e-05,0.00089284329703,0.00110486,0.00110607,2.73443371333e-07,8.35089667326e-08,-9.24715e-05,-9.1627e-05,2.03873089975e-07,6.30315256624e-08,0.000889365,0.000893869,1.13747740306e-06,3.52884542923e-07,5.02382008426,200,100

@@ -1,4 +1,4 @@
-# Database statistics for 'arrow_no_base' extracted on 2017-03-21 20:52:58 
+# Database statistics for 'arrow_no_base' extracted on 2017-03-21 21:20:36 
 #
 #mach,alpha,config,Label,CA,CY,CN,CLL,CLM,CLN,CA_min,CA_max,CA_std,CA_err,CY_min,CY_max,CY_std,CY_err,CN_min,CN_max,CN_std,CN_err,CLL_min,CLL_max,CLL_std,CLL_err,CLM_min,CLM_max,CLM_std,CLM_err,CLN_min,CLN_max,CLN_std,CLN_err,nOrders,nIter,nStats
 0.5,0,poweroff,,0.347816465347,-0.000226017930693,0.020833839604,2.15966254554e+178,-0.0101669069307,1.19727782178e+175,0.347805,0.347818,2.88239571849e-06,8.7633914499e-07,-0.000226278,-0.00022551,1.85255951251e-07,5.71703448191e-08,0.0208226,0.0208363,3.35078176804e-06,1.03513642857e-06,-3.344e+179,2.66198e+179,inf,inf,-0.0101694,-0.0101634,2.06202137804e-06,6.33431328184e-07,-1.12864e+177,1.37049e+177,inf,inf,5.02382008426,200,100
