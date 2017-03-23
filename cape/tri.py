@@ -572,7 +572,7 @@ class TriBase(object):
         # Number of integers in first line
         r = R[0] / ni
         # Read header line; also read 
-        H = np.fromfile(fid, count=r+2, dtype=fi)
+        H = np.array(np.fromfile(fid, count=r+2, dtype=fi), dtype='int')
         # Set number of nodes and tris
         self.nNode = H[0]
         self.nTri = H[1]
@@ -600,6 +600,7 @@ class TriBase(object):
                 (self.nNode, nNode2))
         # Read the nodal coordinates
         P = np.fromfile(fid, count=3*self.nNode, dtype=ff)
+        P = np.array(P, dtype='float')
         # Reshape to nNode x 3 matrix
         self.Nodes = P.reshape((self.nNode, 3))
         # Read end-of-record for nodes and start-of-record for tris
@@ -614,6 +615,7 @@ class TriBase(object):
                 (self.nTri, nTri2))
         # Read the node indices for each tri
         T = np.fromfile(fid, count=3*self.nTri, dtype=fi)
+        T = np.array(T, dtype='int')
         # Reshape to nTri x 3
         self.Tris = T.reshape((self.nTri, 3))
         # End-of-record
@@ -626,7 +628,9 @@ class TriBase(object):
             fid.close()
             return
         # Read the Component IDs
-        self.CompID = np.fromfile(fid, count=self.nTri, dtype=fi)
+        C = np.fromfile(fid, count=self.nTri, dtype=fi)
+        # Convert single-to-double if necessary
+        self.CompID = np.array(C, dtype='int')
         # End-of-record
         R = np.fromfile(fid, count=1, dtype=fi)
         # Start-of-record for states
@@ -643,6 +647,7 @@ class TriBase(object):
                 (self.nNode, float(R[0])/nf/self.nq))
         # Read the states
         self.q = np.fromfile(fid, count=self.nNode*self.nq, dtype=ff)
+        self.q = np.array(self.q, dtype='float')
         # Close the file
         fid.close()
         # Count (used for averaging triq files)
@@ -4191,14 +4196,12 @@ class TriBase(object):
             * 2014-08-03 ``@ddalle``: Changed "buff" --> "pad"
             * 2017-02-08 ``@ddalle``: CompID ``None`` gets BBox for full tri
         """
-        # Check for ``None``
-        if compID is not None:
-            # Process it into a list of component IDs.
-            compID = self.GetCompID(compID)
-            # Quit if none specified.
-            if not compID: return None
         # List of components; initialize with first.
-        i = self.GetNodesFromCompID(compID)
+        i = self.GetTrisFromCompID(compID)
+        print("Label 020: len(i)=%s" % len(i))
+        # Check for null component
+        if i is None or len(i) == 0:
+            return
         # Get the overall buffer.
         pad = kwargs.get('pad', 0.0)
         # Get the other buffers.
