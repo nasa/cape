@@ -2,6 +2,10 @@
 
 import cape.config
 import os
+import cape.test
+
+# Go to this folder.
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # Function to create "FAIL" file
 def fail_msg(msg):
@@ -34,7 +38,7 @@ except Exception:
 try:
     cfg2 = cape.config.Config("arrow2.xml")
 except Exception:
-    fail_msg("Failed to read 'arro2.xml'")
+    fail_msg("Failed to read 'arrow2.xml'")
     os.sys.exit(4)
     
 # Get component for fin3 results

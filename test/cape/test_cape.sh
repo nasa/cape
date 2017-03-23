@@ -28,4 +28,5 @@ module load cgt
 # Run the test
 test endian
 test config
+test cape
 

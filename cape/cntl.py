@@ -1475,7 +1475,7 @@ class Cntl(object):
         fname = 'cape_time.dat'
         fstrt = 'cape_start.dat'
         # Call with base file names
-        return self.GetCPUTimeBoth(i, fname, fstr, running=running)
+        return self.GetCPUTimeBoth(i, fname, fstrt, running=running)
     
    # >
     
