@@ -2991,6 +2991,7 @@ class Report(object):
             fsrc = os.path.join(self.cntl.RootDir, flay)
             # Get just the file name
             flay = os.path.split(flay)[-1]
+            flay = '%s.lay' % sfig
             # Figure width in pixels (can be ``None``).
             wfig = opts.get_SubfigOpt(sfig, "FigWidth")
             # Width in the report
@@ -3008,7 +3009,7 @@ class Report(object):
                 # Run Paraview
                 try:
                     # Copy the file into the current folder.
-                    shutil.copy(fsrc, '.')
+                    shutil.copy(fsrc, flay)
                     # Run the layout.
                     pvpython(flay, cmd=fcmd)
                     # Move the file to the location this subfig was built in
@@ -3115,8 +3116,8 @@ class Report(object):
             flay = opts.get_SubfigOpt(sfig, "Layout")
             # Full path to layout file
             fsrc = os.path.join(self.cntl.RootDir, flay)
-            # Get just the file name
-            flay = os.path.split(flay)[-1]
+            # Get the local file name
+            flay = '%s.lay' % sfig
             # Read the Mach number option
             omach = opts.get_SubfigOpt(sfig, "Mach")
             # Read the zone numbers for each FIELDMAP command
@@ -3203,6 +3204,14 @@ class Report(object):
         if t in ['float', 'int', 'NoneType']:
             # Do not convert
             return str(v)
+        elif t in ['dict', 'odict']:
+            # Loop through dictionary
+            V = {}
+            for k in v:
+                # Recurse.
+                V[k] = eval(self.EvalVar(v[k], i))
+            # Return string
+            return str(V)
         # Check for trajectory key
         if v in self.cntl.x.keys:
             # Get the value from the trajectory
@@ -3276,11 +3285,13 @@ class Report(object):
             # Get the options for this command
             copts = kopts[cmd]
             # Loop through keys
-            for key in kopts:
+            for key in copts:
                 # Get value
-                o = kopts[key]
+                o = copts[key]
+                t = type(o).__name__
+                    % (cmd, key, o, t))
                 # Check type
-                if type(o).__name__.endswith('dict') and "Value" in o:
+                if t.endswith('dict') and "Value" in o:
                     # Read value and target specifiers from dictionary
                     val = d.get("Value")
                     k = d.get("TargetKey")
@@ -3292,14 +3303,15 @@ class Report(object):
                     val = o
                     k = None
                     v = None
-                    n = None
+                    n = 0
                     p = None
                 # Perform replacement while expanding trajectory vals
-                if val is not None: val = self.EvalVar(val, i)
-                if v is not None: v = self.EvalVar(v, i)
-                if n is not None: n = self.EvalVar(n, i)
-                if p is not None: p = self.EvalVar(p, i)
+                if val is not None: val = eval(self.EvalVar(val, i))
+                if v is not None: v = eval(self.EvalVar(v, i))
+                if n is not None: n = eval(self.EvalVar(n, i))
+                if p is not None: p = eval(self.EvalVar(p, i))
                 # Set the variable value
+                    % (cmd, key, val, type(val).__name__))
                 tec.SetKey(cmd, key, val, n=n, par=p, k=k, v=v)
             
     # Function to prepare slice locations
