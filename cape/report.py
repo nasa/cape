@@ -3143,7 +3143,7 @@ class Report(object):
             self.PrepTecplotContourLevels(tec, sfig, i)
             self.PrepTecplotColorMaps(tec, sfig, i)
             # General layout
-            self.PrecTecplotLayoutKeys(tec, sfig, i)
+            self.PrepTecplotLayoutKeys(tec, sfig, i)
             # Figure width in pixels (can be ``None``).
             wfig = opts.get_SubfigOpt(sfig, "FigWidth")
             # Width in the report
