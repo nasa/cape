@@ -3247,6 +3247,47 @@ class Report(object):
             # Set the variable value
             tec.SetVar(k, v)
             
+    # Function to prepare other keys
+    def PrepTecplotLayoutKeys(self, tec, sfig, i):
+        """Set any parameters for Tecplot layout
+        
+        :Call:
+            >>> R.PrepTecplotLayoutKeys(tec, sfig, i)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *tec*: :class:`cape.tecplot.Tecscript`
+                Tecplot layout interface (modified in place)
+            *sfig*: :class:`str`
+                Name of subfigure for accessing options
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2017-03-23 ``@ddalle``: First version
+        """
+        # Get list of keys
+        keys = self.cntl.opts.get_SubfigOpt(sfig, "Keys")
+        # Loop through the variables to set; each is a command
+        for cmd in keys:
+            # Get the command options
+            d = keys[cmd]
+            # Get the key name, value, and indentifiers
+            key = d.get("Key")
+            val = d.get("Value")
+            k = d.get("TargetKey")
+            v = d.get("TargetValue")
+            n = d.get("Number", 0)
+            p = d.get("Parameter")
+            # Skip if no key
+            if key is None or val is None: continue
+            # Perform replacement while expanding trajectory vals
+            val = self.EvalVar(val)
+            if v is not None: v = self.EvalVar(v)
+            if n is not None: n = self.EvalVar(n)
+            if p is not None: p = self.EvalVar(p)
+            # Set the variable value
+            tec.SetKey(cmd, key, val, n=n, par=p, k=k, v=v)
+            
     # Function to prepare slice locations
     def PrepTecplotSlicePosition(self, tec, sfig, i):
         """Set slice position for Tecplot layout
