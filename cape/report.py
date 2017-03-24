@@ -3289,7 +3289,6 @@ class Report(object):
                 # Get value
                 o = copts[key]
                 t = type(o).__name__
-                    % (cmd, key, o, t))
                 # Check type
                 if t.endswith('dict') and "Value" in o:
                     # Read value and target specifiers from dictionary
@@ -3311,7 +3310,6 @@ class Report(object):
                 if n is not None: n = eval(self.EvalVar(n, i))
                 if p is not None: p = eval(self.EvalVar(p, i))
                 # Set the variable value
-                    % (cmd, key, val, type(val).__name__))
                 tec.SetKey(cmd, key, val, n=n, par=p, k=k, v=v)
             
     # Function to prepare slice locations
