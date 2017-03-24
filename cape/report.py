@@ -3142,6 +3142,8 @@ class Report(object):
             # Color maps
             self.PrepTecplotContourLevels(tec, sfig, i)
             self.PrepTecplotColorMaps(tec, sfig, i)
+            # General layout
+            self.PrecTecplotLayoutKeys(tec, sfig, i)
             # Figure width in pixels (can be ``None``).
             wfig = opts.get_SubfigOpt(sfig, "FigWidth")
             # Width in the report
@@ -3265,28 +3267,38 @@ class Report(object):
         :Versions:
             * 2017-03-23 ``@ddalle``: First version
         """
-        # Get list of keys
-        keys = self.cntl.opts.get_SubfigOpt(sfig, "Keys")
+        # Get list of options
+        kopts = self.cntl.opts.get_SubfigOpt(sfig, "Keys")
         # Loop through the variables to set; each is a command
-        for cmd in keys:
-            # Get the command options
-            d = keys[cmd]
-            # Get the key name, value, and indentifiers
-            key = d.get("Key")
-            val = d.get("Value")
-            k = d.get("TargetKey")
-            v = d.get("TargetValue")
-            n = d.get("Number", 0)
-            p = d.get("Parameter")
-            # Skip if no key
-            if key is None or val is None: continue
-            # Perform replacement while expanding trajectory vals
-            val = self.EvalVar(val)
-            if v is not None: v = self.EvalVar(v)
-            if n is not None: n = self.EvalVar(n)
-            if p is not None: p = self.EvalVar(p)
-            # Set the variable value
-            tec.SetKey(cmd, key, val, n=n, par=p, k=k, v=v)
+        for cmd in kopts:
+            # Get the options for this command
+            copts = kopts[cmd]
+            # Loop through keys
+            for key in kopts:
+                # Get value
+                o = kopts[key]
+                # Check type
+                if type(o).__name__.endswith('dict') and "Value" in o:
+                    # Read value and target specifiers from dictionary
+                    val = d.get("Value")
+                    k = d.get("TargetKey")
+                    v = d.get("TargetValue")
+                    n = d.get("Number", 0)
+                    p = d.get("Parameter")
+                else:
+                    # Single value; no target information
+                    val = o
+                    k = None
+                    v = None
+                    n = None
+                    p = None
+                # Perform replacement while expanding trajectory vals
+                if val is not None: val = self.EvalVar(val)
+                if v is not None: v = self.EvalVar(v)
+                if n is not None: n = self.EvalVar(n)
+                if p is not None: p = self.EvalVar(p)
+                # Set the variable value
+                tec.SetKey(cmd, key, val, n=n, par=p, k=k, v=v)
             
     # Function to prepare slice locations
     def PrepTecplotSlicePosition(self, tec, sfig, i):

@@ -213,8 +213,11 @@ class Tecscript(FileCntl):
             # Initialize a dictionary
             lines.append('%s%s\n' % (s, key))
             lines.append('%s{\n'  % (' '*(m+2)))
+            # Sort the keys
+            keys = val.keys()
+            keys.sort()
             # Loop through the keys
-            for k in val:
+            for k in keys:
                 # Recurse
                 lines_k = self.KeyToText(k, val[k], m=m+2)
                 # Append the lines for that key
