@@ -1745,6 +1745,217 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines  
+    
+    # Function to write summary table
+    def SubfigSummary(self, sfig, i, q=True):
+        """Create lines for a "Summary" subfigure
+        
+        :Call:
+            >>> lines = R.SubfigSummary(sfig, i, q=True)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *i*: :class:`int`
+                Case index
+            *q*: ``True`` | ``False``
+                Whether or not to update images
+        :Versions:
+            * 2014-03-09 ``@ddalle``: First version
+        """
+        # Save current folder.
+        fpwd = os.getcwd()
+        # Extract options
+        opts = self.cntl.opts
+        # Current status
+        nIter  = self.cntl.CheckCase(i)
+        # Numbers of iterations for statistics
+        nStats = opts.get_SubfigOpt(sfig, "nStats")
+        nMin   = opts.get_SubfigOpt(sfig, "nMinStats")
+        nMax   = opts.get_SubfigOpt(sfig, "nMaxStats")
+        # Get the status and data book options
+        if nStats is None: nStats = opts.get_nStats()
+        if nMin   is None: nMin   = opts.get_nMin()
+        if nMax   is None: nMax   = opts.get_nMaxStats()
+        # Pure defaults
+        if nStats is None: nStats = 1
+        # Iteration at which to build table
+        nOpt = opts.get_SubfigOpt(sfig, "Iteration")
+        # Make sure current progress is a number
+        if nIter is None: nIter = 0
+        # Get the components.
+        comps = opts.get_SubfigOpt(sfig, "Components")
+        # Translate into absolute iteration number if relative.
+        if nOpt == 0:
+            # Use last iteration (standard)
+            nCur = nIter
+        elif nOpt < 0:
+            # Use iteration relative to the end
+            nCur = nIter + 1 + nOpt
+        else:
+            # Use the number
+            nCur = nOpt
+        # Initialize statistics
+        S = {}
+        # Get statistics if possible.
+        if nCur >= max(1, nMin+nStats):
+            # Don't use iterations before *nMin*
+            nMax = min(nMax, nCur-nMin)
+            # Go to the run directory.
+            os.chdir(self.cntl.RootDir)
+            os.chdir(self.cntl.x.GetFullFolderNames(i))
+            # Loop through components
+            for comp in comps:
+                # Component label
+                # Read the Aero history.
+                FM = self.ReadCaseFM(comp)
+                # Loop through the transformations.
+                for topts in opts.get_DataBookTransformations(comp):
+                    # Apply the transformation.
+                    FM.TransformFM(topts, self.cntl.x, i)
+                # Get the statistics.
+                S[comp] = FM.GetStats(nStats=nStats, nMax=nMax, nLast=nCur)
+        # Go back to original folder.
+        os.chdir(fpwd)
+        # Get the vertical alignment.
+        hv = self.cntl.opts.get_SubfigOpt(sfig, 'Position')
+        # Get subfigure width
+        wsfig = self.cntl.opts.get_SubfigOpt(sfig, 'Width')
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = self.cntl.opts.get_SubfigOpt(sfig, 'Header')
+        # Add the iteration number to header
+        line = '\\textbf{\\textit{%s}} (Iteration %i' % (fhdr, nCur)
+        # Add number of iterations used for statistics
+        if len(S)>0:
+            # Add stats count.
+            line += (', {\\small\\texttt{nStats=%i}}' % S[comps[0]]['nStats'])
+        # Close parentheses
+        line += ')\\par\n'
+        # Write the header.
+        lines.append('\\noindent\n')
+        lines.append(line)
+        # Begin the table with the right amount of columns.
+        lines.append('\\begin{tabular}{l' + ('|c'*len(comps)) + '}\n')
+        # Write headers.
+        lines.append('\\hline \\hline\n')
+        lines.append('\\textbf{\\textsf{Coefficient}}\n')
+        for comp in comps:
+            lines.append(' & {\\small\\texttt{%s}} \n'
+                % comp.replace('_', '\_'))
+        lines.append('\\\\\n')
+        # Loop through coefficients
+        for c in self.cntl.opts.get_SubfigOpt(sfig, "Coefficients"):
+            # Convert coefficient title to symbol
+            if c in ['CA', 'CY', 'CN']:
+                # Just add underscore
+                fc = c[0] + '_' + c[1]
+            elif c in ['CLL']:
+                # Special rolling moment
+                fc = 'C_\ell'
+            elif c in ['CLM', 'CLN']:
+                # Other moments
+                fc = 'C_%s' % c[-1].lower()
+            else:
+                # What?
+                fc = 'C_{%s}' % c[1:]
+            # Print horizontal line
+            lines.append('\\hline\n')
+            # Loop through statistical varieties.
+            for fs in self.cntl.opts.get_SubfigOpt(sfig, c):
+                # Write the description
+                if fs == 'mu':
+                    # Mean
+                    lines.append('\\textit{%s} mean, $\\mu(%s)$\n' % (c, fc))
+                    # Format
+                    ff = self.cntl.opts.get_SubfigOpt(sfig, 'MuFormat')
+                elif fs == 'std':
+                    # Standard deviation
+                    lines.append(
+                        '\\textit{%s} standard deviation, $\\sigma(%s)$\n'
+                        % (c, fc))
+                    # Format
+                    ff = self.cntl.opts.get_SubfigOpt(sfig, 'SigmaFormat')
+                elif fs == 'err':
+                    # Uncertainty
+                    lines.append('\\textit{%s} iterative uncertainty, ' % c 
+                        + '$\\varepsilon(%s)$\n' % fc)
+                    # Format
+                    ff = self.cntl.opts.get_SubfigOpt(sfig, 'EpsFormat')
+                elif fs == 'min':
+                    # Min value
+                    lines.append(
+                        '\\textit{%s} minimum, $\\min(%s)$\n' % (c, fc))
+                    # Format
+                    ff = self.cntl.opts.get_SubfigOpt(sfig, 'MuFormat')
+                elif fs == 'max':
+                    # Min value
+                    lines.append(
+                        '\\textit{%s} maximum, $\\max(%s)$\n' % (c, fc))
+                    # Format
+                    ff = self.cntl.opts.get_SubfigOpt(sfig, 'MuFormat')
+                elif fs == "t":
+                    # Target value
+                    lines.append(
+                        '\\textit{%s} target, $t(%s)$\n' % (c, fc))
+                    # Format
+                    ff = self.cntl.opts.get_SubfigOpt(sfig, 'MuFormat')
+                # Downselect format flag specific to *c* if appropriate
+                if type(ff).__name__ == 'dict':
+                    # Check for coefficient
+                    if c in ff: ff = ff[c]
+                # Initialize line
+                line = ''
+                # Loop through components.
+                for comp in comps:
+                    # Downselect format flag to *comp* if appropriate
+                    if type(ff).__name__ == 'dict':
+                        # Select component
+                        ffc = ff[comp]
+                    else:
+                        # Use non-dictionary value
+                        ffc = ff
+                    # Check for iterations.
+                    if nCur <= 0 or comp not in S:
+                        # No iterations
+                        word = '& $-$ '
+                    elif fs == 'mu':
+                        # Process value.
+                        word = (('& $%s$ ' % ffc) % S[comp][c])
+                    elif (fs in ['min', 'max']) or (S[comp]['nStats'] > 1):
+                        # Present?
+                        if (c+'_'+fs) in S[comp]:
+                            # Process min/max or statistical value
+                            word = (('& $%s$ ' % ffc) % S[comp][c+'_'+fs])
+                        else:
+                            # Missing
+                            word = '& $-$ '
+                    else:
+                        # No statistics
+                        word = '& $-$ '
+                    # Process exponential notation
+                    m = re.search('[edED]([+-][0-9]+)', word)
+                    # Check for a match to 'e+09', etc.
+                    if m is not None:
+                        # Existing text from exponent, e.g. 'e+09', 'D-13'
+                        txt = m.group(1)
+                        # Process the actual exponent text; strip '+' and '0'
+                        exp = txt[0].lstrip('+') + txt[1:].lstrip('0')
+                        # Replace text
+                        word = word.replace(m.group(0), '\\times10^{%s}' % exp)
+                    # Add this value to the line
+                    line += word
+                # Finish the line and append it.
+                line += '\\\\\n'
+                lines.append(line)
+        # Finish table and subfigure
+        lines.append('\\hline \\hline\n')
+        lines.append('\\end{tabular}\n')
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
    # ]
    
    # ---------
@@ -2498,7 +2709,12 @@ class Report(object):
         else:
             # Just use target
             return tlbl
-        
+   # ]
+   
+   # ----------
+   # Residuals
+   # ----------
+   # [
     # Function to create coefficient plot and write figure
     def SubfigPlotL1(self, sfig, i, q):
         """Create plot for L1 residual
@@ -2709,7 +2925,12 @@ class Report(object):
         os.chdir(fpwd)
         # Output
         return lines
-    
+   # ]
+   
+   # ---------
+   # Paraview
+   # ---------
+   # [
     # Function to create coefficient plot and write figure
     def SubfigParaviewLayout(self, sfig, i, q):
         """Create image based on a Paraview Python script
@@ -2811,7 +3032,12 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-        
+   # ]
+   
+   # --------
+   # Tecplot
+   # --------
+   # [
     # Function to create coefficient plot and write figure
     def SubfigTecplotLayout(self, sfig, i, q):
         """Create image based on a Tecplot layout file
@@ -3194,217 +3420,6 @@ class Report(object):
                 cme[le] = col
             # Edit the color map
             tec.EditColorMap(cname, cme, nContour=ncont, nColorMap=ncmap)
-    
-    # Function to write summary table
-    def SubfigSummary(self, sfig, i, q=True):
-        """Create lines for a "Summary" subfigure
-        
-        :Call:
-            >>> lines = R.SubfigSummary(sfig, i, q=True)
-        :Inputs:
-            *R*: :class:`cape.report.Report`
-                Automated report interface
-            *sfig*: :class:`str`
-                Name of sfigure to update
-            *i*: :class:`int`
-                Case index
-            *q*: ``True`` | ``False``
-                Whether or not to update images
-        :Versions:
-            * 2014-03-09 ``@ddalle``: First version
-        """
-        # Save current folder.
-        fpwd = os.getcwd()
-        # Extract options
-        opts = self.cntl.opts
-        # Current status
-        nIter  = self.cntl.CheckCase(i)
-        # Numbers of iterations for statistics
-        nStats = opts.get_SubfigOpt(sfig, "nStats")
-        nMin   = opts.get_SubfigOpt(sfig, "nMinStats")
-        nMax   = opts.get_SubfigOpt(sfig, "nMaxStats")
-        # Get the status and data book options
-        if nStats is None: nStats = opts.get_nStats()
-        if nMin   is None: nMin   = opts.get_nMin()
-        if nMax   is None: nMax   = opts.get_nMaxStats()
-        # Pure defaults
-        if nStats is None: nStats = 1
-        # Iteration at which to build table
-        nOpt = opts.get_SubfigOpt(sfig, "Iteration")
-        # Make sure current progress is a number
-        if nIter is None: nIter = 0
-        # Get the components.
-        comps = opts.get_SubfigOpt(sfig, "Components")
-        # Translate into absolute iteration number if relative.
-        if nOpt == 0:
-            # Use last iteration (standard)
-            nCur = nIter
-        elif nOpt < 0:
-            # Use iteration relative to the end
-            nCur = nIter + 1 + nOpt
-        else:
-            # Use the number
-            nCur = nOpt
-        # Initialize statistics
-        S = {}
-        # Get statistics if possible.
-        if nCur >= max(1, nMin+nStats):
-            # Don't use iterations before *nMin*
-            nMax = min(nMax, nCur-nMin)
-            # Go to the run directory.
-            os.chdir(self.cntl.RootDir)
-            os.chdir(self.cntl.x.GetFullFolderNames(i))
-            # Loop through components
-            for comp in comps:
-                # Component label
-                # Read the Aero history.
-                FM = self.ReadCaseFM(comp)
-                # Loop through the transformations.
-                for topts in opts.get_DataBookTransformations(comp):
-                    # Apply the transformation.
-                    FM.TransformFM(topts, self.cntl.x, i)
-                # Get the statistics.
-                S[comp] = FM.GetStats(nStats=nStats, nMax=nMax, nLast=nCur)
-        # Go back to original folder.
-        os.chdir(fpwd)
-        # Get the vertical alignment.
-        hv = self.cntl.opts.get_SubfigOpt(sfig, 'Position')
-        # Get subfigure width
-        wsfig = self.cntl.opts.get_SubfigOpt(sfig, 'Width')
-        # First line.
-        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
-        # Check for a header.
-        fhdr = self.cntl.opts.get_SubfigOpt(sfig, 'Header')
-        # Add the iteration number to header
-        line = '\\textbf{\\textit{%s}} (Iteration %i' % (fhdr, nCur)
-        # Add number of iterations used for statistics
-        if len(S)>0:
-            # Add stats count.
-            line += (', {\\small\\texttt{nStats=%i}}' % S[comps[0]]['nStats'])
-        # Close parentheses
-        line += ')\\par\n'
-        # Write the header.
-        lines.append('\\noindent\n')
-        lines.append(line)
-        # Begin the table with the right amount of columns.
-        lines.append('\\begin{tabular}{l' + ('|c'*len(comps)) + '}\n')
-        # Write headers.
-        lines.append('\\hline \\hline\n')
-        lines.append('\\textbf{\\textsf{Coefficient}}\n')
-        for comp in comps:
-            lines.append(' & {\\small\\texttt{%s}} \n'
-                % comp.replace('_', '\_'))
-        lines.append('\\\\\n')
-        # Loop through coefficients
-        for c in self.cntl.opts.get_SubfigOpt(sfig, "Coefficients"):
-            # Convert coefficient title to symbol
-            if c in ['CA', 'CY', 'CN']:
-                # Just add underscore
-                fc = c[0] + '_' + c[1]
-            elif c in ['CLL']:
-                # Special rolling moment
-                fc = 'C_\ell'
-            elif c in ['CLM', 'CLN']:
-                # Other moments
-                fc = 'C_%s' % c[-1].lower()
-            else:
-                # What?
-                fc = 'C_{%s}' % c[1:]
-            # Print horizontal line
-            lines.append('\\hline\n')
-            # Loop through statistical varieties.
-            for fs in self.cntl.opts.get_SubfigOpt(sfig, c):
-                # Write the description
-                if fs == 'mu':
-                    # Mean
-                    lines.append('\\textit{%s} mean, $\\mu(%s)$\n' % (c, fc))
-                    # Format
-                    ff = self.cntl.opts.get_SubfigOpt(sfig, 'MuFormat')
-                elif fs == 'std':
-                    # Standard deviation
-                    lines.append(
-                        '\\textit{%s} standard deviation, $\\sigma(%s)$\n'
-                        % (c, fc))
-                    # Format
-                    ff = self.cntl.opts.get_SubfigOpt(sfig, 'SigmaFormat')
-                elif fs == 'err':
-                    # Uncertainty
-                    lines.append('\\textit{%s} iterative uncertainty, ' % c 
-                        + '$\\varepsilon(%s)$\n' % fc)
-                    # Format
-                    ff = self.cntl.opts.get_SubfigOpt(sfig, 'EpsFormat')
-                elif fs == 'min':
-                    # Min value
-                    lines.append(
-                        '\\textit{%s} minimum, $\\min(%s)$\n' % (c, fc))
-                    # Format
-                    ff = self.cntl.opts.get_SubfigOpt(sfig, 'MuFormat')
-                elif fs == 'max':
-                    # Min value
-                    lines.append(
-                        '\\textit{%s} maximum, $\\max(%s)$\n' % (c, fc))
-                    # Format
-                    ff = self.cntl.opts.get_SubfigOpt(sfig, 'MuFormat')
-                elif fs == "t":
-                    # Target value
-                    lines.append(
-                        '\\textit{%s} target, $t(%s)$\n' % (c, fc))
-                    # Format
-                    ff = self.cntl.opts.get_SubfigOpt(sfig, 'MuFormat')
-                # Downselect format flag specific to *c* if appropriate
-                if type(ff).__name__ == 'dict':
-                    # Check for coefficient
-                    if c in ff: ff = ff[c]
-                # Initialize line
-                line = ''
-                # Loop through components.
-                for comp in comps:
-                    # Downselect format flag to *comp* if appropriate
-                    if type(ff).__name__ == 'dict':
-                        # Select component
-                        ffc = ff[comp]
-                    else:
-                        # Use non-dictionary value
-                        ffc = ff
-                    # Check for iterations.
-                    if nCur <= 0 or comp not in S:
-                        # No iterations
-                        word = '& $-$ '
-                    elif fs == 'mu':
-                        # Process value.
-                        word = (('& $%s$ ' % ffc) % S[comp][c])
-                    elif (fs in ['min', 'max']) or (S[comp]['nStats'] > 1):
-                        # Present?
-                        if (c+'_'+fs) in S[comp]:
-                            # Process min/max or statistical value
-                            word = (('& $%s$ ' % ffc) % S[comp][c+'_'+fs])
-                        else:
-                            # Missing
-                            word = '& $-$ '
-                    else:
-                        # No statistics
-                        word = '& $-$ '
-                    # Process exponential notation
-                    m = re.search('[edED]([+-][0-9]+)', word)
-                    # Check for a match to 'e+09', etc.
-                    if m is not None:
-                        # Existing text from exponent, e.g. 'e+09', 'D-13'
-                        txt = m.group(1)
-                        # Process the actual exponent text; strip '+' and '0'
-                        exp = txt[0].lstrip('+') + txt[1:].lstrip('0')
-                        # Replace text
-                        word = word.replace(m.group(0), '\\times10^{%s}' % exp)
-                    # Add this value to the line
-                    line += word
-                # Finish the line and append it.
-                line += '\\\\\n'
-                lines.append(line)
-        # Finish table and subfigure
-        lines.append('\\hline \\hline\n')
-        lines.append('\\end{tabular}\n')
-        lines.append('\\end{subfigure}\n')
-        # Output
-        return lines
   # >
     
   # ============
