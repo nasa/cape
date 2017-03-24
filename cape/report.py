@@ -95,9 +95,9 @@ class Report(object):
         * 2015-03-10 ``@ddalle``: First version
         * 2015-10-15 ``@ddalle``: Basis version
     """
-    # ==================
-    # Standard Functions
-    # ==================
+  # ==================
+  # Standard Functions
+  # ==================
   # <
     # Initialization method
     def __init__(self, cntl, rep):
@@ -140,9 +140,9 @@ class Report(object):
     __str__ = __repr__
   # >
     
-    # ================
-    # Folder Functions
-    # ================
+  # ================
+  # Folder Functions
+  # ================
   # <
     # Make a folder
     def mkdir(self, fdir):
@@ -195,14 +195,14 @@ class Report(object):
             tar.chdir_in(fdir)
   # >
     
-    # ===========
-    # LaTeX Files
-    # ===========
+  # ===========
+  # LaTeX Files
+  # ===========
   # <
     
-    # --------------
-    # Main .tex File
-    # --------------
+   # --------------
+   # Main .tex File
+   # --------------
    # [
     # Function to open the master latex file for this report.
     def OpenMain(self):
@@ -377,9 +377,9 @@ class Report(object):
         os.chdir(fpwd)
    # ]
     
-    # -----------------
-    # Folder .tex Files
-    # -----------------
+   # -----------------
+   # Folder .tex Files
+   # -----------------
    # [
     # Function to write skeleton for a case.
     def WriteCaseSkeleton(self, i):
@@ -509,14 +509,14 @@ class Report(object):
    # ]
   # >
     
-    # ================
-    # Update Functions
-    # ================
+  # ================
+  # Update Functions
+  # ================
   # <
     
-    # ---------------
-    # General Updates
-    # ---------------
+   # ---------------
+   # General Updates
+   # ---------------
    # [
     # Function to update report
     def UpdateReport(self, I=None, cons=[], **kw):
@@ -654,9 +654,9 @@ class Report(object):
         os.chdir('report')
    # ]
     
-    # -------------------
-    # Case/Sweep Updaters
-    # -------------------
+   # -------------------
+   # Case/Sweep Updaters
+   # -------------------
    # [
     # Function to update a sweep
     def UpdateSweep(self, fswp, I=None, cons=[]):
@@ -863,9 +863,9 @@ class Report(object):
         os.chdir(fpwd)
    # ]
     
-    # -------------------------
-    # Figure/Subfigure Updaters
-    # -------------------------
+   # -------------------------
+   # Figure/Subfigure Updaters
+   # -------------------------
    # [
     # Function to write a figure.
     def UpdateFigure(self, fig, i, fswp=None):
@@ -1369,6 +1369,11 @@ class Report(object):
   # Subfigures
   # ==========
   # <
+   
+   # ------
+   # Config
+   # ------
+   # [
     # Function to initialize a subfigure
     def SubfigInit(self, sfig):
         """Create the initial lines of a subfigure
@@ -1379,7 +1384,7 @@ class Report(object):
             *R*: :class:`cape.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
-                Name of subfigure to initialize
+                Name of subfigure to initialize                            
         :Outputs:
             *lines*: :class:`list` (:class:`str`)
                 Formatting lines to initialize a subfigure common to all types
@@ -1408,7 +1413,47 @@ class Report(object):
             lines.append('\\vskip-6pt\n')
         # Output
         return lines
-    
+      
+    # Function to get the list of targets for a subfigure
+    def SubfigTargets(self, sfig):
+        """Return list of targets (by name) for a subfigure
+        
+        :Call:
+            >>> targs = R.SubfigTargets(sfig)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+        :Outputs:
+            *targs*: :class:`list` (:class:`str`)
+                List of target names
+        :Versions:
+            * 2015-06-04 ``@ddalle``: First version
+        """
+        # Target option for this subfigure (defaults to all targets)
+        otarg = self.cntl.opts.get_SubfigOpt(sfig, "Target")
+        # Process list of targets.
+        if type(otarg).__name__ in ['list', 'ndarray']:
+            # List of targets directly specified
+            targs = otarg
+        elif type(otarg).__name__ in ['str', 'unicode']:
+            # Single target
+            targs = [otarg]
+        elif otarg:
+            # All targets
+            targs = [DBT.Name for DBT in self.cntl.DataBook]
+        else:
+            # No targets
+            targs = []
+        # Output
+        return targs
+   # ]
+   
+   # ---------
+   # Tables
+   # ---------
+   # [
     # Function to write conditions table
     def SubfigConditions(self, sfig, I, q=True):
         """Create lines for a "Conditions" subfigure
@@ -1419,7 +1464,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
-            *sfig*: :class:`str`
+            *sfig*: :class:`str`                                      
                 Name of sfigure to update
             *i*: :class:`int`
                 Case index
@@ -1699,8 +1744,13 @@ class Report(object):
         lines.append('\\end{tabular}\n')
         lines.append('\\end{subfigure}\n')
         # Output
-        return lines
-        
+        return lines  
+   # ]
+   
+   # ---------
+   # PlotCoeff
+   # ---------
+   # [
     # Function to create coefficient plot and write figure
     def SubfigPlotCoeff(self, sfig, i, q):
         """Create plot for a coefficient and input lines int LaTeX file
@@ -1880,7 +1930,12 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-        
+   # ]
+   
+   # ---------------------
+   # Other DataBook Types
+   # ---------------------
+   # [
     # Function to create coefficient plot and write figure
     def SubfigPlotLineLoad(self, sfig, i, q):
         """Create plot for a sectional loads profile
@@ -2091,6 +2146,12 @@ class Report(object):
         # Output
         return lines
     
+   # ]
+   
+   # -----------
+   # SweepCoeff
+   # -----------
+   # [
     # Function to plot mean coefficient for a sweep
     def SubfigSweepCoeff(self, sfig, fswp, I, q):
         """Plot a sweep of a coefficient over several cases
@@ -2437,41 +2498,6 @@ class Report(object):
         else:
             # Just use target
             return tlbl
-      
-    # Function to get the list of targets for a subfigure
-    def SubfigTargets(self, sfig):
-        """Return list of targets (by name) for a subfigure
-        
-        :Call:
-            >>> targs = R.SubfigTargets(sfig)
-        :Inputs:
-            *R*: :class:`cape.report.Report`
-                Automated report interface
-            *sfig*: :class:`str`
-                Name of sfigure to update
-        :Outputs:
-            *targs*: :class:`list` (:class:`str`)
-                List of target names
-        :Versions:
-            * 2015-06-04 ``@ddalle``: First version
-        """
-        # Target option for this subfigure (defaults to all targets)
-        otarg = self.cntl.opts.get_SubfigOpt(sfig, "Target")
-        # Process list of targets.
-        if type(otarg).__name__ in ['list', 'ndarray']:
-            # List of targets directly specified
-            targs = otarg
-        elif type(otarg).__name__ in ['str', 'unicode']:
-            # Single target
-            targs = [otarg]
-        elif otarg:
-            # All targets
-            targs = [DBT.Name for DBT in self.cntl.DataBook]
-        else:
-            # No targets
-            targs = []
-        # Output
-        return targs
         
     # Function to create coefficient plot and write figure
     def SubfigPlotL1(self, sfig, i, q):
