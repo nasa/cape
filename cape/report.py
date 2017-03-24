@@ -3295,10 +3295,10 @@ class Report(object):
                     n = None
                     p = None
                 # Perform replacement while expanding trajectory vals
-                if val is not None: val = self.EvalVar(val)
-                if v is not None: v = self.EvalVar(v)
-                if n is not None: n = self.EvalVar(n)
-                if p is not None: p = self.EvalVar(p)
+                if val is not None: val = self.EvalVar(val, i)
+                if v is not None: v = self.EvalVar(v, i)
+                if n is not None: n = self.EvalVar(n, i)
+                if p is not None: p = self.EvalVar(p, i)
                 # Set the variable value
                 tec.SetKey(cmd, key, val, n=n, par=p, k=k, v=v)
             
