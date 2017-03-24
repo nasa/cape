@@ -108,78 +108,177 @@
     // Report info
     "Report": {
         // List of reports
-        "Reports": ["case"],
+        "Reports": ["mach", "mach-sweep", "alpha", "alpha-sweep"],
         // Define the report
-        "case": {
-            "Title": "Automated Cart3D Report with Line Load Plots",
-            "Subtitle": "Example \\texttt{06\\_lineload\\_arrow}",
+        "mach": {
+            "Title": "Cart3D Force \\& Moment Mach Sweep",
+            "Subtitle": "Example \\texttt{07\\_data\\_arrow}",
             "Restriction": "pyCart Example - Distribution Unlimited",
-            "Figures": ["CaseTables", "CasePlots"]
+            "Sweeps": "mach"
+        },
+        "mach-carpet": {
+            "Title": "Cart3D Force \\& Moment Mach Sweep",
+            "Subtitle": "Example \\texttt{07\\_data\\_arrow}",
+            "Restriction": "pyCart Example - Distribution Unlimited",
+            "Sweeps": "mach-carpet"
+        },
+        "alpha": {
+            "Title": "Cart3D Force \\& Moment Mach Sweep",
+            "Subtitle": "Example \\texttt{07\\_data\\_arrow}",
+            "Restriction": "pyCart Example - Distribution Unlimited",
+            "Sweeps": "alpha"
+        },
+        "slpha-carpet": {
+            "Title": "Cart3D Force \\& Moment Mach Sweep",
+            "Subtitle": "Example \\texttt{07\\_data\\_arrow}",
+            "Restriction": "pyCart Example - Distribution Unlimited",
+            "Sweeps": "alpha-carpet"
+        },
+        // Define the sweeps
+        "Sweeps": {
+            // Mach sweep
+            "mach": {
+                "Figures": ["SweepTables", "MachSweep"],
+                "EqCons": ["alpha"],
+                "XAxis": "mach"
+            },
+            // Mach sweep with alpha carpet
+            "mach-carpet": {
+                "Figures": ["SweepTables", "MachSweep"],
+                "EqCons": [],
+                "CarpetEqCons": ["alpha"],
+                "XAxis": "mach"
+            },
+            // Alpha sweep
+            "alpha": {
+                "Figures": ["SweepTables", "AlphaSweep"],
+                "EqCons": ["mach"],
+                "XAxis": "alpha"
+            },
+            // Alpha sweep with Mach carpet
+            "alpha-carpet": {
+                "Figures": ["SweepTables", "AlphaSweep"],
+                "EqCons": [],
+                "CarpetEqCons": ["mach"],
+                "XAxis": "alpha"
+            }
         },
         // Define the figures
         "Figures": {
-            "CaseTables": {
+            "SweepTables": {
                 "Alignment": "left",
-                "Subfigures": ["CaseConds", "FMTable"]
+                "Subfigures": ["SweepConds", "SweepList"]
             },
-            "CasePlots": {
-                "Header": "Iterative analysis and sectional loads",
+            "MachSweep": {
+                "Header": "Mach sweeps of force \\& moment coefficients",
                 "Alignment": "center",
                 "Subfigures": [
-                    "arrow_CA",  "arrow_CY",  "arrow_CN",
-                    "arrow_CLL", "arrow_CLN", "arrow_CLM",
-                    "L1",        "LL_CY",     "LL_CN"
+                    "mach_arrow_CA",  "mach_arrow_CY",  "mach_arrow_CN",
+                    "mach_fuse_CLM",  "mach_fins_CLM",  "mach_arrow_CLM",
+                    "mach_cap_CA",    "mach_fins_CA",   "mach_body_CN"
+                ]
+            },
+            "AlphaSweep": {
+                "Header": "Mach sweeps of force \\& moment coefficients",
+                "Alignment": "center",
+                "Subfigures": [
+                    "aoa_arrow_CA",  "aoa_arrow_CY",  "aoa_arrow_CN",
+                    "aoa_fuse_CLM",  "aoa_fins_CLM",  "aoa_arrow_CLM",
+                    "aoa_cap_CA",    "aoa_fins_CN",   "aoa_body_CN"
                 ]
             }
         },
         // Definitions for subfigures
         "Subfigures": {
             // Table of trajectory variables
-            "CaseConds": {
+            "SweepConds": {
                 "Type": "Conditions",
-                "Width": 0.28,
-                "Header": "Conditions"
+                "Header": "Conditions",
+                "Width": 0.5,
+                "Alignment": "t"
             },
-            // Table of force and moment averages
-            "FMTable": {
-                "Type": "Summary",
-                "Components": ["arrow_no_base", "arrow_total", "fins"],
-                "Width": 0.71,
-                "Header": "Force \\& Moment Summary",
-                "MuFormat": "%.3e",
-                "SigmaFormat": "%.3e"
+            "SweepList": {
+                "Type": "SweepCases",
+                "Header": "List of cases",
+                "Width": 0.5,
+                "Alignment": "t"
             },
-            // Iterative history
-            "arrow": {
-                "Type": "PlotCoeff",
-                "Component": "arrow_no_base",
-                "FigWidth": 5.5,
-                "FigHeight": 4.2,
-                "Width": 0.33
-            },
-            "arrow_CA": {"Type": "arrow", "Coefficient": "CA"},
-            "arrow_CY": {"Type": "arrow", "Coefficient": "CY"},
-            "arrow_CN": {"Type": "arrow", "Coefficient": "CN"},
-            "arrow_CLL": {
-                "Type": "arrow",
-                "Coefficient": "CLL",
-                "MuFormat": "%.2e",
-                "ShowSigma": false
-            },
-            "arrow_CLM": {"Type": "arrow", "Coefficient": "CLM"},
-            "arrow_CLN": {
-                "Type": "arrow",
-                "Coefficient": "CLN",
-                "MuFormat": "%.2e",
-                "ShowSigma": false
-            },
-            // Residual history
-            "L1": {
-                "Type": "PlotL1",
-                "FigWidth": 5.5,
-                "FigHeight": 6,
+            // Mach sweep
+            "mach_arrow": {
+                "Type": "SweepCoeff",
                 "Width": 0.33,
-                "Caption": "$L_1$ Density Residual"
+                "FigureWidth": 5.5,
+                "FigureHeight": 4.2,
+                "LineOptions": {
+                    "marker": "o",
+                    "color": ["b", "g", "m", "darkorange", "purple"],
+                    "ls": "-"
+                },
+                "Component": "arrow_no_base",
+                "XLabel": "Angle of attack [deg]"
+            },
+            "mach_arrow_CA": {"Type": "mach_arrow", "Coefficient": "CA"},
+            "mach_arrow_CY": {"Type": "mach_arrow", "Coefficient": "CY"},
+            "mach_arrow_CN": {"Type": "mach_arrow", "Coefficient": "CN"},
+            "mach_arrow_CLM": {"Type": "mach_arrow", "Coefficient": "CLM"},
+            "mach_fuse_CLM": {
+                "Type": "mach_arrow",
+                "Component": "fuselage",
+                "Coefficient": "CLM"
+            },
+            "mach_fins_CLM": {
+                "Type": "mach_arrow",
+                "Component": "fins",
+                "Coefficient": "CLM"
+            },
+            "mach_fins_CA": {
+                "Type": "mach_arrow",
+                "Component": ["fin1", "fin2", "fin3", "fin4"],
+                "Coefficient": "CN"
+            },
+            "mach_cap_CA": {
+                "Type": "mach_arrow",
+                "Component": "cap",
+                "Coefficient": "CA"
+            },
+            "mach_body_CN": {
+                "Type": "mach_arrow",
+                "Component": "body",
+                "Coefficient": "CN"
+            },
+            // Alpha sweep
+            "aoa_arrow": {
+                "Type": "mach_arrow",
+                "XLabel": "Angle of attack [deg]"
+            },
+            "aoa_arrow_CA": {"Type": "aoa_arrow", "Coefficient": "CA"},
+            "aoa_arrow_CY": {"Type": "aoa_arrow", "Coefficient": "CY"},
+            "aoa_arrow_CN": {"Type": "aoa_arrow", "Coefficient": "CN"},
+            "aoa_arrow_CLM": {"Type": "aoa_arrow", "Coefficient": "CLM"},
+            "aoa_fuse_CLM": {
+                "Type": "aoa_arrow",
+                "Component": "fuselage",
+                "Coefficient": "CLM"
+            },
+            "aoa_fins_CLM": {
+                "Type": "aoa_arrow",
+                "Component": "fins",
+                "Coefficient": "CLM"
+            },
+            "aoa_fins_CA": {
+                "Type": "aoa_arrow",
+                "Component": ["fin1", "fin2", "fin3", "fin4"],
+                "Coefficient": "CN"
+            },
+            "aoa_cap_CA": {
+                "Type": "aoa_arrow",
+                "Component": "cap",
+                "Coefficient": "CA"
+            },
+            "aoa_body_CN": {
+                "Type": "aoa_arrow",
+                "Component": "body",
+                "Coefficient": "CN"
             }
         }
     },
