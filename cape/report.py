@@ -3269,6 +3269,8 @@ class Report(object):
         """
         # Get list of options
         kopts = self.cntl.opts.get_SubfigOpt(sfig, "Keys")
+        # Exit if nothing to do
+        if kopts is None: return
         # Loop through the variables to set; each is a command
         for cmd in kopts:
             # Get the options for this command
