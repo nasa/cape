@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Configuration Name="missile.xml" Source="Components.i.tri">
+
+  <Component Name="cap" Parent="missile_no_base" Type="tri">
+    <Data>Face Label=1</Data>
+  </Component>
+
+  <Component Name="body" Parent="missile_no_base" Type="tri">
+    <Data>Face Label=2</Data>
+  </Component>
+
+  <Component Name="base" Parent="missile_base" Type="tri">
+    <Data>Face Label=3</Data>
+  </Component>
+
+  <Component Name="engine_mount" Parent="missile_base" Type="tri">
+    <Data>Face Label=4</Data>
+  </Component>
+
+  <Component Name="noz_exterior" Parent="missile_base" Type="tri">
+    <Data>Face Label=5</Data>
+  </Component>
+
+  <Component Name="noz_interior" Parent="missile_thrust" Type="tri">
+    <Data>Face Label=6</Data>
+  </Component>
+
+  <Component Name="noz_bc" Parent="missile_thrust" Type="tri">
+    <Data>Face Label=7</Data>
+  </Component>
+
+  <Component Name="fin1" Parent="fins" Type="tri">
+    <Data>Face Label=11</Data>
+  </Component>
+
+  <Component Name="fin2" Parent="fins" Type="tri">
+    <Data>Face Label=12</Data>
+  </Component>
+
+  <Component Name="fin3" Parent="fins" Type="tri">
+    <Data>Face Label=13</Data>
+  </Component>
+
+  <Component Name="fin4" Parent="fins" Type="tri">
+    <Data>Face Label=14</Data>
+  </Component>
+
+  <Component Name="missile_no_base" Parent="missile_no_thrust" Type="container">
+  </Component>
+
+  <Component Name="missile_base" Parent="missile_no_thrust" Type="container">
+  </Component>
+
+  <Component Name="missile_thrust" Parent="missile_total" Type="container">
+  </Component>
+
+  <Component Name="fins" Parent="missile_no_base" Type="container">
+  </Component>
+
+  <Component Name="missile_no_thrust" Parent="missile_total" Type="container">
+  </Component>
+
+  <Component Name="missile_total" Type="container">
+  </Component>
+
+</Configuration>

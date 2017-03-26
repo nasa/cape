@@ -1,0 +1,56 @@
+{
+    "Tree": {
+        "missile_total": [
+            "missile_no_thrust",
+            "missile_thrust"
+        ],
+        "missile_no_thrust": [
+            "missile_no_base",
+            "missile_base"
+        ],
+        "missile_no_base": [
+            "cap",
+            "body",
+            "fins"
+        ],
+        "fins": [
+            "fin1",
+            "fin2",
+            "fin3",
+            "fin4"
+        ],
+        "missile_base": [
+            "base",
+            "engine_mount",
+            "noz_exterior"
+        ],
+        "missile_thrust": [
+            "noz_bc",
+            "noz_interior"
+        ]
+    },
+    "Properties": {
+        "missile_no_thrust": {
+            "aflr3_bc": -1,
+            "blds": 0.0005
+        },
+        "noz_exterior": {
+            "aflr3_bc": -1,
+            "blds": 0.0001
+        },
+        "noz_bc": {
+            "aflr3_bc": 2,
+            "CompID": 7
+        },
+        "cap": 1,
+        "body": 2,
+        "base": 3,
+        "engine_mount": 4,
+        "noz_exterior": 5,
+        "noz_interior": 6,
+        "fin1": 11,
+        "fin2": 12,
+        "fin3": 13,
+        "fin4": 14
+    }
+}
