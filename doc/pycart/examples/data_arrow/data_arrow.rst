@@ -209,9 +209,10 @@ which can be a useful skill to investigate trends, etc.
         >>> DBfins.PlotCoeff('CN', I)
         
 This quick example opens up a :mod:`matplotlib` figure which leads to the
-result below.  However, it is usually easier to use the ``pycart --report``
-command.
+result in :numref:`fig-pycart-ex07-raw-CN`.  However, it is usually easier to
+use the ``pycart --report`` command.
         
+    .. _fig-pycart-ex07-raw-CN:
     .. figure:: fig1.*
         :width: 3.8in
         
@@ -219,3 +220,250 @@ command.
         
 Reports
 -------
+Options for automated reports are set in the ``"Reports"`` section of the JSON
+file.  This example defines four reports, and all of them are so-called "Sweep"
+reports.  Instead of plotting iterative histories for each case, plots are made
+for the forces and moments for a collection of cases.  This results in, for
+example, plots of normal force as a function of Mach number.  The header
+section of the ``"Reports"`` section is shown below.
+
+    .. code-block:: javascript
+    
+        "Report": {
+            // List of reports
+            "Reports": ["mach", "mach-carpet", "alpha", "alpha-carpet"],
+            // Define the report
+            "mach": {
+                "Title": "Cart3D Force \\& Moment Mach Sweep",
+                "Subtitle": "Example \\texttt{07\\_data\\_arrow}",
+                "Restriction": "pyCart Example - Distribution Unlimited",
+                "Sweeps": "mach"
+            },
+            "mach-carpet": {
+                "Title": "Cart3D Force \\& Moment Mach Sweep",
+                "Subtitle": "Example \\texttt{07\\_data\\_arrow}",
+                "Restriction": "pyCart Example - Distribution Unlimited",
+                "Sweeps": "mach-carpet"
+            },
+            "alpha": {
+                "Title": "Cart3D Force \\& Moment Mach Sweep",
+                "Subtitle": "Example \\texttt{07\\_data\\_arrow}",
+                "Restriction": "pyCart Example - Distribution Unlimited",
+                "Sweeps": "alpha"
+            },
+            "alpha-carpet": {
+                "Title": "Cart3D Force \\& Moment Mach Sweep",
+                "Subtitle": "Example \\texttt{07\\_data\\_arrow}",
+                "Restriction": "pyCart Example - Distribution Unlimited",
+                "Sweeps": "alpha-carpet"
+            }
+        }
+
+Mach Sweeps
+^^^^^^^^^^^
+One can see that these are "sweep" reports because the key *Report>Sweeps* key
+is defined and *Report>Figures* is not.  It is possible to put both into the
+same report, but that's not done here because the example is set up to be
+possible without actually running the cases.  Anyway, try creating the first
+report using the following command.
+
+    .. code-block:: console
+    
+        $ pycart --report mach
+        
+This creates five pages with nine Mach sweep plots per page.  Each page is a
+single page, and there are five pages because we have a square run matrix with
+five different angles of attack.  Rather than specifying too much detail, an
+example plot is provided in :numref:`fig-pycart-ex07-a2-fuselage-CLM` and
+:numref:`fig-pycart-ex07-a2-fins-CN`.
+
+    .. _fig-pycart-ex07-a2-fuselage-CLM:
+    .. figure:: alpha02/mach_fuse_CLM.*
+        :width: 3.8 in
+        
+        Mach sweep of ``fuselage``/*CLM* at 2 degrees angle of attack
+
+    .. _fig-pycart-ex07-a2-fins-CN:
+    .. figure:: alpha02/mach_fins_CN.*
+        :width: 3.8 in
+        
+        Mach sweep of *CN* on each fin at 2 degrees angle of attack
+
+The inputs that led to these two figures (*mach_fuse_CLM* for
+:numref:`fig-pycart-ex07-a2-fuselage-CLM`; *mach_fins_CN* for
+:numref:`fig-pycart-ex07-a2-fins-CN`) are shown below.  This is an excerpt from
+the *Report>Subfigures* section of :file:`pyCart.json`.
+
+    .. code-block:: javascript
+    
+        // Mach sweep
+        "mach_arrow": {
+            "Type": "SweepCoeff",
+            "Width": 0.33,
+            "FigureWidth": 5.5,
+            "FigureHeight": 4.2,
+            "LineOptions": {
+                "marker": "o",
+                "color": ["b", "g", "m", "darkorange", "purple"],
+                "ls": "-"
+            },
+            "Component": "arrow_no_base",
+            "XLabel": "Mach number"
+        },
+        "mach_fuse_CLM": {
+            "Type": "mach_arrow",
+            "Component": "fuselage",
+            "Coefficient": "CLM"
+        },
+        "mach_fins_CN": {
+            "Type": "mach_arrow",
+            "Component": ["fin1", "fin2", "fin3", "fin4"],
+            "Coefficient": "CN"
+        }
+        
+The *Type* parameter is set to ``"SweepCoeff"`` here for each plot.  The full
+path to this setting is *Report>Subfigures>mach_arrow>Type*, and this setting
+is inherited by all the other ``mach_*`` subfigures.  In
+*mach_arrow>LineOptions*, we set formatting options to be used by the Mach
+sweep plots.  A list of values, such as shown here in *color*, causes pyCart to
+cycle through the different plot styles.  In this example, the first line is
+blue, the second line is green, etc.  See :mod:`matplotlib` for a full set of
+available plot options.
+
+
+The main settings are *Component* and *Coefficient*.  Once the main template
+for the subfigures is set (here in *mach_arrow*), the other plots can usually
+be created by just changing the *Component* and *Coefficient*.
+
+The *mach_fins_CN* subfigure also demonstrates how users can plot multiple
+lines on the same plot by having a list of components.
+:numref:`fig-pycart-ex07-a2-fins-CN` shows this example.  Because the sideslip
+is zero, the two fins on the side, fin 2 and fin 4 are right on top of each
+other.  The top fin (fin 1) and bottom fin (fin 3) are not as symmetric.
+
+Users are encouraged to create the report and explore the other aspects of the
+example in the resulting PDF and the JSON file.
+
+Carpet Plots
+^^^^^^^^^^^^
+In order to get into the plots quicker, the previous subsection skipped the
+definition of the actual sweeps.  The *Report>Sweeps* definition from
+:file:`pyCart.json` is shown below.
+
+    .. code-block:: javascript
+
+        "Sweeps": {
+            // Mach sweep
+            "mach": {
+                "Figures": ["SweepTables", "MachSweep"],
+                "EqCons": ["alpha"],
+                "XAxis": "mach"
+            },
+            // Mach sweep with alpha carpet
+            "mach-carpet": {
+                "Figures": ["SweepTables", "MachSweep"],
+                "EqCons": [],
+                "CarpetEqCons": ["alpha"],
+                "XAxis": "mach"
+            },
+            // Alpha sweep
+            "alpha": {
+                "Figures": ["SweepTables", "AlphaSweep"],
+                "EqCons": ["mach"],
+                "XAxis": "alpha"
+            },
+            // Alpha sweep with Mach carpet
+            "alpha-carpet": {
+                "Figures": ["SweepTables", "AlphaSweep"],
+                "EqCons": [],
+                "CarpetEqCons": ["mach"],
+                "XAxis": "alpha"
+            }
+        }
+        
+Notice in the excerpt from the top level of the ``"Report"`` section at the
+beginning of this example, each named "report" has a *Sweeps* key.  That
+selects one or more "sweep" from *Report>Sweeps*.  Inspecting the JSON file
+probably makes more sense than this attempt to explain it in words.
+
+Anyway, the ``"mach"`` sweep lists two figures, ``"SweepTables"`` and
+``"MachSweep"``, and more importantly an "equality constraint" in the form of
+setting *EqCons* to ``["alpha"]``.  This means that each case that goes into
+one Mach sweep must have the same value of *alpha*.  It is also possible to use
+*TolCons* which allows the user to specify that all cases must have an angle of
+attack within a certain tolerance.  The *TolCons* key is especially useful for
+comparing results to wind tunnel data, which may have some slight variations in
+test conditions.
+
+In addition to *EqCons* and *TolCons*, there is also *GlobalCons*, which limits
+which cases are eligible to be included in any sweep.  For example, we could
+set ``"GlobalCons": ["mach > 1.0"]`` to limit the results to only supersonic
+cases. 
+
+Also, the ``"Figures"`` key works in the same way within ``"Sweeps"`` as it
+does in regular reports.  See the previous examples and the example
+:file:`pyCart.json` for more information on how to define figures.  Finally,
+the *XAxis* key simply designates a run matrix variable (trajectory key) to use
+as the independent variable in the plots.
+
+The focus of this subsection is the ``"mach-carpet"`` sweep and its use of
+*CarpetEqCons*.  Both *CarpetEqCons* and *CarpetTolCons* work in a similar way
+to *EqCons* and *TolCons*.  However, "carpet" constraints allow the user to
+plot multiple sweeps on the same figure.  Here the report ``"mach-report"`` has
+no *EqCons*, so the entire run matrix goes into the same result, and there is
+only one page of plots in the automated report.  
+
+Create the carpet plot by running the following command:
+
+    .. code-block:: console
+    
+        $ pycart --report mach-carpet
+
+A pair of selected plots from this report are shown in
+:numref:`fig-pycart-ex07-fuselage-mach-carpet-CLM` and
+:numref:`fig-pycart-ex07-arrow-mach-carpet-CN`.  There are five curves in each
+of the two figures, each with a different color.  Each individual curve is a
+Mach sweep at a constant angle of attack.
+        
+    .. _fig-pycart-ex07-fuselage-mach-carpet-CLM:
+    .. figure:: mach-carpet/mach_fuse_CLM.*
+        :width: 3.8 in
+        
+        Mach sweeps of ``fuselage`` pitching moment
+
+    .. _fig-pycart-ex07-arrow-mach-carpet-CN:
+    .. figure:: mach-carpet/mach_arrow_CN.*
+        :width: 3.8 in
+        
+        Mach sweeps of ``fuselage`` normal force coefficient
+    
+This is probably the most informative type of plot for a CFD configuration if
+the main product is a force & moment database.  For example
+:numref:`fig-pycart-ex07-fuselage-mach-carpet-CLM` shows that the fuselage on
+its own transitions from stable to unstable at Mach 1 (although the fins more
+than make up for the static instability with the moment reference point).
+:numref:`fig-pycart-ex07-arrow-mach-carpet-CN` shows that the overall normal
+force coefficient is mainly a function of angle of attack but with a spike
+around Mach 1.
+
+Angle of Attack Sweeps
+^^^^^^^^^^^^^^^^^^^^^^
+Reconfiguring these plots to be angle of attack sweeps is straightforward.
+:numref:`fig-pycart-ex07-fuselage-alpha-carpet-CLM` is the counterpart to
+:numref:`fig-pycart-ex07-fuselage-mach-carpet-CLM`, and
+:numref:`fig-pycart-ex07-arrow-alpha-carpet-CN` is the counterpart to
+:numref:`fig-pycart-ex07-arrow-mach-carpet-CN`.  These plots are created by
+running ``pycart --report alpha-carpet``.
+
+        
+    .. _fig-pycart-ex07-fuselage-alpha-carpet-CLM:
+    .. figure:: alpha-carpet/aoa_fuse_CLM.*
+        :width: 3.8 in
+        
+        Alpha sweeps of ``fuselage`` pitching moment
+
+    .. _fig-pycart-ex07-arrow-alpha-carpet-CN:
+    .. figure:: alpha-carpet/aoa_arrow_CN.*
+        :width: 3.8 in
+        
+        Alpha sweeps of ``fuselage`` normal force coefficient

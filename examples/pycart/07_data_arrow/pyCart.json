@@ -108,7 +108,7 @@
     // Report info
     "Report": {
         // List of reports
-        "Reports": ["mach", "mach-sweep", "alpha", "alpha-sweep"],
+        "Reports": ["mach", "mach-carpet", "alpha", "alpha-carpet"],
         // Define the report
         "mach": {
             "Title": "Cart3D Force \\& Moment Mach Sweep",
@@ -128,7 +128,7 @@
             "Restriction": "pyCart Example - Distribution Unlimited",
             "Sweeps": "alpha"
         },
-        "slpha-carpet": {
+        "alpha-carpet": {
             "Title": "Cart3D Force \\& Moment Mach Sweep",
             "Subtitle": "Example \\texttt{07\\_data\\_arrow}",
             "Restriction": "pyCart Example - Distribution Unlimited",
@@ -175,7 +175,7 @@
                 "Subfigures": [
                     "mach_arrow_CA",  "mach_arrow_CY",  "mach_arrow_CN",
                     "mach_fuse_CLM",  "mach_fins_CLM",  "mach_arrow_CLM",
-                    "mach_cap_CA",    "mach_fins_CA",   "mach_body_CN"
+                    "mach_cap_CA",    "mach_fins_CN",   "mach_body_CN"
                 ]
             },
             "AlphaSweep": {
@@ -215,7 +215,7 @@
                     "ls": "-"
                 },
                 "Component": "arrow_no_base",
-                "XLabel": "Angle of attack [deg]"
+                "XLabel": "Mach number"
             },
             "mach_arrow_CA": {"Type": "mach_arrow", "Coefficient": "CA"},
             "mach_arrow_CY": {"Type": "mach_arrow", "Coefficient": "CY"},
@@ -231,7 +231,7 @@
                 "Component": "fins",
                 "Coefficient": "CLM"
             },
-            "mach_fins_CA": {
+            "mach_fins_CN": {
                 "Type": "mach_arrow",
                 "Component": ["fin1", "fin2", "fin3", "fin4"],
                 "Coefficient": "CN"
@@ -265,7 +265,7 @@
                 "Component": "fins",
                 "Coefficient": "CLM"
             },
-            "aoa_fins_CA": {
+            "aoa_fins_CN": {
                 "Type": "aoa_arrow",
                 "Component": ["fin1", "fin2", "fin3", "fin4"],
                 "Coefficient": "CN"

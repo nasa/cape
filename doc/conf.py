@@ -247,6 +247,16 @@ latex_documents = [
 # If false, no module index is generated.
 #latex_domain_indices = True
 
+# -- Figure numbering -----------------------------------------------------
+
+# Active figure numbering
+numfig = True
+numfig_secnum_depth = 1
+numfig_format = {
+    'figure': 'Figure %s',
+    'table': 'Table %s',
+    'code-block': 'Listing %s'
+}
 
 # -- Options for manual page output ---------------------------------------
 
