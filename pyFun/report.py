@@ -134,7 +134,7 @@ class Report(cape.report.Report):
         # Project rootname
         proj = self.cntl.GetProjectRootName(None)
         # Get component (note this automatically defaults to *comp*)
-        compID = self.opts.get_DataBookCompID(comp)
+        compID = self.cntl.opts.get_DataBookCompID(comp)
         # Check for multiple components
         if type(compID).__name__ in ['list', 'ndarray']:
             # Read the first component

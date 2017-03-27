@@ -106,7 +106,7 @@ class Report(cape.report.Report):
             * 2015-10-16 ``@ddalle``: First version
         """
         # Get component (note this automatically defaults to *comp*)
-        compID = self.opts.get_DataBookCompID(comp)
+        compID = self.cntl.opts.get_DataBookCompID(comp)
         # Check for multiple components
         if type(compID).__name__ in ['list', 'ndarray']:
             # Read the first component
