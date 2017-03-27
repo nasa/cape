@@ -4198,7 +4198,6 @@ class TriBase(object):
         """
         # List of components; initialize with first.
         i = self.GetTrisFromCompID(compID)
-        print("Label 020: len(i)=%s" % len(i))
         # Check for null component
         if i is None or len(i) == 0:
             return
