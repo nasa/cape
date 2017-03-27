@@ -7,7 +7,7 @@
 	"RunControl": {
         // Run sequence
         "PhaseSequece": [0],
-        "PhaseIters": [600],
+        "PhaseIters": [700],
         // System configuration
 	    "nProc": 4,
         "MPI": 0,
@@ -220,13 +220,13 @@
                         "NContour": 1,
                         "MinLevel": -0.4,
                         "MaxLevel": 1.2,
-                        "Delta": 0.05
+                        "Delta": 0.1
                     },
                     {
                         "NContour": 2,
                         "MinLevel": 0.0,
                         "MaxLevel": 4.0,
-                        "Delta": 0.05
+                        "Delta": 0.1
                     }
                 ],
                 "ColorMaps": [
