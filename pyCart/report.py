@@ -104,6 +104,7 @@ class Report(cape.report.Report):
                 Case iterative force & moment history for one component
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
+            * 2017-03-27 ``@ddalle``: Added *CompID* option
         """
         # Get component (note this automatically defaults to *comp*)
         compID = self.cntl.opts.get_DataBookCompID(comp)

@@ -87,6 +87,7 @@
         "RefPoint": {
             "missile_no_base": "MRP",
             "missile_no_thrust": "MRP",
+            "missile_thrust": "MRP",
             "missile_total": "MRP",
             "fins": "MRP"
         },          
@@ -141,7 +142,7 @@
                 "Subfigures": [
                     "missile_CA",  "missile_CY",  "missile_CN",
                     "missile_CLL", "missile_CLN", "missile_CLM",
-                    "L1",          "engine_CT",   "engine_CLM"
+                    "L1",          "engine_CT",   "engine_CN"
                 ]
             },
             "CaseFlow": {
@@ -198,6 +199,7 @@
                 "Component": "missile_thrust"
             },
             "engine_CT":  {"Type": "engine", "Coefficient": "CT"},
+            "engine_CN":  {"Type": "engine", "Coefficient": "CN"},
             "engine_CLM": {"Type": "engine", "Coefficient": "CLM"},
             // Residual history
             "L1": {
