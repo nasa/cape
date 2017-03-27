@@ -64,11 +64,30 @@ class Report(cape.report.Report):
                 Case iterative force & moment history for one component
         :Versions:
             * 2016-02-04 ``@ddalle``: First version
+            * 2017-03-27 ``@ddalle``: Added *CompID* option
         """
         # Project rootname
         proj = self.cntl.GetPrefix()
+        # Get component (note this automatically defaults to *comp*)
+        compID = self.opts.get_DataBookCompID(comp)
+        # Check for multiple components
+        if type(compID).__name__ in ['list', 'ndarray']:
+            # Read the first component
+            FM = CaseFM(proj, compID[0])
+            # Loop through remaining components
+            for compi in compID[1:]:
+                # Check for minus sign
+                if compi.startswith('-1'):
+                    # Subtract the component
+                    FM -= CaseFM(proj, compi.lstrip('-'))
+                else:
+                    # Add in the component
+                    FM += CaseFM(proj, compi)
+        else:
+            # Read the iterative history for single component
+            FM = CaseFM(proj, compID)
         # Read the history for that component
-        return CaseFM(proj, comp)
+        return FM
             
     # Update subfig for case
     def SubfigSwitch(self, sfig, i, lines, q):

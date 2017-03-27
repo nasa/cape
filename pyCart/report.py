@@ -105,7 +105,26 @@ class Report(cape.report.Report):
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
         """
-        return CaseFM(comp)
+        # Get component (note this automatically defaults to *comp*)
+        compID = self.opts.get_DataBookCompID(comp)
+        # Check for multiple components
+        if type(compID).__name__ in ['list', 'ndarray']:
+            # Read the first component
+            FM = CaseFM(compID[0])
+            # Loop through remaining components
+            for compi in compID[1:]:
+                # Check for minus sign
+                if compi.startswith('-1'):
+                    # Subtract the component
+                    FM -= CaseFM(compi.lstrip('-'))
+                else:
+                    # Add in the component
+                    FM += CaseFM(compi)
+        else:
+            # Read the iterative history for single component
+            FM = CaseFM(compID)
+        # Read the history for that component
+        return FM
         
     # Read residual history
     def ReadCaseResid(self, sfig=None):
