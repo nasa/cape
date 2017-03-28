@@ -23,6 +23,8 @@ from datetime import datetime
 from .case import GetCurrentIter, GetProjectRootname
 # Utilities or advanced statistics
 from . import util
+from . import plt
+from . import case
 # Special data books
 from . import lineLoad
 
@@ -375,6 +377,95 @@ class DBTarget(cape.dataBook.DBTarget):
     
     pass
 # class DBTarget
+
+# TriqFM data book
+class DBTriqFM(cape.dataBook.DBTriqFM):
+    """Force and moment component extracted from surface triangulation
+    
+    :Call:
+        >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
+    :Inputs:
+        *x*: :class:`cape.trajectory.Trajectory`
+            Trajectory/run matrix interface
+        *opts*: :class:`cape.options.Options`
+            Options interface
+        *comp*: :class:`str`
+            Name of TriqFM component
+        *RootDir*: {``None``} | :class:`st`
+            Root directory for the configuration
+    :Outputs:
+        *DBF*: :class:`pyFun.dataBook.DBTriqFM`
+            Instance of TriqFM data book
+    :Versions:
+        * 2017-03-28 ``@ddalle``: First version
+    """
+    # Get file
+    def GetTriqFile(self):
+        """Get most recent ``triq`` file and its associated iterations
+        
+        :Call:
+            >>> qtriq, ftriq, n, i0, i1 = DBF.GetTriqFile()
+        :Inputs:
+            *DBF*: :class:`pyFun.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+        :Outputs:
+            *qtriq*: {``False``}
+                Whether or not to convert file from other format
+            *ftriq*: :class:`str`
+                Name of ``triq`` file
+            *n*: :class:`int`
+                Number of iterations included
+            *i0*: :class:`int`
+                First iteration in the averaging
+            *i1*: :class:`int`
+                Last iteration in the averaging
+        :Versions:
+            * 2016-12-19 ``@ddalle``: Added to the module
+        """
+        # Get properties of triq file
+        fplt, n, i0, i1 = case.GetPltFile()
+        # Get the corresponding .triq file name
+        ftriq = fplt.rstrip('.plt') + '.triq'
+        # Check if the TRIQ file exists
+        if os.path.isfile(ftriq):
+            # No conversion needed
+            qtriq = False
+        else:
+            # Need to convert PLT file to TRIQ
+            qtriq = True
+        # Output
+        return qtriq, ftriq, n, i0, i1
+    
+    # Preprocess triq file (convert from PLT)
+    def PreprocessTriq(self, ftriq, **kw):
+        """Perform any necessary preprocessing to create ``triq`` file
+        
+        :Call:
+            >>> DBL.PreprocessTriq(ftriq, i=None)
+        :Inputs:
+            *DBF*: :class:`pyFun.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+            *ftriq*: :class:`str`
+                Name of triq file
+            *i*: {``None``} | :class:`int`
+                Case index (else read from :file:`conditions.json`)
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+        """
+        # Get name of plt file
+        fplt = ftriq.rstrip('triq') + 'plt'
+        # Get case index
+        i = kw.get('i')
+        # Read Mach number
+        if i is None:
+            # Read from :file:`conditions.json`
+            mach = case.ReadConditions('mach')
+        else:
+            # Get from trajectory
+            mach = self.x.GetMach(i)
+        # Read the plt information
+        plt.Plt2Triq(fplt, ftriq, mach=mach)
+# class DBTriqFM
     
 
 # Force/moment history

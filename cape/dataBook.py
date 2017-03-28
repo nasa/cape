@@ -51,6 +51,9 @@ from .options import odict
 # Utilities or advanced statistics
 from . import util
 
+# Other local modules
+import cape.tri
+
 # Placeholder variables for plotting functions.
 plt = 0
 
@@ -2438,6 +2441,423 @@ class DBComp(DBBase):
   # >
 # class DBComp
 
+# Data book for a TriqFM component
+class DBTriqFM(dict):
+    """Force and moment component extracted from surface triangulation
+    
+    :Call:
+        >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
+    :Inputs:
+        *x*: :class:`cape.trajectory.Trajectory`
+            Trajectory/run matrix interface
+        *opts*: :class:`cape.options.Options`
+            Options interface
+        *comp*: :class:`str`
+            Name of TriqFM component
+        *RootDir*: {``None``} | :class:`st`
+            Root directory for the configuration
+    :Outputs:
+        *DBF*: :class:`cape.dataBook.DBTriqFM`
+            Instance of TriqFM data book
+    :Versions:
+        * 2017-03-28 ``@ddalle``: First version
+    """
+  # ======
+  # Config
+  # ======
+  # <
+    # Initialization method
+    def __init__(self, x, opts, comp, **kw):
+        """Initialization method
+        
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+        """
+        # Save root directory
+        self.RootDir = kw.get('RootDir', os.getcwd())
+        # Save the interface
+        self.x = x
+        self.opts = opts
+        # Save the component
+        self.comp = comp
+        # Get list of patches
+        self.patches = self.opts.get_DataBookPatches(comp)
+        # Total list of patches including total
+        self.comps = [comp] + self.patches
+        # Loop through the patches
+        for patch in self.comps:
+            self[patch] = DBTriqFMComp(x, opts, comp, patch=patch, **kw)
+        
+        # Reference area/length
+        self.RefA = opts.get_RefArea(comp)
+        self.RefL = opts.get_RefLength(comp)
+        # Moment reference point
+        self.MRP = np.array(opts.get_RefPoint(comp))
+    
+    # Representation method
+    def __repr__(self):
+        """Representation method
+        
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+        """
+        # Initialize string
+        lbl = "<DBTriqFM %s, patches=%s>" % (self.comp, self.patches)
+        # Output
+        return lbl
+    __str__ = __repr__
+    
+    # Sorting method
+    def Sort(self):
+        """Sort point sensor group
+        
+        :Call:
+            >>> DBF.Sort()
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+        :Versions:
+            * 2016-03-08 ``@ddalle``: First version
+        """
+        # Loop through points
+        for pt in self.pts:
+            self[pt].Sort()
+    
+    # Output method
+    def Write(self):
+        """Write to file each point sensor data book in a group
+        
+        :Call:
+            >>> DBPG.Write()
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+        :Versions:
+            * 2015-12-04 ``@ddalle``: First version
+        """
+        # Loop through points
+        for pt in self.pts:
+            # Sort it.
+            self[pt].Sort()
+            # Write it
+            self[pt].Write()
+            
+    # Match the databook copy of the trajectory
+    def UpdateTrajectory(self):
+        """Match the trajectory to the cases in the data book
+        
+        :Call:
+            >>> DBPG.UpdateTrajectory()
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+        :Versions:
+            * 2015-05-22 ``@ddalle``: First version
+        """
+        # Get the first component.
+        DBc = self[self.pts[0]]
+        # Loop through the fields.
+        for k in self.x.keys:
+            # Copy the data.
+            setattr(self.x, k, DBc[k])
+            # Set the text.
+            self.x.text[k] = [str(xk) for xk in DBc[k]]
+        # Set the number of cases.
+        self.x.nCase = DBc.n
+  # >
+  
+  # ========
+  # Updaters
+  # ========
+  # <
+    # Process a case
+    def UpdateCase(self, i):
+        """Prepare to update a TriqFM group if necessary
+        
+        :Call:
+            >>> DBF.UpdateCase(i)
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+        """
+        # Component name
+        comp = self.comp
+        DBc = self[comp]
+        # Check update status
+        q = True
+        # Exit if no update necessary
+        if not q: return
+        # Try to find a match in the data book
+        j = DBc.FindMatch(i)
+        # Get the name of the folder
+        frun = self.x.GetFullFolderNames(i)
+        # Status update
+        print(frun)
+        # Go to root directory safely
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Check if folder exists
+        if not os.path.isdir(frun):
+            os.chdir(fpwd)
+            return
+        # Enter the case folder
+        os.chdir(frun)
+        # Determine minimum number of iterations required
+        nAvg = self.opts.get_nStats(self.comp)
+        nMin = self.opts.get_nMin(self.comp)
+        # Get the number of iterations, etc.
+        qtriq, ftriq, nStats, n0, nIter = self.GetTriqFile()
+        # Process whether or not to update.
+        if (not nIter) or (nIter < nMin + nAvg):
+            # Not enough iterations (or zero)
+            print("  Not enough iterations (%s) for analysis." % nIter)
+            q = False
+        elif np.isnan(j):
+            # No current entry
+            print("  Adding new databook entry at iteration %i." % nIter)
+            q = True
+        elif DBc['nIter'][j] < nIter:
+            # Update
+            print("  Updating from iteration %i to %i." %
+                (DBc['nIter'][j], nIter))
+            q = True
+        elif DBc['nStats'][j] < nStats:
+            # Change statistics
+            print("  Recomputing statistics using %i iterations." % nStats)
+            q = True
+        else:
+            # Up-to-date
+            q = False
+        # Check for update
+        if not q:
+            os.chdir(fpwd)
+            return
+        # Create "triqfm" folder if necessary
+        if not os.path.isdir('triqfm'): self.opts.mkdir('triqfm')
+        # Convert other format to TRIQ if necessary
+        if qtriq:
+            self.PreprocessTriq(ftriq, i=i)
+        # Read the triangulation
+        self.ReadTriq(ftriq)
+        # Enter folder
+        os.chdir("triqfm")
+        
+        # Return to original folder
+        os.chdir(fpwd)
+        
+  # >
+  
+  # ===================
+  # Triq File Interface
+  # ===================
+  # <
+    # Get file
+    def GetTriqFile(self):
+        """Get most recent ``triq`` file and its associated iterations
+        
+        :Call:
+            >>> qtriq, ftriq, n, i0, i1 = DBF.GetTriqFile()
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+        :Outputs:
+            *qtriq*: {``False``}
+                Whether or not to convert file from other format
+            *ftriq*: :class:`str`
+                Name of ``triq`` file
+            *n*: :class:`int`
+                Number of iterations included
+            *i0*: :class:`int`
+                First iteration in the averaging
+            *i1*: :class:`int`
+                Last iteration in the averaging
+        :Versions:
+            * 2016-12-19 ``@ddalle``: Added to the module
+        """
+        # Get properties of triq file
+        ftriq, n, i0, i1 = case.GetTriqFile()
+        # Output
+        return False, ftriq, n, i0, i1
+    
+    # Convert
+    def PreprocessTriq(self, ftriq, **kw):
+        """Perform any necessary preprocessing to create ``triq`` file
+        
+        :Call:
+            >>> ftriq = DBF.PreprocessTriq(ftriq, qpbs=False, f=None)
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+            *ftriq*: :class:`str`
+                Name of triq file
+            *i*: {``None``} | :class:`int`
+                Case index
+        :Versions:
+            * 2016-12-19 ``@ddalle``: First version
+            * 2016-12-21 ``@ddalle``: Added PBS
+        """
+        pass
+        
+    # Read a Triq file
+    def ReadTriq(self, ftriq):
+        """Read a ``triq`` annotated surface triangulation
+        
+        :Call:
+            >>> DBF.ReadTriq(ftriq)
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+            *ftriq*: :class:`str`
+                Name of ``triq`` file
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+        """
+        # Read using :mod:`cape`
+        self.triq = cape.tri.Triq(ftriq)
+  # >
+  
+  # ========
+  # Mapping
+  # ========
+  # <
+    # Read the map file
+    def ReadTriMap(self):
+        """Read the triangulation to use for mapping
+        
+        :Call:
+            >>> DBF.ReadTriMap()
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+        """
+        # Get the name of the tri file and configuration
+        ftri = self.opts.get_DataBookMapTri(self.comp)
+        fcfg = self.opts.get_DataBookMapConfig(self.comp)
+        # Check for absolute paths
+        if (ftri) and (not os.path.isabs(ftri)):
+            # Read relative to *RootDir*
+            ftri = os.path.join(self.RootDir, ftri)
+        # Repeat for configuration 
+        if (fcfg) and (not os.path.isabs(fcfg)):
+            # Read relative to *RootDir*
+            fcfg = os.path.join(self.RootDir, fcfg)
+        # Save triangulation value
+        if ftri:
+            # Read the triangulation
+            self.tri = cape.tri.Tri(ftri, c=fcfg)
+        else:
+            # No triangulation map
+            self.tri = None
+    
+    # Map the components
+    def MapTriCompID(self):
+        """Perform any component ID mapping if necessary
+        
+        :Call:
+            >>> DBF.MapTriCompID()
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+        :Attributes:
+            *DBF.compmap*: :class:`dict`
+                Map of component numbers altered during the mapping
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+        """
+        # Check for a tri file
+        if self.tri is None:
+            # No component map
+            self.compmap = {}
+        else:
+            # Map the component IDs
+            self.compmap = self.triq.MapTriCompID(tri, v=True)
+            
+  # >
+  
+  # ===========================
+  # Force & Moment Computation
+  # ===========================
+  # <
+  
+  # >
+# class DBTriqFM
+
+# Data book for a TriqFM component
+class DBTriqFMComp(DBBase):
+    """Force and moment component extracted from surface triangulation
+    
+    :Call:
+        >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
+    :Inputs:
+        *x*: :class:`cape.trajectory.Trajectory`
+            Trajectory/run matrix interface
+        *opts*: :class:`cape.options.Options`
+            Options interface
+        *comp*: :class:`str`
+            Name of TriqFM component
+        *RootDir*: {``None``} | :class:`st`
+            Root directory for the configuration
+    :Outputs:
+        *DBF*: :class:`cape.dataBook.DBTriqFM`
+            Instance of TriqFM data book
+    :Versions:
+        * 2017-03-28 ``@ddalle``: First version
+    """
+  # ======
+  # Config
+  # ======
+  # <
+    # Initialization method
+    def __init__(self, x, opts, comp, patch=None, **kw):
+        """Initialization method
+        
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+        """
+        # Save relevant inputs
+        self.x = x
+        self.opts = opts
+        self.TriqFMComp = comp
+        self.patch = patch 
+        # Assemble overall component
+        if patch is None:
+            # Just the component
+            self.comp = comp
+        else:
+            # Take the patch name, but ensure one occurrence of comp as prefix
+            self.comp = "%s_%s" % (comp, patch.lstrip(comp).lstrip('_'))
+            
+        # Save root directory
+        self.RootDir = kw.get('RootDir', os.getcwd())
+        # Get the data book directory
+        fdir = opts.get_DataBookDir()
+        # Compatibility
+        fdir = fdir.replace("/", os.sep)
+        fdir = fdir.replace("\\", os.sep)
+        # Save home folder
+        self.fdir = fdir
+        
+        # Construct the file name
+        fcomp = "triqfm_%s.csv" % self.comp
+        # Full file name
+        fname = os.path.join(fdir, "triqfm", comp)
+        # Save the file name
+        self.fname = fname
+        
+        # Process columns
+        self.ProcessColumns()
+        
+        # Read the file or initialize empty arrays
+        self.Read(fname)
+            
+  # >
+# class DBTriqFM
 
 # Data book target instance
 class DBTarget(DBBase):

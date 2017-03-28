@@ -270,6 +270,42 @@ def ReadCaseJSON():
     # Output
     return fc
     
+# Read variable from conditions file
+def ReadConditions(k=None):
+    """Read run matrix variable value in the current folder
+    
+    :Call:
+        >>> conds = cape.case.ReadConditions()
+        >>> v = cape.case.ReadConditions(k)
+    :Inputs:
+        *k*: :class:`str`
+            Name of run matrix variable/trajectory key
+    :Outputs:
+        *conds*: :class:`dict` (:class:`any`)
+            Dictionary of run matrix conditions
+        *v*: :class:`any`
+            Run matrix conditions of key *k*
+    :Versions:
+        * 2017-03-28 ``@ddalle``: First version
+    """
+    # Read the file
+    try:
+        # Open the file
+        f = open('conditions.json')
+        # REad the settings
+        conds = json.load(f)
+        # Close the file
+        f.close()
+    except Exception:
+        return None
+    # Check for trajectory key
+    if k is None:
+        # Return full set
+        return conds
+    else:
+        # Return the trajectory value
+        return conds.get(k)
+    
 # Function to set the environment
 def PrepareEnvironment(rc, i=0):
     """Set environment variables and alter any resource limits (``ulimit``)

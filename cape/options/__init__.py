@@ -1897,6 +1897,11 @@ class Options(odict):
         self._DataBook()
         return self['DataBook'].get_DataBookPrefix(comp)
         
+    # Get format for additional output
+    def get_DataBookOutputFormat(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookOutputFormat(comp)
+        
     # Get momentum setting
     def get_DataBookMomentum(self, comp):
         self._DataBook()
@@ -1926,6 +1931,11 @@ class Options(odict):
     def get_DataBookMapConfig(self, comp):
         self._DataBook()
         return self['DataBook'].get_DataBookMapConfig(comp)
+        
+    # TriqFM list of patches
+    def get_DataBookPatches(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookPatches(comp)
     
     # Group/points
     def get_DBGroupPoints(self, name):
@@ -1935,6 +1945,7 @@ class Options(odict):
     # Copy over the documentation.
     for k in ['DataBookComponents', 'DataBookByType',
             'DataBookMapTri', 'DataBookMapConfig',
+            'DataBookPatches', "DataBookOutputFormat",
             'DataBookType', 'DataBookPoints', 'DBGroupPoints',
             'DataBookCoeffs', 'DataBookTargets', 'DataBookCoeffStats',
             'DataBookFloatCols', 'DataBookIntCols',

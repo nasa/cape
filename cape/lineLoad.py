@@ -99,9 +99,9 @@ class DBLineLoad(dataBook.DBBase):
         * 2015-09-16 ``@ddalle``: First version
         * 2016-05-11 ``@ddalle``: Moved to :mod:`cape`
     """
-    # ======
-    # Config
-    # ======
+  # ======
+  # Config
+  # ======
   # <
     # Initialization method
     def __init__(self, x, opts, comp, conf=None, RootDir=None, targ=None):
@@ -224,13 +224,13 @@ class DBLineLoad(dataBook.DBBase):
             
   # >
     
-    # ====
-    # I/O
-    # ====
+  # ====
+  # I/O
+  # ====
   # <
-    # --------
-    # Main I/O
-    # --------
+   # --------
+   # Main I/O
+   # --------
    # [
     # function to read line load data book summary
     def Read(self, fname=None):
@@ -377,9 +377,9 @@ class DBLineLoad(dataBook.DBBase):
         self.WriteSeamCurves()
    # ]
     
-    # --------
-    # Seam I/O
-    # --------
+   # --------
+   # Seam I/O
+   # --------
    # [
     # Read the seam curves
     def ReadSeamCurves(self):
@@ -449,9 +449,9 @@ class DBLineLoad(dataBook.DBBase):
                 pass
    # ]
     
-    # ---------
-    # Case I/O
-    # ---------
+   # ---------
+   # Case I/O
+   # ---------
    # [
     # Read a case from the data book
     def ReadCase(self, i):
@@ -494,9 +494,9 @@ class DBLineLoad(dataBook.DBBase):
    
   # >
     
-    # ============
-    # Organization
-    # ============
+  # ============
+  # Organization
+  # ============
   # <
     # Match the databook copy of the trajectory
     def UpdateTrajectory(self):
@@ -521,9 +521,9 @@ class DBLineLoad(dataBook.DBBase):
         self.x.nCase = self.n
   # >
     
-    # ===========
-    # Calculation
-    # ===========
+  # ===========
+  # Calculation
+  # ===========
   # <
     # Update a case
     def UpdateCase(self, i, qpbs=False):
@@ -905,9 +905,9 @@ class DBLineLoad(dataBook.DBBase):
         pass
   # >
     
-    # ========
-    # Database
-    # ========
+  # ========
+  # Database
+  # ========
   # <
     # Get a proper orthogonal decomposition
     def GetCoeffPOD(self, coeff, n=2, f=None, **kw):

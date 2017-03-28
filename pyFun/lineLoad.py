@@ -111,7 +111,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBL.GetTriqFile()
         :Inputs:
-            *DBL*: :class:`pyCart.lineLoad.DBLineLoad`
+            *DBL*: :class:`pyFun.lineLoad.DBLineLoad`
                 Instance of line load data book
         :Outputs:
             *qtriq*: {``False``}

@@ -519,6 +519,37 @@ class DataBook(odict):
         return copts.get("Extension", db_ext)
   # >
   
+  # ===========
+  # Other Files
+  # ===========
+  # <
+    # Get output format
+    def get_DataBookOutputFormat(self, comp):
+        """Get any output format option for a data book component
+        
+        :Call:
+            >>> fmt = opts.get_DataBookOutputFormat(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *typ*: ``"Force"`` | ``"FM"`` | ``"LineLoad"`` | :class:`str`
+                Data book type
+        :Outputs:
+            *fmt*: ``None`` | :class:`str`
+                File format for additional output
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+        """
+        # Get the options for the component.
+        copts = self.get(comp, {})
+        # Get the global option
+        fmt = self.get("OutputFormat")
+        # Get the component-specific option
+        fmt = copts.get("OutputFormat", fmt)
+        # Output
+        return fmt
+  # >
+  
   # =======
   # Targets
   # =======
@@ -734,6 +765,13 @@ class DataBook(odict):
         elif ctype in ["FM", "full", "Full"]:
             # Force and moment
             coeffs = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
+        elif ctype in ["TriqFM"]:
+            # Extracted force and moment
+            coeffs = [
+                "CA", "CY", "CN", 
+                "CLL", "CLM", "CLN",
+                "Cp_min", "Cp_max"
+            ]
         elif ctype in ["PointSensor"]:
             # Default to list of points for a point sensor
             coeffs = ["Cp"]
@@ -1067,7 +1105,7 @@ class DataBook(odict):
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *comp*: ``None``
+            *comp*: :class:`str`
                 Name of component file
         :Outputs:
             *fcfg*: {``None``} | :class:`str`
@@ -1084,6 +1122,29 @@ class DataBook(odict):
         # Output
         return fcfg
         
+    # Get the list of patches
+    def get_DataBookPatches(self, comp):
+        """
+        Get list of patches for a databook component, usually for a ``TriqFM`
+        component
+        
+        :Call:
+            >>> fpatches = opts.get_DataBookPatches(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component file
+        :Outputs:
+            *fpatches*: :class:`list` (:class:`str`)
+                List of names of patches, if any
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+        """
+        # Get the options for the component
+        copts = self.get(comp, {})
+        # Get list of patches
+        return copts.get("Patches", [])
     
   # >
       
