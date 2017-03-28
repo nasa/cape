@@ -2484,6 +2484,7 @@ class DBTriqFM(dict):
         self.patches = self.opts.get_DataBookPatches(comp)
         # Total list of patches including total
         self.comps = [comp] + self.patches
+        
         # Loop through the patches
         for patch in self.comps:
             self[patch] = DBTriqFMComp(x, opts, comp, patch=patch, **kw)
@@ -2825,13 +2826,19 @@ class DBTriqFMComp(DBBase):
         self.opts = opts
         self.TriqFMComp = comp
         self.patch = patch 
+        
+        # Default prefix
+        fpre = opts.get_DataBookPrefix(comp)
+        # Use name of component as default
+        if fpre is None: fpre = comp
+        
         # Assemble overall component
         if patch is None:
             # Just the component
             self.comp = comp
         else:
             # Take the patch name, but ensure one occurrence of comp as prefix
-            self.comp = "%s_%s" % (comp, patch.lstrip(comp).lstrip('_'))
+            self.comp = "%s_%s" % (pre, patch.lstrip(pre).lstrip('_'))
             
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
