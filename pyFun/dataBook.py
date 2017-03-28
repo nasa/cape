@@ -23,10 +23,11 @@ from datetime import datetime
 from .case import GetCurrentIter, GetProjectRootname
 # Utilities or advanced statistics
 from . import util
-from . import plt
 from . import case
 # Special data books
 from . import lineLoad
+# Special class
+import pyFun.plt
 
 # Template module
 import cape.dataBook
@@ -496,7 +497,7 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
             # Get from trajectory
             mach = self.x.GetMach(i)
         # Read the plt information
-        plt.Plt2Triq(fplt, ftriq, mach=mach)
+        pyFun.plt.Plt2Triq(fplt, ftriq, mach=mach)
 # class DBTriqFM
     
 
