@@ -3109,11 +3109,6 @@ class TriBase(object):
         tri0.CompID = tri0.CompID[k]
         # Save the reduced number of tris.
         tri0.nTri = k.size
-        # Downselect q if available
-        try:
-            tri0.q = tri0.q[k]
-        except Exception:
-            pass
         # Trim unused nodes to save space
         tri0.TrimUnusedNodes()
         # Output
@@ -3149,6 +3144,11 @@ class TriBase(object):
         # Downselect nodes
         self.nNode = nNode
         self.Nodes = self.Nodes[N-1,:]
+        # Downselect *q* if available
+        try:
+            self.q = self.q[N-1,:]
+        except Exception:
+            pass
         
     
     # Map triangles to components based on another file

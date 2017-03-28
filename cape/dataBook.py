@@ -2782,7 +2782,7 @@ class DBTriqFM(dict):
             self.compmap = {}
         else:
             # Map the component IDs
-            self.compmap = self.triq.MapTriCompID(self.tri, v=True)
+            self.compmap = self.triq.MapTriCompID(self.tri)
             
   # >
   
@@ -2790,7 +2790,48 @@ class DBTriqFM(dict):
   # Force & Moment Computation
   # ===========================
   # <
-  
+    # Calculate forces and moments
+    def GetTriForces(self, patch, i, **kw):
+        """Get the forces and moments on a patch
+        
+        :Call:
+            >>> F = DBF.GetTriForces(patch, i, **kw)
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+            *patch*: :class:`str`
+                Name of patch
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+        """
+        # Set inputs for TriqForces
+        kwfm = {
+            "m":    self.x.GetMach(i),
+            "Re":   self.x.GetReynolds(i),
+            "Aref": self.RefA,
+            "Lref": self.RefL,
+            "incm": False
+        }
+        # Process component
+        if type(patch).__name__ in ["list", "ndarray"]:
+            # Make up a name
+            cname = str(patch[0])
+            # Translate component numbers if needed
+            comp = [self.compmap.get(k, k) for k in comp]
+        elif (comp is None) or (comp == ""):
+            # Name of component
+            cname = "entire"
+            comp = None
+            # Which components to process
+            if ftri is not None:
+                # Get the list of components from the mapping tri
+                comp = compmap.values()
+        else:
+            # Use the name directly
+            cname = str(comp)
+            # If the component is an integer, make sure we use
   # >
 # class DBTriqFM
 
