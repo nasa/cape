@@ -2771,13 +2771,18 @@ class DBTriqFM(dict):
         :Versions:
             * 2017-03-28 ``@ddalle``: First version
         """
+        # Ensure tri is present
+        try:
+            self.tri
+        except Exception:
+            self.ReadTriMap()
         # Check for a tri file
         if self.tri is None:
             # No component map
             self.compmap = {}
         else:
             # Map the component IDs
-            self.compmap = self.triq.MapTriCompID(tri, v=True)
+            self.compmap = self.triq.MapTriCompID(self.tri, v=True)
             
   # >
   
