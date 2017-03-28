@@ -701,7 +701,7 @@ class DBLineLoad(dataBook.DBBase):
             * 2016-12-19 ``@ddalle``: Added to the module
         """
         # Get properties of triq file
-        ftriq, n, i0, i1 = GetTriqFile()
+        ftriq, n, i0, i1 = case.GetTriqFile()
         # Output
         return False, ftriq, n, i0, i1
         
@@ -2472,40 +2472,4 @@ class CaseSeam(object):
         return h
         
 # class CaseSeam
-
-# Function to determine newest triangulation file
-def GetTriqFile(proj='Components'):
-    """Get most recent ``triq`` file and its associated iterations
-    
-    :Call:
-        >>> ftriq, n, i0, i1 = GetTriqFile(proj='Components')
-    :Inputs:
-        *proj*: {``"Components"``} | :class:`str`
-            File root name
-    :Outputs:
-        *ftriq*: :class:`str`
-            Name of most recently modified ``triq`` file
-        *n*: {``None``}
-            Number of iterations included
-        *i0*: {``None``}
-            First iteration in the averaging
-        *i1*: {``None``}
-            Last iteration in the averaging
-    :Versions:
-        * 2016-12-19 ``@ddalle``: First version
-    """
-    # Get the glob of numbered files.
-    fglob = glob.glob('*.triq')
-    # Check it.
-    if len(fglob) > 0:
-        # Get modification times
-        t = [os.path.getmtime(f) for f in fglob]
-        # Extract file with maximum index
-        ftriq = fglob[t.index(max(t))]
-        # Output
-        return ftriq, None, None, None
-    else:
-        # No TRIQ files
-        return None, None, None, None
-# def GetTriqFile
 

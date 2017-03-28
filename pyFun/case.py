@@ -941,6 +941,112 @@ def CopyHist(nml, i):
         os.rename(
             '%s_subhist.dat' % proj,
             '%s_subhist.%02i.dat' % (proj, i))
+        
+# Function to determine newest triangulation file
+def GetPltFile():
+    """Get most recent boundary ``plt`` file and its associated iterations
+    
+    :Call:
+        >>> fplt, n, i0, i1 = GetPltFile()
+    :Outputs:
+        *fplt*: :class:`str`
+            Name of ``plt`` file
+        *n*: :class:`int`
+            Number of iterations included
+        *i0*: :class:`int`
+            First iteration in the averaging
+        *i1*: :class:`int`
+            Last iteration in the averaging
+    :Versions:
+        * 2016-12-20 ``@ddalle``: First version
+    """
+    # Read *rc* options to figure out iteration values
+    rc = ReadCaseJSON()
+    # Get current phase number
+    j = GetPhaseNumber(rc)
+    # Read the namelist to get prefix and iteration options
+    nml = GetNamelist(rc, j)
+    # =============
+    # Best PLT File
+    # =============
+    # Prefix
+    proj = GetProjectRootname(nml=nml)
+    # Create glob to search for
+    fglb = '%s_tec_boundary_timestep[1-9]*.plt' % proj
+    # Check in working directory?
+    if rc.get_Dual():
+        # Look in the 'Flow/' folder
+        fglb = os.path.join('Flow', fglb)
+    # Get file
+    fplt = GetFromGlob(fglb)
+    # Get the iteration number
+    nplt = int(fplt.rstrip('.plt').split('timestep')[-1])
+    # ============================
+    # Actual Iterations after Runs
+    # ============================
+    # Glob of ``run.%02i.%i`` files
+    fgrun = glob.glob('run.[0-9][0-9].[1-9]*')
+    # Form dictionary of iterations
+    nrun = []
+    drun = {}
+    # Loop through files
+    for frun in fgrun:
+        # Get iteration number
+        ni = int(frun.split('.')[2])
+        # Get phase number
+        ji = int(frun.split('.')[1])
+        # Save
+        nrun.append(ni)
+        drun[ni] = ji
+    # Sort on iteration number
+    nrun.sort()
+    nrun = np.array(nrun)
+    # Determine the last run that terminated before this PLT file was created
+    krun = np.where(nplt > nrun)[0]
+    # If no 'run.%02i.%i' before *nplt*, then use 0
+    if len(krun) == 0:
+        # Use current phase as reported
+        nprev = 0
+        nstrt = 1
+        jstrt = j
+    else:
+        # Get the phase from the last run that finished before *nplt*
+        kprev = krun[-1]
+        nprev = nrun[kprev]
+        jprev = drun[nprev]
+        # Have we moved to the next phase?
+        if nprev >= rc.get_PhaseIters(jprev):
+            # We have *nplt* from the next phase
+            mprev = rc.get_PhaseSequence().index(jprev)
+            jstrt = rc.get_PhaseSequence(mprev+1)
+        else:
+            # Still running phase *jprev* to create *fplt*
+            jstrt = jprev
+        # First iteration included in PLT file
+        nstrt = nprev + 1
+    # Make sure we have the right namelist
+    if j != jstrt:
+        # Read the new namelist
+        j = jstrt
+        nml = GetNamelist(rc, j)
+    # ====================
+    # Iteration Statistics
+    # ====================
+    # Check for averaging
+    qavg = nml.GetVar('time_avg_params', 'itime_avg')
+    # Number of iterations
+    if qavg:
+        # Time averaging included
+        nStats = nplt - nprev
+    else:
+        # One iteration
+        nStats = 1
+        nstrt = nplt
+    # ======
+    # Output
+    # ======
+    return fplt, nStats, nstrt, nplt
+# def GetPltFile
     
     
     

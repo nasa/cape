@@ -128,7 +128,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             * 2016-12-19 ``@ddalle``: Added to the module
         """
         # Get properties of triq file
-        fplt, n, i0, i1 = GetPltFile()
+        fplt, n, i0, i1 = case.GetPltFile()
         # Get the corresponding .triq file name
         ftriq = fplt.rstrip('.plt') + '.triq'
         # Check if the TRIQ file exists

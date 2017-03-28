@@ -970,4 +970,54 @@ def LinkX():
     LinkLatest(fx,  'x.pyover.p3d')
     LinkLatest(fxs, 'x.pyover.srf')
 # def LinkX
+
+
+# Function to determine newest triangulation file
+def GetQFile(fqi="q.pyover.p3d"):
+    """Get most recent OVERFLOW ``q`` file and its associated iterations
+    
+    Averaged solution files, such as ``q.avg`` take precedence.
+    
+    :Call:
+        >>> fq, n, i0, i1 = GetQFile(fqi="q.pyover.p3d")
+    :Inputs:
+        *fqi*: {q.pyover.p3d} | q.pyover.avg | q.pyover.vol | :class:`str`
+            Target Overflow solution file after linking most recent files
+    :Outputs:
+        *fq*: :class:`str`
+            Name of ``q`` file
+        *n*: :class:`int`
+            Number of iterations included
+        *i0*: :class:`int`
+            First iteration in the averaging
+        *i1*: :class:`int`
+            Last iteration in the averaging
+    :Versions:
+        * 2016-12-30 ``@ddalle``: First version
+        * 2017-03-28 ``@ddalle``: Moved from :mod:`lineLoad` to :mod:`case`
+    """
+    # Link grid and solution files
+    LinkQ()
+    LinkX()
+    # Check for the input file
+    if os.path.isfile(fqi):
+        # Use the file (may be a link, in fact it usually is)
+        fq = fqi
+    else:
+        # Best Q file available (usually "q.avg" or "q.save")
+        fq = GetQ()
+    # Check for q.avg iteration count
+    n = checkqavg(fq)
+    # Read the current "time" parameter
+    i1 = checkqt(fq)
+    # Get start parameter
+    if (n is not None) and (i1 is not None):
+        # Calculate start iteration
+        i0 = i1 - n + 1
+    else:
+        # Cannot determine start iteration
+        i0 = None
+    # Output
+    return fq, n, i0, i1
+# def GetQFile
     
