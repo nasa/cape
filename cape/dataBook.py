@@ -2838,7 +2838,7 @@ class DBTriqFMComp(DBBase):
             self.comp = comp
         else:
             # Take the patch name, but ensure one occurrence of comp as prefix
-            self.comp = "%s_%s" % (pre, patch.lstrip(pre).lstrip('_'))
+            self.comp = "%s_%s" % (fpre, patch.lstrip(fpre).lstrip('_'))
             
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
