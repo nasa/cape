@@ -109,7 +109,7 @@ class DataBook(cape.dataBook.DataBook):
         
     # Read line load
     def ReadLineLoad(self, comp, conf=None, targ=None):
-        """Read a line load data book target if it is not already present
+        """Read a line load data book if it is not already present
         
         :Call:
             >>> DB.ReadLineLoad(comp)
@@ -157,6 +157,38 @@ class DataBook(cape.dataBook.DataBook):
                 self.LineLoads[ttl] = lineLoad.DBLineLoad(self.x, self.opts,
                     comp, conf=conf, RootDir=self.RootDir, targ=targ)
             # Return to starting location
+            os.chdir(fpwd)
+    
+    # Read TrqiFM components
+    def ReadTriqFM(self, comp):
+        """Read a TriqFM data book if not already present
+        
+        :Call:
+            >>> DB.ReadTriqFM(comp)
+        :Inputs:
+            *DB*: :class:`pyFun.dataBook.DataBook`
+                Instance of pyFun data book class
+            *comp*: :class:`str`
+                Name of TriqFM component
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+        """
+        # Initialize if necessary
+        try:
+            self.TriqFM
+        except Exception:
+            self.TriqFM = {}
+        # Try to access the TriqFM database
+        try:
+            self.TriqFM[comp]
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Read data book
+            self.TriqFM[comp] = DBTriqFM(self.x, self.opts, comp,
+                RootDir=self.RootDir)
+            # Return to starting position
             os.chdir(fpwd)
         
     # Update data book
