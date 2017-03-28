@@ -807,11 +807,18 @@ class DataBook(odict):
         if sts is not None:
             # Non-default; check the type
             if type(sts).__name__ not in ['list', 'ndarray']:
-                return TypeError(
+                raise TypeError(
                     "List of statistical properties must be a list")
             # Output
             return sts
-        elif coeff in ['x', 'y', 'z', 'X', 'Y', 'Z']:
+        # Data book type
+        typ = self.get_DataBookType(comp)
+        # Check data book type
+        if typ in ["TriqFM"]:
+            # No iterative history
+            return ['mu']
+        # Others; iterative history available
+        if coeff in ['x', 'y', 'z', 'X', 'Y', 'Z']:
             # Coordinates
             return ['mu']
         elif coeff in ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']:
