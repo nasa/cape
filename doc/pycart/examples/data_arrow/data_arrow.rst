@@ -467,3 +467,8 @@ running ``pycart --report alpha-carpet``.
         :width: 3.8 in
         
         Alpha sweeps of ``fuselage`` normal force coefficient
+
+The trends with angle of attack are relatively straightforward.  In this narrow
+range of angle of attack, it anticipated that the normal force would be linear
+with *alpha*.  Interestingly, the fuselage *CLM* vs *alpha* curve has a stable
+slope only at Mach 0.5 (and kind of 0.8).

@@ -27,3 +27,4 @@ are fairly independent.  One exception is the :ref:`business jet example
     adapt_bJet/adapt_bJet
     lineload_arrow/lineload_arrow
     data_arrow/data_arrow
+    thrust/missile
