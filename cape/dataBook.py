@@ -2846,7 +2846,7 @@ class DBTriqFMComp(DBBase):
         # Construct the file name
         fcomp = "triqfm_%s.csv" % self.comp
         # Full file name
-        fname = os.path.join(fdir, "triqfm", comp)
+        fname = os.path.join(fdir, "triqfm", fcomp)
         # Save the file name
         self.fname = fname
         
