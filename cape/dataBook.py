@@ -2683,7 +2683,10 @@ class DBTriqFM(dict):
                         [getattr(self.x,k)[i]]))
                 # Append primary values
                 for c in self[p].fCols:
-                    self[p][c] = np.hstack((self[p][c], [FM[p][c]]))
+                    # Get value
+                    v = FM[p].get(c, np.nan)
+                    # Save it.
+                    self[p][c] = np.hstack((self[p][c], [v]))
                 # Append iteration counts
                 self[p]['nIter']  = np.hstack((self[p]['nIter'], [nIter]))
                 self[p]['nStats'] = np.hstack((self[p]['nStats'], [nStats]))
@@ -2691,7 +2694,8 @@ class DBTriqFM(dict):
                 # No need to update trajectory values
                 # Update data values
                 for c in self[p].fCols:
-                    self[p][c][j] = FM[p][c]
+                    # Save it.
+                    self[p][c][j] = FM[p].get(c, np.nan)
                 # Update the other statistics
                 self[p]['nIter'][j]  = nIter
                 self[p]['nStats'][j] = nStats
@@ -3013,7 +3017,7 @@ class DBTriqFMComp(DBBase):
         # Save relevant inputs
         self.x = x
         self.opts = opts
-        self.TriqFMComp = comp
+        self.comp = comp
         self.patch = patch 
         
         # Default prefix
@@ -3024,10 +3028,10 @@ class DBTriqFMComp(DBBase):
         # Assemble overall component
         if patch is None:
             # Just the component
-            self.comp = comp
+            self.name = comp
         else:
             # Take the patch name, but ensure one occurrence of comp as prefix
-            self.comp = "%s_%s" % (fpre, patch.lstrip(fpre).lstrip('_'))
+            self.name = "%s_%s" % (fpre, patch.lstrip(fpre).lstrip('_'))
             
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
