@@ -65,6 +65,9 @@ if __name__ == "__main__":
     elif kw.get('ll'):
         # Update line load data book
         ofl.UpdateLineLoad(**kw)
+    elif kw.get('triqfm'):
+        # Update TriqFM data book
+        ofl.UpdateTriqFM(**kw)
     elif kw.get('archive'):
         # Archive cases
         ofl.ArchiveCases(**kw)

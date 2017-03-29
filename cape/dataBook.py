@@ -3282,8 +3282,6 @@ class DBTriqFM(dict):
         elif ttype in ["ScaleCoeffs"]:
             # Loop through coefficients.
             for c in topts:
-                # Check if it's an available coefficient.
-                if c not in self.coeffs: continue
                 # Get the value.
                 k = topts[c]
                 # Check if it's a number.

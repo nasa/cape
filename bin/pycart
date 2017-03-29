@@ -62,6 +62,9 @@ if __name__ == "__main__":
     elif kw.get('ll'):
         # Update line load data book
         cart3d.UpdateLineLoad(**kw)
+    elif kw.get('triqfm'):
+        # Update TriqFM data book
+        cart3d.UpdateTriqFM(**kw)
     elif kw.get('a'):
         # Archive folders
         cart3d.TarAdapt(**kw)
