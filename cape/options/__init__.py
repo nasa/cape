@@ -1906,6 +1906,11 @@ class Options(odict):
     def get_DataBookMomentum(self, comp):
         self._DataBook()
         return self['DataBook'].get_DataBookMomentum(comp)
+        
+    # Get gauge setting
+    def get_DataBookGauge(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookGauge(comp)
     
     # Trim setting
     def get_DataBookTrim(self, name):

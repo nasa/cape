@@ -768,9 +768,10 @@ class DataBook(odict):
         elif ctype in ["TriqFM"]:
             # Extracted force and moment
             coeffs = [
-                "CA", "CY", "CN", 
+                "CA",  "CY",  "CN", 
                 "CLL", "CLM", "CLN",
-                "Cp_min", "Cp_max"
+                "Cp_min", "Cp_max",
+                "Ax", "Ay", "Az"
             ]
         elif ctype in ["PointSensor"]:
             # Default to list of points for a point sensor
@@ -1196,7 +1197,7 @@ class DataBook(odict):
                 Name of component
         :Outputs:
             *qm*: ``True`` | {``False``}
-                File extension
+                Whether or not to include momentum
         :Versions:
             * 2016-06-07 ``@ddalle``: First version
         """
@@ -1206,6 +1207,30 @@ class DataBook(odict):
         copts = self.get(comp, {})
         # Get the local setting
         return copts.get("Momentum", db_qm)
+        
+    # Get guage pressure setting
+    def get_DataBookGauge(self, comp):
+        """Get 'Gauge' flag for a data book component
+        
+        :Call:
+            >>> qg = opts.get_DataBookGauge(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *qg*: {``True``} | ``False``
+                Option to use gauge forces (freestream pressure as reference)
+        :Versions:
+            * 2017-03-29 ``@ddalle``: First version
+        """
+        # Global data book setting
+        db_qg = self.get("Gauge", True)
+        # Get component options
+        copts = self.get(comp, {})
+        # Get the local setting
+        return copts.get("Gauge", db_qg)
         
     # Get trim setting
     def get_DataBookTrim(self, comp):

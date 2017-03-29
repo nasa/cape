@@ -3684,6 +3684,42 @@ class TriBase(object):
         # Save the unit normals.
         self.Normals = n
         
+    # Get normals and areas
+    def GetAreaVectors(self):
+        """Get the normals and areas of each triangle
+        
+        :Call:
+            >>> tri.GetAreaVectors()
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+        :Effects:
+            *tri.AreaVectors*: :class:`ndarray`, shape=(tri.nTri,)
+                Area of each triangle is created
+            *tri.Normals*: :class:`ndarray`, shape=(tri.nTri,3)
+                Unit normal for each triangle is saved
+        :Versions:
+            * 2014-06-12 ``@ddalle``: First version
+            * 2016-01-23 ``@ddalle``: Added a check before calculating
+        """
+        # Check for normals.
+        try:
+            self.AreaVectors
+            return
+        except AttributeError:
+            pass
+        # Extract the vertices of each tri.
+        x = self.Nodes[self.Tris-1, 0]
+        y = self.Nodes[self.Tris-1, 1]
+        z = self.Nodes[self.Tris-1, 2]
+        # Get the deltas from node 0 to node 1 or node 2
+        x01 = stackcol((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
+        x02 = stackcol((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
+        # Calculate the dimensioned normals
+        n = np.cross(x01, x02)
+        # Save the unit normals.
+        self.AreaVectors = n
+        
     # Get right-handed coordinate system
     def GetBasisVectors(self):
         """Get a right-handed coordinate basis for all triangles
@@ -4057,6 +4093,35 @@ class TriBase(object):
             d = np.sum(N, 1)
             # Multiply this dot product by the area of each tri
             return np.sum(self.Areas[k] * d)
+    
+    # Get normals and areas
+    def GetCompAreaVector(self, compID, n=None):
+        """
+        Get the total area of a component, or get the total area of a component
+        projected to a plane with a given normal vector.
+        
+        :Call:
+            >>> A = tri.GetCompArea(compID)
+            >>> A = tri.GetCompArea(compID, n)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *compID*: :class:`int`
+                Index of the component of which to find the area
+            *n*: :class:`numpy.ndarray`
+                Unit normal vector to use for projection
+        :Outputs:
+            *A*: :class:`float`
+                Area of the component
+        :Versions:
+            * 2014-06-13 ``@ddalle``: First version
+        """
+        # Check for areas.
+        self.GetAreaVectors()
+        # Find the indices of tris in the component.
+        k = self.GetTrisFromCompID(compID)
+        # Add up component areas
+        return np.sum(self.AreaVectors[k], axis=0)
     
     # Get normals and areas
     def GetCompNormal(self, compID):
@@ -5117,6 +5182,8 @@ class Triq(TriBase):
                 Subset component ID or name or list thereof
             *incm*, *momentum*: ``True`` | {``False``}
                 Include momentum (flow-through) forces in total
+            *gauge*: {``True``} | ``False``
+                Calculate gauge forces (``True``) or absolute (``False``) 
             *save*: ``True`` | {``False``}
                 Store vectors of forces for each triangle as attributes
             *xMRP*: {``0.0``} | :class:`float`
@@ -5165,6 +5232,7 @@ class Triq(TriBase):
        # ------
         # Which things to calculate
         incm = kw.get("incm", kw.get("momentum", False))
+        gauge = kw.get("gauge", True)
         # Get Reynolds number per grid unit
         REY = kw.get("Re", kw.get("Rey", 1.0))
         # Freestream mach number
@@ -5209,6 +5277,11 @@ class Triq(TriBase):
         N = 0.5*np.cross(x01, x02)
         # Scalar areas of each triangle
         A = np.sqrt(np.sum(N**2, axis=1))
+       # -----
+       # Areas
+       # -----
+        # Calculate components
+        Avec = npsum(N, axis=0)
        # ---------------
        # Pressure Forces
        # ---------------
@@ -5218,6 +5291,8 @@ class Triq(TriBase):
         Cp = np.sum(Q[T,0], axis=1)/3
         # Forces are inward normals
         Fp = -stackcol((Cp*N[:,0], Cp*N[:,1], Cp*N[:,2]))
+        # Vacuum
+        Fvac = -2/(gam*mach*mach)*N
        # ---------------
        # Momentum Forces
        # ---------------
@@ -5329,6 +5404,7 @@ class Triq(TriBase):
         Fp /= (Aref)
         Fm /= (qref*Aref)
         Fv /= (qref*Aref)
+        Fvac /= (Aref)
         # Centers of nodes
         xc = np.mean(x, axis=1)
         yc = np.mean(y, axis=1)
@@ -5337,6 +5413,10 @@ class Triq(TriBase):
         Mpx = ((yc-yMRP)*Fp[:,2] - (zc-zMRP)*Fp[:,1])/bref
         Mpy = ((zc-zMRP)*Fp[:,0] - (xc-xMRP)*Fp[:,2])/Lref
         Mpz = ((zc-xMRP)*Fp[:,1] - (yc-yMRP)*Fp[:,0])/bref
+        # Calculate vacuum pressure moments
+        Mcx = ((yc-yMRP)*Fvac[:,2] - (zc-zMRP)*Fvac[:,1])/bref
+        Mcy = ((zc-zMRP)*Fvac[:,0] - (xc-xMRP)*Fvac[:,2])/Lref
+        Mcz = ((zc-xMRP)*Fvac[:,1] - (yc-yMRP)*Fvac[:,0])/bref
         # Calculate momentum moments
         Mmx = ((yc-yMRP)*Fm[:,2] - (zc-zMRP)*Fm[:,1])/bref
         Mmy = ((zc-zMRP)*Fm[:,0] - (xc-xMRP)*Fm[:,2])/Lref
@@ -5347,17 +5427,30 @@ class Triq(TriBase):
         Mvz = ((zc-xMRP)*Fv[:,1] - (yc-yMRP)*Fv[:,0])/bref
         # Assemble
         Mp = stackcol((Mpx,Mpy,Mpz))
+        Mvac = stackcol((Mcx,Mcy,Mcz))
         Mm = stackcol((Mmx,Mmy,Mmz))
         Mv = stackcol((Mvx,Mvy,Mvz))
         # Add up forces 
-        if incm:
-            # Include all forces
-            F = Fp + Fm + Fv
-            M = Mp + Mm + Mv
+        if gauge:
+            # Use *pinf* as reference pressure
+            if incm:
+                # Include all forces
+                F = Fp + Fm + Fv
+                M = Mp + Mm + Mv
+            else:
+                # Include viscous
+                F = Fp + Fv
+                M = Mp + Mv
         else:
-            # Include viscous
-            F = Fp + Fv
-            M = Mp + Mv
+            # Use p=0 as reference pressure
+            if incm:
+                # Include all forces
+                F = Fp + Fvac + Fm + Fv
+                M = Mp + Mvac + Mm + Mv
+            else:
+                # Disinclude momentum
+                F = Fp + Fvac + Fv
+                M = Mp + Mvac + Mv
         # Save information
         if kw.get("save", False):
             self.F = F
@@ -5365,11 +5458,16 @@ class Triq(TriBase):
             self.Fm = Fm
             self.Fv = Fv
             self.M = M
+            self.Mc = Mc
             self.Mp = Mp
             self.Mm = Mm
             self.Mv = Mv
         # Dictionary of results
         C = {}
+        # Save areas
+        C["Ax"] = Avec[0]
+        C["Ay"] = Avec[1]
+        C["Az"] = Avec[2]
         # Total forces
         C["CA"] =  np.sum(F[:,0])
         C["CY"] =  np.sum(F[:,1])
@@ -5384,6 +5482,13 @@ class Triq(TriBase):
         C["CLLp"] = np.sum(Mp[:,0])
         C["CLMp"] = np.sum(Mp[:,1])
         C["CLNp"] = np.sum(Mp[:,2])
+        # Vacuum forces
+        C["CAvac"] = np.sum(Fvac[:,0])
+        C["CYvac"] = np.sum(Fvac[:,1])
+        C["CNvac"] = np.sum(Fvac[:,2])
+        C["CLLvac"] = np.sum(Mvac[:,0])
+        C["CLMvac"] = np.sum(Mvac[:,1])
+        C["CLNvac"] = np.sum(Mvac[:,2])
         # Flow-through contributions
         C["CAm"] =  np.sum(Fm[:,0])
         C["CYm"] =  np.sum(Fm[:,1])

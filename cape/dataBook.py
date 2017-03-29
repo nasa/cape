@@ -2954,8 +2954,10 @@ class DBTriqFM(dict):
             Rey = 1.0
         # Ratio of specific heats
         gam = self.x.GetGamma(i)
+        # Dynamic pressure
+        q = self.x.GetDynamicPressure(i)
         # Output
-        return {"mach": mach, "Re": Rey, "gam": gam}
+        return {"mach": mach, "Re": Rey, "gam": gam, "q": q}
             
         
     # Calculate forces and moments
@@ -2985,13 +2987,74 @@ class DBTriqFM(dict):
         kwfm["bref"] = self.bref
         kwfm["MRP"]  = self.MRP
         kwfm["incm"] = self.opts.get_DataBookMomentum(self.comp)
+        kwfm["gauge"] = self.opts.get_DataBookGauge(self.comp)
         # Get component for this patch
         compID = self.GetCompID(patch)
         # Calculate forces
         FM = self.triq.GetTriForces(compID, **kwfm)
+        # Apply transformations
+        FM = self.ApplyTransformations(i, FM)
+        # Get dimensional forces if requested
+        FM = self.GetDimensionalForces(patch, i, FM)
         # Get additional states
         FM = self.GetStateVars(patch, FM)
         # Output
+        return FM
+        
+    # Get other forces
+    def GetDimensionalForces(self, patch, i, FM):
+        """Get dimensional forces
+        
+        This dimensionalizes any force or moment coefficient already in *FM*
+        replacing the first character ``'C'`` with ``'F'``.  For example,
+        ``"FA"`` is the dimensional axial force from ``"CA"``, and ``"FAv"`` is
+        the dimensional axial component of the viscous force
+        
+        :Call:
+            >>> FM = DBF.GetDimensionalForces(patch, i, FM)
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+            *patch*: :class:`str`
+                Name of patch
+            *i*: :class:`int`
+                Case index
+            *FM*: :class:`dict` (:class:`float`)
+                Dictionary of force & moment coefficients
+        :Outputs:
+            *FM*: :class:`dict` (:class:`float`)
+                Dictionary of force & moment coefficients
+        :Versions:
+            * 2017-03-29 ``@ddalle``: First version
+        """
+        # Dimensionalization value
+        Fref = self.x.GetDynamicPressure(i) * self.Aref
+        # Loop through float columns in the data book
+        for k in self[patch].fCols:
+            # Skip if already present in *FM*
+            if k in FM: continue
+            # Check if it's a dimensional force
+            if not k.startswith('F'): continue
+            # Get the force name
+            f = k[1:]
+            # Assemble the apparent coefficient name
+            c = 'C' + f
+            # Check if it's present in non-dimensional form
+            if c not in FM: continue
+            # Filter the component to see if it's a moment
+            if f.startswith('LL'):
+                # Use reference span for rolling moment
+                FM[k] = FM[c]*Fref*self.bref
+            elif f.startswith('LN'):
+                # Use reference span for yawing moment
+                FM[k] = FM[c]*Fref*self.bref
+            elif f.startswith('LM'):
+                # Use reference chord for pitching moment
+                FM[k] = FM[c]*Fref*self.Lref
+            else:
+                # Assume force
+                FM[k] = FM[c]*Fref
+        # Output for clarity
         return FM
         
     # Get other stats
@@ -3058,6 +3121,186 @@ class DBTriqFM(dict):
             # Calculate forces
             FM[patch] = self.GetTriqForcesPatch(patch, i, **kw)
         # Output
+        return FM
+    
+    # Apply all transformations
+    def ApplyTransformations(self, i, FM):
+        """Apply transformations to forces and moments
+        
+        :Call:
+            >>> FM = DBF.ApplyTransformations(i, FM)
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+            *i*: :class:`int`
+                Case index
+            *FM*: :class:`dict` (:class:`dict` (:class:`float`))
+                Dictionary of force & moment coefficients
+        :Outputs:
+            *FM*: :class:`dict` (:class:`dict` (:class:`float`))
+                Dictionary of transformed force & moment coefficients
+        :Versions:
+            * 2017-03-29 ``@ddalle``: First version
+        """
+        # Get the data book transformations for this component
+        db_transforms = self.opts.get_DataBookTransformations(self.comp)
+        # Loop through the transformations
+        for topts in db_transforms:
+            # Apply transformation type
+            FM = self.TransformFM(FM, topts, i)
+        # Output for clarity
+        return FM
+    
+    # Transform force or moment reference frame
+    def TransformFM(self, FM, topts, i):
+        """Transform a force and moment history
+        
+        Available transformations and their parameters are listed below.
+        
+            * "Euler321": "psi", "theta", "phi"
+            * "ScaleCoeffs": "CA", "CY", "CN", "CLL", "CLM", "CLN"
+            
+        Trajectory variables are used to specify values to use for the
+        transformation variables.  For example,
+        
+            .. code-block:: python
+            
+                topts = {"Type": "Euler321",
+                    "psi": "Psi", "theta": "Theta", "phi": "Phi"}
+        
+        will cause this function to perform a reverse Euler 3-2-1 transformation
+        using *x.Psi[i]*, *x.Theta[i]*, and *x.Phi[i]* as the angles.
+        
+        Coefficient scaling can be used to fix incorrect reference areas or flip
+        axes.  The default is actually to flip *CLL* and *CLN* due to the
+        transformation from CFD axes to standard flight dynamics axes.
+        
+            .. code-block:: python
+            
+                tops = {"Type": "ScaleCoeffs",
+                    "CLL": -1.0, "CLN": -1.0}
+        
+        :Call:
+            >>> FM.TransformFM(topts, x, i)
+        :Inputs:
+            *FM*: :class:`cape.dataBook.CaseFM`
+                Instance of the force and moment class
+            *topts*: :class:`dict`
+                Dictionary of options for the transformation
+            *x*: :class:`cape.trajectory.Trajectory`
+                The run matrix used for this analysis
+            *i*: :class:`int`
+                The index of the case to transform in the current run matrix
+        :Versions:
+            * 2014-12-22 ``@ddalle``: First version
+        """
+        # Get the transformation type.
+        ttype = topts.get("Type", "")
+        # Check it.
+        if ttype in ["Euler321"]:
+            # Get the angle variable names.
+            # Use same as default in case it's obvious what they should be.
+            kph = topts.get('phi', 0.0)
+            kth = topts.get('theta', 0.0)
+            kps = topts.get('psi', 0.0)
+            # Extract roll
+            if type(kph).__name__ not in ['str', 'unicode']:
+                # Fixed value
+                phi = kph*deg
+            elif kph.startswith('-'):
+                # Negative roll angle.
+                phi = -getattr(self.x,kph[1:])[i]*deg
+            else:
+                # Positive roll
+                phi = getattr(self.x,kph)[i]*deg
+            # Extract pitch
+            if type(kth).__name__ not in ['str', 'unicode']:
+                # Fixed value
+                theta = kth*deg
+            elif kth.startswith('-'):
+                # Negative pitch
+                theta = -getattr(self.x,kth[1:])[i]*deg
+            else:
+                # Positive pitch
+                theta = getattr(self.x,kth)[i]*deg
+            # Extract yaw
+            if type(kps).__name__ not in ['str', 'unicode']:
+                # Fixed value
+                psi = kps*deg
+            elif kps.startswith('-'):
+                # Negative yaw
+                psi = -getattr(self.x,kps[1:])[i]*deg
+            else:
+                # Positive pitch
+                psi = getattr(self.x,kps)[i]*deg
+            # Sines and cosines
+            cph = np.cos(phi); cth = np.cos(theta); cps = np.cos(psi)
+            sph = np.sin(phi); sth = np.sin(theta); sps = np.sin(psi)
+            # Make the matrices.
+            # Roll matrix
+            R1 = np.array([[1, 0, 0], [0, cph, -sph], [0, sph, cph]])
+            # Pitch matrix
+            R2 = np.array([[cth, 0, -sth], [0, 1, 0], [sth, 0, cth]])
+            # Yaw matrix
+            R3 = np.array([[cps, -sps, 0], [sps, cps, 0], [0, 0, 1]])
+            # Combined transformation matrix.
+            # Remember, these are applied backwards in order to undo the
+            # original Euler transformation that got the component here.
+            R = np.dot(R1, np.dot(R2, R3))
+            # Force transformations
+            # Loop through suffixes
+            for s in ["", "p", "vac", "v", "m"]:
+                # Construct force coefficient names
+                cx = "CA" + s
+                cy = "CY" + s
+                cz = "CN" + s
+                # Check if the coefficient is present
+                if cy in FM:
+                    # Assemble forces
+                    Fc = np.array([FM[cx], FM[cy], FM[cz]])
+                    # Transform
+                    Fb = np.dot(R, Fc)
+                    # Reset
+                    FM[cx] = Fb[0]
+                    FM[cy] = Fb[1]
+                    FM[cz] = Fb[2]
+                # Construct moment coefficient names
+                cx = "CLL" + s
+                cy = "CLM" + s
+                cz = "CLN" + s
+                # Check if the coefficient is present
+                if cy in FM:
+                    # Assemble moment vector
+                    Mc = np.array([FM[cx], FM[cy], FM[cz]])
+                    # Transform
+                    Mb = np.dot(R, Mc)
+                    # Reset
+                    FM[cx] = Fb[0]
+                    FM[cy] = Fb[1]
+                    FM[cz] = Fb[2]
+                
+        elif ttype in ["ScaleCoeffs"]:
+            # Loop through coefficients.
+            for c in topts:
+                # Check if it's an available coefficient.
+                if c not in self.coeffs: continue
+                # Get the value.
+                k = topts[c]
+                # Check if it's a number.
+                if type(k).__name__ not in ["float", "int"]:
+                    # Assume they meant to flip it.
+                    k = -1.0
+                # Loop through suffixes
+                for s in ["", "p", "vac", "v", "m"]:
+                    # Construct overall name
+                    cc = c + s
+                    # Check if it's present
+                    if cc in FM:
+                        FM[cc] = k*FM[cc]
+        else:
+            raise IOError(
+                "Transformation type '%s' is not recognized." % ttype)
+        # Output for clarity
         return FM
         
   # >
@@ -4826,9 +5069,9 @@ class CaseFM(CaseData):
         if ttype in ["Euler321"]:
             # Get the angle variable names.
             # Use same as default in case it's obvious what they should be.
-            kph = topts.get('phi', 'phi')
-            kth = topts.get('theta', 'theta')
-            kps = topts.get('psi', 'psi')
+            kph = topts.get('phi', 0.0)
+            kth = topts.get('theta', 0.0)
+            kps = topts.get('psi', 0.0)
             # Extract roll
             if type(kph).__name__ not in ['str', 'unicode']:
                 # Fixed value
