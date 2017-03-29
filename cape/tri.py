@@ -5116,16 +5116,18 @@ class Triq(TriBase):
         """Write a q-triangulation ``.triq`` file
         
         :Call:
-            >>> triq.Write(fname)
+            >>> triq.Write(fname, **kw)
         :Inputs:
             *triq*: :class:`cape.tri.Triq`
                 Triangulation instance
             *fname*: :class:`str`
                 Name of triangulation file to write
+            *b4*: ``True`` | {``False``}
+                Write single-precision big-endian 
         :Versions:
             * 2015-09-14 ``@ddalle``: First version
         """
-        self.WriteTriq(fname)
+        self.WriteTriq(fname, **kw)
   # >
     
   # =========
@@ -5281,7 +5283,7 @@ class Triq(TriBase):
        # Areas
        # -----
         # Calculate components
-        Avec = npsum(N, axis=0)
+        Avec = np.sum(N, axis=0)
        # ---------------
        # Pressure Forces
        # ---------------
