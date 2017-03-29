@@ -39,6 +39,7 @@ from datetime import datetime
 # File control
 import os, resource, glob, shutil
 # Basic numerics
+import numpy as np
 from numpy import nan, isnan, argmax
 
 

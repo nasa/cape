@@ -2853,7 +2853,7 @@ class DBTriqFM(dict):
             # No Mach number specified in run matrix
             raise ValueError(
                 ("Could not determine freestream Mach number\n") +
-                ("TriqFM component '%s'" % self.comp)
+                ("TriqFM component '%s'" % self.comp))
         # Attempt to get Reynolds number (not needed if inviscid)
         try:
             # Use the trajectory
