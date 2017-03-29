@@ -1913,11 +1913,11 @@ class TriBase(object):
    # ++++
    # {
     # Fall-through function to write the triangulation to file.
-    def WriteTriq(self, fname='Components.i.triq', v=True, **kw):
+    def WriteTriq(self, fname='Components.i.triq',**kw):
         """Write q-triangulation to file using fastest method available
         
         :Call:
-            >>> triq.WriteTriq(fname='Components.i.triq', v=True)
+            >>> triq.WriteTriq(fname='Components.i.triq', **kw)
         :Inputs:
             *triq*: :class:`cape.tri.Triq`
                 Triangulation instance to be written
@@ -1925,14 +1925,92 @@ class TriBase(object):
                 Name of triangulation file to create
             *v*: :class:`bool`
                 Whether or not
+            *ascii*: ``True`` | {``False``}
+                Whether or not to use ASCII (text file)
+            *fmt*: {``None``} | ``"ascii"`` | ``"b4"`` | ``"lb4"``
+                Format specified by text
+            *b4*: ``True`` | {``False``}
+                Whether or not to use single-precision big-endian
+            *lb4*: ``True`` | {``False``}
+                Whether or not to use single-precision little-endian
+            *b8*: ``True`` | {``False``}
+                Whether or not to use double-precision big-endian
+            *lb8*: ``True`` | {``False``}
+                Whether or not to use double-precision little-endian
+            *byteorder*: ``"big"`` | ``"little"`` | {``None``}
+                Byte order
+            *endian*: ``"big"`` | ``"little"`` | {``None``}
+                Byte order
+            *bytecount*: ``4`` | ``8`` | {``None``}
+                Byte count, ``4`` for single precision is default
+            *byteswap*: ``True`` | ``False`` | {``None``}
+                Use byte order opposite to *os.sys.byteorder*
+            *bin*: ``True`` | ``False`` | {``None``}
+                Force binary output; can be used to get default binary format
+            *dp*: ``True`` | {``False``}
+                Use double-precision (default is single-precision)
+            *sp*: ``True`` | {``False``}
+                Use single-precision (no effect since default is single)
         :Examples:
             >>> triq = cape.ReadTriq('bJet.i.triq')
-            >>> triq.Write('bjet2.triq')
+            >>> triq.Write('bjet2.triq', b4=True)
         :Versions:
             * 2014-05-23 ``@ddalle``: First version
             * 2015-01-03 ``@ddalle``: Added C capability
             * 2015-02-25 ``@ddalle``: Added status update
             * 2015-09-14 ``@ddalle``: Copied from :func:`TriBase.WriteTri`
+        """
+        # Status update.
+        if v:
+            print("     Writing triangulation: '%s'" % fname)
+        # Try the fast way.
+        try:
+            # Fast method using compiled C.
+            self.WriteTriqFast(fname)
+        except Exception:
+            # Slow method using Python code.
+            self.WriteTriqSlow(fname)
+        # Status update.
+        if kw.get('v', False):
+            print("    Writing triangulation: '%s'" % fname)
+        # Get the extension
+        ext = self.GetOutputFileType(**kw)
+        # Check text vs. binary
+        if ext == 'ascii':
+            # Try the ASCII writers
+            self.WriteTriqASCII(fname)
+        elif ext == 'lb4':
+            # Little-endian single
+            self.WriteSlow_lb4(fname)
+        elif ext == 'b4':
+            # Big-endian single
+            self.WriteSlow_b4(fname)
+        elif ext == 'lb8':
+            # Little-endian double
+            self.WriteSlow_lb8(fname)
+        elif ext == 'b8':
+            # Big-endian double
+            self.WriteSlow_b8(fname)
+        
+    # Fall-through function to write the triangulation to file.
+    def WriteTriqASCII(self, fname='Components.i.triq', v=True, **kw):
+        """Write q-triangulation to file using fastest method available
+        
+        :Call:
+            >>> triq.WriteTriqASCII(fname='Components.i.triq', v=True)
+        :Inputs:
+            *triq*: :class:`cape.tri.Triq`
+                Triangulation instance to be written
+            *fname*: :class:`str`
+                Name of triangulation file to create
+            *v*: :class:`bool`
+                Verbosity flag
+        :Versions:
+            * 2014-05-23 ``@ddalle``: First version
+            * 2015-01-03 ``@ddalle``: Added C capability
+            * 2015-02-25 ``@ddalle``: Added status update
+            * 2015-09-14 ``@ddalle``: Copied from :func:`TriBase.WriteTri`
+            * 2017-03-29 ``@ddalle``: Moved from :func:`WriteTriq`
         """
         # Status update.
         if v:
