@@ -5119,6 +5119,14 @@ class Triq(TriBase):
                 Include momentum (flow-through) forces in total
             *save*: ``True`` | {``False``}
                 Store vectors of forces for each triangle as attributes
+            *xMRP*: {``0.0``} | :class:`float`
+                *x*-coordinate of moment reference point
+            *yMRP*: {``0.0``} | :class:`float`
+                *y*-coordinate of moment reference point
+            *zMRP*: {``0.0``} | :class:`float`
+                *z*-coordinate of moment reference point
+            *MRP*: {[*xMRP*, *yMRP*, *zMRP*]} | :class:`list` (len=3)
+                Moment reference point
             *m*, *mach*: {``1.0``} | :class:`float`
                 Freestream Mach number
             *RefArea*, *Aref*: {``1.0``} | :class:`float`

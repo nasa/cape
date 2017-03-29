@@ -331,6 +331,8 @@ class DataBook(dict):
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
                 Instance of data book class
+            *comp*: :class:`str`
+                Name of line load DataBook component
             *I*: :class:`list` (:class:`int`) or ``None``
                 List of trajectory indices or update all cases in trajectory
             *qpbs*: ``True`` | {``False``}
@@ -348,6 +350,33 @@ class DataBook(dict):
         # Loop through indices.
         for i in I:
             self.LineLoads[comp].UpdateCase(i, qpbs=qpbs)
+            
+    # Update TriqFM data book
+    def UpdateTriqFM(self, comp, I=None):
+        """Update a TriqFM triangulation-extracted F&M data book
+        
+        :Call:
+            >>> DB.UpdateTriqFM(comp, I=None)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of TriqFM data book component
+            *I*: :class:`list` (:class:`int`) or ``None``
+                List of trajectory indices or update all cases in trajectory
+        :Versions:
+            * 2017-03-29 ``@ddalle``: First version
+        """
+        # Default case list
+        if I is None:
+            # Use all trajectory points
+            I = range(self.x.nCase)
+        # Read the TriqFM data book if necessary
+        self.ReadTriqFM(comp)
+        # Loop through indices
+        for i in I:
+            # Update the data book for that case
+            self.TriqFM[comp].UpdateCase(i)
     
   # >
     
@@ -2945,6 +2974,7 @@ class DBTriqFM(dict):
         kwfm["Aref"] = self.Aref
         kwfm["Lref"] = self.Lref
         kwfm["bref"] = self.bref
+        kwfm["MRP"]  = self.MRP
         kwfm["incm"] = self.opts.get_DataBookMomentum(self.comp)
         # Get component for this patch
         compID = self.GetCompID(patch)

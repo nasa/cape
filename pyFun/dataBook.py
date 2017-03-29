@@ -497,7 +497,7 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
             # Get from trajectory
             mach = self.x.GetMach(i)
         # Read the plt information
-        pyFun.plt.Plt2Triq(fplt, ftriq, mach=mach)
+        pyFun.plt.Plt2Triq(fplt, ftriq, mach=mach, lb4=True)
 # class DBTriqFM
     
 
