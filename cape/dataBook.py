@@ -2586,6 +2586,10 @@ class DBTriqFM(dict):
         :Versions:
             * 2017-03-28 ``@ddalle``: First version
         """
+       # -----
+       # Setup
+       # -----
+       # (
         # Component name
         comp = self.comp
         DBc = self[comp]
@@ -2602,6 +2606,11 @@ class DBTriqFM(dict):
         # Go to root directory safely
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
+       # )
+       # ------------
+       # Status Check
+       # ------------
+       # (
         # Check if folder exists
         if not os.path.isdir(frun):
             os.chdir(fpwd)
@@ -2638,6 +2647,11 @@ class DBTriqFM(dict):
         if not q:
             os.chdir(fpwd)
             return
+       # )
+       # -----------
+       # Calculation
+       # -----------
+       # (
         # Create "triqfm" folder if necessary
         if not os.path.isdir('triqfm'): self.opts.mkdir('triqfm')
         # Convert other format to TRIQ if necessary
@@ -2647,9 +2661,44 @@ class DBTriqFM(dict):
         self.ReadTriq(ftriq)
         # Enter folder
         os.chdir("triqfm")
+        # Map the triangulation
+        self.MapTriCompID()
+        # Calculate the forces
+        FM = self.GetTriqForces(i)
+       # )
+       # -----------------
+       # Update Data Books
+       # -----------------
+       # (
+        # Loop through patches
+        for p in self.patches:
+            # Check if new case for this patch
+            if np.isnan(j):
+                # Increment the number of cases
+                self[p].n += 1
+                # Append trajectory values
+                for k in self[p].xCols:
+                    # Append to that column
+                    self[p][k] = np.hstack((self[p][k],
+                        [getattr(self.x,k)[i]]))
+                # Append primary values
+                for c in self[p].fCols:
+                    self[p][c] = np.hstack((self[p][c], [FM[p][c]]))
+                # Append iteration counts
+                self[p]['nIter']  = np.hstack((self[p]['nIter'], [nIter]))
+                self[p]['nStats'] = np.hstack((self[p]['nStats'], [nStats]))
+            else:
+                # No need to update trajectory values
+                # Update data values
+                for c in self[p].fCols:
+                    self[p][c][j] = FM[p][c]
+                # Update the other statistics
+                self[p]['nIter'][j]  = nIter
+                self[p]['nStats'][j] = nStats
         
         # Return to original folder
         os.chdir(fpwd)
+       # )
         
   # >
   
@@ -2872,7 +2921,7 @@ class DBTriqFM(dict):
         """Get the forces and moments on a patch
         
         :Call:
-            >>> FM = DBF.GetTriForces(patch, i, **kw)
+            >>> FM = DBF.GetTriqForces(patch, i, **kw)
         :Inputs:
             *DBF*: :class:`cape.dataBook.DBTriqFM`
                 Instance of TriqFM data book
@@ -2881,7 +2930,7 @@ class DBTriqFM(dict):
             *i*: :class:`int`
                 Case index
         :Outputs:
-            *FM*: :class:`dict`
+            *FM*: :class:`dict` (:class:`float`)
                 Dictionary of force & moment coefficients
         :Versions:
             * 2017-03-28 ``@ddalle``: First version
@@ -2899,6 +2948,33 @@ class DBTriqFM(dict):
         FM = self.triq.GetTriForces(compID, **kwfm)
         # Output
         return FM
+        
+    # Get all patches
+    def GetTriqForces(self, i, **kw):
+        """Get the forces, moments, and other states on each patch
+        
+        :Call:
+            >>> FM = DBF.GetTriqForces(i)
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *FM*: :class:`dict` (:class:`dict` (:class:`float`))
+                Dictionary of force & moment dictionaries for each patch
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+        """
+        # Initialize dictionary of forces
+        FM = {}
+        # Loop through patches
+        for patch in self.patches:
+            # Calculate forces
+            FM[patch] = self.GetTriqForcesPatch(patch, i, **kw)
+        # Output
+        return FM
+        
   # >
 # class DBTriqFM
 
