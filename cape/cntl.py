@@ -2505,9 +2505,9 @@ class Cntl(object):
         """Update one or more line load data books
         
         :Call:
-            >>> cart3d.UpdateLineLoad(ll=None, **kw)
+            >>> cntl.UpdateLineLoad(ll=None, **kw)
         :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+            *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *ll*: :class:`str`
                 Optional name of line load component to update
@@ -2553,6 +2553,54 @@ class Cntl(object):
         # Return to original location
         os.chdir(fpwd)
     
+    # Update TriqFM data book
+    def UpdateTriqFM(self, **kw):
+        """Update one or more TriqFM data books
+        
+        :Call:
+            >>> cntl.UpdateTriqFM(comp=None, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Control class
+            *comp*: {``None``} | :class:`str`
+                Name of TriqFM component
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints like ``'Mach<=0.5'``
+        :Versions:
+            * 2017-03-29 ``@ddalle``: First version
+        """
+        # Save current location
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Apply all constraints/selectors
+        I = self.x.GetIndices(**kw)
+        # Read the existing data book
+        self.ReadDataBook()
+        # Get the component and type
+        comp = kw.get('comp')
+        t = type(comp).__name__
+        # Check for single component, list, or None (do all)
+        if comp in [None, True]:
+            # Use all components
+            comps = self.opts.get_DataBookByType('TriqFM')
+        else:
+            # Ensure list
+            comps = list(np.array(comp).flatten())
+        # Loop through protuberance components
+        for comp in comps:
+            # Print name of the TriqFM group
+            print("Updating TriqFM component '%s' ..." % comp)
+            # Read the TriqFM data book
+            self.DataBook.ReadTriqFM(comp)
+            # Update it
+            self.DataBook.UpdateTriqFM(comp, I=I)
+            # Write the updated results
+            self.DataBook.TriqFM[comp].Write()
+        
+        # Return to original location
+        os.chdir(fpwd)
    # >
 # class Cntl
     

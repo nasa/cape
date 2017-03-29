@@ -55,6 +55,9 @@ if __name__ == "__main__":
     elif kw.get('ll'):
         # Update line load data book
         fun3d.UpdateLineLoad(**kw)
+    elif kw.get('triqfm'):
+        # Update TriqFM data book
+        fun3d.UpdateTriqFM(**kw)
     elif kw.get('archive'):
         # Archive cases
         fun3d.ArchiveCases(**kw)
