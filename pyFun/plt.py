@@ -48,6 +48,7 @@ def Plt2Triq(fplt, ftriq=None, **kw):
     # Get output file extension
     ext = triq.GetOutputFileType(**kw)
     # Write triangulation
+    print("Label 080: kw=%s" % kw)
     triq.Write(ftriq, **kw)
 
 # Get an object from a list
