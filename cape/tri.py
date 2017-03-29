@@ -646,8 +646,9 @@ class TriBase(object):
                 "Expecting %i states but %s indicated by record marker" %
                 (self.nNode, float(R[0])/nf/self.nq))
         # Read the states
-        self.q = np.fromfile(fid, count=self.nNode*self.nq, dtype=ff)
-        self.q = np.array(self.q, dtype='float')
+        q = np.fromfile(fid, count=self.nNode*self.nq, dtype=ff)
+        # Reshape and save
+        self.q = np.array(q.reshape((self.nNode,self.nq)), dtype='float')
         # Close the file
         fid.close()
         # Count (used for averaging triq files)
@@ -1412,7 +1413,7 @@ class TriBase(object):
         # Write the header
         if qq:
             # Write with *q*
-            io.write_record_lb4_i(fid, [self.nNode, self.nItri, self.nq])
+            io.write_record_lb4_i(fid, [self.nNode, self.nTri, self.nq])
         else:
             # No q values
             io.write_record_lb4_i(fid, [self.nNode, self.nTri])
@@ -1491,7 +1492,7 @@ class TriBase(object):
         # Write the header
         if qq:
             # Write with *q*
-            io.write_record_b4_i(fid, [self.nNode, self.nItri, self.nq])
+            io.write_record_b4_i(fid, [self.nNode, self.nTri, self.nq])
         else:
             # No q values
             io.write_record_b4_i(fid, [self.nNode, self.nTri])
@@ -1570,7 +1571,7 @@ class TriBase(object):
         # Write the header
         if qq:
             # Write with *q*
-            io.write_record_lb4_i(fid, [self.nNode, self.nItri, self.nq])
+            io.write_record_lb4_i(fid, [self.nNode, self.nTri, self.nq])
         else:
             # No q values
             io.write_record_lb4_i(fid, [self.nNode, self.nTri])
@@ -1649,7 +1650,7 @@ class TriBase(object):
         # Write the header
         if qq:
             # Write with *q*
-            io.write_record_b4_i(fid, [self.nNode, self.nItri, self.nq])
+            io.write_record_b4_i(fid, [self.nNode, self.nTri, self.nq])
         else:
             # No q values
             io.write_record_b4_i(fid, [self.nNode, self.nTri])
@@ -1960,16 +1961,6 @@ class TriBase(object):
             * 2015-02-25 ``@ddalle``: Added status update
             * 2015-09-14 ``@ddalle``: Copied from :func:`TriBase.WriteTri`
         """
-        # Status update.
-        if v:
-            print("     Writing triangulation: '%s'" % fname)
-        # Try the fast way.
-        try:
-            # Fast method using compiled C.
-            self.WriteTriqFast(fname)
-        except Exception:
-            # Slow method using Python code.
-            self.WriteTriqSlow(fname)
         # Status update.
         if kw.get('v', False):
             print("    Writing triangulation: '%s'" % fname)
