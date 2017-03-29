@@ -162,6 +162,8 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         """
         # Get name of plt file
         fplt = ftriq.rstrip('triq') + 'plt'
+        # Output format
+        fmt = self.opts.get_DataBookTriqFormat(self.comp)
         # Check for PBS script
         if kw.get('qpbs', False):
             # Get the file handle
@@ -172,10 +174,11 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
                     "No open file handle for preprocessing TRIQ file")
             # Run a script
             f.write("\n# Convert PLT file to TRIQ\n")
-            f.write("pf_Plt2Triq.py %s --mach %s\n" % (fplt, self.mach))
+            f.write("pf_Plt2Triq.py %s --mach %s --%s\n"
+                % (fplt, self.mach, fmt))
         else:
-            # Read the plt information
-            plt.Plt2Triq(fplt, ftriq, mach=self.mach)
+            # Convert the plt file
+            pyFun.plt.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
         
 # class DBLineLoad
     

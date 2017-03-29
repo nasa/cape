@@ -1902,6 +1902,11 @@ class Options(odict):
         self._DataBook()
         return self['DataBook'].get_DataBookOutputFormat(comp)
         
+    # Get format for additional output
+    def get_DataBookTriqFormat(self, comp):
+        self._DataBook()
+        return self['DataBook'].get_DataBookTriqFormat(comp)
+        
     # Get momentum setting
     def get_DataBookMomentum(self, comp):
         self._DataBook()
@@ -1951,6 +1956,7 @@ class Options(odict):
     for k in ['DataBookComponents', 'DataBookByType',
             'DataBookMapTri', 'DataBookMapConfig',
             'DataBookPatches', "DataBookOutputFormat",
+            'DataBookTriqFormat',
             'DataBookType', 'DataBookPoints', 'DBGroupPoints',
             'DataBookCoeffs', 'DataBookTargets', 'DataBookCoeffStats',
             'DataBookFloatCols', 'DataBookIntCols',

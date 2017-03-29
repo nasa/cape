@@ -170,6 +170,38 @@ class DataBook(cape.dataBook.DataBook):
                     comp, conf=conf, RootDir=self.RootDir, targ=targ)
             # Return to starting location
             os.chdir(fpwd)
+    
+    # Read TrqiFM components
+    def ReadTriqFM(self, comp):
+        """Read a TriqFM data book if not already present
+        
+        :Call:
+            >>> DB.ReadTriqFM(comp)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of pyCart data book class
+            *comp*: :class:`str`
+                Name of TriqFM component
+        :Versions:
+            * 2017-03-29 ``@ddalle``: First version
+        """
+        # Initialize if necessary
+        try:
+            self.TriqFM
+        except Exception:
+            self.TriqFM = {}
+        # Try to access the TriqFM database
+        try:
+            self.TriqFM[comp]
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Read data book
+            self.TriqFM[comp] = DBTriqFM(self.x, self.opts, comp,
+                RootDir=self.RootDir)
+            # Return to starting position
+            os.chdir(fpwd)
             
     # Read point sensor (group)
     def ReadPointSensor(self, name, pts=None):
@@ -738,8 +770,58 @@ class DBTarget(cape.dataBook.DBTarget):
     pass
 # class DBTarget
 
+
+# TriqFM data book
+class DBTriqFM(cape.dataBook.DBTriqFM):
+    """Force and moment component extracted from surface triangulation
     
+    :Call:
+        >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
+    :Inputs:
+        *x*: :class:`cape.trajectory.Trajectory`
+            Trajectory/run matrix interface
+        *opts*: :class:`cape.options.Options`
+            Options interface
+        *comp*: :class:`str`
+            Name of TriqFM component
+        *RootDir*: {``None``} | :class:`st`
+            Root directory for the configuration
+    :Outputs:
+        *DBF*: :class:`pyCart.dataBook.DBTriqFM`
+            Instance of TriqFM data book
+    :Versions:
+        * 2017-03-29 ``@ddalle``: First version
+    """
+    # Get file
+    def GetTriqFile(self):
+        """Get most recent ``triq`` file and its associated iterations
         
+        :Call:
+            >>> qtriq, ftriq, n, i0, i1 = DBF.GetTriqFile()
+        :Inputs:
+            *DBF*: :class:`pyCart.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+        :Outputs:
+            *qtriq*: {``False``}
+                Whether or not to convert file from other format
+            *ftriq*: :class:`str`
+                Name of ``triq`` file
+            *n*: :class:`int`
+                Number of iterations included
+            *i0*: :class:`int`
+                First iteration in the averaging
+            *i1*: :class:`int`
+                Last iteration in the averaging
+        :Versions:
+            * 2016-12-19 ``@ddalle``: Added to the module
+        """
+        # Get properties of triq file
+        ftriq, n, i0, i1 = case.GetTriqFile()
+        # Output
+        return False, ftriq, n, i0, i1
+    
+# class DBTriqFM
+
         
 # Individual component force and moment
 class CaseFM(cape.dataBook.CaseFM):

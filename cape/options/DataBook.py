@@ -548,6 +548,32 @@ class DataBook(odict):
         fmt = copts.get("OutputFormat", fmt)
         # Output
         return fmt
+        
+    # Get output format
+    def get_DataBookTriqFormat(self, comp):
+        """Get endianness and single/double for ``triq`` files
+        
+        :Call:
+            >>> fmt = opts.get_DataBookTriqFormat(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *typ*: ``"Force"`` | ``"FM"`` | ``"LineLoad"`` | :class:`str`
+                Data book type
+        :Outputs:
+            *fmt*: ``ascii`` | {``lb4``} | ``b4`` | ``lb8`` | ``b8``
+                File format for additional output
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+        """
+        # Get the options for the component.
+        copts = self.get(comp, {})
+        # Get the global option
+        fmt = self.get("TriqFormat", "lb4")
+        # Get the component-specific option
+        fmt = copts.get("TriqFormat", fmt)
+        # Output
+        return fmt
   # >
   
   # =======

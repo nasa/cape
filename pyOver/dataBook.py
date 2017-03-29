@@ -29,6 +29,7 @@ from . import lineLoad
 
 # Template module
 import cape.dataBook
+import cape.tri
 
 # Placeholder variables for plotting functions.
 plt = 0
@@ -416,6 +417,38 @@ class DataBook(cape.dataBook.DataBook):
                     comp, conf=conf, RootDir=self.RootDir, targ=targ)
             # Return to starting location
             os.chdir(fpwd)
+    
+    # Read TriqFM components
+    def ReadTriqFM(self, comp):
+        """Read a TriqFM data book if not already present
+        
+        :Call:
+            >>> DB.ReadTriqFM(comp)
+        :Inputs:
+            *DB*: :class:`pyOver.dataBook.DataBook`
+                Instance of pyOver data book class
+            *comp*: :class:`str`
+                Name of TriqFM component
+        :Versions:
+            * 2017-03-29 ``@ddalle``: First version
+        """
+        # Initialize if necessary
+        try:
+            self.TriqFM
+        except Exception:
+            self.TriqFM = {}
+        # Try to access the TriqFM database
+        try:
+            self.TriqFM[comp]
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Read data book
+            self.TriqFM[comp] = DBTriqFM(self.x, self.opts, comp,
+                RootDir=self.RootDir)
+            # Return to starting position
+            os.chdir(fpwd)
         
     # Update data book
     def UpdateDataBook(self, I=None):
@@ -666,6 +699,311 @@ class DBTarget(cape.dataBook.DBTarget):
     
     pass
 # class DBTarget
+
+
+# TriqFM data book
+class DBTriqFM(cape.dataBook.DBTriqFM):
+    """Force and moment component extracted from surface triangulation
+    
+    :Call:
+        >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
+    :Inputs:
+        *x*: :class:`cape.trajectory.Trajectory`
+            Trajectory/run matrix interface
+        *opts*: :class:`cape.options.Options`
+            Options interface
+        *comp*: :class:`str`
+            Name of TriqFM component
+        *RootDir*: {``None``} | :class:`st`
+            Root directory for the configuration
+    :Outputs:
+        *DBF*: :class:`pyFun.dataBook.DBTriqFM`
+            Instance of TriqFM data book
+    :Versions:
+        * 2017-03-28 ``@ddalle``: First version
+    """
+    
+    # Get file
+    def GetTriqFile(self):
+        """Get most recent ``triq`` file and its associated iterations
+        
+        :Call:
+            >>> qpre, fq, n, i0, i1 = DBL.GetTriqFile()
+        :Inputs:
+            *DBL*: :class:`pyCart.lineLoad.DBLineLoad`
+                Instance of line load data book
+        :Outputs:
+            *qpre*: {``False``}
+                Whether or not to convert file from other format
+            *fq*: :class:`str`
+                Name of ``q`` file
+            *n*: :class:`int`
+                Number of iterations included
+            *i0*: :class:`int`
+                First iteration in the averaging
+            *i1*: :class:`int`
+                Last iteration in the averaging
+        :Versions:
+            * 2016-12-19 ``@ddalle``: Added to the module
+        """
+        # Get properties of triq file
+        fq, n, i0, i1 = case.GetQFile(self.fqi)
+        # Get the corresponding .triq file name
+        ftriq = os.path.join('triqfm', 'grid.i.triq')
+        # Check for 'q.strt'
+        if os.path.isfile(fq):
+            # Source file exists
+            fsrc = os.path.realpath(fq)
+        else:
+            # No source just yet
+            fsrc = None
+        # Check if the TRIQ file exists
+        if os.path.isfile(ftriq) and os.path.isfile(fsrc):
+            # Check modification dates
+            if os.path.getmtime(ftriq) > os.path.getmtime(fsrc):
+                # 'grid.i.triq' exists, but Q file is newer
+                qpre = True
+            else:
+                # Triq file exists and is up-to-date
+                qpre = False
+        else:
+            # Need to run ``overint`` to get triq file
+            qpre = True
+        # Output
+        return qpre, fq, n, i0, i1
+    
+    # Read a Triq file
+    def ReadTriq(self, ftriq):
+        """Read a ``triq`` annotated surface triangulation
+        
+        :Call:
+            >>> DBF.ReadTriq(ftriq)
+        :Inputs:
+            *DBF*: :class:`pyOver.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+            *ftriq*: :class:`str`
+                Name of ``triq`` file
+        :Versions:
+            * 2017-03-29 ``@ddalle``: First version
+        """
+        # Read using :mod:`cape`
+        self.triq = cape.tri.Triq(os.path.join('triqfm', 'grid.i.triq'))
+    
+    # Preprocess triq file (convert from PLT)
+    def PreprocessTriq(self, fq, **kw):
+        """Perform any necessary preprocessing to create ``triq`` file
+        
+        :Call:
+            >>> ftriq = DBL.PreprocessTriq(fq, qpbs=False, f=None)
+        :Inputs:
+            *DBL*: :class:`pyFun.lineLoad.DBLineLoad`
+                Line load data book
+            *ftriq*: :class:`str`
+                Name of q file
+            *qpbs*: ``True`` | {``False``}
+                Whether or not to create a script and submit it
+            *f*: {``None``} | :class:`file`
+                File handle if writing PBS script
+        :Versions:
+            * 2016-12-20 ``@ddalle``: First version
+            * 2016-12-21 ``@ddalle``: Added PBS
+        """
+       # -------
+       # Options
+       # -------
+        # Create 'lineload' folder if needed
+        if not os.path.isdir('triqfm'): self.opts.mkdir('triqfm')
+        # Enter the 'lineload' folder
+        os.chdir('triqfm')
+        # Get input files
+        fmixsur  = self.opts.get_DataBook_mixsur(self.comp)
+        fsplitmq = self.opts.get_DataBook_splitmq(self.comp)
+        ffomo    = self.opts.get_DataBook_fomo(self.comp)
+        # Get absolute file paths
+        if (fmixsur) and (not os.path.isabs(fmixsur)):
+            fmixsur = os.path.join(self.RootDir, fmixsur)
+        if (fsplitmq) and (not os.path.isabs(fsplitmq)):
+            fsplitmq = os.path.join(self.RootDir, fsplitmq)
+        if (ffomo) and (not os.path.isabs(ffomo)):
+            ffomo = os.path.join(self.RootDir, ffomo)
+        # Save files
+        self.mixsur  = fmixsur
+        self.splitmq = fsplitmq
+        self.fomodir = ffomo
+        # Get Q/X files
+        self.fqi = self.opts.get_DataBook_QIn(self.comp)
+        self.fxi = self.opts.get_DataBook_XIn(self.comp)
+        self.fqo = self.opts.get_DataBook_QOut(self.comp)
+        self.fxo = self.opts.get_DataBook_XOut(self.comp)
+        # Do the SPLITMQ and MIXSUR files exist?
+        qsplitm = os.path.isfile(self.splitmq)
+        qmixsur = os.path.isfile(self.mixsur)
+        # If there's no mixsur file, there's nothing we can do
+        if not qmixsur:
+            raise RuntimeError(
+                ("No 'mixsur' or 'overint' input file found ") +
+                ("for lineload component '%s'" % self.comp))
+        # Local names for input files
+        fsplitmq = 'splitmq.%s.i' % self.comp
+        fsplitmx = 'splitmx.%s.i' % self.comp
+        fmixsur  = 'mixsur.%s.i' % self.comp
+        # Source *q* file is in parent folder
+        fqvol = fq
+        # Source *x* file if needed
+        fxvol = os.path.join('..', "x.pyover.p3d")
+        # If this file does not exist, nothing is going to work.
+        if not os.path.isfile(fqvol):
+            return
+        # If we're in PreprocessTriq, all x/q files are out-of-date
+        for f in ["x.save", "x.srf", "x.vol", "q.save", "q.srf", "q.vol"]:
+            # Check if file esists
+            if os.path.isfile(f): os.remove(f)
+       # -------------------------------------
+       # Determine MIXSUR output folder status
+       # -------------------------------------
+        # Check status of self.fomodir folder
+        if self.fomodir and os.path.isdir(self.fomodir):
+            # List of required mixsur files
+            fmo = [
+                "grid.i.tri", "grid.bnd", "grid.ib",  "grid.ibi",
+                "mixsur.fmp", "grid.map", "grid.nsf", "grid.ptv"
+            ]
+            # Initialize a flag that all these files exist
+            qmixsur = False
+            # Loop through files
+            for f in fmo:
+                # Check if the file exists
+                if not os.path.isfile(os.path.join(self.fomodir, f)):
+                    # Missing file
+                    qmixsur = True
+                    break
+        # Copy files if ``mixsur`` not needed
+        if not qmixsur:
+            # Loop through files
+            for f in fmo:
+                # If file exists in `lineload/` folder, delete it
+                if os.path.isfile(f): os.remove(f)
+                # Link file
+                fsrc = os.path.join(self.fomodir, f)
+                os.symlink(fsrc, f)
+       # ------------------------
+       # Determine SPLITMQ status
+       # ------------------------
+        # Use this while loop as a method to use ``break``
+        if qsplitm:
+            # Source file option(s)
+            fqo = self.opts.get_DataBook_QSurf(self.comp)
+            fxo = self.opts.get_DataBook_XSurf(self.comp)
+            # Get absolute path
+            if fqo is None:
+                # No source file
+                fqsrf = None
+            else:
+                # Get path to parent folder
+                fqsrf = os.path.join('..', fqo)
+            if fxo is None:
+                # No target file
+                fxsrf = None
+            else:
+                # Get path to parent folder
+                fxsrf = os.path.join('..', fxo)
+            # Check for "q.srf" file
+            if os.path.isfile(fqsrf):
+                # Get iteration number
+                tvol = case.checkqt(fqvol)
+                tsrf = case.checkqt(fqsrf)
+                # Check if it's up to date
+                if tsrf < tvol:
+                    # Exists but out-of-date
+                    qsplitmq = True
+                    qsplitmx = True
+                elif os.path.isfile(fxsrf):
+                    # Up-to-date, and surface grid good too
+                    qsplitmq = False
+                    qsplitmx = False
+                else:
+                    # Up-to-date; but need to create 'x.srf'
+                    qspltimq = False
+                    qsplitmx = True
+            else:
+                # No candidate "q.srf" file from parent directory
+                qsplitmq = True
+                qsplitmx = True
+        else:
+            # Do not run splitmq
+            qsplitmq = False
+            qsplitmx = False
+       # ---------------------
+       # Prepare SPLITMQ files
+       # ---------------------
+        # Whether or not to split
+        qsplitq = qsplitmq or qsplitmx
+        # Copy "splitmq"/"splitmx" input template
+        if qsplitq: shutil.copy(self.splitmq, "splitmq.i")
+        # Copy "mixsur"/"overint" input file
+        shutil.copy(self.mixsur, fmixsur)
+        shutil.copy(self.mixsur, "mixsur.i")
+        # Prepare files for ``splitmq``
+        if qsplitmq:
+            # Link parent Q volume
+            os.symlink(fqvol, "q.vol")
+            # Edit the SPLITMQ input file
+            case.EditSplitmqI("splitmq.i", fsplitmq, "q.vol", "q.save")
+        else:
+            # Link parent *q.srf* to "q.save" so OVERINT uses it
+            os.symlink(fqsrf, "q.save")
+        # Prepare files for ``splitmx``
+        if qsplitmx:
+            # Link parent X volume
+            os.symlink(fxvol, "x.vol")
+            # Edit the SPLITMX input file
+            case.EditSplitmqI("splitmq.i", fsplitmx, "x.vol", "x.save")
+        else:
+            # Link parent *x.srf* to "x.save" so OVERINT uses it
+            os.symlink(fxsrf, "x.save")
+        # Check for ``splitmq``
+        if qsplitmq:
+            # Command to run splitmq
+            cmd = "splitmq < %s > splitmq.%s.o" % (fsplitmq, self.comp)
+            # Status update
+            print("    %s" % cmd)
+            # Run ``splitmq``
+            ierr = os.system(cmd)
+            # Check for errors
+            if ierr:
+                raise SystemError("Failure while running ``splitmq``")
+        # Check for ``splitmx``
+        if qsplitmx:
+            # Command to run splitmx
+            cmd = "splitmx < %s > splitmx.%s.o" % (fsplitmx, self.comp)
+            # Status update
+            print("    %s" % cmd)
+            # Run ``splitmx``
+            ierr = os.system(cmd)
+            # Check for errors
+            if ierr:
+                raise SystemError("Failure while running ``splitmx``")
+        # Check for ``overint``
+        if qmixsur:
+            # Command to mixsur
+            cmd = "mixsur < %s > mixsur.%s.o" % (fmixsur, self.comp)
+            # Status update
+            print("    %s" % cmd)
+            # Run ``mixsur``
+            ierr = os.system(cmd)
+            # Check for errors
+            if ierr:
+                raise SystemError("Failure while running ``mixsur``")
+        # Command to overint
+        cmd = "overint < %s > overint.%s.o" % (fmixsur, self.comp)
+        # Status update
+        print("    %s" % cmd)
+        # Run ``overint``
+        ierr = os.system(cmd)
+        # Check for errors
+        if ierr:
+            raise SystemError("Failure while running ``overint``")
+# class DBTriqFM
 
 # Force/moment history
 class CaseFM(cape.dataBook.CaseFM):

@@ -399,7 +399,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             # Check for ``splitmx``
             if qsplitmx:
                 # Command to run splitmx
-                cmd = "splitmx < %s > splitmq.%s.o" % (fsplitmx, self.comp)
+                cmd = "splitmx < %s > splitmx.%s.o" % (fsplitmx, self.comp)
                 # Status update
                 print("    %s" % cmd)
                 # Run ``splitmx``
