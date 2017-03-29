@@ -2490,8 +2490,9 @@ class DBTriqFM(dict):
             self[patch] = DBTriqFMComp(x, opts, comp, patch=patch, **kw)
         
         # Reference area/length
-        self.RefA = opts.get_RefArea(comp)
-        self.RefL = opts.get_RefLength(comp)
+        self.Aref = opts.get_RefArea(comp)
+        self.Lref = opts.get_RefLength(comp)
+        self.bref = opts.get_RefSpan(comp)
         # Moment reference point
         self.MRP = np.array(opts.get_RefPoint(comp))
     
@@ -2521,15 +2522,15 @@ class DBTriqFM(dict):
             * 2016-03-08 ``@ddalle``: First version
         """
         # Loop through points
-        for pt in self.pts:
-            self[pt].Sort()
+        for patch in self.patches:
+            self[patch].Sort()
     
     # Output method
     def Write(self):
         """Write to file each point sensor data book in a group
         
         :Call:
-            >>> DBPG.Write()
+            >>> DBF.Write()
         :Inputs:
             *DBF*: :class:`cape.dataBook.DBTriqFM`
                 Instance of TriqFM data book
@@ -2537,11 +2538,11 @@ class DBTriqFM(dict):
             * 2015-12-04 ``@ddalle``: First version
         """
         # Loop through points
-        for pt in self.pts:
+        for patch in self.patches:
             # Sort it.
-            self[pt].Sort()
+            self[patch].Sort()
             # Write it
-            self[pt].Write()
+            self[patch].Write()
             
     # Match the databook copy of the trajectory
     def UpdateTrajectory(self):
@@ -2725,6 +2726,43 @@ class DBTriqFM(dict):
   # Mapping
   # ========
   # <
+    
+    # Get compID option for a patch
+    def GetCompID(self, patch):
+        """Get the component ID name(s) or number(s) to use for each patch
+        
+        :Call:
+            >>> compID = DBF.GetCompID(patch)
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+            *patch*: :class:`str`
+                Name of patch
+        :Outputs:
+            *compID*: {*patch*} | :class:`str` | :class:`int` | :class:`list`
+                Name, number, or list thereof of *patch* in map tri file
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+        """
+        # Get data book option
+        compIDmap = self.opts.get_DataBookCompID(self.comp)
+        # Get the type
+        t = type(compIDmap).__name__
+        # Behavior based on type
+        if compIDmap is None:
+            # Use the patch name
+            return patch
+        elif t in ['dict']:
+            # Custom dictionary (default to *patch*)
+            return compIDmap.get(patch, patch)
+        elif (t in ['list', 'ndarray']) and (patch in self.patches):
+            # Use mapped list... not a great idea
+            return compIDmap[self.patches.index(patch)]
+        else:
+            # Give up
+            return patch
+        
+        
     # Read the map file
     def ReadTriMap(self):
         """Read the triangulation to use for mapping
@@ -2790,12 +2828,51 @@ class DBTriqFM(dict):
   # Force & Moment Computation
   # ===========================
   # <
+    # Get relevant freestream conditions
+    def GetConditions(self, i):
+        """Get the freestream conditions needed for forces
+        
+        :Call:
+            >>> xi = DBF.GetConditions(i)
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *xi*: :class:`dict`
+                Dictionary of Mach number (*mach*), Reynolds number (*Re*)
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+        """
+        # Attempt to get Mach number
+        try:
+            # Use the trajectory
+            mach = self.x.GetMach(i)
+        except Exception:
+            # No Mach number specified in run matrix
+            raise ValueError(
+                ("Could not determine freestream Mach number\n") +
+                ("TriqFM component '%s'" % self.comp)
+        # Attempt to get Reynolds number (not needed if inviscid)
+        try:
+            # Use the trajectory
+            Rey = self.x.GetReynolds(i)
+        except Exception:
+            # Assume it's not needed
+            Rey = 1.0
+        # Ratio of specific heats
+        gam = self.x.GetGamma(i)
+        # Output
+        return {"mach": mach, "Re": Rey, "gam": gam}
+            
+        
     # Calculate forces and moments
-    def GetTriForces(self, patch, i, **kw):
+    def GetTriqForcesPatch(self, patch, i, **kw):
         """Get the forces and moments on a patch
         
         :Call:
-            >>> F = DBF.GetTriForces(patch, i, **kw)
+            >>> FM = DBF.GetTriForces(patch, i, **kw)
         :Inputs:
             *DBF*: :class:`cape.dataBook.DBTriqFM`
                 Instance of TriqFM data book
@@ -2803,35 +2880,25 @@ class DBTriqFM(dict):
                 Name of patch
             *i*: :class:`int`
                 Case index
+        :Outputs:
+            *FM*: :class:`dict`
+                Dictionary of force & moment coefficients
         :Versions:
             * 2017-03-28 ``@ddalle``: First version
         """
         # Set inputs for TriqForces
-        kwfm = {
-            "m":    self.x.GetMach(i),
-            "Re":   self.x.GetReynolds(i),
-            "Aref": self.RefA,
-            "Lref": self.RefL,
-            "incm": False
-        }
-        # Process component
-        if type(patch).__name__ in ["list", "ndarray"]:
-            # Make up a name
-            cname = str(patch[0])
-            # Translate component numbers if needed
-            comp = [self.compmap.get(k, k) for k in comp]
-        elif (comp is None) or (comp == ""):
-            # Name of component
-            cname = "entire"
-            comp = None
-            # Which components to process
-            if ftri is not None:
-                # Get the list of components from the mapping tri
-                comp = compmap.values()
-        else:
-            # Use the name directly
-            cname = str(comp)
-            # If the component is an integer, make sure we use
+        kwfm = self.GetConditions(i)
+        # Apply remaining options
+        kwfm["Aref"] = self.Aref
+        kwfm["Lref"] = self.Lref
+        kwfm["bref"] = self.bref
+        kwfm["incm"] = self.opts.get_DataBookMomentum(self.comp)
+        # Get component for this patch
+        compID = self.GetCompID(patch)
+        # Calculate forces
+        FM = self.triq.GetTriForces(compID, **kwfm)
+        # Output
+        return FM
   # >
 # class DBTriqFM
 
