@@ -3112,7 +3112,14 @@ class DBTriqFMComp(DBBase):
             self.name = comp
         else:
             # Take the patch name, but ensure one occurrence of comp as prefix
-            self.name = "%s_%s" % (fpre, patch.lstrip(fpre).lstrip('_'))
+            if patch.startswith(fpre):
+                # Remove prefix
+                name = patch[len(fpre):].lstrip('_')
+            else:
+                # Use the name as-is
+                name = patch
+            # Add the prefix (back if necessary)
+            self.name = "%s_%s" % (fpre, name)
             
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
