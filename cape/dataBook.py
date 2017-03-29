@@ -2950,7 +2950,49 @@ class DBTriqFM(dict):
         compID = self.GetCompID(patch)
         # Calculate forces
         FM = self.triq.GetTriForces(compID, **kwfm)
+        # Get additional states
+        FM = self.GetStateVars(patch, FM)
         # Output
+        return FM
+        
+    # Get other stats
+    def GetStateVars(self, patch, FM):
+        """Get additional state variables, such as minimum *Cp*
+        
+        :Call:
+            >>> FM = DBF.GetStateVars(patch, FM)
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+            *patch*: :class:`str`
+                Name of patch
+            *FM*: :class:`dict` (:class:`float`)
+                Dictionary of force & moment coefficients
+        :Outputs:
+            *FM*: :class:`dict` (:class:`float`)
+                Dictionary of force & moment coefficients
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+        """
+        # Get component for this patch
+        compID = self.GetCompID(patch)
+        # Get nodes for that compID(s)
+        I = self.triq.GetNodesFromCompID(compID)
+        # Loop through float columns
+        for c in self[patch].fCols:
+            # Skip if already in *FM*
+            if c in FM: continue
+            # Check if it's something we recognize
+            if c.lower() in ['cpmin', 'cp_min']:
+                # Get minimum value from first column
+                FM[c] = np.min(self.triq.q[I,0])
+            elif c.lower() in ['cpmax', 'cp_max']:
+                # Get maximum value from first column
+                FM[c] = np.max(self.triq.q[I,0])
+            elif c.lower() in ['cp', 'cp_mu', 'cp_mean']:
+                # Mean *Cp*
+                FM[c] = np.mean(self.triq.q[I,0])
+        # Output for clarity
         return FM
         
     # Get all patches
