@@ -5238,13 +5238,13 @@ class Triq(TriBase):
             rhoV = np.mean(Q[T,3], axis=1)
             rhoW = np.mean(Q[T,4], axis=1)
             # Average mass flux components
-            U = (Q[v0,2]/Q[v0,1] + Q[v1,2]/Q[v1,1] + Q[v2,2]/V[v2,1])/3
-            V = (Q[v0,3]/Q[v0,1] + Q[v1,3]/Q[v1,1] + Q[v2,3]/V[v2,1])/3
-            W = (Q[v0,4]/Q[v0,1] + Q[v1,4]/Q[v1,1] + Q[v2,4]/V[v2,1])/3
+            U = (Q[v0,2]/Q[v0,1] + Q[v1,2]/Q[v1,1] + Q[v2,2]/Q[v2,1])/3
+            V = (Q[v0,3]/Q[v0,1] + Q[v1,3]/Q[v1,1] + Q[v2,3]/Q[v2,1])/3
+            W = (Q[v0,4]/Q[v0,1] + Q[v1,4]/Q[v1,1] + Q[v2,4]/Q[v2,1])/3
             # Average mass flux, done wrongly for consistency with `triload`
             phi = -(U*N[:,0] + V*N[:,1] + W*N[:,2])
             # Force components
-            Fm = phi*stackcol((rhoU,rhoV,rhoW))
+            Fm = stackcol((phi*rhoU,phi*rhoV,phi*rhoW))
        # --------------
        # Viscous Forces
        # --------------
