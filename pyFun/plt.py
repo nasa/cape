@@ -215,6 +215,20 @@ class Plt(object):
         # Close the file
         f.close()
         
+    # SZPLOT Boundary reader
+    def ReadSzplt(self, fname):
+        # Open the file
+        f = open(fname, 'rb')
+        # Read the opening string
+        s = np.fromfile(f, count=1, dtype='|S8')
+        # Check it
+        if len(s)==0 or s[0]!='#!SZPLT ':
+            f.close()
+            raise ValueError("File '%s' must start with '#!SZPLT '" % fname)
+        # Read a revision number string
+        self.rev = np.fromfile(f, count=1, dtype='|S34')
+        
+        
     
     # Tec Boundary reader
     def Read(self, fname):
@@ -254,6 +268,8 @@ class Plt(object):
         self.Zones = []
         self.ParentZone = []
         self.StrandID = []
+        self.QVarLoc = []
+        self.VarLocs = []
         self.t = []
         self.ZoneType = []
         self.nPt = []
@@ -280,8 +296,19 @@ class Plt(object):
             # Read a -1 and then the zone type
             i, zt = np.fromfile(f, count=2, dtype='i4')
             self.ZoneType.append(zt)
-            # Read a lot of zeros
-            np.fromfile(f, dtype='i4', count=(self.nVar+3))
+            # Check some other aspect about the zone
+            vl, = np.fromfile(f, count=1, dtype='i4')
+            # Check for var location
+            self.QVarLoc.append(vl)
+            if vl == 0:
+                # Nothing to specify
+                self.VarLocs.append([])
+            else:
+                # Read variable locations... {0: "node", 1: "cell"}
+                self.VarLocs.append(
+                    np.fromfile(f, dtype='i4', count=self.nVar))
+            # Two miscellaneous options about user-defined face something
+            np.fromfile(f, dtype='i4', count=2)
             # Number of points, elements
             nPt, nElem = np.fromfile(f, count=2, dtype='i4')
             self.nPt.append(nPt)
@@ -292,7 +319,9 @@ class Plt(object):
             marker, = np.fromfile(f, dtype='f4', count=1)
         # Check for end-of-header marker
         if marker != 357.0:
-            raise ValueError("Expecting end-of-header marker 357.0")
+            raise ValueError(
+                "Expecting end-of-header marker 357.0\n" +
+                ("  Found: %s" % marker))
         # Convert arrays
         self.nPt = np.array(self.nPt)
         self.nElem = np.array(self.nElem)
