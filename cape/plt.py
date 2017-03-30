@@ -333,8 +333,25 @@ class Plt(object):
             except Exception:
                 cape.io.tofile_ne4_i(f, 3)
             # Write a bunch of zeros
-            cape.io.tofile_ne4_i(f, 1)
-            cape.io.tofile_ne4_i(f, np.zeros(self.nVar+2))
+            try:
+                # Check for variable locations (node- or cell-centered)
+                if self.QVarLoc[i]:
+                    # Variable locations are marked
+                    cape.io.tofile_ne4_i(1)
+                    # Try to write the markers
+                    try:
+                        cape.io.tofile_ne4_i(self.VarLocs[i])
+                    except Exception:
+                        cape.io.tofile_ne4_i(np.zeros(self.nVar))
+                else:
+                    # Write a zero and move on
+                    cape.io.tofile_ne4_i(f, 0)
+            except Exception:
+                # Default to marking all variables node-centered
+                cape.io.tofile_ne4_i(f, 1)
+                cape.io.tofile_ne4_i(f, np.zeros(self.nVar))
+            # Two unused or weird variables
+            cape.io.tofile_ne4_i(f, np.zeros(2))
             # Write number of pts, elements
             cape.io.tofile_ne4_i(f, [self.nPt[i], self.nElem[i]])
             # Write some more zeros
