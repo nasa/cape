@@ -2818,13 +2818,13 @@ class DBTriqFM(dict):
   # Triq Writers
   # ============
   # <
-   # Function to write TRIQ file if requested
-   def WriteTriq(self, i, triq):
-       """Write mapped solution as TRIQ or Tecplot file with zones
-       
-       :Call:
-           >>> DBF.WriteTriq(i)
-       :Inputs:
+    # Function to write TRIQ file if requested
+    def WriteTriq(self, i, triq):
+        """Write mapped solution as TRIQ or Tecplot file with zones
+        
+        :Call:
+            >>> DBF.WriteTriq(i)
+        :Inputs:
             *DBF*: :class:`cape.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *i*: :class:`int`
@@ -2834,11 +2834,6 @@ class DBTriqFM(dict):
         :Versions:
             * 2017-03-30 ``@ddalle``: First version
         """
-        # Select the triangulation
-        try:
-            triq = self.triq
-        except Exception:
-            # No
         # Get the output file type
         fmt = self.opts.get_DataBookOutputFormat(self.comp)
         # List of known formats
@@ -2891,13 +2886,13 @@ class DBTriqFM(dict):
         # Go back to original location
         os.chdir(fpwd)
        
-   # Convert the TRIQ file
-   def Triq2Plt(self, triq):
-       """Convert an annotated tri (TRIQ) interface to Tecplot (PLT)
-       
-       :Call:
-           >>> plt = DBF.Triq2Plt(triq)
-       :Inputs:
+    # Convert the TRIQ file
+    def Triq2Plt(self, triq):
+        """Convert an annotated tri (TRIQ) interface to Tecplot (PLT)
+        
+        :Call:
+            >>> plt = DBF.Triq2Plt(triq)
+        :Inputs:
             *DBF*: :class:`cape.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *triq*: :class:`cape.tri.Triq`
