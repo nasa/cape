@@ -214,6 +214,66 @@ def read_b4_s(f):
             buf += chr(b[0])
     # If we reach here, we had overflow
     return buf
+    
+# Write byte string
+def tofile_lb4_s(f, s):
+    """Write C-style string assuming four little-endian bytes per char
+    
+    :Call:
+        >>> tofile_lb4_s(f)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'wb' or similar
+        *s*: :class:`str`
+            String to write to binary file
+    :Versions:
+        * 2017-03-29 ``@ddalle``: First version
+    """
+    # Create array
+    x = [ord(c) for c in str(s)] + [0]
+    # Write it
+    tofile_lb4_i(f, x)
+    
+# Write byte string
+def tofile_b4_s(f, s):
+    """Write C-style string assuming four big-endian bytes per char
+    
+    :Call:
+        >>> tofile_b4_s(f)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'wb' or similar
+        *s*: :class:`str`
+            String to write to binary file
+    :Versions:
+        * 2017-03-29 ``@ddalle``: First version
+    """
+    # Create array
+    x = [ord(c) for c in str(s)] + [0]
+    # Write it
+    tofile_b4_i(f, x)
+    
+# Write byte string
+def tofile_ne4_s(f, s):
+    """Write C-style string assuming four native-endian bytes per char
+    
+    :Call:
+        >>> tofile_ne4_s(f)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'wb' or similar
+        *s*: :class:`str`
+            String to write to binary file
+    :Versions:
+        * 2017-03-29 ``@ddalle``: First version
+    """
+    # Create array
+    x = [ord(c) for c in str(s)] + [0]
+    # Write it
+    tofile_ne4_i(f, x)
+    
+    
+# ====== lb4 write =====================================================
 
 # Write integer as little-endian single-precision
 def tofile_lb4_i(f, x):
@@ -256,6 +316,9 @@ def tofile_lb4_f(f, x):
     if be: X.byteswap(True)
     # Write
     X.tofile(f)
+    
+    
+# ====== lb8 write =====================================================
 
 # Write integer as little-endian double-precision
 def tofile_lb8_i(f, x):
@@ -299,6 +362,9 @@ def tofile_lb8_f(f, x):
     # Write
     X.tofile(f)
     
+    
+# ====== b4 write ======================================================
+    
 # Write integer as big-endian single-precision
 def tofile_b4_i(f, x):
     """Write an integer or array to single-precision big-endian file
@@ -340,6 +406,9 @@ def tofile_b4_f(f, x):
     if le: X.byteswap(True)
     # Write
     X.tofile(f)
+    
+    
+# ====== b8 write ======================================================
 
 # Write integer as big-endian double-precision
 def tofile_b8_i(f, x):
@@ -383,6 +452,90 @@ def tofile_b8_f(f, x):
     # Write
     X.tofile(f)
     
+    
+# ====== ne4 write =====================================================
+    
+# Write integer as native-endian single-precision
+def tofile_ne4_i(f, x):
+    """Write an integer or array to single-precision native-endian file
+    
+    :Call:
+        >>> tofile_ne4_i(f, x)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'wb' or similar
+        *x*: :class:`int` | :class:`np.ndarray`
+            Integer or array to write to file
+    :Versions:
+        * 2016-09-05 ``@ddalle``: First version
+    """
+    # Ensure array
+    X = np.array(x, dtype='i4')
+    # Write
+    X.tofile(f)
+
+# Write float as big-endian single-precision
+def tofile_ne4_f(f, x):
+    """Write a float or array to single-precision native-endian file
+    
+    :Call:
+        >>> tofile_ne4_f(f, x)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'wb' or similar
+        *x*: :class:`float` | :class:`np.ndarray`
+            Float or array to write to file
+    :Versions:
+        * 2016-09-05 ``@ddalle``: First version
+    """
+    # Ensure array
+    X = np.array(x, dtype='f4')
+    # Write
+    X.tofile(f)
+    
+    
+# ====== ne8 write =====================================================
+
+# Write integer as native-endian double-precision
+def tofile_ne8_i(f, x):
+    """Write an integer or array to double-precision native-endian file
+    
+    :Call:
+        >>> tofile_ne8_i(f, x)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'wb' or similar
+        *x*: :class:`int` | :class:`np.ndarray`
+            Integer or array to write to file
+    :Versions:
+        * 2016-09-05 ``@ddalle``: First version
+    """
+    # Ensure array
+    X = np.array(x, dtype='i8')
+    # Write
+    X.tofile(f)
+
+# Write float as native-endian double-precision
+def tofile_ne8_f(f, x):
+    """Write a float or array to double-precision native-endian file
+    
+    :Call:
+        >>> tofile_ne8_f(f, x)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'wb' or similar
+        *x*: :class:`float` | :class:`np.ndarray`
+            Float or array to write to file
+    :Versions:
+        * 2016-09-05 ``@ddalle``: First version
+    """
+    # Ensure array
+    X = np.array(x, dtype='f8')
+    # Write
+    X.tofile(f)
+    
+    
+# ====== lb4 record ====================================================
     
 # Write record of single-precision little-endian integers
 def write_record_lb4_i(f, x):

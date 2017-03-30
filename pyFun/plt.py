@@ -117,6 +117,104 @@ class Plt(object):
         # Read the file
         self.Read(fname)
     
+    # Write Tec Boundary
+    def Write(self, fname):
+        """Write a Fun3D boundary Tecplot binary file
+        
+        :Call:
+            >>> plt.Write(fname)
+        :Inputs:
+            *plt*: :class:`pyFun.plt.Plt`
+                Tecplot PLT interface
+            *fname*: :class:`str`
+                Name of file to read
+        :Versions:
+            * 2017-03-29 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'wb')
+        # Write the opening string
+        s = np.array('#!TDV112', dtype='|S8')
+        # Write it
+        s.tofile(f)
+        # Write specifier
+        cape.io.tofile_ne4_i(f, [1, 0])
+        # Write title
+        cape.io.tofile_ne4_s(f, self.title)
+        # Write number of variables
+        cape.io.tofile_ne4_i(f, self.nVar)
+        # Loop through variable names
+        for var in self.Vars:
+            cape.io.tofile_ne4_s(f, var)
+        # Write zones
+        for i in range(self.nZone):
+            # Write goofy zone marker
+            cape.io.tofile_ne4_f(f, 299.0)
+            # Write zone name
+            cape.io.tofile_ne4_s(f, self.Zones[i])
+            # Write parent zone (usually -1)
+            try:
+                cape.io.tofile_ne4_i(f, self.ParentZone[i])
+            except Exception:
+                cape.io.tofile_ne4_i(f, -1)
+            # Write the StrandID
+            try:
+                cape.io.tofile_ne4_i(f, self.StrandID[i])
+            except Exception:
+                cape.io.tofile_ne4_i(f, 1000+i)
+            # Write the time
+            try:
+                cape.io.tofile_ne8_f(f, self.t[i])
+            except Exception:
+                cape.io.tofile_ne8_f(f, 0.0)
+            # Write -1
+            cape.io.tofile_ne4_i(f, -1)
+            # Write the zone type (3 for triangles)
+            try:
+                cape.io.tofile_ne4_i(f, self.ZoneType[i])
+            except Exception:
+                cape.io.tofile_ne4_i(f, 3)
+            # Write a bunch of zeros
+            cape.io.tofile_ne4_i(f, np.zeros(self.nVar+3))
+            # Write number of pts, elements
+            cape.io.tofile_ne4_i(f, [self.nPt[i], self.nElem[i]])
+            # Write some more zeros
+            cape.io.tofile_ne4_i(f, np.zeros(4))
+        # Write end-of-header marker
+        cape.io.tofile_ne4_f(f, 357.0)
+        # Loop through the zones again
+        for n in range(self.nZone):
+            # Write marker
+            cape.io.tofile_ne4_f(f, 299.0)
+            # Extract sizes
+            npt = self.nPt[n]
+            nelem = self.nElem[n]
+            # Write variable types (usually 1 for float type, I think)
+            try:
+                cape.io.tofile_ne4_i(f, self.fmt[n])
+            except Exception:
+                cape.io.tofile_ne4_i(f, np.ones(self.nVar))
+            # Just set things as passive variables like FUN3D
+            cape.io.tofile_ne4_i(f, 1)
+            cape.io.tofile_ne4_i(f, np.zeros(self.nVar))
+            # Just set things to share with -1, because that makes sense
+            # somehow.  I guess it is a commercial format, so go figure.
+            cape.io.tofile_ne4_i(f, 1)
+            cape.io.tofile_ne4_i(f, -1*np.ones(self.nVar))
+            # Save the *zshare* value
+            cape.io.tofile_ne4_i(f, -1)
+            # Form matrix of qmin[0], qmax[0], qmin[1], ...
+            qex = np.hstack((self.qmin[n], self.qmax[n])).transpose()
+            # Save *qmin* and *qmax*
+            cape.io.tofile_ne8_f(f, qex)
+            # Save the actual data
+            cape.io.tofile_ne4_f(f, np.transpose(self.q[n]))
+            # Write the tris (this may need to be generalized!)
+            cape.io.tofile_ne4_i(f, np.transpose(self.Tris[n]))
+        # Close the file
+        f.close()
+        
+    
     # Tec Boundary reader
     def Read(self, fname):
         """Read a Fun3D boundary Tecplot binary file
@@ -140,7 +238,7 @@ class Plt(object):
             f.close()
             raise ValueError("File '%s' must start with '#!TDV112'" % fname)
         # Throw away the next two integers
-        np.fromfile(f, count=2, dtype='i4')
+        self.line2 = np.fromfile(f, count=2, dtype='i4')
         # Read the title
         self.title = cape.io.read_lb4_s(f)
         # Get number of variables (, unpacks the list)
