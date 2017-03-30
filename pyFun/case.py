@@ -1163,6 +1163,7 @@ def LinkPLT():
         LinkFromGlob(fname[i]+".tec", fglob[i]+".tec")
         LinkFromGlob(fname[i]+".dat", fglob[i]+".dat")
         LinkFromGlob(fname[i]+".plt", fglob[i]+".plt")
+        LinkFromGlob(fname[i]+".szplt", fglob[i]+".szplt")
     
 # def LinkPLT
 
