@@ -151,7 +151,7 @@ class Plt(object):
             # Write goofy zone marker
             cape.io.tofile_ne4_f(f, 299.0)
             # Write zone name
-            cape.io.tofile_ne4_s(f, self.Zones[i])
+            cape.io.tofile_ne4_s(f, '"%s"' % self.Zones[i])
             # Write parent zone (usually -1)
             try:
                 cape.io.tofile_ne4_i(f, self.ParentZone[i])
@@ -175,7 +175,8 @@ class Plt(object):
             except Exception:
                 cape.io.tofile_ne4_i(f, 3)
             # Write a bunch of zeros
-            cape.io.tofile_ne4_i(f, np.zeros(self.nVar+3))
+            cape.io.tofile_ne4_i(f, 1)
+            cape.io.tofile_ne4_i(f, np.zeros(self.nVar+2))
             # Write number of pts, elements
             cape.io.tofile_ne4_i(f, [self.nPt[i], self.nElem[i]])
             # Write some more zeros
@@ -204,13 +205,13 @@ class Plt(object):
             # Save the *zshare* value
             cape.io.tofile_ne4_i(f, -1)
             # Form matrix of qmin[0], qmax[0], qmin[1], ...
-            qex = np.hstack((self.qmin[n], self.qmax[n])).transpose()
+            qex = np.vstack((self.qmin[n], self.qmax[n])).transpose()
             # Save *qmin* and *qmax*
             cape.io.tofile_ne8_f(f, qex)
             # Save the actual data
             cape.io.tofile_ne4_f(f, np.transpose(self.q[n]))
             # Write the tris (this may need to be generalized!)
-            cape.io.tofile_ne4_i(f, np.transpose(self.Tris[n]))
+            cape.io.tofile_ne4_i(f, self.Tris[n])
         # Close the file
         f.close()
         
@@ -337,6 +338,8 @@ class Plt(object):
             ii = np.fromfile(f, dtype='i4', count=(4*nelem))
             # Reshape and save
             self.Tris.append(np.reshape(ii, (nelem,4)))
+            #self.f = f
+            #return
             # Read the next marker
             i = np.fromfile(f, dtype='f4', count=1)
             # Check length
