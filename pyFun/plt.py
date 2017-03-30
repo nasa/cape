@@ -52,7 +52,7 @@ def Plt2Triq(fplt, ftriq=None, **kw):
     triq.Write(ftriq, **kw)
 
 # Tecplot class
-class Plt(caep.plt.Plt):
+class Plt(cape.plt.Plt):
     """Interface for Tecplot PLT files
     
     :Call:

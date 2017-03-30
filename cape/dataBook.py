@@ -2737,7 +2737,8 @@ class DBTriqFM(dict):
                 # Update the other statistics
                 self[p]['nIter'][j]  = nIter
                 self[p]['nStats'][j] = nStats
-        
+        # Write TRIQ/PLT/DAT file if requested
+        #self.WriteTriq
         # Return to original folder
         os.chdir(fpwd)
        # )
@@ -2811,6 +2812,104 @@ class DBTriqFM(dict):
         """
         # Read using :mod:`cape`
         self.triq = cape.tri.Triq(ftriq)
+  # >
+  
+  # ============
+  # Triq Writers
+  # ============
+  # <
+   # Function to write TRIQ file if requested
+   def WriteTriq(self, i, triq):
+       """Write mapped solution as TRIQ or Tecplot file with zones
+       
+       :Call:
+           >>> DBF.WriteTriq(i)
+       :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+            *i*: :class:`int`
+                Case index
+            *triq*: :class:`cape.tri.Triq`
+                Interface to annotated surface triangulation
+        :Versions:
+            * 2017-03-30 ``@ddalle``: First version
+        """
+        # Select the triangulation
+        try:
+            triq = self.triq
+        except Exception:
+            # No
+        # Get the output file type
+        fmt = self.opts.get_DataBookOutputFormat(self.comp)
+        # List of known formats
+        fmts = ["tri", "triq", "plt", "dat"]
+        # Check the option
+        if fmt is None:
+            # Nothing more to do
+            return
+        elif type(fmt).__name__ not in ["unicode", "str"]:
+            # Bad type
+            raise TypeError(
+                ('Invalid "OutputFormat": %s (type %s)' % (fmt, type(fmt))) +
+                (' for TriqFM component "%s"' % self.comp))
+        elif fmt.lower() not in fmts:
+            # Not known
+            print("    Unknown TRIQ output format '%s'" % fmt)
+            print('    Available options are "triq", "plt", and "data"') 
+            return
+        # Go to data book folder safely
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        os.chdir(self.opts.get_DataBookDir())
+        # Enter the "triqfm" folder (create if needed)
+        if not os.path.isdir("triqfm"): self.opts.mkdir("triqfm")
+        os.chdir("triqfm")
+        # Get the group and run folders
+        fgrp = self.x.GetGroupFolderNames(i)
+        frun = self.x.GetFullFolderNames(i)
+        # Create folders if needed
+        if not os.path.isdir(fgrp): self.opts.mkdir(fgrp)
+        if not os.path.isdir(frun): self.opts.mkdir(frun)
+        # Go into the run folder
+        os.chdir(frun)
+        # Name of file
+        fpre = self.opts.get_DataBookPrefix(self.comp)
+        # Convert the file as needed
+        if fmt.lower() in ["tri", "triq"]:
+            # Write the TRIQ as is
+            triq.Write("%s.triq" % fpre, ascii=True)
+        elif fmt.lower() == "dat":
+            # Create Tecplot PLT interface
+            plt = self.Triq2Plt(triq)
+            # Write ASCII file
+            plt.WriteDat("%s.dat" % fpre)
+        elif fmt.lower() == "plt":
+            # Create Tecplot PLT interface
+            plt = self.Triq2Plt(triq)
+            # Write binary file
+            plt.Write("%s.plt" % fpre)
+        # Go back to original location
+        os.chdir(fpwd)
+       
+   # Convert the TRIQ file
+   def Triq2Plt(self, triq):
+       """Convert an annotated tri (TRIQ) interface to Tecplot (PLT)
+       
+       :Call:
+           >>> plt = DBF.Triq2Plt(triq)
+       :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+            *triq*: :class:`cape.tri.Triq`
+                Interface to annotated surface triangulation
+        :Outputs:
+            *plt*: :class:`cape.plt.Plt`
+                Binary Tecplot interface
+        :Versions:
+            * 2017-03-30 ``@ddalle``: First version
+        """
+        # Perform conversion
+        plt = cape.plt.Plt(triq=triq)
   # >
   
   # ========
