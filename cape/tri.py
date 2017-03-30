@@ -2911,6 +2911,50 @@ class TriBase(object):
         except Exception:
             # Fall back to *tri.Conf* or just process raw numbers
             return self.GetConfCompID(face)
+            
+    # Get name of a compID
+    def GetCompName(self, compID):
+        """Get the name of a component by its number
+        
+        :Call:
+            >>> face = tri.GetCompName(compID)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation interface
+            *compID*: :class:`int`
+                Component ID number
+        :Outputs:
+            *face*: {``""``} | :class:`str`
+                Name of so-numbered component, if any
+        :Versions:
+            * 2017-03-30 ``@ddalle``: First version
+        """
+        # Try both configuration interfaces
+        try:
+            # Use the *Config* class first
+            face = self.config.GetCompName(compID)
+        except AttributeError:
+            # No *Config* attribute
+            face = None
+        # Exit if found
+        if face is not None:
+            return face
+        # Try to use the UH3D dictionary
+        try:
+            self.Conf
+        except Exception:
+            # There's nothing to read
+            return ""
+        # Get list of available components from Conf
+        Comps = [comp for comp in self.Conf]
+        CompIDs = [self.Conf[comp] for comp in self.Conf]
+        # Check if CompID is present
+        if compID in CompIDs:
+            # Get the component name
+            return Comps[CompIDs.index(compID)]
+        else:
+            # CompID not found
+            return ""
                 
     # Get compIDs by name or number from *tri.Conf*
     def GetConfCompID(self, face=None):

@@ -10,6 +10,7 @@ import numpy as np
 # Useful tool for more complex binary I/O methods
 import cape.io
 import cape.tri
+import cape.util
 
 # Convert a PLT to TRIQ
 def Plt2Triq(fplt, ftriq=None, **kw):
@@ -107,7 +108,7 @@ class Plt(object):
         * 2016-11-22 ``@ddalle``: First version
     """
     
-    def __init__(self, fname=None, triq=None):
+    def __init__(self, fname=None, triq=None, **kw):
         """Initialization method
         
         :Versions:
@@ -118,6 +119,9 @@ class Plt(object):
         if fname is not None:
             # Read the file
             self.Read(fname)
+        elif triq is not None:
+            # Convert from Triq
+            self.ConvertTriq(triq, **kw)
         else:
             # Create empty zones
             self.nZone = 0
@@ -125,7 +129,6 @@ class Plt(object):
             self.qmin = []
             self.qmax = []
             self.Tris = []
-        
         
     
     # Tec Boundary reader
@@ -452,6 +455,143 @@ class Plt(object):
             raise ValueError("File '%s' must start with '#!SZPLT '" % fname)
         # Read a revision number string
         self.rev = np.fromfile(f, count=1, dtype='|S34')
+        
+    # Create from a TRIQ
+    def ConvertTriq(self, triq, **kw):
+        """Create a PLT object by reading data from a Tri/Triq object
+        
+        :Call:
+            >>> plt.ConvertTriq(triq)
+        :Inputs:
+            *plt*: :class:`cape.plt.Plt`
+                Tecplot PLT interface
+            *triq*: :class:`cape.tri.Triq`
+                Surface triangulation with or without solution (*triq.q*)
+        :Versions:
+            * 2017-03-30 ``@ddalle``: First version
+        """
+        # Get unique compIDS
+        CompIDs = np.unique(triq.CompID)
+        # Get number of zones
+        self.nZone = len(CompIDs)
+        # Try to get number of states
+        try:
+            # This should be an attribute
+            nq = triq.nq
+        except Exception:
+            # No extra states
+            nq = 0
+        # Set number of variables
+        self.nVar = 3 + nq
+        # Process variables
+        qvars = kw.get("vars", kw.get("Vars"))
+        # Process default
+        if qvars is None:
+            # Process default list based on number of states
+            if nq == 1:
+                # Pressure coefficient
+                qvars = ["cp"]
+            elif nq == 6:
+                # Cart3D states
+                qvars = ["cp", "rho", "u", "v", "w", "p"]
+            elif nq == 9:
+                # FUN3D states (common for unstructured)
+                qvars = [
+                    "cp",
+                    "rho", "u", "v", "w", "p",
+                    "cf_x", "cf_y", "cf_z"
+                ]
+            elif nq == 13:
+                # OVERFLOW states from OVERINT
+                qvars = [
+                    "cp",
+                    "rho", "rhou", "rhov", "rhow", "e",
+                    "mu", "UL", "VL", "WL",
+                    "xlp1", "ylp1", "zlp1"
+                ]
+            else:
+                # Unknown
+                qvars = ["var%s" for i in range(nq)]
+        # Check number of variables
+        if len(qvars) != nq:
+            raise ValueError(
+                ("Found %s variables in TRIQ input but " % nq) +
+                ("input list\n  %s\nhas %s variables" % (qvars, len(qvars))))
+        # Full list of variables
+        self.Vars = ["x", "y", "z"] + qvars
+        # Initialize zone names
+        self.Zones = []
+        # Set the title
+        self.title = "tecplot geometry and solution file"
+        # Save some nonsense
+        self.line2 = np.array([1, 0], dtype='i4')
+        # Initialize a bunch of other properties
+        self.QVarLoc = []
+        self.VarLocs = []
+        self.StrandID = []
+        self.ParentZone = []
+        # Get the boundary names and other header info
+        for n in range(self.nZone):
+            # Get the component name and number
+            compID = CompIDs[n]
+            name = triq.GetCompName(compID)
+            # Append the title
+            if name:
+                # Include the boundary name
+                self.Zones.append("boundary %s %s" % (compID, name))
+            else:
+                # Just use the compID in the title
+                self.Zones.append("boundary %s" % compID)
+            # Append some parameters
+            self.QVarLoc.append(0)
+            self.VarLocs.append([])
+            self.StrandID.append(1000 + n)
+            self.ParentZone.append(-1)
+        # Initialize zone sizes
+        self.nPt = []
+        self.nElem = []
+        # Initialize the geometry
+        self.Tris = []
+        # Initialize the states
+        self.q = []
+        # Initialize of each min/max for each var/zone combo
+        self.qmin = np.zeros((self.nZone, self.nVar))
+        self.qmax = np.zeros((self.nZone, self.nVar))
+        # Format nonsense
+        self.fmt = np.ones((self.nZone, self.nVar))
+        # Loop through the zones to process the data
+        for n in range(self.nZone):
+            # Get the CompID in question
+            comp = CompIDs[n]
+            # Get the nodes and tris in that comp
+            I = triq.GetNodesFromCompID(comp)
+            K = triq.GetTrisFromCompID(comp)
+            # Get the nodes and overall-index tris
+            Nodes = triq.Nodes[I,:]
+            Tris = triq.Tris[K,:]
+            # Get the counts
+            self.nPt.append(I.size)
+            self.nElem.append(K.size)
+            # Downselect the node indices so they are numbered 1 to *n*
+            # (Also shift to zero-based)
+            T = cape.util.TrimUnused(Tris) - 1
+            # Form the state matrix for this zone
+            q = np.hstack((Nodes, triq.q[I,:]))
+            # Save the min/max
+            self.qmin[n,:] = np.min(q, axis=0)
+            self.qmax[n,:] = np.max(q, axis=0)
+            # Save the states as single-precision
+            self.q.append(np.array(q, dtype="f4"))
+            # Save the triangles (nodal indices)
+            # We have to append the third node to the end
+            # Apparently Tecplot might think of tris as degenerate quads, which
+            # could be convenient at a later time.
+            self.Tris.append(np.hstack((T, T[:,[2]])))
+        # Convert to array
+        self.nPt = np.array(self.nPt)
+        self.nElem = np.array(self.nElem)
+        
+                
         
     # Create a triq file
     def CreateTriq(self, **kw):

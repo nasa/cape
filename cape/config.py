@@ -99,6 +99,8 @@ class Config:
         self.Names = [c.get('Name') for c in self.Comps]
         # Initialize face data
         self.faces = {}
+        # Initialize Tris
+        self.comps = []
         # Initialize the transformation data
         self.transform = {}
         # Check for unnamed component.
@@ -111,6 +113,8 @@ class Config:
             if c.get('Type') == 'tri':
                 # Triangulation, face label
                 self.ProcessTri(c)
+                # Get Component list
+                self.CompIDs = [self.faces.get(comp,0) for comp in self.comps]
             elif c.get('Type') == 'struc':
                 # Structured grid list
                 self.ProcessStruc(c)
@@ -237,6 +241,8 @@ class Config:
             compID = V[1]
         # Set the component.
         self.faces[comp] = compID
+        # Save as a component
+        self.comps.append(comp)
         # Output
         return compID
         
@@ -855,6 +861,37 @@ class Config:
                 pass
         # Output
         return compID
+        
+    # Get name of a compID
+    def GetCompName(self, compID):
+        """Get the name of a component by its number
+        
+        :Call:
+            >>> face = cfg.GetCompName(compID)
+        :Inputs:
+            *cfg*: :class:`cape.config.Config`
+                Instance of configuration class
+            *compID*: :class:`int`
+                Component ID number
+        :Outputs:
+            *face*: ``None`` | :class:`str`
+                Name of so-numbered component, if any
+        :Versions:
+            * 2017-03-30 ``@ddalle``: First version
+        """
+        # Make sure there is a list of CompIDs
+        try:
+            self.CompIDs
+        except AttributeError:
+            # Make the list
+            self.CompIDs = [self.faces[comp] for comp in self.comps]
+        # Check if CompID is present
+        if compID in self.CompIDs:
+            # Get the component name
+            return self.comps[self.CompIDs.index(compID)]
+        else:
+            # CompID not found
+            return None
             
     
     # Get a defining component ID from the *Properties* section
@@ -1234,7 +1271,37 @@ class ConfigMIXSUR(object):
                 pass
         # Output
         return compID
+    
+    # Get name of a compID
+    def GetCompName(self, compID):
+        """Get the name of a component by its number
         
+        :Call:
+            >>> face = cfg.GetCompName(compID)
+        :Inputs:
+            *cfg*: :class:`cape.config.Config`
+                Instance of configuration class
+            *compID*: :class:`int`
+                Component ID number
+        :Outputs:
+            *face*: ``None`` | :class:`str`
+                Name of so-numbered component, if any
+        :Versions:
+            * 2017-03-30 ``@ddalle``: First version
+        """
+        # Make sure there is a list of CompIDs
+        try:
+            self.CompIDs
+        except AttributeError:
+            # Make the list
+            self.CompIDs = [self.faces[comp] for comp in self.comps]
+        # Check if CompID is present
+        if compID in self.CompIDs:
+            # Get the component name
+            return self.comps[self.CompIDs.index(compID)]
+        else:
+            # CompID not found
+            return None
 
 # Alternate configuration
 class ConfigJSON(object):
@@ -1348,6 +1415,37 @@ class ConfigJSON(object):
                 pass
         # Output
         return compID
+        
+    # Get name of a compID
+    def GetCompName(self, compID):
+        """Get the name of a component by its number
+        
+        :Call:
+            >>> face = cfg.GetCompName(compID)
+        :Inputs:
+            *cfg*: :class:`cape.config.Config`
+                Instance of configuration class
+            *compID*: :class:`int`
+                Component ID number
+        :Outputs:
+            *face*: ``None`` | :class:`str`
+                Name of so-numbered component, if any
+        :Versions:
+            * 2017-03-30 ``@ddalle``: First version
+        """
+        # Make sure there is a list of CompIDs
+        try:
+            self.CompIDs
+        except AttributeError:
+            # Make the list
+            self.CompIDs = [self.faces[comp] for comp in self.comps]
+        # Check if CompID is present
+        if compID in self.CompIDs:
+            # Get the component name
+            return self.comps[self.CompIDs.index(compID)]
+        else:
+            # CompID not found
+            return None
     
     # Method to copy a configuration
     def Copy(self):

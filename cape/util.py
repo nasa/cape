@@ -127,6 +127,43 @@ def RangeString(rng):
             iend = icur
     # Output
     return ",".join(txt)
+    
+# Eliminate unused nodes
+def TrimUnused(T):
+    """Remove any node numbers that are not used 
+    
+    For example:
+    
+        .. code-block:: none
+        
+            [[1, 4, 5], [4, 8, 90]] --> [[1, 2, 3], [2, 6, 7]]
+    
+    :Call:
+        >>> U = cape.util.TrimUnused(T)
+    :Inputs:
+        *T*: :class:`np.ndarray` (:class:`int`)
+            Nodal index matrix or similar
+    :Outputs:
+        *U*: :class:`np.ndarray` (:class:`int`)
+            Nodal matrix with nodes 1 to *n* with same dimensions as *T*
+    :Versions:
+        * 2017-02-10 ``@ddalle``: First version
+        * 2017-03-30 ``@ddalle``: From :func:`cape.tri.Tri.TrimUnusedNodes`
+    """
+    # Get nodes that are used
+    N = np.unique(T)
+    # New number of nodes
+    nNode = len(N)
+    # Renumbered nodes
+    I = np.arange(1, nNode+1)
+    # Initialize output
+    U = np.zeros_like(T)
+    # Loop through the nodes that are used
+    for j in range(nNode):
+        # Make replacement
+        U[T==N[j]] = I[j]
+    # Output
+    return U
 
 # Convert matrix of truth values to BC lists
 def GetBCBlock2(I):
