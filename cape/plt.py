@@ -410,8 +410,33 @@ class Plt(object):
         f.write('title="%s"\n' % self.title)
         # Write the variable names header
         f.write('variables = %s\n' % " ".join(self.Vars))
-        
-        
+        # Loop through zones
+        for n in range(self.nZone):
+            # Write the zone name
+            print('zone "%s"' % self.Zones[n])
+            f.write('zone t="%s"' % self.Zones[n])
+            # Write the time
+            f.write(', solutiontime=%14.7E' % self.t[n])
+            # Write the strandid
+            f.write(', strandid=%s' % self.StrandID[n])
+            # Write the number of nodes and elements
+            f.write(', i=%s, j=%s' % (self.nPt[n], self.nElem[n]))
+            # Write some header that appears fixed.
+            f.write(", f=feblock\n")
+            # Extract the state
+            q = self.q[n]
+            # Number of rows of 7
+            nrow = int(np.ceil(q.shape[0]/7.0))
+            # Loop through the variables
+            for j in range(self.nVar):
+                # Writing each row
+                for i in range(nrow):
+                    # Extract data in septuplets and write to file
+                    q[7*i:7*(i+1),j].tofile(f, sep=" ", format="%14.7E")
+                    # Add a newline character
+                    f.write("\n")
+            # Write the TRI nodes
+            np.savetxt(f, self.Tris[n]+1, fmt="%10i")
         # Close the file
         f.close()
         
