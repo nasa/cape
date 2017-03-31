@@ -2869,7 +2869,9 @@ class DBTriqFM(dict):
         fpre = self.opts.get_DataBookPrefix(self.comp)
         # Convert the file as needed
         if fmt.lower() in ["tri", "triq"]:
-            # Write the TRIQ as is
+            # Down select the mapped patches
+            triq = self.SelectTriq()
+            # Write the TRIQ in this format
             triq.Write("%s.triq" % fpre, ascii=True)
         elif fmt.lower() == "dat":
             # Create Tecplot PLT interface
@@ -2919,6 +2921,28 @@ class DBTriqFM(dict):
         # Output
         self.CompIDs = CompIDs
         return CompIDs
+        
+    # Select the relevant components of the mapped TRIQ file
+    def SelectTriq(self):
+        """Select the components of *triq* that are mapped patches
+        
+        :Call:
+            >>> triq = DBF.SelectTriq()
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+        :Outputs:
+            *triq*: :class:`cape.tri.Triq`
+                Interface to annotated surface triangulation
+        :Versions:
+            * 2017-03-30 ``@ddalle``: First version
+        """
+        # Get component IDs
+        CompIDs = self.GetPatchCompIDs()
+        # Downselect
+        triq = self.triq.GetSubTri(CompIDs)
+        # Output
+        return triq
        
     # Convert the TRIQ file
     def Triq2Plt(self, triq):
