@@ -1778,23 +1778,23 @@ class Cntl(object):
                 self.PrepareConfigRotation(key, i)
         # Write the configuration file
         self.WriteConfig(i)
-        
-    # Write "RunControl" options to JSON file
-    def WriteCaseJSON(self, i):
-        """Write JSON file with the ``"RunControl"`` options for case *i*
-        
-        Settings are written to the file :file:`case.json` within the run folder
-        for case *i*.  If the folder does not yet exist, no action is taken.
+    
+    # Write run control options to JSON file
+    def WriteCaseJSON(self, i, rc=None):
+        """Write JSON file with run control and related settings for case *i*
         
         :Call:
-            >>> cntl.WriteCaseJSON(i)
+            >>> cntl.WriteCaseJSON(i, rc=None)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+                Generic control class
             *i*: :class:`int`
                 Run index
+            *rc*: {``None``} | :class:`pyOver.options.runControl.RunControl`
+                If specified, write specified "RunControl" options
         :Versions:
-            * 2014-12-08 ``@ddalle``: First version
+            * 2015-10-19 ``@ddalle``: First version
+            * 2013-03-31 ``@ddalle``: Can now write other options
         """
         # Safely go to root directory.
         fpwd = os.getcwd()
@@ -1810,8 +1810,13 @@ class Cntl(object):
         os.chdir(frun)
         # Write folder.
         f = open('case.json', 'w')
-        # Dump the flowCart settings.
-        json.dump(self.opts['RunControl'], f, indent=1)
+        # Dump the Overflow and other run settings.
+        if rc is None:
+            # Write settings from the present options
+            json.dump(self.opts['RunControl'], f, indent=1)
+        else:
+            # Write the settings given as input
+            json.dump(rc, f, indent=1)
         # Close the file.
         f.close()
         # Return to original location

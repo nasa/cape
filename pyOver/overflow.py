@@ -1059,10 +1059,10 @@ class Overflow(Cntl):
         :Inputs:
             *ofl*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control class
-            *rc*: {``None``} | :class:`pyOver.options.runControl.RunControl`
-                If specified, write specified "RunControl" options
             *i*: :class:`int`
                 Run index
+            *rc*: {``None``} | :class:`pyOver.options.runControl.RunControl`
+                If specified, write specified "RunControl" options
         :Versions:
             * 2015-10-19 ``@ddalle``: First version
             * 2016-02-01 ``@ddalle``: Copied from :mod:`pyFun`

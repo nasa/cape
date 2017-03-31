@@ -2047,41 +2047,6 @@ class Fun3d(Cntl):
         os.chdir(fpwd)
         # Output
         return nml
-    
-    # Write run control options to JSON file
-    def WriteCaseJSON(self, i):
-        """Write JSON file with run control and related settings for case *i*
-        
-        :Call:
-            >>> fun3d.WriteCaseJSON(i)
-        :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Run index
-        :Versions:
-            * 2015-10-19 ``@ddalle``: First version
-        """
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists.
-        if not os.path.isdir(frun):
-            # Go back and quit.
-            os.chdir(fpwd)
-            return
-        # Go to the folder.
-        os.chdir(frun)
-        # Write folder.
-        f = open('case.json', 'w')
-        # Dump the flowCart settings.
-        json.dump(self.opts['RunControl'], f, indent=1)
-        # Close the file.
-        f.close()
-        # Return to original location
-        os.chdir(fpwd)
         
     # Write the PBS script.
     def WritePBS(self, i):
