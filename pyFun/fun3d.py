@@ -1871,9 +1871,9 @@ class Fun3d(Cntl):
         # Get the number of steps
         NSTEPS = nml.GetVar("code_run_control", "steps")
         # Get the current iteration count
-        n = case.GetCurrentIter()
+        ni = self.CheckCase(i)
         # Get the current cutoff for phase *j*
-        N = max(n, rc.get_PhaseIters(j))
+        N = max(ni, rc.get_PhaseIters(j))
         # Determine output number of steps
         if imax is None:
             # Unlimited by input; add one or more nominal runs
