@@ -1475,7 +1475,7 @@ class Report(object):
             * 2017-03-31 ``@ddalle``: First version
         """ 
         # Get caption.
-        fcpt = self.opts.get_SubfigOpt(sfig, "Caption")
+        fcpt = self.cntl.opts.get_SubfigOpt(sfig, "Caption")
         # Check for non-default
         if (fcpt is not None):
             # User has specified a caption
@@ -1484,10 +1484,10 @@ class Report(object):
             # Default caption specified for this type of subfigure
             return cdef
         # Get prefix
-        fcptb = self.opts.get_SubfigOpt(sfig, "CaptionComponent")
+        fcptb = self.cntl.opts.get_SubfigOpt(sfig, "CaptionComponent")
         # Get component and coefficients
-        comp = self.opts.get_SubfigOpt(sfig, "Component")
-        coeff = self.opts.get_SubfigOpt(sfig, "Coefficient")
+        comp = self.cntl.opts.get_SubfigOpt(sfig, "Component")
+        coeff = self.cntl.opts.get_SubfigOpt(sfig, "Coefficient")
         # Types
         tcomp = type(comp).__name__
         tcoef = type(coeff).__name__ 
