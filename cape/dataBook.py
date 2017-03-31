@@ -2471,7 +2471,7 @@ class DBComp(DBBase):
 # class DBComp
 
 # Data book for a TriqFM component
-class DBTriqFM(dict):
+class DBTriqFM(DataBook):
     """Force and moment component extracted from surface triangulation
     
     :Call:
@@ -2512,7 +2512,7 @@ class DBTriqFM(dict):
         # Get list of patches
         self.patches = self.opts.get_DataBookPatches(comp)
         # Total list of patches including total
-        self.comps = [comp] + self.patches
+        self.comps = [None] + self.patches
         
         # Loop through the patches
         for patch in self.comps:
@@ -3023,9 +3023,9 @@ class DBTriqFM(dict):
         elif t in ['dict']:
             # Custom dictionary (default to *patch*)
             return compIDmap.get(patch, patch)
-        elif (t in ['list', 'ndarray']) and (patch in self.patches):
-            # Use mapped list... not a great idea
-            return compIDmap[self.patches.index(patch)]
+        elif (t in ['list']):
+            # List of comps for the whole TRI
+            return compIDmap
         else:
             # Give up
             return patch
@@ -3167,6 +3167,20 @@ class DBTriqFM(dict):
         kwfm["gauge"] = self.opts.get_DataBookGauge(self.comp)
         # Get component for this patch
         compID = self.GetCompID(patch)
+        # Default list: the whole protuberance
+        if compID is None:
+            # Get list from TRI
+            compID = np.unique(self.tri.CompID)
+        # Perform substitutions if necessary
+        if type(compID).__name__ in ['list', 'ndarray']:
+            # Loop through components
+            for i in range(len(compID)):
+                # Get comp
+                compi = compID[i]
+                # Check for int
+                if type(compi).__name__ != "int": continue
+                # Check the component number mapping
+                compID[i] = self.compmap.get(compi, compi)
         # Calculate forces
         FM = self.triq.GetTriForces(compID, **kwfm)
         # Apply transformations
@@ -3293,10 +3307,29 @@ class DBTriqFM(dict):
         """
         # Initialize dictionary of forces
         FM = {}
+        # List of patches
+        if self.patches:
+            # Use the patch list as per usual
+            patches = self.patches
+        else:
+            # Use the component
+            patches = [None]
         # Loop through patches
-        for patch in self.patches:
+        for patch in patches:
             # Calculate forces
             FM[patch] = self.GetTriqForcesPatch(patch, i, **kw)
+        # Exit if no patches
+        if None in FM: return FM
+        # Initialize cumulative sum
+        FM0 = dict(FM[patch])
+        # Accumulate each patch
+        for patch in patches:
+            # Loop through keys
+            for k in FM[patch]:
+                # Accumulate the value
+                FM0[k] += FM[patch][k]
+        # Save the value; ``None`` cannot conflict because it's not a string
+        FM[None] = FM0
         # Output
         return FM
     
@@ -3482,7 +3515,7 @@ class DBTriqFM(dict):
 # class DBTriqFM
 
 # Data book for a TriqFM component
-class DBTriqFMComp(DBBase):
+class DBTriqFMComp(DBComp):
     """Force and moment component extracted from surface triangulation
     
     :Call:
@@ -3527,7 +3560,7 @@ class DBTriqFMComp(DBBase):
         # Assemble overall component
         if patch is None:
             # Just the component
-            self.name = comp
+            self.name = fpre
         else:
             # Take the patch name, but ensure one occurrence of comp as prefix
             if patch.startswith(fpre):
