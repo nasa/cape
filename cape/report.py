@@ -1448,6 +1448,84 @@ class Report(object):
             targs = []
         # Output
         return targs
+        
+    # Process caption
+    def SubfigCaption(self, sfig, cdef=None):
+        """Get a caption for a subfigure
+        
+        This relies on the options *Caption* and *CaptionComponent*.  A
+        *Caption* specification creates a full caption, while the
+        *CaptionComponent* creates a prefix.  The default caption has the
+        format *Component*/*Coefficient* if applicable, and otherwise uses
+        *sfig*.
+        
+        :Call:
+            >>> fcpt = R.SubfigCaption(sfig, cdef=None)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *cdef*: {``None``} | :class:`str`
+                Default caption
+        :Outputs:
+            *fcpt*: :class:`str`
+                Caption
+        :Versions:
+            * 2017-03-31 ``@ddalle``: First version
+        """
+        # Get caption.
+        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        # Check for non-default
+        if (fcpt is not None):
+            # User has specified a caption
+            return fcpt
+        elif (cdef is not None):
+            # Default caption specified for this type of subfigure
+            return cdef
+        # Get prefix
+        fcptb = opts.get_SubfigOpt(sfig, "CaptionComponent")
+        # Get component and coefficients
+        comp = opts.get_SubfigOpt(sfig, "Component")
+        coeff = opts.get_SubfigOpt(sfig, "Coefficient")
+        # Types
+        tcomp = type(comp).__name__
+        tcoef = type(coeff).__name__ 
+        # Check for a list.
+        if (fcptb is not None):
+            # Use the user-specified base to start the caption
+            # e.g. [RSRB (black), LSRB(g)]/CA"
+            fcpt = fcptb
+        elif (tcomp == "list") and (len(comp)>1):
+            # Join them, e.g. "[RSRB,LSRB]/CA"
+            fcpt = "[" + ",".join(comp) + "]"
+            # Eliminate underscores
+            fcpt = fcpt.replace('_', '\_')
+        elif (tcomp == "list"):
+            # Single list, e.g. "Component": ["RSRB_No_Base"]
+            fcpt = comp[0]
+            # Eliminate underscores
+            fcpt = fcpt.replace('_', '\_')
+        elif (comp is not None):
+            # Use the coefficient.
+            fcpt = comp
+            # Eliminate underscores
+            fcpt = fcpt.replace('_', '\_')
+        else:
+            # Use the name of the subfigure
+            fcpt = sfig.replace('_', '\_')
+        # Check for coefficient
+        if (tcoef == "list") and (len(coeff)>1):
+            # Join them, e.g. "RSRB/[CY,CN]"
+            fcpt += ("/[%s]" % (",".join(coeff)).replace("_", "\_"))
+        elif (tcoef == "list"):
+            # Singleton coefficient list
+            fcpt += ("/%s" % coeff[0].replace('_', '\_'))
+        elif (coeff is not None):
+            # Single coefficient
+            fcpt += ("/%s" % coeff.replace('_', '\_'))
+        # Output
+        return fcpt
    # ]
    
    # ---------
@@ -2004,30 +2082,7 @@ class Report(object):
         # Current status
         nIter  = self.cntl.CheckCase(i)
         # Get caption.
-        fcpt = opts.get_SubfigOpt(sfig, "Caption")
-        fcptb = opts.get_SubfigOpt(sfig, "CaptionComponent")
-        # Process default caption. 
-        if fcpt is None:
-            # Get the type of component
-            tcmp = type(comp).__name__
-            # Check for a list.
-            if (fcptb is not None):
-                # Use the user-specified base to start the caption
-                # e.g. [RSRB (black), LSRB(g)]/CA"
-                fcpt = fcptb
-            elif (t == "list") and (len(comp)>1):
-                # Join them, e.g. "[RSRB,LSRB]/CA"
-                fcpt = "[" + ",".join(comp) + "]"
-            elif (t == "list"):
-                # Single list, e.g. "Component": ["RSRB_No_Base"]
-                fcpt = comp[0]
-            else:
-                # Use the coefficient.
-                fcpt = comp
-            # Defaut: Wing/CY
-            fcpt = ("%s/%s" % (fcpt, coeff))
-            # Ensure there are no underscores.
-            fcpt = fcpt.replace('_', '\_')
+        fcpt = self.SubfigCaption(sfig)
         # First lines.
         lines = self.SubfigInit(sfig)
         # Check for image update
