@@ -416,7 +416,6 @@ class Plt(object):
         # Loop through zones
         for n in range(self.nZone):
             # Write the zone name
-            print('zone "%s"' % self.Zones[n])
             f.write('zone t="%s"' % self.Zones[n])
             # Write the time
             f.write(', solutiontime=%14.7E' % self.t[n])
@@ -596,7 +595,9 @@ class Plt(object):
         # Convert to array
         self.nPt = np.array(self.nPt)
         self.nElem = np.array(self.nElem)
-        
+        # Process time step
+        t = float(kw.get("t", 1.0))
+        self.t = list(t*np.ones(self.nZone))
                 
         
     # Create a triq file

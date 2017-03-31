@@ -2738,7 +2738,7 @@ class DBTriqFM(dict):
                 self[p]['nIter'][j]  = nIter
                 self[p]['nStats'][j] = nStats
         # Write TRIQ/PLT/DAT file if requested
-        self.WriteTriq(i)
+        self.WriteTriq(i, t=float(nIter))
         # Return to original folder
         os.chdir(fpwd)
        # )
@@ -2819,16 +2819,18 @@ class DBTriqFM(dict):
   # ============
   # <
     # Function to write TRIQ file if requested
-    def WriteTriq(self, i):
+    def WriteTriq(self, i, **kw):
         """Write mapped solution as TRIQ or Tecplot file with zones
         
         :Call:
-            >>> DBF.WriteTriq(i)
+            >>> DBF.WriteTriq(i, **kw)
         :Inputs:
             *DBF*: :class:`cape.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
+            *t*: {``1``} | :class:`float`
+                Iteration number
         :Versions:
             * 2017-03-30 ``@ddalle``: First version
         """
@@ -2875,12 +2877,12 @@ class DBTriqFM(dict):
             triq.Write("%s.triq" % fpre, ascii=True)
         elif fmt.lower() == "dat":
             # Create Tecplot PLT interface
-            pltq = self.Triq2Plt(self.triq)
+            pltq = self.Triq2Plt(self.triq, **kw)
             # Write ASCII file
             pltq.WriteDat("%s.dat" % fpre)
         elif fmt.lower() == "plt":
             # Create Tecplot PLT interface
-            pltq = self.Triq2Plt(self.triq)
+            pltq = self.Triq2Plt(self.triq, **kw)
             # Write binary file
             pltq.Write("%s.plt" % fpre)
         # Go back to original location
@@ -2912,7 +2914,24 @@ class DBTriqFM(dict):
             # Check if it's a string
             if t in ['str', 'unicode']:
                 # Get the component ID from the *triq*
-                CompIDs.append(self.triq.GetCompID(compID))
+                try:
+                    # Get the value from *triq.config* or *triq.Conf*
+                    comp = self.triq.GetCompID(compID)
+                    # Check if it's a list
+                    if type(comp).__name__ in ["list", "ndarray"]:
+                        # Check for list
+                        if len(comp) > 1:
+                            raise ValueError(
+                                ("Component ID %s for patch '%s'" % (comp, patch)) +
+                                (" is not a integer or singleton"))
+                        # Get the one element
+                        CompIDs.append(comp[0])
+                    else:
+                        # Append the integer
+                        CompIDs.append(comp)
+                except Exception:
+                    # Unknown component
+                    raise ValueError("Could not determine component ID for patch '%s'" % patch)
             else:
                 # If it was specified numerically, check the *compmap*
                 # If the mapping had to renumber the component, it will be
@@ -2945,16 +2964,18 @@ class DBTriqFM(dict):
         return triq
        
     # Convert the TRIQ file
-    def Triq2Plt(self, triq):
+    def Triq2Plt(self, triq, **kw):
         """Convert an annotated tri (TRIQ) interface to Tecplot (PLT)
         
         :Call:
-            >>> plt = DBF.Triq2Plt(triq)
+            >>> plt = DBF.Triq2Plt(triq, **kw)
         :Inputs:
             *DBF*: :class:`cape.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *triq*: :class:`cape.tri.Triq`
                 Interface to annotated surface triangulation
+            *t*: {``1.0``} | :class:`float`
+                Time step or iteration number
         :Outputs:
             *plt*: :class:`cape.plt.Plt`
                 Binary Tecplot interface
@@ -2964,7 +2985,7 @@ class DBTriqFM(dict):
         # Get component IDs
         CompIDs = self.GetPatchCompIDs()
         # Perform conversion
-        pltq = cape.plt.Plt(triq=triq, CompIDs=CompIDs)
+        pltq = cape.plt.Plt(triq=triq, CompIDs=CompIDs, **kw)
         # Output
         return pltq
   # >
