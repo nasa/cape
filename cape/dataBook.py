@@ -2819,7 +2819,7 @@ class DBTriqFM(dict):
   # ============
   # <
     # Function to write TRIQ file if requested
-    def WriteTriq(self, i, triq):
+    def WriteTriq(self, i):
         """Write mapped solution as TRIQ or Tecplot file with zones
         
         :Call:
@@ -2829,8 +2829,6 @@ class DBTriqFM(dict):
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
-            *triq*: :class:`cape.tri.Triq`
-                Interface to annotated surface triangulation
         :Versions:
             * 2017-03-30 ``@ddalle``: First version
         """
@@ -2875,14 +2873,14 @@ class DBTriqFM(dict):
             triq.Write("%s.triq" % fpre, ascii=True)
         elif fmt.lower() == "dat":
             # Create Tecplot PLT interface
-            plt = self.Triq2Plt(triq)
+            pltq = self.Triq2Plt(self.triq)
             # Write ASCII file
-            plt.WriteDat("%s.dat" % fpre)
+            pltq.WriteDat("%s.dat" % fpre)
         elif fmt.lower() == "plt":
             # Create Tecplot PLT interface
-            plt = self.Triq2Plt(triq)
+            pltq = self.Triq2Plt(self.triq)
             # Write binary file
-            plt.Write("%s.plt" % fpre)
+            pltq.Write("%s.plt" % fpre)
         # Go back to original location
         os.chdir(fpwd)
         
@@ -2942,7 +2940,9 @@ class DBTriqFM(dict):
         # Get component IDs
         CompIDs = self.GetPatchCompIDs()
         # Perform conversion
-        plt = cape.plt.Plt(triq=triq, CompIDs=CompIDs)
+        pltq = cape.plt.Plt(triq=triq, CompIDs=CompIDs)
+        # Output
+        return pltq
   # >
   
   # ========
