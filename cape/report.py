@@ -398,6 +398,8 @@ class Report(object):
         """
         # Get the name of the case
         frun = self.cntl.x.GetFullFolderNames(i)
+        # Check for the ShowCase option
+        qnum = self.cntl.opts.get_ReportShowCaseNumber(self.rep)
         
         # Create the file (delete if necessary)
         f = open(self.fname, 'w')
@@ -410,7 +412,15 @@ class Report(object):
         f.write('\\setcase{%s}\n' % frun.replace('_', '\\_'))
         f.write('\\phantomsection\n')
         f.write('\\addcontentsline{toc}{section}{\\texttt{\\thecase}}\n')
-        f.write('\\fancyhead[L]{\\texttt{\\thecase}}\n\n')
+        # Check if we should write the case number
+        if qnum:
+            # Add case number
+            f.write(
+                '\\fancyhead[L]{(\\textbf{Case %s}) \\texttt{\\thecase}}\n\n'
+                % i)
+        else:
+            # Write case name without case number
+            f.write('\\fancyhead[L]{\\texttt{\\thecase}}\n\n')
         
         # Empty section for the figures
         f.write('%$__Figures\n')

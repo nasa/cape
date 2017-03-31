@@ -2162,6 +2162,11 @@ class Options(odict):
         self._Report()
         return self['Report'].get_ReportArchive()
         
+    # Get archive option
+    def get_ReportShowCaseNumber(self, rep):
+        self._Report()
+        return self['Report'].get_ReportCaseNumber(rep)
+        
     # Get the list of subfigures in a figure
     def get_FigSubfigList(self, fig):
         self._Report()
@@ -2205,7 +2210,7 @@ class Options(odict):
     # Copy over the documentation
     for k in ['ReportList', 'SweepList', 'FigList', 'SubfigList',
             'Figure', 'Subfigure', 'Report', 'Sweep',
-            'SubfigCascade', 
+            'SubfigCascade', 'ShowCaseNumber',
             'ReportFigList', 'ReportErrorFigList', 'ReportZeroFigList', 
             'ReportSweepList', 'SweepFigList',
             'ReportTitle', 'ReportSubtitle', 'ReportAuthor',

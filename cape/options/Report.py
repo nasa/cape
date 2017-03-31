@@ -859,6 +859,30 @@ class Report(odict):
         """
         # Get the title
         return self.get('Archive', False)
+        
+    # Get report option to show case
+    def get_ReportShowCaseNumber(self, rep):
+        """Get the option of whether or not to show case number in header
+        
+        :Call:
+            >>> qnum = opts.get_ReportShowCaseNumber(rep)
+        :Inputs:
+            *opts*: :class:`pycart.options.Options`
+                Options interface
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *qnum*: ``True`` | {``False``}
+                Whether or not to show case number on each page
+        :Versions:
+            * 2016-01-29 ``@ddalle``: First version
+        """
+        # Get the overall option
+        qnum = self.get('ShowCase', False)
+        # Get the report
+        R = self.get_Report(rep)
+        # Get the report-specific option
+        return R.get('ShowCase', qnum)
             
     # Get alignment for a figure
     def get_FigAlignment(self, fig):
