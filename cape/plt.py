@@ -467,11 +467,17 @@ class Plt(object):
                 Tecplot PLT interface
             *triq*: :class:`cape.tri.Triq`
                 Surface triangulation with or without solution (*triq.q*)
+            *CompIDs*: :class:`list` (:class:`int`)
+                List of CompIDs to consider
         :Versions:
             * 2017-03-30 ``@ddalle``: First version
         """
-        # Get unique compIDS
-        CompIDs = np.unique(triq.CompID)
+        # Get CompIDs option
+        CompIDs = kw.get("CompIDs")
+        # Default: all components
+        if CompIDs is None:
+            # Get unique compIDS
+            CompIDs = np.unique(triq.CompID)
         # Get number of zones
         self.nZone = len(CompIDs)
         # Try to get number of states

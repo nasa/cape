@@ -2738,7 +2738,7 @@ class DBTriqFM(dict):
                 self[p]['nIter'][j]  = nIter
                 self[p]['nStats'][j] = nStats
         # Write TRIQ/PLT/DAT file if requested
-        #self.WriteTriq
+        self.WriteTriq(i)
         # Return to original folder
         os.chdir(fpwd)
        # )
@@ -2885,6 +2885,42 @@ class DBTriqFM(dict):
             plt.Write("%s.plt" % fpre)
         # Go back to original location
         os.chdir(fpwd)
+        
+    # Get the component numbers of the mapped patches
+    def GetPatchCompIDs(self):
+        """Get the list of component IDs mapped from the template *tri*
+        
+        :Call:
+            >>> CompIDs = DBF.GetPatchCompIDs()
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+        :Outputs:
+            *CompIDs*: :class:`list` (:class:`int`) | ``None``
+                List of component IDs that came from the mapping file
+        :Versions:
+            * 2017-03-30 ``@ddalle``: First version
+        """
+        # Initialize list of Component IDs
+        CompIDs = []
+        # Loop through the patches
+        for patch in self.patches:
+            # Get the component for this patch
+            compID = self.GetCompID(patch)
+            # Check the type
+            t = type(compID).__name__
+            # Check if it's a string
+            if t in ['str', 'unicode']:
+                # Get the component ID from the *triq*
+                CompIDs.append(self.triq.GetCompID(compID))
+            else:
+                # If it was specified numerically, check the *compmap*
+                # If the mapping had to renumber the component, it will be
+                # in this dictionary; otherwise use the compID as is.
+                CompIDs.append(self.compmap.get(compID, compID))
+        # Output
+        self.CompIDs = CompIDs
+        return CompIDs
        
     # Convert the TRIQ file
     def Triq2Plt(self, triq):
@@ -2903,8 +2939,10 @@ class DBTriqFM(dict):
         :Versions:
             * 2017-03-30 ``@ddalle``: First version
         """
+        # Get component IDs
+        CompIDs = self.GetPatchCompIDs()
         # Perform conversion
-        plt = cape.plt.Plt(triq=triq)
+        plt = cape.plt.Plt(triq=triq, CompIDs=CompIDs)
   # >
   
   # ========
