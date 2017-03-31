@@ -1999,6 +1999,54 @@ class Fun3d(Cntl):
         os.chdir(fpwd)
         # Output
         return rc
+        
+    # Read a namelist from a case folder
+    def ReadCaseNamelist(self, i, rc=None, j=None):
+        """Read namelist from case *i*, phase *j* if possible
+        
+        :Call:
+            >>> nml = fun3d.ReadCaseNamelist(i, rc=None, j=None)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of FUN3D control class
+            *i*: :class:`int`
+                Run index
+            *rc*: ``None`` | :class:`pyOver.options.runControl.RunControl`
+                Run control interface read from ``case.json`` file
+            *j*: {``None``} | nonnegative :class:`int`
+                Phase number
+        :Outputs:
+            *nml*: ``None`` | :class:`pyOver.overNamelist.OverNamelist`
+                Namelist interface is possible
+        :Versions:
+            * 2016-12-12 ``@ddalle``: First version
+        """
+        # Read the *rc* if necessary
+        if rc is None:
+            rc = self.ReadCaseJSON(i)
+        # If still None, exit
+        if rc is None: return
+        # Get phase number
+        if j is None:
+            j = rc.get_PhaseSequence(-1)
+        # Safely go to root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get the case name.
+        frun = self.x.GetFullFolderNames(i)
+        # Check if it exists.
+        if not os.path.isdir(frun):
+            # Go back and quit.
+            os.chdir(fpwd)
+            return
+        # Go to the folder.
+        os.chdir(frun)
+        # Read the namelist
+        nml = case.GetNamelist(rc, j)
+        # Return to original location
+        os.chdir(fpwd)
+        # Output
+        return nml
     
     # Write run control options to JSON file
     def WriteCaseJSON(self, i):
