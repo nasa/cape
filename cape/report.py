@@ -2005,12 +2005,22 @@ class Report(object):
         nIter  = self.cntl.CheckCase(i)
         # Get caption.
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        fcptb = opts.get_SubfigOpt(sfig, "CaptionComponent")
         # Process default caption. 
         if fcpt is None:
+            # Get the type of component
+            tcmp = type(comp).__name__
             # Check for a list.
-            if type(comp).__name__ in ['list']:
+            if (fcptb is not None):
+                # Use the user-specified base to start the caption
+                # e.g. [RSRB (black), LSRB(g)]/CA"
+                fcpt = fcptb
+            elif (t == "list") and (len(comp)>1):
                 # Join them, e.g. "[RSRB,LSRB]/CA"
                 fcpt = "[" + ",".join(comp) + "]"
+            elif (t == "list"):
+                # Single list, e.g. "Component": ["RSRB_No_Base"]
+                fcpt = comp[0]
             else:
                 # Use the coefficient.
                 fcpt = comp
