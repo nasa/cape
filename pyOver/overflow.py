@@ -750,7 +750,7 @@ class Overflow(Cntl):
         the specified directories.  It can also be used to 
         
         :Call:
-            >>> oflow.ApplySettingsCase(i, nPhase=None)
+            >>> oflow.ApplyCase(i, nPhase=None)
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Overflow control interface
@@ -785,7 +785,15 @@ class Overflow(Cntl):
             # Append the new phase
             rc["PhaseSequence"].append(j)
             # Get iterations for this phase
-            nj = self.opts.get_namelist_var('GLOBAL', 'NSTEPS', j)
+            if j > nSeqO:
+                # Get nIter for phase *j*
+                nj = self.opts.get_namelist_var('GLOBAL', 'NSTEPS', j)
+                # Add *nIter* iterations to last phase iter
+                nj = self.opts.get_PhaseIters(j) + nj
+            else:
+                # Use the phase break marker from master JSON file
+                nj = self.opts.get_PhaseIters(j)
+            # Get iterations for this phase
             # Status update
             print("  Adding phase %s (to %s iterations)" % (j, nIter+nj))
             # Set the iteration count
@@ -803,8 +811,9 @@ class Overflow(Cntl):
         print("  Writing input namelists 1 to %s" % (nPhase))
         self.PrepareNamelist(i, nPhase)
         # Write PBS scripts
-        print("  Writing PBS scripts 1 to %s" % (nPhase))
-        self.WritePBS(i, nPhase)
+        nPBS = self.opts.get_nPBS()
+        print("  Writing PBS scripts 1 to %s" % (nPBS))
+        self.WritePBS(i)
         
     # Write configuration file
     def WriteConfig(self, i, fname='Config.xml'):

@@ -1046,7 +1046,7 @@ class Cntl(object):
         normally run.
         
         :Call:
-            >>> cntl.ExtendCase(cons=[], j=None, extend=1, **kw)
+            >>> cntl.ExtendCases(cons=[], j=None, extend=1, **kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of overall control interface
@@ -1054,6 +1054,8 @@ class Cntl(object):
                 Extend phase *j* by *extend* nominal runs
             *j*: {``None``} | nonnegative :class:`int`
                 Phase number
+            *imax*: {``None``} | :class:`int`
+                Do not increase iteration number beyond *imax*
             *cons*: :class:`list` (:class:`str`)
                 List of constraints
             *I*: :class:`list` (:class:`int`)
@@ -1095,7 +1097,7 @@ class Cntl(object):
         normally run.
         
         :Call:
-            >>> cntl.ExtendCase(cons=[], j=None, extend=1, **kw)
+            >>> cntl.Applycases(cons=[], j=None, extend=1, **kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of overall control interface

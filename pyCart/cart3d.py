@@ -1221,6 +1221,128 @@ class Cart3d(Cntl):
   # Case Options
   # ============
   # <
+        
+    # Extend a case
+    def ExtendCase(self, i, n=1, j=None, imax=None):
+        """Extend the number of iterations for which a case should run
+        
+        :Call:
+            >>> cart3d.ExtendCase(i, n=1, j=None, imax=None)
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of pyCart control class
+            *i*: :class:`int`
+                Run index
+            *n*: {``1``} | positive :class:`int`
+                Add *n* times *steps* to the total iteration count
+            *j*: {``None``} | nonnegative :class:`int`
+                Apply to phase *j*, by default use the last phase
+            *imax*: {``None``} | nonnegative :class:`int`
+                Use *imax* as the maximum iteration count
+        :Versions:
+            * 2017-03-31 ``@ddalle``: First version
+        """
+        # Read the ``case.json`` file
+        rc = self.ReadCaseJSON(i)
+        # Exit if none
+        if rc is None: return
+        # Process phase number (can extend middle phases)
+        if j is None:
+            # Use the last phase number currently in use from "case.json"
+            j = rc.get_PhaseSequence(-1)
+        # Get the number of steps
+        NSTEPS = rc.get_nIter(j)
+        # Get the current iteration count
+        n = case.GetCurrentIter()
+        # Get the current cutoff for phase *j*
+        N = max(n, rc.get_PhaseIters(j))
+        # Determine output number of steps
+        if imax is None:
+            # Unlimited by input; add one or more nominal runs
+            N1 = N + n*NSTEPS
+        else:
+            # Add nominal runs but not beyond *imax*
+            N1 = min(int(imax), int(N + n*NSTEPS))
+        # Reset the number of steps
+        rc.set_PhaseIters(N1, j)
+        # Status update
+        print("  Phase %i: %s --> %s" % (j, N, N1))
+        # Write new options
+        self.WriteCaseJSON(i, rc=rc)
+            
+    # Function to apply namelist settings to a case
+    def ApplyCase(self, i, nPhase=None, **kw):
+        """Apply settings from *cart3d.opts* to an individual case
+        
+        This rewrites each run namelist file and the :file:`case.json` file in
+        the specified directories.  It can also be used to 
+        
+        :Call:
+            >>> cart3d.ApplyCase(i, nPhase=None)
+        :Inputs:
+            *cart3d*: :class:`pyFun.fun3d.Fun3d`
+                Cart3D control interface
+            *i*: :class:`int`
+                Case number
+            *nPhase*: {``None``} | positive :class:`int`
+                Last phase number (default determined by *PhaseSequence*)
+        :Versions:
+            * 2016-03-31 ``@ddalle``: First version
+        """
+        # Read ``case.json``.
+        rc = self.ReadCaseJSON(i)
+        # Get present options
+        rco = self.opts["RunControl"]
+        # Exit if none
+        if rc is None: return
+        # Get the number of phases in ``case.json``
+        nSeqC = rc.get_nSeq()
+        # Get number of phases from present options
+        nSeqO = self.opts.get_nSeq()
+        # Check for input
+        if nPhase is None:
+            # Default: inherit from pyOver.json
+            nPhase = nSeqO
+        else:
+            # Use maximum
+            nPhase = max(nSeqC, int(nPhase))
+        # Present number of iterations
+        nIter = rc.get_PhaseIters(nSeqC)
+        # Loop through the additional phases
+        for j in range(nSeqC, nPhase):
+            # Append the new phase
+            rc["PhaseSequence"].append(j)
+            # Get iterations for this phase
+            if j > nSeqO:
+                # Add *nIter* iterations to last phase iter
+                nj = self.opts.get_PhaseIters(j) + self.opts.get_nIter(j)
+            else:
+                # Use the phase break marker from master JSON file
+                nj = self.opts.get_PhaseIters(j)
+            # Status update
+            print("  Adding phase %s (to %s iterations)" % (j, nj))
+            # Set the iteration count
+            nIter += nj
+            rc.set_PhaseIters(nIter, j)
+            # Copy other sections
+            for k in rco:
+                # Don't copy phase and iterations
+                if k in ["PhaseIters", "PhaseSequence"]: continue
+                # Otherwise, overwrite
+                rc[k] = rco[k]
+            # Write it.
+            self.WriteCaseJSON(i, rc=rc)
+        # Rewriting phases
+        print("  Writing 'input.cntl' 1 to %s" % (nPhase))
+        self.PrepareInputCntl(i)
+        # Rewrite 'aero.csh'` (doubt this will really work)
+        print("  Writing 'aero.csh'")
+        self.PrepareAeroCsh(i)
+        # Write PBS scripts
+        nPBS = self.opts.get_nPBS()
+        print("  Writing PBS scripts 1 to %s" % (nPBS))
+        self.WritePBS(i)
+        
     # Function to apply settings from a specific JSON file
     def ApplyFlowCartSettings(self, **kw):
         """Apply settings from *cart3d.opts* to a set of cases

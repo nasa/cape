@@ -1887,6 +1887,76 @@ class Fun3d(Cntl):
         print("  Phase %i: %s --> %s" % (j, N, N1))
         # Write new options
         self.WriteCaseJSON(i, rc=rc)
+            
+    # Function to apply namelist settings to a case
+    def ApplyCase(self, i, nPhase=None, **kw):
+        """Apply settings from *fun3d.opts* to an individual case
+        
+        This rewrites each run namelist file and the :file:`case.json` file in
+        the specified directories.  It can also be used to 
+        
+        :Call:
+            >>> fun3d.ApplyCase(i, nPhase=None)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                FUN3D control interface
+            *i*: :class:`int`
+                Case number
+            *nPhase*: {``None``} | positive :class:`int`
+                Last phase number (default determined by *PhaseSequence*)
+        :Versions:
+            * 2016-03-31 ``@ddalle``: First version
+        """
+        # Read ``case.json``.
+        rc = self.ReadCaseJSON(i)
+        # Get present options
+        rco = self.opts["RunControl"]
+        # Exit if none
+        if rc is None: return
+        # Get the number of phases in ``case.json``
+        nSeqC = rc.get_nSeq()
+        # Get number of phases from present options
+        nSeqO = self.opts.get_nSeq()
+        # Check for input
+        if nPhase is None:
+            # Default: inherit from pyOver.json
+            nPhase = nSeqO
+        else:
+            # Use maximum
+            nPhase = max(nSeqC, int(nPhase))
+        # Present number of iterations
+        nIter = rc.get_PhaseIters(nSeqC)
+        # Loop through the additional phases
+        for j in range(nSeqC, nPhase):
+            # Append the new phase
+            rc["PhaseSequence"].append(j)
+            # Get iterations for this phase
+            if j > nSeqO:
+                # Add *nIter* iterations to last phase iter
+                nj = self.opts.get_PhaseIters(j) + self.opts.get_nIter(j)
+            else:
+                # Use the phase break marker from master JSON file
+                nj = self.opts.get_PhaseIters(j)
+            # Status update
+            print("  Adding phase %s (to %s iterations)" % (j, nj))
+            # Set the iteration count
+            nIter += nj
+            rc.set_PhaseIters(nIter, j)
+            # Copy other sections
+            for k in rco:
+                # Don't copy phase and iterations
+                if k in ["PhaseIters", "PhaseSequence"]: continue
+                # Otherwise, overwrite
+                rc[k] = rco[k]
+            # Write it.
+            self.WriteCaseJSON(i, rc=rc)
+        # Rewriting phases
+        print("  Writing input namelists 1 to %s" % (nPhase))
+        self.PrepareNamelist(i, nPhase)
+        # Write PBS scripts
+        nPBS = self.opts.get_nPBS()
+        print("  Writing PBS scripts 1 to %s" % (nPBS))
+        self.WritePBS(i)
     
     # Write run control options to JSON file
     def WriteCaseJSON(self, i):

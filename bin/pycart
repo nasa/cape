@@ -49,6 +49,12 @@ if __name__ == "__main__":
     elif kw.get('batch'):
         # Process a batch job
         cart3d.SubmitBatchPBS(pyCart.os.sys.argv)
+    elif kw.get('extend'):
+        # Extend the number of iterations in a phase
+        fun3d.ExtendCases(**kw)
+    elif kw.get('apply'):
+        # Rewrite namelists and possibly add phases
+        fun3d.ApplyCases(**kw)
     elif kw.get('aero'):
         # Check for component.
         if kw['aero'] != True:
@@ -81,9 +87,6 @@ if __name__ == "__main__":
     elif kw.get('clean'):
         # Clean up cases
         cart3d.CleanCases(**kw)
-    elif kw.get('apply'):
-        # Apply JSON settings
-        cart3d.ApplyFlowCartSettings(**kw)
     elif kw.get('explode'):
         # Break out each named component.
         cart3d.ExplodeTri()
