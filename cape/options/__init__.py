@@ -2216,7 +2216,7 @@ class Options(odict):
             'ReportTitle', 'ReportSubtitle', 'ReportAuthor',
             'ReportAffiliation', 'ReportFrontispiece',
             'ReportRestriction', 'ReportLogo',  'ReportArchive',
-            'ReprtShowCaseNumber',
+            'ReportShowCaseNumber',
             'FigSubfigList', 'FigAlignment', 'FigHeader',
             'SubfigType', 'SubfigBaseType', 'SubfigOpt', 'SweepOpt',
             'SubfigPlotOpt'
