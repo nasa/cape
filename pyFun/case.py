@@ -685,6 +685,10 @@ def GetHistoryIter():
             if n is None:
                 # First find
                 n = ni
+                # Check if this is a previous history
+                if len(fname.split('.')) == 3:
+                    # Also save as history
+                    nh = ni
             elif len(fname.split('.')) == 3:
                 # Add this history to previous history [restarted iter count]
                 nh = n
