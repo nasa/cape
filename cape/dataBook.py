@@ -2575,8 +2575,8 @@ class DBTriqFM(DataBook):
         # Ensure folder exists
         if not os.path.isdir(fdir): self.opts.mkdir(fdir)
         if not os.path.isdir(ftrq): self.opts.mkdir(ftrq)
-        # Loop through points
-        for patch in self.patches:
+        # Loop through patches
+        for patch in ([None] + self.patches):
             # Sort it.
             self[patch].Sort()
             # Write it
@@ -2630,7 +2630,7 @@ class DBTriqFM(DataBook):
        # (
         # Component name
         comp = self.comp
-        DBc = self[comp]
+        DBc = self[None]
         # Check update status
         q = True
         # Exit if no update necessary
@@ -2709,7 +2709,7 @@ class DBTriqFM(DataBook):
        # -----------------
        # (
         # Loop through patches
-        for p in self.patches:
+        for p in ([None] + self.patches):
             # Check if new case for this patch
             if np.isnan(j):
                 # Increment the number of cases
@@ -3327,7 +3327,15 @@ class DBTriqFM(DataBook):
             # Loop through keys
             for k in FM[patch]:
                 # Accumulate the value
-                FM0[k] += FM[patch][k]
+                if k.endswith('_min'):
+                    # Take overall min
+                    FM0[k] = min(FM0[k], FM[patch][k])
+                elif k.endswith('_max'):
+                    # Take overall max
+                    FM0[k] = max(FM0[k], FM[patch][k])
+                else:
+                    # Add up values
+                    FM0[k] += FM[patch][k]
         # Save the value; ``None`` cannot conflict because it's not a string
         FM[None] = FM0
         # Output

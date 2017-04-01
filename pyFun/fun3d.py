@@ -1952,7 +1952,7 @@ class Fun3d(Cntl):
             self.WriteCaseJSON(i, rc=rc)
         # Rewriting phases
         print("  Writing input namelists 1 to %s" % (nPhase))
-        self.PrepareNamelist(i, nPhase)
+        self.PrepareNamelist(i)
         # Write PBS scripts
         nPBS = self.opts.get_nPBS()
         print("  Writing PBS scripts 1 to %s" % (nPBS))
