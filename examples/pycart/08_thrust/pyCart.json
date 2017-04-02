@@ -86,7 +86,7 @@
         ],
         "RefPoint": {
             "missile_no_base": "MRP",
-            "missile_no_thrust": "MRP",
+            "missrotationile_no_thrust": "MRP",
             "missile_thrust": "MRP",
             "missile_total": "MRP",
             "fins": "MRP"
@@ -291,16 +291,9 @@
         ],
         "File": "matrix.csv",
         "GroupMesh": false,
-        "GroupPrefix": "poweroff",
         "Definitions": {
             "mach": {
                 "Format": "%0.2f"
-            },
-            "q": {
-                "Label": false
-            },
-            "T": {
-                "Label": false
             },
             "tilt": {
                 "Type": "rotation",
