@@ -3469,6 +3469,16 @@ class DBTriqFM(DataBook):
             # Remember, these are applied backwards in order to undo the
             # original Euler transformation that got the component here.
             R = np.dot(R1, np.dot(R2, R3))
+            # Area transformations
+            if "Ay" in FM:
+                # Assemble area vector
+                Ac = np.array([FM["Ax"], FM["Ay"], FM["Az"]])
+                # Transform
+                Ab = np.dot(R, Ac)
+                # Reset
+                FM["Ax"] = Ab[0]
+                FM["Ay"] = Ab[1]
+                FM["Az"] = Ab[2]
             # Force transformations
             # Loop through suffixes
             for s in ["", "p", "vac", "v", "m"]:
