@@ -144,12 +144,13 @@ def VOLPRIS(X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3, X4,Y4,Z4, X5,Y5,Z5, X6,Y6,Z6):
     Z7 = ONESIX*(Z1+Z2+Z3+Z4+Z5+Z6)
     # Compute volumes of the three pyramids
     V1 = VOLPYM(X7,Y7,Z7, X1,Y1,Z1, X4,Y4,Z4, X5,Y5,Z5, X2,Y2,Z2)
-    V2 = VOLPYM(X7,Y7,Z7, X1,Y1,Z1, X3,Y3,Z3, X6,Y6,Y6, X4,Y4,Z4)
+    V2 = VOLPYM(X7,Y7,Z7, X1,Y1,Z1, X3,Y3,Z3, X6,Y6,Z6, X4,Y4,Z4)
     V3 = VOLPYM(X7,Y7,Z7, X2,Y2,Z2, X5,Y5,Z5, X6,Y6,Z6, X3,Y3,Z3)
     V4 = VOLTET(X7,Y7,Z7, X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3)
     V5 = VOLTET(X7,Y7,Z7, X6,Y6,Z6, X5,Y5,Z5, X4,Y4,Z4)
     # Total volume
     V = V1 + V2 + V3 + V4 + V5
+    V = 1.5*V1 + 1.5*V3 + V4 + V5
     # Output
     return V1, V2, V3, V4, V5, V
     
@@ -192,7 +193,7 @@ def VolTriPrism(X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3, X4,Y4,Z4, X5,Y5,Z5, X6,Y6,Z6):
     Z7 = ONESIX*(Z1+Z2+Z3+Z4+Z5+Z6)
     # Compute volumes of the three pyramids
     V1 = VOLPYM(X7,Y7,Z7, X1,Y1,Z1, X4,Y4,Z4, X5,Y5,Z5, X2,Y2,Z2)
-    V2 = VOLPYM(X7,Y7,Z7, X1,Y1,Z1, X3,Y3,Z4, X6,Y6,Y6, X4,Y4,Z4)
+    V2 = VOLPYM(X7,Y7,Z7, X1,Y1,Z1, X3,Y3,Z3, X6,Y6,Z6, X4,Y4,Z4)
     V3 = VOLPYM(X7,Y7,Z7, X2,Y2,Z2, X5,Y5,Z5, X6,Y6,Z6, X3,Y3,Z3)
     V4 = VOLTET(X7,Y7,Z7, X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3)
     V5 = VOLTET(X7,Y7,Z7, X6,Y6,Z6, X5,Y5,Z5, X4,Y4,Z4)
