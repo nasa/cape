@@ -5456,7 +5456,7 @@ class Triq(TriBase):
         elif self.nq >= 13:
             # Overset grid information
             # Inverted Reynolds number [in]
-            REI = mach / Rey
+            REI = mach / REY
             # Extract coordinates
             X1 = self.Nodes[v0,0]
             Y1 = self.Nodes[v0,1]
@@ -5504,7 +5504,7 @@ class Triq(TriBase):
             TYZ = FTMUJ * (WL*VAY + VL*VAZ)
             TXZ = FTMUJ * (UL*VAZ + WL*VAX)
             # Initialize viscous forces
-            Fv = np.zeros((self.nTri, 3))
+            Fv = np.zeros((nTri, 3))
             # Save results from non-zero volumes
             Fv[IV,0] = (TXX*VAX + TXY*VAY + TXZ*VAZ)
             Fv[IV,1] = (TXY*VAX + TYY*VAY + TYZ*VAZ)

@@ -53,6 +53,7 @@ from . import util
 
 # Other local modules
 import cape.tri
+import cape.plt
 
 # Placeholder variables for plotting functions.
 plt = 0
@@ -3087,6 +3088,8 @@ class DBTriqFM(DataBook):
             # No component map
             self.compmap = {}
         else:
+            # Status update
+            print("    Mapping component IDs using '%s'" % self.tri.fname)
             # Map the component IDs
             self.compmap = self.triq.MapTriCompID(self.tri)
             

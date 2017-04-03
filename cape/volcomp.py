@@ -52,7 +52,7 @@ def VOLPYM(XP,YP,ZP, XA,YA,ZA, XB,YB,ZB, XC,YC,ZC, XD,YD,ZD):
     VOL = (1.0/6.0) * (
         (XP - 0.25*(XA+XB+XC+XD))*(YAC*ZBD - ZAC*YBD) +
         (YP - 0.25*(YA+YB+YC+YD))*(ZAC*XBD - XAC*ZBD) +
-        (ZP - 0.25*(ZA+ZB+ZC+ZD))*(XAC*YMD - YAC*XBD))
+        (ZP - 0.25*(ZA+ZB+ZC+ZD))*(XAC*YBD - YAC*XBD))
     # Output
     return VOL
     
