@@ -152,7 +152,7 @@ class Fun3d(Cntl):
         # Read the data book.
         self.DataBook = dataBook.DataBook(self.x, self.opts)
         # Save project name
-        self.DataBook.proj = self.GetProjectRootName()
+        self.DataBook.proj = self.GetProjectRootName(None)
         # Return to original folder.
         os.chdir(fpwd)
         

@@ -150,7 +150,6 @@ def VOLPRIS(X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3, X4,Y4,Z4, X5,Y5,Z5, X6,Y6,Z6):
     V5 = VOLTET(X7,Y7,Z7, X6,Y6,Z6, X5,Y5,Z5, X4,Y4,Z4)
     # Total volume
     V = V1 + V2 + V3 + V4 + V5
-    V = 1.5*V1 + 1.5*V3 + V4 + V5
     # Output
     return V1, V2, V3, V4, V5, V
     
