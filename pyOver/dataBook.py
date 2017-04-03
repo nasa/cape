@@ -18,11 +18,10 @@ import re
 # Date processing
 from datetime import datetime
 
-# Use this to only update entries with newer iterations.
-from .case import GetCurrentIter, GetPrefix, ReadCaseJSON, GetPhaseNumber
 # Utilities or advanced statistics
 from . import util
 from . import bin
+from . import case
 # Data modules
 from . import pointSensor
 from . import lineLoad
@@ -511,7 +510,7 @@ class DataBook(cape.dataBook.DataBook):
         # Go to the folder.
         os.chdir(frun)
         # Get the current iteration number.
-        nIter = GetCurrentIter()
+        nIter = case.GetCurrentIter()
         # Get the number of iterations used for stats.
         nStats = self.opts.get_nStats()
         # Get the iteration at which statistics can begin.
@@ -541,8 +540,8 @@ class DataBook(cape.dataBook.DataBook):
         # Check for an update
         if (not q): return
         # Get the phase number
-        rc = ReadCaseJSON()
-        k = GetPhaseNumber(rc)
+        rc = case.ReadCaseJSON()
+        k = case.GetPhaseNumber(rc)
         # Appropriate prefix
         proj = self.opts.get_Prefix(k)
         # Maximum number of iterations allowed.
