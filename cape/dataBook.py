@@ -2551,7 +2551,7 @@ class DBTriqFM(DataBook):
             * 2016-03-08 ``@ddalle``: First version
         """
         # Loop through points
-        for patch in self.patches:
+        for patch in ([None] + self.patches):
             self[patch].Sort()
     
     # Output method
