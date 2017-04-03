@@ -262,3 +262,103 @@ set to white.  However, for transonic cases, there is no Mach 1 transition line
 because it tends to make the contour plots confusing.  These suggested color
 maps can certainly be further customized, but hopefully they demonstrate the
 various possibilities using the pyCart color maps.
+
+
+.. _report-tecplot-fieldmap:
+
+
+Changing the FIELDMAP Parameter
+-------------------------------
+Tecplot subfigures have an additional parameter called *FieldMap* that are very
+useful for situations where the number of zones is changing.  For example,
+FUN3D writes each surface component as a separate zone, so changing the
+geometry results in a different number of zones.  OVERFLOW results with mesh
+adaption furthermore have a zone for each grid, so that each case has a
+different number of zones even for the same geometry.
+
+Rather than trying to create new layouts for each necessary case, the
+*FieldMap* can be used to alter the contiguous families of zones.  Layout files
+have groups of zones that are numbered 1 to *N* and labels them
+
+    .. code-block:: none
+    
+        $!ACTIVEFIELDMAPS [1-500]
+        ...
+        $!FIELDMAP  [1-499]
+          MESH
+          {
+            SHOW = NO
+            COLOR = BLACK
+            LINETHICKNESS = 0.02
+          }
+          ...
+        $!FIELDMAP  [500]
+          MESH
+          {
+            SHOW = NO
+            COLOR = BLACK
+            LINETHICKNESS = 0.02
+          }
+          ...
+        ...
+
+Then if we have the following *FieldMap* settings for a subfigure in the JSON
+file:
+
+    .. code-block:: javascript
+    
+        "FieldMap": [487, 488]
+        
+the layout will change the relevant lines of the layout to the following
+
+    .. code-block:: none
+    
+        $!ACTIVEFIELDMAPS [1-488]
+        $!FIELDMAP  [1-487]
+        $!FIELDMAP  [488]
+        
+For OVERFLOW layouts, it is generally advisable to set the last number of
+*FieldMap* to something huge.  Since the adapted meshes are at the end of the
+mesh, setting the field map maximum to a large number keeps them all with the
+same format.
+
+
+.. _report-tecplot-keys:
+
+Altering Other Layout Parameters
+--------------------------------
+Using the parameter *Keys*, it is also possible to alter other parameters of
+the layout file.  Two common examples of this are turning the mesh on or off
+and changing the camera position.
+
+    .. code-block:: javascript
+    
+        "protb01": {
+            "Type": "Tecplot",
+            "Layout": "surf-cp.lay",
+            "Keys": {
+                "THREEDVIEW": {
+                    "PSIANGLE": 152,
+                    "THETAANGLE": 0,
+                    "ALPHAANGLE": 0,
+                    "VIEWERPOSITION": {
+                        "X": 1950.0,
+                        "Y": -2408.0,
+                        "Z": -4301.0
+                    }
+                }
+            }
+        }
+        
+In the example above we define a subfigure called ``"protub01"`` that uses the
+layout file :file:`surf-cp.lay`.  However, we want to move the camera to view a
+something around *x=1950*, so we use the *Keys* parameter above.  This will
+attempt to change ``PSIANGLE`` in the the ``THREEDVIEW`` section of the layout
+file to ``152``. 
+
+In general the *Keys* section allows the user to change any number of options
+within sections of the Tecplot layout using this dictionary setting.  However,
+in its present format, there is no handling for repeat sections.  For example,
+if the layout file had two ``THREEDVIEW`` sections, pyCart will always just
+alter the first one.
+

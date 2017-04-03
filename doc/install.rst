@@ -4,11 +4,12 @@ Requirements and Installation
 
 pyCart does not have strict system requirements. The idea is that any hardware
 that can run Cart3D (or FUN3D or OVERFLOW) can also run this software. It is
-only officially supported on Linux, but this may change in response to demand.
+only supported on Linux, though this may be extended to other operating
+environments with minor changes.
 
 Software Dependencies
 ---------------------
-The following software is required to execute any of the CAPE functions.
+The following software is required to execute any of the pyCart functions.
 
     * Python version 2.6-2.7
     * `NumPy <http://www.numpy.org>`_ version 1.4.1 or newer
@@ -53,8 +54,8 @@ On NASA's *Pleiades*, the following system command is necessary and sufficient.
     
         $ module load python
         
-If this fixes the problem, the module needs to be loaded each time CAPE is used.
-You can put it into your startup script (e.g. :file:`$HOME/.bashrc` or
+If this fixes the problem, the module needs to be loaded each time pyCart is
+used. You can put it into your startup script (e.g. :file:`$HOME/.bashrc` or
 :file:`$HOME/.cshrc`) or just remember to load it.
 
 If NumPy is still not on your system, it can be found 
@@ -65,7 +66,7 @@ popular distributions such as Ubuntu is ``python-numpy``.
 Optional Software Dependencies
 ------------------------------
 There are several more pieces of software that are required for some of the
-advanced features of CAPE.  The following are required for generating various
+advanced features of pyCart.  The following are required for generating various
 plots in PDFs that can be used to track trends or focus in on the results of
 individual cases.
 

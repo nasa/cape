@@ -65,8 +65,16 @@ taken, and that order of precedence is demonstrated in the table below.
     |                          | *COMP*; if *COMP* is not given, update   |
     |                          | all line load data books                 |
     +--------------------------+------------------------------------------+
+    | ``pycart --triqfm $COMP``| Update patch load database for component |
+    |                          | *COMP*; if *COMP* is not given, update   |
+    |                          | all TriqFM data books                    |
+    +--------------------------+------------------------------------------+
     | ``pycart --archive``     | Create archive of solution in an outside |
     |                          | folder and clean up the working folder   |
+    +--------------------------+------------------------------------------+
+    | ``pycart --clean``       | Delete files according to the settings   |
+    |                          | from *ProgressDeleteFiles* even if case  |
+    |                          | is not completed                         |
     +--------------------------+------------------------------------------+
     | ``pycart --report $REP`` | Create/update a report called *REP*; if  |
     |                          | *REP* is omitted, create the first       |
@@ -81,6 +89,13 @@ taken, and that order of precedence is demonstrated in the table below.
     | ``pycart --exec $CMD``   | Run command *CMD* in each case folder    |
     +--------------------------+------------------------------------------+
     | ``pycart -n $N``         | Submit or run up to *N* jobs             |
+    +--------------------------+------------------------------------------+
+    | ``pycart --extend``      | Extend the last phase by the number of   |
+    |                          | steps that phase would run for           |
+    +--------------------------+------------------------------------------+
+    | ``pycart --apply``       | Rewrite input files and PBS files using  |
+    |                          | appropriate JSON settings; can also be   |
+    |                          | used to add one or more phases           |
     +--------------------------+------------------------------------------+
     | ``pycart``               | Running with no command is equivalent to |
     |                          | ``pycart -n 10``                         |
@@ -97,18 +112,29 @@ To see of the options from the command line, just run ``pycart
     
         $ pycart -h
         
-        Python interface for Cart3D: :file:`pycart`
-        ===========================================
+        Python interface for Cart3D: pycart
+
+        This function provides a master interface for pyCart. The functionality from
+        this script is also accessible from the 'pyCart' module using relatively
+        simple commands.
         
-        This function provides a master interface for pyCart.  All of the functionality
-        from this script is also accessible from the :mod:`pyCart` module using
-        relatively simple commands.
+        USAGE
         
-        :Usage:
-            .. code-block:: console
+            $ pycart [options]
             
-                $ pycart [options]
-        ...
+        EXAMPLES
+        
+            The basic call submits all jobs prescribed in the file 'pyCart.json'
+                    
+                $ pycart
+                
+            This command uses the inputs from 'poweron.json' and only displays
+            statuses.  No jobs are submitted.
+                
+                $ pycart -f poweron.json -c
+                
+         ...
+
         
 The help messages are printed as raw text on the command line in such a format
 that is interpreted as 
@@ -238,6 +264,46 @@ command can be issued to perform several tasks.
     
 All of these steps can be heavily customized using the options in the
 ``"Archive"`` subsection of the ``"RunControl"`` section of the JSON file.
+There are two main modes of archive generation.  The first mode is to archive
+the entire case as an entire folder, which leads to a file such as
+``m2.50a2.0.tar`` in the archive.  The second mode is to copy several files
+within the folder.  Using the second option, files can either be saved
+individually or in groups as tar balls.  Which mode is selected is based on the
+*ArchiveType* option; the second mode is selected unless *ArchiveType* is
+``"full"``.
+
+In both modes, there are three different opportunities to delete files:
+
+    #. Delete files as the cases is running, using *ProgressDeleteFiles*
+    #. Delete files after completion but before archiving, *PreDeleteFiles*
+    #. Delete files after creating archive, *PostDeleteFiles*
+    
+These options can be set to keep around the *n* most recent files meeting a
+particular file glob; for example
+
+    .. code-block:: javascript
+    
+        "ProgressDeleteFiles": [
+            {"q.[0-9]*": 2},
+            {"x.[0-9]*": 2}
+        ]
+        
+This tells pyOver to keep the 2 most recent ``q.$N`` and the two most recent
+``x.$N`` files; this can be very useful in keeping down hard drive usage for
+large runs.
+
+
+.. _cli-clean:
+
+Trimming Excess Files While Running
+***********************************
+The ``--clean`` command can be applied even if the case is not marked ``PASS``
+or even it is currently running.  It applies the *ProgressDeleteFiles* and
+*ProgressDeleteFolders* options from the *RunControl>Archive* section of the
+JSON file.
+
+Note that inappropriate settings for these two options may cause pyCart to
+delete files needed for running!
 
 
 .. _cli-report:
@@ -360,6 +426,60 @@ then executes ``./fixProblem.py`` in each folder.  The commands ``pycart -e``
 and ``pycart --exec`` are equivalent.
 
 
+.. _cli-extend:
+
+Extending a Case to Repeat the Last Phase
+*****************************************
+Often a case does not look like it has fully converged after inspecting the
+report.  The command
+
+    .. code-block:: console
+    
+        $ pycart --extend [OPTIONS]
+        
+goes into each folder, determines the last phase number and how many iterations
+it normally runs for, and extends the case by that many iterations.  The
+primary effect of this command is to edit the last entry of *PhaseIters* in the
+:file:`case.json` file.
+
+pyCart is fairly diligent at determining the appropriate number of iterations
+for which to extend the case.  For example, for OVERFLOW runs it will determine
+the last namelist and determine the extension amount from the *GLOBAL>NSTEPS*
+option in that namelist.
+
+This command comes with two additional options: ``--restart`` and ``--imax
+$N``.  The ``--imax $N`` option prevents pyCart from extending the maximum
+iteration count beyond *N*.
+
+Furthermore, the default behavior of the ``--extend`` command is modify the
+iteration count and then leave the case in an ``INCOMP`` status, which can feel
+a little disappointing.  (The reason is that the user may want to change the
+status of many cases, and this prevents restarting a surprising load of cases.)
+Adding either ``--qsub`` or ``--restart`` tells pyCart to submit or restart the
+case after extending it.
+
+
+.. _cli-apply:
+
+Apply New Settings and/or Add Phases
+************************************
+The command ``pycart --apply`` will try to apply all the settings from the
+current JSON file to each case that meets the subsetting criteria associated
+with the command.  There are usually three steps to this process:
+
+    * Rewrite all input files, such as :file:`input.cntl` for Cart3D or
+      namelist files for OVERFLOW and FUN3D. 
+    * Rewrite the PBS scripts
+    * Rewrite ``case.json`` with new *RunControl* settings
+    
+Each of these steps may be affected by the presence of additional phases in the
+JSON file.  For example, if the case in its present setup has three phases, but
+:file:`pyOver.json` has five phases, the ``pyover --extend`` command will write
+two additional input namelists called :file:`run.03.inp` and
+:file:`run.04.inp`.
+
+The ``--qsub`` option also works with this command.
+
 .. _cli-n:
 
 Submitting or Running Jobs
@@ -424,6 +544,11 @@ them.
     +---------------+---------------------------------+-------------------+
     | ``-u $USER``  | Check PBS queue for jobs        | ``-c``, ``-e``,   |
     |               | submitted by user *USER*        | ``-n``            |
+    +---------------+---------------------------------+-------------------+
+    | ``--imax $N`` | Do not exceed iteration *N*     | ``--extend``      |
+    +---------------+---------------------------------+-------------------+
+    | ``--restart`` | Restart/resubmit case after     | ``--extend``,     |
+    |               | modifying settings              | ``--apply``       |
     +---------------+---------------------------------+-------------------+
     | ``--batch``   | Rerun command as a PBS job      | All except ``-h`` |
     +---------------+---------------------------------+-------------------+

@@ -22,7 +22,8 @@ were left out.  The example below contains a more complete set of options.
                 "Frontispiece": "NASA_logo.pdf",
                 "Figures": ["CaseSummary", "IterFM"],
                 "ZeroFigures": ["ZeroSummary", "SurfGrid"],
-                "ErrorFigures": ["ZeroSummary", "SurfGrid"]
+                "ErrorFigures": ["ZeroSummary", "SurfGrid"],
+                "ShowCaseNumber": "true"
             },
             // Full definition of "mach" report
             "mach": {
@@ -38,12 +39,12 @@ were left out.  The example below contains a more complete set of options.
         }
         
 As these examples show, there are several options for the title page, which do
-not need much description.  However, notice the somewhat unwieldy text ``"\\&"``
-in the titles.  Text from the ``"Report"`` section as a whole is first
+not need much description. However, notice the somewhat unwieldy text ``"\\&"``
+in the titles. Text from the ``"Report"`` section as a whole is first
 interpreted as a Python string and then inserted into a LaTeX document; the
 first backslash is to get Python to interpret ``"\\"`` as a backslash, and
 ``"\&"`` is interpreted by PDFLaTeX as an ampersand character (since ``&`` is a
-functional character in LaTeX code.  This also means that complex LaTeX such as 
+functional character in LaTeX code. This also means that complex LaTeX such as
 equations (between ``"$"`` characters) and formatted text (e.g.
 ``"\\texttt{RSRB\\_FwdBSM}"``) can be used.
 
@@ -58,6 +59,11 @@ page in bold text.  Finally, the ``"ZeroFigures"`` and ``"ErrorFigures"`` allow
 the user to use a different set of figures (and thus subfigures) when either
 there are zero iterations or an error status.  This can be informative when
 plotting the iterative history of zero iterations is otherwise not too useful.
+
+Finally, the ``"ShowCaseNumber"`` option instructs pyCart to print the case
+number (which is zero-based) in the header of each page (in addition to the
+name of the case).  While this may be convenient, the default is to omit it,
+primarily because changes to the run matrix will change the case number.
 
 Sweep Definitions
 -----------------

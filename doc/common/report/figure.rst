@@ -32,7 +32,7 @@ the subfigures when the subfigure widths do not add up to the full text width.
 The ``"Header"`` specifies text that is printed as bold italic text immediately
 above the set of subfigures.
 
-Further descriptions of the available can be found in the :ref:`JSON "Report"
+Further descriptions of the available can be found in the :ref:`JSON "Figures"
 section <cape-json-ReportFigure>`.
 
 

@@ -14,10 +14,14 @@
 
 import sys
 import os
+import datetime
 
 # Add the path to the pyCart modules (duh)
-sys.path.append('..')
-sys.path.append('../bin')
+sys.path.append(os.path.abspath('..'))
+sys.path.append(os.path.abspath('../bin'))
+
+# Save the current time
+now = datetime.datetime.now()
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -38,6 +42,68 @@ extensions = [
     'sphinx.ext.pngmath',
 ]
 
+# Main title
+title = "Manual for pyCart 1.0"
+
+# Parameters for the TM
+NC = {
+    "title": title,
+    "year": now.year,
+    "number": "XXXXXX",
+    "month": now.strftime("%m"),
+    "monthlong": now.strftime("%B"),
+    "type": "TM",
+    "typelong": "Technical Memorandum",
+    "datescovered": "",
+    "grantnumber": "",
+    "contractnumber": "",
+    "programelementnumber": "",
+    "projectnumber": "",
+    "tasknumber": "",
+    "lnumber": "",
+    "workunitnumber": "",
+    "nasacenter": "NASA Ames Research Center\\par Moffett Field, CA 94035",
+    "category": 1,
+    "pages": 1,
+    "supplenotes": "",
+    "distribution": "Unclassified-Unlimited"
+}
+# Author information
+NC["author"] = (
+    "Dalle, Derek J.")
+NC["authoraffiliation"] = (
+    "Derek J.~Dalle\\\\[-2pt]\n" +
+    "Science \\& Technology Corp., Moffett Field, California\\\\[6pt]\n")
+# Extended title/abstract
+NC["subtitle"] = (
+    "A CFD Preprocessing, Run Control, and Postprocessing Assistant for " +
+    "Cart3D, FUN3D, and OVERFLOW")
+NC["abstract"] = (
+    "This manual describes the installation and execution of pyCart " +
+    "version 1.0.  The software is a suite of wrappers for computational " +
+    "fluid dynamics tools including Cart3D, FUN3D, and OVERFLOW.  At its " +
+    "core, pyCart is an attempt to provide a common user interface to the " +
+    "three flow solvers.  It also includes many tools for post-processing " +
+    "computational fluid dynamics results including data collection, " +
+    "analysis, plotting, and database management.")
+NC["subjectterms"] = (
+    "Computational fluid dynamics; " +
+    "Cart3D; OVERFLOW; FUN3D")
+
+# Parameters for internal memo
+TNA = {
+    "year": now.year,
+    "number": "00",
+    "month": now.strftime("%m"),
+    "day": now.strftime("%d"),
+    "version": "Version 1",
+    "center": "Ames Research Center",
+    "branch": "Computational Aerosciences Branch (TNA)",
+    "city": "Moffett Field, CA  94035",
+    "author": "Ames SLS CFD Team",
+    "shortrestriction": ""
+}
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -49,6 +115,82 @@ source_suffix = '.rst'
 
 # The master toctree document.
 master_doc = 'index'
+
+# ---- DEFAULTS ----------------------------------------------
+# Default codes
+TNAdef = {
+    "year": now.year,
+    "number": "00",
+    "month": now.strftime("%m"),
+    "day": now.strftime("%d"),
+    "monthlong": now.strftime("%B"),
+    "version": "Version 1",
+    "center": "Ames Research Center",
+    "branch": "Computational Aerosciences Branch (TNA)",
+    "author": "Derek J.~Dalle",
+    "city": "Moffett Field, CA  94035",
+    "shortrestriction": "",
+    "restriction": "",
+    "prefix": "TNAS",
+    "code": "TNA/S",
+    "title": title
+}
+TNAdef["dayshort"] = "%s" % int(TNA.get("day", TNAdef["day"]))
+# Apply defaults
+for key in TNAdef:
+    TNA.setdefault(key, TNAdef[key])
+
+
+# Parameters for the TM
+NCdef = {
+    "title": title,
+    "year": now.year,
+    "number": "XXXXXX",
+    "month": now.strftime("%m"),
+    "monthlong": now.strftime("%B"),
+    "type": "TM",
+    "typelong": "Technical Memorandum",
+    "datescovered": "",
+    "grantnumber": "",
+    "contractnumber": "",
+    "programelementnumber": "",
+    "projectnumber": "",
+    "tasknumber": "",
+    "lnumber": "",
+    "workunitnumber": "",
+    "nasacenter": "%s\\par %s" % (TNA["center"], TNA["city"]),
+    "category": 1,
+    "pages": 1,
+    "supplenotes": "",
+    "author": TNA["author"],
+    "subtitle": "",
+    "abstract": "",
+    "restriction": "",
+    "distribution": "Unclassified-Unlimited"
+}
+# Author information
+NCdef["authoraffiliation"] = (
+    "Derek J.~Dalle, Henry C.~Lee, Jamie G.~Meeroff\\\\[-2pt]\n" +
+    "Science \\& Technology Corp., Moffett Field, California\\\\[12pt]\n" +
+    "Stuart E.~Rogers\\\\[-2pt]\n" +
+    "NASA Ames Research Center, Moffett Field, California")
+# Extended title/abstract
+NCdef["subjectterms"] = (
+    "Space Launch System; Computational fluid dynamics; " +
+    "Cart3D; OVERFLOW; FUN3D")
+# Apply defaults
+for key in NCdef:
+    NC.setdefault(key, NCdef[key])
+# ------------------------------------------------------------
+
+# Active figure numbering
+numfig = True
+numfig_secnum_depth = 1
+numfig_format = {
+    'figure': 'Figure %s',
+    'table': 'Table %s',
+    'code-block': 'Listing %s'
+}
 
 # General information about the project.
 project = u'pyCart'
@@ -114,7 +256,13 @@ html_theme = 'sphinxdoc'
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+#html_theme_options = {
+#    "stickysidebar": "false",
+#    "sidebarbgcolor": "#000665",
+#    "sidebarlinkcolor": "#a0c0ff",
+#    "relbarbgcolor": "#000645",
+#    "footerbgcolor": "#000665"
+#}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
@@ -128,7 +276,7 @@ html_theme = 'sphinxdoc'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = "NASA_logo.png"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -205,18 +353,33 @@ htmlhelp_basename = 'pyCartdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
+# Initialize our preamble
+preamble = "\\makeatletter"
+# Loop through the NC parameters
+for key in NC:
+    preamble += "\\newcommand{\\NC@%s}{%s}\n" % (key, NC[key])
+# Loop through the TNA parameters
+for key in TNA:
+    preamble += "\\newcommand{\\TNA@%s}{%s}\n" % (key, TNA[key])
+
+# Append the TM style file as a raw preamble
+preamble += open('nasatm.sty').read()
+
 latex_elements = {
-# The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
-
-# The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
-
-# Additional stuff for the LaTeX preamble.
-#'preamble': '',
-
-# Latex figure (float) alignment
-#'figure_align': 'htbp',
+    # The paper size ('letterpaper' or 'a4paper').
+    #'papersize': 'letterpaper',
+    
+    # The font size ('10pt', '11pt' or '12pt').
+    #'pointsize': '10pt',
+    
+    # Additional stuff for the LaTeX preamble.
+    'preamble': preamble,
+    
+    # Latex figure (float) alignment
+    #'figure_align': 'htbp',
+    
+    # Word to use for relase
+    'releasename': '',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
@@ -229,7 +392,7 @@ latex_documents = [
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-#latex_logo = None
+latex_logo = "NASA_logo.pdf"
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
@@ -293,3 +456,4 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+

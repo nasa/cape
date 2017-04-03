@@ -67,11 +67,11 @@ omitted here.
 
 There are a few conversions between Python and JSON syntax:
 
-    * Boolean parameters are not capitalized; ``true`` -> ``True``,
-     ``false`` -> ``False``
+    * Boolean parameters are not capitalized; e.g. ``true`` -> ``True``
     * None-type variable has a different name; ``null`` -> ``None``
     * Strings must use double quotes
     * The key names, i.e. the things to the left of the ``:``, must be strings
+    * The last key may not have a trailing comma
     
 In CAPE, the most common reason for using ``null`` as a value for a setting is
 to force the program to ignore any defaults.  This could be the case if you

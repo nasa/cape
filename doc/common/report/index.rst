@@ -10,7 +10,7 @@ because the longest section of that JSON file.
 
 These reports are created using the following template of commands
 
-    .. code-block:: bash
+    .. code-block:: console
     
         $ pycart --report $REP --cons $CONS
         

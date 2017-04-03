@@ -77,6 +77,7 @@ Syntax                     Formatted             Description/Purpose
 \``f(a)``                  ``f(a)``              Raw text or source code
 \``$PYCART``               ``$PYCART``           Environment variable
 \*a\*                      *a*                   Variable name
+\*a>b\*                    *a>b*                 Key *b* of *a*, ``a["b"]``
 \:Inputs:                  :Inputs:              Dictionary-style header
 \:file:\`pyCart.json`      :file:`pyCart.json`   File name
 \:mod:\`pyCart.tri`        :mod:`pyCart.tri`     Module name
