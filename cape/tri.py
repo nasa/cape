@@ -5497,13 +5497,13 @@ class Triq(TriBase):
             VL = np.mean(Q[T[IV,:],8], axis=1)
             WL = np.mean(Q[T[IV,:],9], axis=1)
             # Sheer stress multiplier
-            FTMUJ = 2.0*mu*REI/VOL[IV]
+            FTMUJ = mu*REI/VOL[IV]
             # Stress flux
             ZUVW = (1.0/3.0) * (VAX*UL + VAY*VL + VAZ*WL)
             # Stress tensor
             TXX = 2.0*FTMUJ * (UL*VAX - ZUVW)
             TYY = 2.0*FTMUJ * (VL*VAY - ZUVW)
-            TZZ = 2.0*FTMUJ * (WL*VAX - ZUVW)
+            TZZ = 2.0*FTMUJ * (WL*VAZ - ZUVW)
             TXY = FTMUJ * (VL*VAX + UL*VAY)
             TYZ = FTMUJ * (WL*VAY + VL*VAZ)
             TXZ = FTMUJ * (UL*VAZ + WL*VAX)

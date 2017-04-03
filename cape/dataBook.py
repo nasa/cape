@@ -3129,7 +3129,7 @@ class DBTriqFM(DataBook):
         # Attempt to get Reynolds number (not needed if inviscid)
         try:
             # Use the trajectory
-            Rey = self.x.GetReynolds(i)
+            Rey = self.x.GetReynoldsNumber(i)
         except Exception:
             # Assume it's not needed
             Rey = 1.0
@@ -3327,7 +3327,7 @@ class DBTriqFM(DataBook):
         # Initialize cumulative sum
         FM0 = dict(FM[patch])
         # Accumulate each patch
-        for patch in patches:
+        for patch in patches[:-1]:
             # Loop through keys
             for k in FM[patch]:
                 # Accumulate the value
