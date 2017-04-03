@@ -42,11 +42,11 @@ from . import volcomp
 # Default tolerances for mapping triangulations
 atoldef = 1e-2
 rtoldef = 1e-4
-ctoldef = 1e-3
+ctoldef = 1e-4
 ztoldef = 5e-2
 antoldef = 2e-2
 rntoldef = 1e-4
-cntoldef = 1e-3
+cntoldef = 1e-4
 
 # Attempt to load the compiled helper module.
 try:
@@ -3341,7 +3341,7 @@ class TriBase(object):
             toli  = tol + ctol*LC[c1]
             ntoli = ntol + cntol*LC[c1]
             # Filter results
-            if (T["d1"] > toli) or (T["z1"] > ntoli):
+            if (T["t1"] > toli) or (T["z1"] > ntoli):
                 continue
             # Save new component ID
             self.CompID[k] = compmap[c1]
@@ -3949,6 +3949,8 @@ class TriBase(object):
                 Distance from triangle *k1* to test point
             *T["z1"]*: :class:`float`
                 Projection distance of point to triangle *k1*
+            *T["t1"]*: :class:`float`
+                Tangential distance of point to triangle *k1*
             *T["k2"]*: ``None`` | :class:`int`
                 Index of nearest triangle outside component *c1*
             *T["c2"]*: :class:`int`
@@ -4017,7 +4019,8 @@ class TriBase(object):
         # Find the component ID
         c1 = self.CompID[k1]
         # Initialize output
-        T = {"k1": k1, "c1": c1, "d1": D[i1], "z1": abs(zi[i1])}
+        T = {"k1": k1, "c1": c1, "d1": D[i1], 
+            "t1": DI[i1], "z1": abs(zi[i1])}
         # Initialize submask
         I1 = K > -1
         C1 = self.CompID[I]
@@ -4041,6 +4044,7 @@ class TriBase(object):
             T["c"+n] = c
             T["d"+n] = D[j]
             T["z"+n] = zi[j]
+            T["t"+n] = DI[j]
         # Output (if 4 components)
         return T
     # Edit default tolerances

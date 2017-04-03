@@ -752,24 +752,18 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
         self.fxo = self.opts.get_DataBook_XOut(self.comp)
         # Get properties of triq file
         fq, n, i0, i1 = case.GetQFile(self.fqi)
-        print("Label 030: fq=%s, n=%s, i0=%s, i1=%s" % (fq,n,i0,i1))
         # Get the corresponding .triq file name
         ftriq = os.path.join('triqfm', 'grid.i.triq')
         # Check for 'q.strt'
         if os.path.isfile(fq):
             # Source file exists
             fsrc = os.path.realpath(fq)
-            print("Label 031: fsrc=%s" % fsrc)
         else:
             # No source just yet
             fsrc = None
-            print("Label 032: fsrc=None")
-        print("Label 033: ftriq... %s" % os.path.isfile(ftriq))
         # Check if the TRIQ file exists
         if os.path.isfile(ftriq) and os.path.isfile(fsrc):
             # Check modification dates
-            print("Label 034: ftriq->%s" % os.path.getmtime(ftriq))
-            print("Label 035: fsrc-> %s" % os.path.getmtime(fsrc))
             if os.path.getmtime(ftriq) < os.path.getmtime(fsrc):
                 # 'grid.i.triq' exists, but Q file is newer
                 qpre = True
@@ -779,7 +773,6 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
         else:
             # Need to run ``overint`` to get triq file
             qpre = True
-        print("Label 039: qpre=%s" % qpre)
         # Output
         return qpre, fq, n, i0, i1
     
@@ -822,7 +815,6 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
        # -------
        # Options
        # -------
-        print("Label 045: PreprocessTriq()")
         # Create 'lineload' folder if needed
         if not os.path.isdir('triqfm'): self.opts.mkdir('triqfm')
         # Enter the 'lineload' folder
@@ -831,7 +823,6 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
         fmixsur  = self.opts.get_DataBook_mixsur(self.comp)
         fsplitmq = self.opts.get_DataBook_splitmq(self.comp)
         ffomo    = self.opts.get_DataBook_fomo(self.comp)
-        print("Label 046: fmixsur='%s' fsplitmq='%s'" % (fmixsur,fsplitmq))
         # Get absolute file paths
         if (fmixsur) and (not os.path.isabs(fmixsur)):
             fmixsur = os.path.join(self.RootDir, fmixsur)
@@ -843,8 +834,6 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
         self.mixsur  = fmixsur
         self.splitmq = fsplitmq
         self.fomodir = ffomo
-        print("Label 048: fmixsur='%s'" % fmixsur)
-        print("Label 049: fsplitmq='%s'" % fsplitmq)
         # Get Q/X files
         self.fqi = self.opts.get_DataBook_QIn(self.comp)
         self.fxi = self.opts.get_DataBook_XIn(self.comp)
@@ -853,10 +842,6 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
         # Do the SPLITMQ and MIXSUR files exist?
         qsplitm = os.path.isfile(self.splitmq)
         qmixsur = os.path.isfile(self.mixsur)
-        print("Label 050: fqi='%s'" % self.fqi)
-        print("Label 051: fqo='%s'" % self.fqo)
-        print("Label 052: fxi='%s'" % self.fxi)
-        print("Label 053: fxo='%s'" % self.fxo)
         # If there's no mixsur file, there's nothing we can do
         if not qmixsur:
             raise RuntimeError(
@@ -868,13 +853,10 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
         fmixsur  = 'mixsur.%s.i' % self.comp
         # Source *q* file is in parent folder
         fqvol = os.path.join('..', fq)
-        print("Label 057: fqvol='%s'" % fqvol)
         # Source *x* file if needed
         fxvol = os.path.join('..', "x.pyover.p3d")
-        print("Label 058: fxvol='%s'" % fxvol)
         # If this file does not exist, nothing is going to work.
         if not os.path.isfile(fqvol):
-            print("Label 059... oops")
             os.chdir('..')
             return
         # If we're in PreprocessTriq, all x/q files are out-of-date

@@ -3089,7 +3089,8 @@ class DBTriqFM(DataBook):
             self.compmap = {}
         else:
             # Status update
-            print("    Mapping component IDs using '%s'" % self.tri.fname)
+            ftri = self.opts.get_DataBookMapTri(self.comp)
+            print("    Mapping component IDs using '%s'" % ftri)
             # Map the component IDs
             self.compmap = self.triq.MapTriCompID(self.tri)
             
