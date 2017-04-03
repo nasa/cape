@@ -727,10 +727,10 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
         """Get most recent ``triq`` file and its associated iterations
         
         :Call:
-            >>> qpre, fq, n, i0, i1 = DBL.GetTriqFile()
+            >>> qpre, fq, n, i0, i1 = DBF.GetTriqFile()
         :Inputs:
-            *DBL*: :class:`pyCart.lineLoad.DBLineLoad`
-                Instance of line load data book
+            *DBL*: :class:`pyOver.dataBook.DBTriqFM`
+                Instance of TriqFM data book
         :Outputs:
             *qpre*: {``False``}
                 Whether or not to convert file from other format
@@ -745,6 +745,11 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
         :Versions:
             * 2016-12-19 ``@ddalle``: Added to the module
         """
+        # Get Q/X files
+        self.fqi = self.opts.get_DataBook_QIn(self.comp)
+        self.fxi = self.opts.get_DataBook_XIn(self.comp)
+        self.fqo = self.opts.get_DataBook_QOut(self.comp)
+        self.fxo = self.opts.get_DataBook_XOut(self.comp)
         # Get properties of triq file
         fq, n, i0, i1 = case.GetQFile(self.fqi)
         # Get the corresponding .triq file name
@@ -793,10 +798,10 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
         """Perform any necessary preprocessing to create ``triq`` file
         
         :Call:
-            >>> ftriq = DBL.PreprocessTriq(fq, qpbs=False, f=None)
+            >>> ftriq = DBF.PreprocessTriq(fq, qpbs=False, f=None)
         :Inputs:
-            *DBL*: :class:`pyFun.lineLoad.DBLineLoad`
-                Line load data book
+            *DBL*: :class:`pyOver.dataBook.DBTriqFM`
+                TriqFM data book
             *ftriq*: :class:`str`
                 Name of q file
             *qpbs*: ``True`` | {``False``}
