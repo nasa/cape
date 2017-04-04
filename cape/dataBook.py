@@ -2994,7 +2994,6 @@ class DBTriqFM(DataBook):
         if 'i' in kw:
             # Get freestream conditions
             kwfm = self.GetConditions(kw["i"])
-            print("Label 028: kwfm=%s" % kwfm)
             # Set those conditions
             for k in kwfm:
                 kw.setdefault(k, kwfm[k])
@@ -3288,6 +3287,9 @@ class DBTriqFM(DataBook):
         compID = self.GetCompID(patch)
         # Get nodes for that compID(s)
         I = self.triq.GetNodesFromCompID(compID)
+        if len(I) == 0:
+            raise ValueError("Patch '%s' (compID=%s) has no triangles" %
+                (patch, compID))
         # Loop through float columns
         for c in self[patch].fCols:
             # Skip if already in *FM*
