@@ -2878,12 +2878,12 @@ class DBTriqFM(DataBook):
             triq.Write("%s.triq" % fpre, ascii=True)
         elif fmt.lower() == "dat":
             # Create Tecplot PLT interface
-            pltq = self.Triq2Plt(self.triq, i=None, **kw)
+            pltq = self.Triq2Plt(self.triq, i=i, **kw)
             # Write ASCII file
             pltq.WriteDat("%s.dat" % fpre)
         elif fmt.lower() == "plt":
             # Create Tecplot PLT interface
-            pltq = self.Triq2Plt(self.triq, i=None, **kw)
+            pltq = self.Triq2Plt(self.triq, i=i, **kw)
             # Write binary file
             pltq.Write("%s.plt" % fpre)
         # Go back to original location
@@ -2993,7 +2993,8 @@ class DBTriqFM(DataBook):
         # Get freestream conditions
         if 'i' in kw:
             # Get freestream conditions
-            kwfm = self.GetConditions(i)
+            kwfm = self.GetConditions(kw["i"])
+            print("Label 028: kwfm=%s" % kwfm)
             # Set those conditions
             for k in kwfm:
                 kw.setdefault(k, kwfm[k])

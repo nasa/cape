@@ -486,14 +486,10 @@ class Plt(object):
         except Exception:
             # No extra states
             nq = 0
-        # Set number of variables
-        self.nVar = 3 + nq
         # Process variables
         qvars = kw.get("vars", kw.get("Vars"))
         # Process default
         if qvars is None:
-            # Set a flag for doing anything special
-            qcf = False
             # Process default list based on number of states
             if nq == 1:
                 # Pressure coefficient
@@ -514,15 +510,24 @@ class Plt(object):
                 try:
                     # Try to calculate skin friction
                     cf_x, cf_y, cf_z = triq.GetSkinFriction(comp=CompIDs, **kw)
+                    # Get nodes affected
+                    I = triq.GetNodesFromCompID(CompIDs)
                     # Get the key states
                     qvars = [
                         "cp",
                         "rho", "rhou", "rhov", "rhow", "e",
                         "cf_x", "cf_y", "cf_z"
                     ]
-                    # Doing something special
-                    qcf = True
-                except Exception:
+                    # Downsize state variables
+                    triq.q = triq.q[:,:9]
+                    # Update number of states
+                    triq.nq = 9
+                    nq = triq.nq
+                    # Save the skin friction.
+                    triq.q[I,6] = cf_x
+                    triq.q[I,7] = cf_y
+                    triq.q[I,8] = cf_z
+                except Exception as e:
                     # Fall back to the native states
                     qvars = [
                         "cp",
@@ -600,12 +605,6 @@ class Plt(object):
             T = cape.util.TrimUnused(Tris) - 1
             # Form the state matrix for this zone
             q = np.hstack((Nodes, triq.q[I,:self.nVar]))
-            # Check for overwrite
-            if qcf:
-                # Save the skin friction.
-                q[:,6] = cf_x
-                q[:,7] = cf_y
-                q[:,8] = cf_z
             # Save the min/max
             self.qmin[n,:] = np.min(q, axis=0)
             self.qmax[n,:] = np.max(q, axis=0)

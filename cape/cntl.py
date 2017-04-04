@@ -2586,7 +2586,7 @@ class Cntl(object):
         # Read the existing data book
         self.ReadDataBook()
         # Get the component and type
-        comp = kw.get('comp')
+        comp = kw.get('triqfm')
         t = type(comp).__name__
         # Check for single component, list, or None (do all)
         if comp in [None, True]:

@@ -5390,6 +5390,8 @@ class Triq(TriBase):
         v0 = T[:,0]
         v1 = T[:,1]        
         v2 = T[:,2]
+        # Handle to state variables
+        Q = self.q
         # Extract the vertices of each tri.
         x = self.Nodes[T, 0]
         y = self.Nodes[T, 1]
@@ -5458,33 +5460,35 @@ class Triq(TriBase):
         # Initialize viscous forces
         Fv = np.zeros((nTri, 3))
         # Save results from non-zero volumes
-        Fv[IV,0] = (TXX*VAX + TXY*VAY + TXZ*VAZ)
-        Fv[IV,1] = (TXY*VAX + TYY*VAY + TYZ*VAZ)
-        Fv[IV,2] = (TXZ*VAX + TYZ*VAY + TZZ*VAZ)
-        # Normalize
-        Fv /= A
+        Fv[IV,0] = (TXX*VAX + TXY*VAY + TXZ*VAZ)/A
+        Fv[IV,1] = (TXY*VAX + TYY*VAY + TYZ*VAZ)/A
+        Fv[IV,2] = (TXZ*VAX + TYZ*VAY + TZZ*VAZ)/A
         # Initialize friction coefficients
-        cf_x = np.zeros(nNode)
-        cf_y = np.zeros(nNode)
-        cf_z = np.zeros(nNode)
+        cf_x = np.zeros(self.nNode)
+        cf_y = np.zeros(self.nNode)
+        cf_z = np.zeros(self.nNode)
         # Initialize areas
-        Af = np.zeros(nNode)
+        Af = np.zeros(self.nNode)
         # Add friction values weighted by areas
-        cf_x[T[:,0]] += (Fv[:,0] * A[K])
-        cf_x[T[:,1]] += (Fv[:,0] * A[K])
-        cf_x[T[:,2]] += (Fv[:,0] * A[K])
-        cf_y[T[:,0]] += (Fv[:,1] * A[K])
-        cf_y[T[:,1]] += (Fv[:,1] * A[K])
-        cf_y[T[:,2]] += (Fv[:,1] * A[K])
-        cf_z[T[:,0]] += (Fv[:,2] * A[K])
-        cf_z[T[:,1]] += (Fv[:,2] * A[K])
-        cf_z[T[:,2]] += (Fv[:,2] * A[K])
+        cf_x[T[:,0]] += (Fv[:,0] * A)
+        cf_x[T[:,1]] += (Fv[:,0] * A)
+        cf_x[T[:,2]] += (Fv[:,0] * A)
+        cf_y[T[:,0]] += (Fv[:,1] * A)
+        cf_y[T[:,1]] += (Fv[:,1] * A)
+        cf_y[T[:,2]] += (Fv[:,1] * A)
+        cf_z[T[:,0]] += (Fv[:,2] * A)
+        cf_z[T[:,1]] += (Fv[:,2] * A)
+        cf_z[T[:,2]] += (Fv[:,2] * A)
         # Accumulate areas
-        Af[T[:,0]] += A[K]
-        Af[T[:,1]] += A[K]
-        Af[T[:,2]] += A[K]
+        Af[T[:,0]] += A
+        Af[T[:,1]] += A
+        Af[T[:,2]] += A
+        # Downselect
+        cf_x = cf_x[I] / Af[I]
+        cf_y = cf_y[I] / Af[I]
+        cf_z = cf_z[I] / Af[I]
         # Output
-        return cf_x/Af, cf_y/Af, cf_z/Af
+        return cf_x, cf_y, cf_z
             
             
     # Calculate forces and moments
