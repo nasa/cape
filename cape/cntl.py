@@ -166,6 +166,40 @@ class Cntl(object):
                 print("Importing module '%s'" % imod)
             # Load the module by its name
             exec('self.%s = __import__("%s")' % (fmod, nmod))
+            
+    # Function to apply initialization function
+    def InitFunction(self):
+        """Run one or more "initialization functions"
+        
+        This calls the function(s) in the global ``"InitFunction"`` option from
+        the JSON file.  These functions must take *cntl* as an input, and they
+        are usually from a module imported via the ``"Modules"`` option.  See
+        the following example:
+        
+            .. code-block:: javascript
+            
+                "Modules": ["testmod"],
+                "InitFunction": ["testmod.testfunc"]
+                
+        This leads pyCart to call ``testmod.testfunc(cntl)``.  For pyFun, this
+        becomes ``testmod.testfunc(fun3d)``, etc.
+        
+        :Call:
+            >>> cntl.InitFunction()
+        :Versions:
+            * 2017-04-04 ``@ddalle``: First version
+        """
+        # Get input functions
+        lfunc = self.opts.get("InitFunction", [])
+        # Ensure list
+        lfunc = list(np.array(lfunc).flatten())
+        # Loop through functions
+        for func in lfunc:
+            # Status update
+            print("  InitFunction: %s()" % func)
+            # Run the function
+            exec("self.%s(self)" % func)
+        
         
     # Make a directory
     def mkdir(self, fdir):
