@@ -492,6 +492,8 @@ class Plt(object):
         qvars = kw.get("vars", kw.get("Vars"))
         # Process default
         if qvars is None:
+            # Set a flag for doing anything special
+            qcf = False
             # Process default list based on number of states
             if nq == 1:
                 # Pressure coefficient
@@ -508,15 +510,31 @@ class Plt(object):
                 ]
             elif nq == 13:
                 # OVERFLOW states from OVERINT
-                qvars = [
-                    "cp",
-                    "rho", "rhou", "rhov", "rhow", "e",
-                    "mu", "UL", "VL", "WL",
-                    "xlp1", "ylp1", "zlp1"
-                ]
+                # Check if we can get skin friction
+                try:
+                    # Try to calculate skin friction
+                    cf_x, cf_y, cf_z = triq.GetSkinFriction(comp=CompIDs, **kw)
+                    # Get the key states
+                    qvars = [
+                        "cp",
+                        "rho", "rhou", "rhov", "rhow", "e",
+                        "cf_x", "cf_y", "cf_z"
+                    ]
+                    # Doing something special
+                    qcf = True
+                except Exception:
+                    # Fall back to the native states
+                    qvars = [
+                        "cp",
+                        "rho", "rhou", "rhov", "rhow", "e",
+                        "mu", "u_eta", "v_eta", "w_eta",
+                        "dx", "dy", "dz"
+                    ]
             else:
                 # Unknown
                 qvars = ["var%s" for i in range(nq)]
+        # Set number of variables
+        self.nVar = 3 + len(qvars)
         # Check number of variables
         if len(qvars) != nq:
             raise ValueError(
@@ -581,7 +599,13 @@ class Plt(object):
             # (Also shift to zero-based)
             T = cape.util.TrimUnused(Tris) - 1
             # Form the state matrix for this zone
-            q = np.hstack((Nodes, triq.q[I,:]))
+            q = np.hstack((Nodes, triq.q[I,:self.nVar]))
+            # Check for overwrite
+            if qcf:
+                # Save the skin friction.
+                q[:,6] = cf_x
+                q[:,7] = cf_y
+                q[:,8] = cf_z
             # Save the min/max
             self.qmin[n,:] = np.min(q, axis=0)
             self.qmax[n,:] = np.max(q, axis=0)

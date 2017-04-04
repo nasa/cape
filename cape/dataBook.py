@@ -2878,12 +2878,12 @@ class DBTriqFM(DataBook):
             triq.Write("%s.triq" % fpre, ascii=True)
         elif fmt.lower() == "dat":
             # Create Tecplot PLT interface
-            pltq = self.Triq2Plt(self.triq, **kw)
+            pltq = self.Triq2Plt(self.triq, i=None, **kw)
             # Write ASCII file
             pltq.WriteDat("%s.dat" % fpre)
         elif fmt.lower() == "plt":
             # Create Tecplot PLT interface
-            pltq = self.Triq2Plt(self.triq, **kw)
+            pltq = self.Triq2Plt(self.triq, i=None, **kw)
             # Write binary file
             pltq.Write("%s.plt" % fpre)
         # Go back to original location
@@ -2978,6 +2978,8 @@ class DBTriqFM(DataBook):
                 Instance of TriqFM data book
             *triq*: :class:`cape.tri.Triq`
                 Interface to annotated surface triangulation
+            *i*: {``None``} | :class:`int`
+                Index number if needed
             *t*: {``1.0``} | :class:`float`
                 Time step or iteration number
         :Outputs:
@@ -2988,6 +2990,13 @@ class DBTriqFM(DataBook):
         """
         # Get component IDs
         CompIDs = self.GetPatchCompIDs()
+        # Get freestream conditions
+        if 'i' in kw:
+            # Get freestream conditions
+            kwfm = self.GetConditions(i)
+            # Set those conditions
+            for k in kwfm:
+                kw.setdefault(k, kwfm[k])
         # Perform conversion
         pltq = cape.plt.Plt(triq=triq, CompIDs=CompIDs, **kw)
         # Output

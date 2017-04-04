@@ -5289,6 +5289,205 @@ class Triq(TriBase):
   # ============
   # <
     # Calculate forces and moments
+    def GetSkinFriction(self, comp=None, **kw):
+        """Calculate vectors of pressure, momentum, and viscous forces on tris
+        
+        :Call:
+            >>> cf_x, cf_y, cf_z = triq.GetSkinFriction(comp=None, **kw)
+        :Inputs:
+            *triq*: :class:`cape.tri.Triq`
+                Annotated surface triangulation
+            *comp*: {``None``} | :class:`str` | :class:`int` | :class:`list`
+                Subset component ID or name or list thereof
+            *incm*, *momentum*: ``True`` | {``False``}
+                Include momentum (flow-through) forces in total
+            *gauge*: {``True``} | ``False``
+                Calculate gauge forces (``True``) or absolute (``False``) 
+            *save*: ``True`` | {``False``}
+                Store vectors of forces for each triangle as attributes
+            *xMRP*: {``0.0``} | :class:`float`
+                *x*-coordinate of moment reference point
+            *yMRP*: {``0.0``} | :class:`float`
+                *y*-coordinate of moment reference point
+            *zMRP*: {``0.0``} | :class:`float`
+                *z*-coordinate of moment reference point
+            *MRP*: {[*xMRP*, *yMRP*, *zMRP*]} | :class:`list` (len=3)
+                Moment reference point
+            *m*, *mach*: {``1.0``} | :class:`float`
+                Freestream Mach number
+            *RefArea*, *Aref*: {``1.0``} | :class:`float`
+                Reference area
+            *RefLength*, *Lref*: {``1.0``} | :class:`float`
+                Reference length (longitudinal)
+            *RefSpan*, *bref*: {*Lref*} | :class:`float`
+                Reference span (for rolling and yawing moments)
+            *Re*, *Rey*: {``1.0``} | :class:`float`
+                Reynolds number per grid unit (units same as *triq.Nodes*)
+            *gam*, *gamma*: {``1.4``} | :class:`float` > 1
+                Freestream ratio of specific heats
+        :Utilized Attributes:
+            *triq.nNode*: :class:`int`
+                Number of nodes
+            *triq.q*: :class:`np.ndarray` (:class:`float` shape=(*nNode*,*nq*))
+                Vector of 5, 9, or 13 states on each node
+        :Outputs:
+            *cf_x*: :class:`np.ndarray`
+                *x*-component of skin friction coefficient
+            *cf_y*: :class:`np.ndarray`
+                *y*-component of skin friction coefficient
+            *cf_z*: :class:`np.ndarray`
+                *z*-component of skin friction coefficient
+        :Versions:
+            * 2017-04-03 ``@ddalle``: First version
+        """
+       # --------------
+       # Viscous Forces
+       # --------------
+        if self.nq == 9:
+            # Viscous stresses given directly
+            cf_x = Q[I,6]
+            cf_y = Q[I,7]
+            cf_z = Q[I,8]
+            # Output
+            return cf_x, cf_y, cf_z
+        elif self.nq < 13:
+            # TRIQ file only contains inadequate info for viscous forces
+            cf_x = np.zeros(nNode)
+            cf_y = np.zeros(nNode)
+            cf_z = np.zeros(nNode)
+            # Output
+            return cf_x, cf_y, cf_z
+       # ------
+       # Inputs
+       # ------
+        # Get Reynolds number per grid unit
+        REY = kw.get("Re", kw.get("Rey", 1.0))
+        # Freestream mach number
+        mach = kw.get("RefMach", kw.get("mach", kw.get("m", 1.0)))
+        # Freestream pressure and gamma
+        gam  = kw.get("gamma", 1.4)
+        pref = kw.get("p", 1.0/gam)
+        # Dynamic pressure
+        qref = 0.5*gam*pref*mach**2
+        # Reference length/area
+        Aref = kw.get("RefArea",   kw.get("Aref", 1.0))
+        Lref = kw.get("RefLength", kw.get("Lref", 1.0))
+        # Volume limiter
+        SMALLVOL = kw.get("SMALLVOL", 1e-20)
+        SMALLTRI = kw.get("SMALLTRI", 1e-12)
+       # --------
+       # Geometry
+       # --------
+        # Component for subsetting
+        K = self.GetTrisFromCompID(comp)
+        # Select nodes
+        I = self.GetNodesFromCompID(comp)
+        # Number of nodes and tris
+        nNode = I.shape[0]
+        nTri = K.shape[0]
+        # Store node indices for each tri
+        T = self.Tris[K,:] - 1
+        v0 = T[:,0]
+        v1 = T[:,1]        
+        v2 = T[:,2]
+        # Extract the vertices of each tri.
+        x = self.Nodes[T, 0]
+        y = self.Nodes[T, 1]
+        z = self.Nodes[T, 2]
+        # Get the deltas from node 0->1 and 0->2
+        x01 = stackcol((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
+        x02 = stackcol((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
+        # Calculate the dimensioned normals
+        N = 0.5*np.cross(x01, x02)
+        # Scalar areas of each triangle
+        A = np.sqrt(np.sum(N**2, axis=1))
+       # -----
+       # Areas
+       # -----
+        # Calculate components
+        Avec = np.sum(N, axis=0)
+        # Overset grid information
+        # Inverted Reynolds number [in]
+        REI = mach / REY
+        # Extract coordinates
+        X1 = self.Nodes[v0,0]
+        Y1 = self.Nodes[v0,1]
+        Z1 = self.Nodes[v0,2]
+        X2 = self.Nodes[v1,0]
+        Y2 = self.Nodes[v1,1]
+        Z2 = self.Nodes[v1,2]
+        X3 = self.Nodes[v2,0]
+        Y3 = self.Nodes[v2,1]
+        Z3 = self.Nodes[v2,2]
+        # Calculate coordinates of L=2 points
+        xlp1 = X1 + Q[v0,10]
+        ylp1 = Y1 + Q[v0,11]
+        zlp1 = Z1 + Q[v0,12]
+        xlp2 = X2 + Q[v1,10]
+        ylp2 = Y2 + Q[v1,11]
+        zlp2 = Z2 + Q[v1,12]
+        xlp3 = X3 + Q[v2,10]
+        ylp3 = Y3 + Q[v2,11]
+        zlp3 = Z3 + Q[v2,12]
+        # Calculate volume of prisms
+        VOL = volcomp.VolTriPrism(X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3,
+            xlp1,ylp1,zlp1, xlp2,ylp2,zlp2, xlp3,ylp3,zlp3)
+        # Filter small prisms
+        IV = VOL > SMALLVOL
+        # Downselect areas
+        VAX = N[IV,0]
+        VAY = N[IV,1]
+        VAZ = N[IV,2]
+        # Average dynamic viscosity
+        mu = np.mean(Q[T[IV,:],6], axis=1)
+        # Velocity derivatives
+        UL = np.mean(Q[T[IV,:],7], axis=1)
+        VL = np.mean(Q[T[IV,:],8], axis=1)
+        WL = np.mean(Q[T[IV,:],9], axis=1)
+        # Sheer stress multiplier
+        FTMUJ = mu*REI/VOL[IV]
+        # Stress flux
+        ZUVW = (1.0/3.0) * (VAX*UL + VAY*VL + VAZ*WL)
+        # Stress tensor
+        TXX = 2.0*FTMUJ * (UL*VAX - ZUVW)
+        TYY = 2.0*FTMUJ * (VL*VAY - ZUVW)
+        TZZ = 2.0*FTMUJ * (WL*VAZ - ZUVW)
+        TXY = FTMUJ * (VL*VAX + UL*VAY)
+        TYZ = FTMUJ * (WL*VAY + VL*VAZ)
+        TXZ = FTMUJ * (UL*VAZ + WL*VAX)
+        # Initialize viscous forces
+        Fv = np.zeros((nTri, 3))
+        # Save results from non-zero volumes
+        Fv[IV,0] = (TXX*VAX + TXY*VAY + TXZ*VAZ)
+        Fv[IV,1] = (TXY*VAX + TYY*VAY + TYZ*VAZ)
+        Fv[IV,2] = (TXZ*VAX + TYZ*VAY + TZZ*VAZ)
+        # Normalize
+        Fv /= A
+        # Initialize friction coefficients
+        cf_x = np.zeros(nNode)
+        cf_y = np.zeros(nNode)
+        cf_z = np.zeros(nNode)
+        # Initialize areas
+        Af = np.zeros(nNode)
+        # Add friction values weighted by areas
+        cf_x[T[:,0]] += (Fv[:,0] * A[K])
+        cf_x[T[:,1]] += (Fv[:,0] * A[K])
+        cf_x[T[:,2]] += (Fv[:,0] * A[K])
+        cf_y[T[:,0]] += (Fv[:,1] * A[K])
+        cf_y[T[:,1]] += (Fv[:,1] * A[K])
+        cf_y[T[:,2]] += (Fv[:,1] * A[K])
+        cf_z[T[:,0]] += (Fv[:,2] * A[K])
+        cf_z[T[:,1]] += (Fv[:,2] * A[K])
+        cf_z[T[:,2]] += (Fv[:,2] * A[K])
+        # Accumulate areas
+        Af[T[:,0]] += A[K]
+        Af[T[:,1]] += A[K]
+        Af[T[:,2]] += A[K]
+        # Output
+        return cf_x/Af, cf_y/Af, cf_z/Af
+            
+            
+    # Calculate forces and moments
     def GetTriForces(self, comp=None, **kw):
         """Calculate vectors of pressure, momentum, and viscous forces on tris
         
