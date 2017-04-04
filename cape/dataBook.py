@@ -2923,7 +2923,8 @@ class DBTriqFM(DataBook):
                         # Check for list
                         if len(comp) > 1:
                             raise ValueError(
-                                ("Component ID %s for patch '%s'" % (comp, patch)) +
+                                ("Component ID %s for patch '%s'"
+                                    % (comp, patch)) +
                                 (" is not a integer or singleton"))
                         # Get the one element
                         CompIDs.append(comp[0])
@@ -2932,7 +2933,9 @@ class DBTriqFM(DataBook):
                         CompIDs.append(comp)
                 except Exception:
                     # Unknown component
-                    raise ValueError("Could not determine component ID for patch '%s'" % patch)
+                    raise ValueError(
+                        "Could not determine component ID for patch '%s'"
+                        % patch)
             else:
                 # If it was specified numerically, check the *compmap*
                 # If the mapping had to renumber the component, it will be
