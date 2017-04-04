@@ -528,6 +528,8 @@ class Plt(object):
                     triq.q[I,7] = cf_y
                     triq.q[I,8] = cf_z
                 except Exception as e:
+                    # Print a warning
+                    print("    WARNING: failed to calculate skin friction")
                     # Fall back to the native states
                     qvars = [
                         "cp",
