@@ -154,16 +154,21 @@ def TrimUnused(T):
     N = np.unique(T)
     # New number of nodes
     nNode = len(N)
+    nMax = np.max(N)
     # Renumbered nodes
     I = np.arange(1, nNode+1)
+    M = np.zeros(nMax+1, dtype="int")
+    M[N] = I
+    # Create flat arrays
+    V = T.flatten()
     # Initialize output
-    U = np.zeros_like(T)
+    U = np.zeros_like(V)
     # Loop through the nodes that are used
-    for j in range(nNode):
+    for j in np.arange(V.size):
         # Make replacement
-        U[T==N[j]] = I[j]
+        U[j] = M[V[j]]
     # Output
-    return U
+    return np.reshape(U, T.shape)
 
 # Convert matrix of truth values to BC lists
 def GetBCBlock2(I):

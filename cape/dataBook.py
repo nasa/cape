@@ -2582,29 +2582,25 @@ class DBTriqFM(DataBook):
             self[patch].Sort()
             # Write it
             self[patch].Write()
-            
-    # Match the databook copy of the trajectory
-    def UpdateTrajectory(self):
-        """Match the trajectory to the cases in the data book
-        
+
+    # Find first force/moment component
+    def GetRefComponent(self):
+        """Get the first component
+
         :Call:
-            >>> DBPG.UpdateTrajectory()
+            >>> DBc = DBF.GetRefComponent()
         :Inputs:
             *DBF*: :class:`cape.dataBook.DBTriqFM`
                 Instance of TriqFM data book
+        :Outputs:
+            *DBc*: :class:`cape.dataBook.DBComp`
+                Data book for one component
         :Versions:
-            * 2015-05-22 ``@ddalle``: First version
+            * 2016-08-18 ``@ddalle``: First version
+            * 2017-04-05 ``@ddalle``: Had to customize for TriqFM
         """
-        # Get the first component.
-        DBc = self[self.pts[0]]
-        # Loop through the fields.
-        for k in self.x.keys:
-            # Copy the data.
-            setattr(self.x, k, DBc[k])
-            # Set the text.
-            self.x.text[k] = [str(xk) for xk in DBc[k]]
-        # Set the number of cases.
-        self.x.nCase = DBc.n
+        # Get the total
+        return self[None]
   # >
   
   # ========
