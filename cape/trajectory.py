@@ -128,9 +128,9 @@ class Trajectory:
         2014-05-28 ``@ddalle``: First version
         2014-06-05 ``@ddalle``: Generalized for user-defined keys
     """
-    # =============
-    # Configuration
-    # =============
+   # =============
+   # Configuration
+   # =============
    # <
     # Initialization method
     def __init__(self, **kwargs):
@@ -271,9 +271,9 @@ class Trajectory:
     
    # >
     
-    # ========
-    # File I/O
-    # ========
+   # ========
+   # File I/O
+   # ========
    # <
     # Function to read a file
     def ReadTrajectoryFile(self, fname):
@@ -401,9 +401,9 @@ class Trajectory:
         f.close()
    # >
     
-    # ===============
-    # Key Definitions
-    # ===============
+   # ===============
+   # Key Definitions
+   # ===============
    # <
     # Function to process the role that each key name plays.
     def ProcessKeyDefinitions(self, defns):
@@ -823,9 +823,9 @@ class Trajectory:
     
    # >
     
-    # ============
-    # Folder Names
-    # ============
+   # ============
+   # Folder Names
+   # ============
    # <
     # Function to assemble a folder name based on a list of keys and an index
     def _AssembleName(self, keys, prefix, i):
@@ -1145,9 +1145,9 @@ class Trajectory:
     
    # >
     
-    # =======
-    # Filters
-    # =======
+   # =======
+   # Filters
+   # =======
    # <
     # Function to filter cases
     def Filter(self, cons, I=None):
@@ -1444,9 +1444,9 @@ class Trajectory:
     
    # >
     
-    # ==================
-    # Trajectory Subsets
-    # ==================
+   # ==================
+   # Trajectory Subsets
+   # ==================
    # <
     # Function to get sweep based on constraints
     def GetSweep(self, M, **kw):
@@ -1740,9 +1740,9 @@ class Trajectory:
     
    # >
     
-    # =================
-    # Flight Conditions
-    # =================
+   # =================
+   # Flight Conditions
+   # =================
    # <
     # Get Reynolds number
     def GetReynoldsNumber(self, i):
@@ -2254,9 +2254,9 @@ class Trajectory:
     
    # >
     
-    # ===========
-    # SurfBC Keys
-    # ===========
+   # ===========
+   # SurfBC Keys
+   # ===========
    # <
     # Get generic input for SurfBC key
     def GetSurfBC_ParamType(self, key, k, comp=None):
