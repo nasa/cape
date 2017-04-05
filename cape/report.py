@@ -2579,10 +2579,18 @@ class Report(object):
             # Check the type
             if ctyp == "TriqFM":
                 # Get special indices from special data book
-                Jj = J[j]
+                Jj = self.GetCoSweepIndices(fswp, J[j][0], comp)
+                # Read specific data book
+                DB = self.cntl.DataBook.TriqFM[comp]
+                # Name of the plot component is the patch
+                pcomp = patch
             else:
                 # Use the overall data book sweep indices
                 Jj = J[j]
+                # Overall data book
+                DB = self.cntl.DataBook
+                # Name of the plot component is name of component
+                pcomp = comp
             # Plot label (for legend)
             lbl = self.SubfigPlotLabel(sfig, k)
             # Carpet label appendix
@@ -2614,7 +2622,7 @@ class Report(object):
             kw_s = opts.get_SubfigPlotOpt(sfig, "StDevOptions",  i)
             kw_m = opts.get_SubfigPlotOpt(sfig, "MinMaxOptions", i)
             # Draw the plot.
-            h = self.cntl.DataBook.PlotCoeff(comp, coeff, Jj, x=xk,
+            h = DB.PlotCoeff(pcomp, coeff, Jj, x=xk,
                 Label=lbl, LineOptions=kw_p,
                 StDev=ksig, StDevOptions=kw_s,
                 MinMax=qmmx, MinMaxOptions=kw_m,
