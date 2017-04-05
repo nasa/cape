@@ -3781,7 +3781,7 @@ class Report(object):
             # Set default source
             DB.source = "none"
         # Check the existing source
-        if fsrc = DB.source:
+        if fsrc == DB.source:
             # Everything is good
             return
         elif DB.source != "none":
@@ -3963,11 +3963,11 @@ class Report(object):
   # =============
   # <
     # Function to get update sweeps
-    def GetSweepIndices(self, fswp, I=None, cons=[]):
+    def GetSweepIndices(self, fswp, I=None, cons=[], comp=None):
         """Divide cases into individual sweeps
         
         :Call:
-            >>> J = R.GetSweepIndices(fswp, I=None, cons=[])
+            >>> J = R.GetSweepIndices(fswp, I=None, cons=[], comp=None)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
@@ -3977,23 +3977,41 @@ class Report(object):
                 List of case indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints to define what cases to update
+            *comp*: {``None``} | :class:`str`
+                Optional name of DataBook component (useful for TriqFM
+                components, which may have a different trajectory)
         :Outputs:
             *J*: :class:`list` (:class:`numpy.ndarray` (:class:`int`))
                 List of sweep index lists
         :Versions:
             * 2015-05-29 ``@ddalle``: First version
         """
-        # Check if only restricting to point currently in the trajectory.
-        if self.cntl.opts.get_SweepOpt(fswp, 'TrajectoryOnly'):
-            # Read the data book with the trajectory as the source.
-            self.ReadDataBook("trajectory")
-        else:
-            # Read the data book with the data book as the source.
-            self.ReadDataBook("data")
-            # Do not restrict indexes.
-            I = np.arange(self.cntl.DataBook.x.nCase)
         # Extract options
         opts = self.cntl.opts
+        # Check if only restricting to point currently in the trajectory.
+        if opts.get_SweepOpt(fswp, 'TrajectoryOnly'):
+            # Read the data book with the trajectory as the source
+            fsrc = "trajectory"
+            self.ReadDataBook(fsrc)
+        else:
+            # Read the data book with the data book as the source
+            fsrc = "data"
+            self.ReadDataBook(fsrc)
+        # Get component
+        if comp is None:
+            # Extract from global data book
+            x = self.cntl.DataBook.x
+        elif opts.get_DataBookType(comp) in ["TriqFM"]:
+            # Read the TriqFM data book
+            self.ReadTriqFM(comp, fsrc)
+            # Use that DataBook
+            x = self.cntl.DataBook.TriqFM[comp].x
+        else:
+            # Component given, but still use global *x*
+            x = self.cntl.DataBook.x
+        # Do not restrict indexes if using *data*
+        if fsrc == "data":
+            I = np.arange(x.nCase)
         # Sort variable
         xk = opts.get_SweepOpt(fswp, 'XAxis')
         # Sweep constraints
@@ -4003,8 +4021,6 @@ class Report(object):
         # Global constraints
         GlobCons = opts.get_SweepOpt(fswp, 'GlobalCons')
         Indices  = opts.get_SweepOpt(fswp, 'Indices')
-        # Extract trajectory.
-        x = self.cntl.DataBook.x
         # Turn command-line constraints into indices.
         I0 = x.GetIndices(cons=cons, I=I)
         # Turn report sweep definition into indices.
