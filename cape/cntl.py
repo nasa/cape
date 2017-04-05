@@ -203,6 +203,19 @@ class Cntl(object):
             print("  InitFunction: %s()" % func)
             # Run the function
             exec("self.%s(self)" % func)
+            
+    # Call function to apply settings for case *i*
+    def CaseFunction(self, i):
+        # Get input functions
+        lfunc = self.opts.get("CaseFunction": [])
+        # Ensure list
+        lfunc = list(np.array(lfunc).flatten())
+        # Loop through functions
+        for func in lfunc:
+            # Status update
+            print("  Case Function: cntl.%s(%s)" % (func, i))
+            # Run the function
+            exec("self.%s(self, %s)" % (func, i))
         
         
     # Make a directory

@@ -907,6 +907,8 @@ class Fun3d(Cntl):
         n = self.CheckCase(i)
         # Quit if already prepared.
         if n is not None: return
+        # Case function
+        self.CaseFunction(i)
         # Prepare the mesh (and create folders if necessary).
         self.PrepareMesh(i)
         # Check for dual
@@ -1838,7 +1840,11 @@ class Fun3d(Cntl):
         if len(surf) > 0: inp = RangeString(surf)
         # Output
         return inp
-        
+   
+  # =================
+  # Case Modification
+  # =================
+  # <
     # Extend a case
     def ExtendCase(self, i, n=1, j=None, imax=None):
         """Add *NSTEPS* iterations to case *i* using the last phase's namelist
@@ -1960,7 +1966,12 @@ class Fun3d(Cntl):
         nPBS = self.opts.get_nPBS()
         print("  Writing PBS scripts 1 to %s" % (nPBS))
         self.WritePBS(i)
-        
+  # >
+  
+  # ==============
+  # Case Interface
+  # ==============
+  # <
     # Read run control options from case JSON file
     def ReadCaseJSON(self, i):
         """Read ``case.json`` file from case *i* if possible
@@ -2128,7 +2139,12 @@ class Fun3d(Cntl):
             * 2015-10-14 ``@ddalle``: First version
         """
         return case.StartCase()
-    
+  # >
+  
+  # =========
+  # Archiving
+  # =========
+  # <
     # Individual case archive function
     def ArchivePWD(self):
         """Archive a single case in the current folder ($PWD)
@@ -2158,7 +2174,7 @@ class Fun3d(Cntl):
         """
         # Archive using the local module
         manage.CleanFolder(self.opts)
-        
+  # >        
         
 # class Fun3d
 
