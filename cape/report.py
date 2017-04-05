@@ -2561,8 +2561,28 @@ class Report(object):
             # Sweep index
             j = i / nCoeff
             # Get the component and coefficient.
-            comp = opts.get_SubfigOpt(sfig, "Component", k)
+            compo = opts.get_SubfigOpt(sfig, "Component", k)
             coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
+            # Check for subcomponent
+            if "/" in compo:
+                # Split by "/"
+                comp, patch = comp.split("/")
+            elif "." in compo:
+                # Split by "."
+                comp, patch = comp.split(".")
+            else:
+                # No split
+                comp = compo
+                patch = None
+            # Get component type
+            ctyp = opts.get_DataBooktype(comp)
+            # Check the type
+            if ctyp == "TriqFM":
+                # Get special indices from special data book
+                Jj = J[j]
+            else:
+                # Use the overall data book sweep indices
+                Jj = J[j]
             # Plot label (for legend)
             lbl = self.SubfigPlotLabel(sfig, k)
             # Carpet label appendix
@@ -2572,13 +2592,13 @@ class Report(object):
                 # Value of the key or modified key for all points.
                 V = eval('x.%s' % kx)
                 # Print the subsweep equality constraint in the label.
-                clbl += ", %s=%s" % (kx, V[J[j][0]])
+                clbl += ", %s=%s" % (kx, V[Jj[0]])
             # More carpet constraints
             for kx in CTol:
                 # Value of the key or modified key for all points.
                 V = eval('x.%s' % kx)
                 # Print the subsweep tolerance constraint in the label.
-                clbl += u", %s=%s\u00B1%s" % (kx, V[J[j][0]], CTol[kx])
+                clbl += u", %s=%s\u00B1%s" % (kx, V[Jj[0]], CTol[kx])
             # Add appendix to label.
             lbl += clbl
             # Don't start with a comma!
@@ -2594,7 +2614,7 @@ class Report(object):
             kw_s = opts.get_SubfigPlotOpt(sfig, "StDevOptions",  i)
             kw_m = opts.get_SubfigPlotOpt(sfig, "MinMaxOptions", i)
             # Draw the plot.
-            h = self.cntl.DataBook.PlotCoeff(comp, coeff, J[j], x=xk,
+            h = self.cntl.DataBook.PlotCoeff(comp, coeff, Jj, x=xk,
                 Label=lbl, LineOptions=kw_p,
                 StDev=ksig, StDevOptions=kw_s,
                 MinMax=qmmx, MinMaxOptions=kw_m,
@@ -4060,6 +4080,68 @@ class Report(object):
         DBT = self.cntl.DataBook.GetTargetByName(targ)
         # Extract options
         opts = self.cntl.opts
+        # Sort variable
+        xk = opts.get_SweepOpt(fswp, 'XAxis')
+        # Sweep constraints
+        EqCons = opts.get_SweepOpt(fswp, 'EqCons')
+        TolCons = opts.get_SweepOpt(fswp, 'TolCons')
+        # Carpet constraints
+        CEqCons = opts.get_SweepOpt(fswp, 'CarpetEqCons')
+        CTolCons = opts.get_SweepOpt(fswp, 'CarpetTolCons')
+        # Append constraints
+        EqCons += CEqCons
+        for k in CTolCons:
+            TolCons[k] = CTolCons[k]
+        # Global constraints
+        GlobCons = opts.get_SweepOpt(fswp, 'GlobalCons')
+        # Turn command-line constraints into indices.
+        I0 = DBT.x.GetIndices(cons=cons)
+        # Turn report sweep definition into indices.
+        I1 = DBT.x.GetIndices(cons=GlobCons)
+        # Restrict Indices
+        I = np.intersect1d(I0, I1)
+        # Get the matching sweep.
+        I = DBT.x.GetCoSweep(self.cntl.DataBook.x, i0,
+            SortVar=xk, EqCons=EqCons, TolCons=TolCons, I=I)
+        # Output
+        return I
+        
+    # Function to get subset of target catches matching a sweep
+    def GetCoSweepIndices(self, fswp, i0, comp, cons=[]):
+        """
+        Return indices of a target data set that correspond to sweep constraints
+        from a data book point
+        
+        :Call:
+            >>> I = R.GetTargetSweepIndices(fswp, i0, targ)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *fswp*: :class:`str`
+                Name of sweep to update
+            *i0*: :class:`int`
+                Index of point in *R.cntl.DataBook.x* to use as reference
+            *targ*: :class:`int`
+                Name of the target in data book to use
+        :Outputs:
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of target data indices
+        :Versions:
+            * 2015-06-03 ``@ddalle``: First version
+        """
+        # Extract options
+        opts = self.cntl.opts
+        # Get data book type
+        ctyp = opts.get_DataBookType(comp)
+        # Check type
+        if ctyp != "TriqFM":
+            raise ValueError(
+                ("Invalid co-sweep request for component '%s'" % comp) +
+                (" of type '%s'" % ctyp))
+        # Read the data book
+        self.ReadTriqFM(comp)
+        # Get the interface
+        DBT = self.cntl.DataBook.TriqFM[comp]
         # Sort variable
         xk = opts.get_SweepOpt(fswp, 'XAxis')
         # Sweep constraints
