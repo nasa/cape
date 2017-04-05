@@ -76,6 +76,7 @@ rc = {
     "PBS_ncpus": 20,
     "PBS_mpiprocs": 20,
     "PBS_model": "ivy",
+    "PBS_aoe": None,
     "PBS_W": "",
     "PBS_q": "normal",
     "PBS_walltime": "8:00:00",

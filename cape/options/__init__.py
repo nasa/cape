@@ -199,11 +199,13 @@ class Options(odict):
         ncpus = self.get_PBS_ncpus(j, typ=typ)
         nmpis = self.get_PBS_mpiprocs(j, typ=typ)
         smodl = self.get_PBS_model(j, typ=typ)
+        saoe  = self.get_PBS_aoe(j, typ=typ)
         # Form the -l line.
         line = '#PBS -l select=%i:ncpus=%i' % (nnode, ncpus)
         # Add other settings
         if nmpis: line += (':mpiprocs=%i' % nmpis)
         if smodl: line += (':model=%s' % smodl)
+        if saoe:  line += (':aoe=%s' % saoe)
         # Write the line.
         f.write(line + '\n')
         # Get the walltime.
@@ -1168,6 +1170,38 @@ class Options(odict):
             self._PBS()
             self['PBS'].set_PBS_model(s, i)
     
+    # Get PBS model or arch setting
+    def get_PBS_aoe(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            return self['BatchPBS'].get_PBS_aoe(i)
+        elif typ == 'post':
+            self._PostPBS()
+            return self['PostPBS'].get_PBS_aoe(i)
+        else:
+            self._PBS()
+            return self['PBS'].get_PBS_aoe(i)
+        
+    # Set PBS model or arch setting
+    def set_PBS_aoe(self, s=rc0('PBS_aoe'), i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            self['BatchPBS'].set_PBS_aoe(s, i)
+        elif typ == 'post':
+            self._PostPBS()
+            self['PostPBS'].set_PBS_aoe(s, i)
+        else:
+            self._PBS()
+            self['PBS'].set_PBS_aoe(s, i)
+    
     # Get PBS group setting
     def get_PBS_W(self, i=None, typ=None):
         # Get lower-case type
@@ -1330,7 +1364,7 @@ class Options(odict):
         
     # Copy over the documentation.
     for k in ['PBS_j', 'PBS_r', 'PBS_S', 'PBS_select', 'PBS_mpiprocs',
-            'PBS_o', 'PBS_e',
+            'PBS_o', 'PBS_e', 'PBS_aoe',
             'PBS_ncpus', 'PBS_model', 'PBS_W', 'PBS_q', 'PBS_walltime']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(PBS,'get_'+k).__doc__

@@ -220,6 +220,44 @@ class PBS(odict):
         self.set_key('PBS_model', s, i)
     
     
+    # Get PBS model operating environment
+    def get_PBS_aoe(self, i=None):
+        """Return the PBS operating environment
+        
+        :Call:
+            >>> s = opts.get_PBS_model(i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Index to select
+        :Outputs:
+            *s*: :class:`str`
+                Name of (alternate) operating environment to use
+        :Versions:
+            * 2017-04-05 ``@ddalle``: First version
+        """
+        return self.get_key('PBS_aoe', i)
+        
+    # Set PBS model architecture
+    def set_PBS_aoe(self, s=rc0('PBS_aoe'), i=None):
+        """Set the PBS model/architecture
+        
+        :Call:
+            >>> opts.set_PBS_aoe(s, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *s*: :class:`str`
+                Name of (alternate) operating environment to use
+            *i*: :class:`int` or ``None``
+                Index to select
+        :Versions:
+            * 2017-04-05 ``@ddalle``: First version
+        """
+        self.set_key('PBS_aoe', s, i)
+    
+    
     # Get PBS walltime limit
     def get_PBS_walltime(self, i=None):
         """Return maximum wall time
