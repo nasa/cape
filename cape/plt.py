@@ -565,6 +565,9 @@ class Plt(object):
             # Get the component name and number
             compID = CompIDs[n]
             name = triq.GetCompName(compID)
+            # Status update
+            if kw.get('v', False):
+                print("Initializing zone '%s' (%s/%s)" % (name, n+1, self.nZone))
             # Append the title
             if name:
                 # Include the boundary name
@@ -591,6 +594,10 @@ class Plt(object):
         self.fmt = np.ones((self.nZone, self.nVar))
         # Loop through the zones to process the data
         for n in range(self.nZone):
+            # Status update
+            if kw.get('v', False):
+                print("Creating zone '%s' (%s/%s)" % 
+                    (self.Zones[n], n+1, self.nZone))
             # Get the CompID in question
             comp = CompIDs[n]
             # Get the nodes and tris in that comp

@@ -1081,7 +1081,7 @@ class ConfigMIXSUR(object):
                 self.comps.append(face)
                 # Add to the map
                 i += 1
-                self.Surf2CompID[i] = k+1
+                self.Surf2CompID[k+1] = i
             else:
                 # Convert list of component numbers to integers
                 compID = [int(v) for v in V[:ni]]
@@ -1095,19 +1095,6 @@ class ConfigMIXSUR(object):
         for face in self.faces:
             # Get parents
             self.FindParents(face)
-        # Map all SurfIDs to CompIDs
-        for face in self.faces:
-            # Get the SurfIDs
-            surfID = self.faces[face]
-            # Check for scalar
-            if type(surfID).__name__.startswith('int'):
-                # Map this component
-                self.faces[face] = self.Surf2CompID[surfID]
-                continue
-            # Loop through surfIDs
-            for j in range(len(surfID)):
-                # Map surface *surfID[j]* to *compID[j]*
-                surfID[j] = self.Surf2CompID[surfID[j]]
     
     # Check parent
     def FindParents(self, face):
@@ -1302,6 +1289,8 @@ class ConfigMIXSUR(object):
         else:
             # CompID not found
             return None
+# class ConfigMIXSUR
+
 
 # Alternate configuration
 class ConfigJSON(object):

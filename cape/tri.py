@@ -32,7 +32,7 @@ from collections import OrderedDict
 
 # Utilities
 from .util import GetTecplotCommand, TecFolder, ParaviewFolder, stackcol
-from .config import Config, ConfigJSON
+from .config import Config, ConfigJSON, ConfigMIXSUR
 
 # Input/output and geometry modules
 from . import io
@@ -2670,9 +2670,31 @@ class TriBase(object):
         if fext == "xml":
             # Read an XML file
             self.ReadConfigXML(c)
-        else:
+        elif fext == "json":
             # Read a JSON file
             self.ReadConfigJSON(c)
+        if (fext == "i") or (c.startswith("fomoco") or c.startswith("mixsur")):
+            # Try a ``mixsur.i`` file
+            self.ReadConfigMIXSUR(c)
+        else:
+            # Cascade: try XML first
+            try:
+                self.ReadConfigXML(c)
+                return
+            except Exception:
+                pass
+            # Cascade: try JSON second
+            try:
+                self.ReadConfigJSON(c)
+                return
+            except Exception:
+                pass
+            # Cascade: try MIXSUR third
+            try:
+                self.ReadConfigMIXSUR(c)
+                return
+            except Exception:
+                pass
         
     # Function to read Config.xml
     def ReadConfigXML(self, c):
@@ -2709,6 +2731,23 @@ class TriBase(object):
         """
         # Read the configuration and save it
         self.config = ConfigJSON(c)
+        
+    # Function to read Config.json
+    def ReadConfigMIXSUR(self, c):
+        """Read a ``mixsur.i`` file labeling and grouping of component IDs
+        
+        :Call:
+            >>> tri.ReadConfigMixsur(c)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *c*: :class:`str`
+                Configuration file name
+        :Versions:
+            * 2017-04-05 ``@ddalle``: First version
+        """
+        # Read the configuration and save it
+        self.config = ConfigMIXSUR(c)
         
     # Function to map component ID numbers to those in a Config.
     def ApplyConfig(self, cfg):

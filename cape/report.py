@@ -2461,6 +2461,9 @@ class Report(object):
         :Versions:
             * 2015-05-28 ``@ddalle``: First version
         """
+       # ------------------
+       # Options and Config
+       # ------------------
         # Save current folder.
         fpwd = os.getcwd()
         # Extract options and trajectory
@@ -2468,6 +2471,13 @@ class Report(object):
         opts = self.cntl.opts
         # Case folder
         frun = x.GetFullFolderNames(I[0])
+        # Get the component.
+        comp = opts.get_SubfigOpt(sfig, "Component")
+        # Get the coefficient
+        coeff = opts.get_SubfigOpt(sfig, "Coefficient")
+       # ----------------
+       # Index Processing
+       # ----------------
         # Carpet constraints
         CEq = opts.get_SweepOpt(fswp, "CarpetEqCons")
         CTol = opts.get_SweepOpt(fswp, "CarpetTolCons")
@@ -2478,10 +2488,6 @@ class Report(object):
         else:
             # Single sweep
             J = [I]
-        # Get the component.
-        comp = opts.get_SubfigOpt(sfig, "Component")
-        # Get the coefficient
-        coeff = opts.get_SubfigOpt(sfig, "Coefficient")
         # Get list of targets
         targs = self.SubfigTargets(sfig)
         # Initialize target sweeps
@@ -2614,7 +2620,7 @@ class Report(object):
                     elif (coeff not in DBT[comp]):
                         print(
                             ("    Skipping target '%s': " % targ) +
-                            ("coeff '%s' not in target" % coeff))
+                            ("coeff '%s/%s' not in target" % (comp,coeff)))
                         continue
                 else:
                     # Check *DBT* as a DBTarget
