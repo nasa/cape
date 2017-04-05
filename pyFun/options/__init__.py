@@ -415,6 +415,15 @@ class Options(cape.options.Options):
     'namelist_var']:
         eval('get_'+k).__doc__ = getattr(Fun3DNml,'get_'+k).__doc__
         
+    # Set generic value
+    def set_namelist_var(self, sec, key, val, i=None):
+        self._Fun3D()
+        return self['Fun3D'].set_namelist_var(sec, key, val, i)
+        
+    # Copy documentation
+    for k in ['namelist_var']:
+        eval('set_'+k).__doc__ = getattr(Fun3DNml,'set_'+k).__doc__
+        
     
     # Downselect
     def select_namelist(self, i=None):

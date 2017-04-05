@@ -234,9 +234,16 @@ def setel(x, i, xi):
     else:
         # Already a list
         y = x
+    # Get default value
+    if len(y) > 0:
+        # Select the last value
+        ydef = y[-1]
+    else:
+        # Set ``None`` until we get something
+        ydef = None
     # Make sure *y* is long enough.
     for j in range(len(y), i):
-        y.append(y[-1])
+        y.append(ydef)
     # Check if we are setting an element or appending it.
     if i >= len(y):
         # Append

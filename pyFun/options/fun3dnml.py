@@ -7,7 +7,7 @@ now, nonunique section names are not allowed.
 """
 
 # Ipmort options-specific utilities
-from util import rc0, odict, getel
+from util import rc0, odict, getel, setel
 
 # Class for namelist settings
 class Fun3DNml(odict):
@@ -159,7 +159,7 @@ class Fun3DNml(odict):
                 Section name
             *key*: :class:`str`
                 Variable name
-            *i*: :class:`int` or ``None``
+            *i*: :class:`int` | ``None``
                 Run sequence index
         :Outputs:
             *val*: :class:`int` | :class:`float` | :class:`str` | :class:`list`
@@ -170,8 +170,37 @@ class Fun3DNml(odict):
         # Check for namelist
         if sec not in self: return None
         # Select the namelist
-        d = getel(self, sec, i)
+        d = getel(self[sec], i)
         # Select the value.
         return getel(d.get(key), i)
         
+    # Set value by name
+    def set_namelist_var(self, sec, key, val, i=None):
+        """Set a namelist key for a specified phase or phases
+        
+        Roughly, this sets ``opts["Fun3D"][sec][key]`` or
+        ``opts["Fun3D"][sec][key][i]`` equal to *val*
+        
+        :Call:
+            >>> opts.set_namelist_var(sec, key, val, i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *sec*: :class:`str`
+                Section name
+            *key*: :class:`str`
+                Variable name
+            *val*: :class:`int` | :class:`float` | :class:`str` | :class:`list`
+                Value from JSON options
+            *i*: :class:`int` | ``None``
+                Run sequence index
+        :Versions:
+            * 2017-04-05 ``@ddalle``: First version
+        """
+        # Initialize section
+        if sec not in self: self[sec] = {}
+        # Initialize key
+        if key not in self[sec]: self[sec][key] = None
+        # Set value
+        setel(self[sec][key], i, val)
         
