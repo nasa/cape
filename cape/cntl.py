@@ -603,7 +603,7 @@ class Cntl(object):
             # Check status.
             if qCheck: continue
             # If submitting is allowed, check the job status.
-            if sts in stat_submit:
+            if (sts in stat_submit) and self.FilterUser(i, **kw):
                 # Prepare the job.
                 self.PrepareCase(i)
                 # Start (submit or run) case
@@ -739,6 +739,38 @@ class Cntl(object):
    # Run Interface
    # =============
    # <
+        
+    # Apply user filter
+    def FilterUser(self, i, **kw):
+        # Get any 'user' trajectory keys
+        ku = self.x.GetKeysByType('user')
+        # Check if there's a user variable
+        if len(ku) == 0:
+            # No user filter
+            return True
+        elif len(ku) > 1:
+            # More than one user constraint? sounds like a bad idea
+            raise ValueError(
+                "Found more than one USER run matrix value: %s" % ku)
+        # Select the user key
+        k = ku[0]
+        # Get target user
+        uid = kw.get('u', kw.get('user', os.environ['USER']))
+        # Get the value of the user from the run matrix
+        # Also, remove leading '@' character if present
+        ui = getattr(self.x,k)[i].lstrip('@').lower()
+        # Check the actual constraint
+        if ui == "":
+            # No user constraint; pass
+            return True
+        elif ui == uid:
+            # Correct user
+            return True
+        else:
+            # Wrong user!
+            return False
+        
+            
     # Function to start a case: submit or run
     def StartCase(self, i):
         """Start a case by either submitting it 

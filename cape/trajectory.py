@@ -592,6 +592,24 @@ class Trajectory:
                     "Format": "%s",
                     "Abbreviation": ""
                 }
+            elif key.lower() in ['value']:
+                # Just holding a value
+                defkey = {
+                    "Group": False,
+                    "Type": "value",
+                    "Value": "float",
+                    "Format": "%s",
+                    "Label": False
+                }
+            elif key.lower() in ["user", "uid", "userfilter"]:
+                # Filter on which user can submit
+                defkey = {
+                    "Group": False,
+                    "Type": "user",
+                    "Value": "str",
+                    "Format": "%s",
+                    "Label": False
+                }
             elif key.lower() in ['config', 'GroupPrefix']:
                 # Group name or prefix, e.g. 'poweroff', 'poweron', etc.
                 defkey = {
