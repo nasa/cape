@@ -33,6 +33,7 @@ import json
 import os, shutil, glob
 # Timing
 from datetime import datetime
+import time
 
 # Local modules
 from . import options
@@ -482,7 +483,7 @@ class Cntl(object):
             print(f*4 + s + f*lrun + s + f*7 + s + f*11 + s + f*3 + s + f*8)
         # Initialize dictionary of statuses.3
         total = {'PASS':0, 'PASS*':0, '---':0, 'INCOMP':0,
-            'RUN':0, 'DONE':0, 'QUEUE':0, 'ERROR':0}
+            'RUN':0, 'DONE':0, 'QUEUE':0, 'ERROR':0, 'ZOMBIE':0}
         # Loop through the runs.
         for j in range(len(I)):
             # Case index.
@@ -894,6 +895,10 @@ class Cntl(object):
                 else:
                     # Not running and iterations remaining.
                     sts = "INCOMP"
+        # Check for zombies
+        if (sts == "RUN") and self.CheckZombie(i):
+            # Looks like it is running, but no files modified
+            sts = "ZOMBIE"
         # Check if the case is marked as PASS
         if self.x.PASS[i]:
             # Check for cases marked but that can't be done.
@@ -1067,6 +1072,68 @@ class Cntl(object):
         # Output
         return q
         
+    # Check for no unchanged files
+    def CheckZombie(self, i):
+        """Check a case for ``ZOMBIE`` status
+        
+        A running case is declared a zombie if none of the listed files (by
+        default ``*.out``) have been modified in the last 30 minutes.  However,
+        a case cannot be a zombie unless it contains a ``RUNNING`` file and
+        returns ``True`` from :func:`CheckRunning`.
+        
+        :Call:
+            >>> q = cntl.CheckZombie(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *q*: :class:`bool`
+                ``True`` if no listed files have been modified recently
+        :Versions:
+            * 2017-04-04 ``@ddalle``: First version
+        """
+        # Check if case is running
+        qrun = self.CheckRunning(i)
+        # If not running, cannot be a zombie
+        if not qrun:
+            return False
+        # Safely go to root.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get run name
+        frun = self.x.GetFullFolderNames(i)
+        # Check if the folder exists
+        if not os.path.isdir(frun):
+            # Go home
+            os.chdir(fpwd)
+            return False
+        # Enter the folder
+        os.chdir(frun)
+        # List of files to check
+        fzomb = self.opts.get("ZombieFiles", "*.out")
+        # Ensure list
+        fzomb = list(np.array(fzomb).flatten())
+        # Create list of files matching globs
+        fglob = []
+        for fg in fzomb:
+            fglob += glob.glob(fg)
+        # Timeout time (in minutes)
+        tmax = self.opts.get("ZombieTimeout", 30.0)
+        t = tmax
+        # Current time
+        toc = time.time()
+        # Loop through glob files
+        for fname in fglob:
+            # Get minutes since modification for *fname*
+            ti = (toc - os.path.getmtime(fname))/60
+            # Running minimum
+            t = min(t, ti)
+        # Go home
+        os.chdir(fpwd)
+        # Output
+        return (t >= tmax)
    # >
    
    # =================

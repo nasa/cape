@@ -3316,7 +3316,7 @@ class TriBase(object):
         # Loop through columns
         for i in range(len(K)):
             # Get triangle number
-            k = K[i]
+            k = K[i]-1
             # Status update if verbose
             if v and ((i+1) % (1000*v) == 0):
                 print("  Mapping triangle %i/%i" % (i+1,len(K)))
@@ -5460,9 +5460,9 @@ class Triq(TriBase):
         # Initialize viscous forces
         Fv = np.zeros((nTri, 3))
         # Save results from non-zero volumes
-        Fv[IV,0] = (TXX*VAX + TXY*VAY + TXZ*VAZ)/A
-        Fv[IV,1] = (TXY*VAX + TYY*VAY + TYZ*VAZ)/A
-        Fv[IV,2] = (TXZ*VAX + TYZ*VAY + TZZ*VAZ)/A
+        Fv[IV,0] = (TXX*VAX + TXY*VAY + TXZ*VAZ)/A[IV]
+        Fv[IV,1] = (TXY*VAX + TYY*VAY + TYZ*VAZ)/A[IV]
+        Fv[IV,2] = (TXZ*VAX + TYZ*VAY + TZZ*VAZ)/A[IV]
         # Initialize friction coefficients
         cf_x = np.zeros(self.nNode)
         cf_y = np.zeros(self.nNode)
