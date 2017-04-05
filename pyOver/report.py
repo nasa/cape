@@ -148,6 +148,9 @@ class Report(cape.report.Report):
         elif btyp == 'Tecplot':
             # Get the Tecplot layout view
             lines += self.SubfigTecplotLayout(sfig, i, q)
+        elif btyp == 'Image':
+            # Coy an image
+            lines += self.SubfigImage(sfig, i, q)
         else:
             # No type found
             print("  %s: No function found for base type '%s'" % (sfig, btyp))

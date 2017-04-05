@@ -1118,6 +1118,9 @@ class Report(object):
         elif btyp == 'Tecplot':
             # Use a Tecplot layout
             lines += self.SubfigTecplotLayout(sfig, i, q)
+        elif btyp == 'Image':
+            # Coy an image
+            lines += self.SubfigImage(sfig, i, q)
         else:
             print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
         # Output
@@ -3002,6 +3005,89 @@ class Report(object):
         return lines
    # ]
    
+   # -------
+   # Picture
+   # -------
+   # [
+    # Function to create coefficient plot and write figure
+    def SubfigImage(self, sfig, i, q):
+        """Create image based on a file that is present in the case folder
+        
+        :Call:
+            >>> lines = R.SubfigImage(sfig, i, q)
+        :Inputs:
+            *R*: :class:`pyCart.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *i*: :class:`int`
+                Case index
+            *q*: :class:`bool`
+                Unused option whether or not to do work
+        :Versions:
+            * 2017-04-05 ``@ddalle``: First version
+        """
+        # Save current folder.
+        fpwd = os.getcwd()
+        # Case folder
+        frun = self.cntl.x.GetFullFolderNames(i)
+        # Extract options
+        opts = self.cntl.opts
+        # Get the component.
+        comp = opts.get_SubfigOpt(sfig, "Component")
+        # Get caption.
+        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        # Get the vertical alignment.
+        hv = opts.get_SubfigOpt(sfig, "Position")
+        # Get subfigure width
+        wsfig = opts.get_SubfigOpt(sfig, "Width")
+        # First line.
+        lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
+        # Check for a header.
+        fhdr = opts.get_SubfigOpt(sfig, "Header")
+        # Alignment
+        algn = opts.get_SubfigOpt(sfig, "Alignment")
+        # Set alignment.
+        if algn.lower() == "center":
+            lines.append('\\centering\n')
+        # Write the header.
+        if fhdr:
+            # Save the line
+            lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
+            lines.append('\\vskip-6pt\n')
+        # Go to the Cart3D folder
+        os.chdir(self.cntl.RootDir)
+        # Check if the run directory exists.
+        if os.path.isdir(frun):
+            # Go there.
+            os.chdir(frun)
+            # Layout file name
+            fimg = opts.get_SubfigOpt(sfig, "ImageFile")
+            # Check if the file is present
+            if os.path.isfile(fimg):
+                # Copy the file to the report folder
+                shutil.copy(fimg, fpwd)
+            # Width in the report
+            wplt = opts.get_SubfigOpt(sfig, "Width")
+            # Check for file
+            if os.path.isfile(os.path.join(fpwd,fname)):
+                # Form the line to include the image in LaTeX
+                line = (
+                    '\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                    % (frun, fimg))
+                # Include the graphics.
+                lines.append(line)
+        # Go to the report case folder
+        os.chdir(fpwd)
+        # Set the caption.
+        if fcpt:
+            lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
+        # Close the subfigure.
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
+   # ]
+   
    # ---------
    # Paraview
    # ---------
@@ -3615,8 +3701,8 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
-            *fsrc*: :class:`str` [{data} | trajectory]
-                Data book source
+            *fsrc*: {``"data"``} | ``"trajectory"`` | :class:`str`
+                Data book trajectory source
         :Versions:
             * 2015-05-29 ``@ddalle``: First version
         """
@@ -3658,6 +3744,131 @@ class Report(object):
             self.cntl.DataBook.UpdateTrajectory()
             # Save the data book source.
             self.cntl.DataBook.source = "data"
+    
+    # Read a TriqFM data book
+    def ReadTriqFM(self, comp, fsrc="data"):
+        """Read a TriqFM data book if necessary for a specific sweep
+        
+        :Call:
+            >>> R.ReadTriqFM(comp, fsrc="data")
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *comp*: :clas:`str`
+                Name of TriqFM component
+            *fsrc*: {``"data"``} | ``"trajectory"`` | :class:`str`
+                Data book trajectory source
+        :Versions:
+            * 2017-04-05 ``@ddalle``: First version
+        """
+        # Read the data book
+        self.ReadDataBook(fsrc)
+        # Read the data book as approrpiate
+        self.cntl.DataBook.ReadTriqFM(comp)
+        # Get a handle to the TriqFM data book
+        DB = self.cntl.DataBook.TriqFM[comp]
+        # Check the source
+        try:
+            # See if a source has been marked
+            DB.source
+        except AttributeError:
+            # Set default source
+            DB.source = "none"
+        # Check the existing source
+        if fsrc = DB.source:
+            # Everything is good
+            return
+        elif DB.source != "none":
+            # Previously read data book with opposite source
+            del DB
+            del self.cntl.DataBook.TriqFM[comp]
+            # Reread the data book
+            self.cntl.DataBook.ReadTriqFM(comp)
+            # Update handle
+            DB = self.cntl.DataBook.TriqFM[comp]
+            DB.source = "none"
+        # Check the requested source.
+        if fsrc == "trajectory":
+            # Match the data book to the trajectory
+            DB.MatchTrajectory()
+            # Save the data book source.
+            DB.source = "trajectory"
+        else:
+            # Match the trajectory to the data book.
+            DB.UpdateTrajectory()
+            # Save the data book source.
+            DB.source = "data"
+        
+        
+    # Read line loads
+    def ReadLineLoad(self, comp, i, targ=None, update=False):
+        """Read line load for a case
+        
+        :Call:
+            >>> LL = R.ReadLineLoad(comp, i, targ=None, update=False)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *comp*: :class:`str`
+                Name of line load component
+            *i*: :class:`int`
+                Case number
+            *targ*: {``None``} | :class:`str`
+                Name of target data book to read, if not ``None``
+            *update*: ``True`` | {``False``}
+                Whether or not to attempt an update if case not in data book
+        :Outputs:
+            *LL*: :class:`cape.lineLoad.CaseLL`
+                Individual case line load interface
+        :Versions:
+            * 2016-06-10 ``@ddalle``: First version
+            * 2017-04-05 ``@ddalle``: Moved from :mod:`pyCart` -> :mod:`cape`
+        """
+        # Ensure configuration is present
+        self.cntl.ReadConfig()
+        # Read the data book and line load data book
+        self.cntl.ReadDataBook()
+        # Get data book handle.
+        if targ is None:
+            # General data book
+            DB = self.cntl.DataBook
+            # Read the line load data book
+            DB.ReadLineLoad(comp, conf=self.cntl.config)
+            DBL = DB.LineLoads[comp]
+            # Use the index directly
+            j = i
+        else:
+            # Pointer to the data book
+            DB = self.cntl.DataBook
+            # Read the target as appropriate
+            DB.ReadTarget(targ)
+            # Target data book
+            DBT = DB.Targets[targ]
+            # Read Line load
+            DBT.ReadLineLoad(comp, conf=self.cntl.config)
+            DBL = DBT.LineLoads[comp]
+            # Update the trajectory
+            DBL.UpdateTrajectory()
+            # Target options
+            topts = self.cntl.opts.get_DataBookTargetByName(targ)
+            # Find a match
+            J = DBL.FindTargetMatch(DB.x, i, topts)
+            # Check for a match
+            if len(J) == 0: return None
+            # Get the first match
+            j = J[0]
+            # Move the handle.
+            DB = DBT
+        # Read the case
+        DBL.ReadCase(j)
+        # Check auto-update flag
+        if update and j not in DBL:
+            # Update the case
+            DBL.UpdateCase(j)
+            # Read the case
+            DBL.ReadCase(j)
+        # Output the case line load
+        return DBL.get(j)
     
     # Read a Tecplot script
     def ReadTecscript(self, fsrc):

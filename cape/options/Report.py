@@ -350,6 +350,13 @@ class Report(odict):
             "Format": "png",
             "Command": "pvpython"
         }
+        self.defs['Image'] = {
+            "Header": "",
+            "Posittion": "b",
+            "Alignment": "center",
+            "Width": 0.5,
+            "ImageFile": "export.png"
+        }
         
     # Modify defaults or add definitions for a particular module
     def ModSubfigDefaults(self):

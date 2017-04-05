@@ -300,6 +300,9 @@ class Report(cape.report.Report):
         elif btyp == 'Paraview':
             # Get the Paraview layout view
             lines += self.SubfigParaviewLayout(sfig, i, q)
+        elif btyp == 'Image':
+            # Coy an image
+            lines += self.SubfigImage(sfig, i, q)
         else:
             print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
         # Output
