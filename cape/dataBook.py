@@ -5520,6 +5520,13 @@ class CaseFM(CaseData):
             # Check for statistics.
             if (nStats is not None) or (nStats < 2):
                 # Save the statistics.
+                if jLast <= j0:
+                    # Print a nice error message
+                    raise ValueError(
+                        ("FM component '%s' has no iterations " % self.comp) +
+                        ("for coefficient '%s'\n" % c) +
+                        ("DataBook component '%s' has the " % self.comp) +
+                        ("wrong type or is not being reported by the solver"))
                 s[c+'_min'] = np.min(F[j0:jLast+1])
                 s[c+'_max'] = np.max(F[j0:jLast+1])
                 s[c+'_std'] = np.std(F[j0:jLast+1])
