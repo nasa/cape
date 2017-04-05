@@ -503,14 +503,16 @@ class Cart3d(Cntl):
         n = self.CheckCase(i)
         # Quit if prepared.
         if n is not None: return None
-        # Prepare the mesh.
-        self.PrepareMesh(i)
-        # Get the run name.
-        frun = self.x.GetFullFolderNames(i)
         # Save current location.
         fpwd = os.getcwd()
         # Go to root folder.
         os.chdir(self.RootDir)
+        # Case function
+        self.CaseFunction(i)
+        # Prepare the mesh.
+        self.PrepareMesh(i)
+        # Get the run name.
+        frun = self.x.GetFullFolderNames(i)
         # Check for the run directory.
         if not os.path.isdir(frun): self.mkdir(frun)
         # Go there.
@@ -1292,6 +1294,8 @@ class Cart3d(Cntl):
         :Versions:
             * 2016-03-31 ``@ddalle``: First version
         """
+        # Case function
+        self.CaseFunction(i)
         # Read ``case.json``.
         rc = self.ReadCaseJSON(i)
         # Get present options

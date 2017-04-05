@@ -173,7 +173,7 @@ class Cntl(object):
             
     # Function to apply initialization function
     def InitFunction(self):
-        """Run one or more "initialization functions"
+        """Run one or more "initialization functions
         
         This calls the function(s) in the global ``"InitFunction"`` option from
         the JSON file.  These functions must take *cntl* as an input, and they
@@ -190,6 +190,9 @@ class Cntl(object):
         
         :Call:
             >>> cntl.InitFunction()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall control interface
         :Versions:
             * 2017-04-04 ``@ddalle``: First version
         """
@@ -206,6 +209,45 @@ class Cntl(object):
             
     # Call function to apply settings for case *i*
     def CaseFunction(self, i):
+        """Apply a function at the beginning of :func:`PrepareCase(i)`
+        
+        This is meant to serve as a filter if a user wants to change the
+        settings for some subset of the cases.  Using this function can change
+        any setting, which can be dependent on the case number *i*.
+        
+        This calls the function(s) in the global ``"CaseFunction"`` option from
+        the JSON file. These functions must take *cntl* as an input and the
+        case number *i*. The function(s) are usually from a module imported via
+        the ``"Modules"`` option. See the following example:
+        
+            .. code-block:: javascript
+            
+                "Modules": ["testmod"],
+                "CaseFunction": ["testmod.testfunc"]
+                
+        This leads pyCart to call ``testmod.testfunc(cntl, i)`` at the
+        beginning of :func:`PrepareCase` for each case *i* in the run matrix.
+        The function is also called at the beginning of :func:`ApplyCase`
+        
+        :Call:
+            >>> cntl.CaseFunction(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall control interface
+            *i*: :class:`int`
+                Case number
+        :Versions:
+            * 2017-04-05 ``@ddalle``: First version
+        :See also:
+            * :func:`cape.cntl.Cntl.InitFunction`
+            * :func:`cape.cntl.Cntl.PrepareCase`
+            * :func:`pyCart.cart3d.Cart3d.PrepareCase`
+            * :func:`pyCart.cart3d.Cart3d.ApplyCase`
+            * :func:`pyFun.fun3d.Fun3d.PrepareCase`
+            * :func:`pyFun.fun3d.Fun3d.ApplyCase`
+            * :func:`pyOver.overflow.Overflow.PrepareCase`
+            * :func:`pyOver.overflow.Overflow.ApplyCase`
+        """
         # Get input functions
         lfunc = self.opts.get("CaseFunction", [])
         # Ensure list
@@ -1846,6 +1888,8 @@ class Cntl(object):
         fpwd = os.getcwd()
         # Go to root folder.
         os.chdir(self.RootDir)
+        # Case function
+        self.CaseFunction(i)
         # Make the directory if necessary.
         if not os.path.isdir(frun): self.mkdir(frun)
         # Go there.

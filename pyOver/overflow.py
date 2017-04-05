@@ -608,13 +608,15 @@ class Overflow(Cntl):
         n = self.CheckCase(i)
         # Quit if already prepared.
         if n is not None: return
+        # Go to root folder safely.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Case function
+        self.CaseFunction(i)
         # Prepare the mesh (and create folders if necessary).
         self.PrepareMesh(i)
         # Get the run name.
         frun = self.x.GetFullFolderNames(i)
-        # Go to root folder safely.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Enter the run directory.
         if not os.path.isdir(frun): self.mkdir(frun)
         os.chdir(frun)
@@ -764,6 +766,8 @@ class Overflow(Cntl):
         :Versions:
             * 2014-12-13 ``@ddalle``: First version
         """
+        # Case function
+        self.CaseFunction(i)
         # Read ``case.json``.
         rc = self.ReadCaseJSON(i)
         # Get present options
