@@ -98,6 +98,9 @@ class Cntl(object):
         # Set umask
         os.umask(self.opts.get_umask())
         
+        # Run any initialization functions
+        self.InitFunction()
+        
         
     # Output representation
     def __repr__(self):
