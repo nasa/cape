@@ -207,7 +207,7 @@ class Cntl(object):
     # Call function to apply settings for case *i*
     def CaseFunction(self, i):
         # Get input functions
-        lfunc = self.opts.get("CaseFunction": [])
+        lfunc = self.opts.get("CaseFunction", [])
         # Ensure list
         lfunc = list(np.array(lfunc).flatten())
         # Loop through functions
