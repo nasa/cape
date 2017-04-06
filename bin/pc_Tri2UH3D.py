@@ -11,27 +11,27 @@ with alternative software such as ANSA.
 
     .. code-block:: console
     
-        $ pc_Tri2UH3D.py -i $tri -c $cfg -o $uh3d
-        $ pc_Tri2UH3D.py $tri
-        $ pc_Tri2UH3D.py -i $tri
-        $ pc_Tri2UH3D.py $tri $uh3d
+        $ pc_Tri2UH3D.py TRI [OPTIONS]
+        $ pc_Tri2UH3D.py TRI UH3D [OPTIONS]
+        $ pc_Tri2UH3D.py -tri TRI [-c CFG -uh3d UH3D]
         $ pc_Tri2UH3D.py -h
 
 :Inputs:
-    * *tri*: Name of output '.tri' file
-    * *uh3d*: Name of input '.uh3d' file
+    * *TRI*: Name of output ``.tri`` file
+    * *UH3D*: Name of input ``.uh3d`` file
+    * *CFG*: Name of configuration file: XML, JSON, or MIXSUR
     
 :Options:
     -h, --help
         Display this help message and exit
         
-    -i TRI
+    --tri TRI
         Use *TRI* as name of created output file
         
     -c CFG
         Use *CFG* as configuration file (defaults to :file:`Config.xml`)
         
-    -o UH3D
+    --uh3d UH3D
         Use *UH3D* as input file
     
 If the name of the output file is not specified, the script will just add
@@ -39,6 +39,7 @@ If the name of the output file is not specified, the script will just add
 
 :Versions:
     * 2015-04-17 ``@ddalle``: First version
+    * 2017-04-06 ``@ddalle``: Support for JSON and MIXSUR config files
 """
 
 # Module to handle inputs and os interface
@@ -56,11 +57,11 @@ def Tri2UH3D(*a, **kw):
     
     :Call:
         >>> Tri2UH3D(tri, uh3d, c='Config.xml', h=False)
-        >>> Tri2UH3D(i=uh3d, o=tri, h=False)
+        >>> Tri2UH3D(tri=tri, uh3d=uh3d, c='Config.xml', h=False)
     :Inputs:
-        *i*, *tri*: :class:`str`
+        *tri*: :class:`str`
             Name of input file
-        *o*, *uh3d*: :class:`str`
+        *uh3d*: :class:`str`
             Name of output file
         *c*: :class:`str`
             Name of configuration 
@@ -77,13 +78,13 @@ def Tri2UH3D(*a, **kw):
         # Use the first general input.
         ftri = a[0]
     # Prioritize a "-i" input.
-    ftri = kw.get('i', ftri)
+    ftri = kw.get('tri', kw.get('i', ftri))
     # Must have a file name.
     if ftri is None:
         # Required input.
-        print __doc__
+        import cape.text
+        print(cape.text.markdown(__doc__))
         raise IOError("At least one input required.")
-        sys.exit(1)
     
     # Get the file pyCart settings file name.
     if len(a) <= 2:
@@ -93,7 +94,7 @@ def Tri2UH3D(*a, **kw):
         # Use the first general input.
         fuh3d = a[1]
     # Prioritize a "-i" input.
-    fuh3d = kw.get('o', fuh3d)
+    fuh3d = kw.get('uh3d', kw.get('o', fuh3d))
     # Config file
     fcfg = kw.get('c', "Config.xml")
         

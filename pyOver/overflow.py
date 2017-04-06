@@ -434,6 +434,37 @@ class Overflow(Cntl):
         os.chdir(fpwd)
         # Output
         return q
+    
+    # Check for a failure.
+    def CheckError(self, i):
+        """Check if a case has a failure
+        
+        :Call:
+            >>> q = ofl.CheckError(i)
+        :Inputs:
+            *ofl*: :class:`pyOver.overflow.Overflow`
+                OVERFLOW control interface
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *q*: :class:`bool`
+                If ``True``, case has :file:`FAIL` file in it
+        :Versions:
+            * 2015-01-02 ``@ddalle``: First version
+            * 2017-04-06 ``@ddalle``: Checking for ``q.bomb``
+        """
+        # Safely go to root.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get run name
+        frun = self.x.GetFullFolderNames(i)
+        # Check for the FAIL file.
+        q = os.path.isfile(os.path.join(frun, 'FAIL'))
+        q = q or os.path.isfile(os.path.join(frun, 'q.bomb'))
+        # Go home.
+        os.chdir(fpwd)
+        # Output
+        return q
         
     # Prepare the mesh for case *i* (if necessary)
     def PrepareMesh(self, i):
