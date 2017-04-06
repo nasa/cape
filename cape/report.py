@@ -2575,7 +2575,7 @@ class Report(object):
                 comp = compo
                 patch = None
             # Get component type
-            ctyp = opts.get_DataBooktype(comp)
+            ctyp = opts.get_DataBookType(comp)
             # Check the type
             if ctyp == "TriqFM":
                 # Get special indices from special data book
@@ -2751,6 +2751,30 @@ class Report(object):
         comp = opts.get_SubfigOpt(sfig, "Component", k)
         # List of coefficients
         coeffs = opts.get_SubfigOpt(sfig, "Coefficient")
+        # Check for patch delimiter
+        if "/" in comp:
+            # Format: MPCV_Camera_patch/front
+            compo, patch = comp.split("/")
+        elif "." in comp:
+            # Format: MPCV_Camera_patch.front
+            compo, patch = comp.split(".")
+        else:
+            # Only comp given; use total of patches
+            compo = comp
+            patch = None
+        # Get DB type
+        ctyp = opts.get_DataBookType(compo)
+        # Check for special type
+        if ctyp == "TriqFM":
+            # Get prefix
+            fpre = opts.get_DataBookPrefix(compo)
+            # Build up name
+            if patch is None:
+                # Mark the TriqFM patch
+                comp = "%s(total)" % fpre
+            else:
+                # Mark the patch name
+                comp = "%s(%s)" % (fpre, patch)
         # Number of coefficients.
         if type(coeffs).__name__ in ['list']:
             # Coefficient name

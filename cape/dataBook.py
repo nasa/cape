@@ -2506,7 +2506,7 @@ class DBTriqFM(DataBook):
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
         # Save the interface
-        self.x = x
+        self.x = x.Copy()
         self.opts = opts
         # Save the component
         self.comp = comp
