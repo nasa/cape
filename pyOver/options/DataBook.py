@@ -43,6 +43,30 @@ class DataBook(cape.options.DataBook):
         copts = self.get(comp, {})
         # Get the component-specific value
         return copts.get("mixsur", copts.get("overint", db_mixsuri))
+    
+    # Get USURP file
+    def get_DataBook_usurp(self, comp):
+        """Get the ``mixsur`` input file for use with ``usurp``
+        
+        :Call:
+            >>> fname = opts.get_DataBook_usurp(comp)
+        :Inputs:
+            *opts*: :class:`pyOver.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of line load data book component
+        :Outputs:
+            *fname*: :class:`str`
+                Name of ``mixsur`` input file template
+        :Versions:
+            * 2017-04-06 ``@ddalle``: First version
+        """
+        # Global data book setting
+        db_mixsuri = self.get("usurp")
+        # Get component options
+        copts = self.get(comp, {})
+        # Get the component-specific value
+        return copts.get("usurp", db_mixsuri)
         
     # Get SPLITMQ file
     def get_DataBook_splitmq(self, comp):

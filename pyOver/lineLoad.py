@@ -74,17 +74,21 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         self.CompID = self.opts.get_DataBookCompID(self.comp)
         # Get input files
         fmixsur  = self.opts.get_DataBook_mixsur(self.comp)
+        fusurp   = self.opts.get_DataBook_usurp(self.comp)
         fsplitmq = self.opts.get_DataBook_splitmq(self.comp)
         ffomo    = self.opts.get_DataBook_fomo(self.comp)
         # Get absolute file paths
         if (fmixsur) and (not os.path.isabs(fmixsur)):
             fmixsur = os.path.join(self.RootDir, fmixsur)
+        if (fusurp) and (not os.path.isabs(fusurp)):
+            fusurp = os.path.join(self.RootDir, fusurp)
         if (fsplitmq) and (not os.path.isabs(fsplitmq)):
             fsplitmq = os.path.join(self.RootDir, fsplitmq)
         if (ffomo) and (not os.path.isabs(ffomo)):
             ffomo = os.path.join(self.RootDir, ffomo)
         # Save files
         self.mixsur  = fmixsur
+        self.usurp   = fusurp
         self.splitmq = fsplitmq
         self.fomodir = ffomo
         # Get Q/X files
@@ -92,14 +96,6 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         self.fxi = self.opts.get_DataBook_XIn(self.comp)
         self.fqo = self.opts.get_DataBook_QOut(self.comp)
         self.fxo = self.opts.get_DataBook_XOut(self.comp)
-        # Read MapBC
-        try:
-            # Name of the MapBC file (from the input, not a case)
-            fmapbc = os.path.join(self.RootDir, self.opts.get_MapBCFile())
-            # Read the MapBC
-            self.MapBC = mapbc.MapBC(fmapbc)
-        except Exception:
-            pass
         # Make sure it's not a list
         if type(self.CompID).__name__ == 'list':
             # Take the first component
@@ -110,9 +106,13 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         # Try to read the configuration
         try:
             # Read the MIXSUR.I file
-            self.conf = config.ConfigMIXSUR(self.mixsur)
+            self.conf = config.ConfigMIXSUR(self.usurp)
         except Exception:
-            pass
+            # Try the MIXSUR input file
+            try:
+                self.conf = config.ConfigMIXSUR(self.mixsur)
+            except Exception:
+                pass
         # Try to get all components
         try:
             # Use the configuration interface
@@ -225,19 +225,24 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
                 Line load data book
             *ftriq*: :class:`str`
                 Name of q file
-            *qpbs*: ``True`` | {``False``}
-                Whether or not to create a script and submit it
             *f*: {``None``} | :class:`file`
                 File handle if writing PBS script
         :Versions:
             * 2016-12-20 ``@ddalle``: First version
             * 2016-12-21 ``@ddalle``: Added PBS
+            * 2017-04-06 ``@ddalle``: Support ``usurp``, remove PBS
         """
+       # ------
+       # Inputs
+       # ------
         # Do the SPLITMQ and MIXSUR files exist?
-        qsplitm = os.path.isfile(self.splitmq)
-        qmixsur = os.path.isfile(self.mixsur)
+        qfsplitm = os.path.isfile(self.splitmq)
+        qfmixsur = os.path.isfile(self.mixsur)
+        qfusurp  = os.path.isfile(self.usurp)
+        # Check for a folder we can copy MIXSUR/USURP files from 
+        qfomo = self.fomodir and os.path.isdir(self.fomodir)
         # If there's no mixsur file, there's nothing we can do
-        if not qmixsur:
+        if (not qfmixsur) and (not qfusurp):
             raise RuntimeError(
                 ("No 'mixsur' or 'overint' input file found ") +
                 ("for lineload component '%s'" % self.comp))
@@ -253,14 +258,14 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         if not os.path.isfile(fqvol):
             return
         # If we're in PreprocessTriq, all x/q files are out-of-date
-        for f in ["x.save", "x.srf", "x.vol", "q.save", "q.srf", "q.vol"]:
+        for f in ["grid.in", "x.srf", "x.vol", "q.save", "q.srf", "q.vol"]:
             # Check if file esists
             if os.path.isfile(f): os.remove(f)
-        # -------------------------------------
-        # Determine MIXSUR output folder status
-        # -------------------------------------
+       # -------------------------------------
+       # Determine MIXSUR output folder status
+       # -------------------------------------
         # Check status of self.fomodir folder
-        if self.fomodir and os.path.isdir(self.fomodir):
+        if qfomo:
             # List of required mixsur files
             fmo = [
                 "grid.i.tri", "grid.bnd", "grid.ib",  "grid.ibi",
@@ -268,6 +273,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             ]
             # Initialize a flag that all these files exist
             qmixsur = False
+            qusurp = False
             # Loop through files
             for f in fmo:
                 # Check if the file exists
@@ -275,8 +281,25 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
                     # Missing file
                     qmixsur = True
                     break
-        # Copy files if ``mixsur`` not needed
-        if not qmixsur:
+            # List of required usurp files
+            fus = ["grid.i.tri", "panel_weights.dat", "usurp.map"]
+            # Loop through ``usurp`` files
+            for f in fus:
+                # Check if the file exists
+                if not os.path.isfile(os.path.join(self.fomodir, f)):
+                    # Missing file
+                    qusurp = True
+                    break
+        elif qfusurp:
+            # Must run usurp
+            qmixsur = False
+            qusurp = True
+        else:
+            # Must run mixsur
+            qmixsur = True
+            qusurp = False
+        # Copy files if ``mixsur`` output found
+        if (not qmixsur) and qusurp:
             # Loop through files
             for f in fmo:
                 # If file exists in `lineload/` folder, delete it
@@ -284,9 +307,18 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
                 # Link file
                 fsrc = os.path.join(self.fomodir, f)
                 os.symlink(fsrc, f)
-        # ------------------------
-        # Determine SPLITMQ status
-        # ------------------------
+        # Copy files if ``usurp`` output found
+        if (not qusurp):
+            # Loop through files
+            for f in fus:
+                # If file exists in `lineload/` folder, delete it
+                if os.path.isfile(f): os.remove(f)
+                # Link file
+                fsrc = os.path.join(self.fomodir, f)
+                os.symlink(fsrc, f)
+       # ------------------------
+       # Determine SPLITMQ status
+       # ------------------------
         # Use this while loop as a method to use ``break``
         if qsplitm:
             # Source file option(s)
@@ -331,16 +363,22 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             # Do not run splitmq
             qsplitmq = False
             qsplitmx = False
-        # ---------------------
-        # Prepare SPLITMQ files
-        # ---------------------
+       # ---------------------
+       # Prepare SPLITMQ files
+       # ---------------------
         # Whether or not to split
         qsplitq = qsplitmq or qsplitmx
         # Copy "splitmq"/"splitmx" input template
         if qsplitq: shutil.copy(self.splitmq, "splitmq.i")
         # Copy "mixsur"/"overint" input file
-        shutil.copy(self.mixsur, fmixsur)
-        shutil.copy(self.mixsur, "mixsur.i")
+        if qfusurp:
+            # Copy the usurp file (retain mixsur.i file name)
+            shutil.copy(self.usurp, fmixsur)
+            shutil.copy(self.usurp, "mixsur.i")
+        else:
+            # Copy the mixsur file
+            shutil.copy(self.mixsur, fmixsur)
+            shutil.copy(self.mixsur, "mixsur.i")
         # Prepare files for ``splitmq``
         if qsplitmq:
             # Link parent Q volume
@@ -355,71 +393,75 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             # Link parent X volume
             os.symlink(fxvol, "x.vol")
             # Edit the SPLITMX input file
-            case.EditSplitmqI("splitmq.i", fsplitmx, "x.vol", "x.save")
+            case.EditSplitmqI("splitmq.i", fsplitmx, "x.vol", "grid.in")
         else:
             # Link parent *x.srf* to "x.save" so OVERINT uses it
-            os.symlink(fxsrf, "x.save")
-        # Check for PBS script
-        if kw.get('qpbs', False):
-            # Get the file handle
-            f = kw.get('f')
-            # Check for open file
-            if f is None:
-                raise ValueError(
-                    "No open file handle for preprocessing TRIQ file")
-            # Check for ``splitmq``
-            if qsplitmq:
-                f.write("\n# Extract surface and L=2 from solution\n")
-                f.write("splitmq < %s > splitmq.%s.o\n" %
-                    (fsplitmq, self.comp))
-            # Check for ``splitmx``
-            if qsplitmx:
-                f.write("\n# Extract surface and L=2 grid\n")
-                f.write("splitmx < %s > splitmx.%s.o\n" %
-                    (fsplitmx, self.comp))
-            # Check for ``mixsur``
-            if qmixsur:
-                f.write("\n# Use mixsur to create triangulation\n")
-                f.write("mixsur < %s > mixsur.%s.o\n" % (fmixsur, self.comp))
-            # Write ``overint`` description
-            f.write("\n# Use overint to extract quantities\n")
-            f.write("overint < %s > overint.%.o\n" % (fmixsur, self.comp))
+            os.symlink(fxsrf, "grid.in")
+        # Check for ``splitmq``
+        if qsplitmq:
+            # Command to run splitmq
+            cmd = "splitmq < %s >& splitmq.%s.o" % (fsplitmq, self.comp)
+            # Status update
+            print("    %s" % cmd)
+            # Run ``splitmq``
+            ierr = os.system(cmd)
+            # Check for errors
+            if ierr:
+                raise SystemError("Failure while running ``splitmq``")
+        # Check for ``splitmx``
+        if qsplitmx:
+            # Command to run splitmx
+            cmd = "splitmx < %s >& splitmx.%s.o" % (fsplitmx, self.comp)
+            # Status update
+            print("    %s" % cmd)
+            # Run ``splitmx``
+            ierr = os.system(cmd)
+            # Check for errors
+            if ierr:
+                raise SystemError("Failure while running ``splitmx``")
+       # ----------------------
+       # Prepare ``grid.i.tri``
+       # ----------------------
+        # Check for ``mixsur`` or ``usurp``
+        if qfusurp and qusurp:
+            # Command to usurp
+            cmd = ("usurp -v --full-surface --disjoin=yes < %s >& usurp.%s.o"
+                % (fmixsur, self.comp))
+            # Status update
+            print("    %s" % cmd)
+            # Run ``usurp``
+            ierr = os.system(cmd)
+            # Check for errors
+            if ierr:
+                raise SystemError("Failure while running ``usurp``")
+        elif qmixsur:
+            # Command to mixsur
+            cmd = "mixsur < %s >& mixsur.%s.o" % (fmixsur, self.comp)
+            # Status update
+            print("    %s" % cmd)
+            # Run ``mixsur``
+            ierr = os.system(cmd)
+            # Check for errors
+            if ierr:
+                raise SystemError("Failure while running ``mixsur``")
+       # -----------------------
+       # Prepare ``grid.i.triq``
+       # -----------------------
+        # Check for ``mixsur`` or ``usurp``
+        if qfusurp or qusurp:
+            # Command to usurp
+            cmd = ("usurp -v --use-map < %s >& usurp.%s.o"
+                % (fmixsur, self.comp))
+            # Status update
+            print("    %s" % cmd)
+            # Run ``usurp
+            ierr = os.system(cmd)
+            # Check for errors
+            if ierr:
+                raise SystemError("Failure while running ``usurp``")
         else:
-            # Check for ``splitmq``
-            if qsplitmq:
-                # Command to run splitmq
-                cmd = "splitmq < %s > splitmq.%s.o" % (fsplitmq, self.comp)
-                # Status update
-                print("    %s" % cmd)
-                # Run ``splitmq``
-                ierr = os.system(cmd)
-                # Check for errors
-                if ierr:
-                    raise SystemError("Failure while running ``splitmq``")
-            # Check for ``splitmx``
-            if qsplitmx:
-                # Command to run splitmx
-                cmd = "splitmx < %s > splitmx.%s.o" % (fsplitmx, self.comp)
-                # Status update
-                print("    %s" % cmd)
-                # Run ``splitmx``
-                ierr = os.system(cmd)
-                # Check for errors
-                if ierr:
-                    raise SystemError("Failure while running ``splitmx``")
-            # Check for ``overint``
-            if qmixsur:
-                # Command to mixsur
-                cmd = "mixsur < %s > mixsur.%s.o" % (fmixsur, self.comp)
-                # Status update
-                print("    %s" % cmd)
-                # Run ``mixsur``
-                ierr = os.system(cmd)
-                # Check for errors
-                if ierr:
-                    raise SystemError("Failure while running ``mixsur``")
             # Command to overint
-            cmd = "overint < %s > overint.%s.o" % (fmixsur, self.comp)
+            cmd = "overint < %s >& overint.%s.o" % (fmixsur, self.comp)
             # Status update
             print("    %s" % cmd)
             # Run ``overint``

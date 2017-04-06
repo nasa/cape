@@ -437,6 +437,11 @@ class Options(cape.options.Options):
     def get_DataBook_mixsur(self, comp):
         self._DataBook()
         return self["DataBook"].get_DataBook_mixsur(comp)
+   
+    # Input file for ``usurp``
+    def get_DataBook_usurp(self, comp):
+        self._DataBook()
+        return self["DataBook"].get_DataBook_usurp(comp)
         
     # Input file for ``splitmq``
     def get_DataBook_splitmq(self, comp):
@@ -481,6 +486,7 @@ class Options(cape.options.Options):
     # Copy over the documentation.
     for k in [
         "DataBook_mixsur", "DataBook_splitmq", "DataBook_fomo",
+        "DataBook_usurp",
         "DataBook_QIn", "DataBook_QOut", "DataBook_QSurf",
         "DataBook_XIn", "DataBook_XOut", "DataBook_XSurf"
     ]:
