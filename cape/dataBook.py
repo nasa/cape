@@ -5128,8 +5128,8 @@ class CaseFM(CaseData):
         # Check dimensions
         if self.i.size > FM.i.size:
             raise IndexError(
-                ("Cannot iterative F&M histories %s and " % self) +
-                ("%s due to inconsistent size" % FM))
+                ("Cannot add iterative F&M histories\n  %s\n" % self) +
+                ("  %s\ndue to inconsistent size" % FM))
         # Create a copy
         FM3 = self.Copy()
         # Loop through columns
@@ -5166,8 +5166,8 @@ class CaseFM(CaseData):
         # Check dimensions
         if self.i.size > FM.i.size:
             raise IndexError(
-                ("Cannot iterative F&M histories %s and " % self) +
-                ("%s due to inconsistent size" % FM))
+                ("Cannot add iterative F&M histories\n  %s\n" % self) +
+                ("  %s\ndue to inconsistent size" % FM))
         # Loop through columns
         for col in self.cols:
             # Check for columns not to update
@@ -5201,8 +5201,8 @@ class CaseFM(CaseData):
         # Check dimensions
         if self.i.size > FM.i.size:
             raise IndexError(
-                ("Cannot iterative F&M histories %s and " % self) +
-                ("%s due to inconsistent size" % FM))
+                ("Cannot subtract iterative F&M histories\n  %s\n" % self) +
+                ("  %s\ndue to inconsistent size" % FM))
         # Create a copy
         FM3 = self.Copy()
         # Loop through columns
@@ -5239,8 +5239,8 @@ class CaseFM(CaseData):
         # Check dimensions
         if self.i.size > FM.i.size:
             raise IndexError(
-                ("Cannot iterative F&M histories %s and " % self) +
-                ("%s due to inconsistent size" % FM))
+                ("Cannot subtract iterative F&M histories\n  %s\n" % self) +
+                ("  %s\ndue to inconsistent size" % FM))
         # Loop through columns
         for col in self.cols:
             # Check for columns not to update
