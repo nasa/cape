@@ -236,9 +236,9 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
        # Inputs
        # ------
         # Do the SPLITMQ and MIXSUR files exist?
-        qfsplitm = os.path.isfile(self.splitmq)
-        qfmixsur = os.path.isfile(self.mixsur)
-        qfusurp  = os.path.isfile(self.usurp)
+        qfsplitm = self.splitm and os.path.isfile(self.splitmq)
+        qfmixsur = self.mixsur and os.path.isfile(self.mixsur)
+        qfusurp  = self.usurp  and os.path.isfile(self.usurp)
         # Check for a folder we can copy MIXSUR/USURP files from 
         qfomo = self.fomodir and os.path.isdir(self.fomodir)
         # If there's no mixsur file, there's nothing we can do

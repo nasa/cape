@@ -820,10 +820,13 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
         # Enter the 'lineload' folder
         os.chdir('triqfm')
         # Get input files
+        fusurp   = self.opts.get_DataBook_usurp(self.comp)
         fmixsur  = self.opts.get_DataBook_mixsur(self.comp)
         fsplitmq = self.opts.get_DataBook_splitmq(self.comp)
         ffomo    = self.opts.get_DataBook_fomo(self.comp)
         # Get absolute file paths
+        if (fusurp) and (not os.path.isabs(fusurp)):
+            fusurp = os.path.join(self.RootDir, fusurp)
         if (fmixsur) and (not os.path.isabs(fmixsur)):
             fmixsur = os.path.join(self.RootDir, fmixsur)
         if (fsplitmq) and (not os.path.isabs(fsplitmq)):
@@ -831,6 +834,7 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
         if (ffomo) and (not os.path.isabs(ffomo)):
             ffomo = os.path.join(self.RootDir, ffomo)
         # Save files
+        self.usurp   = fusurp
         self.mixsur  = fmixsur
         self.splitmq = fsplitmq
         self.fomodir = ffomo
@@ -860,14 +864,14 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
             os.chdir('..')
             return
         # If we're in PreprocessTriq, all x/q files are out-of-date
-        for f in ["x.save", "x.srf", "x.vol", "q.save", "q.srf", "q.vol"]:
+        for f in ["grid.in", "x.srf", "x.vol", "q.save", "q.srf", "q.vol"]:
             # Check if file esists
             if os.path.isfile(f): os.remove(f)
        # -------------------------------------
        # Determine MIXSUR output folder status
        # -------------------------------------
         # Check status of self.fomodir folder
-        if self.fomodir and os.path.isdir(self.fomodir):
+        if qfomo:
             # List of required mixsur files
             fmo = [
                 "grid.i.tri", "grid.bnd", "grid.ib",  "grid.ibi",
@@ -875,6 +879,7 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
             ]
             # Initialize a flag that all these files exist
             qmixsur = False
+            qusurp = False
             # Loop through files
             for f in fmo:
                 # Check if the file exists
@@ -882,10 +887,36 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
                     # Missing file
                     qmixsur = True
                     break
-        # Copy files if ``mixsur`` not needed
-        if not qmixsur:
+            # List of required usurp files
+            fus = ["grid.i.tri", "panel_weights.dat", "usurp.map"]
+            # Loop through ``usurp`` files
+            for f in fus:
+                # Check if the file exists
+                if not os.path.isfile(os.path.join(self.fomodir, f)):
+                    # Missing file
+                    qusurp = True
+                    break
+        elif qfusurp:
+            # Must run usurp
+            qmixsur = False
+            qusurp = True
+        else:
+            # Must run mixsur
+            qmixsur = True
+            qusurp = False
+        # Copy files if ``mixsur`` output found
+        if (not qmixsur) and qusurp:
             # Loop through files
             for f in fmo:
+                # If file exists in `lineload/` folder, delete it
+                if os.path.isfile(f): os.remove(f)
+                # Link file
+                fsrc = os.path.join(self.fomodir, f)
+                os.symlink(fsrc, f)
+        # Copy files if ``usurp`` output found
+        if (not qusurp):
+            # Loop through files
+            for f in fus:
                 # If file exists in `lineload/` folder, delete it
                 if os.path.isfile(f): os.remove(f)
                 # Link file
@@ -962,14 +993,14 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
             # Link parent X volume
             os.symlink(fxvol, "x.vol")
             # Edit the SPLITMX input file
-            case.EditSplitmqI("splitmq.i", fsplitmx, "x.vol", "x.save")
+            case.EditSplitmqI("splitmq.i", fsplitmx, "x.vol", "grid.in")
         else:
             # Link parent *x.srf* to "x.save" so OVERINT uses it
-            os.symlink(fxsrf, "x.save")
+            os.symlink(fxsrf, "grid.in")
         # Check for ``splitmq``
         if qsplitmq:
             # Command to run splitmq
-            cmd = "splitmq < %s > splitmq.%s.o" % (fsplitmq, self.comp)
+            cmd = "splitmq < %s >& splitmq.%s.o" % (fsplitmq, self.comp)
             # Status update
             print("    %s" % cmd)
             # Run ``splitmq``
@@ -980,7 +1011,7 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
         # Check for ``splitmx``
         if qsplitmx:
             # Command to run splitmx
-            cmd = "splitmx < %s > splitmx.%s.o" % (fsplitmx, self.comp)
+            cmd = "splitmx < %s >& splitmx.%s.o" % (fsplitmx, self.comp)
             # Status update
             print("    %s" % cmd)
             # Run ``splitmx``
@@ -988,10 +1019,24 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
             # Check for errors
             if ierr:
                 raise SystemError("Failure while running ``splitmx``")
-        # Check for ``overint``
-        if qmixsur:
+       # ----------------------
+       # Prepare ``grid.i.tri``
+       # ----------------------
+        # Check for ``mixsur`` or ``usurp``
+        if qfusurp and qusurp:
+            # Command to usurp
+            cmd = ("usurp -v --full-surface --disjoin=yes < %s >& usurp.%s.o"
+                % (fmixsur, self.comp))
+            # Status update
+            print("    %s" % cmd)
+            # Run ``usurp``
+            ierr = os.system(cmd)
+            # Check for errors
+            if ierr:
+                raise SystemError("Failure while running ``usurp``")
+        elif qmixsur:
             # Command to mixsur
-            cmd = "mixsur < %s > mixsur.%s.o" % (fmixsur, self.comp)
+            cmd = "mixsur < %s >& mixsur.%s.o" % (fmixsur, self.comp)
             # Status update
             print("    %s" % cmd)
             # Run ``mixsur``
@@ -999,17 +1044,31 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
             # Check for errors
             if ierr:
                 raise SystemError("Failure while running ``mixsur``")
-        # Command to overint
-        cmd = "overint < %s > overint.%s.o" % (fmixsur, self.comp)
-        # Status update
-        print("    %s" % cmd)
-        # Run ``overint``
-        ierr = os.system(cmd)
-        # Return to parent directory
-        os.chdir('..')
-        # Check for errors
-        if ierr:
-            raise SystemError("Failure while running ``overint``")
+       # -----------------------
+       # Prepare ``grid.i.triq``
+       # -----------------------
+        # Check for ``mixsur`` or ``usurp``
+        if qfusurp or qusurp:
+            # Command to usurp
+            cmd = ("usurp -v --use-map < %s >& usurp.%s.o"
+                % (fmixsur, self.comp))
+            # Status update
+            print("    %s" % cmd)
+            # Run ``usurp
+            ierr = os.system(cmd)
+            # Check for errors
+            if ierr:
+                raise SystemError("Failure while running ``usurp``")
+        else:
+            # Command to overint
+            cmd = "overint < %s >& overint.%s.o" % (fmixsur, self.comp)
+            # Status update
+            print("    %s" % cmd)
+            # Run ``overint``
+            ierr = os.system(cmd)
+            # Check for errors
+            if ierr:
+                raise SystemError("Failure while running ``overint``")
 # class DBTriqFM
 
 # Force/moment history

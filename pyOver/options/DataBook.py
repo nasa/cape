@@ -62,7 +62,7 @@ class DataBook(cape.options.DataBook):
             * 2017-04-06 ``@ddalle``: First version
         """
         # Global data book setting
-        db_mixsuri = self.get("usurp")
+        db_mixsuri = self.get("usurp", "")
         # Get component options
         copts = self.get(comp, {})
         # Get the component-specific value
