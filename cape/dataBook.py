@@ -5126,9 +5126,10 @@ class CaseFM(CaseData):
             * 2017-03-20 ``@ddalle``: First version
         """
         # Check dimensions
-        if self.i.size != FM.i.size:
-            raise ValueError("Cannot add iterative F&M histories:" +
-                " inconsistent size")
+        if self.i.size > FM.i.size:
+            raise IndexError(
+                ("Cannot iterative F&M histories %s and " % self) +
+                ("%s due to inconsistent size" % FM))
         # Create a copy
         FM3 = self.Copy()
         # Loop through columns
@@ -5137,8 +5138,10 @@ class CaseFM(CaseData):
             if col in ['i']:
                 # Do not update
                 continue
+            # Number of values in this object
+            n = len(getattr(self,col))
             # Update the field
-            setattr(FM3,col, getattr(self,col) + getattr(FM,col))
+            setattr(FM3,col, getattr(self,col) + getattr(FM,col)[:n])
         # Output
         return FM3
             
@@ -5161,16 +5164,19 @@ class CaseFM(CaseData):
             * 2017-03-20 ``@ddalle``: First version
         """
         # Check dimensions
-        if self.i.size != FM.i.size:
-            raise ValueError("Cannot add iterative F&M histories:" +
-                " inconsistent size")
+        if self.i.size > FM.i.size:
+            raise IndexError(
+                ("Cannot iterative F&M histories %s and " % self) +
+                ("%s due to inconsistent size" % FM))
         # Loop through columns
         for col in self.cols:
             # Check for columns not to update
             if col in ['i']:
                 continue
+            # Number of values in this object
+            n = len(getattr(self,col))
             # Update the field
-            setattr(self,col, getattr(self,col) + getattr(FM,col))
+            setattr(self,col, getattr(self,col) + getattr(FM,col)[:n])
         # Apparently you need to output
         return self
     
@@ -5193,9 +5199,10 @@ class CaseFM(CaseData):
             * 2017-03-20 ``@ddalle``: First version
         """
         # Check dimensions
-        if self.i.size != FM.i.size:
-            raise ValueError("Cannot add iterative F&M histories:" +
-                " inconsistent size")
+        if self.i.size > FM.i.size:
+            raise IndexError(
+                ("Cannot iterative F&M histories %s and " % self) +
+                ("%s due to inconsistent size" % FM))
         # Create a copy
         FM3 = self.Copy()
         # Loop through columns
@@ -5204,8 +5211,10 @@ class CaseFM(CaseData):
             if col in ['i']:
                 # Do not update
                 continue
+            # Number of values in this object
+            n = len(getattr(self,col))
             # Update the field
-            setattr(FM3,col, getattr(self,col) - getattr(FM,col))
+            setattr(FM3,col, getattr(self,col) - getattr(FM,col)[:n])
         # Output
         return FM3
     
@@ -5228,16 +5237,19 @@ class CaseFM(CaseData):
             * 2017-03-20 ``@ddalle``: First version
         """
         # Check dimensions
-        if self.i.size != FM.i.size:
-            raise ValueError("Cannot add iterative F&M histories:" +
-                " inconsistent size")
+        if self.i.size > FM.i.size:
+            raise IndexError(
+                ("Cannot iterative F&M histories %s and " % self) +
+                ("%s due to inconsistent size" % FM))
         # Loop through columns
         for col in self.cols:
             # Check for columns not to update
             if col in ['i']:
                 continue
+            # Number of values in this object
+            n = len(getattr(self,col))
             # Update the field
-            setattr(self,col, getattr(self,col) - getattr(FM,col))
+            setattr(self,col, getattr(self,col) - getattr(FM,col)[:n])
         # Apparently you need to output
         return self
     

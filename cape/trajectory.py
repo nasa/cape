@@ -608,7 +608,8 @@ class Trajectory:
                     "Type": "user",
                     "Value": "str",
                     "Format": "%s",
-                    "Label": False
+                    "Label": False,
+                    "Abbreviation": "user"
                 }
             elif key.lower() in ['config', 'GroupPrefix']:
                 # Group name or prefix, e.g. 'poweroff', 'poweron', etc.
