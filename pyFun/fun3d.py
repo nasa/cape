@@ -510,6 +510,42 @@ class Fun3d(Cntl):
         if qdual: os.chdir('..')
         # Output
         return not q
+    
+    # Check for a failure.
+    def CheckError(self, i):
+        """Check if a case has a failure
+        
+        :Call:
+            >>> q = fun3d.CheckError(i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                FUN3D control interface
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *q*: :class:`bool`
+                If ``True``, case has :file:`FAIL` file in it
+        :Versions:
+            * 2015-01-02 ``@ddalle``: First version
+            * 2017-04-06 ``@ddalle``: Checking for ``nan_locations*.dat``
+        """
+        # Safely go to root.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get run name
+        frun = self.x.GetFullFolderNames(i)
+        # Check for the FAIL file.
+        q = os.path.isfile(os.path.join(frun, 'FAIL'))
+        # Check for 'nan_locations*.dat'
+        if not q:
+            # Get list of files
+            fglob = case.glob.glob(os.path.join(frun, 'nan_locations*.dat'))
+            # Check for any
+            q = (len(fglob) > 0)
+        # Go home.
+        os.chdir(fpwd)
+        # Output
+        return q
             
     # Get total CPU hours (actually core hours)
     def GetCPUTime(self, i, running=False):
