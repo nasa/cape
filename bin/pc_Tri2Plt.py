@@ -10,34 +10,37 @@ file.  Each component of the triangulation is written as a separate zone.
 
     .. code-block:: console
     
-        $ pc_Tri2UH3D.py -i $tri -c $cfg -o $uh3d
-        $ pc_Tri2UH3D.py $tri
-        $ pc_Tri2UH3D.py -i $tri
-        $ pc_Tri2UH3D.py $tri $uh3d
-        $ pc_Tri2UH3D.py -h
+        $ pc_Tri2Plt.py TRI [CFG --plt PLT --dat DAT]
+        $ pc_Tri2Plt.py --tri TRI [-c CFG [--plt PLT --dat DAT]
 
 :Inputs:
-    * *tri*: Name of output '.tri' file
-    * *uh3d*: Name of input '.uh3d' file
+    * *TRI*: Name of input ``.tri`` file
+    * *CFG*: Name of configuration file: XML, JSON, or MIXSUR
+    * *PLT*: Name of output Tecplot ``.plt`` file
+    * *DAT*: Name of output Tecplot ``.dat`` file (suppresses *PLT*)
     
 :Options:
     -h, --help
         Display this help message and exit
         
-    -i TRI
-        Use *TRI* as name of created output file
+    -v
+        Verbose output while creating PLT interface
+        
+    --tri TRI
+        Use *TRI* as name of input ``tri`` or ``triq`` file
         
     -c CFG
         Use *CFG* as configuration file (defaults to :file:`Config.xml`)
         
-    -o UH3D
-        Use *UH3D* as input file
+    --plt PLT
+        Create binary Tecplot file *PLT*; default is to replace ``tri``
+        extension of *TRI* with ``plt``
     
-If the name of the output file is not specified, the script will just add
-``.uh3d`` as the extension to the input (deleting ``.tri`` if possible).
+    --dat DAT
+        Create ASCII Tecplot file *DAT*; this suppresses *PLT* output
 
 :Versions:
-    * 2015-04-17 ``@ddalle``: First version
+    * 2014-04-05 ``@ddalle``: First version
 """
 
 # Get the geometry file format modules
@@ -135,7 +138,8 @@ if __name__ == "__main__":
     (a, kw) = cape.argread.readkeys(sys.argv)
     # Check for a help option.
     if kw.get('h',False) or kw.get('help',False):
-        print __doc__
+        import cape.text
+        print(cape.text.markdown(__doc__))
         sys.exit()
     # Run the main function.
     Tri2Plt(*a, **kw)

@@ -444,6 +444,7 @@ class Plt(object):
         
     # SZPLOT Boundary reader
     def ReadSzplt(self, fname):
+        raise NotImplementedError
         # Open the file
         f = open(fname, 'rb')
         # Read the opening string
@@ -613,7 +614,12 @@ class Plt(object):
             # (Also shift to zero-based)
             T = cape.util.TrimUnused(Tris) - 1
             # Form the state matrix for this zone
-            q = np.hstack((Nodes, triq.q[I,:self.nVar]))
+            if nq > 0:
+                # Include *q* variables
+                q = np.hstack((Nodes, triq.q[I,:self.nVar]))
+            else:
+                # Only use nodes as nodal variables
+                q = np.hstack((Nodes))
             # Save the min/max
             self.qmin[n,:] = np.min(q, axis=0)
             self.qmax[n,:] = np.max(q, axis=0)
