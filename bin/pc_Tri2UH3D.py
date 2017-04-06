@@ -41,12 +41,13 @@ If the name of the output file is not specified, the script will just add
     * 2015-04-17 ``@ddalle``: First version
 """
 
-# Get the pyCart module.
-import pyCart
 # Module to handle inputs and os interface
 import sys, os.path
+# Get the pyCart module.
+import cape.tri
+import cape.config
 # Command-line input parser
-import pyCart.argread as argr
+import cape.argread
 
 # Main function
 def Tri2UH3D(*a, **kw):
@@ -94,15 +95,15 @@ def Tri2UH3D(*a, **kw):
     # Prioritize a "-i" input.
     fuh3d = kw.get('o', fuh3d)
     # Config file
-    fxml = kw.get('c', "Config.xml")
+    fcfg = kw.get('c', "Config.xml")
         
-    # Read in the UH3D file.
-    tri = pyCart.Tri(ftri)
-    
-    # Check for the config file.
-    if os.path.isfile(fxml):
-        # Apply the configuration file.
-        tri.config = pyCart.Config(fxml)
+    # Read in the TRI file
+    if os.path.isfile(fcfg):
+        # Apply the configuration file
+        tri = cape.tri.Tri(ftri, c=fcfg)
+    else:
+        # No configuration file
+        tri = cape.tri.Tri(ftri)
     
     # Write it.
     tri.WriteUH3D(fuh3d)
@@ -111,10 +112,11 @@ def Tri2UH3D(*a, **kw):
 # Only process inputs if called as a script!
 if __name__ == "__main__":
     # Process the command-line interface inputs.
-    (a, kw) = argr.readkeys(sys.argv)
+    (a, kw) = cape.argread.readkeys(sys.argv)
     # Check for a help option.
     if kw.get('h',False) or kw.get('help',False):
-        print __doc__
+        import cape.text
+        print cape.text.markdown(__doc__)
         sys.exit()
     # Run the main function.
     Tri2UH3D(*a, **kw)

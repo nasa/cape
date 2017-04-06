@@ -890,7 +890,12 @@ def SetRestartIter(rc, n=None):
             nohist = False
         else:
             # Read the previous namelist
-            nml0 = GetNamelist(rc, i-1)
+            if n>rc.get_PhaseIters(i) and os.path.isfile("fun3d.out"):
+                # Current phase was already run, but run.$i.$n wasn't created 
+                nml0 = GetNamelist(rc, i)
+            else:
+                # Read the previous phase
+                nml0 = GetNamelist(rc, i-1)
             # Get 'time_accuracy' parameter
             ta0 = nml0.GetVar('nonlinear_solver_parameters', 'time_accuracy')
             ta1 = nml.GetVar( 'nonlinear_solver_parameters', 'time_accuracy')
