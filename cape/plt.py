@@ -619,7 +619,7 @@ class Plt(object):
                 q = np.hstack((Nodes, triq.q[I,:self.nVar]))
             else:
                 # Only use nodes as nodal variables
-                q = np.hstack((Nodes))
+                q = np.array(Nodes)
             # Save the min/max
             self.qmin[n,:] = np.min(q, axis=0)
             self.qmax[n,:] = np.max(q, axis=0)
