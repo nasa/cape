@@ -3317,6 +3317,8 @@ class TriBase(object):
                 Triangulation instance
             *tric*: :class:`cape.tri.Tri`
                 Triangulation with alternative component labels
+            *compID*: {``None``} | :class:`int` | :class:`str` | :class:`list`
+                Only consider tris in this component(s)
         :Versions:
             * 2017-02-09 ``@ddalle``: First version
         """
@@ -3327,6 +3329,10 @@ class TriBase(object):
                 "Triangulation for mapping must be 'Tri', or 'Triq'")
         # Check for null operation
         if tri.nTri == 0: return
+        # Only consider triangles in this component
+        compID = kw.get('compID')
+        # Get candidate triangles
+        K = self.GetTrisFromCompID(compID)
         # Process primary tolerances
         atol  = kw.get("atol",  kw.get("AbsTol",  atoldef))
         rtol  = kw.get("rtol",  kw.get("RelTol",  rtoldef))
@@ -3344,8 +3350,15 @@ class TriBase(object):
         ntol = antol  + rntol*L
         # Bet bounding box from *tri*
         bbox = tri.GetCompBBox(pad=tol)
+        # Get triangles with at least one node in that *BBox*
+        K0 = self.FilterTrisBBox(bbox)
         # Filter the triangles that have a chance of intersecting
-        K = self.FilterTrisBBox(bbox)
+        if compID is None:
+            # Just use the *bbox* filter
+            K = K0
+        else:
+            # Apply both constraints
+            K = np.intersect1d(K, K0)
         # Verbose flag
         v = kw.get("v", False)
         # Ensure the centers are present
@@ -3358,7 +3371,7 @@ class TriBase(object):
         # Loop through columns
         for i in range(len(K)):
             # Get triangle number
-            k = K[i]-1
+            k = K[i]
             # Status update if verbose
             if v and ((i+1) % (1000*v) == 0):
                 print("  Mapping triangle %i/%i" % (i+1,len(K)))
@@ -4126,7 +4139,7 @@ class TriBase(object):
         K = np.logical_and(K, np.min(z,axis=1) <= zmax)
         K = np.logical_and(K, np.max(z,axis=1) >= zmin)
         # Output
-        return 1 + np.where(K)[0]
+        return np.where(K)[0]
    # }
     
    # +++++
