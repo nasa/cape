@@ -1650,6 +1650,82 @@ class Report(object):
                 line += "%s \\\\\n" % v[0].replace('_','\_')
             # Add the line to the table.
             lines.append(line)
+        # List of "special" variables
+        spvars = self.cntl.opts.get_SubfigOpt(sfig, "SpecialVars")
+        # Dictionary of recognized special keys
+        spdict = {
+            "AngleOfAttack":      ["a",    "GetAlpha"],
+            "a":                  ["a",    "GetAlpha"],
+            "aoa":                ["a",    "GetAlpha"],
+            "alpha":              ["a",    "GetAlpha"],
+            "AlphaTotal":         ["a",    "GetAlphaTotal"],
+            "TotalAngleOfAttack": ["a",    "GetAlphaTotal"],
+            "alpha_t":            ["a",    "GetAlphaTotal"],
+            "aoav":               ["a",    "GetAlphaTotal"],
+            "Sideslip":           ["b",    "GetBeta"],
+            "AngleOfSideslip":    ["b",    "GetBeta"],
+            "b":                  ["b",    "GetBeta"],
+            "beta":               ["b",    "GetBeta"],
+            "aos":                ["b",    "GetBeta"],
+            "Phi":                ["phi",  "GetPhi"],
+            "phi":                ["phi",  "GetPhi"],
+            "phiv":               ["phi",  "GetPhi"],
+            "DynamicPressure":    ["q",    "GetDynamicPressure"],
+            "q":                  ["q",    "GetDynamicPressure"],
+            "qbar":               ["q",    "GetDynamicPressure"],
+            "qinf":               ["q",    "GetDynamicPressure"],
+            "Pressure":           ["p",    "GetPressure"],
+            "p":                  ["p",    "GetPressure"],
+            "pinf":               ["p",    "GetPressure"],
+            "TotalPressure":      ["p0",   "GetTotalPressure"],
+            "p0":                 ["p0",   "GetTotalPressure"],
+            "ReynoldsNumber":     ["Re",   "GetReynoldsNumber"],
+            "Re":                 ["Re",   "GetReynoldsNumber"],
+            "Rey":                ["Re",   "GetReynoldsNumber"],
+            "REY":                ["Re",   "GetReynoldsNumber"],
+            "Temperature":        ["T",    "GetTemperature"],
+            "T":                  ["T",    "GetTemperature"],
+            "TotalPressure":      ["T0",   "GetTotalTemperature"],
+            "T0":                 ["T0",   "GetTotalTemperature"],
+        }
+        # Loop through special variables
+        for k in spvars:
+            # Write the variable name
+            line = "{\\small\\textsf{%s}}" % k.replace('_', '\_')
+            # Get the information on this parameter
+            abrv, func = spdict.get(k, ["", None])
+            # Append the abbreviation
+            line += " % {\\small\\textsf{%s}} & " & abrv.replace('_', '\_')
+            # Get value
+            if func is None:
+                # No value to get
+                v = None
+            else:
+                # Evaluate the function
+                v = eval("self.cntl.x.%s(%s)" % (func, I))
+                # Get min/max
+                vmin = min(v)
+                vmax = max(v)
+                # Type
+                tv = type(vmin).__name__
+            # Append the value.
+            if tv in ['str', 'unicode']:
+                # Put the value in sans serif
+                line += "{\\small\\textsf{%s}} \\\\\n"%v[0].replace('_','\_')
+            elif tv in ['float', 'int']:
+                # Check for range.
+                if vmax > vmin:
+                    # Print both values.
+                    line += "$%s$, [$%s$, $%s$] \\\\\n" % (v[0],vmin, vmax)
+                else:
+                    # Put the value as a number.
+                    line += "$%s$ \\\\\n" % v[0]
+            else:
+                # Put the virst value as string (other type)
+                line += "\\\\\n"
+            # Add the line to the table.
+            lines.append(line)
+            
         
         # Finish the subfigure
         lines.append('\\hline \\hline\n')

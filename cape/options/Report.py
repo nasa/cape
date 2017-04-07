@@ -74,7 +74,8 @@ class Report(odict):
             "Position": "t",
             "Alignment": "left",
             "Width": 0.4,
-            "SkipVars": []
+            "SkipVars": [],
+            "SpecialVars": []
         }
         # Default table of constraints that defines a sweep
         self.defs["SweepConditions"] = {
