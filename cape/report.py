@@ -1695,7 +1695,7 @@ class Report(object):
             # Get the information on this parameter
             abrv, func = spdict.get(k, ["", None])
             # Append the abbreviation
-            line += " % {\\small\\textsf{%s}} & " % abrv.replace('_', '\_')
+            line += " & {\\small\\textsf{%s}} & " % abrv.replace('_', '\_')
             # Get value
             if func is None:
                 # No value to get
