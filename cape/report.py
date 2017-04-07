@@ -1706,20 +1706,21 @@ class Report(object):
                 # Get min/max
                 vmin = min(v)
                 vmax = max(v)
-                # Type
-                tv = type(vmin).__name__
+            # Type
+            tv = type(vmin).__name__
             # Append the value.
             if tv in ['str', 'unicode']:
                 # Put the value in sans serif
                 line += "{\\small\\textsf{%s}} \\\\\n"%v[0].replace('_','\_')
-            elif tv in ['float', 'int']:
+            elif tv.startswith('float') or tv.startswith('int'):
                 # Check for range.
                 if vmax > vmin:
                     # Print both values.
-                    line += "$%s$, [$%s$, $%s$] \\\\\n" % (v[0],vmin, vmax)
+                    line += "$%.5g$, [$%.5g$, $%.5g$] \\\\\n" % (
+                        v[0],vmin, vmax)
                 else:
                     # Put the value as a number.
-                    line += "$%s$ \\\\\n" % v[0]
+                    line += "$%.5g$ \\\\\n" % v[0]
             else:
                 # Put the virst value as string (other type)
                 line += "\\\\\n"
