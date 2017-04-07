@@ -39,14 +39,17 @@ from . import io
 from . import geom
 from . import volcomp
 
+# Import options
+import cape.options
+
 # Default tolerances for mapping triangulations
-atoldef = 1e-2
-rtoldef = 1e-4
-ctoldef = 1e-4
-ztoldef = 5e-2
-antoldef = 2e-2
-rntoldef = 1e-4
-cntoldef = 1e-4
+atoldef  = cape.options.rc.get("atoldef", 1e-2)
+rtoldef  = cape.options.rc.get("rtoldef", 1e-4)
+ctoldef  = cape.options.rc.get("ctoldef", 1e-4)
+ztoldef  = cape.options.rc.get("ztoldef", 5e-2)
+antoldef = cape.options.rc.get("antoldef", 2e-2)
+rntoldef = cape.options.rc.get("rntoldef", 1e-4)
+cntoldef = cape.options.rc.get("cntoldef", 1e-4)
 
 # Attempt to load the compiled helper module.
 try:

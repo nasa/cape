@@ -122,8 +122,17 @@ rc = {
     "PostTarDirs": [],
     "PostUpdateFiles": [],
     "RemoteCopy": "scp",
-    "TarPBS": "tar"
+    "TarPBS": "tar",
 }
+
+# TriMap settings
+rc["atoldef"] = 1e-2
+rc["rtoldef"] = 1e-4
+rc["ctoldef"] = 1e-4
+rc["ztoldef"] = 5e-2
+rc["antoldef"] = 3e-2
+rc["rntoldef"] = 1e-4
+rc["cntoldef"] = 1e-3
 
 # AFLR3 settings
 rc['aflr3_cdfr']  = 1.1

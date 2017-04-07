@@ -1986,6 +1986,34 @@ class Options(odict):
         self._DataBook()
         return self['DataBook'].get_DBGroupPoints(name)
     
+    # Distance tolerance
+    def get_DataBookAbsTol(self, comp):
+        return self['DataBook'].get_DataBookAbsTol(comp)
+    
+    # Distance tolerance
+    def get_DataBookRelTol(self, comp):
+        return self['DataBook'].get_DataBookRelTol(comp)
+    
+    # Distance tolerance
+    def get_DataBookCompTol(self, comp):
+        return self['DataBook'].get_DataBookCompTol(comp)
+    
+    # Projection tolerance
+    def get_DataBookAbsProjTol(self, comp):
+        return self['DataBook'].get_DataBookAbsProjTol(comp)
+    
+    # Projection tolerance
+    def get_DataBookRelProjTol(self, comp):
+        return self['DataBook'].get_DataBookRelProjTol(comp)
+    
+    # Projection tolerance
+    def get_DataBookCompProjTol(self, comp):
+        return self['DataBook'].get_DataBookCompProjTol(comp)
+        
+    # Dictionary of tolerances for MapTri
+    def get_DataBookMapTriTol(self, comp):
+        return self["DataBook"].get_DataBookMapTriTol(comp)
+    
     # Copy over the documentation.
     for k in ['DataBookComponents', 'DataBookByType',
             'DataBookMapTri', 'DataBookMapConfig',
@@ -1998,7 +2026,11 @@ class Options(odict):
             'DataBookDataCols', 'DataBookTargetCols', 'DataBookTargetByName',
             'DataBookCompID',   'DataBook_nCut',      'DataBookMomentum',
             'DataBookTrim',     'DataBookPrefix',     'DataBookSectionType',
-            'DataBookExtension', 'DataBookTargetType'
+            'DataBookExtension', 'DataBookTargetType',
+            'DataBookMapTriTol',
+            'DataBookAbsProjTol',  'DataBookAbsTol',
+            'DataBookRelProjTol',  'DataBookRelTol',
+            'DataBookCompProjTol', 'DataBookCompTol'
     ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
