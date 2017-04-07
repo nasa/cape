@@ -834,11 +834,11 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
         if (ffomo) and (not os.path.isabs(ffomo)):
             ffomo = os.path.join(self.RootDir, ffomo)
         # Check for the files
-        qfusurp  = (fusurp)   and os.path.isfile(fusurp)
-        qfmixsur = (fmixsur)  and os.path.isfile(fmixsur)
-        qfsplitm = (fsplitmq) and os.path.isfile(fsplitmq)
+        qfusurp  = (fusurp!=None)   and os.path.isfile(fusurp)
+        qfmixsur = (fmixsur!=None)  and os.path.isfile(fmixsur)
+        qfsplitm = (fsplitmq!=None) and os.path.isfile(fsplitmq)
         # Check for a folder we can copy MIXSUR/USURP files from 
-        qfomo = (ffomo) and os.path.isdir(ffomo)
+        qfomo = (ffomo!=None) and os.path.isdir(ffomo)
         # Save files
         self.usurp   = fusurp
         self.mixsur  = fmixsur
@@ -884,14 +884,14 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
                 "mixsur.fmp", "grid.map", "grid.nsf", "grid.ptv"
             ]
             # Initialize a flag that all these files exist
-            qmixsur = False
-            qusurp = False
+            qmixsur = True
+            qusurp = True
             # Loop through files
             for f in fmo:
                 # Check if the file exists
                 if not os.path.isfile(os.path.join(self.fomodir, f)):
                     # Missing file
-                    qmixsur = True
+                    qmixsur = False
                     break
             # List of required usurp files
             fus = ["grid.i.tri", "panel_weights.dat", "usurp.map"]
@@ -900,18 +900,14 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
                 # Check if the file exists
                 if not os.path.isfile(os.path.join(self.fomodir, f)):
                     # Missing file
-                    qusurp = True
+                    qusurp = False
                     break
-        elif qfusurp:
-            # Must run usurp
-            qmixsur = False
-            qusurp = True
         else:
-            # Must run mixsur
-            qmixsur = True
+            # Must run mixsur or usurp
+            qmixsur = False
             qusurp = False
         # Copy files if ``mixsur`` output found
-        if (not qmixsur) and qusurp:
+        if (qmixsur):
             # Loop through files
             for f in fmo:
                 # If file exists in `lineload/` folder, delete it
@@ -920,7 +916,7 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
                 fsrc = os.path.join(self.fomodir, f)
                 os.symlink(fsrc, f)
         # Copy files if ``usurp`` output found
-        if (not qusurp):
+        if (qusurp):
             # Loop through files
             for f in fus:
                 # If file exists in `lineload/` folder, delete it
@@ -1029,7 +1025,7 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
        # Prepare ``grid.i.tri``
        # ----------------------
         # Check for ``mixsur`` or ``usurp``
-        if qfusurp and qusurp:
+        if qfusurp and (not qusurp):
             # Command to usurp
             cmd = ("usurp -v --full-surface --disjoin=yes < %s >& usurp.%s.o"
                 % (fmixsur, self.comp))
@@ -1040,7 +1036,7 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
             # Check for errors
             if ierr:
                 raise SystemError("Failure while running ``usurp``")
-        elif qmixsur:
+        elif (not qfusurp) and (not qmixsur):
             # Command to mixsur
             cmd = "mixsur < %s >& mixsur.%s.o" % (fmixsur, self.comp)
             # Status update

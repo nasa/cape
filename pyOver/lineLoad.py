@@ -272,14 +272,14 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
                 "mixsur.fmp", "grid.map", "grid.nsf", "grid.ptv"
             ]
             # Initialize a flag that all these files exist
-            qmixsur = False
-            qusurp = False
+            qmixsur = True
+            qusurp = True
             # Loop through files
             for f in fmo:
                 # Check if the file exists
                 if not os.path.isfile(os.path.join(self.fomodir, f)):
                     # Missing file
-                    qmixsur = True
+                    qmixsur = False
                     break
             # List of required usurp files
             fus = ["grid.i.tri", "panel_weights.dat", "usurp.map"]
@@ -288,18 +288,14 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
                 # Check if the file exists
                 if not os.path.isfile(os.path.join(self.fomodir, f)):
                     # Missing file
-                    qusurp = True
+                    qusurp = False
                     break
-        elif qfusurp:
-            # Must run usurp
-            qmixsur = False
-            qusurp = True
         else:
             # Must run mixsur
-            qmixsur = True
+            qmixsur = False
             qusurp = False
         # Copy files if ``mixsur`` output found
-        if (not qmixsur) and qusurp:
+        if (qmixsur):
             # Loop through files
             for f in fmo:
                 # If file exists in `lineload/` folder, delete it
@@ -308,7 +304,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
                 fsrc = os.path.join(self.fomodir, f)
                 os.symlink(fsrc, f)
         # Copy files if ``usurp`` output found
-        if (not qusurp):
+        if (qusurp):
             # Loop through files
             for f in fus:
                 # If file exists in `lineload/` folder, delete it
@@ -423,7 +419,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
        # Prepare ``grid.i.tri``
        # ----------------------
         # Check for ``mixsur`` or ``usurp``
-        if qfusurp and qusurp:
+        if qfusurp and (not qusurp):
             # Command to usurp
             cmd = ("usurp -v --full-surface --disjoin=yes < %s >& usurp.%s.o"
                 % (fmixsur, self.comp))
@@ -434,7 +430,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             # Check for errors
             if ierr:
                 raise SystemError("Failure while running ``usurp``")
-        elif qmixsur:
+        elif (not qfusurp) and (not qmixsur):
             # Command to mixsur
             cmd = "mixsur < %s >& mixsur.%s.o" % (fmixsur, self.comp)
             # Status update
