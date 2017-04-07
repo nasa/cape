@@ -833,6 +833,8 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
             fsplitmq = os.path.join(self.RootDir, fsplitmq)
         if (ffomo) and (not os.path.isabs(ffomo)):
             ffomo = os.path.join(self.RootDir, ffomo)
+        # Check for a folder we can copy MIXSUR/USURP files from 
+        qfomo = (ffomo) and os.path.isdir(ffomo)
         # Save files
         self.usurp   = fusurp
         self.mixsur  = fmixsur

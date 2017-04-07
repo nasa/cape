@@ -60,21 +60,24 @@ def overrun(opts=None, i=0, **kw):
         args   = kw.get("args", "")
         # Prefix
         pre    = kw.get("Prefix", "run")
-    if ofcmd == "overrunmpi":
+    # Split command
+    ofcmd = ofcmd.split()
+    # Form string for initial part of command
+    if ofcmd[0] == "overrunmpi":
         # Use the ``overrunmpi`` script
-        cmdi = [ofcmd, '-np', str(nProc), pre, '%02i'%(i+1)]
-    elif ofcmd == "overflowmpi":
+        cmdi = ofcmd + ['-np', str(nProc), pre, '%02i'%(i+1)]
+    elif ofcmd[0] == "overflowmpi":
         # Use the ``overflowmpi`` command
-        cmdi = [mpicmd, '-np', str(nProc), ofcmd]
-    elif ofcmd == "overrun":
+        cmdi = mpicmd + ['-np', str(nProc), ofcmd]
+    elif ofcmd[0] == "overrun":
         # Use the ``overrun`` script
-        cmdi = [ofcmd, pre, '%02i'%(i+1)]
+        cmdi = ofcmd + [pre, '%02i'%(i+1)]
     elif n_mpi:
         # Default to "overflowmpi"
-        cmdi = [mpicmd, '-np', str(nProc), ofcmd]
+        cmdi = [mpicmd, '-np', str(nProc)] + ofcmd
     else:
-        # Use the serial ``nodet`` command
-        cmdi = [ofcmd]
+        # Use the serial 
+        cmdi = ofcmd
     # Append ``-aux`` flag
     if aux: cmdi = cmdi + ['-aux', aux]
     # Append extra arguments
