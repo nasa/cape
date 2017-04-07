@@ -1058,6 +1058,8 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
             print("    %s" % cmd)
             # Run ``usurp
             ierr = os.system(cmd)
+            # Go back up
+            os.chdir("..")
             # Check for errors
             if ierr:
                 raise SystemError("Failure while running ``usurp``")
@@ -1068,6 +1070,8 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
             print("    %s" % cmd)
             # Run ``overint``
             ierr = os.system(cmd)
+            # Go back up to run directory
+            os.chdir("..")
             # Check for errors
             if ierr:
                 raise SystemError("Failure while running ``overint``")
