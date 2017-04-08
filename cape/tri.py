@@ -3463,9 +3463,19 @@ class TriBase(object):
             elif len(cmapd) == 1:
                 # Save single match
                 self.Conf[face] = cmapd[0]
+                # Try to set the config value
+                try:
+                    self.config.faces[face] = cmapd[0]
+                except AttributeError:
+                    pass
             else:
                 # Save list
                 self.Conf[face] = cmapd
+                # Try to set the config value
+                try:
+                    self.config.faces[face] = cmapd
+                except AttributeError:
+                    pass
         # Output compmap
         return compmap
         

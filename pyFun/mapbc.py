@@ -87,7 +87,7 @@ class MapBC(object):
         line = f.readline()
         try:
             # Get number of faces
-            self.n = int(line)
+            self.n = int(line.split()[0])
         except Exception:
             raise ValueError("Could not read number of BCs from first line")
         # Initialize
