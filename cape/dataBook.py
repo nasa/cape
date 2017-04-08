@@ -2515,6 +2515,24 @@ class DBTriqFM(DataBook):
         # Total list of patches including total
         self.comps = [None] + self.patches
         
+        # Get Configuration file
+        fcfg = opts.get_DataBookConfigFile(comp)
+        # Default to global config file
+        if fcfg is None:
+            fcfg = opts.get_ConfigFile()
+        # Make absolute
+        if fcfg is None:
+            # Ok, no file option
+            self.conf = ""
+        elif os.path.isabs(fcfg):
+            # Already an absolute path
+            self.conf = fcfg
+        else:
+            # Relative to root dir
+            self.conf = os.path.join(self.RootDir, fcfg)
+        # Restrict to triangles from *this* compID (can be list)
+        self.candidateCompID = opts.get_DataBookConfigCompID(comp)
+        
         # Loop through the patches
         for patch in self.comps:
             self[patch] = DBTriqFMComp(x, opts, comp, patch=patch, **kw)
@@ -2808,7 +2826,7 @@ class DBTriqFM(DataBook):
             * 2017-03-28 ``@ddalle``: First version
         """
         # Read using :mod:`cape`
-        self.triq = cape.tri.Triq(ftriq)
+        self.triq = cape.tri.Triq(ftriq, c=self.conf)
   # >
   
   # ============
@@ -3101,6 +3119,8 @@ class DBTriqFM(DataBook):
             print("    Mapping component IDs using '%s'" % ftri)
             # Get tolerances
             kw = self.opts.get_DataBookMapTriTol(self.comp)
+            # Set candidate component ID
+            kw["compID"] = self.candidateCompID
             # Map the component IDs
             self.compmap = self.triq.MapTriCompID(self.tri, **kw)
             

@@ -2013,6 +2013,14 @@ class Options(odict):
     # Dictionary of tolerances for MapTri
     def get_DataBookMapTriTol(self, comp):
         return self["DataBook"].get_DataBookMapTriTol(comp)
+        
+    # Config file for raw TRIQ file
+    def get_DataBookConfigFile(self, comp):
+        return self["DataBook"].get_DataBookConfigFile(comp)
+        
+    # CompID from raw TRIQ file
+    def get_DataBookConfigCompID(self, comp):
+        return self["DataBook"].get_DataBookConfigCompID(comp)
     
     # Copy over the documentation.
     for k in ['DataBookComponents', 'DataBookByType',
@@ -2030,7 +2038,8 @@ class Options(odict):
             'DataBookMapTriTol',
             'DataBookAbsProjTol',  'DataBookAbsTol',
             'DataBookRelProjTol',  'DataBookRelTol',
-            'DataBookCompProjTol', 'DataBookCompTol'
+            'DataBookCompProjTol', 'DataBookCompTol',
+            'DataBookConfigFile',  'DataBookConfigCompID'
     ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__

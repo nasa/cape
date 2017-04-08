@@ -761,7 +761,53 @@ class DataBook(odict):
         # Output
         return tols
             
-            
+    # Get config file for raw grid/triangulation
+    def get_DataBookConfigFile(self, comp):
+        """Get config file for the original mesh or unmapped tri file
+        
+        :Call:
+            >>> fcfg = opts.get_DataBookConfigFile(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Data book component name
+        :Outputs:
+            *fcfg*: :class:`str`
+                Name of configuration file
+        :Versions:
+            * 2017-04-07 ``@ddalle``: First version
+        """
+        # Read options for compoonent
+        copts = self.get(comp, {})
+        # Get global option
+        fcfg = self.get("ConfigFile")
+        # Get component-specific option
+        return copts.get("ConfigFile", fcfg)
+        
+    # Restrict analysis to this component
+    def get_DataBookConfigCompID(self, comp):
+        """Get config file for the original mesh or unmapped tri file
+        
+        :Call:
+            >>> compID = opts.get_DataBookConfigCompID(comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Data book component name
+        :Outputs:
+            *compID*: {``None``} | :class:`int` | :class:`str` | :class:`list`
+                Component from pre-mapped tri file
+        :Versions:
+            * 2017-04-07 ``@ddalle``: First version
+        """
+        # Read options for compoonent
+        copts = self.get(comp, {})
+        # Get global option
+        compID = self.get("ConfigCompID")
+        # Get component-specific option
+        return copts.get("ConfigCompID", compID)
   # >
   
   # =======
