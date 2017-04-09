@@ -4,7 +4,7 @@
 Demo 1: Basic Viscous Usage on Arrow with Fins
 ===============================================
 
-This first example is found in ``$PYCART/examples/pyfun/arrow`` where
+This first example is found in ``$PYCART/examples/pyfun/01_arrow`` where
 ``$PYCART`` is the installation folder.
 
 The geometry used for this shape is a capped cylinder with four fins and 9216
@@ -45,8 +45,8 @@ For a C-shell environment, use the following.
         setenv PYTHONPATH "$PYTHONPATH:$HOME/pycart"
         
 Assuming the present working directory is in this demo folder, i.e.
-``$PYCART/examples/pycart/bullet``, a good first test command is the following,
-which checks the status of each case in the matrix.
+``$PYCART/examples/pycart/01_bullet``, a good first test command is the
+following, which checks the status of each case in the matrix.
 
     .. code-block:: bash
     

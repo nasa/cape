@@ -847,9 +847,9 @@ class Config:
             # Process the face
             cID = self.faces[face]
             # Check if it's a list.
-            if type(cID).__name__ == 'list':
+            if type(cID).__name__ in ['list', 'ndarray']:
                 # Add the list.
-                compID += cID
+                compID += list(cID)
             else:
                 # Single component.
                 compID.append(cID)
