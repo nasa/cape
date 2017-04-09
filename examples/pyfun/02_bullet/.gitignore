@@ -1,0 +1,6 @@
+
+bullet/
+
+report/*
+!report/NASA_logo.pdf
+

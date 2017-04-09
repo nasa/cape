@@ -48,6 +48,15 @@ class FAUXGeom(object):
         # Read the file
         if (fname is not None) and os.path.isfile(fname):
             self.Read(fname)
+            
+    # String representation
+    def __repr__(self):
+        """String representation
+        
+        :Versions:
+            * 2017-04-08 ``@ddalle``: First version
+        """
+        return "<FAUXGeom fname='%s', nSurf=%s>" % (self.fname, self.nSurf)
         
         
     # Read a ``faux_input`` file or template

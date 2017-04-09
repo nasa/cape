@@ -5,6 +5,6 @@
     24   5050        farfield_bottom
     25   5050        farfield_right
     26   5050        farfield_back
-     1   4000        cap
-     2   4000        body
-     3   4000        base
+     1   3000        cap
+     2   3000        body
+     3   3000        base
