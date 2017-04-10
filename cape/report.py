@@ -3287,7 +3287,7 @@ class Report(object):
             fsrc = os.path.join(self.cntl.RootDir, flay)
             # Get just the file name
             flay = os.path.split(flay)[-1]
-            flay = '%s.lay' % sfig
+            flay = '%s.py' % sfig
             # Figure width in pixels (can be ``None``).
             wfig = opts.get_SubfigOpt(sfig, "FigWidth")
             # Width in the report
@@ -3889,7 +3889,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
-            *comp*: :clas:`str`
+            *comp*: :class:`str`
                 Name of TriqFM component
             *fsrc*: {``"data"``} | ``"trajectory"`` | :class:`str`
                 Data book trajectory source

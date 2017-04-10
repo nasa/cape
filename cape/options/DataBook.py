@@ -961,7 +961,7 @@ class DataBook(odict):
         # Get the component options.
         copts = self.get(comp, {})
         # Return the type
-        return copts.get("Type", "Force")
+        return copts.get("Type", "FM")
         
     # Get list of components in a component
     def get_DataBookCompID(self, comp):
@@ -1393,8 +1393,7 @@ class DataBook(odict):
     # Get the list of patches
     def get_DataBookPatches(self, comp):
         """
-        Get list of patches for a databook component, usually for a ``TriqFM`
-        component
+        Get list of patches for a databook component, usually for ``TriqFM``
         
         :Call:
             >>> fpatches = opts.get_DataBookPatches(comp)

@@ -1626,7 +1626,7 @@ class Fun3d(Cntl):
             # Append root directory
             ffaux = os.path.join(self.RootDir, ffaux)
         # Read the file if appropriate
-        if (ffaux is None) and (ofaux is None):
+        if (ffaux is None) and (not ofaux):
             # No FAUXGeom instructions
             return
         elif ffaux and os.path.isfile(ffaux):
@@ -1663,6 +1663,9 @@ class Fun3d(Cntl):
             self.FAUXGeom
         except Exception:
             # No FAUXGeom to process
+            return
+        # Check for more than zero planes
+        if self.FAUXGeom.nSurf < 1:
             return
         # Safely go to the home directory
         fpwd = os.getcwd()

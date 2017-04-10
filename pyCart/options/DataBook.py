@@ -62,7 +62,29 @@ class DataBook(cape.options.DataBook):
     :Versions:
         * 2015-09-28 ``@ddalle``: Subclassed from CAPE
     """
+            
+    # Get the data type of a specific component
+    def get_DataBookType(self, comp):
+        """Get the type of data book entry for one component
         
+        :Call:
+            >>> ctype = opts.get_DataBookType(comp)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *ctype*: {Force} | Moment | FM | PointSensor | LineLoad
+                Data book entry type
+        :Versions:
+            * 2015-12-14 ``@ddalle``: First version
+        """
+        # Get the component options.
+        copts = self.get(comp, {})
+        # Return the type
+        return copts.get("Type", "Force")
+    
     # Get additional float columns
     def get_DataBookFloatCols(self, comp):
         """Get additional numeric columns for component (other than coeffs)

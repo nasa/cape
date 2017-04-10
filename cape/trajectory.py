@@ -302,8 +302,32 @@ class Trajectory:
             # Check for empty line or comment
             if line.startswith('#') or len(line)==0:
                 continue
-            # Separate by commas and/or white space
-            v = re.split("[\s\,]+", line)
+            # Group string literals by '"' and "'"
+            grp1 = re.findall('"[^"]*"', line)
+            grp2 = re.findall("'[^']*'", line)
+            # Make replacements
+            for i in range(len(grp1)):
+                line = line.replace(grp1[i], "grp1-%s" % i)
+            for i in range(len(grp2)):
+                line = line.replace(grp2[i], "grp2-%s" % i)
+            # Separate by any white spaces and/or at most one comma
+            v = re.split("\s*,{0,1}\s*", line)
+            # Substitute back in original literals
+            for i in range(len(grp1)):
+                # Replacement text
+                txt = "grp1-%s" % i
+                # Original, quotes stripped
+                raw = grp1[i].strip('"')
+                # Make replacements
+                v = [vi.replace(txt, raw) for vi in v]
+            # Substitute back in original literals
+            for i in range(len(grp2)):
+                # Replacement text
+                txt = "grp2-%s" % i
+                # Original, quotes stripped
+                raw = grp2[i].strip("'")
+                # Make replacements
+                v = [vi.replace(txt, raw) for vi in v]
             # Check v[0]
             if v[-1].lower() in ['$p', 'pass']:
                 # Case is marked as passed.

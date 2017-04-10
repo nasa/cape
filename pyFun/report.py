@@ -103,6 +103,9 @@ class Report(cape.report.Report):
         elif btyp == 'PlotResid':
             # Plot generic residual
             lines += self.SubfigPlotResid(sfig, i, q)
+        elif btyp == 'Paraview':
+            # Get the Paraview layout view
+            lines += self.SubfigParaviewLayout(sfig, i, q)
         elif btyp == 'Tecplot':
             # Get the Tecplot layout view
             lines += self.SubfigTecplotLayout(sfig, i, q)

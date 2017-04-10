@@ -183,6 +183,11 @@ example file is partially shown below.
         0.5,0,poweroff,,0.3478,-0.0002,0.02083, ... 5.02,200,100
         ...
         2.2,10,poweroff,,0.8580,0.0002,0.9261, ... 1.51,200,100
+        
+**Note:** the data book is not created or updated automatically once the cases
+are completed.  The data book is only created or updated using the command
+``pycart --aero``.  For this example, the data book already exists, but for
+practical usage this is an important step.
 
 One can interact with the data book from any Python interactive shell (IPython
 is highly recommended).  This example shows how to interface with the databook,
