@@ -1,0 +1,15 @@
+{
+    "bullet_total": {
+        "bullet_no_base": {
+            "cap": 1,
+            "body": 2,
+            "fins": {
+                "fin1": 11,
+                "fin2": 12,
+                "fin3": 13,
+                "fin4": 14
+            }
+        },
+        "base": 3
+    }
+}
