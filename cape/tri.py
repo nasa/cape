@@ -2158,7 +2158,7 @@ class TriBase(object):
         # Loop through the triangles.
         for k in np.arange(self.nTri):
             # Get the mapped component number
-            kID = cID.index(self.CompID[k])
+            kID = cID.index(self.CompID[k]) + 1
             # Write the line (with 1-based triangle index and CompID).
             fid.write('%i, %i, %i, %i, %i\n' % (k+1, self.Tris[k,0], 
                 self.Tris[k,1], self.Tris[k,2], kID))
@@ -2440,9 +2440,19 @@ class TriBase(object):
             for face in tri.config.faces:
                 # Check if the face is also in the current configuration
                 if face in self.config.faces:
-                    # Union the two faces
-                    self.config.faces[face] = np.union1d(
-                        self.config.faces[face], tri.config.faces[face])
+                    # Get the two faces
+                    face0 = self.config.faces[face]
+                    face1 = tri.config.faces[face]
+                    # Check the situation
+                    if face0 == face1:
+                        # Do nothing
+                        pass
+                    else:
+                        # Convert to array
+                        face0 = np.array(face0).flatten()
+                        face1 = np.array(face1).flatten()
+                        # Union the two faces
+                        self.config.faces[face] = np.union1d(face0, face1)
                 else:
                     # Add the face
                     self.config.faces[face] = tri.config.faces[face]
@@ -2706,23 +2716,25 @@ class TriBase(object):
                 pass
         
     # Function to read Config.xml
-    def ReadConfigXML(self, c):
+    def ReadConfigXML(self, c, restrict=False):
         """Read a ``Config.xml`` file labeling and grouping of component IDs
         
         :Call:
-            >>> tri.ReadConfigXML(c)
+            >>> tri.ReadConfigXML(c, restrict=False)
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
             *c*: :class:`str`
                 Configuration file name
+            *restrict*: ``True`` | {``False``}
         :Versions:
             * 2015-11-19 ``@ddalle``: First version
         """
         # Read the configuration and save it.
         self.config = Config(c)
         # Restrict to a subset
-        self.RestrictConfigCompID()
+        if restrict:
+            self.RestrictConfigCompID()
         
     # Function to read Config.json
     def ReadConfigJSON(self, c):
@@ -2812,19 +2824,19 @@ class TriBase(object):
                 # Process type
                 if type(kID).__name__ != 'list': kID = [kID]
                 # Initialize indices of tris with matching compIDs
-                I = np.ones_like(cID)
+                I = np.zeros_like(cID)
                 # Loop through additional entries
                 for kj in kID:
                     # Use *or* operation to search for other matches
                     I = np.logical_or(I, compID==kj)
                 # Assign the new value.
-                self.CompID[compID==self.Conf[k]] = cID
+                self.CompID[I] = cID
                 # Save it in the Conf, too.
                 self.Conf[k] = cID
                 # Save the compID as an int in the *config* just for clarity
                 #self.config.faces[k] = cID
         # Restrict
-        self.RestrictConfigCompID()
+        #self.RestrictConfigCompID()
         
     # Write a new Config.xml file
     def WriteConfigXML(self, fname="Config.xml"):
@@ -3600,7 +3612,8 @@ class TriBase(object):
                 BC = self.config.GetProperty(comp, 'BC')
             # Check for a BC find
             if BC is None:
-                print("  Component '%s' had no 'BC' or 'aflr3_bc' property"
+                raise ValueError(
+                    "  Component '%s' had no 'BC' or 'aflr3_bc' property"
                     % comp)
             # Apply to the appropriate tris and quads
             if len(IT) > 0:
