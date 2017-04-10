@@ -2139,8 +2139,10 @@ class TriBase(object):
         :Versions:
             * 2015-04-17 ``@ddalle``: First version
         """
+        # List of actual component IDs
+        cID = list(np.unique(self.CompID))
         # Number of component IDs
-        nID = len(np.unique(self.CompID))
+        nID = len(cID)
         # Open the file for creation.
         fid = open(fname, 'w')
         # Write the author line.
@@ -2155,15 +2157,19 @@ class TriBase(object):
                 (i+1, self.Nodes[i,0], self.Nodes[i,1], self.Nodes[i,2]))
         # Loop through the triangles.
         for k in np.arange(self.nTri):
+            # Get the mapped component number
+            kID = cID.index(self.CompID[k])
             # Write the line (with 1-based triangle index and CompID).
             fid.write('%i, %i, %i, %i, %i\n' % (k+1, self.Tris[k,0], 
-                self.Tris[k,1], self.Tris[k,2], self.CompID[k]))
+                self.Tris[k,1], self.Tris[k,2], kID))
         # Loop through the component names.
-        for k in range(1,nID+1):
+        for k in range(nID):
+            # Get the actual component number
+            c = cID[k]
             # Get the name that will be written.
-            lbl = lbls.get(k, str(k))
+            lbl = lbls.get(c, str(k+1))
             # Write the label.
-            fid.write("%i, '%s'\n" % (k, lbl))
+            fid.write("%i, '%s'\n" % (k+1, lbl))
         # Write termination line.
         fid.write('99,99,99,99,99\n')
         # Close the file.
