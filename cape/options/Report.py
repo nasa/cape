@@ -886,11 +886,11 @@ class Report(odict):
             * 2016-01-29 ``@ddalle``: First version
         """
         # Get the overall option
-        qnum = self.get('ShowCase', False)
+        qnum = self.get('ShowCaseNumber', False)
         # Get the report
         R = self.get_Report(rep)
         # Get the report-specific option
-        return R.get('ShowCase', qnum)
+        return R.get('ShowCaseNumber', qnum)
             
     # Get alignment for a figure
     def get_FigAlignment(self, fig):
