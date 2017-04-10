@@ -372,10 +372,11 @@ Running the command ``pyfun --aero`` will fill in the other two cases.
         bullet/m1.75a10.0b0.0
         bullet/m1.75a30.0b0.0
 
-The :file:`pyFun.json` ``"Report"`` section also includes a Mach sweep figure. 
+The :file:`pyFun.json` ``"Report"`` section also includes a Mach sweep figure.
 Details of the Mach sweep (with an angle of attack carpet plot) are the same as
-in :ref:`pycart-ex-data-arrow`, but :numref:`fig-pyfun-ex02-mach-cap-CN` gives
-an example of one of the plots from the resulting :file:`report-mach.pdf`.
+in the Cart3D example :ref:`pycart-ex-data-arrow`, but
+:numref:`fig-pyfun-ex02-mach-cap-CN` gives an example of one of the plots from
+the resulting :file:`report-mach.pdf`.
 
     .. _fig-pyfun-ex02-mach-cap-CN:
     .. figure:: bullet/b0/mach_cap_CN.*
