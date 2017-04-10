@@ -47,6 +47,10 @@ relatively simple commands.
         
     -f FNAME
         Use pyCart input file *FNAME* (defaults to 'pyCart.json')
+        
+    -x FPY
+        Executes Python script *FPY* using ``execfile()`` prior to taking other
+        actions; can be stacked using ``-x FPY1 -x FPY2 -x FPY3``, etc.
 
     -n NJOB
         Submit at most *NJOB* PBS scripts (defaults to unlimited)

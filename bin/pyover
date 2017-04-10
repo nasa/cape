@@ -34,6 +34,15 @@ if __name__ == "__main__":
     # Try to read it.
     ofl = pyOver.Overflow(fname)
     
+    # Get list of scripts in the "_old" section
+    kwx = [ki['x'] for ki in kw.get('_old', {}) if 'x' in ki]
+    # Append the last "-x" input
+    if 'x' in kw:
+        kwx.append(kw['x'])
+    # Apply all scripts
+    for fx in kwx:
+        execfile(fx)
+    
     # Process index list.
     if ('I' in kw) and (kw['I'] != True):
         # Turn into a single list

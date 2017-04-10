@@ -476,14 +476,14 @@ class Cntl(object):
         # No submissions if we're just deleting.
         if qKill or qExec: qCheck = True
         # Check if we should start cases
-        if kw.get("nostart") or kw.get("no-start"):
+        if kw.get("nostart") or (not kw.get("start", True)):
             # Set cases up but do not start them
             q_strt = False
         else:
             # Set cases up and submit/start them
             q_strt = True
         # Check if we should submit INCOMP jobs
-        if kw.get("norestart") or kw.get("no-restart"):
+        if kw.get("norestart") or (not kw.get("restart", True)):
             # Do not submit jobs labeled "INCOMP"
             stat_submit = ["---"]
         elif q_strt:
