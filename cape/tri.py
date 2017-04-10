@@ -2988,8 +2988,9 @@ class TriBase(object):
             # There's nothing to read
             return ""
         # Get list of available components from Conf
-        Comps = [comp for comp in self.Conf]
-        CompIDs = [self.Conf[comp] for comp in self.Conf]
+        Comps = [comp for comp in self.Conf if
+            type(self.Conf[comp]).__name__ == "int"]
+        CompIDs = [self.Conf[comp] for comp in Comps]
         # Check if CompID is present
         if compID in CompIDs:
             # Get the component name
