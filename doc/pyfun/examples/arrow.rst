@@ -1,5 +1,5 @@
 
-.. _pyfun-ex-arrow:
+.. _pyfun-ex01-arrow:
 
 Demo 1: Basic Viscous Usage on Arrow with Fins
 ===============================================

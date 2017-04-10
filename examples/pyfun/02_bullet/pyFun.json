@@ -24,7 +24,7 @@
         // Iteration control
         "nIter": [100, 100],
         "PhaseIters": [0, 200],
-        "PhaseSequence": [0,1],
+        "PhaseSequence": [0, 1],
         // Mode control
         "qsub": false,
         "MPI": false,
@@ -50,7 +50,7 @@
             "flux_construction": "roe",
             "flux_construction_lhs": "vanleer",
             "flux_limiter": "hvanalbada",
-            "freeze_limiter_iteration": [150, 150]
+            "freeze_limiter_iteration": [150, 0]
         },
         "special_parameters": {
             "large_angle_fix": "on"

@@ -3889,7 +3889,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
-            *comp*: :clas:`str`
+            *comp*: :class:`str`
                 Name of TriqFM component
             *fsrc*: {``"data"``} | ``"trajectory"`` | :class:`str`
                 Data book trajectory source

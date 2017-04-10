@@ -39,7 +39,7 @@ now = datetime.datetime.now()
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
-    'sphinx.ext.pngmath',
+    'sphinx.ext.mathjax',
 ]
 
 # Main title

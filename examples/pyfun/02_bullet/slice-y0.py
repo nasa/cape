@@ -3,6 +3,20 @@ from paraview.simple import *
 #### disable automatic camera reset on 'Show'
 paraview.simple._DisableFirstRenderCameraReset()
 
+# System interface
+import os
+# Check for DAT instead of PLT file
+for f in ['arrow_tec_boundary', 'arrow_plane-y0']:
+    # Name of DAT and PLT files
+    fdat = '%s.dat' % f
+    fplt = '%s.plt' % f
+    # Check for DAT file
+    if os.path.isfile(fdat):
+        # Delete any PLT file
+        if os.path.isfile(fplt): os.remove(fplt)
+        # Create new PLT file
+        os.system('preplot %s %s' % (fdat, fplt))
+
 # create a new 'VisItTecplotBinaryReader'
 arrow_tec_boundary_timestep200plt = VisItTecplotBinaryReader(FileName=['arrow_tec_boundary.plt'])
 arrow_tec_boundary_timestep200plt.MeshStatus = ['zone']
