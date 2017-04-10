@@ -62,12 +62,14 @@
         }
     },
 
+    // Mesh
     "Mesh": {
         "MeshFile": ["bullet-inviscid.ugrid"],
         "BCFile":    "bullet-inviscid.mapbc",
         "TriFile":   "bullet-far.tri"
     },
-
+    
+    // Component configuration
     "Config": {
         // Name configuration file
         "File": "bullet.xml",
@@ -93,15 +95,28 @@
         "Inputs": {
         }
     },
+    
+    // Database
     "DataBook": {
+        // List of components
         "Components": [
             "bullet_no_base", "bullet_total",
             "cap", "body", "base"
         ],
+        // Location
+        "Folder": "data/bullet",
+        // Overall statistic inputs
         "nStats": 50,
         "nMin": 150,
-        "Folder": "data/bullet"
+        // Definitions
+        "bullet_no_base": {"Type": "Force"},
+        "bullet_total": {"Type": "Force"},
+        "cap": {"Type": "Force"},
+        "body": {"Type": "Force"},
+        "base": {"Type": "Force"}
     },
+    
+    // Reports
     "Report": {
         "Reports": ["case"],
         "Archive": true,
@@ -115,12 +130,31 @@
             "Frontispiece": "NASA_logo.pdf",
             "Restriction": "Distribution Unlimited"
         },
+        "mach": {
+            "Sweeps": ["mach"],
+            "Title": "pyFun Example 02: Inviscid Bullet",
+            "Subtitle": "FUN3D Force \\& Moment Mach Sweeps",
+            "Author": "pyCart Development Team"
+        },
+        // Definitions of sweeps
+        "Sweeps": {
+            "mach": {
+                "EqCons": ["beta"],
+                "CarpetEqCons": ["alpha"],
+                "XAxis": "mach",
+                "Figures": ["SweepTables", "MachSweep"]
+            }
+        },
         // Definitions for each figure
         "Figures": {
             // Conditions and coefficients table
             "Summary": {
                 "Subfigures": ["CaseConds", "CoeffTable"],
                 "Alignment": "left"
+            },
+            "SweepTables": {
+                "Alignment": "left",
+                "Subfigures": ["SweepConds", "SweepList"]
             },
             // Basic iterative history plots
             "QuickHistory": {
@@ -131,6 +165,16 @@
                 ],
                 "Header": "Iterative histories",
                 "Alignment": "center"
+            },
+            // Mach sweep plots
+            "MachSweep": {
+                "Header": "Mach sweeps of force coefficients",
+                "Alignment": "center",
+                "Subfigures": [
+                    "mach_bullet_CA", "mach_bullet_CY", "mach_bullet_CN",
+                    "mach_total_CA",  "mach_total_CY",  "mach_total_CN",
+                    "mach_cap_CA",    "mach_cap_CY",    "mach_cap_CN"
+                ]
             }
         },
         // Definitions for each subfigure
@@ -153,6 +197,52 @@
                 "Components": ["bullet_no_base", "cap"],
                 "Coefficients": ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
             },
+            // Table of trajectory variables
+            "SweepConds": {
+                "Type": "Conditions",
+                "Header": "Conditions",
+                "Width": 0.5,
+                "Alignment": "t"
+            },
+            "SweepList": {
+                "Type": "SweepCases",
+                "Header": "List of cases",
+                "Width": 0.5,
+                "Alignment": "t"
+            },
+            // bullet Mach sweep
+            "mach_bullet": {
+                "Type": "SweepCoeff",
+                "Width": 0.33,
+                "FigureWidth": 5.5,
+                "FigureHeight": 4.2,
+                "LineOptions": {
+                    "marker": "o",
+                    "color": ["b", "g", "k", "darkorange"],
+                    "ls": "--"
+                },
+                "Component": "bullet_no_base",
+                "XLabel": "Mach number"
+            },
+            "mach_bullet_CA": {"Type": "mach_bullet", "Coefficient": "CA"},
+            "mach_bullet_CY": {"Type": "mach_bullet", "Coefficient": "CY"},
+            "mach_bullet_CN": {"Type": "mach_bullet", "Coefficient": "CN"},
+            // total Mach sweep
+            "mach_total": {
+                "Type": "mach_bullet",
+                "Component": "bullet_total"
+            },
+            "mach_total_CA": {"Type": "mach_total", "Coefficient": "CA"},
+            "mach_total_CY": {"Type": "mach_total", "Coefficient": "CY"},
+            "mach_total_CN": {"Type": "mach_total", "Coefficient": "CN"},
+            // cap Mach sweep
+            "mach_cap": {
+                "Type": "mach_bullet",
+                "Component": "cap"
+            },
+            "mach_cap_CA": {"Type": "mach_cap", "Coefficient": "CA"},
+            "mach_cap_CY": {"Type": "mach_cap", "Coefficient": "CY"},
+            "mach_cap_CN": {"Type": "mach_cap", "Coefficient": "CN"},
             // Total forces and moments (except base)
             "bullet": {
                 "Type": "PlotCoeff",
