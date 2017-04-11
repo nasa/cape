@@ -48,6 +48,10 @@ def main(**kw):
     u = kw.get('u', os.environ['USER'])
     # Get queue name
     q = kw.get('q')
+    # Check for "-q" with no named queue
+    if q == True:
+        print("WARNING: option '-q' needs a queue name; ignoring")
+        q = None
     # Get the lines of qstat.
     if ("u" not in kw) and type(q).__name__.startswith("str"):
         # Get all the jobs for a queue (all users)
