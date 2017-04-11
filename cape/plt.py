@@ -676,6 +676,8 @@ class Plt(object):
         """
         # Inputs
         triload = kw.get('triload', True)
+        # Boundary number map?
+        mapbc = kw.get('mapbc', True)
         # Averaging?
         avg = kw.get('avg', True)
         # Write RMS values?
@@ -874,6 +876,12 @@ class Plt(object):
             except Exception:
                 # Otherwise just number 1 to *n*
                 comp = np.max(CompID) + 1
+            # Check for converting the compID (e.g. FUN3D 'mapbc' file)
+            if mapbc is not None:
+                try:
+                    comp = mapbc.CompID[comp-1]
+                except Exception:
+                    pass
             # Save the component IDs
             CompID[iTri:iTri+kTri] = comp
             # Increase the running tri count

@@ -78,8 +78,15 @@ def readkeys(argv):
             >>> kw
             {'h': True, 'i': 'in.tri'}
             
+        Overwritten settings are saved in ``kw['_old']``.
+        
+            >>> a, kw = readkeys(['ex.sh', '-f', 'in.1', '-f', 'in.2'])
+            >>> kw
+            {'_old': [{'a': 'in.1'}], 'f': 'in.2'}
+            
     :Versions:
         * 2014-06-10 ``@ddalle``: First version
+        * 2017-04-10 ``@ddalle``: Added ``--no-v`` --> ``v=False``
     """
     # Check the input.
     if type(argv) is not list:
@@ -107,23 +114,36 @@ def readkeys(argv):
         else:
             # Key name starts after '-'s
             k = a.lstrip('-')
+            # Check for something like "no-restart" -> restart=False
+            if k.startswith('no-'):
+                # Strip the key
+                kq = k[3:]
+                q = False
+            else:
+                # Regular key default value is tru
+                kq = k
+                q = True
             # Check if already processed
             if k in kwargs:
                 # Append the current value to the *old* list
                 old.append({k: kwargs[k]})
+            # Check for negative
+            if (not q) and kq in kwargs:
+                # Append the negative
+                old.append({kq: kwargs[kq]})
             # Increase the arg count.
             iarg += 1
             # Check for more arguments.
             if iarg >= argc:
                 # No option value.
-                kwargs[k] = True
+                kwargs[kq] = q
             else:
                 # Read the next argument.
                 v = argv[iarg]
                 # Check if it's another option.
                 if v.startswith('-'):
                     # No option value.
-                    kwargs[k] = True
+                    kwargs[kq] = q
                 else:
                     # Store the option value.
                     kwargs[k] = v
@@ -142,8 +162,7 @@ def readflags(argv):
     of a keyword and a single-hyphen as a list of stackable flags
     
     :Call:
-        >>> (args, kwargs) = argread.readflags(argv)
-    
+        >>> args, kwargs = argread.readflags(argv)
     :Inputs:
         *argv*: :class:`list` (:class:`str`)
             List of string inputs; first entry is ignored (from ``sys.argv``)
@@ -179,12 +198,14 @@ def readflags(argv):
             
     :Versions:
         * 2014-06-10 ``@ddalle``: First version
+        * 2017-04-10 ``@ddalle``: Added ``--no-v`` --> ``v=False``
     """
     # Check the input.
     if type(argv) is not list:
         raise TypeError('Input must be a list of strings.')
     # Initialize outputs.
     args = []
+    old = []
     kwargs = {}
     # Get the number of arguments.
     argc = len(argv)
@@ -200,19 +221,36 @@ def readflags(argv):
         if a.startswith('--'):
             # Key name starts after '-'s
             k = a.lstrip('-')
+            # Check for something like "no-restart" -> restart=False
+            if k.startswith('no-'):
+                # Strip the key
+                kq = k[3:]
+                q = False
+            else:
+                # Regular key default value is tru
+                kq = k
+                q = True
+            # Check if already processed
+            if k in kwargs:
+                # Append the current value to the *old* list
+                old.append({k: kwargs[k]})
+            # Check for negative
+            if (not q) and kq in kwargs:
+                # Append the negative
+                old.append({kq: kwargs[kq]})
             # Increase the arg count.
             iarg += 1
             # Check for more arguments.
             if iarg >= argc:
                 # No option value.
-                kwargs[k] = True
+                kwargs[kq] = q
             else:
                 # Read the next argument.
                 v = argv[iarg]
                 # Check if it's another option.
                 if v.startswith('-'):
                     # No option value.
-                    kwargs[k] = True
+                    kwargs[kq] = q
                 else:
                     # Store the option value.
                     kwargs[k] = v
@@ -238,6 +276,8 @@ def readflags(argv):
             iarg += 1
         # Check for last input.
         if iarg >= argc: break
+    # Set the *old* flag
+    kwargs["_old"] = old
     # Return the args and kwargs
     return (args, kwargs)
 
@@ -250,7 +290,7 @@ def readflagstar(argv):
     following value.
     
     :Call:
-        >>> (args, kwargs) = argread.readflagstar(argv)
+        >>> args, kwargs = argread.readflagstar(argv)
     :Inputs:
         *argv*: :class:`list` (:class:`str`)
             List of string inputs; first entry is ignored (from ``sys.argv``)
@@ -286,12 +326,14 @@ def readflagstar(argv):
             
     :Versions:
         * 2014-10-10 ``@ddalle``: First version
+        * 2017-04-10 ``@ddalle``: Added ``--no-v`` --> ``v=False``
     """
     # Check the input.
     if type(argv) is not list:
         raise TypeError('Input must be a list of strings.')
     # Initialize outputs.
     args = []
+    old = []
     kwargs = {}
     # Get the number of arguments.
     argc = len(argv)
@@ -307,19 +349,36 @@ def readflagstar(argv):
         if a.startswith('--'):
             # Key name starts after '-'s
             k = a.lstrip('-')
+            # Check for something like "no-restart" -> restart=False
+            if k.startswith('no-'):
+                # Strip the key
+                kq = k[3:]
+                q = False
+            else:
+                # Regular key default value is tru
+                kq = k
+                q = True
+            # Check if already processed
+            if k in kwargs:
+                # Append the current value to the *old* list
+                old.append({k: kwargs[k]})
+            # Check for negative
+            if (not q) and kq in kwargs:
+                # Append the negative
+                old.append({kq: kwargs[kq]})
             # Increase the arg count.
             iarg += 1
             # Check for more arguments.
             if iarg >= argc:
                 # No option value.
-                kwargs[k] = True
+                kwargs[kq] = q
             else:
                 # Read the next argument.
                 v = argv[iarg]
                 # Check if it's another option.
                 if v.startswith('-'):
                     # No option value.
-                    kwargs[k] = True
+                    kwargs[kq] = q
                 else:
                     # Store the option value.
                     kwargs[k] = v
@@ -341,11 +400,18 @@ def readflagstar(argv):
                     # Empty flag.
                     kwargs[''] = a
                 else:
-                    # Save the last flag with a value
+                    
                     #  Example: "tar -xf f.tar"
                     #      ==>   {"x":True, "f":'f.tar'}
-                    kwargs[f[-1]] = a
-                    # List of flags.
+                    # Save the last flag with a value
+                    k = f[-1]
+                    # Check if already processed
+                    if k in kwargs:
+                        # Append the current value to the *old* list
+                        old.append({k: kwargs[k]})
+                    # Save the new value
+                    kwargs[k] = a
+                    # List of flags for any preceding chars
                     for j in range(len(f)-1):
                         kwargs[f[j]] = True
             else:
@@ -364,6 +430,8 @@ def readflagstar(argv):
             iarg += 1
         # Check for last input.
         if iarg >= argc: break
+    # Set the *old* flag
+    kwargs["_old"] = old
     # Return the args and kwargs
-    return (args, kwargs)
+    return args, kwargs
 

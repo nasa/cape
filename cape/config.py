@@ -838,7 +838,7 @@ class Config:
         # Initialize the list.
         compID = []
         # Process the type.
-        if type(face).__name__ in ['list', 'numpy.ndarray']:
+        if type(face).__name__ in ['list', 'ndarray']:
             # Loop through the inputs.
             for f in face:
                 # Call this function so it passes to the non-array portion.
@@ -1235,7 +1235,7 @@ class ConfigMIXSUR(object):
         # Initialize the list.
         compID = []
         # Process the type.
-        if type(face).__name__ in ['list', 'numpy.ndarray']:
+        if type(face).__name__ in ['list', 'ndarray']:
             # Loop through the inputs.
             for f in face:
                 # Call this function so it passes to the non-array portion.
@@ -1244,9 +1244,9 @@ class ConfigMIXSUR(object):
             # Process the face
             cID = self.faces[face]
             # Check if it's a list.
-            if type(cID).__name__ == 'list':
+            if type(cID).__name__ in ['list', 'ndarray']:
                 # Add the list.
-                compID += cID
+                compID += list(cID)
             else:
                 # Single component.
                 compID.append(cID)
@@ -1381,7 +1381,7 @@ class ConfigJSON(object):
         # Initialize the list.
         compID = []
         # Process the type.
-        if type(face).__name__ in ['list', 'numpy.ndarray']:
+        if type(face).__name__ in ['list', 'ndarray']:
             # Loop through the inputs.
             for f in face:
                 # Call this function so it passes to the non-array portion.
@@ -1390,9 +1390,9 @@ class ConfigJSON(object):
             # Process the face
             cID = self.faces[face]
             # Check if it's a list.
-            if type(cID).__name__ == 'list':
+            if type(cID).__name__ in ['list', 'ndarray']:
                 # Add the list.
-                compID += cID
+                compID += list(cID)
             else:
                 # Single component.
                 compID.append(cID)

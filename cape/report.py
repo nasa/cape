@@ -1680,6 +1680,7 @@ class Report(object):
             "TotalPressure":      ["p0",   "GetTotalPressure"],
             "p0":                 ["p0",   "GetTotalPressure"],
             "ReynoldsNumber":     ["Re",   "GetReynoldsNumber"],
+            "Reynolds":           ["Re",   "GetReynoldsNumber"],
             "Re":                 ["Re",   "GetReynoldsNumber"],
             "Rey":                ["Re",   "GetReynoldsNumber"],
             "REY":                ["Re",   "GetReynoldsNumber"],
@@ -1702,7 +1703,7 @@ class Report(object):
                 v = None
             else:
                 # Evaluate the function
-                v = eval("self.cntl.x.%s(%s)" % (func, I))
+                v = eval("self.cntl.x.%s(%s)" % (func, I.__repr__()))
                 # Get min/max
                 vmin = min(v)
                 vmax = max(v)

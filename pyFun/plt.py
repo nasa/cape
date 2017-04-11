@@ -5,12 +5,16 @@ Tecplot PLT File Interface for Fun3D
 
 """
 
+# System interface
+import glob
 # Basic numerics
 import numpy as np
 # Useful tool for more complex binary I/O methods
 import cape.io
 import cape.plt
 import cape.tri
+# Local tool for MapBC file interface
+import pyFun.mapbc
 
 # Convert a PLT to TRIQ
 def Plt2Triq(fplt, ftriq=None, **kw):
@@ -44,6 +48,14 @@ def Plt2Triq(fplt, ftriq=None, **kw):
     rms = kw.get('rms', False)
     # Read the PLT file
     plt = Plt(fplt)
+    # Check for mapbc file
+    fglob = glob.glob("*.mapbc")
+    # Check for more than one
+    if len(fglob) > 0:
+        # Make a crude attempt at sorting
+        fglob.sort()
+        # Import the alphabetically last one (should be the same anyway)
+        kw["mapbc"] = pyFun.mapbc.MapBC(fglob[0])
     # Create the TRIQ interface
     triq = plt.CreateTriq(**kw)
     # Get output file extension
