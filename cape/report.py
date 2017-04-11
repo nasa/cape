@@ -1624,8 +1624,12 @@ class Report(object):
             elif x.defns[k]['Value'] in ['float', 'int']:
                 # Check for range.
                 if max(v) > min(v):
+                    # Perform substitutions
+                    w0 = self.WriteScientific('%.5g' % v[0])
+                    wmin = self.WriteScientific('%.5g' % vmin)
+                    wmax = self.WriteScientific('%.5g' % vmax) 
                     # Print both values.
-                    line += "$%s$, [$%s$, $%s$] \\\\\n" % (v[0],min(v),max(v))
+                    line += "$%s$, [$%s$, $%s$] \\\\\n" % (w0,wmin,wmax)
                 else:
                     # Put the value as a number.
                     line += "$%s$ \\\\\n" % v[0]
@@ -1716,12 +1720,16 @@ class Report(object):
             elif tv.startswith('float') or tv.startswith('int'):
                 # Check for range.
                 if vmax > vmin:
+                    # Perform substitutions
+                    w0 = self.WriteScientific('%.5g' % v[0])
+                    wmin = self.WriteScientific('%.5g' % vmin)
+                    wmax = self.WriteScientific('%.5g' % vmax) 
                     # Print both values.
-                    line += "$%.5g$, [$%.5g$, $%.5g$] \\\\\n" % (
-                        v[0],vmin, vmax)
+                    line += "$%s$, [$%s$, $%s$] \\\\\n" % (w0,wmin,wmax)
                 else:
                     # Put the value as a number.
-                    line += "$%.5g$ \\\\\n" % v[0]
+                    w0 = self.WriteScientific('%.5g' % v[0])
+                    line += "$%s$ \\\\\n" % w0
             else:
                 # Put the virst value as string (other type)
                 line += "\\\\\n"
@@ -2105,17 +2113,7 @@ class Report(object):
                         # No statistics
                         word = '& $-$ '
                     # Process exponential notation
-                    m = re.search('[edED]([+-][0-9]+)', word)
-                    # Check for a match to 'e+09', etc.
-                    if m is not None:
-                        # Existing text from exponent, e.g. 'e+09', 'D-13'
-                        txt = m.group(1)
-                        # Process the actual exponent text; strip '+' and '0'
-                        exp = txt[0].lstrip('+') + txt[1:].lstrip('0')
-                        # Handle '0'
-                        if exp == "": exp = '0'
-                        # Replace text
-                        word = word.replace(m.group(0), '\\times10^{%s}' % exp)
+                    word = self.WriteScientific(word)
                     # Add this value to the line
                     line += word
                 # Finish the line and append it.
@@ -2127,6 +2125,42 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
+        
+    # Function to redo scientific notation
+    def WriteScientific(self, v):
+        """Convert value or string to scientific notation
+        
+        The typical behavior is ``1.4e-5`` --> ``1.4\times10^{-5}``
+        
+        :Call:
+            >>> word = R.WriteScientific(v)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *v*: :class:`str` | :class:`float` | :class:`int`
+                Value to be translated, preferably a string
+        :Outputs:
+            *word*: :class:`str`
+                String with substitutions made
+        :Versions:
+            * 2017-04-11 ``@ddalle``: First version
+        """
+        # Ensure string
+        word = str(v)
+        # Process exponential notation
+        m = re.search('[edED]([+-][0-9]+)', word)
+        # Check for a match to 'e+09', etc.
+        if m is not None:
+            # Existing text from exponent, e.g. 'e+09', 'D-13'
+            txt = m.group(1)
+            # Process the actual exponent text; strip '+' and '0'
+            exp = txt[0].lstrip('+') + txt[1:].lstrip('0')
+            # Handle '0'
+            if exp == "": exp = '0'
+            # Replace text
+            word = word.replace(m.group(0), '\\times10^{%s}' % exp)
+        # Output
+        return word
    # ]
    
    # ---------

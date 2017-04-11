@@ -625,6 +625,15 @@ class Trajectory:
                     "Format": "%s",
                     "Label": False
                 }
+            elif key.lower() in ['tag', 'tags']:
+                # Just holding a value
+                defkey = {
+                    "Group": False,
+                    "Type": "value",
+                    "Value": "str",
+                    "Format": "%s",
+                    "Label": False
+                }
             elif key.lower() in ["user", "uid", "userfilter"]:
                 # Filter on which user can submit
                 defkey = {

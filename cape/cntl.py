@@ -492,6 +492,9 @@ class Cntl(object):
         else:
             # If not starting jobs, no reason for "INCOMP"
             stat_submit = ["---"]
+        # Check for --no-qsub option
+        if not kw.get('qsub', True):
+            self.opts.set_qsub(False)
         # Maximum number of jobs
         nSubMax = int(kw.get('n', 10))
         # Get list of indices.
@@ -1845,6 +1848,8 @@ class Cntl(object):
                 else:
                     cmdi.append('--%s' % k)
                     cmdi.append('%s' % v)
+        # Turn off all QSUB operations unless --qsub given explicitly
+        if 'qsub' not in kw: kw['qsub'] = False
         # ------------------
         # Folder preparation
         # ------------------
