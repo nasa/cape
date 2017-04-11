@@ -632,7 +632,8 @@ class Trajectory:
                     "Type": "value",
                     "Value": "str",
                     "Format": "%s",
-                    "Label": False
+                    "Label": False,
+                    "Abbreviation": "tag"
                 }
             elif key.lower() in ["user", "uid", "userfilter"]:
                 # Filter on which user can submit

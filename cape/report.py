@@ -1613,8 +1613,9 @@ class Report(object):
             # Write the variable name.
             line = "{\\small\\textsf{%s}}" % k.replace('_', '\_')
             # Append the abbreviation.
+            abbrv = x.defns[k].get('Abbreviation', k)
             line += (" & {\\small\\textsf{%s}} & " % 
-                x.defns[k]['Abbreviation'].replace('_', '\_'))
+                abbrv.replace('_', '\_'))
             # Get values.
             v = getattr(x,k)[I]
             # Append the value.
@@ -2158,7 +2159,7 @@ class Report(object):
             # Handle '0'
             if exp == "": exp = '0'
             # Replace text
-            word = word.replace(m.group(0), '\\times10^{%s}' % exp)
+            word = word.replace(m.group(0), '{\\times}10^{%s}' % exp)
         # Output
         return word
    # ]
