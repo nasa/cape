@@ -1,0 +1,77 @@
+{
+    "Tree": {
+        "farfield": [
+            "farfield_front",
+            "farfield_left",
+            "farfield_top",
+            "farfield_right",
+            "farfield_bottom",
+            "farfield_back"
+        ],
+        "missile_total": [
+            "missile_no_thrust",
+            "missile_thrust"
+        ],
+        "missile_no_thrust": [
+            "missile_no_base",
+            "missile_base"
+        ],
+        "missile_no_base": [
+            "cap",
+            "body",
+            "fins"
+        ],
+        "fins": [
+            "fin1",
+            "fin2",
+            "fin3",
+            "fin4"
+        ],
+        "missile_base": [
+            "base",
+            "engine_mount",
+            "noz_exterior"
+        ],
+        "missile_thrust": [
+            "noz_bc",
+            "noz_interior"
+        ]
+    },
+    "Properties": {
+        "farfield": {
+            "aflr3_bc": 1,
+            "fun3d_bc": 5050
+        },
+        "missile_no_thrust": {
+            "aflr3_bc": 1,
+            "fun3d_bc": 3000,
+            "blds": 0.0005
+        },
+        "noz_interior": {
+            "CompID": 6,
+            "aflr3_bc": 1,
+            "fun3d_bc": 3000,
+            "blds": 0.0001
+        },
+        "noz_bc": {
+            "aflr3_bc": 1,
+            "fun3d_bc": 3000,
+            "CompID": 7
+        },
+        "cap": 1,
+        "body": 2,
+        "base": 3,
+        "engine_mount": 4,
+        "noz_exterior": 5,
+        "fin1": 11,
+        "fin2": 12,
+        "fin3": 13,
+        "fin4": 14,
+        "farfield_front": 21,
+        "farfield_top": 22,
+        "farfield_right": 23,
+        "farfield_bottom": 24,
+        "farfield_left": 25,
+        "farfield_back": 26
+    }
+}
