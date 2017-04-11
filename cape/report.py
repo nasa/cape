@@ -1703,7 +1703,7 @@ class Report(object):
                 v = None
             else:
                 # Evaluate the function
-                v = eval("self.cntl.x.%s(%s)" % (func, I.__repr__()))
+                v = eval("self.cntl.x.%s(np.%s)" % (func, I.__repr__()))
                 # Get min/max
                 vmin = min(v)
                 vmax = max(v)
@@ -2112,6 +2112,8 @@ class Report(object):
                         txt = m.group(1)
                         # Process the actual exponent text; strip '+' and '0'
                         exp = txt[0].lstrip('+') + txt[1:].lstrip('0')
+                        # Handle '0'
+                        if exp == "": exp = '0'
                         # Replace text
                         word = word.replace(m.group(0), '\\times10^{%s}' % exp)
                     # Add this value to the line
