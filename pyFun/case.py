@@ -934,22 +934,30 @@ def CopyHist(nml, i):
     for f in fmglob:
         # Split words
         F = f.split('.')
+        # Avoid re-copies
+        if len(F) > 2: continue
         # Copy-to name
-        fcopy = '.'.join(F[:-1]) + ('.%02i.dat' % i)
+        fcopy = '.'.join(F[0]) + ('.%02i.dat' % i)
+        # Avoid overwrites
+        if os.path.isfile(fcopy): continue
         # Copy the file
         os.rename(f, fcopy)
     # Copy the history file
     if os.path.isfile('%s_hist.dat' % proj):
-        # Copy the file
-        os.rename(
-            '%s_hist.dat' % proj,
-            '%s_hist.%02i.dat' % (proj, i))
+        # Destination name
+        fcopy = '%s_hist.%02i.dat' % proj
+        # Avoid overwrites
+        if not os.path.isfile(fcopy):
+            # Copy the file
+            os.rename('%s_hist.dat' % proj, fcopy)
     # Copy the history file
     if os.path.isfile('%s_subhist.dat' % proj):
-        # Copy the file
-        os.rename(
-            '%s_subhist.dat' % proj,
-            '%s_subhist.%02i.dat' % (proj, i))
+        # Destination name
+        fcopy = '%s_subhist.%02i.dat' % proj
+        # Avoid overwrites
+        if not os.path.isfile(fcopy):
+            # Copy the file
+            os.rename('%s_subhist.dat' % proj, fcopy)
         
 # Function to determine newest triangulation file
 def GetPltFile():
