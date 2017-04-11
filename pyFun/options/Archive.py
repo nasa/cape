@@ -7,11 +7,12 @@ import cape.options.Archive
 
 # Tecplot files
 PltDict = [
-    {"pyfun_tec": ["*.plt", "*_tec_*.dat", "*.tec"]}
+    {"pyfun_tec": ["*.plt", "*_tec_*.dat", "*.szplt"]}
 ]
 
 # Flow files
 CopyFiles = [
+    {"*_volume.tec"}
     {"*.flow": 1},
     {"*.ugrid": 1},
     {"*.cgns": 1}
