@@ -52,15 +52,25 @@ def main(**kw):
     if ("u" not in kw) and type(q).__name__.startswith("str"):
         # Get all the jobs for a queue (all users)
         try:
-            lines = sp.check_output(['qstat', '-e', q]).split('\n')
+            # Try to run with architecture name, too
+            lines = sp.check_output(
+                ['qstat', '-e', q, '-W', '-o=+model']).split('\n')
         except Exception:
-            lines = []
+            try:
+                lines = sp.check_output(['qstat', '-e', q]).split('\n')
+            except Exception:
+                lines = []
     else:
         # Get all jobs for a user (all queues)
         try:
-            lines = sp.check_output(['qstat', '-u', u]).split('\n')
+            # Try to run with model name, too
+            lines = sp.check_output(
+                ['qstat', '-u', u, '-W', '-o=+model']).split('\n')
         except Exception:
-            lines = []
+            try:
+                lines = sp.check_output(['qstat', '-u', u]).split('\n')
+            except Exception:
+                lines = []
     # Check for no jobs.
     if len(lines) < 3: return
     # Initialize stats.
@@ -75,13 +85,20 @@ def main(**kw):
         vals = line.split()
         # Get the user and queue name for this job.
         qj = vals[2]
+        # Model name
+        try:
+            nj, mj = vals[10].split(':')
+        except Exception:
+            mj = 'unkown'
         # Check for a requested queue.
         if (q is not None) and (qj != q[:8]): continue
+        # Form a title
+        tj = '%s (model=%s)' % (qj, mj)
         # Initialize the queue statistics if necessary.
-        if qj not in d:
-            d[qj] = {
-                'R': {'jobs': 0, 'nodes': 0, 'cores': 0, 'eff': 0.0},
-                'Q': {'jobs': 0, 'nodes': 0, 'cores': 0}
+        if tj not in d:
+            d[tj] = {
+                'R': {'jobs':0, 'nodes':0, 'cores':0, 'model':'', 'eff':0.0},
+                'Q': {'jobs':0, 'nodes':0, 'cores':0, 'model':''}
             }
         # Number of nodes and cores
         nnj = int(vals[5])
@@ -89,26 +106,30 @@ def main(**kw):
         # Add the job to the statistics.
         if vals[7] == 'R':
             # Running job.
-            d[qj]['R']['jobs'] += 1
+            d[tj]['R']['jobs'] += 1
             # Current number of processed nodes and cores
-            nci = d[qj]['R']['cores']
+            nci = d[tj]['R']['cores']
             # Current cumulative efficiency and current job efficency
-            ei = d[qj]['R']['eff']
+            ei = d[tj]['R']['eff']
             try:
                 ej = float(vals[9].rstrip('%'))
             except Exception:
                 ej = 0.0
             # Nodes and cores
-            d[qj]['R']['nodes'] += nnj
-            d[qj]['R']['cores'] += ncj
+            d[tj]['R']['nodes'] += nnj
+            d[tj]['R']['cores'] += ncj
             # Calculate efficiency
-            d[qj]['R']['eff'] = (ei*nci + ej*ncj) / (nci+ncj)
+            d[tj]['R']['eff'] = (ei*nci + ej*ncj) / (nci+ncj)
+            # Model name
+            d[tj]['R']['model'] = mj
         elif vals[7] == 'Q':
             # Queued job.
-            d[qj]['Q']['jobs'] += 1
+            d[tj]['Q']['jobs'] += 1
             # Nodes and cores
-            d[qj]['Q']['nodes'] += nnj
-            d[qj]['Q']['cores'] += ncj
+            d[tj]['Q']['nodes'] += nnj
+            d[tj]['Q']['cores'] += ncj
+            # Model name
+            d[tj]['R']['model'] = mj
     # Display the stats.
     show_qstats(d)
 
