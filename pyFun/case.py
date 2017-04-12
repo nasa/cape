@@ -953,9 +953,9 @@ def CopyHist(nml, i):
     # Copy the history file
     if os.path.isfile('%s_subhist.dat' % proj):
         # Destination name
-        fcopy = '%s_subhist.%02i.dat' % proj
+        fcopy = '%s_subhist.%02i.dat' % (proj, i)
         # Avoid overwrites
-        if not os.path.isfile(fcopy):
+        if not os.path.isfile(fcopy) and (ta0 != 'steady'):
             # Copy the file
             os.rename('%s_subhist.dat' % proj, fcopy)
         

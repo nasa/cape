@@ -24,6 +24,8 @@ from . import mapbc
 from cape import tar
 # Line load template
 import cape.lineLoad
+# Import plt
+import pyFun.plt
 
 
 # Data book of line loads
@@ -164,21 +166,17 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         fplt = ftriq.rstrip('triq') + 'plt'
         # Output format
         fmt = self.opts.get_DataBookTriqFormat(self.comp)
-        # Check for PBS script
-        if kw.get('qpbs', False):
-            # Get the file handle
-            f = kw.get('f')
-            # Check for open file
-            if f is None:
-                raise ValueError(
-                    "No open file handle for preprocessing TRIQ file")
-            # Run a script
-            f.write("\n# Convert PLT file to TRIQ\n")
-            f.write("pf_Plt2Triq.py %s --mach %s --%s\n"
-                % (fplt, self.mach, fmt))
+        # Get case index
+        i = kw.get('i')
+        # Read Mach number
+        if i is None:
+            # Read from :file:`conditions.json`
+            mach = case.ReadConditions('mach')
         else:
-            # Convert the plt file
-            pyFun.plt.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
+            # Get from trajectory
+            mach = self.x.GetMach(i)
+        # Convert the plt file
+        pyFun.plt.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
         
 # class DBLineLoad
     

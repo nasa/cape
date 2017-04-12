@@ -612,7 +612,7 @@ class DBLineLoad(dataBook.DBBase):
             # Write triloadCmd input file
             self.WriteTriloadInput(ftriq, i)
             # Run the command
-            self.RunTriload(qtriq, ftriq, qpbs=qpbs)
+            self.RunTriload(qtriq, ftriq, i=i)
             # Don't try to read results from PBS job that we *just* submitted
             if qpbs:
                 print("  Submitted PBS job")
@@ -860,6 +860,7 @@ class DBLineLoad(dataBook.DBBase):
             self.opts.WritePBSHeader(f, lbl, typ='post')
         # Convert
         if qtriq:
+            print("Label 015: i=%s" % i)
             self.PreprocessTriq(ftriq, qpbs=qpbs, i=i)
         # Triload command
         cmd = 'triloadCmd < triload.%s.i > triload.%s.o'%(self.comp,self.comp)
