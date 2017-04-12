@@ -912,7 +912,7 @@ class Cntl(object):
         # Go there.
         os.chdir(frun)
         # Read the local case.json file.
-        rc = self.ReadCaseJSON()
+        rc = self.ReadCaseJSON(i)
         # Check for null file
         if rc is None:
             return self.opts.get_PhaseIters(-1)
