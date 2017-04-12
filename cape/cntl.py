@@ -904,13 +904,6 @@ class Cntl(object):
         # Check the case
         if self.CheckCase(i) is None:
             return None
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Go there.
-        os.chdir(frun)
         # Read the local case.json file.
         rc = self.ReadCaseJSON(i)
         # Check for null file
@@ -918,8 +911,6 @@ class Cntl(object):
             return self.opts.get_PhaseIters(-1)
         # Option for desired iterations
         N = rc.get('PhaseIters', 0)
-        # Return to original location.
-        os.chdir(fpwd)
         # Output the last entry (if list)
         return options.getel(N, -1)
     
