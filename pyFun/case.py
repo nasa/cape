@@ -675,7 +675,7 @@ def GetHistoryIter():
                 na0 = int(fnames[-1][nr:nr+2])
                 na1 = int(fnhist[nr:nr+2])
                 # Don't use pyfun01_hist.dat to append pyfun02_hist.03.dat
-                if na1 <= na0:fnames.append(fnhist)
+                if na1 >= na0: fnames.append(fnhist)
             else:
                 # No previous history; append
                 fnames.append(fnhist)
@@ -949,7 +949,7 @@ def CopyHist(nml, i):
         # Avoid re-copies
         if len(F) > 2: continue
         # Copy-to name
-        fcopy = '.'.join(F[0]) + ('.%02i.dat' % i)
+        fcopy = F[0] + ('.%02i.dat' % i)
         # Avoid overwrites
         if os.path.isfile(fcopy): continue
         # Copy the file
