@@ -426,40 +426,6 @@ class Fun3d(Cntl):
         else:
             return n
         
-    # Get last iter
-    def GetLastIter(self, i):
-        """Get minimum required iteration for a given run to be completed
-        
-        :Call:
-            >>> nIter = fun3d.GetLastIter(i)
-        :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *nIter*: :class:`int`
-                Number of iterations required for case *i*
-        :Versions:
-            * 2014-10-03 ``@ddalle``: First version
-        """
-        # Check the case
-        if self.CheckCase(i) is None:
-            return None
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Go there.
-        os.chdir(frun)
-        # Read the local case.json file.
-        rc = case.ReadCaseJSON()
-        # Return to original location.
-        os.chdir(fpwd)
-        # Output
-        return rc.get_LastIter()
-        
         
     # Check if cases with zero iterations are not yet setup to run
     def CheckNone(self, v=False):

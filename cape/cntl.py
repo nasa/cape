@@ -912,9 +912,12 @@ class Cntl(object):
         # Go there.
         os.chdir(frun)
         # Read the local case.json file.
-        fc = case.ReadCaseJSON()
+        rc = self.ReadCaseJSON()
+        # Check for null file
+        if rc is None:
+            return self.opts.get_PhaseIters(-1)
         # Option for desired iterations
-        N = fc.get('PhaseIters', 0)
+        N = rc.get('PhaseIters', 0)
         # Return to original location.
         os.chdir(fpwd)
         # Output the last entry (if list)
@@ -2019,6 +2022,48 @@ class Cntl(object):
         f.close()
         # Return to original location
         os.chdir(fpwd)
+        
+    # Read run control options from case JSON file
+    def ReadCaseJSON(self, i):
+        """Read ``case.json`` file from case *i* if possible
+        
+        :Call:
+            >>> rc = cntl.ReadCaseJSON(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class
+            *i*: :class:`int`
+                Run index
+        :Outputs:
+            *rc*: ``None`` | :class:`pyOver.options.runControl.RunControl`
+                Run control interface read from ``case.json`` file
+        :Versions:
+            * 2016-12-12 ``@ddalle``: First version
+            * 2017-04-12 ``@ddalle``: Added to :mod:`cape.Cntl`
+        """
+        # Safely go to root directory.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get the case name.
+        frun = self.x.GetFullFolderNames(i)
+        # Check if it exists.
+        if not os.path.isdir(frun):
+            # Go back and quit.
+            os.chdir(fpwd)
+            return
+        # Go to the folder.
+        os.chdir(frun)
+        # Check for file
+        if not os.path.isfile('case.json'):
+            # Nothing to read
+            rc = None
+        else:
+            # Read the file
+            rc = case.ReadCaseJSON()
+        # Return to original location
+        os.chdir(fpwd)
+        # Output
+        return rc
         
    # >
     

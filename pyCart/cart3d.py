@@ -260,39 +260,6 @@ class Cart3d(Cntl):
   # Case Status
   # ===========
   # <
-    # Get last iter
-    def GetLastIter(self, i):
-        """Get minimum required iteration for a given run to be completed
-        
-        :Call:
-            >>> nIter = cart3d.GetLastIter(i)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *nIter*: :class:`int`
-                Number of iterations required for case *i*
-        :Versions:
-            * 2014-10-03 ``@ddalle``: First version
-        """
-        # Check the case
-        if self.CheckCase(i) is None:
-            return None
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Go there.
-        os.chdir(frun)
-        # Read the local case.json file.
-        rc = case.ReadCaseJSON()
-        # Return to original location.
-        os.chdir(fpwd)
-        # Output
-        return rc.get_LastIter()
         
     # Get the current iteration number from :mod:`case`
     def CaseGetCurrentIter(self):
