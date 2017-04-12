@@ -3452,7 +3452,7 @@ class DBTriqFM(DataBook):
         # Get the transformation type.
         ttype = topts.get("Type", "")
         # Check it.
-        if ttype in ["Euler321"]:
+        if ttype in ["Euler321", "Euler123"]:
             # Get the angle variable names.
             # Use same as default in case it's obvious what they should be.
             kph = topts.get('phi', 0.0)
@@ -3501,7 +3501,10 @@ class DBTriqFM(DataBook):
             # Combined transformation matrix.
             # Remember, these are applied backwards in order to undo the
             # original Euler transformation that got the component here.
-            R = np.dot(R1, np.dot(R2, R3))
+            if ttype == "Euler321":
+                R = np.dot(R1, np.dot(R2, R3))
+            elif ttype == "Euler123":
+                R = np.dot(R3, np.dot(R2, R1))
             # Area transformations
             if "Ay" in FM:
                 # Assemble area vector
@@ -5341,7 +5344,7 @@ class CaseFM(CaseData):
         # Get the transformation type.
         ttype = topts.get("Type", "")
         # Check it.
-        if ttype in ["Euler321"]:
+        if ttype in ["Euler321", "Euler123"]:
             # Get the angle variable names.
             # Use same as default in case it's obvious what they should be.
             kph = topts.get('phi', 0.0)
@@ -5390,7 +5393,10 @@ class CaseFM(CaseData):
             # Combined transformation matrix.
             # Remember, these are applied backwards in order to undo the
             # original Euler transformation that got the component here.
-            R = np.dot(R1, np.dot(R2, R3))
+            if ttype == "Euler321":
+                R = np.dot(R1, np.dot(R2, R3))
+            elif ttype == "Euler123":
+                R = np.dot(R3, np.dot(R2, R1))
             # Force transformations
             if 'CY' in self.coeffs:
                 # Assemble forces.
