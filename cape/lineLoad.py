@@ -601,6 +601,10 @@ class DBLineLoad(dataBook.DBBase):
         if not os.path.isfile(flds):
             # No loads yet
             q = True
+        elif not os.path.isfile(ftriq):
+            # TRIQ file needs preprocessing
+            # This does imply out-of-date loads
+            q = True
         elif os.path.getmtime(flds) < os.path.getmtime(ftriq):
             # Loads files are older than surface file
             q = True
@@ -860,7 +864,6 @@ class DBLineLoad(dataBook.DBBase):
             self.opts.WritePBSHeader(f, lbl, typ='post')
         # Convert
         if qtriq:
-            print("Label 015: i=%s" % i)
             self.PreprocessTriq(ftriq, qpbs=qpbs, i=i)
         # Triload command
         cmd = 'triloadCmd < triload.%s.i > triload.%s.o'%(self.comp,self.comp)
