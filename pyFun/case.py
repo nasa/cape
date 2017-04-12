@@ -666,7 +666,19 @@ def GetHistoryIter():
         fhist = glob.glob("%s??_hist.dat" % rname[:-2])
         # Apppend the most recent one
         if len(fhist) > 0:
-            fnames.append(max(fhist))
+            # Get maximum file
+            fnhist = max(fhist)
+            # Check adaption numbers... don't use older adaption history
+            if len(fnames) > 0:
+                # Get adaption number on both files
+                nr = len(rname) - 2
+                na0 = int(fnames[-1][nr:nr+2])
+                na1 = int(fnhist[nr:nr+2])
+                # Don't use pyfun01_hist.dat to append pyfun02_hist.03.dat
+                if na1 <= na0:fnames.append(fnhist)
+            else:
+                # No previous history; append
+                fnames.append(fnhist)
     else:
         # Check for historical files
         fnames = glob.glob("%s_hist.[0-9][0-9].dat" % rname)
