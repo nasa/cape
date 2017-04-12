@@ -1947,12 +1947,15 @@ class Fun3d(Cntl):
             # Append the new phase
             rc["PhaseSequence"].append(j)
             # Get iterations for this phase
-            if j > nSeqO:
+            if j >= nSeqO:
                 # Add *nIter* iterations to last phase iter
-                nj = self.opts.get_PhaseIters(j) + self.opts.get_nIter(j)
+                nj = self.opts.get_nIter(j)
             else:
                 # Use the phase break marker from master JSON file
-                nj = self.opts.get_PhaseIters(j)
+                n1 = self.opts.get_PhaseIters(j)
+                n0 = self.opts.get_PhaseIters(j-1)
+                # Process number of *additional* iterations
+                nj = n1 - n0
             # Status update
             print("  Adding phase %s (to %s iterations)" % (j, nj))
             # Set the iteration count
@@ -1967,11 +1970,11 @@ class Fun3d(Cntl):
             # Write it.
             self.WriteCaseJSON(i, rc=rc)
         # Rewriting phases
-        print("  Writing input namelists 1 to %s" % (nPhase))
+        print("  Writing input namelists 0 to %s" % (nPhase-1))
         self.PrepareNamelist(i)
         # Write PBS scripts
         nPBS = self.opts.get_nPBS()
-        print("  Writing PBS scripts 1 to %s" % (nPBS))
+        print("  Writing PBS scripts 0 to %s" % (nPBS-1))
         self.WritePBS(i)
   # >
   

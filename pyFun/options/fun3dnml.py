@@ -202,5 +202,5 @@ class Fun3DNml(odict):
         # Initialize key
         if key not in self[sec]: self[sec][key] = None
         # Set value
-        setel(self[sec][key], i, val)
+        self[sec][key] = setel(self[sec][key], i, val)
         
