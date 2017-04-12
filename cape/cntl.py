@@ -854,10 +854,10 @@ class Cntl(object):
         file.
         
         :Call:
-            >>> cart3d.StopCase(i)
+            >>> cntl.StopCase(i)
         :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
+            *cntl*: :class:`cape.cntl.Cntl`
+                Cape control interface
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Versions:
@@ -884,6 +884,40 @@ class Cntl(object):
    # Case Status
    # ===========
    # <
+    # Get expected actual breaks of phase iters.
+    def GetPhaseBreaks(self):
+        """Get expected iteration numbers at phase breaks
+        
+        This fills in ``0`` entries in *RunControl>PhaseIters* and returns the
+        filled-out list
+        
+        :Call:
+            >>> PI = cntl.GetPhaseBreaks()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Cape control interface
+        :Outputs:
+            *PI*: :class:`list` (:class:`int`)
+        :Versions:
+            * 2017-04-12 ``@ddalle``: First version
+        """
+        # Get list of phases to use
+        PhaseSeq = self.opts.get_PhaseSequence()
+        PhaseSeq = list(np.array(PhaseSeq).flatten())
+        # Get number of sequences
+        nSeq = len(PhaseSeq)
+        # Get option values for *PhaseIters* and *nIter*
+        PI = [self.opts.get_PhaseIters(j) for j in PhaseSeq]
+        NI = [self.opts.get_nIter(j)      for j in PhaseSeq]
+        # Ensure phase break for first phase
+        PI[0] = max(PI[0], NI[0])
+        # Loop through phases
+        for i in range(1, nSeq):
+            # Ensure at least *nIter* iterations beyond previous phase
+            PI[i] = max(PI[i], PI[i-1]+NI[i])
+        # Output
+        return PI
+    
     # Get last iter
     def GetLastIter(self, i):
         """Get minimum required iteration for a given run to be completed
@@ -891,8 +925,8 @@ class Cntl(object):
         :Call:
             >>> nIter = cntl.GetLastIter(i)
         :Inputs:
-            *cart3d*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
+            *cntl*: :class:`cape.cntl.Cntl`
+                Cape control interface
             *i*: :class:`int`
                 Run index
         :Outputs:

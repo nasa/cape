@@ -1942,6 +1942,8 @@ class Fun3d(Cntl):
             nPhase = max(nSeqC, int(nPhase))
         # Present number of iterations
         nIter = rc.get_PhaseIters(nSeqC)
+        # Get nominal phase breaks
+        PhaseIters = self.GetPhaseBreaks()
         # Loop through the additional phases
         for j in range(nSeqC, nPhase):
             # Append the new phase
@@ -1951,11 +1953,8 @@ class Fun3d(Cntl):
                 # Add *nIter* iterations to last phase iter
                 nj = self.opts.get_nIter(j)
             else:
-                # Use the phase break marker from master JSON file
-                n1 = self.opts.get_PhaseIters(j)
-                n0 = self.opts.get_PhaseIters(j-1)
-                # Process number of *additional* iterations
-                nj = n1 - n0
+                # Process number of *additional* iterations expected
+                nj = PhaseIters[j] - PhaseIters[j-1]
             # Status update
             print("  Adding phase %s (to %s iterations)" % (j, nj))
             # Set the iteration count
