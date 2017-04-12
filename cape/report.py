@@ -821,6 +821,13 @@ class Report(object):
         # ------------
         # Get the actual iteration number.
         n = self.cntl.CheckCase(i)
+        # Get required number of iterations for report
+        nMin = self.cntl.opts.get_ReportMinIter(self.rep)
+        # Move on if iteration count not yet achieved
+        if (nMin is not None) and ((n is None) or (n < nMin)):
+            # Go home and quit.
+            os.chdir(fpwd)
+            return
         # Check status.
         sts = self.cntl.CheckCaseStatus(i)
         # Call `qstat` if needed.

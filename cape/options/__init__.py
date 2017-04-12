@@ -2192,6 +2192,11 @@ class Options(odict):
         self._Report()
         return self['Report'].get_ReportZeroFigList(rep)
         
+    # Get minimum figure
+    def get_ReportMinIter(self, rep):
+        self._Report()
+        return self['Report'].get_ReportMinIter(rep)
+        
     # Get list of figures in a sweep
     def get_SweepFigList(self, rep):
         self._Report()
@@ -2294,7 +2299,7 @@ class Options(odict):
             'ReportShowCaseNumber',
             'FigSubfigList', 'FigAlignment', 'FigHeader',
             'SubfigType', 'SubfigBaseType', 'SubfigOpt', 'SweepOpt',
-            'SubfigPlotOpt'
+            'SubfigPlotOpt', 'ReportMinIter'
     ]:
         # Get the documentation from the submodule
         eval('get_'+k).__doc__ = getattr(Report,'get_'+k).__doc__

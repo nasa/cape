@@ -692,7 +692,29 @@ class Report(odict):
         # Get the report.
         R = self.get_Report(rep)
         # Get the list of figures.
-        return R.get('ZeroFigures', R.get('Figures', []))
+        return R.get('ZeroFigures', [])
+        
+    # Minimum iteration
+    def get_ReportMinIter(self, rep):
+        """Get minimum iteration to create a report
+        
+        :Call:
+            >>> nMin = opts.get_ReportMinIter(rep)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *nMin*: :class:`int`
+                Do not create report if iteration count is below this number
+        :Versions:
+            * 2017-04-12 ``@ddalle``: First version
+        """
+        # Get the report
+        R = self.get_Report(rep)
+        # Get the value
+        return R.get("MinIter", 1)
         
     # Get report title
     def get_ReportTitle(self, rep):
