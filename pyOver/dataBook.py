@@ -342,27 +342,22 @@ class DataBook(cape.dataBook.DataBook):
         * 2015-10-20 ``@ddalle``: Started
     """
     # Initialize a DBComp object
-    def InitDBComp(self, comp, x, opts, targ=None):
+    def ReadDBComp(self, comp):
         """Initialize data book for one component
         
         :Call:
-            >>> DB.InitDBComp(comp, x, opts)
+            >>> DB.ReadDBComp(comp, x, opts)
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
-            *x*: :class:`pyCart.trajectory.Trajectory`
-                The current pyCart trajectory (i.e. run matrix)
-            *opts*: :class:`pyCart.options.Options`
-                Global pyCart options instance
-            *targ*: {``None``} | :class:`str`
-                If used, read a duplicate data book as a target named *targ*
         :Versions:
             * 2015-11-10 ``@ddalle``: First version
             * 2016-06-27 ``@ddalle``: Added *targ* keyword
+            * 2017-04-13 ``@ddalle``: Self-contained and renamed
         """
-        self[comp] = DBComp(comp, x, opts, targ=targ)
+        self[comp] = DBComp(comp, self.x, self.opts, targ=self.targ)
         
     # Read line load
     def ReadLineLoad(self, comp, conf=None, targ=None):
@@ -539,11 +534,6 @@ class DataBook(cape.dataBook.DataBook):
             q = False
         # Check for an update
         if (not q): return
-        # Get the phase number
-        rc = case.ReadCaseJSON()
-        k = case.GetPhaseNumber(rc)
-        # Appropriate prefix
-        proj = self.opts.get_Prefix(k)
         # Maximum number of iterations allowed.
         nMax = min(nIter-nMin, self.opts.get_nMaxStats())
         # Loop through components.
@@ -556,19 +546,19 @@ class DataBook(cape.dataBook.DataBook):
             # Check for multiple components
             if type(compID).__name__ in ['list', 'ndarray']:
                 # Read the first component
-                FM = CaseFM(proj, compID[0])
+                FM = self.ReadCaseFM(compID[0])
                 # Loop through remaining components
                 for compi in compID[1:]:
                     # Check for minus sign
                     if compi.startswith('-'):
                         # Subtract the component
-                        FM -= CaseFM(proj, compi.lstrip('-'))
+                        FM -= self.ReadCaseFM(compi.lstrip('-'))
                     else:
                         # Add in the component
-                        FM += CaseFM(proj, compi)
+                        FM += self.ReadCaseFM(compi)
             else:
                 # Read the iterative history for single component
-                FM = CaseFM(proj, compID)
+                FM = self.ReadCaseFM(compID)
             # Extract the component databook.
             DBc = self[comp]
             # List of transformations
@@ -643,6 +633,59 @@ class DataBook(cape.dataBook.DataBook):
                 self.x, self.opts, name, RootDir=self.RootDir)
             # Return to starting locaiton
             os.chdir(fpwd)
+  
+  # ========
+  # Case I/O
+  # ========
+  # <
+    # Read case residual
+    def ReadCaseResid(self):
+        """Read a :class:`CaseResid` object
+        
+        :Call:
+            >>> H = DB.ReadCaseResid()
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *H*: :class:`pyOver.dataBook.CaseResid`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Get the phase number
+        rc = case.ReadCaseJSON()
+        k = case.GetPhaseNumber(rc)
+        # Appropriate prefix
+        proj = self.opts.get_Prefix(k)
+        # Read CaseResid object from PWD
+        return CaseResid(proj)
+        
+    # Read case FM history
+    def ReadCaseFM(self, comp):
+        """Read a :class:`CaseFM` object
+        
+        :Call:
+            >>> FM = DB.ReadCaseFM(comp)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *FM*: :class:`pyOver.dataBook.CaseFM`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Get the phase number
+        rc = case.ReadCaseJSON()
+        k = case.GetPhaseNumber(rc)
+        # Appropriate prefix
+        proj = self.opts.get_Prefix(k)
+        # Read CaseResid object from PWD
+        return CaseFM(proj, comp)
+  # >
     
 # class DataBook
 

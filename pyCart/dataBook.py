@@ -97,27 +97,22 @@ class DataBook(cape.dataBook.DataBook):
                     targ, self.x, self.opts, self.RootDir)
         
     # Initialize a DBComp object
-    def InitDBComp(self, comp, x, opts, targ=None):
+    def ReadDBComp(self, comp):
         """Initialize data book for one component
         
         :Call:
-            >>> DB.InitDBComp(comp, x, opts)
+            >>> DB.ReadDBComp(comp)
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
-            *x*: :class:`pyCart.trajectory.Trajectory`
-                The current pyCart trajectory (i.e. run matrix)
-            *opts*: :class:`pyCart.options.Options`
-                Global pyCart options instance
-            *targ*: {``None``} | :class:`str`
-                If used, read a duplicate data book as a target named *targ*
         :Versions:
             * 2015-11-10 ``@ddalle``: First version
             * 2016-06-27 ``@ddalle``: Added *targ* keyword
+            * 2017-04-13 ``@ddalle``: Self-contained and renamed
         """
-        self[comp] = DBComp(comp, x, opts, targ=targ)
+        self[comp] = DBComp(comp, self.x, self.opts, targ=self.targ)
     
     # Read line load
     def ReadLineLoad(self, comp, conf=None, targ=None):

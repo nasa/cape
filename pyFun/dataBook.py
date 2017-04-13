@@ -85,27 +85,25 @@ class DataBook(cape.dataBook.DataBook):
         * 2015-10-20 ``@ddalle``: Started
     """
     # Initialize a DBComp object
-    def InitDBComp(self, comp, x, opts, targ=None):
+    def ReadDBComp(self, comp):
         """Initialize data book for one component
         
         :Call:
-            >>> DB.InitDBComp(comp, x, opts)
+            >>> DB.ReadDBComp(comp)
         :Inputs:
             *DB*: :class:`pyFun.dataBook.DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
-            *x*: :class:`pyFun.trajectory.Trajectory`
-                The current pyCart trajectory (i.e. run matrix)
-            *opts*: :class:`pyFun.options.Options`
-                Global pyCart options instance
-            *targ*: {``None``} | :class:`str`
-                If used, read a duplicate data book as a target named *targ*
         :Versions:
             * 2015-11-10 ``@ddalle``: First version
             * 2016-06-27 ``@ddalle``: Added *targ* keyword
+            * 2017-04-13 ``@ddalle``: Self-contained and renameed
         """
-        self[comp] = DBComp(comp, x, opts, targ=targ)
+        # Save the project name
+        self.proj = self.opts.get_project_rootname()
+        # Read the data book
+        self[comp] = DBComp(comp, self.x, self.opts, targ=self.targ)
         
     # Read line load
     def ReadLineLoad(self, comp, conf=None, targ=None):
@@ -190,29 +188,6 @@ class DataBook(cape.dataBook.DataBook):
                 RootDir=self.RootDir)
             # Return to starting position
             os.chdir(fpwd)
-        
-    # Update data book
-    def UpdateDataBookAllAtOnce(self, I=None):
-        """Update the data book for a list of cases from the run matrix
-        
-        :Call:
-            >>> DB.UpdateDataBook()
-            >>> DB.UpdateDataBook(I)
-        :Inputs:
-            *DB*: :class:`pyFun.dataBook.DataBook`
-                Instance of the pyCart data book class
-            *I*: :class:`list` (:class:`int`) or ``None``
-                List of trajectory indices or update all cases in trajectory
-        :Versions:
-            * 2014-12-22 ``@ddalle``: First version
-        """
-        # Default.
-        if I is None:
-            # Use all trajectory points.
-            I = range(self.x.nCase)
-        # Loop through indices.
-        for i in I:
-            self.UpdateCase(i)
     
     # Update data book
     def UpdateDataBook(self, I=None, comp=None):
@@ -255,150 +230,10 @@ class DataBook(cape.dataBook.DataBook):
             # Loop through indices.
             for i in I:
                 self.UpdateCaseComp(i, comp)
+            # Write the component
+            self[comp].Write()
 
-    # Update or add an entry.
-    def UpdateCase(self, i):
-        """Update or add a case to a data book
-        
-        The history of a run directory is processed if either one of three
-        criteria are met.
-        
-            1. The case is not already in the data book
-            2. The most recent iteration is greater than the data book value
-            3. The number of iterations used to create statistics has changed
-        
-        :Call:
-            >>> DB.UpdateCase(i)
-        :Inputs:
-            *DB*: :class:`pyFun.dataBook.DataBook`
-                Instance of the pyCart data book class
-            *i*: :class:`int`
-                Trajectory index
-        :Versions:
-            * 2014-12-22 ``@ddalle``: First version
-        """
-        # Get the first data book component.
-        DBc = self.GetRefComponent()
-        # Try to find a match existing in the data book.
-        j = DBc.FindMatch(i)
-        # Get the name of the folder.
-        frun = self.x.GetFullFolderNames(i)
-        # Status update.
-        print(frun)
-        # Go home.
-        os.chdir(self.RootDir)
-        # Check if the folder exists.
-        if not os.path.isdir(frun):
-            # Nothing to do.
-            return
-        # Go to the folder.
-        os.chdir(frun)
-        # Get the current iteration number.
-        nIter = case.GetCurrentIter()
-        # Get the number of iterations used for stats.
-        nStats = self.opts.get_nStats()
-        # Get the iteration at which statistics can begin.
-        nMin = self.opts.get_nMin()
-        # Process whether or not to update.
-        if (not nIter) or (nIter < nMin + nStats):
-            # Not enough iterations (or zero iterations)
-            print("  Not enough iterations (%s) for analysis." % nIter)
-            q = False
-        elif np.isnan(j):
-            # No current entry.
-            print("  Adding new databook entry at iteration %i." % nIter)
-            q = True
-        elif DBc['nIter'][j] < nIter:
-            # Update
-            print("  Updating from iteration %i to %i."
-                % (DBc['nIter'][j], nIter))
-            q = True
-        elif DBc['nStats'][j] < nStats:
-            # Change statistics
-            print("  Recomputing statistics using %i iterations." % nStats)
-            q = True
-        else:
-            # Up-to-date
-            print("  Databook up to date.")
-            q = False
-        # Check for an update
-        if (not q): return
-        # Maximum number of iterations allowed.
-        nMax = min(nIter-nMin, self.opts.get_nMaxStats())
-        # Read residual
-        H = CaseResid(self.proj)
-        # Loop through components.
-        for comp in self.Components:
-            # Ensure proper type
-            tcomp = self.opts.get_DataBookType(comp)
-            if tcomp not in ['Force', 'Moment', 'FM']: continue
-            # Get component (note this automatically defaults to *comp*)
-            compID = self.opts.get_DataBookCompID(comp)
-            # Check for multiple components
-            if type(compID).__name__ in ['list', 'ndarray']:
-                # Read the first component
-                FM = CaseFM(self.proj, compID[0])
-                # Loop through remaining components
-                for compi in compID[1:]:
-                    # Check for minus sign
-                    if compi.startswith('-1'):
-                        # Subtract the component
-                        FM -= CaseFM(self.proj, compi.lstrip('-'))
-                    else:
-                        # Add in the component
-                        FM += CaseFM(self.proj, compi)
-            else:
-                # Read the iterative history for single component
-                FM = CaseFM(self.proj, compID)
-            # Extract the component databook.
-            DBc = self[comp]
-            # List of transformations
-            tcomp = self.opts.get_DataBookTransformations(comp)
-            # Special transformation to reverse *CLL* and *CLN*
-            tflight = {"Type": "ScaleCoeffs", "CLL": -1.0, "CLN": -1.0}
-            # Check for ScaleCoeffs
-            if tflight not in tcomp:
-                # Append a transformation to reverse *CLL* and *CLN*
-                tcomp.append(tflight)
-            # Loop through the transformations.
-            for topts in tcomp:
-                # Apply the transformation.
-                FM.TransformFM(topts, self.x, i)
-                
-            # Process the statistics.
-            s = FM.GetStats(nStats, nMax)
-            # Get the corresponding residual drop
-            nOrders = H.GetNOrders(s['nStats'])
-            
-            # Save the data.
-            if np.isnan(j):
-                # Add to the number of cases.
-                DBc.n += 1
-                # Append trajectory values.
-                for k in self.x.keys:
-                    # I hate the way NumPy does appending.
-                    DBc[k] = np.append(DBc[k], getattr(self.x,k)[i])
-                # Append values.
-                for c in DBc.DataCols:
-                    DBc[c] = np.hstack((DBc[c], [s[c]]))
-                # Append residual drop.
-                DBc['nOrders'] = np.hstack((DBc['nOrders'], [nOrders]))
-                # Append iteration counts.
-                DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
-                DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
-            else:
-                # No need to update trajectory values.
-                # Update data values.
-                for c in DBc.DataCols:
-                    DBc[c][j] = s[c]
-                # Update the other statistics.
-                DBc['nOrders'][j] = nOrders
-                DBc['nIter'][j]   = nIter
-                DBc['nStats'][j]  = s['nStats']
-        # Go back.
-        os.chdir(self.RootDir)
-
-    # Update or add an entry.
+    # Update or add an entry for one component
     def UpdateCaseComp(self, i, comp):
         """Update or add a case to a data book
         
@@ -422,6 +257,9 @@ class DataBook(cape.dataBook.DataBook):
             * 2014-12-22 ``@ddalle``: First version
             * 2017-04-12 ``@ddalle``: Modified to work one component
         """
+        # Read if necessary
+        if comp not in self:
+            self.ReadDBComp(comp)
         # Check if it's present
         if comp not in self:
             raise KeyError("No aero data book component '%s'" % comp)
@@ -474,26 +312,26 @@ class DataBook(cape.dataBook.DataBook):
         # Maximum number of iterations allowed.
         nMax = min(nIter-nMin, self.opts.get_nMaxStats())
         # Read residual
-        H = CaseResid(self.proj)
+        H = self.ReadCaseResid()
        # --- Read Iterative History ---
         # Get component (note this automatically defaults to *comp*)
         compID = self.opts.get_DataBookCompID(comp)
         # Check for multiple components
         if type(compID).__name__ in ['list', 'ndarray']:
             # Read the first component
-            FM = CaseFM(self.proj, compID[0])
+            FM = self.ReadCaseFM(compID[0])
             # Loop through remaining components
             for compi in compID[1:]:
                 # Check for minus sign
                 if compi.startswith('-1'):
                     # Subtract the component
-                    FM -= CaseFM(self.proj, compi.lstrip('-'))
+                    FM -= self.ReadCaseFM(compi.lstrip('-'))
                 else:
                     # Add in the component
-                    FM += CaseFM(self.proj, compi)
+                    FM += self.ReadCaseFM(compi)
         else:
             # Read the iterative history for single component
-            FM = CaseFM(self.proj, compID)
+            FM = self.ReadCaseFM(compID)
         # List of transformations
         tcomp = self.opts.get_DataBookTransformations(comp)
         # Special transformation to reverse *CLL* and *CLN*
@@ -524,21 +362,70 @@ class DataBook(cape.dataBook.DataBook):
             for c in DBc.DataCols:
                 DBc[c] = np.hstack((DBc[c], [s[c]]))
             # Append residual drop.
-            DBc['nOrders'] = np.hstack((DBc['nOrders'], [nOrders]))
+            if 'nOrders' in DBc:
+                DBc['nOrders'] = np.hstack((DBc['nOrders'], [nOrders]))
             # Append iteration counts.
-            DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
-            DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
+            if 'nIter' in DBc:
+                DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
+            if 'nStats' in DBc:
+                DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
         else:
             # No need to update trajectory values.
             # Update data values.
             for c in DBc.DataCols:
                 DBc[c][j] = s[c]
             # Update the other statistics.
-            DBc['nOrders'][j] = nOrders
-            DBc['nIter'][j]   = nIter
-            DBc['nStats'][j]  = s['nStats']
+            if 'nOrders' in DBc:
+                DBc['nOrders'][j] = nOrders
+            if 'nIter' in DBc:
+                DBc['nIter'][j]   = nIter
+            if 'nStats' in DBc:
+                DBc['nStats'][j]  = s['nStats']
         # Go back.
         os.chdir(self.RootDir)
+  
+  # ========
+  # Case I/O
+  # ========
+  # <
+    # Read case residual
+    def ReadCaseResid(self):
+        """Read a :class:`CaseResid` object
+        
+        :Call:
+            >>> H = DB.ReadCaseResid()
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *H*: :class:`pyFun.dataBook.CaseResid`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseResid(self.proj)
+        
+    # Read case FM history
+    def ReadCaseFM(self, comp):
+        """Read a :class:`CaseFM` object
+        
+        :Call:
+            >>> FM = DB.ReadCaseFM(comp)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *FM*: :class:`pyFun.dataBook.CaseFM`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseFM(self.proj, comp)
+  # >
 # class DataBook
 
 # Component data book

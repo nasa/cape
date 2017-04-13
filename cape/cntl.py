@@ -735,7 +735,7 @@ class Cntl(object):
             # Read the results and update as necessary.
             self.DataBook.UpdateDataBook(I, comp=comp)
         # Write the data book to file.
-        self.DataBook.Write()
+        # self.DataBook.Write()
         # Return to original location.
         os.chdir(fpwd)
    # >

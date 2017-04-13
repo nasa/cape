@@ -126,7 +126,7 @@ class DataBook(dict):
   # ======
   # <
     # Initialization method
-    def __init__(self, x, opts, RootDir=None, targ=None):
+    def __init__(self, x, opts, RootDir=None, targ=None, **kw):
         """Initialization method
         
         :Versions:
@@ -144,6 +144,18 @@ class DataBook(dict):
         os.chdir(self.RootDir)
         # Save the components
         self.Components = opts.get_DataBookComponents(targ=targ)
+        # Get list of components
+        comp = kw.get('comp', self.Components)
+        # Default list of components
+        if comp is None:
+            # Default: all components
+            comps = self.Components
+        elif type(comp).__name__ in ['str', 'unicode']:
+            # Split by comma (also ensures list)
+            comps = comp.split(',')
+        else:
+            # Already a list?
+            comps = comp
         # Save the folder
         if targ is None:
             # Root data book
@@ -170,13 +182,13 @@ class DataBook(dict):
         # Go back to root folder.
         os.chdir(self.RootDir)
         # Loop through the components.
-        for comp in self.Components:
+        for comp in comps:
             # Get component type
             tcomp = opts.get_DataBookType(comp)
             # Check if it's an aero-type component
             if tcomp not in ['FM', 'Force', 'Moment']: continue
             # Initialize the data book.
-            self.InitDBComp(comp, x, opts, targ=targ)
+            self.ReadDBComp(comp)
         # Initialize targets.
         self.Targets = {}
         # Return to original location
@@ -235,26 +247,21 @@ class DataBook(dict):
             self[comp].Write()
     
     # Initialize a DBComp object
-    def InitDBComp(self, comp, x, opts, targ=None):
+    def ReadDBComp(self, comp):
         """Initialize data book for one component
         
         :Call:
-            >>> DB.InitDBComp(comp, x, opts, targ=None)
+            >>> DB.InitDBComp(comp)
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
-            *x*: :class:`pyCart.trajectory.Trajectory`
-                The current pyCart trajectory (i.e. run matrix)
-            *opts*: :class:`pyCart.options.Options`
-                Global pyCart options instance
-            *targ*: {``None``} | :class:`str`
-                If used, read a duplicate data book as a target named *targ*
         :Versions:
             * 2015-11-10 ``@ddalle``: First version
+            * 2017-04-13 ``@ddalle``: Self-contained and renamed
         """
-        self[comp] = DBComp(comp, x, opts, targ=targ)
+        self[comp] = DBComp(comp, self.x, self.opts, targ=self.targ)
 
     # Find first force/moment component
     def GetRefComponent(self):
@@ -316,6 +323,50 @@ class DataBook(dict):
                 # Read the file.
                 self.Targets[targ] = DBTarget(
                     targ, self.x, self.opts, self.RootDir)
+  # >
+  
+  # ========
+  # Case I/O
+  # ========
+  # <
+    # Read case residual
+    def ReadCaseResid(self):
+        """Read a :class:`CaseResid` object
+        
+        :Call:
+            >>> H = DB.ReadCaseResid()
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *H*: :class:`cape.dataBook.CaseResid`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseResid()
+            
+        
+    # Read case FM history
+    def ReadCaseFM(self, comp):
+        """Read a :class:`CaseFM` object
+        
+        :Call:
+            >>> FM = DB.ReadCaseFM(comp)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *FM*: :class:`cape.dataBook.CaseFM`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseFM(comp)
   # >
     
   # ========
