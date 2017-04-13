@@ -244,16 +244,16 @@ class DataBook(cape.dataBook.DataBook):
         else:
             # Already a list?
             comps = comp
-        # Loop through indices.
-        for i in I:
-            # Loop through components
-            for comp in comps:
-                # Check type
-                tcomp = self.opts.get_DataBookType(comp)
-                # Filter
-                if tcomp not in ["FM", "Force", "Moment"]: continue
-                # Update.
-                print("%s component '%s'..." % (tcomp, comp))
+        # Loop through components
+        for comp in comps:
+            # Check type
+            tcomp = self.opts.get_DataBookType(comp)
+            # Filter
+            if tcomp not in ["FM", "Force", "Moment"]: continue
+            # Update.
+            print("%s component '%s'..." % (tcomp, comp))
+            # Loop through indices.
+            for i in I:
                 self.UpdateCaseComp(i, comp)
 
     # Update or add an entry.
