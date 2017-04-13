@@ -617,7 +617,7 @@ def GetCurrentIter():
     nh, ns = GetHistoryIter()
     nr = GetRunningIter()
     # Process
-    if nr is None:
+    if nr in [0, None]:
         # No running iterations; check history
         return ns
     else:
@@ -966,6 +966,8 @@ def CopyHist(nml, i):
     if os.path.isfile('%s_subhist.dat' % proj):
         # Destination name
         fcopy = '%s_subhist.%02i.dat' % (proj, i)
+        # Get time-accuracy option
+        ta0 = nml0.GetVar('nonlinear_solver_parameters', 'time_accuracy')
         # Avoid overwrites
         if not os.path.isfile(fcopy) and (ta0 != 'steady'):
             # Copy the file

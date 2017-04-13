@@ -1312,11 +1312,11 @@ class DBBase(dict):
             elif t in ['str']:
                 # String value
                 self.rconv.append(str)
-                self.wflag.append('"%s"')
+                self.wflag.append('%s')
             elif t in ['unicode']:
                 # Unicode string
                 self.rconv.append(unicode)
-                self.wflag.append('"%s"')
+                self.wflag.append('%s')
             elif t in ['oct', 'octal']:
                 # Octal integer
                 self.rconv.append(lambda v: eval('0o'+v))
