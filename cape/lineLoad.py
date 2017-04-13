@@ -1446,7 +1446,6 @@ class CaseLL(object):
         h['xmax'] = xmax
         h['ymin'] = ymin
         h['ymax'] = ymax
-        h['fig'].savefig("Label020.pdf")
        # ------
        # Legend
        # ------
@@ -1529,7 +1528,6 @@ class CaseLL(object):
             sfigs[i] = sfigi
             # Plot the seam
             hi = sms[i].Plot(**kw_S)
-            h['fig'].savefig("Label040.pdf")
             # Save the handles
             H[sfigi-1] = hi
             # Copy axes handle
@@ -1574,7 +1572,6 @@ class CaseLL(object):
                 elif sfigi == nsm+1:
                     # Right figure
                     xax_max = pi[1,0]
-        h['fig'].savefig("Label050.pdf")
         # Nominal width/height of axes position
         wax = xax_max - xax_min
         hax = yax_max - yax_min
@@ -1655,7 +1652,6 @@ class CaseLL(object):
                 # Reset axis limits
                 axi.set_ylim(ylim)
                 axi.set_xlim(xlimi)
-                h['fig'].savefig("Label060.pdf")
                 # Minimal ticks on y-axis
                 try: plt.locator_params(axis='x', nbins=3)
                 except Exception: pass
@@ -1675,7 +1671,6 @@ class CaseLL(object):
         h['ax'].set_ylim(ylim)
         # Modify output
         h['sm'] = H[:sfigll-1] + H[sfigll:]
-        h['fig'].savefig("Label070.pdf")
         # Output
         return h
         
@@ -2464,8 +2459,9 @@ class CaseSeam(object):
         # Get actual limits
         xmin, xmax = util.get_xlim_ax(h['ax'], **kw)
         ymin, ymax = util.get_ylim_ax(h['ax'], **kw)
-        # Ensure proper aspect ratio
-        plt.axis('equal')
+        # DO NOT Ensure proper aspect ratio; leave commented
+        # This comment is here to remind you not to do it!
+        # plt.axis('equal')
         # Set the axis limits
         h['ax'].set_xlim((xmin, xmax))
         h['ax'].set_ylim((ymin, ymax))
