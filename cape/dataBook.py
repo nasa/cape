@@ -394,6 +394,45 @@ class DataBook(dict):
   # Updaters
   # ========
   # <
+    # Process list of components
+    def ProcessComps(self, comp=None, **kw):
+        """Process list of components
+        
+        This performs several conversions:
+        
+            ============   ===================
+            *comp*         Output
+            ============   ===================
+            ``None``       ``DB.Components``
+            :class:`str`   ``comp.split(',')``
+            :class:`list`  ``comp``
+            ============   ===================
+        
+        :Call:
+            >>> DB.ProcessComps(comp=None)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *comp*: {``None``} | :class:`list` (:class:`str`) | :class:`str`
+                Component or list of components
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First version
+        """
+        # Get type
+        t = type(comp).__name__
+        # Default list of components
+        if comp is None:
+            # Default: all components
+            return self.Components
+        elif t in ['str', 'unicode']:
+            # Split by comma (also ensures list)
+            return comp.split(',')
+        elif t in ['list', 'ndarray']:
+            # Already a list?
+            return comp
+        else:
+            # Unknown
+            raise TypeError("Cannot process component list with type '%s'" % t)
     
     # Update data book
     def UpdateDataBook(self, I=None, comp=None):
@@ -402,11 +441,12 @@ class DataBook(dict):
         :Call:
             >>> DB.UpdateDataBook(I=None, comp=None)
         :Inputs:
-            *DB*: :class:`pyFun.dataBook.DataBook`
+            *DB*: :class:`cape.dataBook.DataBook`
                 Instance of the pyCart data book class
             *I*: :class:`list` (:class:`int`) | ``None``
                 List of trajectory indices or update all cases in trajectory
             *comp*: {``None``} | :class:`list` (:class:`str`) | :class:`str`
+                Component or list of components
         :Versions:
             * 2014-12-22 ``@ddalle``: First version
             * 2017-04-12 ``@ddalle``: Split by component
@@ -415,16 +455,8 @@ class DataBook(dict):
         if I is None:
             # Use all trajectory points.
             I = range(self.x.nCase)
-        # Default list of components
-        if comp is None:
-            # Default: all components
-            comps = self.Components
-        elif type(comp).__name__ in ['str', 'unicode']:
-            # Split by comma (also ensures list)
-            comps = comp.split(',')
-        else:
-            # Already a list?
-            comps = comp
+        # Process list of components
+        comps = self.ProcessComps(comp)
         # Loop through components
         for comp in comps:
             # Check type
@@ -438,6 +470,97 @@ class DataBook(dict):
                 self.UpdateCaseComp(i, comp)
             # Write the component
             self[comp].Write()
+        
+    # Function to delete entries by index
+    def DeleteCases(self, I, comp=None):
+        """Delete list of cases from data book
+        
+        :Call:
+            >>> DB.Delete(I)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *I*: :class:`list` (:class:`int`)
+                List of trajectory indices or update all cases in trajectory
+        :Versions:
+            * 2015-03-13 ``@ddalle``: First version
+            * 2017-04-13 ``@ddalle``: Split by component
+        """
+        # Default.
+        if I is None:
+            # Use all trajectory points.
+            I = range(self.x.nCase)
+        # Process list of components
+        comps = self.ProcessComps(comp)
+        # Loop through components
+        for comp in comps:
+            # Check type
+            tcomp = self.opts.get_DataBookType(comp)
+            # Filter
+            if tcomp not in ["FM", "Force", "Moment"]: continue
+            # Perform deletions
+            nj = self.DeleteCasesCaseComp(i, comp)
+            # Write the component
+            if nj > 0:
+                self[comp].Write()
+        
+    # Function to delete entries by index
+    def DeleteCasesComp(self, I, comp):
+        """Delete list of cases from data book
+        
+        :Call:
+            >>> n = DB.Delete(I)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of the pyCart data book class
+            *I*: :class:`list` (:class:`int`)
+                List of trajectory indices or update all cases in trajectory
+        :Outputs:
+            *n*: :class:`int`
+                Number of deleted entries
+        :Versions:
+            * 2015-03-13 ``@ddalle``: First version
+            * 2017-04-13 ``@ddalle``: Split by component
+        """
+        # Read if necessary
+        if comp not in self:
+            self.ReadDBComp(comp)
+        # Check if it's present
+        if comp not in self:
+            print("WARNING: No aero data book component '%s'" % comp)
+        # Get the first data book component.
+        DBc = self[comp]
+        # Number of cases in current data book.
+        nCase = DBc.n
+        # Initialize data book index array.
+        J = []
+        # Loop though indices to delete.
+        for i in I:
+            # Find the match.
+            j = DBc.FindMatch(i)
+            # Check if one was found.
+            if np.isnan(j): continue
+            # Append to the list of data book indices.
+            J.append(j)
+        # Number of deletions
+        nj = len(J)
+        # Exit if no deletions
+        # Report status
+        print("  Removing %s entries"
+        # Initialize mask of cases to keep.
+        mask = np.ones(nCase, dtype=bool)
+        # Set values equal to false for cases to be deleted.
+        mask[J] = False
+        # Extract data book component.
+        DBc = self[comp]
+        # Loop through data book columns.
+        for c in DBc.keys():
+            # Apply the mask
+            DBc[c] = DBc[c][mask]
+        # Update the number of entries.
+        DBc.n = len(DBc[DBC.keys()[0]])
+        # Output
+        return nj
 
     # Update or add an entry for one component
     def UpdateCaseComp(self, i, comp):

@@ -730,12 +730,10 @@ class Cntl(object):
         # Check if we are deleting or adding.
         if kw.get('delete', False):
             # Delete cases.
-            self.DataBook.Delete(I)
+            self.DataBook.DeleteCases(I, comp=comp)
         else:
             # Read the results and update as necessary.
             self.DataBook.UpdateDataBook(I, comp=comp)
-        # Write the data book to file.
-        # self.DataBook.Write()
         # Return to original location.
         os.chdir(fpwd)
    # >
