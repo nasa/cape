@@ -1250,6 +1250,11 @@ class Trajectory:
         for con in cons:
             # Check for empty constraints.
             if len(con.strip()) == 0: continue
+            # Perform substitutions on constraint
+            con = con.strip().replace('=', '==')
+            con = con.replace('====', '==')
+            con = con.replace('>==', '>=')
+            con = con.replace('<==', '<=')
             # Constraint may fail with bad input.
             try:
                 # Apply the constraint.
