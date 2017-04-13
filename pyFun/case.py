@@ -908,8 +908,11 @@ def SetRestartIter(rc, n=None):
             # Not sure how we could still be in phase 0
             nohist = False
         else:
+            # Check for preceding phases
+            f1 = glob.glob('run.%02i.*' % (i-1))
+            n1 = rc.get_PhaseIters(i-1)
             # Read the previous namelist
-            if n>rc.get_PhaseIters(i) and os.path.isfile("fun3d.out"):
+            if (n>n1) and (len(f1)>0) and os.path.isfile("fun3d.out"):
                 # Current phase was already run, but run.$i.$n wasn't created 
                 nml0 = GetNamelist(rc, i)
             else:
