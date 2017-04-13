@@ -718,6 +718,8 @@ class Cntl(object):
             * 2014-12-12 ``@ddalle``: First version
             * 2014-12-22 ``@ddalle``: Completely rewrote with DataBook class
         """
+        # Get component option
+        comp = kw.get("comp")
         # Save current location.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
@@ -731,7 +733,7 @@ class Cntl(object):
             self.DataBook.Delete(I)
         else:
             # Read the results and update as necessary.
-            self.DataBook.UpdateDataBook(I)
+            self.DataBook.UpdateDataBook(I, comp=comp)
         # Write the data book to file.
         self.DataBook.Write()
         # Return to original location.

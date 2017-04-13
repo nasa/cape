@@ -450,7 +450,7 @@ class DataBook(cape.dataBook.DataBook):
             os.chdir(fpwd)
         
     # Update data book
-    def UpdateDataBook(self, I=None):
+    def UpdateDataBook(self, I=None, **kw):
         """Update the data book for a list of cases from the run matrix
         
         :Call:

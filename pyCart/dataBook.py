@@ -283,7 +283,7 @@ class DataBook(cape.dataBook.DataBook):
         return pointSensor.DBPointSensor(*a, **kw)
     
     # Update data book
-    def UpdateDataBook(self, I=None):
+    def UpdateDataBook(self, I=None, **kw):
         """Update the data book for a list of cases from the run matrix
         
         :Call:
