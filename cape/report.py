@@ -529,7 +529,7 @@ class Report(object):
    # ---------------
    # [
     # Function to update report
-    def UpdateReport(self, I=None, cons=[], **kw):
+    def UpdateReport(self, **kw):
         """Update a report based on the list of figures
         
         :Call:
@@ -545,11 +545,13 @@ class Report(object):
         :Versions:
             * 2015-05-22 ``@ddalle``: First version
         """
+        # Get list of indices.
+        I = self.x.GetIndices(**kw)
         # Update any sweep figures.
-        self.UpdateSweeps(I, cons, **kw)
+        self.UpdateSweeps(I)
         # Update any case-by-case figures.
         if self.HasCaseFigures():
-            self.UpdateCases(I, cons, **kw)
+            self.UpdateCases(I)
         # Write the file.
         self.tex.Write()
         # Compmile it.
@@ -561,10 +563,10 @@ class Report(object):
         # Clean up
         print("Cleaning up...")
         # Clean up sweeps
-        self.CleanUpSweeps(I=I, cons=cons)
+        self.CleanUpSweeps(I=I)
         # Clean up cases
         if self.HasCaseFigures():
-            self.CleanUpCases(I=I, cons=cons)
+            self.CleanUpCases(I=I)
         # Get other 'report-*.*' files.
         fglob = glob.glob('%s*' % self.fname[:-3])
         # Delete most of them.
@@ -631,7 +633,7 @@ class Report(object):
         os.chdir('report')
         
     # Function to update report for several cases
-    def UpdateCases(self, I=None, cons=[], **kw):
+    def UpdateCases(self, **kw):
         """Update several cases and add the lines to the master LaTeX file
         
         :Call:
@@ -649,7 +651,7 @@ class Report(object):
             * 2015-05-22 ``@ddalle``: Moved compilation portion to UpdateReport
         """
         # Check for use of constraints instead of direct list.
-        I = self.cntl.x.GetIndices(cons=cons, I=I)
+        I = self.cntl.x.GetIndices(**kw)
         # Clear out the lines.
         del self.tex.Section['Cases'][1:-1]
         # Loop through those cases.
