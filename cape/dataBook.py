@@ -545,8 +545,10 @@ class DataBook(dict):
         # Number of deletions
         nj = len(J)
         # Exit if no deletions
+        if nj == 0:
+            return nj
         # Report status
-        print("  Removing %s entries"
+        print("  Removing %s entries from FM component '%s'" % (nj, comp))
         # Initialize mask of cases to keep.
         mask = np.ones(nCase, dtype=bool)
         # Set values equal to false for cases to be deleted.
