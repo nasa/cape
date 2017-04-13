@@ -968,12 +968,22 @@ class CaseResid(cape.dataBook.CaseResid):
             fglob1 = glob.glob('%s[0-9][0-9]_hist.[0-9][0-9].dat' % projl)
             fglob1.sort()
             # Combine history resets
-            if len(fglob2) > 0:
-                # Combine history and **current** project
-                self.fglob = fglob1 + fglob2[-1:]
-            else:
+            if len(fglob2) == 0:
                 # Only have historical iterations right now
                 self.fglob = fglob1
+            elif len(fglob1) == 0:
+                # We can use a single history file
+                self.fglob = fglob2[-1:]
+            else:
+                # Get the adaption number from the last candidate of each glob
+                nr = len(proj)
+                na1 = int(fglob1[-1][nr:nr+2])
+                na2 = int(fglob2[-1][nr:nr+2])
+                # We need the pre-restart glob
+                self.fglob = fglob1
+                # Check if there is a newer active history file
+                if na2 >= na1:
+                    self.fglob.append(fglob2[-1])
         # Check for which file(s) to use
         if len(self.fglob) > 0:
             # Read the first file
