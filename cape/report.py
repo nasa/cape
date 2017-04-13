@@ -546,7 +546,7 @@ class Report(object):
             * 2015-05-22 ``@ddalle``: First version
         """
         # Get list of indices.
-        I = self.x.GetIndices(**kw)
+        I = self.cntl.x.GetIndices(**kw)
         # Update any sweep figures.
         self.UpdateSweeps(I)
         # Update any case-by-case figures.
@@ -633,12 +633,11 @@ class Report(object):
         os.chdir('report')
         
     # Function to update report for several cases
-    def UpdateCases(self, **kw):
+    def UpdateCases(self, I=None, **kw):
         """Update several cases and add the lines to the master LaTeX file
         
         :Call:
-            >>> R.UpdateCases(I)
-            >>> R.UpdateCases(cons=[])
+            >>> R.UpdateCases(I=None, **kw)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
@@ -651,7 +650,7 @@ class Report(object):
             * 2015-05-22 ``@ddalle``: Moved compilation portion to UpdateReport
         """
         # Check for use of constraints instead of direct list.
-        I = self.cntl.x.GetIndices(**kw)
+        I = self.cntl.x.GetIndices(I=I, **kw)
         # Clear out the lines.
         del self.tex.Section['Cases'][1:-1]
         # Loop through those cases.
