@@ -215,17 +215,17 @@ class DataBook(cape.dataBook.DataBook):
             self.UpdateCase(i)
     
     # Update data book
-    def UpdateDataBook(self, I=None, comps=None):
+    def UpdateDataBook(self, I=None, comp=None):
         """Update the data book for a list of cases from the run matrix
         
         :Call:
-            >>> DB.UpdateDataBook()
-            >>> DB.UpdateDataBook(I)
+            >>> DB.UpdateDataBook(I=None, comp=None)
         :Inputs:
             *DB*: :class:`pyFun.dataBook.DataBook`
                 Instance of the pyCart data book class
-            *I*: :class:`list` (:class:`int`) or ``None``
+            *I*: :class:`list` (:class:`int`) | ``None``
                 List of trajectory indices or update all cases in trajectory
+            *comp*: {``None``} | :class:`list` (:class:`str`) | :class:`str`
         :Versions:
             * 2014-12-22 ``@ddalle``: First version
             * 2017-04-12 ``@ddalle``: Split by component
@@ -235,18 +235,21 @@ class DataBook(cape.dataBook.DataBook):
             # Use all trajectory points.
             I = range(self.x.nCase)
         # Default list of components
-        if comps is None:
+        if comp is None:
             # Default: all components
             comps = self.Components
-        else:
+        elif type(comp).__name__ in ['str', 'unicode']:
             # Split by comma (also ensures list)
-            comps = comps.split(',')
+            comps = comp.split(',')
+        else:
+            # Already a list?
+            comps = comp
         # Loop through indices.
         for i in I:
             # Loop through components
             for comp in comps:
                 # Check type
-                typ = self.opts.get_DataBookType(comp)
+                tcomp = self.opts.get_DataBookType(comp)
                 # Filter
                 if tcomp not in ["FM", "Force", "Moment"]: continue
                 # Update.
