@@ -967,7 +967,7 @@ def CopyHist(nml, i):
         # Destination name
         fcopy = '%s_subhist.%02i.dat' % (proj, i)
         # Get time-accuracy option
-        ta0 = nml0.GetVar('nonlinear_solver_parameters', 'time_accuracy')
+        ta0 = nml.GetVar('nonlinear_solver_parameters', 'time_accuracy')
         # Avoid overwrites
         if not os.path.isfile(fcopy) and (ta0 != 'steady'):
             # Copy the file
