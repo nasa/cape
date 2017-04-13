@@ -49,6 +49,7 @@ from datetime import datetime
 # Finer control of dicts
 from .options import odict
 # Utilities or advanced statistics
+from . import case
 from . import util
 
 # Other local modules
@@ -329,6 +330,26 @@ class DataBook(dict):
   # Case I/O
   # ========
   # <
+    # Current iteration status
+    def GetCurrentIter(self):
+        """Determine iteration number of current folder
+        
+        :Call:
+            >>> n = DB.GetCurrentIter()
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Iteration number
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        try:
+            return case.GetCurrentIter()
+        except Exception:
+            return None
+            
     # Read case residual
     def ReadCaseResid(self):
         """Read a :class:`CaseResid` object
@@ -465,7 +486,7 @@ class DataBook(dict):
         # Go to the folder.
         os.chdir(frun)
         # Get the current iteration number.
-        nIter = case.GetCurrentIter()
+        nIter = self.GetCurrentIter()
         # Get the number of iterations used for stats.
         nStats = self.opts.get_nStats()
         # Get the iteration at which statistics can begin.

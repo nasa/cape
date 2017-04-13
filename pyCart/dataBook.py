@@ -23,6 +23,7 @@ from datetime import datetime
 
 # Utilities or advanced statistics
 from . import util
+from . import case
 # Line loads and other data types
 from . import lineLoad
 from . import pointSensor
@@ -370,6 +371,69 @@ class DataBook(cape.dataBook.DataBook):
                 DBc[c] = DBc[c][mask]
             # Update the number of entries.
             DBc.n = len(DBc['nIter'])
+  
+  # ========
+  # Case I/O
+  # ========
+  # <
+    # Current iteration status
+    def GetCurrentIter(self):
+        """Determine iteration number of current folder
+        
+        :Call:
+            >>> n = DB.GetCurrentIter()
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Iteration number
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        try:
+            return case.GetCurrentIter()
+        except Exception:
+            return None
+    
+    # Read case residual
+    def ReadCaseResid(self):
+        """Read a :class:`CaseResid` object
+        
+        :Call:
+            >>> H = DB.ReadCaseResid()
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *H*: :class:`pyFun.dataBook.CaseResid`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseResid()
+        
+    # Read case FM history
+    def ReadCaseFM(self, comp):
+        """Read a :class:`CaseFM` object
+        
+        :Call:
+            >>> FM = DB.ReadCaseFM(comp)
+        :Inputs:
+            *DB*: :class:`pyCart.dataBook.DataBook`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *FM*: :class:`pyFun.dataBook.CaseFM`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseFM(comp)
+  # >
         
 # class DataBook
         
