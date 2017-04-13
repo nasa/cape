@@ -1616,8 +1616,10 @@ class CaseLL(object):
                 # Set the *y* limits appropriately
                 ylimi = [yi-0.5*ARi*wxi, yi+0.5*ARi*wxi]
                 # Copy the limits again
-                axi.set_xlim(xlim)
-                axi.set_ylim(ylimi)
+                ax.set_xlim(xlim)
+                ax.set_ylim(ylimi)
+                plt.draw()
+                #plt.axis([xlim[0], xlim[1], ylimi[0], ylimi[1]])
                 # Minimal ticks on y-axis
                 try: plt.locator_params(axis='y', nbins=4)
                 except Exception: pass

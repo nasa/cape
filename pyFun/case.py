@@ -841,21 +841,28 @@ def GetRestartIter():
     frun = glob.glob('run.[0-9]*.[0-9]*')
     # Sort descending
     frun.sort()
-    frun.reverse()
     # List the output files
     if os.path.isfile('fun3d.out'):
         # Only use the current file
-        fflow = ['fun3d.out'] + frun
+        fflow = frun + ['fun3d.out']
     elif os.path.isfile(os.path.join('Flow', 'fun3d.out')):
         # Use the current file from the ``Flow/`` folder
-        fflow = [os.path.join('Flow', 'fun3d.out')] + frun
+        fflow = frun + [os.path.join('Flow', 'fun3d.out')]
     else:
         # Use the run output files
         fflow = frun
     # Initialize iteration number until informed otherwise.
     n = 0
+    # Cumulative restart iteration number
+    n0 = 0
     # Loop through the matches.
     for fname in fflow:
+        # Check for restart of iteration counter
+        lines = bin.grep('on_nohistorykept', fname);
+        if len(lines) > 1:
+            # Reset iteration counter
+            n0 = n
+            n = 0
         # Get the output report lines
         lines = bin.grep('current history iterations', fname)
         # Be safe
@@ -867,7 +874,7 @@ def GetRestartIter():
         except Exception:
             pass
     # Output
-    return n
+    return n0 + n
     
 # Function to set the most recent file as restart file.
 def SetRestartIter(rc, n=None):
