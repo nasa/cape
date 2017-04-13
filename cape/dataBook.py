@@ -3791,6 +3791,12 @@ class DBTriqFM(DataBook):
         """
         # Get the data book transformations for this component
         db_transforms = self.opts.get_DataBookTransformations(self.comp)
+        # Special transformation to reverse *CLL* and *CLN*
+        tflight = {"Type": "ScaleCoeffs", "CLL": -1.0, "CLN": -1.0}
+        # Check for ScaleCoeffs
+        if tflight not in db_transforms:
+            # Append a transformation to reverse *CLL* and *CLN*
+            db_transforms.append(tflight)
         # Loop through the transformations
         for topts in db_transforms:
             # Apply transformation type

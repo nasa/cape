@@ -1294,6 +1294,9 @@ class CaseLL(object):
         :Versions:
             * 2016-06-09 ``@ddalle``: First version
         """
+       # -------
+       # Options
+       # -------
         # Ensure plot modules are necessary
         ImportPyPlot()
         # Get x-axis values
@@ -1345,6 +1348,9 @@ class CaseLL(object):
             else:
                 # Get the z-cut seam handle
                 sms[i] = self.smz
+       # ------------------
+       # Initialize Figures
+       # ------------------
         # Initialize handles
         h = {}
         # Check for seam plots
@@ -1360,9 +1366,9 @@ class CaseLL(object):
                 sfigll = 1 + sm_loc.count('left')
                 # Plot seams to the left or right
                 plt.subplot(1, nsm+1, sfigll)
-        # ------------
-        # Primary plot
-        # ------------
+       # ------------
+       # Primary plot
+       # ------------
         # Initialize primary plot options
         kw_p = odict(color=kw.get("color","k"), ls="-", lw=1.5, zorder=7)
         # Extract plot optiosn from kwargs
@@ -1379,9 +1385,9 @@ class CaseLL(object):
         else:
             # Flip axes
             h[coeff] = plt.plot(y, x, **kw_p)
-        # -----------------
-        # Margin adjustment
-        # -----------------
+       # -----------------
+       # Margin adjustment
+       # -----------------
         # Get the figure and axes handles
         h['fig'] = plt.gcf()
         h['ax']  = plt.gca()
@@ -1440,9 +1446,10 @@ class CaseLL(object):
         h['xmax'] = xmax
         h['ymin'] = ymin
         h['ymax'] = ymax
-        # ------
-        # Legend
-        # ------
+        h['fig'].savefig("Label020.pdf")
+       # ------
+       # Legend
+       # ------
         # Check for legend setting
         if kw.get('Legend', False):
             # Get current limits.
@@ -1467,9 +1474,9 @@ class CaseLL(object):
                 h['legend'] = h['ax'].legend(loc='upper center',
                     prop=dict(size=fsize),
                     bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
-        # ----------
-        # Seam plots
-        # ----------
+       # ----------
+       # Seam plots
+       # ----------
         # Exit if no seams
         if nsm < 1: return h
         # Initialize seam handles
@@ -1522,6 +1529,7 @@ class CaseLL(object):
             sfigs[i] = sfigi
             # Plot the seam
             hi = sms[i].Plot(**kw_S)
+            h['fig'].savefig("Label040.pdf")
             # Save the handles
             H[sfigi-1] = hi
             # Copy axes handle
@@ -1566,6 +1574,7 @@ class CaseLL(object):
                 elif sfigi == nsm+1:
                     # Right figure
                     xax_max = pi[1,0]
+        h['fig'].savefig("Label050.pdf")
         # Nominal width/height of axes position
         wax = xax_max - xax_min
         hax = yax_max - yax_min
@@ -1646,6 +1655,7 @@ class CaseLL(object):
                 # Reset axis limits
                 axi.set_ylim(ylim)
                 axi.set_xlim(xlimi)
+                h['fig'].savefig("Label060.pdf")
                 # Minimal ticks on y-axis
                 try: plt.locator_params(axis='x', nbins=3)
                 except Exception: pass
@@ -1657,12 +1667,15 @@ class CaseLL(object):
             # Plot seams to the left or right
             plt.subplot(1, nsm+1, sfigll)
         # Finally, set the position for the position for the main figure
-        h['ax'].set_position([xax_min,yax_min,xax_max-xax_min,yax_max-yax_min])
+        h['ax'].set_position([
+                xax_min, yax_min, xax_max-xax_min, yax_max-yax_min
+        ])
         # Reset limits
         h['ax'].set_xlim(xlim)
         h['ax'].set_ylim(ylim)
         # Modify output
         h['sm'] = H[:sfigll-1] + H[sfigll:]
+        h['fig'].savefig("Label070.pdf")
         # Output
         return h
         
