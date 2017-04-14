@@ -3104,6 +3104,7 @@ class DBTriqFM(DataBook):
             self.PreprocessTriq(ftriq, i=i)
         # Read the triangulation
         self.ReadTriq(ftriq)
+        print("Label 024: triq.CompID->%s" % np.unique(self.triq.CompID)[:10])
         # Enter folder
         os.chdir("triqfm")
         # Map the triangulation
@@ -3218,7 +3219,11 @@ class DBTriqFM(DataBook):
             * 2017-03-28 ``@ddalle``: First version
         """
         # Read using :mod:`cape`
+        print("Label 020: c=%s" % self.conf)
+        print("Label 021: ftriq='%s' (%s)" % (ftriq, os.getcwd()))
         self.triq = cape.tri.Triq(ftriq, c=self.conf)
+        print("Label 022: MPCV_Camera->%s" % self.triq.config.GetCompID('MPCV_Camera'))
+        print("Label 023: triq.CompID->%s" % np.unique(self.triq.CompID)[:10])
   # >
   
   # ============
@@ -3500,21 +3505,40 @@ class DBTriqFM(DataBook):
         try:
             self.tri
         except Exception:
+            print("Label 025a: triq.CompID->%s" % np.unique(self.triq.CompID)[:10])
             self.ReadTriMap()
         # Check for a tri file
+        print("Label 025b: triq.CompID->%s" % np.unique(self.triq.CompID)[:10])
+        print("Label 025c: triq.CompID->%s" % np.unique(self.triq.CompID)[:10])
+        if self.tri is None:
+            self.compmap = {}
+            print("Label 025d: triq.CompID->%s" % np.unique(self.triq.CompID)[:10])
+        else:
+            print("Label 025e: triq.CompID->%s" % np.unique(self.triq.CompID)[:10])
         if self.tri is None:
             # No component map
             self.compmap = {}
+            print("Label 026: triq.CompID->%s"%np.unique(self.triq.CompID[:10]))
         else:
             # Status update
+            print("Label 027: triq.CompID->%s"%np.unique(self.triq.CompID[:10]))
+            os.sys.stdout.flush()
             ftri = self.opts.get_DataBookMapTri(self.comp)
             print("    Mapping component IDs using '%s'" % ftri)
             # Get tolerances
             kw = self.opts.get_DataBookMapTriTol(self.comp)
+            print("Label 028: triq.CompID->%s"%np.unique(self.triq.CompID[:10]))
             # Set candidate component ID
             kw["compID"] = self.candidateCompID
             # Map the component IDs
+            print("Label 037: kw=%s" % kw)
+            print("Label 038: triq.CompID->%s"%np.unique(self.triq.CompID[:10]))
+            print("Label 039: compID=%s" % self.candidateCompID)
             self.compmap = self.triq.MapTriCompID(self.tri, **kw)
+            print("Label 040: compmap=%s" % self.compmap)
+            print("Label 041: tri.CompID->%s" % np.unique(self.tri.CompID))
+            print("Label 042: tri.Conf=%s" % self.tri.Conf)
+            print("Label 043: triq.CompID->%s" % np.unique(self.triq.CompID[:10]))
             
   # >
   
