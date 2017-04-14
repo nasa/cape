@@ -882,8 +882,6 @@ class Plt(object):
                     comp = mapbc.CompID[comp-1]
                 except Exception:
                     pass
-            if k < 10:
-                print("  Label 010: k=%s, zone='%s', comp=%s" % (k, self.Zones[k], comp))
             # Save the component IDs
             CompID[iTri:iTri+kTri] = comp
             # Increase the running tri count

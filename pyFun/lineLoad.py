@@ -10,7 +10,7 @@ is a submodule of :mod:`pyFun.dataBook`.
 """
 
 # File interface
-import os, glob
+import os, glob, shutil
 # Basic numerics
 import numpy as np
 # Date processing
@@ -87,7 +87,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         # Make sure it's not a list
         if type(self.CompID).__name__ == 'list':
             # Take the first component
-            self.RefComp = self.RefComp[0]
+            self.RefComp = self.CompID[0]
         else:
             # One component listed; use it
             self.RefComp = self.CompID
@@ -95,6 +95,7 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         try:
             # Use the configuration interface
             self.CompID = self.conf.GetCompID(self.CompID)
+            return
         except Exception:
             pass
         # Convert to MapBC numbers, since that's how the PLT file numbers them
@@ -174,6 +175,12 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         fmt = self.opts.get_DataBookTriqFormat(self.comp)
         # Get case index
         i = kw.get('i')
+        # Copy the mapbc files
+        fmapbc = glob.glob(os.path.join('..', '*.mapbc'))
+        # Copy them
+        for fm in fmapbc:
+            shutil.copy(fm, '.')
+
         # Read Mach number
         if i is None:
             # Read from :file:`conditions.json`

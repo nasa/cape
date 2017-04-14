@@ -771,6 +771,7 @@ class DBLineLoad(dataBook.DBBase):
         self.nCut = nCut
         # Get components and type of the input
         compID = self.CompID
+        COMPID = self.opts.get_DataBookCompID(self.comp)
         tcomp  = type(compID).__name__
         # File name
         fcmd = 'triload.%s.i' % self.comp
