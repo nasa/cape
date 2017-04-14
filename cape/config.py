@@ -950,15 +950,18 @@ class Config:
         return cfg
 # class Config
 
+
 # Config based on MIXSUR
 class ConfigMIXSUR(object):
     """Class to build a triangulation configuration from a ``mixsur`` file
     
     :Call:
-        >>> cfg = ConfigMIXSUR(fname="mixsur.i")
+        >>> cfg = ConfigMIXSUR(fname="mixsur.i", usurp=True)
     :Inptus:
         *fname*: {``"mixsur.i"``} | :class:`str`
             Name of ``mixsur`` input file
+        *usurp*: {``True``} | ``False``
+            Whether or not to number components as with ``usurp`` output
     :Outputs:
         *cfg*: :class:`cape.config.ConfigMIXSUR`
             ``mixsur``-based configuration interface
@@ -975,7 +978,7 @@ class ConfigMIXSUR(object):
         * 2016-12-29 ``@ddalle``: First version
     """
     # Initialization method
-    def __init__(self, fname="mixsur.i"):
+    def __init__(self, fname="mixsur.i", usurp=True):
         """Initialization method
         
         :Versions:
@@ -1016,7 +1019,8 @@ class ConfigMIXSUR(object):
             pass
         # Number of components
         V = self.readline(f)
-        self.NSURF = int(V[0])
+        nsurf = int(V[0])
+        self.NSURF = nsurf
         # Initialize components
         self.IDs = range(self.NSURF)
         # Loop through the actual inputs, which we don't really need for cfg
@@ -1058,11 +1062,19 @@ class ConfigMIXSUR(object):
         # Read the number of components
         V = self.readline(f)
         ncomp = int(V[0])
+        # Save number of components
+        self.NCOMP = ncomp
         # Initialize map of CompID numbers
         # This gives the relationship between the surface number at the end of
         # mixsur input file to the actual CompID number in the grid.i.tri file
         self.Surf2CompID = {}
-        i = 0
+        # Component ID offset
+        if usurp:
+            # Number 1, 2, ... , NSURF
+            noff = 0
+        else:
+            # Number NCOMP-NSURF+1, NCOMP-NSURF+2, ... , NCOMP
+            noff = ncomp - nsurf
         # Loop through number of components (including groups)
         for k in range(ncomp):
             # Read the name of the component
@@ -1074,17 +1086,17 @@ class ConfigMIXSUR(object):
             # Read the components
             V = self.readline(f)
             # Determine if this is a single component or group
-            if ni == 1:
+            if k >= ncomp-nsurf:
                 # Convert component to integer
-                compID = int(V[0])
+                compID = int(V[0]) + noff
+                # Check *usurp*
                 # Add to list of components
                 self.comps.append(face)
                 # Add to the map
-                i += 1
-                self.Surf2CompID[k+1] = i
+                self.Surf2CompID[face] = compID
             else:
                 # Convert list of component numbers to integers
-                compID = [int(v) for v in V[:ni]]
+                compID = [int(v)+noff for v in V[:ni]]
             # Save components
             self.faces[face] = compID
             # Initialize parents
