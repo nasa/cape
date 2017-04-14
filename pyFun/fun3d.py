@@ -1955,11 +1955,11 @@ class Fun3d(Cntl):
             else:
                 # Process number of *additional* iterations expected
                 nj = PhaseIters[j] - PhaseIters[j-1]
-            # Status update
-            print("  Adding phase %s (to %s iterations)" % (j, nj))
             # Set the iteration count
             nIter += nj
             rc.set_PhaseIters(nIter, j)
+            # Status update
+            print("  Adding phase %s (to %s iterations)" % (j, nIter))
             # Copy other sections
             for k in rco:
                 # Don't copy phase and iterations
