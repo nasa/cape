@@ -1301,6 +1301,10 @@ class Cntl(object):
             self.ExtendCase(i, n=n, j=j, imax=imax)
             # Start/submit the case?
             if qsub:
+                # Check status
+                sts = self.CheckCaseStatus(i)
+                # Check if it's a submittable/restartable status
+                if sts not in ['---', 'INCOMP']: continue
                 # Try to start the case
                 pbs = self.StartCase(i)
                 # Check for a submission
@@ -1356,6 +1360,10 @@ class Cntl(object):
             self.ApplyCase(i, nPhase=n)
             # Start/submit the case?
             if qsub:
+                # Check status
+                sts = self.CheckCaseStatus(i)
+                # Check if it's a submittable/restartable status
+                if sts not in ['---', 'INCOMP']: continue
                 # Try to start the case
                 pbs = self.StartCase(i)
                 # Check for a submission
