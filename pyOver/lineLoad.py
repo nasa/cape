@@ -43,10 +43,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
    # -------
    # Options
    # -------
-    # Create 'lineload' folder if needed
-    if not os.path.isdir(fdir): DB.opts.mkdir(fdir)
-    # Enter the 'lineload' folder
-    os.chdir(fdir)
+    # report 
     # Get input files
     fusurp   = DB.opts.get_DataBook_usurp(DB.comp)
     fmixsur  = DB.opts.get_DataBook_mixsur(DB.comp)
@@ -85,7 +82,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     lsplitmx = 'splitmx.%s.i' % DB.comp
     lmixsur  = 'mixsur.%s.i' % DB.comp
     # Source *q* file is in parent folder
-    fqvol = os.path.join('..', fq)
+    fqvol = fq
     # Source *x* file if needed
     fxvol = os.path.join('..', "x.pyover.p3d")
     # If this file does not exist, nothing is going to work.
@@ -272,7 +269,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     if qfusurp or qusurp:
         # Command to usurp
         cmd = ("usurp -v --use-map < %s >& usurp.%s.o"
-            % (fmixsur, DB.comp))
+            % (lmixsur, DB.comp))
         # Status update
         print("    %s" % cmd)
         # Run ``usurp
@@ -284,7 +281,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
             raise SystemError("Failure while running ``usurp``")
     else:
         # Command to overint
-        cmd = "overint < %s >& overint.%s.o" % (fmixsur, DB.comp)
+        cmd = "overint < %s >& overint.%s.o" % (lmixsur, DB.comp)
         # Status update
         print("    %s" % cmd)
         # Run ``overint``
@@ -429,9 +426,9 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             # No source just yet
             fsrc = None
         # Check if the TRIQ file exists
-        if os.path.isfile(ftriq) and os.path.isfile(fsrc):
+        if os.path.isfile(ftriq) and fsrc and os.path.isfile(fsrc):
             # Check modification dates
-            if os.path.getmtime(ftriq) > os.path.getmtime(fsrc):
+            if os.path.getmtime(ftriq) < os.path.getmtime(fsrc):
                 # 'grid.i.triq' exists, but Q file is newer
                 qpre = True
             else:
@@ -448,8 +445,9 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
             if os.path.isfile(fmixsur):
                 # Read that file
                 cfg = config.ConfigMIXSUR(fmixsur)
+                compID = self.opts.get_DataBookCompID(self.comp)
                 # Check if the component is present
-                if self.comp not in cfg.faces:
+                if compID not in cfg.faces:
                     # The "grid.i.triq" does not include the component we need
                     qpre = True
             else:
