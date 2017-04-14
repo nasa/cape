@@ -870,10 +870,25 @@ def GetRestartIter():
         lines = bin.grep('current history iterations', fname)
         # Be safe
         try:
+            # Split up line
+            V = lines[-2].split()
+            # Attempt to get existing iterations
+            try:
+                # Format: "3000 + 2000 = 5000"
+                i0 = int(V[-5])
+            except Exception:
+                # No restart... restart_read is 'off' or 'on_nohistorykept'
+                i0 = 0
             # Get the last write iteration number
-            i = int(lines[-2].split()[-1])
+            i = int(V[-1])
             # Update iteration number
-            n = max(i, n)
+            if i0 < n:
+                # Somewhere we missed an on_nohistorykept
+                n0 = n
+                n = i
+            else:
+                # Normal situation
+                n = max(i, n)
         except Exception:
             pass
     # Output
