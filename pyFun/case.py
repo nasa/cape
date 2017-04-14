@@ -622,7 +622,7 @@ def GetCurrentIter():
         return ns
     else:
         # Some iterations saved and some running
-        return max(nh + nr, ns)
+        return nh + nr
         
 # Get the number of finished iterations
 def GetHistoryIter():
