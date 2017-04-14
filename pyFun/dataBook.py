@@ -1345,15 +1345,20 @@ class CaseResid(cape.dataBook.CaseResid):
             c0  = col + '0'
             # Get the values
             v = d[col][I]
-            # Exit if no mismatch
-            # This happens when the subhist iterations have been written but
-            # the corresponding iterations haven't been flushed yet.
-            if len(v) == 0: return
+            #if len(v) == 0: return
             # Check integers
             if col == 'i':
                 # Get expected iteration numbers
                 ni = len(v)
-                ip = self.i[-ni:]
+                # Exit if no match
+                # This happens when the subhist iterations have been written 
+                # but the corresponding iterations haven't been flushed yet.
+                if ni == 0:
+                    # No matches
+                    ip = self.i[0:0]
+                else:
+                    # Matches last *ni* iters
+                    ip = self.i[-ni:]
                 # Offset current iteration numbers by reset iter
                 iv = v + iend
                 # Compare to existing iteration numbers
