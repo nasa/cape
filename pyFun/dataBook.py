@@ -1355,7 +1355,7 @@ class CaseResid(cape.dataBook.CaseResid):
                 iv = v + iend
                 # Compare to existing iteration numbers
                 if np.any(ip != iv):
-                    raise ValueError("Mismatch between nominal history " +
+                    print("Warning: Mismatch between nominal history " +
                         ("(%i-%i) and subiteration history (%i-%i)" %
                         (ip[0], ip[-1], iv[0], iv[-1])))
             # Check to append
