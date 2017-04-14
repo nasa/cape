@@ -131,6 +131,12 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         """
         # Get properties of triq file
         fplt, n, i0, i1 = case.GetPltFile()
+        # Check for iteration resets
+        nh, ns = case.GetHistoryIter()
+        # Add in the last iteration number before restart
+        if nh is not None:
+            i0 += nh
+            i1 += nh
         # Get the corresponding .triq file name
         ftriq = fplt.rstrip('.plt') + '.triq'
         # Check if the TRIQ file exists

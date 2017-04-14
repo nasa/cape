@@ -352,6 +352,12 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
         """
         # Get properties of triq file
         fplt, n, i0, i1 = case.GetPltFile()
+        # Check for iteration resets
+        nh, ns = case.GetHistoryIter()
+        # Add in the last iteration number before restart
+        if nh is not None:
+            i0 += nh
+            i1 += nh
         # Get the corresponding .triq file name
         ftriq = fplt.rstrip('.plt') + '.triq'
         # Check if the TRIQ file exists
@@ -1339,6 +1345,10 @@ class CaseResid(cape.dataBook.CaseResid):
             c0  = col + '0'
             # Get the values
             v = d[col][I]
+            # Exit if no mismatch
+            # This happens when the subhist iterations have been written but
+            # the corresponding iterations haven't been flushed yet.
+            if len(v) == 0: return
             # Check integers
             if col == 'i':
                 # Get expected iteration numbers
@@ -1355,8 +1365,11 @@ class CaseResid(cape.dataBook.CaseResid):
             try:
                 # Check if the attribute is present
                 v0 = getattr(self,c0)
+                # Get extra padding... again from missing subhist files
+                n0 = self.i.size - v0.size - v.size
+                v1 = np.nan*np.ones(n0)
                 # Save it if that command succeeded
-                setattr(self,c0, np.hstack((v0, v)))
+                setattr(self,c0, np.hstack((v0, v1, v)))
             except AttributeError:
                 # Save the value as a new one
                 setattr(self,c0, v)

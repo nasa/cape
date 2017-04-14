@@ -622,7 +622,7 @@ def GetCurrentIter():
         return ns
     else:
         # Some iterations saved and some running
-        return nh + nr
+        return max(nh + nr, ns)
         
 # Get the number of finished iterations
 def GetHistoryIter():
@@ -798,10 +798,13 @@ def GetRunningIter():
                 n = int(line.split()[-1])
                 nr = None
                 break
+            # Split the line
+            V = line.split()
+            nV = len(V)
             # Make sure there are iterations
-            if len(line.split()) < 2: continue
+            if nV < 2 or nV > 6: continue
             # Try to use an integer for the first entry.
-            n = int(line.split()[0])
+            n = int(V[0])
             break
         except Exception:
             continue
