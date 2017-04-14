@@ -879,16 +879,24 @@ class Config:
         :Versions:
             * 2017-03-30 ``@ddalle``: First version
         """
-        # Make sure there is a list of CompIDs
-        try:
-            self.CompIDs
-        except AttributeError:
-            # Make the list
-            self.CompIDs = [self.faces[comp] for comp in self.comps]
+        # Make the list of current compIDs
+        self.CompIDs = [self.faces[c] for c in self.comps if c in self.faces]
         # Check if CompID is present
         if compID in self.CompIDs:
-            # Get the component name
-            return self.comps[self.CompIDs.index(compID)]
+            # Get an array of matches
+            CompIDs = np.array(self.CompIDs)
+            # Find matches
+            I = np.where(compID == CompIDs)[0]
+            # Loop through them to make sure it's *still* in *self.faces*
+            for i in I:
+                # Candidate
+                face = self.comps[i]
+                # Check if present
+                if face in self.faces:
+                    # Output
+                    return face
+            # If reached this point... no matches
+            return None
         else:
             # CompID not found
             return None
@@ -1594,6 +1602,10 @@ class ConfigJSON(object):
                 if c not in compIDs:
                     # Delete the face
                     del self.faces[face]
+                    # Delete the component name
+                    if face in self.comps:
+                        i = self.comps.index(face)
+                        del self.comps[i]
             else:
                 # Intersect the current value with the target list
                 F = np.intersect1d(c, compIDs)

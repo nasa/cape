@@ -2881,7 +2881,12 @@ class TriBase(object):
             self.config.RestrictCompID(compIDs)
         except Exception:
             # Print a warning
-            print("WARNING: Attempt to restrict *config* component IDs failed")
+            try:
+                self.config
+                print("WARNING: " +
+                    "Attempt to restrict *config* component IDs failed")
+            except AttributeError:
+                pass
             
     # Renumber component IDs 1 to *n*
     def RenumberCompIDs(self):
@@ -2989,6 +2994,28 @@ class TriBase(object):
         :Versions:
             * 2017-03-30 ``@ddalle``: First version
         """
+        # Try to use the UH3D dictionary
+        try:
+            self.Conf
+            # Get list of available components from Conf
+            Comps = []
+            CompIDs = []
+            # Loop through candidate comps
+            for comp in self.Conf:
+                # Get value
+                v = self.Conf[comp]
+                t = type(v).__name__
+                # Append if appropriate
+                if t.startswith('int'):
+                    Comps.append(comp)
+                    CompIDs.append(v)
+            # Check if CompID is present
+            if compID in CompIDs:
+                # Get the component name
+                return Comps[CompIDs.index(compID)]
+        except AttributeError:
+            # There's no *tri.Conf*
+            pass
         # Try both configuration interfaces
         try:
             # Use the *Config* class first
@@ -2997,25 +3024,11 @@ class TriBase(object):
             # No *Config* attribute
             face = None
         # Exit if found
-        if face is not None:
-            return face
-        # Try to use the UH3D dictionary
-        try:
-            self.Conf
-        except Exception:
-            # There's nothing to read
+        if face is None:
+            # No match
             return ""
-        # Get list of available components from Conf
-        Comps = [comp for comp in self.Conf if
-            type(self.Conf[comp]).__name__ == "int"]
-        CompIDs = [self.Conf[comp] for comp in Comps]
-        # Check if CompID is present
-        if compID in CompIDs:
-            # Get the component name
-            return Comps[CompIDs.index(compID)]
         else:
-            # CompID not found
-            return ""
+            return face
                 
     # Get compIDs by name or number from *tri.Conf*
     def GetConfCompID(self, face=None):

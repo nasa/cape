@@ -399,14 +399,6 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
             mach = self.x.GetMach(i)
         # Output format
         fmt = self.opts.get_DataBookTriqFormat(self.comp)
-        # Check for mapbc file
-        fmapbc = glob.glob('*.mapbc')
-        # Read it
-        if len(fmapbc) > 0:
-            # Sort to get a crude attempt to get the last one
-            fmapbc.sort()
-            # Read the interface
-            mapbc = pyFun.mapbc.MapBC(fmapbc[-1])
         # Read the plt information
         pyFun.plt.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
 # class DBTriqFM

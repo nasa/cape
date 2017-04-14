@@ -57,6 +57,7 @@ def Plt2Triq(fplt, ftriq=None, **kw):
         # Import the alphabetically last one (should be the same anyway)
         kw["mapbc"] = pyFun.mapbc.MapBC(fglob[0])
     # Create the TRIQ interface
+    print("Label 008: mapbc=%s (%s)" % (kw["mapbc"], fglob[0]))
     triq = plt.CreateTriq(**kw)
     # Get output file extension
     ext = triq.GetOutputFileType(**kw)
