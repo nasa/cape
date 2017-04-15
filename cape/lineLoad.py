@@ -891,11 +891,12 @@ class DBLineLoad(dataBook.DBBase):
                 Case number
             *topts*: :class:`dict`
                 Dictionary of transformation options
-                
+        :Outputs:
+            *R*: :class:`np.ndarray` shape=(3,3)
+                Rotation matrix
         :Versions:
             * 2017-04-14 ``@ddalle``: First version
         """
-        
         # Get the transformation type.
         ttype = topts.get("Type", "")
         # Check it.
