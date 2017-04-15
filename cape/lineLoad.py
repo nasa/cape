@@ -830,9 +830,132 @@ class DBLineLoad(dataBook.DBBase):
         # Write the cut type
         f.write('const x\n')
         # Write coordinate transform
-        f.write('n\n')
+        self.WriteTriloadTransformations(i, f)
         # Close the input file
         f.close()
+        
+    # Get triload transformations
+    def WriteTriloadTransformations(self, i, f):
+        """Write transformations to a ``triload.i`` input file
+        
+        Usually this just writes an ``n`` for "no", but it can also write a 3x3
+        transformation matrix if ``"Transformations"`` are defined for
+        *DBL.comp*.
+        
+        :Call:
+            >>> DBL.WriteTriloadTransformations(i, f)
+        :Inputs:
+            *DBL*: :class:`cape.lineLoad.DBLineLoad`
+                Line load data book
+            *i*: :class:`int`
+                Case number
+            *f*: :class:`file`
+                Open file handle from :func:`WriteTriloadInputBase`
+        :Versions:
+            * 2017-04-14 ``@ddalle``: First version
+        """
+        # Get the raw option from the data book
+        db_transforms = self.opts.get_DataBookTransformations(self.comp)
+        # Check if no transformations
+        if len(db_transforms) == 0:
+            f.write('n\n')
+            return
+        # Initialize identity matrix.
+        R = np.eye(3)
+        # Loop through transformations
+        for topts in db_transforms:
+            # Get the rotation matrix for this transformation
+            Ri = self.CalculateTriloadTransformation(i, topts)
+            # Accumulate
+            R = np.dot(R, Ri)
+        # Write the transformation
+        for row in R:
+            f.write("%9.6f %9.6f %9.6f\n" % row)
+        
+        
+        
+    # Calculate transformations
+    def CalculateTriloadTransformation(self, i, topts):
+        """Write transformations to a ``triload.i`` input file
+        
+        Usually this just writes an ``n`` for "no", but it can also write a 3x3
+        transformation matrix if ``"Transformations"`` are defined for
+        *DBL.comp*.
+        
+        :Call:
+            >>> R = DBL.CalculateTriloadTransformation(i, topts)
+        :Inputs:
+            *DBL*: :class:`cape.lineLoad.DBLineLoad`
+                Line load data book
+            *i*: :class:`int`
+                Case number
+            *topts*: :class:`dict`
+                Dictionary of transformation options
+                
+        :Versions:
+            * 2017-04-14 ``@ddalle``: First version
+        """
+        
+        # Get the transformation type.
+        ttype = topts.get("Type", "")
+        # Check it.
+        if ttype in ["Euler321", "Euler123"]:
+            # Get the angle variable names.
+            # Use same as default in case it's obvious what they should be.
+            kph = topts.get('phi', 0.0)
+            kth = topts.get('theta', 0.0)
+            kps = topts.get('psi', 0.0)
+            # Extract roll
+            if type(kph).__name__ not in ['str', 'unicode']:
+                # Fixed value
+                phi = kph*deg
+            elif kph.startswith('-'):
+                # Negative roll angle.
+                phi = -getattr(self.x,kph[1:])[i]*deg
+            else:
+                # Positive roll
+                phi = getattr(self.x,kph)[i]*deg
+            # Extract pitch
+            if type(kth).__name__ not in ['str', 'unicode']:
+                # Fixed value
+                theta = kth*deg
+            elif kth.startswith('-'):
+                # Negative pitch
+                theta = -getattr(self.x,kth[1:])[i]*deg
+            else:
+                # Positive pitch
+                theta = getattr(self.x,kth)[i]*deg
+            # Extract yaw
+            if type(kps).__name__ not in ['str', 'unicode']:
+                # Fixed value
+                psi = kps*deg
+            elif kps.startswith('-'):
+                # Negative yaw
+                psi = -getattr(self.x,kps[1:])[i]*deg
+            else:
+                # Positive pitch
+                psi = getattr(self.x,kps)[i]*deg
+            # Sines and cosines
+            cph = np.cos(phi); cth = np.cos(theta); cps = np.cos(psi)
+            sph = np.sin(phi); sth = np.sin(theta); sps = np.sin(psi)
+            # Make the matrices.
+            # Roll matrix
+            R1 = np.array([[1, 0, 0], [0, cph, -sph], [0, sph, cph]])
+            # Pitch matrix
+            R2 = np.array([[cth, 0, -sth], [0, 1, 0], [sth, 0, cth]])
+            # Yaw matrix
+            R3 = np.array([[cps, -sps, 0], [sps, cps, 0], [0, 0, 1]])
+            # Combined transformation matrix.
+            # Remember, these are applied backwards in order to undo the
+            # original Euler transformation that got the component here.
+            if ttype == "Euler321":
+                return np.dot(R1, np.dot(R2, R3))
+            elif ttype == "Euler123":
+                return np.dot(R3, np.dot(R2, R1))
+        else:
+            raise IOError(
+                "Transformation type '%s' is not recognized." % ttype)
+        
         
     # Run triload
     def RunTriload(self, qtriq=False, ftriq=None, qpbs=False, i=None):
