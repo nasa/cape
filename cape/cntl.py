@@ -1833,6 +1833,25 @@ class Cntl(object):
         :Versions:
             * 2016-09-25 ``@ddalle``: First version
         """
+        # Convert keyword to string
+        def convertkey(cmdi, k, v):
+            if v == False:
+                # Add --no- prefix
+                cmdi.append('--no-%s' % k)
+            elif v == True:
+                # No extra value
+                if len(k) == 1:
+                    cmdi.append('-%s' % k)
+                else:
+                    cmdi.append('--%s' % k)
+            else:
+                # Append the key and value
+                if len(k) == 1:
+                    cmdi.append('-%s' % k)
+                    cmdi.append('%s' % v)
+                else:
+                    cmdi.append('--%s' % k)
+                    cmdi.append('%s' % v)
         # -------------------
         # Command preparation
         # -------------------
@@ -1859,31 +1878,26 @@ class Cntl(object):
             cmdi = [cmdj]
         # Loop through non-keyword arguments
         for ai in a: cmdi.append(a)
+        # Turn off all QSUB operations unless --qsub given explicitly
+        if 'qsub' not in kw: kw['qsub'] = False
+        # Loop through _old arguments
+        for d in kw.get("_old", []):
+            # Check type
+            if type(d).__name__ != "dict": continue
+            # Number of keys
+            K = d.keys()
+            nk = len(K)
+            # Check number of keys
+            if nk != 1: continue
+            # Convert to string
+            convertkey(cmdi, K[0], d[K[0]])
         # Loop through keyword arguments
         for k in kw:
             # Check for skipped keys
-            if k in ['batch', 'flags', 'keys', 'prog']:
+            if k in ['batch', 'flags', 'keys', 'prog', '_old']:
                 continue
-            # Otherwise process the keyword argument
-            v = kw[k]
-            # Check the value
-            if v == False:
-                # Skip
-                continue
-            elif v == True:
-                # No extra value
-                if len(k) == 1:
-                    cmdi.append('-%s' % k)
-                else:
-                    cmdi.append('--%s' % k)
-            else:
-                # Append the key and value
-                if len(k) == 1:
-                    cmdi.append('-%s' % k)
-                    cmdi.append('%s' % v)
-                else:
-                    cmdi.append('--%s' % k)
-                    cmdi.append('%s' % v)
+            # Convert to string
+            convertkey(cmdi, k, kw[k])
         # Turn off all QSUB operations unless --qsub given explicitly
         if 'qsub' not in kw: kw['qsub'] = False
         # ------------------

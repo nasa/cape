@@ -1290,7 +1290,7 @@ class Overflow(Cntl):
 
             # Simply call the advanced interface.
             f.write('\n# Call the OVERFLOW interface.\n')
-            f.write('run_overflow.py' + flgs)
+            f.write('run_overflow.py' + flgs + '\n')
             
             # Close the file.
             f.close()

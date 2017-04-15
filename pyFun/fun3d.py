@@ -2122,7 +2122,7 @@ class Fun3d(Cntl):
 
             # Simply call the advanced interface.
             f.write('\n# Call the FUN3D interface.\n')
-            f.write('run_fun3d.py' + flgs)
+            f.write('run_fun3d.py' + flgs + '\n')
             
             # Close the file.
             f.close()

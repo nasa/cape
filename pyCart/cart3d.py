@@ -1180,7 +1180,7 @@ class Cart3d(Cntl):
 
             # Simply call the advanced interface.
             f.write('\n# Call the flowCart/mpix_flowCart/aero.csh interface.\n')
-            f.write('run_flowCart.py' + flgs)
+            f.write('run_flowCart.py' + flgs + '\n')
             
             # Close the file.
             f.close()
