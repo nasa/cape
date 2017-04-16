@@ -5931,7 +5931,7 @@ class CaseFM(CaseData):
                 iLast = self.i[-1]
         else:
             # Just use the last iteration
-            iLast = self.i.size
+            iLast = self.i[-1]
         # Get index
         jLast = self.GetIterationIndex(iLast)
         # Default values.
