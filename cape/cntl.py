@@ -29,6 +29,7 @@ customized for the various CFD solvers.  The individualized modules are below.
 import numpy as np
 # Configuration file processor
 import json
+import re
 # File system
 import os, shutil, glob
 # Timing
@@ -1833,6 +1834,20 @@ class Cntl(object):
         :Versions:
             * 2016-09-25 ``@ddalle``: First version
         """
+        # Write string... add quotes if needed
+        def convertval(v):
+            # Check type
+            t = type(v).__name__
+            # Check for certain characters if string
+            if t not in ['str', 'unicode']:
+                # Just convert to string
+                return str(v)
+            elif re.search("[,<>=]", v):
+                # Add quotes
+                return '"%s"' % v
+            else:
+                # Just convert to string
+                return v
         # Convert keyword to string
         def convertkey(cmdi, k, v):
             if v == False:
@@ -1848,10 +1863,10 @@ class Cntl(object):
                 # Append the key and value
                 if len(k) == 1:
                     cmdi.append('-%s' % k)
-                    cmdi.append('%s' % v)
+                    cmdi.append('%s' % convertval(v))
                 else:
                     cmdi.append('--%s' % k)
-                    cmdi.append('%s' % v)
+                    cmdi.append('%s' % convertval(v))
         # -------------------
         # Command preparation
         # -------------------

@@ -2136,26 +2136,35 @@ class Report(object):
         return lines
         
     # Function to redo scientific notation
-    def WriteScientific(self, v):
+    def WriteScientific(self, v, decimals=8):
         """Convert value or string to scientific notation
         
         The typical behavior is ``1.4e-5`` --> ``1.4\times10^{-5}``
         
         :Call:
-            >>> word = R.WriteScientific(v)
+            >>> word = R.WriteScientific(v, decimals=8)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
             *v*: :class:`str` | :class:`float` | :class:`int`
                 Value to be translated, preferably a string
+            *decimals*: {``8``} | :class:`int` > 4
+                Round floats at :math:`10^{-d}`
         :Outputs:
             *word*: :class:`str`
                 String with substitutions made
         :Versions:
             * 2017-04-11 ``@ddalle``: First version
         """
-        # Ensure string
-        word = str(v)
+        # Check type
+        t = type(v).__name__
+        # Truncate if small number
+        if t.startswith('str') or t.startswith('unicode'):
+            # Already string
+            word = v
+        else:
+            # Round and convert to string
+            word = str(np.around(v, decimals=decimals))
         # Process exponential notation
         m = re.search('[edED]([+-][0-9]+)', word)
         # Check for a match to 'e+09', etc.

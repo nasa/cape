@@ -868,9 +868,11 @@ class DBLineLoad(dataBook.DBBase):
             Ri = self.CalculateTriloadTransformation(i, topts)
             # Accumulate
             R = np.dot(R, Ri)
+        # Yes, we are doing transformations
+        f.write('y\n')
         # Write the transformation
         for row in R:
-            f.write("%9.6f %9.6f %9.6f\n" % row)
+            f.write("%9.6f %9.6f %9.6f\n" % tuple(row))
         
         
         
@@ -1436,6 +1438,9 @@ class CaseLL(object):
         fh = kw.get('FigHeight')
         # Process seams
         sms = kw.get('Seams', [])
+        # Default values -> None
+        if sms in ['', None, False]:
+            sms = []
         # Seam location
         sm_loc = kw.get('SeamLocation')
         # Check for single seam
