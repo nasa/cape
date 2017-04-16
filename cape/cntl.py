@@ -1290,6 +1290,10 @@ class Cntl(object):
         j = kw.get('j')
         n = kw.get('extend', 1)
         imax = kw.get('imax')
+        # Convert inputs to integers
+        if j:    j = int(j)
+        if n:    n = int(n)
+        if imax: imax = int(imax)
         # Restart inputs
         qsub = kw.get("restart", kw.get("qsub", False))
         nsub = kw.get("n", 10)

@@ -1895,6 +1895,8 @@ class Fun3d(Cntl):
         else:
             # Add nominal runs but not beyond *imax*
             N1 = min(int(imax), int(N + n*NSTEPS))
+            # Don't go backwards, though...
+            N1 = max(N, N1)
         # Reset the number of steps
         rc.set_PhaseIters(N1, j)
         # Status update
