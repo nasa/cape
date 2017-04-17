@@ -1629,8 +1629,6 @@ class Report(object):
                 abbrv.replace('_', '\_'))
             # Get values.
             v = getattr(x,k)[I]
-            # Rounded values
-            v = np.around(v, decimals=8)
             # Nominal, min, and max
             v0 = v[0]
             vmin = min(v)
@@ -3089,7 +3087,7 @@ class Report(object):
         if "/" in comp:
             # Split by "/"
             comp, patch = comp.split("/")
-        elif "." in compo:
+        elif "." in comp:
             # Split by "."
             comp, patch = comp.split(".")
         else:
@@ -3110,7 +3108,7 @@ class Report(object):
             # Name of the plot component is name of component
             pcomp = comp
         # Plot label (for legend)
-        lbl = self.SubfigPlotLabel(sfig)
+        lbl = self.SubfigPlotLabel(sfig, 0)
         # Get figure dimensions.
         figw = opts.get_SubfigOpt(sfig, "FigWidth")
         figh = opts.get_SubfigOpt(sfig, "FigHeight")
