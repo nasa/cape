@@ -3032,6 +3032,8 @@ class Report(object):
         # Extract options and trajectory
         x = self.cntl.DataBook.x
         opts = self.cntl.opts
+        # Case folder
+        frun = x.GetFullFolderNames(I[0])
         # Get the component.
         comp = opts.get_SubfigOpt(sfig, "Component")
         # Get the coefficient
@@ -3059,7 +3061,7 @@ class Report(object):
         # Process default caption. 
         if fcpt is None:
             # Default format: RSRB/CLM
-            fcpt = "%s/%s" % (fcpt, coeff)
+            fcpt = "%s/%s" % (comp, coeff)
         # Ensure there are no underscores.
         fcpt = fcpt.replace("_", "\_")
         # Initialize subfigure

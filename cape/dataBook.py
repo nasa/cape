@@ -2544,6 +2544,9 @@ class DBBase(dict):
             if o_k is not None: kw_c[k] = o_k
         # Label
         kw_c.setdefault('label', lbl)
+        # Fix aspect ratio...
+        if kw.get("AxisEqual", True):
+            plt.axis('equal')
         # Check plot type
         if ctyp == "tricontourf":
             # Filled contour
@@ -2561,7 +2564,7 @@ class DBBase(dict):
        # Line or Dot Plot
        # ----------------
         # Check for a line plot
-        if ltyp and ltype != "none":
+        if ltyp and ltyp != "none":
             # Initialize plot options for primary plot
             kw_p = odict(color='k', marker='^', zorder=9)
             # Set default line style
@@ -2604,17 +2607,10 @@ class DBBase(dict):
         if kw.get('ColorBar', True):
             # Font size checks.
             fsize = 9
-            # Activate the legend.
-            try:
-                # Use a font that has the proper symbols.
-                h['colorbar'] = h['ax'].colorbar(loc='upper center',
-                    prop=dict(size=fsize, family="DejaVu Sans"),
-                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
-            except Exception:
-                # Default font.
-                h['colorbar'] = h['ax'].colorbar(loc='upper center',
-                    prop=dict(size=fsize),
-                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
+            # Activate the color bar
+            h['cbar'] = plt.colorbar()
+            # Set font size
+            h['cbar'].ax.tick_params(labelsize=fsize)
         # Figure dimensions.
         if fh: h['fig'].set_figheight(fh)
         if fw: h['fig'].set_figwidth(fw)
