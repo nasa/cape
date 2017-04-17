@@ -1630,9 +1630,11 @@ class Report(object):
             # Get values.
             v = getattr(x,k)[I]
             # Rounded values
-            v0 = np.around(v[0], decimals=8)
-            vmin = np.around(min(v), decimals=8)
-            vmax = np.around(max(v), decimals=8)
+            v = np.around(v, decimals=8)
+            # Nominal, min, and max
+            v0 = v[0]
+            vmin = min(v)
+            vmax = max(v)
             # Append the value.
             if x.defns[k]['Value'] in ['str', 'unicode']:
                 # Put the value in sans serif
@@ -1727,10 +1729,11 @@ class Report(object):
                 # Evaluate the function
                 v = eval("self.cntl.x.%s(np.%s)" % (func, I.__repr__()))
                 # Round principal value
-                v0 = np.around(v, decimals=8)
-                # Get min/max
-                vmin = np.around(min(v), decimals=8)
-                vmax = np.around(max(v), decimals=8)
+                v = np.around(v, decimals=8)
+                # Get first value and min/max
+                v0 = v[0]
+                vmin = min(v)
+                vmax = max(v)
             # Type
             tv = type(vmin).__name__
             # Append the value.
