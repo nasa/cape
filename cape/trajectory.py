@@ -1609,7 +1609,7 @@ class Trajectory:
         # Apply the final mask.
         J = I[m]
         # Check for a sort variable.
-        if xk is not None:
+        if (xk is not None) and (xk in self.keys):
             # Sort based on that key.
             if xk in self.keys:
                 # Sort based on trajectory key
