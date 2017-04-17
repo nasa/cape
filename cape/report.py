@@ -1717,9 +1717,11 @@ class Report(object):
             else:
                 # Evaluate the function
                 v = eval("self.cntl.x.%s(np.%s)" % (func, I.__repr__()))
+                # Round principal value
+                v0 = np.around(v, decimals=8)
                 # Get min/max
-                vmin = min(v)
-                vmax = max(v)
+                vmin = np.around(min(v), decimals=8)
+                vmax = np.around(max(v), decimals=8)
             # Type
             tv = type(vmin).__name__
             # Append the value.
