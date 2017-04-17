@@ -690,9 +690,9 @@ class Plt(object):
         nElem = np.sum(self.nElem)
         # Initialize
         Nodes = np.zeros((nNode, 3))
-        Tris  = np.zeros((nElem, 3), dtype=int)
+        Tris  = np.zeros((2*nElem, 3), dtype=int)
         # Initialize component IDs
-        CompID = np.zeros(nElem, dtype=int)
+        CompID = np.zeros(2*nElem, dtype=int)
         # Counters
         iNode = 0
         iTri  = 0
@@ -786,10 +786,14 @@ class Plt(object):
         q = np.zeros((nNode, nq))
         # Loop through the components
         for k in range(self.nZone):
+            # Extract tris
+            T = self.Tris[k]
             # Number of points and elements
             kNode = self.nPt[k]
             kTri  = self.nElem[k]
             # Check for quads
+            iQuad = np.where(T[:,-1] != T[:,-2])[0]
+            kQuad = len(iQuad)
             if np.any(self.Tris[k][:,-1] != self.Tris[k][:,-2]):
                 raise ValueError(
                     ("Detected a quad face in zone %s " % k) +
@@ -868,7 +872,10 @@ class Plt(object):
                 q[iNode:iNode+kNode,7] = cfy
                 q[iNode:iNode+kNode,8] = cfz
             # Save the node numbers
-            Tris[iTri:iTri+kTri,:] = (self.Tris[k][:,:3] + iNode + 1)
+            Tris[iTri:iTri+kTri,:] = (T[:,:3] + iNode + 1)
+            # Save the quads
+            if kQuad > 0:
+                Tris[iTri+kTri:iTri+kTri+kQuad,:] = T[iQuad,[1,3,4]]+iNode+1
             # Increase the running node count
             iNode += kNode
             # Try to read the component ID
@@ -884,10 +891,15 @@ class Plt(object):
                     comp = mapbc.CompID[comp-1]
                 except Exception:
                     pass
+            # Number of elements
+            kElem = kTri + kQuad
             # Save the component IDs
-            CompID[iTri:iTri+kTri] = comp
+            CompID[iTri:iTri+kElem] = comp
             # Increase the running tri count
-            iTri += kTri
+            iTri += kElem
+        # Downselect Tris and CompID
+        Tris = Tris[:kElem,:]
+        CompID = CompID[:kElem]
         # Create the triangulation
         triq = cape.tri.Triq(Nodes=Nodes, Tris=Tris, q=q, CompID=CompID)
         # Output
