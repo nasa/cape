@@ -1629,6 +1629,10 @@ class Report(object):
                 abbrv.replace('_', '\_'))
             # Get values.
             v = getattr(x,k)[I]
+            # Rounded values
+            v0 = np.around(v[0], decimals=8)
+            vmin = np.around(min(v), decimals=8)
+            vmax = np.around(max(v), decimals=8)
             # Append the value.
             if x.defns[k]['Value'] in ['str', 'unicode']:
                 # Put the value in sans serif
@@ -1637,14 +1641,16 @@ class Report(object):
                 # Check for range.
                 if max(v) > min(v):
                     # Perform substitutions
-                    w0 = self.WriteScientific('%.5g' % v[0])
+                    w0 = self.WriteScientific('%.5g' % v0)
                     wmin = self.WriteScientific('%.5g' % vmin)
                     wmax = self.WriteScientific('%.5g' % vmax) 
                     # Print both values.
                     line += "$%s$, [$%s$, $%s$] \\\\\n" % (w0,wmin,wmax)
                 else:
+                    # Substitution
+                    w0 = self.WriteScientific('%.5g' % v0)
                     # Put the value as a number.
-                    line += "$%s$ \\\\\n" % v[0]
+                    line += "$%s$ \\\\\n" % w0
             elif x.defns[k]['Value'] in ['hex']:
                 # Check for range
                 if max(v) > min(v):
@@ -1735,14 +1741,14 @@ class Report(object):
                 # Check for range.
                 if vmax > vmin:
                     # Perform substitutions
-                    w0 = self.WriteScientific('%.5g' % v[0])
+                    w0 = self.WriteScientific('%.5g' % v0)
                     wmin = self.WriteScientific('%.5g' % vmin)
                     wmax = self.WriteScientific('%.5g' % vmax) 
                     # Print both values.
                     line += "$%s$, [$%s$, $%s$] \\\\\n" % (w0,wmin,wmax)
                 else:
                     # Put the value as a number.
-                    w0 = self.WriteScientific('%.5g' % v[0])
+                    w0 = self.WriteScientific('%.5g' % v0)
                     line += "$%s$ \\\\\n" % w0
             else:
                 # Put the virst value as string (other type)
