@@ -794,11 +794,11 @@ class Plt(object):
             # Check for quads
             iQuad = np.where(T[:,-1] != T[:,-2])[0]
             kQuad = len(iQuad)
-            if np.any(self.Tris[k][:,-1] != self.Tris[k][:,-2]):
-                raise ValueError(
-                    ("Detected a quad face in zone %s " % k) +
-                    ("(%s); not yet supported " % self.Zones[k]) +
-                    "for converting PLT files for line loads")
+            # if np.any(self.Tris[k][:,-1] != self.Tris[k][:,-2]):
+            #     raise ValueError(
+            #         ("Detected a quad face in zone %s " % k) +
+            #         ("(%s); not yet supported " % self.Zones[k]) +
+            #         "for converting PLT files for line loads")
             # Save the nodes
             Nodes[iNode:iNode+kNode,0] = self.q[k][:,jx]
             Nodes[iNode:iNode+kNode,1] = self.q[k][:,jy]
@@ -875,7 +875,10 @@ class Plt(object):
             Tris[iTri:iTri+kTri,:] = (T[:,:3] + iNode + 1)
             # Save the quads
             if kQuad > 0:
-                Tris[iTri+kTri:iTri+kTri+kQuad,:] = T[iQuad,[1,3,4]]+iNode+1
+                # Select the elements first; cannot combine operations
+                TQ = T[iQuad,:]
+                # Select nodes 1,3,4 to get second triangle
+                Tris[iTri+kTri:iTri+kTri+kQuad,:] = TQ[:,[0,2,3]]+iNode+1
             # Increase the running node count
             iNode += kNode
             # Try to read the component ID
@@ -898,8 +901,8 @@ class Plt(object):
             # Increase the running tri count
             iTri += kElem
         # Downselect Tris and CompID
-        Tris = Tris[:kElem,:]
-        CompID = CompID[:kElem]
+        Tris = Tris[:iTri,:]
+        CompID = CompID[:iTri]
         # Create the triangulation
         triq = cape.tri.Triq(Nodes=Nodes, Tris=Tris, q=q, CompID=CompID)
         # Output
