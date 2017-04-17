@@ -684,7 +684,8 @@ class DataBook(dict):
         # Process the statistics.
         s = FM.GetStats(nStats, nMax)
         # Get the corresponding residual drop
-        nOrders = H.GetNOrders(s['nStats'])
+        if 'nOrders' in DBc:
+            nOrders = H.GetNOrders(s['nStats'])
         
         # Save the data.
         if np.isnan(j):

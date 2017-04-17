@@ -521,11 +521,7 @@ class DataBook(cape.dataBook.DataBook):
         # Appropriate prefix
         proj = self.opts.get_Prefix(k)
         # Read CaseResid object from PWD
-        H = CaseResid(proj)
-        # Read the global L2 history
-        H.ReadGlobalL2()
-        # Output
-        return H
+        return CaseResid(proj)
         
     # Read case FM history
     def ReadCaseFM(self, comp):
