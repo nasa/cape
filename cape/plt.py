@@ -791,7 +791,9 @@ class Plt(object):
             kTri  = self.nElem[k]
             # Check for quads
             if np.any(self.Tris[k][:,-1] != self.Tris[k][:,-2]):
-                raise ValueError("Detected a quad face; not yet supported " +
+                raise ValueError(
+                    ("Detected a quad face in zone %s " % k) +
+                    ("(%s); not yet supported " % self.Zones[k]) +
                     "for converting PLT files for line loads")
             # Save the nodes
             Nodes[iNode:iNode+kNode,0] = self.q[k][:,jx]
