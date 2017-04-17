@@ -3123,12 +3123,13 @@ class Report(object):
         # Other options
         axeq = opts.get_SubfigOpt(sfig, "AxisEqual")
         cbar = opts.get_SubfigOpt(sfig, "ColorBar")
+        cmpo = opts.get_SubfigOpt(sfig, "ColorMap")
         # Draw the plot.
         h = DB.PlotContour(pcomp, coeff, I, x=xk, y=yk,
             ContourType=ctyp, ContourOptions=kw_c,
             LineType=ltyp, LineOptions=kw_p,
-            Label=lbl,
-            AxisEqual=axea, ColorBar=cbar,
+            Label=lbl, ColorMap=cmpo,
+            AxisEqual=axeq, ColorBar=cbar,
             FigWidth=figw, FigHeight=figh)
        # ----------
        # Formatting

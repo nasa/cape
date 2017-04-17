@@ -465,9 +465,14 @@ class DataBook(dict):
             if tcomp not in ["FM", "Force", "Moment"]: continue
             # Update.
             print("%s component '%s'..." % (tcomp, comp))
+            # Save location
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
             # Loop through indices.
             for i in I:
                 self.UpdateCaseComp(i, comp)
+            # Return to original location
+            os.chdir(fpwd)
             # Write the component
             self[comp].Write()
         
@@ -1813,6 +1818,8 @@ class DBBase(dict):
             os.rename(fname, fname+".old")
         # DataBook delimiter
         delim = self.opts.get_Delimiter()
+        # Go to home directory
+        fpwd = os.getcwd()
         # Open the file.
         f = open(fname, 'w')
         # Write the header
@@ -1838,6 +1845,8 @@ class DBBase(dict):
             f.write((self.wflag[-1] % self[k][-1]) + '\n')
         # Close the file.
         f.close()
+        # Return to original location
+        os.chdir(fpwd)
   # >
   
   # ==============

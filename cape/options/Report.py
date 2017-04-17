@@ -291,9 +291,9 @@ class Report(odict):
             "Component": "entire",
             "Coefficient": "CN",
             "LineOptions": {"color": "k", "marker": "o"},
-            "ContourOptions": {"cmap": "jet"},
+            "ContourOptions": {},
             "AxisEqual": True,
-            "ColorMap": True,
+            "ColorMap": "jet",
             "Format": "pdf",
             "DPI": 150
         }
