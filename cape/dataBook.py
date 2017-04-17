@@ -1230,6 +1230,57 @@ class DataBook(dict):
             raise KeyError("Data book does not contain a component '%s'" % comp)
         # Defer to the component's plot capabilities
         return self[comp].PlotCoeff(coeff, I, **kw)
+        
+    # Plot a sweep of one or more coefficients
+    def PlotContour(self, comp, coeff, I, **kw):
+        """Create a contour plot of one coefficient over several cases
+        
+        :Call:
+            >>> h = DB.PlotContour(comp, coeff, I, **kw)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the data book class
+            *comp*: :class:`str`
+                Component whose coefficient is being plotted
+            *coeff*: :class:`str`
+                Coefficient being plotted
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indexes of cases to include in sweep
+        :Keyword Arguments:
+            *x*: :class:`str`
+                Trajectory key for *x* axis
+            *y*: :class:`str`
+                Trajectory key for *y* axis
+            *ContourType*: {"tricontourf"} | "tricontour" | "tripcolor"
+                Contour plotting function to use
+            *LineType*: {"plot"} | "triplot" | "none"
+                Line plotting function to highlight data points
+            *Label*: [ {*comp*} | :class:`str` ]
+                Manually specified label
+            *ColorBar*: [ {``True``} | ``False`` ]
+                Whether or not to use a color bar
+            *ContourOptions*: :class:`dict`
+                Plot options to pass to contour plotting function
+            *LineOptions*: :class:`dict`
+                Plot options for the line plot
+            *FigWidth*: :class:`float`
+                Width of figure in inches
+            *FigHeight*: :class:`float`
+                Height of figure in inches
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of plot handles
+        :See also:
+            * :func:`cape.dataBook.DBBase.PlotCoeff`
+        :Versions:
+            * 2015-05-30 ``@ddalle``: First version
+            * 2015-12-14 ``@ddalle``: Added error bars
+        """
+        # Check for the component
+        if comp not in self:
+            raise KeyError("Data book does not contain a component '%s'" % comp)
+        # Defer to the component's plot capabilities
+        return self[comp].PlotContour(coeff, I, **kw)
   # >
 # class DataBook
         
