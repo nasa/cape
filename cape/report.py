@@ -1229,6 +1229,9 @@ class Report(object):
         elif btyp == 'SweepCoeff':
             # Plot a coefficient sweep
             lines += self.SubfigSweepCoeff(sfig, fswp, I, q)
+        elif btyp == 'ContourCoeff':
+            # Contour plot of slice results
+            lines += self.SubfigContourCoeff(sfig, fswp, I, q)
         else:
             # No figure found
             print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
@@ -2638,6 +2641,9 @@ class Report(object):
                 jt.append(self.GetTargetSweepIndices(fswp, Ji[0], targ))
             # Save the sweeps.
             JT[targ] = jt
+       # ----------------
+       # Format Options
+       # ----------------
         # Horizontal axis variable
         xk = opts.get_SweepOpt(fswp, "XAxis")
         # List of coefficients
@@ -2686,6 +2692,9 @@ class Report(object):
             lines.append('\\end{subfigure}\n')
             # Output
             return lines
+       # --------
+       # Plotting
+       # --------
         # Number of targets plotted
         j_t = 0
         # Loop through plots.
@@ -2812,6 +2821,9 @@ class Report(object):
                 DBT.PlotCoeff(comp, coeff, JT[targ][j], x=xk,
                     Label=tlbl, LineOptions=kw_l,
                     FigWidth=figw, FigHeight=figh)
+       # ----------
+       # Formatting
+       # ----------
         # Check for manually specified axes labels.
         xlbl = opts.get_SubfigOpt(sfig, "XLabel")
         ylbl = opts.get_SubfigOpt(sfig, "YLabel")
@@ -2979,6 +2991,176 @@ class Report(object):
         else:
             # Just use target
             return tlbl
+   # ]
+   
+   # ------------
+   # ContourCoeff
+   # ------------
+   # [
+    # Function to plot mean coefficient for a sweep
+    def SubfigContourCoeff(self, sfig, fswp, I, q):
+        """Create a contour plot of results from several cases
+        
+        :Call:
+            >>> R.SubfigSweepCoeff(sfig, fswp, I, q)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *fswp*: :class:`str`
+                Name of sweep
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices in the sweep
+            *q*: ``True`` | ``False``
+                Whether or not to update images
+        :Versions:
+            * 2017-04-17 ``@ddalle``: First version
+        """
+       # ------------------
+       # Options and Config
+       # ------------------
+        # Save current folder.
+        fpwd = os.getcwd()
+        # Extract options and trajectory
+        x = self.cntl.DataBook.x
+        opts = self.cntl.opts
+        # Get the component.
+        comp = opts.get_SubfigOpt(sfig, "Component")
+        # Get the coefficient
+        coeff = opts.get_SubfigOpt(sfig, "Coefficient")
+       # ----------------
+       # Format Options
+       # ----------------
+        # Axis variables
+        xk = opts.get_SweepOpt(fswp, "XAxis")
+        yk = opts.get_SweepOpt(fswp, "YAxis")
+        # List of coefficients
+        if type(coeff).__name__ in ['list', 'ndarray']:
+            # List of coefficients
+            raise ValueError(
+                "Can only create contour plot of one coefficient; " +
+                ("received '%s'" % coeff))
+        # Check for list of components
+        if type(comp).__name__ in ['list', 'ndarray']:
+            # List of components
+            raise ValueError(
+                "Can only create contour plot of one component; " +
+                ("received '%s'" % comp))
+        # Get caption.
+        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        # Process default caption. 
+        if fcpt is None:
+            # Default format: RSRB/CLM
+            fcpt = "%s/%s" % (fcpt, coeff)
+        # Ensure there are no underscores.
+        fcpt = fcpt.replace("_", "\_")
+        # Initialize subfigure
+        lines = self.SubfigInit(sfig)
+        # Check for image update
+        if not q:
+            # File name to check for
+            fpdf = '%s.pdf' % sfig
+            # Check for the file
+            if os.path.isfile(fpdf):
+                # Include the graphics.
+                lines.append(
+                    '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
+                    % (fswp, frun, fpdf))
+            # Set the caption.
+            lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
+            # Close the subfigure.
+            lines.append('\\end{subfigure}\n')
+            # Output
+            return lines
+       # --------
+       # Plotting
+       # --------
+        # Check for subcomponent
+        if "/" in comp:
+            # Split by "/"
+            comp, patch = comp.split("/")
+        elif "." in compo:
+            # Split by "."
+            comp, patch = comp.split(".")
+        else:
+            # No split
+            comp = comp
+            patch = None
+        # Get component type
+        ctyp = opts.get_DataBookType(comp)
+        # Check the type
+        if ctyp == "TriqFM":
+            # Read specific data book
+            DB = self.cntl.DataBook.TriqFM[comp]
+            # Name of the plot component is the patch
+            pcomp = patch
+        else:
+            # Overall data book
+            DB = self.cntl.DataBook
+            # Name of the plot component is name of component
+            pcomp = comp
+        # Plot label (for legend)
+        lbl = self.SubfigPlotLabel(sfig)
+        # Get figure dimensions.
+        figw = opts.get_SubfigOpt(sfig, "FigWidth")
+        figh = opts.get_SubfigOpt(sfig, "FigHeight")
+        # Plot options
+        kw_c = opts.get_SubfigPlotOpt(sfig, "ContourOptions", 0)
+        kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",    0)
+        # Plot types
+        ctyp = opts.get_SubfigOpt(sfig, "ContourType")
+        ltyp = opts.get_SubfigOpt(sfig, "LineType")
+        # Draw the plot.
+        h = DB.PlotContour(pcomp, coeff, I, x=xk, y=yk,
+            ContourType=ctyp, ContourOptions=kw_c,
+            LineType=ltyp, LineOptions=kw_p,
+            Label=lbl,
+            FigWidth=figw, FigHeight=figh)
+       # ----------
+       # Formatting
+       # ----------
+        # Check for manually specified axes labels.
+        xlbl = opts.get_SubfigOpt(sfig, "XLabel")
+        ylbl = opts.get_SubfigOpt(sfig, "YLabel")
+        # Specify x-axis label if given.
+        if xlbl is not None:
+            h['ax'].set_xlabel(xlbl)
+        # Specify x-axis label if given.
+        if ylbl is not None:
+            h['ax'].set_ylabel(ylbl)
+        # Change back to report folder.
+        os.chdir(fpwd)
+        # Get the file formatting
+        fmt = opts.get_SubfigOpt(sfig, "Format")
+        dpi = opts.get_SubfigOpt(sfig, "DPI")
+        # Figure name
+        fimg = '%s.%s' % (sfig, fmt)
+        # PDF version
+        fpdf = '%s.pdf' % sfig
+        # Save the figure.
+        if fmt.lower() in ['pdf']:
+            # Save as vector-based image
+            h['fig'].savefig(fimg)
+        elif fmt.lower() in ['svg']:
+            # Save as SVG and PDF
+            h['fig'].savefig(fimg)
+            h['fig'].savefig(fpdf)
+        else:
+            # Save with resolution.
+            h['fig'].savefig(fimg, dpi=dpi)
+            h['fig'].savefig(fpdf)
+        # Close the figure.
+        h['fig'].clf()
+        # Include the graphics.
+        lines.append('\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
+            % (fswp, frun, fpdf))
+        # Set the caption.
+        lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
+        # Close the subfigure.
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
    # ]
    
    # ----------

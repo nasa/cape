@@ -275,6 +275,26 @@ class Report(odict):
             "Format": "pdf",
             "DPI": 150
         }
+        # Force or moment history
+        self.defs['ContourCoeff'] = {
+            "Header": "",
+            "Position": "b",
+            "Alignment": "center",
+            "ContourType": "tricontourf",
+            "LineType": "plot",
+            "ColorBar": True,
+            "XAxis": None,
+            "YAxis": None,
+            "Width": 0.5,
+            "FigWidth": 6,
+            "FigHeight": 4.5,
+            "Component": "entire",
+            "Coefficient": "CN",
+            "LineOptions": {"color": "k", "marker": "o"},
+            "ContourOptions": {"cmap": "jet"},
+            "Format": "pdf",
+            "DPI": 150
+        }
         # Plot L1 residual
         self.defs['PlotL1'] = {
             "Header": "",

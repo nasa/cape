@@ -354,6 +354,9 @@ class Report(cape.report.Report):
         elif btyp == 'SweepPointHist':
             # Plot a point sensor histogram
             lines += self.SubfigSweepPointHist(sfig, fswp, I, q)
+        elif btyp == 'ContourCoeff':
+            # Contour plot of slice results
+            lines += self.SubfigContourCoeff(sfig, fswp, I, q)
         else:
             # No figure found
             print("  %s: No function for subfigure type '%s'" % (sfig, btyp))

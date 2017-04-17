@@ -2377,6 +2377,225 @@ class DBBase(dict):
         """
         # Call base function with no modifications to defaults
         return self.PlotCoeffBase(coeff, I, **kw)
+    
+    # Plot a sweep of one or more coefficients
+    def PlotContourBase(self, coeff, I, **kw):
+        """Create a contour plot of selected data points
+        
+        :Call:
+            >>> h = DBi.PlotContourBase(coeff, I, **kw)
+        :Inputs:
+            *DBi*: :class:`cape.dataBook.DBBase`
+                An individual item data book
+            *coeff*: :class:`str`
+                Coefficient being plotted
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indexes of cases to include in sweep
+        :Keyword Arguments:
+            *x*: :class:`str`
+                Trajectory key for *x* axis
+            *y*: :class:`str`
+                Trajectory key for *y* axis
+            *ContourType*: {"tricontourf"} | "tricontour" | "tripcolor"
+                Contour plotting function to use
+            *LineType*: {"plot"} | "triplot" | "none"
+                Line plotting function to highlight data points
+            *Label*: [ {*comp*} | :class:`str` ]
+                Manually specified label
+            *ColorBar*: [ {``True``} | ``False`` ]
+                Whether or not to use a color bar
+            *ContourOptions*: :class:`dict`
+                Plot options to pass to contour plotting function
+            *LineOptions*: :class:`dict`
+                Plot options for the line plot
+            *FigWidth*: :class:`float`
+                Width of figure in inches
+            *FigHeight*: :class:`float`
+                Height of figure in inches
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of plot handles
+        :Versions:
+            * 2017-04-17 ``@ddalle``: First version
+        """
+       # ------
+       # Inputs
+       # ------
+        # Make sure the plotting modules are present.
+        ImportPyPlot()
+        # Get horizontal key.
+        xk = kw.get('x')
+        yk = kw.get('y')
+        # Check for axis variables
+        if xk is None:
+            raise ValueError("No x-axis key given")
+        if yk is None:
+            raise ValueError("No y-axis key given")
+        # Extract the values for the x-axis
+        if xk in self:
+            # Get values directly
+            xv = self[xk][I]
+        elif xk.lower() == "alpha":
+            # Angle of attack
+            xv = self.x.GetAlpha(I)
+        elif xk.lower() == "beta":
+            # Angle of sideslip
+            xv = self.x.GetBeta(I)
+        # Extract the values for the y-axis
+        if yk in self:
+            # Get values directly
+            yv = self[yk][I]
+        elif yk.lower() == "alpha":
+            # Angle of attack
+            yv = self.x.GetAlpha(I)
+        elif yk.lower() == "beta":
+            # Angle of sideslip
+            yv = self.x.GetBeta(I)
+        # Extract the values to plot
+        zv = self[coeff][I]
+        # Contour type, line type
+        ctyp = kw.get("ContourType", "tricontourf")
+        ltyp = kw.get("LineType", "plot")
+        # Convert to lower case
+        if type(ctyp).__name__ in ['str', 'unicode']:
+            ctyp = ctyp.lower()
+        if type(ltyp).__name__ in ['str', 'unicode']:
+            ltyp = ltyp.lower()
+        # Figure dimensions
+        fw = kw.get('FigWidth', 6)
+        fh = kw.get('FigHeight', 4.5)
+        # Initialize output
+        h = {}
+        # Default label starter
+        try:
+            # Name of component
+            dlbl = self.comp
+        except AttributeError:
+            # Backup default
+            try:
+                # Name of object
+                dlbl = self.Name
+            except AttributeError:
+                # No default
+                dlbl = ''
+        # Initialize label.
+        lbl = kw.get('Label', dlbl)
+       # ------------
+       # Contour Plot
+       # ------------
+        # Initialize plot options for contour plot
+        kw_c = odict(cmap='jet')
+        # Controu options
+        for k in util.denone(kw.get("ContourOptions")):
+            # Option
+            o_k = kw["ContourOptions"][k]
+            # Override
+            if o_k is not None: kw_c[k] = o_k
+        # Label
+        kw_c.setdefault('label', lbl)
+        # Check plot type
+        if ctyp == "tricontourf":
+            # Filled contour
+            h['contour'] = plt.tricontourf(xv, yv, zv, **kw_c)
+        elif ctyp == "tricontour":
+            # Contour lines
+            h['contour'] = plt.tricontour(xv, yv, zv, **kw_c)
+        elif ctyp == "tripcolor":
+            # Triangulation
+            h['contour'] = plt.tripcolor(xv, yv, zv, **kw_c)
+        else:
+            # Unrecognized
+            raise ValueError("Unrecognized ContourType '%s'" % ctyp)
+       # ----------------
+       # Line or Dot Plot
+       # ----------------
+        # Check for a line plot
+        if ltyp and ltype != "none":
+            # Initialize plot options for primary plot
+            kw_p = odict(color='k', marker='^', zorder=9)
+            # Set default line style
+            if ltyp == "plot":
+                kw_p["ls"] = ''
+            # Plot options
+            for k in util.denone(kw.get("LineOptions")):
+                # Option
+                o_k = kw["LineOptions"][k]
+                # Override the default option.
+                if o_k is not None: kw_p[k] = o_k
+            # Label
+            kw_p.setdefault('label', lbl)
+            # Plot it
+            if ltyp in ["plot", "line", "dot"]:
+                # Regular plot
+                h['line'] = plt.plot(xv, yv, **kw_p)
+            elif ltyp == "triplot":
+                # Plot triangles
+                h['line'] = plt.triplot(xv, yv, **kw_p)
+            else:
+                # Unrecognized
+                raise ValueError("Unrecognized LineType '%s'" % ltyp)
+       # ----------
+       # Formatting
+       # ----------
+        # Get the figure and axes.
+        h['fig'] = plt.gcf()
+        h['ax'] = plt.gca()
+        # Labels.
+        h['x'] = plt.xlabel(xk)
+        h['y'] = plt.ylabel(yk)
+        # Get limits that include all data (and not extra).
+        xmin, xmax = get_xlim(h['ax'], pad=0.05)
+        ymin, ymax = get_ylim(h['ax'], pad=0.05)
+        # Make sure data is included.
+        h['ax'].set_xlim(xmin, xmax)
+        h['ax'].set_ylim(ymin, ymax)
+        # Legend.
+        if kw.get('ColorBar', True):
+            # Font size checks.
+            fsize = 9
+            # Activate the legend.
+            try:
+                # Use a font that has the proper symbols.
+                h['colorbar'] = h['ax'].colorbar(loc='upper center',
+                    prop=dict(size=fsize, family="DejaVu Sans"),
+                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
+            except Exception:
+                # Default font.
+                h['colorbar'] = h['ax'].colorbar(loc='upper center',
+                    prop=dict(size=fsize),
+                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
+        # Figure dimensions.
+        if fh: h['fig'].set_figheight(fh)
+        if fw: h['fig'].set_figwidth(fw)
+        # Attempt to apply tight axes.
+        try: plt.tight_layout()
+        except Exception: pass
+        # Output
+        return h
+        
+    # Plot a sweep of one or more coefficients
+    def PlotContour(self, coeff, I, **kw):
+        """Create a contour plot for a subset of cases
+        
+        :Call:
+            >>> h = DBi.PlotContour(coeff, I, **kw)
+        :Inputs:
+            *DBi*: :class:`cape.dataBook.DBBase`
+                An individual item data book
+            *coeff*: :class:`str`
+                Coefficient being plotted
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indexes of cases to include in sweep
+        :Keyword Arguments:
+            * See :func:`cape.dataBook.DBBase.PlotCoeffBase`
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of plot handles
+        :Versions:
+            * 2017-04-17 ``@ddalle``: First version
+        """
+        # Call base function with no modifications to defaults
+        return self.PlotContourBase(coeff, I, **kw)
         
     # Plot a sweep of one or more coefficients
     def PlotHistBase(self, coeff, I, **kw):
