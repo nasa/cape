@@ -1725,7 +1725,7 @@ class Report(object):
                 v = None
             else:
                 # Evaluate the function
-                v = eval("self.cntl.x.%s(np.%s)" % (func, I.__repr__()))
+                v = eval("x.%s(np.%s)" % (func, I.__repr__()))
                 # Round principal value
                 v = np.around(v, decimals=8)
                 # Get first value and min/max
@@ -3120,11 +3120,15 @@ class Report(object):
         # Plot types
         ctyp = opts.get_SubfigOpt(sfig, "ContourType")
         ltyp = opts.get_SubfigOpt(sfig, "LineType")
+        # Other options
+        axeq = opts.get_SubfigOpt(sfig, "AxisEqual")
+        cbar = opts.get_SubfigOpt(sfig, "ColorBar")
         # Draw the plot.
         h = DB.PlotContour(pcomp, coeff, I, x=xk, y=yk,
             ContourType=ctyp, ContourOptions=kw_c,
             LineType=ltyp, LineOptions=kw_p,
             Label=lbl,
+            AxisEqual=axea, ColorBar=cbar,
             FigWidth=figw, FigHeight=figh)
        # ----------
        # Formatting

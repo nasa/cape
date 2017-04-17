@@ -2453,6 +2453,8 @@ class DBBase(dict):
                 Line plotting function to highlight data points
             *Label*: [ {*comp*} | :class:`str` ]
                 Manually specified label
+            *ColorMap*: {``"jet"``} | :class:`str`
+                Name of color map to use
             *ColorBar*: [ {``True``} | ``False`` ]
                 Whether or not to use a color bar
             *ContourOptions*: :class:`dict`
@@ -2534,8 +2536,10 @@ class DBBase(dict):
        # ------------
        # Contour Plot
        # ------------
+        # Get colormap
+        ocmap = kw.get("ColorMap", "jet")
         # Initialize plot options for contour plot
-        kw_c = odict(cmap='jet')
+        kw_c = odict(cmap=ocmap)
         # Controu options
         for k in util.denone(kw.get("ContourOptions")):
             # Option
