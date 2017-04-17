@@ -1611,7 +1611,26 @@ class Trajectory:
         # Check for a sort variable.
         if xk is not None:
             # Sort based on that key.
-            j = np.argsort(getattr(self,xk)[J])
+            if xk in self.keys:
+                # Sort based on trajectory key
+                vx = getattr(self,xk)[J]
+            elif xk.lower() in "alpha":
+                # Sort based on angle of attack
+                vx = self.GetAlpha(J)
+            elif xk.lower() in "beta":
+                # Sort based on angle of sideslip
+                vx = self.GetBeta(J)
+            elif xk.lower() in "alpha_t":
+                # Sort based on total angle of attack
+                vx = self.GetAlphaTotal(J)
+            elif xk.lower() in "phi":
+                # Sort based on velocity roll
+                vx = self.GetPhi(J)
+            else:
+                # Unable to sort
+                raise ValueError("Unable to sort based on variable '%s'" % xk)
+            # Order
+            j = np.argsort(vx)
             # Sort the indices.
             J = J[j]
         # Output
