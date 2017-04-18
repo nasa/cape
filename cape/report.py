@@ -4141,11 +4141,11 @@ class Report(object):
             self.cntl.DataBook.source = "data"
     
     # Read a TriqFM data book
-    def ReadTriqFM(self, comp, fsrc="data"):
+    def ReadTriqFM(self, comp, fsrc="data", targ=None):
         """Read a TriqFM data book if necessary for a specific sweep
         
         :Call:
-            >>> R.ReadTriqFM(comp, fsrc="data")
+            >>> R.ReadTriqFM(comp, fsrc="data", targ=None)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
@@ -4153,46 +4153,63 @@ class Report(object):
                 Name of TriqFM component
             *fsrc*: {``"data"``} | ``"trajectory"`` | :class:`str`
                 Data book trajectory source
+            *targ*: {``None``} | :class:`str`
+                Name of target data book, if any
         :Versions:
             * 2017-04-05 ``@ddalle``: First version
         """
         # Read the data book
         self.ReadDataBook(fsrc)
-        # Read the data book as approrpiate
-        self.cntl.DataBook.ReadTriqFM(comp)
-        # Get a handle to the TriqFM data book
-        DB = self.cntl.DataBook.TriqFM[comp]
+        # Check for target
+        if targ is None:
+            # Read the data book as approrpiate
+            self.cntl.DataBook.ReadTriqFM(comp)
+            # Handle to data book
+            DB = self.cntl.DataBook
+            # Get a handle to the TriqFM data book
+            DBF = DB.TriqFM[comp]
+        else:
+            # Read the Target
+            self.cntl.DataBook.ReadTarget(targ)
+            # Get target
+            DB = self.cntl.DataBook.Targets[targ]
+            # Read the TriqFM component
+            DB.ReadTriqFM(comp)
+            # Get TriqFM data book
+            DBF = DB.TriqFM[comp]
         # Check the source
         try:
             # See if a source has been marked
-            DB.source
+            DBF.source
         except AttributeError:
             # Set default source
-            DB.source = "none"
+            DBF.source = "none"
         # Check the existing source
-        if fsrc == DB.source:
+        if fsrc == DBF.source:
             # Everything is good
-            return
-        elif DB.source != "none":
+            return DBF
+        elif DBF.source != "none":
             # Previously read data book with opposite source
-            del DB
-            del self.cntl.DataBook.TriqFM[comp]
+            del DBF
+            del DB.TriqFM[comp]
             # Reread the data book
-            self.cntl.DataBook.ReadTriqFM(comp)
+            DB.ReadTriqFM(comp)
             # Update handle
-            DB = self.cntl.DataBook.TriqFM[comp]
-            DB.source = "none"
+            DBF = DB.TriqFM[comp]
+            DBF.source = "none"
         # Check the requested source.
         if fsrc == "trajectory":
             # Match the data book to the trajectory
-            DB.MatchTrajectory()
+            DBF.MatchTrajectory()
             # Save the data book source.
-            DB.source = "trajectory"
+            DBF.source = "trajectory"
         else:
             # Match the trajectory to the data book.
-            DB.UpdateTrajectory()
+            #DBF.UpdateTrajectory()
             # Save the data book source.
-            DB.source = "data"
+            DBF.source = "data"
+        # Output if desired
+        return DBF
         
         
     # Read line loads
@@ -4491,13 +4508,13 @@ class Report(object):
         return I
         
     # Function to get subset of target catches matching a sweep
-    def GetCoSweepIndices(self, fswp, i0, comp, cons=[]):
+    def GetCoSweepIndices(self, fswp, i0, comp, cons=[], targ=None):
         """
         Return indices of a target data set that correspond to sweep constraints
         from a data book point
         
         :Call:
-            >>> I = R.GetTargetSweepIndices(fswp, i0, targ)
+            >>> I = R.GetTargetSweepIndices(fswp, i0, comp, cons=[], targ=None)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
@@ -4505,8 +4522,8 @@ class Report(object):
                 Name of sweep to update
             *i0*: :class:`int`
                 Index of point in *R.cntl.DataBook.x* to use as reference
-            *targ*: :class:`int`
-                Name of the target in data book to use
+            *targ*: {``None``} | :class:`str`
+                Name of the target in data book to use (if any)
         :Outputs:
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of target data indices
@@ -4523,9 +4540,7 @@ class Report(object):
                 ("Invalid co-sweep request for component '%s'" % comp) +
                 (" of type '%s'" % ctyp))
         # Read the data book
-        self.ReadTriqFM(comp)
-        # Get the interface
-        DBT = self.cntl.DataBook.TriqFM[comp]
+        DBT = self.ReadTriqFM(comp, targ=targ)
         # Sort variable
         xk = opts.get_SweepOpt(fswp, 'XAxis')
         # Sweep constraints
