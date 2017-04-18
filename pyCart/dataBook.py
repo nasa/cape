@@ -288,7 +288,7 @@ class DataBook(cape.dataBook.DataBook):
         self.Targets[targ] = DBTarget(targ, self.x, self.opts, self.RootDir)
             
     # Local line load data book read
-    def _DBLineLoad(comp, conf=None, targ=None):
+    def _DBLineLoad(self, comp, conf=None, targ=None):
         """Version-specific line load reader
         
         :Versions:

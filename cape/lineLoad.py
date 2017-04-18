@@ -178,7 +178,6 @@ class DBLineLoad(dataBook.DBBase):
         # Moment reference point
         self.MRP = np.array(opts.get_RefPoint(self.RefComp))
         # Read the file or initialize empty arrays.
-        print("Label 00420: fname='%s', keys=%s" % (fname, keys))
         self.Read(fname, keys=keys)
         # Try to read the seams
         self.ReadSeamCurves()
@@ -258,7 +257,6 @@ class DBLineLoad(dataBook.DBBase):
             keys = self.x.keys
         # Save column names
         self.cols = keys + ['XMRP','YMRP','ZMRP','nIter','nStats']
-        print("Label 00415: cols=%s" % self.cols)
         # Try to read the file.
         try:
             # Data book delimiter
@@ -300,7 +298,6 @@ class DBLineLoad(dataBook.DBBase):
                     # Convert to array
                     self[k] = np.array([self[k]])
         except Exception as e:
-            print("Label 00440: e='%s'" % e)
             # Initialize empty trajectory arrays
             for k in self.x.keys:
                 # get the type.
@@ -467,19 +464,18 @@ class DBLineLoad(dataBook.DBBase):
         """Read data from a case from the data book archive
         
         :Call:
-            >>> DBL.ReadCase(i)
+            >>> DBL.ReadCase(i=None, j=None)
         :Inputs:
             *DBL*: :class:`cape.lineLoad.DBLineLoad`
                 Line load data book
             *i*: :class:`int`
-                Case number
+                Case number from run matrix
+            *j*: :class:`int`
+                Case number from data book
         :Versions:
             * 2016-06-07 ``@ddalle``: First version
+            * 2017-04-18 ``@ddalle``: Alternate index inputs
         """
-        # Search for match of this case in the data book
-        j = self.FindMatch(i)
-        # Check if current case is in the data book
-        if np.isnan(j): return
         # Check if already up to date
         if i in self: return
         # Path to lineload folder
@@ -522,10 +518,16 @@ class DBLineLoad(dataBook.DBBase):
         """
         # Loop through the fields.
         for k in self.x.keys:
-            # Copy the data.
-            setattr(self.x, k, self[k])
-            # Set the text.
-            self.x.text[k] = [str(xk) for xk in self[k]]
+            # Check if the key is present
+            if k in self:
+                # Copy the data.
+                setattr(self.x, k, self[k])
+                # Set the text.
+                self.x.text[k] = [str(xk) for xk in self[k]]
+            else:
+                # Set faulty data
+                setattr(self.x, k, np.nan*np.ones(self.n))
+                self.x.text[k] = ['' for xk in range(self.n)]
         # Set the number of cases.
         self.x.nCase = self.n
   # >

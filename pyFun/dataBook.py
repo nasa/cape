@@ -115,7 +115,7 @@ class DataBook(cape.dataBook.DataBook):
         self.Targets[targ] = DBTarget(targ, self.x, self.opts, self.RootDir)
             
     # Local line load data book read
-    def _DBLineLoad(comp, conf=None, targ=None):
+    def _DBLineLoad(self, comp, conf=None, targ=None):
         """Version-specific line load reader
         
         :Versions:
@@ -132,7 +132,6 @@ class DataBook(cape.dataBook.DataBook):
             # Get the keys
             topts = self.opts.get_DataBookTargetByName(targ)
             keys = topts.get("Keys", self.x.keys)
-            print("Label 00402: keys=%s" % keys)
             # Read the file.
             self.LineLoads[ttl] = lineLoad.DBLineLoad(
                 self.x, self.opts, comp, keys=keys,

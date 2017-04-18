@@ -2527,12 +2527,10 @@ class Report(object):
                 SubplotMargin=w_sfig, **kw_pad)
             # Loop through targets
             for targ in targs:
-                print("Label 052: targ='%s', type='%s'" % (targ, targ_types[targ]))
                 # Check for generic target
                 if targ_types[targ] != 'cape': continue
                 # Read the line load data book and read case *i* if possible
                 LLT = self.ReadLineLoad(comp, i, targ=targ, update=False)
-                print("Label 061: LLT=%s" % LLT)
                 # Check for a find.
                 if LLT is None: continue
                 # Get target plot label.
@@ -4238,23 +4236,28 @@ class Report(object):
             # Target data book
             DBT = DB.Targets[targ]
             # Get target options
-            print("Label 001: targ='%s'" % targ)
             topts = self.cntl.opts.get_DataBookTargetByName(targ)
             keys = topts.get("Keys", DB.x.keys)
-            print("Label 003: keys=%s" % keys)
-            print("Label 004: DBT=%s" % DBT)
             # Read Line load
             DBT.ReadLineLoad(comp, targ=targ, conf=self.cntl.config)
+            # Get title
+            ttl = "%s\\%s" % (targ, comp)
+            # Copy the line load
+            DBT.LineLoads[comp] = DBT.LineLoads[ttl]
+            # Extract it
             DBL = DBT.LineLoads[comp]
-            print("Label 005: DBL=%s" % DBL)
             # Update the trajectory
             DBL.UpdateTrajectory()
             # Target options
             topts = self.cntl.opts.get_DataBookTargetByName(targ)
             # Find a match
-            J = DBL.FindTargetMatch(DB.x, i, topts)
+            J = DBL.FindTargetMatch(DB.x, i, topts, keylist='tol')
             # Check for a match
-            if len(J) == 0: return None
+            if len(J) == 0:
+                print(
+                    ("  Warning: Could not find target line load ") +
+                    ("for target '%s', comp '%s', index %s" % (targ,comp,i)))
+                return None
             # Get the first match
             j = J[0]
             # Move the handle.
@@ -4265,6 +4268,9 @@ class Report(object):
         if update and (j not in DBL):
             # Update the case
             DBL.UpdateCase(j)
+            # Read the case
+            DBL.ReadCase(j)
+        elif (j not in DBL):
             # Read the case
             DBL.ReadCase(j)
         # Output the case line load

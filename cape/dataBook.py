@@ -310,13 +310,12 @@ class DataBook(dict):
             os.chdir(fpwd)
             
     # Local line load data book read
-    def _DBLineLoad(comp, conf=None, targ=None):
+    def _DBLineLoad(self, comp, conf=None, targ=None):
         """Versions-specific line load reader
         
         :Versions:
             * 2017-04-18 ``@ddalle``: First version
         """
-        print("Label 0805")
         pass
     
 
@@ -2169,6 +2168,10 @@ class DBBase(dict):
             tol = tolopts.get(k)
             # Get the target value (from the trajectory)
             v = getattr(x,k)[i]
+            t = type(v).__name__
+            # Check type
+            if t.startswith('str') or t.startswith('unicode'):
+                continue
             # Safe matching in case of complications
             try:
                 # Check tolerance type
