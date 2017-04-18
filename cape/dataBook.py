@@ -304,26 +304,21 @@ class DataBook(dict):
             # Safely go to root directory
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
-            # Default target name
-            if targ is None:
-                # Read the file.
-                self.LineLoads[comp] = cape.lineLoad.DBLineLoad(
-                    self.x, self.opts,
-                    comp, conf=conf, RootDir=self.RootDir, targ=self.targ)
-            else:
-                print("Label 00401: targ='%s'" % targ)
-                # Read as a specified target.
-                ttl = '%s\\%s' % (targ, comp)
-                # Get the keys
-                topts = self.opts.get_DataBookTargetByName(targ)
-                keys = topts.get("Keys", self.x.keys)
-                print("Label 00402: keys=%s" % keys)
-                # Read the file.
-                self.LineLoads[ttl] = cape.lineLoad.DBLineLoad(
-                    self.x, self.opts, comp, keys=keys,
-                    conf=conf, RootDir=self.RootDir, targ=targ)
+            # Read the target
+            self._DBLineLoad(comp, conf=conf, targ=targ)
             # Return to starting location
             os.chdir(fpwd)
+            
+    # Local line load data book read
+    def _DBLineLoad(comp, conf=None, targ=None):
+        """Versions-specific line load reader
+        
+        :Versions:
+            * 2017-04-18 ``@ddalle``: First version
+        """
+        print("Label 0805")
+        pass
+    
 
     # Find first force/moment component
     def GetRefComponent(self):
@@ -377,14 +372,21 @@ class DataBook(dict):
             # Check the type
             if typ in ['duplicate', 'cape', 'pycart', 'pyfun', 'pyover']:
                 # Read a duplicate data book
-                self.Targets[targ] = DataBook(
-                    self.x, self.opts, RootDir=self.RootDir, targ=targ)
+                self._DataBook(targ)
                 # Update the trajectory
                 self.Targets[targ].UpdateTrajectory()
             else:
                 # Read the file.
-                self.Targets[targ] = DBTarget(
-                    targ, self.x, self.opts, self.RootDir)
+                self._DBTarget(targ)
+    
+    # Local version of data book
+    def _DataBook(self, targ):
+        self.Targets[targ] = DataBook(
+            self.x, self.opts, RootDir=self.RootDir, targ=targ)
+        
+    # Local version of target
+    def _DBTarget(self, targ):
+        self.Targets[targ] = DBTarget(targ, self.x, self.opts, self.RootDir)
   # >
   
   # ========

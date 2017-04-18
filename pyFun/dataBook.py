@@ -104,58 +104,39 @@ class DataBook(cape.dataBook.DataBook):
         self.proj = self.opts.get_project_rootname()
         # Read the data book
         self[comp] = DBComp(comp, self.x, self.opts, targ=self.targ)
+    
+    # Local version of data book
+    def _DataBook(self, targ):
+        self.Targets[targ] = DataBook(
+                    self.x, self.opts, RootDir=self.RootDir, targ=targ)
         
-    # Read line load
-    def ReadLineLoad(self, comp, conf=None, targ=None):
-        """Read a line load data book if it is not already present
+    # Local version of target
+    def _DBTarget(self, targ):
+        self.Targets[targ] = DBTarget(targ, self.x, self.opts, self.RootDir)
+            
+    # Local line load data book read
+    def _DBLineLoad(comp, conf=None, targ=None):
+        """Version-specific line load reader
         
-        :Call:
-            >>> DB.ReadLineLoad(comp)
-        :Inputs:
-            *DB*: :class:`pyFun.dataBook.DataBook`
-                Instance of the pyFun data book class
-            *comp*: :class:`str`
-                Line load component group
-            *conf*: {``"None"``} | :class:`cape.config.Config`
-                Surface configuration interface
-            *targ*: {``"None"``} | :class:`str`
-                Sets alternate directory to read from, defaults to *DB.targ*
         :Versions:
-            * 2015-09-16 ``@ddalle``: First version
-            * 2016-06-27 ``@ddalle``: Added *targ*
+            * 2017-04-18 ``@ddalle``: First version
         """
-        # Initialize if necessary
-        try:
-            self.LineLoads
-        except Exception:
-            self.LineLoads = {}
-        # Try to access the line load
-        try:
-            if targ is None:
-                # Check for the line load data book as is
-                self.LineLoads[comp]
-            else:
-                # Check for the target
-                self.ReadTarget(targ)
-                # Check for the target line load
-                self.Targets[targ].LineLoads[comp]
-        except Exception:
-            # Safely go to root directory
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Default target name
-            if targ is None:
-                # Read the file.
-                self.LineLoads[comp] = lineLoad.DBLineLoad(self.x, self.opts,
-                    comp, conf=conf, RootDir=self.RootDir, targ=self.targ)
-            else:
-                # Read as a specified target.
-                ttl = '%s\\%s' % (targ, comp)
-                # Read the file.
-                self.LineLoads[ttl] = lineLoad.DBLineLoad(self.x, self.opts,
-                    comp, conf=conf, RootDir=self.RootDir, targ=targ)
-            # Return to starting location
-            os.chdir(fpwd)
+        # Check for target
+        if targ is None:
+            self.LineLoads[comp] = lineLoad.DBLineLoad(
+                self.x, self.opts, comp,
+                conf=conf, RootDir=self.RootDir, targ=self.targ)
+        else:
+            # Read as a specified target.
+            ttl = '%s\\%s' % (targ, comp)
+            # Get the keys
+            topts = self.opts.get_DataBookTargetByName(targ)
+            keys = topts.get("Keys", self.x.keys)
+            print("Label 00402: keys=%s" % keys)
+            # Read the file.
+            self.LineLoads[ttl] = lineLoad.DBLineLoad(
+                self.x, self.opts, comp, keys=keys,
+                conf=conf, RootDir=self.RootDir, targ=targ)
     
     # Read TrqiFM components
     def ReadTriqFM(self, comp):

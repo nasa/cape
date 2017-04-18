@@ -277,6 +277,38 @@ class DataBook(cape.dataBook.DataBook):
             * 2016-03-15 ``@ddalle``: First version
         """
         return pointSensor.DBPointSensor(*a, **kw)
+    
+    # Local version of data book
+    def _DataBook(self, targ):
+        self.Targets[targ] = DataBook(
+            self.x, self.opts, RootDir=self.RootDir, targ=targ)
+        
+    # Local version of target
+    def _DBTarget(self, targ):
+        self.Targets[targ] = DBTarget(targ, self.x, self.opts, self.RootDir)
+            
+    # Local line load data book read
+    def _DBLineLoad(comp, conf=None, targ=None):
+        """Version-specific line load reader
+        
+        :Versions:
+            * 2017-04-18 ``@ddalle``: First version
+        """
+        # Check for target
+        if targ is None:
+            self.LineLoads[comp] = lineLoad.DBLineLoad(
+                self.x, self.opts, comp,
+                conf=conf, RootDir=self.RootDir, targ=self.targ)
+        else:
+            # Read as a specified target.
+            ttl = '%s\\%s' % (targ, comp)
+            # Get the keys
+            topts = self.opts.get_DataBookTargetByName(targ)
+            keys = topts.get("Keys", self.x.keys)
+            # Read the file.
+            self.LineLoads[ttl] = lineLoad.DBLineLoad(
+                self.x, self.opts, comp, keys=keys,
+                conf=conf, RootDir=self.RootDir, targ=targ)
             
     # Update line load data book
     def UpdateLineLoad(self, comp, conf=None, I=None):
