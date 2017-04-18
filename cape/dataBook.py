@@ -535,6 +535,8 @@ class DataBook(dict):
                 self.UpdateCaseComp(i, comp)
             # Return to original location
             os.chdir(fpwd)
+            # Sort the component
+            self[comp].Sort()
             # Write the component
             self[comp].Write()
         
@@ -1982,6 +1984,7 @@ class DBBase(dict):
                 List of indices; must have same size as data book
         :Versions:
             * 2014-12-30 ``@ddalle``: First version
+            * 2017-04-18 ``@ddalle``: Using :func:`np.lexsort`
         """
         # Process inputs.
         if I is not None:
@@ -1993,11 +1996,22 @@ class DBBase(dict):
                 # Incompatible length.
                 raise IndexError(("Index list length (%i) " % len(I)) +
                     ("is not equal to data book size (%i)." % self.n))
-        else:
+        elif key is not None:
             # Default key if necessary
             if key is None: key = self.x.keys[0]
             # Use ArgSort to get indices that sort on that key.
             I = self.ArgSort(key)
+        else:
+            # Perform lexsort
+            try:
+                # Create a tuple of lexicon variables
+                # Loop backwards through variables to prioritize first key
+                XV = tuple(self[k] for k in self.xCols[-1::-1])
+                # Use lexicon sort
+                I = np.lexsort(XV)
+            except Exception:
+                # Fall back to first key
+                I = self.ArgSort(sefl.xCols[0])
         # Sort all fields.
         for k in self:
             # Sort it.
