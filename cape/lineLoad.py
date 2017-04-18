@@ -104,13 +104,16 @@ class DBLineLoad(dataBook.DBBase):
   # ======
   # <
     # Initialization method
-    def __init__(self, x, opts, comp, conf=None, RootDir=None, targ=None):
+    def __init__(self, x, opts, comp, conf=None, RootDir=None, **kw):
         """Initialization method
         
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
             * 2016-06-07 ``@ddalle``: Updated slightly
         """
+        # Targ and keys
+        targ = kw.get('targ')
+        keys = kw.get("keys")
         # Save root directory
         if RootDir is None:
             # Use the current folder
@@ -175,7 +178,8 @@ class DBLineLoad(dataBook.DBBase):
         # Moment reference point
         self.MRP = np.array(opts.get_RefPoint(self.RefComp))
         # Read the file or initialize empty arrays.
-        self.Read(fname)
+        print("Label 00420: fname='%s', keys=%s" % (fname, keys))
+        self.Read(fname, keys=keys)
         # Try to read the seams
         self.ReadSeamCurves()
         
@@ -233,7 +237,7 @@ class DBLineLoad(dataBook.DBBase):
    # --------
    # [
     # function to read line load data book summary
-    def Read(self, fname=None):
+    def Read(self, fname=None, keys=None):
         """Read a data book summary file for a single line load group
         
         :Call:
@@ -249,8 +253,12 @@ class DBLineLoad(dataBook.DBBase):
         """
         # Check for default file name
         if fname is None: fname = self.fname
+        # Default list of keys
+        if keys is None:
+            keys = self.x.keys
         # Save column names
-        self.cols = self.x.keys + ['XMRP','YMRP','ZMRP','nIter','nStats']
+        self.cols = keys + ['XMRP','YMRP','ZMRP','nIter','nStats']
+        print("Label 00415: cols=%s" % self.cols)
         # Try to read the file.
         try:
             # Data book delimiter
@@ -258,7 +266,7 @@ class DBLineLoad(dataBook.DBBase):
             # Initialize column number.
             nCol = 0
             # Loop through the trajectory keys.
-            for k in self.x.keys:
+            for k in keys:
                 # Get the type.
                 t = self.x.defns[k].get('Value', 'float')
                 # Convert type.
@@ -291,7 +299,8 @@ class DBLineLoad(dataBook.DBBase):
                 for k in self.cols:
                     # Convert to array
                     self[k] = np.array([self[k]])
-        except Exception:
+        except Exception as e:
+            print("Label 00440: e='%s'" % e)
             # Initialize empty trajectory arrays
             for k in self.x.keys:
                 # get the type.

@@ -51,6 +51,8 @@ from .options import odict
 # Utilities or advanced statistics
 from . import case
 from . import util
+# Line loads and other types
+#import cape.lineLoad
 
 # Other local modules
 import cape.tri
@@ -263,6 +265,65 @@ class DataBook(dict):
             * 2017-04-13 ``@ddalle``: Self-contained and renamed
         """
         self[comp] = DBComp(comp, self.x, self.opts, targ=self.targ)
+    
+    # Read line load
+    def ReadLineLoad(self, comp, conf=None, targ=None):
+        """Read a line load data book target if it is not already present
+        
+        :Call:
+            >>> DB.ReadLineLoad(comp)
+        :Inputs:
+            *DB*: :class:`pycart.dataBook.DataBook`
+                Instance of the pycart data book class
+            *comp*: :class:`str`
+                Line load component group
+            *conf*: {``"None"``} | :class:`cape.config.Config`
+                Surface configuration interface
+            *targ*: {``"None"``} | :class:`str`
+                Sets alternate directory to read from, defaults to *DB.targ*
+        :Versions:
+            * 2015-09-16 ``@ddalle``: First version
+            * 2016-06-27 ``@ddalle``: Added *targ*
+        """
+        # Initialize if necessary
+        try:
+            self.LineLoads
+        except Exception:
+            self.LineLoads = {}
+        # Try to access the line load
+        try:
+            if targ is None:
+                # Check for the line load data book as is
+                self.LineLoads[comp]
+            else:
+                # Check for the target
+                self.ReadTarget(targ)
+                # Check for the target line load
+                self.Targets[targ].LineLoads[comp]
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Default target name
+            if targ is None:
+                # Read the file.
+                self.LineLoads[comp] = cape.lineLoad.DBLineLoad(
+                    self.x, self.opts,
+                    comp, conf=conf, RootDir=self.RootDir, targ=self.targ)
+            else:
+                print("Label 00401: targ='%s'" % targ)
+                # Read as a specified target.
+                ttl = '%s\\%s' % (targ, comp)
+                # Get the keys
+                topts = self.opts.get_DataBookTargetByName(targ)
+                keys = topts.get("Keys", self.x.keys)
+                print("Label 00402: keys=%s" % keys)
+                # Read the file.
+                self.LineLoads[ttl] = cape.lineLoad.DBLineLoad(
+                    self.x, self.opts, comp, keys=keys,
+                    conf=conf, RootDir=self.RootDir, targ=targ)
+            # Return to starting location
+            os.chdir(fpwd)
 
     # Find first force/moment component
     def GetRefComponent(self):
@@ -3113,10 +3174,10 @@ class DBComp(DBBase):
         # Save the file name.
         self.fname = fname
         self.fdir = fdir
-        
+
         # Process columns
         self.ProcessColumns()
-        
+
         # Read the file or initialize empty arrays.
         self.Read(self.fname)
         

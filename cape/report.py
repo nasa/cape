@@ -2412,6 +2412,9 @@ class Report(object):
                 targ_types[targ] = 'cape'
             except Exception:
                 # Read failed
+                print("    WARNING: " + 
+                    ("failed to read target line load '%s'" % targ))
+                raise IOError
                 targ_types[targ] = 'generic'
         # List of coefficients
         if type(coeff).__name__ in ['list', 'ndarray']:
@@ -2524,10 +2527,12 @@ class Report(object):
                 SubplotMargin=w_sfig, **kw_pad)
             # Loop through targets
             for targ in targs:
+                print("Label 052: targ='%s', type='%s'" % (targ, targ_types[targ]))
                 # Check for generic target
                 if targ_types[targ] != 'cape': continue
                 # Read the line load data book and read case *i* if possible
                 LLT = self.ReadLineLoad(comp, i, targ=targ, update=False)
+                print("Label 061: LLT=%s" % LLT)
                 # Check for a find.
                 if LLT is None: continue
                 # Get target plot label.
@@ -4232,9 +4237,16 @@ class Report(object):
             DB.ReadTarget(targ)
             # Target data book
             DBT = DB.Targets[targ]
+            # Get target options
+            print("Label 001: targ='%s'" % targ)
+            topts = self.cntl.opts.get_DataBookTargetByName(targ)
+            keys = topts.get("Keys", DB.x.keys)
+            print("Label 003: keys=%s" % keys)
+            print("Label 004: DBT=%s" % DBT)
             # Read Line load
-            DBT.ReadLineLoad(comp, conf=self.cntl.config)
+            DBT.ReadLineLoad(comp, targ=targ, conf=self.cntl.config)
             DBL = DBT.LineLoads[comp]
+            print("Label 005: DBL=%s" % DBL)
             # Update the trajectory
             DBL.UpdateTrajectory()
             # Target options
@@ -4250,7 +4262,7 @@ class Report(object):
         # Read the case
         DBL.ReadCase(j)
         # Check auto-update flag
-        if update and j not in DBL:
+        if update and (j not in DBL):
             # Update the case
             DBL.UpdateCase(j)
             # Read the case
