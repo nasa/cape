@@ -2793,7 +2793,11 @@ class Report(object):
                 # Check if the *comp*/*coeff* combination is available.
                 if typt in ['duplicate', 'cape', 'pycart']:
                     # Check with *DBT* as a full data book
-                    if (comp not in DBT):
+                    if (ctyp == "TriqFM"):
+                        print(
+                            ("    Skipping TriqFM target '%s'" % targ))
+                        continue
+                    elif (comp not in DBT):
                         print(
                             ("    Skipping target '%s': " % targ) +
                             ("comp '%s' not in target" % comp))
