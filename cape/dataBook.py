@@ -1935,6 +1935,8 @@ class DBBase(dict):
         :Versions:
             * 2017-04-18 ``@ddalle``: First version
         """
+        # Copy trajectory
+        self.x = self.x.Copy()
         # Loop through the fields.
         for k in self.x.keys:
             # Copy the data.
@@ -1948,7 +1950,7 @@ class DBBase(dict):
                 setattr(self.x, k, np.nan*np.ones(self.n))
                 self.x.text[k] = ["" for k in range(self.n)]
         # Set the number of cases.
-        self.x.nCase = DBc.n
+        self.x.nCase = self.n
     
     # Function to get sorting indices.
     def ArgSort(self, key=None):
