@@ -1116,21 +1116,25 @@ class CaseResid(cape.dataBook.CaseResid):
         self.ReadResidGlobal(ftmp, coeff="L2", grid=grid)
         
     # Read entire L-inf residual
-    def ReadGlobalLInf(self):
+    def ReadGlobalLInf(self, grid=None):
         """Read entire L-infinity norm history
         
         The file ``history.LInf.dat`` is also updated
         
         :Call:
-            >>> H.ReadGlobalLInf()
+            >>> H.ReadGlobalLInf(grid=None)
         :Inputs:
             *H*: :class:`pyOver.dataBook.CaseResid`
                 Iterative residual history class
+            *grid*: {``None``} | :class:`int` | :class:`str`
+                If used, read only one grid
         :Versions:
             * 2016-02-06 ``@ddalle``: First version
+            * 2017-04-19 ``@ddalle``: Added *grid* option
         """
         # Read the global history file
-        self.i, self.LInf = self.ReadGlobalHist('histroy.LInf.dat')
+        if grid is None:
+            self.i, self.LInf = self.ReadGlobalHist('histroy.LInf.dat')
         # OVERFLOW file names
         frun = '%s.resid' % self.proj
         fout = 'resid.out'
@@ -1143,30 +1147,35 @@ class CaseResid(cape.dataBook.CaseResid):
             # Start from the beginning
             n = 0
         # Read the archival file
-        self.ReadResidGlobal(frun, coeff="LInf")
+        self.ReadResidGlobal(frun, coeff="LInf", grid=grid)
         # Read the intermediate file
-        self.ReadResidGlobal(fout, coeff="LInf")
+        self.ReadResidGlobal(fout, coeff="LInf", grid=grid)
         # Write the updated history (tmp file not safe to write here)
-        self.WriteGlobalHist('history.LInf.dat', self.i, self.L2)
+        if grid is None:
+            self.WriteGlobalHist('history.LInf.dat', self.i, self.L2)
         # Read the temporary file
-        self.ReadResidGlobal(ftmp, coeff="LInf")
+        self.ReadResidGlobal(ftmp, coeff="LInf", grid=grid)
         
     # Read turbulence L2 residual
-    def ReadTurbResidL2(self):
+    def ReadTurbResidL2(self, grid=None):
         """Read the entire L2 norm of the turbulence residuals
         
         The file ``history.turb.L2.dat`` is also updated
         
         :Call:
-            >>> H.ReadTurbResidL2()
+            >>> H.ReadTurbResidL2(grid=None)
         :Inputs:
             *H*: :class:`pyOver.dataBook.CaseResid`
                 Iterative residual history class
+            *grid*: {``None``} | :class:`int` | :class:`str`
+                If used, read only one grid
         :Versions:
             * 2016-02-06 ``@ddalle``: First version
+            * 2017-04-19 ``@ddalle``: Added *grid* option
         """
         # Read the global history file
-        self.i, self.L2 = self.ReadGlobalHist('history.turb.L2.dat')
+        if grid is None:
+            self.i, self.L2 = self.ReadGlobalHist('history.turb.L2.dat')
         # OVERFLOW file names
         frun = '%.turb' % self.proj
         fout = 'turb.out'
@@ -1179,16 +1188,17 @@ class CaseResid(cape.dataBook.CaseResid):
             # Start from the beginning
             n = 0
         # Read the archival file
-        self.ReadResidGlobal(frun, coeff="L2")
+        self.ReadResidGlobal(frun, coeff="L2", grid=grid)
         # Read the intermediate file
-        self.ReadResidGlobal(fout, coeff="L2")
+        self.ReadResidGlobal(fout, coeff="L2", grid=grid)
         # Write the updated history (tmp file not safe to write here)
-        self.WriteGlobalHist('history.turb.L2.dat', self.i, self.L2)
+        if grid is None:
+            self.WriteGlobalHist('history.turb.L2.dat', self.i, self.L2)
         # Read the temporary file
-        self.ReadResidGlobal(ftmp, coeff="L2")
+        self.ReadResidGlobal(ftmp, coeff="L2", grid=grid)
         
     # Read turbulence LInf residual
-    def ReadTurbResidLInf(self):
+    def ReadTurbResidLInf(self, grid=None):
         """Read the global L-infinity norm of the turbulence residuals
         
         The file ``history.turb.LInf.dat`` is also updated
@@ -1198,11 +1208,15 @@ class CaseResid(cape.dataBook.CaseResid):
         :Inputs:
             *H*: :class:`pyOver.dataBook.CaseResid`
                 Iterative residual history class
+            *grid*: {``None``} | :class:`int` | :class:`str`
+                If used, read only one grid
         :Versions:
             * 2016-02-06 ``@ddalle``: First version
+            * 2017-04-19 ``@ddalle``: Added *grid* option
         """
         # Read the global history file
-        self.i, self.L2 = self.ReadglobalHist('history.turb.LInf.dat')
+        if grid is None:
+            self.i, self.L2 = self.ReadglobalHist('history.turb.LInf.dat')
         # OVERFLOW file names
         frun = '%.turb' % self.proj
         fout = 'turb.out'
@@ -1215,30 +1229,35 @@ class CaseResid(cape.dataBook.CaseResid):
             # Start from the beginning
             n = 0
         # Read the archival file
-        self.ReadResidGlobal(frun, coeff="LInf")
+        self.ReadResidGlobal(frun, coeff="LInf", grid=grid)
         # Read the intermediate file
-        self.ReadResidGlobal(fout, coeff="LInf")
+        self.ReadResidGlobal(fout, coeff="LInf", grid=grid)
         # Write the updated history (tmp file not safe to write here)
-        self.WriteGlobalHist('history.turb.LInf.dat', self.i, self.L2)
+        if grid is None:
+            self.WriteGlobalHist('history.turb.LInf.dat', self.i, self.L2)
         # Read the temporary file
-        self.ReadResidGlobal(ftmp, coeff="LInf")
+        self.ReadResidGlobal(ftmp, coeff="LInf", grid=grid)
         
     # Read species L2 residual
-    def ReadSpeciesResidL2(self):
+    def ReadSpeciesResidL2(self, grid=None):
         """Read the global L2 norm of the species equations
         
         The file ``history.species.L2.dat`` is also updated
         
         :Call:
-            >>> H.ReadSpeciesResidL2()
+            >>> H.ReadSpeciesResidL2(grid=None)
         :Inputs:
             *H*: :class:`pyOver.dataBook.CaseResid`
                 Iterative residual history class
+            *grid*: {``None``} | :class:`int` | :class:`str`
+                If used, read only one grid
         :Versions:
             * 2016-02-06 ``@ddalle``: First version
+            * 2017-04-19 ``@ddalle``: Added *grid* option
         """
         # Read the global history file
-        self.i, self.L2 = self.ReadglobalHist('history.species.L2.dat')
+        if grid is None:
+            self.i, self.L2 = self.ReadglobalHist('history.species.L2.dat')
         # OVERFLOW file names
         frun = '%.species' % self.proj
         fout = 'species.out'
@@ -1251,30 +1270,35 @@ class CaseResid(cape.dataBook.CaseResid):
             # Start from the beginning
             n = 0
         # Read the archival file
-        self.ReadResidGlobal(frun, coeff="L2")
+        self.ReadResidGlobal(frun, coeff="L2", grid=grid)
         # Read the intermediate file
-        self.ReadResidGlobal(fout, coeff="L2")
+        self.ReadResidGlobal(fout, coeff="L2", grid=grid)
         # Write the updated history (tmp file not safe to write here)
-        self.WriteGlobalHist('history.species.L2.dat', self.i, self.L2)
+        if grid is None:
+            self.WriteGlobalHist('history.species.L2.dat', self.i, self.L2)
         # Read the temporary file
-        self.ReadResidGlobal(ftmp, coeff="L2")
+        self.ReadResidGlobal(ftmp, coeff="L2", grid=grid)
         
     # Read species LInf residual
-    def ReadSpeciesResidLInf(self):
+    def ReadSpeciesResidLInf(self, grid=None):
         """Read the global L-infinity norm of the species equations
         
         The file ``history.species.LInf.dat`` is also updated
         
         :Call:
-            >>> H.ReadSpeciesResidLInf()
+            >>> H.ReadSpeciesResidLInf(grid=None)
         :Inputs:
             *H*: :class:`pyOver.dataBook.CaseResid`
                 Iterative residual history class
+            *grid*: {``None``} | :class:`int` | :class:`str`
+                If used, read only one grid
         :Versions:
             * 2016-02-06 ``@ddalle``: First version
+            * 2017-04-19 ``@ddalle``: Added *grid* option
         """
         # Read the global history file
-        self.i, self.L2 = self.ReadglobalHist('history.species.LInf.dat')
+        if grid is None:
+            self.i, self.L2 = self.ReadglobalHist('history.species.LInf.dat')
         # OVERFLOW file names
         frun = '%.species' % self.proj
         fout = 'species.out'
@@ -1287,13 +1311,14 @@ class CaseResid(cape.dataBook.CaseResid):
             # Start from the beginning
             n = 0
         # Read the archival file
-        self.ReadResidGlobal(frun, coeff="LInf")
+        self.ReadResidGlobal(frun, coeff="LInf", grid=grid)
         # Read the intermediate file
-        self.ReadResidGlobal(fout, coeff="LInf")
+        self.ReadResidGlobal(fout, coeff="LInf", grid=grid)
         # Write the updated history (tmp file not safe to write here)
-        self.WriteGlobalHist('history.species.LInf.dat', self.i, self.L2)
+        if grid is None:
+            self.WriteGlobalHist('history.species.LInf.dat', self.i, self.L2)
         # Read the temporary file
-        self.ReadResidGlobal(ftmp, coeff="LInf")
+        self.ReadResidGlobal(ftmp, coeff="LInf", grid=grid)
     
     # Read a consolidated history file
     def ReadGlobalHist(self, fname):

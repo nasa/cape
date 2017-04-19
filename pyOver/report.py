@@ -183,42 +183,23 @@ class Report(cape.report.Report):
         # Check the residual to read
         resid = self.cntl.opts.get_SubfigOpt(sfig, "Residual")
         # Check the component to read
-        comp = self.cntl.opts.get_SubfigOpt(sfig, "Component")
+        grid = self.cntl.opts.get_SubfigOpt(sfig, "Grid")
         # Check type of residual to read
         if t in ['PlotL2']:
             # Read spatial L2-norm
-            if comp is None:
-                # Read global residual
-                R.ReadGlobalL2()
-            else:
-                # Read individual residual
-                R.ReadL2Grid(comp)
+            R.ReadGlobalL2(grid)
         elif t in ['PlotLInf']:
             # Read spatial L-infinity norm
-            if comp is None:
-                # Read global residual
-                R.ReadGlobalLInf()
-            else:
-                # Read individual residual
-                R.ReadLInfGrid(comp)
+            # Read global residual
+            R.ReadGlobalLInf(grid)
         elif t in ['PlotResid']:
             # Read spatial residual, but check which to read
             if resid in ['L2']:
-                # Check component
-                if comp is None:
-                    # Read global residual
-                    R.ReadGlobalL2()
-                else:
-                    # Not implemented
-                    R.ReadL2Grid(comp)
+                # Read spatial L2-norm
+                R.ReadGlobalL2(grid)
             elif resid in ['LInf']:
-                # Check component
-                if comp is None:
-                    # Read global L-infinity residual
-                    R.ReadGlobalLInf()
-                else:
-                    # Read for a specific grid
-                    R.ReadLInfGrid(comp)
+                # Read global L-infinity residual
+                R.ReadGlobalLInf(grid)
             else:
                 # Unrecognized type
                 raise ValueError(
@@ -228,21 +209,11 @@ class Report(cape.report.Report):
         elif t in ['PlotTurbResid']:
             # Read spatial residual, but check which to read
             if resid in ['L2']:
-                # Check component
-                if comp is None:
-                    # Read global residual
-                    R.ReadTurbResidL2()
-                else:
-                    # Not implemented
-                    R.ReadTurbL2Grid(comp)
+                # Read spatial
+                R.ReadTurbResidL2(grid)
             elif resid in ['LInf']:
-                # Check component
-                if comp is None:
-                    # Read global L-infinity residual
-                    R.ReadTurbResidLInf()
-                else:
-                    # Read for a specific grid
-                    R.ReadTurbLInfGrid(comp)
+                # Read global L-infinity residual
+                R.ReadTurbResidLInf(grid)
             else:
                 # Unrecognized type
                 raise ValueError(
@@ -252,21 +223,11 @@ class Report(cape.report.Report):
         elif t in ['PlotSpeciesResid']:
             # Read spatial residual, but check which to read
             if resid in ['L2']:
-                # Check component
-                if comp is None:
-                    # Read global residual
-                    R.ReadSpeciesResidL2()
-                else:
-                    # Not implemented
-                    R.ReadSpeciesL2Grid(comp)
+                # Read global residual
+                R.ReadSpeciesResidL2(grid)
             elif resid in ['LInf']:
-                # Check component
-                if comp is None:
-                    # Read global L-infinity residual
-                    R.ReadSpeciesResidLInf()
-                else:
-                    # Read for a specific grid
-                    R.ReadSpeciesLInfGrid(comp)
+                # Read global L-infinity residual
+                R.ReadSpeciesResidLInf(grid)
             else:
                 # Unrecognized type
                 raise ValueError(
