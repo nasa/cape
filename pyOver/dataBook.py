@@ -1075,21 +1075,25 @@ class CaseResid(cape.dataBook.CaseResid):
         return L2Max - L2End
     
     # Read entire global residual history
-    def ReadGlobalL2(self):
+    def ReadGlobalL2(self, grid=None):
         """Read entire global L2 history
         
         The file ``history.L2.dat`` is also updated.
         
         :Call:
-            >>> H.ReadGlobalL2()
+            >>> H.ReadGlobalL2(grid=None)
         :Inputs:
             *H*: :class:`pyOver.dataBook.CaseResid`
                 Iterative residual history class
+            *grid*: {``None``} | :class:`int` | :class:`str`
+                If used, read only one grid
         :Versions:
             * 2016-02-04 ``@ddalle``: First version
+            * 2017-04-19 ``@ddalle``: Added *grid* option
         """
         # Read the global history file
-        self.i, self.L2 = self.ReadGlobalHist('history.L2.dat')
+        if grid is None:
+            self.i, self.L2 = self.ReadGlobalHist('history.L2.dat')
         # OVERFLOW file names
         frun = '%s.resid' % self.proj
         fout = 'resid.out'
@@ -1102,13 +1106,14 @@ class CaseResid(cape.dataBook.CaseResid):
             # Start from the beginning
             n = 0
         # Read the archival file
-        self.ReadResidGlobal(frun, coeff="L2")
+        self.ReadResidGlobal(frun, coeff="L2", grid=grid)
         # Read the intermediate file
-        self.ReadResidGlobal(fout, coeff="L2")
+        self.ReadResidGlobal(fout, coeff="L2", grid=grid)
         # Write the updated history (tmp file not safe to write here)
-        self.WriteGlobalHist('history.L2.dat', self.i, self.L2)
+        if grid is None:
+            self.WriteGlobalHist('history.L2.dat', self.i, self.L2)
         # Read the temporary file
-        self.ReadResidGlobal(ftmp, coeff="L2")
+        self.ReadResidGlobal(ftmp, coeff="L2", grid=grid)
         
     # Read entire L-inf residual
     def ReadGlobalLInf(self):
@@ -1366,12 +1371,12 @@ class CaseResid(cape.dataBook.CaseResid):
         f.close()
 
     # Read a global residual file
-    def ReadResidGlobal(self, fname, coeff="L2", n=None):
+    def ReadResidGlobal(self, fname, coeff="L2", n=None, grid=None):
         """Read a global residual using :func:`numpy.loadtxt` from one file
         
         :Call:
-            >>> i, L2 = H.ReadResidGlobal(fname, coeff="L2", n=None)
-            >>> i, LInf = H.ReadResidGlobal(fname, coeff="LInf", n=None)
+            >>> i, L2 = H.ReadResidGlobal(fname, coeff="L2", **kw)
+            >>> i, LInf = H.ReadResidGlobal(fname, coeff="LInf", **kw)
         :Inputs:
             *H*: :class:`pyOver.dataBook.CaseResid`
                 Iterative residual history class
@@ -1379,8 +1384,10 @@ class CaseResid(cape.dataBook.CaseResid):
                 Name of file to process
             *coeff*: :class:`str`
                 Name of coefficient to read
-            *n*: :class:`int` | ``None``
+            *n*: {``None``} | :class:`int`
                 Number of last iteration that's already processed
+            *grid*: {``None``} | :class:`int` | :class:`str`
+                If used, read only one grid
         :Outputs:
             *i*: :class:`np.ndarray` (:class:`float`)
                 Array of iteration numbers
@@ -1390,7 +1397,14 @@ class CaseResid(cape.dataBook.CaseResid):
                 Array of global L-infinity norms
         :Versions:
             * 2016-02-04 ``@ddalle``: First version
+            * 2017-04-19 ``@ddalle``: Added *grid* option
         """
+        # Check for individual grid
+        if grid is not None:
+            # Pass to individual grid reader
+            i, L = self.ReadResidGrid(fname, grid=grid, coeff=coeff, n=n)
+            # Quit.
+            return i, L
         # Check for the file
         if not os.path.isfile(fname): return
         # First iteration
@@ -1468,17 +1482,19 @@ class CaseResid(cape.dataBook.CaseResid):
         return i, L
 
     # Read a global residual file
-    def ReadResidGlobal2(self, fname, coeff="L2", n=None):
+    def ReadResidGrid(self, fname, grid=None, coeff="L2", n=None):
         """Read a global residual using :func:`numpy.loadtxt` from one file
         
         :Call:
-            >>> i, L2 = H.ReadResidGlobal(fname, coeff="L2", n=None)
-            >>> i, LInf = H.ReadResidGlobal(fname, coeff="LInf", n=None)
+            >>> i, L2 = H.ReadResidGrid(fname, grid=None, coeff="L2", **kw)
+            >>> i, LInf = H.ReadResidGrid(fname, grid=None, coeff="LInf", **kw)
         :Inputs:
             *H*: :class:`pyOver.dataBook.CaseResid`
                 Iterative residual history class
             *fname*: :class:`str`
                 Name of file to process
+            *grid*: {``None``} | :class:`int` | :class:`str`
+                If used, read history of a single grid
             *coeff*: :class:`str`
                 Name of coefficient to read
             *n*: :class:`int` | ``None``
@@ -1491,7 +1507,7 @@ class CaseResid(cape.dataBook.CaseResid):
             *LInf*: :class:`np.ndarray` (:class:`float`)
                 Array of global L-infinity norms
         :Versions:
-            * 2016-02-04 ``@ddalle``: First version
+            * 2017-04-19 ``@ddalle``: First version
         """
         # Check for the file
         if not os.path.isfile(fname): return
@@ -1511,6 +1527,33 @@ class CaseResid(cape.dataBook.CaseResid):
             else:
                 # Use last current iter
                 n = max(self.i)
+        # Individual grid type
+        tg = type(grid).__name__
+        # Individual grid
+        if grid is None:
+            # Read all grids
+            kGrid = nGrid
+            # Grid range
+            KGrid = np.arange(nGrid)
+        elif tg.startswith('unicode') or tg.strartswith('str'):
+            # Figure out grid number
+            grids = ReadResidGrids(fname)
+            # Check presence
+            if grid not in grids:
+                raise ValueError("Could not find grid '%s'" % grid)
+            # Get index
+            iGrid = grids.index(grid)
+            kGrid = 1
+        elif grid < 0:
+            # Read from the back
+            iGrid = nGrid + grid
+            kGrid = 1
+        else:
+            # Read from the front (zero-based)
+            iGrid = grid - 1
+            kGrid = 1
+            
+            
         # Number of iterations to skip
         nIterSkip = max(0, n-i0+1)
         # Skip *nGrid* rows for each iteration
@@ -1534,23 +1577,27 @@ class CaseResid(cape.dataBook.CaseResid):
             # Field name
             c = 'L2'
         # Initialize matrix
-        B = np.zeros((nIterRead, nGrid, nc))
+        B = np.zeros((nIterRead, kGrid, nc))
         # Open the file
         f = open(fname, 'r')
         # Skip desired number of rows
         f.seek(nSkip*218)
-        # Grid range
-        kGrid = np.arange(nGrid)
+        # Check if we should skip to grid *grid*
+        if grid is not None:
+            f.seek(iGrid*218, 1)
         # Loop through iterations
         for j in np.arange(nIterRead):
             # Loop through grids
-            for k in kGrid:
+            for k in KGrid:
                 # Read data
                 bjk = np.fromfile(f, sep=" ", count=-1)
                 # Save it
                 B[j,k,:] = bjk[cols]
                 # Skip over the string
                 f.seek(26, 1)
+            # Skip rows if appropriate
+            if grid is not None:
+                f.seek((nGrid-1)*218, 1)
         # Close the file
         f.close()
         # Get iterations
