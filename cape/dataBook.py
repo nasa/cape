@@ -1487,7 +1487,7 @@ class DBBase(dict):
             * 2016-03-15 ``@ddalle``: Generalized column names
         """
         # Save relevant inputs
-        self.x = x
+        self.x = x.Copy()
         self.opts = opts
         self.comp = comp
         self.name = comp
@@ -1520,9 +1520,14 @@ class DBBase(dict):
             * 2014-12-27 ``@ddalle``: First version
         """
         # Initialize string
-        return "<DBBase, nCase=%i>" % self.n
+        try:
+            return "<DBBase '%s', n=%s>" % (self.comp, self.n)
+        except Exception:
+            return "<DBBase, n=%i>" % self.n
     # String conversion
     __str__ = __repr__
+    
+    # Get trajectory to match data book
   # >
   
   # ======
@@ -1599,10 +1604,10 @@ class DBBase(dict):
         """Read a data book statistics file
         
         :Call:
-            >>> DBP.Read()
-            >>> DBP.Read(fname)
+            >>> DBc.Read()
+            >>> DBc.Read(fname)
         :Inputs:
-            *DBP*: :class:`cape.dataBook.DBBase`
+            *DBc*: :class:`cape.dataBook.DBBase`
                 Data book base object
             *fname*: :class:`str`
                 Name of data file to read
@@ -1850,7 +1855,7 @@ class DBBase(dict):
         for k in self.iCols:
             self.rconv.append(int)
             self.wflag.append('%.12g')
-  # <
+  # >
   
   # ========
   # Write
@@ -1918,6 +1923,33 @@ class DBBase(dict):
   # Organization
   # ==============
   # <
+    # Match the databook copy of the trajectory
+    def UpdateTrajectory(self):
+        """Match the trajectory to the cases in the data book
+        
+        :Call:
+            >>> DBi.UpdateTrajectory()
+        :Inputs:
+            *DBi*: :class:`cape.dataBook.DBBase`
+                Component data book
+        :Versions:
+            * 2017-04-18 ``@ddalle``: First version
+        """
+        # Loop through the fields.
+        for k in self.x.keys:
+            # Copy the data.
+            if k in self:
+                # Copy the data
+                setattr(self.x, k, self[k])
+                # Set the text.
+                self.x.text[k] = [str(xk) for xk in self[k]]
+            else:
+                # Set empty data
+                setattr(self.x, k, np.nan*np.ones(self.n))
+                self.x.text[k] = ["" for k in range(self.n)]
+        # Set the number of cases.
+        self.x.nCase = DBc.n
+    
     # Function to get sorting indices.
     def ArgSort(self, key=None):
         """Return indices that would sort a data book by a trajectory key
