@@ -1161,7 +1161,7 @@ class CaseResid(cape.dataBook.CaseResid):
             * 2016-02-06 ``@ddalle``: First version
         """
         # Read the global history file
-        self.i, self.L2 = self.ReadglobalHist('history.turb.L2.dat')
+        self.i, self.L2 = self.ReadGlobalHist('history.turb.L2.dat')
         # OVERFLOW file names
         frun = '%.turb' % self.proj
         fout = 'turb.out'
@@ -1435,6 +1435,124 @@ class CaseResid(cape.dataBook.CaseResid):
         A = np.loadtxt(fname, skiprows=nSkip, usecols=cols)
         # Reshape the data
         B = np.reshape(A[:nIterRead*nGrid,:], (nIterRead, nGrid, nc))
+        # Get iterations
+        i = B[:,0,0]
+        # Filter iterations greater than *n*
+        I = i > n
+        i = i[I]
+        # Exit if no iterations
+        if len(i) == 0: return
+        # Get global residuals
+        if c == "L2":
+            # Get weighted sum
+            L = np.sum(B[I,:,1]*B[I,:,2]**2, axis=1)
+            # Total grid points in each iteration
+            N = np.sum(B[I,:,2], axis=1)
+            # Divide by number of grid points, and take square root
+            L = np.sqrt(L/N)
+            # Append to data
+            self.L2 = np.hstack((self.L2, L))
+        else:
+            # Get the maximum value
+            L = np.max(B[I,:,1], axis=1)
+            # Append to data
+            self.LInf = np.hstack((self.LInf, L))
+        # Check for issues
+        if np.any(np.diff(i) < 0):
+            # Warning
+            print("  Warning: file '%s' contains non-ascending iterations" %
+                fname)
+        # Append to data
+        self.i = np.hstack((self.i, i))
+        # Output
+        return i, L
+
+    # Read a global residual file
+    def ReadResidGlobal2(self, fname, coeff="L2", n=None):
+        """Read a global residual using :func:`numpy.loadtxt` from one file
+        
+        :Call:
+            >>> i, L2 = H.ReadResidGlobal(fname, coeff="L2", n=None)
+            >>> i, LInf = H.ReadResidGlobal(fname, coeff="LInf", n=None)
+        :Inputs:
+            *H*: :class:`pyOver.dataBook.CaseResid`
+                Iterative residual history class
+            *fname*: :class:`str`
+                Name of file to process
+            *coeff*: :class:`str`
+                Name of coefficient to read
+            *n*: :class:`int` | ``None``
+                Number of last iteration that's already processed
+        :Outputs:
+            *i*: :class:`np.ndarray` (:class:`float`)
+                Array of iteration numbers
+            *L2*: :class:`np.ndarray` (:class:`float`)
+                Array of weighted global L2 norms
+            *LInf*: :class:`np.ndarray` (:class:`float`)
+                Array of global L-infinity norms
+        :Versions:
+            * 2016-02-04 ``@ddalle``: First version
+        """
+        # Check for the file
+        if not os.path.isfile(fname): return
+        # First iteration
+        i0 = ReadResidFirstIter(fname)
+        # Number of iterations
+        nIter = ReadResidNIter(fname)
+        self.nIter = nIter
+        # Number of grids
+        nGrid = ReadResidNGrids(fname)
+        # Process current iteration number
+        if n is None:
+            # Use last known iteration
+            if len(self.i) == 0:
+                # No iterations
+                n = 0
+            else:
+                # Use last current iter
+                n = max(self.i)
+        # Number of iterations to skip
+        nIterSkip = max(0, n-i0+1)
+        # Skip *nGrid* rows for each iteration
+        nSkip = int(nIterSkip * nGrid)
+        # Number of iterations to be read
+        nIterRead = nIter - nIterSkip
+        # Check for something to read
+        if nIterRead <= 0:
+            return np.array([]), np.array([])
+        # Process columns to read
+        if coeff.lower() == "linf":
+            # Read the iter, L-infinity norm
+            cols = [1,3]
+            nc = 2
+            # Coefficient
+            c = 'LInf'
+        else:
+            # Read the iter, L2 norm, nPts
+            cols = [1,2,13]
+            nc = 3
+            # Field name
+            c = 'L2'
+        # Initialize matrix
+        B = np.zeros((nIterRead, nGrid, nc))
+        # Open the file
+        f = open(fname, 'r')
+        # Skip desired number of rows
+        f.seek(nSkip*218)
+        # Grid range
+        kGrid = np.arange(nGrid)
+        # Loop through iterations
+        for j in np.arange(nIterRead):
+            # Loop through grids
+            for k in kGrid:
+                # Read data
+                bjk = np.fromfile(f, sep=" ", count=-1)
+                # Save it
+                B[j,k,:] = bjk[cols]
+                # Skip over the string
+                f.seek(26, 1)
+        # Close the file
+        f.close()
         # Get iterations
         i = B[:,0,0]
         # Filter iterations greater than *n*
