@@ -175,6 +175,9 @@ class DataBook(dict):
         self.targ = targ
         # Make sure the destination folder exists.
         for fdir in self.Dir.split('/'):
+            # Go to root if necessary
+            if os.path.isabs(self.Dir):
+                os.chdir("/")
             # If folder ends in os.sep; go on
             if not fdir: continue
             # Check if the folder exists.
@@ -568,7 +571,7 @@ class DataBook(dict):
             # Filter
             if tcomp not in ["FM", "Force", "Moment"]: continue
             # Perform deletions
-            nj = self.DeleteCasesCaseComp(i, comp)
+            nj = self.DeleteCasesComp(I, comp)
             # Write the component
             if nj > 0:
                 self[comp].Write()
