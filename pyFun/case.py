@@ -1038,6 +1038,9 @@ def GetPltFile():
         fglb = os.path.join('Flow', fglb)
     # Get file
     fplt = GetFromGlob(fglb)
+    # Check for nothing...
+    if fplt is None:
+        return None, None, None, None
     # Get the iteration number
     nplt = int(fplt.rstrip('.plt').split('timestep')[-1])
     # ============================

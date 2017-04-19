@@ -132,6 +132,9 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         """
         # Get properties of triq file
         fplt, n, i0, i1 = case.GetPltFile()
+        # Exit if nothing to do
+        if fplt is None:
+            return False, None, None, None, None
         # Check for iteration resets
         nh, ns = case.GetHistoryIter()
         # Add in the last iteration number before restart

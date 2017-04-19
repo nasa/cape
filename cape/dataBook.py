@@ -173,11 +173,11 @@ class DataBook(dict):
         # Save the options.
         self.opts = opts
         self.targ = targ
+        # Go to root if necessary
+        if os.path.isabs(self.Dir):
+            os.chdir("/")
         # Make sure the destination folder exists.
         for fdir in self.Dir.split('/'):
-            # Go to root if necessary
-            if os.path.isabs(self.Dir):
-                os.chdir("/")
             # If folder ends in os.sep; go on
             if not fdir: continue
             # Check if the folder exists.
@@ -575,6 +575,8 @@ class DataBook(dict):
             # Write the component
             if nj > 0:
                 self[comp].Write()
+            # Status update
+            print("  Deleted %s case entries" % nj)
         
     # Function to delete entries by index
     def DeleteCasesComp(self, I, comp):
@@ -632,7 +634,7 @@ class DataBook(dict):
             # Apply the mask
             DBc[c] = DBc[c][mask]
         # Update the number of entries.
-        DBc.n = len(DBc[DBC.keys()[0]])
+        DBc.n = len(DBc[DBc.keys()[0]])
         # Output
         return nj
 
