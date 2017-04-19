@@ -1402,9 +1402,9 @@ class CaseResid(cape.dataBook.CaseResid):
         # Check for individual grid
         if grid is not None:
             # Pass to individual grid reader
-            i, L = self.ReadResidGrid(fname, grid=grid, coeff=coeff, n=n)
+            iL = self.ReadResidGrid(fname, grid=grid, coeff=coeff, n=n)
             # Quit.
-            return i, L
+            return iL
         # Check for the file
         if not os.path.isfile(fname): return
         # First iteration
@@ -1510,7 +1510,7 @@ class CaseResid(cape.dataBook.CaseResid):
             * 2017-04-19 ``@ddalle``: First version
         """
         # Check for the file
-        if not os.path.isfile(fname): return
+        if not os.path.isfile(fname): return None, None
         # First iteration
         i0 = ReadResidFirstIter(fname)
         # Number of iterations
@@ -1533,9 +1533,7 @@ class CaseResid(cape.dataBook.CaseResid):
         if grid is None:
             # Read all grids
             kGrid = nGrid
-            # Grid range
-            KGrid = np.arange(nGrid)
-        elif tg.startswith('unicode') or tg.strartswith('str'):
+        elif tg.startswith('unicode') or tg.startswith('str'):
             # Figure out grid number
             grids = ReadResidGrids(fname)
             # Check presence
@@ -1552,8 +1550,8 @@ class CaseResid(cape.dataBook.CaseResid):
             # Read from the front (zero-based)
             iGrid = grid - 1
             kGrid = 1
-            
-            
+        # Grid range
+        KGrid = np.arange(kGrid)
         # Number of iterations to skip
         nIterSkip = max(0, n-i0+1)
         # Skip *nGrid* rows for each iteration
