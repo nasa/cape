@@ -2436,12 +2436,12 @@ class DBBase(dict):
         # Initialize indices (assume all are matches)
         J = np.arange(self.n)
         # Check types
-        ti  = i.__class__
-        tx  = x.__class__
-        teq = EqCons.__class__
-        ttc = TolCons.__class__
-        tgc = GlobCons.__class__
-        txk = xkeys.__class__
+        ti  = i.__class__.__name__
+        tx  = x.__class__.__name__
+        teq = EqCons.__class__.__name__
+        ttc = TolCons.__class__.__name__
+        tgc = GlobCons.__class__.__name__
+        txk = xkeys.__class__.__name__
         # Check types
         if not ti.startswith("int"):
             raise TypeError("Trajectory index must be integer")
