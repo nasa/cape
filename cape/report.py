@@ -4108,8 +4108,19 @@ class Report(object):
         """
         # Make sure the data book is present
         self.ReadDataBook()
+        # Check for patch delimiter
+        if "/" in comp:
+            # Format: MPCV_Camera_patch/front
+            compo, patch = comp.split("/")
+        elif "." in comp:
+            # Format: MPCV_Camera_patch.front
+            compo, patch = comp.split(".")
+        else:
+            # Only comp given; use total of patches
+            compo = comp
+            patch = None
         # Get the component type
-        tcomp = self.cntl.opts.get_DataBookType(comp)
+        tcomp = self.cntl.opts.get_DataBookType(compo)
         # Read the target if any
         if targ is not None:
             # Read the target if necessary
@@ -4139,9 +4150,9 @@ class Report(object):
             return DB.LineLoads[comp]
         elif tcomp in ["TriqFM"]:
             # Read the component
-            DB.ReadTriqFM(comp)
+            DB.ReadTriqFM(compo)
             # Output
-            return DB.TriqFM[comp]
+            return DB.TriqFM[compo][patch]
     
     # Function to read the data book and reread it if necessary
     def ReadDataBook(self, fsrc="data"):

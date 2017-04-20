@@ -2440,7 +2440,7 @@ class DBBase(dict):
         tx  = x.__class__
         teq = EqCons.__class__
         ttc = TolCons.__class__
-        tgc = GlobalCons.__class__
+        tgc = GlobCons.__class__
         txk = xkeys.__class__
         # Check types
         if not ti.startswith("int"):
@@ -2457,7 +2457,7 @@ class DBBase(dict):
             raise TypeError("Key translations must be dict")
         
         # Apply global constraints...
-        for con in cons:
+        for con in GlobCons:
             try:
                 # Loop through trajectory keys
                 for k in x.keys:
