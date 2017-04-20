@@ -3092,30 +3092,16 @@ class Report(object):
        # --------
        # Plotting
        # --------
-        # Check for subcomponent
-        if "/" in comp:
-            # Split by "/"
-            comp, patch = comp.split("/")
-        elif "." in comp:
-            # Split by "."
-            comp, patch = comp.split(".")
-        else:
-            # No split
-            comp = comp
-            patch = None
-        # Get component type
-        ctyp = opts.get_DataBookType(comp)
-        # Check the type
-        if ctyp == "TriqFM":
-            # Read specific data book
-            DB = self.cntl.DataBook.TriqFM[comp]
-            # Name of the plot component is the patch
-            pcomp = patch
-        else:
-            # Overall data book
-            DB = self.cntl.DataBook
-            # Name of the plot component is name of component
-            pcomp = comp
+        # Read the data book component
+        DBc = self.ReadDBComp(comp)
+        # Sweep constraints
+        EqCons = opts.get_SweepOpt(fswp, 'EqCons')
+        TolCons = opts.get_SweepOpt(fswp, 'TolCons')
+        GlobCons = opts.get_SweepOpt(fswp, 'GlobalCons')
+        # Tolerate target? ...
+        
+        # Get co-sweep
+        J = DBc.FindCoSweep(x, I[0], EqCons, TolCons, GlobCons)
         # Plot label (for legend)
         lbl = self.SubfigPlotLabel(sfig, 0)
         # Get figure dimensions.
@@ -3132,7 +3118,7 @@ class Report(object):
         cbar = opts.get_SubfigOpt(sfig, "ColorBar")
         cmpo = opts.get_SubfigOpt(sfig, "ColorMap")
         # Draw the plot.
-        h = DB.PlotContour(pcomp, coeff, I, x=xk, y=yk,
+        h = DBc.PlotContour(coeff, J, x=xk, y=yk,
             ContourType=ctyp, ContourOptions=kw_c,
             LineType=ltyp, LineOptions=kw_p,
             Label=lbl, ColorMap=cmpo,
