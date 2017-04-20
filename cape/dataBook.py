@@ -2402,48 +2402,62 @@ class DBBase(dict):
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
         """
         # Initialize indices (assume all are matches)
-        j = np.arange(x.nCase)
-        # Get the trajectory key translations.   This determines which keys to
-        # filter and what those keys are called in the source file.
-        tkeys = topts.get('Trajectory', {})
-        # Tolerance options
-        tolopts = topts.get('Tolerances', {})
-        # Get list of keys to match
-        if keylist.lower() == 'x':
-            # Use all trajectory keys as default
-            keys = topts.get('Keys', x.keys)
-        else:
-            # Use the tolerance keys
-            keys = topts.get('Keys', tolopts.keys())
-        # Loop through keys requested for matches.
-        for k in keys:
-            # Get the name of the column according to the source file.
-            c = tkeys.get(k, k)
-            # Skip it if key not recognized
-            if c is None: continue
-            # Get the tolerance.
-            tol = tolopts.get(k)
-            # Get the target value (from the trajectory)
-            v = getattr(x,k)[i]
-            t = type(v).__name__
-            # Check type
-            if t.startswith('str') or t.startswith('unicode'):
-                continue
-            # Safe matching in case of complications
+        J = np.arange(self.n)
+        # Check types
+        ti  = i.__class__
+        tx  = x.__class__
+        teq = EqCons.__class__
+        ttc = TolCons.__class__
+        tgc = GlobalCons.__class__
+        txk = xkeys.__class__
+        # Check types
+        if not ti.startswith("int"):
+            raise TypeError("Trajectory index must be integer")
+        if tx != "Trajectory":
+            raise TypeError("Input must be of class 'Trajectory'")
+        if teq != "list":
+            raise TypeError("Equality constraints must be list of strings")
+        if ttc != "dict":
+            raise TypeError("Tolerance constraints must be a dict")
+        if tgc != "list":
+            raise TypeError("Global constraints must be a list of strings")
+        if txk != "dict":
+            raise TypeError("Key translations must be dict")
+        
+        # Apply global constraints...
+        for con in cons:
             try:
-                # Check tolerance type
-                if tol is None:
-                    # Search for exact match
-                    jk = np.where(self[c] == v)[0]
-                else:
-                    # Search for match within tolerance (can be zero)
-                    jk = np.where(np.abs(self[c] - v) <= tol)[0]
-                # Restrict to rows that match the above.
-                j = np.intersect1d(j, jk)
+                # Loop through trajectory keys
+                for k in x.keys:
+                    # Substitute if appropriate
+                    if k in con:
+                        con = con.replace(k, 'self["%s"]' % xkeys.get(k,k))
+                # Perform equation
+                J = np.logical_and(J, eval(con))
             except Exception:
-                pass
-        # Output
-        return j
+                print("    Constraint '%s' failed to evaluate." % con)
+                
+        # Loop through *EqCons*
+        for k in EqCons:
+            # Get target value
+            v = getattr(x,k)[i]
+            # Get name of column
+            col = xkeys.get(k, k)
+            # Test
+            J = np.logical_and(J, v == self[col])
+        # Loop through *TolCons*
+        for k in TolCons:
+            # Get target value
+            v = getattr(x,k)[i]
+            # Get name of column
+            col = xkeys.get(k, k)
+            # Get tolerance
+            tol = TolCons[k]
+            # Test
+            J = np.logical_and(J, np.abs(v-self[col])<=tol)
+        # Output (convert boolean array to indices)
+        return np.where(J)[0]
+        
   # >
   
   # =====
