@@ -69,9 +69,6 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     fxi = DB.opts.get_DataBook_XIn(DB.comp)
     fqo = DB.opts.get_DataBook_QOut(DB.comp)
     fxo = DB.opts.get_DataBook_XOut(DB.comp)
-    # Do the SPLITMQ and MIXSUR files exist?
-    qsplitm = os.path.isfile(fsplitmq)
-    qmixsur = os.path.isfile(fmixsur)
     # If there's no mixsur file, there's nothing we can do
     if not qmixsur:
         raise RuntimeError(
@@ -148,7 +145,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
    # Determine SPLITMQ status
    # ------------------------
     # Use this while loop as a method to use ``break``
-    if qsplitm:
+    if qfsplitm:
         # Source file option(s)
         fqo = DB.opts.get_DataBook_QSurf(DB.comp)
         fxo = DB.opts.get_DataBook_XSurf(DB.comp)
@@ -216,9 +213,12 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
         # Check for errors
         if ierr:
             raise SystemError("Failure while running ``splitmq``")
-    else:
+    elif qfsplitm:
         # Link parent *q.srf* to "q.save" so OVERINT uses it
         os.symlink(fqsrf, "q.save")
+    else:
+        # Use volume grid
+        os.symlink(fqvol, "q.vol")
     # Prepare files for ``splitmx``
     if qsplitmx:
         # Link parent X volume
@@ -234,9 +234,12 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
         # Check for errors
         if ierr:
             raise SystemError("Failure while running ``splitmx``")
-    else:
+    elif qfsplitm:
         # Link parent *x.srf* to "x.save" so OVERINT uses it
         os.symlink(fxsrf, "grid.in")
+    else:
+        # Link parent volume grid
+        os.symlink(fxvol, "grid.in")
    # ----------------------
    # Prepare ``grid.i.tri``
    # ----------------------
