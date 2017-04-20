@@ -2635,22 +2635,16 @@ class Report(object):
         else:
             # Single sweep
             J = [I]
+        # Get primary constraints
+        EqCons = opts.get_SweepOpt(fswp, "EqCons")
+        TolCons = opts.get_SweepOpt(fswp, "TolCons")
+        GlobCons = opts.get_SweepOpt(fswp, "GlobCons")
+        # Combine carpet cons
+        EqCons += CEq
+        for kx in CTol:
+            TolCons[kx] = CTol[kx]
         # Get list of targets
         targs = self.SubfigTargets(sfig)
-        # Initialize target sweeps
-        JT = {}
-        # Loop through targets.
-        for targ in targs:
-            # Read the target if not present.
-            self.cntl.DataBook.ReadTarget(targ)
-            # Initialize target sweeps.
-            jt = []
-            # Loop through carpet subsweeps
-            for Ji in J:
-                # Get co-sweep
-                jt.append(self.GetTargetSweepIndices(fswp, Ji[0], targ))
-            # Save the sweeps.
-            JT[targ] = jt
        # ----------------
        # Format Options
        # ----------------
@@ -2714,36 +2708,12 @@ class Report(object):
             # Sweep index
             j = i / nCoeff
             # Get the component and coefficient.
-            compo = opts.get_SubfigOpt(sfig, "Component", k)
+            comp = opts.get_SubfigOpt(sfig, "Component", k)
             coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
-            # Check for subcomponent
-            if "/" in compo:
-                # Split by "/"
-                comp, patch = comp.split("/")
-            elif "." in compo:
-                # Split by "."
-                comp, patch = comp.split(".")
-            else:
-                # No split
-                comp = compo
-                patch = None
-            # Get component type
-            ctyp = opts.get_DataBookType(comp)
-            # Check the type
-            if ctyp == "TriqFM":
-                # Get special indices from special data book
-                Jj = self.GetCoSweepIndices(fswp, J[j][0], comp)
-                # Read specific data book
-                DB = self.cntl.DataBook.TriqFM[comp]
-                # Name of the plot component is the patch
-                pcomp = patch
-            else:
-                # Use the overall data book sweep indices
-                Jj = J[j]
-                # Overall data book
-                DB = self.cntl.DataBook
-                # Name of the plot component is name of component
-                pcomp = comp
+            # Read the component
+            DBc = self.ReadDBComp(comp)
+            # Get matches
+            Jj = DBc.FindCoSweep(x, J[j][0], EqCons, TolCons, GlobCons)
             # Plot label (for legend)
             lbl = self.SubfigPlotLabel(sfig, k)
             # Carpet label appendix
@@ -2775,7 +2745,7 @@ class Report(object):
             kw_s = opts.get_SubfigPlotOpt(sfig, "StDevOptions",  i)
             kw_m = opts.get_SubfigPlotOpt(sfig, "MinMaxOptions", i)
             # Draw the plot.
-            h = DB.PlotCoeff(pcomp, coeff, Jj, x=xk,
+            h = DBc.PlotCoeff(coeff, Jj, x=xk,
                 Label=lbl, LineOptions=kw_p,
                 StDev=ksig, StDevOptions=kw_s,
                 MinMax=qmmx, MinMaxOptions=kw_m,
@@ -2783,42 +2753,51 @@ class Report(object):
             # Loop through targets
             for targ in targs:
                 # Get the target handle.
-                DBT = self.cntl.DataBook.GetTargetByName(targ)
+                DBTc = self.ReadDBComp(comp, targ=targ)
+                # Exit if not found
+                if DBTc is None:
+                    print(
+                        ("    Skipping target '%s': " % targ) +
+                        (" comp '%s' not in target" % comp))
                 # Target type
-                typt = self.cntl.opts.get_DataBookTargetType(targ).lower()
-                # Check for results to plot.
-                if len(JT[targ][j]) == 0:
-                    print("    Skipping target '%s': no matching cases" % targ)
-                    continue
+                typt = opts.get_DataBookTargetType(targ).lower()
+                # Target options
+                topts = opts.get_DataBookTargetByName(targ)
                 # Check if the *comp*/*coeff* combination is available.
-                if typt in ['duplicate', 'cape', 'pycart']:
-                    # Check with *DBT* as a full data book
-                    if (ctyp == "TriqFM"):
-                        print(
-                            ("    Skipping TriqFM target '%s'" % targ))
-                        continue
-                    elif (comp not in DBT):
-                        print(
-                            ("    Skipping target '%s': " % targ) +
-                            ("comp '%s' not in target" % comp))
-                        continue
-                    elif (coeff not in DBT[comp]):
+                if typt in ['duplicate', 'cape', 'pycart', 'pyfun', 'pyover']:
+                    # Check if we have the data
+                    if coeff not in DBTc:
                         print(
                             ("    Skipping target '%s': " % targ) +
                             ("coeff '%s/%s' not in target" % (comp,coeff)))
                         continue
+                    # Plot the nominal coefficient without translation
+                    tcoeff = coeff
                 else:
                     # Check *DBT* as a DBTarget
-                    if comp not in DBT.ckeys:
+                    if comp not in DBTc.ckeys:
                         print(
                             ("    Skipping target '%s': " % targ) +
                             ("comp '%s' not in target" % comp))
                         continue
-                    elif coeff not in DBT.ckeys[comp]:
+                    elif coeff not in DBTc.ckeys[comp]:
                         print(
                             ("    Skipping target '%s': " % targ) +
                             ("coeff '%s' not in target" % coeff))
                         continue
+                    # Get target coefficient name
+                    tcoeff = DBTc.ckeys[comp][coeff]
+                # Get any translation keys
+                xkeys = topts.get("Trajectory", {})
+                # Get matches
+                JTj = DBTc.FindCoSweep(x, J[j][0],
+                    EqCons=EqCons, TolCons=TolCons,
+                    GlobCons=GlobCons, xkeys=xkeys)
+                # Check for results to plot.
+                if len(JTj) == 0:
+                    print(
+                        ("    Skipping target '%s' " % targ)+
+                        ("coeff %s/%s: no matching cases" % (comp,coeff)))
                 # Get target plot label.
                 tlbl = self.SubfigTargetPlotLabel(sfig, k, targ) + clbl
                 # Don't start with comma.
@@ -2832,7 +2811,7 @@ class Report(object):
                 # Apply non-default options
                 for k_i in kw_t: kw_l[k_i] = kw_t[k_i]
                 # Draw the plot
-                DBT.PlotCoeff(comp, coeff, JT[targ][j], x=xk,
+                DBTc.PlotCoeff(coeff, JTj, x=xk,
                     Label=tlbl, LineOptions=kw_l,
                     FigWidth=figw, FigHeight=figh)
        # ----------
@@ -4087,8 +4066,8 @@ class Report(object):
             *targ*: {``None``} | :class:`str`
                 Name of target, if any
         :Outputs:
-            *DBc*: :class:`cape.dataBook.DBBase`
-                Individual component data book
+            *DBc*: ``None`` | :class:`cape.dataBook.DBBase`
+                Individual component data book or ``None`` if not found
         :Versions:
             * 2017-04-20 ``@ddalle``: First version
         """
@@ -4123,22 +4102,32 @@ class Report(object):
             # Use the handle to the master data book
             DB = self.cntl.DataBook
         # Filter on the type
-        if tcomp in ["Force", "FM", "Moment"]:
-            # Read if necessary
-            if comp not in DB:
-                DB.ReadDBComp(comp)
-            # Output component
-            return DB[comp]
-        elif tcomp in ["LineLoad"]:
-            # Read the line load
-            DB.ReadLineLoad(comp)
-            # Return it
-            return DB.LineLoads[comp]
-        elif tcomp in ["TriqFM"]:
-            # Read the component
-            DB.ReadTriqFM(compo)
-            # Output
-            return DB.TriqFM[compo][patch]
+        try:
+            if tcomp in ["Force", "FM", "Moment"]:
+                # Read if necessary
+                if comp not in DB:
+                    DB.ReadDBComp(comp)
+                # Output component
+                return DB[comp]
+            elif tcomp in ["LineLoad"]:
+                # Read the line load
+                DB.ReadLineLoad(comp)
+                # Return it
+                return DB.LineLoads[comp]
+            elif tcomp in ["TriqFM"]:
+                # Read the component
+                DB.ReadTriqFM(compo)
+                # Output
+                return DB.TriqFM[compo][patch]
+        except Exception:
+            # Error if reading from data book
+            if targ is None:
+                raise ValueError(
+                    ("Could not read data book component '%s'" % comp) +
+                    (", type '%s'" % tcomp))
+            else:
+                # Empty data book
+                return None
     
     # Function to read the data book and reread it if necessary
     def ReadDataBook(self, fsrc="data"):

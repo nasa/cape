@@ -2404,7 +2404,7 @@ class DBBase(dict):
         
         .. code-block:: python
         
-            abs(DBC["AOA"] - x.alpha[i]) <= 0.05
+            abs(DBc["AOA"] - x.alpha[i]) <= 0.05
         
         :Call:
             >>> J = DBc.FindCoSweep(x, i, EqCons={}, TolCons={}, **kw)
