@@ -321,6 +321,38 @@ class DataBook(dict):
         """
         pass
     
+    # Read TrqiFM components
+    def ReadTriqFM(self, comp):
+        """Read a TriqFM data book if not already present
+        
+        :Call:
+            >>> DB.ReadTriqFM(comp)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Data book instance
+            *comp*: :class:`str`
+                Name of TriqFM component
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+        """
+        # Initialize if necessary
+        try:
+            self.TriqFM
+        except Exception:
+            self.TriqFM = {}
+        # Try to access the TriqFM database
+        try:
+            self.TriqFM[comp]
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Read data book
+            self.TriqFM[comp] = DBTriqFM(self.x, self.opts, comp,
+                RootDir=self.RootDir)
+            # Return to starting position
+            os.chdir(fpwd)
+    
 
     # Find first force/moment component
     def GetRefComponent(self):

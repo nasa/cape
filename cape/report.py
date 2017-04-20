@@ -4087,6 +4087,62 @@ class Report(object):
         """
         return None
         
+    # Function to read generic data book component
+    def ReadDBComp(self, comp, targ=None):
+        """Read a data book component and return it
+        
+        :Call:
+            >>> DBc = R.ReadDBComp(comp, targ=None)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *comp*: :class:`str`
+                Name of data book component
+            *targ*: {``None``} | :class:`str`
+                Name of target, if any
+        :Outputs:
+            *DBc*: :class:`cape.dataBook.DBBase`
+                Individual component data book
+        :Versions:
+            * 2017-04-20 ``@ddalle``: First version
+        """
+        # Make sure the data book is present
+        self.ReadDataBook()
+        # Get the component type
+        tcomp = self.cntl.opts.get_DataBookType(comp)
+        # Read the target if any
+        if targ is not None:
+            # Read the target if necessary
+            self.cntl.DataBook.ReadTarget(targ)
+            # Get the target type
+            ttype = self.cntl.opts.get_DataBookTargetType(targ)
+            # Check for duplicate
+            if ttype not in ['cape', 'duplicate', 'pycart', 'pyfun', 'pyover']:
+                # Just get the target
+                return self.cntl.DataBook.Targets[targ]
+            # Otherwise, get handle to the data book target
+            DB = self.cntl.DataBook.Targets[targ]
+        else:
+            # Use the handle to the master data book
+            DB = self.cntl.DataBook
+        # Filter on the type
+        if tcomp in ["Force", "FM", "Moment"]:
+            # Read if necessary
+            if comp not in DB:
+                DB.ReadDBComp(comp)
+            # Output component
+            return DB[comp]
+        elif tcomp in ["LineLoad"]:
+            # Read the line load
+            DB.ReadLineLoad(comp)
+            # Return it
+            return DB.LineLoads[comp]
+        elif tcomp in ["TriqFM"]:
+            # Read the component
+            DB.ReadTriqFM(comp)
+            # Output
+            return DB.TriqFM[comp]
+    
     # Function to read the data book and reread it if necessary
     def ReadDataBook(self, fsrc="data"):
         """Read the data book if necessary for a specific sweep
