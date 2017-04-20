@@ -2434,7 +2434,7 @@ class DBBase(dict):
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
         """
         # Initialize indices (assume all are matches)
-        J = np.arange(self.n)
+        J = np.arange(self.n) > -1
         # Check types
         ti  = i.__class__.__name__
         tx  = x.__class__.__name__
