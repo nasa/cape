@@ -2638,7 +2638,7 @@ class Report(object):
         # Get primary constraints
         EqCons = opts.get_SweepOpt(fswp, "EqCons")
         TolCons = opts.get_SweepOpt(fswp, "TolCons")
-        GlobCons = opts.get_SweepOpt(fswp, "GlobCons")
+        GlobCons = opts.get_SweepOpt(fswp, "GlobalCons")
         # Combine carpet cons
         EqCons += CEq
         for kx in CTol:
