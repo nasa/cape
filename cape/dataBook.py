@@ -2439,6 +2439,11 @@ class DBBase(dict):
         """
         # Initialize indices (assume all are matches)
         J = np.arange(self.n) > -1
+        # De-None-ify
+        if GlobCons is None: GlobCons = []
+        if TolCons is None:  TolCons = {}
+        if EqCons is None:   EqCons = []
+        if xkeys is None:    xkeys = {}
         # Check types
         ti  = i.__class__.__name__
         tx  = x.__class__.__name__
