@@ -727,7 +727,7 @@ class Cntl(object):
         # Apply constraints
         I = self.x.GetIndices(**kw)
         # Read the existing data book.
-        self.ReadDataBook()
+        self.ReadDataBook(comp=comp)
         # Check if we are deleting or adding.
         if kw.get('delete', False):
             # Delete cases.

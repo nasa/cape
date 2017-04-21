@@ -132,7 +132,7 @@ class Fun3d(Cntl):
   # ========
   # <    
     # Function to read the databook.
-    def ReadDataBook(self):
+    def ReadDataBook(self, comp=None):
         """Read the current data book
         
         :Call:
@@ -152,8 +152,11 @@ class Fun3d(Cntl):
         # Go to root directory.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
+        # Ensure list of components
+        if comp is not None:
+            comp = list(np.array(comp).flatten())
         # Read the data book.
-        self.DataBook = dataBook.DataBook(self.x, self.opts)
+        self.DataBook = dataBook.DataBook(self.x, self.opts, comp=comp)
         # Save project name
         self.DataBook.proj = self.GetProjectRootName(None)
         # Return to original folder.

@@ -843,6 +843,8 @@ class Config:
             for f in face:
                 # Call this function so it passes to the non-array portion.
                 compID += self.GetCompID(f)
+                # Sort components
+                compID.sort()
         elif face in self.faces:
             # Process the face
             cID = self.faces[face]
@@ -1260,6 +1262,8 @@ class ConfigMIXSUR(object):
             for f in face:
                 # Call this function so it passes to the non-array portion.
                 compID += self.GetCompID(f)
+                # Sort components
+                compID.sort()
         elif face in self.faces:
             # Process the face
             cID = self.faces[face]
@@ -1406,6 +1410,8 @@ class ConfigJSON(object):
             for f in face:
                 # Call this function so it passes to the non-array portion.
                 compID += self.GetCompID(f)
+                # Sort component numbers
+                compID.sort()
         elif face in self.faces:
             # Process the face
             cID = self.faces[face]
