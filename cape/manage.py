@@ -1257,6 +1257,8 @@ def TarGroup(cmd, ftar, fname, n=0, clean=False):
     cmdc = cmd + [ftar] + fglob
     # Write to the log
     write_log('  ' + ' '.join(cmdc))
+    # Status update
+    print("  tar -cf ARCHIVE/%s" % os.path.split(ftar)[-1])
     # Run the command
     ierr = sp.call(cmdc)
     # Exit if unsuccessful

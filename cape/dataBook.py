@@ -871,6 +871,10 @@ class DataBook(dict):
         if I is None:
             # Use all trajectory points
             I = range(self.x.nCase)
+        # Check type
+        if self.opts.get_DataBookType(comp) != "TriqFM":
+            raise ValueError(
+                "Component '%s' is not a TriqFM component" % comp)
         # Read the TriqFM data book if necessary
         self.ReadTriqFM(comp)
         # Loop through indices
