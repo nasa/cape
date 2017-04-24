@@ -526,7 +526,12 @@ class CaseFM(cape.dataBook.CaseFM):
         self.coeffs = coeffs
         self.inds   = inds
         # Read the data.
-        A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
+        try:
+            # First attempt
+            A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
+        except Exception:
+            # Second attempt
+            A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
         # Number of columns.
         n = len(self.cols)
         # Save the values.
@@ -560,7 +565,12 @@ class CaseFM(cape.dataBook.CaseFM):
             # Append to the end of the list
             self.cols.append(col)
         # Read the data.
-        A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
+        try:
+            # First attempt
+            A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
+        except Exception:
+            # Second attempt
+            A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
         # Number of columns.
         n = len(cols)
         # Append the values.
