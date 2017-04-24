@@ -1163,14 +1163,24 @@ class Report(object):
         lines = []
         # Read settings
         rc = self.ReadCaseJSON()
-        # Get the list of cases and current iterations
-        fruns = self.cntl.DataBook.x.GetFullFolderNames(I)
-        # Extract first component.
-        DBc = self.cntl.DataBook.GetRefComponent()
-        # Get current iteration numbers.
-        nIter = list(DBc['nIter'][I])
+        ## Get the list of cases and current iterations
+        #fruns = self.cntl.DataBook.x.GetFullFolderNames(I)
+        ## Extract first component.
+        #DBc = self.cntl.DataBook.GetRefComponent()
+        ## Get current iteration numbers.
+        #nIter = list(DBc['nIter'][I])
         # Loop through subfigs.
         for sfig in sfigs:
+            # Get component for this component
+            DBc = self.GetSubfigRefComponent(sfig)
+            # Get the co sweep
+            J = DBc.FindCoSweep(I[0])
+            # Match up trajectory
+            DBc.UpdateTrajectory()
+            # Get the list of cases for the subfigures
+            fruns = DBc.x.GetFullFolderNames(J)
+            # Get current iteration number
+            nIter = list(DBc['nIter'][J])
             # Check the status (also prints status update)
             q = self.CheckSweepSubfigStatus(sfig, rc, fruns, nIter)
             # Process the subfigure
@@ -1186,6 +1196,36 @@ class Report(object):
         self.WriteCaseJSON(rc)
         # Output
         return lines
+        
+    # Get handle for component
+    def GetSubfigRefComponent(self, sfig):
+        """Get handle for data book component for a sweep subfigure
+        
+        :Call:
+            >>> DBc = R.GetSubfigRefComponent(sfig)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure
+        :Outputs:
+            *DBc*: :class:`cape.dataBook.DBBase`
+                Component data book
+        :Versions:
+            * 2017-04-23 ``@ddalle``: First version
+        """
+        # Get the list of components
+        comp = self.cntl.opts.get_SubfigOpt("Component")
+        # Check type
+        if comp is None:
+            # No component... just global ref component
+            return self.cntl.DataBook.GetRefComponent()
+        elif type(comp).__name__ in ["list", "ndarray"]:
+            # List... use the first component in list
+            return self.ReadDBComp(comp[0])
+        else:
+            # Use single component
+            return self.ReadDBComp(comp)
     
     # Point to the correct subfigure updater
     def SweepSubfigSwitch(self, sfig, fswp, I, lines, q):
