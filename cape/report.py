@@ -1167,12 +1167,6 @@ class Report(object):
         EqCons   = self.cntl.opts.get_SweepOpt(fswp, "EqCons")
         TolCons  = self.cntl.opts.get_SweepOpt(fswp, "TolCons")
         GlobCons = self.cntl.opts.get_SweepOpt(fswp, "GlobalCons")
-        ## Get the list of cases and current iterations
-        #fruns = self.cntl.DataBook.x.GetFullFolderNames(I)
-        # Extract first component.
-        DB0 = self.cntl.DataBook.GetRefComponent()
-        ## Get current iteration numbers.
-        #nIter = list(DBc['nIter'][I])
         # Loop through subfigs.
         for sfig in sfigs:
             # Get component for this component
@@ -1276,6 +1270,9 @@ class Report(object):
         elif btyp == 'ContourCoeff':
             # Contour plot of slice results
             lines += self.SubfigContourCoeff(sfig, fswp, I, q)
+        elif btyp == 'SweepLineLoad':
+            # Group of line loads
+            lins += self.SubfigPlotLineLoadGroup(sfig, fswp, I, q)
         else:
             # No figure found
             print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
@@ -2596,6 +2593,190 @@ class Report(object):
         os.chdir(fpwd)
         # Check for a figure to write.
         if nPlot > 0:
+            # Get the file formatting
+            fmt = opts.get_SubfigOpt(sfig, "Format")
+            dpi = opts.get_SubfigOpt(sfig, "DPI")
+            # Figure name
+            fimg = '%s.%s' % (sfig, fmt)
+            fpdf = '%s.pdf' % sfig
+            # Save the figure.
+            if fmt.lower() in ['pdf']:
+                # Save as vector-based image.
+                h['fig'].savefig(fimg)
+            elif fmt.lower() in ['svg']:
+                # Save as PDF and SVG
+                h['fig'].savefig(fimg)
+                h['fig'].savefig(fpdf)
+            else:
+                # Save with resolution.
+                h['fig'].savefig(fimg, dpi=dpi)
+                h['fig'].savefig(fpdf)
+            # Close the figure.
+            h['fig'].clf()
+            # Include the graphics.
+            lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                % (frun, fpdf))
+        # Set the caption.
+        lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
+        # Close the subfigure.
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
+        
+    # Function to plot mean coefficient for a sweep
+    def SubfigPlotLineLoadGroup(self, sfig, fswp, I, q):
+        """Plot a line load for a group of cases
+        
+        :Call:
+            >>> R.SubfigPlotLineLoadGroup(sfig, fswp, I, q)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *fswp*: :class:`str`
+                Name of sweep
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices in the sweep
+            *q*: ``True`` | ``False``
+                Whether or not to update images
+        :Versions:
+            * 2017-04-23 ``@ddalle``: First version
+        """
+       # -------
+       # Options
+       # -------
+        # Save current folder.
+        fpwd = os.getcwd()
+        # Case folder
+        frun = self.cntl.x.GetFullFolderNames(i)
+        # Extract options
+        opts = self.cntl.opts
+        # Get the component.
+        comp = opts.get_SubfigOpt(sfig, "Component")
+        # Get the coefficient
+        coeff = opts.get_SubfigOpt(sfig, "Coefficient")
+        # Read line loads
+        LL = self.ReadLineLoad(comp, i, update=False)
+        # Current status
+        nIter  = self.cntl.CheckCase(i)
+        # Get caption.
+        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        # Process default caption. 
+        if fcpt is None:
+            # Defaut: Wing/CY
+            fcpt = ("%s/%s" % (comp, coeff))
+            # Ensure there are no underscores.
+            fcpt = fcpt.replace('_', '\_')
+        # First lines.
+        lines = self.SubfigInit(sfig)
+        # Check for image update
+        if not q:
+            # File name to check for
+            fpdf = '%s.pdf' % sfig
+            # Check for the file
+            if os.path.isfile(fpdf):
+                # Include the graphics.
+                lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                    % (frun, fpdf))
+            # Set the caption.
+            lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
+            # Close the subfigure.
+            lines.append('\\end{subfigure}\n')
+            # Output
+            return lines
+       # ---------
+       # Plotting
+       # ---------
+        # # Read the data book component
+        # DBc = self.ReadDBComp(comp)
+        # # Sweep constraints
+        # EqCons = opts.get_SweepOpt(fswp, 'EqCons')
+        # TolCons = opts.get_SweepOpt(fswp, 'TolCons')
+        # GlobCons = opts.get_SweepOpt(fswp, 'GlobalCons')
+        # # Get co-sweep
+        # J = DBc.FindCoSweep(x, I[0], EqCons, TolCons, GlobCons)
+        # Initialize plot count
+        k = 0
+        # Initialize list
+        h = []
+        # Loop through plots.
+        for i in I:
+            # Get the component and coefficient.
+            comp = opts.get_SubfigOpt(sfig, "Component", k)
+            coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
+            # Auto-update flag
+            q_auto = opts.get_SubfigOpt(sfig, "AutoUpdate", k)
+            # Read the line load data book and read case *i* if possible
+            LL = self.ReadLineLoad(comp, i, update=q_auto)
+            # Check for case
+            if LL is None: continue
+            # Get figure dimensions.
+            figw = opts.get_SubfigOpt(sfig, "FigWidth", k)
+            figh = opts.get_SubfigOpt(sfig, "FigHeight", k)
+            # Rotate this figure?
+            orient = opts.get_SubfigOpt(sfig, "Orientation", k)
+            # Plot label
+            lbl = opts.get_SubfigOpt(sfig, "Label", k)
+            # Default label
+            if lbl is None:
+                lbl = self.cntl.DataBook.x.GetFullFolderNames(i)
+            # Plot options
+            kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",   k)
+            kw_s = opts.get_SubfigPlotOpt(sfig, "SeamOptions",   k)
+            # Seam curve options
+            sm_ax  = opts.get_SubfigOpt(sfig, "SeamCurves", k)
+            sm_loc = opts.get_SubfigOpt(sfig, "SeamLocations", k)
+            # Margins
+            adj_l = opts.get_SubfigOpt(sfig, 'AdjustLeft',   k)
+            adj_r = opts.get_SubfigOpt(sfig, 'AdjustRight',  k)
+            adj_t = opts.get_SubfigOpt(sfig, 'AdjustTop',    k)
+            adj_b = opts.get_SubfigOpt(sfig, 'AdjustBottom', k)
+            # Subplot margin
+            w_sfig = opts.get_SubfigOpt(sfig, 'SubplotMargin', k)
+            # Axes padding options
+            kw_pad = {
+                'xpad': opts.get_SubfigOpt(sfig, 'XPad', k),
+                'ypad': opts.get_SubfigOpt(sfig, 'YPad', k)
+            }
+            # Asymmetric padding
+            xp = opts.get_SubfigOpt(sfig, 'XPlus', k)
+            yp = opts.get_SubfigOpt(sfig, 'YPlus', k)
+            xm = opts.get_SubfigOpt(sfig, 'XMinus', k)
+            ym = opts.get_SubfigOpt(sfig, 'YMinus', k)
+            # Apply asymmetric padding
+            if xm is not None: kw_pad['xm'] = xm
+            if xp is not None: kw_pad['xp'] = xp
+            if ym is not None: kw_pad['ym'] = ym
+            if yp is not None: kw_pad['yp'] = yp
+            # Draw the plot.
+            if k == 0:
+                # First plot: ok to add seams
+                h.append(LL.Plot(coeff, 
+                    Seams=sm_ax, SeamLocation=sm_loc,
+                    LineOptions=kw_p, SeamOptions=kw_s,
+                    Label=lbl,
+                    FigWidth=figw, FigHeight=figh,
+                    AdjustLeft=adj_l, AdjustRight=adj_r,
+                    AdjustTop=adj_t, Adjust_Bottom=adj_b,
+                    SubplotMargin=w_sfig, **kw_pad))
+            else:
+                # No seams after first plot
+                h.append(LL.Plot(coeff,
+                    LineOptions=kw_p, Label=lbl,
+                    FigWidth=figw, FigHeight=figh,
+                    AdjustLeft=adj_l, AdjustRight=adj_r,
+                    AdjustTop=adj_t, Adjust_Bottom=adj_b,
+                    SubplotMargin=w_sfig, **kw_pad))
+            # Add to plot count
+            k += 1
+       # ---------
+       # Finalize
+       # ---------
+        # Change back to report folder.
+        os.chdir(fpwd)
+        # Check for a figure to write.
+        if k > 0:
             # Get the file formatting
             fmt = opts.get_SubfigOpt(sfig, "Format")
             dpi = opts.get_SubfigOpt(sfig, "DPI")
