@@ -1163,10 +1163,14 @@ class Report(object):
         lines = []
         # Read settings
         rc = self.ReadCaseJSON()
+        # Get primary constraints
+        EqCons   = self.cntl.opts.get_SweepOpt(fswp, "EqCons")
+        TolCons  = self.cntl.opts.get_SweepOpt(fswp, "TolCons")
+        GlobCons = self.cntl.opts.get_SweepOpt(fswp, "GlobalCons")
         ## Get the list of cases and current iterations
         #fruns = self.cntl.DataBook.x.GetFullFolderNames(I)
-        ## Extract first component.
-        #DBc = self.cntl.DataBook.GetRefComponent()
+        # Extract first component.
+        DB0 = self.cntl.DataBook.GetRefComponent()
         ## Get current iteration numbers.
         #nIter = list(DBc['nIter'][I])
         # Loop through subfigs.
@@ -1174,7 +1178,7 @@ class Report(object):
             # Get component for this component
             DBc = self.GetSubfigRefComponent(sfig)
             # Get the co sweep
-            J = DBc.FindCoSweep(I[0])
+            J = DBc.FindCoSweep(self.cntl.x, I[0], EqCons, TolCons, GlobCons)
             # Match up trajectory
             DBc.UpdateTrajectory()
             # Get the list of cases for the subfigures
@@ -1215,7 +1219,7 @@ class Report(object):
             * 2017-04-23 ``@ddalle``: First version
         """
         # Get the list of components
-        comp = self.cntl.opts.get_SubfigOpt("Component")
+        comp = self.cntl.opts.get_SubfigOpt(sfig, "Component")
         # Check type
         if comp is None:
             # No component... just global ref component
