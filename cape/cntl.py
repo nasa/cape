@@ -2911,7 +2911,10 @@ class Cntl(object):
             # Read the TriqFM data book
             self.DataBook.ReadTriqFM(comp)
             # Update it
-            self.DataBook.UpdateTriqFM(comp, I=I)
+            n = self.DataBook.UpdateTriqFM(comp, I=I)
+            # Check for updates
+            if n == 0: continue
+            print("Added or updated %s entries" % n)
             # Write the updated results
             self.DataBook.TriqFM[comp].Write()
         

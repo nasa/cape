@@ -887,10 +887,14 @@ class DataBook(dict):
                 "Component '%s' is not a TriqFM component" % comp)
         # Read the TriqFM data book if necessary
         self.ReadTriqFM(comp)
+        # Intialize count
+        n = 0
         # Loop through indices
         for i in I:
             # Update the data book for that case
-            self.TriqFM[comp].UpdateCase(i)
+            n += self.TriqFM[comp].UpdateCase(i)
+        # Output
+        return n
     
   # >
     
@@ -3725,7 +3729,7 @@ class DBTriqFM(DataBook):
         # Check if folder exists
         if not os.path.isdir(frun):
             os.chdir(fpwd)
-            return
+            return 0
         # Enter the case folder
         os.chdir(frun)
         # Determine minimum number of iterations required
@@ -3757,7 +3761,7 @@ class DBTriqFM(DataBook):
         # Check for update
         if not q:
             os.chdir(fpwd)
-            return
+            return 0
        # )
        # -----------
        # Calculation
@@ -3814,6 +3818,8 @@ class DBTriqFM(DataBook):
         self.WriteTriq(i, t=float(nIter))
         # Return to original folder
         os.chdir(fpwd)
+        # Output
+        return 1
        # )
         
   # >
