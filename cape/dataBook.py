@@ -565,11 +565,17 @@ class DataBook(dict):
             # Save location
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
+            # Start counter
+            n = 0
             # Loop through indices.
             for i in I:
-                self.UpdateCaseComp(i, comp)
+                n += self.UpdateCaseComp(i, comp)
             # Return to original location
             os.chdir(fpwd)
+            # Move to next component if no updates
+            if n == 0: continue
+            # Status update
+            print("Writing %i new or updated entries" % n)
             # Sort the component
             self[comp].Sort()
             # Write the component
@@ -607,8 +613,6 @@ class DataBook(dict):
             # Write the component
             if nj > 0:
                 self[comp].Write()
-            # Status update
-            print("  Deleted %s case entries" % nj)
         
     # Function to delete entries by index
     def DeleteCasesComp(self, I, comp):
@@ -682,7 +686,7 @@ class DataBook(dict):
             3. The number of iterations used to create statistics has changed
         
         :Call:
-            >>> DB.UpdateCaseComp(i, comp)
+            >>> n = DB.UpdateCaseComp(i, comp)
         :Inputs:
             *DB*: :class:`pyFun.dataBook.DataBook`
                 Instance of the pyCart data book class
@@ -690,9 +694,13 @@ class DataBook(dict):
                 Trajectory index
             *comp*: :class:`str`
                 Name of component
+        :Outputs:
+            *n*: ``0`` | ``1``
+                How many updates were made
         :Versions:
             * 2014-12-22 ``@ddalle``: First version
             * 2017-04-12 ``@ddalle``: Modified to work one component
+            * 2017-04-23 ``@ddalle``: Added output
         """
         # Read if necessary
         if comp not in self:
@@ -745,7 +753,7 @@ class DataBook(dict):
             print("  Databook up to date.")
             q = False
         # Check for an update
-        if (not q): return
+        if (not q): return 0
         # Maximum number of iterations allowed.
         nMax = min(nIter-nMin, self.opts.get_nMaxStats())
         # Read residual
@@ -821,6 +829,8 @@ class DataBook(dict):
                 DBc['nStats'][j]  = s['nStats']
         # Go back.
         os.chdir(self.RootDir)
+        # Output
+        return 1
             
     # Update line load data book
     def UpdateLineLoad(self, comp, conf=None, I=None, qpbs=False):
@@ -2155,28 +2165,22 @@ class DBBase(dict):
             * 2014-12-22 ``@ddalle``: First version
         """
         # Initialize indices (assume all are matches)
-        j = np.arange(self.n)
+        j = np.arange(self.n) > -1
         # Loop through keys requested for matches.
         for k in self.x.keys:
             # Get the target value (from the trajectory)
             v = getattr(self.x,k)[i]
             # Search for matches.
             try:
-                # Filter test criterion.
-                jk = np.where(self[k] == v)[0]
-                # Check if the last element should pass but doesn't.
-                if (v == self[k][-1]):
-                    # Add the last element.
-                    jk = np.union1d(jk, [len(self[k])-1])
-                # Restrict to rows that match the above.
-                j = np.intersect1d(j, jk)
+                # Combine criteria
+                j = np.logical_and(j, self[k] == v)
             except Exception:
                 # No match found.
-                return np.nan
+                pass
         # Output
         try:
             # There should be exactly one match.
-            return j[0]
+            return np.where(j)[0][0]
         except Exception:
             # Return no match.
             return np.nan
@@ -2878,9 +2882,11 @@ class DBBase(dict):
             xv = self[xk][I]
         elif xk.lower() == "alpha":
             # Angle of attack
+            self.UpdateTrajectory()
             xv = self.x.GetAlpha(I)
         elif xk.lower() == "beta":
             # Angle of sideslip
+            self.UpdateTrajectory()
             xv = self.x.GetBeta(I)
         # Extract the values for the y-axis
         if yk in self:
@@ -2888,9 +2894,11 @@ class DBBase(dict):
             yv = self[yk][I]
         elif yk.lower() == "alpha":
             # Angle of attack
+            self.UpdateTrajectory()
             yv = self.x.GetAlpha(I)
         elif yk.lower() == "beta":
             # Angle of sideslip
+            self.UpdateTrajectory()
             yv = self.x.GetBeta(I)
         # Extract the values to plot
         zv = self[coeff][I]

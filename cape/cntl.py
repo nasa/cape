@@ -2893,7 +2893,7 @@ class Cntl(object):
         # Apply all constraints/selectors
         I = self.x.GetIndices(**kw)
         # Read the existing data book
-        self.ReadDataBook()
+        self.ReadDataBook(comp=[])
         # Get the component and type
         comp = kw.get('triqfm')
         t = type(comp).__name__
