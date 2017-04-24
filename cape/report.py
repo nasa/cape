@@ -2517,11 +2517,6 @@ class Report(object):
             if LL is None: continue
             # Add to plot count
             nPlot += 1
-            # Loop through the transformations.
-            for topts in opts.get_DataBookTransformations(comp):
-                pass
-                # Apply the transformation.
-                # LL.TransformFM(topts, self.cntl.x, i)
             # Get figure dimensions.
             figw = opts.get_SubfigOpt(sfig, "FigWidth", k)
             figh = opts.get_SubfigOpt(sfig, "FigHeight", k)
@@ -2765,6 +2760,7 @@ class Report(object):
                 h.append(LL.Plot(coeff,
                     LineOptions=kw_p, Label=lbl,
                     FigWidth=figw, FigHeight=figh,
+                    Legend=True,
                     AdjustLeft=adj_l, AdjustRight=adj_r,
                     AdjustTop=adj_t, Adjust_Bottom=adj_b,
                     SubplotMargin=w_sfig, **kw_pad))
