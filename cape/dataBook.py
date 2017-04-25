@@ -837,7 +837,7 @@ class DataBook(dict):
         """Update a line load data book for a list of cases
         
         :Call:
-            >>> DB.UpdateLineLoad(comp, conf=None, I=None, qpbs=False)
+            >>> n = DB.UpdateLineLoad(comp, conf=None, I=None, qpbs=False)
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
                 Instance of data book class
@@ -847,6 +847,9 @@ class DataBook(dict):
                 List of trajectory indices or update all cases in trajectory
             *qpbs*: ``True`` | {``False``}
                 Whether or not to submit as a script
+        :Outputs:
+            *n*: :class:`int`
+                Number of cases updated or added
         :Versions:
             * 2015-09-17 ``@ddalle``: First version
             * 2016-12-20 ``@ddalle``: Copied to :mod:`cape`
@@ -862,6 +865,8 @@ class DataBook(dict):
         # Loop through indices.
         for i in I:
             n += self.LineLoads[comp].UpdateCase(i, qpbs=qpbs)
+        # Ouptut
+        return n
             
     # Update TriqFM data book
     def UpdateTriqFM(self, comp, I=None):
@@ -2093,11 +2098,18 @@ class DBBase(dict):
             # Use ArgSort to get indices that sort on that key.
             I = self.ArgSort(key)
         else:
+            # List of x variables
+            try:
+                # There should be a list if we weren't lasy in __init__
+                xkeys = self.xCols[-1::-1]
+            except AttributeError:
+                # Use all in the trajectory as a fallback...
+                xkeys = self.x.keys[-1::-1]
             # Perform lexsort
             try:
                 # Create a tuple of lexicon variables
                 # Loop backwards through variables to prioritize first key
-                XV = tuple(self[k] for k in self.xCols[-1::-1])
+                XV = tuple(self[k] for k in xkeys)
                 # Use lexicon sort
                 I = np.lexsort(XV)
             except Exception:
@@ -2105,6 +2117,8 @@ class DBBase(dict):
                 I = self.ArgSort(self.xCols[0])
         # Sort all fields.
         for k in self:
+            # Skip if not a list
+            if type(self[k]).__name__ != "ndarray": continue
             # Sort it.
             self[k] = self[k][I]
             
