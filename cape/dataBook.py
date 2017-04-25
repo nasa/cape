@@ -2102,7 +2102,7 @@ class DBBase(dict):
                 I = np.lexsort(XV)
             except Exception:
                 # Fall back to first key
-                I = self.ArgSort(sefl.xCols[0])
+                I = self.ArgSort(self.xCols[0])
         # Sort all fields.
         for k in self:
             # Sort it.
