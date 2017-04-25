@@ -205,7 +205,7 @@ class Report(odict):
             "SeamCurves": "smy",
             "SeamLocations": None,
             "Orientation": "vertical",
-            "AutoUpdate": True,
+            "AutoUpdate": False,
             "AdjustLeft": 0.12,
             "AdjustRight": 0.97,
             "AdjustBottom": 0.1,

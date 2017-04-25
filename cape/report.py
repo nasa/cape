@@ -1272,7 +1272,7 @@ class Report(object):
             lines += self.SubfigContourCoeff(sfig, fswp, I, q)
         elif btyp == 'SweepLineLoad':
             # Group of line loads
-            lins += self.SubfigPlotLineLoadGroup(sfig, fswp, I, q)
+            lines += self.SubfigPlotLineLoadGroup(sfig, fswp, I, q)
         else:
             # No figure found
             print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
@@ -2644,17 +2644,13 @@ class Report(object):
         # Save current folder.
         fpwd = os.getcwd()
         # Case folder
-        frun = self.cntl.x.GetFullFolderNames(i)
+        frun = self.cntl.x.GetFullFolderNames(I[0])
         # Extract options
         opts = self.cntl.opts
         # Get the component.
         comp = opts.get_SubfigOpt(sfig, "Component")
         # Get the coefficient
         coeff = opts.get_SubfigOpt(sfig, "Coefficient")
-        # Read line loads
-        LL = self.ReadLineLoad(comp, i, update=False)
-        # Current status
-        nIter  = self.cntl.CheckCase(i)
         # Get caption.
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
         # Process default caption. 
@@ -2779,6 +2775,8 @@ class Report(object):
             # Figure name
             fimg = '%s.%s' % (sfig, fmt)
             fpdf = '%s.pdf' % sfig
+            # Grap first plot handle
+            h = h[0]
             # Save the figure.
             if fmt.lower() in ['pdf']:
                 # Save as vector-based image.
