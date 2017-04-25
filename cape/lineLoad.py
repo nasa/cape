@@ -541,7 +541,7 @@ class DBLineLoad(dataBook.DBBase):
         """Update one line load entry if necessary
         
         :Call:
-            >>> DBL.UpdateLineLoadCase(i, qpbs=False)
+            >>> n = DBL.UpdateLineLoadCase(i, qpbs=False)
         :Inputs:
             *DBL*: :class:`cape.lineLoad.DBLineLoad`
                 Line load data book
@@ -549,10 +549,14 @@ class DBLineLoad(dataBook.DBBase):
                 Case number
             *qpbs*: ``True`` | {``False``}
                 Whether or not to submit as a script
+        :Outputs:
+            *n*: ``0`` | ``1``
+                Number of cases updated or added
         :Versions:
             * 2016-06-07 ``@ddalle``: First version
             * 2016-12-19 ``@ddalle``: Modified for generic module
             * 2016-12-21 ``@ddalle``: Added PBS
+            * 2017-04-24 ``@ddalle``: Removed PBS and added output
         """
         # Try to find a match in the data book
         j = self.FindMatch(i)
@@ -566,7 +570,7 @@ class DBLineLoad(dataBook.DBBase):
         # Check if the folder exits
         if not os.path.isdir(frun):
             os.chdir(fpwd)
-            return
+            return 0
         # Go to the folder.
         os.chdir(frun)
         # Determine minimum number of iterations required
@@ -599,7 +603,7 @@ class DBLineLoad(dataBook.DBBase):
         # Check for update
         if not q:
             os.chdir(fpwd)
-            return
+            return 0
         # Create lineload folder if necessary
         if not os.path.isdir('lineload'): self.opts.mkdir('lineload')
         # Enter lineload folder
@@ -628,10 +632,6 @@ class DBLineLoad(dataBook.DBBase):
             self.WriteTriloadInput(ftriq, i)
             # Run the command
             self.RunTriload(qtriq, ftriq, i=i)
-            # Don't try to read results from PBS job that we *just* submitted
-            if qpbs:
-                print("  Submitted PBS job")
-                return
         # Check number of seams
         try:
             # Get seam counts
@@ -647,7 +647,7 @@ class DBLineLoad(dataBook.DBBase):
         self[i] = CaseLL(self.comp, self.proj, self.sec, fdir=None, seam=False)
         # Check for null loads
         if self[i].x.size == 0:
-            return
+            return 0
         # Check whether or not to read seams
         if nsm == 0:
             # Read the seam curves from this output
@@ -691,6 +691,8 @@ class DBLineLoad(dataBook.DBBase):
             self['nStats'][j] = nStats
         # Return to original directory
         os.chdir(fpwd)
+        # Output
+        return 1
     
     # Get file
     def GetTriqFile(self):

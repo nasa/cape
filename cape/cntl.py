@@ -2843,7 +2843,7 @@ class Cntl(object):
         # Apply all constraints
         I = self.x.GetIndices(**kw)
         # Read the existing data book.
-        self.ReadDataBook()
+        self.ReadDataBook(comp=[])
         self.ReadConfig()
         # Get lineload option
         ll = kw.get('ll')
@@ -2853,9 +2853,12 @@ class Cntl(object):
         if ll in [None, True]:
             # Use all components
             comps = self.opts.get_DataBookByType('LineLoad')
+        elif ll == False:
+            # Not sure why we are here.
+            return
         else:
             # Use the component given
-            comps = [ll]
+            comps = ll.split(',')
         # Loop through the points
         for comp in comps:
             # Print name of line load
@@ -2863,7 +2866,13 @@ class Cntl(object):
             # Read the line load data book
             self.DataBook.ReadLineLoad(comp, conf=self.config)
             # Update it
-            self.DataBook.UpdateLineLoad(comp, conf=self.config, I=I, qpbs=pbs)
+            n = self.DataBook.UpdateLineLoad(comp, conf=self.config, I=I)
+            # Check for updates
+            if n == 0: continue
+            # Status update
+            print("Adding or updating %s cases" % n)
+            # Sort
+            self.DataBook.LineLoads[comp].Sort()
             # Write the updated results
             self.DataBook.LineLoads[comp].Write()
         # Return to original location

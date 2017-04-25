@@ -857,9 +857,11 @@ class DataBook(dict):
             I = range(self.x.nCase)
         # Read the line load data book if necessary
         self.ReadLineLoad(comp, conf=None)
+        # Initialize number of updates
+        n = 0
         # Loop through indices.
         for i in I:
-            self.LineLoads[comp].UpdateCase(i, qpbs=qpbs)
+            n += self.LineLoads[comp].UpdateCase(i, qpbs=qpbs)
             
     # Update TriqFM data book
     def UpdateTriqFM(self, comp, I=None):
