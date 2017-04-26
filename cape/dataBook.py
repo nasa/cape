@@ -859,7 +859,43 @@ class DataBook(dict):
             # Use all trajectory points
             I = range(self.x.nCase)
         # Read the line load data book if necessary
-        self.ReadLineLoad(comp, conf=None)
+        self.ReadLineLoad(comp, conf=conf)
+        # Initialize number of updates
+        n = 0
+        # Loop through indices.
+        for i in I:
+            n += self.LineLoads[comp].UpdateCase(i, qpbs=qpbs)
+        # Ouptut
+        return n
+        
+    # Update line load data book
+    def UpdateLineLoadComp(self, comp, conf=None, I=None):
+        """Update a line load data book for a list of cases
+        
+        :Call:
+            >>> n = DB.UpdateLineLoadComp(comp, conf=None, I=None)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of line load DataBook component
+            *I*: :class:`list` (:class:`int`) or ``None``
+                List of trajectory indices or update all cases in trajectory
+            *qpbs*: ``True`` | {``False``}
+                Whether or not to submit as a script
+        :Outputs:
+            *n*: :class:`int`
+                Number of cases updated or added
+        :Versions:
+            * 2015-09-17 ``@ddalle``: First version
+            * 2016-12-20 ``@ddalle``: Copied to :mod:`cape`
+        """
+        # Default case list
+        if I is None:
+            # Use all trajectory points
+            I = range(self.x.nCase)
+        # Read the line load data book if necessary
+        self.ReadLineLoad(comp, conf=conf)
         # Initialize number of updates
         n = 0
         # Loop through indices.
