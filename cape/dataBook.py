@@ -896,7 +896,7 @@ class DataBook(dict):
             if n == 0: continue
             print("Added or updated %s entries" % n)
             # Write the updated results
-            self.DataBook.TriqFM[comp].Write()
+            self.TriqFM[comp].Write()
     
     # Update TriqFM data book for one component
     def UpdateTriqFMComp(self, comp, I=None):
