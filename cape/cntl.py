@@ -2839,46 +2839,26 @@ class Cntl(object):
         :Versions:
             * 2016-06-07 ``@ddalle``: First version
             * 2016-12-21 ``@ddalle``: Added *pbs* flag, may be temporary
+            * 2017-04-25 ``@ddalle``: Removed *pbs*, added ``--delete``
         """
-        # Save current location
+        # Get component option
+        comp = kw.get("ll")
+        # Save current location.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
-        # Apply all constraints
+        # Apply constraints
         I = self.x.GetIndices(**kw)
-        # Read the existing data book.
+        # Read the data book handle
         self.ReadDataBook(comp=[])
         self.ReadConfig()
-        # Get lineload option
-        ll = kw.get('ll')
-        # Get pbs option
-        pbs = kw.get('pbs', False)
-        # Check for single line load
-        if ll in [None, True]:
-            # Use all components
-            comps = self.opts.get_DataBookByType('LineLoad')
-        elif ll == False:
-            # Not sure why we are here.
-            return
+        # Check if we are deleting or adding.
+        if kw.get('delete', False):
+            # Delete cases.
+            self.DataBook.DeleteLineLoad(I, comp=comp)
         else:
-            # Use the component given
-            comps = ll.split(',')
-        # Loop through the points
-        for comp in comps:
-            # Print name of line load
-            print("Updating line load data book '%s' ..." % comp)
-            # Read the line load data book
-            self.DataBook.ReadLineLoad(comp, conf=self.config)
-            # Update it
-            n = self.DataBook.UpdateLineLoad(comp, conf=self.config, I=I)
-            # Check for updates
-            if n == 0: continue
-            # Status update
-            print("Adding or updating %s cases" % n)
-            # Sort
-            self.DataBook.LineLoads[comp].Sort()
-            # Write the updated results
-            self.DataBook.LineLoads[comp].Write()
-        # Return to original location
+            # Read the results and update as necessary.
+            self.DataBook.UpdateLineLoad(I, comp=comp, conf=self.oncig)
+        # Return to original location.
         os.chdir(fpwd)
     
     # Update TriqFM data book

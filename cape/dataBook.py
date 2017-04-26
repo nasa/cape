@@ -531,6 +531,9 @@ class DataBook(dict):
             # Unknown
             raise TypeError("Cannot process component list with type '%s'" % t)
     
+   # ------
+   # Aero
+   # ------
     # Update data book
     def UpdateDataBook(self, I=None, comp=None):
         """Update the data book for a list of cases from the run matrix
@@ -831,45 +834,48 @@ class DataBook(dict):
         os.chdir(self.RootDir)
         # Output
         return 1
-            
+           
+   # ---------
+   # LineLoad
+   # ---------
     # Update line load data book
-    def UpdateLineLoad(self, comp, conf=None, I=None, qpbs=False):
+    def UpdateLineLoad(self, I, comp=None, conf=None):
         """Update a line load data book for a list of cases
         
         :Call:
-            >>> n = DB.UpdateLineLoad(comp, conf=None, I=None, qpbs=False)
+            >>> n = DB.UpdateLineLoad(I, comp=None, conf=None)
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
                 Instance of data book class
-            *comp*: :class:`str`
-                Name of line load DataBook component
-            *I*: :class:`list` (:class:`int`) or ``None``
+            *I*: :class:`list` (:class:`int`)
                 List of trajectory indices or update all cases in trajectory
-            *qpbs*: ``True`` | {``False``}
-                Whether or not to submit as a script
+            *comp*: {``None``} | :class:`str`
+                Line load DataBook component or wild card
         :Outputs:
             *n*: :class:`int`
                 Number of cases updated or added
         :Versions:
             * 2015-09-17 ``@ddalle``: First version
             * 2016-12-20 ``@ddalle``: Copied to :mod:`cape`
+            * 2017-04-25 ``@ddalle``: Added wild cards
         """
-        # Default case list
-        if I is None:
-            # Use all trajectory points
-            I = range(self.x.nCase)
-        # Read the line load data book if necessary
-        self.ReadLineLoad(comp, conf=conf)
-        # Initialize number of updates
-        n = 0
-        # Loop through indices.
-        for i in I:
-            n += self.LineLoads[comp].UpdateCase(i, qpbs=qpbs)
-        # Ouptut
-        return n
+        # Get list of appropriate components
+        comps = self.opts.get_DataBookByGlob("LineLoad", comp)
+        # Loop through those components
+        for comp in comps:
+            # Status update
+            print("Updating LineLoad component '%s' ..." % comp)
+            # Perform update and get number of deletions
+            n = self.UpdateLineLoadComp(comp, I=I, conf=conf)
+            # Check for updates
+            if n == 0: continue
+            print("Added or updated %s entries" % n)
+            # Write the updated results
+            self.LineLoads[comp].Sort()
+            self.LineLoads[comp].Write()
         
     # Update line load data book
-    def UpdateLineLoadComp(self, comp, conf=None, I=None):
+    def UpdateLineLoadComp(self, comp, I=None, conf=None):
         """Update a line load data book for a list of cases
         
         :Call:
@@ -900,10 +906,103 @@ class DataBook(dict):
         n = 0
         # Loop through indices.
         for i in I:
-            n += self.LineLoads[comp].UpdateCase(i, qpbs=qpbs)
+            n += self.LineLoads[comp].UpdateCase(i)
         # Ouptut
         return n
+        
+    # Function to delete entries from triqfm data book
+    def DeleteLineLoad(self, I, comp=None):
+        """Delete list of cases from several LineLoad component data books
+        
+        :Call:
+            >>> DB.DeleteLineLoad(I, comp=None)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the data book class
+            *I*: :class:`list` (:class:`int`)
+                List of trajectory indices or update all cases in trajectory
+            *comp*: {``None``} | :class:`str` | :class:`list`
+                Component wild card or list of component wild cards
+        :Versions:
+            * 2017-04-25 ``@ddalle``: First version
+        """
+        # Get list of appropriate components
+        comps = self.opts.get_DataBookByGlob("LineLoad", comp)
+        # Loop through those components
+        for comp in comps:
+            # Get number of deletions
+            n = self.DeleteLineLoadComp(comp, I)
+            # Check number of deletions
+            if n == 0: continue
+            # Status update
+            print("%s: deleted %s LineLoad entries" % (comp, n))
+            # Write the updated component
+            self.LineLoad[comp].Write()
+    
+    # Function to delete line load entries
+    def DeleteLineLoadComp(self, comp, I=None):
+        """Delete list of cases from a LineLoad component data book
+        
+        :Call:
+            >>> n = DB.DeleteLineLoadComp(comp, I=None)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the data book class
+            *comp*: :class:`str`
+                Name of component
+            *I*: :class:`list` (:class:`int`)
+                List of trajectory indices or update all cases in trajectory
+        :Outputs:
+            *n*: :class:`list`
+                Number of deletions made
+        :Versions:
+            * 2017-04-25 ``@ddalle``: First version
+        """
+        # Default case list
+        if I is None:
+            # Use all trajectory points
+            I = range(self.x.nCase)
+        # Check type
+        if self.opts.get_DataBookType(comp) != "LineLoad":
+            raise ValueError(
+                "Component '%s' is not a LineLoad component" % comp)
+        # Read the TriqFM data book if necessary
+        self.ReadLineLoad(comp)
+        # Get the data book
+        DBc = self.LineLoads[comp]
+        # Number of cases in current data book.
+        nCase = DBc.n
+        # Initialize data book index array.
+        J = []
+        # Loop though indices to delete.
+        for i in I:
+            # Find the match.
+            j = DBc.FindMatch(i)
+            # Check if one was found.
+            if np.isnan(j): continue
+            # Append to the list of data book indices.
+            J.append(j)
+        # Number of deletions
+        nj = len(J)
+        # Exit if no deletions
+        if nj == 0:
+            return 0
+        # Initialize mask of cases to keep.
+        mask = np.ones(nCase, dtype=bool)
+        # Set values equal to false for cases to be deleted.
+        mask[J] = False
+        # Loop through data book columns.
+        for c in DBc.keys():
+            # Apply the mask
+            DBc[c] = DBc[c][mask]
+        # Update the number of entries.
+        DBc.n = len(DBc[DBc.keys()[0]])
+        # Output
+        return nj
             
+   # -------
+   # TriqFM
+   # -------
     # Update TriqFM data book
     def UpdateTriqFM(self, I, comp=None):
         """Update a TriqFM triangulation-extracted F&M data book
@@ -932,6 +1031,7 @@ class DataBook(dict):
             if n == 0: continue
             print("Added or updated %s entries" % n)
             # Write the updated results
+            self.TriqFM[comp].Sort()
             self.TriqFM[comp].Write()
     
     # Update TriqFM data book for one component
