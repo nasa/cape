@@ -2857,7 +2857,7 @@ class Cntl(object):
             self.DataBook.DeleteLineLoad(I, comp=comp)
         else:
             # Read the results and update as necessary.
-            self.DataBook.UpdateLineLoad(I, comp=comp, conf=self.oncig)
+            self.DataBook.UpdateLineLoad(I, comp=comp, conf=self.config)
         # Return to original location.
         os.chdir(fpwd)
     

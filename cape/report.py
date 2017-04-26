@@ -3300,66 +3300,69 @@ class Report(object):
         
         # Get co-sweep
         J = DBc.FindCoSweep(x, I[0], EqCons, TolCons, GlobCons)
-        # Plot label (for legend)
-        lbl = self.SubfigPlotLabel(sfig, 0)
-        # Get figure dimensions.
-        figw = opts.get_SubfigOpt(sfig, "FigWidth")
-        figh = opts.get_SubfigOpt(sfig, "FigHeight")
-        # Plot options
-        kw_c = opts.get_SubfigPlotOpt(sfig, "ContourOptions", 0)
-        kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",    0)
-        # Plot types
-        ctyp = opts.get_SubfigOpt(sfig, "ContourType")
-        ltyp = opts.get_SubfigOpt(sfig, "LineType")
-        # Other options
-        axeq = opts.get_SubfigOpt(sfig, "AxisEqual")
-        cbar = opts.get_SubfigOpt(sfig, "ColorBar")
-        cmpo = opts.get_SubfigOpt(sfig, "ColorMap")
-        # Draw the plot.
-        h = DBc.PlotContour(coeff, J, x=xk, y=yk,
-            ContourType=ctyp, ContourOptions=kw_c,
-            LineType=ltyp, LineOptions=kw_p,
-            Label=lbl, ColorMap=cmpo,
-            AxisEqual=axeq, ColorBar=cbar,
-            FigWidth=figw, FigHeight=figh)
-       # ----------
-       # Formatting
-       # ----------
-        # Check for manually specified axes labels.
-        xlbl = opts.get_SubfigOpt(sfig, "XLabel")
-        ylbl = opts.get_SubfigOpt(sfig, "YLabel")
-        # Specify x-axis label if given.
-        if xlbl is not None:
-            h['ax'].set_xlabel(xlbl)
-        # Specify x-axis label if given.
-        if ylbl is not None:
-            h['ax'].set_ylabel(ylbl)
-        # Change back to report folder.
-        os.chdir(fpwd)
-        # Get the file formatting
-        fmt = opts.get_SubfigOpt(sfig, "Format")
-        dpi = opts.get_SubfigOpt(sfig, "DPI")
-        # Figure name
-        fimg = '%s.%s' % (sfig, fmt)
-        # PDF version
-        fpdf = '%s.pdf' % sfig
-        # Save the figure.
-        if fmt.lower() in ['pdf']:
-            # Save as vector-based image
-            h['fig'].savefig(fimg)
-        elif fmt.lower() in ['svg']:
-            # Save as SVG and PDF
-            h['fig'].savefig(fimg)
-            h['fig'].savefig(fpdf)
-        else:
-            # Save with resolution.
-            h['fig'].savefig(fimg, dpi=dpi)
-            h['fig'].savefig(fpdf)
-        # Close the figure.
-        h['fig'].clf()
-        # Include the graphics.
-        lines.append('\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
-            % (fswp, frun, fpdf))
+        # Don't generate void plot
+        if len(J) > 2:
+            # Plot label (for legend)
+            lbl = self.SubfigPlotLabel(sfig, 0)
+            # Get figure dimensions.
+            figw = opts.get_SubfigOpt(sfig, "FigWidth")
+            figh = opts.get_SubfigOpt(sfig, "FigHeight")
+            # Plot options
+            kw_c = opts.get_SubfigPlotOpt(sfig, "ContourOptions", 0)
+            kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",    0)
+            # Plot types
+            ctyp = opts.get_SubfigOpt(sfig, "ContourType")
+            ltyp = opts.get_SubfigOpt(sfig, "LineType")
+            # Other options
+            axeq = opts.get_SubfigOpt(sfig, "AxisEqual")
+            cbar = opts.get_SubfigOpt(sfig, "ColorBar")
+            cmpo = opts.get_SubfigOpt(sfig, "ColorMap")
+            # Draw the plot.
+            h = DBc.PlotContour(coeff, J, x=xk, y=yk,
+                ContourType=ctyp, ContourOptions=kw_c,
+                LineType=ltyp, LineOptions=kw_p,
+                Label=lbl, ColorMap=cmpo,
+                AxisEqual=axeq, ColorBar=cbar,
+                FigWidth=figw, FigHeight=figh)
+           # ----------
+           # Formatting
+           # ----------
+            # Check for manually specified axes labels.
+            xlbl = opts.get_SubfigOpt(sfig, "XLabel")
+            ylbl = opts.get_SubfigOpt(sfig, "YLabel")
+            # Specify x-axis label if given.
+            if xlbl is not None:
+                h['ax'].set_xlabel(xlbl)
+            # Specify x-axis label if given.
+            if ylbl is not None:
+                h['ax'].set_ylabel(ylbl)
+            # Change back to report folder.
+            os.chdir(fpwd)
+            # Get the file formatting
+            fmt = opts.get_SubfigOpt(sfig, "Format")
+            dpi = opts.get_SubfigOpt(sfig, "DPI")
+            # Figure name
+            fimg = '%s.%s' % (sfig, fmt)
+            # PDF version
+            fpdf = '%s.pdf' % sfig
+            # Save the figure.
+            if fmt.lower() in ['pdf']:
+                # Save as vector-based image
+                h['fig'].savefig(fimg)
+            elif fmt.lower() in ['svg']:
+                # Save as SVG and PDF
+                h['fig'].savefig(fimg)
+                h['fig'].savefig(fpdf)
+            else:
+                # Save with resolution.
+                h['fig'].savefig(fimg, dpi=dpi)
+                h['fig'].savefig(fpdf)
+            # Close the figure.
+            h['fig'].clf()
+            # Include the graphics.
+            lines.append(
+                '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
+                % (fswp, frun, fpdf))
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
