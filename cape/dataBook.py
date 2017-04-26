@@ -884,64 +884,19 @@ class DataBook(dict):
         :Versions:
             * 2017-03-29 ``@ddalle``: First version
         """
-        # Get list of all components
-        comps = self.opts.get_DataBookByType("TriqFM")
-        # Input type
-        tcomp = type(comp).__name__
-        # Get list of components
-        if comp in [None, True]:
-            # Use all components
-            comp = comps
-        elif tcomp.startswith("str") or tcomp=="unicode":
-            # Read components
-            comp = [c for c in comps if fnmatch.fnmatch(c, comp)]
-            
-            
-    # Get list of components matching a type and list of wildcards
-    def GetCompsByType(self, typ, comp=None):
-        """Get list of components by type and list of wild cards
-        
-        :Call:
-            >>> comps = DB.GetCompsByType(typ, comp)
-        :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
-                Instance of data book class
-            *typ*: FM | Force | Moment | LineLoad | TriqFM
-                Data book type
-            *comp*: {``None``} | :class:`str`
-                List of component wild cards, separated by commas
-        :Outputs:
-            *comps*: :class:`str`
-                All components meeting one or more wild cards
-        :Versions:
-            * 2017-04-25 ``@ddalle``: First version
-        """
-        # Get list of all components
-        comps_all = self.opts.get_DataBookByType(typ)
-        # Check for default option
-        if comp is None:
-            return comps_all
-        # Initialize output
-        comps = []
-        # Ensure input is a list
-        comps_in = list(np.array(comp).flatten())
-        # Initialize wild cards
-        comps_wc = []
-        # Split by comma
-        for c in comps_in:
-            comps_wc += c.split(",")
-        # Loop through components to check if it matches
-        for c in comps_all:
-            # Loop through components
-            for pat in comps_wc:
-                # Check if it matches
-                if fnmatch.fnmatch(c, pat):
-                    # Add the component to the list
-                    comps.append(c)
-                    break
-        # Output
-        return comps
-        
+        # Get list of appropriate components
+        comps = self.opts.get_DataBookByGlob("TriqFM", comp)
+        # Loop through those components
+        for comp in comps:
+            # Status update
+            print("Updating TriqFM component '%s' ..." % comp)
+            # Perform update and get number of deletions
+            n = self.UpdateTriqFMComp(comp, I)
+            # Check for updates
+            if n == 0: continue
+            print("Added or updated %s entries" % n)
+            # Write the updated results
+            self.DataBook.TriqFM[comp].Write()
     
     # Update TriqFM data book for one component
     def UpdateTriqFMComp(self, comp, I=None):
@@ -977,21 +932,54 @@ class DataBook(dict):
             n += self.TriqFM[comp].UpdateCase(i)
         # Output
         return n
-    
-    # Function to delete entries by index
-    def DeleteTriqFM(self, comp, I=None):
-        """Delete list of cases from data book
+        
+    # Function to delete entries from triqfm data book
+    def DeleteTriqFM(self, I, comp=None):
+        """Delete list of cases from several TriqFM component data books
         
         :Call:
-            >>> DB.DeleteTriqFM(comp, I=None)
+            >>> DB.DeleteTriqFM(I, comp=None)
         :Inputs:
-            *DB*: :class:`pyCart.dataBook.DataBook`
-                Instance of the pyCart data book class
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the data book class
             *I*: :class:`list` (:class:`int`)
                 List of trajectory indices or update all cases in trajectory
+            *comp*: {``None``} | :class:`str` | :class:`list`
+                Component wild card or list of component wild cards
         :Versions:
-            * 2015-03-13 ``@ddalle``: First version
-            * 2017-04-13 ``@ddalle``: Split by component
+            * 2017-04-25 ``@ddalle``: First version
+        """
+        # Get list of appropriate components
+        comps = self.opts.get_DataBookByGlob("TriqFM", comp)
+        # Loop through those components
+        for comp in comps:
+            # Get number of deletions
+            n = self.DeleteTriqFMComp(comp, I)
+            # Check number of deletions
+            if n == 0: continue
+            # Status update
+            print("%s: deleted %s TriqFM patch entries" % (comp, n))
+            # Write the updated component
+            self.TriqFM[comp].Write()
+    
+    # Function to delete triqfm entries
+    def DeleteTriqFMComp(self, comp, I=None):
+        """Delete list of cases from a TriqFM component data book
+        
+        :Call:
+            >>> n = DB.DeleteTriqFMComp(comp, I=None)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the data book class
+            *comp*: :class:`str`
+                Name of component
+            *I*: :class:`list` (:class:`int`)
+                List of trajectory indices or update all cases in trajectory
+        :Outputs:
+            *n*: :class:`list`
+                Number of deletions made
+        :Versions:
+            * 2017-04-25 ``@ddalle``: First version
         """
         # Default case list
         if I is None:

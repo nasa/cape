@@ -65,10 +65,6 @@ if __name__ == "__main__":
         # Rewrite namelists and possibly add phases
         fun3d.ApplyCases(**kw)
     elif kw.get('aero'):
-        # Check for component.
-        if kw['aero'] != True:
-            # Process requested component
-            kw['comp'] = kw['aero']
         # Collect force and moment data.
         cart3d.Aero(**kw)
     elif kw.get('pt'):

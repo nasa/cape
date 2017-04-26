@@ -699,44 +699,6 @@ class Cntl(object):
         print("    exit(%s)" % ierr)
         return ierr
     
-    # Function to collect statistics
-    def Aero(self, **kw):
-        """Collect force and moment data
-        
-        :Call:
-            >>> cart3d.Aero(cons=[], **kw)
-        :Inputs:
-            *cart3d*: :class:`pyCart.cart3d.Cart3d`
-                Instance of control class containing relevant parameters
-            *I*: :class:`list` (:class:`int`)
-                List of indices
-            *cons*: :class:`list` (:class:`str`)
-                List of constraints like ``'Mach<=0.5'``
-        :Outputs:
-            *d*: :class:`dict` (:class:`numpy.ndarray` (:class:`float`))
-                Dictionary of mean, min, max, std for each coefficient
-        :Versions:
-            * 2014-12-12 ``@ddalle``: First version
-            * 2014-12-22 ``@ddalle``: Completely rewrote with DataBook class
-        """
-        # Get component option
-        comp = kw.get("comp")
-        # Save current location.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Apply constraints
-        I = self.x.GetIndices(**kw)
-        # Read the existing data book.
-        self.ReadDataBook(comp=comp)
-        # Check if we are deleting or adding.
-        if kw.get('delete', False):
-            # Delete cases.
-            self.DataBook.DeleteCases(I, comp=comp)
-        else:
-            # Read the results and update as necessary.
-            self.DataBook.UpdateDataBook(I, comp=comp)
-        # Return to original location.
-        os.chdir(fpwd)
    # >
     
    # =============
@@ -2815,7 +2777,48 @@ class Cntl(object):
    # DataBook Updaters
    # =================
    # <
+    # Function to collect statistics
+    def Aero(self, **kw):
+        """Collect force and moment data
         
+        :Call:
+            >>> cntl.Aero(cons=[], **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints like ``'Mach<=0.5'``
+        :Outputs:
+            *d*: :class:`dict` (:class:`numpy.ndarray` (:class:`float`))
+                Dictionary of mean, min, max, std for each coefficient
+        :Versions:
+            * 2014-12-12 ``@ddalle``: First version
+            * 2014-12-22 ``@ddalle``: Completely rewrote with DataBook class
+            * 2017-04-25 ``@ddalle``: Added wild cards
+        """
+        # Get component option
+        comp = kw.get("aero")
+        # Get full list of components
+        comp = self.opts.get_DataBookByGlob(["FM","Force","Moment"], comp)
+        # Save current location.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Apply constraints
+        I = self.x.GetIndices(**kw)
+        # Read the existing data book.
+        self.ReadDataBook(comp=comp)
+        # Check if we are deleting or adding.
+        if kw.get('delete', False):
+            # Delete cases.
+            self.DataBook.DeleteCases(I, comp=comp)
+        else:
+            # Read the results and update as necessary.
+            self.DataBook.UpdateDataBook(I, comp=comp)
+        # Return to original location.
+        os.chdir(fpwd)
+    
     # Update line loads
     def UpdateLineLoad(self, **kw):
         """Update one or more line load data books
@@ -2896,38 +2899,23 @@ class Cntl(object):
         :Versions:
             * 2017-03-29 ``@ddalle``: First version
         """
-        # Save current location
+        # Get component option
+        comp = kw.get("triqfm")
+        # Save current location.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
-        # Apply all constraints/selectors
+        # Apply constraints
         I = self.x.GetIndices(**kw)
-        # Read the existing data book
+        # Read the data book handle
         self.ReadDataBook(comp=[])
-        # Get the component and type
-        comp = kw.get('triqfm')
-        t = type(comp).__name__
-        # Check for single component, list, or None (do all)
-        if comp in [None, True]:
-            # Use all components
-            comps = self.opts.get_DataBookByType('TriqFM')
+        # Check if we are deleting or adding.
+        if kw.get('delete', False):
+            # Delete cases.
+            self.DataBook.DeleteTriqFM(I, comp=comp)
         else:
-            # Ensure list
-            comps = list(np.array(comp).flatten())
-        # Loop through protuberance components
-        for comp in comps:
-            # Print name of the TriqFM group
-            print("Updating TriqFM component '%s' ..." % comp)
-            # Read the TriqFM data book
-            self.DataBook.ReadTriqFM(comp)
-            # Update it
-            n = self.DataBook.UpdateTriqFM(comp, I=I)
-            # Check for updates
-            if n == 0: continue
-            print("Added or updated %s entries" % n)
-            # Write the updated results
-            self.DataBook.TriqFM[comp].Write()
-        
-        # Return to original location
+            # Read the results and update as necessary.
+            self.DataBook.UpdateTriqFM(I, comp=comp)
+        # Return to original location.
         os.chdir(fpwd)
    # >
 # class Cntl

@@ -1841,6 +1841,11 @@ class Options(odict):
         self._DataBook()
         return self['DataBook'].get_DataBookByType(typ)
         
+    # Get list of components by type and glob
+    def get_DataBookByGlob(self, typ, comp=None):
+        self._DataBook()
+        return self['DataBook'].get_DataBookByGlob(typ, comp=comp)
+        
     # Get component type
     def get_DataBookType(self, comp):
         self._DataBook()
@@ -2023,7 +2028,8 @@ class Options(odict):
         return self["DataBook"].get_DataBookConfigCompID(comp)
     
     # Copy over the documentation.
-    for k in ['DataBookComponents', 'DataBookByType',
+    for k in ['DataBookComponents', 
+            'DataBookByType', 'DataBookByGlob',
             'DataBookMapTri', 'DataBookMapConfig',
             'DataBookPatches', "DataBookOutputFormat",
             'DataBookTriqFormat',

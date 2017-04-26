@@ -7,6 +7,8 @@ solvers.  Some options are not generic, and so the derivative options classes
 such as :class:`cape.options.DataBook.DataBook` have additional methods.
 """
 
+# System module
+import fnmatch
 # Import options-specific utilities
 from util import rc0, odict, getel
 
@@ -938,6 +940,57 @@ class DataBook(odict):
             if typ == self.get_DataBookType(comp):
                 # Append the component to the list
                 comps.append(comp)
+        # Output
+        return comps
+        
+    # Get list of components matching a type and list of wild cards
+    def get_DataBookByGlob(self, typ, comp=None):
+        """Get list of components by type and list of wild cards
+        
+        :Call:
+            >>> comps = opts.get_DataBookByGlob(typ, comp)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *typ*: FM | Force | Moment | LineLoad | TriqFM
+                Data book type
+            *comp*: {``None``} | :class:`str`
+                List of component wild cards, separated by commas
+        :Outputs:
+            *comps*: :class:`str`
+                All components meeting one or more wild cards
+        :Versions:
+            * 2017-04-25 ``@ddalle``: First version
+        """
+        # Check for list of types
+        if type(typ).__name__ in ['ndarray', 'list']:
+            # Ensure list
+            typ = [typ]
+        # Get list of all components with matching type
+        comps_all = []
+        for t in typ:
+            comps_all += self.get_DataBookByType(t)
+        # Check for default option
+        if comp is None:
+            return comps_all
+        # Initialize output
+        comps = []
+        # Ensure input is a list
+        comps_in = list(np.array(comp).flatten())
+        # Initialize wild cards
+        comps_wc = []
+        # Split by comma
+        for c in comps_in:
+            comps_wc += c.split(",")
+        # Loop through components to check if it matches
+        for c in comps_all:
+            # Loop through components
+            for pat in comps_wc:
+                # Check if it matches
+                if fnmatch.fnmatch(c, pat):
+                    # Add the component to the list
+                    comps.append(c)
+                    break
         # Output
         return comps
             
