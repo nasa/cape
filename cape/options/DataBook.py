@@ -7,7 +7,7 @@ solvers.  Some options are not generic, and so the derivative options classes
 such as :class:`cape.options.DataBook.DataBook` have additional methods.
 """
 
-# System module
+# System modules
 import fnmatch
 # Import options-specific utilities
 from util import rc0, odict, getel
@@ -963,7 +963,7 @@ class DataBook(odict):
             * 2017-04-25 ``@ddalle``: First version
         """
         # Check for list of types
-        if type(typ).__name__ in ['ndarray', 'list']:
+        if type(typ).__name__ not in ['ndarray', 'list']:
             # Ensure list
             typ = [typ]
         # Get list of all components with matching type
@@ -971,12 +971,15 @@ class DataBook(odict):
         for t in typ:
             comps_all += self.get_DataBookByType(t)
         # Check for default option
-        if comp is None:
+        if comp in [True, None]:
             return comps_all
         # Initialize output
         comps = []
         # Ensure input is a list
-        comps_in = list(np.array(comp).flatten())
+        if type(comp).__name__ in ['list', 'ndarray']:
+            comps_in = comp
+        else:
+            comps_in = [comp]
         # Initialize wild cards
         comps_wc = []
         # Split by comma
