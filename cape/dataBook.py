@@ -932,7 +932,7 @@ class DataBook(dict):
             if n == 0: continue
             print("Added or updated %s entries" % n)
             # Write the updated results
-            self.DataBook.TriqFM[comp].Write()
+            self.TriqFM[comp].Write()
     
     # Update TriqFM data book for one component
     def UpdateTriqFMComp(self, comp, I=None):
@@ -1027,8 +1027,9 @@ class DataBook(dict):
                 "Component '%s' is not a TriqFM component" % comp)
         # Read the TriqFM data book if necessary
         self.ReadTriqFM(comp)
-        # Get the first data book component.
-        DBc = self.TriqFM[comp]
+        # Get the data book
+        DBF = self.TriqFM[comp]
+        DBc = self.TriqFM[comp][None]
         # Number of cases in current data book.
         nCase = DBc.n
         # Initialize data book index array.
@@ -1045,21 +1046,21 @@ class DataBook(dict):
         nj = len(J)
         # Exit if no deletions
         if nj == 0:
-            return 
-        # Report status
-        print("  Removing %s entries from FM component '%s'" % (nj, comp))
+            return 0
         # Initialize mask of cases to keep.
         mask = np.ones(nCase, dtype=bool)
         # Set values equal to false for cases to be deleted.
         mask[J] = False
-        # Extract data book component.
-        DBc = self[comp]
         # Loop through data book columns.
-        for c in DBc.keys():
-            # Apply the mask
-            DBc[c] = DBc[c][mask]
-        # Update the number of entries.
-        DBc.n = len(DBc[DBc.keys()[0]])
+        for patch in DBF:
+            # Get component
+            DBc = DBF[patch]
+            # Loop through keys
+            for c in DBc.keys():
+                # Apply the mask
+                DBc[c] = DBc[c][mask]
+            # Update the number of entries.
+            DBc.n = len(DBc[DBc.keys()[0]])
         # Output
         return nj
   # >
