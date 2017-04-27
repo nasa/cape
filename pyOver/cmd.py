@@ -47,6 +47,8 @@ def overrun(opts=None, i=0, **kw):
         ofcmd  = opts.get_overrun_cmd(i)
         aux    = opts.get_overrun_aux(i)
         args   = opts.get_overrun_args(i)
+        # Other args
+        ofkw = opts.get_overrun_kw(i)
         # Base name
         pre = opts.get_Prefix(i)
     else:
@@ -58,6 +60,14 @@ def overrun(opts=None, i=0, **kw):
         ofcmd  = kw.get("cmd", "overrunmpi")
         aux    = kw.get("aux", '\"-v pcachem -- dplace -s1\"')
         args   = kw.get("args", "")
+        # Additional args
+        ofkw = {}
+        for k in kw:
+            # Check for recognized argument
+            if k in ["MPI", "nProc", "mpicmd", "cmd", "aux", "args", "Prefix"]:
+                continue
+            # Otherwise, add the argument
+            ofkw[k] = kw[k]
         # Prefix
         pre    = kw.get("Prefix", "run")
     # Split command
@@ -82,6 +92,20 @@ def overrun(opts=None, i=0, **kw):
     if aux: cmdi = cmdi + ['-aux', aux]
     # Append extra arguments
     if args: cmdi.append(args)
+    # Loop through dictionary of other arguments
+    for k in ofkw:
+        # Get the value
+        v = ofkw[k]
+        # Check the type
+        if v in [None, False]:
+            continue
+        elif v == True:
+            # Just add a tag
+            cmdi.append('-%s' % k)
+        else:
+            # Append option and value
+            cmdi.append('-%s' % k)
+            cmdi.append('%s' % v)
     # Output
     return cmdi
         

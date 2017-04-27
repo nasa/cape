@@ -36,6 +36,34 @@ class overrun(odict):
             * 2016-02-01 ``@ddalle``: First version
         """
         return self.get_key('aux', i, rck='overrun_aux')
+
+    # Get dictionary of options
+    def get_overrun_kw(self, i=None):
+        """Get other inputs to ``overrun``
+
+        :Call:
+            >>> kw = opts.get_overrun_kw(i=None)
+        :Inputs:
+            *opts*: :class:`pyOver.options.Options`
+                Options interface
+            *i*: :class:`int`
+                Phase number
+        :Outputs:
+            *kw*: :class:`dict`
+                Dictionary of additional arguments to ``overrun``
+        :Versions:
+            * 2016-02-01 ``@ddalle``: First version
+        """
+        # Intiialize output
+        kw = {}
+        # Loop through output
+        for k in self:
+            # Check for named keys
+            if k in ['aux', 'args', 'cmd']: continue
+            # Otherwise, append the key, but select the phase
+            kw[k] = self.get_key(k, i)
+        # Output
+        return kw
     
     # Function to get OVERFLOW command
     def get_overrun_cmd(self, i=None):
@@ -55,6 +83,26 @@ class overrun(odict):
             * 2016-02-01 ``@ddalle``: First version
         """
         return self.get_key('cmd', i, rck='overrun_cmd')
+
+    # Function to get number of threads
+    def get_overrun_nthreads(self, i=None):
+        """Get number of OpenMP threads for ``overrunmpi``
+
+        :Call:
+            >>> nt = opts.get_overrun_nthreads(i=None)
+        :Inputs:
+            *opts*: :class:`pyOver.options.Options`
+                Options interface
+            *i*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *nt*: {``None``} | :class:`int` > 0
+                Number of OpenMP threads
+        :Versions:
+            * 2017-04-27 ``@ddalle``: First version
+        """
+        return self.get_key('nthreads', i)
+
         
     # Function to get extra OVERFLOW arguments
     def get_overrun_args(self, i=None):
@@ -127,6 +175,16 @@ class RunControl(cape.options.runControl.RunControl):
     def get_overrun_cmd(self, i=None):
         self._overrun()
         return self["overrun"].get_overrun_cmd(i)
+
+    # Get additional ``overrun`` arguments
+    def get_overrun_kw(self, i=None):
+        self._overrun()
+        return self["overrun"].get_overrun_kw(i)
+
+    # Number of OpenMP threads
+    def get_overrun_nthreads(self, i=None):
+        self._overrun()
+        return self["overrun"].get_overrun_nthreads(i)
         
     # Extra ``overrun`` arguments
     def get_overrun_args(self, i=None):
@@ -134,7 +192,7 @@ class RunControl(cape.options.runControl.RunControl):
         return self["overrun"].get_overrun_args(i)
         
     # Copy documentation
-    for k in ['aux', 'cmd', 'args']:
+    for k in ['aux', 'kw', 'cmd', 'nthreads', 'args']:
         eval('get_overrun_'+k).__doc__ = getattr(
             overrun,'get_overrun_'+k).__doc__
     
