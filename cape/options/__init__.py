@@ -781,6 +781,16 @@ class Options(odict):
     def set_aflr3_BCFile(self, fname, j=0):
         self._RunControl()
         self['RunControl'].set_aflr3_BCFile(fname, j)
+
+    # Growth parameter
+    def get_grow(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_grow(j)
+
+    # Grwoth parameter
+    def set_grow(self, grow, j=0):
+        self._RunControl()
+        self['RunControl'].set_grow(grow, j)
     
     # Get stretching ratio
     def get_blr(self, j=0):
@@ -791,6 +801,16 @@ class Options(odict):
     def set_blr(self, blr, j=0):
         self._RunControl()
         self['RunControl'].set_blr(blr, j)
+    
+    # Get number of prisms
+    def get_bli(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_bli(j)
+        
+    # Set number of prism layers
+    def set_bli(self, bli, j=0):
+        self._RunControl()
+        self['RunControl'].set_bli(bli, j)
     
     # Get BL prism layer option
     def get_blc(self, j=0):
@@ -822,6 +842,36 @@ class Options(odict):
         self._RunControl()
         self['RunControl'].set_cdfr(cdfr, j)
         
+    # Get max geometric growth
+    def get_cdfs(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_cdfs(j)
+        
+    # Set max geometric growth
+    def set_cdfs(self, cdfs, j=0):
+        self._RunControl()
+        self['RunControl'].set_cdfs(cdfs, j)
+        
+    # Distribution function
+    def get_mdf(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_mdf(j)
+        
+    # Distribution function
+    def set_mdf(self, mdf, j=0):
+        self._RunControl()
+        self['RunControl'].set_mdf(mdf, j)
+
+    # BL smoothing option
+    def get_mdsblf(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_mdsblf(j)
+
+    # BL smoothing
+    def set_mdsblf(self, mdsblf, j=0):
+        self._RunControl()
+        self['RunControl'].set_mdsblf(mdsblf, j)
+        
     # Number of quality improvement passes
     def get_nqual(self, j=0):
         self._RunControl()
@@ -844,7 +894,9 @@ class Options(odict):
         
     # Copy documentation
     for k in ['aflr3_i', 'aflr3_o', 'aflr3_BCFile',
-        'blc', 'blr', 'blds', 'cdfr', 'nqual', 'angblisimx']:
+        'blc', 'blr', 'bli', 'blds', 'cdfr', 'cdfs',
+        'grow',
+        'nqual', 'mdf', 'mdsblf', 'angblisimx']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(runControl.RunControl,'set_'+k).__doc__

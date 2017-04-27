@@ -171,6 +171,43 @@ class aflr3(odict):
             * 2016-04-04 ``@ddalle``: First version
         """
         self.set_key('blr', blr, j)
+        
+    # Get the number of prism layers
+    def get_bli(self, j=None):
+        """Get the number of AFLR3 prism layers
+        
+        :Call:
+            >>> bli = opts.get_bli(j=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *bli*: :class:`int` > 0
+                Number of prism layers
+        :Versions:
+            * 2017-04-26 ``@ddalle``: First version
+        """
+        return self.get_key('bli', j)
+        
+    # Set the number of prism layers
+    def set_bli(self, bli, j=None):
+        """Set the number of AFLR3 prism layers
+        
+        :Call:
+            >>> opts.set_bli(bli, j=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *bli*: :class:`int` > 0
+                Maximum number of prism layers
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2017-04-26 ``@ddalle``: First version
+        """
+        self.set_key('bli', bli, j)
     
     # Get BL grid option
     def get_blc(self, j=None):
@@ -245,6 +282,43 @@ class aflr3(odict):
             * 2016-04-04 ``@ddalle``: First version
         """
         self.set_key('blds', blds, j)
+
+    # Growth flag
+    def get_grow(self, j=None):
+        """Get the growth option for AFLR3
+
+        :Call:
+            >>> grow = opts.get_grow(j=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *grow*: 1 < :class:`float` <= 2
+                Growth parameter
+        :Versions:
+            * 2017-04-26 ``@ddalle``: First version
+        """
+        return self.get_key('grow', j)
+
+    # Set growth flag
+    def set_grow(self, grow, j=None):
+        """Set the growth option for AFLR3
+
+        :Call:
+            >>> opts.get_grow(grow, j=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *grow*: 1 < :class:`float` <= 2
+                Growth parameter
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2017-04-26 ``@ddalle``: First version
+        """
+        self.set_key('grow', grow, j)
         
     # Get the volume grid stretching
     def get_cdfr(self, j=None):
@@ -265,6 +339,25 @@ class aflr3(odict):
         """
         return self.get_key('cdfr', j, rck='aflr3_cdfr')
         
+    # Grid spacing exclusion zone
+    def get_cdfs(self, j=None):
+        """Get the geometric growth exclusion zone
+        
+        :Call:
+            >>> cdfs = opts.get_cdfr(j=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *cdfs*: {``None``} | :class:`float`; 0 <= *cdfs* <= 10
+                Exclusion zone size
+        :Versions:
+            * 2017-04-26 ``@ddalle``: First version
+        """
+        return self.get_key('cdfs', j, rck='aflr3_cdfs')
+        
     # Set the max geometric growth rate
     def set_cdfr(self, cdfr, j=None):
         """Set the maximum geometric growth rate in the volume region
@@ -282,6 +375,24 @@ class aflr3(odict):
             * 2016-05-06 ``@ddalle``: First version
         """
         self.set_key('cdfr', cdfr, j)
+        
+    # Set the geometric exclusion zone
+    def set_cdfs(self, cdfs, j=None):
+        """Set the exclusion zone for geometric growth
+        
+        :Call:
+            >>> opts.set_cdfs(cdfs, j=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *cdfs*: :class:`float`; 0 <= *cdfr* <= 10
+                Geometric growth exclusion zone size
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2017-04-26 ``@ddalle``: First version
+        """
+        self.set_key('cdfs', cdfs, j)
         
     # Get the number of quality improvement passes
     def get_nqual(self, j=None):
@@ -355,7 +466,80 @@ class aflr3(odict):
         :Versions:
             * 2016-04-04 ``@ddalle``: First version
         """
-        return self.get_key('angblisimx', j)
+        return self.set_key('angblisimx', angblisimx, j)
     
+    # Distribution function flag
+    def get_mdf(self, j=None):
+        """Get the AFLR3 volume grid distribution flag
+
+        :Call:
+            >>> mdsblf = opts.get_mdsblf(j=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *mdf*: ``1`` | {``2``}
+                Volume distribution flag
+        :Versions:
+            * 2017-04-26 ``@ddalle``: First version
+        """
+        return self.get_key('mdf', j, rck="aflr3_mdf")
+    
+    # BL distribution function flag
+    def set_mdf(self, mdf, j=None):
+        """Set the AFLR3 volume grid distribution flag
+
+        :Call:
+            >>> opts.set_mdf(mdf, j=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *mdf*: ``1`` | {``2``}
+                Volume distribution flag
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2017-04-26 ``@ddalle``: First version
+        """
+        return self.set_key('mdf', mdf, j)
+    
+    # BL spacing thickness factor option
+    def get_mdsblf(self, j=None):
+        """Get the BL spacing thickness factor option
+
+        :Call:
+            >>> mdsblf = opts.get_mdsblf(j=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *mdsblf*: ``0`` | {``1``} | ``2``
+                BL spacing flag if *mdl* is not ``0``
+        :Versions:
+            * 2017-04-26 ``@ddalle``: First version
+        """
+        return self.get_key('mdsblf', j, rck="aflr3_mdsblf")
+    
+    # BL spacing thickness factor option
+    def set_mdsblf(self, mdsblf, j=None):
+        """Set the BL spacing thickness factor option
+
+        :Call:
+            >>> opts.set_mdsblf(mdsblf, j=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *mdsblf*: ``0`` | {``1``} | ``2``
+                BL spacing flag if *mdl* is not ``0``
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2017-04-26 ``@ddalle``: First version
+        """
+        return self.set_key('mdsblf', mdsblf, j)
 # class aflr3
 

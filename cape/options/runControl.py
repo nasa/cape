@@ -475,6 +475,16 @@ class RunControl(odict):
     def set_aflr3_BCFile(self, fname, j=0):
         self._aflr3()
         self['aflr3'].set_aflr3_BCFile(fname, j)
+
+    # Growth parameter
+    def get_grow(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_grow(j)
+
+    # Grwoth parameter
+    def set_grow(self, grow, j=0):
+        self._aflr3()
+        self['aflr3'].set_grow(grow, j)
     
     # Get stretching ratio
     def get_blr(self, j=0):
@@ -485,6 +495,16 @@ class RunControl(odict):
     def set_blr(self, blr, j=0):
         self._aflr3()
         self['aflr3'].set_blr(blr, j)
+    
+    # Get stretching ratio
+    def get_bli(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_bli(j)
+        
+    # Set stretching ratio
+    def set_bli(self, bli, j=0):
+        self._aflr3()
+        self['aflr3'].set_bli(bli, j)
     
     # Get BL prism layer option
     def get_blc(self, j=0):
@@ -516,6 +536,16 @@ class RunControl(odict):
         self._aflr3()
         self['aflr3'].set_cdfr(cdfr, j)
         
+    # Max geometric growth ratio
+    def get_cdfs(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_cdfs(j)
+        
+    # Max geometric growth ratio
+    def set_cdfs(self, cdfs, j=0):
+        self._aflr3()
+        self['aflr3'].set_cdfs(cdfs, j)
+        
     # Number of quality improvement passes
     def get_nqual(self, j=0):
         self._aflr3()
@@ -525,6 +555,26 @@ class RunControl(odict):
     def set_nqual(self, nqual, j=0):
         self._aflr3()
         self['aflr3'].set_nqual(nqual, j)
+        
+    # Distribution function
+    def get_mdf(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_mdf(j)
+        
+    # Distribution function
+    def set_mdf(self, mdf, j=0):
+        self._aflr3()
+        self['aflr3'].set_mdf(mdf, j)
+        
+    # Prism smoothing option
+    def get_mdsblf(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_mdsblf(j)
+        
+    # Prism smoothing option
+    def set_mdsblf(self, mdsblf, j=0):
+        self._aflr3()
+        self['aflr3'].set_mdsblf(mdsblf, j)
     
     # Get max wall angle setting
     def get_angblisimx(self, j=0):
@@ -538,7 +588,8 @@ class RunControl(odict):
         
     # Copy documentation
     for k in ['aflr3_i', 'aflr3_o', 'aflr3_BCFile',
-        'blc', 'blr', 'blds', 'cdfr', 'nqual', 'angblisimx']:
+        'blc', 'blr', 'blds', 'bli', 'grow',
+        'cdfr', 'cdfs', 'nqual', 'mdf', 'mdsblf', 'angblisimx']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(aflr3.aflr3,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(aflr3.aflr3,'set_'+k).__doc__

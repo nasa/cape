@@ -135,8 +135,11 @@ rc["rntoldef"] = 1e-4
 rc["cntoldef"] = 1e-3
 
 # AFLR3 settings
-rc['aflr3_cdfr']  = 1.1
-rc['aflr3_nqual'] = 2
+rc['aflr3_cdfr']   = 1.1
+rc['aflr3_cdfs']   = None
+rc['aflr3_mdf']    = 2
+rc['aflr3_mdsblf'] = 1
+rc['aflr3_nqual']  = 2
 
 # Utility function to get elements sanely
 def getel(x, i=None):

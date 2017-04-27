@@ -55,6 +55,8 @@ def aflr3(opts=None, j=0, **kw):
             Initial surface stretching
         *cdfr*: :class:`float`
             Maximum geometric stretching
+        *cdfs: {``None``} | 0 <= :class:`float` <=10
+            Distribution function exclusion zone
         *angblisimx*: :class:`float`
             Max BL intersection angle
     :Outputs:
@@ -70,18 +72,26 @@ def aflr3(opts=None, j=0, **kw):
         fo         = opts.get_aflr3_o(j)
         blc        = opts.get_blc(j)
         blr        = opts.get_blr(j)
+        bli        = opts.get_bli(j)
         blds       = opts.get_blds(j)
+        grow       = opts.get_grow(j)
         cdfr       = opts.get_cdfr(j)
+        cdfs       = opts.get_cdfs(j)
         nqual      = opts.get_nqual(j)
+        mdsblf     = opts.get_mdsblf(j)
         angblisimx = opts.get_angblisimx(j)
     else:
         fi         = getel(kw.get('i'), j)
         fo         = getel(kw.get('o'), j)
+        bli        = getel(kw.get('bli'), j)
         blc        = getel(kw.get('blc'), j)
         blr        = getel(kw.get('blr'), j)
         blds       = getel(kw.get('blds'), j)
+        grow       = getel(kw.get('grow'), j)
         cdfr       = getel(kw.get('cdfr'), j)
+        cdfs       = getel(kw.get('cdfs'), j)
         nqual      = getel(kw.get('nqual'), j)
+        mdsblf     = getel(kw.get('mdsblf'), j)
         angblisimx = getel(kw.get('angblisimx'), j)
     # Initialize command
     cmdi = ['aflr3']
@@ -98,13 +108,17 @@ def aflr3(opts=None, j=0, **kw):
     # Process boolean settings
     if blc:    cmdi.append('-blc')
     # Process flag/value options
+    if bli:    cmdi += ['-bli',  str(bli)]
     if blr:    cmdi += ['-blr',  str(blr)]
     if blds:   cmdi += ['-blds', str(blds)]
+    if grow:   cmdi += ['-grow', '%i' % grow]
     # Process options that come with an equal sign
-    if cdfr:       cmdi += ['cdfr=%s' % cdfr]
-    if angblisimx: cmdi += ['angblisimx=%s' % angblisimx]
+    if cdfs       is not None: cmdi += ['cdfs=%s' % cdfs]
+    if cdfr       is not None: cmdi += ['cdfr=%s' % cdfr]
+    if angblisimx is not None: cmdi += ['angblisimx=%s' % angblisimx]
     # Options that can be None
-    if nqual is not None: cmdi += ['nqual=%i' % nqual]
+    if mdsblf is not None: cmdi += ['-mdsblf', str(mdsblf)]
+    if nqual  is not None: cmdi += ['nqual=%i' % nqual]
     # Output
     return cmdi
     
