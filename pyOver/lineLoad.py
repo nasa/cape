@@ -260,9 +260,9 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
    # Prepare ``grid.i.tri``
    # ----------------------
     # Check for ``mixsur`` or ``usurp``
-    print("Label 0041: qfusurp=%s, qusurp=%s, qmixsur=%s"
+    print("Label 0081: qfusurp=%s, qusurp=%s, qmixsur=%s"
         % (qfusurp, qusurp, qmixsur))
-    if qfusurp and (not qusurp):
+    if qfusurp or (not qusurp):
         # Command to usurp
         cmd = ("usurp -v --watertight --disjoin=yes < %s >& usurp.%s.o"
             % (fmixsur, DB.comp))
@@ -273,7 +273,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
         # Check for errors
         if ierr:
             raise SystemError("Failure while running ``usurp``")
-    elif (not qfusurp) and (not qmixsur):
+    elif (not qfusurp) and (not qusurp) and (not qmixsur):
         # Command to mixsur
         cmd = "mixsur < %s >& mixsur.%s.o" % (fmixsur, DB.comp)
         # Status update
