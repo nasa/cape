@@ -170,8 +170,8 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
         if not os.path.isfile(fxsrf) and os.path.isfile("grid.in"):
             # Use the existing grid file in the lineload/ folder
             fxsrf = "grid.in"
-        os.sys('pwd')
-        os.sys('ls')
+        os.system('pwd')
+        os.system('ls')
         # Check for existing split surface file in lineload/
         if not os.path.isfile(fqsrf) and os.path.isfile("q.save"):
             # Use the existing grid file in the lineload/ folder
