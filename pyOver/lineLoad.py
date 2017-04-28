@@ -85,10 +85,10 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     if not os.path.isfile(fqvol):
         os.chdir('..')
         return
-    # If we're in PreprocessTriq, all x/q files are out-of-date
-    for f in ["grid.in", "x.srf", "x.vol", "q.save", "q.srf", "q.vol"]:
-        # Check if file esists
-        if os.path.isfile(f): os.remove(f)
+    ## If we're in PreprocessTriq, all x/q files are out-of-date
+    #for f in ["grid.in", "x.srf", "x.vol", "q.save", "q.srf", "q.vol"]:
+    #    # Check if file esists
+    #    if os.path.isfile(f): os.remove(f)
    # -------------------------------------
    # Determine MIXSUR output folder status
    # -------------------------------------
@@ -170,8 +170,6 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
         if not os.path.isfile(fxsrf) and os.path.isfile("grid.in"):
             # Use the existing grid file in the lineload/ folder
             fxsrf = "grid.in"
-        os.system('pwd')
-        os.system('ls')
         # Check for existing split surface file in lineload/
         if not os.path.isfile(fqsrf) and os.path.isfile("q.save"):
             # Use the existing grid file in the lineload/ folder
