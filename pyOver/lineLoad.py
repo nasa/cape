@@ -146,11 +146,13 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
    # ------------------------
    # Determine SPLITMQ status
    # ------------------------
+    print("Label 0028: qfsplitm=%s" % qfsplitm)
     # Use this while loop as a method to use ``break``
     if qfsplitm:
         # Source file option(s)
         fqo = DB.opts.get_DataBook_QSurf(DB.comp)
         fxo = DB.opts.get_DataBook_XSurf(DB.comp)
+        
         # Get absolute path
         if fqo is None:
             # No source file
@@ -164,13 +166,15 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
         else:
             # Get path to parent folder
             fxsrf = os.path.join('..', fxo)
+        print("Label 0029: fxsrf='%s' (%s)" % (fxsrf, os.pathisfile(fxsrf)))
+        print("Label 0030: fqsrf='%s' (%s)" % (fqsrf, os.pathisfile(fqsrf)))
         # Check for "q.srf" file
         if fqsrf and os.path.isfile(fqsrf):
             # Get iteration number
             tvol = case.checkqt(fqvol)
             tsrf = case.checkqt(fqsrf)
-            print("Label 0031: tvol=%s, tsrf=%s" % (tvol, tsrf))
-            print("Label 0032: fqsrf='%s', fxsrf='%s'" % (fqsrf,fxsrf))
+            print("Label 0041: tvol=%s, tsrf=%s" % (tvol, tsrf))
+            print("Label 0042: fqsrf='%s', fxsrf='%s'" % (fqsrf,fxsrf))
             # Check if it's up to date
             if tsrf < tvol:
                 # Exists but out-of-date
