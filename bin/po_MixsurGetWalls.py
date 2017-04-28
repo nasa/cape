@@ -41,6 +41,34 @@ import os, sys
 import numpy as np
 # Command-line parser
 import cape.argread
+# Utilities: split by comma or space(s)
+from cape.util import SplitLineGeneral
+
+# Read a line of a MIXSUR file...
+def readline(f):
+    """Read a non-blank line from a CGT-like input file
+    
+    :Call:
+        >>> line, V = readline(f)
+    :Inputs:
+        *f*: :class:`file`
+            Open file handle
+    :Outputs:
+        *line*: :class:`str`
+            Raw line from file
+        *V*: :class:`list` (:class:`str`) | ``None``
+            List of substrings split by commas or spaces, or EOF
+    :Versions:
+        * 2017-04-28 ``@ddalle``: First version
+    """
+    # Initialize output
+    V = []
+    # Read the line
+    line = f.readline()
+    # Exit if empty
+    if line == "": return line, None
+    # Split it
+    return line, SplitLineGeneral(line)
 
 # Main function
 def MixsurGetWalls(*a, **kw):
@@ -59,6 +87,7 @@ def MixsurGetWalls(*a, **kw):
     :Versions:
         * 2017-04-28 ``@ddalle``: First version
     """
+   # --- Inputs ---
     # Process default name of mixsur input file based on argument
     if len(a) < 1:
         fmixsur = "mixsur.i"
@@ -79,14 +108,69 @@ def MixsurGetWalls(*a, **kw):
     fsplitmx = kw.get('s', fsplitmx)
     omixsur  = kw.get('o', omixsur)
     
+   # --- SPLITMX ---
     # Read splitmix file
     G = np.loadtxt(fsplitmx, usecols=(0,), skiprows=2, delimiter=",")
+    # Convert to list
+    G = list(G)
     
+   # --- MIXSUR headers ---
     # Open the input and output files
     fi = open(fmixsur)
     fo = open(omixsur, 'w')
     
+    # Read the first line and copy it
+    line, V = readline(fi)
+    fo.write(line)
+    # Read the number of references from the second line
+    line, V = readline(fi)
+    fo.write(line)
+    NREF = int(V[0])
+    # Copy the line and the next *NREF* lines
+    for i in range(NREF):
+        fo.write(fi.readline())
+    # Read number of surfs
+    line, V = readline(fi)
+    fo.write(line)
+    # Get NSURF
+    NSURF = int(V[0])
     
+    # Blank line
+    fo.write(fi.readline())
+    
+   # --- Process Surfs ---
+    # Loop through surfaces
+    for n in range(NSURF):
+        # Read the number of grids
+        line, V = readline(fi)
+        NSUB = int(V[0])
+        # Write the line
+        fo.write(line)
+        # Loop through the references
+        for k in range(NSUB):
+            # Read the line
+            line = fi.readline()
+            # Get the grid number
+            V = line.split()
+            ng = int(V[0].strip().strip(','))
+            # Check for the grid
+            V[0] = str(G.index(ng)+1)
+            # Write the corrected line
+            fo.write(' '.join(V) + "\n")
+        # Read prisms
+        line, V = readline(fi)
+        NPRI = int(V[0])
+        # Write the line
+        fo.write(line)
+        # Loop through the prisms
+        for k in range(NPRI):
+            fo.write(fi.readline())
+        # Blank line
+        fo.write(fi.readline())
+    
+   # --- Cleanup ---
+    # Copy the rest of the file
+    fo.write(fi.read())
     # Close files
     fi.close()
     fo.close()
