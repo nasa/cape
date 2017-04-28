@@ -223,8 +223,11 @@ class Cart3d(Cntl):
         # Go to root directory.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
+        # Ensure list of components
+        if comp is not None:
+            comp = list(np.array(comp).flatten())
         # Read the data book.
-        self.DataBook = dataBook.DataBook(self.x, self.opts)
+        self.DataBook = dataBook.DataBook(self.x, self.opts, comp=comp)
         # Return to original folder.
         os.chdir(fpwd)
         

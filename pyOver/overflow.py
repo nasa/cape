@@ -114,16 +114,19 @@ class Overflow(Cntl):
             self.x.nCase)
         
     # Function to read the databook.
-    def ReadDataBook(self):
+    def ReadDataBook(self, comp=None):
         """Read the current data book
         
         :Call:
-            >>> oflow.ReadDataBook()
+            >>> oflow.ReadDataBook(comp=None)
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control class
+            *comp*: {``None``} | :class:`str` | :class:`list`
+                List of components, or read all if ``None``
         :Versions:
             * 2016-02-17 ``@ddalle``: First version
+            * 2017-04-27 ``@ddalle``: Added *comp* option
         """
         # Test for an existing data book.
         try:
@@ -134,6 +137,9 @@ class Overflow(Cntl):
         # Go to root directory.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
+        # Ensure list of components
+        if comp is not None:
+            comp = list(np.array(comp).flatten())
         # Read the data book.
         self.DataBook = dataBook.DataBook(self.x, self.opts)
         # Return to original folder.
