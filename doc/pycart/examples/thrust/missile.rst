@@ -210,7 +210,7 @@ same component breakdown as the original input files and is labeled
 two components, and a visualization is shown in :numref:`fig-pycart-ex08--png`.
 
     .. _fig-pycart-ex08-c-png:
-    .. figure:: Components.c.png
+    .. figure:: Components_c.png
         :width: 3.2 in
         
         Raw self-intersecting surface with original component IDs,
@@ -228,7 +228,7 @@ Then a call is made to Cart3D's ``intersect`` tool such that the input is
 shown in :numref:`fig-pycart-ex08-o-png`.
         
     .. _fig-pycart-ex08-o-png:
-    .. figure:: Components.o.png
+    .. figure:: Components_o.png
         :width: 3.2 in
         
         Intersected or trimmed surface with one component ID for each original
@@ -241,7 +241,7 @@ triangle has the component ID copied from the closest triangle of
 :file:`Components.c.tri`.
         
     .. _fig-pycart-ex08-i-png:
-    .. figure:: Components.i.png
+    .. figure:: Components_i.png
         :width: 3.2in
         
         Intersected or trimmed surface with original component IDs mapped,
