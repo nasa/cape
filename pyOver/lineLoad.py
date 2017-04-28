@@ -236,7 +236,8 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
             raise SystemError("Failure while running ``splitmq``")
     elif qfsplitm:
         # Link parent *q.srf* to "q.save" so OVERINT uses it
-        os.symlink(fqsrf, "q.save")
+        if fqsurf != "q.save":
+            os.symlink(fqsrf, "q.save")
     else:
         # Use volume grid
         os.symlink(fqvol, "q.vol")
@@ -257,10 +258,12 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
             raise SystemError("Failure while running ``splitmx``")
     elif qfsplitm:
         # Link parent *x.srf* to "x.save" so OVERINT uses it
-        os.symlink(fxsrf, "grid.in")
+        if fxsrf != "grid.in":
+            os.symlink(fxsrf, "grid.in")
     else:
         # Link parent volume grid
-        os.symlink(fxvol, "grid.in")
+        if fxvol != "grid.in":
+            os.symlink(fxvol, "grid.in")
    # ----------------------
    # Prepare ``grid.i.tri``
    # ----------------------
