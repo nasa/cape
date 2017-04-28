@@ -165,9 +165,9 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
             fxsrf = os.path.join('..', 'x.pyover.srf')
         else:
             # Get path to parent folder
-            fxsrf = os.path.join('..', fxo)
-        print("Label 0029: fxsrf='%s' (%s)" % (fxsrf, os.pathisfile(fxsrf)))
-        print("Label 0030: fqsrf='%s' (%s)" % (fqsrf, os.pathisfile(fqsrf)))
+            fxsrf = os.path.join('..', fxo)                  
+        print("Label 0029: fxsrf='%s' (%s)" % (fxsrf, os.path.isfile(fxsrf)))
+        print("Label 0030: fqsrf='%s' (%s)" % (fqsrf, os.path.isfile(fqsrf)))
         # Check for "q.srf" file
         if fqsrf and os.path.isfile(fqsrf):
             # Get iteration number
