@@ -203,16 +203,19 @@ class Cart3d(Cntl):
   # ==========
   # <
     # Function to read the databook.
-    def ReadDataBook(self):
+    def ReadDataBook(self, comp=None):
         """Read the current data book
         
         :Call:
-            >>> cart3d.ReadDataBook()
+            >>> cart3d.ReadDataBook(comp=None)
         :Inputs:
             *cart3d*: :class:`pyCart.cart3d.Cart3d`
                 Instance of control class containing relevant parameters
+            *comp*: {``None``} | :class:`str` | :class:`list`
+                List of components, or read all if ``None``
         :Versions:
             * 2014-12-28 ``@ddalle``: First version
+            * 2017-04-27 ``@ddalle``: Added *comp* option
         """
         # Test for an existing data book.
         try:
