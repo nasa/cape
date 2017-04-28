@@ -165,7 +165,15 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
             fxsrf = os.path.join('..', 'x.pyover.srf')
         else:
             # Get path to parent folder
-            fxsrf = os.path.join('..', fxo)                  
+            fxsrf = os.path.join('..', fxo)
+        # Check for existing split surface file in lineload/
+        if not os.path.isfile(fxsrf) and os.path.isfile("grid.in"):
+            # Use the existing grid file in the lineload/ folder
+            fxsrf = "grid.in"
+        # Check for existing split surface file in lineload/
+        if not os.path.isfile(fqsrf) and os.path.isfile("q.save"):
+            # Use the existing grid file in the lineload/ folder
+            fqsrf = "q.save"
         print("Label 0029: fxsrf='%s' (%s)" % (fxsrf, os.path.isfile(fxsrf)))
         print("Label 0030: fqsrf='%s' (%s)" % (fqsrf, os.path.isfile(fqsrf)))
         # Check for "q.srf" file
