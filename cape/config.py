@@ -1016,7 +1016,7 @@ class ConfigMIXSUR(object):
             pass
         # Skip the next line
         V = self.readline(f)
-        # Read reverence quantities
+        # Read reference quantities
         V = self.readline(f)
         # Save reference quantities
         try:

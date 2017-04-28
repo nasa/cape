@@ -43,7 +43,6 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
    # -------
    # Options
    # -------
-    # report 
     # Get input files
     fusurp   = DB.opts.get_DataBook_usurp(DB.comp)
     fmixsur  = DB.opts.get_DataBook_mixsur(DB.comp)
@@ -108,6 +107,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
             # Check if the file exists
             if not os.path.isfile(os.path.join(ffomo, f)):
                 # Missing file
+                print("Label 0021: missing mixsur file '%s'" % f)
                 qmixsur = False
                 break
         # List of required usurp files
@@ -117,8 +117,10 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
             # Check if the file exists
             if not os.path.isfile(os.path.join(ffomo, f)):
                 # Missing file
+                print("Label 0023: missing usurp file '%s'" % f)
                 qusurp = False
                 break
+        print("Label 0024: qmixsur=%s, qusurp=%s" % (qmixsur, qusurp))
     else:
         # Must run mixsur or usurp
         qmixsur = False
@@ -167,6 +169,8 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
             # Get iteration number
             tvol = case.checkqt(fqvol)
             tsrf = case.checkqt(fqsrf)
+            print("Label 0031: tvol=%s, tsrf=%s" % (tvol, tsrf))
+            print("Label 0032: fqsrf='%s', fxsrf='%s'" % (fqsrf,fxsrf))
             # Check if it's up to date
             if tsrf < tvol:
                 # Exists but out-of-date
@@ -244,6 +248,8 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
    # Prepare ``grid.i.tri``
    # ----------------------
     # Check for ``mixsur`` or ``usurp``
+    print("Label 0041: qfusurp=%s, qusurp=%s, qmixsur=%s"
+        % (qfusurp, qusurp, qmixsur))
     if qfusurp and (not qusurp):
         # Command to usurp
         cmd = ("usurp -v --watertight --disjoin=yes < %s >& usurp.%s.o"
