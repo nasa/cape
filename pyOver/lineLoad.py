@@ -70,10 +70,10 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     fqo = DB.opts.get_DataBook_QOut(DB.comp)
     fxo = DB.opts.get_DataBook_XOut(DB.comp)
     # If there's no mixsur file, there's nothing we can do
-    if not qmixsur:
+    if not (qfmixsur or qfusurp):
         raise RuntimeError(
-            ("No 'mixsur' or 'overint' input file found ") +
-            ("for TriqFM component '%s'" % DB.comp))
+            ("No 'mixsur' or 'overint' or 'usurp' input file found ") +
+            ("for component '%s'" % DB.comp))
     # Local names for input files
     lsplitmq = 'splitmq.%s.i' % DB.comp
     lsplitmx = 'splitmx.%s.i' % DB.comp
