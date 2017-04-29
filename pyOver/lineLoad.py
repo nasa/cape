@@ -107,7 +107,6 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
             # Check if the file exists
             if not os.path.isfile(os.path.join(ffomo, f)):
                 # Missing file
-                print("Label 0021: missing mixsur file '%s'" % f)
                 qmixsur = False
                 break
         # List of required usurp files
@@ -117,10 +116,8 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
             # Check if the file exists
             if not os.path.isfile(os.path.join(ffomo, f)):
                 # Missing file
-                print("Label 0023: missing usurp file '%s'" % f)
                 qusurp = False
                 break
-        print("Label 0024: qmixsur=%s, qusurp=%s" % (qmixsur, qusurp))
     else:
         # Must run mixsur or usurp
         qmixsur = False
@@ -146,7 +143,6 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
    # ------------------------
    # Determine SPLITMQ status
    # ------------------------
-    print("Label 0028: qfsplitm=%s" % qfsplitm)
     # Use this while loop as a method to use ``break``
     if qfsplitm:
         # Source file option(s)
@@ -174,39 +170,30 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
         if not os.path.isfile(fqsrf) and os.path.isfile("q.save"):
             # Use the existing grid file in the lineload/ folder
             fqsrf = "q.save"
-        print("Label 0029: fxsrf='%s' (%s)" % (fxsrf, os.path.isfile(fxsrf)))
-        print("Label 0030: fqsrf='%s' (%s)" % (fqsrf, os.path.isfile(fqsrf)))
         # Check for "q.srf" file
         if fqsrf and os.path.isfile(fqsrf):
             # Get iteration number
             tvol = case.checkqt(fqvol)
             tsrf = case.checkqt(fqsrf)
-            print("Label 0041: tvol=%s, tsrf=%s" % (tvol, tsrf))
-            print("Label 0042: fqsrf='%s', fxsrf='%s'" % (fqsrf,fxsrf))
             # Check if it's up to date
             if tsrf < tvol:
                 # Exists but out-of-date
-                print("Label 0043")
                 qsplitmq = True
                 qsplitmx = True
             elif fxsrf and os.path.isfile(fxsrf):
                 # Up-to-date, and surface grid good too
-                print("Label 0044")
                 qsplitmq = False
                 qsplitmx = False
             else:
                 # Up-to-date; but need to create 'x.srf'
-                print("Label 0045")
                 qspltimq = False
                 qsplitmx = True
         else:
             # No candidate "q.srf" file from parent directory
-            print("Label 0046")
             qsplitmq = True
             qsplitmx = True
     else:
         # Do not run splitmq
-        print("Label 0047")
         qsplitmq = False
         qsplitmx = False
    # ---------------------
@@ -240,7 +227,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
             os.symlink(fqsrf, "q.save")
     else:
         # Use volume grid
-        os.symlink(fqvol, "q.vol")
+        os.symlink(fqvol, "q.save")
     # Prepare files for ``splitmx``
     if qsplitmx:
         # Link parent X volume
@@ -268,8 +255,6 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
    # Prepare ``grid.i.tri``
    # ----------------------
     # Check for ``mixsur`` or ``usurp``
-    print("Label 0081: qfusurp=%s, qusurp=%s, qmixsur=%s"
-        % (qfusurp, qusurp, qmixsur))
     if qfusurp or (not qusurp):
         # Command to usurp
         cmd = ("usurp -v --watertight --disjoin=yes < %s >& usurp.%s.o"
