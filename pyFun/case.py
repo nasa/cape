@@ -1040,7 +1040,18 @@ def GetPltFile():
     fplt = GetFromGlob(fglb)
     # Check for nothing...
     if fplt is None:
-        return None, None, None, None
+        # Check if we can fall back to a previous project
+        if glob.fnmatch.fnmatch(proj, '*[0-9][0-9]'):
+            # Allow any project
+            fglb = '%s[0-9][0-9]_tec_boundary_timestep[1-9]*.plt' % proj[:-2]
+            # Try again
+            fplt = GetFromGlob(fglb)
+            # Check for second-try miss
+            if fplt is None:
+                return None, None, None, None
+        else:
+            # No file, global project name
+            return None, None, None, None
     # Get the iteration number
     nplt = int(fplt.rstrip('.plt').split('timestep')[-1])
     # ============================

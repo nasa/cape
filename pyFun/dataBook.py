@@ -333,7 +333,7 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
         # Get properties of triq file
         fplt, n, i0, i1 = case.GetPltFile()
         if fplt is None:
-            return None, None, None, None
+            return False, None, None, None, None
         # Check for iteration resets
         nh, ns = case.GetHistoryIter()
         # Add in the last iteration number before restart
