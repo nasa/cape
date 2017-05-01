@@ -198,6 +198,7 @@ class Options(odict):
         nnode = self.get_PBS_select(j, typ=typ)
         ncpus = self.get_PBS_ncpus(j, typ=typ)
         nmpis = self.get_PBS_mpiprocs(j, typ=typ)
+        nomp  = self.get_PBS_ompthreads(j, typ=typ)
         smodl = self.get_PBS_model(j, typ=typ)
         saoe  = self.get_PBS_aoe(j, typ=typ)
         # Form the -l line.
@@ -205,6 +206,7 @@ class Options(odict):
         # Add other settings
         if nmpis: line += (':mpiprocs=%i' % nmpis)
         if smodl: line += (':model=%s' % smodl)
+        if nomp:  line += (':ompthreads=%s' % nomp)
         if saoe:  line += (':aoe=%s' % saoe)
         # Write the line.
         f.write(line + '\n')
@@ -1190,6 +1192,38 @@ class Options(odict):
             self._PBS()
             self['PBS'].set_PBS_mpiprocs(n, i)
     
+    # Get PBS OpenMP procs/node setting
+    def get_PBS_ompthreads(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            return self['BatchPBS'].get_PBS_ompthreads(i)
+        elif typ == 'post':
+            self._PostPBS()
+            return self['PostPBS'].get_PBS_ompthreads(i)
+        else:
+            self._PBS()
+            return self['PBS'].get_PBS_ompthreads(i)
+        
+    # Set PBS OpenMP threads setting
+    def set_PBS_ompthreads(self, n=None, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            self['BatchPBS'].set_PBS_ompthreads(n, i)
+        elif typ == 'post':
+            self._PostPBS()
+            self['PostPBS'].set_PBS_ompthreads(n, i)
+        else:
+            self._PBS()
+            self['PBS'].set_PBS_ompthreads(n, i)
+    
     # Get PBS model or arch setting
     def get_PBS_model(self, i=None, typ=None):
         # Get lower-case type
@@ -1416,7 +1450,7 @@ class Options(odict):
         
     # Copy over the documentation.
     for k in ['PBS_j', 'PBS_r', 'PBS_S', 'PBS_select', 'PBS_mpiprocs',
-            'PBS_o', 'PBS_e', 'PBS_aoe',
+            'PBS_o', 'PBS_e', 'PBS_aoe', 'PBS_ompthreads',
             'PBS_ncpus', 'PBS_model', 'PBS_W', 'PBS_q', 'PBS_walltime']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(PBS,'get_'+k).__doc__

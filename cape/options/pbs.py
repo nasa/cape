@@ -256,6 +256,43 @@ class PBS(odict):
             * 2017-04-05 ``@ddalle``: First version
         """
         self.set_key('PBS_aoe', s, i)
+
+    # Get OMP threads parameter
+    def get_PBS_ompthreads(self, i=None):
+        """Return number of OMP threads
+
+        :Call:
+            >>> n = opts.get_PBS_ompthreads(i=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *i*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *n*: ``None`` | :class:`int`
+                Number of OMP threads to select
+        :Versions:
+            * 2017-05-01 ``@ddalle``: First version
+        """
+        return self.get_key("PBS_ompthreads", i)
+
+    # Set OMP threads parameter
+    def set_PBS_ompthreads(self, n=None, i=None):
+        """Set number of OMP threads
+
+        :Call:
+            >>> n = opts.get_PBS_ompthreads(n=None, i=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *n*: ``None`` | :class:`int`
+                Number of OMP threads to select
+            *i*: {``None``} | :class:`int`
+                Phase number
+        :Versions:
+            * 2017-05-01 ``@ddalle``: First version
+        """
+        self.set_key("PBS_ompthreads", n, i)
     
     
     # Get PBS walltime limit
