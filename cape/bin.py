@@ -93,11 +93,11 @@ def calli(cmdi, f=None, shell=None, v=True):
     return ierr
         
 # Function to call commands with a different STDOUT
-def callf(cmdi, f=None, shell=None, v=True):
+def callf(cmdi, f=None, shell=None, v=True, check=True):
     """Call a command with alternate STDOUT by filename
     
     :Call:
-        >>> callf(cmdi, f=None, shell=None, v=True)
+        >>> callf(cmdi, f=None, shell=None, v=True, check=True)
     :Inputs:
         *cmdi*: :class:`list` (:class:`str`)
             List of strings as for :func:`subprocess.call`
@@ -115,7 +115,7 @@ def callf(cmdi, f=None, shell=None, v=True):
     # Call the command with output status
     ierr = calli(cmdi, f, shell, v=v)
     # Check the status.
-    if ierr:
+    if ierr and check:
         # Remove RUNNING file.
         if os.path.isfile('RUNNING'):
             # Delete it.

@@ -18,6 +18,14 @@ from overNamelist import OverNamelist
 # Interface for writing commands
 from . import bin, cmd, queue
 
+global twall
+
+# Total wall time used
+twall = 0.0
+# Time used by last phase
+dtwall = 0.0
+
+
 
 # Function to complete final setup and call the appropriate FUN3D commands
 def run_overflow():
@@ -52,7 +60,7 @@ def run_overflow():
     # Get the `nodet` or `nodet_mpi` command
     cmdi = cmd.overrun(rc, i=i)
     # Call the command.
-    bin.callf(cmdi, f='pyover.out')
+    bin.callf(cmdi, f='overrun.out', check=False)
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'): os.remove('RUNNING')
     # Save time usage
@@ -62,7 +70,9 @@ def run_overflow():
     # Get STOP iteration, if any
     nstop = GetStopIter()
     # Assuming that worked, move the temp output file.
-    os.rename('pyover.out', '%s.%02i.%i' % (fproj, i+1, n))
+    fout = '%s.%02i.out' % (fproj, i+1)
+    if os.path.isfile(fout):
+        os.rename(fout, '%s.%02i.%i' % (fproj, i+1, n))
     # Check current iteration count and phase
     if (i>=rc.get_PhaseSequence(-1)) and (n>=rc.get_LastIter()):
         # Case completed
@@ -169,6 +179,8 @@ def RestartCase(i0=None):
     rc = ReadCaseJSON()
     # Determine the run index.
     i = GetPhaseNumber(rc)
+    # Get restartability option
+    qtime = (twall_avail > twall + dtwall)
     # Check qsub status.
     if not rc.get_qsub(i):
         # Run the case.
@@ -183,10 +195,10 @@ def RestartCase(i0=None):
             return pbs
         else:
             # Continue on the same job
-            run_overflow()
+            if qtime: run_overflow()
     else:
         # Simply run the case. Don't reset modules either.
-        run_overflow()
+        if qtime: run_overflow()
     
 # Extend case
 def ExtendCase(m=1, run=True):
@@ -246,8 +258,35 @@ def WriteUserTime(tic, rc, i, fname="pyover_time.dat"):
     :Versions:
         * 2015-12-29 ``@ddalle``: First version
     """
+    global twall
     # Call the function from :mod:`cape.case`
     WriteUserTimeProg(tic, rc, i, fname, 'run_overflow.py')
+    # Modify the total time used
+    try:
+        # Get the result
+        A = np.loadtxt(fname, comments='#', usecols=(0,1), delimiter=',')
+        # Split out last two entries
+        t, n = A.flatten()[-2:]
+        # Add to wall time used
+        dtwall = 3600.0*t/n
+        twall += dtwall
+    except Exception:
+        # Unknown time
+        dtwall = 0.0
+        print("Label 030: failed reading time frim '%s'" % fname)
+        pass
+
+# Read wall time
+def ReadWallTimeUsed(fname='pyover_time.dat'):
+    global twall
+    try:
+        A = np.loadtxt(fname, comments='#', usecols=(0,1), delimiter=",")
+        t,n = A.flatten()[-2:]
+
+        twall += 3600.0*t/n
+        return 3600.0*t/n
+    except Exception:
+        return 0.0
 
 # Write start time
 def WriteStartTime(tic, rc, i, fname="pyover_start.dat"):
@@ -1021,3 +1060,31 @@ def GetQFile(fqi="q.pyover.p3d"):
     return fq, n, i0, i1
 # def GetQFile
     
+
+# Get initial settings
+try:
+    rc_init = ReadCaseJSON()
+    j_init = GetPhaseNumber(rc_init)
+    # Initial PBS script
+    fpbs = "run_overflow.%02i.pbs" % j_init
+    # Check if it exists.
+    if not os.path.isfile(fpbs):
+        # Single PBS script
+        fpbs = "run_overflow.pbs"
+    # Read it for wall time
+    if os.path.isfile(fpbs):
+        # Read for 'walltime'
+        lines = bin.grep('walltime=', fpbs)
+        # Read wall time
+        txt_walltime = lines[0].split('=')[-1]
+        # Convert to hr,min,seconds
+        hrs, mins, secs = txt_walltime.split(':')
+        # Convert to seconds
+        twall_avail = 3600.0*int(hrs) + 60.0*int(mins) + 1.0*int(secs)
+    else:
+        # Available wall time unlimited
+        twall_avail = 1e99
+except Exception as e:
+    # Unlimited wall time
+    twall_avail = 1e99
+
