@@ -1914,10 +1914,6 @@ class Cntl(object):
         # ------------------
         # Submit the job
         pbs = queue.pqsub(fpbs)
-        # Write the job number
-        f = open('jobID.dat', 'a')
-        f.write('%s\n' % pbs)
-        f.close()
         # Return to original location
         os.chdir(fpwd)
    # >

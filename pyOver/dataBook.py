@@ -674,6 +674,7 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
         :Versions:
             * 2017-03-29 ``@ddalle``: First version
         """
+        print("Label 035: PWD='%s', ftriq='lineload/grid.i.triq'" % os.getcwd())
         # Read using :mod:`cape`
         self.triq = cape.tri.Triq(os.path.join('lineload', 'grid.i.triq'))
     
@@ -696,8 +697,15 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
             * 2016-12-20 ``@ddalle``: First version
             * 2016-12-21 ``@ddalle``: Added PBS
         """
+        # Create lineload folder if necessary
+        if not os.path.isdir('lineload'):
+            self.opts.mkdir('lineload')
+        # Enter line load folder
+        os.chdir('lineload')
         # Call local function
         lineLoad.PreprocessTriqOverflow(self, fq)
+        # Go back up
+        os.chdir('..')
       
 # class DBTriqFM
 

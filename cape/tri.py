@@ -196,7 +196,7 @@ class TriBase(object):
     # Initialization method
     def __init__(self, fname=None, c=None,
         tri=None, uh3d=None, surf=None, unv=None,
-        xml=None, json=None,
+        xml=None, json=None, mixsur=None,
         nNode=None, Nodes=None, nTri=None, Tris=None,
         nQuad=None, Quads=None, CompID=None):
         """Initialization method"""
@@ -5307,7 +5307,7 @@ class Triq(TriBase):
             
         # Check for configuration
         if c is not None:
-            self.config = Config(c)
+            self.ReadConfig(c)
         
     # Method that shows the representation of a triangulation
     def __repr__(self):

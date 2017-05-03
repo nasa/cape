@@ -187,6 +187,8 @@ def RestartCase(i0=None):
     print("Available time: %.2f hrs" % (twall_avail/3600.0))
     print("Wall time used: %.2f hrs" % (twall/3600.0))
     print("Previous phase: %.2f hrs" % (dtwall/3600.0))
+    # Don't check time if moving to new phase
+    qtime = qtime or (i0 is not None and i0!=i)
     # Check qsub status.
     if not rc.get_qsub(i):
         # Run the case.
@@ -276,21 +278,24 @@ def WriteUserTime(tic, rc, i, fname="pyover_time.dat"):
         # Add to wall time used
         dtwall = 3600.0*t/n
         twall += dtwall
+        print("  ... used %s wall hours on one run of phase %i" % 
+            (dtwall/3600.0, i))
     except Exception:
         # Unknown time
         dtwall = 0.0
-        print("Label 030: failed reading time frim '%s'" % fname)
+        print("  ... failed to determine wall hours used on phase %i" % i)
         pass
 
 # Read wall time
 def ReadWallTimeUsed(fname='pyover_time.dat'):
-    global twall
+    global twall, dtwall
     try:
         A = np.loadtxt(fname, comments='#', usecols=(0,1), delimiter=",")
         t,n = A.flatten()[-2:]
 
-        twall += 3600.0*t/n
-        return 3600.0*t/n
+        dtwall = 3600.0*t/n
+        twall += dtwall
+        return dtwall
     except Exception:
         return 0.0
 

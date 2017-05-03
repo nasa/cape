@@ -78,12 +78,11 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     lsplitmx = 'splitmx.%s.i' % DB.comp
     lmixsur  = 'mixsur.%s.i' % DB.comp
     # Source *q* file is in parent folder
-    fqvol = fq
+    fqvol = os.path.join('..', fq)
     # Source *x* file if needed
     fxvol = os.path.join('..', "x.pyover.p3d")
     # If this file does not exist, nothing is going to work.
     if not os.path.isfile(fqvol):
-        os.chdir('..')
         return
     # If we're in PreprocessTriq, all x/q files are out-of-date
     for f in ["grid.in", "x.srf", "x.vol", "q.save", "q.srf", "q.vol"]:

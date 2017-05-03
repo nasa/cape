@@ -1708,9 +1708,12 @@ def get_ylim(ha, pad=0.05):
         t = type(h).__name__
         # Check the class.
         if t == 'Line2D':
+            # Get the y data for this line
+            ydata = h.get_ydata()
             # Check the min and max data
-            ymin = min(ymin, min(h.get_ydata()))
-            ymax = max(ymax, max(h.get_ydata()))
+            if len(ydata) > 0:
+                ymin = min(ymin, min(h.get_ydata()))
+                ymax = max(ymax, max(h.get_ydata()))
         elif t == 'PolyCollection':
             # Get the path.
             P = h.get_paths()[0]
@@ -1759,9 +1762,12 @@ def get_xlim(ha, pad=0.05):
         t = type(h).__name__
         # Check the class.
         if t == 'Line2D':
+            # Get data
+            xdata = h.get_xdata()
             # Check the min and max data
-            xmin = min(xmin, min(h.get_xdata()))
-            xmax = max(xmax, max(h.get_xdata()))
+            if len(xdata) > 0:
+                xmin = min(xmin, min(h.get_xdata()))
+                xmax = max(xmax, max(h.get_xdata()))
     # Check for identical values
     if xmax - xmin <= 0.1*pad:
         # Expand by manual amount,.
