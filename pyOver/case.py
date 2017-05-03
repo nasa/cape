@@ -18,12 +18,14 @@ from overNamelist import OverNamelist
 # Interface for writing commands
 from . import bin, cmd, queue
 
-global twall
+global twall, dtwall, twall_avail
 
 # Total wall time used
 twall = 0.0
 # Time used by last phase
 dtwall = 0.0
+# Default time avail
+twall_avail = 1e99
 
 
 
@@ -175,12 +177,16 @@ def RestartCase(i0=None):
     :Versions:
         * 2016-02-01 ``@ddalle``: First version
     """
+    global twall, dtwall, twall_avail
     # Get the config.
     rc = ReadCaseJSON()
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Get restartability option
     qtime = (twall_avail > twall + dtwall)
+    print("Available time: %.2f hrs" % (twall_avail/3600.0))
+    print("Wall time used: %.2f hrs" % (twall/3600.0))
+    print("Previous phase: %.2f hrs" % (dtwall/3600.0))
     # Check qsub status.
     if not rc.get_qsub(i):
         # Run the case.
@@ -258,7 +264,7 @@ def WriteUserTime(tic, rc, i, fname="pyover_time.dat"):
     :Versions:
         * 2015-12-29 ``@ddalle``: First version
     """
-    global twall
+    global twall, dtwall
     # Call the function from :mod:`cape.case`
     WriteUserTimeProg(tic, rc, i, fname, 'run_overflow.py')
     # Modify the total time used

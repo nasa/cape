@@ -89,7 +89,7 @@ def overrun(opts=None, i=0, **kw):
         # Use the serial 
         cmdi = ofcmd
     # Append ``-aux`` flag
-    if aux: cmdi = cmdi + ['-aux', "'%s'" % aux]
+    if aux: cmdi = cmdi + ['-aux', aux]
     # Append extra arguments
     if args: cmdi.append(args)
     # Loop through dictionary of other arguments
