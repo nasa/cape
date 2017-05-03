@@ -674,9 +674,36 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
         :Versions:
             * 2017-03-29 ``@ddalle``: First version
         """
-        print("Label 035: PWD='%s', ftriq='lineload/grid.i.triq'" % os.getcwd())
+        # Check if the configuration file exists
+        if os.path.isfile(self.conf):
+            # Use that file (explicitly defined)
+            fcfg = self.conf
+        else:
+            # Check for a mixsur file
+            fmixsur = self.opts.get_DataBook_mixsur(self.comp)
+            fusurp  = self.opts.get_DataBook_usurp(self.comp)
+            # De-none
+            if fmixsur is None: fmixsur = ''
+            if fusurp  is None: fusurp = ''
+            # Make absolute
+            if not os.path.isabs(fmixsur):
+                fmixsur = os.path.join(self.RootDir, fmixsur)
+            if not os.path.isabs(fusurp):
+                fusurp = os.path.join(self.RootDir, fusurp)
+            # Read them
+            if os.path.isfile(fusurp):
+                # USURP file specified; overrides mixsur
+                fcfg = fusurp
+            elif os.path.isfile(fmixsur):
+                # Use MIXSUR file
+                fcfg = fmixsur
+            else:
+                # No config file... probably won't turn out well
+                fcfg = None
+        # Read from lineload/ folder
+        ftriq = os.path.join('lineload', 'grid.i.triq')
         # Read using :mod:`cape`
-        self.triq = cape.tri.Triq(os.path.join('lineload', 'grid.i.triq'))
+        self.triq = cape.tri.Triq(ftriq, c=fcfg)
     
     # Preprocess triq file (convert from PLT)
     def PreprocessTriq(self, fq, **kw):
