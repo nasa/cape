@@ -2881,7 +2881,32 @@ class DBBase(dict):
             xv = self[xk][I]
         # Extract the mean values.
         yv = self[coeff][I]
-      
+        # Get reference quantities
+        Lref = self.opts.get_RefLength(self.comp)
+        Aref = self.opts.get_RefArea(self.comp)
+        MRP  = self.opts.get_RefPoint(self.comp)
+        if MRP is None:
+            # None
+            xMRP = 0.0
+            yMRP = 0.0
+            zMRP = 0.0
+        else:
+            # Unpack
+            xMRP, yMRP, zMRP = MRP 
+        # Check for override parameters
+        Lref = kw.get("Lref", Lref)
+        # Check for special cases
+        if coeff == "CLM":
+            # Check for MRP shift
+            xmrp  = kw.get("XMRP")
+            dxmrp = kw.get("DXMRP")
+            # Shift if necessary
+            if (xmrp is not None) and ("CN" in self):
+                # Shift moment to specific point
+                yv = yv + (xmrp-xMRP)/Lref*self["CN"][I]
+            if (dxmrp is not None) and ("CN" in self):
+                # Shift the moment reference point
+                yv = yv + dxmrp/Lref*self["CN"][I]
         # Default label starter
         try:
             # Name of component

@@ -2953,6 +2953,11 @@ class Report(object):
             lbl += clbl
             # Don't start with a comma!
             lbl = lbl.lstrip(", ")
+            # Other stuff...
+            Lref = opts.get_RefLength(comp)
+            # Moment reference center parameters
+            xmrp = opts.get_SubfigOpt(sfig, "XMRP", k)
+            dxmrp = opts.get_SubfigOpt(sfig, "DXMRP", k)
             # Get the multiple of standard deviation to show
             ksig = opts.get_SubfigOpt(sfig, "StandardDeviation", k)
             qmmx = opts.get_SubfigOpt(sfig, "MinMax", k)
@@ -2965,6 +2970,7 @@ class Report(object):
             kw_m = opts.get_SubfigPlotOpt(sfig, "MinMaxOptions", i)
             # Draw the plot.
             h = DBc.PlotCoeff(coeff, Jj, x=xk,
+                XMRP=xmrp, DXMRP=dxmrp,
                 Label=lbl, LineOptions=kw_p,
                 StDev=ksig, StDevOptions=kw_s,
                 MinMax=qmmx, MinMaxOptions=kw_m,
