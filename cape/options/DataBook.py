@@ -1070,7 +1070,7 @@ class DataBook(odict):
         if len(coeffs) > 0:
             return coeffs
         # Check the type.
-        ctype = copts.get("Type", "Force")
+        ctype = self.get_DataBookType(comp)
         # Default coefficients
         if ctype in ["Force", "force"]:
             # Force only, body-frame
