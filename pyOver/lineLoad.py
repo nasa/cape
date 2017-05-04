@@ -281,6 +281,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     # Check for ``mixsur`` or ``usurp``
     if qfusurp or qusurp:
         # Command to usurp
+        print("Label 050: (PreprocessTriqOverflow) PWD='%s'" % os.getcwd())
         cmd = ("usurp -v --use-map < %s >& usurp.%s.o"
             % (lmixsur, DB.comp))
         # Status update
@@ -467,6 +468,8 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
                 # No knowledge of components; must run overint 
                 qpre = True
         # Output
+        print("Label 020: (GetTriqFile) PWD='%s'" % os.getcwd())
+        print("Label 021: qpre=%s, fq=%s, n=%s, i0=%s, i1=%s" % (qpre,fq,n,i0,i1))
         return qpre, fq, n, i0, i1
         
     # Write triload.i input file
