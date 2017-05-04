@@ -992,38 +992,18 @@ class DBLineLoad(dataBook.DBBase):
             * 2016-06-07 ``@ddalle``: First version
             * 2016-12-21 ``@ddalle``: PBS added
         """
-        # Create header
-        if qpbs:
-            # PBS file name
-            fpbs = 'run_lineload.pbs'
-            # Initialize PBS file
-            f = open('run_lineload.pbs', 'w')
-            # Get case number
-            lbl = self.x.GetPBSName(i, pre='ll')\
-            # Write PBS header
-            self.opts.WritePBSHeader(f, lbl, typ='post')
         # Convert
         if qtriq:
             self.PreprocessTriq(ftriq, qpbs=qpbs, i=i)
         # Triload command
         cmd = 'triloadCmd < triload.%s.i > triload.%s.o'%(self.comp,self.comp)
-        # Check for PBS
-        if qpbs:
-            # Write to file
-            f.write("\n# Run triload\n")
-            f.write("%s\n" % cmd)
-            # Close the file
-            f.close()
-            # Submit the script
-            queue.qsub(fpbs)
-        else:
-            # Status update
-            print("    %s" % cmd)
-            # Run triload
-            ierr = os.system(cmd)
-            # Check for errors
-            if ierr:
-                return SystemError("Failure while running ``triloadCmd``")
+        # Status update
+        print("    %s" % cmd)
+        # Run triload
+        ierr = os.system(cmd)
+        # Check for errors
+        if ierr:
+            return SystemError("Failure while running ``triloadCmd``")
     
     # Convert
     def PreprocessTriq(self, ftriq, **kw):

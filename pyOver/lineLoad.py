@@ -78,7 +78,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     lsplitmx = 'splitmx.%s.i' % DB.comp
     lmixsur  = 'mixsur.%s.i' % DB.comp
     # Source *q* file is in parent folder
-    fqvol = os.path.join('..', fq)
+    fqvol = fq
     # Source *x* file if needed
     fxvol = os.path.join('..', "x.pyover.p3d")
     # If this file does not exist, nothing is going to work.

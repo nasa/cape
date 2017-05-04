@@ -4074,8 +4074,6 @@ class DBTriqFM(DataBook):
        # Calculation
        # -----------
        # (
-        # Create "triqfm" folder if necessary
-        if not os.path.isdir('triqfm'): self.opts.mkdir('triqfm')
         # Convert other format to TRIQ if necessary
         if qtriq:
             self.PreprocessTriq(ftriq, i=i)
