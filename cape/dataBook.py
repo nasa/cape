@@ -4078,8 +4078,6 @@ class DBTriqFM(DataBook):
         if qtriq:
             self.PreprocessTriq(ftriq, i=i)
         # Read the triangulation
-        print("Label 060: (UpdateCase) PWD='%s'" % os.getcwd())
-        print("Label 061: qtriq=%s, ftriq='%s'" % (qtriq, ftriq))
         self.ReadTriq(ftriq)
         # Map the triangulation
         self.MapTriCompID()

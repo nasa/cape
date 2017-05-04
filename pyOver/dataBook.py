@@ -732,11 +732,7 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
         # Add '..' to the path
         fq = os.path.join('..', fq)
         # Call local function
-        print("Label 020: (PreprocessTriq): PWD='%s'" % os.getcwd())
         lineLoad.PreprocessTriqOverflow(self, fq)
-        print("Label 021: (PreprocessTriq): PWD='%s'" % os.getcwd())
-        # Go back up
-        os.chdir('..')
       
 # class DBTriqFM
 
