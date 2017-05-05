@@ -519,6 +519,8 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         """
         # Call local function
         PreprocessTriqOverflow(self, fq)
+        # Go back into line load folder
+        os.chdir('lineload')
         
 # class DBLineLoad
     
