@@ -284,7 +284,7 @@ def rc0(p):
         * 2014-08-01 ``@ddalle``: First version
     """
     # Use the `getel` function to do this.
-    return getel(rc[p], 0)
+    return getel(rc.get(p), 0)
     
     
 # Function to delete comment lines.

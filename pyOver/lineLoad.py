@@ -78,7 +78,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     lsplitmx = 'splitmx.%s.i' % DB.comp
     lmixsur  = 'mixsur.%s.i' % DB.comp
     # Source *q* file is in parent folder
-    fqvol = os.path.join('..', fq)
+    fqvol = fq
     # Source *x* file if needed
     fxvol = os.path.join('..', "x.pyover.p3d")
     # If this file does not exist, nothing is going to work.
@@ -87,7 +87,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     # If we're in PreprocessTriq, all x/q files are out-of-date
     for f in ["grid.in", "x.srf", "x.vol", "q.save", "q.srf", "q.vol"]:
         # Check if file esists
-        if os.path.isfile(f): os.remove(f)
+        if os.path.islink(f): os.remove(f)
    # -------------------------------------
    # Determine MIXSUR output folder status
    # -------------------------------------
@@ -519,6 +519,8 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         """
         # Call local function
         PreprocessTriqOverflow(self, fq)
+        # Go back into line load folder
+        os.chdir('lineload')
         
 # class DBLineLoad
     

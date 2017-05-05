@@ -729,10 +729,10 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
             self.opts.mkdir('lineload')
         # Enter line load folder
         os.chdir('lineload')
+        # Add '..' to the path
+        fq = os.path.join('..', fq)
         # Call local function
         lineLoad.PreprocessTriqOverflow(self, fq)
-        # Go back up
-        os.chdir('..')
       
 # class DBTriqFM
 

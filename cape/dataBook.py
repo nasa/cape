@@ -937,7 +937,7 @@ class DataBook(dict):
             # Status update
             print("%s: deleted %s LineLoad entries" % (comp, n))
             # Write the updated component
-            self.LineLoad[comp].Write()
+            self.LineLoads[comp].Write()
     
     # Function to delete line load entries
     def DeleteLineLoadComp(self, comp, I=None):
@@ -4074,15 +4074,11 @@ class DBTriqFM(DataBook):
        # Calculation
        # -----------
        # (
-        # Create "triqfm" folder if necessary
-        if not os.path.isdir('triqfm'): self.opts.mkdir('triqfm')
         # Convert other format to TRIQ if necessary
         if qtriq:
             self.PreprocessTriq(ftriq, i=i)
         # Read the triangulation
         self.ReadTriq(ftriq)
-        # Enter folder
-        os.chdir("triqfm")
         # Map the triangulation
         self.MapTriCompID()
         # Calculate the forces

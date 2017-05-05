@@ -5551,6 +5551,8 @@ class Triq(TriBase):
             xlp1,ylp1,zlp1, xlp2,ylp2,zlp2, xlp3,ylp3,zlp3)
         # Filter small prisms
         IV = VOL > SMALLVOL
+        # Filter small areas
+        IV = np.logical_and(IV, A > SMALLTRI)
         # Downselect areas
         VAX = N[IV,0]
         VAY = N[IV,1]
@@ -5598,10 +5600,17 @@ class Triq(TriBase):
         Af[T[:,0]] += A
         Af[T[:,1]] += A
         Af[T[:,2]] += A
+        # Filter small areas
+        Af = Af[I]
+        IA = (Af > SMALLTRI)
         # Downselect
-        cf_x = cf_x[I] / Af[I]
-        cf_y = cf_y[I] / Af[I]
-        cf_z = cf_z[I] / Af[I]
+        cf_x = cf_x[I]
+        cf_y = cf_y[I]
+        cf_z = cf_z[I]
+        # Divide by area
+        cf_x[IA] /= Af[IA]
+        cf_y[IA] /= Af[IA]
+        cf_z[IA] /= Af[IA]
         # Output
         return cf_x, cf_y, cf_z
             
@@ -5690,7 +5699,7 @@ class Triq(TriBase):
         zMRP = kw.get("zMRP", MRP[2])
         # Volume limiter
         SMALLVOL = kw.get("SMALLVOL", 1e-20)
-        SMALLTRI = kw.get("SMALLTRI", 1e-12)
+        SMALLTRI = kw.get("SMALLTRI", 1e-5)
        # --------
        # Geometry
        # --------

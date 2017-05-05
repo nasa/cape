@@ -3037,6 +3037,7 @@ class Report(object):
                 for k_i in kw_t: kw_l[k_i] = kw_t[k_i]
                 # Draw the plot
                 DBTc.PlotCoeff(coeff, JTj, x=xk,
+                    XMRP=xmrp, DXMRP=dxmrp,
                     Label=tlbl, LineOptions=kw_l,
                     FigWidth=figw, FigHeight=figh)
        # ----------
