@@ -937,7 +937,7 @@ class DataBook(dict):
             # Status update
             print("%s: deleted %s LineLoad entries" % (comp, n))
             # Write the updated component
-            self.LineLoad[comp].Write()
+            self.LineLoads[comp].Write()
     
     # Function to delete line load entries
     def DeleteLineLoadComp(self, comp, I=None):
