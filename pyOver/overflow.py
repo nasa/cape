@@ -798,11 +798,9 @@ class Overflow(Cntl):
             if j > nSeqO:
                 # Get nIter for phase *j*
                 nj = self.opts.get_namelist_var('GLOBAL', 'NSTEPS', j)
-                # Add *nIter* iterations to last phase iter
-                nj = self.opts.get_PhaseIters(j) + nj
             else:
                 # Use the phase break marker from master JSON file
-                nj = self.opts.get_PhaseIters(j)
+                nj = self.opts.get_PhaseIters(j) - nIter
             # Get iterations for this phase
             # Status update
             print("  Adding phase %s (to %s iterations)" % (j, nIter+nj))
