@@ -92,7 +92,7 @@ the column on the right.
 .. _report-tecplot-layout-vars:
 
 Setting Layout Variables
-------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^
 The freestream Mach number mentioned above is an example of a "layout variable"
 that is set by pyCart while creating a Tecplot layout.  There is another
 special layout variable called ``"FieldMap"`` that is useful for adaptive
@@ -128,7 +128,7 @@ also possible to use values such as ``"$T - 273.15"``.
 .. _report-tecplot-contour-levels:
 
 Altering Contour Level Maps
----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Another difficult issue for using the same Tecplot layout for a range of cases
 is that the appropriate minimum and maximum values for a contour plot often
 change based on the conditions.  As a very common example, minimum and maximum
@@ -188,7 +188,7 @@ something like the total angle of attack may also affect the limits, too.
 .. _report-tecplot-color-map:
 
 Altering Color Maps
--------------------
+^^^^^^^^^^^^^^^^^^^
 Partially related to the difficulty of contour levels is the issue of
 customizing color maps.  The classic rainbow color maps are not particularly
 useful, and even a more typical blue/white/red color map used for *Cp* is
@@ -268,7 +268,7 @@ various possibilities using the pyCart color maps.
 
 
 Changing the FIELDMAP Parameter
--------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Tecplot subfigures have an additional parameter called *FieldMap* that are very
 useful for situations where the number of zones is changing.  For example,
 FUN3D writes each surface component as a separate zone, so changing the
@@ -326,7 +326,7 @@ same format.
 .. _report-tecplot-keys:
 
 Altering Other Layout Parameters
---------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Using the parameter *Keys*, it is also possible to alter other parameters of
 the layout file.  Two common examples of this are turning the mesh on or off
 and changing the camera position.
