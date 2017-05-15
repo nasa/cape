@@ -179,6 +179,9 @@ below.
     +------------+------------------------------------------------------+
     | ``RUN``    | Case is currently running, locally or as PBS job     |
     +------------+------------------------------------------------------+
+    | ``ZOMBIE`` | Case appears to be running, but no files have        |
+    |            | changed in the last 30 minutes                       |
+    +------------+------------------------------------------------------+
     | ``ERROR``  | Case has been marked as erroneous for some reason    |
     +------------+------------------------------------------------------+
     | ``DONE``   | Case is not running and has reached requested number |
@@ -544,6 +547,10 @@ them.
     +---------------+---------------------------------+-------------------+
     | ``-u $USER``  | Check PBS queue for jobs        | ``-c``, ``-e``,   |
     |               | submitted by user *USER*        | ``-n``            |
+    +---------------+---------------------------------+-------------------+
+    | ``--delete``  | Remove subset of cases from     | ``--aero``,       |
+    |               | a data book                     | ``--ll``,         |
+    |               |                                 | ``--triqfm``      |
     +---------------+---------------------------------+-------------------+
     | ``--imax $N`` | Do not exceed iteration *N*     | ``--extend``      |
     +---------------+---------------------------------+-------------------+

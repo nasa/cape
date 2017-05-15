@@ -29,6 +29,7 @@ that serve more specific purposes such as converting file formats.
 .. toctree::
     :maxdepth: 2
     
+    setup
     command-line
     file/json
     file/matrix

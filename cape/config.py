@@ -1775,6 +1775,60 @@ class ConfigJSON(object):
         # Close the file
         f.close()
         
+    # Write .aflr3bc file
+    def WriteAFLR3BC(self, fname):
+        """Write a file that list AFLR3 boundary conditions for components
+        
+        :Call:
+            >>> cfg.WriteAFLR3BC(fname)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                JSON-based configuration instance
+            *fname*: :class:`str`
+                Name of AFLR3 boundary condition file to write
+        :Versions:
+            * 2017-05-05 ``@ddalle``: First version
+        """
+        # Get maximum length of a component for nice formatting
+        L = max([len(face) for face in self.faces])
+        # Create format string
+        fmt = "%%-%is" % L
+        # Open the file
+        f = open(fname, 'w')
+        # Loop through faces
+        for face in self.props:
+            # Get properties
+            prop = self.props[face]
+            # Go to next face if not a dictionary of properties
+            if prop.__class__.__name__ != "dict": continue
+            # Check if "aflr3_bc" is present
+            bc = prop.get("aflr3_bc", prop.get("bc"))
+            # Skip if not present
+            if bc is None: continue
+            # If we reach this point, write the component name and the BC
+            f.write(fmt % face)
+            f.write("%3i" % bc)
+            # Get initial spacing and BL growth distance
+            blds = prop.get("blds")
+            bldel = prop.get("bldel")
+            # Skip if no *blds* value
+            if blds is None:
+                # Give a warning if -1
+                if bc == -1:
+                    print("  Warning: component '%s' has BC of -1 but no blds"
+                        % face)
+            else:
+                # Write the initial spacing
+                f.write("  %-6s" % blds)
+            # Check for the distance
+            if bldel is not None: 
+                f.write("  %-6s" % bldel)
+            # Go to next line
+            f.write("\n")
+        # Close the file
+        f.close()
+        
+        
     # Write .mapbc file
     def WriteFun3DMapBC(self, fname):
         """Write a Fun3D ".mapbc" file

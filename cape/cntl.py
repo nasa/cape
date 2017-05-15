@@ -334,6 +334,15 @@ class Cntl(object):
         tri.iQuad = [tri.nQuad]
         # Loop through files
         for f in ftri[1:]:
+            # Check for non-surface tri file
+            if f.startswith('-'):
+                # Not for writing in "VolTri"; don't intersect it
+                qsurf = -1
+                # Strip leading "-"
+                f = f.lstrip("-")
+            else:
+                # This is a regular surface
+                qsurf = 1
             # Read the next triangulation
             trii = ReadTriFile(f)
             # Apply configuration
@@ -342,8 +351,8 @@ class Cntl(object):
             # Append the triangulation
             tri.Add(trii)
             # Save the face counts
-            tri.iTri.append(tri.nTri)
-            tri.iQuad.append(tri.nQuad)
+            tri.iTri.append(qsurf*tri.nTri)
+            tri.iQuad.append(qsurf*tri.nQuad)
         # Save the triangulation and config.
         self.tri = tri
         self.tri.config = cfg
@@ -2803,13 +2812,15 @@ class Cntl(object):
         os.chdir(self.RootDir)
         # Apply constraints
         I = self.x.GetIndices(**kw)
-        # Read the existing data book.
-        self.ReadDataBook(comp=comp)
         # Check if we are deleting or adding.
         if kw.get('delete', False):
+            # Read the existing data book.
+            self.ReadDataBook(comp=comp)
             # Delete cases.
             self.DataBook.DeleteCases(I, comp=comp)
         else:
+            # Read an empty data book
+            self.ReadDataBook(comp=[])
             # Read the results and update as necessary.
             self.DataBook.UpdateDataBook(I, comp=comp)
         # Return to original location.

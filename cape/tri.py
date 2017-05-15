@@ -2525,8 +2525,25 @@ class TriBase(object):
         tri.CompID[:self.iTri[0]] = comp0 + 1
         # Loop through volumes as marked in *tri.iTri*
         for k in range(len(self.iTri)-1):
+            # Component number
+            compn = comp0 + k + 2
+            # Get indices
+            k1 = self.iTri[k]
+            k2 = self.iTri[k+1]
+            # Check for negative *iTri* value
+            # If negative; don't write in ``intersect`` input triangulation
+            if k2 < 0:
+                # Write a negative component number
+                compn = -compn
+            # Use positive triangle indices
+            k1 = abs(k1)
+            k2 = abs(k2)
             # Set the CompID for each tri in that volume.
-            tri.CompID[self.iTri[k]:self.iTri[k+1]] = comp0 + k + 2
+            tri.CompID[k1:k2] = compn
+        # Ignore negative triangles
+        kKeep = (tri.CompID > 0)
+        tri.Tris   = tri.Tris[kKeep,:]
+        tri.CompID = tri.CompID[kKeep]
         # Write the triangulation to file.
         tri.Write(fname)
         
