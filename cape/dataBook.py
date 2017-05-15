@@ -4210,6 +4210,12 @@ class DBTriqFM(DataBook):
         :Versions:
             * 2017-03-28 ``@ddalle``: First version
         """
+        # Delete the triangulation if present
+        try:
+            self.triq
+            del self.triq
+        except AttributeError:
+            pass
         # Read using :mod:`cape`
         self.triq = cape.tri.Triq(ftriq, c=self.conf)
   # >
@@ -4280,11 +4286,15 @@ class DBTriqFM(DataBook):
             pltq = self.Triq2Plt(self.triq, i=i, **kw)
             # Write ASCII file
             pltq.WriteDat("%s.dat" % fpre)
+            # Delete it
+            del pltq
         elif fmt.lower() == "plt":
             # Create Tecplot PLT interface
             pltq = self.Triq2Plt(self.triq, i=i, **kw)
             # Write binary file
             pltq.Write("%s.plt" % fpre)
+            # Delete it
+            del pltq
         # Go back to original location
         os.chdir(fpwd)
         
