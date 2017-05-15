@@ -727,7 +727,7 @@ class DataBook(dict):
         # Check if the folder exists.
         if not os.path.isdir(frun):
             # Nothing to do.
-            return
+            return 0
         # Go to the folder.
         os.chdir(frun)
         # Get the current iteration number.
