@@ -2873,6 +2873,19 @@ class DBBase(dict):
         tsig = kw.get('PlotTypeStDev', 'FillBetween')
         # Initialize output
         h = {}
+        # Get reference quantities
+        Lref = self.opts.get_RefLength(self.comp)
+        Aref = self.opts.get_RefArea(self.comp)
+        MRP  = self.opts.get_RefPoint(self.comp)
+        # Unpack MRP
+        if MRP is None:
+            # None
+            xMRP = 0.0
+            yMRP = 0.0
+            zMRP = 0.0
+        else:
+            # Unpack
+            xMRP, yMRP, zMRP = MRP 
         # Extract the values for the x-axis.
         if xk is None or xk == 'Index':
             # Use the indices as the x-axis
@@ -2883,19 +2896,21 @@ class DBBase(dict):
             # Extract the values.
             xv = self[xk][I]
         # Extract the mean values.
-        yv = self[coeff][I]
-        # Get reference quantities
-        Lref = self.opts.get_RefLength(self.comp)
-        Aref = self.opts.get_RefArea(self.comp)
-        MRP  = self.opts.get_RefPoint(self.comp)
-        if MRP is None:
-            # None
-            xMRP = 0.0
-            yMRP = 0.0
-            zMRP = 0.0
+        if coeff in self:
+            # Read the coefficient directly
+            yv = self[coeff][I]
+        elif coeff in ["CF", "CT"]:
+            # Try getting magnitude of force
+            yv = np.sqrt(self["CA"][I]**2 + 
+                self["CY"][I]**2 + self["CN"][I]**2)
+        elif coeff in ["CP"]:
+            # Try calculating center of pressure
+            yv = xMRP - self["CLM"][I]*Lref/self["CN"][I]
+        elif coeff in ["cp"]:
+            # Try calculating center of pressure (nondimensional)
+            yv = xMRP/Lref - self["CLM"][I]/self["CN"][I]
         else:
-            # Unpack
-            xMRP, yMRP, zMRP = MRP 
+            raise ValueError("Unrecognized coefficient '%s'" % coeff)
         # Check for override parameters
         Lref = kw.get("Lref", Lref)
         # Check for special cases
