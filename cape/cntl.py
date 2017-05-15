@@ -2812,13 +2812,15 @@ class Cntl(object):
         os.chdir(self.RootDir)
         # Apply constraints
         I = self.x.GetIndices(**kw)
-        # Read the existing data book.
-        self.ReadDataBook(comp=comp)
         # Check if we are deleting or adding.
         if kw.get('delete', False):
+            # Read the existing data book.
+            self.ReadDataBook(comp=comp)
             # Delete cases.
             self.DataBook.DeleteCases(I, comp=comp)
         else:
+            # Read an empty data book
+            self.ReadDataBook(comp=[])
             # Read the results and update as necessary.
             self.DataBook.UpdateDataBook(I, comp=comp)
         # Return to original location.

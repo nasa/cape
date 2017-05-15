@@ -559,6 +559,9 @@ class DataBook(dict):
         comps = self.ProcessComps(comp)
         # Loop through components
         for comp in comps:
+            # Read the component if necessary
+            if comp not in self:
+                self.ReadDBComp(comp)
             # Check type
             tcomp = self.opts.get_DataBookType(comp)
             # Filter
