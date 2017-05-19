@@ -3977,10 +3977,10 @@ class DBTriqFM(DataBook):
         os.chdir(self.RootDir)
         # Get databook dir and triqfm dir
         fdir = self.opts.get_DataBookDir()
-        #ftrq = os.path.join(fdir, 'triqfm')
+        ftrq = os.path.join(fdir, 'triqfm')
         # Ensure folder exists
         if not os.path.isdir(fdir): self.opts.mkdir(fdir)
-        if not os.path.isdir(ftrq): self.opts.mkdir(ftrq)
+        #if not os.path.isdir(ftrq): self.opts.mkdir(ftrq)
         # Loop through patches
         for patch in ([None] + self.patches):
             # Sort it.
