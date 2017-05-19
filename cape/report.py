@@ -63,7 +63,6 @@ from .tecplot import ExportLayout, Tecscript
 # Local modules needed
 import tex, tar
 
-
 # Class to interface with report generation and updating.
 class Report(object):
     """Interface for automated report generation
@@ -2595,22 +2594,27 @@ class Report(object):
             fimg = '%s.%s' % (sfig, fmt)
             fpdf = '%s.pdf' % sfig
             # Save the figure.
-            if fmt.lower() in ['pdf']:
-                # Save as vector-based image.
-                h['fig'].savefig(fimg)
-            elif fmt.lower() in ['svg']:
-                # Save as PDF and SVG
-                h['fig'].savefig(fimg)
-                h['fig'].savefig(fpdf)
-            else:
-                # Save with resolution.
-                h['fig'].savefig(fimg, dpi=dpi)
-                h['fig'].savefig(fpdf)
-            # Close the figure.
-            h['fig'].clf()
-            # Include the graphics.
-            lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                % (frun, fpdf))
+            try:
+                if fmt.lower() in ['pdf']:
+                    # Save as vector-based image.
+                    h['fig'].savefig(fimg)
+                elif fmt.lower() in ['svg']:
+                    # Save as PDF and SVG
+                    h['fig'].savefig(fimg)
+                    h['fig'].savefig(fpdf)
+                else:
+                    # Save with resolution.
+                    h['fig'].savefig(fimg, dpi=dpi)
+                    h['fig'].savefig(fpdf)
+                # Close the figure.
+                h['fig'].clf()
+                # Include the graphics.
+                lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                    % (frun, fpdf))
+            except Exception:
+                print("    Plotting failed, probably due to a NaN.")
+                print("    The actual line load may be acceptable despite" +
+                    "this warning.")
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
