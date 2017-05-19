@@ -13,6 +13,7 @@ PltDict = [
 # Flow files
 CopyFiles = [
     {"*_volume.tec": 1},
+    {"*.grid_info": 1},
     {"*.flow": 1},
     {"*.ugrid": 1},
     {"*.cgns": 1}

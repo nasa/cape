@@ -2991,7 +2991,7 @@ class Report(object):
                 # Check if the *comp*/*coeff* combination is available.
                 if typt in ['duplicate', 'cape', 'pycart', 'pyfun', 'pyover']:
                     # Check if we have the data
-                    if coeff not in DBTc:
+                    if (coeff not in DBTc) and (coeff not in ["cp","CP","CT"]):
                         print(
                             ("    Skipping target '%s': " % targ) +
                             ("coeff '%s/%s' not in target" % (comp,coeff)))
@@ -3023,6 +3023,7 @@ class Report(object):
                     print(
                         ("    Skipping target '%s' " % targ)+
                         ("coeff %s/%s: no matching cases" % (comp,coeff)))
+                    continue
                 # Get target plot label.
                 tlbl = self.SubfigTargetPlotLabel(sfig, k, targ) + clbl
                 # Don't start with comma.
