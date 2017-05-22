@@ -2613,7 +2613,7 @@ class Report(object):
                     % (frun, fpdf))
             except Exception:
                 print("    Plotting failed, probably due to a NaN.")
-                print("    The actual line load may be acceptable despite" +
+                print("    The actual line load may be acceptable despite " +
                     "this warning.")
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
