@@ -2731,7 +2731,8 @@ class DBBase(dict):
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
         """
         # Initialize indices (assume all are matches)
-        J = np.arange(self.n) > -1
+        n = len(self[self.keys()[0]])
+        J = np.arange(n) > -1
         # De-None-ify
         if GlobCons is None: GlobCons = []
         if TolCons is None:  TolCons = {}
@@ -2873,10 +2874,17 @@ class DBBase(dict):
         tsig = kw.get('PlotTypeStDev', 'FillBetween')
         # Initialize output
         h = {}
+        # Process component name
+        try:
+            # Default to attribute (pyCart dataBook components store comp)
+            comp = kw.get('comp', self.comp)
+        except AttributeError:
+            # Generic targets do not have a dedicated "component"
+            comp = kw.get('comp')
         # Get reference quantities
-        Lref = self.opts.get_RefLength(self.comp)
-        Aref = self.opts.get_RefArea(self.comp)
-        MRP  = self.opts.get_RefPoint(self.comp)
+        Lref = self.opts.get_RefLength(comp)
+        Aref = self.opts.get_RefArea(comp)
+        MRP  = self.opts.get_RefPoint(comp)
         # Unpack MRP
         if MRP is None:
             # None
@@ -2895,6 +2903,9 @@ class DBBase(dict):
         else:
             # Extract the values.
             xv = self[xk][I]
+        # Sorting order for *xv*
+        ixv = np.argsort(xv)
+        xv = xv[ixv]
         # Extract the mean values.
         if coeff in self:
             # Read the coefficient directly
@@ -2925,6 +2936,8 @@ class DBBase(dict):
             if (dxmrp is not None) and ("CN" in self):
                 # Shift the moment reference point
                 yv = yv + dxmrp/Lref*self["CN"][I]
+        # Sort the data
+        yv = yv[ixv]
         # Default label starter
         try:
             # Name of component
@@ -2963,7 +2976,7 @@ class DBBase(dict):
                 # Override the default option.
                 if o_k is not None: kw_s[k] = o_k
             # Get the standard deviation value.
-            sv = self[cstd][I]
+            sv = self[cstd][I][ixv]
             # Check plot type
             if tsig == "ErrorBar":
                 # Error bars
@@ -3089,13 +3102,21 @@ class DBBase(dict):
         # Get limits that include all data (and not extra).
         xmin, xmax = get_xlim(h['ax'], pad=0.05)
         ymin, ymax = get_ylim(h['ax'], pad=0.05)
+        # Set defaults
+        if "XMin" in kw and kw["XMin"] is None: kw["XMin"] = xmin
+        if "XMax" in kw and kw["XMax"] is None: kw["XMax"] = xmax
+        if "YMin" in kw and kw["YMin"] is None: kw["YMin"] = ymin
+        if "YMax" in kw and kw["YMax"] is None: kw["YMax"] = ymax
+        # Check for keyword arguments
+        xmax = kw.get("XMax", xmax)
+        xmin = kw.get("XMin", xmin)
+        ymax = kw.get("YMax", ymax)
+        ymin = kw.get("YMin", ymin)
         # Make sure data is included.
         h['ax'].set_xlim(xmin, xmax)
         h['ax'].set_ylim(ymin, ymax)
         # Legend.
         if kw.get('Legend', True):
-            # Get current limits.
-            ymin, ymax = get_ylim(h['ax'], pad=0.05)
             # Add extra room for the legend.
             h['ax'].set_ylim((ymin, 1.2*ymax-0.2*ymin))
             # Font size checks.
@@ -5550,9 +5571,16 @@ class DBTarget(DBBase):
         # List of keys available for this component
         ckeys = self.ckeys.get(comp)
         # Check availability
-        if (ckeys is None) or (coeff not in ckeys): return
+        if (ckeys is None) or (coeff not in ckeys):
+            # Check for special cases
+            if coeff in ['cp', 'CP']:
+                # Special case; try to plot anyway
+                pass
+            else:
+                # Key not available
+                return
         # Get the key
-        ckey = ckeys[coeff]
+        ckey = ckeys.get(coeff, coeff)
         # Get horizontal key.
         xk = kw.get('x')
         # Process this key to turn it into a trajectory column
@@ -5575,6 +5603,8 @@ class DBTarget(DBBase):
         # Alter the default settings for the line
         kw['LineOptions'].setdefault('color', 'r')
         kw['LineOptions'].setdefault('zorder', 7)
+        # Save the component name
+        kw['comp'] = comp
         # Call the base plot method
         return self.PlotCoeffBase(ckey, I, **kw)
 # class DBTarget

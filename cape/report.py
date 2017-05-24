@@ -2968,6 +2968,11 @@ class Report(object):
             # Get figure dimensions.
             figw = opts.get_SubfigOpt(sfig, "FigWidth", k)
             figh = opts.get_SubfigOpt(sfig, "FigHeight", k)
+            # Check for hard-coded axis limits
+            xmin = opts.get_SubfigOpt(sfig, "XMin", k)
+            xmax = opts.get_SubfigOpt(sfig, "XMax", k)
+            ymin = opts.get_SubfigOpt(sfig, "YMin", k)
+            ymax = opts.get_SubfigOpt(sfig, "YMax", k)
             # Plot options
             kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",   i)
             kw_s = opts.get_SubfigPlotOpt(sfig, "StDevOptions",  i)
@@ -2978,7 +2983,8 @@ class Report(object):
                 Label=lbl, LineOptions=kw_p,
                 StDev=ksig, StDevOptions=kw_s,
                 MinMax=qmmx, MinMaxOptions=kw_m,
-                FigWidth=figw, FigHeight=figh)
+                FigWidth=figw, FigHeight=figh,
+                XMin=xmin, XMax=xmax, YMin=ymin, YMax=ymax)
             # Loop through targets
             for targ in targs:
                 # Get the target handle.
@@ -3000,8 +3006,6 @@ class Report(object):
                             ("    Skipping target '%s': " % targ) +
                             ("coeff '%s/%s' not in target" % (comp,coeff)))
                         continue
-                    # Plot the nominal coefficient without translation
-                    tcoeff = coeff
                 else:
                     # Check *DBT* as a DBTarget
                     if comp not in DBTc.ckeys:
@@ -3009,13 +3013,14 @@ class Report(object):
                             ("    Skipping target '%s': " % targ) +
                             ("comp '%s' not in target" % comp))
                         continue
+                    elif coeff in ["cp", "CP"] and "CLM" in DBTc.ckeys[comp]:
+                        # Can reconstruct a center of pressure (probably)
+                        pass
                     elif coeff not in DBTc.ckeys[comp]:
                         print(
                             ("    Skipping target '%s': " % targ) +
                             ("coeff '%s' not in target" % coeff))
                         continue
-                    # Get target coefficient name
-                    tcoeff = DBTc.ckeys[comp][coeff]
                 # Get any translation keys
                 xkeys = topts.get("Trajectory", {})
                 # Get matches
@@ -3041,10 +3046,20 @@ class Report(object):
                 # Apply non-default options
                 for k_i in kw_t: kw_l[k_i] = kw_t[k_i]
                 # Draw the plot
-                DBTc.PlotCoeff(coeff, JTj, x=xk,
-                    XMRP=xmrp, DXMRP=dxmrp,
-                    Label=tlbl, LineOptions=kw_l,
-                    FigWidth=figw, FigHeight=figh)
+                if typt in ['duplicate', 'cape', 'pycart', 'pyfun', 'pyover']:
+                    # Separate object for each component
+                    DBTc.PlotCoeff(coeff, JTj, x=xk,
+                        XMRP=xmrp, DXMRP=dxmrp,
+                        Label=tlbl, LineOptions=kw_l,
+                        FigWidth=figw, FigHeight=figh,
+                        XMin=xmin, XMax=xmax, YMin=ymin, YMax=ymax)
+                else:
+                    # All components in one object; need to say comp
+                    DBTc.PlotCoeff(comp, coeff, JTj, x=xk,
+                        XMRP=xmrp, DXMRP=dxmrp,
+                        Label=tlbl, LineOptions=kw_l,
+                        FigWidth=figw, FigHeight=figh,
+                        XMin=xmin, XMax=xmax, YMin=ymin, YMax=ymax)
        # ----------
        # Formatting
        # ----------
