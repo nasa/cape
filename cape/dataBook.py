@@ -5381,7 +5381,7 @@ class DBTarget(DBBase):
                 raise KeyError(
                     "Missing data book target field:\n" +
                     "  DBTarget  '%s'\n" % self.Name +
-                    "  component '%s'\n" % comp + 
+                    "  ctarg     '%s'\n" % ctarg + 
                     "  coeff     '%s'\n" % c +
                     "  column    '%s'\n" % fi)
             else:
@@ -5392,7 +5392,7 @@ class DBTarget(DBBase):
             raise KeyError(
                 "Repeated data book target column:\n" +
                 "  DBTarget  '%s'\n" % self.Name +
-                "  component '%s'\n" % comp + 
+                "  ctarg     '%s'\n" % ctarg + 
                 "  coeff     '%s'\n" % c +
                 "  column    '%s'\n" % fi)
         # Return the column name
