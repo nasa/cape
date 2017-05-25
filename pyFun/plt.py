@@ -120,22 +120,23 @@ class Plt(cape.plt.Plt):
         self.Vars.append('cp_tavg')
         self.nVar += 1
         # Append column to *qmin* and *qmax*
-        self.qmin = np.hstack((self.qmin, np.zeros((self.nVar,1))))
-        self.qmax = np.hstack((self.qmax, np.zeros((self.nVar,1))))
+        self.qmin = np.hstack((self.qmin, np.zeros((self.nZone,1))))
+        self.qmax = np.hstack((self.qmax, np.zeros((self.nZone,1))))
         # Use time-averaged pressure
         k = self.Vars.index('p_tavg')
+        # Append format for extra column
+        self.fmt = np.hstack((self.fmt, self.fmt[:,[k]]))
         # Loop through states
         for n in range(self.nZone):
             # Get *cp*
             cp = (self.q[n][:,k] - 1/gam)/(0.5*mach*mach)
             # Append state
-            self.q[n] = np.hstack((self.q[n], np.transpose([cn])))
+            self.q[n] = np.hstack((self.q[n], np.transpose([cp])))
             # Update min/max
             self.qmin[n,-1] = np.min(cp)
             self.qmax[n,-1] = np.max(cp)
             # Append the other random info
             self.VarLocs[n] = np.append(self.VarLocs[n], self.VarLocs[n][k])
-            self.fmt[n]     = np.append(self.fmt[n], self.fmt[n][k])
             
 
 # class Plt
