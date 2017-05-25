@@ -122,6 +122,7 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
     fi.write('1\n')
     fi.close()
     # Run triged to remove unused nodes
+    print(" > triged < triged.i > triged.o")
     os.system("triged < triged.i > triged.o")
     
 # Function to verify if requested
