@@ -112,7 +112,17 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
         # Add it to the mapped triangulation
         trii.AddRawCompID(trif)
     # Write the triangulation.
-    trii.Write('%s.i.tri' % proj)
+    trii.Write('%s.a.tri' % proj)
+    # Remove unused nodes
+    fi = open('triged.i', 'w')
+    # Write inputs to the file
+    fi.write('%s.a.tri\n' % proj)
+    fi.write('10\n')
+    fi.write('%s.i.tri\n' % proj)
+    fi.write('1\n')
+    fi.close()
+    # Run triged to remove unused nodes
+    os.system("triged < triged.i > triged.o")
     
 # Function to verify if requested
 def CaseVerify(rc, proj='Components', n=0, fpre='run'):
