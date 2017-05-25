@@ -851,9 +851,19 @@ class Fun3d(Cntl):
             # Check for those AFLR3 boundary conditions
             if fbc:
                 # Absolute file name
-                fbc = os.path.join(self.RootDir, fbc)
+                if not os.path.isabs(fbc):
+                    fbc = os.path.join(self.RootDir, fbc)
                 # Copy the file
                 shutil.copyfile(fbc, '%s.aflr3bc' % fproj)
+            # Surface configuration file
+            fxml = self.opts.get_ConfigFile()
+            # Write it if necessary
+            if fxml:
+                # Absolute file name
+                if not os.path.isabs(fxml):
+                    fxml = os.path.join(self.RootDir, fxml)
+                # Copy the file
+                shutil.copyfile(fxml, '%s.xml' % fproj)
             # Check intersection status.
             if self.opts.get_intersect():
                 # Write tri file as non-intersected; each volume is one CompID

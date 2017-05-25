@@ -172,6 +172,7 @@ def CaseAFLR3(rc, proj='Components', fmt='b8.ugrid', n=0):
     ftri  = '%s.i.tri'   % proj
     fsurf = '%s.surf'    % proj
     fbc   = '%s.aflr3bc' % proj
+    fxml  = '%s.xml'     % proj
     fvol  = '%s.%s'      % (proj, fmt)
     # Exit if volume exists
     if os.path.isfile(fvol): return
@@ -183,7 +184,12 @@ def CaseAFLR3(rc, proj='Components', fmt='b8.ugrid', n=0):
                 ("But found neither Cart3D tri file '%s' " % ftri) +
                 ("nor AFLR3 surf file '%s'" % fsurf))
         # Read the triangulation
-        tri = Tri(ftri)
+        if os.path.isfile(fxml):
+            # Read with configuration
+            tri = Tri(ftri, c=fxml)
+        else:
+            # Read without config
+            tri = Tri(ftri)
         # Check for boundary condition flags
         if os.path.isfile(fbc):
             tri.ReadBCs_AFLR3(fbc)
