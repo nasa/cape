@@ -56,6 +56,9 @@ def Plt2Triq(fplt, ftriq=None, **kw):
         fglob.sort()
         # Import the alphabetically last one (should be the same anyway)
         kw["mapbc"] = pyFun.mapbc.MapBC(fglob[0])
+    # Attempt to get *cp_tavg* state
+    if "mach" in kw:
+        plt.GetCpTAvg(kw["mach"])
     # Create the TRIQ interface
     triq = plt.CreateTriq(**kw)
     # Get output file extension
