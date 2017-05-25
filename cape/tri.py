@@ -2508,7 +2508,7 @@ class TriBase(object):
         running `intersect`.
         
         :Call:
-            >>> tri.WriteCompIDTri(fname='Components.c.tri')
+            >>> tri.WriteVolTri(fname='Components.c.tri')
         :Inputs:
             *tri*: :class:`cape.tri.TriBase` or derivative
                 Triangulation instance
@@ -2544,6 +2544,61 @@ class TriBase(object):
         kKeep = (tri.CompID > 0)
         tri.Tris   = tri.Tris[kKeep,:]
         tri.CompID = tri.CompID[kKeep]
+        # Write the triangulation to file.
+        tri.Write(fname)
+        
+    # Function to write c.tri file with original CompIDs but w/o farfield
+    def WriteCompIDTri(self, fname='Components.tri'):
+        """Write a .tri file with the original components
+        
+        This provides a component map for the output of ``intersect``.
+        Supplemental surfaces, such as farfield triangles or grid refinement
+        sources, are not written.  Specifically, triangles with negative
+        component IDs are not written.
+        
+        :Call:
+            >>> tri.WriteCompIDTri(fname='Components.c.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase` or derivative
+                Triangulation instance
+            *fname*: :class:`str`
+                Name of .tri file to use for mapping intersected tris
+        :Versions:
+            * 2017-05-25 ``@ddalle``: First version
+        """
+        # Copy the triangulation.
+        tri = self.Copy()
+        # Ignore negative triangles
+        kKeep = (tri.CompID > 0)
+        tri.Tris   = tri.Tris[kKeep,:]
+        tri.CompID = tri.CompID[kKeep]
+        # Write the triangulation to file.
+        tri.Write(fname)
+        
+    # Function to write f.tri file with supplemental surfaces
+    def WriteFarfieldTri(self, fname='Components.f.tri'):
+        """Write a .tri file supplemental surfaces not intersected
+        
+        This stores the triangles that are excluded from the input to
+        ``intersect``.  This would include farfield surfaces, grid refinement
+        boxes, or bodies that are known not to intersect any others.
+        
+        :Call:
+            >>> tri.WriteFarfieldTri(fname='Components.f.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase` or derivative
+                Triangulation instance
+            *fname*: :class:`str`
+                Name of .tri file to use for mapping intersected tris
+        :Versions:
+            * 2017-05-25 ``@ddalle``: First version
+        """
+        # Copy the triangulation.
+        tri = self.Copy()
+        # Ignore negative triangles
+        kKeep = (tri.CompID < 0)
+        tri.Tris   = tri.Tris[kKeep,:]
+        tri.CompID = -tri.CompID[kKeep]
         # Write the triangulation to file.
         tri.Write(fname)
         

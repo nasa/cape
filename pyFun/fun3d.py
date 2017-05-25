@@ -859,7 +859,8 @@ class Fun3d(Cntl):
                 # Write tri file as non-intersected; each volume is one CompID
                 self.tri.WriteVolTri('%s.tri' % fproj)
                 # Write the existing triangulation with existing CompIDs.
-                self.tri.Write('%s.c.tri' % fproj)
+                self.tri.WriteCompIDTri('%s.c.tri' % fproj)
+                self.tri.WriteFarfieldTri('%s.f.tri' % fproj)
             elif self.opts.get_verify():
                 # Write the tri file
                 self.tri.Write('%s.i.tri' % fproj)
