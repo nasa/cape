@@ -2568,8 +2568,23 @@ class TriBase(object):
         """
         # Copy the triangulation.
         tri = self.Copy()
+        # Initialize indices of triangles to keep
+        kKeep = np.arange(self.nTri) < 0
+        # Initialize start of first zone
+        k2 = 0
+        # Loop through volumes as marked in *tri.iTri*
+        for k in range(len(self.iTri)):
+            # Get indices
+            k1 = abs(k2)
+            k2 = self.iTri[k]
+            # Keep positive *iTri* values
+            if k2 > 0:
+                # Keep this zone
+                kKeep[k1:k2] = True
+            else:
+                # Do not keep this zone
+                kKeep[k1:-k2] = False
         # Ignore negative triangles
-        kKeep = (tri.CompID > 0)
         tri.Tris   = tri.Tris[kKeep,:]
         tri.CompID = tri.CompID[kKeep]
         # Write the triangulation to file.
@@ -2595,10 +2610,25 @@ class TriBase(object):
         """
         # Copy the triangulation.
         tri = self.Copy()
+        # Initialize indices of triangles to keep
+        kKeep = np.arange(self.nTri) < 0
+        # Initialize start of first zone
+        k2 = 0
+        # Loop through volumes as marked in *tri.iTri*
+        for k in range(len(self.iTri)):
+            # Get indices
+            k1 = abs(k2)
+            k2 = self.iTri[k]
+            # Keep positive *iTri* values
+            if k2 > 0:
+                # Keep this zone
+                kKeep[k1:k2] = False
+            else:
+                # Do not keep this zone
+                kKeep[k1:-k2] = True
         # Ignore negative triangles
-        kKeep = (tri.CompID < 0)
         tri.Tris   = tri.Tris[kKeep,:]
-        tri.CompID = -tri.CompID[kKeep]
+        tri.CompID = tri.CompID[kKeep]
         # Write the triangulation to file.
         tri.Write(fname)
         
