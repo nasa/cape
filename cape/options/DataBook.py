@@ -1085,7 +1085,7 @@ class DataBook(odict):
             # Extracted force and moment
             coeffs = [
                 "CA",  "CY",  "CN", 
-                "CLL", "CLM", "CLN",
+                "CAv", "CYv", "CNv",
                 "Cp_min", "Cp_max",
                 "Ax", "Ay", "Az"
             ]
