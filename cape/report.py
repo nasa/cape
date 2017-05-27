@@ -921,6 +921,13 @@ class Report(object):
             # Handle for the subsweep file.
             tx = self.sweeps[fswp][i]
             tf = tx.Section['Figures']
+        # Save text of subfigures
+        self.subfigs = {}
+        # Find line numbers of start and end of each subfig
+        sfiga = tx.GetIndexStartsWith("\\begin{subfigure}")
+        sfigb = tx.GetIndexStartsWith("\\end{subfigure}")
+        # Initialize number of subfigs
+        nsfig = 0
         # Figure header line
         ffig = '%%<%s\n' % fig
         # Check for the figure.
@@ -929,6 +936,17 @@ class Report(object):
             ifig = tf.index(ffig)
             # Get the location of the end of the figure.
             ofig = ifig + tf[ifig:].index('%>\n')
+            # Loop through subfigs
+            for sfig in self.cntl.opts.get_FigSubfigList(fig):
+                # Check if the subfigure existed
+                if nsfig > len(sfiga):
+                    # No subfigure yet
+                    self.subfigs[sfig] = []
+                    continue
+                # Save lines
+                self.subfigs[sfig] = tx.lines[sfiga[nsfig]:sfigb[nsfig]+1]
+                # Increase count
+                nsfig += 1
             # Delete those lines (to be replaced).
             del tf[ifig:(ofig+1)]
         else:
@@ -2002,6 +2020,9 @@ class Report(object):
         :Versions:
             * 2014-03-09 ``@ddalle``: First version
         """
+        # Check status
+        #if not q:
+        #    return self.subfigs[sfig]
         # Save current folder.
         fpwd = os.getcwd()
         # Extract options
@@ -2427,6 +2448,9 @@ class Report(object):
         :Versions:
             * 2016-06-10 ``@ddalle``: First version
         """
+        # Check status
+        if not q:
+            return self.subfigs[sfig]
         # Save current folder.
         fpwd = os.getcwd()
         # Case folder
