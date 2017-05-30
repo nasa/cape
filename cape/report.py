@@ -769,6 +769,8 @@ class Report(object):
         # -------
         # Figures
         # -------
+        # Save the subfigures
+        self.SaveSubfigs(I, fswp)
         # Get the figures.
         figs = self.cntl.opts.get_SweepOpt(fswp, "Figures")
         # Loop through the figures.
@@ -782,6 +784,58 @@ class Report(object):
         self.sweeps[fswp][I[0]].Write()
         # Go home.
         os.chdir(fpwd)
+    
+    # Get appropriate list of figures
+    def GetFigureList(self, i, fswp=None):
+        """Get list of figures for a report or sweep page
+        
+        :Call:
+            >>> figs = R.GetFigureList(i)
+            >>> figs = R.GetFigureList(I, fswp)
+        :Inputs:
+            *i*: :class:`int`
+                Case index
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of case indices
+            *fswp*: :class:`str`
+                Name of sweep
+        :Outputs:
+            *figs*: :class:`list`
+                List of figure names
+        :Versions:
+            * 2017-05-27 ``@ddalle``: First version
+        """
+        # Check for sweep
+        if fswp is None:
+            # Get the actual iteration number.
+            n = self.cntl.CheckCase(i)
+            # Get required number of iterations for report
+            nMin = self.cntl.opts.get_ReportMinIter(self.rep)
+            # Move on if iteration count not yet achieved
+            if (nMin is not None) and ((n is None) or (n < nMin)):
+                # Go home and quit.
+                return []
+            # Check status.
+            sts = self.cntl.CheckCaseStatus(i)
+            # Call `qstat` if needed.
+            if (sts == "INCOMP") and (n is not None):
+                # Check the current queue
+                sts = self.cntl.CheckCaseStatus(i, auto=True)
+            # Get the figure list
+            if n:
+                # Nominal case with some results
+                figs = self.cntl.opts.get_ReportFigList(self.rep)
+            elif sts == "ERROR":
+                # Get the figures for FAILed cases
+                figs = self.cntl.opts.get_ReportErrorFigList(self.rep)
+            else:
+                # No FAIL file, but no iterations
+                figs = self.cntl.opts.get_ReportZeroFigList(self.rep)
+        else:
+            # Get the list of sweep figures
+            figs = self.cntl.opts.get_SweepOpt(fswp, "Figures")
+        # Output
+        return figs
     
     # Function to create the file for a case
     def UpdateCase(self, i):
@@ -868,6 +922,8 @@ class Report(object):
         # -------
         # Figures
         # -------
+        # Save the subfigures
+        self.SaveSubfigs(i)
         # Loop through figures.
         for fig in figs:
             self.UpdateFigure(fig, i)
@@ -884,6 +940,63 @@ class Report(object):
    # Figure/Subfigure Updaters
    # -------------------------
    # [
+    # Function to save the subfigures
+    def SaveSubfigs(self, i, fswp=None):
+        """Save the current text of subfigures
+        
+        :Call:
+            >>> R.SaveSubfigs(i)
+            >>> R.SaveSubfigs(I, fswp)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of case indices
+            *fswp*: :class:`str`
+                Name of sweep
+        :Attributes:
+            *R.subfigs*: :class:`dict` (:class:`list`)
+                List of LaTeX lines in each subfigure by name
+        :Versions:
+            * 2017-05-27 ``@ddalle``: First version
+        """
+        # -----
+        # Setup
+        # -----
+        # Check for sweep
+        if fswp is None:
+            # Handle for the case file.
+            tx = self.cases[i]
+        else:
+            # Transfer variable names.
+            I = i; i = I[0]
+            # Handle for the subsweep file.
+            tx = self.sweeps[fswp][i]
+        # Initialize holder
+        self.subfigs = {}
+        # Find line numbers of start and end of each subfig
+        sfiga = tx.GetIndexStartsWith("\\begin{subfigure}")
+        sfigb = tx.GetIndexStartsWith("\\end{subfigure}")
+        # Initialize number of subfigs
+        nsfig = 0
+        # List of figures
+        figs = self.GetFigureList(i, fswp=fswp)
+        # Loop through figs
+        for fig in figs:
+            # Loop through subfigs
+            for sfig in self.cntl.opts.get_FigSubfigList(fig):
+                # Check if the subfigure existed
+                if nsfig >= len(sfiga):
+                    # No subfigure yet
+                    self.subfigs[sfig] = []
+                    continue
+                # Save lines
+                self.subfigs[sfig] = tx.lines[sfiga[nsfig]:sfigb[nsfig]+1]
+                # Increase count
+                nsfig += 1
+            
     # Function to write a figure.
     def UpdateFigure(self, fig, i, fswp=None):
         """Write the figure and update the contents as necessary for *fig*
@@ -921,6 +1034,8 @@ class Report(object):
             # Handle for the subsweep file.
             tx = self.sweeps[fswp][i]
             tf = tx.Section['Figures']
+        # Initialize number of subfigs
+        nsfig = 0
         # Figure header line
         ffig = '%%<%s\n' % fig
         # Check for the figure.
@@ -2002,6 +2117,9 @@ class Report(object):
         :Versions:
             * 2014-03-09 ``@ddalle``: First version
         """
+        # Check status
+        if not q:
+            return self.subfigs[sfig]
         # Save current folder.
         fpwd = os.getcwd()
         # Extract options
@@ -2427,6 +2545,9 @@ class Report(object):
         :Versions:
             * 2016-06-10 ``@ddalle``: First version
         """
+        # Check status
+        #if not q:
+        #    return self.subfigs[sfig]
         # Save current folder.
         fpwd = os.getcwd()
         # Case folder

@@ -220,6 +220,44 @@ class PBS(odict):
         self.set_key('PBS_model', s, i)
     
     
+    # Get PBS priority
+    def get_PBS_p(self, i=None):
+        """Return the PBS priority
+        
+        :Call:
+            >>> p = opts.get_PBS_p(i)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *i*: :class:`int` or ``None``
+                Index to select
+        :Outputs:
+            *p*: :class:`int`
+                PBS priority level
+        :Versions:
+            * 2017-05-30 ``@ddalle``: First version
+        """
+        return self.get_key('PBS_p', i)
+        
+    # Set PBS priority
+    def set_PBS_p(self, p=None, i=None):
+        """Set the PBS priority
+        
+        :Call:
+            >>> opts.set_PBS_p(p, i=None)
+        :Inputs:
+            *opts*: :class:`pyCart.options.Options`
+                Options interface
+            *p*: :class:`int`
+                PBS priority level
+            *i*: :class:`int` or ``None``
+                Index to select
+        :Versions:
+            * 2017-04-05 ``@ddalle``: First version
+        """
+        self.set_key('PBS_p', p, i)
+    
+    
     # Get PBS model operating environment
     def get_PBS_aoe(self, i=None):
         """Return the PBS operating environment

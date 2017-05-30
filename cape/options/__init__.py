@@ -214,6 +214,11 @@ class Options(odict):
         t = self.get_PBS_walltime(j, typ=typ)
         # Write it.
         f.write('#PBS -l walltime=%s\n' % t)
+        # Get the priority
+        PBS_p = self.get_PBS_p(j, typ=typ)
+        # Write it.
+        if PBS_p is not None:
+            f.write('#PBS -p %s\n' % PBS_p)
         # Check for a group list.
         PBS_W = self.get_PBS_W(j, typ=typ)
         # Write if specified.
@@ -222,7 +227,6 @@ class Options(odict):
         PBS_q = self.get_PBS_q(j, typ=typ)
         # Write it.
         if PBS_q: f.write('#PBS -q %s\n\n' % PBS_q)
-        
         # Process working directory
         if wd is None:
             # Default to current directory
@@ -1256,6 +1260,38 @@ class Options(odict):
             self._PBS()
             self['PBS'].set_PBS_model(s, i)
     
+    # Get PBS priority
+    def get_PBS_p(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            return self['BatchPBS'].get_PBS_p(i)
+        elif typ == 'post':
+            self._PostPBS()
+            return self['PostPBS'].get_PBS_p(i)
+        else:
+            self._PBS()
+            return self['PBS'].get_PBS_p(i)
+        
+    # Set PBS priority
+    def set_PBS_p(self, p=None, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            self['BatchPBS'].set_PBS_p(p, i)
+        elif typ == 'post':
+            self._PostPBS()
+            self['PostPBS'].set_PBS_p(p, i)
+        else:
+            self._PBS()
+            self['PBS'].set_PBS_p(p, i)
+    
     # Get PBS model or arch setting
     def get_PBS_aoe(self, i=None, typ=None):
         # Get lower-case type
@@ -1450,7 +1486,7 @@ class Options(odict):
         
     # Copy over the documentation.
     for k in ['PBS_j', 'PBS_r', 'PBS_S', 'PBS_select', 'PBS_mpiprocs',
-            'PBS_o', 'PBS_e', 'PBS_aoe', 'PBS_ompthreads',
+            'PBS_o', 'PBS_e', 'PBS_aoe', 'PBS_ompthreads', 'PBS_p',
             'PBS_ncpus', 'PBS_model', 'PBS_W', 'PBS_q', 'PBS_walltime']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(PBS,'get_'+k).__doc__
