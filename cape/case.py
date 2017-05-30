@@ -158,7 +158,7 @@ def CaseVerify(rc, proj='Components', n=0, fpre='run'):
     bin.verify(opts=rc)
     
 # Mesh generation
-def CaseAFLR3(rc, proj='Components', fmt='b8.ugrid', n=0):
+def CaseAFLR3(rc, proj='Components', fmt='lb8.ugrid', n=0):
     """Create volume mesh using ``aflr3``
     
     :Call:

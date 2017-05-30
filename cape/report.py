@@ -2117,9 +2117,9 @@ class Report(object):
         :Versions:
             * 2014-03-09 ``@ddalle``: First version
         """
-        # Check status
-        if not q:
-            return self.subfigs[sfig]
+        ## Check status
+        #if not q:
+        #    return self.subfigs[sfig]
         # Save current folder.
         fpwd = os.getcwd()
         # Extract options
