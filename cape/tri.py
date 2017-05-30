@@ -3016,6 +3016,22 @@ class TriBase(object):
         CompID = np.zeros_like(self.CompID)
         # Initial component number
         ncomp = 0
+        # Clean up extra entries in faces
+        for face in self.config.faces:
+            # Skip if already processed
+            if face in faces: continue
+            # Get the component number
+            compf = self.config.faces[face]
+            # Make sure it's a list
+            if type(compf).__name__ not in ['list', 'ndarray']:
+                continue
+            # Loop through components
+            for compi in compf:
+                # Delete it if not in the renumbered list
+                if compi not in compIDs:
+                    #print("  Deleting %s from %s (index %s)"
+                    #    % (compi, face, compf.index(compi)))
+                    del compf[compf.index(compi)]
         # Loop through sorted faces
         for face in faces:
             # Get the component number
@@ -3025,7 +3041,9 @@ class TriBase(object):
                 # Extract element from singleton
                 compi = compi[0]
             # Check if that compID is present
-            if compi not in compIDs: continue
+            if compi not in compIDs: 
+                self.config.RenumberCompID(face, -compi)
+                continue
             # Otherwise, reset it.
             I = np.where(self.CompID==compi)[0]
             ncomp += 1
