@@ -144,7 +144,7 @@ def RunPhase(rc, i):
     # Check if the primal solution has already been run
     if n < np or nprev == 0:
         # Get the `nodet` or `nodet_mpi` command
-        cmdi = cmd.nodet(rc)
+        cmdi = cmd.nodet(rc, i=i)
         # Call the command.
         bin.callf(cmdi, f='fun3d.out')
         # Get new iteration number

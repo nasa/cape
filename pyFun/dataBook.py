@@ -530,6 +530,11 @@ class CaseFM(cape.dataBook.CaseFM):
             # First attempt
             A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
         except Exception:
+            # Attempt to remove null characters
+            try:
+                os.system("sed -i 's/\\x0//g' %s" % fname)
+            except Exception:
+                pass
             # Second attempt
             A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
         # Number of columns.
@@ -569,8 +574,18 @@ class CaseFM(cape.dataBook.CaseFM):
             # First attempt
             A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
         except Exception:
+            # Attempt to remove null characters
+            try:
+                os.system("sed -i 's/\\x0//g' %s" % fname)
+            except Exception:
+                pass
             # Second attempt
-            A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
+            try:
+                A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
+            except Exception:
+                # Status message
+                print("Failed to read file '%s'" % fname)
+                return
         # Number of columns.
         n = len(cols)
         # Append the values.
