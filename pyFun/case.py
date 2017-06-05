@@ -190,7 +190,10 @@ def RunPhase(rc, i):
         # Check if this is a weird mixed case with Dual and Adaptive
         if rc.get_Dual(): os.chdir('Flow')
         # Run the feature-based adaptive mesher
-        cmdi = cmd.nodet(rc, adapt=True)
+        cmdi = cmd.nodet(rc, adapt=True, i=i)
+        # Make sure "restart_read" is set to .true.
+        nml.SetRestart(True)
+        nml.Write('fun3d.%02i.nml' % i)
         # Call the command.
         bin.callf(cmdi, f='adapt.out')
         # Rename output file after completing that command
