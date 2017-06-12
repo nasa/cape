@@ -595,7 +595,10 @@ class DataBook(dict):
             # Return to original location
             os.chdir(fpwd)
             # Move to next component if no updates
-            if n == 0: continue
+            if n == 0:
+                # Unlock
+                self[comp].Unlock()
+                continue
             # Status update
             print("Writing %i new or updated entries" % n)
             # Sort the component
@@ -634,7 +637,11 @@ class DataBook(dict):
             nj = self.DeleteCasesComp(I, comp)
             # Write the component
             if nj > 0:
+                # Write cleaned-up data book
                 self[comp].Write(unlock=True)
+            else:
+                # Unlock
+                self[comp].Unlock()
         
     # Function to delete entries by index
     def DeleteCasesComp(self, I, comp):
@@ -1047,7 +1054,10 @@ class DataBook(dict):
             # Perform update and get number of deletions
             n = self.UpdateTriqFMComp(comp, I)
             # Check for updates
-            if n == 0: continue
+            if n == 0:
+                # Unlock
+                self.TriqFM[comp].Unlock()
+                continue
             print("Added or updated %s entries" % n)
             # Write the updated results
             self.TriqFM[comp].Sort()
@@ -1111,7 +1121,10 @@ class DataBook(dict):
             # Get number of deletions
             n = self.DeleteTriqFMComp(comp, I)
             # Check number of deletions
-            if n == 0: continue
+            if n == 0: 
+                # Unlock and go to next component
+                self.TriqFM[comp].Unlock()
+                continue
             # Status update
             print("%s: deleted %s TriqFM patch entries" % (comp, n))
             # Write the updated component
@@ -4176,6 +4189,23 @@ class DBTriqFM(DataBook):
         for patch in ([None] + self.patches):
             # Lock each omponent
             self[patch].Lock()
+            
+    # Lock file
+    def Unlock(self):
+        """Unlock the data book component (delete lock file)
+        
+        :Call:
+            >>> DBF.Unlock()
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+        :Versions:
+            * 2017-06-12 ``@ddalle``: First version
+        """
+        # Loop through patches
+        for patch in ([None] + self.patches):
+            # Lock each omponent
+            self[patch].Unlock()
 
     # Find first force/moment component
     def GetRefComponent(self):
