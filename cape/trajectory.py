@@ -1255,6 +1255,7 @@ class Trajectory:
             con = con.replace('====', '==')
             con = con.replace('>==', '>=')
             con = con.replace('<==', '<=')
+            con = con.replace('!==', '!=')
             # Constraint may fail with bad input.
             try:
                 # Apply the constraint.
