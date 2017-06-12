@@ -168,16 +168,20 @@ class DataBook(cape.dataBook.DataBook):
             os.chdir(fpwd)
     
     # Read TrqiFM components
-    def ReadTriqFM(self, comp):
+    def ReadTriqFM(self, comp, check=False, lock=False):
         """Read a TriqFM data book if not already present
         
         :Call:
-            >>> DB.ReadTriqFM(comp)
+            >>> DB.ReadTriqFM(comp, check=False, lock=False)
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of pyCart data book class
             *comp*: :class:`str`
                 Name of TriqFM component
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
         :Versions:
             * 2017-03-29 ``@ddalle``: First version
         """
@@ -189,13 +193,16 @@ class DataBook(cape.dataBook.DataBook):
         # Try to access the TriqFM database
         try:
             self.TriqFM[comp]
+            # Confirm lock
+            if lock:
+                self.TriqFM[comp].Lock()
         except Exception:
             # Safely go to root directory
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read data book
             self.TriqFM[comp] = DBTriqFM(self.x, self.opts, comp,
-                RootDir=self.RootDir)
+                RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
             

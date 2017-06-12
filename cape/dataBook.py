@@ -331,16 +331,20 @@ class DataBook(dict):
         pass
     
     # Read TrqiFM components
-    def ReadTriqFM(self, comp):
+    def ReadTriqFM(self, comp, check=False, lock=False):
         """Read a TriqFM data book if not already present
         
         :Call:
-            >>> DB.ReadTriqFM(comp)
+            >>> DB.ReadTriqFM(comp, check=False, lock=False)
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
                 Data book instance
             *comp*: :class:`str`
                 Name of TriqFM component
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
         :Versions:
             * 2017-03-28 ``@ddalle``: First version
         """
