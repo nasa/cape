@@ -162,7 +162,7 @@ def CaseAFLR3(rc, proj='Components', fmt='lb8.ugrid', n=0):
     """Create volume mesh using ``aflr3``
     
     :Call:
-        >>> CaseAFLR3(rc, proj="Components", fmt='b8.ugrid', n=0)
+        >>> CaseAFLR3(rc, proj="Components", fmt='lb8.ugrid', n=0)
     :Inputs:
         *rc*: :class:`cape.options.runControl.RunControl`
             Case options interface from ``case.json``
