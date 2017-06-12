@@ -356,13 +356,16 @@ class DataBook(dict):
         # Try to access the TriqFM database
         try:
             self.TriqFM[comp]
+            # Confirm lock
+            if lock:
+                self.TriqFM[comp].Lock()
         except Exception:
             # Safely go to root directory
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read data book
             self.TriqFM[comp] = DBTriqFM(self.x, self.opts, comp,
-                RootDir=self.RootDir)
+                RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
     
@@ -4156,6 +4159,23 @@ class DBTriqFM(DataBook):
             self[patch].Sort()
             # Write it
             self[patch].Write(unlock=unlock)
+            
+    # Lock file
+    def Lock(self):
+        """Lock the data book component
+        
+        :Call:
+            >>> DBF.Lock()
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+        :Versions:
+            * 2017-06-12 ``@ddalle``: First version
+        """
+        # Loop through patches
+        for patch in ([None] + self.patches):
+            # Lock each omponent
+            self[patch].Lock()
 
     # Find first force/moment component
     def GetRefComponent(self):

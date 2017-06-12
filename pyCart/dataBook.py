@@ -98,22 +98,27 @@ class DataBook(cape.dataBook.DataBook):
                     targ, self.x, self.opts, self.RootDir)
         
     # Initialize a DBComp object
-    def ReadDBComp(self, comp):
+    def ReadDBComp(self, comp, check=False, lock=False):
         """Initialize data book for one component
         
         :Call:
-            >>> DB.ReadDBComp(comp)
+            >>> DB.ReadDBComp(comp, check=False, lock=False)
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
         :Versions:
             * 2015-11-10 ``@ddalle``: First version
             * 2016-06-27 ``@ddalle``: Added *targ* keyword
             * 2017-04-13 ``@ddalle``: Self-contained and renamed
         """
-        self[comp] = DBComp(comp, self.x, self.opts, targ=self.targ)
+        self[comp] = DBComp(comp, self.x, self.opts,
+            targ=self.targ, check=check, lock=lock)
     
     # Read line load
     def ReadLineLoad(self, comp, conf=None, targ=None):
