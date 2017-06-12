@@ -38,7 +38,7 @@ module for reading iterative force/moment histories and the
 """
 
 # File interface
-import os, fnmatch
+import os, fnmatch, time
 # Basic numerics
 import numpy as np
 # Advanced text (regular expressions)
@@ -1790,7 +1790,7 @@ class DBBase(dict):
     Individual item data book basis class
     
     :Call:
-        >>> DBi = DBBase(comp, x, opts)
+        >>> DBi = DBBase(comp, x, opts, check=False, lock=False)
     :Inputs:
         *comp*: :class:`str`
             Name of the component or other item name
@@ -1798,6 +1798,10 @@ class DBBase(dict):
             Trajectory/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
+        *check*: ``True`` | {``False``}
+            Whether or not to check LOCK status
+        *lock*: ``True`` | {``False``}
+            If ``True``, wait if the LOCK file exists
     :Outputs:
         *DBi*: :class:`cape.dataBook.DBBase`
             An individual item data book
@@ -1810,7 +1814,7 @@ class DBBase(dict):
   # ======
   # <
     # Initialization method
-    def __init__(self, comp, x, opts):
+    def __init__(self, comp, x, opts, check=False, lock=False):
         """Initialization method
         
         :Versions:
@@ -1841,7 +1845,7 @@ class DBBase(dict):
         self.ProcessColumns()
         
         # Read the file or initialize empty arrays.
-        self.Read(self.fname)
+        self.Read(self.fname, check=check, lock=lock)
             
     # Command-line representation
     def __repr__(self):
@@ -1865,6 +1869,10 @@ class DBBase(dict):
   # Read
   # ======
   # <
+   # ---------------
+   # General Readers
+   # ---------------
+   # [
     # Process columns
     def ProcessColumns(self):
         """Process column names
@@ -1931,20 +1939,35 @@ class DBBase(dict):
         
     
     # Read point sensor data
-    def Read(self, fname=None):
+    def Read(self, fname=None, check=False, lock=False):
         """Read a data book statistics file
         
         :Call:
             >>> DBc.Read()
-            >>> DBc.Read(fname)
+            >>> DBc.Read(fname, check=False, lock=False)
         :Inputs:
             *DBc*: :class:`cape.dataBook.DBBase`
                 Data book base object
             *fname*: :class:`str`
                 Name of data file to read
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
+            * 2017-06-12 ``@ddalle``: Added *lock*
         """
+        # Check for lock status?
+        if check:
+            # Wait until unlocked
+            while self.CheckLock():
+                # Status update
+                print("   Locked.  Waiting 30 s ...")
+                time.sleep(30)
+        # Lock the file?
+        if lock:
+            self.Lock()
         # Check for default file name
         if fname is None: fname = self.fname
         # Process converters
@@ -2186,6 +2209,102 @@ class DBBase(dict):
         for k in self.iCols:
             self.rconv.append(int)
             self.wflag.append('%.12g')
+   # ]
+   
+   # ----
+   # Lock
+   # ----
+   # [
+    # Get name of lock file
+    def GetLockFile(self):
+        """Get the name of the potential lock file
+        
+        :Call:
+            >>> flock = DBc.GetLockFile()
+        :Inputs:
+            *DBc*: :class:`cape.dataBook.DataBookBase`
+                Data book base object
+        :Outputs:
+            *flock*: :class:`str`
+                Full path to potential ``lock`` file
+        :Versions:
+            * 2017-06-12 ``@ddalle``: First version
+        """
+        # Split file name so we can insert "lock." at the right place
+        fdir, fn = os.path.split(self.fname)
+        # Construct lock file name
+        flock = os.path.join(fdir, "lock.%s" % fn)
+        # Check for absolute path
+        if not os.path.isabs(flock):
+            # Append root directory
+            flock = os.path.join(self.RootDir, flock)
+        # Output
+        return flock
+        
+    # Check lock file
+    def CheckLock(self):
+        """Check if lock file for this component exists
+        
+        :Call:
+            >>> q = DBc.CheckLock()
+        :Inputs:
+            *DBc*: :class:`cape.dataBook.DataBookBase`
+                Data book base object
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not corresponding LOCK file exists
+        :Versions:
+            * 2017-06-12 ``@ddalle``: First version
+        """
+        # Get the name of the lock file
+        flock = self.GetLockFile()
+        # Check if the file exists
+        return os.path.isfile(flock)
+        
+    # Write the lock file
+    def Lock(self):
+        """Write a 'LOCK' file for a data book component
+        
+        :Call:
+            >>> DBc.Lock()
+        :Inputs:
+            *DBc*: :class:`cape.dataBook.DataBookBase`
+                Data book base object
+        :Versions:
+            * 2017-06-12 ``@ddalle``: First version
+        """
+        # Name of the lock file
+        flock = self.GetLockFile()
+        # Open the file
+        f = open(flock, 'w')
+        # Write the name of the component.
+        try:
+            f.write("%s\n" % self.comp)
+        except AttributeError:
+            pass
+        # Close the file
+        f.close()
+        
+    # Unlock the file
+    def Unlock(self):
+        """Delete the LOCK file if it exists
+        
+        :Call:
+            >>> DBc.Unlock()
+        :Inputs:
+            *DBc*: :class:`cape.dataBook.DataBookBase`
+                Data book base object
+        :Versions:
+            * 2017-06-12 ``@ddalle``: First version
+        """
+        # Name of the lock file
+        flock = self.GetLockFile()
+        # Check if it exists
+        if os.path.isfile(flock):
+            # Delete the file
+            os.remove(flock)
+        
+   # ]
   # >
   
   # ========
@@ -2193,19 +2312,22 @@ class DBBase(dict):
   # ========
   # <
     # Output
-    def Write(self, fname=None):
+    def Write(self, fname=None, unlock=True):
         """Write a single data book summary file
         
         :Call:
             >>> DBi.Write()
-            >>> DBi.Write(fname)
+            >>> DBi.Write(fname, unlock=True)
         :Inputs:
             *DBi*: :class:`cape.dataBook.DBBase`
                 An individual item data book
             *fname*: :class:`str`
                 Name of data file to read
+            *unlock*: {``True``} | ``False``
+                Whether or not to delete any lock files
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
+            * 2017-06-12 ``@ddalle``: Added *unlock*
         """
         # Check for default file name
         if fname is None: fname = self.fname
@@ -2246,6 +2368,9 @@ class DBBase(dict):
             f.write((self.wflag[-1] % self[k][-1]) + '\n')
         # Close the file.
         f.close()
+        # Unlock
+        if unlock:
+            self.Unlock()
         # Return to original location
         os.chdir(fpwd)
   # >
@@ -3796,7 +3921,7 @@ class DBComp(DBBase):
     This class is derived from :class:`cape.dataBook.DBBase`. 
     
     :Call:
-        >>> DBi = DBComp(comp, x, opts)
+        >>> DBi = DBComp(comp, x, opts, targ=None, check=None, lock=None)
     :Inputs:
         *comp*: :class:`str`
             Name of the component
@@ -3806,6 +3931,10 @@ class DBComp(DBBase):
             Global pyCart options instance
         *targ*: {``None``} | :class:`str`
             If used, read a duplicate data book as a target named *targ*
+        *check*: ``True`` | {``False``}
+            Whether or not to check LOCK status
+        *lock*: ``True`` | {``False``}
+            If ``True``, wait if the LOCK file exists
     :Outputs:
         *DBi*: :class:`pyCart.dataBook.DBComp`
             An individual component data book
@@ -3819,7 +3948,7 @@ class DBComp(DBBase):
   # ========
   # <
     # Initialization method
-    def __init__(self, comp, x, opts, targ=None):
+    def __init__(self, comp, x, opts, targ=None, check=False, lock=False):
         """Initialization method
         
         :Versions:
@@ -3854,7 +3983,7 @@ class DBComp(DBBase):
         self.ProcessColumns()
 
         # Read the file or initialize empty arrays.
-        self.Read(self.fname)
+        self.Read(self.fname, check=check, lock=lock)
         
         # Save the target translations
         self.targs = opts.get_CompTargets(comp)
@@ -3894,6 +4023,10 @@ class DBTriqFM(DataBook):
             Name of TriqFM component
         *RootDir*: {``None``} | :class:`st`
             Root directory for the configuration
+        *check*: ``True`` | {``False``}
+            Whether or not to check LOCK status
+        *lock*: ``True`` | {``False``}
+            If ``True``, wait if the LOCK file exists
     :Outputs:
         *DBF*: :class:`cape.dataBook.DBTriqFM`
             Instance of TriqFM data book
@@ -3982,14 +4115,16 @@ class DBTriqFM(DataBook):
             self[patch].Sort()
     
     # Output method
-    def Write(self):
+    def Write(self, unlock=True):
         """Write to file each point sensor data book in a group
         
         :Call:
-            >>> DBF.Write()
+            >>> DBF.Write(unlock=True)
         :Inputs:
             *DBF*: :class:`cape.dataBook.DBTriqFM`
                 Instance of TriqFM data book
+            *unlock*: {``True``} | ``False``
+                Whether or not to delete any lock file
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
@@ -4007,7 +4142,7 @@ class DBTriqFM(DataBook):
             # Sort it.
             self[patch].Sort()
             # Write it
-            self[patch].Write()
+            self[patch].Write(unlock=unlock)
 
     # Find first force/moment component
     def GetRefComponent(self):
@@ -5009,6 +5144,10 @@ class DBTriqFMComp(DBComp):
             Name of TriqFM component
         *RootDir*: {``None``} | :class:`st`
             Root directory for the configuration
+        *check*: ``True`` | {``False``}
+            Whether or not to check LOCK status
+        *lock*: ``True`` | {``False``}
+            If ``True``, wait if the LOCK file exists
     :Outputs:
         *DBF*: :class:`cape.dataBook.DBTriqFM`
             Instance of TriqFM data book
@@ -5031,6 +5170,10 @@ class DBTriqFMComp(DBComp):
         self.opts = opts
         self.comp = comp
         self.patch = patch 
+        
+        # LOCK options
+        check = kw.get("check", False)
+        lock  = kw.get("lock",  False)
         
         # Default prefix
         fpre = opts.get_DataBookPrefix(comp)
@@ -5073,7 +5216,7 @@ class DBTriqFMComp(DBComp):
         self.ProcessColumns()
         
         # Read the file or initialize empty arrays
-        self.Read(fname)
+        self.Read(fname, check=check, lock=lock)
             
   # >
 # class DBTriqFM
