@@ -145,6 +145,9 @@ class DataBook(dict):
         # Change safely to the root folder
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
+        # Lock status
+        check = kw.get("check", False)
+        lock  = kw.get("lock",  False)
         # Save the components
         self.Components = opts.get_DataBookComponents(targ=targ)
         # Get list of components
@@ -194,7 +197,7 @@ class DataBook(dict):
             # Check if it's an aero-type component
             if tcomp not in ['FM', 'Force', 'Moment']: continue
             # Initialize the data book.
-            self.ReadDBComp(comp)
+            self.ReadDBComp(comp, check=check, lock=lock)
         # Initialize targets.
         self.Targets = {}
         # Return to original location
@@ -224,17 +227,18 @@ class DataBook(dict):
   # ===
   # <
     # Write the data book
-    def Write(self):
+    def Write(self, unlock=True):
         """Write the current data book in Python memory to file
         
         :Call:
-            >>> DB.Write()
+            >>> DB.Write(unlock=True)
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
                 Instance of the Cape data book class
         :Versions:
             * 2014-12-22 ``@ddalle``: First version
             * 2015-06-19 ``@ddalle``: New multi-key sort
+            * 2017-06-12 ``@ddalle``: Added *unlock*
         """
         # Start from root directory.
         os.chdir(self.RootDir)
@@ -250,24 +254,29 @@ class DataBook(dict):
             tcomp = self.opts.get_DataBookType(comp)
             if tcomp not in ['Force', 'Moment', 'FM']: continue
             # Write individual component.
-            self[comp].Write()
+            self[comp].Write(unlock=unlock)
     
     # Initialize a DBComp object
-    def ReadDBComp(self, comp):
+    def ReadDBComp(self, comp, check=False, lock=False):
         """Initialize data book for one component
         
         :Call:
-            >>> DB.InitDBComp(comp)
+            >>> DB.InitDBComp(comp, check=False, lock=False)
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
+            *check*: ``True`` | {``False``}
+                Whether or not to check for LOCK file
+            *lock*: ``True`` | {``False``}
+                Whether or not to create LOCK file
         :Versions:
             * 2015-11-10 ``@ddalle``: First version
             * 2017-04-13 ``@ddalle``: Self-contained and renamed
         """
-        self[comp] = DBComp(comp, self.x, self.opts, targ=self.targ)
+        self[comp] = DBComp(comp, self.x, self.opts,
+            targ=self.targ, check=check, lock=lock)
     
     # Read line load
     def ReadLineLoad(self, comp, conf=None, targ=None):
@@ -561,7 +570,7 @@ class DataBook(dict):
         for comp in comps:
             # Read the component if necessary
             if comp not in self:
-                self.ReadDBComp(comp)
+                self.ReadDBComp(comp, check=True, lock=True)
             # Check type
             tcomp = self.opts.get_DataBookType(comp)
             # Filter
@@ -585,7 +594,7 @@ class DataBook(dict):
             # Sort the component
             self[comp].Sort()
             # Write the component
-            self[comp].Write()
+            self[comp].Write(unlock=True)
         
     # Function to delete entries by index
     def DeleteCases(self, I, comp=None):
@@ -618,7 +627,7 @@ class DataBook(dict):
             nj = self.DeleteCasesComp(I, comp)
             # Write the component
             if nj > 0:
-                self[comp].Write()
+                self[comp].Write(unlock=True)
         
     # Function to delete entries by index
     def DeleteCasesComp(self, I, comp):
@@ -640,7 +649,7 @@ class DataBook(dict):
         """
         # Read if necessary
         if comp not in self:
-            self.ReadDBComp(comp)
+            self.ReadDBComp(comp, check=True, lock=True)
         # Check if it's present
         if comp not in self:
             print("WARNING: No aero data book component '%s'" % comp)
@@ -1035,7 +1044,7 @@ class DataBook(dict):
             print("Added or updated %s entries" % n)
             # Write the updated results
             self.TriqFM[comp].Sort()
-            self.TriqFM[comp].Write()
+            self.TriqFM[comp].Write(unlock=True)
     
     # Update TriqFM data book for one component
     def UpdateTriqFMComp(self, comp, I=None):
@@ -1062,7 +1071,7 @@ class DataBook(dict):
             raise ValueError(
                 "Component '%s' is not a TriqFM component" % comp)
         # Read the TriqFM data book if necessary
-        self.ReadTriqFM(comp)
+        self.ReadTriqFM(comp, check=True, lock=True)
         # Intialize count
         n = 0
         # Loop through indices
@@ -1099,7 +1108,7 @@ class DataBook(dict):
             # Status update
             print("%s: deleted %s TriqFM patch entries" % (comp, n))
             # Write the updated component
-            self.TriqFM[comp].Write()
+            self.TriqFM[comp].Write(unlock=True)
     
     # Function to delete triqfm entries
     def DeleteTriqFMComp(self, comp, I=None):
@@ -1129,7 +1138,7 @@ class DataBook(dict):
             raise ValueError(
                 "Component '%s' is not a TriqFM component" % comp)
         # Read the TriqFM data book if necessary
-        self.ReadTriqFM(comp)
+        self.ReadTriqFM(comp, check=True, lock=True)
         # Get the data book
         DBF = self.TriqFM[comp]
         DBc = self.TriqFM[comp][None]
