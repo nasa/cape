@@ -575,15 +575,15 @@ class DataBook(dict):
         comps = self.ProcessComps(comp)
         # Loop through components
         for comp in comps:
-            # Read the component if necessary
-            if comp not in self:
-                self.ReadDBComp(comp, check=True, lock=True)
             # Check type
             tcomp = self.opts.get_DataBookType(comp)
             # Filter
             if tcomp not in ["FM", "Force", "Moment"]: continue
             # Update.
             print("%s component '%s'..." % (tcomp, comp))
+            # Read the component if necessary
+            if comp not in self:
+                self.ReadDBComp(comp, check=True, lock=True)
             # Save location
             fpwd = os.getcwd()
             os.chdir(self.RootDir)

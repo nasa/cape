@@ -141,7 +141,7 @@ class Overflow(Cntl):
         if comp is not None:
             comp = list(np.array(comp).flatten())
         # Read the data book.
-        self.DataBook = dataBook.DataBook(self.x, self.opts)
+        self.DataBook = dataBook.DataBook(self.x, self.opts, comp=comp)
         # Return to original folder.
         os.chdir(fpwd)
         
