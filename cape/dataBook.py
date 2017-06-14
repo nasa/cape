@@ -2288,7 +2288,19 @@ class DBBase(dict):
         # Get the name of the lock file
         flock = self.GetLockFile()
         # Check if the file exists
-        return os.path.isfile(flock)
+        if os.path.isfile(flock):
+            # Get the mod time of said file
+            tlock = os.path.getmtime(flock)
+            # Check for a stale file (using 2.5 hrs)
+            if time.time() - tblock > 9000.0:
+                # Stale file; not locked
+                return False
+            else:
+                # Still locked
+                return True
+        else:
+            # File does not exist
+            return False
         
     # Write the lock file
     def Lock(self):
