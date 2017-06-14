@@ -1095,6 +1095,8 @@ class DataBook(dict):
         for i in I:
             # Update the data book for that case
             n += self.TriqFM[comp].UpdateCase(i)
+            # Touch the lock file
+            self.TriqFM[comp].TouchLock()
         # Output
         return n
         
@@ -2291,8 +2293,8 @@ class DBBase(dict):
         if os.path.isfile(flock):
             # Get the mod time of said file
             tlock = os.path.getmtime(flock)
-            # Check for a stale file (using 2.5 hrs)
-            if time.time() - tlock > 9000.0:
+            # Check for a stale file (using 1.5 hrs)
+            if time.time() - tlock > 5400.0:
                 # Stale file; not locked
                 return False
             else:
@@ -2325,6 +2327,23 @@ class DBBase(dict):
             pass
         # Close the file
         f.close()
+        
+    # Touch the lock file
+    def TouchLock(self):
+        """Touch a 'LOCK' file for a data book component to reset its mod time
+        
+        :Call:
+            >>> DBc.TouchLock()
+        :Inputs:
+            *DBc*: :class:`cape.dataBook.DataBookBase`
+                Data book base object
+        :Versions:
+            * 2017-06-14 ``@ddalle``: First version
+        """
+        # Name of the lock file
+        flock = self.GetLockFile()
+        # Update the file
+        os.utime(flock)
         
     # Unlock the file
     def Unlock(self):
@@ -4201,6 +4220,23 @@ class DBTriqFM(DataBook):
         for patch in ([None] + self.patches):
             # Lock each omponent
             self[patch].Lock()
+        
+    # Touch the lock file
+    def TouchLock(self):
+        """Touch a 'LOCK' file for a data book component to reset its mod time
+        
+        :Call:
+            >>> DBF.TouchLock()
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+        :Versions:
+            * 2017-06-14 ``@ddalle``: First version
+        """
+        # Loop through patches
+        for patch in ([None] + self.patches):
+            # Lock each omponent
+            self[patch].TouchLock()
             
     # Lock file
     def Unlock(self):
