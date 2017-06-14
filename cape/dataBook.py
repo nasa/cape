@@ -2292,7 +2292,7 @@ class DBBase(dict):
             # Get the mod time of said file
             tlock = os.path.getmtime(flock)
             # Check for a stale file (using 2.5 hrs)
-            if time.time() - tblock > 9000.0:
+            if time.time() - tlock > 9000.0:
                 # Stale file; not locked
                 return False
             else:
