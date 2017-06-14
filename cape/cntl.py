@@ -1915,7 +1915,7 @@ class Cntl(object):
         self.WritePBSHeader(f, typ='batch', wd=self.RootDir)
         # Write the command
         f.write('\n# Run the command\n')
-        f.write('%s\n' % (" ".join(cmdi)))
+        f.write('%s\n\n' % (" ".join(cmdi)))
         # Close the file
         f.close()
         # ------------------
