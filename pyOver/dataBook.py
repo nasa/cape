@@ -658,7 +658,7 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
             # No source just yet
             fsrc = None
         # Check if the TRIQ file exists
-        if os.path.isfile(ftriq) and os.path.isfile(fsrc):
+        if fsrc and os.path.isfile(ftriq) and os.path.isfile(fsrc):
             # Check modification dates
             if os.path.getmtime(ftriq) < os.path.getmtime(fsrc):
                 # 'grid.i.triq' exists, but Q file is newer

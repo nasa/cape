@@ -1096,7 +1096,7 @@ class DataBook(dict):
             # Update the data book for that case
             n += self.TriqFM[comp].UpdateCase(i)
             # Touch the lock file
-            self.TriqFM[comp].TouchLock()
+            self.TriqFM[comp].Lock()
         # Output
         return n
         
@@ -2296,6 +2296,10 @@ class DBBase(dict):
             # Check for a stale file (using 1.5 hrs)
             if time.time() - tlock > 5400.0:
                 # Stale file; not locked
+                try:
+                    os.remove(flock)
+                except Exception:
+                    pass
                 return False
             else:
                 # Still locked
@@ -2318,15 +2322,19 @@ class DBBase(dict):
         """
         # Name of the lock file
         flock = self.GetLockFile()
-        # Open the file
-        f = open(flock, 'w')
-        # Write the name of the component.
+        # Safely lock
         try:
-            f.write("%s\n" % self.comp)
-        except AttributeError:
+            # Open the file
+            f = open(flock, 'w')
+            # Write the name of the component.
+            try:
+                f.write("%s\n" % self.comp)
+            except AttributeError:
+                pass
+            # Close the file
+            f.close()
+        except Exception:
             pass
-        # Close the file
-        f.close()
         
     # Touch the lock file
     def TouchLock(self):
@@ -2343,7 +2351,7 @@ class DBBase(dict):
         # Name of the lock file
         flock = self.GetLockFile()
         # Update the file
-        os.utime(flock)
+        os.utime(flock, None)
         
     # Unlock the file
     def Unlock(self):

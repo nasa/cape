@@ -1157,6 +1157,8 @@ class Cntl(object):
         frun = self.x.GetFullFolderNames(i)
         # Check for the RUNNING file.
         q = os.path.isfile(os.path.join(frun, 'FAIL'))
+        # Check ERROR flag
+        q = q or self.x.ERROR[i]
         # Go home.
         os.chdir(fpwd)
         # Output

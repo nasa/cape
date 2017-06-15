@@ -637,6 +637,8 @@ class Fun3d(Cntl):
         frun = self.x.GetFullFolderNames(i)
         # Check for the FAIL file.
         q = os.path.isfile(os.path.join(frun, 'FAIL'))
+        # Check for manual marker
+        q = q or self.x.ERROR[i]
         # Check for 'nan_locations*.dat'
         if not q:
             # Get list of files
