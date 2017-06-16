@@ -114,16 +114,35 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
     # Write the triangulation.
     trii.Write('%s.a.tri' % proj)
     # Remove unused nodes
-    fi = open('triged.i', 'w')
+    infix = "RemoveUnusedNodes"
+    fi = open('triged.%s.i' % infix, 'w')
     # Write inputs to the file
     fi.write('%s.a.tri\n' % proj)
     fi.write('10\n')
-    fi.write('%s.i.tri\n' % proj)
+    fi.write('%s.u.tri\n' % proj)
     fi.write('1\n')
     fi.close()
     # Run triged to remove unused nodes
-    print(" > triged < triged.i > triged.o")
-    os.system("triged < triged.i > triged.o")
+    print(" > triged < triged.%s.i > triged.%so" % (infix, infix))
+    os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
+    # Input file to remove small tris
+    infix = "RemoveSmallTris"
+    fi = open('triged.%s.i' % infix, 'w')
+    # Write inputs to file
+    fi.write('%s.u.tri\n' % proj)
+    fi.write('19\n')
+    fi.write('%f\n' % rc.get("SmallArea", 0.00001))
+    fi.write('%s.i.tri\n' % proj)
+    fi.write('1\n')
+    fi.close()
+    # Run triged to remove small tris
+    print(" > triged < triged.%s.i > triged.%s.o" % (infix, infix))
+    os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
+    # Clean up
+    if os.path.isfile("%s.i.tri" % proj):
+        os.remove("%s.a.tri" % proj)
+        os.remove("%s.u.tri" % proj)
+
     
 # Function to verify if requested
 def CaseVerify(rc, proj='Components', n=0, fpre='run'):
