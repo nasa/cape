@@ -577,6 +577,16 @@ class RunControl(odict):
         self['aflr3'].set_mdsblf(mdsblf, j)
     
     # Get max wall angle setting
+    def get_angqbf(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_angqbf(j)
+        
+    # Set max wall angle setting
+    def set_angqbf(self, angqbf, j=0):
+        self._aflr3()
+        self['aflr3'].set_angqbf(angqbf, j)
+    
+    # Get max wall angle setting
     def get_angblisimx(self, j=0):
         self._aflr3()
         return self['aflr3'].get_angblisimx(j)
@@ -588,7 +598,7 @@ class RunControl(odict):
         
     # Copy documentation
     for k in ['aflr3_i', 'aflr3_o', 'aflr3_BCFile',
-        'blc', 'blr', 'blds', 'bli', 'grow',
+        'blc', 'blr', 'blds', 'bli', 'grow', 'angqbf',
         'cdfr', 'cdfs', 'nqual', 'mdf', 'mdsblf', 'angblisimx']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(aflr3.aflr3,'get_'+k).__doc__

@@ -79,7 +79,7 @@ def aflr3(opts=None, j=0, **kw):
         cdfs       = opts.get_cdfs(j)
         nqual      = opts.get_nqual(j)
         mdsblf     = opts.get_mdsblf(j)
-        angqbf     = None
+        angqbf     = opts.get_angqbf(j)
         angblisimx = opts.get_angblisimx(j)
     else:
         fi         = getel(kw.get('i'), j)

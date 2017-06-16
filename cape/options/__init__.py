@@ -888,6 +888,16 @@ class Options(odict):
         self._RunControl()
         self['RunControl'].set_nqual(nqual, j)
     
+    # Get max surface angle
+    def get_angqbf(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_angqbf(j)
+        
+    # Set max surface angle
+    def set_angqbf(self, angbli, j=0):
+        self._RunControl()
+        self['RunControl'].set_angqbf(angbli, j)
+    
     # Get max wall angle setting
     def get_angblisimx(self, j=0):
         self._RunControl()
@@ -901,7 +911,7 @@ class Options(odict):
     # Copy documentation
     for k in ['aflr3_i', 'aflr3_o', 'aflr3_BCFile',
         'blc', 'blr', 'bli', 'blds', 'cdfr', 'cdfs',
-        'grow',
+        'grow', 'angqbf',
         'nqual', 'mdf', 'mdsblf', 'angblisimx']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__

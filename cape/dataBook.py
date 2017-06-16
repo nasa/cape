@@ -1995,6 +1995,7 @@ class DBBase(dict):
             while self.CheckLock():
                 # Status update
                 print("   Locked.  Waiting 30 s ...")
+                os.sys.stdout.flush()
                 time.sleep(30)
         # Lock the file?
         if lock:
