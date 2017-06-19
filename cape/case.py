@@ -123,7 +123,7 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
     fi.write('1\n')
     fi.close()
     # Run triged to remove unused nodes
-    print(" > triged < triged.%s.i > triged.%so" % (infix, infix))
+    print(" > triged < triged.%s.i > triged.%s.o" % (infix, infix))
     os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
     # Input file to remove small tris
     infix = "RemoveSmallTris"
@@ -204,6 +204,7 @@ def CaseAFLR3(rc, proj='Components', fmt='lb8.ugrid', n=0):
     fbc   = '%s.aflr3bc' % proj
     fxml  = '%s.xml'     % proj
     fvol  = '%s.%s'      % (proj, fmt)
+    ffail = "%s.FAIL.surf" % proj
     # Exit if volume exists
     if os.path.isfile(fvol): return
     # Check for file availability
@@ -230,6 +231,10 @@ def CaseAFLR3(rc, proj='Components', fmt='lb8.ugrid', n=0):
     rc.set_aflr3_o(fvol)
     # Run AFLR3
     bin.aflr3(opts=rc)
+    # Check for failure; aflr3 returns 0 status even on failure
+    if os.path.isfile(ffail):
+        raise RuntimError("Failure during AFLR3 run:\n" +
+            ("File '%s' exists." % ffail))
    
 # Function for the most recent available restart iteration
 def GetRestartIter():
