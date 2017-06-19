@@ -233,7 +233,15 @@ def CaseAFLR3(rc, proj='Components', fmt='lb8.ugrid', n=0):
     bin.aflr3(opts=rc)
     # Check for failure; aflr3 returns 0 status even on failure
     if os.path.isfile(ffail):
-        raise RuntimError("Failure during AFLR3 run:\n" +
+        # Remove RUNNING file
+        if os.path.isfile("RUNNING"):
+            os.remove("RUNNING")
+        # Create failure file
+        f = open('FAIL', 'w')
+        f.write("aflr3\n")
+        f.close()
+        # Error message
+        raise RuntimeError("Failure during AFLR3 run:\n" +
             ("File '%s' exists." % ffail))
    
 # Function for the most recent available restart iteration
