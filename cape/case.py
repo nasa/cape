@@ -131,7 +131,7 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
     # Write inputs to file
     fi.write('%s.u.tri\n' % proj)
     fi.write('19\n')
-    fi.write('%f\n' % rc.get("SmallArea", 0.00001))
+    fi.write('%f\n' % rc.get("SmallArea", 0.0001))
     fi.write('%s.i.tri\n' % proj)
     fi.write('1\n')
     fi.close()
