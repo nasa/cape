@@ -1620,9 +1620,9 @@ class Report(object):
         # Loop through functions
         for func in funcs:
             # Status update
-            print("    Subfig function: %s(%s, %s)" % (func, sfig, i))
+            print('    Subfig function: %s("%s", %s)' % (func, sfig, i))
             # Run the function
-            exec("cntl.%s(cntl, %s, %s)" % (func, sfig, i))
+            exec("cntl.%s(cntl, sfig, %s)" % (func, i))
         
       
     # Function to get the list of targets for a subfigure

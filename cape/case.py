@@ -111,37 +111,41 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
         trif = Tri(ftrif)
         # Add it to the mapped triangulation
         trii.AddRawCompID(trif)
+    # Names of intermediate steps
+    fatri = '%s.a.tri' % proj
+    futri = '%s.u.tri' % proj
+    fitri = '%s.i.tri' % proj
     # Write the triangulation.
-    trii.Write('%s.a.tri' % proj)
+    trii.Write(fatri)
     # Remove unused nodes
     infix = "RemoveUnusedNodes"
     fi = open('triged.%s.i' % infix, 'w')
     # Write inputs to the file
-    fi.write('%s.a.tri\n' % proj)
+    fi.write('%s\n' % fatri)
     fi.write('10\n')
-    fi.write('%s.u.tri\n' % proj)
+    fi.write('%s\n' % fitri)
     fi.write('1\n')
     fi.close()
     # Run triged to remove unused nodes
     print(" > triged < triged.%s.i > triged.%s.o" % (infix, infix))
     os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
-    # Input file to remove small tris
-    infix = "RemoveSmallTris"
-    fi = open('triged.%s.i' % infix, 'w')
-    # Write inputs to file
-    fi.write('%s.u.tri\n' % proj)
-    fi.write('19\n')
-    fi.write('%f\n' % rc.get("SmallArea", 0.0001))
-    fi.write('%s.i.tri\n' % proj)
-    fi.write('1\n')
-    fi.close()
-    # Run triged to remove small tris
-    print(" > triged < triged.%s.i > triged.%s.o" % (infix, infix))
-    os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
+    ## Input file to remove small tris
+    #infix = "RemoveSmallTris"
+    #fi = open('triged.%s.i' % infix, 'w')
+    ## Write inputs to file
+    #fi.write('%s\n' % futri)
+    #fi.write('19\n')
+    #fi.write('%f\n' % rc.get("SmallArea", 0.0001))
+    #fi.write('%s\n' % fitri)
+    #fi.write('1\n')
+    #fi.close()
+    ## Run triged to remove small tris
+    #print(" > triged < triged.%s.i > triged.%s.o" % (infix, infix))
+    #os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
     # Clean up
-    if os.path.isfile("%s.i.tri" % proj):
-        os.remove("%s.a.tri" % proj)
-        os.remove("%s.u.tri" % proj)
+    if os.path.isfile(fitri):
+        if os.path.isfile(fatri): os.remove(fatri)
+        if os.path.isfile(futri): os.remove(futri)
 
     
 # Function to verify if requested
