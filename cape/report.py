@@ -3193,7 +3193,8 @@ class Report(object):
                 # Don't start with comma.
                 tlbl = tlbl.lstrip(", ")
                 # Specified target plot options
-                kw_t = opts.get_SubfigPlotOpt(sfig, "TargetOptions", j_t)
+                kw_t = opts.get_SubfigPlotOpt(sfig, "TargetOptions", 
+                    targs.index(targ))
                 # Target options index
                 j_t += 1
                 # Initialize target plot options.
