@@ -1050,7 +1050,11 @@ class Cntl(object):
             # Go to the group folder.
             os.chdir(frun)
             # Check the history iteration
-            n = self.CaseGetCurrentIter()
+            try:
+                n = self.CaseGetCurrentIter()
+            except Exception:
+                # At least one file missing that is required
+                n = None
         # If zero, check if the required files are set up.
         if (n == 0) and self.CheckNone(v): n = None
         # Return to original folder.
