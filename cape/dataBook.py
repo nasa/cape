@@ -1061,7 +1061,7 @@ class DataBook(dict):
             print("Added or updated %s entries" % n)
             # Write the updated results
             self.TriqFM[comp].Sort()
-            self.TriqFM[comp].Write(unlock=True)
+            self.TriqFM[comp].Write(merge=True, unlock=True)
     
     # Update TriqFM data book for one component
     def UpdateTriqFMComp(self, comp, I=None):
@@ -2534,7 +2534,7 @@ class DBBase(dict):
         # Loop through the entries of *DBc*
         for j in range(DBc.n):
             # Check for matches
-            i = self.FindDBMatch(self, j)
+            i = DBc.FindDBMatch(self, j)
             # Check for a match
             if i is not None: continue
             # No matches; merge
