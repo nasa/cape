@@ -583,7 +583,7 @@ class DataBook(dict):
             print("%s component '%s'..." % (tcomp, comp))
             # Read the component if necessary
             if comp not in self:
-                self.ReadDBComp(comp, check=True, lock=True)
+                self.ReadDBComp(comp, check=False, lock=False)
             # Save location
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
@@ -604,7 +604,7 @@ class DataBook(dict):
             # Sort the component
             self[comp].Sort()
             # Write the component
-            self[comp].Write(unlock=True)
+            self[comp].Write(merge=True, unlock=True)
         
     # Function to delete entries by index
     def DeleteCases(self, I, comp=None):
@@ -1088,15 +1088,15 @@ class DataBook(dict):
             raise ValueError(
                 "Component '%s' is not a TriqFM component" % comp)
         # Read the TriqFM data book if necessary
-        self.ReadTriqFM(comp, check=True, lock=True)
+        self.ReadTriqFM(comp, check=False, lock=False)
         # Intialize count
         n = 0
         # Loop through indices
         for i in I:
             # Update the data book for that case
             n += self.TriqFM[comp].UpdateCase(i)
-            # Touch the lock file
-            self.TriqFM[comp].Lock()
+            ## Touch the lock file
+            #self.TriqFM[comp].Lock()
         # Output
         return n
         
@@ -2405,23 +2405,34 @@ class DBBase(dict):
   # ========
   # <
     # Output
-    def Write(self, fname=None, unlock=True):
+    def Write(self, fname=None, merge=False, unlock=True):
         """Write a single data book summary file
         
         :Call:
             >>> DBi.Write()
-            >>> DBi.Write(fname, unlock=True)
+            >>> DBi.Write(fname, merge=False, unlock=True)
         :Inputs:
             *DBi*: :class:`cape.dataBook.DBBase`
                 An individual item data book
             *fname*: :class:`str`
                 Name of data file to read
+            *merge*: ``True`` | {``False``}
+                Whether or not to attempt a merger before writing
             *unlock*: {``True``} | ``False``
                 Whether or not to delete any lock files
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
             * 2017-06-12 ``@ddalle``: Added *unlock*
+            * 2017-06-26 ``@ddalle``: Added *merge*
         """
+        # Check merger option
+        if merge:
+            # Read a copy
+            DBc = self.ReadCopy(check=True, lock=True)
+            # Merge it
+            self.Merge(DBc)
+            # Re-sort
+            self.Sort()
         # Check for default file name
         if fname is None: fname = self.fname
         # check for a previous old file.
@@ -4238,19 +4249,30 @@ class DBTriqFM(DataBook):
             self[patch].Sort()
     
     # Output method
-    def Write(self, unlock=True):
+    def Write(self, merge=False, unlock=True):
         """Write to file each point sensor data book in a group
         
         :Call:
-            >>> DBF.Write(unlock=True)
+            >>> DBF.Write(merge=False, unlock=True)
         :Inputs:
             *DBF*: :class:`cape.dataBook.DBTriqFM`
                 Instance of TriqFM data book
+            *merge*: ``True`` | {``False``}
+                Whether or not to reread data book and merge before writing
             *unlock*: {``True``} | ``False``
                 Whether or not to delete any lock file
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
+            * 2017-06-26 ``@ddalle``: First version
         """
+        # Check merge option
+        if merge:
+            # Read a copy
+            DBF = self.ReadCopy(check=True, lock=True)
+            # Merge it
+            self.Merge(DBF)
+            # Re-sort
+            self.Sort()
         # Go to home directory
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
