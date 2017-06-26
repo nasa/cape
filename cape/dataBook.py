@@ -2515,7 +2515,23 @@ class DBBase(dict):
         :Versions:
             * 2017-06-26 ``@ddalle``: First version
         """
-        pass
+        # List of keys
+        keys = self.keys()
+        # Check for consistency
+        if keys != DBc.keys():
+            raise KeyError("Data book objects do not have same list of keys")
+        # Loop through the entries of *DBc*
+        for j in range(DBc.n):
+            # Check for matches
+            i = self.FindDBMatch(self, j)
+            # Check for a match
+            if i is not None: continue
+            # No matches; merge
+            for k in keys:
+                self[k] = np.append(self[k], DBc[k][j])
+        # Sort
+        self.Sort()
+            
         
     # Function to get sorting indices.
     def ArgSort(self, key=None):
@@ -4158,6 +4174,52 @@ class DBTriqFM(DataBook):
         # Output
         return lbl
     __str__ = __repr__
+    
+    # Read a copy
+    def ReadCopy(self, check=False, lock=False):
+        """Read a copied database object
+        
+        :Call:
+            >>> DBF1 = DBF.ReadCopy(check=False, lock=False)
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Outputs:
+            *DBF1*: :class:`cape.dataBook.DBTriqFM`
+                Another instance of related TriqFM data book
+        :Versions:
+            * 2017-06-26 ``@ddalle``: First version
+        """
+        # Call the object
+        DBF1 = DBTriqFM(self.x, self.opts, self.comp, check=check, lock=lock)
+        # Output
+        return DBF1
+    
+    
+    # Merge method
+    def Merge(self, DBF1):
+        """Sort point sensor group
+        
+        :Call:
+            >>> DBF.Merge(DBF1)
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+            *DBF1*: :class:`cape.dataBook.DBTriqFM`
+                Another instance of related TriqFM data book
+        :Versions:
+            * 2016-06-26 ``@ddalle``: First version
+        """
+        # Check patch list
+        if DBF1.patches != self.patches:
+            raise KeyError("TriqFM data books have different patch lists")
+        # Loop through points
+        for patch in ([None] + self.patches):
+            self[patch].Merge(DBF1[patch])
     
     # Sorting method
     def Sort(self):
