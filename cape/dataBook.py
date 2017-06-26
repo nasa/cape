@@ -3026,7 +3026,7 @@ class DBBase(dict):
                 # Ensure trajectory matches
                 self.UpdateTrajectory()
                 # Get angle of attack
-                V = self.x.GetAlpha(np.arange(self.n))
+                V = self.x.GetAlpha()
             # Get tolerance
             tol = TolCons[k]
             # Test
@@ -5959,13 +5959,16 @@ class DBTarget(DBBase):
         if xk is None or xk == 'Index':
             # This is fine
             pass
-        elif xk not in self.xkeys:
+        elif xk in self.xkeys:
+            # Set the key to the translated value (which may be the same).
+            kw['x'] = self.xkeys[xk]
+        elif xk in ["alpha"]:
+            # Special allowed keys
+            pass
+        else:
             # No translation for this key
             raise ValueError(
                 "No trajectory key translation known for key '%s'" % xk)
-        else:
-            # Set the key to the translated value (which may be the same).
-            kw['x'] = self.xkeys[xk]
         # Flip the error bar default plot types
         kw.setdefault('PlotTypeMinMax',      'ErrorBar')
         kw.setdefault('PlotTypeUncertainty', 'FillBetween')

@@ -1953,22 +1953,25 @@ class Trajectory:
         return None
         
     # Get angle of attack
-    def GetAlpha(self, i):
+    def GetAlpha(self, i=None):
         """Get the angle of attack
         
         :Call:
-            >>> alpha = x.GetAlpha(i)
+            >>> alpha = x.GetAlpha(i=None)
         :Inputs:
             *x*: :class;`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
-            *alpha*: :class:`float`
+            *alpha*: :class:`float` | :class:`np.ndarray`
                 Angle of attack in degrees
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for angle of attack
@@ -2008,14 +2011,18 @@ class Trajectory:
         :Inputs:
             *x*: :class;`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
             *av*: :class:`float`
                 Total angle of attack in degrees
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
+            * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for total angle of attack
@@ -2055,14 +2062,18 @@ class Trajectory:
         :Inputs:
             *x*: :class;`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
             *beta*: :class:`float`
                 Angle of sideslip in degrees
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
+            * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for angle of attack
@@ -2102,14 +2113,18 @@ class Trajectory:
         :Inputs:
             *x*: :class;`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
             *phiv*: :class:`float`
                 Velocity roll angle in degrees
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
+            * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for total angle of attack
@@ -2141,7 +2156,7 @@ class Trajectory:
         return None
         
     # Get freestream temperature
-    def GetTemperature(self, i):
+    def GetTemperature(self, i=None):
         """Get static freestream temperature
         
         :Call:
@@ -2149,14 +2164,18 @@ class Trajectory:
         :Inputs:
             *x*: :class:`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
             *T*: :class:`float`
                 Static temperature [R | K]
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
+            * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for temperature
