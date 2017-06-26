@@ -2127,6 +2127,30 @@ class DBBase(dict):
         # Save column number
         self.n = n
         
+    # Read a copy
+    def ReadCopy(self, check=False, lock=False):
+        """Read a copied database object
+        
+        :Call:
+            >>> DBc1 = DBc.ReadCopy(check=False, lock=False)
+        :Inputs:
+            *DBc*: :class:`cape.dataBook.DBBase`
+                Data book base object
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Outputs:
+            *DBc1*: :class:`cape.dataBook.DBBase`
+                Copy of data book base object
+        :Versions:
+            * 2017-06-26 ``@ddalle``: First version
+        """
+        # Call the object
+        DBc = DBBase(self.comp, self.x, self.opts, check=check, lock=lock)
+        # Output
+        return DBc
+        
     # Estimate number of lines in a file
     def EstimateLineCount(self, fname=None):
         """Get a conservative (high) estimate of the number of lines in a file
@@ -2477,6 +2501,22 @@ class DBBase(dict):
         # Set the number of cases.
         self.x.nCase = self.n
     
+    # Merge another copy
+    def Merge(self, DBc):
+        """Merge another copy of the data book object
+        
+        :Call:
+            >>> DBi.Merge(DBc)
+        :Inputs:
+            *DBi*: :class:`cape.dataBook.DBBase`
+                Component data book
+            *DBc*: :class:`cape.dataBook.DBBase`
+                Copy of component data book, perhaps read at a different time
+        :Versions:
+            * 2017-06-26 ``@ddalle``: First version
+        """
+        pass
+        
     # Function to get sorting indices.
     def ArgSort(self, key=None):
         """Return indices that would sort a data book by a trajectory key
