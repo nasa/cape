@@ -2987,22 +2987,50 @@ class DBBase(dict):
                 
         # Loop through *EqCons*
         for k in EqCons:
-            # Get target value
-            v = getattr(x,k)[i]
+            # Test if key is present
+            if k in x.keys:
+                # Get target value
+                v = getattr(x,k)[i]
+            elif k == "alpha":
+                # Get angle of attack
+                v = x.GetAlpha(i)
             # Get name of column
             col = xkeys.get(k, k)
+            # Get value
+            if col in self:
+                # Extract value
+                V = self[col]
+            elif (k == "alpha") or (col == "alpha"):
+                # Ensure trajectory matches
+                self.UpdateTrajectory()
+                # Get angle of attack
+                V = self.x.GetAlpha(np.arange(self.n))
             # Test
-            J = np.logical_and(J, v == self[col])
+            J = np.logical_and(J, v == V)
         # Loop through *TolCons*
         for k in TolCons:
-            # Get target value
-            v = getattr(x,k)[i]
+            # Test if key is present
+            if k in x.keys:
+                # Get target value
+                v = getattr(x,k)[i]
+            elif k == "alpha":
+                # Get angle of attack
+                v = x.GetAlpha(i)
             # Get name of column
             col = xkeys.get(k, k)
+            # Get value
+            if col in self:
+                # Extract value
+                V = self[col]
+            elif (k == "alpha") or (col == "alpha"):
+                # Ensure trajectory matches
+                self.UpdateTrajectory()
+                # Get angle of attack
+                V = self.x.GetAlpha(np.arange(self.n))
             # Get tolerance
             tol = TolCons[k]
             # Test
-            J = np.logical_and(J, np.abs(v-self[col])<=tol)
+            J = np.logical_and(J, np.abs(v-V)<=tol)
         # Output (convert boolean array to indices)
         return np.where(J)[0]
         
@@ -3113,9 +3141,14 @@ class DBBase(dict):
             xv = I
             # Label
             xk = 'Index'
-        else:
+        elif xk in self:
             # Extract the values.
             xv = self[xk][I]
+        elif xk == "alpha":
+            # Update trajectory
+            self.UpdateTrajectory()
+            # Get angles of attack
+            xv = self.x.GetAlpha(I)
         # Sorting order for *xv*
         ixv = np.argsort(xv)
         xv = xv[ixv]
