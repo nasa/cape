@@ -2804,101 +2804,53 @@ class DBBase(dict):
         # Output
         return j
         
-    # Find an entry using specified tolerance options
-    def FindTargetMatch(self, x, i, topts, keylist='x'):
-        """Find a target entry by run matrix (trajectory) variables
-        
-        Cases will be considered matches by comparing variables specified in the
-        *topts* variable, which shares some of the options from the
-        ``"Targets"`` subsection of the ``"DataBook"`` section of
-        :file:`cape.json`.  Suppose that *topts* contains the following
-        
-        .. code-block:: python
-        
-            {
-                "Trajectory": {"alpha": "ALPHA", "Mach": "MACH"}
-                "Tolerances": {
-                    "alpha": 0.05,
-                    "Mach": 0.01
-                },
-                "Keys": ["alpha", "Mach", "beta"]
-            }
-        
-        Then any entry in the data book target that matches the Mach number
-        within 0.01 (using a column labeled ``"MACH"``) and alpha to within 0.05
-        is considered a match.  Because the *Keys* parameter contains
-        ``"beta"``, the search will also look for exact matches in ``"beta"``.
-        
-        If the *Keys* parameter is not set, the search will use either all the
-        keys in the trajectory, *x.keys*, or just the keys specified in the
-        ``"Tolerances"`` section of *topts*.  Which of these two default lists
-        to use is determined by the *keylist* input.
+    # Find data book match
+    def FindDBMatch(self, DBc, i):
+        """Find the index of an exact match to case *i* in another databook
         
         :Call:
-            >>> j = DB.FindTargetMatch(x, i, topts, keylist='x')
+            >>> j = DBi.FindDBMatch(DBc, i)
         :Inputs:
-            *DBT*: :class:`cape.dataBook.DBTarget`
-                Instance of the Cape data book target data carrier
-            *x*: :class:`cape.trajectory.Trajectory`
-                The current pyCart trajectory (i.e. run matrix)
+            *DBi*: :class:`cape.dataBook.DBBase`
+                Data book base object
+            *DBc*: :class:`cape.dataBook.DBBase`
+                Another data book base object
             *i*: :class:`int`
-                Index of the case from the trajectory to try match
-            *topts*: :class:`dict` | :class:`cape.options.DataBook.DBTarget`
-                Criteria used to determine a match
-            *keylist*: {``"x"``} | ``"tol"``
+                Data book index for *DBi*
         :Outputs:
-            *j*: :class:`numpy.ndarray` (:class:`int`)
-                Array of indices that match the trajectory within tolerances
-        :See also:
-            * :func:`cape.dataBook.DBTarget.FindMatch`
-            * :func:`cape.dataBook.DBBase.FindMatch`
+            *j*: ``None`` | :class:`int`
+                Data book index for *DBj*
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
-            * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
+            * 2017-06-26 ``@ddalle``: First version
         """
-        # Initialize indices (assume all are matches)
-        j = np.arange(x.nCase)
-        # Get the trajectory key translations.   This determines which keys to
-        # filter and what those keys are called in the source file.
-        tkeys = topts.get('Trajectory', {})
-        # Tolerance options
-        tolopts = topts.get('Tolerances', {})
-        # Get list of keys to match
-        if keylist.lower() == 'x':
-            # Use all trajectory keys as default
-            keys = topts.get('Keys', x.keys)
-        else:
-            # Use the tolerance keys
-            keys = topts.get('Keys', tolopts.keys())
-        # Loop through keys requested for matches.
-        for k in keys:
-            # Get the name of the column according to the source file.
-            c = tkeys.get(k, k)
-            # Skip it if key not recognized
-            if c is None: continue
-            # Get the tolerance.
-            tol = tolopts.get(k)
-            # Get the target value (from the trajectory)
-            v = getattr(x,k)[i]
-            t = type(v).__name__
-            # Check type
-            if t.startswith('str') or t.startswith('unicode'):
-                continue
-            # Safe matching in case of complications
+        # Initialize indices of potential matches
+        J = np.arange(DBc.n)
+        # Loop through keys
+        for k in self.x.keys:
+            # Get value
+            v = self[k][i]
+            # Check match
             try:
-                # Check tolerance type
-                if tol is None:
-                    # Search for exact match
-                    jk = np.where(self[c] == v)[0]
-                else:
-                    # Search for match within tolerance (can be zero)
-                    jk = np.where(np.abs(self[c] - v) <= tol)[0]
-                # Restrict to rows that match the above.
-                j = np.intersect1d(j, jk)
+                # Find indices of matches
+                jk = np.where(DBc[k][J] == v)[0]
+                # Check for at least one match
+                if len(jk) == 0:
+                    return None
+                # Restrict to rows that match above
+                J = J[jk]
             except Exception:
+                # Ignore this column
                 pass
-        # Output
-        return j
+        # Check output
+        if len(J) > 1:
+            # Multiple matches
+            return J
+        elif len(J) == 1:
+            # Single match
+            return J[0]
+        else:
+            # No match?
+            return None
         
     # Find an entry using specified tolerance options
     def FindCoSweep(self, x, i, EqCons=[], TolCons={}, GlobCons=[], xkeys={}):
