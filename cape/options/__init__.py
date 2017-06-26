@@ -952,9 +952,30 @@ class Options(odict):
     def set_intersect_o(self, fname, j=None):
         self._RunControl()
         self['RunControl'].set_intersect_o(fname, j)
+
+    # Small tri option
+    def get_intersect_rm(self):
+        self._RunControl()
+        return self['RunControl'].get_intersect_rm()
+
+    # Small tri option
+    def set_intersect_rm(self, q=rc0('intersect_rm')):
+        self._RunControl()
+        self['RunControl'].set_intersect_rm(q)
+
+    # Small tri size
+    def get_intersect_smalltri(self):
+        self._RunControl()
+        return self['RunControl'].get_intersect_smalltri()
+
+    # Small tri size
+    def set_intersect_smalltri(self, A=rc0('intersect_smalltri')):
+        self._RunControl()
+        self['RunControl'].set_intersect_smalltri(A)
         
     # Copy documentation
-    for k in ['intersect_i', 'intersect_o']:
+    for k in ['intersect_i', 'intersect_o',
+    'intersect_rm', 'intersect_smalltri']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(runControl.RunControl,'set_'+k).__doc__

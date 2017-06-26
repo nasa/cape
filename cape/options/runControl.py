@@ -683,9 +683,30 @@ class RunControl(odict):
     def set_intersect_o(self, fname, j=None):
         self._intersect()
         self['intersect'].set_intersect_o(fname, j)
+
+    # get option to remove small tris
+    def get_intersect_rm(self):
+        self._intersect()
+        return self['intersect'].get_intersect_rm()
+
+    # Set option to remove small tris
+    def set_intersect_rm(self, q=rc0('intersect_rm')):
+        self._intersect()
+        self['intersect'].set_intersect_rm(q)
+
+    # get option to remove small tris
+    def get_intersect_smalltri(self):
+        self._intersect()
+        return self['intersect'].get_intersect_smalltri()
+
+    # set option for small triangles
+    def set_intersect_smalltri(self, A=rc0('intersect_smalltri')):
+        self._intersect()
+        self['intersect'].set_intersect_smalltri(A)
         
     # Copy documentation
-    for k in ['intersect_i', 'intersect_o']:
+    for k in ['intersect_i', 'intersect_o',
+    'intersect_rm', 'intersect_smalltri']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(intersect.intersect,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(intersect.intersect,'set_'+k).__doc__

@@ -134,6 +134,10 @@ rc["antoldef"] = 3e-2
 rc["rntoldef"] = 1e-4
 rc["cntoldef"] = 1e-3
 
+# Intersect options
+rc['intersect_rm'] = False
+rc['intersect_smalltri'] = 1e-4
+
 # AFLR3 settings
 rc['aflr3_cdfr']   = 1.1
 rc['aflr3_cdfs']   = None
