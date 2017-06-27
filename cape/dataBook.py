@@ -2540,6 +2540,8 @@ class DBBase(dict):
             # No matches; merge
             for k in keys:
                 self[k] = np.append(self[k], DBc[k][j])
+            # Increase count
+            self.n += 1
         # Sort
         self.Sort()
             
