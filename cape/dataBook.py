@@ -2994,28 +2994,9 @@ class DBBase(dict):
             elif k == "alpha":
                 # Get angle of attack
                 v = x.GetAlpha(i)
-            # Get name of column
-            col = xkeys.get(k, k)
-            # Get value
-            if col in self:
-                # Extract value
-                V = self[col]
-            elif (k == "alpha") or (col == "alpha"):
-                # Ensure trajectory matches
-                self.UpdateTrajectory()
-                # Get angle of attack
-                V = self.x.GetAlpha(np.arange(self.n))
-            # Test
-            J = np.logical_and(J, v == V)
-        # Loop through *TolCons*
-        for k in TolCons:
-            # Test if key is present
-            if k in x.keys:
-                # Get target value
-                v = getattr(x,k)[i]
-            elif k == "alpha":
-                # Get angle of attack
-                v = x.GetAlpha(i)
+            elif k == "beta":
+                # Get sideslip
+                v = x.GetBeta(i)
             # Get name of column
             col = xkeys.get(k, k)
             # Get value
@@ -3027,6 +3008,39 @@ class DBBase(dict):
                 self.UpdateTrajectory()
                 # Get angle of attack
                 V = self.x.GetAlpha()
+            elif (k == "beta") or (col == "beta"):
+                # Get angle of sideslip
+                self.UpdateTrajectory()
+                V = self.x.GetBeta()
+            # Test
+            J = np.logical_and(J, v == V)
+        # Loop through *TolCons*
+        for k in TolCons:
+            # Test if key is present
+            if k in x.keys:
+                # Get target value
+                v = getattr(x,k)[i]
+            elif k == "alpha":
+                # Get angle of attack
+                v = x.GetAlpha(i)
+            elif k == "beta":
+                # Get sideslip
+                v = x.GetBeta(i)
+            # Get name of column
+            col = xkeys.get(k, k)
+            # Get value
+            if col in self:
+                # Extract value
+                V = self[col]
+            elif (k == "alpha") or (col == "alpha"):
+                # Ensure trajectory matches
+                self.UpdateTrajectory()
+                # Get angle of attack
+                V = self.x.GetAlpha()
+            elif (k == "beta") or (col == "beta"):
+                # Get angle of sideslip
+                self.UpdateTrajectory()
+                V = self.x.GetBeta()
             # Get tolerance
             tol = TolCons[k]
             # Test
@@ -3149,6 +3163,21 @@ class DBBase(dict):
             self.UpdateTrajectory()
             # Get angles of attack
             xv = self.x.GetAlpha(I)
+        elif xk == "beta":
+            # Update trajectory
+            self.UpdateTrajectory()
+            # Get sideslip angles
+            xv = self.x.GetBeta(I)
+        elif xk in ["alpha_m", "aoam"]:
+            # Update trajectory
+            self.UpdateTrajectory()
+            # Get maneuver angle of attack
+            xv = self.x.GetAlphaManeuver(I)
+        elif xk in ["phi_m", "phim"]:
+            # Update trajectory
+            self.UpdateTrajectory()
+            # Get maneuver roll angles
+            xv = self.x.GetPhiManeuver(I)
         # Sorting order for *xv*
         ixv = np.argsort(xv)
         xv = xv[ixv]
