@@ -15,6 +15,7 @@ import numpy as np
 slug = 14.593903
 inch = 0.0254
 ft = 12*inch
+deg = np.pi/180.0
 
 # Convert (total angle of attack, total roll angle) to (aoa, aos)
 def AlphaTPhi2AlphaBeta(alpha_t, phi):
@@ -25,66 +26,100 @@ def AlphaTPhi2AlphaBeta(alpha_t, phi):
     :Call:
         >>> alpha, beta = cape.AlphaTPhi2AlphaBeta(alpha_t, beta)
     :Inputs:
-        *alpha_t*: :class:`float` or :class:`numpy.array`
+        *alpha_t*: :class:`float` | :class:`numpy.array`
             Total angle of attack
-        *phi*: :class:`float` or :class:`numpy.array`
+        *phi*: :class:`float` | :class:`numpy.array`
             Total roll angle
     :Outputs:
-        *alpha*: :class:`float` or :class:`numpy.array`
+        *alpha*: :class:`float` | :class:`numpy.array`
             Angle of attack
-        *beta*: :class:`float` or :class:`numpy.array`
+        *beta*: :class:`float` | :class:`numpy.array`
             Sideslip angle
     :Versions:
         * 2014-06-02 ``@ddalle``: First version
     """
     # Trig functions.
-    ca = np.cos(alpha_t*np.pi/180); cp = np.cos(phi*np.pi/180)
-    sa = np.sin(alpha_t*np.pi/180); sp = np.sin(phi*np.pi/180)
+    ca = np.cos(alpha_t*deg); cp = np.cos(phi*deg)
+    sa = np.sin(alpha_t*deg); sp = np.sin(phi*deg)
     # Get the components of the normalized velocity vector.
     u = ca
     v = sa * sp
     w = sa * cp
     # Convert to alpha, beta
-    alpha = np.arctan2(w, u) * 180/np.pi
-    beta = np.arcsin(v) * 180/np.pi
+    alpha = np.arctan2(w, u) / deg
+    beta = np.arcsin(v) / deg
     # Output
     return alpha, beta
     
     
-# Convert (total angle of attack, total roll angle) to (aoa, aos)
+# Convert (aoa, aos) to (total angle of attack, total roll angle)
 def AlphaBeta2AlphaTPhi(alpha, beta):
-    """
-    Convert total angle of attack and total roll angle to angle of attack and
-    sideslip angle.
+    """Convert angle of attack and sideslip to total angle of attack and roll
     
     :Call:
         >>> alpha_t, phi = cape.AlphaBeta2AlphaTPhi(alpha, beta)
     :Inputs:
-        *alpha*: :class:`float` or :class:`numpy.array`
+        *alpha*: :class:`float` | :class:`numpy.array`
             Angle of attack
-        *beta*: :class:`float` or :class:`numpy.array`
+        *beta*: :class:`float` | :class:`numpy.array`
             Sideslip angle
     :Outputs:
-        *alpha_t*: :class:`float` or :class:`numpy.array`
+        *alpha_t*: :class:`float` | :class:`numpy.array`
             Total angle of attack
-        *phi*: :class:`float` or :class:`numpy.array`
+        *phi*: :class:`float` | :class:`numpy.array`
             Total roll angle
     :Versions:
         * 2014-06-02 ``@ddalle``: First version
         * 2014-11-05 ``@ddalle``: Transposed alpha and beta in *w* formula
     """
     # Trig functions.
-    ca = np.cos(alpha*np.pi/180); cb = np.cos(beta*np.pi/180)
-    sa = np.sin(alpha*np.pi/180); sb = np.sin(beta*np.pi/180)
+    ca = np.cos(alpha*deg); cb = np.cos(beta*deg)
+    sa = np.sin(alpha*deg); sb = np.sin(beta*deg)
     # Get the components of the normalized velocity vector.
     u = cb * ca
     v = sb
     w = cb * sa
-    # Convert to alpha, beta
-    phi = 180 - np.arctan2(v, -w) * 180/np.pi
-    alpha_t = np.arccos(u) * 180/np.pi
+    # Convert to alpha_t, phi
+    phi = 180 - np.arctan2(v, -w) / deg
+    alpha_t = np.arccos(u) / deg
     # Output
     return alpha_t, phi
+    
+# Convert (aoa, aos) to (maneuver angle of attack, maneuver roll angle)
+def AlphaBeta2AlphaMPhi(alpha, beta):
+    """Convert angle of attack and sideslip to maneuver axis
+    
+    :Call:
+        >>> alpha_m, phi_m = cape.AlphaBeta2AlphaMPhi(alpha, beta)
+    :Inputs:
+        *alpha*: :class:`float` | :class:`numpy.array`
+            Angle of attack
+        *beta*: :class:`float` | :class:`numpy.array`
+            Sideslip angle
+    :Outputs:
+        *alpha_m*: :class:`float` | :class:`numpy.array`
+            Signed total angle of attack [deg]
+        *phi_m*: :class:`float` | :class:`numpy.array`
+            Total roll angle
+    :Versions:
+        * 2017-06-26 ``@ddalle``: First version
+    """
+    # Trig functions.
+    ca = np.cos(alpha*deg); cb = np.cos(beta*deg)
+    sa = np.sin(alpha*deg); sb = np.sin(beta*deg)
+    # Get the components of the normalized velocity vector.
+    u = cb * ca
+    v = sb
+    w = cb * sa
+    # Convert to alpha_t, phi
+    phi = np.arctan2(v, w) / deg
+    alpha_t = np.arccos(u) / deg
+    # Apply different signs
+    alpha_m = alpha_t * np.sign(90-np.abs(phi))
+    phi_m = phi - 90*(1-np.sign(alpha_m))
+    # Output
+    return alpha_m, phi_m
+    
     
 # Get exit Mach number from area ratio
 def ExitMachFromAreaRatio(AR, M1, gamma=1.4, subsonic=False):
