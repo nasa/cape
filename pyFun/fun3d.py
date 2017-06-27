@@ -393,6 +393,138 @@ class Fun3d(Cntl):
         # Go back to original location
         os.chdir(fpwd)
         
+    # Read the FAUXGeom instruction
+    def ReadFAUXGeom(self):
+        """Read any FAUXGeom input file template
+        
+        :Call:
+            >>> fun3d.ReadFAUXGeom()
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class
+        :Versions:
+            * 2017-02-23 ``@ddalle``: First version
+        """
+        # Get options
+        ffaux = self.opts.get_FauxFile()
+        ofaux = self.opts.get_Faux()
+        # Get absolute path
+        if ffaux and (not os.path.isabs(ffaux)):
+            # Append root directory
+            ffaux = os.path.join(self.RootDir, ffaux)
+        # Read the file if appropriate
+        if (ffaux is None) and (not ofaux):
+            # No FAUXGeom instructions
+            return
+        elif ffaux and os.path.isfile(ffaux):
+            # Read the file
+            self.FAUXGeom = faux.FAUXGeom(ffaux)
+        else:
+            # Initialize an empty set of instructions
+            self.FAUXGeom = faux.FAUXGeom()
+        # Set instructions
+        for comp in ofaux:
+            # Convert *comp* to a *MapBC*
+            surf = self.EvalSurfID(comp)
+            # Set the geometry
+            self.FAUXGeom.SetGeom(surf, ofaux[comp])
+        
+        
+    # Write FreezeSurfs
+    def WriteFreezeSurfs(self, fname):
+        """Write a ``pyfun.freeze`` file that lists surfaces to freeze
+        
+        This is about the simplest file format in history, which is simply a
+        list of surface indices.
+        
+        :Call:
+            >>> fun3d.WriteFreezeSurfs(fname)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Control interface
+            *fname*: :class:`str`
+                Name of file to write
+        :Versions:
+            * 2017-02-23 ``@ddalle``: First version
+        """
+        # Failure tolerance
+        self.ReadFreezeSurfs()
+        if self.FreezeSurfs is None: return
+        # Open the file
+        f = open(fname, 'w')
+        # Number of surfaces to freeze
+        nfrz = len(self.FreezeSurfs)
+        # Write the surfaces
+        for i in range(nfrz):
+            # Write the surface number
+            if i + 1 == nfrz:
+                # Do not write newline character
+                f.write("%s" % self.FreezeSurfs[i])
+            else:
+                f.write("%s\n" % self.FreezeSurfs[i])
+        # Close the file
+        f.close()
+    
+    
+    # Read FreezeSurfs
+    def ReadFreezeSurfs(self):
+        """Read list of surfaces to freeze
+        
+        :Call:
+            >>> fun3d.ReadFreezeSurfs()
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class
+        :Versions:
+            * 2017-02-23 ``@ddalle``: First version
+        """
+        # Check for existing list
+        try:
+            self.FreezeSurfs
+            return
+        except Exception:
+            pass
+        # Get the options relating to this
+        ffreeze = self.opts.get_FreezeFile()
+        ofreeze = self.opts.get_FreezeComponents()
+        # Get absolute path
+        if ffreeze and (not os.path.isabs(ffreeze)):
+            # Append root directory
+            ffreeze = os.path.join(self.RootDir, ffreeze)
+        # Read the file if appropriate
+        if (ffreeze is None) and (ofreeze is None):
+            # No surfaces to read
+            self.FreezeSurfs = None
+        # Initialize surfaces
+        surfs = []
+        # Check for a file to read
+        if ffreeze and os.path.isfile(ffreeze):
+            # Read the file in the simplest fashion possible
+            comps = open(ffreeze).read().split()
+        else:
+            # No list of components
+            comps = []
+        # Process *ofreeze*
+        if ofreeze is not None:
+            # Ensure list, and add it to the list from the file
+            comps += list(np.array(ofreeze).flatten())
+        # Loop through raw components
+        for comp in comps:
+            # Convert to surface
+            try:
+                surf = self.EvalSurfID(comp)
+            except Exception:
+                raise ValueError("No surface '%s' in MapBC file" % comp)
+            # Check for null surface
+            if surf is None:
+                raise ValueError("No surface '%s' in MapBC file" % comp)
+            # Check if already present
+            if surf in surfs: continue
+            # Append the surface
+            surfs.append(surf)
+        # Save
+        self.FreezeSurfs = surfs
+        
     
   # >
   
@@ -505,6 +637,8 @@ class Fun3d(Cntl):
         frun = self.x.GetFullFolderNames(i)
         # Check for the FAIL file.
         q = os.path.isfile(os.path.join(frun, 'FAIL'))
+        # Check for manual marker
+        q = q or self.x.ERROR[i]
         # Check for 'nan_locations*.dat'
         if not q:
             # Get list of files
@@ -760,6 +894,10 @@ class Fun3d(Cntl):
   # Preparation
   # ===========
   # <
+   # ------------
+   # General Case
+   # ------------
+   # [
     # Prepare the mesh for case *i* (if necessary)
     def PrepareMesh(self, i):
         """Prepare the mesh for case *i* if necessary
@@ -985,7 +1123,12 @@ class Fun3d(Cntl):
         self.WritePBS(i)
         # Return to original location
         os.chdir(fpwd)
-        
+   # ]
+   
+   # --------
+   # Namelist
+   # --------
+   # [
         
     # Function to prepare "input.cntl" files
     def PrepareNamelist(self, i):
@@ -1059,6 +1202,8 @@ class Fun3d(Cntl):
         
         # Make folder if necessary.
         if not os.path.isdir(frun): self.mkdir(frun)
+        # Apply any namelist functions
+        self.NamelistFunction(i)
         # Loop through input sequence
         for j in range(self.opts.get_nSeq()):
             # Set the "restart_read" property appropriately
@@ -1123,7 +1268,121 @@ class Fun3d(Cntl):
                 self.Namelist.Write(fout)
         # Return to original path.
         os.chdir(fpwd)
+            
+    # Call function to apply namelist settings for case *i*
+    def NamelistFunction(self, i):
+        """Apply a function at the end of :func:`PrepareNamelist(i)`
+        
+        This is allows the user to modify settings at a later point than is
+        done using :func:`CaseFunction`
+        
+        This calls the function(s) in the global ``"NamelistFunction"`` option
+        from the JSON file. These functions must take *cntl* as an input and
+        the case number *i*. The function(s) are usually from a module imported
+        via the ``"Modules"`` option. See the following example:
+        
+            .. code-block:: javascript
+            
+                "Modules": ["testmod"],
+                "NamelistFunction": ["testmod.nmlfunc"]
+                
+        This leads pyFun to call ``testmod.nmlfunc(cntl, i)`` near the end of
+        :func:`PrepareNamelist` for each case *i* in the run matrix.
+        
+        :Call:
+            >>> cntl.NamelistFunction(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall control interface
+            *i*: :class:`int`
+                Case number
+        :Versions:
+            * 2017-04-05 ``@ddalle``: First version
+            * 2017-06-07 ``@ddalle``: Copied from :func:`CaseFunction`
+        :See also:
+            * :func:`cape.cntl.Cntl.CaseFunction`
+            * :func:`pyFun.fun3d.Fun3d.PrepareCase`
+            * :func:`pyFun.fun3d.Fun3d.PrepareNamelist`
+        """
+        # Get input functions
+        lfunc = self.opts.get("NamelistFunction", [])
+        # Ensure list
+        lfunc = list(np.array(lfunc).flatten())
+        # Loop through functions
+        for func in lfunc:
+            # Status update
+            print("  Namelist Function: cntl.%s(%s)" % (func, i))
+            # Run the function
+            exec("self.%s(self, %s)" % (func, i))
+        
+    # Set up a namelist config
+    def PrepareNamelistConfig(self):
+        """Write the lines for the force/moment output in a namelist file
+        
+        :Call:
+            >>> fun3d.PrepareNamelistConfig()
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+        :Versions:
+            * 2015-10-20 ``@ddalle``: First version
+        """
+        # Get the components
+        comps = self.opts.get_ConfigComponents()
+        # Exit if no components
+        if comps is None: return
+        # Number
+        n = len(comps)
+        # Quit if nothing to do
+        if n == 0: return
+        # Extract namelist
+        nml = self.Namelist
+        # Loop through specified components.
+        for k in range(1,n+1):
+            # Get component.
+            comp = comps[k-1]
+            # Get input definitions.
+            inp = self.GetConfigInput(comp)
+            # Set input definitions.
+            if inp is not None:
+                nml.SetVar('component_parameters', 'component_input', inp, k)
+            # Reference area
+            if 'RefArea' in self.opts['Config']:
+                # Get reference area.
+                RefA = self.opts.get_RefArea(comp)
+                # Set it
+                nml.SetVar('component_parameters', 'component_sref', RefA, k)
+            # Moment reference center
+            if 'RefPoint' in self.opts['Config']:
+                # Get MRP
+                RefP = self.opts.get_RefPoint(comp)
+                # Set the x- and y-coordinates
+                nml.SetVar('component_parameters', 'component_xmc', RefP[0], k)
+                nml.SetVar('component_parameters', 'component_ymc', RefP[1], k)
+                # Check for z-coordinate
+                if len(RefP) > 2:
+                    nml.SetVar(
+                        'component_parameters', 'component_zmc', RefP[2], k)
+            # Reference length
+            if 'RefLength' in self.opts['Config']:
+                # Get reference length
+                RefL = self.opts.get_RefLength(comp)
+                # Set both reference lengths
+                nml.SetVar('component_parameters', 'component_cref', RefL, k)
+                nml.SetVar('component_parameters', 'component_bref', RefL, k)
+            # Set the component name
+            nml.SetVar('component_parameters', 'component_name', comp, k)
+            # Tell FUN3D to determine the number of components on its own.
+            nml.SetVar('component_parameters', 'component_count', -1, k)
+        # Set the number of components
+        nml.SetVar('component_parameters', 'number_of_components', n)
     
+   # ]
+   
+   # -----------
+   # Other Files
+   # -----------
+   # [
     # Prepare ``rubber.data`` file
     def PrepareRubberData(self, i):
         """Prepare ``rubber.data`` file if appropriate
@@ -1178,48 +1437,86 @@ class Fun3d(Cntl):
         # Write the file
         R.Write('rubber.data')
         
-        
-    # Get surface ID numbers
-    def CompID2SurfID(self, compID):
-        """Convert triangulation component ID to surface index
-        
-        This relies on an XML configuration file and a FUN3D ``mapbc`` file
+    # Prepare FAUXGeom file if appropriate
+    def PrepareFAUXGeom(self, i):
+        """Prepare/edit a FAUXGeom input file for a case
         
         :Call:
-            >>> surfID = fun3d.CompID2SurfID(compID)
-            >>> surfID = fun3d.CompID2SurfID(face)
-            >>> surfID = fun3d.CompID2SurfID(comps)
+            >>> fun3d.PrepareFAUXGeom(i)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of FUN3D control class
-            *compID*: :class:`int`
-                Surface boundary ID as used in surface mesh
-            *face*: :class:`str`
-                Name of face
-            *comps*: :class:`list` (:class:`int` | :class:`str`)
-                List of component IDs or face names
-        :Outputs:
-            *surfID*: :class:`list` (:class:`int`)
-                List of corresponding indices of surface in MapBC
+                Instance of control class
+            *i*: :class:`int`
+                Case index
         :Versions:
-            * 2016-04-27 ``@ddalle``: First version
+            * 2017-02-23 ``@ddalle``: First version
         """
-        # Make sure the triangulation is present.
+        # Read options
+        self.ReadFAUXGeom()
+        # Check for a FAUXGeom instance
         try:
-            self.tri
+            self.FAUXGeom
         except Exception:
-            self.ReadTri()
-        # Get list from tri Config
-        compIDs = self.tri.config.GetCompID(compID)
-        # Initialize output list
-        surfID = []
-        # Loop through components
-        for comp in compIDs:
-            # Get the surface ID
-            surfID.append(self.MapBC.GetSurfID(comp))
-        # Output
-        return surfID
+            # No FAUXGeom to process
+            return
+        # Check for more than zero planes
+        if self.FAUXGeom.nSurf < 1:
+            return
+        # Safely go to the home directory
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Get run folder and check if it exists
+        frun = self.x.GetFullFolderNames(i)
+        # Enter the run directory.
+        if not os.path.isdir(frun): self.mkdir(frun)
+        os.chdir(frun)
+        # Write the file
+        self.FAUXGeom.Write("faux_input")
+        # Go back to original location
+        os.chdir(fpwd)
         
+    # Prepare list of surfaces to freeze
+    def PrepareFreezeSurfs(self, i):
+        """Prepare adaption file for list of surfaces to freeze during adapts
+        
+        :Call:
+            >>> fun3d.PrepareFreezeSurfs(i)
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2017-02-23 ``@ddalle``: First version
+        """
+        # Read inputs
+        self.ReadFreezeSurfs()
+        # Check for something to do
+        if self.FreezeSurfs is None: return
+        # Initialize list of project root names (changes due to adapt)
+        fproj = []
+        # Loop through phases
+        for j in self.opts.get_PhaseSequence():
+            # Get the project root name for this phase
+            fj = self.GetProjectRootName(j)
+            # Append if not in the list
+            if fj not in fproj: fproj.append(fj)
+        # Get run folder name
+        frun = self.x.GetFullFolderNames(i)
+        # Go to home directory
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Enter the folder, creating if necessary
+        if not os.path.isdir(frun): self.mkdir(frun)
+        os.chdir(frun)
+        # Loop through list of project root names
+        for fj in fproj:
+            # Write the file
+            self.WriteFreezeSurfs('%s.freeze' % fj)
+        # Go back to original location
+        os.chdir(fpwd)
+    
+   # ]
   # >
   
   # =============
@@ -1489,68 +1786,51 @@ class Fun3d(Cntl):
         # Output
         return rho, U, c
   # >
+  
+  # ===========
+  # Surface IDs
+  # ===========
+  # <
+    # Get surface ID numbers
+    def CompID2SurfID(self, compID):
+        """Convert triangulation component ID to surface index
         
-    # Set up a namelist config
-    def PrepareNamelistConfig(self):
-        """Write the lines for the force/moment output in a namelist file
+        This relies on an XML configuration file and a FUN3D ``mapbc`` file
         
         :Call:
-            >>> fun3d.PrepareNamelistConfig()
+            >>> surfID = fun3d.CompID2SurfID(compID)
+            >>> surfID = fun3d.CompID2SurfID(face)
+            >>> surfID = fun3d.CompID2SurfID(comps)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of control class containing relevant parameters
+                Instance of FUN3D control class
+            *compID*: :class:`int`
+                Surface boundary ID as used in surface mesh
+            *face*: :class:`str`
+                Name of face
+            *comps*: :class:`list` (:class:`int` | :class:`str`)
+                List of component IDs or face names
+        :Outputs:
+            *surfID*: :class:`list` (:class:`int`)
+                List of corresponding indices of surface in MapBC
         :Versions:
-            * 2015-10-20 ``@ddalle``: First version
+            * 2016-04-27 ``@ddalle``: First version
         """
-        # Get the components
-        comps = self.opts.get_ConfigComponents()
-        # Exit if no components
-        if comps is None: return
-        # Number
-        n = len(comps)
-        # Quit if nothing to do
-        if n == 0: return
-        # Extract namelist
-        nml = self.Namelist
-        # Loop through specified components.
-        for k in range(1,n+1):
-            # Get component.
-            comp = comps[k-1]
-            # Get input definitions.
-            inp = self.GetConfigInput(comp)
-            # Set input definitions.
-            if inp is not None:
-                nml.SetVar('component_parameters', 'component_input', inp, k)
-            # Reference area
-            if 'RefArea' in self.opts['Config']:
-                # Get reference area.
-                RefA = self.opts.get_RefArea(comp)
-                # Set it
-                nml.SetVar('component_parameters', 'component_sref', RefA, k)
-            # Moment reference center
-            if 'RefPoint' in self.opts['Config']:
-                # Get MRP
-                RefP = self.opts.get_RefPoint(comp)
-                # Set the x- and y-coordinates
-                nml.SetVar('component_parameters', 'component_xmc', RefP[0], k)
-                nml.SetVar('component_parameters', 'component_ymc', RefP[1], k)
-                # Check for z-coordinate
-                if len(RefP) > 2:
-                    nml.SetVar(
-                        'component_parameters', 'component_zmc', RefP[2], k)
-            # Reference length
-            if 'RefLength' in self.opts['Config']:
-                # Get reference length
-                RefL = self.opts.get_RefLength(comp)
-                # Set both reference lengths
-                nml.SetVar('component_parameters', 'component_cref', RefL, k)
-                nml.SetVar('component_parameters', 'component_bref', RefL, k)
-            # Set the component name
-            nml.SetVar('component_parameters', 'component_name', comp, k)
-            # Tell FUN3D to determine the number of components on its own.
-            nml.SetVar('component_parameters', 'component_count', -1, k)
-        # Set the number of components
-        nml.SetVar('component_parameters', 'number_of_components', n)
+        # Make sure the triangulation is present.
+        try:
+            self.tri
+        except Exception:
+            self.ReadTri()
+        # Get list from tri Config
+        compIDs = self.tri.config.GetCompID(compID)
+        # Initialize output list
+        surfID = []
+        # Loop through components
+        for comp in compIDs:
+            # Get the surface ID
+            surfID.append(self.MapBC.GetSurfID(comp))
+        # Output
+        return surfID
         
     # Convert string to MapBC surfID
     def EvalSurfID(self, comp):
@@ -1585,217 +1865,6 @@ class Fun3d(Cntl):
             raise AttributeError("Interface to FUN3D 'mapbc' file not found")
         # Read from MapBC
         return self.MapBC.GetSurfID(comp)
-        
-    # Read the FAUXGeom instruction
-    def ReadFAUXGeom(self):
-        """Read any FAUXGeom input file template
-        
-        :Call:
-            >>> fun3d.ReadFAUXGeom()
-        :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of control class
-        :Versions:
-            * 2017-02-23 ``@ddalle``: First version
-        """
-        # Get options
-        ffaux = self.opts.get_FauxFile()
-        ofaux = self.opts.get_Faux()
-        # Get absolute path
-        if ffaux and (not os.path.isabs(ffaux)):
-            # Append root directory
-            ffaux = os.path.join(self.RootDir, ffaux)
-        # Read the file if appropriate
-        if (ffaux is None) and (not ofaux):
-            # No FAUXGeom instructions
-            return
-        elif ffaux and os.path.isfile(ffaux):
-            # Read the file
-            self.FAUXGeom = faux.FAUXGeom(ffaux)
-        else:
-            # Initialize an empty set of instructions
-            self.FAUXGeom = faux.FAUXGeom()
-        # Set instructions
-        for comp in ofaux:
-            # Convert *comp* to a *MapBC*
-            surf = self.EvalSurfID(comp)
-            # Set the geometry
-            self.FAUXGeom.SetGeom(surf, ofaux[comp])
-        
-    # Prepare FAUXGeom file if appropriate
-    def PrepareFAUXGeom(self, i):
-        """Prepare/edit a FAUXGeom input file for a case
-        
-        :Call:
-            >>> fun3d.PrepareFAUXGeom(i)
-        :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of control class
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2017-02-23 ``@ddalle``: First version
-        """
-        # Read options
-        self.ReadFAUXGeom()
-        # Check for a FAUXGeom instance
-        try:
-            self.FAUXGeom
-        except Exception:
-            # No FAUXGeom to process
-            return
-        # Check for more than zero planes
-        if self.FAUXGeom.nSurf < 1:
-            return
-        # Safely go to the home directory
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get run folder and check if it exists
-        frun = self.x.GetFullFolderNames(i)
-        # Enter the run directory.
-        if not os.path.isdir(frun): self.mkdir(frun)
-        os.chdir(frun)
-        # Write the file
-        self.FAUXGeom.Write("faux_input")
-        # Go back to original location
-        os.chdir(fpwd)
-        
-    # Prepare list of surfaces to freeze
-    def PrepareFreezeSurfs(self, i):
-        """Prepare adaption file for list of surfaces to freeze during adapts
-        
-        :Call:
-            >>> fun3d.PrepareFreezeSurfs(i)
-        :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of control class
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2017-02-23 ``@ddalle``: First version
-        """
-        # Read inputs
-        self.ReadFreezeSurfs()
-        # Check for something to do
-        if self.FreezeSurfs is None: return
-        # Initialize list of project root names (changes due to adapt)
-        fproj = []
-        # Loop through phases
-        for j in self.opts.get_PhaseSequence():
-            # Get the project root name for this phase
-            fj = self.GetProjectRootName(j)
-            # Append if not in the list
-            if fj not in fproj: fproj.append(fj)
-        # Get run folder name
-        frun = self.x.GetFullFolderNames(i)
-        # Go to home directory
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Enter the folder, creating if necessary
-        if not os.path.isdir(frun): self.mkdir(frun)
-        os.chdir(frun)
-        # Loop through list of project root names
-        for fj in fproj:
-            # Write the file
-            self.WriteFreezeSurfs('%s.freeze' % fj)
-        # Go back to original location
-        os.chdir(fpwd)
-        
-        
-    # Write FreezeSurfs
-    def WriteFreezeSurfs(self, fname):
-        """Write a ``pyfun.freeze`` file that lists surfaces to freeze
-        
-        This is about the simplest file format in history, which is simply a
-        list of surface indices.
-        
-        :Call:
-            >>> fun3d.WriteFreezeSurfs(fname)
-        :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Control interface
-            *fname*: :class:`str`
-                Name of file to write
-        :Versions:
-            * 2017-02-23 ``@ddalle``: First version
-        """
-        # Failure tolerance
-        self.ReadFreezeSurfs()
-        if self.FreezeSurfs is None: return
-        # Open the file
-        f = open(fname, 'w')
-        # Number of surfaces to freeze
-        nfrz = len(self.FreezeSurfs)
-        # Write the surfaces
-        for i in range(nfrz):
-            # Write the surface number
-            if i + 1 == nfrz:
-                # Do not write newline character
-                f.write("%s" % self.FreezeSurfs[i])
-            else:
-                f.write("%s\n" % self.FreezeSurfs[i])
-        # Close the file
-        f.close()
-    
-    
-    # Read FreezeSurfs
-    def ReadFreezeSurfs(self):
-        """Read list of surfaces to freeze
-        
-        :Call:
-            >>> fun3d.ReadFreezeSurfs()
-        :Inputs:
-            *fun3d*: :class:`pyFun.fun3d.Fun3d`
-                Instance of control class
-        :Versions:
-            * 2017-02-23 ``@ddalle``: First version
-        """
-        # Check for existing list
-        try:
-            self.FreezeSurfs
-            return
-        except Exception:
-            pass
-        # Get the options relating to this
-        ffreeze = self.opts.get_FreezeFile()
-        ofreeze = self.opts.get_FreezeComponents()
-        # Get absolute path
-        if ffreeze and (not os.path.isabs(ffreeze)):
-            # Append root directory
-            ffreeze = os.path.join(self.RootDir, ffreeze)
-        # Read the file if appropriate
-        if (ffreeze is None) and (ofreeze is None):
-            # No surfaces to read
-            self.FreezeSurfs = None
-        # Initialize surfaces
-        surfs = []
-        # Check for a file to read
-        if ffreeze and os.path.isfile(ffreeze):
-            # Read the file in the simplest fashion possible
-            comps = open(ffreeze).read().split()
-        else:
-            # No list of components
-            comps = []
-        # Process *ofreeze*
-        if ofreeze is not None:
-            # Ensure list, and add it to the list from the file
-            comps += list(np.array(ofreeze).flatten())
-        # Loop through raw components
-        for comp in comps:
-            # Convert to surface
-            try:
-                surf = self.EvalSurfID(comp)
-            except Exception:
-                raise ValueError("No surface '%s' in MapBC file" % comp)
-            # Check for null surface
-            if surf is None:
-                raise ValueError("No surface '%s' in MapBC file" % comp)
-            # Check if already present
-            if surf in surfs: continue
-            # Append the surface
-            surfs.append(surf)
-        # Save
-        self.FreezeSurfs = surfs
         
         
     # Get string describing which components are in config
@@ -1859,6 +1928,8 @@ class Fun3d(Cntl):
         if len(surf) > 0: inp = RangeString(surf)
         # Output
         return inp
+        
+  # >
    
   # =================
   # Case Modification

@@ -134,6 +134,10 @@ rc["antoldef"] = 3e-2
 rc["rntoldef"] = 1e-4
 rc["cntoldef"] = 1e-3
 
+# Intersect options
+rc['intersect_rm'] = False
+rc['intersect_smalltri'] = 1e-4
+
 # AFLR3 settings
 rc['aflr3_cdfr']   = 1.1
 rc['aflr3_cdfs']   = None
@@ -421,8 +425,8 @@ def loadJSONFile(fname):
                 # Not useful; split into list of lines
                 lines = lines.split('\n')
             # Start and end line number
-            n0 = max(n-2, 0)
-            n1 = min(n+1, len(lines))
+            n0 = max(n-3, 0)
+            n1 = min(n+2, len(lines))
             # Initialize message with 
             msg = "Error while reading JSON file '%s':\n" % fname
             # Add the exception's message
@@ -431,7 +435,12 @@ def loadJSONFile(fname):
             # Print some lines around the problem
             for i in range(n0, n1):
                 # Add line with line number
-                msg += ("%4i: %s\n" % (i+1, lines[i]))
+                if i+1 == n:
+                    # Add special marker for reported line
+                    msg += ("%4i> %s\n" % (i+1, lines[i]))
+                else:
+                    # Neighboring line
+                    msg += ("%4i: %s\n" % (i+1, lines[i]))
             # Show the message
             raise ValueError(msg)
         except ValueError as e:

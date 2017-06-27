@@ -432,6 +432,43 @@ class aflr3(odict):
         self.set_key('nqual', nqual, j)
         
     # Maximum angle between BL intersecting faces
+    def get_angqbf(self, j=None):
+        """Get the maximum angle on surface triangles
+        
+        :Call:
+            >>> angbli = opts.get_angqbf(j=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *angqbf*: :class:`float` (100 <= *angqbf* <= 180)
+                Max surface angle
+        :Versions:
+            * 2017-06-16 ``@ddalle``: First version
+        """
+        return self.get_key('angqbf', j)
+        
+    # Maximum angle between BL intersecting faces
+    def set_angqbf(self, angqbf, j=None):
+        """Set the maximum angle on surface tris
+        
+        :Call:
+            >>> opts.get_angblisimx(angbli, j=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *angqbf*: :class:`float` (100 <= *angqbf* <= 180)
+                Max surface triangle angle
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2017-06-16 ``@ddalle``: First version
+        """
+        return self.set_key('angqbf', angqbf, j)
+        
+    # Maximum angle between BL intersecting faces
     def get_angblisimx(self, j=None):
         """Get the maximum angle between BL intersecting faces
         

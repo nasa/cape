@@ -79,6 +79,7 @@ def aflr3(opts=None, j=0, **kw):
         cdfs       = opts.get_cdfs(j)
         nqual      = opts.get_nqual(j)
         mdsblf     = opts.get_mdsblf(j)
+        angqbf     = opts.get_angqbf(j)
         angblisimx = opts.get_angblisimx(j)
     else:
         fi         = getel(kw.get('i'), j)
@@ -92,6 +93,7 @@ def aflr3(opts=None, j=0, **kw):
         cdfs       = getel(kw.get('cdfs'), j)
         nqual      = getel(kw.get('nqual'), j)
         mdsblf     = getel(kw.get('mdsblf'), j)
+        angqbf     = getel(kw.get('angqbf'), j)
         angblisimx = getel(kw.get('angblisimx'), j)
     # Initialize command
     cmdi = ['aflr3']
@@ -115,6 +117,7 @@ def aflr3(opts=None, j=0, **kw):
     # Process options that come with an equal sign
     if cdfs       is not None: cmdi += ['cdfs=%s' % cdfs]
     if cdfr       is not None: cmdi += ['cdfr=%s' % cdfr]
+    if angqbf     is not None: cmdi += ['angqbf=%s' % angqbf]
     if angblisimx is not None: cmdi += ['angblisimx=%s' % angblisimx]
     # Options that can be None
     if mdsblf is not None: cmdi += ['-mdsblf', str(mdsblf)]

@@ -2487,6 +2487,48 @@ class TriBase(object):
         self.Tris = np.vstack((self.Tris, tri.Tris + self.nNode))
         # Concatenate the component vector.
         self.CompID = np.hstack((self.CompID, tri.CompID))
+        # Loop through confs
+        try:
+            # See if added triangulation has *tri.Conf*
+            tri.Conf
+            # See if *self* has *Conf*
+            try:
+                self.Conf
+            except AttributeError:
+                self.Conf = {}
+            # Loop through components
+            for comp in tri.Conf:
+                # Get value and type
+                vt = tri.Conf[comp]
+                tt = type(vt).__name__
+                # Test if already present
+                if comp in self.Conf:
+                    # Get value
+                    vs = self.Conf[comp]
+                    # Get type
+                    ts = type(v).__name__
+                    # Append
+                    if ts in ['list', 'ndarray']:
+                        # Add to list
+                        if tt in ['list', 'ndarray']:
+                            # Combine lists
+                            self.Conf[comp] = list(vs) + list(vt)
+                        else:
+                            # Append to existing list
+                            self.Conf[comp] = list(vs) + [vt]
+                    else:
+                        # Create list
+                        if tt in ['list', 'ndarray']:
+                            # Create list and add to it
+                            self.Conf[comp] = [vs] + list(vt)
+                        else:
+                            # Create doubleton list
+                            self.Conf[comp] = [vs, vt]
+                else:
+                    # Add it
+                    self.Conf[comp] = vt
+        except Exception:
+            pass
         # Update the statistics.
         self.nNode += tri.nNode
         self.nTri  += tri.nTri
@@ -3016,6 +3058,24 @@ class TriBase(object):
         CompID = np.zeros_like(self.CompID)
         # Initial component number
         ncomp = 0
+        # Create a copy used for error checking
+        tri = self.Copy()
+        # Clean up extra entries in faces
+        for face in self.config.faces:
+            # Skip if already processed
+            if face in faces: continue
+            # Get the component number
+            compf = self.config.faces[face]
+            # Make sure it's a list
+            if type(compf).__name__ not in ['list', 'ndarray']:
+                continue
+            # Loop through components
+            for compi in compf:
+                # Delete it if not in the renumbered list
+                if compi not in compIDs:
+                    #print("  Deleting %s from %s (index %s)"
+                    #    % (compi, face, compf.index(compi)))
+                    del compf[compf.index(compi)]
         # Loop through sorted faces
         for face in faces:
             # Get the component number
@@ -3025,7 +3085,9 @@ class TriBase(object):
                 # Extract element from singleton
                 compi = compi[0]
             # Check if that compID is present
-            if compi not in compIDs: continue
+            if compi not in compIDs: 
+                self.config.RenumberCompID(face, -compi)
+                continue
             # Otherwise, reset it.
             I = np.where(self.CompID==compi)[0]
             ncomp += 1
@@ -3038,9 +3100,17 @@ class TriBase(object):
             print("  WARNING: At least one tri has unset component ID")
             # Get the locations of missed triangles
             I = np.where(CompID == 0)[0]
+            # Get list of missed components
+            C = np.unique(self.CompID[I])
             # Print the list of original component IDs from here
-            print("           List of original component IDs that were missed")
-            print("              %s" % np.unique(self.CompID[I]))
+            print("%10sList of original component IDs that were missed" % "")
+            print("%10s  CompID  Name" % "")
+            # Loop through such missing components
+            for cID in C:
+                # Attempt to get the name
+                face = tri.GetCompName(cID)
+                # Error message
+                print("%12s  %6s  %s" % ("", cID, face))
         # Reset component IDs
         self.CompID = CompID
        

@@ -1050,7 +1050,11 @@ class Cntl(object):
             # Go to the group folder.
             os.chdir(frun)
             # Check the history iteration
-            n = self.CaseGetCurrentIter()
+            try:
+                n = self.CaseGetCurrentIter()
+            except Exception:
+                # At least one file missing that is required
+                n = None
         # If zero, check if the required files are set up.
         if (n == 0) and self.CheckNone(v): n = None
         # Return to original folder.
@@ -1157,6 +1161,8 @@ class Cntl(object):
         frun = self.x.GetFullFolderNames(i)
         # Check for the RUNNING file.
         q = os.path.isfile(os.path.join(frun, 'FAIL'))
+        # Check ERROR flag
+        q = q or self.x.ERROR[i]
         # Go home.
         os.chdir(fpwd)
         # Output
@@ -1915,7 +1921,7 @@ class Cntl(object):
         self.WritePBSHeader(f, typ='batch', wd=self.RootDir)
         # Write the command
         f.write('\n# Run the command\n')
-        f.write('%s\n' % (" ".join(cmdi)))
+        f.write('%s\n\n' % (" ".join(cmdi)))
         # Close the file
         f.close()
         # ------------------

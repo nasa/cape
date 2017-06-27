@@ -1592,6 +1592,38 @@ class Report(object):
             lines.append('\\vskip-6pt\n')
         # Output
         return lines
+        
+    # Apply a generic Python function for a subfigure
+    def SubfigFunction(self, sfig, i):
+        """Apply a generic Pythong function to a subfigure definition
+        
+        :Call:
+            >>> R.SubfigFunction(sfig, i)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure to initialize
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2017-06-22 ``@ddalle``: First version
+        """
+        # Extract control object
+        cntl = self.cntl
+        # Get the functions
+        funcs = cntl.opts.get_SubfigOpt(sfig, "Function")
+        # Exit if none
+        if not funcs: return
+        # Ensure list
+        funcs = list(np.array(funcs).flatten())
+        # Loop through functions
+        for func in funcs:
+            # Status update
+            print('    Subfig function: %s("%s", %s)' % (func, sfig, i))
+            # Run the function
+            exec("cntl.%s(cntl, sfig, %s)" % (func, i))
+        
       
     # Function to get the list of targets for a subfigure
     def SubfigTargets(self, sfig):
@@ -2117,9 +2149,9 @@ class Report(object):
         :Versions:
             * 2014-03-09 ``@ddalle``: First version
         """
-        # Check status
-        if not q:
-            return self.subfigs[sfig]
+        ## Check status
+        #if not q:
+        #    return self.subfigs[sfig]
         # Save current folder.
         fpwd = os.getcwd()
         # Extract options
@@ -2957,6 +2989,8 @@ class Report(object):
        # ------------------
         # Save current folder.
         fpwd = os.getcwd()
+        # Apply case functions
+        self.SubfigFunction(sfig, I[0])
         # Extract options and trajectory
         x = self.cntl.DataBook.x
         opts = self.cntl.opts
@@ -3159,7 +3193,8 @@ class Report(object):
                 # Don't start with comma.
                 tlbl = tlbl.lstrip(", ")
                 # Specified target plot options
-                kw_t = opts.get_SubfigPlotOpt(sfig, "TargetOptions", j_t)
+                kw_t = opts.get_SubfigPlotOpt(sfig, "TargetOptions", 
+                    targs.index(targ))
                 # Target options index
                 j_t += 1
                 # Initialize target plot options.

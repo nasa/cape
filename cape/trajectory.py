@@ -1255,6 +1255,7 @@ class Trajectory:
             con = con.replace('====', '==')
             con = con.replace('>==', '>=')
             con = con.replace('<==', '<=')
+            con = con.replace('!==', '!=')
             # Constraint may fail with bad input.
             try:
                 # Apply the constraint.
@@ -1543,6 +1544,8 @@ class Trajectory:
         :Versions:
             * 2015-05-24 ``@ddalle``: First version
         """
+        # Handle for all indices
+        I0 = np.arange(self.nCase)
         # Check for an *i0* point.
         if not np.any(M): return np.array([])
         # Copy the mask.
@@ -1575,35 +1578,49 @@ class Trajectory:
             # Get the key (for instance if matching ``k%10``)
             k = re.split('[^a-zA-Z_]', c)[0]
             # Check for the key.
-            if k not in self.keys:
+            if k in self.keys:
+                # Get the target value.
+                x0 = getattr(self,k)[i0]
+                # Form the constraint.
+                con = 'self.%s == %s' % (c, x0)
+                # Apply the constraint.
+                m = np.logical_and(m, eval(con))
+            elif k == "alpha":
+                # Get the target value.
+                x0 = self.GetAlpha(i0)
+                # Evaluate constraint
+                m = np.logical_and(m, self.GetAlpha(I0) == x0)
+            else:
                 raise KeyError(
                     "Could not find trajectory key for constraint '%s'." % c)
-            # Get the target value.
-            x0 = getattr(self,k)[i0]
-            # Form the constraint.
-            con = 'self.%s == %s' % (c, x0)
-            # Apply the constraint.
-            m = np.logical_and(m, eval(con))
         # Loop through tolerance-based constraints.
         for c in TolCons:
             # Get the key (for instance if matching 'i%10', key is 'i')
             k = re.split('[^a-zA-Z_]', c)[0]
             # Check for the key.
-            if k not in self.keys:
+            if k in self.keys:
+                # Get tolerance.
+                tol = TolCons[c]
+                # Get the target value.
+                x0 = getattr(self,k)[i0]
+                # Form the greater-than constraint.
+                con = 'self.%s >= %s' % (c, x0-tol)
+                # Apply the constraint.
+                m = np.logical_and(m, eval(con))
+                # Form the less-than constraint.
+                con = 'self.%s <= %s' % (c, x0+tol)
+                # Apply the constraint.
+                m = np.logical_and(m, eval(con))
+            elif k == "alpha":
+                # Get the target value.
+                x0 = self.GetAlpha(i0)
+                # Get trajectory values
+                V = self.GetAlpha(I0)
+                # Evaluate constraint
+                m = np.logical_and(m, np.abs(x0-V) <= tol)
+            else:
                 raise KeyError(
                     "Could not find trajectory key for constraint '%s'." % c)
-            # Get tolerance.
-            tol = TolCons[c]
-            # Get the target value.
-            x0 = getattr(self,k)[i0]
-            # Form the greater-than constraint.
-            con = 'self.%s >= %s' % (c, x0-tol)
-            # Apply the constraint.
-            m = np.logical_and(m, eval(con))
-            # Form the less-than constraint.
-            con = 'self.%s <= %s' % (c, x0+tol)
-            # Apply the constraint.
-            m = np.logical_and(m, eval(con))
         # Initialize output.
         I = np.arange(self.nCase)
         # Apply the final mask.
@@ -1676,6 +1693,8 @@ class Trajectory:
         :Versions:
             * 2015-06-03 ``@ddalle``: First version
         """
+        # Handle to all indices
+        I0 = np.arange(self.nCase)
         # Check for list of indices
         I = kw.get('I')
         # Initial mask
@@ -1713,35 +1732,51 @@ class Trajectory:
             # Get the key (for instance if matching ``k%10``)
             k = re.split('[^a-zA-Z_]', c)[0]
             # Check for the key.
-            if k not in self.keys:
+            if k in self.keys:
+                # Get the target value.
+                v0 = getattr(x0,k)[i0]
+                # Form the constraint.
+                con = 'self.%s == %s' % (c, v0)
+                # Apply the constraint.
+                m = np.logical_and(m, eval(con))
+            elif k == "alpha":
+                # Get the target value.
+                v0 = x0.GetAlpha(i0)
+                # Get trajectory values
+                V = self.GetAlpha(I0)
+                # Evaluate constraint
+                m = np.logical_and(m, np.abs(v0-V) <= tol)
+            else:
                 raise KeyError(
                     "Could not find trajectory key for constraint '%s'." % c)
-            # Get the target value.
-            v0 = getattr(x0,k)[i0]
-            # Form the constraint.
-            con = 'self.%s == %s' % (c, v0)
-            # Apply the constraint.
-            m = np.logical_and(m, eval(con))
         # Loop through tolerance-based constraints.
         for c in TolCons:
             # Get the key (for instance if matching 'i%10', key is 'i')
             k = re.split('[^a-zA-Z_]', c)[0]
             # Check for the key.
-            if k not in self.keys:
+            if k in self.keys:
+                # Get tolerance.
+                tol = TolCons[c]
+                # Get the target value.
+                v0 = getattr(x0,k)[i0]
+                # Form the greater-than constraint.
+                con = 'self.%s >= %s' % (c, v0-tol)
+                # Apply the constraint.
+                m = np.logical_and(m, eval(con))
+                # Form the less-than constraint.
+                con = 'self.%s <= %s' % (c, v0+tol)
+                # Apply the constraint.
+                m = np.logical_and(m, eval(con))
+            elif k == "alpha":
+                # Get the target value.
+                v0 = x0.GetAlpha(i0)
+                # Get trajectory values
+                V = self.GetAlpha(I0)
+                # Evaluate constraint
+                m = np.logical_and(m, np.abs(v0-V) <= tol)
+            else:
                 raise KeyError(
                     "Could not find trajectory key for constraint '%s'." % c)
-            # Get tolerance.
-            tol = TolCons[c]
-            # Get the target value.
-            v0 = getattr(x0,k)[i0]
-            # Form the greater-than constraint.
-            con = 'self.%s >= %s' % (c, v0-tol)
-            # Apply the constraint.
-            m = np.logical_and(m, eval(con))
-            # Form the less-than constraint.
-            con = 'self.%s <= %s' % (c, v0+tol)
-            # Apply the constraint.
-            m = np.logical_and(m, eval(con))
         # Initialize output.
         I = np.arange(self.nCase)
         # Apply the final mask.
@@ -1918,22 +1953,25 @@ class Trajectory:
         return None
         
     # Get angle of attack
-    def GetAlpha(self, i):
+    def GetAlpha(self, i=None):
         """Get the angle of attack
         
         :Call:
-            >>> alpha = x.GetAlpha(i)
+            >>> alpha = x.GetAlpha(i=None)
         :Inputs:
             *x*: :class;`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
-            *alpha*: :class:`float`
+            *alpha*: :class:`float` | :class:`np.ndarray`
                 Angle of attack in degrees
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for angle of attack
@@ -1973,14 +2011,18 @@ class Trajectory:
         :Inputs:
             *x*: :class;`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
             *av*: :class:`float`
                 Total angle of attack in degrees
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
+            * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for total angle of attack
@@ -2020,14 +2062,18 @@ class Trajectory:
         :Inputs:
             *x*: :class;`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
             *beta*: :class:`float`
                 Angle of sideslip in degrees
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
+            * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for angle of attack
@@ -2067,14 +2113,18 @@ class Trajectory:
         :Inputs:
             *x*: :class;`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
             *phiv*: :class:`float`
                 Velocity roll angle in degrees
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
+            * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for total angle of attack
@@ -2106,7 +2156,7 @@ class Trajectory:
         return None
         
     # Get freestream temperature
-    def GetTemperature(self, i):
+    def GetTemperature(self, i=None):
         """Get static freestream temperature
         
         :Call:
@@ -2114,14 +2164,18 @@ class Trajectory:
         :Inputs:
             *x*: :class:`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
             *T*: :class:`float`
                 Static temperature [R | K]
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
+            * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for temperature
