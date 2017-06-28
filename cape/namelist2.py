@@ -547,6 +547,10 @@ class Namelist2(FileCntl):
                     ("  '%s'\n" % tend) +
                     ("Original error:\n") +
                     ("  '%s'" % e.message))
+            # Check if the line is empty.
+            if ki is None: 
+                # No match in this line.
+                return False, line
             # Check if the key matches the target.
             if ki.lower() == key.lower() and ii==i:
                 # Match found; exit and remember remaining text
