@@ -404,7 +404,14 @@ class Namelist2(FileCntl):
         q = False
         while tend != "":
             # Read the first key in the remaining text.
-            tend, ki, vi, ii = self.PopLine(tend)
+            try:
+                tend, ki, vi, ii = self.PopLine(tend)
+            except Exception as e:
+                raise ValueError(
+                    ("Failure reading line or partial line:\n") +
+                    ("  '%s'\n" % tend) +
+                    ("Original error:\n") +
+                    ("  '%s'" % e.message))
             # Check for a match.
             if ki.lower() == key.lower() and ii == i:
                 # Use the value from this key.
@@ -532,7 +539,14 @@ class Namelist2(FileCntl):
         # Loop through keys in this line
         while True:
             # Read the first key in the remaining line.
-            txt, ki, vi, ii = self.PopLine(tend)
+            try:
+                txt, ki, vi, ii = self.PopLine(tend)
+            except Exception as e:
+                raise ValueError(
+                    ("Failure reading line or partial line:\n") +
+                    ("  '%s'\n" % tend) +
+                    ("Original error:\n") +
+                    ("  '%s'" % e.message))
             # Check if the key matches the target.
             if ki.lower() == key.lower() and ii==i:
                 # Match found; exit and remember remaining text
@@ -592,7 +606,7 @@ class Namelist2(FileCntl):
         txt = line.strip()
         # Check for comment
         if txt.startswith('!'):
-            return '', None, None
+            return '', None, None, None
         # Check for start of namelist
         if txt and txt[0] in ["$", "&"]:
             # Get the stuff.
