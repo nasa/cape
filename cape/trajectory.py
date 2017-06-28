@@ -1606,7 +1606,7 @@ class Trajectory:
                 raise KeyError(
                     "Could not find trajectory key for constraint '%s'." % c)
             # Evaluate constraint
-            m = np.logical_and(m, V == x0)
+            m = np.logical_and(m, np.abs(V - x0) <= 1e-10)
         # Loop through tolerance-based constraints.
         for c in TolCons:
             # Get the key (for instance if matching 'i%10', key is 'i')
@@ -1649,7 +1649,7 @@ class Trajectory:
         # Apply the final mask.
         J = I[m]
         # Check for a sort variable.
-        if (xk is not None) and (xk in self.keys):
+        if (xk is not None):
             # Sort based on that key.
             if xk in self.keys:
                 # Sort based on trajectory key
@@ -1776,6 +1776,11 @@ class Trajectory:
                 v0 = x0.GetBeta(i0)
                 # Extract matrix values
                 V = self.GetBeta()
+            elif k in ["alpha_t", "aoav"]:
+                # Get the target value
+                v0 = x0.GetAlphaTotal(i0)
+                # Extract matrix values
+                V = self.GetAlphaTotal()
             elif k in ["alpha_m", "aoam"]:
                 # Get the target value.
                 v0 = x0.GetAlphaManeuver(i0)
@@ -1786,11 +1791,16 @@ class Trajectory:
                 v0 = x0.GetPhiManeuver(i0)
                 # Extract matrix values
                 V = self.GetPhiManeuver()
+            elif k in ["phi", "phiv"]:
+                # Get the target value.
+                v0 = x0.GetPhi(i0)
+                # Extract matrix values
+                V = self.GetPhi()
             else:
                 raise KeyError(
                     "Could not find trajectory key for constraint '%s'." % c)
             # Evaluate constraint
-            m = np.logical_and(m, V == v0)
+            m = np.logical_and(m, np.abs(V - v0) < 1e-10)
         # Loop through tolerance-based constraints.
         for c in TolCons:
             # Get the key (for instance if matching 'i%10', key is 'i')
@@ -1813,6 +1823,11 @@ class Trajectory:
                 v0 = x0.GetBeta(i0)
                 # Extract matrix values
                 V = self.GetBeta()
+            elif k in ["alpha_t", "aoav"]:
+                # Get the target value
+                v0 = x0.GetAlphaTotal(i0)
+                # Extract matrix values
+                V = self.GetAlphaTotal()
             elif k in ["alpha_m", "aoam"]:
                 # Get the target value.
                 v0 = x0.GetAlphaManeuver(i0)
@@ -1823,6 +1838,11 @@ class Trajectory:
                 v0 = x0.GetPhiManeuver(i0)
                 # Extract matrix values
                 V = self.GetPhiManeuver()
+            elif k in ["phi", "phiv"]:
+                # Get the target value.
+                v0 = x0.GetPhi(i0)
+                # Extract matrix values
+                V = self.GetPhi()
             else:
                 raise KeyError(
                     "Could not find trajectory key for constraint '%s'." % c)

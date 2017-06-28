@@ -2999,49 +2999,15 @@ class DBBase(dict):
             elif k == "beta":
                 # Get sideslip
                 v = x.GetBeta(i)
+            elif k in ["alpha_t", "aoav"]:
+                # Get total angle of attack
+                v = x.GetAlphaTotal(i)
+            elif k in ["phi", "phiv"]:
+                # Get velocity roll angle
+                v = x.GetPhi(i)
             elif k in ["alpha_m", "aoam"]:
                 # Get maneuver angle of attack
                 v = x.GetAlphaManeuver(i)
-            # Get name of column
-            col = xkeys.get(k, k)
-            # Get value
-            if col in self:
-                # Extract value
-                V = self[col]
-            elif (k == "alpha") or (col == "alpha"):
-                # Ensure trajectory matches
-                self.UpdateTrajectory()
-                # Get angle of attack
-                V = self.x.GetAlpha()
-            elif (k == "beta") or (col == "beta"):
-                # Get angle of sideslip
-                self.UpdateTrajectory()
-                V = self.x.GetBeta()
-            elif (k == "alpha_m") or (col == "alpha_m"):
-                # Get maneuver angle of attack
-                self.UpdateTrajectory()
-                V = self.x.GetAlphaManeuver()
-            elif (k == "aoam") or (col == "aoam"):
-                # Get maneuver angle of attack
-                self.UpdateTrajectory()
-                V = self.x.GetAlphaManuver()
-            # Test
-            J = np.logical_and(J, v == V)
-        # Loop through *TolCons*
-        for k in TolCons:
-            # Test if key is present
-            if k in x.keys:
-                # Get target value
-                v = getattr(x,k)[i]
-            elif k == "alpha":
-                # Get angle of attack
-                v = x.GetAlpha(i)
-            elif k == "beta":
-                # Get sideslip
-                v = x.GetBeta(i)
-            elif k in ["alpha_m", "aoam"]:
-                # Get maneuver angle of attack
-                v = x.GetAlphaManuever(i)
             elif k in ["phi_m", "phim"]:
                 # Get maneuver roll angle
                 v = x.GetPhiManeuver(i)
@@ -3060,21 +3026,78 @@ class DBBase(dict):
                 # Get angle of sideslip
                 self.UpdateTrajectory()
                 V = self.x.GetBeta()
-            elif (k == "alpha_m") or (col == "alpha_m"):
+            elif (k in ["alpha_t","aoav"]) or (col in ["alpha_t","aoav"]):
+                # Get maneuver angle of attack
+                self.UpdateTrajectory()
+                V = self.x.GetAlphaTotal()
+            elif (k in ["phi","phiv"]) or (col in ["phi","phiv"]):
+                # Get maneuver roll angle
+                self.UpdateTrajectory()
+                V = self.x.GetPhi()
+            elif (k in ["alpha_m","aoam"]) or (col in ["alpha_m","aoam"]):
                 # Get maneuver angle of attack
                 self.UpdateTrajectory()
                 V = self.x.GetAlphaManeuver()
-            elif (k == "aoam") or (col == "aoam"):
-                # Get maneuver angle of attack
-                self.UpdateTrajecotry()
-                V = self.x.GetAlphaManeuver()
-            elif (k == "phi_m") or (col == "phi_m"):
+            elif (k in ["phi_m","phim"]) or (col in ["phi_m","phim"]):
                 # Get maneuver roll angle
-                self.UpdateTraejctory()
+                self.UpdateTrajectory()
                 V = self.x.GetPhiManeuver()
-            elif (k == "phim") or (col == "phim"):
+            # Test
+            J = np.logical_and(J, np.abs(v - V) <= 1e-10)
+        # Loop through *TolCons*
+        for k in TolCons:
+            # Test if key is present
+            if k in x.keys:
+                # Get target value
+                v = getattr(x,k)[i]
+            elif k == "alpha":
+                # Get angle of attack
+                v = x.GetAlpha(i)
+            elif k == "beta":
+                # Get sideslip
+                v = x.GetBeta(i)
+            elif k in ["alpha_t", "aoav"]:
+                # Get total angle of attack
+                v = x.GetAlphaTotal(i)
+            elif k in ["phi", "phiv"]:
+                # Get velocity roll angle
+                v = x.GetPhi(i)
+            elif k in ["alpha_m", "aoam"]:
+                # Get maneuver angle of attack
+                v = x.GetAlphaManeuver(i)
+            elif k in ["phi_m", "phim"]:
                 # Get maneuver roll angle
-                self.UpdateTraejctory()
+                v = x.GetPhiManeuver(i)
+            # Get name of column
+            col = xkeys.get(k, k)
+            # Get value
+            if col in self:
+                # Extract value
+                V = self[col]
+            elif (k == "alpha") or (col == "alpha"):
+                # Ensure trajectory matches
+                self.UpdateTrajectory()
+                # Get angle of attack
+                V = self.x.GetAlpha()
+            elif (k == "beta") or (col == "beta"):
+                # Get angle of sideslip
+                self.UpdateTrajectory()
+                V = self.x.GetBeta()
+            elif (k in ["alpha_t","aoav"]) or (col in ["alpha_t","aoav"]):
+                # Get maneuver angle of attack
+                self.UpdateTrajectory()
+                V = self.x.GetAlphaTotal()
+            elif (k in ["phi","phiv"]) or (col in ["phi","phiv"]):
+                # Get maneuver roll angle
+                self.UpdateTrajectory()
+                V = self.x.GetPhi()
+            elif (k in ["alpha_m","aoam"]) or (col in ["alpha_m","aoam"]):
+                # Get maneuver angle of attack
+                self.UpdateTrajectory()
+                V = self.x.GetAlphaManeuver()
+            elif (k in ["phi_m","phim"]) or (col in ["phi_m","phim"]):
+                # Get maneuver roll angle
+                self.UpdateTrajectory()
                 V = self.x.GetPhiManeuver()
             # Get tolerance
             tol = TolCons[k]
@@ -3203,6 +3226,16 @@ class DBBase(dict):
             self.UpdateTrajectory()
             # Get sideslip angles
             xv = self.x.GetBeta(I)
+        elif xk in ["alpha_t", "aoav"]:
+            # Update trajectory
+            self.UpdateTrajectory()
+            # Get maneuver angle of attack
+            xv = self.x.GetAlphaTotal(I)
+        elif xk in ["phi", "phiv"]:
+            # Update trajectory
+            self.UpdateTrajectory()
+            # Get maneuver roll angles
+            xv = self.x.GetPhi(I)
         elif xk in ["alpha_m", "aoam"]:
             # Update trajectory
             self.UpdateTrajectory()
