@@ -2999,6 +2999,9 @@ class DBBase(dict):
             elif k == "beta":
                 # Get sideslip
                 v = x.GetBeta(i)
+            elif k in ["alpha_m", "aoam"]:
+                # Get maneuver angle of attack
+                v = x.GetAlphaManeuver(i)
             # Get name of column
             col = xkeys.get(k, k)
             # Get value
@@ -3014,6 +3017,14 @@ class DBBase(dict):
                 # Get angle of sideslip
                 self.UpdateTrajectory()
                 V = self.x.GetBeta()
+            elif (k == "alpha_m") or (col == "alpha_m"):
+                # Get maneuver angle of attack
+                self.UpdateTrajectory()
+                V = self.x.GetAlphaManeuver()
+            elif (k == "aoam") or (col == "aoam"):
+                # Get maneuver angle of attack
+                self.UpdateTrajectory()
+                V = self.x.GetAlphaManuver()
             # Test
             J = np.logical_and(J, v == V)
         # Loop through *TolCons*
@@ -5993,7 +6004,9 @@ class DBTarget(DBBase):
         elif xk in self.xkeys:
             # Set the key to the translated value (which may be the same).
             kw['x'] = self.xkeys[xk]
-        elif xk in ["alpha"]:
+        elif xk in ["alpha", "alpha_m", "aoam",
+                "phi_m", "phim", "beta", "phi"
+        ]:
             # Special allowed keys
             pass
         else:
