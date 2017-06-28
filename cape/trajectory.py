@@ -1592,6 +1592,16 @@ class Trajectory:
                 x0 = self.GetBeta(i0)
                 # Extract matrix values
                 V = self.GetBeta()
+            elif k in ["alpha_m", "aoam"]:
+                # Get the target value.
+                x0 = self.GetAlphaManeuver(i0)
+                # Extract matrix values
+                V = self.GetAlphaManeuver()
+            elif k in ["phi_m", "phim"]:
+                # Get the target value.
+                x0 = self.GetPhiManeuver(i0)
+                # Extract matrix values
+                V = self.GetPhiManeuver()
             else:
                 raise KeyError(
                     "Could not find trajectory key for constraint '%s'." % c)
@@ -1619,6 +1629,16 @@ class Trajectory:
                 x0 = self.GetBeta(i0)
                 # Get trajectory values
                 V = self.GetBeta()
+            elif k in ["alpha_m", "aoam"]:
+                # Get the target value.
+                x0 = self.GetAlphaManeuver(i0)
+                # Extract matrix values
+                V = self.GetAlphaManeuver()
+            elif k in ["phi_m", "phim"]:
+                # Get the target value.
+                x0 = self.GetPhiManeuver(i0)
+                # Extract matrix values
+                V = self.GetPhiManeuver()
             else:
                 raise KeyError(
                     "Could not find trajectory key for constraint '%s'." % c)
@@ -1634,16 +1654,22 @@ class Trajectory:
             if xk in self.keys:
                 # Sort based on trajectory key
                 vx = getattr(self,xk)[J]
-            elif xk.lower() in "alpha":
+            elif xk.lower() in ["alpha"]:
                 # Sort based on angle of attack
                 vx = self.GetAlpha(J)
-            elif xk.lower() in "beta":
+            elif xk.lower() in ["beta"]:
                 # Sort based on angle of sideslip
                 vx = self.GetBeta(J)
-            elif xk.lower() in "alpha_t":
+            elif xk.lower() in ["alpha_t", "aoav"]:
                 # Sort based on total angle of attack
                 vx = self.GetAlphaTotal(J)
-            elif xk.lower() in "phi":
+            elif xk.lower() in ["alpha_m", "aoam"]:
+                # Sort based on total angle of attack
+                vx = self.GetAlphaManeuver(J)
+            elif xk.lower() in ["phi_m", "phim"]:
+                # Sort based on velocity roll
+                vx = self.GetPhiManeuver(J)
+            elif xk.lower() in ["phi", "phiv"]:
                 # Sort based on velocity roll
                 vx = self.GetPhi(J)
             else:
@@ -1745,6 +1771,21 @@ class Trajectory:
                 v0 = x0.GetAlpha(i0)
                 # Get trajectory values
                 V = self.GetAlpha()
+            elif k == "beta": 
+                # Get the target value
+                v0 = x0.GetBeta(i0)
+                # Extract matrix values
+                V = self.GetBeta()
+            elif k in ["alpha_m", "aoam"]:
+                # Get the target value.
+                v0 = x0.GetAlphaManeuver(i0)
+                # Extract matrix values
+                V = self.GetAlphaManeuver()
+            elif k in ["phi_m", "phim"]:
+                # Get the target value.
+                v0 = x0.GetPhiManeuver(i0)
+                # Extract matrix values
+                V = self.GetPhiManeuver()
             else:
                 raise KeyError(
                     "Could not find trajectory key for constraint '%s'." % c)
@@ -1767,6 +1808,21 @@ class Trajectory:
                 v0 = x0.GetAlpha(i0)
                 # Get trajectory values
                 V = self.GetAlpha()
+            elif k == "beta": 
+                # Get the target value
+                v0 = x0.GetBeta(i0)
+                # Extract matrix values
+                V = self.GetBeta()
+            elif k in ["alpha_m", "aoam"]:
+                # Get the target value.
+                v0 = x0.GetAlphaManeuver(i0)
+                # Extract matrix values
+                V = self.GetAlphaManeuver()
+            elif k in ["phi_m", "phim"]:
+                # Get the target value.
+                v0 = x0.GetPhiManeuver(i0)
+                # Extract matrix values
+                V = self.GetPhiManeuver()
             else:
                 raise KeyError(
                     "Could not find trajectory key for constraint '%s'." % c)
@@ -2001,7 +2057,7 @@ class Trajectory:
         return None
         
     # Get maneuver angle of attack
-    def GetAlphaManeuver(self, i):
+    def GetAlphaManeuver(self, i=None):
         """Get the signed total angle of attack
         
         :Call:
@@ -2065,7 +2121,7 @@ class Trajectory:
         
         
     # Get total angle of attack
-    def GetAlphaTotal(self, i):
+    def GetAlphaTotal(self, i=None):
         """Get the total angle of attack
         
         :Call:
@@ -2129,7 +2185,7 @@ class Trajectory:
         return None
         
     # Get angle of sideslip
-    def GetBeta(self, i):
+    def GetBeta(self, i=None):
         """Get the sideslip angle
         
         :Call:
@@ -2180,7 +2236,7 @@ class Trajectory:
         return None
         
     # Get velocity roll angle
-    def GetPhi(self, i):
+    def GetPhi(self, i=None):
         """Get the velocity roll angle
         
         :Call:
@@ -2231,7 +2287,7 @@ class Trajectory:
         return None
         
     # Get maneuver angle of attack
-    def GetPhiManeuver(self, i):
+    def GetPhiManeuver(self, i=None):
         """Get the signed maneuver roll angle
         
         :Call:

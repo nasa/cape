@@ -3039,6 +3039,12 @@ class DBBase(dict):
             elif k == "beta":
                 # Get sideslip
                 v = x.GetBeta(i)
+            elif k in ["alpha_m", "aoam"]:
+                # Get maneuver angle of attack
+                v = x.GetAlphaManuever(i)
+            elif k in ["phi_m", "phim"]:
+                # Get maneuver roll angle
+                v = x.GetPhiManeuver(i)
             # Get name of column
             col = xkeys.get(k, k)
             # Get value
@@ -3054,6 +3060,22 @@ class DBBase(dict):
                 # Get angle of sideslip
                 self.UpdateTrajectory()
                 V = self.x.GetBeta()
+            elif (k == "alpha_m") or (col == "alpha_m"):
+                # Get maneuver angle of attack
+                self.UpdateTrajectory()
+                V = self.x.GetAlphaManeuver()
+            elif (k == "aoam") or (col == "aoam"):
+                # Get maneuver angle of attack
+                self.UpdateTrajecotry()
+                V = self.x.GetAlphaManeuver()
+            elif (k == "phi_m") or (col == "phi_m"):
+                # Get maneuver roll angle
+                self.UpdateTraejctory()
+                V = self.x.GetPhiManeuver()
+            elif (k == "phim") or (col == "phim"):
+                # Get maneuver roll angle
+                self.UpdateTraejctory()
+                V = self.x.GetPhiManeuver()
             # Get tolerance
             tol = TolCons[k]
             # Test
@@ -3526,6 +3548,10 @@ class DBBase(dict):
             # Angle of sideslip
             self.UpdateTrajectory()
             xv = self.x.GetBeta(I)
+        elif xk.lower() in ["alpha_m", "aoam"]:
+            # Maneuver angle of attack
+            self.UpdateTrajectory()
+            xv = self.x.GetAlphaManeuver(I)
         # Extract the values for the y-axis
         if yk in self:
             # Get values directly
@@ -3538,6 +3564,10 @@ class DBBase(dict):
             # Angle of sideslip
             self.UpdateTrajectory()
             yv = self.x.GetBeta(I)
+        elif yk.lower() in ["alpha_m", "aoam"]:
+            # Maneuver angle of attack
+            self.UpdateTrajectory()
+            yv = self.x.GetAlphaManeuver(I)
         # Extract the values to plot
         zv = self[coeff][I]
         # Contour type, line type
