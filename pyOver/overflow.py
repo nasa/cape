@@ -336,6 +336,35 @@ class Overflow(Cntl):
         else:
             return n
         
+    # Get the current iteration number from :mod:`case`
+    def CaseGetCurrentPhase(self):
+        """Get the current phase number from the appropriate module
+        
+        This function utilizes the :mod:`cape.case` module, and so it must be
+        copied to the definition for each solver's control class
+        
+        :Call:
+            >>> j = cntl.CaseGetCurrentPhase()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Outputs:
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2017-06-29 ``@ddalle``: First version
+        """
+        # Be safe
+        try:
+            # Read the "case.json" folder
+            rc = case.ReadCaseJSON()
+            # Get the phase number
+            return case.GetPhaseNumber(rc)
+        except:
+            return 0
+        
         
     # Get list of raw file names
     def GetMeshFileNames(self, i=0):
