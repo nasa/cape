@@ -376,8 +376,15 @@ class Overflow(Cntl):
         if j is not None:
             # Go to the group folder.
             os.chdir(frun)
-            # Get phase list
-            phases = list(self.opts.get_PhaseSequence())
+            # Read local settings
+            try:
+                # Read "case.json"
+                rc = case.ReadCaseJSON()
+                # Get phase list
+                phases = list(self.opts.get_PhaseSequence())
+            except Exception:
+                # Get global phase list
+                phases = list(self.opts.get_PhaseSequence())
             # Reverse the list
             phases.reverse()
             # Loop backwards
