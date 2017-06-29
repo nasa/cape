@@ -383,7 +383,7 @@ class Overflow(Cntl):
             # Loop backwards
             for j in phases:
                 # Check if any output files exist
-                if len(glob.glob("run.%02i.[1-9]*")) > 0:
+                if len(case.glob.glob("run.%02i.[1-9]*")) > 0:
                     # Found it.
                     break
         # Return to original folder.
