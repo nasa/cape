@@ -948,7 +948,10 @@ def LinkLatest(fsrc, fname):
     # Check for file
     if os.path.islink(fname):
         # Delete old links
-        os.remove(fname)
+        try:
+            os.remove(fname)
+        except Exception:
+            pass
     elif os.path.isfile(fname):
         # Do nothing if full file exists with this name
         return
