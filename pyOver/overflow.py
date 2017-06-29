@@ -336,6 +336,61 @@ class Overflow(Cntl):
         else:
             return n
         
+    # Check a case's phase output files
+    def CheckUsedPhase(self, i, v=False):
+        """Check maximum phase number run at least once
+        
+        :Call:
+            >>> n = ofl.CheckUsedPhase(i, v=False)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+            *v*: ``True`` | {``False``}
+                Verbose flag; prints messages if *n* is ``None``
+        :Outputs:
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2017-06-29 ``@ddalle``: First version
+        """
+         # Check input.
+        if type(i).__name__ not in ["int", "int64", "int32"]:
+            raise TypeError(
+                "Input to :func:`Cntl.CheckCase()` must be :class:`int`.")
+        # Get the group name.
+        frun = self.x.GetFullFolderNames(i)
+        # Remember current location.
+        fpwd = os.getcwd()
+        # Go to root folder.
+        os.chdir(self.RootDir)
+        # Initialize phase number.
+        j = 0
+        # Check if the folder exists.
+        if (not os.path.isdir(frun)):
+            # Verbosity option
+            if v: print("    Folder '%s' does not exist" % frun)
+            j = None
+        # Check that test.
+        if j is not None:
+            # Go to the group folder.
+            os.chdir(frun)
+            # Get phase list
+            phases = list(self.opts.get_PhaseSequence())
+            # Reverse the list
+            phases.reverse()
+            # Loop backwards
+            for j in phases:
+                # Check if any output files exist
+                if len(glob.glob("run.%02i.[1-9]*")) > 0:
+                    # Found it.
+                    break
+        # Return to original folder.
+        os.chdir(fpwd)
+        # Output.
+        return j
+        
     # Get the current iteration number from :mod:`case`
     def CaseGetCurrentPhase(self):
         """Get the current phase number from the appropriate module
