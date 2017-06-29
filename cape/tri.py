@@ -2586,6 +2586,7 @@ class TriBase(object):
         kKeep = (tri.CompID > 0)
         tri.Tris   = tri.Tris[kKeep,:]
         tri.CompID = tri.CompID[kKeep]
+        tri.nTri   = tri.Tris.shape[0]
         # Write the triangulation to file.
         tri.Write(fname)
         
@@ -2629,6 +2630,7 @@ class TriBase(object):
         # Ignore negative triangles
         tri.Tris   = tri.Tris[kKeep,:]
         tri.CompID = tri.CompID[kKeep]
+        tri.nTri   = tri.Tris.shape[0]
         # Write the triangulation to file.
         tri.Write(fname)
         
@@ -2671,6 +2673,7 @@ class TriBase(object):
         # Ignore negative triangles
         tri.Tris   = tri.Tris[kKeep,:]
         tri.CompID = tri.CompID[kKeep]
+        tri.nTri   = tri.Tris.shape[0]
         # Write the triangulation to file.
         tri.Write(fname)
         
