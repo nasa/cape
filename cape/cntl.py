@@ -1136,7 +1136,7 @@ class Cntl(object):
             # Loop backwards
             for j in phases:
                 # Check if any output files exist
-                if len(glob.glob("run.%02i.[1-9]*")) > 0:
+                if len(glob.glob("run.%02i.[1-9]*" % j)) > 0:
                     # Found it.
                     break
         # Return to original folder.

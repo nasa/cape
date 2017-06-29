@@ -276,7 +276,7 @@ class DataBook(dict):
             * 2017-04-13 ``@ddalle``: Self-contained and renamed
         """
         self[comp] = DBComp(comp, self.x, self.opts,
-            targ=self.targ, check=check, lock=lock)
+            targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
     
     # Read line load
     def ReadLineLoad(self, comp, conf=None, targ=None):
@@ -4174,7 +4174,7 @@ class DBComp(DBBase):
   # ========
   # <
     # Initialization method
-    def __init__(self, comp, x, opts, targ=None, check=False, lock=False):
+    def __init__(self, comp, x, opts, targ=None, check=False, lock=False, **kw):
         """Initialization method
         
         :Versions:
@@ -4185,6 +4185,8 @@ class DBComp(DBBase):
         self.opts = opts
         self.comp = comp
         self.name = comp
+        # Root direcotyr
+        self.RootDir = kw.get("RootDir", os.getcwd())
         
         # Get the directory.
         if targ is None:
