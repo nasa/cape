@@ -958,7 +958,10 @@ def LinkLatest(fsrc, fname):
     # Check if the source file exists
     if (fsrc is None) or (not os.path.isfile(fsrc)): return
     # Create link
-    os.symlink(fsrc, fname)
+    try:
+        os.symlink(fsrc, fname)
+    except Exception:
+        pass
 
 # Link best Q file
 def LinkQ():
