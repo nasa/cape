@@ -55,7 +55,7 @@ def aflr3(opts=None, j=0, **kw):
             Initial surface stretching
         *cdfr*: :class:`float`
             Maximum geometric stretching
-        *cdfs: {``None``} | 0 <= :class:`float` <=10
+        *cdfs*: {``None``} | 0 <= :class:`float` <=10
             Distribution function exclusion zone
         *angblisimx*: :class:`float`
             Max BL intersection angle
@@ -70,18 +70,22 @@ def aflr3(opts=None, j=0, **kw):
         # Get values
         fi         = opts.get_aflr3_i(j)
         fo         = opts.get_aflr3_o(j)
-        blc        = opts.get_blc(j)
-        blr        = opts.get_blr(j)
-        bli        = opts.get_bli(j)
-        blds       = opts.get_blds(j)
-        grow       = opts.get_grow(j)
-        cdfr       = opts.get_cdfr(j)
-        cdfs       = opts.get_cdfs(j)
-        nqual      = opts.get_nqual(j)
-        mdsblf     = opts.get_mdsblf(j)
-        angqbf     = opts.get_angqbf(j)
-        angblisimx = opts.get_angblisimx(j)
+        blc        = opts.get_aflr3_blc(j)
+        blr        = opts.get_aflr3_blr(j)
+        bli        = opts.get_aflr3_bli(j)
+        blds       = opts.get_aflr3_blds(j)
+        grow       = opts.get_aflr3_grow(j)
+        cdfr       = opts.get_aflr3_cdfr(j)
+        cdfs       = opts.get_aflr3_cdfs(j)
+        nqual      = opts.get_aflr3_nqual(j)
+        mdsblf     = opts.get_aflr3_mdsblf(j)
+        angqbf     = opts.get_aflr3_angqbf(j)
+        angblisimx = opts.get_aflr3_angblisimx(j)
+        # Extra options
+        flags = opts.get_aflr3_opts()
+        keys  = opts.get_aflr3_keys()
     else:
+        # Get command-line options
         fi         = getel(kw.get('i'), j)
         fo         = getel(kw.get('o'), j)
         bli        = getel(kw.get('bli'), j)
@@ -95,6 +99,9 @@ def aflr3(opts=None, j=0, **kw):
         mdsblf     = getel(kw.get('mdsblf'), j)
         angqbf     = getel(kw.get('angqbf'), j)
         angblisimx = getel(kw.get('angblisimx'), j)
+        # Extra options
+        flags = kw.get('flags', {})
+        keys  = kw.get('keys',  {})
     # Initialize command
     cmdi = ['aflr3']
     # Start with input and output files
@@ -122,6 +129,25 @@ def aflr3(opts=None, j=0, **kw):
     # Options that can be None
     if mdsblf is not None: cmdi += ['-mdsblf', str(mdsblf)]
     if nqual  is not None: cmdi += ['nqual=%i' % nqual]
+    # Loop through flags
+    for k in flags:
+        # Get value
+        v = flags[k]
+        # Check type
+        if type(v).__name__ == "bool":
+            # Check Boolean value
+            if v:
+                # Add '-$k' to command
+                cmdi += ['-%s' % k]
+        else:
+            # Convert to string, '-$k $v'
+            cmdi += ['-%s' % k, '%s' % v]
+    # Loop though keys
+    for k in keys:
+        # Get value
+        v = keys[k]
+        # Append to command
+        cmdi += ['%s=%s' % (k, v)]
     # Output
     return cmdi
     

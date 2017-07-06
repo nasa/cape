@@ -445,6 +445,21 @@ class RunControl(odict):
         else:
             # Return the 'run' flag
             return q == True
+        
+    # Get AFLR3 *-key val* options
+    def get_aflr3_flags(self):
+        self._aflr3()
+        return self['aflr3'].get_aflr3_flags()
+        
+    # Get AFLR3 *key=val* options
+    def get_aflr3_keys(self):
+        self._aflr3()
+        return self['aflr3'].get_aflr3_keys()
+        
+    # Copy documentation
+    for k in ['aflr3_flags', 'aflr3_keys']:
+        # Get the documentation for the "get" and "set" functions
+        eval('get_'+k).__doc__ = getattr(aflr3.aflr3,'get_'+k).__doc__
     
     # Get AFLR3 input file
     def get_aflr3_i(self, j=0):
@@ -477,142 +492,144 @@ class RunControl(odict):
         self['aflr3'].set_aflr3_BCFile(fname, j)
 
     # Growth parameter
-    def get_grow(self, j=0):
+    def get_aflr3_grow(self, j=0):
         self._aflr3()
-        return self['aflr3'].get_grow(j)
+        return self['aflr3'].get_aflr3_grow(j)
 
     # Grwoth parameter
-    def set_grow(self, grow, j=0):
+    def set_aflr3_grow(self, grow, j=0):
         self._aflr3()
-        self['aflr3'].set_grow(grow, j)
+        self['aflr3'].set_aflr3_grow(grow, j)
     
     # Get stretching ratio
-    def get_blr(self, j=0):
+    def get_aflr3_blr(self, j=0):
         self._aflr3()
-        return self['aflr3'].get_blr(j)
+        return self['aflr3'].get_aflr3_blr(j)
         
     # Set stretching ratio
-    def set_blr(self, blr, j=0):
+    def set_aflr3_blr(self, blr, j=0):
         self._aflr3()
-        self['aflr3'].set_blr(blr, j)
+        self['aflr3'].set_aflr3_blr(blr, j)
     
     # Get stretching ratio
-    def get_bli(self, j=0):
+    def get_aflr3_bli(self, j=0):
         self._aflr3()
-        return self['aflr3'].get_bli(j)
+        return self['aflr3'].get_aflr3_bli(j)
         
     # Set stretching ratio
-    def set_bli(self, bli, j=0):
+    def set_aflr3_bli(self, bli, j=0):
         self._aflr3()
-        self['aflr3'].set_bli(bli, j)
+        self['aflr3'].set_aflr3_bli(bli, j)
     
     # Get BL prism layer option
-    def get_blc(self, j=0):
+    def get_aflr3_blc(self, j=0):
         self._aflr3()
-        return self['aflr3'].get_blc(j)
+        return self['aflr3'].get_aflr3_blc(j)
         
     # Set BL prism layer option
-    def set_blc(self, blr, j=0):
+    def set_aflr3_blc(self, blr, j=0):
         self._aflr3()
-        self['aflr3'].set_blr(blc, j)
+        self['aflr3'].set_aflr3_blr(blc, j)
     
     # Get wall spacing
-    def get_blds(self, j=0):
+    def get_aflr3_blds(self, j=0):
         self._aflr3()
-        return self['aflr3'].get_blds(j)
+        return self['aflr3'].get_aflr3_blds(j)
         
     # Set wall spacing
-    def set_blds(self, blds, j=0):
+    def set_aflr3_blds(self, blds, j=0):
         self._aflr3()
-        self['aflr3'].set_blds(blds, j)
+        self['aflr3'].set_aflr3_blds(blds, j)
         
     # Max geometric growth ratio
-    def get_cdfr(self, j=0):
+    def get_aflr3_cdfr(self, j=0):
         self._aflr3()
-        return self['aflr3'].get_cdfr(j)
+        return self['aflr3'].get_aflr3_cdfr(j)
         
     # Max geometric growth ratio
-    def set_cdfr(self, cdfr, j=0):
+    def set_aflr3_cdfr(self, cdfr, j=0):
         self._aflr3()
-        self['aflr3'].set_cdfr(cdfr, j)
+        self['aflr3'].set_aflr3_cdfr(cdfr, j)
         
     # Max geometric growth ratio
-    def get_cdfs(self, j=0):
+    def get_aflr3_cdfs(self, j=0):
         self._aflr3()
-        return self['aflr3'].get_cdfs(j)
+        return self['aflr3'].get_aflr3_cdfs(j)
         
     # Max geometric growth ratio
-    def set_cdfs(self, cdfs, j=0):
+    def set_aflr3_cdfs(self, cdfs, j=0):
         self._aflr3()
-        self['aflr3'].set_cdfs(cdfs, j)
+        self['aflr3'].set_aflr3_cdfs(cdfs, j)
         
     # Number of quality improvement passes
-    def get_nqual(self, j=0):
+    def get_aflr3_nqual(self, j=0):
         self._aflr3()
-        return self['aflr3'].get_nqual(j)
+        return self['aflr3'].get_aflr3_nqual(j)
         
     # Number of quality improvement passes
-    def set_nqual(self, nqual, j=0):
+    def set_aflr3_nqual(self, nqual, j=0):
         self._aflr3()
-        self['aflr3'].set_nqual(nqual, j)
+        self['aflr3'].set_aflr3_nqual(nqual, j)
         
     # Distribution function
-    def get_mdf(self, j=0):
+    def get_aflr3_mdf(self, j=0):
         self._aflr3()
-        return self['aflr3'].get_mdf(j)
+        return self['aflr3'].get_aflr3_mdf(j)
         
     # Distribution function
-    def set_mdf(self, mdf, j=0):
+    def set_aflr3_mdf(self, mdf, j=0):
         self._aflr3()
-        self['aflr3'].set_mdf(mdf, j)
+        self['aflr3'].set_aflr3_mdf(mdf, j)
         
     # Prism smoothing option
-    def get_mdsblf(self, j=0):
+    def get_aflr3_mdsblf(self, j=0):
         self._aflr3()
-        return self['aflr3'].get_mdsblf(j)
+        return self['aflr3'].get_aflr3_mdsblf(j)
         
     # Prism smoothing option
-    def set_mdsblf(self, mdsblf, j=0):
+    def set_aflr3_mdsblf(self, mdsblf, j=0):
         self._aflr3()
-        self['aflr3'].set_mdsblf(mdsblf, j)
+        self['aflr3'].set_aflr3_mdsblf(mdsblf, j)
     
     # Get max wall angle setting
-    def get_angqbf(self, j=0):
+    def get_aflr3_angqbf(self, j=0):
         self._aflr3()
-        return self['aflr3'].get_angqbf(j)
+        return self['aflr3'].get_aflr3_angqbf(j)
         
     # Set max wall angle setting
-    def set_angqbf(self, angqbf, j=0):
+    def set_aflr3_angqbf(self, angqbf, j=0):
         self._aflr3()
-        self['aflr3'].set_angqbf(angqbf, j)
+        self['aflr3'].set_aflr3_angqbf(angqbf, j)
     
     # Get max wall angle setting
-    def get_angblisimx(self, j=0):
+    def get_aflr3_angblisimx(self, j=0):
         self._aflr3()
-        return self['aflr3'].get_angblisimx(j)
+        return self['aflr3'].get_aflr3_angblisimx(j)
         
     # Set max wall angle setting
-    def set_angblisimx(self, angbli, j=0):
+    def set_aflr3_angblisimx(self, angbli, j=0):
         self._aflr3()
-        self['aflr3'].set_angblisimx(angbli, j)
+        self['aflr3'].set_aflr3_angblisimx(angbli, j)
         
     # Get surface triangle angle options
-    def get_angqbf(self, j=0):
+    def get_aflr3_angqbf(self, j=0):
         self._aflr3()
-        return self['aflr3'].get_angqbf(j)
+        return self['aflr3'].get_aflr3_angqbf(j)
     
     # Set surface triangle angle options
-    def set_angqbf(self, angqbf, j=0):
+    def set_aflr3_angqbf(self, angqbf, j=0):
         self._aflr3()
-        self['aflr3'].set_angqbf(angqbf, j)
+        self['aflr3'].set_aflr3_angqbf(angqbf, j)
         
     # Copy documentation
-    for k in ['aflr3_i', 'aflr3_o', 'aflr3_BCFile',
+    for k in ['i', 'o', 'BCFile',
         'blc', 'blr', 'blds', 'bli', 'grow',
         'cdfr', 'cdfs', 'nqual', 'mdf', 'mdsblf', 'angblisimx', 'angqbf']:
         # Get the documentation for the "get" and "set" functions
-        eval('get_'+k).__doc__ = getattr(aflr3.aflr3,'get_'+k).__doc__
-        eval('set_'+k).__doc__ = getattr(aflr3.aflr3,'set_'+k).__doc__
+        eval('get_aflr3_'+k).__doc__ = getattr(
+            aflr3.aflr3,'get_aflr3_'+k).__doc__
+        eval('set_aflr3_'+k).__doc__ = getattr(aflr3.aflr3,
+            'set_aflr3_'+k).__doc__
    # >
     
    # =========

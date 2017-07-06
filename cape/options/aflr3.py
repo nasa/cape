@@ -28,6 +28,56 @@ class aflr3(odict):
     :Versions:
         * 2016-04-04 ``@ddalle``: First version
     """
+    # Get dictionary of AFLR3 options using flag-value format
+    def get_aflr3_flags(self):
+        """Get additional AFLR3 options using *-key val* format
+        
+        :Call:
+            >>> flags = opts.get_aflr3_flags()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *flags*: :class:`dict`
+                Dictionary of additional AFLR3 options
+        :Versions:
+            * 2017-07-06 ``@ddalle``: First version
+        """
+        # Get "flags" key
+        flags = self.get("flags", {})
+        # Check type
+        if type(flags).__name__ != "dict":
+            # Wrong type
+            raise TypeError("AFLR3 option 'flags' must be dict;\n" +
+                ("           Received type: '%s'" % type(flags).__name__))
+        # Output
+        return flags
+        
+    # Get dictionary of AFLR3 options using key-value format
+    def get_aflr3_keys(self):
+        """Get additional AFLR3 options using *key=val* format
+        
+        :Call:
+            >>> d = opts.get_aflr3_keys()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *d*: :class:`dict`
+                Dictionary of additional AFLR3 options
+        :Versions:
+            * 2017-07-06 ``@ddalle``: First version
+        """
+        # Get "keys" key
+        d = self.get("keys", {})
+        # Check type
+        if type(d).__name__ != "dict":
+            # Wrong type
+            raise TypeError("AFLR3 option 'keys' must be diction;\n" +
+                ("           Received type: '%s'" % type(d).__name__))
+        # Output
+        return d
+        
     # Boundary condition file
     def get_aflr3_BCFile(self, j=0):
         """Get the AFLR3 boundary condition file
@@ -136,11 +186,11 @@ class aflr3(odict):
         self.set_key('o', fname, j)
         
     # Get the boundary layer stretching ratio
-    def get_blr(self, j=None):
+    def get_aflr3_blr(self, j=None):
         """Get the AFLR3 boundary layer stretching ratio
         
         :Call:
-            >>> blr = opts.get_blr(j=None)
+            >>> blr = opts.get_aflr3_blr(j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -155,11 +205,11 @@ class aflr3(odict):
         return self.get_key('blr', j)
         
     # Set the boundary layer stretching ratio
-    def set_blr(self, blr, j=None):
+    def set_aflr3_blr(self, blr, j=None):
         """Get the AFLR3 boundary layer stretching ratio
         
         :Call:
-            >>> opts.set_blr(blr, j=None)
+            >>> opts.set_aflr3_blr(blr, j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -173,11 +223,11 @@ class aflr3(odict):
         self.set_key('blr', blr, j)
         
     # Get the number of prism layers
-    def get_bli(self, j=None):
+    def get_aflr3_bli(self, j=None):
         """Get the number of AFLR3 prism layers
         
         :Call:
-            >>> bli = opts.get_bli(j=None)
+            >>> bli = opts.get_aflr3_bli(j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -192,11 +242,11 @@ class aflr3(odict):
         return self.get_key('bli', j)
         
     # Set the number of prism layers
-    def set_bli(self, bli, j=None):
+    def set_aflr3_bli(self, bli, j=None):
         """Set the number of AFLR3 prism layers
         
         :Call:
-            >>> opts.set_bli(bli, j=None)
+            >>> opts.set_aflr3_bli(bli, j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -210,11 +260,11 @@ class aflr3(odict):
         self.set_key('bli', bli, j)
     
     # Get BL grid option
-    def get_blc(self, j=None):
+    def get_aflr3_blc(self, j=None):
         """Get the AFLR3 BL option with prism layers
         
         :Call:
-            >>> blc = opts.get_blc(j=None)
+            >>> blc = opts.get_aflr3_blc(j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -229,11 +279,11 @@ class aflr3(odict):
         return self.get_key('blc', j)
         
     # Set the BL grid option
-    def set_blc(self, blc, j=None):
+    def set_aflr3_blc(self, blc, j=None):
         """Get the AFLR3 BL option with prism layers
         
         :Call:
-            >>> opts.set_blc(blc, j=None)
+            >>> opts.set_aflr3_blc(blc, j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -247,11 +297,11 @@ class aflr3(odict):
         self.set_key('blc', blc, j)
     
     # Get the initial surface spacing
-    def get_blds(self, j=None):
+    def get_aflr3_blds(self, j=None):
         """Get the initial boundary-layer spacing
         
         :Call:
-            >>> blds = opts.get_blds(j=None)
+            >>> blds = opts.get_aflr3_blds(j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -266,11 +316,11 @@ class aflr3(odict):
         return self.get_key('blds', j)
         
     # Set the initial surface spacing
-    def set_blds(self, blds, j=None):
+    def set_aflr3_blds(self, blds, j=None):
         """Set the initial boundary-layer spacing
         
         :Call:
-            >>> opts.set_blds(blds, j=None)
+            >>> opts.set_aflr3_blds(blds, j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -284,11 +334,11 @@ class aflr3(odict):
         self.set_key('blds', blds, j)
 
     # Growth flag
-    def get_grow(self, j=None):
+    def get_aflr3_grow(self, j=None):
         """Get the growth option for AFLR3
 
         :Call:
-            >>> grow = opts.get_grow(j=None)
+            >>> grow = opts.get_aflr3_grow(j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -303,11 +353,11 @@ class aflr3(odict):
         return self.get_key('grow', j)
 
     # Set growth flag
-    def set_grow(self, grow, j=None):
+    def set_aflr3_grow(self, grow, j=None):
         """Set the growth option for AFLR3
 
         :Call:
-            >>> opts.get_grow(grow, j=None)
+            >>> opts.get_aflr3_grow(grow, j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -321,11 +371,11 @@ class aflr3(odict):
         self.set_key('grow', grow, j)
         
     # Get the volume grid stretching
-    def get_cdfr(self, j=None):
+    def get_aflr3_cdfr(self, j=None):
         """Get the maximum geometric growth rate in the volume region
         
         :Call:
-            >>> cdfr = opts.get_cdfr(j=None)
+            >>> cdfr = opts.get_aflr3_cdfr(j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -340,11 +390,11 @@ class aflr3(odict):
         return self.get_key('cdfr', j, rck='aflr3_cdfr')
         
     # Grid spacing exclusion zone
-    def get_cdfs(self, j=None):
+    def get_aflr3_cdfs(self, j=None):
         """Get the geometric growth exclusion zone
         
         :Call:
-            >>> cdfs = opts.get_cdfr(j=None)
+            >>> cdfs = opts.get_aflr3_cdfr(j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -359,11 +409,11 @@ class aflr3(odict):
         return self.get_key('cdfs', j, rck='aflr3_cdfs')
         
     # Set the max geometric growth rate
-    def set_cdfr(self, cdfr, j=None):
+    def set_aflr3_cdfr(self, cdfr, j=None):
         """Set the maximum geometric growth rate in the volume region
         
         :Call:
-            >>> opts.set_cdfr(cdfr, j=None)
+            >>> opts.set_aflr3_cdfr(cdfr, j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -377,11 +427,11 @@ class aflr3(odict):
         self.set_key('cdfr', cdfr, j)
         
     # Set the geometric exclusion zone
-    def set_cdfs(self, cdfs, j=None):
+    def set_aflr3_cdfs(self, cdfs, j=None):
         """Set the exclusion zone for geometric growth
         
         :Call:
-            >>> opts.set_cdfs(cdfs, j=None)
+            >>> opts.set_aflr3_cdfs(cdfs, j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -395,11 +445,11 @@ class aflr3(odict):
         self.set_key('cdfs', cdfs, j)
         
     # Get the number of quality improvement passes
-    def get_nqual(self, j=None):
+    def get_aflr3_nqual(self, j=None):
         """Get the number of mesh quality improvement passes
         
         :Call:
-            >>> nqual = opts.get_nqual(j=None)
+            >>> nqual = opts.get_aflr3_nqual(j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -414,11 +464,11 @@ class aflr3(odict):
         return self.get_key('nqual', j, rck='aflr3_nqual')
         
     # Set the number of quality improvement passes
-    def set_nqual(self, nqual, j=None):
+    def set_aflr3_nqual(self, nqual, j=None):
         """Set the number of mesh quality improvement passes
         
         :Call:
-            >>> opts.set_nqual(nqual, j=None)
+            >>> opts.set_aflr3_nqual(nqual, j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -432,11 +482,11 @@ class aflr3(odict):
         self.set_key('nqual', nqual, j)
         
     # Maximum angle between BL intersecting faces
-    def get_angqbf(self, j=None):
+    def get_aflr3_angqbf(self, j=None):
         """Get the maximum angle on surface triangles
         
         :Call:
-            >>> angbli = opts.get_angqbf(j=None)
+            >>> angbli = opts.get_aflr3_angqbf(j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -451,11 +501,11 @@ class aflr3(odict):
         return self.get_key('angqbf', j)
         
     # Maximum angle between BL intersecting faces
-    def set_angqbf(self, angqbf, j=None):
+    def set_aflr3_angqbf(self, angqbf, j=None):
         """Set the maximum angle on surface tris
         
         :Call:
-            >>> opts.get_angblisimx(angbli, j=None)
+            >>> opts.get_aflr3_angblisimx(angbli, j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -469,11 +519,11 @@ class aflr3(odict):
         return self.set_key('angqbf', angqbf, j)
         
     # Maximum angle between BL intersecting faces
-    def get_angblisimx(self, j=None):
+    def get_aflr3_angblisimx(self, j=None):
         """Get the maximum angle between BL intersecting faces
         
         :Call:
-            >>> angbli = opts.get_angblisimx(j=None)
+            >>> angbli = opts.get_aflr3_angblisimx(j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -488,11 +538,11 @@ class aflr3(odict):
         return self.get_key('angblisimx', j)
         
     # Maximum angle between BL intersecting faces
-    def set_angblisimx(self, angblisimx, j=None):
+    def set_aflr3_angblisimx(self, angblisimx, j=None):
         """Set the maximum angle between BL intersecting faces
         
         :Call:
-            >>> opts.get_angblisimx(angbli, j=None)
+            >>> opts.get_aflr3_angblisimx(angbli, j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -506,14 +556,14 @@ class aflr3(odict):
         self.set_key('angblisimx', angblisimx, j)
         
     # Tolerance for bad surface cells
-    def get_angqbf(self, j=None):
+    def get_aflr3_angqbf(self, j=None):
         """Get the AFLR3 option *angqbf*
         
         Setting this option to ``0`` will allow for mesh generation from
         lower-quality surface meshes.
         
         :Call:
-            >>> angqbf = opts.get_angqbf(j=None)
+            >>> angqbf = opts.get_aflr3_angqbf(j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -528,14 +578,14 @@ class aflr3(odict):
         return self.get_key('angqbf', j)
         
     # Set bad surface cell option
-    def set_angqbf(self, angqbf, j=None):
+    def set_aflr3_angqbf(self, angqbf, j=None):
         """Get the AFLR3 option *angqbf*
         
         Setting this option to ``0`` will allow for mesh generation from
         lower-quality surface meshes.
         
         :Call:
-            >>> opts.set_angqbf(angqbf, j=None)
+            >>> opts.set_aflr3_angqbf(angqbf, j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -549,11 +599,11 @@ class aflr3(odict):
         return self.set_key('angqbf', angqbf, j)
     
     # Distribution function flag
-    def get_mdf(self, j=None):
+    def get_aflr3_mdf(self, j=None):
         """Get the AFLR3 volume grid distribution flag
 
         :Call:
-            >>> mdsblf = opts.get_mdsblf(j=None)
+            >>> mdf = opts.get_aflr3_mdf(j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -568,11 +618,11 @@ class aflr3(odict):
         return self.get_key('mdf', j, rck="aflr3_mdf")
     
     # BL distribution function flag
-    def set_mdf(self, mdf, j=None):
+    def set_aflr3_mdf(self, mdf, j=None):
         """Set the AFLR3 volume grid distribution flag
 
         :Call:
-            >>> opts.set_mdf(mdf, j=None)
+            >>> opts.set_aflr3_mdf(mdf, j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -586,11 +636,11 @@ class aflr3(odict):
         self.set_key('mdf', mdf, j)
     
     # BL spacing thickness factor option
-    def get_mdsblf(self, j=None):
+    def get_aflr3_mdsblf(self, j=None):
         """Get the BL spacing thickness factor option
 
         :Call:
-            >>> mdsblf = opts.get_mdsblf(j=None)
+            >>> mdsblf = opts.get_aflr3_mdsblf(j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -605,11 +655,11 @@ class aflr3(odict):
         return self.get_key('mdsblf', j, rck="aflr3_mdsblf")
     
     # BL spacing thickness factor option
-    def set_mdsblf(self, mdsblf, j=None):
+    def set_aflr3_mdsblf(self, mdsblf, j=None):
         """Set the BL spacing thickness factor option
 
         :Call:
-            >>> opts.set_mdsblf(mdsblf, j=None)
+            >>> opts.set_aflr3_mdsblf(mdsblf, j=None)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
