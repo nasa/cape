@@ -82,7 +82,7 @@ def aflr3(opts=None, j=0, **kw):
         angqbf     = opts.get_aflr3_angqbf(j)
         angblisimx = opts.get_aflr3_angblisimx(j)
         # Extra options
-        flags = opts.get_aflr3_opts()
+        flags = opts.get_aflr3_flags()
         keys  = opts.get_aflr3_keys()
     else:
         # Get command-line options
