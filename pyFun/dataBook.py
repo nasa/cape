@@ -85,16 +85,20 @@ class DataBook(cape.dataBook.DataBook):
         * 2015-10-20 ``@ddalle``: Started
     """
     # Initialize a DBComp object
-    def ReadDBComp(self, comp):
+    def ReadDBComp(self, comp, check=False, lock=False):
         """Initialize data book for one component
         
         :Call:
-            >>> DB.ReadDBComp(comp)
+            >>> DB.ReadDBComp(comp, check=False, lock=False)
         :Inputs:
             *DB*: :class:`pyFun.dataBook.DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
         :Versions:
             * 2015-11-10 ``@ddalle``: First version
             * 2016-06-27 ``@ddalle``: Added *targ* keyword
@@ -103,7 +107,8 @@ class DataBook(cape.dataBook.DataBook):
         # Save the project name
         self.proj = self.opts.get_project_rootname()
         # Read the data book
-        self[comp] = DBComp(comp, self.x, self.opts, targ=self.targ)
+        self[comp] = DBComp(comp, self.x, self.opts,
+            targ=self.targ, check=check, lock=lock)
     
     # Local version of data book
     def _DataBook(self, targ):
@@ -138,7 +143,7 @@ class DataBook(cape.dataBook.DataBook):
                 conf=conf, RootDir=self.RootDir, targ=targ)
     
     # Read TrqiFM components
-    def ReadTriqFM(self, comp):
+    def ReadTriqFM(self, comp, check=False, lock=False):
         """Read a TriqFM data book if not already present
         
         :Call:
@@ -148,6 +153,10 @@ class DataBook(cape.dataBook.DataBook):
                 Instance of pyFun data book class
             *comp*: :class:`str`
                 Name of TriqFM component
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
         :Versions:
             * 2017-03-28 ``@ddalle``: First version
         """
@@ -159,13 +168,16 @@ class DataBook(cape.dataBook.DataBook):
         # Try to access the TriqFM database
         try:
             self.TriqFM[comp]
+            # Confirm lock if necessary.
+            if lock:
+                self.TriqFM[comp].Lock()
         except Exception:
             # Safely go to root directory
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read data book
             self.TriqFM[comp] = DBTriqFM(self.x, self.opts, comp,
-                RootDir=self.RootDir)
+                RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
   
@@ -530,6 +542,11 @@ class CaseFM(cape.dataBook.CaseFM):
             # First attempt
             A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
         except Exception:
+            # Attempt to remove null characters
+            try:
+                os.system("sed -i 's/\\x0//g' %s" % fname)
+            except Exception:
+                pass
             # Second attempt
             A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
         # Number of columns.
@@ -569,8 +586,18 @@ class CaseFM(cape.dataBook.CaseFM):
             # First attempt
             A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
         except Exception:
+            # Attempt to remove null characters
+            try:
+                os.system("sed -i 's/\\x0//g' %s" % fname)
+            except Exception:
+                pass
             # Second attempt
-            A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
+            try:
+                A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
+            except Exception:
+                # Status message
+                print("Failed to read file '%s'" % fname)
+                return
         # Number of columns.
         n = len(cols)
         # Append the values.

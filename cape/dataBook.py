@@ -38,7 +38,7 @@ module for reading iterative force/moment histories and the
 """
 
 # File interface
-import os, fnmatch
+import os, fnmatch, time
 # Basic numerics
 import numpy as np
 # Advanced text (regular expressions)
@@ -145,6 +145,9 @@ class DataBook(dict):
         # Change safely to the root folder
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
+        # Lock status
+        check = kw.get("check", False)
+        lock  = kw.get("lock",  False)
         # Save the components
         self.Components = opts.get_DataBookComponents(targ=targ)
         # Get list of components
@@ -194,7 +197,7 @@ class DataBook(dict):
             # Check if it's an aero-type component
             if tcomp not in ['FM', 'Force', 'Moment']: continue
             # Initialize the data book.
-            self.ReadDBComp(comp)
+            self.ReadDBComp(comp, check=check, lock=lock)
         # Initialize targets.
         self.Targets = {}
         # Return to original location
@@ -224,17 +227,18 @@ class DataBook(dict):
   # ===
   # <
     # Write the data book
-    def Write(self):
+    def Write(self, unlock=True):
         """Write the current data book in Python memory to file
         
         :Call:
-            >>> DB.Write()
+            >>> DB.Write(unlock=True)
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
                 Instance of the Cape data book class
         :Versions:
             * 2014-12-22 ``@ddalle``: First version
             * 2015-06-19 ``@ddalle``: New multi-key sort
+            * 2017-06-12 ``@ddalle``: Added *unlock*
         """
         # Start from root directory.
         os.chdir(self.RootDir)
@@ -250,24 +254,29 @@ class DataBook(dict):
             tcomp = self.opts.get_DataBookType(comp)
             if tcomp not in ['Force', 'Moment', 'FM']: continue
             # Write individual component.
-            self[comp].Write()
+            self[comp].Write(unlock=unlock)
     
     # Initialize a DBComp object
-    def ReadDBComp(self, comp):
+    def ReadDBComp(self, comp, check=False, lock=False):
         """Initialize data book for one component
         
         :Call:
-            >>> DB.InitDBComp(comp)
+            >>> DB.InitDBComp(comp, check=False, lock=False)
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
+            *check*: ``True`` | {``False``}
+                Whether or not to check for LOCK file
+            *lock*: ``True`` | {``False``}
+                Whether or not to create LOCK file
         :Versions:
             * 2015-11-10 ``@ddalle``: First version
             * 2017-04-13 ``@ddalle``: Self-contained and renamed
         """
-        self[comp] = DBComp(comp, self.x, self.opts, targ=self.targ)
+        self[comp] = DBComp(comp, self.x, self.opts,
+            targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
     
     # Read line load
     def ReadLineLoad(self, comp, conf=None, targ=None):
@@ -322,16 +331,20 @@ class DataBook(dict):
         pass
     
     # Read TrqiFM components
-    def ReadTriqFM(self, comp):
+    def ReadTriqFM(self, comp, check=False, lock=False):
         """Read a TriqFM data book if not already present
         
         :Call:
-            >>> DB.ReadTriqFM(comp)
+            >>> DB.ReadTriqFM(comp, check=False, lock=False)
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
                 Data book instance
             *comp*: :class:`str`
                 Name of TriqFM component
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
         :Versions:
             * 2017-03-28 ``@ddalle``: First version
         """
@@ -343,13 +356,16 @@ class DataBook(dict):
         # Try to access the TriqFM database
         try:
             self.TriqFM[comp]
+            # Confirm lock
+            if lock:
+                self.TriqFM[comp].Lock()
         except Exception:
             # Safely go to root directory
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read data book
             self.TriqFM[comp] = DBTriqFM(self.x, self.opts, comp,
-                RootDir=self.RootDir)
+                RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
     
@@ -565,6 +581,9 @@ class DataBook(dict):
             if tcomp not in ["FM", "Force", "Moment"]: continue
             # Update.
             print("%s component '%s'..." % (tcomp, comp))
+            # Read the component if necessary
+            if comp not in self:
+                self.ReadDBComp(comp, check=False, lock=False)
             # Save location
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
@@ -576,13 +595,16 @@ class DataBook(dict):
             # Return to original location
             os.chdir(fpwd)
             # Move to next component if no updates
-            if n == 0: continue
+            if n == 0:
+                # Unlock
+                self[comp].Unlock()
+                continue
             # Status update
             print("Writing %i new or updated entries" % n)
             # Sort the component
             self[comp].Sort()
             # Write the component
-            self[comp].Write()
+            self[comp].Write(merge=True, unlock=True)
         
     # Function to delete entries by index
     def DeleteCases(self, I, comp=None):
@@ -615,7 +637,11 @@ class DataBook(dict):
             nj = self.DeleteCasesComp(I, comp)
             # Write the component
             if nj > 0:
-                self[comp].Write()
+                # Write cleaned-up data book
+                self[comp].Write(unlock=True)
+            else:
+                # Unlock
+                self[comp].Unlock()
         
     # Function to delete entries by index
     def DeleteCasesComp(self, I, comp):
@@ -637,7 +663,7 @@ class DataBook(dict):
         """
         # Read if necessary
         if comp not in self:
-            self.ReadDBComp(comp)
+            self.ReadDBComp(comp, check=True, lock=True)
         # Check if it's present
         if comp not in self:
             print("WARNING: No aero data book component '%s'" % comp)
@@ -724,7 +750,7 @@ class DataBook(dict):
         # Check if the folder exists.
         if not os.path.isdir(frun):
             # Nothing to do.
-            return
+            return 0
         # Go to the folder.
         os.chdir(frun)
         # Get the current iteration number.
@@ -1028,11 +1054,14 @@ class DataBook(dict):
             # Perform update and get number of deletions
             n = self.UpdateTriqFMComp(comp, I)
             # Check for updates
-            if n == 0: continue
+            if n == 0:
+                # Unlock
+                self.TriqFM[comp].Unlock()
+                continue
             print("Added or updated %s entries" % n)
             # Write the updated results
             self.TriqFM[comp].Sort()
-            self.TriqFM[comp].Write()
+            self.TriqFM[comp].Write(merge=True, unlock=True)
     
     # Update TriqFM data book for one component
     def UpdateTriqFMComp(self, comp, I=None):
@@ -1059,13 +1088,15 @@ class DataBook(dict):
             raise ValueError(
                 "Component '%s' is not a TriqFM component" % comp)
         # Read the TriqFM data book if necessary
-        self.ReadTriqFM(comp)
+        self.ReadTriqFM(comp, check=False, lock=False)
         # Intialize count
         n = 0
         # Loop through indices
         for i in I:
             # Update the data book for that case
             n += self.TriqFM[comp].UpdateCase(i)
+            ## Touch the lock file
+            #self.TriqFM[comp].Lock()
         # Output
         return n
         
@@ -1092,11 +1123,14 @@ class DataBook(dict):
             # Get number of deletions
             n = self.DeleteTriqFMComp(comp, I)
             # Check number of deletions
-            if n == 0: continue
+            if n == 0: 
+                # Unlock and go to next component
+                self.TriqFM[comp].Unlock()
+                continue
             # Status update
             print("%s: deleted %s TriqFM patch entries" % (comp, n))
             # Write the updated component
-            self.TriqFM[comp].Write()
+            self.TriqFM[comp].Write(unlock=True)
     
     # Function to delete triqfm entries
     def DeleteTriqFMComp(self, comp, I=None):
@@ -1126,7 +1160,7 @@ class DataBook(dict):
             raise ValueError(
                 "Component '%s' is not a TriqFM component" % comp)
         # Read the TriqFM data book if necessary
-        self.ReadTriqFM(comp)
+        self.ReadTriqFM(comp, check=True, lock=True)
         # Get the data book
         DBF = self.TriqFM[comp]
         DBc = self.TriqFM[comp][None]
@@ -1787,7 +1821,7 @@ class DBBase(dict):
     Individual item data book basis class
     
     :Call:
-        >>> DBi = DBBase(comp, x, opts)
+        >>> DBi = DBBase(comp, x, opts, check=False, lock=False)
     :Inputs:
         *comp*: :class:`str`
             Name of the component or other item name
@@ -1795,6 +1829,10 @@ class DBBase(dict):
             Trajectory/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
+        *check*: ``True`` | {``False``}
+            Whether or not to check LOCK status
+        *lock*: ``True`` | {``False``}
+            If ``True``, wait if the LOCK file exists
     :Outputs:
         *DBi*: :class:`cape.dataBook.DBBase`
             An individual item data book
@@ -1807,7 +1845,7 @@ class DBBase(dict):
   # ======
   # <
     # Initialization method
-    def __init__(self, comp, x, opts):
+    def __init__(self, comp, x, opts, check=False, lock=False):
         """Initialization method
         
         :Versions:
@@ -1838,7 +1876,7 @@ class DBBase(dict):
         self.ProcessColumns()
         
         # Read the file or initialize empty arrays.
-        self.Read(self.fname)
+        self.Read(self.fname, check=check, lock=lock)
             
     # Command-line representation
     def __repr__(self):
@@ -1862,6 +1900,10 @@ class DBBase(dict):
   # Read
   # ======
   # <
+   # ---------------
+   # General Readers
+   # ---------------
+   # [
     # Process columns
     def ProcessColumns(self):
         """Process column names
@@ -1928,20 +1970,36 @@ class DBBase(dict):
         
     
     # Read point sensor data
-    def Read(self, fname=None):
+    def Read(self, fname=None, check=False, lock=False):
         """Read a data book statistics file
         
         :Call:
             >>> DBc.Read()
-            >>> DBc.Read(fname)
+            >>> DBc.Read(fname, check=False, lock=False)
         :Inputs:
             *DBc*: :class:`cape.dataBook.DBBase`
                 Data book base object
             *fname*: :class:`str`
                 Name of data file to read
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
+            * 2017-06-12 ``@ddalle``: Added *lock*
         """
+        # Check for lock status?
+        if check:
+            # Wait until unlocked
+            while self.CheckLock():
+                # Status update
+                print("   Locked.  Waiting 30 s ...")
+                os.sys.stdout.flush()
+                time.sleep(30)
+        # Lock the file?
+        if lock:
+            self.Lock()
         # Check for default file name
         if fname is None: fname = self.fname
         # Process converters
@@ -2069,6 +2127,30 @@ class DBBase(dict):
         # Save column number
         self.n = n
         
+    # Read a copy
+    def ReadCopy(self, check=False, lock=False):
+        """Read a copied database object
+        
+        :Call:
+            >>> DBc1 = DBc.ReadCopy(check=False, lock=False)
+        :Inputs:
+            *DBc*: :class:`cape.dataBook.DBBase`
+                Data book base object
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Outputs:
+            *DBc1*: :class:`cape.dataBook.DBBase`
+                Copy of data book base object
+        :Versions:
+            * 2017-06-26 ``@ddalle``: First version
+        """
+        # Call the object
+        DBc = DBBase(self.comp, self.x, self.opts, check=check, lock=lock)
+        # Output
+        return DBc
+        
     # Estimate number of lines in a file
     def EstimateLineCount(self, fname=None):
         """Get a conservative (high) estimate of the number of lines in a file
@@ -2183,6 +2265,139 @@ class DBBase(dict):
         for k in self.iCols:
             self.rconv.append(int)
             self.wflag.append('%.12g')
+   # ]
+   
+   # ----
+   # Lock
+   # ----
+   # [
+    # Get name of lock file
+    def GetLockFile(self):
+        """Get the name of the potential lock file
+        
+        :Call:
+            >>> flock = DBc.GetLockFile()
+        :Inputs:
+            *DBc*: :class:`cape.dataBook.DataBookBase`
+                Data book base object
+        :Outputs:
+            *flock*: :class:`str`
+                Full path to potential ``lock`` file
+        :Versions:
+            * 2017-06-12 ``@ddalle``: First version
+        """
+        # Split file name so we can insert "lock." at the right place
+        fdir, fn = os.path.split(self.fname)
+        # Construct lock file name
+        flock = os.path.join(fdir, "lock.%s" % fn)
+        # Check for absolute path
+        if not os.path.isabs(flock):
+            # Append root directory
+            flock = os.path.join(self.RootDir, flock)
+        # Output
+        return flock
+        
+    # Check lock file
+    def CheckLock(self):
+        """Check if lock file for this component exists
+        
+        :Call:
+            >>> q = DBc.CheckLock()
+        :Inputs:
+            *DBc*: :class:`cape.dataBook.DataBookBase`
+                Data book base object
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not corresponding LOCK file exists
+        :Versions:
+            * 2017-06-12 ``@ddalle``: First version
+        """
+        # Get the name of the lock file
+        flock = self.GetLockFile()
+        # Check if the file exists
+        if os.path.isfile(flock):
+            # Get the mod time of said file
+            tlock = os.path.getmtime(flock)
+            # Check for a stale file (using 1.5 hrs)
+            if time.time() - tlock > 5400.0:
+                # Stale file; not locked
+                try:
+                    os.remove(flock)
+                except Exception:
+                    pass
+                return False
+            else:
+                # Still locked
+                return True
+        else:
+            # File does not exist
+            return False
+        
+    # Write the lock file
+    def Lock(self):
+        """Write a 'LOCK' file for a data book component
+        
+        :Call:
+            >>> DBc.Lock()
+        :Inputs:
+            *DBc*: :class:`cape.dataBook.DataBookBase`
+                Data book base object
+        :Versions:
+            * 2017-06-12 ``@ddalle``: First version
+        """
+        # Name of the lock file
+        flock = self.GetLockFile()
+        # Safely lock
+        try:
+            # Open the file
+            f = open(flock, 'w')
+            # Write the name of the component.
+            try:
+                f.write("%s\n" % self.comp)
+            except AttributeError:
+                pass
+            # Close the file
+            f.close()
+        except Exception:
+            pass
+        
+    # Touch the lock file
+    def TouchLock(self):
+        """Touch a 'LOCK' file for a data book component to reset its mod time
+        
+        :Call:
+            >>> DBc.TouchLock()
+        :Inputs:
+            *DBc*: :class:`cape.dataBook.DataBookBase`
+                Data book base object
+        :Versions:
+            * 2017-06-14 ``@ddalle``: First version
+        """
+        # Name of the lock file
+        flock = self.GetLockFile()
+        # Update the file
+        os.utime(flock, None)
+        
+    # Unlock the file
+    def Unlock(self):
+        """Delete the LOCK file if it exists
+        
+        :Call:
+            >>> DBc.Unlock()
+        :Inputs:
+            *DBc*: :class:`cape.dataBook.DataBookBase`
+                Data book base object
+        :Versions:
+            * 2017-06-12 ``@ddalle``: First version
+        """
+        # Name of the lock file
+        flock = self.GetLockFile()
+        # Check if it exists
+        if os.path.isfile(flock):
+            # Delete the file
+            os.remove(flock)
+        
+   # ]
   # >
   
   # ========
@@ -2190,20 +2405,34 @@ class DBBase(dict):
   # ========
   # <
     # Output
-    def Write(self, fname=None):
+    def Write(self, fname=None, merge=False, unlock=True):
         """Write a single data book summary file
         
         :Call:
             >>> DBi.Write()
-            >>> DBi.Write(fname)
+            >>> DBi.Write(fname, merge=False, unlock=True)
         :Inputs:
             *DBi*: :class:`cape.dataBook.DBBase`
                 An individual item data book
             *fname*: :class:`str`
                 Name of data file to read
+            *merge*: ``True`` | {``False``}
+                Whether or not to attempt a merger before writing
+            *unlock*: {``True``} | ``False``
+                Whether or not to delete any lock files
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
+            * 2017-06-12 ``@ddalle``: Added *unlock*
+            * 2017-06-26 ``@ddalle``: Added *merge*
         """
+        # Check merger option
+        if merge:
+            # Read a copy
+            DBc = self.ReadCopy(check=True, lock=True)
+            # Merge it
+            self.Merge(DBc)
+            # Re-sort
+            self.Sort()
         # Check for default file name
         if fname is None: fname = self.fname
         # check for a previous old file.
@@ -2243,6 +2472,9 @@ class DBBase(dict):
             f.write((self.wflag[-1] % self[k][-1]) + '\n')
         # Close the file.
         f.close()
+        # Unlock
+        if unlock:
+            self.Unlock()
         # Return to original location
         os.chdir(fpwd)
   # >
@@ -2280,6 +2512,40 @@ class DBBase(dict):
         # Set the number of cases.
         self.x.nCase = self.n
     
+    # Merge another copy
+    def Merge(self, DBc):
+        """Merge another copy of the data book object
+        
+        :Call:
+            >>> DBi.Merge(DBc)
+        :Inputs:
+            *DBi*: :class:`cape.dataBook.DBBase`
+                Component data book
+            *DBc*: :class:`cape.dataBook.DBBase`
+                Copy of component data book, perhaps read at a different time
+        :Versions:
+            * 2017-06-26 ``@ddalle``: First version
+        """
+        # List of keys
+        keys = self.keys()
+        # Check for consistency
+        if keys != DBc.keys():
+            raise KeyError("Data book objects do not have same list of keys")
+        # Loop through the entries of *DBc*
+        for j in range(DBc.n):
+            # Check for matches
+            i = DBc.FindDBMatch(self, j)
+            # Check for a match
+            if i is not None: continue
+            # No matches; merge
+            for k in keys:
+                self[k] = np.append(self[k], DBc[k][j])
+            # Increase count
+            self.n += 1
+        # Sort
+        self.Sort()
+            
+        
     # Function to get sorting indices.
     def ArgSort(self, key=None):
         """Return indices that would sort a data book by a trajectory key
@@ -2524,7 +2790,7 @@ class DBBase(dict):
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
         """
         # Initialize indices (assume all are matches)
-        j = np.arange(x.nCase)
+        j = np.arange(self.n)
         # Get the trajectory key translations.   This determines which keys to
         # filter and what those keys are called in the source file.
         tkeys = topts.get('Trajectory', {})
@@ -2567,101 +2833,53 @@ class DBBase(dict):
         # Output
         return j
         
-    # Find an entry using specified tolerance options
-    def FindTargetMatch(self, x, i, topts, keylist='x'):
-        """Find a target entry by run matrix (trajectory) variables
-        
-        Cases will be considered matches by comparing variables specified in the
-        *topts* variable, which shares some of the options from the
-        ``"Targets"`` subsection of the ``"DataBook"`` section of
-        :file:`cape.json`.  Suppose that *topts* contains the following
-        
-        .. code-block:: python
-        
-            {
-                "Trajectory": {"alpha": "ALPHA", "Mach": "MACH"}
-                "Tolerances": {
-                    "alpha": 0.05,
-                    "Mach": 0.01
-                },
-                "Keys": ["alpha", "Mach", "beta"]
-            }
-        
-        Then any entry in the data book target that matches the Mach number
-        within 0.01 (using a column labeled ``"MACH"``) and alpha to within 0.05
-        is considered a match.  Because the *Keys* parameter contains
-        ``"beta"``, the search will also look for exact matches in ``"beta"``.
-        
-        If the *Keys* parameter is not set, the search will use either all the
-        keys in the trajectory, *x.keys*, or just the keys specified in the
-        ``"Tolerances"`` section of *topts*.  Which of these two default lists
-        to use is determined by the *keylist* input.
+    # Find data book match
+    def FindDBMatch(self, DBc, i):
+        """Find the index of an exact match to case *i* in another databook
         
         :Call:
-            >>> j = DB.FindTargetMatch(x, i, topts, keylist='x')
+            >>> j = DBi.FindDBMatch(DBc, i)
         :Inputs:
-            *DBT*: :class:`cape.dataBook.DBTarget`
-                Instance of the Cape data book target data carrier
-            *x*: :class:`cape.trajectory.Trajectory`
-                The current pyCart trajectory (i.e. run matrix)
+            *DBi*: :class:`cape.dataBook.DBBase`
+                Data book base object
+            *DBc*: :class:`cape.dataBook.DBBase`
+                Another data book base object
             *i*: :class:`int`
-                Index of the case from the trajectory to try match
-            *topts*: :class:`dict` | :class:`cape.options.DataBook.DBTarget`
-                Criteria used to determine a match
-            *keylist*: {``"x"``} | ``"tol"``
+                Data book index for *DBi*
         :Outputs:
-            *j*: :class:`numpy.ndarray` (:class:`int`)
-                Array of indices that match the trajectory within tolerances
-        :See also:
-            * :func:`cape.dataBook.DBTarget.FindMatch`
-            * :func:`cape.dataBook.DBBase.FindMatch`
+            *j*: ``None`` | :class:`int`
+                Data book index for *DBj*
         :Versions:
-            * 2014-12-21 ``@ddalle``: First version
-            * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
+            * 2017-06-26 ``@ddalle``: First version
         """
-        # Initialize indices (assume all are matches)
-        j = np.arange(x.nCase)
-        # Get the trajectory key translations.   This determines which keys to
-        # filter and what those keys are called in the source file.
-        tkeys = topts.get('Trajectory', {})
-        # Tolerance options
-        tolopts = topts.get('Tolerances', {})
-        # Get list of keys to match
-        if keylist.lower() == 'x':
-            # Use all trajectory keys as default
-            keys = topts.get('Keys', x.keys)
-        else:
-            # Use the tolerance keys
-            keys = topts.get('Keys', tolopts.keys())
-        # Loop through keys requested for matches.
-        for k in keys:
-            # Get the name of the column according to the source file.
-            c = tkeys.get(k, k)
-            # Skip it if key not recognized
-            if c is None: continue
-            # Get the tolerance.
-            tol = tolopts.get(k)
-            # Get the target value (from the trajectory)
-            v = getattr(x,k)[i]
-            t = type(v).__name__
-            # Check type
-            if t.startswith('str') or t.startswith('unicode'):
-                continue
-            # Safe matching in case of complications
+        # Initialize indices of potential matches
+        J = np.arange(DBc.n)
+        # Loop through keys
+        for k in self.x.keys:
+            # Get value
+            v = self[k][i]
+            # Check match
             try:
-                # Check tolerance type
-                if tol is None:
-                    # Search for exact match
-                    jk = np.where(self[c] == v)[0]
-                else:
-                    # Search for match within tolerance (can be zero)
-                    jk = np.where(np.abs(self[c] - v) <= tol)[0]
-                # Restrict to rows that match the above.
-                j = np.intersect1d(j, jk)
+                # Find indices of matches
+                jk = np.where(DBc[k][J] == v)[0]
+                # Check for at least one match
+                if len(jk) == 0:
+                    return None
+                # Restrict to rows that match above
+                J = J[jk]
             except Exception:
+                # Ignore this column
                 pass
-        # Output
-        return j
+        # Check output
+        if len(J) > 1:
+            # Multiple matches
+            return J
+        elif len(J) == 1:
+            # Single match
+            return J[0]
+        else:
+            # No match?
+            return None
         
     # Find an entry using specified tolerance options
     def FindCoSweep(self, x, i, EqCons=[], TolCons={}, GlobCons=[], xkeys={}):
@@ -2728,7 +2946,8 @@ class DBBase(dict):
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
         """
         # Initialize indices (assume all are matches)
-        J = np.arange(self.n) > -1
+        n = len(self[self.keys()[0]])
+        J = np.arange(n) > -1
         # De-None-ify
         if GlobCons is None: GlobCons = []
         if TolCons is None:  TolCons = {}
@@ -2770,22 +2989,120 @@ class DBBase(dict):
                 
         # Loop through *EqCons*
         for k in EqCons:
-            # Get target value
-            v = getattr(x,k)[i]
+            # Test if key is present
+            if k in x.keys:
+                # Get target value
+                v = getattr(x,k)[i]
+            elif k == "alpha":
+                # Get angle of attack
+                v = x.GetAlpha(i)
+            elif k == "beta":
+                # Get sideslip
+                v = x.GetBeta(i)
+            elif k in ["alpha_t", "aoav"]:
+                # Get total angle of attack
+                v = x.GetAlphaTotal(i)
+            elif k in ["phi", "phiv"]:
+                # Get velocity roll angle
+                v = x.GetPhi(i)
+            elif k in ["alpha_m", "aoam"]:
+                # Get maneuver angle of attack
+                v = x.GetAlphaManeuver(i)
+            elif k in ["phi_m", "phim"]:
+                # Get maneuver roll angle
+                v = x.GetPhiManeuver(i)
             # Get name of column
             col = xkeys.get(k, k)
+            # Get value
+            if col in self:
+                # Extract value
+                V = self[col]
+            elif (k == "alpha") or (col == "alpha"):
+                # Ensure trajectory matches
+                self.UpdateTrajectory()
+                # Get angle of attack
+                V = self.x.GetAlpha()
+            elif (k == "beta") or (col == "beta"):
+                # Get angle of sideslip
+                self.UpdateTrajectory()
+                V = self.x.GetBeta()
+            elif (k in ["alpha_t","aoav"]) or (col in ["alpha_t","aoav"]):
+                # Get maneuver angle of attack
+                self.UpdateTrajectory()
+                V = self.x.GetAlphaTotal()
+            elif (k in ["phi","phiv"]) or (col in ["phi","phiv"]):
+                # Get maneuver roll angle
+                self.UpdateTrajectory()
+                V = self.x.GetPhi()
+            elif (k in ["alpha_m","aoam"]) or (col in ["alpha_m","aoam"]):
+                # Get maneuver angle of attack
+                self.UpdateTrajectory()
+                V = self.x.GetAlphaManeuver()
+            elif (k in ["phi_m","phim"]) or (col in ["phi_m","phim"]):
+                # Get maneuver roll angle
+                self.UpdateTrajectory()
+                V = self.x.GetPhiManeuver()
             # Test
-            J = np.logical_and(J, v == self[col])
+            J = np.logical_and(J, np.abs(v - V) <= 1e-10)
         # Loop through *TolCons*
         for k in TolCons:
-            # Get target value
-            v = getattr(x,k)[i]
+            # Test if key is present
+            if k in x.keys:
+                # Get target value
+                v = getattr(x,k)[i]
+            elif k == "alpha":
+                # Get angle of attack
+                v = x.GetAlpha(i)
+            elif k == "beta":
+                # Get sideslip
+                v = x.GetBeta(i)
+            elif k in ["alpha_t", "aoav"]:
+                # Get total angle of attack
+                v = x.GetAlphaTotal(i)
+            elif k in ["phi", "phiv"]:
+                # Get velocity roll angle
+                v = x.GetPhi(i)
+            elif k in ["alpha_m", "aoam"]:
+                # Get maneuver angle of attack
+                v = x.GetAlphaManeuver(i)
+            elif k in ["phi_m", "phim"]:
+                # Get maneuver roll angle
+                v = x.GetPhiManeuver(i)
             # Get name of column
             col = xkeys.get(k, k)
+            # Get value
+            if col in self:
+                # Extract value
+                V = self[col]
+            elif (k == "alpha") or (col == "alpha"):
+                # Ensure trajectory matches
+                self.UpdateTrajectory()
+                # Get angle of attack
+                V = self.x.GetAlpha()
+            elif (k == "beta") or (col == "beta"):
+                # Get angle of sideslip
+                self.UpdateTrajectory()
+                V = self.x.GetBeta()
+            elif (k in ["alpha_t","aoav"]) or (col in ["alpha_t","aoav"]):
+                # Get maneuver angle of attack
+                self.UpdateTrajectory()
+                V = self.x.GetAlphaTotal()
+            elif (k in ["phi","phiv"]) or (col in ["phi","phiv"]):
+                # Get maneuver roll angle
+                self.UpdateTrajectory()
+                V = self.x.GetPhi()
+            elif (k in ["alpha_m","aoam"]) or (col in ["alpha_m","aoam"]):
+                # Get maneuver angle of attack
+                self.UpdateTrajectory()
+                V = self.x.GetAlphaManeuver()
+            elif (k in ["phi_m","phim"]) or (col in ["phi_m","phim"]):
+                # Get maneuver roll angle
+                self.UpdateTrajectory()
+                V = self.x.GetPhiManeuver()
             # Get tolerance
             tol = TolCons[k]
             # Test
-            J = np.logical_and(J, np.abs(v-self[col])<=tol)
+            J = np.logical_and(J, np.abs(v-V)<=tol)
         # Output (convert boolean array to indices)
         return np.where(J)[0]
         
@@ -2870,21 +3187,18 @@ class DBBase(dict):
         tsig = kw.get('PlotTypeStDev', 'FillBetween')
         # Initialize output
         h = {}
-        # Extract the values for the x-axis.
-        if xk is None or xk == 'Index':
-            # Use the indices as the x-axis
-            xv = I
-            # Label
-            xk = 'Index'
-        else:
-            # Extract the values.
-            xv = self[xk][I]
-        # Extract the mean values.
-        yv = self[coeff][I]
+        # Process component name
+        try:
+            # Default to attribute (pyCart dataBook components store comp)
+            comp = kw.get('comp', self.comp)
+        except AttributeError:
+            # Generic targets do not have a dedicated "component"
+            comp = kw.get('comp')
         # Get reference quantities
-        Lref = self.opts.get_RefLength(self.comp)
-        Aref = self.opts.get_RefArea(self.comp)
-        MRP  = self.opts.get_RefPoint(self.comp)
+        Lref = self.opts.get_RefLength(comp)
+        Aref = self.opts.get_RefArea(comp)
+        MRP  = self.opts.get_RefPoint(comp)
+        # Unpack MRP
         if MRP is None:
             # None
             xMRP = 0.0
@@ -2893,6 +3207,64 @@ class DBBase(dict):
         else:
             # Unpack
             xMRP, yMRP, zMRP = MRP 
+        # Extract the values for the x-axis.
+        if xk is None or xk == 'Index':
+            # Use the indices as the x-axis
+            xv = I
+            # Label
+            xk = 'Index'
+        elif xk in self:
+            # Extract the values.
+            xv = self[xk][I]
+        elif xk == "alpha":
+            # Update trajectory
+            self.UpdateTrajectory()
+            # Get angles of attack
+            xv = self.x.GetAlpha(I)
+        elif xk == "beta":
+            # Update trajectory
+            self.UpdateTrajectory()
+            # Get sideslip angles
+            xv = self.x.GetBeta(I)
+        elif xk in ["alpha_t", "aoav"]:
+            # Update trajectory
+            self.UpdateTrajectory()
+            # Get maneuver angle of attack
+            xv = self.x.GetAlphaTotal(I)
+        elif xk in ["phi", "phiv"]:
+            # Update trajectory
+            self.UpdateTrajectory()
+            # Get maneuver roll angles
+            xv = self.x.GetPhi(I)
+        elif xk in ["alpha_m", "aoam"]:
+            # Update trajectory
+            self.UpdateTrajectory()
+            # Get maneuver angle of attack
+            xv = self.x.GetAlphaManeuver(I)
+        elif xk in ["phi_m", "phim"]:
+            # Update trajectory
+            self.UpdateTrajectory()
+            # Get maneuver roll angles
+            xv = self.x.GetPhiManeuver(I)
+        # Sorting order for *xv*
+        ixv = np.argsort(xv)
+        xv = xv[ixv]
+        # Extract the mean values.
+        if coeff in self:
+            # Read the coefficient directly
+            yv = self[coeff][I]
+        elif coeff in ["CF", "CT"]:
+            # Try getting magnitude of force
+            yv = np.sqrt(self["CA"][I]**2 + 
+                self["CY"][I]**2 + self["CN"][I]**2)
+        elif coeff in ["CP"]:
+            # Try calculating center of pressure
+            yv = xMRP - self["CLM"][I]*Lref/self["CN"][I]
+        elif coeff in ["cp"]:
+            # Try calculating center of pressure (nondimensional)
+            yv = xMRP/Lref - self["CLM"][I]/self["CN"][I]
+        else:
+            raise ValueError("Unrecognized coefficient '%s'" % coeff)
         # Check for override parameters
         Lref = kw.get("Lref", Lref)
         # Check for special cases
@@ -2907,6 +3279,8 @@ class DBBase(dict):
             if (dxmrp is not None) and ("CN" in self):
                 # Shift the moment reference point
                 yv = yv + dxmrp/Lref*self["CN"][I]
+        # Sort the data
+        yv = yv[ixv]
         # Default label starter
         try:
             # Name of component
@@ -2945,7 +3319,7 @@ class DBBase(dict):
                 # Override the default option.
                 if o_k is not None: kw_s[k] = o_k
             # Get the standard deviation value.
-            sv = self[cstd][I]
+            sv = self[cstd][I][ixv]
             # Check plot type
             if tsig == "ErrorBar":
                 # Error bars
@@ -3071,13 +3445,21 @@ class DBBase(dict):
         # Get limits that include all data (and not extra).
         xmin, xmax = get_xlim(h['ax'], pad=0.05)
         ymin, ymax = get_ylim(h['ax'], pad=0.05)
+        # Set defaults
+        if "XMin" in kw and kw["XMin"] is None: kw["XMin"] = xmin
+        if "XMax" in kw and kw["XMax"] is None: kw["XMax"] = xmax
+        if "YMin" in kw and kw["YMin"] is None: kw["YMin"] = ymin
+        if "YMax" in kw and kw["YMax"] is None: kw["YMax"] = ymax
+        # Check for keyword arguments
+        xmax = kw.get("XMax", xmax)
+        xmin = kw.get("XMin", xmin)
+        ymax = kw.get("YMax", ymax)
+        ymin = kw.get("YMin", ymin)
         # Make sure data is included.
         h['ax'].set_xlim(xmin, xmax)
         h['ax'].set_ylim(ymin, ymax)
         # Legend.
         if kw.get('Legend', True):
-            # Get current limits.
-            ymin, ymax = get_ylim(h['ax'], pad=0.05)
             # Add extra room for the legend.
             h['ax'].set_ylim((ymin, 1.2*ymax-0.2*ymin))
             # Font size checks.
@@ -3199,6 +3581,10 @@ class DBBase(dict):
             # Angle of sideslip
             self.UpdateTrajectory()
             xv = self.x.GetBeta(I)
+        elif xk.lower() in ["alpha_m", "aoam"]:
+            # Maneuver angle of attack
+            self.UpdateTrajectory()
+            xv = self.x.GetAlphaManeuver(I)
         # Extract the values for the y-axis
         if yk in self:
             # Get values directly
@@ -3211,6 +3597,10 @@ class DBBase(dict):
             # Angle of sideslip
             self.UpdateTrajectory()
             yv = self.x.GetBeta(I)
+        elif yk.lower() in ["alpha_m", "aoam"]:
+            # Maneuver angle of attack
+            self.UpdateTrajectory()
+            yv = self.x.GetAlphaManeuver(I)
         # Extract the values to plot
         zv = self[coeff][I]
         # Contour type, line type
@@ -3757,7 +4147,7 @@ class DBComp(DBBase):
     This class is derived from :class:`cape.dataBook.DBBase`. 
     
     :Call:
-        >>> DBi = DBComp(comp, x, opts)
+        >>> DBi = DBComp(comp, x, opts, targ=None, check=None, lock=None)
     :Inputs:
         *comp*: :class:`str`
             Name of the component
@@ -3767,6 +4157,10 @@ class DBComp(DBBase):
             Global pyCart options instance
         *targ*: {``None``} | :class:`str`
             If used, read a duplicate data book as a target named *targ*
+        *check*: ``True`` | {``False``}
+            Whether or not to check LOCK status
+        *lock*: ``True`` | {``False``}
+            If ``True``, wait if the LOCK file exists
     :Outputs:
         *DBi*: :class:`pyCart.dataBook.DBComp`
             An individual component data book
@@ -3780,7 +4174,7 @@ class DBComp(DBBase):
   # ========
   # <
     # Initialization method
-    def __init__(self, comp, x, opts, targ=None):
+    def __init__(self, comp, x, opts, targ=None, check=False, lock=False, **kw):
         """Initialization method
         
         :Versions:
@@ -3791,6 +4185,8 @@ class DBComp(DBBase):
         self.opts = opts
         self.comp = comp
         self.name = comp
+        # Root direcotyr
+        self.RootDir = kw.get("RootDir", os.getcwd())
         
         # Get the directory.
         if targ is None:
@@ -3815,7 +4211,7 @@ class DBComp(DBBase):
         self.ProcessColumns()
 
         # Read the file or initialize empty arrays.
-        self.Read(self.fname)
+        self.Read(self.fname, check=check, lock=lock)
         
         # Save the target translations
         self.targs = opts.get_CompTargets(comp)
@@ -3855,6 +4251,10 @@ class DBTriqFM(DataBook):
             Name of TriqFM component
         *RootDir*: {``None``} | :class:`st`
             Root directory for the configuration
+        *check*: ``True`` | {``False``}
+            Whether or not to check LOCK status
+        *lock*: ``True`` | {``False``}
+            If ``True``, wait if the LOCK file exists
     :Outputs:
         *DBF*: :class:`cape.dataBook.DBTriqFM`
             Instance of TriqFM data book
@@ -3926,6 +4326,52 @@ class DBTriqFM(DataBook):
         return lbl
     __str__ = __repr__
     
+    # Read a copy
+    def ReadCopy(self, check=False, lock=False):
+        """Read a copied database object
+        
+        :Call:
+            >>> DBF1 = DBF.ReadCopy(check=False, lock=False)
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Outputs:
+            *DBF1*: :class:`cape.dataBook.DBTriqFM`
+                Another instance of related TriqFM data book
+        :Versions:
+            * 2017-06-26 ``@ddalle``: First version
+        """
+        # Call the object
+        DBF1 = DBTriqFM(self.x, self.opts, self.comp, check=check, lock=lock)
+        # Output
+        return DBF1
+    
+    
+    # Merge method
+    def Merge(self, DBF1):
+        """Sort point sensor group
+        
+        :Call:
+            >>> DBF.Merge(DBF1)
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+            *DBF1*: :class:`cape.dataBook.DBTriqFM`
+                Another instance of related TriqFM data book
+        :Versions:
+            * 2016-06-26 ``@ddalle``: First version
+        """
+        # Check patch list
+        if DBF1.patches != self.patches:
+            raise KeyError("TriqFM data books have different patch lists")
+        # Loop through points
+        for patch in ([None] + self.patches):
+            self[patch].Merge(DBF1[patch])
+    
     # Sorting method
     def Sort(self):
         """Sort point sensor group
@@ -3943,17 +4389,30 @@ class DBTriqFM(DataBook):
             self[patch].Sort()
     
     # Output method
-    def Write(self):
+    def Write(self, merge=False, unlock=True):
         """Write to file each point sensor data book in a group
         
         :Call:
-            >>> DBF.Write()
+            >>> DBF.Write(merge=False, unlock=True)
         :Inputs:
             *DBF*: :class:`cape.dataBook.DBTriqFM`
                 Instance of TriqFM data book
+            *merge*: ``True`` | {``False``}
+                Whether or not to reread data book and merge before writing
+            *unlock*: {``True``} | ``False``
+                Whether or not to delete any lock file
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
+            * 2017-06-26 ``@ddalle``: First version
         """
+        # Check merge option
+        if merge:
+            # Read a copy
+            DBF = self.ReadCopy(check=True, lock=True)
+            # Merge it
+            self.Merge(DBF)
+            # Re-sort
+            self.Sort()
         # Go to home directory
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
@@ -3962,13 +4421,64 @@ class DBTriqFM(DataBook):
         ftrq = os.path.join(fdir, 'triqfm')
         # Ensure folder exists
         if not os.path.isdir(fdir): self.opts.mkdir(fdir)
-        if not os.path.isdir(ftrq): self.opts.mkdir(ftrq)
+        #if not os.path.isdir(ftrq): self.opts.mkdir(ftrq)
         # Loop through patches
         for patch in ([None] + self.patches):
             # Sort it.
             self[patch].Sort()
             # Write it
-            self[patch].Write()
+            self[patch].Write(unlock=unlock)
+            
+    # Lock file
+    def Lock(self):
+        """Lock the data book component
+        
+        :Call:
+            >>> DBF.Lock()
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+        :Versions:
+            * 2017-06-12 ``@ddalle``: First version
+        """
+        # Loop through patches
+        for patch in ([None] + self.patches):
+            # Lock each omponent
+            self[patch].Lock()
+        
+    # Touch the lock file
+    def TouchLock(self):
+        """Touch a 'LOCK' file for a data book component to reset its mod time
+        
+        :Call:
+            >>> DBF.TouchLock()
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+        :Versions:
+            * 2017-06-14 ``@ddalle``: First version
+        """
+        # Loop through patches
+        for patch in ([None] + self.patches):
+            # Lock each omponent
+            self[patch].TouchLock()
+            
+    # Lock file
+    def Unlock(self):
+        """Unlock the data book component (delete lock file)
+        
+        :Call:
+            >>> DBF.Unlock()
+        :Inputs:
+            *DBF*: :class:`cape.dataBook.DBTriqFM`
+                Instance of TriqFM data book
+        :Versions:
+            * 2017-06-12 ``@ddalle``: First version
+        """
+        # Loop through patches
+        for patch in ([None] + self.patches):
+            # Lock each omponent
+            self[patch].Unlock()
 
     # Find first force/moment component
     def GetRefComponent(self):
@@ -4192,6 +4702,12 @@ class DBTriqFM(DataBook):
         :Versions:
             * 2017-03-28 ``@ddalle``: First version
         """
+        # Delete the triangulation if present
+        try:
+            self.triq
+            del self.triq
+        except AttributeError:
+            pass
         # Read using :mod:`cape`
         self.triq = cape.tri.Triq(ftriq, c=self.conf)
   # >
@@ -4262,11 +4778,15 @@ class DBTriqFM(DataBook):
             pltq = self.Triq2Plt(self.triq, i=i, **kw)
             # Write ASCII file
             pltq.WriteDat("%s.dat" % fpre)
+            # Delete it
+            del pltq
         elif fmt.lower() == "plt":
             # Create Tecplot PLT interface
             pltq = self.Triq2Plt(self.triq, i=i, **kw)
             # Write binary file
             pltq.Write("%s.plt" % fpre)
+            # Delete it
+            del pltq
         # Go back to original location
         os.chdir(fpwd)
         
@@ -4960,6 +5480,10 @@ class DBTriqFMComp(DBComp):
             Name of TriqFM component
         *RootDir*: {``None``} | :class:`st`
             Root directory for the configuration
+        *check*: ``True`` | {``False``}
+            Whether or not to check LOCK status
+        *lock*: ``True`` | {``False``}
+            If ``True``, wait if the LOCK file exists
     :Outputs:
         *DBF*: :class:`cape.dataBook.DBTriqFM`
             Instance of TriqFM data book
@@ -4982,6 +5506,10 @@ class DBTriqFMComp(DBComp):
         self.opts = opts
         self.comp = comp
         self.patch = patch 
+        
+        # LOCK options
+        check = kw.get("check", False)
+        lock  = kw.get("lock",  False)
         
         # Default prefix
         fpre = opts.get_DataBookPrefix(comp)
@@ -5024,7 +5552,7 @@ class DBTriqFMComp(DBComp):
         self.ProcessColumns()
         
         # Read the file or initialize empty arrays
-        self.Read(fname)
+        self.Read(fname, check=check, lock=lock)
             
   # >
 # class DBTriqFM
@@ -5353,7 +5881,7 @@ class DBTarget(DBBase):
                 raise KeyError(
                     "Missing data book target field:\n" +
                     "  DBTarget  '%s'\n" % self.Name +
-                    "  component '%s'\n" % comp + 
+                    "  ctarg     '%s'\n" % ctarg + 
                     "  coeff     '%s'\n" % c +
                     "  column    '%s'\n" % fi)
             else:
@@ -5364,7 +5892,7 @@ class DBTarget(DBBase):
             raise KeyError(
                 "Repeated data book target column:\n" +
                 "  DBTarget  '%s'\n" % self.Name +
-                "  component '%s'\n" % comp + 
+                "  ctarg     '%s'\n" % ctarg + 
                 "  coeff     '%s'\n" % c +
                 "  column    '%s'\n" % fi)
         # Return the column name
@@ -5522,22 +6050,34 @@ class DBTarget(DBBase):
         # List of keys available for this component
         ckeys = self.ckeys.get(comp)
         # Check availability
-        if (ckeys is None) or (coeff not in ckeys): return
+        if (ckeys is None) or (coeff not in ckeys):
+            # Check for special cases
+            if coeff in ['cp', 'CP']:
+                # Special case; try to plot anyway
+                pass
+            else:
+                # Key not available
+                return
         # Get the key
-        ckey = ckeys[coeff]
+        ckey = ckeys.get(coeff, coeff)
         # Get horizontal key.
         xk = kw.get('x')
         # Process this key to turn it into a trajectory column
         if xk is None or xk == 'Index':
             # This is fine
             pass
-        elif xk not in self.xkeys:
+        elif xk in self.xkeys:
+            # Set the key to the translated value (which may be the same).
+            kw['x'] = self.xkeys[xk]
+        elif xk in ["alpha", "alpha_m", "aoam",
+                "phi_m", "phim", "beta", "phi"
+        ]:
+            # Special allowed keys
+            pass
+        else:
             # No translation for this key
             raise ValueError(
                 "No trajectory key translation known for key '%s'" % xk)
-        else:
-            # Set the key to the translated value (which may be the same).
-            kw['x'] = self.xkeys[xk]
         # Flip the error bar default plot types
         kw.setdefault('PlotTypeMinMax',      'ErrorBar')
         kw.setdefault('PlotTypeUncertainty', 'FillBetween')
@@ -5547,6 +6087,8 @@ class DBTarget(DBBase):
         # Alter the default settings for the line
         kw['LineOptions'].setdefault('color', 'r')
         kw['LineOptions'].setdefault('zorder', 7)
+        # Save the component name
+        kw['comp'] = comp
         # Call the base plot method
         return self.PlotCoeffBase(ckey, I, **kw)
 # class DBTarget

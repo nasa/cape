@@ -103,8 +103,55 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
     tri0 = Tri('%s.tri' % proj)
     # Map the Component IDs.
     trii.MapCompID(tric, tri0)
+    # Name of farfield/source tri (if any)
+    ftrif = '%s.f.tri' % proj
+    # Read it
+    if os.path.isfile(ftrif):
+        # Read the farfield, sources, and other non-intersected surfaces
+        trif = Tri(ftrif)
+        # Add it to the mapped triangulation
+        trii.AddRawCompID(trif)
+    # Names of intermediate steps
+    fatri = '%s.a.tri' % proj
+    futri = '%s.u.tri' % proj
+    fitri = '%s.i.tri' % proj
     # Write the triangulation.
-    trii.Write('%s.i.tri' % proj)
+    trii.Write(fatri)
+    # Remove unused nodes
+    infix = "RemoveUnusedNodes"
+    fi = open('triged.%s.i' % infix, 'w')
+    # Write inputs to the file
+    fi.write('%s\n' % fatri)
+    fi.write('10\n')
+    fi.write('%s\n' % futri)
+    fi.write('1\n')
+    fi.close()
+    # Run triged to remove unused nodes
+    print(" > triged < triged.%s.i > triged.%s.o" % (infix, infix))
+    os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
+    # Check options
+    if rc.get_intersect_rm():
+        # Input file to remove small tris
+        infix = "RemoveSmallTris"
+        fi = open('triged.%s.i' % infix, 'w')
+        # Write inputs to file
+        fi.write('%s\n' % futri)
+        fi.write('19\n')
+        fi.write('%f\n' % rc.get("SmallArea", rc.get_intersect_smalltri()))
+        fi.write('%s\n' % fitri)
+        fi.write('1\n')
+        fi.close()
+        # Run triged to remove small tris
+        print(" > triged < triged.%s.i > triged.%s.o" % (infix, infix))
+        os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
+    else:
+        # Rename file
+        os.rename(futri, fitri)
+    # Clean up
+    if os.path.isfile(fitri):
+        if os.path.isfile(fatri): os.remove(fatri)
+        if os.path.isfile(futri): os.remove(futri)
+
     
 # Function to verify if requested
 def CaseVerify(rc, proj='Components', n=0, fpre='run'):
@@ -139,11 +186,11 @@ def CaseVerify(rc, proj='Components', n=0, fpre='run'):
     bin.verify(opts=rc)
     
 # Mesh generation
-def CaseAFLR3(rc, proj='Components', fmt='b8.ugrid', n=0):
+def CaseAFLR3(rc, proj='Components', fmt='lb8.ugrid', n=0):
     """Create volume mesh using ``aflr3``
     
     :Call:
-        >>> CaseAFLR3(rc, proj="Components", fmt='b8.ugrid', n=0)
+        >>> CaseAFLR3(rc, proj="Components", fmt='lb8.ugrid', n=0)
     :Inputs:
         *rc*: :class:`cape.options.runControl.RunControl`
             Case options interface from ``case.json``
@@ -164,7 +211,9 @@ def CaseAFLR3(rc, proj='Components', fmt='b8.ugrid', n=0):
     ftri  = '%s.i.tri'   % proj
     fsurf = '%s.surf'    % proj
     fbc   = '%s.aflr3bc' % proj
+    fxml  = '%s.xml'     % proj
     fvol  = '%s.%s'      % (proj, fmt)
+    ffail = "%s.FAIL.surf" % proj
     # Exit if volume exists
     if os.path.isfile(fvol): return
     # Check for file availability
@@ -175,7 +224,12 @@ def CaseAFLR3(rc, proj='Components', fmt='b8.ugrid', n=0):
                 ("But found neither Cart3D tri file '%s' " % ftri) +
                 ("nor AFLR3 surf file '%s'" % fsurf))
         # Read the triangulation
-        tri = Tri(ftri)
+        if os.path.isfile(fxml):
+            # Read with configuration
+            tri = Tri(ftri, c=fxml)
+        else:
+            # Read without config
+            tri = Tri(ftri)
         # Check for boundary condition flags
         if os.path.isfile(fbc):
             tri.ReadBCs_AFLR3(fbc)
@@ -186,6 +240,18 @@ def CaseAFLR3(rc, proj='Components', fmt='b8.ugrid', n=0):
     rc.set_aflr3_o(fvol)
     # Run AFLR3
     bin.aflr3(opts=rc)
+    # Check for failure; aflr3 returns 0 status even on failure
+    if os.path.isfile(ffail):
+        # Remove RUNNING file
+        if os.path.isfile("RUNNING"):
+            os.remove("RUNNING")
+        # Create failure file
+        f = open('FAIL', 'w')
+        f.write("aflr3\n")
+        f.close()
+        # Error message
+        raise RuntimeError("Failure during AFLR3 run:\n" +
+            ("File '%s' exists." % ffail))
    
 # Function for the most recent available restart iteration
 def GetRestartIter():

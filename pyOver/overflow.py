@@ -141,7 +141,7 @@ class Overflow(Cntl):
         if comp is not None:
             comp = list(np.array(comp).flatten())
         # Read the data book.
-        self.DataBook = dataBook.DataBook(self.x, self.opts)
+        self.DataBook = dataBook.DataBook(self.x, self.opts, comp=comp)
         # Return to original folder.
         os.chdir(fpwd)
         
@@ -335,6 +335,97 @@ class Overflow(Cntl):
             return 0
         else:
             return n
+        
+    # Check a case's phase output files
+    def CheckUsedPhase(self, i, v=False):
+        """Check maximum phase number run at least once
+        
+        :Call:
+            >>> n = ofl.CheckUsedPhase(i, v=False)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+            *v*: ``True`` | {``False``}
+                Verbose flag; prints messages if *n* is ``None``
+        :Outputs:
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2017-06-29 ``@ddalle``: First version
+        """
+         # Check input.
+        if type(i).__name__ not in ["int", "int64", "int32"]:
+            raise TypeError(
+                "Input to :func:`Cntl.CheckCase()` must be :class:`int`.")
+        # Get the group name.
+        frun = self.x.GetFullFolderNames(i)
+        # Remember current location.
+        fpwd = os.getcwd()
+        # Go to root folder.
+        os.chdir(self.RootDir)
+        # Initialize phase number.
+        j = 0
+        # Check if the folder exists.
+        if (not os.path.isdir(frun)):
+            # Verbosity option
+            if v: print("    Folder '%s' does not exist" % frun)
+            j = None
+        # Check that test.
+        if j is not None:
+            # Go to the group folder.
+            os.chdir(frun)
+            # Read local settings
+            try:
+                # Read "case.json"
+                rc = case.ReadCaseJSON()
+                # Get phase list
+                phases = list(self.opts.get_PhaseSequence())
+            except Exception:
+                # Get global phase list
+                phases = list(self.opts.get_PhaseSequence())
+            # Reverse the list
+            phases.reverse()
+            # Loop backwards
+            for j in phases:
+                # Check if any output files exist
+                if len(case.glob.glob("run.%02i.[1-9]*"%(j+1))) > 0:
+                    # Found it.
+                    break
+        # Return to original folder.
+        os.chdir(fpwd)
+        # Output.
+        return j
+        
+    # Get the current iteration number from :mod:`case`
+    def CaseGetCurrentPhase(self):
+        """Get the current phase number from the appropriate module
+        
+        This function utilizes the :mod:`cape.case` module, and so it must be
+        copied to the definition for each solver's control class
+        
+        :Call:
+            >>> j = cntl.CaseGetCurrentPhase()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Outputs:
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2017-06-29 ``@ddalle``: First version
+        """
+        # Be safe
+        try:
+            # Read the "case.json" folder
+            rc = case.ReadCaseJSON()
+            # Get the phase number
+            return case.GetPhaseNumber(rc)
+        except:
+            return 0
         
         
     # Get list of raw file names
@@ -798,11 +889,9 @@ class Overflow(Cntl):
             if j > nSeqO:
                 # Get nIter for phase *j*
                 nj = self.opts.get_namelist_var('GLOBAL', 'NSTEPS', j)
-                # Add *nIter* iterations to last phase iter
-                nj = self.opts.get_PhaseIters(j) + nj
             else:
                 # Use the phase break marker from master JSON file
-                nj = self.opts.get_PhaseIters(j)
+                nj = self.opts.get_PhaseIters(j) - nIter
             # Get iterations for this phase
             # Status update
             print("  Adding phase %s (to %s iterations)" % (j, nIter+nj))

@@ -56,6 +56,9 @@ def Plt2Triq(fplt, ftriq=None, **kw):
         fglob.sort()
         # Import the alphabetically last one (should be the same anyway)
         kw["mapbc"] = pyFun.mapbc.MapBC(fglob[0])
+    # Attempt to get *cp_tavg* state
+    if "mach" in kw:
+        plt.GetCpTAvg(kw["mach"])
     # Create the TRIQ interface
     triq = plt.CreateTriq(**kw)
     # Get output file extension
@@ -93,7 +96,51 @@ class Plt(cape.plt.Plt):
         * 2016-11-22 ``@ddalle``: First version
         * 2017-03-30 ``@ddalle``: Subclassed to :class:`cape.plt.Plt`
     """
-    pass
+    # Calculate cp_tavg
+    def GetCpTAvg(self, mach, gam=1.4):
+        """Calculate *cp_tavg* if *p_tavg* exists
+        
+        :Call:
+            >>> plt.GetCpTAvg(mach, gam=1.4)
+        :Inputs:
+            *plt*: :class:`pyFun.plt.Plt`
+                Tecplot PLT interface
+            *mach*: :class:`float`
+                Freestream Mach number
+            *gam*: {``1.4``} | :class:`float`
+                Ratio of specific heats
+        :Versions:
+            * 2017-05-16 ``@ddalle``: First version
+        """
+        # Check if already present
+        if 'cp_tavg' in self.Vars:
+            # Already completed
+            return
+        elif 'p_tavg' not in self.Vars:
+            # No time-averaging information
+            return
+        # Append to variables
+        self.Vars.append('cp_tavg')
+        self.nVar += 1
+        # Append column to *qmin* and *qmax*
+        self.qmin = np.hstack((self.qmin, np.zeros((self.nZone,1))))
+        self.qmax = np.hstack((self.qmax, np.zeros((self.nZone,1))))
+        # Use time-averaged pressure
+        k = self.Vars.index('p_tavg')
+        # Append format for extra column
+        self.fmt = np.hstack((self.fmt, self.fmt[:,[k]]))
+        # Loop through states
+        for n in range(self.nZone):
+            # Get *cp*
+            cp = (self.q[n][:,k] - 1/gam)/(0.5*mach*mach)
+            # Append state
+            self.q[n] = np.hstack((self.q[n], np.transpose([cp])))
+            # Update min/max
+            self.qmin[n,-1] = np.min(cp)
+            self.qmax[n,-1] = np.max(cp)
+            # Append the other random info
+            self.VarLocs[n] = np.append(self.VarLocs[n], self.VarLocs[n][k])
+            
 
 # class Plt
 

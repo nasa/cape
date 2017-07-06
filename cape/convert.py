@@ -15,6 +15,41 @@ import numpy as np
 slug = 14.593903
 inch = 0.0254
 ft = 12*inch
+deg = np.pi/180.0
+
+# Step function
+def fstep(x):
+    """Return -1 for negative numbers and +1 for nonnegative inputs
+    
+    :Call:
+        >>> y = fstep(x)
+    :Inputs:
+        *x*: :class:`float` | :class:`np.ndarray`
+            Input or array of inputs
+    :Outputs:
+        *y*: ``-1.0`` | ``1.0`` | :class:`np.ndarray`
+            Output step function or array of outputs
+    :Versions:
+        * 2017-06-27 ``@ddalle``: First version
+    """
+    return -1 + 2*np.ceil(0.5+0.5*np.sign(x))
+
+# Floor Step function
+def fstep1(x):
+    """Return -1 for nonpositive numbers and +1 for negative inputs
+    
+    :Call:
+        >>> y = fstep(x)
+    :Inputs:
+        *x*: :class:`float` | :class:`np.ndarray`
+            Input or array of inputs
+    :Outputs:
+        *y*: ``-1.0`` | ``1.0`` | :class:`np.ndarray`
+            Output step function or array of outputs
+    :Versions:
+        * 2017-06-27 ``@ddalle``: First version
+    """
+    return -1 + 2*np.floor(0.5+0.5*np.sign(x))
 
 # Convert (total angle of attack, total roll angle) to (aoa, aos)
 def AlphaTPhi2AlphaBeta(alpha_t, phi):
@@ -25,66 +60,175 @@ def AlphaTPhi2AlphaBeta(alpha_t, phi):
     :Call:
         >>> alpha, beta = cape.AlphaTPhi2AlphaBeta(alpha_t, beta)
     :Inputs:
-        *alpha_t*: :class:`float` or :class:`numpy.array`
+        *alpha_t*: :class:`float` | :class:`numpy.array`
             Total angle of attack
-        *phi*: :class:`float` or :class:`numpy.array`
+        *phi*: :class:`float` | :class:`numpy.array`
             Total roll angle
     :Outputs:
-        *alpha*: :class:`float` or :class:`numpy.array`
+        *alpha*: :class:`float` | :class:`numpy.array`
             Angle of attack
-        *beta*: :class:`float` or :class:`numpy.array`
+        *beta*: :class:`float` | :class:`numpy.array`
             Sideslip angle
     :Versions:
         * 2014-06-02 ``@ddalle``: First version
     """
     # Trig functions.
-    ca = np.cos(alpha_t*np.pi/180); cp = np.cos(phi*np.pi/180)
-    sa = np.sin(alpha_t*np.pi/180); sp = np.sin(phi*np.pi/180)
+    ca = np.cos(alpha_t*deg); cp = np.cos(phi*deg)
+    sa = np.sin(alpha_t*deg); sp = np.sin(phi*deg)
     # Get the components of the normalized velocity vector.
     u = ca
     v = sa * sp
     w = sa * cp
     # Convert to alpha, beta
-    alpha = np.arctan2(w, u) * 180/np.pi
-    beta = np.arcsin(v) * 180/np.pi
+    alpha = np.arctan2(w, u) / deg
+    beta = np.arcsin(v) / deg
     # Output
     return alpha, beta
     
     
-# Convert (total angle of attack, total roll angle) to (aoa, aos)
+# Convert (aoa, aos) to (total angle of attack, total roll angle)
 def AlphaBeta2AlphaTPhi(alpha, beta):
-    """
-    Convert total angle of attack and total roll angle to angle of attack and
-    sideslip angle.
+    """Convert angle of attack and sideslip to total angle of attack and roll
     
     :Call:
         >>> alpha_t, phi = cape.AlphaBeta2AlphaTPhi(alpha, beta)
     :Inputs:
-        *alpha*: :class:`float` or :class:`numpy.array`
+        *alpha*: :class:`float` | :class:`numpy.array`
             Angle of attack
-        *beta*: :class:`float` or :class:`numpy.array`
+        *beta*: :class:`float` | :class:`numpy.array`
             Sideslip angle
     :Outputs:
-        *alpha_t*: :class:`float` or :class:`numpy.array`
+        *alpha_t*: :class:`float` | :class:`numpy.array`
             Total angle of attack
-        *phi*: :class:`float` or :class:`numpy.array`
+        *phi*: :class:`float` | :class:`numpy.array`
             Total roll angle
     :Versions:
         * 2014-06-02 ``@ddalle``: First version
         * 2014-11-05 ``@ddalle``: Transposed alpha and beta in *w* formula
     """
     # Trig functions.
-    ca = np.cos(alpha*np.pi/180); cb = np.cos(beta*np.pi/180)
-    sa = np.sin(alpha*np.pi/180); sb = np.sin(beta*np.pi/180)
+    ca = np.cos(alpha*deg); cb = np.cos(beta*deg)
+    sa = np.sin(alpha*deg); sb = np.sin(beta*deg)
     # Get the components of the normalized velocity vector.
     u = cb * ca
     v = sb
     w = cb * sa
-    # Convert to alpha, beta
-    phi = 180 - np.arctan2(v, -w) * 180/np.pi
-    alpha_t = np.arccos(u) * 180/np.pi
+    # Convert to alpha_t, phi
+    phi = 180 - np.arctan2(v, -w) / deg
+    alpha_t = np.arccos(u) / deg
     # Output
     return alpha_t, phi
+    
+# Convert (aoa, aos) to (maneuver angle of attack, maneuver roll angle)
+def AlphaBeta2AlphaMPhi(alpha, beta):
+    """Convert angle of attack and sideslip to maneuver axis
+    
+    :Call:
+        >>> alpha_m, phi_m = cape.AlphaBeta2AlphaMPhi(alpha, beta)
+    :Inputs:
+        *alpha*: :class:`float` | :class:`numpy.array`
+            Angle of attack
+        *beta*: :class:`float` | :class:`numpy.array`
+            Sideslip angle
+    :Outputs:
+        *alpha_m*: :class:`float` | :class:`numpy.array`
+            Signed total angle of attack [deg]
+        *phi_m*: :class:`float` | :class:`numpy.array`
+            Total roll angle
+    :Versions:
+        * 2017-06-26 ``@ddalle``: First version
+    """
+    # Trig functions.
+    ca = np.cos(alpha*deg); cb = np.cos(beta*deg)
+    sa = np.sin(alpha*deg); sb = np.sin(beta*deg)
+    # Get the components of the normalized velocity vector.
+    u = cb * ca
+    v = sb
+    w = cb * sa
+    # Convert to alpha_t, phi
+    phi1 = 180 - np.arctan2(w, -v) / deg
+    aoa1 = np.arccos(u) / deg
+    # Apply different signs
+    alpha_m = aoa1 * fstep1(180-phi1)
+    phi_m = 180 - phi1 - 90*fstep(alpha_m)
+    # Ensure phi==0 for alpha==0
+    phi_m *= np.sign(np.abs(alpha_m))
+    # Output
+    return alpha_m, phi_m
+    
+# Convert (total angle of attack, total roll angle) to (aoam, phim)
+def AlphaTPhi2AlphaMPhi(alpha_t, phi):
+    """
+    Convert total angle of attack and total roll angle to angle of attack and
+    sideslip angle.
+    
+    :Call:
+        >>> alpha_m, phi_m = cape.AlphaTPhi2AlphaMPhi(alpha_t, phi)
+    :Inputs:
+        *alpha_t*: :class:`float` | :class:`numpy.array`
+            Total angle of attack
+        *phi*: :class:`float` | :class:`numpy.array`
+            Total roll angle
+    :Outputs:
+        *alpha_m*: :class:`float` | :class:`numpy.array`
+            Signed total angle of attack [deg]
+        *phi_m*: :class:`float` | :class:`numpy.array`
+            Total roll angle
+    :Versions:
+        * 2017-06-27 ``@ddalle``: First version
+    """
+    # Trig functions.
+    ca = np.cos(alpha_t*deg); cp = np.cos(phi*deg)
+    sa = np.sin(alpha_t*deg); sp = np.sin(phi*deg)
+    # Get the components of the normalized velocity vector.
+    u = ca
+    v = sa * sp
+    w = sa * cp
+    # Convert to alpha_t, phi
+    phi1 = 180 - np.arctan2(w, -v) / deg
+    aoa1 = np.arccos(u) / deg
+    # Apply different signs
+    alpha_m = aoa1 * fstep1(180-phi1)
+    phi_m = 180 - phi1 - 90*fstep(alpha_m)
+    # Ensure phi==0 for alpha==0
+    phi_m *= np.sign(np.abs(alpha_m))
+    # Output
+    return alpha_m, phi_m
+    
+# Convert (aoam, phim) to (aoav, phiv)
+def AlphaMPhi2AlphaTPhi(alpha_m, phi_m):
+    """
+    Convert total angle of attack and total roll angle to angle of attack and
+    sideslip angle.
+    
+    :Call:
+        >>> alpha_t, phi = cape.AlphaTPhi2AlphaMPhi(alpha_m, phi_m)
+    :Inputs:
+        *alpha_m*: :class:`float` | :class:`numpy.array`
+            Signed total angle of attack [deg]
+        *phi_m*: :class:`float` | :class:`numpy.array`
+            Total roll angle
+    :Outputs:
+        *alpha_t*: :class:`float` | :class:`numpy.array`
+            Total angle of attack
+        *phi*: :class:`float` | :class:`numpy.array`
+            Total roll angle
+    :Versions:
+        * 2017-06-27 ``@ddalle``: First version
+    """
+    # Trig functions.
+    ca = np.cos(alpha_m*deg); cp = np.cos(phi_m*deg)
+    sa = np.sin(alpha_m*deg); sp = np.sin(phi_m*deg)
+    # Get the components of the normalized velocity vector.
+    u = ca
+    v = sa * sp
+    w = sa * cp
+    # Convert to alpha_t, phi
+    phi = 180 - np.arctan2(v, -w) / deg
+    alpha_t = np.arccos(u) / deg
+    # Output
+    return alpha_t, phi
+    
     
 # Get exit Mach number from area ratio
 def ExitMachFromAreaRatio(AR, M1, gamma=1.4, subsonic=False):

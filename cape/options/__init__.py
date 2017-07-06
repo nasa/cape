@@ -214,6 +214,11 @@ class Options(odict):
         t = self.get_PBS_walltime(j, typ=typ)
         # Write it.
         f.write('#PBS -l walltime=%s\n' % t)
+        # Get the priority
+        PBS_p = self.get_PBS_p(j, typ=typ)
+        # Write it.
+        if PBS_p is not None:
+            f.write('#PBS -p %s\n' % PBS_p)
         # Check for a group list.
         PBS_W = self.get_PBS_W(j, typ=typ)
         # Write if specified.
@@ -222,7 +227,6 @@ class Options(odict):
         PBS_q = self.get_PBS_q(j, typ=typ)
         # Write it.
         if PBS_q: f.write('#PBS -q %s\n\n' % PBS_q)
-        
         # Process working directory
         if wd is None:
             # Default to current directory
@@ -884,6 +888,16 @@ class Options(odict):
         self._RunControl()
         self['RunControl'].set_nqual(nqual, j)
     
+    # Get max surface angle
+    def get_angqbf(self, j=0):
+        self._RunControl()
+        return self['RunControl'].get_angqbf(j)
+        
+    # Set max surface angle
+    def set_angqbf(self, angbli, j=0):
+        self._RunControl()
+        self['RunControl'].set_angqbf(angbli, j)
+    
     # Get max wall angle setting
     def get_angblisimx(self, j=0):
         self._RunControl()
@@ -897,7 +911,7 @@ class Options(odict):
     # Copy documentation
     for k in ['aflr3_i', 'aflr3_o', 'aflr3_BCFile',
         'blc', 'blr', 'bli', 'blds', 'cdfr', 'cdfs',
-        'grow',
+        'grow', 'angqbf',
         'nqual', 'mdf', 'mdsblf', 'angblisimx']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__
@@ -938,9 +952,30 @@ class Options(odict):
     def set_intersect_o(self, fname, j=None):
         self._RunControl()
         self['RunControl'].set_intersect_o(fname, j)
+
+    # Small tri option
+    def get_intersect_rm(self):
+        self._RunControl()
+        return self['RunControl'].get_intersect_rm()
+
+    # Small tri option
+    def set_intersect_rm(self, q=rc0('intersect_rm')):
+        self._RunControl()
+        self['RunControl'].set_intersect_rm(q)
+
+    # Small tri size
+    def get_intersect_smalltri(self):
+        self._RunControl()
+        return self['RunControl'].get_intersect_smalltri()
+
+    # Small tri size
+    def set_intersect_smalltri(self, A=rc0('intersect_smalltri')):
+        self._RunControl()
+        self['RunControl'].set_intersect_smalltri(A)
         
     # Copy documentation
-    for k in ['intersect_i', 'intersect_o']:
+    for k in ['intersect_i', 'intersect_o',
+    'intersect_rm', 'intersect_smalltri']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(runControl.RunControl,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(runControl.RunControl,'set_'+k).__doc__
@@ -1256,6 +1291,38 @@ class Options(odict):
             self._PBS()
             self['PBS'].set_PBS_model(s, i)
     
+    # Get PBS priority
+    def get_PBS_p(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            return self['BatchPBS'].get_PBS_p(i)
+        elif typ == 'post':
+            self._PostPBS()
+            return self['PostPBS'].get_PBS_p(i)
+        else:
+            self._PBS()
+            return self['PBS'].get_PBS_p(i)
+        
+    # Set PBS priority
+    def set_PBS_p(self, p=None, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            self['BatchPBS'].set_PBS_p(p, i)
+        elif typ == 'post':
+            self._PostPBS()
+            self['PostPBS'].set_PBS_p(p, i)
+        else:
+            self._PBS()
+            self['PBS'].set_PBS_p(p, i)
+    
     # Get PBS model or arch setting
     def get_PBS_aoe(self, i=None, typ=None):
         # Get lower-case type
@@ -1450,7 +1517,7 @@ class Options(odict):
         
     # Copy over the documentation.
     for k in ['PBS_j', 'PBS_r', 'PBS_S', 'PBS_select', 'PBS_mpiprocs',
-            'PBS_o', 'PBS_e', 'PBS_aoe', 'PBS_ompthreads',
+            'PBS_o', 'PBS_e', 'PBS_aoe', 'PBS_ompthreads', 'PBS_p',
             'PBS_ncpus', 'PBS_model', 'PBS_W', 'PBS_q', 'PBS_walltime']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(PBS,'get_'+k).__doc__

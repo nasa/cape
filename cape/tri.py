@@ -2487,6 +2487,48 @@ class TriBase(object):
         self.Tris = np.vstack((self.Tris, tri.Tris + self.nNode))
         # Concatenate the component vector.
         self.CompID = np.hstack((self.CompID, tri.CompID))
+        # Loop through confs
+        try:
+            # See if added triangulation has *tri.Conf*
+            tri.Conf
+            # See if *self* has *Conf*
+            try:
+                self.Conf
+            except AttributeError:
+                self.Conf = {}
+            # Loop through components
+            for comp in tri.Conf:
+                # Get value and type
+                vt = tri.Conf[comp]
+                tt = type(vt).__name__
+                # Test if already present
+                if comp in self.Conf:
+                    # Get value
+                    vs = self.Conf[comp]
+                    # Get type
+                    ts = type(v).__name__
+                    # Append
+                    if ts in ['list', 'ndarray']:
+                        # Add to list
+                        if tt in ['list', 'ndarray']:
+                            # Combine lists
+                            self.Conf[comp] = list(vs) + list(vt)
+                        else:
+                            # Append to existing list
+                            self.Conf[comp] = list(vs) + [vt]
+                    else:
+                        # Create list
+                        if tt in ['list', 'ndarray']:
+                            # Create list and add to it
+                            self.Conf[comp] = [vs] + list(vt)
+                        else:
+                            # Create doubleton list
+                            self.Conf[comp] = [vs, vt]
+                else:
+                    # Add it
+                    self.Conf[comp] = vt
+        except Exception:
+            pass
         # Update the statistics.
         self.nNode += tri.nNode
         self.nTri  += tri.nTri
@@ -2508,7 +2550,7 @@ class TriBase(object):
         running `intersect`.
         
         :Call:
-            >>> tri.WriteCompIDTri(fname='Components.c.tri')
+            >>> tri.WriteVolTri(fname='Components.c.tri')
         :Inputs:
             *tri*: :class:`cape.tri.TriBase` or derivative
                 Triangulation instance
@@ -2544,6 +2586,94 @@ class TriBase(object):
         kKeep = (tri.CompID > 0)
         tri.Tris   = tri.Tris[kKeep,:]
         tri.CompID = tri.CompID[kKeep]
+        tri.nTri   = tri.Tris.shape[0]
+        # Write the triangulation to file.
+        tri.Write(fname)
+        
+    # Function to write c.tri file with original CompIDs but w/o farfield
+    def WriteCompIDTri(self, fname='Components.tri'):
+        """Write a .tri file with the original components
+        
+        This provides a component map for the output of ``intersect``.
+        Supplemental surfaces, such as farfield triangles or grid refinement
+        sources, are not written.  Specifically, triangles with negative
+        component IDs are not written.
+        
+        :Call:
+            >>> tri.WriteCompIDTri(fname='Components.c.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase` or derivative
+                Triangulation instance
+            *fname*: :class:`str`
+                Name of .tri file to use for mapping intersected tris
+        :Versions:
+            * 2017-05-25 ``@ddalle``: First version
+        """
+        # Copy the triangulation.
+        tri = self.Copy()
+        # Initialize indices of triangles to keep
+        kKeep = np.arange(self.nTri) < 0
+        # Initialize start of first zone
+        k2 = 0
+        # Loop through volumes as marked in *tri.iTri*
+        for k in range(len(self.iTri)):
+            # Get indices
+            k1 = abs(k2)
+            k2 = self.iTri[k]
+            # Keep positive *iTri* values
+            if k2 > 0:
+                # Keep this zone
+                kKeep[k1:k2] = True
+            else:
+                # Do not keep this zone
+                kKeep[k1:-k2] = False
+        # Ignore negative triangles
+        tri.Tris   = tri.Tris[kKeep,:]
+        tri.CompID = tri.CompID[kKeep]
+        tri.nTri   = tri.Tris.shape[0]
+        # Write the triangulation to file.
+        tri.Write(fname)
+        
+    # Function to write f.tri file with supplemental surfaces
+    def WriteFarfieldTri(self, fname='Components.f.tri'):
+        """Write a .tri file supplemental surfaces not intersected
+        
+        This stores the triangles that are excluded from the input to
+        ``intersect``.  This would include farfield surfaces, grid refinement
+        boxes, or bodies that are known not to intersect any others.
+        
+        :Call:
+            >>> tri.WriteFarfieldTri(fname='Components.f.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.TriBase` or derivative
+                Triangulation instance
+            *fname*: :class:`str`
+                Name of .tri file to use for mapping intersected tris
+        :Versions:
+            * 2017-05-25 ``@ddalle``: First version
+        """
+        # Copy the triangulation.
+        tri = self.Copy()
+        # Initialize indices of triangles to keep
+        kKeep = np.arange(self.nTri) < 0
+        # Initialize start of first zone
+        k2 = 0
+        # Loop through volumes as marked in *tri.iTri*
+        for k in range(len(self.iTri)):
+            # Get indices
+            k1 = abs(k2)
+            k2 = self.iTri[k]
+            # Keep positive *iTri* values
+            if k2 > 0:
+                # Keep this zone
+                kKeep[k1:k2] = False
+            else:
+                # Do not keep this zone
+                kKeep[k1:-k2] = True
+        # Ignore negative triangles
+        tri.Tris   = tri.Tris[kKeep,:]
+        tri.CompID = tri.CompID[kKeep]
+        tri.nTri   = tri.Tris.shape[0]
         # Write the triangulation to file.
         tri.Write(fname)
         
@@ -2931,6 +3061,24 @@ class TriBase(object):
         CompID = np.zeros_like(self.CompID)
         # Initial component number
         ncomp = 0
+        # Create a copy used for error checking
+        tri = self.Copy()
+        # Clean up extra entries in faces
+        for face in self.config.faces:
+            # Skip if already processed
+            if face in faces: continue
+            # Get the component number
+            compf = self.config.faces[face]
+            # Make sure it's a list
+            if type(compf).__name__ not in ['list', 'ndarray']:
+                continue
+            # Loop through components
+            for compi in compf:
+                # Delete it if not in the renumbered list
+                if compi not in compIDs:
+                    #print("  Deleting %s from %s (index %s)"
+                    #    % (compi, face, compf.index(compi)))
+                    del compf[compf.index(compi)]
         # Loop through sorted faces
         for face in faces:
             # Get the component number
@@ -2940,7 +3088,9 @@ class TriBase(object):
                 # Extract element from singleton
                 compi = compi[0]
             # Check if that compID is present
-            if compi not in compIDs: continue
+            if compi not in compIDs: 
+                self.config.RenumberCompID(face, -compi)
+                continue
             # Otherwise, reset it.
             I = np.where(self.CompID==compi)[0]
             ncomp += 1
@@ -2953,9 +3103,17 @@ class TriBase(object):
             print("  WARNING: At least one tri has unset component ID")
             # Get the locations of missed triangles
             I = np.where(CompID == 0)[0]
+            # Get list of missed components
+            C = np.unique(self.CompID[I])
             # Print the list of original component IDs from here
-            print("           List of original component IDs that were missed")
-            print("              %s" % np.unique(self.CompID[I]))
+            print("%10sList of original component IDs that were missed" % "")
+            print("%10s  CompID  Name" % "")
+            # Loop through such missing components
+            for cID in C:
+                # Attempt to get the name
+                face = tri.GetCompName(cID)
+                # Error message
+                print("%12s  %6s  %s" % ("", cID, face))
         # Reset component IDs
         self.CompID = CompID
        

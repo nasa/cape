@@ -970,6 +970,8 @@ class Cntl(object):
             else:
                 # Get maximum iteration count.
                 nMax = self.GetLastIter(i)
+                # Get current phase
+                j = self.CheckUsedPhase(i)
                 # Check current count.
                 if jobID in jobs:
                     # It's in the queue, but apparently not running.
@@ -979,6 +981,9 @@ class Cntl(object):
                     else:
                         # It's in the queue.
                         sts = "QUEUE"
+                elif j < self.opts.get_PhaseSequence(-1):
+                    # Not enough phases
+                    sts = "INCOMP"
                 elif n >= nMax:
                     # Not running and sufficient iterations completed.
                     sts = "DONE"
@@ -1050,7 +1055,11 @@ class Cntl(object):
             # Go to the group folder.
             os.chdir(frun)
             # Check the history iteration
-            n = self.CaseGetCurrentIter()
+            try:
+                n = self.CaseGetCurrentIter()
+            except Exception:
+                # At least one file missing that is required
+                n = None
         # If zero, check if the required files are set up.
         if (n == 0) and self.CheckNone(v): n = None
         # Return to original folder.
@@ -1079,6 +1088,148 @@ class Cntl(object):
             * 2015-10-14 ``@ddalle``: First version
         """
         return case.GetCurrentIter()
+        
+    # Check a case's phase output files
+    def CheckUsedPhase(self, i, v=False):
+        """Check maximum phase number run at least once
+        
+        :Call:
+            >>> n = cntl.CheckUsedPhase(i, v=False)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+            *v*: ``True`` | {``False``}
+                Verbose flag; prints messages if *n* is ``None``
+        :Outputs:
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2017-06-29 ``@ddalle``: First version
+        """
+         # Check input.
+        if type(i).__name__ not in ["int", "int64", "int32"]:
+            raise TypeError(
+                "Input to :func:`Cntl.CheckCase()` must be :class:`int`.")
+        # Get the group name.
+        frun = self.x.GetFullFolderNames(i)
+        # Remember current location.
+        fpwd = os.getcwd()
+        # Go to root folder.
+        os.chdir(self.RootDir)
+        # Initialize phase number.
+        j = 0
+        # Check if the folder exists.
+        if (not os.path.isdir(frun)):
+            # Verbosity option
+            if v: print("    Folder '%s' does not exist" % frun)
+            j = None
+        # Check that test.
+        if j is not None:
+            # Go to the group folder.
+            os.chdir(frun)
+            # Read local settings
+            try:
+                # Read "case.json"
+                rc = case.ReadCaseJSON()
+                # Get phase list
+                phases = list(self.opts.get_PhaseSequence())
+            except Exception:
+                # Get global phase list
+                phases = list(self.opts.get_PhaseSequence())
+            # Reverse the list
+            phases.reverse()
+            # Loop backwards
+            for j in phases:
+                # Check if any output files exist
+                if len(glob.glob("run.%02i.[1-9]*" % j)) > 0:
+                    # Found it.
+                    break
+        # Return to original folder.
+        os.chdir(fpwd)
+        # Output.
+        return j
+        
+    # Check a case's phase number
+    def CheckPhase(self, i, v=False):
+        """Check current phase number of run *i*
+        
+        :Call:
+            >>> n = cntl.CheckPhase(i, v=False)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+            *v*: ``True`` | {``False``}
+                Verbose flag; prints messages if *n* is ``None``
+        :Outputs:
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2017-06-29 ``@ddalle``: First version
+        """
+         # Check input.
+        if type(i).__name__ not in ["int", "int64", "int32"]:
+            raise TypeError(
+                "Input to :func:`Cntl.CheckCase()` must be :class:`int`.")
+        # Get the group name.
+        frun = self.x.GetFullFolderNames(i)
+        # Remember current location.
+        fpwd = os.getcwd()
+        # Go to root folder.
+        os.chdir(self.RootDir)
+        # Initialize iteration number.
+        n = 0
+        # Check if the folder exists.
+        if (not os.path.isdir(frun)):
+            # Verbosity option
+            if v: print("    Folder '%s' does not exist" % frun)
+            n = None
+        # Check that test.
+        if n is not None:
+            # Go to the group folder.
+            os.chdir(frun)
+            # Check the phase information
+            try:
+                n = self.CaseGetCurrentPhase()
+            except Exception:
+                # At least one file missing that is required
+                n = 0
+        # Return to original folder.
+        os.chdir(fpwd)
+        # Output.
+        return n
+        
+    # Get the current iteration number from :mod:`case`
+    def CaseGetCurrentPhase(self):
+        """Get the current phase number from the appropriate module
+        
+        This function utilizes the :mod:`cape.case` module, and so it must be
+        copied to the definition for each solver's control class
+        
+        :Call:
+            >>> j = cntl.CaseGetCurrentPhase()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Outputs:
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2017-06-29 ``@ddalle``: First version
+        """
+        # Be safe
+        try:
+            # Read the "case.json" folder
+            rc = case.ReadCaseJSON()
+            # Get the phase number
+            return case.GetPhaseNumber(rc)
+        except:
+            return 0
         
         
     # Check if cases with zero iterations are not yet setup to run
@@ -1157,6 +1308,8 @@ class Cntl(object):
         frun = self.x.GetFullFolderNames(i)
         # Check for the RUNNING file.
         q = os.path.isfile(os.path.join(frun, 'FAIL'))
+        # Check ERROR flag
+        q = q or self.x.ERROR[i]
         # Go home.
         os.chdir(fpwd)
         # Output
@@ -1915,7 +2068,7 @@ class Cntl(object):
         self.WritePBSHeader(f, typ='batch', wd=self.RootDir)
         # Write the command
         f.write('\n# Run the command\n')
-        f.write('%s\n' % (" ".join(cmdi)))
+        f.write('%s\n\n' % (" ".join(cmdi)))
         # Close the file
         f.close()
         # ------------------
@@ -2812,13 +2965,15 @@ class Cntl(object):
         os.chdir(self.RootDir)
         # Apply constraints
         I = self.x.GetIndices(**kw)
-        # Read the existing data book.
-        self.ReadDataBook(comp=comp)
         # Check if we are deleting or adding.
         if kw.get('delete', False):
+            # Read the existing data book.
+            self.ReadDataBook(comp=comp)
             # Delete cases.
             self.DataBook.DeleteCases(I, comp=comp)
         else:
+            # Read an empty data book
+            self.ReadDataBook(comp=[])
             # Read the results and update as necessary.
             self.DataBook.UpdateDataBook(I, comp=comp)
         # Return to original location.

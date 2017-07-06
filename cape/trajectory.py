@@ -1255,6 +1255,7 @@ class Trajectory:
             con = con.replace('====', '==')
             con = con.replace('>==', '>=')
             con = con.replace('<==', '<=')
+            con = con.replace('!==', '!=')
             # Constraint may fail with bad input.
             try:
                 # Apply the constraint.
@@ -1542,6 +1543,7 @@ class Trajectory:
                 List of trajectory point indices in the sweep
         :Versions:
             * 2015-05-24 ``@ddalle``: First version
+            * 2017-06-27 ``@ddalle``: Added special variables
         """
         # Check for an *i0* point.
         if not np.any(M): return np.array([])
@@ -1575,55 +1577,99 @@ class Trajectory:
             # Get the key (for instance if matching ``k%10``)
             k = re.split('[^a-zA-Z_]', c)[0]
             # Check for the key.
-            if k not in self.keys:
+            if k in self.keys:
+                # Get the target value.
+                x0 = getattr(self,k)[i0]
+                # Get the value
+                V = eval('self.%s' % c)
+            elif k == "alpha":
+                # Get the target value.
+                x0 = self.GetAlpha(i0)
+                # Extract matrix values
+                V = self.GetAlpha()
+            elif k == "beta": 
+                # Get the target value
+                x0 = self.GetBeta(i0)
+                # Extract matrix values
+                V = self.GetBeta()
+            elif k in ["alpha_m", "aoam"]:
+                # Get the target value.
+                x0 = self.GetAlphaManeuver(i0)
+                # Extract matrix values
+                V = self.GetAlphaManeuver()
+            elif k in ["phi_m", "phim"]:
+                # Get the target value.
+                x0 = self.GetPhiManeuver(i0)
+                # Extract matrix values
+                V = self.GetPhiManeuver()
+            else:
                 raise KeyError(
                     "Could not find trajectory key for constraint '%s'." % c)
-            # Get the target value.
-            x0 = getattr(self,k)[i0]
-            # Form the constraint.
-            con = 'self.%s == %s' % (c, x0)
-            # Apply the constraint.
-            m = np.logical_and(m, eval(con))
+            # Evaluate constraint
+            m = np.logical_and(m, np.abs(V - x0) <= 1e-10)
         # Loop through tolerance-based constraints.
         for c in TolCons:
             # Get the key (for instance if matching 'i%10', key is 'i')
             k = re.split('[^a-zA-Z_]', c)[0]
-            # Check for the key.
-            if k not in self.keys:
-                raise KeyError(
-                    "Could not find trajectory key for constraint '%s'." % c)
             # Get tolerance.
             tol = TolCons[c]
-            # Get the target value.
-            x0 = getattr(self,k)[i0]
-            # Form the greater-than constraint.
-            con = 'self.%s >= %s' % (c, x0-tol)
-            # Apply the constraint.
-            m = np.logical_and(m, eval(con))
-            # Form the less-than constraint.
-            con = 'self.%s <= %s' % (c, x0+tol)
-            # Apply the constraint.
-            m = np.logical_and(m, eval(con))
+            # Check for the key.
+            if k in self.keys:
+                # Get the target value.
+                x0 = getattr(self,k)[i0]
+                # Get the values
+                V = eval('self.%s' % c)
+            elif k == "alpha":
+                # Get the target value.
+                x0 = self.GetAlpha(i0)
+                # Get trajectory values
+                V = self.GetAlpha()
+            elif k == "beta":
+                # Get the target value
+                x0 = self.GetBeta(i0)
+                # Get trajectory values
+                V = self.GetBeta()
+            elif k in ["alpha_m", "aoam"]:
+                # Get the target value.
+                x0 = self.GetAlphaManeuver(i0)
+                # Extract matrix values
+                V = self.GetAlphaManeuver()
+            elif k in ["phi_m", "phim"]:
+                # Get the target value.
+                x0 = self.GetPhiManeuver(i0)
+                # Extract matrix values
+                V = self.GetPhiManeuver()
+            else:
+                raise KeyError(
+                    "Could not find trajectory key for constraint '%s'." % c)
+            # Evaluate constraint
+            m = np.logical_and(m, np.abs(x0-V) <= tol)
         # Initialize output.
         I = np.arange(self.nCase)
         # Apply the final mask.
         J = I[m]
         # Check for a sort variable.
-        if (xk is not None) and (xk in self.keys):
+        if (xk is not None):
             # Sort based on that key.
             if xk in self.keys:
                 # Sort based on trajectory key
                 vx = getattr(self,xk)[J]
-            elif xk.lower() in "alpha":
+            elif xk.lower() in ["alpha"]:
                 # Sort based on angle of attack
                 vx = self.GetAlpha(J)
-            elif xk.lower() in "beta":
+            elif xk.lower() in ["beta"]:
                 # Sort based on angle of sideslip
                 vx = self.GetBeta(J)
-            elif xk.lower() in "alpha_t":
+            elif xk.lower() in ["alpha_t", "aoav"]:
                 # Sort based on total angle of attack
                 vx = self.GetAlphaTotal(J)
-            elif xk.lower() in "phi":
+            elif xk.lower() in ["alpha_m", "aoam"]:
+                # Sort based on total angle of attack
+                vx = self.GetAlphaManeuver(J)
+            elif xk.lower() in ["phi_m", "phim"]:
+                # Sort based on velocity roll
+                vx = self.GetPhiManeuver(J)
+            elif xk.lower() in ["phi", "phiv"]:
                 # Sort based on velocity roll
                 vx = self.GetPhi(J)
             else:
@@ -1676,6 +1722,8 @@ class Trajectory:
         :Versions:
             * 2015-06-03 ``@ddalle``: First version
         """
+        # Handle to all indices
+        I0 = np.arange(self.nCase)
         # Check for list of indices
         I = kw.get('I')
         # Initial mask
@@ -1713,35 +1761,93 @@ class Trajectory:
             # Get the key (for instance if matching ``k%10``)
             k = re.split('[^a-zA-Z_]', c)[0]
             # Check for the key.
-            if k not in self.keys:
+            if k in self.keys:
+                # Get the target value.
+                v0 = getattr(x0,k)[i0]
+                # Get the value
+                V = eval('self.%s' % c)
+            elif k == "alpha":
+                # Get the target value.
+                v0 = x0.GetAlpha(i0)
+                # Get trajectory values
+                V = self.GetAlpha()
+            elif k == "beta": 
+                # Get the target value
+                v0 = x0.GetBeta(i0)
+                # Extract matrix values
+                V = self.GetBeta()
+            elif k in ["alpha_t", "aoav"]:
+                # Get the target value
+                v0 = x0.GetAlphaTotal(i0)
+                # Extract matrix values
+                V = self.GetAlphaTotal()
+            elif k in ["alpha_m", "aoam"]:
+                # Get the target value.
+                v0 = x0.GetAlphaManeuver(i0)
+                # Extract matrix values
+                V = self.GetAlphaManeuver()
+            elif k in ["phi_m", "phim"]:
+                # Get the target value.
+                v0 = x0.GetPhiManeuver(i0)
+                # Extract matrix values
+                V = self.GetPhiManeuver()
+            elif k in ["phi", "phiv"]:
+                # Get the target value.
+                v0 = x0.GetPhi(i0)
+                # Extract matrix values
+                V = self.GetPhi()
+            else:
                 raise KeyError(
                     "Could not find trajectory key for constraint '%s'." % c)
-            # Get the target value.
-            v0 = getattr(x0,k)[i0]
-            # Form the constraint.
-            con = 'self.%s == %s' % (c, v0)
-            # Apply the constraint.
-            m = np.logical_and(m, eval(con))
+            # Evaluate constraint
+            m = np.logical_and(m, np.abs(V - v0) < 1e-10)
         # Loop through tolerance-based constraints.
         for c in TolCons:
             # Get the key (for instance if matching 'i%10', key is 'i')
             k = re.split('[^a-zA-Z_]', c)[0]
-            # Check for the key.
-            if k not in self.keys:
-                raise KeyError(
-                    "Could not find trajectory key for constraint '%s'." % c)
             # Get tolerance.
             tol = TolCons[c]
-            # Get the target value.
-            v0 = getattr(x0,k)[i0]
-            # Form the greater-than constraint.
-            con = 'self.%s >= %s' % (c, v0-tol)
-            # Apply the constraint.
-            m = np.logical_and(m, eval(con))
-            # Form the less-than constraint.
-            con = 'self.%s <= %s' % (c, v0+tol)
-            # Apply the constraint.
-            m = np.logical_and(m, eval(con))
+            # Check for the key.
+            if k in self.keys:
+                # Get the target value.
+                v0 = getattr(x0,k)[i0]
+                # Evaluate the trajectory values
+                V = eval('self.%s' % c)
+            elif k == "alpha":
+                # Get the target value.
+                v0 = x0.GetAlpha(i0)
+                # Get trajectory values
+                V = self.GetAlpha()
+            elif k == "beta": 
+                # Get the target value
+                v0 = x0.GetBeta(i0)
+                # Extract matrix values
+                V = self.GetBeta()
+            elif k in ["alpha_t", "aoav"]:
+                # Get the target value
+                v0 = x0.GetAlphaTotal(i0)
+                # Extract matrix values
+                V = self.GetAlphaTotal()
+            elif k in ["alpha_m", "aoam"]:
+                # Get the target value.
+                v0 = x0.GetAlphaManeuver(i0)
+                # Extract matrix values
+                V = self.GetAlphaManeuver()
+            elif k in ["phi_m", "phim"]:
+                # Get the target value.
+                v0 = x0.GetPhiManeuver(i0)
+                # Extract matrix values
+                V = self.GetPhiManeuver()
+            elif k in ["phi", "phiv"]:
+                # Get the target value.
+                v0 = x0.GetPhi(i0)
+                # Extract matrix values
+                V = self.GetPhi()
+            else:
+                raise KeyError(
+                    "Could not find trajectory key for constraint '%s'." % c)
+            # Evaluate constraint
+            m = np.logical_and(m, np.abs(v0-V) <= tol)
         # Initialize output.
         I = np.arange(self.nCase)
         # Apply the final mask.
@@ -1890,7 +1996,7 @@ class Trajectory:
         return None
         
     # Get Mach number
-    def GetMach(self, i):
+    def GetMach(self, i=None):
         """Get Mach number
         
         :Call:
@@ -1906,6 +2012,9 @@ class Trajectory:
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for temperature
@@ -1918,22 +2027,25 @@ class Trajectory:
         return None
         
     # Get angle of attack
-    def GetAlpha(self, i):
+    def GetAlpha(self, i=None):
         """Get the angle of attack
         
         :Call:
-            >>> alpha = x.GetAlpha(i)
+            >>> alpha = x.GetAlpha(i=None)
         :Inputs:
             *x*: :class;`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
-            *alpha*: :class:`float`
+            *alpha*: :class:`float` | :class:`np.ndarray`
                 Angle of attack in degrees
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for angle of attack
@@ -1964,8 +2076,72 @@ class Trajectory:
         # No info
         return None
         
+    # Get maneuver angle of attack
+    def GetAlphaManeuver(self, i=None):
+        """Get the signed total angle of attack
+        
+        :Call:
+            >>> am = x.GetAlphaManeuver(i)
+        :Inputs:
+            *x*: :class;`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
+        :Outputs:
+            *am*: :class:`float`
+                Signed maneuver angle of attack [deg]
+        :Versions:
+            * 2017-06-27 ``@ddalle``: First version
+        """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
+        # Process the key types
+        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+        # Check for total angle of attack
+        if 'alpha_t' in KeyTypes:
+            # Find the key
+            k = self.GetKeysByType('alpha_t')[0]
+            # Get that value
+            aoav = getattr(self,k)[i]
+            # Check for 'phi'
+            if 'phi' in KeyTypes:
+                # Find that key
+                kph = self.GetKeysByType('phi')[0]
+                # Get that value
+                phiv = getattr(self,kph)[i]
+            else:
+                # Use 0 for the roll angle
+                phiv = 0.0
+            # Convert to aoam, phim
+            aoam, phim = convert.AlphaTPhi2AlphaMPhi(aoav, phiv)
+            # Output
+            return aoam
+        # Check for angle of attack
+        if 'alpha' in nKeyTypes:
+            # Get the key
+            k = self.GetKeysByType('alpha')[0]
+            # Get the value
+            a = getattr(self,k)[i]
+            # Check for sideslip
+            if 'beta' in KeyTypes:
+                # Get the key
+                k = self.GetKeysByType('beta')[0]
+                # Get the value
+                b = getattr(self,k)[i]
+            else:
+                # Default value
+                b = 0.0
+            # Convert to alpha total, phi
+            av, rv = convert.AlphaBeta2AlphaMPhi(a, b)
+            # Output
+            return av
+        # no info
+        return None
+        
+        
     # Get total angle of attack
-    def GetAlphaTotal(self, i):
+    def GetAlphaTotal(self, i=None):
         """Get the total angle of attack
         
         :Call:
@@ -1973,22 +2149,39 @@ class Trajectory:
         :Inputs:
             *x*: :class;`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
             *av*: :class:`float`
                 Total angle of attack in degrees
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
+            * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for total angle of attack
         if 'alpha_t' in KeyTypes:
             # Find the key
             k = self.GetKeysByType('alpha_t')[0]
-            # Return the value
-            return getattr(self,k)[i]
+            # Get that value
+            aoav = getattr(self,k)[i]
+            # Check for 'phi'
+            if 'phi' in KeyTypes:
+                # Find that key
+                kph = self.GetKeysByType('phi')[0]
+                # Get that value
+                phiv = getattr(self,kph)[i]
+            else:
+                # Use 0 for the roll angle
+                phiv = 0.0
+            # Convert to aoam, phim
+            aoav, phiv = convert.AlphaMPhi2AlphaTPhi(aoav, phiv)
+            # Output
+            return aoav
         # Check for angle of attack
         if 'alpha' in nKeyTypes:
             # Get the key
@@ -2012,7 +2205,7 @@ class Trajectory:
         return None
         
     # Get angle of sideslip
-    def GetBeta(self, i):
+    def GetBeta(self, i=None):
         """Get the sideslip angle
         
         :Call:
@@ -2020,14 +2213,18 @@ class Trajectory:
         :Inputs:
             *x*: :class;`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
             *beta*: :class:`float`
                 Angle of sideslip in degrees
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
+            * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for angle of attack
@@ -2059,7 +2256,7 @@ class Trajectory:
         return None
         
     # Get velocity roll angle
-    def GetPhi(self, i):
+    def GetPhi(self, i=None):
         """Get the velocity roll angle
         
         :Call:
@@ -2067,14 +2264,18 @@ class Trajectory:
         :Inputs:
             *x*: :class;`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
             *phiv*: :class:`float`
                 Velocity roll angle in degrees
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
+            * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for total angle of attack
@@ -2105,8 +2306,71 @@ class Trajectory:
         # no info
         return None
         
+    # Get maneuver angle of attack
+    def GetPhiManeuver(self, i=None):
+        """Get the signed maneuver roll angle
+        
+        :Call:
+            >>> phim = x.GetPhiManeuver(i)
+        :Inputs:
+            *x*: :class;`cape.trajectory.Trajectory`
+                Run matrix interface
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
+        :Outputs:
+            *phim*: :class:`float`
+                Signed maneuver roll angle [deg]
+        :Versions:
+            * 2017-06-27 ``@ddalle``: First version
+        """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
+        # Process the key types
+        KeyTypes = [self.defns[k]['Type'] for k in self.keys]
+        # Check for total angle of attack
+        if 'phi' in KeyTypes:
+            # Find the key
+            k = self.GetKeysByType('phi')[0]
+            # Get that value
+            phiv = getattr(self,k)[i]
+            # Check for 'phi'
+            if 'alpha_t' in KeyTypes:
+                # Find that key
+                k = self.GetKeysByType('alpha_t')[0]
+                # Get that value
+                aoav = getattr(self,k)[i]
+            else:
+                # Use 0 for the roll angle
+                aoav = 1.0
+            # Convert to aoam, phim
+            aoam, phim = convert.AlphaTPhi2AlphaMPhi(aoav, phiv)
+            # Output
+            return phim
+        # Check for angle of attack
+        if 'alpha' in nKeyTypes:
+            # Get the key
+            k = self.GetKeysByType('alpha')[0]
+            # Get the value
+            a = getattr(self,k)[i]
+            # Check for sideslip
+            if 'beta' in KeyTypes:
+                # Get the key
+                k = self.GetKeysByType('beta')[0]
+                # Get the value
+                b = getattr(self,k)[i]
+            else:
+                # Default value
+                b = 0.0
+            # Convert to alpha total, phi
+            av, rv = convert.AlphaBeta2AlphaMPhi(a, b)
+            # Output
+            return av
+        # no info
+        return None
+        
     # Get freestream temperature
-    def GetTemperature(self, i):
+    def GetTemperature(self, i=None):
         """Get static freestream temperature
         
         :Call:
@@ -2114,14 +2378,18 @@ class Trajectory:
         :Inputs:
             *x*: :class:`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
             *T*: :class:`float`
                 Static temperature [R | K]
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
+            * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for temperature

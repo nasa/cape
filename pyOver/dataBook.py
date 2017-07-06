@@ -342,22 +342,27 @@ class DataBook(cape.dataBook.DataBook):
         * 2015-10-20 ``@ddalle``: Started
     """
     # Initialize a DBComp object
-    def ReadDBComp(self, comp):
+    def ReadDBComp(self, comp, check=False, lock=False):
         """Initialize data book for one component
         
         :Call:
-            >>> DB.ReadDBComp(comp, x, opts)
+            >>> DB.ReadDBComp(comp, x, opts, check=False, lock=False)
         :Inputs:
             *DB*: :class:`pyCart.dataBook.DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
         :Versions:
             * 2015-11-10 ``@ddalle``: First version
             * 2016-06-27 ``@ddalle``: Added *targ* keyword
             * 2017-04-13 ``@ddalle``: Self-contained and renamed
         """
-        self[comp] = DBComp(comp, self.x, self.opts, targ=self.targ)
+        self[comp] = DBComp(comp, self.x, self.opts,
+            targ=self.targ, check=check, lock=lock)
         
     # Local version of data book
     def _DataBook(self, targ):
@@ -392,7 +397,7 @@ class DataBook(cape.dataBook.DataBook):
                 conf=conf, RootDir=self.RootDir, targ=targ)
     
     # Read TriqFM components
-    def ReadTriqFM(self, comp):
+    def ReadTriqFM(self, comp, check=False, lock=False):
         """Read a TriqFM data book if not already present
         
         :Call:
@@ -402,6 +407,10 @@ class DataBook(cape.dataBook.DataBook):
                 Instance of pyOver data book class
             *comp*: :class:`str`
                 Name of TriqFM component
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
         :Versions:
             * 2017-03-29 ``@ddalle``: First version
         """
@@ -413,13 +422,16 @@ class DataBook(cape.dataBook.DataBook):
         # Try to access the TriqFM database
         try:
             self.TriqFM[comp]
+            # Ensure lock
+            if lock:
+                self.TriqFM[comp].Lock()
         except Exception:
             # Safely go to root directory
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read data book
             self.TriqFM[comp] = DBTriqFM(self.x, self.opts, comp,
-                RootDir=self.RootDir)
+                RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
     
@@ -646,7 +658,7 @@ class DBTriqFM(cape.dataBook.DBTriqFM):
             # No source just yet
             fsrc = None
         # Check if the TRIQ file exists
-        if os.path.isfile(ftriq) and os.path.isfile(fsrc):
+        if fsrc and os.path.isfile(ftriq) and os.path.isfile(fsrc):
             # Check modification dates
             if os.path.getmtime(ftriq) < os.path.getmtime(fsrc):
                 # 'grid.i.triq' exists, but Q file is newer

@@ -144,7 +144,7 @@ def RunPhase(rc, i):
     # Check if the primal solution has already been run
     if n < np or nprev == 0:
         # Get the `nodet` or `nodet_mpi` command
-        cmdi = cmd.nodet(rc)
+        cmdi = cmd.nodet(rc, i=i)
         # Call the command.
         bin.callf(cmdi, f='fun3d.out')
         # Get new iteration number
@@ -190,7 +190,10 @@ def RunPhase(rc, i):
         # Check if this is a weird mixed case with Dual and Adaptive
         if rc.get_Dual(): os.chdir('Flow')
         # Run the feature-based adaptive mesher
-        cmdi = cmd.nodet(rc, adapt=True)
+        cmdi = cmd.nodet(rc, adapt=True, i=i)
+        # Make sure "restart_read" is set to .true.
+        nml.SetRestart(True)
+        nml.Write('fun3d.%02i.nml' % i)
         # Call the command.
         bin.callf(cmdi, f='adapt.out')
         # Rename output file after completing that command
@@ -1101,7 +1104,10 @@ def GetPltFile():
     if j != jstrt:
         # Read the new namelist
         j = jstrt
-        nml = GetNamelist(rc, j)
+        try:
+            nml = GetNamelist(rc, j)
+        except Exception:
+            pass
     # ====================
     # Iteration Statistics
     # ====================

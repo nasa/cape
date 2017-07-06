@@ -190,6 +190,72 @@ class intersect(odict):
             * 2016-04-05 ``@ddalle``: First version
         """
         self.set_key('cutout', cutout, j)
+    
+    # Get rm small tri option
+    def get_intersect_rm(self):
+        """Get the option to remove small triangles
+
+        :Call:
+            >>> q = opts.get_intersect_rm()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether or not to remove small triangles
+        :Versions:
+            * 2017-06-24 ``@ddalle``: First version
+        """
+        return self.get_key('rm', rck='intersect_rm')
+
+    # Set rm small tri option
+    def set_intersect_rm(self, q=rc0('intersect_rm')):
+        """Set the option to remove small triangles
+
+        :Call:
+            >>> opts.set_intersect_rm(q)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *q*: ``True`` | ``False``
+                Whether or not to remove small triangles
+        :Versions:
+            * 2017-06-24 ``@ddalle``: First version
+        """
+        self.set_key('rm', q)
+
+    # Get small triangle size for intersect
+    def get_intersect_smalltri(self):
+        """Get the cutoff size for small triangles
+
+        :Call:
+            >>> A = opts.get_intersect_smalltri()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *A*: :class:`float`
+                Small area cutoff
+        :Versions:
+            * 2017-06-24 ``@ddalle``: First version
+        """
+        return self.get_key('smalltri', rck='intersect_smalltri')
+
+    # Set small triangle size
+    def set_intersect_smalltri(self, smalltri=rc0('intersect_smalltri')):
+        """Get the cutoff size for small triangles
+
+        :Call:
+            >>> opts.get_intersect_smalltri(A)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *A*: :class:`float`
+                Small area cutoff
+        :Versions:
+            * 2017-06-24 ``@ddalle``: First version
+        """
+        self.set_key('smalltri', smalltri)
         
 # class intersect
 

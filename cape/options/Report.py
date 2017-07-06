@@ -1195,9 +1195,7 @@ class Report(odict):
         
     # Special function for plot options, which repeat
     def get_SubfigPlotOpt(self, sfig, opt, i):
-        """
-        Retrieve an option for a subfigure plot, cycling through list of options
-        if necessary.
+        """Retrieve an option for a subfigure plot
         
         For example, ``{"color": "k", "marker": ["^", "+", "o"]}`` results in a
         sequence of plot options as follows.
@@ -1207,6 +1205,8 @@ class Report(odict):
             2. ``{"color": "k", "marker": "o"}``
             3. ``{"color": "k", "marker": "^"}``
             4. ``{"color": "k", "marker": "+"}``
+            
+        It is also possible to ...
         
         :Call:
             >>> val = opts.get_SubfigPlotOpt(sfig, opt, i=None)

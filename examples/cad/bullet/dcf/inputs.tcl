@@ -84,6 +84,13 @@ set Ovr(dtphys) 0.0
 set Ovr(nitnwt) 0
 set Ovr(walldist) 2
 
+# Set gbrick info
+set Ovr(obgrids) .T.
+set Ovr(ds) $Par(ds,glb)
+set Ovr(dfar) 1500.0
+set Ovr(irun) 2
+set Ovr(i6dof) 0
+
 # Dummy freestream conditions
 set Ovr(alpha)  0.0
 set Ovr(beta)   0.0

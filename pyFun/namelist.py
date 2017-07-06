@@ -13,6 +13,9 @@ this module is methods to set specific properties of the :file:`input.cntl`
 file, for example the Mach number or CFL number.
 """
 
+# System module
+import sys
+
 # Import the base file control class.
 import cape.namelist
 
@@ -279,10 +282,20 @@ class Namelist(cape.namelist.Namelist):
                 return 'ugrid'
             elif typ == 'unformatted':
                 # Unformatted Fortran file
-                return 'r8.ugrid'
+                if sys.byteorder == "big":
+                    # Big-endian
+                    return 'r8.ugrid'
+                else:
+                    # Little-endian
+                    return 'lr8.ugrid'
             else:
                 # C-type AFLR3 mesh
-                return 'b8.ugrid' 
+                if sys.byteorder == "big":
+                    # Big-endian
+                    return 'b8.ugrid' 
+                else:
+                    # Little-endian
+                    return 'lb8.ugrid'
         elif fmt == 'fast':
             # FAST
             return 'fgrid'

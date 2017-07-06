@@ -948,14 +948,20 @@ def LinkLatest(fsrc, fname):
     # Check for file
     if os.path.islink(fname):
         # Delete old links
-        os.remove(fname)
+        try:
+            os.remove(fname)
+        except Exception:
+            pass
     elif os.path.isfile(fname):
         # Do nothing if full file exists with this name
         return
     # Check if the source file exists
     if (fsrc is None) or (not os.path.isfile(fsrc)): return
     # Create link
-    os.symlink(fsrc, fname)
+    try:
+        os.symlink(fsrc, fname)
+    except Exception:
+        pass
 
 # Link best Q file
 def LinkQ():

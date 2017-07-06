@@ -107,7 +107,7 @@ class Plt(object):
     :Versions:
         * 2016-11-22 ``@ddalle``: First version
     """
-    
+    # Initialization method
     def __init__(self, fname=None, triq=None, **kw):
         """Initialization method
         
@@ -129,7 +129,6 @@ class Plt(object):
             self.qmin = []
             self.qmax = []
             self.Tris = []
-        
     
     # Tec Boundary reader
     def Read(self, fname):
@@ -279,7 +278,7 @@ class Plt(object):
         f.close()
     
     # Write Tec Boundary
-    def Write(self, fname):
+    def Write(self, fname, Vars=None):
         """Write a Fun3D boundary Tecplot binary file
         
         :Call:
@@ -289,9 +288,18 @@ class Plt(object):
                 Tecplot PLT interface
             *fname*: :class:`str`
                 Name of file to read
+            *Vars*: {``None``} | :class:`list` (:class:`str`)
+                List of variables (by default, use all variables)
         :Versions:
             * 2017-03-29 ``@ddalle``: First version
+            * 2017-05-16 ``@ddalle``: Added variable list
         """
+        # Default variable list
+        if Vars is None: Vars = self.Vars
+        # Number of variables
+        nVar = len(Vars)
+        # Indices of variabels
+        IVar = np.array([self.Vars.index(v) for v in Vars])
         # Open the file
         f = open(fname, 'wb')
         # Write the opening string
@@ -303,9 +311,9 @@ class Plt(object):
         # Write title
         cape.io.tofile_ne4_s(f, self.title)
         # Write number of variables
-        cape.io.tofile_ne4_i(f, self.nVar)
+        cape.io.tofile_ne4_i(f, nVar)
         # Loop through variable names
-        for var in self.Vars:
+        for var in Vars:
             cape.io.tofile_ne4_s(f, var)
         # Write zones
         for i in range(self.nZone):
@@ -343,16 +351,16 @@ class Plt(object):
                     cape.io.tofile_ne4_i(1)
                     # Try to write the markers
                     try:
-                        cape.io.tofile_ne4_i(self.VarLocs[i])
+                        cape.io.tofile_ne4_i(self.VarLocs[i][IVar])
                     except Exception:
-                        cape.io.tofile_ne4_i(np.zeros(self.nVar))
+                        cape.io.tofile_ne4_i(np.zeros(nVar))
                 else:
                     # Write a zero and move on
                     cape.io.tofile_ne4_i(f, 0)
             except Exception:
                 # Default to marking all variables node-centered
                 cape.io.tofile_ne4_i(f, 1)
-                cape.io.tofile_ne4_i(f, np.zeros(self.nVar))
+                cape.io.tofile_ne4_i(f, np.zeros(nVar))
             # Two unused or weird variables
             cape.io.tofile_ne4_i(f, np.zeros(2))
             # Write number of pts, elements
@@ -370,49 +378,59 @@ class Plt(object):
             nelem = self.nElem[n]
             # Write variable types (usually 1 for float type, I think)
             try:
-                cape.io.tofile_ne4_i(f, self.fmt[n])
+                cape.io.tofile_ne4_i(f, self.fmt[n][IVar])
             except Exception:
-                cape.io.tofile_ne4_i(f, np.ones(self.nVar))
+                cape.io.tofile_ne4_i(f, np.ones(nVar))
             # Just set things as passive variables like FUN3D
             cape.io.tofile_ne4_i(f, 1)
-            cape.io.tofile_ne4_i(f, np.zeros(self.nVar))
+            cape.io.tofile_ne4_i(f, np.zeros(nVar))
             # Just set things to share with -1, because that makes sense
             # somehow.  I guess it is a commercial format, so go figure.
             cape.io.tofile_ne4_i(f, 1)
-            cape.io.tofile_ne4_i(f, -1*np.ones(self.nVar))
+            cape.io.tofile_ne4_i(f, -1*np.ones(nVar))
             # Save the *zshare* value
             cape.io.tofile_ne4_i(f, -1)
             # Form matrix of qmin[0], qmax[0], qmin[1], ...
-            qex = np.vstack((self.qmin[n], self.qmax[n])).transpose()
+            qex = np.vstack((self.qmin[n][IVar],
+                self.qmax[n][IVar])).transpose()
             # Save *qmin* and *qmax*
             cape.io.tofile_ne8_f(f, qex)
             # Save the actual data
-            cape.io.tofile_ne4_f(f, np.transpose(self.q[n]))
+            cape.io.tofile_ne4_f(f, np.transpose(self.q[n][:,IVar]))
             # Write the tris (this may need to be generalized!)
             cape.io.tofile_ne4_i(f, self.Tris[n])
         # Close the file
         f.close()
         
     # Write ASCII file 
-    def WriteDat(self, fname):
+    def WriteDat(self, fname, Vars=None):
         """Write Tecplot PLT file to ASCII format (``.dat``)
         
         :Call:
-            >>> plt.WriteDat(fname)
+            >>> plt.WriteDat(fname, Vars=None)
         :Inputs:
             *plt*: :class:`cape.plt.Plt`
                 Tecplot PLT interface
             *fname*: :class:`str`
                 Name of DAT file to write
+            *Vars*: {``None``} | :class:`list` (:class:`str`)
+                List of variables (by default, use all variables)
         :Versions:
             * 2017-03-30 ``@ddalle``: First version
+            * 2017-05-16 ``@ddalle``: Added variable list
         """
+        # Default variable list
+        if Vars is None: Vars = self.Vars
+        # Number of variables
+        nVar = len(Vars)
+        # Indices of variabels
+        IVar = np.array([self.Vars.index(v) for v in Vars])
         # Create the file
         f = open(fname, 'w')
         # Write the title
         f.write('title="%s"\n' % self.title)
         # Write the variable names header
-        f.write('variables = %s\n' % " ".join(self.Vars))
+        f.write('variables = %s\n' % " ".join(Vars))
         # Loop through zones
         for n in range(self.nZone):
             # Write the zone name
@@ -426,11 +444,11 @@ class Plt(object):
             # Write some header that appears fixed.
             f.write(", f=feblock\n")
             # Extract the state
-            q = self.q[n]
+            q = self.q[n][:,IVar]
             # Number of rows of 7
             nrow = int(np.ceil(q.shape[0]/7.0))
             # Loop through the variables
-            for j in range(self.nVar):
+            for j in range(nVar):
                 # Writing each row
                 for i in range(nrow):
                     # Extract data in septuplets and write to file

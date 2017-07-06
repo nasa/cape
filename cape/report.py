@@ -63,7 +63,6 @@ from .tecplot import ExportLayout, Tecscript
 # Local modules needed
 import tex, tar
 
-
 # Class to interface with report generation and updating.
 class Report(object):
     """Interface for automated report generation
@@ -770,6 +769,8 @@ class Report(object):
         # -------
         # Figures
         # -------
+        # Save the subfigures
+        self.SaveSubfigs(I, fswp)
         # Get the figures.
         figs = self.cntl.opts.get_SweepOpt(fswp, "Figures")
         # Loop through the figures.
@@ -783,6 +784,58 @@ class Report(object):
         self.sweeps[fswp][I[0]].Write()
         # Go home.
         os.chdir(fpwd)
+    
+    # Get appropriate list of figures
+    def GetFigureList(self, i, fswp=None):
+        """Get list of figures for a report or sweep page
+        
+        :Call:
+            >>> figs = R.GetFigureList(i)
+            >>> figs = R.GetFigureList(I, fswp)
+        :Inputs:
+            *i*: :class:`int`
+                Case index
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of case indices
+            *fswp*: :class:`str`
+                Name of sweep
+        :Outputs:
+            *figs*: :class:`list`
+                List of figure names
+        :Versions:
+            * 2017-05-27 ``@ddalle``: First version
+        """
+        # Check for sweep
+        if fswp is None:
+            # Get the actual iteration number.
+            n = self.cntl.CheckCase(i)
+            # Get required number of iterations for report
+            nMin = self.cntl.opts.get_ReportMinIter(self.rep)
+            # Move on if iteration count not yet achieved
+            if (nMin is not None) and ((n is None) or (n < nMin)):
+                # Go home and quit.
+                return []
+            # Check status.
+            sts = self.cntl.CheckCaseStatus(i)
+            # Call `qstat` if needed.
+            if (sts == "INCOMP") and (n is not None):
+                # Check the current queue
+                sts = self.cntl.CheckCaseStatus(i, auto=True)
+            # Get the figure list
+            if n:
+                # Nominal case with some results
+                figs = self.cntl.opts.get_ReportFigList(self.rep)
+            elif sts == "ERROR":
+                # Get the figures for FAILed cases
+                figs = self.cntl.opts.get_ReportErrorFigList(self.rep)
+            else:
+                # No FAIL file, but no iterations
+                figs = self.cntl.opts.get_ReportZeroFigList(self.rep)
+        else:
+            # Get the list of sweep figures
+            figs = self.cntl.opts.get_SweepOpt(fswp, "Figures")
+        # Output
+        return figs
     
     # Function to create the file for a case
     def UpdateCase(self, i):
@@ -869,6 +922,8 @@ class Report(object):
         # -------
         # Figures
         # -------
+        # Save the subfigures
+        self.SaveSubfigs(i)
         # Loop through figures.
         for fig in figs:
             self.UpdateFigure(fig, i)
@@ -885,6 +940,63 @@ class Report(object):
    # Figure/Subfigure Updaters
    # -------------------------
    # [
+    # Function to save the subfigures
+    def SaveSubfigs(self, i, fswp=None):
+        """Save the current text of subfigures
+        
+        :Call:
+            >>> R.SaveSubfigs(i)
+            >>> R.SaveSubfigs(I, fswp)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of case indices
+            *fswp*: :class:`str`
+                Name of sweep
+        :Attributes:
+            *R.subfigs*: :class:`dict` (:class:`list`)
+                List of LaTeX lines in each subfigure by name
+        :Versions:
+            * 2017-05-27 ``@ddalle``: First version
+        """
+        # -----
+        # Setup
+        # -----
+        # Check for sweep
+        if fswp is None:
+            # Handle for the case file.
+            tx = self.cases[i]
+        else:
+            # Transfer variable names.
+            I = i; i = I[0]
+            # Handle for the subsweep file.
+            tx = self.sweeps[fswp][i]
+        # Initialize holder
+        self.subfigs = {}
+        # Find line numbers of start and end of each subfig
+        sfiga = tx.GetIndexStartsWith("\\begin{subfigure}")
+        sfigb = tx.GetIndexStartsWith("\\end{subfigure}")
+        # Initialize number of subfigs
+        nsfig = 0
+        # List of figures
+        figs = self.GetFigureList(i, fswp=fswp)
+        # Loop through figs
+        for fig in figs:
+            # Loop through subfigs
+            for sfig in self.cntl.opts.get_FigSubfigList(fig):
+                # Check if the subfigure existed
+                if nsfig >= len(sfiga):
+                    # No subfigure yet
+                    self.subfigs[sfig] = []
+                    continue
+                # Save lines
+                self.subfigs[sfig] = tx.lines[sfiga[nsfig]:sfigb[nsfig]+1]
+                # Increase count
+                nsfig += 1
+            
     # Function to write a figure.
     def UpdateFigure(self, fig, i, fswp=None):
         """Write the figure and update the contents as necessary for *fig*
@@ -922,6 +1034,8 @@ class Report(object):
             # Handle for the subsweep file.
             tx = self.sweeps[fswp][i]
             tf = tx.Section['Figures']
+        # Initialize number of subfigs
+        nsfig = 0
         # Figure header line
         ffig = '%%<%s\n' % fig
         # Check for the figure.
@@ -1478,6 +1592,38 @@ class Report(object):
             lines.append('\\vskip-6pt\n')
         # Output
         return lines
+        
+    # Apply a generic Python function for a subfigure
+    def SubfigFunction(self, sfig, i):
+        """Apply a generic Pythong function to a subfigure definition
+        
+        :Call:
+            >>> R.SubfigFunction(sfig, i)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure to initialize
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2017-06-22 ``@ddalle``: First version
+        """
+        # Extract control object
+        cntl = self.cntl
+        # Get the functions
+        funcs = cntl.opts.get_SubfigOpt(sfig, "Function")
+        # Exit if none
+        if not funcs: return
+        # Ensure list
+        funcs = list(np.array(funcs).flatten())
+        # Loop through functions
+        for func in funcs:
+            # Status update
+            print('    Subfig function: %s("%s", %s)' % (func, sfig, i))
+            # Run the function
+            exec("cntl.%s(cntl, sfig, %s)" % (func, i))
+        
       
     # Function to get the list of targets for a subfigure
     def SubfigTargets(self, sfig):
@@ -2003,6 +2149,9 @@ class Report(object):
         :Versions:
             * 2014-03-09 ``@ddalle``: First version
         """
+        ## Check status
+        #if not q:
+        #    return self.subfigs[sfig]
         # Save current folder.
         fpwd = os.getcwd()
         # Extract options
@@ -2428,6 +2577,9 @@ class Report(object):
         :Versions:
             * 2016-06-10 ``@ddalle``: First version
         """
+        # Check status
+        #if not q:
+        #    return self.subfigs[sfig]
         # Save current folder.
         fpwd = os.getcwd()
         # Case folder
@@ -2595,22 +2747,27 @@ class Report(object):
             fimg = '%s.%s' % (sfig, fmt)
             fpdf = '%s.pdf' % sfig
             # Save the figure.
-            if fmt.lower() in ['pdf']:
-                # Save as vector-based image.
-                h['fig'].savefig(fimg)
-            elif fmt.lower() in ['svg']:
-                # Save as PDF and SVG
-                h['fig'].savefig(fimg)
-                h['fig'].savefig(fpdf)
-            else:
-                # Save with resolution.
-                h['fig'].savefig(fimg, dpi=dpi)
-                h['fig'].savefig(fpdf)
-            # Close the figure.
-            h['fig'].clf()
-            # Include the graphics.
-            lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                % (frun, fpdf))
+            try:
+                if fmt.lower() in ['pdf']:
+                    # Save as vector-based image.
+                    h['fig'].savefig(fimg)
+                elif fmt.lower() in ['svg']:
+                    # Save as PDF and SVG
+                    h['fig'].savefig(fimg)
+                    h['fig'].savefig(fpdf)
+                else:
+                    # Save with resolution.
+                    h['fig'].savefig(fimg, dpi=dpi)
+                    h['fig'].savefig(fpdf)
+                # Close the figure.
+                h['fig'].clf()
+                # Include the graphics.
+                lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                    % (frun, fpdf))
+            except Exception:
+                print("    Plotting failed, probably due to a NaN.")
+                print("    The actual line load may be acceptable despite " +
+                    "this warning.")
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
@@ -2832,6 +2989,8 @@ class Report(object):
        # ------------------
         # Save current folder.
         fpwd = os.getcwd()
+        # Apply case functions
+        self.SubfigFunction(sfig, I[0])
         # Extract options and trajectory
         x = self.cntl.DataBook.x
         opts = self.cntl.opts
@@ -2964,6 +3123,11 @@ class Report(object):
             # Get figure dimensions.
             figw = opts.get_SubfigOpt(sfig, "FigWidth", k)
             figh = opts.get_SubfigOpt(sfig, "FigHeight", k)
+            # Check for hard-coded axis limits
+            xmin = opts.get_SubfigOpt(sfig, "XMin", k)
+            xmax = opts.get_SubfigOpt(sfig, "XMax", k)
+            ymin = opts.get_SubfigOpt(sfig, "YMin", k)
+            ymax = opts.get_SubfigOpt(sfig, "YMax", k)
             # Plot options
             kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",   i)
             kw_s = opts.get_SubfigPlotOpt(sfig, "StDevOptions",  i)
@@ -2974,7 +3138,8 @@ class Report(object):
                 Label=lbl, LineOptions=kw_p,
                 StDev=ksig, StDevOptions=kw_s,
                 MinMax=qmmx, MinMaxOptions=kw_m,
-                FigWidth=figw, FigHeight=figh)
+                FigWidth=figw, FigHeight=figh,
+                XMin=xmin, XMax=xmax, YMin=ymin, YMax=ymax)
             # Loop through targets
             for targ in targs:
                 # Get the target handle.
@@ -2991,13 +3156,11 @@ class Report(object):
                 # Check if the *comp*/*coeff* combination is available.
                 if typt in ['duplicate', 'cape', 'pycart', 'pyfun', 'pyover']:
                     # Check if we have the data
-                    if coeff not in DBTc:
+                    if (coeff not in DBTc) and (coeff not in ["cp","CP","CT"]):
                         print(
                             ("    Skipping target '%s': " % targ) +
                             ("coeff '%s/%s' not in target" % (comp,coeff)))
                         continue
-                    # Plot the nominal coefficient without translation
-                    tcoeff = coeff
                 else:
                     # Check *DBT* as a DBTarget
                     if comp not in DBTc.ckeys:
@@ -3005,13 +3168,14 @@ class Report(object):
                             ("    Skipping target '%s': " % targ) +
                             ("comp '%s' not in target" % comp))
                         continue
+                    elif coeff in ["cp", "CP"] and "CLM" in DBTc.ckeys[comp]:
+                        # Can reconstruct a center of pressure (probably)
+                        pass
                     elif coeff not in DBTc.ckeys[comp]:
                         print(
                             ("    Skipping target '%s': " % targ) +
                             ("coeff '%s' not in target" % coeff))
                         continue
-                    # Get target coefficient name
-                    tcoeff = DBTc.ckeys[comp][coeff]
                 # Get any translation keys
                 xkeys = topts.get("Trajectory", {})
                 # Get matches
@@ -3023,12 +3187,14 @@ class Report(object):
                     print(
                         ("    Skipping target '%s' " % targ)+
                         ("coeff %s/%s: no matching cases" % (comp,coeff)))
+                    continue
                 # Get target plot label.
                 tlbl = self.SubfigTargetPlotLabel(sfig, k, targ) + clbl
                 # Don't start with comma.
                 tlbl = tlbl.lstrip(", ")
                 # Specified target plot options
-                kw_t = opts.get_SubfigPlotOpt(sfig, "TargetOptions", j_t)
+                kw_t = opts.get_SubfigPlotOpt(sfig, "TargetOptions", 
+                    targs.index(targ))
                 # Target options index
                 j_t += 1
                 # Initialize target plot options.
@@ -3036,10 +3202,20 @@ class Report(object):
                 # Apply non-default options
                 for k_i in kw_t: kw_l[k_i] = kw_t[k_i]
                 # Draw the plot
-                DBTc.PlotCoeff(coeff, JTj, x=xk,
-                    XMRP=xmrp, DXMRP=dxmrp,
-                    Label=tlbl, LineOptions=kw_l,
-                    FigWidth=figw, FigHeight=figh)
+                if typt in ['duplicate', 'cape', 'pycart', 'pyfun', 'pyover']:
+                    # Separate object for each component
+                    DBTc.PlotCoeff(coeff, JTj, x=xk,
+                        XMRP=xmrp, DXMRP=dxmrp,
+                        Label=tlbl, LineOptions=kw_l,
+                        FigWidth=figw, FigHeight=figh,
+                        XMin=xmin, XMax=xmax, YMin=ymin, YMax=ymax)
+                else:
+                    # All components in one object; need to say comp
+                    DBTc.PlotCoeff(comp, coeff, JTj, x=xk,
+                        XMRP=xmrp, DXMRP=dxmrp,
+                        Label=tlbl, LineOptions=kw_l,
+                        FigWidth=figw, FigHeight=figh,
+                        XMin=xmin, XMax=xmax, YMin=ymin, YMax=ymax)
        # ----------
        # Formatting
        # ----------
@@ -4540,8 +4716,6 @@ class Report(object):
             DBL = DBT.LineLoads[comp]
             # Update the trajectory
             DBL.UpdateTrajectory()
-            # Target options
-            topts = self.cntl.opts.get_DataBookTargetByName(targ)
             # Find a match
             J = DBL.FindTargetMatch(DB.x, i, topts, keylist='tol')
             # Check for a match

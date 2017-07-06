@@ -288,6 +288,35 @@ class Cart3d(Cntl):
             * 2015-10-14 ``@ddalle``: First version
         """
         return case.GetCurrentIter()
+        
+    # Get the current iteration number from :mod:`case`
+    def CaseGetCurrentPhase(self):
+        """Get the current phase number from the appropriate module
+        
+        This function utilizes the :mod:`cape.case` module, and so it must be
+        copied to the definition for each solver's control class
+        
+        :Call:
+            >>> j = cart3d.CaseGetCurrentPhase()
+        :Inputs:
+            *cart3d*: :class:`pyCart.cart3d.Cart3d`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Outputs:
+            *j*: :class:`int` | ``None``
+                Phase number
+        :Versions:
+            * 2017-06-29 ``@ddalle``: First version
+        """
+        # Be safe
+        try:
+            # Read the "case.json" folder
+            rc = case.ReadCaseJSON()
+            # Get the phase number
+            return case.GetPhaseNumber(rc)
+        except:
+            return 0
             
     # Function to check if the mesh for case i exists
     def CheckMesh(self, i):

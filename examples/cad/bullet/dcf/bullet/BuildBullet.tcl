@@ -18,13 +18,14 @@ proc CreateBullet { } {
     global Par Fomo Ovr
     
     # Relevant file names
+    set fdef "bullet.lb8.crv"
     set fcrv "bullet.crv"
     set ftri "bullet.i.tri"
     
     # Copy files
     set partdir $Par(GeomDir)
     exec /bin/cp $partdir/$ftri $ftri
-    exec /bin/cp $partdir/$fcrv $fcrv
+    exec /bin/cp $partdir/$fdef $fcrv
     
   # ==========
   # Body Curve
@@ -73,7 +74,7 @@ proc CreateBullet { } {
         $Par(ds,wall) $Par(ds,glb) $Par(klayer)] \
         [list 4 4 3 3] [list 2.0 150]
     # Revolve to get volume grid
-    GedRevolve q.1 v.1 x -360.0 1 $Par(npcirc,bullet)
+    GedRevolve q.1 v.1 x 360.0 1 $Par(npcirc,bullet)
     
     # Pull back from singular axes
     set njcapfr 3
@@ -85,7 +86,7 @@ proc CreateBullet { } {
     # Indices for family breaks in main body grid
     set njcap  [expr $nj1 - $njcapfr]
     set njbody [expr $njcap + $nj2]
-    set njaft  [expr $nj3 - $njcapbk]
+    set njaft  [expr $nj3 - $njcapbk+3]
     
     # Create xray
     CreateXrayMap s.1 bullet.xry $Par(ds,xray,fine) 0.0 
