@@ -586,10 +586,20 @@ class RunControl(odict):
         self._aflr3()
         self['aflr3'].set_angblisimx(angbli, j)
         
+    # Get surface triangle angle options
+    def get_angqbf(self, j=0):
+        self._aflr3()
+        return self['aflr3'].get_angqbf(j)
+    
+    # Set surface triangle angle options
+    def set_angqbf(self, angqbf, j=0):
+        self._aflr3()
+        self['aflr3'].set_angqbf(angqbf, j)
+        
     # Copy documentation
     for k in ['aflr3_i', 'aflr3_o', 'aflr3_BCFile',
         'blc', 'blr', 'blds', 'bli', 'grow',
-        'cdfr', 'cdfs', 'nqual', 'mdf', 'mdsblf', 'angblisimx']:
+        'cdfr', 'cdfs', 'nqual', 'mdf', 'mdsblf', 'angblisimx', 'angqbf']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(aflr3.aflr3,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(aflr3.aflr3,'set_'+k).__doc__
