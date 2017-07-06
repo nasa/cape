@@ -445,6 +445,24 @@ class RunControl(odict):
         else:
             # Return the 'run' flag
             return q == True
+            
+    # Get all AFLR3 options
+    def get_aflr3_keys(self):
+        """Return dictionary of addition AFLR3 options that use key=val format
+        
+        :Call:
+            >>> d = opts.get_aflr3_keys()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *d*: :class:`dict`
+                Dictionary of AFLR3 key-value options
+        :Versions:
+            * 2017-07-06 ``@ddalle``: First version
+        """
+        return {}
+            
     
     # Get AFLR3 input file
     def get_aflr3_i(self, j=0):
