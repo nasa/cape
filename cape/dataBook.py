@@ -2790,7 +2790,7 @@ class DBBase(dict):
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
         """
         # Initialize indices (assume all are matches)
-        j = np.arange(x.nCase)
+        j = np.arange(self.n)
         # Get the trajectory key translations.   This determines which keys to
         # filter and what those keys are called in the source file.
         tkeys = topts.get('Trajectory', {})

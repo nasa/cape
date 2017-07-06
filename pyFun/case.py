@@ -1104,7 +1104,10 @@ def GetPltFile():
     if j != jstrt:
         # Read the new namelist
         j = jstrt
-        nml = GetNamelist(rc, j)
+        try:
+            nml = GetNamelist(rc, j)
+        except Exception:
+            pass
     # ====================
     # Iteration Statistics
     # ====================

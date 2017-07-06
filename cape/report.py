@@ -4716,8 +4716,6 @@ class Report(object):
             DBL = DBT.LineLoads[comp]
             # Update the trajectory
             DBL.UpdateTrajectory()
-            # Target options
-            topts = self.cntl.opts.get_DataBookTargetByName(targ)
             # Find a match
             J = DBL.FindTargetMatch(DB.x, i, topts, keylist='tol')
             # Check for a match

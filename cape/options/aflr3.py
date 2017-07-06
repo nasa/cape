@@ -521,7 +521,50 @@ class aflr3(odict):
         :Versions:
             * 2016-04-04 ``@ddalle``: First version
         """
-        return self.set_key('angblisimx', angblisimx, j)
+        self.set_key('angblisimx', angblisimx, j)
+        
+    # Tolerance for bad surface cells
+    def get_angqbf(self, j=None):
+        """Get the AFLR3 option *angqbf*
+        
+        Setting this option to ``0`` will allow for mesh generation from
+        lower-quality surface meshes.
+        
+        :Call:
+            >>> angqbf = opts.get_angqbf(j=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *angqbf*: {``None``} | :class:`float` >= 0
+                AFLR3 option
+        :Versions:
+            * 2017-06-13 ``@ddalle``: First version
+        """
+        return self.get_key('angqbf', j)
+        
+    # Set bad surface cell option
+    def set_angqbf(self, angqbf, j=None):
+        """Get the AFLR3 option *angqbf*
+        
+        Setting this option to ``0`` will allow for mesh generation from
+        lower-quality surface meshes.
+        
+        :Call:
+            >>> opts.set_angqbf(angqbf, j=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *angqbf*: {``None``} | :class:`float` >= 0
+                AFLR3 option
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Versions:
+            * 2017-06-13 ``@ddalle``: First version
+        """
+        return self.set_key('angqbf', angqbf, j)
     
     # Distribution function flag
     def get_mdf(self, j=None):
@@ -558,7 +601,7 @@ class aflr3(odict):
         :Versions:
             * 2017-04-26 ``@ddalle``: First version
         """
-        return self.set_key('mdf', mdf, j)
+        self.set_key('mdf', mdf, j)
     
     # BL spacing thickness factor option
     def get_mdsblf(self, j=None):
@@ -595,6 +638,6 @@ class aflr3(odict):
         :Versions:
             * 2017-04-26 ``@ddalle``: First version
         """
-        return self.set_key('mdsblf', mdsblf, j)
+        self.set_key('mdsblf', mdsblf, j)
 # class aflr3
 
