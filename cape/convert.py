@@ -76,9 +76,9 @@ def AlphaTPhi2AlphaBeta(alpha_t, phi):
     ca = np.cos(alpha_t*deg); cp = np.cos(phi*deg)
     sa = np.sin(alpha_t*deg); sp = np.sin(phi*deg)
     # Get the components of the normalized velocity vector.
-    u = ca
-    v = sa * sp
-    w = sa * cp
+    u = 1.0e-8*np.fix(1e8*ca)
+    v = 1.0e-8*np.fix(1e8*sa * sp)
+    w = 1.0e-8*np.fix(1e8*sa * cp)
     # Convert to alpha, beta
     alpha = np.arctan2(w, u) / deg
     beta = np.arcsin(v) / deg
