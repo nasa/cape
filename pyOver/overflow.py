@@ -341,7 +341,7 @@ class Overflow(Cntl):
         """Check maximum phase number run at least once
         
         :Call:
-            >>> n = ofl.CheckUsedPhase(i, v=False)
+            >>> j, n = ofl.CheckUsedPhase(i, v=False)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class containing relevant parameters
@@ -352,8 +352,11 @@ class Overflow(Cntl):
         :Outputs:
             *j*: :class:`int` | ``None``
                 Phase number
+            *n*: :class:`int`
+                Max phase number
         :Versions:
             * 2017-06-29 ``@ddalle``: First version
+            * 2017-07-11 ``@ddalle``: Added second output
         """
          # Check input.
         if type(i).__name__ not in ["int", "int64", "int32"]:
@@ -396,7 +399,7 @@ class Overflow(Cntl):
         # Return to original folder.
         os.chdir(fpwd)
         # Output.
-        return j
+        return j, phases[-1]
         
     # Get the current iteration number from :mod:`case`
     def CaseGetCurrentPhase(self):

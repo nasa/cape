@@ -971,7 +971,7 @@ class Cntl(object):
                 # Get maximum iteration count.
                 nMax = self.GetLastIter(i)
                 # Get current phase
-                j = self.CheckUsedPhase(i)
+                j, jLast = self.CheckUsedPhase(i)
                 # Check current count.
                 if jobID in jobs:
                     # It's in the queue, but apparently not running.
@@ -981,7 +981,7 @@ class Cntl(object):
                     else:
                         # It's in the queue.
                         sts = "QUEUE"
-                elif j < self.opts.get_PhaseSequence(-1):
+                elif j < jLast:
                     # Not enough phases
                     sts = "INCOMP"
                 elif n >= nMax:
@@ -1094,7 +1094,7 @@ class Cntl(object):
         """Check maximum phase number run at least once
         
         :Call:
-            >>> n = cntl.CheckUsedPhase(i, v=False)
+            >>> j, n = cntl.CheckUsedPhase(i, v=False)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class containing relevant parameters
@@ -1105,8 +1105,11 @@ class Cntl(object):
         :Outputs:
             *j*: :class:`int` | ``None``
                 Phase number
+            *n*: :class:`int` | ``None``
+                Maximum phase number
         :Versions:
             * 2017-06-29 ``@ddalle``: First version
+            * 2017-07-11 ``@ddalle``: Added second output
         """
          # Check input.
         if type(i).__name__ not in ["int", "int64", "int32"]:
@@ -1149,7 +1152,7 @@ class Cntl(object):
         # Return to original folder.
         os.chdir(fpwd)
         # Output.
-        return j
+        return j, phases[-1]
         
     # Check a case's phase number
     def CheckPhase(self, i, v=False):

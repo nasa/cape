@@ -4516,9 +4516,16 @@ class Report(object):
                 return DB[comp]
             elif tcomp in ["LineLoad"]:
                 # Read the line load
-                DB.ReadLineLoad(comp)
+                DB.ReadLineLoad(comp, targ=targ)
+                # Check for target component name
+                if targ is None:
+                    # Use the original component name
+                    tcomp = comp
+                else:
+                    # Prepend target name
+                    tcomp = '%s\\%s' % (targ, comp)
                 # Return it
-                return DB.LineLoads[comp]
+                return DB.LineLoads[tcomp]
             elif tcomp in ["TriqFM"]:
                 # Read the component
                 DB.ReadTriqFM(compo)
