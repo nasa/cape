@@ -3279,6 +3279,17 @@ class DBBase(dict):
             if (dxmrp is not None) and ("CN" in self):
                 # Shift the moment reference point
                 yv = yv + dxmrp/Lref*self["CN"][I]
+        elif coeff == "CLN":
+            # Check for MRP shift
+            xmrp  = kw.get("XMRP")
+            dxmrp = kw.get("DXMRP")
+            # Shift if necessary
+            if (xmrp is not None) and ("CY" in self):
+                # Shift moment to specific point
+                yv = yv + (xmrp-xMRP)/Lref*self["CY"][I]
+            if (dxmrp is not None) and ("CY" in self):
+                # Shift the moment reference point
+                yv = yv + dxmrp/Lref*self["CY"][I]
         # Sort the data
         yv = yv[ixv]
         # Default label starter
