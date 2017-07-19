@@ -1928,22 +1928,26 @@ class Trajectory:
    # =================
    # <
     # Get Reynolds number
-    def GetReynoldsNumber(self, i):
+    def GetReynoldsNumber(self, i=None):
         """Get Reynolds number (per foot)
         
         :Call:
-            >>> Re = x.GetReynoldsNumber(i)
+            >>> Re = x.GetReynoldsNumber(i=None)
         :Inputs:
             *x*: :class:`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int` | :class:`list`
+                Case number(s)
         :Outputs:
             *Re*: :class:`float`
                 Reynolds number [1/inch | 1/ft]
         :Versions:
             * 2016-03-23 ``@ddalle``: First version
+            * 2017-07-19 ``@ddalle``: Added default conditions
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types.
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for Reynolds number
