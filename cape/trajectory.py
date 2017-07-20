@@ -2326,6 +2326,7 @@ class Trajectory:
                 Signed maneuver roll angle [deg]
         :Versions:
             * 2017-06-27 ``@ddalle``: First version
+            * 2017-07-20 ``@ddalle``: Added default *i* = ``None``
         """
         # Default list
         if i is None:
@@ -2406,7 +2407,7 @@ class Trajectory:
         return None
         
     # Get freestream stagnation temperature
-    def GetTotalTemperature(self, i):
+    def GetTotalTemperature(self, i=None):
         """Get freestream stagnation temperature
         
         :Call:
@@ -2414,14 +2415,18 @@ class Trajectory:
         :Inputs:
             *x*: :class:`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
             *T0*: :class:`float`
                 Freestream stagnation temperature [R | K]
         :Versions:
             * 2016-08-30 ``@ddalle``: First version
+            * 2017-07-20 ``@ddalle``: Added default cases
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Get temperature, Mach number, and ratio of specific heats
         T = self.GetTemperature(i)
         M = self.GetMach(i)
@@ -2430,7 +2435,7 @@ class Trajectory:
         return T * (1 + 0.5*(g-1)*M*M)
         
     # Get freestream pressure
-    def GetPressure(self, i):
+    def GetPressure(self, i=None):
         """Get static freestream pressure (in psf or Pa)
         
         :Call:
@@ -2438,14 +2443,18 @@ class Trajectory:
         :Inputs:
             *x*: :class:`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
             *p*: :class:`float`
                 Static pressure [psf | Pa]
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
+            * 2017-07-20 ``@ddalle``: Added default cases
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for static pressure
@@ -2487,22 +2496,26 @@ class Trajectory:
         return None
     
     # Get freestream pressure
-    def GetDynamicPressure(self, i):
+    def GetDynamicPressure(self, i=None):
         """Get dynamic freestream pressure (in psf or Pa)
         
         :Call:
-            >>> q = x.GetDynamicPressure(i)
+            >>> q = x.GetDynamicPressure(i=None)
         :Inputs:
             *x*: :class:`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int` | :class:`list`
+                Case number(s)
         :Outputs:
             *q*: :class:`float`
                 Dynamic pressure [psf | Pa]
         :Versions:
             * 2016-03-24 ``@ddalle``: First version
+            * 2017-07-20 ``@ddalle``: Added default cases
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for dynamic pressure
@@ -2546,7 +2559,7 @@ class Trajectory:
         return None
         
     # Get freestream stagnation pressure
-    def GetTotalPressure(self, i):
+    def GetTotalPressure(self, i=None):
         """Get freestream stagnation pressure (in psf or Pa)
         
         :Call:
@@ -2554,14 +2567,18 @@ class Trajectory:
         :Inputs:
             *x*: :class:`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
             *p0*: :class:`float`
                 Stagnation pressure [psf | Pa]
         :Versions:
             * 2016-08-30 ``@ddalle``: First version
+            * 2017-07-20 ``@ddalle``: Added default cases
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Get pressure, Mach number, and gamma
         p = self.GetPressure(i)
         M = self.GetMach(i)
@@ -2573,7 +2590,7 @@ class Trajectory:
         return p * (1+g2*M*M)**g3
         
     # Get ratio of specific heats
-    def GetGamma(self, i):
+    def GetGamma(self, i=None):
         """Get freestream ratio of specific heats
         
         :Call:
@@ -2581,14 +2598,18 @@ class Trajectory:
         :Inputs:
             *x*: :class:`cape.trajectory.Trajectory`
                 Run matrix interface
-            *i*: :class:`int`
-                Case number
+            *i*: {``None``} | :class:`int`
+                Case number (return all if ``None``)
         :Outputs:
             *gam*: :class:`float`
                 Ratio of specific heats
         :Versions:
             * 2016-03-29 ``@ddalle``: First version
+            * 2017-07-20 ``@ddalle``: Added default cases
         """
+        # Default list
+        if i is None:
+            i = np.arange(self.nCase)
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.keys]
         # Check for ratio of specific heats
