@@ -2285,7 +2285,7 @@ class Trajectory:
         # Check for total angle of attack
         if 'phi' in KeyTypes:
             # Find the key
-            k = self.GetKeysByType('alpha_t')[0]
+            k = self.GetKeysByType('phi')[0]
             # Return the value
             return getattr(self,k)[i]
         # Check for angle of attack
