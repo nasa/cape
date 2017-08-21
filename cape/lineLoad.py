@@ -153,7 +153,7 @@ class DBLineLoad(dataBook.DBBase):
         os.chdir(fpwd)
         
         # Save the CFD run info
-        self.x = x
+        self.x = x.Copy()
         self.opts = opts
         self.conf = conf
         # Specific options for this component
