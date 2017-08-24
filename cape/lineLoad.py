@@ -1515,7 +1515,10 @@ class CaseLL(object):
         h['fig'] = plt.gcf()
         h['ax']  = plt.gca()
         # Check for existing label
-        ly = h['ax'].get_ylabel()
+        if q_vert:
+            ly = h['ax'].get_ylabel()
+        else:
+            ly = h['ax'].get_xlabel()
         # Default labels
         if self.sec == 'slds':
             # Sectional loads
