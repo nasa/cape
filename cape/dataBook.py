@@ -846,7 +846,10 @@ class DataBook(dict):
             if 'nStats' in DBc:
                 DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
         else:
-            # No need to update trajectory values.
+            # Save updated trajectory values
+            for k in self[p].xCols:
+                # Append to that column
+                DBc[p][k][j] = getattr(self.x,k)[i]
             # Update data values.
             for c in DBc.DataCols:
                 DBc[c][j] = s[c]
@@ -2862,6 +2865,10 @@ class DBBase(dict):
         J = np.arange(DBc.n)
         # Loop through keys
         for k in self.x.keys:
+            # Determine whether or not this variable affects folder name
+            q = self.x.defns[k].get("Label", True)
+            # If not, skip this test
+            if not q: continue
             # Get value
             v = self[k][i]
             # Check match
@@ -4636,7 +4643,10 @@ class DBTriqFM(DataBook):
                 self[p]['nIter']  = np.hstack((self[p]['nIter'], [nIter]))
                 self[p]['nStats'] = np.hstack((self[p]['nStats'], [nStats]))
             else:
-                # No need to update trajectory values
+                # Save updated trajectory values
+                for k in self[p].xCols:
+                    # Append to that column
+                    self[p][k][j] = getattr(self.x,k)[i]
                 # Update data values
                 for c in self[p].fCols:
                     # Save it.
