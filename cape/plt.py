@@ -479,18 +479,18 @@ class Plt(object):
             self.Zones.append(v)
             # Parent zone
             v = int(D.get("parent", 0))
-            self.ParentZone.append()
+            self.ParentZone.append(v)
             # Strand ID
             v = int(D.get("strandid", 1000))
             self.StrandID.append(v)
             # Solution time
             v = float(D.get("solutiontime", 0))
-            self.t.append()
+            self.t.append(v)
             # Get zone type
             zt = D.get("f", "feblock")
             # Save zone type
             if zt.lower() == "feblock":
-                self.ZoneType.append(0)
+                self.ZoneType.append(3)
             else:
                 # Some other zone type?
                 self.ZoneType.append(0)
@@ -510,32 +510,29 @@ class Plt(object):
             self.nPt.append(nPt)
             self.nElem.append(nElem)
             # Read the actual data
-            qi = np.fromfile(f, count=(self.nVar*npt))
+            qi = np.fromfile(f, count=(nVar*nPt), sep=" ")
             # Reshape
-            qi = np.transpose(np.reshape(qi, (self.nVar, npt)))
+            qi = np.transpose(np.reshape(qi, (nVar, nPt)))
             self.q.append(qi)
             # Save mins and maxes
             qmini = np.min(qi, axis=0)
             qmaxi = np.max(qi, axis=0)
             # Append min and max values
-            self.qmin = np.hstack((self.qmin, [qmini]))
-            self.qmax = np.hstack((self.qmax, [qmaxi]))
+            self.qmin = np.vstack((self.qmin, [qmini]))
+            self.qmax = np.vstack((self.qmax, [qmaxi]))
             # Read the tris
-            ii = np.fromfile(f, count=(4*nElem))
+            ii = np.fromfile(f, count=(4*nElem), sep=" ", dtype="int")
             # Reshape and save
             self.Tris.append(np.reshape(ii, (nElem,4)))
-            
-            
             # Read next line (empty or title of next zone)
-            line = self.readline().strip()
-            
+            line = f.readline().strip()
         
         # Convert arrays
         self.nPt = np.array(self.nPt)
         self.nElem = np.array(self.nElem)
         # Transpose qmin, qmax
-        self.qmin = self.qmin.transpose()
-        self.qmax = self.qmax.transpose()
+        #self.qmin = self.qmin.transpose()
+        #self.qmax = self.qmax.transpose()
         # Set format list
         self.fmt = np.ones((self.nZone, self.nVar), dtype='i4')
         # Close the file
