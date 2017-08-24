@@ -4440,7 +4440,7 @@ class TriBase(object):
    # ++++++++++
    # {
     # Get normals and areas
-    def GetCompArea(self, compID, n=None):
+    def GetCompArea(self, compID=None, n=None):
         """
         Get the total area of a component, or get the total area of a component
         projected to a plane with a given normal vector.
@@ -4451,7 +4451,7 @@ class TriBase(object):
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
-            *compID*: :class:`int`
+            *compID*: {``None``} | :class:`int`
                 Index of the component of which to find the area
             *n*: :class:`numpy.ndarray`
                 Unit normal vector to use for projection

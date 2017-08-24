@@ -91,6 +91,7 @@ def ImportPyPlot():
         # Other modules
         import matplotlib.transforms as tform
         from matplotlib.text import Text
+# def ImportPyPlot
         
 # Aerodynamic history class
 class DataBook(dict):
@@ -845,7 +846,10 @@ class DataBook(dict):
             if 'nStats' in DBc:
                 DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
         else:
-            # No need to update trajectory values.
+            # Save updated trajectory values
+            for k in self[p].xCols:
+                # Append to that column
+                DBc[p][k][j] = getattr(self.x,k)[i]
             # Update data values.
             for c in DBc.DataCols:
                 DBc[c][j] = s[c]
@@ -1258,7 +1262,7 @@ class DataBook(dict):
         to use is determined by the *keylist* input.
         
         :Call:
-            >>> j = DB.FindMatch(x, i, topts, keylist='x')
+            >>> j = DB.FindTargetMatch(x, i, topts, keylist='x')
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
                 Instance of the Cape data book class
@@ -2701,7 +2705,8 @@ class DBBase(dict):
     def FindMatch(self, i):
         """Find an entry by run matrix (trajectory) variables
         
-        It is assumed that exact matches can be found.
+        It is assumed that exact matches can be found.  However, trajectory keys
+        that do not affect the name of the folder 
         
         :Call:
             >>> j = DBi.FindMatch(i)
@@ -2720,6 +2725,10 @@ class DBBase(dict):
         j = np.arange(self.n) > -1
         # Loop through keys requested for matches.
         for k in self.x.keys:
+            # Determine whether or not this variable affects folder name
+            q = self.x.defns[k].get("Label", True)
+            # If not, skip this test
+            if not q: continue
             # Get the target value (from the trajectory)
             v = getattr(self.x,k)[i]
             # Search for matches.
@@ -2856,6 +2865,10 @@ class DBBase(dict):
         J = np.arange(DBc.n)
         # Loop through keys
         for k in self.x.keys:
+            # Determine whether or not this variable affects folder name
+            q = self.x.defns[k].get("Label", True)
+            # If not, skip this test
+            if not q: continue
             # Get value
             v = self[k][i]
             # Check match
@@ -4630,7 +4643,10 @@ class DBTriqFM(DataBook):
                 self[p]['nIter']  = np.hstack((self[p]['nIter'], [nIter]))
                 self[p]['nStats'] = np.hstack((self[p]['nStats'], [nStats]))
             else:
-                # No need to update trajectory values
+                # Save updated trajectory values
+                for k in self[p].xCols:
+                    # Append to that column
+                    self[p][k][j] = getattr(self.x,k)[i]
                 # Update data values
                 for c in self[p].fCols:
                     # Save it.

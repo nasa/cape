@@ -819,6 +819,11 @@ class CaseFM(cape.dataBook.CaseFM):
             inds.append(keys.index("C_Dv"))
             cols.append('CDv')
             coeffs.append('CDv')
+        # Check for mass flow
+        if "Mass flow" in keys:
+            inds.append(keys.index("Mass flow"))
+            cols.append('mdot')
+            coeffs.append('mdot')
         # Output
         return nhdr, cols, coeffs, inds
         
