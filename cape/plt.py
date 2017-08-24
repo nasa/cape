@@ -83,10 +83,14 @@ class Plt(object):
     """Interface for Tecplot PLT files
     
     :Call:
-        >>> plt = cape.plt.Plt(fname)
+        >>> plt = cape.plt.Plt(fname=None, dat=None, triq=None, **kw)
     :Inputs:
-        *fname*: :class:`str`
-            Name of file to read
+        *fname*: {``None``} | :class:`str`
+            Name of binary PLT file to read
+        *dat*: {``None``} | :class:`str`
+            Name of ASCII file to read
+        *triq*: {``None``} | :class:`cape.tri.Triq`
+            Annotated triangulation interface
     :Outputs:
         *plt*: :class:`cape.plt.Plt`
             Tecplot PLT interface
@@ -106,9 +110,10 @@ class Plt(object):
             List of triangle node indices for each zone
     :Versions:
         * 2016-11-22 ``@ddalle``: First version
+        * 2017-08-24 ``@ddalle``: Added ASCII input capability
     """
     # Initialization method
-    def __init__(self, fname=None, triq=None, **kw):
+    def __init__(self, fname=None, dat=None, triq=None, **kw):
         """Initialization method
         
         :Versions:
@@ -119,6 +124,9 @@ class Plt(object):
         if fname is not None:
             # Read the file
             self.Read(fname)
+        elif dat is not None:
+            # Read an ASCII file
+            self.ReadDat(dat)
         elif triq is not None:
             # Convert from Triq
             self.ConvertTriq(triq, **kw)
@@ -399,6 +407,137 @@ class Plt(object):
             cape.io.tofile_ne4_f(f, np.transpose(self.q[n][:,IVar]))
             # Write the tris (this may need to be generalized!)
             cape.io.tofile_ne4_i(f, self.Tris[n])
+        # Close the file
+        f.close()
+    
+    # Tec Boundary reader
+    def ReadDat(self, fname):
+        """Read an ASCII Tecplot data file
+        
+        :Call:
+            >>> plt.ReadData(fname)
+        :Inputs:
+            *plt*: :class:`pyFun.plt.Plt`
+                Tecplot PLT interface
+            *fname*: :class:`str`
+                Name of file to read
+        :Versions:
+            * 2017-08-24 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'r')
+        # Throw away the next two integers
+        self.line2 = np.zeros(2, dtype="i4")
+        # Read the title line
+        line = f.readline().strip()
+        # Save the title
+        self.title = line.split("=")[1].strip('"')
+        # Read the variables line
+        line = f.readline().strip()
+        # Save the variable list
+        self.Vars = line.split("=")[1].split()
+        # Get number of variables (, unpacks the list)
+        nVar = len(self.Vars)
+        self.nVar = nVar
+        # Initialize zones
+        self.nZone = 0
+        self.Zones = []
+        self.ParentZone = []
+        self.StrandID = []
+        self.QVarLoc = []
+        self.VarLocs = []
+        self.t = []
+        self.ZoneType = []
+        self.nPt = []
+        self.nElem = []
+        # Initialize data variables
+        self.q = []
+        self.qmin = np.zeros((0,self.nVar))
+        self.qmax = np.zeros((0,self.nVar))
+        self.fmt = np.zeros((0,self.nVar))
+        # Initialize node numbers
+        self.Tris = []
+        # Read the title line
+        line = f.readline().strip()
+        # Read until no more zones
+        while line.startswith("zone"):
+            # Increase zone count
+            self.nZone += 1
+            # Split line by commas
+            L = line[5:].split(",")
+            L = [s.strip() for s in L]
+            # Convert to dictionary
+            D = {}
+            # Loop through values
+            for s in L:
+                # Get key and value
+                k, v = s.split("=")
+                # Save key
+                D[k.lower()] = v
+            # Save the title
+            v = D.get("t", "zone %i" % self.nZone)
+            self.Zones.append(v)
+            # Parent zone
+            v = int(D.get("parent", 0))
+            self.ParentZone.append()
+            # Strand ID
+            v = int(D.get("strandid", 1000))
+            self.StrandID.append(v)
+            # Solution time
+            v = float(D.get("solutiontime", 0))
+            self.t.append()
+            # Get zone type
+            zt = D.get("f", "feblock")
+            # Save zone type
+            if zt.lower() == "feblock":
+                self.ZoneType.append(0)
+            else:
+                # Some other zone type?
+                self.ZoneType.append(0)
+            # Check some other aspect about the zone
+            vl = int(D.get("varloc", 1))
+            # Check for var location
+            self.QVarLoc.append(vl)
+            if vl == 0:
+                # Nothing to specify
+                self.VarLocs.append([])
+            else:
+                # Read variable locations... {0: "node", 1: "cell"}
+                self.VarLocs.append(np.zeros(self.nVar, dtype="int"))
+            # Number of points, elements
+            nPt   = int(D.get("i", 0))
+            nElem = int(D.get("j", 0))
+            self.nPt.append(nPt)
+            self.nElem.append(nElem)
+            # Read the actual data
+            qi = np.fromfile(f, count=(self.nVar*npt))
+            # Reshape
+            qi = np.transpose(np.reshape(qi, (self.nVar, npt)))
+            self.q.append(qi)
+            # Save mins and maxes
+            qmini = np.min(qi, axis=0)
+            qmaxi = np.max(qi, axis=0)
+            # Append min and max values
+            self.qmin = np.hstack((self.qmin, [qmini]))
+            self.qmax = np.hstack((self.qmax, [qmaxi]))
+            # Read the tris
+            ii = np.fromfile(f, count=(4*nElem))
+            # Reshape and save
+            self.Tris.append(np.reshape(ii, (nElem,4)))
+            
+            
+            # Read next line (empty or title of next zone)
+            line = self.readline().strip()
+            
+        
+        # Convert arrays
+        self.nPt = np.array(self.nPt)
+        self.nElem = np.array(self.nElem)
+        # Transpose qmin, qmax
+        self.qmin = self.qmin.transpose()
+        self.qmax = self.qmax.transpose()
+        # Set format list
+        self.fmt = np.ones((self.nZone, self.nVar), dtype='i4')
         # Close the file
         f.close()
         
