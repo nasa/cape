@@ -679,11 +679,24 @@ class Config:
                 Name of component to write
         :Versions:
             * 2016-08-23 ``@ddalle``: First version
+            * 2017-08-25 ``@ddalle``: Don't write negative components
         """
         # Get the component index
         i = self.Names.index(comp)
         # Get the component interface
         c = self.Comps[i]
+        # Process the type
+        if c.get("Type", "tri") == "tri":
+            # Get the list of components in the component.
+            compID = self.GetCompID(comp)
+            # Check if negative
+            if compID < 0: return
+            print("       %s: %s" % (comp, compID))
+            # Single component
+            lbl = "Face Label"
+        else:
+            # Grid list
+            lbl = "Grid List"
         # Begin the tag.
         f.write("  <Component")
         # Loop through the attributes
@@ -691,13 +704,8 @@ class Config:
             f.write(' %s="%s"' % (k, c.attrib[k]))
         # Close the component opening tag
         f.write(">\n")
-        # Check type
-        if c.get("Type", "tri") == "tri":
-            # Write the data element with "Face Label"
-            self.WriteComponentData(f, comp, label="Face Label")
-        else:
-            # Write the data element with "Grid List"
-            self.WriteComponentData(f, comp, label="Grid List")
+        # Write the data element with "Face Label"
+        self.WriteComponentData(f, comp, label=lbl)
         # Write transformation
         if comp in self.transform:
             # Write the transformation
@@ -1711,6 +1719,8 @@ class ConfigJSON(object):
             if t.startswith('int'):
                 # Integers are already faces
                 q = True
+                # Check for valid face
+                if compID < 0: continue
             else:
                 # Get the compID from properties
                 c = self.GetPropCompID(face)
@@ -1722,6 +1732,8 @@ class ConfigJSON(object):
                     # One face, matching "Properties" section
                     q = True
                     compID = compID[0]
+                    # Check validity
+                    if compID < 0: continue
                 else:
                     # One component, but from a single child
                     q = False
@@ -1884,11 +1896,13 @@ class ConfigJSON(object):
             if (aflr3bc == 3) or (fun3dbc == False):
                 # This is a source; do not add it to the Fun3D BCs
                 continue
-            # Otherwise, add the component
-            comps0.append(face)
-            bcs[face] = fun3dbc
             # Set the component ID
             compID = self.GetPropCompID(face)
+            # Check for negative component
+            if compID < 0: continue
+            # Add the component
+            comps0.append(face)
+            bcs[face] = fun3dbc
             compIDs[face] = compID
             # Get the sorting parameter
             if face in compOrder:

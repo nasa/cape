@@ -24,7 +24,7 @@ Plot3DDict = [
 ]
 # Run output files
 RunDict = [
-    {"run":     "run.[0-9]*"},
+    {"run":     "run.[0-9frtl]*"},
     {"out":     "*.out"},
     {"SurfBC":  "SurfBC*.dat"},
     {"pyover": [
