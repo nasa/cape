@@ -186,7 +186,7 @@ class DataBook(dict):
             if not fdir: continue
             # Check if the folder exists.
             if not os.path.isdir(fdir):
-                opts.mkdir(fdir)
+                self.mkdir(fdir)
             # Go to the folder.
             os.chdir(fdir)
         # Go back to root folder.
@@ -1914,7 +1914,22 @@ class DBBase(dict):
     # String conversion
     __str__ = __repr__
     
-    # Get trajectory to match data book
+    # Directory creation using appropriate settings
+    def mkdir(self, fdir):
+        """Create a directory using settings from *DataBook>umask*
+        
+        :Call:
+            >>> DB.mkdir(fdir)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the Cape data book class
+            *fdir*: :class:`str`
+                Directory to create
+        :Versions:
+            * 2017-09-05 ``@ddalle``: First version
+        """
+        # Call databook method
+        self.opts["DataBook"].mkdir(fdir)
   # >
   
   # ======
@@ -4461,8 +4476,7 @@ class DBTriqFM(DataBook):
         fdir = self.opts.get_DataBookDir()
         ftrq = os.path.join(fdir, 'triqfm')
         # Ensure folder exists
-        if not os.path.isdir(fdir): self.opts.mkdir(fdir)
-        #if not os.path.isdir(ftrq): self.opts.mkdir(ftrq)
+        if not os.path.isdir(fdir): self.mkdir(fdir)
         # Loop through patches
         for patch in ([None] + self.patches):
             # Sort it.
@@ -4799,14 +4813,14 @@ class DBTriqFM(DataBook):
         os.chdir(self.RootDir)
         os.chdir(self.opts.get_DataBookDir())
         # Enter the "triqfm" folder (create if needed)
-        if not os.path.isdir("triqfm"): self.opts.mkdir("triqfm")
+        if not os.path.isdir("triqfm"): self.mkdir("triqfm")
         os.chdir("triqfm")
         # Get the group and run folders
         fgrp = self.x.GetGroupFolderNames(i)
         frun = self.x.GetFullFolderNames(i)
         # Create folders if needed
-        if not os.path.isdir(fgrp): self.opts.mkdir(fgrp)
-        if not os.path.isdir(frun): self.opts.mkdir(frun)
+        if not os.path.isdir(fgrp): self.mkdir(fgrp)
+        if not os.path.isdir(frun): self.mkdir(frun)
         # Go into the run folder
         os.chdir(frun)
         # Name of file

@@ -144,7 +144,7 @@ class DBLineLoad(dataBook.DBBase):
         # Create directories if necessary
         if not os.path.isdir(fdir):
             # Create data book folder (should not occur)
-            opts.mkdir(fdir)
+            self.mkdir(fdir)
         # Check for lineload folder
         if not os.path.isdir(os.path.join(fdir, 'lineload')):
             # Create line load folder
@@ -428,7 +428,7 @@ class DBLineLoad(dataBook.DBBase):
         # Expected folder
         fll = os.path.join(self.RootDir, self.fdir, 'lineload')
         # Check for folder
-        if not os.path.isdir(fll): self.opts.mkdir(fll)
+        if not os.path.isdir(fll): self.mkdir(fll)
         # Seam file name prefix
         fpre = os.path.join(fll, '%s_%s' % (self.proj, self.comp))
         # Name of seam files
@@ -605,7 +605,7 @@ class DBLineLoad(dataBook.DBBase):
             os.chdir(fpwd)
             return 0
         # Create lineload folder if necessary
-        if not os.path.isdir('lineload'): self.opts.mkdir('lineload')
+        if not os.path.isdir('lineload'): self.mkdir('lineload')
         # Enter lineload folder
         os.chdir('lineload')
         # Append to triq file
@@ -662,8 +662,8 @@ class DBLineLoad(dataBook.DBBase):
         fcas = os.path.join(fll, frun)
         # Create folders as necessary
         if not os.path.isdir(fll):  self.opts.mkdir(fll)
-        if not os.path.isdir(fgrp): self.opts.mkdir(fgrp)
-        if not os.path.isdir(fcas): self.opts.mkdir(fcas)
+        if not os.path.isdir(fgrp): self.mkdir(fgrp)
+        if not os.path.isdir(fcas): self.mkdir(fcas)
         # CSV file name
         fcsv = os.path.join(fcas, '%s_%s.csv' % (self.proj, self.comp))
         # Write the CSV file
