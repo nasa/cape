@@ -346,9 +346,15 @@ class Options(odict):
         if 'DataBook' not in self:
             # Missing entirely.
             self['DataBook'] = DataBook()
+            # Copy "umask* setting
+            if "umask" not in self['DataBook']:
+                self['DataBook']['umask'] = self.get('umask')
         elif type(self['DataBook']).__name__ == 'dict':
             # Convert to special class
             self['DataBook'] = DataBook(**self['DataBook'])
+            # Copy "umask* setting
+            if "umask" not in self['DataBook']:
+                self['DataBook']['umask'] = self.get('umask')
             
     # Initialization method for automated report
     def _Report(self):

@@ -221,6 +221,23 @@ class DataBook(dict):
         return lbl
     # String conversion
     __str__ = __repr__
+    
+    # Directory creation using appropriate settings
+    def mkdir(self, fdir):
+        """Create a directory using settings from *DataBook>umask*
+        
+        :Call:
+            >>> DB.mkdir(fdir)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the Cape data book class
+            *fdir*: :class:`str`
+                Directory to create
+        :Versions:
+            * 2017-09-05 ``@ddalle``: First version
+        """
+        # Call databook method
+        self.opts["DataBook"].mkdir(fdir)
   # >
         
   # ===
