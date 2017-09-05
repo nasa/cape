@@ -488,8 +488,18 @@ class Config(odict):
             # Single point name
             return self.get_Point(x)
         elif typ in ['list', 'ndarray']:
-            # Already a point.
-            return x
+            # Check length
+            n = len(x)
+            # Check length
+            if n in [2,3]:
+                # Check first entry
+                t0 = type(x[0]).__name__
+                # Check for point or list
+                if t0.startswith("float"):
+                    # Already a point
+                    return x
+            # Otherwise, this is a list of points
+            return [self.get_Point(xk) for xk in x]
         elif typ != 'dict':
             # Unrecognized
             raise TypeError("Cannot expand points of type '%s'" % typ)

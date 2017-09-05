@@ -10,7 +10,7 @@ such as :class:`cape.options.DataBook.DataBook` have additional methods.
 # System modules
 import fnmatch
 # Import options-specific utilities
-from util import rc0, odict, getel
+from util import rc0, odict, getel, os
 
 
 # Class for data book
@@ -65,6 +65,118 @@ class DataBook(odict):
         for targ in targs:
             # Convert to special class.
             self['Targets'][targ] = DBTarget(**targs[targ])
+            
+    # Make a directory
+    def mkdir(self, fdir, sys=False):
+        """Make a directory with the correct permissions
+        
+        :Call:
+            >>> opts.mkdir(fdir, sys=False)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *fdir*: :class:`str`
+                Directory to create
+            *sys*: ``True`` | {``False``}
+                Whether or not to replace ``None`` with system setting
+        :Versions:
+            * 2015-09-27 ``@ddalle``: First version
+            * 2017-09-05 ``@ddalle``: Added *sys* input
+        """
+        # Get umask
+        umask = self.get_umask(sys=sys)
+        # Test for NULL umask
+        if umask is None:
+            # Make directory with default permissions
+            os.mkdir(fdir)
+        else:
+            # Apply umask
+            dmask = 0777 - umask
+            # Make the directory.
+            os.mkdir(fdir, dmask)
+        
+    # Get the umask
+    def get_umask(self, sys=True):
+        """Get the current file permissions mask
+        
+        The default value is the read from the system
+        
+        :Call:
+            >>> umask = opts.get_umask(sys=True)
+        :Inputs:
+            *opts* :class:`cape.options.Options`
+                Options interface
+            *sys*: {``True``} | ``False``
+                Whether or not to use system setting as default
+        :Outputs:
+            *umask*: ``None`` | :class:`oct`
+                File permissions mask (``None`` only if *sys* is ``False``)
+        :Versions:
+            * 2015-09-27 ``@ddalle``: First version
+        """
+        # Read the option.
+        umask = self.get('umask')
+        # Check if we need to use the default.
+        if umask is None:
+            # Check for system defaults
+            if sys:
+                # Get the value.
+                umask = os.popen('umask', 'r', 1).read()
+                # Convert to value.
+                umask = eval('0o' + umask.strip())
+            else:
+                # No setting
+                return None
+        elif type(umask).__name__ in ['str', 'unicode']:
+            # Convert to octal
+            umask = eval('0o' + str(umask).strip().lstrip('0o'))
+        # Output
+        return umask
+        
+    # Get the directory permissions to use
+    def get_dmask(self, sys=True):
+        """Get the permissions to assign to new folders
+        
+        :Call:
+            >>> dmask = opts.get_dmask(sys=True)
+        :Inputs:
+            *opts* :class:`cape.options.Options`
+                Options interface
+            *sys*: {``True``} | ``False``
+                Whether or not to use system setting as default
+        :Outputs:
+            *dmask*: :class:`int` | ``None``
+                New folder permissions mask
+        :Versions:
+            * 2015-09-27 ``@ddalle``: First version
+        """
+        # Get the umask
+        umask = self.get_umask()
+        # Check for null umask
+        if umask is not None:
+            # Subtract UMASK from full open permissions
+            return 0o0777 - umask
+        
+    # Apply the umask
+    def apply_umask(self, sys=True):
+        """Apply the permissions filter
+        
+        :Call:
+            >>> opts.apply_umask(sys=True)
+        :Inputs:
+            *opts* :class:`cape.options.Options`
+                Options interface
+            *sys*: {``True``} | ``False``
+                Whether or not to use system setting as default
+        :Versions:
+            * 2015-09-27 ``@ddalle``: First version
+            * 2017-09-05 ``@ddalle``: Added *sys* input variable
+        """
+        # Get umask
+        umask = self.get_umask()
+        # Apply if possible
+        if umask is not None:
+            os.umask(umask)
   # >
   
   # =================
