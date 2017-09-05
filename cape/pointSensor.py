@@ -83,6 +83,10 @@ class DBPointSensorGroup(dict):
     :Versions:
         * 2015-12-04 ``@ddalle``: First version
     """
+  # ==========
+  # Config
+  # ==========
+  # <
     # Initialization method
     def __init__(self, x, opts, name, **kw):
         """Initialization method
@@ -117,23 +121,12 @@ class DBPointSensorGroup(dict):
         # Output
         return lbl
     __str__ = __repr__
-    
-    # Sorting method
-    def Sort(self):
-        """Sort point sensor group
-        
-        :Call:
-            >>> DBPG.Sort()
-        :Inputs:
-            *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
-                A point sensor group data book
-        :Versions:
-            * 2016-03-08 ``@ddalle``: First version
-        """
-        # Loop through points
-        for pt in self.pts:
-            self[pt].Sort()
-    
+  # >
+  
+  # =========
+  # I/O
+  # =========
+  # <
     # Output method
     def Write(self):
         """Write to file each point sensor data book in a group
@@ -152,30 +145,12 @@ class DBPointSensorGroup(dict):
             self[pt].Sort()
             # Write it
             self[pt].Write()
-            
-    # Match the databook copy of the trajectory
-    def UpdateTrajectory(self):
-        """Match the trajectory to the cases in the data book
-        
-        :Call:
-            >>> DBPG.UpdateTrajectory()
-        :Inputs:
-            *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
-                A point sensor group data book
-        :Versions:
-            * 2015-05-22 ``@ddalle``: First version
-        """
-        # Get the first component.
-        DBc = self[self.pts[0]]
-        # Loop through the fields.
-        for k in self.x.keys:
-            # Copy the data.
-            setattr(self.x, k, DBc[k])
-            # Set the text.
-            self.x.text[k] = [str(xk) for xk in DBc[k]]
-        # Set the number of cases.
-        self.x.nCase = DBc.n
-    
+  # >
+  
+  # ============
+  # Update
+  # ============
+  # <
     # Process a case
     def UpdateCase(self, i):
         """Prepare to update one point sensor case if necessary
@@ -235,6 +210,51 @@ class DBPointSensorGroup(dict):
                 # Update the other statistics.
                 self[pt]['nIter'][j]   = iIter[-1]
                 self[pt]['nStats'][j]  = nStats
+  # >
+  
+  # ============
+  # Organization
+  # ============
+  # <
+    # Sorting method
+    def Sort(self):
+        """Sort point sensor group
+        
+        :Call:
+            >>> DBPG.Sort()
+        :Inputs:
+            *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
+                A point sensor group data book
+        :Versions:
+            * 2016-03-08 ``@ddalle``: First version
+        """
+        # Loop through points
+        for pt in self.pts:
+            self[pt].Sort()
+            
+    # Match the databook copy of the trajectory
+    def UpdateTrajectory(self):
+        """Match the trajectory to the cases in the data book
+        
+        :Call:
+            >>> DBPG.UpdateTrajectory()
+        :Inputs:
+            *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
+                A point sensor group data book
+        :Versions:
+            * 2015-05-22 ``@ddalle``: First version
+        """
+        # Get the first component.
+        DBc = self[self.pts[0]]
+        # Loop through the fields.
+        for k in self.x.keys:
+            # Copy the data.
+            setattr(self.x, k, DBc[k])
+            # Set the text.
+            self.x.text[k] = [str(xk) for xk in DBc[k]]
+        # Set the number of cases.
+        self.x.nCase = DBc.n
+  # >
 # class DBPointSensorGroup
 
 

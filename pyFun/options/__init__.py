@@ -524,8 +524,31 @@ class Options(cape.options.Options):
         self._Config()
         self['Config'].set_ConfigInput(comp, inp)
         
+    # Boundary point groups
+    def get_BoundaryPointGroups(self):
+        self._Config()
+        return self['Config'].get_BoundaryPointGroups()
+        
+    # Boundary point groups
+    def set_BoundaryPointGroups(self, BP):
+        self._Config()
+        self['Config'].set_BoundaryPointGroups(BP)
+        
+    # Boundary points
+    def get_BoundaryPoints(self, name=None):
+        self._Config()
+        return self['Config'].get_BoundaryPoints(name)
+        
+    # Boundary points
+    def set_BoundaryPoints(self, PS, name=None):
+        self._Config()
+        self['Config'].set_BoundaryPoints(PS, name=name)
+        
     # Copy over the documentation.
-    for k in ['ConfigInput']:
+    for k in [
+            'ConfigInput',
+            'BoundaryPointGroups', 'BoundaryPoints'
+    ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Config,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(Config,'set_'+k).__doc__

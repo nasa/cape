@@ -51,6 +51,8 @@ rc["nIterAdjoint"] = 200
 rc["dual_outer_loop_krylov"] = True
 rc["dual_rad"] = True
 rc["dual_adapt"] = True
+# Namelist settings
+rc["namelist_dist_tolerance"] = 1.0e-3
     
 
 # Function to ensure scalar from above

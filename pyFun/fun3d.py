@@ -1406,6 +1406,59 @@ class Fun3d(Cntl):
         # Set the number of components
         nml.SetVar('component_parameters', 'number_of_components', n)
     
+    # Set boundary points
+    def PrepareNamelistBoundaryPoints(self):
+        """Write the lines of the boundary point sensors in the namelist
+        
+        :Call:
+            >>> fun3d.PrepareNamelistBoundaryPoints()
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                FUN3D settings interface
+        :Versions:
+            * 2017-09-01 ``@ddalle``: First version
+        """
+        # Get the boundary points
+        BPG = self.opts.get_BoundaryPointGroups()
+        # Check for boundary point groups
+        if BPG is None: return
+        # Number of groups
+        ngrp = len(BPG)
+        # Check for no points
+        if ngrp == 0: return
+        # Extract namelist
+        nml = self.Namelist
+        # Existing number of geometries
+        ngeom = self.GetNamelistVar("sampling_parameters",
+            "number_of_geometries")
+        # If ``None``, no geometries defined
+        if ngeom is None: ngeom = 0
+        # Loop through groups
+        for k in range(1,ngrp+1):
+            # Get component
+            grp = BPG[k-1]
+            # Get the points
+            PS = self.opts.get_BoundaryPoints(grp)
+            # Number of points
+            npt = len(PS)
+            # Skip if no points
+            if npt == 0: continue
+            # Increase geometry count
+            ngeom += 1
+            # Set label
+            nml.SetVar('sampling_parameters', 'label', grp, k)
+            # Set the type
+            nml.SetVar('sampling_parameters', 'type_of_geometry',
+                'boundary_points')
+            # Set number of points
+            nml.SetVar('sampling_paramaters', 'number_of_points', npt)
+            # Loop through points
+            for j in range(1,npt+1):
+                # Set point
+                nml.SetVar('sampling_parameters', 'point',
+                    PS[j-1], ("1:3", k, j))
+        # Set number of geometries
+        nml.SetVar('sampling_parameters', 'number_of_geometries', ngeom)
    # ]
    
    # -----------
