@@ -999,6 +999,8 @@ def ArchiveFiles(opts, fsub=None, phantom=False):
     
     # Loop through matches
     for fsrc in fglob:
+        # Make sure file still exists
+        if not os.path.isfile(fsrc): continue
         # Destination file
         fto = os.path.join(flfe, frun, fsrc)
         # Get mod time on target file if it exists
