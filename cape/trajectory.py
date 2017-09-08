@@ -1623,14 +1623,13 @@ class Trajectory:
                 raise KeyError(
                     "Could not find trajectory key for constraint '%s'." % c)
             # Evaluate constraint
+            qk = np.abs(V - x0) <= 1e-10
+            # Check for special modifications
             if k in ["phi", "phi_m", "phiv", "phim"]:
                 # Get total angle of attack
                 aoav = self.GetAlphaTotal()
                 # Test and combine with any "aoav=0" cases
-                qk = np.logical_or(np.abs(V - x0)<=1e-10, np.abs(aoav)<=1e-10)
-            else:
-                # Raw test
-                qk = np.abs(V - x0) <= 1e-10
+                qk = np.logical_or(qk, np.abs(aoav)<=1e-10)
             # Combine constraint
             m = np.logical_and(m, qk)
         # Loop through tolerance-based constraints.
@@ -1669,7 +1668,15 @@ class Trajectory:
                 raise KeyError(
                     "Could not find trajectory key for constraint '%s'." % c)
             # Evaluate constraint
-            m = np.logical_and(m, np.abs(x0-V) <= tol)
+            qk = np.abs(x0-V) <= tol
+            # Check for special modifications
+            if k in ["phi", "phi_m", "phiv", "phim"]:
+                # Get total angle of attack
+                aoav = self.GetAlphaTotal()
+                # Test and combine with any "aoav=0" cases
+                qk = np.logical_or(qk, np.abs(aoav)<=1e-10)
+            # Combine constraints
+            m = np.logical_and(m, qk)
         # Initialize output.
         I = np.arange(self.nCase)
         # Apply the final mask.

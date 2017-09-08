@@ -3087,8 +3087,16 @@ class DBBase(dict):
                 # Get maneuver roll angle
                 self.UpdateTrajectory()
                 V = self.x.GetPhiManeuver()
-            # Test
-            J = np.logical_and(J, np.abs(v - V) <= 1e-10)
+            # Evaluate constraint
+            qk = np.abs(v - V) <= 1e-10
+            # Check for special modifications
+            if k in ["phi", "phi_m", "phiv", "phim"]:
+                # Get total angle of attack
+                aoav = self.x.GetAlphaTotal()
+                # Combine *phi* constraint with any *aoav==0* case
+                qk = np.logical_or(qk, np.abs(aoav)<=1e-10)
+            # Combine constraints
+            J = np.logical_and(J, qk)
         # Loop through *TolCons*
         for k in TolCons:
             # Test if key is present
@@ -3147,7 +3155,15 @@ class DBBase(dict):
             # Get tolerance
             tol = TolCons[k]
             # Test
-            J = np.logical_and(J, np.abs(v-V)<=tol)
+            qk = np.abs(v-V) <= tol
+            # Check for special modifications
+            if k in ["phi", "phi_m", "phiv", "phim"]:
+                # Get total angle of attack
+                aoav = self.x.GetAlphaTotal()
+                # Combine *phi* constraint with any *aoav==0* case
+                qk = np.logical_or(qk, np.abs(aoav)<=1e-10)
+            # Combine constraints
+            J = np.logical_and(J, qk)
         # Output (convert boolean array to indices)
         return np.where(J)[0]
         
