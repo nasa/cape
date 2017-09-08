@@ -1599,6 +1599,16 @@ class Trajectory:
                 x0 = self.GetBeta(i0)
                 # Extract matrix values
                 V = self.GetBeta()
+            elif k in ["alpha_t", "aoav"]:
+                # Get the target value.
+                x0 = self.GetAlphaTotal(i0)
+                # Extract matrix values
+                V = self.GetAlphaTotal()
+            elif k in ["phi", "phiv"]:
+                # Get the target value.
+                x0 = self.GetPhi(i0)
+                # Extract matrix values
+                V = self.GetPhi()
             elif k in ["alpha_m", "aoam"]:
                 # Get the target value.
                 x0 = self.GetAlphaManeuver(i0)
@@ -1613,7 +1623,16 @@ class Trajectory:
                 raise KeyError(
                     "Could not find trajectory key for constraint '%s'." % c)
             # Evaluate constraint
-            m = np.logical_and(m, np.abs(V - x0) <= 1e-10)
+            if k in ["phi", "phi_m", "phiv", "phim"]:
+                # Get total angle of attack
+                aoav = self.GetAlphaTotal()
+                # Test and combine with any "aoav=0" cases
+                qk = np.logical_or(np.abs(V - x0)<=1e-10, np.abs(aoav)<=1e-10)
+            else:
+                # Raw test
+                qk = np.abs(V - x0) <= 1e-10
+            # Combine constraint
+            m = np.logical_and(m, qk)
         # Loop through tolerance-based constraints.
         for c in TolCons:
             # Get the key (for instance if matching 'i%10', key is 'i')
