@@ -1526,6 +1526,8 @@ class Trajectory:
                 Instance of the pyCart trajectory class
             *M*: :class:`numpy.ndarray` (:class:`bool`)
                 Mask of which trajectory points should be considered
+            *i0*: {``np.where(M)[0][0]``} | :class:`int`
+                Index of case to use as seed of sweep
             *SortVar*: :class:`str`
                 Variable by which to sort each sweep
             *EqCons*: :class:`list` (:class:`str`)
@@ -1558,7 +1560,12 @@ class Trajectory:
         if EqCons  is None: EqCons = []
         if TolCons is None: TolCons = {}
         # Get the first index.
-        i0 = np.where(M)[0][0]
+        i0 = kw.get("i0", np.where(M)[0][0])
+        # Test validity
+        if i0 >= M.size:
+            raise IndexError("Seed index %s exceeds dimenions of mask" % i0)
+        if not M[i0]:
+            raise ValueError("Seed index %s is masked to False" % i0)
         # Check for an IndexTol.
         itol = kw.get('IndexTol', self.nCase)
         # Max index to consider.
@@ -1902,6 +1909,10 @@ class Trajectory:
         M = np.arange(self.nCase) < 0
         # Set the mask to ``True`` for any cases passing global constraints.
         M[I0] = True
+        # Set initial mask
+        # (This is to allow cases that meet initial constraints to appear in
+        #  multiple sweeps while still disallowing cases that don't meet cons)
+        M0 = M.copy()
         # Initialize output.
         J = []
         # Initialize target output
@@ -1912,11 +1923,14 @@ class Trajectory:
         while np.any(M) and i<self.nCase:
             # Increase number of sweeps.
             i += 1
-            # Get the current sweep.
-            I = self.GetSweep(M, **kw)
-            # Save the sweep.
+            # Seed for this sweep
+            i0 = np.where(M)[0][0]
+            # Get the current sweep
+            #  (Use initial mask *M0* for validity but seed based on *M*)
+            I = self.GetSweep(M0, i0=i0, **kw)
+            # Save the sweep
             J.append(I)
-            # Update the mask.
+            # Update the mask
             M[I] = False
         # Output
         return J

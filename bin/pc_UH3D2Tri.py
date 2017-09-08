@@ -61,12 +61,13 @@ extension to the input (deleting '.uh3d' if possible).
     * 2015-10-09 ``@ddalle``: Added tolerances and Config.xml processing
 """
 
-# Get the pyCart module.
-import pyCart
+# Get the triangulation module
+import cape.tri
+import cape.config
 # Module to handle inputs and os interface
 import sys
 # Command-line input parser
-import pyCart.argread as argr
+import cape.argread as argr
 
 
 import numpy as np
@@ -106,7 +107,7 @@ def UH3D2Tri(*a, **kw):
         * 2015-10-09 ``@ddalle``: Added ``Config.xml`` and *ytol*
         * 2016-08-18 ``@ddalle``: Added binary output
     """
-    # Get the file pyCart settings file name.
+    # Get the input file name
     if len(a) == 0:
         # Defaults
         fuh3d = None
@@ -128,7 +129,7 @@ def UH3D2Tri(*a, **kw):
         qbin = False
         
     # Read in the UH3D file.
-    tri = pyCart.Tri(uh3d=fuh3d)
+    tri = cape.tri.Tri(uh3d=fuh3d)
     # Get file extension
     ext = tri.GetOutputFileType(**kw)
     # Default file name
@@ -138,7 +139,7 @@ def UH3D2Tri(*a, **kw):
     else:
         # Binary file: use ".i.tri"
         ftri = fuh3d.rstrip('uh3d') + 'i.tri'
-    # Get the file pyCart settings file name.
+    # Get the output file name
     if len(a) >= 2: ftri = a[1]
     # Prioritize a "-i" input.
     ftri = kw.get('o', ftri)
@@ -147,8 +148,16 @@ def UH3D2Tri(*a, **kw):
     fxml = kw.get('c')
     # Apply configuration if requested.
     if fxml:
-        # Read the configuration.
-        cfg = pyCart.config.Config(fxml)
+        # Check which type
+        if kw.get("json", False):
+            # Read JSON config
+            cfg = cape.config.ConfigJSON(fxml)
+        elif kw.get("mixsur", False):
+            # Read mixsur.i config
+            cfg = cape.config.ConfigMIXSUR(fxml)
+        else:
+            # Read the XML configuration
+            cfg = cape.config.Config(fxml)
         # Apply it.
         tri.ApplyConfig(cfg)
     
