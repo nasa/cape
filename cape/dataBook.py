@@ -864,9 +864,9 @@ class DataBook(dict):
                 DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
         else:
             # Save updated trajectory values
-            for k in self[p].xCols:
+            for k in DBc.xCols:
                 # Append to that column
-                DBc[p][k][j] = getattr(self.x,k)[i]
+                DBc[k][j] = getattr(self.x,k)[i]
             # Update data values.
             for c in DBc.DataCols:
                 DBc[c][j] = s[c]
