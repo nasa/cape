@@ -50,6 +50,8 @@ class Report(odict):
         # Initialize subfigure defaults
         self.SetSubfigDefaults()
         self.ModSubfigDefaults()
+        # Store self subfigure tag
+        self.sfig = None
     
     # Subfigure defaults
     def SetSubfigDefaults(self):
@@ -1171,11 +1173,22 @@ class Report(odict):
             * 2015-03-08 ``@ddalle``: First version
             * 2015-05-22 ``@ddalle``: Support for multiple coeffs in PlotCoeff
         """
+        # Ensure *sfig* attribute exists
+        try:
+            self.sfig
+        except AttributeError:
+            self.sfig = None
+        # Save subfigure name if not set
+        if self.sfig is None:
+            self.sfig = sfig
         # Get the subfigure.
         S = self.get_Subfigure(sfig)
         # Check if the option is present
         if opt in S:
             # Simple non-default case
+            # Remove tag
+            self.sfig = None
+            # Return option
             return getel(S[opt], i)
         # Get the type.
         t = self.get_SubfigType(sfig)
@@ -1184,12 +1197,14 @@ class Report(odict):
         # Check for error
         if S is None and t == sfig:
             raise ValueError(
-                "Subfigure '%s' does not have a recognized type" % sfig)
+                "Subfigure '%s' does not have a recognized type" % self.sfig)
         elif S is None:
             # Cascading type; recurse
             return self.get_SubfigOpt(t, opt, i=i, k=k)
         # Get the default value.
         o = S.get(opt)
+        # Delete the original subfigure tag
+        self.sfig = None
         # Process output type.
         return getel(o, i)
         
