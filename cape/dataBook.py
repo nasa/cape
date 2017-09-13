@@ -3584,7 +3584,7 @@ class DBBase(dict):
             pass
         elif ogrid:
             # Get grid style
-            kw_g = kw.get("GridStyle": {})
+            kw_g = kw.get("GridStyle", {})
             # Ensure that the axis is below
             h['ax'].set_axisbelow(True)
             # Add the grid
