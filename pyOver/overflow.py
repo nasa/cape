@@ -78,6 +78,11 @@ class Overflow(Cntl):
     # Initialization method
     def __init__(self, fname="pyOver.json"):
         """Initialization method for :mod:`cape.cntl.Cntl`"""
+        # Check if file exists
+        if not os.path.isfile(fname):
+            # Raise error but suppress traceback
+            os.sys.tracebacklimit = 0
+            raise ValueError("No pyOver control file '%s' found" % fname)
         
         # Read settings
         self.opts = options.Options(fname=fname)
