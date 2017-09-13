@@ -3132,6 +3132,17 @@ class Report(object):
             kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",   i)
             kw_s = opts.get_SubfigPlotOpt(sfig, "StDevOptions",  i)
             kw_m = opts.get_SubfigPlotOpt(sfig, "MinMaxOptions", i)
+            # Overall formatting
+            if i == 0:
+                # First plot, get legend, etc.
+                mjgrid = opts.get_SubfigOpt(sfig, "Grid")
+                kw_gmj = opts.get_SubfigOpt(sfig, "GridStyle")
+                # Error tolerance
+                if kw_gmj.__class__.__name__ != "dict": kw_gmj = {}
+            else:
+                # Don't repeat grid options
+                mjgrid = None
+                kw_gmj = {}
             # Draw the plot.
             h = DBc.PlotCoeff(coeff, Jj, x=xk,
                 XMRP=xmrp, DXMRP=dxmrp,
@@ -3139,7 +3150,8 @@ class Report(object):
                 StDev=ksig, StDevOptions=kw_s,
                 MinMax=qmmx, MinMaxOptions=kw_m,
                 FigWidth=figw, FigHeight=figh,
-                XMin=xmin, XMax=xmax, YMin=ymin, YMax=ymax)
+                XMin=xmin, XMax=xmax, YMin=ymin, YMax=ymax,
+                Grid=mjgrid, GridStyle=kw_gmj)
             # Loop through targets
             for targ in targs:
                 # Get the target handle.

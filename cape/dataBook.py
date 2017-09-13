@@ -3194,17 +3194,17 @@ class DBBase(dict):
             *I*: :class:`numpy.ndarray` (:class:`int`)
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
-            *x*: [ {None} | :class:`str` ]
+            *x*: {``None``} | :class:`str`
                 Trajectory key for *x* axis (or plot against index if ``None``)
-            *Label*: [ {*comp*} | :class:`str` ]
+            *Label*: {*comp*} | :class:`str`
                 Manually specified label
-            *Legend*: [ {True} | False ]
+            *Legend*: {``True``} | ``False``
                 Whether or not to use a legend
-            *StDev*: [ {None} | :class:`float` ]
+            *StDev*: {``None``} | :class:`float`
                 Multiple of iterative history standard deviation to plot
-            *MinMax*: [ {False} | True ]
+            *MinMax*: {``False``} | ``True``
                 Whether to plot minimum and maximum over iterative history
-            *Uncertainty*: [ {False} | True ]
+            *Uncertainty*: {``False``} | ``True``
                 Whether to plot direct uncertainty
             *LineOptions*: :class:`dict`
                 Plot options for the primary line(s)
@@ -3218,12 +3218,14 @@ class DBBase(dict):
                 Width of figure in inches
             *FigHeight*: :class:`float`
                 Height of figure in inches
-            *PlotTypeStDev*: [ {'FillBetween'} | 'ErrorBar' ]
+            *PlotTypeStDev*: {``'FillBetween'``} | ``'ErrorBar'``
                 Plot function to use for standard deviation plot
-            *PlotTypeMinMax*: [ {'FillBetween'} | 'ErrorBar' ]
+            *PlotTypeMinMax*: {``'FillBetween'``} | ``'ErrorBar'``
                 Plot function to use for min/max plot
-            *PlotTypeUncertainty*: [ 'FillBetween' | {'ErrorBar'} ]
+            *PlotTypeUncertainty*: ``'FillBetween'`` | {``'ErrorBar'``}
                 Plot function to use for uncertainty plot
+            *LegendFontSize*: {``9``} | :class:`int` > 0 | :class:`float`
+                Font size for use in legends
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of plot handles
@@ -3231,6 +3233,9 @@ class DBBase(dict):
             * 2015-05-30 ``@ddalle``: First version
             * 2015-12-14 ``@ddalle``: Added error bars
         """
+       # ----------------
+       # Initial Options
+       # ----------------
         # Make sure the plotting modules are present.
         ImportPyPlot()
         # Get horizontal key.
@@ -3255,6 +3260,9 @@ class DBBase(dict):
         except AttributeError:
             # Generic targets do not have a dedicated "component"
             comp = kw.get('comp')
+       # ---------------------
+       # Reference Parameters
+       # ---------------------
         # Get reference quantities
         Lref = self.opts.get_RefLength(comp)
         Aref = self.opts.get_RefArea(comp)
@@ -3268,6 +3276,9 @@ class DBBase(dict):
         else:
             # Unpack
             xMRP, yMRP, zMRP = MRP 
+       # --------------------
+       # Process x-axis data
+       # --------------------
         # Extract the values for the x-axis.
         if xk is None or xk == 'Index':
             # Use the indices as the x-axis
@@ -3310,6 +3321,9 @@ class DBBase(dict):
         # Sorting order for *xv*
         ixv = np.argsort(xv)
         xv = xv[ixv]
+       # --------------------
+       # Process y-axis data
+       # --------------------
         # Extract the mean values.
         if coeff in self:
             # Read the coefficient directly
@@ -3367,9 +3381,9 @@ class DBBase(dict):
                 dlbl = ''
         # Initialize label.
         lbl = kw.get('Label', dlbl)
-        # -----------------------
-        # Standard Deviation Plot
-        # -----------------------
+       # -----------------------
+       # Standard Deviation Plot
+       # -----------------------
         # Standard deviation fields
         cstd = coeff + "_std"
         # Show iterative standard deviation.
@@ -3399,9 +3413,9 @@ class DBBase(dict):
             else:
                 # Filled region
                 h['std'] = plt.fill_between(xv, yv-ksig*sv, yv+ksig*sv, **kw_s)
-        # ------------
-        # Min/Max Plot
-        # ------------
+       # ------------
+       # Min/Max Plot
+       # ------------
         # Min/max fields
         cmin = coeff + "_min"
         cmax = coeff + "_max"
@@ -3435,9 +3449,9 @@ class DBBase(dict):
             else:
                 # Filled region
                 h['max'] = plt.fill_between(xv, ymin, ymax, **kw_m)
-        # ----------------
-        # Uncertainty Plot
-        # ----------------
+       # ----------------
+       # Uncertainty Plot
+       # ----------------
         # Uncertainty databook files
         cu = coeff + "_u"
         cuP = coeff + "_uP"
@@ -3481,9 +3495,9 @@ class DBBase(dict):
                 yerr = np.vstack((yuM, yuP))
                 # Plot error bars
                 h['err'] = plt.fill_between(xv, yv, yerr, **kw_u)
-        # ------------
-        # Primary Plot
-        # ------------
+       # ------------
+       # Primary Plot
+       # ------------
         # Initialize plot options for primary plot
         kw_p = odict(color='k', marker='^', zorder=9, ls='-')
         # Plot options
@@ -3496,9 +3510,9 @@ class DBBase(dict):
         kw_p.setdefault('label', lbl)
         # Plot it.
         h['line'] = plt.plot(xv, yv, **kw_p)
-        # ----------
-        # Formatting
-        # ----------
+       # -------
+       # Labels
+       # -------
         # Get the figure and axes.
         h['fig'] = plt.gcf()
         h['ax'] = plt.gca()
@@ -3530,17 +3544,24 @@ class DBBase(dict):
         # Make sure data is included.
         h['ax'].set_xlim(xmin, xmax)
         h['ax'].set_ylim(ymin, ymax)
-        # Legend.
+       # -------
+       # Legend
+       # -------
+        # Check for legend option
         if kw.get('Legend', True):
             # Add extra room for the legend.
             h['ax'].set_ylim((ymin, 1.2*ymax-0.2*ymin))
             # Font size checks.
             if len(h['ax'].get_lines()) > 5:
                 # Very small
-                fsize = 7
+                fsize0 = 7
             else:
                 # Just small
-                fsize = 9
+                fsize0 = 9
+            # Check for input
+            fsize = kw.get("LegendFontSize", fsize0)
+            # Check for "LegendFontSize=None"
+            if not fsize: fsize = fsize0
             # Activate the legend.
             try:
                 # Use a font that has the proper symbols.
@@ -3552,6 +3573,28 @@ class DBBase(dict):
                 h['legend'] = h['ax'].legend(loc='upper center',
                     prop=dict(size=fsize),
                     bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
+       # -----------
+       # Grid Lines
+       # -----------
+        # Get grid option
+        ogrid = kw.get("Grid")
+        # Check value
+        if ogrid is None:
+            # Leave it as it currently is
+            pass
+        elif ogrid:
+            # Get grid style
+            kw_g = kw.get("GridStyle": {})
+            # Ensure that the axis is below
+            h['ax'].set_axisbelow(True)
+            # Add the grid
+            h['ax'].grid(**kw_g)
+        else:
+            # Turn the grid off, even if previously turned on
+            h['ax'].grid(False)
+       # ---------------
+       # Sizing/Margins
+       # ---------------
         # Figure dimensions.
         if fh: h['fig'].set_figheight(fh)
         if fw: h['fig'].set_figwidth(fw)
