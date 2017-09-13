@@ -145,8 +145,13 @@ class DBLineLoad(cape.lineLoad.DBLineLoad):
         ftriq = fplt.rstrip('.plt') + '.triq'
         # Check if the TRIQ file exists
         if os.path.isfile(ftriq):
-            # No conversion needed
-            qtriq = False
+            # Check if it's new enough
+            if os.path.getmtime(ftriq) > os.path.getmtime(fplt):
+                # No conversion needed
+                qtriq = False
+            else:
+                # Out-of-date file with correct name
+                qtriq = True
         else:
             # Need to convert PLT file to TRIQ
             qtriq = True
