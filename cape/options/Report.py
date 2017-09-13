@@ -163,7 +163,9 @@ class Report(odict):
                 "facecolor": "g", "alpha": 0.4, "ls": "none"},
             "DeltaOptions": {"color": None},
             "Grid": None,
-            "GridStyle": {}
+            "GridStyle": {},
+            "MinorGrid": None,
+            "MinorGridStyle": {}
         }
         # Line load plot
         self.defs['PlotLineLoad'] = {
@@ -192,7 +194,9 @@ class Report(odict):
             "XPad": 0.03,
             "YPad": 0.03,
             "Grid": None,
-            "GridStyle": {}
+            "GridStyle": {},
+            "MinorGrid": None,
+            "MinorGridStyle": {}
         }
         # Line load plot
         self.defs['SweepLineLoad'] = {
@@ -220,7 +224,9 @@ class Report(odict):
             "XPad": 0.03,
             "YPad": 0.03,
             "Grid": None,
-            "GridStyle": {}
+            "GridStyle": {},
+            "MinorGrid": None,
+            "MinorGridStyle": {}
         }
         # Point sensor history
         self.defs['PlotPoint'] = {
@@ -249,7 +255,9 @@ class Report(odict):
                 "facecolor": "g", "alpha": 0.4, "ls": "none"},
             "DeltaOptions": {"color": None},
             "Grid": None,
-            "GridStyle": {}
+            "GridStyle": {},
+            "MinorGrid": None,
+            "MinorGridStyle": {}
         }
         # Point sensor retults sweep
         self.defs['SweepPointHist'] = {
@@ -286,7 +294,9 @@ class Report(odict):
             "DeltaOptions": {"color": "r", "ls": "--"},
             "TargetOptions": {"color": ["k", "r", "g", "b"], "ls": "--"},
             "Grid": None,
-            "GridStyle": {}
+            "GridStyle": {},
+            "MinorGrid": None,
+            "MinorGridStyle": {}
         }
         # Force or moment history
         self.defs['SweepCoeff'] = {
@@ -313,7 +323,9 @@ class Report(odict):
             "Format": "pdf",
             "DPI": 150,
             "Grid": None,
-            "GridStyle": {}
+            "GridStyle": {},
+            "MinorGrid": None,
+            "MinorGridStyle": {}
         }
         # Force or moment history
         self.defs['ContourCoeff'] = {
@@ -337,7 +349,9 @@ class Report(odict):
             "Format": "pdf",
             "DPI": 150,
             "Grid": None,
-            "GridStyle": {}
+            "GridStyle": {},
+            "MinorGrid": None,
+            "MinorGridStyle": {}
         }
         # Plot L1 residual
         self.defs['PlotL1'] = {
@@ -350,7 +364,9 @@ class Report(odict):
             "Format": "pdf",
             "DPI": 150,
             "Grid": None,
-            "GridStyle": {}
+            "GridStyle": {},
+            "MinorGrid": None,
+            "MinorGridStyle": {}
         }
         # Plot L2 residual
         self.defs['PlotL2'] = {
@@ -364,7 +380,9 @@ class Report(odict):
             "Format": "pdf",
             "DPI": 150,
             "Grid": None,
-            "GridStyle": {}
+            "GridStyle": {},
+            "MinorGrid": None,
+            "MinorGridStyle": {}
         }
         # Plot general residual
         self.defs["PlotResid"] = {
@@ -379,7 +397,9 @@ class Report(odict):
             "Format": "pdf",
             "DPI": 150,
             "Grid": None,
-            "GridStyle": {}
+            "GridStyle": {},
+            "MinorGrid": None,
+            "MinorGridStyle": {}
         }
         # Tecplot component 3-view
         self.defs['Tecplot3View'] = {

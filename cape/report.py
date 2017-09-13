@@ -2508,6 +2508,22 @@ class Report(object):
             fmt_s = opts.get_SubfigOpt(sfig, "SigmaFormat", k)
             fmt_d = opts.get_SubfigOpt(sfig, "DeltaFormat", k)
             fmt_e = opts.get_SubfigOpt(sfig, "EpsilonFormat", k)
+            # Overall formatting
+            if k == 0:
+                # First plot, get legend, etc.
+                mjgrid = opts.get_SubfigOpt(sfig, "Grid")
+                kw_gmj = opts.get_SubfigOpt(sfig, "GridStyle")
+                mngrid = opts.get_SubfigOpt(sfig, "MinorGrid")
+                kw_gmn = opts.get_SubfigOpt(sfig, "MinorGridStyle")
+                # Error tolerance
+                if kw_gmj.__class__.__name__ != "dict": kw_gmj = {}
+                if kw_gmn.__class__.__name__ != "dict": kw_gmn = {}
+            else:
+                # Don't repeat grid options
+                mjgrid = None
+                kw_gmj = {}
+                mngrid = None
+                kw_gmn = {}
             # Draw the plot.
             h = FM.PlotCoeff(coeff, n=nPlotIter, nAvg=s['nStats'],
                 nFirst=nPlotFirst, nLast=nPlotLast,
@@ -2519,7 +2535,9 @@ class Report(object):
                 ShowDelta=sh_d, DeltaFormat=fmt_d,
                 ShowSigma=sh_s, SigmaFormat=fmt_s,
                 ShowEspsilon=sh_e, EpsilonFormat=fmt_e,
-                FigWidth=figw, FigHeight=figh)
+                FigWidth=figw, FigHeight=figh,
+                Grid=mjgrid, GridStyle=kw_gmj,
+                MinorGrid=mngrid, MinorGridStyle=kw_gmn)
         # Change back to report folder.
         os.chdir(fpwd)
         # Check for a figure to write.
@@ -3137,12 +3155,17 @@ class Report(object):
                 # First plot, get legend, etc.
                 mjgrid = opts.get_SubfigOpt(sfig, "Grid")
                 kw_gmj = opts.get_SubfigOpt(sfig, "GridStyle")
+                mngrid = opts.get_SubfigOpt(sfig, "MinorGrid")
+                kw_gmn = opts.get_SubfigOpt(sfig, "MinorGridStyle")
                 # Error tolerance
                 if kw_gmj.__class__.__name__ != "dict": kw_gmj = {}
+                if kw_gmn.__class__.__name__ != "dict": kw_gmn = {}
             else:
                 # Don't repeat grid options
                 mjgrid = None
                 kw_gmj = {}
+                mngrid = None
+                kw_gmn = {}
             # Draw the plot.
             h = DBc.PlotCoeff(coeff, Jj, x=xk,
                 XMRP=xmrp, DXMRP=dxmrp,
@@ -3151,7 +3174,8 @@ class Report(object):
                 MinMax=qmmx, MinMaxOptions=kw_m,
                 FigWidth=figw, FigHeight=figh,
                 XMin=xmin, XMax=xmax, YMin=ymin, YMax=ymax,
-                Grid=mjgrid, GridStyle=kw_gmj)
+                Grid=mjgrid, GridStyle=kw_gmj,
+                MinorGrid=mngrid, MinorGridStyle=kw_gmn)
             # Loop through targets
             for targ in targs:
                 # Get the target handle.

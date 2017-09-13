@@ -3226,6 +3226,14 @@ class DBBase(dict):
                 Plot function to use for uncertainty plot
             *LegendFontSize*: {``9``} | :class:`int` > 0 | :class:`float`
                 Font size for use in legends
+            *Grid*: {``None``} | ``True`` | ``False``
+                Turn on/off major grid lines, or leave as is if ``None``
+            *GridStyle*: {``{}``} | :class:`dict`
+                Dictionary of major grid line line style options
+            *MinorGrid*: {``None``} | ``True`` | ``False``
+                Turn on/off minor grid lines, or leave as is if ``None``
+            *MinorGridStyle*: {``{}``} | :class:`dict`
+                Dictionary of minor grid line line style options
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of plot handles
@@ -3589,6 +3597,24 @@ class DBBase(dict):
             h['ax'].set_axisbelow(True)
             # Add the grid
             h['ax'].grid(**kw_g)
+        else:
+            # Turn the grid off, even if previously turned on
+            h['ax'].grid(False)
+        # Get grid option
+        ogrid = kw.get("MinorGrid")
+        # Check value
+        if ogrid is None:
+            # Leave it as it currently is
+            pass
+        elif ogrid:
+            # Get grid style
+            kw_g = kw.get("MinorGridStyle", {})
+            # Ensure that the axis is below
+            h['ax'].set_axisbelow(True)
+            # Minor ticks are required
+            h['ax'].minorticks_on()
+            # Add the grid
+            h['ax'].grid(which="minor", **kw_g)
         else:
             # Turn the grid off, even if previously turned on
             h['ax'].grid(False)
@@ -6392,6 +6418,14 @@ class CaseData(object):
                 Specified label for *x*-axis, default is ``Iteration Number``
             *YLabel*: :class:`str`
                 Specified label for *y*-axis, default is *c*
+            *Grid*: {``None``} | ``True`` | ``False``
+                Turn on/off major grid lines, or leave as is if ``None``
+            *GridStyle*: {``{}``} | :class:`dict`
+                Dictionary of major grid line line style options
+            *MinorGrid*: {``None``} | ``True`` | ``False``
+                Turn on/off minor grid lines, or leave as is if ``None``
+            *MinorGridStyle*: {``{}``} | :class:`dict`
+                Dictionary of minor grid line line style options
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
@@ -6402,6 +6436,9 @@ class CaseData(object):
             * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
             * 2015-12-07 ``@ddalle``: Moved to basis class
         """
+       # ----------------
+       # Initial Options
+       # ----------------
         # Make sure plotting modules are present.
         ImportPyPlot()
         # Extract the data.
@@ -6421,9 +6458,9 @@ class CaseData(object):
         # Other plot options
         fw = kw.get('FigWidth')
         fh = kw.get('FigHeight')
-        # ---------
-        # Last Iter 
-        # ---------
+       # ---------
+       # Last Iter 
+       # ---------
         # Most likely last iteration
         iB = self.i[-1]
         # Check for an input last iter
@@ -6436,9 +6473,9 @@ class CaseData(object):
                 iB = self.i[jB]
         # Get the index of *iB* in *self.i*.
         jB = self.GetIterationIndex(iB)
-        # ----------
-        # First Iter
-        # ----------
+       # ----------
+       # First Iter
+       # ----------
         # Don't cut off the entire history
         if nFirst >= iB: nFirst = 1
         # Default number of iterations: all
@@ -6450,16 +6487,16 @@ class CaseData(object):
         j0 = self.GetIterationIndex(i0)
         # Reselect *i0* in case initial value was not in *self.i*.
         i0 = self.i[j0]
-        # --------------
-        # Averaging Iter
-        # --------------
+       # --------------
+       # Averaging Iter
+       # --------------
         # Get the first iteration to use in averaging.
         jA = max(j0, jB-nAvg+1)
         # Reselect *iV* in case initial value was not in *self.i*.
         iA = self.i[jA]
-        # -----------------------
-        # Standard deviation plot
-        # -----------------------
+       # -----------------------
+       # Standard deviation plot
+       # -----------------------
         # Initialize dictionary of handles.
         h = {}
         # Shortcut for the mean
@@ -6484,9 +6521,9 @@ class CaseData(object):
             cMax = cAvg + ksig*c_std
             # Plot the target window boundaries.
             h['std'] = plt.fill_between([iA,iB], [cMin]*2, [cMax]*2, **kw_s)
-        # --------------------------
-        # Iterative uncertainty plot
-        # --------------------------
+       # --------------------------
+       # Iterative uncertainty plot
+       # --------------------------
         kw_u = odict(color='g', ls="none",
             facecolor="g", alpha=0.4, zorder=2)
         # Calculate sampling error if necessary
@@ -6511,9 +6548,9 @@ class CaseData(object):
             cMax = cAvg + uerr*c_err
             # Plot the target window boundaries.
             h['err'] = plt.fill_between([iA,iB], [cMin]*2, [cMax]*2, **kw_u)
-        # ---------
-        # Mean plot
-        # ---------
+       # ---------
+       # Mean plot
+       # ---------
         # Initialize plot options for mean.
         kw_m = odict(color=kw.get("color", "0.1"),
             ls=[":", "-"], lw=1.0, zorder=8)
@@ -6531,9 +6568,9 @@ class CaseData(object):
         h['mean'] = (
             plt.plot([i0,iA], [cAvg, cAvg], **kw0) + 
             plt.plot([iA,iB], [cAvg, cAvg], **kw1))
-        # ----------
-        # Delta plot
-        # ----------
+       # ----------
+       # Delta plot
+       # ----------
         # Initialize options for delta.
         kw_d = odict(color="r", ls="--", lw=0.8, zorder=4)
         # Calculate range of interest.
@@ -6558,9 +6595,9 @@ class CaseData(object):
             h['max'] = (
                 plt.plot([i0,iA], [cMax,cMax], **kw0) +
                 plt.plot([iA,iB], [cMax,cMax], **kw1))
-        # ------------
-        # Primary plot
-        # ------------
+       # ------------
+       # Primary plot
+       # ------------
         # Initialize primary plot options.
         kw_p = odict(color=kw.get("color","k"), ls="-", lw=1.5, zorder=7)
         # Extract plot options from kwargs
@@ -6590,15 +6627,9 @@ class CaseData(object):
         h['y'] = plt.ylabel(ylbl)
         # Set the xlimits.
         h['ax'].set_xlim((i0, 1.03*iB-0.03*i0))
-        # Set figure dimensions
-        if fh: h['fig'].set_figheight(fh)
-        if fw: h['fig'].set_figwidth(fw)
-        # Attempt to apply tight axes.
-        try: plt.tight_layout()
-        except Exception: pass
-        # ------
-        # Labels
-        # ------
+       # ------
+       # Labels
+       # ------
         # y-coordinates of the current axes w.r.t. figure scale
         ya = h['ax'].get_position().get_points()
         ha = ya[1,1] - ya[0,1]
@@ -6660,7 +6691,53 @@ class CaseData(object):
             # Correct the font.
             try: h['eps'].set_family("DejaVu Sans")
             except Exception: pass
-        # Output.
+       # -----------
+       # Grid Lines
+       # -----------
+        # Get grid option
+        ogrid = kw.get("Grid")
+        # Check value
+        if ogrid is None:
+            # Leave it as it currently is
+            pass
+        elif ogrid:
+            # Get grid style
+            kw_g = kw.get("GridStyle", {})
+            # Ensure that the axis is below
+            h['ax'].set_axisbelow(True)
+            # Add the grid
+            h['ax'].grid(**kw_g)
+        else:
+            # Turn the grid off, even if previously turned on
+            h['ax'].grid(False)
+        # Get grid option
+        ogrid = kw.get("MinorGrid")
+        # Check value
+        if ogrid is None:
+            # Leave it as it currently is
+            pass
+        elif ogrid:
+            # Get grid style
+            kw_g = kw.get("MinorGridStyle", {})
+            # Ensure that the axis is below
+            h['ax'].set_axisbelow(True)
+            # Minor ticks are required
+            h['ax'].minorticks_on()
+            # Add the grid
+            h['ax'].grid(which="minor", **kw_g)
+        else:
+            # Turn the grid off, even if previously turned on
+            h['ax'].grid(False)
+       # -----------------
+       # Final Formatting
+       # -----------------
+        # Set figure dimensions
+        if fh: h['fig'].set_figheight(fh)
+        if fw: h['fig'].set_figwidth(fw)
+        # Attempt to apply tight axes.
+        try: plt.tight_layout()
+        except Exception: pass
+        # Output
         return h
     
     # Plot coefficient histogram
