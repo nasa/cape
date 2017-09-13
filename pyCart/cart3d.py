@@ -166,6 +166,11 @@ class Cart3d(Cntl):
     # Initialization method
     def __init__(self, fname="pyCart.json"):
         """Initialization method for :mod:`cape.cntl.Cntl`"""
+        # Check if file exists
+        if not os.path.isfile(fname):
+            # Raise error but without traceback
+            os.sys.tracebacklimit = 0
+            raise ValueError("No pyCart control file '%s' found" % fname)
         
         # Read settings
         self.opts = options.Options(fname=fname)
