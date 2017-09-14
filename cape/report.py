@@ -3148,10 +3148,6 @@ class Report(object):
             xmrp = opts.get_SubfigOpt(sfig, "XMRP", k)
             dxmrp = opts.get_SubfigOpt(sfig, "DXMRP", k)
             fxmrp = opst.get_SubfigOpt(sfig, "XMRPFunction", k)
-            # If there's a function, evaluate it
-            if fxmrp is None:
-                fxmrp = {}
-                #fxmrp = eval("self.cntl.%s" % fxmrp)
             # Get the multiple of standard deviation to show
             ksig = opts.get_SubfigOpt(sfig, "StandardDeviation", k)
             qmmx = opts.get_SubfigOpt(sfig, "MinMax", k)
@@ -3260,6 +3256,7 @@ class Report(object):
                     # Separate object for each component
                     DBTc.PlotCoeff(coeff, JTj, x=xk,
                         XMRP=xmrp, DXMRP=dxmrp,
+                        XMRPFunction=fxmrp,
                         Label=tlbl, LineOptions=kw_l,
                         FigWidth=figw, FigHeight=figh,
                         XMin=xmin, XMax=xmax, YMin=ymin, YMax=ymax)
@@ -3267,6 +3264,7 @@ class Report(object):
                     # All components in one object; need to say comp
                     DBTc.PlotCoeff(comp, coeff, JTj, x=xk,
                         XMRP=xmrp, DXMRP=dxmrp,
+                        XMRPFunction=fxmrp,
                         Label=tlbl, LineOptions=kw_l,
                         FigWidth=figw, FigHeight=figh,
                         XMin=xmin, XMax=xmax, YMin=ymin, YMax=ymax)

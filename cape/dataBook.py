@@ -3373,6 +3373,7 @@ class DBBase(dict):
             # Check for MRP shift
             xmrp  = kw.get("XMRP")
             dxmrp = kw.get("DXMRP")
+            fxmrp = kw.get("XMRPFunction")
             # Shift if necessary
             if (xmrp is not None) and ("CY" in self):
                 # Shift moment to specific point
@@ -3380,6 +3381,12 @@ class DBBase(dict):
             if (dxmrp is not None) and ("CY" in self):
                 # Shift the moment reference point
                 yv = yv + dxmrp/Lref*self["CY"][I]
+            if (fxmrp is not None) and ("CY" in self):
+                # Use a function to evaluate new MRP (may vary by index)
+                xmrp = fxmrp(self, I)
+                print("    XMRPFunction=%s" % fxmrp)
+                # Shift the moment to specific point
+                yv = yv + (xmrp-xMRP)/Lref*self["CY"][I]
         # Sort the data
         yv = yv[ixv]
         # Default label starter
