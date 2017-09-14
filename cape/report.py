@@ -3147,7 +3147,10 @@ class Report(object):
             # Moment reference center parameters
             xmrp = opts.get_SubfigOpt(sfig, "XMRP", k)
             dxmrp = opts.get_SubfigOpt(sfig, "DXMRP", k)
-            fxmrp = opst.get_SubfigOpt(sfig, "XMRPFunction", k)
+            fxmrp = opts.get_SubfigOpt(sfig, "XMRPFunction", k)
+            # Get callable function if specified
+            if fxmrp is not None:
+                fxmrp = eval("self.cntl.%s" % fxmrp)
             # Get the multiple of standard deviation to show
             ksig = opts.get_SubfigOpt(sfig, "StandardDeviation", k)
             qmmx = opts.get_SubfigOpt(sfig, "MinMax", k)

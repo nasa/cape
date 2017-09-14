@@ -3356,6 +3356,7 @@ class DBBase(dict):
             # Check for MRP shift
             xmrp  = kw.get("XMRP")
             dxmrp = kw.get("DXMRP")
+            fxmrp = kw.get("XMRPFunction")
             # Shift if necessary
             if (xmrp is not None) and ("CN" in self):
                 # Check type
@@ -3369,6 +3370,11 @@ class DBBase(dict):
                     dxmrp = np.array(dxmrp)
                 # Shift the moment reference point
                 yv = yv + dxmrp/Lref*self["CN"][I]
+            if (fxmrp is not None) and ("CN" in self):
+                # Use a function to evaluate new MRP (may vary by index)
+                xmrp = fxmrp(self, I)
+                # Shift the moment to specific point
+                yv = yv + (xmrp-xMRP)/Lref*self["CN"][I]
         elif coeff == "CLN":
             # Check for MRP shift
             xmrp  = kw.get("XMRP")
@@ -3384,7 +3390,6 @@ class DBBase(dict):
             if (fxmrp is not None) and ("CY" in self):
                 # Use a function to evaluate new MRP (may vary by index)
                 xmrp = fxmrp(self, I)
-                print("    XMRPFunction=%s" % fxmrp)
                 # Shift the moment to specific point
                 yv = yv + (xmrp-xMRP)/Lref*self["CY"][I]
         # Sort the data
