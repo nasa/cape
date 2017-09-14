@@ -1210,6 +1210,8 @@ class Fun3d(Cntl):
         frun = self.x.GetFullFolderNames(i)
         # Set up the component force & moment tracking
         self.PrepareNamelistConfig()
+        # Set up boundary point stuff
+        self.PrepareNamelistBoundaryPoints()
         
         # Set the surface BCs
         for k in self.x.GetKeysByType('SurfBC'):
