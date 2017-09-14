@@ -1623,7 +1623,7 @@ class Report(object):
         # Get first index
         if I.__class__.__name__ in ["list", "ndarray", "tuple"]:
             # Ensure array
-            I = np.array(I)
+            I = list(I)
             # Get first index
             i = I[0]
         else:
@@ -1634,7 +1634,7 @@ class Report(object):
             # Status update
             print('    Subfig function: %s("%s", %s)' % (func, sfig, i))
             # Run the function
-            exec("cntl.%s(cntl, sfig, %s)" % (func, I))
+            exec("cntl.%s(cntl, sfig, I)" % (func))
         
       
     # Function to get the list of targets for a subfigure
@@ -3020,7 +3020,7 @@ class Report(object):
         # Save current folder.
         fpwd = os.getcwd()
         # Apply case functions
-        self.SubfigFunction(sfig, I)
+        self.SubfigFunction(sfig, I[0])
         # Extract options and trajectory
         x = self.cntl.DataBook.x
         opts = self.cntl.opts
@@ -3147,6 +3147,11 @@ class Report(object):
             # Moment reference center parameters
             xmrp = opts.get_SubfigOpt(sfig, "XMRP", k)
             dxmrp = opts.get_SubfigOpt(sfig, "DXMRP", k)
+            fxmrp = opst.get_SubfigOpt(sfig, "XMRPFunction", k)
+            # If there's a function, evaluate it
+            if fxmrp is None:
+                fxmrp = {}
+                #fxmrp = eval("self.cntl.%s" % fxmrp)
             # Get the multiple of standard deviation to show
             ksig = opts.get_SubfigOpt(sfig, "StandardDeviation", k)
             qmmx = opts.get_SubfigOpt(sfig, "MinMax", k)
@@ -3181,6 +3186,7 @@ class Report(object):
             # Draw the plot.
             h = DBc.PlotCoeff(coeff, Jj, x=xk,
                 XMRP=xmrp, DXMRP=dxmrp,
+                XMRPFunction=fxmrp,
                 Label=lbl, LineOptions=kw_p,
                 StDev=ksig, StDevOptions=kw_s,
                 MinMax=qmmx, MinMaxOptions=kw_m,

@@ -3159,6 +3159,7 @@ class DBBase(dict):
             # Check for special modifications
             if k in ["phi", "phi_m", "phiv", "phim"]:
                 # Get total angle of attack
+                self.UpdateTrajectory()
                 aoav = self.x.GetAlphaTotal()
                 # Combine *phi* constraint with any *aoav==0* case
                 qk = np.logical_or(qk, np.abs(aoav)<=1e-10)
@@ -3357,9 +3358,15 @@ class DBBase(dict):
             dxmrp = kw.get("DXMRP")
             # Shift if necessary
             if (xmrp is not None) and ("CN" in self):
+                # Check type
+                if xmrp.__class__.__name__ == "list":
+                    xmrp = np.array(xmrp)
                 # Shift moment to specific point
                 yv = yv + (xmrp-xMRP)/Lref*self["CN"][I]
             if (dxmrp is not None) and ("CN" in self):
+                # Check type
+                if dxmrp.__class__.__name__ == "list":
+                    dxmrp = np.array(dxmrp)
                 # Shift the moment reference point
                 yv = yv + dxmrp/Lref*self["CN"][I]
         elif coeff == "CLN":
