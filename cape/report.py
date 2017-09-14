@@ -1594,17 +1594,20 @@ class Report(object):
         return lines
         
     # Apply a generic Python function for a subfigure
-    def SubfigFunction(self, sfig, i):
-        """Apply a generic Pythong function to a subfigure definition
+    def SubfigFunction(self, sfig, I):
+        """Apply a generic Python function to a subfigure definition
         
         :Call:
             >>> R.SubfigFunction(sfig, i)
+            >>> R.SubfigFunction(sfig, I)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
             *sfig*: :class:`str`
                 Name of subfigure to initialize
             *i*: :class:`int`
+                Case index
+            *I*: :class:`np.ndarray` (:class:`int`)
                 Case index
         :Versions:
             * 2017-06-22 ``@ddalle``: First version
@@ -1617,12 +1620,21 @@ class Report(object):
         if not funcs: return
         # Ensure list
         funcs = list(np.array(funcs).flatten())
+        # Get first index
+        if I.__class__.__name__ in ["list", "ndarray", "tuple"]:
+            # Ensure array
+            I = np.array(I)
+            # Get first index
+            i = I[0]
+        else:
+            # Already scalar
+            i = I
         # Loop through functions
         for func in funcs:
             # Status update
             print('    Subfig function: %s("%s", %s)' % (func, sfig, i))
             # Run the function
-            exec("cntl.%s(cntl, sfig, %s)" % (func, i))
+            exec("cntl.%s(cntl, sfig, %s)" % (func, I))
         
       
     # Function to get the list of targets for a subfigure
@@ -3008,7 +3020,7 @@ class Report(object):
         # Save current folder.
         fpwd = os.getcwd()
         # Apply case functions
-        self.SubfigFunction(sfig, I[0])
+        self.SubfigFunction(sfig, I)
         # Extract options and trajectory
         x = self.cntl.DataBook.x
         opts = self.cntl.opts
