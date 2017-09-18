@@ -149,12 +149,32 @@ class Options(odict):
         # Test for NULL umask
         if umask is None:
             # Make directory with default permissions
-            os.mkdir(fdir)
+            try:
+                # Make the directory
+                os.mkdir(fdir)
+            except Exception as e:
+                # Check for making directory that exists
+                if e.errno == 17:
+                    # No problem; go on
+                    pass
+                else:
+                    # Other error; valid
+                    raise e
         else:
             # Apply umask
             dmask = 0777 - umask
             # Make the directory.
-            os.mkdir(fdir, dmask)
+            try:
+                # Attempt the command
+                os.mkdir(fdir, dmask)
+            except Exception as e:
+                # Check for making directory that exists
+                if e.errno == 17:
+                    # No problem; go on
+                    pass
+                else:
+                    # Other error; valid
+                    raise e
         
    # >
     
