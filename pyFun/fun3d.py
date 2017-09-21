@@ -1463,7 +1463,7 @@ class Fun3d(Cntl):
             for j in range(1,npt+1):
                 # Set point
                 nml.SetVar('sampling_parameters', 'point',
-                    PS[j-1], ("1:3", ngeom, j))
+                    PS[j-1], ("1:3", j, ngeom))
         # Set number of geometries
         nml.SetVar('sampling_parameters', 'number_of_geometries', ngeom)
    # ]
