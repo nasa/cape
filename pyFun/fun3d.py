@@ -1453,17 +1453,17 @@ class Fun3d(Cntl):
             # Increase geometry count
             ngeom += 1
             # Set label
-            nml.SetVar('sampling_parameters', 'label', grp, k)
+            nml.SetVar('sampling_parameters', 'label', grp, ngeom)
             # Set the type
             nml.SetVar('sampling_parameters', 'type_of_geometry',
-                'boundary_points')
+                'boundary_points', ngeom)
             # Set number of points
-            nml.SetVar('sampling_paramaters', 'number_of_points', npt)
+            nml.SetVar('sampling_paramaters', 'number_of_points', npt, ngeom)
             # Loop through points
             for j in range(1,npt+1):
                 # Set point
                 nml.SetVar('sampling_parameters', 'point',
-                    PS[j-1], ("1:3", k, j))
+                    PS[j-1], ("1:3", ngeom, j))
         # Set number of geometries
         nml.SetVar('sampling_parameters', 'number_of_geometries', ngeom)
    # ]
