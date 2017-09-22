@@ -609,7 +609,12 @@ class DataBook(dict):
             n = 0
             # Loop through indices.
             for i in I:
-                n += self.UpdateCaseComp(i, comp)
+                try:
+                    # See if this works
+                    n += self.UpdateCaseComp(i, comp)
+                except Exception as e:
+                    # Print error message and move on...
+                    print("Update failed: %s" % e.message)
             # Return to original location
             os.chdir(fpwd)
             # Move to next component if no updates
