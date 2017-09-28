@@ -1457,6 +1457,8 @@ class Fun3d(Cntl):
             # Set the type
             nml.SetVar('sampling_parameters', 'type_of_geometry',
                 'boundary_points', ngeom)
+            # Set sampling frequency
+            nml.SetVar('sampling_parameters', 'sampling_frequency', -1, ngeom)
             # Set number of points
             nml.SetVar('sampling_parameters', 'number_of_points', npt, ngeom)
             # Loop through points
