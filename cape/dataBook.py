@@ -6548,8 +6548,8 @@ class CaseData(object):
        # --------------------------
        # Iterative uncertainty plot
        # --------------------------
-        kw_u = odict(color='g', ls="none",
-            facecolor="g", alpha=0.4, zorder=2)
+        kw_u = odict(color='g', lw=0,
+            facecolor="g", alpha=0.35, zorder=2)
         # Calculate sampling error if necessary
         if (uerr and nAvg>2) or kw.get("ShowEpsilon"):
             # Check for sampling error
@@ -6713,7 +6713,7 @@ class CaseData(object):
             # printf-style format flag
             flbl = kw.get("EpsilonFormat", "%.4f")
             # Form \varepsilon(CA) = 0.0032
-            lbl = (u'\u0395(%s) = %s' % (c, flbl)) % c_err
+            lbl = (u'u(%s) = %s' % (c, flbl)) % c_err
             # Create the handle.
             h['eps'] = plt.text(0.01, yl, lbl, color=kw_u.get_key('color',1),
                 horizontalalignment='left', verticalalignment='top',
