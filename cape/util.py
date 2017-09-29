@@ -547,33 +547,37 @@ def SearchSinusoidFit(x, y, N1, N2, **kw):
     :Versions:
         * 2017-09-29 ``@ddalle``: First version
     """
-    ## Switch inputs if necessary
-    #if N2 < N1:
-    #    N1, N2 = N2, N1
-    ## Check for degenerate ranges
-    #if N2 < 5:
-    #    # Just say it's a constant
-    #    v = np.mean(y[-N2:])
-    #    a = np.array([v, 0, 0, 0])
-    #    # No statistics
-    #    eps = 0.0
-    #    sig = 0.0
-    #    w = 0.0
-    #    # Use the whole range as the drift
-    #    dy = max(y[-N2:]) - min(y[-N2:])
-    #    u  = dy
-    #    # Trivial output
-    #    return {
-    #        "n": N2,
-    #        "a": a,
-    #        "w": w,
-    #        "u": u,
-    #        "dy": dy,
-    #        "mu": v,
-    #        "np": 0.0,
-    #        "eps": eps,
-    #        "sig": sig
-    #    }
+    # Switch inputs if necessary
+    if N2 < N1:
+        N1, N2 = N2, N1
+    # Check for degenerate ranges
+    if N2 < 5:
+        # Just say it's a constant
+        v = np.mean(y[-N2:])
+        a = np.array([v, 0, 0, 0])
+        # No statistics
+        eps = 0.0
+        sig = 0.0
+        w = 0.0
+        # Use the whole range as the drift
+        ymin = np.min(y[-N2:])
+        ymax = np.max(y[-N2:])
+        dy = ymax - ymin
+        u  = dy
+        # Trivial output
+        return {
+            "n": N2,
+            "a": a,
+            "w": w,
+            "u": u,
+            "dy": dy,
+            "mu": v,
+            "np": 0.0,
+            "eps": eps,
+            "sig": sig,
+            "min": ymin,
+            "max": ymax,
+        }
     # Use the maximum window size to get the best frequency
     w = GetBestFrequency(y[-N2:], **kw)
     # Calculate the half period based on this frequency
@@ -605,7 +609,9 @@ def SearchSinusoidFit(x, y, N1, N2, **kw):
         "mu":  v,
         "eps": eps,
         "sig": sig,
-        "dy":  dy
+        "dy":  dy,
+        "min": np.min(yi),
+        "max": np.max(yi),
     }
     
     

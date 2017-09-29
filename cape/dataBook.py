@@ -6445,7 +6445,7 @@ class CaseData(object):
             *ErrorFormat*: {``"%.4f"``} | :class:`str`
                 Format for text label of the sampling error
             *XLabel*: :class:`str`
-                Specified label for *x*-axis, default is ``Iteration Number``
+                Specified label for *x*-axis, default is ``I"teration Number"``
             *YLabel*: :class:`str`
                 Specified label for *y*-axis, default is *c*
             *Grid*: {``None``} | ``True`` | ``False``
@@ -7473,42 +7473,6 @@ class CaseFM(CaseData):
         return self
    # >
    
-   # ================
-   # Data Processing
-   # ================
-   # <
-    # Extract a coefficient
-    def GetCoeff(self, c, **kw):
-        """Special method to extract a coefficient
-        
-        This can access coefficients that are directly present or extract
-        derived quantities.  For example, *FA* is the dimensional force
-        corresponding to the axial force coefficient *CA*.  These derived
-        quantities require extra input values such as angle of attack,
-        freestream dynamic pressure, reference area, etc.
-        
-        :Call:
-            >>> V = FM.GetCoeff(c, **kw)
-        :Inputs:
-            *FM*: :class:`cape.dataBook.CaseFM`
-                Force and moment iterative history
-            *c*: :class:`str`
-                Name of coefficient to extract
-        :Outputs:
-            *V*: :class:`np.ndarray`
-                Array of values from *FM[c]* or derived quantity
-        :Versions:
-            * 2017-09-29 ``@ddalle``: First version
-        """
-        # Check if the coefficient is present
-        if c in self:
-            # Return it
-            return self[c]
-            
-        # If reached here, error
-        raise KeyError("Could not process coefficient named '%s'" % c)
-   # >
-   
    # =================
    # Transformations
    # =================
@@ -7791,11 +7755,11 @@ class CaseFM(CaseData):
         return s
             
     # Method to get averages and standard deviations
-    def GetStats(self, nStats=100, nMax=None, nLast=None):
+    def GetStatsOld(self, nStats=100, nMax=None, nLast=None):
         """Get mean, min, max, and standard deviation for all coefficients
         
         :Call:
-            >>> s = FM.GetStats(nStats, nMax=None, nLast=None)
+            >>> s = FM.GetStatsOld(nStats, nMax=None, nLast=None)
         :Inputs:
             *FM*: :class:`cape.dataBook.CaseFM`
                 Instance of the force and moment class
@@ -7847,6 +7811,101 @@ class CaseFM(CaseData):
                 e = en
         # Output.
         return s
+        
+    # Get status for one coefficient
+    def GetStatsCoeff(self, coeff, nStats=100, nMax=None, **kw):
+        """Get mean, min, max, and other statistics for one coefficient
+        
+        :Call:
+            >>> s = FM.GetStatsCoeff(coeff, nStats=100, nMax=None, **kw)
+        :Inputs:
+            *FM*: :class:`cape.dataBook.CaseFM`
+                Instance of the force and moment class
+            *coeff*: :class:`str`
+                Name of coefficient to process
+            *nStats*: {``100``} | :class:`int`
+                Minimum number of iterations in window to use for statistics
+            *dnStats*: {*nStats*} | :class:`int`
+                Interval size for candidate windows
+            *nMax*: (*nStats*} | :class:`int`
+                Maximum number of iterations to use for statistics
+            *nMin*: {``0``} | :class:`int`
+                First usable iteration number
+            *nLast*: {*FM.i[-1]*} | :class:`int`
+                Last iteration to use for statistics
+        :Outputs:
+            *s*: :class:`dict` (:class:`float`)
+                Dictionary of mean, min, max, std for *coeff*
+        :Versions:
+            * 2017-09-29 ``@ddalle``: First version
+        """
+        # Number of iterations available
+        ni = len(self.i)
+        # Read iteration values
+        nLast = kw.get('nLast', self.i[-1])
+        # Get maximum size
+        if nMax is None: nMax = nStats
+        # Get interval size
+        dnStats = kw.get("dnStats", nStats)
+        # First usable iteration
+        nMin = kw.get("nMin", 0)
+        # Get coefficient
+        F = self.ExtractValue(coeff, **kw)
+        # Get statistics
+        d = util.SearchSinusoidFitRange(self.i, C, nStats, nMax,
+            dn=dnStats, nMin=nMin)
+        # Output
+        return d
+            
+    # Method to get averages and standard deviations
+    def GetStats(self, nStats=100, nMax=None, **kw):
+        """Get mean, min, max, and standard deviation for all coefficients
+        
+        :Call:
+            >>> s = FM.GetStats(nStats, nMax=None, nLast=None)
+        :Inputs:
+            *FM*: :class:`cape.dataBook.CaseFM`
+                Instance of the force and moment class
+            *coeff*: :class:`str`
+                Name of coefficient to process
+            *nStats*: {``100``} | :class:`int`
+                Minimum number of iterations in window to use for statistics
+            *dnStats*: {*nStats*} | :class:`int`
+                Interval size for candidate windows
+            *nMax*: (*nStats*} | :class:`int`
+                Maximum number of iterations to use for statistics
+            *nMin*: {``0``} | :class:`int`
+                First usable iteration number
+            *nLast*: {*FM.i[-1]*} | :class:`int`
+                Last iteration to use for statistics
+        :Outputs:
+            *s*: :class:`dict` (:class:`float`)
+                Dictionary of mean, min, max, std, err for each coefficient
+        :Versions:
+            * 2017-09-29 ``@ddalle``: First version
+        """
+        # Initialize output
+        s = {}
+        # Initialize statistics count
+        nStats = 0
+        # Loop through coefficients
+        for c in self.coeffs:
+            # Get individual statistics
+            d = self.GetStatsCoeff(c, nStats=nStats, nMax=nMax, **kw)
+            # Transfer the information
+            s[c]        = d["mu"]
+            s[c+'_n']   = d["n"]
+            s[c+'_min'] = d["min"]
+            s[c+'_max'] = d["max"]
+            s[c+'_std'] = d["sig"]
+            s[c+'_err'] = d["u"]
+            # Update stats count
+            nStats = max(nStats, d["n"])
+        # Set the stats count
+        s["nStats"] = nStats
+        # Output
+        return s
+        
    # >
    
    # ==========
