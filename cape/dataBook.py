@@ -6326,7 +6326,7 @@ class CaseData(object):
   # ==============================
   # <
     # Extract one value/coefficient/state
-    def ExtractValue(self, c, col=None):
+    def ExtractValue(self, c, col=None, **kw):
         """Extract the iterative history for one coefficient/state
         
         This function may be customized for some modules
@@ -7852,7 +7852,7 @@ class CaseFM(CaseData):
         # Get coefficient
         F = self.ExtractValue(coeff, **kw)
         # Get statistics
-        d = util.SearchSinusoidFitRange(self.i, C, nStats, nMax,
+        d = util.SearchSinusoidFitRange(self.i, F, nStats, nMax,
             dn=dnStats, nMin=nMin)
         # Output
         return d
@@ -7887,7 +7887,7 @@ class CaseFM(CaseData):
         # Initialize output
         s = {}
         # Initialize statistics count
-        nStats = 0
+        ns = 0
         # Loop through coefficients
         for c in self.coeffs:
             # Get individual statistics
@@ -7900,9 +7900,9 @@ class CaseFM(CaseData):
             s[c+'_std'] = d["sig"]
             s[c+'_err'] = d["u"]
             # Update stats count
-            nStats = max(nStats, d["n"])
+            ns = max(ns, d["n"])
         # Set the stats count
-        s["nStats"] = nStats
+        s["nStats"] = ns
         # Output
         return s
         

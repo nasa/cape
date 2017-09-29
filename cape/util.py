@@ -400,7 +400,18 @@ def FitLinearSinusoid(x, y, w):
     ])
     Y = np.array([y1, yx1, yc1, ys1])
     # Solve linear system to get best fit
-    a = np.linalg.solve(A, Y)
+    try:
+        a = np.linalg.solve(A, Y)
+    except Exception:
+        # This can easily happen for flat signals
+        A = np.array([[n,x1],[x1,x2]])
+        Y = np.array([y1, yx1])
+        # Simpler linear system (ignore sinusoid)
+        try:
+            a = np.hstack((np.linalg.solve(A,Y), [0.,0.0]))
+        except Exception:
+            # That shouldn't happen, but just use the mean if needed
+            a = np.array([y1/n, 0.0, 0.0, 0.0])
     # Output
     return a
     
@@ -581,7 +592,12 @@ def SearchSinusoidFit(x, y, N1, N2, **kw):
     # Use the maximum window size to get the best frequency
     w = GetBestFrequency(y[-N2:], **kw)
     # Calculate the half period based on this frequency
-    p = np.pi/w
+    if w == 0.0:
+        # Use the whole interval (happens with perfectly flat signals)
+        p = N2
+    else:
+        # Use an actual period
+        p = np.pi/w
     # Get the largest window that's a whole or half multiple of period
     n = max(N1, int(N2/p) * int(p))
     # Get sample sizes
