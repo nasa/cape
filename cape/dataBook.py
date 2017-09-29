@@ -7854,7 +7854,7 @@ class CaseFM(CaseData):
    # ==========
    # <
     # Plot iterative force/moment history
-    def PlotCoeff(self, c, n=None, nAvg=100, **kw):
+    def PlotCoeff(self, c, n=None, **kw):
         """Plot a single coefficient history
         
         :Call:
@@ -7889,7 +7889,7 @@ class CaseFM(CaseData):
             * 2015-12-07 ``@ddalle``: Moved content to base class
         """
         # Plot appropriately.
-        return self.PlotValue(c, n=n, nAvg=nAvg, **kw)
+        return self.PlotValue(c, n=n, **kw)
     
     # Plot coefficient histogram
     def PlotCoeffHist(self, c, nAvg=100, nBin=20, nLast=None, **kw):

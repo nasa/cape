@@ -457,7 +457,7 @@ def SearchSinusoidFitRange(x, y, nAvg, nMax=None, dn=None, nMin=0, **kw):
     """
     # Process defaults
     if nMax is None: nMax = nAvg
-    if dn   is None: dn = nAvgs
+    if dn   is None: dn = nAvg
     # Number of available iterations after *nMin*
     nAvail = np.count_nonzero(x>nMin)
     # Total number of iterations
@@ -478,6 +478,8 @@ def SearchSinusoidFitRange(x, y, nAvg, nMax=None, dn=None, nMin=0, **kw):
     if np.max(N) < nMax: N = np.append(N, nMax)
     # Create one window if no range
     if len(N) == 1: N = np.append(N, nAvg)
+    # Ensure integer
+    N = np.array(N, dtype="int")
     # Number of candidate windows
     nw = len(N) - 1
     # Initialize candidates
