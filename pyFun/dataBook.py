@@ -542,13 +542,17 @@ class CaseFM(cape.dataBook.CaseFM):
             # First attempt
             A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
         except Exception:
+            # Copy to extra file
+            fname1 = fname + '1'
             # Attempt to remove null characters
             try:
-                os.system("sed -i 's/\\x0//g' %s" % fname)
+                os.system("sed -i 's/\\x0//g' %s" % fname1)
             except Exception:
                 pass
             # Second attempt
-            A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
+            A = np.loadtxt(fname1, skiprows=nhdr, usecols=tuple(inds))
+            # Remove copied file
+            os.remove(fname1)
         # Number of columns.
         n = len(self.cols)
         # Save the values.
@@ -586,14 +590,19 @@ class CaseFM(cape.dataBook.CaseFM):
             # First attempt
             A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
         except Exception:
+            # Copy file and remove null chars
+            fname1 = fname + '1'
             # Attempt to remove null characters
             try:
-                os.system("sed -i 's/\\x0//g' %s" % fname)
+                os.system("sed -i 's/\\x0//g' %s" % fname1)
             except Exception:
                 pass
             # Second attempt
             try:
-                A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
+                # Read the file
+                A = np.loadtxt(fname1, skiprows=nhdr, usecols=tuple(inds))
+                # Delete file
+                os.remove(fname1)
             except Exception:
                 # Status message
                 print("Failed to read file '%s'" % fname)

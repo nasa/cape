@@ -1061,7 +1061,7 @@ class RunControl(odict):
     # Get the list of folders to tar a posteriori
     def get_ArchivePostTarDirs(self):
         self._Archive()
-        return self['Archive'].get_PostTarDirs()
+        return self['Archive'].get_ArchivePostTarDirs()
         
     # Add to list of folders to tar aposteriori
     def add_ArchivePostTarDirs(self, fpost):

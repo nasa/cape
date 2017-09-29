@@ -1337,8 +1337,18 @@ def TarDir(cmd, ftar, fdir, clean=True):
     """
     # Check if the folder exists
     if not os.path.isdir(fdir): return
+    # Check for updates if usable
+    if cmd == ["tar", "-cf"]:
+        # Get the modification times
+        tto  = getmtime(ftar)
+        # Make sure both exist; then test mod times
+        if tto:
+            # Change the command to "-uf" for an update
+            cmd = ["tar", "-uf"]
     # Create command
     cmdc = cmd + [ftar, fdir]
+    # Status update
+    print("  %s ARCHIVE/%s %s" % (' '.join(cmd), os.path.split(ftar)[1], fdir))
     # Run the command
     ierr = sp.call(cmdc)
     # Exit if unsuccessful
