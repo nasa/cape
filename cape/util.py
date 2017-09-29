@@ -444,11 +444,14 @@ def SearchSinusoidFit(x, y, N1, N2, **kw):
     eps = SigmaMean(yi)
     # Drift
     dy = n*a[1]
+    # Overall uncertainty
+    u = np.sqrt(9*eps*eps + dy*dy)
     # Output
     return {
         "n": n,
         "a": a,
         "w": w,
+        "u": u,
         "mu":  v,
         "eps": eps,
         "sig": sig,
