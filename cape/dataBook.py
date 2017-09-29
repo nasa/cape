@@ -7206,6 +7206,10 @@ class CaseFM(CaseData):
         * 2014-11-12 ``@ddalle``: Starter version
         * 2014-12-21 ``@ddalle``: Copied from previous `aero.FM`
     """
+  # =======
+  # Config
+  # =======
+  # <
     # Initialization method
     def __init__(self, comp):
         """Initialization method
@@ -7260,6 +7264,31 @@ class CaseFM(CaseData):
         # Output
         return FM
     
+    # Method to add data to instance
+    def AddData(self, A):
+        """Add iterative force and/or moment history for a component
+        
+        :Call:
+            >>> FM.AddData(A)
+        :Inputs:
+            *FM*: :class:`cape.dataBook.CaseFM`
+                Instance of the force and moment class
+            *A*: :class:`numpy.ndarray` shape=(*N*,4) or shape=(*N*,7)
+                Matrix of forces and/or moments at *N* iterations
+        :Versions:
+            * 2014-11-12 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: Version 2.0, complete rewrite
+        """
+        # Save the values.
+        for k in range(len(self.cols)):
+            # Set the values from column *k* of the data
+            setattr(self,self.cols[k], A[:,k])
+   # >
+   
+   # ============
+   # Operations
+   # ============
+   # <
     # Add components
     def __add__(self, FM):
         """Add two iterative histories
@@ -7405,27 +7434,48 @@ class CaseFM(CaseData):
             setattr(self,col, getattr(self,col) - getattr(FM,col)[:n])
         # Apparently you need to output
         return self
-    
-    # Method to add data to instance
-    def AddData(self, A):
-        """Add iterative force and/or moment history for a component
+   # >
+   
+   # ================
+   # Data Processing
+   # ================
+   # <
+    # Extract a coefficient
+    def GetCoeff(self, c, **kw):
+        """Special method to extract a coefficient
+        
+        This can access coefficients that are directly present or extract
+        derived quantities.  For example, *FA* is the dimensional force
+        corresponding to the axial force coefficient *CA*.  These derived
+        quantities require extra input values such as angle of attack,
+        freestream dynamic pressure, reference area, etc.
         
         :Call:
-            >>> FM.AddData(A)
+            >>> V = FM.GetCoeff(c, **kw)
         :Inputs:
             *FM*: :class:`cape.dataBook.CaseFM`
-                Instance of the force and moment class
-            *A*: :class:`numpy.ndarray` shape=(*N*,4) or shape=(*N*,7)
-                Matrix of forces and/or moments at *N* iterations
+                Force and moment iterative history
+            *c*: :class:`str`
+                Name of coefficient to extract
+        :Outputs:
+            *V*: :class:`np.ndarray`
+                Array of values from *FM[c]* or derived quantity
         :Versions:
-            * 2014-11-12 ``@ddalle``: First version
-            * 2015-10-16 ``@ddalle``: Version 2.0, complete rewrite
+            * 2017-09-29 ``@ddalle``: First version
         """
-        # Save the values.
-        for k in range(len(self.cols)):
-            # Set the values from column *k* of the data
-            setattr(self,self.cols[k], A[:,k])
-    
+        # Check if the coefficient is present
+        if c in self:
+            # Return it
+            return self[c]
+            
+        # If reached here, error
+        raise KeyError("Could not process coefficient named '%s'" % c)
+   # >
+   
+   # =================
+   # Transformations
+   # =================
+   # <
     # Transform force or moment reference frame
     def TransformFM(self, topts, x, i):
         """Transform a force and moment history
@@ -7623,7 +7673,12 @@ class CaseFM(CaseData):
         # Yawing moment: axial force
         if ('CLN' in self.coeffs) and ('CY' in self.coeffs):
             self.CLN += (x[0]-xi[0])/Lref*self.CY
-    
+   # >
+   
+   # ===========
+   # Statistics
+   # ===========
+   # <
     # Method to get averages and standard deviations
     def GetStatsN(self, nStats=100, nLast=None):
         """Get mean, min, max, and standard deviation for all coefficients
@@ -7755,7 +7810,12 @@ class CaseFM(CaseData):
                 e = en
         # Output.
         return s
-    
+   # >
+   
+   # ==========
+   # Plotting
+   # ==========
+   # <
     # Plot iterative force/moment history
     def PlotCoeff(self, c, n=None, nAvg=100, **kw):
         """Plot a single coefficient history
@@ -7828,6 +7888,7 @@ class CaseFM(CaseData):
             * 2015-03-06 ``@ddalle``: Copied to :class:`CaseFM`
         """
         return self.PlotValueHist(c, nAvg=nAvg, nBin=nBin, nLast=None, **kw)
+   # >
 # class CaseFM
 
 

@@ -17,6 +17,11 @@ import os.path, sys
 # Text
 import re
 
+# Would like to use scipy, but let's not have a strict dependency
+try:
+    import scipy.signal
+except ImportError:
+    pass
 
 
 # cape base folder
@@ -254,7 +259,7 @@ def SigmaMean(x):
     :Call:
         >>> sig = cape.util.SigmaMean(x)
     :Inputs:
-        *x*: :class:`numpy.ndarray` or :class:`list`
+        *x*: :class:`numpy.ndarray` | :class:`list`
             Array of points
     :Outputs:
         *sig*: :class:`float`
@@ -274,6 +279,269 @@ def SigmaMean(x):
     si = np.std(X)
     # Output
     return si * np.sqrt(float(ni)/float(n))
+    
+# Use Welch's method (or a crude estimate) to get a primary frequency
+def GetBestFrequency(y, fs=1.0, **kw):
+    """Get best frequency using :func:`scipy.signal.welch` if available
+    
+    If SciPy is not available, use a crude count of how many times the signal
+    crosses the mean value (with a window to avoid overcounting small
+    oscillations right around the mean value).  The dimensions of this output
+    are such that the signal matches sinusoids such as :math:`\sin(\omega x)`.
+    To meet this format, the output is 2 times the peak frequency from
+    :func:`scipy.signal.welch`.
+    
+    :Call:
+        >>> w = GetBestFrequency(y, fs=1.0)
+    :Inputs:
+        *y*: :class:`np.ndarray` shape=(*n*,)
+            Input signal to process
+        *fs*: {``1.0``} | :class:`float`
+            Sampling frequency of *y*; usually 1 as in 1 per iteration
+    :Outputs:
+        *w*: :class:`float`
+            Dominant frequency
+    :Versions:
+        * 2017-09-29 ``@ddalle``: First version
+    """
+    # Length of signal
+    n = len(y)
+    # Number of points per segment
+    npwerseg = kw.get("nperseg", min(n,256))
+    # Attempt to use Welch's method from SciPy method
+    try:
+        # Estimate power spectral density
+        f, a = scipy.signal.welch(y, fs=fs, nperseg=nperseg)
+        # Return the peak frequency (disallow w==0)
+        return 2*f[1+np.argmax(a[1:])]
+    except Exception:
+        pass
+    # Calculate mean
+    m = np.mean(y)
+    # Calculate amplitude
+    sig = np.std(y)
+    # Initialize array for zero crossings
+    I = np.zeros(n)
+    # Set indices for above-mean and below-mean samples
+    I[y > m+0.15*sig] = 1
+    I[y < m-0.15*sig] = -1
+    # Eliminate zeros from the array (samples close to the mean)
+    J = I[I!=0]
+    # Count crossings (j_i * j_{i+1} == -1)
+    k = np.count_nonzero(J[1:]*J[:-1] == -1)
+    # Convert to a frequency
+    return float(k)*np.pi/n
+    
+# Function to fit a line plus a sinusoid
+def FitLinearSinusoid(x, y, w):
+    """Find the best fit of a line plus a sinusoid with a specified frequency
+    
+    The function returns the best fit for
+    
+        .. math::
+        
+                y = a_0 + a_1x + a_2\\cos(\\omega x) + a_3\\sin(\\omega x)
+                
+    :Call:
+        >>> a = FitLinearSinusoid(x, y, w)
+        >>> a0, a1, a2, a3 = FitLinearSinusoid(x, y, w)
+    :Inputs:
+        *x*: :class:`np.ndarray`
+            Array of independent variable samples (e.g. iteration number)
+        *y*: :class:`np.ndarray`
+            Signal to be fit
+        *w*: :class:`float`
+            Specified frequency of the sinusoid
+    :Outputs:
+        *a*: :class:`np.ndarray` (:class:`float`)
+            Array of *a0*, *a1*, *a2*, *a3*
+        *a0*: :class:`float`
+            Constant offset
+        *a1*: :class:`float`
+            Linear slope
+        *a2*: :class:`float`
+            Magnitude of cosine signal
+        *a3*: :class:`float`
+            Magnitude of sine signal
+    :Versions:
+        * 2017-09-29 ``@ddalle``: First version
+    """
+    # Length of signal
+    n = len(x)
+    # Check consistency
+    if len(y) != n:
+        raise ValueError(
+            ("Input signal has length %i, but " % len(y)) +
+            ("time sample array has length %i" % n))
+    # Calculate trig functions
+    cx = np.cos(w*x)
+    sx = np.sin(w*x)
+    # Calculate relevant sums
+    x1  = np.sum(x)
+    x2  = np.sum(x*x)
+    c1  = np.sum(cx)
+    c2  = np.sum(cx*cx)
+    xc1 = np.sum(x*cx)
+    s1  = np.sum(sx)
+    s2  = np.sum(sx*sx)
+    xs1 = np.sum(x*sx)
+    cs1 = np.sum(cx*sx)
+    # Right-hand side sums
+    y1  = np.sum(y)
+    yx1 = np.sum(y*x)
+    yc1 = np.sum(y*cx)
+    ys1 = np.sum(y*sx)
+    # Create matrices
+    A = np.array([
+        [n,  x1,  c1,  s1],
+        [x1, x2,  xc1, xs1],
+        [c1, xc1, c2,  cs1],
+        [s1, xs1, cs1, s2]
+    ])
+    Y = np.array([y1, yx1, yc1, ys1])
+    # Solve linear system to get best fit
+    a = np.linalg.solve(A, Y)
+    # Output
+    return a
+    
+# Function to calculate best linear/sinusoidal fit within a range of windows
+def SearchSinusoidFit(x, y, N1, N2, **kw):
+    """Find the best window size to minimize the slope of a linear/sine fit
+    
+    :Call:
+        >>> F = SearchSinusoidFit(y, N1, N2, **kw)
+    :Inputs:
+        *x*: :class:`np.ndarray`
+            Array of independent variable samples (e.g. iteration number)
+        *y*: :class:`np.ndarray`
+            Signal to be fit
+        *N1*: :class:`int`
+            Minimum candidate window size
+        *N2*: :class:`int`
+            Maximum candidate window size
+    :Outputs:
+        *F*: :class:`dict`
+            Dictionary of fit coefficients and statistics
+    :Versions:
+        * 2017-09-29 ``@ddalle``: First version
+    """
+    # Use the maximum window size to get the best frequency
+    w = GetBestFrequency(y[-N2:], **kw)
+    # Calculate the half period based on this frequency
+    p = int(np.pi/w)
+    # Get the largest window that's a whole or half multiple of period
+    n = max(N1, (N2/p) * p)
+    # Get sample sizes
+    xi = x[-n:]
+    yi = y[-n:]
+    # Calculate the line+sine fit
+    a = FitLinearSinusoid(xi, yi, w)
+    # Calculate mean value
+    v = np.mean(yi)
+    # Standard deviation
+    sig = np.std(yi)
+    # Sampling error
+    eps = SigmaMean(yi)
+    # Drift
+    dy = n*a[1]
+    # Output
+    return {
+        "n": n,
+        "a": a,
+        "w": w,
+        "mu":  v,
+        "eps": eps,
+        "sig": sig,
+        "dy":  dy
+    }
+    
+    
+    
+    
+# Function to calculate window with lowest linear fit
+def BisectLinearFit(I, x, N1, N2, **kw):
+    """Calculate window size that results in 
+    
+    :Call:
+        >>> N, dx = BisectLinearFit(I, x, N1, N2, **kw)
+    :Inputs:
+        *I*: :class:`np.ndarray` (:class:`int` | :class:`float`)
+            Iteration indices (in case of non-uniform spacing)
+        *x*: :class:`np.ndarray` (:class:`float`)
+            Array of test values
+        *N1*: :class:`int`
+            Minimum candidate window size
+        *N2*: :class:`int`
+            Maximum candidate window size
+    :Outputs:
+        *N*: :class:`int`
+            Window size with flattest linear fit
+        *dx*: :class:`float`
+            Absolute value of change in *x* over window *N*
+    :Versions:
+        * 20178-09-28 ``@ddalle``: First version
+    """
+    # Check inputs
+    N1 = int(N1)
+    N2 = int(N2)
+    # Check if we need to switch
+    if N1 > N2:
+        N1, N2 = N2, N1
+    # Add the bisection point to the mix
+    N = int((N1+N2)/2)
+    # Calculate linear fits
+    a1, a0 = np.polyfit(I[-N1:], x[-N1:], 1)
+    a2, a0 = np.polyfit(I[-N2:], x[-N2:], 1)
+    a,  a0 = np.polyfit(I[-N:],  x[-N:],  1)
+    print("k=%2i, a1=%6.4f, a2=%6.4f, a=%6.4f" % (0,a1,a2,a))
+    print("       N1=%-5i,  N2=%-5i,  N=%-5i" % (N1, N2, N))
+    # Check signs
+    if a*a2 <= 0:
+        # Use upper half
+        a1, N1 = a, N
+    elif a*a1 <= 0:
+        # Use lower half
+        a2, N2 = a, N
+    elif abs(a1*N1) < abs(a2*N2):
+        # Check for medium being better
+        if abs(a1*N1) < abs(a*N):
+            # Use the minimum window size
+            return N1, a1*(I[-1]-I[-N1])
+        else:
+            # Use the middle size
+            return N, a*(I[-1]-I[-N])
+    else:
+        # Check for medimum being better
+        if abs(a*N) < abs(a2*N2):
+            # Use the middle size
+            return N, a*(I[-1]-I[-N])
+        else:
+            # Use the maximum window size
+            return N2, a2*(I[-1]-I[-N2])
+    # Initialize iteration count
+    k = 0
+    kmax = kw.get("kmax", 6)
+    # Perform bisection/secant method
+    while (k < kmax) and (N2-N1 > 5):
+        # Iteration count
+        k += 1
+        # Calculate the intermediate value
+        N = int(N1 - a1/(a2-a1)*(N2-N1))
+        # Calculate new fit
+        a, a0 = np.polyfit(I[-N:], x[-N:], 1)
+        print("k=%2i, a1=%6.4f, a2=%6.4f, a=%6.4f" % (k,a1,a2,a))
+        print("       N1=%-5i,  N2=%-5i,  N=%-5i" % (N1, N2, N))
+        # Check side
+        if a*a1 <= 0:
+            # Update upper bound (use lower half)
+            a2, N2 = a, N
+        else:
+            # Update lower bound (use upper half)
+            a1, N1 = a, N
+    # Output
+    return N, a*(I[-1] - I[-N])
+        
+        
     
 # Function to get a non comment line
 def readline(f, comment='#'):
