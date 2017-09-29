@@ -404,12 +404,106 @@ def FitLinearSinusoid(x, y, w):
     # Output
     return a
     
+# Function to select the best best line+sine fit
+def SearchSinusoidFitRange(x, y, nAvg, nMax=None, dn=None, nMin=0, **kw):
+    """Find the best window size to minimize the slope of a linear/sine fit
+    
+    :Call:
+        >>> F = SearchSinusoidFitRange(x, y, nAvg, nMax, dn=None, **kw)
+    :Inputs:
+        *x*: :class:`np.ndarray`
+            Array of independent variable samples (e.g. iteration number)
+        *y*: :class:`np.ndarray`
+            Signal to be fit
+        *nAvg*: :class:`int`
+            Minimum candidate window size
+        *nMax*: {*nAvg*} | :class:`int`
+            Maximum candidate window size
+        *dn*: {*nAvg*} | :class:`int`
+            Candidate interval size
+        *nMin*: {``0``} | :class:`int`
+            First iteration allowed in the window
+    :Outputs:
+        *F*: :class:`dict`
+            Dictionary of fit coefficients and statistics
+        *F['n']*, *n*: :class:`int`
+            Number of iterations in selected window
+        *F['mu']*: :class:`float`
+            Mean value over the window of size *n*
+        *F['w']*, *w*: :class:`float`
+            Estimated dominant frequency over the window
+        *F['a']*, *a*, ``[a0, a1, a2, a3]``: :class:`np.ndarray`
+            List of line+sinusoid fit coefficients
+        *a0*: :class:`float`
+            Constant offset of best line+sinusoid fit
+        *a1*: :class:`float`
+            Linear slope of best line+sinusoid fit
+        *a2*: :class:`float`
+            Amplitude of cosine contribution to line+sinusoid fit
+        *a3*: :class:`float`
+            Amplitude of sine contribution to line+sinusoid fit
+        *F['sig']*: :class:`float`
+            Raw standard deviation over window of size *n*
+        *F['eps']*, *eps*: :class:`float`
+            Sampling error; see :func:`SigmaMean`
+        *F['dy']*, *dy*: :class:`float`
+            Drift over the window, equal to ``a1*n``
+        *F['u']*: :class:`float`
+            Uncertainty estimate based on *dy* and ``3*eps``
+        *F['np']*: :class:`float`
+            Number of dominant-frequency periods in window
+    :Versions:
+        * 2017-09-29 ``@ddalle``: First version
+    """
+    # Process defaults
+    if nMax is None: nMax = nAvg
+    if dn   is None: dn = nAvgs
+    # Number of available iterations after *nMin*
+    nAvail = np.count_nonzero(x>nMin)
+    # Total number of iterations
+    nx = len(x)
+    # Number of available iterations
+    nMax = min(nMax, nAvail)
+    # Check for insufficient iterations for a single window
+    if nAvg > nx:
+        # Use all the iterations b/c there are less than *nAvg* after *nMin*
+        nAvg = nx
+        nMax = nx
+    elif nAvg > nMax:
+        # Use *nAvg* iterations, which reach before *nMin*
+        nMax = nAvg
+    # Create array of minimum window sizes
+    N = nAvg + np.arange(max(1,np.ceil(float(nMax-nAvg)/dn)))*dn
+    # Append *nMax* if not in *N*
+    if np.max(N) < nMax: N = np.append(N, nMax)
+    # Create one window if no range
+    if len(N) == 1: N = np.append(N, nAvg)
+    # Number of candidate windows
+    nw = len(N) - 1
+    # Initialize candidates
+    F = {}
+    n = np.zeros(nw)
+    u = np.zeros(nw)
+    # Loop through windows
+    for i in range(nw):
+        # Get statistics
+        F[i] = SearchSinusoidFit(x, y, N[i], N[i+1], **kw)
+        # Save error
+        u[i] = F[i]["u"]
+    # Find best error
+    i = np.argmin(u)
+    # Output
+    return F[i]
+    
+    
+    
+    
 # Function to calculate best linear/sinusoidal fit within a range of windows
 def SearchSinusoidFit(x, y, N1, N2, **kw):
     """Find the best window size to minimize the slope of a linear/sine fit
     
     :Call:
-        >>> F = SearchSinusoidFit(y, N1, N2, **kw)
+        >>> F = SearchSinusoidFit(x, y, N1, N2, **kw)
     :Inputs:
         *x*: :class:`np.ndarray`
             Array of independent variable samples (e.g. iteration number)
@@ -422,15 +516,68 @@ def SearchSinusoidFit(x, y, N1, N2, **kw):
     :Outputs:
         *F*: :class:`dict`
             Dictionary of fit coefficients and statistics
+        *F['n']*, *n*: :class:`int`
+            Number of iterations in selected window
+        *F['mu']*: :class:`float`
+            Mean value over the window of size *n*
+        *F['w']*, *w*: :class:`float`
+            Estimated dominant frequency over the window
+        *F['a']*, *a*, ``[a0, a1, a2, a3]``: :class:`np.ndarray`
+            List of line+sinusoid fit coefficients
+        *a0*: :class:`float`
+            Constant offset of best line+sinusoid fit
+        *a1*: :class:`float`
+            Linear slope of best line+sinusoid fit
+        *a2*: :class:`float`
+            Amplitude of cosine contribution to line+sinusoid fit
+        *a3*: :class:`float`
+            Amplitude of sine contribution to line+sinusoid fit
+        *F['sig']*: :class:`float`
+            Raw standard deviation over window of size *n*
+        *F['eps']*, *eps*: :class:`float`
+            Sampling error; see :func:`SigmaMean`
+        *F['dy']*, *dy*: :class:`float`
+            Drift over the window, equal to ``a1*n``
+        *F['u']*: :class:`float`
+            Uncertainty estimate based on *dy* and ``3*eps``
+        *F['np']*: :class:`float`
+            Number of dominant-frequency periods in window
     :Versions:
         * 2017-09-29 ``@ddalle``: First version
     """
+    ## Switch inputs if necessary
+    #if N2 < N1:
+    #    N1, N2 = N2, N1
+    ## Check for degenerate ranges
+    #if N2 < 5:
+    #    # Just say it's a constant
+    #    v = np.mean(y[-N2:])
+    #    a = np.array([v, 0, 0, 0])
+    #    # No statistics
+    #    eps = 0.0
+    #    sig = 0.0
+    #    w = 0.0
+    #    # Use the whole range as the drift
+    #    dy = max(y[-N2:]) - min(y[-N2:])
+    #    u  = dy
+    #    # Trivial output
+    #    return {
+    #        "n": N2,
+    #        "a": a,
+    #        "w": w,
+    #        "u": u,
+    #        "dy": dy,
+    #        "mu": v,
+    #        "np": 0.0,
+    #        "eps": eps,
+    #        "sig": sig
+    #    }
     # Use the maximum window size to get the best frequency
     w = GetBestFrequency(y[-N2:], **kw)
     # Calculate the half period based on this frequency
-    p = int(np.pi/w)
+    p = np.pi/w
     # Get the largest window that's a whole or half multiple of period
-    n = max(N1, (N2/p) * p)
+    n = max(N1, int(N2/p) * int(p))
     # Get sample sizes
     xi = x[-n:]
     yi = y[-n:]
@@ -452,6 +599,7 @@ def SearchSinusoidFit(x, y, N1, N2, **kw):
         "a": a,
         "w": w,
         "u": u,
+        "np":  0.5*n/int(p),
         "mu":  v,
         "eps": eps,
         "sig": sig,

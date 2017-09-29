@@ -454,12 +454,56 @@ class DataBook(odict):
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *nStats*: :class:`int`
+            *nMax*: :class:`int`
                 Number of iterations to be used for statistics
         :Versions:
             * 2014-12-20 ``@ddalle``: First version
         """
         self['nMaxStats'] = nMax
+        
+    # Interval
+    def get_dnStats(self, comp=None):
+        """Get the increment in window sizes
+        
+        :Call:
+            >>> dn = opts.get_dnStats(comp=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of specific data book to query
+        :Outputs:
+            *dn*: :class:`int`
+                Increment in candidate window sizes
+        :Versions:
+            * 2017-09-29 ``@ddalle``: First version
+        """
+        # Read global option
+        db_dn = self.get_key('dnStats', self.get_nStats(comp))
+        # Process request type
+        if comp is None:
+            # Global
+            return db_dn
+        else:
+            # Return specific setting; default to global
+            return self[comp].get('dnStats', db_dn)
+        
+    # Set the maximum number of initial mesh divisions
+    def set_dnStats(self, dn):
+        """Set the increment in window sizes
+        
+        :Call:
+            >>> opts.set_dnStats(dn)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *dn*: :class:`int`
+                Increment in candidate window sizes
+        :Versions:
+            * 2017-09-29 ``@ddalle``: First version
+        """
+        self['nMaxStats'] = dn
+        
         
     # Get a specific iteration to end statistics at
     def get_nLastStats(self, comp=None):

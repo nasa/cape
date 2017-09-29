@@ -3952,7 +3952,7 @@ class DBBase(dict):
                 Option to print value of mean
             *ShowSigma*: :class:`bool`
                 Option to print value of standard deviation
-            *ShowEpsilon*: :class:`bool`
+            *ShowError*: :class:`bool`
                 Option to print value of sampling error
             *ShowDelta*: :class:`bool`
                 Option to print reference value
@@ -6380,11 +6380,11 @@ class CaseData(object):
   # =========
   # <
     # Basic plotting function
-    def PlotValue(self, c, col=None, n=None, nAvg=100, **kw):
+    def PlotValue(self, c, col=None, n=None, **kw):
         """Plot an iterative history of some value named *c*
         
         :Call:
-            >>> h = FM.PlotValue(c, n=None, nAvg=100, **kw)
+            >>> h = FM.PlotValue(c, n=None, **kw)
         :Inputs:
             *FM*: :class:`cape.dataBook.CaseData`
                 Case component history class
@@ -6394,16 +6394,22 @@ class CaseData(object):
                 Select a column by name or index
             *n*: :class:`int`
                 Only show the last *n* iterations
-            *nAvg*: :class:`int`
-                Use the last *nAvg* iterations to compute an average
+            *nMin*: {``0``} | :class:`int`
+                First iteration allowed for use in averaging
+            *nAvg*, *nStats*: {``100``} | :class:`int`
+                Use at least the last *nAvg* iterations to compute an average
+            *dnAvg*, *dnStats*: {*nStats*} | :class:`int`
+                Use intervals of *dnStats* iterations for candidate windows
+            *nMax*, *nMaxStats*: {*nStats*} | :class:`int`
+                Use at most *nMax* iterations
             *d*: :class:`float`
                 Delta in the coefficient to show expected range
             *k*: :class:`float`
                 Multiple of iterative standard deviation to plot
             *u*: :class:`float`
                 Multiple of sampling error standard deviation to plot
-            *eps*: :class:`float`
-                Fixed sampling error, default uses :func:`SigmaMean`
+            *err*: :class:`float`
+                Fixed sampling error, def uses :func:`util.SearchSinusoidFit`
             *nLast*: :class:`int`
                 Last iteration to use (defaults to last iteration available)
             *nFirst*: :class:`int`
@@ -6426,7 +6432,7 @@ class CaseData(object):
                 Option to print value of mean
             *ShowSigma*: :class:`bool`
                 Option to print value of standard deviation
-            *ShowEpsilon*: :class:`bool`
+            *ShowError*: :class:`bool`
                 Option to print value of sampling error
             *ShowDelta*: :class:`bool`
                 Option to print reference value
@@ -6436,7 +6442,7 @@ class CaseData(object):
                 Format for text label of the reference value *d*
             *SigmaFormat*: {``"%.4f"``} | :class:`str`
                 Format for text label of the iterative standard deviation
-            *EpsilonFormat*: {``"%.4f"``} | :class:`str`
+            *ErrorFormat*: {``"%.4f"``} | :class:`str`
                 Format for text label of the sampling error
             *XLabel*: :class:`str`
                 Specified label for *x*-axis, default is ``Iteration Number``
@@ -6474,7 +6480,7 @@ class CaseData(object):
             C = self.ExtractValue(c)
         # Process inputs.
         nLast = kw.get('nLast')
-        nFirst = kw.get('nFirst')
+        nFirst = kw.get('nFirst', 1)
         # Iterative uncertainty options
         dc = kw.get("d", 0.0)
         ksig = kw.get("k", 0.0)
@@ -6482,6 +6488,22 @@ class CaseData(object):
         # Other plot options
         fw = kw.get('FigWidth')
         fh = kw.get('FigHeight')
+       # ------------
+       # Statistics
+       # ------------
+        # Averaging window size (minimum)
+        nAvg  = kw.get("nAvg", kw.get("nStats", 100))
+        # Increment in candidate window size
+        dnAvg = kw.get("dnAvg", kw.get("dnStats", nAvg))
+        # Maximum window size
+        nMax = kw.get("nMax", kw.get("nMaxStats", nAvg))
+        # Minimum allowed iteration
+        nMin = kw.get("nMin", nFirst)
+        # Get statistics
+        s = util.SearchSinusoidFitRange(self.i, C, nAvg, nMax,
+            dn=dnAvg, nMin=nMin)
+        # New averaging iteration
+        nAvg = s['n']
        # ---------
        # Last Iter 
        # ---------
@@ -6524,13 +6546,13 @@ class CaseData(object):
         # Initialize dictionary of handles.
         h = {}
         # Shortcut for the mean
-        cAvg = np.mean(C[jA:jB+1])
+        cAvg = s['mu']
         # Initialize plot options for standard deviation
         kw_s = odict(color='b', lw=0.0,
             facecolor="b", alpha=0.35, zorder=1)
         # Calculate standard deviation if necessary
         if (ksig and nAvg>2) or kw.get("ShowSigma"):
-            c_std = np.std(C[jA:jB])
+            c_std = s['sig']
         # Show iterative n*standard deviation
         if ksig and nAvg>2:
             # Extract plot options from kwargs
@@ -6551,13 +6573,9 @@ class CaseData(object):
         kw_u = odict(color='g', lw=0,
             facecolor="g", alpha=0.35, zorder=2)
         # Calculate sampling error if necessary
-        if (uerr and nAvg>2) or kw.get("ShowEpsilon"):
+        if (uerr and nAvg>2) or kw.get("ShowError"):
             # Check for sampling error
-            c_err = kw.get('eps')
-            # Calculate default
-            if c_err is None:
-                # Calculate mean sampling error
-                c_err = SigmaMean(C[jA:jB])
+            c_err = kw.get('err', s['u'])
         # Show iterative n*standard deviation
         if uerr and nAvg>2:
             # Extract plot options from kwargs
@@ -6667,8 +6685,17 @@ class CaseData(object):
         yf = 2.5 / ha / h['fig'].get_figheight()
         yu = 1.0 + 0.065*yf
         yl = 1.0 - 0.04*yf
+        # Process options for label
+        qlmu  = kw.get("ShowMu", True)
+        qldel = kw.get("ShowDelta", True)
+        qlsig = kw.get("ShowSigma", True)
+        qlerr = kw.get("ShowError", True)
+        # Further processing
+        qldel = (dc and qldel)
+        qlsig = (nAvg>2) and ((ksig and qlsig) or kw.get("ShowSigma",False))
+        qlerr = (nAvg>6) and ((uerr and qlerr) or kw.get("ShowError",False))
         # Make a label for the mean value.
-        if kw.get("ShowMu", True):
+        if qlmu:
             # printf-style format flag
             flbl = kw.get("MuFormat", "%.4f")
             # Form: CA = 0.0204
@@ -6681,7 +6708,7 @@ class CaseData(object):
             try: h['mu'].set_family("DejaVu Sans")
             except Exception: pass
         # Make a label for the deviation.
-        if dc and kw.get("ShowDelta", True):
+        if qldel:
             # printf-style flag
             flbl = kw.get("DeltaFormat", "%.4f")
             # Form: \DeltaCA = 0.0050
@@ -6694,8 +6721,7 @@ class CaseData(object):
             try: h['d'].set_family("DejaVu Sans")
             except Exception: pass
         # Make a label for the standard deviation.
-        if nAvg>2 and ((ksig and kw.get("ShowSigma", True)) 
-                or kw.get("ShowSigma", False)):
+        if qlsig:
             # Printf-style flag
             flbl = kw.get("SigmaFormat", "%.4f")
             # Form \sigma(CA) = 0.0032
@@ -6708,14 +6734,20 @@ class CaseData(object):
             try: h['sig'].set_family("DejaVu Sans")
             except Exception: pass
         # Make a label for the iterative uncertainty.
-        if nAvg>2 and ((uerr and kw.get("ShowEpsilon", True))
-                or kw.get("ShowEpsilon", False)):
+        if qlerr:
             # printf-style format flag
-            flbl = kw.get("EpsilonFormat", "%.4f")
+            flbl = kw.get("ErrorFormat", "%.4f")
             # Form \varepsilon(CA) = 0.0032
             lbl = (u'u(%s) = %s' % (c, flbl)) % c_err
+            # Check position
+            if qlsig:
+                # Put below the upper border
+                yerr = yl
+            else:
+                # Put above the upper border if there's no sigma in the way
+                yerr = yu
             # Create the handle.
-            h['eps'] = plt.text(0.01, yl, lbl, color=kw_u.get_key('color',1),
+            h['eps'] = plt.text(0.01, yerr, lbl, color=kw_u.get_key('color',1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -6812,7 +6844,7 @@ class CaseData(object):
                 Option to print value of mean
             *ShowSigma*: :class:`bool`
                 Option to print value of standard deviation
-            *ShowEpsilon*: :class:`bool`
+            *ShowError*: :class:`bool`
                 Option to print value of sampling error
             *ShowDelta*: :class:`bool`
                 Option to print reference value
@@ -7211,10 +7243,10 @@ class CaseFM(CaseData):
         * 2014-11-12 ``@ddalle``: Starter version
         * 2014-12-21 ``@ddalle``: Copied from previous `aero.FM`
     """
-  # =======
-  # Config
-  # =======
-  # <
+   # =======
+   # Config
+   # =======
+   # <
     # Initialization method
     def __init__(self, comp):
         """Initialization method

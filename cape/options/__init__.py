@@ -2276,6 +2276,16 @@ class Options(odict):
         self._DataBook()
         self['DataBook'].set_nStats(nStats)
     
+    # Number of iterations used for statistics
+    def get_dnStats(self, comp=None):
+        self._DataBook()
+        return self['DataBook'].get_dnStats(comp)
+    
+    # Set number of iterations
+    def set_dnStats(self, dn):
+        self._DataBook()
+        self['DataBook'].set_dnStats(dn)
+    
     # Min iteration used for statistics
     def get_nMin(self, comp=None):
         self._DataBook()
@@ -2337,7 +2347,7 @@ class Options(odict):
         self['DataBook'].set_SortKey(key)
         
     # Copy over the documentation.
-    for k in ['nStats', 'nMin', 'nMaxStats', 'nLastStats', 
+    for k in ['nStats', 'dnStats', 'nMin', 'nMaxStats', 'nLastStats', 
             'DataBookDir', 'Delimiter', 'SortKey']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__

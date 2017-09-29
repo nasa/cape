@@ -2466,10 +2466,12 @@ class Report(object):
             coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
             # Numbers of iterations
             nStats = opts.get_SubfigOpt(sfig, "nStats",    k)
+            dn     = opts.get_SubfigOpt(sfig, "dnStats",   k)
             nMin   = opts.get_SubfigOpt(sfig, "nMinStats", k)
             nMax   = opts.get_SubfigOpt(sfig, "nMaxStats", k)
             # Default to databook options
             if nStats is None: nStats = opts.get_nStats()
+            if dn     is None: dn     = opts.get_dnStats()
             if nMin   is None: nMin   = opts.get_nMin()
             if nMax   is None: nMax   = opts.get_nMaxStats()
             # Numbers of iterations for plots
@@ -2519,7 +2521,7 @@ class Report(object):
             fmt_m = opts.get_SubfigOpt(sfig, "MuFormat", k)
             fmt_s = opts.get_SubfigOpt(sfig, "SigmaFormat", k)
             fmt_d = opts.get_SubfigOpt(sfig, "DeltaFormat", k)
-            fmt_e = opts.get_SubfigOpt(sfig, "EpsilonFormat", k)
+            fmt_e = opts.get_SubfigOpt(sfig, "ErrorFormat", k)
             # Overall formatting
             if k == 0:
                 # First plot, get legend, etc.
@@ -2537,8 +2539,9 @@ class Report(object):
                 mngrid = None
                 kw_gmn = {}
             # Draw the plot.
-            h = FM.PlotCoeff(coeff, n=nPlotIter, nAvg=s['nStats'],
+            h = FM.PlotCoeff(coeff, n=nPlotIter,
                 nFirst=nPlotFirst, nLast=nPlotLast,
+                nStats=nStats, nMaxStats=nMax, dnStats=dn,
                 LineOptions=kw_p, MeanOptions=kw_m,
                 d=dc, DeltaOptions=kw_d,
                 k=ksig, StDevOptions=kw_s,
@@ -2546,7 +2549,7 @@ class Report(object):
                 ShowMu=sh_m, MuFormat=fmt_m,
                 ShowDelta=sh_d, DeltaFormat=fmt_d,
                 ShowSigma=sh_s, SigmaFormat=fmt_s,
-                ShowEspsilon=sh_e, EpsilonFormat=fmt_e,
+                ShowError=sh_e, ErrorFormat=fmt_e,
                 FigWidth=figw, FigHeight=figh,
                 Grid=mjgrid, GridStyle=kw_gmj,
                 MinorGrid=mngrid, MinorGridStyle=kw_gmn)
