@@ -7326,6 +7326,33 @@ class CaseFM(CaseData):
    # Operations
    # ============
    # <
+    # Trim entries
+    def TrimIters(self):
+        """Trim non-ascending iterations and other problems
+
+        :Call:
+            >>> FM.TrimIters()
+        :Versions:
+            * 2017-10-02 ``@ddalle``: First version
+        """
+        # Number of existing iterations
+        n = len(self.i)
+        # Initialize iterations to keep
+        q = np.ones(n, dtype="bool")
+        # Last iteration available
+        i1 = self.i[-1]
+        # Loop through iterations
+        for j in range(n-1):
+            # Check for any following iterations that are less than this
+            q[j] = (self.i[j] <= min(self.i[j+1:]))
+            # Check for last iteration less than current
+            q[j] = (q[j] and self.i[j] < i1)
+        # Indices
+        I = np.where(q)[0]
+        # Perform trimming actions
+        for col in self.cols:
+            setattr(self,col, getattr(self,col)[I])
+
     # Add components
     def __add__(self, FM):
         """Add two iterative histories
@@ -7344,6 +7371,11 @@ class CaseFM(CaseData):
         :Versions:
             * 2017-03-20 ``@ddalle``: First version
         """
+        # Check dimensions
+        if (self.i.size != FM.i.size) or np.any(self.i != FM.i):
+            # Trim any reversions of iterations
+            self.TrimIters()
+            FM.TrimIters()
         # Check dimensions
         if self.i.size > FM.i.size:
             raise IndexError(
@@ -7383,6 +7415,11 @@ class CaseFM(CaseData):
             * 2017-03-20 ``@ddalle``: First version
         """
         # Check dimensions
+        if (self.i.size != FM.i.size) or np.any(self.i != FM.i):
+            # Trim any reversions of iterations
+            self.TrimIters()
+            FM.TrimIters()
+        # Check dimensions
         if self.i.size > FM.i.size:
             raise IndexError(
                 ("Cannot add iterative F&M histories\n  %s\n" % self) +
@@ -7417,6 +7454,11 @@ class CaseFM(CaseData):
         :Versions:
             * 2017-03-20 ``@ddalle``: First version
         """
+        # Check dimensions
+        if (self.i.size != FM.i.size) or np.any(self.i != FM.i):
+            # Trim any reversions of iterations
+            self.TrimIters()
+            FM.TrimIters()
         # Check dimensions
         if self.i.size > FM.i.size:
             raise IndexError(
@@ -7455,6 +7497,11 @@ class CaseFM(CaseData):
         :Versions:
             * 2017-03-20 ``@ddalle``: First version
         """
+        # Check dimensions
+        if (self.i.size != FM.i.size) or np.any(self.i != FM.i):
+            # Trim any reversions of iterations
+            self.TrimIters()
+            FM.TrimIters()
         # Check dimensions
         if self.i.size > FM.i.size:
             raise IndexError(
