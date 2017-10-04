@@ -129,9 +129,9 @@ class Namelist2(FileCntl):
                 ggrp = grp
                 igrp = 0
             # Check it it's an existing group
-            if grp not in self.Groups:
+            if ggrp not in self.Groups:
                 # Initialize the section.
-                self.InsertGroup(0, grp)
+                self.InsertGroup(0, ggrp)
             # Loop through the keys in this subnamelist/section
             for k in opts[grp].keys():
                 # Set the value.
