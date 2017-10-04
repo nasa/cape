@@ -114,6 +114,20 @@ class Namelist2(FileCntl):
         """
         # Loop through major keys.
         for grp in opts.keys():
+            # Check for illegal name to specify which index to use
+            if "&" in grp:
+                try:
+                    # Split into two parts
+                    ggrp, igrp = grp.split("&")
+                    # Convert to integer
+                    igrp = int(igrp)-1
+                except Exception:
+                    # Some sort of error
+                    raise ValueError("Illegal namelist group '%'" % grp)
+            else:
+                # Assume first grip
+                ggrp = grp
+                igrp = 0
             # Check it it's an existing group
             if grp not in self.Groups:
                 # Initialize the section.
@@ -121,7 +135,7 @@ class Namelist2(FileCntl):
             # Loop through the keys in this subnamelist/section
             for k in opts[grp].keys():
                 # Set the value.
-                self.SetKeyInGroupName(grp, k, opts[grp][k])
+                self.SetKeyInGroupName(ggrp, k, opts[grp][k], igrp=igrp)
         
     # Add a group
     def InsertGroup(self, igrp, grp):
