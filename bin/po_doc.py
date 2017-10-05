@@ -57,6 +57,9 @@ relatively simple commands.
         
     -q QUEUE
         Submit to a specific queue (defaults to ``normal``)
+
+    --kill, --qdel
+         Remove jobs from the queue and stop them abruptly
     
     --stop, --stop STOP
         Stop one or more cases at iteration *STOP* (or immediately if *STOP* is
@@ -82,20 +85,49 @@ relatively simple commands.
     --report RP
         Update report named *RP* or first report if *RP* is not specified
         
-    --aero
+    --archive
+        Create archive according to options in "Archive" section of *FNAME* and
+        clean up run folder if case is marked PASS
+        
+    --clean
+        Delete any files as described by *ProgressDeleteFiles* in "Archive"
+        section of *FNAME*; can be run at any time
+        
+    --aero, --aero GLOB
         Loop through cases and extract force and moment coefficients and
-        statistics for components described in the "Plot" section of *FNAME*
+        statistics for force & moment components described in the "DataBook"
+        section of *FNAME*; only process components matching wildcard *GLOB* if
+        if is specified
+        
+    --ll, --ll GLOB
+        Loop through cases and extract force and moment coefficients and
+        statistics for LineLoad components described in the "DataBook"
+        section of *FNAME*; only process components matching wildcard *GLOB* if
+        if is specified
+        
+    --triqfm, --triqfm GLOB
+        Loop through cases and extract force and moment coefficients and
+        statistics for TriqFM components described in the "DataBook"
+        section of *FNAME*; only process components matching wildcard *GLOB* if
+        if is specified
         
     --apply
         Apply the settings in *FNAME* to all cases; way to quickly change
         settings for a set of runs
 
-    -a
-        Archive folders according to settings in "Management" section of
-        *FNAME*
-
-    --expand
-        Unarchive :file:`adapt??.tar` files in run folders
+    --extend, --extend E
+        Add another run of the current last phase *E* times (default is 1)
+        
+    --imax M
+        Do not extend a case (when using --extend) beyond iteration *M*
+        
+    --no-start
+        When running a command that would otherwise submit jobs, set them up
+        but do not start (or submit) them
+        
+    --no-restart
+        When submitting new jobs, only submit new cases (status '---')
+        
 
 :Versions:
     * 2014-10-06 ``@ddalle``: First version

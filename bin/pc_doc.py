@@ -81,13 +81,48 @@ simple commands.
     --report REP
          Update report named *REP* or first report if *REP* is not specified
         
-    --aero
-         Loop through cases and extract force and moment coefficients and
-         statistics for components described in the "Plot" section of *FNAME*
+    --archive
+        Create archive according to options in "Archive" section of *FNAME* and
+        clean up run folder if case is marked PASS
+        
+    --clean
+        Delete any files as described by *ProgressDeleteFiles* in "Archive"
+        section of *FNAME*; can be run at any time
+        
+    --aero, --aero GLOB
+        Loop through cases and extract force and moment coefficients and
+        statistics for force & moment components described in the "DataBook"
+        section of *FNAME*; only process components matching wildcard *GLOB* if
+        if is specified
+        
+    --ll, --ll GLOB
+        Loop through cases and extract force and moment coefficients and
+        statistics for LineLoad components described in the "DataBook"
+        section of *FNAME*; only process components matching wildcard *GLOB* if
+        if is specified
+        
+    --triqfm, --triqfm GLOB
+        Loop through cases and extract force and moment coefficients and
+        statistics for TriqFM components described in the "DataBook"
+        section of *FNAME*; only process components matching wildcard *GLOB* if
+        if is specified
         
     --apply
-         Apply the settings in *FNAME* to all cases; way to quickly change
-         settings for a set of runs
+        Apply the settings in *FNAME* to all cases; way to quickly change
+        settings for a set of runs
+
+    --extend, --extend E
+        Add another run of the current last phase *E* times (default is 1)
+        
+    --imax M
+        Do not extend a case (when using --extend) beyond iteration *M*
+        
+    --no-start
+        When running a command that would otherwise submit jobs, set them up
+        but do not start (or submit) them
+        
+    --no-restart
+        When submitting new jobs, only submit new cases (status '---')
 
     -a
          Archive folders according to settings in "Management" section of
