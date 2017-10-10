@@ -6481,6 +6481,9 @@ class CaseData(object):
         # Process inputs.
         nLast = kw.get('nLast')
         nFirst = kw.get('nFirst', 1)
+        # Check if *nFirst* is negative
+        if nFirst < 0:
+            nFirst = self.i[-1] + nFirst
         # Iterative uncertainty options
         dc = kw.get("d", 0.0)
         ksig = kw.get("k", 0.0)
