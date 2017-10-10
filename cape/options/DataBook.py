@@ -1237,7 +1237,7 @@ class DataBook(odict):
         # Get the component options.
         copts = self.get(comp, {})
         # Check for manually-specified coefficients
-        coeffs = copts.get("Coefficients", [])
+        coeffs = copts.get("Coefficients", self.get("Coefficients", []))
         # Check the type.
         if type(coeffs).__name__ not in ['list']:
             raise TypeError(
@@ -1265,9 +1265,9 @@ class DataBook(odict):
                 "Cp_min", "Cp_max",
                 "Ax", "Ay", "Az"
             ]
-        elif ctype in ["PointSensor"]:
+        elif ctype in ["PointSensor", "TriqPoint"]:
             # Default to list of points for a point sensor
-            coeffs = ["Cp"]
+            coeffs = ["x", "y", "z", "Cp"]
         # Output
         return coeffs
         
@@ -1523,7 +1523,7 @@ class DataBook(odict):
         # Get the type
         ctype = copts.get("Type", "Force")
         # Check the type
-        if ctype in ["PointSensor"]:
+        if ctype in ["PointSensor", "TriqPoint"]:
             # Check the point
             return copts.get("Points", [])
         else:

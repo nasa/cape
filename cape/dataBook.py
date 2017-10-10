@@ -525,6 +525,10 @@ class DataBook(dict):
   # Updaters
   # ========
   # <
+   # -------
+   # Config
+   # -------
+   # [
     # Process list of components
     def ProcessComps(self, comp=None, **kw):
         """Process list of components
@@ -564,10 +568,12 @@ class DataBook(dict):
         else:
             # Unknown
             raise TypeError("Cannot process component list with type '%s'" % t)
-    
+   # ]
+   
    # ------
    # Aero
    # ------
+   # [
     # Update data book
     def UpdateDataBook(self, I=None, comp=None):
         """Update the data book for a list of cases from the run matrix
@@ -886,10 +892,12 @@ class DataBook(dict):
         os.chdir(self.RootDir)
         # Output
         return 1
-           
+   # ]
+   
    # ---------
    # LineLoad
    # ---------
+   # [
     # Update line load data book
     def UpdateLineLoad(self, I, comp=None, conf=None):
         """Update a line load data book for a list of cases
@@ -1051,10 +1059,12 @@ class DataBook(dict):
         DBc.n = len(DBc[DBc.keys()[0]])
         # Output
         return nj
-            
+   # ]
+   
    # -------
    # TriqFM
    # -------
+   # [
     # Update TriqFM data book
     def UpdateTriqFM(self, I, comp=None):
         """Update a TriqFM triangulation-extracted F&M data book
@@ -1223,6 +1233,7 @@ class DataBook(dict):
             DBc.n = len(DBc[DBc.keys()[0]])
         # Output
         return nj
+    # ]
   # >
     
   # ==========

@@ -126,9 +126,9 @@ class DBPointSensorGroup(dataBook.DBBase):
     __str__ = __repr__
   # >
   
-  # =========
+  # ======
   # I/O
-  # =========
+  # ======
   # <
     # Output method
     def Write(self):
@@ -148,6 +148,31 @@ class DBPointSensorGroup(dataBook.DBBase):
             self[pt].Sort()
             # Write it
             self[pt].Write()
+  # >
+  
+  # ==========
+  # Case I/O
+  # ==========
+  # <
+    # Read case point data
+    def ReadCasePoint(self, pt):
+        """Read point data from current run folder
+        
+        :Call:
+            >>> P = DBPG.ReadCasePoint(pt)
+        :Inputs:
+            *DBPG*: :class:`cape.pointSensor.DBPointGroup`
+                Point sensor group data book
+            *pt*: :class:`str`
+                Name of point to read
+        :Outputs:
+            *P*: :class:`dict`
+                Dictionary of state variables as requested from the point
+        :Versions:
+            * 2017-10-10 ``@ddalle``: First version
+        """
+        # Read data from a custom file
+        pass
   # >
   
   # ============
@@ -352,7 +377,7 @@ class DBPointSensorGroup(dataBook.DBBase):
                 DBc[k] = np.append(DBc[k], getattr(self.x,k)[i])
             # Append values.
             for c in DBc.DataCols:
-                DBc[c] = np.hstack((DBc[c], [s[c]]))
+                DBc[c] = np.hstack((DBc[c], [P[c]]))
             # Append iteration counts.
             if 'nIter' in DBc:
                 DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
@@ -363,7 +388,7 @@ class DBPointSensorGroup(dataBook.DBBase):
                 DBc[k][j] = getattr(self.x,k)[i]
             # Update data values.
             for c in DBc.DataCols:
-                DBc[c][j] = s[c]
+                DBc[c][j] = P[c]
             # Update the other statistics.
             if 'nIter' in DBc:
                 DBc['nIter'][j]   = nIter
@@ -371,10 +396,12 @@ class DBPointSensorGroup(dataBook.DBBase):
         os.chdir(self.RootDir)
         # Output
         return 1
+   # ]
             
    # -------
    # Delete
    # -------
+   # [
     # Function to delete entries by index
     def DeleteCases(self, I, pt=None):
         """Delete list of cases from point sensor data book
@@ -467,7 +494,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         DBc.n = len(DBc[DBc.keys()[0]])
         # Output
         return nj
-        
+    # ]
   # >
   
   # ============
@@ -577,6 +604,49 @@ class DBTriqPointGroup(DBPointSensorGroup):
         # Output
         return lbl
     __str__ = __repr__
+  # >
+  
+  # ==========
+  # Case I/O
+  # ==========
+  # <
+    # Read case point data
+    def ReadCasePoint(self, pt):
+        """Read point data from current run folder
+        
+        :Call:
+            >>> P = DBPG.ReadCasePoint(pt)
+        :Inputs:
+            *DBPG*: :class:`cape.pointSensor.DBTriqPointGroup`
+                Point sensor group data book
+            *pt*: :class:`str`
+                Name of point to read
+        :Outputs:
+            *P*: :class:`dict`
+                Dictionary of state variables as requested from the point
+        :Versions:
+            * 2017-10-10 ``@ddalle``: First version
+        """
+        # Read data from a custom file
+        pass
+    
+
+    # Read Triq file from this folder
+    def ReadCaseTriq(self):
+        """Read the the most recent Triq file from this folder
+        
+        :Call:
+            >>> triq, VarList = DBPG.ReadCaseTriq()
+        :Inputs:
+            *DBPG*: :class:`cape.pointSensor.DBTriqPointGroup`
+                Point sensor group data book
+        :Outputs:
+            *triq*: :class:`cape.tri.Triq`
+                Annotated triangulation interface
+        :Versions:
+            * 2017-10-10 ``@ddalle``: First version
+        """
+        pass
   # >
 # class DBTriqPointGroup
 
