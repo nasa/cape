@@ -576,7 +576,7 @@ class DataBook(dict):
             >>> DB.UpdateDataBook(I=None, comp=None)
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
-                Instance of the pyCart data book class
+                Instance of the data book class
             *I*: :class:`list` (:class:`int`) | ``None``
                 List of trajectory indices or update all cases in trajectory
             *comp*: {``None``} | :class:`list` (:class:`str`) | :class:`str`
@@ -636,18 +636,18 @@ class DataBook(dict):
         :Call:
             >>> DB.Delete(I)
         :Inputs:
-            *DB*: :class:`pyCart.dataBook.DataBook`
+            *DB*: :class:`cape.dataBook.DataBook`
                 Instance of the pyCart data book class
             *I*: :class:`list` (:class:`int`)
-                List of trajectory indices or update all cases in trajectory
+                List of trajectory indices
+            *comp*: {``None``} | :class:`list` (:class:`str`) | :class:`str`
+                Component or list of components
         :Versions:
             * 2015-03-13 ``@ddalle``: First version
             * 2017-04-13 ``@ddalle``: Split by component
         """
         # Default.
-        if I is None:
-            # Use all trajectory points.
-            I = range(self.x.nCase)
+        if I is None: return
         # Process list of components
         comps = self.ProcessComps(comp)
         # Loop through components
@@ -673,7 +673,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.Delete(I)
         :Inputs:
-            *DB*: :class:`pyCart.dataBook.DataBook`
+            *DB*: :class:`cape.dataBook.DataBook`
                 Instance of the pyCart data book class
             *I*: :class:`list` (:class:`int`)
                 List of trajectory indices or update all cases in trajectory
