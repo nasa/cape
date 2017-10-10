@@ -122,6 +122,7 @@ relatively simple commands.
         but do not start (or submit) them
         
     --no-restart
+        When submitting new jobs, only submit new cases (status '---')
 
 :Versions:
     * 2014-10-06 ``@ddalle``: First version

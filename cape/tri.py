@@ -4117,7 +4117,7 @@ class TriBase(object):
                 Triangulation instance
         :Effects:
             *tri.e1*: :class:`np.ndarray` (:class:`float`, shape=(nTri,3))
-                Unit vector pointing from node 1 to node 3 of each tri
+                Unit vector pointing from node 1 to node 2 of each tri
             *tri.e2*: :class:`np.ndarray` (:class:`float`, shape=(nTri,3))
                 Unit vector completing right-handed coordinate system
             *tri.e3*: :class:`np.ndarray` (:class:`float`, shape=(nTri,3))
@@ -5555,6 +5555,50 @@ class Triq(TriBase):
         self.q = (self.n*self.q + triq.n*triq.q) / (self.n+triq.n)
         # Update count.
         self.n += triq.n
+  # >
+  
+  # ==============
+  # Interpolation
+  # ==============
+  # <
+    # Interpolate state
+    def InterpSurfPoint(self, x, **kw):
+        """Interpolate *triq.q* to the nearest point on the surface
+        
+        :Call:
+            >>> q = triq.InterpSurfPoint(x, **kw)
+        :Inputs:
+            *triq*: :class:`cape.tri.Triq`
+                Annotated triangulation interface
+            *x*: :class:`np.ndarray` (:class:`float`, shape=(3,))
+                Array of *x*, *y*, and *z* coordinates of test point
+            *kw*: :class:`dict`
+                Keyword arguments passed to :func:`Tri.GetNearestTri`
+        :Outputs:
+            *q*: :class:`np.ndarray` shape=(*triq.nq*,)
+                Interpolated state from *triq.q*
+        :Versions:
+            * 2017-10-10 ``@ddalle``: First version
+        """
+        # Get the nearest triangle to point *x*
+        T = self.GetNearestTri(x, **kw)
+        # Nearest triangle
+        k = T["k1"]
+        # Extract the node numbers
+        i0, i1, i2 = self.Tris[k] - 1
+        # Get nodal coordinates
+        x0 = self.Nodes[i0]
+        x1 = self.Nodes[i1]
+        x2 = self.Nodes[i2]
+        # Get interpolation fractions
+        th1 = np.dot(x-x0, x1-x0) / np.dot(x1-x0, x1-x0)
+        th2 = np.dot(x-x0, x2-x0) / np.dot(x2-x0, x2-x0)
+        # Get states
+        q0 = self.q[i0]
+        q1 = self.q[i1]
+        q2 = self.q[i2]
+        # Interpolation
+        return q0 + th1*(q1-q0) + th2*(q2-q0)
   # >
   
   # ============
