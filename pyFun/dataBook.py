@@ -220,7 +220,7 @@ class DataBook(cape.dataBook.DataBook):
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read data book
-            self.TriqPoint[comp] = pointSensor.DBTriqPoint(
+            self.TriqPoint[comp] = pointSensor.DBTriqPointGroup(
                 self.x, self.opts, comp,
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
