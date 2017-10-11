@@ -835,6 +835,8 @@ class DBPointSensor(dataBook.DBBase):
         
         # Process columns
         self.ProcessColumns()
+        # Data columns
+        self.DataCols = opts.get_DataBookCoeffs(name)
         
         # Read the file or initialize empty arrays.
         self.Read(fname)
