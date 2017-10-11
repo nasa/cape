@@ -860,11 +860,11 @@ class DataBook(dict):
             DBc.n += 1
             # Append trajectory values.
             for k in self.x.keys:
-                # I hate the way NumPy does appending.
+                # Append
                 DBc[k] = np.append(DBc[k], getattr(self.x,k)[i])
             # Append values.
             for c in DBc.DataCols:
-                DBc[c] = np.hstack((DBc[c], [s[c]]))
+                DBc[c] = np.append(DBc[c], s[c])
             # Append residual drop.
             if 'nOrders' in DBc:
                 DBc['nOrders'] = np.hstack((DBc['nOrders'], [nOrders]))

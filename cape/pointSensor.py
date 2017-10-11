@@ -108,6 +108,8 @@ class DBPointSensorGroup(dataBook.DBBase):
         self.pts = kw.get('pts', opts.get_DBGroupPoints(name))
         # Save the columns
         self.cols = opts.get_DataBookCoeffs(name)
+        # Divide columns into parts
+        self.DataCols = opts.get_DataBookDataCols(name)
         # Loop through the points.
         for pt in self.pts:
             self.ReadPointSensor(pt)
@@ -460,14 +462,15 @@ class DBPointSensorGroup(dataBook.DBBase):
             DBc.n += 1
             # Append trajectory values.
             for k in self.x.keys:
-                # I hate the way NumPy does appending.
+                # Append to array
                 DBc[k] = np.append(DBc[k], getattr(self.x,k)[i])
             # Append values.
             for c in DBc.DataCols:
-                DBc[c] = np.hstack((DBc[c], [P[c]]))
+                # Append
+                DBc[c] = np.append(DBc[c], P[c])
             # Append iteration counts.
             if 'nIter' in DBc:
-                DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
+                DBc['nIter']  = np.append(DBc['nIter'], nIter)
         else:
             # Save updated trajectory values
             for k in DBc.xCols:
@@ -675,6 +678,8 @@ class DBTriqPointGroup(DBPointSensorGroup):
         self.pts = kw.get('pts', opts.get_DBGroupPoints(name))
         # Save the columns
         self.cols = opts.get_DataBookCoeffs(name)
+        # Divide columns into parts
+        self.DataCols = opts.get_DataBookDataCols(name)
         # Loop through the points.
         for pt in self.pts:
             self.ReadPointSensor(pt)
