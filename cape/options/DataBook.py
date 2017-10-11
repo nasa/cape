@@ -1389,6 +1389,8 @@ class DataBook(odict):
         """
         # Get the component options
         copts = self.get(comp, {})
+        # Get type
+        ctyp = self.get_DataBookType(comp)
         # Get data book default
         icols_db = self.get("IntCols")
         # Get float columns option
@@ -1400,6 +1402,9 @@ class DataBook(odict):
         elif icols_db is not None:
             # Data book option
             return icols_db
+        elif ctyp in ["TriqPoint", "PointSensor"]:
+            # Limited default
+            return ['nIter']
         else:
             # Global default
             return ['nIter', 'nStats']

@@ -360,6 +360,8 @@ class DBPointSensorGroup(dataBook.DBBase):
         fpwd = os.getcwd()
         # Initialize counter (return 1 if all points updated)
         n = 1
+        # Status update
+        print(self.x.GetFullFolderNames(i))
         # Loop through points
         for pt in pts:
             # Check type
@@ -405,14 +407,14 @@ class DBPointSensorGroup(dataBook.DBBase):
         # Check if it's present
         if pt not in self:
             raise KeyError("No point sensor '%s'" % pt)
+        # Print point name
+        print("  %s" % pt)
         # Get the first data book component.
         DBc = self[pt]
         # Try to find a match existing in the data book.
         j = DBc.FindMatch(i)
         # Get the name of the folder.
         frun = self.x.GetFullFolderNames(i)
-        # Status update.
-        print(frun)
         # Go home.
         os.chdir(self.RootDir)
         # Check if the folder exists.
@@ -430,24 +432,24 @@ class DBPointSensorGroup(dataBook.DBBase):
         # Process whether or not to update.
         if (not nIter) or (nIter < nMin + nStats):
             # Not enough iterations (or zero iterations)
-            print("  Not enough iterations (%s) for analysis." % nIter)
+            print("    Not enough iterations (%s) for analysis." % nIter)
             q = False
         elif np.isnan(j):
             # No current entry.
-            print("  Adding new databook entry at iteration %i." % nIter)
+            print("    Adding new databook entry at iteration %i." % nIter)
             q = True
         elif DBc['nIter'][j] < nIter:
             # Update
-            print("  Updating from iteration %i to %i."
+            print("    Updating from iteration %i to %i."
                 % (DBc['nIter'][j], nIter))
             q = True
         elif DBc['nStats'][j] < nStats:
             # Change statistics
-            print("  Recomputing statistics using %i iterations." % nStats)
+            print("    Recomputing statistics using %i iterations." % nStats)
             q = True
         else:
             # Up-to-date
-            print("  Databook up to date.")
+            print("    Databook up to date.")
             q = False
         # Check for an update
         if (not q): return 0
@@ -810,6 +812,7 @@ class DBPointSensor(dataBook.DBBase):
         self.x = x
         self.opts = opts
         self.pt = pt
+        self.name = pt
         # Save data book title
         if name is None:
             # Default name

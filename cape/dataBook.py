@@ -1260,7 +1260,7 @@ class DataBook(dict):
             # Status update
             print("Updating TriqPoint group '%s' ..." % comp)
             # Perform aupdate and get number of additions
-            self.UpdateTriqPointComp(comp, I)
+            n = self.UpdateTriqPointComp(comp, I)
             # Check for updates
             if n == 0:
                 # Unlock
@@ -1276,7 +1276,7 @@ class DataBook(dict):
         """Update a TriqPOint triangulation-extracted point sensor data book
         
         :Call:
-            >>> DB.UpdateTriqPointComp(comp, I=None)
+            >>> n = DB.UpdateTriqPointComp(comp, I=None)
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
                Instance of data book class
@@ -1284,6 +1284,9 @@ class DataBook(dict):
                Name of TriqPoint group or all if ``None``
            *I*: :class:`list` (:class:`int`)
                List of trajectory indices
+        :Outputs:
+            *n*: :class:`int`
+                Number of updates made
         :Versions:
             * 2017-10-11 ``@ddalle``: First version
         """
@@ -2878,7 +2881,11 @@ class DBBase(dict):
             # Skip if not a list
             if type(self[k]).__name__ != "ndarray": continue
             # Sort it.
-            self[k] = self[k][I]
+            try:
+                self[k] = self[k][I]
+            except Exception as e:
+                import pdb
+                pdb.set_trace()
             
     # Find the index of the point in the trajectory.
     def GetTrajectoryIndex(self, j):
