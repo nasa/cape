@@ -106,6 +106,8 @@ class DBPointSensorGroup(dataBook.DBBase):
         self.name = name
         # Get the list of points.
         self.pts = kw.get('pts', opts.get_DBGroupPoints(name))
+        # Save the columns
+        self.cols = opts.get_DataBookCoeffs(name)
         # Loop through the points.
         for pt in self.pts:
             self.ReadPointSensor(pt)
@@ -671,6 +673,8 @@ class DBTriqPointGroup(DBPointSensorGroup):
         self.name = name
         # Get the list of points.
         self.pts = kw.get('pts', opts.get_DBGroupPoints(name))
+        # Save the columns
+        self.cols = opts.get_DataBookCoeffs(name)
         # Loop through the points.
         for pt in self.pts:
             self.ReadPointSensor(pt)

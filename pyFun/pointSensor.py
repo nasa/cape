@@ -19,8 +19,8 @@ from datetime import datetime
 # Local modules
 from . import util
 from . import case
-from . import plt
 from . import mapbc
+import pyFun.plt
 
 # Basis module
 import cape.dataBook
@@ -161,8 +161,6 @@ class DBTriqPointGroup(cape.pointSensor.DBTriqPointGroup):
         P = {}
         # Get data columns
         for col in self.cols:
-            # Check if it's an *x* column
-            if col in self.xCols: continue
             # Check for a point
             if col == "x":
                 # x-coordinate
@@ -213,7 +211,7 @@ class DBTriqPointGroup(cape.pointSensor.DBTriqPointGroup):
         # Get the PLT file
         fplt, n, i0, i1 = case.GetPltFile()
         # Read PLT file
-        pplt = plt.Plt(fplt)
+        pplt = pyFun.plt.Plt(fplt)
         # Check for mapbc file
         fglob = glob.glob("*.mapbc")
         # Check for more than one
@@ -229,9 +227,9 @@ class DBTriqPointGroup(cape.pointSensor.DBTriqPointGroup):
         kw.setdefault("avg", False)
         kw.setdefault("triload", False)
         # Convert to Triq
-        triq = plt.CreateTriq(**kw)
+        triq = pplt.CreateTriq(**kw)
         # Get variable list
-        VarList = [k for k in plt.Vars if k not in ['x','y','z']]
+        VarList = [k for k in pplt.Vars if k not in ['x','y','z']]
         # Output
         return triq, VarList
         

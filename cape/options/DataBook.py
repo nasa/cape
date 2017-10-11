@@ -1267,7 +1267,7 @@ class DataBook(odict):
             ]
         elif ctype in ["PointSensor", "TriqPoint"]:
             # Default to list of points for a point sensor
-            coeffs = ["x", "y", "z", "Cp"]
+            coeffs = ["x", "y", "z", "cp"]
         # Output
         return coeffs
         
@@ -1307,7 +1307,7 @@ class DataBook(odict):
         # Data book type
         typ = self.get_DataBookType(comp)
         # Check data book type
-        if typ in ["TriqFM"]:
+        if typ in ["TriqFM", "TriqPoint", "PointSensor"]:
             # No iterative history
             return ['mu']
         # Others; iterative history available
