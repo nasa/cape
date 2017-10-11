@@ -402,7 +402,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         if pt not in self:
             raise KeyError("No point sensor '%s'" % pt)
         # Get the first data book component.
-        DBc = self[comp]
+        DBc = self[pt]
         # Try to find a match existing in the data book.
         j = DBc.FindMatch(i)
         # Get the name of the folder.

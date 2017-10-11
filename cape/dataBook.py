@@ -1244,7 +1244,7 @@ class DataBook(dict):
         :Call:
             >>> DB.UpdateTriqPoint(I, comp=None)
         :Inputs:
-            *DB*: :class:`cape.dataBook.DataBook`
+           *DB*: :class:`cape.dataBook.DataBook`
                Instance of data book class
            *I*: :class:`list` (:class:`int`)
                List of trajectory indices
@@ -1260,7 +1260,7 @@ class DataBook(dict):
             # Status update
             print("Updating TriqPoint group '%s' ..." % comp)
             # Perform aupdate and get number of additions
-            self.UpdateTriqPointGroup(comp, I)
+            self.UpdateTriqPointComp(comp, I)
             # Check for updates
             if n == 0:
                 # Unlock
