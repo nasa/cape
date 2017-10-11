@@ -1263,8 +1263,6 @@ class DataBook(dict):
             n = self.UpdateTriqPointComp(comp, I)
             # Check for updates
             if n == 0:
-                # Unlock
-                self.TriqPoint[comp].Unlock()
                 continue  
             # Status update
             print("Added or updated %s entries" % n)

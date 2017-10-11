@@ -358,8 +358,8 @@ class DBPointSensorGroup(dataBook.DBBase):
         pts = self.ProcessComps(pt=pt)
         # Save location
         fpwd = os.getcwd()
-        # Initialize counter (return 1 if all points updated)
-        n = 1
+        # Initialize counter
+        n = 0
         # Status update
         print(self.x.GetFullFolderNames(i))
         # Loop through points
@@ -369,9 +369,7 @@ class DBPointSensorGroup(dataBook.DBBase):
             # Go to root dir
             os.chdir(self.RootDir)
             # Update the point
-            ni = self.UpdateCaseComp(i, pt)
-            # Check if updated
-            n = n*ni
+            n += self.UpdateCaseComp(i, pt)
         # Output
         return n
     
@@ -442,10 +440,6 @@ class DBPointSensorGroup(dataBook.DBBase):
             # Update
             print("    Updating from iteration %i to %i."
                 % (DBc['nIter'][j], nIter))
-            q = True
-        elif DBc['nStats'][j] < nStats:
-            # Change statistics
-            print("    Recomputing statistics using %i iterations." % nStats)
             q = True
         else:
             # Up-to-date
@@ -880,7 +874,7 @@ class DBPointSensor(dataBook.DBBase):
             * 2017-10-11 ``@ddalle``: From :class:`cape.dataBook.DBBase`
         """
         # Call the object
-        DBP = DBPointSensor(self.x, self.opts, self.pt, self.name)
+        DBP = DBPointSensor(self.x, self.opts, self.pt, self.comp)
         # Output
         return DBP
   # >
@@ -976,7 +970,7 @@ class DBTriqPoint(DBPointSensor):
             * 2017-10-11 ``@ddalle``: From :class:`cape.dataBook.DBBase`
         """
         # Call the object
-        DBP = DBTriqPoint(self.x, self.opts, self.pt, self.name)
+        DBP = DBTriqPoint(self.x, self.opts, self.pt, self.comp)
         # Output
         return DBP
   # >
