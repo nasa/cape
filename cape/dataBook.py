@@ -128,7 +128,7 @@ class DataBook(dict):
   # ======
   # Config
   # ======
-  # <
+  # <                           
     # Initialization method
     def __init__(self, x, opts, RootDir=None, targ=None, **kw):
         """Initialization method
@@ -1265,7 +1265,7 @@ class DataBook(dict):
             if n == 0:
                 # Unlock
                 self.TriqPoint[comp].Unlock()
-                continue
+                continue  
             # Status update
             print("Added or updated %s entries" % n)
             # Write the updated results

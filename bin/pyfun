@@ -69,6 +69,9 @@ if __name__ == "__main__":
     elif kw.get('triqfm'):
         # Update TriqFM data book
         fun3d.UpdateTriqFM(**kw)
+    elif kw.get('pt'):
+        # Update point sensor data book
+        fun3d.UpdateTriqPoint(**kw)
     elif kw.get('archive'):
         # Archive cases
         fun3d.ArchiveCases(**kw)

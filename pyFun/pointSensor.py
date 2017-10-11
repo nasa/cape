@@ -104,6 +104,26 @@ class DBTriqPointGroup(cape.pointSensor.DBTriqPointGroup):
   # Case I/O
   # ==========
   # <
+    # Current iteration status
+    def GetCurrentIter(self):
+        """Determine iteration number of current folder
+        
+        :Call:
+            >>> n = DB.GetCurrentIter()
+        :Inputs:
+            *DB*: :class:`pyFun.dataBook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Iteration number
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        try:
+            return case.GetCurrentIter()
+        except Exception:
+            return None
+    
     # Read case point data
     def ReadCasePoint(self, pt, i, **kw):
         """Read point data from current run folder

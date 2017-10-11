@@ -3065,6 +3065,43 @@ class Cntl(object):
             self.DataBook.UpdateTriqFM(I, comp=comp)
         # Return to original location.
         os.chdir(fpwd)
+    
+    # Update TriqPointGroup data book
+    def UpdateTriqPoint(self, **kw):
+        """Update one or more TriqPoint extracted point sensor data books
+        
+        :Call:
+            >>> cntl.UpdateTriqPoint(comp=None, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Control class
+            *comp*: {``None``} | :class:`str`
+                Name of TriqFM component
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints like ``'Mach<=0.5'``
+        :Versions:
+            * 2017-03-29 ``@ddalle``: First version
+        """
+        # Get component option
+        comp = kw.get("pt")
+        # Save current location.
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Apply constraints
+        I = self.x.GetIndices(**kw)
+        # Read the data book handle
+        self.ReadDataBook(comp=[])
+        # Check if we are deleting or adding.
+        if kw.get('delete', False):
+            # Delete cases.
+            self.DataBook.DeleteTriqPoint(I, comp=comp)
+        else:
+            # Read the results and update as necessary.
+            self.DataBook.UpdateTriqPoint(I, comp=comp)
+        # Return to original location.
+        os.chdir(fpwd)
    # >
 # class Cntl
     
