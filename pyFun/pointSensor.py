@@ -75,28 +75,62 @@ class DBTriqPointGroup(cape.pointSensor.DBTriqPointGroup):
     :Versions:
         * 2017-10-10 ``@ddalle``: First version
     """
+  # ==========
+  # Config
+  # ==========
+  # <
+    # Read a point sensor
+    def ReadPointSensor(self, pt):
+        """Read a point sensor
+        
+        This function needs to be customized for each derived class so that the
+        correct class is used for each of the member data books
+        
+        :Call:
+            >>> DBPG.ReadPointSensor(pt)
+        :Inputs:
+            *DBPG*: :class:`pyFun.pointSensor.DBTriqPointGroup`
+                A point sensor group data book
+            *pt*: :class:`str`
+                Name of the point to read
+        :Versions:
+            * 2017-10-11 ``@ddalle``: First version
+        """
+        # Read the local class
+        self[pt] = DBTriqPoint(self.x, self.opts, pt, self.name)
+  # >
   
   # ==========
   # Case I/O
   # ==========
   # <
     # Read case point data
-    def ReadCasePoint(self, pt, **kw):
+    def ReadCasePoint(self, pt, i, **kw):
         """Read point data from current run folder
         
         :Call:
-            >>> P = DBPG.ReadCasePoint(pt)
+            >>> P = DBPG.ReadCasePoint(pt, i)
         :Inputs:
             *DBPG*: :class:`cape.pointSensor.DBTriqPointGroup`
                 Point sensor group data book
             *pt*: :class:`str`
                 Name of point to read
+            *i*: :class:`int`
+                Case index
         :Outputs:
             *P*: :class:`dict`
                 Dictionary of state variables as requested from the point
         :Versions:
             * 2017-10-10 ``@ddalle``: First version
         """
+        # Try to set the Mach number for *Cp* conversion
+        try:
+            # Get conditions
+            mach = self.x.GetMach(i)
+            # Set it
+            kw["mach"] = mach
+        except Exception:
+            pass
         # Read data from a custom file
         triq, VarList = self.ReadCaseTriq(**kw)
         # Get the coordinates of point *pt*
@@ -111,11 +145,33 @@ class DBTriqPointGroup(cape.pointSensor.DBTriqPointGroup):
             if col in self.xCols: continue
             # Check for a point
             if col == "x":
+                # x-coordinate
                 P["x"] = x0[0]
-            # Find the index
+            elif col == "y":
+                # y-coordinate
+                P["y"] = x0[1]
+            elif col == "z":
+                # z-coordinate
+                P["z"] = x0[2]
+            else:
+                # Make a key name for the _avg parameter
+                kavg = col + "_tavg"
+                # Find the index
+                if kavg in VarList:
+                    # Use the time-averaged parameter
+                    j = VarList.index(kavg)
+                elif col in VarList:
+                    # Use the regular parameter
+                    j = VarList.index(col)
+                else:
+                    # Not found
+                    raise KeyError("No state named '%s' found in PLT file"%col)
+                # Save the parameter
+                P[col] = q[j]
+        # Output
+        return P
             
         
-    
 
     # Read Triq file from this folder
     def ReadCaseTriq(self, **kw):
@@ -162,3 +218,34 @@ class DBTriqPointGroup(cape.pointSensor.DBTriqPointGroup):
   # >
 # class DBTriqPointGroup
 
+# Data book of point sensor data
+class DBTriqPoint(cape.pointSensor.DBTriqPoint):
+    """TriQ point sensor data book
+    
+    Plotting methods are inherited from :class:`cape.dataBook.DBBase`,
+    including :func:`cape.dataBook.DBBase.PlotHist` for plotting historgrams of
+    point sensor results in particular.
+    
+    :Call:
+        >>> DBP = DBTriqPoint(x, opts, pt, name=None)
+    :Inputs:
+        *x*: :class:`cape.trajectory.Trajectory`
+            Trajectory/run matrix interface
+        *opts*: :class:`cape.options.Options`
+            Options interface
+        *pt*: :class:`str`
+            Name of point
+        *name*: :class:`str` | ``None``
+            Name of data book item (defaults to *pt*)
+        *RootDir*: :class:`str` | ``None``
+            Project root directory absolute path, default is *PWD*
+    :Outputs:
+        *DBP*: :class:`pyFun.pointSensor.DBPointSensor`
+            An individual point sensor data book
+    :Versions:
+        * 2015-12-04 ``@ddalle``: Started
+    """
+    
+    pass
+
+# class DBTriqPoint

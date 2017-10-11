@@ -24,6 +24,7 @@ from . import util
 from . import case
 # Special data books
 from . import lineLoad
+from . import pointSensor
 # Special class
 import pyFun.plt
 import pyFun.mapbc
@@ -84,6 +85,9 @@ class DataBook(cape.dataBook.DataBook):
     :Versions:
         * 2015-10-20 ``@ddalle``: Started
     """
+  # ===========
+  # Readers
+  # ===========
     # Initialize a DBComp object
     def ReadDBComp(self, comp, check=False, lock=False):
         """Initialize data book for one component
@@ -142,7 +146,7 @@ class DataBook(cape.dataBook.DataBook):
                 self.x, self.opts, comp, keys=keys,
                 conf=conf, RootDir=self.RootDir, targ=targ)
     
-    # Read TrqiFM components
+    # Read TriqFM components
     def ReadTriqFM(self, comp, check=False, lock=False):
         """Read a TriqFM data book if not already present
         
@@ -180,6 +184,49 @@ class DataBook(cape.dataBook.DataBook):
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
+    
+    # Read TriqPoint components
+    def ReadTriqPoint(self, comp, check=False, lock=False):
+        """Read a TriqPoint data book if not already present
+        
+        :Call:
+            >>> DB.ReadTriqPoint(comp)
+        :Inputs:
+            *DB*: :class:`pyFun.dataBook.DataBook`
+                Instance of pyFun data book class
+            *comp*: :class:`str`
+                Name of TriqFM component
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Versions:
+            * 2017-03-28 ``@ddalle``: First version
+            * 2017-10-11 ``@ddalle``: From :func:`ReadTriqFM`
+        """
+        # Initialize if necessary
+        try:
+            self.TriqPoint
+        except Exception:
+            self.TriqPoint = {}
+        # Try to access the TriqPoint database
+        try:
+            self.TriqPoint[comp]
+            # Confirm lock if necessary.
+            if lock:
+                self.TriqPoint[comp].Lock()
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Read data book
+            self.TriqPoint[comp] = pointSensor.DBTriqPoint(
+                self.x, self.opts, comp,
+                RootDir=self.RootDir, check=check, lock=lock)
+            # Return to starting position
+            os.chdir(fpwd)
+  
+  # >
   
   # ========
   # Case I/O

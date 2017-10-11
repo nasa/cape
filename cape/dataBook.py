@@ -1125,14 +1125,12 @@ class DataBook(dict):
                 "Component '%s' is not a TriqFM component" % comp)
         # Read the TriqFM data book if necessary
         self.ReadTriqFM(comp, check=False, lock=False)
-        # Intialize count
+        # Initialize count
         n = 0
         # Loop through indices
         for i in I:
             # Update the data book for that case
             n += self.TriqFM[comp].UpdateCase(i)
-            ## Touch the lock file
-            #self.TriqFM[comp].Lock()
         # Output
         return n
         
@@ -1151,7 +1149,7 @@ class DataBook(dict):
                 Component wild card or list of component wild cards
         :Versions:
             * 2017-04-25 ``@ddalle``: First version
-        """
+        """    
         # Get list of appropriate components
         comps = self.opts.get_DataBookByGlob("TriqFM", comp)
         # Loop through those components
@@ -1233,7 +1231,183 @@ class DataBook(dict):
             DBc.n = len(DBc[DBc.keys()[0]])
         # Output
         return nj
-    # ]
+   # ]
+    
+   # ----------
+   # TriqPoint
+   # ----------
+   # [
+    # Update the TriqPoint data book
+    def UpdateTriqPoint(self, I, comp=None):
+        """Update a TriqPoint triangulation-extracted point sensor data book
+        
+        :Call:
+            >>> DB.UpdateTriqPoint(I, comp=None)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+               Instance of data book class
+           *I*: :class:`list` (:class:`int`)
+               List of trajectory indices
+           *comp*: {``None``} | :class:`str`
+               Name of TriqPoint group or all if ``None``
+        :Versions:
+            * 2017-10-11 ``@ddalle``: First version
+        """
+        # Get list of appropriate components
+        comps = self.opts.get_DataBookByGlob("TriqPoint", comp)
+        # Loop through those components
+        for comp in comps:
+            # Status update
+            print("Updating TriqPoint group '%s' ..." % comp)
+            # Perform aupdate and get number of additions
+            self.UpdateTriqPointGroup(comp, I)
+            # Check for updates
+            if n == 0:
+                # Unlock
+                self.TriqPoint[comp].Unlock()
+                continue
+            # Status update
+            print("Added or updated %s entries" % n)
+            # Write the updated results
+            self.TriqPoint[comp].Write(merge=True, unlock=True)
+    
+    # Update TriqPoint data book for one component
+    def UpdateTriqPointComp(self, comp, I=None):
+        """Update a TriqPOint triangulation-extracted point sensor data book
+        
+        :Call:
+            >>> DB.UpdateTriqPointComp(comp, I=None)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+               Instance of data book class
+           *comp*: {``None``} | :class:`str`
+               Name of TriqPoint group or all if ``None``
+           *I*: :class:`list` (:class:`int`)
+               List of trajectory indices
+        :Versions:
+            * 2017-10-11 ``@ddalle``: First version
+        """
+        # Default case list
+        if I is None:
+            # Use all trajectory points
+            I = np.arange(self.x.nCase)
+        # Check type
+        if self.opts.get_DataBookType(comp) != "TriqPoint":
+            raise ValueError(
+                "Component '%s' is not a TriqPoint component" % comp)
+        # Read the TriqPoint Data book if necessary
+        self.ReadTriqPoint(comp, check=False, lock=False)
+        # Initialize counter
+        n = 0
+        # Loop through indices
+        for i in I:
+            # Update the data book for that case
+            n += self.TriqPoint[comp].UpdateCase(i)
+        # Output
+        return n
+        
+    # Delete entries from TriqPoint data book
+    def DeleteTriqPoint(self, I, comp=None):
+        """Delete list of cases from several TriqPoint component data books
+        
+        :Call:
+            >>> DB.DeleteTriqPoint(I, comp=None)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the data book class
+            *I*: :class:`list` (:class:`int`)
+                List of trajectory indices or update all cases in trajectory
+            *comp*: {``None``} | :class:`str` | :class:`list`
+                Component wild card or list of component wild cards
+        :Versions:
+            * 2017-10-11 ``@ddalle``: First version
+        """
+        # Get list of appropriate components
+        comps = self.opts.get_DataBookByGlob("TriqPoint", comp)
+        # Loop through those components
+        for comp in comps:
+            # Delete for one component and get count
+            n = self.DeleteTriqPointComp(comp, I)
+            # Check number of deletions
+            if n == 0:
+                continue
+            # Status update
+            print("%s: deleted %s TriqPoint entries" % (comp, n))
+            # Write the updated component (no merge)
+            self.TriqPoint[comp].Write(unlock=True)
+        
+    # Delete TriqPoint individual entries
+    def DeleteTriqPointComp(self, comp, I=None):
+        """Delete list of cases from a TriqPoint component data book
+        
+        :Call:
+            >>> n = DB.DeleteTriqPointComp(comp, I=None)
+        :Inputs:
+            *DB*: :class:`cape.dataBook.DataBook`
+                Instance of the data book class
+            *comp*: :class:`str`
+                Name of component
+            *I*: :class:`list` (:class:`int`)
+                List of trajectory indices or update all cases in trajectory
+        :Outputs:
+            *n*: :class:`list`
+                Number of deletions made
+        :Versions:
+            * 2017-04-25 ``@ddalle``: First version
+            * 2017-10-11 ``@ddalle``: From :func:`DeleteTriqFMComp`
+        """
+        # Default case list
+        if I is None:
+            # Use all trajectory points
+            I = range(self.x.nCase)
+        # Check type
+        if self.opts.get_DataBookType(comp) != "TriqPoint":
+            raise ValueError(
+                "Component '%s' is not a TriqPoint component" % comp)
+        # Read the TriqFM data book if necessary
+        self.ReadTriqPoint(comp, check=True, lock=True)
+        # Get the data book
+        DBF = self.TriqPoint[comp]
+        # Initialize total count
+        n = 0
+        # Loop through points
+        for pt in DBF.pts:
+            # Get the component
+            DBc = DBF[pt]
+            # Number of cases in current data book.
+            nCase = len(DBc[DBc.keys()[0]])
+            # Initialize data book index array.
+            J = []
+            # Loop though indices to delete.
+            for i in I:
+                # Find the match.
+                j = DBc.FindMatch(i)
+                # Check if one was found.
+                if np.isnan(j): continue
+                # Append to the list of data book indices.
+                J.append(j)
+            # Number of deletions
+            nj = len(J)
+            # Exit if no deletions
+            if nj == 0:
+                continue
+            # Initialize mask of cases to keep.
+            mask = np.ones(nCase, dtype=bool)
+            # Set values equal to false for cases to be deleted.
+            mask[J] = False
+            # Loop through keys
+            for c in DBc.keys():
+                # Apply the mask
+                DBc[c] = DBc[c][mask]
+            # Update the number of entries.
+            DBc.n = len(DBc[DBc.keys()[0]])
+            # Update deletion count
+            n += nj
+        # Output
+        return n
+            
+    
+   # ]
   # >
     
   # ==========
@@ -4684,12 +4858,15 @@ class DBTriqFM(DataBook):
         """Prepare to update a TriqFM group if necessary
         
         :Call:
-            >>> DBF.UpdateCase(i)
+            >>> n = DBF.UpdateCase(i)
         :Inputs:
             *DBF*: :class:`cape.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
+        :Outputs:
+            *n*: ``0`` | ``1``
+                How many updates were made
         :Versions:
             * 2017-03-28 ``@ddalle``: First version
         """

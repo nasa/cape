@@ -108,7 +108,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         self.pts = kw.get('pts', opts.get_DBGroupPoints(name))
         # Loop through the points.
         for pt in self.pts:
-            self[pt] = DBPointSensor(x, opts, pt, name)
+            self.ReadPointSensor(pt)
             
     # Representation method
     def __repr__(self):
@@ -124,6 +124,26 @@ class DBPointSensorGroup(dataBook.DBBase):
         # Output
         return lbl
     __str__ = __repr__
+    
+    # Read a point sensor
+    def ReadPointSensor(self, pt):
+        """Read a point sensor
+        
+        This function needs to be customized for each derived class so that the
+        correct class is used for each of the member data books
+        
+        :Call:
+            >>> DBPG.ReadPointSensor(pt)
+        :Inputs:
+            *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
+                A point sensor group data book
+            *pt*: :class:`str`
+                Name of the point to read
+        :Versions:
+            * 2017-10-11 ``@ddalle``: First version
+        """
+        # Read the local class
+        self[pt] = DBPointSensor(self.x, self.opts, pt, self.name)
   # >
   
   # ======
@@ -131,7 +151,7 @@ class DBPointSensorGroup(dataBook.DBBase):
   # ======
   # <
     # Output method
-    def Write(self):
+    def Write(self, merge=False, unlock=True):
         """Write to file each point sensor data book in a group
         
         :Call:
@@ -139,6 +159,10 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Inputs:
             *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
                 A point sensor group data book
+            *merge*: ``True`` | {``False``}
+                Whether or not to attempt a merger before writing
+            *unlock*: {``True``} | ``False``
+                Whether or not to delete any lock files
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
@@ -147,7 +171,7 @@ class DBPointSensorGroup(dataBook.DBBase):
             # Sort it.
             self[pt].Sort()
             # Write it
-            self[pt].Write()
+            self[pt].Write(merge=merge, unlock=unlock)
   # >
   
   # ==========
@@ -155,16 +179,18 @@ class DBPointSensorGroup(dataBook.DBBase):
   # ==========
   # <
     # Read case point data
-    def ReadCasePoint(self, pt):
+    def ReadCasePoint(self, pt, i):
         """Read point data from current run folder
         
         :Call:
-            >>> P = DBPG.ReadCasePoint(pt)
+            >>> P = DBPG.ReadCasePoint(pt, i)
         :Inputs:
             *DBPG*: :class:`cape.pointSensor.DBPointGroup`
                 Point sensor group data book
             *pt*: :class:`str`
                 Name of point to read
+            *i*: :class:`int`
+                Case index
         :Outputs:
             *P*: :class:`dict`
                 Dictionary of state variables as requested from the point
@@ -173,6 +199,27 @@ class DBPointSensorGroup(dataBook.DBBase):
         """
         # Read data from a custom file
         pass
+  # >
+  
+  # =============
+  # Organization
+  # =============
+  # <
+    # Sort data book
+    def Sort(self):
+        """Sort each point sensor data book in a group
+        
+        :Call:
+            >>> DBPG.Sort()
+        :Inputs:
+            *DBPG*: :class:`cape.pointSensor.DBPointSensorGroup`
+                A point sensor group data book
+        :Versions:
+            * 2017-10-11 ``@ddalle``: First version
+        """
+        # Loop through points
+        for pt in self.pts:
+            self[pt].Sort()
   # >
   
   # ============
@@ -233,7 +280,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         """Update the data book for a list of cases from the run matrix
         
         :Call:
-            >>> DBPG.UpdateDataBook(I=None, pt=None)
+            >>> DBPG.Update(I=None, pt=None)
         :Inputs:
             *DBPG*: :class:`cape.dataBook.DBPointGroup`
                 Point sensor group data book
@@ -265,7 +312,7 @@ class DBPointSensorGroup(dataBook.DBBase):
             # Loop through indices
             for i in I:
                 try:
-                    # See if it can be udated
+                    # See if it can be updated
                     n += self.UpdateCasePoint(i, pt)
                 except Excaption as e:
                     # Print error message and move on
@@ -283,6 +330,44 @@ class DBPointSensorGroup(dataBook.DBBase):
             self[pt].Sort()
             # Write it
             self[pt].Write(merge=True, unlock=True)
+            
+    # Update a case (alternate grouping)
+    def UpdateCase(self, i, pt=None):
+        """Update all points for one case
+        
+        :Call:
+            >>> n = DBPG.UpdateCase(i, pt=None)
+        :Inputs:
+            *DBPG*: :class:`cape.dataBook.DBPointGroup`
+                Point sensor group data book
+            *i*: :class:`int`
+                Case index
+            *pt*: {``None``} | :class:`list` (:class:`str`) | :class:`str`
+                Point name or list of point names
+        :Outputs:
+            *n*: ``0`` | ``1``
+                How many updates were made
+        :Versions:
+            * 2017-10-11 ``@ddalle``: First version
+        """
+        # Process list of components
+        pts = self.ProcessComps(pt=pt)
+        # Save location
+        fpwd = os.getcwd()
+        # Initialize counter (return 1 if all points updated)
+        n = 1
+        # Loop through points
+        for pt in pts:
+            # Check type
+            if pt not in self.pts: continue
+            # Go to root dir
+            os.chdir(self.RootDir)
+            # Update the point
+            ni = self.UpdateCaseComp(i, pt)
+            # Check if updated
+            n = n*ni
+        # Output
+        return n
     
     # Update or add an entry for one component
     def UpdateCaseComp(self, i, pt):
@@ -365,7 +450,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         # Maximum number of iterations allowed.
         nMax = min(nIter-nMin, self.opts.get_nMaxStats())
         # Read data
-        P = self.ReadPoint(pt, i)
+        P = self.ReadCasePoint(pt, i)
         
         # Save the data.
         if np.isnan(j):
@@ -588,7 +673,7 @@ class DBTriqPointGroup(DBPointSensorGroup):
         self.pts = kw.get('pts', opts.get_DBGroupPoints(name))
         # Loop through the points.
         for pt in self.pts:
-            self[pt] = DBTriqPoint(x, opts, pt, name)
+            self.ReadPointSensor(pt)
             
     # Representation method
     def __repr__(self):
@@ -604,6 +689,26 @@ class DBTriqPointGroup(DBPointSensorGroup):
         # Output
         return lbl
     __str__ = __repr__
+    
+    # Read a point sensor
+    def ReadPointSensor(self, pt):
+        """Read a point sensor
+        
+        This function needs to be customized for each derived class so that the
+        correct class is used for each of the member data books
+        
+        :Call:
+            >>> DBPG.ReadPointSensor(pt)
+        :Inputs:
+            *DBPG*: :class:`cape.pointSensor.DBTriqPointGroup`
+                A point sensor group data book
+            *pt*: :class:`str`
+                Name of the point to read
+        :Versions:
+            * 2017-10-11 ``@ddalle``: First version
+        """
+        # Read the local class
+        self[pt] = DBTriqPoint(self.x, self.opts, pt, self.name)
   # >
   
   # ==========
@@ -760,7 +865,7 @@ class DBPointSensor(dataBook.DBBase):
             * 2015-12-04 ``@ddalle``: First version
         """
         pass
-   # >       
+  # >       
 # class DBPointSensor
 
 
@@ -787,7 +892,7 @@ class DBTriqPoint(DBPointSensor):
         *RootDir*: :class:`str` | ``None``
             Project root directory absolute path, default is *PWD*
     :Outputs:
-        *DBP*: :class:`pyCart.pointSensor.DBPointSensor`
+        *DBP*: :class:`cape.pointSensor.DBPointSensor`
             An individual point sensor data book
     :Versions:
         * 2015-12-04 ``@ddalle``: Started
