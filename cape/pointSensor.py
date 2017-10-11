@@ -858,6 +858,31 @@ class DBPointSensor(dataBook.DBBase):
         # Output
         return lbl
     __str__ = __repr__
+        
+    # Read a copy
+    def ReadCopy(self, check=False, lock=False):
+        """Read a copied database object
+        
+        :Call:
+            >>> DBP1 = DBP.ReadCopy(check=False, lock=False)
+        :Inputs:
+            *DBP*: :class:`cape.pointSensor.DBPointSensor`
+                Data book base object
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Outputs:
+            *DBP1*: :class:`cape.pointSensor.DBPointSensor`
+                Copy of data book object
+        :Versions:
+            * 2017-06-26 ``@ddalle``: First version
+            * 2017-10-11 ``@ddalle``: From :class:`cape.dataBook.DBBase`
+        """
+        # Call the object
+        DBP = DBPointSensor(self.x, self.opts, self.pt, self.name)
+        # Output
+        return DBP
   # >
   
   # =========
@@ -929,6 +954,31 @@ class DBTriqPoint(DBPointSensor):
         # Output
         return lbl
     __str__ = __repr__
+        
+    # Read a copy
+    def ReadCopy(self, check=False, lock=False):
+        """Read a copied database object
+        
+        :Call:
+            >>> DBP1 = DBP.ReadCopy(check=False, lock=False)
+        :Inputs:
+            *DBP*: :class:`cape.pointSensor.DBTriqPoint`
+                Data book base object
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Outputs:
+            *DBP1*: :class:`cape.pointSensor.DBTriqPoint`
+                Copy of data book object
+        :Versions:
+            * 2017-06-26 ``@ddalle``: First version
+            * 2017-10-11 ``@ddalle``: From :class:`cape.dataBook.DBBase`
+        """
+        # Call the object
+        DBP = DBTriqPoint(self.x, self.opts, self.pt, self.name)
+        # Output
+        return DBP
   # >
   
   # =========
