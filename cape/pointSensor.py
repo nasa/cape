@@ -548,7 +548,7 @@ class DBTriqPointGroup(DBPointSensorGroup):
     """Post-processed point sensor group data book
     
     :Call:
-        >>> DBPG = DBTriqPointGroup(x, opts, name)
+        >>> DBPG = DBTriqPointGroup(x, opts, name, pts=None, RootDir=None)
     :Inputs:
         *x*: :class:`cape.trajectory.Trajectory`
             Trajectory/run matrix interface
@@ -643,6 +643,8 @@ class DBTriqPointGroup(DBPointSensorGroup):
         :Outputs:
             *triq*: :class:`cape.tri.Triq`
                 Annotated triangulation interface
+            *VarList*: :class:`list` (:class:`str`)
+                List of variable names
         :Versions:
             * 2017-10-10 ``@ddalle``: First version
         """

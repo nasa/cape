@@ -5566,7 +5566,7 @@ class Triq(TriBase):
         """Interpolate *triq.q* to the nearest point on the surface
         
         :Call:
-            >>> q = triq.InterpSurfPoint(x, **kw)
+            >>> x0, q = triq.InterpSurfPoint(x, **kw)
         :Inputs:
             *triq*: :class:`cape.tri.Triq`
                 Annotated triangulation interface
@@ -5575,6 +5575,8 @@ class Triq(TriBase):
             *kw*: :class:`dict`
                 Keyword arguments passed to :func:`Tri.GetNearestTri`
         :Outputs:
+            *x0*: :class:`np.ndarray` shape=(3,)
+                Point projected onto the surface
             *q*: :class:`np.ndarray` shape=(*triq.nq*,)
                 Interpolated state from *triq.q*
         :Versions:
@@ -5598,7 +5600,11 @@ class Triq(TriBase):
         q1 = self.q[i1]
         q2 = self.q[i2]
         # Interpolation
-        return q0 + th1*(q1-q0) + th2*(q2-q0)
+        q = q0 + th1*(q1-q0) + th2*(q2-q0)
+        # Point projection
+        x0 = x - T["z1"]*self.e3[k]
+        # Output
+        return x0, q
   # >
   
   # ============
