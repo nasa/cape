@@ -8084,8 +8084,15 @@ class CaseFM(CaseData):
         """
         # Number of iterations available
         ni = len(self.i)
+        # Default last iteration
+        if ni == 0:
+            # No iterations
+            nLast = 0
+        else:
+            # Last iteration
+            nLast = self.i[-1]
         # Read iteration values
-        nLast = kw.get('nLast', self.i[-1])
+        nLast = kw.get('nLast', nLast)
         # Get maximum size
         if nMax is None: nMax = nStats
         # Get interval size
