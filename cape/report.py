@@ -1879,7 +1879,7 @@ class Report(object):
        # Restriction
        # ------------
         # Get restriction option
-        fres = opts.get_SubfigOpt(sfig "Restriction")
+        fres = opts.get_SubfigOpt(sfig, "Restriction")
         # Get position
         xres = opts.get_SubfigOpt(sfig, "RestrictionXPos")
         yres = opts.get_SubfigOpt(sfig, "RestrictionYPos")
