@@ -1751,6 +1751,131 @@ class Report(object):
         return fcpt
    # ]
    
+   # ----------
+   # Formatting
+   # ----------
+   # [
+    # Function to turn on grid, turn off ticks, etc.
+    def SubfigFormatAxes(self, sfig, ax):
+        """Apply formatting options to an :class:`AxesSubplot` instance
+        
+        :Call:
+            >>> R.SubfigFormatAxes(sfig, ax)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure to update
+            *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
+                Axis handle
+        :Versions:
+            * 2017-10-12 ``@ddalle``: First version
+        """
+       # -----------
+       # Grid Lines
+       # -----------
+        # Grid options
+        mjgrid = opts.get_SubfigOpt(sfig, "Grid")
+        kw_gmj = opts.get_SubfigOpt(sfig, "GridStyle")
+        mngrid = opts.get_SubfigOpt(sfig, "MinorGrid")
+        kw_gmn = opts.get_SubfigOpt(sfig, "MinorGridStyle")
+        # Format | turn on | turn off grid
+        if mjgrid is None:
+            # Leave it as it currently is
+            pass
+        elif mjgrid:
+            # Ensure that the axis is below
+            ax.set_axisbelow(True)
+            # Add the grid
+            ax.grid(**kw_gmj)
+        # Format | turn on | turn off minor grid
+        if mngrid is None:
+            # Leave it as it currently is
+            pass
+        elif mngrid:
+            # Ensure that the axis is below
+            ax.set_axisbelow(True)
+            # Minor ticks are required
+            ax.minorticks_on()
+            # Add the grid
+            ax.grid(which="minor", **kw_gmn)
+       # ------------
+       # Tick Labels
+       # ------------
+        # Get tick label options
+        TL = opts.get_SubfigOpt(sfig "TickLabels")
+        xTL = opts.get_SubfigOpt(sfig, "XTickLabels")
+        yTL = opts.get_SubfigOpt(sfig, "YTickLabels")
+        # Formattiong
+        kw_TL  = opts.get_SubfigOpt(sfig, "TickLabelOptions")
+        kw_xTL = opts.get_SubfigOpt(sfig, "XTickLabelOptions")
+        kw_yTL = opts.get_SubfigOpt(sfig, "YTickLabelOptions")
+        # Ensure dictionary
+        if kw_TL.__class__.__name__ != "dict": kw_TL = {}
+        if kw_xTL.__class__.__name__ != "dict": kw_xTL = {}
+        if kw_yTL.__class__.__name__ != "dict": kw_yTL = {}
+        # Apply *kw_TL* to others as defaults
+        for k in kw_TL:
+            kw_xTL.setdefault(kw_TL[k])
+            kw_yTL.setdefault(kw_TL[k])
+        # Check for x-axis tick label options
+        if xTL == False:
+            # Turn off tick labels
+            ax.set_xticklabels([])
+        elif xTL:
+            # Explicit list of x-tick labels
+            ax.set_xticklabels(xTL, **kw_xTL)
+        elif kw_xTL:
+            # Get the current labels
+            xTL = ax.get_xticklabels()
+            # Put them back in with additional formatting options
+            ax.set_xticklabels(xTL, **kw_xTL)
+        # Check for y-axis tick label options
+        if yTL == False:
+            # Turn off tick labels
+            ax.set_yticklabels([])
+        elif yTL:
+            # Explicit list of y-tick labels
+            ax.set_yticklabels(yTL, **kw_yTL)
+        elif kw_yTL:
+            # Get the current labels
+            yTL = ax.get_yticklabels()
+            # Put them back in with additional formatting options
+            ax.set_yticklabels(xTL, **kw_yTL)
+        # Check for overall tick label option
+        if TL == False:
+            # Turn off both sets
+            ax.set_xticklabels([])
+            ax.set_yticklabels([])
+       # ------
+       # Ticks
+       # ------
+        # Get tick label options
+        Ticks = opts.get_SubfigOpt(sfig "Ticks")
+        XTicks = opts.get_SubfigOpt(sfig, "XTicks")
+        YTicks = opts.get_SubfigOpt(sfig, "YTicks")
+        # Check for x-axis tick options
+        if XTicks == False:
+            # Turn off tick labels
+            ax.set_xticks([])
+        elif XTicks:
+            # Explicit list of x-tick labels
+            ax.set_xticks(XTicks)
+        # Check for y-axis tick options
+        if YTicks == False:
+            # Turn off tick labels
+            ax.set_yticks([])
+        elif YTicks:
+            # Explicit list of y-tick labels
+            ax.set_yticks(YTicks)
+        # Check for overall ticks option
+        if Ticks == False:
+            # Turn off both sets
+            ax.set_xticks([])
+            ax.set_yticks([])
+        
+   # ]
+   
    # ---------
    # Tables
    # ---------
@@ -2417,6 +2542,9 @@ class Report(object):
         :Versions:
             * 2015-03-09 ``@ddalle``: First version
         """
+       # ------
+       # Setup
+       # ------
         # Save current folder.
         fpwd = os.getcwd()
         # Case folder
@@ -2459,6 +2587,9 @@ class Report(object):
             lines.append('\\end{subfigure}\n')
             # Output
             return lines
+       # ---------
+       # Plotting
+       # ---------
         # Loop through plots.
         for k in range(nCoeff):
             # Get the component and coefficient.
@@ -2522,22 +2653,6 @@ class Report(object):
             fmt_s = opts.get_SubfigOpt(sfig, "SigmaFormat", k)
             fmt_d = opts.get_SubfigOpt(sfig, "DeltaFormat", k)
             fmt_e = opts.get_SubfigOpt(sfig, "ErrorFormat", k)
-            # Overall formatting
-            if k == 0:
-                # First plot, get legend, etc.
-                mjgrid = opts.get_SubfigOpt(sfig, "Grid")
-                kw_gmj = opts.get_SubfigOpt(sfig, "GridStyle")
-                mngrid = opts.get_SubfigOpt(sfig, "MinorGrid")
-                kw_gmn = opts.get_SubfigOpt(sfig, "MinorGridStyle")
-                # Error tolerance
-                if kw_gmj.__class__.__name__ != "dict": kw_gmj = {}
-                if kw_gmn.__class__.__name__ != "dict": kw_gmn = {}
-            else:
-                # Don't repeat grid options
-                mjgrid = None
-                kw_gmj = {}
-                mngrid = None
-                kw_gmn = {}
             # Draw the plot.
             h = FM.PlotCoeff(coeff, n=nPlotIter,
                 nFirst=nPlotFirst, nLast=nPlotLast,
@@ -2550,9 +2665,15 @@ class Report(object):
                 ShowDelta=sh_d, DeltaFormat=fmt_d,
                 ShowSigma=sh_s, SigmaFormat=fmt_s,
                 ShowError=sh_e, ErrorFormat=fmt_e,
-                FigWidth=figw, FigHeight=figh,
-                Grid=mjgrid, GridStyle=kw_gmj,
-                MinorGrid=mngrid, MinorGridStyle=kw_gmn)
+                FigWidth=figw, FigHeight=figh)
+       # ----------------
+       # Post Formatting
+       # ----------------
+        # Use the function
+        self.SubfigFormatAxes(sfig, h['ax'])
+       # --------
+       # Config
+       # --------
         # Change back to report folder.
         os.chdir(fpwd)
         # Check for a figure to write.
@@ -3169,22 +3290,6 @@ class Report(object):
             kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",   i)
             kw_s = opts.get_SubfigPlotOpt(sfig, "StDevOptions",  i)
             kw_m = opts.get_SubfigPlotOpt(sfig, "MinMaxOptions", i)
-            # Overall formatting
-            if i == 0:
-                # First plot, get legend, etc.
-                mjgrid = opts.get_SubfigOpt(sfig, "Grid")
-                kw_gmj = opts.get_SubfigOpt(sfig, "GridStyle")
-                mngrid = opts.get_SubfigOpt(sfig, "MinorGrid")
-                kw_gmn = opts.get_SubfigOpt(sfig, "MinorGridStyle")
-                # Error tolerance
-                if kw_gmj.__class__.__name__ != "dict": kw_gmj = {}
-                if kw_gmn.__class__.__name__ != "dict": kw_gmn = {}
-            else:
-                # Don't repeat grid options
-                mjgrid = None
-                kw_gmj = {}
-                mngrid = None
-                kw_gmn = {}
             # Draw the plot.
             h = DBc.PlotCoeff(coeff, Jj, x=xk,
                 XMRP=xmrp, DXMRP=dxmrp,
@@ -3193,9 +3298,7 @@ class Report(object):
                 StDev=ksig, StDevOptions=kw_s,
                 MinMax=qmmx, MinMaxOptions=kw_m,
                 FigWidth=figw, FigHeight=figh,
-                XMin=xmin, XMax=xmax, YMin=ymin, YMax=ymax,
-                Grid=mjgrid, GridStyle=kw_gmj,
-                MinorGrid=mngrid, MinorGridStyle=kw_gmn)
+                XMin=xmin, XMax=xmax, YMin=ymin, YMax=ymax)
             # Loop through targets
             for targ in targs:
                 # Get the target handle.
@@ -3277,6 +3380,8 @@ class Report(object):
        # ----------
        # Formatting
        # ----------
+        # Apply other options to axes
+        self.SubfigFormat(sfig, h['ax'])
         # Check for manually specified axes labels.
         xlbl = opts.get_SubfigOpt(sfig, "XLabel")
         ylbl = opts.get_SubfigOpt(sfig, "YLabel")

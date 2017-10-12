@@ -6649,6 +6649,18 @@ class CaseData(object):
                 Turn on/off minor grid lines, or leave as is if ``None``
             *MinorGridStyle*: {``{}``} | :class:`dict`
                 Dictionary of minor grid line line style options
+            *Ticks*: {``None``} | ``False``
+                Turn off ticks if ``False``
+            *XTicks*: {*Ticks*} | ``None`` | ``False`` | :class:`list`
+                Option for x-axis tick levels, turn off if ``False`` or ``[]``
+            *YTicks*: {*Ticks*} | ``None`` | ``False`` | :class:`list`
+                Option for y-axis tick levels, turn off if ``False`` or ``[]``
+            *TickLabels*: {``None``} | ``False``
+                Turn off tick labels if ``False``
+            *XTickLabels*: {*TickLabels*} | ``None`` | ``False`` | :class:`list`
+                Option for x-axis tick labels, turn off if ``False`` or ``[]``
+            *YTickLabels*: {*TickLabels*} | ``None`` | ``False`` | :class:`list`
+                Option for y-axis tick labels, turn off if ``False`` or ``[]``
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
@@ -6658,6 +6670,7 @@ class CaseData(object):
             * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
             * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
             * 2015-12-07 ``@ddalle``: Moved to basis class
+            * 2017-10-12 ``@ddalle``: Added grid and tick options
         """
        # ----------------
        # Initial Options
@@ -6986,6 +6999,57 @@ class CaseData(object):
         else:
             # Turn the grid off, even if previously turned on
             h['ax'].grid(False)
+       # ------------------
+       # Ticks/Tick Labels
+       # ------------------
+        # Get *Ticks* option
+        tck = kw.get("Ticks")
+        xtck = kw.get("XTicks", tck)
+        ytck = kw.get("YTicks", tck)
+        # Get *TickLabels* option
+        TL = kw.get("TickLabels")
+        xTL = kw.get("XTickLabels", TL)
+        yTL = kw.get("YTickLabels", TL)
+        # Process x-axis ticks
+        if xTL is None:
+            # Do nothing
+            pass
+        elif xTL == False:
+            # Turn axis labels off
+            h['ax'].set_xticklabels([])
+        elif xTL:
+            # Manual list of tick labels (unlikely to work)
+            h['ax'].set_xticklabels(xTL)
+        # Process y-axis ticks
+        if yTL is None:
+            # Do nothing
+            pass
+        elif yTL == False:
+            # Turn axis labels off
+            h['ax'].set_yticklabels([])
+        elif yTL:
+            # Manual list of tick labels (unlikely to work)
+            h['ax'].set_yticklabels(yTL)
+        # Process x-axis ticks
+        if xtck is None:
+            # Do nothing
+            pass
+        elif xtck == False:
+            # Turn axis labels off
+            h['ax'].set_xticks([])
+        elif xtck:
+            # Manual list of tick labels (unlikely to work)
+            h['ax'].set_xticks(xtck)
+        # Process y-axis ticks
+        if ytck is None:
+            # Do nothing
+            pass
+        elif ytck == False:
+            # Turn axis labels off
+            h['ax'].set_yticks([])
+        elif ytck:
+            # Manual list of tick labels (unlikely to work)
+            h['ax'].set_yticks(ytck)
        # -----------------
        # Final Formatting
        # -----------------
