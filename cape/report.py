@@ -1771,6 +1771,8 @@ class Report(object):
         :Versions:
             * 2017-10-12 ``@ddalle``: First version
         """
+        # Get the options
+        opts = self.cntl.opts
        # -----------
        # Grid Lines
        # -----------
@@ -1873,7 +1875,25 @@ class Report(object):
             # Turn off both sets
             ax.set_xticks([])
             ax.set_yticks([])
-        
+       # ------------
+       # Restriction
+       # ------------
+        # Get restriction option
+        fres = opts.get_SubfigOpt(sfig "Restriction")
+        # Get position
+        xres = opts.get_SubfigOpt(sfig, "RestrictionXPos")
+        yres = opts.get_SubfigOpt(sfig, "RestrictionYPos")
+           # # printf-style flag
+           # flbl = kw.get("DeltaFormat", "%.4f")
+           # # Form: \DeltaCA = 0.0050
+           # lbl = (u'\u0394%s = %s' % (c, flbl)) % dc
+           # # Create the handle.
+           # h['d'] = plt.text(0.99, yl, lbl, color=kw_d.get_key('color',1),
+           #     horizontalalignment='right', verticalalignment='top',
+           #     transform=h['ax'].transAxes)
+           # # Correct the font.
+           # try: h['d'].set_family("DejaVu Sans")
+           # except Exception: pass
    # ]
    
    # ---------
