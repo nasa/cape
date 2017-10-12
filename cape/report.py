@@ -1803,7 +1803,7 @@ class Report(object):
        # Tick Labels
        # ------------
         # Get tick label options
-        TL = opts.get_SubfigOpt(sfig "TickLabels")
+        TL = opts.get_SubfigOpt(sfig, "TickLabels")
         xTL = opts.get_SubfigOpt(sfig, "XTickLabels")
         yTL = opts.get_SubfigOpt(sfig, "YTickLabels")
         # Formattiong
@@ -1851,7 +1851,7 @@ class Report(object):
        # Ticks
        # ------
         # Get tick label options
-        Ticks = opts.get_SubfigOpt(sfig "Ticks")
+        Ticks = opts.get_SubfigOpt(sfig, "Ticks")
         XTicks = opts.get_SubfigOpt(sfig, "XTicks")
         YTicks = opts.get_SubfigOpt(sfig, "YTicks")
         # Check for x-axis tick options
