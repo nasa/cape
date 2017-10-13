@@ -1876,6 +1876,30 @@ class Report(object):
             ax.set_xticks([])
             ax.set_yticks([])
        # ------------
+       # Axes Labels
+       # ------------
+        # Check for manually specified axes labels.
+        xlbl = opts.get_SubfigOpt(sfig, "XLabel")
+        ylbl = opts.get_SubfigOpt(sfig, "YLabel")
+        # Formatting options
+        xlblopts = opts.get_SubfigOpt(sfig, "XLabelOptions")
+        ylblopts = opts.get_SubfigOpt(sfig, "YLabelOptions")
+        # Ensure dictionary
+        if type(xlblopts).__name__ != "dict": xlblopts = {}
+        if type(ylblopts).__name__ != "dict": ylblopts = {}
+        # Specify x-axis label if given.
+        if xlbl is not None:
+            ax.set_xlabel(xlbl)
+        # Specify x-axis label if given.
+        if ylbl is not None:
+            ax.set_ylabel(ylbl)
+        # Get handles
+        hx = ax.get_xaxis().get_label()
+        hy = ax.get_yaxis().get_label()
+        # Reissue commands with options
+        ax.set_xlabel(hx.get_text(), **xlblopts)
+        ax.set_ylabel(hy.get_text(), **ylblopts)
+       # ------------
        # Restriction
        # ------------                            
         # Get restriction option
@@ -3461,15 +3485,6 @@ class Report(object):
        # ----------
         # Apply other options to axes
         self.SubfigFormat(sfig, h['ax'])
-        # Check for manually specified axes labels.
-        xlbl = opts.get_SubfigOpt(sfig, "XLabel")
-        ylbl = opts.get_SubfigOpt(sfig, "YLabel")
-        # Specify x-axis label if given.
-        if xlbl is not None:
-            h['ax'].set_xlabel(xlbl)
-        # Specify x-axis label if given.
-        if ylbl is not None:
-            h['ax'].set_ylabel(ylbl)
         # Change back to report folder.
         os.chdir(fpwd)
         # Get the file formatting
@@ -3752,15 +3767,6 @@ class Report(object):
            # ----------
            # Formatting
            # ----------
-            # Check for manually specified axes labels.
-            xlbl = opts.get_SubfigOpt(sfig, "XLabel")
-            ylbl = opts.get_SubfigOpt(sfig, "YLabel")
-            # Specify x-axis label if given.
-            if xlbl is not None:
-                h['ax'].set_xlabel(xlbl)
-            # Specify x-axis label if given.
-            if ylbl is not None:
-                h['ax'].set_ylabel(ylbl)
             # Additional formatting
             self.SubfigFormat(sfig, h['ax'])
             # Change back to report folder.
