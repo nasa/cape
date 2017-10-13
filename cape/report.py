@@ -1877,23 +1877,80 @@ class Report(object):
             ax.set_yticks([])
        # ------------
        # Restriction
-       # ------------
+       # ------------                            
         # Get restriction option
         fres = opts.get_SubfigOpt(sfig, "Restriction")
         # Get position
-        xres = opts.get_SubfigOpt(sfig, "RestrictionXPos")
-        yres = opts.get_SubfigOpt(sfig, "RestrictionYPos")
-           # # printf-style flag
-           # flbl = kw.get("DeltaFormat", "%.4f")
-           # # Form: \DeltaCA = 0.0050
-           # lbl = (u'\u0394%s = %s' % (c, flbl)) % dc
-           # # Create the handle.
-           # h['d'] = plt.text(0.99, yl, lbl, color=kw_d.get_key('color',1),
-           #     horizontalalignment='right', verticalalignment='top',
-           #     transform=h['ax'].transAxes)
-           # # Correct the font.
-           # try: h['d'].set_family("DejaVu Sans")
-           # except Exception: pass
+        xres = opts.get_SubfigOpt(sfig, "RestrictionXPosition")
+        yres = opts.get_SubfigOpt(sfig, "RestrictionYPosition")
+        # Location
+        locres = opts.get_SubfigOpt(sfig, "RestrictionLoc")
+        # Other options
+        kw_res = opts.get_SubfigOpt(sfig, "RestrictionOptions")
+        # Ensure dictionary
+        if kw_res.__class__.__name__ != "dict": kw_res = {}
+        # Process default options
+        kw_res.setdefault("fontsize", 10)
+        kw_res.setdefault("fontweight", "bold")
+        kw_res.setdefault("transform", ax.transAxes)
+        # For reference, get the coordinates of the axes edge
+        ya = ax.get_position().get_points()
+        # Default options
+        if locres in ["top left", "upper left"]:
+            # Default coords for upper left label
+            xresdef = 0.01
+            yresdef = 1.01
+            # Default alignments
+            kw_res.setdefault('horizontalalignment', 'left')
+            kw_res.setdefault('verticalalignment', 'bottom')
+        elif locres in ["top right", "upper right"]:
+            # Default coords for upper right label
+            xresdef = 0.99
+            yresdef = 1.01
+            # Default alignments
+            kw_res.setdefault('horizontalalignment', 'right')
+            kw_res.setdefault('verticalalignment', 'bottom')
+        elif locres in ["right"]:
+            # Default coords for middle right label
+            xresdef = 0.99
+            yresdef = 0.50
+            # Default alignment
+            kw_res.setdefault('horizontalalignment', 'right')
+            kw_res.setdefault('verticalalignment', 'center')
+        elif locres in ["bottom right", "lower right"]:
+            # Default coords for bottom right label
+            xresdef = 0.99
+            yresdef = 0.01
+            # Default alignment
+            kw_res.setdefault('horizontalalignment', 'right')
+            kw_res.setdefault('verticalalignment', 'bottom')
+        elif locres in ["bottom"]:
+            # Default coords for bottom label
+            xresdef = 0.5
+            yresdef = 0.01
+            # Default alignment
+            kw_res.setdefault('horizontalalignment', 'center')
+            kw_res.setdefault('verticalalignment', 'bottom')
+        elif locres in ["bottom left", "lower left"]:
+            # Default coords for bottom left label
+            xresdef = 0.01
+            yresdef = 0.01
+            # Default alignment
+            kw_res.setdefault('horizontalalignment', 'left')
+            kw_res.setdefault('verticalalignment', 'bottom')
+        else:
+            # Default coords for top middle label
+            xresdef = 0.5
+            yresdef = 1.01
+            # Default alignments
+            kw_res.setdefault('horizontalalignment', 'center')
+            kw_res.setdefault('verticalalignment', 'bottom')
+        # Final coordinates
+        if xres is None: xres = xresdef
+        if yres is None: yres = yresdef
+        # Write label if nontrivial
+        if fres:
+            plt.text(xres, yres, fres, **kw_res)
    # ]
    
    # ---------
@@ -2910,6 +2967,8 @@ class Report(object):
                 LLT.Plot(coeff, LineOptions=kw_l,
                     Label=tlbl, Legend=True,
                     FigWidth=figw, FigHeight=figh)
+        # Additional formatting
+        self.SubfigFormat(sfig, h['ax'])
         # Change back to report folder.
         os.chdir(fpwd)
         # Check for a figure to write.
@@ -3702,6 +3761,8 @@ class Report(object):
             # Specify x-axis label if given.
             if ylbl is not None:
                 h['ax'].set_ylabel(ylbl)
+            # Additional formatting
+            self.SubfigFormat(sfig, h['ax'])
             # Change back to report folder.
             os.chdir(fpwd)
             # Get the file formatting
@@ -3918,6 +3979,8 @@ class Report(object):
                     cr = opts.get_SubfigOpt(sfig, "Residual")
                     # Plot it
                     h = H.PlotResid(c=cr, n=nPlotIter, **kw_p)
+                # Additional formatting
+                self.SubfigFormat(sfig, h['ax'])
                 # Change back to report folder.
                 os.chdir(fpwd)
                 # Get the file formatting
