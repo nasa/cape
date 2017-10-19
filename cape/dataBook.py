@@ -6021,7 +6021,7 @@ class DBTarget(DBBase):
         # Loop until finding a line that doesn't begin with comment char.
         line = comchar
         nskip = -1
-        while line.strip().startswith(comchar):
+        while line.strip().startswith(comchar) or nskip<1:
             # Save the old line.
             headers = line
             # Read the next line

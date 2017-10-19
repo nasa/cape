@@ -3401,7 +3401,7 @@ class Report(object):
        # Formatting
        # ----------
         # Apply other options to axes
-        self.SubfigFormat(sfig, h['ax'])
+        self.SubfigFormatAxes(sfig, h['ax'])
         # Check for manually specified axes labels.
         xlbl = opts.get_SubfigOpt(sfig, "XLabel")
         ylbl = opts.get_SubfigOpt(sfig, "YLabel")
