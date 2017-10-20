@@ -1781,6 +1781,9 @@ class Report(object):
         kw_gmj = opts.get_SubfigOpt(sfig, "GridStyle")
         mngrid = opts.get_SubfigOpt(sfig, "MinorGrid")
         kw_gmn = opts.get_SubfigOpt(sfig, "MinorGridStyle")
+        # Remove ``None`` for options
+        if type(kw_gmj).__name__ != "dict": kw_gmj = {}
+        if type(kw_gmn).__name__ != "dict": kw_gmn = {}
         # Format | turn on | turn off grid
         if mjgrid is None:
             # Leave it as it currently is
@@ -2849,7 +2852,7 @@ class Report(object):
         targs = self.SubfigTargets(sfig)
         # And their types
         targ_types = {}
-        LL = self.ReadLineLoad(comp, i, update=False)
+        LL = self.ReadLineLoad(comp, i, update=True)
         # Loop through targets.
         for targ in targs:
             # Try to read the line loads
@@ -2992,7 +2995,7 @@ class Report(object):
                     Label=tlbl, Legend=True,
                     FigWidth=figw, FigHeight=figh)
         # Additional formatting
-        self.SubfigFormat(sfig, h['ax'])
+        self.SubfigFormatAxes(sfig, h['ax'])
         # Change back to report folder.
         os.chdir(fpwd)
         # Check for a figure to write.
@@ -3768,7 +3771,7 @@ class Report(object):
            # Formatting
            # ----------
             # Additional formatting
-            self.SubfigFormat(sfig, h['ax'])
+            self.SubfigFormatAxes(sfig, h['ax'])
             # Change back to report folder.
             os.chdir(fpwd)
             # Get the file formatting
@@ -3986,7 +3989,7 @@ class Report(object):
                     # Plot it
                     h = H.PlotResid(c=cr, n=nPlotIter, **kw_p)
                 # Additional formatting
-                self.SubfigFormat(sfig, h['ax'])
+                self.SubfigFormatAxes(sfig, h['ax'])
                 # Change back to report folder.
                 os.chdir(fpwd)
                 # Get the file formatting
