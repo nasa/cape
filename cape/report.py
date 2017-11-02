@@ -2994,12 +2994,12 @@ class Report(object):
                 LLT.Plot(coeff, LineOptions=kw_l,
                     Label=tlbl, Legend=True,
                     FigWidth=figw, FigHeight=figh)
-        # Additional formatting
-        self.SubfigFormatAxes(sfig, h['ax'])
         # Change back to report folder.
         os.chdir(fpwd)
         # Check for a figure to write.
         if nPlot > 0:
+            # Additional formatting
+            self.SubfigFormatAxes(sfig, h['ax'])
             # Get the file formatting
             fmt = opts.get_SubfigOpt(sfig, "Format")
             dpi = opts.get_SubfigOpt(sfig, "DPI")
