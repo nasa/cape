@@ -231,7 +231,7 @@ class Q(P3D):
         for i in range(nGrid):
             # Read headers
             self.ReadQHeader(i+1)
-            #self.ReadQData(i+1)
+            self.ReadQData(i+1)
         # Reread if q.restart...
         
         # Close the file
