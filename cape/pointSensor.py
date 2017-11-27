@@ -773,7 +773,7 @@ class DBPointSensor(dataBook.DBBase):
     point sensor results in particular.
     
     :Call:
-        >>> DBP = DBPointSensor(x, opts, pt, name=None)
+        >>> DBP = DBPointSensor(x, opts, pt, name=None, check=False, lock=False)
     :Inputs:
         *x*: :class:`cape.trajectory.Trajectory`
             Trajectory/run matrix interface
@@ -785,6 +785,10 @@ class DBPointSensor(dataBook.DBBase):
             Name of data book item (defaults to *pt*)
         *RootDir*: :class:`str` | ``None``
             Project root directory absolute path, default is *PWD*
+        *check*: ``True`` | {``False``}
+            Whether or not to check LOCK status
+        *lock*: ``True`` | {``False``}
+            If ``True``, create a LOCK file
     :Outputs:
         *DBP*: :class:`pyCart.pointSensor.DBPointSensor`
             An individual point sensor data book
@@ -796,7 +800,7 @@ class DBPointSensor(dataBook.DBBase):
   # ========
   # <
     # Initialization method
-    def __init__(self, x, opts, pt, name=None, **kw):
+    def __init__(self, x, opts, pt, name=None, check=False, lock=False, **kw):
         """Initialization method
         
         :Versions:
@@ -836,7 +840,7 @@ class DBPointSensor(dataBook.DBBase):
         self.DataCols = opts.get_DataBookCoeffs(name)
         
         # Read the file or initialize empty arrays.
-        self.Read(fname)
+        self.Read(fname, check=check, lock=lock)
         
     # Representation method
     def __repr__(self):
@@ -970,7 +974,8 @@ class DBTriqPoint(DBPointSensor):
             * 2017-10-11 ``@ddalle``: From :class:`cape.dataBook.DBBase`
         """
         # Call the object
-        DBP = DBTriqPoint(self.x, self.opts, self.pt, self.comp)
+        DBP = DBTriqPoint(self.x, self.opts, self.pt, self.comp,
+            check=check, lock=lock)
         # Output
         return DBP
   # >

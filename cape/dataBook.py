@@ -1261,13 +1261,13 @@ class DataBook(dict):
             print("Updating TriqPoint group '%s' ..." % comp)
             # Perform aupdate and get number of additions
             n = self.UpdateTriqPointComp(comp, I)
-            # Check for updates
-            if n == 0:
-                continue  
-            # Status update
-            print("Added or updated %s entries" % n)
-            # Write the updated results
-            self.TriqPoint[comp].Write(merge=True, unlock=True)
+            ## Check for updates
+            #if n == 0:
+            #    continue  
+            ## Status update
+            #print("Added or updated %s entries" % n)
+            ## Write the updated results
+            #self.TriqPoint[comp].Write(merge=True, unlock=True)
     
     # Update TriqPoint data book for one component
     def UpdateTriqPointComp(self, comp, I=None):
@@ -1304,6 +1304,10 @@ class DataBook(dict):
         for i in I:
             # Update the data book for that case
             n += self.TriqPoint[comp].UpdateCase(i)
+        # Check count
+        if n > 0:
+            print("    Added or updated %s entries" % n)
+            self.TriqPoint[comp].Write(merge=True, unlock=True)
         # Output
         return n
         
@@ -2373,8 +2377,15 @@ class DBBase(dict):
         :Versions:
             * 2017-06-26 ``@ddalle``: First version
         """
+        # Check for a name
+        try:
+            # Use the *name* as the first choice
+            name = self.name
+        except AttributeError:
+            # Fall back to the *comp* attribute
+            name = self.comp
         # Call the object
-        DBc = DBBase(self.comp, self.x, self.opts, check=check, lock=lock)
+        DBc = DBBase(name, self.x, self.opts, check=check, lock=lock)
         # Output
         return DBc
         
@@ -2696,7 +2707,7 @@ class DBBase(dict):
             # Last column
             k = self.cols[-1]
             # Write the last column
-            f.write((self.wflag[-1] % self[k][-1]) + '\n')
+            f.write((self.wflag[-1] % self[k][i]) + '\n')
         # Close the file.
         f.close()
         # Unlock
@@ -2763,7 +2774,20 @@ class DBBase(dict):
             # Check for matches
             i = DBc.FindDBMatch(self, j)
             # Check for a match
-            if i is not None: continue
+            if i is not None:
+                # Check for iteration
+                if 'nIter' not in self:
+                    # No decider
+                    continue
+                elif self['nIter'][i] >= DBc['nIter'][j]:
+                    # Current one is newer (or tied)
+                    continue
+                else:
+                    # *DBc* has newer value
+                    for k in keys:
+                        self[k][i] = DBc[k][j]
+                    # Avoid n+=1 counter
+                    continue
             # No matches; merge
             for k in keys:
                 self[k] = np.append(self[k], DBc[k][j])
@@ -2879,11 +2903,7 @@ class DBBase(dict):
             # Skip if not a list
             if type(self[k]).__name__ != "ndarray": continue
             # Sort it.
-            try:
-                self[k] = self[k][I]
-            except Exception as e:
-                import pdb
-                pdb.set_trace()
+            self[k] = self[k][I]
             
     # Find the index of the point in the trajectory.
     def GetTrajectoryIndex(self, j):
@@ -4700,8 +4720,15 @@ class DBTriqFM(DataBook):
         :Versions:
             * 2017-06-26 ``@ddalle``: First version
         """
+        # Check for a name
+        try:
+            # Use the *name* as the first choice
+            name = self.name
+        except AttributeError:
+            # Fall back to the *comp* attribute
+            name = self.comp
         # Call the object
-        DBF1 = DBTriqFM(self.x, self.opts, self.comp, check=check, lock=lock)
+        DBF1 = DBTriqFM(self.x, self.opts, name, check=check, lock=lock)
         # Output
         return DBF1
     
