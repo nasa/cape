@@ -6035,6 +6035,10 @@ class DBTarget(DBBase):
         os.chdir(self.RootDir)
         # Source file
         fname = self.topts.get_TargetFile()
+        # Check for list
+        if fname.__class__.__name__ == "list":
+            # Join multiline string together
+            fname = "".join(fname)
         # Check for the file.
         if not os.path.isfile(fname):
             raise IOError(
@@ -6266,22 +6270,22 @@ class DBTarget(DBBase):
             if ctarg in ctargs:
                 # Manually specified and not recognized: error
                 raise KeyError(
-                    "Missing data book target field:\n" +
-                    "  DBTarget  '%s'\n" % self.Name +
-                    "  ctarg     '%s'\n" % ctarg + 
-                    "  coeff     '%s'\n" % c +
-                    "  column    '%s'\n" % fi)
+                    "Missing data book target field:" +
+                    " DBTarget='%s'," % self.Name +
+                    " ctarg='%s'," % ctarg + 
+                    " coeff='%s'," % c +
+                    " column='%s'," % fi)
             else:
                 # Autoselected name but not in the file.
                 return None
         # Add the field if necessary.
         if fi in self.cols:
             raise KeyError(
-                "Repeated data book target column:\n" +
-                "  DBTarget  '%s'\n" % self.Name +
-                "  ctarg     '%s'\n" % ctarg + 
-                "  coeff     '%s'\n" % c +
-                "  column    '%s'\n" % fi)
+                "Repeated data book target column:" +
+                " DBTarget='%s'," % self.Name +
+                " ctarg='%s'," % ctarg + 
+                " coeff='%s'," % c +
+                " column='%s'" % fi)
         # Return the column name
         return fi
   # >
