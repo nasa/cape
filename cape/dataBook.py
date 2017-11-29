@@ -6197,7 +6197,7 @@ class DBTarget(DBBase):
                     for sfx in ['', 'std', 'min', 'max', 'uP', 'uM']:
                         # Get the field name and check its consistency
                         fi = self.CheckColumn(ctargs, pt, cf, sfx)
-                        # Check for consistency/presens
+                        # Check for consistency/presence
                         if fi is None:
                             # Go to next line
                             continue
@@ -6252,42 +6252,40 @@ class DBTarget(DBBase):
         col = col.rstrip('_')
         # Get the translated name
         ctarg = ctargs.get(c, col)
-        # Get the target source for this entry.
-        if '/' not in ctarg:
-            # Only one target source; assume it's this one.
-            ti = self.Name
-            fi = ctarg
-        else:
-            # Name of target/Name of column
-            ti = ctarg.split('/')[0]
-            fi = '/'.join(ctarg.split('/')[1:])
-        # Check if the target is from this target source.
-        if ti != self.Name: 
-            return None
-        # Check if the column is present in the headers.
-        if fi not in self.headers:
-            # Check for default.
-            if ctarg in ctargs:
-                # Manually specified and not recognized: error
-                raise KeyError(
-                    "Missing data book target field:" +
-                    " DBTarget='%s'," % self.Name +
-                    " ctarg='%s'," % ctarg + 
-                    " coeff='%s'," % c +
-                    " column='%s'," % fi)
+        # Ensure list
+        if ctarg.__class__.__name__ != "list":
+            # Make it a list
+            ctarg = [ctarg]
+        # Loop through candidate targets
+        for ct in ctarg:
+            # Get the target source for this entry.
+            if '/' not in ct:
+                # Only one target source; assume it's this one.
+                ti = self.Name
+                fi = ct
             else:
-                # Autoselected name but not in the file.
-                return None
-        # Add the field if necessary.
-        if fi in self.cols:
-            raise KeyError(
-                "Repeated data book target column:" +
-                " DBTarget='%s'," % self.Name +
-                " ctarg='%s'," % ctarg + 
-                " coeff='%s'," % c +
-                " column='%s'" % fi)
-        # Return the column name
-        return fi
+                # Name of target/Name of column
+                ti = ct.split('/')[0]
+                fi = '/'.join(ct.split('/')[1:])
+            # Check if the target is from this target source.
+            if ti != self.Name: 
+                continue
+            # Check if the column is present in the headers.
+            if fi not in self.headers:
+                # Check for default.
+                if ct in ctargs:
+                    # Manually specified and not recognized: error
+                    raise KeyError(
+                        "Missing data book target field:" +
+                        " DBTarget='%s'," % self.Name +
+                        " ctarg='%s'," % ct + 
+                        " coeff='%s'," % c +
+                        " column='%s'," % fi)
+                else:
+                    # Autoselected name but not in the file.
+                    continue
+            # Return the column name
+            return fi
   # >
   
   # =============
