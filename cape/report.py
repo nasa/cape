@@ -2922,7 +2922,7 @@ class Report(object):
             # Auto-update flag
             q_auto = opts.get_SubfigOpt(sfig, "AutoUpdate", k)
             # Read the line load data book and read case *i* if possible
-            LL = self.ReadLineLoad(comp, i, update=q_auto)
+            LL = self.ReadLineLoad(comp, i, update=True)
             # Check for case
             if LL is None: continue
             # Add to plot count
@@ -4990,17 +4990,12 @@ class Report(object):
             j = J[0]
             # Move the handle.
             DB = DBT
+        # Check auto-update flag
+        if update:
+            # Update the case (even if up-to-date)
+            DBL.UpdateCase(j)
         # Read the case
         DBL.ReadCase(j)
-        # Check auto-update flag
-        if update and (j not in DBL):
-            # Update the case
-            DBL.UpdateCase(j)
-            # Read the case
-            DBL.ReadCase(j)
-        elif (j not in DBL):
-            # Read the case
-            DBL.ReadCase(j)
         # Output the case line load
         return DBL.get(j)
     
