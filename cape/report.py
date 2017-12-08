@@ -2985,7 +2985,7 @@ class Report(object):
                 tlbl = tlbl.lstrip(", ")
                 # Specified target plot options
                 kw_t = opts.get_SubfigPlotOpt(sfig, "TargetOptions",
-                    targs.index(targ))
+                    targs.index(targ) + k)
                 # Initialize target plot options.
                 kw_l = kw_p
                 # Apply non-default options
@@ -3459,7 +3459,7 @@ class Report(object):
                 tlbl = tlbl.lstrip(", ")
                 # Specified target plot options
                 kw_t = opts.get_SubfigPlotOpt(sfig, "TargetOptions", 
-                    targs.index(targ))
+                    k + targs.index(targ))
                 # Target options index
                 j_t += 1
                 # Initialize target plot options.
