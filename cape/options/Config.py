@@ -549,6 +549,9 @@ class Config(odict):
             else:
                 # Return the whole dict.
                 x = RefP
+        elif RefP is None:
+            # Use default
+            return [0.0, 0.0, 0.0]
         elif type(RefP[0]).__name__ == 'list':
             # Check the component input.
             if comp and (comp < len(RefP)):
