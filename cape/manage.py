@@ -1337,12 +1337,20 @@ def TarDir(cmd, ftar, fdir, clean=True):
     """
     # Check if the folder exists
     if not os.path.isdir(fdir): return
-    # Check for updates if usable
-    if cmd == ["tar", "-cf"]:
-        # Get the modification times
-        tto  = getmtime(ftar)
-        # Make sure both exist; then test mod times
-        if tto:
+    # List of files to in dir
+    fnames = os.listdir(fdir)
+    # Check for anything to tar
+    if len(fnames) < 1: return
+    # Get the modification times
+    tto  = getmtime(ftar)
+    # Get the time from each file in the line load
+    tsrc = [getmtime(os.path.join(fdir,f)) for f in fnames]
+    # Check options for already-existing archives
+    if tto:
+        # Check if archive is already up to date
+        if tto >= max(tsrc): return
+        # Ensure we use "update" tar option
+        if cmd == ["tar", "-cf"]:
             # Change the command to "-uf" for an update
             cmd = ["tar", "-uf"]
     # Create command
