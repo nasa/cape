@@ -810,12 +810,14 @@ class Plt(object):
         output will have whatever states are present in *plt*.
         
         :Call:
-            >>> triq = plt.CreateTriq(mach=1.0, triload=True, avg=True, rms=False)
+            >>> triq = plt.CreateTriq(mach=1.0, triload=True, **kw)
         :Inputs:
             *plt*: :class:`pyFun.plt.Plt`
                 Tecplot PLT interface
             *mach*: {``1.0``} | positive :class:`float`
                 Freestream Mach number for skin friction coeff conversion
+            *CompID*: {``range(len(plt.nZone))``} | :class:`list`
+                Optional list of zone numbers to use
             *triload*: {``True``} | ``False``
                 Whether or not to write a triq tailored for ``triloadCmd``
             *avg*: {``True``} | ``False``
@@ -838,7 +840,7 @@ class Plt(object):
         rms = kw.get('rms', False)
         # Freestream Mach number; FUN3D writes cf/1.4*pinf instead of cf/qinf
         mach = kw.get('mach', kw.get('m', kw.get('minf', 1.0)))
-        # Total number of points
+        # Total number of points (if no emissions)
         nNode = np.sum(self.nPt)
         # Rough number of tris
         nElem = np.sum(self.nElem)
@@ -938,13 +940,19 @@ class Plt(object):
             nq = 9
         # Initialize state
         q = np.zeros((nNode, nq))
+        # Reset node count
+        npt = 0
+        # Check for CompID list
+        zones_keep = kw.get("CompID", range(self.nZone))
         # Loop through the components
-        for k in range(self.nZone):
+        for k in zones_keep:
             # Extract tris
             T = self.Tris[k]
             # Number of points and elements
             kNode = self.nPt[k]
             kTri  = self.nElem[k]
+            # Increment node count
+            npt += kNode
             # Check for quads
             iQuad = np.where(T[:,-1] != T[:,-2])[0]
             kQuad = len(iQuad)
@@ -1057,6 +1065,9 @@ class Plt(object):
         # Downselect Tris and CompID
         Tris = Tris[:iTri,:]
         CompID = CompID[:iTri]
+        # Downselect nodes
+        Nodes = Nodes[:npt,:]
+        q = q[:npt,:]
         # Create the triangulation
         triq = cape.tri.Triq(Nodes=Nodes, Tris=Tris, q=q, CompID=CompID)
         # Output
