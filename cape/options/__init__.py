@@ -1934,6 +1934,30 @@ class Options(odict):
     def add_ArchiveArchiveFiles(self, farch):
         self['RunControl'].add_ArchiveArchiveFiles(farch)
         
+    # Files to keep during skeleton
+    def get_ArchiveSkeletonFiles(self):
+        return self['RunControl'].get_ArchiveSkeletonFiles()
+    
+    # Files to keep during skeleton
+    def add_ArchiveSkeletonFiles(self, fskel):
+        self['RunControl'].add_ArchiveSkeletonFiles(fskel)
+        
+    # Files to tail during skeleton
+    def get_ArchiveSkeletonTailFiles(self):
+        return self['RunControl'].get_ArchiveSkeletonTailFiles()
+        
+    # Files to tail during skeleton
+    def add_ArchiveSkeletonTailFiles(self, fskel):
+        self['RunControl'].add_ArchiveSkeletonFiles(fskel)
+        
+    # Folders to tar during skeleton
+    def get_ArchiveSkeletonTarDirs(self):
+        return self['RunControl'].get_ArchiveSkeletonTarDirs()
+        
+    # Folders to tar during skeleton
+    def add_ArchiveSkeletonTarDirs(self, fskel):
+        self['RunControl'].add_ArchiveSkeletonTarDirs(fskel)
+        
     # Copy over the documentation.
     for k in [
             'ArchiveProgressDeleteFiles', 'ArchiveProgressDeleteDirs',
@@ -1945,7 +1969,9 @@ class Options(odict):
             'ArchiveArchiveFiles',
             'ArchivePostDeleteFiles',     'ArchivePostDeleteDirs',
             'ArchivePostTarGroups',       'ArchivePostTarDirs',
-            'ArchivePostUpdateFiles'
+            'ArchivePostUpdateFiles',
+            'ArchiveSkeletonFiles',       'ArchiveSkeletonTailFiles',
+            'ArchiveSkeletonTarDirs'
     ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__

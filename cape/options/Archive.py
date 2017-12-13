@@ -323,7 +323,6 @@ class Archive(odict):
    # Directory/OS
    # ------------
    # <
-        
     # Get the umask
     def get_umask(self):
         """Get the current file permissions mask
@@ -755,6 +754,110 @@ class Archive(odict):
             * 2016-03-14 ``@ddalle``: First version
         """
         self.add_to_key("ProgressTarDirs", fpro)
+   # >
+   
+   # --------------------
+   # Skeleton Definitions
+   # --------------------
+   # <
+    # List of files to keep
+    def get_ArchiveSkeletonFiles(self):
+        """Get the list of files to keep during skeleton action
+        
+        :Call:
+            >>> fglob = opts.get_ArchiveSkeletonFiles()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *fglob*: :class:`list` (:class:`str`)
+                List of file globs to keep around after archiving
+        :Versions:
+            * 2017-12-13 ``@ddalle``: First version
+        """
+        return self.get_key("SkeletonFiles")
+        
+    # List of files to tail before deleting
+    def get_ArchiveSkeletonTailFiles(self):
+        """Get the list of files to tail before deletion during skeleton action
+        
+        :Call:
+            >>> fglob = opts.get_ArchiveSkeletonTailFiles()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *fglob*: :class:`list` (:class:`str` | :class:`dict`)
+                List of file globs/dicts to tail before deletion
+        :Versions:
+            * 2017-12-13 ``@ddalle``: First version
+        """
+        return self.get_key("SkeletonTailFiles")
+        
+    # List of files to tar before deleting
+    def get_ArchiveSkeletonTarDirs(self):
+        """Get list of folders to tar before deletion during skeleton action
+        
+        :Call:
+            >>> fglob = opts.get_ArchiveSkeletonTarDirs()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *fglob*: :class:`list` (:class:`str`)
+                List of folders to tar and then delete during skeleton action
+        :Versions:
+            * 2017-12-13 ``@ddalle``: First version
+        """
+        return self.get_key("SkeletonTarDirs")
+        
+    # Add to list of skeleton files
+    def add_ArchiveSkeletonFiles(self, fskel):
+        """Add to the list of files to keep after skeleton action
+        
+        :Call:
+            >>> opts.add_ArchiveSkeletonKeepFiles(fskel)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *fskel*: :class:`str` | :class:`list` (:class:`str`)
+                File glob or list of file globs to add
+        :Versions:
+            * 2017-12-13 ``@ddalle``: First version
+        """
+        self.add_to_key("SkeletonFiles", fskel)
+        
+    # Add to list of files to tail
+    def add_ArchiveSkeletonTailFiles(self, fskel):
+        """Add to the list of file-tailing instructions for skeleton action
+        
+        :Call:
+            >>> opts.add_ArchiveSkeletonTailFiles(fskel)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *fskel*: :class:`dict` | :class:`list` (:class:`dict`)
+                Additional file tail instructions
+        :Versions:
+            * 2017-12-13 ``@ddalle``: First version
+        """
+        self.add_to_key("SkeletonTailFiles", fskel)
+        
+    # Add to list of folders to tar before deleting
+    def add_ArchiveSkeletonTarDirs(self, fskel):
+        """Add to the list of folder-tarring instructions for skeleton action
+        
+        :Call:
+            >>> opts.add_ArchiveSkeletonTarDirs(fskel)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *fskel*: :class:`dict` | :class:`list` (:class:`dict`)
+                Additional folders to tar
+        :Versions:
+            * 2017-12-13 ``@ddalle``: First version
+        """
+        self.add_to_key("SkeletonTarDirs", fskel)
    # >
    
    # ------------------------
