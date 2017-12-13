@@ -562,8 +562,6 @@ class DBLineLoad(dataBook.DBBase):
         j = self.FindMatch(i)
         # Get the name of the folder
         frun = self.x.GetFullFolderNames(i)
-        # Status update
-        print(frun)
         # Go to root directory safely
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
@@ -581,24 +579,26 @@ class DBLineLoad(dataBook.DBBase):
         # Process whether or not to update.
         if (not nIter) or (nIter < nMin + nAvg):
             # Not enough iterations (or zero)
+            print(frun)
             print("  Not enough iterations (%s) for analysis." % nIter)
             q = False
         elif np.isnan(j):
-            # No current entry
-            print("  Adding new databook entry at iteration %i." % nIter)
+            # No current entry, but may have *lds files in run folder
             q = True
         elif self['nIter'][j] < nIter:
             # Update
+            print(frun)
             print("  Updating from iteration %i to %i." %
                 (self['nIter'][j], nIter))
             q = True
         elif self['nStats'][j] < nStats:
             # Change statistics
+            print(frun)
             print("  Recomputing statistics using %i iterations." % nStats)
             q = True
         else:
             # Up-to-date
-            print("  Databook '%s' up to date." % self.comp)
+            #print("  Databook '%s' up to date." % self.comp)
             q = False
         # Check for update
         if not q:
@@ -628,10 +628,17 @@ class DBLineLoad(dataBook.DBBase):
             q = False
         # Run triload if necessary
         if q:
+            # Status update
+            print(frun)
+            print("  Adding new databook entry at iteration %i." % nIter)
             # Write triloadCmd input file
             self.WriteTriloadInput(ftriq, i)
             # Run the command
             self.RunTriload(qtriq, ftriq, i=i)
+        else:
+            # Status update
+            print(frun)
+            print("  Reading from %s/lineload/ folder" % frun)
         # Check number of seams
         try:
             # Get seam counts
