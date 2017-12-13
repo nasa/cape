@@ -84,6 +84,7 @@ def run_overflow():
         return
     # Resubmit/restart if this point is reached.
     RestartCase(i)
+# def run_overflow
 
 # Function to call script or submit.
 def StartCase():
@@ -566,6 +567,10 @@ def GetHistoryIter():
     fname = "%s.resid" % rname
     # Check for the file.
     if not os.path.isfile(fname):
+        # Alternative file
+        fname = "%s.tail.resid" % rname
+    # Check for the file.
+    if not os.path.isfile(fname):
         # No history to read.
         return 0.0
     # Check the file.
@@ -576,7 +581,7 @@ def GetHistoryIter():
         return int(txt.split()[1])
     except Exception:
         # Failure; return no-iteration result.
-        return 0.0
+        pass
         
 # Get the last line (or two) from a running output file
 def GetRunningIter():
