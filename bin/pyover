@@ -76,6 +76,9 @@ if __name__ == "__main__":
     elif kw.get('archive'):
         # Archive cases
         ofl.ArchiveCases(**kw)
+    elif kw.get('skeleton'):
+        # Replace case with its skeleton
+        ofl.SkeletonCases(**kw)
     elif kw.get('unarchive'):
         # Unarchive cases
         ofl.UnarchiveCases(**kw)

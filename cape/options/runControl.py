@@ -1098,6 +1098,16 @@ class RunControl(odict):
         self._Archive()
         self['Archive'].add_ArchiveSkeletonFiles(fskel)
         
+    # Folders to keep after skeleton
+    def get_ArchiveSkeletonDirs(self):
+        self._Archive()
+        return self['Archive'].get_ArchiveSkeletonDirs()
+        
+    # Folders to keep after skeleton
+    def add_ArchiveSkeletonDirs(self, fskel):
+        self._Archive()
+        self['Archive'].add_ArchiveSkeletonDirs(fskel)
+        
     # Files to tail during skeleton
     def get_ArchiveSkeletonTailFiles(self):
         self._Archive()
@@ -1131,7 +1141,7 @@ class RunControl(odict):
             'ArchivePostTarGroups',       'ArchivePostTarDirs',
             'ArchivePostUpdateFiles',
             'ArchiveSkeletonFiles',       'ArchiveSkeletonTailFiles',
-            'ArchiveSkeletonTarDirs'
+            'ArchiveSkeletonTarDirs',     'ArchiveSkeletonDirs'
         ]:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(Archive.Archive,'get_'+k).__doc__

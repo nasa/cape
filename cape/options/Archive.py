@@ -776,6 +776,23 @@ class Archive(odict):
             * 2017-12-13 ``@ddalle``: First version
         """
         return self.get_key("SkeletonFiles")
+
+    # List of files to keep
+    def get_ArchiveSkeletonDirs(self):
+        """Get the list of folders to keep during skeleton action
+        
+        :Call:
+            >>> fglob = opts.get_ArchiveSkeletonDirs()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *fglob*: :class:`list` (:class:`str`)
+                List of file globs to keep around after archiving
+        :Versions:
+            * 2017-12-14 ``@ddalle``: First version
+        """
+        return self.get_key("SkeletonDirs")
         
     # List of files to tail before deleting
     def get_ArchiveSkeletonTailFiles(self):
@@ -826,6 +843,22 @@ class Archive(odict):
             * 2017-12-13 ``@ddalle``: First version
         """
         self.add_to_key("SkeletonFiles", fskel)
+        
+    # Add to list of skeleton files
+    def add_ArchiveSkeletonDirs(self, fskel):
+        """Add to the list of folders to keep after skeleton action
+        
+        :Call:
+            >>> opts.add_ArchiveSkeletonKeepFiles(fskel)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *fskel*: :class:`str` | :class:`list` (:class:`str`)
+                File glob or list of file globs to add
+        :Versions:
+            * 2017-12-14 ``@ddalle``: First version
+        """
+        self.add_to_key("SkeletonDirs", fskel)
         
     # Add to list of files to tail
     def add_ArchiveSkeletonTailFiles(self, fskel):
