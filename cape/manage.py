@@ -565,6 +565,43 @@ def GetLinkMatches(fname, fsub=None, n=0, qdel=False):
         fsub=fsub, ftest=os.path.islink, n=n, qdel=qdel)
     # Output
     return fglob
+    
+# Expand any links in a glob
+def ExpandLinks(fglob):
+    """Expand any links in a full glob if linked to relative file
+    
+    If the link points to an absolute path, the entry is not replaced with the
+    target of the link.
+    
+    :Call:
+        >>> flst = ExpandLinks(fglob)
+    :Inputs:
+        *fglob*: :class:`list` (:class:`str`)
+            List of file names, possibly including links
+    :Outputs:
+        *flst*: :class:`list` (:class:`str`)
+            List of file names plus expanded versions of any relative links
+    :Versions:
+        * 2017-12-13 ``@ddalle``: First version
+    """
+    # Initialize output
+    flst = list(fglob)
+    # Loop through files
+    for i in len(fglob):
+        # Get the file name
+        f = fglob[i]
+        # Check for link (nothing to do otherwise)
+        if not os.path.islink(f): continue
+        # Expand the link
+        fname = os.readlink(f)
+        # Check if it's absolute
+        if os.path.isabs(fname): continue
+        # Check if it's relative to something outside this folder
+        if os.path.normpath(fname).startswith('..'): continue
+        # Otherwise, replace the entry
+        flst[i] = fname
+    # Output
+    return flst
                 
 # Get folder matches
 def GetDirMatches(fname, fsub=None, n=0, qdel=False):
@@ -598,16 +635,52 @@ def GetDirMatches(fname, fsub=None, n=0, qdel=False):
         fsub=fsub, ftest=os.path.isdir, n=n, qdel=qdel)
     # Output
     return fglob
+    
+# List of folders implied by list of files
+def GetImpliedFolders(fglob, fdirs=[]):
+    """Check a list of files to get list of folders implied by that list
+    
+    For example, ``["case.json", "adapt00/input.nml"]`` implies the folder
+    ``adapt00``
+    
+    :Call:
+        >>> fsubs = GetImpliedFolders(fglob, fdirs=[])
+    :Inputs:
+        *fglob*: :class:`list` (:class:`str`)
+            List of file names including any folder names
+        *fdirs*: {``[]``} | :class:`list` (:class:`str`)
+            List of folders to append to
+    :Outputs:
+        *fsubs*: :class:`list` (:class:`str`)
+            Unique list of folders including entries from *fdirs*
+    :Versions:
+        * 2017-12-13 ``@ddalle``: First version
+    """
+    # Initialize output
+    fsubs = list(fdirs)
+    # Loop through files
+    for fname in fglobs:
+        # Use :func:`os.path.split` to check if a folder is in the name
+        fsplit = os.path.split(fname)
+        # Check for a split
+        if len(fsplit) > 1:
+            # Get the folder and file name
+            fdir, fn = fsplit
+            # Check if it's already in the list (no repeats)
+            if fdir not in fsubs:
+                fsubs.append(fdir)
+    # Output
+    return fsubs
 
 # Function to delete files according to full descriptor
 def DeleteFiles(fdel, fsub=None, n=1, phantom=False):
-    """Delete files that match a list of glob
+    """Delete files that match a list of globs
     
     The function also searches in any folder matching the directory glob or
     list of directory globs *fsub*.
     
     :Call:
-        >>> cape.manage.DeleteFiles_SubDir(fdel, n=1, fsub=None, phantom=False)
+        >>> cape.manage.DeleteFiles(fdel, fsub=None, n=1, phantom=False)
     :Inputs:
         *fdel*: :class:`str`
             File name or glob of files to delete
@@ -634,6 +707,48 @@ def DeleteFiles(fdel, fsub=None, n=1, phantom=False):
         # Delete it.
         os.remove(fn)
         
+# Function to delete all files *except* specified list
+def DeleteFilesExcept(fdel, fsub=None, n=1, phantom=False):
+    """Delete all files except those that match a list of globs
+    
+    :Call:
+        >>> cape.manage.DeleteFilesExcept(fdel, fsub=None, n=1, phantom=False)
+    :Inputs:
+        *fdel*: :class:`str`
+            File name or glob of files to delete
+        *fsub*: :class:`str` | :class:`list` (:class:`str`)
+            Folder, list of folders, or glob of folders to also search
+        *n*: :class:`int`
+            Number of files to keep
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
+    :Versions:
+        * 2016-03-01 ``@ddalle``: First version
+        * 2017-03-06 ``@ddalle``: Added *phantom* option
+    """
+    # Get list of matches
+    fglob = GetFileMatches(fdel, fsub=fsub, n=n, qdel=True)
+    # Get list of search dirs
+    fdirs = GetSearchDirs(fsub)
+    # Check for any additional dirs implied by *fglob*
+    fimp = GetImpliedFolders(fglob)
+    # Loop through search dirs
+    for fdir in fdirs:
+        # List the files
+        fls = os.listdir(fdir)
+        # Loop through implied dirs
+        for fi in fimp:
+            # Check if folder exists
+            if not os.path.isdir(fi): continue
+            # Otherwise, get the files in that folder
+            flsi = os.path.listdir(fls)
+            # Append to list
+            fls += [os.path.join(fi, fj) for fj in flsi)]
+        # Loop through the files
+        for f in fls:
+            # Check if it's a directory
+            if os.path.isdir(f): continue 
+    
 
 # -----------------------------------------------------
 # PHASE ACTIONS
@@ -771,7 +886,7 @@ def ArchiveFolder(opts, fsub=[]):
     
     # Get the current folder
     fdir = os.path.split(os.getcwd())[-1]
-    # Go up to one folder to the group directory
+    # Go up one folder to the group directory
     os.chdir('..')
     # Get the group folder
     fgrp = os.path.split(os.getcwd())[-1]
@@ -934,7 +1049,27 @@ def UnarchiveFolder(opts):
                 print("  ARCHIVE/%s --> %s" % (fname, fname))
                 # Copy the file
                 shutil.copy(fsrc, fname)
+# def UnarchiveFolder
+
+# Clean out folder afterward
+def SkeletonFolder(opts, fsub=[]):
+    """Perform post-archiving clean-out actions; create a "skeleton"
     
+    :Call:
+        >>> cape.manage.SkeletonFolder(opts, fsub=[])
+    :Inputs:
+        *opts*: :class:`cape.options.Options`
+            Options interface including management/archive itnerface
+        *fsub*: :class:`list` (:class:`str`)
+            List of globs of subdirectories that are adaptive run folders
+    :Versions:
+        * 2017-12-13 ``@ddalle``: First version
+    """
+    # Run the archive command to ensure the archive is up-to-date
+    ArchiveFolder(opts, fsub=[])
+    
+    # Run the skeleton commands
+
 # ----------------------------------------------------------------------------
 # ----------------------------------------------------------------------------
 # SECOND-LEVEL FUNCTIONS
@@ -1970,6 +2105,41 @@ def ProgressTarDirs(opts, fsub=None, aa=None):
         ftar = '%s.%s' % (fdir, ext)
         # Command t
         TarDir(cmdu, ftar, fdir, clean=False)
+
+# -------------------------
+
+# -------------------------
+# SKELETON ACTION FUNCTIONS
+# -------------------------
+# Function for deleting skeleton files
+def SkeletonDeleteFiles(opts, fsub=None, aa=None, phantom=False):
+    """Delete all files except those matching file name patterns
+    
+    :Call:
+        >>> SkeletonDeleteFiles(opts, fsub=None, aa=None, phantom=False)
+    :Inputs:
+        *opts*: ``None`` | :class:`Archive` | :class:`dict`
+            Options dictionary or options interface
+        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+            List of sub-directory globs in which to search
+        *aa*: :class:`function`
+            Conversion function applied to *opts*
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
+    :Versions:
+        * 2017-12-13 ``@ddalle``: First version
+    """
+    # Convert options
+    if type(aa).__name__ == "function":
+        opts = aa(opts)
+    # Get options
+    fskel = opts.get_ArchiveSkeletonFiles()
+    # Exit if necessary
+    if fskel is None: return
+    # Write flag
+    write_log('<SkeletonDeleteFiles>')
+    # Delete
+    
 
 # -------------------------
 
