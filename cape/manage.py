@@ -38,7 +38,7 @@ from datetime import datetime
 # Options module
 from .options import Archive
 # Local STDOUT catcher
-from .bin import check_output
+from .bin import check_output, tail
 
 # Write date to archive
 def write_log_date(fname='archive.log'):
@@ -743,11 +743,84 @@ def DeleteFilesExcept(fdel, fsub=None, n=1, phantom=False):
             # Otherwise, get the files in that folder
             flsi = os.path.listdir(fls)
             # Append to list
-            fls += [os.path.join(fi, fj) for fj in flsi)]
+            fls += [os.path.join(fi, fj) for fj in flsi]
         # Loop through the files
         for f in fls:
             # Check if it's a directory
-            if os.path.isdir(f): continue 
+            if os.path.isdir(f): continue
+            # Normalize the path, remove "//", "./", etc.
+            fn = os.path.normpath(f)
+            # Check if it's in the glob
+            if fn in fglob: continue
+            # Otherwise, delete it
+            write_log("rm %s" % fn)
+            # Check if not actually deleting files
+            if phantom: continue
+            # Delete it
+            os.remove(fn)
+        
+# Function to delete all files *except* specified list
+def TailFiles(ftail, fsub=None, n=1, phantom=False):
+    """Tail a list of files
+    
+    An example input is ``[{"run.resid": [2, "run.tail.resid"]}]``; this tells
+    the function to *tail* the last ``2`` files from ``run.resid`` and put them
+    in a file called ``run.tail.resid``.
+    
+    :Call:
+        >>> cape.manage.TailFiles(ftail, fsub=None, n=1, phantom=False)
+    :Inputs:
+        *ftail*: :class:`list` (:class:`dict` ([:class:`int`, :class:`str`]))
+            List of dictionaries of files to tail
+        *fsub*: :class:`str` | :class:`list` (:class:`str`)
+            Folder, list of folders, or glob of folders to also search
+        *n*: :class:`int`
+            Number of files to keep
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
+    :Versions:
+        * 2016-03-01 ``@ddalle``: First version
+        * 2017-03-06 ``@ddalle``: Added *phantom* option
+    """
+    # Loop through instructions
+    for ft in ftail:
+        # Get source
+        try:
+            # Get name of source file
+            fsrc = ft.keys()[0]
+            # Get number and output file
+            nf, fout = ft[fsrc]
+            # Ensure correct types
+            nf = int(nf)
+            fout = str(fout)
+        except Exception:
+            # Print a warning and move on
+            print("  Invalid tail instruction: '%s'" % ft)
+            continue
+        # Find the file matches
+        fglob = GetfileMatches(fsrc, fsub=fsub, n=1, phantom=False)
+        # Loop through matches
+        for fn in fglob:
+            # Triple-check for existence
+            if not isfile(fn): continue
+            # Process folder if possible
+            fdir, fi = os.path.split(fn)
+            # Full output file
+            fo = os.path.join(fdir, fout)
+            # Write to log
+            write_log('  tail -n %i %s > %s' % (nf, fn, fo))
+            # Write deletion log if appropriate
+            if fsrc != fout:
+                write_log('  rm %s' % fn)
+            # Check if not actually doing anything
+            if phanton: continue
+            # Tail the text
+            txt = tail(fn, n=nf)
+            # Open the output file
+            with open(fo, 'w') as f:
+                f.write(txt)
+            # Delete input file
+            if os.path.isfile(fn): os.remove(fn)
     
 
 # -----------------------------------------------------
