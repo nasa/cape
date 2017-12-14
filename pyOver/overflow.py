@@ -1473,6 +1473,21 @@ class Overflow(Cntl):
         manage.ArchiveFolder(self.opts)
     
     # Individual case archive function
+    def SkeletonPWD(self):
+        """Delete most files in current folder, leaving only a skeleton
+        
+        :Call:
+            >>> oflow.SkeletonPWD()
+        :Inputs:
+            *cntl*: :class:`pyOver.overflow.Overflow`
+                Instance of pyOver control interface
+        :Versions:
+            * 2017-12-14 ``@ddalle``: First version
+        """
+        # Archive using the local module
+        manage.SkeletonFolder(self.opts)
+    
+    # Individual case archive function
     def CleanPWD(self):
         """Archive a single case in the current folder ($PWD)
         

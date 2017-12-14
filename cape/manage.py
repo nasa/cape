@@ -708,23 +708,23 @@ def DeleteFiles(fdel, fsub=None, n=1, phantom=False):
         os.remove(fn)
         
 # Function to delete all files *except* specified list
-def DeleteFilesExcept(fdel, fsub=None, n=1, phantom=False):
+def DeleteFilesExcept(fdel, fsub=None, n=0, phantom=False):
     """Delete all files except those that match a list of globs
     
     :Call:
         >>> cape.manage.DeleteFilesExcept(fdel, fsub=None, n=1, phantom=False)
     :Inputs:
-        *fdel*: :class:`str`
-            File name or glob of files to delete
+        *fdel*: :class:`list` (:class:`str` | :class:`dict` (:class:`int`))
+            List of file names or globs of files to delete
         *fsub*: :class:`str` | :class:`list` (:class:`str`)
             Folder, list of folders, or glob of folders to also search
-        *n*: :class:`int`
-            Number of files to keep
+        *n*: {``0``} | :class:`int`
+            Number of files to keep if not set by dictionary options for each
+            file; if ``0``, keep all by default
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2016-03-01 ``@ddalle``: First version
-        * 2017-03-06 ``@ddalle``: Added *phantom* option
+        * 2017-12-13 ``@ddalle``: Forked from :func:`DeleteFiles`
     """
     # Get list of matches
     fglob = GetFileMatches(fdel, fsub=fsub, n=n, qdel=True)

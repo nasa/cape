@@ -37,7 +37,7 @@ RunDict = [
     {"fm": [
         "*_fm_*.dat",
         "*hist.dat",
-        "*.hist.??.dat"
+        "*hist.??.dat"
     ]}
 ]
 
@@ -47,8 +47,8 @@ SkeletonFiles = [
     "conditions.json",
     "archive.log",
     "run.[0-9]*.[0-9]*",
-    "*_hist.dat",
-    "*_hist.[0-9]*.dat",
+    "*hist.dat",
+    "*hist.[0-9]*.dat",
     "fun3d.out",
     "fun3d.[0-9]*.nml",
     {"*_tec_boundary_timestep*.plt": 1},

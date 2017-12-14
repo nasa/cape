@@ -56,5 +56,22 @@ def ArchiveFolder(opts):
     opts = Archive.auto_Archive(opts)
     # Call the :mod:`cape` version
     cape.manage.ArchiveFolder(opts, fsub=fsub)
+
+# Replace folder contents with skeleton
+def SkeletonFolder(opts):
+    """Archive a folder to a backup location and clean up nonessential files
     
-# def ArchiveFolder
+    :Call:
+        >>> pyOver.manage.SkeletonFolder(opts)
+    :Inputs:
+        *opts*: :class:`cape.options.Options`
+            Options interface including management/archive interface
+    :Versions:
+        * 2017-12-14 ``@ddalle``: First version
+    """
+    # Restrict options to correct class
+    opts = Archive.auto_Archive(opts)
+    # Call the :mod:`cape` version
+    cape.manage.SkeletonFolder(opts, fsub=fsub)
+# def SkeletonFolder
+

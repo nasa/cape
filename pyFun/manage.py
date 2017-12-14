@@ -28,7 +28,7 @@ def CleanFolder(opts):
     """Delete files before archiving and regardless of status
     
     :Call:
-        >>> pyOver.manage.CleanFolder(opts)
+        >>> pyFun.manage.CleanFolder(opts)
     :Inputs:
         *opts*: :class:`cape.options.Options`
             Options interface including management/archive interface
@@ -45,7 +45,7 @@ def ArchiveFolder(opts):
     """Archive a folder to a backup location and clean up nonessential files
     
     :Call:
-        >>> pyOver.manage.ArchiveFolder(opts)
+        >>> pyFun.manage.ArchiveFolder(opts)
     :Inputs:
         *opts*: :class:`cape.options.Options`
             Options interface including management/archive interface
@@ -62,7 +62,7 @@ def SkeletonFolder(opts):
     """Archive a folder to a backup location and clean up nonessential files
     
     :Call:
-        >>> pyOver.manage.SkeletonFolder(opts)
+        >>> pyFun.manage.SkeletonFolder(opts)
     :Inputs:
         *opts*: :class:`cape.options.Options`
             Options interface including management/archive interface

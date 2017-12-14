@@ -40,6 +40,19 @@ RunDict = [
     ]}
 ]
 
+# Skeleton
+SkeletonFiles = [
+    "case.json",
+    "conditions.json",
+    "archive.log",
+    "run.[0-9]*.inp",
+    "lineload/grid.i.triq",
+]
+# Tail files
+TailFiles = [
+    {"run.resid": [1, "run.tail.resid"]},
+]
+
 # Turn dictionary into Archive options
 def auto_Archive(opts):
     """Automatically convert dict to :mod:`pyCart.options.Archive.Archive`
@@ -142,5 +155,8 @@ class Archive(cape.options.Archive.Archive):
         # Files/folders to delete after archiving
         self.add_ArchivePostDeleteFiles([])
         self.add_ArchivePostDeleteDirs([])
+        # Folders to *keep* during ``--skeleton``
+        self.add_ArchiveSkeletonFiles(SkeletonFiles)
+        self.add_ArchiveSkeletonTailFiles(TailFiles)
 # class Archive
 
