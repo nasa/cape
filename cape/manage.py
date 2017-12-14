@@ -1142,8 +1142,8 @@ def SkeletonFolder(opts, fsub=[]):
     ArchiveFolder(opts, fsub=[])
     
     # Run the skeleton commands
-    SkeletonTailFiles(opts, fsub=fsub, phantom=False)
-    SkeletonDeleteFiles(opts, fsub=fsub, phantom=False)
+    SkeletonTailFiles(opts, fsub=fsub, phantom=True)
+    SkeletonDeleteFiles(opts, fsub=fsub, phantom=True)
 
 # ----------------------------------------------------------------------------
 # ----------------------------------------------------------------------------
@@ -2232,7 +2232,7 @@ def SkeletonDeleteFiles(opts, fsub=None, aa=None, phantom=False):
     # Write flag
     write_log('<SkeletonDeleteFiles>')
     # Delete the files
-    DeleteFilesExcept(fskel, fsub=fsub, n=1, phantom=phantom)
+    DeleteFilesExcept(fskel, fsub=fsub, n=0, phantom=phantom)
     
 # Function for tailing files during skeleton action
 def SkeletonTailFiles(opts, fsub=None, aa=None, phantom=False):
