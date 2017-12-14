@@ -659,7 +659,7 @@ def GetImpliedFolders(fglob, fdirs=[]):
     # Initialize output
     fsubs = list(fdirs)
     # Loop through files
-    for fname in fglobs:
+    for fname in fglob:
         # Use :func:`os.path.split` to check if a folder is in the name
         fsplit = os.path.split(fname)
         # Check for a split
@@ -1142,8 +1142,8 @@ def SkeletonFolder(opts, fsub=[]):
     ArchiveFolder(opts, fsub=[])
     
     # Run the skeleton commands
-    SksletonTailFiles(opts, fsub=fsub, phantom=True)
-    SkeletonDeleteFiles(opts, fsub=fsub, phantom=True)
+    SkeletonTailFiles(opts, fsub=fsub, phantom=False)
+    SkeletonDeleteFiles(opts, fsub=fsub, phantom=False)
 
 # ----------------------------------------------------------------------------
 # ----------------------------------------------------------------------------
@@ -1566,7 +1566,9 @@ def TarDir(cmd, ftar, fdir, clean=True):
     # Create command
     cmdc = cmd + [ftar, fdir]
     # Status update
-    print("  %s ARCHIVE/%s %s" % (' '.join(cmd), os.path.split(ftar)[1], fdir))
+    cmd = "  %s ARCHIVE/%s %s" % (' '.join(cmd), os.path.split(ftar)[1], fdir)
+    print(cmd)
+    write_log(cmd)
     # Run the command
     ierr = sp.call(cmdc)
     # Exit if unsuccessful
