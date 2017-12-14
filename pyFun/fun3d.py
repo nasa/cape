@@ -2349,6 +2349,21 @@ class Fun3d(Cntl):
         manage.ArchiveFolder(self.opts)
     
     # Individual case archive function
+    def SkeletonPWD(self):
+        """Delete most files in current folder, leaving only a skeleton
+        
+        :Call:
+            >>> fun3d.SkeletonPWD()
+        :Inputs:
+            *fun3d*: :class:`pyFun.fun3d.Fun3d`
+                Instance of control class containing relevant parameters
+        :Versions:
+            * 2017-12-14 ``@ddalle``: First version
+        """
+        # Archive using the local module
+        manage.SkeletonFolder(self.opts)
+    
+    # Individual case archive function
     def CleanPWD(self):
         """Archive a single case in the current folder ($PWD)
         
