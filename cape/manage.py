@@ -1142,6 +1142,8 @@ def SkeletonFolder(opts, fsub=[]):
     ArchiveFolder(opts, fsub=[])
     
     # Run the skeleton commands
+    SksletonTailFiles(opts, fsub=fsub, phantom=True)
+    SkeletonDeleteFiles(opts, fsub=fsub, phantom=True)
 
 # ----------------------------------------------------------------------------
 # ----------------------------------------------------------------------------
@@ -2200,18 +2202,65 @@ def SkeletonDeleteFiles(opts, fsub=None, aa=None, phantom=False):
         *phantom*: ``True`` | {``False``}
             Only delete files if ``False``
     :Versions:
-        * 2017-12-13 ``@ddalle``: First version
+        * 2017-12-14 ``@ddalle``: First version
     """
     # Convert options
     if type(aa).__name__ == "function":
         opts = aa(opts)
-    # Get options
+    # Get options for files to keep
     fskel = opts.get_ArchiveSkeletonFiles()
+    # Get options for files to tail
+    ftail = opts.get_ArchiveSkeletonTailFiles()
     # Exit if necessary
     if fskel is None: return
+    # Append tail files
+    if ftail is not None:
+        # Loop through tail files
+        for ftl in ftail:
+            # Use **try** to check if it's a valid instruction
+            try:
+                # Get the name of the source file
+                fsrc = ftl.keys()[0]
+                # Unpack output file
+                nt, fout = ftl[fsrc]
+            except Exception:
+                continue
+            # Add pre-tail and post-tail files to *keep* list
+            fskel += [fsrc, fout]
     # Write flag
     write_log('<SkeletonDeleteFiles>')
-    # Delete
+    # Delete the files
+    DeleteFilesExcept(fskel, fsub=fsub, n=1, phantom=phantom)
+    
+# Function for tailing files during skeleton action
+def SkeletonTailFiles(opts, fsub=None, aa=None, phantom=False):
+    """Replace some files with their last few lines, possibly in a new file
+    
+    :Call:
+        >>> SkeletonTailFiles(opts, fsub=None, aa=None, phantom=False)
+    :Inputs:
+        *opts*: ``None`` | :class:`Archive` | :class:`dict`
+            Options dictionary or options interface
+        *fsub*: :class:`list` (:class:`str`) | :class:`str`
+            List of sub-directory globs in which to search
+        *aa*: :class:`function`
+            Conversion function applied to *opts*
+        *phantom*: ``True`` | {``False``}
+            Only delete files if ``False``
+    :Versions:
+        * 2017-12-14 ``@ddalle``: First version
+    """
+    # Convert options
+    if type(aa).__name__ == "function":
+        opts = aa(opts)
+    # Get options for files to tail
+    ftail = opts.get_ArchiveSkeletonTailFiles()
+    # Exit if necessary
+    if ftail is None: return
+    # Write flag
+    write_log('<SkeletonTailFiles>')
+    # Delete the files
+    TailFiles(ftail, fsub=fsub, n=1, phantom=phantom)
     
 
 # -------------------------

@@ -78,6 +78,9 @@ if __name__ == "__main__":
     elif kw.get('unarchive'):
         # Unarchive cases
         fun3d.UnarchiveCases(**kw)
+    elif kw.get('skeleton'):
+        # Replace case with its skeleton
+        fun3d.SkeletonCases(**kw)
     elif kw.get('clean'):
         # Clean up cases
         fun3d.CleanCases(**kw)

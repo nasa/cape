@@ -1578,6 +1578,71 @@ class Cntl(object):
         """
         # Archive using the local module
         manage.ArchiveFolder(self.opts)
+    
+    # Function to archive results and remove files
+    def SkeletonCases(self, **kw):
+        """Archive completed cases and delete all but a few files
+        
+        :Call:
+            >>> cntl.SkeletonCases()
+            >>> cntl.SkeletonCases(cons=[], **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of overall control interface
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints
+            *I*: :class:`list` (:class:`int`)
+                List of indices
+        :Versions:
+            * 2016-12-14 ``@ddalle``: First version
+        """
+        # Get the format
+        fmt = self.opts.get_ArchiveAction()
+        # Check for directive not to archive
+        if not fmt or not self.opts.get_ArchiveFolder(): return
+        # Save current path.
+        fpwd = os.getcwd()
+        # Loop through folders
+        for i in self.x.GetIndices(**kw):
+            # Go to root folder
+            os.chdir(self.RootDir)
+            # Get folder name
+            frun = self.x.GetFullFolderNames(i)
+            # Status update
+            print(frun)
+            # Check if the case is ready to archive
+            if not os.path.isdir(frun):
+                print("  Folder does not exist.")
+                continue
+            # Get status
+            sts = self.CheckCaseStatus(i)
+            # Enter the case folder
+            os.chdir(frun)
+            # Perform cleanup
+            self.CleanPWD()
+            # Check status
+            if sts != 'PASS':
+                print("  Case is not marked PASS.")
+                continue
+            # Archive
+            self.SkeletonPWD()
+        # Got back to original location
+        os.chdir(fpwd)
+    
+    # Individual case archive function
+    def SkeletonPWD(self):
+        """Delete most files in current folder, leaving only a skeleton
+        
+        :Call:
+            >>> cntl.SkeletonPWD()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of overall control interface
+        :Versions:
+            * 2017-12-14 ``@ddalle``: First version
+        """
+        # Archive using the local module
+        manage.SkeletonFolder(self.opts)
         
     # Clean a set of cases
     def CleanCases(self, **kw):

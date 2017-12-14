@@ -606,6 +606,7 @@ class Fun3d(Cntl):
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of control class containing relevant parameters
             *v*: ``True`` | {``False``}
+                Verbosity option
         :Outputs:
             *q*: ``True`` | ``False``
                 Whether or not the case is **not** set up to run
