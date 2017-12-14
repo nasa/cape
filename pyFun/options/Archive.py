@@ -160,6 +160,6 @@ class Archive(cape.options.Archive.Archive):
         self.add_ArchivePostDeleteFiles([])
         self.add_ArchivePostDeleteDirs([])
         # Folders to *keep* during ``--skeleton``
-        self.add_ArchiveSeketonFiles(SkeletonFiles)
+        self.add_ArchiveSkeletonFiles(SkeletonFiles)
 # class Archive
 
