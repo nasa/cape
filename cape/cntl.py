@@ -42,6 +42,7 @@ from . import queue
 from . import case
 from . import convert
 from . import argread
+from . import manage
 
 # Functions and classes from other modules
 from trajectory import Trajectory
