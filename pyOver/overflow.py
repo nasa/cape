@@ -1458,49 +1458,57 @@ class Overflow(Cntl):
         os.chdir(fpwd)
     
     # Individual case archive function
-    def ArchivePWD(self):
+    def ArchivePWD(self, phantom=False):
         """Archive a single case in the current folder ($PWD)
         
         :Call:
-            >>> oflow.ArchivePWD()
+            >>> oflow.ArchivePWD(phantom=False)
         :Inputs:
             *cntl*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control interface
+            *phantom*: ``True`` | {``False``}
+                Write actions to ``archive.log``; only delete if ``False``
         :Versions:
             * 2016-12-09 ``@ddalle``: First version
+            * 2017-12-15 ``@ddalle``: Added *phantom* option
         """
         # Archive using the local module
-        manage.ArchiveFolder(self.opts)
+        manage.ArchiveFolder(self.opts, phantom=phantom)
     
     # Individual case archive function
-    def SkeletonPWD(self):
+    def SkeletonPWD(self, phantom=False):
         """Delete most files in current folder, leaving only a skeleton
         
         :Call:
-            >>> oflow.SkeletonPWD()
+            >>> oflow.SkeletonPWD(phantom=False)
         :Inputs:
             *cntl*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control interface
+            *phantom*: ``True`` | {``False``}
+                Write actions to ``archive.log``; only delete if ``False``
         :Versions:
             * 2017-12-14 ``@ddalle``: First version
         """
         # Archive using the local module
-        manage.SkeletonFolder(self.opts)
+        manage.SkeletonFolder(self.opts, phantom=phantom)
     
     # Individual case archive function
-    def CleanPWD(self):
+    def CleanPWD(self, phantom=False):
         """Archive a single case in the current folder ($PWD)
         
         :Call:
-            >>> oflow.CleanPWD()
+            >>> oflow.CleanPWD(phantom=False)
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control interface
+            *phantom*: ``True`` | {``False``}
+                Write actions to ``archive.log``; only delete if ``False``
         :Versions:
             * 2017-03-10 ``@ddalle``: First version
+            * 2017-12-15 ``@ddalle``: Added *phantom* option
         """
         # Archive using the local module
-        manage.CleanFolder(self.opts)
+        manage.CleanFolder(self.opts, phantom=phantom)
         
 # class Overflow
 

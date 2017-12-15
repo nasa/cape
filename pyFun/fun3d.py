@@ -2334,49 +2334,57 @@ class Fun3d(Cntl):
   # =========
   # <
     # Individual case archive function
-    def ArchivePWD(self):
+    def ArchivePWD(self, phantom=False):
         """Archive a single case in the current folder ($PWD)
         
         :Call:
-            >>> fun3d.ArchivePWD()
+            >>> fun3d.ArchivePWD(phantom=False)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of control class containing relevant parameters
+            *phantom*: ``True`` | {``False``}
+                Write actions to ``archive.log``; only delete if ``False``
         :Versions:
             * 2017-03-10 ``@ddalle``: First :mod:`pyFun` version
+            * 2017-12-15 ``@ddalle``: Added *phantom* option
         """
         # Archive using the local module
-        manage.ArchiveFolder(self.opts)
+        manage.ArchiveFolder(self.opts, fsub=["Flow"], phantom=phantom)
     
     # Individual case archive function
-    def SkeletonPWD(self):
+    def SkeletonPWD(self, phantom=False):
         """Delete most files in current folder, leaving only a skeleton
         
         :Call:
-            >>> fun3d.SkeletonPWD()
+            >>> fun3d.SkeletonPWD(phantom=False)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of control class containing relevant parameters
+            *phantom*: ``True`` | {``False``}
+                Write actions to ``archive.log``; only delete if ``False``
         :Versions:
             * 2017-12-14 ``@ddalle``: First version
         """
         # Archive using the local module
-        manage.SkeletonFolder(self.opts)
+        manage.SkeletonFolder(self.opts, phantom=phantom)
     
     # Individual case archive function
-    def CleanPWD(self):
+    def CleanPWD(self, phantom=False):
         """Archive a single case in the current folder ($PWD)
         
         :Call:
-            >>> fun3d.CleanPWD()
+            >>> fun3d.CleanPWD(phantom=False)
         :Inputs:
             *fun3d*: :class:`pyFun.fun3d.Fun3d`
                 Instance of control interface
+            *phantom*: ``True`` | {``False``}
+                Write actions to ``archive.log``; only delete if ``False``
         :Versions:
             * 2017-03-10 ``@ddalle``: First version
+            * 2017-12-15 ``@ddalle``: Added *phantom* option
         """
         # Archive using the local module
-        manage.CleanFolder(self.opts)
+        manage.CleanFolder(self.opts, phantom=phantom)
   # >        
         
 # class Fun3d

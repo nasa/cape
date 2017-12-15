@@ -1561,24 +1561,26 @@ class Cntl(object):
                 print("  Case is not marked PASS.")
                 continue
             # Archive
-            self.ArchivePWD()
+            self.ArchivePWD(phantom=kw.get("phantom",False))
         # Got back to original location
         os.chdir(fpwd)
     
     # Individual case archive function
-    def ArchivePWD(self):
+    def ArchivePWD(self, phantom=False):
         """Archive a single case in the current folder ($PWD)
         
         :Call:
-            >>> cntl.ArchivePWD()
+            >>> cntl.ArchivePWD(phantom=False)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of overall control interface
+            *phantom*: ``True`` | {``False``}
+                Write actions to ``archive.log``; only delete if ``False``
         :Versions:
             * 2016-12-09 ``@ddalle``: First version
         """
         # Archive using the local module
-        manage.ArchiveFolder(self.opts)
+        manage.ArchiveFolder(self.opts, phantom=False)
     
     # Function to archive results and remove files
     def SkeletonCases(self, **kw):
@@ -1626,24 +1628,26 @@ class Cntl(object):
                 print("  Case is not marked PASS.")
                 continue
             # Archive
-            self.SkeletonPWD()
+            self.SkeletonPWD(phantom=kw.get("phantom",False))
         # Got back to original location
         os.chdir(fpwd)
     
     # Individual case archive function
-    def SkeletonPWD(self):
+    def SkeletonPWD(self, phantom=False):
         """Delete most files in current folder, leaving only a skeleton
         
         :Call:
-            >>> cntl.SkeletonPWD()
+            >>> cntl.SkeletonPWD(phantom=False)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
-                Instance of overall control interface
+                Instance of control interface
+            *phantom*: ``True`` | {``False``}
+                Write actions to ``archive.log``; only delete if ``False``
         :Versions:
             * 2017-12-14 ``@ddalle``: First version
         """
         # Archive using the local module
-        manage.SkeletonFolder(self.opts)
+        manage.SkeletonFolder(self.opts, phantom=phantom)
         
     # Clean a set of cases
     def CleanCases(self, **kw):
@@ -1673,24 +1677,27 @@ class Cntl(object):
             # Enter the case folder
             os.chdir(frun)
             # Perform cleanup
-            self.CleanPWD()
+            self.CleanPWD(phantom=kw.get("phantom",False))
         # Go back to original location
         os.chdir(fpwd)
     
     # Individual case archive function
-    def CleanPWD(self):
+    def CleanPWD(self, phantom=False):
         """Archive a single case in the current folder ($PWD)
         
         :Call:
-            >>> cntl.CleanPWD()
+            >>> cntl.CleanPWD(phantom=False)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control interface
+            *phantom*: ``True`` | {``False``}
+                Write actions to ``archive.log``; only delete if ``False``
         :Versions:
             * 2017-03-10 ``@ddalle``: First version
+            * 2017-12-15 ``@ddalle``: Added *phantom* option
         """
         # Archive using the local module
-        manage.CleanFolder(self.opts)
+        manage.CleanFolder(self.opts, phantom=phantom)
         
     # Unarchive cases
     def UnarchiveCases(self, **kw):

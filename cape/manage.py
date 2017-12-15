@@ -913,7 +913,7 @@ def ManageFilesPost(opts=None, fsub=None, phantom=False):
         *fsub*: :class:`list` (:class:`str`)
             List of globs of subdirectories that are adaptive run folders
         *phantom*: ``True`` | {``False``}
-            Only delete files if ``False``
+            Write actions to ``archive.log``; only delete files if ``False``
     :Versions:
         * 2016-03-14 ``@ddalle``: First version
         * 2017-03-06 ``@ddalle``: Added *phantom* option
@@ -934,38 +934,44 @@ def ManageFilesPost(opts=None, fsub=None, phantom=False):
 # ----------------------------------------------------------------------------
 
 # Clear folder
-def CleanFolder(opts, fsub=[]):
+def CleanFolder(opts, fsub=[], phantom=False):
     """Delete files before archiving and regardless of status
     
     :Call:
-        >>> cape.manage.CleanFolder(opts, fsub=[])
+        >>> cape.manage.CleanFolder(opts, fsub=[], phantom=False)
     :Inputs:
         *opts*: :class:`cape.options.Options`
             Options interface including management/archive interface
         *fsub*: :class:`list` (:class:`str`)
             List of globs of subdirectories that are adaptive run folders
+        *phantom*: ``True`` | {``False``}
+            Write actions to ``archive.log``; only delete files if ``False``
     :Versions:
         * 2017-03-10 ``@ddalle``: First version
+        * 2017-12-15 ``@ddalle``: Added *phantom* option
     """
     # Restrict options to correct class
     opts = Archive.auto_Archive(opts)
     # Perform deletions
-    ManageFilesProgress(opts)
+    ManageFilesProgress(opts, phantom=phantom)
         
 
 # Archive folder
-def ArchiveFolder(opts, fsub=[]):
+def ArchiveFolder(opts, fsub=[], phantom=False):
     """Archive a folder to a backup location and clean up nonessential files
     
     :Call:
-        >>> cape.manage.ArchiveFolder(opts, fsub=[])
+        >>> cape.manage.ArchiveFolder(opts, fsub=[], phantom=False)
     :Inputs:
         *opts*: :class:`cape.options.Options`
             Options interface including management/archive interface
         *fsub*: :class:`list` (:class:`str`)
             List of globs of subdirectories that are adaptive run folders
+        *phantom*: ``True`` | {``False``}
+            Write actions to ``archive.log``; only delete files if ``False``
     :Versions:
         * 2016-12-09 ``@ddalle``: First version
+        * 2017-12-15 ``@ddalle``: Added *phantom* option
     """
     # Restrict options to correct class
     opts = Archive.auto_Archive(opts)
@@ -1146,25 +1152,28 @@ def UnarchiveFolder(opts):
 # def UnarchiveFolder
 
 # Clean out folder afterward
-def SkeletonFolder(opts, fsub=[]):
+def SkeletonFolder(opts, fsub=[], phantom=False):
     """Perform post-archiving clean-out actions; create a "skeleton"
     
     :Call:
-        >>> cape.manage.SkeletonFolder(opts, fsub=[])
+        >>> cape.manage.SkeletonFolder(opts, fsub=[], phantom=False)
     :Inputs:
         *opts*: :class:`cape.options.Options`
             Options interface including management/archive itnerface
         *fsub*: :class:`list` (:class:`str`)
             List of globs of subdirectories that are adaptive run folders
+        *phantom*: ``True`` | {``False``}
+            Write actions to ``archive.log``; only delete files if ``False``
     :Versions:
         * 2017-12-13 ``@ddalle``: First version
+        * 2017-12-15 ``@ddalle``: Added *phantom* option
     """
     # Run the archive command to ensure the archive is up-to-date
     ArchiveFolder(opts, fsub=[])
     
     # Run the skeleton commands
-    SkeletonTailFiles(opts, fsub=fsub, phantom=True)
-    SkeletonDeleteFiles(opts, fsub=fsub, phantom=True)
+    SkeletonTailFiles(opts, fsub=fsub, phantom=phantom)
+    SkeletonDeleteFiles(opts, fsub=fsub, phantom=phantom)
 
 # ----------------------------------------------------------------------------
 # ----------------------------------------------------------------------------
