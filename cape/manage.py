@@ -741,7 +741,7 @@ def DeleteFilesExcept(fdel, fsub=None, n=0, phantom=False):
             # Check if folder exists
             if not os.path.isdir(fi): continue
             # Otherwise, get the files in that folder
-            flsi = os.listdir(fls)
+            flsi = os.listdir(fi)
             # Append to list
             fls += [os.path.join(fi, fj) for fj in flsi]
         # Loop through the files

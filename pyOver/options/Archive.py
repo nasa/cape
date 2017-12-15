@@ -46,6 +46,7 @@ SkeletonFiles = [
     "conditions.json",
     "archive.log",
     "run.[0-9]*.inp",
+    "run.[0-9]*.[0-9]*",
     "lineload/grid.i.triq",
 ]
 # Tail files
