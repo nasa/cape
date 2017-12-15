@@ -1051,7 +1051,7 @@ def UnarchiveFolder(opts):
     # Get the remote copy command
     fscp = opts.get_RemoteCopy()
     # If not action, do nothing
-    if not ftyp or not flfle: return
+    if not ftyp or not flfe: return
     
     # Get the current fodler
     fdir = os.path.split(os.getcwd())[-1]
@@ -1138,7 +1138,7 @@ def UnarchiveFolder(opts):
                 # Status pdate
                 print("  %s ARCHIVE/%s" % (' '.join(cmdu), fname))
                 # Untar without copying
-                ierr = sp.call([cmdu, fsrc])
+                ierr = sp.call(cmdu + [fsrc])
                 if ierr: raise SystemError("Untar command failed.")
             else:
                 # Single file
