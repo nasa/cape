@@ -708,14 +708,16 @@ def DeleteFiles(fdel, fsub=None, n=1, phantom=False):
         os.remove(fn)
         
 # Function to delete all files *except* specified list
-def DeleteFilesExcept(fdel, fsub=None, n=0, phantom=False):
+def DeleteFilesExcept(fskel, dskel=[], fsub=None, n=0, phantom=False):
     """Delete all files except those that match a list of globs
     
     :Call:
-        >>> cape.manage.DeleteFilesExcept(fdel, fsub=None, n=1, phantom=False)
+        >>> cape.manage.DeleteFilesExcept(fskel, **kw)
     :Inputs:
-        *fdel*: :class:`list` (:class:`str` | :class:`dict` (:class:`int`))
+        *fskel*: :class:`list` (:class:`str` | :class:`dict` (:class:`int`))
             List of file names or globs of files to delete
+        *dskel*: {``[]``} | :class:`list` (:class:`str` | :class:`dict`)
+            List of folder names of globs of folder names to delete
         *fsub*: :class:`str` | :class:`list` (:class:`str`)
             Folder, list of folders, or glob of folders to also search
         *n*: {``0``} | :class:`int`
@@ -727,7 +729,9 @@ def DeleteFilesExcept(fdel, fsub=None, n=0, phantom=False):
         * 2017-12-13 ``@ddalle``: Forked from :func:`DeleteFiles`
     """
     # Get list of matches
-    fglob = GetFileMatches(fdel, fsub=fsub, n=n, qdel=False)
+    fglob = GetFileMatches(fskel, fsub=fsub, n=n, qdel=False)
+    # Get list of directory matches
+    dglob = GetDirMatches(fskel, fsub=fsub, n=n, qdel=False)
     # Get list of search dirs
     fdirs = GetSearchDirs(fsub)
     # Check for any additional dirs implied by *fglob*
@@ -746,62 +750,27 @@ def DeleteFilesExcept(fdel, fsub=None, n=0, phantom=False):
             fls += [os.path.join(fi, fj) for fj in flsi]
         # Loop through the files
         for f in fls:
-            # Check if it's a directory
-            if os.path.isdir(f): continue
             # Normalize the path, remove "//", "./", etc.
             fn = os.path.normpath(f)
-            # Check if it's in the glob
-            if fn in fglob: continue
-            # Otherwise, delete it
-            write_log("rm %s" % fn)
-            # Check if not actually deleting files
-            if phantom: continue
-            # Delete it
-            os.remove(fn)
-        
-# Function to delete all files *except* specified list
-def DeleteDirsExcept(fdel, fsub=None, n=0, phantom=False):
-    """Delete all files except those that match a list of globs
-    
-    :Call:
-        >>> cape.manage.DeleteFilesExcept(fdel, fsub=None, n=1, phantom=False)
-    :Inputs:
-        *fdel*: :class:`list` (:class:`str` | :class:`dict` (:class:`int`))
-            List of file names or globs of files to delete
-        *fsub*: :class:`str` | :class:`list` (:class:`str`)
-            Folder, list of folders, or glob of folders to also search
-        *n*: {``0``} | :class:`int`
-            Number of files to keep if not set by dictionary options for each
-            file; if ``0``, keep all by default
-        *phantom*: ``True`` | {``False``}
-            Only delete files if ``False``
-    :Versions:
-        * 2017-12-13 ``@ddalle``: Forked from :func:`DeleteFiles`
-    """
-    # Get list of matches
-    fglob = GetFileMatches(fdel, fsub=fsub, n=n, qdel=False)
-    # Get list of search dirs
-    fdirs = GetSearchDirs(fsub)
-    # Check for any additional dirs implied by *fglob*
-    fimp = GetImpliedFolders(fglob)
-    # Loop through search dirs
-    for fdir in fdirs:
-        # List the files
-        fls = os.listdir(fdir)
-        # Loop through implied dirs
-        for fi in fimp:
-            # Check if folder exists
-            if not os.path.isdir(fi): continue
-            # Otherwise, get the files in that folder
-            flsi = os.listdir(fls)
-            # Append to list
-            fls += [os.path.join(fi, fj) for fj in flsi]
-        # Loop through the files
-        for f in fls:
             # Check if it's a directory
-            if os.path.isdir(f): continue
-            # Normalize the path, remove "//", "./", etc.
-            fn = os.path.normpath(f)
+            if os.path.isdir(fn):
+                # Check for three reasons to keep it
+                if fn in dglob:
+                    # Directly specified
+                    continue
+                elif fn in fimp:
+                    # Implied by a file within this folder
+                    continue
+                elif fn in fdirs:
+                    # It's a search directory
+                    continue
+                # Otherwise, delete the directory
+                write_log("rm -r %s" % fn)
+                # Check for simulation option
+                if phantom: continue
+                # Delete it
+                shutil.rmtree(fn, ignore_errors=True)
+                continue
             # Check if it's in the glob
             if fn in fglob: continue
             # Otherwise, delete it
@@ -2263,6 +2232,8 @@ def SkeletonDeleteFiles(opts, fsub=None, aa=None, phantom=False):
         opts = aa(opts)
     # Get options for files to keep
     fskel = opts.get_ArchiveSkeletonFiles()
+    # Get options for folders to keep
+    dskel = opts.get_ArchiveSkeletonDirs()
     # Get options for files to tail
     ftail = opts.get_ArchiveSkeletonTailFiles()
     # Exit if necessary
@@ -2284,7 +2255,7 @@ def SkeletonDeleteFiles(opts, fsub=None, aa=None, phantom=False):
     # Write flag
     write_log('<SkeletonDeleteFiles>')
     # Delete the files
-    DeleteFilesExcept(fskel, fsub=fsub, n=0, phantom=phantom)
+    DeleteFilesExcept(fskel, dskel, fsub=fsub, n=0, phantom=phantom)
     
 # Function for tailing files during skeleton action
 def SkeletonTailFiles(opts, fsub=None, aa=None, phantom=False):
