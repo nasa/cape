@@ -2349,7 +2349,7 @@ class Fun3d(Cntl):
             * 2017-12-15 ``@ddalle``: Added *phantom* option
         """
         # Archive using the local module
-        manage.ArchiveFolder(self.opts, fsub=["Flow"], phantom=phantom)
+        manage.ArchiveFolder(self.opts, phantom=phantom)
     
     # Individual case archive function
     def SkeletonPWD(self, phantom=False):
