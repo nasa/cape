@@ -286,11 +286,11 @@ class Plt(object):
         f.close()
     
     # Write Tec Boundary
-    def Write(self, fname, Vars=None):
+    def Write(self, fname, Vars=None, **kw):
         """Write a Fun3D boundary Tecplot binary file
         
         :Call:
-            >>> plt.Write(fname)
+            >>> plt.Write(fname, Vars=None, **kw)
         :Inputs:
             *plt*: :class:`pyFun.plt.Plt`
                 Tecplot PLT interface
@@ -298,14 +298,21 @@ class Plt(object):
                 Name of file to read
             *Vars*: {``None``} | :class:`list` (:class:`str`)
                 List of variables (by default, use all variables)
+            *CompID*: {``range(len(plt.nZone))``} | :class:`list`
+                Optional list of zone numbers to use
         :Versions:
             * 2017-03-29 ``@ddalle``: First version
             * 2017-05-16 ``@ddalle``: Added variable list
+            * 2017-12-18 ``@ddalle``: Added *CompID* input
         """
         # Default variable list
         if Vars is None: Vars = self.Vars
         # Number of variables
         nVar = len(Vars)
+        # Check for CompID list
+        IZone = kw.get("CompID", range(self.nZone))
+        # Number of output zones
+        nZone = len(IZone)
         # Indices of variabels
         IVar = np.array([self.Vars.index(v) for v in Vars])
         # Open the file
@@ -324,7 +331,7 @@ class Plt(object):
         for var in Vars:
             cape.io.tofile_ne4_s(f, var)
         # Write zones
-        for i in range(self.nZone):
+        for i in IZone:
             # Write goofy zone marker
             cape.io.tofile_ne4_f(f, 299.0)
             # Write zone name
@@ -378,7 +385,7 @@ class Plt(object):
         # Write end-of-header marker
         cape.io.tofile_ne4_f(f, 357.0)
         # Loop through the zones again
-        for n in range(self.nZone):
+        for n in IZone:
             # Write marker
             cape.io.tofile_ne4_f(f, 299.0)
             # Extract sizes
@@ -539,11 +546,11 @@ class Plt(object):
         f.close()
         
     # Write ASCII file 
-    def WriteDat(self, fname, Vars=None):
+    def WriteDat(self, fname, Vars=None, **kw):
         """Write Tecplot PLT file to ASCII format (``.dat``)
         
         :Call:
-            >>> plt.WriteDat(fname, Vars=None)
+            >>> plt.WriteDat(fname, Vars=None, **kw)
         :Inputs:
             *plt*: :class:`cape.plt.Plt`
                 Tecplot PLT interface
@@ -551,9 +558,12 @@ class Plt(object):
                 Name of DAT file to write
             *Vars*: {``None``} | :class:`list` (:class:`str`)
                 List of variables (by default, use all variables)
+            *CompID*: {``range(len(plt.nZone))``} | :class:`list`
+                Optional list of zone numbers to use
         :Versions:
             * 2017-03-30 ``@ddalle``: First version
             * 2017-05-16 ``@ddalle``: Added variable list
+            * 2017-12-18 ``@ddalle``: Added *CompID* input
         """
         # Default variable list
         if Vars is None: Vars = self.Vars
@@ -561,6 +571,10 @@ class Plt(object):
         nVar = len(Vars)
         # Indices of variabels
         IVar = np.array([self.Vars.index(v) for v in Vars])
+        # Check for CompID list
+        IZone = kw.get("CompID", range(self.nZone))
+        # Number of output zones
+        nZone = len(IZone)
         # Create the file
         f = open(fname, 'w')
         # Write the title
@@ -568,7 +582,7 @@ class Plt(object):
         # Write the variable names header
         f.write('variables = %s\n' % " ".join(Vars))
         # Loop through zones
-        for n in range(self.nZone):
+        for n in IZone:
             # Write the zone name
             f.write('zone t="%s"' % self.Zones[n].strip('"').strip("'"))
             # Write the time
@@ -943,9 +957,9 @@ class Plt(object):
         # Reset node count
         npt = 0
         # Check for CompID list
-        zones_keep = kw.get("CompID", range(self.nZone))
+        IZone = kw.get("CompID", range(self.nZone))
         # Loop through the components
-        for k in zones_keep:
+        for k in IZone:
             # Extract tris
             T = self.Tris[k]
             # Number of points and elements
