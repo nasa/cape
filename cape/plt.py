@@ -523,7 +523,7 @@ class Plt(object):
             # Read the tris
             ii = np.fromfile(f, count=(4*nElem), sep=" ", dtype="int")
             # Reshape and save
-            self.Tris.append(np.reshape(ii, (nElem,4)))
+            self.Tris.append(np.reshape(ii-1, (nElem,4)))
             # Read next line (empty or title of next zone)
             line = f.readline().strip()
         
