@@ -478,7 +478,7 @@ class Plt(object):
             v = D.get("t", "zone %i" % self.nZone)
             self.Zones.append(v)
             # Parent zone
-            v = int(D.get("parent", 0))
+            v = int(D.get("parent", -1))
             self.ParentZone.append(v)
             # Strand ID
             v = int(D.get("strandid", 1000))
@@ -570,7 +570,7 @@ class Plt(object):
         # Loop through zones
         for n in range(self.nZone):
             # Write the zone name
-            f.write('zone t="%s"' % self.Zones[n])
+            f.write('zone t="%s"' % self.Zones[n].strip('"').strip("'"))
             # Write the time
             f.write(', solutiontime=%14.7E' % self.t[n])
             # Write the strandid
