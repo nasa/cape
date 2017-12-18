@@ -834,7 +834,7 @@ def TailFiles(ftail, fsub=None, n=1, phantom=False):
             if fsrc != fout:
                 write_log('  rm %s' % fn)
             # Check if not actually doing anything
-            if phanton: continue
+            if phantom: continue
             # Tail the text
             txt = tail(fn, n=nf)
             # Open the output file

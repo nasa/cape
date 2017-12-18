@@ -615,7 +615,8 @@ class Cntl(object):
                 self.StopCase(i)
                 continue
             # Check for script
-            if qExec and (n is not None):
+            #if qExec and (n is not None):
+            if qExec:
                 # Execute script
                 self.ExecScript(i, ecmd)
                 continue
