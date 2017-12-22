@@ -3998,6 +3998,38 @@ class TriBase(object):
    # Tris
    # ++++
    # {
+    # Get coordinates of nodes for each triangle
+    def GetTriNodes(self):
+        """Get the nodal coordinates of each triangle
+        
+        :Call:
+            >>> tri.GetTriNodes()
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+        :Attributes:
+            *tri.TriX*: :class:`np.ndarray` (:class:`float` shape=(nTri,3))
+                *x*-coordinates of each node of each triangle
+            *tri.TriY*: :class:`np.ndarray` (:class:`float` shape=(nTri,3))
+                *y*-coordinates of each node of each triangle
+            *tri.TriZ*: :class:`np.ndarray` (:class:`float` shape=(nTri,3))
+                *z*-coordinates of each node of each triangle
+        :Versions:
+            * 2017-12-22 ``@ddalle``: First version
+        """
+        # Check for centers
+        try:
+            self.TriX
+            self.TriY
+            self.TriZ
+            return
+        except AttributeError:
+            pass
+        # Calculate the center of each tri, one coordinate at a time
+        self.TriX = self.Nodes[self.Tris-1, 0]
+        self.TriY = self.Nodes[self.Tris-1, 1]
+        self.TriZ = self.Nodes[self.Tris-1, 2]
+    
     # Get centers of nodes
     def GetCenters(self):
         """Get the centroids of each triangle
@@ -4248,9 +4280,10 @@ class TriBase(object):
         e2 = self.e2
         e3 = self.e3
         # Extract the vertices of each tri.
-        X = self.Nodes[self.Tris-1, 0]
-        Y = self.Nodes[self.Tris-1, 1]
-        Z = self.Nodes[self.Tris-1, 2]
+        self.GetTriNodes()
+        X = self.TriX
+        Y = self.TriY
+        Z = self.TriZ
         # Extract test point coordinates
         y = x[1]
         z = x[2]
@@ -4266,22 +4299,31 @@ class TriBase(object):
         # Get indices of points within *zmin* and *ztol*
         I = zi <= zmin + ztol
         K = np.where(I)[0]
+        # Preselect subsets
+        XI = X[I,:]
+        YI = Y[I,:]
+        ZI = Z[I,:]
+        # These operations are tested to run as fast as possible
+        XI0 = XI[:,0]; XI1 = XI[:,1]; XI2 = XI[:,2]
+        YI0 = YI[:,0]; YI1 = YI[:,1]; YI2 = YI[:,2]
+        ZI0 = ZI[:,0]; ZI1 = ZI[:,1]; ZI2 = ZI[:,2]
+        # Downselect the basis vectors
+        e1I = e1[I,:]
+        e2I = e2[I,:]
+        e10 = e1I[:,0]; e11 = e1I[:,1]; e12 = e1I[:,2]
+        e20 = e2I[:,0]; e21 = e2I[:,1]; e22 = e2I[:,2]
         # Convert the test point into coordinates aligned with first edge 
-        xi = (x-X[I,0])*e1[I,0] + (y-Y[I,0])*e1[I,1] + (z-Z[I,0])*e1[I,2]
-        yi = (x-X[I,0])*e2[I,0] + (y-Y[I,0])*e2[I,1] + (z-Z[I,0])*e2[I,2]
+        xi = (x-XI0)*e10 + (y-YI0)*e11 + (z-ZI0)*e12
+        yi = (x-XI0)*e20 + (y-YI0)*e21 + (z-ZI0)*e22
         zi = zi[I]
         # Initialize transformed triangles
-        XI = np.zeros_like(X[I,:])
+        XI = np.zeros_like(XI)
         YI = np.zeros_like(XI)
         # Convert the second and third vertices
-        XI[:,1] = ((X[I,1]-X[I,0])*e1[I,0]
-            + (Y[I,1]-Y[I,0])*e1[I,1] + (Z[I,1]-Z[I,0])*e1[I,2])
-        XI[:,2] = ((X[I,2]-X[I,0])*e1[I,0]
-            + (Y[I,2]-Y[I,0])*e1[I,1] + (Z[I,2]-Z[I,0])*e1[I,2])
-        YI[:,1] = ((X[I,1]-X[I,0])*e2[I,0]
-            + (Y[I,1]-Y[I,0])*e2[I,1] + (Z[I,1]-Z[I,0])*e2[I,2])
-        YI[:,2] = ((X[I,2]-X[I,0])*e2[I,0]
-            + (Y[I,2]-Y[I,0])*e2[I,1] + (Z[I,2]-Z[I,0])*e2[I,2])
+        XI[:,1] = ((XI1-XI0)*e10 + (YI1-YI0)*e11 + (ZI1-ZI0)*e12)
+        XI[:,2] = ((XI2-XI0)*e10 + (YI2-YI0)*e11 + (ZI2-ZI0)*e12)
+        YI[:,1] = ((XI1-XI0)*e20 + (YI1-YI0)*e21 + (ZI1-ZI0)*e22)
+        YI[:,2] = ((XI2-XI0)*e20 + (YI2-YI0)*e21 + (ZI2-ZI0)*e22)
         # Get distance to each triangle within the plane of each triangle
         DI = geom.dist_tris_to_pt(XI, YI, xi, yi)
         # Get total distance from point to each triangle
