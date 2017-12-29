@@ -4763,7 +4763,7 @@ class Report(object):
             DB = self.cntl.DataBook
         # Filter on the type
         try:
-            if tcomp in ["Force", "FM", "Moment"]:
+            if tcomp in ["Force", "FM", "Moment", "DataFM"]:
                 # Read if necessary
                 if comp not in DB:
                     DB.ReadDBComp(comp)

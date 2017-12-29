@@ -134,18 +134,22 @@ def main(**kw):
             d[tj]['Q']['cores'] += ncj
             # Model name
             d[tj]['R']['model'] = mj
+    # Interpret option for showing only total
+    q_total = kw.get("t", False) or kw.get("total", False)
     # Display the stats.
-    show_qstats(d)
+    show_qstats(d, q_total=q_total)
 
 # Function to show queue statistics
-def show_qstats(d):
+def show_qstats(d, q_total=False):
     """Show queue statistics
 
     :Call:
-        >>> show_qstats(d)
+        >>> show_qstats(d, q_total=False)
     :Inputs:
         *d*: :class:`dict`
             Dictionary of queue statistics
+        *q_total*: ``True`` | {``False``}
+            Option to only show totals
     :Versions:
         * 2015-07-23 ``@ddalle``: First version
         * 2017-06-23 ``@ddalle``: Added totals
@@ -155,8 +159,6 @@ def show_qstats(d):
     QT = {"jobs": 0, "nodes": 0, "cores": 0}
     # Loop through the queues.
     for q in d.keys():
-        # Display the queue name.
-        print("QUEUE: %s" % q)
         # Extract running qnd queued statistics
         R = d[q]['R']
         Q = d[q]['Q']
@@ -164,14 +166,18 @@ def show_qstats(d):
         for k in ["jobs", "nodes", "cores"]:
             RT[k] += R[k]
             QT[k] += Q[k]
-        # Display the running jobs statistics
-        print("  R: %3i jobs, %4i nodes, %5i cores, %.1f%% efficiency"
-            % (R['jobs'], R['nodes'], R['cores'], R['eff']))
-        # Display the queued jobs statistics
-        print("  Q: %3i jobs, %4i nodes, %5i cores"
-            % (Q['jobs'], Q['nodes'], Q['cores']))
-        # Totals.
-        print("  T: %3i jobs" % (R['jobs']+Q['jobs']))
+        # Check for option to hide totals
+        if (not q_total):
+            # Display the queue name.
+            print("QUEUE: %s" % q)
+            # Display the running jobs statistics
+            print("  R: %3i jobs, %4i nodes, %5i cores, %.1f%% efficiency"
+                % (R['jobs'], R['nodes'], R['cores'], R['eff']))
+            # Display the queued jobs statistics
+            print("  Q: %3i jobs, %4i nodes, %5i cores"
+                % (Q['jobs'], Q['nodes'], Q['cores']))
+            # Totals.
+            print("  T: %3i jobs" % (R['jobs']+Q['jobs']))
     # Print totals
     print("TOTALS:")
     print("  R: %3i jobs, %4i nodes, %5i cores"

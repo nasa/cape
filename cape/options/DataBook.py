@@ -1254,7 +1254,7 @@ class DataBook(odict):
         elif ctype in ["Moment", "moment"]:
             # Moment only, body-frame
             coeffs = ["CLL", "CLM", "CLN"]
-        elif ctype in ["FM", "full", "Full"]:
+        elif ctype in ["DataFM", "FM", "full", "Full"]:
             # Force and moment
             coeffs = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
         elif ctype in ["TriqFM"]:

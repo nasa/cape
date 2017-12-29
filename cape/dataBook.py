@@ -196,7 +196,7 @@ class DataBook(dict):
             # Get component type
             tcomp = opts.get_DataBookType(comp)
             # Check if it's an aero-type component
-            if tcomp not in ['FM', 'Force', 'Moment']: continue
+            if tcomp not in ['FM', 'Force', 'Moment', 'DataFM']: continue
             # Initialize the data book.
             self.ReadDBComp(comp, check=check, lock=lock)
         # Initialize targets.
