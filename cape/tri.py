@@ -1062,6 +1062,14 @@ class TriBase(object):
                 Whether or not to use double-precision big-endian
             *lb8*: ``True`` | {``False``}
                 Whether or not to use double-precision little-endian
+            *r4*: ``True`` | {``False``}
+                Whether or not to use single-precision big-endian Fortran
+            *lr4*: ``True`` | {``False``}
+                Whether or not to use single-precision little-endian Fortran
+            *r8*: ``True`` | {``False``}
+                Whether or not to use double-precision big-endian Fortran
+            *lr8*: ``True`` | {``False``}
+                Whether or not to use double-precision little-endian Fortran
             *byteorder*: ``"big"`` | ``"little"`` | {``None``}
                 Byte order
             *endian*: ``"big"`` | ``"little"`` | {``None``}
@@ -1094,6 +1102,18 @@ class TriBase(object):
         if ext == 'ascii':
             # Try the ASCII writers
             self.WriteASCII(fname)
+        elif ext == 'lr4':
+            # Little-endian single
+            self.WriteTri_lr4(fname)
+        elif ext == 'r4':
+            # Big-endian single
+            self.WriteTri_r4(fname)
+        elif ext == 'lr8':
+            # Little-endian double
+            self.WriteTri_lr8(fname)
+        elif ext == 'r8':
+            # Big-endian double
+            self.WriteTri_r8(fname)
         elif ext == 'lb4':
             # Little-endian single
             self.WriteTri_lb4(fname)
@@ -1130,6 +1150,10 @@ class TriBase(object):
             *ext*              *Description*
             =================  =======================================
             ``"ascii"``        Text file
+            ``"r4"``           Big-endian, single-precision record
+            ``"lr4"``          Little-endian, single-precision record
+            ``"r8"``           Big-endian, double-precision record
+            ``"lr8"``          Little-endian, double-precision record
             ``"b4"``           Big-endian, single-precision
             ``"lb4"``          Little-endian, single-precision
             ``"b8"``           Big-endian, double-precision
@@ -1151,9 +1175,17 @@ class TriBase(object):
                 Whether or not to use double-precision big-endian
             *lb8*: ``True`` | {``False``}
                 Whether or not to use double-precision little-endian
-            *byteorder*: ``"big"`` | ``"little"`` | {``None``}
-                Byte order
-            *endian*: ``"big"`` | ``"little"`` | {``None``}
+            *r4*: ``True`` | {``False``}
+                Whether or not to use single-precision big-endian Fortran
+            *lr4*: ``True`` | {``False``}
+                Whether or not to use single-precision little-endian Fortran
+            *r8*: ``True`` | {``False``}
+                Whether or not to use double-precision big-endian Fortran
+            *lr8*: ``True`` | {``False``}
+                Whether or not to use double-precision little-endian Fortran
+            *record*, *fortran*: {``True``} | ``False``
+                Whether or not to use Fortran-style record markers
+            *byteorder*, *endian*: ``"big"`` | ``"little"`` | {``None``}
                 Byte order
             *bytecount*: ``4`` | ``8`` | {``None``}
                 Byte count, ``4`` for single precision is default
@@ -1179,6 +1211,18 @@ class TriBase(object):
         if kw.get('ascii'):
             # ASCII file
             return 'ascii'
+        elif kw.get('r4'):
+            # Big-endian single-precision
+            return 'r4'
+        elif kw.get('lr4'):
+            # Little-endian single precision
+            return 'lr4'
+        elif kw.get('r8'):
+            # Big-endian double-precision
+            return 'r8'
+        elif kw.get('lr8'):
+            # Little-endian double precision
+            return 'lr8'
         elif kw.get('b4'):
             # Big-endian single-precision
             return 'b4'
@@ -1195,6 +1239,7 @@ class TriBase(object):
         bo = kw.get('byteorder', kw.get('endian'))
         bs = kw.get('byteswap')
         bc = kw.get('bytecount')
+        fo = kw.get('fortran', kw.get('record'))
         # Check for at least one binary flag
         if (not kw.get('bin')) and bo==None and bs==None and bc==None:
             # Get the existing extension
@@ -1227,16 +1272,28 @@ class TriBase(object):
         # Process output
         if bo == "big":
             if bc == 8:
-                return 'b8'
+                if fo:
+                    return 'r8'
+                else:
+                    return 'b8'
             elif bc == 4:
-                return 'b4'
+                if fo:
+                    return 'r4'
+                else:
+                    return 'b4'
             else:
                 raise ValueError("Could not interpret bytecount '%s'" % bc)
         elif bo == "little":
             if bc == 8:
-                return 'lb8'
+                if fo:
+                    return 'lr8'
+                else:
+                    return 'lb8'
             elif bc == 4:
-                return 'lb4'
+                if fo:
+                    return 'lr4'
+                else:
+                    return 'lb4'
             else:
                 raise ValueError("Could not interpret bytecount '%s'" % bc)
         else:
@@ -1416,16 +1473,16 @@ class TriBase(object):
         # Write the header
         if qq:
             # Write with *q*
-            io.write_record_lb4_i(fid, [self.nNode, self.nTri, self.nq])
+            io.write_record_lr4_i(fid, [self.nNode, self.nTri, self.nq])
         else:
             # No q values
-            io.write_record_lb4_i(fid, [self.nNode, self.nTri])
+            io.write_record_lr4_i(fid, [self.nNode, self.nTri])
         # Write the nodes, tris, and compIDs
-        io.write_record_lb4_f(fid, self.Nodes)
-        io.write_record_lb4_i(fid, self.Tris)
-        io.write_record_lb4_i(fid, self.CompID)
+        io.write_record_lr4_f(fid, self.Nodes)
+        io.write_record_lr4_i(fid, self.Tris)
+        io.write_record_lr4_i(fid, self.CompID)
         # Write states if appropriate
-        if qq: io.write_record_lb4_f(fid, self.q)
+        if qq: io.write_record_lr4_f(fid, self.q)
         # Close the file
         fid.close()
             
@@ -1495,16 +1552,16 @@ class TriBase(object):
         # Write the header
         if qq:
             # Write with *q*
-            io.write_record_b4_i(fid, [self.nNode, self.nTri, self.nq])
+            io.write_record_r4_i(fid, [self.nNode, self.nTri, self.nq])
         else:
             # No q values
-            io.write_record_b4_i(fid, [self.nNode, self.nTri])
+            io.write_record_r4_i(fid, [self.nNode, self.nTri])
         # Write the nodes, tris, and compIDs
-        io.write_record_b4_f(fid, self.Nodes)
-        io.write_record_b4_i(fid, self.Tris)
-        io.write_record_b4_i(fid, self.CompID)
+        io.write_record_r4_f(fid, self.Nodes)
+        io.write_record_r4_i(fid, self.Tris)
+        io.write_record_r4_i(fid, self.CompID)
         # Write states if appropriate
-        if qq: io.write_record_b4_f(fid, self.q)
+        if qq: io.write_record_r4_f(fid, self.q)
         # Close the file
         fid.close()
     
@@ -1574,16 +1631,16 @@ class TriBase(object):
         # Write the header
         if qq:
             # Write with *q*
-            io.write_record_lb4_i(fid, [self.nNode, self.nTri, self.nq])
+            io.write_record_lr4_i(fid, [self.nNode, self.nTri, self.nq])
         else:
             # No q values
-            io.write_record_lb4_i(fid, [self.nNode, self.nTri])
+            io.write_record_lr4_i(fid, [self.nNode, self.nTri])
         # Write the nodes, tris, and compIDs
-        io.write_record_lb8_f(fid, self.Nodes)
-        io.write_record_lb4_i(fid, self.Tris)
-        io.write_record_lb4_i(fid, self.CompID)
+        io.write_record_lr8_f(fid, self.Nodes)
+        io.write_record_lr4_i(fid, self.Tris)
+        io.write_record_lr4_i(fid, self.CompID)
         # Write states if appropriate
-        if qq: io.write_record_lb8_f(fid, self.q)
+        if qq: io.write_record_lr8_f(fid, self.q)
         # Close the file
         fid.close()
             
@@ -1653,16 +1710,332 @@ class TriBase(object):
         # Write the header
         if qq:
             # Write with *q*
-            io.write_record_b4_i(fid, [self.nNode, self.nTri, self.nq])
+            io.write_record_r4_i(fid, [self.nNode, self.nTri, self.nq])
         else:
             # No q values
-            io.write_record_b4_i(fid, [self.nNode, self.nTri])
+            io.write_record_r4_i(fid, [self.nNode, self.nTri])
         # Write the nodes, tris, and compIDs
-        io.write_record_b8_f(fid, self.Nodes)
-        io.write_record_b4_i(fid, self.Tris)
-        io.write_record_b4_i(fid, self.CompID)
+        io.write_record_r8_f(fid, self.Nodes)
+        io.write_record_r4_i(fid, self.Tris)
+        io.write_record_r4_i(fid, self.CompID)
         # Write states if appropriate
-        if qq: io.write_record_b8_f(fid, self.q)
+        if qq: io.write_record_r8_f(fid, self.q)
+        # Close the file
+        fid.close()
+        
+    # Write TRI file as lr4 file
+    def WriteTri_lr4(self, fname):
+        """Write a triangulation as a little-endian single-precision file
+        
+        :Call:
+            >>> tri.WriteTri_lr4(fname)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-10-10 ``@ddalle``: First version
+        """
+        try:
+            # Compiled (C) version
+            self.WriteFast_lr4(fname)
+        except Exception:
+            # Python fall-back function
+            self.WriteSlow_lr4(fname)
+            
+    # Write TRI file as little-endian single-precision
+    def WriteFast_lr4(self, fname='Components.i.tri'):
+        """Use compiled C code to write single-precision little-endian tri
+        
+        :Call:
+            >>> tri.WriteFast_lr4(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-10-10 ``@ddalle``: First version
+        """
+        # 
+        pc.WriteTri_lr4(self.Nodes, self.Tris, self.CompID)
+        # Check the file name and rename if necessary
+        if fname != "Components.pyCart.tri":
+            os.rename("Components.pyCart.tri", fname)
+    
+    # Write TRI file as little-endian single-precision
+    def WriteSlow_lr4(self, fname='Components.i.tri'):
+        """Use Python code to write single-precision little-endian tri
+        
+        :Call:
+            >>> tri.WriteSlow_lr4(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-09-05 ``@ddalle``: First version
+        """
+        # Check for state vars
+        try:
+            qq = self.nq > 0
+        except AttributeError:
+            # No attribute for number of states
+            qq = False
+        # Open the file
+        fid = open(fname, 'wb')
+        # Write the header
+        if qq:
+            # Write with *q*
+            io.write_record_lr4_i(fid, [self.nNode, self.nTri, self.nq])
+        else:
+            # No q values
+            io.write_record_lr4_i(fid, [self.nNode, self.nTri])
+        # Write the nodes, tris, and compIDs
+        io.write_record_lr4_f(fid, self.Nodes)
+        io.write_record_lr4_i(fid, self.Tris)
+        io.write_record_lr4_i(fid, self.CompID)
+        # Write states if appropriate
+        if qq: io.write_record_lr4_f(fid, self.q)
+        # Close the file
+        fid.close()
+            
+    # Write TRI file as b4 file
+    def WriteTri_r4(self, fname):
+        """Write a triangulation as a big-endian single-precision file
+        
+        :Call:
+            >>> tri.WriteTri_r4(fname)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-10-10 ``@ddalle``: First version
+        """
+        try:
+            # Compiled (C) version
+            self.WriteFast_r4(fname)
+        except Exception:
+            # Python fall-back function
+            self.WriteSlow_r4(fname)
+            
+    # Write TRI file as big-endian single-precision
+    def WriteFast_r4(self, fname='Components.i.tri'):
+        """Use compiled C code to write single-precision big-endian tri
+        
+        :Call:
+            >>> tri.WriteFast_lb4(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-10-10 ``@ddalle``: First version
+        """
+        # 
+        pc.WriteTri_r4(self.Nodes, self.Tris, self.CompID)
+        # Check the file name and rename if necessary
+        if fname != "Components.pyCart.tri":
+            os.rename("Components.pyCart.tri", fname)
+        
+    # Write TRI file as big-endian single-precision
+    def WriteSlow_r4(self, fname='Components.i.tri'):
+        """Use compiled code to write single-precision big-endian tri
+        
+        :Call:
+            >>> tri.WriteSlow_r4(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-09-05 ``@ddalle``: First version
+        """
+        # Check for state vars
+        try:
+            qq = self.nq > 0
+        except AttributeError:
+            # No attribute for number of states
+            qq = False
+        # Open the file
+        fid = open(fname, 'wb')
+        # Write the header
+        if qq:
+            # Write with *q*
+            io.write_record_r4_i(fid, [self.nNode, self.nTri, self.nq])
+        else:
+            # No q values
+            io.write_record_r4_i(fid, [self.nNode, self.nTri])
+        # Write the nodes, tris, and compIDs
+        io.write_record_r4_f(fid, self.Nodes)
+        io.write_record_r4_i(fid, self.Tris)
+        io.write_record_r4_i(fid, self.CompID)
+        # Write states if appropriate
+        if qq: io.write_record_r4_f(fid, self.q)
+        # Close the file
+        fid.close()
+    
+    # Write TRI file as lb8 file
+    def WriteTri_lr8(self, fname):
+        """Write a triangulation as a little-endian double-precision file
+        
+        :Call:
+            >>> tri.WriteTri_lr8(fname)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-10-10 ``@ddalle``: First version
+        """
+        try:
+            # Compiled (C) version
+            self.WriteFast_lr8(fname)
+        except Exception:
+            # Python fall-back function
+            self.WriteSlow_lr8(fname)
+            
+    # Write TRI file as little-endian double-precision
+    def WriteFast_lr8(self, fname='Components.i.tri'):
+        """Use compiled C code to write double-precision little-endian tri
+        
+        :Call:
+            >>> tri.WriteFast_lr8(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-10-10 ``@ddalle``: First version
+        """
+        # 
+        pc.WriteTri_lr8(self.Nodes, self.Tris, self.CompID)
+        # Check the file name and rename if necessary
+        if fname != "Components.pyCart.tri":
+            os.rename("Components.pyCart.tri", fname)
+        
+    # Write TRI file as little-endian double-precision
+    def WriteSlow_lr8(self, fname='Components.i.tri'):
+        """Use Python code to write double-precision little-endian tri
+        
+        :Call:
+            >>> tri.WriteSlow_lr8(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-09-05 ``@ddalle``: First version
+        """
+        # Check for state vars
+        try:
+            qq = self.nq > 0
+        except AttributeError:
+            # No attribute for number of states
+            qq = False
+        # Open the file
+        fid = open(fname, 'wb')
+        # Write the header
+        if qq:
+            # Write with *q*
+            io.write_record_lr4_i(fid, [self.nNode, self.nTri, self.nq])
+        else:
+            # No q values
+            io.write_record_lr4_i(fid, [self.nNode, self.nTri])
+        # Write the nodes, tris, and compIDs
+        io.write_record_lr8_f(fid, self.Nodes)
+        io.write_record_lr4_i(fid, self.Tris)
+        io.write_record_lr4_i(fid, self.CompID)
+        # Write states if appropriate
+        if qq: io.write_record_lr8_f(fid, self.q)
+        # Close the file
+        fid.close()
+            
+    # Write TRI file as b8 file
+    def WriteTri_r8(self, fname):
+        """Write a triangulation as a big-endian double-precision file
+        
+        :Call:
+            >>> tri.WriteTri_r8(fname)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-10-10 ``@ddalle``: First version
+        """
+        try:
+            # Compiled (C) version
+            self.WriteFast_r8(fname)
+        except Exception:
+            # Python fall-back function
+            self.WriteSlow_r8(fname)
+            
+    # Write TRI file as big-endian single-precision
+    def WriteFast_r8(self, fname='Components.i.tri'):
+        """Use compiled C code to write double-precision big-endian tri
+        
+        :Call:
+            >>> tri.WriteFast_r8(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-10-10 ``@ddalle``: First version
+        """
+        # 
+        pc.WriteTri_r8(self.Nodes, self.Tris, self.CompID)
+        # Check the file name and rename if necessary
+        if fname != "Components.pyCart.tri":
+            os.rename("Components.pyCart.tri", fname)
+        
+    # Write TRI file as big-endian double-precision
+    def WriteSlow_r8(self, fname='Components.i.tri'):
+        """Use Python code to write double-precision big-endian tri
+        
+        :Call:
+            >>> tri.WriteSlow_r8(fname='Components.i.tri')
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangultion instance to be translated
+            *fname*: {``'Components.i.tri'``} | :class:`str`
+                Name of file to write
+        :Versions:
+            * 2016-09-05 ``@ddalle``: First version
+        """
+        # Check for state vars
+        try:
+            qq = self.nq > 0
+        except AttributeError:
+            # No attribute for number of states
+            qq = False
+        # Open the file
+        fid = open(fname, 'wb')
+        # Write the header
+        if qq:
+            # Write with *q*
+            io.write_record_r4_i(fid, [self.nNode, self.nTri, self.nq])
+        else:
+            # No q values
+            io.write_record_r4_i(fid, [self.nNode, self.nTri])
+        # Write the nodes, tris, and compIDs
+        io.write_record_r8_f(fid, self.Nodes)
+        io.write_record_r4_i(fid, self.Tris)
+        io.write_record_r4_i(fid, self.CompID)
+        # Write states if appropriate
+        if qq: io.write_record_r8_f(fid, self.q)
         # Close the file
         fid.close()
     
@@ -1973,6 +2346,18 @@ class TriBase(object):
         if ext == 'ascii':
             # Try the ASCII writers
             self.WriteTriqASCII(fname)
+        elif ext == 'lr4':
+            # Little-endian single Fortran
+            self.WriteSlow_lr4(fname)
+        elif ext == 'r4':
+            # Big-endian single Fortran
+            self.WriteSlow_r4(fname)
+        elif ext == 'lr8':
+            # Little-endian double Fortran
+            self.WriteSlow_lr8(fname)
+        elif ext == 'r8':
+            # Big-endian double Fortran
+            self.WriteSlow_r8(fname)
         elif ext == 'lb4':
             # Little-endian single
             self.WriteSlow_lb4(fname)
