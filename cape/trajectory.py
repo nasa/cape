@@ -248,14 +248,17 @@ class Trajectory:
         # Initialize an empty trajectory.
         y = Trajectory(Empty=True)
         # Copy the fields.
-        y.defns  = self.defns.copy()
-        y.abbrv  = self.abbrv.copy()
-        y.keys   = self.keys
+        y.defns  = {}
+        y.abbrv  = dict(self.abbrv)
+        y.keys   = list(self.keys)
         y.text   = self.text.copy()
         y.prefix = self.prefix
         y.PASS   = self.PASS.copy()
         y.ERROR  = self.ERROR.copy()
         y.nCase  = self.nCase
+        # Copy definitions
+        for k in self.defns:
+            y.defns[k] = dict(self.defns[k])
         # Group-related info
         y.GroupPrefix  = self.GroupPrefix
         y.GroupKeys    = self.GroupKeys

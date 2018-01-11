@@ -363,8 +363,8 @@ class DBLineLoad(dataBook.DBBase):
         for k in self.x.keys:
             f.write(k + delim)
         # Write the extra column titles.
-        f.write('Mach%sRe%sXMRP%sYMRP%sZMRP%snIter%snStats\n' %
-            tuple([delim]*6))
+        f.write('XMRP%sYMRP%sZMRP%snIter%snStats\n' %
+            tuple([delim]*4))
         # Loop through database entries.
         for i in np.arange(self.n):
             # Write the trajectory values.

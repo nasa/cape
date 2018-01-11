@@ -585,7 +585,7 @@ class X(object):
         # Loop through the grids
         for i in range(self.NG):
             # Read record
-            R = io.read_record_lb8_f(f)
+            R = io.read_record_lb4_f(f)
             # Save coordinates
             self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,npt[i]))
         # Close the file

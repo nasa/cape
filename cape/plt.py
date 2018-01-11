@@ -853,7 +853,7 @@ class Plt(object):
         # Write RMS values?
         rms = kw.get('rms', False)
         # Freestream Mach number; FUN3D writes cf/1.4*pinf instead of cf/qinf
-        mach = kw.get('mach', kw.get('m', kw.get('minf', 1.0)))
+        mach = float(kw.get('mach', kw.get('m', kw.get('minf', 1.0))))
         # Total number of points (if no emissions)
         nNode = np.sum(self.nPt)
         # Rough number of tris

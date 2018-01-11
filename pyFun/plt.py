@@ -58,7 +58,7 @@ def Plt2Triq(fplt, ftriq=None, **kw):
         kw["mapbc"] = pyFun.mapbc.MapBC(fglob[0])
     # Attempt to get *cp_tavg* state
     if "mach" in kw:
-        plt.GetCpTAvg(kw["mach"])
+        plt.GetCpTAvg(float(kw["mach"]))
     # Create the TRIQ interface
     triq = plt.CreateTriq(**kw)
     # Get output file extension

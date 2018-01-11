@@ -16,7 +16,7 @@ import cape.plot3d
 
 
 # OVERFLOW Plot3D template
-class P3D(cape.plot3d.Plot3D):
+class P3D(cape.plot3d.X):
     
         
     # Determine byte order
