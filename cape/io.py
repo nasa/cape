@@ -544,11 +544,11 @@ def tofile_ne8_f(f, x):
 # **********************************************************************
 # ====== lr4 record ====================================================
 # Write record of single-precision little-endian integers
-def write_record_lb4_i(f, x):
+def write_record_lr4_i(f, x):
     """Write record of integers to Fortran single-precision little-endian file
     
     :Call:
-        >>> write_record_lb4_i(f, x)
+        >>> write_record_lr4_i(f, x)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -571,11 +571,11 @@ def write_record_lb4_i(f, x):
     I.tofile(f)
     
 # Write record of single-precision little-endian floats
-def write_record_lb4_f(f, x):
+def write_record_lr4_f(f, x):
     """Write record of floats to Fortran single-precision little-endian file
     
     :Call:
-        >>> write_record_lb4_f(f, x)
+        >>> write_record_lr4_f(f, x)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -600,11 +600,11 @@ def write_record_lb4_f(f, x):
 
 # ====== lr8 record ====================================================
 # Write record of double-precision little-endian integers
-def write_record_lb8_i(f, x):
+def write_record_lr8_i(f, x):
     """Write record of integers to Fortran double-precision little-endian file
     
     :Call:
-        >>> write_record_lb8_i(f, x)
+        >>> write_record_lr8_i(f, x)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -627,11 +627,11 @@ def write_record_lb8_i(f, x):
     I.tofile(f)
     
 # Write record of double-precision little-endian integers
-def write_record_lb8_i2(f, x):
+def write_record_lr8_i2(f, x):
     """Write record of integers to Fortran double-precision little-endian file
     
     :Call:
-        >>> write_record_lb8_i(f, x)
+        >>> write_record_lr8_i(f, x)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -654,13 +654,13 @@ def write_record_lb8_i2(f, x):
     I.tofile(f)
     
 # Write record of double-precision little-endian floats
-def write_record_lb8_f(f, x):
+def write_record_lr8_f(f, x):
     """Write record of floats to Fortran double-precision little-endian file
     
     Record markers are written as single
     
     :Call:
-        >>> write_record_lb8_f(f, x)
+        >>> write_record_lr8_f(f, x)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -683,11 +683,11 @@ def write_record_lb8_f(f, x):
     I.tofile(f)
     
 # Write record of double-precision little-endian floats
-def write_record_lb8_f2(f, x):
+def write_record_lr8_f2(f, x):
     """Write record of floats to Fortran double-precision little-endian file
     
     :Call:
-        >>> write_record_lb8_f2(f, x)
+        >>> write_record_lr8_f2(f, x)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -712,11 +712,11 @@ def write_record_lb8_f2(f, x):
 
 # ====== r4 record ====================================================
 # Write record of single-precision big-endian integers
-def write_record_b4_i(f, x):
+def write_record_r4_i(f, x):
     """Write record of integers to Fortran single-precision big-endian file
     
     :Call:
-        >>> write_record_b4_i(f, x)
+        >>> write_record_r4_i(f, x)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -739,11 +739,11 @@ def write_record_b4_i(f, x):
     I.tofile(f)
     
 # Write record of single-precision big-endian floats
-def write_record_b4_f(f, x):
+def write_record_r4_f(f, x):
     """Write record of floats to Fortran single-precision big-endian file
     
     :Call:
-        >>> write_record_b4_f(f, x)
+        >>> write_record_r4_f(f, x)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -768,11 +768,11 @@ def write_record_b4_f(f, x):
 
 # ====== r8 record ====================================================
 # Write record of double-precision big-endian integers
-def write_record_b8_i(f, x):
+def write_record_r8_i(f, x):
     """Write record of integers to Fortran double-precision big-endian file
     
     :Call:
-        >>> write_record_b8_i(f, x)
+        >>> write_record_r8_i(f, x)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -795,11 +795,11 @@ def write_record_b8_i(f, x):
     I.tofile(f)
     
 # Write record of double-precision big-endian integers
-def write_record_b8_i2(f, x):
+def write_record_r8_i2(f, x):
     """Write record of integers to Fortran double-precision big-endian file
     
     :Call:
-        >>> write_record_b8_i2(f, x)
+        >>> write_record_r8_i2(f, x)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -822,13 +822,13 @@ def write_record_b8_i2(f, x):
     I.tofile(f)
     
 # Write record of double-precision big-endian floats
-def write_record_b8_f(f, x):
+def write_record_r8_f(f, x):
     """Write record of floats to Fortran double-precision big-endian file
     
     Record markers written as single
     
     :Call:
-        >>> write_record_b8_f(f, x)
+        >>> write_record_r8_f(f, x)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -851,11 +851,11 @@ def write_record_b8_f(f, x):
     I.tofile(f)
     
 # Write record of double-precision big-endian floats
-def write_record_b8_f2(f, x):
+def write_record_r8_f2(f, x):
     """Write record of floats to Fortran double-precision big-endian file
     
     :Call:
-        >>> write_record_b8_f2(f, x)
+        >>> write_record_r8_f2(f, x)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -1054,11 +1054,11 @@ def fromfile_b8_f(f, n):
 # **********************************************************************
 # ====== lr4 record ====================================================
 # Read record of single-precision little-endian integers
-def read_record_lb4_i(f):
+def read_record_lr4_i(f):
     """Read next record from single-precision little-endian file as integers
     
     :Call:
-        >>> x = read_record_lb4_i(f)
+        >>> x = read_record_lr4_i(f)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -1087,11 +1087,11 @@ def read_record_lb4_i(f):
     return x
     
 # Read record of single-precision little-endian integers
-def read_record_lb4_f(f):
+def read_record_lr4_f(f):
     """Read next record from single-precision little-endian file as floats
     
     :Call:
-        >>> x = read_record_lb4_f(f)
+        >>> x = read_record_lr4_f(f)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -1122,11 +1122,11 @@ def read_record_lb4_f(f):
 
 # ====== lr8 record ====================================================
 # Read record of double-precision little-endian integers
-def read_record_lb8_i(f):
+def read_record_lr8_i(f):
     """Read next record from double-precision little-endian file as integers
     
     :Call:
-        >>> x = read_record_lb8_i(f)
+        >>> x = read_record_lr8_i(f)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -1155,13 +1155,13 @@ def read_record_lb8_i(f):
     return x
     
 # Read record of double-precision little-endian integers
-def read_record_lb8_f(f):
+def read_record_lr8_f(f):
     """Read next record from double-precision little-endian file as floats
     
     Record marker read as a single
     
     :Call:
-        >>> x = read_record_lb8_f(f)
+        >>> x = read_record_lr8_f(f)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -1190,11 +1190,11 @@ def read_record_lb8_f(f):
     return x
     
 # Read record of double-precision little-endian integers
-def read_record_lb8_i2(f):
+def read_record_lr8_i2(f):
     """Read next record from double-precision little-endian file as integers
     
     :Call:
-        >>> x = read_record_lb8_i2(f)
+        >>> x = read_record_lr8_i2(f)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -1223,11 +1223,11 @@ def read_record_lb8_i2(f):
     return x
     
 # Read record of double-precision little-endian integers
-def read_record_lb8_f2(f):
+def read_record_lr8_f2(f):
     """Read next record from double-precision little-endian file as floats
     
     :Call:
-        >>> x = read_record_lb8_f2(f)
+        >>> x = read_record_lr8_f2(f)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -1258,11 +1258,11 @@ def read_record_lb8_f2(f):
 
 # ====== r4 record ====================================================
 # Read record of single-precision big-endian integers
-def read_record_b4_i(f):
+def read_record_r4_i(f):
     """Read next record from single-precision big-endian file as integers
     
     :Call:
-        >>> x = read_record_b4_i(f)
+        >>> x = read_record_r4_i(f)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -1291,11 +1291,11 @@ def read_record_b4_i(f):
     return x
     
 # Read record of single-precision big-endian integers
-def read_record_b4_f(f):
+def read_record_r4_f(f):
     """Read next record from single-precision big-endian file as floats
     
     :Call:
-        >>> x = read_record_b4_f(f)
+        >>> x = read_record_r4_f(f)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -1326,11 +1326,11 @@ def read_record_b4_f(f):
 
 # ====== r8 record ====================================================
 # Read record of double-precision big-endian integers
-def read_record_b8_i(f):
+def read_record_r8_i(f):
     """Read next record from double-precision big-endian file as integers
     
     :Call:
-        >>> x = read_record_b8_i(f)
+        >>> x = read_record_r8_i(f)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -1359,11 +1359,11 @@ def read_record_b8_i(f):
     return x
     
 # Read record of double-precision big-endian integers
-def read_record_b8_f(f):
+def read_record_r8_f(f):
     """Read next record from double-precision big-endian file as floats
     
     :Call:
-        >>> x = read_record_b8_f(f)
+        >>> x = read_record_r8_f(f)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -1392,11 +1392,11 @@ def read_record_b8_f(f):
     return x
     
 # Read record of double-precision big-endian integers
-def read_record_b8_i2(f):
+def read_record_r8_i2(f):
     """Read next record from double-precision big-endian file as integers
     
     :Call:
-        >>> x = read_record_b8_i2(f)
+        >>> x = read_record_r8_i2(f)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -1425,11 +1425,11 @@ def read_record_b8_i2(f):
     return x
     
 # Read record of double-precision big-endian integers
-def read_record_b8_f2(f):
+def read_record_r8_f2(f):
     """Read next record from double-precision big-endian file as floats
     
     :Call:
-        >>> x = read_record_b8_f2(f)
+        >>> x = read_record_r8_f2(f)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
