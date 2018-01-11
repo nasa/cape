@@ -115,6 +115,10 @@ def get_filetype(fname):
         raise ValueError("Could not process file '%s'" % fname)
 # def get_filetype
 
+
+# **********************************************************************
+# ====== string readers ===============================================
+
 # Read string
 def read_c_str(f, nmax=1000):
     """Read a C-style string from a binary file
@@ -214,6 +218,10 @@ def read_b4_s(f):
             buf += chr(b[0])
     # If we reach here, we had overflow
     return buf
+# > string read
+
+
+# ====== string writers ===============================================
     
 # Write byte string
 def tofile_lb4_s(f, s):
@@ -271,10 +279,11 @@ def tofile_ne4_s(f, s):
     x = [ord(c) for c in str(s)] + [0]
     # Write it
     tofile_ne4_i(f, x)
-    
-    
-# ====== lb4 write =====================================================
+# > string write
 
+
+# **********************************************************************
+# ====== lb4 write =====================================================
 # Write integer as little-endian single-precision
 def tofile_lb4_i(f, x):
     """Write an integer or array to single-precision little-endian file
@@ -316,10 +325,9 @@ def tofile_lb4_f(f, x):
     if be: X.byteswap(True)
     # Write
     X.tofile(f)
-    
-    
-# ====== lb8 write =====================================================
+# > lb4 write
 
+# ====== lb8 write =====================================================
 # Write integer as little-endian double-precision
 def tofile_lb8_i(f, x):
     """Write an integer or array to double-precision little-endian file
@@ -361,10 +369,9 @@ def tofile_lb8_f(f, x):
     if be: X.byteswap(True)
     # Write
     X.tofile(f)
-    
-    
+# > lb8 write
+
 # ====== b4 write ======================================================
-    
 # Write integer as big-endian single-precision
 def tofile_b4_i(f, x):
     """Write an integer or array to single-precision big-endian file
@@ -406,10 +413,9 @@ def tofile_b4_f(f, x):
     if le: X.byteswap(True)
     # Write
     X.tofile(f)
-    
-    
-# ====== b8 write ======================================================
+# > b4 write
 
+# ====== b8 write ======================================================
 # Write integer as big-endian double-precision
 def tofile_b8_i(f, x):
     """Write an integer or array to double-precision big-endian file
@@ -451,10 +457,9 @@ def tofile_b8_f(f, x):
     if le: X.byteswap(True)
     # Write
     X.tofile(f)
-    
-    
+# b8 write
+
 # ====== ne4 write =====================================================
-    
 # Write integer as native-endian single-precision
 def tofile_ne4_i(f, x):
     """Write an integer or array to single-precision native-endian file
@@ -492,10 +497,9 @@ def tofile_ne4_f(f, x):
     X = np.array(x, dtype='f4')
     # Write
     X.tofile(f)
-    
-    
-# ====== ne8 write =====================================================
+# > ne4 write
 
+# ====== ne8 write =====================================================
 # Write integer as native-endian double-precision
 def tofile_ne8_i(f, x):
     """Write an integer or array to double-precision native-endian file
@@ -533,10 +537,12 @@ def tofile_ne8_f(f, x):
     X = np.array(x, dtype='f8')
     # Write
     X.tofile(f)
-    
-    
-# ====== lb4 record ====================================================
-    
+# > ne8 write
+
+
+
+# **********************************************************************
+# ====== lr4 record ====================================================
 # Write record of single-precision little-endian integers
 def write_record_lb4_i(f, x):
     """Write record of integers to Fortran single-precision little-endian file
@@ -590,9 +596,38 @@ def write_record_lb4_f(f, x):
     I.tofile(f)
     X.tofile(f)
     I.tofile(f)
-    
+# > write_record_lr4
+
+# ====== lr8 record ====================================================
 # Write record of double-precision little-endian integers
 def write_record_lb8_i(f, x):
+    """Write record of integers to Fortran double-precision little-endian file
+    
+    :Call:
+        >>> write_record_lb8_i(f, x)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'wb' or similar
+        *x*: :class:`int` | :class:`np.ndarray`
+            Integer or array to write to file
+    :Versions:
+        * 2016-09-05 ``@ddalle``: First version
+    """
+    # Ensure array
+    X = np.array(x, dtype='i8')
+    # Byte counts
+    I = np.array(X.size*8, dtype='i4')
+    # Check byte order
+    if be:
+        X.byteswap(True)
+        I.byteswap(True)
+    # Write
+    I.tofile(f)
+    X.tofile(f)
+    I.tofile(f)
+    
+# Write record of double-precision little-endian integers
+def write_record_lb8_i2(f, x):
     """Write record of integers to Fortran double-precision little-endian file
     
     :Call:
@@ -673,7 +708,9 @@ def write_record_lb8_f2(f, x):
     I.tofile(f)
     X.tofile(f)
     I.tofile(f)
-    
+# > write_record_lr8
+
+# ====== r4 record ====================================================
 # Write record of single-precision big-endian integers
 def write_record_b4_i(f, x):
     """Write record of integers to Fortran single-precision big-endian file
@@ -727,13 +764,42 @@ def write_record_b4_f(f, x):
     I.tofile(f)
     X.tofile(f)
     I.tofile(f)
-    
+# > write_record_r4
+
+# ====== r8 record ====================================================
 # Write record of double-precision big-endian integers
 def write_record_b8_i(f, x):
     """Write record of integers to Fortran double-precision big-endian file
     
     :Call:
         >>> write_record_b8_i(f, x)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'wb' or similar
+        *x*: :class:`int` | :class:`np.ndarray`
+            Integer or array to write to file
+    :Versions:
+        * 2016-09-05 ``@ddalle``: First version
+    """
+    # Ensure array
+    X = np.array(x, dtype='i8')
+    # Byte counts
+    I = np.array(X.size*8, dtype='i4')
+    # Check byte order
+    if le:
+        X.byteswap(True)
+        I.byteswap(True)
+    # Write
+    I.tofile(f)
+    X.tofile(f)
+    I.tofile(f)
+    
+# Write record of double-precision big-endian integers
+def write_record_b8_i2(f, x):
+    """Write record of integers to Fortran double-precision big-endian file
+    
+    :Call:
+        >>> write_record_b8_i2(f, x)
     :Inputs:
         *f*: :class:`file`
             File handle, open 'wb' or similar
@@ -810,9 +876,12 @@ def write_record_b8_f2(f, x):
     I.tofile(f)
     X.tofile(f)
     I.tofile(f)
-    
-    
-    
+# > write_record_r8
+
+
+
+# ********************************************************************
+# ====== lb4 read ====================================================
 # Read integer from little-endian single-precision file
 def fromfile_lb4_i(f, n):
     """Read *n* integers from single-precision little-endian file
@@ -852,7 +921,9 @@ def fromfile_lb4_f(f, n):
     """
     # Read from file
     return np.fromfile(f, count=n, dtype="<f4")
-    
+# > lb4 read
+
+# ====== lb8 read ====================================================
 # Read integer from little-endian double-precision file
 def fromfile_lb8_i(f, n):
     """Read *n* integers from double-precision little-endian file
@@ -892,7 +963,9 @@ def fromfile_lb8_f(f, n):
     """
     # Read from file
     return np.fromfile(f, count=n, dtype="<f8")
-    
+# > lb4 read
+
+# ====== b4 read ====================================================
 # Read integer from big-endian single-precision file
 def fromfile_b4_i(f, n):
     """Read *n* integers from single-precision big-endian file
@@ -932,7 +1005,9 @@ def fromfile_b4_f(f, n):
     """
     # Read from file
     return np.fromfile(f, count=n, dtype=">f4")
-    
+# > b4 read
+
+# ====== b8 read ====================================================
 # Read integer from big-endian double-precision file
 def fromfile_b8_i(f, n):
     """Read *n* integers from double-precision big-endian file
@@ -972,8 +1047,12 @@ def fromfile_b8_f(f, n):
     """
     # Read from file
     return np.fromfile(f, count=n, dtype=">f8")
-    
-    
+# > b8 read
+
+
+
+# **********************************************************************
+# ====== lr4 record ====================================================
 # Read record of single-precision little-endian integers
 def read_record_lb4_i(f):
     """Read next record from single-precision little-endian file as integers
@@ -1039,7 +1118,9 @@ def read_record_lb4_f(f):
         raise IOError("End-of-record marker does not match start")
     # Output
     return x
-    
+# > read_record_lr4
+
+# ====== lr8 record ====================================================
 # Read record of double-precision little-endian integers
 def read_record_lb8_i(f):
     """Read next record from double-precision little-endian file as integers
@@ -1056,7 +1137,7 @@ def read_record_lb8_i(f):
         * 2016-09-05 ``@ddalle``: First version
     """
     # Read start-of-record marker
-    I = np.fromfile(f, count=1, dtype="<i8")
+    I = np.fromfile(f, count=1, dtype="<i4")
     # Process count
     if len(I) == 0 or I[0] == 0:
         return np.array([], dtype='i8')
@@ -1065,7 +1146,7 @@ def read_record_lb8_i(f):
     # Read that many ints
     x = np.fromfile(f, count=n, dtype="<i8")
     # Read the end-of-record
-    J = np.fromfile(f, count=1, dtype="<i8")
+    J = np.fromfile(f, count=1, dtype="<i4")
     # Check for errors
     if len(J)==0 or I[0]!=J[0]:
         # Consistency
@@ -1109,6 +1190,39 @@ def read_record_lb8_f(f):
     return x
     
 # Read record of double-precision little-endian integers
+def read_record_lb8_i2(f):
+    """Read next record from double-precision little-endian file as integers
+    
+    :Call:
+        >>> x = read_record_lb8_i2(f)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'wb' or similar
+    :Outputs:
+        *x*: :class:`np.ndarray` (:class:`int`)
+            Array of integers
+    :Version:
+        * 2016-09-05 ``@ddalle``: First version
+    """
+    # Read start-of-record marker
+    I = np.fromfile(f, count=1, dtype="<i8")
+    # Process count
+    if len(I) == 0 or I[0] == 0:
+        return np.array([], dtype='i8')
+    # Get count
+    n = I[0] / 8
+    # Read that many ints
+    x = np.fromfile(f, count=n, dtype="<i8")
+    # Read the end-of-record
+    J = np.fromfile(f, count=1, dtype="<i8")
+    # Check for errors
+    if len(J)==0 or I[0]!=J[0]:
+        # Consistency
+        raise IOError("End-of-record marker does not match start")
+    # Output
+    return x
+    
+# Read record of double-precision little-endian integers
 def read_record_lb8_f2(f):
     """Read next record from double-precision little-endian file as floats
     
@@ -1140,7 +1254,9 @@ def read_record_lb8_f2(f):
         raise IOError("End-of-record marker does not match start")
     # Output
     return x
-    
+# > read_record_lr8
+
+# ====== r4 record ====================================================
 # Read record of single-precision big-endian integers
 def read_record_b4_i(f):
     """Read next record from single-precision big-endian file as integers
@@ -1206,7 +1322,9 @@ def read_record_b4_f(f):
         raise IOError("End-of-record marker does not match start")
     # Output
     return x
-    
+# > read_record_r4
+
+# ====== r8 record ====================================================
 # Read record of double-precision big-endian integers
 def read_record_b8_i(f):
     """Read next record from double-precision big-endian file as integers
@@ -1223,7 +1341,7 @@ def read_record_b8_i(f):
         * 2016-09-05 ``@ddalle``: First version
     """
     # Read start-of-record marker
-    I = np.fromfile(f, count=1, dtype=">i8")
+    I = np.fromfile(f, count=1, dtype=">i4")
     # Process count
     if len(I) == 0 or I[0] == 0:
         return np.array([], dtype='i8')
@@ -1232,7 +1350,7 @@ def read_record_b8_i(f):
     # Read that many ints
     x = np.fromfile(f, count=n, dtype=">i8")
     # Read the end-of-record
-    J = np.fromfile(f, count=1, dtype=">i8")
+    J = np.fromfile(f, count=1, dtype=">i4")
     # Check for errors
     if len(J)==0 or I[0]!=J[0]:
         # Consistency
@@ -1274,6 +1392,39 @@ def read_record_b8_f(f):
     return x
     
 # Read record of double-precision big-endian integers
+def read_record_b8_i2(f):
+    """Read next record from double-precision big-endian file as integers
+    
+    :Call:
+        >>> x = read_record_b8_i2(f)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'wb' or similar
+    :Outputs:
+        *x*: :class:`np.ndarray` (:class:`int`)
+            Array of integers
+    :Version:
+        * 2016-09-05 ``@ddalle``: First version
+    """
+    # Read start-of-record marker
+    I = np.fromfile(f, count=1, dtype=">i8")
+    # Process count
+    if len(I) == 0 or I[0] == 0:
+        return np.array([], dtype='i8')
+    # Get count
+    n = I[0] / 8
+    # Read that many ints
+    x = np.fromfile(f, count=n, dtype=">i8")
+    # Read the end-of-record
+    J = np.fromfile(f, count=1, dtype=">i8")
+    # Check for errors
+    if len(J)==0 or I[0]!=J[0]:
+        # Consistency
+        raise IOError("End-of-record marker does not match start")
+    # Output
+    return x
+    
+# Read record of double-precision big-endian integers
 def read_record_b8_f2(f):
     """Read next record from double-precision big-endian file as floats
     
@@ -1305,4 +1456,4 @@ def read_record_b8_f2(f):
         raise IOError("End-of-record marker does not match start")
     # Output
     return x
-    
+# > read_record_r8
