@@ -162,7 +162,11 @@ cnftoldef = 1e-3
 
 # Plot3D Multiple-Grid file
 class X(object):
-    
+  # ========
+  # Config
+  # ========
+  # <
+    # Initialization method
     def __init__(self, fname=None):
         """Initialization method
         
@@ -177,7 +181,27 @@ class X(object):
         # Check for a file to read
         if fname is not None:
             self.Read(fname)
-            
+    
+    # Display method
+    def __repr__(self):
+        """Representation method
+        
+        :Versions:
+            * 2018-01-11 ``@ddalle``: First version
+        """
+        return "<plot3d.X NG=%s>" % self.NG
+    
+    # Display method
+    def __str__(self):
+        """Representation method
+        
+        :Versions:
+            * 2018-01-11 ``@ddalle``: First version
+        """
+        return "<plot3d.X NG=%s>" % self.NG
+  # >
+  
+  
   # =======
   # Readers
   # =======
@@ -207,20 +231,36 @@ class X(object):
         """
         # Check for keywords
         if kw.get('lb8'):
-            # Read as little-endian double
+            # Read as little-endian double stream
             self.Read_lb8(fname)
             return
         elif kw.get('b8'):
-            # Read as big-endian double
+            # Read as big-endian double stream
             self.Read_b8(fname)
             return
         elif kw.get('lb4'):
-            # Read as little-endian single
+            # Read as little-endian single stream
             self.Read_lb4(fname)
             return
         elif kw.get('b4'):
-            # Read as big-endian single
+            # Read as big-endian single stream
             self.Read_b4(fname)
+            return
+        elif kw.get('lr8'):
+            # Read as little-endian double record
+            self.Read_lr8(fname)
+            return
+        elif kw.get('r8'):
+            # Read as big-endian double record
+            self.Read_r8(fname)
+            return
+        elif kw.get('lr4'):
+            # Read as little-endian single record
+            self.Read_lr4(fname)
+            return
+        elif kw.get('r4'):
+            # Read as big-endian single record
+            self.Read_r4(fname)
             return
         elif kw.get('ascii'):
             # Read as an ASCII file
@@ -240,6 +280,18 @@ class X(object):
         elif ext == 'b4':
             # Read as big-endian single
             self.Read_b4(fname)
+        elif ext == 'lr8':
+            # Read as little-endian double
+            self.Read_lr8(fname)
+        elif ext == 'r8':
+            # Read as big-endian double
+            self.Read_r8(fname)
+        elif ext == 'lr4':
+            # Read as little-endian single
+            self.Read_lr4(fname)
+        elif ext == 'r4':
+            # Read as big-endian single
+            self.Read_r4(fname)
         elif ext == 'ascii':
             # Read as an ASCII file
             self.Read_ASCII(fname)
@@ -256,12 +308,12 @@ class X(object):
             *fname*: :class:`str`
                 Name of Plot3D file
         :Outputs:
-            *ext*: {``ascii``} | ``lb8`` | ``lb4`` | ``b8`` | ``b4``
+            *ext*: {``ascii``} | ``lb8`` | ``lb4`` | ``b8`` | ``b4`` | ``lr4``
                 File type in the form of a file extension code
         :Attributes:
             *x.byteorder*: ``"little"`` | ``"big"`` | {``None``}
                 Endianness of binary file
-            *x.filetype*: ``"binary"`` | {``"ascii"``}
+            *x.filetype*: ``"record"`` | ``"stream"`` | {``"ascii"``}
                 Basic file type
             *x.p3dtype*: ``"multiple"`` | {``"single"``}
                 Plot3D zone type
@@ -278,44 +330,84 @@ class X(object):
         # Open the file
         f = open(fname, 'rb')
         # Check byte order
-        if self.byteorder == 'little':
-            # First part of extension
-            ext = 'lb'
+        if (self.byteorder == 'little') and (self.filetype == "record"):
+            # Little-endian with records
+            ext = 'lr'
             # Check for number-of-grids-marker
             if self.p3dtype == 'multiple':
                 # Read number of grids record
-                ng = io.read_record_lb4_i(f)
+                ng = io.read_record_lr4_i(f)
             # Read first record
-            dims = io.read_record_lb4_i(f)
+            dims = io.read_record_lr4_i(f)
             # Read the record marker
             r, = np.fromfile(f, count=1, dtype='<i4')
-        else:
-            # First part of extension
-            ext = 'b'
+        elif (self.byteorder == 'big') and (self.filetype == "record"):
+            # Big-endian records
+            ext = 'r'
             # Check for number-of-grids-marker
             if self.p3dtype == 'multiple':
                 # Read number of grids record
-                ng = io.read_record_b4_i(f)
+                ng = io.read_record_r4_i(f)
             # Read first record
-            dims = io.read_record_b4_i(f)
-            # Ead record marker for first grid
+            dims = io.read_record_r4_i(f)
+            # Read record marker for first grid
             r, = np.fromfile(f, count=1, dtype='>i4')
+        elif (self.byteorder == "little"):
+            # Little-endian stream
+            ext = 'lb'
+            # Check for number-of-grids type
+            if self.p3dtype == "multiple":
+                # Read the number of grids
+                ng = io.fromfile_lb4_i(f, 1)
+                # Read the dimensions
+                dims = io.fromfile_lb4_i(f, ng*3).reshape((ng,3))
+            else:
+                # Read the dimensions
+                dims = io.fromfile_lb4_i(f, 3).reshape((1,3))
+            # Total number of points
+            npt = np.sum(np.prod(dims, axis=1))
+            # Number of bytes in file if single-precision
+            nb4 = f.tell() + npt*12
+        else:
+            # Big-endian stream
+            ext = 'b'
+            # Check for number-of-grids type
+            if self.p3dtype == "multiple":
+                # Read the number of grids
+                ng = io.fromfile_b4_i(f, 1)
+                # Read the dimensions
+                dims = io.fromfile_b4_i(f, ng*3).reshape((ng,3))
+            else:
+                # Read the dimensions
+                dims = io.fromfile_b4_i(f, 3).reshape((1,3))
+        # Try to determine single/double precision
+        if (self.filetype == "record"):
+            # Number of points in the first grid
+            # (Assume at least one grid)
+            npt = dims[0] * dims[1] * dims[2]
+            # Use the number of bytes in the record marker to check
+            if r/24 == npt:
+                # Double-precision
+                self.ext = ext + '8'
+            elif r/12 == npt:
+                # Single-precision
+                self.ext = ext + '4'
+        else:
+            # Total number of points
+            npt = np.sum(np.prod(dims, axis=1))
+            # Number of bytes in file if single-precision
+            nb4 = f.tell() + npt*12
+            # Go to the end of the file
+            f.seek(0, 2)
+            # Check current position
+            if nb4 == f.tell():
+                # Single precision
+                self.ext = ext + '4'
+            else:
+                # Double
+                self.ext = ext + '8'
         # Close the file
         f.close()
-        # Number of points in the first grid
-        # (Assume at least one grid)
-        npt = dims[0] * dims[1] * dims[2]
-        # Use the number of bytes in the record marker to check single/double
-        if r/24 == npt:
-            # Double-precision
-            self.ext = ext + '8'
-        elif r/12 == npt:
-            # Single-precision
-            self.ext = ext + '4'
-        else:
-            # Unusual number of bits per float
-            nb = r / npt / 3 * 8
-            raise ValueError("Found %i bits per float, must be 32 or 64" % nb)
         # Output
         return self.ext
     
@@ -336,63 +428,87 @@ class X(object):
         :Attributes:
             *x.byteorder*: ``"little"`` | ``"big"`` | {``None``}
                 Endianness of binary file
-            *x.filetype*: ``"binary"`` | {``"ascii"``}
+            *x.filetype*: ``"record"`` | ``"stream"`` | {``"ascii"``}
                 Basic file type
-            *x.p3dtype*: ``"multiple"`` | {``"single"``}
+            *x.p3dtype*: {``"multiple"``} | ``"single"``
                 Plot3D zone type
         :Versions:
             * 2016-10-14 ``@ddalle``: First version
         """
         # Open file
         f = open(fname, 'rb');
-        # Read first record marker as little-endian
-        r, = np.fromfile(f, count=1, dtype='<i4')
-        # Check for success (or coherence)
-        if r == 4:
-            # Success; multiple zone
-            self.byteorder = 'little'
-            self.filetype = 'binary'
-            self.p3dtype = 'multiple'
-            f.close()
-            return 
-        # Try to read of single zone
-        f.seek(r, 1)
-        # Try to read end-of-record
-        R = np.fromfile(f, count=1, dtype='<i4')
-        # Check it
-        if len(R) == 1 and R[0] == r:
-            # Little-endian single-zone
-            self.byteorder = 'little'
-            self.filetye = 'binary'
-            self.p3dtype = 'single'
+        # Try to interpret the first record
+        qr4  = io.check_record_r4(f)
+        qlr4 = io.check_record_lr4(f)
+        # Read the first four bytes using big/little
+        r4,  = np.fromfile(f, count=1, dtype=">i4"); f.seek(0)
+        lr4, = np.fromfile(f, count=1, dtype="<i4"); f.seek(0)
+        # Process apparent little-endian record
+        if qlr4:
+            # Actually read the record
+            R = io.read_record_lr4_i(f)
+            # Try the next record
+            if io.check_record_lr4(f):
+                # Check the length of the first record
+                if (R.size == 1):
+                    # Valid multiple grid file
+                    self.byteorder = 'little'
+                    self.filetype  = 'record'
+                    self.p3dtype   = 'multiple'
+                else:
+                    # Valid single-grid file
+                    self.byteorder = 'little'
+                    self.filetype  = 'record'
+                    self.p3dtype   = 'single'
+            else:
+                # Odd coincidence of the first record
+                self.byteorder = 'little'
+                self.filetype  = 'stream'
+                self.p3dtype   = 'multiple'
+            # Close the file
             f.close()
             return
-        # Return to the original location
-        f.seek(0)
-        # Read first record marker as big-endian
-        r, = np.fromfile(f, count=1, dtype='>i4')
-        # Check for success
-        if r == 4:
-            # Success; multiple zone
-            self.byteorder = 'big'
-            self.filetype = 'binary'
-            self.p3dtype = 'multiple'
+        elif qr4:
+            # Actually read the record
+            R = io.read_record_r4_i(f)
+            # Try the next record
+            if io.check_record_r4(f):
+                # Check the length of the first record
+                if (R.size == 1):
+                    # Valid multiple grid file
+                    self.byteorder = 'big'
+                    self.filetype  = 'record'
+                    self.p3dtype   = 'multiple'
+                else:
+                    # Valid single-grid file
+                    self.byteorder = 'big'
+                    self.filetype  = 'record'
+                    self.p3dtype   = 'single'
+            else:
+                # Odd coincidence of the first record
+                self.byteorder = 'big'
+                self.filetype  = 'stream'
+                self.p3dtype   = 'multiple'
+            # Close the file
             f.close()
-            return 
-        # Try to read of single zone
-        f.seek(r, 1)
-        # Try to read end-of-record
-        R = np.fromfile(f, count=1, dtype='>i4')
-        # Check it
-        if len(R) == 1 and R[0] == r:
-            # Little-endian single-zone
+            return
+        elif (r4 > 0) and (r4 < 1e6):
+            # Appears to be a big-endian stream file
             self.byteorder = 'big'
-            self.filetye = 'binary'
-            self.p3dtype = 'single'
+            self.filetype  = 'stream'
+            self.p3dtype   = 'multiple'
+            # Close the file
+            f.close()
+            return
+        elif (lr4 > 0) and (lr4 < 1e6):
+            # Appears to be a little-endian stream file
+            self.byteorder = 'little'
+            self.filetype  = 'stream'
+            self.p3dtype   = 'multiple'
+            # Close the file
             f.close()
             return
         # Apparently it's ASCII
-        f.close()
         f = open(fname, 'r')
         # Read first line
         line = f.readline()
@@ -409,7 +525,7 @@ class X(object):
     
     # Read big-endian double-precision
     def Read_b8(self, fname):
-        """Read a Plot3D grid as a big-endian double-precision file
+        """Read a Plot3D grid as a big-endian double-precision file (stream)
         
         :Call:
             >>> x.Read_b8(fname)
@@ -423,17 +539,10 @@ class X(object):
         """
         # Open the file
         f = open(fname, 'rb')
-        # Read the first record
-        R = io.read_record_b4_i(f)
-        # Check for single zone or multiple zone
-        if len(R) == 1:
-            # Number of zones
-            self.NG = R[0]
-            # Read dimensions
-            R = io.read_record_b4_i(f)
-        else:
-            # Single zone
-            self.NG = 1
+        # Read the first line
+        self.NG, = io.fromfile_b4_i(f, 1)
+        # Read the dimensions
+        R = io.fromfile_b4_i(f, self.NG*3)
         # Resize dimensions
         self.dims = np.resize(R, (self.NG, 3))
         self.NJ = self.dims[:,0]
@@ -441,15 +550,13 @@ class X(object):
         self.NL = self.dims[:,2]
         # Point counts
         npt = np.prod(self.dims, axis=1)
-        mpt = np.append([0], np.cumsum(npt))
+        mpt = np.sum(npt)
         # Initialize coordinates
-        self.X = np.zeros((3,mpt[-1]))
-        # Loop through the grids
-        for i in range(self.NG):
-            # Read record
-            R = io.read_record_b8_f(f)
-            # Save coordinates
-            self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,npt[i]))
+        self.X = np.zeros((3,mpt))
+        # Read coordinates
+        R = io.fromfile_b8_f(f, mpt*3)
+        # Save coordinates
+        self.X = R.reshape((mpt,3))
         # Close the file
         f.close()
     
@@ -469,17 +576,10 @@ class X(object):
         """
         # Open the file
         f = open(fname, 'rb')
-        # Read the first record
-        R = io.read_record_b4_i(f)
-        # Check for single zone or multiple zone
-        if len(R) == 1:
-            # Number of zones
-            self.NG = R[0]
-            # Read dimensions
-            R = io.read_record_b4_i(f)
-        else:
-            # Single zone
-            self.NG = 1
+        # Read the first line
+        self.NG, = io.fromfile_b4_i(f, 1)
+        # Read the dimensions
+        R = io.fromfile_b4_i(f, self.NG*3)
         # Resize dimensions
         self.dims = np.resize(R, (self.NG, 3))
         self.NJ = self.dims[:,0]
@@ -487,15 +587,13 @@ class X(object):
         self.NL = self.dims[:,2]
         # Point counts
         npt = np.prod(self.dims, axis=1)
-        mpt = np.append([0], np.cumsum(npt))
+        mpt = np.sum(npt)
         # Initialize coordinates
-        self.X = np.zeros((3,mpt[-1]))
-        # Loop through the grids
-        for i in range(self.NG):
-            # Read record
-            R = io.read_record_b4_f(f)
-            # Save coordinates
-            self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,npt[i]))
+        self.X = np.zeros((3,mpt))
+        # Read coordinates
+        R = io.fromfile_b4_f(f, mpt*3)
+        # Save coordinates
+        self.X = R.reshape((mpt,3))
         # Close the file
         f.close()
     
@@ -515,17 +613,10 @@ class X(object):
         """
         # Open the file
         f = open(fname, 'rb')
-        # Read the first record
-        R = io.read_record_lb4_i(f)
-        # Check for single zone or multiple zone
-        if len(R) == 1:
-            # Number of zones
-            self.NG = R[0]
-            # Read dimensions
-            R = io.read_record_lb4_i(f)
-        else:
-            # Single zone
-            self.NG = 1
+        # Read the first line
+        self.NG, = io.fromfile_lb4_i(f, 1)
+        # Read the dimensions
+        R = io.fromfile_lb4_i(f, self.NG*3)
         # Resize dimensions
         self.dims = np.resize(R, (self.NG, 3))
         self.NJ = self.dims[:,0]
@@ -533,15 +624,13 @@ class X(object):
         self.NL = self.dims[:,2]
         # Point counts
         npt = np.prod(self.dims, axis=1)
-        mpt = np.append([0], np.cumsum(npt))
+        mpt = np.sum(npt)
         # Initialize coordinates
-        self.X = np.zeros((3,mpt[-1]))
-        # Loop through the grids
-        for i in range(self.NG):
-            # Read record
-            R = io.read_record_lb8_f(f)
-            # Save coordinates
-            self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,npt[i]))
+        self.X = np.zeros((3,mpt))
+        # Read coordinates
+        R = io.fromfile_lb8_f(f, mpt*3)
+        # Save coordinates
+        self.X = R.reshape((mpt,3))
         # Close the file
         f.close()
     
@@ -561,14 +650,51 @@ class X(object):
         """
         # Open the file
         f = open(fname, 'rb')
+        # Read the first line
+        self.NG, = io.fromfile_lb4_i(f, 1)
+        # Read the dimensions
+        R = io.fromfile_lb4_i(f, self.NG*3)
+        # Resize dimensions
+        self.dims = np.resize(R, (self.NG, 3))
+        self.NJ = self.dims[:,0]
+        self.NK = self.dims[:,1]
+        self.NL = self.dims[:,2]
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.sum(npt)
+        # Initialize coordinates
+        self.X = np.zeros((3,mpt))
+        # Read coordinates
+        R = io.fromfile_lb4_f(f, mpt*3)
+        # Save coordinates
+        self.X = R.reshape((mpt,3))
+        # Close the file
+        f.close()
+    
+    # Read big-endian double-precision
+    def Read_r8(self, fname):
+        """Read a Plot3D grid as a big-endian double-precision file
+        
+        :Call:
+            >>> x.Read_r8(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+        :Versions:
+            * 2016-10-15 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'rb')
         # Read the first record
-        R = io.read_record_lb4_i(f)
+        R = io.read_record_r4_i(f)
         # Check for single zone or multiple zone
         if len(R) == 1:
             # Number of zones
             self.NG = R[0]
             # Read dimensions
-            R = io.read_record_lb4_i(f)
+            R = io.read_record_r4_i(f)
         else:
             # Single zone
             self.NG = 1
@@ -585,7 +711,145 @@ class X(object):
         # Loop through the grids
         for i in range(self.NG):
             # Read record
-            R = io.read_record_lb4_f(f)
+            R = io.read_record_r8_f(f)
+            # Save coordinates
+            self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,npt[i]))
+        # Close the file
+        f.close()
+    
+    # Read big-endian single-precision
+    def Read_r4(self, fname):
+        """Read a Plot3D grid as a big-endian single-precision file
+        
+        :Call:
+            >>> x.Read_r4(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+        :Versions:
+            * 2016-10-15 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'rb')
+        # Read the first record
+        R = io.read_record_r4_i(f)
+        # Check for single zone or multiple zone
+        if len(R) == 1:
+            # Number of zones
+            self.NG = R[0]
+            # Read dimensions
+            R = io.read_record_r4_i(f)
+        else:
+            # Single zone
+            self.NG = 1
+        # Resize dimensions
+        self.dims = np.resize(R, (self.NG, 3))
+        self.NJ = self.dims[:,0]
+        self.NK = self.dims[:,1]
+        self.NL = self.dims[:,2]
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
+        # Initialize coordinates
+        self.X = np.zeros((3,mpt[-1]))
+        # Loop through the grids
+        for i in range(self.NG):
+            # Read record
+            R = io.read_record_r4_f(f)
+            # Save coordinates
+            self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,npt[i]))
+        # Close the file
+        f.close()
+    
+    # Read little-endian double-precision
+    def Read_lr8(self, fname):
+        """Read a Plot3D grid as a little-endian double-precision file
+        
+        :Call:
+            >>> x.Read_lr8(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+        :Versions:
+            * 2016-10-15 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'rb')
+        # Read the first record
+        R = io.read_record_lr4_i(f)
+        # Check for single zone or multiple zone
+        if len(R) == 1:
+            # Number of zones
+            self.NG = R[0]
+            # Read dimensions
+            R = io.read_record_lr4_i(f)
+        else:
+            # Single zone
+            self.NG = 1
+        # Resize dimensions
+        self.dims = np.resize(R, (self.NG, 3))
+        self.NJ = self.dims[:,0]
+        self.NK = self.dims[:,1]
+        self.NL = self.dims[:,2]
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
+        # Initialize coordinates
+        self.X = np.zeros((3,mpt[-1]))
+        # Loop through the grids
+        for i in range(self.NG):
+            # Read record
+            R = io.read_record_lr8_f(f)
+            # Save coordinates
+            self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,npt[i]))
+        # Close the file
+        f.close()
+    
+    # Read little-endian single-precision
+    def Read_lr4(self, fname):
+        """Read a Plot3D grid as a little-endian single-precision file
+        
+        :Call:
+            >>> x.Read_lr4(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+        :Versions:
+            * 2016-10-15 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'rb')
+        # Read the first record
+        R = io.read_record_lr4_i(f)
+        # Check for single zone or multiple zone
+        if len(R) == 1:
+            # Number of zones
+            self.NG = R[0]
+            # Read dimensions
+            R = io.read_record_lr4_i(f)
+        else:
+            # Single zone
+            self.NG = 1
+        # Resize dimensions
+        self.dims = np.resize(R, (self.NG, 3))
+        self.NJ = self.dims[:,0]
+        self.NK = self.dims[:,1]
+        self.NL = self.dims[:,2]
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
+        # Initialize coordinates
+        self.X = np.zeros((3,mpt[-1]))
+        # Loop through the grids
+        for i in range(self.NG):
+            # Read record
+            R = io.read_record_lr4_f(f)
             # Save coordinates
             self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,npt[i]))
         # Close the file
@@ -718,9 +982,9 @@ class X(object):
         # Check for single grid
         if not(single and self.NG == 1):
             # Write the number of zones
-            io.write_record_lb4_i(f, self.NG)
+            io.write_record_lr4_i(f, self.NG)
         # Write the dimensions
-        io.write_record_lb4_i(f, self.dims)
+        io.write_record_lr4_i(f, self.dims)
         # Point counts
         npt = np.prod(self.dims, axis=1)
         mpt = np.append([0], np.cumsum(npt))
@@ -730,7 +994,7 @@ class X(object):
             ia = mpt[i]
             ib = mpt[i+1]
             # Put all three coordinates 
-            io.write_record_lb8_f(f, self.X[:,ia:ib])
+            io.write_record_lr8_f(f, self.X[:,ia:ib])
         # Close the file
         f.close()
             
@@ -755,9 +1019,9 @@ class X(object):
         # Check for single grid
         if not(single and self.NG == 1):
             # Write the number of zones
-            io.write_record_lb4_i(f, self.NG)
+            io.write_record_lr4_i(f, self.NG)
         # Write the dimensions
-        io.write_record_lb4_i(f, self.dims)
+        io.write_record_lr4_i(f, self.dims)
         # Point counts
         npt = np.prod(self.dims, axis=1)
         mpt = np.append([0], np.cumsum(npt))
@@ -767,7 +1031,7 @@ class X(object):
             ia = mpt[i]
             ib = mpt[i+1]
             # Put all three coordinates 
-            io.write_record_lb8_f(f, self.X[:,ia:ib])
+            io.write_record_lr8_f(f, self.X[:,ia:ib])
         # Close the file
         f.close()
             
@@ -792,9 +1056,9 @@ class X(object):
         # Check for single grid
         if not(single and self.NG == 1):
             # Write the number of zones
-            io.write_record_b4_i(f, self.NG)
+            io.write_record_r4_i(f, self.NG)
         # Write the dimensions
-        io.write_record_b4_i(f, self.dims)
+        io.write_record_r4_i(f, self.dims)
         # Point counts
         npt = np.prod(self.dims, axis=1)
         mpt = np.append([0], np.cumsum(npt))
@@ -804,7 +1068,7 @@ class X(object):
             ia = mpt[i]
             ib = mpt[i+1]
             # Put all three coordinates 
-            io.write_record_b8_f(f, self.X[:,ia:ib])
+            io.write_record_r8_f(f, self.X[:,ia:ib])
         # Close the file
         f.close()
             
@@ -829,9 +1093,9 @@ class X(object):
         # Check for single grid
         if not(single and self.NG == 1):
             # Write the number of zones
-            io.write_record_b4_i(f, self.NG)
+            io.write_record_r4_i(f, self.NG)
         # Write the dimensions
-        io.write_record_b4_i(f, self.dims)
+        io.write_record_r4_i(f, self.dims)
         # Point counts
         npt = np.prod(self.dims, axis=1)
         mpt = np.append([0], np.cumsum(npt))
@@ -841,7 +1105,7 @@ class X(object):
             ia = mpt[i]
             ib = mpt[i+1]
             # Put all three coordinates 
-            io.write_record_b8_f(f, self.X[:,ia:ib])
+            io.write_record_r8_f(f, self.X[:,ia:ib])
         # Close the file
         f.close()
   # >
@@ -1148,8 +1412,732 @@ class X(object):
     MapOvfi.__doc__ = MapOvfi.__doc__.replace('_cnftol_', str(cnftoldef))
     MapOvfi.__doc__ = MapOvfi.__doc__.replace('_rnftol_', str(rnftoldef))
   # >
-  
+# class X
+
+# Plot3D Solution file
+class Q(X):
     
+    def __init__(self, fname=None):
+        """Initialization method
+        
+        :Call:
+            >>> x = X(fname=None)
+        :Inputs:
+            *fname*: :class:`str`
+                Name of Plot3D grid file to read
+        :Versions:
+            * 2016-10-11 ``@ddalle``: First version
+        """
+        # Check for a file to read
+        if fname is not None:
+            self.Read(fname)
+            
+  # =======
+  # Readers
+  # =======
+  # <
+    # Determine file type blindly
+    def GetFileType(self, fname):
+        """Get full file type of a Plot3D grid file
+        
+        :Call:
+            >>> ext = x.GetBasicFileType(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+        :Outputs:
+            *ext*: {``ascii``} | ``lb8`` | ``lb4`` | ``b8`` | ``b4`` | ``lr4``
+                File type in the form of a file extension code
+        :Attributes:
+            *x.byteorder*: ``"little"`` | ``"big"`` | {``None``}
+                Endianness of binary file
+            *x.filetype*: ``"record"`` | ``"stream"`` | {``"ascii"``}
+                Basic file type
+            *x.p3dtype*: ``"multiple"`` | {``"single"``}
+                Plot3D zone type
+        :Versions:
+            * 2016-10-14 ``@ddalle``: First version
+        """
+        # Get basic file type
+        self.GetBasicFileType(fname)
+        # Check file type
+        if self.filetype == 'ascii':
+            # This requires no action
+            self.ext = 'ascii'
+            return
+        # Open the file
+        f = open(fname, 'rb')
+        # Check byte order
+        if (self.byteorder == 'little') and (self.filetype == "record"):
+            # Little-endian with records
+            ext = 'lr'
+            # Check for number-of-grids-marker
+            if self.p3dtype == 'multiple':
+                # Read number of grids record
+                ng = io.read_record_lr4_i(f)
+            # Read first record
+            dims = io.read_record_lr4_i(f)
+            # Read the record marker
+            r, = np.fromfile(f, count=1, dtype='<i4')
+        elif (self.byteorder == 'big') and (self.filetype == "record"):
+            # Big-endian records
+            ext = 'r'
+            # Check for number-of-grids-marker
+            if self.p3dtype == 'multiple':
+                # Read number of grids record
+                ng = io.read_record_r4_i(f)
+            # Read first record
+            dims = io.read_record_r4_i(f)
+            # Read record marker for first grid
+            r, = np.fromfile(f, count=1, dtype='>i4')
+        elif (self.byteorder == "little"):
+            # Little-endian stream
+            ext = 'lb'
+            # Check for number-of-grids type
+            if self.p3dtype == "multiple":
+                # Read the number of grids
+                ng = io.fromfile_lb4_i(f, 1)
+                # Read the dimensions
+                dims = io.fromfile_lb4_i(f, ng*4).reshape((ng,4))
+            else:
+                # Read the dimensions
+                dims = io.fromfile_lb4_i(f, 4).reshape((1,4))
+            # Total number of points
+            npt = np.sum(np.prod(dims, axis=1))
+            # Number of bytes in file if single-precision
+            nb4 = f.tell() + npt*12
+        else:
+            # Big-endian stream
+            ext = 'b'
+            # Check for number-of-grids type
+            if self.p3dtype == "multiple":
+                # Read the number of grids
+                ng = io.fromfile_b4_i(f, 1)
+                # Read the dimensions
+                dims = io.fromfile_b4_i(f, ng*4).reshape((ng,4))
+            else:
+                # Read the dimensions
+                dims = io.fromfile_b4_i(f, 4).reshape((1,4))
+        # Try to determine single/double precision
+        if (self.filetype == "record"):
+            # Number of points in the first grid
+            # (Assume at least one grid)
+            npt = dims[0] * dims[1] * dims[2]
+            nq  = dims[3]
+            # Use the number of bytes in the record marker to check
+            if r/8 == npt*nq:
+                # Double-precision
+                self.ext = ext + '8'
+            elif r/4 == npt*nq:
+                # Single-precision
+                self.ext = ext + '4'
+        else:
+            # Total number of points
+            npt = np.sum(np.prod(dims, axis=1))
+            # Number of bytes in file if single-precision
+            nb4 = f.tell() + npt*4
+            # Go to the end of the file
+            f.seek(0, 2)
+            # Check current position
+            if nb4 == f.tell():
+                # Single precision
+                self.ext = ext + '4'
+            else:
+                # Double
+                self.ext = ext + '8'
+        # Close the file
+        f.close()
+        # Output
+        return self.ext
+    
+    # Read big-endian double-precision
+    def Read_b8(self, fname):
+        """Read a Plot3D grid as a big-endian double-precision file (stream)
+        
+        :Call:
+            >>> x.Read_b8(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+        :Versions:
+            * 2016-10-15 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'rb')
+        # Read the first line
+        self.NG, = io.fromfile_b4_i(f, 1)
+        # Read the dimensions
+        R = io.fromfile_b4_i(f, self.NG*4)
+        # Resize dimensions
+        self.dims = np.resize(R, (self.NG, 4))
+        self.NJ = self.dims[:,0]
+        self.NK = self.dims[:,1]
+        self.NL = self.dims[:,2]
+        self.NQ = self.dims[:,3]
+        # Initialize states
+        self.Q = []
+        # Loop through grids
+        for ig in range(self.NG):
+            # Dimensions for this grid
+            nj, nk, nl, nq = self.dims[ig]
+            # Read states
+            R = io.fromfile_b8_f(f, nj*nk*nl*nq)
+            # Save states
+            self.Q.append(R.reshape((nj,nk,nl,nq)))
+        # Close the file
+        f.close()
+    
+    # Read big-endian single-precision
+    def Read_b4(self, fname):
+        """Read a Plot3D grid as a big-endian single-precision file
+        
+        :Call:
+            >>> x.Read_b4(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+        :Versions:
+            * 2016-10-15 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'rb')
+        # Read the first line
+        self.NG, = io.fromfile_b4_i(f, 1)
+        # Read the dimensions
+        R = io.fromfile_b4_i(f, self.NG*4)
+        # Resize dimensions
+        self.dims = np.resize(R, (self.NG, 4))
+        self.NJ = self.dims[:,0]
+        self.NK = self.dims[:,1]
+        self.NL = self.dims[:,2]
+        self.NQ = self.dims[:,3]
+        # Initialize states
+        self.Q = []
+        # Loop through grids
+        for ig in range(self.NG):
+            # Dimensions for this grid
+            nj, nk, nl, nq = self.dims[ig]
+            # Read states
+            R = io.fromfile_b4_f(f, nj*nk*nl*nq)
+            # Save states
+            self.Q.append(R.reshape((nj,nk,nl,nq)))
+        # Close the file
+        f.close()
+    
+    # Read little-endian double-precision
+    def Read_lb8(self, fname):
+        """Read a Plot3D grid as a little-endian double-precision file
+        
+        :Call:
+            >>> x.Read_lb8(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+        :Versions:
+            * 2016-10-15 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'rb')
+        # Read the first line
+        self.NG, = io.fromfile_lb4_i(f, 1)
+        # Read the dimensions
+        R = io.fromfile_lb4_i(f, self.NG*4)
+        # Resize dimensions
+        self.dims = np.resize(R, (self.NG, 4))
+        self.NJ = self.dims[:,0]
+        self.NK = self.dims[:,1]
+        self.NL = self.dims[:,2]
+        self.NQ = self.dims[:,3]
+        # Initialize states
+        self.Q = []
+        # Loop through grids
+        for ig in range(self.NG):
+            # Dimensions for this grid
+            nj, nk, nl, nq = self.dims[ig]
+            # Read states
+            R = io.fromfile_lb8_f(f, nj*nk*nl*nq)
+            # Save states
+            self.Q.append(R.reshape((nj,nk,nl,nq)))
+        # Close the file
+        f.close()
+    
+    # Read little-endian single-precision
+    def Read_lb4(self, fname):
+        """Read a Plot3D grid as a little-endian single-precision file
+        
+        :Call:
+            >>> x.Read_lb4(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+        :Versions:
+            * 2016-10-15 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'rb')
+        # Read the first line
+        self.NG, = io.fromfile_lb4_i(f, 1)
+        # Read the dimensions
+        R = io.fromfile_lb4_i(f, self.NG*4)
+        # Resize dimensions
+        self.dims = np.resize(R, (self.NG, 4))
+        self.NJ = self.dims[:,0]
+        self.NK = self.dims[:,1]
+        self.NL = self.dims[:,2]
+        self.NQ = self.dims[:,3]
+        # Initialize states
+        self.Q = []
+        # Loop through grids
+        for ig in range(self.NG):
+            # Dimensions for this grid
+            nj, nk, nl, nq = self.dims[ig]
+            # Read states
+            R = io.fromfile_lb4_f(f, nj*nk*nl*nq)
+            # Save states
+            self.Q.append(R.reshape((nj,nk,nl,nq)))
+        # Close the file
+        f.close()
+    
+    # Read big-endian double-precision
+    def Read_r8(self, fname):
+        """Read a Plot3D grid as a big-endian double-precision file
+        
+        :Call:
+            >>> x.Read_r8(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+        :Versions:
+            * 2016-10-15 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'rb')
+        # Read the first record
+        R = io.read_record_r4_i(f)
+        # Check for single zone or multiple zone
+        if len(R) == 1:
+            # Number of zones
+            self.NG = R[0]
+            # Read dimensions
+            R = io.read_record_r4_i(f)
+        else:
+            # Single zone
+            self.NG = 1
+        # Resize dimensions
+        self.dims = np.resize(R, (self.NG, 3))
+        self.NJ = self.dims[:,0]
+        self.NK = self.dims[:,1]
+        self.NL = self.dims[:,2]
+        self.NQ = self.dims[:,3]
+        # Initialize states
+        self.Q = []
+        # Loop through the grids
+        for i in range(self.NG):
+            # Read record
+            R = io.read_record_r8_f(f)
+            # Save states
+            self.Q.append(R.reshape((nj,nk,nl,nq)))
+        # Close the file
+        f.close()
+    
+    # Read big-endian single-precision
+    def Read_r4(self, fname):
+        """Read a Plot3D grid as a big-endian single-precision file
+        
+        :Call:
+            >>> x.Read_r4(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+        :Versions:
+            * 2016-10-15 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'rb')
+        # Read the first record
+        R = io.read_record_r4_i(f)
+        # Check for single zone or multiple zone
+        if len(R) == 1:
+            # Number of zones
+            self.NG = R[0]
+            # Read dimensions
+            R = io.read_record_r4_i(f)
+        else:
+            # Single zone
+            self.NG = 1
+        # Resize dimensions
+        self.dims = np.resize(R, (self.NG, 3))
+        self.NJ = self.dims[:,0]
+        self.NK = self.dims[:,1]
+        self.NL = self.dims[:,2]
+        self.NQ = self.dims[:,3]
+        # Initialize states
+        self.Q = []
+        # Loop through the grids
+        for i in range(self.NG):
+            # Read record
+            R = io.read_record_r4_f(f)
+            # Save states
+            self.Q.append(R.reshape((nj,nk,nl,nq)))
+        # Close the file
+        f.close()
+    
+    # Read little-endian double-precision
+    def Read_lr8(self, fname):
+        """Read a Plot3D grid as a little-endian double-precision file
+        
+        :Call:
+            >>> x.Read_lr8(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+        :Versions:
+            * 2016-10-15 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'rb')
+        # Read the first record
+        R = io.read_record_lr4_i(f)
+        # Check for single zone or multiple zone
+        if len(R) == 1:
+            # Number of zones
+            self.NG = R[0]
+            # Read dimensions
+            R = io.read_record_lr4_i(f)
+        else:
+            # Single zone
+            self.NG = 1
+        # Resize dimensions
+        self.dims = np.resize(R, (self.NG, 3))
+        self.NJ = self.dims[:,0]
+        self.NK = self.dims[:,1]
+        self.NL = self.dims[:,2]
+        self.NQ = self.dims[:,3]
+        # Initialize states
+        self.Q = []
+        # Loop through the grids
+        for i in range(self.NG):
+            # Read record
+            R = io.read_record_lr8_f(f)
+            # Save states
+            self.Q.append(R.reshape((nj,nk,nl,nq)))
+        # Close the file
+        f.close()
+    
+    # Read little-endian single-precision
+    def Read_lr4(self, fname):
+        """Read a Plot3D grid as a little-endian single-precision file
+        
+        :Call:
+            >>> x.Read_lr4(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+        :Versions:
+            * 2016-10-15 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'rb')
+        # Read the first record
+        R = io.read_record_lr4_i(f)
+        # Check for single zone or multiple zone
+        if len(R) == 1:
+            # Number of zones
+            self.NG = R[0]
+            # Read dimensions
+            R = io.read_record_lr4_i(f)
+        else:
+            # Single zone
+            self.NG = 1
+        # Resize dimensions
+        self.dims = np.resize(R, (self.NG, 3))
+        self.NJ = self.dims[:,0]
+        self.NK = self.dims[:,1]
+        self.NL = self.dims[:,2]
+        self.NQ = self.dims[:,3]
+        # Initialize states
+        self.Q = []
+        # Loop through the grids
+        for i in range(self.NG):
+            # Read record
+            R = io.read_record_lr4_f(f)
+            # Save states
+            self.Q.append(R.reshape((nj,nk,nl,nq)))
+        # Close the file
+        f.close()
+    
+    # Read as an ascii file
+    def Read_ASCII(self, fname):
+        """Read a Plot3D grid as an ASCII file
+        
+        :Call:
+            >>> x.Read_ASCII(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+        :Versions:
+            * 2016-10-15 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'r')
+        # Read the first line
+        v = [int(vi) for vi in f.readline().split()]
+        # Get the number of elements
+        if len(v) == 1:
+            # Number of zones
+            self.NG = int(v)
+            # Read dimensions line
+            v = [int(vi) for vi in f.readline().split()]
+        else:
+            # One zone
+            self.NG = 1
+        # Initialize grid dimensions
+        self.dims = np.ones((self.NG,3), dtype=int)
+        # Set first grid
+        self.dims[0] = v
+        # Loop through remaining grids (if any)
+        for i in range(1, self.NG):
+            self.dims[i] = np.fromfile(f, sep=" ", count=3, dtype='int')
+        # Extract useful parameters
+        self.NJ = self.dims[:,0]
+        self.NK = self.dims[:,1]
+        self.NL = self.dims[:,2]
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
+        # Initialize coordinates
+        self.X = np.zeros((3,mpt[-1]))
+        # Read the grids
+        for i in range(self.NG):
+            # Global point indices
+            ia = mpt[i]
+            ib = mpt[i+1]
+            ni = npt[i]
+            # Read x,y,z coordinates
+            self.X[0,ia:ib] = np.fromfile(f, sep=" ", count=ni, dtype='float')
+            self.X[1,ia:ib] = np.fromfile(f, sep=" ", count=ni, dtype='float')
+            self.X[2,ia:ib] = np.fromfile(f, sep=" ", count=ni, dtype='float')
+        # Close the file
+        f.close()
+  # >
+  
+  # =======
+  # Writers
+  # =======
+  # <
+    # Write as an ASCII file
+    def Write_ASCII(self, fname, single=False):
+        """Write a multiple-zone ASCII Plot3D file
+        
+        :Call:
+            >>> x.Write_ASCII(fname, single=False)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+            *single*: ``True`` | {``False``}
+                If ``True``, write a single-zone file
+        :Versions:
+            * 2016-10-16 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'w')
+        # Check for single grid
+        if not (single and self.NG == 1):
+            # Write the number of zones
+            f.write('%s\n' % self.NG)
+        # Write the dimensions of each grid
+        for i in range(self.NG):
+            # Write NJ, NK, NL
+            self.dims[i].tofile(f, sep=' ')
+            f.write('\n')
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
+        # Loop through the grids to write the nodes
+        for i in range(self.NG):
+            # Point indices
+            ia = mpt[i]
+            ib = mpt[i+1]
+            # Write the coordinates of grid *i*
+            self.X[0,ia:ib].tofile(f, sep=' ')
+            f.write('\n')
+            self.X[1,ia:ib].tofile(f, sep=' ')
+            f.write('\n')
+            self.X[2,ia:ib].tofile(f, sep=' ')
+            f.write('\n')
+        # Close the file.
+        f.close()
+            
+    # Write as a little-endian double-precision file
+    def Write_lb8(self, fname, single=False):
+        """Write a multiple-zone little-endian, double-precision Plot3D file
+        
+        :Call:
+            >>> x.Write_lb8(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+            *single*: ``True`` | {``False``}
+                If ``True``, write a single-zone file
+        :Versions:
+            * 2016-10-16 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'wb')
+        # Check for single grid
+        if not(single and self.NG == 1):
+            # Write the number of zones
+            io.write_record_lr4_i(f, self.NG)
+        # Write the dimensions
+        io.write_record_lr4_i(f, self.dims)
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
+        # Write the coordinates
+        for i in range(self.NG):
+            # Point indices
+            ia = mpt[i]
+            ib = mpt[i+1]
+            # Put all three coordinates 
+            io.write_record_lr8_f(f, self.X[:,ia:ib])
+        # Close the file
+        f.close()
+            
+    # Write as a little-endian single-precision file
+    def Write_lb4(self, fname, single=False):
+        """Write a multiple-zone little-endian, single-precision Plot3D file
+        
+        :Call:
+            >>> x.Write_lb4(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+            *single*: ``True`` | {``False``}
+                If ``True``, write a single-zone file
+        :Versions:
+            * 2016-10-16 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'wb')
+        # Check for single grid
+        if not(single and self.NG == 1):
+            # Write the number of zones
+            io.write_record_lr4_i(f, self.NG)
+        # Write the dimensions
+        io.write_record_lr4_i(f, self.dims)
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
+        # Write the coordinates
+        for i in range(self.NG):
+            # Point indices
+            ia = mpt[i]
+            ib = mpt[i+1]
+            # Put all three coordinates 
+            io.write_record_lr8_f(f, self.X[:,ia:ib])
+        # Close the file
+        f.close()
+            
+    # Write as a big-endian double-precision file
+    def Write_b8(self, fname, single=False):
+        """Write a multiple-zone little-endian, double-precision Plot3D file
+        
+        :Call:
+            >>> x.Write_b8(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+            *single*: ``True`` | {``False``}
+                If ``True``, write a single-zone file
+        :Versions:
+            * 2016-10-16 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'wb')
+        # Check for single grid
+        if not(single and self.NG == 1):
+            # Write the number of zones
+            io.write_record_r4_i(f, self.NG)
+        # Write the dimensions
+        io.write_record_r4_i(f, self.dims)
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
+        # Write the coordinates
+        for i in range(self.NG):
+            # Point indices
+            ia = mpt[i]
+            ib = mpt[i+1]
+            # Put all three coordinates 
+            io.write_record_r8_f(f, self.X[:,ia:ib])
+        # Close the file
+        f.close()
+            
+    # Write as a big-endian single-precision file
+    def Write_b4(self, fname, single=False):
+        """Write a multiple-zone little-endian, single-precision Plot3D file
+        
+        :Call:
+            >>> x.Write_b4(fname)
+        :Inputs:
+            *x*: :class:`cape.plot3d.X`
+                Plot3D grid interface
+            *fname*: :class:`str`
+                Name of Plot3D file
+            *single*: ``True`` | {``False``}
+                If ``True``, write a single-zone file
+        :Versions:
+            * 2016-10-16 ``@ddalle``: First version
+        """
+        # Open the file
+        f = open(fname, 'wb')
+        # Check for single grid
+        if not(single and self.NG == 1):
+            # Write the number of zones
+            io.write_record_r4_i(f, self.NG)
+        # Write the dimensions
+        io.write_record_r4_i(f, self.dims)
+        # Point counts
+        npt = np.prod(self.dims, axis=1)
+        mpt = np.append([0], np.cumsum(npt))
+        # Write the coordinates
+        for i in range(self.NG):
+            # Point indices
+            ia = mpt[i]
+            ib = mpt[i+1]
+            # Put all three coordinates 
+            io.write_record_r8_f(f, self.X[:,ia:ib])
+        # Close the file
+        f.close()
+  # >
 # class X
 
 

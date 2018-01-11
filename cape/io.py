@@ -1061,7 +1061,7 @@ def read_record_lr4_i(f):
         >>> x = read_record_lr4_i(f)
     :Inputs:
         *f*: :class:`file`
-            File handle, open 'wb' or similar
+            File handle, open 'rb' or similar
     :Outputs:
         *x*: :class:`np.ndarray` (:class:`int`)
             Array of integers
@@ -1094,7 +1094,7 @@ def read_record_lr4_f(f):
         >>> x = read_record_lr4_f(f)
     :Inputs:
         *f*: :class:`file`
-            File handle, open 'wb' or similar
+            File handle, open 'rb' or similar
     :Outputs:
         *x*: :class:`np.ndarray` (:class:`float`)
             Array of floats
@@ -1118,6 +1118,49 @@ def read_record_lr4_f(f):
         raise IOError("End-of-record marker does not match start")
     # Output
     return x
+    
+# Check record marks, lr4
+def check_record_lr4(f):
+    """Check for a consistent record by reading record markers only
+    
+    :Call:
+        >>> q = check_record_lr4(f)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'rb' or similar
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether or not *f* has a valid record in the next position
+    :Version:
+        * 2018-01-11 ``@ddalle``: First version
+    """
+    # Save position
+    p = f.tell()
+    # Read start-of-record marker
+    I = np.fromfile(f, count=1, dtype="<i4")
+    # Check for end of file
+    if len(I) == 0 or I[0] <= 0:
+        f.seek(p)
+        return False
+    # Skip to end-of-record
+    f.seek(I[0], 1)
+    # Get new position
+    p1 = f.tell()
+    # Check for successful seek
+    if p1 != p + 4 + I[0]:
+        f.seek(p)
+        return False
+    # Read the end-of-record
+    J = np.fromfile(f, count=1, dtype="<i4")
+    # Return to original position
+    f.seek(p)
+    # Check for errors
+    if len(J)==0 or I[0]!=J[0]:
+        # End of record does not match
+        return False
+    else:
+        # Valid record
+        return True
 # > read_record_lr4
 
 # ====== lr8 record ====================================================
@@ -1254,6 +1297,49 @@ def read_record_lr8_f2(f):
         raise IOError("End-of-record marker does not match start")
     # Output
     return x
+    
+# Check record marks, lr4
+def check_record_lr8(f):
+    """Check for a consistent record by reading record markers only
+    
+    :Call:
+        >>> q = check_record_lr8(f)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'rb' or similar
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether or not *f* has a valid record in the next position
+    :Version:
+        * 2018-01-11 ``@ddalle``: First version
+    """
+    # Save position
+    p = f.tell()
+    # Read start-of-record marker
+    I = np.fromfile(f, count=1, dtype="<i8")
+    # Check for end of file
+    if len(I) == 0 or I[0] <= 0:
+        f.seek(p)
+        return False
+    # Skip to end-of-record
+    f.seek(I[0], 1)
+    # Get new position
+    p1 = f.tell()
+    # Check for successful seek
+    if p1 != p + 8 + I[0]:
+        f.seek(p)
+        return False
+    # Read the end-of-record
+    J = np.fromfile(f, count=1, dtype="<i8")
+    # Return to original position
+    f.seek(p)
+    # Check for errors
+    if len(J)==0 or I[0]!=J[0]:
+        # End of record does not match
+        return False
+    else:
+        # Valid record
+        return True
 # > read_record_lr8
 
 # ====== r4 record ====================================================
@@ -1322,6 +1408,49 @@ def read_record_r4_f(f):
         raise IOError("End-of-record marker does not match start")
     # Output
     return x
+    
+# Check record marks, lr4
+def check_record_r4(f):
+    """Check for a consistent record by reading record markers only
+    
+    :Call:
+        >>> q = check_record_r4(f)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'rb' or similar
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether or not *f* has a valid record in the next position
+    :Version:
+        * 2018-01-11 ``@ddalle``: First version
+    """
+    # Save position
+    p = f.tell()
+    # Read start-of-record marker
+    I = np.fromfile(f, count=1, dtype=">i4")
+    # Check for end of file
+    if len(I) == 0 or I[0] <= 0:
+        f.seek(p)
+        return False
+    # Skip to end-of-record
+    f.seek(I[0], 1)
+    # Get new position
+    p1 = f.tell()
+    # Check for successful seek
+    if p1 != p + 4 + I[0]:
+        f.seek(p)
+        return False
+    # Read the end-of-record
+    J = np.fromfile(f, count=1, dtype=">i4")
+    # Return to original position
+    f.seek(p)
+    # Check for errors
+    if len(J)==0 or I[0]!=J[0]:
+        # End of record does not match
+        return False
+    else:
+        # Valid record
+        return True
 # > read_record_r4
 
 # ====== r8 record ====================================================
@@ -1456,4 +1585,47 @@ def read_record_r8_f2(f):
         raise IOError("End-of-record marker does not match start")
     # Output
     return x
+    
+# Check record marks, r8
+def check_record_r8(f):
+    """Check for a consistent record by reading record markers only
+    
+    :Call:
+        >>> q = check_record_lr8(f)
+    :Inputs:
+        *f*: :class:`file`
+            File handle, open 'rb' or similar
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether or not *f* has a valid record in the next position
+    :Version:
+        * 2018-01-11 ``@ddalle``: First version
+    """
+    # Save position
+    p = f.tell()
+    # Read start-of-record marker
+    I = np.fromfile(f, count=1, dtype=">i8")
+    # Check for end of file
+    if len(I) == 0 or I[0] <= 0:
+        f.seek(p)
+        return False
+    # Skip to end-of-record
+    f.seek(I[0], 1)
+    # Get new position
+    p1 = f.tell()
+    # Check for successful seek
+    if p1 != p + 8 + I[0]:
+        f.seek(p)
+        return False
+    # Read the end-of-record
+    J = np.fromfile(f, count=1, dtype=">i8")
+    # Return to original position
+    f.seek(p)
+    # Check for errors
+    if len(J)==0 or I[0]!=J[0]:
+        # End of record does not match
+        return False
+    else:
+        # Valid record
+        return True
 # > read_record_r8
