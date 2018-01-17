@@ -6910,9 +6910,6 @@ class CaseData(object):
         # Set figure dimensions
         if fh: h['fig'].set_figheight(fh)
         if fw: h['fig'].set_figwidth(fw)
-        # Attempt to apply tight axes.
-        try: plt.tight_layout()
-        except Exception: pass
        # ------
        # Labels
        # ------
@@ -7082,6 +7079,9 @@ class CaseData(object):
        # -----------------
        # Final Formatting
        # -----------------
+        # Attempt to apply tight axes.
+        try: plt.tight_layout()
+        except Exception: pass
         # Output
         return h
     
