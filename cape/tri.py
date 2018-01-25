@@ -3850,7 +3850,7 @@ class TriBase(object):
         # Get the triangle indices.
         k = self.GetTrisFromCompID(i)
         # Make a copy of the triangulation.
-         = self.Copy()
+        tri = self.Copy()
         # Restrict *tri0* to the matching faces.
         tri0.Tris = tri0.Tris[k]
         tri0.CompID = tri0.CompID[k]
