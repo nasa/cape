@@ -60,7 +60,7 @@ except ImportError:
 # Function to get a non comment line
 def _readline(f, comment='#'):
     """Read line that is nonempty and not a comment
-    
+
     :Call:
         >>> line = _readline(f, comment='#')
     :Inputs:
@@ -95,7 +95,7 @@ def _readline(f, comment='#'):
 # Function to read a single triangulation file
 def ReadTriFile(fname, fmt=None):
     """Read a single triangulation file
-    
+
     :Call:
         >>> tri = ReadTriFile(fname)
     :Inputs:
@@ -142,14 +142,14 @@ def ReadTriFile(fname, fmt=None):
 # Triangulation class
 class TriBase(object):
     """Cape base triangulation class
-    
+
     This class provides an interface for a basic triangulation without
     surface data.  It can be created either by reading an ASCII file or
     specifying the data directly.
-    
+
     When no component numbers are specified, the object created will label
     all triangles ``1``.
-    
+
     :Call:
         >>> tri = cape.tri.TriBase(fname=fname, c=None)
         >>> tri = cape.tri.TriBase(uh3d=uh3d, c=None)
@@ -204,8 +204,8 @@ class TriBase(object):
         #  2014-05-23 @ddalle: First version
         #  2014-06-02 @ddalle: Added UH3D reading capability
         #  2015-11-19 @ddalle: Added XML reading and AFLR3 surfs
-        
-        # Save file name         
+
+        # Save file name
         self.fname = fname
         # Check if file is specified.
         if tri is not None:
@@ -223,7 +223,7 @@ class TriBase(object):
         elif fname is not None:
             # Guess type from file extensions
             self.ReadBest(fname)
-            
+
         else:
             # Process inputs.
             # Check counts.
@@ -261,7 +261,7 @@ class TriBase(object):
             self.nQuad = nQuad
             self.Quads = Quad
             self.CompID = CompID
-        
+
         # Check for configuration
         if xml is not None:
             # Read a Config.xml type of file
@@ -281,25 +281,25 @@ class TriBase(object):
             self.ApplyConfig(self.config)
         except AttributeError:
             pass
-        
+
     # Method that shows the representation of a triangulation
     def __repr__(self):
         """Return the string representation of a triangulation.
-        
+
         This looks like ``<cape.tri.Tri(nNode=M, nTri=N)>``
-        
+
         :Versions:
             * 2014-05-27 ``@ddalle``: First version
         """
         return '<cape.tri.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
-        
+
     # String representation is the same
     __str__ = __repr__
-    
+
     # Function to read using the best guess at format
     def ReadBest(self, fname):
         """Read a file using the extension to guess format
-        
+
         :Call:
             >>> tri.ReadBest(fname)
         :Inputs:
@@ -309,7 +309,7 @@ class TriBase(object):
                 Name of file, use the extension to guess format
         :Versions:
             * 2016-10-21 ``@ddalle``: First version
-        """ 
+        """
         # Split based on '.'
         fext = fname.split('.')
         # Get the extension
@@ -335,12 +335,12 @@ class TriBase(object):
         else:
             # Assume Cart3D triangulation file
             self.Read(fname)
-        
-        
+
+
     # Function to copy a triangulation and unlink it.
     def Copy(self):
         """Copy a triangulation and unlink it
-        
+
         :Call:
             >>> tri2 = tri.Copy()
         :Inputs:
@@ -402,7 +402,7 @@ class TriBase(object):
         # Try to copy the state
         try:
             tri.q = self.q.copy()
-            tri.nq = tri.shape[1]
+            tri.nq = tri.q.shape[1]
         except Exception:
             pass
         # Try to copy the state length
@@ -412,14 +412,14 @@ class TriBase(object):
             tri.n = 1
         # Output the new triangulation.
         return tri
-    
+
   # >
-    
+
   # ===========
   # TRI Readers
   # ===========
   # <
-  
+
    # ++++++++++++++++
    # Full TRI Readers
    # ++++++++++++++++
@@ -427,15 +427,15 @@ class TriBase(object):
     # Function to read a .tri file
     def Read(self, fname, n=1):
         """Read a triangulation file (from ``.tri`` or ``.triq`` file)
-        
+
         File type is automatically detected and may be any one of the following
-        
+
             * ASCII
             * Double-precision little-endian Fortran unformatted
             * Single-precision little-endian Fortran unformatted
             * Double-precision big-endian Fortran unformatted
             * Single-precision big-endian Fortran unformatted
-        
+
         :Call:
             >>> tri.Read(fname)
         :Inputs:
@@ -457,19 +457,19 @@ class TriBase(object):
             self.ReadTriBin(fname)
             # Save number of iterations included in average
             self.n = n
-            
+
     # Function to read a .triq file
     def ReadTriQ(self, fname, n=1):
         """Read an annotated triangulation file (``.triq``)
-        
+
         File type is automatically detected and may be any one of the following
-        
+
             * ASCII
             * Double-precision little-endian Fortran unformatted
             * Single-precision little-endian Fortran unformatted
             * Double-precision big-endian Fortran unformatted
             * Single-precision big-endian Fortran unformatted
-        
+
         :Call:
             >>> tri.Read(fname)
         :Inputs:
@@ -484,12 +484,12 @@ class TriBase(object):
         """
         # Use previous function
         self.Read(fname, n=n)
-        
-        
+
+
     # Function to read a .tri file
     def ReadASCII(self, fname, n=1):
         """Read a triangulation file from an ASCII file
-        
+
         :Call:
             >>> tri.ReadASCII(fname)
         :Inputs:
@@ -515,7 +515,7 @@ class TriBase(object):
             nq = int(V[2])
         else:
             nq = 0
-        
+
         # Read the nodes.
         self.ReadNodes(fid, nNode)
         # Read the Tris.
@@ -524,24 +524,24 @@ class TriBase(object):
         self.ReadCompID(fid)
         # Read the sate.
         self.ReadQ(fid, nNode, nq)
-        
+
         # Close the file.
         fid.close()
-        
+
         # No quads
         self.nQuad = 0
         self.Quads = np.zeros((0,4))
-        
+
         # Save extension
         self.ext = 'ascii'
-        
+
         # Weight: number of files included in file
         self.n = n
-            
+
     # Read TRI file as a binary file
     def ReadTriBin(self, fname, ni=4, nf=4):
         """Read binary unformatted triangulation file
-        
+
         :Call:
             >>> tri.ReadTriBin(fname)
         :Inputs:
@@ -574,7 +574,7 @@ class TriBase(object):
         R = np.fromfile(fid, count=1, dtype=fi)
         # Number of integers in first line
         r = R[0] / ni
-        # Read header line; also read 
+        # Read header line; also read
         H = np.array(np.fromfile(fid, count=r+2, dtype=fi), dtype='int')
         # Set number of nodes and tris
         self.nNode = H[0]
@@ -657,7 +657,7 @@ class TriBase(object):
         # Count (used for averaging triq files)
         self.n = 1
    # }
-   
+
    # +++++++++++++
    # TRI File Type
    # +++++++++++++
@@ -665,9 +665,9 @@ class TriBase(object):
     # Get byte order
     def GetTriFileType(self, fname):
         """Get the byte order and precision for a TRI file
-        
+
         The function works by setting attributes of the triangulation
-        
+
         :Call:
             >>> tri.GetTriFileType(fname)
         :Inputs:
@@ -762,7 +762,7 @@ class TriBase(object):
                 + "  Single-precision big-endian Fortran unformatted\n"
                 + "  ASCII")
    # }
-   
+
    # ++++++++++++
    # Nodes (Slow)
    # ++++++++++++
@@ -770,7 +770,7 @@ class TriBase(object):
     # Function to read node coordinates from .tri file
     def ReadNodes(self, f, nNode):
         """Read node coordinates from a .tri file.
-        
+
         :Call:
             >>> tri.ReadNodes(f, nNode)
         :Inputs:
@@ -798,11 +798,11 @@ class TriBase(object):
         Nodes = np.fromfile(f, dtype=float, count=nNode*3, sep=" ")
         # Reshape into a matrix.
         self.Nodes = Nodes.reshape((nNode,3))
-        
+
     # Function to read node coordinates from .triq+ file
     def ReadNodesSurf(self, f, nNode):
         """Read node coordinates from an AFLR3 ``.surf`` file
-        
+
         :Call:
             >>> tri.ReadNodesSurf(f, nNode)
         :Inputs:
@@ -837,7 +837,7 @@ class TriBase(object):
         # Save boundary layer thicknesses
         self.bldel = Nodes[:,4]
    # }
-    
+
    # +++++++++++
    # Tris (Slow)
    # +++++++++++
@@ -845,7 +845,7 @@ class TriBase(object):
     # Function to read triangle indices from .triq+ files
     def ReadTris(self, f, nTri):
         """Read triangle node indices from a .tri file.
-        
+
         :Call:
             >>> tri.ReadTris(f, nTri)
         :Inputs:
@@ -866,11 +866,11 @@ class TriBase(object):
         Tris = np.fromfile(f, dtype=int, count=nTri*3, sep=" ")
         # Reshape into a matrix.
         self.Tris = Tris.reshape((nTri,3))
-    
+
     # Function to read triangles from .surf file
     def ReadTrisSurf(self, f, nTri):
         """Read triangle node indices, comp IDs, and BCs from AFLR3 file
-        
+
         :Call:
             >>> tri.ReadTrisSurf(f, nTri)
         :Inputs:
@@ -910,9 +910,9 @@ class TriBase(object):
         self.CompID = Tris[:,3]
         # Save the boundary conditions.
         self.BCs = Tris[:,5]
-        
+
    # }
-    
+
    # ++++++++++++
    # Quads (Slow)
    # ++++++++++++
@@ -920,7 +920,7 @@ class TriBase(object):
     # Function to read quads from .surf file
     def ReadQuadsSurf(self, f, nQuad):
         """Read quad node indices, compIDs, and BCs from AFLR3 file
-        
+
         :Call:
             >>> tri.ReadQuadsSurf(f, nQuad)
         :Inputs:
@@ -961,7 +961,7 @@ class TriBase(object):
         # Save the boundary conditions.
         self.BCsQuad = Quads[:,6]
    # }
-   
+
    # ++++++++
    # Comp IDs
    # ++++++++
@@ -969,7 +969,7 @@ class TriBase(object):
     # Function to read the component identifiers
     def ReadCompID(self, f):
         """Read component IDs from a .tri file.
-        
+
         :Call:
             >>> tri.ReadCompID(f)
         :Inputs:
@@ -991,7 +991,7 @@ class TriBase(object):
             # Read from file.
             self.CompID = np.fromfile(f, dtype=int, count=self.nTri, sep=" ")
    # }
-    
+
    # +++++++++
    # State (Q)
    # +++++++++
@@ -999,7 +999,7 @@ class TriBase(object):
     # Function to read node coordinates from .triq+ file
     def ReadQ(self, f, nNode, nq):
         """Read node states from a ``.triq`` file.
-        
+
         :Call:
             >>> triq.ReadQ(f, nNode, nq)
         :Inputs:
@@ -1025,14 +1025,14 @@ class TriBase(object):
         # Reshape into a matrix.
         self.q = q.reshape((nNode,nq))
    # }
-    
+
   # >
-    
+
   # ===========
   # TRI Writers
   # ===========
   # <
-    
+
    # ++++++++++++++++
    # Full TRI Writers
    # ++++++++++++++++
@@ -1040,7 +1040,7 @@ class TriBase(object):
     # Fall-through function to write the triangulation to file.
     def Write(self, fname='Components.i.tri', **kw):
         """Write triangulation to file using fastest method available
-        
+
         :Call:
             >>> tri.WriteSlow(fname='Components.i.tri', v=True, **kw)
         :Inputs:
@@ -1126,26 +1126,26 @@ class TriBase(object):
         elif ext == 'b8':
             # Big-endian double
             self.WriteTri_b8(fname)
-            
+
     # Process file type by options
     def GetOutputFileType(self, **kw):
         """Determine output file type from keyword inputs
-        
+
         Many of the possible inputs are in conflict.  For example, it is
         possible to use ``endian="big"`` and ``byteorder="little"``.  In the
         input table below, any value that evaluates as ``True`` supersedes all
         inputs listed below it.  For example, if ``ascii==True``, no other
         inputs have any effect.
-        
+
         If none of the inputs is specified, the function will try to access
         *tri.ext*.  If that does not exist, the default output is ``"ascii"``.
-        
+
         The default byte order is determined from *os.sys.byteorder*, but this
         is overridden if the environment variable $F_UFMTENDIAN is ``"big"`` or
         $GFORTRAN_CONVERT_UNIT is ``"big_endian"``.
-        
+
         The five possible outputs are described below.
-        
+
             =================  =======================================
             *ext*              *Description*
             =================  =======================================
@@ -1159,7 +1159,7 @@ class TriBase(object):
             ``"b8"``           Big-endian, double-precision
             ``"lb8"``          Little-endian, double-precision
             =================  =======================================
-        
+
         :Call:
             >>> ext = tri.GetOutputFileType(**kw)
         :Inputs:
@@ -1298,9 +1298,9 @@ class TriBase(object):
                 raise ValueError("Could not interpret bytecount '%s'" % bc)
         else:
             raise ValueError("Could not interpret byte order '%s'" % bo)
-            
+
    # }
-    
+
    # +++++++++++++++++
    # ASCII TRI Writers
    # +++++++++++++++++
@@ -1308,7 +1308,7 @@ class TriBase(object):
     # Write ASCII with fall-through to Python method
     def WriteASCII(self, fname='Components.i.tri'):
         """Write triangulation to file using fastest method available
-        
+
         :Call:
             >>> tri.WriteSlow(fname='Components.i.tri', v=True)
         :Inputs:
@@ -1334,11 +1334,11 @@ class TriBase(object):
         except Exception:
             # Slow method using Python code.
             self.WriteSlow_ASCII(fname)
-    
+
     # Function to write a triangulation to file as fast as possible.
     def WriteFast(self, fname='Components.i.tri'):
         """Try using a compiled function to write to file
-        
+
         :Call:
             >>> tri.WriteFast(fname='Components.i.tri')
         :Inputs:
@@ -1357,11 +1357,11 @@ class TriBase(object):
         if fname != "Components.pyCart.tri":
             # Move the file.
             os.rename("Components.pyCart.tri", fname)
-    
+
     # Function to write a triangulation to file the old-fashioned way.
     def WriteSlow_ASCII(self, fname='Components.i.tri', nq=None):
         """Write a triangulation to file
-        
+
         :Call:
             >>> tri.WriteASCIISlow(fname='Components.i.tri')
             >>> tri.WriteASCIISlow(fname='Components.i.tri', nq=None)
@@ -1400,9 +1400,9 @@ class TriBase(object):
         np.savetxt(fid, self.CompID, fmt="%i",      delimiter=' ')
         # Close the file.
         fid.close()
-        
+
    # }
-    
+
    # ++++++++++++++
    # Binary Writers
    # ++++++++++++++
@@ -1410,7 +1410,7 @@ class TriBase(object):
     # Write TRI file as lb4 file
     def WriteTri_lb4(self, fname):
         """Write a triangulation as a little-endian single-precision file
-        
+
         :Call:
             >>> tri.WriteTri_lb4(fname)
         :Inputs:
@@ -1427,11 +1427,11 @@ class TriBase(object):
         except Exception:
             # Python fall-back function
             self.WriteSlow_lb4(fname)
-            
+
     # Write TRI file as little-endian single-precision
     def WriteFast_lb4(self, fname='Components.i.tri'):
         """Use compiled C code to write single-precision little-endian tri
-        
+
         :Call:
             >>> tri.WriteFast_lb4(fname='Components.i.tri')
         :Inputs:
@@ -1442,16 +1442,16 @@ class TriBase(object):
         :Versions:
             * 2016-10-10 ``@ddalle``: First version
         """
-        # 
+        #
         pc.WriteTri_lb4(self.Nodes, self.Tris, self.CompID)
         # Check the file name and rename if necessary
         if fname != "Components.pyCart.tri":
             os.rename("Components.pyCart.tri", fname)
-    
+
     # Write TRI file as little-endian single-precision
     def WriteSlow_lb4(self, fname='Components.i.tri'):
         """Use Python code to write single-precision little-endian tri
-        
+
         :Call:
             >>> tri.WriteSlow_lb4(fname='Components.i.tri')
         :Inputs:
@@ -1485,11 +1485,11 @@ class TriBase(object):
         if qq: io.write_record_lr4_f(fid, self.q)
         # Close the file
         fid.close()
-            
+
     # Write TRI file as b4 file
     def WriteTri_b4(self, fname):
         """Write a triangulation as a big-endian single-precision file
-        
+
         :Call:
             >>> tri.WriteTri_b4(fname)
         :Inputs:
@@ -1506,11 +1506,11 @@ class TriBase(object):
         except Exception:
             # Python fall-back function
             self.WriteSlow_b4(fname)
-            
+
     # Write TRI file as big-endian single-precision
     def WriteFast_b4(self, fname='Components.i.tri'):
         """Use compiled C code to write single-precision big-endian tri
-        
+
         :Call:
             >>> tri.WriteFast_lb4(fname='Components.i.tri')
         :Inputs:
@@ -1521,16 +1521,16 @@ class TriBase(object):
         :Versions:
             * 2016-10-10 ``@ddalle``: First version
         """
-        # 
+        #
         pc.WriteTri_b4(self.Nodes, self.Tris, self.CompID)
         # Check the file name and rename if necessary
         if fname != "Components.pyCart.tri":
             os.rename("Components.pyCart.tri", fname)
-        
+
     # Write TRI file as big-endian single-precision
     def WriteSlow_b4(self, fname='Components.i.tri'):
         """Use compiled code to write single-precision big-endian tri
-        
+
         :Call:
             >>> tri.WriteSlow_b4(fname='Components.i.tri')
         :Inputs:
@@ -1564,11 +1564,11 @@ class TriBase(object):
         if qq: io.write_record_r4_f(fid, self.q)
         # Close the file
         fid.close()
-    
+
     # Write TRI file as lb8 file
     def WriteTri_lb8(self, fname):
         """Write a triangulation as a little-endian double-precision file
-        
+
         :Call:
             >>> tri.WriteTri_lb4(fname)
         :Inputs:
@@ -1585,11 +1585,11 @@ class TriBase(object):
         except Exception:
             # Python fall-back function
             self.WriteSlow_lb8(fname)
-            
+
     # Write TRI file as little-endian double-precision
     def WriteFast_lb8(self, fname='Components.i.tri'):
         """Use compiled C code to write double-precision little-endian tri
-        
+
         :Call:
             >>> tri.WriteFast_lb4(fname='Components.i.tri')
         :Inputs:
@@ -1600,16 +1600,16 @@ class TriBase(object):
         :Versions:
             * 2016-10-10 ``@ddalle``: First version
         """
-        # 
+        #
         pc.WriteTri_lb8(self.Nodes, self.Tris, self.CompID)
         # Check the file name and rename if necessary
         if fname != "Components.pyCart.tri":
             os.rename("Components.pyCart.tri", fname)
-        
+
     # Write TRI file as little-endian double-precision
     def WriteSlow_lb8(self, fname='Components.i.tri'):
         """Use Python code to write double-precision little-endian tri
-        
+
         :Call:
             >>> tri.WriteSlow_lb8(fname='Components.i.tri')
         :Inputs:
@@ -1643,11 +1643,11 @@ class TriBase(object):
         if qq: io.write_record_lr8_f(fid, self.q)
         # Close the file
         fid.close()
-            
+
     # Write TRI file as b8 file
     def WriteTri_b8(self, fname):
         """Write a triangulation as a big-endian double-precision file
-        
+
         :Call:
             >>> tri.WriteTri_b8(fname)
         :Inputs:
@@ -1664,11 +1664,11 @@ class TriBase(object):
         except Exception:
             # Python fall-back function
             self.WriteSlow_b8(fname)
-            
+
     # Write TRI file as big-endian single-precision
     def WriteFast_b8(self, fname='Components.i.tri'):
         """Use compiled C code to write double-precision big-endian tri
-        
+
         :Call:
             >>> tri.WriteFast_b8(fname='Components.i.tri')
         :Inputs:
@@ -1679,16 +1679,16 @@ class TriBase(object):
         :Versions:
             * 2016-10-10 ``@ddalle``: First version
         """
-        # 
+        #
         pc.WriteTri_b8(self.Nodes, self.Tris, self.CompID)
         # Check the file name and rename if necessary
         if fname != "Components.pyCart.tri":
             os.rename("Components.pyCart.tri", fname)
-        
+
     # Write TRI file as big-endian double-precision
     def WriteSlow_b8(self, fname='Components.i.tri'):
         """Use Python code to write double-precision big-endian tri
-        
+
         :Call:
             >>> tri.WriteSlow_b8(fname='Components.i.tri')
         :Inputs:
@@ -1722,11 +1722,11 @@ class TriBase(object):
         if qq: io.write_record_r8_f(fid, self.q)
         # Close the file
         fid.close()
-        
+
     # Write TRI file as lr4 file
     def WriteTri_lr4(self, fname):
         """Write a triangulation as a little-endian single-precision file
-        
+
         :Call:
             >>> tri.WriteTri_lr4(fname)
         :Inputs:
@@ -1743,11 +1743,11 @@ class TriBase(object):
         except Exception:
             # Python fall-back function
             self.WriteSlow_lr4(fname)
-            
+
     # Write TRI file as little-endian single-precision
     def WriteFast_lr4(self, fname='Components.i.tri'):
         """Use compiled C code to write single-precision little-endian tri
-        
+
         :Call:
             >>> tri.WriteFast_lr4(fname='Components.i.tri')
         :Inputs:
@@ -1758,16 +1758,16 @@ class TriBase(object):
         :Versions:
             * 2016-10-10 ``@ddalle``: First version
         """
-        # 
+        #
         pc.WriteTri_lr4(self.Nodes, self.Tris, self.CompID)
         # Check the file name and rename if necessary
         if fname != "Components.pyCart.tri":
             os.rename("Components.pyCart.tri", fname)
-    
+
     # Write TRI file as little-endian single-precision
     def WriteSlow_lr4(self, fname='Components.i.tri'):
         """Use Python code to write single-precision little-endian tri
-        
+
         :Call:
             >>> tri.WriteSlow_lr4(fname='Components.i.tri')
         :Inputs:
@@ -1801,11 +1801,11 @@ class TriBase(object):
         if qq: io.write_record_lr4_f(fid, self.q)
         # Close the file
         fid.close()
-            
+
     # Write TRI file as b4 file
     def WriteTri_r4(self, fname):
         """Write a triangulation as a big-endian single-precision file
-        
+
         :Call:
             >>> tri.WriteTri_r4(fname)
         :Inputs:
@@ -1822,11 +1822,11 @@ class TriBase(object):
         except Exception:
             # Python fall-back function
             self.WriteSlow_r4(fname)
-            
+
     # Write TRI file as big-endian single-precision
     def WriteFast_r4(self, fname='Components.i.tri'):
         """Use compiled C code to write single-precision big-endian tri
-        
+
         :Call:
             >>> tri.WriteFast_lb4(fname='Components.i.tri')
         :Inputs:
@@ -1837,16 +1837,16 @@ class TriBase(object):
         :Versions:
             * 2016-10-10 ``@ddalle``: First version
         """
-        # 
+        #
         pc.WriteTri_r4(self.Nodes, self.Tris, self.CompID)
         # Check the file name and rename if necessary
         if fname != "Components.pyCart.tri":
             os.rename("Components.pyCart.tri", fname)
-        
+
     # Write TRI file as big-endian single-precision
     def WriteSlow_r4(self, fname='Components.i.tri'):
         """Use compiled code to write single-precision big-endian tri
-        
+
         :Call:
             >>> tri.WriteSlow_r4(fname='Components.i.tri')
         :Inputs:
@@ -1880,11 +1880,11 @@ class TriBase(object):
         if qq: io.write_record_r4_f(fid, self.q)
         # Close the file
         fid.close()
-    
+
     # Write TRI file as lb8 file
     def WriteTri_lr8(self, fname):
         """Write a triangulation as a little-endian double-precision file
-        
+
         :Call:
             >>> tri.WriteTri_lr8(fname)
         :Inputs:
@@ -1901,11 +1901,11 @@ class TriBase(object):
         except Exception:
             # Python fall-back function
             self.WriteSlow_lr8(fname)
-            
+
     # Write TRI file as little-endian double-precision
     def WriteFast_lr8(self, fname='Components.i.tri'):
         """Use compiled C code to write double-precision little-endian tri
-        
+
         :Call:
             >>> tri.WriteFast_lr8(fname='Components.i.tri')
         :Inputs:
@@ -1916,16 +1916,16 @@ class TriBase(object):
         :Versions:
             * 2016-10-10 ``@ddalle``: First version
         """
-        # 
+        #
         pc.WriteTri_lr8(self.Nodes, self.Tris, self.CompID)
         # Check the file name and rename if necessary
         if fname != "Components.pyCart.tri":
             os.rename("Components.pyCart.tri", fname)
-        
+
     # Write TRI file as little-endian double-precision
     def WriteSlow_lr8(self, fname='Components.i.tri'):
         """Use Python code to write double-precision little-endian tri
-        
+
         :Call:
             >>> tri.WriteSlow_lr8(fname='Components.i.tri')
         :Inputs:
@@ -1959,11 +1959,11 @@ class TriBase(object):
         if qq: io.write_record_lr8_f(fid, self.q)
         # Close the file
         fid.close()
-            
+
     # Write TRI file as b8 file
     def WriteTri_r8(self, fname):
         """Write a triangulation as a big-endian double-precision file
-        
+
         :Call:
             >>> tri.WriteTri_r8(fname)
         :Inputs:
@@ -1980,11 +1980,11 @@ class TriBase(object):
         except Exception:
             # Python fall-back function
             self.WriteSlow_r8(fname)
-            
+
     # Write TRI file as big-endian single-precision
     def WriteFast_r8(self, fname='Components.i.tri'):
         """Use compiled C code to write double-precision big-endian tri
-        
+
         :Call:
             >>> tri.WriteFast_r8(fname='Components.i.tri')
         :Inputs:
@@ -1995,16 +1995,16 @@ class TriBase(object):
         :Versions:
             * 2016-10-10 ``@ddalle``: First version
         """
-        # 
+        #
         pc.WriteTri_r8(self.Nodes, self.Tris, self.CompID)
         # Check the file name and rename if necessary
         if fname != "Components.pyCart.tri":
             os.rename("Components.pyCart.tri", fname)
-        
+
     # Write TRI file as big-endian double-precision
     def WriteSlow_r8(self, fname='Components.i.tri'):
         """Use Python code to write double-precision big-endian tri
-        
+
         :Call:
             >>> tri.WriteSlow_r8(fname='Components.i.tri')
         :Inputs:
@@ -2038,10 +2038,10 @@ class TriBase(object):
         if qq: io.write_record_r8_f(fid, self.q)
         # Close the file
         fid.close()
-    
+
    # }
   # >
-    
+
   # =============
   # Other Readers
   # =============
@@ -2049,7 +2049,7 @@ class TriBase(object):
     # Read from a .uh3d file.
     def ReadUH3D(self, fname):
         """Read a triangulation file (from ``*.uh3d``)
-        
+
         :Call:
             >>> tri.ReadUH3D(fname)
         :Inputs:
@@ -2074,7 +2074,7 @@ class TriBase(object):
         self.nNode = nNode
         self.nTri = nTri
         self.nQuad = 0
-        
+
         # Initialize the nodes.
         Nodes = np.zeros((nNode, 3))
         # Loop through the nodes.
@@ -2083,7 +2083,7 @@ class TriBase(object):
             Nodes[i] = np.fromfile(fid, dtype=float, count=4, sep=",")[1:4]
         # Save
         self.Nodes = Nodes
-        
+
         # Initialize the Tris and component numbers
         Tris = np.zeros((nTri, 3))
         CompID = np.ones(nTri)
@@ -2098,7 +2098,7 @@ class TriBase(object):
         # Save.
         self.Tris   = np.array(Tris,   dtype=int)
         self.CompID = np.array(CompID, dtype=int)
-        
+
         # Set location.
         ftell = -1
         # Initialize components.
@@ -2135,11 +2135,11 @@ class TriBase(object):
         self.Conf = Conf
         # Close the file.
         fid.close()
-        
+
     # Read surface file
     def ReadSurf(self, fname):
         """Read an AFLR3 surface file
-        
+
         :Call:
             >>> tri.ReadUH3D(fname)
         :Inputs:
@@ -2157,21 +2157,21 @@ class TriBase(object):
         line = fid.readline().strip()
         # Process the first line.
         nTri, nQuad, nNode = (int(v) for v in line.split())
-        
+
         # Read the nodes.
         self.ReadNodesSurf(fid, nNode)
         # Read the Tris.
         self.ReadTrisSurf(fid, nTri)
         # Read the Quads.
         self.ReadQuadsSurf(fid, nQuad)
-        
+
         # Close the file.
         fid.close()
-    
+
     # Function to read IDEAS UNV files
     def ReadUnv(self, fname):
         """Read an IDEAS format UNV triangulation
-        
+
         :Call:
             >>> tri.ReadUnv(fname)
         :Inputs:
@@ -2279,12 +2279,12 @@ class TriBase(object):
         # Close the file.
         f.close()
   # >
-    
+
   # =============
   # Other Writers
   # =============
   # <
-    
+
    # ++++
    # TRIQ
    # ++++
@@ -2292,7 +2292,7 @@ class TriBase(object):
     # Fall-through function to write the triangulation to file.
     def WriteTriq(self, fname='Components.i.triq',**kw):
         """Write q-triangulation to file using fastest method available
-        
+
         :Call:
             >>> triq.WriteTriq(fname='Components.i.triq', **kw)
         :Inputs:
@@ -2370,11 +2370,11 @@ class TriBase(object):
         elif ext == 'b8':
             # Big-endian double
             self.WriteSlow_b8(fname)
-        
+
     # Fall-through function to write the triangulation to file.
     def WriteTriqASCII(self, fname='Components.i.triq', v=True, **kw):
         """Write q-triangulation to file using fastest method available
-        
+
         :Call:
             >>> triq.WriteTriqASCII(fname='Components.i.triq', v=True)
         :Inputs:
@@ -2401,11 +2401,11 @@ class TriBase(object):
         except Exception:
             # Slow method using Python code.
             self.WriteTriqSlow(fname)
-        
+
     # Function to write a triq file the old-fashioned way.
     def WriteTriqSlow(self, fname='Components.i.triq'):
         """Write a triangulation file with state to file
-        
+
         :Call:
             >>> triq.WriteTriqSlow(fname='Components.i.triq')
         :Inputs:
@@ -2421,7 +2421,7 @@ class TriBase(object):
         """
         print("Label 110: Failed")
         # Write the Common portion of the triangulation
-        self.WriteSlow(fname=fname)
+        self.WriteSlow_ASCII(fname=fname)
         # Open the file to append.
         fid = open(fname, 'a')
         # Loop through states.
@@ -2434,11 +2434,11 @@ class TriBase(object):
             fid.write(line)
         # Close the flie.
         fid.close()
-        
+
     # Function to write a triq file via C function
     def WriteTriqFast(self, fname='Components.i.triq'):
         """Write a triangulation file with state to file via Python/C
-        
+
         :Call:
             >>> triq.WriteTriqFast(fname='Components.i.triq')
         :Inputs:
@@ -2459,7 +2459,7 @@ class TriBase(object):
             # Move the file.
             os.rename("Components.pyCart.tri", fname)
    # >
-    
+
    # ++++++++++++
    # UH3D Writers
    # ++++++++++++
@@ -2467,7 +2467,7 @@ class TriBase(object):
     # Function to write a UH3D file
     def WriteUH3D(self, fname='Components.i.uh3d'):
         """Write a triangulation to a UH3D file
-        
+
         :Call:
             >>> tri.WriteUH3D(fname='Components.i.uh3d')
         :Inputs:
@@ -2507,11 +2507,11 @@ class TriBase(object):
             pass
         # Write the file.
         self.WriteUH3DSlow(fname, lbls)
-    
+
     # Function to write a UH3D file the old-fashioned way.
     def WriteUH3DSlow(self, fname='Components.i.uh3d', lbls={}):
         """Write a triangulation to a UH3D file
-        
+
         :Call:
             >>> tri.WriteUH3DSlow(fname='Components.i.uh3d', lbls={})
         :Inputs:
@@ -2520,7 +2520,7 @@ class TriBase(object):
             *fname*: :class:`str`
                 Name of triangulation file to create
             *lbls*: :class:`dict`
-                Optioan dict of names for component IDs, e.g. ``{1: "body"}`` 
+                Optioan dict of names for component IDs, e.g. ``{1: "body"}``
         :Versions:
             * 2015-04-17 ``@ddalle``: First version
         """
@@ -2545,7 +2545,7 @@ class TriBase(object):
             # Get the mapped component number
             kID = cID.index(self.CompID[k]) + 1
             # Write the line (with 1-based triangle index and CompID).
-            fid.write('%i, %i, %i, %i, %i\n' % (k+1, self.Tris[k,0], 
+            fid.write('%i, %i, %i, %i, %i\n' % (k+1, self.Tris[k,0],
                 self.Tris[k,1], self.Tris[k,2], kID))
         # Loop through the component names.
         for k in range(nID):
@@ -2559,9 +2559,9 @@ class TriBase(object):
         fid.write('99,99,99,99,99\n')
         # Close the file.
         fid.close()
-        
+
    # }
-    
+
    # +++++++++++
    # STL Writers
    # +++++++++++
@@ -2569,7 +2569,7 @@ class TriBase(object):
     # Write STL using python language
     def WriteSTL(self, fname='Components.i.stl', v=False):
         """Write a triangulation to an STL file
-        
+
         :Call:
             >>> tri.WriteSTL(fname='Components.i.tri')
         :Inputs:
@@ -2590,11 +2590,11 @@ class TriBase(object):
         except Exception:
             # Slow method using Python code.
             self.WriteSTLSlow(fname)
-        
+
     # Write STL using python language
     def WriteSTLSlow(self, fname='Components.i.stl'):
         """Write a triangulation to an STL file
-        
+
         :Call:
             >>> tri.WriteSTLSlow(fname='Components.i.stl')
         :Inputs:
@@ -2635,11 +2635,11 @@ class TriBase(object):
         f.write('endsolid\n')
         # Close the file.
         f.close()
-    
+
     # Function to write a triangulation to file as fast as possible.
     def WriteSTLFast(self, fname='Components.i.stl'):
         """Try using a compiled function to write to file
-        
+
         :Call:
             >>> tri.WriteFast(fname='Components.i.tri')
         :Inputs:
@@ -2657,7 +2657,7 @@ class TriBase(object):
             # Move the file.
             os.rename("Components.pyCart.stl", fname)
    # }
-        
+
    # ++++++++++
    # AFLR3 Surf
    # ++++++++++
@@ -2665,7 +2665,7 @@ class TriBase(object):
     # Function to write a UH3D file
     def WriteSurf(self, fname='Components.i.surf'):
         """Write a triangulation to a AFLR3 surface file
-        
+
         :Call:
             >>> tri.WriteSurf(fname='Components.i.surf')
         :Inputs:
@@ -2699,11 +2699,11 @@ class TriBase(object):
         except Exception:
             # Fall back to slow version
             self.WriteSurfSlow(fname)
-    
+
     # Function to write a SURF file the old-fashioned way.
     def WriteSurfSlow(self, fname="Components.surf"):
         """Write an AFLR3 ``surf`` surface mesh file
-        
+
         :Call:
             >>> tri.WriteSurfSlow(fname='Components.surf')
         :Inputs:
@@ -2728,7 +2728,7 @@ class TriBase(object):
         # Loop through the triangles.
         for k in np.arange(self.nTri):
             # Write the line (with 1-based triangle index and CompID).
-            fid.write('%i %i %i %i 0 %i\n' % (self.Tris[k,0], 
+            fid.write('%i %i %i %i 0 %i\n' % (self.Tris[k,0],
                 self.Tris[k,1], self.Tris[k,2], self.CompID[k], self.BCs[k]))
         # Loop through the quads.
         for k in np.arange(self.nQuad):
@@ -2738,11 +2738,11 @@ class TriBase(object):
                 self.CompIDQuad[k], self.BCsQuad[k]))
         # Close the file.
         fid.close()
-    
+
     # Function to write a triangulation to file as fast as possible.
     def WriteSurfFast(self, fname='Components.i.surf'):
         """Try using a compiled function to write to AFLR3 ``surf`` file
-        
+
         :Call:
             >>> tri.WriteSurfFast(fname='Components.i.surf')
         :Inputs:
@@ -2762,10 +2762,10 @@ class TriBase(object):
         if fname != "Components.pyCart.surf":
             # Move the file.
             os.rename("Components.pyCart.surf", fname)
-   
+
    # }
   # >
-    
+
   # =====================
   # Multiple File Reading
   # =====================
@@ -2773,15 +2773,15 @@ class TriBase(object):
     # Add a second triangulation without destroying component numbers.
     def Add(self, tri):
         """Add a second triangulation file.
-        
+
         If the new triangulation begins with a component ID less than the
         maximum component ID of the existing triangulation, the components of
         the second triangulation are offset.  For example, if both
         triangulations have components 1, 2, and 3; the IDs of the second
         triangulation, *tri2*, will be changed to 4, 5, and 6.
-        
+
         No checks are performed, and intersections are not analyzed.
-        
+
         :Call:
             >>> tri.Add(tri2)
         :Inputs:
@@ -2844,14 +2844,14 @@ class TriBase(object):
         except AttributeError:
             # No configurations to merge
             pass
-        
+
     # Add a second triangulation without altering component numbers.
     def AddRawCompID(self, tri):
         """
-        Add a second triangulation to the current one without changing 
+        Add a second triangulation to the current one without changing
         component numbers of either triangulation.  No checks are performed,
         and intersections are not analyzed.
-        
+
         :Call:
             >>> tri.AddRawCompID(tri2)
         :Inputs:
@@ -2919,9 +2919,9 @@ class TriBase(object):
         self.nTri  += tri.nTri
         # Done
         return None
-        
+
   # >
-    
+
   # ===============
   # Intersect Tools
   # ===============
@@ -2929,11 +2929,11 @@ class TriBase(object):
     # Function to write .tri file with one CompID per break
     def WriteVolTri(self, fname='Components.tri'):
         """Write a .tri file with one CompID per break in *tri.iTri*
-        
+
         This is a necessary step of running `intersect` because each polyhedron
         (i.e. water-tight volume) must have a single uniform component ID before
         running `intersect`.
-        
+
         :Call:
             >>> tri.WriteVolTri(fname='Components.c.tri')
         :Inputs:
@@ -2974,16 +2974,16 @@ class TriBase(object):
         tri.nTri   = tri.Tris.shape[0]
         # Write the triangulation to file.
         tri.Write(fname)
-        
+
     # Function to write c.tri file with original CompIDs but w/o farfield
     def WriteCompIDTri(self, fname='Components.tri'):
         """Write a .tri file with the original components
-        
+
         This provides a component map for the output of ``intersect``.
         Supplemental surfaces, such as farfield triangles or grid refinement
         sources, are not written.  Specifically, triangles with negative
         component IDs are not written.
-        
+
         :Call:
             >>> tri.WriteCompIDTri(fname='Components.c.tri')
         :Inputs:
@@ -3018,15 +3018,15 @@ class TriBase(object):
         tri.nTri   = tri.Tris.shape[0]
         # Write the triangulation to file.
         tri.Write(fname)
-        
+
     # Function to write f.tri file with supplemental surfaces
     def WriteFarfieldTri(self, fname='Components.f.tri'):
         """Write a .tri file supplemental surfaces not intersected
-        
+
         This stores the triangles that are excluded from the input to
         ``intersect``.  This would include farfield surfaces, grid refinement
         boxes, or bodies that are known not to intersect any others.
-        
+
         :Call:
             >>> tri.WriteFarfieldTri(fname='Components.f.tri')
         :Inputs:
@@ -3061,13 +3061,13 @@ class TriBase(object):
         tri.nTri   = tri.Tris.shape[0]
         # Write the triangulation to file.
         tri.Write(fname)
-        
+
     # Function to map each face's CompID to the closest match from another tri
     def MapSubCompID(self, tric, compID, kc=None):
         """
         Map CompID of each face to the CompID of the nearest face in another
         triangulation.  This is a common step after running `intersect`.
-        
+
         :Call:
             >>> tri.MapSubCompID(tric, compID, iA=0, iB=-1)
         :Inputs:
@@ -3142,10 +3142,10 @@ class TriBase(object):
             self.CompID[K1[k1:k1+j]] = tric.CompID[K0[k0:k0+j]]
             # Move to next tri in intersected surface.
             k1 += j; k0 += j
-        
+
         # Find the triangles that are _still_ the old CompID
         K = np.where(self.CompID == compID)[0]
-        
+
         # Calculate the centroids of the target components.
         x0 = np.mean(tric.Nodes[tric.Tris[K0]-1, 0], 1)
         y0 = np.mean(tric.Nodes[tric.Tris[K0]-1, 1], 1)
@@ -3160,14 +3160,14 @@ class TriBase(object):
             j = np.argmin((x0-x1[i])**2 + (y0-y1[i])**2 + (z0-z1[i])**2)
             # Map it.
             self.CompID[i] = tric.CompID[K0[j]]
-            
+
     # Function to fully map component IDs
     def MapCompID(self, tric, tri0):
         """
         Map CompIDs from pre-intersected triangulation to an intersected
         triangulation.  In standard cape terminology, this is a transformation
         from :file:`Components.o.tri` to :file:`Components.i.tri`
-        
+
         :Call:
             >>> tri.MapCompID(tric, tri0)
         :Inputs:
@@ -3189,7 +3189,7 @@ class TriBase(object):
             # Map the compIDs for that component.
             self.MapSubCompID(tric, compID, kc)
   # >
-    
+
   # ================
   # CompID Interface
   # ================
@@ -3197,7 +3197,7 @@ class TriBase(object):
     # Function to read configuration file based on file extension
     def ReadConfig(self, c):
         """Read a configuration file using extension to guess type
-        
+
         :Call:
             >>> tri.ReadConfig(c)
         :Inputs:
@@ -3246,11 +3246,11 @@ class TriBase(object):
                 return
             except Exception:
                 pass
-        
+
     # Function to read Config.xml
     def ReadConfigXML(self, c, restrict=False):
         """Read a ``Config.xml`` file labeling and grouping of component IDs
-        
+
         :Call:
             >>> tri.ReadConfigXML(c, restrict=False)
         :Inputs:
@@ -3267,11 +3267,11 @@ class TriBase(object):
         # Restrict to a subset
         if restrict:
             self.RestrictConfigCompID()
-        
+
     # Function to read Config.json
     def ReadConfigJSON(self, c):
         """Read a ``Config.json`` file labeling and grouping of component IDs
-        
+
         :Call:
             >>> tri.ReadConfigJSON(c)
         :Inputs:
@@ -3284,11 +3284,11 @@ class TriBase(object):
         """
         # Read the configuration and save it
         self.config = ConfigJSON(c)
-        
+
     # Function to read Config.json
     def ReadConfigMIXSUR(self, c):
         """Read a ``mixsur.i`` file labeling and grouping of component IDs
-        
+
         :Call:
             >>> tri.ReadConfigMixsur(c)
         :Inputs:
@@ -3301,26 +3301,26 @@ class TriBase(object):
         """
         # Read the configuration and save it
         self.config = ConfigMIXSUR(c)
-        
+
     # Function to map component ID numbers to those in a Config.
     def ApplyConfig(self, cfg):
         """Change component IDs to match a configuration file
-        
+
         Any component that is named in *tri.Conf* and *cfg.faces* has its
         component ID changed to match its intended value in *cfg*, which is an
         interface to :file:`Config.xml` files.  Note that *tri.Conf* is only
         created if the triangulation is read from a UH3D file.
-        
+
         For example, if *tri* has a component ``'Body'`` that initially has
         component ID of 4, but the user wants that component ID to instead be
         104, then ``tri.Conf['Body']`` will be ``4``, and ``cfg.faces['Body']``
         will be ``104``.  The result of applying this method is that all faces
         in *tri.compID* that are labeled with a ``4`` will get changed to
         ``104``.
-        
+
         This process uses a working copy of *tri* to avoid problems with the
         order of changing the component numbers.
-        
+
         :Call:
             >>> tri.ApplyConfig(cfg)
             >>> tri.ApplyConfig(fcfg)
@@ -3369,11 +3369,11 @@ class TriBase(object):
                 #self.config.faces[k] = cID
         # Restrict
         #self.RestrictConfigCompID()
-        
+
     # Write a new Config.xml file
     def WriteConfigXML(self, fname="Config.xml"):
         """Write a ``Config.xml`` file specific to this triangulation
-        
+
         :Call:
             >>> tri.WriteConfigXML(fname="Config.xml")
         :Inputs:
@@ -3393,11 +3393,11 @@ class TriBase(object):
                 ("because tri instance does not have a config interface"))
         # Write the XML
         self.config.WriteXML(fname)
-    
+
     # Restrict component IDs to those actually used in this triangulation
     def RestrictConfigCompID(self):
         """Restrict the component IDs in the *config* to those in *tri.CompID*
-        
+
         :Call:
             >>> tri.RestrictConfigCompID()
         :Inputs:
@@ -3419,11 +3419,11 @@ class TriBase(object):
                     "Attempt to restrict *config* component IDs failed")
             except AttributeError:
                 pass
-            
+
     # Renumber component IDs 1 to *n*
     def RenumberCompIDs(self):
         """Renumber component ID numbers 1 to *n*
-        
+
         :Call:
             >>> tri.RenumberCompIDs()
         :Inputs:
@@ -3473,7 +3473,7 @@ class TriBase(object):
                 # Extract element from singleton
                 compi = compi[0]
             # Check if that compID is present
-            if compi not in compIDs: 
+            if compi not in compIDs:
                 self.config.RenumberCompID(face, -compi)
                 continue
             # Otherwise, reset it.
@@ -3501,12 +3501,12 @@ class TriBase(object):
                 print("%12s  %6s  %s" % ("", cID, face))
         # Reset component IDs
         self.CompID = CompID
-       
-   
+
+
     # Function to get compIDs by name
     def GetCompID(self, face=None):
         """Get components by name or number
-        
+
         :Call:
             >>> compID = tri.GetCompID()
             >>> compID = tri.GetCompID(face)
@@ -3536,11 +3536,11 @@ class TriBase(object):
         except Exception:
             # Fall back to *tri.Conf* or just process raw numbers
             return self.GetConfCompID(face)
-            
+
     # Get name of a compID
     def GetCompName(self, compID):
         """Get the name of a component by its number
-        
+
         :Call:
             >>> face = tri.GetCompName(compID)
         :Inputs:
@@ -3589,11 +3589,11 @@ class TriBase(object):
             return ""
         else:
             return face
-                
+
     # Get compIDs by name or number from *tri.Conf*
     def GetConfCompID(self, face=None):
         """Get components by name or number from *tri.Conf* dictionary
-        
+
         :Call:
             >>> compID = tri.GetConfCompID()
             >>> compID = tri.GetConfCompID(face)
@@ -3654,11 +3654,11 @@ class TriBase(object):
         compID.sort()
         # Use this list
         return compID
-        
+
     # Get *tri.Conf* dictionary
     def GetConfFromConfig(self):
         """Create *tri.Conf* dictionary using *tri.config* if appropriate
-        
+
         :Call:
             >>> tri.GetConfFromConfig()
         :Inputs:
@@ -3681,11 +3681,11 @@ class TriBase(object):
             self.Conf = self.config.faces.copy()
         except Exception:
             pass
-       
+
     # Function to get node indices from component ID(s)
     def GetNodesFromCompID(self, compID=None):
         """Find node indices from face component ID(s)
-        
+
         :Call:
             >>> i = tri.GetNodesFromCompID(comp)
             >>> i = tri.GetNodesFromCompID(comps)
@@ -3727,11 +3727,11 @@ class TriBase(object):
             I[self.Quads[kQuad]] = True
         # Output
         return np.where(I)[0]
-        
+
     # Function to get tri indices from component ID(s)
     def GetTrisFromCompID(self, compID=None):
         """Find indices of triangles with specified component ID(s)
-        
+
         :Call:
             >>> k = tri.GetTrisFromCompID(comp)
             >>> k = tri.GetTrisFromCompID(comps)
@@ -3773,11 +3773,11 @@ class TriBase(object):
                 K = np.logical_or(K, self.CompID==comp)
         # Turn boolean vector into vector of indices]
         return np.where(K)[0]
-    
+
     # Function to get tri indices from component ID(s)
     def GetQuadsFromCompID(self, compID=None):
         """Find indices of triangles with specified component ID(s)
-        
+
         :Call:
             >>> k = tri.GetQuadsFromCompID(comp)
             >>> k = tri.GetQuadsFromCompID(comps)
@@ -3827,13 +3827,13 @@ class TriBase(object):
         except AttributeError:
             # No quads
             return np.zeros(0, dtype=int)
-    
+
     # Get subtriangulation from CompID list
     def GetSubTri(self, i=None):
         """
         Get the portion of the triangulation that contains specified component
         ID(s).
-        
+
         :Call:
             >>> tri0 = tri.GetSubTri(i=None)
         :Inputs:
@@ -3850,7 +3850,7 @@ class TriBase(object):
         # Get the triangle indices.
         k = self.GetTrisFromCompID(i)
         # Make a copy of the triangulation.
-        tri0 = self.Copy()
+         = self.Copy()
         # Restrict *tri0* to the matching faces.
         tri0.Tris = tri0.Tris[k]
         tri0.CompID = tri0.CompID[k]
@@ -3860,11 +3860,11 @@ class TriBase(object):
         tri0.TrimUnusedNodes()
         # Output
         return tri0
-        
+
     # Eliminate unused nodes
     def TrimUnusedNodes(self):
         """Remove any nodes that are not used in any triangles
-        
+
         :Call:
             >>> tri.TrimUnusedNodes()
         :Inputs:
@@ -3896,12 +3896,12 @@ class TriBase(object):
             self.q = self.q[N-1,:]
         except Exception:
             pass
-        
-    
+
+
     # Map triangles to components based on another file
     def MapTriCompID(self, tri, **kw):
         """Map component IDs of a separate triangulation
-        
+
         :Call:
             >>> tri.MapTriCompID(tric, **kw)
         :Inputs:
@@ -4070,11 +4070,11 @@ class TriBase(object):
                     pass
         # Output compmap
         return compmap
-        
+
     # Extract and write subtris after mapping
     def ExtractMappedComps(self, tric, comps=None, **kw):
         """Map component names from a template *tri* and write component files
-        
+
         :Call:
             >>> tris = tri.ExtractMappedComps(tric, comps=[], **kw)
             >>> triu = tri.ExtractMappedComps(tric, comps=[], join=True, **kw)
@@ -4141,15 +4141,15 @@ class TriBase(object):
             tris[comp] = trii
         # Output
         return tris
-        
+
   # >
-  
+
   # ===============
   # FUN3D Interface
   # ===============
   # <
   # >
-    
+
   # =========================
   # AFLR3 Boundary Conditions
   # =========================
@@ -4157,7 +4157,7 @@ class TriBase(object):
     # Map boundary condition tags from config
     def MapBCs_ConfigAFLR3(self):
         """Map boundary conditions from ``"Config.json"`` file format
-        
+
         :Call:
             >>> tri.MapBCs_ConfigAFLR3()
         :Inputs:
@@ -4210,7 +4210,7 @@ class TriBase(object):
                 self.BCsQuad[IQ] = BC
                 # Note touched BCs
                 qtouch[IQ] = False
-                
+
             # Get the boundary layer growth parameters
             blds = self.config.GetProperty(comp, 'blds')
             bldel = self.config.GetProperty(comp, 'bldel')
@@ -4241,12 +4241,12 @@ class TriBase(object):
             print("  There were %i nodes with no BC information" % X.shape[0])
             print("  Bounding box ([%s,%s], [%s,%s], [%s,%s]" %
                 (xmin, xmax, ymin, ymax, zmin, zmax))
-            
-        
+
+
     # Map boundary condition tags
     def MapBCs_AFLR3(self, compID=None, BCs={}, blds={}, bldel={}):
         """Initialize and map boundary condition indices for AFLR3
-        
+
         :Call:
             >>> tri.MapBCs_AFLR3(compID=[], BCs={}, blds={}, bldel={})
         :Inputs:
@@ -4315,11 +4315,11 @@ class TriBase(object):
                 continue
             # Modify those BL thicknesses
             self.bldel[I] = bldel[comp]
-            
+
     # Read boundary condition map
     def ReadBCs_AFLR3(self, fname):
         """Initialize and map boundary condition indices for AFLR3 from file
-        
+
         :Call:
             >>> tri.ReadBCs_AFLR3(fname)
         :Inputs:
@@ -4371,14 +4371,14 @@ class TriBase(object):
         f.close()
         # Apply the boundary conditions
         self.MapBCs_AFLR3(compID, BCs, blds=blds, bldel=bldel)
-    
+
   # >
-        
+
   # =============
   # Geometry Info
   # =============
   # <
-    
+
    # ++++
    # Tris
    # ++++
@@ -4386,7 +4386,7 @@ class TriBase(object):
     # Get coordinates of nodes for each triangle
     def GetTriNodes(self):
         """Get the nodal coordinates of each triangle
-        
+
         :Call:
             >>> tri.GetTriNodes()
         :Inputs:
@@ -4414,11 +4414,11 @@ class TriBase(object):
         self.TriX = self.Nodes[self.Tris-1, 0]
         self.TriY = self.Nodes[self.Tris-1, 1]
         self.TriZ = self.Nodes[self.Tris-1, 2]
-    
+
     # Get centers of nodes
     def GetCenters(self):
         """Get the centroids of each triangle
-        
+
         :Call:
             >>> tri.GetCenters()
         :Inputs:
@@ -4442,11 +4442,11 @@ class TriBase(object):
         z = np.mean(self.Nodes[self.Tris-1, 2], axis=1)
         # Save the centers
         self.Centers = stackcol((x,y,z))
-        
+
     # Get normals and areas
     def GetNormals(self):
         """Get the normals and areas of each triangle
-        
+
         :Call:
             >>> tri.GetNormals()
         :Inputs:
@@ -4486,11 +4486,11 @@ class TriBase(object):
         self.Areas = A/2
         # Save the unit normals.
         self.Normals = n
-        
+
     # Get normals and areas
     def GetAreaVectors(self):
         """Get the normals and areas of each triangle
-        
+
         :Call:
             >>> tri.GetAreaVectors()
         :Inputs:
@@ -4522,11 +4522,11 @@ class TriBase(object):
         n = np.cross(x01, x02)
         # Save the unit normals.
         self.AreaVectors = n
-        
+
     # Get right-handed coordinate system
     def GetBasisVectors(self):
         """Get a right-handed coordinate basis for all triangles
-        
+
         :Call:
             >>> tri.GetBasisVectors()
         :Inputs:
@@ -4579,12 +4579,12 @@ class TriBase(object):
         self.e1 = e1
         self.e2 = e2
         self.e3 = e3
-        
-        
+
+
     # Get edge lengths
     def GetLengths(self):
         """Get the lengths of edges
-        
+
         :Call:
             >>> tri.GetLengths()
         :Inputs:
@@ -4614,11 +4614,11 @@ class TriBase(object):
             np.sqrt(np.sum(x01**2, 0)),
             np.sqrt(np.sum(x12**2, 0)),
             np.sqrt(np.sum(x20**2, 0))))
-            
+
     # Get nearest triangle to a point
     def GetNearestTri(self, x, **kw):
         """Get the triangle that is nearest to a point, and the distance
-        
+
         :Call:
             >>> T = tri.GetNearestTri(x)
         :Inputs:
@@ -4697,7 +4697,7 @@ class TriBase(object):
         e2I = e2[I,:]
         e10 = e1I[:,0]; e11 = e1I[:,1]; e12 = e1I[:,2]
         e20 = e2I[:,0]; e21 = e2I[:,1]; e22 = e2I[:,2]
-        # Convert the test point into coordinates aligned with first edge 
+        # Convert the test point into coordinates aligned with first edge
         xi = (x-XI0)*e10 + (y-YI0)*e11 + (z-ZI0)*e12
         yi = (x-XI0)*e20 + (y-YI0)*e21 + (z-ZI0)*e22
         zi = zi[I]
@@ -4719,7 +4719,7 @@ class TriBase(object):
         # Find the component ID
         c1 = self.CompID[k1]
         # Initialize output
-        T = {"k1": k1, "c1": c1, "d1": D[i1], 
+        T = {"k1": k1, "c1": c1, "d1": D[i1],
             "t1": DI[i1], "z1": abs(zi[i1])}
         # Initialize submask
         I1 = K > -1
@@ -4749,11 +4749,11 @@ class TriBase(object):
         return T
     # Edit default tolerances
     GetNearestTri.__doc__=GetNearestTri.__doc__.replace("_ztol_",str(ztoldef))
-    
+
     # Get tris by bbox
     def FilterTrisBBox(self, bbox):
         """Get the list of Tris in a specified rectangular prism
-        
+
         :Call:
             >>> K = tri.FilterTrisBBox(bbox)
             >>> K = tri.FilterTrisBBox([xmin, xmax, ymin, ymax, zmin, zmax])
@@ -4786,7 +4786,7 @@ class TriBase(object):
         # Output
         return np.where(K)[0]
    # }
-    
+
    # +++++
    # Nodes
    # +++++
@@ -4794,7 +4794,7 @@ class TriBase(object):
     # Get averaged normals at nodes
     def GetNodeNormals(self):
         """Get the area-averaged normals at each node
-        
+
         :Call:
             >>> tri.GetNodeNormals()
         :Inputs:
@@ -4825,7 +4825,7 @@ class TriBase(object):
         # Save it.
         self.NodeNormals = NN
    # }
-   
+
    # +++++
    # Edges
    # +++++
@@ -4833,7 +4833,7 @@ class TriBase(object):
     # Get edges
     def GetEdges(self):
         """Get the list of edges
-        
+
         :Call:
             >>> tri.GetEdges()
         :Inputs:
@@ -4861,7 +4861,7 @@ class TriBase(object):
         # Save sorted edges
         self.Edges = E[I,:]
    # }
-    
+
    # ++++++++++
    # Components
    # ++++++++++
@@ -4871,7 +4871,7 @@ class TriBase(object):
         """
         Get the total area of a component, or get the total area of a component
         projected to a plane with a given normal vector.
-        
+
         :Call:
             >>> A = tri.GetCompArea(compID)
             >>> A = tri.GetCompArea(compID, n)
@@ -4910,13 +4910,13 @@ class TriBase(object):
             d = np.sum(N, 1)
             # Multiply this dot product by the area of each tri
             return np.sum(self.Areas[k] * d)
-    
+
     # Get normals and areas
     def GetCompAreaVector(self, compID, n=None):
         """
         Get the total area of a component, or get the total area of a component
         projected to a plane with a given normal vector.
-        
+
         :Call:
             >>> A = tri.GetCompArea(compID)
             >>> A = tri.GetCompArea(compID, n)
@@ -4939,11 +4939,11 @@ class TriBase(object):
         k = self.GetTrisFromCompID(compID)
         # Add up component areas
         return np.sum(self.AreaVectors[k], axis=0)
-    
+
     # Get normals and areas
     def GetCompNormal(self, compID):
         """Get the area-averaged unit normal of a component
-        
+
         :Call:
             >>> n = tri.GetCompNormal(compID)
         :Inputs:
@@ -4975,11 +4975,11 @@ class TriBase(object):
         n = np.mean(N, 0)
         # Unitize.
         return n / np.sqrt(np.sum(n**2))
-    
+
     # Get centroid of component
     def GetCompCentroid(self, compID):
         """Get the centroid of a component
-        
+
         :Call:
             >>> [x, y] = tri.GetCompCentroid(compID)
             >>> [x, y, z] = tri.GetCompCentroid(compID)
@@ -5034,14 +5034,14 @@ class TriBase(object):
             zc = np.sum(z*A) / AT
             # Output
             return np.array([xc, yc, zc])
-    
+
     # Function to add a bounding box based on a component and buffer
     def GetCompBBox(self, compID=None, **kwargs):
         """
         Find a bounding box based on the coordinates of a specified component
         or list of components, with an optional buffer or buffers in each
         direction
-        
+
         :Call:
             >>> xlim = tri.GetCompBBox(compID, **kwargs)
         :Inputs:
@@ -5109,11 +5109,11 @@ class TriBase(object):
         zmax = np.max(z) + zp
         # Return the list.
         return np.array([xmin, xmax, ymin, ymax, zmin, zmax])
-   
+
     # Get length of diagonal of BBox
     def GetCompScale(self, compID=None, **kw):
         """Get diagonal length of bounding box of a component(s)
-        
+
         :Call:
             >>> L = tri.GetCompScale(compID, **kw)
         :Inputs:
@@ -5140,11 +5140,11 @@ class TriBase(object):
         dz = BBox[5] - BBox[4]
         # Get the length
         return np.sqrt(dx*dx + dy*dy + dz*dz)
-            
+
    # }
-    
+
   # >
-    
+
   # ==================
   # Edge/Curve Tracing
   # ==================
@@ -5152,7 +5152,7 @@ class TriBase(object):
     # Get the closest node to a point
     def GetClosestNode(self, x):
         """Get the index of a node closest to a 3D point
-        
+
         :Call:
             >>> i, L = tri.GetClosestNode(x)
         :Inputs:
@@ -5178,11 +5178,11 @@ class TriBase(object):
         i = np.argmin(L)
         # Output
         return i + 1, L[i]
-        
+
     # Trace a curve
     def TraceCurve(self, Y, **kw):
         """Extract nodes along a piecewise linear curve
-        
+
         :Call:
             >>> X = tri.TraceCurve(Y, **kw)
         :Inputs:
@@ -5230,12 +5230,12 @@ class TriBase(object):
             return np.array([], dtype='int')
         # Return all indices
         return self.Nodes[I[:ni]-1,:]
-        
-        
+
+
     # Get next point on a curve
     def TraceCurve_NextNode(self, icur, Y, jcur, **kw):
         """Find the next node of the triangulation by following a curve
-        
+
         :Call:
             >>> inew, jnew = tri.TraceCurve_NextNode(icur, Y, jcur, **kw)
         :Inputs:
@@ -5324,11 +5324,11 @@ class TriBase(object):
         else:
             # No match
             return None, None
-        
+
     # Get distance from curve and arc length
     def TraceCurve_GetDistance(self, Y, x, **kw):
         """Find distance between a generic curve and a point
-        
+
         :Call:
             >>> d, ds, j = tri.TraceCurve_GetDistance(Y, x, **kw)
         :Inputs:
@@ -5374,7 +5374,7 @@ class TriBase(object):
         # Output
         return d, ds, j
   # >
-    
+
   # ========
   # Plotting
   # ========
@@ -5382,7 +5382,7 @@ class TriBase(object):
     # Create a 3-view of a component (or list of) using TecPlot
     def Tecplot3View(self, fname, i=None):
         """Create a 3-view PNG of a component(s) using TecPlot
-        
+
         :Call:
             >>> tri.Tecplot3View(fname, i=None)
         :Inputs:
@@ -5430,14 +5430,14 @@ class TriBase(object):
             if os.path.isfile(f):
                 # Delete it.
                 os.remove(f)
-    
+
     # Function to plot all components!
     def TecplotExplode(self):
         """
         Create a 3-view of each available named component in *tri.config* (read
         from :file:`Config.xml`) if available.  If not, create a 3-view plot for
         each *CompID*, e.g. :file:`1.png`, :file:`2.png`, etc.
-        
+
         :Call:
             >>> tri.Tecplot3View(fname, i=None)
         :Inputs:
@@ -5473,12 +5473,12 @@ class TriBase(object):
                 print("    %s.png" % i)
                 # Create the 3-view plot for just that CompID==i
                 self.Tecplot3View(i, i)
-        
-    
+
+
     # Create a surface view of a component using Paraview
     def ParaviewPlot(self, fname, i=None, r='x', u='y'):
         """Create a plot of the surface of one component using Paraview
-        
+
         :Call:
             >>> tri.ParaviewPlot(fname, i=None, r='x', u='y')
         :Inputs:
@@ -5524,9 +5524,9 @@ class TriBase(object):
             if os.path.isfile(f):
                 # Delete it.
                 os.remove(f)
-        
+
   # >
-    
+
   # =====================
   # Geometry Manipulation
   # =====================
@@ -5534,10 +5534,10 @@ class TriBase(object):
     # Function to translate the triangulation
     def Translate(self, *a, **kw):
         """Translate the nodes of a triangulation object
-            
+
         The offset coordinates may be specified as individual inputs or a
         single vector of three coordinates.
-        
+
         :Call:
             >>> tri.Translate(dR, compID)
             >>> tri.Translate(dx, dy, dz, compID=None)
@@ -5613,11 +5613,11 @@ class TriBase(object):
         Y = geom.TranslatePoints(X, [dx, dy, dz])
         # Save the translated points.
         self.Nodes[i,:] = Y
-        
+
     # Function to rotate a triangulation about an arbitrary vector
     def Rotate(self, v1, v2, theta, compID=None):
         """Rotate the nodes of a triangulation object.
-        
+
         :Call:
             >>> tri.Rotate(v1, v2, theta)
         :Inputs:
@@ -5644,21 +5644,21 @@ class TriBase(object):
         # Save the rotated points.
         self.Nodes[i,:] = Y
   # >
-    
+
 # class TriBase
 
 
 # Regular triangulation class
 class Tri(TriBase):
     """Cape surface mesh interface
-    
+
     This class provides an interface for a basic triangulation without
     surface data.  It can be created either by reading an ASCII file or
     specifying the data directly.
-    
+
     When no component numbers are specified, the object created will label
     all triangles ``1``.
-    
+
     :Call:
         >>> tri = cape.Tri(fname=fname, c=None)
         >>> tri = cape.Tri(surf=surf, c=None)
@@ -5710,7 +5710,7 @@ class Tri(TriBase):
     # Initialization method
     def __init__(self, fname=None, c=None, **kw):
         """Initialization method
-        
+
         :Versions:
             * 2014-05-23 ``@ddalle``: First version
             * 2014-06-02 ``@ddalle``: Added UH3D reading capability
@@ -5766,7 +5766,7 @@ class Tri(TriBase):
             # Save the quad definitions
             self.nQuad = nQuad
             self.Quads = Quads
-        
+
         # Check for configuration
         if 'xml' in kw:
             # Read a Config.xml type of file
@@ -5786,28 +5786,28 @@ class Tri(TriBase):
             self.ApplyConfig(self.config)
         except AttributeError:
             pass
-        
+
     # Method that shows the representation of a triangulation
     def __repr__(self):
         """Return the string representation of a triangulation.
-        
+
         This looks like ``<cape.tri.Tri(nNode=M, nTri=N)>``
-        
+
         :Versions:
             * 2014-05-27 ``@ddalle``: First version
         """
         return '<cape.tri.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
-    
+
 # class Tri
 
 
 # Regular triangulation class
 class Triq(TriBase):
     """Class for surface geometry with solution values at each point
-    
+
     This class is based on the concept of Cart3D ``triq`` files, which are also
     utilized by some Overflow utilities, including ``overint``.
-    
+
     :Call:
         >>> triq = cape.Triq(fname=fname, c=None)
         >>> triq = cape.Triq(Nodes=Nodes, Tris=Tris, CompID=CompID, q=q)
@@ -5856,7 +5856,7 @@ class Triq(TriBase):
     def __init__(self, fname=None, n=1, nNode=None, Nodes=None, c=None,
         nTri=None, Tris=None, CompID=None, nq=None, q=None):
         """Initialization method
-        
+
         :Versions:
             * 2014-05-23 ``@ddalle``: First version
             * 2014-06-02 ``@ddalle``: Added UH3D reading capability
@@ -5867,7 +5867,7 @@ class Triq(TriBase):
         if fname is not None:
             # Read from file.
             self.Read(fname, n=n)
-            
+
         else:
             # Process inputs.
             # Check counts.
@@ -5906,24 +5906,24 @@ class Triq(TriBase):
             self.nq = nq
             self.n = n
             self.q = q
-            
+
         # Check for configuration
         if c is not None:
             self.ReadConfig(c)
-        
+
     # Method that shows the representation of a triangulation
     def __repr__(self):
         """Return the string representation of a triangulation.
-        
+
         This looks like ``<cape.tri.Triq(nNode=M, nTri=N)>``
-        
+
         :Versions:
             * 2014-05-27 ``@ddalle``: First version
         """
         return '<cape.tri.Triq(nNode=%i, nTri=%i, nq=%i)>' % (
             self.nNode, self.nTri, self.nq)
   # >
-  
+
   # ================
   # Modified Writers
   # ================
@@ -5931,7 +5931,7 @@ class Triq(TriBase):
     # Function to write a .triq file
     def Write(self, fname, **kw):
         """Write a q-triangulation ``.triq`` file
-        
+
         :Call:
             >>> triq.Write(fname, **kw)
         :Inputs:
@@ -5940,13 +5940,13 @@ class Triq(TriBase):
             *fname*: :class:`str`
                 Name of triangulation file to write
             *b4*: ``True`` | {``False``}
-                Write single-precision big-endian 
+                Write single-precision big-endian
         :Versions:
             * 2015-09-14 ``@ddalle``: First version
         """
         self.WriteTriq(fname, **kw)
   # >
-    
+
   # =========
   # Averaging
   # =========
@@ -5954,7 +5954,7 @@ class Triq(TriBase):
     # Function to calculate weighted average.
     def WeightedAverage(self, triq):
         """Calculate weighted average with a second triangulation
-        
+
         :Call:
             >>> triq.WeightedAverage(triq2)
         :Inputs:
@@ -5983,7 +5983,7 @@ class Triq(TriBase):
         # Update count.
         self.n += triq.n
   # >
-  
+
   # ==============
   # Interpolation
   # ==============
@@ -5991,7 +5991,7 @@ class Triq(TriBase):
     # Interpolate state
     def InterpSurfPoint(self, x, **kw):
         """Interpolate *triq.q* to the nearest point on the surface
-        
+
         :Call:
             >>> x0, q = triq.InterpSurfPoint(x, **kw)
         :Inputs:
@@ -6033,7 +6033,7 @@ class Triq(TriBase):
         # Output
         return x0, q
   # >
-  
+
   # ============
   # Force/Moment
   # ============
@@ -6041,7 +6041,7 @@ class Triq(TriBase):
     # Calculate forces and moments
     def GetSkinFriction(self, comp=None, **kw):
         """Calculate vectors of pressure, momentum, and viscous forces on tris
-        
+
         :Call:
             >>> cf_x, cf_y, cf_z = triq.GetSkinFriction(comp=None, **kw)
         :Inputs:
@@ -6052,7 +6052,7 @@ class Triq(TriBase):
             *incm*, *momentum*: ``True`` | {``False``}
                 Include momentum (flow-through) forces in total
             *gauge*: {``True``} | ``False``
-                Calculate gauge forces (``True``) or absolute (``False``) 
+                Calculate gauge forces (``True``) or absolute (``False``)
             *save*: ``True`` | {``False``}
                 Store vectors of forces for each triangle as attributes
             *xMRP*: {``0.0``} | :class:`float`
@@ -6138,7 +6138,7 @@ class Triq(TriBase):
         # Store node indices for each tri
         T = self.Tris[K,:] - 1
         v0 = T[:,0]
-        v1 = T[:,1]        
+        v1 = T[:,1]
         v2 = T[:,2]
         # Handle to state variables
         Q = self.q
@@ -6248,12 +6248,12 @@ class Triq(TriBase):
         cf_z[IA] /= Af[IA]
         # Output
         return cf_x, cf_y, cf_z
-            
-            
+
+
     # Calculate forces and moments
     def GetTriForces(self, comp=None, **kw):
         """Calculate vectors of pressure, momentum, and viscous forces on tris
-        
+
         :Call:
             >>> C = triq.GetTriForces(comp=None, **kw)
         :Inputs:
@@ -6264,7 +6264,7 @@ class Triq(TriBase):
             *incm*, *momentum*: ``True`` | {``False``}
                 Include momentum (flow-through) forces in total
             *gauge*: {``True``} | ``False``
-                Calculate gauge forces (``True``) or absolute (``False``) 
+                Calculate gauge forces (``True``) or absolute (``False``)
             *save*: ``True`` | {``False``}
                 Store vectors of forces for each triangle as attributes
             *xMRP*: {``0.0``} | :class:`float`
@@ -6345,7 +6345,7 @@ class Triq(TriBase):
         # Store node indices for each tri
         T = self.Tris[K,:] - 1
         v0 = T[:,0]
-        v1 = T[:,1]        
+        v1 = T[:,1]
         v2 = T[:,2]
         # Extract the vertices of each tri.
         x = self.Nodes[T, 0]
@@ -6511,7 +6511,7 @@ class Triq(TriBase):
         Mvac = stackcol((Mcx,Mcy,Mcz))
         Mm = stackcol((Mmx,Mmy,Mmz))
         Mv = stackcol((Mvx,Mvy,Mvz))
-        # Add up forces 
+        # Add up forces
         if gauge:
             # Use *pinf* as reference pressure
             if incm:
@@ -6586,17 +6586,17 @@ class Triq(TriBase):
         C["CLNv"] = np.sum(Mv[:,2])
         # Output
         return C
-        
-  
+
+
   # >
-    
+
 # class Triq
 
 
 # Function to read .tri files
 def ReadTri(fname):
     """Read a basic triangulation file
-    
+
     :Call:
         >>> tri = cape.ReadTri(fname)
     :Inputs:
@@ -6614,12 +6614,12 @@ def ReadTri(fname):
     """
     # Create the tri object and return it.
     return Tri(fname)
-    
-    
+
+
 # Global function to write a triangulation (just calls tri method)
 def WriteTri(fname, tri):
     """Write a triangulation instance to file
-    
+
     :Call:
         >>> cape.WriteTri(fname, tri)
     :Inputs:
@@ -6637,4 +6637,4 @@ def WriteTri(fname, tri):
     tri.Write(fname)
     return None
 # def WriteTri
-    
+
