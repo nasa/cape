@@ -3348,6 +3348,17 @@ class Report(object):
             # Get the component and coefficient.
             comp = opts.get_SubfigOpt(sfig, "Component", k)
             coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
+            # Check for patch delimiter
+            if "/" in comp:
+                # Format: MPCV_Camera_patch/front
+                compo, patch = comp.split("/")
+            elif "." in comp:
+                # Format: MPCV_Camera_patch.front
+                compo, patch = comp.split(".")
+            else:
+                # Only comp given; use total of patches
+                compo = comp
+                patch = None
             # Read the component
             DBc = self.ReadDBComp(comp)
             # Get matches
@@ -3413,7 +3424,7 @@ class Report(object):
                 if DBTc is None:
                     print(
                         ("    Skipping target '%s': " % targ) +
-                        (" comp '%s' not in target" % comp))
+                        (" failed to read"))
                 # Target type
                 typt = opts.get_DataBookTargetType(targ).lower()
                 # Process type
@@ -3429,19 +3440,26 @@ class Report(object):
                             ("coeff '%s/%s' not in target" % (comp,coeff)))
                         continue
                 else:
+                    # Target coefficient
+                    if patch is None:
+                        # Simple comp/coeff pair
+                        ccoeff = coeff
+                    else:
+                        # Format the key lookup as pt.coeff
+                        ccoeff = "%s.%s" % (patch, coeff)
                     # Check *DBT* as a DBTarget
-                    if comp not in DBTc.ckeys:
+                    if compo not in DBTc.ckeys:
                         print(
                             ("    Skipping target '%s': " % targ) +
-                            ("comp '%s' not in target" % comp))
+                            ("comp '%s' not in target" % compo))
                         continue
-                    elif coeff in ["cp", "CP"] and "CLM" in DBTc.ckeys[comp]:
+                    elif ccoeff in ["cp", "CP"] and "CLM" in DBTc.ckeys[comp]:
                         # Can reconstruct a center of pressure (probably)
                         pass
-                    elif coeff not in DBTc.ckeys[comp]:
+                    elif ccoeff not in DBTc.ckeys[compo]:
                         print(
                             ("    Skipping target '%s': " % targ) +
-                            ("coeff '%s' not in target" % coeff))
+                            ("coeff '%s' not in target" % ccoeff))
                         continue
                 # Get any translation keys
                 xkeys = topts.get("Trajectory", {})
