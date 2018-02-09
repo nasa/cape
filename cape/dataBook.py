@@ -6441,8 +6441,19 @@ class DBTarget(DBBase):
             * 2015-05-30 ``@ddalle``: First version
             * 2015-12-14 ``@ddalle``: Added uncertainties
         """
+        # Check for patch delimiter
+        if "/" in comp:
+            # Format: Cp_ports.P001
+            compo, pt = comp.split("/")
+        elif "." in comp:
+            # Format: Cp_ports/P001
+            compo, pt = comp.split(".")
+        else:
+            # Only comp given; use total of point names
+            compo = comp
+            pt = None
         # List of keys available for this component
-        ckeys = self.ckeys.get(comp)
+        ckeys = self.ckeys.get(compo)
         # Check availability
         if (ckeys is None) or (coeff not in ckeys):
             # Check for special cases
@@ -6452,8 +6463,12 @@ class DBTarget(DBBase):
             else:
                 # Key not available
                 return
+        # Get point if applicable
+        if pt is not None:
+            # Add point/patch/whatever name
+            ccoeff = "%s.%s" % (pt, coeff)
         # Get the key
-        ckey = ckeys.get(coeff, coeff)
+        ckey = ckeys.get(ccoeff, coeff)
         # Get horizontal key.
         xk = kw.get('x')
         # Process this key to turn it into a trajectory column
