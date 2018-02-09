@@ -3416,10 +3416,12 @@ class Report(object):
                         (" comp '%s' not in target" % comp))
                 # Target type
                 typt = opts.get_DataBookTargetType(targ).lower()
+                # Process type
+                qdub = (typt in ['duplicate', 'cape']) or typt.startswith("py")
                 # Target options
                 topts = opts.get_DataBookTargetByName(targ)
                 # Check if the *comp*/*coeff* combination is available.
-                if typt in ['duplicate', 'cape', 'pycart', 'pyfun', 'pyover']:
+                if qdup:
                     # Check if we have the data
                     if (coeff not in DBTc) and (coeff not in ["cp","CP","CT"]):
                         print(
@@ -3467,7 +3469,7 @@ class Report(object):
                 # Apply non-default options
                 for k_i in kw_t: kw_l[k_i] = kw_t[k_i]
                 # Draw the plot
-                if typt in ['duplicate', 'cape', 'pycart', 'pyfun', 'pyover']:
+                if qdup:
                     # Separate object for each component
                     DBTc.PlotCoeff(coeff, JTj, x=xk,
                         XMRP=xmrp, DXMRP=dxmrp,
@@ -4752,8 +4754,10 @@ class Report(object):
             self.cntl.DataBook.ReadTarget(targ)
             # Get the target type
             ttype = self.cntl.opts.get_DataBookTargetType(targ)
+            # Check if this is a duplicate type
+            qdup = (ttype in ['cape','duplicate']) or ttype.startswith("py") 
             # Check for duplicate
-            if ttype not in ['cape', 'duplicate', 'pycart', 'pyfun', 'pyover']:
+            if not qdup:
                 # Just get the target
                 return self.cntl.DataBook.Targets[targ]
             # Otherwise, get handle to the data book target
@@ -4786,6 +4790,11 @@ class Report(object):
                 DB.ReadTriqFM(compo)
                 # Output
                 return DB.TriqFM[compo][patch]
+            elif tcomp in ["TriqPoint"]:
+                # Read the point group
+                DB.ReadTriqPoint(compo, pt=patch)
+                # Output
+                return DB.TriqPoint[compo][patch]
         except Exception:
             # Error if reading from data book
             if targ is None:
@@ -4924,78 +4933,55 @@ class Report(object):
         return DBF
         
     # Read a point sensor group
-    def ReadTriqPoint(self, grp, fsrc="data", targ=None):
+    def ReadTriqPoint(self, grp, pt,  targ=None):
         """Read a point sensor
         
         :Call:
-            >>> DBP = R.ReadTriqPoint(grp, fsrc="data", targ=None)
+            >>> DBP = R.ReadTriqPoint(grp, pt, targ=None)
         :Inputs:
             *R*: :class:`cape.report.Report`
                 Automated report interface
             *grp*: :class:`str`
                 Name of TriqPoint group
-            *fsrc*: {``"data"``} | ``"trajectory"`` | :class:`str`
-                Data book trajectory source
+            *pt*: :class:`str`
+                Name of the TriqPoint sensor
             *targ*: {``None``} | :class:`str`
                 Name of target data book, if any
         :Outputs:
             *DBF*: :class:`cape.pointSensor.DBTriqFM`
                 Point sensor group data book
         :Versions:
-            * 2018-02-05 ``@ddalle``: First version
+            * 2018-02-09 ``@ddalle``: First version
         """
         # Read the data book
         self.ReadDataBook(fsrc)
         # Check for target
         if targ is None:
             # Read the data book as approrpiate
-            self.cntl.DataBook.ReadTriqFM(comp)
+            self.cntl.DataBook.ReadTriqPoint(grp, pt)
             # Handle to data book
             DB = self.cntl.DataBook
             # Get a handle to the TriqFM data book
-            DBF = DB.TriqFM[comp]
+            DBP = DB.TriqPoint[grp][pt]
         else:
             # Read the Target
             self.cntl.DataBook.ReadTarget(targ)
             # Get target
             DB = self.cntl.DataBook.Targets[targ]
+            # Get the target type
+            ttype = self.cntl.opts.get_DataBookTargetType(targ)
+            # Check if this is a duplicate type
+            qdup = (ttype in ['cape','duplicate']) or ttype.startswith("py") 
+            # Check for duplicate
+            if not qdup:
+                # Just get the target
+                return DB
             # Read the TriqFM component
-            DB.ReadTriqFM(comp)
+            DB.ReadTriqPoint(grp, pt)
             # Get TriqFM data book
-            DBF = DB.TriqFM[comp]
-        # Check the source
-        try:
-            # See if a source has been marked
-            DBF.source
-        except AttributeError:
-            # Set default source
-            DBF.source = "none"
-        # Check the existing source
-        if fsrc == DBF.source:
-            # Everything is good
-            return DBF
-        elif DBF.source != "none":
-            # Previously read data book with opposite source
-            del DBF
-            del DB.TriqFM[comp]
-            # Reread the data book
-            DB.ReadTriqFM(comp)
-            # Update handle
-            DBF = DB.TriqFM[comp]
-            DBF.source = "none"
-        # Check the requested source.
-        if fsrc == "trajectory":
-            # Match the data book to the trajectory
-            DBF.MatchTrajectory()
-            # Save the data book source.
-            DBF.source = "trajectory"
-        else:
-            # Match the trajectory to the data book.
-            #DBF.UpdateTrajectory()
-            # Save the data book source.
-            DBF.source = "data"
+            DBP = DB.TriqPoint[grp][pt]
         # Output if desired
-        return DBF
+        return DBP
         
         
     # Read line loads

@@ -186,11 +186,11 @@ class DataBook(cape.dataBook.DataBook):
             os.chdir(fpwd)
     
     # Read TriqPoint components
-    def ReadTriqPoint(self, comp, check=False, lock=False):
+    def ReadTriqPoint(self, comp, check=False, lock=False, **kw):
         """Read a TriqPoint data book if not already present
         
         :Call:
-            >>> DB.ReadTriqPoint(comp)
+            >>> DB.ReadTriqPoint(comp, check=False, lock=False, **kw)
         :Inputs:
             *DB*: :class:`pyFun.dataBook.DataBook`
                 Instance of pyFun data book class
@@ -200,6 +200,10 @@ class DataBook(cape.dataBook.DataBook):
                 Whether or not to check LOCK status
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
+            *pts*: {``None``} | :class:`list` (:class:`str`)
+                List of points to read (default is read from *DB.opts*)
+            *pt*: {``None``} | :class:`str`
+                Individual point to read
         :Versions:
             * 2017-03-28 ``@ddalle``: First version
             * 2017-10-11 ``@ddalle``: From :func:`ReadTriqFM`
@@ -209,9 +213,28 @@ class DataBook(cape.dataBook.DataBook):
             self.TriqPoint
         except Exception:
             self.TriqPoint = {}
+        # Get point list
+        pts = kw.get("pts", kw.get("pt"))
+        # Check type
+        if pts is None:
+            # Default list
+            pts = self.opts.get_DBGroupPoints(comp)
+        elif type(pts).__name__ not in ["list", "ndarray"]:
+            # One point; convert to list
+            pts = [pts]
         # Try to access the TriqPoint database
         try:
-            self.TriqPoint[comp]
+            # Check if present
+            DBPG = self.TriqPoint[comp]
+            # Loop through points to check if they're present
+            for pt in pts:
+                # Check if present
+                if pt in DBPG:
+                    continue
+                # Otherwise/read it
+                DBPG.ReadPointSensor(pt)
+                # Add to the list
+                DBPG.pts.append(pt)
             # Confirm lock if necessary.
             if lock:
                 self.TriqPoint[comp].Lock()
@@ -221,7 +244,7 @@ class DataBook(cape.dataBook.DataBook):
             os.chdir(self.RootDir)
             # Read data book
             self.TriqPoint[comp] = pointSensor.DBTriqPointGroup(
-                self.x, self.opts, comp,
+                self.x, self.opts, comp, pts=pts,
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)

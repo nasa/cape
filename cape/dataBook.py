@@ -3612,7 +3612,12 @@ class DBBase(dict):
         # Default label starter
         try:
             # Name of component
-            dlbl = self.comp
+            try:
+                # In some cases *name* is more specific than
+                dlbl = self.name
+            except AttributeError:
+                # Component is usually there
+                dlbl = self.comp
         except AttributeError:
             # Backup default
             try:
@@ -6242,7 +6247,7 @@ class DBTarget(DBBase):
         # Get rid of trivial point/suffix names
         c = c.lstrip('/').lstrip('.').rstrip('_')
         # Assemble default column name
-        if pt and cf == "Cp" and "Cp" not in self.headers:
+        if pt and (cf.lower()=="cp") and ("Cp" not in self.headers):
             # Use the name of the point
             col = '%s_%s' % (pt, sfx)
         else:
@@ -6480,6 +6485,7 @@ class DBTarget(DBBase):
         kw['comp'] = comp
         # Call the base plot method
         return self.PlotCoeffBase(ckey, I, **kw)
+  # >
 # class DBTarget
 
 
