@@ -3417,7 +3417,7 @@ class Report(object):
                 # Target type
                 typt = opts.get_DataBookTargetType(targ).lower()
                 # Process type
-                qdub = (typt in ['duplicate', 'cape']) or typt.startswith("py")
+                qdup = (typt in ['duplicate', 'cape']) or typt.startswith("py")
                 # Target options
                 topts = opts.get_DataBookTargetByName(targ)
                 # Check if the *comp*/*coeff* combination is available.
