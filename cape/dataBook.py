@@ -3046,7 +3046,8 @@ class DBBase(dict):
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
         """
         # Initialize indices (assume all are matches)
-        j = np.arange(self.n)
+        n = len(self[self.keys()[0]])
+        J = np.arange(n) > -1
         # Get the trajectory key translations.   This determines which keys to
         # filter and what those keys are called in the source file.
         tkeys = topts.get('Trajectory', {})
@@ -3062,32 +3063,81 @@ class DBBase(dict):
         # Loop through keys requested for matches.
         for k in keys:
             # Get the name of the column according to the source file.
-            c = tkeys.get(k, k)
+            col = tkeys.get(k, k)
             # Skip it if key not recognized
-            if c is None: continue
+            if col is None: continue
             # Get the tolerance.
-            tol = tolopts.get(k)
-            # Get the target value (from the trajectory)
-            v = getattr(x,k)[i]
-            t = type(v).__name__
-            # Check type
-            if t.startswith('str') or t.startswith('unicode'):
-                continue
-            # Safe matching in case of complications
-            try:
-                # Check tolerance type
-                if tol is None:
-                    # Search for exact match
-                    jk = np.where(self[c] == v)[0]
-                else:
-                    # Search for match within tolerance (can be zero)
-                    jk = np.where(np.abs(self[c] - v) <= tol)[0]
-                # Restrict to rows that match the above.
-                j = np.intersect1d(j, jk)
-            except Exception:
-                pass
+            tol = tolopts.get(k, 0.0)
+            # Skip if tolerance blocked out
+            if tol is None: continue
+            
+            # Get target value
+            if k in x.keys:
+                # Directly available
+                v = getattr(x,k)[i]
+            elif k == "alpha":
+                # Get angle of attack
+                v = x.GetAlpha(i)
+            elif k == "beta":
+                # Get sideslip
+                v = x.GetBeta(i)
+            elif k in ["alpha_t", "aoav"]:
+                # Get total angle of attack
+                v = x.GetAlphaTotal(i)
+            elif k in ["phi", "phiv"]:
+                # Get velocity roll angle
+                v = x.GetPhi(i)
+            elif k in ["alpha_m", "aoam"]:
+                # Get maneuver angle of attack
+                v = x.GetAlphaManeuver(i)
+            elif k in ["phi_m", "phim"]:
+                # Get maneuver roll angle
+                v = x.GetPhiManeuver(i)
+                
+            # Get value
+            if col in self:
+                # Extract value
+                V = self[col]
+            elif (k == "alpha") or (col == "alpha"):
+                # Ensure trajectory matches
+                self.UpdateTrajectory()
+                # Get angle of attack
+                V = self.x.GetAlpha()
+            elif (k == "beta") or (col == "beta"):
+                # Get angle of sideslip
+                self.UpdateTrajectory()
+                V = self.x.GetBeta()
+            elif (k in ["alpha_t","aoav"]) or (col in ["alpha_t","aoav"]):
+                # Get maneuver angle of attack
+                self.UpdateTrajectory()
+                V = self.x.GetAlphaTotal()
+            elif (k in ["phi","phiv"]) or (col in ["phi","phiv"]):
+                # Get maneuver roll angle
+                self.UpdateTrajectory()
+                V = self.x.GetPhi()
+            elif (k in ["alpha_m","aoam"]) or (col in ["alpha_m","aoam"]):
+                # Get maneuver angle of attack
+                self.UpdateTrajectory()
+                V = self.x.GetAlphaManeuver()
+            elif (k in ["phi_m","phim"]) or (col in ["phi_m","phim"]):
+                # Get maneuver roll angle
+                self.UpdateTrajectory()
+                V = self.x.GetPhiManeuver()
+                
+            # Test
+            qk = np.abs(v-V) <= tol
+            # Check for special modifications
+            if k in ["phi", "phi_m", "phiv", "phim"]:
+                # Get total angle of attack
+                self.UpdateTrajectory()
+                aoav = self.x.GetAlphaTotal()
+                # Combine *phi* constraint with any *aoav==0* case
+                qk = np.logical_or(qk, np.abs(aoav)<=1e-10)
+            # Combine constraints
+            J = np.logical_and(J, qk)
+            
         # Output
-        return j
+        return np.where(J)[0]
         
     # Find data book match
     def FindDBMatch(self, DBc, i):
@@ -6015,7 +6065,7 @@ class DBTarget(DBBase):
         :Versions:
             * 2015-12-16 ``@ddalle``: First version
         """
-        return "<DBTarget '%s', n=%i>" % (self.Name, self.nCase)
+        return "<DBTarget '%s', n=%i>" % (self.Name, self.n)
     __str__ = __repr__
   # >
   
@@ -6104,7 +6154,7 @@ class DBTarget(DBBase):
         self.data = np.loadtxt(fname, delimiter=delimiter,
             skiprows=skiprows, dtype=float).transpose()
         # Save the number of cases.
-        self.nCase = len(self.data[0])
+        self.n = len(self.data[0])
 
     # Read data one column at a time
     def ReadDataByColumn(self, fname, delimiter=",", skiprows=0):
@@ -6139,7 +6189,7 @@ class DBTarget(DBBase):
             self.data.append(np.loadtxt(fname, delimiter=delimiter,
                 skiprows=skiprows, dtype=str, usecols=(i,)))
         # Number of cases
-        self.nCase = len(self.data[0])
+        self.n = len(self.data[0])
 
     
     # Read the columns and split into useful dict.
@@ -6320,7 +6370,7 @@ class DBTarget(DBBase):
             # Check for ``None``
             if (tk is None) or (tk not in self):
                 # Use NaN as the value.
-                setattr(self.x,k, np.nan*np.ones(self.nCase))
+                setattr(self.x,k, np.nan*np.ones(self.n))
                 # Set the value.
                 tkeys[k] = None
                 continue
@@ -6331,7 +6381,7 @@ class DBTarget(DBBase):
         # Save the key translations.
         self.xkeys = tkeys
         # Set the number of cases in the "trajectory."
-        self.x.nCase = self.nCase
+        self.x.nCase = self.n
         
     # Find an entry by trajectory variables.
     def FindMatch(self, x, i):
