@@ -2994,7 +2994,7 @@ class DBBase(dict):
             return np.nan
             
     # Find an entry using specified tolerance options
-    def FindTargetMatch(self, x, i, topts, keylist='x'):
+    def FindTargetMatch(self, x, i, topts, keylist='x', **kw):
         """Find a target entry by run matrix (trajectory) variables
         
         Cases will be considered matches by comparing variables specified in the
@@ -3024,10 +3024,10 @@ class DBBase(dict):
         to use is determined by the *keylist* input.
         
         :Call:
-            >>> j = DB.FindTargetMatch(x, i, topts, keylist='x')
+            >>> j = DBc.FindTargetMatch(x, i, topts, keylist='x', **kw)
         :Inputs:
-            *DBT*: :class:`cape.dataBook.DBTarget`
-                Instance of the Cape data book target data carrier
+            *DBc*: :class:`cape.dataBook.DBBase`
+                Instance of original databook
             *x*: :class:`cape.trajectory.Trajectory`
                 The current pyCart trajectory (i.e. run matrix)
             *i*: :class:`int`
@@ -3035,7 +3035,7 @@ class DBBase(dict):
             *topts*: :class:`dict` | :class:`cape.options.DataBook.DBTarget`
                 Criteria used to determine a match
             *keylist*: {``"x"``} | ``"tol"``
-                Default test key source: ``x.keys`` or ``topts.Tolerances`` 
+                Default test key source: ``x.keys`` or ``topts.Tolerances``
         :Outputs:
             *j*: :class:`numpy.ndarray` (:class:`int`)
                 Array of indices that match the trajectory within tolerances
