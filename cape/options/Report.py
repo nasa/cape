@@ -327,6 +327,41 @@ class Report(odict):
             "MinorGrid": None,
             "MinorGridStyle": {}
         }
+        # Histogram of deltas
+        self.defs['SweepDeltaHist'] = {
+            "Header": "",
+            "Position": "b",
+            "Alignment": "center",
+            "XAxis": None,
+            "Target": None,
+            "TargetLabel": None,
+            "Width": 0.5,
+            "FigWidth": 6,
+            "FigHeight": 4.5,
+            "Component": "entire",
+            "Coefficient": "CN",
+            "Delta": 0.0,
+            "StandardDeviation": 3.0,
+            "OutlierSigma": 7.0,
+            "Range": 4.0,
+            "ShowMu": True,
+            "ShowSigma": False,
+            "ShowDelta": False,
+            "MuFormat": "%.4f",
+            "DeltaFormat": "%.4f",
+            "SigmaFormat": "%.4f",
+            "PlotMean": True,
+            "HistOptions": {"facecolor": "c", "normed": True, "bins": 20},
+            "MeanOptions": {"color": "k", "lw": 2},
+            "StDevOptions": {"color": "b"},
+            "DeltaOptions": {"color": "r", "ls": "--"},
+            "Format": "pdf",
+            "DPI": 150,
+            "Grid": None,
+            "GridStyle": {},
+            "MinorGrid": None,
+            "MinorGridStyle": {}
+        }
         # Force or moment history
         self.defs['ContourCoeff'] = {
             "Header": "",

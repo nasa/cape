@@ -3035,6 +3035,7 @@ class DBBase(dict):
             *topts*: :class:`dict` | :class:`cape.options.DataBook.DBTarget`
                 Criteria used to determine a match
             *keylist*: {``"x"``} | ``"tol"``
+                Default test key source: ``x.keys`` or ``topts.Tolerances`` 
         :Outputs:
             *j*: :class:`numpy.ndarray` (:class:`int`)
                 Array of indices that match the trajectory within tolerances
@@ -3433,6 +3434,59 @@ class DBBase(dict):
         # Output (convert boolean array to indices)
         return np.where(J)[0]
         
+  # >
+  
+  # =============
+  # Statistics
+  # =============
+  # <
+   # ----------
+   # Deltas
+   # ----------
+   # [
+    # Get statistics on deltas for a subset
+    def GetDeltaStats(self, DBT, coeff, I, topts={}, **kw):
+        """Calculate statistics on differences between two databooks
+        
+        :Call:
+            >>> S = DBc.GetDeltaStats(DBT, coeff, I, topts=None, **kw)
+        :Inputs:
+            *DBc*: :class:`cape.dataBook.DBBase`
+                Component databook
+            *coeff*: :class:`str`
+                Name of coefficient on which to compute statistics
+            *I*: :class:`list` (:class:`int`)
+                Indices of cases/entries to consider
+            *topts*: {``{}``} | :class:`dict`
+                Dictionary of tolerances for variables in question
+            *keylist*: {``"x"``} | ``"tol"``
+                Default test key source: ``x.keys`` or ``topts.Tolerances`` 
+            *CombineTarget*: {``True``} | ``False``
+                For cases with multiple matches, compare to mean target value
+        :Outputs:
+            *S*: :class:`dict`
+                Dictionary of statistical results
+            *S["delta"]*: :class:`np.ndarray`
+                Array of deltas for each valid case
+            *S["n"]*: :class:`int`
+                Number
+            *S["mu"]*: :class:`float`
+                Mean of histogram
+        :Versions:
+            * 2018-02-12 ``@ddalle``: First version
+        """
+        # Default keys
+        keylist = kw.get("keylist", "x")
+        # Process mean target option
+        qmu = kw.get("CombineTarget", True)
+        # Initialize target indices
+        JT = []
+        # Loop through cases
+        for i in I:
+            # Find target
+            Ji = self.FindTargetMatch
+        
+   # ]
   # >
   
   # =====
@@ -6517,6 +6571,9 @@ class DBTarget(DBBase):
         if pt is not None:
             # Add point/patch/whatever name
             ccoeff = "%s.%s" % (pt, coeff)
+        else:
+            # Use name of coefficient directly
+            ccoeff = coeff
         # Get the key
         ckey = ckeys.get(ccoeff, coeff)
         # Get horizontal key.
