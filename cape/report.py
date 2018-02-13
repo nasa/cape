@@ -3791,14 +3791,12 @@ class Report(object):
                 # Default label
                 if len(ltarg) < i or (ltarg[i] is None):
                     ltarg[i] = targ
-        elif ntarg != 1:
+        elif ntarg < 1:
             raise ValueError("Cannot plot delta or range histogram " +
-                ("without exactly one target (received %s)" % ntarg))
+                ("without one or more target (received %s)" % ntarg))
         else:
-            # One target
-            targ = targs[0]
             # Read the target
-            DBT = self.ReadDBComp(comp, targ=targ)
+            DBT = [self.ReadDBComp(comp, targ=targ) for targ in targs]
         # Form and set universal options for histogram
         kw_h = {
             # Reference values

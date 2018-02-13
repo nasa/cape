@@ -4484,22 +4484,33 @@ class DBBase(dict):
        # -----------------
         # Check for a target
         DBT = kw.get("target", kw.get("DBT", kw.get("Target")))
+        # Figure out the "component" name
+        compo = self.comp
+        # Check for a point or group
+        pt = getattr(self, "name", getattr(self, "pt", None))
+        # Form total component name
+        if pt:
+            # Add component and point name
+            comp = "%s.%s" % (compo, pt)
+        else:
+            # Just a component (like STACK_No_Base)
+            comp = compo
         # Extract the values or statistics, as appropriate
         if DBT is None:
             # Extract the values
             V = self[coeff][I]
+        elif type(DBT).__name__ in ["list", "ndarray"]:
+            # Loop through lists until found
+            for DBTc in DBT:
+                # Attempt to calculate statistics
+                S = self.GetDeltaStats(DBTc, comp, coeff, I)
+                # Extract just the deltas
+                V = S["delta"]
+                V = V[np.logical_not(np.isnan(V))]
+                # Exit as soon as we find at least one matching case
+                if len(V) > 0: break
+                # (If no targets match, just use the last)
         else:
-            # Figure out the "component" name
-            compo = self.comp
-            # Check for a point or group
-            pt = getattr(self, "name", getattr(self, "pt", None))
-            # Form total component name
-            if pt:
-                # Add component and point name
-                comp = "%s.%s" % (compo, pt)
-            else:
-                # Just a component (like STACK_No_Base)
-                comp = compo
             # Get statistics
             S = self.GetDeltaStats(DBT, comp, coeff, I)
             # Extract just the deltas
