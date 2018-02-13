@@ -220,7 +220,7 @@ class Report(cape.report.Report):
             # Target options
             topts = self.cntl.opts.get_DataBookTargetByName(targ)
             # Find a match
-            J = DBL.FindTargetMatch(DB.x, i, topts)
+            J = DBL.FindTargetMatch(DB, i, topts, keylist='tol')
             # Check for a match
             if len(J) == 0: return None
             # Get the first match

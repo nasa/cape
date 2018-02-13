@@ -1381,6 +1381,9 @@ class Report(object):
         elif btyp == 'SweepCoeff':
             # Plot a coefficient sweep
             lines += self.SubfigSweepCoeff(sfig, fswp, I, q)
+        elif btyp == 'SweepCoeffHist':
+            # Plot a coefficient histogram
+            lines += self.SubfigSweepCoeffHist(sfig, fswp, I, q)
         elif btyp == 'ContourCoeff':
             # Contour plot of slice results
             lines += self.SubfigContourCoeff(sfig, fswp, I, q)
@@ -3283,9 +3286,9 @@ class Report(object):
             TolCons[kx] = CTol[kx]
         # Get list of targets
         targs = self.SubfigTargets(sfig)
-       # ----------------
+       # --------------
        # Format Options
-       # ----------------
+       # --------------
         # Horizontal axis variable
         xk = opts.get_SweepOpt(fswp, "XAxis")
         # List of coefficients
@@ -3666,6 +3669,225 @@ class Report(object):
         else:
             # Just use target
             return tlbl
+   # ]
+   
+   # --------------
+   # SweepCoeffHist
+   # --------------
+   # [
+    # Function to plot coefficient histogram for a sweep
+    def SubfigSweepCoeffHist(self, sfig, fswp, I, q):
+        """Plot a histogram of a coefficient over several cases
+        
+        :Call:
+            >>> R.SubfigSweepCoeffHist(sfig, fswp, I)
+        :Inputs:
+            *R*: :class:`cape.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of sfigure to update
+            *fswp*: :class:`str`
+                Name of sweep
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indices in the sweep
+            *q*: ``True`` | ``False``
+                Whether or not to redraw images
+        :Versions:
+            * 2016-01-16 ``@ddalle``: First version (SubfigSweepPointHist)
+            * 2018-02-13 ``@ddalle``: Generic coefficient histograms
+        """
+       # ------------------
+       # Options and Config
+       # ------------------
+        # Save current folder.
+        fpwd = os.getcwd()
+        # Apply case functions
+        self.SubfigFunction(sfig, I[0])
+        # Extract options and trajectory
+        x = self.cntl.DataBook.x
+        opts = self.cntl.opts
+        # Case folder
+        frun = x.GetFullFolderNames(I[0])
+        # Get the component.
+        comp = opts.get_SubfigOpt(sfig, "Component")
+        # Get the coefficient
+        coeff = opts.get_SubfigOpt(sfig, "Coefficient")
+        # Get histogram type
+        htyp = self.get_SubfigOpt(sfig, "HistogramType")
+       # --------------
+       # Format Options
+       # --------------
+        # Get caption
+        fcpt = opts.get_SubfigOpt(sfig, "Caption")
+        # Process default caption
+        if fcpt is None:
+            # Use the point name and the coefficient
+            fcpt = "%s.%s" % (comp.replace(".","/"), coeff)
+        # Ensure that there are not underscores.
+        fcpt = fcpt.replace("_", "\_")
+        # Initialize subfigure
+        lines = self.SubfigInit(sfig)
+        # Check for image update
+        if not q:
+            # File name to check for
+            fpdf = '%s.pdf' % sfig
+            # Check for the file
+            if os.path.isfile(fpdf):
+                # Include the graphics.
+                lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                    % (frun, fpdf))
+            # Set the caption.
+            lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
+            # Close the subfigure.
+            lines.append('\\end{subfigure}\n')
+            # Output
+            return lines
+       # --------
+       # Plotting
+       # --------
+        # Get the component and coefficient.
+        comp = opts.get_SubfigOpt(sfig, "Component", k)
+        coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
+        # Check for patch delimiter
+        if "/" in comp:
+            # Format: MPCV_Camera_patch/front
+            compo, patch = comp.split("/")
+        elif "." in comp:
+            # Format: MPCV_Camera_patch.front
+            compo, patch = comp.split(".")
+        else:
+            # Only comp given; use total of patches
+            compo = comp
+            patch = None
+        # Read the component
+        DBc = self.ReadDBComp(comp)
+        # Get the targets
+        targs = self.SubfigTargets(sfig)
+        # Number of targets
+        ntarg = len(targs)
+        # Target labels
+        ltarg = opts.get_SubfigOpt(sfig, "TargetLabel")
+        # Process targets according to histogram type
+        if htype.lower() == "value":
+            # Ensure list
+            if type(ltarg).__name__ != 'list':
+                ltarg = [ltarg]
+            # Initialize target values
+            vtarg = []
+            # Loop through targets.
+            for i in range(ntarg):
+                # Select the target
+                targ = targs[i]
+                # Get the target handle.
+                DBT = self.ReadDBComp(comp, targ=targ)
+                # Get the target co-sweep
+                jt = DBc.FindTargetMatch(DBT, I[0], {}, keylist="tol")
+                # Check for match
+                if len(jt) == 0:
+                    # No value to match
+                    vtarg.append(None)
+                # Otherwise, get the mean value
+                vtarg.append(np.mean(DBT.GetCoeff(comp, coeff, jt)))
+                # Default label
+                if len(ltarg) < i or (ltarg[i] is None):
+                    ltarg[i] = targ
+        elif ntarg != 1:
+            raise ValueError("Cannot plot delta or range histogram " +
+                ("without exactly one target (received %s)" % ntarg))
+        else:
+            # One target
+            targ = targs[0]
+            # Read the target
+            DBT = self.ReadDBComp(comp, targ=targ)
+        # Form and set universal options for histogram
+        kw_h = {
+            # Reference values
+            "StDev":           opts.get_SubfigOpt(sfig, "StandardDeviation"),
+            "Delta":           opts.get_SubfigOpt(sfig, "Delta"),
+            "PlotMu":          opts.get_SubfigOpt(sfig, "PlotMu"),
+            "OutlierSigma":    opts.get_SubfigOpt(sfig, "OutlierSigma"),
+            "Range":           opts.get_SubfigOpt(sfig, "Range"),
+            # Plot label information
+            "Label":           opts.get_SubfigOpt(sfig, "Label"),
+            "TargetLabel":     ltarg,
+            # Axis labels
+            "XLabel":          opts.get_SubfigOpt(sfig, "XLabel"),
+            "YLabel":          opts.get_SubfigOpt(sfig, "YLabel"),
+            # Figure dimensions
+            "FigureWidth":     opts.get_SubfigOpt(sfig, "FigWidth"),
+            "FigureHeight":    opts.get_SubfigOpt(sfig, "FigHeight"),
+            # Text labels of reference values
+            "ShowMu":          opts.get_SubfigOpt(sfig, "ShowMu"),
+            "ShowSigma":       opts.get_SubfigOpt(sfig, "ShowSigma"),
+            "ShowDelta":       opts.get_SubfigOpt(sfig, "ShowDelta"),
+            "ShowTarget":      opts.get_SubfigOpt(sfig, "ShowTarget"),
+            # Format flags
+            "MuFormat":        opts.get_SubfigOpt(sfig, "MuFormat"),
+            "SigmaFormat":     opts.get_SubfigOpt(sfig, "SigmaFormat"),
+            "DeltaFormat":     opts.get_SubfigOpt(sfig, "DeltaFormat"),
+            "TargetFormat":    opts.get_SubfigOpt(sfig, "TargetFormat"),
+            # Alternative labels
+            "MuLabel":         opts.get_SubfigOpt(sfig, "MuLabel"),
+            "SigmaLabel":      opts.get_SubfigOpt(sfig, "SigmaLabel"),
+            # Extra plotting switches
+            "PlotGaussian":    opts.get_SubfigOpt(sfig, "PlotGaussian"),
+            "PlotMean":        opts.get_SubfigOpt(sfig, "PlotMean"),
+            "PlotSigma":       opts.get_SubfigOpt(sfig, "PlotSigma"),
+            # Plot options
+            "HistOptions":     opts.get_SubfigOpt(sfig, "HistOptions"),
+            "MeanOptions":     opts.get_SubfigOpt(sfig, "MeanOptions"),
+            "StDevOptions":    opts.get_SubfigOpt(sfig, "StDevOptions"),
+            "DeltaOptions":    opts.get_SubfigOpt(sfig, "DeltaOptions"),
+            "TargetOptions":   opts.get_SubfigOpt(sfig, "TargetOptions"),
+            "GaussianOptions": opts.get_SubfigOpt(sfig, "GaussianOptions"),
+        }
+        # Non-default options
+        if htype.lower() == "value":
+            # Set the *TargetValue*
+            kw_h["TargetValue"]  = vtarg
+        else:
+            # Delta histogram
+            # Add the target as a keyword input
+            kw_h["Target"] = DBT
+        # Plot the histogram with labels
+        h = DBc.PlotHist(coeff, I, **kw_h)
+       # ------------
+       # Finalization
+       # ------------
+        # Apply other options to axes
+        self.SubfigFormatAxes(sfig, h['ax'])
+        # Change back to report folder.
+        os.chdir(fpwd)
+        # Get the file formatting
+        fmt = opts.get_SubfigOpt(sfig, "Format")
+        dpi = opts.get_SubfigOpt(sfig, "DPI")
+        # Figure name
+        fimg = '%s.%s' % (sfig, fmt)
+        # PDF version
+        fpdf = '%s.pdf' % sfig
+        # Save the figure.
+        if fmt.lower() in ['pdf']:
+            # Save as vector-based image
+            h['fig'].savefig(fimg)
+        elif fmt.lower() in ['svg']:
+            # Save as SVG and PDF
+            h['fig'].savefig(fimg)
+            h['fig'].savefig(fpdf)
+        else:
+            # Save with resolution.
+            h['fig'].savefig(fimg, dpi=dpi)
+            h['fig'].savefig(fpdf)
+        # Close the figure.
+        h['fig'].clf()
+        # Include the graphics.
+        lines.append('\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
+            % (fswp, frun, fpdf))
+        # Set the caption.
+        lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
+        # Close the subfigure.
+        lines.append('\\end{subfigure}\n')
+        # Output
+        return lines
    # ]
    
    # ------------
@@ -5060,7 +5282,7 @@ class Report(object):
             # Update the trajectory
             DBL.UpdateTrajectory()
             # Find a match
-            J = DBL.FindTargetMatch(DB.x, i, topts, keylist='tol')
+            J = DBL.FindTargetMatch(DB, i, topts, keylist='tol')
             # Check for a match
             if len(J) == 0:
                 print(

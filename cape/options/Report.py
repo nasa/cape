@@ -328,7 +328,8 @@ class Report(odict):
             "MinorGridStyle": {}
         }
         # Histogram of deltas
-        self.defs['SweepDeltaHist'] = {
+        self.defs['SweepCoeffHist'] = {
+            "HistogramType": "Delta",
             "Header": "",
             "Position": "b",
             "Alignment": "center",
@@ -351,10 +352,12 @@ class Report(odict):
             "DeltaFormat": "%.4f",
             "SigmaFormat": "%.4f",
             "PlotMean": True,
-            "HistOptions": {"facecolor": "c", "normed": True, "bins": 20},
+            "PlotGaussian": False,
+            "HistOptions": {"facecolor": "c", "bins": 20},
             "MeanOptions": {"color": "k", "lw": 2},
             "StDevOptions": {"color": "b"},
             "DeltaOptions": {"color": "r", "ls": "--"},
+            "GaussianOptions": {"color": "navy", "lw": 1.5},
             "Format": "pdf",
             "DPI": 150,
             "Grid": None,

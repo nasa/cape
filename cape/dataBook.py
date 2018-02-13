@@ -1444,7 +1444,7 @@ class DataBook(dict):
         return DBc.FindMatch(i)
             
     # Find an entry using specified tolerance options
-    def FindTargetMatch(self, x, i, topts, keylist='x'):
+    def FindTargetMatch(self, DBT, i, topts, keylist='tol', **kw):
         """Find a target entry by run matrix (trajectory) variables
         
         Cases will be considered matches by comparing variables specified in the
@@ -1474,17 +1474,20 @@ class DataBook(dict):
         to use is determined by the *keylist* input.
         
         :Call:
-            >>> j = DB.FindTargetMatch(x, i, topts, keylist='x')
+            >>> j = DB.FindTargetMatch(DBT, i, topts, keylist='tol', **kw)
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
                 Instance of the Cape data book class
-            *x*: :class:`cape.trajectory.Trajectory`
-                The current pyCart trajectory (i.e. run matrix)
+            *DBT*: :class:`cape.dataBook.DBBase` | :class:`DBTarget`
+                Target component databook
             *i*: :class:`int`
                 Index of the case from the trajectory to try match
             *topts*: :class:`dict` | :class:`cape.options.DataBook.DBTarget`
                 Criteria used to determine a match
-            *keylist*: {``"x"``} | ``"tol"``
+            *keylist*: ``"x"`` | {``"tol"``}
+                Source for default list of keys
+            *source*: {``"self"``} | ``"target"``
+                Match *DB* case *i* or *DBT* case *i*
         :Outputs:
             *j*: :class:`numpy.ndarray` (:class:`int`)
                 Array of indices that match the trajectory within tolerances
@@ -1493,11 +1496,12 @@ class DataBook(dict):
             * :func:`cape.dataBook.DBBase.FindMatch`
         :Versions:
             * 2016-02-27 ``@ddalle``: Added as a pointer to first component
+            * 2018-02-12 ``@ddalle``: First input *x* -> *DBT*
         """
         # Get first component
         DBc = self.GetRefComponent()
         # Use its finder
-        return DBc.FindTargetMatch(x, i, topts, keylist=keylist)
+        return DBc.FindTargetMatch(DBT, i, topts, keylist=keylist, **kw)
             
     
         
@@ -2717,6 +2721,84 @@ class DBBase(dict):
         os.chdir(fpwd)
   # >
   
+  # ======
+  # Data
+  # ======
+  # <
+    # Get a value
+    def GetCoeff(self, comp, coeff, I, **kw):
+        """Get a coefficient value for one or more cases
+        
+        :Call:
+            >>> v = DBT.GetCoeff(comp, coeff, i)
+            >>> V = DBT.GetCoeff(comp, coeff, I)
+        :Inputs:
+            *DBT*: :class:`cape.dataBook.DBTarget`
+                Instance of the Cape data book target class
+            *comp*: :class:`str`
+                Component whose coefficient is being plotted
+            *coeff*: :class:`str`
+                Coefficient being plotted
+            *i*: :class:`int`
+                Individual case/entry index
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indexes of cases to include in sweep
+        :Outputs:
+            *v*: :class:`float`
+                Scalar value from the appropriate column
+            *V*: :class:`np..ndarray`
+                Array of values from the appropriate column
+        :Versions:
+            * 2018-02-12 ``@ddalle``: First version
+        """
+        # Check for patch delimiter
+        if "/" in comp:
+            # Format: Cp_ports.P001
+            compo, pt = comp.split("/")
+        elif "." in comp:
+            # Format: Cp_ports/P001
+            compo, pt = comp.split(".")
+        else:
+            # Only comp given; use total of point names
+            compo = comp
+            pt = None
+        # Check the component
+        try:
+            # Check if the component equals *compo*
+            if self.comp != compo:
+                raise ValueError(
+                    ("DataBook component is '%s'; " % self.comp) +
+                    ("cannot match '%s'" % compo))
+        except AttributeError:
+            # Could not find component
+            pass
+        # Check the point/name
+        try:
+            # Try the *name* attribute
+            name = self.name
+        except AttributeError:
+            # Try the *pt*
+            try:
+                name = self.pt
+            except AttributeError:
+                name = None
+        # Get point if applicable
+        if pt is not None:
+            # Compare the point
+            if pt != name:
+                raise ValueError(
+                    ("DataBook name is '%s'; " % name) +
+                    ("cannot match '%s'" % pt))
+            # Add point/patch/whatever name
+            ccoeff = "%s.%s" % (pt, coeff)
+        else:
+            # Use name of coefficient directly
+            ccoeff = coeff
+        # Get the value
+        return self[coeff][I]
+        
+  # >
+  
   # ==============
   # Organization
   # ==============
@@ -2994,7 +3076,7 @@ class DBBase(dict):
             return np.nan
             
     # Find an entry using specified tolerance options
-    def FindTargetMatch(self, x, i, topts, keylist='x', **kw):
+    def FindTargetMatch(self, DBT, i, topts={}, keylist='tol', **kw):
         """Find a target entry by run matrix (trajectory) variables
         
         Cases will be considered matches by comparing variables specified in the
@@ -3024,18 +3106,20 @@ class DBBase(dict):
         to use is determined by the *keylist* input.
         
         :Call:
-            >>> j = DBc.FindTargetMatch(x, i, topts, keylist='x', **kw)
+            >>> j = DBc.FindTargetMatch(DBT, i, topts, keylist='x', **kw)
         :Inputs:
-            *DBc*: :class:`cape.dataBook.DBBase`
+            *DBc*: :class:`cape.dataBook.DBBase` | :class:`DBTarget`
                 Instance of original databook
-            *x*: :class:`cape.trajectory.Trajectory`
-                The current pyCart trajectory (i.e. run matrix)
+            *DBT*: :class:`DBBase` | :class:`DBTarget`
+                Target databook of any type
             *i*: :class:`int`
-                Index of the case from the trajectory to try match
+                Index of the case either from *DBc.x* for *DBT.x* to match
             *topts*: :class:`dict` | :class:`cape.options.DataBook.DBTarget`
                 Criteria used to determine a match
             *keylist*: {``"x"``} | ``"tol"``
                 Default test key source: ``x.keys`` or ``topts.Tolerances``
+            *source*: ``"self"`` | {``"target"``}
+                Match *DBc.x* case *i* if ``"self"``, else *DBT.x* case *i*
         :Outputs:
             *j*: :class:`numpy.ndarray` (:class:`int`)
                 Array of indices that match the trajectory within tolerances
@@ -3045,93 +3129,130 @@ class DBBase(dict):
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
+            * 2018-02-12 ``@ddalle``: Changed first input to :class:`DBBase`
         """
+        # Assign source and target
+        if kw.get("source", "self").lower() in ["target", "targ"]:
+            # Match self.x[j] to DBT.x[i]
+            DB1 = DBT
+            DB2 = self
+        else:
+            # Match DBT.x[j] to self.x[j]
+            DB1 = self
+            DB2 = DBT
         # Initialize indices (assume all are matches)
-        n = len(self[self.keys()[0]])
+        n = len(DB2[DB2.keys()[0]])
         J = np.arange(n) > -1
+        # Interpret trajectory options for both databooks
+        try:
+            topts1 = DB1.topts
+        except Exception:
+            topts1 = topts
+        try:
+            topts2 = DB2.topts
+        except Exception:
+            topts2 = topts
         # Get the trajectory key translations.   This determines which keys to
         # filter and what those keys are called in the source file.
-        tkeys = topts.get('Trajectory', {})
+        tkeys1 = topts1.get('Trajectory', {})
+        tkeys2 = topts2.get('Trajectory', {})
         # Tolerance options
-        tolopts = topts.get('Tolerances', {})
+        tolopts1 = topts1.get('Tolerances', {})
+        tolopts2 = topts2.get('Tolerances', {})
+        # Extract trajectories
+        x1 = DB1.x
+        x2 = DB2.x
+        # Ensure target trajectory corresponds to its contents
+        DB1.UpdateTrajectory()
+        DB2.UpdateTrajectory()
         # Get list of keys to match
         if keylist.lower() == 'x':
             # Use all trajectory keys as default
-            keys = topts.get('Keys', x.keys)
+            keys = topts.get('Keys', DB1.x.keys)
         else:
             # Use the tolerance keys
-            keys = topts.get('Keys', tolopts.keys())
+            keys = topts.get('Keys', tolopts2.keys())
         # Loop through keys requested for matches.
         for k in keys:
             # Get the name of the column according to the source file.
-            col = tkeys.get(k, k)
+            col1 = tkeys1.get(k, k)
+            col2 = tkeys2.get(k, k)
             # Skip it if key not recognized
-            if col is None: continue
+            if col1 is None: continue
+            if col2 is None: continue
             # Get the tolerance.
-            tol = tolopts.get(k, 0.0)
+            tol1 = tolopts1.get(k, 0.0)
+            tol2 = tolopts2.get(k, 0.0)
             # Skip if tolerance blocked out
-            if tol is None: continue
+            if tol1 is None: continue
+            if tol2 is None: continue
+            # Use maximum tolerance
+            tol = max(tol1, tol2)
+            # Check key type (don't filter strings)
+            v1 = x1.defns.get(k,{}).get("Value", "float")
+            v2 = x2.defns.get(k,{}).get("Value", "float")
+            # Check for string/unicode
+            if v1 in ["str", "unicode"]: continue
+            if v2 in ["str", "unicode"]: continue
             
             # Get target value
-            if k in x.keys:
+            if col1 in DB1:
+                # Take value from column
+                v = DB1[col1][i]
+            if k in x1.keys:
                 # Directly available
-                v = getattr(x,k)[i]
+                v = getattr(x1,k)[i]
             elif k == "alpha":
                 # Get angle of attack
-                v = x.GetAlpha(i)
+                v = x1.GetAlpha(i)
             elif k == "beta":
                 # Get sideslip
-                v = x.GetBeta(i)
+                v = x1.GetBeta(i)
             elif k in ["alpha_t", "aoav"]:
                 # Get total angle of attack
-                v = x.GetAlphaTotal(i)
+                v = x1.GetAlphaTotal(i)
             elif k in ["phi", "phiv"]:
                 # Get velocity roll angle
-                v = x.GetPhi(i)
+                v = x1.GetPhi(i)
             elif k in ["alpha_m", "aoam"]:
                 # Get maneuver angle of attack
-                v = x.GetAlphaManeuver(i)
+                v = x1.GetAlphaManeuver(i)
             elif k in ["phi_m", "phim"]:
                 # Get maneuver roll angle
-                v = x.GetPhiManeuver(i)
+                v = x1.GetPhiManeuver(i)
                 
             # Get value
-            if col in self:
+            if col2 in DB2:
                 # Extract value
-                V = self[col]
-            elif (k == "alpha") or (col == "alpha"):
-                # Ensure trajectory matches
-                self.UpdateTrajectory()
+                V = DB2[col2]
+            elif k in x2.keys:
+                # Available in the trajectory
+                V = getattr(x2,k)
+            elif (k == "alpha"):
                 # Get angle of attack
-                V = self.x.GetAlpha()
-            elif (k == "beta") or (col == "beta"):
+                V = x2.GetAlpha()
+            elif (k == "beta"):
                 # Get angle of sideslip
-                self.UpdateTrajectory()
-                V = self.x.GetBeta()
-            elif (k in ["alpha_t","aoav"]) or (col in ["alpha_t","aoav"]):
+                V = x2.GetBeta()
+            elif (k in ["alpha_t","aoav"]):
+                # Get total angle of attack
+                V = x2.GetAlphaTotal()
+            elif (k in ["phi","phiv"]):
+                # Get velocity roll angle
+                V = x2.GetPhi()
+            elif (k in ["alpha_m","aoam"]):
                 # Get maneuver angle of attack
-                self.UpdateTrajectory()
-                V = self.x.GetAlphaTotal()
-            elif (k in ["phi","phiv"]) or (col in ["phi","phiv"]):
+                V = x2.GetAlphaManeuver()
+            elif (k in ["phi_m","phim"]):
                 # Get maneuver roll angle
-                self.UpdateTrajectory()
-                V = self.x.GetPhi()
-            elif (k in ["alpha_m","aoam"]) or (col in ["alpha_m","aoam"]):
-                # Get maneuver angle of attack
-                self.UpdateTrajectory()
-                V = self.x.GetAlphaManeuver()
-            elif (k in ["phi_m","phim"]) or (col in ["phi_m","phim"]):
-                # Get maneuver roll angle
-                self.UpdateTrajectory()
-                V = self.x.GetPhiManeuver()
+                V = x2.GetPhiManeuver()
                 
             # Test
             qk = np.abs(v-V) <= tol
             # Check for special modifications
             if k in ["phi", "phi_m", "phiv", "phim"]:
                 # Get total angle of attack
-                self.UpdateTrajectory()
-                aoav = self.x.GetAlphaTotal()
+                aoav = x2.GetAlphaTotal()
                 # Combine *phi* constraint with any *aoav==0* case
                 qk = np.logical_or(qk, np.abs(aoav)<=1e-10)
             # Combine constraints
@@ -3445,7 +3566,7 @@ class DBBase(dict):
    # ----------
    # [
     # Get statistics on deltas for a subset
-    def GetDeltaStats(self, DBT, coeff, I, topts={}, **kw):
+    def GetDeltaStats(self, DBT, comp, coeff, I, topts={}, **kw):
         """Calculate statistics on differences between two databooks
         
         :Call:
@@ -3481,10 +3602,63 @@ class DBBase(dict):
         qmu = kw.get("CombineTarget", True)
         # Initialize target indices
         JT = []
+        # Initialize deltas
+        D = []
+        # Initialize count
+        n = 0
         # Loop through cases
         for i in I:
             # Find target
-            Ji = self.FindTargetMatch
+            Ji = self.FindTargetMatch(DBT, i, topts, keylist="tol")
+            # Get the value
+            v = self.GetCoeff(comp, coeff, i)
+            # Number of matches
+            ni = len(Ji)
+            # Count
+            n += ni
+            # Save entries
+            for j in Ji:
+                JT.append([i, j])
+            # Process targets
+            if qmu:
+                # Check number of matches
+                if ni == 0:
+                    # Save a NaN
+                    D.append(np.nan)
+                elif ni == 1:
+                    # Get the target value
+                    w = DBT.GetCoeff(comp, coeff, j)
+                    # Save the value
+                    D.append(v - w)
+                else:
+                    # Get the target values
+                    w = np.mean(DBT.GetCoeff(comp, coeff, Ji))
+                    # Save the delta
+                    D.append(v - w)
+            else:
+                # Check number of matches
+                if ni == 0:
+                    # No match
+                    continue
+                else:
+                    # Get all values
+                    W = DBT.GetCoeff(comp, coeff, J)
+                    # Append each
+                    for w in W:
+                        D.append(v - w)
+        # Create array
+        D = np.array(D)
+        JT = np.array(JT)
+        # Form output
+        return {
+            "mu": np.mean(D),
+            "delta": D,
+            "index": JT,
+            "n": n
+        }
+                    
+                    
+                
         
    # ]
   # >
@@ -4297,16 +4471,40 @@ class DBBase(dict):
             * 2015-12-14 ``@ddalle``: Added error bars
             * 2016-04-04 ``@ddalle``: Moved from point sensor to data book
         """
-        # -----------
-        # Preparation
-        # -----------
+       # -----------
+       # Preparation
+       # -----------
         # Make sure the plotting modules are present.
         ImportPyPlot()
         # Figure dimensions
         fw = kw.get('FigWidth', 6)
         fh = kw.get('FigHeight', 4.5)
-        # Extract the values
-        V = self[coeff][I]
+       # -----------------
+       # Statistics/Values
+       # -----------------
+        # Check for a target
+        DBT = kw.get("target", kw.get("DBT", kw.get("Target")))
+        # Extract the values or statistics, as appropriate
+        if DBT is None:
+            # Extract the values
+            V = self[coeff][I]
+        else:
+            # Figure out the "component" name
+            compo = self.comp
+            # Check for a point or group
+            pt = getattr(self, "name", getattr(self, "pt", None))
+            # Form total component name
+            if pt:
+                # Add component and point name
+                comp = "%s.%s" % (compo, pt)
+            else:
+                # Just a component (like STACK_No_Base)
+                comp = compo
+            # Get statistics
+            S = self.GetDeltaStats(DBT, comp, coeff, I)
+            # Extract just the deltas
+            V = S["delta"]
+            V = V[np.logical_not(np.isnan(V))]
         # Calculate basic statistics
         vmu = np.mean(V)
         vstd = np.std(V)
@@ -4321,6 +4519,9 @@ class DBBase(dict):
             # Recompute statistics
             vmu = np.mean(V)
             vstd = np.std(V)
+       # ------------
+       # More Options
+       # ------------
         # Uncertainty options
         ksig = kw.get('StDev')
         # Reference delta
@@ -4336,16 +4537,20 @@ class DBBase(dict):
         # Create appropriate target list for 
         if type(ltarg).__name__ not in ['list', 'tuple', 'ndarray']:
             ltarg = [ltarg]
-        # --------
-        # Plotting
-        # --------
+       # --------
+       # Plotting
+       # --------
         # Initialize dictionary of handles.
         h = {}
-        # --------------
-        # Histogram Plot
-        # --------------
+       # --------------
+       # Histogram Plot
+       # --------------
         # Initialize plot options for histogram.
         kw_h = odict(facecolor='c', zorder=2, bins=20)
+        # Apply *Label* option if present
+        lbl = kw.get("Label")
+        if lbl:
+            kw_h["label"] = lbl
         # Extract options from kwargs
         for k in util.denone(kw.get("HistOptions", {})):
             # Override the default option.
@@ -4368,18 +4573,51 @@ class DBBase(dict):
             kw_h['range'] = (vmin, vmax)
         # Plot the historgram.
         h['hist'] = plt.hist(V, **kw_h)
+       # -------------
+       # Gaussian Plot
+       # -------------
+        # Check whether or not to plot it
+        if q_normed and kw.get("PlotGaussian"):
+            # Initialize options for guassian plot
+            kw_g = odict(color='navy', lw=1.5, zorder=7)
+            kw_g["label"] = "Normal distribution"
+            # Extract options from kwargs
+            for k in util.denone(kw.get("GaussianOptions", {})):
+                # Override the default option.
+                if kw["GaussianOptions"][k] is not None:
+                    kw_g[k] = kw["GaussianOptions"][k]
+            # Lookup probabilities
+            xval = np.linspace(xmin, xmax, 151)
+            # Compute Gaussian distribution
+            yval = 1/(vstd*np.sqrt(2*np.pi))*np.exp(-0.5*((xval-vmu)/vstd)**2)
+            # Check orientation
+            if q_vert:
+                # Plot a vertical line for the mean.
+                h['mean'] = plt.plot(xval, yval, **kw_g)
+            else:
+                # Plot a horizontal line for th emean.
+                h['mean'] = plt.plot(yval, xval, **kw_g)
+       # ------------
+       # Axes Handles
+       # ------------
         # Get the figure and axes.
         h['fig'] = plt.gcf()
         h['ax'] = plt.gca()
-        # Get current axis limits
-        pmin, pmax = h['ax'].get_ylim()
+        ax = h['ax']
         # Determine whether or not the distribution is normed
-        q_normed = kw_h.get("normed", True)
+        q_normed = kw_h.get("normed", kw_h.get("density", False))
         # Determine whether or not the bars are vertical
         q_vert = kw_h.get("orientation", "vertical") == "vertical"
-        # ---------
-        # Mean Plot
-        # ---------
+        # Get current axis limits
+        if q_vert:
+            xmin, xmax = ax.get_xlim()
+            pmin, pmax = ax.get_ylim()
+        else:
+            xmin, xmax = ax.get_ylim()
+            pmin, pmax = ax.get_xlim()
+       # ---------
+       # Mean Plot
+       # ---------
         # Option whether or not to plot mean as vertical line.
         if kw.get("PlotMean", True):
             # Initialize options for mean plot
@@ -4397,9 +4635,9 @@ class DBBase(dict):
             else:
                 # Plot a horizontal line for th emean.
                 h['mean'] = plt.plot([pmin,pmax], [vmu,vmu], **kw_m)
-        # -----------
-        # Target Plot
-        # -----------
+       # -----------
+       # Target Plot
+       # -----------
         # Option whether or not to plot targets
         if vtarg is not None and len(vtarg)>0:
             # Initialize options for target plot
@@ -4437,11 +4675,11 @@ class DBBase(dict):
                     # Plot a horizontal line for the target.
                     h['target'].append(
                         plt.plot([pmin,pmax], [vt,vt], **kw_ti))
-        # -----------------------
-        # Standard Deviation Plot
-        # -----------------------
+       # -----------------------
+       # Standard Deviation Plot
+       # -----------------------
         # Check whether or not to plot it
-        if ksig and len(I)>2:
+        if ksig and len(I)>2 and kw.get("PlotSigma",True):
             # Check for single number or list
             if type(ksig).__name__ in ['ndarray', 'list', 'tuple']:
                 # Separate lower and upper limits
@@ -4469,9 +4707,9 @@ class DBBase(dict):
                 h['std'] = (
                     plt.plot([pmin,pmax], [vmin,vmin], **kw_s) +
                     plt.plot([pmin,pmax], [vmax,vmax], **kw_s))
-        # ----------
-        # Delta Plot
-        # ----------
+       # ----------
+       # Delta Plot
+       # ----------
         # Check whether or not to plot it
         if dc:
             # Initialize options for delta plot
@@ -4501,11 +4739,16 @@ class DBBase(dict):
                 h['delta'] = (
                     plt.plot([pmin,pmax], [cmin,cmin], **kw_d) +
                     plt.plot([pmin,pmax], [cmax,cmax], **kw_d))
-        # ----------
-        # Formatting
-        # ----------
+       # ----------
+       # Formatting
+       # ----------
         # Default value-axis label
-        lx = coeff
+        if DBT:
+            # Error in coeff
+            lx = u'\u0394%s' % coeff
+        else:
+            # Just the value
+            lx = coeff
         # Default probability-axis label
         if q_normed:
             # Size of bars is probability
@@ -4525,15 +4768,18 @@ class DBBase(dict):
         # Labels.
         h['x'] = plt.xlabel(xlbl)
         h['y'] = plt.ylabel(ylbl)
+        # Correct the font.
+        try: h['x'].set_family("DejaVu Sans")
+        except Exception: pass
         # Set figure dimensions
         if fh: h['fig'].set_figheight(fh)
         if fw: h['fig'].set_figwidth(fw)
         # Attempt to apply tight axes.
         try: plt.tight_layout()
         except Exception: pass
-        # ------
-        # Labels
-        # ------
+       # ------
+       # Labels
+       # ------
         # y-coordinates of the current axes w.r.t. figure scale
         ya = h['ax'].get_position().get_points()
         ha = ya[1,1] - ya[0,1]
@@ -4545,8 +4791,17 @@ class DBBase(dict):
         if kw.get("ShowMu", True):
             # printf-style format flag
             flbl = kw.get("MuFormat", "%.4f")
-            # Form: CA = 0.0204
-            lbl = (u'%s = %s' % (coeff, flbl)) % vmu
+            # Check for deltas
+            if DBT:
+                # Form: mu(DCA) = 0.0204
+                klbl = (u'\u03bc(\u0394%s)' % coeff)
+            else:
+                # Form: CA = 0.0204
+                klbl = (u'%s' % coeff)
+            # Check for option
+            klbl = kw.get("MuLabel", klbl)
+            # Insert value
+            lbl = ('%s = %s' % (klbl, flbl)) % vmu
             # Create the handle.
             h['mu'] = plt.text(0.99, yu, lbl, color=kw_m['color'],
                 horizontalalignment='right', verticalalignment='top',
@@ -4572,6 +4827,17 @@ class DBBase(dict):
                 or kw.get("ShowSigma", False)):
             # Printf-style flag
             flbl = kw.get("SigmaFormat", "%.4f")
+            # Check for deltas
+            if DBT:
+                # Form: sigma(DCA) = 0.0204
+                klbl = (u'\u03c3(\u0394%s)' % coeff)
+            else:
+                # Form: sigma(CA) = 0.0204
+                klbl = (u'\u03c3(%s)' % coeff)
+            # Check for option
+            klbl = kw.get("SigmaLabel", klbl)
+            # Insert value
+            lbl = ('%s = %s' % (klbl, flbl)) % vstd
             # Form \sigma(CA) = 0.0032
             lbl = (u'\u03C3(%s) = %s' % (coeff, flbl)) % vstd
             # Create the handle.
@@ -6397,6 +6663,67 @@ class DBTarget(DBBase):
             return fi
   # >
   
+  # ======
+  # Data
+  # ======
+  # <
+    # Get a value
+    def GetCoeff(self, comp, coeff, I, **kw):
+        """Get a coefficient value for one or more cases
+        
+        :Call:
+            >>> v = DBT.GetCoeff(comp, coeff, i)
+            >>> V = DBT.GetCoeff(comp, coeff, I)
+        :Inputs:
+            *DBT*: :class:`cape.dataBook.DBTarget`
+                Instance of the Cape data book target class
+            *comp*: :class:`str`
+                Component whose coefficient is being plotted
+            *coeff*: :class:`str`
+                Coefficient being plotted
+            *i*: :class:`int`
+                Individual case/entry index
+            *I*: :class:`numpy.ndarray` (:class:`int`)
+                List of indexes of cases to include in sweep
+        :Outputs:
+            *v*: :class:`float`
+                Scalar value from the appropriate column
+            *V*: :class:`np..ndarray`
+                Array of values from the appropriate column
+        :Versions:
+            * 2018-02-12 ``@ddalle``: First version
+        """
+        # Check for patch delimiter
+        if "/" in comp:
+            # Format: Cp_ports.P001
+            compo, pt = comp.split("/")
+        elif "." in comp:
+            # Format: Cp_ports/P001
+            compo, pt = comp.split(".")
+        else:
+            # Only comp given; use total of point names
+            compo = comp
+            pt = None
+        # List of keys available for this component
+        ckeys = self.ckeys.get(compo, {})
+        # Get point if applicable
+        if pt is not None:
+            # Add point/patch/whatever name
+            ccoeff = "%s.%s" % (pt, coeff)
+        else:
+            # Use name of coefficient directly
+            ccoeff = coeff
+        # Get the key
+        ckey = ckeys.get(ccoeff, coeff)
+        # Check validity
+        if ckey not in self:
+            raise KeyError("No key '%s' for component '%s', coefficient '%s'"
+                % (ckey, comp, coeff))
+        # Get the value
+        return self[ckey][I]
+        
+  # >
+  
   # =============
   # Organization
   # =============
@@ -6438,7 +6765,7 @@ class DBTarget(DBBase):
         self.x.nCase = self.n
         
     # Find an entry by trajectory variables.
-    def FindMatch(self, x, i):
+    def FindMatch(self, DBc, i):
         """Find an entry by run matrix (trajectory) variables
         
         Cases will be considered matches by comparing variables specified in 
@@ -6483,9 +6810,10 @@ class DBTarget(DBBase):
         :Versions:
             * 2014-12-21 ``@ddalle``: First version
             * 2016-06-27 ``@ddalle``: Moved guts to :class:`DBBase`
+            * 2018-02-12 ``@ddalle``: Moved first input to :class:`DBBase`
         """
         # Use the target-oriented method
-        return self.FindTargetMatch(x, i, self.topts, keylist='tol')
+        return self.FindTargetMatch(DBc, i, self.topts, keylist='tol')
   # >
   
   # ======
