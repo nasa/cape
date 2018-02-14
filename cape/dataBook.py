@@ -5093,11 +5093,18 @@ class DBBase(dict):
         q_vert = kw_h.get("orientation", "vertical") == "vertical"
         # Get current axis limits
         if q_vert:
+            # Current limits
             xmin, xmax = ax.get_xlim()
             pmin, pmax = ax.get_ylim()
+            # Avoid negative ranges
+            xmin = 0.0
+            ax.set_xlim(xmin, xmax)
         else:
             xmin, xmax = ax.get_ylim()
             pmin, pmax = ax.get_xlim()
+            # Avoid negative ranges
+            xmin = 0.0
+            ax.set_ylim(xmin, xmax)
        # -------------
        # Gaussian Plot
        # -------------
