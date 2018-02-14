@@ -3840,12 +3840,19 @@ class Report(object):
         if htyp.lower() == "value":
             # Set the *TargetValue*
             kw_h["TargetValue"]  = vtarg
+            # Plot the histogram with labels
+            h = DBc.PlotHist(coeff, I, **kw_h)
+        elif htyp.lower() == "range":
+            # Range histogram
+            kw_h["Target"] = DBT
+            # Plot the range histogram
+            h = DBc.PlotRangeHist(coeff, I, **kw_h)
         else:
             # Delta histogram
             # Add the target as a keyword input
             kw_h["Target"] = DBT
-        # Plot the histogram with labels
-        h = DBc.PlotHist(coeff, I, **kw_h)
+            # Plot the histogram with labels
+            h = DBc.PlotHist(coeff, I, **kw_h)
        # ------------
        # Finalization
        # ------------
