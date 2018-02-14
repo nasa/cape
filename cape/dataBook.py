@@ -5053,7 +5053,10 @@ class DBBase(dict):
        # Histogram Plot
        # --------------
         # Initialize plot options for histogram.
-        kw_h = odict(facecolor='c', zorder=2, bins=20)
+        kw_h = odict(facecolor='c',
+            zorder=2,
+            align='left',
+            bins=20)
         # Apply *Label* option if present
         lbl = kw.get("Label")
         if lbl:
@@ -8189,7 +8192,6 @@ class CaseData(object):
         # Initialize plot options for histogram.
         kw_h = odict(
             facecolor='c',
-            align='left',
             zorder=2,
             bins=kw.get('nBins',20))
         # Extract options from kwargs
