@@ -1286,7 +1286,8 @@ class Report(object):
             # Get component for this component
             DBc = self.GetSubfigRefComponent(sfig)
             # Get the co sweep
-            J = DBc.FindCoSweep(self.cntl.x, I[0], EqCons, TolCons, GlobCons)
+            J = DBc.FindCoSweep(self.cntl.DataBook.x, I[0],
+                EqCons, TolCons, GlobCons)
             # Match up trajectory
             DBc.UpdateTrajectory()
             # Get the list of cases for the subfigures
