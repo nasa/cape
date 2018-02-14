@@ -8187,7 +8187,11 @@ class CaseData(object):
         # Histogram Plot
         # --------------
         # Initialize plot options for histogram.
-        kw_h = odict(facecolor='c', zorder=2, bins=kw.get('nBins',20))
+        kw_h = odict(
+            facecolor='c',
+            align='left',
+            zorder=2,
+            bins=kw.get('nBins',20))
         # Extract options from kwargs
         for k in util.denone(kw.get("HistOptions", {})):
             # Override the default option.
