@@ -1286,7 +1286,8 @@ class Report(object):
             # Get component for this component
             DBc = self.GetSubfigRefComponent(sfig)
             # Get the co sweep
-            J = DBc.FindCoSweep(self.cntl.x, I[0], EqCons, TolCons, GlobCons)
+            J = DBc.FindCoSweep(self.cntl.DataBook.x, I[0],
+                EqCons, TolCons, GlobCons)
             # Match up trajectory
             DBc.UpdateTrajectory()
             # Get the list of cases for the subfigures
@@ -3734,8 +3735,9 @@ class Report(object):
             # Check for the file
             if os.path.isfile(fpdf):
                 # Include the graphics.
-                lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                    % (frun, fpdf))
+                lines.append(
+                    '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
+                    % (fswp, frun, fpdf))
             # Set the caption.
             lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
             # Close the subfigure.
