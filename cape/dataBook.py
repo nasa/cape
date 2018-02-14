@@ -4584,6 +4584,24 @@ class DBBase(dict):
             kw_h['range'] = (vmin, vmax)
         # Plot the historgram.
         h['hist'] = plt.hist(V, **kw_h)
+       # ------------
+       # Axes Handles
+       # ------------
+        # Get the figure and axes.
+        h['fig'] = plt.gcf()
+        h['ax'] = plt.gca()
+        ax = h['ax']
+        # Determine whether or not the distribution is normed
+        q_normed = kw_h.get("normed", kw_h.get("density", False))
+        # Determine whether or not the bars are vertical
+        q_vert = kw_h.get("orientation", "vertical") == "vertical"
+        # Get current axis limits
+        if q_vert:
+            xmin, xmax = ax.get_xlim()
+            pmin, pmax = ax.get_ylim()
+        else:
+            xmin, xmax = ax.get_ylim()
+            pmin, pmax = ax.get_xlim()
        # -------------
        # Gaussian Plot
        # -------------
@@ -4608,24 +4626,6 @@ class DBBase(dict):
             else:
                 # Plot a horizontal line for th emean.
                 h['mean'] = plt.plot(yval, xval, **kw_g)
-       # ------------
-       # Axes Handles
-       # ------------
-        # Get the figure and axes.
-        h['fig'] = plt.gcf()
-        h['ax'] = plt.gca()
-        ax = h['ax']
-        # Determine whether or not the distribution is normed
-        q_normed = kw_h.get("normed", kw_h.get("density", False))
-        # Determine whether or not the bars are vertical
-        q_vert = kw_h.get("orientation", "vertical") == "vertical"
-        # Get current axis limits
-        if q_vert:
-            xmin, xmax = ax.get_xlim()
-            pmin, pmax = ax.get_ylim()
-        else:
-            xmin, xmax = ax.get_ylim()
-            pmin, pmax = ax.get_xlim()
        # ---------
        # Mean Plot
        # ---------
@@ -4689,6 +4689,13 @@ class DBBase(dict):
        # -----------------------
        # Standard Deviation Plot
        # -----------------------
+        # Initialize options for std plot
+        kw_s = odict(color='b', lw=2, zorder=5)
+        # Extract options from kwargs
+        for k in util.denone(kw.get("StDevOptions", {})):
+            # Override the default option.
+            if kw["StDevOptions"][k] is not None:
+                kw_s[k] = kw["StDevOptions"][k]
         # Check whether or not to plot it
         if ksig and len(I)>2 and kw.get("PlotSigma",True):
             # Check for single number or list
@@ -4700,13 +4707,6 @@ class DBBase(dict):
                 # Use as a single number
                 vmin = vmu - ksig*vstd
                 vmax = vmu + ksig*vstd
-            # Initialize options for std plot
-            kw_s = odict(color='b', lw=2, zorder=5)
-            # Extract options from kwargs
-            for k in util.denone(kw.get("StDevOptions", {})):
-                # Override the default option.
-                if kw["StDevOptions"][k] is not None:
-                    kw_s[k] = kw["StDevOptions"][k]
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the min and max
@@ -4810,7 +4810,9 @@ class DBBase(dict):
                 # Form: CA = 0.0204
                 klbl = (u'%s' % coeff)
             # Check for option
-            klbl = kw.get("MuLabel", klbl)
+            olbl = kw.get("MuLabel", klbl)
+            # Use non-default user-specified value
+            if olbl is not None: klbl = olbl
             # Insert value
             lbl = ('%s = %s' % (klbl, flbl)) % vmu
             # Create the handle.
@@ -4846,11 +4848,11 @@ class DBBase(dict):
                 # Form: sigma(CA) = 0.0204
                 klbl = (u'\u03c3(%s)' % coeff)
             # Check for option
-            klbl = kw.get("SigmaLabel", klbl)
+            olbl = kw.get("SigmaLabel", klbl)
+            # Use non-default user-specified value
+            if olbl is not None: klbl = olbl
             # Insert value
             lbl = ('%s = %s' % (klbl, flbl)) % vstd
-            # Form \sigma(CA) = 0.0032
-            lbl = (u'\u03C3(%s) = %s' % (coeff, flbl)) % vstd
             # Create the handle.
             h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_key('color',1),
                 horizontalalignment='left', verticalalignment='top',

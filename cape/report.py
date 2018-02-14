@@ -3713,7 +3713,7 @@ class Report(object):
         # Get the coefficient
         coeff = opts.get_SubfigOpt(sfig, "Coefficient")
         # Get histogram type
-        htyp = self.get_SubfigOpt(sfig, "HistogramType")
+        htyp = opts.get_SubfigOpt(sfig, "HistogramType")
        # --------------
        # Format Options
        # --------------
@@ -3745,9 +3745,6 @@ class Report(object):
        # --------
        # Plotting
        # --------
-        # Get the component and coefficient.
-        comp = opts.get_SubfigOpt(sfig, "Component", k)
-        coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
         # Check for patch delimiter
         if "/" in comp:
             # Format: MPCV_Camera_patch/front
@@ -3768,7 +3765,7 @@ class Report(object):
         # Target labels
         ltarg = opts.get_SubfigOpt(sfig, "TargetLabel")
         # Process targets according to histogram type
-        if htype.lower() == "value":
+        if htyp.lower() == "value":
             # Ensure list
             if type(ltarg).__name__ != 'list':
                 ltarg = [ltarg]
@@ -3840,7 +3837,7 @@ class Report(object):
             "GaussianOptions": opts.get_SubfigOpt(sfig, "GaussianOptions"),
         }
         # Non-default options
-        if htype.lower() == "value":
+        if htyp.lower() == "value":
             # Set the *TargetValue*
             kw_h["TargetValue"]  = vtarg
         else:
