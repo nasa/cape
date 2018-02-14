@@ -3734,8 +3734,9 @@ class Report(object):
             # Check for the file
             if os.path.isfile(fpdf):
                 # Include the graphics.
-                lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                    % (frun, fpdf))
+                lines.append(
+                    '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
+                    % (fswp, frun, fpdf))
             # Set the caption.
             lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
             # Close the subfigure.
