@@ -343,7 +343,7 @@ class Report(odict):
             "Coefficient": "CN",
             "Delta": 0.0,
             "StandardDeviation": 3.0,
-            "OutlierSigma": 7.0,
+            "OutlierSigma": 4.0,
             "Range": 4.0,
             "ShowMu": True,
             "ShowSigma": False,

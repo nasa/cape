@@ -4607,16 +4607,16 @@ class DBBase(dict):
        # -------------
        # Gaussian Plot
        # -------------
+        # Initialize options for guassian plot
+        kw_g = odict(color='navy', lw=1.5, zorder=7)
+        kw_g["label"] = "Normal distribution"
+        # Extract options from kwargs
+        for k in util.denone(kw.get("GaussianOptions", {})):
+            # Override the default option.
+            if kw["GaussianOptions"][k] is not None:
+                kw_g[k] = kw["GaussianOptions"][k]
         # Check whether or not to plot it
         if q_normed and kw.get("PlotGaussian"):
-            # Initialize options for guassian plot
-            kw_g = odict(color='navy', lw=1.5, zorder=7)
-            kw_g["label"] = "Normal distribution"
-            # Extract options from kwargs
-            for k in util.denone(kw.get("GaussianOptions", {})):
-                # Override the default option.
-                if kw["GaussianOptions"][k] is not None:
-                    kw_g[k] = kw["GaussianOptions"][k]
             # Lookup probabilities
             xval = np.linspace(xmin, xmax, 151)
             # Compute Gaussian distribution
@@ -4631,16 +4631,16 @@ class DBBase(dict):
        # ---------
        # Mean Plot
        # ---------
+        # Initialize options for mean plot
+        kw_m = odict(color='k', lw=2, zorder=6)
+        kw_m["label"] = "Mean value"
+        # Extract options from kwargs
+        for k in util.denone(kw.get("MeanOptions", {})):
+            # Override the default option.
+            if kw["MeanOptions"][k] is not None:
+                kw_m[k] = kw["MeanOptions"][k]
         # Option whether or not to plot mean as vertical line.
         if kw.get("PlotMean", True):
-            # Initialize options for mean plot
-            kw_m = odict(color='k', lw=2, zorder=6)
-            kw_m["label"] = "Mean value"
-            # Extract options from kwargs
-            for k in util.denone(kw.get("MeanOptions", {})):
-                # Override the default option.
-                if kw["MeanOptions"][k] is not None:
-                    kw_m[k] = kw["MeanOptions"][k]
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the mean.
@@ -4723,16 +4723,16 @@ class DBBase(dict):
        # ----------
        # Delta Plot
        # ----------
+        # Initialize options for delta plot
+        kw_d = odict(color="r", ls="--", lw=1.0, zorder=3)
+        # Extract options from kwargs
+        for k in util.denone(kw.get("DeltaOptions", {})):
+            # Override the default option.
+            if kw["DeltaOptions"][k] is not None:
+                kw_d[k] = kw["DeltaOptions"][k]
         # Check whether or not to plot it
         if dc:
-            # Initialize options for delta plot
-            kw_d = odict(color="r", ls="--", lw=1.0, zorder=3)
-            # Extract options from kwargs
-            for k in util.denone(kw.get("DeltaOptions", {})):
-                # Override the default option.
-                if kw["DeltaOptions"][k] is not None:
-                    kw_d[k] = kw["DeltaOptions"][k]
-                # Check for single number or list
+            # Check for single number or list
             if type(dc).__name__ in ['ndarray', 'list', 'tuple']:
                 # Separate lower and upper limits
                 cmin = vmu - dc[0]
@@ -4937,7 +4937,7 @@ class DBBase(dict):
                 Options passed to :func:`plt.plot` for reference range plot
             *TargetOptions*: :class:`dict`
                 Options passed to :func:`plt.plot` for target value lines
-            *OutlierSigma*: {``7.0``} | :class:`float`
+            *OutlierSigma*: {``3.6863``} | :class:`float`
                 Standard deviation multiplier for determining outliers
             *ShowMu*: :class:`bool`
                 Option to print value of mean
@@ -5073,15 +5073,15 @@ class DBBase(dict):
             # Check for single number or list
             if type(r).__name__ in ['ndarray', 'list', 'tuple']:
                 # Separate lower and upper limits
-                vmin = vmu - r[0]*vstd
+                vmin = vmu + r[0]*vstd
                 vmax = vmu + r[1]*vstd
             else:
                 # Use as a single number
-                vmin = vmu - r*vstd
-                vmax = vmu + r*vstd
+                vmin = 0
+                vmax = r*vstd
             # Overwrite any range option in *kw_h*
             kw_h['range'] = (vmin, vmax)
-        # Plot the historgram.
+        # Plot the histogram.
         h['hist'] = plt.hist(R, **kw_h)
        # ------------
        # Axes Handles
