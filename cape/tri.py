@@ -953,7 +953,7 @@ class TriBase(object):
         # Read the tris
         Quads = np.fromfile(f, dtype=int, count=nQuad*7, sep=" ")
         # Reshape into a matrix
-        Quads = Tris.reshape((nQuad,6))
+        Quads = Quads.reshape((nQuad,7))
         # Save the triangles
         self.Quads = Quads[:,:4]
         # Save the component IDs.
