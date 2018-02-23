@@ -196,7 +196,7 @@ class TriBase(object):
     # Initialization method
     def __init__(self, fname=None, c=None,
         tri=None, uh3d=None, surf=None, unv=None,
-        xml=None, json=None, mixsur=None,
+        xml=None, json=None, mixsur=None, uh3dc=None,
         nNode=None, Nodes=None, nTri=None, Tris=None,
         nQuad=None, Quads=None, CompID=None):
         """Initialization method"""
@@ -261,6 +261,11 @@ class TriBase(object):
             self.nQuad = nQuad
             self.Quads = Quad
             self.CompID = CompID
+        
+        # Check for UH3D component list
+        if uh3dc is not None:
+            # Read a component list like from UH3D
+            self.ReadUH3DCompIDList(uh3dc)
 
         # Check for configuration
         if xml is not None:
@@ -269,6 +274,9 @@ class TriBase(object):
         elif json is not None:
             # Read a Config.json type of file
             self.ReadConfigJSON(c)
+        elif mixsur is not None:
+            # Read a mixsur.inp type of file
+            self.ReadConfigMIXSUR(mixsur)
         elif c is not None:
             # Read the configuration
             self.ReadConfig(c)
@@ -2099,10 +2107,42 @@ class TriBase(object):
         self.Tris   = np.array(Tris,   dtype=int)
         self.CompID = np.array(CompID, dtype=int)
 
-        # Set location.
-        ftell = -1
+        # Read component names
+        self.ReadUH3DCompIDList(fid)
+        # Close the file.
+        fid.close()
+        
+    # Read component names from UH3D-like list
+    def ReadUH3DCompIDList(self, fname):
+        """Read a UH3D-like component list to *tri.Conf*
+        
+        :Call:
+            >>> tri.ReadUH3DCompIDList(fname)
+            >>> tri.ReadUH3DCompIDList(fid)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation instance
+            *fname*: :class:`str`
+                Name of component list file to read
+            *fid*: :class:`file`
+                Already opened file handle from which to read component names
+        :Versions:
+            * 2018-02-23 ``@ddalle``: Split from :func:`ReadUH3D`
+        """
+        # Check input
+        qfile = (type(fname).__name__ == "file")
+        # Open file if necessary
+        if qfile:
+            # File handle
+            fid = fname
+        else:
+            # Open the file
+            fid = open(fname, 'r')
+            
         # Initialize components.
         Conf = {}
+        # Initialize check for end of file
+        ftell = -1
         # Check for named components
         while fid.tell() != ftell:
             # Save the position.
@@ -2133,8 +2173,11 @@ class TriBase(object):
                 break
         # Save the named components.
         self.Conf = Conf
-        # Close the file.
-        fid.close()
+        
+        # Close the file if appropriate
+        if not qfile:
+            fid.close()
+            
 
     # Read surface file
     def ReadSurf(self, fname):
@@ -5766,6 +5809,11 @@ class Tri(TriBase):
             # Save the quad definitions
             self.nQuad = nQuad
             self.Quads = Quads
+            
+        # Read UH3D-like component list
+        if 'uh3dc' in kw:
+            # Read a UH3D component list
+            self.ReadUH3DCompIDList(kw['uh3dc'])
 
         # Check for configuration
         if 'xml' in kw:
@@ -5774,6 +5822,9 @@ class Tri(TriBase):
         elif 'json' in kw:
             # Read a Config.json type of file
             self.ReadConfigJSON(kw['json'])
+        elif 'mixsur' in kw:
+            # Read a mixsur.inp type of file
+            self.ReadConfigMIXSUR(kw['mixsur'])
         elif c is not None:
             # Read the configuration
             self.ReadConfig(c)
