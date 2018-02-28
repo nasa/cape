@@ -5016,7 +5016,7 @@ class DBBase(dict):
         R = np.abs(V)
         # Calculate basic statistics
         vmu = np.mean(R)
-        vstd = 1.128*vmu
+        vstd = vmu/1.128
         # Check for outliers ...
         ostd = kw.get('OutlierSigma', 3.6863)
         # Apply outlier tolerance
@@ -5025,7 +5025,7 @@ class DBBase(dict):
             J = np.abs(R)/vmu <= ostd
             # Recompute statistics
             vmu = np.mean(R[J])
-            vstd = 1.128*vmu
+            vstd = vmu/1.128
        # ------------
        # More Options
        # ------------
