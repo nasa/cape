@@ -3767,7 +3767,7 @@ class TriBase(object):
         # Check for quadrangle matches
         if len(kQuad) > 0:
             # Mark matches
-            I[self.Quads[kQuad]] = True
+            I[self.Quads[kQuad]-1] = True
         # Output
         return np.where(I)[0]
 
@@ -3865,8 +3865,9 @@ class TriBase(object):
                 for comp in comps:
                     # Add matches for component *ii*.
                     K = np.logical_or(K, self.CompIDQuad==comp)
-            # Turn boolean vector into vector of indices]
+            # Turn boolean vector into vector of indices
             I =  np.where(K)[0]
+            return I
         except AttributeError:
             # No quads
             return np.zeros(0, dtype=int)
