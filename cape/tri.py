@@ -41,6 +41,8 @@ from . import volcomp
 
 # Import options
 import cape.options
+# Other mesh modules
+import cape.cgns
 
 # Default tolerances for mapping triangulations
 atoldef  = cape.options.rc.get("atoldef", 1e-2)
@@ -195,7 +197,7 @@ class TriBase(object):
   # <
     # Initialization method
     def __init__(self, fname=None, c=None,
-        tri=None, uh3d=None, surf=None, unv=None,
+        tri=None, uh3d=None, surf=None, unv=None, cgns=None,
         xml=None, json=None, mixsur=None, uh3dc=None,
         nNode=None, Nodes=None, nTri=None, Tris=None,
         nQuad=None, Quads=None, CompID=None):
@@ -220,6 +222,9 @@ class TriBase(object):
         elif surf is not None:
             # Read AFLR3 surface format
             self.ReadSurf(surf)
+        elif cgns is not None:
+            # Read CGNS surface format
+            self.ReadCGNS(cgns)
         elif fname is not None:
             # Guess type from file extensions
             self.ReadBest(fname)
@@ -337,6 +342,9 @@ class TriBase(object):
         elif fext == 'unv':
             # Weird IDEAS triangulation thing
             self.ReadUnv(fname)
+        elif fext == 'cgns':
+            # Read CGNS file
+            self.ReadCGNS(fname)
         elif fext == 'triq':
             # Read triq file
             self.ReadTriQ(fname)
@@ -2321,6 +2329,162 @@ class TriBase(object):
             self.CompID[KTri[1::4]-nEdge-1] = iComp
         # Close the file.
         f.close()
+        
+    # Read CGNS file
+    def ReadCGNS(self, fname):
+        """Read a surface triangulated (with optional quads) CGNS file
+        
+        :Call:
+            >>> tri.ReadCGNS(fname)
+        :Inputs:
+            *tri*: :class:`cape.tri.Tri`
+                Triangulation
+            *fname*: :class:`str`
+                Name of file to read
+        :Versions:
+            * 2018-03-02 ``@ddalle``: First version
+        """
+       # --- Input ---
+        # Read the CGNS file
+        cgns = cape.cgns.CGNS(fname)
+       # --- CGNSBase_t ---
+        # Get the *CGNSBase_t* node
+        K_zt = cgns.GetNodeIndex(label="CGNSBase_t")
+        # Check for multiple zones
+        if len(K_zt) > 1:
+            raise NotImplementedError(
+                "No support for multiple CGNSBase_t nodes")
+        elif len(K_zt) == 0:
+            raise ValueError("No *CGNSBase_t* nodes")
+        # Get the data
+        data = cgns.Data[K_zt[0]]
+        # Check the grid dimension
+        if data[0] != 3:
+            raise ValueError("Expecting CellDimension=3, found '%s'" % data[0])
+        # Check the physical dimension
+        if data[1] != 3:
+            raise ValueError("Expecting PhysicalDimension=3, found '%s'"
+                % data[1])
+       # --- ZoneType_t ---
+        # Get the *ZoneType_t* node
+        K_zt = cgns.GetNodeIndex(label="ZoneType_t")
+        # Check for multiple zones
+        if len(K_zt) > 1:
+            raise NotImplementedError(
+                "No support for multiple grid paradigms")
+        elif len(K_zt) == 0:
+            raise ValueError("No *ZoneType_t* nodes")
+        # Keep the *ZoneType_t* index
+        k_zt = K_zt[0]
+        # Check the type
+        if cgns.Data[k_zt] != "Unstructured":
+            raise ValueError("CGNS file must be 'Unstructured' type")
+       # --- Zone_t ---
+        # Get any *Zone_t* nodes
+        K_z = cgns.GetNodeIndex(label="Zone_t")
+        # Check for multiple zones
+        if len(K_z) > 1:
+            raise NotImplementedError(
+                "No support for multiple Zone_t nodes")
+        elif len(K_z) == 0:
+            raise ValueError("No *Zone_t* nodes")
+        # Save this index
+        k_z = K_z[0]
+        # Get the data
+        data = cgns.Data[k_z]
+        # Number of nodes
+        nNode = data[0]
+        nElem = data[1]
+       # --- Coordinates ---
+        # Get *GridCoordinates_t* node
+        kx = cgns.GetNodeIndex("CoordinateX", "DataArray_t")
+        ky = cgns.GetNodeIndex("CoordinateY", "DataArray_t")
+        kz = cgns.GetNodeIndex("CoordinateZ", "DataArray_t")
+        # Get data type
+        dtx = cgns.DataTypes[kx].replace("R", "f")
+        # Initialize nodes
+        Nodes = np.zeros((nNode, 3), dtype=dtx)
+        # Read the coordinates
+        Nodes[:,0] = cgns.Data[kx]
+        Nodes[:,1] = cgns.Data[ky]
+        Nodes[:,2] = cgns.Data[kz]
+       # --- Elements ---
+        # Initialize configuration
+        Conf = {}
+        # Running maximum component number
+        ncomp = 1
+        # Get indices of each CompID, *Eelements_t* data type
+        KE = cgns.GetNodeIndex(label="Elements_t")
+        # Process first component
+        k = KE[0]
+        # Element definitions
+        ka, kb, ElemsK = cgns.GetCompIDInfo(cgns.NodeAddresses[k])
+        # Initialize Elements array
+        Elems = np.zeros((nElem, 4), dtype=ElemsK.dtype)
+        # Initialize CompID array
+        CompID = np.zeros(nElem, dtype="int")
+        # Tris or Quads?
+        nVert = ElemsK.shape[1]
+        # Save first data set
+        Elems[ka-1:kb,:nVert] = ElemsK
+        # Component number
+        CompID[ka-1:kb] = ncomp
+        # Update configuration
+        Conf[cgns.NodeNames[k]] = ncomp
+        # Loop through remaining components
+        for k in KE[1:]:
+            # Name
+            name = cgns.NodeNames[k]
+            # Address
+            addr = cgns.NodeAddresses[k]
+            # Get component data
+            ka, kb, ElemsK = cgns.GetCompIDInfo(addr)
+            # Tris or Qauds?
+            nVert = ElemsK.shape[1]
+            # Save data
+            Elems[ka-1:kb,:nVert] = ElemsK
+            # Check if it's a new name
+            if name in Conf:
+                # Find existing index or list
+                compID = Conf[name]
+            else:
+                # New component
+                ncomp += 1
+                compID = ncomp
+                # Save the new name
+                Conf[name] = compID
+            # Save CompID
+            CompID[ka-1:kb] = compID
+       # --- Separate Tris and Quads ---
+        # Find indices of triangles
+        ITri  = np.where(Elems[:,3] == 0)[0]
+        IQuad = np.where(Elems[:,3] != 0)[0]
+        # Extract elements
+        Tris  = Elems[ITri,:3]
+        Quads = Elems[IQuad,:]
+        # Counts
+        nTri  = len(ITri)
+        nQuad = len(IQuad)
+        # Extract component ID arrays
+        CompIDTri  = CompID[ITri]
+        CompIDQuad = CompID[IQuad]
+       # --- Output ---
+        # Save nodes
+        self.nNode = nNode
+        self.Nodes = Nodes
+        # Save tris
+        self.nTri = nTri
+        self.Tris = Tris
+        # Save quads
+        self.nQuad = nQuad
+        self.Quads = Quads
+        # Save component numbers
+        self.CompID = CompIDTri
+        self.CompIDQuad = CompIDQuad
+        # Save the simple configuration
+        self.Conf = Conf
+        
+        
   # >
 
   # =============
@@ -5775,6 +5939,9 @@ class Tri(TriBase):
         elif 'unv' in kw:
             # I don't know what's up with this format
             self.ReadUnv(kw['unv'])
+        elif 'cgns' in kw:
+            # Read CGNS surface format
+            self.ReadCGNS(kw['cgns'])
         elif fname is not None:
             # Guess type from file extensions
             self.ReadBest(fname)
