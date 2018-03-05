@@ -670,6 +670,12 @@ class CGNS(object):
        # --- Process 'ElementRange' *IndexRange_t* node ---
         # Get *IndexRange_t* node
         KER = self.GetSubNodeByLabel(k, "IndexRange_t")
+        # Check for nonsense
+        if len(KER) == 0:
+            # Check if the *next* node is the one that was really meant
+            if self.NodeLabels[k+1] == "IndexRange_t":
+                # Use the next node; it's probably correct
+                KER = [k+1]
         # Must be exactly one
         if len(KER) != 1:
             raise ValueError("Component '%s' has %s *IndexRange_t* children"
