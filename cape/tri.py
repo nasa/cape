@@ -2412,7 +2412,7 @@ class TriBase(object):
         # Initialize configuration
         Conf = {}
         # Running maximum component number
-        ncomp = 1
+        ncomp = 0
         # Get indices of each CompID, *Eelements_t* data type
         KE = cgns.GetNodeIndex(label="Elements_t")
         # Process first component
