@@ -2423,16 +2423,8 @@ class TriBase(object):
         Elems = np.zeros((nElem, 4), dtype=ElemsK.dtype)
         # Initialize CompID array
         CompID = np.zeros(nElem, dtype="int")
-        # Tris or Quads?
-        nVert = ElemsK.shape[1]
-        # Save first data set
-        Elems[ka-1:kb,:nVert] = ElemsK
-        # Component number
-        CompID[ka-1:kb] = ncomp
-        # Update configuration
-        Conf[cgns.NodeNames[k]] = ncomp
         # Loop through remaining components
-        for k in KE[1:]:
+        for k in KE:
             # Name
             name = cgns.NodeNames[k]
             # Remove "_TRI" and "_QUA" suffixes
