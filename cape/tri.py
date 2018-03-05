@@ -3431,7 +3431,7 @@ class TriBase(object):
         elif fext == "json":
             # Read a JSON file
             self.ReadConfigJSON(c)
-        if (fext == "i") or (c.startswith("fomoco") or c.startswith("mixsur")):
+        elif (fext == "i") or (c.startswith("fomoco") or c.startswith("mixsur")):
             # Try a ``mixsur.i`` file
             self.ReadConfigMIXSUR(c)
         else:
@@ -3550,8 +3550,13 @@ class TriBase(object):
         if type(cfg).__name__ in ['str', 'unicode']:
             # Read the config
             cfg = Config(cfg)
-        # Make a copy of the component IDs.
+        # Make a copy of the component IDs
         compID = self.CompID.copy()
+        # Try to make a copy of the quad component IDs
+        try:
+            compIDQuad = self.CompIDQuad.copy()
+        except AttributeError:
+            compIDQuad = np.zeros(0, dtype="int")
         # Check for components.
         for k in self.Conf:
             # Check if the component is in the cfg.
@@ -3563,13 +3568,21 @@ class TriBase(object):
                 # Process type
                 if type(kID).__name__ != 'list': kID = [kID]
                 # Initialize indices of tris with matching compIDs
-                I = np.zeros_like(cID)
+                I = np.zeros_like(compID)
+                J = np.zeros_like(compIDQuad)
                 # Loop through additional entries
                 for kj in kID:
                     # Use *or* operation to search for other matches
                     I = np.logical_or(I, compID==kj)
-                # Assign the new value.
-                self.CompID[I] = cID
+                    J = np.logical_or(J, compIDQuad==kj)
+                # Convert to indices
+                I1 = np.where(I)[0]
+                J1 = np.where(J)[0]
+                # Assign the new values
+                if len(I1) > 0:
+                    self.CompID[I] = cID
+                if len(J1) > 0:
+                    self.CompIDQuad[J] = cID
                 # Save it in the Conf, too.
                 self.Conf[k] = cID
                 # Save the compID as an int in the *config* just for clarity
