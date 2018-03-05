@@ -3628,6 +3628,11 @@ class TriBase(object):
         """
         # Get list of component IDs
         compIDs = np.unique(self.CompID)
+        # Attempt to add Quads
+        try:
+            compIDs = np.union1d(compIDs, np.unique(self.CompIDQuad))
+        except AttributeError:
+            pass
         # Call the method from the *config* handle
         try:
             self.config.RestrictCompID(compIDs)
