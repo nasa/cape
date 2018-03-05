@@ -2447,6 +2447,9 @@ class TriBase(object):
             if name in Conf:
                 # Find existing index or list
                 compID = Conf[name]
+            elif name.endswith('1') and name[:-1] in Conf:
+                # Use the previous conf
+                compID = Conf[name[:-1]]
             else:
                 # New component
                 ncomp += 1

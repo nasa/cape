@@ -272,10 +272,14 @@ class CGNS(object):
         # Check
         if s.lower() != "tail":
             return
+        # Skip FreE field (if any)
+        self.ReadADFFree(f)
         # Read SubNodeTable (if any)
         sntb = self.ReadADFSubNodeTable(f)
         # Read Data (if any)
         data = self.ReadADFData(f, DataType)
+        # Any "zzzzzzzzz" nonsense?
+        self.ReadADFZs(f)
         # Save node information
         self.NodeNames.append(NodeName)
         self.NodeLabels.append(NodeLabel)
@@ -287,6 +291,83 @@ class CGNS(object):
         self.nNode += 1
         # Output successful read
         return 1
+        
+    # Read annoying "z"s
+    def ReadADFZs(self, f):
+        """Read strings like "zzzzzzzzzzzz" until reaching a relevant char
+        
+        :Call:
+            >>> cgns.ReadADFZs(f)
+        :Inputs:
+            *cgns*: :class:`cape.cgns.CGNS`
+                CGNS file interface
+            *f*: :class:`file`
+                Open file currently at the beginning of *DaTa* field
+        :Versions:
+            * 2018-03-05 ``@ddalle``: First version
+        """
+        # Read the next four bytes
+        s = f.read(4)
+        # Deal with "z"s (I have no idea WTF this is about)
+        if s == "zzzz":
+            # Read until the next character is NOT a "z"
+            while f.read(1) == "z":
+                continue
+            # Go back one character
+            f.seek(-1, 1)
+        else:
+            # Go back to original position by seeking backward 4 chars
+            f.seek(-4, 1)
+        
+    # Read annoying "FreE" block
+    def ReadADFFree(self, f):
+        """Read one *FreE* entry from an open CGNS/ADF file
+        
+        The next 4 bytes must be the string ``"FreE"``, and the following 12
+        bytes must give the address of the end of the field as a hex code
+        string.
+        
+        :Call:
+            >>> cgns.ReadADFFreE(f)
+        :Inputs:
+            *cgns*: :class:`cape.cgns.CGNS`
+                CGNS file interface
+            *f*: :class:`file`
+                Open file currently at the beginning of *DaTa* field
+        :Versions:
+            * 2018-03-05 ``@ddalle``: First version
+        """
+        # Save current location
+        ja = f.tell()
+        # Read the next four bytes
+        s = f.read(4)
+        # Deal with "z"s (I have no idea WTF this is about)
+        if s == "zzzz":
+            # Read until the next character is NOT a "z"
+            while f.read(1) == "z":
+                continue
+            # Go back one character
+            f.seek(-1, 1)
+            # Reread next four characters
+            s = f.read(4)
+        # Check for error
+        if len(s) < 4:
+            # EOF
+            return
+        elif s.lower() != "free":
+            # Some other field...
+            f.seek(-4, 1)
+            return
+        # Read the next 12 bytes to get the address of the end of the field
+        jb = ADFAddress2Pos(f.read(12))
+        # Go to that position
+        f.seek(jb)
+        # Read the tail
+        s = f.read(4)
+        # Check the correct end-of-subnodetable
+        if s.lower() != "endc":
+            raise ValueError("FreE field must end with string 'EndC'; " +
+                ("file contains '%s'" % s))
     
     # Read data
     def ReadADFSubNodeTable(self, f):
