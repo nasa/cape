@@ -2359,8 +2359,8 @@ class TriBase(object):
         # Get the data
         data = cgns.Data[K_zt[0]]
         # Check the grid dimension
-        if data[0] != 3:
-            raise ValueError("Expecting CellDimension=3, found '%s'" % data[0])
+        #if data[0] != 3:
+        #    raise ValueError("Expecting CellDimension=3, found '%s'" % data[0])
         # Check the physical dimension
         if data[1] != 3:
             raise ValueError("Expecting PhysicalDimension=3, found '%s'"
@@ -2435,6 +2435,11 @@ class TriBase(object):
         for k in KE[1:]:
             # Name
             name = cgns.NodeNames[k]
+            # Remove "_TRI" and "_QUA" suffixes
+            if name.endswith("_TRI"):
+                name = name[:-4]
+            elif name.endswith("_QUA"):
+                name = name[:-4]
             # Address
             addr = cgns.NodeAddresses[k]
             # Get component data
