@@ -111,7 +111,7 @@ templates_path = ['_templates']
 source_suffix = '.rst'
 
 # The encoding of source files.
-#source_encoding = 'utf-8-sig'
+source_encoding = 'utf-8-sig'
 
 # The master toctree document.
 master_doc = 'index'
@@ -194,7 +194,7 @@ numfig_format = {
 
 # General information about the project.
 project = u'CAPE'
-copyright = u'2014-2017, Derek J. Dalle'
+copyright = u'2014-2018, Derek J. Dalle'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

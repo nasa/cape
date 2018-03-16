@@ -119,7 +119,7 @@ extra digits.  This avoids having folder names such as ``a2.7893478247``.
 
 The second way to define the flow angles is using *alpha_t* and *phi*.
 
-    **alpha_t**: :class:`dict`
+    **alpha_t**, **aoav**: :class:`dict`
     
         *Group*: ``True`` | {``False``}
             Whether or not to consider the angle of attack as a group key
@@ -188,7 +188,7 @@ be useful for post-processing or providing a reference for thrust values
 
 OVERFLOW and FUN3D use freestream static temperature and Reynolds number per
 unit grid length as input variables. Calculating this Reynolds number is not
-particularly challenging, but pyCart makes it easy to just specify freestream
+particularly challenging, but Cape makes it easy to just specify freestream
 static pressure or freestream dynamic pressure instead. Cape will automatically
 calculate *Re* using the temperature and either static pressure or dynamic
 pressure when setting up a case. Conversely, the user may define *Re* in the

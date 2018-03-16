@@ -1,10 +1,10 @@
 
 .. _json-syntax:
 
-Syntax for pyCart JSON Files
+Syntax for CAPE JSON Files
 ============================
 
-The various pyCart utilities and modules extensively utilize the 
+The various Cape utilities and modules extensively utilize the 
 `JSON <http://www.json.org>`_ format, which is a simple file type that is
 easily read into Python and many other languages (a 
 `list of interpreters <http://www.json.org>`_ can be found on the official

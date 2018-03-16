@@ -4,6 +4,8 @@ Report Definitions
 ------------------
 The above sample contains two sample report definitions, but several options
 were left out.  The example below contains a more complete set of options.
+There is a separate :ref:`JSON page <cape-json-Report>` that lists in detail
+the possible options that can be specified. 
 
     .. code-block:: javascript
     
@@ -89,6 +91,9 @@ the following example, all cases with zero sideslip are grouped into one
                 "XAxis": "mach"
             }
         }
+        
+A full description of the :ref:`JSON settings for Sweeps
+<cape-json-ReportSweep>` can be found in the file format guide.
 
 For some run matrices, especially when the data or conditions comes from a wind
 tunnel test, finding cases with the exact same angle of attack may be

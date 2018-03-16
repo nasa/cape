@@ -76,6 +76,11 @@ taken, and that order of precedence is demonstrated in the table below.
     |                          | from *ProgressDeleteFiles* even if case  |
     |                          | is not completed                         |
     +--------------------------+------------------------------------------+
+    | ``pycart --unarchive``   | Copy files from archive to working       |
+    |                          | directory                                |
+    +--------------------------+------------------------------------------+
+    | ``pycart --skeleton``    | Clean even more files after archiving    |
+    +--------------------------+------------------------------------------+
     | ``pycart --report $REP`` | Create/update a report called *REP*; if  |
     |                          | *REP* is omitted, create the first       |
     |                          | report available                         |
@@ -497,6 +502,22 @@ same shell that issued the ``pycart`` command.  An exception to this is when
 the ``-n`` command is issued in combination with ``--batch``.  Running as a
 ``--batch`` PBS job overrides ``"qsub"`` and runs one or more jobs within the
 batch job.
+
+This command accepts several modifiers:
+
+    +-------------------+---------------------------------------------+
+    | Modifier          | Description                                 |
+    +===================+=============================================+
+    | ``--no-restart``  | Only setup and/or run and submit new cases; |
+    |                   | do not submit ``INCOMP`` jobs that have     |
+    |                   | iterations remaining                        |
+    +-------------------+---------------------------------------------+
+    | ``--no-start``    | Set up new cases but do not actually start  |
+    |                   | simulation or submit job                    |
+    +-------------------+---------------------------------------------+
+    | ``--no-qsub``     | Keep all tasks local and do not submt PBS   |
+    |                   | job(s)                                      |
+    +-------------------+---------------------------------------------+
 
 
 .. _cli-modification:
