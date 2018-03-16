@@ -16,7 +16,7 @@ set     app        pycart
 set     version    current
 
 # Local variables
-set  CAPE   $HOME/pycart0.8
+set  CAPE   $HOME/cape0.8
 
 # Set environment variables
 setenv  CAPE              $PYCART
