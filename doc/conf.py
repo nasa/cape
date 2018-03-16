@@ -43,7 +43,7 @@ extensions = [
 ]
 
 # Main title
-title = "Manual for pyCart 1.0"
+title = "Manual for CAPE 1.0"
 
 # Parameters for the TM
 NC = {
@@ -79,10 +79,10 @@ NC["subtitle"] = (
     "A CFD Preprocessing, Run Control, and Postprocessing Assistant for " +
     "Cart3D, FUN3D, and OVERFLOW")
 NC["abstract"] = (
-    "This manual describes the installation and execution of pyCart " +
+    "This manual describes the installation and execution of CAPE " +
     "version 1.0.  The software is a suite of wrappers for computational " +
     "fluid dynamics tools including Cart3D, FUN3D, and OVERFLOW.  At its " +
-    "core, pyCart is an attempt to provide a common user interface to the " +
+    "core, CAPE is an attempt to provide a common user interface to the " +
     "three flow solvers.  It also includes many tools for post-processing " +
     "computational fluid dynamics results including data collection, " +
     "analysis, plotting, and database management.")
@@ -193,7 +193,7 @@ numfig_format = {
 }
 
 # General information about the project.
-project = u'pyCart'
+project = u'CAPE'
 copyright = u'2014-2017, Derek J. Dalle'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -349,7 +349,7 @@ html_static_path = ['_static']
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'pyCartdoc'
+htmlhelp_basename = 'capedoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -386,7 +386,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'pyCart.tex', u'pyCart Documentation',
+  ('index', 'cape.tex', u'CAPE Documentation',
    u'Derek J. Dalle', 'manual'),
 ]
 
@@ -426,7 +426,7 @@ numfig_format = {
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'pycart', u'pyCart Documentation',
+    ('index', 'cape', u'CAPE Documentation',
      [u'Derek J. Dalle'], 1)
 ]
 
@@ -440,8 +440,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'pyCart', u'pyCart Documentation',
-   u'Derek J. Dalle', 'pyCart', 'One line description of project.',
+  ('index', 'cape', u'CAPE Documentation',
+   u'Derek J. Dalle', 'cape', 'One line description of project.',
    'Miscellaneous'),
 ]
 
