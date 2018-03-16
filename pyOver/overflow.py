@@ -173,8 +173,9 @@ class Overflow(Cntl):
         fnml = self.opts.get_OverNamelist(j)
         # Check for the file.
         if not os.path.isfile(fnml):
-            # Do nothing
-            nml = None
+            # We really need a namelist
+            raise ValueError(
+                "Namelist file '%s' does not exist" % fnml)
         else:
             # Read the file
             nml = OverNamelist(self.opts.get_OverNamelist(j))

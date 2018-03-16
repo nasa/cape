@@ -2065,7 +2065,7 @@ class DBBase(dict):
   # ======
   # <
     # Initialization method
-    def __init__(self, comp, x, opts, check=False, lock=False):
+    def __init__(self, comp, x, opts, check=False, lock=False, **kw):
         """Initialization method
         
         :Versions:
@@ -2077,6 +2077,8 @@ class DBBase(dict):
         self.opts = opts
         self.comp = comp
         self.name = comp
+        # Root directory
+        self.RootDir = kw.get("RootDir", os.getcwd())
         
         # Get the directory.
         fdir = opts.get_DataBookDir()
@@ -2390,6 +2392,8 @@ class DBBase(dict):
             name = self.comp
         # Call the object
         DBc = DBBase(name, self.x, self.opts, check=check, lock=lock)
+        # Ensure the same root directory is used
+        DBc.RootDir = getattr(self,"RootDir", os.getcwd())
         # Output
         return DBc
         
@@ -5440,7 +5444,7 @@ class DBComp(DBBase):
         self.opts = opts
         self.comp = comp
         self.name = comp
-        # Root direcotyr
+        # Root directory
         self.RootDir = kw.get("RootDir", os.getcwd())
         
         # Get the directory.
