@@ -1,5 +1,5 @@
 
-.. automodule:: pc_UH3D2Tri
+.. automodule:: pc_StepTri2Crv
     :members:
     
     

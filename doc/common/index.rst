@@ -27,7 +27,7 @@ that serve more specific purposes such as converting file formats.
 
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
     
     setup
     command-line

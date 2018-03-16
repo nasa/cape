@@ -1,5 +1,5 @@
 
-.. automodule:: pc_UH3D2Tri
+.. automodule:: pf_Plt2Triq
     :members:
     
     
