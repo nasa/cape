@@ -17,7 +17,7 @@ command-line options to run.
 # Reused classes
 from cape.case import *
 # Import options class
-from options.runControl import RunControl
+from .options.runControl import RunControl
 # Interface for writing commands
 from . import cmd, queue, manage, bin
 # Point sensors

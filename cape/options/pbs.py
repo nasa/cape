@@ -10,7 +10,7 @@ how many nodes to request, etc.
 
 
 # Import options-specific utilities
-from util import rc0, odict
+from .util import rc0, odict
 
 # Class for PBS settings
 class PBS(odict):

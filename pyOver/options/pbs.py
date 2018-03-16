@@ -2,7 +2,7 @@
 
 
 # Import options-specific utilities
-from util import rc0
+from .util import rc0
 
 # Get PBS settings template
 import cape.options.pbs

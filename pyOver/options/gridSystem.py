@@ -7,7 +7,7 @@ now, nonunique section names are not allowed.
 """
 
 # Ipmort options-specific utilities
-from util import rc0, odict, getel
+from .util import rc0, odict, getel
 
 # Class for namelist settings
 class GridSystemNml(odict):

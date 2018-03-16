@@ -13,12 +13,12 @@ section is written to the file ``case.json`` within each run folder.
 """
 
 # Ipmort options-specific utilities
-from util import rc0, odict, getel
+from .util import rc0, odict, getel
 # Required submodules
-import Archive
-import ulimit
-import aflr3
-import intersect
+from . import Archive
+from . import ulimit
+from . import aflr3
+from . import intersect
 
 # Environment class
 class Environ(odict):

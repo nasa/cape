@@ -10,7 +10,7 @@ The options in this module are among the command-line options to AFLR3.
 """
 
 # Ipmort options-specific utilities
-from util import rc0, odict, getel
+from .util import rc0, odict, getel
 
 
 # Resource limits class

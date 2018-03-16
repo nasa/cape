@@ -19,7 +19,7 @@ import subprocess as sp
 from cape.cntl import Cntl
 
 # Local classes
-from overNamelist import OverNamelist
+from .overNamelist import OverNamelist
 
 # Other pyFun modules
 from . import options
@@ -30,7 +30,7 @@ from . import manage
 from cape import convert
 
 # Functions and classes from other modules
-from trajectory import Trajectory
+from .trajectory import Trajectory
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)

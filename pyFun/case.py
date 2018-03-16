@@ -10,9 +10,9 @@ case folders.
 from cape.case import *
 import cape.manage as manage
 # Import options class
-from options.runControl import RunControl
+from .options.runControl import RunControl
 # Import the namelist
-from namelist import Namelist
+from .namelist import Namelist
 # Interface for writing commands
 from . import bin, cmd, queue
 

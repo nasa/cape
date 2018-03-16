@@ -45,7 +45,7 @@ also available to :class:`pyCart.options.runControl.RunControl`.
 
 
 # Import options-specific utilities
-from util import rc0, odict, isArray, getel
+from .util import rc0, odict, isArray, getel
 # Run control class
 import cape.options.runControl
 import cape.options.ulimit

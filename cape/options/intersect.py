@@ -25,7 +25,7 @@ the :class:`cape.options.intersect.intersect` and
 """
 
 # Ipmort options-specific utilities
-from util import rc0, odict, getel
+from .util import rc0, odict, getel
 
 
 # Resource limits class

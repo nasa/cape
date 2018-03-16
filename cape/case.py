@@ -24,7 +24,7 @@ Several of the key methods for this API module are described below.
 """
 
 # Import options class
-from options.runControl import RunControl
+from .options.runControl import RunControl
 # Interface for writing commands
 from . import queue
 from . import bin

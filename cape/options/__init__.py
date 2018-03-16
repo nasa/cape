@@ -42,7 +42,7 @@ descriptions.
 """
 
 # Import options-specific utilities (loads :mod:`os`, too)
-from util import *
+from .util import *
 
 # Import more specific modules for controlling subgroups of options
 from .pbs        import PBS
@@ -162,7 +162,7 @@ class Options(odict):
                     raise e
         else:
             # Apply umask
-            dmask = 0777 - umask
+            dmask = 0o777 - umask
             # Make the directory.
             try:
                 # Attempt the command

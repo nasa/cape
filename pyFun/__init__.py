@@ -63,5 +63,5 @@ _fname = os.path.abspath(__file__)
 PyFunFolder = os.path.split(_fname)[0]
 
 # Import Control module
-from fun3d  import Fun3d, Trajectory
+from .fun3d  import Fun3d, Trajectory
 

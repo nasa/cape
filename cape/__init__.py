@@ -76,12 +76,12 @@ TemplateFolder = os.path.join(CapeFolder, "templates")
 
 
 # Import classes and methods from the submodules
-from tri    import Tri, Triq
-from cntl   import Cntl
-from case   import ReadCaseJSON
+from .tri    import Tri, Triq
+from .cntl   import Cntl
+from .case   import ReadCaseJSON
 
 # Get the conversion tools directly.
-from convert import *
+from .convert import *
 
 # Submodules
 from . import manage

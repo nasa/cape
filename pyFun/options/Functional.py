@@ -2,7 +2,7 @@
 
 
 # Import options-specific utilities
-from util import getel
+from .util import getel
 # Import base class
 import cape.options.Functional
 

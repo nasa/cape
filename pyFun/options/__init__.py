@@ -22,7 +22,7 @@ value of a given parameter should be is below.
 """
 
 # Import options-specific utilities (loads :mod:`os`, too)
-from util import *
+from .util import *
 
 # Import template module
 import cape.options

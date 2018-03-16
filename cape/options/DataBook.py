@@ -10,7 +10,7 @@ such as :class:`cape.options.DataBook.DataBook` have additional methods.
 # System modules
 import fnmatch
 # Import options-specific utilities
-from util import rc0, odict, getel, os
+from .util import rc0, odict, getel, os
 
 
 # Class for data book
@@ -101,7 +101,7 @@ class DataBook(odict):
                     raise e
         else:
             # Apply umask
-            dmask = 0777 - umask
+            dmask = 0o777 - umask
             # Make the directory.
             try:
                 # Attempt to make directory

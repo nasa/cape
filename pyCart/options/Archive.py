@@ -38,7 +38,7 @@ are all available to this command.
 """
 
 # Import options-specific utilities
-from util import rc0
+from .util import rc0
 # Base module
 import cape.options.Archive
 

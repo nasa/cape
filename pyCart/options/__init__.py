@@ -48,7 +48,7 @@ class inherits methods from the classes in its submodules, such as
 """
 
 # Import options-specific utilities (loads :mod:`os`, too)
-from util import *
+from .util import *
 
 # Import template module
 import cape.options

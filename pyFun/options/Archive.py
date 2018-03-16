@@ -1,7 +1,7 @@
 """Case archiving options for Cart3D solutions"""
 
 # Import options-specific utilities
-from util import rc0
+from .util import rc0
 # Base module
 import cape.options.Archive
 

@@ -19,8 +19,8 @@ import subprocess as sp
 from cape.cntl import Cntl
 
 # Local classes
-from namelist   import Namelist
-from rubberData import RubberData
+from .namelist   import Namelist
+from .rubberData import RubberData
 
 # Other pyFun modules
 from . import options
@@ -34,7 +34,7 @@ from cape import convert
 from cape.util import RangeString
 
 # Functions and classes from other modules
-from trajectory import Trajectory
+from .trajectory import Trajectory
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
