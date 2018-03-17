@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Convert UH3D triangulation to Cart3D format: :mod:`pc_UH3D2Tri`
+Convert UH3D triangulation to Cart3D format: ``pc_UH3D2Tri.py``
 ===============================================================
 
 Convert a '.uh3d' file to a Cart3D triangulation format.

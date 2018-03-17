@@ -10,6 +10,14 @@ Script Library
     .. toctree::
     
         pycart
+        pyfun
+        pyover
         UH3D2Tri
+        Tri2Plt
+        Tri2Surf
+        Plt2Triq
+        Step2Crv
+        StepTri2Crv
+        TriqFM
         
     

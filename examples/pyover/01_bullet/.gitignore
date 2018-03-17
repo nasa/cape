@@ -1,0 +1,73 @@
+
+# Folders
+poweroff/
+
+# Batch jobs
+batch-pbs/
+
+# Data books handled separately
+data/
+
+# Grid files
+common/*/fomo/grid.*
+common/*/fomo/zips.tri
+common/*/fomo/fort*
+common/*/fomo/x.save
+common/*/fomo/panel_weights.dat
+common/*/fomo/usurp*
+common/*/fomo/mixsur.o
+common/*/fomo/edge_list
+common/*/fomo/skipped.dat
+common/*/fomo/check_triangles.dat
+common/*/irun2/
+common/*/x.save
+common/*/xrays.in
+common/*/grid.in
+common/*/grid.srf
+common/*/grid.surf
+common/*/INTOUT
+
+# Reports
+report/*
+!report/NASA_logo.pdf
+
+# Documentation separate
+doc/
+
+# Documents handled separately.
+Documents/
+
+# Grid generation
+common/irun2/*
+!common/irun2/run.pbs
+
+# Common ignores
+*.swp
+*~
+~*
+*#
+
+# Python objects
+*.py[co]
+
+# Archives
+*.zip
+*.tar
+*.gz
+*.tgz
+!*.ansa.gz
+
+# TeX files
+*.aux
+*.toc
+*.vrb
+*.snm
+*.nav
+*.log
+*.out
+
+# Exceptions
+!run/rsrb
+!run/core
+!run/stack
+

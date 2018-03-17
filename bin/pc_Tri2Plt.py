@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Convert Triangulation to Tecplot PLT Format: :file:`pc_Tri2Plt.py`
+Convert Triangulation to Tecplot PLT Format: ``pc_Tri2Plt.py``
 ==================================================================
 
 Convert a Cart3D triangulation ``.tri`` or ``.triq`` file to a Tecplot PLT

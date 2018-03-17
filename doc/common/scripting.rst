@@ -127,3 +127,127 @@ scripts with the ``-x`` option because it requires creating a module (which is
 similar to creating a script) and also setting a few options within the JSON
 file.
 
+These functions are controlled in the JSON file using the global
+``"InitFunction"`` setting.  Consider the following example from a master JSON
+input file.
+
+    .. code-block:: javascript
+    
+        "PythonPath": ["tools"],
+        "Modules": ["tfm"],
+        "InitFunction": ["tfm.InitArchive"],
+        
+These options import a module called :mod:`tfm`, which may be defined in the
+file :file:`tools/tfm.py` or :file:`tools/tfm/__init__.py`.  The function
+:func:`tfm.InitArchive` is called immediately after the JSON file is
+interpreted, and it can be used to change the settings otherwise specified in
+the JSON file.
+
+Example contents of the :mod:`tfm` module defined in :file:`tools/tfm.py` are
+below:
+
+    .. code-block:: python
+    
+        # System modules
+        import os
+        
+        # Define an initialization function
+        def InitArchive(cntl):
+            """Change archive folder to appropriate value for calling user"""
+            # Set the *ArchiveFolder* option using an environment variable
+            cntl.opts.set_ArchiveFolder(os.path.join('/u/',
+                os.environ['USER'], 'sls', '10008', 'f3_tfm'))
+                
+This function is not terribly complex but accomplishes a task that cannot be
+performed directly in the JSON file.  The example is useful under the
+assumption that multiple users are running cases from the same input file, and
+this allows each user to set the archive location to their own home folder even
+while using identical input files.
+
+The input to the *InitFunction* is the :class:`cape.cntl.Cntl`,
+:class:`pyCart.cart3d.Cart3d`, :class:`pyFun.fun3d.Fun3d`, etc. global object
+that contains all of the settings from the JSON file and an interface to act on
+them.  The JSON settings are stored within *cntl.opts*.
+
+The *InitFunction* can be used to accomplish many more complex tasks.  For
+example you may have many different databook components that have their own
+definitions, which may or may not be simple.  It is usually possible to define
+these within the JSON file, but it may require many lines of repetitive text.
+The *InitFunction* allows the user define these components within a loop using
+Python code and the Cape API.
+
+
+.. _cape-scripting-CaseFunction:
+
+Special Settings for Individual Runs from Python Modules
+----------------------------------------------------------
+A related capability to the *InitFunction* is the so-called *CaseFunction*.
+This specifies one or more Python functions to be executed from a user-defined
+module(s) after all other setup tasks for a case have been performed.  This
+allows the user to customize CFD settings or any other aspect of the inputs in
+ways that might not be possible with other Cape capabilities.  In short, this
+can be used as a method of last resort if the environment does not support the
+level of customization required by the user.
+
+Some common examples of *CaseFunction* include:
+
+    * Specifying a different CFL number or some other CFD input as a function
+      of freestream Mach number or angle of attack
+    * Using different meshes according to Mach number or, for example, a
+      control surface deflection setting
+    * Adding an extra *Label* or *tag* input variable that allows the user to
+      select from various options using the run matrix
+    * Translating and/or rotating part of the mesh according to values in the
+      run matrix (although this is typically better supported with the
+      *TriFunction*, *translation*, *rotation*, or *ConfigFunction* keys)
+    * Defining a run matrix variable and using it to turn on/off powered
+      boundary conditions
+    * Creating a function to alter the PBS setting s for each case
+    
+An example input from the JSON file is shown below.
+
+    .. code-block:: javascript
+        
+        "PythonPath": ["tools"],
+        "Modules": ["tfm", "freeair"],
+        "InitFunction": ["tfm.InitArchive"],
+        "CaseFunction": ["freeair.ApplyLabel", "freeair.ApplyTag"]
+        
+This instructs Cape to run the functions :func:`freeair.ApplyLabel` and then
+:func:`freeair.ApplyTag` after the case has been mostly set up but CFD input
+files have not been written yet.  Some of the Python syntax for an example for
+FUN3D is shown below.
+
+    .. code-block:: python
+    
+        # Filter options based on the *Label* trajectory key
+        def ApplyLabel(cntl, i):
+            # Get nahdle to FUN3D namelist
+            f3d = cntl.opts["Fun3D"]
+            # Key section names
+            nsp = "nonlinear_solver_parameters"
+            lsp = "linear_solver_parameers"
+            ifm = "inviscid_flux_method"
+            # Get *Label* value from the run matrix for case *i*
+            lbl = cntl.x.Label[i]
+            # Select default label if empty
+            if lbl:
+                # Status update
+                print("    Using Label '%s'" % lbl)
+            else:
+                # Check Mach number for this case
+                mach = cntl.x.mach[i]
+                # Filter the default value based on Mach
+                if mach < 1.4:
+                    # Select label to run uRANS
+                    lbl = 'd'
+                else:
+                    # Different label to run RANS
+                    lbl = 'b'
+            # Actually change the settings ...
+            
+As can be seen from this example, the inputs to a *CaseFunction* are the
+overall control object (:class:`pyCart.cart3d.Cart3d`,
+:class:`pyOver.overflow.Overflow`, or :class:`pyfun.fun3d.Fun3d`) and the case
+number *i*.
+
