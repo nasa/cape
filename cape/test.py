@@ -12,14 +12,15 @@ import os, sys
 import subprocess as sp
 
 # Paths
-fmod  = os.path.split(os.path.abspath(__file__))[0]
-fcape = os.path.split(fmod)[0]
-ftest = os.path.join(fcape, 'test')
+fcape = os.path.split(os.path.abspath(__file__))[0]
+froot = os.path.split(fcape)[0]
+ftest = os.path.join(froot, 'test')
 # Module folders
-fpycart = os.path.join(fcape, 'pyCart')
-fpyfun  = os.path.join(fcape, 'pyFun')
-fpyover = os.path.join(fcape, 'pyOver')
-# Module folders
+fpycart = os.path.join(froot, 'pyCart')
+fpyfun  = os.path.join(froot, 'pyFun')
+fpyover = os.path.join(froot, 'pyOver')
+# Module test folders
+ftcape   = os.path.join(ftest, 'cape')
 ftpycart = os.path.join(ftest, 'pycart')
 ftpyfun  = os.path.join(ftest, 'pyfun')
 ftpyover = os.path.join(ftest, 'pyover')
@@ -56,10 +57,18 @@ def callt(cmd, msg):
         
 # Simple shell call with status
 def shell(cmd, msg=None):
-    """Call a message while checking the exit status
+    """Call a command while checking the exit status
+    
+    The command writes ``$`` and the name of the command, *cmd* to the file
+    ``test.out`` within the current working directory.  This is followed the
+    contents of both STDOUT and STDERR.
+    
+    If the command exists with a status other than ``0``, this function raises
+    an exception, writing a short message input by the user (if given) to
+    ``test.out``.
     
     :Call:
-        >>> callt(cmd, msg)
+        >>> shell(cmd, msg)
     :Inputs:
         *cmd*: :class:`str`
             Command to run with :func:`os.system`
@@ -90,6 +99,42 @@ def shell(cmd, msg=None):
     else:
         # Close file
         f.close()
+        
+# Simple shell call with status and capturing output
+def check_output(cmd, msg=None):
+    """Call a command and capture the contents of STDOUT
+    
+    The command writes ``$`` and the name of the command, *cmd* to the file
+    ``test.out`` within the current working directory.  This is followed the
+    contents of both STDOUT and STDERR.
+    
+    If the command exists with a status other than ``0``, this function raises
+    an exception, writing a short message input by the user (if given) to
+    ``test.out``.
+    
+    :Call:
+        >>> txt = check_output(cmd, msg)
+    :Inputs:
+        *cmd*: :class:`str`
+            Command to run with :func:`os.system`
+        *msg*: {``None``} | :class:`str`
+            Error message to show on failure
+    :Outputs:
+        *txt*: :class:`str`
+            Contents of STDOUT
+    :Versions:
+        * 2018-03-17 ``@ddalle``: First version
+    """
+    # Open status file
+    f = open("test.out", "a")
+    # Status update
+    f.write("\n$ %s\n" % cmd)
+    # Call the command
+    txt = sp.check_output(cmd, shell=True, stderr=f)
+    # Close file
+    f.close()
+    # Output
+    return txt
 
 # Wrapper for :func:`os.system` that raises exception on failure
 def calle(cmd, msg):

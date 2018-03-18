@@ -15,4 +15,6 @@ circumstances, a failed call to a C method falls back to a Python method.
 .. toctree::
     :maxdepth: 3
     
+    results
+    cape/index
     pycart/index
