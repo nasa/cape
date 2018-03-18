@@ -170,5 +170,9 @@ defined.  In general the required files are the following.
         api/cape/index
         api/pyCart/index
     
+    **Testing**
+    
+    .. toctree::
+        :maxdepth: 3
 
-
+        test/index
