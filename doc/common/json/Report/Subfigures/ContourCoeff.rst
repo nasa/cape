@@ -2,8 +2,8 @@
 
 .. _cape-json-ReportContourCoeff:
 
-Sweep Coefficient Contour Plots
---------------------------------
+Contour Plots of Sweep Coefficient
+-----------------------------------
 The ``"ContourCoeff"`` class of subfigure is used to create a contour plot of
 unstructured 2D data for one or more force & moment or other database
 coefficients (such as a ``TriqFM`` load).  The user must specify the *XAxis*
@@ -54,7 +54,7 @@ sidelsip and angle of attack, respectively.  Sweep constraints for
         *XAxis*: ``"beta"`` | :class:`str`
             Name of trajectory key or *beta* to use as *x*-axis
             
-        *XAxis*: ``"alpha"`` | :class:`str`
+        *YAxis*: ``"alpha"`` | :class:`str`
             Name of trajectory key or *alpha* to use as *y*-axis
             
         *ContourOptions*: {``{}``} | :class:`dict`

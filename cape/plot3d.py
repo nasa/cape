@@ -389,9 +389,26 @@ class X(object):
             if r/24 == npt:
                 # Double-precision
                 self.ext = ext + '8'
+                # No iblanks
+                self.iblank = False
             elif r/12 == npt:
                 # Single-precision
                 self.ext = ext + '4'
+                # No iblanks
+                self.iblank = False
+            elif r/28 == npt:
+                # Double-precision
+                self.ext = ext + '8'
+                # With iblanks
+                self.iblank = True
+            elif r/16 == npt:
+                # Single-precision
+                self.ext = ext + '4'
+                # With iblanks
+                self.iblank = True
+            else:
+                raise ValueError("Could not determine precision of" +
+                    ("%s file" % ext))
         else:
             # Total number of points
             npt = np.sum(np.prod(dims, axis=1))
@@ -408,6 +425,7 @@ class X(object):
                 self.ext = ext + '8'
         # Close the file
         f.close()
+        
         # Output
         return self.ext
     
@@ -708,12 +726,30 @@ class X(object):
         mpt = np.append([0], np.cumsum(npt))
         # Initialize coordinates
         self.X = np.zeros((3,mpt[-1]))
+        # Initialize IBLANK
+        if self.iblank:
+            self.IB = np.zeros(mpt[-1], dtype="bool")
         # Loop through the grids
         for i in range(self.NG):
-            # Read record
-            R = io.read_record_r8_f(f)
+            # Read record marker
+            r1, = np.fromfile(f, count=1, dtype=">i4")
+            # Number of points
+            jpt = npt[i]
+            # Read points
+            R = np.fromfile(f, count=jpt*3, dtype=">f8")
             # Save coordinates
-            self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,npt[i]))
+            self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,jpt))
+            # Check for iblanks
+            if self.iblank:
+                # Read IBlanks
+                IB = np.fromfile(f, count=jpt, dtype=">i4")
+                # Save them
+                self.IB[mpt[i]:mpt[i+1]] = IB 
+            # Read end-of-record marker
+            r2, = np.fromfile(f, count=1, dtype=">i4")
+            # Check consistency
+            if r1 != r2:
+                raise ValueError("End-of-record marker does not match start")
         # Close the file
         f.close()
     
@@ -754,12 +790,30 @@ class X(object):
         mpt = np.append([0], np.cumsum(npt))
         # Initialize coordinates
         self.X = np.zeros((3,mpt[-1]))
+        # Initialize IBLANK
+        if self.iblank:
+            self.IB = np.zeros(mpt[-1], dtype="bool")
         # Loop through the grids
         for i in range(self.NG):
-            # Read record
-            R = io.read_record_r4_f(f)
+            # Read record marker
+            r1, = np.fromfile(f, count=1, dtype=">i4")
+            # Number of points
+            jpt = npt[i]
+            # Read points
+            R = np.fromfile(f, count=jpt*3, dtype=">f4")
             # Save coordinates
-            self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,npt[i]))
+            self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,jpt))
+            # Check for iblanks
+            if self.iblank:
+                # Read IBlanks
+                IB = np.fromfile(f, count=jpt, dtype=">i4")
+                # Save them
+                self.IB[mpt[i]:mpt[i+1]] = IB 
+            # Read end-of-record marker
+            r2, = np.fromfile(f, count=1, dtype=">i4")
+            # Check consistency
+            if r1 != r2:
+                raise ValueError("End-of-record marker does not match start")
         # Close the file
         f.close()
     
@@ -800,12 +854,30 @@ class X(object):
         mpt = np.append([0], np.cumsum(npt))
         # Initialize coordinates
         self.X = np.zeros((3,mpt[-1]))
+        # Initialize IBLANK
+        if self.iblank:
+            self.IB = np.zeros(mpt[-1], dtype="bool")
         # Loop through the grids
         for i in range(self.NG):
-            # Read record
-            R = io.read_record_lr8_f(f)
+            # Read record marker
+            r1, = np.fromfile(f, count=1, dtype="<i4")
+            # Number of points
+            jpt = npt[i]
+            # Read points
+            R = np.fromfile(f, count=jpt*3, dtype="<f8")
             # Save coordinates
-            self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,npt[i]))
+            self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,jpt))
+            # Check for iblanks
+            if self.iblank:
+                # Read IBlanks
+                IB = np.fromfile(f, count=jpt, dtype="<i4")
+                # Save them
+                self.IB[mpt[i]:mpt[i+1]] = IB 
+            # Read end-of-record marker
+            r2, = np.fromfile(f, count=1, dtype="<i4")
+            # Check consistency
+            if r1 != r2:
+                raise ValueError("End-of-record marker does not match start")
         # Close the file
         f.close()
     
@@ -846,12 +918,30 @@ class X(object):
         mpt = np.append([0], np.cumsum(npt))
         # Initialize coordinates
         self.X = np.zeros((3,mpt[-1]))
+        # Initialize IBLANK
+        if self.iblank:
+            self.IB = np.zeros(mpt[-1], dtype="bool")
         # Loop through the grids
         for i in range(self.NG):
-            # Read record
-            R = io.read_record_lr4_f(f)
+            # Read record marker
+            r1, = np.fromfile(f, count=1, dtype="<i4")
+            # Number of points
+            jpt = npt[i]
+            # Read points
+            R = np.fromfile(f, count=jpt*3, dtype="<f4")
             # Save coordinates
-            self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,npt[i]))
+            self.X[:,mpt[i]:mpt[i+1]] = np.reshape(R, (3,jpt))
+            # Check for iblanks
+            if self.iblank:
+                # Read IBlanks
+                IB = np.fromfile(f, count=jpt, dtype="<i4")
+                # Save them
+                self.IB[mpt[i]:mpt[i+1]] = IB 
+            # Read end-of-record marker
+            r2, = np.fromfile(f, count=1, dtype="<i4")
+            # Check consistency
+            if r1 != r2:
+                raise ValueError("End-of-record marker does not match start")
         # Close the file
         f.close()
     

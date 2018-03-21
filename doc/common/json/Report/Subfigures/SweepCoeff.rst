@@ -2,7 +2,7 @@
 
 .. _cape-json-ReportSweepCoeff:
 
-Force and Moment Coefficient Sweep Plots
+Sweep Plots of Coefficients
 ----------------------------------------
 
 The ``"SweepCoeff"`` class of subfigure is used to plot one or more force or

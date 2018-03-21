@@ -225,16 +225,16 @@ is a set of three that seems to work well.
         "ColorMaps": [
             {
                 "NContour": 2,
-                "Constraints": ["mach" < 0.8"],
+                "Constraints": ["mach < 0.8"],
                 "ColorMap": {
                     "0.0": "darkpurple",
-                    "$mach": "white"
+                    "$mach": "white",
                     "1.0": ["cyan", "palegreen"],
                     "max(1.1,1.4*$mach)": "darkgreen"
                 }
             }, {
                 "NContour": 2,
-                "Constraints": ["mach >= 0.8, "mach <= 1.25"],
+                "Constraints": ["mach >= 0.8", "mach <= 1.25"],
                 "ColorMap": {
                     "0.0": "darkpurple",
                     "$mach": "white",
