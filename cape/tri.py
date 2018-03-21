@@ -5889,6 +5889,7 @@ class Tri(TriBase):
         >>> tri = cape.Tri(fname=fname, c=None)
         >>> tri = cape.Tri(surf=surf, c=None)
         >>> tri = cape.Tri(uh3d=uh3d, c=None)
+        >>> tri = cape.Tri(cgns=cgns, c=None)
         >>> tri = cape.Tri(unv=unv, c=None)
         >>> tri = cape.Tri(nNode=nNode, Nodes=Nodes, **kw)
     :Inputs:
@@ -5898,10 +5899,12 @@ class Tri(TriBase):
             Name of AFLR3 surface file
         *uh3d*: :class:`str`
             Name of triangulation file (UH3D format)
+        *cgns*: :class:`str`
+            Name of mixed quad/tri file (CGNS format)
         *unv*: :class:`str`
             Name of IDEAS surface triangulation file
         *c*: :class:`str`
-            Name of configuration file (usually ``Config.xml``)
+            Name of configuration file (usually ``Config.xml`` or ``pyfun.json``)
     :Keyword arguments:
         Data members can be defined directly using keyword arguments
     :Data members:
