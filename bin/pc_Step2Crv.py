@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 """
-Convert STEP File to Plot3D Multiple Curve File
-===============================================
+Convert STEP File to Plot3D Multiple Curve File: ``pc_Step2Crv.py``
+===================================================================
 
-Convert a '.uh3d' file to a Cart3D triangulation format.
+Create a Plot3D discretized curve file from a STEP file using various maximum
+spacing command-line options.
 
 :Call:
 

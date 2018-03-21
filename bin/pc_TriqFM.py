@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-Calculate Forces and Moments on a TRIQ File
-===========================================
+Calculate Forces and Moments on a TRIQ File: ``pc_TriqFM.py``
+=============================================================
 
 Calculate the integrated forces and moments on a triangulated surface
 

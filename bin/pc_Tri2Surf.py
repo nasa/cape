@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-Convert Cart3D triangulation to AFLR3 Surf format: :mod:`pc_Tri2Surf`
-=====================================================================
+Convert Cart3D TRI file to AFLR3 Surf format: ``pc_Tri2Surf.py``
+==================================================================
 
 Convert a ``.tri`` file to a AFLR3 surface format.
 

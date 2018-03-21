@@ -79,7 +79,7 @@ except Exception:
     fail_msg("Failed to execute 'cape --glob' test", 8)
     
 # Test filtering options
-print("\n> cntl.x.GetIndices(cons=['alpha==0', 'Mach%1==0.8'])")
+print("\n> cntl.x.GetIndices(cons=['beta==2', 'Mach%1==0.5'])")
 os.sys.stdout.flush()
 try:
     # Apply filter

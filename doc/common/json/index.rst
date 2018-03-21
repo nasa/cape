@@ -30,9 +30,15 @@ A basic template for such files is shown below.
         {
             // Universal Python settings
             "PythonPath": [],
+            "Modules": [],
+            // Special Python functions to run using API
+            "InitFunction": [],
+            "CaseFunction": [],
             
-            // Commands to run at beginning of script
+            // Commands to run at beginning of run job
             "ShellCmds": [],
+            // Commands to run at beginning of batch job
+            "BatchShellCmds": [],
             
             // Maximum number of commands to submit or run
             "nSubmit": 20,
@@ -60,6 +66,8 @@ A basic template for such files is shown below.
             
             // PBS job settings
             "PBS": { },
+            // Batch job PBS settings different from *PBS*
+            "BatchPBS": { },
             
             // Surface subset and point settings
             "Config": { },
@@ -104,6 +112,6 @@ follow.
     Archive
     Config
     DataBook
-    Report
+    Report/index
     Trajectory
     

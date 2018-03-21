@@ -290,7 +290,7 @@ and their particular interpretation varies from solver to solver.
     *comp*: :class:`dict`
         Definition for individual component *comp*
 
-        *Type*: {``"FM"``} | ``"Force"`` | ``"Moment"``
+        *Type*: {``"TriqPoint"``} | ``"Point"``
             Type of component being tracked
             
         *Coefficients*: :class:`list` (:class:`str`)
@@ -364,4 +364,39 @@ of *Targets* parameters is given below.
                 target data point can differ in Mach number from the Cape data
                 book point by up to 0.02 (inclusive)
 
+All targets are generally available to any :ref:`report subfigure
+<cape-json-ReportSubfigure>`, but the user can specify certain targets to
+correspond to certain databook components by adding target information to the
+databook component definition.  The full set of options is described
+:ref:`above <cape-json-DBCompTarget>`, but an example is helpful.  The
+following is a sample definition for two ``"FM"`` components called
+``"STACK_No_Aft"`` and ``"STACK_No_Base"``.
+
+    .. code-block:: javascript
+        
+        "STACK_No_Aft": {
+            "Type": "FM",
+            "Targets": {
+                "CA": ["CAF", "rev6/CA", "Forebody/CA", "Mimic/CA"]
+            }
+        },
+        "STACK_No_Base": {
+            "Type": "FM",
+            "Targets": {
+                "CY":  ["CYF",  "rev6/CY",  "Forebody/CY",  "Mimic/CY"],
+                "CN":  ["CNF",  "rev6/CN",  "Forebody/CN",  "Mimic/CN"],
+                "CLL": ["CLLF", "rev6/CLL", "Forebody/CLL", "Mimic/CLL"],
+                "CLM": ["CLMF", "rev6/CLM", "Forebody/CLM", "Mimic/CLM"],
+                "CLN": ["CLNF", "rev6/CLN", "Forebody/CLN", "Mimic/CLN"]
+            }
+        }
+        
+This means that the *CA* from ``STACK_No_Aft`` can only be compared to *CA*
+results, namely any column called *CAF* (a common wind tunnel data name for 
+axial force coefficient) or any column called *CA* from targets **rev6**,
+**Forebody**, or **Mimic**.  This prevents ``STACK_No_Aft`` data from matching
+*CA* results from any other targets.
+
+Similarly, the other five force & moment coefficients are set up to show up on
+plots of ``STACK_No_Base`` instead.
 

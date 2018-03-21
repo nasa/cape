@@ -501,7 +501,7 @@ class Trajectory:
                     "Format": "%s",
                     "Abbreviation": "b"
                 }
-            elif key.lower() in ['alpha_t', 'alpha_total']:
+            elif key.lower() in ['alpha_t', 'alpha_total', 'aoav']:
                 # Total angle of attack; non group
                 defkey = {
                     "Group": False,

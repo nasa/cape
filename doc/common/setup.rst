@@ -23,11 +23,11 @@ structure of a run setup is the ``"Trajectory"`` :ref:`section
 Matrix Setup
 ------------
 The first step is to pick the list of run matrix variables, which is a list set
-in *Trajectory>Keys*.  For example, this could be as simple as ``["mach",
-"alpha"]`` for a simple run matrix, or there could be may more variables such as
-fin deflection angles or thrust settings.  Common variables such as ``"mach"``,
-``"alpha"``, ``"beta"``, etc. do not need definitions, but special variables
-such as thrust settings need to have further explanation in the
+in *Trajectory>Keys*. For example, this could be as simple as ``["mach",
+"alpha"]`` for a simple run matrix, or there could be may more variables such
+as fin deflection angles or thrust settings. Common variables such as
+``"mach"``, ``"alpha"``, ``"beta"``, etc. do not need definitions, but special
+variables such as thrust settings need to have further explanation in the
 *Trajectory>Definitions* section.
 
 In addition, there are three other pre-declared variable types that do not
@@ -81,8 +81,8 @@ Most of the sections of the JSON file other than *Report*, *DataBook*, and
 generally be determined before starting the first case.
 
 For each version of the code, the *RunControl* section contains some key
-parameters.  For example, *RunControl>PhaseSequence* and *RunControl>PhaseIters*
-are mandatory.  Some of the other *RunControl* parameters are very dependent on
+parameters. For example, *RunControl>PhaseSequence* and *RunControl>PhaseIters*
+are mandatory. Some of the other *RunControl* parameters are very dependent on
 which solver is being used, for example command-line options to ``flowCart``
 (for Cart3D) ``nodet`` (for FUN3D).
 
@@ -99,8 +99,8 @@ point sensors are occasionally set here, too.
 Mesh Files and Other Templates
 ------------------------------
 There are certain pointers to mesh files in each version of the JSON file, and
-each code needs several other template input files as well.  Most of these input
-files have default templates provided in ``$PYCART/templates/``, but some files
+each code needs several other template input files as well. Most of these input
+files have default templates provided in ``$CAPE/templates/``, but some files
 like OVERFLOW's ``overflow.inp`` namelist depend on the number of grids and
 cannot be reduced to a global default template.
 
@@ -127,12 +127,12 @@ specifications, a "Component" is assumed to be a force and moment (``"Type":
 default type is ``"Force"`` since users must separately request forces and
 moments in that particular solver.
 
-However, there are other data book types.  The following example requests
+However, there are other data book types. The following example requests
 iterative force and moments on the components called ``"left_wing"`` and
 ``"right_wing"``, a line load on ``"fuselage"``, and a protuberance patch load
-taken from the final surface solution on the ``"cockpit"``.  There is also an FM
-component called ``"wings"`` in which pyCart adds the two wings' forces together
-for each iteration.
+taken from the final surface solution on the ``"cockpit"``. There is also an FM
+component called ``"wings"`` in which pyCart adds the two wings' forces
+together for each iteration.
 
     .. code-block:: javascript
     
@@ -161,8 +161,8 @@ see the :ref:`appropriate subsection of the JSON settings description
 <cape-json-DataBook>` for more information.
 
 Collecting the data into a database, which is kept in a separate folder outside
-the run folders (so that the run folders can be deleted when appropriate without
-affecting the databases), is performed via several commands:
+the run folders (so that the run folders can be deleted when appropriate
+without affecting the databases), is performed via several commands:
 
     ================   =========================
     *Type*             *Command*
@@ -170,28 +170,42 @@ affecting the databases), is performed via several commands:
     ``"FM"``           ``pycart --aero``
     ``"LineLoad"``     ``pycart --ll``
     ``"TriqFM"``       ``pycart --triqfm``
+    ``"TriqPoint"``    ``pycart --pt``
     ================   =========================
 
     
 Case Disposition and Archiving
 -------------------------------
-Once a case has been marked as PASS using a ``p`` in the first column of the run
-matrix file, it can be archived.  (Note: cases marked with the ``p`` but that
-have not run the appropriate number of iterations or are still running have the
-status ``PASS*`` and will not be archived.)  Archiving a case is performed using
-a command that conforms to the following template.
+Once a case has been marked as PASS using a ``p`` in the first column of the
+run matrix file, it can be archived. (Note: cases marked with the ``p`` but
+that have not run the appropriate number of iterations or are still running
+have the status ``PASS*`` and will not be archived.) Archiving a case is
+performed using a command that conforms to the following template.
 
     .. code-block:: bash
     
         $ pycart -I 140 --archive
         
 This will save some of the important files to a backup location and also delete
-files if requested.  It can be useful for keeping below file size and file count
+files if requested. It can be useful for keeping below file size and file count
 quotas while running large databases.
 
 The ``--clean`` command performs a subset of the ``--archive`` actions and can
-be run at any time.  Any files identified in the
-*RunControl>Archive>ProgressDeleteFiles* as noncritical files will be deleted at
-any time this ``--clean`` command is run.
+be run at any time. Any files identified in the
+*RunControl>Archive>ProgressDeleteFiles* as noncritical files will be deleted
+at any time this ``--clean`` command is run.
+
+The command
+
+    .. code-block:: bash
+    
+        $ pycart -I 140 --skeleton
+        
+performs even more cleanup tasks. Users may distinguish between ``--archive``
+and ``--skeleton`` for various tasks of post-processing.  Typically it is
+useful to leave the solution folder in such a state that all necessary
+post-processing can still be performed after ``--archive`` has been run, but
+the remaining files after ``--skeleton`` are only sufficient for ``pycart -c``
+to report the correct number of iterations run.
 
 

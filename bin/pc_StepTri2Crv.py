@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """
-Conver STEP File by Sampling Nodes from a TRI File
-==================================================
+Extract TRI file nodes on STEP curves:: ``pc_StepTri2Crv.py``
+===============================================================
 
 Convert a STEP file to a Plot3D multiple curve file by sampling curves from the
-STEP file at nodes from a surface triangulation
+STEP file at nodes from a surface triangulation.
 
 :Call:
     

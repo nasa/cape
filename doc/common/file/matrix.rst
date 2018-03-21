@@ -29,12 +29,12 @@ The following shows some typical contents of a :file:`matrix.csv` file.
     .. code-block:: none
     
         # mach, alpha, beta, config, Label
-         0.80, 0.0, 0.0, poweroff,
-         0.80, 2.0, 0.0, poweroff,
-         0.80, 4.0, 0.0, poweroff,
-         1.20, 0.0, 0.0, poweroff,
-         1.20, 2.0, 0.0, poweroff,
-         1.20, 2.0, 0.0, poweroff, try2
+          0.80, 0.0, 0.0, poweroff,
+          0.80, 2.0, 0.0, poweroff,
+          0.80, 4.0, 0.0, poweroff,
+          1.20, 0.0, 0.0, poweroff,
+          1.20, 2.0, 0.0, poweroff,
+          1.20, 2.0, 0.0, poweroff, try2
          
 This is a pretty straightforward file except possibly to point out that the
 first five cases have an empty ``"Label"`` value.  After running some cases,
@@ -53,6 +53,6 @@ to mark these statuses, the contents of :file:`matrix.csv` should be edited to
         p 0.80, 4.0, 0.0, poweroff,
         p 1.20, 0.0, 0.0, poweroff,
         e 1.20, 2.0, 0.0, poweroff,
-         1.20, 2.0, 0.0, poweroff, try2
+          1.20, 2.0, 0.0, poweroff, try2
      
 

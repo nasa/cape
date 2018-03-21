@@ -1,18 +1,15 @@
-.. pyCart documentation master file, created by
-   sphinx-quickstart on Wed Jun 11 08:36:23 2014.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
    
-pyCart Documentation
+CAPE Documentation
 ====================
 
-Welcome to pyCart, a computational aerodynamics processing environment for
+Welcome to CAPE, a computational aerosciences processing environment for
 efficient interaction with several high-fidelity aerodynamics codes. This
-includes tools for pre-processing, executing the codes, and performing
-post-processing tasks. The approach of Cape is to provide tools that make users
-more efficient at some or all of the modeling and analysis process. It may be
-useful to use Cape for just one step of a particular user's project, or it may
-be useful to use it for the entire process.
+includes tools for pre-processing, executing the codes, performing
+post-processing tasks, and creating finished databases. The approach of Cape is
+to provide tools that make users more efficient at some or all of the modeling
+and analysis process. It may be useful to use Cape for just one step of a
+particular user's project, or it may be useful to use it for the entire
+process.
 
 Most users really would rather evaluate new tools by seeing some examples, so
 here are the links to the example pages for the main solvers:
@@ -21,7 +18,7 @@ here are the links to the example pages for the main solvers:
     * :ref:`FUN3D Examples Using pyFun <pyfun-examples>`
     * :ref:`OVERFLOW Examples Using pyOver <pyover-examples>`
 
-Currently, pyCart has interfaces for `Cart3D
+Currently, CAPE has interfaces for `Cart3D
 <http://people.nas.nasa.gov/~aftosmis/cart3d/>`_, `OVERFLOW
 <http://overflow.arc.nasa.gov>`_, and `FUN3D <http://fun3d.larc.nasa.gov/>`_.
 The Cart3D interface, :mod:`pyCart` has been used for several NASA projects.
@@ -29,15 +26,13 @@ One example was the creation of an aerodynamic database for booster separation
 for the Space Launch System, which included over 10,000 different adaptive
 Cart3D runs in a 12-dimensional run matrix.
 
-The FUN3D interface, :mod:`pyFun`, is relatively new but reuses most of the
-code used to build :mod:`pyCart`. Both modules are built off of common tools in
-the :mod:`cape` module, and so much of the usage is common between the two
-interfaces.
-
-The OVERFLOW interface (also written "Overflow") interface, :mod:`pyOver`, also
-uses much of the underlying code of :mod:`cape`.  It can be used to run
-OVERFLOW, interact with databases, and there is a Python interface to solution
-files including easy dimensionalization of state variables.
+The FUN3D interface, :mod:`pyFun`, reuses most of the code used to build
+:mod:`pyCart`, and the OVERFLOW interface, :mod:`pyOver` was constructed in a
+similar manner. All modules are built off of common tools in the :mod:`cape`
+module, and so much of the usage is common between the two interfaces. These
+interfaces can be used to run OVERFLOW/FUN3D, interact with databases, and
+archive or clean up solutions. There is a Python interface to solution files
+including easy dimensionalization of state variables.
 
 The central Python module that contains most of the code for each module is
 called :mod:`cape`, which may be mentioned from time to time.
@@ -45,7 +40,7 @@ called :mod:`cape`, which may be mentioned from time to time.
 Each interface is a portmanteau of "Python" and the name of the solver. The
 command-line interface is invoked with the commands ``pycart``, ``pyfun``, and
 ``pyover``. In addition, there are several scripts matching the glob
-``pc_*.py`` for isolated tasks such as converting grid formats.
+``p?_*.py`` for isolated tasks such as converting grid formats.
 
 **Cape Inputs and JSON Files**
 Inputs to Cape can be given as either command-line arguments, input files
@@ -175,5 +170,9 @@ defined.  In general the required files are the following.
         api/cape/index
         api/pyCart/index
     
+    **Testing**
+    
+    .. toctree::
+        :maxdepth: 3
 
-
+        test/index
