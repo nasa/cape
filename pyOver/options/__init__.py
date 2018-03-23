@@ -1,6 +1,6 @@
 """
-OVERFLOW and pyOver settings module: :mod:`pyOver.options`
-==========================================================
+:mod:`pyOver.options`: OVERFLOW and pyOver settings 
+====================================================
 
 This module provides tools to read, access, modify, and write settings for
 :mod:`pyOver`.  The class is based off of the built-int :class:`dict` class.
@@ -9,12 +9,12 @@ In addition, this module controls default values of each pyOver
 parameter in a two-step process.  The precedence used to determine what the
 value of a given parameter should be is below.
 
-    *. Values directly specified in the input file, :file:`pyOver.json`
+    1. Values directly specified in the input file, :file:`pyOver.json`
     
-    *. Values specified in the default control file,
+    2. Values specified in the default control file,
        :file:`$PYOVER/settings/pyOver.default.json`
     
-    *. Hard-coded defaults from this module
+    3. Hard-coded defaults from this module
 """
 
 # Import options-specific utilities (loads :mod:`os`, too)

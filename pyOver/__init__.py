@@ -1,12 +1,10 @@
 """
-*****************
-The pyOver module
-*****************
 
-The :mod:`pyCart` module contains the top-level interface for OVERFLOW setup. It
-loads the most important methods from the various submodules so that they are
-easier to access. Most tasks using the pyCart API can be accessed by loading
-this module.
+The :mod:`pyOver` module contains the top-level interface for OVERFLOW setup,
+execution, and post-processing. It loads some of the most important methods
+from the various submodules so that they are easier to access. Most tasks using
+the pyOver API can be accessed by loading this module and reading one instance
+of the :class:`pyOver.overflow.Overflow` class.
 
     .. code-block:: python
     
@@ -20,38 +18,54 @@ you intended.)
     .. code-block:: python
         
         import pyOver
-        oflow = pyOver.Overflow()
+        ofl = pyOver.Overflow()
         
-A simpler example is to simply read a `.tri` file, rotate it about the *x*-axis
-by 20 degrees, and write it to a new file.
-
-    .. code-block:: python
-    
-        # Import the module.
-        import pyOver
-        # Read the .tri file.
-        tri = pyOver.Tri('bJet.i.tri')
-        # Rotate it.
-        tri.Rotate([0.,0.,0.], [1.,0.,0.], 20)
-        # Write it to a new file.
-        tri.Write('bJet_rotated.i.tri')
-        
-Most of the pyCart submodules essentially contain a single class definition, and
-that class is accessible directly from the :mod:`pyCart` module.
+Most of the pyOver submodules essentially contain a single class definition,
+which is derived from a similarly named :mod:`cape` module.  For example,
+:class:`pyOver.dataBook.DBComp` is subclassed to :class:`cape.dataBook.DBComp`,
+but several functions are edited because their functionality needs
+customization for OVERFLOW.  For example, reading iterative force & moment
+histories require a customized method for each solver.
 
 The following classes are imported in this module, so that code like
-``pyOver.Tri`` will work (although ``pyOver.tri.Tri``) will also work.
+``pyOver.Overflow`` will work (although ``pyOver.overflow.Overflow`` will also
+work).
 
-    * :class:`pyOver.tri.Tri`
     * :class:`pyOver.overflow.Overflow`
     * :class:`pyOver.trajectory.Trajectory`
+
+Modules included within this one are outlined below.
+
+    * Core modules:
+        - :mod:`pyOver.overflow`
+        - :mod:`pyOver.case`
+        - :mod:`pyOver.manage`
+        - :mod:`pyOver.dataBook`
+        - :mod:`pyOver.lineLoad`
+        - :mod:`pyOver.pointSensor`
+        - :mod:`pyOver.options`
+        
+    * OVERFLOW and Cape files
+        - :mod:`pyOver.overNamelist`
+        - :mod:`pyOver.plot3d`
+        - :mod:`cape.config`
+        - :mod:`cape.step`
+        - :mod:`cape.tri`
+        
+    * Supporting modules
+        - :mod:`pyOver.cmd`
+        - :mod:`pyOver.bin`
+        - :mod:`pyOver.report`
+        - :mod:`pyOver.queue`
+        - :mod:`pyOver.util`
+
 """
 
 # System
 import os
 
 # Save version number
-version = "0.5"
+version = "0.8"
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)

@@ -1,16 +1,14 @@
 """
-*****************
-The pyCart module
-*****************
 
-The :mod:`pyCart` module contains the top-level interface for Cart3D setup.  It
-loads the most important methods from the various submodules so that they are
-easier to access.  Most tasks using the pyCart API can be accessed by loading
-this module.
+The :mod:`pyFun` module contains the top-level interface for FUN3D setup,
+execution, and post-processing. It loads some of the most important methods
+from the various submodules so that they are easier to access. Most tasks using
+the pyFun API can be accessed by loading this module and reading one instance
+of the :class:`pyFun.fun3d.Fun3d` class.
 
     .. code-block:: python
     
-        import pyCart
+        import pyFun
         
 For example the following will read in a global settings instance assuming that
 the present working directory contains the correct files.  (If not, various
@@ -19,42 +17,55 @@ you intended.)
 
     .. code-block:: python
         
-        import pyCart
-        cart3d = pyCart.Cart3d()
+        import pyFun
+        fun3d = pyFun.Fun3d()
         
-A simpler example is to simply read a `.tri` file, rotate it about the *x*-axis
-by 20 degrees, and write it to a new file.
-
-    .. code-block:: python
-    
-        # Import the module.
-        import pyCart
-        # Read the .tri file.
-        tri = pyCart.Tri('bJet.i.tri')
-        # Rotate it.
-        tri.Rotate([0.,0.,0.], [1.,0.,0.], 20)
-        # Write it to a new file.
-        tri.Write('bJet_rotated.i.tri')
-        
-Most of the pyCart submodules essentially contain a single class definition, and
-that class is accessible directly from the :mod:`pyCart` module.
+Most of the pyFun submodules essentially contain a single class definition,
+which is derived from a similarly named :mod:`cape` module.  For example,
+:class:`pyFun.dataBook.DBComp` is subclassed to :class:`cape.dataBook.DBComp`,
+but several functions are edited because their functionality needs
+customization for FUN3D.  For example, reading iterative force & moment
+histories require a customized method for each solver.
 
 The following classes are imported in this module, so that code like
-``pyCart.Tri`` will work (although ``pyCart.tri.Tri``) will also work.
+``pyFun.Fun3d`` will work (although ``pyFun.fun3d.Fun3d`` will also work).
 
-    * :class:`pyCart.tri.Tri`
-    * :class:`pyCart.cart3d.Cart3d`
-    * :class:`pyCart.trajectory.Trajectory`
-    * :class:`pyCart.inputCntl.InputCntl`
-    * :class:`pyCart.aeroCsh.AeroCsh`
-    * :class:`pyCart.preSpecCntl.PreSpecCntl`
+    * :class:`pyFun.fun3d.Fun3d`
+    * :class:`pyFun.trajectory.Trajectory`
+
+Modules included within this one are outlined below.
+
+    * Core modules:
+        - :mod:`pyFun.fun3d`
+        - :mod:`pyFun.case`
+        - :mod:`pyFun.manage`
+        - :mod:`pyFun.dataBook`
+        - :mod:`pyFun.lineLoad`
+        - :mod:`pyFun.pointSensor`
+        - :mod:`pyFun.options`
+        
+    * FUN3D and Cape files
+        - :mod:`pyFun.faux`
+        - :mod:`pyFun.mapbc`
+        - :mod:`pyFun.namelist`
+        - :mod:`pyFun.plt`
+        - :mod:`pyFun.rubberData`
+        - :mod:`pyFun.trajectory`
+        
+    * Supporting modules
+        - :mod:`pyFun.cmd`
+        - :mod:`pyFun.bin`
+        - :mod:`pyFun.report`
+        - :mod:`pyFun.queue`
+        - :mod:`pyFun.util`
+
 """
 
 # System
 import os
 
 # Save version number
-version = "0.6"
+version = "0.8"
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)

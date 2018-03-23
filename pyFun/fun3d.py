@@ -1,8 +1,41 @@
 """
-FUN3D control module: :mod:`pyFun.fun3d`
-========================================
+:mod:`pyFun.fun3d`: FUN3D control module 
+=========================================
 
-This module provides tools to interface with most FUN3D settings from Python.
+This module provides tools to quickly setup basic or complex FUN3D run matrices
+and serve as an executive for pre-processing, running, post-processing, and
+managing the solutions. A collection of cases combined into a run matrix can be
+loaded using the following commands.
+
+    .. code-block:: pycon
+    
+        >>> import pyFun.fun3d
+        >>> fun3d = pyFun.fun3d.Fun3d("pyFun.json")
+        >>> fun3d
+        <pyFun.Fun3d(nCase=892)>
+        >>> fun3d.x.GetFullFolderNames(0)
+        'poweroff/m1.5a0.0b0.0'
+        
+        
+An instance of this :class:`pyFun.fun3d.Fun3d` class has many methods, which
+include the run matrix (``fun3d.x``), the options interface (``fun3d.opts``),
+and optionally the data book (``fun3d.DataBook``), the appropriate input files
+(such as ``fun3d.Namelist``), and possibly others.
+
+    ====================   =============================================
+    Attribute              Class
+    ====================   =============================================
+    *fun3d.x*              :class:`pyFun.trajectory.Trajectory`
+    *fun3d.opts*           :class:`pyFun.options.Options`
+    *fun3d.tri*            :class:`pyFun.tri.Tri`
+    *fun3d.DataBook*       :class:`pyFun.dataBook.DataBook`
+    *fun3d.Namelist*       :class:`pyFun.namelist.Namelist`
+    ====================   =============================================
+
+Finally, the :class:`pyFun.fun3d.Fun3d` class is subclassed from the
+:class:`cape.cntl.Cntl` class, so any methods available to the CAPE class are
+also available here.
+
 """
 
 # Basic numerics

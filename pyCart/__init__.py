@@ -1,7 +1,4 @@
 """
-*****************************
-:mod:`pyCart`: API for Cart3D
-*****************************
 
 The :mod:`pyCart` module contains the top-level interface for Cart3D setup.  It
 loads the most important methods from the various submodules so that they are
@@ -62,6 +59,8 @@ Modules included within this one are outlined below.
         - :mod:`pyCart.cart3d`
         - :mod:`pyCart.case`
         - :mod:`pyCart.manage`
+        - :mod:`pyCart.dataBook`
+        - :mod:`pyCart.options`
         
     * Cart3D and Cape files
         - :mod:`pyCart.inputCntl`
@@ -73,6 +72,7 @@ Modules included within this one are outlined below.
     * Supporting modules
         - :mod:`pyCart.cmd`
         - :mod:`pyCart.bin`
+        - :mod:`pyCart.report`
         - :mod:`pyCart.util`
 
 """

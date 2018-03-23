@@ -169,6 +169,8 @@ defined.  In general the required files are the following.
         api/index
         api/cape/index
         api/pyCart/index
+        api/pyFun/index
+        api/pyOver/index
     
     **Testing**
     
@@ -176,3 +178,7 @@ defined.  In general the required files are the following.
         :maxdepth: 3
 
         test/index
+        test/results
+        test/cape/index
+        test/pycart/index
+        

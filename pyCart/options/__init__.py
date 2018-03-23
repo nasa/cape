@@ -1,6 +1,6 @@
 """
-:mod:`pyCart.options`: Cart3D and pyCart Settings Module
-********************************************************
+:mod:`pyCart.options`: Cart3D and pyCart Settings 
+**************************************************
 
 This module provides tools to read, access, modify, and write settings for
 :mod:`pyCart`.  The class is based off of the Python built-in :class:`dict`
@@ -13,12 +13,12 @@ In addition, this module controls default values of each pyCart
 parameter in a two-step process.  The precedence used to determine what the
 value of a given parameter should be is below.
 
-    #. Values directly specified in the input file, :file:`pyCart.json`
+    1. Values directly specified in the input file, :file:`pyCart.json`
     
-    #. Values specified in the default control file,
+    2. Values specified in the default control file,
        :file:`$PYCART/settings/pyCart.default.json`
     
-    #. Hard-coded defaults from this module
+    3. Hard-coded defaults from this module
     
 An instance of this options class is loaded as the attribute *opts* to any
 instance of :class:`pyCart.cart3d.Cart3d`.

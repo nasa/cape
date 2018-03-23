@@ -28,9 +28,11 @@ Archiving actions can be issued from the command line via the commands such as
 the :ref:`following <cli-archive>`.  :ref:`Subsetting options <cli-subset>`
 are all available to this command.
 
-    .. code-block:: bash
+    .. code-block:: console
     
         $ pycart --archive [OPTIONS]
+        
+        
 
 :See Also:
     * :mod:`cape.options.Archive`

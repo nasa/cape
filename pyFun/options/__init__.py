@@ -1,24 +1,24 @@
 """
-Cart3D and pyCart settings module: :mod:`pyCart.options`
-========================================================
+:mod:`pyFun.options`: FUN3D and pyFun settings 
+================================================
 
 This module provides tools to read, access, modify, and write settings for
-:mod:`pyCart`.  The class is based off of the built-int :class:`dict` class, so
-its default behavior, such as ``opts['InputCntl']`` or 
-``opts.get('InputCntl')`` are also present.  In addition, many convenience
-methods, such as ``opts.set_it_fc(n)``, which sets the number of
-:file:`flowCart` iterations,  are provided.
+:mod:`pyFun`.  The class is based off of the built-in :class:`dict` class, so
+its default behavior, such as ``opts['Namelist']`` or 
+``opts.get('Namelist')`` are also present.  In addition, many convenience
+methods, such as ``opts.get_project_rootname()``, are also provided.
 
-In addition, this module controls default values of each pyCart
+In addition, this module controls default values of each pyFun
 parameter in a two-step process.  The precedence used to determine what the
 value of a given parameter should be is below.
 
-    *. Values directly specified in the input file, :file:`pyCart.json`
+    1. Values directly specified in the input file, :file:`pyFun.json`
     
-    *. Values specified in the default control file,
-       :file:`$PYCART/settings/pyCart.default.json`
+    2. Values specified in the default control file,
+       ``$PYFUN/settings/pyFun.default.json``
     
-    *. Hard-coded defaults from this module
+    3. Hard-coded defaults from this module
+
 """
 
 # Import options-specific utilities (loads :mod:`os`, too)

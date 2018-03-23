@@ -1,12 +1,12 @@
 """
-:mod:`pyCart.cart3d`: Cart3D executive module
+:mod:`pyCart.cart3d`: Cart3D control module
 =============================================
 
-This module provides tools to quickly setup basic Cart3D runs from a small set
-of input files.  Alternatively, the methods and classes can be used to help
-setup a problem that is too complex or customized to conform to standardized
-script libraries.  A collection of cases combined into a run matrix can be
-loaded using the following commands.
+This module provides tools to quickly setup basic Cart3D runs or a complex
+Cart3D setup from a small set of input files. Alternatively, the methods and
+classes can be used to help setup a problem that is too complex or customized
+to conform to standardized script libraries. A collection of cases combined
+into a run matrix can be loaded using the following commands.
 
     .. code-block:: pycon
     
@@ -18,11 +18,11 @@ loaded using the following commands.
         'poweroff/m1.5a0.0b0.0'
         
         
-An instance of this :class:`pyCart.cart3d.Cart3d` class has many methods,
-including those from attributes of the Cart3d class, which include the run
-matrix (``cart3d.x``), the options interface (``cart3d.opts``), and optionally
-the data book (``cart3d.DataBook``), the triangulation (``cart3d.tri``), and
-the appropriate input files (such as ``cart3d.InputCntl``).
+An instance of this :class:`pyCart.cart3d.Cart3d` class has many methods, which
+include the run matrix (``cart3d.x``), the options interface (``cart3d.opts``),
+and optionally the data book (``cart3d.DataBook``), the triangulation
+(``cart3d.tri``), and the appropriate input files (such as
+``cart3d.InputCntl``).
 
     ====================   =============================================
     Attribute              Class

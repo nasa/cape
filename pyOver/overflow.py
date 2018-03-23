@@ -1,8 +1,40 @@
 """
-OVERFLOW control module: :mod:`pyOver.overflow`
-===============================================
+:mod:`pyOver.overflow`: OVERFLOW control module 
+==================================================
 
-This module provides tools to interface with most FUN3D settings from Python.
+This module provides tools to quickly setup basic or complex OVERFLOW run matrices
+and serve as an executive for pre-processing, running, post-processing, and
+managing the solutions. A collection of cases combined into a run matrix can be
+loaded using the following commands.
+
+    .. code-block:: pycon
+    
+        >>> import pyOver.fun3d
+        >>> ofl = pyOver.overflow.Overflow("pyOver.json")
+        >>> ofl
+        <pyOver.Overflow(nCase=907)>
+        >>> ofl.x.GetFullFolderNames(0)
+        'poweroff/m1.5a0.0b0.0'
+        
+        
+An instance of this :class:`pyFun.fun3d.Fun3d` class has many methods, which
+include the run matrix (``fun3d.x``), the options interface (``fun3d.opts``),
+and optionally the data book (``fun3d.DataBook``), the appropriate input files
+(such as ``fun3d.Namelist``), and possibly others.
+
+    ====================   =============================================
+    Attribute              Class
+    ====================   =============================================
+    *ofl.x*                :class:`pyOver.trajectory.Trajectory`
+    *ofl.opts*             :class:`pyOver.options.Options`
+    *ofl.DataBook*         :class:`pyOver.dataBook.DataBook`
+    *ofl.Namelist*         :class:`pyOver.namelist.Namelist`
+    ====================   =============================================
+
+Finally, the :class:`pyOver.overflow.Overflow` class is subclassed from the
+:class:`cape.cntl.Cntl` class, so any methods available to the CAPE class are
+also available here.
+
 """
 
 # Basic numerics
