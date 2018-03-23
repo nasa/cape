@@ -36,7 +36,7 @@ also available to :class:`pyCart.options.runControl.RunControl`.
     * :class:`pyCart.options.runControl.cubes`
     * :class:`pyCart.options.Archive.Archive`
     * :class:`cape.options.runControl.Environ`
-    * :class:`cape.options.runControl.ulimit`
+    * :class:`cape.options.ulimit.ulimit`
 :See Also:
     * :mod:`cape.options.runControl`
     * :mod:`cape.options.ulimit`

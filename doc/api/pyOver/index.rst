@@ -13,4 +13,6 @@ The :mod:`pyOver` module
     
     overflow
     options/index
+    case
+    queue
 

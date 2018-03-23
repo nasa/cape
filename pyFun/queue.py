@@ -1,9 +1,16 @@
 """
-FUN3D queue interface module: :mod:`pyFun.queue`
-================================================
+:mod:`pyFun.queue`: PBS queue interface for pyFun 
+==================================================
 
-Contains direct interface for functions like `qsub` and `qstat`.
+This module contains a FUN3D-specific interface to PBS commands such as
+``qsub`` and ``qstat``.  It is a null module and consists solely of the code
 
+    .. code-block:: python
+    
+        from cape.queue import *
+        
+:See also:
+    * :mod:`cape.queue`
 """
 
 # Import CAPE utilities

@@ -1,9 +1,22 @@
 """
-Case control module: :mod:`pyFun.case`
-======================================
+:mod:`pyOver.case`: Case control module
+========================================
 
-This module contains functions to execute FUN3D and interact with individual
-case folders.
+This module contains the important function :func:`case.run_overflow`, which
+actually runs ``overrunmpi`` or whichever executable is specified by the user,
+along with the utilities that support it.
+
+It also contains OVERFLOW-specific versions of some of the generic methods from
+:mod:`cape.case`. For instance the function :func:`GetCurrentIter` determines
+how many OVERFLOW iterations have been run in the current folder, which is
+obviously a solver-specific task. It also contains the function :func:`LinkQ`
+and :func:`LinkX` which creates links to fixed file names from the most recent
+output created by OVERFLOW, which is useful for creating simpler Tecplot
+layouts, for example.
+
+All of the functions from :mod:`cape.case` are imported here.  Thus they are
+available unless specifically overwritten by specific :mod:`pyOver` versions.
+
 """
 
 # Numerics

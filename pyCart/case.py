@@ -1,17 +1,18 @@
 """
-Case Control Module: :mod:`pyCart.case`
+:mod:`pyCart.case`: Case Control Module
 =======================================
 
 This module contains the important function :func:`case.run_flowCart`, which
-actually runs `flowCart` or `aero.csh`, along with the utilities that support
-it.
+actually runs ``flowCart`` or ``aero.csh``, along with the utilities that
+support it.
 
 For instance, it contains function to determine how many iterations have been
 run, what the working folder is (e.g. ``.``, ``adapt00``, etc.), and what
 command-line options to run.
 
-:Versions:
-    * 2015-09-07 ``@ddalle``: First documentation
+It also contains Cart3D-specific versions of some of the generic methods from
+:mod:`cape.case`.  All of the functions in that module are also available here.
+
 """
 
 # Reused classes
@@ -87,7 +88,7 @@ def WriteUserTime(tic, rc, i, fname="pycart_time.dat"):
     :Inputs:
         *tic*: :class:`datetime.datetime`
             Time from which timer will be measured
-        *rc*: :class:`pyCart.options.runControl.RunControl
+        *rc*: :class:`pyCart.options.runControl.RunControl`
             Options interface
         *i*: :class:`int`
             Phase number

@@ -1,9 +1,21 @@
 """
-Case control module: :mod:`pyFun.case`
+:mod:`pyFun.case`: Case control module
 ======================================
 
-This module contains functions to execute FUN3D and interact with individual
-case folders.
+This module contains the important function :func:`case.run_fun3d`, which
+actually runs ``nodet`` or ``nodet_mpi``, along with the utilities that
+support it.
+
+It also contains FUN3D-specific versions of some of the generic methods from
+:mod:`cape.case`.  For instance the function :func:`GetCurrentIter` determines
+how many FUN3D iterations have been run in the current folder, which is
+obviously a solver-specific task.  It also contains the function
+:func:`LinkPLT`, which creates links to fixed Tecplot file names from the most
+recent output created by FUN3D.
+
+All of the functions from :mod:`cape.case` are imported here.  Thus they are
+available unless specifically overwritten by specific :mod:`pyFun` versions.
+
 """
 
 # Import cape stuff
@@ -391,7 +403,7 @@ def WriteUserTime(tic, rc, i, fname="pyfun_time.dat"):
     :Inputs:
         *tic*: :class:`datetime.datetime`
             Time from which timer will be measured
-        *rc*: :class:`pyCart.options.runControl.RunControl
+        *rc*: :class:`pyCart.options.runControl.RunControl`
             Options interface
         *i*: :class:`int`
             Phase number

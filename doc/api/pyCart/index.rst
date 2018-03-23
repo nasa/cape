@@ -13,10 +13,14 @@ The :mod:`pyCart` module
     
     cart3d
     options/index
+    case
     tri
     trajectory
+    bin
+    cmd
     inputCntl
     aeroCsh
     preSpecCntl
     dataBook
+    queue
 

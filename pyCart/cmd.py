@@ -1,11 +1,27 @@
 """
-Create command strings for Cart3D binaries: :mod:`pyCart.cmd`
+:mod:`pyCart.cmd`: Create commands for Cart3D executables 
 =============================================================
 
-This module contains direct interfaces to Cart3D binaries so that they can be
-called from Python.  Settings for the binaries that are usually specified as
-command-line options are either specified as keyword arguments or inherited from
-a :class:`pyCart.cart3d.Cart3d` instance..
+This module creates system commands as lists of strings for executable binaries
+or scripts for Cart3D.  It is closely tied to :mod:`pyCart.bin`, which actually
+runs the executables.
+
+Commands are created in the form of a list of strings.  This is the format used
+in the built-in module :mod:`subprocess` and also with :func:`cape.bin.calli`. 
+As a very simple example, the system command ``"ls -lh"`` becomes the list
+``["ls", "-lh"]``.
+
+Calls to the main Cart3D flow solver via ``flowCart`` or ``mpix_flowCart``
+include a great deal of command-line options.  This module simplifies the
+creation of this command by determining those inputs from a
+:class:`pyCart.options.Options` or
+:class:`pyCart.options.runControl.RunControl` object.
+
+:See also:
+    * :mod:`cape.cmd`
+    * :mod:`cape.bin`
+    * :mod:`pyCart.bin`
+
 """
 
 # File checking.

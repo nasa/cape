@@ -13,4 +13,6 @@ The :mod:`pyFun` module
     
     fun3d
     options/index
+    case
+    queue
 

@@ -1,8 +1,31 @@
 """
-Cart3D binary interface module: :mod:`pyCart.bin`
+:mod:`pyCart.bin`: Cart3D binary interface module
 =================================================
 
-Direct system interfaces to Cart3D command-line tools
+This module provides an interface to the various executables of the Cart3D
+package.  The functions in this module have names that match the command-line
+names of those Cart3D executables.
+
+    * :func:`cubes`: Calls ``cubes``
+    * :func:`mgPrep`: Calls ``mgPrep``
+    * :func:`autoInputs`: Calls ``autoInputs``
+    * :func:`flowCart`: Calls ``flowCart`` or ``mpix_flowCart``
+    
+In addition, all the more universal executable interfaces provided in
+:mod:`cape.bin`, including the Cart3D utilities ``intersect`` and ``verify``,
+are also imported.  These are imported directly
+
+    .. code-block:: python
+    
+        from cape.bin import *
+        
+so no extra syntax is needed in order to access them from :mod:`pyCart.bin`
+
+:See also:
+    * :mod:`cape.bin`
+    * :mod:`cape.cmd`
+    * :mod:`pyCart.cmd`
+
 """
 
 # Import relevant tools

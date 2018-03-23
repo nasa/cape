@@ -1,6 +1,6 @@
 """
 :mod:`pyOver.options`: OVERFLOW and pyOver settings 
-====================================================
+****************************************************
 
 This module provides tools to read, access, modify, and write settings for
 :mod:`pyOver`.  The class is based off of the built-int :class:`dict` class.
