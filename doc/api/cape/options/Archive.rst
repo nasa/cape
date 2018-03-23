@@ -4,3 +4,4 @@
 
     .. autoclass:: cape.options.Archive.Archive
         :members:
+

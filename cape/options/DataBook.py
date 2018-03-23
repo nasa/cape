@@ -1,10 +1,16 @@
 """
-Data book options module
-========================
+:mod:`cape.options.DataBook`: Data book options 
+================================================
 
 This module contains the basic interface for data book options generic to all
 solvers.  Some options are not generic, and so the derivative options classes
-such as :class:`cape.options.DataBook.DataBook` have additional methods.
+such as :class:`pyCart.options.DataBook.DataBook` have additional methods.
+
+Each data book component type has its options controlled by this options
+method.  Despite the fact that line load data books have their own data module,
+:class:`cape.lineLoad`, which is separate from the main :class:`cape.dataBook`,
+all options are controlled within one module.
+
 """
 
 # System modules

@@ -1,13 +1,14 @@
 """
-Utilities for Cape options module
-=================================
+:mod:`cape.options.util`: Utilities for options modules
+===========================================================
 
 This module provides utilities for the Cape options module.  It includes the
 :class:`cape.options.util.odict` class upon which all Cape options classes are
 based, and it several basic methods useful to processing options.
 
-The :func:`getel` and :func:`setel` methods in particular play an important role
-in the entire Cape coding strategy.
+The :func:`getel` and :func:`setel` methods in particular play an important
+role in the entire Cape coding strategy.
+
 """
 
 # Interaction with the OS

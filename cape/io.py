@@ -1,6 +1,71 @@
 """
-Common Input/Output Library
-===========================
+:mod:`cape.io`: Common input/output library
+============================================
+
+This is a module to provide fast and convenient utilities for reading and
+writing binary data in Cape.  The module relies heavily on the NumPy functions
+:func:`fromfile` and :func:`tofile`, but it also performs checks and
+conversions for big-ending vs little-endian data in a manner that can be mostly
+hidden from the user.  It also handles Fortran start-of-record and
+end-of-record markers and performs the available checks without the need for
+users to write extra code every time a Fortran file is accessed.
+
+In most cases classes built upon this library are responsible for detecting the
+presence or lack of Fortran record markers and detecting the endianness of the
+file automatically.
+
+In addition, users can write to either endianness regardless of the system byte
+order.  Although defaulting to the system file format is recommended for most
+modern applications, for some software this is not an available option. 
+
+This module frequently utilizes the following naming conventions for file
+formats, which are semi-standard but not necessarily universally recognizable. 
+They take the form of one or two letters for the endianness of the file and one
+integer for the number of bytes used to represent a real-valued :class:`float`.
+
+    ============   ========================================================
+    Code           Description
+    ============   ========================================================
+    ``b4``         Single-precision big-endian C format
+    ``b8``         Double-precision big-endian C format
+    ``lb4``        Single-precision little-endian C format
+    ``lb8``        Double-precision little-endian C format
+    ``ne4``        Single-precision native-endian C format
+    ``r4``         Single-precision big-endian Fortran format
+    ``r8``         Double-precision big-endian Fortran format
+    ``lr4``        Single-precision little-endian Fortran format
+    ``lr8``        Double-precision little-endian Fortran format
+    ============   ========================================================
+    
+These codes are used frequently in the names of functions within this module.
+In addition, the functions in this module usually contain a suffix of ``i``
+(integer), ``f`` (float), or ``s`` (string).  For example
+:func:`read_record_lr4_i` reads a little-endian :class:`int` record, and
+:func:`read_record_r8_f` reads a double-precision :class:`float` record.
+
+By convention, Fortran double-precision files often use single-precision
+integers, so functions like :func:`read_record_r8_i` are unlikely to be
+utilized.  To add further confusion, Fortran record markers are almost (?)
+always 4-byte integers even for double-precision :class:`float` records.
+Methods such as :func:`read_record_r8_f2` are provided for the theoretical case
+in which the record marker is a :class:`long` (8-byte integer).  The full table
+of record-type suffixes for big-endian files is below. Just prepend the suffix
+with an ``l`` for the little-endian versions.
+
+    ==========  =================  ==========================================
+    Suffix      Class              Description
+    ==========  =================  ==========================================
+    ``r4_i``    :class:`int32`     Common integer record
+    ``r8_i``    :class:`int32`     Long integer record
+    ``r8_i2``   :class:`int64`     Long integer with long record markers
+    ``r4_f``    :class:`float32`   Common single-precision float
+    ``r8_f``    :class:`float32`   Common double-precision float
+    ``r8_f2``   :class:`float64`   Double float with long record markers
+    ``r4_u``    :class:`uint32`    Common unsigned integer record
+    ``r8_u``    :class:`uint32`    Long uint record
+    ``r8_u2``   :class:`uint64`    Long uint with long record markers
+    ``b4_s``    :class:`str`       String from 4-byte char codes
+    ==========  =================  ==========================================
 
 """
 

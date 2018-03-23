@@ -4,33 +4,27 @@
     Global pyCart Data Book: :class:`pyCart.dataBook.DataBook`
     ----------------------------------------------------------
     
-        .. autoclass:: cape.dataBook.DataBook
+        .. autoclass:: pyCart.dataBook.DataBook
             
     
     Individual data books
     ---------------------
                 
-        .. autoclass:: cape.dataBook.DBBase
-            
-                
-        .. autoclass:: cape.dataBook.DBComp
+        .. autoclass:: pyCart.dataBook.DBComp
             
         
-        .. autoclass:: cape.dataBook.DBTarget
+        .. autoclass:: pyCart.dataBook.DBTarget
             
                 
     Data book classes for individual cases
     --------------------------------------
-    
-        .. autoclass:: cape.dataBook.CaseData
             
-            
-        .. autoclass:: cape.dataBook.CaseFM
+        .. autoclass:: pyCart.dataBook.CaseFM
             
                 
-        .. autoclass:: cape.dataBook.CaseResid
+        .. autoclass:: pyCart.dataBook.CaseResid
             
             
             
-    Other :mod:`cape.dataBook` methods
-    ----------------------------------
+    Other :mod:`pyCart.dataBook` methods
+    -------------------------------------

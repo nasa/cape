@@ -19,52 +19,74 @@ you intended.)
         import cape
         cntl = cape.Cntl()
         
-Most of the pyCart submodules essentially contain a single class definition, and
-many of these classes are accessible directly from the :mod:`cape` module.  The
-list of classes loaded directly in :mod:`cape`.
+Most of the pyCart submodules essentially contain a single class definition,
+and many of these classes are accessible directly from the :mod:`cape` module.
+The list of classes loaded directly in :mod:`cape`.
 
     * :class:`cape.cntl.Cntl`
     * :class:`cape.tri.Tri`
     * :class:`cape.tri.Triq`
+    * :func:`cape.case.ReadCaseJSON`
     
 Because Cape is a template module that has no specific solver, few modules are
 loaded directly to :mod:`cape`.  The list of modules loaded are shown below.
 
     * :mod:`cape.manage`
 
-Some of the other modules available to the API are listed below.
+A categorized list of modules available to the API are listed below.
 
-    * :mod:`cape.argread`
-    * :mod:`cape.bin`
-    * :mod:`cape.case`
-    * :mod:`cape.cntl`
-    * :mod:`cape.config`
-    * :mod:`cape.convert`
-    * :mod:`cape.dataBook`
-    * :mod:`cape.fileCntl`
-    * :mod:`cape.geom`
-    * :mod:`cape.namelist`
-    * :mod:`cape.namelist2`
-    * :mod:`cape.plot3d`
-    * :mod:`cape.pointSensor`
-    * :mod:`cape.queue`
-    * :mod:`cape.report`
-    * :mod:`cape.tar`
-    * :mod:`cape.tex`
-    * :mod:`cape.trajectory`
-    * :mod:`cape.tri`
-    * :mod:`cape.util`
-    * :mod:`cape.options`
+    * Core modules
+       - :mod:`cape.cntl`
+       - :mod:`cape.options`
+       - :mod:`cape.case`
+       - :mod:`cape.trajectory`
+       - :mod:`cape.dataBook`
+       - :mod:`cape.pointSensor`
+       - :mod:`cape.lineLoad`
+       - :mod:`cape.report`
+    
+    * Primary supporting modules
+       - :mod:`cape.bin`
+       - :mod:`cape.cmd`
+       - :mod:`cape.argread`
+       - :mod:`cape.queue`
+       - :mod:`cape.io`
+       - :mod:`cape.manage`
+        
+    * File interfaces
+       - :mod:`cape.fileCntl`
+       - :mod:`cape.tri`
+       - :mod:`cape.cgns`
+       - :mod:`cape.msh`
+       - :mod:`cape.namelist`
+       - :mod:`cape.namelist2`
+       - :mod:`cape.plot3d`
+       - :mod:`cape.plt`
+       - :mod:`cape.step`
+       - :mod:`cape.tex`
+    
+    * Utilities
+       - :mod:`cape.util`
+       - :mod:`cape.atm`
+       - :mod:`cape.config`
+       - :mod:`cape.convert`
+       - :mod:`cape.geom`
+       - :mod:`cape.tar`
+       - :mod:`cape.text`
+       - :mod:`cape.volcomp`
+    
 
 :Versions:
     * Version 0.6: 2016-03-30
+    * Version 0.8: 2018-03-23
 """
 
 # File system and operating system management
 import os
 
 # Save version number
-version = "0.5"
+version = "0.8"
+__version__ = version
 
 
 # Get the root directory of the module.
@@ -81,7 +103,7 @@ from cntl   import Cntl
 from case   import ReadCaseJSON
 
 # Get the conversion tools directly.
-from convert import *
+from .convert import *
 
 # Submodules
 from . import manage

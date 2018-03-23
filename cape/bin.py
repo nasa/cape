@@ -1,5 +1,5 @@
 """
-Cape binary interface module: :mod:`cape.bin`
+:mod:`cape.bin`: Cape binary interface module
 =============================================
 
 This template module provides an interface for simple command-line tools.  The

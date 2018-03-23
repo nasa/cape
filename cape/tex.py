@@ -1,6 +1,6 @@
 """
-Module to interface with LaTeX: :mod:`cape.tex`
-===============================================
+:mod:`cape.tex`: Interface to LaTeX files
+=============================================
 
 This is a module built off of the :class:`cape.fileCntl.FileCntl` class
 customized for manipulating Cape's automated reports.  In addition to containing
@@ -10,6 +10,7 @@ constructing the system command to do so.
 
 See the :mod:`cape.report` module or the
 :ref:`JSON report page <cape-json-Report>` page for more information.
+
 """
 
 # Import the base file control class.

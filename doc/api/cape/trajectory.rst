@@ -3,3 +3,4 @@
     
     .. autoclass:: cape.trajectory.Trajectory
         :members:
+

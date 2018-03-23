@@ -1,0 +1,3 @@
+
+.. automodule:: cape.io
+    :members:

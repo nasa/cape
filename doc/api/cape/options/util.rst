@@ -1,7 +1,6 @@
 
 .. automodule:: cape.options.util
-    :members: getel, setel, rc0, stripComments, expandJSONFile, loadJSONFile,
-        getDefaults, getCapeDefaults, getTemplateFile, applyDefaults
+    :members:
 
     .. autoclass:: cape.options.util.odict
         :members:

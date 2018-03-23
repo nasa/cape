@@ -1,3 +1,3 @@
 
 .. automodule:: cape.cmd
-    :members: aflr3
+    :members: 

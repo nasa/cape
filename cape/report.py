@@ -1,20 +1,20 @@
 """
-Basis module for automated report interface: :mod:`cape.report`
-===============================================================
+:mod:`cape.report`: Automated report interface
+===============================================
 
-The Cape module for generating automated results reports using PDFLaTeX provides
-a single class :class:`cape.report.Report`, which creates a handle for the
-``tex`` file and creates folders containing individual figures for each case.
-The :class:`cape.report.Report` class is a sort of dual-purpose object that
-contains a file interface using :class:`cape.tex.Tex` combined with a capability
-to create figures for each case or sweep of cases mostly based on
+The Cape module for generating automated results reports using PDFLaTeX
+provides a single class :class:`cape.report.Report`, which creates a handle for
+the ``tex`` file and creates folders containing individual figures for each
+case. The :class:`cape.report.Report` class is a sort of dual-purpose object
+that contains a file interface using :class:`cape.tex.Tex` combined with a
+capability to create figures for each case or sweep of cases mostly based on
 :mod:`cape.dataBook`.
 
-An automated report is a multi-page PDF generated using PDFLaTeX.  Usually, each
-CFD case has one or more pages dedicated to results for that case.  The user
+An automated report is a multi-page PDF generated using PDFLaTeX. Usually, each
+CFD case has one or more pages dedicated to results for that case. The user
 defines a list of figures, each with its own list of subfigures, and these are
 generated for each case in the run matrix (subject to any command-line
-constraints the user may specify).  Types of subfigures include
+constraints the user may specify). Types of subfigures include
 
     * Table of the values of the input variables for this case
     * Table of force and moment values and statistics
@@ -24,9 +24,9 @@ constraints the user may specify).  Types of subfigures include
     * Many more
     
 In addition, the user may also define "sweeps," which analyze groups of cases
-defined by user-specified constraints.  For example, a sweep may be used to plot
+defined by user-specified constraints. For example, a sweep may be used to plot
 results as a function of Mach number for sets of cases having matching angle of
-attack and sideslip angle.  When using a sweep, the report contains one or more
+attack and sideslip angle. When using a sweep, the report contains one or more
 pages for each sweep (rather than one or more pages for each case).
 
 Reports are usually created using system commands of the following format.
@@ -47,6 +47,14 @@ bookkeeping methods and plotting methods.  The main user-facing methods are
 :ref:`type of subfigure <cape-json-ReportSubfigure>` has its own method, for
 example :func:`cape.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
 :func:`cape.report.Report.SubfigPlotL2` for ``"PlotL2"``.
+
+See also:
+    
+    * :mod:`cape.options.Report`
+    * :class:`cape.dataBook.DBComp`
+    * :class:`cape.dataBook.CaseFM`
+    * :class:`cape.lineLoad.DBLineLoad`
+    
 """
 
 # File system inreface

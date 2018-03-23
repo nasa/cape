@@ -1,5 +1,18 @@
 #!/usr/bin/env python
+"""
+:mod:`cape.text`: Docstring markdown module
+=============================================
 
+This module provides several functions for modifying Python docstrings.  One of
+these, provided by the function :func:`markdown`, which removes much of the
+reST syntax used to make this documentation and prints a more readable message
+for command-line help messages.
+
+There is another function :func:`setdocvals` which can be used to rapidly
+substitute strings such as ``_atol_`` with a value for *atol* taken from a
+:class:`dict`.
+
+"""
 
 # Regular expression tools
 import re

@@ -1,14 +1,21 @@
 """
-FLUENT mesh module: :mod:`cape.mesh`
-====================================
+:mod:`cape.msh`: FLUENT mesh module 
+=====================================
 
 This module provides the utilities for interacting with Cart3D triangulations,
 including annotated triangulations (including ``.triq`` files).  Triangulations
 can also be read from the UH3D format.
 
 The module consists of individual classes that are built off of a base
-triangulation class :class:`cape.tri.TriBase`.  Methods that are written for
-the TriBase class apply to all other classes as well.
+triangulation class :class:`cape.tri.TriBase`. Methods that are written for the
+:class:`cape.tri.TriBase` class apply to all other tri-type classes as well.
+
+It provides a class :class:`Msh` whose primary goal is to read a FLUENT mesh
+and write an AFLR3 UGRID mesh.
+
+The class provided in this module, :class:`cape.msh.Msh`, is only partially
+implemented, so extensive usage may run into limitations.
+
 """
 
 # Required modules
@@ -20,7 +27,7 @@ import re
 import os, shutil
 
 # MSH class
-class Mesh(object):
+class Msh(object):
     """Interface for FUN3D meshes based on Fluent(R) file format
     
     :Cell types:
@@ -78,7 +85,7 @@ class Mesh(object):
         :Call:
             >>> M.ReadFluentASCII(fname)
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
             *fname*: :class:`str`
                 Name of ``.msh`` file to read
@@ -168,7 +175,7 @@ class Mesh(object):
         :Call:
             >>> M.WriteAFLR3ASCII(fname)
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
             *fname*: :class:`str`
                 Name of ``.ugrid`` file to write
@@ -250,7 +257,7 @@ class Mesh(object):
         :Call:
             >>> typ, vals, q = M.GetFluentLineType(line)
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
             *line*: :class:`str`
                 Text from a Fluent line
@@ -325,7 +332,7 @@ class Mesh(object):
         :Call:
             >>> M.ReadFluentNodesASCII(f, i0, i1)
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
             *f*: :class:`file`
                 File handle in correct location
@@ -359,7 +366,7 @@ class Mesh(object):
         :Call:
             >>> M.ReadFluentTrisASCII(f, k, i0, i1)
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
             *f*: :class:`file`
                 File handle in correct location
@@ -402,7 +409,7 @@ class Mesh(object):
         :Call:
             >>> M.ReadFluentQuadsASCII(f, k, i0, i1)
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
             *f*: :class:`file`
                 File handle in correct location
@@ -445,7 +452,7 @@ class Mesh(object):
         :Call:
             >>> M.ReadFluentQuadsASCII(f, k, i0, i1)
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
             *f*: :class:`file`
                 File handle in correct location
@@ -508,7 +515,7 @@ class Mesh(object):
         :Call:
             >>> M.GetCells()
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
         :Versions:
             * 2015-10-22 ``@ddalle``: First version
@@ -533,7 +540,7 @@ class Mesh(object):
         :Call:
             >>> M.GetPrisms()
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
         :Versions:
             * 2015-10-23 ``@ddalle``: First version
@@ -581,7 +588,7 @@ class Mesh(object):
         :Call:
             >>> M.GetTets()
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
         :Versions:
             * 2015-10-23 ``@ddalle``: First version
@@ -619,7 +626,7 @@ class Mesh(object):
         :Call:
             >>> M.GetPyrs()
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
         :Versions:
             * 2015-10-23 ``@ddalle``: Placeholder
@@ -667,7 +674,7 @@ class Mesh(object):
         :Call:
             >>> M.GetHexe()
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
         :Versions:
             * 2015-10-23 ``@ddalle``: Placeholder
@@ -692,7 +699,7 @@ class Mesh(object):
         :Call:
             >>> M.ProcessPyrsQuad(f, j, L)
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
             *f*: :class:`np.ndarray` ((4), :class:`int`)
                 List of vertex indices in a face (should be a quad)
@@ -731,7 +738,7 @@ class Mesh(object):
         :Call:
             >>> M.ProcessPyrsTri(f, j, L)
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
             *f*: :class:`np.ndarray` ((4), :class:`int`)
                 List of vertex indices in a face (should be a quad)
@@ -785,7 +792,7 @@ class Mesh(object):
         :Call:
             >>> M.ProcessPrismsTri(f, j, L)
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
             *f*: :class:`np.ndarray` ((4), :class:`int`)
                 List of vertex indices in a face (should be a tri)
@@ -822,7 +829,7 @@ class Mesh(object):
         :Call:
             >>> M.ProcessPrismsQuad(f, j)
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
             *f*: :class:`np.ndarray` ((4), :class:`int`)
                 List of vertex indices in a face (should be a tri)
@@ -1009,7 +1016,7 @@ class Mesh(object):
         :Call:
             >>> M.ProcessTetsTri(f, j, L)
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
             *f*: :class:`np.ndarray` ((4), :class:`int`)
                 List of vertex indices in a face (should be a tri)
@@ -1072,7 +1079,7 @@ class Mesh(object):
         :Call:
             >>> K = M.GetZoneIDsByType(typs)
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
             *typs*: :class:`list` (:class:`str`)
                 List of types
@@ -1092,7 +1099,7 @@ class Mesh(object):
         :Call:
             >>> K = M.GetZoneIDsByType(typs)
         :Inputs:
-            *M*: :class:`cape.mesh.Mesh`
+            *M*: :class:`cape.msh.Msh`
                 Volume mesh interface
             *typs*: :class:`list` (:class:`str`)
                 List of types

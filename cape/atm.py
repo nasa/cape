@@ -1,4 +1,22 @@
-"""Atmosphere Model"""
+"""
+:mod:`cape.atm` Atmosphere Models
+==================================
+
+This is a module that provides interfaces for atmosphere models, which can be
+useful for estimating freestream conditions at a given altitude.  Conversely,
+it can be used to find a representative altitude for a given set of freestream
+conditions.
+
+At present it only contains the 1976 U.S. Standard Atmosphere:
+
+    * https://en.wikipedia.org/wiki/U.S._Standard_Atmosphere#1976_version
+    
+For detailed trajectory modeling, a more general atmosphere model is suggested.
+Furthermore, this model is only considered to be valid up to 85 km of altitude
+even though :func:`cape.atm.atm76` will return an atmospheric state for higher
+altitudes.
+
+"""
 
 
 # Basic numerics
@@ -59,7 +77,9 @@ href_T = np.arange(0, 8000, 250)
 
 # Get atmosphere.
 def atm76(h):
-    """Return standard atmosphere parameters
+    """Return 1976 standard atmosphere parameters
+    
+        * https://en.wikipedia.org/wiki/International_Standard_Atmosphere
     
     :Call:
         >>> S = atm76(h)

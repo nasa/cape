@@ -1,11 +1,12 @@
 """
-Interface for PBS script options
-================================
+:mod:`cape.options.pbs`: PBS script options
+=============================================
 
 This portion of the options is universal, and so it is only encoded in the
-:mod:`cape` module.  The :mod:`pyCart` module, for example, does not have a 
-modified version.  It contains options for specifying which architecture to use,
+:mod:`cape` module. The :mod:`pyCart` module, for example, does not have a
+modified version. It contains options for specifying which architecture to use,
 how many nodes to request, etc.
+
 """
 
 

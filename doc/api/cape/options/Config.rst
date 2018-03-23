@@ -3,3 +3,4 @@
 
     .. autoclass:: cape.options.Config.Config
         :members:
+

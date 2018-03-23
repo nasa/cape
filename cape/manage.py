@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 """
-Manage Run Directory Folders: :mod:`cape.manage`
-================================================
+:mod:`cape.manage`: Manage CFD case folders
+=============================================
 
-This module provides methods to manage and archive files for run folders.  It
+This module provides methods to manage and archive files for run folders. It
 provides extensive tools for archiving results to other locations either as a
-tar ball or zip archive of the entire folder or a folder of several smaller zip
-files.
+tar ball, tar bomb, or zip archive of the entire folder or a folder of several
+smaller zip files.
 
 It also provides tools for deleting files either before or after creating the
 archive.  In addition, there is an easy interface for keeping only the most
@@ -22,9 +22,90 @@ generating the archive of the case.  On the other hand, :func:`PostDeleteFiles`
 deletes files after creating the archive; the difference is whether or not the
 file in question is included in the archive before it is deleted.
 
+A case cannot be archived until it has been granted the status of ``PASS``, by
+meeting the requested number of iterations and phases and by getting marked
+with a ``p`` in the run matrix file.  However, less aggressive pruning via the
+``--clean`` command can always be performed, even if the case is currently
+running.
+
+The archiving process can be "reversed" (although this does not delete the
+archived copy) using :func:`UnarchiveFolder`, which copies files from the
+archive to the working folder.  This can be useful if you determine that a
+necessary file for post-processing was cleaned out or if the case needs to be
+extended (run for more iterations).
+
 Functions such as :func:`ProgressDeleteFiles` deletes files between phases, and
 as such it is much more dangerous.  Other methods will only delete or archive
 once the case has been marked as PASS by the user.
+
+An even more aggressive action can be taken using the ``--skeleton``
+command-line option.  After creating or updating the archive, this deletes even
+more files from the working copy than ``--archive`` using the
+:func:`SkeletonFolder` function.  A common use of this dichotomy is to set up
+``--archive`` so that all post-processing can still be done, and once the
+post-processing ``--skeleton`` deletes everything but a minimal set of
+information about the case.  The ``--skeleton`` also has an extra capability to
+replace the working copy with the last few lines of that file, which might
+contain information on the most recent iteration run, for example.  In order to
+avoid catastrophe, the ``--skeleton`` command effectively calls ``--archive``
+as part of its normal procedure.
+
+This module contains many supporting methods to perform specific actions such
+as comparing modification dates on the working and archived copies.  The main
+functions that are called from the command line are:
+
+    * :func:`ManageFilesProgress`: delete files progressively, even if the case
+      is still running (can be used for example to keep only the two most
+      recent check point files); does not archive
+    * :func:`ManageFilesPre`: delete or tar files/folders immediately prior to
+      creating archive; reduces size or archive but not performed until case
+      has ``PASS`` status
+    * :func:`ManageFilesPost`: deletes or tar files/folders after creating
+      archive
+      
+Each of the four phases also has several contributing functions that perform a
+specific task at a specific phase, which are outlined below.
+
+    * ``"Progress"``: delete files safely at any time
+        - :func:`ProgressDeleteFiles`
+        - :func:`ProgressUpdateFiles`
+        - :func:`ProgressDeleteDirs`
+        - :func:`ProgressTarGroups`
+        - :func:`ProgressTarDirs`
+        
+    * ``"Pre"``: delete files from complete case before archiving
+        - :func:`PreDeleteFiles`
+        - :func:`PreUpdateFiles`
+        - :func:`PreDeleteDirs`
+        - :func:`PreTarGroups`
+        - :func:`PreTarDirs`
+        
+    * ``"Post"``: delete files after creating/updating archive
+        - :func:`PostDeleteFiles`
+        - :func:`PostUpdateFiles`
+        - :func:`PostDeleteDirs`
+        - :func:`PostTarGroups`
+        - :func:`PostTarDirs`
+        
+    * ``"Skeleton"``: delete files after post-processing
+        - :func:`SkeletonTailFiles`
+        - :func:`SkeletonDeleteFiles`
+        
+The difference between ``DeleteFiles`` and ``UpdateFiles`` is merely on what
+action is taken by default.  The user can manually specify how many most recent
+files matching a certain glob to keep using a :class:`dict` such as
+``{"flow[0-9][0-9]": 2}``, but if a glob is given without a :class:`dict`, such
+as simply ``"flow[0-9][0-9]"``, by default ``DeleteFiles()`` will delete all of
+them while ``UpdateFiles`` will keep the most recent.
+
+Finally, the main command-line folder management calls each interface directly
+with one function from this module.
+
+    * ``--clean``: :func:`CleanFolder`
+    * ``--archive``: :func:`ArchiveFolder`
+    * ``--skeleton``: :func:`SkeletonFolder`
+    * ``--unarchive``: :func:`UnarchiveFolder`
+
 """
 
 # File management modules

@@ -1,8 +1,8 @@
 
 .. automodule:: cape.options.runControl
 
-    Module for environment variables
-    --------------------------------
+    Environment variables
+    ------------------------
 
     .. autoclass:: cape.options.runControl.Environ
         :members:

@@ -1,5 +1,5 @@
 """
-File control base module: :mod:`cape.fileCntl`
+:mod:`cape.fileCntl`: File control base module 
 ==============================================
 
 This provides common methods to control objects for various specific files.  
@@ -7,9 +7,9 @@ This includes various methods for reading files, splitting it into sections,
 and replacing lines based on patterns or regular expressions.
 
 File manipulation classes for specific files (such as
-:class:`pyCart.inputCntl.InputCntl` for ``input.cntl`` files) are built off of
-this module and its main class.  A possibly incomplete list of class built on
-this class is given below.
+:class:`pyCart.inputCntl.InputCntl` for Cart3D ``input.cntl`` files) are built
+off of this module and its main class. A possibly incomplete list of class
+built on this class is given below.
 
     * :class:`pyCart.inputCntl.InputCntl`
     * :class:`cape.namelist.Namelist`
@@ -18,6 +18,7 @@ this class is given below.
     * :class:`pyFun.namelist.Namelist`
     * :class:`pyFun.mapbc.MapBC`
     * :class:`pyOver.overNamelist.OverNamelist`
+
 """
 
 # Advanced text processing

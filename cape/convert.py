@@ -1,6 +1,6 @@
 """
-Conversion tools for Cape
-=========================
+:mod:`cape.convert`: Cape conversion utilities
+===============================================
 
 Perform conversions such as (alpha total, phi) to (alpha, beta).  It also
 contains various utilities such as calculating Sutherland's law for estimating

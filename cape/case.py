@@ -1,5 +1,5 @@
 """
-Case Control Module: :mod:`cape.case`
+:mod:`cape.case`: Case Control Module
 =====================================
 
 This module contains templates for interacting with individual cases.  Since
@@ -58,9 +58,14 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
     single component.  The files involved are tabulated below.
     
         * ``Components.tri``: Intersecting components, each with own compID
-        * ``Components.c.tri``: Intersecting triangulation with original compIDs
+        * ``Components.c.tri``: Intersecting triangulation, original compIDs
         * ``Components.o.tri``: Output of ``intersect``, only a few compIDs
         * ``Components.i.tri``: Original compIDs mapped onto intersected tris
+        
+    More specifically, these files are ``"%s.i.tri" % proj``, etc.; the default
+    project name is ``"Components"``.  This function also calls the Chimera
+    Grid Tools program ``triged`` to remove unused nodes from the intersected
+    triangulation and optionally remove small triangles.
     
     :Call:
         >>> CaseIntersect(rc, proj='Components', n=0, fpre='run')
@@ -73,6 +78,9 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
             Iteration number
         *fpre*: {``'run'``} | :class:`str`
             Standard output file name prefix
+    :See also:
+        * :class:`cape.tri.Tri`
+        * :func:`cape.bin.intersect`
     :Versions:
         * 2015-09-07 ``@ddalle``: Split from :func:`run_flowCart`
         * 2016-04-05 ``@ddalle``: Generalized to :mod:`cape`
@@ -157,6 +165,9 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
 def CaseVerify(rc, proj='Components', n=0, fpre='run'):
     """Run ``verify`` to check triangulation if appropriate
     
+    This function checks the validity of triangulation in file 
+    ``"%s.i.tri" % proj``.  It calls :func:`cape.bin.verify`.
+    
     :Call:
         >>> CaseVerify(rc, proj='Components', n=0, fpre='run')
     :Inputs:
@@ -188,6 +199,23 @@ def CaseVerify(rc, proj='Components', n=0, fpre='run'):
 # Mesh generation
 def CaseAFLR3(rc, proj='Components', fmt='lb8.ugrid', n=0):
     """Create volume mesh using ``aflr3``
+    
+    This function looks for several files to determine the most appropriate
+    actions to take, replacing ``Components`` with the value from *proj* for
+    each file name and ``lb8.ugrid`` with the value from *fmt*:
+    
+        * ``Components.i.tri``: Triangulation file
+        * ``Components.surf``: AFLR3 surface file
+        * ``Components.aflr3bc``: AFLR3 boundary conditions
+        * ``Components.xml``: Surface component ID mapping file
+        * ``Components.lb8.ugrid``: Output volume mesh
+        * ``Components.FAIL.surf``: AFLR3 surface indicating failure
+        
+    If the volume grid file already exists, this function takes no action.  If
+    the ``surf`` file does not exist, the function attempts to create it by
+    reading the ``tri``, ``xml``, and ``aflr3bc`` files using
+    :class:`cape.tri.Tri`.  The function then calls :func:`cape.bin.aflr3` and
+    finally checks for the ``FAIL`` file.
     
     :Call:
         >>> CaseAFLR3(rc, proj="Components", fmt='lb8.ugrid', n=0)
@@ -257,7 +285,7 @@ def CaseAFLR3(rc, proj='Components', fmt='lb8.ugrid', n=0):
 def GetRestartIter():
     """Get the restart iteration
 
-    This is a placeholder function and is only called in error
+    This is a placeholder function and is only called in error.
 
     :Call:
         >>> cape.case.GetRestartIter()
@@ -273,10 +301,14 @@ def GetRestartIter():
 def StartCase():
     """Empty template for starting a case
     
-    The function is empty 
+    The function is empty but does not raise an error
     
     :Call:
         >>> cape.case.StartCase()
+    :See also:
+        * :func:`pyCart.case.StartCase`
+        * :func:`pyFun.case.StartCase`
+        * :func:`pyOver.case.StartCase`
     :Versions:
         * 2015-09-27 ``@ddalle``: Skeleton
     """
@@ -315,11 +347,14 @@ def StopCase():
     
 
 # Function to read the local settings file.
-def ReadCaseJSON():
+def ReadCaseJSON(fjson='cape.json'):
     """Read Cape settings for local case
     
     :Call:
         >>> rc = cape.case.ReadCaseJSON()
+    :Inputs:
+        *fjson*: {``"cape.json"``} | :class:`str`
+            Name of JSON settings file
     :Outputs:
         *rc*: :class:`cape.options.runControl.RunControl`
             Options interface for run control and command-line inputs
@@ -327,7 +362,7 @@ def ReadCaseJSON():
         * 2014-10-02 ``@ddalle``: First version
     """
     # Read the file, fail if not present.
-    f = open('case.json')
+    f = open(fjson)
     # Read the settings.
     opts = json.load(f)
     # Close the file.
@@ -377,6 +412,8 @@ def ReadConditions(k=None):
 def PrepareEnvironment(rc, i=0):
     """Set environment variables and alter any resource limits (``ulimit``)
     
+    This function relies on the system module :mod:`resource`.
+    
     :Call:
         >>> case.PrepareEnvironment(rc, i=0)
     :Inputs:
@@ -384,6 +421,8 @@ def PrepareEnvironment(rc, i=0):
             Options interface for run control and command-line inputs
         *i*: :class:`int`
             Phase number
+    :See also:
+        * :func:`SetResourceLimit`
     :Versions:
         * 2015-11-10 ``@ddalle``: First version
     """
@@ -420,7 +459,7 @@ def PrepareEnvironment(rc, i=0):
     
 # Set resource limit
 def SetResourceLimit(r, ulim, u, i=0, unit=1024):
-    """Set resource limit
+    """Set resource limit for one variable
     
     :Call:
         >>> SetResourceLimit(r, ulim, u, i=0, unit=1024)
@@ -435,6 +474,8 @@ def SetResourceLimit(r, ulim, u, i=0, unit=1024):
             Phase number
         *unit*: :class:`int`
             Multiplier, usually for a kbyte
+    :See also:
+        * :mod:`cape.options.ulimit`
     :Versions:
         * 2016-03-13 ``@ddalle``: First version
     """
@@ -460,7 +501,7 @@ def GetPhaseNumber(rc, n=None, fpre='run'):
     """Determine the appropriate input number based on results available
     
     :Call:
-        >>> i = cape.case.GetPhaseNumber(rc, n=None, fpre='run')
+        >>> j = cape.case.GetPhaseNumber(rc, n=None, fpre='run')
     :Inputs:
         *rc*: :class:`cape.options.runControl.RunControl`
             Options interface for run control
@@ -469,27 +510,27 @@ def GetPhaseNumber(rc, n=None, fpre='run'):
         *fpre*: {``"run"``} | :class:`str`
             Prefix for output files
     :Outputs:
-        *i*: :class:`int`
+        *j*: :class:`int`
             Most appropriate phase number for a restart
     :Versions:
         * 2014-10-02 ``@ddalle``: First version
         * 2015-10-19 ``@ddalle``: FUN3D version
-        * 2016-04-14 ``@ddalle``: Capoe version
+        * 2016-04-14 ``@ddalle``: Cape version
     """
     # Loop through possible input numbers.
-    for j in range(rc.get_nSeq()):
+    for i in range(rc.get_nSeq()):
         # Get the actual run number
-        i = rc.get_PhaseSequence(j)
+        j = rc.get_PhaseSequence(i)
         # Check for output files.
-        if len(glob.glob('%s.%02i.*' % (fpre, i))) == 0:
+        if len(glob.glob('%s.%02i.*' % (fpre, j))) == 0:
             # This run has not been completed yet.
-            return i
+            return j
         # Check the iteration number.
-        if n < rc.get_PhaseIters(j):
+        if n < rc.get_PhaseIters(i):
             # This case has been run, but hasn't reached the min iter cutoff
-            return i
+            return j
     # Case completed; just return the last value.
-    return i
+    return j
     
 # Function to get most recent L1 residual
 def GetCurrentIter():
@@ -566,7 +607,7 @@ def WriteUserTimeProg(tic, rc, i, fname, prog):
     
 # Write current time use
 def WriteStartTimeProg(tic, rc, i, fname, prog):
-    """Write the time of start to file
+    """Write the time to file at which a program or job started
     
     :Call:
         >>> WriteStartTimeProg(tic, rc, i, fname, prog)
@@ -656,6 +697,10 @@ def ReadStartTimeProg(fname):
 # Function to determine newest triangulation file
 def GetTriqFile(proj='Components'):
     """Get most recent ``triq`` file and its associated iterations
+    
+    This is a template version with specific implementations for each solver.
+    The :mod:`cape` version simply returns the most recent ``triq`` file in the
+    current folder with no iteration information.
     
     :Call:
         >>> ftriq, n, i0, i1 = GetTriqFile(proj='Components')

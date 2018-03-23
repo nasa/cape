@@ -1,6 +1,11 @@
 
 .. automodule:: cape.config
-    :members: AppendParent
     
     .. autoclass:: cape.config.Config
-        :members: GetCompID, Copy
+        :members:
+    
+    .. autoclass:: cape.config.ConfigJSON
+        :members:
+    
+    .. autoclass:: cape.config.ConfigMIXSUR
+        :members:

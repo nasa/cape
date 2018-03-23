@@ -1,6 +1,6 @@
 """
-Interface to basic run control options
-======================================
+:mod:`cape.options.runControl`: Primary case control options
+=============================================================
 
 This module provides a class to access (or set) options pertaining to the basic
 execution of the code.  For example, it specifies how many iterations to run,

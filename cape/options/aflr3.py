@@ -1,12 +1,18 @@
 """
-AFLR3 volume mesh generation options
-====================================
+:mod:`cape.options.aflr3`: AFLR3 volume mesh generation options
+================================================================
 
 This module provides a class to access command-line options to the AFLR3
 mesh-generation program.  It is specified in the ``"RunControl"`` section for
 modules that utilize the solver, which includes FUN3D.
 
-The options in this module are among the command-line options to AFLR3.
+The options in this module are among the command-line options to AFLR3.  Other
+AFLR3 options that do not have specific methods defined in the
+:class:`cape.options.aflr3.aflr3` options class can be accessed using two
+generic functions:
+
+    * :func:`aflr3.get_aflr3_flags`: options using ``-blr 1.2`` format
+    * :func:`aflr3.get_aflr3_keys`: options using ``cdfs=7.5`` format
 """
 
 # Ipmort options-specific utilities
@@ -30,7 +36,7 @@ class aflr3(odict):
     """
     # Get dictionary of AFLR3 options using flag-value format
     def get_aflr3_flags(self):
-        """Get additional AFLR3 options using *-key val* format
+        """Get additional AFLR3 options using ``-key val`` format
         
         :Call:
             >>> flags = opts.get_aflr3_flags()

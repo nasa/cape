@@ -1,6 +1,6 @@
 """
-Interface to case archiving options
-===================================
+:mod:`cape.archive.Archive`: Case archiving options
+====================================================
 
 This module provides a class to access options relating to archiving folders
 that were used to run CFD analysis.

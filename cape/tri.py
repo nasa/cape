@@ -1,5 +1,5 @@
 """
-Surface triangulation module: :mod:`cape.tri`
+:mod:`cape.tri`: Surface triangulation module
 =============================================
 
 This module provides the utilities for interacting with Cart3D or Plot3D type
@@ -17,6 +17,7 @@ relatively simple to compile, but fall-back methods are provided using purely
 Python code in each case.  The convention used for this situation is to provide
 a method like :func:`cape.tri.TriBase.WriteFast` for the compiled version and
 :func:`cape.tri.TriBase.WriteSlow` for the Python version.
+
 """
 
 # Required modules
@@ -3466,6 +3467,7 @@ class TriBase(object):
             *c*: :class:`str`
                 Configuration file name
             *restrict*: ``True`` | {``False``}
+                Option to eliminate faces that are not present in triangulation
         :Versions:
             * 2015-11-19 ``@ddalle``: First version
         """

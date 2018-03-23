@@ -1,14 +1,40 @@
 """
-Point sensors module: :mod:`cape.pointSensor`
-===============================================
+:mod:`cape.pointSensor`: Point sensor databook
+================================================
 
-This module contains a class for reading and averaging point sensors.  It is not
-included in the :mod:`cape.dataBook` module in order to give finer import
-control when used in other modules.
+This module contains a class for reading and averaging point sensors or
+extracting point sensor data from a CFD solution file. It is not included in
+the :mod:`cape.dataBook` module in order to give finer import control when used
+in other modules.
 
-Point sensors are set into groups, so the ``"DataBook"`` section of the JSON
-file may have a point sensor group called ``"P1"`` that includes points
-``"p1"``, ``"p2"``, and ``"p3"``.
+Point sensors are often defined in two regions of the main Cape JSON file read
+by :class:`cape.options.Options` or :class:`cape.cntl.Cntl`.  Usually the
+coordinates of the points are defined in the ``"Config"`` section while the
+groups and other databook attributes are defined in the ``"DataBook"`` section.
+
+The database components are split into groups, so the ``"DataBook"`` section of
+the JSON file may have a point sensor group called ``"P1"`` that includes
+points ``"p1"``, ``"p2"``, and ``"p3"``.  To explain this example further, the
+following JSON snippets could be used to define these three points in one
+group.
+
+    .. code-block:: javascript
+    
+        {
+            "Config": {
+                "Points": {
+                    "p1": [2.5000, 1.00, 0.00], 
+                    "p2": [2.5000, 0.00, 1.00],
+                    "p3": [3.5000, 0.00, 1.00]
+                }
+            },
+            "DataBook": {
+                "P1": {
+                    "Type": "TriqPoint",
+                    "Points": ["p1", "p2", "p3"]
+                }
+            }
+        }
 
 If a data book is read in as *DB*, the point sensor group *DBP* for group
 ``"P1"`` and the point sensor *p1* are obtained using the commands below.
@@ -19,6 +45,19 @@ If a data book is read in as *DB*, the point sensor group *DBP* for group
         DBP = DB.PointSensors["P1"]
         // Individual point sensor
         p1 = DBP["p1"]
+        
+The same snippet could also be interpreted as a Python :class:`dict` and used
+as raw inputs without using :class:`cape.options.Options`.  Note that each
+point sensor group can be one of two point sensor types:
+
+    * ``"Point"``: Point sensor data explicitly provided by CFD solver
+    * ``"TriqPoint"``: Surface point sensor extracted from CFD solution
+    
+In many cases, the ``"Point"`` type is not fully implemented.  It is a very
+sensitive method since it requires the user to specify the points before
+running the CFD case (whereas ``"TriqPoint"`` just requires a surface solution
+output), but it is the only way to extract point iterative histories.
+
 """
 
 # File interface
@@ -240,13 +279,13 @@ class DBPointSensorGroup(dataBook.DBBase):
         
         This performs several conversions:
         
-            ============   ===================
+            =============  ===================
             *comp*         Output
-            ============   ===================
+            =============  ===================
             ``None``       ``DBPG.pts``
             :class:`str`   ``pt.split(',')``
             :class:`list`  ``pt``
-            ============   ===================
+            =============  ===================
         
         :Call:
             >>> DBPG.ProcessComps(pt=None)
@@ -533,7 +572,8 @@ class DBPointSensorGroup(dataBook.DBBase):
                 Point sensor group data book
             *I*: :class:`list` (:class:`int`)
                 List of trajectory indices or update all cases in trajectory
-            *pt
+            *pt*: :class:`str`
+                Name of point sensor
         :Outputs:
             *n*: :class:`int`
                 Number of deleted entries

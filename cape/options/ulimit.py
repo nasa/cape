@@ -1,6 +1,6 @@
 """
-Interface to system resource options
-====================================
+:mod:`cape.options.ulimit`: System resource options
+====================================================
 
 This module provides a class to access options relating to system resources.
 Specifically, this pertains to options usually set by ``ulimit`` from the
@@ -9,6 +9,7 @@ command line.
 The class provided in this module, :class:`cape.options.ulimit.ulimit`, is
 loaded in the ``"RunControl"`` section of the JSON file and the
 :class:`cape.options.runControl.RunControl` class.
+
 """
 
 # Ipmort options-specific utilities

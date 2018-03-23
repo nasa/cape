@@ -13,8 +13,9 @@
     .. autoclass:: cape.tri.Tri
         :members:
         
-    Annotated surface triangulation with solution values (``triq`` files)
-    ---------------------------------------------------------------------
+    Annotated surface triangulation with solution (``triq`` files)
+    ---------------------------------------------------------------
     
     .. autoclass:: cape.tri.Triq
         :members:
+

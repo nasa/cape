@@ -1,13 +1,14 @@
 .. Documentation for the overall cape module.
 
-===================================
-Options Module: :mod:`cape.options`
-===================================
+====================================
+:mod:`cape.options`: Options module 
+====================================
 
 .. automodule:: cape.options
     
     .. autoclass:: cape.options.Options
-        :members: AddPythonPath, mkdir, get_umask, get_dmask,
+        :members: AddPythonPath, WritePBSHeader,
+            mkdir, get_umask, get_dmask,
             get_ShellCmds, get_nSubmit
     
 
@@ -21,6 +22,8 @@ Options Module: :mod:`cape.options`
     Archive
     pbs
     Config
+    Mesh
     DataBook
     Report
     util
+

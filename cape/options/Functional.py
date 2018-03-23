@@ -282,7 +282,7 @@ class Functional(odict):
         :Call:
             >>> optSensors = opts.get_optSensors()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *optSensors*: :class:`list` (:class:`dict`)
@@ -312,7 +312,7 @@ class Functional(odict):
         :Call:
             >>> optMoments = opts.get_optMoments()
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *optMoments*: :class:`list` (:class:`dict`)
@@ -334,4 +334,6 @@ class Functional(odict):
                 optMoments[k] = v
         # Output
         return optMoments
-    
+        
+# class Functional
+

@@ -1,5 +1,5 @@
 """
-Command-Line Argument Processor: :mod:`cape.argread`
+:mod:`cape.argread`: Command-Line Argument Processor
 ====================================================
 
 Parse command-line inputs based on one of two methods.  The first method counts

@@ -1,22 +1,22 @@
 """
-Cape run matrix module: :mod:`cape.trajectory`
+:mod:`cape.trajectory`: Run matrix interface
 ==============================================
 
-This module provides a class :class:`cape.trajectory.Trajectory` for interacting
-with a list of cases.  Usually this is the list of cases defined as the run
-matrix for a set of CFD solutions, and it is defined in the ``"Trajectory"``
-:ref:`section of the JSON file <cape-json-trajectory>`.
+This module provides a class :class:`cape.trajectory.Trajectory` for
+interacting with a list of cases. Usually this is the list of cases defined as
+the run matrix for a set of CFD solutions, and it is defined in the
+``"Trajectory"`` :ref:`section of the JSON file <cape-json-trajectory>`.
 
-However, the contents of the :class:`cape.trajectory.Trajectory` may have a list
-of cases that differs from the run matrix, for example containing instead the
-cases contained in a data book.
+However, the contents of the :class:`cape.trajectory.Trajectory` may have a
+list of cases that differs from the run matrix, for example containing instead
+the cases contained in a data book.
 
-The key defining parameter of a run matrix is the list of independent variables,
-which are referred to as "trajectory keys" within Cape.  For example, a common
-list of trajectory keys for an inviscid setup is ``["mach", "alpha", "beta"]``. 
-If the run matrix is loaded as *x*, then the value of the Mach number for case
-number *i* would be ``x.mach[i]``.  If the name of the key to query is held
-within a variable *k*, use the following syntax to get the value.
+The key defining parameter of a run matrix is the list of independent
+variables, which are referred to as "trajectory keys" within Cape. For example,
+a common list of trajectory keys for an inviscid setup is ``["mach", "alpha",
+"beta"]``. If the run matrix is loaded as *x*, then the value of the Mach
+number for case number *i* would be ``x.mach[i]``. If the name of the key to
+query is held within a variable *k*, use the following syntax to get the value.
 
     .. code-block:: python
     

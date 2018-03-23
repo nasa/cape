@@ -1,13 +1,19 @@
 #!/usr/bin/env python
 """
-Interface to STEP Files
-=======================
+:mod:`cape.step`: Python interface to STEP Files
+===================================================
 
 This module provides an interface to import points, curves, and potentially
-other entities in the future from STEP files following ISO 10303-21.
+other entities in the future from STEP files following ISO 10303-21.  It
+provides the class :class:`cape.step.STEP`, which allows the user to read
+(preferably simple) STEP files.  Its primary purpose is to read STEP files and
+write Plot3D curve files.
 
-:Versions:
-    * 2016-05-10 ``@ddalle``: Started
+See also:
+
+    * :mod:`pc_Step2Crv`
+    * :mod:`pc_StepTri2Crv`
+
 """
 
 # File checking

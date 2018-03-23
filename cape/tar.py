@@ -1,9 +1,24 @@
 """
-Module for semiautomatic folder archiving: :mod:`cape.tar`
-==========================================================
+:mod:`cape.tar`: Semiautomatic folder archiving
+=================================================
 
 This is a module for tarring and untarring folders automatically in combination
-with changing directory into and out of the folder.
+with changing directory into and out of the folder.  This function works in
+combination primarily with the :class:`cape.report.Report` class when the
+``"Report"`` > ``"Archive"`` option is set to ``True``.
+
+The primary functions and their actions are:
+
+    * :func:`chdir_up`: Leave a folder, archive it, and delete the folder
+        * Starting from folder called ``thisdir/``
+        * ``cd ..``
+        * ``tar -cf thisdir.tar thisdir``
+        * ``rm -r thisdir/``
+        
+    * :func:`chdir_in`: Go into a folder that may be archived
+        * ``tar -xf thisdir.tar``
+        * ``cd thisdir/``
+
 """
 
 # System interface

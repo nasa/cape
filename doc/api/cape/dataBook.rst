@@ -6,46 +6,37 @@
     --------------------------------
     
         .. autoclass:: cape.dataBook.DataBook
-            :members: InitDBComp,
-                PlotCoeff,
-                MatchTrajectory, UpdateTrajectory,
-                GetDBMatch, GetTargetMatch, GetTargetMatches,
-                GetTargetByName, ReadTarget,
-                Sort, Write
+            :members: 
     
     Individual data books
     ---------------------
                 
         .. autoclass:: cape.dataBook.DBBase
-            :members: ProcessColumns, Read, 
-                EstimateLineCount, ProcessConverters,
-                ArgSort, Sort, Write, GetTrajectoryIndex, FindMatch,
-                PlotCoeffBase, PlotCoeff
+            :members: 
                 
         .. autoclass:: cape.dataBook.DBComp
-            :members: PlotCoeff
+            :members: 
             
         .. autoclass:: cape.dataBook.DBTarget
-            :members: ReadData, ProcessColumns,
-                ReadAllData, ReadDataByColumn,
-                CheckColumn, UpdateTrajectory,
-                PlotCoeff
+            :members: 
+            
+        .. autoclass:: cape.dataBook.DBTriqFM
+            :members:
+            
+        .. autoclass:: cape.dataBook.DBTriqFMComp
+            :members:
                 
     Data book classes for individual cases
     --------------------------------------
     
         .. autoclass:: cape.dataBook.CaseData
-            :members: GetIterationIndex, ExtractValue,
-                PlotValue, PlotValueHist
+            :members: 
             
         .. autoclass:: cape.dataBook.CaseFM
-            :members: AddData, TransformFM, ShiftMRP,
-                GetStatsN, GetStats,
-                PlotCoeff, PlotCoeffHist
+            :members: 
                 
         .. autoclass:: cape.dataBook.CaseResid
-            :members: GetNOrders, GetNOrdersUnsteady, GetIterationIndex,
-                PlotResid, PlotL1, PlotL2, PlotLInf
+            :members: 
             
             
     Other :mod:`cape.dataBook` methods

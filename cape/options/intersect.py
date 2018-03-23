@@ -1,15 +1,15 @@
 """
-Cart3D triangulation intersect options
-======================================
+:mod:`cape.options.intersect`: Triangulation ``intersect`` options
+===================================================================
 
 This module interfaces options for two Cart3D triangulation tools called
-``intersect`` and ``verify``.  This allows the user to intersect overlapping
-triangulated bodies and create a single water-tight body.  The ``verify`` script
-then tests for a well-defined water-tight triangulation.  Intersections, missing
+``intersect`` and ``verify``. This allows the user to intersect overlapping
+triangulated bodies and create a single water-tight body. The ``verify`` script
+then tests for a well-defined water-tight triangulation. Intersections, missing
 triangles, holes, etc. all cause ``verify`` to fail.
 
 The main option for both ``intersect`` and ``verify`` is simply whether or not
-to use them.  The user can specify the following in the ``"RunControl"`` section
+to use them. The user can specify the following in the ``"RunControl"`` section
 of the JSON file.
 
     .. code-block:: javascript

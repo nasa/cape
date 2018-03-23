@@ -1,12 +1,27 @@
 """
-Geometry configuration options 
-==============================
+:mod:`cape.options.Config`: CFD geometry and naming configuration 
+===================================================================
 
 This module interfaces options for geometric configurations.  It defines
 quantities such as reference area, moment reference points, and other points to
-track.
-"""
+track.  This section is not used to define the mesh or its properties.
+Instead, it is used to set extra properties for certain aspects of the
+geometry, for example association names with surfaces or points in the mesh.
 
+For some solvers, this also affects what information is requested for the CFD
+solver to write during operation.
+
+The :func:`Config.get_ConfigFile` typically points to an external file that
+associates names with each numbered surface.
+
+Another aspect is to define ``"Points"`` by name.  This allows the moment
+reference point for a configuration and not have to repeat the coordinates over
+and over again.  Furthermore, named points can be transformed by other
+functions automatically.  For example, a moment reference point can be
+translated and rotated along with a component, or a set of four points defining
+a right-handed coordinate system can be kept attached to a certain component.
+
+"""
 
 # Import options-specific utilities
 from util import rc0, odict
@@ -16,8 +31,8 @@ class Config(odict):
     """Dictionary-based interfaced for surface configuration
     
     It is primarily used for naming surface components, grouping them, defining
-    moment reference points, defining other points, and requesting components of
-    interest.
+    moment reference points, defining other points, and requesting components
+    of interest.
     
     :Call:
         >>> opts = Config(**kw)

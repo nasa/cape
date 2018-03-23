@@ -1,12 +1,34 @@
 """
-Sectional Loads Module: :mod:`cape.lineLoad`
-============================================
+:mod:`cape.lineLoad`: Sectional loads databook
+================================================
 
-This module contains functions for reading and processing sectional loads.  It
-is a submodule of :mod:`pyCart.dataBook`.
+This module contains functions for reading and processing sectional loads.
+This module is developed from :mod:`cape.dataBook`, which is the overall
+databook interface.  It provides the primary class :class:`DBLineLoad`, which
+is a subclass of :class:`cape.dataBook.DBBase`.  This class is an interface to
+all line load data for a specific surface component.
 
-:Versions:
-    * 2015-09-15 ``@ddalle``: Started
+Overall, this module provides three classes:
+
+    * :class:`DBLineLoad`: Line load database for one component
+    * :class:`CaseLL`: Line load data for one component of one CFD solution
+    * :class:`CaseSeam`: Interface to "seam curves" to plot outline of surface
+    
+In addition to a database interface, this module also creates line loads.
+Specific modifications to the generic template provided here are needed for
+each individual CFD solver:
+
+    * :mod:`pyCart.lineLoad`
+    * :mod:`pyFun.lineLoad`
+    * :mod:`pyOver.lineLoad`
+    
+To calculate line loads, this module utilizes the Chimera Grid Tools executable
+called ``triloadCmd``.  This works by taking a Cart3D annotated surface
+triangulation (``triq`` file), slicing the surface component into slices, and
+computing the loads on each slice.  In order to create this surface
+triangulation, some solvers require steps to process the native CFD output.
+Those steps are performed by the solver-specific :mod:`lineLoad` modules.
+
 """
 
 # File interface
@@ -21,7 +43,7 @@ from . import util
 from . import case
 from . import dataBook
 from . import queue
-from cape import tar
+from . import tar
 
 # Finer control of dicts
 from .options import odict
@@ -61,7 +83,7 @@ def ImportPyPlot():
         # Other modules
         import matplotlib.transforms as tform
         from matplotlib.text import Text
-
+# def ImportPyPlot
 
 # Data book of line loads
 class DBLineLoad(dataBook.DBBase):

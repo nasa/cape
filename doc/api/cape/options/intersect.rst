@@ -6,3 +6,4 @@
 
     .. autoclass:: cape.options.intersect.verify
         :members:
+

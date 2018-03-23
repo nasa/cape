@@ -6,3 +6,4 @@
 
     .. autoclass:: cape.options.DataBook.DBTarget
         :members:
+

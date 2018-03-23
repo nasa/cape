@@ -1,25 +1,65 @@
 """
-Data book Module: :mod:`cape.dataBook`
-======================================
+:mod:`cape.dataBook`: Data book nodule 
+=======================================
 
 This module contains functions for reading and processing forces, moments, and
-other statistics from cases in a trajectory.
+other entities from cases in a trajectory.  This module forms the core for all
+database post-processing in Cape, but several other database modules exist for
+more specific applications:
 
-It contains a parent class :class:`cape.dataBook.DataBook` that provides a
-common interface to all of the requested force, moment, point sensor, etc.
-quantities that have been saved in the data book. Informing :mod:`cape` which
-quantities to track, and how to statistically process them, is done using the
-``"DataBook"`` section of the JSON file, and the various data book options are
-handled within the API using the :mod:`cape.options.dataBook` module.
+    * :mod:`cape.lineLoad`
+    * :mod:`cape.pointSensor`
+    
+This module provides three basic classes upon which more specific data classes
+are developed:
+
+    * :class:`DataBook`: Overall databook container
+    * :class:`DBBase`: Template databook for an individual component
+    * :class:`CaseData`: Template class for one case's iterative history
+    
+The first two of these are subclassed from :class:`dict`, so that generic data
+can be accessed with syntax such as ``DB[coeff]`` for an appropriately named
+coefficient.  An outline of derived classes for these three templates is shown
+below.
+
+    * :class:`DataBook`
+        - :class:`cape.dataBook.DBTriqFM`: post-processed forces & moments
+        
+    * :class:`DBBase`
+        - :class:`cape.dataBook.DBComp`: force & moment data for one component
+        - :class:`cape.dataBook.DBTarget`: target data
+        - :class:`cape.dataBook.DBTriqFMComp`: post-processed FM for one comp
+        - :class:`cape.lineLoad.DBLineLoad`: sectional load databook
+        - :class:`cape.pointSensor.DBPointSensorGroup`: group of points
+        - :class:`cape.pointSensor.DBTriqPointGroup`: group of surface points
+        - :class:`cape.pointSensor.DBPointSensor`: one point sensor
+        - :class:`cape.pointSensor.DBTriqPoint`: one surface point sensor
+        
+    * :class:`CaseData`
+        - :class:`cape.dataBook.CaseFM`: iterative force & moment history
+        - :class:`cape.dataBook.CaseResid`: iterative residual history
+    
+In addition, each solver has its own version of this module:
+
+    * :mod:`pyCart.dataBook`
+    * :mod:`pyFun.dataBook`
+    * :mod:`pyOver.dataBook`
+
+The parent class :class:`cape.dataBook.DataBook` provides a common interface to
+all of the requested force, moment, point sensor, etc. quantities that have
+been saved in the data book. Informing :mod:`cape` which quantities to track,
+and how to statistically process them, is done using the ``"DataBook"`` section
+of the JSON file, and the various data book options are handled within the API
+using the :mod:`cape.options.DataBook` module.
 
 The master data book class :class:`cape.dataBook.DataBook` is based on the
 built-in :class:`dict` class with keys pointing to force and moment data books
-for individual components.  For example, if the JSON file tells Cape to track
-the forces and/or moments on a component called ``"body"``, and the data book is
-the variable *DB*, then the forces and moment data book is ``DB["body"]``.  This
-force and moment data book contains statistically averaged forces and moments
-and other statistical quantities for every case in the run matrix.  The class of
-the force and moment data book is :class:`cape.dataBook.DBComp`.
+for individual components. For example, if the JSON file tells Cape to track
+the forces and/or moments on a component called ``"body"``, and the data book
+is the variable *DB*, then the forces and moment data book is ``DB["body"]``.
+This force and moment data book contains statistically averaged forces and
+moments and other statistical quantities for every case in the run matrix. The
+class of the force and moment data book is :class:`cape.dataBook.DBComp`.
 
 The data book also has the capability to store "target" data books so that the
 user can compare results of the current CFD solutions to previous results or
@@ -32,9 +72,10 @@ for tracking results of groups of cases are built off of the
 plotting.
 
 The :mod:`cape.dataBook` module also contains modules for processing results
-within individual case folders.  This includes the :class:`cape.dataBook.CaseFM`
+within individual case folders. This includes the :class:`cape.dataBook.CaseFM`
 module for reading iterative force/moment histories and the
 :class:`cape.dataBook.CaseResid` for iterative histories of residuals.
+
 """
 
 # File interface
@@ -535,13 +576,13 @@ class DataBook(dict):
         
         This performs several conversions:
         
-            ============   ===================
+            =============  ===================
             *comp*         Output
-            ============   ===================
+            =============  ===================
             ``None``       ``DB.Components``
             :class:`str`   ``comp.split(',')``
             :class:`list`  ``comp``
-            ============   ===================
+            =============  ===================
         
         :Call:
             >>> DB.ProcessComps(comp=None)
@@ -1271,17 +1312,17 @@ class DataBook(dict):
     
     # Update TriqPoint data book for one component
     def UpdateTriqPointComp(self, comp, I=None):
-        """Update a TriqPOint triangulation-extracted point sensor data book
+        """Update a TriqPoint triangulation-extracted point sensor data book
         
         :Call:
             >>> n = DB.UpdateTriqPointComp(comp, I=None)
         :Inputs:
             *DB*: :class:`cape.dataBook.DataBook`
-               Instance of data book class
-           *comp*: {``None``} | :class:`str`
-               Name of TriqPoint group or all if ``None``
-           *I*: :class:`list` (:class:`int`)
-               List of trajectory indices
+                Instance of data book class
+            *comp*: {``None``} | :class:`str`
+                Name of TriqPoint group or all if ``None``
+            *I*: :class:`list` (:class:`int`)
+                List of trajectory indices
         :Outputs:
             *n*: :class:`int`
                 Number of updates made

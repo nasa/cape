@@ -1,10 +1,20 @@
 """
-Surface configuration module: :mod:`cape.config`
-================================================
+:mod:`cape.config`: Surface configuration module
+=================================================
 
-This is a module to interact with :file:`Config.xml` files.  In general, it can
-be used to create groups of surfaces using an XML file format.  This comes from
-the Cart3D/OVERFLOW convention, but it can be used with other modules as well.
+This is a module to interact with :file:`Config.xml` and related files. In
+general, it can be used to create groups of surfaces using an XML file format.
+This comes from the Cart3D/OVERFLOW convention, but it can be used with other
+modules as well.  Presently there are three classes, which each interface with
+a specific type of file:
+
+    ======================== ================= =============================
+    Class                    Common File       Description
+    ======================== ================= =============================
+    :class:`Config`          ``Config.xml``    GMP component XML file
+    :class:`ConfigJSON`      ``Config.json``   Cape JSON surf config file
+    :class:`ConfigMIXSUR`    ``mixsur.i``      CGT input families stream
+    ======================== ================= =============================
 
 It is typical for a surface definition, whether a triangulation, system of
 overset structured grids, or mixed quads and triangles, to have each surface
@@ -14,13 +24,13 @@ example, the user may tag each polygon on the left wing with the component ID of
 ``12``, and the entire surface is broken out in a similar fashion.
 
 The :mod:`cape.config` module allows the user to do two main things: give
-meaningful names to these component IDs and group component IDs together.  For
+meaningful names to these component IDs and group component IDs together. For
 example, it is usually much more convenient to refer to ``"left_wing"`` than
-remember to put ``"12"`` in all the data books, reports, etc.  In addition, a
+remember to put ``"12"`` in all the data books, reports, etc. In addition, a
 user usually wants to know the integrated force on the entire airplane (or
-whatever other type of configuration is under investigation), so it is useful to
-make another component called ``"vehicle"`` that contains ``"left_wing"``,
-``"right_wing"``, and ``"fuselage"``.  The user specifies this in the XML file
+whatever other type of configuration is under investigation), so it is useful
+to make another component called ``"vehicle"`` that contains ``"left_wing"``,
+``"right_wing"``, and ``"fuselage"``. The user specifies this in the XML file
 using the following syntax.
 
     .. code-block:: xml
@@ -42,15 +52,64 @@ using the following syntax.
         
         </Configuration>
         
-The *Source* attribute of the first tag is not that important; it's placed there
-based on a Cart3D template.  The choice of encoding is probably also
-unimportant, but having something there may prevent problems.
+The *Source* attribute of the first tag is not that important; it's placed
+there based on a Cart3D template. The choice of encoding is not crucial but
+does affect the validity of the XML file, which some applications may check.
 
-The major limitation of this capability at present is that a component may not
-have multiple parents.  A parent may have parent, allowing the user to subdivide
-groups into smaller groups, but the user may not, for example, split the vehicle
-into left half and right half and also create components for forward half and
-aft half.
+The major limitation of the XML format is that a component may not have
+multiple parents. A parent may have parent, allowing the user to subdivide
+groups into smaller groups, but the user may not, for example, split the
+vehicle into left half and right half and also create components for forward
+half and aft half.
+
+An alternative version of the same is to use the JSON configuration format
+developed for Cape.  It allows mixed parents like the forward/aft, left/right
+example described above, and it also allows the users to specify boundary
+conditions within the config file, which can consolidate information about your
+surface that would otherwise require multiple files.  The version of the above
+configuration in JSON form is below.
+
+    .. code-block:: javascript
+    
+        {
+            "Tree": {
+                "vehicle": [
+                    "fuselage",
+                    "right_wing",
+                    "left_wing"
+                ]
+            },
+            "Properties": {
+                "fuselage": {
+                    "CompID": 1
+                },
+                "right_wing": 11,
+                "left_wing": 12
+            }
+        }
+        
+The ``"Properties"`` section allows generic options, for example those in the
+table below.  If the *Properties* for a face is not a :class:`dict`, it must be
+an :class:`int`, which is assumed to be the *CompID* parameter for that face.
+
+    ======================   ==========================================
+    Component Property       Description
+    ======================   ==========================================
+    *CompID*                 Surface component integer
+    *Parent*                 Name of principal parent if ambiguous
+    *fun3d_bc*               Boundary condition for FUN3D
+    *aflr3_bc*               Boundary condition for AFLR3
+    *blds*                   Initial BL spacing, AFLR3
+    *bldel*                  Prism layer height, AFLR3
+    ======================   ==========================================
+
+Finally, the :class:`ConfigMIXSUR` file interprets the streams that are often
+given as inputs to the Chimera Grid Tools executables ``mixsur`` or ``usurp``. 
+These functions are used to divide an overset structured grid system into
+surface components and can also be used to create unique surface
+triangulations.  These input streams are often saved as a file, by convention
+``mixsur.i``, and read into the CGT executable using a call such as
+``mixsur < mixsur.i``.
 """
 
 # File checker.
@@ -65,7 +124,7 @@ from .util    import RangeString, SplitLineGeneral
 from .options import util
 
 # Configuration class
-class Config:
+class Config(object):
     """Configuration class for interfacing :file:`Config.xml` files
     
     :Call:

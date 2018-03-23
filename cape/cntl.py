@@ -1,28 +1,29 @@
 """
-Cape base module for CFD control: :mod:`cape.cntl`
-==================================================
+:mod:`cape.cntl`: Base module for CFD operations and processing 
+=================================================================
 
 This module provides tools and templates for tools to interact with various CFD
-codes and their input files.  The base class is :class:`cape.cntl.Cntl`, and the
-derivative classes include :class:`pyCart.cart3d.Cart3d`.  This module creates
-folders for cases, copies files, and can be used as an interface to perform most
-of the tasks that Cape can accomplish except for running individual cases.
+codes and their input files. The base class is :class:`cape.cntl.Cntl`, and the
+derivative classes include :class:`pyCart.cart3d.Cart3d`. This module creates
+folders for cases, copies files, and can be used as an interface to perform
+most of the tasks that Cape can accomplish except for running individual cases.
 
 The control module is set up as a Python interface for the master JSON file,
 which contains the settings to be used for a given CFD project.
 
-The derivative classes are used to read input files, set up cases, submit and/or
-run cases, and be an interface for the various Cape options as they are
-customized for the various CFD solvers.  The individualized modules are below.
+The derivative classes are used to read input files, set up cases, submit
+and/or run cases, and be an interface for the various Cape options as they are
+customized for the various CFD solvers. The individualized modules are below.
 
-    * :mod:`pyCart.cart3d.Cart3d`
-    * :mod:`pyFun.fun3d.Fun3d`
-    * :mod:`pyOver.overflow.Overflow`
+    * :mod:`pyCart.cart3d`
+    * :mod:`pyFun.fun3d`
+    * :mod:`pyOver.overflow`
     
 :See also:
     * :mod:`cape.case`
     * :mod:`cape.options`
     * :mod:`cape.trajectory`
+
 """
 
 # Numerics
@@ -657,6 +658,9 @@ class Cntl(object):
     def ExecScript(self, i, cmd):
         """Execute a script in a given case folder
         
+        This function is the interface to command-line calls using the ``-e``
+        flag, such as ``pycart -e 'ls -lh'``.
+        
         :Call:
             >>> ierr = cntl.ExecScript(i, cmd)
         :Inputs:
@@ -721,7 +725,6 @@ class Cntl(object):
    # Run Interface
    # =============
    # <
-        
     # Apply user filter
     def FilterUser(self, i, **kw):
         # Get any 'user' trajectory keys
@@ -761,7 +764,11 @@ class Cntl(object):
         case is submitted via :func:`cape.queue.pqsub`, and otherwise the
         case is started using a system call.
         
-        It is assumed that the case has been prepared.
+        Before starting case, this function checks the folder using
+        :func:`cape.cntl.CheckCase`; if this function returns ``None``, the
+        case is not started.  Actual starting of the case is done using
+        :func:`CaseStartCase`, which has a specific version for each CFD
+        solver.
         
         :Call:
             >>> pbs = cntl.StartCase(i)
@@ -828,9 +835,10 @@ class Cntl(object):
         
     # Function to terminate a case: qdel and remove RUNNING file
     def StopCase(self, i):
-        """
-        Stop a case by deleting its PBS job and removing the :file:`RUNNING`
-        file.
+        """Stop a case if running
+        
+        This function deletes a case's PBS job and removes the :file:`RUNNING`
+        file if it exists.
         
         :Call:
             >>> cntl.StopCase(i)
@@ -2696,7 +2704,7 @@ class Cntl(object):
         """Apply a rotation to a component or components
         
         :Call:
-            >>> cntl.PrepareTriRotation(key, i)
+            >>> cntl.PrepareConfigRotation(key, i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class containing relevant parameters
@@ -2878,7 +2886,7 @@ class Cntl(object):
                 \\frac{A_2}{A_1} = \\frac{M_1}{M_2}\\left(
                     \\frac{1+\\frac{\\gamma-1}{2}M_2^2}{
                     1+\\frac{\\gamma-1}{2}M_1^2}
-                \right) ^ {\\frac{1}{2}\\frac{\\gamma+1}{\\gamma-1}}
+                \\right) ^ {\\frac{1}{2}\\frac{\\gamma+1}{\\gamma-1}}
         
         :Call:
             >>> A2 = cntl.GetSurfCT_ExitArea(key, i)
@@ -2937,7 +2945,7 @@ class Cntl(object):
                 \\frac{A_2}{A_1} = \\frac{M_1}{M_2}\\left(
                     \\frac{1+\\frac{\\gamma-1}{2}M_2^2}{
                     1+\\frac{\\gamma-1}{2}M_1^2}
-                \right) ^ {\\frac{1}{2}\\frac{\\gamma+1}{\\gamma-1}}
+                \\right) ^ {\\frac{1}{2}\\frac{\\gamma+1}{\\gamma-1}}
         
         :Call:
             >>> M2 = cntl.GetSurfCT_ExitMach(key, i)

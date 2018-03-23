@@ -1,6 +1,6 @@
 """
-Module to interface with Fortran namelists: :mod:`cape.namelist`
-================================================================
+:mod:`cape.namelist`: Fortran namelists module 
+================================================
 
 This is a module built off of the :mod:`cape.fileCntl.FileCntl` module
 customized for manipulating Fortran namelists.  Such files are split into
@@ -17,6 +17,68 @@ the following.
 and this module is designed to recognize such sections.  The main feature of
 this module is methods to set specific properties of a namelist file, for
 example the Mach number or CFL number.
+
+This function provides a class :class:`cape.namelist.Namelist` that can both
+read and set values in the namelist.  The key functions are
+
+    * :func:`Namelist.SetVar`
+    * :func:`Namelist.GetVar`
+    
+The conversion from namelist text to Python is handled by
+:func:`Namelist.ConvertToText`, and the reverse is handled by
+:func:`Namelist.ConvertToVal`.  Conversions cannot quite be performed just by
+the Python functions :func:`print` and :func:`eval` because delimiters are not
+used in the same fashion.  Some of the conversions are tabulated below.
+
+    +----------------------+------------------------+
+    | Namelist             | Python                 |
+    +======================+========================+
+    | ``val = "text"``     | ``val = "text"``       |
+    +----------------------+------------------------+
+    | ``val = 'text'``     | ``val = 'text'``       |
+    +----------------------+------------------------+
+    | ``val = 3``          | ``val = 3``            |
+    +----------------------+------------------------+
+    | ``val = 3.1``        | ``val = 3.1``          |
+    +----------------------+------------------------+
+    | ``val = .false.``    | ``val = False``        |
+    +----------------------+------------------------+
+    | ``val = .true.``     | ``val = True``         |
+    +----------------------+------------------------+
+    | ``val = .f.``        | ``val = False``        |
+    +----------------------+------------------------+
+    | ``val = .t.``        | ``val = True``         |
+    +----------------------+------------------------+
+    | ``val = 10.0 20.0``  | ``val = [10.0, 20.0]`` |
+    +----------------------+------------------------+
+    | ``val = 1, 100``     | ``val = [1, 100]``     |
+    +----------------------+------------------------+
+    | ``val(1) = 1.2``     | ``val = [1.2, 1.5]``   |
+    +----------------------+------------------------+
+    | ``val(2) = 1.5``     |                        |
+    +----------------------+------------------------+
+    | ``val = _mach_``     | ``val = "_mach_"``     |
+    +----------------------+------------------------+
+
+In most cases, the :class:`Namelist` will try to interpret invalid values for
+any namelist entry as a string with missing quotes.  The reason for this is
+that users often create template namelist with entries like ``_mach_`` that can
+be safely replaced with appropriate values using ``sed`` commands or something
+similar.
+
+There is also a function :func:`Namelist.ReturnDict` to access the entire
+namelist as a :class:`dict`.  Similarly, :func:`Namelist.ApplyDict` can be used
+to apply multiple settings using a :class:`dict` as input.
+
+See also:
+
+    * :mod:`cape.namelist2`
+    * :mod:`pyFun.namelist`
+    * :mod:`pyOver.overNamelist`
+    * :func:`pyFun.case.GetNamelist`
+    * :func:`pyFun.fun3d.Fun3d.ReadNamelist`
+    * :func:`pyOver.overflow.Overflow.ReadNamelist`
+
 """
 
 # Import the base file control class.

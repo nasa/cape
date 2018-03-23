@@ -1,12 +1,13 @@
 """
-Cape PBS queue interface module: :mod:`cape.queue`
-==================================================
+:mod:`cape.queue`: PBS queue interface module 
+===============================================
 
 This module contains direct interface for functions like `qsub` and `qstat`.
 These methods provide an easy interface to command-line PBS utilities and also
 provide some access to the PBS information.  For example, the method
 :func:`cape.queue.pqsub` writes a file ``"jobID.dat"`` with the PBS job number
 of the submitted job.
+
 """
 # OS interface
 import subprocess as sp

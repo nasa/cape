@@ -1,13 +1,19 @@
 """
-Automated report options 
-========================
+:mod:`cape.options.Report`: Automated report options 
+=====================================================
 
-This module interfaces options for generating reports.  Since many of the report
+This module interfaces options for generating reports. Since many of the report
 options are common to different solvers, much of the report generation content
-is controlled here.
+is controlled here.  
+
+The function :func:`Report.SetSubfigDefaults` contains an extensive set of
+default options for each subfigure type. However, the docstring does not
+contain an outline or table of these, so interested users can refer to the JSON
+documentation or read the source code for that function.
 
 Please see :ref:`the page on report JSON settings <cape-json-Report>` for more
 information.
+
 """
 
 # Import options-specific utilities
