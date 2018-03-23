@@ -1,5 +1,5 @@
 """
-:mod:`pyCart.cart3d`: Cart3D Executive Module
+:mod:`pyCart.cart3d`: Cart3D executive module
 =============================================
 
 This module provides tools to quickly setup basic Cart3D runs from a small set
@@ -16,7 +16,6 @@ loaded using the following commands.
         <pyCart.Cart3d(nCase=4, tri='bullet.tri')>
         >>> cart3d.x.GetFullFolderNames(0)
         'poweroff/m1.5a0.0b0.0'
-        
         
         
 An instance of this :class:`pyCart.cart3d.Cart3d` class has many methods,
@@ -39,6 +38,7 @@ the appropriate input files (such as ``cart3d.InputCntl``).
 Finally, the :class:`pyCart.cart3d.Cart3d` class is subclassed from the
 :class:`cape.cntl.Cntl` class, so any methods available to the CAPE class are
 also available here.
+
 """
 
 # Basic numerics

@@ -25,7 +25,7 @@ if a restart is appropriate, etc.), sets that case up, and runs it.
 # Import the module specifically for this task.
 import pyFun.case
 # Argument parsing
-import sys, pyCart.argread
+import sys, cape.argread
 
 # Simple function to call the main function of that module.
 def run_fun3d():
@@ -42,11 +42,12 @@ def run_fun3d():
 # Check if run as a script.
 if __name__ == "__main__":
     # Parse arguments
-    a, kw = pyCart.argread.readflags(sys.argv)
+    a, kw = cape.argread.readflags(sys.argv)
     # Check for help argument.
     if kw.get('h') or kw.get('help'):
         # Display help and exit
-        print(__doc__)
+        import cape.text
+        print(cape.text.markdown(__doc__))
         sys.exit()
     # Run FUN3D
     run_fun3d()

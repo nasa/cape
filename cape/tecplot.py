@@ -1,9 +1,10 @@
 """
-Module to interface with Tecplot scripts: :mod:`pyCart.tecplot`
-===============================================================
+:mod:`cape.tecplot`: Interface to Tecplot scripts 
+======================================================
 
 This is a module built off of the :mod:`pyCart.fileCntl` module customized for
 manipulating Tecplot layout files and macros.
+
 """
 
 # Numerics
@@ -194,8 +195,7 @@ class Tecscript(FileCntl):
                 Instance of Tecplot script/layout interface
             *key*: :class:`str`
                 Name of the key
-            *val*: :class:`int` | :class:`float` | :class:`str` | :class:`dict`
-                    | :class:`np.ndarray` (:class:`float`)
+            *val*: :class:`any`
                 Value to write
             *m*: {``2``} | nonnegative :class:`int`
                 Number of leading spaces
@@ -300,7 +300,7 @@ class Tecscript(FileCntl):
    # [
     # Function to get lines of a command
     def GetCommand(self, cmd, n=0):
-        """Get the start and end line numbers in the *n*th instance of *cmd*
+        """Get the start and end line numbers in the *n*\ th instance of *cmd*
         
         This allows the user to get the lines of text in the command to be
         ``tec.lines[ibeg:iend]``.
@@ -585,7 +585,7 @@ class Tecscript(FileCntl):
         
     # Function to delete a command.
     def DeleteCommandN(self, cmd, n=0):
-        """Delete the *n*th instance of a command
+        """Delete the *n*\ th instance of a command
         
         :Call:
             >>> kcmd = tec.DeleteCommandN(cmd, n=0)
@@ -709,8 +709,7 @@ class Tecscript(FileCntl):
         :Outputs:
             *key*: :class:`str`
                 Name of the key whose definition starts on this line
-            *val*: :class:`int` | :class:`float` | :class:`str` | :class:`dict`
-                    | :class:`np.ndarray` (:class:`float`)
+            *val*: :class:`any`
                 Value for that line
             *m*: :class:`int`
                 Number of lines used for definition of this key
@@ -806,8 +805,7 @@ class Tecscript(FileCntl):
                 Line number on which to start
             *key*: :class:`str`
                 Name of the key
-            *val*: :class:`int` | :class:`float` | :class:`str` | :class:`dict`
-                    | :class:`np.ndarray` (:class:`float`)
+            *val*: :class:`any`
                 Value for that line
         :Versions:
             * 2016-01-05 ``@ddalle``: First version
@@ -831,7 +829,7 @@ class Tecscript(FileCntl):
         
     # Function to get key from a command
     def GetKey(self, cmd, key, n=0, par=None, k=None, v=None):
-        """Get the value of a key from the *n*th instance of a command
+        """Get the value of a key from the *n*\ th instance of a command
         
         :Call:
             >>> val = tec.GetKey(cmd, key, n=0, par=None, k=None, v=None)
@@ -1264,7 +1262,7 @@ class TecMacro(Tecscript):
     def SetImageWidth(self, w=1024):
         """Set the export image width
         
-        Call:
+        :Call:
             >>> tec.SetImageWidth(w=1024)
         :Inputs:
             *tec*: :class:`cape.tecplot.TecMacro`

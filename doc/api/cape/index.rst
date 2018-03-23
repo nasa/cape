@@ -36,6 +36,7 @@ The :mod:`cape` module
     report
     step
     tar
+    tecplot
     tex
     text
     trajectory

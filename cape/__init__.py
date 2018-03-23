@@ -63,6 +63,7 @@ A categorized list of modules available to the API are listed below.
        - :mod:`cape.plot3d`
        - :mod:`cape.plt`
        - :mod:`cape.step`
+       - :mod:`cape.tecplot`
        - :mod:`cape.tex`
     
     * Utilities

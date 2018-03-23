@@ -55,6 +55,26 @@ The following classes are imported in this module, so that code like
     * :class:`pyCart.preSpecCntl.PreSpecCntl`
     * :class:`pyCart.dataBook.CaseResid`
     * :class:`pyCart.dataBook.CaseFM`
+    
+Modules included within this one are outlined below.
+
+    * Core modules:
+        - :mod:`pyCart.cart3d`
+        - :mod:`pyCart.case`
+        - :mod:`pyCart.manage`
+        
+    * Cart3D and Cape files
+        - :mod:`pyCart.inputCntl`
+        - :mod:`pyCart.aeroCsh`
+        - :mod:`pyCart.preSpecCntl`
+        - :mod:`pyCart.trajectory`
+        - :mod:`pyCart.tri`
+        
+    * Supporting modules
+        - :mod:`pyCart.cmd`
+        - :mod:`pyCart.bin`
+        - :mod:`pyCart.util`
+
 """
 
 # System
