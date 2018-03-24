@@ -1,9 +1,43 @@
 """
-Interface to FUN3D run control options
-======================================
+:mod:`pyFun.options.runControl.RunControl`: pyFun run control options
+========================================================================
 
-This module provides a class to mirror the Fortran namelist capability.  For
-now, nonunique section names are not allowed.
+Options interface for aspects of running a case of FUN3D.  The settings are
+read from the ``"RunControl"`` of a JSON file, and the contents of this section
+are written to :file:`case.json` within each run folder.
+
+The methods of :class:`cape.options.runControl.RunControl` are also present.
+These control options such as whether to submit as a PBS job, whether or not to
+use MPI, etc.
+
+This contains options that determine how long the solver is ran (primarily 
+via the ``"PhaseSequence"`` and ``"PhaseIters"`` options), what basic mode it
+is run in (such as a submitted or local job or serial or MPI job), and options
+for command-line options to the FUN3D binaries.  There is also an
+``"Archive"`` section that can be used for copying files and cleaning up after
+one or more cases have been completed.
+
+This module primarily provides a class :class:`pyFun.options.RunControl`. Many
+of the options that are common to all solvers are inherited from
+:class:`cape.options.runControl.RunControl`. This class also has an interface
+for environment variables and ``ulimit`` parameters.
+
+In particular, all of the commands available to the classes listed below are
+also available to :class:`pyFun.options.runControl.RunControl`.
+
+:Classes:
+    * :class:`pyFun.options.runControl.RunControl`
+    * :class:`pyFun.options.runControl.nodet`
+    * :class:`pyFun.options.runControl.dual`
+    * :class:`pyFun.options.Archive.Archive`
+    * :class:`cape.options.aflr3.aflr3`
+    * :class:`cape.options.runControl.Environ`
+    * :class:`cape.options.ulimit.ulimit`
+:See Also:
+    * :mod:`cape.options.runControl`
+    * :mod:`cape.options.ulimit`
+    * :mod:`cape.options.intersect`
+    * :mod:`pyFun.options.Archive`
 """
 
 # Import options-specific utilities

@@ -2,14 +2,14 @@
 .. automodule:: pyCart.options.runControl
     :members: isRK
     
-    Cart3D Run Control :class:`pyCart.options.runControl.RunControl`
+    Cart3D run control :class:`pyCart.options.runControl.RunControl`
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     .. autoclass:: pyCart.options.runControl.RunControl
         :members: get_Adaptive, set_Adaptive, get_autoInputs, get_cubes
         
     
-    Cart3D Adaptation Options: :class:`pyCart.options.runControl.Adaptation`
+    Cart3D adaptation options: :class:`pyCart.options.runControl.Adaptation`
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     
     .. autoclass:: pyCart.options.runControl.Adaptation
@@ -44,6 +44,6 @@
         :members:
         
         
-    Unbound Methods for :mod:`pyCart.options.runControl`
+    Other methods for :mod:`pyCart.options.runControl`
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

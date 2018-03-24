@@ -1,4 +1,30 @@
-"""Interface for FUN3D meshing"""
+"""
+:mod:`pyFun.options.Mesh`: FUN3D Meshing Options
+==================================================
+
+This module provides options for surface and  volume meshes in FUN3D.  This
+consists of three parts, although the second or third option (but never both)
+may be optional depending of the configuration 
+
+    * Provides the name of the FUN3D ``.mapbc`` file using the option 
+      *BCFile*.  This specifies the FUN3D boundary condition for each surface
+      component
+      
+    * Specifies the name of a volume mesh, *MeshFile* (which can also be grown
+      from the surface using AFLR3)
+      
+    * Specifies a surface triangulation either for creating a volume mesh with
+      AFLR3 and/or providing a surface for thrust BC definitions
+  
+The FUN3D version also provides options for *Faux* and *Freeze* (or point to an
+external one) in combination with mesh adaptation.
+
+:See Also:
+    * :mod:`cape.options.Mesh`
+    * :mod:`cape.options.aflr3`
+    * :mod:`pyFun.options.runControl`
+    * :mod:`pyFun.options.Config`
+"""
 
 # Import options-specific utilities
 from util import rc0, odict

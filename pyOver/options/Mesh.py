@@ -1,4 +1,38 @@
-"""Interface for OVERFLOW meshing"""
+"""
+:mod:`pyOver.options.Mesh`: OVERFLOW Meshing Options
+=====================================================
+
+This module provides options for OVERFLOW grid systems.  OVERFLOW grid systems
+have a complex file structure, but the pyOver options are relatively simple.
+First the user specifies either ``dcf``, ``peg5``, or another overall
+interpolation type using :func:`Mesh.get_MeshType`.  The user then specifies a
+home folder for the mesh files.  Finally, the user specifies the names of
+various mesh (and related) files to copy or link (relative to the *ConfigDir*)
+into the case folder.
+
+A typical example JSON section is showed below.
+
+    .. code-block:: javascript
+    
+        "Mesh": {
+            "ConfigDir": "common",
+            "Type": "dcf",
+            "LinkFiles": [
+                "grid.in",
+                "xrays.in",
+                "fomo/grid.ibi",
+                "fomo/panel_weights.dat"
+            ],
+            "CopyFiles": [
+                "fomo/mixsur.fmp"
+            ]
+        }
+
+:See Also:
+    * :mod:`cape.options.Mesh`
+    * :mod:`pyFun.options.runControl`
+    * :mod:`pyFun.options.overnml`
+"""
 
 # Import options-specific utilities
 from util import rc0, odict

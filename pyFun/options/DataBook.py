@@ -1,4 +1,21 @@
-"""Interface for FUN3D data book configuration"""
+"""
+:mod:`pyFun.options.DataBook`: Data book options 
+================================================
+
+This module contains the interface for data book options for pyFun and FUN3D.
+The classes in this module are subclassed as
+    
+    * :class:`pyFun.options.DataBook.DataBook` ->
+      :class:`cape.options.DataBook.DataBook`
+      
+    * :class:`pyFun.options.DataBook.DBTarget` ->
+      :class:`cape.options.DataBook.DBTarget`
+
+The FUN3D-specific options for these classes are almost null, but a few methods
+are modified in order to change default data book component types and the
+columns of data available for each.
+
+"""
 
 
 # Import options-specific utilities

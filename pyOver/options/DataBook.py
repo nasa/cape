@@ -1,4 +1,23 @@
-"""Interface for OVERFLOW data book configuration"""
+"""
+:mod:`pyOver.options.DataBook`: Data book options 
+==================================================
+
+This module contains the interface for data book options for pyOver and 
+OVERFLOW. The classes in this module are subclassed as
+    
+    * :class:`pyOver.options.DataBook.DataBook` ->
+      :class:`cape.options.DataBook.DataBook`
+      
+    * :class:`pyOver.options.DataBook.DBTarget` ->
+      :class:`cape.options.DataBook.DBTarget`
+
+The OVERFLOW-specific options for these classes are limited, but a few methods
+are modified in order to change default data book component types and the
+columns of data available for each.  In particular, may special options for
+``usurp`` or ``mixsur`` are specified, which is needed to extract a surface
+triangulation from an OVERFLOW solution.
+
+"""
 
 
 # Import options-specific utilities
@@ -15,7 +34,7 @@ class DataBook(cape.options.DataBook):
     :Call:
         >>> opts = DataBook(**kw)
     :Outputs:
-        *opts*: :class:`pyOver.options.DataBook
+        *opts*: :class:`pyOver.options.dataBook.DataBook`
     :Versions:
         * 2015-12-29 ``@ddalle``: Subclassed from CAPE
     """

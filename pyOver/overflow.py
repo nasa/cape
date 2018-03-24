@@ -87,21 +87,22 @@ class Overflow(Cntl):
     
     Defaults are read from the file ``$CAPE/settings/pyOver.default.json``.
     
-        >>> oflow = pyOver.Overflow(fname="pyOver.json")
+    :Call:
+        >>> ofl = pyOver.Overflow(fname="pyOver.json")
     :Inputs:
         *fname*: :class:`str`
-            Name of pyFun input file
+            Name of pyOver input file
     :Outputs:
-        *oflow*: :class:`pyFun.fun3d.Fun3d`
+        *ofl*: :class:`pyFun.fun3d.Fun3d`
             Instance of the pyFun control class
     :Data members:
-        *oflow.opts*: :class:`dict`
+        *ofl.opts*: :class:`dict`
             Dictionary of options for this case (directly from *fname*)
-        *oflow.x*: :class:`pyOver.trajectory.Trajectory`
+        *ofl.x*: :class:`pyOver.trajectory.Trajectory`
             Values and definitions for variables in the run matrix
-        *oflow.Namelist*: :class:`pyOver.overNamelist.OverNamelist`
+        *ofl.Namelist*: :class:`pyOver.overNamelist.OverNamelist`
             Interface to ``over.namelist`` OVERFLOW input file
-        *oflow.RootDir*: :class:`str`
+        *ofl.RootDir*: :class:`str`
             Absolute path to the root directory
     :Versions:
         * 2015-10-16 ``@ddalle``: Started
@@ -155,7 +156,7 @@ class Overflow(Cntl):
         """Read the current data book
         
         :Call:
-            >>> oflow.ReadDataBook(comp=None)
+            >>> ofl.ReadDataBook(comp=None)
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control class
@@ -187,7 +188,7 @@ class Overflow(Cntl):
         """Read the OVERFLOW namelist template
         
         :Call:
-            >>> oflow.ReadNamelist(j=0, q=True)
+            >>> ofl.ReadNamelist(j=0, q=True)
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control class
@@ -228,7 +229,7 @@ class Overflow(Cntl):
         The JSON file overrides the value from the namelist file
         
         :Call:
-            >>> val = oflow.GetNamelistVar(sec, key, j=0)
+            >>> val = ofl.GetNamelistVar(sec, key, j=0)
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control class
@@ -268,7 +269,7 @@ class Overflow(Cntl):
         """Get the project root name or OVERFLOW file prefix
         
         :Call:
-            >>> name = oflow.GetPrefix(j=0)
+            >>> name = ofl.GetPrefix(j=0)
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control class
@@ -291,7 +292,7 @@ class Overflow(Cntl):
         of the group folder
         
         :Call:
-            >>> config = oflow.GetConfig(i)
+            >>> config = ofl.GetConfig(i)
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control class
@@ -322,7 +323,7 @@ class Overflow(Cntl):
         """Return absolute path to configuration folder
         
         :Call:
-            >>> fcfg = oflow.GetConfigDir(i)
+            >>> fcfg = ofl.GetConfigDir(i)
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control class
@@ -498,7 +499,7 @@ class Overflow(Cntl):
         """Check if the mesh for case *i* is prepared
         
         :Call:
-            >>> q = oflow.CheckMesh(i)
+            >>> q = ofl.CheckMesh(i)
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Instance of OVERFLOW run control class
@@ -575,7 +576,7 @@ class Overflow(Cntl):
         """Prepare the mesh for case *i* if necessary
         
         :Call:
-            >>> oflow.PrepareMesh(i)
+            >>> ofl.PrepareMesh(i)
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control class
@@ -704,7 +705,7 @@ class Overflow(Cntl):
         """Read a CAPE-style core-hour file from a case
         
         :Call:
-            >>> CPUt = oflow.GetCPUTime(i, running=False)
+            >>> CPUt = ofl.GetCPUTime(i, running=False)
         :Inputs:
             *oflow*: :class:`pyFun.fun3d.Fun3d`
                 OVERFLOW control interface
@@ -793,7 +794,7 @@ class Overflow(Cntl):
         phases.
         
         :Call:
-            >>> oflow.PrepareNamelist(i, nPhase=None)
+            >>> ofl.PrepareNamelist(i, nPhase=None)
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Instance of OVERFLOW control class
@@ -884,13 +885,13 @@ class Overflow(Cntl):
             
     # Function to apply namelist settings to a case
     def ApplyCase(self, i, nPhase=None, **kw):
-        """Apply settings from *oflow.opts* to a set of cases
+        """Apply settings from *ofl.opts* to a set of cases
         
         This rewrites each run namelist file and the :file:`case.json` file in
         the specified directories.  It can also be used to 
         
         :Call:
-            >>> oflow.ApplyCase(i, nPhase=None)
+            >>> ofl.ApplyCase(i, nPhase=None)
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Overflow control interface
@@ -960,7 +961,7 @@ class Overflow(Cntl):
         """Write configuration file
         
         :Call:
-            >>> oflow.WriteConfig(i, fname='Config.xml')
+            >>> ofl.WriteConfig(i, fname='Config.xml')
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Overflow control interface
@@ -1103,6 +1104,7 @@ class Overflow(Cntl):
     # Get surface BC inputs
     def GetSurfBCState(self, key, i, grid=None):
         """Get stagnation pressure and temperature ratios
+        
         :Call:
             >>> p0, T0 = ofl.GetSurfBC(key, i, grid=None)
         :Inputs:
@@ -1377,7 +1379,7 @@ class Overflow(Cntl):
         """Write the PBS script(s) for a given case
         
         :Call:
-            >>> oflow.WritePBS(i, nPhase=None)
+            >>> ofl.WritePBS(i, nPhase=None)
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control class
@@ -1441,7 +1443,7 @@ class Overflow(Cntl):
         the Cart3D solver only in that it calles the correct *case* module.
         
         :Call:
-            >>> pbs = oflow.CaseStartCase()
+            >>> pbs = ofl.CaseStartCase()
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control class
@@ -1458,7 +1460,7 @@ class Overflow(Cntl):
         """Stop one or more cases by writing a ``STOP`` file in each run folder
         
         :Call:
-            >>> oflow.StopCases(n=0, cons=[], I=None, **kw)
+            >>> ofl.StopCases(n=0, cons=[], I=None, **kw)
         :Inputs:
             *n*: ``None`` | {``0``} | positive :class:`int`
                 Iteration at which to stop
@@ -1495,7 +1497,7 @@ class Overflow(Cntl):
         """Archive a single case in the current folder ($PWD)
         
         :Call:
-            >>> oflow.ArchivePWD(phantom=False)
+            >>> ofl.ArchivePWD(phantom=False)
         :Inputs:
             *cntl*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control interface
@@ -1513,7 +1515,7 @@ class Overflow(Cntl):
         """Delete most files in current folder, leaving only a skeleton
         
         :Call:
-            >>> oflow.SkeletonPWD(phantom=False)
+            >>> ofl.SkeletonPWD(phantom=False)
         :Inputs:
             *cntl*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control interface
@@ -1530,7 +1532,7 @@ class Overflow(Cntl):
         """Archive a single case in the current folder ($PWD)
         
         :Call:
-            >>> oflow.CleanPWD(phantom=False)
+            >>> ofl.CleanPWD(phantom=False)
         :Inputs:
             *oflow*: :class:`pyOver.overflow.Overflow`
                 Instance of pyOver control interface

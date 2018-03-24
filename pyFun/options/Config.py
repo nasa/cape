@@ -1,4 +1,41 @@
-"""Interface for configuration control: :mod:`pyCart.options.Config`"""
+"""
+:mod:`pyFun.options.Config`: pyFun configurations options
+==========================================================
+
+This module provides options for defining some aspects of the surface
+configuration for a FUN3D run.  It can point to a surface configuration file
+such as :file:`Config.xml` or :file:`Config.json` that reads an instance of
+:class:`cape.config.Config` or :class:`cape.config.ConfigJSON`, respectively.
+This surface configuration file is useful for grouping individual components
+into families using a format very similar to how they are defined for Cart3D.
+
+The ``"Config"`` section also defines which components are requested by FUN3D
+for iterative force & moment history reporting.  For the moment histories, this
+section also specifies the moment reference points (moment center in FUN3D
+nomenclature) for each component.
+
+This is the section in which the user specifies which components to track
+forces and/or moments on, and in addition it defines a moment reference point
+for each component.
+
+The reference area (``"RefArea"``) and reference length (``"RefLength"``)
+parameters are also defined in this section.  FUN3D does have two separate
+reference lengths, so there is also a ``"RefSpan"`` parameter.
+
+Many parameters are inherited from the :class:`cape.config.Config` class, so
+readers are referred to that module for defining points by name along with
+several other methods.
+
+Like other solvers, the ``"Config"`` section is also used to define the
+coordinates of named points.  These can be specified as point sensors to be
+reported on directly by FUN3D and/or define named points for other sections of
+the JSON file.
+
+:See Also:
+    * :mod:`cape.options.Config`
+    * :mod:`cape.config`
+    * :mod:`pyFun.namelist`
+"""
 
 
 # Import options-specific utilities

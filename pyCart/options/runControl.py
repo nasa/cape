@@ -1,5 +1,5 @@
 """
-:mod:`pyCart.options.runControl.RunControl`: pyCart Run Control Options
+:mod:`pyCart.options.runControl.RunControl`: pyCart run control options
 ========================================================================
 
 Options interface for aspects of running a case of Cart3D.  The settings are
