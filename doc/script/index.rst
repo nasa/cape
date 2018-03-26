@@ -15,6 +15,7 @@ Script Library
         run_flowCart
         run_fun3d
         run_overflow
+        ExpandJSON
         UH3D2Tri
         Tri2Plt
         Tri2Surf
@@ -22,5 +23,6 @@ Script Library
         Step2Crv
         StepTri2Crv
         TriqFM
+        WriteSplitmq
         
     

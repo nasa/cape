@@ -24,7 +24,7 @@ Expand all :file:`adapt??.tar` files and delete the tar balls.
 """
 
 # Modules
-import pyCart.argread
+import cape.argread
 import pyCart.manage
 # System interface.
 import sys
@@ -33,11 +33,12 @@ import sys
 # Check for running as a script.
 if __name__ == "__main__":
     # Process inputs.
-    a, kw = pyCart.argread.readkeys(sys.argv)
+    a, kw = cape.argread.readkeys(sys.argv)
     # Check for help flag.
     if kw.get('h') or kw.get('help'):
         # Display help message and exit.
-        print(__doc__)
+        import cape.text
+        print(cape.text.markdown(__doc__))
         sys.exit()
     # Do the plotting.
     pyCart.manage.ExpandAdapt()

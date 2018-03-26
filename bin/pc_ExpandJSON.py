@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-"""Expand one or more JSON files
+"""
+Expand one or more JSON files: ``pc_ExpandJSON.py``
+===================================================
 
 This function performs two tasks:
     
@@ -46,7 +48,7 @@ import sys, shutil
 
 
 # Interpreter function
-def main(*a, **kw):
+def ExpandJSON(*a, **kw):
     """Expand one or more JSON files
     
     This function performs two tasks:
@@ -110,8 +112,9 @@ if __name__ == "__main__":
     # Check for help flag.
     if 'h' in kw or 'help' in kw:
         # Print help message and exit.
-        print(__doc__)
+        import cape.text
+        print(cape.text.markdown(__doc__))
         sys.exit()
     # Apply to inputs
-    main(*a, **kw)
+    ExpandJSON(*a, **kw)
 

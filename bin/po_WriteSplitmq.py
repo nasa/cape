@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-Write SPLITMQ Input File Using OVERFLOW Namelist
-================================================
+Write SPLITMQ input file using OVERFLOW namelist
+=================================================
 
 Create a ``splitmq`` input file for extracting the L=1 surface from all walls
 using an OVERFLOW namelist as grid information about surface grids.
@@ -96,7 +96,8 @@ if __name__ == "__main__":
     (a, kw) = argr.readkeys(sys.argv)
     # Check for a help option.
     if kw.get('h',False) or kw.get('help',False):
-        print __doc__
+        import cape.text
+        print(cape.text.markdown(__doc__))
         sys.exit()
     # Run the main function.
     Nml2Splitmq(*a, **kw)

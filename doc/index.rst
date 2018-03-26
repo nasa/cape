@@ -175,7 +175,7 @@ defined.  In general the required files are the following.
     **Testing**
     
     .. toctree::
-        :maxdepth: 3
+        :maxdepth: 2
 
         test/index
         test/results

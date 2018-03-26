@@ -41,7 +41,7 @@ pyCart master JSON file.
 # Import the full module
 import pyCart
 # Input parsing
-from pyCart.argread import readkeys
+from cape.argread import readkeys
 # File control
 import os, glob
 # Numerics
@@ -121,7 +121,8 @@ if __name__ == "__main__":
     
     # Check for a help flag.
     if kw.get('h') or kw.get('help'):
-        print(__doc__)
+        import cape.text
+        print(cape.text.markdown(__doc__))
         pyCart.os.sys.exit()
         
     # Get file name.

@@ -126,7 +126,8 @@ if __name__ == "__main__":
     (a, kw) = argr.readkeys(sys.argv)
     # Check for a help option.
     if kw.get('h',False) or kw.get('help',False):
-        print __doc__
+        import cape.text
+        print(cape.text.markdown(__doc__))
         sys.exit()
     # Run the main function.
     Msh2Ugrid(*a, **kw)

@@ -13,4 +13,5 @@ command-line interface is not really a practical tool.
 .. toctree::
 
     cli
+    subset
     

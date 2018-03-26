@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Renumber MIXSUR Input Subsets to Account for No-Wall Grids
+Renumber MIXSUR input subsets to account for no-wall grids
 ==========================================================
 
 This script generates a new MIXSUR input file with renumbered grids such that

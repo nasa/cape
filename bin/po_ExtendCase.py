@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-Extend a pyOver Job and Resubmit
-================================
+Extend a pyOver job and resubmit: ``po_ExtendCase.py``
+========================================================
 
 This function increases the maximum number of iterations and restarts the case
 to run until the new iteration number is reached.  The function does nothing
@@ -44,7 +44,8 @@ if __name__ == "__main__":
     a, kw = cape.argread.readkeys(pyOver.case.os.sys.argv)
     # Check for help flag
     if kw.get('h') or kw.get('help'):
-        print(__doc__)
+        import cape.text
+        print(cape.text.markdown(__doc__))
         pyOver.case.os.sys.exit()
     
     # Get number of phases
