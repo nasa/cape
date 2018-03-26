@@ -1,12 +1,25 @@
 """
-Sectional Loads Module: :mod:`pyCart.lineLoad`
+:mod:`pyCart.lineLoad`: Sectional loads module
 ==============================================
 
-This module contains functions for reading and processing sectional loads.  It
-is a submodule of :mod:`pyCart.dataBook`.
+This module contains functions for reading and processing sectional loads. It
+is a version of :mod:`cape.lineLoad` that is closely tied to
+:mod:`pyCart.dataBook`.
 
-:Versions:
-    * 2015-09-15 ``@ddalle``: Started
+It provides the primary class :class:`DBLineLoad`, which
+is a subclass of :class:`cape.dataBook.DBBase`.  This class is an interface to
+all line load data for a specific surface component.
+
+For reading the sectional load for a single solution on one component (which
+includes multiple coefficients), there is another class :class:`CaseLL`.
+
+Finally, reading seam curves from individual cases utilizes the class
+:class:`CaseSeam`.
+
+:See also:
+    * :mod:`cape.lineLoad`
+    * :mod:`cape.dataBook`
+    * :mod:`pyCart.dataBook`
 """
 
 # File interface

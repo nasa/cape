@@ -1,4 +1,20 @@
-"""Interface for automated report generation: :mod:`pyFun.options.Report`"""
+"""
+:mod:`pyFun.options.Report`: pyFun Report Options
+===================================================
+
+This module provides options for creating automated reports for pyFun results.
+Although there are some subfigure types that are unique to pyFun, all of the
+methods in the :class:`pyFun.options.Report.Report` class are inherited from
+:mod:`cape` version.
+
+See the :ref:`JSON Report <cape-json-Report>` section for the list of available
+figures and subfigures (along with other options).
+
+:See Also:
+    * :mod:`cape.options.Report`
+    * :mod:`cape.report`
+    * :mod:`pyFun.report`
+"""
 
 
 # Import options-specific utilities

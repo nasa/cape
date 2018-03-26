@@ -1,24 +1,28 @@
 """
-Utilities for pyFun Options module: :mod:`pyFun.options.util`
-=============================================================
+:mod:`pyOver.options.util`: Utilities for pyOver options module
+===============================================================
 
 This module provides tools to read, access, modify, and write settings for
-:mod:`pyFun`.  The class is based off of the built-int :class:`dict` class, so
-its default behavior, such as ``opts['InputCntl']`` or 
-``opts.get('InputCntl')`` are also present.  In addition, many convenience
-methods, such as ``opts.set_it_fc(n)``, which sets the number of
-:file:`flowCart` iterations,  are provided.
+:mod:`pyOver`. It is based off of the :mod:`cape.options.util` module and
+provides a special class :class:`cape.options.odict` that is subclassed from
+the Python built-in :class:`dict`. Behavior, such as ``opts['OverNamelist']``
+or ``opts.get('OverNamelist')`` are also present. In addition, many convenience
+methods such as ``opts.get_OverNamelist()`` are provided.
 
-In addition, this module controls default values of each pyCart
-parameter in a two-step process.  The precedence used to determine what the
-value of a given parameter should be is below.
+In addition, this module controls default values of each pyOver parameter in a
+three-step process.  The precedence used to determine what the value of a given
+parameter should be is below.
 
-    *. Values directly specified in the input file, :file:`pyCart.json`
+    #. Values directly specified in the input file, :file:`pyOver.json`
     
-    *. Values specified in the default control file,
-       :file:`$PYFUN/settings/pyFun.default.json`
+    #. Values specified in the default control file,
+       :file:`$PYOVER/settings/pyOver.default.json`
     
-    *. Hard-coded defaults from this module
+    #. Hard-coded defaults from this module
+    
+:See Also:
+    * :mod:`cape.options.util`
+    * :mod:`pyOver.options`
 """
 
 # Import CAPE options utilities

@@ -1,9 +1,51 @@
 """
-Cart3D run case list module: :mod:`pyCart.trajectory`
-=====================================================
+:mod:`pyFun.trajectory`: FUN3D run matrix module 
+==================================================
 
 This module handles classes and methods that are specific to the list of run
-cases (i.e., the "trajectory").
+cases (i.e., the "trajectory").  It is defined in the ``"Trajectory"`` section
+of the master JSON file (e.g. :file:`pyFun.json`), and is usually read from a
+modified comma-separated or space-separated text file.
+
+The primary FUN3D state variables are Mach number, angle of attack, and
+sidelsip.  To this it is common practice to add a ``"config"`` variable (which
+sets the name of the group folder) and a ``"Label"`` which can be used to give
+an extension to the name of a case.  A run matrix using only these variables
+could be defined as follows.
+
+    .. code-block:: javascript
+    
+        "Trajectory": {
+            "Keys": ["mach", "alpha", "beta", "q", "T", "config", "Label"],
+            "File": "inputs/matrix.csv"
+        }
+        
+Then the matrix file :file:`inputs/matrix.csv` could have contents such as the
+following.
+
+    .. code-block:: none
+    
+        # mach, alpha, beta, q, T, config, Label 
+        0.8, 0.0, 0.0, 480.00, 425.7, ascent,
+        1.2, 2.0, 0.0, 550.00, 425.7, ascent, a
+
+Then the following example API commands could be used to show the case names.
+In this case *fun3d* is the interface to a FUN3D run configuration read from
+a JSON file, and *fun3d.x* is the run matrix.
+
+    .. code-block:: pycon
+    
+        >>> import pyFun
+        >>> fun3d = pyFun.Fun3d("pyFun.json")
+        >>> fun3d.x.GetFullFolderNames()
+        ['ascent/m0.8a0.0b0.0', 'ascent/m1.2a2.0b0.0_maxq']
+        
+For this module, there are no methods that are particular to FUN3D.  All
+functionality is inherited from :class:`cape.trajectory.Trajectory`.
+
+:See Also:
+    * :mod:`cape.trajectory`
+    * :mod:`pyFun.cart3d`
 """
 
 # Import the cape module.

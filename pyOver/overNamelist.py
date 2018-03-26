@@ -1,9 +1,53 @@
 """
-Module to interface with "over.namelist" files: :mod:`pyOver.namelist`
-======================================================================
+:mod:`pyOver.overNamelist`: OVERFLOW namelist module 
+=================================================================
 
-This is a module built off of the :mod:`cape.fileCntl` module customized for
-manipulating OVERFLOW namelists.
+This is a module built off of the :mod:`cape.fileCntl.FileCntl` module
+customized for manipulating Fortran namelists and customized for the OVERFLOW
+input file ``overflow.inp``. Such files are split into sections which are
+called "name lists." Each name list has syntax similar to the following.
+
+    .. code-block:: none
+    
+        $FLOINP
+            FSMACH = 4.0,
+            ALPHA = 1.0,
+            BETA = 0.0,
+            $END
+    
+The main feature of this module is methods to set specific properties of a
+namelist file, for example the Mach number or CFL number.
+
+The difference between this module and :class:`cape.namelist.Namelist` is that
+this module can support multiple namelists with the same title.  This is
+particularly important for Overflow, which has ``GRDNAM``, ``BCINP``, and other
+sections defined for each structured grid.  These modules should be combined as
+the differing namelist syntaxes are actually part of one file convention.
+
+This function provides a class :class:`pyOver.overNamelist.OverNamelist` that
+can both read and set values in the namelist. The key functions are
+
+    * :func:`OverNamelist.GetKeyFromGroupName`
+    * :func:`OverNamelist.GetKeyFromGroupIndex`
+    * :func:`OverNamelist.SetKeyInGroupName`
+    * :func:`OverNamelist.SetKeyInGroupIndex`
+    
+For rules on converting Fortran namelist text to and from Python syntax, see
+:mod:`cape.namelist`.
+
+In most cases, the :class:`OverNamelist` will try to interpret invalid values
+for any namelist entry as a string with missing quotes. The reason for this is
+that users often create template namelist with entries like ``_mach_`` that can
+be safely replaced with appropriate values using ``sed`` commands or something
+similar.
+
+See also:
+
+    * :mod:`cape.namelist2`
+    * :mod:`pyOver.overflow`
+    * :func:`pyOver.overflow.Overflow.PrepareNamelist`
+    * :func:`pyOver.overflow.Overflow.ReadNamelist`
+
 """
 
 # Numerics
@@ -200,7 +244,6 @@ def mini(a, b):
 class OverNamelist(cape.namelist2.Namelist2):
     """
     File control class for :file:`over.namelist`
-    ============================================
             
     This class is derived from the :class:`pyCart.fileCntl.FileCntl` class, so
     all methods applicable to that class can also be used for instances of this
@@ -286,7 +329,7 @@ class OverNamelist(cape.namelist2.Namelist2):
         :Call:
             >>> nml.WriteSplitmqI(fname="splitmq.i", **kw)
         :Inputs:
-            *nml*: :clas:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`pyOver.overNamelist.OverNamelist`
                 Interface to OVERFLOW input namelist
             *fname*: {``"splitmq.i"``} | :class:`str`
                 Name of ``splitmq`` input file to write

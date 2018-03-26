@@ -1,12 +1,53 @@
 """
-Data Book Module: :mod:`pyOver.dataBook`
-========================================
+:mod:`pyOver.dataBook`: pyOver data book module 
+===============================================
 
 This module contains functions for reading and processing forces, moments, and
-other statistics from cases in a trajectory.
+other statistics from cases in a trajectory.  Data books are usually created by
+using the :func:`pyOver.overflow.Overflow.ReadDataBook` function.
 
-:Versions:
-    * 2016-02-02 ``@ddalle``: Started
+    .. code-block:: python
+    
+        # Read OVERFLOW control instance
+        ofl = pyOver.Overflow("pyOver.json")
+        # Read the data book
+        ofl.ReadDataBook()
+        # Get a handle
+        DB = ofl.DataBook
+        
+        # Read a line load component
+        DB.ReadLineLoad("CORE_LL")
+        DBL = DB.LineLoads["CORE_LL"]
+        # Read a target
+        DB.ReadTarget("t97")
+        DBT = DB.Targets["t97"]
+        
+Data books can be created without an overall control structure, but it requires
+creating a run matrix object using :class:`pyOver.trajectory.Trajectory`, so it
+is a more involved process.
+
+Data book modules are also invoked during update and reporting command-line
+calls.
+
+    .. code-block:: console
+    
+        $ pyfun --aero
+        $ pyfun --ll
+        $ pyfun --triqfm
+        $ pyfun --report
+
+The available components mirror those described on the template data book
+modules, :mod:`cape.dataBook`, :mod:`cape.lineLoad`, and
+:mod:`cape.pointSensor`.  However, some data book types may not be implemented
+for all CFD solvers.
+
+:See Also:
+    * :mod:`cape.dataBook`
+    * :mod:`cape.lineLoad`
+    * :mod:`cape.pointSensor`
+    * :mod:`pyOver.lineLoad`
+    * :mod:`cape.options.DataBook`
+    * :mod:`pyOver.options.DataBook`
 """
 
 # File interface

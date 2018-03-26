@@ -48,8 +48,7 @@ bookkeeping methods and plotting methods.  The main user-facing methods are
 example :func:`cape.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
 :func:`cape.report.Report.SubfigPlotL2` for ``"PlotL2"``.
 
-See also:
-    
+:See also:
     * :mod:`cape.options.Report`
     * :class:`cape.dataBook.DBComp`
     * :class:`cape.dataBook.CaseFM`

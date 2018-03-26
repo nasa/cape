@@ -81,9 +81,9 @@ class Options(cape.options.Options):
         # Add extra folders to path.
         self.AddPythonPath()
     
-    # ============
-    # Initializers
-    # ============
+   # ============
+   # Initializers
+   # ============
    # <
     
     # Initialization and confirmation for PBS options
@@ -189,11 +189,10 @@ class Options(cape.options.Options):
             self['Config'] = Config(**tmp)
    # >
     
-    # ==============
-    # Global Options
-    # ==============
+   # ==============
+   # Global Options
+   # ==============
    # <
-    
     # Get the namelist file name
     def get_OverNamelist(self, j=None):
         """Return the name of the master :file:`over.namelist` file
@@ -247,9 +246,9 @@ class Options(cape.options.Options):
         self['Trajectory']['GroupMesh'] = qGM
    # >
     
-    # ===================
-    # Overall run control
-    # ===================
+   # ===================
+   # Overall run control
+   # ===================
    # <
     # Get project root name
     def get_Prefix(self, j=None):
@@ -288,9 +287,9 @@ class Options(cape.options.Options):
         eval('get_'+k).__doc__ = getattr(RunControl,'get_'+k).__doc__
    # >
    
-    # =================
-    # Namelist settings
-    # =================
+   # =================
+   # Namelist settings
+   # =================
    # <
     
     # GLOBAL section
@@ -318,12 +317,11 @@ class Options(cape.options.Options):
         return self['Overflow'].select_namelist(i)
     select_namelist.__doc__ = OverNml.select_namelist.__doc__
    # >
-   
     
-    # ==================== 
-    # Grid system settings
-    # ====================
-   #<
+   # ==================== 
+   # Grid system settings
+   # ====================
+   # <
     
     # Grid system dictionary
     def get_GridByName(self, grdnam, i=None):
@@ -349,11 +347,11 @@ class Options(cape.options.Options):
     for k in ['ALL', 'GridByName', 'grid_var', 'GridKey']:
         eval('get_'+k).__doc__ = getattr(GridSystemNml,'get_'+k).__doc__
     
-   #>
+   # >
    
-    # =============
-    # Mesh settings
-    # =============
+   # =============
+   # Mesh settings
+   # =============
    # <
     
     # File names
@@ -387,11 +385,10 @@ class Options(cape.options.Options):
         eval('get_'+k).__doc__ = getattr(Mesh,'get_'+k).__doc__
    # >
     
-    
-    # =============
-    # Configuration
-    # =============
-   #<
+   # =============
+   # Configuration
+   # =============
+   # <
         
     # Copy over the documentation.
     for k in []:
@@ -400,16 +397,15 @@ class Options(cape.options.Options):
         eval('set_'+k).__doc__ = getattr(Config,'set_'+k).__doc__
    # >
     
-    # ============
-    # PBS settings
-    # ============
+   # ============
+   # PBS settings
+   # ============
    # <
    # >
     
-    
-    # =================
-    # Folder management
-    # =================
+   # =================
+   # Folder management
+   # =================
    # <
         
         
@@ -419,11 +415,10 @@ class Options(cape.options.Options):
     #    eval('get_'+k).__doc__ = getattr(Management,'get_'+k).__doc__
     #    eval('set_'+k).__doc__ = getattr(Management,'set_'+k).__doc__
    # >
-   
     
-    # =============
-    # Configuration
-    # =============
+   # =============
+   # Configuration
+   # =============
    # <
         
     
@@ -436,13 +431,10 @@ class Options(cape.options.Options):
     #    eval('set_'+k+'s').__doc__ = getattr(Config,'set_'+k+'s').__doc__
     #    eval('add_'+k).__doc__ = getattr(Config,'add_'+k).__doc__
    # >
-   
     
-    
-    
-    # =========
-    # Data book
-    # =========
+   # =========
+   # Data book
+   # =========
    # <
    
     # Input file for ``mixsur``
@@ -505,11 +497,10 @@ class Options(cape.options.Options):
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(DataBook,'get_'+k).__doc__
    # >
-   
     
-    # =======
-    # Reports
-    # =======
+   # =======
+   # Reports
+   # =======
    # <
     
     # Copy over the documentation

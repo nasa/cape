@@ -1,9 +1,47 @@
 """
-Interface to OVERFLOW namelist grid system options
-==================================================
+:mod:`pyOver.options.gridSystem`: OVERFLOW grid namelist options
+==================================================================
 
-This module provides a class to mirror the Fortran namelist capability.  For
-now, nonunique section names are not allowed.
+This module provides a class to alter namelist settings for each grid in an
+Overflow namelist.  This modifies the repeated sections (such as ``GRDNAM``,
+``NITERS``, ``METPRM``, ``TIMACU``, etc.) in the ``overflow.inp`` input file.
+
+Users can use the ``"ALL"`` dictionary of settings to apply settings to every
+grid in the system.  Any other dictionary in the top level applies to a grid by
+the name of that key.  An example follows.
+
+    .. code-block:: javascript
+        
+        "Grids": {
+            "ALL": {
+                "TIMACU": {
+                    "ITIME": 3,
+                    "CFLMIN": [0.01, 0.025, 0.05, 0.05],
+                    "CFLMAX": [0.25, 0.50,  1.00, 1.00]
+                }
+            },
+            "Fuselage": {
+                "TIMACU": {
+                    "CFLMAX": [0.2, 0.4, 0.9, 1.0]
+                }
+            }
+        }
+
+This example sets the CFL number for each grid (and also sets the *ITIME*
+setting to 3).  Then it finds the grid called ``"Fuselage"`` and changes the
+max CFL number to slightly lower values for each phase.  The :class:`list`
+input tells pyOver to set the max CFL number to ``0.25`` for ``run.01.inp``,
+``0.50`` for ``run.02.inp``, etc.  If there are more phases than entries in the
+:class:`list`, the last value is repeated as necessary.
+
+For other namelist settings that do not refer to grids, see
+:class:`pyOver.options.overnml.OverNml`.
+
+:See also:
+    * :mod:`pyOver.options.overnml`
+    * :mod:`pyOver.overNamelist`
+    * :mod:`pyOver.overflow`
+    * :mod:`cape.namelist2`
 """
 
 # Ipmort options-specific utilities

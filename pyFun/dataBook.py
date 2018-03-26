@@ -1,13 +1,54 @@
 """
-Data Book Module: :mod:`pyFun.dataBook`
-=======================================
+:mod:`pyFun.dataBook`: pyFun data book module 
+===============================================
 
 This module contains functions for reading and processing forces, moments, and
-other statistics from cases in a trajectory.
+other statistics from cases in a trajectory.  Data books are usually created by
+using the :func:`pyFun.fun3d.Fun3d.ReadDataBook` function.
 
-:Versions:
-    * 2014-12-20 ``@ddalle``: Started
-    * 2015-01-01 ``@ddalle``: First version
+    .. code-block:: python
+    
+        # Read FUN3D control instance
+        fun3d = pyFun.Fun3d("pyFun.json")
+        # Read the data book
+        fun3d.ReadDataBook()
+        # Get a handle
+        DB = fun3d.DataBook
+        
+        # Read a line load component
+        DB.ReadLineLoad("CORE_LL")
+        DBL = DB.LineLoads["CORE_LL"]
+        # Read a target
+        DB.ReadTarget("t97")
+        DBT = DB.Targets["t97"]
+        
+Data books can be created without an overall control structure, but it requires
+creating a run matrix object using :class:`pyFun.trajectory.Trajectory`, so it
+is a more involved process.
+
+Data book modules are also invoked during update and reporting command-line
+calls.
+
+    .. code-block:: console
+    
+        $ pyfun --aero
+        $ pyfun --ll
+        $ pyfun --pt
+        $ pyfun --triqfm
+        $ pyfun --report
+
+The available components mirror those described on the template data book
+modules, :mod:`cape.dataBook`, :mod:`cape.lineLoad`, and
+:mod:`cape.pointSensor`.  However, some data book types may not be implemented
+for all CFD solvers.
+
+:See Also:
+    * :mod:`cape.dataBook`
+    * :mod:`cape.lineLoad`
+    * :mod:`cape.pointSensor`
+    * :mod:`pyFun.lineLoad`
+    * :mod:`cape.options.DataBook`
+    * :mod:`pyFun.options.DataBook`
 """
 
 # File interface

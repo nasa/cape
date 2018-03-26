@@ -1,24 +1,28 @@
 """
-Utilities for pyFun Options module: :mod:`pyFun.options.util`
-=============================================================
+:mod:`pyFun.options.util`: Utilities for pyFun options module
+===============================================================
 
 This module provides tools to read, access, modify, and write settings for
-:mod:`pyFun`.  The class is based off of the built-int :class:`dict` class, so
-its default behavior, such as ``opts['InputCntl']`` or 
-``opts.get('InputCntl')`` are also present.  In addition, many convenience
-methods, such as ``opts.set_it_fc(n)``, which sets the number of
-:file:`flowCart` iterations,  are provided.
+:mod:`pyFun`.  It is based off of the :mod:`cape.options.util` module and
+provides a special class :class:`cape.options.odict` that is subclassed from
+the Python built-in :class:`dict`.  Behavior, such as ``opts['Namelist']`` or 
+``opts.get('Namelist')`` are also present.  In addition, many convenience
+methods such as ``opts.get_Namelist()`` are provided.
 
-In addition, this module controls default values of each pyCart
-parameter in a two-step process.  The precedence used to determine what the
-value of a given parameter should be is below.
+In addition, this module controls default values of each pyFun parameter in a
+three-step process.  The precedence used to determine what the value of a given
+parameter should be is below.
 
-    *. Values directly specified in the input file, :file:`pyCart.json`
+    #. Values directly specified in the input file, :file:`pyFun.json`
     
-    *. Values specified in the default control file,
+    #. Values specified in the default control file,
        :file:`$PYFUN/settings/pyFun.default.json`
     
-    *. Hard-coded defaults from this module
+    #. Hard-coded defaults from this module
+    
+:See Also:
+    * :mod:`cape.options.util`
+    * :mod:`pyFun.options`
 """
 
 # Import CAPE options utilities

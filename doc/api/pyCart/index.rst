@@ -22,5 +22,7 @@ The :mod:`pyCart` module
     aeroCsh
     preSpecCntl
     dataBook
+    lineLoad
     queue
-
+    report
+    tecplot

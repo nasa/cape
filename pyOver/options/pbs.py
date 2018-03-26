@@ -1,4 +1,15 @@
-"""Interface for PBS script options: :mod:`pyOver.options.pbs`"""
+"""
+:mod:`pyOver.options.pbs`: pyOver PBS Job Options
+=================================================
+
+This module provides options for PBS jobs in pyOver.  It is based on the
+:mod:`cape.options.pbs` module with no modifications.
+
+:See Also:
+    * :mod:`cape.options.pbs`
+    * :mod:`cape.options`
+    * :mod:`pyOver.options`
+"""
 
 
 # Import options-specific utilities

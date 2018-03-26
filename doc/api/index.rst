@@ -1,7 +1,7 @@
 .. Documentation for the various Python modules
 
 ****************************************************
-Introduction to pyCart Application Program Interface
+Introduction to CAPE Application Program Interface
 ****************************************************
 
 The various methods used by pyCart, pyFun, and pyOver are based on a set of

@@ -1,5 +1,5 @@
 """
-:mod:`cape.namelist`: Fortran namelists module 
+:mod:`pyFun.namelist`: Fortran namelists module 
 ================================================
 
 This is a module built off of the :mod:`cape.fileCntl.FileCntl` module

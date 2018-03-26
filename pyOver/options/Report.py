@@ -1,4 +1,20 @@
-"""Interface for automated report generation: :mod:`pyOver.options.Report`"""
+"""
+:mod:`pyOver.options.Report`: pyOver Report Options
+===================================================
+
+This module provides options for creating automated reports for pyOver results.
+Although there are some subfigure types that are unique to pyOver, all of the
+methods in the :class:`pyOver.options.Report.Report` class are inherited from
+:mod:`cape` version.
+
+See the :ref:`JSON Report <cape-json-Report>` section . for the list of
+available figures and subfigures (along with other options).
+
+:See Also:
+    * :mod:`cape.options.Report`
+    * :mod:`cape.report`
+    * :mod:`pyOver.report`
+"""
 
 
 # Import options-specific utilities

@@ -1,5 +1,5 @@
 """
-:mod:`pyOver.options.Mesh`: OVERFLOW Meshing Options
+:mod:`pyOver.options.Mesh`: OVERFLOW meshing options
 =====================================================
 
 This module provides options for OVERFLOW grid systems.  OVERFLOW grid systems

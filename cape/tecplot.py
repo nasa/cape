@@ -2,9 +2,24 @@
 :mod:`cape.tecplot`: Interface to Tecplot scripts 
 ======================================================
 
-This is a module built off of the :mod:`pyCart.fileCntl` module customized for
+This is a module built off of the :mod:`cape.fileCntl` module customized for
 manipulating Tecplot layout files and macros.
 
+It allows users to edit quantities of any layout command in addition to
+declaring and adding layout variables.  In addition, the :func:`ExportLayout`
+function provides a utility to open a layout using Tecplot in batch mode to
+export an image.
+
+The class provides two classes, the first of which is the generic version
+typically used for layout files.  The second class has a few extra methods for
+handling Tecplot macros specifically.
+
+    * :class:`cape.tecplot.Tecsript`
+    * :class:`cape.tecplot.TecMacro`
+
+:See also:
+    * :mod:`cape.fileCntl`
+    * :mod:`cape.report`
 """
 
 # Numerics

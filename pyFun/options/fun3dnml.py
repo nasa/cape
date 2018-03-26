@@ -1,9 +1,72 @@
 """
-Interface to FUN3D namelist options
-===================================
+:mod:`pyFun.options.fun3dnml`: FUN3D namelist options
+=========================================================
 
-This module provides a class to mirror the Fortran namelist capability.  For
-now, nonunique section names are not allowed.
+This module provides a class to interpret JSON options that are converted to
+Fortran namelist format for FUN3D.  The
+module provides a class, :class:`pyFun.options.fun3dnml.Fun3DNml`, which
+interprets the settings of the ``"Fun3D"`` section of the master JSON file.
+These settings are then applied to the main OVERFLOW input file, the
+``fun3d.nml`` namelist.
+
+An example JSON setting is shown below.
+
+    .. code-block:: javascript
+    
+        "Fun3D": {
+            "nonlinear_solver_parameters": {
+                "schedule_cfl": [[1.0, 5.0], [5.0, 20.0], [20.0, 20.0]],
+                "time_accuracy": ["steady", "steady", "2ndorder"],
+                "time_step_nondim": 2.0,
+                "subiterations": 5
+            },
+            "boundary_output_variables": {
+                "boundary_list": "7-52",
+                "turres1": true,
+                "p_tavg": [false, false, true]
+            }
+        }
+        
+This will cause the following settings to be applied to ``fun3d.00.nml``.
+
+    .. code-block:: none
+    
+        &nonlinear_solver_parameters
+            schedule_cfl = 1.0 5.0
+            time_accuracy = 'steady'
+            time_step_nondim = 2.0
+            subiterations = 5
+        /
+        &boundary_output_variables
+            boundary_list = '7-52'
+            turres1 = .true.
+            p_tavg = .false.
+        /
+        
+The edits to ``fun3d.02.nml`` are from the third entries of each list:
+
+    .. code-block:: none
+    
+        &nonlinear_solver_parameters
+            schedule_cfl = 20.0 20.0
+            time_accuracy = '2ndorder'
+            time_step_nondim = 2.0
+            subiterations = 5
+        /
+        &boundary_output_variables
+            boundary_list = '7-52'
+            turres1 = .true.
+            p_tavg = .true.
+        /
+            
+Each setting and section in the ``"Fun3D"`` section may be either present in
+the template namelist or missing.  It will be either edited or added as
+appropriate, even if the specified section does not exist.
+
+:See also:
+    * :mod:`pyfun.namelist`
+    * :mod:`pyfun.fun3d`
+    * :mod:`cape.namelist`
 """
 
 # Ipmort options-specific utilities

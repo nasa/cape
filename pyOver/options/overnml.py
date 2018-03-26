@@ -1,9 +1,22 @@
 """
-Interface to OVERFLOW namelist options
-======================================
+:mod:`pyOver.options.overnml`: OVERFLOW namelist options
+=========================================================
 
-This module provides a class to mirror the Fortran namelist capability.  For
-now, nonunique section names are not allowed.
+This module provides a class to mirror the Fortran namelist capability.  The
+module provides a class, :class:`pyOver.options.overnml.OverNml`, which
+interprets the settings of the ``"Overflow"`` section of the master JSON file.
+These settings are then applied to the main OVERFLOW input file, the
+``overflow.inp`` namelist.
+
+At this time, nonunique section names are not allowed.  To modify parameters in
+repeated sections, use the options in the ``"Grids"`` section using
+:class:`pyOver.options.gridSystem.GridSystem`.
+
+:See also:
+    * :mod:`pyOver.options.gridSystem`
+    * :mod:`pyOver.overNamelist`
+    * :mod:`pyOver.overflow`
+    * :mod:`cape.namelist2`
 """
 
 # Ipmort options-specific utilities

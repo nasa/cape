@@ -1,9 +1,27 @@
 """
-Module to interface with Tecplot scripts: :mod:`pyOver.tecplot`
-===============================================================
+:mod:`pyOver.tecplot`: Interface to OVERFLOW Tecplot scripts 
+============================================================
 
-This is a module built off of the :mod:`pyOver.fileCntl` module customized for
-manipulating Tecplot layout files and macros.
+This is a module built off of the :mod:`cape.fileCntl` module customized for
+manipulating Tecplot layout files and macros.  The OVERFLOW version of this
+module is based off of the generic version :mod:`cape.tecplot` with minimal
+modifications.
+
+The module allows users to edit quantities of any layout command in addition to
+declaring and adding layout variables. In addition, the :func:`ExportLayout`
+function provides a utility to open a layout using Tecplot in batch mode to
+export an image.
+
+The class provides two classes, the first of which is the generic version
+typically used for layout files.  The second class has a few extra methods for
+handling Tecplot macros specifically.
+
+    * :class:`pyOver.tecplot.Tecsript`
+    * :class:`pyOver.tecplot.TecMacro`
+
+:See also:
+    * :mod:`cape.fileCntl`
+    * :mod:`cape.report`
 """
 
 # Import the base file control class.

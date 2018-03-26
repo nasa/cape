@@ -14,5 +14,10 @@ The :mod:`pyFun` module
     fun3d
     options/index
     case
+    namelist
+    trajectory
+    dataBook
+    lineLoad
     queue
-
+    report
+    tecplot

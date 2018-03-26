@@ -1,16 +1,87 @@
 """
-Module to interface with "input.cntl" files: :mod:`pyCart.inputCntl`
-====================================================================
+:mod:`cape.namelist`: FUN3D namelist module 
+==============================================
 
-This is a module built off of the :mod:`pyCart.fileCntl` module customized for
-manipulating :file:`input.cntl` files.  Such files are split into section by lines of
-the format
+This is a module built off of the :mod:`cape.namelist` module
+customized for manipulating FUN3D's namelist files.  Such files are split into
+sections which are called "name lists."  Each name list has syntax similar to
+the following.
 
-    ``$__Post_Processing``
+    .. code-block:: none
+    
+        &project
+            project_rootname = "pyfun"
+            case_title = "Test case"
+        /
     
 and this module is designed to recognize such sections.  The main feature of
-this module is methods to set specific properties of the :file:`input.cntl` 
-file, for example the Mach number or CFL number.
+this module is methods to set specific properties of a namelist file, for
+example the Mach number or CFL number.
+
+Namelists are the primary FUN3D input file, and one is written for each phase
+of a FUN3D case.  The namelist files prepared using this module are written to
+``fun3d.00.nml``, ``fun3d.01.nml``, etc.  These must be linked to a hard-coded
+file name ``fun3d.nml`` as appropriate for the currently running phase.
+
+This function provides a class :class:`cape.namelist.Namelist` that can both
+read and set values in the namelist.  The key functions are
+
+    * :func:`Namelist.SetVar`
+    * :func:`Namelist.GetVar`
+    
+The conversion from namelist text to Python is handled by
+:func:`Namelist.ConvertToText`, and the reverse is handled by
+:func:`Namelist.ConvertToVal`.  Conversions cannot quite be performed just by
+the Python functions :func:`print` and :func:`eval` because delimiters are not
+used in the same fashion.  Some of the conversions are tabulated below.
+
+    +----------------------+------------------------+
+    | Namelist             | Python                 |
+    +======================+========================+
+    | ``val = "text"``     | ``val = "text"``       |
+    +----------------------+------------------------+
+    | ``val = 'text'``     | ``val = 'text'``       |
+    +----------------------+------------------------+
+    | ``val = 3``          | ``val = 3``            |
+    +----------------------+------------------------+
+    | ``val = 3.1``        | ``val = 3.1``          |
+    +----------------------+------------------------+
+    | ``val = .false.``    | ``val = False``        |
+    +----------------------+------------------------+
+    | ``val = .true.``     | ``val = True``         |
+    +----------------------+------------------------+
+    | ``val = .f.``        | ``val = False``        |
+    +----------------------+------------------------+
+    | ``val = .t.``        | ``val = True``         |
+    +----------------------+------------------------+
+    | ``val = 10.0 20.0``  | ``val = [10.0, 20.0]`` |
+    +----------------------+------------------------+
+    | ``val = 1, 100``     | ``val = [1, 100]``     |
+    +----------------------+------------------------+
+    | ``val(1) = 1.2``     | ``val = [1.2, 1.5]``   |
+    +----------------------+------------------------+
+    | ``val(2) = 1.5``     |                        |
+    +----------------------+------------------------+
+    | ``val = _mach_``     | ``val = "_mach_"``     |
+    +----------------------+------------------------+
+
+In most cases, the :class:`Namelist` will try to interpret invalid values for
+any namelist entry as a string with missing quotes.  The reason for this is
+that users often create template namelist with entries like ``_mach_`` that can
+be safely replaced with appropriate values using ``sed`` commands or something
+similar.
+
+There is also a function :func:`Namelist.ReturnDict` to access the entire
+namelist as a :class:`dict`.  Similarly, :func:`Namelist.ApplyDict` can be used
+to apply multiple settings using a :class:`dict` as input.
+
+See also:
+
+    * :mod:`cape.namelist`
+    * :func:`pyFun.case.GetNamelist`
+    * :func:`pyFun.fun3d.Fun3d.ReadNamelist`
+    * :func:`pyFun.fun3d.Fun3d.PrepareNamelist`
+
 """
 
 # System module
@@ -23,7 +94,6 @@ import cape.namelist
 class Namelist(cape.namelist.Namelist):
     """
     File control class for :file:`fun3d.nml`
-    ========================================
             
     This class is derived from the :class:`pyCart.fileCntl.FileCntl` class, so
     all methods applicable to that class can also be used for instances of this

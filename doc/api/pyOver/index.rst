@@ -13,6 +13,12 @@ The :mod:`pyOver` module
     
     overflow
     options/index
+    overNamelist
     case
+    trajectory
+    dataBook
+    lineLoad
     queue
+    report
+    tecplot
 
