@@ -15,10 +15,15 @@ The :mod:`pyOver` module
     options/index
     overNamelist
     case
+    bin
+    cmd
+    plot3d
     trajectory
     dataBook
     lineLoad
     queue
     report
     tecplot
+    manage
+    util
 

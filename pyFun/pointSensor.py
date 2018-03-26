@@ -1,13 +1,26 @@
 """
-Point Sensors Module: :mod:`pyCart.pointSensor`
-===============================================
+:mod:`pyFun.pointSensor`: FUN3D point sensors module
+========================================================
 
-This module contains a class for reading and averaging point sensors.  It is not
-included in the :mod:`pyCart.dataBook` module in order to give finer import
-control when used in other modules
+This module contains several classes for extracting point sensor data from
+FUN3D solutions. The database classes, :class:`DBTriqPointGroup` and
+:class:`DBTriqPoint`, are based on versions from the generic point sensor
+module :mod:`cape.pointSensor`. These classes extract surface solution data
+from a FUN3D boundary output file (usually with a name of
+``pyfun_tec_boundary_timestep1000.plt`` or similar) using :class:`pyFun.plt`
+and :class:`cape.tri` by interpolating the surface solution to the point on the
+discretized surface nearest the requested point.
 
-:Versions:
-    * 2015-11-30 ``@ddalle``: First version
+At present, there is no support for reading point sensor values directly from
+FUN3D output that can be requested from ``fun3d.nml``.
+
+:See also:
+    * :mod:`cape.pointSensor`
+    * :mod:`pyFun.dataBook`
+    * :mod:`pyFun.fun3d`
+    * :mod:`pyFun.plt`
+    * :mod:`cape.dataBook`
+    * :mod:`cape.tri`
 """
 
 # File interface

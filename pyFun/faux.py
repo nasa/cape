@@ -1,10 +1,16 @@
 """
-:mod:`pyFun.faux`: FAUXGeom Interface Module
+:mod:`pyFun.faux`: FAUXGeom interface module
 ============================================
 
 This is a module for interacting with FUN3D input files that define geometry
 for adaptation.  Files defined in the FAUXGeom file ``faux_input`` can have
 their surface meshes refined while other surfaces must be frozen.
+
+:See also:
+    * :func:`pyFun.fun3d.Fun3d.ReadFAUXGeom`
+    * :func:`pyFun.fun3d.Fun3d.PrepareFAUXGeom`
+    * :func:`pyFun.fun3d.Fun3d.ReadFreezeSurfs`
+    * :func:`pyFun.fun3d.Fun3d.PrepareFreezeSurfs`
 """
 
 # System modules

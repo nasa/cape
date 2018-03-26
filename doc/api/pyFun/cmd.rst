@@ -1,0 +1,4 @@
+
+.. automodule:: pyFun.cmd
+    :members: 
+

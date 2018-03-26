@@ -1,4 +1,8 @@
 
+===============================================
+:mod:`pyFun.options`: FUN3D and pyFun settings 
+===============================================
+
 .. automodule:: pyFun.options
     
     .. autoclass:: pyFun.options.Options

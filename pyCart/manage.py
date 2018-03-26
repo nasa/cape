@@ -1,16 +1,41 @@
 """
-Manage Run Directory Folders: :mod:`pyCart.manage`
-==================================================
+:mod:`pyCart.manage`: Manage pyCart case folders
+=================================================
 
-This module contains functions to manage files and folders, especially file
-count, for run directories.  The most important usage is to compress
-``adaptXX/`` folders except for the most recent folder.
+This module is a derivative of the main solution folder management module
+:mod:`cape.manage`. It provides Cart3D-specific versions of the three
+top-level functions, which each correspond to a primary command-line option.
+    
+    =======================   ==================
+    Function                  Command-line
+    =======================   ==================
+    :func:`CleanFolder`       ``--clean``
+    :func:`ArchiveFolder`     ``--archive``
+    :func:`SkeletonFolder`    ``--skeleton``
+    =======================   ==================
+    
+The Cart3D-specific versions of these commands use the function
+:func:`pyCart.options.Archive.auto_Archive`, which apply the default settings
+appropriate to pyCart. Because this module was the first folder management
+version created, it does not rely heavily on :mod:`cape.manage`. This module
+sets
 
-However, it can also be used to backup a run directory, expand tar balls, or
-delete extra material.
+    .. code-block:: python
+        
+        # Subdirectories
+        fsub = ['adapt??']
+        
+which tells the management functions to also look inside the adaptation
+solutions while archiving if they are present.
 
-:Versions:
-    * 2014-11-12 ``@ddalle``: Starter version
+The ``--unarchive`` command does not require any specific customizations for
+Cart3D, and the generic version of :func:`cape.manage.UnarchiveFolder` is
+just called directly.
+
+:See also:
+    * :mod:`cape.manage`
+    * :mod:`pyCart.options.Archive`
+    * :mod:`cape.options.Archive`
 """
 
 # File management modules

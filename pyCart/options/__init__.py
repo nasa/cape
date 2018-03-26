@@ -1,6 +1,4 @@
 """
-:mod:`pyCart.options`: Cart3D and pyCart Settings 
-**************************************************
 
 This module provides tools to read, access, modify, and write settings for
 :mod:`pyCart`.  The class is based off of the Python built-in :class:`dict`

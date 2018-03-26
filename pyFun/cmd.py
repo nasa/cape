@@ -1,13 +1,33 @@
 """
-Create command strings for FUN3D binaries: :mod:`pyFun.cmd`
-===========================================================
+:mod:`pyFun.cmd`: Create commands for FUN3D executables 
+=============================================================
 
-This module contains direct interfaces to Cart3D binaries so that they can be
-called from Python.  Settings for the binaries that are usually specified as
-command-line options are either specified as keyword arguments or inherited from
-a :class:`pyFun.fun3d.Fun3d` instance or inherited from a
-:class:`pyFun.options.Options` or :class:`pyFun.options.runControl.RunControl`
-instance.
+This module creates system commands as lists of strings for executable binaries
+or scripts for FUN3D.  The main FUN3D executables are ``nodet`` or
+``nodet_mpi``, for which command are created using :func:`nodet`, and ``dual``
+or ``dual_mpi``, whose commands are constructed using :func:`dual`.
+
+Commands are created in the form of a list of strings.  This is the format used
+in the built-in module :mod:`subprocess` and also with :func:`cape.bin.calli`. 
+As a very simple example, the system command ``"ls -lh"`` becomes the list
+``["ls", "-lh"]``.
+
+These commands also include prefixes such as ``mpiexec`` if necessary.  The
+decision to use ``nodet`` or ``nodet_mpi`` is made based on the options input
+of keyword input ``"MPI"``.  For example, two versions of the command returned
+by :func:`nodet` could be
+
+    .. code-block::
+    
+        ["mpiexec", "-np", "240", "nodet_mpi", "--plt_tecplot_output"]
+        ["nodet", "--plt_tecplot_output"]
+
+:See also:
+    * :mod:`cape.cmd`
+    * :mod:`cape.bin`
+    * :mod:`pyFun.bin`
+    * :mod:`pyFun.options.runControl`
+
 """
 
 # File checking.

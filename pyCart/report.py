@@ -120,7 +120,7 @@ class Report(cape.report.Report):
         *rep*: :class:`str`
             Name of report to update
     :Outputs:
-        *R*: :class:`pyCart.report.Report
+        *R*: :class:`pyCart.report.Report`
             Automated report interface
     :Versions:
         * 2015-03-07 ``@ddalle``: Started

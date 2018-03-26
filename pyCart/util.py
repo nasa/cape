@@ -1,7 +1,22 @@
 """
-Utilities for pyCart: :mod:`pyCart.util`
+:mod:`pyCart.util`: Utilities for pyCart 
 ========================================
 
+This module imports the generic utilities using
+
+    .. code-block:: python
+    
+        from cape.util import *
+        
+It also stores the absolute path to the folder containing the :mod:`pyCart`
+module as the variable *pyCartFolder*.
+
+The module also provides several other methods for reading multiple files to
+determine the situational status of the Cart3D solution in the present working
+directory.  These methods may be duplicated in :mod:`pyCart.case`.
+
+:See also:
+    * :mod:`cape.util`
 """
 
 # Import everything from cape.util

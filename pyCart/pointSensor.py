@@ -1,13 +1,27 @@
 """
-Point Sensors Module: :mod:`pyCart.pointSensor`
-===============================================
+:mod:`pyCart.pointSensor`: Cart3D point sensors module
+========================================================
 
-This module contains a class for reading and averaging point sensors.  It is not
-included in the :mod:`pyCart.dataBook` module in order to give finer import
-control when used in other modules
+This module contains several classes for reading and averaging point sensors.
+The database classes, :class:`DBPointSensorGroup` and :class:`DBPointSensor`,
+are based on versions from the generic point sensor module
+:mod:`cape.pointSensor`, while the iterative history class
+:class:`CasePointSensor` is based off of the generic
+:class:`cape.dataBook.CaseData` module.
 
-:Versions:
-    * 2015-11-30 ``@ddalle``: First version
+Tracking the iterative history of a point sensor requires declaring a point
+sensor in the Cart3D ``input.cntl`` file and requesting information about it at
+regularly scheduled iterations.
+
+At present, there is no support for extracting point sensors from a surface
+solution file (``"TriqPoint"`` data book type).
+
+:See also:
+    * :mod:`cape.pointSensor`
+    * :mod:`pyCart.dataBook`
+    * :mod:`pyCart.cart3d`
+    * :mod:`pyCart.inputCntl`
+    * :mod:`cape.dataBook`
 """
 
 # File interface
@@ -847,21 +861,21 @@ class CasePointSensor(cape.dataBook.CaseData):
             * ``"X"``: x-coordinate of point
             * ``"Y"``: y-coordinate of point
             * ``"Z"``: z-coordinate of point
-            * ``"dp"``: static pressure, :math:`p/p_\infty-1`
-            * ``"rho"``: static density, :math:`\rho/\rho_\infty`
-            * ``"U"``: x-component of velocity, :math:`u/a_\infty`
-            * ``"V"``: y-component of velocity, :math:`v/a_\infty`
-            * ``"W"``: z-component of velocity, :math:`w/a_\infty`
-            * ``"P"``: static pressure, :math:`p/(\gamma p_\infty)`
-            * ``"Cp"``: pressure coefficient, :math:`dp/(0.7*M_\infty^2`
-            * ``"p"``: static pressure, :math:`p/p_\infty`
-            * ``"T"``: Static temperature, :math:`T/T_\infty`
+            * ``"dp"``: static pressure, :math:`p/p_\\infty-1`
+            * ``"rho"``: static density, :math:`\\rho/\\rho_\\infty`
+            * ``"U"``: x-component of velocity, :math:`u/a_\\infty`
+            * ``"V"``: y-component of velocity, :math:`v/a_\\infty`
+            * ``"W"``: z-component of velocity, :math:`w/a_\\infty`
+            * ``"P"``: static pressure, :math:`p/(\\gamma p_\\infty)`
+            * ``"Cp"``: pressure coefficient, :math:`dp/(0.7*M_\\infty^2`
+            * ``"p"``: static pressure, :math:`p/p_\\infty`
+            * ``"T"``: Static temperature, :math:`T/T_\\infty`
             * ``"M"``: Mach number
         
         :Call:
             >>> C = PS.ExtractValue(c, k=None)
         :Inputs:
-            *PS*: :class:`pyCart.pointSensor.PointSensor
+            *PS*: :class:`pyCart.pointSensor.PointSensor`
                 Point sensor
             *c*: :class:`str` 
                 Name of state
@@ -1160,15 +1174,15 @@ class PointSensor(object):
             * ``"X"``: x-coordinate of point
             * ``"Y"``: y-coordinate of point
             * ``"Z"``: z-coordinate of point
-            * ``"dp"``: static pressure, :math:`p/p_\infty-1`
-            * ``"rho"``: static density, :math:`\rho/\rho_\infty`
-            * ``"U"``: x-component of velocity, :math:`u/a_\infty`
-            * ``"V"``: y-component of velocity, :math:`v/a_\infty`
-            * ``"W"``: z-component of velocity, :math:`w/a_\infty`
-            * ``"P"``: static pressure, :math:`p/(\gamma p_\infty)`
-            * ``"Cp"``: pressure coefficient, :math:`dp/(0.7*M_\infty^2`
-            * ``"p"``: static pressure, :math:`p/p_\infty`
-            * ``"T"``: Static temperature, :math:`T/T_\infty`
+            * ``"dp"``: static pressure, :math:`p/p_\\infty-1`
+            * ``"rho"``: static density, :math:`\\rho/\\rho_\\infty`
+            * ``"U"``: x-component of velocity, :math:`u/a_\\infty`
+            * ``"V"``: y-component of velocity, :math:`v/a_\\infty`
+            * ``"W"``: z-component of velocity, :math:`w/a_\\infty`
+            * ``"P"``: static pressure, :math:`p/(\\gamma p_\\infty)`
+            * ``"Cp"``: pressure coefficient, :math:`dp/(0.7*M_\\infty^2`
+            * ``"p"``: static pressure, :math:`p/p_\\infty`
+            * ``"T"``: Static temperature, :math:`T/T_\\infty`
             * ``"M"``: Mach number
             
         The values *Z* and *W* are not available for 2D data
@@ -1176,7 +1190,7 @@ class PointSensor(object):
         :Call:
             >>> C = PS.ExtractValue(c)
         :Inputs:
-            *PS*: :class:`pyCart.pointSensor.PointSensor
+            *PS*: :class:`pyCart.pointSensor.PointSensor`
                 Point sensor
             *c*: :class:`str` 
                 Name of state

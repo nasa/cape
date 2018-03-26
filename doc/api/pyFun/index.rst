@@ -15,9 +15,18 @@ The :mod:`pyFun` module
     options/index
     case
     namelist
+    mapbc
+    faux
+    rubberData
+    bin
+    cmd
     trajectory
     dataBook
     lineLoad
+    pointSensor
+    plt
     queue
     report
     tecplot
+    manage
+    util

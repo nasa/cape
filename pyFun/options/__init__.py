@@ -1,6 +1,4 @@
 """
-:mod:`pyFun.options`: FUN3D and pyFun settings 
-***********************************************
 
 This module provides tools to read, access, modify, and write settings for
 :mod:`pyFun`.  The class is based off of the built-in :class:`dict` class, so

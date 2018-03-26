@@ -1,8 +1,67 @@
 #!/usr/bin/env python
 """
-FUN3D boundary condition module: :mod:`pyFun.mapbc`
+:mod:`pyFun.mapbc`: FUN3D boundary condition module
 ===================================================
 
+This module provides an interface to FUN3D ``.mapbc`` files, which specify a
+boundary condition and name for each component ID in the surface grid.  An
+example of such a file is shown below.
+
+    .. code-block:: none
+    
+               13
+        21   5050        farfield_front
+        22   5050        farfield_top
+        23   5050        farfield_left
+        24   5050        farfield_bottom
+        25   5050        farfield_right
+        26   5050        farfield_back
+         1   4000        cap
+         2   4000        body
+         3   4000        base
+        11   4000        fin1
+        12   4000        fin2
+        13   4000        fin3
+        14   4000        fin4
+        
+The entry on the first line is the total number of components, which is also
+the number of remaining rows.  Each data row has three columns:
+
+    1. Surface component ID in original mesh
+    2. FUN3D boundary condition index
+    3. Name of the surface component
+    
+Providing an interface for this file (rather than simply copying a template 
+into each run folder) is convenient because FUN3D considers these to be
+components 1 through 13 (not 21, 22, ... 14), and combining this interface with
+a configuration XML file or configuration JSON file allows users to get the
+index or indices of of surfaces in a FUN3D component by name.
+
+If *BC* is an instance of the class provided in this module, :class:`MapBC`,
+for the ``.mapbc`` file shown above, then the following methods show the main
+capabilities for going back and forth between component numbers and surface
+numbers.
+
+    .. code-block:: pycon
+    
+        >>> BC.GetSurfIndex("cap")
+        6
+        >>> BC.GetSurfID("cap")
+        7
+        >>> BC.GetSurfIndex(1)
+        6
+        >>> BC.GetCompID("cap")
+        1
+        >>> BC.GerSurfID(11)
+        10
+        
+There is also a method :func:`MapBC.SetBC` that can be used to change the
+FUN3D boundary condition indices.
+
+:See also:
+    * :mod:`pyFun.fun3d`
+    * :func:`pyFun.fun3d.Fun3d.ReadMapBC`
+    * :func:`pyFun.fun3d.Fun3d.PrepareNamelistConfig`
 
 """
 

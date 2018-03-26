@@ -1,18 +1,40 @@
 """
-Manage Run Directory Folders: :mod:`pyFun.manage`
-==================================================
+:mod:`pyFun.manage`: Manage pyFun case folders
+=================================================
 
-This module contains functions to manage files and folders by archiving them to
-a different backup location and cleaning up by deleting or grouping files.
-Files can be deleted before or after copying to the archive, and groups of
-files matching a list of file globs can be grouped into tar balls.  There is
-also an option to replace each folder with a tar ball.
+This module is a derivative of the main solution folder management module
+:mod:`cape.manage`.  It provides FUN3D-specific versions of the three top-level
+functions, which each correspond to a primary command-line option.
+    
+    =======================   ==================
+    Function                  Command-line
+    =======================   ==================
+    :func:`CleanFolder`       ``--clean``
+    :func:`ArchiveFolder`     ``--archive``
+    :func:`SkeletonFolder`    ``--skeleton``
+    =======================   ==================
+    
+The FUN3D-specific versions of these commands use the function
+:func:`pyFun.options.Archive.auto_Archive`, which apply the default settings
+appropriate to pyFun, and then call the generic version of the function with
+the same name from :mod:`cape.manage`.  In addition, this module sets
 
-The tar balls that are created during archiving can also be deleted after being
-copied to the archive.
+    .. code-block:: python
+        
+        # Subdirectories
+        fsub = ["Flow"]
+        
+which instructs the archiving functions to also look inside the folder
+``Flow/`` if it exists.
 
-:Versions:
-    * 2016-12-27 ``@ddalle``: First version
+The ``--unarchive`` command does not require any specific customizations for
+FUN3D, and the generic version of :func:`cape.manage.UnarchiveFolder` is just
+called directly.
+
+:See also:
+    * :mod:`cape.manage`
+    * :mod:`pyFun.options.Archive`
+    * :mod:`cape.options.Archive`
 """
 
 # Options module

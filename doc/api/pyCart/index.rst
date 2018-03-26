@@ -23,6 +23,10 @@ The :mod:`pyCart` module
     preSpecCntl
     dataBook
     lineLoad
+    pointSensor
     queue
     report
     tecplot
+    manage
+    util
+

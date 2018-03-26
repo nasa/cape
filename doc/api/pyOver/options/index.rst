@@ -1,4 +1,8 @@
 
+====================================================
+:mod:`pyOver.options`: OVERFLOW and pyOver Settings 
+====================================================
+
 .. automodule:: pyOver.options
     
     .. autoclass:: pyOver.options.Options

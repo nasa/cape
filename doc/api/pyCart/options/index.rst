@@ -1,4 +1,8 @@
 
+==================================================
+:mod:`pyCart.options`: Cart3D and pyCart Settings 
+==================================================
+
 .. automodule:: pyCart.options
     
     .. autoclass:: pyCart.options.Options

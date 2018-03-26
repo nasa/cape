@@ -1,13 +1,49 @@
 """
-Create command strings for FUN3D binaries: :mod:`pyFun.cmd`
-===========================================================
+:mod:`pyOver.cmd`: Create commands for OVERFLOW executables 
+=============================================================
 
-This module contains direct interfaces to Cart3D binaries so that they can be
-called from Python.  Settings for the binaries that are usually specified as
-command-line options are either specified as keyword arguments or inherited from
-a :class:`pyFun.fun3d.Fun3d` instance or inherited from a
-:class:`pyFun.options.Options` or :class:`pyFun.options.runControl.RunControl`
-instance.
+This module creates system commands as lists of strings for executable binaries
+or scripts for OVERFLOW.  While OVERFLOW has only one main executable, there
+are several versions, which are all interpreted by the primary function of this
+module, :func:`overrun`.
+
+The basic format of the OVERFLOW command is determined using the value returned
+from :func:`pyOver.options.runControl.get_overrun_cmd` (or the keyword argument
+*cmd* to :func:`overrun`).  In some cases, the command will also depend on the
+OVERFLOW file prefix (usually ``"run"``), which is stored in a variable *pre*,
+the number of processors (technically cores) in *nProc*, and the phase number
+*i* (0-based; OVERFLOW uses 1-based phase indexing).  Let 
+
+    .. code-block:: python
+    
+        j = "%02i" % i
+        
+for convenience.  Finally, *mpicmd* is the system's call to run MPI
+executables, which is often ``"mpiexec"``.
+
+The format of the command that is generated can
+take any of the following versions based on the input options.
+
+    ====================  =====================================================
+    Value for *cmd*       System command
+    ====================  =====================================================
+    ``"overrunmpi"``      [``"overrunmpi"``, ``"-np"``, *nProc*, *pre*, *j*]
+    ``"overflowmpi"``     [*mpicmd*, ``"-np"``, *nProc*, ``"overflowmpi"``]
+    ``"overrun"``         [``"overrun"``, *pre*, *j*]
+    ``"overflow"``        [``"overflow"``]
+    ====================  =====================================================
+
+Commands are created in the form of a list of strings.  This is the format used
+in the built-in module :mod:`subprocess` and also with :func:`cape.bin.calli`. 
+As a very simple example, the system command ``"ls -lh"`` becomes the list
+``["ls", "-lh"]``.
+
+:See also:
+    * :mod:`cape.cmd`
+    * :mod:`cape.bin`
+    * :mod:`pyOver.bin`
+    * :mod:`pyOver.options.runControl`
+
 """
 
 # File checking.

@@ -1,8 +1,19 @@
 #!/usr/bin/env python
 """
-FUN3D optimization/adaptation file ``rubber.data``
-==================================================
+:mod:`pyFun.rubberData`: FUN3D optimization/adaptation file ``rubber.data``
+============================================================================
 
+This module provides an interface to the fixed-name FUN3D file ``rubber.data``
+that is used in FUN3D to provide inputs for optimization and or adjoint-based
+mesh adaptation.  It provides a single class
+:class:`pyFun.rubberData.RubberData` that interprets and sets individual lines
+of this customized data file.
+
+:See also:
+    * :mod:`cape.fileCntl`
+    * :mod:`pyFun.fun3d`
+    * :func:`pyFun.fun3d.Fun3d.ReadRubberData`
+    * :func:`pyFun.fun3d.Fun3d.PrepareRubberData`
 """
 
 # Numerics

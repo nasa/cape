@@ -1,18 +1,39 @@
 """
-Manage Run Directory Folders: :mod:`pyOver.manage`
-==================================================
+:mod:`pyOver.manage`: Manage pyOver case folders
+=================================================
 
-This module contains functions to manage files and folders by archiving them to
-a different backup location and cleaning up by deleting or grouping files.
-Files can be deleted before or after copying to the archive, and groups of
-files matching a list of file globs can be grouped into tar balls.  There is
-also an option to replace each folder with a tar ball.
+This module is a derivative of the main solution folder management module
+:mod:`cape.manage`. It provides OVERFLOW-specific versions of the three
+top-level functions, which each correspond to a primary command-line option.
+    
+    =======================   ==================
+    Function                  Command-line
+    =======================   ==================
+    :func:`CleanFolder`       ``--clean``
+    :func:`ArchiveFolder`     ``--archive``
+    :func:`SkeletonFolder`    ``--skeleton``
+    =======================   ==================
+    
+The OVERFLOW-specific versions of these commands use the function
+:func:`pyOver.options.Archive.auto_Archive`, which apply the default settings
+appropriate to pyOver, and then call the generic version of the function with
+the same name from :mod:`cape.manage`.  In addition, this module sets
 
-The tar balls that are created during archiving can also be deleted after being
-copied to the archive.
+    .. code-block:: python
+        
+        # Subdirectories
+        fsub = []
+        
+so the functions do not look inside any subfolders while archiving.
 
-:Versions:
-    * 2016-12-09 ``@ddalle``: First version
+The ``--unarchive`` command does not require any specific customizations for
+OVERFLOW, and the generic version of :func:`cape.manage.UnarchiveFolder` is
+just called directly.
+
+:See also:
+    * :mod:`cape.manage`
+    * :mod:`pyOver.options.Archive`
+    * :mod:`cape.options.Archive`
 """
 
 # Options module

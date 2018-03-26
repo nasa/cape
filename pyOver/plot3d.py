@@ -1,10 +1,20 @@
 #!/usr/bin/env python
 """
-Python interface to Plot3D files
-================================
+:class:`pyOver.plot3d`: Interface to OVERFLOW Plot3D files
+============================================================
 
-:Versions:
-    * 2016-02-26 ``@ddalle``: First version
+This module provides a generic Plot3D file interface for reading OVERFLOW grid
+system and solution files using the classes :class:`pyOver.plot3d.X` and
+:class:`pyOver.plot3d.Q`.
+
+These classes contain customizations of the generic Plot3D grid interface
+:class:`cape.plot3d.X` for OVERFLOW.  In addition to reading the custommized
+header from OVERFLOW ``q`` files, it also contains special calculators such as
+:func:`Q.get_Cp` that calculate derived quantities from the native OVERFLOW
+output state variables.
+
+:See also:
+    * :mod:`cape.plot3d`
 """
 
 # Numerics

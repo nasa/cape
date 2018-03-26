@@ -1,7 +1,31 @@
 """
-Tecplot PLT File Interface for Fun3D
-====================================
+:mod:`pyFun.plt`: Interface to FUN3D Tecplot PLT files
+========================================================
 
+This module provides the class :class:`pyFun.plt.Plt`, which intends to read
+and write Tecplot binary or ASCII PLT files for surface grid solutions from
+FUN3D. It is based on the generic PLT interface, :class:`cape.bin.plt.Plt`,
+which does not use the TecIO library to avoid causing unnecessary dependencies
+for the software.
+
+This version of the module has several modifications that are particular to
+FUN3D solutions.  It has a special method for calculating time-averaged *Cp*
+values from named FUN3D outputs, and it also includes an interface to FUN3D
+``.mapbc`` files to interpret names for each boundary zone.
+
+This class cannot read any generic ``.plt`` file; it focuses on surface grids
+with a mix of triangles and quads.  In particular it is closely paired with
+the :mod:`cape.tri` triangulation module.  The initial driving cause for
+creating this module was to read FUN3D boundary solution files and convert them
+to annotated Cart3D ``triq`` format for input to ``triload`` and other
+post-processing based on the :mod:`cape.tri` module.
+
+:See also:
+    * :mod:`cape.plt`
+    * :mod:`cape.tri`
+    * :mod:`pyFun.mapbc`
+    * :mod:`pc_Tri2Plt`
+    * :mod:`pc_Plt2Tri`
 
 """
 

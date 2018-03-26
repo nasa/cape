@@ -1,0 +1,3 @@
+
+.. automodule:: pyFun.bin
+    :members: 

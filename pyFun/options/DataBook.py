@@ -32,7 +32,7 @@ class DataBook(cape.options.DataBook):
     :Call:
         >>> opts = DataBook(**kw)
     :Outputs:
-        *opts*: :class:`pyFun.options.DataBook
+        *opts*: :class:`pyFun.options.DataBook`
     :Versions:
         * 2015-09-28 ``@ddalle``: Subclassed from CAPE
     """
